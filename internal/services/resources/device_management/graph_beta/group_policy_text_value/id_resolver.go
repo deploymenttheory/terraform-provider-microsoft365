@@ -3,11 +3,15 @@ package graphBetaGroupPolicyTextValue
 import (
 	"context"
 	"fmt"
+	"strings"
 
+	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
 	"github.com/microsoftgraph/msgraph-beta-sdk-go/devicemanagement"
+	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
+	graphcore "github.com/microsoftgraph/msgraph-sdk-go-core"
 )
 
 // groupPolicyIDResolver orchestrates the complex ID resolution process required by Microsoft Graph's
@@ -31,14 +35,14 @@ import (
 // providing a single interface that handles the appropriate resolution strategy based on operation type.
 // Without this abstraction, each CRUD operation would need to understand and implement the
 // template-vs-instance ID resolution logic independently.
-func groupPolicyIDResolver(ctx context.Context, data *GroupPolicyTextValueResourceModel, client *msgraphbetasdk.GraphServiceClient, operation string) error {
+func groupPolicyIDResolver(ctx context.Context, data *GroupPolicyTextValueResourceModel, client *msgraphbetasdk.GraphServiceClient, operation string) (error, int) {
 	tflog.Debug(ctx, fmt.Sprintf("[LOOKUP] GroupPolicyIDResolver: Starting %s operation", operation))
 
 	// Check if we have the required fields for lookup
 	if data.PolicyName.IsNull() || data.PolicyName.IsUnknown() ||
 		data.ClassType.IsNull() || data.ClassType.IsUnknown() ||
 		data.CategoryPath.IsNull() || data.CategoryPath.IsUnknown() {
-		return fmt.Errorf("provide policy_name, class_type, and category_path for auto-discovery")
+		return fmt.Errorf("provide policy_name, class_type, and category_path for auto-discovery"), 0
 	}
 
 	// Get presentation index (default to 0)
@@ -47,19 +51,25 @@ func groupPolicyIDResolver(ctx context.Context, data *GroupPolicyTextValueResour
 		presentationIndex = data.PresentationIndex.ValueInt64()
 	}
 
-	// Step 1: Always resolve policy name to template IDs
-	definitionTemplateID, presentationTemplateID, err := resolvePolicyNameToTemplateIDs(
-		ctx,
-		data.PolicyName.ValueString(),
-		data.ClassType.ValueString(),
-		data.CategoryPath.ValueString(),
-		presentationIndex,
-		client,
-	)
+	// Step 1: Resolve policy name to definition template ID
+	tflog.Debug(ctx, fmt.Sprintf("[LOOKUP] Resolving policy name '%s' (classType='%s', categoryPath='%s', presentationIndex=%d) to template IDs",
+		data.PolicyName.ValueString(), data.ClassType.ValueString(), data.CategoryPath.ValueString(), presentationIndex))
 
+	definitionTemplateID, err := groupPolicyNameResolver(ctx, client, data.PolicyName.ValueString(), data.ClassType.ValueString(), data.CategoryPath.ValueString())
 	if err != nil {
-		return err
+		errorInfo := errors.GraphError(ctx, err)
+		return fmt.Errorf("failed to find definition template: %w", err), errorInfo.StatusCode
 	}
+
+	// Step 2: Resolve the presentation OData type and get the presentation template ID
+	presentationTemplateID, err := resolveGroupPolicyPresentationOdata(ctx, client, definitionTemplateID, presentationIndex)
+	if err != nil {
+		errorInfo := errors.GraphError(ctx, err)
+		return fmt.Errorf("failed to find presentation template: %w", err), errorInfo.StatusCode
+	}
+
+	tflog.Debug(ctx, fmt.Sprintf("[LOOKUP] Successfully resolved policy name to template IDs - policyName='%s', categoryPath='%s', definitionTemplateID='%s', presentationTemplateID='%s'",
+		data.PolicyName.ValueString(), data.CategoryPath.ValueString(), definitionTemplateID, presentationTemplateID))
 
 	switch operation {
 	case "create":
@@ -78,7 +88,8 @@ func groupPolicyIDResolver(ctx context.Context, data *GroupPolicyTextValueResour
 		)
 
 		if err != nil {
-			return fmt.Errorf("failed to resolve template IDs to instance IDs: %w", err)
+			errorInfo := errors.GraphError(ctx, err)
+			return fmt.Errorf("failed to resolve template IDs to instance IDs: %w", err), errorInfo.StatusCode
 		}
 
 		// Store template IDs for bindings, but we'll pass instance IDs via a different mechanism
@@ -94,7 +105,7 @@ func groupPolicyIDResolver(ctx context.Context, data *GroupPolicyTextValueResour
 		data.AdditionalData["presentationValueInstanceID"] = presentationValueInstanceID
 
 		tflog.Debug(ctx, fmt.Sprintf("[LOOKUP] GroupPolicyIDResolver: UPDATE operation - using template IDs for bindings (definitionTemplateID: %s, presentationTemplateID: %s) and instance IDs for update (definitionValueInstanceID: %s, presentationValueInstanceID: %s)", definitionTemplateID, presentationTemplateID, definitionValueInstanceID, presentationValueInstanceID))
-	default:
+	case "read":
 		// For read, resolve template IDs to instance IDs
 		definitionValueInstanceID, presentationValueInstanceID, err := resolveTemplateIDsToInstanceIDs(
 			ctx,
@@ -105,59 +116,127 @@ func groupPolicyIDResolver(ctx context.Context, data *GroupPolicyTextValueResour
 		)
 
 		if err != nil {
-			return fmt.Errorf("failed to resolve template IDs to instance IDs: %w", err)
+			errorInfo := errors.GraphError(ctx, err)
+			// Handle 500 errors during read scenarios - resource likely deleted
+			if errorInfo.StatusCode == 500 && operation == "read" {
+				tflog.Warn(ctx, "500 error during read operation indicates resource has been deleted from policy configuration", map[string]any{
+					"status_code":    errorInfo.StatusCode,
+					"error_code":     errorInfo.ErrorCode,
+					"error_message":  errorInfo.ErrorMessage,
+					"request_id":     errorInfo.RequestID,
+				})
+
+				// Build concise error message based on what API actually returns
+				errorMsg := "resource no longer exists in policy configuration (HTTP 500)"
+				if errorInfo.ErrorMessage != "" {
+					// Use the API's error message as it's usually descriptive
+					errorMsg += fmt.Sprintf(": %s", errorInfo.ErrorMessage)
+				}
+
+				return fmt.Errorf("%s: %w", errorMsg, err), 500
+			}
+			return fmt.Errorf("failed to resolve template IDs to instance IDs: %w", err), errorInfo.StatusCode
 		}
 
 		// Store instance IDs
 		data.GroupPolicyDefinitionValueID = types.StringValue(definitionValueInstanceID)
 		data.PresentationID = types.StringValue(presentationTemplateID) // Keep template ID for binding
 		data.ID = types.StringValue(presentationValueInstanceID)
-		tflog.Debug(ctx, fmt.Sprintf("[LOOKUP] GroupPolicyIDResolver: %s operation - using instance IDs (definitionValueInstanceID: %s, presentationValueInstanceID: %s)", operation, definitionValueInstanceID, presentationValueInstanceID))
+		tflog.Debug(ctx, fmt.Sprintf("[LOOKUP] GroupPolicyIDResolver: READ operation - using instance IDs (definitionValueInstanceID: %s, presentationValueInstanceID: %s)", definitionValueInstanceID, presentationValueInstanceID))
+	default:
+		return fmt.Errorf("unsupported crud operation '%s' - must be 'create', 'read', or 'update'", operation), 0
 	}
 
-	return nil
+	return nil, 0
 }
 
-// resolvePolicyNameToTemplateIDs bridges the gap between human-readable policy authoring and Microsoft Graph's
-// GUID-based template system. This is necessary because:
-//
-//  1. Terraform users should author policies using intuitive names like "AD attribute containing Personal Site URL"
-//     rather than memorizing opaque GUIDs like "a82c8307-85a0-499e-a9f5-ab8974337b65"
-//
-//  2. Microsoft Graph stores policy definitions and presentations as separate template objects, each with
-//     their own GUID, requiring two separate API calls to resolve a single policy reference
-//
-//  3. The presentation selection logic (presentationIndex) allows users to specify which UI element to use
-//     when a policy definition has multiple presentation options (text boxes, dropdowns, etc.)
-//
-// Without this abstraction, users would need to manually look up template GUIDs and understand the
-// definition-to-presentation relationship, making the Terraform configuration brittle and user-unfriendly.
-func resolvePolicyNameToTemplateIDs(
-	ctx context.Context,
-	policyName, classType, categoryPath string,
-	presentationIndex int64,
-	client *msgraphbetasdk.GraphServiceClient,
-) (definitionTemplateID, presentationTemplateID string, err error) {
+// groupPolicyNameResolver finds the definition ID based on display name, class type, and category path
+// If multiple matches are found, an error is returned
+func groupPolicyNameResolver(ctx context.Context, client *msgraphbetasdk.GraphServiceClient, displayName, classType, categoryPath string) (string, error) {
 
-	tflog.Debug(ctx, fmt.Sprintf("[LOOKUP] Resolving policy name '%s' (classType='%s', categoryPath='%s', presentationIndex=%d) to template IDs",
-		policyName, classType, categoryPath, presentationIndex))
+	filterQuery := fmt.Sprintf("displayName eq '%s' and classType eq '%s' and categoryPath eq '%s'", displayName, classType, categoryPath)
+	tflog.Debug(ctx, fmt.Sprintf(" Resolving supplied group policy metadata to resolve group policy definition id using odata filter: %s", filterQuery))
 
-	// Step 1: Look up the definition template ID using category path for precise matching
-	definitionTemplateID, err = groupPolicyNameResolver(ctx, client, policyName, classType, categoryPath)
+	definitions, err := client.
+		DeviceManagement().
+		GroupPolicyDefinitions().
+		Get(ctx, &devicemanagement.GroupPolicyDefinitionsRequestBuilderGetRequestConfiguration{
+			QueryParameters: &devicemanagement.GroupPolicyDefinitionsRequestBuilderGetQueryParameters{
+				Select: []string{"id", "displayName", "classType", "categoryPath"},
+				Filter: &[]string{filterQuery}[0],
+			},
+		})
+
 	if err != nil {
-		return "", "", fmt.Errorf("failed to find definition template: %w", err)
+		return "", fmt.Errorf("failed to fetch group policy definitions: %w", err)
 	}
 
-	// Step 2: Resolve the presentation OData type and get the presentation template ID
-	presentationTemplateID, err = resolveGroupPolicyPresentationOdata(ctx, client, definitionTemplateID, presentationIndex)
+	// Use PageIterator there are over 7000 group policy definitions
+	var allResults []graphmodels.GroupPolicyDefinitionable
+
+	pageIterator, err := graphcore.NewPageIterator[graphmodels.GroupPolicyDefinitionable](
+		definitions,
+		client.GetAdapter(),
+		graphmodels.CreateGroupPolicyDefinitionCollectionResponseFromDiscriminatorValue,
+	)
+
 	if err != nil {
-		return "", "", fmt.Errorf("failed to find presentation template: %w", err)
+		return "", fmt.Errorf("failed to create page iterator: %w", err)
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("[LOOKUP] Successfully resolved policy name to template IDs - policyName='%s', categoryPath='%s', definitionTemplateID='%s', presentationTemplateID='%s'",
-		policyName, categoryPath, definitionTemplateID, presentationTemplateID))
+	err = pageIterator.Iterate(ctx, func(item graphmodels.GroupPolicyDefinitionable) bool {
+		if item != nil {
+			allResults = append(allResults, item)
+		}
+		return true
+	})
 
-	return definitionTemplateID, presentationTemplateID, nil
+	if err != nil {
+		return "", fmt.Errorf("failed to iterate pages: %w", err)
+	}
+
+	tflog.Debug(ctx, fmt.Sprintf(" Found %d definitions with odata filter with paginated GET", len(allResults)))
+
+	if len(allResults) == 0 {
+		return "", fmt.Errorf("no group policy definition found with displayName='%s', classType='%s', categoryPath='%s'", displayName, classType, categoryPath)
+	}
+
+	// If we have multiple results after complete filtering, this is an error
+	if len(allResults) > 1 {
+
+		var matchDetails []string
+		for i, def := range allResults {
+			if def != nil && def.GetId() != nil {
+				defID := *def.GetId()
+				defDisplayName := ""
+				if def.GetDisplayName() != nil {
+					defDisplayName = *def.GetDisplayName()
+				}
+				defClassType := ""
+				if def.GetClassType() != nil {
+					defClassType = def.GetClassType().String()
+				}
+				defCategoryPath := ""
+				if def.GetCategoryPath() != nil {
+					defCategoryPath = *def.GetCategoryPath()
+				}
+				matchDetails = append(matchDetails, fmt.Sprintf("Match %d: ID=%s, DisplayName='%s', ClassType='%s', CategoryPath='%s'", i+1, defID, defDisplayName, defClassType, defCategoryPath))
+			}
+		}
+
+		return "", fmt.Errorf("group policy name resolution failed to resolve to a singular definition, got %d matches: %s",
+			len(allResults), strings.Join(matchDetails, "; "))
+	}
+
+	firstResult := allResults[0]
+	if firstResult == nil || firstResult.GetId() == nil {
+		return "", fmt.Errorf("invalid group policy definition returned from server")
+	}
+
+	definitionID := *firstResult.GetId()
+	tflog.Debug(ctx, fmt.Sprintf(" ✅ Found single definition ID: %s", definitionID))
+
+	return definitionID, nil
 }
 
 // resolveGroupPolicyPresentationOdata dynamically determines the OData type of a presentation
@@ -169,16 +248,10 @@ func resolvePolicyNameToTemplateIDs(
 //
 // The function fetches the presentations for a given definition, selects the presentation at
 // the specified index, extracts its OData type, and uses that to lookup the presentation ID.
-func resolveGroupPolicyPresentationOdata(
-	ctx context.Context,
-	client *msgraphbetasdk.GraphServiceClient,
-	definitionTemplateID string,
-	presentationIndex int64,
-) (presentationTemplateID string, err error) {
+func resolveGroupPolicyPresentationOdata(ctx context.Context, client *msgraphbetasdk.GraphServiceClient, definitionTemplateID string, presentationIndex int64) (presentationTemplateID string, err error) {
 
 	tflog.Debug(ctx, fmt.Sprintf("[LOOKUP] Resolving presentation OData type for definitionID='%s', presentationIndex=%d", definitionTemplateID, presentationIndex))
 
-	// Get the presentations for this definition to determine the OData type
 	presentations, err := client.
 		DeviceManagement().
 		GroupPolicyDefinitions().

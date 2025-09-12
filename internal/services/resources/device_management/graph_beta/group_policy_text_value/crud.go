@@ -31,7 +31,7 @@ func (r *GroupPolicyTextValueResource) Create(ctx context.Context, req resource.
 	defer cancel()
 
 	// Resolve definition and presentation IDs for creation
-	err := groupPolicyIDResolver(ctx, &object, r.client, "create")
+	err, _ := groupPolicyIDResolver(ctx, &object, r.client, "create")
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error resolving IDs",
@@ -64,7 +64,7 @@ func (r *GroupPolicyTextValueResource) Create(ctx context.Context, req resource.
 	}
 
 	// After creating via updateDefinitionValues, we need to resolve again and return the instance IDs
-	err = groupPolicyIDResolver(ctx, &object, r.client, "read")
+	err, _ = groupPolicyIDResolver(ctx, &object, r.client, "read")
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error resolving instance IDs after creation",
@@ -123,14 +123,21 @@ func (r *GroupPolicyTextValueResource) Read(ctx context.Context, req resource.Re
 	}
 	defer cancel()
 
-	// Resolve definition and presentation IDs for reading
-	err := groupPolicyIDResolver(ctx, &object, r.client, "read")
+	err, statusCode := groupPolicyIDResolver(ctx, &object, r.client, "read")
 	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error resolving IDs during read",
-			fmt.Sprintf("Could not resolve definition and presentation IDs: %s: %s", ResourceName, err.Error()),
-		)
-		return
+		if statusCode == 500 {
+			warningTitle := fmt.Sprintf("Reading of resource %s with group policy configuration ID %s failed. Policy setting no longer exists and will be removed from state.", ResourceName, object.GroupPolicyConfigurationID.ValueString())
+			warningDetail := fmt.Sprintf("The group policy setting '%s' has been removed from the group policy configuration. %s. Removing from state.", object.PolicyName.ValueString(), err.Error())
+			resp.Diagnostics.AddWarning(warningTitle, warningDetail)
+			resp.State.RemoveResource(ctx)
+			return
+		} else {
+			resp.Diagnostics.AddError(
+				"Error resolving IDs during read",
+				fmt.Sprintf("Could not resolve definition and presentation IDs for %s (HTTP %d): %s", ResourceName, statusCode, err.Error()),
+			)
+			return
+		}
 	}
 
 	groupPolicyConfigurationID := object.GroupPolicyConfigurationID.ValueString()
@@ -207,7 +214,7 @@ func (r *GroupPolicyTextValueResource) Update(ctx context.Context, req resource.
 	defer cancel()
 
 	// Resolve definition and presentation IDs for update
-	err := groupPolicyIDResolver(ctx, &object, r.client, "update")
+	err, _ := groupPolicyIDResolver(ctx, &object, r.client, "update")
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error resolving IDs for update",

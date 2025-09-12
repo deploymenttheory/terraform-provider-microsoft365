@@ -7,10 +7,12 @@ import (
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	planmodifiers "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/plan_modifiers"
 	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/schema"
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 
 	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
 )
@@ -103,6 +105,9 @@ func (r *GroupPolicyTextValueResource) Schema(ctx context.Context, req resource.
 			"class_type": schema.StringAttribute{
 				Required:            true,
 				MarkdownDescription: "The class type of the group policy definition. Must be 'user' or 'machine'",
+				Validators: []validator.String{
+					stringvalidator.OneOf("user", "machine"),
+				},
 			},
 			"category_path": schema.StringAttribute{
 				Required:            true,
