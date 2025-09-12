@@ -3,6 +3,7 @@ package graphBetaGroupPolicyBooleanValue
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
@@ -125,7 +126,24 @@ func (r *GroupPolicyBooleanValueResource) Read(ctx context.Context, req resource
 
 	err, statusCode := GroupPolicyIDResolver(ctx, &object, r.client, "read")
 	if err != nil {
-		if statusCode == 500 {
+		tflog.Debug(ctx, "[BOOLEAN_VALUE] GroupPolicyIDResolver returned error during read", map[string]any{
+			"error":       err.Error(),
+			"status_code": statusCode,
+			"policy_name": object.PolicyName.ValueString(),
+			"config_id":   object.GroupPolicyConfigurationID.ValueString(),
+		})
+
+		// Check for resource deletion indicators (both old and new error formats)
+		isResourceDeleted := statusCode == 500 || strings.Contains(err.Error(), "resource has been deleted from policy configuration")
+
+		if isResourceDeleted {
+			tflog.Warn(ctx, "[BOOLEAN_VALUE] Resource appears to have been deleted - removing from state", map[string]any{
+				"policy_name": object.PolicyName.ValueString(),
+				"config_id":   object.GroupPolicyConfigurationID.ValueString(),
+				"error":       err.Error(),
+				"status_code": statusCode,
+			})
+
 			warningTitle := fmt.Sprintf("Reading of resource %s with group policy configuration ID %s failed. Policy setting no longer exists and will be removed from state.", ResourceName, object.GroupPolicyConfigurationID.ValueString())
 			warningDetail := fmt.Sprintf("The group policy setting '%s' has been removed from the group policy configuration. %s. Removing from state.", object.PolicyName.ValueString(), err.Error())
 			resp.Diagnostics.AddWarning(warningTitle, warningDetail)
