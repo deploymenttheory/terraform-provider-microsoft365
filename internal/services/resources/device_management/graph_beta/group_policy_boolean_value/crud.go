@@ -1,4 +1,4 @@
-package graphBetaGroupPolicyTextValue
+package graphBetaGroupPolicyBooleanValue
 
 import (
 	"context"
@@ -13,9 +13,9 @@ import (
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
-// Create handles the Create operation for Group Policy Text Value resources.
-func (r *GroupPolicyTextValueResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var object GroupPolicyTextValueResourceModel
+// Create handles the Create operation for Group Policy Boolean Value resources.
+func (r *GroupPolicyBooleanValueResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	var object GroupPolicyBooleanValueResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting creation of resource: %s", ResourceName))
 
@@ -97,9 +97,9 @@ func (r *GroupPolicyTextValueResource) Create(ctx context.Context, req resource.
 	tflog.Debug(ctx, fmt.Sprintf("Finished Create Method: %s", ResourceName))
 }
 
-// Read handles the Read operation for Group Policy Text Value resources.
-func (r *GroupPolicyTextValueResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var object GroupPolicyTextValueResourceModel
+// Read handles the Read operation for Group Policy Boolean Value resources.
+func (r *GroupPolicyBooleanValueResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	var object GroupPolicyBooleanValueResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting Read method for: %s", ResourceName))
 
@@ -142,28 +142,12 @@ func (r *GroupPolicyTextValueResource) Read(ctx context.Context, req resource.Re
 
 	groupPolicyConfigurationID := object.GroupPolicyConfigurationID.ValueString()
 	groupPolicyDefinitionValueID := object.GroupPolicyDefinitionValueID.ValueString()
-	presentationValueID := object.ID.ValueString()
 
-	if presentationValueID == "" || groupPolicyDefinitionValueID == "" {
+	if groupPolicyDefinitionValueID == "" {
 		resp.Diagnostics.AddError(
 			"Resource not found",
 			fmt.Sprintf("Could not find %s resource in configuration", ResourceName),
 		)
-		return
-	}
-
-	presentationValue, err := r.client.
-		DeviceManagement().
-		GroupPolicyConfigurations().
-		ByGroupPolicyConfigurationId(groupPolicyConfigurationID).
-		DefinitionValues().
-		ByGroupPolicyDefinitionValueId(groupPolicyDefinitionValueID).
-		PresentationValues().
-		ByGroupPolicyPresentationValueId(presentationValueID).
-		Get(ctx, nil)
-
-	if err != nil {
-		errors.HandleKiotaGraphError(ctx, err, resp, operation, r.ReadPermissions)
 		return
 	}
 
@@ -180,25 +164,61 @@ func (r *GroupPolicyTextValueResource) Read(ctx context.Context, req resource.Re
 		return
 	}
 
-	// Map the presentation value data
-	if textValue, ok := presentationValue.(graphmodels.GroupPolicyPresentationValueTextable); ok {
-		MapRemoteStateToTerraform(ctx, &object, textValue, definitionValue)
-	} else {
+	// Get all presentation values for this definition value
+	allPresentationValues, err := r.client.
+		DeviceManagement().
+		GroupPolicyConfigurations().
+		ByGroupPolicyConfigurationId(groupPolicyConfigurationID).
+		DefinitionValues().
+		ByGroupPolicyDefinitionValueId(groupPolicyDefinitionValueID).
+		PresentationValues().
+		Get(ctx, nil)
+
+	if err != nil {
+		errors.HandleKiotaGraphError(ctx, err, resp, operation, r.ReadPermissions)
+		return
+	}
+
+	if allPresentationValues == nil || allPresentationValues.GetValue() == nil {
 		resp.Diagnostics.AddError(
-			"Type assertion error",
-			fmt.Sprintf("Could not cast response to GroupPolicyPresentationValueText for resource: %s", ResourceName),
+			"No presentation values found",
+			fmt.Sprintf("No presentation values found for %s resource in configuration", ResourceName),
 		)
 		return
 	}
+
+	// Filter for boolean presentation values only
+	var booleanPresentationValues []graphmodels.GroupPolicyPresentationValueable
+	for _, presValue := range allPresentationValues.GetValue() {
+		if presValue == nil {
+			continue
+		}
+
+		odataType := presValue.GetOdataType()
+		if odataType != nil && *odataType == "#microsoft.graph.groupPolicyPresentationValueBoolean" {
+			booleanPresentationValues = append(booleanPresentationValues, presValue)
+		}
+	}
+
+	if len(booleanPresentationValues) == 0 {
+		resp.Diagnostics.AddError(
+			"No boolean presentation values found",
+			fmt.Sprintf("No boolean presentation values found for %s resource in configuration", ResourceName),
+		)
+		return
+	}
+
+	// Map the presentation values data
+	MapRemoteStateToTerraform(ctx, &object, booleanPresentationValues, definitionValue)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 
 	tflog.Debug(ctx, fmt.Sprintf("Finished Read Method: %s", ResourceName))
 }
 
-// Update handles the Update operation for Group Policy Text Value resources.
-func (r *GroupPolicyTextValueResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var object GroupPolicyTextValueResourceModel
+// Update handles the Update operation for Group Policy Boolean Value resources.
+func (r *GroupPolicyBooleanValueResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	var object GroupPolicyBooleanValueResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting Update of resource: %s", ResourceName))
 
@@ -269,9 +289,9 @@ func (r *GroupPolicyTextValueResource) Update(ctx context.Context, req resource.
 	tflog.Debug(ctx, fmt.Sprintf("Finished Update Method: %s", ResourceName))
 }
 
-// Delete handles the Delete operation for Group Policy Text Value resources.
-func (r *GroupPolicyTextValueResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var object GroupPolicyTextValueResourceModel
+// Delete handles the Delete operation for Group Policy Boolean Value resources.
+func (r *GroupPolicyBooleanValueResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	var object GroupPolicyBooleanValueResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting deletion of resource: %s", ResourceName))
 

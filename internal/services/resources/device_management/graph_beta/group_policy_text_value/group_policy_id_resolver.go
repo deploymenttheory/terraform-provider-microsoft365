@@ -35,7 +35,7 @@ import (
 // providing a single interface that handles the appropriate resolution strategy based on operation type.
 // Without this abstraction, each CRUD operation would need to understand and implement the
 // template-vs-instance ID resolution logic independently.
-func groupPolicyIDResolver(ctx context.Context, data *GroupPolicyTextValueResourceModel, client *msgraphbetasdk.GraphServiceClient, operation string) (error, int) {
+func GroupPolicyIDResolver(ctx context.Context, data *GroupPolicyTextValueResourceModel, client *msgraphbetasdk.GraphServiceClient, operation string) (error, int) {
 	tflog.Debug(ctx, fmt.Sprintf("[LOOKUP] GroupPolicyIDResolver: Starting %s operation", operation))
 
 	// Check if we have the required fields for lookup
@@ -45,15 +45,9 @@ func groupPolicyIDResolver(ctx context.Context, data *GroupPolicyTextValueResour
 		return fmt.Errorf("provide policy_name, class_type, and category_path for auto-discovery"), 0
 	}
 
-	// Get presentation index (default to 0)
-	presentationIndex := int64(0)
-	if !data.PresentationIndex.IsNull() && !data.PresentationIndex.IsUnknown() {
-		presentationIndex = data.PresentationIndex.ValueInt64()
-	}
-
 	// Step 1: Resolve policy name to definition template ID
-	tflog.Debug(ctx, fmt.Sprintf("[LOOKUP] Resolving policy name '%s' (classType='%s', categoryPath='%s', presentationIndex=%d) to template IDs",
-		data.PolicyName.ValueString(), data.ClassType.ValueString(), data.CategoryPath.ValueString(), presentationIndex))
+	tflog.Debug(ctx, fmt.Sprintf("[LOOKUP] Resolving policy name '%s' (classType='%s', categoryPath='%s') to definition template ID",
+		data.PolicyName.ValueString(), data.ClassType.ValueString(), data.CategoryPath.ValueString()))
 
 	definitionTemplateID, err := groupPolicyNameResolver(ctx, client, data.PolicyName.ValueString(), data.ClassType.ValueString(), data.CategoryPath.ValueString())
 	if err != nil {
@@ -61,8 +55,9 @@ func groupPolicyIDResolver(ctx context.Context, data *GroupPolicyTextValueResour
 		return fmt.Errorf("failed to find definition template: %w", err), errorInfo.StatusCode
 	}
 
-	// Step 2: Resolve the presentation OData type and get the presentation template ID
-	presentationTemplateID, err := resolveGroupPolicyPresentationOdata(ctx, client, definitionTemplateID, presentationIndex)
+	// Step 2: Use the first presentation available (any OData type)
+	// The system will automatically handle all presentations during CRUD operations
+	presentationTemplateID, err := resolveFirstPresentation(ctx, client, definitionTemplateID)
 	if err != nil {
 		errorInfo := errors.GraphError(ctx, err)
 		return fmt.Errorf("failed to find presentation template: %w", err), errorInfo.StatusCode
@@ -99,7 +94,7 @@ func groupPolicyIDResolver(ctx context.Context, data *GroupPolicyTextValueResour
 
 		// Store instance IDs in additional data for construct to use
 		if data.AdditionalData == nil {
-			data.AdditionalData = make(map[string]interface{})
+			data.AdditionalData = make(map[string]any)
 		}
 		data.AdditionalData["definitionValueInstanceID"] = definitionValueInstanceID
 		data.AdditionalData["presentationValueInstanceID"] = presentationValueInstanceID
@@ -120,16 +115,14 @@ func groupPolicyIDResolver(ctx context.Context, data *GroupPolicyTextValueResour
 			// Handle 500 errors during read scenarios - resource likely deleted
 			if errorInfo.StatusCode == 500 && operation == "read" {
 				tflog.Warn(ctx, "500 error during read operation indicates resource has been deleted from policy configuration", map[string]any{
-					"status_code":    errorInfo.StatusCode,
-					"error_code":     errorInfo.ErrorCode,
-					"error_message":  errorInfo.ErrorMessage,
-					"request_id":     errorInfo.RequestID,
+					"status_code":   errorInfo.StatusCode,
+					"error_code":    errorInfo.ErrorCode,
+					"error_message": errorInfo.ErrorMessage,
+					"request_id":    errorInfo.RequestID,
 				})
 
-				// Build concise error message based on what API actually returns
 				errorMsg := "resource no longer exists in policy configuration (HTTP 500)"
 				if errorInfo.ErrorMessage != "" {
-					// Use the API's error message as it's usually descriptive
 					errorMsg += fmt.Sprintf(": %s", errorInfo.ErrorMessage)
 				}
 
@@ -138,7 +131,6 @@ func groupPolicyIDResolver(ctx context.Context, data *GroupPolicyTextValueResour
 			return fmt.Errorf("failed to resolve template IDs to instance IDs: %w", err), errorInfo.StatusCode
 		}
 
-		// Store instance IDs
 		data.GroupPolicyDefinitionValueID = types.StringValue(definitionValueInstanceID)
 		data.PresentationID = types.StringValue(presentationTemplateID) // Keep template ID for binding
 		data.ID = types.StringValue(presentationValueInstanceID)
@@ -239,19 +231,21 @@ func groupPolicyNameResolver(ctx context.Context, client *msgraphbetasdk.GraphSe
 	return definitionID, nil
 }
 
-// resolveGroupPolicyPresentationOdata dynamically determines the OData type of a presentation
-// and returns the corresponding presentation template ID. This is necessary because:
+// resolveFirstPresentation finds the first available presentation for a policy definition.
+// This simplifies the user experience by automatically selecting the first valid presentation
+// without requiring users to understand presentation indices or types.
 //
-// 1. Different policies use different presentation types (TextBox, MultiTextBox, CheckBox, etc.)
-// 2. The OData type cannot be hardcoded as it varies by policy definition
-// 3. The presentationIndex allows selecting a specific presentation when multiple exist
-//
-// The function fetches the presentations for a given definition, selects the presentation at
-// the specified index, extracts its OData type, and uses that to lookup the presentation ID.
-func resolveGroupPolicyPresentationOdata(ctx context.Context, client *msgraphbetasdk.GraphServiceClient, definitionTemplateID string, presentationIndex int64) (presentationTemplateID string, err error) {
+// The function searches through all presentations for a definition and returns the first one that
+// has a valid OData type, supporting all presentation types (TextBox, MultiTextBox, Text, CheckBox, etc.).
+func resolveFirstPresentation(
+	ctx context.Context,
+	client *msgraphbetasdk.GraphServiceClient,
+	definitionTemplateID string,
+) (presentationTemplateID string, err error) {
 
-	tflog.Debug(ctx, fmt.Sprintf("[LOOKUP] Resolving presentation OData type for definitionID='%s', presentationIndex=%d", definitionTemplateID, presentationIndex))
+	tflog.Debug(ctx, fmt.Sprintf("[LOOKUP] Finding first presentation for definitionID='%s'", definitionTemplateID))
 
+	// Get all presentations for this definition
 	presentations, err := client.
 		DeviceManagement().
 		GroupPolicyDefinitions().
@@ -267,33 +261,30 @@ func resolveGroupPolicyPresentationOdata(ctx context.Context, client *msgraphbet
 		return "", fmt.Errorf("no presentations found for definition %s", definitionTemplateID)
 	}
 
-	// Get the presentation at the specified index (default 0)
 	presentationList := presentations.GetValue()
-	if int64(len(presentationList)) <= presentationIndex {
-		return "", fmt.Errorf("presentation index %d out of range, found %d presentations", presentationIndex, len(presentationList))
+	tflog.Debug(ctx, fmt.Sprintf("[LOOKUP] Found %d presentations for definition", len(presentationList)))
+
+	// Return the first presentation with a valid OData type and ID
+	for i, presentation := range presentationList {
+		if presentation == nil {
+			continue
+		}
+
+		odataType := presentation.GetOdataType()
+		if odataType == nil {
+			continue
+		}
+
+		presentationID := presentation.GetId()
+		if presentationID == nil {
+			continue
+		}
+
+		tflog.Debug(ctx, fmt.Sprintf("[LOOKUP] Found presentation %d: type=%s, id=%s", i, *odataType, *presentationID))
+		return *presentationID, nil
 	}
 
-	selectedPresentation := presentationList[presentationIndex]
-	if selectedPresentation == nil {
-		return "", fmt.Errorf("presentation at index %d is nil", presentationIndex)
-	}
-
-	// Extract the OData type from the selected presentation
-	odataType := selectedPresentation.GetOdataType()
-	if odataType == nil {
-		return "", fmt.Errorf("presentation at index %d has no OData type", presentationIndex)
-	}
-
-	tflog.Debug(ctx, fmt.Sprintf("[LOOKUP] Found presentation OData type: %s at index %d", *odataType, presentationIndex))
-
-	// Look up the presentation template ID using the dynamically determined OData type
-	presentationTemplateID, err = LookupPresentationID(ctx, client, definitionTemplateID, *odataType)
-	if err != nil {
-		return "", fmt.Errorf("failed to find presentation template with OData type %s: %w", *odataType, err)
-	}
-
-	tflog.Debug(ctx, fmt.Sprintf("[LOOKUP] Successfully resolved presentation template ID: %s", presentationTemplateID))
-	return presentationTemplateID, nil
+	return "", fmt.Errorf("no valid presentations found for definition %s", definitionTemplateID)
 }
 
 // resolveTemplateIDsToInstanceIDs navigates from policy templates to their actual configured instances
@@ -386,16 +377,17 @@ func resolveTemplateIDsToInstanceIDs(ctx context.Context, configID, definitionTe
 				continue
 			}
 
-			// Find the text presentation value
+			// Find the first presentation value (any type)
 			for _, presValue := range presValues {
 				if presValue == nil {
 					continue
 				}
 
 				odataType := presValue.GetOdataType()
-				if odataType != nil && *odataType == "#microsoft.graph.groupPolicyPresentationValueText" {
+				if odataType != nil {
 					presValueID := presValue.GetId()
 					if presValueID != nil {
+						tflog.Debug(ctx, fmt.Sprintf("[LOOKUP] Found presentation value instance ID: %s (type: %s)", *presValueID, *odataType))
 						return *defValueID, *presValueID, nil
 					}
 				}
@@ -404,43 +396,4 @@ func resolveTemplateIDsToInstanceIDs(ctx context.Context, configID, definitionTe
 	}
 
 	return "", "", fmt.Errorf("no existing definition value found for definition template ID: %s", definitionTemplateID)
-}
-
-// LookupPresentationID finds the presentation ID for a given definition and OData type
-func LookupPresentationID(ctx context.Context, client *msgraphbetasdk.GraphServiceClient, definitionID, odataType string) (string, error) {
-	tflog.Debug(ctx, fmt.Sprintf("[LOOKUP] Looking up presentation ID for definitionID='%s', odataType='%s'", definitionID, odataType))
-
-	// Get presentations for the definition
-	presentations, err := client.
-		DeviceManagement().
-		GroupPolicyDefinitions().
-		ByGroupPolicyDefinitionId(definitionID).
-		Presentations().
-		Get(ctx, nil)
-
-	if err != nil {
-		return "", fmt.Errorf("failed to get presentations for definition %s: %w", definitionID, err)
-	}
-
-	if presentations == nil || presentations.GetValue() == nil {
-		return "", fmt.Errorf("no presentations found for definition %s", definitionID)
-	}
-
-	// Find the first presentation that matches the OData type
-	for _, presentation := range presentations.GetValue() {
-		if presentation == nil {
-			continue
-		}
-
-		presentationODataType := presentation.GetOdataType()
-		if presentationODataType != nil && *presentationODataType == odataType {
-			presentationID := presentation.GetId()
-			if presentationID != nil {
-				tflog.Debug(ctx, fmt.Sprintf("[LOOKUP] Found matching presentation ID: %s", *presentationID))
-				return *presentationID, nil
-			}
-		}
-	}
-
-	return "", fmt.Errorf("no presentation found with OData type %s for definition %s", odataType, definitionID)
 }

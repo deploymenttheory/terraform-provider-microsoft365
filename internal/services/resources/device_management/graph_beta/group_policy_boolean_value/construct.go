@@ -1,4 +1,4 @@
-package graphBetaGroupPolicyTextValue
+package graphBetaGroupPolicyBooleanValue
 
 import (
 	"context"
@@ -11,8 +11,8 @@ import (
 	"github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
-// constructResource constructs the updateDefinitionValues request for group policy text value operations
-func constructResource(ctx context.Context, data *GroupPolicyTextValueResourceModel, operation string) (*devicemanagement.GroupPolicyConfigurationsItemUpdateDefinitionValuesPostRequestBody, error) {
+// constructResource constructs the updateDefinitionValues request for group policy boolean value operations
+func constructResource(ctx context.Context, data *GroupPolicyBooleanValueResourceModel, operation string) (*devicemanagement.GroupPolicyConfigurationsItemUpdateDefinitionValuesPostRequestBody, error) {
 	tflog.Debug(ctx, fmt.Sprintf("Constructing updateDefinitionValues request for %s", ResourceName))
 
 	requestBody := devicemanagement.NewGroupPolicyConfigurationsItemUpdateDefinitionValuesPostRequestBody()
@@ -28,20 +28,47 @@ func constructResource(ctx context.Context, data *GroupPolicyTextValueResourceMo
 		"definition@odata.bind": definitionBindURL,
 	})
 
-	textPresentationValue := models.NewGroupPolicyPresentationValueText()
-	odataType := "#microsoft.graph.groupPolicyPresentationValueText"
-	textPresentationValue.SetOdataType(&odataType)
+	// Convert the Terraform list to Go slice of BooleanPresentationValue structs
+	var booleanValues []BooleanPresentationValue
+	data.Values.ElementsAs(ctx, &booleanValues, false)
 
-	convert.FrameworkToGraphString(data.Value, textPresentationValue.SetValue)
+	// Get resolved presentations from AdditionalData
+	resolvedPresentations, ok := data.AdditionalData["resolvedPresentations"].([]ResolvedPresentation)
+	if !ok && operation != "delete" {
+		return nil, fmt.Errorf("missing resolved presentations in AdditionalData")
+	}
 
-	presentationID := data.PresentationID.ValueString()
-	presentationBindURL := fmt.Sprintf("https://graph.microsoft.com/beta/deviceManagement/groupPolicyDefinitions('%s')/presentations('%s')", definitionID, presentationID)
+	var presentationValues []models.GroupPolicyPresentationValueable
 
-	textPresentationValue.SetAdditionalData(map[string]any{
-		"presentation@odata.bind": presentationBindURL,
-	})
+	// Create presentation values for each boolean value
+	for i, boolValue := range booleanValues {
+		booleanPresentationValue := models.NewGroupPolicyPresentationValueBoolean()
+		odataType := "#microsoft.graph.groupPolicyPresentationValueBoolean"
+		booleanPresentationValue.SetOdataType(&odataType)
 
-	presentationValues := []models.GroupPolicyPresentationValueable{textPresentationValue}
+		convert.FrameworkToGraphBool(boolValue.Value, booleanPresentationValue.SetValue)
+
+		// Get the appropriate presentation ID
+		var presentationID string
+		if operation == "delete" {
+			// For delete, use the stored presentation ID from the value
+			presentationID = boolValue.PresentationID.ValueString()
+		} else if i < len(resolvedPresentations) {
+			// Use resolved presentation ID
+			presentationID = resolvedPresentations[i].TemplateID
+		} else {
+			return nil, fmt.Errorf("no presentation ID available for boolean value at index %d", i)
+		}
+
+		presentationBindURL := fmt.Sprintf("https://graph.microsoft.com/beta/deviceManagement/groupPolicyDefinitions('%s')/presentations('%s')", definitionID, presentationID)
+
+		booleanPresentationValue.SetAdditionalData(map[string]any{
+			"presentation@odata.bind": presentationBindURL,
+		})
+
+		presentationValues = append(presentationValues, booleanPresentationValue)
+	}
+
 	definitionValue.SetPresentationValues(presentationValues)
 
 	// the request body supports add, update, and delete with distinct structures for each operation.
@@ -60,14 +87,17 @@ func constructResource(ctx context.Context, data *GroupPolicyTextValueResourceMo
 			return nil, fmt.Errorf("missing definitionValueInstanceID in AdditionalData for update operation")
 		}
 
-		presentationValueInstanceID, ok := data.AdditionalData["presentationValueInstanceID"].(string)
-		if !ok {
-			return nil, fmt.Errorf("missing presentationValueInstanceID in AdditionalData for update operation")
-		}
-
 		definitionValue.SetId(&definitionValueInstanceID)
 
-		textPresentationValue.SetId(&presentationValueInstanceID)
+		// Set instance IDs for each presentation value
+		for i, presentationValue := range presentationValues {
+			if i < len(resolvedPresentations) {
+				instanceID := resolvedPresentations[i].InstanceID
+				if boolValue, ok := presentationValue.(*models.GroupPolicyPresentationValueBoolean); ok {
+					boolValue.SetId(&instanceID)
+				}
+			}
+		}
 
 		updatedValues := []models.GroupPolicyDefinitionValueable{definitionValue}
 		requestBody.SetAdded([]models.GroupPolicyDefinitionValueable{})

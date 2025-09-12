@@ -1,4 +1,4 @@
-package graphBetaGroupPolicyTextValue
+package graphBetaGroupPolicyBooleanValue
 
 import (
 	"context"
@@ -18,7 +18,7 @@ import (
 )
 
 const (
-	ResourceName  = "graph_beta_device_management_group_policy_text_value"
+	ResourceName  = "graph_beta_device_management_group_policy_boolean_value"
 	CreateTimeout = 180
 	UpdateTimeout = 180
 	ReadTimeout   = 180
@@ -27,20 +27,20 @@ const (
 
 var (
 	// Basic resource interface (CRUD operations)
-	_ resource.Resource = &GroupPolicyTextValueResource{}
+	_ resource.Resource = &GroupPolicyBooleanValueResource{}
 
 	// Allows the resource to be configured with the provider client
-	_ resource.ResourceWithConfigure = &GroupPolicyTextValueResource{}
+	_ resource.ResourceWithConfigure = &GroupPolicyBooleanValueResource{}
 
 	// Enables import functionality
-	_ resource.ResourceWithImportState = &GroupPolicyTextValueResource{}
+	_ resource.ResourceWithImportState = &GroupPolicyBooleanValueResource{}
 
 	// Enables plan modification/diff suppression
-	_ resource.ResourceWithModifyPlan = &GroupPolicyTextValueResource{}
+	_ resource.ResourceWithModifyPlan = &GroupPolicyBooleanValueResource{}
 )
 
-func NewGroupPolicyTextValueResource() resource.Resource {
-	return &GroupPolicyTextValueResource{
+func NewGroupPolicyBooleanValueResource() resource.Resource {
+	return &GroupPolicyBooleanValueResource{
 		ReadPermissions: []string{
 			"DeviceManagementConfiguration.Read.All",
 		},
@@ -50,7 +50,7 @@ func NewGroupPolicyTextValueResource() resource.Resource {
 	}
 }
 
-type GroupPolicyTextValueResource struct {
+type GroupPolicyBooleanValueResource struct {
 	client           *msgraphbetasdk.GraphServiceClient
 	ProviderTypeName string
 	TypeName         string
@@ -59,38 +59,38 @@ type GroupPolicyTextValueResource struct {
 }
 
 // Metadata returns the resource type name.
-func (r *GroupPolicyTextValueResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+func (r *GroupPolicyBooleanValueResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	r.ProviderTypeName = req.ProviderTypeName
 	r.TypeName = ResourceName
 	resp.TypeName = r.FullTypeName()
 }
 
 // FullTypeName returns the full resource type name in the format "providername_resourcename".
-func (r *GroupPolicyTextValueResource) FullTypeName() string {
+func (r *GroupPolicyBooleanValueResource) FullTypeName() string {
 	return r.ProviderTypeName + "_" + r.TypeName
 }
 
 // Configure sets the client for the resource.
-func (r *GroupPolicyTextValueResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *GroupPolicyBooleanValueResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	r.client = client.SetGraphBetaClientForResource(ctx, req, resp, constants.PROVIDER_NAME+"_"+ResourceName)
 }
 
 // ImportState imports the resource state.
-func (r *GroupPolicyTextValueResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+func (r *GroupPolicyBooleanValueResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }
 
 // Schema returns the schema for the resource.
-func (r *GroupPolicyTextValueResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+func (r *GroupPolicyBooleanValueResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Manages group policy presentation text values in Microsoft Intune using the `/deviceManagement/groupPolicyConfigurations/{groupPolicyConfigurationId}/definitionValues/{groupPolicyDefinitionValueId}/presentationValues` endpoint. This resource represents a text value for group policy presentations such as text boxes, combo boxes, or drop-down lists.",
+		MarkdownDescription: "Manages group policy presentation boolean values in Microsoft Intune using the `/deviceManagement/groupPolicyConfigurations/{groupPolicyConfigurationId}/definitionValues/{groupPolicyDefinitionValueId}/presentationValues` endpoint. This resource represents multiple boolean values for group policy presentations such as checkboxes or radio buttons within a single policy definition.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed: true,
 				PlanModifiers: []planmodifier.String{
 					planmodifiers.UseStateForUnknownString(),
 				},
-				MarkdownDescription: "The unique identifier for the group policy presentation text value",
+				MarkdownDescription: "The unique identifier for the group policy definition value (not individual presentation values)",
 			},
 			"group_policy_configuration_id": schema.StringAttribute{
 				Required:            true,
@@ -115,17 +115,26 @@ func (r *GroupPolicyTextValueResource) Schema(ctx context.Context, req resource.
 				Computed:            true,
 				MarkdownDescription: "The unique identifier of the group policy definition value instance within the configuration (resolved automatically from policy_name and class_type)",
 			},
-			"presentation_id": schema.StringAttribute{
-				Computed:            true,
-				MarkdownDescription: "The unique identifier of the group policy presentation template (resolved automatically from the policy definition and presentation_index)",
-			},
 			"enabled": schema.BoolAttribute{
 				Required:            true,
 				MarkdownDescription: "Whether the group policy setting is enabled or disabled",
 			},
-			"value": schema.StringAttribute{
+			"values": schema.ListNestedAttribute{
 				Required:            true,
-				MarkdownDescription: "The text value for the group policy setting",
+				MarkdownDescription: "List of boolean presentation values for this group policy definition. Each presentation corresponds to a different checkbox or setting within the policy.",
+				NestedObject: schema.NestedAttributeObject{
+					Attributes: map[string]schema.Attribute{
+						"presentation_id": schema.StringAttribute{
+							Optional:            true,
+							Computed:            true,
+							MarkdownDescription: "The unique identifier of the group policy presentation template. If not provided, presentations will be auto-resolved in order.",
+						},
+						"value": schema.BoolAttribute{
+							Required:            true,
+							MarkdownDescription: "The boolean value for this specific presentation",
+						},
+					},
+				},
 			},
 			"created_date_time": schema.StringAttribute{
 				Computed:            true,
