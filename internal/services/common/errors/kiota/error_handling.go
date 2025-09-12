@@ -27,7 +27,7 @@ type GraphErrorInfo struct {
 	ErrorMessage    string
 	Target          string
 	IsODataError    bool
-	AdditionalData  map[string]interface{}
+	AdditionalData  map[string]any
 	Headers         *abstractions.ResponseHeaders
 	RequestDetails  string
 	RetryAfter      string
@@ -74,11 +74,11 @@ const (
 )
 
 // HandleKiotaGraphError processes Graph API errors and dispatches them appropriately
-func HandleKiotaGraphError(ctx context.Context, err error, resp interface{}, operation string, requiredPermissions []string) {
+func HandleKiotaGraphError(ctx context.Context, err error, resp any, operation string, requiredPermissions []string) {
 	errorInfo := GraphError(ctx, err)
 	errorDesc := getErrorDescription(errorInfo.StatusCode)
 
-	tflog.Debug(ctx, "Handling Graph error:", map[string]interface{}{
+	tflog.Debug(ctx, "Handling Graph error:", map[string]any{
 		"status_code":    errorInfo.StatusCode,
 		"operation":      operation,
 		"error_code":     errorInfo.ErrorCode,
@@ -147,7 +147,7 @@ func HandleKiotaGraphError(ctx context.Context, err error, resp interface{}, ope
 // GraphError extracts and analyzes error information from Graph API errors
 func GraphError(ctx context.Context, err error) GraphErrorInfo {
 	errorInfo := GraphErrorInfo{
-		AdditionalData: make(map[string]interface{}),
+		AdditionalData: make(map[string]any),
 		InnerErrors:    []InnerErrorInfo{},
 		ErrorDetails:   []ErrorDetailInfo{},
 	}
@@ -158,7 +158,7 @@ func GraphError(ctx context.Context, err error) GraphErrorInfo {
 
 	errorInfo.ErrorMessage = err.Error()
 
-	tflog.Debug(ctx, "Extracting error information", map[string]interface{}{
+	tflog.Debug(ctx, "Extracting error information", map[string]any{
 		"error_type": fmt.Sprintf("%T", err),
 		"error":      err.Error(),
 	})
@@ -194,7 +194,7 @@ func GraphError(ctx context.Context, err error) GraphErrorInfo {
 
 // extractURLError handles URL specific errors
 func extractURLError(ctx context.Context, urlErr *url.Error, errorInfo *GraphErrorInfo) {
-	tflog.Debug(ctx, "URL error detected", map[string]interface{}{
+	tflog.Debug(ctx, "URL error detected", map[string]any{
 		"url": urlErr.URL,
 		"op":  urlErr.Op,
 		"err": urlErr.Err.Error(),
@@ -306,7 +306,7 @@ func extractODataError(ctx context.Context, odataErr *odataerrors.ODataError, er
 func extractMainError(ctx context.Context, mainError odataerrors.MainErrorable, errorInfo *GraphErrorInfo) {
 	if code := mainError.GetCode(); code != nil && *code != "" {
 		errorInfo.ErrorCode = *code
-		tflog.Debug(ctx, "Found main error code", map[string]interface{}{
+		tflog.Debug(ctx, "Found main error code", map[string]any{
 			"code": *code,
 		})
 
@@ -318,14 +318,14 @@ func extractMainError(ctx context.Context, mainError odataerrors.MainErrorable, 
 
 	if message := mainError.GetMessage(); message != nil && *message != "" {
 		errorInfo.ErrorMessage = *message
-		tflog.Debug(ctx, "Found main error message", map[string]interface{}{
+		tflog.Debug(ctx, "Found main error message", map[string]any{
 			"message": *message,
 		})
 	}
 
 	if target := mainError.GetTarget(); target != nil && *target != "" {
 		errorInfo.Target = *target
-		tflog.Debug(ctx, "Found error target", map[string]interface{}{
+		tflog.Debug(ctx, "Found error target", map[string]any{
 			"target": *target,
 		})
 	}
@@ -338,7 +338,7 @@ func extractErrorDetails(ctx context.Context, mainError odataerrors.MainErrorabl
 		return
 	}
 
-	tflog.Debug(ctx, "Extracting error details", map[string]interface{}{
+	tflog.Debug(ctx, "Extracting error details", map[string]any{
 		"detail_count": len(details),
 	})
 
@@ -359,7 +359,7 @@ func extractErrorDetails(ctx context.Context, mainError odataerrors.MainErrorabl
 
 		errorInfo.ErrorDetails = append(errorInfo.ErrorDetails, detailInfo)
 
-		tflog.Debug(ctx, "Extracted error detail", map[string]interface{}{
+		tflog.Debug(ctx, "Extracted error detail", map[string]any{
 			"index":  i,
 			"code":   detailInfo.Code,
 			"target": detailInfo.Target,
@@ -407,7 +407,7 @@ func extractInnerError(ctx context.Context, innerError odataerrors.InnerErrorabl
 
 	errorInfo.InnerErrors = append(errorInfo.InnerErrors, innerInfo)
 
-	tflog.Debug(ctx, "Extracted inner error", map[string]interface{}{
+	tflog.Debug(ctx, "Extracted inner error", map[string]any{
 		"odata_type": innerInfo.ODataType,
 		"request_id": innerInfo.RequestID,
 	})
@@ -545,7 +545,7 @@ func categorizeError(errorInfo *GraphErrorInfo) ErrorCategory {
 // recordErrorMetrics records error metrics for observability
 func recordErrorMetrics(ctx context.Context, errorInfo *GraphErrorInfo, operation string) {
 	// Log structured metrics that can be consumed by monitoring systems
-	tflog.Info(ctx, "Graph API Error Metrics", map[string]interface{}{
+	tflog.Info(ctx, "Graph API Error Metrics", map[string]any{
 		"metric_type":       "graph_api_error",
 		"status_code":       errorInfo.StatusCode,
 		"error_code":        errorInfo.ErrorCode,
@@ -560,7 +560,7 @@ func recordErrorMetrics(ctx context.Context, errorInfo *GraphErrorInfo, operatio
 }
 
 // handlePermissionError processes permission-related errors with enhanced details
-func handlePermissionError(ctx context.Context, errorInfo GraphErrorInfo, resp interface{}, operation string, requiredPermissions []string) {
+func handlePermissionError(ctx context.Context, errorInfo GraphErrorInfo, resp any, operation string, requiredPermissions []string) {
 	var permissionMsg string
 
 	if len(requiredPermissions) == 1 {
@@ -581,8 +581,8 @@ func handlePermissionError(ctx context.Context, errorInfo GraphErrorInfo, resp i
 }
 
 // handleRateLimitError processes rate limit errors with enhanced information
-func handleRateLimitError(ctx context.Context, errorInfo GraphErrorInfo, resp interface{}) {
-	tflog.Warn(ctx, "Rate limit exceeded", map[string]interface{}{
+func handleRateLimitError(ctx context.Context, errorInfo GraphErrorInfo, resp any) {
+	tflog.Warn(ctx, "Rate limit exceeded", map[string]any{
 		"retry_after":      errorInfo.RetryAfter,
 		"throttled_reason": errorInfo.ThrottledReason,
 		"request_id":       errorInfo.RequestID,
@@ -604,13 +604,13 @@ func handleRateLimitError(ctx context.Context, errorInfo GraphErrorInfo, resp in
 }
 
 // handleServiceUnavailableError processes 503 Service Unavailable errors
-func handleServiceUnavailableError(ctx context.Context, errorInfo GraphErrorInfo, resp interface{}) {
+func handleServiceUnavailableError(ctx context.Context, errorInfo GraphErrorInfo, resp any) {
 	retryAfter := errorInfo.RetryAfter
 	if retryAfter == "" {
 		retryAfter = "unspecified"
 	}
 
-	tflog.Warn(ctx, "Service temporarily unavailable", map[string]interface{}{
+	tflog.Warn(ctx, "Service temporarily unavailable", map[string]any{
 		"retry_after": retryAfter,
 		"request_id":  errorInfo.RequestID,
 		"details":     errorInfo.ErrorMessage,
@@ -639,7 +639,7 @@ func getErrorDescription(statusCode int) ErrorDescription {
 }
 
 // addErrorToDiagnostics adds an error to the response diagnostics
-func addErrorToDiagnostics(ctx context.Context, resp interface{}, summary, detail string) {
+func addErrorToDiagnostics(ctx context.Context, resp any, summary, detail string) {
 	switch r := resp.(type) {
 	case *resource.CreateResponse:
 		r.Diagnostics.AddError(summary, detail)
@@ -652,7 +652,7 @@ func addErrorToDiagnostics(ctx context.Context, resp interface{}, summary, detai
 	case *datasource.ReadResponse:
 		r.Diagnostics.AddError(summary, detail)
 	default:
-		tflog.Error(ctx, "Unknown response type in addErrorToDiagnostics", map[string]interface{}{
+		tflog.Error(ctx, "Unknown response type in addErrorToDiagnostics", map[string]any{
 			"response_type": fmt.Sprintf("%T", resp),
 			"summary":       summary,
 			"detail":        detail,
@@ -661,13 +661,13 @@ func addErrorToDiagnostics(ctx context.Context, resp interface{}, summary, detai
 }
 
 // removeResourceFromState removes a resource from the state
-func removeResourceFromState(ctx context.Context, resp interface{}) {
+func removeResourceFromState(ctx context.Context, resp any) {
 	switch r := resp.(type) {
 	case *resource.ReadResponse:
 		r.State.RemoveResource(ctx)
 		tflog.Debug(ctx, "Resource removed from state due to not found error")
 	default:
-		tflog.Error(ctx, "Cannot remove resource from state for this response type", map[string]interface{}{
+		tflog.Error(ctx, "Cannot remove resource from state for this response type", map[string]any{
 			"response_type": fmt.Sprintf("%T", resp),
 		})
 	}
@@ -675,7 +675,7 @@ func removeResourceFromState(ctx context.Context, resp interface{}) {
 
 // logErrorDetails logs comprehensive error details for debugging
 func logErrorDetails(ctx context.Context, errorInfo *GraphErrorInfo) {
-	details := map[string]interface{}{
+	details := map[string]any{
 		"status_code":       errorInfo.StatusCode,
 		"error_code":        errorInfo.ErrorCode,
 		"is_odata_error":    errorInfo.IsODataError,
