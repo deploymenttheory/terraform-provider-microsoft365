@@ -79,7 +79,7 @@ jobs:
       goreleaser-release-args: --verbose --parallelism 1 --timeout 120m0s # parallelism set to match the number of free cores on the runner
 
       release-notes: false
-      setup-go-version: 'go.mod'
+      setup-go-version-file: 'go.mod'
       git-ref: ${{ github.event.inputs.release_version || github.ref }}
 
   release-notes:
