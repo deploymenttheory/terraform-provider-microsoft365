@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.29.2-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.29.1-alpha...v0.29.2-alpha) (2025-09-13)
+
+
+### Bug Fixes
+
+* goreleaser setup go ver ([a35f8ed](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/a35f8edc4b997ce5967312295367ba6ce764c5f8))
+* goreleaser setup go ver ([#765](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/765)) ([80ec02b](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/80ec02bb489a265ab7f5aa466efa0152e65ea017))
+
 ## [0.29.1-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.29.0-alpha...v0.29.1-alpha) (2025-09-12)
 
 
