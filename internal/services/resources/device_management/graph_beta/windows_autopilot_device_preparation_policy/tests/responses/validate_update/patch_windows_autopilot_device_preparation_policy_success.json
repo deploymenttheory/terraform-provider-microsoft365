@@ -1,0 +1,16 @@
+{
+  "@odata.type": "#microsoft.graph.deviceManagementConfigurationPolicy",
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/configurationPolicies/$entity",
+  "id": "11111111-1111-1111-1111-111111111111",
+  "name": "unit-test-windows-autopilot-device-preparation-policy-updated",
+  "description": "unit-test-windows-autopilot-device-preparation-policy-updated",
+  "platforms": "windows10",
+  "technologies": "enrollment",
+  "templateId": "86bf7999-d8a6-4285-b9d4-2ff0c0efcfa0",
+  "templateFamily": "enrollmentConfiguration",
+  "roleScopeTagIds": ["0"],
+  "createdDateTime": "2024-01-01T00:00:00Z",
+  "lastModifiedDateTime": "2024-01-02T00:00:00Z",
+  "settingsCount": 8,
+  "isAssigned": false
+}

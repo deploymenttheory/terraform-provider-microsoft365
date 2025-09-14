@@ -1,0 +1,18 @@
+{
+  "error": {
+    "code": "BadRequest",
+    "message": "Invalid Group ID in include_group_ids",
+    "details": [
+      {
+        "code": "BadRequest",
+        "target": "include_group_ids",
+        "message": "Group not found"
+      }
+    ],
+    "innerError": {
+      "date": "2024-01-01T00:00:00",
+      "request-id": "test-request-id",
+      "client-request-id": "test-client-request-id"
+    }
+  }
+}

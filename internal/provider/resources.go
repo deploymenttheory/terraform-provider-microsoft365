@@ -15,6 +15,7 @@ import (
 	graphBetaDeviceAndAppManagementMacOSVppApp "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_and_app_management/graph_beta/macos_vpp_app"
 	graphBetaDeviceAndAppManagementApplicationAssignment "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_and_app_management/graph_beta/mobile_app_assignment"
 	graphBetaDeviceAndAppManagementMobileAppSupersedence "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_and_app_management/graph_beta/mobile_app_supersedence"
+	graphBetaDeviceAndAppManagementOfficeSuiteApp "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_and_app_management/graph_beta/office_suite_app"
 	graphBetaDeviceAndAppManagementWin32App "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_and_app_management/graph_beta/win32_app"
 	graphBetaDeviceAndAppManagementWindowsManagedMobileApp "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_and_app_management/graph_beta/windows_managed_mobile_app"
 	graphBetaDeviceAndAppManagementWindowsWebApp "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_and_app_management/graph_beta/windows_web_app"
@@ -138,6 +139,7 @@ func (p *M365Provider) Resources(ctx context.Context) []func() resource.Resource
 		graphBetaDeviceAndAppManagementIOSStoreApp.NewIOSStoreAppResource,
 		graphBetaDeviceAndAppManagementIOSiPadOSWebClip.NewIOSiPadOSWebClipResource,
 		graphBetaDeviceAndAppManagementMacOSVppApp.NewMacOSVppAppResource,
+		graphBetaDeviceAndAppManagementOfficeSuiteApp.NewOfficeSuiteAppResource,
 		graphBetaDeviceAndAppManagementMacOSDmgApp.NewMacOSDmgAppResource,
 		graphBetaDeviceAndAppManagementMacOSLobApp.NewMacOSLobAppResource,
 		graphBetaDeviceAndAppManagementMacOSPKGApp.NewMacOSPKGAppResource,
