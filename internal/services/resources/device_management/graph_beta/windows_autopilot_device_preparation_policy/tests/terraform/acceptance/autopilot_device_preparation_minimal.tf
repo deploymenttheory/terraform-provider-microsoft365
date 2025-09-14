@@ -2,7 +2,7 @@ resource "microsoft365_graph_beta_device_management_windows_autopilot_device_pre
   name                  = "acc-test-windows-autopilot-device-preparation-policy-minimal"
   description           = "acc-test-windows-autopilot-device-preparation-policy-minimal"
   role_scope_tag_ids    = ["0"]
-  device_security_group = data.azuread_group.test_autopilot_security_group.object_id
+  device_security_group = microsoft365_graph_beta_groups_group.acc_test_group_1.id
 
   deployment_settings = {
     deployment_mode = "enrollment_autopilot_dpp_deploymentmode_0" # Standard mode
@@ -20,8 +20,8 @@ resource "microsoft365_graph_beta_device_management_windows_autopilot_device_pre
 
   assignments = {
     include_group_ids = [
-      data.azuread_group.test_group1.object_id,
-      data.azuread_group.test_group2.object_id
+      microsoft365_graph_beta_groups_group.acc_test_group_1.id,
+      microsoft365_graph_beta_groups_group.acc_test_group_2.id
     ]
   }
 }

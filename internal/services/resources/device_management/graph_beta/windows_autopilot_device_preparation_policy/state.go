@@ -32,7 +32,6 @@ func mapResourceToState(ctx context.Context, stateModel *WindowsAutopilotDeviceP
 	stateModel.SettingsCount = convert.GraphToFrameworkInt32(resource.GetSettingCount())
 	stateModel.RoleScopeTagIds = convert.GraphToFrameworkStringSet(ctx, resource.GetRoleScopeTagIds())
 
-	// Map platform and technologies
 	if platforms := resource.GetPlatforms(); platforms != nil {
 		stateModel.Platforms = types.StringValue(platforms.String())
 	}
@@ -51,7 +50,6 @@ func mapResourceToState(ctx context.Context, stateModel *WindowsAutopilotDeviceP
 		}
 	}
 
-	// Initialize nested objects
 	if stateModel.DeploymentSettings == nil {
 		stateModel.DeploymentSettings = &DeploymentSettingsModel{}
 	}
@@ -75,7 +73,6 @@ func mapSettingsToState(ctx context.Context, stateModel *WindowsAutopilotDeviceP
 		return nil
 	}
 
-	// Initialize the nested objects if needed
 	if stateModel.DeploymentSettings == nil {
 		stateModel.DeploymentSettings = &DeploymentSettingsModel{}
 	}
@@ -85,7 +82,6 @@ func mapSettingsToState(ctx context.Context, stateModel *WindowsAutopilotDeviceP
 
 	tflog.Debug(ctx, fmt.Sprintf("Processing %d settings", len(settings)))
 
-	// Process each setting
 	for _, setting := range settings {
 		if setting == nil {
 			continue
@@ -101,7 +97,6 @@ func mapSettingsToState(ctx context.Context, stateModel *WindowsAutopilotDeviceP
 			continue
 		}
 
-		// Get the OData type to determine how to handle the setting
 		odataType := ""
 		if settingInstance.GetOdataType() != nil {
 			odataType = *settingInstance.GetOdataType()
@@ -109,7 +104,6 @@ func mapSettingsToState(ctx context.Context, stateModel *WindowsAutopilotDeviceP
 
 		tflog.Debug(ctx, fmt.Sprintf("Processing setting: %s, type: %s", *settingDefinitionId, odataType))
 
-		// Process the setting based on its definition ID
 		switch *settingDefinitionId {
 		// Device Security Group
 		case "enrollment_autopilot_dpp_devicegroup":
@@ -155,11 +149,9 @@ func extractStringValue(ctx context.Context, settingInstance models.DeviceManage
 		return
 	}
 
-	// First try to access via strongly typed methods
 	if simpleInstance, ok := settingInstance.(models.DeviceManagementConfigurationSimpleSettingInstanceable); ok {
 		simpleValue := simpleInstance.GetSimpleSettingValue()
 		if simpleValue != nil {
-			// Try strongly typed conversion
 			if stringValue, ok := simpleValue.(models.DeviceManagementConfigurationStringSettingValueable); ok {
 				if stringVal := stringValue.GetValue(); stringVal != nil {
 					*target = convert.GraphToFrameworkString(stringVal)
@@ -196,11 +188,9 @@ func extractIntValue(ctx context.Context, settingInstance models.DeviceManagemen
 		return
 	}
 
-	// First try to access via strongly typed methods
 	if simpleInstance, ok := settingInstance.(models.DeviceManagementConfigurationSimpleSettingInstanceable); ok {
 		simpleValue := simpleInstance.GetSimpleSettingValue()
 		if simpleValue != nil {
-			// Try strongly typed conversion
 			if intValue, ok := simpleValue.(models.DeviceManagementConfigurationIntegerSettingValueable); ok {
 				if intVal := intValue.GetValue(); intVal != nil {
 					*target = types.Int64Value(int64(*intVal))
@@ -210,14 +200,12 @@ func extractIntValue(ctx context.Context, settingInstance models.DeviceManagemen
 		}
 	}
 
-	// Fall back to using additionalData as a map
 	additionalData := settingInstance.GetAdditionalData()
 	if additionalData == nil {
 		tflog.Warn(ctx, "No additional data when extracting int value")
 		return
 	}
 
-	// Try to extract the integer value from the additional data
 	if simpleValue, ok := additionalData["simpleSettingValue"]; ok {
 		if valueMap, ok := simpleValue.(map[string]interface{}); ok {
 			if numValue, ok := valueMap["value"].(float64); ok {
@@ -247,7 +235,6 @@ func extractBoolValue(ctx context.Context, settingInstance models.DeviceManageme
 		return
 	}
 
-	// Try to extract the boolean value from the additional data
 	if simpleValue, ok := additionalData["simpleSettingValue"]; ok {
 		if valueMap, ok := simpleValue.(map[string]interface{}); ok {
 			if boolValue, ok := valueMap["value"].(bool); ok {
@@ -308,10 +295,8 @@ func extractCollectionValue(ctx context.Context, settingInstance models.DeviceMa
 	// Determine the type of the target to decide how to extract the data
 	switch typedTarget := target.(type) {
 	case *[]AllowedAppModel:
-		// Handle app collections with ID and type
 		extractAllowedAppsCollection(ctx, settingInstance, typedTarget)
 	case *[]types.String:
-		// Handle simple string collections
 		extractSimpleStringCollection(ctx, settingInstance, typedTarget)
 	default:
 		tflog.Warn(ctx, "Unsupported target type for collection extraction")
@@ -325,7 +310,6 @@ func extractAllowedAppsCollection(ctx context.Context, settingInstance models.De
 		return
 	}
 
-	// First try to access via strongly typed methods
 	if collectionInstance, ok := settingInstance.(models.DeviceManagementConfigurationSimpleSettingCollectionInstanceable); ok {
 		collectionValues := collectionInstance.GetSimpleSettingCollectionValue()
 		if len(collectionValues) > 0 {
@@ -350,14 +334,12 @@ func extractAllowedAppsCollection(ctx context.Context, settingInstance models.De
 		}
 	}
 
-	// Fall back to using additionalData as a map
 	additionalData := settingInstance.GetAdditionalData()
 	if additionalData == nil {
 		tflog.Warn(ctx, "No additional data when extracting app collection")
 		return
 	}
 
-	// Try collection values directly
 	if collectionValues, ok := additionalData["simpleSettingCollectionValue"]; ok {
 		if collectionArray, ok := collectionValues.([]interface{}); ok {
 			var apps []AllowedAppModel
@@ -395,7 +377,6 @@ func parseAppJson(ctx context.Context, jsonStr string) AllowedAppModel {
 	typeStart := strings.Index(jsonStr, "\"type\":\"")
 
 	if idStart >= 0 && typeStart >= 0 {
-		// Extract ID
 		idStart += 6 // length of "\"id\":\""
 		idEnd := strings.Index(jsonStr[idStart:], "\"")
 		if idEnd > 0 {
@@ -403,7 +384,6 @@ func parseAppJson(ctx context.Context, jsonStr string) AllowedAppModel {
 			app.AppID = types.StringValue(appId)
 		}
 
-		// Extract Type
 		typeStart += 8 // length of "\"type\":\""
 		typeEnd := strings.Index(jsonStr[typeStart:], "\"")
 		if typeEnd > 0 {
@@ -428,7 +408,6 @@ func extractSimpleStringCollection(ctx context.Context, settingInstance models.D
 		return
 	}
 
-	// First try to access via strongly typed methods
 	if collectionInstance, ok := settingInstance.(models.DeviceManagementConfigurationSimpleSettingCollectionInstanceable); ok {
 		collectionValues := collectionInstance.GetSimpleSettingCollectionValue()
 		if len(collectionValues) > 0 {
@@ -448,14 +427,12 @@ func extractSimpleStringCollection(ctx context.Context, settingInstance models.D
 		}
 	}
 
-	// Fall back to using additionalData as a map
 	additionalData := settingInstance.GetAdditionalData()
 	if additionalData == nil {
 		tflog.Warn(ctx, "No additional data when extracting string collection")
 		return
 	}
 
-	// For collection settings, we may have stored them as comma-separated strings
 	if simpleValue, ok := additionalData["simpleSettingValue"]; ok {
 		if valueMap, ok := simpleValue.(map[string]interface{}); ok {
 			if stringValue, ok := valueMap["value"].(string); ok {
@@ -466,7 +443,6 @@ func extractSimpleStringCollection(ctx context.Context, settingInstance models.D
 		}
 	}
 
-	// Also try collection values directly
 	if collectionValues, ok := additionalData["simpleSettingCollectionValue"]; ok {
 		if collectionArray, ok := collectionValues.([]interface{}); ok {
 			var values []string

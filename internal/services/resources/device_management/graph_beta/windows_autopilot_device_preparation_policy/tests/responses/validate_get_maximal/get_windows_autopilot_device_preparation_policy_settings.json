@@ -96,7 +96,7 @@
         "settingDefinitionId": "enrollment_autopilot_dpp_timeout",
         "simpleSettingValue": {
           "@odata.type": "#microsoft.graph.deviceManagementConfigurationIntegerSettingValue",
-          "value": 60
+          "value": 120
         }
       }
     },

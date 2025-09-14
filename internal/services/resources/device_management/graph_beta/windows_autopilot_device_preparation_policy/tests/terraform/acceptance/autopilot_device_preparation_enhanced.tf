@@ -2,7 +2,7 @@ resource "microsoft365_graph_beta_device_management_windows_autopilot_device_pre
   name                  = "acc-test-windows-autopilot-device-preparation-policy-enhanced"
   description           = "acc-test-windows-autopilot-device-preparation-policy-enhanced with all features"
   role_scope_tag_ids    = ["0"]
-  device_security_group = data.azuread_group.test_autopilot_security_group.object_id
+  device_security_group = microsoft365_graph_beta_groups_group.acc_test_group_1.id
 
   deployment_settings = {
     deployment_mode = "enrollment_autopilot_dpp_deploymentmode_1" # Enhanced mode
@@ -20,20 +20,24 @@ resource "microsoft365_graph_beta_device_management_windows_autopilot_device_pre
 
   allowed_apps = [
     {
-      app_id   = microsoft365_graph_beta_device_management_win32_lob_app.test_app.id
-      app_type = "win32LobApp"
+      app_id   = microsoft365_graph_beta_device_and_app_management_win_get_app.test_firefox.id
+      app_type = "winGetApp"
+    },
+    {
+      app_id   = microsoft365_graph_beta_device_and_app_management_office_suite_app.office_365_config_designer.id
+      app_type = "officeSuiteApp"
     }
   ]
 
   allowed_scripts = [
-    microsoft365_graph_beta_device_management_device_shell_script.test_script.id
+    microsoft365_graph_beta_device_management_windows_platform_script.acc_test_windows_platform_script_01.id
   ]
 
   assignments = {
     include_group_ids = [
-      data.azuread_group.test_group1.object_id,
-      data.azuread_group.test_group2.object_id,
-      data.azuread_group.test_group3.object_id
+      microsoft365_graph_beta_groups_group.acc_test_group_1.id,
+      microsoft365_graph_beta_groups_group.acc_test_group_2.id,
+      microsoft365_graph_beta_groups_group.acc_test_group_3.id
     ]
   }
 }

@@ -65,10 +65,10 @@ func TestAccWindowsAutopilotDevicePreparationPolicyResource_Enhanced(t *testing.
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckWindowsAutopilotDevicePreparationPolicyDestroy,
 		ExternalProviders: map[string]resource.ExternalProvider{
-			"azuread": {
-				Source:            "hashicorp/azuread",
-				VersionConstraint: ">= 2.47.0",
-			},
+			// "azuread": {
+			// 	Source:            "hashicorp/azuread",
+			// 	VersionConstraint: ">= 2.47.0",
+			// },
 			"random": {
 				Source:            "hashicorp/random",
 				VersionConstraint: ">= 3.7.2",
@@ -85,7 +85,7 @@ func TestAccWindowsAutopilotDevicePreparationPolicyResource_Enhanced(t *testing.
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_autopilot_device_preparation_policy.enhanced", "oobe_settings.timeout_in_minutes", "120"),
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_autopilot_device_preparation_policy.enhanced", "oobe_settings.allow_skip", "true"),
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_autopilot_device_preparation_policy.enhanced", "oobe_settings.allow_diagnostics", "true"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_autopilot_device_preparation_policy.enhanced", "allowed_apps.#", "1"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_autopilot_device_preparation_policy.enhanced", "allowed_apps.#", "2"),
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_autopilot_device_preparation_policy.enhanced", "allowed_scripts.#", "1"),
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_autopilot_device_preparation_policy.enhanced", "assignments.include_group_ids.#", "3"),
 					resource.TestCheckResourceAttrSet("microsoft365_graph_beta_device_management_windows_autopilot_device_preparation_policy.enhanced", "id"),
@@ -162,11 +162,6 @@ func testAccConfigMinimal() string {
 		panic(fmt.Sprintf("failed to load groups dependency: %s", err.Error()))
 	}
 
-	autopilotGroupsConfig, err := helpers.ParseHCLFile("../../../../../acceptance/terraform_dependancies/device_management/autopilot_security_groups.tf")
-	if err != nil {
-		panic(fmt.Sprintf("failed to load autopilot groups dependency: %s", err.Error()))
-	}
-
 	// Load test configuration
 	accTestConfig, err := helpers.ParseHCLFile("tests/terraform/acceptance/autopilot_device_preparation_minimal.tf")
 	if err != nil {
@@ -174,7 +169,7 @@ func testAccConfigMinimal() string {
 	}
 
 	// Combine configurations
-	combinedConfig := groupsConfig + "\n\n" + autopilotGroupsConfig + "\n\n" + accTestConfig
+	combinedConfig := groupsConfig + "\n\n" + accTestConfig
 	return acceptance.ConfiguredM365ProviderBlock(combinedConfig)
 }
 
@@ -185,17 +180,17 @@ func testAccConfigEnhanced() string {
 		panic(fmt.Sprintf("failed to load groups dependency: %s", err.Error()))
 	}
 
-	autopilotGroupsConfig, err := helpers.ParseHCLFile("../../../../../acceptance/terraform_dependancies/device_management/autopilot_security_groups.tf")
-	if err != nil {
-		panic(fmt.Sprintf("failed to load autopilot groups dependency: %s", err.Error()))
-	}
-
-	appConfig, err := helpers.ParseHCLFile("../../../../../acceptance/terraform_dependancies/device_management/win32_lob_app.tf")
+	appConfig, err := helpers.ParseHCLFile("../../../../../acceptance/terraform_dependancies/device_management/winget_app.tf")
 	if err != nil {
 		panic(fmt.Sprintf("failed to load app dependency: %s", err.Error()))
 	}
 
-	scriptConfig, err := helpers.ParseHCLFile("../../../../../acceptance/terraform_dependancies/device_management/device_shell_script.tf")
+	officeSuiteAppConfig, err := helpers.ParseHCLFile("../../../../../acceptance/terraform_dependancies/device_management/office_suite_app.tf")
+	if err != nil {
+		panic(fmt.Sprintf("failed to load office suite app dependency: %s", err.Error()))
+	}
+
+	scriptConfig, err := helpers.ParseHCLFile("../../../../../acceptance/terraform_dependancies/device_management/windows_platform_script.tf")
 	if err != nil {
 		panic(fmt.Sprintf("failed to load script dependency: %s", err.Error()))
 	}
@@ -207,7 +202,7 @@ func testAccConfigEnhanced() string {
 	}
 
 	// Combine configurations
-	combinedConfig := groupsConfig + "\n\n" + autopilotGroupsConfig + "\n\n" + appConfig + "\n\n" + scriptConfig + "\n\n" + accTestConfig
+	combinedConfig := groupsConfig + "\n\n" + appConfig + "\n\n" + officeSuiteAppConfig + "\n\n" + scriptConfig + "\n\n" + accTestConfig
 	return acceptance.ConfiguredM365ProviderBlock(combinedConfig)
 }
 
@@ -218,11 +213,6 @@ func testAccConfigSelfDeploying() string {
 		panic(fmt.Sprintf("failed to load groups dependency: %s", err.Error()))
 	}
 
-	autopilotGroupsConfig, err := helpers.ParseHCLFile("../../../../../acceptance/terraform_dependancies/device_management/autopilot_security_groups.tf")
-	if err != nil {
-		panic(fmt.Sprintf("failed to load autopilot groups dependency: %s", err.Error()))
-	}
-
 	// Load test configuration
 	accTestConfig, err := helpers.ParseHCLFile("tests/terraform/acceptance/autopilot_device_preparation_self_deploying.tf")
 	if err != nil {
@@ -230,7 +220,7 @@ func testAccConfigSelfDeploying() string {
 	}
 
 	// Combine configurations
-	combinedConfig := groupsConfig + "\n\n" + autopilotGroupsConfig + "\n\n" + accTestConfig
+	combinedConfig := groupsConfig + "\n\n" + accTestConfig
 	return acceptance.ConfiguredM365ProviderBlock(combinedConfig)
 }
 
@@ -241,11 +231,6 @@ func testAccConfigHybridJoined() string {
 		panic(fmt.Sprintf("failed to load groups dependency: %s", err.Error()))
 	}
 
-	autopilotGroupsConfig, err := helpers.ParseHCLFile("../../../../../acceptance/terraform_dependancies/device_management/autopilot_security_groups.tf")
-	if err != nil {
-		panic(fmt.Sprintf("failed to load autopilot groups dependency: %s", err.Error()))
-	}
-
 	// Load test configuration
 	accTestConfig, err := helpers.ParseHCLFile("tests/terraform/acceptance/autopilot_device_preparation_hybrid_joined.tf")
 	if err != nil {
@@ -253,7 +238,7 @@ func testAccConfigHybridJoined() string {
 	}
 
 	// Combine configurations
-	combinedConfig := groupsConfig + "\n\n" + autopilotGroupsConfig + "\n\n" + accTestConfig
+	combinedConfig := groupsConfig + "\n\n" + accTestConfig
 	return acceptance.ConfiguredM365ProviderBlock(combinedConfig)
 }
 
