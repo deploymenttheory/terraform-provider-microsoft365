@@ -3,8 +3,8 @@ resource "microsoft365_graph_beta_device_management_group_policy_multi_text_valu
 
   policy_name   = "definitionName"
   class_type    = "user" // or "machine"
-  enabled       = true // or false
-  values         = ["string1", "string2", "string3"]
+  enabled       = true   // or false
+  values        = ["string1", "string2", "string3"]
   category_path = "\\someCategory\\someSubCategory"
 
   timeouts = {
