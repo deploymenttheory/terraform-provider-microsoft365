@@ -83,7 +83,11 @@ func (r *GroupPolicyTextValueResource) ImportState(ctx context.Context, req reso
 // Schema returns the schema for the resource.
 func (r *GroupPolicyTextValueResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Manages group policy presentation text values in Microsoft Intune using the `/deviceManagement/groupPolicyConfigurations/{groupPolicyConfigurationId}/definitionValues/{groupPolicyDefinitionValueId}/presentationValues` endpoint. This resource represents a text value for group policy presentations such as text boxes, combo boxes, or drop-down lists.",
+		MarkdownDescription: "Manages group policy text values in Microsoft Intune using the" +
+			"`deviceManagement/groupPolicyConfigurations('{groupPolicyConfigurationId}')/updateDefinitionValues` endpoint." +
+			"This resource manages singular text values for a given group policy presentations such as text boxes " +
+			"within a single group policy definition. It can also be used when integers are represented as strings. Group policy schema dependant." +
+			"This resource has a hard dependency on the group policy configuration resource and it must be created before this resource.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed: true,

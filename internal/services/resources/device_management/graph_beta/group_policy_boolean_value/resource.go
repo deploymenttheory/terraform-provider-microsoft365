@@ -83,7 +83,11 @@ func (r *GroupPolicyBooleanValueResource) ImportState(ctx context.Context, req r
 // Schema returns the schema for the resource.
 func (r *GroupPolicyBooleanValueResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Manages group policy presentation boolean values in Microsoft Intune using the `/deviceManagement/groupPolicyConfigurations/{groupPolicyConfigurationId}/definitionValues/{groupPolicyDefinitionValueId}/presentationValues` endpoint. This resource represents multiple boolean values for group policy presentations such as checkboxes or radio buttons within a single policy definition.",
+		MarkdownDescription: "Manages group policy presentation boolean values in Microsoft Intune using the" +
+			"`deviceManagement/groupPolicyConfigurations('{groupPolicyConfigurationId}')/updateDefinitionValues` endpoint." +
+			"This resource manages multiple boolean values for a given group policy presentations such as checkboxes or radio" +
+			"buttons within a single grouppolicy definition. This resource has a hard dependency on the group policy configuration resource" +
+			" and it must be created before this resource.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed: true,

@@ -2,12 +2,12 @@
 page_title: "microsoft365_graph_beta_device_management_group_policy_text_value Resource - terraform-provider-microsoft365"
 subcategory: "Groups"
 description: |-
-    Manages group policy presentation text values in Microsoft Intune using the /deviceManagement/groupPolicyConfigurations/{groupPolicyConfigurationId}/definitionValues/{groupPolicyDefinitionValueId}/presentationValues endpoint. This resource represents a text value for group policy presentations such as text boxes, combo boxes, or drop-down lists.
+    Manages group policy text values in Microsoft Intune using thedeviceManagement/groupPolicyConfigurations('{groupPolicyConfigurationId}')/updateDefinitionValues endpoint.This resource manages singular text values for a given group policy presentations such as text boxes within a single group policy definition. It can also be used when integers are represented as strings. Group policy schema dependant.This resource has a hard dependency on the group policy configuration resource and it must be created before this resource.
 ---
 
 # microsoft365_graph_beta_device_management_group_policy_text_value (Resource)
 
-Manages group policy presentation text values in Microsoft Intune using the `/deviceManagement/groupPolicyConfigurations/{groupPolicyConfigurationId}/definitionValues/{groupPolicyDefinitionValueId}/presentationValues` endpoint. This resource represents a text value for group policy presentations such as text boxes, combo boxes, or drop-down lists.
+Manages group policy text values in Microsoft Intune using the`deviceManagement/groupPolicyConfigurations('{groupPolicyConfigurationId}')/updateDefinitionValues` endpoint.This resource manages singular text values for a given group policy presentations such as text boxes within a single group policy definition. It can also be used when integers are represented as strings. Group policy schema dependant.This resource has a hard dependency on the group policy configuration resource and it must be created before this resource.
 
 ## Microsoft Documentation
 
