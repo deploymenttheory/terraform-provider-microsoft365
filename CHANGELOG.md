@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.30.0-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.29.3-alpha...v0.30.0-alpha) (2025-09-17)
+
+
+### Features
+
+* added office suite app with examples ([331664a](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/331664aa4bc630726016d2b60eaed7a21ff458f5))
+* added office_suite_app with examples ([#770](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/770)) ([6f5d1ac](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/6f5d1acc80b413554362480ea5d14be6b65b2953))
+
+
+### Bug Fixes
+
+* added gp multi text value examples ([018ab4c](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/018ab4caef143593585ea7be271949ce533dcec0))
+* group policy descriptions ([7480155](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/74801555cdbaee022c7ef71fe3a98e2be8e08b95))
+* removed trailing white space in file name ([f21c1d4](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/f21c1d4b94d2f0b0e6f591921519ea18cacb5f0e))
+
 ## [0.29.3-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.29.2-alpha...v0.29.3-alpha) (2025-09-13)
 
 
