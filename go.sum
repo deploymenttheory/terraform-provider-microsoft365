@@ -206,6 +206,8 @@ github.com/microsoftgraph/msgraph-beta-sdk-go v0.150.0 h1:J4aI2BpMc47AMFzNCMMvmS
 github.com/microsoftgraph/msgraph-beta-sdk-go v0.150.0/go.mod h1:gD9evzrujiOKCZasSOKJX9pGhyO3F5jccoT/o8/Pw/8=
 github.com/microsoftgraph/msgraph-beta-sdk-go v0.151.0 h1:5wFo+mNREVwV4DnrLVKTuqC/yKTexyP3wIPBDrD3//4=
 github.com/microsoftgraph/msgraph-beta-sdk-go v0.151.0/go.mod h1:lYSEMfGJ9rOb+w3PVaM9Qhf1D3qEemZkgjWD+chcl0k=
+github.com/microsoftgraph/msgraph-beta-sdk-go v0.152.0 h1:FTmoNUyBbJr8uHTTpPKDVQ+W4Ke17VT4UB+MTZC7huQ=
+github.com/microsoftgraph/msgraph-beta-sdk-go v0.152.0/go.mod h1:lYSEMfGJ9rOb+w3PVaM9Qhf1D3qEemZkgjWD+chcl0k=
 github.com/microsoftgraph/msgraph-sdk-go v1.84.0 h1:XFxBxohWE3pJi6Rqau3nrP1jH4pLwJqIPoL4TjzQEtM=
 github.com/microsoftgraph/msgraph-sdk-go v1.84.0/go.mod h1:vZjQkQLX2vma7uMxvFHjSmy1edTOMkkWn6DhzVR55m8=
 github.com/microsoftgraph/msgraph-sdk-go v1.86.0 h1:kZSIJuRoP9BUD8xsWL6sk82ThsGhZvDonO8waKH5emU=
