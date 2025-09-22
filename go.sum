@@ -44,6 +44,8 @@ github.com/bgentry/speakeasy v0.1.0 h1:ByYyxL9InA1OWqxJqqp2A5pYHUrCiAL6K3J+LKSsQ
 github.com/bgentry/speakeasy v0.1.0/go.mod h1:+zsyZBPWlz7T6j88CTgSN5bM796AkVf0kBD4zp0CCIs=
 github.com/bmatcuk/doublestar/v4 v4.8.1 h1:54Bopc5c2cAvhLRAzqOGCYHYyhcDHsFF4wWIR5wKP38=
 github.com/bmatcuk/doublestar/v4 v4.8.1/go.mod h1:xBQ8jztBU6kakFMg+8WGxn0c6z1fTSPVIjEY1Wr7jzc=
+github.com/bmatcuk/doublestar/v4 v4.9.1 h1:X8jg9rRZmJd4yRy7ZeNDRnM+T3ZfHv15JiBJ/avrEXE=
+github.com/bmatcuk/doublestar/v4 v4.9.1/go.mod h1:xBQ8jztBU6kakFMg+8WGxn0c6z1fTSPVIjEY1Wr7jzc=
 github.com/bufbuild/protocompile v0.4.0 h1:LbFKd2XowZvQ/kajzguUp2DC9UEIQhIq77fZZlaQsNA=
 github.com/bufbuild/protocompile v0.4.0/go.mod h1:3v93+mbWn/v3xzN+31nwkJfrEpAUwp+BagBSZWx+TP8=
 github.com/cloudflare/circl v1.6.1 h1:zqIqSPIndyBh1bjLVVDHMPpVKqp8Su/V+6MeDzzQBQ0=
@@ -126,10 +128,16 @@ github.com/hashicorp/logutils v1.0.0 h1:dLEQVugN8vlakKOUE3ihGLTZJRB4j+M2cdTm/ORI
 github.com/hashicorp/logutils v1.0.0/go.mod h1:QIAnNjmIWmVIIkWDTG1z5v++HQmx9WQRO+LraFDTW64=
 github.com/hashicorp/terraform-exec v0.23.0 h1:MUiBM1s0CNlRFsCLJuM5wXZrzA3MnPYEsiXmzATMW/I=
 github.com/hashicorp/terraform-exec v0.23.0/go.mod h1:mA+qnx1R8eePycfwKkCRk3Wy65mwInvlpAeOwmA7vlY=
+github.com/hashicorp/terraform-exec v0.23.1 h1:diK5NSSDXDKqHEOIQefBMu9ny+FhzwlwV0xgUTB7VTo=
+github.com/hashicorp/terraform-exec v0.23.1/go.mod h1:e4ZEg9BJDRaSalGm2z8vvrPONt0XWG0/tXpmzYTf+dM=
 github.com/hashicorp/terraform-json v0.25.0 h1:rmNqc/CIfcWawGiwXmRuiXJKEiJu1ntGoxseG1hLhoQ=
 github.com/hashicorp/terraform-json v0.25.0/go.mod h1:sMKS8fiRDX4rVlR6EJUMudg1WcanxCMoWwTLkgZP/vc=
+github.com/hashicorp/terraform-json v0.27.0 h1:REIlFzMMkIyTbhq69NC30bYiUYLv7iVhwM8ObnLo0p8=
+github.com/hashicorp/terraform-json v0.27.0/go.mod h1:GzPLJ1PLdUG5xL6xn1OXWIjteQRT2CNT9o/6A9mi9hE=
 github.com/hashicorp/terraform-plugin-docs v0.21.0 h1:yoyA/Y719z9WdFJAhpUkI1jRbKP/nteVNBaI3hW7iQ8=
 github.com/hashicorp/terraform-plugin-docs v0.21.0/go.mod h1:J4Wott1J2XBKZPp/NkQv7LMShJYOcrqhQ2myXBcu64s=
+github.com/hashicorp/terraform-plugin-docs v0.23.0 h1:sipnfD4/9EJBg9zekym+s1H6qmLAKJHhGWBwvN9v/hE=
+github.com/hashicorp/terraform-plugin-docs v0.23.0/go.mod h1:J4b5AtMRgJlDrwCQz+G4hKABgHY5m56PnsRmdAzBwW8=
 github.com/hashicorp/terraform-plugin-framework v1.15.1 h1:2mKDkwb8rlx/tvJTlIcpw0ykcmvdWv+4gY3SIgk8Pq8=
 github.com/hashicorp/terraform-plugin-framework v1.15.1/go.mod h1:hxrNI/GY32KPISpWqlCoTLM9JZsGH3CyYlir09bD/fI=
 github.com/hashicorp/terraform-plugin-framework-timeouts v0.5.0 h1:I/N0g/eLZ1ZkLZXUQ0oRSXa8YG/EF0CEuQP1wXdrzKw=
@@ -280,6 +288,8 @@ github.com/yuin/goldmark-meta v1.1.0 h1:pWw+JLHGZe8Rk0EGsMVssiNb/AaPMHfSRszZeUei
 github.com/yuin/goldmark-meta v1.1.0/go.mod h1:U4spWENafuA7Zyg+Lj5RqK/MF+ovMYtBvXi1lBb2VP0=
 github.com/zclconf/go-cty v1.16.3 h1:osr++gw2T61A8KVYHoQiFbFd1Lh3JOCXc/jFLJXKTxk=
 github.com/zclconf/go-cty v1.16.3/go.mod h1:VvMs5i0vgZdhYawQNq5kePSpLAoz8u1xvZgrPIxfnZE=
+github.com/zclconf/go-cty v1.17.0 h1:seZvECve6XX4tmnvRzWtJNHdscMtYEx5R7bnnVyd/d0=
+github.com/zclconf/go-cty v1.17.0/go.mod h1:wqFzcImaLTI6A5HfsRwB0nj5n0MRZFwmey8YoFPPs3U=
 github.com/zclconf/go-cty-debug v0.0.0-20240509010212-0d6042c53940 h1:4r45xpDWB6ZMSMNJFMOjqrGHynW3DIBuR2H9j0ug+Mo=
 github.com/zclconf/go-cty-debug v0.0.0-20240509010212-0d6042c53940/go.mod h1:CmBdvvj3nqzfzJ6nTCIwDTPZ56aVGvDrmztiO5g3qrM=
 go.abhg.dev/goldmark/frontmatter v0.2.0 h1:P8kPG0YkL12+aYk2yU3xHv4tcXzeVnN+gU0tJ5JnxRw=
