@@ -1,0 +1,21 @@
+{
+  "@odata.type": "#microsoft.graph.azureADWindowsAutopilotDeploymentProfile",
+  "id": "00000000-0000-0000-0000-000000000000",
+  "displayName": "Test Autopilot Profile",
+  "description": "Test description for autopilot profile",
+  "locale": "os-default",
+  "createdDateTime": "2023-01-01T00:00:00Z",
+  "lastModifiedDateTime": "2023-01-01T00:00:00Z",
+  "hardwareHashExtractionEnabled": false,
+  "deviceNameTemplate": "",
+  "preprovisioningAllowed": false,
+  "roleScopeTagIds": ["0"],
+  "outOfBoxExperienceSetting": {
+    "privacySettingsHidden": false,
+    "eulaHidden": false,
+    "keyboardSelectionPageSkipped": true,
+    "userType": "standard",
+    "deviceUsageType": "singleUser",
+    "escapeLinkHidden": true
+  }
+}

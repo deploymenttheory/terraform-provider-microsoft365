@@ -25,79 +25,113 @@ The following API permissions are required in order to use this resource.
 ## Example Usage
 
 ```terraform
-# Basic Windows Autopilot Deployment Profile
-resource "microsoft365_graph_beta_device_management_windows_autopilot_deployment_profile" "entra_joined" {
-  display_name = "Corporate Windows Autopilot Profile"
-  description  = "Windows Autopilot deployment profile for corporate devices with OOBE customization"
-
-  # Device join configuration
-  device_join_type = "microsoft_entra_joined"
-
-  # Device configuration
-  device_type                      = "windowsPc"
-  device_name_template             = "CORP-%SERIAL%"
-  locale                           = "en-GB"
-  preprovisioning_allowed          = true
-  hardware_hash_extraction_enabled = true
-
-  # Role scope tags
-  role_scope_tag_ids = ["0", "9", "8"]
-
-  # Azure AD configuration
+# User-Driven Deployment Profile Example
+resource "microsoft365_graph_beta_device_management_windows_autopilot_deployment_profile" "user_driven" {
+  display_name                                 = "acc_test_user_driven"
+  description                                  = "user driven autopilot profile with os default locale"
+  device_name_template                         = "thing-%RAND:5%" // Apply device name template
+  locale                                       = "os-default"
+  preprovisioning_allowed                      = false // Allow pre-provisioned deployment
+  device_type                                  = "windowsPc"
+  hardware_hash_extraction_enabled             = true
+  role_scope_tag_ids                           = ["0"]
+  device_join_type                             = "microsoft_entra_joined"
   hybrid_azure_ad_join_skip_connectivity_check = false
 
   out_of_box_experience_setting = {
-    privacy_settings_hidden         = false
-    eula_hidden                     = false
-    user_type                       = "administrator"
     device_usage_type               = "singleUser"
-    keyboard_selection_page_skipped = true
-    escape_link_hidden              = true
+    privacy_settings_hidden         = true // Privacy settings
+    eula_hidden                     = true // Microsoft Software License Terms
+    user_type                       = "standard"
+    keyboard_selection_page_skipped = true // Automatically configure keyboard
   }
 
-  timeouts = {
-    create = "3m"
-    read   = "3m"
-    update = "3m"
-    delete = "3m"
+  // Optional assignments
+  assignments = [
+    {
+      type     = "groupAssignmentTarget"
+      group_id = microsoft365_graph_beta_groups_group.acc_test_group_1.id
+    },
+    {
+      type     = "groupAssignmentTarget"
+      group_id = microsoft365_graph_beta_groups_group.acc_test_group_2.id
+    },
+    {
+      type     = "exclusionGroupAssignmentTarget"
+      group_id = microsoft365_graph_beta_groups_group.acc_test_group_3.id
+    }
+  ]
+}
+
+# User-Driven with Japanese Language and Allow Pre-provisioned Deployment
+resource "microsoft365_graph_beta_device_management_windows_autopilot_deployment_profile" "user_driven_japanese_preprovisioned_with_assignments" {
+  display_name                                 = "acc_test_user_driven_japanese_preprovisioned"
+  description                                  = "user driven autopilot profile with japanese locale and allow pre provisioned deployment"
+  device_name_template                         = "thing-%RAND:3%"
+  locale                                       = "ja-JP"
+  preprovisioning_allowed                      = true
+  device_type                                  = "windowsPc"
+  hardware_hash_extraction_enabled             = true
+  role_scope_tag_ids                           = ["0"]
+  device_join_type                             = "microsoft_entra_joined"
+  hybrid_azure_ad_join_skip_connectivity_check = false
+
+  out_of_box_experience_setting = {
+    device_usage_type               = "singleUser"
+    privacy_settings_hidden         = true
+    eula_hidden                     = true
+    user_type                       = "standard"
+    keyboard_selection_page_skipped = true
+  }
+
+  assignments = [
+    {
+      type = "allDevicesAssignmentTarget"
+    }
+  ]
+}
+
+# Self-Deploying Deployment Profile Example
+resource "microsoft365_graph_beta_device_management_windows_autopilot_deployment_profile" "self_deploying" {
+  display_name                                 = "acc_test_self_deploying"
+  description                                  = "self deploying autopilot profile with os default locale"
+  device_name_template                         = "thing-%RAND:2%"
+  locale                                       = "os-default"
+  preprovisioning_allowed                      = false
+  device_type                                  = "windowsPc"
+  hardware_hash_extraction_enabled             = true
+  role_scope_tag_ids                           = ["0"]
+  device_join_type                             = "microsoft_entra_joined"
+  hybrid_azure_ad_join_skip_connectivity_check = false
+
+  out_of_box_experience_setting = {
+    device_usage_type               = "shared"
+    privacy_settings_hidden         = true
+    eula_hidden                     = true
+    user_type                       = "standard"
+    keyboard_selection_page_skipped = true
   }
 }
 
-# Hybrid Domain Join Windows Autopilot Deployment Profile
-resource "microsoft365_graph_beta_device_management_windows_autopilot_deployment_profile" "hybrid_domain_join" {
-  display_name = "hybrid domain join"
-  description  = "test"
-
-  # Device join configuration
-  device_join_type = "microsoft_entra_hybrid_joined"
-
-  # Device configuration
-  device_type                      = "windowsPc"
-  device_name_template             = ""
-  locale                           = "os-default"
-  preprovisioning_allowed          = true
-  hardware_hash_extraction_enabled = true
-
-  # Role scope tags
-  role_scope_tag_ids = ["0"]
-
-  # Azure AD configuration
-  hybrid_azure_ad_join_skip_connectivity_check = true
+# HoloLens Deployment Profile Example
+resource "microsoft365_graph_beta_device_management_windows_autopilot_deployment_profile" "hololens" {
+  display_name                                 = "hololens"
+  description                                  = "hololens autopilot profile with os default locale"
+  device_name_template                         = "thing-%RAND:2%"
+  locale                                       = "zh-HK"
+  preprovisioning_allowed                      = false
+  device_type                                  = "holoLens"
+  hardware_hash_extraction_enabled             = false
+  role_scope_tag_ids                           = ["0"]
+  device_join_type                             = "microsoft_entra_joined"
+  hybrid_azure_ad_join_skip_connectivity_check = false
 
   out_of_box_experience_setting = {
-    privacy_settings_hidden         = false
-    eula_hidden                     = false
-    user_type                       = "administrator"
-    device_usage_type               = "singleUser"
+    device_usage_type               = "shared"
+    privacy_settings_hidden         = true
+    eula_hidden                     = true
+    user_type                       = "standard"
     keyboard_selection_page_skipped = true
-    escape_link_hidden              = true
-  }
-
-  timeouts = {
-    create = "3m"
-    read   = "3m"
-    update = "3m"
-    delete = "3m"
   }
 }
 ```
@@ -107,20 +141,20 @@ resource "microsoft365_graph_beta_device_management_windows_autopilot_deployment
 
 ### Required
 
-- `device_join_type` (String) The type of device join to configure. Determines which Windows Autopilot deployment profile type to use. Possible values are: `microsoft_entra_joined`, `microsoft_entra_hybrid_joined`.
-- `display_name` (String) The display name of the deployment profile. Max allowed length is 200 chars.
+- `device_join_type` (String) The type of device join to configure. Determines which Windows Autopilot deployment profile type to use. Possible values are: `microsoft_entra_joined`, `microsoft_entra_hybrid_joined`. Note: HoloLens devices must use `microsoft_entra_joined`.
+- `display_name` (String) The display name of the deployment profile. Max allowed length is 200 chars. Cannot contain the following characters: ! # % ^ * ) ( - + ; ' > <
+- `out_of_box_experience_setting` (Attributes) The Windows Autopilot Deployment Profile settings used by the device for the out-of-box experience. (see [below for nested schema](#nestedatt--out_of_box_experience_setting))
 
 ### Optional
 
+- `assignments` (Attributes Set) The list of assignments for this deployment profile. (see [below for nested schema](#nestedatt--assignments))
 - `description` (String) A description of the windows autopilotdeployment profile. Max allowed length is 1500 chars.
-- `device_name_template` (String) The template used to name the Autopilot device. This can be a custom text and can also contain either the serial number of the device, or a randomly generated number. The total length of the text generated by the template can be no more than 15 characters.
+- `device_name_template` (String) The template used to name the Autopilot device. This can be a custom text and can also contain either the serial number of the device, or a randomly generated number. The total length of the text generated by the template can be no more than 15 characters. For Microsoft Entra hybrid joined type of Autopilot deployment profiles, devices are named using settings specified in Domain Join configuration.
 - `device_type` (String) The Windows device type that this profile is applicable to. Possible values include `windowsPc`, `holoLens`, `surfaceHub2`, `surfaceHub2S`, `virtualMachine`, `unknownFutureValue`. The default is `windowsPc`.
-- `enrollment_status_screen_settings` (Attributes) The Windows Enrollment Status Screen settings for the deployment profile. (see [below for nested schema](#nestedatt--enrollment_status_screen_settings))
-- `hardware_hash_extraction_enabled` (Boolean) Indicates whether the profile supports the extraction of hardware hash values and registration of the device into Windows Autopilot. When TRUE, indicates if hardware extraction and Windows Autopilot registration will happen on the next successful check-in. When FALSE, hardware hash extraction and Windows Autopilot registration will not happen. Default value is FALSE.
-- `hybrid_azure_ad_join_skip_connectivity_check` (Boolean) The Autopilot Hybrid Azure AD join flow will continue even if it does not establish domain controller connectivity during OOBE. This is only applicable for `microsoft_entra_hybrid_joined` device join type.
-- `locale` (String) The locale (language) to be used when configuring the device. E.g. en-US. The default value is os-default.
+- `hardware_hash_extraction_enabled` (Boolean) Select Yes to register all targeted devices to Autopilot if they are not already registered. The next time registered devices go through the Windows Out of Box Experience (OOBE), they will go through the assigned Autopilot scenario.Please note that certain Autopilot scenarios require specific minimum builds of Windows. Please make sure your device has the required minimum build to go through the scenario.Removing this profile won't remove affected devices from Autopilot. To remove a device from Autopilot, use the Windows Autopilot Devices view.Default value is FALSE.
+- `hybrid_azure_ad_join_skip_connectivity_check` (Boolean) The Autopilot Hybrid Azure AD join flow will continue even if it does not establish domain controller connectivity during OOBE. This should only be set to true when using `microsoft_entra_hybrid_joined` device join type, else always false.
+- `locale` (String) The locale (language) to be used when configuring the device. Possible values are: `user_select` (allows user to select language during OOBE), `os-default` (uses OS default), or specific country codes like `en-US`, `ja-JP`, `fr-FR`, etc. Default value is `os-default`.
 - `management_service_app_id` (String) The Entra management service App ID which gets used during client device-based enrollment discovery.
-- `out_of_box_experience_setting` (Attributes) The Windows Autopilot Deployment Profile settings used by the device for the out-of-box experience. (see [below for nested schema](#nestedatt--out_of_box_experience_setting))
 - `preprovisioning_allowed` (Boolean) Indicates whether the user is allowed to use Windows Autopilot for pre-provisioned deployment mode during Out of Box experience (OOBE). When TRUE, indicates that Windows Autopilot for pre-provisioned deployment mode for OOBE is allowed to be used. When false, Windows Autopilot for pre-provisioned deployment mode for OOBE is not allowed. The default is FALSE.
 - `role_scope_tag_ids` (Set of String) List of role scope tags for the deployment profile.
 - `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))
@@ -129,34 +163,37 @@ resource "microsoft365_graph_beta_device_management_windows_autopilot_deployment
 
 - `created_date_time` (String) The date and time of when the deployment profile was created. Read-Only.
 - `id` (String) The profile key.
-- `language` (String) The language code to be used when configuring the device. E.g. en-US. The default value is os-default. Read-Only. Starting from May 2024 this property will no longer be supported and will be marked as deprecated. Use locale instead.
 - `last_modified_date_time` (String) The date and time of when the deployment profile was last modified. Read-Only.
-
-<a id="nestedatt--enrollment_status_screen_settings"></a>
-### Nested Schema for `enrollment_status_screen_settings`
-
-Optional:
-
-- `allow_device_use_before_profile_and_app_install_complete` (Boolean) Allow or block user to use device before profile and app installation complete.
-- `allow_device_use_on_install_failure` (Boolean) Allow the user to continue using the device on installation failure.
-- `allow_log_collection_on_install_failure` (Boolean) Allow or block log collection on installation failure.
-- `block_device_setup_retry_by_user` (Boolean) Allow the user to retry the setup on installation failure.
-- `custom_error_message` (String) Set custom error message to show upon installation failure.
-- `hide_installation_progress` (Boolean) Show or hide installation progress to user.
-- `install_progress_timeout_in_minutes` (Number) Set installation progress timeout in minutes.
-
 
 <a id="nestedatt--out_of_box_experience_setting"></a>
 ### Nested Schema for `out_of_box_experience_setting`
 
-Optional:
+Required:
 
 - `device_usage_type` (String) The Entra join authentication type. Possible values are singleUser and shared. The default is singleUser. Possible values are: `singleUser`, `shared`, `unknownFutureValue`.
-- `escape_link_hidden` (Boolean) When TRUE, the link that allows user to start over with a different account on company sign-in is hidden. When false, the link that allows user to start over with a different account on company sign-in is available. Default value is FALSE.
-- `eula_hidden` (Boolean) When TRUE, EULA is hidden to the end user during OOBE. When FALSE, EULA is shown to the end user during OOBE. Default value is FALSE.
 - `keyboard_selection_page_skipped` (Boolean) When TRUE, the keyboard selection page is hidden to the end user during OOBE if Language and Region are set. When FALSE, the keyboard selection page is skipped during OOBE.
 - `privacy_settings_hidden` (Boolean) When TRUE, privacy settings is hidden to the end user during OOBE. When FALSE, privacy settings is shown to the end user during OOBE. Default value is FALSE.
 - `user_type` (String) The type of user. Possible values are administrator and standard. Default value is administrator. Possible values are: `administrator`, `standard`, `unknownFutureValue`.
+
+Optional:
+
+- `eula_hidden` (Boolean) When TRUE, EULA is hidden to the end user during OOBE. When FALSE, EULA is shown to the end user during OOBE. Default value is FALSE.
+
+Read-Only:
+
+- `escape_link_hidden` (Boolean) When TRUE, the link that allows user to start over with a different account on company sign-in is hidden. When false, the link that allows user to start over with a different account on company sign-in is available.  This field is defaulted to TRUE for a valid api call but doesnt configure anything in the gui. This field is always required to be set to TRUE.
+
+
+<a id="nestedatt--assignments"></a>
+### Nested Schema for `assignments`
+
+Required:
+
+- `type` (String) The type of assignment target. Possible values are: `groupAssignmentTarget`, `exclusionGroupAssignmentTarget`, `allDevicesAssignmentTarget`.
+
+Optional:
+
+- `group_id` (String) The ID of the target group. Required when type is `groupAssignmentTarget` or `exclusionGroupAssignmentTarget`.
 
 
 <a id="nestedatt--timeouts"></a>

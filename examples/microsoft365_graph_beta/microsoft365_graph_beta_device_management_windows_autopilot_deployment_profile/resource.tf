@@ -19,8 +19,8 @@ resource "microsoft365_graph_beta_device_management_windows_autopilot_deployment
     keyboard_selection_page_skipped = true // Automatically configure keyboard
   }
 
- // Optional assignments
-    assignments = [
+  // Optional assignments
+  assignments = [
     {
       type     = "groupAssignmentTarget"
       group_id = microsoft365_graph_beta_groups_group.acc_test_group_1.id
@@ -57,9 +57,9 @@ resource "microsoft365_graph_beta_device_management_windows_autopilot_deployment
     keyboard_selection_page_skipped = true
   }
 
-    assignments = [
+  assignments = [
     {
-      type     = "allDevicesAssignmentTarget"
+      type = "allDevicesAssignmentTarget"
     }
   ]
 }
