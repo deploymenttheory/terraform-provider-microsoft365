@@ -704,3 +704,183 @@ func RolloutDateTime(minDaysFromNow, maxDaysFromNow int) validator.String {
 func FutureDateTime() validator.String {
 	return RolloutDateTime(1, 365) // At least 1 day in future, max 1 year
 }
+
+//---------------------------------------------------
+
+// deviceNameTemplateValidator validates Windows Autopilot device name templates according to Microsoft requirements
+type deviceNameTemplateValidator struct{}
+
+// Description describes the validation in plain text formatting.
+func (v deviceNameTemplateValidator) Description(_ context.Context) string {
+	return "device name template must be 15 characters or less, can contain letters (a-z, A-Z), numbers (0-9), and hyphens. Cannot contain only numbers or blank spaces. Use %SERIAL% macro for hardware-specific serial number or %RAND:x% macro for random string of x digits"
+}
+
+// MarkdownDescription describes the validation in Markdown formatting.
+func (v deviceNameTemplateValidator) MarkdownDescription(ctx context.Context) string {
+	return v.Description(ctx)
+}
+
+// ValidateString performs the validation.
+func (v deviceNameTemplateValidator) ValidateString(ctx context.Context, req validator.StringRequest, resp *validator.StringResponse) {
+	// Skip validation if the value is null or unknown
+	if req.ConfigValue.IsNull() || req.ConfigValue.IsUnknown() {
+		return
+	}
+
+	value := req.ConfigValue.ValueString()
+	
+	// Allow empty string as it's a valid default value
+	if value == "" {
+		return
+	}
+
+	// 1. Check length (15 characters or less)
+	if len(value) > 15 {
+		resp.Diagnostics.AddAttributeError(
+			req.Path,
+			"Device Name Template Too Long",
+			fmt.Sprintf("Device name template length %d exceeds maximum allowed length of 15 characters", len(value)),
+		)
+		return
+	}
+
+	// 2. Check for blank spaces
+	if strings.Contains(value, " ") {
+		resp.Diagnostics.AddAttributeError(
+			req.Path,
+			"Invalid Character in Device Name Template",
+			"Device name template cannot contain blank spaces",
+		)
+		return
+	}
+
+	// 3. Check if characters are valid (letters, numbers, hyphens, or part of macro)
+	for _, char := range value {
+		if !((char >= 'a' && char <= 'z') || 
+			 (char >= 'A' && char <= 'Z') || 
+			 (char >= '0' && char <= '9') || 
+			 char == '-' || 
+			 char == '%' ||
+			 char == ':') {
+			resp.Diagnostics.AddAttributeError(
+				req.Path,
+				"Invalid Character in Device Name Template",
+				fmt.Sprintf("Device name template contains invalid character '%c'. Only letters (a-z, A-Z), numbers (0-9), hyphens, and macros (%%SERIAL%%, %%RAND:x%%) are allowed", char),
+			)
+			return
+		}
+	}
+
+	// Remove macros to check the actual template content
+	templateWithoutMacros := value
+	// Remove %SERIAL% macro
+	templateWithoutMacros = strings.ReplaceAll(templateWithoutMacros, "%SERIAL%", "")
+	// Remove %RAND:x% macros (where x is any number of digits)
+	for i := 1; i <= 15; i++ {
+		macro := fmt.Sprintf("%%RAND:%d%%", i)
+		templateWithoutMacros = strings.ReplaceAll(templateWithoutMacros, macro, "")
+	}
+
+	// Check if remaining content is only numbers
+	if templateWithoutMacros != "" {
+		remainingIsOnlyNumbers := true
+		for _, char := range templateWithoutMacros {
+			if !((char >= '0' && char <= '9') || char == '-') {
+				remainingIsOnlyNumbers = false
+				break
+			}
+		}
+		
+		// Remove hyphens to check if only digits remain
+		onlyDigits := strings.ReplaceAll(templateWithoutMacros, "-", "")
+		if remainingIsOnlyNumbers && onlyDigits != "" {
+			allDigits := true
+			for _, char := range onlyDigits {
+				if !(char >= '0' && char <= '9') {
+					allDigits = false
+					break
+				}
+			}
+			if allDigits {
+				resp.Diagnostics.AddAttributeError(
+					req.Path,
+					"Invalid Device Name Template",
+					"Device name template cannot contain only numbers (excluding macros)",
+				)
+				return
+			}
+		}
+	}
+
+	// 4. Validate macros if present
+	if strings.Contains(value, "%") {
+		// Check for valid %SERIAL% macro
+		if strings.Contains(value, "%SERIAL%") {
+			// %SERIAL% is valid, no additional checks needed for this macro
+		}
+		
+		// Check for valid %RAND:x% macros
+		serialMacroRemoved := strings.ReplaceAll(value, "%SERIAL%", "")
+		if strings.Contains(serialMacroRemoved, "%RAND:") {
+			// Validate %RAND:x% format
+			parts := strings.Split(serialMacroRemoved, "%RAND:")
+			for i := 1; i < len(parts); i++ {
+				part := parts[i]
+				endIdx := strings.Index(part, "%")
+				if endIdx == -1 {
+					resp.Diagnostics.AddAttributeError(
+						req.Path,
+						"Invalid Macro in Device Name Template",
+						"Invalid %RAND:x% macro format. Use %RAND:x% where x is the number of digits (e.g., %RAND:4%)",
+					)
+					return
+				}
+				digitsPart := part[:endIdx]
+				// Check if it's a valid number between 1 and 15
+				if digitsPart == "" {
+					resp.Diagnostics.AddAttributeError(
+						req.Path,
+						"Invalid Macro in Device Name Template",
+						"Invalid %RAND:x% macro. The x must be a number between 1 and 15",
+					)
+					return
+				}
+				// Simple validation that it contains only digits
+				for _, char := range digitsPart {
+					if !(char >= '0' && char <= '9') {
+						resp.Diagnostics.AddAttributeError(
+							req.Path,
+							"Invalid Macro in Device Name Template",
+							"Invalid %RAND:x% macro. The x must be a number between 1 and 15",
+						)
+						return
+					}
+				}
+			}
+		}
+		
+		// Check for any invalid macros (anything with % that's not SERIAL or RAND)
+		invalidMacroCheck := value
+		invalidMacroCheck = strings.ReplaceAll(invalidMacroCheck, "%SERIAL%", "")
+		// Remove valid RAND macros
+		for i := 1; i <= 15; i++ {
+			macro := fmt.Sprintf("%%RAND:%d%%", i)
+			invalidMacroCheck = strings.ReplaceAll(invalidMacroCheck, macro, "")
+		}
+		// If there are still % characters, there might be invalid macros
+		if strings.Contains(invalidMacroCheck, "%") {
+			resp.Diagnostics.AddAttributeError(
+				req.Path,
+				"Invalid Macro in Device Name Template",
+				"Only %SERIAL% and %RAND:x% macros are supported. Use %SERIAL% for hardware serial number or %RAND:x% for random digits where x is between 1-15",
+			)
+			return
+		}
+	}
+}
+
+// DeviceNameTemplate returns a string validator which ensures that the device name template
+// follows Microsoft's Windows Autopilot device naming requirements.
+func DeviceNameTemplate() validator.String {
+	return &deviceNameTemplateValidator{}
+}

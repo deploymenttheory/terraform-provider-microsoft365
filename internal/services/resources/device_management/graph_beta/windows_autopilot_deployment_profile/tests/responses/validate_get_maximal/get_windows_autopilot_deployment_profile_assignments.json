@@ -1,0 +1,4 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/windowsAutopilotDeploymentProfiles('22222222-2222-2222-2222-222222222222')/assignments",
+  "value": []
+}

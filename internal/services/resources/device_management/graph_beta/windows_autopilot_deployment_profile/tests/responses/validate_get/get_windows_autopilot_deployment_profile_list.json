@@ -1,0 +1,21 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/windowsAutopilotDeploymentProfiles",
+  "@odata.count": 1,
+  "value": [
+    {
+      "@odata.type": "#microsoft.graph.windowsAutopilotDeploymentProfile",
+      "id": "11111111-1111-1111-1111-111111111111",
+      "displayName": "Test Windows Autopilot Deployment Profile",
+      "description": "Test description for Windows Autopilot deployment profile",
+      "language": "os-default",
+      "locale": "os-default",
+      "createdDateTime": "2024-01-01T00:00:00Z",
+      "lastModifiedDateTime": "2024-01-01T00:00:00Z",
+      "deviceType": "windowsPc",
+      "deviceNameTemplate": "",
+      "hardwareHashExtractionEnabled": false,
+      "preprovisioningAllowed": false,
+      "roleScopeTagIds": ["0"]
+    }
+  ]
+}

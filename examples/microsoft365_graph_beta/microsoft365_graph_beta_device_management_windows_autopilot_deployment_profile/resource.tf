@@ -8,6 +8,8 @@ resource "microsoft365_graph_beta_device_management_windows_autopilot_deployment
 
   # Device configuration
   device_type                      = "windowsPc"
+  # Device name template: max 15 chars, letters/numbers/hyphens only, 
+  # cannot be only numbers, use %SERIAL% or %RAND:x% macros
   device_name_template             = "CORP-%SERIAL%"
   locale                           = "en-GB"
   preprovisioning_allowed          = true
