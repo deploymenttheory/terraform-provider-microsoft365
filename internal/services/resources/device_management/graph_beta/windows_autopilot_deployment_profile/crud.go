@@ -30,7 +30,7 @@ func (r *WindowsAutopilotDeploymentProfileResource) Create(ctx context.Context, 
 	}
 	defer cancel()
 
-	requestBody, err := constructResource(ctx, &object, false)
+	requestBody, err := constructResource(ctx, &object, true)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error constructing resource",
@@ -50,6 +50,33 @@ func (r *WindowsAutopilotDeploymentProfileResource) Create(ctx context.Context, 
 	}
 
 	object.ID = types.StringValue(*createdResource.GetId())
+
+	// Handle assignments if provided
+	if !object.Assignments.IsNull() && !object.Assignments.IsUnknown() {
+		assignments, err := constructAssignments(ctx, object.Assignments)
+		if err != nil {
+			resp.Diagnostics.AddError(
+				"Error constructing assignments",
+				fmt.Sprintf("Could not construct assignments: %s: %s", ResourceName, err.Error()),
+			)
+			return
+		}
+
+		// Create assignments
+		for _, assignment := range assignments {
+			_, err := r.client.
+				DeviceManagement().
+				WindowsAutopilotDeploymentProfiles().
+				ByWindowsAutopilotDeploymentProfileId(object.ID.ValueString()).
+				Assignments().
+				Post(ctx, assignment, nil)
+
+			if err != nil {
+				errors.HandleKiotaGraphError(ctx, err, resp, "Create assignment", r.WritePermissions)
+				return
+			}
+		}
+	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
@@ -113,6 +140,32 @@ func (r *WindowsAutopilotDeploymentProfileResource) Read(ctx context.Context, re
 
 	MapRemoteResourceStateToTerraform(ctx, &object, respResource)
 
+	// Fetch assignments
+	assignmentsResp, err := r.client.
+		DeviceManagement().
+		WindowsAutopilotDeploymentProfiles().
+		ByWindowsAutopilotDeploymentProfileId(object.ID.ValueString()).
+		Assignments().
+		Get(ctx, nil)
+
+	if err != nil {
+		errors.HandleKiotaGraphError(ctx, err, resp, operation+" assignments", r.ReadPermissions)
+		return
+	}
+
+	// Map assignments to Terraform state
+	if assignmentsResp != nil && assignmentsResp.GetValue() != nil {
+		assignmentsSet, err := mapRemoteAssignmentsToTerraform(ctx, assignmentsResp.GetValue())
+		if err != nil {
+			resp.Diagnostics.AddError(
+				"Error mapping assignments to Terraform state",
+				fmt.Sprintf("Could not map assignments: %s: %s", ResourceName, err.Error()),
+			)
+			return
+		}
+		object.Assignments = assignmentsSet
+	}
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -140,7 +193,7 @@ func (r *WindowsAutopilotDeploymentProfileResource) Update(ctx context.Context, 
 	}
 	defer cancel()
 
-	requestBody, err := constructResource(ctx, &plan, true)
+	requestBody, err := constructResource(ctx, &plan, false)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error constructing resource",
@@ -158,6 +211,67 @@ func (r *WindowsAutopilotDeploymentProfileResource) Update(ctx context.Context, 
 	if err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, "Update", r.WritePermissions)
 		return
+	}
+
+	// Handle assignment updates
+	// First, delete existing assignments
+	existingAssignments, err := r.client.
+		DeviceManagement().
+		WindowsAutopilotDeploymentProfiles().
+		ByWindowsAutopilotDeploymentProfileId(state.ID.ValueString()).
+		Assignments().
+		Get(ctx, nil)
+
+	if err != nil {
+		errors.HandleKiotaGraphError(ctx, err, resp, "Read existing assignments for update", r.ReadPermissions)
+		return
+	}
+
+	// Delete existing assignments
+	if existingAssignments != nil && existingAssignments.GetValue() != nil {
+		for _, assignment := range existingAssignments.GetValue() {
+			if assignment.GetId() != nil {
+				err := r.client.
+					DeviceManagement().
+					WindowsAutopilotDeploymentProfiles().
+					ByWindowsAutopilotDeploymentProfileId(state.ID.ValueString()).
+					Assignments().
+					ByWindowsAutopilotDeploymentProfileAssignmentId(*assignment.GetId()).
+					Delete(ctx, nil)
+
+				if err != nil {
+					errors.HandleKiotaGraphError(ctx, err, resp, "Delete existing assignment during update", r.WritePermissions)
+					return
+				}
+			}
+		}
+	}
+
+	// Create new assignments if provided
+	if !plan.Assignments.IsNull() && !plan.Assignments.IsUnknown() {
+		assignments, err := constructAssignments(ctx, plan.Assignments)
+		if err != nil {
+			resp.Diagnostics.AddError(
+				"Error constructing assignments during update",
+				fmt.Sprintf("Could not construct assignments: %s: %s", ResourceName, err.Error()),
+			)
+			return
+		}
+
+		// Create assignments
+		for _, assignment := range assignments {
+			_, err := r.client.
+				DeviceManagement().
+				WindowsAutopilotDeploymentProfiles().
+				ByWindowsAutopilotDeploymentProfileId(state.ID.ValueString()).
+				Assignments().
+				Post(ctx, assignment, nil)
+
+			if err != nil {
+				errors.HandleKiotaGraphError(ctx, err, resp, "Create assignment during update", r.WritePermissions)
+				return
+			}
+		}
 	}
 
 	readReq := resource.ReadRequest{State: resp.State, ProviderMeta: req.ProviderMeta}
@@ -196,7 +310,7 @@ func (r *WindowsAutopilotDeploymentProfileResource) Delete(ctx context.Context, 
 	}
 	defer cancel()
 
-	// this resource can only be deleted if it has no assignments
+	// First, get all assignments and delete them
 	assignments, err := r.client.
 		DeviceManagement().
 		WindowsAutopilotDeploymentProfiles().
@@ -209,12 +323,28 @@ func (r *WindowsAutopilotDeploymentProfileResource) Delete(ctx context.Context, 
 		return
 	}
 
+	// Delete existing assignments if any exist
 	if assignments != nil && assignments.GetValue() != nil && len(assignments.GetValue()) > 0 {
-		resp.Diagnostics.AddError(
-			"Cannot Delete Windows Autopilot Deployment Profile",
-			fmt.Sprintf("The Windows Autopilot Deployment Profile '%s' cannot be deleted because it has %d assignment(s). Please remove all assignments before attempting to delete the profile.", object.DisplayName.ValueString(), len(assignments.GetValue())),
-		)
-		return
+		tflog.Debug(ctx, fmt.Sprintf("Deleting %d assignments for Windows Autopilot Deployment Profile: %s", len(assignments.GetValue()), object.ID.ValueString()))
+		
+		for _, assignment := range assignments.GetValue() {
+			if assignment.GetId() != nil {
+				err := r.client.
+					DeviceManagement().
+					WindowsAutopilotDeploymentProfiles().
+					ByWindowsAutopilotDeploymentProfileId(object.ID.ValueString()).
+					Assignments().
+					ByWindowsAutopilotDeploymentProfileAssignmentId(*assignment.GetId()).
+					Delete(ctx, nil)
+
+				if err != nil {
+					errors.HandleKiotaGraphError(ctx, err, resp, "Delete assignment during profile deletion", r.WritePermissions)
+					return
+				}
+			}
+		}
+		
+		tflog.Debug(ctx, fmt.Sprintf("Successfully deleted all assignments for Windows Autopilot Deployment Profile: %s", object.ID.ValueString()))
 	}
 
 	err = r.client.

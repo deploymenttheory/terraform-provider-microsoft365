@@ -21,8 +21,13 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *WindowsAutopil
 	data.ID = convert.GraphToFrameworkString(remoteResource.GetId())
 	data.DisplayName = convert.GraphToFrameworkString(remoteResource.GetDisplayName())
 	data.Description = convert.GraphToFrameworkString(remoteResource.GetDescription())
-	data.Language = convert.GraphToFrameworkString(remoteResource.GetLanguage())
-	data.Locale = convert.GraphToFrameworkString(remoteResource.GetLocale())
+
+	// Handle locale mapping - convert empty string from API back to "user_select"
+	if locale := remoteResource.GetLocale(); locale != nil && *locale == "" {
+		data.Locale = types.StringValue("user_select")
+	} else {
+		data.Locale = convert.GraphToFrameworkString(remoteResource.GetLocale())
+	}
 	data.CreatedDateTime = convert.GraphToFrameworkTime(remoteResource.GetCreatedDateTime())
 	data.LastModifiedDateTime = convert.GraphToFrameworkTime(remoteResource.GetLastModifiedDateTime())
 	data.HardwareHashExtractionEnabled = convert.GraphToFrameworkBool(remoteResource.GetHardwareHashExtractionEnabled())
@@ -76,18 +81,6 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *WindowsAutopil
 
 		if deviceUsageType := oobeSetting.GetDeviceUsageType(); deviceUsageType != nil {
 			data.OutOfBoxExperienceSetting.DeviceUsageType = convert.GraphToFrameworkEnum(deviceUsageType)
-		}
-	}
-
-	if essSettings := remoteResource.GetEnrollmentStatusScreenSettings(); essSettings != nil {
-		data.EnrollmentStatusScreenSettings = &WindowsEnrollmentStatusScreenSettingsModel{
-			HideInstallationProgress:                         convert.GraphToFrameworkBool(essSettings.GetHideInstallationProgress()),
-			AllowDeviceUseBeforeProfileAndAppInstallComplete: convert.GraphToFrameworkBool(essSettings.GetAllowDeviceUseBeforeProfileAndAppInstallComplete()),
-			BlockDeviceSetupRetryByUser:                      convert.GraphToFrameworkBool(essSettings.GetBlockDeviceSetupRetryByUser()),
-			AllowLogCollectionOnInstallFailure:               convert.GraphToFrameworkBool(essSettings.GetAllowLogCollectionOnInstallFailure()),
-			CustomErrorMessage:                               convert.GraphToFrameworkString(essSettings.GetCustomErrorMessage()),
-			InstallProgressTimeoutInMinutes:                  convert.GraphToFrameworkInt32(essSettings.GetInstallProgressTimeoutInMinutes()),
-			AllowDeviceUseOnInstallFailure:                   convert.GraphToFrameworkBool(essSettings.GetAllowDeviceUseOnInstallFailure()),
 		}
 	}
 

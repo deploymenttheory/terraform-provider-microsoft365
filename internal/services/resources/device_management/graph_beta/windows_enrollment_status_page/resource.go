@@ -7,9 +7,9 @@ import (
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/client"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	planmodifiers "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/plan_modifiers"
+	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/schema"
 	commonschemagraphbeta "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/schema/graph_beta/device_management"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/validators"
-	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
 	"github.com/hashicorp/terraform-plugin-framework-validators/int32validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
@@ -214,15 +214,8 @@ func (r *WindowsEnrollmentStatusPageResource) Schema(ctx context.Context, req re
 					),
 				},
 			},
-
 			"assignments": commonschemagraphbeta.DeviceConfigurationWithAllLicensedUsersAllDevicesInclusionGroupAssignmentsSchema(),
-
-			"timeouts": timeouts.Attributes(ctx, timeouts.Opts{
-				Create: true,
-				Read:   true,
-				Update: true,
-				Delete: true,
-			}),
+			"timeouts":    commonschema.Timeouts(ctx),
 		},
 	}
 }
