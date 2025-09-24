@@ -4,12 +4,12 @@ go 1.25.1
 
 require (
 	github.com/Azure/azure-sdk-for-go/sdk/azcore v1.19.1
-	github.com/Azure/azure-sdk-for-go/sdk/azidentity v1.11.0
+	github.com/Azure/azure-sdk-for-go/sdk/azidentity v1.12.0
 	github.com/PuerkitoBio/goquery v1.10.3
 	github.com/google/uuid v1.6.0
 	github.com/hashicorp/terraform-plugin-docs v0.21.0
-	github.com/hashicorp/terraform-plugin-framework v1.15.1
-	github.com/hashicorp/terraform-plugin-framework-timeouts v0.5.0
+	github.com/hashicorp/terraform-plugin-framework v1.16.0
+	github.com/hashicorp/terraform-plugin-framework-timeouts v0.6.0
 	github.com/hashicorp/terraform-plugin-framework-validators v0.18.0
 	github.com/hashicorp/terraform-plugin-go v0.29.0
 	github.com/hashicorp/terraform-plugin-log v0.9.0
@@ -19,7 +19,7 @@ require (
 	github.com/microsoft/kiota-abstractions-go v1.9.3
 	github.com/microsoft/kiota-http-go v1.5.4
 	github.com/microsoft/kiota-serialization-json-go v1.1.2
-	github.com/microsoftgraph/msgraph-beta-sdk-go v0.151.0
+	github.com/microsoftgraph/msgraph-beta-sdk-go v0.152.0
 	github.com/microsoftgraph/msgraph-sdk-go v1.86.0
 	github.com/microsoftgraph/msgraph-sdk-go-core v1.4.0
 	github.com/sassoftware/relic/v8 v8.2.0
@@ -31,7 +31,7 @@ require (
 
 require (
 	github.com/Azure/azure-sdk-for-go/sdk/internal v1.11.2 // indirect
-	github.com/AzureAD/microsoft-authentication-library-for-go v1.4.2 // indirect
+	github.com/AzureAD/microsoft-authentication-library-for-go v1.5.0 // indirect
 	github.com/BurntSushi/toml v1.4.1-0.20240526193622-a339e1f7089c // indirect
 	github.com/Kunde21/markdownfmt/v3 v3.1.0 // indirect
 	github.com/Masterminds/goutils v1.1.1 // indirect
