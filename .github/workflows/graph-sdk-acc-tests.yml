@@ -1,4 +1,4 @@
-name: Graph SDK Acceptance Tests
+name: provider | Graph SDK Acceptance Tests
 
 permissions:
   contents: read

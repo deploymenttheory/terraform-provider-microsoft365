@@ -1,4 +1,4 @@
-name: Nightly Tests
+name: provider | Nightly Tests
 
 permissions:
   contents: read
