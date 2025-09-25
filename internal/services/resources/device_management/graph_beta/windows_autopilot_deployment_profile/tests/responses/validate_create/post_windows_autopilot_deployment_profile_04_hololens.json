@@ -1,16 +1,16 @@
 {
   "@odata.type": "#microsoft.graph.azureADWindowsAutopilotDeploymentProfile",
   "id": "00000000-0000-0000-0000-000000000000",
-  "displayName": "Test Autopilot Profile",
-  "description": "Test description for autopilot profile",
-  "locale": "os-default",
+  "displayName": "unit_test_hololens_with_all_device_assignment",
+  "description": "hololens autopilot profile with hk locale and all device assignment",
+  "locale": "zh-HK",
   "createdDateTime": "2023-01-01T00:00:00Z",
   "lastModifiedDateTime": "2023-01-01T00:00:00Z",
-  "hardwareHashExtractionEnabled": true,
-  "deviceNameTemplate": "thing-%RAND:5%",
-  "preprovisioningAllowed": true,
-  "roleScopeTagIds": ["0", "1"],
-  "deviceType": "windowsPc",
+  "hardwareHashExtractionEnabled": false,
+  "deviceNameTemplate": "thing-%RAND:2%",
+  "preprovisioningAllowed": false,
+  "roleScopeTagIds": ["0"],
+  "deviceType": "holoLens",
   "deviceJoinType": "azureADJoined",
   "hybridAzureADJoinSkipConnectivityCheck": false,
   "outOfBoxExperienceSetting": {
@@ -18,6 +18,6 @@
     "eulaHidden": true,
     "keyboardSelectionPageSkipped": true,
     "userType": "standard",
-    "deviceUsageType": "singleUser"
+    "deviceUsageType": "shared"
   }
 }

@@ -33,7 +33,7 @@ func testCheckExists(resourceName string) resource.TestCheckFunc {
 	return resource.TestCheckResourceAttrSet(resourceName, "id")
 }
 
-func TestWindowsAutopilotDeploymentProfileResource_UserDriven(t *testing.T) {
+func TestWindowsAutopilotDeploymentProfileResource_SelfDeployingOsDefaultLocale(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, profileMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -43,16 +43,16 @@ func TestWindowsAutopilotDeploymentProfileResource_UserDriven(t *testing.T) {
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testConfigUserDriven(),
+				Config: testConfig01SelfDeployingOsDefaultLocale(),
 				Check: resource.ComposeTestCheckFunc(
 					// Basic attributes
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_autopilot_deployment_profile.user_driven", "display_name", "unit-test-user-driven"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_autopilot_deployment_profile.user_driven", "display_name", "acc test user driven autopilot profile with os default locale"),
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_autopilot_deployment_profile.user_driven", "description", "user driven autopilot profile with os default locale"),
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_autopilot_deployment_profile.user_driven", "device_name_template", "thing-%RAND:5%"),
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_autopilot_deployment_profile.user_driven", "locale", "os-default"),
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_autopilot_deployment_profile.user_driven", "device_type", "windowsPc"),
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_autopilot_deployment_profile.user_driven", "device_join_type", "microsoft_entra_joined"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_autopilot_deployment_profile.user_driven", "preprovisioning_allowed", "false"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_autopilot_deployment_profile.user_driven", "preprovisioning_allowed", "true"),
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_autopilot_deployment_profile.user_driven", "hardware_hash_extraction_enabled", "true"),
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_autopilot_deployment_profile.user_driven", "hybrid_azure_ad_join_skip_connectivity_check", "false"),
 
@@ -64,8 +64,18 @@ func TestWindowsAutopilotDeploymentProfileResource_UserDriven(t *testing.T) {
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_autopilot_deployment_profile.user_driven", "out_of_box_experience_setting.keyboard_selection_page_skipped", "true"),
 
 					// Role Scope Tags
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_autopilot_deployment_profile.user_driven", "role_scope_tag_ids.#", "1"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_autopilot_deployment_profile.user_driven", "role_scope_tag_ids.#", "2"),
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_autopilot_deployment_profile.user_driven", "role_scope_tag_ids.0", "0"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_autopilot_deployment_profile.user_driven", "role_scope_tag_ids.1", "1"),
+
+					// Assignments
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_autopilot_deployment_profile.user_driven", "assignments.#", "3"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_autopilot_deployment_profile.user_driven", "assignments.0.type", "groupAssignmentTarget"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_autopilot_deployment_profile.user_driven", "assignments.0.group_id", "00000000-0000-0000-0000-000000000001"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_autopilot_deployment_profile.user_driven", "assignments.1.type", "groupAssignmentTarget"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_autopilot_deployment_profile.user_driven", "assignments.1.group_id", "00000000-0000-0000-0000-000000000002"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_autopilot_deployment_profile.user_driven", "assignments.2.type", "exclusionGroupAssignmentTarget"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_autopilot_deployment_profile.user_driven", "assignments.2.group_id", "00000000-0000-0000-0000-000000000003"),
 
 					// Computed attributes
 					testCheckExists("microsoft365_graph_beta_device_management_windows_autopilot_deployment_profile.user_driven"),
@@ -77,7 +87,7 @@ func TestWindowsAutopilotDeploymentProfileResource_UserDriven(t *testing.T) {
 	})
 }
 
-func TestWindowsAutopilotDeploymentProfileResource_UserDrivenJapanesePreprovisioned(t *testing.T) {
+func TestWindowsAutopilotDeploymentProfileResource_UserDrivenHybridDomainJoin(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, profileMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -87,38 +97,41 @@ func TestWindowsAutopilotDeploymentProfileResource_UserDrivenJapanesePreprovisio
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testConfigUserDrivenJapanesePreprovisioned(),
+				Config: testConfig02UserDrivenHybridDomainJoin(),
 				Check: resource.ComposeTestCheckFunc(
 					// Basic attributes
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_autopilot_deployment_profile.user_driven_japanese_preprovisioned", "display_name", "unit-test-user-driven-japanese-preprovisioned"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_autopilot_deployment_profile.user_driven_japanese_preprovisioned", "description", "user driven autopilot profile with japanese locale and allow pre provisioned deployment"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_autopilot_deployment_profile.user_driven_japanese_preprovisioned", "device_name_template", "thing-%RAND:3%"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_autopilot_deployment_profile.user_driven_japanese_preprovisioned", "locale", "ja-JP"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_autopilot_deployment_profile.user_driven_japanese_preprovisioned", "preprovisioning_allowed", "true"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_autopilot_deployment_profile.user_driven_japanese_preprovisioned", "hardware_hash_extraction_enabled", "true"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_autopilot_deployment_profile.user_driven_japanese_preprovisioned", "device_type", "windowsPc"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_autopilot_deployment_profile.user_driven_japanese_preprovisioned", "device_join_type", "microsoft_entra_joined"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_autopilot_deployment_profile.user_driven_japanese_preprovisioned", "hybrid_azure_ad_join_skip_connectivity_check", "false"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_autopilot_deployment_profile.user_driven_japanese_preprovisioned_with_assignments", "display_name", "unit_test_user_driven_japanese_preprovisioned"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_autopilot_deployment_profile.user_driven_japanese_preprovisioned_with_assignments", "description", "user driven autopilot profile with japanese locale and allow pre provisioned deployment"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_autopilot_deployment_profile.user_driven_japanese_preprovisioned_with_assignments", "locale", "ja-JP"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_autopilot_deployment_profile.user_driven_japanese_preprovisioned_with_assignments", "preprovisioning_allowed", "true"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_autopilot_deployment_profile.user_driven_japanese_preprovisioned_with_assignments", "hardware_hash_extraction_enabled", "true"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_autopilot_deployment_profile.user_driven_japanese_preprovisioned_with_assignments", "device_type", "windowsPc"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_autopilot_deployment_profile.user_driven_japanese_preprovisioned_with_assignments", "device_join_type", "microsoft_entra_hybrid_joined"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_autopilot_deployment_profile.user_driven_japanese_preprovisioned_with_assignments", "hybrid_azure_ad_join_skip_connectivity_check", "true"),
 
 					// OOBE Settings
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_autopilot_deployment_profile.user_driven_japanese_preprovisioned", "out_of_box_experience_setting.device_usage_type", "singleUser"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_autopilot_deployment_profile.user_driven_japanese_preprovisioned", "out_of_box_experience_setting.privacy_settings_hidden", "true"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_autopilot_deployment_profile.user_driven_japanese_preprovisioned", "out_of_box_experience_setting.eula_hidden", "true"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_autopilot_deployment_profile.user_driven_japanese_preprovisioned", "out_of_box_experience_setting.user_type", "standard"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_autopilot_deployment_profile.user_driven_japanese_preprovisioned", "out_of_box_experience_setting.keyboard_selection_page_skipped", "true"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_autopilot_deployment_profile.user_driven_japanese_preprovisioned_with_assignments", "out_of_box_experience_setting.device_usage_type", "singleUser"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_autopilot_deployment_profile.user_driven_japanese_preprovisioned_with_assignments", "out_of_box_experience_setting.privacy_settings_hidden", "true"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_autopilot_deployment_profile.user_driven_japanese_preprovisioned_with_assignments", "out_of_box_experience_setting.eula_hidden", "true"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_autopilot_deployment_profile.user_driven_japanese_preprovisioned_with_assignments", "out_of_box_experience_setting.user_type", "standard"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_autopilot_deployment_profile.user_driven_japanese_preprovisioned_with_assignments", "out_of_box_experience_setting.keyboard_selection_page_skipped", "true"),
 
 					// Role Scope Tags
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_autopilot_deployment_profile.user_driven_japanese_preprovisioned", "role_scope_tag_ids.#", "1"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_autopilot_deployment_profile.user_driven_japanese_preprovisioned", "role_scope_tag_ids.0", "0"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_autopilot_deployment_profile.user_driven_japanese_preprovisioned_with_assignments", "role_scope_tag_ids.#", "1"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_autopilot_deployment_profile.user_driven_japanese_preprovisioned_with_assignments", "role_scope_tag_ids.0", "0"),
 
-					testCheckExists("microsoft365_graph_beta_device_management_windows_autopilot_deployment_profile.user_driven_japanese_preprovisioned"),
+					// Assignments
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_autopilot_deployment_profile.user_driven_japanese_preprovisioned_with_assignments", "assignments.#", "1"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_autopilot_deployment_profile.user_driven_japanese_preprovisioned_with_assignments", "assignments.0.type", "allDevicesAssignmentTarget"),
+
+					testCheckExists("microsoft365_graph_beta_device_management_windows_autopilot_deployment_profile.user_driven_japanese_preprovisioned_with_assignments"),
 				),
 			},
 		},
 	})
 }
 
-func TestWindowsAutopilotDeploymentProfileResource_SelfDeploying(t *testing.T) {
+func TestWindowsAutopilotDeploymentProfileResource_UserDrivenWithGroupAssignments(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, profileMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -128,30 +141,45 @@ func TestWindowsAutopilotDeploymentProfileResource_SelfDeploying(t *testing.T) {
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testConfigSelfDeploying(),
+				Config: testConfig03UserDrivenWithGroupAssignments(),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_autopilot_deployment_profile.self_deploying", "display_name", "unit-test-self-deploying"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_autopilot_deployment_profile.self_deploying", "description", "self deploying autopilot profile with os default locale"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_autopilot_deployment_profile.self_deploying", "device_name_template", "thing-%RAND:2%"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_autopilot_deployment_profile.self_deploying", "locale", "os-default"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_autopilot_deployment_profile.self_deploying", "preprovisioning_allowed", "false"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_autopilot_deployment_profile.self_deploying", "device_type", "windowsPc"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_autopilot_deployment_profile.self_deploying", "hardware_hash_extraction_enabled", "true"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_autopilot_deployment_profile.self_deploying", "device_join_type", "microsoft_entra_joined"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_autopilot_deployment_profile.self_deploying", "hybrid_azure_ad_join_skip_connectivity_check", "false"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_autopilot_deployment_profile.self_deploying", "out_of_box_experience_setting.device_usage_type", "shared"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_autopilot_deployment_profile.self_deploying", "out_of_box_experience_setting.privacy_settings_hidden", "true"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_autopilot_deployment_profile.self_deploying", "out_of_box_experience_setting.eula_hidden", "true"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_autopilot_deployment_profile.self_deploying", "out_of_box_experience_setting.user_type", "standard"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_autopilot_deployment_profile.self_deploying", "out_of_box_experience_setting.keyboard_selection_page_skipped", "true"),
-					testCheckExists("microsoft365_graph_beta_device_management_windows_autopilot_deployment_profile.self_deploying"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_autopilot_deployment_profile.user_driven", "display_name", "user driven autopilot with group assignments"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_autopilot_deployment_profile.user_driven", "description", "user driven autopilot profile with os default locale"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_autopilot_deployment_profile.user_driven", "device_name_template", "thing-%RAND:5%"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_autopilot_deployment_profile.user_driven", "locale", "os-default"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_autopilot_deployment_profile.user_driven", "preprovisioning_allowed", "true"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_autopilot_deployment_profile.user_driven", "device_type", "windowsPc"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_autopilot_deployment_profile.user_driven", "hardware_hash_extraction_enabled", "true"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_autopilot_deployment_profile.user_driven", "device_join_type", "microsoft_entra_joined"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_autopilot_deployment_profile.user_driven", "hybrid_azure_ad_join_skip_connectivity_check", "false"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_autopilot_deployment_profile.user_driven", "out_of_box_experience_setting.device_usage_type", "singleUser"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_autopilot_deployment_profile.user_driven", "out_of_box_experience_setting.privacy_settings_hidden", "true"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_autopilot_deployment_profile.user_driven", "out_of_box_experience_setting.eula_hidden", "true"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_autopilot_deployment_profile.user_driven", "out_of_box_experience_setting.user_type", "standard"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_autopilot_deployment_profile.user_driven", "out_of_box_experience_setting.keyboard_selection_page_skipped", "true"),
+
+					// Role Scope Tags
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_autopilot_deployment_profile.user_driven", "role_scope_tag_ids.#", "2"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_autopilot_deployment_profile.user_driven", "role_scope_tag_ids.0", "0"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_autopilot_deployment_profile.user_driven", "role_scope_tag_ids.1", "1"),
+
+					// Assignments
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_autopilot_deployment_profile.user_driven", "assignments.#", "3"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_autopilot_deployment_profile.user_driven", "assignments.0.type", "groupAssignmentTarget"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_autopilot_deployment_profile.user_driven", "assignments.0.group_id", "00000000-0000-0000-0000-000000000001"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_autopilot_deployment_profile.user_driven", "assignments.1.type", "groupAssignmentTarget"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_autopilot_deployment_profile.user_driven", "assignments.1.group_id", "00000000-0000-0000-0000-000000000002"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_autopilot_deployment_profile.user_driven", "assignments.2.type", "exclusionGroupAssignmentTarget"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_autopilot_deployment_profile.user_driven", "assignments.2.group_id", "00000000-0000-0000-0000-000000000003"),
+
+					testCheckExists("microsoft365_graph_beta_device_management_windows_autopilot_deployment_profile.user_driven"),
 				),
 			},
 		},
 	})
 }
 
-func TestWindowsAutopilotDeploymentProfileResource_HoloLens(t *testing.T) {
+func TestWindowsAutopilotDeploymentProfileResource_HoloLensWithAllDeviceAssignment(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, profileMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -161,25 +189,30 @@ func TestWindowsAutopilotDeploymentProfileResource_HoloLens(t *testing.T) {
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testConfigHoloLens(),
+				Config: testConfig04HoloLensWithAllDeviceAssignment(),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_autopilot_deployment_profile.hololens", "display_name", "unit-test-hololens"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_autopilot_deployment_profile.hololens", "description", "hololens autopilot profile with os default locale"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_autopilot_deployment_profile.hololens", "device_name_template", "thing-%RAND:2%"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_autopilot_deployment_profile.hololens", "device_type", "holoLens"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_autopilot_deployment_profile.hololens", "locale", "zh-HK"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_autopilot_deployment_profile.hololens", "hardware_hash_extraction_enabled", "false"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_autopilot_deployment_profile.hololens", "preprovisioning_allowed", "false"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_autopilot_deployment_profile.hololens", "device_join_type", "microsoft_entra_joined"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_autopilot_deployment_profile.hololens", "hybrid_azure_ad_join_skip_connectivity_check", "false"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_autopilot_deployment_profile.hololens", "out_of_box_experience_setting.device_usage_type", "shared"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_autopilot_deployment_profile.hololens", "out_of_box_experience_setting.privacy_settings_hidden", "true"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_autopilot_deployment_profile.hololens", "out_of_box_experience_setting.eula_hidden", "true"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_autopilot_deployment_profile.hololens", "out_of_box_experience_setting.user_type", "standard"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_autopilot_deployment_profile.hololens", "out_of_box_experience_setting.keyboard_selection_page_skipped", "true"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_autopilot_deployment_profile.hololens", "role_scope_tag_ids.#", "1"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_autopilot_deployment_profile.hololens", "role_scope_tag_ids.0", "0"),
-					testCheckExists("microsoft365_graph_beta_device_management_windows_autopilot_deployment_profile.hololens"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_autopilot_deployment_profile.hololens_with_all_device_assignment", "display_name", "unit_test_hololens_with_all_device_assignment"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_autopilot_deployment_profile.hololens_with_all_device_assignment", "description", "hololens autopilot profile with hk locale and all device assignment"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_autopilot_deployment_profile.hololens_with_all_device_assignment", "device_name_template", "thing-%RAND:2%"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_autopilot_deployment_profile.hololens_with_all_device_assignment", "device_type", "holoLens"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_autopilot_deployment_profile.hololens_with_all_device_assignment", "locale", "zh-HK"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_autopilot_deployment_profile.hololens_with_all_device_assignment", "hardware_hash_extraction_enabled", "false"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_autopilot_deployment_profile.hololens_with_all_device_assignment", "preprovisioning_allowed", "false"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_autopilot_deployment_profile.hololens_with_all_device_assignment", "device_join_type", "microsoft_entra_joined"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_autopilot_deployment_profile.hololens_with_all_device_assignment", "hybrid_azure_ad_join_skip_connectivity_check", "false"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_autopilot_deployment_profile.hololens_with_all_device_assignment", "out_of_box_experience_setting.device_usage_type", "shared"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_autopilot_deployment_profile.hololens_with_all_device_assignment", "out_of_box_experience_setting.privacy_settings_hidden", "true"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_autopilot_deployment_profile.hololens_with_all_device_assignment", "out_of_box_experience_setting.eula_hidden", "true"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_autopilot_deployment_profile.hololens_with_all_device_assignment", "out_of_box_experience_setting.user_type", "standard"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_autopilot_deployment_profile.hololens_with_all_device_assignment", "out_of_box_experience_setting.keyboard_selection_page_skipped", "true"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_autopilot_deployment_profile.hololens_with_all_device_assignment", "role_scope_tag_ids.#", "1"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_autopilot_deployment_profile.hololens_with_all_device_assignment", "role_scope_tag_ids.0", "0"),
+
+					// Assignments
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_autopilot_deployment_profile.hololens_with_all_device_assignment", "assignments.#", "1"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_autopilot_deployment_profile.hololens_with_all_device_assignment", "assignments.0.type", "allDevicesAssignmentTarget"),
+
+					testCheckExists("microsoft365_graph_beta_device_management_windows_autopilot_deployment_profile.hololens_with_all_device_assignment"),
 				),
 			},
 		},
@@ -196,8 +229,33 @@ func TestWindowsAutopilotDeploymentProfileResource_ValidationError(t *testing.T)
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config:      testConfigUserDriven(),
-				ExpectError: regexp.MustCompile("BadRequest"),
+				Config:      testConfig01SelfDeployingOsDefaultLocale(),
+				ExpectError: regexp.MustCompile("Bad Request - 400"),
+			},
+		},
+	})
+}
+
+func TestWindowsAutopilotDeploymentProfileResource_Import(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
+	_, profileMock := setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+	defer profileMock.CleanupMockState()
+
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testConfig01SelfDeployingOsDefaultLocale(),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckExists("microsoft365_graph_beta_device_management_windows_autopilot_deployment_profile.user_driven"),
+				),
+			},
+			{
+				ResourceName:            "microsoft365_graph_beta_device_management_windows_autopilot_deployment_profile.user_driven",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"hybrid_azure_ad_join_skip_connectivity_check"},
 			},
 		},
 	})
@@ -213,7 +271,7 @@ func TestWindowsAutopilotDeploymentProfileResource_Update(t *testing.T) {
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testConfigUserDriven(),
+				Config: testConfig01SelfDeployingOsDefaultLocale(),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_autopilot_deployment_profile.user_driven", "description", "user driven autopilot profile with os default locale"),
 					testCheckExists("microsoft365_graph_beta_device_management_windows_autopilot_deployment_profile.user_driven"),
@@ -222,8 +280,9 @@ func TestWindowsAutopilotDeploymentProfileResource_Update(t *testing.T) {
 			{
 				Config: testConfigUserDrivenUpdated(),
 				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_autopilot_deployment_profile.user_driven", "display_name", "acc test user driven autopilot profile updated"),
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_autopilot_deployment_profile.user_driven", "description", "Updated unit test description"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_autopilot_deployment_profile.user_driven", "locale", "en-US"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_autopilot_deployment_profile.user_driven", "locale", "ja-JP"),
 					testCheckExists("microsoft365_graph_beta_device_management_windows_autopilot_deployment_profile.user_driven"),
 				),
 			},
@@ -232,34 +291,34 @@ func TestWindowsAutopilotDeploymentProfileResource_Update(t *testing.T) {
 }
 
 // Configuration functions
-func testConfigUserDriven() string {
-	unitTestConfig, err := helpers.ParseHCLFile("tests/terraform/unit/user_driven_minimal.tf")
+func testConfig01SelfDeployingOsDefaultLocale() string {
+	unitTestConfig, err := helpers.ParseHCLFile("tests/terraform/unit/01_self_deploying_os_default_locale.tf")
 	if err != nil {
-		panic("failed to load user driven config: " + err.Error())
+		panic("failed to load 01_self_deploying_os_default_locale config: " + err.Error())
 	}
 	return unitTestConfig
 }
 
-func testConfigUserDrivenJapanesePreprovisioned() string {
-	unitTestConfig, err := helpers.ParseHCLFile("tests/terraform/unit/user_driven_japanese_preprovisioned.tf")
+func testConfig02UserDrivenHybridDomainJoin() string {
+	unitTestConfig, err := helpers.ParseHCLFile("tests/terraform/unit/02_user_driven_hybrid_domain_join.tf")
 	if err != nil {
-		panic("failed to load user driven japanese preprovisioned config: " + err.Error())
+		panic("failed to load 02_user_driven_hybrid_domain_join config: " + err.Error())
 	}
 	return unitTestConfig
 }
 
-func testConfigSelfDeploying() string {
-	unitTestConfig, err := helpers.ParseHCLFile("tests/terraform/unit/self_deploying.tf")
+func testConfig03UserDrivenWithGroupAssignments() string {
+	unitTestConfig, err := helpers.ParseHCLFile("tests/terraform/unit/03_user_driven_with_group_assignments.tf")
 	if err != nil {
-		panic("failed to load self deploying config: " + err.Error())
+		panic("failed to load 03_user_driven_with_group_assignments config: " + err.Error())
 	}
 	return unitTestConfig
 }
 
-func testConfigHoloLens() string {
-	unitTestConfig, err := helpers.ParseHCLFile("tests/terraform/unit/hololens.tf")
+func testConfig04HoloLensWithAllDeviceAssignment() string {
+	unitTestConfig, err := helpers.ParseHCLFile("tests/terraform/unit/04_hololens_with_all_device_assignment.tf")
 	if err != nil {
-		panic("failed to load hololens config: " + err.Error())
+		panic("failed to load 04_hololens_with_all_device_assignment config: " + err.Error())
 	}
 	return unitTestConfig
 }
@@ -267,14 +326,14 @@ func testConfigHoloLens() string {
 func testConfigUserDrivenUpdated() string {
 	return `
 resource "microsoft365_graph_beta_device_management_windows_autopilot_deployment_profile" "user_driven" {
-  display_name                                 = "acc_test_user_driven_japanese_preprovisioned"
-  description                                  = "user driven autopilot profile with japanese locale and allow pre provisioned deployment"
+  display_name                                 = "acc test user driven autopilot profile updated"
+  description                                  = "Updated unit test description"
   device_name_template                         = "thing-%RAND:3%"
   locale                                       = "ja-JP"
   preprovisioning_allowed                      = true
   device_type                                  = "windowsPc"
   hardware_hash_extraction_enabled             = true
-  role_scope_tag_ids                           = ["0"]
+  role_scope_tag_ids                           = ["0", "1"]
   device_join_type                             = "microsoft_entra_joined"
   hybrid_azure_ad_join_skip_connectivity_check = false
 
@@ -287,6 +346,10 @@ resource "microsoft365_graph_beta_device_management_windows_autopilot_deployment
   }
 
   assignments = [
+    {
+      type     = "groupAssignmentTarget"
+      group_id = "00000000-0000-0000-0000-000000000001"
+    },
     {
       type = "allDevicesAssignmentTarget"
     }

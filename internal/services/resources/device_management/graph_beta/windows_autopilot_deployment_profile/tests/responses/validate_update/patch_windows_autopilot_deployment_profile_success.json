@@ -1,21 +1,23 @@
 {
   "@odata.type": "#microsoft.graph.azureADWindowsAutopilotDeploymentProfile",
   "id": "00000000-0000-0000-0000-000000000000",
-  "displayName": "Updated Autopilot Profile",
-  "description": "Updated description for autopilot profile",
-  "locale": "en-US",
+  "displayName": "acc test user driven autopilot profile updated",
+  "description": "Updated unit test description",
+  "locale": "ja-JP",
   "createdDateTime": "2023-01-01T00:00:00Z",
   "lastModifiedDateTime": "2023-01-01T01:00:00Z",
   "hardwareHashExtractionEnabled": true,
-  "deviceNameTemplate": "laptop-%RAND:5%",
+  "deviceNameTemplate": "thing-%RAND:3%",
   "preprovisioningAllowed": true,
-  "roleScopeTagIds": ["0"],
+  "roleScopeTagIds": ["0", "1"],
+  "deviceType": "windowsPc",
+  "deviceJoinType": "azureADJoined",
+  "hybridAzureADJoinSkipConnectivityCheck": false,
   "outOfBoxExperienceSetting": {
     "privacySettingsHidden": true,
     "eulaHidden": true,
     "keyboardSelectionPageSkipped": true,
-    "userType": "administrator",
-    "deviceUsageType": "singleUser",
-    "escapeLinkHidden": true
+    "userType": "standard",
+    "deviceUsageType": "singleUser"
   }
 }
