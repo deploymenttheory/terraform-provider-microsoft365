@@ -26,10 +26,13 @@ jobs:
         with:
           fetch-depth: 0
 
-      - uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00 # v6.0.0
+      - name: Set up Go
+        uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00 # v6.0.0
         with:
-          go-version-file: .go-version
+          go-version-file: 'go.mod'
+          cache-dependency-path: 'go.sum'
           cache: true
+          go-version: stable
 
       - name: Install dependencies
         run: go mod download
