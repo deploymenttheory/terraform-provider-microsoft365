@@ -8,6 +8,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
+	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
@@ -16,7 +17,7 @@ func TestRolloutDateTimeValidator(t *testing.T) {
 
 	// Calculate test dates relative to current time
 	now := time.Now().UTC()
-	validDate := now.AddDate(0, 0, 5).Format(time.RFC3339)   // 5 days from now (valid)
+	validDate := now.AddDate(0, 0, 5).Format(time.RFC3339)    // 5 days from now (valid)
 	tooEarlyDate := now.AddDate(0, 0, 1).Format(time.RFC3339) // 1 day from now (too early for 2-day minimum)
 	tooLateDate := now.AddDate(0, 0, 70).Format(time.RFC3339) // 70 days from now (too late for 60-day maximum)
 	pastDate := now.AddDate(0, 0, -1).Format(time.RFC3339)    // 1 day ago (in the past)
@@ -169,7 +170,7 @@ func TestFutureDateTimeValidator(t *testing.T) {
 	// Calculate test dates relative to current time
 	now := time.Now().UTC()
 	validDate := now.AddDate(0, 0, 5).Format(time.RFC3339) // 5 days from now (valid)
-	pastDate := now.AddDate(0, 0, -1).Format(time.RFC3339)  // 1 day ago (in the past)
+	pastDate := now.AddDate(0, 0, -1).Format(time.RFC3339) // 1 day ago (in the past)
 
 	testCases := map[string]struct {
 		value         types.String
@@ -280,9 +281,9 @@ func TestIllegalCharactersValidator(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
-		value           types.String
-		forbiddenChars  []rune
-		expectedError   bool
+		value          types.String
+		forbiddenChars []rune
+		expectedError  bool
 	}{
 		"valid-string": {
 			value:          types.StringValue("validstring"),
@@ -382,3 +383,226 @@ func TestASCIIOnlyValidator(t *testing.T) {
 // TestRequiredWhenEquals is omitted because it requires complex config mocking
 // that is difficult to set up in unit tests. The validator is tested
 // through integration tests in the actual resource tests.
+
+func TestConditionalStringEmptyValidator(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		val                 types.String
+		dependentField      string
+		dependentValue      string
+		validationMessage   string
+		setupMockConfig     func(t *testing.T) validator.StringRequest
+		expectError         bool
+		expectedErrorDetail string
+	}{
+		"empty-string-allowed-when-condition-matches": {
+			val:               types.StringValue(""),
+			dependentField:    "device_join_type",
+			dependentValue:    "microsoft_entra_hybrid_joined",
+			validationMessage: "",
+			setupMockConfig: func(t *testing.T) validator.StringRequest {
+				return validator.StringRequest{
+					ConfigValue: types.StringValue(""),
+					Path:        path.Root("device_name_template"),
+					Config:      tfsdk.Config{},
+				}
+			},
+			expectError: false,
+		},
+		"null-value-allowed-when-condition-matches": {
+			val:               types.StringNull(),
+			dependentField:    "device_join_type",
+			dependentValue:    "microsoft_entra_hybrid_joined",
+			validationMessage: "",
+			setupMockConfig: func(t *testing.T) validator.StringRequest {
+				return validator.StringRequest{
+					ConfigValue: types.StringNull(),
+					Path:        path.Root("device_name_template"),
+					Config:      tfsdk.Config{},
+				}
+			},
+			expectError: false,
+		},
+		"non-empty-string-with-different-dependent-value": {
+			val:               types.StringValue("template-%RAND:5%"),
+			dependentField:    "device_join_type",
+			dependentValue:    "microsoft_entra_hybrid_joined",
+			validationMessage: "",
+			setupMockConfig: func(t *testing.T) validator.StringRequest {
+				return validator.StringRequest{
+					ConfigValue: types.StringValue("template-%RAND:5%"),
+					Path:        path.Root("device_name_template"),
+					Config:      tfsdk.Config{},
+				}
+			},
+			expectError: false, // No error because we're using empty config
+		},
+		"custom-validation-message": {
+			val:               types.StringValue("template-%RAND:5%"),
+			dependentField:    "device_join_type",
+			dependentValue:    "microsoft_entra_hybrid_joined",
+			validationMessage: "device_name_template must not be set when device_join_type is microsoft_entra_hybrid_joined",
+			setupMockConfig: func(t *testing.T) validator.StringRequest {
+				return validator.StringRequest{
+					ConfigValue: types.StringValue("template-%RAND:5%"),
+					Path:        path.Root("device_name_template"),
+					Config:      tfsdk.Config{},
+				}
+			},
+			expectError: false, // No error because we're using empty config
+		},
+		"unknown-value": {
+			val:               types.StringUnknown(),
+			dependentField:    "device_join_type",
+			dependentValue:    "microsoft_entra_hybrid_joined",
+			validationMessage: "",
+			setupMockConfig: func(t *testing.T) validator.StringRequest {
+				return validator.StringRequest{
+					ConfigValue: types.StringUnknown(),
+					Path:        path.Root("device_name_template"),
+					Config:      tfsdk.Config{},
+				}
+			},
+			expectError: false,
+		},
+	}
+
+	for name, testCase := range testCases {
+		name, testCase := name, testCase
+
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			request := testCase.setupMockConfig(t)
+			response := validator.StringResponse{}
+
+			StringMustBeEmptyWhenStringEquals(
+				testCase.dependentField,
+				testCase.dependentValue,
+				testCase.validationMessage,
+			).ValidateString(context.Background(), request, &response)
+
+			if testCase.expectError {
+				if !response.Diagnostics.HasError() {
+					t.Fatal("expected validation error")
+				}
+				if testCase.expectedErrorDetail != "" {
+					found := false
+					for _, err := range response.Diagnostics.Errors() {
+						if contains(err.Detail(), testCase.expectedErrorDetail) {
+							found = true
+							break
+						}
+					}
+					if !found {
+						t.Fatalf("expected error detail %q not found in errors: %v", testCase.expectedErrorDetail, response.Diagnostics.Errors())
+					}
+				}
+			} else {
+				if response.Diagnostics.HasError() {
+					t.Fatalf("unexpected validation error: %s", response.Diagnostics)
+				}
+			}
+		})
+	}
+}
+
+func TestConditionalStringEmptyValidator_Description(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		dependentField    string
+		dependentValue    string
+		validationMessage string
+		expected          string
+		markdown          bool
+	}{
+		"custom-message": {
+			dependentField:    "device_join_type",
+			dependentValue:    "microsoft_entra_hybrid_joined",
+			validationMessage: "custom message",
+			expected:          "custom message",
+			markdown:          false,
+		},
+		"default-message": {
+			dependentField:    "device_join_type",
+			dependentValue:    "microsoft_entra_hybrid_joined",
+			validationMessage: "",
+			expected:          "this field must be empty when device_join_type is microsoft_entra_hybrid_joined",
+			markdown:          false,
+		},
+		"markdown-description": {
+			dependentField:    "device_join_type",
+			dependentValue:    "microsoft_entra_hybrid_joined",
+			validationMessage: "custom message",
+			expected:          "custom message",
+			markdown:          true,
+		},
+	}
+
+	for name, testCase := range testCases {
+		name, testCase := name, testCase
+
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			validator := conditionalStringEmptyValidator{
+				dependentField:    testCase.dependentField,
+				dependentValue:    testCase.dependentValue,
+				validationMessage: testCase.validationMessage,
+			}
+
+			var got string
+			if testCase.markdown {
+				got = validator.MarkdownDescription(context.Background())
+			} else {
+				got = validator.Description(context.Background())
+			}
+
+			if got != testCase.expected {
+				t.Errorf("expected %q, got %q", testCase.expected, got)
+			}
+		})
+	}
+}
+
+func TestStringMustBeEmptyWhenStringEquals(t *testing.T) {
+	t.Parallel()
+
+	validator := StringMustBeEmptyWhenStringEquals("device_join_type", "microsoft_entra_hybrid_joined", "")
+	if validator == nil {
+		t.Fatal("StringMustBeEmptyWhenStringEquals returned nil")
+	}
+
+	description := validator.Description(context.Background())
+	expected := "this field must be empty when device_join_type is microsoft_entra_hybrid_joined"
+	if description != expected {
+		t.Errorf("expected %q, got %q", expected, description)
+	}
+
+	// With custom message
+	validatorWithMsg := StringMustBeEmptyWhenStringEquals("device_join_type", "microsoft_entra_hybrid_joined", "custom message")
+	if validatorWithMsg == nil {
+		t.Fatal("StringMustBeEmptyWhenStringEquals with message returned nil")
+	}
+
+	descriptionWithMsg := validatorWithMsg.Description(context.Background())
+	if descriptionWithMsg != "custom message" {
+		t.Errorf("expected %q, got %q", "custom message", descriptionWithMsg)
+	}
+}
+
+// Helper function to check if a string contains a substring
+func contains(s, substr string) bool {
+	return len(s) >= len(substr) && (s == substr || len(substr) == 0 || (len(s) > len(substr) && (s[:len(substr)] == substr || s[len(s)-len(substr):] == substr || containsInMiddle(s, substr))))
+}
+
+func containsInMiddle(s, substr string) bool {
+	for i := 1; i <= len(s)-len(substr); i++ {
+		if s[i:i+len(substr)] == substr {
+			return true
+		}
+	}
+	return false
+}

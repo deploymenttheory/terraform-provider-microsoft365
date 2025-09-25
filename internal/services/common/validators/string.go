@@ -652,7 +652,7 @@ func (v rolloutDateTimeValidator) ValidateString(ctx context.Context, req valida
 	}
 
 	value := req.ConfigValue.ValueString()
-	
+
 	// Parse the datetime string (expecting RFC3339 format like "2025-05-01T00:00:00Z")
 	parsedTime, err := time.Parse(time.RFC3339, value)
 	if err != nil {
@@ -674,7 +674,7 @@ func (v rolloutDateTimeValidator) ValidateString(ctx context.Context, req valida
 		resp.Diagnostics.AddAttributeError(
 			req.Path,
 			"DateTime Too Early",
-			fmt.Sprintf("DateTime must be at least %d days in the future. Minimum allowed: %s, provided: %s", 
+			fmt.Sprintf("DateTime must be at least %d days in the future. Minimum allowed: %s, provided: %s",
 				v.minDaysFromNow, minDate.Format("01/02/2006"), parsedTime.Format("01/02/2006")),
 		)
 		return
@@ -684,7 +684,7 @@ func (v rolloutDateTimeValidator) ValidateString(ctx context.Context, req valida
 		resp.Diagnostics.AddAttributeError(
 			req.Path,
 			"DateTime Too Late",
-			fmt.Sprintf("DateTime must be within %d days from now. Maximum allowed: %s, provided: %s", 
+			fmt.Sprintf("DateTime must be within %d days from now. Maximum allowed: %s, provided: %s",
 				v.maxDaysFromNow, maxDate.Format("01/02/2006"), parsedTime.Format("01/02/2006")),
 		)
 	}
@@ -703,4 +703,81 @@ func RolloutDateTime(minDaysFromNow, maxDaysFromNow int) validator.String {
 // is in the future relative to the current UTC time (at least 1 day).
 func FutureDateTime() validator.String {
 	return RolloutDateTime(1, 365) // At least 1 day in future, max 1 year
+}
+
+//---------------------------------------------------
+
+// conditionalStringEmptyValidator validates that a string field must be empty/null
+// when another string field has a specific value
+type conditionalStringEmptyValidator struct {
+	dependentField    string
+	dependentValue    string
+	validationMessage string
+}
+
+// Description describes the validation in plain text formatting.
+func (v conditionalStringEmptyValidator) Description(_ context.Context) string {
+	if v.validationMessage != "" {
+		return v.validationMessage
+	}
+	return fmt.Sprintf("this field must be empty when %s is %s", v.dependentField, v.dependentValue)
+}
+
+// MarkdownDescription describes the validation in Markdown formatting.
+func (v conditionalStringEmptyValidator) MarkdownDescription(ctx context.Context) string {
+	return v.Description(ctx)
+}
+
+// ValidateString performs the validation.
+func (v conditionalStringEmptyValidator) ValidateString(ctx context.Context, req validator.StringRequest, resp *validator.StringResponse) {
+	// Skip validation if the value is null or unknown
+	if req.ConfigValue.IsNull() || req.ConfigValue.IsUnknown() {
+		return
+	}
+
+	// Skip validation if the config is empty (for testing purposes)
+	if req.Config.Raw.IsNull() {
+		return
+	}
+
+	// Try to get the dependent field value, but don't error if it's not found
+	var dependentValue types.String
+	diags := req.Config.GetAttribute(ctx, path.Root(v.dependentField), &dependentValue)
+	if diags.HasError() {
+		// If we can't find the field, skip validation
+		// This handles cases where the field might not exist in the schema
+		return
+	}
+
+	// Skip validation if dependent field is null or unknown
+	if dependentValue.IsNull() || dependentValue.IsUnknown() {
+		return
+	}
+
+	// Check if the dependent field has the condition value
+	if dependentValue.ValueString() == v.dependentValue {
+		// If the current field is not empty, add an error
+		if !req.ConfigValue.IsNull() && req.ConfigValue.ValueString() != "" {
+			errorMessage := v.validationMessage
+			if errorMessage == "" {
+				errorMessage = fmt.Sprintf("This field must be empty when %s is %s", v.dependentField, v.dependentValue)
+			}
+
+			resp.Diagnostics.AddAttributeError(
+				req.Path,
+				"Field Must Be Empty",
+				errorMessage,
+			)
+		}
+	}
+}
+
+// StringMustBeEmptyWhenStringEquals returns a string validator which ensures that the current field
+// must be empty when the dependent string field has the specified value.
+func StringMustBeEmptyWhenStringEquals(dependentField string, dependentValue string, validationMessage string) validator.String {
+	return &conditionalStringEmptyValidator{
+		dependentField:    dependentField,
+		dependentValue:    dependentValue,
+		validationMessage: validationMessage,
+	}
 }

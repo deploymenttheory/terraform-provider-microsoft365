@@ -1,0 +1,22 @@
+{
+  "@odata.type": "#microsoft.graph.activeDirectoryWindowsAutopilotDeploymentProfile",
+  "id": "00000000-0000-0000-0000-000000000000",
+  "displayName": "unit_test_user_driven_japanese_preprovisioned",
+  "description": "user driven autopilot profile with japanese locale and allow pre provisioned deployment",
+  "locale": "ja-JP",
+  "createdDateTime": "2023-01-01T00:00:00Z",
+  "lastModifiedDateTime": "2023-01-01T00:00:00Z",
+  "hardwareHashExtractionEnabled": true,
+  "deviceNameTemplate": "",
+  "preprovisioningAllowed": true,
+  "roleScopeTagIds": ["0"],
+  "deviceType": "windowsPc",
+  "hybridAzureADJoinSkipConnectivityCheck": true,
+  "outOfBoxExperienceSetting": {
+    "privacySettingsHidden": true,
+    "eulaHidden": true,
+    "keyboardSelectionPageSkipped": true,
+    "userType": "standard",
+    "deviceUsageType": "singleUser"
+  }
+}

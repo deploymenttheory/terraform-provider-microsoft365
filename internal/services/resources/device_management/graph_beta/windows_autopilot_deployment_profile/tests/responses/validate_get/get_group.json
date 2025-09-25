@@ -1,0 +1,9 @@
+{
+  "@odata.type": "#microsoft.graph.group",
+  "id": "00000000-0000-0000-0000-000000000000",
+  "displayName": "Test Group",
+  "description": "Test group for assignments",
+  "groupTypes": [],
+  "securityEnabled": true,
+  "mailEnabled": false
+}

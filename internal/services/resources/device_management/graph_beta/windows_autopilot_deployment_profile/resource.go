@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
@@ -101,9 +102,13 @@ func (r *WindowsAutopilotDeploymentProfileResource) Schema(ctx context.Context, 
 			},
 			"display_name": schema.StringAttribute{
 				Required:            true,
-				MarkdownDescription: "The display name of the deployment profile. Max allowed length is 200 chars.",
+				MarkdownDescription: "The display name of the deployment profile. Max allowed length is 200 chars. Cannot contain the following characters: ! # % ^ * ) ( - + ; ' > <",
 				Validators: []validator.String{
 					validators.StringLengthAtMost(200),
+					stringvalidator.RegexMatches(
+						regexp.MustCompile(`^[^!#%^*()\-+;'><]*$`),
+						"display name cannot contain the following characters: ! # % ^ * ) ( - + ; ' > <",
+					),
 				},
 			},
 			"description": schema.StringAttribute{
@@ -111,16 +116,25 @@ func (r *WindowsAutopilotDeploymentProfileResource) Schema(ctx context.Context, 
 				MarkdownDescription: "A description of the windows autopilotdeployment profile. Max allowed length is 1500 chars.",
 				Validators: []validator.String{
 					validators.StringLengthAtMost(1500),
+					stringvalidator.RegexMatches(
+						regexp.MustCompile(`^[^!#%^*()\-+;'><]*$`),
+						"description cannot contain the following characters: ! # % ^ * ) ( - + ; ' > <",
+					),
 				},
-			},
-			"language": schema.StringAttribute{
-				Computed:            true,
-				MarkdownDescription: "The language code to be used when configuring the device. E.g. en-US. The default value is os-default. Read-Only. Starting from May 2024 this property will no longer be supported and will be marked as deprecated. Use locale instead.",
 			},
 			"locale": schema.StringAttribute{
 				Optional:            true,
 				Computed:            true,
-				MarkdownDescription: "The locale (language) to be used when configuring the device. E.g. en-US. The default value is os-default.",
+				MarkdownDescription: "The locale (language) to be used when configuring the device. Possible values are: `user_select` (allows user to select language during OOBE), `os-default` (uses OS default), or specific country codes like `en-US`, `ja-JP`, `fr-FR`, etc. Default value is `os-default`.",
+				Validators: []validator.String{
+					stringvalidator.Any(
+						stringvalidator.OneOf("user_select", "os-default"),
+						stringvalidator.RegexMatches(
+							regexp.MustCompile(`^[a-z]{2}-[A-Z]{2}$`),
+							"must be a valid locale code in format 'xx-XX' (e.g., en-US, ja-JP)",
+						),
+					),
+				},
 				PlanModifiers: []planmodifier.String{
 					planmodifiers.DefaultValueString("os-default"),
 				},
@@ -135,28 +149,38 @@ func (r *WindowsAutopilotDeploymentProfileResource) Schema(ctx context.Context, 
 			},
 			"device_join_type": schema.StringAttribute{
 				Required:            true,
-				MarkdownDescription: "The type of device join to configure. Determines which Windows Autopilot deployment profile type to use. Possible values are: `microsoft_entra_joined`, `microsoft_entra_hybrid_joined`.",
+				MarkdownDescription: "The type of device join to configure. Determines which Windows Autopilot deployment profile type to use. Possible values are: `microsoft_entra_joined`, `microsoft_entra_hybrid_joined`. Note: HoloLens devices must use `microsoft_entra_joined`.",
 				Validators: []validator.String{
 					stringvalidator.OneOf(
 						"microsoft_entra_joined",
 						"microsoft_entra_hybrid_joined",
 					),
 				},
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
 			},
 			"hardware_hash_extraction_enabled": schema.BoolAttribute{
-				Optional:            true,
-				Computed:            true,
-				MarkdownDescription: "Indicates whether the profile supports the extraction of hardware hash values and registration of the device into Windows Autopilot. When TRUE, indicates if hardware extraction and Windows Autopilot registration will happen on the next successful check-in. When FALSE, hardware hash extraction and Windows Autopilot registration will not happen. Default value is FALSE.",
+				Optional: true,
+				Computed: true,
+				MarkdownDescription: "Select Yes to register all targeted devices to Autopilot if they are not already registered. " +
+					"The next time registered devices go through the Windows Out of Box Experience (OOBE), they will go through the assigned Autopilot scenario." +
+					"Please note that certain Autopilot scenarios require specific minimum builds of Windows. Please make sure your device has the required minimum build to go through the scenario." +
+					"Removing this profile won't remove affected devices from Autopilot. To remove a device from Autopilot, use the Windows Autopilot Devices view.Default value is FALSE.",
 				PlanModifiers: []planmodifier.Bool{
 					planmodifiers.BoolDefaultValue(false),
+				},
+				Validators: []validator.Bool{
+					validators.BoolCanOnlyBeFalseWhenStringEquals("device_type", "holoLens", "hardware_hash_extraction_enabled must be false when device_type is holoLens"),
 				},
 			},
 			"device_name_template": schema.StringAttribute{
 				Optional:            true,
 				Computed:            true,
-				MarkdownDescription: "The template used to name the Autopilot device. This can be a custom text and can also contain either the serial number of the device, or a randomly generated number. The total length of the text generated by the template can be no more than 15 characters.",
+				MarkdownDescription: "The template used to name the Autopilot device. This can be a custom text and can also contain either the serial number of the device, or a randomly generated number. The total length of the text generated by the template can be no more than 15 characters. For Microsoft Entra hybrid joined type of Autopilot deployment profiles, devices are named using settings specified in Domain Join configuration.",
 				Validators: []validator.String{
 					validators.StringLengthAtMost(15),
+					validators.StringMustBeEmptyWhenStringEquals("device_join_type", "microsoft_entra_hybrid_joined", "device_name_template must not be set when 'device_join_type' is 'microsoft_entra_hybrid_joined', devices are named using settings specified in the AD Domain Join configuration"),
 				},
 				PlanModifiers: []planmodifier.String{
 					planmodifiers.DefaultValueString(""),
@@ -169,10 +193,6 @@ func (r *WindowsAutopilotDeploymentProfileResource) Schema(ctx context.Context, 
 					stringvalidator.OneOf(
 						"windowsPc",
 						"holoLens",
-						"surfaceHub2",
-						"surfaceHub2S",
-						"virtualMachine",
-						"unknownFutureValue",
 					),
 				},
 			},
@@ -182,6 +202,9 @@ func (r *WindowsAutopilotDeploymentProfileResource) Schema(ctx context.Context, 
 				MarkdownDescription: "Indicates whether the user is allowed to use Windows Autopilot for pre-provisioned deployment mode during Out of Box experience (OOBE). When TRUE, indicates that Windows Autopilot for pre-provisioned deployment mode for OOBE is allowed to be used. When false, Windows Autopilot for pre-provisioned deployment mode for OOBE is not allowed. The default is FALSE.",
 				PlanModifiers: []planmodifier.Bool{
 					planmodifiers.BoolDefaultValue(false),
+				},
+				Validators: []validator.Bool{
+					validators.BoolCanOnlyBeFalseWhenStringEquals("device_type", "holoLens", "preprovisioning_allowed must be false when device_type is holoLens"),
 				},
 			},
 			"role_scope_tag_ids": schema.SetAttribute{
@@ -206,15 +229,24 @@ func (r *WindowsAutopilotDeploymentProfileResource) Schema(ctx context.Context, 
 				},
 			},
 			"hybrid_azure_ad_join_skip_connectivity_check": schema.BoolAttribute{
-				Optional:            true,
-				MarkdownDescription: "The Autopilot Hybrid Azure AD join flow will continue even if it does not establish domain controller connectivity during OOBE. This is only applicable for `microsoft_entra_hybrid_joined` device join type.",
+				Optional: true,
+				Computed: true,
+				MarkdownDescription: "The Autopilot Hybrid Azure AD join flow will continue even if it does not establish domain controller connectivity during OOBE. " +
+					"This should only be set to true when using `microsoft_entra_hybrid_joined` device join type, else always false.",
+				PlanModifiers: []planmodifier.Bool{
+					planmodifiers.BoolDefaultValue(false),
+				},
+				Validators: []validator.Bool{
+					validators.BoolCanOnlyBeFalseWhenStringEquals("device_join_type", "microsoft_entra_joined", "hybrid_azure_ad_join_skip_connectivity_check can only be set to true when device_join_type is microsoft_entra_hybrid_joined"),
+					validators.BoolCanOnlyBeFalseWhenStringEquals("device_type", "holoLens", "hybrid_azure_ad_join_skip_connectivity_check must be false when device_type is holoLens"),
+				},
 			},
 			"out_of_box_experience_setting": schema.SingleNestedAttribute{
-				Optional:            true,
+				Required:            true,
 				MarkdownDescription: "The Windows Autopilot Deployment Profile settings used by the device for the out-of-box experience.",
 				Attributes: map[string]schema.Attribute{
 					"privacy_settings_hidden": schema.BoolAttribute{
-						Optional:            true,
+						Required:            true,
 						MarkdownDescription: "When TRUE, privacy settings is hidden to the end user during OOBE. When FALSE, privacy settings is shown to the end user during OOBE. Default value is FALSE.",
 					},
 					"eula_hidden": schema.BoolAttribute{
@@ -222,60 +254,59 @@ func (r *WindowsAutopilotDeploymentProfileResource) Schema(ctx context.Context, 
 						MarkdownDescription: "When TRUE, EULA is hidden to the end user during OOBE. When FALSE, EULA is shown to the end user during OOBE. Default value is FALSE.",
 					},
 					"user_type": schema.StringAttribute{
-						Optional:            true,
+						Required:            true,
 						MarkdownDescription: "The type of user. Possible values are administrator and standard. Default value is administrator. Possible values are: `administrator`, `standard`, `unknownFutureValue`.",
 						Validators: []validator.String{
-							stringvalidator.OneOf("administrator", "standard", "unknownFutureValue"),
+							stringvalidator.OneOf("administrator", "standard"),
 						},
 					},
 					"device_usage_type": schema.StringAttribute{
-						Optional:            true,
+						Required:            true,
 						MarkdownDescription: "The Entra join authentication type. Possible values are singleUser and shared. The default is singleUser. Possible values are: `singleUser`, `shared`, `unknownFutureValue`.",
 						Validators: []validator.String{
-							stringvalidator.OneOf("singleUser", "shared", "unknownFutureValue"),
+							stringvalidator.OneOf("singleUser", "shared"),
+						},
+						PlanModifiers: []planmodifier.String{
+							stringplanmodifier.RequiresReplace(),
 						},
 					},
 					"keyboard_selection_page_skipped": schema.BoolAttribute{
-						Optional:            true,
+						Required:            true,
 						MarkdownDescription: "When TRUE, the keyboard selection page is hidden to the end user during OOBE if Language and Region are set. When FALSE, the keyboard selection page is skipped during OOBE.",
 					},
 					"escape_link_hidden": schema.BoolAttribute{
-						Optional:            true,
-						MarkdownDescription: "When TRUE, the link that allows user to start over with a different account on company sign-in is hidden. When false, the link that allows user to start over with a different account on company sign-in is available. Default value is FALSE.",
+						Computed: true,
+						MarkdownDescription: "When TRUE, the link that allows user to start over with a different account on company sign-in is hidden. When false, the link that allows user to start over with a different account on company sign-in is available. " +
+							" This field is defaulted to TRUE for a valid api call but doesnt configure anything in the gui. This field is always required to be set to TRUE.",
 					},
 				},
 			},
-			"enrollment_status_screen_settings": schema.SingleNestedAttribute{
+			"assignments": schema.SetNestedAttribute{
 				Optional:            true,
-				MarkdownDescription: "The Windows Enrollment Status Screen settings for the deployment profile.",
-				Attributes: map[string]schema.Attribute{
-					"hide_installation_progress": schema.BoolAttribute{
-						Optional:            true,
-						MarkdownDescription: "Show or hide installation progress to user.",
-					},
-					"allow_device_use_before_profile_and_app_install_complete": schema.BoolAttribute{
-						Optional:            true,
-						MarkdownDescription: "Allow or block user to use device before profile and app installation complete.",
-					},
-					"block_device_setup_retry_by_user": schema.BoolAttribute{
-						Optional:            true,
-						MarkdownDescription: "Allow the user to retry the setup on installation failure.",
-					},
-					"allow_log_collection_on_install_failure": schema.BoolAttribute{
-						Optional:            true,
-						MarkdownDescription: "Allow or block log collection on installation failure.",
-					},
-					"custom_error_message": schema.StringAttribute{
-						Optional:            true,
-						MarkdownDescription: "Set custom error message to show upon installation failure.",
-					},
-					"install_progress_timeout_in_minutes": schema.Int32Attribute{
-						Optional:            true,
-						MarkdownDescription: "Set installation progress timeout in minutes.",
-					},
-					"allow_device_use_on_install_failure": schema.BoolAttribute{
-						Optional:            true,
-						MarkdownDescription: "Allow the user to continue using the device on installation failure.",
+				MarkdownDescription: "The list of assignments for this deployment profile.",
+				NestedObject: schema.NestedAttributeObject{
+					Attributes: map[string]schema.Attribute{
+						"type": schema.StringAttribute{
+							Required:            true,
+							MarkdownDescription: "The type of assignment target. Possible values are: `groupAssignmentTarget`, `exclusionGroupAssignmentTarget`, `allDevicesAssignmentTarget`.",
+							Validators: []validator.String{
+								stringvalidator.OneOf(
+									"groupAssignmentTarget",
+									"exclusionGroupAssignmentTarget",
+									"allDevicesAssignmentTarget",
+								),
+							},
+						},
+						"group_id": schema.StringAttribute{
+							Optional:            true,
+							MarkdownDescription: "The ID of the target group. Required when type is `groupAssignmentTarget` or `exclusionGroupAssignmentTarget`.",
+							Validators: []validator.String{
+								stringvalidator.RegexMatches(
+									regexp.MustCompile(constants.GuidRegex),
+									"must be a valid GUID in the format 00000000-0000-0000-0000-000000000000",
+								),
+							},
+						},
 					},
 				},
 			},

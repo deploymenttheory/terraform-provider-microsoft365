@@ -1,0 +1,23 @@
+{
+  "@odata.type": "#microsoft.graph.azureADWindowsAutopilotDeploymentProfile",
+  "id": "00000000-0000-0000-0000-000000000000",
+  "displayName": "unit_test_hololens_with_all_device_assignment",
+  "description": "hololens autopilot profile with hk locale and all device assignment",
+  "locale": "zh-HK",
+  "createdDateTime": "2023-01-01T00:00:00Z",
+  "lastModifiedDateTime": "2023-01-01T00:00:00Z",
+  "hardwareHashExtractionEnabled": false,
+  "deviceNameTemplate": "thing-%RAND:2%",
+  "preprovisioningAllowed": false,
+  "roleScopeTagIds": ["0"],
+  "deviceType": "holoLens",
+  "deviceJoinType": "azureADJoined",
+  "hybridAzureADJoinSkipConnectivityCheck": false,
+  "outOfBoxExperienceSetting": {
+    "privacySettingsHidden": true,
+    "eulaHidden": true,
+    "keyboardSelectionPageSkipped": true,
+    "userType": "standard",
+    "deviceUsageType": "shared"
+  }
+}

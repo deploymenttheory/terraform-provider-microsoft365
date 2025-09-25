@@ -120,3 +120,104 @@ func BoolCanOnlyBeTrueWhen(dependentField string, dependentValue bool, validatio
 func BoolCanOnlyBeFalseWhen(dependentField string, dependentValue bool, validationMessage string) validator.Bool {
 	return ConditionalBoolValue(dependentField, dependentValue, false, validationMessage)
 }
+
+// conditionalStringBoolValidator validates that a boolean field can only have a specific value
+// when another string field has a specific value
+type conditionalStringBoolValidator struct {
+	dependentField    string
+	dependentValue    string
+	allowedValue      bool
+	validationMessage string
+}
+
+// Description describes the validation in plain text formatting.
+func (v conditionalStringBoolValidator) Description(_ context.Context) string {
+	if v.validationMessage != "" {
+		return v.validationMessage
+	}
+
+	allowedValueStr := "true"
+	if !v.allowedValue {
+		allowedValueStr = "false"
+	}
+
+	return fmt.Sprintf("when %s is %s, this field can only be set to %s",
+		v.dependentField, v.dependentValue, allowedValueStr)
+}
+
+// MarkdownDescription describes the validation in Markdown formatting.
+func (v conditionalStringBoolValidator) MarkdownDescription(ctx context.Context) string {
+	return v.Description(ctx)
+}
+
+// ValidateBool performs the validation.
+func (v conditionalStringBoolValidator) ValidateBool(ctx context.Context, req validator.BoolRequest, resp *validator.BoolResponse) {
+	// Skip validation if the value is null or unknown
+	if req.ConfigValue.IsNull() || req.ConfigValue.IsUnknown() {
+		return
+	}
+
+	// Skip validation if the config is empty (for testing purposes)
+	if req.Config.Raw.IsNull() {
+		return
+	}
+
+	// Try to get the dependent field value, but don't error if it's not found
+	var dependentValue types.String
+	diags := req.Config.GetAttribute(ctx, path.Root(v.dependentField), &dependentValue)
+	if diags.HasError() {
+		// If we can't find the field, skip validation
+		// This handles cases where the field might not exist in the schema
+		return
+	}
+
+	// Skip validation if dependent field is null or unknown
+	if dependentValue.IsNull() || dependentValue.IsUnknown() {
+		return
+	}
+
+	// Check if the dependent field has the condition value
+	if dependentValue.ValueString() == v.dependentValue {
+		// If the current field doesn't have the allowed value, add an error
+		if req.ConfigValue.ValueBool() != v.allowedValue {
+			errorMessage := v.validationMessage
+			if errorMessage == "" {
+				allowedValueStr := "true"
+				if !v.allowedValue {
+					allowedValueStr = "false"
+				}
+				errorMessage = fmt.Sprintf("When %s is %s, this field can only be set to %s",
+					v.dependentField, v.dependentValue, allowedValueStr)
+			}
+
+			resp.Diagnostics.AddAttributeError(
+				req.Path,
+				"Invalid Conditional Value",
+				errorMessage,
+			)
+		}
+	}
+}
+
+// ConditionalStringBoolValue returns a boolean validator which ensures that when a dependent string field
+// has a specific string value, the current field can only have a specific boolean value.
+func ConditionalStringBoolValue(dependentField string, dependentValue string, allowedValue bool, validationMessage string) validator.Bool {
+	return &conditionalStringBoolValidator{
+		dependentField:    dependentField,
+		dependentValue:    dependentValue,
+		allowedValue:      allowedValue,
+		validationMessage: validationMessage,
+	}
+}
+
+// BoolCanOnlyBeTrueWhenStringEquals returns a boolean validator which ensures that the current field
+// can only be true when the dependent string field has the specified value.
+func BoolCanOnlyBeTrueWhenStringEquals(dependentField string, dependentValue string, validationMessage string) validator.Bool {
+	return ConditionalStringBoolValue(dependentField, dependentValue, true, validationMessage)
+}
+
+// BoolCanOnlyBeFalseWhenStringEquals returns a boolean validator which ensures that the current field
+// can only be false when the dependent string field has the specified value.
+func BoolCanOnlyBeFalseWhenStringEquals(dependentField string, dependentValue string, validationMessage string) validator.Bool {
+	return ConditionalStringBoolValue(dependentField, dependentValue, false, validationMessage)
+}
