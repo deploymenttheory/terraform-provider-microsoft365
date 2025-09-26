@@ -67,40 +67,9 @@ Please refer to the [Getting Started](https://registry.terraform.io/providers/de
 - **Microsoft Graph API Support**: Integrates with both v1.0 and beta Microsoft Graph API endpoint sets, to support both generally available and preview features.
 - **Microsoft Graph SDK Adoption**: The provider leverages the Microsoft Graph API through the Kiota-generated graphSDKs, allowing for a strongly typed development experience.
 
-## Project Status in light of terraform-provider-msgraph
+## Project Status
 
-In July 2025 microsoft released the [terraform-provider-msgraph](https://github.com/hashicorp/terraform-provider-msgraph) partner provider. This provider is developed by Microsoft and is the official provider for Microsoft Graph API. However there are some distinct differences between the two projects and the approaches taken for interacting with Microsoft M365.
-
-### Scope
-
-This projects aim and scope is to cover all aspects of Microsoft 365 workloads including:
-
-- msgraph
-- teams.microsoft.com
-- exchange.microsoft.com
-- sharepointonline.com
-- security.microsoft.com
-- undocumented api endpoints / related microsoft microservices
-- utilities for handing metadata useful for resource lifecycle creation and lifecycle
-
-Out of scope for this project are:
-
-- entra ID (it's managed by the azureAD provider)
-- operations taken by a secondary service upon primary service (e.g. defining security configuration for managed devices via Defender for Endpoint. When intune handles it.)
-
-As such the scope is broader than the terraform-provider-msgraph provider.
-
-### Api Interactions
-
-The terraform-provider-msgraph provider uses a thin wrapper around the Microsoft Graph API directly. This provider uses the Kiota-generated graphSDKs built from microsofts schema to interact with the Microsoft Graph API.
-
-For other api's (or when the sdk doesn't have a resource) the provider uses the REST API directly via custom requests instead.
-
-Additionally, this provider allows for the use of multiple api calls per CRUD operation. This means that for complex resources, which can require multiple api calls to create/ update and then to read the resource in it's entirety for stating, can be handled end to end and abstracted away from the user by the provider. This approach seeks to mimick gui operations, in a predictable manner, without requiring the user to know or understand the underlying api calls and their intricacies. It also means that additional tf modules are less necessary to handle complex resources using this approach. However, for simple resources, the terraform-provider-msgraph provider may be an equally valid choice.
-
-### Support
-
-One of the primary distinctions between the two providers is that the support for the terraform-provider-msgraph provider is provided by Microsoft. This provider is community supported and is not officially supported by Microsoft. Depending on your use case, and the support you require, this may be a consideration in your choice of provider. However, there's nothing to stop a tf configuration containing both depending on your use case.
+For information about this project's status in relation to the official terraform-provider-msgraph provider, see the [Project Status](./docs/development/project_status.md) documentation.
 
 ## Community Contributions
 
@@ -111,6 +80,12 @@ As a community-driven project, contributions, feedback, and issue reports are we
 The style guidelines and the design decisions for this provider can be found here
 
 [Development Guide](./docs/development/guide.md)
+
+### Known Issues
+
+For information about known bugs and limitations, including Microsoft Graph API issues and workarounds, see:
+
+[Known Issues & Bugs](./docs/development/known_bugs.md)
 
 ## Community Terraform Provider for Microsoft 365 Provider Roadmap
 
