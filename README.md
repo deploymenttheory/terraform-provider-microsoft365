@@ -1,5 +1,10 @@
 # Community Terraform Provider for Microsoft 365
 
+[![Release](https://img.shields.io/github/v/release/deploymenttheory/terraform-provider-microsoft365)](https://github.com/deploymenttheory/terraform-provider-microsoft365/releases)
+[![Installs](https://img.shields.io/badge/dynamic/json?logo=terraform&label=installs&query=$.data.attributes.downloads&url=https%3A%2F%2Fregistry.terraform.io%2Fv2%2Fproviders%2F5565)](https://registry.terraform.io/providers/deploymenttheory/microsoft365)
+[![Registry](https://img.shields.io/badge/registry-doc%40latest-lightgrey?logo=terraform)](https://registry.terraform.io/providers/deploymenttheory/microsoft365/latest/docs)
+[![Lint Status](https://github.com/deploymenttheory/terraform-provider-microsoft365/workflows/go%20%7C%20Linter/badge.svg)](https://github.com/deploymenttheory/terraform-provider-microsoft365/actions)
+[![Go Report Card](https://goreportcard.com/badge/github.com/deploymenttheory/terraform-provider-microsoft365)](https://goreportcard.com/report/github.com/deploymenttheory/terraform-provider-microsoft365)
 [![codecov](https://codecov.io/gh/deploymenttheory/terraform-provider-microsoft365/graph/badge.svg?token=STSFXO1NL6)](https://codecov.io/gh/deploymenttheory/terraform-provider-microsoft365)
 [![Go Version](https://img.shields.io/github/go-mod/go-version/deploymenttheory/terraform-provider-microsoft365)](https://go.dev/)
 [![License](https://img.shields.io/github/license/deploymenttheory/terraform-provider-microsoft365)](LICENSE)
