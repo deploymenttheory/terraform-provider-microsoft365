@@ -20,19 +20,19 @@ import (
 // It uses the CredentialFactory and CredentialStrategy to create the appropriate credential type based on the authentication method
 // defined within the provider configuraton.
 func ObtainCredential(ctx context.Context, config *ProviderData, clientOptions policy.ClientOptions) (azcore.TokenCredential, error) {
-	tflog.Info(ctx, "Obtaining credential", map[string]interface{}{
+	tflog.Info(ctx, "Obtaining credential", map[string]any{
 		"auth_method": config.AuthMethod,
 	})
 	strategy, err := credentialFactory(config.AuthMethod)
 	if err != nil {
-		tflog.Error(ctx, "Failed to create credential strategy", map[string]interface{}{
+		tflog.Error(ctx, "Failed to create credential strategy", map[string]any{
 			"error": err,
 		})
 		return nil, err
 	}
 	credential, err := strategy.GetCredential(ctx, config, clientOptions)
 	if err != nil {
-		tflog.Error(ctx, "Failed to get credential", map[string]interface{}{
+		tflog.Error(ctx, "Failed to get credential", map[string]any{
 			"error": err,
 		})
 		return nil, err
@@ -42,7 +42,7 @@ func ObtainCredential(ctx context.Context, config *ProviderData, clientOptions p
 }
 
 func credentialFactory(authMethod string) (CredentialStrategy, error) {
-	tflog.Info(context.Background(), "Creating credential strategy", map[string]interface{}{
+	tflog.Info(context.Background(), "Creating credential strategy", map[string]any{
 		"auth_method": authMethod,
 	})
 	switch authMethod {
@@ -67,7 +67,7 @@ func credentialFactory(authMethod string) (CredentialStrategy, error) {
 	case "oidc_azure_devops":
 		return &AzureDevOpsOIDCStrategy{}, nil
 	default:
-		tflog.Error(context.Background(), "Unsupported authentication method", map[string]interface{}{
+		tflog.Error(context.Background(), "Unsupported authentication method", map[string]any{
 			"auth_method": authMethod,
 		})
 		return nil, fmt.Errorf("unsupported authentication method: %s", authMethod)
@@ -78,7 +78,7 @@ func credentialFactory(authMethod string) (CredentialStrategy, error) {
 type AzureDeveloperCLIStrategy struct{}
 
 func (s *AzureDeveloperCLIStrategy) GetCredential(ctx context.Context, config *ProviderData, clientOptions policy.ClientOptions) (azcore.TokenCredential, error) {
-	tflog.Info(ctx, "Creating Azure Developer CLI credential", map[string]interface{}{
+	tflog.Info(ctx, "Creating Azure Developer CLI credential", map[string]any{
 		"tenant_id": config.TenantID,
 	})
 
@@ -99,7 +99,7 @@ type CredentialStrategy interface {
 type ClientSecretStrategy struct{}
 
 func (s *ClientSecretStrategy) GetCredential(ctx context.Context, config *ProviderData, clientOptions policy.ClientOptions) (azcore.TokenCredential, error) {
-	tflog.Info(ctx, "Creating client secret credential", map[string]interface{}{
+	tflog.Info(ctx, "Creating client secret credential", map[string]any{
 		"tenant_id": config.TenantID,
 		"client_id": config.EntraIDOptions.ClientID,
 	})
@@ -117,7 +117,7 @@ func (s *ClientSecretStrategy) GetCredential(ctx context.Context, config *Provid
 type ClientCertificateStrategy struct{}
 
 func (s *ClientCertificateStrategy) GetCredential(ctx context.Context, config *ProviderData, clientOptions policy.ClientOptions) (azcore.TokenCredential, error) {
-	tflog.Info(ctx, "Creating client certificate credential", map[string]interface{}{
+	tflog.Info(ctx, "Creating client certificate credential", map[string]any{
 		"tenant_id":   config.TenantID,
 		"client_id":   config.EntraIDOptions.ClientID,
 		"certificate": config.EntraIDOptions.ClientCertificate,
@@ -125,7 +125,7 @@ func (s *ClientCertificateStrategy) GetCredential(ctx context.Context, config *P
 
 	certData, err := os.ReadFile(config.EntraIDOptions.ClientCertificate)
 	if err != nil {
-		tflog.Error(ctx, "Failed to read certificate file", map[string]interface{}{
+		tflog.Error(ctx, "Failed to read certificate file", map[string]any{
 			"error": err,
 		})
 		return nil, fmt.Errorf("failed to read certificate file: %w", err)
@@ -134,7 +134,7 @@ func (s *ClientCertificateStrategy) GetCredential(ctx context.Context, config *P
 	password := []byte(config.EntraIDOptions.ClientCertificatePassword)
 	certs, privateKey, err := helpers.ParseCertificateData(ctx, certData, password)
 	if err != nil {
-		tflog.Error(ctx, "Failed to parse certificate data", map[string]interface{}{
+		tflog.Error(ctx, "Failed to parse certificate data", map[string]any{
 			"error": err,
 		})
 		return nil, fmt.Errorf("failed to parse certificate data: %w", err)
@@ -156,7 +156,7 @@ func (s *ClientCertificateStrategy) GetCredential(ctx context.Context, config *P
 type DeviceCodeStrategy struct{}
 
 func (s *DeviceCodeStrategy) GetCredential(ctx context.Context, config *ProviderData, clientOptions policy.ClientOptions) (azcore.TokenCredential, error) {
-	tflog.Info(ctx, "Creating device code credential", map[string]interface{}{
+	tflog.Info(ctx, "Creating device code credential", map[string]any{
 		"tenant_id": config.TenantID,
 		"client_id": config.EntraIDOptions.ClientID,
 	})
@@ -164,7 +164,7 @@ func (s *DeviceCodeStrategy) GetCredential(ctx context.Context, config *Provider
 		TenantID: config.TenantID,
 		ClientID: config.EntraIDOptions.ClientID,
 		UserPrompt: func(ctx context.Context, message azidentity.DeviceCodeMessage) error {
-			tflog.Info(ctx, "Device code message", map[string]interface{}{
+			tflog.Info(ctx, "Device code message", map[string]any{
 				"message": message.Message,
 			})
 			fmt.Println(message.Message)
@@ -179,7 +179,7 @@ func (s *DeviceCodeStrategy) GetCredential(ctx context.Context, config *Provider
 type InteractiveBrowserStrategy struct{}
 
 func (s *InteractiveBrowserStrategy) GetCredential(ctx context.Context, config *ProviderData, clientOptions policy.ClientOptions) (azcore.TokenCredential, error) {
-	tflog.Info(ctx, "Creating interactive browser credential", map[string]interface{}{
+	tflog.Info(ctx, "Creating interactive browser credential", map[string]any{
 		"tenant_id": config.TenantID,
 		"client_id": config.EntraIDOptions.ClientID,
 	})
@@ -199,7 +199,7 @@ func (s *InteractiveBrowserStrategy) GetCredential(ctx context.Context, config *
 type WorkloadIdentityStrategy struct{}
 
 func (s *WorkloadIdentityStrategy) GetCredential(ctx context.Context, config *ProviderData, clientOptions policy.ClientOptions) (azcore.TokenCredential, error) {
-	tflog.Info(ctx, "Creating workload identity credential", map[string]interface{}{
+	tflog.Info(ctx, "Creating workload identity credential", map[string]any{
 		"tenant_id": config.TenantID,
 		"client_id": config.EntraIDOptions.ClientID,
 	})
@@ -214,7 +214,7 @@ func (s *WorkloadIdentityStrategy) GetCredential(ctx context.Context, config *Pr
 
 	if config.EntraIDOptions.FederatedTokenFilePath != "" {
 		options.TokenFilePath = config.EntraIDOptions.FederatedTokenFilePath
-		tflog.Debug(ctx, "Using Kubernetes service account token file path for workload identity authentication ", map[string]interface{}{
+		tflog.Debug(ctx, "Using Kubernetes service account token file path for workload identity authentication ", map[string]any{
 			"path": options.TokenFilePath,
 		})
 	}
@@ -226,7 +226,7 @@ func (s *WorkloadIdentityStrategy) GetCredential(ctx context.Context, config *Pr
 type ManagedIdentityStrategy struct{}
 
 func (s *ManagedIdentityStrategy) GetCredential(ctx context.Context, config *ProviderData, clientOptions policy.ClientOptions) (azcore.TokenCredential, error) {
-	tflog.Info(ctx, "Creating managed identity credential", map[string]interface{}{
+	tflog.Info(ctx, "Creating managed identity credential", map[string]any{
 		"client_id":   config.EntraIDOptions.ManagedIdentityClientID,
 		"resource_id": config.EntraIDOptions.ManagedIdentityResourceID,
 	})
@@ -237,7 +237,7 @@ func (s *ManagedIdentityStrategy) GetCredential(ctx context.Context, config *Pro
 
 	if config.EntraIDOptions.ManagedIdentityResourceID != "" {
 		options.ID = azidentity.ResourceID(config.EntraIDOptions.ManagedIdentityResourceID)
-		tflog.Debug(ctx, "Using resource ID for managed identity authentication", map[string]interface{}{
+		tflog.Debug(ctx, "Using resource ID for managed identity authentication", map[string]any{
 			"resource_id": config.EntraIDOptions.ManagedIdentityResourceID,
 		})
 	}
@@ -249,7 +249,7 @@ func (s *ManagedIdentityStrategy) GetCredential(ctx context.Context, config *Pro
 type OIDCStrategy struct{}
 
 func (s *OIDCStrategy) GetCredential(ctx context.Context, config *ProviderData, clientOptions policy.ClientOptions) (azcore.TokenCredential, error) {
-	tflog.Info(ctx, "Creating OIDC credential", map[string]interface{}{
+	tflog.Info(ctx, "Creating OIDC credential", map[string]any{
 		"tenant_id": config.TenantID,
 		"client_id": config.EntraIDOptions.ClientID,
 	})
@@ -264,7 +264,7 @@ func (s *OIDCStrategy) GetCredential(ctx context.Context, config *ProviderData, 
 
 	if config.EntraIDOptions.OIDCTokenFilePath != "" {
 		// Use token file if specified
-		tflog.Debug(ctx, "Using OIDC token file", map[string]interface{}{
+		tflog.Debug(ctx, "Using OIDC token file", map[string]any{
 			"path": config.EntraIDOptions.OIDCTokenFilePath,
 		})
 		assertion = func(ctx context.Context) (string, error) {
@@ -282,7 +282,7 @@ func (s *OIDCStrategy) GetCredential(ctx context.Context, config *ProviderData, 
 		}
 	} else if config.EntraIDOptions.OIDCRequestToken != "" && config.EntraIDOptions.OIDCRequestURL != "" {
 		// Use token exchange
-		tflog.Debug(ctx, "Using OIDC token exchange", map[string]interface{}{
+		tflog.Debug(ctx, "Using OIDC token exchange", map[string]any{
 			"url": config.EntraIDOptions.OIDCRequestURL,
 		})
 		assertion = func(ctx context.Context) (string, error) {
@@ -304,7 +304,7 @@ func (s *OIDCStrategy) GetCredential(ctx context.Context, config *ProviderData, 
 type GitHubOIDCStrategy struct{}
 
 func (s *GitHubOIDCStrategy) GetCredential(ctx context.Context, config *ProviderData, clientOptions policy.ClientOptions) (azcore.TokenCredential, error) {
-	tflog.Info(ctx, "Creating GitHub OIDC credential", map[string]interface{}{
+	tflog.Info(ctx, "Creating GitHub OIDC credential", map[string]any{
 		"tenant_id": config.TenantID,
 		"client_id": config.EntraIDOptions.ClientID,
 	})
@@ -323,50 +323,61 @@ func (s *GitHubOIDCStrategy) GetCredential(ctx context.Context, config *Provider
 		return nil, fmt.Errorf("GitHub OIDC authentication requires the ACTIONS_ID_TOKEN_REQUEST_URL and ACTIONS_ID_TOKEN_REQUEST_TOKEN environment variables to be set")
 	}
 
-	// The audience is the client ID of the application
-	audience := config.EntraIDOptions.ClientID
-
 	// Create the assertion callback
 	assertion := func(ctx context.Context) (string, error) {
-		tflog.Debug(ctx, "Requesting GitHub OIDC token", map[string]interface{}{
+		tflog.Debug(ctx, "Requesting GitHub OIDC token", map[string]any{
 			"url":      requestURL,
-			"audience": audience,
+			"audience": "api://AzureADTokenExchange",
 		})
 
-		// Build the request URL with the audience parameter
-		reqURL := fmt.Sprintf("%s&audience=%s", requestURL, url.QueryEscape(audience))
-
 		// Create the request
-		req, err := http.NewRequestWithContext(ctx, "GET", reqURL, nil)
+		req, err := http.NewRequestWithContext(ctx, http.MethodGet, requestURL, http.NoBody)
 		if err != nil {
-			return "", fmt.Errorf("failed to create request for GitHub OIDC token: %w", err)
+			return "", fmt.Errorf("getAssertion: failed to build request")
 		}
 
-		// Add the authorization header
-		req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", requestToken))
+		query, err := url.ParseQuery(req.URL.RawQuery)
+		if err != nil {
+			return "", fmt.Errorf("getAssertion: cannot parse URL query")
+		}
 
-		// Send the request
+		if query.Get("audience") == "" {
+			query.Set("audience", "api://AzureADTokenExchange")
+			req.URL.RawQuery = query.Encode()
+		}
+
+		req.Header.Set("Accept", "application/json")
+		req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", requestToken))
+		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+
 		resp, err := http.DefaultClient.Do(req)
 		if err != nil {
-			return "", fmt.Errorf("failed to request GitHub OIDC token: %w", err)
+			return "", fmt.Errorf("getAssertion: cannot request token: %v", err)
 		}
 		defer resp.Body.Close()
 
-		// Check the response status code
-		if resp.StatusCode != http.StatusOK {
-			body, _ := io.ReadAll(resp.Body)
-			return "", fmt.Errorf("failed to request GitHub OIDC token: status code %d: %s", resp.StatusCode, string(body))
+		body, err := io.ReadAll(io.LimitReader(resp.Body, 1<<20))
+		if err != nil {
+			return "", fmt.Errorf("getAssertion: cannot parse response: %v", err)
 		}
 
-		// Parse the response
-		var tokenResp struct {
-			Value string `json:"value"`
-		}
-		if err := json.NewDecoder(resp.Body).Decode(&tokenResp); err != nil {
-			return "", fmt.Errorf("failed to parse GitHub OIDC token response: %w", err)
+		if c := resp.StatusCode; c < 200 || c > 299 {
+			return "", fmt.Errorf("getAssertion: received HTTP status %d with response: %s", resp.StatusCode, body)
 		}
 
-		return tokenResp.Value, nil
+		var tokenRes struct {
+			Count *int    `json:"count"`
+			Value *string `json:"value"`
+		}
+		if err := json.Unmarshal(body, &tokenRes); err != nil {
+			return "", fmt.Errorf("getAssertion: cannot unmarshal response: %v", err)
+		}
+
+		if tokenRes.Value == nil {
+			return "", fmt.Errorf("getAssertion: nil JWT assertion received from OIDC provider")
+		}
+
+		return *tokenRes.Value, nil
 	}
 
 	return azidentity.NewClientAssertionCredential(
@@ -381,7 +392,7 @@ func (s *GitHubOIDCStrategy) GetCredential(ctx context.Context, config *Provider
 type AzureDevOpsOIDCStrategy struct{}
 
 func (s *AzureDevOpsOIDCStrategy) GetCredential(ctx context.Context, config *ProviderData, clientOptions policy.ClientOptions) (azcore.TokenCredential, error) {
-	tflog.Info(ctx, "Creating Azure DevOps OIDC credential", map[string]interface{}{
+	tflog.Info(ctx, "Creating Azure DevOps OIDC credential", map[string]any{
 		"tenant_id": config.TenantID,
 		"client_id": config.EntraIDOptions.ClientID,
 	})
@@ -414,7 +425,7 @@ func (s *AzureDevOpsOIDCStrategy) GetCredential(ctx context.Context, config *Pro
 
 // exchangeOIDCToken exchanges an OIDC token for another token
 func exchangeOIDCToken(ctx context.Context, requestURL, requestToken string) (string, error) {
-	tflog.Debug(ctx, "Exchanging OIDC token", map[string]interface{}{
+	tflog.Debug(ctx, "Exchanging OIDC token", map[string]any{
 		"url": requestURL,
 	})
 
