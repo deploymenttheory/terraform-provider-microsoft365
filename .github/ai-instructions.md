@@ -339,27 +339,56 @@ Use the Terraform plugin logger (`tflog`) for logging within resource implementa
 
 ## Testing Best Practices
 
-- **Unit Tests:** For each new resource or data source, write unit tests covering all operations and edge cases. Use the `jarcoal/httpmock` library (already in the project) to simulate HTTP API responses.
-  - Register **mock responders** for every HTTP call that the Create, Read, Update, or Delete functions will make. Each test step should set up the expected API responses (e.g. mock the POST response for Create, GET for Read, etc.).
-  - **Test Steps Lifecycle:** Structure unit tests in sequential steps to simulate resource lifecycle transitions:
-    - **Step 1 (Create):** Call the resource's Create, then Read. Verify that after Create, the state read back includes all the created fields/attributes.
-    - **Step 2 (Update):** Call Read (to get current state), then Update, then Read again. Ensure the first Read in this step matches the final state from the previous step, and the final Read reflects the updates applied.
-    - **Step 3 (Delete):** Call Delete, then Read. After deletion, the final Read should return a "not found" error (e.g. 404) indicating the resource is gone.
-    - If the resource supports import, write a dedicated test (single step) that calls the Read (or Import) with a given `ImportStateId` and verifies Terraform state import logic.
-  - Include negative test cases: simulate API errors (like 403 Forbidden or 500 Internal Server Error) and ensure the provider surfaces appropriate errors. Also test validation logic (e.g., providing an invalid parameter returns an error).
-  - Place JSON fixtures for mock responses in the appropriate test data directory (e.g. `internal/resources/<service>/test/<resource>/<scenario>/response.json`). **Do not use real customer data** in tests – anonymize any IDs or personal info in your dummy data.
-  - Name unit test functions with the `TestUnit` prefix as mentioned, and keep them in a `_test.go` file using the `<package>_test` package name.
-  - All the JSON response for unit tests should be stored in .json files:
-    - Files should be placed in a folder with a name corresponding to the Unit Test that is being used. Folder name should omit `UnitTest` in its name.
-    - Each Unit Test folder with .json files should be stored at `resources\{service_name}\test\resource` or `services\{service_name}\test\datasource` with all other resource and/or datasource .go files.
-    - The .json file name should consist of the mock request method (`get`, `post`, `delete`) followed by `_` and name of the returned mock object name or action.
-    - The file names have to be sensible without empty spaces and special characters.
+- **Unit Tests:** For each new resource or data source, write unit tests in `resource_test.go` covering all operations and edge cases. Use the `jarcoal/httpmock` library to simulate HTTP API responses with resource-specific mock responders.
+  - **Test File Organization:**
+    - **Unit Tests:** Place in `resource_test.go` with `TestUnit*` naming pattern
+    - **Package Naming:** Use `<package>_test` suffix (e.g., `graphBetaWindowsAutopilotDeploymentProfile_test`)
+    - **Mock Setup:** Create `setupMockEnvironment()` and `setupErrorMockEnvironment()` functions
+    - **Mock Responders:** Store in `mocks/responders.go` file within resource directory
+  - **Mock Infrastructure:**
+    - Register **mock responders** for every HTTP call using resource-specific mock structs
+    - Use `httpmock.Activate()` and `defer httpmock.DeactivateAndReset()` pattern
+    - Call `mocks.SetupUnitTestEnvironment(t)` for consistent test environment setup
+    - Use `mocks.TestUnitTestProtoV6ProviderFactories` for provider factories
+  - **Test Steps Lifecycle:** Structure unit tests using `resource.UnitTest()` with sequential steps:
+    - **Step 1 (Create):** Verify resource creation and initial state population
+    - **Step 2 (Update):** Test resource modification and state updates  
+    - **Step 3 (Delete):** Confirm resource deletion and state cleanup
+    - **Import Step:** Test import functionality with `ImportState: true` and `ImportStateId`
+  - **Test Data Organization:**
+    - Store JSON mock responses in `tests/responses/[operation]/[method]_[object]_[scenario].json`
+    - Example: `tests/responses/validate_create/post_windows_autopilot_deployment_profile_success.json`
+    - Operations: `validate_create`, `validate_get`, `validate_update`, `validate_delete`
+    - **Do not use real customer data** – anonymize all IDs and personal information
+  - Include negative test cases with error mock responses and validation testing
+  - Use `testCheckExists()` helper function for resource existence verification
 
-- **Acceptance Tests:** Add acceptance tests for any new resource covering the same scenarios as unit tests, but against real Microsoft365 resources. These tests live in files with the `TestAcc...` prefix and require real credentials.
-  - **IMPORTANT: If you don't have access to a test tenant, DO NOT modify, rename, or remove existing acceptance tests.** Focus exclusively on writing unit tests instead. Existing acceptance tests have been verified to work correctly and modifying them without the ability to test against a real Microsoft 365 environment can break the test suite.
-  - Wrap any acceptance test with appropriate pre-check functions and environment variable checks so it skips if not configured.
-  - Ensure each acceptance test cleans up after itself. Use `CheckDestroy` functions to verify that resources are actually deleted in Azure/Microsoft365 after the test run.
-  - Keep acceptance tests focused and isolated (use separate environment or resource names to avoid conflicts).
+- **Acceptance Tests:** Add acceptance tests in `resource_acceptance_test.go` for new resources using real Microsoft365 API calls. These require valid authentication credentials and test environment.
+  - **Test File Organization:**
+    - **Acceptance Tests:** Place in `resource_acceptance_test.go` with `TestAcc*` naming pattern  
+    - **Package Naming:** Use same `<package>_test` pattern as unit tests
+    - **Environment Setup:** Use `mocks.TestAccPreCheck(t)` for pre-flight checks
+    - **Provider Setup:** Use `mocks.TestAccProtoV6ProviderFactories` for provider factories
+  - **Centralized Test Infrastructure:**
+    - Import and use helpers from `internal/acceptance/` package
+    - Use `acceptance.TestGraphClient()` for direct Graph API client access when needed
+    - Leverage `acceptance.ProviderConfigBuilder` for dynamic provider configuration
+    - Use centralized environment variable validation and setup functions
+  - **Test Structure:**
+    - Use `resource.Test()` with real API calls against Microsoft 365
+    - Include `PreCheck: func() { mocks.TestAccPreCheck(t) }` for environment validation
+    - Add `CheckDestroy` functions to verify resource cleanup: `testAccCheck[ResourceName]Destroy`
+    - Use `ExternalProviders` map for dependencies like `azuread` and `random` providers
+  - **Test Scenarios:**
+    - Test minimal and maximal resource configurations
+    - Verify resource lifecycle (create, read, update, delete operations)  
+    - Test import functionality and state consistency
+    - Include assignment testing for resources with assignment capabilities
+  - **Environment Requirements:**
+    - **IMPORTANT: If you don't have access to a test tenant, DO NOT modify existing acceptance tests**
+    - Focus on unit tests only when lacking test environment access
+    - Acceptance tests require valid `M365_*` environment variables for authentication
+    - Use resource naming with random suffixes to avoid conflicts between parallel test runs
 
 - **Test Coverage:** Aim for **at least 80%** code coverage for unit tests on new code. `make unittest` will return a coverage score by service and overall. Focus on the service that is currently being worked on when adding tests to improve coverage.
 
@@ -409,24 +438,36 @@ Use the Terraform plugin logger (`tflog`) for logging within resource implementa
 
 ### Test Infrastructure Components
 
-- **Mock System (`/internal/mocks/`):**
-  - `AuthenticationMocks`: Mock authentication endpoints
-  - `MockGraphClients`: Mock Microsoft Graph API clients
-  - Resource-specific mock responders in `mocks/responders.go`
-  - Terraform configuration files in `mocks/terraform/`
-  - Sophisticated state management across CRUD operations
+- **Global Mock System (`/internal/mocks/`):**
+  - `AuthenticationMocks`: Mock authentication endpoints and token exchanges
+  - `MockGraphClients`: Mock Microsoft Graph API clients for unit testing
+  - `TestUnitTestProtoV6ProviderFactories`: Provider factories for unit tests
+  - `TestAccProtoV6ProviderFactories`: Provider factories for acceptance tests
+  - `SetupUnitTestEnvironment(t)`: Standardized unit test environment setup
+  - `TestAccPreCheck(t)`: Validate acceptance test environment and credentials
 
-- **Test Configurations:**
-  - **Minimal:** `resource_minimal.tf` - Tests basic required fields
-  - **Maximal:** `resource_maximal.tf` - Tests all optional fields
-  - **Error:** Test configurations for error scenarios
+- **Resource-Specific Mock System (per resource directory):**
+  - **Mock Responders:** `mocks/responders.go` - HTTP mock registration for specific resource endpoints
+  - **Mock State Management:** Sophisticated state tracking across CRUD operations within mock structs
+  - **Setup Functions:** `setupMockEnvironment()` and `setupErrorMockEnvironment()` in resource test files
 
-- **Test Helpers:**
-  - `setupTestEnvironment()`: Configure test environment variables
-  - `setupMockEnvironment()`: Activate HTTP mocking
-  - `testCheckExists()`: Verify resource existence in state
-  - `testAccPreCheck()`: Validate required environment variables
-  - `testAccCheckResourceDestroy()`: Verify resource cleanup
+- **Test Data Organization (per resource directory):**
+  - **JSON Response Files:** `tests/responses/[operation]/[method]_[object]_[scenario].json`
+  - **Operation Directories:** `validate_create/`, `validate_get/`, `validate_update/`, `validate_delete/`
+  - **File Naming:** `[method]_[object]_[scenario].json` (e.g., `post_windows_autopilot_deployment_profile_success.json`)
+  - **Scenario Coverage:** Success, error, update, and hybrid configurations
+
+- **Centralized Acceptance Test Infrastructure (`/internal/acceptance/`):**
+  - **Client Factory:** `TestGraphClient()` - Creates authenticated Graph clients for acceptance tests
+  - **Provider Configuration:** `ProviderConfigBuilder` - Dynamic provider configuration generation
+  - **Environment Helpers:** Provider configuration and environment variable management
+  - **Terraform Dependencies:** Centralized external provider dependency management
+
+- **Test Helper Functions (per resource):**
+  - `setupMockEnvironment()`: Activate HTTP mocking with resource-specific responders
+  - `testCheckExists(resourceName)`: Verify resource existence using `TestCheckResourceAttrSet`
+  - `testAccCheck[ResourceName]Destroy`: Verify resource cleanup after acceptance tests
+  - `testAccConfig[Scenario]()`: Generate Terraform configurations for acceptance test scenarios
 
 ### Required Environment Variables for Acceptance Tests
 
@@ -440,16 +481,33 @@ M365_CLIENT_ID                   # Application client ID
 
 ### Testing Best Practices Specific to This Provider
 
-- **Mock Data Organization:** Store mock responses in `tests/` subdirectory within resource directory
-  - Folder structure: `tests/[TestScenario]/[method]_[object].json`
-  - Example: `tests/Validate_Create/post_device_shell_script.json`
+- **Mock Data Organization:** Store mock responses in resource-specific directory structure
+  - **Directory Structure:** `tests/responses/[operation]/[method]_[object]_[scenario].json`
+  - **Operations:** `validate_create`, `validate_get`, `validate_update`, `validate_delete`
+  - **Example:** `tests/responses/validate_create/post_windows_autopilot_deployment_profile_success.json`
+  - **Scenario Coverage:** Include success, error, minimal, maximal, and hybrid scenarios
 
-- **State Management Testing:** Verify Terraform state correctly reflects API responses
-- **Drift Detection:** Test that changes made outside Terraform are detected
-- **Import Testing:** Verify resource import functionality works correctly
-- **Edge Case Testing:** Test minimal configurations, maximal configurations, and error scenarios
-- **Eventual Consistency:** Use `ReadWithRetry` after create/update operations
-- **Permission Testing:** Verify appropriate error messages for insufficient permissions
+- **Separated Test Files:** Use distinct files for different test types
+  - **Unit Tests:** `resource_test.go` with `TestUnit*` functions and httpmock
+  - **Acceptance Tests:** `resource_acceptance_test.go` with `TestAcc*` functions and real API calls
+  - **Package Naming:** Both use `<package>_test` suffix for external interface testing
+
+- **Mock Infrastructure:** Implement resource-specific mock systems
+  - **Mock Responders:** Create `mocks/responders.go` with resource-specific mock struct
+  - **State Tracking:** Implement sophisticated state management within mock responders for CRUD operations
+  - **Error Scenarios:** Include `RegisterErrorMocks()` methods for testing error conditions
+
+- **Centralized Acceptance Testing:** Leverage shared acceptance test infrastructure
+  - **Client Access:** Use `acceptance.TestGraphClient()` for direct Graph API operations when needed
+  - **Provider Configuration:** Use `acceptance.ProviderConfigBuilder` for dynamic test configurations
+  - **External Dependencies:** Use centralized `ExternalProviders` map for azuread, random, etc.
+
+- **State Management Testing:** Verify Terraform state correctly reflects API responses across operations
+- **Assignment Testing:** Include assignment validation for resources with assignment capabilities  
+- **Import Testing:** Verify resource import functionality with `ImportState: true` and `ImportStateId`
+- **Edge Case Testing:** Test minimal/maximal configurations, validation errors, and API error scenarios
+- **Eventual Consistency:** Use `ReadWithRetry` patterns after create/update operations for Microsoft Graph consistency
+- **Permission Testing:** Verify appropriate error messages and hints for insufficient permissions using error handling package
 
 ### Network Debugging
 
