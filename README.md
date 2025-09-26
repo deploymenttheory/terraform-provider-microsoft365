@@ -67,9 +67,9 @@ Please refer to the [Getting Started](https://registry.terraform.io/providers/de
 - **Microsoft Graph API Support**: Integrates with both v1.0 and beta Microsoft Graph API endpoint sets, to support both generally available and preview features.
 - **Microsoft Graph SDK Adoption**: The provider leverages the Microsoft Graph API through the Kiota-generated graphSDKs, allowing for a strongly typed development experience.
 
-## Project Status
+## Provider Comparison
 
-For information about this project's status in relation to the official terraform-provider-msgraph provider, see the [Project Status](./docs/development/project_status.md) documentation.
+For information and a comparison between this provider in relation to the msft official terraform-provider-msgraph provider, see the [Provider Comparison](./docs/development/provider_comparison.md) documentation.
 
 ## Community Contributions
 

@@ -1,6 +1,6 @@
-# Project Status in light of terraform-provider-msgraph
+# Provider Comparison in light of terraform-provider-msgraph
 
-In July 2025 microsoft released the [terraform-provider-msgraph](https://github.com/hashicorp/terraform-provider-msgraph) partner provider. This provider is developed by Microsoft and is the official provider for Microsoft Graph API. However there are some distinct differences between the two projects and the approaches taken for interacting with Microsoft M365.
+In July 2025 microsoft released the [terraform-provider-msgraph](https://github.com/hashicorp/terraform-provider-msgraph) partner provider. This provider is developed by Microsoft and is the official provider for Microsoft Graph API. When choosing between the two providers, it's important to consider the scope and approach of each provider, there are some distinct differences between the two providers and the approaches taken for interacting with Microsoft M365.
 
 ## Scope
 
@@ -23,39 +23,118 @@ As such the scope is broader than the terraform-provider-msgraph provider.
 
 ## API Interactions and Developer Experience
 
-The fundamental difference between these providers lies in their approach to API interactions and the level of abstraction provided to users.
+The fundamental difference between these providers lies in their approach to API interactions and the level of abstraction provided to users. This section provides a detailed analysis of how each provider handles the complexity of the Microsoft Graph API and the resulting impact on developer productivity.
 
-### terraform-provider-msgraph Approach
+### Understanding Microsoft Graph API Complexity
 
-The terraform-provider-msgraph provider is a **thin wrapper** around the Microsoft Graph API. It provides four generic resource types:
+Before comparing the providers, it's important to understand the inherent complexity of the Microsoft Graph API that both providers must handle:
 
-- `msgraph_resource` - Generic resource for any Graph API endpoint
-- `msgraph_resource_action` - For performing actions on resources
-- `msgraph_resource_collection` - For managing reference collections  
-- `msgraph_update_resource` - For updating subset of properties
+**API Characteristics:**
+- **Multi-step Operations**: Many business operations require multiple sequential API calls across different endpoints
+- **Eventual Consistency**: Microsoft Graph uses eventual consistency, meaning writes may not be immediately visible in reads
+- **Complex Request Bodies**: Many operations require nested JSON structures with specific OData type annotations
+- **State Dependencies**: Resource creation often requires reading state from multiple related endpoints
+- **Error Handling Complexity**: Different endpoints have different retry requirements and error response formats
+- **Assignment Management**: Device management resources require separate assignment API calls to be functional
 
-**Users must:**
-- Understand Graph API endpoint structures and request/response schemas
-- Manually construct request bodies using the exact Graph API syntax
-- Orchestrate multiple API calls across different resources for complex operations
-- Handle state management and consistency issues manually
-- Understand Graph API-specific concepts like OData query parameters, reference collections, etc.
+**Real-world Example - Windows Update Ring:**
+Creating a functional Windows Update Ring involves:
+1. POST to `/deviceManagement/deviceConfigurations` (create policy)
+2. POST to `/deviceManagement/deviceConfigurations/{id}/assign` (assign to groups)
+3. GET with `$expand=assignments` (verify complete state)
+4. Handle eventual consistency between configuration and assignment APIs
+5. Manage complex assignment target structures with filter relationships
 
-### This Provider's Approach
+This complexity exists regardless of which provider you use - the question is how each provider handles it.
 
-This provider uses the Kiota-generated GraphSDKs built from Microsoft's schema to interact with the Graph API, but provides **significant abstraction** above that:
+### terraform-provider-msgraph Approach: Direct API Exposure
 
-**Single Resource Abstractions:**
-- Each resource type (e.g., `microsoft365_graph_beta_group_license_assignment`) represents a complete business operation
-- Users work with intuitive, strongly-typed configuration schemas
-- Complex API orchestration is handled automatically behind the scenes
-- Built-in retry logic, error handling, and state management
+The terraform-provider-msgraph provider is a **thin wrapper** around the Microsoft Graph API that directly exposes the API's complexity to users. This approach prioritizes flexibility and API completeness over developer experience.
 
-**Automatic API Call Chaining:**
-- Complex resources that require multiple API calls are handled transparently
-- Create/Read/Update/Delete operations automatically perform all necessary API calls
-- State synchronization with proper retry logic for eventual consistency
-- Users don't need to understand the underlying API complexity
+#### Resource Architecture
+The provider offers four generic resource types that map directly to HTTP operations:
+
+- **`msgraph_resource`** - Generic resource for any Graph API endpoint (POST/GET/PATCH/DELETE)
+- **`msgraph_resource_action`** - For performing actions on resources (POST actions like assign, send, etc.)
+- **`msgraph_resource_collection`** - For managing reference collections ($ref endpoints)
+- **`msgraph_update_resource`** - For updating subset of properties (PATCH operations)
+
+#### Developer Requirements
+**Graph API Expertise Required:**
+- **Endpoint Knowledge**: Deep understanding of Graph API URL structures (`/deviceManagement/deviceConfigurations`, `/groups/{id}/assignLicense`, etc.)
+- **OData Mastery**: Proficiency with OData query parameters (`$expand`, `$select`, `$filter`, `$top`, etc.)
+- **Schema Understanding**: Knowledge of complex JSON schema including OData type annotations (`@odata.type`)
+- **HTTP Method Mapping**: Understanding when to use POST vs PATCH vs GET for different operations
+- **Response Parsing**: Ability to write JMESPath queries for extracting data from API responses
+
+**Manual Orchestration Burden:**
+- **Multi-Resource Management**: Complex operations require coordinating multiple Terraform resources
+- **Dependency Management**: Manual `depends_on` declarations to ensure proper operation sequencing
+- **State Management**: Separate data sources needed to read complete resource state
+- **Error Handling**: No built-in retry logic for Graph API-specific issues (throttling, eventual consistency)
+- **Lifecycle Management**: Manual handling of create/update/delete operation differences
+
+#### Development Workflow Impact
+**Configuration Complexity:**
+- Users must translate business requirements into multiple low-level API operations
+- Each business operation may require 3-5 separate Terraform resources
+- Configuration files become verbose and API-centric rather than business-focused
+- Changes require understanding the impact across multiple interdependent resources
+
+**Debugging and Maintenance:**
+- Issues require deep Graph API troubleshooting knowledge
+- Error messages are raw HTTP/JSON responses without business context
+- Updates require understanding how each API endpoint handles partial modifications
+- Testing requires knowledge of Graph API test patterns and mock strategies
+
+### This Provider's Approach: Business-Focused Abstraction
+
+This provider uses the Kiota-generated GraphSDKs built from Microsoft's schema to interact with the Graph API, but provides **significant abstraction** that shields users from API complexity while maintaining full functionality.
+
+#### Resource Architecture
+The provider offers purpose-built resources that represent complete business operations:
+
+- **Domain-Specific Resources**: Each resource type (e.g., `microsoft365_graph_beta_device_management_windows_update_ring`) represents a complete business workflow
+- **Strongly-Typed Schemas**: Terraform configuration uses intuitive field names and validation rather than raw JSON
+- **Embedded Relationships**: Related operations (assignments, settings, dependencies) are managed within single resources
+- **Business Logic Integration**: Resources understand the business context and handle complex workflows automatically
+
+#### Developer Experience Benefits
+**Business Domain Focus:**
+- **Declarative Configuration**: Users describe desired end-state rather than API operation sequences
+- **Intuitive Field Names**: Configuration uses business-friendly terminology (`allow_windows11_upgrade` vs `allowWindows11Upgrade`)
+- **Built-in Validation**: Schema validation catches configuration errors before API calls
+- **Contextual Documentation**: Each field includes business context and impact descriptions
+- **IDE Support**: Strongly-typed schemas enable autocomplete, validation, and documentation in IDEs
+
+**Automatic Complexity Management:**
+- **API Call Chaining**: Single resource operations automatically trigger multiple coordinated API calls
+- **State Synchronization**: Built-in retry logic handles eventual consistency across all related endpoints  
+- **Error Translation**: Raw Graph API errors are translated into actionable business context
+- **Lifecycle Optimization**: Create/update/delete operations use the most efficient API patterns automatically
+- **Dependency Resolution**: Resources automatically handle prerequisite operations and timing
+
+#### Technical Implementation
+**Under the Hood Automation:**
+- **Multi-Endpoint Coordination**: Single Terraform operations may trigger anything from 1-10 Graph API calls across different endpoints
+- **Eventual Consistency Handling**: Built-in wait/retry patterns for Microsoft's asynchronous operations
+- **Assignment Management**: Automatic construction of complex assignment target objects with proper type annotations
+- **State Reconciliation**: Resources automatically detect and correct configuration drift
+- **Error Recovery**: Intelligent retry logic with exponential backoff for transient API issues
+
+**Development Workflow Impact:**
+**Configuration Simplicity:**
+- Business requirements map directly to single resource declarations
+- Changes are made at the business logic level rather than API operation level
+- Configuration files are concise and focused on business outcomes
+- Testing focuses on business functionality rather than API mechanics
+
+**Operational Benefits:**
+- **Faster Development**: Developers work at business abstraction level
+- **Reduced Errors**: API complexity is encapsulated and tested within the provider
+- **Easier Maintenance**: admin focused changes don't require API expertise
+- **Better Debugging**: Error messages provide business context and suggested resolutions
+- **Consistent Patterns**: All resources follow similar patterns regardless of underlying API complexity
 
 ## Detailed Comparison Examples
 
@@ -327,7 +406,7 @@ resource "msgraph_resource_action" "update_assignments" {
 
 ### Choose MSGraph Provider When:
 - You need Microsoft's official support
-- You're already deeply familiar with Graph API
+- You're already have strong familiarity with Graph API
 - You need maximum flexibility to construct custom API calls  
 - You prefer thin abstractions over opinionated frameworks
 - You're building simple, single-API-call resources
