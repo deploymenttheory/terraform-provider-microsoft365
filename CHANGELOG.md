@@ -5,6 +5,35 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.30.0-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.29.3-alpha...v0.30.0-alpha) (2025-09-26)
+
+
+### Features
+
+* 1st itteration of testing ([e36b6a6](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/e36b6a63ae9277b165399f5934d0ca1bf573b541))
+* added office suite app with examples ([331664a](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/331664aa4bc630726016d2b60eaed7a21ff458f5))
+* added office_suite_app with examples ([#770](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/770)) ([6f5d1ac](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/6f5d1acc80b413554362480ea5d14be6b65b2953))
+* added unit and acc tests for windows_autopilot_deployment_profile ([cb04b34](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/cb04b344f853f47fc1f9e8c53a14f9543b2bda71))
+* refactored windows_autopilot_deployment_profile ([cc98227](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/cc98227365c97d92bf94318580c5ee6fe4ecce80))
+* refactored windows_autopilot_deployment_profile and added unit and acc test suite ([#784](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/784)) ([096b8a5](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/096b8a5c6977a35d8dee10371c9bed8b58eb024d))
+* updated docs ([7ca77fa](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/7ca77faa2260687e5d807a906a894eeec1708d27))
+* updated docs ([#787](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/787)) ([1e80022](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/1e80022ddd92e0d376332fe74a60af57e7b2c6b4))
+
+
+### Bug Fixes
+
+* added gp multi text value examples ([018ab4c](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/018ab4caef143593585ea7be271949ce533dcec0))
+* added mising repo badges ([f31025e](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/f31025e002d28ee13b8eb2d78f9a4d760eceb4f8))
+* added mising repo badges ([#786](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/786)) ([1e7ff4e](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/1e7ff4ef19629d18a466ed3944b8c93730fd63a0))
+* docs ([3ad48dd](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/3ad48dd13f794e1e43db92f056ca8f487f615f8d))
+* docs ([#788](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/788)) ([8cd9c41](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/8cd9c41c3d284a25eb336ca96cec333bc8a8a488))
+* for github_oidc auth ([a894899](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/a89489981e907ab6ed56ba12ae8e0ea8cde4a349))
+* for github_oidc auth and updated relevant docs ([#785](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/785)) ([02c1d92](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/02c1d92dae824b9fab74158a42d00b23af842e43))
+* group policy descriptions ([7480155](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/74801555cdbaee022c7ef71fe3a98e2be8e08b95))
+* pipeline permissions and go lint version ([7b5256e](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/7b5256ed44a845447b908bd6cd33485ab3129f7b))
+* removed trailing white space in file name ([f21c1d4](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/f21c1d4b94d2f0b0e6f591921519ea18cacb5f0e))
+* standardised usage of setup go steps ([4b02dcc](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/4b02dcc7e8b42b535264132f342604e4e382cb25))
+
 ## [0.29.3-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.29.2-alpha...v0.29.3-alpha) (2025-09-13)
 
 
