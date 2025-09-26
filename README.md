@@ -69,7 +69,7 @@ Please refer to the [Getting Started](https://registry.terraform.io/providers/de
 
 ## Provider Comparison
 
-For information and a comparison between this provider in relation to the msft official terraform-provider-msgraph provider, see the [Provider Comparison](./docs/development/provider_comparison.md) documentation.
+For information and a comparison between this provider in relation to the msft official `terraform-provider-msgraph provider`, see the [Provider Comparison](./docs/development/provider_comparison.md) documentation.
 
 ## Community Contributions
 
