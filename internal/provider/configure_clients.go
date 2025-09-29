@@ -60,10 +60,8 @@ func (p *M365Provider) Configure(ctx context.Context, req provider.ConfigureRequ
 		return
 	}
 
-	// Convert provider model to client provider data
 	clientData := convertToClientProviderData(ctx, &data)
 
-	// Configure and initialize the Microsoft Graph clients using the client package
 	graphClientInterface := client.NewGraphClients(ctx, clientData, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		tflog.Error(ctx, "Error configuring and building Microsoft Graph clients", map[string]interface{}{
@@ -72,10 +70,8 @@ func (p *M365Provider) Configure(ctx context.Context, req provider.ConfigureRequ
 		return
 	}
 
-	// Assign using the interface type to ensure we're using the interface
 	p.clients = graphClientInterface
 
-	// Pass the interface to data sources and resources
 	resp.DataSourceData = graphClientInterface
 	resp.ResourceData = graphClientInterface
 
@@ -90,14 +86,12 @@ func (p *M365Provider) Configure(ctx context.Context, req provider.ConfigureRequ
 func convertToClientProviderData(ctx context.Context, data *M365ProviderModel) *client.ProviderData {
 	var clientData client.ProviderData
 
-	// Set basic fields
 	clientData.Cloud = data.Cloud.ValueString()
 	clientData.TenantID = data.TenantID.ValueString()
 	clientData.AuthMethod = data.AuthMethod.ValueString()
 	clientData.TelemetryOptout = data.TelemetryOptout.ValueBool()
 	clientData.DebugMode = data.DebugMode.ValueBool()
 
-	// Set Entra ID options
 	var entraIDOptions EntraIDOptionsModel
 	data.EntraIDOptions.As(ctx, &entraIDOptions, basetypes.ObjectAsOptions{})
 
@@ -120,7 +114,6 @@ func convertToClientProviderData(ctx context.Context, data *M365ProviderModel) *
 		AdditionallyAllowedTenants: getAdditionallyAllowedTenants(entraIDOptions.AdditionallyAllowedTenants),
 	}
 
-	// Set client options
 	var clientOptionsModel ClientOptionsModel
 	data.ClientOptions.As(ctx, &clientOptionsModel, basetypes.ObjectAsOptions{})
 
