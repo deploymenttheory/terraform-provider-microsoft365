@@ -101,7 +101,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Bug Fixes
 
-* map[string]interface{} -&gt; map[string]any ([fcd9a51](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/fcd9a51dc63fd02f9d001caab20d2fa515374209))
+* map[string]any -&gt; map[string]any ([fcd9a51](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/fcd9a51dc63fd02f9d001caab20d2fa515374209))
 * numerous ([f74e41e](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/f74e41eb964e98eb66870f71d9f7e2cd0b3d3ace))
 
 ## [0.28.1-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.28.0-alpha...v0.28.1-alpha) (2025-09-06)

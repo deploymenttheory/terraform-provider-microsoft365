@@ -11,12 +11,12 @@ import (
 
 var mockState struct {
 	sync.Mutex
-	groups map[string]map[string]interface{} // groupId -> groupData
-	owners map[string]map[string]string      // groupId -> ownerId -> ownerType
+	groups map[string]map[string]any    // groupId -> groupData
+	owners map[string]map[string]string // groupId -> ownerId -> ownerType
 }
 
 func init() {
-	mockState.groups = make(map[string]map[string]interface{})
+	mockState.groups = make(map[string]map[string]any)
 	mockState.owners = make(map[string]map[string]string)
 	httpmock.RegisterNoResponder(httpmock.NewStringResponder(404, `{"error":{"code":"ResourceNotFound","message":"Resource not found"}}`))
 }
@@ -25,7 +25,7 @@ type GroupOwnerAssignmentMock struct{}
 
 func (m *GroupOwnerAssignmentMock) RegisterMocks() {
 	mockState.Lock()
-	mockState.groups = make(map[string]map[string]interface{})
+	mockState.groups = make(map[string]map[string]any)
 	mockState.owners = make(map[string]map[string]string)
 	mockState.Unlock()
 
@@ -33,12 +33,12 @@ func (m *GroupOwnerAssignmentMock) RegisterMocks() {
 	minimalGroupId := "00000000-0000-0000-0000-000000000002"
 	maximalGroupId := "00000000-0000-0000-0000-000000000003"
 	mockState.Lock()
-	mockState.groups[minimalGroupId] = map[string]interface{}{
+	mockState.groups[minimalGroupId] = map[string]any{
 		"id":          minimalGroupId,
 		"displayName": "Minimal Group",
 		"groupTypes":  []string{"Unified"},
 	}
-	mockState.groups[maximalGroupId] = map[string]interface{}{
+	mockState.groups[maximalGroupId] = map[string]any{
 		"id":          maximalGroupId,
 		"displayName": "Maximal Group",
 		"groupTypes":  []string{"Unified"},
@@ -75,11 +75,11 @@ func (m *GroupOwnerAssignmentMock) RegisterMocks() {
 			if !exists {
 				return httpmock.NewStringResponse(404, `{"error":{"code":"ResourceNotFound","message":"Group not found"}}`), nil
 			}
-			var value []map[string]interface{}
+			var value []map[string]any
 			for ownerId, ownerType := range owners {
-				value = append(value, map[string]interface{}{"id": ownerId, "@odata.type": ownerType})
+				value = append(value, map[string]any{"id": ownerId, "@odata.type": ownerType})
 			}
-			return httpmock.NewJsonResponse(200, map[string]interface{}{"value": value})
+			return httpmock.NewJsonResponse(200, map[string]any{"value": value})
 		})
 
 	// POST add owner (add or update for update)
@@ -123,7 +123,7 @@ func (m *GroupOwnerAssignmentMock) RegisterMocks() {
 	minimalUserId := "00000000-0000-0000-0000-000000000004"
 	httpmock.RegisterResponder("GET", "https://graph.microsoft.com/beta/users/"+minimalUserId,
 		func(req *http.Request) (*http.Response, error) {
-			userData := map[string]interface{}{
+			userData := map[string]any{
 				"id":                minimalUserId,
 				"@odata.type":       "#microsoft.graph.user",
 				"displayName":       "Minimal User",
@@ -136,7 +136,7 @@ func (m *GroupOwnerAssignmentMock) RegisterMocks() {
 	maximalServicePrincipalId := "00000000-0000-0000-0000-000000000005"
 	httpmock.RegisterResponder("GET", "https://graph.microsoft.com/beta/servicePrincipals/"+maximalServicePrincipalId,
 		func(req *http.Request) (*http.Response, error) {
-			spData := map[string]interface{}{
+			spData := map[string]any{
 				"id":          maximalServicePrincipalId,
 				"@odata.type": "#microsoft.graph.servicePrincipal",
 				"displayName": "Maximal Service Principal",

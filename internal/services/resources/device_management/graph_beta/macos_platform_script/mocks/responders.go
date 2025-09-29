@@ -14,12 +14,12 @@ import (
 // mockState tracks the state of resources for consistent responses
 var mockState struct {
 	sync.Mutex
-	platformScripts map[string]map[string]interface{}
+	platformScripts map[string]map[string]any
 }
 
 func init() {
 	// Initialize mockState
-	mockState.platformScripts = make(map[string]map[string]interface{})
+	mockState.platformScripts = make(map[string]map[string]any)
 
 	// Register a default 404 responder for any unmatched requests
 	httpmock.RegisterNoResponder(httpmock.NewStringResponder(404, `{"error":{"code":"ResourceNotFound","message":"Resource not found"}}`))
@@ -32,20 +32,20 @@ type MacOSPlatformScriptMock struct{}
 func (m *MacOSPlatformScriptMock) RegisterMocks() {
 	// Reset the state when registering mocks
 	mockState.Lock()
-	mockState.platformScripts = make(map[string]map[string]interface{})
+	mockState.platformScripts = make(map[string]map[string]any)
 	mockState.Unlock()
 
 	// Register GET for listing platform scripts
 	httpmock.RegisterResponder("GET", "https://graph.microsoft.com/beta/deviceManagement/deviceShellScripts",
 		func(req *http.Request) (*http.Response, error) {
 			mockState.Lock()
-			scripts := make([]map[string]interface{}, 0, len(mockState.platformScripts))
+			scripts := make([]map[string]any, 0, len(mockState.platformScripts))
 			for _, script := range mockState.platformScripts {
 				scripts = append(scripts, script)
 			}
 			mockState.Unlock()
 
-			response := map[string]interface{}{
+			response := map[string]any{
 				"@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/deviceShellScripts",
 				"value":          scripts,
 			}
@@ -68,7 +68,7 @@ func (m *MacOSPlatformScriptMock) RegisterMocks() {
 			}
 
 			// Create response copy
-			responseCopy := make(map[string]interface{})
+			responseCopy := make(map[string]any)
 			for k, v := range scriptData {
 				responseCopy[k] = v
 			}
@@ -97,7 +97,7 @@ func (m *MacOSPlatformScriptMock) RegisterMocks() {
 	httpmock.RegisterResponder("POST", "https://graph.microsoft.com/beta/deviceManagement/deviceShellScripts",
 		func(req *http.Request) (*http.Response, error) {
 			// Parse request body
-			var requestBody map[string]interface{}
+			var requestBody map[string]any
 			err := json.NewDecoder(req.Body).Decode(&requestBody)
 			if err != nil {
 				return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"Invalid request body"}}`), nil
@@ -107,12 +107,12 @@ func (m *MacOSPlatformScriptMock) RegisterMocks() {
 			scriptId := uuid.New().String()
 
 			// Create platform script data - only include fields that were provided or have defaults
-			scriptData := map[string]interface{}{
-				"id":           scriptId,
-				"displayName":  requestBody["displayName"],
-				"fileName":     requestBody["fileName"],
+			scriptData := map[string]any{
+				"id":            scriptId,
+				"displayName":   requestBody["displayName"],
+				"fileName":      requestBody["fileName"],
 				"scriptContent": requestBody["scriptContent"],
-				"runAsAccount": requestBody["runAsAccount"],
+				"runAsAccount":  requestBody["runAsAccount"],
 			}
 
 			// Add optional fields only if provided in request
@@ -160,7 +160,7 @@ func (m *MacOSPlatformScriptMock) RegisterMocks() {
 			}
 
 			// Parse request body
-			var requestBody map[string]interface{}
+			var requestBody map[string]any
 			err := json.NewDecoder(req.Body).Decode(&requestBody)
 			if err != nil {
 				return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"Invalid request body"}}`), nil
@@ -168,10 +168,10 @@ func (m *MacOSPlatformScriptMock) RegisterMocks() {
 
 			// Update platform script data
 			mockState.Lock()
-			
+
 			// Handle optional fields that might be removed (like going from maximal to minimal)
 			// Check for specific field patterns to simulate real API behavior
-			
+
 			// For optional fields, if they're not in the request, remove them
 			optionalFields := []string{"description", "blockExecutionNotifications", "executionFrequency", "retryCount"}
 			for _, field := range optionalFields {
@@ -179,7 +179,7 @@ func (m *MacOSPlatformScriptMock) RegisterMocks() {
 					delete(scriptData, field)
 				}
 			}
-			
+
 			for key, value := range requestBody {
 				if value == nil {
 					// If value is explicitly null, remove the field from the stored state
@@ -223,7 +223,7 @@ func (m *MacOSPlatformScriptMock) RegisterMocks() {
 			scriptId := urlParts[len(urlParts)-2] // deviceShellScripts/{id}/assign
 
 			// Parse request body to get assignments
-			var requestBody map[string]interface{}
+			var requestBody map[string]any
 			err := json.NewDecoder(req.Body).Decode(&requestBody)
 			if err != nil {
 				return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"Invalid request body"}}`), nil
@@ -238,20 +238,20 @@ func (m *MacOSPlatformScriptMock) RegisterMocks() {
 						// Extract the actual assignment data from the request
 						graphAssignments := []interface{}{}
 						for _, assignment := range assignmentList {
-							if assignmentMap, ok := assignment.(map[string]interface{}); ok {
-								if target, hasTarget := assignmentMap["target"].(map[string]interface{}); hasTarget {
+							if assignmentMap, ok := assignment.(map[string]any); ok {
+								if target, hasTarget := assignmentMap["target"].(map[string]any); hasTarget {
 									// Generate a unique assignment ID
 									assignmentId := uuid.New().String()
-									
+
 									// Create assignment in the format the API returns
 									// The API returns the target exactly as submitted but with additional metadata
-									targetCopy := make(map[string]interface{})
+									targetCopy := make(map[string]any)
 									for k, v := range target {
 										targetCopy[k] = v
 									}
-									
-									graphAssignment := map[string]interface{}{
-										"id": assignmentId,
+
+									graphAssignment := map[string]any{
+										"id":     assignmentId,
 										"target": targetCopy,
 									}
 									graphAssignments = append(graphAssignments, graphAssignment)
@@ -277,9 +277,9 @@ func (m *MacOSPlatformScriptMock) RegisterMocks() {
 	// Register GET for assignments
 	httpmock.RegisterResponder("GET", `=~^https://graph.microsoft.com/beta/deviceManagement/deviceShellScripts/[^/]+/assignments$`,
 		func(req *http.Request) (*http.Response, error) {
-			response := map[string]interface{}{
+			response := map[string]any{
 				"@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/deviceShellScripts/assignments",
-				"value":          []map[string]interface{}{}, // Empty assignments by default
+				"value":          []map[string]any{}, // Empty assignments by default
 			}
 			return httpmock.NewJsonResponse(200, response)
 		})
@@ -292,9 +292,9 @@ func (m *MacOSPlatformScriptMock) RegisterErrorMocks() {
 	// Register GET for listing platform scripts (needed for uniqueness check)
 	httpmock.RegisterResponder("GET", "https://graph.microsoft.com/beta/deviceManagement/deviceShellScripts",
 		func(req *http.Request) (*http.Response, error) {
-			response := map[string]interface{}{
+			response := map[string]any{
 				"@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/deviceShellScripts",
-				"value":          []map[string]interface{}{}, // Empty list for error scenarios
+				"value":          []map[string]any{}, // Empty list for error scenarios
 			}
 			return httpmock.NewJsonResponse(200, response)
 		})
@@ -307,4 +307,3 @@ func (m *MacOSPlatformScriptMock) RegisterErrorMocks() {
 	httpmock.RegisterResponder("GET", "https://graph.microsoft.com/beta/deviceManagement/deviceShellScripts/not-found-script",
 		factories.ErrorResponse(404, "ResourceNotFound", "Platform script not found"))
 }
-

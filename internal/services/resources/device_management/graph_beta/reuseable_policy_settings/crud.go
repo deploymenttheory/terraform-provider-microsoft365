@@ -158,7 +158,7 @@ func (r *ReuseablePolicySettingsResource) Read(ctx context.Context, req resource
 	}
 
 	if err := constructors.DebugLogGraphObject(ctx, "Raw Response from Graph API", baseResource); err != nil {
-		tflog.Error(ctx, "Failed to debug log response", map[string]interface{}{
+		tflog.Error(ctx, "Failed to debug log response", map[string]any{
 			"error": err.Error(),
 		})
 	}

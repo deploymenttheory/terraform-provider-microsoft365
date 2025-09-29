@@ -12,7 +12,7 @@ import (
 // validateRequest ensures only one cleanup rule exists per platform in the tenant.
 // If a rule already exists matching the requested platform (excluding the resource being updated), an error is returned.
 func validateRequest(ctx context.Context, client *msgraphbetasdk.GraphServiceClient, platform graphmodels.DeviceCleanupRulePlatformType, excludeResourceID *string) error {
-	tflog.Debug(ctx, "Validating uniqueness of managed device cleanup rule per platform", map[string]interface{}{
+	tflog.Debug(ctx, "Validating uniqueness of managed device cleanup rule per platform", map[string]any{
 		"platform": platform.String(),
 	})
 

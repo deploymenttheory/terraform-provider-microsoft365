@@ -16,7 +16,7 @@ func MapRemoteStateToTerraform(ctx context.Context, data *DeviceConfigurationAss
 		return
 	}
 
-	tflog.Debug(ctx, "Starting to map remote state to Terraform state", map[string]interface{}{
+	tflog.Debug(ctx, "Starting to map remote state to Terraform state", map[string]any{
 		"resourceId": convert.GraphToFrameworkString(remoteResource.GetId()).ValueString(),
 	})
 
@@ -57,7 +57,7 @@ func mapTargetToTerraform(ctx context.Context, data *DeviceConfigurationAssignme
 		data.GroupId = convert.GraphToFrameworkString(v.GetCollectionId())
 
 	default:
-		tflog.Warn(ctx, "Unknown target type", map[string]interface{}{
+		tflog.Warn(ctx, "Unknown target type", map[string]any{
 			"targetType": fmt.Sprintf("%T", target),
 		})
 		data.TargetType = types.StringNull()

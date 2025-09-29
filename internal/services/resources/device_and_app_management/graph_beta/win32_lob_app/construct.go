@@ -45,7 +45,7 @@ func constructResource(ctx context.Context, data *Win32LobAppResourceModel, inst
 	// Handle applicable architectures
 	if err := convert.FrameworkToGraphBitmaskEnumFromSet(ctx, data.AllowedArchitectures,
 		graphmodels.ParseWindowsArchitecture, requestBody.SetAllowedArchitectures); err != nil {
-		tflog.Warn(ctx, "Failed to set applicable architectures", map[string]interface{}{
+		tflog.Warn(ctx, "Failed to set applicable architectures", map[string]any{
 			"error": err.Error(),
 		})
 	}
@@ -81,7 +81,7 @@ func constructResource(ctx context.Context, data *Win32LobAppResourceModel, inst
 	convert.FrameworkToGraphString(types.StringValue(filename), requestBody.SetFileName)
 
 	if err := constructors.DebugLogGraphObject(ctx, fmt.Sprintf("Final JSON to be sent to Graph API for resource %s", ResourceName), requestBody); err != nil {
-		tflog.Error(ctx, "Failed to debug log object", map[string]interface{}{
+		tflog.Error(ctx, "Failed to debug log object", map[string]any{
 			"error": err.Error(),
 		})
 	}

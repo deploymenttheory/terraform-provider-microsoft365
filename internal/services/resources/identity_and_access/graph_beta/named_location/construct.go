@@ -10,12 +10,12 @@ import (
 )
 
 // constructResource converts the Terraform resource model to a plain map for JSON marshaling
-// Returns a map[string]interface{} that can be directly JSON marshaled by the HTTP client
-func constructResource(ctx context.Context, data *NamedLocationResourceModel) (map[string]interface{}, error) {
+// Returns a map[string]any that can be directly JSON marshaled by the HTTP client
+func constructResource(ctx context.Context, data *NamedLocationResourceModel) (map[string]any, error) {
 
 	tflog.Debug(ctx, fmt.Sprintf("Constructing %s resource from model", ResourceName))
 
-	requestBody := make(map[string]interface{})
+	requestBody := make(map[string]any)
 
 	// Basic properties using convert helpers
 	convert.FrameworkToGraphString(data.DisplayName, func(val *string) {
@@ -51,7 +51,7 @@ func constructResource(ctx context.Context, data *NamedLocationResourceModel) (m
 		if err != nil {
 			return nil, fmt.Errorf("failed to construct IP ranges: %w", err)
 		}
-		
+
 		if len(ipRanges) > 0 {
 			requestBody["ipRanges"] = ipRanges
 		}
@@ -83,11 +83,11 @@ func constructResource(ctx context.Context, data *NamedLocationResourceModel) (m
 
 	// Debug logging using plain JSON marshal
 	if debugJSON, err := json.MarshalIndent(requestBody, "", "    "); err == nil {
-		tflog.Debug(ctx, fmt.Sprintf("Final JSON to be sent to Graph API for resource %s", ResourceName), map[string]interface{}{
+		tflog.Debug(ctx, fmt.Sprintf("Final JSON to be sent to Graph API for resource %s", ResourceName), map[string]any{
 			"json": "\n" + string(debugJSON),
 		})
 	} else {
-		tflog.Error(ctx, "Failed to debug log object", map[string]interface{}{
+		tflog.Error(ctx, "Failed to debug log object", map[string]any{
 			"error": err.Error(),
 		})
 	}
@@ -98,15 +98,15 @@ func constructResource(ctx context.Context, data *NamedLocationResourceModel) (m
 }
 
 // constructIPRanges builds the ipRanges array from IPv4 and IPv6 ranges
-func constructIPRanges(ctx context.Context, data *NamedLocationResourceModel) ([]map[string]interface{}, error) {
-	var ipRanges []map[string]interface{}
+func constructIPRanges(ctx context.Context, data *NamedLocationResourceModel) ([]map[string]any, error) {
+	var ipRanges []map[string]any
 
 	// Add IPv4 ranges
 	if err := convert.FrameworkToGraphStringSet(ctx, data.IPv4Ranges, func(values []string) {
 		for _, cidr := range values {
-			ipRange := map[string]interface{}{
-				"@odata.type":   "#microsoft.graph.iPv4CidrRange",
-				"cidrAddress":   cidr,
+			ipRange := map[string]any{
+				"@odata.type": "#microsoft.graph.iPv4CidrRange",
+				"cidrAddress": cidr,
 			}
 			ipRanges = append(ipRanges, ipRange)
 		}
@@ -117,9 +117,9 @@ func constructIPRanges(ctx context.Context, data *NamedLocationResourceModel) ([
 	// Add IPv6 ranges
 	if err := convert.FrameworkToGraphStringSet(ctx, data.IPv6Ranges, func(values []string) {
 		for _, cidr := range values {
-			ipRange := map[string]interface{}{
-				"@odata.type":   "#microsoft.graph.iPv6CidrRange",
-				"cidrAddress":   cidr,
+			ipRange := map[string]any{
+				"@odata.type": "#microsoft.graph.iPv6CidrRange",
+				"cidrAddress": cidr,
 			}
 			ipRanges = append(ipRanges, ipRange)
 		}

@@ -14,12 +14,12 @@ import (
 // mockState tracks the state of resources for consistent responses
 var mockState struct {
 	sync.Mutex
-	provisioningPolicies map[string]map[string]interface{}
+	provisioningPolicies map[string]map[string]any
 }
 
 func init() {
 	// Initialize mockState
-	mockState.provisioningPolicies = make(map[string]map[string]interface{})
+	mockState.provisioningPolicies = make(map[string]map[string]any)
 
 	// Register a default 404 responder for any unmatched requests
 	httpmock.RegisterNoResponder(httpmock.NewStringResponder(404, `{"error":{"code":"ResourceNotFound","message":"Resource not found"}}`))
@@ -32,20 +32,20 @@ type CloudPcProvisioningPolicyMock struct{}
 func (m *CloudPcProvisioningPolicyMock) RegisterMocks() {
 	// Reset the state when registering mocks
 	mockState.Lock()
-	mockState.provisioningPolicies = make(map[string]map[string]interface{})
+	mockState.provisioningPolicies = make(map[string]map[string]any)
 	mockState.Unlock()
 
 	// Register GET for listing provisioning policies
 	httpmock.RegisterResponder("GET", "https://graph.microsoft.com/beta/deviceManagement/virtualEndpoint/provisioningPolicies",
 		func(req *http.Request) (*http.Response, error) {
 			mockState.Lock()
-			policies := make([]map[string]interface{}, 0, len(mockState.provisioningPolicies))
+			policies := make([]map[string]any, 0, len(mockState.provisioningPolicies))
 			for _, policy := range mockState.provisioningPolicies {
 				policies = append(policies, policy)
 			}
 			mockState.Unlock()
 
-			response := map[string]interface{}{
+			response := map[string]any{
 				"@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/virtualEndpoint/provisioningPolicies",
 				"value":          policies,
 			}
@@ -68,7 +68,7 @@ func (m *CloudPcProvisioningPolicyMock) RegisterMocks() {
 			}
 
 			// Create response copy
-			responseCopy := make(map[string]interface{})
+			responseCopy := make(map[string]any)
 			for k, v := range policyData {
 				responseCopy[k] = v
 			}
@@ -97,7 +97,7 @@ func (m *CloudPcProvisioningPolicyMock) RegisterMocks() {
 	httpmock.RegisterResponder("POST", "https://graph.microsoft.com/beta/deviceManagement/virtualEndpoint/provisioningPolicies",
 		func(req *http.Request) (*http.Response, error) {
 			// Parse request body
-			var requestBody map[string]interface{}
+			var requestBody map[string]any
 			err := json.NewDecoder(req.Body).Decode(&requestBody)
 			if err != nil {
 				return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"Invalid request body"}}`), nil
@@ -107,7 +107,7 @@ func (m *CloudPcProvisioningPolicyMock) RegisterMocks() {
 			policyId := uuid.New().String()
 
 			// Create provisioning policy data - only include fields that were provided or have defaults
-			policyData := map[string]interface{}{
+			policyData := map[string]any{
 				"id":          policyId,
 				"displayName": requestBody["displayName"],
 				"imageId":     requestBody["imageId"],
@@ -219,7 +219,7 @@ func (m *CloudPcProvisioningPolicyMock) RegisterMocks() {
 			}
 
 			// Parse request body
-			var requestBody map[string]interface{}
+			var requestBody map[string]any
 			err := json.NewDecoder(req.Body).Decode(&requestBody)
 			if err != nil {
 				return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"Invalid request body"}}`), nil
@@ -234,12 +234,12 @@ func (m *CloudPcProvisioningPolicyMock) RegisterMocks() {
 			// For nested attributes and optional fields, if they're not in the request, remove them
 			// Exception: domainJoinConfigurations should be set to empty array if not provided
 			optionalFields := []string{
-				"description", 
+				"description",
 				"cloudPcNamingTemplate",
-				"windowsSetting", 
-				"microsoftManagedDesktop", 
-				"autopatch", 
-				"autopilotConfiguration", 
+				"windowsSetting",
+				"microsoftManagedDesktop",
+				"autopatch",
+				"autopilotConfiguration",
 				"applyToExistingCloudPcs",
 			}
 			for _, field := range optionalFields {
@@ -247,12 +247,12 @@ func (m *CloudPcProvisioningPolicyMock) RegisterMocks() {
 					delete(policyData, field)
 				}
 			}
-			
+
 			// Special handling for domainJoinConfigurations - remove if not provided in update
 			if _, hasField := requestBody["domainJoinConfigurations"]; !hasField {
 				delete(policyData, "domainJoinConfigurations")
 			}
-			
+
 			// Special handling for assignments - if explicitly provided as empty array, set as empty
 			if assignments, hasField := requestBody["assignments"]; hasField {
 				if assignmentList, ok := assignments.([]interface{}); ok && len(assignmentList) == 0 {
@@ -313,7 +313,7 @@ func (m *CloudPcProvisioningPolicyMock) RegisterMocks() {
 			policyId := urlParts[len(urlParts)-2] // provisioningPolicies/{id}/assign
 
 			// Parse request body to get assignments
-			var requestBody map[string]interface{}
+			var requestBody map[string]any
 			err := json.NewDecoder(req.Body).Decode(&requestBody)
 			if err != nil {
 				return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"Invalid request body"}}`), nil
@@ -328,18 +328,18 @@ func (m *CloudPcProvisioningPolicyMock) RegisterMocks() {
 						// Extract the actual assignment data from the request
 						graphAssignments := []interface{}{}
 						for _, assignment := range assignmentList {
-							if assignmentMap, ok := assignment.(map[string]interface{}); ok {
-								if target, hasTarget := assignmentMap["target"].(map[string]interface{}); hasTarget {
+							if assignmentMap, ok := assignment.(map[string]any); ok {
+								if target, hasTarget := assignmentMap["target"].(map[string]any); hasTarget {
 									// Check for groupId directly in target (not in additionalData)
 									if groupId, hasGroupId := target["groupId"].(string); hasGroupId {
 										// Create assignment in the format the API returns
 										// The API returns the group ID as the assignment ID
 										// and the target additionalData is empty on read (as per state logic comment)
-										graphAssignment := map[string]interface{}{
+										graphAssignment := map[string]any{
 											"id": groupId, // Use the actual group ID as the assignment ID
-											"target": map[string]interface{}{
+											"target": map[string]any{
 												"@odata.type":    "#microsoft.graph.cloudPcManagementGroupAssignmentTarget",
-												"additionalData": map[string]interface{}{}, // Empty on read
+												"additionalData": map[string]any{}, // Empty on read
 											},
 										}
 										graphAssignments = append(graphAssignments, graphAssignment)
@@ -366,9 +366,9 @@ func (m *CloudPcProvisioningPolicyMock) RegisterMocks() {
 	// Register GET for assignments
 	httpmock.RegisterResponder("GET", `=~^https://graph.microsoft.com/beta/deviceManagement/virtualEndpoint/provisioningPolicies/[^/]+/assignments$`,
 		func(req *http.Request) (*http.Response, error) {
-			response := map[string]interface{}{
+			response := map[string]any{
 				"@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/virtualEndpoint/provisioningPolicies/assignments",
-				"value":          []map[string]interface{}{}, // Empty assignments by default
+				"value":          []map[string]any{}, // Empty assignments by default
 			}
 			return httpmock.NewJsonResponse(200, response)
 		})
@@ -387,9 +387,9 @@ func (m *CloudPcProvisioningPolicyMock) RegisterErrorMocks() {
 	// Register GET for listing provisioning policies (needed for uniqueness check)
 	httpmock.RegisterResponder("GET", "https://graph.microsoft.com/beta/deviceManagement/virtualEndpoint/provisioningPolicies",
 		func(req *http.Request) (*http.Response, error) {
-			response := map[string]interface{}{
+			response := map[string]any{
 				"@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/virtualEndpoint/provisioningPolicies",
-				"value":          []map[string]interface{}{}, // Empty list for error scenarios
+				"value":          []map[string]any{}, // Empty list for error scenarios
 			}
 			return httpmock.NewJsonResponse(200, response)
 		})
@@ -402,4 +402,3 @@ func (m *CloudPcProvisioningPolicyMock) RegisterErrorMocks() {
 	httpmock.RegisterResponder("GET", "https://graph.microsoft.com/beta/deviceManagement/virtualEndpoint/provisioningPolicies/not-found-policy",
 		factories.ErrorResponse(404, "ResourceNotFound", "Provisioning policy not found"))
 }
-

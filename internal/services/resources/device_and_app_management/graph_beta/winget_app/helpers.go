@@ -40,7 +40,7 @@ func FetchStoreAppDetails(ctx context.Context, packageIdentifier string) (string
 		return "", "", "", "", err
 	}
 	title := cleanTitle(fullTitle)
-	tflog.Debug(ctx, "Cleaned title", map[string]interface{}{
+	tflog.Debug(ctx, "Cleaned title", map[string]any{
 		"fullTitle": fullTitle,
 		"title":     title,
 	})
@@ -94,12 +94,12 @@ func sharedClient(ctx context.Context) *http.Client {
 	return &http.Client{
 		CheckRedirect: func(req *http.Request, via []*http.Request) error {
 			if len(via) >= 10 {
-				tflog.Error(ctx, "Too many redirects", map[string]interface{}{
+				tflog.Error(ctx, "Too many redirects", map[string]any{
 					"redirectCount": len(via),
 				})
 				return fmt.Errorf("too many redirects")
 			}
-			tflog.Debug(ctx, "Following redirect", map[string]interface{}{
+			tflog.Debug(ctx, "Following redirect", map[string]any{
 				"redirectCount": len(via),
 				"location":      req.URL.String(),
 			})
@@ -113,7 +113,7 @@ func getHTML(ctx context.Context, url string) (*goquery.Document, error) {
 	client := sharedClient(ctx)
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
-		tflog.Error(ctx, "Failed to create request", map[string]interface{}{
+		tflog.Error(ctx, "Failed to create request", map[string]any{
 			"error": err.Error(),
 		})
 		return nil, fmt.Errorf("failed to create request: %v", err)
@@ -125,7 +125,7 @@ func getHTML(ctx context.Context, url string) (*goquery.Document, error) {
 
 	resp, err := client.Do(req)
 	if err != nil {
-		tflog.Error(ctx, "Failed to fetch URL", map[string]interface{}{
+		tflog.Error(ctx, "Failed to fetch URL", map[string]any{
 			"error": err.Error(),
 			"url":   url,
 		})
@@ -133,7 +133,7 @@ func getHTML(ctx context.Context, url string) (*goquery.Document, error) {
 	}
 	defer resp.Body.Close()
 
-	tflog.Debug(ctx, "Received response", map[string]interface{}{
+	tflog.Debug(ctx, "Received response", map[string]any{
 		"status":     resp.Status,
 		"statusCode": resp.StatusCode,
 		"headers":    fmt.Sprintf("%v", resp.Header),
@@ -175,7 +175,7 @@ func trySelectors(ctx context.Context, doc *goquery.Document, selectors []htmlSe
 
 			content = strings.TrimSpace(content)
 			if content != "" {
-				tflog.Debug(ctx, fmt.Sprintf("Found %s", logDesc), map[string]interface{}{
+				tflog.Debug(ctx, fmt.Sprintf("Found %s", logDesc), map[string]any{
 					"selector": sel.selector,
 					"content":  content,
 				})
@@ -205,11 +205,11 @@ func parseJSONLD(ctx context.Context, doc *goquery.Document, field string) strin
 			return false
 		}
 
-		var data map[string]interface{}
+		var data map[string]any
 		if err := json.Unmarshal([]byte(s.Text()), &data); err == nil {
 			if value, ok := data[field].(string); ok {
 				content = value
-				tflog.Debug(ctx, fmt.Sprintf("Found %s in JSON-LD", field), map[string]interface{}{
+				tflog.Debug(ctx, fmt.Sprintf("Found %s in JSON-LD", field), map[string]any{
 					"content": content,
 				})
 				return false

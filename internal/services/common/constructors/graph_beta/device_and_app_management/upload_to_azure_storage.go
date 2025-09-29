@@ -61,7 +61,7 @@ func UploadToAzureStorage(ctx context.Context, sasUri string, filePath string) e
 	blockList := []string{}
 	buffer := make([]byte, blockSize)
 
-	tflog.Debug(ctx, "Starting Azure Storage upload", map[string]interface{}{
+	tflog.Debug(ctx, "Starting Azure Storage upload", map[string]any{
 		"file_path":          filePath,
 		"total_size_mb":      float64(fileInfo.Size()) / 1024 / 1024,
 		"total_blocks":       totalBlocks,
@@ -88,7 +88,7 @@ func UploadToAzureStorage(ctx context.Context, sasUri string, filePath string) e
 		percentComplete := float64(uploadedBytes) / float64(fileInfo.Size()) * 100
 		uploadSpeed := float64(uploadedBytes) / time.Since(startTime).Seconds() / 1024 / 1024 // MB/s
 
-		tflog.Debug(ctx, "Uploading block", map[string]interface{}{
+		tflog.Debug(ctx, "Uploading block", map[string]any{
 			"block_number":        blockNum + 1,
 			"blocks_remaining":    totalBlocks - (blockNum + 1),
 			"bytes_uploaded_mb":   float64(uploadedBytes) / 1024 / 1024,
@@ -107,7 +107,7 @@ func UploadToAzureStorage(ctx context.Context, sasUri string, filePath string) e
 
 			req, err := http.NewRequestWithContext(uploadCtx, "PUT", blockURL, bytes.NewReader(buffer[:n]))
 			if err != nil {
-				tflog.Error(ctx, "Failed to create block upload request", map[string]interface{}{
+				tflog.Error(ctx, "Failed to create block upload request", map[string]any{
 					"block_number": blockNum + 1,
 					"error":        err.Error(),
 				})
@@ -119,13 +119,13 @@ func UploadToAzureStorage(ctx context.Context, sasUri string, filePath string) e
 			resp, err := http.DefaultClient.Do(req)
 			if err != nil {
 				if err == context.DeadlineExceeded {
-					tflog.Error(ctx, "Block upload timed out", map[string]interface{}{
+					tflog.Error(ctx, "Block upload timed out", map[string]any{
 						"block_number": blockNum + 1,
 						"timeout":      blockUploadTimeout.String(),
 						"error":        err.Error(),
 					})
 				} else {
-					tflog.Error(ctx, "Failed to upload block", map[string]interface{}{
+					tflog.Error(ctx, "Failed to upload block", map[string]any{
 						"block_number": blockNum + 1,
 						"error":        err.Error(),
 					})
@@ -136,7 +136,7 @@ func UploadToAzureStorage(ctx context.Context, sasUri string, filePath string) e
 
 			if resp.StatusCode != http.StatusCreated {
 				body, _ := io.ReadAll(resp.Body)
-				tflog.Error(ctx, "Unexpected status code", map[string]interface{}{
+				tflog.Error(ctx, "Unexpected status code", map[string]any{
 					"block_number": blockNum + 1,
 					"status_code":  resp.StatusCode,
 					"response":     string(body),
@@ -144,7 +144,7 @@ func UploadToAzureStorage(ctx context.Context, sasUri string, filePath string) e
 				return retry.RetryableError(fmt.Errorf("unexpected status: %d - %s", resp.StatusCode, string(body)))
 			}
 
-			tflog.Debug(ctx, "Block upload successful", map[string]interface{}{
+			tflog.Debug(ctx, "Block upload successful", map[string]any{
 				"block_number": blockNum + 1,
 				"size_mb":      float64(n) / 1024 / 1024,
 			})
@@ -159,7 +159,7 @@ func UploadToAzureStorage(ctx context.Context, sasUri string, filePath string) e
 		blockList = append(blockList, blockID)
 	}
 
-	tflog.Debug(ctx, "File upload completed, committing block list", map[string]interface{}{
+	tflog.Debug(ctx, "File upload completed, committing block list", map[string]any{
 		"total_blocks":  len(blockList),
 		"total_size_mb": float64(fileInfo.Size()) / 1024 / 1024,
 		"elapsed_time":  time.Since(startTime).Round(time.Second).String(),
@@ -198,7 +198,7 @@ func UploadToAzureStorage(ctx context.Context, sasUri string, filePath string) e
 		return fmt.Errorf("failed to commit blocks: status %d - %s", resp.StatusCode, string(body))
 	}
 
-	tflog.Debug(ctx, "Azure Storage upload completed successfully", map[string]interface{}{
+	tflog.Debug(ctx, "Azure Storage upload completed successfully", map[string]any{
 		"file_path":      filePath,
 		"total_size_mb":  float64(fileInfo.Size()) / 1024 / 1024,
 		"total_blocks":   len(blockList),

@@ -240,7 +240,7 @@ func validateMicrosoftEntraOrganization(ctx context.Context, httpClient *client.
 
 	// Log validated tenant details
 	if len(tenantDetails) > 0 {
-		tflog.Debug(ctx, "Validated tenant information:", map[string]interface{}{
+		tflog.Debug(ctx, "Validated tenant information:", map[string]any{
 			"tenants": tenantDetails,
 		})
 	}

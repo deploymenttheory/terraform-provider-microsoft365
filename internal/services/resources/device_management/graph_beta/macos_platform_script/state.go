@@ -18,7 +18,7 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *MacOSPlatformS
 		return
 	}
 
-	tflog.Debug(ctx, "Starting to map remote state to Terraform state", map[string]interface{}{
+	tflog.Debug(ctx, "Starting to map remote state to Terraform state", map[string]any{
 		"resourceName": remoteResource.GetDisplayName(),
 		"resourceId":   remoteResource.GetId(),
 	})
@@ -35,7 +35,7 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *MacOSPlatformS
 	data.RetryCount = convert.GraphToFrameworkInt32(remoteResource.GetRetryCount())
 
 	assignments := remoteResource.GetAssignments()
-	tflog.Debug(ctx, "Retrieved assignments from remote resource", map[string]interface{}{
+	tflog.Debug(ctx, "Retrieved assignments from remote resource", map[string]any{
 		"assignmentCount": len(assignments),
 		"resourceId":      data.ID.ValueString(),
 	})

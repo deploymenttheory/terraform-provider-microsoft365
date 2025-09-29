@@ -52,7 +52,7 @@ func (v *TemplateIDValidator) ValidateString(ctx context.Context, req validator.
 	// Fetch available templates from Microsoft Graph API
 	availableTemplates, err := v.fetchDirectorySettingTemplates(ctx)
 	if err != nil {
-		tflog.Warn(ctx, "Failed to fetch directory setting templates for validation, skipping validation", map[string]interface{}{
+		tflog.Warn(ctx, "Failed to fetch directory setting templates for validation, skipping validation", map[string]any{
 			"error": err.Error(),
 		})
 		// Don't fail validation if we can't fetch templates - this allows offline usage
@@ -85,7 +85,7 @@ func (v *TemplateIDValidator) ValidateString(ctx context.Context, req validator.
 		return
 	}
 
-	tflog.Debug(ctx, "Template ID validation passed", map[string]interface{}{
+	tflog.Debug(ctx, "Template ID validation passed", map[string]any{
 		"template_id":         templateID,
 		"available_templates": templateNames,
 	})

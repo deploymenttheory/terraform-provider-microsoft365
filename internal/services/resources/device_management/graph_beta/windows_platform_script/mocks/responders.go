@@ -14,11 +14,11 @@ import (
 
 var mockState struct {
 	sync.Mutex
-	platformScripts map[string]map[string]interface{}
+	platformScripts map[string]map[string]any
 }
 
 func init() {
-	mockState.platformScripts = make(map[string]map[string]interface{})
+	mockState.platformScripts = make(map[string]map[string]any)
 	httpmock.RegisterNoResponder(httpmock.NewStringResponder(404, `{"error":{"code":"ResourceNotFound","message":"Resource not found"}}`))
 	mocks.GlobalRegistry.Register("windows_platform_script", &WindowsPlatformScriptMock{})
 }
@@ -29,7 +29,7 @@ var _ mocks.MockRegistrar = (*WindowsPlatformScriptMock)(nil)
 
 func (m *WindowsPlatformScriptMock) RegisterMocks() {
 	mockState.Lock()
-	mockState.platformScripts = make(map[string]map[string]interface{})
+	mockState.platformScripts = make(map[string]map[string]any)
 	mockState.Unlock()
 
 	httpmock.RegisterResponder("GET", "https://graph.microsoft.com/beta/deviceManagement/deviceManagementScripts", func(req *http.Request) (*http.Response, error) {
@@ -39,16 +39,16 @@ func (m *WindowsPlatformScriptMock) RegisterMocks() {
 		if len(mockState.platformScripts) == 0 {
 			// Return empty list if no scripts exist
 			jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_get/get_windows_platform_scripts_list.json")
-			var responseObj map[string]interface{}
+			var responseObj map[string]any
 			_ = json.Unmarshal([]byte(jsonStr), &responseObj)
 			responseObj["value"] = []interface{}{}
 			return httpmock.NewJsonResponse(200, responseObj)
 		}
 
 		// Return list of existing scripts
-		list := make([]map[string]interface{}, 0, len(mockState.platformScripts))
+		list := make([]map[string]any, 0, len(mockState.platformScripts))
 		for _, v := range mockState.platformScripts {
-			c := map[string]interface{}{}
+			c := map[string]any{}
 			for k, vv := range v {
 				c[k] = vv
 			}
@@ -56,7 +56,7 @@ func (m *WindowsPlatformScriptMock) RegisterMocks() {
 		}
 
 		jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_get/get_windows_platform_scripts_list.json")
-		var responseObj map[string]interface{}
+		var responseObj map[string]any
 		_ = json.Unmarshal([]byte(jsonStr), &responseObj)
 		responseObj["value"] = list
 		return httpmock.NewJsonResponse(200, responseObj)
@@ -70,7 +70,7 @@ func (m *WindowsPlatformScriptMock) RegisterMocks() {
 		mockState.Unlock()
 		if !ok {
 			jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_delete/get_windows_platform_script_not_found.json")
-			var errObj map[string]interface{}
+			var errObj map[string]any
 			_ = json.Unmarshal([]byte(jsonStr), &errObj)
 			return httpmock.NewJsonResponse(404, errObj)
 		}
@@ -88,7 +88,7 @@ func (m *WindowsPlatformScriptMock) RegisterMocks() {
 			jsonTemplate = jsonStr
 		}
 
-		var responseObj map[string]interface{}
+		var responseObj map[string]any
 		_ = json.Unmarshal([]byte(jsonTemplate), &responseObj)
 
 		// Override template values with actual script values
@@ -100,7 +100,7 @@ func (m *WindowsPlatformScriptMock) RegisterMocks() {
 	})
 
 	httpmock.RegisterResponder("POST", "https://graph.microsoft.com/beta/deviceManagement/deviceManagementScripts", func(req *http.Request) (*http.Response, error) {
-		var body map[string]interface{}
+		var body map[string]any
 		if err := json.NewDecoder(req.Body).Decode(&body); err != nil {
 			return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"Invalid request body"}}`), nil
 		}
@@ -117,7 +117,7 @@ func (m *WindowsPlatformScriptMock) RegisterMocks() {
 			jsonTemplate = jsonStr
 		}
 
-		var responseObj map[string]interface{}
+		var responseObj map[string]any
 		_ = json.Unmarshal([]byte(jsonTemplate), &responseObj)
 
 		// Only include fields that were provided in the request
@@ -148,7 +148,7 @@ func (m *WindowsPlatformScriptMock) RegisterMocks() {
 		} else {
 			responseObj["roleScopeTagIds"] = []string{"0"}
 		}
-		
+
 		// Assignments are handled separately via the /assign endpoint
 		// Always start with empty assignments for new resources
 		responseObj["assignments"] = []interface{}{}
@@ -164,10 +164,10 @@ func (m *WindowsPlatformScriptMock) RegisterMocks() {
 	httpmock.RegisterResponder("PATCH", `=~^https://graph\.microsoft\.com/beta/deviceManagement/deviceManagementScripts/[^/]+$`, func(req *http.Request) (*http.Response, error) {
 		parts := strings.Split(req.URL.Path, "/")
 		id := parts[len(parts)-1]
-		var body map[string]interface{}
+		var body map[string]any
 		if err := json.NewDecoder(req.Body).Decode(&body); err != nil {
 			jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_create/post_windows_platform_script_error.json")
-			var errObj map[string]interface{}
+			var errObj map[string]any
 			_ = json.Unmarshal([]byte(jsonStr), &errObj)
 			return httpmock.NewJsonResponse(400, errObj)
 		}
@@ -177,7 +177,7 @@ func (m *WindowsPlatformScriptMock) RegisterMocks() {
 		if !ok {
 			mockState.Unlock()
 			jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_delete/get_windows_platform_script_not_found.json")
-			var errObj map[string]interface{}
+			var errObj map[string]any
 			_ = json.Unmarshal([]byte(jsonStr), &errObj)
 			return httpmock.NewJsonResponse(404, errObj)
 		}
@@ -192,7 +192,7 @@ func (m *WindowsPlatformScriptMock) RegisterMocks() {
 			jsonTemplate = jsonStr
 		}
 
-		var responseObj map[string]interface{}
+		var responseObj map[string]any
 		_ = json.Unmarshal([]byte(jsonTemplate), &responseObj)
 
 		// Override with existing values
@@ -219,10 +219,10 @@ func (m *WindowsPlatformScriptMock) RegisterMocks() {
 	httpmock.RegisterResponder("POST", `=~^https://graph\.microsoft\.com/beta/deviceManagement/deviceManagementScripts/[^/]+/assign$`, func(req *http.Request) (*http.Response, error) {
 		parts := strings.Split(req.URL.Path, "/")
 		id := parts[len(parts)-2]
-		var body map[string]interface{}
+		var body map[string]any
 		if err := json.NewDecoder(req.Body).Decode(&body); err != nil {
 			jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_assign/post_windows_platform_script_assign_error.json")
-			var errObj map[string]interface{}
+			var errObj map[string]any
 			_ = json.Unmarshal([]byte(jsonStr), &errObj)
 			return httpmock.NewJsonResponse(400, errObj)
 		}
@@ -261,12 +261,12 @@ func (m *WindowsPlatformScriptMock) RegisterMocks() {
 
 func (m *WindowsPlatformScriptMock) RegisterErrorMocks() {
 	mockState.Lock()
-	mockState.platformScripts = make(map[string]map[string]interface{})
+	mockState.platformScripts = make(map[string]map[string]any)
 	mockState.Unlock()
 
 	httpmock.RegisterResponder("GET", "https://graph.microsoft.com/beta/deviceManagement/deviceManagementScripts", func(req *http.Request) (*http.Response, error) {
 		jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_get/get_windows_platform_scripts_list.json")
-		var responseObj map[string]interface{}
+		var responseObj map[string]any
 		_ = json.Unmarshal([]byte(jsonStr), &responseObj)
 		responseObj["value"] = []interface{}{}
 		return httpmock.NewJsonResponse(200, responseObj)
@@ -274,14 +274,14 @@ func (m *WindowsPlatformScriptMock) RegisterErrorMocks() {
 
 	httpmock.RegisterResponder("POST", "https://graph.microsoft.com/beta/deviceManagement/deviceManagementScripts", func(req *http.Request) (*http.Response, error) {
 		jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_create/post_windows_platform_script_error.json")
-		var errObj map[string]interface{}
+		var errObj map[string]any
 		_ = json.Unmarshal([]byte(jsonStr), &errObj)
 		return httpmock.NewJsonResponse(400, errObj)
 	})
 
 	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/deviceManagement/deviceManagementScripts/[^/]+$`, func(req *http.Request) (*http.Response, error) {
 		jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_delete/get_windows_platform_script_not_found.json")
-		var errObj map[string]interface{}
+		var errObj map[string]any
 		_ = json.Unmarshal([]byte(jsonStr), &errObj)
 		return httpmock.NewJsonResponse(404, errObj)
 	})

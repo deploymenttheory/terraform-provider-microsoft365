@@ -14,12 +14,12 @@ import (
 // mockState tracks the state of resources for consistent responses
 var mockState struct {
 	sync.Mutex
-	connections map[string]map[string]interface{}
+	connections map[string]map[string]any
 }
 
 func init() {
 	// Initialize mockState
-	mockState.connections = make(map[string]map[string]interface{})
+	mockState.connections = make(map[string]map[string]any)
 
 	// Register a default 404 responder for any unmatched requests
 	httpmock.RegisterNoResponder(httpmock.NewStringResponder(404, `{"error":{"code":"ResourceNotFound","message":"Resource not found"}}`))
@@ -32,20 +32,20 @@ type AzureNetworkConnectionMock struct{}
 func (m *AzureNetworkConnectionMock) RegisterMocks() {
 	// Reset the state when registering mocks
 	mockState.Lock()
-	mockState.connections = make(map[string]map[string]interface{})
+	mockState.connections = make(map[string]map[string]any)
 	mockState.Unlock()
 
 	// Register GET for listing connections
 	httpmock.RegisterResponder("GET", "https://graph.microsoft.com/beta/deviceManagement/virtualEndpoint/onPremisesConnections",
 		func(req *http.Request) (*http.Response, error) {
 			mockState.Lock()
-			connections := make([]map[string]interface{}, 0, len(mockState.connections))
+			connections := make([]map[string]any, 0, len(mockState.connections))
 			for _, conn := range mockState.connections {
 				connections = append(connections, conn)
 			}
 			mockState.Unlock()
 
-			response := map[string]interface{}{
+			response := map[string]any{
 				"@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/virtualEndpoint/onPremisesConnections",
 				"value":          connections,
 			}
@@ -74,7 +74,7 @@ func (m *AzureNetworkConnectionMock) RegisterMocks() {
 	httpmock.RegisterResponder("POST", "https://graph.microsoft.com/beta/deviceManagement/virtualEndpoint/onPremisesConnections",
 		func(req *http.Request) (*http.Response, error) {
 			// Parse request body
-			var requestBody map[string]interface{}
+			var requestBody map[string]any
 			err := json.NewDecoder(req.Body).Decode(&requestBody)
 			if err != nil {
 				return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"Invalid request body"}}`), nil
@@ -84,20 +84,20 @@ func (m *AzureNetworkConnectionMock) RegisterMocks() {
 			connectionId := uuid.New().String()
 
 			// Create connection data with all fields
-			connectionData := map[string]interface{}{
-				"id":                  connectionId,
-				"displayName":         requestBody["displayName"],
-				"connectionType":      requestBody["connectionType"], // Use correct field name
-				"adDomainName":        requestBody["adDomainName"],
-				"adDomainUsername":    requestBody["adDomainUsername"],
-				"organizationalUnit":  requestBody["organizationalUnit"],
-				"resourceGroupId":     requestBody["resourceGroupId"],
-				"subnetId":            requestBody["subnetId"],
-				"subscriptionId":      requestBody["subscriptionId"],
-				"virtualNetworkId":    requestBody["virtualNetworkId"],
-				"healthCheckStatus":   "passed",
-				"managedBy":           "windows365",
-				"inUse":               false,
+			connectionData := map[string]any{
+				"id":                 connectionId,
+				"displayName":        requestBody["displayName"],
+				"connectionType":     requestBody["connectionType"], // Use correct field name
+				"adDomainName":       requestBody["adDomainName"],
+				"adDomainUsername":   requestBody["adDomainUsername"],
+				"organizationalUnit": requestBody["organizationalUnit"],
+				"resourceGroupId":    requestBody["resourceGroupId"],
+				"subnetId":           requestBody["subnetId"],
+				"subscriptionId":     requestBody["subscriptionId"],
+				"virtualNetworkId":   requestBody["virtualNetworkId"],
+				"healthCheckStatus":  "passed",
+				"managedBy":          "windows365",
+				"inUse":              false,
 			}
 
 			// Store in mock state
@@ -123,7 +123,7 @@ func (m *AzureNetworkConnectionMock) RegisterMocks() {
 			}
 
 			// Parse request body
-			var requestBody map[string]interface{}
+			var requestBody map[string]any
 			err := json.NewDecoder(req.Body).Decode(&requestBody)
 			if err != nil {
 				return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"Invalid request body"}}`), nil
@@ -131,18 +131,18 @@ func (m *AzureNetworkConnectionMock) RegisterMocks() {
 
 			// Update connection data
 			mockState.Lock()
-			
-			// For PATCH operations, we need to handle the case where optional fields 
+
+			// For PATCH operations, we need to handle the case where optional fields
 			// are removed from the configuration (like going from maximal to minimal)
 			// Check for specific field patterns to simulate real API behavior
-			
+
 			// If this looks like a minimal config update (no organizationalUnit in request)
 			_, hasOrgUnit := requestBody["organizationalUnit"]
 			if !hasOrgUnit {
 				// Remove organizationalUnit from the stored state to simulate API clearing it
 				delete(connectionData, "organizationalUnit")
 			}
-			
+
 			for key, value := range requestBody {
 				if value == nil {
 					// If value is explicitly null, remove the field from the stored state
@@ -198,19 +198,19 @@ func (m *AzureNetworkConnectionMock) RegisterErrorMocks() {
 func registerSpecificConnectionMocks() {
 	// Minimal connection
 	minimalConnectionId := "11111111-1111-1111-1111-111111111111"
-	minimalConnectionData := map[string]interface{}{
-		"id":                 minimalConnectionId,
-		"displayName":        "Test Minimal Connection",
-		"connectionType":     "hybridAzureADJoin",
-		"adDomainName":       "example.local",
-		"adDomainUsername":   "testuser",
-		"resourceGroupId":    "/subscriptions/11111111-1111-1111-1111-111111111111/resourcegroups/test-rg",
-		"subnetId":           "/subscriptions/11111111-1111-1111-1111-111111111111/resourcegroups/test-rg/providers/microsoft.network/virtualnetworks/test-vnet/subnets/test-subnet",
-		"subscriptionId":     "11111111-1111-1111-1111-111111111111",
-		"virtualNetworkId":   "/subscriptions/11111111-1111-1111-1111-111111111111/resourcegroups/test-rg/providers/microsoft.network/virtualnetworks/test-vnet",
-		"healthCheckStatus":  "passed",
-		"managedBy":          "windows365",
-		"inUse":              false,
+	minimalConnectionData := map[string]any{
+		"id":                minimalConnectionId,
+		"displayName":       "Test Minimal Connection",
+		"connectionType":    "hybridAzureADJoin",
+		"adDomainName":      "example.local",
+		"adDomainUsername":  "testuser",
+		"resourceGroupId":   "/subscriptions/11111111-1111-1111-1111-111111111111/resourcegroups/test-rg",
+		"subnetId":          "/subscriptions/11111111-1111-1111-1111-111111111111/resourcegroups/test-rg/providers/microsoft.network/virtualnetworks/test-vnet/subnets/test-subnet",
+		"subscriptionId":    "11111111-1111-1111-1111-111111111111",
+		"virtualNetworkId":  "/subscriptions/11111111-1111-1111-1111-111111111111/resourcegroups/test-rg/providers/microsoft.network/virtualnetworks/test-vnet",
+		"healthCheckStatus": "passed",
+		"managedBy":         "windows365",
+		"inUse":             false,
 	}
 
 	mockState.Lock()
@@ -219,7 +219,7 @@ func registerSpecificConnectionMocks() {
 
 	// Maximal connection
 	maximalConnectionId := "22222222-2222-2222-2222-222222222222"
-	maximalConnectionData := map[string]interface{}{
+	maximalConnectionData := map[string]any{
 		"id":                 maximalConnectionId,
 		"displayName":        "Test Maximal Connection",
 		"connectionType":     "hybridAzureADJoin",

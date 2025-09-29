@@ -12,12 +12,12 @@ import (
 // mockState tracks the state of resources for consistent responses
 var mockState struct {
 	sync.Mutex
-	settings map[string]map[string]interface{}
+	settings map[string]map[string]any
 }
 
 func init() {
 	// Initialize mockState
-	mockState.settings = make(map[string]map[string]interface{})
+	mockState.settings = make(map[string]map[string]any)
 
 	// Register a default 404 responder for any unmatched requests
 	httpmock.RegisterNoResponder(httpmock.NewStringResponder(404, `{"error":{"code":"ResourceNotFound","message":"Resource not found"}}`))
@@ -27,7 +27,7 @@ func init() {
 func MockTenantWideGroupSettingsResponders() {
 	// Reset the state when registering mocks
 	mockState.Lock()
-	mockState.settings = make(map[string]map[string]interface{})
+	mockState.settings = make(map[string]map[string]any)
 	mockState.Unlock()
 
 	// Register 500 error for error testing - register this first for higher priority
@@ -37,7 +37,7 @@ func MockTenantWideGroupSettingsResponders() {
 			body, _ := io.ReadAll(req.Body)
 			req.Body.Close() // Close the body after reading
 
-			var requestBody map[string]interface{}
+			var requestBody map[string]any
 			_ = json.Unmarshal(body, &requestBody)
 
 			// Check if this is an error test by looking at the values
@@ -48,14 +48,14 @@ func MockTenantWideGroupSettingsResponders() {
 
 			// Check if any value is the error test case
 			for _, val := range values {
-				value, ok := val.(map[string]interface{})
+				value, ok := val.(map[string]any)
 				if !ok {
 					continue
 				}
 
 				if value["name"] == "EnableGroupCreation" && value["value"] == "error" {
-					errorResponse := map[string]interface{}{
-						"error": map[string]interface{}{
+					errorResponse := map[string]any{
+						"error": map[string]any{
 							"code":    "InternalServerError",
 							"message": "Internal server error occurred",
 						},
@@ -75,7 +75,7 @@ func MockTenantWideGroupSettingsResponders() {
 			body, _ := io.ReadAll(req.Body)
 			req.Body.Close() // Close the body after reading
 
-			var requestBody map[string]interface{}
+			var requestBody map[string]any
 			_ = json.Unmarshal(body, &requestBody)
 
 			// Check if this is a minimal or maximal request by looking at the values
@@ -84,7 +84,7 @@ func MockTenantWideGroupSettingsResponders() {
 
 			// Check if this is a maximal request by looking for specific values
 			for _, val := range values {
-				value := val.(map[string]interface{})
+				value := val.(map[string]any)
 				if value["name"] == "AllowGuestsToBeGroupOwner" ||
 					value["name"] == "ClassificationDescriptions" ||
 					value["name"] == "CustomBlockedWordsList" {
@@ -93,16 +93,16 @@ func MockTenantWideGroupSettingsResponders() {
 				}
 			}
 
-			var response map[string]interface{}
+			var response map[string]any
 
 			if isMinimal {
 				// Minimal response with exactly the values from the minimal config
-				response = map[string]interface{}{
+				response = map[string]any{
 					"@odata.type": "#microsoft.graph.directorySetting",
 					"id":          "test-tenant-setting-id",
 					"displayName": "Group.Unified",
 					"templateId":  "62375ab9-6b52-47ed-826b-58e47e0e304b",
-					"values": []map[string]interface{}{
+					"values": []map[string]any{
 						{
 							"name":  "EnableGroupCreation",
 							"value": "true",
@@ -119,12 +119,12 @@ func MockTenantWideGroupSettingsResponders() {
 				}
 			} else {
 				// Maximal response with all the values from the maximal config
-				response = map[string]interface{}{
+				response = map[string]any{
 					"@odata.type": "#microsoft.graph.directorySetting",
 					"id":          "test-tenant-setting-id",
 					"displayName": "Group.Unified",
 					"templateId":  "62375ab9-6b52-47ed-826b-58e47e0e304b",
-					"values": []map[string]interface{}{
+					"values": []map[string]any{
 						{
 							"name":  "EnableGroupCreation",
 							"value": "false",
@@ -211,8 +211,8 @@ func MockTenantWideGroupSettingsResponders() {
 
 			if !exists {
 				// Return a 404 if the setting doesn't exist in state
-				errorResponse := map[string]interface{}{
-					"error": map[string]interface{}{
+				errorResponse := map[string]any{
+					"error": map[string]any{
 						"code":    "NotFound",
 						"message": "The specified object was not found",
 					},
@@ -236,8 +236,8 @@ func MockTenantWideGroupSettingsResponders() {
 			mockState.Unlock()
 
 			if !exists {
-				errorResponse := map[string]interface{}{
-					"error": map[string]interface{}{
+				errorResponse := map[string]any{
+					"error": map[string]any{
 						"code":    "ResourceNotFound",
 						"message": "Setting not found",
 					},
@@ -249,7 +249,7 @@ func MockTenantWideGroupSettingsResponders() {
 			body, _ := io.ReadAll(req.Body)
 			req.Body.Close() // Close the body after reading
 
-			var updateData map[string]interface{}
+			var updateData map[string]any
 			_ = json.Unmarshal(body, &updateData)
 
 			// Update the setting
@@ -294,7 +294,7 @@ func RegisterErrorMocks() {
 			body, _ := io.ReadAll(req.Body)
 			req.Body.Close() // Close the body after reading
 
-			var requestBody map[string]interface{}
+			var requestBody map[string]any
 			_ = json.Unmarshal(body, &requestBody)
 
 			// Check if this is an error test by looking at the values
@@ -305,14 +305,14 @@ func RegisterErrorMocks() {
 
 			// Check if any value is the error test case
 			for _, val := range values {
-				value, ok := val.(map[string]interface{})
+				value, ok := val.(map[string]any)
 				if !ok {
 					continue
 				}
 
 				if value["name"] == "EnableGroupCreation" && value["value"] == "error" {
-					errorResponse := map[string]interface{}{
-						"error": map[string]interface{}{
+					errorResponse := map[string]any{
+						"error": map[string]any{
 							"code":    "InternalServerError",
 							"message": "Internal server error occurred",
 						},
@@ -335,8 +335,8 @@ func TeardownTenantWideGroupSettingsMocks() {
 func MockTenantWideGroupSettingsError(method, url string, statusCode int, errorCode, errorMessage string) {
 	httpmock.RegisterResponder(method, url,
 		func(req *http.Request) (*http.Response, error) {
-			errorResponse := map[string]interface{}{
-				"error": map[string]interface{}{
+			errorResponse := map[string]any{
+				"error": map[string]any{
 					"code":    errorCode,
 					"message": errorMessage,
 				},
@@ -346,7 +346,7 @@ func MockTenantWideGroupSettingsError(method, url string, statusCode int, errorC
 }
 
 // MockTenantWideGroupSettingsSuccess sets up a success response for testing
-func MockTenantWideGroupSettingsSuccess(method, url string, statusCode int, responseData map[string]interface{}) {
+func MockTenantWideGroupSettingsSuccess(method, url string, statusCode int, responseData map[string]any) {
 	httpmock.RegisterResponder(method, url,
 		func(req *http.Request) (*http.Response, error) {
 			return httpmock.NewJsonResponse(statusCode, responseData)

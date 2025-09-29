@@ -178,7 +178,7 @@ func ReadWithRetry(
 		resourceType = "resource"
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Starting read with retry for %s operation", opts.Operation), map[string]interface{}{
+	tflog.Debug(ctx, fmt.Sprintf("Starting read with retry for %s operation", opts.Operation), map[string]any{
 		"resource_id":   resourceID,
 		"resource_type": resourceType,
 	})
@@ -209,7 +209,7 @@ func ReadWithRetry(
 		opts.MaxRetries = maxPossibleRetries
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Will attempt up to %d retries with %s intervals", opts.MaxRetries, opts.RetryInterval), map[string]interface{}{
+	tflog.Debug(ctx, fmt.Sprintf("Will attempt up to %d retries with %s intervals", opts.MaxRetries, opts.RetryInterval), map[string]any{
 		"resource_id":   resourceID,
 		"resource_type": resourceType,
 	})
@@ -223,14 +223,14 @@ func ReadWithRetry(
 		}
 
 		if time.Until(deadline) < opts.RetryInterval {
-			tflog.Debug(ctx, "Insufficient time remaining for another retry attempt", map[string]interface{}{
+			tflog.Debug(ctx, "Insufficient time remaining for another retry attempt", map[string]any{
 				"resource_id":   resourceID,
 				"resource_type": resourceType,
 			})
 			break
 		}
 
-		tflog.Debug(ctx, fmt.Sprintf("Read retry attempt %d/%d", attempt+1, opts.MaxRetries+1), map[string]interface{}{
+		tflog.Debug(ctx, fmt.Sprintf("Read retry attempt %d/%d", attempt+1, opts.MaxRetries+1), map[string]any{
 			"resource_id":   resourceID,
 			"resource_type": resourceType,
 		})
@@ -241,7 +241,7 @@ func ReadWithRetry(
 		readFunc(ctxWithOp, readReq, readResp)
 
 		if !readResp.Diagnostics.HasError() {
-			tflog.Debug(ctx, fmt.Sprintf("Read successful on attempt %d", attempt+1), map[string]interface{}{
+			tflog.Debug(ctx, fmt.Sprintf("Read successful on attempt %d", attempt+1), map[string]any{
 				"resource_id":   resourceID,
 				"resource_type": resourceType,
 			})
@@ -257,7 +257,7 @@ func ReadWithRetry(
 
 		// Check for non-retryable errors first (permanent failures or success)
 		if errors.IsNonRetryableReadError(&errorInfo) {
-			tflog.Error(ctx, fmt.Sprintf("Read failed on attempt %d (non-retryable error)", attempt+1), map[string]interface{}{
+			tflog.Error(ctx, fmt.Sprintf("Read failed on attempt %d (non-retryable error)", attempt+1), map[string]any{
 				"resource_id":   resourceID,
 				"resource_type": resourceType,
 				"status_code":   errorInfo.StatusCode,
@@ -270,7 +270,7 @@ func ReadWithRetry(
 		// Check if this error should trigger a retry
 		if errors.IsRetryableReadError(&errorInfo) {
 			if attempt < opts.MaxRetries {
-				tflog.Warn(ctx, fmt.Sprintf("Read failed on attempt %d (retryable error), waiting %s before retry", attempt+1, opts.RetryInterval), map[string]interface{}{
+				tflog.Warn(ctx, fmt.Sprintf("Read failed on attempt %d (retryable error), waiting %s before retry", attempt+1, opts.RetryInterval), map[string]any{
 					"resource_id":   resourceID,
 					"resource_type": resourceType,
 					"status_code":   errorInfo.StatusCode,
@@ -284,7 +284,7 @@ func ReadWithRetry(
 					return fmt.Errorf("context cancelled during retry wait: %w", ctx.Err())
 				}
 			} else {
-				tflog.Error(ctx, fmt.Sprintf("Read failed on final attempt %d", attempt+1), map[string]interface{}{
+				tflog.Error(ctx, fmt.Sprintf("Read failed on final attempt %d", attempt+1), map[string]any{
 					"resource_id":   resourceID,
 					"resource_type": resourceType,
 					"status_code":   errorInfo.StatusCode,
@@ -295,7 +295,7 @@ func ReadWithRetry(
 		} else {
 			// Unknown error type, use old behavior for safety
 			if attempt < opts.MaxRetries {
-				tflog.Debug(ctx, fmt.Sprintf("Read failed on attempt %d (unknown error type, continuing retry)", attempt+1), map[string]interface{}{
+				tflog.Debug(ctx, fmt.Sprintf("Read failed on attempt %d (unknown error type, continuing retry)", attempt+1), map[string]any{
 					"resource_id":   resourceID,
 					"resource_type": resourceType,
 					"diagnostics":   readResp.Diagnostics.Errors(),

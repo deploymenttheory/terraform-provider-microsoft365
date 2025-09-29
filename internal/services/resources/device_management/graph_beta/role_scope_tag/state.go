@@ -15,7 +15,7 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *RoleScopeTagRe
 		return
 	}
 
-	tflog.Debug(ctx, "Starting to map remote resource state to Terraform state", map[string]interface{}{
+	tflog.Debug(ctx, "Starting to map remote resource state to Terraform state", map[string]any{
 		"resourceId": convert.GraphToFrameworkString(remoteResource.GetId()),
 	})
 

@@ -65,20 +65,20 @@ func StateReusablePolicySettings(ctx context.Context, data *sharedmodels.Reuseab
 // In case of errors during processing, returns the original settings string
 // to maintain the existing state rather than potentially corrupting it.
 func normalizeSettingsCatalogJSONArray(ctx context.Context, settingsStr string, resp []byte) string {
-	var configSettings map[string]interface{}
+	var configSettings map[string]any
 	if err := json.Unmarshal([]byte(settingsStr), &configSettings); err != nil {
-		tflog.Error(ctx, "Failed to unmarshal config settings", map[string]interface{}{"error": err.Error()})
+		tflog.Error(ctx, "Failed to unmarshal config settings", map[string]any{"error": err.Error()})
 		return settingsStr
 	}
 
-	var rawResponse map[string]interface{}
+	var rawResponse map[string]any
 	if err := json.Unmarshal(resp, &rawResponse); err != nil {
 		var arrayResponse []interface{}
 		if err := json.Unmarshal(resp, &arrayResponse); err != nil {
-			tflog.Error(ctx, "Failed to unmarshal settings response", map[string]interface{}{"error": err.Error()})
+			tflog.Error(ctx, "Failed to unmarshal settings response", map[string]any{"error": err.Error()})
 			return settingsStr
 		}
-		rawResponse = map[string]interface{}{"value": arrayResponse}
+		rawResponse = map[string]any{"value": arrayResponse}
 	}
 
 	var settingsContent interface{}
@@ -90,28 +90,28 @@ func normalizeSettingsCatalogJSONArray(ctx context.Context, settingsStr string, 
 		settingsContent = rawResponse
 	}
 
-	structuredContent := map[string]interface{}{
+	structuredContent := map[string]any{
 		"settings": settingsContent,
 	}
 
 	if err := normalize.PreserveSecretSettings(configSettings, structuredContent); err != nil {
-		tflog.Error(ctx, "Error stating settings catalog secret settings from HCL", map[string]interface{}{"error": err.Error()})
+		tflog.Error(ctx, "Error stating settings catalog secret settings from HCL", map[string]any{"error": err.Error()})
 		return settingsStr
 	}
 
 	jsonBytes, err := json.Marshal(structuredContent)
 	if err != nil {
-		tflog.Error(ctx, "Failed to marshal JSON structured content", map[string]interface{}{"error": err.Error()})
+		tflog.Error(ctx, "Failed to marshal JSON structured content", map[string]any{"error": err.Error()})
 		return settingsStr
 	}
 
 	normalizedJSON, err := normalize.JSONAlphabetically(string(jsonBytes))
 	if err != nil {
-		tflog.Error(ctx, "Failed to normalize settings catalog JSON", map[string]interface{}{"error": err.Error()})
+		tflog.Error(ctx, "Failed to normalize settings catalog JSON", map[string]any{"error": err.Error()})
 		return settingsStr
 	}
 
-	tflog.Debug(ctx, "Settings JSON normalized", map[string]interface{}{
+	tflog.Debug(ctx, "Settings JSON normalized", map[string]any{
 		"original":   string(resp),
 		"normalized": normalizedJSON,
 	})
@@ -140,17 +140,17 @@ func normalizeSettingsCatalogJSONArray(ctx context.Context, settingsStr string, 
 // In case of errors during processing, returns the original settings string
 // to maintain the existing state rather than potentially corrupting it.
 func normalizeSettingsCatalogJSON(ctx context.Context, settingsStr string, resp []byte) string {
-	var responseObj map[string]interface{}
+	var responseObj map[string]any
 	if err := json.Unmarshal(resp, &responseObj); err != nil {
-		tflog.Error(ctx, "Failed to unmarshal response", map[string]interface{}{"error": err.Error()})
+		tflog.Error(ctx, "Failed to unmarshal response", map[string]any{"error": err.Error()})
 		return settingsStr
 	}
 
 	// If we have a settingInstance, wrap it in our expected format
-	if settingInstance, ok := responseObj["settingInstance"].(map[string]interface{}); ok {
-		wrappedResp := map[string]interface{}{
+	if settingInstance, ok := responseObj["settingInstance"].(map[string]any); ok {
+		wrappedResp := map[string]any{
 			"settings": []interface{}{
-				map[string]interface{}{
+				map[string]any{
 					"id":              "0",
 					"settingInstance": settingInstance,
 				},

@@ -17,12 +17,12 @@ import (
 // mockState tracks the state of resources for consistent responses
 var mockState struct {
 	sync.Mutex
-	assignmentFilters map[string]map[string]interface{}
+	assignmentFilters map[string]map[string]any
 }
 
 func init() {
 	// Initialize mockState
-	mockState.assignmentFilters = make(map[string]map[string]interface{})
+	mockState.assignmentFilters = make(map[string]map[string]any)
 
 	// Register a default 404 responder for any unmatched requests
 	httpmock.RegisterNoResponder(httpmock.NewStringResponder(404, `{"error":{"code":"ResourceNotFound","message":"Resource not found"}}`))
@@ -57,11 +57,10 @@ func (m *AssignmentFilterMock) RegisterMocks() {
 		m.deleteAssignmentFilterResponder())
 }
 
-
 // createAssignmentFilterResponder handles POST requests to create assignment filters
 func (m *AssignmentFilterMock) createAssignmentFilterResponder() httpmock.Responder {
 	return func(req *http.Request) (*http.Response, error) {
-		var requestBody map[string]interface{}
+		var requestBody map[string]any
 		if err := json.NewDecoder(req.Body).Decode(&requestBody); err != nil {
 			return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"Invalid JSON"}}`), nil
 		}
@@ -157,7 +156,7 @@ func (m *AssignmentFilterMock) updateAssignmentFilterResponder() httpmock.Respon
 			return httpmock.NewJsonResponse(404, errorResponse)
 		}
 
-		var requestBody map[string]interface{}
+		var requestBody map[string]any
 		if err := json.NewDecoder(req.Body).Decode(&requestBody); err != nil {
 			errorResponse, _ := mocks.LoadJSONResponse(filepath.Join("tests", "responses", "validate_create", "post_assignment_filter_error.json"))
 			return httpmock.NewJsonResponse(400, errorResponse)
@@ -239,16 +238,16 @@ func (m *AssignmentFilterMock) RegisterErrorMocks() {
 // CleanupMockState clears all stored mock state
 func (m *AssignmentFilterMock) CleanupMockState() {
 	mockState.Lock()
-	mockState.assignmentFilters = make(map[string]map[string]interface{})
+	mockState.assignmentFilters = make(map[string]map[string]any)
 	mockState.Unlock()
 }
 
 // GetMockAssignmentFilterData returns sample assignment filter data for testing
-func (m *AssignmentFilterMock) GetMockAssignmentFilterData() map[string]interface{} {
+func (m *AssignmentFilterMock) GetMockAssignmentFilterData() map[string]any {
 	response, err := mocks.LoadJSONResponse(filepath.Join("tests", "responses", "validate_create", "get_assignment_filter_maximal.json"))
 	if err != nil {
 		// Fallback to hardcoded response if file loading fails
-		return map[string]interface{}{
+		return map[string]any{
 			"id":                             "test-assignment-filter-id",
 			"displayName":                    "Test Assignment Filter",
 			"description":                    "Test assignment filter for unit testing",
@@ -264,11 +263,11 @@ func (m *AssignmentFilterMock) GetMockAssignmentFilterData() map[string]interfac
 }
 
 // GetMockAssignmentFilterMinimalData returns minimal assignment filter data for testing
-func (m *AssignmentFilterMock) GetMockAssignmentFilterMinimalData() map[string]interface{} {
+func (m *AssignmentFilterMock) GetMockAssignmentFilterMinimalData() map[string]any {
 	response, err := mocks.LoadJSONResponse(filepath.Join("tests", "responses", "validate_create", "get_assignment_filter_minimal.json"))
 	if err != nil {
 		// Fallback to hardcoded response if file loading fails
-		return map[string]interface{}{
+		return map[string]any{
 			"id":                   "test-minimal-assignment-filter-id",
 			"displayName":          "Test Minimal Assignment Filter",
 			"platform":             "windows10AndLater",

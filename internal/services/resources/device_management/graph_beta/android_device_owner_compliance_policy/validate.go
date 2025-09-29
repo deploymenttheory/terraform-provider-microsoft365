@@ -98,7 +98,7 @@ func ValidateAssignments(ctx context.Context, data *DeviceCompliancePolicyResour
 	}
 
 	if diags.HasError() {
-		tflog.Error(ctx, "Assignment validation failed", map[string]interface{}{
+		tflog.Error(ctx, "Assignment validation failed", map[string]any{
 			"errors": diags.Errors(),
 		})
 	} else {

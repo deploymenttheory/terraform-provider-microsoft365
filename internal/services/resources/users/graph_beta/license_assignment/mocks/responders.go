@@ -15,12 +15,12 @@ import (
 // mockState tracks the state of resources for consistent responses
 var mockState struct {
 	sync.Mutex
-	userLicenses map[string]map[string]interface{}
+	userLicenses map[string]map[string]any
 }
 
 func init() {
 	// Initialize mockState
-	mockState.userLicenses = make(map[string]map[string]interface{})
+	mockState.userLicenses = make(map[string]map[string]any)
 
 	// Register a default 404 responder for any unmatched requests
 	httpmock.RegisterNoResponder(httpmock.NewStringResponder(404, `{"error":{"code":"ResourceNotFound","message":"Resource not found"}}`))
@@ -33,15 +33,15 @@ type UserLicenseAssignmentMock struct{}
 func (m *UserLicenseAssignmentMock) RegisterMocks() {
 	// Reset the state when registering mocks
 	mockState.Lock()
-	mockState.userLicenses = make(map[string]map[string]interface{})
+	mockState.userLicenses = make(map[string]map[string]any)
 	mockState.Unlock()
 
 	// Initialize base user data
 	baseUserId := "00000000-0000-0000-0000-000000000001"
-	baseUserData := map[string]interface{}{
+	baseUserData := map[string]any{
 		"id":                baseUserId,
 		"userPrincipalName": "test.user@contoso.com",
-		"assignedLicenses": []map[string]interface{}{
+		"assignedLicenses": []map[string]any{
 			{
 				"skuId": "11111111-1111-1111-1111-111111111111",
 				"disabledPlans": []string{
@@ -70,7 +70,7 @@ func (m *UserLicenseAssignmentMock) RegisterMocks() {
 			}
 
 			if userData["assignedLicenses"] == nil {
-				userData["assignedLicenses"] = []map[string]interface{}{}
+				userData["assignedLicenses"] = []map[string]any{}
 			}
 
 			return httpmock.NewJsonResponse(200, userData)
@@ -91,15 +91,15 @@ func (m *UserLicenseAssignmentMock) RegisterMocks() {
 			}
 
 			// Extract assigned licenses from user data
-			var assignedLicenses []map[string]interface{}
+			var assignedLicenses []map[string]any
 			if userData["assignedLicenses"] != nil {
-				assignedLicenses = userData["assignedLicenses"].([]map[string]interface{})
+				assignedLicenses = userData["assignedLicenses"].([]map[string]any)
 			} else {
-				assignedLicenses = []map[string]interface{}{}
+				assignedLicenses = []map[string]any{}
 			}
 
 			// Convert to license details format
-			licenseDetails := make([]map[string]interface{}, 0, len(assignedLicenses))
+			licenseDetails := make([]map[string]any, 0, len(assignedLicenses))
 			for _, license := range assignedLicenses {
 				skuId, ok := license["skuId"].(string)
 				if !ok {
@@ -107,11 +107,11 @@ func (m *UserLicenseAssignmentMock) RegisterMocks() {
 				}
 
 				// Create license detail with service plans
-				licenseDetail := map[string]interface{}{
+				licenseDetail := map[string]any{
 					"id":            uuid.New().String(),
 					"skuId":         skuId,
 					"skuPartNumber": fmt.Sprintf("SKU_PART_%s", skuId[0:8]),
-					"servicePlans": []map[string]interface{}{
+					"servicePlans": []map[string]any{
 						{
 							"servicePlanId":      "33333333-3333-3333-3333-333333333333",
 							"servicePlanName":    "ServicePlan1",
@@ -124,7 +124,7 @@ func (m *UserLicenseAssignmentMock) RegisterMocks() {
 				licenseDetails = append(licenseDetails, licenseDetail)
 			}
 
-			response := map[string]interface{}{
+			response := map[string]any{
 				"@odata.context": fmt.Sprintf("https://graph.microsoft.com/beta/$metadata#users('%s')/licenseDetails", userId),
 				"value":          licenseDetails,
 			}
@@ -147,7 +147,7 @@ func (m *UserLicenseAssignmentMock) RegisterMocks() {
 			}
 
 			// Parse request body
-			var requestBody map[string]interface{}
+			var requestBody map[string]any
 			err := json.NewDecoder(req.Body).Decode(&requestBody)
 			if err != nil {
 				return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"Invalid request body"}}`), nil
@@ -155,16 +155,16 @@ func (m *UserLicenseAssignmentMock) RegisterMocks() {
 
 			// Process add licenses
 			if addLicenses, ok := requestBody["addLicenses"].([]interface{}); ok {
-				currentLicenses := make([]map[string]interface{}, 0)
+				currentLicenses := make([]map[string]any, 0)
 
 				// Get existing licenses
 				if userData["assignedLicenses"] != nil {
-					currentLicenses = userData["assignedLicenses"].([]map[string]interface{})
+					currentLicenses = userData["assignedLicenses"].([]map[string]any)
 				}
 
 				// Add new licenses
 				for _, addLicense := range addLicenses {
-					if licenseObj, ok := addLicense.(map[string]interface{}); ok {
+					if licenseObj, ok := addLicense.(map[string]any); ok {
 						skuId, hasSkuId := licenseObj["skuId"].(string)
 						if !hasSkuId {
 							continue
@@ -191,7 +191,7 @@ func (m *UserLicenseAssignmentMock) RegisterMocks() {
 
 						// Add new license if it doesn't exist
 						if !exists {
-							newLicense := map[string]interface{}{
+							newLicense := map[string]any{
 								"skuId": skuId,
 							}
 
@@ -222,7 +222,7 @@ func (m *UserLicenseAssignmentMock) RegisterMocks() {
 					}
 
 					// Filter out removed licenses
-					filteredLicenses := make([]map[string]interface{}, 0)
+					filteredLicenses := make([]map[string]any, 0)
 					for _, license := range currentLicenses {
 						skuId, ok := license["skuId"].(string)
 						if !ok || removeLicenseMap[skuId] {
@@ -262,10 +262,10 @@ func (m *UserLicenseAssignmentMock) RegisterErrorMocks() {
 	// Register GET for error user to ensure it exists but will fail on license assignment
 	httpmock.RegisterResponder("GET", "https://graph.microsoft.com/beta/users/"+errorUserId,
 		func(req *http.Request) (*http.Response, error) {
-			userData := map[string]interface{}{
+			userData := map[string]any{
 				"id":                errorUserId,
 				"userPrincipalName": "error.user@contoso.com",
-				"assignedLicenses":  []map[string]interface{}{},
+				"assignedLicenses":  []map[string]any{},
 			}
 			return httpmock.NewJsonResponse(200, userData)
 		})
@@ -279,10 +279,10 @@ func (m *UserLicenseAssignmentMock) RegisterErrorMocks() {
 func registerSpecificUserMocks() {
 	// Minimal user with no licenses
 	minimalUserId := "00000000-0000-0000-0000-000000000002"
-	minimalUserData := map[string]interface{}{
+	minimalUserData := map[string]any{
 		"id":                minimalUserId,
 		"userPrincipalName": "minimal.user@contoso.com",
-		"assignedLicenses":  []map[string]interface{}{},
+		"assignedLicenses":  []map[string]any{},
 	}
 
 	mockState.Lock()
@@ -291,10 +291,10 @@ func registerSpecificUserMocks() {
 
 	// Maximal user with multiple licenses
 	maximalUserId := "00000000-0000-0000-0000-000000000003"
-	maximalUserData := map[string]interface{}{
+	maximalUserData := map[string]any{
 		"id":                maximalUserId,
 		"userPrincipalName": "maximal.user@contoso.com",
-		"assignedLicenses": []map[string]interface{}{
+		"assignedLicenses": []map[string]any{
 			{
 				"skuId": "44444444-4444-4444-4444-444444444444",
 				"disabledPlans": []string{

@@ -17,7 +17,7 @@ func MapRemoteStateToTerraform(ctx context.Context, data *UserResourceModel, rem
 		return
 	}
 
-	tflog.Debug(ctx, "Starting to map remote state to Terraform state", map[string]interface{}{
+	tflog.Debug(ctx, "Starting to map remote state to Terraform state", map[string]any{
 		"resourceId": convert.GraphToFrameworkString(remoteResource.GetId()),
 	})
 
@@ -114,7 +114,7 @@ func MapRemoteStateToTerraform(ctx context.Context, data *UserResourceModel, rem
 		}}, identityElements)
 
 		if diags.HasError() {
-			tflog.Error(ctx, "Failed to convert identities to set", map[string]interface{}{
+			tflog.Error(ctx, "Failed to convert identities to set", map[string]any{
 				"errors": diags.Errors(),
 			})
 			// Initialize with empty set on error
@@ -149,7 +149,7 @@ func MapRemoteStateToTerraform(ctx context.Context, data *UserResourceModel, rem
 		data.PasswordProfile.ForceChangePasswordNextSignInWithMfa = convert.GraphToFrameworkBool(passwordProfile.GetForceChangePasswordNextSignInWithMfa())
 	}
 
-	tflog.Debug(ctx, "Finished mapping remote state to Terraform state", map[string]interface{}{
+	tflog.Debug(ctx, "Finished mapping remote state to Terraform state", map[string]any{
 		"resourceId": data.ID.ValueString(),
 	})
 }

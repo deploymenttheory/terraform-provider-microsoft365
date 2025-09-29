@@ -14,12 +14,12 @@ import (
 // mockState tracks the state of resources for consistent responses
 var mockState struct {
 	sync.Mutex
-	softwareUpdateConfigurations map[string]map[string]interface{}
+	softwareUpdateConfigurations map[string]map[string]any
 }
 
 func init() {
 	// Initialize mockState
-	mockState.softwareUpdateConfigurations = make(map[string]map[string]interface{})
+	mockState.softwareUpdateConfigurations = make(map[string]map[string]any)
 
 	// Register a default 404 responder for any unmatched requests
 	httpmock.RegisterNoResponder(httpmock.NewStringResponder(404, `{"error":{"code":"ResourceNotFound","message":"Resource not found"}}`))
@@ -32,20 +32,20 @@ type MacOSSoftwareUpdateConfigurationMock struct{}
 func (m *MacOSSoftwareUpdateConfigurationMock) RegisterMocks() {
 	// Reset the state when registering mocks
 	mockState.Lock()
-	mockState.softwareUpdateConfigurations = make(map[string]map[string]interface{})
+	mockState.softwareUpdateConfigurations = make(map[string]map[string]any)
 	mockState.Unlock()
 
 	// Register GET for listing software update configurations
 	httpmock.RegisterResponder("GET", "https://graph.microsoft.com/beta/deviceManagement/deviceConfigurations",
 		func(req *http.Request) (*http.Response, error) {
 			mockState.Lock()
-			configs := make([]map[string]interface{}, 0, len(mockState.softwareUpdateConfigurations))
+			configs := make([]map[string]any, 0, len(mockState.softwareUpdateConfigurations))
 			for _, config := range mockState.softwareUpdateConfigurations {
 				configs = append(configs, config)
 			}
 			mockState.Unlock()
 
-			response := map[string]interface{}{
+			response := map[string]any{
 				"@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/deviceConfigurations",
 				"value":          configs,
 			}
@@ -68,7 +68,7 @@ func (m *MacOSSoftwareUpdateConfigurationMock) RegisterMocks() {
 			}
 
 			// Create response copy
-			responseCopy := make(map[string]interface{})
+			responseCopy := make(map[string]any)
 			for k, v := range configData {
 				responseCopy[k] = v
 			}
@@ -97,7 +97,7 @@ func (m *MacOSSoftwareUpdateConfigurationMock) RegisterMocks() {
 	httpmock.RegisterResponder("POST", "https://graph.microsoft.com/beta/deviceManagement/deviceConfigurations",
 		func(req *http.Request) (*http.Response, error) {
 			// Parse request body
-			var requestBody map[string]interface{}
+			var requestBody map[string]any
 			err := json.NewDecoder(req.Body).Decode(&requestBody)
 			if err != nil {
 				return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"Invalid request body"}}`), nil
@@ -107,15 +107,15 @@ func (m *MacOSSoftwareUpdateConfigurationMock) RegisterMocks() {
 			configId := uuid.New().String()
 
 			// Create configuration data - only include fields that were provided or have defaults
-			configData := map[string]interface{}{
-				"@odata.type":                             "#microsoft.graph.macOSSoftwareUpdateConfiguration",
-				"id":                                      configId,
-				"displayName":                             requestBody["displayName"],
-				"updateScheduleType":                      requestBody["updateScheduleType"],
-				"criticalUpdateBehavior":                  requestBody["criticalUpdateBehavior"],
-				"configDataUpdateBehavior":                requestBody["configDataUpdateBehavior"],
-				"firmwareUpdateBehavior":                  requestBody["firmwareUpdateBehavior"],
-				"allOtherUpdateBehavior":                  requestBody["allOtherUpdateBehavior"],
+			configData := map[string]any{
+				"@odata.type":              "#microsoft.graph.macOSSoftwareUpdateConfiguration",
+				"id":                       configId,
+				"displayName":              requestBody["displayName"],
+				"updateScheduleType":       requestBody["updateScheduleType"],
+				"criticalUpdateBehavior":   requestBody["criticalUpdateBehavior"],
+				"configDataUpdateBehavior": requestBody["configDataUpdateBehavior"],
+				"firmwareUpdateBehavior":   requestBody["firmwareUpdateBehavior"],
+				"allOtherUpdateBehavior":   requestBody["allOtherUpdateBehavior"],
 			}
 
 			// Add optional fields only if provided in request
@@ -170,7 +170,7 @@ func (m *MacOSSoftwareUpdateConfigurationMock) RegisterMocks() {
 			}
 
 			// Parse request body
-			var requestBody map[string]interface{}
+			var requestBody map[string]any
 			err := json.NewDecoder(req.Body).Decode(&requestBody)
 			if err != nil {
 				return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"Invalid request body"}}`), nil
@@ -178,10 +178,10 @@ func (m *MacOSSoftwareUpdateConfigurationMock) RegisterMocks() {
 
 			// Update configuration data
 			mockState.Lock()
-			
+
 			// Handle optional fields that might be removed (like going from maximal to minimal)
 			// Check for specific field patterns to simulate real API behavior
-			
+
 			// For optional fields, if they're not in the request, remove them
 			optionalFields := []string{"description", "updateTimeWindowUtcOffsetInMinutes", "customUpdateTimeWindows", "maxUserDeferralsCount", "priority"}
 			for _, field := range optionalFields {
@@ -189,7 +189,7 @@ func (m *MacOSSoftwareUpdateConfigurationMock) RegisterMocks() {
 					delete(configData, field)
 				}
 			}
-			
+
 			for key, value := range requestBody {
 				if value == nil {
 					// If value is explicitly null, remove the field from the stored state
@@ -235,7 +235,7 @@ func (m *MacOSSoftwareUpdateConfigurationMock) RegisterMocks() {
 			configId := urlParts[len(urlParts)-2] // deviceConfigurations/{id}/assign
 
 			// Parse request body to get assignments
-			var requestBody map[string]interface{}
+			var requestBody map[string]any
 			err := json.NewDecoder(req.Body).Decode(&requestBody)
 			if err != nil {
 				return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"Invalid request body"}}`), nil
@@ -250,20 +250,20 @@ func (m *MacOSSoftwareUpdateConfigurationMock) RegisterMocks() {
 						// Extract the actual assignment data from the request
 						graphAssignments := []interface{}{}
 						for _, assignment := range assignmentList {
-							if assignmentMap, ok := assignment.(map[string]interface{}); ok {
-								if target, hasTarget := assignmentMap["target"].(map[string]interface{}); hasTarget {
+							if assignmentMap, ok := assignment.(map[string]any); ok {
+								if target, hasTarget := assignmentMap["target"].(map[string]any); hasTarget {
 									// Generate a unique assignment ID
 									assignmentId := uuid.New().String()
-									
+
 									// Create assignment in the format the API returns
 									// The API returns the target exactly as submitted but with additional metadata
-									targetCopy := make(map[string]interface{})
+									targetCopy := make(map[string]any)
 									for k, v := range target {
 										targetCopy[k] = v
 									}
-									
-									graphAssignment := map[string]interface{}{
-										"id": assignmentId,
+
+									graphAssignment := map[string]any{
+										"id":     assignmentId,
 										"target": targetCopy,
 									}
 									graphAssignments = append(graphAssignments, graphAssignment)
@@ -289,9 +289,9 @@ func (m *MacOSSoftwareUpdateConfigurationMock) RegisterMocks() {
 	// Register GET for assignments
 	httpmock.RegisterResponder("GET", `=~^https://graph.microsoft.com/beta/deviceManagement/deviceConfigurations/[^/]+/assignments$`,
 		func(req *http.Request) (*http.Response, error) {
-			response := map[string]interface{}{
+			response := map[string]any{
 				"@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/deviceConfigurations/assignments",
-				"value":          []map[string]interface{}{}, // Empty assignments by default
+				"value":          []map[string]any{}, // Empty assignments by default
 			}
 			return httpmock.NewJsonResponse(200, response)
 		})
@@ -304,9 +304,9 @@ func (m *MacOSSoftwareUpdateConfigurationMock) RegisterErrorMocks() {
 	// Register GET for listing software update configurations (needed for uniqueness check)
 	httpmock.RegisterResponder("GET", "https://graph.microsoft.com/beta/deviceManagement/deviceConfigurations",
 		func(req *http.Request) (*http.Response, error) {
-			response := map[string]interface{}{
+			response := map[string]any{
 				"@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/deviceConfigurations",
-				"value":          []map[string]interface{}{}, // Empty list for error scenarios
+				"value":          []map[string]any{}, // Empty list for error scenarios
 			}
 			return httpmock.NewJsonResponse(200, response)
 		})

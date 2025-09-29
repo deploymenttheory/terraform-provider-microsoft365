@@ -32,8 +32,8 @@ func (m *ErrorMocks) registerErrorResponder(statusCode int, errorCode, errorMess
 	url := fmt.Sprintf("https://graph.microsoft.com/v1.0/errors/%d", statusCode)
 	httpmock.RegisterResponder("GET", url,
 		func(req *http.Request) (*http.Response, error) {
-			return httpmock.NewJsonResponse(statusCode, map[string]interface{}{
-				"error": map[string]interface{}{
+			return httpmock.NewJsonResponse(statusCode, map[string]any{
+				"error": map[string]any{
 					"code":    errorCode,
 					"message": errorMessage,
 				},

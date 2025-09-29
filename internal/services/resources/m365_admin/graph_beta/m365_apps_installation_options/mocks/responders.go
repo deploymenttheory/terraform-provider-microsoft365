@@ -62,14 +62,14 @@ func (m *M365AppsInstallationOptionsMock) RegisterMocks() {
 		"https://graph.microsoft.com/beta/admin/microsoft365Apps/installationOptions",
 		func(req *http.Request) (*http.Response, error) {
 			// Parse the request body to get the updated values
-			var requestBody map[string]interface{}
+			var requestBody map[string]any
 			err := json.NewDecoder(req.Body).Decode(&requestBody)
 			if err != nil {
 				return httpmock.NewStringResponse(http.StatusBadRequest, `{"error": {"message": "Invalid request body"}}`), nil
 			}
 
 			// Create a response with the updated values
-			responseBody := map[string]interface{}{
+			responseBody := map[string]any{
 				"id": "microsoft365AppsInstallationOptions",
 			}
 
@@ -81,20 +81,20 @@ func (m *M365AppsInstallationOptionsMock) RegisterMocks() {
 			}
 
 			// Copy apps_for_windows if provided
-			if appsForWindows, ok := requestBody["appsForWindows"].(map[string]interface{}); ok {
+			if appsForWindows, ok := requestBody["appsForWindows"].(map[string]any); ok {
 				responseBody["appsForWindows"] = appsForWindows
 			} else {
-				responseBody["appsForWindows"] = map[string]interface{}{
+				responseBody["appsForWindows"] = map[string]any{
 					"isMicrosoft365AppsEnabled": true,
 					"isSkypeForBusinessEnabled": true,
 				}
 			}
 
 			// Copy apps_for_mac if provided
-			if appsForMac, ok := requestBody["appsForMac"].(map[string]interface{}); ok {
+			if appsForMac, ok := requestBody["appsForMac"].(map[string]any); ok {
 				responseBody["appsForMac"] = appsForMac
 			} else {
-				responseBody["appsForMac"] = map[string]interface{}{
+				responseBody["appsForMac"] = map[string]any{
 					"isMicrosoft365AppsEnabled": true,
 					"isSkypeForBusinessEnabled": true,
 				}
@@ -116,14 +116,14 @@ func (m *M365AppsInstallationOptionsMock) RegisterMocks() {
 		"https://graph.microsoft.com/v1.0/admin/microsoft365Apps/installationOptions",
 		func(req *http.Request) (*http.Response, error) {
 			// Parse the request body to get the updated values
-			var requestBody map[string]interface{}
+			var requestBody map[string]any
 			err := json.NewDecoder(req.Body).Decode(&requestBody)
 			if err != nil {
 				return httpmock.NewStringResponse(http.StatusBadRequest, `{"error": {"message": "Invalid request body"}}`), nil
 			}
 
 			// Create a response with the updated values
-			responseBody := map[string]interface{}{
+			responseBody := map[string]any{
 				"id": "microsoft365AppsInstallationOptions",
 			}
 
@@ -135,20 +135,20 @@ func (m *M365AppsInstallationOptionsMock) RegisterMocks() {
 			}
 
 			// Copy apps_for_windows if provided
-			if appsForWindows, ok := requestBody["appsForWindows"].(map[string]interface{}); ok {
+			if appsForWindows, ok := requestBody["appsForWindows"].(map[string]any); ok {
 				responseBody["appsForWindows"] = appsForWindows
 			} else {
-				responseBody["appsForWindows"] = map[string]interface{}{
+				responseBody["appsForWindows"] = map[string]any{
 					"isMicrosoft365AppsEnabled": true,
 					"isSkypeForBusinessEnabled": true,
 				}
 			}
 
 			// Copy apps_for_mac if provided
-			if appsForMac, ok := requestBody["appsForMac"].(map[string]interface{}); ok {
+			if appsForMac, ok := requestBody["appsForMac"].(map[string]any); ok {
 				responseBody["appsForMac"] = appsForMac
 			} else {
-				responseBody["appsForMac"] = map[string]interface{}{
+				responseBody["appsForMac"] = map[string]any{
 					"isMicrosoft365AppsEnabled": true,
 					"isSkypeForBusinessEnabled": true,
 				}

@@ -15,7 +15,7 @@ func MapRemoteStateToDataSource(ctx context.Context, data *WindowsFeatureUpdateP
 		return
 	}
 
-	tflog.Debug(ctx, "Mapping remote Windows Feature Update Profile to data source model", map[string]interface{}{
+	tflog.Debug(ctx, "Mapping remote Windows Feature Update Profile to data source model", map[string]any{
 		"resourceId": remoteResource.GetId(),
 	})
 

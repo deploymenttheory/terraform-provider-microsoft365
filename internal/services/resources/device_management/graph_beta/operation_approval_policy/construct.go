@@ -42,7 +42,7 @@ func constructResource(ctx context.Context, data OperationApprovalPolicyResource
 	}
 
 	if err := constructors.DebugLogGraphObject(ctx, "Constructed operation approval policy", policy); err != nil {
-		tflog.Error(ctx, "Failed to log operation approval policy", map[string]interface{}{
+		tflog.Error(ctx, "Failed to log operation approval policy", map[string]any{
 			"error": err.Error(),
 		})
 	}

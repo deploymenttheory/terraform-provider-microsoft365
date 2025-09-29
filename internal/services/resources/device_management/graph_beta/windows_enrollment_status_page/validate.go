@@ -67,7 +67,7 @@ func validateSelectedMobileAppIds(ctx context.Context, client *msgraphbetasdk.Gr
 		Get(ctx, requestConfig)
 
 	if err != nil {
-		tflog.Error(ctx, "Failed to retrieve mobile apps for validation", map[string]interface{}{
+		tflog.Error(ctx, "Failed to retrieve mobile apps for validation", map[string]any{
 			"error": err.Error(),
 		})
 		return fmt.Errorf("failed to validate mobile app IDs: unable to retrieve available apps from Microsoft Graph")
@@ -95,7 +95,7 @@ func validateSelectedMobileAppIds(ctx context.Context, client *msgraphbetasdk.Gr
 			return fmt.Errorf("supplied app ID '%s' does not match any valid Windows app types. Valid app types include: windowsAppX, windowsMobileMSI, windowsUniversalAppX, officeSuiteApp, windowsMicrosoftEdgeApp, winGetApp, win32LobApp, win32CatalogApp", appIdValue)
 		}
 
-		tflog.Debug(ctx, "Validated mobile app", map[string]interface{}{
+		tflog.Debug(ctx, "Validated mobile app", map[string]any{
 			"appId":       appIdValue,
 			"displayName": displayName,
 			"appType":     validAppTypes[appIdValue],

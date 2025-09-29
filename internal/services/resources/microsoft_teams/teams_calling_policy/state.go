@@ -7,7 +7,7 @@ import (
 )
 
 // mapAllCallingPolicyFieldsFromJson maps all fields from the JSON output to the resource model
-func mapAllCallingPolicyFieldsFromJson(ctx context.Context, p map[string]interface{}, data *TeamsCallingPolicyResourceModel) {
+func mapAllCallingPolicyFieldsFromJson(ctx context.Context, p map[string]any, data *TeamsCallingPolicyResourceModel) {
 	boolVal := func(name string) types.Bool {
 		if v, ok := p[name]; ok && v != nil {
 			if b, ok := v.(bool); ok {

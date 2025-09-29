@@ -79,7 +79,7 @@ func (r *AutopatchGroupsResource) Create(ctx context.Context, req resource.Creat
 
 	// Check for successful creation (200 OK or 201 Created)
 	if httpResp.StatusCode != http.StatusOK && httpResp.StatusCode != http.StatusCreated {
-		var errorBody map[string]interface{}
+		var errorBody map[string]any
 		if decodeErr := json.NewDecoder(httpResp.Body).Decode(&errorBody); decodeErr == nil {
 			tflog.Debug(ctx, fmt.Sprintf("Error response body: %+v", errorBody))
 		}
@@ -92,7 +92,7 @@ func (r *AutopatchGroupsResource) Create(ctx context.Context, req resource.Creat
 	}
 
 	// Parse the response to get the resource data
-	var responseData map[string]interface{}
+	var responseData map[string]any
 	if err := json.NewDecoder(httpResp.Body).Decode(&responseData); err != nil {
 		resp.Diagnostics.AddError(
 			"Error parsing response",
@@ -192,7 +192,7 @@ func (r *AutopatchGroupsResource) Read(ctx context.Context, req resource.ReadReq
 
 	// Check for successful read
 	if httpResp.StatusCode != http.StatusOK {
-		var errorBody map[string]interface{}
+		var errorBody map[string]any
 		if decodeErr := json.NewDecoder(httpResp.Body).Decode(&errorBody); decodeErr == nil {
 			tflog.Debug(ctx, fmt.Sprintf("Error response body: %+v", errorBody))
 		}
@@ -205,7 +205,7 @@ func (r *AutopatchGroupsResource) Read(ctx context.Context, req resource.ReadReq
 	}
 
 	// Parse the response
-	var responseData map[string]interface{}
+	var responseData map[string]any
 	if err := json.NewDecoder(httpResp.Body).Decode(&responseData); err != nil {
 		resp.Diagnostics.AddError(
 			"Error parsing response",
@@ -290,7 +290,7 @@ func (r *AutopatchGroupsResource) Update(ctx context.Context, req resource.Updat
 
 	// Check for successful update (200 OK or 204 No Content)
 	if httpResp.StatusCode != http.StatusOK && httpResp.StatusCode != http.StatusNoContent {
-		var errorBody map[string]interface{}
+		var errorBody map[string]any
 		if decodeErr := json.NewDecoder(httpResp.Body).Decode(&errorBody); decodeErr == nil {
 			tflog.Debug(ctx, fmt.Sprintf("Error response body: %+v", errorBody))
 		}
@@ -365,10 +365,10 @@ func (r *AutopatchGroupsResource) Delete(ctx context.Context, req resource.Delet
 	tflog.Debug(ctx, fmt.Sprintf("DELETE request response status: %d %s", httpResp.StatusCode, httpResp.Status))
 
 	// Check for successful deletion (200 OK, 204 No Content, or 404 Not Found)
-	if httpResp.StatusCode != http.StatusOK && 
-	   httpResp.StatusCode != http.StatusNoContent && 
-	   httpResp.StatusCode != http.StatusNotFound {
-		var errorBody map[string]interface{}
+	if httpResp.StatusCode != http.StatusOK &&
+		httpResp.StatusCode != http.StatusNoContent &&
+		httpResp.StatusCode != http.StatusNotFound {
+		var errorBody map[string]any
 		if decodeErr := json.NewDecoder(httpResp.Body).Decode(&errorBody); decodeErr == nil {
 			tflog.Debug(ctx, fmt.Sprintf("Error response body: %+v", errorBody))
 		}

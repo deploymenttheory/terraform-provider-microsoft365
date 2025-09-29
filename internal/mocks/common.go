@@ -11,7 +11,7 @@ type AuthMock struct{}
 func (a *AuthMock) RegisterMocks() {
 	httpmock.RegisterResponder("POST",
 		"https://login.microsoftonline.com/00000000-0000-0000-0000-000000000001/oauth2/v2.0/token",
-		httpmock.NewJsonResponderOrPanic(200, map[string]interface{}{
+		httpmock.NewJsonResponderOrPanic(200, map[string]any{
 			"access_token": "mock-token",
 			"token_type":   "Bearer",
 			"expires_in":   3600,
@@ -19,7 +19,7 @@ func (a *AuthMock) RegisterMocks() {
 
 	httpmock.RegisterResponder("GET",
 		"https://login.microsoftonline.com/common/discovery/instance",
-		httpmock.NewJsonResponderOrPanic(200, map[string]interface{}{
+		httpmock.NewJsonResponderOrPanic(200, map[string]any{
 			"tenant_discovery_endpoint": "https://login.microsoftonline.com/00000000-0000-0000-0000-000000000001/v2.0/.well-known/openid-configuration",
 		}))
 }
@@ -28,7 +28,7 @@ func (a *AuthMock) RegisterMocks() {
 func (a *AuthMock) RegisterErrorMocks() {
 	httpmock.RegisterResponder("POST",
 		"https://login.microsoftonline.com/00000000-0000-0000-0000-000000000001/oauth2/v2.0/token",
-		httpmock.NewJsonResponderOrPanic(401, map[string]interface{}{
+		httpmock.NewJsonResponderOrPanic(401, map[string]any{
 			"error":             "invalid_client",
 			"error_description": "Client authentication failed",
 		}))

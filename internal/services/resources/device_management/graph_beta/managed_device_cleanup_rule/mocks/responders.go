@@ -16,11 +16,11 @@ import (
 // mockState tracks the state of managed device cleanup rules for consistent responses
 var mockState struct {
 	sync.Mutex
-	managedDeviceCleanupRules map[string]map[string]interface{}
+	managedDeviceCleanupRules map[string]map[string]any
 }
 
 func init() {
-	mockState.managedDeviceCleanupRules = make(map[string]map[string]interface{})
+	mockState.managedDeviceCleanupRules = make(map[string]map[string]any)
 
 	// Default 404 for unmatched requests
 	httpmock.RegisterNoResponder(httpmock.NewStringResponder(404, `{"error":{"code":"ResourceNotFound","message":"Resource not found"}}`))
@@ -38,20 +38,20 @@ var _ mocks.MockRegistrar = (*ManagedDeviceCleanupRuleMock)(nil)
 // RegisterMocks registers HTTP mock responses for managed device cleanup rule operations
 func (m *ManagedDeviceCleanupRuleMock) RegisterMocks() {
 	mockState.Lock()
-	mockState.managedDeviceCleanupRules = make(map[string]map[string]interface{})
+	mockState.managedDeviceCleanupRules = make(map[string]map[string]any)
 	mockState.Unlock()
 
 	// List rules
 	httpmock.RegisterResponder("GET", "https://graph.microsoft.com/beta/deviceManagement/managedDeviceCleanupRules",
 		func(req *http.Request) (*http.Response, error) {
 			mockState.Lock()
-			rules := make([]map[string]interface{}, 0, len(mockState.managedDeviceCleanupRules))
+			rules := make([]map[string]any, 0, len(mockState.managedDeviceCleanupRules))
 			for _, r := range mockState.managedDeviceCleanupRules {
 				rules = append(rules, r)
 			}
 			mockState.Unlock()
 
-			response := map[string]interface{}{
+			response := map[string]any{
 				"@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/managedDeviceCleanupRules",
 				"value":          rules,
 			}
@@ -75,7 +75,7 @@ func (m *ManagedDeviceCleanupRuleMock) RegisterMocks() {
 					if err != nil {
 						return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to load mock response"}}`), nil
 					}
-					var response map[string]interface{}
+					var response map[string]any
 					if err := json.Unmarshal([]byte(jsonStr), &response); err != nil {
 						return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to parse mock response"}}`), nil
 					}
@@ -86,7 +86,7 @@ func (m *ManagedDeviceCleanupRuleMock) RegisterMocks() {
 					if err != nil {
 						return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to load mock response"}}`), nil
 					}
-					var response map[string]interface{}
+					var response map[string]any
 					if err := json.Unmarshal([]byte(jsonStr), &response); err != nil {
 						return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to parse mock response"}}`), nil
 					}
@@ -94,7 +94,7 @@ func (m *ManagedDeviceCleanupRuleMock) RegisterMocks() {
 					return factories.SuccessResponse(200, response)(req)
 				default:
 					jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_error/error_resource_not_found.json")
-					var errorResponse map[string]interface{}
+					var errorResponse map[string]any
 					_ = json.Unmarshal([]byte(jsonStr), &errorResponse)
 					return httpmock.NewJsonResponse(404, errorResponse)
 				}
@@ -107,7 +107,7 @@ func (m *ManagedDeviceCleanupRuleMock) RegisterMocks() {
 	// Create rule
 	httpmock.RegisterResponder("POST", "https://graph.microsoft.com/beta/deviceManagement/managedDeviceCleanupRules",
 		func(req *http.Request) (*http.Response, error) {
-			var body map[string]interface{}
+			var body map[string]any
 			if err := json.NewDecoder(req.Body).Decode(&body); err != nil {
 				return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"Invalid request body"}}`), nil
 			}
@@ -122,7 +122,7 @@ func (m *ManagedDeviceCleanupRuleMock) RegisterMocks() {
 				if p, ok := existing["deviceCleanupRulePlatformType"].(string); ok && p == platform {
 					mockState.Unlock()
 					jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_error/error_duplicate_platform.json")
-					var errorResponse map[string]interface{}
+					var errorResponse map[string]any
 					_ = json.Unmarshal([]byte(jsonStr), &errorResponse)
 					return httpmock.NewJsonResponse(500, errorResponse)
 				}
@@ -131,7 +131,7 @@ func (m *ManagedDeviceCleanupRuleMock) RegisterMocks() {
 
 			id := uuid.New().String()
 
-			rule := map[string]interface{}{
+			rule := map[string]any{
 				"id":                                     id,
 				"displayName":                            body["displayName"],
 				"description":                            body["description"],
@@ -153,10 +153,10 @@ func (m *ManagedDeviceCleanupRuleMock) RegisterMocks() {
 			parts := strings.Split(req.URL.Path, "/")
 			id := parts[len(parts)-1]
 
-			var body map[string]interface{}
+			var body map[string]any
 			if err := json.NewDecoder(req.Body).Decode(&body); err != nil {
 				jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_error/error_invalid_display_name.json")
-				var errorResponse map[string]interface{}
+				var errorResponse map[string]any
 				_ = json.Unmarshal([]byte(jsonStr), &errorResponse)
 				return httpmock.NewJsonResponse(400, errorResponse)
 			}
@@ -166,13 +166,13 @@ func (m *ManagedDeviceCleanupRuleMock) RegisterMocks() {
 			if !exists {
 				mockState.Unlock()
 				jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_error/error_resource_not_found.json")
-				var errorResponse map[string]interface{}
+				var errorResponse map[string]any
 				_ = json.Unmarshal([]byte(jsonStr), &errorResponse)
 				return httpmock.NewJsonResponse(404, errorResponse)
 			}
 			// Load update template and merge
 			if jsonStr, err := helpers.ParseJSONFile("../tests/responses/validate_update/patch_managed_device_cleanup_rule_minimal.json"); err == nil {
-				var base map[string]interface{}
+				var base map[string]any
 				if json.Unmarshal([]byte(jsonStr), &base) == nil {
 					for k, v := range existing {
 						base[k] = v
@@ -215,14 +215,14 @@ func (m *ManagedDeviceCleanupRuleMock) RegisterMocks() {
 // RegisterErrorMocks registers error responses to simulate failures
 func (m *ManagedDeviceCleanupRuleMock) RegisterErrorMocks() {
 	mockState.Lock()
-	mockState.managedDeviceCleanupRules = make(map[string]map[string]interface{})
+	mockState.managedDeviceCleanupRules = make(map[string]map[string]any)
 	mockState.Unlock()
 
 	// Create error
 	httpmock.RegisterResponder("POST", "https://graph.microsoft.com/beta/deviceManagement/managedDeviceCleanupRules",
 		func(req *http.Request) (*http.Response, error) {
 			jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_error/error_invalid_display_name.json")
-			var errorResponse map[string]interface{}
+			var errorResponse map[string]any
 			_ = json.Unmarshal([]byte(jsonStr), &errorResponse)
 			return httpmock.NewJsonResponse(400, errorResponse)
 		})
@@ -231,7 +231,7 @@ func (m *ManagedDeviceCleanupRuleMock) RegisterErrorMocks() {
 	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/deviceManagement/managedDeviceCleanupRules/[^/]+$`,
 		func(req *http.Request) (*http.Response, error) {
 			jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_error/error_resource_not_found.json")
-			var errorResponse map[string]interface{}
+			var errorResponse map[string]any
 			_ = json.Unmarshal([]byte(jsonStr), &errorResponse)
 			return httpmock.NewJsonResponse(404, errorResponse)
 		})

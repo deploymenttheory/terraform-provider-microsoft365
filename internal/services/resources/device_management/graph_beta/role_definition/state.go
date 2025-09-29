@@ -19,7 +19,7 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *RoleDefinition
 
 	resourceID := convert.GraphToFrameworkString(remoteResource.GetId()).ValueString()
 
-	tflog.Debug(ctx, "Mapping remote state to Terraform", map[string]interface{}{
+	tflog.Debug(ctx, "Mapping remote state to Terraform", map[string]any{
 		"resourceId": resourceID,
 	})
 
@@ -29,9 +29,9 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *RoleDefinition
 	data.IsBuiltInRoleDefinition = convert.GraphToFrameworkBool(remoteResource.GetIsBuiltInRoleDefinition())
 
 	rolePermissions := remoteResource.GetRolePermissions()
-	
+
 	tflog.Debug(ctx, fmt.Sprintf("API returned %d rolePermissions", len(rolePermissions)))
-	
+
 	if len(rolePermissions) > 0 {
 		mappedPermissions := make([]RolePermissionResourceModel, 0, len(rolePermissions))
 
@@ -42,7 +42,7 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *RoleDefinition
 
 			resourceActions := rp.GetResourceActions()
 			tflog.Debug(ctx, fmt.Sprintf("Role permission has %d resourceActions", len(resourceActions)))
-			
+
 			for _, ra := range resourceActions {
 				allowedActions := ra.GetAllowedResourceActions()
 				if len(allowedActions) > 0 {
@@ -78,7 +78,7 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *RoleDefinition
 				if !diags.HasError() {
 					permModel.AllowedResourceActions = allowedActionsSet
 				} else {
-					tflog.Error(ctx, "Error converting allowed resource actions to set", map[string]interface{}{
+					tflog.Error(ctx, "Error converting allowed resource actions to set", map[string]any{
 						"error": diags.Errors()[0].Detail(),
 					})
 					// Create empty set with StringType

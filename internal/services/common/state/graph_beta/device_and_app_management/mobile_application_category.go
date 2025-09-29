@@ -48,7 +48,7 @@ func MapMobileAppCategoriesStateToTerraform(ctx context.Context, categories []gr
 
 	set, diags := types.SetValue(types.StringType, categoryValues)
 	if diags.HasError() {
-		tflog.Error(ctx, "Failed to build category set", map[string]interface{}{
+		tflog.Error(ctx, "Failed to build category set", map[string]any{
 			"errors": diags.Errors(),
 		})
 		return types.SetNull(types.StringType)

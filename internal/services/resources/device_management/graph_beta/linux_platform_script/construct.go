@@ -44,7 +44,7 @@ func constructResource(ctx context.Context, data *LinuxPlatformScriptResourceMod
 	requestBody.SetTemplateReference(templateReference)
 
 	if err := constructors.DebugLogGraphObject(ctx, "Final JSON to be sent to Graph API", requestBody); err != nil {
-		tflog.Error(ctx, "Failed to debug log object", map[string]interface{}{
+		tflog.Error(ctx, "Failed to debug log object", map[string]any{
 			"error": err.Error(),
 		})
 	}

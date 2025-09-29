@@ -17,7 +17,7 @@ func MapRemoteStateToTerraform(ctx context.Context, data *GroupMemberAssignmentR
 		return
 	}
 
-	tflog.Debug(ctx, "Starting to map remote state to Terraform state", map[string]interface{}{
+	tflog.Debug(ctx, "Starting to map remote state to Terraform state", map[string]any{
 		"memberID": convert.GraphToFrameworkString(remoteResource.GetId()),
 		"groupID":  data.GroupID.ValueString(),
 	})

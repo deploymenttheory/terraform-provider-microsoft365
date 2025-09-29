@@ -88,7 +88,7 @@ func groupPolicyIDResolver(ctx context.Context, data *GroupPolicyMultiTextValueR
 
 		// Store instance IDs in additional data for construct to use
 		if data.AdditionalData == nil {
-			data.AdditionalData = make(map[string]interface{})
+			data.AdditionalData = make(map[string]any)
 		}
 		data.AdditionalData["definitionValueInstanceID"] = definitionValueInstanceID
 		data.AdditionalData["presentationValueInstanceID"] = presentationValueInstanceID

@@ -48,7 +48,7 @@ func constructResource(ctx context.Context, data *MacosDeviceConfigurationTempla
 	}
 
 	if err := constructors.DebugLogGraphObject(ctx, fmt.Sprintf("Final JSON to be sent to Graph API for resource %s", ResourceName), requestBody); err != nil {
-		tflog.Error(ctx, "Failed to debug log object", map[string]interface{}{
+		tflog.Error(ctx, "Failed to debug log object", map[string]any{
 			"error": err.Error(),
 		})
 	}
@@ -72,7 +72,7 @@ func constructMacOSCustomConfiguration(ctx context.Context, data *MacosDeviceCon
 	}
 
 	if err := convert.FrameworkToGraphEnum(customConfigData.DeploymentChannel, graphmodels.ParseAppleDeploymentChannel, customConfig.SetDeploymentChannel); err != nil {
-		tflog.Error(ctx, "Failed to set deployment channel", map[string]interface{}{"error": err.Error()})
+		tflog.Error(ctx, "Failed to set deployment channel", map[string]any{"error": err.Error()})
 		return nil
 	}
 
@@ -117,19 +117,19 @@ func constructMacOSTrustedRootCertificate(ctx context.Context, data *MacosDevice
 	}
 
 	if err := convert.FrameworkToGraphEnum(certData.DeploymentChannel, graphmodels.ParseAppleDeploymentChannel, certConfig.SetDeploymentChannel); err != nil {
-		tflog.Error(ctx, "Failed to set deployment channel", map[string]interface{}{"error": err.Error()})
+		tflog.Error(ctx, "Failed to set deployment channel", map[string]any{"error": err.Error()})
 		return nil
 	}
 
 	convert.FrameworkToGraphString(certData.CertFileName, certConfig.SetCertFileName)
-	
+
 	// Handle base64-encoded certificate data from filebase64()
 	if !certData.TrustedRootCertificate.IsNull() && !certData.TrustedRootCertificate.IsUnknown() {
 		certBase64 := certData.TrustedRootCertificate.ValueString()
 		if certBytes, err := base64.StdEncoding.DecodeString(certBase64); err == nil {
 			certConfig.SetTrustedRootCertificate(certBytes)
 		} else {
-			tflog.Error(ctx, "Failed to decode base64 certificate data", map[string]interface{}{"error": err.Error()})
+			tflog.Error(ctx, "Failed to decode base64 certificate data", map[string]any{"error": err.Error()})
 			return nil
 		}
 	}
@@ -151,26 +151,26 @@ func constructMacOSScepCertificateProfile(ctx context.Context, data *MacosDevice
 	}
 
 	if err := convert.FrameworkToGraphEnum(scepData.DeploymentChannel, graphmodels.ParseAppleDeploymentChannel, scepConfig.SetDeploymentChannel); err != nil {
-		tflog.Error(ctx, "Failed to set deployment channel", map[string]interface{}{"error": err.Error()})
+		tflog.Error(ctx, "Failed to set deployment channel", map[string]any{"error": err.Error()})
 		return nil
 	}
 
 	convert.FrameworkToGraphInt32(scepData.RenewalThresholdPercentage, scepConfig.SetRenewalThresholdPercentage)
 
 	if err := convert.FrameworkToGraphEnum(scepData.CertificateStore, graphmodels.ParseCertificateStore, scepConfig.SetCertificateStore); err != nil {
-		tflog.Error(ctx, "Failed to set certificate store", map[string]interface{}{"error": err.Error()})
+		tflog.Error(ctx, "Failed to set certificate store", map[string]any{"error": err.Error()})
 		return nil
 	}
 
 	if err := convert.FrameworkToGraphEnum(scepData.CertificateValidityPeriodScale, graphmodels.ParseCertificateValidityPeriodScale, scepConfig.SetCertificateValidityPeriodScale); err != nil {
-		tflog.Error(ctx, "Failed to set certificate validity period scale", map[string]interface{}{"error": err.Error()})
+		tflog.Error(ctx, "Failed to set certificate validity period scale", map[string]any{"error": err.Error()})
 		return nil
 	}
 
 	convert.FrameworkToGraphInt32(scepData.CertificateValidityPeriodValue, scepConfig.SetCertificateValidityPeriodValue)
 
 	if err := convert.FrameworkToGraphEnum(scepData.SubjectNameFormat, graphmodels.ParseAppleSubjectNameFormat, scepConfig.SetSubjectNameFormat); err != nil {
-		tflog.Error(ctx, "Failed to set subject name format", map[string]interface{}{"error": err.Error()})
+		tflog.Error(ctx, "Failed to set subject name format", map[string]any{"error": err.Error()})
 		return nil
 	}
 
@@ -188,14 +188,14 @@ func constructMacOSScepCertificateProfile(ctx context.Context, data *MacosDevice
 		}
 
 		// Use additionalData to set the OData bind reference
-		additionalData := map[string]interface{}{
+		additionalData := map[string]any{
 			"rootCertificate@odata.bind": rootCertId,
 		}
 		scepConfig.SetAdditionalData(additionalData)
 	}
 
 	if err := convert.FrameworkToGraphEnum(scepData.KeySize, graphmodels.ParseKeySize, scepConfig.SetKeySize); err != nil {
-		tflog.Error(ctx, "Failed to set key size", map[string]interface{}{"error": err.Error()})
+		tflog.Error(ctx, "Failed to set key size", map[string]any{"error": err.Error()})
 		return nil
 	}
 
@@ -210,24 +210,24 @@ func constructMacOSScepCertificateProfile(ctx context.Context, data *MacosDevice
 			scepConfig.SetKeyUsage(&combinedUsage)
 		}
 	}); err != nil {
-		tflog.Error(ctx, "Failed to set key usage", map[string]interface{}{"error": err.Error()})
+		tflog.Error(ctx, "Failed to set key usage", map[string]any{"error": err.Error()})
 		return nil
 	}
 
 	// Handle custom subject alternative names
 	if err := convertCustomSubjectAlternativeNames(ctx, scepData.CustomSubjectAlternativeNames, scepConfig.SetCustomSubjectAlternativeNames); err != nil {
-		tflog.Error(ctx, "Failed to set custom subject alternative names", map[string]interface{}{"error": err.Error()})
+		tflog.Error(ctx, "Failed to set custom subject alternative names", map[string]any{"error": err.Error()})
 		return nil
 	}
 
 	// Handle extended key usages
 	if err := convertExtendedKeyUsages(ctx, scepData.ExtendedKeyUsages, scepConfig.SetExtendedKeyUsages); err != nil {
-		tflog.Error(ctx, "Failed to set extended key usages", map[string]interface{}{"error": err.Error()})
+		tflog.Error(ctx, "Failed to set extended key usages", map[string]any{"error": err.Error()})
 		return nil
 	}
 
 	if err := convert.FrameworkToGraphStringSet(ctx, scepData.ScepServerUrls, scepConfig.SetScepServerUrls); err != nil {
-		tflog.Error(ctx, "Failed to set SCEP server URLs", map[string]interface{}{"error": err.Error()})
+		tflog.Error(ctx, "Failed to set SCEP server URLs", map[string]any{"error": err.Error()})
 		return nil
 	}
 
@@ -250,26 +250,26 @@ func constructMacOSPkcsCertificateProfile(ctx context.Context, data *MacosDevice
 	}
 
 	if err := convert.FrameworkToGraphEnum(pkcsData.DeploymentChannel, graphmodels.ParseAppleDeploymentChannel, pkcsConfig.SetDeploymentChannel); err != nil {
-		tflog.Error(ctx, "Failed to set deployment channel", map[string]interface{}{"error": err.Error(), "value": pkcsData.DeploymentChannel.ValueString()})
+		tflog.Error(ctx, "Failed to set deployment channel", map[string]any{"error": err.Error(), "value": pkcsData.DeploymentChannel.ValueString()})
 		return nil
 	}
 
 	convert.FrameworkToGraphInt32(pkcsData.RenewalThresholdPercentage, pkcsConfig.SetRenewalThresholdPercentage)
 
 	if err := convert.FrameworkToGraphEnum(pkcsData.CertificateStore, graphmodels.ParseCertificateStore, pkcsConfig.SetCertificateStore); err != nil {
-		tflog.Error(ctx, "Failed to set certificate store", map[string]interface{}{"error": err.Error(), "value": pkcsData.CertificateStore.ValueString()})
+		tflog.Error(ctx, "Failed to set certificate store", map[string]any{"error": err.Error(), "value": pkcsData.CertificateStore.ValueString()})
 		return nil
 	}
 
 	if err := convert.FrameworkToGraphEnum(pkcsData.CertificateValidityPeriodScale, graphmodels.ParseCertificateValidityPeriodScale, pkcsConfig.SetCertificateValidityPeriodScale); err != nil {
-		tflog.Error(ctx, "Failed to set certificate validity period scale", map[string]interface{}{"error": err.Error(), "value": pkcsData.CertificateValidityPeriodScale.ValueString()})
+		tflog.Error(ctx, "Failed to set certificate validity period scale", map[string]any{"error": err.Error(), "value": pkcsData.CertificateValidityPeriodScale.ValueString()})
 		return nil
 	}
 
 	convert.FrameworkToGraphInt32(pkcsData.CertificateValidityPeriodValue, pkcsConfig.SetCertificateValidityPeriodValue)
 
 	if err := convert.FrameworkToGraphEnum(pkcsData.SubjectNameFormat, graphmodels.ParseAppleSubjectNameFormat, pkcsConfig.SetSubjectNameFormat); err != nil {
-		tflog.Error(ctx, "Failed to set subject name format", map[string]interface{}{"error": err.Error(), "value": pkcsData.SubjectNameFormat.ValueString()})
+		tflog.Error(ctx, "Failed to set subject name format", map[string]any{"error": err.Error(), "value": pkcsData.SubjectNameFormat.ValueString()})
 		return nil
 	}
 
@@ -279,7 +279,7 @@ func constructMacOSPkcsCertificateProfile(ctx context.Context, data *MacosDevice
 	convert.FrameworkToGraphString(pkcsData.CertificateTemplateName, pkcsConfig.SetCertificateTemplateName)
 
 	if err := convertCustomSubjectAlternativeNames(ctx, pkcsData.CustomSubjectAlternativeNames, pkcsConfig.SetCustomSubjectAlternativeNames); err != nil {
-		tflog.Error(ctx, "Failed to set custom subject alternative names", map[string]interface{}{"error": err.Error()})
+		tflog.Error(ctx, "Failed to set custom subject alternative names", map[string]any{"error": err.Error()})
 		return nil
 	}
 

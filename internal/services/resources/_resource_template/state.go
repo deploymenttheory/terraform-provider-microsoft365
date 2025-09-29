@@ -17,7 +17,7 @@ func mapRemoteStateToTerraform(ctx context.Context, data *ResourceTemplateResour
 		return
 	}
 
-	tflog.Debug(ctx, "Starting to map remote state to Terraform state", map[string]interface{}{
+	tflog.Debug(ctx, "Starting to map remote state to Terraform state", map[string]any{
 		"resourceId": convert.GraphToFrameworkString(remoteResource.GetId()).ValueString(),
 	})
 
@@ -25,7 +25,7 @@ func mapRemoteStateToTerraform(ctx context.Context, data *ResourceTemplateResour
 (remoteResource.GetId()))
 	// add more fields here as needed. use the helpers from the state package as needed.
 
-	tflog.Debug(ctx, "Finished mapping remote state to Terraform state", map[string]interface{}{
+	tflog.Debug(ctx, "Finished mapping remote state to Terraform state", map[string]any{
 		"resourceId": data.ID.ValueString(),
 	})
 }

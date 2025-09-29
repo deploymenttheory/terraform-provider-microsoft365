@@ -205,8 +205,8 @@ func TestPreserveSecretSettings_UnsupportedType(t *testing.T) {
 		{
 			name:     "unsupported complex types",
 			config:   struct{ Key string }{Key: "value"},
-			resp:     map[string]interface{}{"key": "value"},
-			expected: map[string]interface{}{"key": "value"},
+			resp:     map[string]any{"key": "value"},
+			expected: map[string]any{"key": "value"},
 		},
 	}
 
@@ -228,11 +228,11 @@ func TestPreserveSecretSettings_NilValues(t *testing.T) {
 		{
 			name:   "nil config",
 			config: nil,
-			resp:   map[string]interface{}{},
+			resp:   map[string]any{},
 		},
 		{
 			name:   "nil response",
-			config: map[string]interface{}{},
+			config: map[string]any{},
 			resp:   nil,
 		},
 		{

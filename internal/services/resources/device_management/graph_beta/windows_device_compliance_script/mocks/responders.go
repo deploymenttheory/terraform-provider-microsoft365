@@ -14,11 +14,11 @@ import (
 
 var mockState struct {
 	sync.Mutex
-	complianceScripts map[string]map[string]interface{}
+	complianceScripts map[string]map[string]any
 }
 
 func init() {
-	mockState.complianceScripts = make(map[string]map[string]interface{})
+	mockState.complianceScripts = make(map[string]map[string]any)
 	httpmock.RegisterNoResponder(httpmock.NewStringResponder(404, `{"error":{"code":"ResourceNotFound","message":"Resource not found"}}`))
 	mocks.GlobalRegistry.Register("windows_device_compliance_script", &WindowsDeviceComplianceScriptMock{})
 }
@@ -29,7 +29,7 @@ var _ mocks.MockRegistrar = (*WindowsDeviceComplianceScriptMock)(nil)
 
 func (m *WindowsDeviceComplianceScriptMock) RegisterMocks() {
 	mockState.Lock()
-	mockState.complianceScripts = make(map[string]map[string]interface{})
+	mockState.complianceScripts = make(map[string]map[string]any)
 	mockState.Unlock()
 
 	httpmock.RegisterResponder("GET", "https://graph.microsoft.com/beta/deviceManagement/deviceComplianceScripts", func(req *http.Request) (*http.Response, error) {
@@ -39,16 +39,16 @@ func (m *WindowsDeviceComplianceScriptMock) RegisterMocks() {
 		if len(mockState.complianceScripts) == 0 {
 			// Return empty list if no scripts exist
 			jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_get/get_windows_device_compliance_scripts_list.json")
-			var responseObj map[string]interface{}
+			var responseObj map[string]any
 			_ = json.Unmarshal([]byte(jsonStr), &responseObj)
 			responseObj["value"] = []interface{}{}
 			return httpmock.NewJsonResponse(200, responseObj)
 		}
 
 		// Return list of existing scripts
-		list := make([]map[string]interface{}, 0, len(mockState.complianceScripts))
+		list := make([]map[string]any, 0, len(mockState.complianceScripts))
 		for _, v := range mockState.complianceScripts {
-			c := map[string]interface{}{}
+			c := map[string]any{}
 			for k, vv := range v {
 				c[k] = vv
 			}
@@ -56,7 +56,7 @@ func (m *WindowsDeviceComplianceScriptMock) RegisterMocks() {
 		}
 
 		jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_get/get_windows_device_compliance_scripts_list.json")
-		var responseObj map[string]interface{}
+		var responseObj map[string]any
 		_ = json.Unmarshal([]byte(jsonStr), &responseObj)
 		responseObj["value"] = list
 		return httpmock.NewJsonResponse(200, responseObj)
@@ -70,7 +70,7 @@ func (m *WindowsDeviceComplianceScriptMock) RegisterMocks() {
 		mockState.Unlock()
 		if !ok {
 			jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_delete/get_windows_device_compliance_script_not_found.json")
-			var errObj map[string]interface{}
+			var errObj map[string]any
 			_ = json.Unmarshal([]byte(jsonStr), &errObj)
 			return httpmock.NewJsonResponse(404, errObj)
 		}
@@ -85,7 +85,7 @@ func (m *WindowsDeviceComplianceScriptMock) RegisterMocks() {
 			jsonTemplate = jsonStr
 		}
 
-		var responseObj map[string]interface{}
+		var responseObj map[string]any
 		_ = json.Unmarshal([]byte(jsonTemplate), &responseObj)
 
 		// Override template values with actual script values
@@ -102,7 +102,7 @@ func (m *WindowsDeviceComplianceScriptMock) RegisterMocks() {
 	})
 
 	httpmock.RegisterResponder("POST", "https://graph.microsoft.com/beta/deviceManagement/deviceComplianceScripts", func(req *http.Request) (*http.Response, error) {
-		var body map[string]interface{}
+		var body map[string]any
 		if err := json.NewDecoder(req.Body).Decode(&body); err != nil {
 			return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"Invalid request body"}}`), nil
 		}
@@ -119,7 +119,7 @@ func (m *WindowsDeviceComplianceScriptMock) RegisterMocks() {
 			jsonTemplate = jsonStr
 		}
 
-		var responseObj map[string]interface{}
+		var responseObj map[string]any
 		_ = json.Unmarshal([]byte(jsonTemplate), &responseObj)
 
 		// Only include fields that were provided in the request
@@ -150,7 +150,7 @@ func (m *WindowsDeviceComplianceScriptMock) RegisterMocks() {
 		} else {
 			responseObj["roleScopeTagIds"] = []string{"0"}
 		}
-		
+
 		// No assignments for device compliance scripts
 		responseObj["assignments"] = []interface{}{}
 
@@ -165,10 +165,10 @@ func (m *WindowsDeviceComplianceScriptMock) RegisterMocks() {
 	httpmock.RegisterResponder("PATCH", `=~^https://graph\.microsoft\.com/beta/deviceManagement/deviceComplianceScripts/[^/]+$`, func(req *http.Request) (*http.Response, error) {
 		parts := strings.Split(req.URL.Path, "/")
 		id := parts[len(parts)-1]
-		var body map[string]interface{}
+		var body map[string]any
 		if err := json.NewDecoder(req.Body).Decode(&body); err != nil {
 			jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_create/post_windows_device_compliance_script_error.json")
-			var errObj map[string]interface{}
+			var errObj map[string]any
 			_ = json.Unmarshal([]byte(jsonStr), &errObj)
 			return httpmock.NewJsonResponse(400, errObj)
 		}
@@ -178,7 +178,7 @@ func (m *WindowsDeviceComplianceScriptMock) RegisterMocks() {
 		if !ok {
 			mockState.Unlock()
 			jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_delete/get_windows_device_compliance_script_not_found.json")
-			var errObj map[string]interface{}
+			var errObj map[string]any
 			_ = json.Unmarshal([]byte(jsonStr), &errObj)
 			return httpmock.NewJsonResponse(404, errObj)
 		}
@@ -193,7 +193,7 @@ func (m *WindowsDeviceComplianceScriptMock) RegisterMocks() {
 			jsonTemplate = jsonStr
 		}
 
-		var responseObj map[string]interface{}
+		var responseObj map[string]any
 		_ = json.Unmarshal([]byte(jsonTemplate), &responseObj)
 
 		// Override with existing values
@@ -231,12 +231,12 @@ func (m *WindowsDeviceComplianceScriptMock) RegisterMocks() {
 
 func (m *WindowsDeviceComplianceScriptMock) RegisterErrorMocks() {
 	mockState.Lock()
-	mockState.complianceScripts = make(map[string]map[string]interface{})
+	mockState.complianceScripts = make(map[string]map[string]any)
 	mockState.Unlock()
 
 	httpmock.RegisterResponder("GET", "https://graph.microsoft.com/beta/deviceManagement/deviceComplianceScripts", func(req *http.Request) (*http.Response, error) {
 		jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_get/get_windows_device_compliance_scripts_list.json")
-		var responseObj map[string]interface{}
+		var responseObj map[string]any
 		_ = json.Unmarshal([]byte(jsonStr), &responseObj)
 		responseObj["value"] = []interface{}{}
 		return httpmock.NewJsonResponse(200, responseObj)
@@ -244,14 +244,14 @@ func (m *WindowsDeviceComplianceScriptMock) RegisterErrorMocks() {
 
 	httpmock.RegisterResponder("POST", "https://graph.microsoft.com/beta/deviceManagement/deviceComplianceScripts", func(req *http.Request) (*http.Response, error) {
 		jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_create/post_windows_device_compliance_script_error.json")
-		var errObj map[string]interface{}
+		var errObj map[string]any
 		_ = json.Unmarshal([]byte(jsonStr), &errObj)
 		return httpmock.NewJsonResponse(400, errObj)
 	})
 
 	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/deviceManagement/deviceComplianceScripts/[^/]+$`, func(req *http.Request) (*http.Response, error) {
 		jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_delete/get_windows_device_compliance_script_not_found.json")
-		var errObj map[string]interface{}
+		var errObj map[string]any
 		_ = json.Unmarshal([]byte(jsonStr), &errObj)
 		return httpmock.NewJsonResponse(404, errObj)
 	})

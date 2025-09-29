@@ -11,8 +11,8 @@ import (
 
 // ErrorResponse creates a standard Graph API error response
 func ErrorResponse(statusCode int, errorCode, errorMessage string) httpmock.Responder {
-	return httpmock.NewJsonResponderOrPanic(statusCode, map[string]interface{}{
-		"error": map[string]interface{}{
+	return httpmock.NewJsonResponderOrPanic(statusCode, map[string]any{
+		"error": map[string]any{
 			"code":    errorCode,
 			"message": errorMessage,
 		},
@@ -44,7 +44,7 @@ func RequestValidatorResponder(validator func(req *http.Request) error, successR
 // JSONBodyValidator validates that the request body is valid JSON and matches the expected structure
 func JSONBodyValidator(expectedKeys []string) func(req *http.Request) error {
 	return func(req *http.Request) error {
-		var body map[string]interface{}
+		var body map[string]any
 		if err := json.NewDecoder(req.Body).Decode(&body); err != nil {
 			return fmt.Errorf("invalid JSON body: %v", err)
 		}

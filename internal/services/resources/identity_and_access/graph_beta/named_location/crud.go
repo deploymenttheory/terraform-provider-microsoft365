@@ -80,7 +80,7 @@ func (r *NamedLocationResource) Create(ctx context.Context, req resource.CreateR
 		return
 	}
 
-	var createdResource map[string]interface{}
+	var createdResource map[string]any
 	if err := json.NewDecoder(httpResp.Body).Decode(&createdResource); err != nil {
 		resp.Diagnostics.AddError(
 			"Error parsing response",
@@ -190,7 +190,7 @@ func (r *NamedLocationResource) Read(ctx context.Context, req resource.ReadReque
 		return
 	}
 
-	var baseResource map[string]interface{}
+	var baseResource map[string]any
 	if err := json.NewDecoder(httpResp.Body).Decode(&baseResource); err != nil {
 		resp.Diagnostics.AddError(
 			"Error unmarshaling response",
@@ -352,7 +352,7 @@ func (r *NamedLocationResource) Delete(ctx context.Context, req resource.DeleteR
 
 	getURL := r.httpClient.GetBaseURL() + r.ResourcePath + "/" + object.ID.ValueString()
 
-	var currentResource map[string]interface{}
+	var currentResource map[string]any
 	var needsPatch bool
 
 	getReq, err := http.NewRequestWithContext(ctx, "GET", getURL, nil)
@@ -406,7 +406,7 @@ func (r *NamedLocationResource) Delete(ctx context.Context, req resource.DeleteR
 	if needsPatch {
 		tflog.Debug(ctx, "Named location is an IP location with isTrusted=true, patching to false before deletion")
 
-		patchBody := map[string]interface{}{
+		patchBody := map[string]any{
 			"@odata.type": "#microsoft.graph.ipNamedLocation",
 			"isTrusted":   false,
 		}
@@ -488,7 +488,7 @@ func (r *NamedLocationResource) Delete(ctx context.Context, req resource.DeleteR
 				return
 			}
 
-			var verifyResource map[string]interface{}
+			var verifyResource map[string]any
 			if err := json.NewDecoder(verifyResp.Body).Decode(&verifyResource); err != nil {
 				verifyResp.Body.Close()
 				resp.Diagnostics.AddError(

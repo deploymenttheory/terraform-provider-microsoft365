@@ -17,12 +17,12 @@ import (
 // mockState tracks the state of resources for consistent responses
 var mockState struct {
 	sync.Mutex
-	windowsUpdateRings map[string]map[string]interface{}
+	windowsUpdateRings map[string]map[string]any
 }
 
 func init() {
 	// Initialize mockState
-	mockState.windowsUpdateRings = make(map[string]map[string]interface{})
+	mockState.windowsUpdateRings = make(map[string]map[string]any)
 
 	// Register a default 404 responder for any unmatched requests
 	httpmock.RegisterNoResponder(httpmock.NewStringResponder(404, `{"error":{"code":"ResourceNotFound","message":"Resource not found"}}`))
@@ -41,20 +41,20 @@ var _ mocks.MockRegistrar = (*WindowsUpdateRingMock)(nil)
 func (m *WindowsUpdateRingMock) RegisterMocks() {
 	// Reset the state when registering mocks
 	mockState.Lock()
-	mockState.windowsUpdateRings = make(map[string]map[string]interface{})
+	mockState.windowsUpdateRings = make(map[string]map[string]any)
 	mockState.Unlock()
 
 	// Register GET for listing Windows update rings
 	httpmock.RegisterResponder("GET", "https://graph.microsoft.com/beta/deviceManagement/deviceConfigurations",
 		func(req *http.Request) (*http.Response, error) {
 			mockState.Lock()
-			rings := make([]map[string]interface{}, 0, len(mockState.windowsUpdateRings))
+			rings := make([]map[string]any, 0, len(mockState.windowsUpdateRings))
 			for _, ring := range mockState.windowsUpdateRings {
 				rings = append(rings, ring)
 			}
 			mockState.Unlock()
 
-			response := map[string]interface{}{
+			response := map[string]any{
 				"@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/deviceConfigurations",
 				"value":          rings,
 			}
@@ -96,7 +96,7 @@ func (m *WindowsUpdateRingMock) RegisterMocks() {
 			}
 
 			// Create response copy
-			responseCopy := make(map[string]interface{})
+			responseCopy := make(map[string]any)
 			for k, v := range ringData {
 				responseCopy[k] = v
 			}
@@ -125,7 +125,7 @@ func (m *WindowsUpdateRingMock) RegisterMocks() {
 	httpmock.RegisterResponder("POST", "https://graph.microsoft.com/beta/deviceManagement/deviceConfigurations",
 		func(req *http.Request) (*http.Response, error) {
 			// Parse request body
-			var requestBody map[string]interface{}
+			var requestBody map[string]any
 			err := json.NewDecoder(req.Body).Decode(&requestBody)
 			if err != nil {
 				return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"Invalid request body"}}`), nil
@@ -135,18 +135,18 @@ func (m *WindowsUpdateRingMock) RegisterMocks() {
 			ringId := uuid.New().String()
 
 			// Create update ring data - only include fields that were provided or have defaults
-			ringData := map[string]interface{}{
-				"@odata.type":                             "#microsoft.graph.windowsUpdateForBusinessConfiguration",
-				"id":                                      ringId,
-				"displayName":                             requestBody["displayName"],
-				"microsoftUpdateServiceAllowed":           requestBody["microsoftUpdateServiceAllowed"],
-				"driversExcluded":                         requestBody["driversExcluded"],
-				"qualityUpdatesDeferralPeriodInDays":      requestBody["qualityUpdatesDeferralPeriodInDays"],
-				"featureUpdatesDeferralPeriodInDays":      requestBody["featureUpdatesDeferralPeriodInDays"],
-				"allowWindows11Upgrade":                   requestBody["allowWindows11Upgrade"],
-				"skipChecksBeforeRestart":                 requestBody["skipChecksBeforeRestart"],
-				"automaticUpdateMode":                     requestBody["automaticUpdateMode"],
-				"featureUpdatesRollbackWindowInDays":      requestBody["featureUpdatesRollbackWindowInDays"],
+			ringData := map[string]any{
+				"@odata.type":                        "#microsoft.graph.windowsUpdateForBusinessConfiguration",
+				"id":                                 ringId,
+				"displayName":                        requestBody["displayName"],
+				"microsoftUpdateServiceAllowed":      requestBody["microsoftUpdateServiceAllowed"],
+				"driversExcluded":                    requestBody["driversExcluded"],
+				"qualityUpdatesDeferralPeriodInDays": requestBody["qualityUpdatesDeferralPeriodInDays"],
+				"featureUpdatesDeferralPeriodInDays": requestBody["featureUpdatesDeferralPeriodInDays"],
+				"allowWindows11Upgrade":              requestBody["allowWindows11Upgrade"],
+				"skipChecksBeforeRestart":            requestBody["skipChecksBeforeRestart"],
+				"automaticUpdateMode":                requestBody["automaticUpdateMode"],
+				"featureUpdatesRollbackWindowInDays": requestBody["featureUpdatesRollbackWindowInDays"],
 			}
 
 			// Add optional fields only if provided in request
@@ -172,14 +172,14 @@ func (m *WindowsUpdateRingMock) RegisterMocks() {
 			}
 			// Handle installation schedule for active hours
 			if installationSchedule, exists := requestBody["installationSchedule"]; exists {
-				if schedule, ok := installationSchedule.(map[string]interface{}); ok {
+				if schedule, ok := installationSchedule.(map[string]any); ok {
 					if activeHoursStart, hasStart := schedule["activeHoursStart"]; hasStart {
-						ringData["installationSchedule"] = map[string]interface{}{
-							"@odata.type":     "#microsoft.graph.windowsUpdateActiveHoursInstall",
+						ringData["installationSchedule"] = map[string]any{
+							"@odata.type":      "#microsoft.graph.windowsUpdateActiveHoursInstall",
 							"activeHoursStart": activeHoursStart,
 						}
 						if activeHoursEnd, hasEnd := schedule["activeHoursEnd"]; hasEnd {
-							ringData["installationSchedule"].(map[string]interface{})["activeHoursEnd"] = activeHoursEnd
+							ringData["installationSchedule"].(map[string]any)["activeHoursEnd"] = activeHoursEnd
 						}
 					}
 				}
@@ -263,7 +263,7 @@ func (m *WindowsUpdateRingMock) RegisterMocks() {
 			}
 
 			// Parse request body
-			var requestBody map[string]interface{}
+			var requestBody map[string]any
 			err := json.NewDecoder(req.Body).Decode(&requestBody)
 			if err != nil {
 				errorResponse, _ := m.loadJSONResponse(filepath.Join("tests", "responses", "validate_create", "post_windows_update_ring_error.json"))
@@ -321,7 +321,7 @@ func (m *WindowsUpdateRingMock) RegisterMocks() {
 			ringId := urlParts[len(urlParts)-2] // deviceConfigurations/{id}/assign
 
 			// Parse request body to get assignments
-			var requestBody map[string]interface{}
+			var requestBody map[string]any
 			err := json.NewDecoder(req.Body).Decode(&requestBody)
 			if err != nil {
 				return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"Invalid request body"}}`), nil
@@ -336,20 +336,20 @@ func (m *WindowsUpdateRingMock) RegisterMocks() {
 						// Extract the actual assignment data from the request
 						graphAssignments := []interface{}{}
 						for _, assignment := range assignmentList {
-							if assignmentMap, ok := assignment.(map[string]interface{}); ok {
-								if target, hasTarget := assignmentMap["target"].(map[string]interface{}); hasTarget {
+							if assignmentMap, ok := assignment.(map[string]any); ok {
+								if target, hasTarget := assignmentMap["target"].(map[string]any); hasTarget {
 									// Generate a unique assignment ID
 									assignmentId := uuid.New().String()
-									
+
 									// Create assignment in the format the API returns
 									// The API returns the target exactly as submitted but with additional metadata
-									targetCopy := make(map[string]interface{})
+									targetCopy := make(map[string]any)
 									for k, v := range target {
 										targetCopy[k] = v
 									}
-									
-									graphAssignment := map[string]interface{}{
-										"id": assignmentId,
+
+									graphAssignment := map[string]any{
+										"id":     assignmentId,
 										"target": targetCopy,
 									}
 									graphAssignments = append(graphAssignments, graphAssignment)
@@ -375,9 +375,9 @@ func (m *WindowsUpdateRingMock) RegisterMocks() {
 	// Register GET for assignments
 	httpmock.RegisterResponder("GET", `=~^https://graph.microsoft.com/beta/deviceManagement/deviceConfigurations/[^/]+/assignments$`,
 		func(req *http.Request) (*http.Response, error) {
-			response := map[string]interface{}{
+			response := map[string]any{
 				"@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/deviceConfigurations/assignments",
-				"value":          []map[string]interface{}{}, // Empty assignments by default
+				"value":          []map[string]any{}, // Empty assignments by default
 			}
 			return httpmock.NewJsonResponse(200, response)
 		})
@@ -397,8 +397,8 @@ func (m *WindowsUpdateRingMock) CleanupMockState() {
 }
 
 // loadJSONResponse loads a JSON response from a file
-func (m *WindowsUpdateRingMock) loadJSONResponse(filePath string) (map[string]interface{}, error) {
-	var response map[string]interface{}
+func (m *WindowsUpdateRingMock) loadJSONResponse(filePath string) (map[string]any, error) {
+	var response map[string]any
 
 	content, err := os.ReadFile(filePath)
 	if err != nil {
@@ -414,9 +414,9 @@ func (m *WindowsUpdateRingMock) RegisterErrorMocks() {
 	// Register GET for listing Windows update rings (needed for uniqueness check)
 	httpmock.RegisterResponder("GET", "https://graph.microsoft.com/beta/deviceManagement/deviceConfigurations",
 		func(req *http.Request) (*http.Response, error) {
-			response := map[string]interface{}{
+			response := map[string]any{
 				"@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/deviceConfigurations",
-				"value":          []map[string]interface{}{}, // Empty list for error scenarios
+				"value":          []map[string]any{}, // Empty list for error scenarios
 			}
 			return httpmock.NewJsonResponse(200, response)
 		})

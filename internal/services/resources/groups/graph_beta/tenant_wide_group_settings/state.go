@@ -18,13 +18,13 @@ func MapRemoteStateToTerraform(ctx context.Context, data *TenantWideGroupSetting
 		return
 	}
 
-	tflog.Debug(ctx, "Starting to map remote state to Terraform state", map[string]interface{}{
+	tflog.Debug(ctx, "Starting to map remote state to Terraform state", map[string]any{
 		"resourceId": convert.GraphToFrameworkString(remoteResource.GetId()),
 	})
 
 	// Debug log for the raw ID value
 	idVal := remoteResource.GetId()
-	tflog.Debug(ctx, "MapRemoteStateToTerraform: remoteResource.GetId() value", map[string]interface{}{
+	tflog.Debug(ctx, "MapRemoteStateToTerraform: remoteResource.GetId() value", map[string]any{
 		"raw_id": idVal,
 	})
 

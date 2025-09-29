@@ -54,7 +54,7 @@ func NewSettingsDispatcher(ctx context.Context) *SettingsDispatcher {
 
 // DispatchSettings converts HCL flat structure to Graph API settings
 func (d *SettingsDispatcher) DispatchSettings(hclInput HCLSettingsInput) ([]models.DeviceManagementConfigurationSettingable, error) {
-	tflog.Debug(d.ctx, "Starting settings dispatch from HCL", map[string]interface{}{
+	tflog.Debug(d.ctx, "Starting settings dispatch from HCL", map[string]any{
 		"inputSettingsCount": len(hclInput),
 	})
 
@@ -64,7 +64,7 @@ func (d *SettingsDispatcher) DispatchSettings(hclInput HCLSettingsInput) ([]mode
 	// Step 2: Process each group
 	var settings []models.DeviceManagementConfigurationSettingable
 	for parentID, group := range groupedSettings {
-		tflog.Debug(d.ctx, "Processing setting group", map[string]interface{}{
+		tflog.Debug(d.ctx, "Processing setting group", map[string]any{
 			"parentSettingId": parentID,
 			"childrenCount":   len(group.Children),
 		})
@@ -80,7 +80,7 @@ func (d *SettingsDispatcher) DispatchSettings(hclInput HCLSettingsInput) ([]mode
 	// Step 3: Process standalone settings (those without parent-child relationships)
 	standaloneSettings := d.findStandaloneSettings(hclInput, groupedSettings)
 	for settingID, value := range standaloneSettings {
-		tflog.Debug(d.ctx, "Processing standalone setting", map[string]interface{}{
+		tflog.Debug(d.ctx, "Processing standalone setting", map[string]any{
 			"settingId": settingID,
 			"value":     value,
 		})
@@ -93,7 +93,7 @@ func (d *SettingsDispatcher) DispatchSettings(hclInput HCLSettingsInput) ([]mode
 		settings = append(settings, setting)
 	}
 
-	tflog.Debug(d.ctx, "Successfully dispatched all settings", map[string]interface{}{
+	tflog.Debug(d.ctx, "Successfully dispatched all settings", map[string]any{
 		"totalSettings": len(settings),
 	})
 
@@ -125,7 +125,7 @@ func (d *SettingsDispatcher) groupSettingsByRelationships(hclInput HCLSettingsIn
 	for settingID, value := range hclInput {
 		definition, exists := d.registry.definitions[settingID]
 		if !exists {
-			tflog.Warn(d.ctx, "Unknown setting definition", map[string]interface{}{
+			tflog.Warn(d.ctx, "Unknown setting definition", map[string]any{
 				"settingId": settingID,
 			})
 			continue
@@ -201,7 +201,7 @@ func (d *SettingsDispatcher) findStandaloneSettings(hclInput HCLSettingsInput, g
 func (d *SettingsDispatcher) processSettingGroup(group *SettingGroup) (models.DeviceManagementConfigurationSettingable, error) {
 	parent := group.Parent
 
-	tflog.Debug(d.ctx, "Processing setting group", map[string]interface{}{
+	tflog.Debug(d.ctx, "Processing setting group", map[string]any{
 		"parentSettingId": parent.SettingID,
 		"parentType":      parent.Definition.SettingType,
 		"childrenCount":   len(group.Children),
@@ -310,7 +310,7 @@ func (d *SettingsDispatcher) processStandaloneSetting(settingID string, value st
 		return nil, fmt.Errorf("unknown setting definition: %s", settingID)
 	}
 
-	tflog.Debug(d.ctx, "Processing standalone setting", map[string]interface{}{
+	tflog.Debug(d.ctx, "Processing standalone setting", map[string]any{
 		"settingId":   settingID,
 		"settingType": definition.SettingType,
 		"valueType":   definition.ValueType,

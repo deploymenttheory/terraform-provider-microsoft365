@@ -55,7 +55,7 @@ func ParseCertificateData(ctx context.Context, certData []byte, password []byte)
 
 	privateKey, certificate, caCerts, err := pkcs12.DecodeChain(certData, string(password))
 	if err != nil {
-		tflog.Error(ctx, "Failed to parse PKCS#12 data", map[string]interface{}{
+		tflog.Error(ctx, "Failed to parse PKCS#12 data", map[string]any{
 			"error": err,
 		})
 		return nil, nil, fmt.Errorf("failed to parse PKCS#12 data: %v", err)
@@ -81,13 +81,13 @@ func ParseCertificateData(ctx context.Context, certData []byte, password []byte)
 
 	rsaKey, ok := privateKey.(*rsa.PrivateKey)
 	if !ok {
-		tflog.Error(ctx, "Private key is not of RSA type", map[string]interface{}{
+		tflog.Error(ctx, "Private key is not of RSA type", map[string]any{
 			"actualType": fmt.Sprintf("%T", privateKey),
 		})
 		return nil, nil, fmt.Errorf("private key is not of RSA type, got %T", privateKey)
 	}
 
-	tflog.Info(ctx, "PKCS#12 data parsed successfully", map[string]interface{}{
+	tflog.Info(ctx, "PKCS#12 data parsed successfully", map[string]any{
 		"certificateCount": len(validCerts),
 		"privateKeyType":   "RSA",
 		"privateKeyBits":   rsaKey.N.BitLen(),

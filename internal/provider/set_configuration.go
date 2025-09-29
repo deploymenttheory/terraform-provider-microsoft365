@@ -61,15 +61,14 @@ func setEntraIDOptions(ctx context.Context, config types.Object) (types.Object, 
 		return types.ObjectNull(entraIDSchema), diags
 	}
 
-	// Debug logging for OIDC environment variables
 	oidcRequestURL := helpers.GetFirstEnvString([]string{"M365_OIDC_REQUEST_URL", "ACTIONS_ID_TOKEN_REQUEST_URL"}, entraIDOptions.OIDCRequestURL.ValueString())
 	oidcRequestToken := helpers.GetFirstEnvString([]string{"M365_OIDC_REQUEST_TOKEN", "ACTIONS_ID_TOKEN_REQUEST_TOKEN"}, entraIDOptions.OIDCRequestToken.ValueString())
-	
-	tflog.Debug(ctx, "OIDC configuration debug", map[string]interface{}{
-		"oidc_request_url":   oidcRequestURL,
+
+	tflog.Info(ctx, "OIDC configuration debug", map[string]any{
+		"oidc_request_url":       oidcRequestURL,
 		"oidc_request_token_set": oidcRequestToken != "",
-		"env_actions_url":    os.Getenv("ACTIONS_ID_TOKEN_REQUEST_URL"),
-		"env_actions_token_set": os.Getenv("ACTIONS_ID_TOKEN_REQUEST_TOKEN") != "",
+		"env_actions_url":        os.Getenv("ACTIONS_ID_TOKEN_REQUEST_URL"),
+		"env_actions_token_set":  os.Getenv("ACTIONS_ID_TOKEN_REQUEST_TOKEN") != "",
 	})
 
 	return types.ObjectValueMust(entraIDSchema, map[string]attr.Value{

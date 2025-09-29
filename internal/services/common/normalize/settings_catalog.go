@@ -12,10 +12,10 @@ func PreserveSecretSettings(config, resp interface{}) error {
 	}
 
 	switch configV := config.(type) {
-	case map[string]interface{}:
-		respV, ok := resp.(map[string]interface{})
+	case map[string]any:
+		respV, ok := resp.(map[string]any)
 		if !ok {
-			return fmt.Errorf("expected map[string]interface{} in response, got %T", resp)
+			return fmt.Errorf("expected map[string]any in response, got %T", resp)
 		}
 
 		// If this is a secret setting, preserve the config values

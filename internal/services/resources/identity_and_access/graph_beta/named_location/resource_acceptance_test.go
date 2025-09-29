@@ -226,7 +226,7 @@ func testAccCheckNamedLocationDestroy(s *terraform.State) error {
 	if err != nil {
 		return fmt.Errorf("error creating HTTP client for CheckDestroy: %v", err)
 	}
-	
+
 	ctx := context.Background()
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "microsoft365_graph_beta_identity_and_access_named_location" {
@@ -258,23 +258,23 @@ func testAccCheckNamedLocationDestroy(s *terraform.State) error {
 		// Resource still exists - attempt cleanup
 		if httpResp.StatusCode == http.StatusOK {
 			fmt.Printf("DEBUG: Named location %s still exists, attempting cleanup\n", resourceID)
-			
+
 			// Parse the response to check if it's a trusted IP location
-			var currentResource map[string]interface{}
+			var currentResource map[string]any
 			if err := json.NewDecoder(httpResp.Body).Decode(&currentResource); err != nil {
 				return fmt.Errorf("error parsing resource for cleanup: %v", err)
 			}
 			httpResp.Body.Close()
-			
+
 			// Check if this is an IP named location with isTrusted=true
 			odataType, _ := currentResource["@odata.type"].(string)
 			isTrusted, _ := currentResource["isTrusted"].(bool)
 
 			if odataType == "#microsoft.graph.ipNamedLocation" && isTrusted {
 				fmt.Printf("DEBUG: Named location %s is trusted, patching to untrusted before cleanup\n", resourceID)
-				
+
 				// Patch to set isTrusted to false
-				patchBody := map[string]interface{}{
+				patchBody := map[string]any{
 					"@odata.type": "#microsoft.graph.ipNamedLocation",
 					"isTrusted":   false,
 				}
@@ -298,7 +298,7 @@ func testAccCheckNamedLocationDestroy(s *terraform.State) error {
 				if patchResp.StatusCode != http.StatusNoContent && patchResp.StatusCode != http.StatusOK {
 					return fmt.Errorf("error patching trusted location for cleanup: %d %s", patchResp.StatusCode, patchResp.Status)
 				}
-				
+
 				fmt.Printf("DEBUG: Successfully patched named location %s to untrusted\n", resourceID)
 			}
 
@@ -318,7 +318,7 @@ func testAccCheckNamedLocationDestroy(s *terraform.State) error {
 				fmt.Printf("DEBUG: Successfully cleaned up named location %s\n", resourceID)
 				continue
 			}
-			
+
 			return fmt.Errorf("failed to clean up named location %s: %d %s", resourceID, deleteResp.StatusCode, deleteResp.Status)
 		}
 

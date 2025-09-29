@@ -92,7 +92,7 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *MacosDeviceCon
 		return
 	}
 
-	tflog.Debug(ctx, "Starting to map remote state to Terraform state", map[string]interface{}{
+	tflog.Debug(ctx, "Starting to map remote state to Terraform state", map[string]any{
 		"resourceId": convert.GraphToFrameworkString(remoteResource.GetId()).ValueString(),
 	})
 
@@ -115,14 +115,14 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *MacosDeviceCon
 	case *graphmodels.MacOSPkcsCertificateProfile:
 		mapMacOSPkcsCertificateProfile(ctx, data, config)
 	default:
-		tflog.Error(ctx, "Unknown device configuration type", map[string]interface{}{
+		tflog.Error(ctx, "Unknown device configuration type", map[string]any{
 			"type": fmt.Sprintf("%T", config),
 		})
 	}
 
 	// Map assignments
 	assignments := remoteResource.GetAssignments()
-	tflog.Debug(ctx, "Retrieved assignments from remote resource", map[string]interface{}{
+	tflog.Debug(ctx, "Retrieved assignments from remote resource", map[string]any{
 		"assignmentCount": len(assignments),
 		"resourceId":      data.ID.ValueString(),
 	})
@@ -154,7 +154,7 @@ func mapMacOSCustomConfiguration(ctx context.Context, data *MacosDeviceConfigura
 	}, customConfigModel)
 
 	if diags.HasError() {
-		tflog.Error(ctx, "Failed to create custom configuration object", map[string]interface{}{
+		tflog.Error(ctx, "Failed to create custom configuration object", map[string]any{
 			"errors": diags.Errors(),
 		})
 		return
@@ -184,7 +184,7 @@ func mapMacOSCustomAppConfiguration(ctx context.Context, data *MacosDeviceConfig
 	}, preferenceModel)
 
 	if diags.HasError() {
-		tflog.Error(ctx, "Failed to create preference file object", map[string]interface{}{
+		tflog.Error(ctx, "Failed to create preference file object", map[string]any{
 			"errors": diags.Errors(),
 		})
 		return
@@ -223,7 +223,7 @@ func mapMacOSTrustedRootCertificate(ctx context.Context, data *MacosDeviceConfig
 	}, certModel)
 
 	if diags.HasError() {
-		tflog.Error(ctx, "Failed to create trusted certificate object", map[string]interface{}{
+		tflog.Error(ctx, "Failed to create trusted certificate object", map[string]any{
 			"errors": diags.Errors(),
 		})
 		return
@@ -297,7 +297,7 @@ func mapMacOSScepCertificateProfile(ctx context.Context, data *MacosDeviceConfig
 	objectValue, diags := types.ObjectValueFrom(ctx, scepAttrTypes, scepModel)
 
 	if diags.HasError() {
-		tflog.Error(ctx, "Failed to create SCEP certificate object", map[string]interface{}{
+		tflog.Error(ctx, "Failed to create SCEP certificate object", map[string]any{
 			"errors": diags.Errors(),
 		})
 		return
@@ -348,7 +348,7 @@ func mapMacOSPkcsCertificateProfile(ctx context.Context, data *MacosDeviceConfig
 	objectValue, diags := types.ObjectValueFrom(ctx, pkcsAttrTypes, pkcsModel)
 
 	if diags.HasError() {
-		tflog.Error(ctx, "Failed to create PKCS certificate object", map[string]interface{}{
+		tflog.Error(ctx, "Failed to create PKCS certificate object", map[string]any{
 			"errors": diags.Errors(),
 		})
 		return
@@ -386,7 +386,7 @@ func mapKeyUsageToSet(ctx context.Context, keyUsage *graphmodels.KeyUsages) type
 
 	setValue, diags := types.SetValueFrom(ctx, types.StringType, keyUsageStrings)
 	if diags.HasError() {
-		tflog.Error(ctx, "Failed to create key usage set", map[string]interface{}{
+		tflog.Error(ctx, "Failed to create key usage set", map[string]any{
 			"errors": diags.Errors(),
 		})
 		return types.SetNull(types.StringType)
@@ -420,7 +420,7 @@ func mapCustomSANsToSet(ctx context.Context, sans []graphmodels.CustomSubjectAlt
 	}}, sanModels)
 
 	if diags.HasError() {
-		tflog.Error(ctx, "Failed to create custom SANs set", map[string]interface{}{
+		tflog.Error(ctx, "Failed to create custom SANs set", map[string]any{
 			"errors": diags.Errors(),
 		})
 		return types.SetNull(types.ObjectType{AttrTypes: map[string]attr.Type{
@@ -457,7 +457,7 @@ func mapExtendedKeyUsagesToSet(ctx context.Context, ekus []graphmodels.ExtendedK
 	}}, ekuModels)
 
 	if diags.HasError() {
-		tflog.Error(ctx, "Failed to create extended key usages set", map[string]interface{}{
+		tflog.Error(ctx, "Failed to create extended key usages set", map[string]any{
 			"errors": diags.Errors(),
 		})
 		return types.SetNull(types.ObjectType{AttrTypes: map[string]attr.Type{

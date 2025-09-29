@@ -119,7 +119,7 @@ func GetRequestByResourceId(ctx context.Context, adapter abstractions.RequestAda
 	allResults = append(allResults, firstResponse.Value...)
 	nextLink := firstResponse.NextLink
 
-	tflog.Debug(ctx, "Pagination detected, retrieving additional pages", map[string]interface{}{
+	tflog.Debug(ctx, "Pagination detected, retrieving additional pages", map[string]any{
 		"itemsRetrieved": len(allResults),
 	})
 
@@ -142,13 +142,13 @@ func GetRequestByResourceId(ctx context.Context, adapter abstractions.RequestAda
 		allResults = append(allResults, pageResponse.Value...)
 		nextLink = pageResponse.NextLink
 
-		tflog.Debug(ctx, "Retrieved additional page", map[string]interface{}{
+		tflog.Debug(ctx, "Retrieved additional page", map[string]any{
 			"itemsRetrieved": len(allResults),
 			"hasNextPage":    nextLink != "",
 		})
 	}
 
-	combinedResponse := map[string]interface{}{
+	combinedResponse := map[string]any{
 		"value": allResults,
 	}
 
@@ -181,7 +181,7 @@ func makeRequest(ctx context.Context, adapter abstractions.RequestAdapter, reque
 	httpReq := nativeReq.(*http.Request)
 	client := &http.Client{}
 
-	tflog.Debug(ctx, "Making request", map[string]interface{}{
+	tflog.Debug(ctx, "Making request", map[string]any{
 		"url": httpReq.URL.String(),
 	})
 

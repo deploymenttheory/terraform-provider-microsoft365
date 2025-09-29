@@ -20,7 +20,7 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *RoleDefinition
 	data.ID = convert.GraphToFrameworkString(remoteResource.GetId())
 	resourceID := data.ID.ValueString()
 
-	tflog.Debug(ctx, "Mapping remote state to Terraform", map[string]interface{}{
+	tflog.Debug(ctx, "Mapping remote state to Terraform", map[string]any{
 		"resourceId": resourceID,
 	})
 
@@ -51,7 +51,7 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *RoleDefinition
 				if !diags.HasError() {
 					permModel.AllowedResourceActions = allowedActionsSet
 				} else {
-					tflog.Error(ctx, "Error converting allowed resource actions to set", map[string]interface{}{
+					tflog.Error(ctx, "Error converting allowed resource actions to set", map[string]any{
 						"error": diags.Errors()[0].Detail(),
 					})
 					// Create empty set with StringType

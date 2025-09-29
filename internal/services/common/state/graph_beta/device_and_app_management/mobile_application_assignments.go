@@ -34,7 +34,7 @@ func StateMobileAppAssignment(ctx context.Context, assignments []sharedmodels.Mo
 
 	SortMobileAppAssignments(newAssignments)
 
-	tflog.Debug(ctx, "Finished mapping remote assignments to Terraform state", map[string]interface{}{
+	tflog.Debug(ctx, "Finished mapping remote assignments to Terraform state", map[string]any{
 		"assignment_count": len(newAssignments),
 	})
 

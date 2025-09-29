@@ -239,7 +239,7 @@ func constructResource(ctx context.Context, data *sharedmodels.SettingsCatalogJs
 	requestBody.SetSettings(settings)
 
 	if err := constructors.DebugLogGraphObject(ctx, fmt.Sprintf("Final JSON to be sent to Graph API for resource %s", ResourceName), requestBody); err != nil {
-		tflog.Error(ctx, "Failed to debug log object", map[string]interface{}{
+		tflog.Error(ctx, "Failed to debug log object", map[string]any{
 			"error": err.Error(),
 		})
 	}
@@ -254,7 +254,7 @@ func constructResource(ctx context.Context, data *sharedmodels.SettingsCatalogJs
 func setTemplateContext(ctx context.Context, data *sharedmodels.SettingsCatalogJsonResourceModel, requestBody graphmodels.DeviceManagementConfigurationPolicyable) error {
 	config, exists := policyConfigMap[data.SettingsCatalogTemplateType.ValueString()]
 	if !exists {
-		tflog.Error(ctx, "Invalid settings catalog template type", map[string]interface{}{
+		tflog.Error(ctx, "Invalid settings catalog template type", map[string]any{
 			"settings_catalog_template_type": data.SettingsCatalogTemplateType.ValueString(),
 		})
 		return fmt.Errorf("invalid settings_catalog_template_type: %s", data.SettingsCatalogTemplateType.ValueString())

@@ -35,7 +35,7 @@ func updateStateWithAssignments(ctx context.Context, stateModel *WindowsAutopilo
 	for _, assignment := range assignments {
 		assignmentIncludeGroupIds, _, _, err := extractAssignmentData(assignment)
 		if err != nil {
-			tflog.Error(ctx, "Failed to extract assignment data", map[string]interface{}{
+			tflog.Error(ctx, "Failed to extract assignment data", map[string]any{
 				"error": err.Error(),
 			})
 			continue

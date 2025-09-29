@@ -17,7 +17,7 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *WindowsDriverU
 		return
 	}
 
-	tflog.Debug(ctx, "Starting to map remote state to Terraform state", map[string]interface{}{
+	tflog.Debug(ctx, "Starting to map remote state to Terraform state", map[string]any{
 		"resourceId": remoteResource.GetId(),
 	})
 

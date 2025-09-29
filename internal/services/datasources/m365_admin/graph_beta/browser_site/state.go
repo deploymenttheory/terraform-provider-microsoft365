@@ -16,7 +16,7 @@ func MapRemoteStateToDataSource(ctx context.Context, data *BrowserSiteResourceMo
 		return
 	}
 
-	tflog.Debug(ctx, "Starting to map remote state to data source item", map[string]interface{}{
+	tflog.Debug(ctx, "Starting to map remote state to data source item", map[string]any{
 		"resourceId": convert.GraphToFrameworkString(remoteResource.GetId()),
 	})
 
@@ -24,7 +24,7 @@ func MapRemoteStateToDataSource(ctx context.Context, data *BrowserSiteResourceMo
 	data.BrowserSiteListAssignmentID = browserSiteListId
 	data.WebUrl = convert.GraphToFrameworkString(remoteResource.GetWebUrl())
 
-	tflog.Debug(ctx, "Finished mapping remote state to data source item", map[string]interface{}{
+	tflog.Debug(ctx, "Finished mapping remote state to data source item", map[string]any{
 		"resourceId": data.ID.ValueString(),
 	})
 }

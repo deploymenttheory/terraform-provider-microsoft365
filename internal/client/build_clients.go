@@ -120,7 +120,7 @@ func NewGraphClients(ctx context.Context, data *ProviderData, diags *diag.Diagno
 		GraphBetaClient:      graphBetaClient,
 	}
 
-	tflog.Debug(ctx, "Graph clients configuration completed", map[string]interface{}{
+	tflog.Debug(ctx, "Graph clients configuration completed", map[string]any{
 		"graph_client_set":           clients.GetKiotaGraphV1Client() != nil,
 		"graph_beta_client_set":      clients.GetKiotaGraphBetaClient() != nil,
 		"graph_http_client_set":      clients.GetGraphV1Client() != nil,

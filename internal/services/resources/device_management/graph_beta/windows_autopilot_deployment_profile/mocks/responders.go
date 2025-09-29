@@ -14,13 +14,13 @@ import (
 
 var mockState struct {
 	sync.Mutex
-	autopilotProfiles map[string]map[string]interface{}
-	profileAssignments map[string][]map[string]interface{}
+	autopilotProfiles  map[string]map[string]any
+	profileAssignments map[string][]map[string]any
 }
 
 func init() {
-	mockState.autopilotProfiles = make(map[string]map[string]interface{})
-	mockState.profileAssignments = make(map[string][]map[string]interface{})
+	mockState.autopilotProfiles = make(map[string]map[string]any)
+	mockState.profileAssignments = make(map[string][]map[string]any)
 	httpmock.RegisterNoResponder(httpmock.NewStringResponder(404, `{"error":{"code":"ResourceNotFound","message":"Resource not found"}}`))
 	mocks.GlobalRegistry.Register("windows_autopilot_deployment_profile", &WindowsAutopilotDeploymentProfileMock{})
 }
@@ -31,35 +31,35 @@ var _ mocks.MockRegistrar = (*WindowsAutopilotDeploymentProfileMock)(nil)
 
 func (m *WindowsAutopilotDeploymentProfileMock) RegisterMocks() {
 	mockState.Lock()
-	mockState.autopilotProfiles = make(map[string]map[string]interface{})
-	mockState.profileAssignments = make(map[string][]map[string]interface{})
+	mockState.autopilotProfiles = make(map[string]map[string]any)
+	mockState.profileAssignments = make(map[string][]map[string]any)
 	mockState.Unlock()
 
 	// 1. Group validation - called during validateRequest
 	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/groups/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`, func(req *http.Request) (*http.Response, error) {
 		parts := strings.Split(req.URL.Path, "/")
 		groupId := parts[len(parts)-1]
-		
+
 		jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_get/get_group.json")
-		var responseObj map[string]interface{}
+		var responseObj map[string]any
 		_ = json.Unmarshal([]byte(jsonStr), &responseObj)
-		
+
 		responseObj["id"] = groupId
 		responseObj["displayName"] = "Test Group " + groupId[:8]
-		
+
 		return httpmock.NewJsonResponse(200, responseObj)
 	})
 
 	// 2. Create Windows Autopilot Deployment Profile - POST /deviceManagement/windowsAutopilotDeploymentProfiles
 	httpmock.RegisterResponder("POST", "https://graph.microsoft.com/beta/deviceManagement/windowsAutopilotDeploymentProfiles", func(req *http.Request) (*http.Response, error) {
-		var requestBody map[string]interface{}
+		var requestBody map[string]any
 		json.NewDecoder(req.Body).Decode(&requestBody)
 
 		profileId := uuid.New().String()
-		
+
 		// Choose the appropriate JSON file based on the display name
 		var jsonFile string = "../tests/responses/validate_create/post_windows_autopilot_deployment_profile_success.json"
-		
+
 		if displayName, ok := requestBody["displayName"].(string); ok {
 			if strings.Contains(displayName, "unit_test_user_driven_japanese_preprovisioned") {
 				jsonFile = "../tests/responses/validate_create/post_windows_autopilot_deployment_profile_02_hybrid.json"
@@ -67,11 +67,11 @@ func (m *WindowsAutopilotDeploymentProfileMock) RegisterMocks() {
 				jsonFile = "../tests/responses/validate_create/post_windows_autopilot_deployment_profile_04_hololens.json"
 			}
 		}
-		
+
 		jsonStr, _ := helpers.ParseJSONFile(jsonFile)
-		var responseObj map[string]interface{}
+		var responseObj map[string]any
 		json.Unmarshal([]byte(jsonStr), &responseObj)
-		
+
 		responseObj["id"] = profileId
 		if displayName, ok := requestBody["displayName"].(string); ok {
 			responseObj["displayName"] = displayName
@@ -98,7 +98,7 @@ func (m *WindowsAutopilotDeploymentProfileMock) RegisterMocks() {
 
 		if !exists {
 			jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_delete/get_windows_autopilot_deployment_profile_not_found.json")
-			var errorObj map[string]interface{}
+			var errorObj map[string]any
 			json.Unmarshal([]byte(jsonStr), &errorObj)
 			return httpmock.NewJsonResponse(404, errorObj)
 		}
@@ -118,30 +118,30 @@ func (m *WindowsAutopilotDeploymentProfileMock) RegisterMocks() {
 
 		// If we have assignments in our tracked state, use them
 		if assignmentsExist && len(assignments) > 0 {
-			responseObj := map[string]interface{}{
+			responseObj := map[string]any{
 				"@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/windowsAutopilotDeploymentProfiles('" + profileId + "')/assignments",
-				"value": assignments,
+				"value":          assignments,
 			}
 			return httpmock.NewJsonResponse(200, responseObj)
 		}
 
 		// Fallback to JSON files for initial creation scenarios
 		var jsonFile string = "../tests/responses/validate_get/get_windows_autopilot_deployment_profile_assignments.json"
-		
+
 		if profileExists {
 			if displayName, ok := profile["displayName"].(string); ok {
-				if strings.Contains(displayName, "unit_test_user_driven_japanese_preprovisioned") || 
-				   strings.Contains(displayName, "unit_test_hololens_with_all_device_assignment") ||
-				   strings.Contains(displayName, "acc_test_hololens_with_all_device_assignment") {
+				if strings.Contains(displayName, "unit_test_user_driven_japanese_preprovisioned") ||
+					strings.Contains(displayName, "unit_test_hololens_with_all_device_assignment") ||
+					strings.Contains(displayName, "acc_test_hololens_with_all_device_assignment") {
 					jsonFile = "../tests/responses/validate_get/get_windows_autopilot_deployment_profile_assignments_single_all_devices.json"
 				}
 			}
 		}
-		
+
 		jsonStr, _ := helpers.ParseJSONFile(jsonFile)
-		var responseObj map[string]interface{}
+		var responseObj map[string]any
 		json.Unmarshal([]byte(jsonStr), &responseObj)
-		
+
 		return httpmock.NewJsonResponse(200, responseObj)
 	})
 
@@ -149,20 +149,20 @@ func (m *WindowsAutopilotDeploymentProfileMock) RegisterMocks() {
 	httpmock.RegisterResponder("POST", `=~^https://graph\.microsoft\.com/beta/deviceManagement/windowsAutopilotDeploymentProfiles/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}/assignments$`, func(req *http.Request) (*http.Response, error) {
 		parts := strings.Split(req.URL.Path, "/")
 		profileId := parts[len(parts)-2]
-		
-		var requestBody map[string]interface{}
+
+		var requestBody map[string]any
 		json.NewDecoder(req.Body).Decode(&requestBody)
 
 		assignmentId := uuid.New().String()
-		assignmentObj := map[string]interface{}{
-			"id": assignmentId,
+		assignmentObj := map[string]any{
+			"id":     assignmentId,
 			"target": requestBody["target"],
 		}
 
 		// Track the assignment in our state
 		mockState.Lock()
 		if _, exists := mockState.profileAssignments[profileId]; !exists {
-			mockState.profileAssignments[profileId] = []map[string]interface{}{}
+			mockState.profileAssignments[profileId] = []map[string]any{}
 		}
 		mockState.profileAssignments[profileId] = append(mockState.profileAssignments[profileId], assignmentObj)
 		mockState.Unlock()
@@ -179,7 +179,7 @@ func (m *WindowsAutopilotDeploymentProfileMock) RegisterMocks() {
 		// Remove the assignment from our tracked state
 		mockState.Lock()
 		if assignments, exists := mockState.profileAssignments[profileId]; exists {
-			var newAssignments []map[string]interface{}
+			var newAssignments []map[string]any
 			for _, assignment := range assignments {
 				if assignment["id"] != assignmentId {
 					newAssignments = append(newAssignments, assignment)
@@ -197,7 +197,7 @@ func (m *WindowsAutopilotDeploymentProfileMock) RegisterMocks() {
 		parts := strings.Split(req.URL.Path, "/")
 		profileId := parts[len(parts)-1]
 
-		var requestBody map[string]interface{}
+		var requestBody map[string]any
 		json.NewDecoder(req.Body).Decode(&requestBody)
 
 		mockState.Lock()
@@ -210,7 +210,7 @@ func (m *WindowsAutopilotDeploymentProfileMock) RegisterMocks() {
 		mockState.Unlock()
 
 		jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_update/patch_windows_autopilot_deployment_profile_success.json")
-		var responseObj map[string]interface{}
+		var responseObj map[string]any
 		json.Unmarshal([]byte(jsonStr), &responseObj)
 		responseObj["id"] = profileId
 
@@ -232,21 +232,21 @@ func (m *WindowsAutopilotDeploymentProfileMock) RegisterMocks() {
 
 func (m *WindowsAutopilotDeploymentProfileMock) RegisterErrorMocks() {
 	mockState.Lock()
-	mockState.autopilotProfiles = make(map[string]map[string]interface{})
-	mockState.profileAssignments = make(map[string][]map[string]interface{})
+	mockState.autopilotProfiles = make(map[string]map[string]any)
+	mockState.profileAssignments = make(map[string][]map[string]any)
 	mockState.Unlock()
 
 	// Return errors for all operations
 	httpmock.RegisterResponder("POST", "https://graph.microsoft.com/beta/deviceManagement/windowsAutopilotDeploymentProfiles", func(req *http.Request) (*http.Response, error) {
 		jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_create/post_windows_autopilot_deployment_profile_error.json")
-		var errorObj map[string]interface{}
+		var errorObj map[string]any
 		json.Unmarshal([]byte(jsonStr), &errorObj)
 		return httpmock.NewJsonResponse(400, errorObj)
 	})
 
 	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/deviceManagement/windowsAutopilotDeploymentProfiles/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`, func(req *http.Request) (*http.Response, error) {
 		jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_delete/get_windows_autopilot_deployment_profile_not_found.json")
-		var errorObj map[string]interface{}
+		var errorObj map[string]any
 		json.Unmarshal([]byte(jsonStr), &errorObj)
 		return httpmock.NewJsonResponse(404, errorObj)
 	})
@@ -254,7 +254,7 @@ func (m *WindowsAutopilotDeploymentProfileMock) RegisterErrorMocks() {
 
 func (m *WindowsAutopilotDeploymentProfileMock) CleanupMockState() {
 	mockState.Lock()
-	mockState.autopilotProfiles = make(map[string]map[string]interface{})
-	mockState.profileAssignments = make(map[string][]map[string]interface{})
+	mockState.autopilotProfiles = make(map[string]map[string]any)
+	mockState.profileAssignments = make(map[string][]map[string]any)
 	mockState.Unlock()
 }

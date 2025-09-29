@@ -77,14 +77,14 @@ func constructResource(ctx context.Context, data *RoleAssignmentResourceModel) (
 	// Set role definition using odata.bind
 	if !data.RoleDefinitionId.IsNull() && !data.RoleDefinitionId.IsUnknown() {
 		roleDefId := data.RoleDefinitionId.ValueString()
-		additionalData := map[string]interface{}{
+		additionalData := map[string]any{
 			"roleDefinition@odata.bind": fmt.Sprintf("https://graph.microsoft.com/beta/roleManagement/cloudPC/roleDefinitions/%s", roleDefId),
 		}
 		requestBody.SetAdditionalData(additionalData)
 	}
 
 	if err := constructors.DebugLogGraphObject(ctx, fmt.Sprintf("Final JSON to be sent to Graph API for resource %s", ResourceName), requestBody); err != nil {
-		tflog.Error(ctx, "Failed to debug log object", map[string]interface{}{
+		tflog.Error(ctx, "Failed to debug log object", map[string]any{
 			"error": err.Error(),
 		})
 	}

@@ -8,7 +8,7 @@ import (
 )
 
 // MapRemoteResourceStateToTerraform maps the remote named location to Terraform state
-func MapRemoteResourceStateToTerraform(ctx context.Context, data *NamedLocationResourceModel, remoteResource map[string]interface{}) {
+func MapRemoteResourceStateToTerraform(ctx context.Context, data *NamedLocationResourceModel, remoteResource map[string]any) {
 	// Basic properties using helpers
 	if id, ok := remoteResource["id"].(string); ok {
 		data.ID = types.StringValue(id)
@@ -30,7 +30,7 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *NamedLocationR
 }
 
 // mapIPNamedLocationFields maps IP named location specific fields
-func mapIPNamedLocationFields(ctx context.Context, data *NamedLocationResourceModel, remoteResource map[string]interface{}) {
+func mapIPNamedLocationFields(ctx context.Context, data *NamedLocationResourceModel, remoteResource map[string]any) {
 	data.IsTrusted = convert.GraphToFrameworkBool(getBoolPtr(remoteResource, "isTrusted"))
 
 	// Parse IP ranges from the API response
@@ -39,7 +39,7 @@ func mapIPNamedLocationFields(ctx context.Context, data *NamedLocationResourceMo
 		var ipv6Ranges []string
 
 		for _, rangeItem := range ipRanges {
-			if rangeMap, ok := rangeItem.(map[string]interface{}); ok {
+			if rangeMap, ok := rangeItem.(map[string]any); ok {
 				if odataType, typeOk := rangeMap["@odata.type"].(string); typeOk {
 					if cidrAddress, addrOk := rangeMap["cidrAddress"].(string); addrOk {
 						switch odataType {
@@ -69,7 +69,7 @@ func mapIPNamedLocationFields(ctx context.Context, data *NamedLocationResourceMo
 }
 
 // mapCountryNamedLocationFields maps country named location specific fields
-func mapCountryNamedLocationFields(ctx context.Context, data *NamedLocationResourceModel, remoteResource map[string]interface{}) {
+func mapCountryNamedLocationFields(ctx context.Context, data *NamedLocationResourceModel, remoteResource map[string]any) {
 	data.CountryLookupMethod = convert.GraphToFrameworkString(getStringPtr(remoteResource, "countryLookupMethod"))
 	data.IncludeUnknownCountriesAndRegions = convert.GraphToFrameworkBool(getBoolPtr(remoteResource, "includeUnknownCountriesAndRegions"))
 
@@ -93,7 +93,7 @@ func mapCountryNamedLocationFields(ctx context.Context, data *NamedLocationResou
 }
 
 // Helper function to get string pointer from map
-func getStringPtr(data map[string]interface{}, key string) *string {
+func getStringPtr(data map[string]any, key string) *string {
 	if value, ok := data[key].(string); ok {
 		return &value
 	}
@@ -101,7 +101,7 @@ func getStringPtr(data map[string]interface{}, key string) *string {
 }
 
 // Helper function to get bool pointer from map
-func getBoolPtr(data map[string]interface{}, key string) *bool {
+func getBoolPtr(data map[string]any, key string) *bool {
 	if value, ok := data[key].(bool); ok {
 		return &value
 	}

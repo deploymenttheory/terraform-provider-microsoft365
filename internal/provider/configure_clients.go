@@ -45,7 +45,7 @@ func (p *M365Provider) Configure(ctx context.Context, req provider.ConfigureRequ
 	var config M365ProviderModel
 	resp.Diagnostics.Append(req.Config.Get(ctx, &config)...)
 	if resp.Diagnostics.HasError() {
-		tflog.Error(ctx, "Error getting provider configuration", map[string]interface{}{
+		tflog.Error(ctx, "Error getting provider configuration", map[string]any{
 			"diagnostics": resp.Diagnostics.ErrorsCount(),
 		})
 		return
@@ -54,7 +54,7 @@ func (p *M365Provider) Configure(ctx context.Context, req provider.ConfigureRequ
 	data, diags := setProviderConfiguration(ctx, config)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
-		tflog.Error(ctx, "Error populating provider data", map[string]interface{}{
+		tflog.Error(ctx, "Error populating provider data", map[string]any{
 			"diagnostics": resp.Diagnostics.ErrorsCount(),
 		})
 		return
@@ -64,7 +64,7 @@ func (p *M365Provider) Configure(ctx context.Context, req provider.ConfigureRequ
 
 	graphClientInterface := client.NewGraphClients(ctx, clientData, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
-		tflog.Error(ctx, "Error configuring and building Microsoft Graph clients", map[string]interface{}{
+		tflog.Error(ctx, "Error configuring and building Microsoft Graph clients", map[string]any{
 			"diagnostics": resp.Diagnostics.ErrorsCount(),
 		})
 		return
@@ -75,7 +75,7 @@ func (p *M365Provider) Configure(ctx context.Context, req provider.ConfigureRequ
 	resp.DataSourceData = graphClientInterface
 	resp.ResourceData = graphClientInterface
 
-	tflog.Debug(ctx, "Provider configuration completed", map[string]interface{}{
+	tflog.Debug(ctx, "Provider configuration completed", map[string]any{
 		"graph_client_set":      p.clients.GetKiotaGraphV1Client() != nil,
 		"graph_beta_client_set": p.clients.GetKiotaGraphBetaClient() != nil,
 		"config":                fmt.Sprintf("%+v", config),
@@ -98,7 +98,7 @@ func convertToClientProviderData(ctx context.Context, data *M365ProviderModel) *
 	oidcRequestURL := entraIDOptions.OIDCRequestURL.ValueString()
 	oidcRequestToken := entraIDOptions.OIDCRequestToken.ValueString()
 	
-	tflog.Debug(ctx, "convertToClientProviderData OIDC values", map[string]interface{}{
+	tflog.Info(ctx, "convertToClientProviderData OIDC values", map[string]any{
 		"oidc_request_url":     oidcRequestURL,
 		"oidc_request_token_set": oidcRequestToken != "",
 	})

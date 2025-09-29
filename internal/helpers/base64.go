@@ -14,7 +14,7 @@ import (
 func DecodeBase64ToString(ctx context.Context, encoded string) types.String {
 	decodedContent, err := base64.StdEncoding.DecodeString(encoded)
 	if err != nil {
-		tflog.Warn(ctx, "Failed to decode base64 content", map[string]interface{}{
+		tflog.Warn(ctx, "Failed to decode base64 content", map[string]any{
 			"error": err.Error(),
 		})
 		return types.StringValue(encoded)

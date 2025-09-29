@@ -18,7 +18,7 @@ func MapRemoteStateToTerraform(ctx context.Context, data *IOSMobileAppConfigurat
 		return
 	}
 
-	tflog.Debug(ctx, "Starting to map remote state to Terraform state", map[string]interface{}{
+	tflog.Debug(ctx, "Starting to map remote state to Terraform state", map[string]any{
 		"resourceId": convert.GraphToFrameworkString(remoteResource.GetId()).ValueString(),
 	})
 
@@ -46,24 +46,24 @@ func MapRemoteStateToTerraform(ctx context.Context, data *IOSMobileAppConfigurat
 		// Handle settings
 		if settings := iosConfig.GetSettings(); settings != nil {
 			settingsElements := make([]attr.Value, 0, len(settings))
-			
+
 			for _, setting := range settings {
 				settingAttrs := make(map[string]attr.Value)
-				
+
 				if key := setting.GetAppConfigKey(); key != nil {
 					settingAttrs["app_config_key"] = types.StringValue(*key)
 				} else {
 					settingAttrs["app_config_key"] = types.StringNull()
 				}
-				
+
 				settingAttrs["app_config_key_type"] = convert.GraphToFrameworkEnum(setting.GetAppConfigKeyType())
-				
+
 				if keyValue := setting.GetAppConfigKeyValue(); keyValue != nil {
 					settingAttrs["app_config_key_value"] = types.StringValue(*keyValue)
 				} else {
 					settingAttrs["app_config_key_value"] = types.StringNull()
 				}
-				
+
 				settingObj, _ := types.ObjectValue(
 					map[string]attr.Type{
 						"app_config_key":       types.StringType,
@@ -72,10 +72,10 @@ func MapRemoteStateToTerraform(ctx context.Context, data *IOSMobileAppConfigurat
 					},
 					settingAttrs,
 				)
-				
+
 				settingsElements = append(settingsElements, settingObj)
 			}
-			
+
 			settingsSet, _ := types.SetValue(
 				types.ObjectType{
 					AttrTypes: map[string]attr.Type{
@@ -86,7 +86,7 @@ func MapRemoteStateToTerraform(ctx context.Context, data *IOSMobileAppConfigurat
 				},
 				settingsElements,
 			)
-			
+
 			data.Settings = settingsSet
 		} else {
 			data.Settings = types.SetNull(types.ObjectType{

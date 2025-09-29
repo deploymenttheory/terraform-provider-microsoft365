@@ -18,12 +18,12 @@ import (
 // mockState tracks the state of resources for consistent responses
 var mockState struct {
 	sync.Mutex
-	iosMobileAppConfigurations map[string]map[string]interface{}
+	iosMobileAppConfigurations map[string]map[string]any
 }
 
 func init() {
 	// Initialize mockState
-	mockState.iosMobileAppConfigurations = make(map[string]map[string]interface{})
+	mockState.iosMobileAppConfigurations = make(map[string]map[string]any)
 
 	// Register a default 404 responder for any unmatched requests
 	httpmock.RegisterNoResponder(httpmock.NewStringResponder(404, `{"error":{"code":"ResourceNotFound","message":"Resource not found"}}`))
@@ -87,8 +87,8 @@ func (m *IOSMobileAppConfigurationMock) CleanupMockState() {
 }
 
 // loadJSONResponse loads a JSON response from a file
-func (m *IOSMobileAppConfigurationMock) loadJSONResponse(filePath string) (map[string]interface{}, error) {
-	var response map[string]interface{}
+func (m *IOSMobileAppConfigurationMock) loadJSONResponse(filePath string) (map[string]any, error) {
+	var response map[string]any
 
 	content, err := os.ReadFile(filePath)
 	if err != nil {
@@ -102,7 +102,7 @@ func (m *IOSMobileAppConfigurationMock) loadJSONResponse(filePath string) (map[s
 // createIOSMobileAppConfigurationResponder handles POST requests to create iOS mobile app configurations
 func (m *IOSMobileAppConfigurationMock) createIOSMobileAppConfigurationResponder() httpmock.Responder {
 	return func(req *http.Request) (*http.Response, error) {
-		var requestBody map[string]interface{}
+		var requestBody map[string]any
 		if err := json.NewDecoder(req.Body).Decode(&requestBody); err != nil {
 			errorResponse, _ := m.loadJSONResponse(filepath.Join("tests", "responses", "validate_create", "post_ios_mobile_app_configuration_error.json"))
 			return httpmock.NewJsonResponse(400, errorResponse)
@@ -112,7 +112,7 @@ func (m *IOSMobileAppConfigurationMock) createIOSMobileAppConfigurationResponder
 		id := uuid.New().String()
 
 		// Create response with request data
-		response := map[string]interface{}{
+		response := map[string]any{
 			"@odata.type": "#microsoft.graph.iosMobileAppConfiguration",
 			"id":          id,
 			"version":     1,
@@ -200,7 +200,7 @@ func (m *IOSMobileAppConfigurationMock) updateIOSMobileAppConfigurationResponder
 			return httpmock.NewJsonResponse(404, errorResponse)
 		}
 
-		var requestBody map[string]interface{}
+		var requestBody map[string]any
 		if err := json.NewDecoder(req.Body).Decode(&requestBody); err != nil {
 			errorResponse, _ := m.loadJSONResponse(filepath.Join("tests", "responses", "validate_create", "post_ios_mobile_app_configuration_error.json"))
 			return httpmock.NewJsonResponse(400, errorResponse)

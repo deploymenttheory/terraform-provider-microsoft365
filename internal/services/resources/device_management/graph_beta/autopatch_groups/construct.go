@@ -11,10 +11,10 @@ import (
 )
 
 // constructResource constructs a JSON request body for the Autopatch Groups API
-func constructResource(ctx context.Context, data *AutopatchGroupsResourceModel) (map[string]interface{}, error) {
+func constructResource(ctx context.Context, data *AutopatchGroupsResourceModel) (map[string]any, error) {
 	tflog.Debug(ctx, fmt.Sprintf("Constructing %s resource from Terraform configuration", ResourceName))
 
-	requestBody := make(map[string]interface{})
+	requestBody := make(map[string]any)
 
 	// Required fields
 	if !data.Name.IsNull() && !data.Name.IsUnknown() {
@@ -31,9 +31,9 @@ func constructResource(ctx context.Context, data *AutopatchGroupsResourceModel) 
 		var globalGroups []GlobalUserManagedAadGroup
 		data.GlobalUserManagedAadGroups.ElementsAs(ctx, &globalGroups, false)
 
-		globalGroupsAPI := make([]map[string]interface{}, 0, len(globalGroups))
+		globalGroupsAPI := make([]map[string]any, 0, len(globalGroups))
 		for _, group := range globalGroups {
-			groupMap := make(map[string]interface{})
+			groupMap := make(map[string]any)
 			if !group.Id.IsNull() && !group.Id.IsUnknown() {
 				groupMap["id"] = group.Id.ValueString()
 			}
@@ -52,9 +52,9 @@ func constructResource(ctx context.Context, data *AutopatchGroupsResourceModel) 
 		var deploymentGroups []DeploymentGroup
 		data.DeploymentGroups.ElementsAs(ctx, &deploymentGroups, false)
 
-		deploymentGroupsAPI := make([]map[string]interface{}, 0, len(deploymentGroups))
+		deploymentGroupsAPI := make([]map[string]any, 0, len(deploymentGroups))
 		for _, group := range deploymentGroups {
-			groupMap := make(map[string]interface{})
+			groupMap := make(map[string]any)
 
 			if !group.AadId.IsNull() && !group.AadId.IsUnknown() {
 				groupMap["aadId"] = group.AadId.ValueString()
@@ -74,9 +74,9 @@ func constructResource(ctx context.Context, data *AutopatchGroupsResourceModel) 
 				var userGroups []UserManagedAadGroup
 				group.UserManagedAadGroups.ElementsAs(ctx, &userGroups, false)
 
-				userGroupsAPI := make([]map[string]interface{}, 0, len(userGroups))
+				userGroupsAPI := make([]map[string]any, 0, len(userGroups))
 				for _, userGroup := range userGroups {
-					userGroupMap := make(map[string]interface{})
+					userGroupMap := make(map[string]any)
 					if !userGroup.Id.IsNull() && !userGroup.Id.IsUnknown() {
 						userGroupMap["id"] = userGroup.Id.ValueString()
 					}
@@ -95,7 +95,7 @@ func constructResource(ctx context.Context, data *AutopatchGroupsResourceModel) 
 
 			// Deployment Group Policy Settings
 			if group.DeploymentGroupPolicySettings != nil {
-				policyMap := make(map[string]interface{})
+				policyMap := make(map[string]any)
 
 				if !group.DeploymentGroupPolicySettings.AadGroupName.IsNull() && !group.DeploymentGroupPolicySettings.AadGroupName.IsUnknown() {
 					policyMap["aadGroupName"] = group.DeploymentGroupPolicySettings.AadGroupName.ValueString()
@@ -106,7 +106,7 @@ func constructResource(ctx context.Context, data *AutopatchGroupsResourceModel) 
 
 				// Device Configuration Settings
 				if group.DeploymentGroupPolicySettings.DeviceConfigurationSetting != nil {
-					deviceConfigMap := make(map[string]interface{})
+					deviceConfigMap := make(map[string]any)
 
 					if !group.DeploymentGroupPolicySettings.DeviceConfigurationSetting.PolicyId.IsNull() && !group.DeploymentGroupPolicySettings.DeviceConfigurationSetting.PolicyId.IsUnknown() {
 						deviceConfigMap["policyId"] = group.DeploymentGroupPolicySettings.DeviceConfigurationSetting.PolicyId.ValueString()
@@ -120,7 +120,7 @@ func constructResource(ctx context.Context, data *AutopatchGroupsResourceModel) 
 
 					// Quality Deployment Settings
 					if group.DeploymentGroupPolicySettings.DeviceConfigurationSetting.QualityDeploymentSettings != nil {
-						qualityMap := make(map[string]interface{})
+						qualityMap := make(map[string]any)
 						if !group.DeploymentGroupPolicySettings.DeviceConfigurationSetting.QualityDeploymentSettings.Deadline.IsNull() && !group.DeploymentGroupPolicySettings.DeviceConfigurationSetting.QualityDeploymentSettings.Deadline.IsUnknown() {
 							qualityMap["deadline"] = group.DeploymentGroupPolicySettings.DeviceConfigurationSetting.QualityDeploymentSettings.Deadline.ValueInt32()
 						}
@@ -135,7 +135,7 @@ func constructResource(ctx context.Context, data *AutopatchGroupsResourceModel) 
 
 					// Feature Deployment Settings
 					if group.DeploymentGroupPolicySettings.DeviceConfigurationSetting.FeatureDeploymentSettings != nil {
-						featureMap := make(map[string]interface{})
+						featureMap := make(map[string]any)
 						if !group.DeploymentGroupPolicySettings.DeviceConfigurationSetting.FeatureDeploymentSettings.Deadline.IsNull() && !group.DeploymentGroupPolicySettings.DeviceConfigurationSetting.FeatureDeploymentSettings.Deadline.IsUnknown() {
 							featureMap["deadline"] = group.DeploymentGroupPolicySettings.DeviceConfigurationSetting.FeatureDeploymentSettings.Deadline.ValueInt32()
 						}
@@ -207,7 +207,7 @@ func constructResource(ctx context.Context, data *AutopatchGroupsResourceModel) 
 		return nil, fmt.Errorf("error marshaling request body: %v", err)
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Constructed %s JSON payload", ResourceName), map[string]interface{}{
+	tflog.Debug(ctx, fmt.Sprintf("Constructed %s JSON payload", ResourceName), map[string]any{
 		"json_payload": string(jsonData),
 	})
 

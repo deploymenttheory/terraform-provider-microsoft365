@@ -8,7 +8,7 @@ import (
 )
 
 // mapAllPolicyFieldsFromJson maps all fields from the JSON output to the resource model
-func mapAllPolicyFieldsFromJson(ctx context.Context, p map[string]interface{}, data *TeamsMeetingPolicyResourceModel) {
+func mapAllPolicyFieldsFromJson(ctx context.Context, p map[string]any, data *TeamsMeetingPolicyResourceModel) {
 	// Helper for booleans
 	boolVal := func(name string) types.Bool {
 		if v, ok := p[name]; ok && v != nil {

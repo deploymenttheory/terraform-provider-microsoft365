@@ -25,7 +25,7 @@ func main() {
 
 	ctx := context.Background()
 
-	tflog.Info(ctx, "Starting Microsoft365 provider", map[string]interface{}{
+	tflog.Info(ctx, "Starting Microsoft365 provider", map[string]any{
 		"version": version,
 		"commit":  commit,
 	})
@@ -35,7 +35,7 @@ func main() {
 		Debug:   debug,
 	}
 
-	tflog.Debug(ctx, "Provider serve options", map[string]interface{}{
+	tflog.Debug(ctx, "Provider serve options", map[string]any{
 		"address": opts.Address,
 		"debug":   opts.Debug,
 	})
@@ -43,7 +43,7 @@ func main() {
 	err := providerserver.Serve(ctx, provider.NewMicrosoft365Provider(version), opts)
 
 	if err != nil {
-		tflog.Error(ctx, "Provider server error", map[string]interface{}{
+		tflog.Error(ctx, "Provider server error", map[string]any{
 			"error": err.Error(),
 		})
 	}

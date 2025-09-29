@@ -14,11 +14,11 @@ import (
 
 var mockState struct {
 	sync.Mutex
-	authenticationStrengths map[string]map[string]interface{}
+	authenticationStrengths map[string]map[string]any
 }
 
 func init() {
-	mockState.authenticationStrengths = make(map[string]map[string]interface{})
+	mockState.authenticationStrengths = make(map[string]map[string]any)
 	httpmock.RegisterNoResponder(httpmock.NewStringResponder(404, `{"error":{"code":"ResourceNotFound","message":"Resource not found"}}`))
 	mocks.GlobalRegistry.Register("authentication_strength", &AuthenticationStrengthMock{})
 }
@@ -29,12 +29,12 @@ var _ mocks.MockRegistrar = (*AuthenticationStrengthMock)(nil)
 
 func (m *AuthenticationStrengthMock) RegisterMocks() {
 	mockState.Lock()
-	mockState.authenticationStrengths = make(map[string]map[string]interface{})
+	mockState.authenticationStrengths = make(map[string]map[string]any)
 	mockState.Unlock()
 
 	// Create authentication strength policy - POST /identity/conditionalAccess/authenticationStrength/policies
 	httpmock.RegisterResponder("POST", "https://graph.microsoft.com/beta/identity/conditionalAccess/authenticationStrength/policies", func(req *http.Request) (*http.Response, error) {
-		var requestBody map[string]interface{}
+		var requestBody map[string]any
 		if err := json.NewDecoder(req.Body).Decode(&requestBody); err != nil {
 			return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"Invalid request body"}}`), nil
 		}
@@ -48,7 +48,7 @@ func (m *AuthenticationStrengthMock) RegisterMocks() {
 			return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to load response"}}`), nil
 		}
 
-		var responseObj map[string]interface{}
+		var responseObj map[string]any
 		if err := json.Unmarshal([]byte(jsonStr), &responseObj); err != nil {
 			return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to parse response"}}`), nil
 		}
@@ -98,7 +98,7 @@ func (m *AuthenticationStrengthMock) RegisterMocks() {
 		parts := strings.Split(req.URL.Path, "/")
 		policyId := parts[len(parts)-1]
 
-		var requestBody map[string]interface{}
+		var requestBody map[string]any
 		if err := json.NewDecoder(req.Body).Decode(&requestBody); err != nil {
 			return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"Invalid request body"}}`), nil
 		}
@@ -151,6 +151,6 @@ func (m *AuthenticationStrengthMock) RegisterErrorMocks() {
 
 func (m *AuthenticationStrengthMock) CleanupMockState() {
 	mockState.Lock()
-	mockState.authenticationStrengths = make(map[string]map[string]interface{})
+	mockState.authenticationStrengths = make(map[string]map[string]any)
 	mockState.Unlock()
 }

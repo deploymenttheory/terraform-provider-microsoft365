@@ -167,7 +167,7 @@ func (m useStateForUnknownOrNullSetModifier) PlanModifySet(ctx context.Context, 
 		return
 	}
 
-	tflog.Debug(ctx, "Using state value instead of null/unknown plan value for set", map[string]interface{}{
+	tflog.Debug(ctx, "Using state value instead of null/unknown plan value for set", map[string]any{
 		"path": req.Path.String(),
 	})
 

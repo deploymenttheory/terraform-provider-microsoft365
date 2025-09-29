@@ -36,7 +36,7 @@ func ConfigureGraphClientOptions(ctx context.Context, config *ProviderData) (*ht
 	var err error
 	defaultMiddleware, err = addChaosHandler(ctx, defaultMiddleware, config.ClientOptions)
 	if err != nil {
-		tflog.Error(ctx, "Failed to add chaos handler", map[string]interface{}{"error": err})
+		tflog.Error(ctx, "Failed to add chaos handler", map[string]any{"error": err})
 		return nil, err
 	}
 
@@ -49,12 +49,12 @@ func ConfigureGraphClientOptions(ctx context.Context, config *ProviderData) (*ht
 
 	httpClient, err := configureHTTPClientWithProxyAndMiddleware(ctx, config, defaultMiddleware)
 	if err != nil {
-		tflog.Error(ctx, "Failed to configure HTTP client with proxy and middleware", map[string]interface{}{"error": err})
+		tflog.Error(ctx, "Failed to configure HTTP client with proxy and middleware", map[string]any{"error": err})
 		return nil, err
 	}
 
 	configureTimeout(ctx, httpClient, config.ClientOptions)
-	tflog.Info(ctx, "Configured HTTP client timeout", map[string]interface{}{"timeoutSeconds": config.ClientOptions.TimeoutSeconds})
+	tflog.Info(ctx, "Configured HTTP client timeout", map[string]any{"timeoutSeconds": config.ClientOptions.TimeoutSeconds})
 
 	tflog.Info(ctx, "Successfully configured Graph client options")
 	return httpClient, nil
@@ -63,7 +63,7 @@ func ConfigureGraphClientOptions(ctx context.Context, config *ProviderData) (*ht
 // addChaosHandler adds a chaos handler to the middleware if enabled in the options
 func addChaosHandler(ctx context.Context, middleware []khttp.Middleware, options *ClientOptions) ([]khttp.Middleware, error) {
 	if options.EnableChaos {
-		tflog.Debug(ctx, "Configuring chaos handler", map[string]interface{}{
+		tflog.Debug(ctx, "Configuring chaos handler", map[string]any{
 			"chaosPercentage":    options.ChaosPercentage,
 			"chaosStatusCode":    options.ChaosStatusCode,
 			"chaosStatusMessage": options.ChaosStatusMessage,
@@ -87,7 +87,7 @@ func addChaosHandler(ctx context.Context, middleware []khttp.Middleware, options
 
 		chaosHandler, err := khttp.NewChaosHandlerWithOptions(chaosOptions)
 		if err != nil {
-			tflog.Debug(ctx, "Failed to create chaos handler", map[string]interface{}{"error": err})
+			tflog.Debug(ctx, "Failed to create chaos handler", map[string]any{"error": err})
 			return nil, fmt.Errorf("failed to create chaos handler: %v", err)
 		}
 		middleware = append(middleware, chaosHandler)
@@ -101,7 +101,7 @@ func addChaosHandler(ctx context.Context, middleware []khttp.Middleware, options
 // addRetryHandler adds a retry handler to the middleware if enabled in the options
 func addRetryHandler(ctx context.Context, middleware []khttp.Middleware, options *ClientOptions) []khttp.Middleware {
 	if options.EnableRetry {
-		tflog.Debug(ctx, "Configuring retry handler", map[string]interface{}{
+		tflog.Debug(ctx, "Configuring retry handler", map[string]any{
 			"maxRetries":        options.MaxRetries,
 			"retryDelaySeconds": options.RetryDelaySeconds,
 		})
@@ -118,7 +118,7 @@ func addRetryHandler(ctx context.Context, middleware []khttp.Middleware, options
 					jitter := time.Duration(rand.Int63n(int64(baseDelay))) // Random jitter between 0 and base delay
 					delayWithJitter := exponentialBackoff + jitter
 
-					tflog.Debug(ctx, "Retrying request", map[string]interface{}{
+					tflog.Debug(ctx, "Retrying request", map[string]any{
 						"attempt":    executionCount,
 						"statusCode": resp.StatusCode,
 						"delay":      delayWithJitter,
@@ -145,7 +145,7 @@ func addRetryHandler(ctx context.Context, middleware []khttp.Middleware, options
 // addRedirectHandler adds a redirect handler to the middleware if enabled in the options
 func addRedirectHandler(ctx context.Context, middleware []khttp.Middleware, options *ClientOptions) []khttp.Middleware {
 	if options.EnableRedirect {
-		tflog.Debug(ctx, "Configuring redirect handler", map[string]interface{}{"maxRedirects": options.MaxRedirects})
+		tflog.Debug(ctx, "Configuring redirect handler", map[string]any{"maxRedirects": options.MaxRedirects})
 		redirectOptions := khttp.RedirectHandlerOptions{
 			MaxRedirects: int(options.MaxRedirects),
 			ShouldRedirect: func(req *http.Request, resp *http.Response) bool {
@@ -178,7 +178,7 @@ func addCompressionHandler(ctx context.Context, middleware []khttp.Middleware, o
 // addUserAgentHandler adds a user agent handler to the middleware if a custom user agent is specified
 func addUserAgentHandler(ctx context.Context, middleware []khttp.Middleware, options *ClientOptions) []khttp.Middleware {
 	if options.CustomUserAgent != "" {
-		tflog.Debug(ctx, "Configuring user agent handler", map[string]interface{}{"customUserAgent": options.CustomUserAgent})
+		tflog.Debug(ctx, "Configuring user agent handler", map[string]any{"customUserAgent": options.CustomUserAgent})
 		userAgentOptions := khttp.NewUserAgentHandlerOptions()
 		userAgentOptions.ProductName = options.CustomUserAgent
 		userAgentHandler := khttp.NewUserAgentHandlerWithOptions(userAgentOptions)
@@ -229,7 +229,7 @@ func configureHTTPClientWithProxyAndMiddleware(ctx context.Context, config *Prov
 			)
 		}
 		if err != nil {
-			tflog.Debug(ctx, "Failed to create HTTP client with proxy settings", map[string]interface{}{"error": err})
+			tflog.Debug(ctx, "Failed to create HTTP client with proxy settings", map[string]any{"error": err})
 			return nil, fmt.Errorf("unable to create HTTP client with proxy settings: %w", err)
 		}
 	} else {
@@ -245,7 +245,7 @@ func configureHTTPClientWithProxyAndMiddleware(ctx context.Context, config *Prov
 func configureTimeout(ctx context.Context, client *http.Client, options *ClientOptions) {
 	if options.TimeoutSeconds > 0 {
 		client.Timeout = time.Duration(options.TimeoutSeconds) * time.Second
-		tflog.Debug(ctx, "Set HTTP client timeout", map[string]interface{}{"timeoutSeconds": options.TimeoutSeconds})
+		tflog.Debug(ctx, "Set HTTP client timeout", map[string]any{"timeoutSeconds": options.TimeoutSeconds})
 	} else {
 		tflog.Debug(ctx, "No custom timeout set for HTTP client")
 	}

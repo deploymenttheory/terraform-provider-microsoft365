@@ -62,7 +62,7 @@ func ConstructMobileAppAssignment(ctx context.Context, data MobileAppAssignmentR
 	}
 
 	if err := constructors.DebugLogGraphObject(ctx, "Constructed mobile app assignment", assignment); err != nil {
-		tflog.Error(ctx, "Failed to log mobile app assignment", map[string]interface{}{
+		tflog.Error(ctx, "Failed to log mobile app assignment", map[string]any{
 			"error": err.Error(),
 		})
 	}

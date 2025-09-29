@@ -27,5 +27,5 @@ type GroupPolicyMultiTextValueResourceModel struct {
 	Timeouts             timeouts.Value `tfsdk:"timeouts"`
 
 	// Internal data for passing instance IDs during updates
-	AdditionalData map[string]interface{} `tfsdk:"-"`
+	AdditionalData map[string]any `tfsdk:"-"`
 }

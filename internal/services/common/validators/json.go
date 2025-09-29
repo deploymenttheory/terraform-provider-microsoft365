@@ -62,7 +62,7 @@ func (v jsonSchemaValidator) ValidateString(ctx context.Context, req validator.S
 // getJSONDepth recursively determines the maximum nesting depth of a JSON structure
 func getJSONDepth(v interface{}) int {
 	switch val := v.(type) {
-	case map[string]interface{}:
+	case map[string]any:
 		maxChildDepth := 0
 		for _, child := range val {
 			childDepth := getJSONDepth(child)

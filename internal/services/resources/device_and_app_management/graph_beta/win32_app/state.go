@@ -19,7 +19,7 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *Win32LobAppRes
 		return
 	}
 
-	tflog.Debug(ctx, "Starting to map remote state to Terraform state", map[string]interface{}{
+	tflog.Debug(ctx, "Starting to map remote state to Terraform state", map[string]any{
 		"resourceId": convert.GraphToFrameworkString(remoteResource.GetId()).ValueString(),
 	})
 
@@ -68,7 +68,7 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *Win32LobAppRes
 	// Handle applicable architectures
 	if applicableArchitectures := remoteResource.GetAllowedArchitectures(); applicableArchitectures != nil {
 		data.AllowedArchitectures = convert.GraphToFrameworkBitmaskEnumAsSet(ctx, applicableArchitectures)
-		tflog.Debug(ctx, "Set applicable architectures in state", map[string]interface{}{
+		tflog.Debug(ctx, "Set applicable architectures in state", map[string]any{
 			"architectures": (*applicableArchitectures).String(),
 		})
 	}
@@ -84,14 +84,14 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *Win32LobAppRes
 
 	// Detection Rules
 	if detectionRules := remoteResource.GetDetectionRules(); detectionRules != nil {
-		tflog.Debug(ctx, "Processing detection rules from API response", map[string]interface{}{
+		tflog.Debug(ctx, "Processing detection rules from API response", map[string]any{
 			"count": len(detectionRules),
 		})
 	}
 
 	// Requirement Rules
 	if requirementRules := remoteResource.GetRequirementRules(); requirementRules != nil {
-		tflog.Debug(ctx, "Processing requirement rules from API response", map[string]interface{}{
+		tflog.Debug(ctx, "Processing requirement rules from API response", map[string]any{
 			"count": len(requirementRules),
 		})
 	}
@@ -138,7 +138,7 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *Win32LobAppRes
 					ComparisonValue:                   convert.GraphToFrameworkString(ruleType.GetComparisonValue()),
 				}
 			default:
-				tflog.Warn(ctx, "Unknown rule type", map[string]interface{}{
+				tflog.Warn(ctx, "Unknown rule type", map[string]any{
 					"ruleType": fmt.Sprintf("%T", rule),
 				})
 			}

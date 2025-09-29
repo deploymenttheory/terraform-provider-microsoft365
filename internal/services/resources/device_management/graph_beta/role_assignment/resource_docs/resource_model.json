@@ -27,7 +27,7 @@ resourceScopes := []string {
 	"b15228f4-9d49-41ed-9b4f-0e7c721fd9c2",
 }
 requestBody.SetResourceScopes(resourceScopes)
-additionalData := map[string]interface{}{
+additionalData := map[string]any{
 	"roleDefinition@odata.bind" : "https://graph.microsoft.com/beta/deviceManagement/roleDefinitions('975f2808-ce1a-4bf0-acb9-f16ea23b700f')", 
 }
 requestBody.SetAdditionalData(additionalData)
@@ -67,7 +67,7 @@ resourceScopes := []string {
 requestBody.SetResourceScopes(resourceScopes)
 scopeType := graphmodels.ALLLICENSEDUSERS_ROLEASSIGNMENTSCOPETYPE 
 requestBody.SetScopeType(&scopeType) 
-additionalData := map[string]interface{}{
+additionalData := map[string]any{
 	"roleDefinition@odata.bind" : "https://graph.microsoft.com/beta/deviceManagement/roleDefinitions('0bd113fe-6be5-400c-a28f-ae5553f9c0be')", 
 }
 requestBody.SetAdditionalData(additionalData)
@@ -107,7 +107,7 @@ resourceScopes := []string {
 requestBody.SetResourceScopes(resourceScopes)
 scopeType := graphmodels.ALLDEVICES_ROLEASSIGNMENTSCOPETYPE 
 requestBody.SetScopeType(&scopeType) 
-additionalData := map[string]interface{}{
+additionalData := map[string]any{
 	"roleDefinition@odata.bind" : "https://graph.microsoft.com/beta/deviceManagement/roleDefinitions('0bd113fe-6be5-400c-a28f-ae5553f9c0be')", 
 }
 requestBody.SetAdditionalData(additionalData)

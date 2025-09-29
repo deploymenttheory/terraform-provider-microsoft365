@@ -12,8 +12,8 @@ import (
 )
 
 // constructResource converts the Terraform resource model to a plain map for JSON marshaling
-// Returns a map[string]interface{} that can be directly JSON marshaled by the HTTP client
-func constructResource(ctx context.Context, httpClient *client.AuthenticatedHTTPClient, data *ConditionalAccessPolicyResourceModel) (map[string]interface{}, error) {
+// Returns a map[string]any that can be directly JSON marshaled by the HTTP client
+func constructResource(ctx context.Context, httpClient *client.AuthenticatedHTTPClient, data *ConditionalAccessPolicyResourceModel) (map[string]any, error) {
 
 	tflog.Debug(ctx, fmt.Sprintf("Constructing %s resource from model", ResourceName))
 
@@ -21,7 +21,7 @@ func constructResource(ctx context.Context, httpClient *client.AuthenticatedHTTP
 		return nil, fmt.Errorf("validation failed: %w", err)
 	}
 
-	requestBody := make(map[string]interface{})
+	requestBody := make(map[string]any)
 
 	convert.FrameworkToGraphString(data.DisplayName, func(val *string) {
 		if val != nil {
@@ -69,11 +69,11 @@ func constructResource(ctx context.Context, httpClient *client.AuthenticatedHTTP
 	}
 
 	if debugJSON, err := json.MarshalIndent(requestBody, "", "    "); err == nil {
-		tflog.Debug(ctx, fmt.Sprintf("Final JSON to be sent to Graph API for resource %s", ResourceName), map[string]interface{}{
+		tflog.Debug(ctx, fmt.Sprintf("Final JSON to be sent to Graph API for resource %s", ResourceName), map[string]any{
 			"json": "\n" + string(debugJSON),
 		})
 	} else {
-		tflog.Error(ctx, "Failed to debug log object", map[string]interface{}{
+		tflog.Error(ctx, "Failed to debug log object", map[string]any{
 			"error": err.Error(),
 		})
 	}
@@ -84,8 +84,8 @@ func constructResource(ctx context.Context, httpClient *client.AuthenticatedHTTP
 }
 
 // constructConditions builds the conditions object using available Graph models
-func constructConditions(ctx context.Context, data *ConditionalAccessConditions) (map[string]interface{}, error) {
-	conditions := make(map[string]interface{})
+func constructConditions(ctx context.Context, data *ConditionalAccessConditions) (map[string]any, error) {
+	conditions := make(map[string]any)
 
 	if err := convert.FrameworkToGraphStringSet(ctx, data.ClientAppTypes, func(values []string) {
 		if len(values) > 0 {
@@ -96,7 +96,7 @@ func constructConditions(ctx context.Context, data *ConditionalAccessConditions)
 	}
 
 	if data.Applications != nil {
-		applications := make(map[string]interface{})
+		applications := make(map[string]any)
 
 		if err := convert.FrameworkToGraphStringSet(ctx, data.Applications.IncludeApplications, func(values []string) {
 			if len(values) > 0 {
@@ -125,7 +125,7 @@ func constructConditions(ctx context.Context, data *ConditionalAccessConditions)
 		}
 
 		if data.Applications.ApplicationFilter != nil {
-			appFilter := make(map[string]interface{})
+			appFilter := make(map[string]any)
 			convert.FrameworkToGraphString(data.Applications.ApplicationFilter.Mode, func(value *string) {
 				if value != nil {
 					appFilter["mode"] = *value
@@ -148,7 +148,7 @@ func constructConditions(ctx context.Context, data *ConditionalAccessConditions)
 
 	// Users
 	if data.Users != nil {
-		users := make(map[string]interface{})
+		users := make(map[string]any)
 
 		if err := convert.FrameworkToGraphStringSet(ctx, data.Users.IncludeUsers, func(values []string) {
 			if len(values) > 0 {
@@ -192,7 +192,7 @@ func constructConditions(ctx context.Context, data *ConditionalAccessConditions)
 		if !data.Users.IncludeGuestsOrExternalUsers.IsNull() && !data.Users.IncludeGuestsOrExternalUsers.IsUnknown() {
 			// Convert types.Object to map for processing
 			includeGuestsMap := data.Users.IncludeGuestsOrExternalUsers.Attributes()
-			includeGuestsOrExternalUsers := make(map[string]interface{})
+			includeGuestsOrExternalUsers := make(map[string]any)
 
 			// Handle guest_or_external_user_types
 			if guestTypesAttr, ok := includeGuestsMap["guest_or_external_user_types"]; ok {
@@ -211,7 +211,7 @@ func constructConditions(ctx context.Context, data *ConditionalAccessConditions)
 			if externalTenantsAttr, ok := includeGuestsMap["external_tenants"]; ok {
 				if externalTenantsObj, ok := externalTenantsAttr.(types.Object); ok && !externalTenantsObj.IsNull() {
 					externalTenantsMap := externalTenantsObj.Attributes()
-					externalTenants := make(map[string]interface{})
+					externalTenants := make(map[string]any)
 
 					// Handle membership_kind
 					if membershipKindAttr, ok := externalTenantsMap["membership_kind"]; ok {
@@ -252,7 +252,7 @@ func constructConditions(ctx context.Context, data *ConditionalAccessConditions)
 		if !data.Users.ExcludeGuestsOrExternalUsers.IsNull() && !data.Users.ExcludeGuestsOrExternalUsers.IsUnknown() {
 			// Convert types.Object to map for processing
 			excludeGuestsMap := data.Users.ExcludeGuestsOrExternalUsers.Attributes()
-			excludeGuestsOrExternalUsers := make(map[string]interface{})
+			excludeGuestsOrExternalUsers := make(map[string]any)
 
 			// Handle guest_or_external_user_types
 			if guestTypesAttr, ok := excludeGuestsMap["guest_or_external_user_types"]; ok {
@@ -271,7 +271,7 @@ func constructConditions(ctx context.Context, data *ConditionalAccessConditions)
 			if externalTenantsAttr, ok := excludeGuestsMap["external_tenants"]; ok {
 				if externalTenantsObj, ok := externalTenantsAttr.(types.Object); ok && !externalTenantsObj.IsNull() {
 					externalTenantsMap := externalTenantsObj.Attributes()
-					externalTenants := make(map[string]interface{})
+					externalTenants := make(map[string]any)
 
 					// Handle membership_kind
 					if membershipKindAttr, ok := externalTenantsMap["membership_kind"]; ok {
@@ -315,7 +315,7 @@ func constructConditions(ctx context.Context, data *ConditionalAccessConditions)
 
 	// Platforms
 	if data.Platforms != nil {
-		platforms := make(map[string]interface{})
+		platforms := make(map[string]any)
 
 		if err := convert.FrameworkToGraphStringSet(ctx, data.Platforms.IncludePlatforms, func(values []string) {
 			// Always include includePlatforms if the field is configured (even if empty)
@@ -342,7 +342,7 @@ func constructConditions(ctx context.Context, data *ConditionalAccessConditions)
 
 	// Locations
 	if data.Locations != nil {
-		locations := make(map[string]interface{})
+		locations := make(map[string]any)
 
 		if err := convert.FrameworkToGraphStringSet(ctx, data.Locations.IncludeLocations, func(values []string) {
 			if len(values) > 0 {
@@ -365,7 +365,7 @@ func constructConditions(ctx context.Context, data *ConditionalAccessConditions)
 
 	// Devices
 	if data.Devices != nil {
-		devices := make(map[string]interface{})
+		devices := make(map[string]any)
 
 		if err := convert.FrameworkToGraphStringSet(ctx, data.Devices.IncludeDevices, func(values []string) {
 			// Always include includeDevices if the field is configured (even if empty)
@@ -404,7 +404,7 @@ func constructConditions(ctx context.Context, data *ConditionalAccessConditions)
 		}
 
 		if data.Devices.DeviceFilter != nil {
-			deviceFilter := make(map[string]interface{})
+			deviceFilter := make(map[string]any)
 			convert.FrameworkToGraphString(data.Devices.DeviceFilter.Mode, func(value *string) {
 				if value != nil {
 					deviceFilter["mode"] = *value
@@ -448,8 +448,8 @@ func constructConditions(ctx context.Context, data *ConditionalAccessConditions)
 }
 
 // constructGrantControls builds the grant controls object
-func constructGrantControls(ctx context.Context, data *ConditionalAccessGrantControls) (map[string]interface{}, error) {
-	grantControls := make(map[string]interface{})
+func constructGrantControls(ctx context.Context, data *ConditionalAccessGrantControls) (map[string]any, error) {
+	grantControls := make(map[string]any)
 
 	convert.FrameworkToGraphString(data.Operator, func(value *string) {
 		if value != nil {
@@ -485,7 +485,7 @@ func constructGrantControls(ctx context.Context, data *ConditionalAccessGrantCon
 	}
 
 	if data.AuthenticationStrength != nil {
-		authStrength := make(map[string]interface{})
+		authStrength := make(map[string]any)
 
 		convert.FrameworkToGraphString(data.AuthenticationStrength.ID, func(value *string) {
 			if value != nil {
@@ -536,11 +536,11 @@ func constructGrantControls(ctx context.Context, data *ConditionalAccessGrantCon
 }
 
 // constructSessionControls builds the session controls object
-func constructSessionControls(ctx context.Context, data *ConditionalAccessSessionControls) (map[string]interface{}, error) {
-	sessionControls := make(map[string]interface{})
+func constructSessionControls(ctx context.Context, data *ConditionalAccessSessionControls) (map[string]any, error) {
+	sessionControls := make(map[string]any)
 
 	if data.ApplicationEnforcedRestrictions != nil {
-		appEnforcedRestrictions := make(map[string]interface{})
+		appEnforcedRestrictions := make(map[string]any)
 		convert.FrameworkToGraphBool(data.ApplicationEnforcedRestrictions.IsEnabled, func(value *bool) {
 			if value != nil {
 				appEnforcedRestrictions["isEnabled"] = *value
@@ -552,7 +552,7 @@ func constructSessionControls(ctx context.Context, data *ConditionalAccessSessio
 	}
 
 	if data.CloudAppSecurity != nil {
-		cloudAppSecurity := make(map[string]interface{})
+		cloudAppSecurity := make(map[string]any)
 		convert.FrameworkToGraphBool(data.CloudAppSecurity.IsEnabled, func(value *bool) {
 			if value != nil {
 				cloudAppSecurity["isEnabled"] = *value
@@ -569,7 +569,7 @@ func constructSessionControls(ctx context.Context, data *ConditionalAccessSessio
 	}
 
 	if data.SignInFrequency != nil {
-		signInFrequency := make(map[string]interface{})
+		signInFrequency := make(map[string]any)
 		convert.FrameworkToGraphBool(data.SignInFrequency.IsEnabled, func(value *bool) {
 			if value != nil {
 				signInFrequency["isEnabled"] = *value
@@ -604,7 +604,7 @@ func constructSessionControls(ctx context.Context, data *ConditionalAccessSessio
 	}
 
 	if data.PersistentBrowser != nil {
-		persistentBrowser := make(map[string]interface{})
+		persistentBrowser := make(map[string]any)
 		convert.FrameworkToGraphBool(data.PersistentBrowser.IsEnabled, func(value *bool) {
 			if value != nil {
 				persistentBrowser["isEnabled"] = *value
@@ -627,7 +627,7 @@ func constructSessionControls(ctx context.Context, data *ConditionalAccessSessio
 	})
 
 	if data.ContinuousAccessEvaluation != nil {
-		continuousAccessEval := make(map[string]interface{})
+		continuousAccessEval := make(map[string]any)
 		convert.FrameworkToGraphString(data.ContinuousAccessEvaluation.Mode, func(value *string) {
 			if value != nil {
 				continuousAccessEval["mode"] = *value
@@ -639,7 +639,7 @@ func constructSessionControls(ctx context.Context, data *ConditionalAccessSessio
 	}
 
 	if data.SecureSignInSession != nil {
-		secureSignInSession := make(map[string]interface{})
+		secureSignInSession := make(map[string]any)
 		convert.FrameworkToGraphBool(data.SecureSignInSession.IsEnabled, func(value *bool) {
 			if value != nil {
 				secureSignInSession["isEnabled"] = *value

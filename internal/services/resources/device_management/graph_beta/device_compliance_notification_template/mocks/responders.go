@@ -14,13 +14,13 @@ import (
 
 var mockState struct {
 	sync.Mutex
-	templates         map[string]map[string]interface{}
-	localizedMessages map[string]map[string]interface{}
+	templates         map[string]map[string]any
+	localizedMessages map[string]map[string]any
 }
 
 func init() {
-	mockState.templates = make(map[string]map[string]interface{})
-	mockState.localizedMessages = make(map[string]map[string]interface{})
+	mockState.templates = make(map[string]map[string]any)
+	mockState.localizedMessages = make(map[string]map[string]any)
 	httpmock.RegisterNoResponder(httpmock.NewStringResponder(404, `{"error":{"code":"ResourceNotFound","message":"Resource not found"}}`))
 	mocks.GlobalRegistry.Register("windows_device_compliance_notifications", &WindowsDeviceComplianceNotificationsMock{})
 }
@@ -31,8 +31,8 @@ var _ mocks.MockRegistrar = (*WindowsDeviceComplianceNotificationsMock)(nil)
 
 func (m *WindowsDeviceComplianceNotificationsMock) RegisterMocks() {
 	mockState.Lock()
-	mockState.templates = make(map[string]map[string]interface{})
-	mockState.localizedMessages = make(map[string]map[string]interface{})
+	mockState.templates = make(map[string]map[string]any)
+	mockState.localizedMessages = make(map[string]map[string]any)
 	mockState.Unlock()
 
 	// GET /deviceManagement/notificationMessageTemplates - List templates
@@ -42,7 +42,7 @@ func (m *WindowsDeviceComplianceNotificationsMock) RegisterMocks() {
 			return httpmock.NewStringResponse(500, "Internal Server Error"), nil
 		}
 
-		var responseObj map[string]interface{}
+		var responseObj map[string]any
 		if err := json.Unmarshal([]byte(jsonStr), &responseObj); err != nil {
 			return httpmock.NewStringResponse(500, "Internal Server Error"), nil
 		}
@@ -53,9 +53,9 @@ func (m *WindowsDeviceComplianceNotificationsMock) RegisterMocks() {
 		if len(mockState.templates) == 0 {
 			responseObj["value"] = []interface{}{}
 		} else {
-			list := make([]map[string]interface{}, 0, len(mockState.templates))
+			list := make([]map[string]any, 0, len(mockState.templates))
 			for _, v := range mockState.templates {
-				c := map[string]interface{}{}
+				c := map[string]any{}
 				for k, vv := range v {
 					c[k] = vv
 				}
@@ -78,13 +78,13 @@ func (m *WindowsDeviceComplianceNotificationsMock) RegisterMocks() {
 
 		if !ok {
 			jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_delete/get_windows_device_compliance_notifications_not_found.json")
-			var errObj map[string]interface{}
+			var errObj map[string]any
 			json.Unmarshal([]byte(jsonStr), &errObj)
 			return httpmock.NewJsonResponse(404, errObj)
 		}
 
 		jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_get/get_windows_device_compliance_notifications.json")
-		var responseObj map[string]interface{}
+		var responseObj map[string]any
 		json.Unmarshal([]byte(jsonStr), &responseObj)
 
 		// Override template values with actual template values
@@ -108,7 +108,7 @@ func (m *WindowsDeviceComplianceNotificationsMock) RegisterMocks() {
 
 	// POST /deviceManagement/notificationMessageTemplates - Create template
 	httpmock.RegisterResponder("POST", "https://graph.microsoft.com/beta/deviceManagement/notificationMessageTemplates", func(req *http.Request) (*http.Response, error) {
-		var body map[string]interface{}
+		var body map[string]any
 		if err := json.NewDecoder(req.Body).Decode(&body); err != nil {
 			return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"Invalid request body"}}`), nil
 		}
@@ -116,7 +116,7 @@ func (m *WindowsDeviceComplianceNotificationsMock) RegisterMocks() {
 		id := uuid.New().String()
 
 		jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_create/post_windows_device_compliance_notifications_success.json")
-		var responseObj map[string]interface{}
+		var responseObj map[string]any
 		json.Unmarshal([]byte(jsonStr), &responseObj)
 
 		// Override template values with request values
@@ -146,7 +146,7 @@ func (m *WindowsDeviceComplianceNotificationsMock) RegisterMocks() {
 	httpmock.RegisterResponder("PATCH", `=~^https://graph\.microsoft\.com/beta/deviceManagement/notificationMessageTemplates/[^/]+$`, func(req *http.Request) (*http.Response, error) {
 		parts := strings.Split(req.URL.Path, "/")
 		id := parts[len(parts)-1]
-		var body map[string]interface{}
+		var body map[string]any
 		if err := json.NewDecoder(req.Body).Decode(&body); err != nil {
 			return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"Invalid request body"}}`), nil
 		}
@@ -156,13 +156,13 @@ func (m *WindowsDeviceComplianceNotificationsMock) RegisterMocks() {
 		if !ok {
 			mockState.Unlock()
 			jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_delete/get_windows_device_compliance_notifications_not_found.json")
-			var errObj map[string]interface{}
+			var errObj map[string]any
 			json.Unmarshal([]byte(jsonStr), &errObj)
 			return httpmock.NewJsonResponse(404, errObj)
 		}
 
 		jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_update/patch_windows_device_compliance_notifications_success.json")
-		var responseObj map[string]interface{}
+		var responseObj map[string]any
 		json.Unmarshal([]byte(jsonStr), &responseObj)
 
 		// Override with existing values
@@ -203,7 +203,7 @@ func (m *WindowsDeviceComplianceNotificationsMock) RegisterMocks() {
 		}
 
 		jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_get/get_localized_notification_messages.json")
-		var responseObj map[string]interface{}
+		var responseObj map[string]any
 		json.Unmarshal([]byte(jsonStr), &responseObj)
 		responseObj["value"] = messages
 
@@ -214,7 +214,7 @@ func (m *WindowsDeviceComplianceNotificationsMock) RegisterMocks() {
 	httpmock.RegisterResponder("POST", `=~^https://graph\.microsoft\.com/beta/deviceManagement/notificationMessageTemplates/[^/]+/localizedNotificationMessages$`, func(req *http.Request) (*http.Response, error) {
 		parts := strings.Split(req.URL.Path, "/")
 		templateId := parts[len(parts)-2]
-		var body map[string]interface{}
+		var body map[string]any
 		if err := json.NewDecoder(req.Body).Decode(&body); err != nil {
 			return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"Invalid request body"}}`), nil
 		}
@@ -222,7 +222,7 @@ func (m *WindowsDeviceComplianceNotificationsMock) RegisterMocks() {
 		messageId := templateId + "_" + body["locale"].(string)
 
 		jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_create/post_localized_notification_message_success.json")
-		var responseObj map[string]interface{}
+		var responseObj map[string]any
 		json.Unmarshal([]byte(jsonStr), &responseObj)
 
 		// Override with actual values
@@ -243,7 +243,7 @@ func (m *WindowsDeviceComplianceNotificationsMock) RegisterMocks() {
 	httpmock.RegisterResponder("PATCH", `=~^https://graph\.microsoft\.com/beta/deviceManagement/notificationMessageTemplates/[^/]+/localizedNotificationMessages/[^/]+$`, func(req *http.Request) (*http.Response, error) {
 		parts := strings.Split(req.URL.Path, "/")
 		messageId := parts[len(parts)-1]
-		var body map[string]interface{}
+		var body map[string]any
 		if err := json.NewDecoder(req.Body).Decode(&body); err != nil {
 			return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"Invalid request body"}}`), nil
 		}
@@ -294,14 +294,14 @@ func (m *WindowsDeviceComplianceNotificationsMock) RegisterMocks() {
 
 func (m *WindowsDeviceComplianceNotificationsMock) RegisterErrorMocks() {
 	mockState.Lock()
-	mockState.templates = make(map[string]map[string]interface{})
-	mockState.localizedMessages = make(map[string]map[string]interface{})
+	mockState.templates = make(map[string]map[string]any)
+	mockState.localizedMessages = make(map[string]map[string]any)
 	mockState.Unlock()
 
 	// Error response for creation
 	httpmock.RegisterResponder("POST", "https://graph.microsoft.com/beta/deviceManagement/notificationMessageTemplates", func(req *http.Request) (*http.Response, error) {
 		jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_create/post_windows_device_compliance_notifications_error.json")
-		var errObj map[string]interface{}
+		var errObj map[string]any
 		json.Unmarshal([]byte(jsonStr), &errObj)
 		return httpmock.NewJsonResponse(400, errObj)
 	})
@@ -309,7 +309,7 @@ func (m *WindowsDeviceComplianceNotificationsMock) RegisterErrorMocks() {
 	// Error response for GET operations
 	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/deviceManagement/notificationMessageTemplates/[^/]+$`, func(req *http.Request) (*http.Response, error) {
 		jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_delete/get_windows_device_compliance_notifications_not_found.json")
-		var errObj map[string]interface{}
+		var errObj map[string]any
 		json.Unmarshal([]byte(jsonStr), &errObj)
 		return httpmock.NewJsonResponse(404, errObj)
 	})

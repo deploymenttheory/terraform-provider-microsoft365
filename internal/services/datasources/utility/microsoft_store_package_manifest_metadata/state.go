@@ -14,7 +14,7 @@ func (d *MicrosoftStorePackageManifestDataSource) mapRemoteStateToTerraformState
 	var diags diag.Diagnostics
 
 	for i, manifestInterface := range manifests {
-		manifest, ok := manifestInterface.(map[string]interface{})
+		manifest, ok := manifestInterface.(map[string]any)
 		if !ok {
 			diags.AddError(
 				"Invalid Manifest Data",
@@ -49,7 +49,7 @@ func (d *MicrosoftStorePackageManifestDataSource) mapVersions(ctx context.Contex
 	var diags diag.Diagnostics
 
 	for i, versionInterface := range versionsList {
-		version, ok := versionInterface.(map[string]interface{})
+		version, ok := versionInterface.(map[string]any)
 		if !ok {
 			diags.AddError(
 				"Invalid Version Data",
@@ -65,7 +65,7 @@ func (d *MicrosoftStorePackageManifestDataSource) mapVersions(ctx context.Contex
 
 		// Map default locale
 		if defaultLocaleInterface, exists := version["DefaultLocale"]; exists && defaultLocaleInterface != nil {
-			if defaultLocaleMap, ok := defaultLocaleInterface.(map[string]interface{}); ok {
+			if defaultLocaleMap, ok := defaultLocaleInterface.(map[string]any); ok {
 				defaultLocale, localeDiags := d.mapDefaultLocale(ctx, defaultLocaleMap)
 				diags.Append(localeDiags...)
 				terraformVersion.DefaultLocale = defaultLocale
@@ -97,7 +97,7 @@ func (d *MicrosoftStorePackageManifestDataSource) mapVersions(ctx context.Contex
 }
 
 // mapDefaultLocale converts default locale data to Terraform model
-func (d *MicrosoftStorePackageManifestDataSource) mapDefaultLocale(ctx context.Context, localeMap map[string]interface{}) (*DefaultLocaleDataSourceModel, diag.Diagnostics) {
+func (d *MicrosoftStorePackageManifestDataSource) mapDefaultLocale(ctx context.Context, localeMap map[string]any) (*DefaultLocaleDataSourceModel, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
 	defaultLocale := &DefaultLocaleDataSourceModel{
@@ -140,7 +140,7 @@ func (d *MicrosoftStorePackageManifestDataSource) mapLocales(ctx context.Context
 	var diags diag.Diagnostics
 
 	for i, localeInterface := range localesList {
-		locale, ok := localeInterface.(map[string]interface{})
+		locale, ok := localeInterface.(map[string]any)
 		if !ok {
 			diags.AddError(
 				"Invalid Locale Data",
@@ -183,7 +183,7 @@ func (d *MicrosoftStorePackageManifestDataSource) mapAgreements(ctx context.Cont
 	var diags diag.Diagnostics
 
 	for i, agreementInterface := range agreementsList {
-		agreement, ok := agreementInterface.(map[string]interface{})
+		agreement, ok := agreementInterface.(map[string]any)
 		if !ok {
 			diags.AddError(
 				"Invalid Agreement Data",
@@ -211,7 +211,7 @@ func (d *MicrosoftStorePackageManifestDataSource) mapInstallers(ctx context.Cont
 	var diags diag.Diagnostics
 
 	for i, installerInterface := range installersList {
-		installer, ok := installerInterface.(map[string]interface{})
+		installer, ok := installerInterface.(map[string]any)
 		if !ok {
 			diags.AddError(
 				"Invalid Installer Data",
@@ -244,7 +244,7 @@ func (d *MicrosoftStorePackageManifestDataSource) mapInstallers(ctx context.Cont
 
 		// Map markets
 		if marketsInterface, exists := installer["Markets"]; exists && marketsInterface != nil {
-			if marketsMap, ok := marketsInterface.(map[string]interface{}); ok {
+			if marketsMap, ok := marketsInterface.(map[string]any); ok {
 				markets := d.mapMarkets(marketsMap)
 				terraformInstaller.Markets = markets
 			}
@@ -252,7 +252,7 @@ func (d *MicrosoftStorePackageManifestDataSource) mapInstallers(ctx context.Cont
 
 		// Map installer switches
 		if switchesInterface, exists := installer["InstallerSwitches"]; exists && switchesInterface != nil {
-			if switchesMap, ok := switchesInterface.(map[string]interface{}); ok {
+			if switchesMap, ok := switchesInterface.(map[string]any); ok {
 				switches := d.mapInstallerSwitches(switchesMap)
 				terraformInstaller.InstallerSwitches = switches
 			}
@@ -283,7 +283,7 @@ func (d *MicrosoftStorePackageManifestDataSource) mapInstallers(ctx context.Cont
 }
 
 // mapMarkets converts markets data to Terraform model
-func (d *MicrosoftStorePackageManifestDataSource) mapMarkets(marketsMap map[string]interface{}) *MarketsDataSourceModel {
+func (d *MicrosoftStorePackageManifestDataSource) mapMarkets(marketsMap map[string]any) *MarketsDataSourceModel {
 	markets := &MarketsDataSourceModel{
 		Type: d.getStringValue(marketsMap, "$type"),
 	}
@@ -299,7 +299,7 @@ func (d *MicrosoftStorePackageManifestDataSource) mapMarkets(marketsMap map[stri
 }
 
 // mapInstallerSwitches converts installer switches data to Terraform model
-func (d *MicrosoftStorePackageManifestDataSource) mapInstallerSwitches(switchesMap map[string]interface{}) *InstallerSwitchesDataSourceModel {
+func (d *MicrosoftStorePackageManifestDataSource) mapInstallerSwitches(switchesMap map[string]any) *InstallerSwitchesDataSourceModel {
 	return &InstallerSwitchesDataSourceModel{
 		Type:   d.getStringValue(switchesMap, "$type"),
 		Silent: d.getStringValue(switchesMap, "Silent"),
@@ -312,7 +312,7 @@ func (d *MicrosoftStorePackageManifestDataSource) mapExpectedReturnCodes(ctx con
 	var diags diag.Diagnostics
 
 	for i, returnCodeInterface := range returnCodesList {
-		returnCode, ok := returnCodeInterface.(map[string]interface{})
+		returnCode, ok := returnCodeInterface.(map[string]any)
 		if !ok {
 			diags.AddError(
 				"Invalid Return Code Data",
@@ -339,7 +339,7 @@ func (d *MicrosoftStorePackageManifestDataSource) mapAppsAndFeaturesEntries(ctx 
 	var diags diag.Diagnostics
 
 	for i, entryInterface := range entriesList {
-		entry, ok := entryInterface.(map[string]interface{})
+		entry, ok := entryInterface.(map[string]any)
 		if !ok {
 			diags.AddError(
 				"Invalid Apps and Features Entry Data",
@@ -366,7 +366,7 @@ func (d *MicrosoftStorePackageManifestDataSource) mapAppsAndFeaturesEntries(ctx 
 // Helper functions for type conversion and null handling
 
 // getStringValue safely extracts a string value from a map, returning types.StringNull() if not found or null
-func (d *MicrosoftStorePackageManifestDataSource) getStringValue(data map[string]interface{}, key string) types.String {
+func (d *MicrosoftStorePackageManifestDataSource) getStringValue(data map[string]any, key string) types.String {
 	if value, exists := data[key]; exists && value != nil {
 		if strValue, ok := value.(string); ok && strValue != "" {
 			return types.StringValue(strValue)
@@ -376,7 +376,7 @@ func (d *MicrosoftStorePackageManifestDataSource) getStringValue(data map[string
 }
 
 // getBoolValue safely extracts a bool value from a map, returning types.BoolNull() if not found or null
-func (d *MicrosoftStorePackageManifestDataSource) getBoolValue(data map[string]interface{}, key string) types.Bool {
+func (d *MicrosoftStorePackageManifestDataSource) getBoolValue(data map[string]any, key string) types.Bool {
 	if value, exists := data[key]; exists && value != nil {
 		if boolValue, ok := value.(bool); ok {
 			return types.BoolValue(boolValue)
@@ -386,7 +386,7 @@ func (d *MicrosoftStorePackageManifestDataSource) getBoolValue(data map[string]i
 }
 
 // getInt64Value safely extracts an int64 value from a map, returning types.Int64Null() if not found or null
-func (d *MicrosoftStorePackageManifestDataSource) getInt64Value(data map[string]interface{}, key string) types.Int64 {
+func (d *MicrosoftStorePackageManifestDataSource) getInt64Value(data map[string]any, key string) types.Int64 {
 	if value, exists := data[key]; exists && value != nil {
 		switch v := value.(type) {
 		case int:

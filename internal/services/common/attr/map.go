@@ -23,7 +23,7 @@ func MapValue(elementType attr.Type, elements map[string]attr.Value) types.Map {
 func MapValueFrom(ctx context.Context, elementType attr.Type, elements interface{}) types.Map {
 	m, diags := types.MapValueFrom(ctx, elementType, elements)
 	if diags.HasError() {
-		tflog.Error(ctx, "Failed to convert to types.Map", map[string]interface{}{
+		tflog.Error(ctx, "Failed to convert to types.Map", map[string]any{
 			"error": diags.Errors()[0].Detail(),
 		})
 		panic(diags.Errors()[0].Detail())

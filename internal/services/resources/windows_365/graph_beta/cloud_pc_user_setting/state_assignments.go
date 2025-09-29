@@ -28,7 +28,7 @@ func MapAssignmentsToTerraform(ctx context.Context, data *CloudPcUserSettingReso
 		return
 	}
 
-	tflog.Debug(ctx, "Starting assignment mapping process", map[string]interface{}{
+	tflog.Debug(ctx, "Starting assignment mapping process", map[string]any{
 		"assignmentCount": len(assignments),
 		"resourceId":      data.ID.ValueString(),
 	})
@@ -37,14 +37,14 @@ func MapAssignmentsToTerraform(ctx context.Context, data *CloudPcUserSettingReso
 
 	for i, assignment := range assignments {
 		if assignment == nil {
-			tflog.Debug(ctx, "Assignment is nil, skipping", map[string]interface{}{
+			tflog.Debug(ctx, "Assignment is nil, skipping", map[string]any{
 				"assignmentIndex": i,
 				"resourceId":      data.ID.ValueString(),
 			})
 			continue
 		}
 
-		tflog.Debug(ctx, "Processing assignment", map[string]interface{}{
+		tflog.Debug(ctx, "Processing assignment", map[string]any{
 			"assignmentIndex": i,
 			"resourceId":      data.ID.ValueString(),
 		})
@@ -56,13 +56,13 @@ func MapAssignmentsToTerraform(ctx context.Context, data *CloudPcUserSettingReso
 
 		objValue, diags := types.ObjectValue(CloudPcUserSettingAssignmentType().(types.ObjectType).AttrTypes, assignmentObj)
 		if !diags.HasError() {
-			tflog.Debug(ctx, "Successfully created assignment object", map[string]interface{}{
+			tflog.Debug(ctx, "Successfully created assignment object", map[string]any{
 				"assignmentIndex": i,
 				"resourceId":      data.ID.ValueString(),
 			})
 			assignmentValues = append(assignmentValues, objValue)
 		} else {
-			tflog.Error(ctx, "Failed to create assignment object value", map[string]interface{}{
+			tflog.Error(ctx, "Failed to create assignment object value", map[string]any{
 				"assignmentIndex": i,
 				"errors":          diags.Errors(),
 				"resourceId":      data.ID.ValueString(),
@@ -70,7 +70,7 @@ func MapAssignmentsToTerraform(ctx context.Context, data *CloudPcUserSettingReso
 		}
 	}
 
-	tflog.Debug(ctx, "Creating assignments set", map[string]interface{}{
+	tflog.Debug(ctx, "Creating assignments set", map[string]any{
 		"processedAssignments": len(assignmentValues),
 		"originalAssignments":  len(assignments),
 		"resourceId":           data.ID.ValueString(),
@@ -79,26 +79,26 @@ func MapAssignmentsToTerraform(ctx context.Context, data *CloudPcUserSettingReso
 	if len(assignmentValues) > 0 {
 		setVal, diags := types.SetValue(CloudPcUserSettingAssignmentType(), assignmentValues)
 		if diags.HasError() {
-			tflog.Error(ctx, "Failed to create assignments set", map[string]interface{}{
+			tflog.Error(ctx, "Failed to create assignments set", map[string]any{
 				"errors":     diags.Errors(),
 				"resourceId": data.ID.ValueString(),
 			})
 			data.Assignments = types.SetNull(CloudPcUserSettingAssignmentType())
 		} else {
-			tflog.Debug(ctx, "Successfully created assignments set", map[string]interface{}{
+			tflog.Debug(ctx, "Successfully created assignments set", map[string]any{
 				"assignmentCount": len(assignmentValues),
 				"resourceId":      data.ID.ValueString(),
 			})
 			data.Assignments = setVal
 		}
 	} else {
-		tflog.Debug(ctx, "No valid assignments processed, setting assignments to null", map[string]interface{}{
+		tflog.Debug(ctx, "No valid assignments processed, setting assignments to null", map[string]any{
 			"resourceId": data.ID.ValueString(),
 		})
 		data.Assignments = types.SetNull(CloudPcUserSettingAssignmentType())
 	}
 
-	tflog.Debug(ctx, "Finished mapping assignments to Terraform state", map[string]interface{}{
+	tflog.Debug(ctx, "Finished mapping assignments to Terraform state", map[string]any{
 		"finalAssignmentCount": len(assignmentValues),
 		"originalAssignments":  len(assignments),
 		"resourceId":           data.ID.ValueString(),
@@ -112,7 +112,7 @@ func MapAssignmentsToTerraformSet(ctx context.Context, assignments []models.Clou
 		return types.SetNull(CloudPcUserSettingAssignmentType())
 	}
 
-	tflog.Debug(ctx, "Starting assignment mapping process", map[string]interface{}{
+	tflog.Debug(ctx, "Starting assignment mapping process", map[string]any{
 		"assignmentCount": len(assignments),
 	})
 
@@ -120,13 +120,13 @@ func MapAssignmentsToTerraformSet(ctx context.Context, assignments []models.Clou
 
 	for i, assignment := range assignments {
 		if assignment == nil {
-			tflog.Debug(ctx, "Assignment is nil, skipping", map[string]interface{}{
+			tflog.Debug(ctx, "Assignment is nil, skipping", map[string]any{
 				"assignmentIndex": i,
 			})
 			continue
 		}
 
-		tflog.Debug(ctx, "Processing assignment", map[string]interface{}{
+		tflog.Debug(ctx, "Processing assignment", map[string]any{
 			"assignmentIndex": i,
 		})
 
@@ -137,12 +137,12 @@ func MapAssignmentsToTerraformSet(ctx context.Context, assignments []models.Clou
 
 		objValue, diags := types.ObjectValue(CloudPcUserSettingAssignmentType().(types.ObjectType).AttrTypes, assignmentObj)
 		if !diags.HasError() {
-			tflog.Debug(ctx, "Successfully created assignment object", map[string]interface{}{
+			tflog.Debug(ctx, "Successfully created assignment object", map[string]any{
 				"assignmentIndex": i,
 			})
 			assignmentValues = append(assignmentValues, objValue)
 		} else {
-			tflog.Error(ctx, "Failed to create assignment object value", map[string]interface{}{
+			tflog.Error(ctx, "Failed to create assignment object value", map[string]any{
 				"assignmentIndex": i,
 				"errors":          diags.Errors(),
 			})
@@ -196,19 +196,19 @@ func createAssignmentObject(_ context.Context, assignment models.CloudPcUserSett
 
 // createAssignmentsSet creates the final Set from processed assignment values
 func createAssignmentsSet(ctx context.Context, assignmentValues []attr.Value) types.Set {
-	tflog.Debug(ctx, "Creating assignments set", map[string]interface{}{
+	tflog.Debug(ctx, "Creating assignments set", map[string]any{
 		"processedAssignments": len(assignmentValues),
 	})
 
 	if len(assignmentValues) > 0 {
 		setVal, diags := types.SetValue(CloudPcUserSettingAssignmentType(), assignmentValues)
 		if diags.HasError() {
-			tflog.Error(ctx, "Failed to create assignments set", map[string]interface{}{
+			tflog.Error(ctx, "Failed to create assignments set", map[string]any{
 				"errors": diags.Errors(),
 			})
 			return types.SetNull(CloudPcUserSettingAssignmentType())
 		} else {
-			tflog.Debug(ctx, "Successfully created assignments set", map[string]interface{}{
+			tflog.Debug(ctx, "Successfully created assignments set", map[string]any{
 				"assignmentCount": len(assignmentValues),
 			})
 			return setVal

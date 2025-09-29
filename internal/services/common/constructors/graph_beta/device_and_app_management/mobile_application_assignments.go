@@ -80,7 +80,7 @@ func ConstructMobileAppAssignment(ctx context.Context, data []sharedmodels.Mobil
 	requestBody.SetMobileAppAssignments(assignments)
 
 	if err := constructors.DebugLogGraphObject(ctx, "Constructed mobile app assignment request body", requestBody); err != nil {
-		tflog.Error(ctx, "Failed to mobile app assignment request body", map[string]interface{}{
+		tflog.Error(ctx, "Failed to mobile app assignment request body", map[string]any{
 			"error": err.Error(),
 		})
 	}

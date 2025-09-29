@@ -16,12 +16,12 @@ import (
 // mockState tracks the state of resources for consistent responses
 var mockState struct {
 	sync.Mutex
-	windowsRemediationScripts map[string]map[string]interface{}
+	windowsRemediationScripts map[string]map[string]any
 }
 
 func init() {
 	// Initialize mockState
-	mockState.windowsRemediationScripts = make(map[string]map[string]interface{})
+	mockState.windowsRemediationScripts = make(map[string]map[string]any)
 
 	// Register a default 404 responder for any unmatched requests
 	httpmock.RegisterNoResponder(httpmock.NewStringResponder(404, `{"error":{"code":"ResourceNotFound","message":"Resource not found"}}`))
@@ -40,17 +40,17 @@ var _ mocks.MockRegistrar = (*WindowsRemediationScriptMock)(nil)
 func (m *WindowsRemediationScriptMock) RegisterMocks() {
 	// Reset the state when registering mocks
 	mockState.Lock()
-	mockState.windowsRemediationScripts = make(map[string]map[string]interface{})
+	mockState.windowsRemediationScripts = make(map[string]map[string]any)
 	mockState.Unlock()
 
 	// Register GET for listing Windows remediation scripts
 	httpmock.RegisterResponder("GET", "https://graph.microsoft.com/beta/deviceManagement/deviceHealthScripts",
 		func(req *http.Request) (*http.Response, error) {
 			mockState.Lock()
-			scripts := make([]map[string]interface{}, 0, len(mockState.windowsRemediationScripts))
+			scripts := make([]map[string]any, 0, len(mockState.windowsRemediationScripts))
 			for _, script := range mockState.windowsRemediationScripts {
 				// Ensure @odata.type is present
-				scriptCopy := make(map[string]interface{})
+				scriptCopy := make(map[string]any)
 				for k, v := range script {
 					scriptCopy[k] = v
 				}
@@ -79,7 +79,7 @@ func (m *WindowsRemediationScriptMock) RegisterMocks() {
 			}
 			mockState.Unlock()
 
-			response := map[string]interface{}{
+			response := map[string]any{
 				"@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/deviceHealthScripts",
 				"value":          scripts,
 			}
@@ -106,7 +106,7 @@ func (m *WindowsRemediationScriptMock) RegisterMocks() {
 					if err != nil {
 						return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to load mock response"}}`), nil
 					}
-					var response map[string]interface{}
+					var response map[string]any
 					if err := json.Unmarshal([]byte(jsonStr), &response); err != nil {
 						return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to parse mock response"}}`), nil
 					}
@@ -117,7 +117,7 @@ func (m *WindowsRemediationScriptMock) RegisterMocks() {
 					if err != nil {
 						return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to load mock response"}}`), nil
 					}
-					var response map[string]interface{}
+					var response map[string]any
 					if err := json.Unmarshal([]byte(jsonStr), &response); err != nil {
 						return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to parse mock response"}}`), nil
 					}
@@ -125,14 +125,14 @@ func (m *WindowsRemediationScriptMock) RegisterMocks() {
 					return factories.SuccessResponse(200, response)(req)
 				default:
 					jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_delete/get_windows_remediation_script_not_found.json")
-					var errorResponse map[string]interface{}
+					var errorResponse map[string]any
 					_ = json.Unmarshal([]byte(jsonStr), &errorResponse)
 					return httpmock.NewJsonResponse(404, errorResponse)
 				}
 			}
 
 			// Create response copy
-			scriptCopy := make(map[string]interface{})
+			scriptCopy := make(map[string]any)
 			for k, v := range script {
 				scriptCopy[k] = v
 			}
@@ -167,7 +167,7 @@ func (m *WindowsRemediationScriptMock) RegisterMocks() {
 	// Register POST for creating Windows remediation script
 	httpmock.RegisterResponder("POST", "https://graph.microsoft.com/beta/deviceManagement/deviceHealthScripts",
 		func(req *http.Request) (*http.Response, error) {
-			var requestBody map[string]interface{}
+			var requestBody map[string]any
 			err := json.NewDecoder(req.Body).Decode(&requestBody)
 			if err != nil {
 				return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"Invalid request body"}}`), nil
@@ -177,7 +177,7 @@ func (m *WindowsRemediationScriptMock) RegisterMocks() {
 			id := uuid.New().String()
 
 			// Create the script object with required fields
-			script := map[string]interface{}{
+			script := map[string]any{
 				"@odata.type":              "#microsoft.graph.deviceHealthScript",
 				"id":                       id,
 				"displayName":              requestBody["displayName"],
@@ -223,11 +223,11 @@ func (m *WindowsRemediationScriptMock) RegisterMocks() {
 			urlParts := strings.Split(req.URL.Path, "/")
 			id := urlParts[len(urlParts)-1]
 
-			var requestBody map[string]interface{}
+			var requestBody map[string]any
 			err := json.NewDecoder(req.Body).Decode(&requestBody)
 			if err != nil {
 				jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_create/post_windows_remediation_script_error.json")
-				var errorResponse map[string]interface{}
+				var errorResponse map[string]any
 				_ = json.Unmarshal([]byte(jsonStr), &errorResponse)
 				return httpmock.NewJsonResponse(400, errorResponse)
 			}
@@ -237,7 +237,7 @@ func (m *WindowsRemediationScriptMock) RegisterMocks() {
 			if err != nil {
 				return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to load mock response"}}`), nil
 			}
-			var updatedScript map[string]interface{}
+			var updatedScript map[string]any
 			if err := json.Unmarshal([]byte(jsonStr), &updatedScript); err != nil {
 				return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to parse mock response"}}`), nil
 			}
@@ -247,7 +247,7 @@ func (m *WindowsRemediationScriptMock) RegisterMocks() {
 			if !exists {
 				mockState.Unlock()
 				jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_delete/get_windows_remediation_script_not_found.json")
-				var errorResponse map[string]interface{}
+				var errorResponse map[string]any
 				_ = json.Unmarshal([]byte(jsonStr), &errorResponse)
 				return httpmock.NewJsonResponse(404, errorResponse)
 			}
@@ -285,7 +285,7 @@ func (m *WindowsRemediationScriptMock) RegisterMocks() {
 
 			if !exists {
 				jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_delete/get_windows_remediation_script_not_found.json")
-				var errorResponse map[string]interface{}
+				var errorResponse map[string]any
 				_ = json.Unmarshal([]byte(jsonStr), &errorResponse)
 				return httpmock.NewJsonResponse(404, errorResponse)
 			}
@@ -306,7 +306,7 @@ func (m *WindowsRemediationScriptMock) registerAssignmentMocks() {
 			scriptId := urlParts[len(urlParts)-2] // deviceHealthScripts/{id}/assign
 
 			// Parse request body to get assignments
-			var requestBody map[string]interface{}
+			var requestBody map[string]any
 			err := json.NewDecoder(req.Body).Decode(&requestBody)
 			if err != nil {
 				return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"Invalid request body"}}`), nil
@@ -321,15 +321,15 @@ func (m *WindowsRemediationScriptMock) registerAssignmentMocks() {
 						// Extract the actual assignment data from the request
 						graphAssignments := []interface{}{}
 						for _, assignment := range assignmentList {
-							if assignmentMap, ok := assignment.(map[string]interface{}); ok {
+							if assignmentMap, ok := assignment.(map[string]any); ok {
 								// Generate a unique assignment ID
 								assignmentId := uuid.New().String()
 
 								// For device health scripts, assignments come with a "target" wrapper
 								// Extract the target data from the assignment
-								var target map[string]interface{}
-								if targetData, hasTarget := assignmentMap["target"].(map[string]interface{}); hasTarget {
-									target = make(map[string]interface{})
+								var target map[string]any
+								if targetData, hasTarget := assignmentMap["target"].(map[string]any); hasTarget {
+									target = make(map[string]any)
 									// Copy target fields
 									for k, v := range targetData {
 										target[k] = v
@@ -339,9 +339,9 @@ func (m *WindowsRemediationScriptMock) registerAssignmentMocks() {
 								}
 
 								// Handle runSchedule if present
-								var runSchedule map[string]interface{}
-								if scheduleData, hasSchedule := assignmentMap["runSchedule"].(map[string]interface{}); hasSchedule {
-									runSchedule = make(map[string]interface{})
+								var runSchedule map[string]any
+								if scheduleData, hasSchedule := assignmentMap["runSchedule"].(map[string]any); hasSchedule {
+									runSchedule = make(map[string]any)
 									// Copy schedule fields with proper structure
 									for k, v := range scheduleData {
 										runSchedule[k] = v
@@ -353,7 +353,7 @@ func (m *WindowsRemediationScriptMock) registerAssignmentMocks() {
 
 								// Keep original Microsoft Graph API field names for SDK processing
 								// The SDK will handle the field name mapping to Terraform structure
-								graphAssignment := map[string]interface{}{
+								graphAssignment := map[string]any{
 									"id":     assignmentId,
 									"target": target,
 								}
@@ -393,9 +393,9 @@ func (m *WindowsRemediationScriptMock) registerAssignmentMocks() {
 			mockState.Unlock()
 
 			if !exists {
-				response := map[string]interface{}{
+				response := map[string]any{
 					"@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/deviceHealthScripts('" + id + "')/assignments",
-					"value":          []map[string]interface{}{},
+					"value":          []map[string]any{},
 				}
 				return httpmock.NewJsonResponse(200, response)
 			}
@@ -408,7 +408,7 @@ func (m *WindowsRemediationScriptMock) registerAssignmentMocks() {
 				}
 			}
 
-			response := map[string]interface{}{
+			response := map[string]any{
 				"@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/deviceHealthScripts('" + id + "')/assignments",
 				"value":          assignments,
 			}
@@ -434,15 +434,15 @@ func (m *WindowsRemediationScriptMock) CleanupMockState() {
 func (m *WindowsRemediationScriptMock) RegisterErrorMocks() {
 	// Reset the state when registering error mocks
 	mockState.Lock()
-	mockState.windowsRemediationScripts = make(map[string]map[string]interface{})
+	mockState.windowsRemediationScripts = make(map[string]map[string]any)
 	mockState.Unlock()
 
 	// Register GET for listing Windows remediation scripts (needed for uniqueness check)
 	httpmock.RegisterResponder("GET", "https://graph.microsoft.com/beta/deviceManagement/deviceHealthScripts",
 		func(req *http.Request) (*http.Response, error) {
-			response := map[string]interface{}{
+			response := map[string]any{
 				"@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/deviceHealthScripts",
-				"value":          []map[string]interface{}{}, // Empty list for error scenarios
+				"value":          []map[string]any{}, // Empty list for error scenarios
 			}
 			return httpmock.NewJsonResponse(200, response)
 		})
@@ -451,7 +451,7 @@ func (m *WindowsRemediationScriptMock) RegisterErrorMocks() {
 	httpmock.RegisterResponder("POST", "https://graph.microsoft.com/beta/deviceManagement/deviceHealthScripts",
 		func(req *http.Request) (*http.Response, error) {
 			jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_create/post_windows_remediation_script_error.json")
-			var errorResponse map[string]interface{}
+			var errorResponse map[string]any
 			_ = json.Unmarshal([]byte(jsonStr), &errorResponse)
 			return httpmock.NewJsonResponse(400, errorResponse)
 		})
@@ -460,13 +460,13 @@ func (m *WindowsRemediationScriptMock) RegisterErrorMocks() {
 	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/deviceManagement/deviceHealthScripts/([^/]+)$`,
 		func(req *http.Request) (*http.Response, error) {
 			jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_delete/get_windows_remediation_script_not_found.json")
-			var errorResponse map[string]interface{}
+			var errorResponse map[string]any
 			_ = json.Unmarshal([]byte(jsonStr), &errorResponse)
 			return httpmock.NewJsonResponse(404, errorResponse)
 		})
 }
 
-func getOptionalBool(data map[string]interface{}, key string, defaultValue bool) bool {
+func getOptionalBool(data map[string]any, key string, defaultValue bool) bool {
 	if value, exists := data[key]; exists {
 		if b, ok := value.(bool); ok {
 			return b

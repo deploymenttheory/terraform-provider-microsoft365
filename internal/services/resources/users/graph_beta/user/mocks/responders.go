@@ -16,12 +16,12 @@ import (
 // mockState tracks the state of resources for consistent responses
 var mockState struct {
 	sync.Mutex
-	users map[string]map[string]interface{}
+	users map[string]map[string]any
 }
 
 func init() {
 	// Initialize mockState
-	mockState.users = make(map[string]map[string]interface{})
+	mockState.users = make(map[string]map[string]any)
 
 	// Register a default 404 responder for any unmatched requests
 	httpmock.RegisterNoResponder(httpmock.NewStringResponder(404, `{"error":{"code":"ResourceNotFound","message":"Resource not found"}}`))
@@ -34,7 +34,7 @@ type UserMock struct{}
 func (m *UserMock) RegisterMocks() {
 	// Reset the state when registering mocks
 	mockState.Lock()
-	mockState.users = make(map[string]map[string]interface{})
+	mockState.users = make(map[string]map[string]any)
 	mockState.Unlock()
 
 	// Register specific test users
@@ -63,12 +63,12 @@ func (m *UserMock) RegisterMocks() {
 			mockState.Lock()
 			defer mockState.Unlock()
 
-			users := make([]map[string]interface{}, 0, len(mockState.users))
+			users := make([]map[string]any, 0, len(mockState.users))
 			for _, user := range mockState.users {
 				users = append(users, user)
 			}
 
-			response := map[string]interface{}{
+			response := map[string]any{
 				"@odata.context": "https://graph.microsoft.com/beta/$metadata#users",
 				"value":          users,
 			}
@@ -79,7 +79,7 @@ func (m *UserMock) RegisterMocks() {
 	// Register POST for creating users
 	httpmock.RegisterResponder("POST", "https://graph.microsoft.com/beta/users",
 		func(req *http.Request) (*http.Response, error) {
-			var userData map[string]interface{}
+			var userData map[string]any
 			err := json.NewDecoder(req.Body).Decode(&userData)
 			if err != nil {
 				return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"Invalid request body"}}`), nil
@@ -92,7 +92,7 @@ func (m *UserMock) RegisterMocks() {
 			if _, ok := userData["userPrincipalName"].(string); !ok {
 				return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"userPrincipalName is required"}}`), nil
 			}
-			if passwordProfile, ok := userData["passwordProfile"].(map[string]interface{}); !ok || passwordProfile["password"] == nil {
+			if passwordProfile, ok := userData["passwordProfile"].(map[string]any); !ok || passwordProfile["password"] == nil {
 				return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"passwordProfile with password is required"}}`), nil
 			}
 
@@ -107,7 +107,7 @@ func (m *UserMock) RegisterMocks() {
 
 			// Ensure collection fields are initialized
 			commonMocks.EnsureField(userData, "businessPhones", []string{})
-			commonMocks.EnsureField(userData, "identities", []map[string]interface{}{})
+			commonMocks.EnsureField(userData, "identities", []map[string]any{})
 			commonMocks.EnsureField(userData, "imAddresses", []string{})
 			commonMocks.EnsureField(userData, "otherMails", []string{})
 			commonMocks.EnsureField(userData, "proxyAddresses", []string{})
@@ -135,7 +135,7 @@ func (m *UserMock) RegisterMocks() {
 				return httpmock.NewStringResponse(404, `{"error":{"code":"ResourceNotFound","message":"User not found"}}`), nil
 			}
 
-			var updateData map[string]interface{}
+			var updateData map[string]any
 			err := json.NewDecoder(req.Body).Decode(&updateData)
 			if err != nil {
 				return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"Invalid request body"}}`), nil
@@ -214,7 +214,7 @@ func (m *UserMock) RegisterErrorMocks() {
 	// Register error response for duplicate user principal name
 	httpmock.RegisterResponder("POST", "https://graph.microsoft.com/beta/users",
 		func(req *http.Request) (*http.Response, error) {
-			var userData map[string]interface{}
+			var userData map[string]any
 			err := json.NewDecoder(req.Body).Decode(&userData)
 			if err != nil {
 				return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"Invalid request body"}}`), nil
@@ -233,19 +233,19 @@ func (m *UserMock) RegisterErrorMocks() {
 func registerTestUsers() {
 	// Minimal user with only required attributes
 	minimalUserId := "00000000-0000-0000-0000-000000000001"
-	minimalUserData := map[string]interface{}{
+	minimalUserData := map[string]any{
 		"id":                minimalUserId,
 		"displayName":       "Minimal User",
 		"userPrincipalName": "minimal.user@contoso.com",
 		"accountEnabled":    true,
-		"passwordProfile": map[string]interface{}{
+		"passwordProfile": map[string]any{
 			"password":                             "SecureP@ssw0rd!",
 			"forceChangePasswordNextSignIn":        false,
 			"forceChangePasswordNextSignInWithMfa": false,
 		},
 		"createdDateTime": "2023-01-01T00:00:00Z",
 		"businessPhones":  []string{},
-		"identities":      []map[string]interface{}{},
+		"identities":      []map[string]any{},
 		"imAddresses":     []string{},
 		"otherMails":      []string{},
 		"proxyAddresses":  []string{},
@@ -253,7 +253,7 @@ func registerTestUsers() {
 
 	// Maximal user with all attributes
 	maximalUserId := "00000000-0000-0000-0000-000000000002"
-	maximalUserData := map[string]interface{}{
+	maximalUserData := map[string]any{
 		"id":                maximalUserId,
 		"displayName":       "Maximal User",
 		"userPrincipalName": "maximal.user@contoso.com",
@@ -273,12 +273,12 @@ func registerTestUsers() {
 		"usageLocation":     "US",
 		"businessPhones":    []string{"+1 425-555-0100"},
 		"mobilePhone":       "+1 425-555-0101",
-		"passwordProfile": map[string]interface{}{
+		"passwordProfile": map[string]any{
 			"password":                             "SecureP@ssw0rd!",
 			"forceChangePasswordNextSignIn":        true,
 			"forceChangePasswordNextSignInWithMfa": false,
 		},
-		"identities": []map[string]interface{}{
+		"identities": []map[string]any{
 			{
 				"signInType":       "emailAddress",
 				"issuer":           "contoso.com",
@@ -299,7 +299,7 @@ func registerTestUsers() {
 }
 
 // Helper function to ensure collection fields exist
-func ensureCollectionField(data map[string]interface{}, fieldName string, defaultValue interface{}) {
+func ensureCollectionField(data map[string]any, fieldName string, defaultValue interface{}) {
 	if data[fieldName] == nil {
 		data[fieldName] = defaultValue
 	}

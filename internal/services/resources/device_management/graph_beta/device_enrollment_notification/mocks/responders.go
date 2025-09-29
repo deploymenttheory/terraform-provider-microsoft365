@@ -15,16 +15,16 @@ import (
 
 var mockState struct {
 	sync.Mutex
-	enrollmentConfigs map[string]map[string]interface{}
-	templates         map[string]map[string]interface{}
-	localizedMessages map[string]map[string]interface{}
+	enrollmentConfigs map[string]map[string]any
+	templates         map[string]map[string]any
+	localizedMessages map[string]map[string]any
 	assignments       map[string][]interface{}
 }
 
 func init() {
-	mockState.enrollmentConfigs = make(map[string]map[string]interface{})
-	mockState.templates = make(map[string]map[string]interface{})
-	mockState.localizedMessages = make(map[string]map[string]interface{})
+	mockState.enrollmentConfigs = make(map[string]map[string]any)
+	mockState.templates = make(map[string]map[string]any)
+	mockState.localizedMessages = make(map[string]map[string]any)
 	mockState.assignments = make(map[string][]interface{})
 	httpmock.RegisterNoResponder(httpmock.NewStringResponder(404, `{"error":{"code":"ResourceNotFound","message":"Resource not found"}}`))
 	mocks.GlobalRegistry.Register("android_enrollment_notifications", &AndroidEnrollmentNotificationsMock{})
@@ -36,9 +36,9 @@ var _ mocks.MockRegistrar = (*AndroidEnrollmentNotificationsMock)(nil)
 
 func (m *AndroidEnrollmentNotificationsMock) RegisterMocks() {
 	mockState.Lock()
-	mockState.enrollmentConfigs = make(map[string]map[string]interface{})
-	mockState.templates = make(map[string]map[string]interface{})
-	mockState.localizedMessages = make(map[string]map[string]interface{})
+	mockState.enrollmentConfigs = make(map[string]map[string]any)
+	mockState.templates = make(map[string]map[string]any)
+	mockState.localizedMessages = make(map[string]map[string]any)
 	mockState.assignments = make(map[string][]interface{})
 	mockState.Unlock()
 
@@ -51,21 +51,21 @@ func (m *AndroidEnrollmentNotificationsMock) RegisterMocks() {
 		if err != nil {
 			return httpmock.NewStringResponse(500, "Internal Server Error"), nil
 		}
-		
-		var responseObj map[string]interface{}
+
+		var responseObj map[string]any
 		if err := json.Unmarshal([]byte(jsonStr), &responseObj); err != nil {
 			return httpmock.NewStringResponse(500, "Internal Server Error"), nil
 		}
 
 		mockState.Lock()
 		defer mockState.Unlock()
-		
+
 		if len(mockState.enrollmentConfigs) == 0 {
 			responseObj["value"] = []interface{}{}
 		} else {
-			list := make([]map[string]interface{}, 0, len(mockState.enrollmentConfigs))
+			list := make([]map[string]any, 0, len(mockState.enrollmentConfigs))
 			for _, v := range mockState.enrollmentConfigs {
-				c := map[string]interface{}{}
+				c := map[string]any{}
 				for k, vv := range v {
 					c[k] = vv
 				}
@@ -86,13 +86,13 @@ func (m *AndroidEnrollmentNotificationsMock) RegisterMocks() {
 		mockState.Unlock()
 		if !ok {
 			jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_delete/get_android_enrollment_notifications_not_found.json")
-			var errObj map[string]interface{}
+			var errObj map[string]any
 			json.Unmarshal([]byte(jsonStr), &errObj)
 			return httpmock.NewJsonResponse(404, errObj)
 		}
 
 		jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_get/get_android_enrollment_notifications.json")
-		var responseObj map[string]interface{}
+		var responseObj map[string]any
 		json.Unmarshal([]byte(jsonStr), &responseObj)
 
 		// Override template values with actual config values
@@ -105,7 +105,7 @@ func (m *AndroidEnrollmentNotificationsMock) RegisterMocks() {
 
 	// POST /deviceManagement/deviceEnrollmentConfigurations - Create configuration
 	httpmock.RegisterResponder("POST", "https://graph.microsoft.com/beta/deviceManagement/deviceEnrollmentConfigurations", func(req *http.Request) (*http.Response, error) {
-		var body map[string]interface{}
+		var body map[string]any
 		if err := json.NewDecoder(req.Body).Decode(&body); err != nil {
 			return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"Invalid request body"}}`), nil
 		}
@@ -118,17 +118,17 @@ func (m *AndroidEnrollmentNotificationsMock) RegisterMocks() {
 			for _, template := range templates {
 				templateStr := template.(string)
 				templateGuid := uuid.New().String()
-				
+
 				if templateStr == "email" {
 					templateId := "Email_" + templateGuid
 					notificationTemplates = append(notificationTemplates, templateId)
-					
+
 					// Store email template
 					mockState.Lock()
-					mockState.templates[templateGuid] = map[string]interface{}{
-						"id":           templateGuid,
-						"displayName":  "Email Template",
-						"brandingOptions": "none",
+					mockState.templates[templateGuid] = map[string]any{
+						"id":                            templateGuid,
+						"displayName":                   "Email Template",
+						"brandingOptions":               "none",
 						"localizedNotificationMessages": []interface{}{},
 					}
 					mockState.Unlock()
@@ -136,13 +136,13 @@ func (m *AndroidEnrollmentNotificationsMock) RegisterMocks() {
 				if templateStr == "push" {
 					templateId := "Push_" + templateGuid
 					notificationTemplates = append(notificationTemplates, templateId)
-					
+
 					// Store push template
 					mockState.Lock()
-					mockState.templates[templateGuid] = map[string]interface{}{
-						"id":           templateGuid,
-						"displayName":  "Push Template",
-						"brandingOptions": "none",
+					mockState.templates[templateGuid] = map[string]any{
+						"id":                            templateGuid,
+						"displayName":                   "Push Template",
+						"brandingOptions":               "none",
 						"localizedNotificationMessages": []interface{}{},
 					}
 					mockState.Unlock()
@@ -151,7 +151,7 @@ func (m *AndroidEnrollmentNotificationsMock) RegisterMocks() {
 		}
 
 		jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_create/post_android_enrollment_notifications_success.json")
-		var responseObj map[string]interface{}
+		var responseObj map[string]any
 		json.Unmarshal([]byte(jsonStr), &responseObj)
 
 		// Override template values with request values
@@ -181,7 +181,7 @@ func (m *AndroidEnrollmentNotificationsMock) RegisterMocks() {
 	httpmock.RegisterResponder("PATCH", `=~^https://graph\.microsoft\.com/beta/deviceManagement/deviceEnrollmentConfigurations/[^/]+$`, func(req *http.Request) (*http.Response, error) {
 		parts := strings.Split(req.URL.Path, "/")
 		id := parts[len(parts)-1]
-		var body map[string]interface{}
+		var body map[string]any
 		if err := json.NewDecoder(req.Body).Decode(&body); err != nil {
 			return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"Invalid request body"}}`), nil
 		}
@@ -191,13 +191,13 @@ func (m *AndroidEnrollmentNotificationsMock) RegisterMocks() {
 		if !ok {
 			mockState.Unlock()
 			jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_delete/get_android_enrollment_notifications_not_found.json")
-			var errObj map[string]interface{}
+			var errObj map[string]any
 			json.Unmarshal([]byte(jsonStr), &errObj)
 			return httpmock.NewJsonResponse(404, errObj)
 		}
 
 		jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_update/patch_android_enrollment_notifications_success.json")
-		var responseObj map[string]interface{}
+		var responseObj map[string]any
 		json.Unmarshal([]byte(jsonStr), &responseObj)
 
 		// Override with existing values
@@ -225,30 +225,30 @@ func (m *AndroidEnrollmentNotificationsMock) RegisterMocks() {
 	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/deviceManagement/deviceEnrollmentConfigurations/[^/]+/assignments$`, func(req *http.Request) (*http.Response, error) {
 		parts := strings.Split(req.URL.Path, "/")
 		id := parts[len(parts)-2]
-		
+
 		mockState.Lock()
 		storedAssignments, ok := mockState.assignments[id]
 		mockState.Unlock()
-		
+
 		jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_get/get_android_enrollment_notifications_assignments.json")
-		var responseObj map[string]interface{}
+		var responseObj map[string]any
 		json.Unmarshal([]byte(jsonStr), &responseObj)
-		
+
 		if !ok || len(storedAssignments) == 0 {
 			responseObj["value"] = []interface{}{}
 		} else {
 			// Transform stored assignments (from POST body) to Graph API assignment format
 			graphAssignments := make([]interface{}, 0, len(storedAssignments))
 			for i, assignment := range storedAssignments {
-				if assignmentMap, ok := assignment.(map[string]interface{}); ok {
+				if assignmentMap, ok := assignment.(map[string]any); ok {
 					assignmentId := fmt.Sprintf("%s_assignment_%d", id, i)
-					
-					graphAssignment := map[string]interface{}{
+
+					graphAssignment := map[string]any{
 						"@odata.type": "#microsoft.graph.enrollmentConfigurationAssignment",
 						"id":          assignmentId,
-						"target": map[string]interface{}{
-							"@odata.type":                               "#microsoft.graph.groupAssignmentTarget",
-							"deviceAndAppManagementAssignmentFilterId":  nil,
+						"target": map[string]any{
+							"@odata.type": "#microsoft.graph.groupAssignmentTarget",
+							"deviceAndAppManagementAssignmentFilterId":   nil,
 							"deviceAndAppManagementAssignmentFilterType": "none",
 							"groupId": assignmentMap["group_id"],
 						},
@@ -266,7 +266,7 @@ func (m *AndroidEnrollmentNotificationsMock) RegisterMocks() {
 	httpmock.RegisterResponder("POST", `=~^https://graph\.microsoft\.com/beta/deviceManagement/deviceEnrollmentConfigurations/[^/]+/assign$`, func(req *http.Request) (*http.Response, error) {
 		parts := strings.Split(req.URL.Path, "/")
 		id := parts[len(parts)-2]
-		var body map[string]interface{}
+		var body map[string]any
 		if err := json.NewDecoder(req.Body).Decode(&body); err != nil {
 			return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"Invalid request body"}}`), nil
 		}
@@ -277,9 +277,9 @@ func (m *AndroidEnrollmentNotificationsMock) RegisterMocks() {
 			// Convert Graph SDK assignment format to terraform assignment format for storage
 			terraformAssignments := make([]interface{}, 0, len(enrollmentAssignments))
 			for _, assignment := range enrollmentAssignments {
-				if assignmentMap, ok := assignment.(map[string]interface{}); ok {
-					if target, ok := assignmentMap["target"].(map[string]interface{}); ok {
-						terraformAssignment := map[string]interface{}{
+				if assignmentMap, ok := assignment.(map[string]any); ok {
+					if target, ok := assignmentMap["target"].(map[string]any); ok {
+						terraformAssignment := map[string]any{
 							"type": "groupAssignmentTarget",
 						}
 						if groupId, exists := target["groupId"]; exists {
@@ -300,14 +300,14 @@ func (m *AndroidEnrollmentNotificationsMock) RegisterMocks() {
 	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/deviceManagement/notificationMessageTemplates/[^/]+$`, func(req *http.Request) (*http.Response, error) {
 		parts := strings.Split(req.URL.Path, "/")
 		id := parts[len(parts)-1]
-		
+
 		mockState.Lock()
 		template, ok := mockState.templates[id]
 		mockState.Unlock()
-		
+
 		if !ok {
-			return httpmock.NewJsonResponse(404, map[string]interface{}{
-				"error": map[string]interface{}{
+			return httpmock.NewJsonResponse(404, map[string]any{
+				"error": map[string]any{
 					"code":    "NotFound",
 					"message": "Notification message template not found",
 				},
@@ -315,7 +315,7 @@ func (m *AndroidEnrollmentNotificationsMock) RegisterMocks() {
 		}
 
 		jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_get/get_notification_template.json")
-		var responseObj map[string]interface{}
+		var responseObj map[string]any
 		json.Unmarshal([]byte(jsonStr), &responseObj)
 
 		// Override with actual template values
@@ -330,7 +330,7 @@ func (m *AndroidEnrollmentNotificationsMock) RegisterMocks() {
 	httpmock.RegisterResponder("PATCH", `=~^https://graph\.microsoft\.com/beta/deviceManagement/notificationMessageTemplates/[^/]+$`, func(req *http.Request) (*http.Response, error) {
 		parts := strings.Split(req.URL.Path, "/")
 		id := parts[len(parts)-1]
-		var body map[string]interface{}
+		var body map[string]any
 		if err := json.NewDecoder(req.Body).Decode(&body); err != nil {
 			return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"Invalid request body"}}`), nil
 		}
@@ -352,10 +352,10 @@ func (m *AndroidEnrollmentNotificationsMock) RegisterMocks() {
 	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/deviceManagement/notificationMessageTemplates/[^/]+/localizedNotificationMessages$`, func(req *http.Request) (*http.Response, error) {
 		parts := strings.Split(req.URL.Path, "/")
 		templateId := parts[len(parts)-2]
-		
+
 		mockState.Lock()
 		defer mockState.Unlock()
-		
+
 		// Find all localized messages for this template
 		messages := []interface{}{}
 		for messageId, message := range mockState.localizedMessages {
@@ -365,7 +365,7 @@ func (m *AndroidEnrollmentNotificationsMock) RegisterMocks() {
 		}
 
 		jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_get/get_localized_notification_messages.json")
-		var responseObj map[string]interface{}
+		var responseObj map[string]any
 		json.Unmarshal([]byte(jsonStr), &responseObj)
 		responseObj["value"] = messages
 
@@ -376,15 +376,15 @@ func (m *AndroidEnrollmentNotificationsMock) RegisterMocks() {
 	httpmock.RegisterResponder("POST", `=~^https://graph\.microsoft\.com/beta/deviceManagement/notificationMessageTemplates/[^/]+/localizedNotificationMessages$`, func(req *http.Request) (*http.Response, error) {
 		parts := strings.Split(req.URL.Path, "/")
 		templateId := parts[len(parts)-2]
-		var body map[string]interface{}
+		var body map[string]any
 		if err := json.NewDecoder(req.Body).Decode(&body); err != nil {
 			return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"Invalid request body"}}`), nil
 		}
 
 		messageId := templateId + "_" + body["locale"].(string)
-		
+
 		jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_create/post_localized_notification_message_success.json")
-		var responseObj map[string]interface{}
+		var responseObj map[string]any
 		json.Unmarshal([]byte(jsonStr), &responseObj)
 
 		// Override with actual values
@@ -405,7 +405,7 @@ func (m *AndroidEnrollmentNotificationsMock) RegisterMocks() {
 	httpmock.RegisterResponder("PATCH", `=~^https://graph\.microsoft\.com/beta/deviceManagement/notificationMessageTemplates/[^/]+/localizedNotificationMessages/[^/]+$`, func(req *http.Request) (*http.Response, error) {
 		parts := strings.Split(req.URL.Path, "/")
 		messageId := parts[len(parts)-1]
-		var body map[string]interface{}
+		var body map[string]any
 		if err := json.NewDecoder(req.Body).Decode(&body); err != nil {
 			return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"Invalid request body"}}`), nil
 		}
@@ -427,7 +427,7 @@ func (m *AndroidEnrollmentNotificationsMock) RegisterMocks() {
 	httpmock.RegisterResponder("DELETE", `=~^https://graph\.microsoft\.com/beta/deviceManagement/deviceEnrollmentConfigurations/[^/]+$`, func(req *http.Request) (*http.Response, error) {
 		parts := strings.Split(req.URL.Path, "/")
 		id := parts[len(parts)-1]
-		
+
 		mockState.Lock()
 		delete(mockState.enrollmentConfigs, id)
 		delete(mockState.assignments, id)
@@ -439,9 +439,9 @@ func (m *AndroidEnrollmentNotificationsMock) RegisterMocks() {
 
 func (m *AndroidEnrollmentNotificationsMock) RegisterErrorMocks() {
 	mockState.Lock()
-	mockState.enrollmentConfigs = make(map[string]map[string]interface{})
-	mockState.templates = make(map[string]map[string]interface{})
-	mockState.localizedMessages = make(map[string]map[string]interface{})
+	mockState.enrollmentConfigs = make(map[string]map[string]any)
+	mockState.templates = make(map[string]map[string]any)
+	mockState.localizedMessages = make(map[string]map[string]any)
 	mockState.assignments = make(map[string][]interface{})
 	mockState.Unlock()
 
@@ -451,7 +451,7 @@ func (m *AndroidEnrollmentNotificationsMock) RegisterErrorMocks() {
 	// Error response for creation
 	httpmock.RegisterResponder("POST", "https://graph.microsoft.com/beta/deviceManagement/deviceEnrollmentConfigurations", func(req *http.Request) (*http.Response, error) {
 		jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_create/post_android_enrollment_notifications_error.json")
-		var errObj map[string]interface{}
+		var errObj map[string]any
 		json.Unmarshal([]byte(jsonStr), &errObj)
 		return httpmock.NewJsonResponse(400, errObj)
 	})
@@ -459,7 +459,7 @@ func (m *AndroidEnrollmentNotificationsMock) RegisterErrorMocks() {
 	// Error response for GET operations
 	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/deviceManagement/deviceEnrollmentConfigurations/[^/]+$`, func(req *http.Request) (*http.Response, error) {
 		jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_delete/get_android_enrollment_notifications_not_found.json")
-		var errObj map[string]interface{}
+		var errObj map[string]any
 		json.Unmarshal([]byte(jsonStr), &errObj)
 		return httpmock.NewJsonResponse(404, errObj)
 	})
@@ -470,9 +470,9 @@ func (m *AndroidEnrollmentNotificationsMock) registerGroupMocks() {
 	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/groups/[^/]+$`, func(req *http.Request) (*http.Response, error) {
 		parts := strings.Split(req.URL.Path, "/")
 		id := parts[len(parts)-1]
-		
+
 		jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_get/get_group.json")
-		var responseObj map[string]interface{}
+		var responseObj map[string]any
 		json.Unmarshal([]byte(jsonStr), &responseObj)
 		responseObj["id"] = id
 

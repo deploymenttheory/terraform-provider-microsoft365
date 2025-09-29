@@ -37,7 +37,7 @@ func ObjectNullIfEmpty(attrTypes map[string]attr.Type, values map[string]attr.Va
 func ObjectValueFrom(ctx context.Context, attrTypes map[string]attr.Type, value interface{}) types.Object {
 	object, diags := types.ObjectValueFrom(ctx, attrTypes, value)
 	if diags.HasError() {
-		tflog.Error(ctx, "Failed to convert to types.Object", map[string]interface{}{
+		tflog.Error(ctx, "Failed to convert to types.Object", map[string]any{
 			"error": diags.Errors()[0].Detail(),
 		})
 		panic(diags.Errors()[0].Detail())
@@ -70,7 +70,7 @@ func ObjectSetFromSlice(ctx context.Context, attrTypes map[string]attr.Type, val
 	for i := 0; i < length; i++ {
 		obj, err := types.ObjectValue(attrTypes, valueFunc(i))
 		if err != nil {
-			tflog.Error(ctx, "Failed to create object value", map[string]interface{}{
+			tflog.Error(ctx, "Failed to create object value", map[string]any{
 				"error": err,
 				"index": i,
 			})
@@ -81,7 +81,7 @@ func ObjectSetFromSlice(ctx context.Context, attrTypes map[string]attr.Type, val
 
 	set, diags := types.SetValue(types.ObjectType{AttrTypes: attrTypes}, values)
 	if diags.HasError() {
-		tflog.Error(ctx, "Failed to create set value", map[string]interface{}{
+		tflog.Error(ctx, "Failed to create set value", map[string]any{
 			"error": diags.Errors()[0].Detail(),
 		})
 		return types.SetNull(types.ObjectType{AttrTypes: attrTypes})

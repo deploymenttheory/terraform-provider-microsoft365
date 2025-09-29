@@ -40,23 +40,23 @@ func MapRemoteStateToTerraform(ctx context.Context, data *LinuxDeviceComplianceP
 	}
 
 	assignments := remoteResource.GetAssignments()
-	tflog.Debug(ctx, "Retrieved assignments from remote resource", map[string]interface{}{
+	tflog.Debug(ctx, "Retrieved assignments from remote resource", map[string]any{
 		"assignmentCount": len(assignments),
 		"resourceId":      data.ID.ValueString(),
 	})
 
 	if len(assignments) == 0 {
-		tflog.Debug(ctx, "No assignments found, setting assignments to null", map[string]interface{}{
+		tflog.Debug(ctx, "No assignments found, setting assignments to null", map[string]any{
 			"resourceId": data.ID.ValueString(),
 		})
 		data.Assignments = types.SetNull(LinuxDeviceCompliancePolicyAssignmentType())
 	} else {
-		tflog.Debug(ctx, "Starting assignment mapping process", map[string]interface{}{
+		tflog.Debug(ctx, "Starting assignment mapping process", map[string]any{
 			"resourceId":      data.ID.ValueString(),
 			"assignmentCount": len(assignments),
 		})
 		MapAssignmentsToTerraform(ctx, data, assignments)
-		tflog.Debug(ctx, "Completed assignment mapping process", map[string]interface{}{
+		tflog.Debug(ctx, "Completed assignment mapping process", map[string]any{
 			"resourceId": data.ID.ValueString(),
 		})
 	}

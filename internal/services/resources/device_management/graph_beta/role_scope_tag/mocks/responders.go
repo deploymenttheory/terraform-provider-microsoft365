@@ -18,14 +18,14 @@ import (
 // mockState tracks the state of resources for consistent responses
 var mockState struct {
 	sync.Mutex
-	roleScopeTags map[string]map[string]interface{}
-	assignments   map[string][]map[string]interface{}
+	roleScopeTags map[string]map[string]any
+	assignments   map[string][]map[string]any
 }
 
 func init() {
 	// Initialize mockState
-	mockState.roleScopeTags = make(map[string]map[string]interface{})
-	mockState.assignments = make(map[string][]map[string]interface{})
+	mockState.roleScopeTags = make(map[string]map[string]any)
+	mockState.assignments = make(map[string][]map[string]any)
 
 	// Register a default 404 responder for any unmatched requests
 	httpmock.RegisterNoResponder(httpmock.NewStringResponder(404, `{"error":{"code":"ResourceNotFound","message":"Resource not found"}}`))
@@ -72,11 +72,10 @@ func (m *RoleScopeTagMock) RegisterMocks() {
 		m.getAssignmentsResponder())
 }
 
-
 // createRoleScopeTagResponder handles POST requests to create role scope tags
 func (m *RoleScopeTagMock) createRoleScopeTagResponder() httpmock.Responder {
 	return func(req *http.Request) (*http.Response, error) {
-		var requestBody map[string]interface{}
+		var requestBody map[string]any
 		if err := json.NewDecoder(req.Body).Decode(&requestBody); err != nil {
 			return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"Invalid JSON"}}`), nil
 		}
@@ -88,8 +87,8 @@ func (m *RoleScopeTagMock) createRoleScopeTagResponder() httpmock.Responder {
 			for _, existingTag := range mockState.roleScopeTags {
 				if existingDisplayName, exists := existingTag["displayName"].(string); exists && existingDisplayName == displayName {
 					mockState.Unlock()
-					return httpmock.NewJsonResponse(400, map[string]interface{}{
-						"error": map[string]interface{}{
+					return httpmock.NewJsonResponse(400, map[string]any{
+						"error": map[string]any{
 							"code":    "BadRequest",
 							"message": "Role scope tag with display name '" + displayName + "' already exists. Display names must be unique",
 						},
@@ -100,14 +99,14 @@ func (m *RoleScopeTagMock) createRoleScopeTagResponder() httpmock.Responder {
 		}
 
 		// Load base response from JSON file - use minimal if no description provided
-		var response map[string]interface{}
+		var response map[string]any
 		var err error
 		if description, hasDesc := requestBody["description"]; hasDesc && description != "" {
 			response, err = mocks.LoadJSONResponse(filepath.Join("tests", "responses", "validate_create", "get_role_scope_tag_maximal.json"))
 		} else {
 			response, err = mocks.LoadJSONResponse(filepath.Join("tests", "responses", "validate_create", "get_role_scope_tag_minimal.json"))
 		}
-		
+
 		if err != nil {
 			return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to load mock response"}}`), nil
 		}
@@ -187,11 +186,11 @@ func (m *RoleScopeTagMock) updateRoleScopeTagResponder() httpmock.Responder {
 			return httpmock.NewJsonResponse(404, errorResponse)
 		}
 
-		var requestBody map[string]interface{}
+		var requestBody map[string]any
 		if err := json.NewDecoder(req.Body).Decode(&requestBody); err != nil {
-			return httpmock.NewJsonResponse(400, map[string]interface{}{
-				"error": map[string]interface{}{
-					"code":    "BadRequest", 
+			return httpmock.NewJsonResponse(400, map[string]any{
+				"error": map[string]any{
+					"code":    "BadRequest",
 					"message": "Invalid JSON",
 				},
 			})
@@ -204,8 +203,8 @@ func (m *RoleScopeTagMock) updateRoleScopeTagResponder() httpmock.Responder {
 				if existingId != id {
 					if existingDisplayName, exists := existingTag["displayName"].(string); exists && existingDisplayName == displayName {
 						mockState.Unlock()
-						return httpmock.NewJsonResponse(400, map[string]interface{}{
-							"error": map[string]interface{}{
+						return httpmock.NewJsonResponse(400, map[string]any{
+							"error": map[string]any{
 								"code":    "BadRequest",
 								"message": "Role scope tag with display name '" + displayName + "' already exists. Display names must be unique",
 							},
@@ -271,13 +270,13 @@ func (m *RoleScopeTagMock) deleteRoleScopeTagResponder() httpmock.Responder {
 func (m *RoleScopeTagMock) listRoleScopeTagsResponder() httpmock.Responder {
 	return func(req *http.Request) (*http.Response, error) {
 		mockState.Lock()
-		allTags := make([]map[string]interface{}, 0, len(mockState.roleScopeTags))
+		allTags := make([]map[string]any, 0, len(mockState.roleScopeTags))
 		for _, tag := range mockState.roleScopeTags {
 			allTags = append(allTags, tag)
 		}
 		mockState.Unlock()
 
-		response := map[string]interface{}{
+		response := map[string]any{
 			"value": allTags,
 		}
 
@@ -307,16 +306,16 @@ func (m *RoleScopeTagMock) assignRoleScopeTagResponder() httpmock.Responder {
 			return httpmock.NewJsonResponse(404, errorResponse)
 		}
 
-		var requestBody map[string]interface{}
+		var requestBody map[string]any
 		if err := json.NewDecoder(req.Body).Decode(&requestBody); err != nil {
 			return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"Invalid JSON"}}`), nil
 		}
 
 		// Store assignments in mock state
 		if assignments, ok := requestBody["assignments"].([]interface{}); ok {
-			mockAssignments := make([]map[string]interface{}, 0, len(assignments))
+			mockAssignments := make([]map[string]any, 0, len(assignments))
 			for i, assignment := range assignments {
-				if assignmentMap, ok := assignment.(map[string]interface{}); ok {
+				if assignmentMap, ok := assignment.(map[string]any); ok {
 					// Add mock assignment ID
 					assignmentMap["id"] = uuid.New().String()
 					mockAssignments = append(mockAssignments, assignmentMap)
@@ -324,7 +323,7 @@ func (m *RoleScopeTagMock) assignRoleScopeTagResponder() httpmock.Responder {
 					return httpmock.NewStringResponse(400, fmt.Sprintf(`{"error":{"code":"BadRequest","message":"Invalid assignment at index %d"}}`, i)), nil
 				}
 			}
-			
+
 			mockState.Lock()
 			mockState.assignments[id] = mockAssignments
 			mockState.Unlock()
@@ -359,7 +358,7 @@ func (m *RoleScopeTagMock) getAssignmentsResponder() httpmock.Responder {
 
 		if !exists {
 			// Return empty assignments response
-			response := map[string]interface{}{
+			response := map[string]any{
 				"value": []interface{}{},
 			}
 			return factories.SuccessResponse(200, response)(req)
@@ -369,7 +368,7 @@ func (m *RoleScopeTagMock) getAssignmentsResponder() httpmock.Responder {
 		response, err := mocks.LoadJSONResponse(filepath.Join("tests", "responses", "validate_assignments", "get_role_scope_tag_assignments.json"))
 		if err != nil {
 			// Fallback to empty response
-			response = map[string]interface{}{
+			response = map[string]any{
 				"value": assignments,
 			}
 		} else {
@@ -390,8 +389,8 @@ func (m *RoleScopeTagMock) RegisterErrorMocks() {
 	// POST - Create error
 	httpmock.RegisterResponder("POST", "https://graph.microsoft.com/beta/deviceManagement/roleScopeTags",
 		func(req *http.Request) (*http.Response, error) {
-			return httpmock.NewJsonResponse(400, map[string]interface{}{
-				"error": map[string]interface{}{
+			return httpmock.NewJsonResponse(400, map[string]any{
+				"error": map[string]any{
 					"code":    "BadRequest",
 					"message": "Invalid role scope tag data",
 				},
@@ -414,21 +413,21 @@ func (m *RoleScopeTagMock) RegisterErrorMocks() {
 // CleanupMockState clears all stored mock state
 func (m *RoleScopeTagMock) CleanupMockState() {
 	mockState.Lock()
-	mockState.roleScopeTags = make(map[string]map[string]interface{})
-	mockState.assignments = make(map[string][]map[string]interface{})
+	mockState.roleScopeTags = make(map[string]map[string]any)
+	mockState.assignments = make(map[string][]map[string]any)
 	mockState.Unlock()
 }
 
 // GetMockRoleScopeTagData returns sample role scope tag data for testing
-func (m *RoleScopeTagMock) GetMockRoleScopeTagData() map[string]interface{} {
+func (m *RoleScopeTagMock) GetMockRoleScopeTagData() map[string]any {
 	response, err := mocks.LoadJSONResponse(filepath.Join("tests", "responses", "validate_create", "get_role_scope_tag_maximal.json"))
 	if err != nil {
 		// Fallback to hardcoded response if file loading fails
-		return map[string]interface{}{
-			"id":          "test-role-scope-tag-id",
-			"displayName": "Test Role Scope Tag",
-			"description": "Test role scope tag for unit testing",
-			"isBuiltIn":   false,
+		return map[string]any{
+			"id":                   "test-role-scope-tag-id",
+			"displayName":          "Test Role Scope Tag",
+			"description":          "Test role scope tag for unit testing",
+			"isBuiltIn":            false,
 			"createdDateTime":      "2024-01-01T00:00:00Z",
 			"lastModifiedDateTime": "2024-01-01T00:00:00Z",
 		}
@@ -437,15 +436,15 @@ func (m *RoleScopeTagMock) GetMockRoleScopeTagData() map[string]interface{} {
 }
 
 // GetMockRoleScopeTagMinimalData returns minimal role scope tag data for testing
-func (m *RoleScopeTagMock) GetMockRoleScopeTagMinimalData() map[string]interface{} {
+func (m *RoleScopeTagMock) GetMockRoleScopeTagMinimalData() map[string]any {
 	response, err := mocks.LoadJSONResponse(filepath.Join("tests", "responses", "validate_create", "get_role_scope_tag_minimal.json"))
 	if err != nil {
 		// Fallback to hardcoded response if file loading fails
-		return map[string]interface{}{
-			"id":          "test-minimal-role-scope-tag-id",
-			"displayName": "Test Minimal Role Scope Tag",
-			"description": "",
-			"isBuiltIn":   false,
+		return map[string]any{
+			"id":                   "test-minimal-role-scope-tag-id",
+			"displayName":          "Test Minimal Role Scope Tag",
+			"description":          "",
+			"isBuiltIn":            false,
 			"createdDateTime":      "2024-01-01T00:00:00Z",
 			"lastModifiedDateTime": "2024-01-01T00:00:00Z",
 		}

@@ -17,12 +17,12 @@ import (
 // mockState tracks the state of resources for consistent responses
 var mockState struct {
 	sync.Mutex
-	termsAndConditions map[string]map[string]interface{}
+	termsAndConditions map[string]map[string]any
 }
 
 func init() {
 	// Initialize mockState
-	mockState.termsAndConditions = make(map[string]map[string]interface{})
+	mockState.termsAndConditions = make(map[string]map[string]any)
 
 	// Register a default 404 responder for any unmatched requests
 	httpmock.RegisterNoResponder(httpmock.NewStringResponder(404, `{"error":{"code":"ResourceNotFound","message":"Resource not found"}}`))
@@ -68,13 +68,13 @@ func (m *TermsAndConditionsMock) RegisterMocks() {
 // createTermsAndConditionsResponder handles POST requests to create terms and conditions
 func (m *TermsAndConditionsMock) createTermsAndConditionsResponder() httpmock.Responder {
 	return func(req *http.Request) (*http.Response, error) {
-		var requestBody map[string]interface{}
+		var requestBody map[string]any
 		if err := json.NewDecoder(req.Body).Decode(&requestBody); err != nil {
 			return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"Invalid JSON"}}`), nil
 		}
 
 		// Load base response from JSON file - use minimal if no description provided
-		var response map[string]interface{}
+		var response map[string]any
 		var err error
 		if description, hasDesc := requestBody["description"]; hasDesc && description != "" {
 			response, err = mocks.LoadJSONResponse(filepath.Join("tests", "responses", "validate_create", "get_terms_and_conditions_maximal.json"))
@@ -174,10 +174,10 @@ func (m *TermsAndConditionsMock) updateTermsAndConditionsResponder() httpmock.Re
 			return httpmock.NewJsonResponse(404, errorResponse)
 		}
 
-		var requestBody map[string]interface{}
+		var requestBody map[string]any
 		if err := json.NewDecoder(req.Body).Decode(&requestBody); err != nil {
-			return httpmock.NewJsonResponse(400, map[string]interface{}{
-				"error": map[string]interface{}{
+			return httpmock.NewJsonResponse(400, map[string]any{
+				"error": map[string]any{
 					"code":    "BadRequest",
 					"message": "Invalid JSON",
 				},
@@ -240,8 +240,8 @@ func (m *TermsAndConditionsMock) RegisterErrorMocks() {
 	// POST - Create error
 	httpmock.RegisterResponder("POST", "https://graph.microsoft.com/beta/deviceManagement/termsAndConditions",
 		func(req *http.Request) (*http.Response, error) {
-			return httpmock.NewJsonResponse(400, map[string]interface{}{
-				"error": map[string]interface{}{
+			return httpmock.NewJsonResponse(400, map[string]any{
+				"error": map[string]any{
 					"code":    "BadRequest",
 					"message": "Invalid terms and conditions data",
 				},
@@ -264,16 +264,16 @@ func (m *TermsAndConditionsMock) RegisterErrorMocks() {
 // CleanupMockState clears all stored mock state
 func (m *TermsAndConditionsMock) CleanupMockState() {
 	mockState.Lock()
-	mockState.termsAndConditions = make(map[string]map[string]interface{})
+	mockState.termsAndConditions = make(map[string]map[string]any)
 	mockState.Unlock()
 }
 
 // GetMockTermsAndConditionsData returns sample terms and conditions data for testing
-func (m *TermsAndConditionsMock) GetMockTermsAndConditionsData() map[string]interface{} {
+func (m *TermsAndConditionsMock) GetMockTermsAndConditionsData() map[string]any {
 	response, err := mocks.LoadJSONResponse(filepath.Join("tests", "responses", "validate_create", "get_terms_and_conditions_maximal.json"))
 	if err != nil {
 		// Fallback to hardcoded response if file loading fails
-		return map[string]interface{}{
+		return map[string]any{
 			"id":                   "test-terms-and-conditions-id",
 			"displayName":          "Test Terms and Conditions",
 			"description":          "Test terms and conditions for unit testing",
@@ -293,7 +293,7 @@ func (m *TermsAndConditionsMock) GetMockTermsAndConditionsData() map[string]inte
 func (m *TermsAndConditionsMock) getTermsAndConditionsAssignmentsResponder() httpmock.Responder {
 	return func(req *http.Request) (*http.Response, error) {
 		// For unit tests, return empty assignments collection
-		response := map[string]interface{}{
+		response := map[string]any{
 			"value": []interface{}{},
 		}
 		return factories.SuccessResponse(200, response)(req)
@@ -303,13 +303,13 @@ func (m *TermsAndConditionsMock) getTermsAndConditionsAssignmentsResponder() htt
 // createTermsAndConditionsAssignmentResponder handles POST requests to create assignments
 func (m *TermsAndConditionsMock) createTermsAndConditionsAssignmentResponder() httpmock.Responder {
 	return func(req *http.Request) (*http.Response, error) {
-		var requestBody map[string]interface{}
+		var requestBody map[string]any
 		if err := json.NewDecoder(req.Body).Decode(&requestBody); err != nil {
 			return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"Invalid JSON"}}`), nil
 		}
 
 		// Create a mock assignment response
-		response := map[string]interface{}{
+		response := map[string]any{
 			"id":     uuid.New().String(),
 			"target": requestBody["target"],
 		}
@@ -319,11 +319,11 @@ func (m *TermsAndConditionsMock) createTermsAndConditionsAssignmentResponder() h
 }
 
 // GetMockTermsAndConditionsMinimalData returns minimal terms and conditions data for testing
-func (m *TermsAndConditionsMock) GetMockTermsAndConditionsMinimalData() map[string]interface{} {
+func (m *TermsAndConditionsMock) GetMockTermsAndConditionsMinimalData() map[string]any {
 	response, err := mocks.LoadJSONResponse(filepath.Join("tests", "responses", "validate_create", "get_terms_and_conditions_minimal.json"))
 	if err != nil {
 		// Fallback to hardcoded response if file loading fails
-		return map[string]interface{}{
+		return map[string]any{
 			"id":                   "test-minimal-terms-and-conditions-id",
 			"displayName":          "Test Minimal Terms and Conditions",
 			"title":                "Simple Terms",

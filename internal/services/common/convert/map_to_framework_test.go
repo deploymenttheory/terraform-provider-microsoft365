@@ -11,31 +11,31 @@ import (
 func TestMapToFrameworkString(t *testing.T) {
 	tests := []struct {
 		name     string
-		data     map[string]interface{}
+		data     map[string]any
 		key      string
 		expected types.String
 	}{
 		{
 			name:     "valid string value",
-			data:     map[string]interface{}{"name": "test"},
+			data:     map[string]any{"name": "test"},
 			key:      "name",
 			expected: types.StringValue("test"),
 		},
 		{
 			name:     "empty string value",
-			data:     map[string]interface{}{"name": ""},
+			data:     map[string]any{"name": ""},
 			key:      "name",
 			expected: types.StringValue(""),
 		},
 		{
 			name:     "key does not exist",
-			data:     map[string]interface{}{"other": "value"},
+			data:     map[string]any{"other": "value"},
 			key:      "name",
 			expected: types.StringNull(),
 		},
 		{
 			name:     "value is not string",
-			data:     map[string]interface{}{"name": 123},
+			data:     map[string]any{"name": 123},
 			key:      "name",
 			expected: types.StringNull(),
 		},
@@ -47,7 +47,7 @@ func TestMapToFrameworkString(t *testing.T) {
 		},
 		{
 			name:     "empty map",
-			data:     map[string]interface{}{},
+			data:     map[string]any{},
 			key:      "name",
 			expected: types.StringNull(),
 		},
@@ -64,31 +64,31 @@ func TestMapToFrameworkString(t *testing.T) {
 func TestMapToFrameworkBool(t *testing.T) {
 	tests := []struct {
 		name     string
-		data     map[string]interface{}
+		data     map[string]any
 		key      string
 		expected types.Bool
 	}{
 		{
 			name:     "true value",
-			data:     map[string]interface{}{"enabled": true},
+			data:     map[string]any{"enabled": true},
 			key:      "enabled",
 			expected: types.BoolValue(true),
 		},
 		{
 			name:     "false value",
-			data:     map[string]interface{}{"enabled": false},
+			data:     map[string]any{"enabled": false},
 			key:      "enabled",
 			expected: types.BoolValue(false),
 		},
 		{
 			name:     "key does not exist",
-			data:     map[string]interface{}{"other": true},
+			data:     map[string]any{"other": true},
 			key:      "enabled",
 			expected: types.BoolNull(),
 		},
 		{
 			name:     "value is not bool",
-			data:     map[string]interface{}{"enabled": "true"},
+			data:     map[string]any{"enabled": "true"},
 			key:      "enabled",
 			expected: types.BoolNull(),
 		},
@@ -111,49 +111,49 @@ func TestMapToFrameworkBool(t *testing.T) {
 func TestMapToFrameworkInt32(t *testing.T) {
 	tests := []struct {
 		name     string
-		data     map[string]interface{}
+		data     map[string]any
 		key      string
 		expected types.Int32
 	}{
 		{
 			name:     "int32 value",
-			data:     map[string]interface{}{"count": int32(42)},
+			data:     map[string]any{"count": int32(42)},
 			key:      "count",
 			expected: types.Int32Value(42),
 		},
 		{
 			name:     "int value",
-			data:     map[string]interface{}{"count": 42},
+			data:     map[string]any{"count": 42},
 			key:      "count",
 			expected: types.Int32Value(42),
 		},
 		{
 			name:     "float64 value",
-			data:     map[string]interface{}{"count": 42.0},
+			data:     map[string]any{"count": 42.0},
 			key:      "count",
 			expected: types.Int32Value(42),
 		},
 		{
 			name:     "zero value",
-			data:     map[string]interface{}{"count": 0},
+			data:     map[string]any{"count": 0},
 			key:      "count",
 			expected: types.Int32Value(0),
 		},
 		{
 			name:     "negative value",
-			data:     map[string]interface{}{"count": -5},
+			data:     map[string]any{"count": -5},
 			key:      "count",
 			expected: types.Int32Value(-5),
 		},
 		{
 			name:     "key does not exist",
-			data:     map[string]interface{}{"other": 42},
+			data:     map[string]any{"other": 42},
 			key:      "count",
 			expected: types.Int32Null(),
 		},
 		{
 			name:     "value is not numeric",
-			data:     map[string]interface{}{"count": "42"},
+			data:     map[string]any{"count": "42"},
 			key:      "count",
 			expected: types.Int32Null(),
 		},
@@ -176,55 +176,55 @@ func TestMapToFrameworkInt32(t *testing.T) {
 func TestMapToFrameworkInt64(t *testing.T) {
 	tests := []struct {
 		name     string
-		data     map[string]interface{}
+		data     map[string]any
 		key      string
 		expected types.Int64
 	}{
 		{
 			name:     "int64 value",
-			data:     map[string]interface{}{"count": int64(9223372036854775807)},
+			data:     map[string]any{"count": int64(9223372036854775807)},
 			key:      "count",
 			expected: types.Int64Value(9223372036854775807),
 		},
 		{
 			name:     "int value",
-			data:     map[string]interface{}{"count": 42},
+			data:     map[string]any{"count": 42},
 			key:      "count",
 			expected: types.Int64Value(42),
 		},
 		{
 			name:     "int32 value",
-			data:     map[string]interface{}{"count": int32(42)},
+			data:     map[string]any{"count": int32(42)},
 			key:      "count",
 			expected: types.Int64Value(42),
 		},
 		{
 			name:     "float64 value",
-			data:     map[string]interface{}{"count": 42.0},
+			data:     map[string]any{"count": 42.0},
 			key:      "count",
 			expected: types.Int64Value(42),
 		},
 		{
 			name:     "zero value",
-			data:     map[string]interface{}{"count": int64(0)},
+			data:     map[string]any{"count": int64(0)},
 			key:      "count",
 			expected: types.Int64Value(0),
 		},
 		{
 			name:     "negative value",
-			data:     map[string]interface{}{"count": int64(-5)},
+			data:     map[string]any{"count": int64(-5)},
 			key:      "count",
 			expected: types.Int64Value(-5),
 		},
 		{
 			name:     "key does not exist",
-			data:     map[string]interface{}{"other": int64(42)},
+			data:     map[string]any{"other": int64(42)},
 			key:      "count",
 			expected: types.Int64Null(),
 		},
 		{
 			name:     "value is not numeric",
-			data:     map[string]interface{}{"count": "42"},
+			data:     map[string]any{"count": "42"},
 			key:      "count",
 			expected: types.Int64Null(),
 		},
@@ -241,61 +241,61 @@ func TestMapToFrameworkInt64(t *testing.T) {
 func TestMapToFrameworkFloat64(t *testing.T) {
 	tests := []struct {
 		name     string
-		data     map[string]interface{}
+		data     map[string]any
 		key      string
 		expected types.Float64
 	}{
 		{
 			name:     "float64 value",
-			data:     map[string]interface{}{"price": 99.99},
+			data:     map[string]any{"price": 99.99},
 			key:      "price",
 			expected: types.Float64Value(99.99),
 		},
 		{
 			name:     "float32 value",
-			data:     map[string]interface{}{"price": float32(99.99)},
+			data:     map[string]any{"price": float32(99.99)},
 			key:      "price",
 			expected: types.Float64Value(float64(float32(99.99))),
 		},
 		{
 			name:     "int value",
-			data:     map[string]interface{}{"price": 100},
+			data:     map[string]any{"price": 100},
 			key:      "price",
 			expected: types.Float64Value(100.0),
 		},
 		{
 			name:     "int32 value",
-			data:     map[string]interface{}{"price": int32(100)},
+			data:     map[string]any{"price": int32(100)},
 			key:      "price",
 			expected: types.Float64Value(100.0),
 		},
 		{
 			name:     "int64 value",
-			data:     map[string]interface{}{"price": int64(100)},
+			data:     map[string]any{"price": int64(100)},
 			key:      "price",
 			expected: types.Float64Value(100.0),
 		},
 		{
 			name:     "zero value",
-			data:     map[string]interface{}{"price": 0.0},
+			data:     map[string]any{"price": 0.0},
 			key:      "price",
 			expected: types.Float64Value(0.0),
 		},
 		{
 			name:     "negative value",
-			data:     map[string]interface{}{"price": -5.5},
+			data:     map[string]any{"price": -5.5},
 			key:      "price",
 			expected: types.Float64Value(-5.5),
 		},
 		{
 			name:     "key does not exist",
-			data:     map[string]interface{}{"other": 99.99},
+			data:     map[string]any{"other": 99.99},
 			key:      "price",
 			expected: types.Float64Null(),
 		},
 		{
 			name:     "value is not numeric",
-			data:     map[string]interface{}{"price": "99.99"},
+			data:     map[string]any{"price": "99.99"},
 			key:      "price",
 			expected: types.Float64Null(),
 		},
@@ -314,13 +314,13 @@ func TestMapToFrameworkStringSet(t *testing.T) {
 
 	tests := []struct {
 		name     string
-		data     map[string]interface{}
+		data     map[string]any
 		key      string
 		expected func() types.Set
 	}{
 		{
 			name: "valid string slice",
-			data: map[string]interface{}{"tags": []interface{}{"tag1", "tag2", "tag3"}},
+			data: map[string]any{"tags": []interface{}{"tag1", "tag2", "tag3"}},
 			key:  "tags",
 			expected: func() types.Set {
 				set, _ := types.SetValueFrom(ctx, types.StringType, []string{"tag1", "tag2", "tag3"})
@@ -329,7 +329,7 @@ func TestMapToFrameworkStringSet(t *testing.T) {
 		},
 		{
 			name: "empty string slice",
-			data: map[string]interface{}{"tags": []interface{}{}},
+			data: map[string]any{"tags": []interface{}{}},
 			key:  "tags",
 			expected: func() types.Set {
 				return types.SetNull(types.StringType)
@@ -337,7 +337,7 @@ func TestMapToFrameworkStringSet(t *testing.T) {
 		},
 		{
 			name: "mixed types in slice - filters out non-strings",
-			data: map[string]interface{}{"tags": []interface{}{"tag1", 123, "tag2", true, "tag3"}},
+			data: map[string]any{"tags": []interface{}{"tag1", 123, "tag2", true, "tag3"}},
 			key:  "tags",
 			expected: func() types.Set {
 				set, _ := types.SetValueFrom(ctx, types.StringType, []string{"tag1", "tag2", "tag3"})
@@ -346,7 +346,7 @@ func TestMapToFrameworkStringSet(t *testing.T) {
 		},
 		{
 			name: "single string in slice",
-			data: map[string]interface{}{"tags": []interface{}{"single"}},
+			data: map[string]any{"tags": []interface{}{"single"}},
 			key:  "tags",
 			expected: func() types.Set {
 				set, _ := types.SetValueFrom(ctx, types.StringType, []string{"single"})
@@ -355,13 +355,13 @@ func TestMapToFrameworkStringSet(t *testing.T) {
 		},
 		{
 			name:     "key does not exist",
-			data:     map[string]interface{}{"other": []interface{}{"tag1"}},
+			data:     map[string]any{"other": []interface{}{"tag1"}},
 			key:      "tags",
 			expected: func() types.Set { return types.SetNull(types.StringType) },
 		},
 		{
 			name:     "value is not slice",
-			data:     map[string]interface{}{"tags": "not-a-slice"},
+			data:     map[string]any{"tags": "not-a-slice"},
 			key:      "tags",
 			expected: func() types.Set { return types.SetNull(types.StringType) },
 		},
@@ -387,13 +387,13 @@ func TestMapToFrameworkStringList(t *testing.T) {
 
 	tests := []struct {
 		name     string
-		data     map[string]interface{}
+		data     map[string]any
 		key      string
 		expected func() types.List
 	}{
 		{
 			name: "valid string slice",
-			data: map[string]interface{}{"items": []interface{}{"item1", "item2", "item3"}},
+			data: map[string]any{"items": []interface{}{"item1", "item2", "item3"}},
 			key:  "items",
 			expected: func() types.List {
 				list, _ := types.ListValueFrom(ctx, types.StringType, []string{"item1", "item2", "item3"})
@@ -402,7 +402,7 @@ func TestMapToFrameworkStringList(t *testing.T) {
 		},
 		{
 			name: "empty string slice",
-			data: map[string]interface{}{"items": []interface{}{}},
+			data: map[string]any{"items": []interface{}{}},
 			key:  "items",
 			expected: func() types.List {
 				list, _ := types.ListValueFrom(ctx, types.StringType, []string{})
@@ -411,7 +411,7 @@ func TestMapToFrameworkStringList(t *testing.T) {
 		},
 		{
 			name: "mixed types in slice - filters out non-strings",
-			data: map[string]interface{}{"items": []interface{}{"item1", 123, "item2", false, "item3"}},
+			data: map[string]any{"items": []interface{}{"item1", 123, "item2", false, "item3"}},
 			key:  "items",
 			expected: func() types.List {
 				list, _ := types.ListValueFrom(ctx, types.StringType, []string{"item1", "item2", "item3"})
@@ -420,7 +420,7 @@ func TestMapToFrameworkStringList(t *testing.T) {
 		},
 		{
 			name: "single string in slice",
-			data: map[string]interface{}{"items": []interface{}{"single"}},
+			data: map[string]any{"items": []interface{}{"single"}},
 			key:  "items",
 			expected: func() types.List {
 				list, _ := types.ListValueFrom(ctx, types.StringType, []string{"single"})
@@ -429,13 +429,13 @@ func TestMapToFrameworkStringList(t *testing.T) {
 		},
 		{
 			name:     "key does not exist",
-			data:     map[string]interface{}{"other": []interface{}{"item1"}},
+			data:     map[string]any{"other": []interface{}{"item1"}},
 			key:      "items",
 			expected: func() types.List { return types.ListNull(types.StringType) },
 		},
 		{
 			name:     "value is not slice",
-			data:     map[string]interface{}{"items": "not-a-slice"},
+			data:     map[string]any{"items": "not-a-slice"},
 			key:      "items",
 			expected: func() types.List { return types.ListNull(types.StringType) },
 		},
