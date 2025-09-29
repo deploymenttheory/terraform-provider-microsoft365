@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.30.3-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.30.2-alpha...v0.30.3-alpha) (2025-09-29)
+
+
+### Bug Fixes
+
+* added more logging ([7927d4e](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/7927d4e95374fc057e4e26aaff39fbf03a508935))
+* markdown docs update ([824449a](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/824449a956b009827022bcd404f2580e0fca2ed5))
+* more debug logging for oidc ([#795](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/795)) ([13613b8](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/13613b8520a34660a44411b1a3e3ad051c06aa99))
+
 ## [0.30.2-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.30.1-alpha...v0.30.2-alpha) (2025-09-29)
 
 
