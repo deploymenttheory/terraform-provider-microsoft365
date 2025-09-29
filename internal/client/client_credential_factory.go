@@ -317,6 +317,11 @@ func (s *GitHubOIDCStrategy) GetCredential(ctx context.Context, config *Provider
 	requestURL := config.EntraIDOptions.OIDCRequestURL
 	requestToken := config.EntraIDOptions.OIDCRequestToken
 
+	tflog.Debug(ctx, "GitHubOIDCStrategy - values from config", map[string]interface{}{
+		"config_oidc_request_url":     requestURL,
+		"config_oidc_request_token_set": requestToken != "",
+	})
+
 	// Fallback to environment variables if not provided in config
 	if requestURL == "" {
 		requestURL = os.Getenv("ACTIONS_ID_TOKEN_REQUEST_URL")
@@ -324,6 +329,13 @@ func (s *GitHubOIDCStrategy) GetCredential(ctx context.Context, config *Provider
 	if requestToken == "" {
 		requestToken = os.Getenv("ACTIONS_ID_TOKEN_REQUEST_TOKEN")
 	}
+
+	tflog.Debug(ctx, "GitHubOIDCStrategy - final values", map[string]interface{}{
+		"final_oidc_request_url":     requestURL,
+		"final_oidc_request_token_set": requestToken != "",
+		"env_actions_url":            os.Getenv("ACTIONS_ID_TOKEN_REQUEST_URL"),
+		"env_actions_token_set":      os.Getenv("ACTIONS_ID_TOKEN_REQUEST_TOKEN") != "",
+	})
 
 	if requestURL == "" || requestToken == "" {
 		return nil, fmt.Errorf("GitHub OIDC authentication requires oidc_request_url and oidc_request_token to be configured.\n"+

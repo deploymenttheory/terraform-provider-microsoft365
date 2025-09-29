@@ -2,6 +2,7 @@ package provider
 
 import (
 	"context"
+	"os"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
@@ -9,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/provider/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
 // setProviderConfiguration populates the M365ProviderModel with values from the configuration
@@ -59,6 +61,17 @@ func setEntraIDOptions(ctx context.Context, config types.Object) (types.Object, 
 		return types.ObjectNull(entraIDSchema), diags
 	}
 
+	// Debug logging for OIDC environment variables
+	oidcRequestURL := helpers.GetFirstEnvString([]string{"M365_OIDC_REQUEST_URL", "ACTIONS_ID_TOKEN_REQUEST_URL"}, entraIDOptions.OIDCRequestURL.ValueString())
+	oidcRequestToken := helpers.GetFirstEnvString([]string{"M365_OIDC_REQUEST_TOKEN", "ACTIONS_ID_TOKEN_REQUEST_TOKEN"}, entraIDOptions.OIDCRequestToken.ValueString())
+	
+	tflog.Debug(ctx, "OIDC configuration debug", map[string]interface{}{
+		"oidc_request_url":   oidcRequestURL,
+		"oidc_request_token_set": oidcRequestToken != "",
+		"env_actions_url":    os.Getenv("ACTIONS_ID_TOKEN_REQUEST_URL"),
+		"env_actions_token_set": os.Getenv("ACTIONS_ID_TOKEN_REQUEST_TOKEN") != "",
+	})
+
 	return types.ObjectValueMust(entraIDSchema, map[string]attr.Value{
 		"client_id":                    types.StringValue(helpers.GetEnvString("M365_CLIENT_ID", entraIDOptions.ClientID.ValueString())),
 		"client_secret":                types.StringValue(helpers.GetEnvString("M365_CLIENT_SECRET", entraIDOptions.ClientSecret.ValueString())),
@@ -72,8 +85,8 @@ func setEntraIDOptions(ctx context.Context, config types.Object) (types.Object, 
 		"federated_token_file_path":    types.StringValue(helpers.GetEnvString("AZURE_FEDERATED_TOKEN_FILE", entraIDOptions.FederatedTokenFilePath.ValueString())),
 		"managed_identity_id":          types.StringValue(helpers.GetFirstEnvString([]string{"M365_MANAGED_IDENTITY_ID", "AZURE_CLIENT_ID"}, entraIDOptions.ManagedIdentityID.ValueString())),
 		"oidc_token_file_path":         types.StringValue(helpers.GetEnvString("M365_OIDC_TOKEN_FILE_PATH", entraIDOptions.OIDCTokenFilePath.ValueString())),
-		"oidc_request_token":           types.StringValue(helpers.GetFirstEnvString([]string{"M365_OIDC_REQUEST_TOKEN", "ACTIONS_ID_TOKEN_REQUEST_TOKEN"}, entraIDOptions.OIDCRequestToken.ValueString())),
-		"oidc_request_url":             types.StringValue(helpers.GetFirstEnvString([]string{"M365_OIDC_REQUEST_URL", "ACTIONS_ID_TOKEN_REQUEST_URL"}, entraIDOptions.OIDCRequestURL.ValueString())),
+		"oidc_request_token":           types.StringValue(oidcRequestToken),
+		"oidc_request_url":             types.StringValue(oidcRequestURL),
 		"ado_service_connection_id":    types.StringValue(helpers.GetFirstEnvString([]string{"ARM_ADO_PIPELINE_SERVICE_CONNECTION_ID", "ARM_OIDC_AZURE_SERVICE_CONNECTION_ID"}, entraIDOptions.ADOServiceConnectionID.ValueString())),
 	}), diags
 }
