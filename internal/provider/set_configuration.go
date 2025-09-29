@@ -72,6 +72,8 @@ func setEntraIDOptions(ctx context.Context, config types.Object) (types.Object, 
 		"federated_token_file_path":    types.StringValue(helpers.GetEnvString("AZURE_FEDERATED_TOKEN_FILE", entraIDOptions.FederatedTokenFilePath.ValueString())),
 		"managed_identity_id":          types.StringValue(helpers.GetFirstEnvString([]string{"M365_MANAGED_IDENTITY_ID", "AZURE_CLIENT_ID"}, entraIDOptions.ManagedIdentityID.ValueString())),
 		"oidc_token_file_path":         types.StringValue(helpers.GetEnvString("M365_OIDC_TOKEN_FILE_PATH", entraIDOptions.OIDCTokenFilePath.ValueString())),
+		"oidc_request_token":           types.StringValue(helpers.GetFirstEnvString([]string{"M365_OIDC_REQUEST_TOKEN", "ACTIONS_ID_TOKEN_REQUEST_TOKEN"}, entraIDOptions.OIDCRequestToken.ValueString())),
+		"oidc_request_url":             types.StringValue(helpers.GetFirstEnvString([]string{"M365_OIDC_REQUEST_URL", "ACTIONS_ID_TOKEN_REQUEST_URL"}, entraIDOptions.OIDCRequestURL.ValueString())),
 		"ado_service_connection_id":    types.StringValue(helpers.GetFirstEnvString([]string{"ARM_ADO_PIPELINE_SERVICE_CONNECTION_ID", "ARM_OIDC_AZURE_SERVICE_CONNECTION_ID"}, entraIDOptions.ADOServiceConnectionID.ValueString())),
 	}), diags
 }

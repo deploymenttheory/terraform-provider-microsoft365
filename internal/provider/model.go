@@ -48,5 +48,7 @@ type EntraIDOptionsModel struct {
 	FederatedTokenFilePath     types.String `tfsdk:"federated_token_file_path"` // For workload identity
 	ManagedIdentityID          types.String `tfsdk:"managed_identity_id"`       // For managed identity
 	OIDCTokenFilePath          types.String `tfsdk:"oidc_token_file_path"`      // For OIDC authentication
+	OIDCRequestToken           types.String `tfsdk:"oidc_request_token"`        // For GitHub Actions OIDC
+	OIDCRequestURL             types.String `tfsdk:"oidc_request_url"`          // For GitHub Actions OIDC
 	ADOServiceConnectionID     types.String `tfsdk:"ado_service_connection_id"` // For Azure DevOps OIDC
 }

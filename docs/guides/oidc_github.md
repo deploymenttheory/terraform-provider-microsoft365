@@ -7,7 +7,7 @@ description: |-
 
 # Authentication with GitHub OIDC
 
-The Microsoft 365 provider supports authentication using GitHub Actions' OpenID Connect (OIDC) tokens. This approach allows Terraform to authenticate to Microsoft 365 services directly from GitHub Actions workflows without storing long-lived credentials as GitHub secrets.
+The Microsoft 365 provider supports authentication using GitHub Actions' OpenID Connect (OIDC) tokens. This approach allows Terraform to authenticate to Microsoft 365 services directly from GitHub Actions workflows without storing long-lived credentials as GitHub secrets. The provider automatically handles OIDC token acquisition and works seamlessly with both local Terraform execution and Terraform Cloud remote execution.
 
 ## Table of Contents
 
@@ -36,9 +36,11 @@ The Microsoft 365 provider supports authentication using GitHub Actions' OpenID 
 ## How GitHub OIDC Authentication Works
 
 1. The workflow runs with permissions: id-token: write, causing the runner to prepare an OIDC token for this job.
-2. GitHub injects ACTIONS_ID_TOKEN_REQUEST_URL and ACTIONS_ID_TOKEN_REQUEST_TOKEN into the job’s environment.
-3. GitHubOIDCStrategy.GetCredential() reads those two variables and determines the audience (defaulting to api://AzureADTokenExchange).
-4. The provider issues an HTTP GET to the GitHub URL in `ACTIONS_ID_TOKEN_REQUEST_URL`:
+2. GitHub injects ACTIONS_ID_TOKEN_REQUEST_URL and ACTIONS_ID_TOKEN_REQUEST_TOKEN into the job's environment.
+3. During provider configuration, the provider automatically reads these environment variables and stores them in the configuration.
+4. For Terraform Cloud remote execution, these values are serialized and sent to the remote agent as part of the provider configuration.
+5. The GitHubOIDCStrategy.GetCredential() method uses the configuration values and determines the audience (defaulting to api://AzureADTokenExchange).
+6. The provider issues an HTTP GET to the GitHub URL:
 
    ```bash
    GET https://token.actions.githubusercontent.com/<repo-owner>/<repo-name>/_apis/oidc/token?audience=<your-audience>
@@ -47,12 +49,12 @@ The Microsoft 365 provider supports authentication using GitHub Actions' OpenID 
    ```
 
    to request the short-lived JWT.
-5. GitHub’s OIDC provider returns a JSON payload containing the short-lived JWT in its value field.
-6. That JWT is handed to the provider credential factory azidentity.NewClientAssertionCredential() along with the Azure tenant and client IDs.
-7. Entra ID’s workload-federation endpoint verifies the JWT’s issuer, audience, expiration, and signature via its JWKS URI.
-8. Entra ID issues an OAuth2 access token scoped for Microsoft Graph.
-9. The resulting ClientAssertionCredential (implementing azcore.TokenCredential) holds that access token and refreshes it as needed.
-10. Terraform calls Microsoft Graph (Intune/M365 APIs), automatically attaching the bearer token from the TokenCredential, without ever storing long-lived Azure secrets in GitHub.
+7. GitHub's OIDC provider returns a JSON payload containing the short-lived JWT in its value field.
+8. That JWT is handed to the provider credential factory azidentity.NewClientAssertionCredential() along with the Azure tenant and client IDs.
+9. Entra ID's workload-federation endpoint verifies the JWT's issuer, audience, expiration, and signature via its JWKS URI.
+10. Entra ID issues an OAuth2 access token scoped for Microsoft Graph.
+11. The resulting ClientAssertionCredential (implementing azcore.TokenCredential) holds that access token and refreshes it as needed.
+12. Terraform calls Microsoft Graph (Intune/M365 APIs), automatically attaching the bearer token from the TokenCredential, without ever storing long-lived Azure secrets in GitHub.
 
 Key benefits of this approach include:
 
@@ -60,6 +62,8 @@ Key benefits of this approach include:
 - **Automatic rotation**: Tokens are short-lived and automatically rotated
 - **Conditional access**: Fine-grained control over which workflows can obtain tokens
 - **Reduced attack surface**: Eliminates risk of leaked or compromised credentials
+- **Terraform Cloud compatible**: Works seamlessly with both local and remote Terraform execution
+- **Zero configuration**: OIDC tokens are automatically discovered from the GitHub Actions environment
 
 ```bash
 +-------------------+          +--------------------------------------+          +-----------------+          +--------------------+
@@ -244,8 +248,8 @@ jobs:
           M365_TENANT_ID: "00000000-0000-0000-0000-000000000000"
           M365_AUTH_METHOD: "oidc_github"
           M365_CLIENT_ID: "00000000-0000-0000-0000-000000000000"
-          # Optional: Set a custom audience if needed
-          # M365_OIDC_AUDIENCE: "api://AzureADTokenExchange"
+          # OIDC tokens are automatically discovered from GitHub Actions environment
+          # No additional configuration required for GitHub OIDC authentication
         run: terraform apply -auto-approve
 ```
 
@@ -259,6 +263,9 @@ provider "microsoft365" {
   tenant_id   = "00000000-0000-0000-0000-000000000000"
   entra_id_options = {
     client_id = "00000000-0000-0000-0000-000000000000"
+    # oidc_request_url and oidc_request_token are automatically populated
+    # from ACTIONS_ID_TOKEN_REQUEST_URL and ACTIONS_ID_TOKEN_REQUEST_TOKEN
+    # environment variables when available
   }
 }
 ```
@@ -277,6 +284,29 @@ Then your Terraform configuration can be simplified:
 ```terraform
 provider "microsoft365" {}
 ```
+
+## Terraform Cloud Compatibility
+
+The Microsoft 365 provider's GitHub OIDC authentication is fully compatible with Terraform Cloud remote execution. The provider automatically:
+
+1. **Captures OIDC tokens** during provider configuration in the GitHub Actions runner
+2. **Serializes the tokens** as part of the provider configuration
+3. **Sends them to Terraform Cloud** remote agents securely
+4. **Uses the tokens** for authentication during remote execution
+
+No additional configuration is required when using Terraform Cloud with GitHub Actions. The workflow remains the same:
+
+```yaml
+- name: Terraform Plan
+  run: terraform plan -no-color
+  env:
+    TF_WORKSPACE: "your-tfc-workspace-name"
+    M365_TENANT_ID: "${{ secrets.TENANT_ID }}"
+    M365_AUTH_METHOD: "oidc_github"
+    M365_CLIENT_ID: "${{ secrets.CLIENT_ID }}"
+```
+
+The provider handles the complexity of making GitHub OIDC tokens work with Terraform Cloud's remote execution environment automatically.
 
 ## Security Best Practices
 
@@ -304,7 +334,9 @@ When implementing GitHub OIDC authentication with Microsoft 365, you might encou
 
 - **Missing Environment Variables**
   ```bash
-  Error: GetCredential: environment variable ACTIONS_ID_TOKEN_REQUEST_URL not set
+  Error: GitHub OIDC authentication requires oidc_request_url and oidc_request_token to be configured.
+  These are automatically populated from ACTIONS_ID_TOKEN_REQUEST_URL and ACTIONS_ID_TOKEN_REQUEST_TOKEN environment variables.
+  For Terraform Cloud remote execution, ensure these environment variables are available during provider configuration.
   ```
   This occurs when the GitHub Actions environment doesn't have the necessary OIDC environment variables. Ensure your workflow has `permissions: id-token: write` directive properly configured.
 
