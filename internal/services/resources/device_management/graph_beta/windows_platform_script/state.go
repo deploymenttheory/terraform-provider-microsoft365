@@ -17,7 +17,7 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *WindowsPlatfor
 		return
 	}
 
-	tflog.Debug(ctx, "Starting to map remote state to Terraform state", map[string]interface{}{
+	tflog.Debug(ctx, "Starting to map remote state to Terraform state", map[string]any{
 		"resourceId": convert.GraphToFrameworkString(remoteResource.GetId()).ValueString(),
 	})
 
@@ -32,7 +32,7 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *WindowsPlatfor
 	data.RoleScopeTagIds = convert.GraphToFrameworkStringSet(ctx, remoteResource.GetRoleScopeTagIds())
 
 	assignments := remoteResource.GetAssignments()
-	tflog.Debug(ctx, "Retrieved assignments from remote resource", map[string]interface{}{
+	tflog.Debug(ctx, "Retrieved assignments from remote resource", map[string]any{
 		"assignmentCount": len(assignments),
 		"resourceId":      data.ID.ValueString(),
 	})

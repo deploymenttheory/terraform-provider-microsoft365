@@ -15,11 +15,11 @@ import (
 
 var mockState struct {
 	sync.Mutex
-	qualityPolicies map[string]map[string]interface{}
+	qualityPolicies map[string]map[string]any
 }
 
 func init() {
-	mockState.qualityPolicies = make(map[string]map[string]interface{})
+	mockState.qualityPolicies = make(map[string]map[string]any)
 	httpmock.RegisterNoResponder(httpmock.NewStringResponder(404, `{"error":{"code":"ResourceNotFound","message":"Resource not found"}}`))
 	mocks.GlobalRegistry.Register("windows_quality_update_policy", &WindowsQualityUpdatePolicyMock{})
 }
@@ -30,23 +30,23 @@ var _ mocks.MockRegistrar = (*WindowsQualityUpdatePolicyMock)(nil)
 
 func (m *WindowsQualityUpdatePolicyMock) RegisterMocks() {
 	mockState.Lock()
-	mockState.qualityPolicies = make(map[string]map[string]interface{})
+	mockState.qualityPolicies = make(map[string]map[string]any)
 	mockState.Unlock()
 
 	// List
 	httpmock.RegisterResponder("GET", "https://graph.microsoft.com/beta/deviceManagement/windowsQualityUpdatePolicies",
 		func(req *http.Request) (*http.Response, error) {
 			mockState.Lock()
-			list := make([]map[string]interface{}, 0, len(mockState.qualityPolicies))
+			list := make([]map[string]any, 0, len(mockState.qualityPolicies))
 			for _, v := range mockState.qualityPolicies {
-				copy := map[string]interface{}{}
+				copy := map[string]any{}
 				for k, vv := range v {
 					copy[k] = vv
 				}
 				list = append(list, copy)
 			}
 			mockState.Unlock()
-			return httpmock.NewJsonResponse(200, map[string]interface{}{
+			return httpmock.NewJsonResponse(200, map[string]any{
 				"@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/windowsQualityUpdatePolicies",
 				"value":          list,
 			})
@@ -67,7 +67,7 @@ func (m *WindowsQualityUpdatePolicyMock) RegisterMocks() {
 					if err != nil {
 						return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to load mock response"}}`), nil
 					}
-					var resp map[string]interface{}
+					var resp map[string]any
 					if err := json.Unmarshal([]byte(jsonStr), &resp); err != nil {
 						return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to parse mock response"}}`), nil
 					}
@@ -78,7 +78,7 @@ func (m *WindowsQualityUpdatePolicyMock) RegisterMocks() {
 					if err != nil {
 						return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to load mock response"}}`), nil
 					}
-					var resp map[string]interface{}
+					var resp map[string]any
 					if err := json.Unmarshal([]byte(jsonStr), &resp); err != nil {
 						return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to parse mock response"}}`), nil
 					}
@@ -86,11 +86,11 @@ func (m *WindowsQualityUpdatePolicyMock) RegisterMocks() {
 					return factories.SuccessResponse(200, resp)(req)
 				}
 				jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_delete/get_windows_quality_update_policy_not_found.json")
-				var errObj map[string]interface{}
+				var errObj map[string]any
 				_ = json.Unmarshal([]byte(jsonStr), &errObj)
 				return httpmock.NewJsonResponse(404, errObj)
 			}
-			copy := map[string]interface{}{}
+			copy := map[string]any{}
 			for k, v := range policy {
 				copy[k] = v
 			}
@@ -100,12 +100,12 @@ func (m *WindowsQualityUpdatePolicyMock) RegisterMocks() {
 	// Create
 	httpmock.RegisterResponder("POST", "https://graph.microsoft.com/beta/deviceManagement/windowsQualityUpdatePolicies",
 		func(req *http.Request) (*http.Response, error) {
-			var body map[string]interface{}
+			var body map[string]any
 			if err := json.NewDecoder(req.Body).Decode(&body); err != nil {
 				return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"Invalid request body"}}`), nil
 			}
 			id := uuid.New().String()
-			policy := map[string]interface{}{
+			policy := map[string]any{
 				"@odata.type": "#microsoft.graph.windowsQualityUpdatePolicy",
 				"id":          id,
 				"displayName": body["displayName"],
@@ -133,10 +133,10 @@ func (m *WindowsQualityUpdatePolicyMock) RegisterMocks() {
 		func(req *http.Request) (*http.Response, error) {
 			parts := strings.Split(req.URL.Path, "/")
 			id := parts[len(parts)-1]
-			var body map[string]interface{}
+			var body map[string]any
 			if err := json.NewDecoder(req.Body).Decode(&body); err != nil {
 				jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_create/post_windows_quality_update_policy_error.json")
-				var errObj map[string]interface{}
+				var errObj map[string]any
 				_ = json.Unmarshal([]byte(jsonStr), &errObj)
 				return httpmock.NewJsonResponse(400, errObj)
 			}
@@ -145,7 +145,7 @@ func (m *WindowsQualityUpdatePolicyMock) RegisterMocks() {
 			if !ok {
 				mockState.Unlock()
 				jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_delete/get_windows_quality_update_policy_not_found.json")
-				var errObj map[string]interface{}
+				var errObj map[string]any
 				_ = json.Unmarshal([]byte(jsonStr), &errObj)
 				return httpmock.NewJsonResponse(404, errObj)
 			}
@@ -158,7 +158,7 @@ func (m *WindowsQualityUpdatePolicyMock) RegisterMocks() {
 			if err != nil {
 				return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to load mock response"}}`), nil
 			}
-			var updated map[string]interface{}
+			var updated map[string]any
 			if err := json.Unmarshal([]byte(jsonStr), &updated); err != nil {
 				return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to parse mock response"}}`), nil
 			}
@@ -173,7 +173,7 @@ func (m *WindowsQualityUpdatePolicyMock) RegisterMocks() {
 		func(req *http.Request) (*http.Response, error) {
 			parts := strings.Split(req.URL.Path, "/")
 			id := parts[len(parts)-2]
-			var body map[string]interface{}
+			var body map[string]any
 			if err := json.NewDecoder(req.Body).Decode(&body); err != nil {
 				return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"Invalid request body"}}`), nil
 			}
@@ -204,12 +204,12 @@ func (m *WindowsQualityUpdatePolicyMock) RegisterMocks() {
 
 func (m *WindowsQualityUpdatePolicyMock) RegisterErrorMocks() {
 	mockState.Lock()
-	mockState.qualityPolicies = make(map[string]map[string]interface{})
+	mockState.qualityPolicies = make(map[string]map[string]any)
 	mockState.Unlock()
 
 	httpmock.RegisterResponder("GET", "https://graph.microsoft.com/beta/deviceManagement/windowsQualityUpdatePolicies",
 		func(req *http.Request) (*http.Response, error) {
-			return httpmock.NewJsonResponse(200, map[string]interface{}{
+			return httpmock.NewJsonResponse(200, map[string]any{
 				"@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/windowsQualityUpdatePolicies",
 				"value":          []interface{}{},
 			})
@@ -218,7 +218,7 @@ func (m *WindowsQualityUpdatePolicyMock) RegisterErrorMocks() {
 	httpmock.RegisterResponder("POST", "https://graph.microsoft.com/beta/deviceManagement/windowsQualityUpdatePolicies",
 		func(req *http.Request) (*http.Response, error) {
 			jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_create/post_windows_quality_update_policy_error.json")
-			var errObj map[string]interface{}
+			var errObj map[string]any
 			_ = json.Unmarshal([]byte(jsonStr), &errObj)
 			return httpmock.NewJsonResponse(400, errObj)
 		})
@@ -226,7 +226,7 @@ func (m *WindowsQualityUpdatePolicyMock) RegisterErrorMocks() {
 	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/deviceManagement/windowsQualityUpdatePolicies/[^/]+$`,
 		func(req *http.Request) (*http.Response, error) {
 			jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_delete/get_windows_quality_update_policy_not_found.json")
-			var errObj map[string]interface{}
+			var errObj map[string]any
 			_ = json.Unmarshal([]byte(jsonStr), &errObj)
 			return httpmock.NewJsonResponse(404, errObj)
 		})

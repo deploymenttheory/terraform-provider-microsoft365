@@ -33,7 +33,7 @@ func BuildObjectSetFromSlice(
 	if length == 0 {
 		emptySet, diags := types.SetValue(objectType, []attr.Value{})
 		if diags.HasError() {
-			tflog.Error(ctx, "Failed to create empty set", map[string]interface{}{
+			tflog.Error(ctx, "Failed to create empty set", map[string]any{
 				"errors": diags.Errors(),
 			})
 			return types.SetNull(objectType)
@@ -46,7 +46,7 @@ func BuildObjectSetFromSlice(
 		values := extract(i)
 		obj, diags := types.ObjectValue(attrTypes, values)
 		if diags.HasError() {
-			tflog.Error(ctx, "Failed to build object for Set", map[string]interface{}{
+			tflog.Error(ctx, "Failed to build object for Set", map[string]any{
 				"index":  i,
 				"errors": diags.Errors(),
 			})
@@ -57,7 +57,7 @@ func BuildObjectSetFromSlice(
 
 	set, diags := types.SetValue(objectType, elements)
 	if diags.HasError() {
-		tflog.Error(ctx, "Failed to build Set", map[string]interface{}{
+		tflog.Error(ctx, "Failed to build Set", map[string]any{
 			"errors": diags.Errors(),
 		})
 		return types.SetNull(objectType)

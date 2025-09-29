@@ -13,12 +13,12 @@ import (
 // mockState tracks the state of resources for consistent responses
 var mockState struct {
 	sync.Mutex
-	policies map[string]map[string]interface{}
+	policies map[string]map[string]any
 }
 
 func init() {
 	// Initialize mockState
-	mockState.policies = make(map[string]map[string]interface{})
+	mockState.policies = make(map[string]map[string]any)
 
 	// Register a default 404 responder for any unmatched requests
 	httpmock.RegisterNoResponder(httpmock.NewStringResponder(404, `{"error":{"code":"ResourceNotFound","message":"Resource not found"}}`))
@@ -31,7 +31,7 @@ type GroupLifecyclePolicyMock struct{}
 func (m *GroupLifecyclePolicyMock) RegisterMocks() {
 	// Reset the state when registering mocks
 	mockState.Lock()
-	mockState.policies = make(map[string]map[string]interface{})
+	mockState.policies = make(map[string]map[string]any)
 	mockState.Unlock()
 
 	// Register specific test policies
@@ -60,12 +60,12 @@ func (m *GroupLifecyclePolicyMock) RegisterMocks() {
 			mockState.Lock()
 			defer mockState.Unlock()
 
-			policies := make([]map[string]interface{}, 0, len(mockState.policies))
+			policies := make([]map[string]any, 0, len(mockState.policies))
 			for _, policy := range mockState.policies {
 				policies = append(policies, policy)
 			}
 
-			response := map[string]interface{}{
+			response := map[string]any{
 				"@odata.context": "https://graph.microsoft.com/beta/$metadata#groupLifecyclePolicies",
 				"value":          policies,
 			}
@@ -76,7 +76,7 @@ func (m *GroupLifecyclePolicyMock) RegisterMocks() {
 	// Register POST for creating policies
 	httpmock.RegisterResponder("POST", "https://graph.microsoft.com/beta/groupLifecyclePolicies",
 		func(req *http.Request) (*http.Response, error) {
-			var policyData map[string]interface{}
+			var policyData map[string]any
 			err := json.NewDecoder(req.Body).Decode(&policyData)
 			if err != nil {
 				return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"Invalid request body"}}`), nil
@@ -118,7 +118,7 @@ func (m *GroupLifecyclePolicyMock) RegisterMocks() {
 				return httpmock.NewStringResponse(404, `{"error":{"code":"ResourceNotFound","message":"Group lifecycle policy not found"}}`), nil
 			}
 
-			var updateData map[string]interface{}
+			var updateData map[string]any
 			err := json.NewDecoder(req.Body).Decode(&updateData)
 			if err != nil {
 				return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"Invalid request body"}}`), nil
@@ -180,7 +180,7 @@ func (m *GroupLifecyclePolicyMock) RegisterErrorMocks() {
 // registerTestPolicies registers predefined test policies
 func registerTestPolicies() {
 	// Register a test policy for import testing
-	testPolicy := map[string]interface{}{
+	testPolicy := map[string]any{
 		"id":                          "test-policy-id",
 		"groupLifetimeInDays":         float64(180),
 		"managedGroupTypes":           "All",

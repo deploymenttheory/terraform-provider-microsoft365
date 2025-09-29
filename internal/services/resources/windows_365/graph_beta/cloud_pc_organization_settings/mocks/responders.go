@@ -12,12 +12,12 @@ import (
 // mockState tracks the state of resources for consistent responses
 var mockState struct {
 	sync.Mutex
-	organizationSettings map[string]interface{}
+	organizationSettings map[string]any
 }
 
 func init() {
 	// Initialize mockState
-	mockState.organizationSettings = make(map[string]interface{})
+	mockState.organizationSettings = make(map[string]any)
 
 	// Register a default 404 responder for any unmatched requests
 	httpmock.RegisterNoResponder(httpmock.NewStringResponder(404, `{"error":{"code":"ResourceNotFound","message":"Resource not found"}}`))
@@ -30,7 +30,7 @@ type CloudPcOrganizationSettingsMock struct{}
 func (m *CloudPcOrganizationSettingsMock) RegisterMocks() {
 	// Reset the state when registering mocks
 	mockState.Lock()
-	mockState.organizationSettings = make(map[string]interface{})
+	mockState.organizationSettings = make(map[string]any)
 	mockState.Unlock()
 
 	// Register GET for Cloud PC organization settings (singleton)
@@ -42,14 +42,14 @@ func (m *CloudPcOrganizationSettingsMock) RegisterMocks() {
 
 			if len(settings) == 0 {
 				// Return default settings if none exist
-				defaultSettings := map[string]interface{}{
-					"@odata.type":          "#microsoft.graph.cloudPcOrganizationSettings",
-					"id":                   "default",
-					"enableMEMAutoEnroll":  false,
-					"enableSingleSignOn":   false,
-					"osVersion":            "windows10",
-					"userAccountType":      "standardUser",
-					"windowsSettings": map[string]interface{}{
+				defaultSettings := map[string]any{
+					"@odata.type":         "#microsoft.graph.cloudPcOrganizationSettings",
+					"id":                  "default",
+					"enableMEMAutoEnroll": false,
+					"enableSingleSignOn":  false,
+					"osVersion":           "windows10",
+					"userAccountType":     "standardUser",
+					"windowsSettings": map[string]any{
 						"language": "en-US",
 					},
 				}
@@ -62,14 +62,14 @@ func (m *CloudPcOrganizationSettingsMock) RegisterMocks() {
 	// Register PATCH for updating Cloud PC organization settings
 	httpmock.RegisterResponder("PATCH", "https://graph.microsoft.com/beta/deviceManagement/virtualEndpoint/organizationSettings",
 		func(req *http.Request) (*http.Response, error) {
-			var requestBody map[string]interface{}
+			var requestBody map[string]any
 			err := json.NewDecoder(req.Body).Decode(&requestBody)
 			if err != nil {
 				return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"Invalid request body"}}`), nil
 			}
 
 			// Create or update the organization settings
-			settings := map[string]interface{}{
+			settings := map[string]any{
 				"@odata.type": "#microsoft.graph.cloudPcOrganizationSettings",
 				"id":          "default",
 			}
@@ -97,7 +97,7 @@ func (m *CloudPcOrganizationSettingsMock) RegisterMocks() {
 func (m *CloudPcOrganizationSettingsMock) RegisterErrorMocks() {
 	// Reset the state when registering error mocks
 	mockState.Lock()
-	mockState.organizationSettings = make(map[string]interface{})
+	mockState.organizationSettings = make(map[string]any)
 	mockState.Unlock()
 
 	// Register error response for getting Cloud PC organization settings

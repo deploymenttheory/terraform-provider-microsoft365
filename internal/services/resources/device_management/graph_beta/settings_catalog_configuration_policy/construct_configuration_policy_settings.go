@@ -16,7 +16,7 @@ import (
 func ConstructSettingsCatalogSettings(ctx context.Context, configModel DeviceConfigV2GraphServiceResourceModel) []graphmodels.DeviceManagementConfigurationSettingable {
 	tflog.Debug(ctx, "Constructing settings catalog settings")
 
-	tflog.Debug(ctx, "Processing settings catalog data from HCL", map[string]interface{}{
+	tflog.Debug(ctx, "Processing settings catalog data from HCL", map[string]any{
 		"settings_count": len(configModel.Settings),
 	})
 
@@ -27,7 +27,7 @@ func ConstructSettingsCatalogSettings(ctx context.Context, configModel DeviceCon
 		processSetting(ctx, setting, &constructedSettings)
 	}
 
-	tflog.Debug(ctx, "Constructed settings catalog settings", map[string]interface{}{
+	tflog.Debug(ctx, "Constructed settings catalog settings", map[string]any{
 		"count": len(constructedSettings),
 	})
 
@@ -145,7 +145,7 @@ func processSetting(ctx context.Context, setting Setting, settingsRequestPayload
 func createBaseInstance(ctx context.Context, odataType types.String, settingDefinitionId types.String) (interface{}, string) {
 	// Check if odataType is null, unknown, or empty
 	if odataType.IsNull() || odataType.IsUnknown() || odataType.ValueString() == "" {
-		tflog.Error(ctx, "Invalid input: OData type is empty", map[string]interface{}{
+		tflog.Error(ctx, "Invalid input: OData type is empty", map[string]any{
 			"odataType": odataType.ValueString(),
 		})
 		return nil, ""
@@ -234,7 +234,7 @@ func handleSimpleValue(ctx context.Context, valueStruct *SimpleSettingStruct) gr
 			intValue.SetValue(&int32Value)
 			result = intValue
 		} else {
-			tflog.Error(ctx, "Failed to convert string to integer", map[string]interface{}{
+			tflog.Error(ctx, "Failed to convert string to integer", map[string]any{
 				"value": valueStruct.Value.ValueString(),
 				"error": err.Error(),
 			})
@@ -260,7 +260,7 @@ func handleSimpleValue(ctx context.Context, valueStruct *SimpleSettingStruct) gr
 		return result
 	}
 
-	tflog.Error(ctx, "Failed to handle simple setting value", map[string]interface{}{
+	tflog.Error(ctx, "Failed to handle simple setting value", map[string]any{
 		"type":  valueStruct.ODataType.ValueString(),
 		"value": valueStruct.Value.ValueString(),
 	})

@@ -247,7 +247,7 @@ func (a *AuthenticationMocks) registerManagedIdentityFlow() {
 
 			tokenResp := a.createTokenResponse([]string{resource})
 			// Managed identity response format is slightly different
-			managedIdentityResp := map[string]interface{}{
+			managedIdentityResp := map[string]any{
 				"access_token": tokenResp.AccessToken,
 				"expires_on":   fmt.Sprintf("%d", time.Now().Add(time.Duration(a.TokenExpiryMinutes)*time.Minute).Unix()),
 				"resource":     resource,
@@ -271,7 +271,7 @@ func (a *AuthenticationMocks) registerManagedIdentityFlow() {
 
 			tokenResp := a.createTokenResponse([]string{resource})
 			// App Service MSI response format
-			msiResp := map[string]interface{}{
+			msiResp := map[string]any{
 				"access_token": tokenResp.AccessToken,
 				"expires_on":   fmt.Sprintf("%d", time.Now().Add(time.Duration(a.TokenExpiryMinutes)*time.Minute).Unix()),
 				"resource":     resource,

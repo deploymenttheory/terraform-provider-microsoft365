@@ -19,7 +19,7 @@ func MapRemoteStateToTerraform(ctx context.Context, data *GroupPolicyUploadedDef
 		return
 	}
 
-	tflog.Debug(ctx, "Starting to map remote state to Terraform state", map[string]interface{}{
+	tflog.Debug(ctx, "Starting to map remote state to Terraform state", map[string]any{
 		"resourceId": convert.GraphToFrameworkString(remoteResource.GetId()).ValueString(),
 	})
 
@@ -65,7 +65,7 @@ func MapRemoteStateToTerraform(ctx context.Context, data *GroupPolicyUploadedDef
 		// If we have language files in the response, map them
 		mappedLanguageFiles, err := mapLanguageFilesToState(ctx, languageFiles)
 		if err != nil {
-			tflog.Error(ctx, "Failed to map language files", map[string]interface{}{
+			tflog.Error(ctx, "Failed to map language files", map[string]any{
 				"error": err.Error(),
 			})
 		} else {

@@ -40,7 +40,7 @@ func (r *TeamsCallingPolicyResource) Configure(ctx context.Context, req resource
 	certificatePath := os.Getenv("M365_CLIENT_CERTIFICATE_FILE_PATH")
 	certificatePassword := os.Getenv("M365_CLIENT_CERTIFICATE_PASSWORD")
 
-	tflog.Debug(ctx, "Configuring Teams Calling Policy resource", map[string]interface{}{
+	tflog.Debug(ctx, "Configuring Teams Calling Policy resource", map[string]any{
 		"tenantId":      tenantId,
 		"authMethod":    authMethod,
 		"applicationId": applicationId,

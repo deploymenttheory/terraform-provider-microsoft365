@@ -13,7 +13,7 @@ func (p *ProviderMock) RegisterMocks() {
 	// Mock Azure AD token endpoint for client_secret auth
 	httpmock.RegisterResponder("POST",
 		"https://login.microsoftonline.com/00000000-0000-0000-0000-000000000001/oauth2/v2.0/token",
-		httpmock.NewJsonResponderOrPanic(200, map[string]interface{}{
+		httpmock.NewJsonResponderOrPanic(200, map[string]any{
 			"access_token": "mock-access-token-client-secret",
 			"token_type":   "Bearer",
 			"expires_in":   3600,
@@ -23,7 +23,7 @@ func (p *ProviderMock) RegisterMocks() {
 	// Mock device code flow endpoint
 	httpmock.RegisterResponder("POST",
 		"https://login.microsoftonline.com/common/oauth2/v2.0/devicecode",
-		httpmock.NewJsonResponderOrPanic(200, map[string]interface{}{
+		httpmock.NewJsonResponderOrPanic(200, map[string]any{
 			"device_code":      "device_code_mock",
 			"user_code":        "ABC123",
 			"verification_uri": "https://microsoft.com/devicelogin",
@@ -34,14 +34,14 @@ func (p *ProviderMock) RegisterMocks() {
 	// Mock instance discovery for all clouds
 	httpmock.RegisterResponder("GET",
 		"https://login.microsoftonline.com/common/discovery/instance",
-		httpmock.NewJsonResponderOrPanic(200, map[string]interface{}{
+		httpmock.NewJsonResponderOrPanic(200, map[string]any{
 			"tenant_discovery_endpoint": "https://login.microsoftonline.com/common/v2.0/.well-known/openid-configuration",
 		}))
 
 	// Mock OIDC configuration endpoint
 	httpmock.RegisterResponder("GET",
 		"https://login.microsoftonline.com/common/v2.0/.well-known/openid-configuration",
-		httpmock.NewJsonResponderOrPanic(200, map[string]interface{}{
+		httpmock.NewJsonResponderOrPanic(200, map[string]any{
 			"issuer":                   "https://login.microsoftonline.com/{tenantid}/v2.0",
 			"authorization_endpoint":   "https://login.microsoftonline.com/common/oauth2/v2.0/authorize",
 			"token_endpoint":          "https://login.microsoftonline.com/common/oauth2/v2.0/token",
@@ -51,7 +51,7 @@ func (p *ProviderMock) RegisterMocks() {
 	// Mock managed identity endpoint (for Azure VMs)
 	httpmock.RegisterResponder("GET",
 		"http://169.254.169.254/metadata/identity/oauth2/token",
-		httpmock.NewJsonResponderOrPanic(200, map[string]interface{}{
+		httpmock.NewJsonResponderOrPanic(200, map[string]any{
 			"access_token": "mock-managed-identity-token",
 			"token_type":   "Bearer",
 			"expires_in":   3600,
@@ -68,7 +68,7 @@ func (p *ProviderMock) RegisterErrorMocks() {
 	// Mock authentication failures
 	httpmock.RegisterResponder("POST",
 		"https://login.microsoftonline.com/00000000-0000-0000-0000-000000000001/oauth2/v2.0/token",
-		httpmock.NewJsonResponderOrPanic(401, map[string]interface{}{
+		httpmock.NewJsonResponderOrPanic(401, map[string]any{
 			"error":             "invalid_client",
 			"error_description": "AADSTS7000215: Invalid client secret is provided.",
 		}))
@@ -76,7 +76,7 @@ func (p *ProviderMock) RegisterErrorMocks() {
 	// Mock invalid tenant ID
 	httpmock.RegisterResponder("POST",
 		"https://login.microsoftonline.com/invalid-tenant-id/oauth2/v2.0/token",
-		httpmock.NewJsonResponderOrPanic(400, map[string]interface{}{
+		httpmock.NewJsonResponderOrPanic(400, map[string]any{
 			"error":             "invalid_request",
 			"error_description": "AADSTS90002: Tenant 'invalid-tenant-id' not found.",
 		}))
@@ -84,7 +84,7 @@ func (p *ProviderMock) RegisterErrorMocks() {
 	// Mock certificate authentication failure
 	httpmock.RegisterResponder("POST",
 		"https://login.microsoftonline.com/common/oauth2/v2.0/token",
-		httpmock.NewJsonResponderOrPanic(401, map[string]interface{}{
+		httpmock.NewJsonResponderOrPanic(401, map[string]any{
 			"error":             "invalid_client",
 			"error_description": "AADSTS700027: Client assertion contains an invalid signature.",
 		}))
@@ -104,7 +104,7 @@ func (p *ProviderMock) RegisterCloudSpecificMocks() {
 		// Register token endpoint for each cloud
 		httpmock.RegisterResponder("POST",
 			loginUrl+"/common/oauth2/v2.0/token",
-			httpmock.NewJsonResponderOrPanic(200, map[string]interface{}{
+			httpmock.NewJsonResponderOrPanic(200, map[string]any{
 				"access_token": "mock-token-" + cloud,
 				"token_type":   "Bearer",
 				"expires_in":   3600,
@@ -113,7 +113,7 @@ func (p *ProviderMock) RegisterCloudSpecificMocks() {
 		// Register discovery endpoint for each cloud
 		httpmock.RegisterResponder("GET",
 			loginUrl+"/common/discovery/instance",
-			httpmock.NewJsonResponderOrPanic(200, map[string]interface{}{
+			httpmock.NewJsonResponderOrPanic(200, map[string]any{
 				"tenant_discovery_endpoint": loginUrl + "/common/v2.0/.well-known/openid-configuration",
 			}))
 	}

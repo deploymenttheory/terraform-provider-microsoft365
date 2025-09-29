@@ -33,7 +33,7 @@ func constructAssignment(ctx context.Context, assignment sharedmodels.DeviceMana
 	termsAndConditionsAssignment.SetTarget(target)
 
 	if err := constructors.DebugLogGraphObject(ctx, "Constructed assignment", termsAndConditionsAssignment); err != nil {
-		tflog.Error(ctx, "Failed to debug log assignment", map[string]interface{}{
+		tflog.Error(ctx, "Failed to debug log assignment", map[string]any{
 			"error": err.Error(),
 		})
 	}
@@ -55,7 +55,7 @@ func constructTarget(ctx context.Context, targetType string, assignment sharedmo
 		if !assignment.GroupId.IsNull() && !assignment.GroupId.IsUnknown() && assignment.GroupId.ValueString() != "" {
 			convert.FrameworkToGraphString(assignment.GroupId, groupTarget.SetGroupId)
 		} else {
-			tflog.Error(ctx, "Group assignment target missing required group_id", map[string]interface{}{
+			tflog.Error(ctx, "Group assignment target missing required group_id", map[string]any{
 				"targetType": targetType,
 			})
 			return nil
@@ -66,7 +66,7 @@ func constructTarget(ctx context.Context, targetType string, assignment sharedmo
 		if !assignment.GroupId.IsNull() && !assignment.GroupId.IsUnknown() && assignment.GroupId.ValueString() != "" {
 			convert.FrameworkToGraphString(assignment.GroupId, exclusionTarget.SetGroupId)
 		} else {
-			tflog.Error(ctx, "Exclusion group assignment target missing required group_id", map[string]interface{}{
+			tflog.Error(ctx, "Exclusion group assignment target missing required group_id", map[string]any{
 				"targetType": targetType,
 			})
 			return nil
@@ -77,14 +77,14 @@ func constructTarget(ctx context.Context, targetType string, assignment sharedmo
 		if !assignment.CollectionId.IsNull() && !assignment.CollectionId.IsUnknown() && assignment.CollectionId.ValueString() != "" {
 			convert.FrameworkToGraphString(assignment.CollectionId, configMgrTarget.SetCollectionId)
 		} else {
-			tflog.Error(ctx, "Configuration manager collection assignment target missing required collection_id", map[string]interface{}{
+			tflog.Error(ctx, "Configuration manager collection assignment target missing required collection_id", map[string]any{
 				"targetType": targetType,
 			})
 			return nil
 		}
 		target = configMgrTarget
 	default:
-		tflog.Error(ctx, "Unsupported target type", map[string]interface{}{
+		tflog.Error(ctx, "Unsupported target type", map[string]any{
 			"targetType": targetType,
 		})
 		return nil

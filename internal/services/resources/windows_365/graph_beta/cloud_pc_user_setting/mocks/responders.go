@@ -14,12 +14,12 @@ import (
 // mockState tracks the state of resources for consistent responses
 var mockState struct {
 	sync.Mutex
-	userSettings map[string]map[string]interface{}
+	userSettings map[string]map[string]any
 }
 
 func init() {
 	// Initialize mockState
-	mockState.userSettings = make(map[string]map[string]interface{})
+	mockState.userSettings = make(map[string]map[string]any)
 
 	// Register a default 404 responder for any unmatched requests
 	httpmock.RegisterNoResponder(httpmock.NewStringResponder(404, `{"error":{"code":"ResourceNotFound","message":"Resource not found"}}`))
@@ -32,20 +32,20 @@ type UserSettingMock struct{}
 func (m *UserSettingMock) RegisterMocks() {
 	// Reset the state when registering mocks
 	mockState.Lock()
-	mockState.userSettings = make(map[string]map[string]interface{})
+	mockState.userSettings = make(map[string]map[string]any)
 	mockState.Unlock()
 
 	// Register GET for listing user settings
 	httpmock.RegisterResponder("GET", "https://graph.microsoft.com/beta/deviceManagement/virtualEndpoint/userSettings",
 		func(req *http.Request) (*http.Response, error) {
 			mockState.Lock()
-			userSettings := make([]map[string]interface{}, 0, len(mockState.userSettings))
+			userSettings := make([]map[string]any, 0, len(mockState.userSettings))
 			for _, setting := range mockState.userSettings {
 				userSettings = append(userSettings, setting)
 			}
 			mockState.Unlock()
 
-			response := map[string]interface{}{
+			response := map[string]any{
 				"@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/virtualEndpoint/userSettings",
 				"value":          userSettings,
 			}
@@ -71,7 +71,7 @@ func (m *UserSettingMock) RegisterMocks() {
 			// The real API only includes assignments when expand=assignments is specified, but for testing we'll always include them
 			if assignments, hasAssignments := userSettingData["assignments"]; hasAssignments {
 				// Ensure assignments are included in the response
-				responseCopy := make(map[string]interface{})
+				responseCopy := make(map[string]any)
 				for k, v := range userSettingData {
 					responseCopy[k] = v
 				}
@@ -86,7 +86,7 @@ func (m *UserSettingMock) RegisterMocks() {
 	httpmock.RegisterResponder("POST", "https://graph.microsoft.com/beta/deviceManagement/virtualEndpoint/userSettings",
 		func(req *http.Request) (*http.Response, error) {
 			// Parse request body
-			var requestBody map[string]interface{}
+			var requestBody map[string]any
 			err := json.NewDecoder(req.Body).Decode(&requestBody)
 			if err != nil {
 				return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"Invalid request body"}}`), nil
@@ -96,7 +96,7 @@ func (m *UserSettingMock) RegisterMocks() {
 			userSettingId := uuid.New().String()
 
 			// Create user setting data with all fields
-			userSettingData := map[string]interface{}{
+			userSettingData := map[string]any{
 				"id":                   userSettingId,
 				"displayName":          requestBody["displayName"],
 				"localAdminEnabled":    getOrDefault(requestBody, "localAdminEnabled", false),
@@ -142,7 +142,7 @@ func (m *UserSettingMock) RegisterMocks() {
 			}
 
 			// Parse request body
-			var requestBody map[string]interface{}
+			var requestBody map[string]any
 			err := json.NewDecoder(req.Body).Decode(&requestBody)
 			if err != nil {
 				return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"Invalid request body"}}`), nil
@@ -206,7 +206,7 @@ func (m *UserSettingMock) RegisterMocks() {
 			userSettingId := urlParts[len(urlParts)-3] // userSettings/{id}/assign
 
 			// Parse request body to get assignments
-			var requestBody map[string]interface{}
+			var requestBody map[string]any
 			err := json.NewDecoder(req.Body).Decode(&requestBody)
 			if err != nil {
 				return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"Invalid request body"}}`), nil
@@ -221,13 +221,13 @@ func (m *UserSettingMock) RegisterMocks() {
 					graphAssignments := make([]interface{}, len(assignmentList))
 
 					for i, assignment := range assignmentList {
-						assignmentMap := assignment.(map[string]interface{})
-						target := assignmentMap["target"].(map[string]interface{})
+						assignmentMap := assignment.(map[string]any)
+						target := assignmentMap["target"].(map[string]any)
 
 						// Create the assignment response format
-						graphAssignment := map[string]interface{}{
+						graphAssignment := map[string]any{
 							"id": target["groupId"], // Use groupId as assignment ID
-							"target": map[string]interface{}{
+							"target": map[string]any{
 								"@odata.type": "#microsoft.graph.cloudPcManagementGroupAssignmentTarget",
 								"groupId":     target["groupId"],
 							},
@@ -263,13 +263,13 @@ func (m *UserSettingMock) RegisterErrorMocks() {
 func registerSpecificUserSettingMocks() {
 	// Minimal user setting
 	minimalUserSettingId := "11111111-1111-1111-1111-111111111111"
-	minimalUserSettingData := map[string]interface{}{
+	minimalUserSettingData := map[string]any{
 		"id":                 minimalUserSettingId,
 		"displayName":        "Test Minimal User Setting",
 		"localAdminEnabled":  false,
 		"resetEnabled":       false,
 		"selfServiceEnabled": false,
-		"restorePointSetting": map[string]interface{}{
+		"restorePointSetting": map[string]any{
 			"frequencyInHours":   12,
 			"frequencyType":      "default",
 			"userRestoreEnabled": false,
@@ -284,33 +284,33 @@ func registerSpecificUserSettingMocks() {
 
 	// Maximal user setting
 	maximalUserSettingId := "22222222-2222-2222-2222-222222222222"
-	maximalUserSettingData := map[string]interface{}{
+	maximalUserSettingData := map[string]any{
 		"id":                 maximalUserSettingId,
 		"displayName":        "Test Maximal User Setting",
 		"localAdminEnabled":  true,
 		"resetEnabled":       true,
 		"selfServiceEnabled": false,
-		"restorePointSetting": map[string]interface{}{
+		"restorePointSetting": map[string]any{
 			"frequencyInHours":   12,
 			"frequencyType":      "default",
 			"userRestoreEnabled": true,
 		},
-		"crossRegionDisasterRecoverySetting": map[string]interface{}{
+		"crossRegionDisasterRecoverySetting": map[string]any{
 			"maintainCrossRegionRestorePointEnabled": true,
 			"userInitiatedDisasterRecoveryAllowed":   true,
 			"disasterRecoveryType":                   "premium",
-			"disasterRecoveryNetworkSetting": map[string]interface{}{
+			"disasterRecoveryNetworkSetting": map[string]any{
 				"@odata.type": "#microsoft.graph.cloudPcDisasterRecoveryMicrosoftHostedNetworkSetting",
 				"networkType": "microsoftHosted",
 			},
 		},
-		"notificationSetting": map[string]interface{}{
+		"notificationSetting": map[string]any{
 			"restartPromptsDisabled": false,
 		},
 		"assignments": []interface{}{
-			map[string]interface{}{
+			map[string]any{
 				"id": "test-group-id-12345",
-				"target": map[string]interface{}{
+				"target": map[string]any{
 					"@odata.type": "#microsoft.graph.cloudPcManagementGroupAssignmentTarget",
 					"groupId":     "test-group-id-12345",
 				},
@@ -343,7 +343,7 @@ func registerSpecificUserSettingMocks() {
 }
 
 // getOrDefault returns the value from the map or a default value if the key doesn't exist
-func getOrDefault(m map[string]interface{}, key string, defaultValue interface{}) interface{} {
+func getOrDefault(m map[string]any, key string, defaultValue interface{}) interface{} {
 	if value, exists := m[key]; exists {
 		return value
 	}

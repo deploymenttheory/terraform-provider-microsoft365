@@ -15,7 +15,7 @@ func StateDatasource(ctx context.Context, deviceImage graphmodels.CloudPcDeviceI
 		return CloudPcDeviceImageItem{}
 	}
 
-	tflog.Debug(ctx, "Mapping device image to state", map[string]interface{}{
+	tflog.Debug(ctx, "Mapping device image to state", map[string]any{
 		"id": deviceImage.GetId(),
 	})
 

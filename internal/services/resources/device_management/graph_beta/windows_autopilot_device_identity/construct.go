@@ -23,7 +23,7 @@ func constructResource(ctx context.Context, data *WindowsAutopilotDeviceIdentity
 	convert.FrameworkToGraphString(data.UserPrincipalName, resource.SetUserPrincipalName)
 
 	if err := constructors.DebugLogGraphObject(ctx, "Constructed Windows Autopilot Device Identity Resource", resource); err != nil {
-		tflog.Error(ctx, "Failed to log Windows Autopilot Device Identity", map[string]interface{}{
+		tflog.Error(ctx, "Failed to log Windows Autopilot Device Identity", map[string]any{
 			"error": err.Error(),
 		})
 	}

@@ -28,7 +28,7 @@ func constructResource(ctx context.Context, data TermsAndConditionsResourceModel
 	}
 
 	if err := constructors.DebugLogGraphObject(ctx, "Constructed terms and conditions", requestBody); err != nil {
-		tflog.Error(ctx, "Failed to log terms and conditions", map[string]interface{}{
+		tflog.Error(ctx, "Failed to log terms and conditions", map[string]any{
 			"error": err.Error(),
 		})
 	}

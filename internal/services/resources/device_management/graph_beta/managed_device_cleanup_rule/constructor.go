@@ -48,7 +48,7 @@ func constructResource(ctx context.Context, client *msgraphbetasdk.GraphServiceC
 	}
 
 	if err := constructors.DebugLogGraphObject(ctx, "Constructed managed device cleanup rule", rule); err != nil {
-		tflog.Error(ctx, "Failed to log managed device cleanup rule", map[string]interface{}{
+		tflog.Error(ctx, "Failed to log managed device cleanup rule", map[string]any{
 			"error": err.Error(),
 		})
 	}

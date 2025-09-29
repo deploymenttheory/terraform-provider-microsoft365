@@ -13,7 +13,7 @@ import (
 // EnsureField ensures that a field exists in a data map
 // If the field doesn't exist, it will be initialized with the provided default value
 // This is particularly useful for ensuring collection fields are initialized in mock responses
-func EnsureField(data map[string]interface{}, fieldName string, defaultValue interface{}) {
+func EnsureField(data map[string]any, fieldName string, defaultValue interface{}) {
 	if data[fieldName] == nil {
 		data[fieldName] = defaultValue
 	}
@@ -71,28 +71,28 @@ func LoadUnitTerraformConfig(filename string) string {
 		fmt.Printf("ERROR: LoadUnitTerraformConfig failed to get caller information for file: %s\n", filename)
 		return ""
 	}
-	
+
 	// Construct path relative to the caller's directory
 	callerDir := filepath.Dir(callerFile)
 	configPath := filepath.Join(callerDir, "tests", "terraform", "unit", filename)
-	
-	fmt.Printf("DEBUG: LoadUnitTerraformConfig loading - filename=%s, callerDir=%s, configPath=%s\n", 
+
+	fmt.Printf("DEBUG: LoadUnitTerraformConfig loading - filename=%s, callerDir=%s, configPath=%s\n",
 		filename, callerDir, configPath)
-	
+
 	content, err := os.ReadFile(configPath)
 	if err != nil {
 		fmt.Printf("ERROR: LoadUnitTerraformConfig failed to read terraform config file at %s: %v\n", configPath, err)
 		return ""
 	}
-	
+
 	if len(content) == 0 {
 		fmt.Printf("WARN: LoadUnitTerraformConfig terraform config file at %s is empty\n", configPath)
 		return ""
 	}
-	
-	fmt.Printf("DEBUG: LoadUnitTerraformConfig successfully loaded config - filename=%s, contentSize=%d\n", 
+
+	fmt.Printf("DEBUG: LoadUnitTerraformConfig successfully loaded config - filename=%s, contentSize=%d\n",
 		filename, len(content))
-	
+
 	return string(content)
 }
 
@@ -106,42 +106,42 @@ func LoadUnitTerraformTemplate(filename string, data interface{}) string {
 		fmt.Printf("ERROR: LoadUnitTerraformTemplate failed to get caller information for file: %s\n", filename)
 		return ""
 	}
-	
+
 	// Construct path relative to the caller's directory
 	callerDir := filepath.Dir(callerFile)
 	configPath := filepath.Join(callerDir, "tests", "terraform", "unit", filename)
-	
-	fmt.Printf("DEBUG: LoadUnitTerraformTemplate loading - filename=%s, callerDir=%s, configPath=%s\n", 
+
+	fmt.Printf("DEBUG: LoadUnitTerraformTemplate loading - filename=%s, callerDir=%s, configPath=%s\n",
 		filename, callerDir, configPath)
-	
+
 	content, err := os.ReadFile(configPath)
 	if err != nil {
 		fmt.Printf("ERROR: LoadUnitTerraformTemplate failed to read terraform template file at %s: %v\n", configPath, err)
 		return ""
 	}
-	
+
 	if len(content) == 0 {
 		fmt.Printf("WARN: LoadUnitTerraformTemplate terraform template file at %s is empty\n", configPath)
 		return ""
 	}
-	
+
 	tmpl, err := template.New("terraform").Parse(string(content))
 	if err != nil {
 		fmt.Printf("ERROR: LoadUnitTerraformTemplate failed to parse template at %s: %v\n", configPath, err)
 		return ""
 	}
-	
+
 	var buf bytes.Buffer
 	err = tmpl.Execute(&buf, data)
 	if err != nil {
 		fmt.Printf("ERROR: LoadUnitTerraformTemplate failed to execute template at %s: %v\n", configPath, err)
 		return ""
 	}
-	
+
 	result := buf.String()
-	fmt.Printf("DEBUG: LoadUnitTerraformTemplate successfully processed template - filename=%s, resultSize=%d\n", 
+	fmt.Printf("DEBUG: LoadUnitTerraformTemplate successfully processed template - filename=%s, resultSize=%d\n",
 		filename, len(result))
-	
+
 	return result
 }
 
@@ -170,13 +170,13 @@ func LoadTerraformTemplateFile(filename string, data interface{}) string {
 
 // LoadJSONResponse loads a JSON response file and returns its contents
 // This is a common utility function used by mock responders to load test response data
-func LoadJSONResponse(filepath string) (map[string]interface{}, error) {
+func LoadJSONResponse(filepath string) (map[string]any, error) {
 	jsonData, err := os.ReadFile(filepath)
 	if err != nil {
 		return nil, err
 	}
 
-	var response map[string]interface{}
+	var response map[string]any
 	err = json.Unmarshal(jsonData, &response)
 	if err != nil {
 		return nil, err

@@ -14,11 +14,11 @@ import (
 
 var mockState struct {
 	sync.Mutex
-	compliancePolicies map[string]map[string]interface{}
+	compliancePolicies map[string]map[string]any
 }
 
 func init() {
-	mockState.compliancePolicies = make(map[string]map[string]interface{})
+	mockState.compliancePolicies = make(map[string]map[string]any)
 	httpmock.RegisterNoResponder(httpmock.NewStringResponder(404, `{"error":{"code":"ResourceNotFound","message":"Resource not found"}}`))
 	mocks.GlobalRegistry.Register("windows_device_compliance_policy", &WindowsDeviceCompliancePolicyMock{})
 }
@@ -29,36 +29,36 @@ var _ mocks.MockRegistrar = (*WindowsDeviceCompliancePolicyMock)(nil)
 
 func (m *WindowsDeviceCompliancePolicyMock) RegisterMocks() {
 	mockState.Lock()
-	mockState.compliancePolicies = make(map[string]map[string]interface{})
+	mockState.compliancePolicies = make(map[string]map[string]any)
 	mockState.Unlock()
 
 	// 1. Group validation - called during validateRequest
 	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/groups/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`, func(req *http.Request) (*http.Response, error) {
 		parts := strings.Split(req.URL.Path, "/")
 		groupId := parts[len(parts)-1]
-		
+
 		jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_get/get_group.json")
-		var responseObj map[string]interface{}
+		var responseObj map[string]any
 		_ = json.Unmarshal([]byte(jsonStr), &responseObj)
-		
+
 		responseObj["id"] = groupId
 		responseObj["mailEnabled"] = true
-		
+
 		return httpmock.NewJsonResponse(200, responseObj)
 	})
 
 	// 2. Create compliance policy - POST /deviceManagement/deviceCompliancePolicies
 	httpmock.RegisterResponder("POST", "https://graph.microsoft.com/beta/deviceManagement/deviceCompliancePolicies", func(req *http.Request) (*http.Response, error) {
-		var body map[string]interface{}
+		var body map[string]any
 		if err := json.NewDecoder(req.Body).Decode(&body); err != nil {
 			return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"Invalid request body"}}`), nil
 		}
 
 		id := uuid.New().String()
 		jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_create/post_windows_device_compliance_policy_success.json")
-		var responseObj map[string]interface{}
+		var responseObj map[string]any
 		if err := json.Unmarshal([]byte(jsonStr), &responseObj); err != nil {
-			responseObj = make(map[string]interface{})
+			responseObj = make(map[string]any)
 		}
 
 		// Copy all values from request body
@@ -78,7 +78,7 @@ func (m *WindowsDeviceCompliancePolicyMock) RegisterMocks() {
 		// Store in mock state
 		mockState.Lock()
 		if mockState.compliancePolicies == nil {
-			mockState.compliancePolicies = make(map[string]map[string]interface{})
+			mockState.compliancePolicies = make(map[string]map[string]any)
 		}
 		mockState.compliancePolicies[id] = responseObj
 		mockState.Unlock()
@@ -88,9 +88,9 @@ func (m *WindowsDeviceCompliancePolicyMock) RegisterMocks() {
 
 	// 3. Assign policy - POST /deviceManagement/deviceCompliancePolicies/{id}/assign
 	httpmock.RegisterResponder("POST", `=~^https://graph\.microsoft\.com/beta/deviceManagement/deviceCompliancePolicies/[0-9a-fA-F-]+/assign$`, func(req *http.Request) (*http.Response, error) {
-		return httpmock.NewJsonResponse(200, map[string]interface{}{
+		return httpmock.NewJsonResponse(200, map[string]any{
 			"@odata.context": "https://graph.microsoft.com/beta/$metadata#Collection(microsoft.graph.deviceCompliancePolicyAssignment)",
-			"value": []interface{}{},
+			"value":          []interface{}{},
 		})
 	})
 
@@ -98,21 +98,21 @@ func (m *WindowsDeviceCompliancePolicyMock) RegisterMocks() {
 	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/deviceManagement/deviceCompliancePolicies/[0-9a-fA-F-]+$`, func(req *http.Request) (*http.Response, error) {
 		parts := strings.Split(req.URL.Path, "/")
 		id := parts[len(parts)-1]
-		
+
 		mockState.Lock()
 		policy, exists := mockState.compliancePolicies[id]
 		mockState.Unlock()
-		
+
 		if !exists {
 			jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_delete/get_windows_device_compliance_policy_not_found.json")
-			var errObj map[string]interface{}
+			var errObj map[string]any
 			_ = json.Unmarshal([]byte(jsonStr), &errObj)
 			return httpmock.NewJsonResponse(404, errObj)
 		}
 
 		// Load base response
 		jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_get/get_windows_device_compliance_policy.json")
-		var responseObj map[string]interface{}
+		var responseObj map[string]any
 		_ = json.Unmarshal([]byte(jsonStr), &responseObj)
 
 		// Override with stored policy data
@@ -126,9 +126,9 @@ func (m *WindowsDeviceCompliancePolicyMock) RegisterMocks() {
 		if strings.Contains(expand, "assignments") {
 			// Load assignments from separate JSON file
 			assignmentsJsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_get/get_windows_device_compliance_policy_assignments.json")
-			var assignmentsObj map[string]interface{}
+			var assignmentsObj map[string]any
 			_ = json.Unmarshal([]byte(assignmentsJsonStr), &assignmentsObj)
-			
+
 			if assignmentsValue, exists := assignmentsObj["value"]; exists {
 				responseObj["assignments"] = assignmentsValue
 			} else {
@@ -148,8 +148,8 @@ func (m *WindowsDeviceCompliancePolicyMock) RegisterMocks() {
 	httpmock.RegisterResponder("PATCH", `=~^https://graph\.microsoft\.com/beta/deviceManagement/deviceCompliancePolicies/[0-9a-fA-F-]+$`, func(req *http.Request) (*http.Response, error) {
 		parts := strings.Split(req.URL.Path, "/")
 		id := parts[len(parts)-1]
-		
-		var body map[string]interface{}
+
+		var body map[string]any
 		if err := json.NewDecoder(req.Body).Decode(&body); err != nil {
 			return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"Invalid request body"}}`), nil
 		}
@@ -181,11 +181,11 @@ func (m *WindowsDeviceCompliancePolicyMock) RegisterMocks() {
 	httpmock.RegisterResponder("DELETE", `=~^https://graph\.microsoft\.com/beta/deviceManagement/deviceCompliancePolicies/[0-9a-fA-F-]+$`, func(req *http.Request) (*http.Response, error) {
 		parts := strings.Split(req.URL.Path, "/")
 		id := parts[len(parts)-1]
-		
+
 		mockState.Lock()
 		delete(mockState.compliancePolicies, id)
 		mockState.Unlock()
-		
+
 		return httpmock.NewStringResponse(204, ""), nil
 	})
 
@@ -195,26 +195,26 @@ func (m *WindowsDeviceCompliancePolicyMock) RegisterMocks() {
 		defer mockState.Unlock()
 
 		jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_get/get_windows_device_compliance_policies_list.json")
-		var responseObj map[string]interface{}
+		var responseObj map[string]any
 		_ = json.Unmarshal([]byte(jsonStr), &responseObj)
-		
+
 		if mockState.compliancePolicies == nil || len(mockState.compliancePolicies) == 0 {
 			responseObj["value"] = []interface{}{}
 		} else {
-			list := make([]map[string]interface{}, 0, len(mockState.compliancePolicies))
+			list := make([]map[string]any, 0, len(mockState.compliancePolicies))
 			for _, policy := range mockState.compliancePolicies {
 				list = append(list, policy)
 			}
 			responseObj["value"] = list
 		}
-		
+
 		return httpmock.NewJsonResponse(200, responseObj)
 	})
 
 	// 9. Get assignments - GET /deviceManagement/deviceCompliancePolicies/{id}/assignments
 	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/deviceManagement/deviceCompliancePolicies/[0-9a-fA-F-]+/assignments$`, func(req *http.Request) (*http.Response, error) {
 		jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_get/get_windows_device_compliance_policy_assignments.json")
-		var responseObj map[string]interface{}
+		var responseObj map[string]any
 		_ = json.Unmarshal([]byte(jsonStr), &responseObj)
 		return httpmock.NewJsonResponse(200, responseObj)
 	})
@@ -222,7 +222,7 @@ func (m *WindowsDeviceCompliancePolicyMock) RegisterMocks() {
 
 func (m *WindowsDeviceCompliancePolicyMock) RegisterErrorMocks() {
 	mockState.Lock()
-	mockState.compliancePolicies = make(map[string]map[string]interface{})
+	mockState.compliancePolicies = make(map[string]map[string]any)
 	mockState.Unlock()
 
 	// Make groups validation fail during the validation step
@@ -232,7 +232,7 @@ func (m *WindowsDeviceCompliancePolicyMock) RegisterErrorMocks() {
 
 	httpmock.RegisterResponder("GET", "https://graph.microsoft.com/beta/deviceManagement/deviceCompliancePolicies", func(req *http.Request) (*http.Response, error) {
 		jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_get/get_windows_device_compliance_policies_list.json")
-		var responseObj map[string]interface{}
+		var responseObj map[string]any
 		_ = json.Unmarshal([]byte(jsonStr), &responseObj)
 		responseObj["value"] = []interface{}{}
 		return httpmock.NewJsonResponse(200, responseObj)
@@ -240,14 +240,14 @@ func (m *WindowsDeviceCompliancePolicyMock) RegisterErrorMocks() {
 
 	httpmock.RegisterResponder("POST", "https://graph.microsoft.com/beta/deviceManagement/deviceCompliancePolicies", func(req *http.Request) (*http.Response, error) {
 		jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_create/post_windows_device_compliance_policy_error.json")
-		var errObj map[string]interface{}
+		var errObj map[string]any
 		_ = json.Unmarshal([]byte(jsonStr), &errObj)
 		return httpmock.NewJsonResponse(400, errObj)
 	})
 
 	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/deviceManagement/deviceCompliancePolicies/[^/]+$`, func(req *http.Request) (*http.Response, error) {
 		jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_delete/get_windows_device_compliance_policy_not_found.json")
-		var errObj map[string]interface{}
+		var errObj map[string]any
 		_ = json.Unmarshal([]byte(jsonStr), &errObj)
 		return httpmock.NewJsonResponse(404, errObj)
 	})

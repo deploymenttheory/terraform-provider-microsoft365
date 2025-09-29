@@ -17,7 +17,7 @@ func StateLocalizedNotificationMessages(ctx context.Context, data *DeviceEnrollm
 		return
 	}
 
-	tflog.Debug(ctx, "Starting localized notification messages mapping", map[string]interface{}{
+	tflog.Debug(ctx, "Starting localized notification messages mapping", map[string]any{
 		"templateCount": len(templates),
 		"resourceId":    data.ID.ValueString(),
 	})
@@ -93,7 +93,7 @@ func StateLocalizedNotificationMessages(ctx context.Context, data *DeviceEnrollm
 		data.LocalizedNotificationMessages = types.SetNull(types.ObjectType{AttrTypes: attrTypes})
 	}
 
-	tflog.Debug(ctx, "Finished mapping localized notification messages to Terraform state", map[string]interface{}{
+	tflog.Debug(ctx, "Finished mapping localized notification messages to Terraform state", map[string]any{
 		"finalMessageCount": len(localizedMessages),
 		"resourceId":        data.ID.ValueString(),
 	})

@@ -60,7 +60,7 @@ func MapRemoteStateToTerraform(ctx context.Context, data *WindowsEnrollmentStatu
 		data.Assignments = types.SetNull(WindowsEnrollmentStatusPageAssignmentType())
 	} else {
 		MapAssignmentsToTerraform(ctx, data, assignments)
-		tflog.Debug(ctx, "Completed assignment stating process", map[string]interface{}{
+		tflog.Debug(ctx, "Completed assignment stating process", map[string]any{
 			"resourceId": data.ID.ValueString(),
 		})
 	}

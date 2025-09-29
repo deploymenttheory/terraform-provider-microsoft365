@@ -31,14 +31,14 @@ func constructAssignment(ctx context.Context, data *DeviceHealthScriptResourceMo
 	}
 
 	for idx, assignment := range terraformAssignments {
-		tflog.Debug(ctx, "Processing assignment", map[string]interface{}{
+		tflog.Debug(ctx, "Processing assignment", map[string]any{
 			"index": idx,
 		})
 
 		graphAssignment := graphmodels.NewDeviceHealthScriptAssignment()
 
 		if assignment.Type.IsNull() || assignment.Type.IsUnknown() {
-			tflog.Error(ctx, "Assignment target type is missing or invalid", map[string]interface{}{
+			tflog.Error(ctx, "Assignment target type is missing or invalid", map[string]any{
 				"index": idx,
 			})
 			continue
@@ -48,7 +48,7 @@ func constructAssignment(ctx context.Context, data *DeviceHealthScriptResourceMo
 
 		target := constructTarget(ctx, targetType, assignment)
 		if target == nil {
-			tflog.Error(ctx, "Failed to create target", map[string]interface{}{
+			tflog.Error(ctx, "Failed to create target", map[string]any{
 				"index":      idx,
 				"targetType": targetType,
 			})
@@ -65,14 +65,14 @@ func constructAssignment(ctx context.Context, data *DeviceHealthScriptResourceMo
 		scriptAssignments = append(scriptAssignments, graphAssignment)
 	}
 
-	tflog.Debug(ctx, "Completed assignment construction", map[string]interface{}{
+	tflog.Debug(ctx, "Completed assignment construction", map[string]any{
 		"totalAssignments": len(scriptAssignments),
 	})
 
 	requestBody.SetDeviceHealthScriptAssignments(scriptAssignments)
 
 	if err := constructors.DebugLogGraphObject(ctx, "Constructed assignment request body", requestBody); err != nil {
-		tflog.Error(ctx, "Failed to debug log assignment request body", map[string]interface{}{
+		tflog.Error(ctx, "Failed to debug log assignment request body", map[string]any{
 			"error": err.Error(),
 		})
 	}
@@ -94,7 +94,7 @@ func constructTarget(ctx context.Context, targetType string, assignment WindowsR
 		if !assignment.GroupId.IsNull() && !assignment.GroupId.IsUnknown() && assignment.GroupId.ValueString() != "" {
 			convert.FrameworkToGraphString(assignment.GroupId, groupTarget.SetGroupId)
 		} else {
-			tflog.Error(ctx, "Group assignment target missing required group_id", map[string]interface{}{
+			tflog.Error(ctx, "Group assignment target missing required group_id", map[string]any{
 				"targetType": targetType,
 			})
 			return nil
@@ -105,14 +105,14 @@ func constructTarget(ctx context.Context, targetType string, assignment WindowsR
 		if !assignment.GroupId.IsNull() && !assignment.GroupId.IsUnknown() && assignment.GroupId.ValueString() != "" {
 			convert.FrameworkToGraphString(assignment.GroupId, exclusionTarget.SetGroupId)
 		} else {
-			tflog.Error(ctx, "Exclusion group assignment target missing required group_id", map[string]interface{}{
+			tflog.Error(ctx, "Exclusion group assignment target missing required group_id", map[string]any{
 				"targetType": targetType,
 			})
 			return nil
 		}
 		target = exclusionTarget
 	default:
-		tflog.Error(ctx, "Unsupported target type", map[string]interface{}{
+		tflog.Error(ctx, "Unsupported target type", map[string]any{
 			"targetType": targetType,
 		})
 		return nil
@@ -136,7 +136,7 @@ func constructTarget(ctx context.Context, targetType string, assignment WindowsR
 			case "exclude":
 				filterTypeEnum = graphmodels.EXCLUDE_DEVICEANDAPPMANAGEMENTASSIGNMENTFILTERTYPE
 			default:
-				tflog.Warn(ctx, "Unknown filter type, not setting filter", map[string]interface{}{
+				tflog.Warn(ctx, "Unknown filter type, not setting filter", map[string]any{
 					"filterType": filterType,
 				})
 				return target
@@ -162,7 +162,7 @@ func constructRunSchedule(ctx context.Context, assignment WindowsRemediationScri
 		if !assignment.DailySchedule.Time.IsNull() && !assignment.DailySchedule.Time.IsUnknown() && assignment.DailySchedule.Time.ValueString() != "" {
 			err := convert.FrameworkToGraphTimeOnlyWithPrecision(assignment.DailySchedule.Time, 0, dailySchedule.SetTime)
 			if err != nil {
-				tflog.Error(ctx, "Failed to parse daily schedule time", map[string]interface{}{
+				tflog.Error(ctx, "Failed to parse daily schedule time", map[string]any{
 					"time":  assignment.DailySchedule.Time.ValueString(),
 					"error": err.Error(),
 				})
@@ -193,7 +193,7 @@ func constructRunSchedule(ctx context.Context, assignment WindowsRemediationScri
 		if !assignment.RunOnceSchedule.Date.IsNull() && !assignment.RunOnceSchedule.Date.IsUnknown() && assignment.RunOnceSchedule.Date.ValueString() != "" {
 			err := convert.FrameworkToGraphDateOnly(assignment.RunOnceSchedule.Date, runOnceSchedule.SetDate)
 			if err != nil {
-				tflog.Error(ctx, "Failed to parse run once schedule date", map[string]interface{}{
+				tflog.Error(ctx, "Failed to parse run once schedule date", map[string]any{
 					"date":  assignment.RunOnceSchedule.Date.ValueString(),
 					"error": err.Error(),
 				})
@@ -203,7 +203,7 @@ func constructRunSchedule(ctx context.Context, assignment WindowsRemediationScri
 		if !assignment.RunOnceSchedule.Time.IsNull() && !assignment.RunOnceSchedule.Time.IsUnknown() && assignment.RunOnceSchedule.Time.ValueString() != "" {
 			err := convert.FrameworkToGraphTimeOnlyWithPrecision(assignment.RunOnceSchedule.Time, 0, runOnceSchedule.SetTime)
 			if err != nil {
-				tflog.Error(ctx, "Failed to parse run once schedule time", map[string]interface{}{
+				tflog.Error(ctx, "Failed to parse run once schedule time", map[string]any{
 					"time":  assignment.RunOnceSchedule.Time.ValueString(),
 					"error": err.Error(),
 				})

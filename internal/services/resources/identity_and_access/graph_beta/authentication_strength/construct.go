@@ -10,12 +10,12 @@ import (
 )
 
 // constructResource converts the Terraform resource model to a plain map for JSON marshaling
-// Returns a map[string]interface{} that can be directly JSON marshaled by the HTTP client
-func constructResource(ctx context.Context, data *AuthenticationStrengthResourceModel) (map[string]interface{}, error) {
+// Returns a map[string]any that can be directly JSON marshaled by the HTTP client
+func constructResource(ctx context.Context, data *AuthenticationStrengthResourceModel) (map[string]any, error) {
 
 	tflog.Debug(ctx, fmt.Sprintf("Constructing %s resource from model", ResourceName))
 
-	requestBody := make(map[string]interface{})
+	requestBody := make(map[string]any)
 
 	// Basic properties using convert helpers
 	convert.FrameworkToGraphString(data.DisplayName, func(val *string) {
@@ -44,11 +44,11 @@ func constructResource(ctx context.Context, data *AuthenticationStrengthResource
 
 	// Debug logging using plain JSON marshal
 	if debugJSON, err := json.MarshalIndent(requestBody, "", "    "); err == nil {
-		tflog.Debug(ctx, fmt.Sprintf("Final JSON to be sent to Graph API for resource %s", ResourceName), map[string]interface{}{
+		tflog.Debug(ctx, fmt.Sprintf("Final JSON to be sent to Graph API for resource %s", ResourceName), map[string]any{
 			"json": "\n" + string(debugJSON),
 		})
 	} else {
-		tflog.Error(ctx, "Failed to debug log object", map[string]interface{}{
+		tflog.Error(ctx, "Failed to debug log object", map[string]any{
 			"error": err.Error(),
 		})
 	}

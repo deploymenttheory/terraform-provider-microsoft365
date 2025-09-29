@@ -33,13 +33,13 @@ func SetInstallerSourcePath(ctx context.Context, metadataObj types.Object) (stri
 
 	diags := metadataObj.As(ctx, &metadata, basetypes.ObjectAsOptions{})
 	if diags.HasError() {
-		tflog.Warn(ctx, "Failed to parse app_installer, proceeding with empty struct", map[string]interface{}{
+		tflog.Warn(ctx, "Failed to parse app_installer, proceeding with empty struct", map[string]any{
 			"errors": diags.Errors(),
 		})
 		return "", fileInfo, nil
 	}
 
-	tflog.Debug(ctx, "setInstallerSourcePath input", map[string]interface{}{
+	tflog.Debug(ctx, "setInstallerSourcePath input", map[string]any{
 		"installer_file_path_source": metadata.InstallerFilePathSource.String(),
 		"installer_url_source":       metadata.InstallerURLSource.String(),
 	})

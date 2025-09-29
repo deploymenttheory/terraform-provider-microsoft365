@@ -60,7 +60,7 @@ func mapRemoteAssignmentsToTerraform(ctx context.Context, assignments []graphmod
 				// No group ID for all devices assignment
 
 			default:
-				tflog.Warn(ctx, "Unknown assignment target type", map[string]interface{}{
+				tflog.Warn(ctx, "Unknown assignment target type", map[string]any{
 					"odata_type": *odataType,
 				})
 				continue
@@ -82,7 +82,7 @@ func mapRemoteAssignmentsToTerraform(ctx context.Context, assignments []graphmod
 		)
 
 		if diags.HasError() {
-			tflog.Error(ctx, "Failed to create assignment object", map[string]interface{}{
+			tflog.Error(ctx, "Failed to create assignment object", map[string]any{
 				"diagnostics": diags,
 			})
 			continue
@@ -111,7 +111,7 @@ func mapRemoteAssignmentsToTerraform(ctx context.Context, assignments []graphmod
 	)
 
 	if diags.HasError() {
-		tflog.Error(ctx, "Failed to create assignments set", map[string]interface{}{
+		tflog.Error(ctx, "Failed to create assignments set", map[string]any{
 			"diagnostics": diags,
 		})
 		return types.SetNull(types.ObjectType{

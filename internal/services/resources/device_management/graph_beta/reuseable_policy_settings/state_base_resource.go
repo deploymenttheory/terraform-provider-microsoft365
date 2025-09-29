@@ -21,20 +21,20 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *sharedmodels.R
 		return
 	}
 
-	tflog.Debug(ctx, "Starting to map remote resource state to Terraform state", map[string]interface{}{
+	tflog.Debug(ctx, "Starting to map remote resource state to Terraform state", map[string]any{
 		"resourceId": convert.GraphToFrameworkString(remoteResource.GetId()),
 	})
 
 	// Add debug logs to trace the ID
 	id := remoteResource.GetId()
-	tflog.Debug(ctx, "Remote resource ID value", map[string]interface{}{
+	tflog.Debug(ctx, "Remote resource ID value", map[string]any{
 		"id":    id,
 		"isNil": id == nil,
 	})
 
 	// Check Entity interface implementation
 	if entity, ok := remoteResource.(graphmodels.Entityable); ok {
-		tflog.Debug(ctx, "Entity ID value", map[string]interface{}{
+		tflog.Debug(ctx, "Entity ID value", map[string]any{
 			"id": entity.GetId(),
 		})
 	}
@@ -56,9 +56,9 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *sharedmodels.R
 	// State the settings catalog fields
 	if settingInstance := remoteResource.GetSettingInstance(); settingInstance != nil {
 		// Create a wrapper to match the expected format
-		wrappedSettings := map[string]interface{}{
+		wrappedSettings := map[string]any{
 			"settings": []interface{}{
-				map[string]interface{}{
+				map[string]any{
 					"id":              "0", // Single setting always has ID 0
 					"settingInstance": settingInstance,
 				},
@@ -68,7 +68,7 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *sharedmodels.R
 		// Convert to JSON
 		settingsJson, err := json.Marshal(wrappedSettings)
 		if err != nil {
-			tflog.Error(ctx, "Failed to marshal settings", map[string]interface{}{
+			tflog.Error(ctx, "Failed to marshal settings", map[string]any{
 				"error": err.Error(),
 			})
 			return

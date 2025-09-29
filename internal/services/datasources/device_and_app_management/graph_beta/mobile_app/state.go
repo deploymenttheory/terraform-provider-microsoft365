@@ -11,7 +11,7 @@ import (
 
 // MapRemoteStateToDataSource maps a mobile app to a model
 func MapRemoteStateToDataSource(ctx context.Context, data graphmodels.MobileAppable) MobileAppModel {
-	tflog.Debug(ctx, "Starting to map remote resource state to Terraform state", map[string]interface{}{
+	tflog.Debug(ctx, "Starting to map remote resource state to Terraform state", map[string]any{
 		"resourceName": data.GetDisplayName(),
 		"resourceId":   data.GetId(),
 	})

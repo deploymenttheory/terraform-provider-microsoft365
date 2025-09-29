@@ -27,7 +27,7 @@ func validateSecurityGroupOwnership(ctx context.Context, client *msgraphbetasdk.
 		Get(ctx, nil)
 
 	if err != nil {
-		tflog.Error(ctx, "Failed to get security group owners", map[string]interface{}{
+		tflog.Error(ctx, "Failed to get security group owners", map[string]any{
 			"group_id": groupID,
 			"error":    err.Error(),
 		})
@@ -47,7 +47,7 @@ func validateSecurityGroupOwnership(ctx context.Context, client *msgraphbetasdk.
 		if ok {
 			appID := servicePrincipal.GetAppId()
 			if appID != nil && *appID == intuneProvisioningClientAppID {
-				tflog.Info(ctx, "Found Intune Provisioning Client as owner of security group", map[string]interface{}{
+				tflog.Info(ctx, "Found Intune Provisioning Client as owner of security group", map[string]any{
 					"group_id": groupID,
 					"app_id":   *appID,
 				})
@@ -58,7 +58,7 @@ func validateSecurityGroupOwnership(ctx context.Context, client *msgraphbetasdk.
 	}
 
 	if !hasIntuneProvisioningClient {
-		tflog.Error(ctx, "Security group does not have Intune Provisioning Client as owner", map[string]interface{}{
+		tflog.Error(ctx, "Security group does not have Intune Provisioning Client as owner", map[string]any{
 			"group_id":                   groupID,
 			"required_service_principal": intuneProvisioningClientAppID,
 		})

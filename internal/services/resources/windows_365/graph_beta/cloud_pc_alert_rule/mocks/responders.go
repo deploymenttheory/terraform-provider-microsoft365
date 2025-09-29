@@ -13,12 +13,12 @@ import (
 // mockState tracks the state of resources for consistent responses
 var mockState struct {
 	sync.Mutex
-	cloudPcAlertRules map[string]map[string]interface{}
+	cloudPcAlertRules map[string]map[string]any
 }
 
 func init() {
 	// Initialize mockState
-	mockState.cloudPcAlertRules = make(map[string]map[string]interface{})
+	mockState.cloudPcAlertRules = make(map[string]map[string]any)
 
 	// Register a default 404 responder for any unmatched requests
 	httpmock.RegisterNoResponder(httpmock.NewStringResponder(404, `{"error":{"code":"ResourceNotFound","message":"Resource not found"}}`))
@@ -31,17 +31,17 @@ type CloudPcAlertRuleMock struct{}
 func (m *CloudPcAlertRuleMock) RegisterMocks() {
 	// Reset the state when registering mocks
 	mockState.Lock()
-	mockState.cloudPcAlertRules = make(map[string]map[string]interface{})
+	mockState.cloudPcAlertRules = make(map[string]map[string]any)
 	mockState.Unlock()
 
 	// Register GET for listing Cloud PC alert rules
 	httpmock.RegisterResponder("GET", "https://graph.microsoft.com/beta/deviceManagement/monitoring/alertRules",
 		func(req *http.Request) (*http.Response, error) {
 			mockState.Lock()
-			rules := make([]map[string]interface{}, 0, len(mockState.cloudPcAlertRules))
+			rules := make([]map[string]any, 0, len(mockState.cloudPcAlertRules))
 			for _, rule := range mockState.cloudPcAlertRules {
 				// Ensure @odata.type is present
-				ruleCopy := make(map[string]interface{})
+				ruleCopy := make(map[string]any)
 				for k, v := range rule {
 					ruleCopy[k] = v
 				}
@@ -53,7 +53,7 @@ func (m *CloudPcAlertRuleMock) RegisterMocks() {
 			}
 			mockState.Unlock()
 
-			response := map[string]interface{}{
+			response := map[string]any{
 				"@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/monitoring/alertRules",
 				"value":          rules,
 			}
@@ -76,7 +76,7 @@ func (m *CloudPcAlertRuleMock) RegisterMocks() {
 			}
 
 			// Ensure @odata.type is present
-			ruleCopy := make(map[string]interface{})
+			ruleCopy := make(map[string]any)
 			for k, v := range rule {
 				ruleCopy[k] = v
 			}
@@ -90,7 +90,7 @@ func (m *CloudPcAlertRuleMock) RegisterMocks() {
 	// Register POST for creating Cloud PC alert rules
 	httpmock.RegisterResponder("POST", "https://graph.microsoft.com/beta/deviceManagement/monitoring/alertRules",
 		func(req *http.Request) (*http.Response, error) {
-			var requestBody map[string]interface{}
+			var requestBody map[string]any
 			if err := json.NewDecoder(req.Body).Decode(&requestBody); err != nil {
 				return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"Invalid request body"}}`), nil
 			}
@@ -122,7 +122,7 @@ func (m *CloudPcAlertRuleMock) RegisterMocks() {
 			parts := strings.Split(req.URL.Path, "/")
 			id := parts[len(parts)-1]
 
-			var requestBody map[string]interface{}
+			var requestBody map[string]any
 			if err := json.NewDecoder(req.Body).Decode(&requestBody); err != nil {
 				return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"Invalid request body"}}`), nil
 			}
@@ -199,8 +199,8 @@ func (m *CloudPcAlertRuleMock) RegisterErrorMocks() {
 }
 
 // GetMockCloudPcAlertRule returns a mock Cloud PC alert rule for testing
-func GetMockCloudPcAlertRule() map[string]interface{} {
-	return map[string]interface{}{
+func GetMockCloudPcAlertRule() map[string]any {
+	return map[string]any{
 		"id":                uuid.New().String(),
 		"@odata.type":       "#microsoft.graph.deviceManagement.alertRule",
 		"alertRuleTemplate": "cloudPcProvisionScenario",
@@ -209,10 +209,10 @@ func GetMockCloudPcAlertRule() map[string]interface{} {
 		"enabled":           true,
 		"isSystemRule":      false,
 		"severity":          "warning",
-		"notificationChannels": []map[string]interface{}{
+		"notificationChannels": []map[string]any{
 			{
 				"notificationChannelType": "portal",
-				"notificationReceivers": []map[string]interface{}{
+				"notificationReceivers": []map[string]any{
 					{
 						"contactInformation": "admin@contoso.com",
 						"locale":             "en-US",
@@ -220,12 +220,12 @@ func GetMockCloudPcAlertRule() map[string]interface{} {
 				},
 			},
 		},
-		"threshold": map[string]interface{}{
+		"threshold": map[string]any{
 			"aggregation": "count",
 			"operator":    "greaterOrEqual",
 			"target":      1,
 		},
-		"conditions": []map[string]interface{}{
+		"conditions": []map[string]any{
 			{
 				"relationshipType":  "and",
 				"conditionCategory": "provisionFailures",
@@ -238,7 +238,7 @@ func GetMockCloudPcAlertRule() map[string]interface{} {
 }
 
 // CreateMockCloudPcAlertRuleInState creates a mock alert rule in the mock state for testing
-func CreateMockCloudPcAlertRuleInState(id string, rule map[string]interface{}) {
+func CreateMockCloudPcAlertRuleInState(id string, rule map[string]any) {
 	mockState.Lock()
 	defer mockState.Unlock()
 
@@ -255,5 +255,5 @@ func CreateMockCloudPcAlertRuleInState(id string, rule map[string]interface{}) {
 func ClearMockState() {
 	mockState.Lock()
 	defer mockState.Unlock()
-	mockState.cloudPcAlertRules = make(map[string]map[string]interface{})
+	mockState.cloudPcAlertRules = make(map[string]map[string]any)
 }

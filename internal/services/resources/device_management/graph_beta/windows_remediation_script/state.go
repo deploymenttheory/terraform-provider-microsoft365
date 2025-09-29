@@ -17,7 +17,7 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *DeviceHealthSc
 		return
 	}
 
-	tflog.Debug(ctx, "Starting to map remote state to Terraform state", map[string]interface{}{
+	tflog.Debug(ctx, "Starting to map remote state to Terraform state", map[string]any{
 		"resourceName": remoteResource.GetDisplayName(),
 		"resourceId":   remoteResource.GetId(),
 	})
@@ -40,23 +40,23 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *DeviceHealthSc
 	data.RoleScopeTagIds = convert.GraphToFrameworkStringSet(ctx, remoteResource.GetRoleScopeTagIds())
 
 	assignments := remoteResource.GetAssignments()
-	tflog.Debug(ctx, "Retrieved assignments from remote resource", map[string]interface{}{
+	tflog.Debug(ctx, "Retrieved assignments from remote resource", map[string]any{
 		"assignmentCount": len(assignments),
 		"resourceId":      data.ID.ValueString(),
 	})
 
 	if len(assignments) == 0 {
-		tflog.Debug(ctx, "No assignments found, setting assignments to null", map[string]interface{}{
+		tflog.Debug(ctx, "No assignments found, setting assignments to null", map[string]any{
 			"resourceId": data.ID.ValueString(),
 		})
 		data.Assignments = types.SetNull(WindowsRemediationScriptAssignmentType())
 	} else {
-		tflog.Debug(ctx, "Starting assignment mapping process", map[string]interface{}{
+		tflog.Debug(ctx, "Starting assignment mapping process", map[string]any{
 			"resourceId":      data.ID.ValueString(),
 			"assignmentCount": len(assignments),
 		})
 		MapAssignmentsToTerraform(ctx, data, assignments)
-		tflog.Debug(ctx, "Completed assignment mapping process", map[string]interface{}{
+		tflog.Debug(ctx, "Completed assignment mapping process", map[string]any{
 			"resourceId": data.ID.ValueString(),
 		})
 	}

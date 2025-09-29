@@ -23,7 +23,7 @@ type HTTPGraphError struct {
 	ErrorMessage    string
 	Target          string
 	IsODataError    bool
-	AdditionalData  map[string]interface{}
+	AdditionalData  map[string]any
 	Headers         map[string][]string
 	RequestDetails  string
 	RetryAfter      string
@@ -43,7 +43,7 @@ type HTTPGraphError struct {
 // This is an exact replica of errors.GraphError but for raw HTTP calls
 func ExtractHTTPGraphError(ctx context.Context, httpResp *http.Response) *HTTPGraphError {
 	errorInfo := &HTTPGraphError{
-		AdditionalData: make(map[string]interface{}),
+		AdditionalData: make(map[string]any),
 		InnerErrors:    []errors.InnerErrorInfo{},
 		ErrorDetails:   []errors.ErrorDetailInfo{},
 		Headers:        make(map[string][]string),
@@ -56,7 +56,7 @@ func ExtractHTTPGraphError(ctx context.Context, httpResp *http.Response) *HTTPGr
 	errorInfo.StatusCode = httpResp.StatusCode
 	errorInfo.ErrorMessage = httpResp.Status
 
-	tflog.Debug(ctx, "Extracting HTTP error information", map[string]interface{}{
+	tflog.Debug(ctx, "Extracting HTTP error information", map[string]any{
 		"status_code": httpResp.StatusCode,
 		"status":      httpResp.Status,
 	})
@@ -139,7 +139,7 @@ func extractODataErrorFromHTTP(ctx context.Context, responseBody []byte, errorIn
 		errorInfo.ErrorMessage = odataResponse.Error.Message
 		errorInfo.Target = odataResponse.Error.Target
 
-		tflog.Debug(ctx, "Found OData error", map[string]interface{}{
+		tflog.Debug(ctx, "Found OData error", map[string]any{
 			"code":    errorInfo.ErrorCode,
 			"message": errorInfo.ErrorMessage,
 			"target":  errorInfo.Target,
@@ -159,7 +159,7 @@ func extractODataErrorFromHTTP(ctx context.Context, responseBody []byte, errorIn
 			}
 			errorInfo.ErrorDetails = append(errorInfo.ErrorDetails, detailInfo)
 
-			tflog.Debug(ctx, "Extracted error detail", map[string]interface{}{
+			tflog.Debug(ctx, "Extracted error detail", map[string]any{
 				"index":  i,
 				"code":   detailInfo.Code,
 				"target": detailInfo.Target,
@@ -193,7 +193,7 @@ func extractODataErrorFromHTTP(ctx context.Context, responseBody []byte, errorIn
 
 			errorInfo.InnerErrors = append(errorInfo.InnerErrors, innerInfo)
 
-			tflog.Debug(ctx, "Extracted inner error", map[string]interface{}{
+			tflog.Debug(ctx, "Extracted inner error", map[string]any{
 				"odata_type": innerInfo.ODataType,
 				"request_id": innerInfo.RequestID,
 			})
@@ -259,7 +259,7 @@ func HandleHTTPGraphError(ctx context.Context, httpResp *http.Response, resp int
 	errorInfo := ExtractHTTPGraphError(ctx, httpResp)
 	errorDesc := getHTTPErrorDescription(errorInfo.StatusCode)
 
-	tflog.Debug(ctx, "Handling HTTP Graph error:", map[string]interface{}{
+	tflog.Debug(ctx, "Handling HTTP Graph error:", map[string]any{
 		"status_code":    errorInfo.StatusCode,
 		"operation":      operation,
 		"error_code":     errorInfo.ErrorCode,
@@ -446,7 +446,7 @@ func constructHTTPDetailedErrorMessage(standardDetail string, errorInfo *HTTPGra
 
 // recordHTTPErrorMetrics records error metrics for observability - mirrors SDK
 func recordHTTPErrorMetrics(ctx context.Context, errorInfo *HTTPGraphError, operation string) {
-	tflog.Info(ctx, "HTTP Graph API Error Metrics", map[string]interface{}{
+	tflog.Info(ctx, "HTTP Graph API Error Metrics", map[string]any{
 		"metric_type":       "http_graph_api_error",
 		"status_code":       errorInfo.StatusCode,
 		"error_code":        errorInfo.ErrorCode,
@@ -483,7 +483,7 @@ func handleHTTPPermissionError(ctx context.Context, errorInfo HTTPGraphError, re
 
 // handleHTTPRateLimitError processes rate limit errors - mirrors SDK
 func handleHTTPRateLimitError(ctx context.Context, errorInfo HTTPGraphError, resp interface{}) {
-	tflog.Warn(ctx, "Rate limit exceeded", map[string]interface{}{
+	tflog.Warn(ctx, "Rate limit exceeded", map[string]any{
 		"retry_after":      errorInfo.RetryAfter,
 		"throttled_reason": errorInfo.ThrottledReason,
 		"request_id":       errorInfo.RequestID,
@@ -511,7 +511,7 @@ func handleHTTPServiceUnavailableError(ctx context.Context, errorInfo HTTPGraphE
 		retryAfter = "unspecified"
 	}
 
-	tflog.Warn(ctx, "Service temporarily unavailable", map[string]interface{}{
+	tflog.Warn(ctx, "Service temporarily unavailable", map[string]any{
 		"retry_after": retryAfter,
 		"request_id":  errorInfo.RequestID,
 		"details":     errorInfo.ErrorMessage,
@@ -563,7 +563,7 @@ func addHTTPErrorToDiagnostics(ctx context.Context, resp interface{}, summary, d
 	case *datasource.ReadResponse:
 		r.Diagnostics.AddError(summary, detail)
 	default:
-		tflog.Error(ctx, "Unknown response type in addHTTPErrorToDiagnostics", map[string]interface{}{
+		tflog.Error(ctx, "Unknown response type in addHTTPErrorToDiagnostics", map[string]any{
 			"response_type": fmt.Sprintf("%T", resp),
 			"summary":       summary,
 			"detail":        detail,
@@ -578,7 +578,7 @@ func removeHTTPResourceFromState(ctx context.Context, resp interface{}) {
 		r.State.RemoveResource(ctx)
 		tflog.Debug(ctx, "Resource removed from state due to not found error")
 	default:
-		tflog.Error(ctx, "Cannot remove resource from state for this response type", map[string]interface{}{
+		tflog.Error(ctx, "Cannot remove resource from state for this response type", map[string]any{
 			"response_type": fmt.Sprintf("%T", resp),
 		})
 	}
@@ -586,7 +586,7 @@ func removeHTTPResourceFromState(ctx context.Context, resp interface{}) {
 
 // logHTTPErrorDetails logs comprehensive error details for debugging - mirrors SDK
 func logHTTPErrorDetails(ctx context.Context, errorInfo *HTTPGraphError) {
-	details := map[string]interface{}{
+	details := map[string]any{
 		"status_code":       errorInfo.StatusCode,
 		"error_code":        errorInfo.ErrorCode,
 		"is_odata_error":    errorInfo.IsODataError,

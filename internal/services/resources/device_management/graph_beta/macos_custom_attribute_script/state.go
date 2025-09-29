@@ -17,7 +17,7 @@ func MapRemoteStateToTerraform(ctx context.Context, data *DeviceCustomAttributeS
 		return
 	}
 
-	tflog.Debug(ctx, "Starting to map remote state to Terraform state", map[string]interface{}{
+	tflog.Debug(ctx, "Starting to map remote state to Terraform state", map[string]any{
 		"resourceId":   remoteResource.GetId(),
 		"resourceName": remoteResource.GetDisplayName(),
 	})
@@ -34,7 +34,7 @@ func MapRemoteStateToTerraform(ctx context.Context, data *DeviceCustomAttributeS
 	data.LastModifiedDateTime = convert.GraphToFrameworkTime(remoteResource.GetLastModifiedDateTime())
 
 	assignments := remoteResource.GetAssignments()
-	tflog.Debug(ctx, "Retrieved assignments from remote resource", map[string]interface{}{
+	tflog.Debug(ctx, "Retrieved assignments from remote resource", map[string]any{
 		"assignmentCount": len(assignments),
 		"resourceId":      data.ID.ValueString(),
 	})

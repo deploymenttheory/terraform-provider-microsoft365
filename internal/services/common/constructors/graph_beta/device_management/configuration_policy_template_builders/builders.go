@@ -97,7 +97,7 @@ func ConstructSimpleChoiceSetting(
 		return nil, fmt.Errorf("value cannot be empty")
 	}
 
-	tflog.Debug(ctx, "Constructing simple choice setting", map[string]interface{}{
+	tflog.Debug(ctx, "Constructing simple choice setting", map[string]any{
 		"settingDefinitionId": settingDefinitionId,
 		"value":               value,
 		"instanceTemplateId":  instanceTemplateId,
@@ -157,7 +157,7 @@ func ConstructSimpleChoiceSettingWithTemplate(
 		return nil, fmt.Errorf("choiceValue cannot be empty")
 	}
 
-	tflog.Debug(ctx, "Constructing simple choice setting with template", map[string]interface{}{
+	tflog.Debug(ctx, "Constructing simple choice setting with template", map[string]any{
 		"settingDefinitionId": settingDefinitionId,
 		"choiceValue":         choiceValue,
 		"instanceTemplateId":  instanceTemplateId,
@@ -215,7 +215,7 @@ func ConstructSimpleStringSetting(
 		return nil, fmt.Errorf("settingDefinitionId cannot be empty")
 	}
 
-	tflog.Debug(ctx, "Constructing simple string setting", map[string]interface{}{
+	tflog.Debug(ctx, "Constructing simple string setting", map[string]any{
 		"settingDefinitionId": settingDefinitionId,
 		"value":               value,
 		"instanceTemplateId":  instanceTemplateId,
@@ -271,7 +271,7 @@ func ConstructSimpleIntegerSetting(
 		return nil, fmt.Errorf("value cannot be empty for integer setting")
 	}
 
-	tflog.Debug(ctx, "Constructing simple integer setting", map[string]interface{}{
+	tflog.Debug(ctx, "Constructing simple integer setting", map[string]any{
 		"settingDefinitionId": settingDefinitionId,
 		"value":               value,
 		"instanceTemplateId":  instanceTemplateId,
@@ -281,7 +281,7 @@ func ConstructSimpleIntegerSetting(
 	// Parse string to integer
 	intVal, err := strconv.ParseInt(value, 10, 64)
 	if err != nil {
-		tflog.Error(ctx, "Failed to parse integer value", map[string]interface{}{
+		tflog.Error(ctx, "Failed to parse integer value", map[string]any{
 			"value": value,
 			"error": err.Error(),
 		})
@@ -355,7 +355,7 @@ func ConstructSimpleSecretSettingWithState(
 		valueState = "notEncrypted" // Default value state
 	}
 
-	tflog.Debug(ctx, "Constructing simple secret setting", map[string]interface{}{
+	tflog.Debug(ctx, "Constructing simple secret setting", map[string]any{
 		"settingDefinitionId": settingDefinitionId,
 		"valueState":          valueState,
 		"instanceTemplateId":  instanceTemplateId,
@@ -386,7 +386,7 @@ func ConstructSimpleSecretSettingWithState(
 	// Parse and set value state
 	parsedValueState, err := models.ParseDeviceManagementConfigurationSecretSettingValueState(valueState)
 	if err != nil {
-		tflog.Error(ctx, "Failed to parse secret value state", map[string]interface{}{
+		tflog.Error(ctx, "Failed to parse secret value state", map[string]any{
 			"valueState": valueState,
 			"error":      err.Error(),
 		})
@@ -431,7 +431,7 @@ func ConstructSimpleBooleanChoiceSetting(
 		return nil, fmt.Errorf("value '%s' does not follow boolean choice pattern (must end with _0 or _1)", value)
 	}
 
-	tflog.Debug(ctx, "Constructing simple boolean choice setting", map[string]interface{}{
+	tflog.Debug(ctx, "Constructing simple boolean choice setting", map[string]any{
 		"settingDefinitionId": settingDefinitionId,
 		"value":               value,
 		"detectedBoolValue":   boolValue,
@@ -445,7 +445,7 @@ func ConstructSimpleBooleanChoiceSetting(
 		return nil, fmt.Errorf("failed to construct boolean choice setting: %w", err)
 	}
 
-	tflog.Debug(ctx, "Successfully constructed simple boolean choice setting", map[string]interface{}{
+	tflog.Debug(ctx, "Successfully constructed simple boolean choice setting", map[string]any{
 		"detectedBoolValue": boolValue,
 	})
 	return setting, nil
@@ -600,7 +600,7 @@ func ConstructChoiceWithStringSetting(
 		return nil, fmt.Errorf("childSettingDefinitionId cannot be empty")
 	}
 
-	tflog.Debug(ctx, "Constructing choice with string child setting", map[string]interface{}{
+	tflog.Debug(ctx, "Constructing choice with string child setting", map[string]any{
 		"settingDefinitionId":      settingDefinitionId,
 		"choiceValue":              choiceValue,
 		"childSettingDefinitionId": childSettingDefinitionId,
@@ -677,7 +677,7 @@ func ConstructChoiceWithIntegerSetting(
 		return nil, fmt.Errorf("childValue cannot be empty for integer setting")
 	}
 
-	tflog.Debug(ctx, "Constructing choice with integer child setting", map[string]interface{}{
+	tflog.Debug(ctx, "Constructing choice with integer child setting", map[string]any{
 		"settingDefinitionId":      settingDefinitionId,
 		"choiceValue":              choiceValue,
 		"childSettingDefinitionId": childSettingDefinitionId,
@@ -760,7 +760,7 @@ func ConstructChoiceWithBooleanSetting(
 		return nil, fmt.Errorf("childValue '%s' does not follow boolean choice pattern (must end with _0 or _1)", childValue)
 	}
 
-	tflog.Debug(ctx, "Constructing choice with boolean child setting", map[string]interface{}{
+	tflog.Debug(ctx, "Constructing choice with boolean child setting", map[string]any{
 		"settingDefinitionId":      settingDefinitionId,
 		"choiceValue":              choiceValue,
 		"childSettingDefinitionId": childSettingDefinitionId,
@@ -823,7 +823,7 @@ func ConstructChoiceWithBooleanSetting(
 	settingInstance.SetChoiceSettingValue(choiceSettingValue)
 	setting.SetSettingInstance(settingInstance)
 
-	tflog.Debug(ctx, "Successfully constructed choice with boolean child setting", map[string]interface{}{
+	tflog.Debug(ctx, "Successfully constructed choice with boolean child setting", map[string]any{
 		"detectedBoolValue": boolValue,
 	})
 	return setting, nil
@@ -855,7 +855,7 @@ func ConstructChoiceWithSecretSetting(
 		return nil, fmt.Errorf("childValue cannot be empty for secret setting")
 	}
 
-	tflog.Debug(ctx, "Constructing choice with secret child setting", map[string]interface{}{
+	tflog.Debug(ctx, "Constructing choice with secret child setting", map[string]any{
 		"settingDefinitionId":      settingDefinitionId,
 		"choiceValue":              choiceValue,
 		"childSettingDefinitionId": childSettingDefinitionId,
@@ -926,7 +926,7 @@ func ConstructStringCollectionSetting(
 		return nil, fmt.Errorf("values cannot be empty for string collection")
 	}
 
-	tflog.Debug(ctx, "Constructing string collection setting", map[string]interface{}{
+	tflog.Debug(ctx, "Constructing string collection setting", map[string]any{
 		"settingDefinitionId": settingDefinitionId,
 		"valuesCount":         len(values),
 		"instanceTemplateId":  instanceTemplateId,
@@ -980,7 +980,7 @@ func ConstructIntegerCollectionSetting(
 		return nil, fmt.Errorf("values cannot be empty for integer collection")
 	}
 
-	tflog.Debug(ctx, "Constructing integer collection setting", map[string]interface{}{
+	tflog.Debug(ctx, "Constructing integer collection setting", map[string]any{
 		"settingDefinitionId": settingDefinitionId,
 		"valuesCount":         len(values),
 		"instanceTemplateId":  instanceTemplateId,
@@ -1005,7 +1005,7 @@ func ConstructIntegerCollectionSetting(
 	for i, val := range values {
 		intVal, err := strconv.ParseInt(val, 10, 64)
 		if err != nil {
-			tflog.Error(ctx, "Failed to parse integer value in collection", map[string]interface{}{
+			tflog.Error(ctx, "Failed to parse integer value in collection", map[string]any{
 				"index": i,
 				"value": val,
 				"error": err.Error(),
@@ -1045,7 +1045,7 @@ func ConstructFormattedJSONCollectionSetting(
 		return nil, fmt.Errorf("jsonValues cannot be empty")
 	}
 
-	tflog.Debug(ctx, "Constructing formatted JSON collection setting", map[string]interface{}{
+	tflog.Debug(ctx, "Constructing formatted JSON collection setting", map[string]any{
 		"settingDefinitionId": settingDefinitionId,
 		"valuesCount":         len(jsonValues),
 		"instanceTemplateId":  instanceTemplateId,
@@ -1076,7 +1076,7 @@ func ConstructChoiceCollectionSetting(
 		return nil, fmt.Errorf("choiceValues cannot be empty")
 	}
 
-	tflog.Debug(ctx, "Constructing choice collection setting", map[string]interface{}{
+	tflog.Debug(ctx, "Constructing choice collection setting", map[string]any{
 		"settingDefinitionId": settingDefinitionId,
 		"valuesCount":         len(choiceValues),
 		"instanceTemplateId":  instanceTemplateId,
@@ -1144,7 +1144,7 @@ func ConstructChoiceWithMultipleChoiceChildren(
 		return nil, fmt.Errorf("children cannot be empty")
 	}
 
-	tflog.Debug(ctx, "Constructing choice with multiple choice children", map[string]interface{}{
+	tflog.Debug(ctx, "Constructing choice with multiple choice children", map[string]any{
 		"settingDefinitionId": settingDefinitionId,
 		"choiceValue":         choiceValue,
 		"childrenCount":       len(children),
@@ -1342,7 +1342,7 @@ func ConstructGroupCollectionSetting(
 		return nil, fmt.Errorf("groupConfigs cannot be empty")
 	}
 
-	tflog.Debug(ctx, "Constructing group collection setting", map[string]interface{}{
+	tflog.Debug(ctx, "Constructing group collection setting", map[string]any{
 		"settingDefinitionId": settingDefinitionId,
 		"groupInstanceCount":  len(groupConfigs),
 		"instanceTemplateId":  instanceTemplateId,
@@ -1514,7 +1514,7 @@ func ConstructSimpleGroupWithMixedChildren(
 		return nil, fmt.Errorf("children cannot be empty")
 	}
 
-	tflog.Debug(ctx, "Constructing simple group with mixed children", map[string]interface{}{
+	tflog.Debug(ctx, "Constructing simple group with mixed children", map[string]any{
 		"settingDefinitionId": settingDefinitionId,
 		"childrenCount":       len(children),
 		"instanceTemplateId":  instanceTemplateId,

@@ -36,7 +36,7 @@ func constructAssignmentsRequestBody(ctx context.Context, assignments types.Set)
 
 	for i, assignment := range terraformAssignments {
 		if assignment.Type.IsNull() || assignment.Type.IsUnknown() {
-			tflog.Error(ctx, "Assignment target type is missing or invalid", map[string]interface{}{
+			tflog.Error(ctx, "Assignment target type is missing or invalid", map[string]any{
 				"index": i,
 			})
 			continue
@@ -49,7 +49,7 @@ func constructAssignmentsRequestBody(ctx context.Context, assignments types.Set)
 
 		target := constructTarget(ctx, targetType, assignment)
 		if target == nil {
-			tflog.Error(ctx, "Failed to create target", map[string]interface{}{
+			tflog.Error(ctx, "Failed to create target", map[string]any{
 				"index":      i,
 				"targetType": targetType,
 			})
@@ -65,7 +65,7 @@ func constructAssignmentsRequestBody(ctx context.Context, assignments types.Set)
 	requestBody.SetAssignments(graphAssignments)
 
 	if err := constructors.DebugLogGraphObject(ctx, fmt.Sprintf("Final JSON to be sent to Graph API for resource %s assignments", ResourceName), requestBody); err != nil {
-		tflog.Error(ctx, "Failed to debug log object", map[string]interface{}{
+		tflog.Error(ctx, "Failed to debug log object", map[string]any{
 			"error": err.Error(),
 		})
 	}
@@ -91,11 +91,11 @@ func constructTarget(ctx context.Context, targetType string, assignment CloudPcU
 		groupTarget := models.NewGroupAssignmentTarget()
 		if !assignment.GroupId.IsNull() && !assignment.GroupId.IsUnknown() && assignment.GroupId.ValueString() != "" {
 			convert.FrameworkToGraphString(assignment.GroupId, groupTarget.SetGroupId)
-			tflog.Debug(ctx, "Created GroupAssignmentTarget", map[string]interface{}{
+			tflog.Debug(ctx, "Created GroupAssignmentTarget", map[string]any{
 				"groupId": assignment.GroupId.ValueString(),
 			})
 		} else {
-			tflog.Error(ctx, "Group assignment target missing required group_id", map[string]interface{}{
+			tflog.Error(ctx, "Group assignment target missing required group_id", map[string]any{
 				"targetType": targetType,
 			})
 			return nil
@@ -105,18 +105,18 @@ func constructTarget(ctx context.Context, targetType string, assignment CloudPcU
 		exclusionTarget := models.NewExclusionGroupAssignmentTarget()
 		if !assignment.GroupId.IsNull() && !assignment.GroupId.IsUnknown() && assignment.GroupId.ValueString() != "" {
 			convert.FrameworkToGraphString(assignment.GroupId, exclusionTarget.SetGroupId)
-			tflog.Debug(ctx, "Created ExclusionGroupAssignmentTarget", map[string]interface{}{
+			tflog.Debug(ctx, "Created ExclusionGroupAssignmentTarget", map[string]any{
 				"groupId": assignment.GroupId.ValueString(),
 			})
 		} else {
-			tflog.Error(ctx, "Exclusion group assignment target missing required group_id", map[string]interface{}{
+			tflog.Error(ctx, "Exclusion group assignment target missing required group_id", map[string]any{
 				"targetType": targetType,
 			})
 			return nil
 		}
 		target = exclusionTarget
 	default:
-		tflog.Error(ctx, "Unsupported target type", map[string]interface{}{
+		tflog.Error(ctx, "Unsupported target type", map[string]any{
 			"targetType": targetType,
 		})
 		return nil

@@ -52,7 +52,7 @@ func constructResource(ctx context.Context, data *AppControlForBusinessPolicyRes
 	requestBody.SetTemplateReference(templateReference)
 
 	if err := constructors.DebugLogGraphObject(ctx, "Final JSON to be sent to Graph API", requestBody); err != nil {
-		tflog.Error(ctx, "Failed to debug log object", map[string]interface{}{
+		tflog.Error(ctx, "Failed to debug log object", map[string]any{
 			"error": err.Error(),
 		})
 	}
@@ -119,7 +119,7 @@ func constructXMLContentChild(ctx context.Context, data *AppControlForBusinessPo
 	// Normalize XML content for API submission
 	xmlContent := normalize.NormalizeXML(originalXML)
 
-	tflog.Debug(ctx, "Cleaned XML content for Graph API", map[string]interface{}{
+	tflog.Debug(ctx, "Cleaned XML content for Graph API", map[string]any{
 		"originalLength": len(originalXML),
 		"cleanedLength":  len(xmlContent),
 		"hasBOM":         strings.HasPrefix(originalXML, "\ufeff"),

@@ -22,7 +22,7 @@ func (m NormalizeJSONPlanModifier) PlanModifyString(ctx context.Context, req pla
 	jsonInput := req.ConfigValue.ValueString()
 	normalized, err := normalize.JSONAlphabetically(jsonInput)
 	if err != nil {
-		tflog.Warn(ctx, "Failed to normalize JSON in plan modifier", map[string]interface{}{
+		tflog.Warn(ctx, "Failed to normalize JSON in plan modifier", map[string]any{
 			"error": err.Error(),
 			"value": jsonInput,
 		})
@@ -34,7 +34,7 @@ func (m NormalizeJSONPlanModifier) PlanModifyString(ctx context.Context, req pla
 	}
 
 	resp.PlanValue = types.StringValue(normalized)
-	tflog.Debug(ctx, "Normalized JSON during plan phase", map[string]interface{}{
+	tflog.Debug(ctx, "Normalized JSON during plan phase", map[string]any{
 		"original":   jsonInput,
 		"normalized": normalized,
 	})

@@ -121,7 +121,7 @@ func constructPatchRequest(ctx context.Context, actionType ActionType) (graphmod
 	}
 
 	if err := constructors.DebugLogGraphObject(ctx, fmt.Sprintf("PATCH JSON for action %s", actionType), requestBody); err != nil {
-		tflog.Error(ctx, "Failed to debug log PATCH object", map[string]interface{}{
+		tflog.Error(ctx, "Failed to debug log PATCH object", map[string]any{
 			"error": err.Error(),
 		})
 	}

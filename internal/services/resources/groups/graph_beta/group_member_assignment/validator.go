@@ -22,7 +22,7 @@ func ValidateGroupMemberAssignment(
 	memberId := object.MemberID.ValueString()
 	groupId := object.GroupID.ValueString()
 
-	tflog.Debug(ctx, "Validating member assignment", map[string]interface{}{
+	tflog.Debug(ctx, "Validating member assignment", map[string]any{
 		"group_id":           groupId,
 		"member_id":          memberId,
 		"member_object_type": memberObjectType,
@@ -172,7 +172,7 @@ func checkMemberExists(
 	groupId string,
 	memberId string,
 ) (bool, error) {
-	tflog.Debug(ctx, "Checking if member exists in group", map[string]interface{}{
+	tflog.Debug(ctx, "Checking if member exists in group", map[string]any{
 		"group_id":  groupId,
 		"member_id": memberId,
 	})
@@ -191,7 +191,7 @@ func checkMemberExists(
 	if members != nil && members.GetValue() != nil {
 		for _, member := range members.GetValue() {
 			if member.GetId() != nil && *member.GetId() == memberId {
-				tflog.Debug(ctx, "Member found in group", map[string]interface{}{
+				tflog.Debug(ctx, "Member found in group", map[string]any{
 					"group_id":  groupId,
 					"member_id": memberId,
 				})
@@ -200,7 +200,7 @@ func checkMemberExists(
 		}
 	}
 
-	tflog.Debug(ctx, "Member not found in group", map[string]interface{}{
+	tflog.Debug(ctx, "Member not found in group", map[string]any{
 		"group_id":  groupId,
 		"member_id": memberId,
 	})

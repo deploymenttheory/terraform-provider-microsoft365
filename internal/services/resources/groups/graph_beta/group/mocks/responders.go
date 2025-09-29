@@ -15,12 +15,12 @@ import (
 // mockState tracks the state of resources for consistent responses
 var mockState struct {
 	sync.Mutex
-	groups map[string]map[string]interface{}
+	groups map[string]map[string]any
 }
 
 func init() {
 	// Initialize mockState
-	mockState.groups = make(map[string]map[string]interface{})
+	mockState.groups = make(map[string]map[string]any)
 
 	// Register a default 404 responder for any unmatched requests
 	httpmock.RegisterNoResponder(httpmock.NewStringResponder(404, `{"error":{"code":"ResourceNotFound","message":"Resource not found"}}`))
@@ -39,20 +39,20 @@ var _ mocks.MockRegistrar = (*GroupMock)(nil)
 func (m *GroupMock) RegisterMocks() {
 	// Reset the state when registering mocks
 	mockState.Lock()
-	mockState.groups = make(map[string]map[string]interface{})
+	mockState.groups = make(map[string]map[string]any)
 	mockState.Unlock()
 
 	// Register GET for listing groups
 	httpmock.RegisterResponder("GET", "https://graph.microsoft.com/beta/groups",
 		func(req *http.Request) (*http.Response, error) {
 			mockState.Lock()
-			groups := make([]map[string]interface{}, 0, len(mockState.groups))
+			groups := make([]map[string]any, 0, len(mockState.groups))
 			for _, group := range mockState.groups {
 				groups = append(groups, group)
 			}
 			mockState.Unlock()
 
-			response := map[string]interface{}{
+			response := map[string]any{
 				"@odata.context": "https://graph.microsoft.com/beta/$metadata#groups",
 				"value":          groups,
 			}
@@ -99,7 +99,7 @@ func (m *GroupMock) RegisterMocks() {
 	// Register POST for creating groups
 	httpmock.RegisterResponder("POST", "https://graph.microsoft.com/beta/groups",
 		func(req *http.Request) (*http.Response, error) {
-			var requestBody map[string]interface{}
+			var requestBody map[string]any
 			if err := json.NewDecoder(req.Body).Decode(&requestBody); err != nil {
 				return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"Invalid request body"}}`), nil
 			}
@@ -143,7 +143,7 @@ func (m *GroupMock) RegisterMocks() {
 		func(req *http.Request) (*http.Response, error) {
 			groupID := httpmock.MustGetSubmatch(req, 1)
 
-			var requestBody map[string]interface{}
+			var requestBody map[string]any
 			if err := json.NewDecoder(req.Body).Decode(&requestBody); err != nil {
 				return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"Invalid request body"}}`), nil
 			}
@@ -212,5 +212,5 @@ func (m *GroupMock) RegisterErrorMocks() {
 func (m *GroupMock) CleanupMockState() {
 	mockState.Lock()
 	defer mockState.Unlock()
-	mockState.groups = make(map[string]map[string]interface{})
+	mockState.groups = make(map[string]map[string]any)
 }

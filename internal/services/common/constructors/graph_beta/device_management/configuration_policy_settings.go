@@ -19,13 +19,13 @@ func ConstructSettingsCatalogSettings(ctx context.Context, settingsJSON types.St
 	var configModel sharedmodels.DeviceConfigV2GraphServiceResourceModel
 
 	if err := json.Unmarshal([]byte(settingsJSON.ValueString()), &configModel); err != nil {
-		tflog.Error(ctx, "Failed to unmarshal settings JSON", map[string]interface{}{
+		tflog.Error(ctx, "Failed to unmarshal settings JSON", map[string]any{
 			"error": err.Error(),
 		})
 		return nil
 	}
 
-	tflog.Debug(ctx, "Unmarshaled settings catalog data from HCL", map[string]interface{}{
+	tflog.Debug(ctx, "Unmarshaled settings catalog data from HCL", map[string]any{
 		"data": configModel,
 	})
 
@@ -39,7 +39,7 @@ func ConstructSettingsCatalogSettings(ctx context.Context, settingsJSON types.St
 		processSetting(ctx, *configModel.Setting, &constructedSettings)
 	}
 
-	tflog.Debug(ctx, "Constructed settings catalog settings", map[string]interface{}{
+	tflog.Debug(ctx, "Constructed settings catalog settings", map[string]any{
 		"count": len(constructedSettings),
 	})
 
@@ -156,7 +156,7 @@ func processSetting(ctx context.Context, setting sharedmodels.Setting, settingsR
 // - string: A string identifier for the type of the instance (e.g., "simple", "choice").
 func createBaseInstance(ctx context.Context, odataType string, settingDefinitionId string) (interface{}, string) {
 	if odataType == "" {
-		tflog.Error(ctx, "Invalid input: OData type is empty", map[string]interface{}{
+		tflog.Error(ctx, "Invalid input: OData type is empty", map[string]any{
 			"odataType": odataType,
 		})
 		return nil, ""
@@ -261,7 +261,7 @@ func handleSimpleValue(ctx context.Context, valueStruct *sharedmodels.SimpleSett
 		return result
 	}
 
-	tflog.Error(ctx, "Failed to handle simple setting value", map[string]interface{}{
+	tflog.Error(ctx, "Failed to handle simple setting value", map[string]any{
 		"type":  valueStruct.ODataType,
 		"value": valueStruct.Value,
 	})

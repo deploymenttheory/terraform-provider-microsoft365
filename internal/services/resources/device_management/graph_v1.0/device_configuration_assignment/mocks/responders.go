@@ -44,7 +44,7 @@ func (m *DeviceConfigurationAssignmentMock) RegisterMocks() {
 			}
 
 			// Parse the request body
-			var requestBody map[string]interface{}
+			var requestBody map[string]any
 			if err := json.NewDecoder(req.Body).Decode(&requestBody); err != nil {
 				return httpmock.NewStringResponse(400, `{"error": {"message": "Invalid request body"}}`), nil
 			}
@@ -55,7 +55,7 @@ func (m *DeviceConfigurationAssignmentMock) RegisterMocks() {
 			fmt.Printf("DEBUG MOCK: Generated assignment ID %s for request: %+v\n", assignmentId, requestBody)
 
 			// Create response
-			responseBody := map[string]interface{}{
+			responseBody := map[string]any{
 				"id":     assignmentId,
 				"target": requestBody["target"],
 			}
@@ -101,9 +101,9 @@ func (m *DeviceConfigurationAssignmentMock) RegisterMocks() {
 			if updateOccurred {
 				// After update, return allLicensedUsers target
 				fmt.Printf("DEBUG MOCK: Returning updated (allLicensedUsers) data after PATCH for ID 00000000-0000-0000-0000-000000000001\n")
-				return httpmock.NewJsonResponse(200, map[string]interface{}{
+				return httpmock.NewJsonResponse(200, map[string]any{
 					"id": "00000000-0000-0000-0000-000000000001",
-					"target": map[string]interface{}{
+					"target": map[string]any{
 						"@odata.type": "#microsoft.graph.allLicensedUsersAssignmentTarget",
 					},
 				})
@@ -111,9 +111,9 @@ func (m *DeviceConfigurationAssignmentMock) RegisterMocks() {
 
 			// Before update, return groupAssignment target
 			fmt.Printf("DEBUG MOCK: Returning original (groupAssignment) data before PATCH for ID 00000000-0000-0000-0000-000000000001\n")
-			return httpmock.NewJsonResponse(200, map[string]interface{}{
+			return httpmock.NewJsonResponse(200, map[string]any{
 				"id": "00000000-0000-0000-0000-000000000001",
-				"target": map[string]interface{}{
+				"target": map[string]any{
 					"@odata.type": "#microsoft.graph.groupAssignmentTarget",
 					"groupId":     "11111111-1111-1111-1111-111111111111",
 				},
@@ -145,7 +145,7 @@ func (m *DeviceConfigurationAssignmentMock) RegisterMocks() {
 			}
 
 			// Parse the request body
-			var requestBody map[string]interface{}
+			var requestBody map[string]any
 			if err := json.NewDecoder(req.Body).Decode(&requestBody); err != nil {
 				return httpmock.NewStringResponse(400, `{"error": {"message": "Invalid request body"}}`), nil
 			}
@@ -215,8 +215,8 @@ func (m *DeviceConfigurationAssignmentMock) RegisterErrorMocks() {
 // Helper functions
 
 // generateAssignmentId generates an assignment ID based on the target type
-func generateAssignmentId(requestBody map[string]interface{}) string {
-	if target, ok := requestBody["target"].(map[string]interface{}); ok {
+func generateAssignmentId(requestBody map[string]any) string {
+	if target, ok := requestBody["target"].(map[string]any); ok {
 		if odataType, ok := target["@odata.type"].(string); ok {
 			switch odataType {
 			case "#microsoft.graph.groupAssignmentTarget":
@@ -234,47 +234,47 @@ func generateAssignmentId(requestBody map[string]interface{}) string {
 }
 
 // getAssignmentResponse returns a response for a given assignment ID
-func getAssignmentResponse(assignmentId string) map[string]interface{} {
+func getAssignmentResponse(assignmentId string) map[string]any {
 	switch assignmentId {
 	case "00000000-0000-0000-0000-000000000001":
 		// Group assignment
-		return map[string]interface{}{
+		return map[string]any{
 			"id": assignmentId,
-			"target": map[string]interface{}{
+			"target": map[string]any{
 				"@odata.type": "#microsoft.graph.groupAssignmentTarget",
 				"groupId":     "11111111-1111-1111-1111-111111111111",
 			},
 		}
 	case "00000000-0000-0000-0000-000000000002":
 		// All devices
-		return map[string]interface{}{
+		return map[string]any{
 			"id": assignmentId,
-			"target": map[string]interface{}{
+			"target": map[string]any{
 				"@odata.type": "#microsoft.graph.allDevicesAssignmentTarget",
 			},
 		}
 	case "00000000-0000-0000-0000-000000000003":
 		// All licensed users
-		return map[string]interface{}{
+		return map[string]any{
 			"id": assignmentId,
-			"target": map[string]interface{}{
+			"target": map[string]any{
 				"@odata.type": "#microsoft.graph.allLicensedUsersAssignmentTarget",
 			},
 		}
 	case "00000000-0000-0000-0000-000000000004":
 		// Exclusion group
-		return map[string]interface{}{
+		return map[string]any{
 			"id": assignmentId,
-			"target": map[string]interface{}{
+			"target": map[string]any{
 				"@odata.type": "#microsoft.graph.exclusionGroupAssignmentTarget",
 				"groupId":     "22222222-2222-2222-2222-222222222222",
 			},
 		}
 	default:
 		// Default to group assignment
-		return map[string]interface{}{
+		return map[string]any{
 			"id": assignmentId,
-			"target": map[string]interface{}{
+			"target": map[string]any{
 				"@odata.type": "#microsoft.graph.groupAssignmentTarget",
 				"groupId":     "11111111-1111-1111-1111-111111111111",
 			},

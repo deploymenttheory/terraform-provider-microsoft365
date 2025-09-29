@@ -14,11 +14,11 @@ import (
 
 var mockState struct {
 	sync.Mutex
-	namedLocations map[string]map[string]interface{}
+	namedLocations map[string]map[string]any
 }
 
 func init() {
-	mockState.namedLocations = make(map[string]map[string]interface{})
+	mockState.namedLocations = make(map[string]map[string]any)
 	httpmock.RegisterNoResponder(httpmock.NewStringResponder(404, `{"error":{"code":"ResourceNotFound","message":"Resource not found"}}`))
 	mocks.GlobalRegistry.Register("named_location", &NamedLocationMock{})
 }
@@ -29,12 +29,12 @@ var _ mocks.MockRegistrar = (*NamedLocationMock)(nil)
 
 func (m *NamedLocationMock) RegisterMocks() {
 	mockState.Lock()
-	mockState.namedLocations = make(map[string]map[string]interface{})
+	mockState.namedLocations = make(map[string]map[string]any)
 	mockState.Unlock()
 
 	// Create named location - POST /identity/conditionalAccess/namedLocations
 	httpmock.RegisterResponder("POST", "https://graph.microsoft.com/beta/identity/conditionalAccess/namedLocations", func(req *http.Request) (*http.Response, error) {
-		var requestBody map[string]interface{}
+		var requestBody map[string]any
 		if err := json.NewDecoder(req.Body).Decode(&requestBody); err != nil {
 			return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"Invalid request body"}}`), nil
 		}
@@ -45,7 +45,7 @@ func (m *NamedLocationMock) RegisterMocks() {
 		// Determine response based on @odata.type
 		var jsonStr string
 		var err error
-		
+
 		if odataType, ok := requestBody["@odata.type"].(string); ok {
 			switch odataType {
 			case "#microsoft.graph.ipNamedLocation":
@@ -63,7 +63,7 @@ func (m *NamedLocationMock) RegisterMocks() {
 			return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to load response"}}`), nil
 		}
 
-		var responseObj map[string]interface{}
+		var responseObj map[string]any
 		if err := json.Unmarshal([]byte(jsonStr), &responseObj); err != nil {
 			return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to parse response"}}`), nil
 		}
@@ -73,11 +73,11 @@ func (m *NamedLocationMock) RegisterMocks() {
 		if displayName, ok := requestBody["displayName"]; ok {
 			responseObj["displayName"] = displayName
 		}
-		
+
 		// Update response based on @odata.type
 		if odataType, ok := requestBody["@odata.type"].(string); ok {
 			responseObj["@odata.type"] = odataType
-			
+
 			switch odataType {
 			case "#microsoft.graph.ipNamedLocation":
 				if isTrusted, ok := requestBody["isTrusted"]; ok {
@@ -129,7 +129,7 @@ func (m *NamedLocationMock) RegisterMocks() {
 		parts := strings.Split(req.URL.Path, "/")
 		locationId := parts[len(parts)-1]
 
-		var requestBody map[string]interface{}
+		var requestBody map[string]any
 		if err := json.NewDecoder(req.Body).Decode(&requestBody); err != nil {
 			return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"Invalid request body"}}`), nil
 		}
@@ -182,6 +182,6 @@ func (m *NamedLocationMock) RegisterErrorMocks() {
 
 func (m *NamedLocationMock) CleanupMockState() {
 	mockState.Lock()
-	mockState.namedLocations = make(map[string]map[string]interface{})
+	mockState.namedLocations = make(map[string]map[string]any)
 	mockState.Unlock()
 }

@@ -32,14 +32,14 @@ func constructAssignment(ctx context.Context, data *WindowsEnrollmentStatusPageR
 	}
 
 	for idx, assignment := range terraformAssignments {
-		tflog.Debug(ctx, "Processing assignment", map[string]interface{}{
+		tflog.Debug(ctx, "Processing assignment", map[string]any{
 			"index": idx,
 		})
 
 		graphAssignment := graphmodels.NewEnrollmentConfigurationAssignment()
 
 		if assignment.Type.IsNull() || assignment.Type.IsUnknown() {
-			tflog.Error(ctx, "Assignment target type is missing or invalid", map[string]interface{}{
+			tflog.Error(ctx, "Assignment target type is missing or invalid", map[string]any{
 				"index": idx,
 			})
 			continue
@@ -49,7 +49,7 @@ func constructAssignment(ctx context.Context, data *WindowsEnrollmentStatusPageR
 
 		target := constructTarget(ctx, targetType, assignment)
 		if target == nil {
-			tflog.Error(ctx, "Failed to create target", map[string]interface{}{
+			tflog.Error(ctx, "Failed to create target", map[string]any{
 				"index":      idx,
 				"targetType": targetType,
 			})
@@ -60,14 +60,14 @@ func constructAssignment(ctx context.Context, data *WindowsEnrollmentStatusPageR
 		enrollmentAssignments = append(enrollmentAssignments, graphAssignment)
 	}
 
-	tflog.Debug(ctx, "Completed assignment construction", map[string]interface{}{
+	tflog.Debug(ctx, "Completed assignment construction", map[string]any{
 		"totalAssignments": len(enrollmentAssignments),
 	})
 
 	requestBody.SetEnrollmentConfigurationAssignments(enrollmentAssignments)
 
 	if err := constructors.DebugLogGraphObject(ctx, "Constructed assignment request body", requestBody); err != nil {
-		tflog.Error(ctx, "Failed to debug log assignment request body", map[string]interface{}{
+		tflog.Error(ctx, "Failed to debug log assignment request body", map[string]any{
 			"error": err.Error(),
 		})
 	}
@@ -89,14 +89,14 @@ func constructTarget(ctx context.Context, targetType string, assignment sharedmo
 		if !assignment.GroupId.IsNull() && !assignment.GroupId.IsUnknown() && assignment.GroupId.ValueString() != "" {
 			convert.FrameworkToGraphString(assignment.GroupId, groupTarget.SetGroupId)
 		} else {
-			tflog.Error(ctx, "Group assignment target missing required group_id", map[string]interface{}{
+			tflog.Error(ctx, "Group assignment target missing required group_id", map[string]any{
 				"targetType": targetType,
 			})
 			return nil
 		}
 		target = groupTarget
 	default:
-		tflog.Error(ctx, "Unsupported target type", map[string]interface{}{
+		tflog.Error(ctx, "Unsupported target type", map[string]any{
 			"targetType": targetType,
 		})
 		return nil

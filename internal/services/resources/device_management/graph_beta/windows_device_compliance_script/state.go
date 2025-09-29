@@ -15,7 +15,7 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *DeviceComplian
 		return
 	}
 
-	tflog.Debug(ctx, "Starting to map remote state to Terraform state", map[string]interface{}{
+	tflog.Debug(ctx, "Starting to map remote state to Terraform state", map[string]any{
 		"resourceName": remoteResource.GetDisplayName(),
 		"resourceId":   remoteResource.GetId(),
 	})

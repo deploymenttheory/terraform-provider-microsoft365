@@ -245,7 +245,7 @@ func GraphToFrameworkStringSet(ctx context.Context, value []string) types.Set {
 	}
 	set, diags := types.SetValueFrom(ctx, types.StringType, value)
 	if diags.HasError() {
-		tflog.Error(ctx, "Failed to convert string slice to types.Set", map[string]interface{}{
+		tflog.Error(ctx, "Failed to convert string slice to types.Set", map[string]any{
 			"error": diags.Errors()[0].Detail(),
 		})
 		return types.SetNull(types.StringType)
@@ -265,7 +265,7 @@ func GraphToFrameworkStringSet(ctx context.Context, value []string) types.Set {
 func GraphToFrameworkStringSetPreserveEmpty(ctx context.Context, value []string) types.Set {
 	set, diags := types.SetValueFrom(ctx, types.StringType, value)
 	if diags.HasError() {
-		tflog.Error(ctx, "Failed to convert string slice to types.Set", map[string]interface{}{
+		tflog.Error(ctx, "Failed to convert string slice to types.Set", map[string]any{
 			"error": diags.Errors()[0].Detail(),
 		})
 		return types.SetNull(types.StringType)
@@ -354,7 +354,7 @@ func GraphToFrameworkBitmaskEnumAsSet[T fmt.Stringer](ctx context.Context, value
 	// Create a set from the parts
 	set, diags := types.SetValueFrom(ctx, types.StringType, parts)
 	if diags.HasError() {
-		tflog.Error(ctx, "Failed to convert bitmask enum to set", map[string]interface{}{
+		tflog.Error(ctx, "Failed to convert bitmask enum to set", map[string]any{
 			"error": diags.Errors()[0].Detail(),
 		})
 		return types.SetNull(types.StringType)

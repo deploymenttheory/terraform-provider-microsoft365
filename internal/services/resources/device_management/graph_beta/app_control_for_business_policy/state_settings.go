@@ -68,7 +68,7 @@ func extractAppControlPolicyXMLSettings(ctx context.Context, data *AppControlFor
 	// Verify this is an XML configuration type
 	value := choiceValue.GetValue()
 	if value == nil || *value != "device_vendor_msft_policy_config_applicationcontrol_configure_xml_selected" {
-		tflog.Debug(ctx, "Setting is not XML configuration type", map[string]interface{}{
+		tflog.Debug(ctx, "Setting is not XML configuration type", map[string]any{
 			"value": value,
 		})
 		return nil
@@ -124,7 +124,7 @@ func extractPolicyXMLContent(ctx context.Context, data *AppControlForBusinessPol
 		normalizedXML := normalize.ReverseNormalizeXML(*xmlContent)
 
 		data.PolicyXML = types.StringValue(normalizedXML)
-		tflog.Debug(ctx, "Successfully extracted and normalized XML policy content", map[string]interface{}{
+		tflog.Debug(ctx, "Successfully extracted and normalized XML policy content", map[string]any{
 			"xmlLength": len(normalizedXML),
 			"hasBOM":    strings.HasPrefix(*xmlContent, "\ufeff"),
 		})

@@ -54,7 +54,7 @@ func validateRequest(ctx context.Context, client *msgraphbetasdk.GraphServiceCli
 					continue // Skip empty group IDs
 				}
 
-				tflog.Debug(ctx, "Validating Microsoft 365 group ID", map[string]interface{}{
+				tflog.Debug(ctx, "Validating Microsoft 365 group ID", map[string]any{
 					"groupId": groupId,
 				})
 
@@ -80,7 +80,7 @@ func validateRequest(ctx context.Context, client *msgraphbetasdk.GraphServiceCli
 								"Please use a Microsoft 365 group or distribution group that has mail enabled.", groupId),
 						)
 					} else {
-						tflog.Debug(ctx, "Successfully validated mail-enabled Microsoft 365 group", map[string]interface{}{
+						tflog.Debug(ctx, "Successfully validated mail-enabled Microsoft 365 group", map[string]any{
 							"groupId":     groupId,
 							"mailEnabled": *group.GetMailEnabled(),
 							"displayName": group.GetDisplayName(),

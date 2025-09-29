@@ -10,7 +10,7 @@ import (
 )
 
 // MapRemoteStateToTerraform maps the remote state from the API to the Terraform model
-func MapRemoteStateToTerraform(ctx context.Context, data *AutopatchGroupsResourceModel, autopatchGroup map[string]interface{}) {
+func MapRemoteStateToTerraform(ctx context.Context, data *AutopatchGroupsResourceModel, autopatchGroup map[string]any) {
 	tflog.Debug(ctx, fmt.Sprintf("Mapping %s resource from API to Terraform state", ResourceName))
 
 	// Basic string fields
@@ -135,7 +135,7 @@ func MapRemoteStateToTerraform(ctx context.Context, data *AutopatchGroupsResourc
 	if globalGroupsRaw, ok := autopatchGroup["globalUserManagedAadGroups"].([]interface{}); ok {
 		globalGroupsValues := make([]attr.Value, 0, len(globalGroupsRaw))
 		for _, groupRaw := range globalGroupsRaw {
-			if groupMap, ok := groupRaw.(map[string]interface{}); ok {
+			if groupMap, ok := groupRaw.(map[string]any); ok {
 				globalGroup := map[string]attr.Value{
 					"id":   types.StringNull(),
 					"type": types.StringNull(),

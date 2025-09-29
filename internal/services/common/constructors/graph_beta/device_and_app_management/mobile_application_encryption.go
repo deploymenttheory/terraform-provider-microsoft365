@@ -45,7 +45,7 @@ type EncryptedFileAnalysis struct {
 // encrypts the installer file, logs its hex details, and prepares the metadata (including
 // file size, encrypted size, and encryption info) for the Graph API content file resource.
 func EncryptMobileAppAndConstructFileContentMetadata(ctx context.Context, filePath string) (graphmodels.MobileAppContentFileable, *EncryptionInfo, error) {
-	tflog.Debug(ctx, fmt.Sprintf("Starting content file construction for file: %s", filePath), map[string]interface{}{"file_path": filePath})
+	tflog.Debug(ctx, fmt.Sprintf("Starting content file construction for file: %s", filePath), map[string]any{"file_path": filePath})
 
 	contentFile := graphmodels.NewMobileAppContentFile()
 
@@ -63,12 +63,12 @@ func EncryptMobileAppAndConstructFileContentMetadata(ctx context.Context, filePa
 	contentFile.SetIsDependency(&falseValue)
 	contentFile.SetIsFrameworkFile(&falseValue)
 
-	tflog.Debug(ctx, "Starting file encryption", map[string]interface{}{"file": filePath})
+	tflog.Debug(ctx, "Starting file encryption", map[string]any{"file": filePath})
 	encryptionInfo, err := encryptFile(filePath)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to encrypt file: %v", err)
 	}
-	tflog.Debug(ctx, "File encryption completed", map[string]interface{}{"encrypted_file": filePath + ".bin"})
+	tflog.Debug(ctx, "File encryption completed", map[string]any{"encrypted_file": filePath + ".bin"})
 
 	encryptedFilePath := filePath + ".bin"
 	analysis, err := analyzeEncryptedFileHex(encryptedFilePath)
@@ -76,7 +76,7 @@ func EncryptMobileAppAndConstructFileContentMetadata(ctx context.Context, filePa
 		tflog.Error(ctx, fmt.Sprintf("Error analyzing encrypted file: %v", err))
 	} else {
 		tflog.Debug(ctx, "Encrypted file analysis",
-			map[string]interface{}{
+			map[string]any{
 				"FileLength":       analysis.FileLength,
 				"HMACHex":          analysis.HMACHex,
 				"IVHex":            analysis.IVHex,
@@ -93,7 +93,7 @@ func EncryptMobileAppAndConstructFileContentMetadata(ctx context.Context, filePa
 	contentFile.SetSizeEncrypted(&encryptedSize)
 
 	tflog.Debug(ctx, "Intune Mobile App encrypted package content file construction completed",
-		map[string]interface{}{
+		map[string]any{
 			"original_size":  size,
 			"encrypted_size": encryptedSize,
 			"file_name":      fileName,

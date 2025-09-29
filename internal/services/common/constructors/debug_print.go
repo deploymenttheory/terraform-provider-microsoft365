@@ -26,7 +26,7 @@ import (
 // Usage example:
 //
 //	if err := debugLogGraphObject(ctx, "Final JSON to be sent to Graph API", profile); err != nil {
-//	    tflog.Error(ctx, "Failed to debug log object", map[string]interface{}{
+//	    tflog.Error(ctx, "Failed to debug log object", map[string]any{
 //	        "error": err.Error(),
 //	    })
 //	}
@@ -57,7 +57,7 @@ func DebugLogGraphObject(ctx context.Context, message string, object serializati
 		return err
 	}
 
-	tflog.Debug(ctx, message, map[string]interface{}{
+	tflog.Debug(ctx, message, map[string]any{
 		"json": "\n" + string(debugJSON),
 	})
 

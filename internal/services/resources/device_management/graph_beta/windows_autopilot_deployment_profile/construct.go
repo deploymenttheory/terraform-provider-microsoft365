@@ -87,7 +87,7 @@ func constructResource(ctx context.Context, data *WindowsAutopilotDeploymentProf
 	}
 
 	if err := constructors.DebugLogGraphObject(ctx, "Constructed Windows Autopilot Deployment Profile Resource", resource); err != nil {
-		tflog.Error(ctx, "Failed to log Windows Autopilot Deployment Profile", map[string]interface{}{
+		tflog.Error(ctx, "Failed to log Windows Autopilot Deployment Profile", map[string]any{
 			"error": err.Error(),
 		})
 	}

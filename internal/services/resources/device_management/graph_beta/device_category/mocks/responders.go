@@ -18,12 +18,12 @@ import (
 // mockState tracks the state of resources for consistent responses
 var mockState struct {
 	sync.Mutex
-	deviceCategories map[string]map[string]interface{}
+	deviceCategories map[string]map[string]any
 }
 
 func init() {
 	// Initialize mockState
-	mockState.deviceCategories = make(map[string]map[string]interface{})
+	mockState.deviceCategories = make(map[string]map[string]any)
 
 	// Register a default 404 responder for any unmatched requests
 	httpmock.RegisterNoResponder(httpmock.NewStringResponder(404, `{"error":{"code":"ResourceNotFound","message":"Resource not found"}}`))
@@ -87,8 +87,8 @@ func (m *DeviceCategoryMock) CleanupMockState() {
 }
 
 // loadJSONResponse loads a JSON response from a file
-func (m *DeviceCategoryMock) loadJSONResponse(filePath string) (map[string]interface{}, error) {
-	var response map[string]interface{}
+func (m *DeviceCategoryMock) loadJSONResponse(filePath string) (map[string]any, error) {
+	var response map[string]any
 
 	content, err := os.ReadFile(filePath)
 	if err != nil {
@@ -102,7 +102,7 @@ func (m *DeviceCategoryMock) loadJSONResponse(filePath string) (map[string]inter
 // createDeviceCategoryResponder handles POST requests to create device categories
 func (m *DeviceCategoryMock) createDeviceCategoryResponder() httpmock.Responder {
 	return func(req *http.Request) (*http.Response, error) {
-		var requestBody map[string]interface{}
+		var requestBody map[string]any
 		if err := json.NewDecoder(req.Body).Decode(&requestBody); err != nil {
 			errorResponse, _ := m.loadJSONResponse(filepath.Join("tests", "responses", "validate_create", "post_device_category_error.json"))
 			return httpmock.NewJsonResponse(400, errorResponse)
@@ -112,7 +112,7 @@ func (m *DeviceCategoryMock) createDeviceCategoryResponder() httpmock.Responder 
 		id := uuid.New().String()
 
 		// Create response with request data
-		response := map[string]interface{}{
+		response := map[string]any{
 			"id": id,
 		}
 
@@ -189,7 +189,7 @@ func (m *DeviceCategoryMock) updateDeviceCategoryResponder() httpmock.Responder 
 			return httpmock.NewJsonResponse(404, errorResponse)
 		}
 
-		var requestBody map[string]interface{}
+		var requestBody map[string]any
 		if err := json.NewDecoder(req.Body).Decode(&requestBody); err != nil {
 			errorResponse, _ := m.loadJSONResponse(filepath.Join("tests", "responses", "validate_create", "post_device_category_error.json"))
 			return httpmock.NewJsonResponse(400, errorResponse)

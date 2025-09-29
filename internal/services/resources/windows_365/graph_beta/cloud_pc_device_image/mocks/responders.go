@@ -14,12 +14,12 @@ import (
 // mockState tracks the state of resources for consistent responses
 var mockState struct {
 	sync.Mutex
-	cloudPcDeviceImages map[string]map[string]interface{}
+	cloudPcDeviceImages map[string]map[string]any
 }
 
 func init() {
 	// Initialize mockState
-	mockState.cloudPcDeviceImages = make(map[string]map[string]interface{})
+	mockState.cloudPcDeviceImages = make(map[string]map[string]any)
 
 	// Register a default 404 responder for any unmatched requests
 	httpmock.RegisterNoResponder(httpmock.NewStringResponder(404, `{"error":{"code":"ResourceNotFound","message":"Resource not found"}}`))
@@ -32,17 +32,17 @@ type CloudPcDeviceImageMock struct{}
 func (m *CloudPcDeviceImageMock) RegisterMocks() {
 	// Reset the state when registering mocks
 	mockState.Lock()
-	mockState.cloudPcDeviceImages = make(map[string]map[string]interface{})
+	mockState.cloudPcDeviceImages = make(map[string]map[string]any)
 	mockState.Unlock()
 
 	// Register GET for listing Cloud PC device images
 	httpmock.RegisterResponder("GET", "https://graph.microsoft.com/beta/deviceManagement/virtualEndpoint/deviceImages",
 		func(req *http.Request) (*http.Response, error) {
 			mockState.Lock()
-			images := make([]map[string]interface{}, 0, len(mockState.cloudPcDeviceImages))
+			images := make([]map[string]any, 0, len(mockState.cloudPcDeviceImages))
 			for _, image := range mockState.cloudPcDeviceImages {
 				// Ensure @odata.type is present
-				imageCopy := make(map[string]interface{})
+				imageCopy := make(map[string]any)
 				for k, v := range image {
 					imageCopy[k] = v
 				}
@@ -54,7 +54,7 @@ func (m *CloudPcDeviceImageMock) RegisterMocks() {
 			}
 			mockState.Unlock()
 
-			response := map[string]interface{}{
+			response := map[string]any{
 				"@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/virtualEndpoint/deviceImages",
 				"value":          images,
 			}
@@ -78,7 +78,7 @@ func (m *CloudPcDeviceImageMock) RegisterMocks() {
 			}
 
 			// Create response copy
-			imageCopy := make(map[string]interface{})
+			imageCopy := make(map[string]any)
 			for k, v := range image {
 				imageCopy[k] = v
 			}
@@ -92,7 +92,7 @@ func (m *CloudPcDeviceImageMock) RegisterMocks() {
 	// Register POST for creating Cloud PC device image
 	httpmock.RegisterResponder("POST", "https://graph.microsoft.com/beta/deviceManagement/virtualEndpoint/deviceImages",
 		func(req *http.Request) (*http.Response, error) {
-			var requestBody map[string]interface{}
+			var requestBody map[string]any
 			err := json.NewDecoder(req.Body).Decode(&requestBody)
 			if err != nil {
 				return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"Invalid request body"}}`), nil
@@ -102,18 +102,18 @@ func (m *CloudPcDeviceImageMock) RegisterMocks() {
 			id := uuid.New().String()
 
 			// Create the image object with required fields
-			image := map[string]interface{}{
-				"@odata.type":             "#microsoft.graph.cloudPcDeviceImage",
-				"id":                      id,
-				"displayName":             requestBody["displayName"],
-				"version":                 requestBody["version"],
-				"sourceImageResourceId":   requestBody["sourceImageResourceId"],
-				"operatingSystem":         "Windows 10 Enterprise",
-				"osBuildNumber":           "19045",
-				"osVersionNumber":         "10.0.19045.3930",
-				"status":                  "ready",
-				"osStatus":                "supported",
-				"lastModifiedDateTime":    "2024-01-01T00:00:00Z",
+			image := map[string]any{
+				"@odata.type":           "#microsoft.graph.cloudPcDeviceImage",
+				"id":                    id,
+				"displayName":           requestBody["displayName"],
+				"version":               requestBody["version"],
+				"sourceImageResourceId": requestBody["sourceImageResourceId"],
+				"operatingSystem":       "Windows 10 Enterprise",
+				"osBuildNumber":         "19045",
+				"osVersionNumber":       "10.0.19045.3930",
+				"status":                "ready",
+				"osStatus":              "supported",
+				"lastModifiedDateTime":  "2024-01-01T00:00:00Z",
 			}
 
 			// Store in mock state
@@ -131,7 +131,7 @@ func (m *CloudPcDeviceImageMock) RegisterMocks() {
 			urlParts := strings.Split(req.URL.Path, "/")
 			id := urlParts[len(urlParts)-1]
 
-			var requestBody map[string]interface{}
+			var requestBody map[string]any
 			err := json.NewDecoder(req.Body).Decode(&requestBody)
 			if err != nil {
 				return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"Invalid request body"}}`), nil
@@ -192,15 +192,15 @@ func (m *CloudPcDeviceImageMock) RegisterMocks() {
 func (m *CloudPcDeviceImageMock) RegisterErrorMocks() {
 	// Reset the state when registering error mocks
 	mockState.Lock()
-	mockState.cloudPcDeviceImages = make(map[string]map[string]interface{})
+	mockState.cloudPcDeviceImages = make(map[string]map[string]any)
 	mockState.Unlock()
 
 	// Register GET for listing Cloud PC device images (needed for uniqueness check)
 	httpmock.RegisterResponder("GET", "https://graph.microsoft.com/beta/deviceManagement/virtualEndpoint/deviceImages",
 		func(req *http.Request) (*http.Response, error) {
-			response := map[string]interface{}{
+			response := map[string]any{
 				"@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/virtualEndpoint/deviceImages",
-				"value":          []map[string]interface{}{}, // Empty list for error scenarios
+				"value":          []map[string]any{}, // Empty list for error scenarios
 			}
 			return httpmock.NewJsonResponse(200, response)
 		})

@@ -23,7 +23,7 @@ func ListValue(elementType attr.Type, elements []attr.Value) types.List {
 func ListValueFrom(ctx context.Context, elementType attr.Type, elements interface{}) types.List {
 	list, diags := types.ListValueFrom(ctx, elementType, elements)
 	if diags.HasError() {
-		tflog.Error(ctx, "Failed to convert to types.List", map[string]interface{}{
+		tflog.Error(ctx, "Failed to convert to types.List", map[string]any{
 			"error": diags.Errors()[0].Detail(),
 		})
 		panic(diags.Errors()[0].Detail())

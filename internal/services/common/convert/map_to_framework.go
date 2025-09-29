@@ -11,7 +11,7 @@ import (
 
 // ============================================================================
 // MAP → TERRAFORM FRAMEWORK (Read Operations)
-// Used in Read() methods when receiving API responses as map[string]interface{}
+// Used in Read() methods when receiving API responses as map[string]any
 // ============================================================================
 
 // MapToFrameworkString extracts a string value from a map and converts it to a Terraform Framework string.

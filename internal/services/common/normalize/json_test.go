@@ -562,7 +562,7 @@ func TestNormalizeJSONAlphabetically(t *testing.T) {
 			}
 
 			// Try unmarshaling both to compare structure
-			var expectedMap, gotMap map[string]interface{}
+			var expectedMap, gotMap map[string]any
 			err = json.Unmarshal([]byte(tt.expected), &expectedMap)
 			assert.NoError(t, err, "Failed to unmarshal expected JSON")
 

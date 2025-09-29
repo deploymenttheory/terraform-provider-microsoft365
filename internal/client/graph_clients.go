@@ -181,7 +181,7 @@ func getClient[T any, R any](ctx context.Context, providerData any, resp R, name
 
 	clients, ok := providerData.(GraphClientInterface)
 	if !ok {
-		tflog.Error(ctx, "Unexpected Provider Data Type", map[string]interface{}{
+		tflog.Error(ctx, "Unexpected Provider Data Type", map[string]any{
 			"expected": "GraphClientInterface",
 			"actual":   fmt.Sprintf("%T", providerData),
 		})

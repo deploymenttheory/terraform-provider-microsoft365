@@ -23,7 +23,7 @@ func SetValue(elementType attr.Type, elements []attr.Value) types.Set {
 func SetValueFrom(ctx context.Context, elementType attr.Type, elements interface{}) types.Set {
 	set, diags := types.SetValueFrom(ctx, elementType, elements)
 	if diags.HasError() {
-		tflog.Error(ctx, "Failed to convert to types.Set", map[string]interface{}{
+		tflog.Error(ctx, "Failed to convert to types.Set", map[string]any{
 			"error": diags.Errors()[0].Detail(),
 		})
 		panic(diags.Errors()[0].Detail())
@@ -39,7 +39,7 @@ func SetNullIfEmpty(ctx context.Context, elementType attr.Type, values []attr.Va
 
 	set, diags := types.SetValue(elementType, values)
 	if diags.HasError() {
-		tflog.Error(ctx, "Failed to create set value", map[string]interface{}{
+		tflog.Error(ctx, "Failed to create set value", map[string]any{
 			"error": diags.Errors()[0].Detail(),
 		})
 		return types.SetNull(elementType)

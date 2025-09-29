@@ -10,7 +10,7 @@ import (
 
 // MapRemoteStateToEphemeral maps an audit event to a model for ephemeral resource
 func MapRemoteStateToEphemeral(ctx context.Context, data graphmodels.AuditEventable) AuditEventModel {
-	tflog.Debug(ctx, "Starting to map remote resource state to ephemeral state", map[string]interface{}{
+	tflog.Debug(ctx, "Starting to map remote resource state to ephemeral state", map[string]any{
 		"resourceName": data.GetActivity(),
 		"resourceId":   data.GetId(),
 	})

@@ -188,7 +188,7 @@ func testAccCheckAuthenticationStrengthDestroy(s *terraform.State) error {
 			fmt.Printf("DEBUG: Authentication strength %s still exists, attempting cleanup\n", resourceID)
 
 			// Parse the response
-			var currentResource map[string]interface{}
+			var currentResource map[string]any
 			if err := json.NewDecoder(httpResp.Body).Decode(&currentResource); err != nil {
 				return fmt.Errorf("error parsing resource for cleanup: %v", err)
 			}

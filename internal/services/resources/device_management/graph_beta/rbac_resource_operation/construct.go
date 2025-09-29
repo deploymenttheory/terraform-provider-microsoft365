@@ -20,7 +20,7 @@ func constructResource(ctx context.Context, data RBACResourceOperationResourceMo
 	convert.FrameworkToGraphString(data.Description, RBACResourceOperation.SetDescription)
 
 	if err := constructors.DebugLogGraphObject(ctx, "Constructed resource operation", RBACResourceOperation); err != nil {
-		tflog.Error(ctx, "Failed to log resource operation", map[string]interface{}{
+		tflog.Error(ctx, "Failed to log resource operation", map[string]any{
 			"error": err.Error(),
 		})
 	}

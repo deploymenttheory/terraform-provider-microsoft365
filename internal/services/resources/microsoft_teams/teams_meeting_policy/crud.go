@@ -41,7 +41,7 @@ func (r *TeamsMeetingPolicyResource) Read(ctx context.Context, req resource.Read
 		resp.Diagnostics.AddError("Error reading Teams Meeting Policy", err.Error())
 		return
 	}
-	var p map[string]interface{}
+	var p map[string]any
 	err = json.Unmarshal([]byte(output), &p)
 	if err != nil {
 		resp.Diagnostics.AddError("Error parsing Teams Meeting Policy JSON", err.Error())

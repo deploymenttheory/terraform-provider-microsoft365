@@ -40,7 +40,7 @@ func constructAssignmentsRequestBody(ctx context.Context, assignments types.Set)
 		}
 
 		if assignment.Type.IsNull() || assignment.Type.IsUnknown() {
-			tflog.Error(ctx, "Assignment target type is missing or invalid", map[string]interface{}{
+			tflog.Error(ctx, "Assignment target type is missing or invalid", map[string]any{
 				"index": i,
 			})
 			continue
@@ -53,7 +53,7 @@ func constructAssignmentsRequestBody(ctx context.Context, assignments types.Set)
 
 		target := constructProvisioningPolicyTarget(ctx, targetType, assignment)
 		if target == nil {
-			tflog.Error(ctx, "Failed to create target", map[string]interface{}{
+			tflog.Error(ctx, "Failed to create target", map[string]any{
 				"index":      i,
 				"targetType": targetType,
 			})
@@ -94,7 +94,7 @@ func constructAssignmentsRequestBody(ctx context.Context, assignments types.Set)
 	requestBody.SetAssignments(graphAssignments)
 
 	if err := constructors.DebugLogGraphObject(ctx, fmt.Sprintf("Final JSON to be sent to Graph API for resource %s assignments", ResourceName), requestBody); err != nil {
-		tflog.Error(ctx, "Failed to debug log object", map[string]interface{}{
+		tflog.Error(ctx, "Failed to debug log object", map[string]any{
 			"error": err.Error(),
 		})
 	}
@@ -112,17 +112,17 @@ func constructProvisioningPolicyTarget(ctx context.Context, targetType string, a
 	case "groupAssignmentTarget":
 		target = models.NewCloudPcManagementAssignmentTarget()
 		odataType = "#microsoft.graph.cloudPcManagementGroupAssignmentTarget"
-		tflog.Debug(ctx, "Created CloudPcManagementGroupAssignmentTarget", map[string]interface{}{
+		tflog.Debug(ctx, "Created CloudPcManagementGroupAssignmentTarget", map[string]any{
 			"groupId": assignment.GroupId.ValueString(),
 		})
 	case "exclusionGroupAssignmentTarget":
 		target = models.NewCloudPcManagementAssignmentTarget()
 		odataType = "#microsoft.graph.cloudPcManagementExclusionGroupAssignmentTarget"
-		tflog.Debug(ctx, "Created CloudPcManagementExclusionGroupAssignmentTarget", map[string]interface{}{
+		tflog.Debug(ctx, "Created CloudPcManagementExclusionGroupAssignmentTarget", map[string]any{
 			"groupId": assignment.GroupId.ValueString(),
 		})
 	default:
-		tflog.Error(ctx, "Unsupported target type", map[string]interface{}{
+		tflog.Error(ctx, "Unsupported target type", map[string]any{
 			"targetType": targetType,
 		})
 		return nil

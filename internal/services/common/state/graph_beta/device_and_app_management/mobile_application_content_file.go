@@ -58,7 +58,7 @@ func MapCommittedContentVersionStateToTerraform(
 		if ok {
 			files = fileCollection.GetValue()
 		} else {
-			tflog.Warn(ctx, "Response type assertion failed", map[string]interface{}{
+			tflog.Warn(ctx, "Response type assertion failed", map[string]any{
 				"actualType": fmt.Sprintf("%T", respFiles),
 			})
 			files = []graphmodels.MobileAppContentFileable{}
@@ -95,7 +95,7 @@ func MapCommittedContentVersionStateToTerraform(
 
 		fileObj, diags := types.ObjectValue(fileObjectType.AttrTypes, fileValues)
 		if diags.HasError() {
-			tflog.Warn(ctx, "Error creating file object", map[string]interface{}{
+			tflog.Warn(ctx, "Error creating file object", map[string]any{
 				"index": i,
 				"error": diags.Errors(),
 			})

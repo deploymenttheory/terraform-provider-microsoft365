@@ -16,7 +16,7 @@ import (
 type MockAuthProvider struct{}
 
 // AuthenticateRequest adds a mock authorization header to requests
-func (m *MockAuthProvider) AuthenticateRequest(ctx context.Context, request *abstractions.RequestInformation, additionalAuthenticationContext map[string]interface{}) error {
+func (m *MockAuthProvider) AuthenticateRequest(ctx context.Context, request *abstractions.RequestInformation, additionalAuthenticationContext map[string]any) error {
 	if request.Headers != nil {
 		request.Headers.Add("Authorization", "Bearer mock-token")
 	}

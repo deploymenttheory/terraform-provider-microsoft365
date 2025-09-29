@@ -10,7 +10,7 @@ import (
 
 // validateRequest validates that the display name is unique among existing role scope tags
 func validateRequest(ctx context.Context, client *msgraphbetasdk.GraphServiceClient, displayName string, excludeResourceID *string) error {
-	tflog.Debug(ctx, "Starting display name validation", map[string]interface{}{
+	tflog.Debug(ctx, "Starting display name validation", map[string]any{
 		"displayName": displayName,
 	})
 
@@ -34,7 +34,7 @@ func validateRequest(ctx context.Context, client *msgraphbetasdk.GraphServiceCli
 		if existingTag.GetDisplayName() != nil && *existingTag.GetDisplayName() == displayName {
 			// Skip validation if this is the current resource being updated
 			if excludeResourceID != nil && existingTag.GetId() != nil && *existingTag.GetId() == *excludeResourceID {
-				tflog.Debug(ctx, "Skipping validation for current resource", map[string]interface{}{
+				tflog.Debug(ctx, "Skipping validation for current resource", map[string]any{
 					"displayName": displayName,
 					"resourceId":  *excludeResourceID,
 				})
@@ -44,7 +44,7 @@ func validateRequest(ctx context.Context, client *msgraphbetasdk.GraphServiceCli
 		}
 	}
 
-	tflog.Debug(ctx, "Display name validation passed - name is unique", map[string]interface{}{
+	tflog.Debug(ctx, "Display name validation passed - name is unique", map[string]any{
 		"displayName": displayName,
 	})
 

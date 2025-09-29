@@ -24,7 +24,7 @@ func constructResource(ctx context.Context, data *GroupPolicyMultiTextValueResou
 	definitionID := data.GroupPolicyDefinitionValueID.ValueString() // This contains the definition ID after resolveIDs
 	definitionBindURL := fmt.Sprintf("https://graph.microsoft.com/beta/deviceManagement/groupPolicyDefinitions('%s')", definitionID)
 
-	definitionValue.SetAdditionalData(map[string]interface{}{
+	definitionValue.SetAdditionalData(map[string]any{
 		"definition@odata.bind": definitionBindURL,
 	})
 
@@ -37,7 +37,7 @@ func constructResource(ctx context.Context, data *GroupPolicyMultiTextValueResou
 	presentationID := data.PresentationID.ValueString()
 	presentationBindURL := fmt.Sprintf("https://graph.microsoft.com/beta/deviceManagement/groupPolicyDefinitions('%s')/presentations('%s')", definitionID, presentationID)
 
-	multiTextPresentationValue.SetAdditionalData(map[string]interface{}{
+	multiTextPresentationValue.SetAdditionalData(map[string]any{
 		"presentation@odata.bind": presentationBindURL,
 	})
 
@@ -82,7 +82,7 @@ func constructResource(ctx context.Context, data *GroupPolicyMultiTextValueResou
 	}
 
 	if err := constructors.DebugLogGraphObject(ctx, fmt.Sprintf("Final updateDefinitionValues JSON for resource %s", ResourceName), requestBody); err != nil {
-		tflog.Error(ctx, "Failed to debug log object", map[string]interface{}{
+		tflog.Error(ctx, "Failed to debug log object", map[string]any{
 			"error": err.Error(),
 		})
 	}

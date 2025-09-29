@@ -44,42 +44,42 @@ func constructResource(ctx context.Context, data *IOSMobileAppConfigurationResou
 		for _, settingElement := range settingsElements {
 			if settingObj, ok := settingElement.(types.Object); ok {
 				attrs := settingObj.Attributes()
-				
+
 				setting := graphmodels.NewAppConfigurationSettingItem()
-				
+
 				if keyAttr, exists := attrs["app_config_key"]; exists {
 					if keyStr, ok := keyAttr.(types.String); ok && !keyStr.IsNull() {
 						setting.SetAppConfigKey(keyStr.ValueStringPointer())
 					}
 				}
-				
+
 				if keyTypeAttr, exists := attrs["app_config_key_type"]; exists {
 					if keyTypeStr, ok := keyTypeAttr.(types.String); ok && !keyTypeStr.IsNull() {
 						if err := convert.FrameworkToGraphEnum(
-							keyTypeStr, 
-							graphmodels.ParseMdmAppConfigKeyType, 
+							keyTypeStr,
+							graphmodels.ParseMdmAppConfigKeyType,
 							setting.SetAppConfigKeyType,
 						); err != nil {
 							return nil, fmt.Errorf("failed to set app config key type: %w", err)
 						}
 					}
 				}
-				
+
 				if keyValueAttr, exists := attrs["app_config_key_value"]; exists {
 					if keyValueStr, ok := keyValueAttr.(types.String); ok && !keyValueStr.IsNull() {
 						setting.SetAppConfigKeyValue(keyValueStr.ValueStringPointer())
 					}
 				}
-				
+
 				graphSettings = append(graphSettings, setting)
 			}
 		}
-		
+
 		requestBody.SetSettings(graphSettings)
 	}
 
 	if err := constructors.DebugLogGraphObject(ctx, fmt.Sprintf("Final JSON to be sent to Graph API for resource %s", ResourceName), requestBody); err != nil {
-		tflog.Error(ctx, "Failed to debug log object", map[string]interface{}{
+		tflog.Error(ctx, "Failed to debug log object", map[string]any{
 			"error": err.Error(),
 		})
 	}

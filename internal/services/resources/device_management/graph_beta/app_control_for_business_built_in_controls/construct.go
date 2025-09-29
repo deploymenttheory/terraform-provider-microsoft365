@@ -50,7 +50,7 @@ func constructResource(ctx context.Context, data *AppControlForBusinessResourceB
 	requestBody.SetTemplateReference(templateReference)
 
 	if err := constructors.DebugLogGraphObject(ctx, "Final JSON to be sent to Graph API", requestBody); err != nil {
-		tflog.Error(ctx, "Failed to debug log object", map[string]interface{}{
+		tflog.Error(ctx, "Failed to debug log object", map[string]any{
 			"error": err.Error(),
 		})
 	}
@@ -174,7 +174,7 @@ func constructGroupChildren(ctx context.Context, data *AppControlForBusinessReso
 				case "trust_apps_from_managed_installers":
 					appValue = "device_vendor_msft_policy_config_applicationcontrol_built_in_controls_trust_apps_1"
 				default:
-					tflog.Warn(ctx, "Unknown trust app value", map[string]interface{}{
+					tflog.Warn(ctx, "Unknown trust app value", map[string]any{
 						"value": trustApp,
 					})
 					continue

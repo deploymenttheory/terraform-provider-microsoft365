@@ -22,9 +22,9 @@ func JSONAlphabetically(input string) (string, error) {
 	var normalize func(interface{}) interface{}
 	normalize = func(v interface{}) interface{} {
 		switch v := v.(type) {
-		case map[string]interface{}:
+		case map[string]any:
 			// Sort keys in maps
-			sorted := make(map[string]interface{})
+			sorted := make(map[string]any)
 			keys := make([]string, 0, len(v))
 			for k := range v {
 				keys = append(keys, k)

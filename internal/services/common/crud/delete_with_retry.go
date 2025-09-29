@@ -49,7 +49,7 @@ func DeleteWithRetry(
 		resourceID = "unknown"
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Starting delete with retry for %s operation", opts.Operation), map[string]interface{}{
+	tflog.Debug(ctx, fmt.Sprintf("Starting delete with retry for %s operation", opts.Operation), map[string]any{
 		"resource_id":   resourceID,
 		"resource_type": resourceType,
 	})
@@ -80,7 +80,7 @@ func DeleteWithRetry(
 		opts.MaxRetries = maxPossibleRetries
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Will attempt up to %d retries with %s intervals", opts.MaxRetries, opts.RetryInterval), map[string]interface{}{
+	tflog.Debug(ctx, fmt.Sprintf("Will attempt up to %d retries with %s intervals", opts.MaxRetries, opts.RetryInterval), map[string]any{
 		"resource_id":   resourceID,
 		"resource_type": resourceType,
 	})
@@ -94,14 +94,14 @@ func DeleteWithRetry(
 		}
 
 		if time.Until(deadline) < opts.RetryInterval {
-			tflog.Debug(ctx, "Insufficient time remaining for another retry attempt", map[string]interface{}{
+			tflog.Debug(ctx, "Insufficient time remaining for another retry attempt", map[string]any{
 				"resource_id":   resourceID,
 				"resource_type": resourceType,
 			})
 			break
 		}
 
-		tflog.Debug(ctx, fmt.Sprintf("Delete retry attempt %d/%d", attempt+1, opts.MaxRetries+1), map[string]interface{}{
+		tflog.Debug(ctx, fmt.Sprintf("Delete retry attempt %d/%d", attempt+1, opts.MaxRetries+1), map[string]any{
 			"resource_id":   resourceID,
 			"resource_type": resourceType,
 		})
@@ -109,7 +109,7 @@ func DeleteWithRetry(
 		err := deleteFunc(ctx)
 
 		if err == nil {
-			tflog.Debug(ctx, fmt.Sprintf("Delete successful on attempt %d", attempt+1), map[string]interface{}{
+			tflog.Debug(ctx, fmt.Sprintf("Delete successful on attempt %d", attempt+1), map[string]any{
 				"resource_id":   resourceID,
 				"resource_type": resourceType,
 			})
@@ -123,7 +123,7 @@ func DeleteWithRetry(
 
 		// Check for non-retryable errors first (permanent failures or success)
 		if errors.IsNonRetryableDeleteError(&errorInfo) {
-			tflog.Error(ctx, fmt.Sprintf("Delete failed on attempt %d (non-retryable error)", attempt+1), map[string]interface{}{
+			tflog.Error(ctx, fmt.Sprintf("Delete failed on attempt %d (non-retryable error)", attempt+1), map[string]any{
 				"resource_id":   resourceID,
 				"resource_type": resourceType,
 				"status_code":   errorInfo.StatusCode,
@@ -136,7 +136,7 @@ func DeleteWithRetry(
 		// Check if this error should trigger a retry
 		if errors.IsRetryableDeleteError(&errorInfo) {
 			if attempt < opts.MaxRetries {
-				tflog.Warn(ctx, fmt.Sprintf("Delete failed on attempt %d (retryable error), waiting %s before retry", attempt+1, opts.RetryInterval), map[string]interface{}{
+				tflog.Warn(ctx, fmt.Sprintf("Delete failed on attempt %d (retryable error), waiting %s before retry", attempt+1, opts.RetryInterval), map[string]any{
 					"resource_id":   resourceID,
 					"resource_type": resourceType,
 					"status_code":   errorInfo.StatusCode,
@@ -150,7 +150,7 @@ func DeleteWithRetry(
 					return fmt.Errorf("context cancelled during retry wait: %w", ctx.Err())
 				}
 			} else {
-				tflog.Error(ctx, fmt.Sprintf("Delete failed on final attempt %d", attempt+1), map[string]interface{}{
+				tflog.Error(ctx, fmt.Sprintf("Delete failed on final attempt %d", attempt+1), map[string]any{
 					"resource_id":   resourceID,
 					"resource_type": resourceType,
 					"status_code":   errorInfo.StatusCode,
@@ -160,7 +160,7 @@ func DeleteWithRetry(
 			}
 		} else {
 			// Unknown error type, fail immediately
-			tflog.Error(ctx, fmt.Sprintf("Delete failed on attempt %d (unknown error type)", attempt+1), map[string]interface{}{
+			tflog.Error(ctx, fmt.Sprintf("Delete failed on attempt %d (unknown error type)", attempt+1), map[string]any{
 				"resource_id":   resourceID,
 				"resource_type": resourceType,
 				"error":         err.Error(),

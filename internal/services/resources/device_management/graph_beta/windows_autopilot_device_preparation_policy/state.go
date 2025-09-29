@@ -19,7 +19,7 @@ func mapResourceToState(ctx context.Context, stateModel *WindowsAutopilotDeviceP
 		return
 	}
 
-	tflog.Debug(ctx, "Starting to map remote state to Terraform state", map[string]interface{}{
+	tflog.Debug(ctx, "Starting to map remote state to Terraform state", map[string]any{
 		"resourceId": convert.GraphToFrameworkString(resource.GetId()),
 	})
 
@@ -178,7 +178,7 @@ func extractStringValue(ctx context.Context, settingInstance models.DeviceManage
 
 	// Try to extract the string value from the additional data
 	if simpleValue, ok := additionalData["simpleSettingValue"]; ok {
-		if valueMap, ok := simpleValue.(map[string]interface{}); ok {
+		if valueMap, ok := simpleValue.(map[string]any); ok {
 			if stringValue, ok := valueMap["value"].(string); ok {
 				*target = types.StringValue(stringValue)
 				return
@@ -219,7 +219,7 @@ func extractIntValue(ctx context.Context, settingInstance models.DeviceManagemen
 
 	// Try to extract the integer value from the additional data
 	if simpleValue, ok := additionalData["simpleSettingValue"]; ok {
-		if valueMap, ok := simpleValue.(map[string]interface{}); ok {
+		if valueMap, ok := simpleValue.(map[string]any); ok {
 			if numValue, ok := valueMap["value"].(float64); ok {
 				*target = types.Int64Value(int64(numValue))
 				return
@@ -249,7 +249,7 @@ func extractBoolValue(ctx context.Context, settingInstance models.DeviceManageme
 
 	// Try to extract the boolean value from the additional data
 	if simpleValue, ok := additionalData["simpleSettingValue"]; ok {
-		if valueMap, ok := simpleValue.(map[string]interface{}); ok {
+		if valueMap, ok := simpleValue.(map[string]any); ok {
 			if boolValue, ok := valueMap["value"].(bool); ok {
 				*target = types.BoolValue(boolValue)
 				return
@@ -287,7 +287,7 @@ func extractChoiceValue(ctx context.Context, settingInstance models.DeviceManage
 
 	// Try to extract the choice value from the additional data
 	if choiceValue, ok := additionalData["choiceSettingValue"]; ok {
-		if valueMap, ok := choiceValue.(map[string]interface{}); ok {
+		if valueMap, ok := choiceValue.(map[string]any); ok {
 			if stringValue, ok := valueMap["value"].(string); ok {
 				*target = types.StringValue(stringValue)
 				return
@@ -362,7 +362,7 @@ func extractAllowedAppsCollection(ctx context.Context, settingInstance models.De
 		if collectionArray, ok := collectionValues.([]interface{}); ok {
 			var apps []AllowedAppModel
 			for _, item := range collectionArray {
-				if itemMap, ok := item.(map[string]interface{}); ok {
+				if itemMap, ok := item.(map[string]any); ok {
 					if value, ok := itemMap["value"].(string); ok {
 						app := parseAppJson(ctx, value)
 						if !app.AppID.IsNull() {
@@ -457,7 +457,7 @@ func extractSimpleStringCollection(ctx context.Context, settingInstance models.D
 
 	// For collection settings, we may have stored them as comma-separated strings
 	if simpleValue, ok := additionalData["simpleSettingValue"]; ok {
-		if valueMap, ok := simpleValue.(map[string]interface{}); ok {
+		if valueMap, ok := simpleValue.(map[string]any); ok {
 			if stringValue, ok := valueMap["value"].(string); ok {
 				values := helpers.SplitCommaSeparatedString(stringValue)
 				*target = convert.GraphToFrameworkStringSlice(values)
@@ -471,7 +471,7 @@ func extractSimpleStringCollection(ctx context.Context, settingInstance models.D
 		if collectionArray, ok := collectionValues.([]interface{}); ok {
 			var values []string
 			for _, item := range collectionArray {
-				if itemMap, ok := item.(map[string]interface{}); ok {
+				if itemMap, ok := item.(map[string]any); ok {
 					if value, ok := itemMap["value"].(string); ok {
 						values = append(values, value)
 					}

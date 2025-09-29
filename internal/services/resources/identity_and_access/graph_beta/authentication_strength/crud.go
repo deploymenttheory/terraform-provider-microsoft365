@@ -83,7 +83,7 @@ func (r *AuthenticationStrengthResource) Create(ctx context.Context, req resourc
 		return
 	}
 
-	var createdResource map[string]interface{}
+	var createdResource map[string]any
 	if err := json.NewDecoder(httpResp.Body).Decode(&createdResource); err != nil {
 		resp.Diagnostics.AddError(
 			"Error parsing response",
@@ -193,7 +193,7 @@ func (r *AuthenticationStrengthResource) Read(ctx context.Context, req resource.
 		return
 	}
 
-	var baseResource map[string]interface{}
+	var baseResource map[string]any
 	if err := json.NewDecoder(httpResp.Body).Decode(&baseResource); err != nil {
 		resp.Diagnostics.AddError(
 			"Error unmarshaling response",

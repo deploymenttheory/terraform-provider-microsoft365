@@ -14,12 +14,12 @@ import (
 // mockState tracks the state of resources for consistent responses
 var mockState struct {
 	sync.Mutex
-	settings map[string]map[string]interface{}
+	settings map[string]map[string]any
 }
 
 func init() {
 	// Initialize mockState
-	mockState.settings = make(map[string]map[string]interface{})
+	mockState.settings = make(map[string]map[string]any)
 
 	// Register a default 404 responder for any unmatched requests
 	httpmock.RegisterNoResponder(httpmock.NewStringResponder(404, `{"error":{"code":"ResourceNotFound","message":"Resource not found"}}`))
@@ -32,7 +32,7 @@ type GroupSettingsMock struct{}
 func (m *GroupSettingsMock) RegisterMocks() {
 	// Reset the state when registering mocks
 	mockState.Lock()
-	mockState.settings = make(map[string]map[string]interface{})
+	mockState.settings = make(map[string]map[string]any)
 	mockState.Unlock()
 
 	// Register specific test settings
@@ -61,12 +61,12 @@ func (m *GroupSettingsMock) RegisterMocks() {
 			mockState.Lock()
 			defer mockState.Unlock()
 
-			settings := make([]map[string]interface{}, 0, len(mockState.settings))
+			settings := make([]map[string]any, 0, len(mockState.settings))
 			for _, setting := range mockState.settings {
 				settings = append(settings, setting)
 			}
 
-			response := map[string]interface{}{
+			response := map[string]any{
 				"@odata.context": "https://graph.microsoft.com/beta/$metadata#groups('12345678-1234-1234-1234-123456789012')/settings",
 				"value":          settings,
 			}
@@ -77,7 +77,7 @@ func (m *GroupSettingsMock) RegisterMocks() {
 	// Register POST for creating group settings
 	httpmock.RegisterResponder("POST", `=~^https://graph.microsoft.com/beta/groups/[^/]+/settings$`,
 		func(req *http.Request) (*http.Response, error) {
-			var settingData map[string]interface{}
+			var settingData map[string]any
 			err := json.NewDecoder(req.Body).Decode(&settingData)
 			if err != nil {
 				return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"Invalid request body"}}`), nil
@@ -134,7 +134,7 @@ func (m *GroupSettingsMock) RegisterMocks() {
 				return httpmock.NewStringResponse(404, `{"error":{"code":"ResourceNotFound","message":"Setting not found"}}`), nil
 			}
 
-			var updateData map[string]interface{}
+			var updateData map[string]any
 			err := json.NewDecoder(req.Body).Decode(&updateData)
 			if err != nil {
 				return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"Invalid request body"}}`), nil
@@ -205,7 +205,7 @@ func (m *GroupSettingsMock) RegisterErrorMocks() {
 	// Register error response for duplicate template ID
 	httpmock.RegisterResponder("POST", `=~^https://graph.microsoft.com/beta/groups/[^/]+/settings$`,
 		func(req *http.Request) (*http.Response, error) {
-			var settingData map[string]interface{}
+			var settingData map[string]any
 			err := json.NewDecoder(req.Body).Decode(&settingData)
 			if err != nil {
 				return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"Invalid request body"}}`), nil
@@ -224,11 +224,11 @@ func (m *GroupSettingsMock) RegisterErrorMocks() {
 func registerTestSettings() {
 	// Minimal setting with only required attributes
 	minimalSettingId := "test-setting-id"
-	minimalSettingData := map[string]interface{}{
+	minimalSettingData := map[string]any{
 		"id":          minimalSettingId,
 		"templateId":  "08d542b9-071f-4e16-94b0-74abb372e3d9",
 		"displayName": "Group.Unified.Guest",
-		"values": []map[string]interface{}{
+		"values": []map[string]any{
 			{
 				"name":  "AllowToAddGuests",
 				"value": "false",
@@ -239,11 +239,11 @@ func registerTestSettings() {
 
 	// Maximal setting with all attributes
 	maximalSettingId := "test-setting-id"
-	maximalSettingData := map[string]interface{}{
+	maximalSettingData := map[string]any{
 		"id":          maximalSettingId,
 		"templateId":  "62375ab9-6b52-47ed-826b-58e47e0e304b",
 		"displayName": "Group.Unified",
-		"values": []map[string]interface{}{
+		"values": []map[string]any{
 			{
 				"name":  "ClassificationList",
 				"value": "Confidential,Secret,Top Secret",
@@ -282,11 +282,11 @@ func registerTestSettings() {
 // SetupImportTest sets up the mock state for an import test
 func (m *GroupSettingsMock) SetupImportTest(groupId, settingId string) {
 	// Create a setting for import testing
-	importSettingData := map[string]interface{}{
+	importSettingData := map[string]any{
 		"id":          settingId,
 		"templateId":  "08d542b9-071f-4e16-94b0-74abb372e3d9",
 		"displayName": "Group.Unified.Guest",
-		"values": []map[string]interface{}{
+		"values": []map[string]any{
 			{
 				"name":  "AllowToAddGuests",
 				"value": "false",

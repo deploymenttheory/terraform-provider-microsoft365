@@ -10,7 +10,7 @@ import (
 
 // MapRemoteStateToDataSource maps an audit event to a model
 func MapRemoteStateToDataSource(ctx context.Context, data graphmodels.AuditEventable) AuditEventModel {
-	tflog.Debug(ctx, "Starting to map remote resource state to Terraform state", map[string]interface{}{
+	tflog.Debug(ctx, "Starting to map remote resource state to Terraform state", map[string]any{
 		"resourceName": data.GetActivity(),
 		"resourceId":   data.GetId(),
 	})

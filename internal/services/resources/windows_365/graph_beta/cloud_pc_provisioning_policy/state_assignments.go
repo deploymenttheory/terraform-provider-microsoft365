@@ -31,7 +31,7 @@ func MapAssignmentsToTerraformSet(ctx context.Context, assignments []models.Clou
 		return types.SetNull(CloudPcProvisioningPolicyAssignmentType())
 	}
 
-	tflog.Debug(ctx, "Starting assignment mapping process", map[string]interface{}{
+	tflog.Debug(ctx, "Starting assignment mapping process", map[string]any{
 		"assignmentCount": len(assignments),
 	})
 
@@ -39,13 +39,13 @@ func MapAssignmentsToTerraformSet(ctx context.Context, assignments []models.Clou
 
 	for i, assignment := range assignments {
 		if assignment == nil {
-			tflog.Debug(ctx, "Assignment is nil, skipping", map[string]interface{}{
+			tflog.Debug(ctx, "Assignment is nil, skipping", map[string]any{
 				"assignmentIndex": i,
 			})
 			continue
 		}
 
-		tflog.Debug(ctx, "Processing assignment", map[string]interface{}{
+		tflog.Debug(ctx, "Processing assignment", map[string]any{
 			"assignmentIndex": i,
 			"assignmentId":    convert.GraphToFrameworkString(assignment.GetId()).ValueString(),
 		})
@@ -57,12 +57,12 @@ func MapAssignmentsToTerraformSet(ctx context.Context, assignments []models.Clou
 
 		objValue, diags := types.ObjectValue(CloudPcProvisioningPolicyAssignmentType().(types.ObjectType).AttrTypes, assignmentObj)
 		if !diags.HasError() {
-			tflog.Debug(ctx, "Successfully created assignment object", map[string]interface{}{
+			tflog.Debug(ctx, "Successfully created assignment object", map[string]any{
 				"assignmentIndex": i,
 			})
 			assignmentValues = append(assignmentValues, objValue)
 		} else {
-			tflog.Error(ctx, "Failed to create assignment object value", map[string]interface{}{
+			tflog.Error(ctx, "Failed to create assignment object value", map[string]any{
 				"assignmentIndex": i,
 				"errors":          diags.Errors(),
 			})
@@ -87,7 +87,7 @@ func createAssignmentObject(ctx context.Context, assignment models.CloudPcProvis
 	assignmentID := convert.GraphToFrameworkString(assignment.GetId())
 	if !assignmentID.IsNull() {
 		assignmentObj["group_id"] = assignmentID
-		tflog.Debug(ctx, "Set group_id from assignment ID (Cloud PC API behavior)", map[string]interface{}{
+		tflog.Debug(ctx, "Set group_id from assignment ID (Cloud PC API behavior)", map[string]any{
 			"assignmentIndex": index,
 			"assignmentId":    assignmentID.ValueString(),
 		})
@@ -100,7 +100,7 @@ func createAssignmentObject(ctx context.Context, assignment models.CloudPcProvis
 	}
 
 	// Debug log the final assignment object
-	tflog.Debug(ctx, "Final assignment object", map[string]interface{}{
+	tflog.Debug(ctx, "Final assignment object", map[string]any{
 		"assignmentIndex":         index,
 		"type":                    assignmentObj["type"],
 		"group_id":                assignmentObj["group_id"],
@@ -128,20 +128,20 @@ func mapTargetData(ctx context.Context, target models.CloudPcManagementAssignmen
 	default:
 		// Default to groupAssignmentTarget for backwards compatibility
 		assignmentObj["type"] = types.StringValue("groupAssignmentTarget")
-		tflog.Debug(ctx, "Unknown or null OData type, defaulting to groupAssignmentTarget", map[string]interface{}{
+		tflog.Debug(ctx, "Unknown or null OData type, defaulting to groupAssignmentTarget", map[string]any{
 			"assignmentIndex": index,
 			"odataType":       odataType,
 		})
 	}
 	additionalData := target.GetAdditionalData()
 	if additionalData == nil {
-		tflog.Debug(ctx, "Target additionalData is nil", map[string]interface{}{
+		tflog.Debug(ctx, "Target additionalData is nil", map[string]any{
 			"assignmentIndex": index,
 		})
 		return
 	}
 
-	tflog.Debug(ctx, "Processing target additionalData", map[string]interface{}{
+	tflog.Debug(ctx, "Processing target additionalData", map[string]any{
 		"assignmentIndex": index,
 		"additionalData":  fmt.Sprintf("%+v", additionalData),
 	})
@@ -149,12 +149,12 @@ func mapTargetData(ctx context.Context, target models.CloudPcManagementAssignmen
 	// Extract groupId
 	if groupId, ok := additionalData["groupId"].(string); ok && groupId != "" {
 		assignmentObj["group_id"] = types.StringValue(groupId)
-		tflog.Debug(ctx, "Set groupId from additionalData", map[string]interface{}{
+		tflog.Debug(ctx, "Set groupId from additionalData", map[string]any{
 			"assignmentIndex": index,
 			"groupId":         groupId,
 		})
 	} else {
-		tflog.Debug(ctx, "No groupId found in additionalData", map[string]interface{}{
+		tflog.Debug(ctx, "No groupId found in additionalData", map[string]any{
 			"assignmentIndex": index,
 		})
 	}
@@ -184,20 +184,20 @@ func mapTargetData(ctx context.Context, target models.CloudPcManagementAssignmen
 
 // createAssignmentsSet creates the final Set from processed assignment values
 func createAssignmentsSet(ctx context.Context, assignmentValues []attr.Value) types.Set {
-	tflog.Debug(ctx, "Creating assignments set", map[string]interface{}{
+	tflog.Debug(ctx, "Creating assignments set", map[string]any{
 		"processedAssignments": len(assignmentValues),
 	})
 
 	if len(assignmentValues) > 0 {
 		setVal, diags := types.SetValue(CloudPcProvisioningPolicyAssignmentType(), assignmentValues)
 		if diags.HasError() {
-			tflog.Error(ctx, "Failed to create assignments set", map[string]interface{}{
+			tflog.Error(ctx, "Failed to create assignments set", map[string]any{
 				"errors": diags.Errors(),
 			})
 			return types.SetNull(CloudPcProvisioningPolicyAssignmentType())
 		}
 
-		tflog.Debug(ctx, "Successfully created assignments set", map[string]interface{}{
+		tflog.Debug(ctx, "Successfully created assignments set", map[string]any{
 			"assignmentCount": len(assignmentValues),
 		})
 		return setVal

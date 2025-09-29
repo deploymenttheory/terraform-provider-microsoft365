@@ -5,8 +5,8 @@ import (
 	"fmt"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
-	sharedstater "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/state/graph_beta/device_and_app_management"
 	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/shared_models/graph_beta/device_and_app_management"
+	sharedstater "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/state/graph_beta/device_and_app_management"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
@@ -19,7 +19,7 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *OfficeSuiteApp
 		return
 	}
 
-	tflog.Debug(ctx, "Starting to map remote state to Terraform state", map[string]interface{}{
+	tflog.Debug(ctx, "Starting to map remote state to Terraform state", map[string]any{
 		"resourceId": convert.GraphToFrameworkString(remoteResource.GetId()).ValueString(),
 	})
 
@@ -137,15 +137,15 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *OfficeSuiteApp
 		} else {
 			// No XML configuration or has individual settings, use Configuration Designer block
 			data.ConfigurationDesigner = &OfficeSuiteAppConfigurationDesignerModel{
-				AutoAcceptEula:                          convert.GraphToFrameworkBool(remoteResource.GetAutoAcceptEula()),
-				LocalesToInstall:                       convert.GraphToFrameworkStringSet(ctx, remoteResource.GetLocalesToInstall()),
-				OfficePlatformArchitecture:             convert.GraphToFrameworkEnum(remoteResource.GetOfficePlatformArchitecture()),
-				OfficeSuiteAppDefaultFileFormat:        convert.GraphToFrameworkEnum(remoteResource.GetOfficeSuiteAppDefaultFileFormat()),
-				ShouldUninstallOlderVersionsOfOffice:   convert.GraphToFrameworkBool(remoteResource.GetShouldUninstallOlderVersionsOfOffice()),
-				TargetVersion:                          convert.GraphToFrameworkString(remoteResource.GetTargetVersion()),
-				UpdateChannel:                          convert.GraphToFrameworkEnum(remoteResource.GetUpdateChannel()),
-				UpdateVersion:                          convert.GraphToFrameworkString(remoteResource.GetUpdateVersion()),
-				UseSharedComputerActivation:            convert.GraphToFrameworkBool(remoteResource.GetUseSharedComputerActivation()),
+				AutoAcceptEula:                       convert.GraphToFrameworkBool(remoteResource.GetAutoAcceptEula()),
+				LocalesToInstall:                     convert.GraphToFrameworkStringSet(ctx, remoteResource.GetLocalesToInstall()),
+				OfficePlatformArchitecture:           convert.GraphToFrameworkEnum(remoteResource.GetOfficePlatformArchitecture()),
+				OfficeSuiteAppDefaultFileFormat:      convert.GraphToFrameworkEnum(remoteResource.GetOfficeSuiteAppDefaultFileFormat()),
+				ShouldUninstallOlderVersionsOfOffice: convert.GraphToFrameworkBool(remoteResource.GetShouldUninstallOlderVersionsOfOffice()),
+				TargetVersion:                        convert.GraphToFrameworkString(remoteResource.GetTargetVersion()),
+				UpdateChannel:                        convert.GraphToFrameworkEnum(remoteResource.GetUpdateChannel()),
+				UpdateVersion:                        convert.GraphToFrameworkString(remoteResource.GetUpdateVersion()),
+				UseSharedComputerActivation:          convert.GraphToFrameworkBool(remoteResource.GetUseSharedComputerActivation()),
 			}
 
 			// Handle excluded apps

@@ -8,7 +8,7 @@ import (
 )
 
 // MapRemoteResourceStateToTerraform maps the remote authentication strength policy to Terraform state
-func MapRemoteResourceStateToTerraform(ctx context.Context, data *AuthenticationStrengthResourceModel, remoteResource map[string]interface{}) {
+func MapRemoteResourceStateToTerraform(ctx context.Context, data *AuthenticationStrengthResourceModel, remoteResource map[string]any) {
 	if id, ok := remoteResource["id"].(string); ok {
 		data.ID = types.StringValue(id)
 	}

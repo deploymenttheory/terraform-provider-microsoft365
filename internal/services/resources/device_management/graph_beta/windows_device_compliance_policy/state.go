@@ -18,7 +18,7 @@ func MapRemoteStateToTerraform(ctx context.Context, data *DeviceCompliancePolicy
 		return
 	}
 
-	tflog.Debug(ctx, "Starting to map remote state to Terraform state", map[string]interface{}{
+	tflog.Debug(ctx, "Starting to map remote state to Terraform state", map[string]any{
 		"resourceId": convert.GraphToFrameworkString(remoteResource.GetId()).ValueString(),
 	})
 
@@ -38,7 +38,7 @@ func MapRemoteStateToTerraform(ctx context.Context, data *DeviceCompliancePolicy
 	if scheduledActions := remoteResource.GetScheduledActionsForRule(); scheduledActions != nil {
 		mappedScheduledActions, err := mapScheduledActionsForRuleToState(ctx, scheduledActions)
 		if err != nil {
-			tflog.Error(ctx, "Failed to map scheduled actions for rule", map[string]interface{}{
+			tflog.Error(ctx, "Failed to map scheduled actions for rule", map[string]any{
 				"error": err.Error(),
 			})
 		} else {
@@ -47,23 +47,23 @@ func MapRemoteStateToTerraform(ctx context.Context, data *DeviceCompliancePolicy
 	}
 
 	assignments := remoteResource.GetAssignments()
-	tflog.Debug(ctx, "Retrieved assignments from remote resource", map[string]interface{}{
+	tflog.Debug(ctx, "Retrieved assignments from remote resource", map[string]any{
 		"assignmentCount": len(assignments),
 		"resourceId":      data.ID.ValueString(),
 	})
 
 	if len(assignments) == 0 {
-		tflog.Debug(ctx, "No assignments found, setting assignments to null", map[string]interface{}{
+		tflog.Debug(ctx, "No assignments found, setting assignments to null", map[string]any{
 			"resourceId": data.ID.ValueString(),
 		})
 		data.Assignments = types.SetNull(WindowsDeviceCompliancePolicyAssignmentType())
 	} else {
-		tflog.Debug(ctx, "Starting assignment mapping process", map[string]interface{}{
+		tflog.Debug(ctx, "Starting assignment mapping process", map[string]any{
 			"resourceId":      data.ID.ValueString(),
 			"assignmentCount": len(assignments),
 		})
 		MapAssignmentsToTerraform(ctx, data, assignments)
-		tflog.Debug(ctx, "Completed assignment mapping process", map[string]interface{}{
+		tflog.Debug(ctx, "Completed assignment mapping process", map[string]any{
 			"resourceId": data.ID.ValueString(),
 		})
 	}
@@ -130,7 +130,7 @@ func mapWindows10CompliancePolicyToState(ctx context.Context, data *DeviceCompli
 
 		scriptObj, diags := types.ObjectValue(scriptType.AttrTypes, scriptAttrs)
 		if diags.HasError() {
-			tflog.Error(ctx, "Failed to create device compliance policy script object", map[string]interface{}{
+			tflog.Error(ctx, "Failed to create device compliance policy script object", map[string]any{
 				"error": diags.Errors(),
 			})
 			data.DeviceCompliancePolicyScript = types.ObjectNull(scriptType.AttrTypes)
@@ -265,7 +265,7 @@ func mapWslDistribution(ctx context.Context, wslDistributions []graphmodels.WslD
 
 	set, diags := types.SetValue(wslDistributionType, wslDistributionValues)
 	if diags.HasError() {
-		tflog.Error(ctx, "Failed to create WSL distributions set from SDK", map[string]interface{}{
+		tflog.Error(ctx, "Failed to create WSL distributions set from SDK", map[string]any{
 			"error": diags.Errors(),
 		})
 		return types.SetNull(wslDistributionType)
@@ -302,7 +302,7 @@ func mapValidOperatingSystemVersionRange(ctx context.Context, buildRanges []grap
 
 	set, diags := types.SetValue(validOSBuildRangeType, buildRangeValues)
 	if diags.HasError() {
-		tflog.Error(ctx, "Failed to create valid operating system build ranges set from SDK", map[string]interface{}{
+		tflog.Error(ctx, "Failed to create valid operating system build ranges set from SDK", map[string]any{
 			"error": diags.Errors(),
 		})
 		return types.SetNull(validOSBuildRangeType)

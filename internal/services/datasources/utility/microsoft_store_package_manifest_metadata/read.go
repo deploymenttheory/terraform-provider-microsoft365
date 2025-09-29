@@ -251,7 +251,7 @@ func (d *MicrosoftStorePackageManifestDataSource) searchPackages(ctx context.Con
 	var searchResults []MSStoreSearchResult
 	if data, ok := apiResponse.Data.([]interface{}); ok {
 		for _, item := range data {
-			if itemMap, ok := item.(map[string]interface{}); ok {
+			if itemMap, ok := item.(map[string]any); ok {
 				result := MSStoreSearchResult{}
 				if packageId, ok := itemMap["PackageIdentifier"].(string); ok {
 					result.PackageIdentifier = packageId
