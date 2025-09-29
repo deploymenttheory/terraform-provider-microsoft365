@@ -1,6 +1,7 @@
 ---
 page_title: "microsoft365_graph_beta_device_management_group_policy_configuration Resource - terraform-provider-microsoft365"
-subcategory: "Groups"
+subcategory: "Device Management"
+
 description: |-
     Manages group policy configurations in Microsoft Intune using the /deviceManagement/groupPolicyConfigurations endpoint. The group policy configuration entity contains the configured values for one or more group policy definitions.
 ---

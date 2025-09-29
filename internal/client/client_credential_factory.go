@@ -314,11 +314,22 @@ func (s *GitHubOIDCStrategy) GetCredential(ctx context.Context, config *Provider
 
 	// GitHub Actions provides the ID token via the ACTIONS_ID_TOKEN_REQUEST_URL
 	// and ACTIONS_ID_TOKEN_REQUEST_TOKEN environment variables
-	requestURL := os.Getenv("ACTIONS_ID_TOKEN_REQUEST_URL")
-	requestToken := os.Getenv("ACTIONS_ID_TOKEN_REQUEST_TOKEN")
+	requestURL := config.EntraIDOptions.OIDCRequestURL
+	requestToken := config.EntraIDOptions.OIDCRequestToken
+
+	// Fallback to environment variables if not provided in config
+	if requestURL == "" {
+		requestURL = os.Getenv("ACTIONS_ID_TOKEN_REQUEST_URL")
+	}
+	if requestToken == "" {
+		requestToken = os.Getenv("ACTIONS_ID_TOKEN_REQUEST_TOKEN")
+	}
 
 	if requestURL == "" || requestToken == "" {
-		return nil, fmt.Errorf("GitHub OIDC authentication requires the ACTIONS_ID_TOKEN_REQUEST_URL and ACTIONS_ID_TOKEN_REQUEST_TOKEN environment variables to be set. Got: ACTIONS_ID_TOKEN_REQUEST_URL='%s', ACTIONS_ID_TOKEN_REQUEST_TOKEN='%s'", requestURL, requestToken)
+		return nil, fmt.Errorf("GitHub OIDC authentication requires oidc_request_url and oidc_request_token to be configured.\n"+
+			"These are automatically populated from ACTIONS_ID_TOKEN_REQUEST_URL and ACTIONS_ID_TOKEN_REQUEST_TOKEN github pipeline environment variables.\n"+
+			"For Terraform remote execution workflows, ensure these environment variables are available during provider configuration.\n"+
+			"Got: oidc_request_url='%s', oidc_request_token='%s'", requestURL, requestToken)
 	}
 
 	assertion := func(ctx context.Context) (string, error) {

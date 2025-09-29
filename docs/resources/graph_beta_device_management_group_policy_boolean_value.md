@@ -1,6 +1,7 @@
 ---
 page_title: "microsoft365_graph_beta_device_management_group_policy_boolean_value Resource - terraform-provider-microsoft365"
-subcategory: "Groups"
+subcategory: "Device Management"
+
 description: |-
     Manages group policy presentation boolean values in Microsoft Intune using thedeviceManagement/groupPolicyConfigurations('{groupPolicyConfigurationId}')/updateDefinitionValues endpoint.This resource manages multiple boolean values for a given group policy presentations such as checkboxes or radiobuttons within a single grouppolicy definition. This resource has a hard dependency on the group policy configuration resource and it must be created before this resource.
 ---

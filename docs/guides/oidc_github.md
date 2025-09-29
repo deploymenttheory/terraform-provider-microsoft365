@@ -7,9 +7,7 @@ description: |-
 
 # Authentication with GitHub OIDC
 
-The Microsoft 365 provider supports authentication using GitHub Actions' OpenID Connect (OIDC) tokens. This approach allows Terraform to authenticate to Microsoft 365 services directly from GitHub Actions workflows without storing long-lived credentials as GitHub secrets.
-
-We recommend using either a Service Principal, or use a Managed Identity when running Terraform non-interactively (such as when running Terraform in a pipeline) - and authenticating using either the Azure Developer CLI, device code, or interactive browser when running Terraform locally.
+The Microsoft 365 provider supports authentication using GitHub Actions' OpenID Connect (OIDC) tokens. This approach allows Terraform to authenticate to Microsoft 365 services directly from GitHub Actions workflows without storing long-lived credentials as GitHub secrets. The provider automatically handles OIDC token acquisition and works seamlessly with both local Terraform execution and Terraform Cloud remote execution.
 
 ## Table of Contents
 
@@ -32,32 +30,31 @@ We recommend using either a Service Principal, or use a Managed Identity when ru
 - A GitHub repository where you'll run Terraform
 - Permissions to create and configure app registrations in Microsoft Entra ID
 - Ability to modify GitHub Actions workflows
-- Azure CLI installed (optional for setup commands)
+- Azure CLI installed (for setup commands)
 - Terraform provider deploymenttheory/microsoft365 version >= v0.11.0-alpha
 
 ## How GitHub OIDC Authentication Works
 
-The Microsoft 365 provider implements GitHub's standard OpenID Connect (OIDC) authentication flow as specified in GitHub's [official OIDC documentation](https://docs.github.com/en/actions/deployment/security-hardening-your-deployments/configuring-openid-connect-in-cloud-providers). This provides secure, keyless authentication without storing long-lived secrets.
-
 1. The workflow runs with permissions: id-token: write, causing the runner to prepare an OIDC token for this job.
-2. GitHub injects ACTIONS_ID_TOKEN_REQUEST_URL and ACTIONS_ID_TOKEN_REQUEST_TOKEN into the job’s environment.
-3. GitHubOIDCStrategy.GetCredential() reads those two variables and determines the audience (defaulting to api://AzureADTokenExchange).
-4. The provider issues an HTTP GET to the GitHub URL in `ACTIONS_ID_TOKEN_REQUEST_URL`:
+2. GitHub injects ACTIONS_ID_TOKEN_REQUEST_URL and ACTIONS_ID_TOKEN_REQUEST_TOKEN into the job's environment.
+3. During provider configuration, the provider automatically reads these environment variables and stores them in the configuration.
+4. For Terraform Cloud remote execution, these values are serialized and sent to the remote agent as part of the provider configuration.
+5. The GitHubOIDCStrategy.GetCredential() method uses the configuration values and determines the audience (defaulting to api://AzureADTokenExchange).
+6. The provider issues an HTTP GET to the GitHub URL:
 
    ```bash
-   GET https://token.actions.githubusercontent.com/<repo-owner>/<repo-name>/_apis/oidc/token?audience=api://AzureADTokenExchange
+   GET https://token.actions.githubusercontent.com/<repo-owner>/<repo-name>/_apis/oidc/token?audience=<your-audience>
    Authorization: Bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN
-   Accept: application/json
-   Content-Type: application/x-www-form-urlencoded
+   Accept: application/json; api-version=2.0
    ```
 
    to request the short-lived JWT.
-5. GitHub’s OIDC provider returns a JSON payload containing the short-lived JWT in its value field.
-6. That JWT is handed to the provider credential factory azidentity.NewClientAssertionCredential() along with the Azure tenant and client IDs.
-7. Entra ID’s workload-federation endpoint verifies the JWT’s issuer, audience, expiration, and signature via its JWKS URI.
-8. Entra ID issues an OAuth2 access token scoped for Microsoft Graph.
-9. The resulting ClientAssertionCredential (implementing azcore.TokenCredential) holds that access token and refreshes it as needed.
-10. Terraform calls Microsoft Graph (Intune/M365 APIs), automatically attaching the bearer token from the TokenCredential, without ever storing long-lived Azure secrets in GitHub.
+7. GitHub's OIDC provider returns a JSON payload containing the short-lived JWT in its value field.
+8. That JWT is handed to the provider credential factory azidentity.NewClientAssertionCredential() along with the Azure tenant and client IDs.
+9. Entra ID's workload-federation endpoint verifies the JWT's issuer, audience, expiration, and signature via its JWKS URI.
+10. Entra ID issues an OAuth2 access token scoped for Microsoft Graph.
+11. The resulting ClientAssertionCredential (implementing azcore.TokenCredential) holds that access token and refreshes it as needed.
+12. Terraform calls Microsoft Graph (Intune/M365 APIs), automatically attaching the bearer token from the TokenCredential, without ever storing long-lived Azure secrets in GitHub.
 
 Key benefits of this approach include:
 
@@ -65,8 +62,8 @@ Key benefits of this approach include:
 - **Automatic rotation**: Tokens are short-lived and automatically rotated
 - **Conditional access**: Fine-grained control over which workflows can obtain tokens
 - **Reduced attack surface**: Eliminates risk of leaked or compromised credentials
-
-**Standards Compliance**: This implementation follows GitHub's official OIDC specification for cloud providers, ensuring compatibility with GitHub's security model and best practices. The provider performs the two-step OIDC process manually as recommended by GitHub for cloud providers without official GitHub Actions.
+- **Terraform Cloud compatible**: Works seamlessly with both local and remote Terraform execution
+- **Zero configuration**: OIDC tokens are automatically discovered from the GitHub Actions environment
 
 ```bash
 +-------------------+          +--------------------------------------+          +-----------------+          +--------------------+
@@ -94,10 +91,9 @@ Key benefits of this approach include:
 +---------+---------+                            |                                        |                            |
           |                                      |                                        |                            |
           | (4) HTTP GET request to GitHub OIDC Provider:                                 |                            |
-          |     GET $URL?audience=api://AzureADTokenExchange                              |                            |
+          |     GET $URL?audience=<audience>     |                                        |                            |
           |     Authorization: Bearer $TOKEN     |                                        |                            |
-          |     Accept: application/json         |                                        |                            |
-          |     Content-Type: application/x-www-form-urlencoded                           |                            |
+          |     Accept: application/json; api-version=2.0                                 |                            |
           |─────────────────────────────────────►|                                        |                            |
           |                                      |                                        |                            |
           |                                      | (5) GitHub validates request           |                            |
@@ -136,13 +132,12 @@ Key benefits of this approach include:
 
 ### 1. Create an App Registration in Microsoft Entra ID
 
-You can create the app registration using Azure (CLI) Cloud shell:
+You can create the app registration using Azure CLI:
 
 ```bash
-#!/bin/bash
 # 1. Variables
 export TENANT_ID="00000000-0000-0000-0000-000000000000"
-export APP_NAME="terraform-provider-microsoft365"
+export APP_NAME="terraform-m365-provider"
 export GITHUB_ORG="your-github-org"
 export GITHUB_REPO="your-github-repo"
 
@@ -178,54 +173,14 @@ az ad app permission admin-consent \
 echo "✔️ Graph API permissions granted and consented"
 ```
 
-```powershell
-# 1. Variables
-$TENANT_ID = "00000000-0000-0000-0000-000000000000"
-$APP_NAME = "terraform-provider-microsoft365"
-$GITHUB_ORG = "your-github-org"
-$GITHUB_REPO = "your-github-repo"
-
-# 2. Create the app registration
-$APP_ID = az ad app create `
-  --display-name "$APP_NAME" `
-  --query appId -o tsv
-
-# Also grab the object ID (needed for some commands)
-$APP_OBJECT_ID = az ad app show `
-  --id "$APP_ID" `
-  --query id -o tsv
-
-Write-Host "✔️ App created. Client (app) ID: $APP_ID, Object ID: $APP_OBJECT_ID" -ForegroundColor Green
-
-# 3. Create a service principal for the app
-az ad sp create --id "$APP_ID"
-Write-Host "✔️ Service principal created" -ForegroundColor Green
-
-# 4. Grant Microsoft Graph application-level permissions
-#    Example: grant intune device management permissions
-az ad app permission add `
-  --id "$APP_ID" `
-  --api 00000003-0000-0000-c000-000000000000 `
-  --api-permissions `
-    78145de6-330d-4800-a6ce-494ff2d33d07=Role `
-    7a6ee1e7-141e-4cec-ae74-d9db155731ff=Role `
-    dc377aa6-52d8-4e23-b271-2a7ae04cedf3=Role `
-    9241abd9-d0e6-425a-bd4f-47ba86e767a4=Role `
-  --output none
-
-# Grant admin consent
-az ad app permission admin-consent --id "$APP_ID"
-Write-Host "✔️ Graph API permissions granted and consented" -ForegroundColor Green
-```
-
 Alternatively, you can create the app registration using the Azure portal:
 
 1. Go to Microsoft Entra ID > App registrations > New registration
-2. Enter a name for the application (e.g., "terraform-provider-microsoft365")
+2. Enter a name for the application (e.g., "terraform-m365-provider")
 3. Select "Accounts in this organizational directory only"
 4. Click "Register"
 5. Navigate to "API permissions"
-6. Add the necessary Microsoft Graph 'application'permissions
+6. Add the necessary Microsoft Graph permissions
 7. Grant admin consent
 8. Note the Application (client) ID and Tenant ID for later use
 
@@ -233,21 +188,6 @@ Alternatively, you can create the app registration using the Azure portal:
 
 Create a federated credential in your Entra ID application that trusts GitHub Actions:
 
-**Via Azure Portal:**
-1. Navigate to your Azure AD application
-2. Go to "Certificates & secrets" → "Federated credentials" tab
-3. Click "Add credential"
-4. Select "GitHub actions deploying Azure resources"
-5. Configure the following:
-- **Issuer**: `https://token.actions.githubusercontent.com`
-   - **Organization**: Your GitHub organization name, e.g. `deploymenttheory`
-   - **Repository**: Your GitHub repository name, e.g. `terraform-demo-microsoft365`
-   - **Entity type**: Select Branch, Environment, Pull request, or Tag
-   - **GitHub branch/environment/tag name**: Specify the value (e.g., `main`). e.g if you select branch main then the Subject identifier will be `repo:${REPO_ORG}/{REPO_NAME}:ref:refs/heads/main`
-   - **Name**: A descriptive name for this credential
-6. Click "Add" to save
-
-**Via Azure CLI:**
 ```bash
 # For a specific branch
 az ad app federated-credential create \
@@ -258,20 +198,6 @@ az ad app federated-credential create \
 az ad app federated-credential create \
   --id $APP_ID \
   --parameters "{\"name\":\"github-federated-credential-all-branches\",\"issuer\":\"https://token.actions.githubusercontent.com\",\"subject\":\"repo:${GITHUB_ORG}/${GITHUB_REPO}:*\",\"description\":\"GitHub Actions federated credential for all branches\",\"audiences\":[\"api://AzureADTokenExchange\"]}"
-```
-
-**Via Azure REST API:**
-```bash
-az rest --method POST \
-  --uri "https://graph.microsoft.com/beta/applications/${APP_OBJ_ID}/federatedIdentityCredentials" \
-  --headers "Content-Type=application/json" \
-  --body '{
-    "name": "github-actions-main",
-    "issuer": "https://token.actions.githubusercontent.com",
-    "subject": "repo:myorg/myrepo:ref:refs/heads/main",
-    "description": "GitHub Actions federated credential for main branch", 
-    "audiences": ["api://AzureADTokenExchange"]
-  }'
 ```
 
 You can create multiple federated credentials with different subject filters to control which workflows can obtain tokens.
@@ -285,21 +211,6 @@ You can create multiple federated credentials with different subject filters to 
 | Pull requests | `repo:ORG/REPO:pull_request` | `repo:octo-org/octo-repo:pull_request` |
 | Specific tag | `repo:ORG/REPO:ref:refs/tags/TAG` | `repo:octo-org/octo-repo:ref:refs/tags/v1.0.0` |
 | Specific environment | `repo:ORG/REPO:environment:ENV` | `repo:octo-org/octo-repo:environment:production` |
-
-## GitHub Repository Configuration
-
-Before configuring your workflow, you need to set up repository variables in GitHub:
-
-### Setting Up Repository Variables
-
-1. Navigate to your GitHub repository
-2. Go to **Settings** → **Secrets and variables** → **Actions**
-3. Click on the **Variables** tab
-4. Add the following repository variables:
-   - `M365_TENANT_ID`: Your Microsoft 365 tenant ID
-   - `M365_CLIENT_ID`: Your application (client) ID from Azure AD
-
-**Note:** These should be set as **Variables** (not Secrets) since they're not sensitive and need to be accessible in your workflow files.
 
 ## GitHub Actions Workflow Configuration
 
@@ -337,8 +248,8 @@ jobs:
           M365_TENANT_ID: "00000000-0000-0000-0000-000000000000"
           M365_AUTH_METHOD: "oidc_github"
           M365_CLIENT_ID: "00000000-0000-0000-0000-000000000000"
-          # Optional: Set a custom audience if needed
-          # M365_OIDC_AUDIENCE: "api://AzureADTokenExchange"
+          # OIDC tokens are automatically discovered from GitHub Actions environment
+          # No additional configuration required for GitHub OIDC authentication
         run: terraform apply -auto-approve
 ```
 
@@ -352,6 +263,9 @@ provider "microsoft365" {
   tenant_id   = "00000000-0000-0000-0000-000000000000"
   entra_id_options = {
     client_id = "00000000-0000-0000-0000-000000000000"
+    # oidc_request_url and oidc_request_token are automatically populated
+    # from ACTIONS_ID_TOKEN_REQUEST_URL and ACTIONS_ID_TOKEN_REQUEST_TOKEN
+    # environment variables when available
   }
 }
 ```
@@ -370,6 +284,29 @@ Then your Terraform configuration can be simplified:
 ```terraform
 provider "microsoft365" {}
 ```
+
+## Terraform Cloud Compatibility
+
+The Microsoft 365 provider's GitHub OIDC authentication is fully compatible with Terraform Cloud remote execution. The provider automatically:
+
+1. **Captures OIDC tokens** during provider configuration in the GitHub Actions runner
+2. **Serializes the tokens** as part of the provider configuration
+3. **Sends them to Terraform Cloud** remote agents securely
+4. **Uses the tokens** for authentication during remote execution
+
+No additional configuration is required when using Terraform Cloud with GitHub Actions. The workflow remains the same:
+
+```yaml
+- name: Terraform Plan
+  run: terraform plan -no-color
+  env:
+    TF_WORKSPACE: "your-tfc-workspace-name"
+    M365_TENANT_ID: "${{ secrets.TENANT_ID }}"
+    M365_AUTH_METHOD: "oidc_github"
+    M365_CLIENT_ID: "${{ secrets.CLIENT_ID }}"
+```
+
+The provider handles the complexity of making GitHub OIDC tokens work with Terraform Cloud's remote execution environment automatically.
 
 ## Security Best Practices
 
@@ -397,7 +334,9 @@ When implementing GitHub OIDC authentication with Microsoft 365, you might encou
 
 - **Missing Environment Variables**
   ```bash
-  Error: GetCredential: environment variable ACTIONS_ID_TOKEN_REQUEST_URL not set
+  Error: GitHub OIDC authentication requires oidc_request_url and oidc_request_token to be configured.
+  These are automatically populated from ACTIONS_ID_TOKEN_REQUEST_URL and ACTIONS_ID_TOKEN_REQUEST_TOKEN environment variables.
+  For Terraform Cloud remote execution, ensure these environment variables are available during provider configuration.
   ```
   This occurs when the GitHub Actions environment doesn't have the necessary OIDC environment variables. Ensure your workflow has `permissions: id-token: write` directive properly configured.
 
@@ -406,40 +345,6 @@ When implementing GitHub OIDC authentication with Microsoft 365, you might encou
   Error: Failed to get token: OIDC provider not available
   ```
   This happens when trying to use GitHub OIDC authentication outside a GitHub Actions workflow. The authentication method only works within GitHub Actions with proper permissions.
-
-### Token Exchange Issues (Grant Type Error)
-
-- **Missing Grant Type Parameter**
-  ```bash
-  Error: AADSTS900144: The request body must contain the following parameter: 'grant_type'
-  ```
-  This error occurs when the OAuth2 token request to Azure AD is malformed. This issue was resolved in provider version 0.29.4-alpha by fixing multiple aspects of the GitHub OIDC token request:
-  
-  - Proper URL query parameter parsing and handling
-  - Correct HTTP headers (`Accept`, `Authorization`, `Content-Type`)  
-  - Using the standard audience value `api://AzureADTokenExchange`
-  - Improved error handling and response parsing
-  
-  If you encounter this error:
-  
-  1. Ensure you're using provider version 0.29.4-alpha or later
-  2. Verify that your GitHub Actions workflow has the correct permissions:
-     ```yaml
-     permissions:
-       id-token: write
-       contents: read
-     ```
-  3. Check that all required environment variables are set:
-     ```yaml
-     env:
-       M365_TENANT_ID: "${{ vars.M365_TENANT_ID }}"
-       M365_AUTH_METHOD: "oidc_github"
-       M365_CLIENT_ID: "${{ vars.M365_CLIENT_ID }}"
-     ```
-  4. Ensure your federated credential in Azure AD is configured with:
-     - Issuer: `https://token.actions.githubusercontent.com`
-     - Audience: `api://AzureADTokenExchange`
-     - Subject: Appropriate pattern for your repository/workflow
 
 ### Token Request Issues (Steps 3-5)
 
@@ -589,7 +494,6 @@ This will provide more detailed information about each step of the authenticatio
 ## Additional Resources
 
 - [GitHub OIDC Documentation](https://docs.github.com/en/actions/security-for-github-actions/security-hardening-your-deployments/configuring-openid-connect-in-azure)
-- [Configuring OpenID Connect in Cloud Providers](https://docs.github.com/en/actions/deployment/security-hardening-your-deployments/configuring-openid-connect-in-cloud-providers)
 - [About security hardening with OpenID Connect](https://docs.github.com/en/actions/security-for-github-actions/security-hardening-your-deployments/about-security-hardening-with-openid-connect#configuring-the-oidc-trust-with-the-cloud)
 - [Configure an app to trust an external identity provider](https://learn.microsoft.com/en-us/entra/workload-id/workload-identity-federation-create-trust)
 - [Securing GitHub Actions with OpenID Connect](https://docs.github.com/en/actions/deployment/security-hardening-your-deployments/about-security-hardening-with-openid-connect)

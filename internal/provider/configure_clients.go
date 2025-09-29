@@ -107,8 +107,8 @@ func convertToClientProviderData(ctx context.Context, data *M365ProviderModel) *
 		ManagedIdentityResourceID:  "", // Not in the model
 		OIDCTokenFilePath:          entraIDOptions.OIDCTokenFilePath.ValueString(),
 		OIDCToken:                  "", // Not in the model
-		OIDCRequestToken:           "", // Not in the model
-		OIDCRequestURL:             "", // Not in the model
+		OIDCRequestToken:           entraIDOptions.OIDCRequestToken.ValueString(),
+		OIDCRequestURL:             entraIDOptions.OIDCRequestURL.ValueString(),
 		DisableInstanceDiscovery:   entraIDOptions.DisableInstanceDiscovery.ValueBool(),
 		SendCertificateChain:       entraIDOptions.SendCertificateChain.ValueBool(),
 		AdditionallyAllowedTenants: getAdditionallyAllowedTenants(entraIDOptions.AdditionallyAllowedTenants),

@@ -406,6 +406,21 @@ func EntraIDOptionsSchema() map[string]schema.Attribute {
 				"This is commonly used in CI/CD pipelines or other environments that support OIDC federation with Azure AD.\n\n" +
 				"Can be set using the `M365_OIDC_TOKEN_FILE_PATH` environment variable.",
 		},
+		"oidc_request_token": schema.StringAttribute{
+			Optional:  true,
+			Sensitive: true,
+			Description: "The bearer token for the request to the OIDC provider.",
+			MarkdownDescription: "The bearer token for the request to the OIDC provider. This field is only used with the " +
+				"'oidc' or 'oidc_github' authentication methods.\n\n" +
+				"Can be set using the `M365_OIDC_REQUEST_TOKEN` or `ACTIONS_ID_TOKEN_REQUEST_TOKEN` environment variables.",
+		},
+		"oidc_request_url": schema.StringAttribute{
+			Optional:    true,
+			Description: "The URL for the OIDC provider from which to request an ID token.",
+			MarkdownDescription: "The URL for the OIDC provider from which to request an ID token. This field is only used with the " +
+				"'oidc' or 'oidc_github' authentication methods.\n\n" +
+				"Can be set using the `M365_OIDC_REQUEST_URL` or `ACTIONS_ID_TOKEN_REQUEST_URL` environment variables.",
+		},
 		"ado_service_connection_id": schema.StringAttribute{
 			Optional:    true,
 			Description: "Azure DevOps service connection ID for OIDC authentication.",
