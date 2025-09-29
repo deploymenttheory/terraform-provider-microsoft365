@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.30.4-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.30.3-alpha...v0.30.4-alpha) (2025-09-29)
+
+
+### Bug Fixes
+
+* map[string]interface{} -&gt; map[string]any ([dbe67b1](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/dbe67b18f48b5a9643ccb7f802db55792cf49174))
+* map[string]interface{} -&gt; map[string]any ([#797](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/797)) ([7f7434f](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/7f7434fd60327fcbcd4e47e68bd243a2ecb69773))
+
 ## [0.30.3-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.30.2-alpha...v0.30.3-alpha) (2025-09-29)
 
 
