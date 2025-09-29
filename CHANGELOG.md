@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.30.2-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.30.1-alpha...v0.30.2-alpha) (2025-09-29)
+
+
+### Bug Fixes
+
+* Support GitHub OIDC authentication in Terraform Cloud remote execution ([52b6ed9](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/52b6ed99da9cbc3f546d1470ed0dfed82712c4bf))
+* Support GitHub OIDC authentication in Terraform Cloud remote execution ([#793](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/793)) ([25ae985](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/25ae985cbbf5ff9fa4d024eca89dfdc7da07623a))
+
 ## [0.30.1-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.30.0-alpha...v0.30.1-alpha) (2025-09-29)
 
 
