@@ -263,7 +263,6 @@ func (s *OIDCStrategy) GetCredential(ctx context.Context, config *ProviderData, 
 	var assertion func(ctx context.Context) (string, error)
 
 	if config.EntraIDOptions.OIDCTokenFilePath != "" {
-		// Use token file if specified
 		tflog.Debug(ctx, "Using OIDC token file", map[string]any{
 			"path": config.EntraIDOptions.OIDCTokenFilePath,
 		})
@@ -275,13 +274,11 @@ func (s *OIDCStrategy) GetCredential(ctx context.Context, config *ProviderData, 
 			return string(token), nil
 		}
 	} else if config.EntraIDOptions.OIDCToken != "" {
-		// Use token from configuration
 		tflog.Debug(ctx, "Using OIDC token from configuration")
 		assertion = func(ctx context.Context) (string, error) {
 			return config.EntraIDOptions.OIDCToken, nil
 		}
 	} else if config.EntraIDOptions.OIDCRequestToken != "" && config.EntraIDOptions.OIDCRequestURL != "" {
-		// Use token exchange
 		tflog.Debug(ctx, "Using OIDC token exchange", map[string]any{
 			"url": config.EntraIDOptions.OIDCRequestURL,
 		})
@@ -315,22 +312,21 @@ func (s *GitHubOIDCStrategy) GetCredential(ctx context.Context, config *Provider
 		AdditionallyAllowedTenants: config.EntraIDOptions.AdditionallyAllowedTenants,
 	}
 
-	// GitHub Actions provides the ID token via the ACTIONS_ID_TOKEN_REQUEST_URL and ACTIONS_ID_TOKEN_REQUEST_TOKEN environment variables
+	// GitHub Actions provides the ID token via the ACTIONS_ID_TOKEN_REQUEST_URL
+	// and ACTIONS_ID_TOKEN_REQUEST_TOKEN environment variables
 	requestURL := os.Getenv("ACTIONS_ID_TOKEN_REQUEST_URL")
 	requestToken := os.Getenv("ACTIONS_ID_TOKEN_REQUEST_TOKEN")
 
 	if requestURL == "" || requestToken == "" {
-		return nil, fmt.Errorf("GitHub OIDC authentication requires the ACTIONS_ID_TOKEN_REQUEST_URL and ACTIONS_ID_TOKEN_REQUEST_TOKEN environment variables to be set")
+		return nil, fmt.Errorf("GitHub OIDC authentication requires the ACTIONS_ID_TOKEN_REQUEST_URL and ACTIONS_ID_TOKEN_REQUEST_TOKEN environment variables to be set. Got: ACTIONS_ID_TOKEN_REQUEST_URL='%s', ACTIONS_ID_TOKEN_REQUEST_TOKEN='%s'", requestURL, requestToken)
 	}
 
-	// Create the assertion callback
 	assertion := func(ctx context.Context) (string, error) {
 		tflog.Debug(ctx, "Requesting GitHub OIDC token", map[string]any{
 			"url":      requestURL,
 			"audience": "api://AzureADTokenExchange",
 		})
 
-		// Create the request
 		req, err := http.NewRequestWithContext(ctx, http.MethodGet, requestURL, http.NoBody)
 		if err != nil {
 			return "", fmt.Errorf("getAssertion: failed to build request")
@@ -429,29 +425,24 @@ func exchangeOIDCToken(ctx context.Context, requestURL, requestToken string) (st
 		"url": requestURL,
 	})
 
-	// Create the request
 	req, err := http.NewRequestWithContext(ctx, "GET", requestURL, nil)
 	if err != nil {
 		return "", fmt.Errorf("failed to create request for OIDC token exchange: %w", err)
 	}
 
-	// Add the authorization header
 	req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", requestToken))
 
-	// Send the request
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return "", fmt.Errorf("failed to exchange OIDC token: %w", err)
 	}
 	defer resp.Body.Close()
 
-	// Check the response status code
 	if resp.StatusCode != http.StatusOK {
 		body, _ := io.ReadAll(resp.Body)
 		return "", fmt.Errorf("failed to exchange OIDC token: status code %d: %s", resp.StatusCode, string(body))
 	}
 
-	// Parse the response
 	var tokenResp struct {
 		Value string `json:"value"`
 	}
