@@ -95,6 +95,14 @@ func convertToClientProviderData(ctx context.Context, data *M365ProviderModel) *
 	var entraIDOptions EntraIDOptionsModel
 	data.EntraIDOptions.As(ctx, &entraIDOptions, basetypes.ObjectAsOptions{})
 
+	oidcRequestURL := entraIDOptions.OIDCRequestURL.ValueString()
+	oidcRequestToken := entraIDOptions.OIDCRequestToken.ValueString()
+	
+	tflog.Debug(ctx, "convertToClientProviderData OIDC values", map[string]interface{}{
+		"oidc_request_url":     oidcRequestURL,
+		"oidc_request_token_set": oidcRequestToken != "",
+	})
+
 	clientData.EntraIDOptions = &client.EntraIDOptions{
 		ClientID:                   entraIDOptions.ClientID.ValueString(),
 		ClientSecret:               entraIDOptions.ClientSecret.ValueString(),
@@ -107,8 +115,8 @@ func convertToClientProviderData(ctx context.Context, data *M365ProviderModel) *
 		ManagedIdentityResourceID:  "", // Not in the model
 		OIDCTokenFilePath:          entraIDOptions.OIDCTokenFilePath.ValueString(),
 		OIDCToken:                  "", // Not in the model
-		OIDCRequestToken:           entraIDOptions.OIDCRequestToken.ValueString(),
-		OIDCRequestURL:             entraIDOptions.OIDCRequestURL.ValueString(),
+		OIDCRequestToken:           oidcRequestToken,
+		OIDCRequestURL:             oidcRequestURL,
 		DisableInstanceDiscovery:   entraIDOptions.DisableInstanceDiscovery.ValueBool(),
 		SendCertificateChain:       entraIDOptions.SendCertificateChain.ValueBool(),
 		AdditionallyAllowedTenants: getAdditionallyAllowedTenants(entraIDOptions.AdditionallyAllowedTenants),

@@ -412,14 +412,20 @@ func EntraIDOptionsSchema() map[string]schema.Attribute {
 			Description: "The bearer token for the request to the OIDC provider.",
 			MarkdownDescription: "The bearer token for the request to the OIDC provider. This field is only used with the " +
 				"'oidc' or 'oidc_github' authentication methods.\n\n" +
-				"Can be set using the `M365_OIDC_REQUEST_TOKEN` or `ACTIONS_ID_TOKEN_REQUEST_TOKEN` environment variables.",
+				"**GitHub Actions Integration:** When running in GitHub Actions workflows with `permissions: id-token: write`, " +
+				"this field is automatically populated from the `ACTIONS_ID_TOKEN_REQUEST_TOKEN` environment variable " +
+				"that GitHub injects into the runner environment. No manual configuration is required.\n\n" +
+				"For other environments, can be set using the `M365_OIDC_REQUEST_TOKEN` environment variable.",
 		},
 		"oidc_request_url": schema.StringAttribute{
 			Optional:    true,
 			Description: "The URL for the OIDC provider from which to request an ID token.",
 			MarkdownDescription: "The URL for the OIDC provider from which to request an ID token. This field is only used with the " +
 				"'oidc' or 'oidc_github' authentication methods.\n\n" +
-				"Can be set using the `M365_OIDC_REQUEST_URL` or `ACTIONS_ID_TOKEN_REQUEST_URL` environment variables.",
+				"**GitHub Actions Integration:** When running in GitHub Actions workflows with `permissions: id-token: write`, " +
+				"this field is automatically populated from the `ACTIONS_ID_TOKEN_REQUEST_URL` environment variable " +
+				"that GitHub injects into the runner environment. No manual configuration is required.\n\n" +
+				"For other environments, can be set using the `M365_OIDC_REQUEST_URL` environment variable.",
 		},
 		"ado_service_connection_id": schema.StringAttribute{
 			Optional:    true,
