@@ -42,7 +42,7 @@ resource "microsoft365_graph_beta_device_and_app_management_mobile_app_supersede
   supersedence_type = "update"                               # Indicates this is an update to the existing app
 
   # Optional timeouts
-  timeouts {
+  timeouts = {
     create = "10m"
     read   = "5m"
     update = "10m"

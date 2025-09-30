@@ -28,7 +28,6 @@ func constructResource(ctx context.Context, data *GroupPolicyBooleanValueResourc
 		"definition@odata.bind": definitionBindURL,
 	})
 
-	// Convert the Terraform list to Go slice of BooleanPresentationValue structs
 	var booleanValues []BooleanPresentationValue
 	data.Values.ElementsAs(ctx, &booleanValues, false)
 
@@ -40,7 +39,6 @@ func constructResource(ctx context.Context, data *GroupPolicyBooleanValueResourc
 
 	var presentationValues []models.GroupPolicyPresentationValueable
 
-	// Create presentation values for each boolean value
 	for i, boolValue := range booleanValues {
 		booleanPresentationValue := models.NewGroupPolicyPresentationValueBoolean()
 		odataType := "#microsoft.graph.groupPolicyPresentationValueBoolean"
@@ -71,7 +69,6 @@ func constructResource(ctx context.Context, data *GroupPolicyBooleanValueResourc
 
 	definitionValue.SetPresentationValues(presentationValues)
 
-	// the request body supports add, update, and delete with distinct structures for each operation.
 	switch operation {
 	case "create":
 		addedValues := []models.GroupPolicyDefinitionValueable{definitionValue}

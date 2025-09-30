@@ -31,7 +31,24 @@ The Microsoft 365 provider supports authentication using GitHub Actions' OpenID 
 - Permissions to create and configure app registrations in Microsoft Entra ID
 - Ability to modify GitHub Actions workflows
 - Azure CLI installed (for setup commands)
-- Terraform provider deploymenttheory/microsoft365 version >= v0.11.0-alpha
+- Terraform provider deploymenttheory/microsoft365 version >= v0.30.4-alpha
+
+## Provider Configuration
+
+```terraform
+provider "microsoft365" {
+  // other fields...
+  auth_method = "oidc_github"
+}
+```
+
+## Pipeline execution
+
+For GH OIDC authentication to function correctly, you are required to execute the terraform with Github runners.
+GitHub injects two env variables into the job, `ACTIONS_ID_TOKEN_REQUEST_URL` and `ACTIONS_ID_TOKEN_REQUEST_TOKEN`.
+Which in turn is picked up by the provider. This means for scenarios where you are using Terraform Cloud, you will 
+need to use a Github Actions workflow to execute the terraform and ensure that the tfc workspace execution mode
+is set to local.
 
 ## How GitHub OIDC Authentication Works
 
@@ -137,7 +154,7 @@ You can create the app registration using Azure CLI:
 ```bash
 # 1. Variables
 export TENANT_ID="00000000-0000-0000-0000-000000000000"
-export APP_NAME="terraform-m365-provider"
+export APP_NAME="terraform-provider-microsoft365"
 export GITHUB_ORG="your-github-org"
 export GITHUB_REPO="your-github-repo"
 
@@ -176,7 +193,7 @@ echo "✔️ Graph API permissions granted and consented"
 Alternatively, you can create the app registration using the Azure portal:
 
 1. Go to Microsoft Entra ID > App registrations > New registration
-2. Enter a name for the application (e.g., "terraform-m365-provider")
+2. Enter a name for the application (e.g., "terraform-provider-microsoft365")
 3. Select "Accounts in this organizational directory only"
 4. Click "Register"
 5. Navigate to "API permissions"
@@ -220,37 +237,53 @@ Configure your GitHub Actions workflow to request and use the OIDC token:
 name: Terraform Microsoft 365
 
 on:
-  push:
-    branches: [ main ]
+  workflow_dispatch:
 
 # Permission to request the OIDC JWT ID token
 permissions:
   id-token: write  # Required for OIDC
   contents: read   # Required for checkout
 
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
 
       - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v2
+        uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd # v3.1.2
         with:
-          terraform_version: "1.5.0"
+          terraform_version: "1.13.3"
+          cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
 
+      - name: Terraform fmt
+        id: fmt
+        run: terraform fmt -check
+        working-directory: path/to/terraform/directory
+        continue-on-error: true
+      
       - name: Terraform Init
+        id: init
         run: terraform init
+        working-directory: path/to/terraform/directory
+      
+      - name: Terraform Validate
+        id: validate
+        run: terraform validate
+        working-directory: path/to/terraform/directory
 
-      - name: Terraform Apply
+      - name: Terraform Plan
+        id: plan
+        run: TF_LOG=DEBUG terraform plan
+        working-directory: path/to/terraform/directory
+        continue-on-error: true
         env:
-          M365_TENANT_ID: "00000000-0000-0000-0000-000000000000"
+          TF_WORKSPACE: "tfc_workspace_name"
+          M365_TENANT_ID: ${{ secrets.TENANT_ID }}
           M365_AUTH_METHOD: "oidc_github"
-          M365_CLIENT_ID: "00000000-0000-0000-0000-000000000000"
-          # OIDC tokens are automatically discovered from GitHub Actions environment
-          # No additional configuration required for GitHub OIDC authentication
-        run: terraform apply -auto-approve
+          M365_CLIENT_ID: ${{ secrets.M365_CLIENT_ID }}
 ```
 
 ## Provider Configuration
@@ -278,35 +311,6 @@ export M365_TENANT_ID="00000000-0000-0000-0000-000000000000"
 export M365_AUTH_METHOD="oidc_github"
 export M365_CLIENT_ID="00000000-0000-0000-0000-000000000000"
 ```
-
-Then your Terraform configuration can be simplified:
-
-```terraform
-provider "microsoft365" {}
-```
-
-## Terraform Cloud Compatibility
-
-The Microsoft 365 provider's GitHub OIDC authentication is fully compatible with Terraform Cloud remote execution. The provider automatically:
-
-1. **Captures OIDC tokens** during provider configuration in the GitHub Actions runner
-2. **Serializes the tokens** as part of the provider configuration
-3. **Sends them to Terraform Cloud** remote agents securely
-4. **Uses the tokens** for authentication during remote execution
-
-No additional configuration is required when using Terraform Cloud with GitHub Actions. The workflow remains the same:
-
-```yaml
-- name: Terraform Plan
-  run: terraform plan -no-color
-  env:
-    TF_WORKSPACE: "your-tfc-workspace-name"
-    M365_TENANT_ID: "${{ secrets.TENANT_ID }}"
-    M365_AUTH_METHOD: "oidc_github"
-    M365_CLIENT_ID: "${{ secrets.CLIENT_ID }}"
-```
-
-The provider handles the complexity of making GitHub OIDC tokens work with Terraform Cloud's remote execution environment automatically.
 
 ## Security Best Practices
 
@@ -476,9 +480,9 @@ When troubleshooting, systematically verify each component:
      ```bash
      # In your workflow
      env:
-      M365_TENANT_ID: "${{ secrets.TENANT_ID }}"
+      M365_TENANT_ID: ${{ secrets.TENANT_ID }}
       M365_AUTH_METHOD: "oidc_github"
-      M365_CLIENT_ID: "${{ secrets.CLIENT_ID }}"
+      M365_CLIENT_ID: ${{ secrets.CLIENT_ID }}
       M365_OIDC_AUDIENCE: "api://AzureADTokenExchange"
      ```
 

@@ -39,6 +39,7 @@ func (p *M365Provider) Configure(ctx context.Context, req provider.ConfigureRequ
 
 		resp.DataSourceData = mockClients
 		resp.ResourceData = mockClients
+		resp.ActionData = mockClients
 		return
 	}
 
@@ -74,6 +75,7 @@ func (p *M365Provider) Configure(ctx context.Context, req provider.ConfigureRequ
 
 	resp.DataSourceData = graphClientInterface
 	resp.ResourceData = graphClientInterface
+	resp.ActionData = graphClientInterface
 
 	tflog.Debug(ctx, "Provider configuration completed", map[string]any{
 		"graph_client_set":      p.clients.GetKiotaGraphV1Client() != nil,

@@ -75,7 +75,7 @@ Each resource directory MUST contain:
 
 ### Example Files
 
-- Place each example in its own directory under `examples/microsoft365_{graph_api_type}/`, named with the full resource or data source name `microsoft365_{graph_api_type}_{resource_category}_{resource_name}`. (e.g., `/examples/microsoft365_graph_beta/microsoft365_graph_beta_device_management_assignment_filter` or `/examples/microsoft365_graph_v1.0/microsoft365_graph_v1.0_device_and_app_management_mobile_app`)
+- Place each example in its own directory under `examples/microsoft365_{graph_api_type}/`, named with the full resource or data source name `microsoft365_{graph_api_type}_{resource_category}_{resource_name}`. (e.g., `/examples/resources/microsoft365_graph_beta_device_management_assignment_filter` or `/examples/microsoft365_graph_v1.0/microsoft365_graph_v1.0_device_and_app_management_mobile_app`)
 - **Resource Examples:**
   - Use a single `resource.tf` file per directory.
   - The example should align precisely with the resource schema.
@@ -315,7 +315,7 @@ Each resource directory MUST contain:
 
 #### Data Source Documentation and Examples
 
-- Include a representative example in the `/examples/microsoft365_{graph_api_type}/microsoft365_{graph_api_type}_{resource_category}_{resource_name}` directory (e.g., `/examples/microsoft365_graph_beta/microsoft365_graph_beta_device_and_app_management_mobile_app`).
+- Include a representative example in the `/examples/microsoft365_{graph_api_type}/microsoft365_{graph_api_type}_{resource_category}_{resource_name}` directory (e.g., `/examples/resources/microsoft365_graph_beta_device_and_app_management_mobile_app`).
 - For data sources with filter parameters, include examples showing different filtering options:
   - Filtering by ID
   - Filtering by display name
