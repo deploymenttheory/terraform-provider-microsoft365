@@ -8,7 +8,7 @@ import (
 )
 
 // Helper function to determine if an assignment matches our resource
-func matchesAssignment(ctx context.Context, object MobileAppAssignmentResourceModel, assign interface{}) bool {
+func matchesAssignment(ctx context.Context, object MobileAppAssignmentResourceModel, assign any) bool {
 	tflog.Debug(ctx, "Matching assignment against configuration", map[string]any{
 		"mobile_app_id": object.MobileAppId.ValueString(),
 		"intent":        object.Intent.ValueString(),

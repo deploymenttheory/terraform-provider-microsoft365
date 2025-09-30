@@ -121,7 +121,7 @@ func (m *WindowsQualityUpdatePolicyMock) RegisterMocks() {
 			} else {
 				policy["roleScopeTagIds"] = []string{"0"}
 			}
-			policy["assignments"] = []interface{}{}
+			policy["assignments"] = []any{}
 			mockState.Lock()
 			mockState.qualityPolicies[id] = policy
 			mockState.Unlock()
@@ -179,9 +179,9 @@ func (m *WindowsQualityUpdatePolicyMock) RegisterMocks() {
 			}
 			mockState.Lock()
 			if existing, ok := mockState.qualityPolicies[id]; ok {
-				assignments, _ := body["assignments"].([]interface{})
+				assignments, _ := body["assignments"].([]any)
 				if assignments == nil {
-					assignments = []interface{}{}
+					assignments = []any{}
 				}
 				existing["assignments"] = assignments
 				mockState.qualityPolicies[id] = existing
@@ -211,7 +211,7 @@ func (m *WindowsQualityUpdatePolicyMock) RegisterErrorMocks() {
 		func(req *http.Request) (*http.Response, error) {
 			return httpmock.NewJsonResponse(200, map[string]any{
 				"@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/windowsQualityUpdatePolicies",
-				"value":          []interface{}{},
+				"value":          []any{},
 			})
 		})
 

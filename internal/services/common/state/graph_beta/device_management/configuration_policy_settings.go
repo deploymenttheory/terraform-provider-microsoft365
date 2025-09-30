@@ -73,7 +73,7 @@ func normalizeSettingsCatalogJSONArray(ctx context.Context, settingsStr string, 
 
 	var rawResponse map[string]any
 	if err := json.Unmarshal(resp, &rawResponse); err != nil {
-		var arrayResponse []interface{}
+		var arrayResponse []any
 		if err := json.Unmarshal(resp, &arrayResponse); err != nil {
 			tflog.Error(ctx, "Failed to unmarshal settings response", map[string]any{"error": err.Error()})
 			return settingsStr
@@ -81,7 +81,7 @@ func normalizeSettingsCatalogJSONArray(ctx context.Context, settingsStr string, 
 		rawResponse = map[string]any{"value": arrayResponse}
 	}
 
-	var settingsContent interface{}
+	var settingsContent any
 	if value, ok := rawResponse["value"]; ok {
 		settingsContent = value
 	} else if settings, ok := rawResponse["settings"]; ok {
@@ -149,7 +149,7 @@ func normalizeSettingsCatalogJSON(ctx context.Context, settingsStr string, resp 
 	// If we have a settingInstance, wrap it in our expected format
 	if settingInstance, ok := responseObj["settingInstance"].(map[string]any); ok {
 		wrappedResp := map[string]any{
-			"settings": []interface{}{
+			"settings": []any{
 				map[string]any{
 					"id":              "0",
 					"settingInstance": settingInstance,

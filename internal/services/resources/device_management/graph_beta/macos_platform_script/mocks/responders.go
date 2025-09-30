@@ -78,15 +78,15 @@ func (m *MacOSPlatformScriptMock) RegisterMocks() {
 			if strings.Contains(expandParam, "assignments") {
 				// Include assignments if they exist in the script data
 				if assignments, hasAssignments := scriptData["assignments"]; hasAssignments && assignments != nil {
-					if assignmentList, ok := assignments.([]interface{}); ok && len(assignmentList) > 0 {
+					if assignmentList, ok := assignments.([]any); ok && len(assignmentList) > 0 {
 						responseCopy["assignments"] = assignments
 					} else {
 						// If assignments array is empty, return empty array (not null)
-						responseCopy["assignments"] = []interface{}{}
+						responseCopy["assignments"] = []any{}
 					}
 				} else {
 					// If no assignments stored, return empty array (not null)
-					responseCopy["assignments"] = []interface{}{}
+					responseCopy["assignments"] = []any{}
 				}
 			}
 
@@ -135,7 +135,7 @@ func (m *MacOSPlatformScriptMock) RegisterMocks() {
 			}
 
 			// Initialize assignments as empty array
-			scriptData["assignments"] = []interface{}{}
+			scriptData["assignments"] = []any{}
 
 			// Store in mock state
 			mockState.Lock()
@@ -233,10 +233,10 @@ func (m *MacOSPlatformScriptMock) RegisterMocks() {
 			mockState.Lock()
 			if scriptData, exists := mockState.platformScripts[scriptId]; exists {
 				if assignments, hasAssignments := requestBody["deviceManagementScriptAssignments"]; hasAssignments && assignments != nil {
-					assignmentList := assignments.([]interface{})
+					assignmentList := assignments.([]any)
 					if len(assignmentList) > 0 {
 						// Extract the actual assignment data from the request
-						graphAssignments := []interface{}{}
+						graphAssignments := []any{}
 						for _, assignment := range assignmentList {
 							if assignmentMap, ok := assignment.(map[string]any); ok {
 								if target, hasTarget := assignmentMap["target"].(map[string]any); hasTarget {
@@ -261,11 +261,11 @@ func (m *MacOSPlatformScriptMock) RegisterMocks() {
 						scriptData["assignments"] = graphAssignments
 					} else {
 						// Set empty assignments array instead of deleting
-						scriptData["assignments"] = []interface{}{}
+						scriptData["assignments"] = []any{}
 					}
 				} else {
 					// Set empty assignments array instead of deleting
-					scriptData["assignments"] = []interface{}{}
+					scriptData["assignments"] = []any{}
 				}
 				mockState.platformScripts[scriptId] = scriptData
 			}

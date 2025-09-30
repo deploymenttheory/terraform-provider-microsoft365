@@ -62,7 +62,7 @@ func TestConvertToPNG(t *testing.T) {
 
 	tests := []struct {
 		name      string
-		input     interface{}
+		input     any
 		expectErr bool
 	}{
 		{
@@ -117,7 +117,7 @@ func TestConvertToPNG(t *testing.T) {
 
 	tests = append(tests, []struct {
 		name      string
-		input     interface{}
+		input     any
 		expectErr bool
 	}{
 		{
@@ -264,7 +264,7 @@ func TestGetImageFormat(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			format, err := GetImageFormat(tt.data)
-			
+
 			if tt.expectErr {
 				if err == nil {
 					t.Errorf("GetImageFormat() expected error but got nil")
@@ -471,7 +471,7 @@ func TestConvertFileToPNG(t *testing.T) {
 func TestConvertURLImageToPNG(t *testing.T) {
 	ctx := context.Background()
 
-	// This function depends on DownloadImage which we can't easily test without 
+	// This function depends on DownloadImage which we can't easily test without
 	// a real server or mocking the entire HTTP infrastructure.
 	// We'll test the error case with an invalid URL
 	_, err := ConvertURLImageToPNG(ctx, "not-a-valid-url")

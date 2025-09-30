@@ -158,11 +158,11 @@ func TestPreserveSecretSettings(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			// Parse JSON strings to interfaces
-			var configMap interface{}
+			var configMap any
 			err := json.Unmarshal([]byte(tt.config), &configMap)
 			require.NoError(t, err, "Failed to unmarshal config JSON")
 
-			var responseMap interface{}
+			var responseMap any
 			err = json.Unmarshal([]byte(tt.response), &responseMap)
 			require.NoError(t, err, "Failed to unmarshal response JSON")
 
@@ -178,7 +178,7 @@ func TestPreserveSecretSettings(t *testing.T) {
 			assert.NoError(t, err)
 
 			if tt.expected != "" {
-				var expectedMap interface{}
+				var expectedMap any
 				err = json.Unmarshal([]byte(tt.expected), &expectedMap)
 				require.NoError(t, err, "Failed to unmarshal expected JSON")
 
@@ -192,9 +192,9 @@ func TestPreserveSecretSettings(t *testing.T) {
 func TestPreserveSecretSettings_UnsupportedType(t *testing.T) {
 	tests := []struct {
 		name     string
-		config   interface{}
-		resp     interface{}
-		expected interface{}
+		config   any
+		resp     any
+		expected any
 	}{
 		{
 			name:     "unsupported primitive types",
@@ -222,8 +222,8 @@ func TestPreserveSecretSettings_UnsupportedType(t *testing.T) {
 func TestPreserveSecretSettings_NilValues(t *testing.T) {
 	tests := []struct {
 		name   string
-		config interface{}
-		resp   interface{}
+		config any
+		resp   any
 	}{
 		{
 			name:   "nil config",
@@ -253,9 +253,9 @@ func TestPreserveSecretSettings_NilValues(t *testing.T) {
 func TestPreserveSecretSettings_PrimitiveTypes(t *testing.T) {
 	tests := []struct {
 		name        string
-		config      interface{}
-		resp        interface{}
-		expected    interface{}
+		config      any
+		resp        any
+		expected    any
 		expectError bool
 	}{
 		{

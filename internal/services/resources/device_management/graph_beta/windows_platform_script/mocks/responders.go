@@ -41,7 +41,7 @@ func (m *WindowsPlatformScriptMock) RegisterMocks() {
 			jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_get/get_windows_platform_scripts_list.json")
 			var responseObj map[string]any
 			_ = json.Unmarshal([]byte(jsonStr), &responseObj)
-			responseObj["value"] = []interface{}{}
+			responseObj["value"] = []any{}
 			return httpmock.NewJsonResponse(200, responseObj)
 		}
 
@@ -80,7 +80,7 @@ func (m *WindowsPlatformScriptMock) RegisterMocks() {
 		if script["runAsAccount"] == "user" {
 			jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_get/get_windows_platform_script_user.json")
 			jsonTemplate = jsonStr
-		} else if len(script["assignments"].([]interface{})) > 0 {
+		} else if len(script["assignments"].([]any)) > 0 {
 			jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_get/get_windows_platform_script_with_assignments.json")
 			jsonTemplate = jsonStr
 		} else {
@@ -151,7 +151,7 @@ func (m *WindowsPlatformScriptMock) RegisterMocks() {
 
 		// Assignments are handled separately via the /assign endpoint
 		// Always start with empty assignments for new resources
-		responseObj["assignments"] = []interface{}{}
+		responseObj["assignments"] = []any{}
 
 		// Store in mock state
 		mockState.Lock()
@@ -230,13 +230,13 @@ func (m *WindowsPlatformScriptMock) RegisterMocks() {
 		mockState.Lock()
 		if existing, ok := mockState.platformScripts[id]; ok {
 			// The assignment constructor sends assignments via deviceManagementScriptAssignments field
-			assignments, ok := body["deviceManagementScriptAssignments"].([]interface{})
+			assignments, ok := body["deviceManagementScriptAssignments"].([]any)
 			if !ok {
 				// Fallback to assignments field for compatibility
-				assignments, _ = body["assignments"].([]interface{})
+				assignments, _ = body["assignments"].([]any)
 			}
 			if assignments == nil {
-				assignments = []interface{}{}
+				assignments = []any{}
 			}
 			existing["assignments"] = assignments
 			mockState.platformScripts[id] = existing
@@ -268,7 +268,7 @@ func (m *WindowsPlatformScriptMock) RegisterErrorMocks() {
 		jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_get/get_windows_platform_scripts_list.json")
 		var responseObj map[string]any
 		_ = json.Unmarshal([]byte(jsonStr), &responseObj)
-		responseObj["value"] = []interface{}{}
+		responseObj["value"] = []any{}
 		return httpmock.NewJsonResponse(200, responseObj)
 	})
 

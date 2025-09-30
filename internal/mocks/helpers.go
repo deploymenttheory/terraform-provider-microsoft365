@@ -13,7 +13,7 @@ import (
 // EnsureField ensures that a field exists in a data map
 // If the field doesn't exist, it will be initialized with the provided default value
 // This is particularly useful for ensuring collection fields are initialized in mock responses
-func EnsureField(data map[string]any, fieldName string, defaultValue interface{}) {
+func EnsureField(data map[string]any, fieldName string, defaultValue any) {
 	if data[fieldName] == nil {
 		data[fieldName] = defaultValue
 	}
@@ -99,7 +99,7 @@ func LoadUnitTerraformConfig(filename string) string {
 // LoadUnitTerraformTemplate loads and processes a terraform template file for unit tests.
 // This function is specifically designed for unit tests and only looks in tests/terraform/unit/.
 // It uses runtime.Caller to determine the calling test file's location for proper path resolution.
-func LoadUnitTerraformTemplate(filename string, data interface{}) string {
+func LoadUnitTerraformTemplate(filename string, data any) string {
 	// Get the caller's directory to construct correct relative path
 	_, callerFile, _, ok := runtime.Caller(1)
 	if !ok {
@@ -147,7 +147,7 @@ func LoadUnitTerraformTemplate(filename string, data interface{}) string {
 
 // LoadTerraformTemplateFile reads a terraform template file and applies the provided data
 // This is used for
-func LoadTerraformTemplateFile(filename string, data interface{}) string {
+func LoadTerraformTemplateFile(filename string, data any) string {
 	content, err := os.ReadFile(filepath.Join("tests", "terraform", "acceptance", filename))
 	if err != nil {
 		// Fallback to empty string if file cannot be read

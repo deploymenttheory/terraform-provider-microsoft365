@@ -1,6 +1,49 @@
 minimal create request config
 
-{"conditions":{"applications":{"includeApplications":["All"],"excludeApplications":[],"includeUserActions":[],"includeAuthenticationContextClassReferences":[],"applicationFilter":null,"globalSecureAccess":null},"clients":null,"users":{"includeUsers":["None"],"excludeUsers":[],"includeGroups":[],"excludeGroups":[],"includeRoles":[],"excludeRoles":[],"includeGuestsOrExternalUsers":null,"excludeGuestsOrExternalUsers":null},"clientApplications":null,"platforms":null,"locations":{"includeLocations":["All"],"excludeLocations":[]},"userRiskLevels":[],"signInRiskLevels":[],"insiderRiskLevels":null,"signInRiskDetections":null,"clientAppTypes":["all"],"times":null,"devices":null,"servicePrincipalRiskLevels":[],"authenticationFlows":null},"displayName":"tf-test","grantControls":{"operator":"OR","builtInControls":[],"customAuthenticationFactors":[],"termsOfUse":["79f28780-c502-49c4-8951-f53f6a239b60"],"authenticationStrength":null},"sessionControls":null,"state":"enabledForReportingButNotEnforced"}
+{
+  "conditions":{
+    "applications":{
+      "includeApplications":["None"],
+      "excludeApplications":[],
+      "includeUserActions":[],
+      "includeAuthenticationContextClassReferences":[],
+      "globalSecureAccess":null
+    },
+    "clients":null,
+    "users":{
+      "includeUsers":["None"],
+      "excludeUsers":[],
+      "includeGroups":[],
+      "excludeGroups":[],
+      "includeRoles":[],
+      "excludeRoles":[],
+      "includeGuestsOrExternalUsers":null,
+      "excludeGuestsOrExternalUsers":null
+    },
+    "clientApplications":null,
+    "platforms":null,
+    "locations":null,
+    "userRiskLevels":[],
+    "signInRiskLevels":[],
+    "insiderRiskLevels":null,
+    "signInRiskDetections":null,
+    "clientAppTypes":["all"],
+    "times":null,
+    "devices":null,
+    "servicePrincipalRiskLevels":[],
+    "authenticationFlows":null
+  },
+  "displayName":"minimal",
+  "grantControls":{
+    "operator":"AND",
+    "builtInControls":["block"],
+    "customAuthenticationFactors":[],
+    "termsOfUse":[],
+    "authenticationStrength":null
+  },
+  "sessionControls":null,
+  "state":"enabledForReportingButNotEnforced"
+}
 
 
 

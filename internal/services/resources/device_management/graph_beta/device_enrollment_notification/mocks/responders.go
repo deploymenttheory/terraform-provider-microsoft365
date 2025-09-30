@@ -18,14 +18,14 @@ var mockState struct {
 	enrollmentConfigs map[string]map[string]any
 	templates         map[string]map[string]any
 	localizedMessages map[string]map[string]any
-	assignments       map[string][]interface{}
+	assignments       map[string][]any
 }
 
 func init() {
 	mockState.enrollmentConfigs = make(map[string]map[string]any)
 	mockState.templates = make(map[string]map[string]any)
 	mockState.localizedMessages = make(map[string]map[string]any)
-	mockState.assignments = make(map[string][]interface{})
+	mockState.assignments = make(map[string][]any)
 	httpmock.RegisterNoResponder(httpmock.NewStringResponder(404, `{"error":{"code":"ResourceNotFound","message":"Resource not found"}}`))
 	mocks.GlobalRegistry.Register("android_enrollment_notifications", &AndroidEnrollmentNotificationsMock{})
 }
@@ -39,7 +39,7 @@ func (m *AndroidEnrollmentNotificationsMock) RegisterMocks() {
 	mockState.enrollmentConfigs = make(map[string]map[string]any)
 	mockState.templates = make(map[string]map[string]any)
 	mockState.localizedMessages = make(map[string]map[string]any)
-	mockState.assignments = make(map[string][]interface{})
+	mockState.assignments = make(map[string][]any)
 	mockState.Unlock()
 
 	// Register basic group mocks for assignment validation
@@ -61,7 +61,7 @@ func (m *AndroidEnrollmentNotificationsMock) RegisterMocks() {
 		defer mockState.Unlock()
 
 		if len(mockState.enrollmentConfigs) == 0 {
-			responseObj["value"] = []interface{}{}
+			responseObj["value"] = []any{}
 		} else {
 			list := make([]map[string]any, 0, len(mockState.enrollmentConfigs))
 			for _, v := range mockState.enrollmentConfigs {
@@ -114,7 +114,7 @@ func (m *AndroidEnrollmentNotificationsMock) RegisterMocks() {
 
 		// Generate notification template IDs based on notification templates array
 		notificationTemplates := []string{}
-		if templates, ok := body["notificationTemplates"].([]interface{}); ok {
+		if templates, ok := body["notificationTemplates"].([]any); ok {
 			for _, template := range templates {
 				templateStr := template.(string)
 				templateGuid := uuid.New().String()
@@ -129,7 +129,7 @@ func (m *AndroidEnrollmentNotificationsMock) RegisterMocks() {
 						"id":                            templateGuid,
 						"displayName":                   "Email Template",
 						"brandingOptions":               "none",
-						"localizedNotificationMessages": []interface{}{},
+						"localizedNotificationMessages": []any{},
 					}
 					mockState.Unlock()
 				}
@@ -143,7 +143,7 @@ func (m *AndroidEnrollmentNotificationsMock) RegisterMocks() {
 						"id":                            templateGuid,
 						"displayName":                   "Push Template",
 						"brandingOptions":               "none",
-						"localizedNotificationMessages": []interface{}{},
+						"localizedNotificationMessages": []any{},
 					}
 					mockState.Unlock()
 				}
@@ -171,7 +171,7 @@ func (m *AndroidEnrollmentNotificationsMock) RegisterMocks() {
 		// Store in mock state
 		mockState.Lock()
 		mockState.enrollmentConfigs[id] = responseObj
-		mockState.assignments[id] = []interface{}{}
+		mockState.assignments[id] = []any{}
 		mockState.Unlock()
 
 		return httpmock.NewJsonResponse(201, responseObj)
@@ -235,10 +235,10 @@ func (m *AndroidEnrollmentNotificationsMock) RegisterMocks() {
 		json.Unmarshal([]byte(jsonStr), &responseObj)
 
 		if !ok || len(storedAssignments) == 0 {
-			responseObj["value"] = []interface{}{}
+			responseObj["value"] = []any{}
 		} else {
 			// Transform stored assignments (from POST body) to Graph API assignment format
-			graphAssignments := make([]interface{}, 0, len(storedAssignments))
+			graphAssignments := make([]any, 0, len(storedAssignments))
 			for i, assignment := range storedAssignments {
 				if assignmentMap, ok := assignment.(map[string]any); ok {
 					assignmentId := fmt.Sprintf("%s_assignment_%d", id, i)
@@ -273,9 +273,9 @@ func (m *AndroidEnrollmentNotificationsMock) RegisterMocks() {
 
 		mockState.Lock()
 		// The SDK sends assignments as "enrollmentConfigurationAssignments"
-		if enrollmentAssignments, ok := body["enrollmentConfigurationAssignments"].([]interface{}); ok {
+		if enrollmentAssignments, ok := body["enrollmentConfigurationAssignments"].([]any); ok {
 			// Convert Graph SDK assignment format to terraform assignment format for storage
-			terraformAssignments := make([]interface{}, 0, len(enrollmentAssignments))
+			terraformAssignments := make([]any, 0, len(enrollmentAssignments))
 			for _, assignment := range enrollmentAssignments {
 				if assignmentMap, ok := assignment.(map[string]any); ok {
 					if target, ok := assignmentMap["target"].(map[string]any); ok {
@@ -357,7 +357,7 @@ func (m *AndroidEnrollmentNotificationsMock) RegisterMocks() {
 		defer mockState.Unlock()
 
 		// Find all localized messages for this template
-		messages := []interface{}{}
+		messages := []any{}
 		for messageId, message := range mockState.localizedMessages {
 			if strings.HasPrefix(messageId, templateId+"_") {
 				messages = append(messages, message)
@@ -442,7 +442,7 @@ func (m *AndroidEnrollmentNotificationsMock) RegisterErrorMocks() {
 	mockState.enrollmentConfigs = make(map[string]map[string]any)
 	mockState.templates = make(map[string]map[string]any)
 	mockState.localizedMessages = make(map[string]map[string]any)
-	mockState.assignments = make(map[string][]interface{})
+	mockState.assignments = make(map[string][]any)
 	mockState.Unlock()
 
 	// Register basic group mocks for assignment validation (successful for error tests)

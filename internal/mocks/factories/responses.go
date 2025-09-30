@@ -20,7 +20,7 @@ func ErrorResponse(statusCode int, errorCode, errorMessage string) httpmock.Resp
 }
 
 // SuccessResponse creates a standard success response with the given body
-func SuccessResponse(statusCode int, body interface{}) httpmock.Responder {
+func SuccessResponse(statusCode int, body any) httpmock.Responder {
 	return httpmock.NewJsonResponderOrPanic(statusCode, body)
 }
 

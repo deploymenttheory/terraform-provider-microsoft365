@@ -412,7 +412,7 @@ func TestAddErrorToDiagnostics(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			var resp interface{}
+			var resp any
 
 			// Create the appropriate response type
 			switch tc.respType {

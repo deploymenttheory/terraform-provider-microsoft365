@@ -20,7 +20,7 @@ func SetValue(elementType attr.Type, elements []attr.Value) types.Set {
 
 // SetValueFrom creates a types.Set from a Go slice.
 // Panics if creation fails, which should only happen with programming errors.
-func SetValueFrom(ctx context.Context, elementType attr.Type, elements interface{}) types.Set {
+func SetValueFrom(ctx context.Context, elementType attr.Type, elements any) types.Set {
 	set, diags := types.SetValueFrom(ctx, elementType, elements)
 	if diags.HasError() {
 		tflog.Error(ctx, "Failed to convert to types.Set", map[string]any{

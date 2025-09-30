@@ -320,7 +320,7 @@ func TestMapToFrameworkStringSet(t *testing.T) {
 	}{
 		{
 			name: "valid string slice",
-			data: map[string]any{"tags": []interface{}{"tag1", "tag2", "tag3"}},
+			data: map[string]any{"tags": []any{"tag1", "tag2", "tag3"}},
 			key:  "tags",
 			expected: func() types.Set {
 				set, _ := types.SetValueFrom(ctx, types.StringType, []string{"tag1", "tag2", "tag3"})
@@ -329,7 +329,7 @@ func TestMapToFrameworkStringSet(t *testing.T) {
 		},
 		{
 			name: "empty string slice",
-			data: map[string]any{"tags": []interface{}{}},
+			data: map[string]any{"tags": []any{}},
 			key:  "tags",
 			expected: func() types.Set {
 				return types.SetNull(types.StringType)
@@ -337,7 +337,7 @@ func TestMapToFrameworkStringSet(t *testing.T) {
 		},
 		{
 			name: "mixed types in slice - filters out non-strings",
-			data: map[string]any{"tags": []interface{}{"tag1", 123, "tag2", true, "tag3"}},
+			data: map[string]any{"tags": []any{"tag1", 123, "tag2", true, "tag3"}},
 			key:  "tags",
 			expected: func() types.Set {
 				set, _ := types.SetValueFrom(ctx, types.StringType, []string{"tag1", "tag2", "tag3"})
@@ -346,7 +346,7 @@ func TestMapToFrameworkStringSet(t *testing.T) {
 		},
 		{
 			name: "single string in slice",
-			data: map[string]any{"tags": []interface{}{"single"}},
+			data: map[string]any{"tags": []any{"single"}},
 			key:  "tags",
 			expected: func() types.Set {
 				set, _ := types.SetValueFrom(ctx, types.StringType, []string{"single"})
@@ -355,7 +355,7 @@ func TestMapToFrameworkStringSet(t *testing.T) {
 		},
 		{
 			name:     "key does not exist",
-			data:     map[string]any{"other": []interface{}{"tag1"}},
+			data:     map[string]any{"other": []any{"tag1"}},
 			key:      "tags",
 			expected: func() types.Set { return types.SetNull(types.StringType) },
 		},
@@ -393,7 +393,7 @@ func TestMapToFrameworkStringList(t *testing.T) {
 	}{
 		{
 			name: "valid string slice",
-			data: map[string]any{"items": []interface{}{"item1", "item2", "item3"}},
+			data: map[string]any{"items": []any{"item1", "item2", "item3"}},
 			key:  "items",
 			expected: func() types.List {
 				list, _ := types.ListValueFrom(ctx, types.StringType, []string{"item1", "item2", "item3"})
@@ -402,7 +402,7 @@ func TestMapToFrameworkStringList(t *testing.T) {
 		},
 		{
 			name: "empty string slice",
-			data: map[string]any{"items": []interface{}{}},
+			data: map[string]any{"items": []any{}},
 			key:  "items",
 			expected: func() types.List {
 				list, _ := types.ListValueFrom(ctx, types.StringType, []string{})
@@ -411,7 +411,7 @@ func TestMapToFrameworkStringList(t *testing.T) {
 		},
 		{
 			name: "mixed types in slice - filters out non-strings",
-			data: map[string]any{"items": []interface{}{"item1", 123, "item2", false, "item3"}},
+			data: map[string]any{"items": []any{"item1", 123, "item2", false, "item3"}},
 			key:  "items",
 			expected: func() types.List {
 				list, _ := types.ListValueFrom(ctx, types.StringType, []string{"item1", "item2", "item3"})
@@ -420,7 +420,7 @@ func TestMapToFrameworkStringList(t *testing.T) {
 		},
 		{
 			name: "single string in slice",
-			data: map[string]any{"items": []interface{}{"single"}},
+			data: map[string]any{"items": []any{"single"}},
 			key:  "items",
 			expected: func() types.List {
 				list, _ := types.ListValueFrom(ctx, types.StringType, []string{"single"})
@@ -429,7 +429,7 @@ func TestMapToFrameworkStringList(t *testing.T) {
 		},
 		{
 			name:     "key does not exist",
-			data:     map[string]any{"other": []interface{}{"item1"}},
+			data:     map[string]any{"other": []any{"item1"}},
 			key:      "items",
 			expected: func() types.List { return types.ListNull(types.StringType) },
 		},

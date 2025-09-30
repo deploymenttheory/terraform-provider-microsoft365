@@ -312,7 +312,7 @@ func (m *RoleScopeTagMock) assignRoleScopeTagResponder() httpmock.Responder {
 		}
 
 		// Store assignments in mock state
-		if assignments, ok := requestBody["assignments"].([]interface{}); ok {
+		if assignments, ok := requestBody["assignments"].([]any); ok {
 			mockAssignments := make([]map[string]any, 0, len(assignments))
 			for i, assignment := range assignments {
 				if assignmentMap, ok := assignment.(map[string]any); ok {
@@ -359,7 +359,7 @@ func (m *RoleScopeTagMock) getAssignmentsResponder() httpmock.Responder {
 		if !exists {
 			// Return empty assignments response
 			response := map[string]any{
-				"value": []interface{}{},
+				"value": []any{},
 			}
 			return factories.SuccessResponse(200, response)(req)
 		}

@@ -90,7 +90,7 @@ func (m *WindowsAutopilotDevicePreparationPolicyMock) RegisterMocks() {
 	httpmock.RegisterResponder("POST", `=~^https://graph\.microsoft\.com/beta/deviceManagement/configurationPolicies/[0-9a-fA-F-]+/assign$`, func(req *http.Request) (*http.Response, error) {
 		return httpmock.NewJsonResponse(200, map[string]any{
 			"@odata.context": "https://graph.microsoft.com/beta/$metadata#Collection(microsoft.graph.deviceManagementConfigurationPolicyAssignment)",
-			"value":          []interface{}{},
+			"value":          []any{},
 		})
 	})
 
@@ -189,7 +189,7 @@ func (m *WindowsAutopilotDevicePreparationPolicyMock) RegisterMocks() {
 		_ = json.Unmarshal([]byte(jsonStr), &responseObj)
 
 		if mockState.autopilotPolicies == nil || len(mockState.autopilotPolicies) == 0 {
-			responseObj["value"] = []interface{}{}
+			responseObj["value"] = []any{}
 		} else {
 			list := make([]map[string]any, 0, len(mockState.autopilotPolicies))
 			for _, policy := range mockState.autopilotPolicies {
@@ -216,7 +216,7 @@ func (m *WindowsAutopilotDevicePreparationPolicyMock) RegisterErrorMocks() {
 		jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_get/get_windows_autopilot_device_preparation_policy_list.json")
 		var responseObj map[string]any
 		_ = json.Unmarshal([]byte(jsonStr), &responseObj)
-		responseObj["value"] = []interface{}{}
+		responseObj["value"] = []any{}
 		return httpmock.NewJsonResponse(200, responseObj)
 	})
 

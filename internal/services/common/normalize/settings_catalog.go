@@ -6,7 +6,7 @@ import (
 
 // PreserveSecretSettings recursively searches through the server response for settings catalog and if a match for
 // #microsoft.graph.deviceManagementConfigurationSecretSettingValue is found, it preserves the original secret value and state from the config settings.
-func PreserveSecretSettings(config, resp interface{}) error {
+func PreserveSecretSettings(config, resp any) error {
 	if config == nil || resp == nil {
 		return nil
 	}
@@ -36,10 +36,10 @@ func PreserveSecretSettings(config, resp interface{}) error {
 			}
 		}
 
-	case []interface{}:
-		respV, ok := resp.([]interface{})
+	case []any:
+		respV, ok := resp.([]any)
 		if !ok {
-			return fmt.Errorf("expected []interface{} in response, got %T", resp)
+			return fmt.Errorf("expected []any in response, got %T", resp)
 		}
 
 		for i := range configV {

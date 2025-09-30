@@ -34,7 +34,7 @@ func mapIPNamedLocationFields(ctx context.Context, data *NamedLocationResourceMo
 	data.IsTrusted = convert.GraphToFrameworkBool(getBoolPtr(remoteResource, "isTrusted"))
 
 	// Parse IP ranges from the API response
-	if ipRanges, ok := remoteResource["ipRanges"].([]interface{}); ok {
+	if ipRanges, ok := remoteResource["ipRanges"].([]any); ok {
 		var ipv4Ranges []string
 		var ipv6Ranges []string
 
@@ -74,7 +74,7 @@ func mapCountryNamedLocationFields(ctx context.Context, data *NamedLocationResou
 	data.IncludeUnknownCountriesAndRegions = convert.GraphToFrameworkBool(getBoolPtr(remoteResource, "includeUnknownCountriesAndRegions"))
 
 	// Parse countries and regions from the API response
-	if countriesAndRegions, ok := remoteResource["countriesAndRegions"].([]interface{}); ok {
+	if countriesAndRegions, ok := remoteResource["countriesAndRegions"].([]any); ok {
 		var countries []string
 		for _, countryItem := range countriesAndRegions {
 			if country, ok := countryItem.(string); ok {

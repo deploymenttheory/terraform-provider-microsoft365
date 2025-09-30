@@ -9,7 +9,7 @@ import (
 )
 
 // mapRemoteStateToTerraformState converts the API response to Terraform model
-func (d *MicrosoftStorePackageManifestDataSource) mapRemoteStateToTerraformState(ctx context.Context, manifests []interface{}) ([]PackageManifestDataSourceModel, diag.Diagnostics) {
+func (d *MicrosoftStorePackageManifestDataSource) mapRemoteStateToTerraformState(ctx context.Context, manifests []any) ([]PackageManifestDataSourceModel, diag.Diagnostics) {
 	var terraformManifests []PackageManifestDataSourceModel
 	var diags diag.Diagnostics
 
@@ -30,7 +30,7 @@ func (d *MicrosoftStorePackageManifestDataSource) mapRemoteStateToTerraformState
 
 		// Map versions
 		if versionsInterface, exists := manifest["Versions"]; exists && versionsInterface != nil {
-			if versionsList, ok := versionsInterface.([]interface{}); ok {
+			if versionsList, ok := versionsInterface.([]any); ok {
 				versions, versionDiags := d.mapVersions(ctx, versionsList)
 				diags.Append(versionDiags...)
 				terraformManifest.Versions = versions
@@ -44,7 +44,7 @@ func (d *MicrosoftStorePackageManifestDataSource) mapRemoteStateToTerraformState
 }
 
 // mapVersions converts version data to Terraform models
-func (d *MicrosoftStorePackageManifestDataSource) mapVersions(ctx context.Context, versionsList []interface{}) ([]PackageVersionDataSourceModel, diag.Diagnostics) {
+func (d *MicrosoftStorePackageManifestDataSource) mapVersions(ctx context.Context, versionsList []any) ([]PackageVersionDataSourceModel, diag.Diagnostics) {
 	var terraformVersions []PackageVersionDataSourceModel
 	var diags diag.Diagnostics
 
@@ -74,7 +74,7 @@ func (d *MicrosoftStorePackageManifestDataSource) mapVersions(ctx context.Contex
 
 		// Map locales
 		if localesInterface, exists := version["Locales"]; exists && localesInterface != nil {
-			if localesList, ok := localesInterface.([]interface{}); ok {
+			if localesList, ok := localesInterface.([]any); ok {
 				locales, localesDiags := d.mapLocales(ctx, localesList)
 				diags.Append(localesDiags...)
 				terraformVersion.Locales = locales
@@ -83,7 +83,7 @@ func (d *MicrosoftStorePackageManifestDataSource) mapVersions(ctx context.Contex
 
 		// Map installers
 		if installersInterface, exists := version["Installers"]; exists && installersInterface != nil {
-			if installersList, ok := installersInterface.([]interface{}); ok {
+			if installersList, ok := installersInterface.([]any); ok {
 				installers, installersDiags := d.mapInstallers(ctx, installersList)
 				diags.Append(installersDiags...)
 				terraformVersion.Installers = installers
@@ -116,7 +116,7 @@ func (d *MicrosoftStorePackageManifestDataSource) mapDefaultLocale(ctx context.C
 
 	// Map tags
 	if tagsInterface, exists := localeMap["Tags"]; exists && tagsInterface != nil {
-		if tagsList, ok := tagsInterface.([]interface{}); ok {
+		if tagsList, ok := tagsInterface.([]any); ok {
 			tags := d.mapStringList(tagsList)
 			defaultLocale.Tags = tags
 		}
@@ -124,7 +124,7 @@ func (d *MicrosoftStorePackageManifestDataSource) mapDefaultLocale(ctx context.C
 
 	// Map agreements
 	if agreementsInterface, exists := localeMap["Agreements"]; exists && agreementsInterface != nil {
-		if agreementsList, ok := agreementsInterface.([]interface{}); ok {
+		if agreementsList, ok := agreementsInterface.([]any); ok {
 			agreements, agreementDiags := d.mapAgreements(ctx, agreementsList)
 			diags.Append(agreementDiags...)
 			defaultLocale.Agreements = agreements
@@ -135,7 +135,7 @@ func (d *MicrosoftStorePackageManifestDataSource) mapDefaultLocale(ctx context.C
 }
 
 // mapLocales converts locale data to Terraform models
-func (d *MicrosoftStorePackageManifestDataSource) mapLocales(ctx context.Context, localesList []interface{}) ([]LocaleDataSourceModel, diag.Diagnostics) {
+func (d *MicrosoftStorePackageManifestDataSource) mapLocales(ctx context.Context, localesList []any) ([]LocaleDataSourceModel, diag.Diagnostics) {
 	var terraformLocales []LocaleDataSourceModel
 	var diags diag.Diagnostics
 
@@ -165,7 +165,7 @@ func (d *MicrosoftStorePackageManifestDataSource) mapLocales(ctx context.Context
 
 		// Map tags
 		if tagsInterface, exists := locale["Tags"]; exists && tagsInterface != nil {
-			if tagsList, ok := tagsInterface.([]interface{}); ok {
+			if tagsList, ok := tagsInterface.([]any); ok {
 				tags := d.mapStringList(tagsList)
 				terraformLocale.Tags = tags
 			}
@@ -178,7 +178,7 @@ func (d *MicrosoftStorePackageManifestDataSource) mapLocales(ctx context.Context
 }
 
 // mapAgreements converts agreement data to Terraform models
-func (d *MicrosoftStorePackageManifestDataSource) mapAgreements(ctx context.Context, agreementsList []interface{}) ([]AgreementDataSourceModel, diag.Diagnostics) {
+func (d *MicrosoftStorePackageManifestDataSource) mapAgreements(ctx context.Context, agreementsList []any) ([]AgreementDataSourceModel, diag.Diagnostics) {
 	var terraformAgreements []AgreementDataSourceModel
 	var diags diag.Diagnostics
 
@@ -206,7 +206,7 @@ func (d *MicrosoftStorePackageManifestDataSource) mapAgreements(ctx context.Cont
 }
 
 // mapInstallers converts installer data to Terraform models
-func (d *MicrosoftStorePackageManifestDataSource) mapInstallers(ctx context.Context, installersList []interface{}) ([]InstallerDataSourceModel, diag.Diagnostics) {
+func (d *MicrosoftStorePackageManifestDataSource) mapInstallers(ctx context.Context, installersList []any) ([]InstallerDataSourceModel, diag.Diagnostics) {
 	var terraformInstallers []InstallerDataSourceModel
 	var diags diag.Diagnostics
 
@@ -236,7 +236,7 @@ func (d *MicrosoftStorePackageManifestDataSource) mapInstallers(ctx context.Cont
 
 		// Map installer success codes
 		if successCodesInterface, exists := installer["InstallerSuccessCodes"]; exists && successCodesInterface != nil {
-			if successCodesList, ok := successCodesInterface.([]interface{}); ok {
+			if successCodesList, ok := successCodesInterface.([]any); ok {
 				successCodes := d.mapInt64List(successCodesList)
 				terraformInstaller.InstallerSuccessCodes = successCodes
 			}
@@ -260,7 +260,7 @@ func (d *MicrosoftStorePackageManifestDataSource) mapInstallers(ctx context.Cont
 
 		// Map expected return codes
 		if returnCodesInterface, exists := installer["ExpectedReturnCodes"]; exists && returnCodesInterface != nil {
-			if returnCodesList, ok := returnCodesInterface.([]interface{}); ok {
+			if returnCodesList, ok := returnCodesInterface.([]any); ok {
 				returnCodes, returnCodeDiags := d.mapExpectedReturnCodes(ctx, returnCodesList)
 				diags.Append(returnCodeDiags...)
 				terraformInstaller.ExpectedReturnCodes = returnCodes
@@ -269,7 +269,7 @@ func (d *MicrosoftStorePackageManifestDataSource) mapInstallers(ctx context.Cont
 
 		// Map apps and features entries
 		if entriesInterface, exists := installer["AppsAndFeaturesEntries"]; exists && entriesInterface != nil {
-			if entriesList, ok := entriesInterface.([]interface{}); ok {
+			if entriesList, ok := entriesInterface.([]any); ok {
 				entries, entriesDiags := d.mapAppsAndFeaturesEntries(ctx, entriesList)
 				diags.Append(entriesDiags...)
 				terraformInstaller.AppsAndFeaturesEntries = entries
@@ -289,7 +289,7 @@ func (d *MicrosoftStorePackageManifestDataSource) mapMarkets(marketsMap map[stri
 	}
 
 	if allowedMarketsInterface, exists := marketsMap["AllowedMarkets"]; exists && allowedMarketsInterface != nil {
-		if allowedMarketsList, ok := allowedMarketsInterface.([]interface{}); ok {
+		if allowedMarketsList, ok := allowedMarketsInterface.([]any); ok {
 			allowedMarkets := d.mapStringList(allowedMarketsList)
 			markets.AllowedMarkets = allowedMarkets
 		}
@@ -307,7 +307,7 @@ func (d *MicrosoftStorePackageManifestDataSource) mapInstallerSwitches(switchesM
 }
 
 // mapExpectedReturnCodes converts expected return codes data to Terraform models
-func (d *MicrosoftStorePackageManifestDataSource) mapExpectedReturnCodes(ctx context.Context, returnCodesList []interface{}) ([]ExpectedReturnCodeDataSourceModel, diag.Diagnostics) {
+func (d *MicrosoftStorePackageManifestDataSource) mapExpectedReturnCodes(ctx context.Context, returnCodesList []any) ([]ExpectedReturnCodeDataSourceModel, diag.Diagnostics) {
 	var terraformReturnCodes []ExpectedReturnCodeDataSourceModel
 	var diags diag.Diagnostics
 
@@ -334,7 +334,7 @@ func (d *MicrosoftStorePackageManifestDataSource) mapExpectedReturnCodes(ctx con
 }
 
 // mapAppsAndFeaturesEntries converts apps and features entries data to Terraform models
-func (d *MicrosoftStorePackageManifestDataSource) mapAppsAndFeaturesEntries(ctx context.Context, entriesList []interface{}) ([]AppsAndFeaturesEntryDataSourceModel, diag.Diagnostics) {
+func (d *MicrosoftStorePackageManifestDataSource) mapAppsAndFeaturesEntries(ctx context.Context, entriesList []any) ([]AppsAndFeaturesEntryDataSourceModel, diag.Diagnostics) {
 	var terraformEntries []AppsAndFeaturesEntryDataSourceModel
 	var diags diag.Diagnostics
 
@@ -401,7 +401,7 @@ func (d *MicrosoftStorePackageManifestDataSource) getInt64Value(data map[string]
 }
 
 // mapStringList converts a list of interfaces to a list of types.String
-func (d *MicrosoftStorePackageManifestDataSource) mapStringList(list []interface{}) []types.String {
+func (d *MicrosoftStorePackageManifestDataSource) mapStringList(list []any) []types.String {
 	var result []types.String
 	for _, item := range list {
 		if strItem, ok := item.(string); ok && strItem != "" {
@@ -412,7 +412,7 @@ func (d *MicrosoftStorePackageManifestDataSource) mapStringList(list []interface
 }
 
 // mapInt64List converts a list of interfaces to a list of types.Int64
-func (d *MicrosoftStorePackageManifestDataSource) mapInt64List(list []interface{}) []types.Int64 {
+func (d *MicrosoftStorePackageManifestDataSource) mapInt64List(list []any) []types.Int64 {
 	var result []types.Int64
 	for _, item := range list {
 		switch v := item.(type) {

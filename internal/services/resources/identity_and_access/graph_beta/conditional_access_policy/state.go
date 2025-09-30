@@ -759,44 +759,16 @@ func mapSessionControls(ctx context.Context, sessionControlsRaw any) *Conditiona
 // Helper function to map string slices to Terraform sets, handling null vs empty arrays
 func mapStringSliceToSet(ctx context.Context, raw any, fieldName string) types.Set {
 	tflog.Debug(ctx, fmt.Sprintf("Processing %s: %v (type: %T)", fieldName, raw, raw))
-	
+
 	if raw == nil {
 		tflog.Debug(ctx, fmt.Sprintf("%s is null, returning null set", fieldName))
 		return types.SetNull(types.StringType)
 	}
 
-	// Handle []interface{} from JSON unmarshaling
-	if slice, ok := raw.([]interface{}); ok {
-		tflog.Debug(ctx, fmt.Sprintf("%s is []interface{} with %d elements", fieldName, len(slice)))
-		
-		// Convert []interface{} to []string
-		stringSlice := make([]string, len(slice))
-		for i, v := range slice {
-			if str, ok := v.(string); ok {
-				stringSlice[i] = str
-				tflog.Trace(ctx, fmt.Sprintf("Element %d in %s: %q", i, fieldName, str))
-			} else {
-				// Convert non-string values to strings
-				stringSlice[i] = fmt.Sprintf("%v", v)
-				tflog.Debug(ctx, fmt.Sprintf("Converting element %d in %s from %T to string: %q", i, fieldName, v, stringSlice[i]))
-			}
-		}
-		
-		// Use types.SetValueFrom to convert []string to types.Set
-		setValue, diags := types.SetValueFrom(ctx, types.StringType, stringSlice)
-		if diags.HasError() {
-			tflog.Error(ctx, fmt.Sprintf("Error creating set for %s", fieldName), map[string]any{"diags": diags})
-			return types.SetNull(types.StringType)
-		}
-		
-		tflog.Debug(ctx, fmt.Sprintf("Successfully created set for %s with %d elements", fieldName, len(stringSlice)))
-		return setValue
-	}
-
-	// Handle []any (alternative interface{} representation)
+	// Handle []any from JSON unmarshaling
 	if slice, ok := raw.([]any); ok {
 		tflog.Debug(ctx, fmt.Sprintf("%s is []any with %d elements", fieldName, len(slice)))
-		
+
 		// Convert []any to []string
 		stringSlice := make([]string, len(slice))
 		for i, v := range slice {
@@ -809,14 +781,42 @@ func mapStringSliceToSet(ctx context.Context, raw any, fieldName string) types.S
 				tflog.Debug(ctx, fmt.Sprintf("Converting element %d in %s from %T to string: %q", i, fieldName, v, stringSlice[i]))
 			}
 		}
-		
+
 		// Use types.SetValueFrom to convert []string to types.Set
 		setValue, diags := types.SetValueFrom(ctx, types.StringType, stringSlice)
 		if diags.HasError() {
 			tflog.Error(ctx, fmt.Sprintf("Error creating set for %s", fieldName), map[string]any{"diags": diags})
 			return types.SetNull(types.StringType)
 		}
-		
+
+		tflog.Debug(ctx, fmt.Sprintf("Successfully created set for %s with %d elements", fieldName, len(stringSlice)))
+		return setValue
+	}
+
+	// Handle []any (alternative any representation)
+	if slice, ok := raw.([]any); ok {
+		tflog.Debug(ctx, fmt.Sprintf("%s is []any with %d elements", fieldName, len(slice)))
+
+		// Convert []any to []string
+		stringSlice := make([]string, len(slice))
+		for i, v := range slice {
+			if str, ok := v.(string); ok {
+				stringSlice[i] = str
+				tflog.Trace(ctx, fmt.Sprintf("Element %d in %s: %q", i, fieldName, str))
+			} else {
+				// Convert non-string values to strings
+				stringSlice[i] = fmt.Sprintf("%v", v)
+				tflog.Debug(ctx, fmt.Sprintf("Converting element %d in %s from %T to string: %q", i, fieldName, v, stringSlice[i]))
+			}
+		}
+
+		// Use types.SetValueFrom to convert []string to types.Set
+		setValue, diags := types.SetValueFrom(ctx, types.StringType, stringSlice)
+		if diags.HasError() {
+			tflog.Error(ctx, fmt.Sprintf("Error creating set for %s", fieldName), map[string]any{"diags": diags})
+			return types.SetNull(types.StringType)
+		}
+
 		tflog.Debug(ctx, fmt.Sprintf("Successfully created set for %s with %d elements", fieldName, len(stringSlice)))
 		return setValue
 	}
@@ -824,18 +824,18 @@ func mapStringSliceToSet(ctx context.Context, raw any, fieldName string) types.S
 	// Handle []string directly
 	if strSlice, ok := raw.([]string); ok {
 		tflog.Debug(ctx, fmt.Sprintf("%s is []string with %d elements", fieldName, len(strSlice)))
-		
+
 		// Use types.SetValueFrom to convert []string to types.Set
 		setValue, diags := types.SetValueFrom(ctx, types.StringType, strSlice)
 		if diags.HasError() {
 			tflog.Error(ctx, fmt.Sprintf("Error creating set for %s", fieldName), map[string]any{"diags": diags})
 			return types.SetNull(types.StringType)
 		}
-		
+
 		tflog.Debug(ctx, fmt.Sprintf("Successfully created set for %s with %d elements", fieldName, len(strSlice)))
 		return setValue
 	}
-	
+
 	tflog.Debug(ctx, fmt.Sprintf("%s is not a recognized slice type, returning null set", fieldName))
 	return types.SetNull(types.StringType)
 }

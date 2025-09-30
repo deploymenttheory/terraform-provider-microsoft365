@@ -78,15 +78,15 @@ func (m *MacOSSoftwareUpdateConfigurationMock) RegisterMocks() {
 			if strings.Contains(expandParam, "assignments") {
 				// Include assignments if they exist in the config data
 				if assignments, hasAssignments := configData["assignments"]; hasAssignments && assignments != nil {
-					if assignmentList, ok := assignments.([]interface{}); ok && len(assignmentList) > 0 {
+					if assignmentList, ok := assignments.([]any); ok && len(assignmentList) > 0 {
 						responseCopy["assignments"] = assignments
 					} else {
 						// If assignments array is empty, return empty array (not null)
-						responseCopy["assignments"] = []interface{}{}
+						responseCopy["assignments"] = []any{}
 					}
 				} else {
 					// If no assignments stored, return empty array (not null)
-					responseCopy["assignments"] = []interface{}{}
+					responseCopy["assignments"] = []any{}
 				}
 			}
 
@@ -145,7 +145,7 @@ func (m *MacOSSoftwareUpdateConfigurationMock) RegisterMocks() {
 			configData["lastModifiedDateTime"] = "2024-01-01T00:00:00Z"
 
 			// Initialize assignments as empty array
-			configData["assignments"] = []interface{}{}
+			configData["assignments"] = []any{}
 
 			// Store in mock state
 			mockState.Lock()
@@ -245,10 +245,10 @@ func (m *MacOSSoftwareUpdateConfigurationMock) RegisterMocks() {
 			mockState.Lock()
 			if configData, exists := mockState.softwareUpdateConfigurations[configId]; exists {
 				if assignments, hasAssignments := requestBody["assignments"]; hasAssignments && assignments != nil {
-					assignmentList := assignments.([]interface{})
+					assignmentList := assignments.([]any)
 					if len(assignmentList) > 0 {
 						// Extract the actual assignment data from the request
-						graphAssignments := []interface{}{}
+						graphAssignments := []any{}
 						for _, assignment := range assignmentList {
 							if assignmentMap, ok := assignment.(map[string]any); ok {
 								if target, hasTarget := assignmentMap["target"].(map[string]any); hasTarget {
@@ -273,11 +273,11 @@ func (m *MacOSSoftwareUpdateConfigurationMock) RegisterMocks() {
 						configData["assignments"] = graphAssignments
 					} else {
 						// Set empty assignments array instead of deleting
-						configData["assignments"] = []interface{}{}
+						configData["assignments"] = []any{}
 					}
 				} else {
 					// Set empty assignments array instead of deleting
-					configData["assignments"] = []interface{}{}
+					configData["assignments"] = []any{}
 				}
 				mockState.softwareUpdateConfigurations[configId] = configData
 			}

@@ -87,7 +87,7 @@ func (m *GroupSettingsMock) RegisterMocks() {
 			if _, ok := settingData["templateId"].(string); !ok {
 				return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"templateId is required"}}`), nil
 			}
-			if _, ok := settingData["values"].([]interface{}); !ok {
+			if _, ok := settingData["values"].([]any); !ok {
 				return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"values is required"}}`), nil
 			}
 

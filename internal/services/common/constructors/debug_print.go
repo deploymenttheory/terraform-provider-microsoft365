@@ -47,7 +47,7 @@ func DebugLogGraphObject(ctx context.Context, message string, object serializati
 		return err
 	}
 
-	var rawJSON interface{}
+	var rawJSON any
 	if err := json.Unmarshal(jsonBytes, &rawJSON); err != nil {
 		return err
 	}

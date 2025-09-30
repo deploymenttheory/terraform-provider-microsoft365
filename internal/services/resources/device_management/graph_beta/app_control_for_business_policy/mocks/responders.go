@@ -39,7 +39,7 @@ func (m *AppControlForBusinessPolicyMock) RegisterMocks() {
 		// Filter by template for app control policies
 		if !strings.Contains(req.URL.RawQuery, "4321b946-b76b-4450-8afd-769c08b16ffc_1") {
 			return httpmock.NewJsonResponse(200, map[string]any{
-				"value": []interface{}{},
+				"value": []any{},
 			})
 		}
 
@@ -110,7 +110,7 @@ func (m *AppControlForBusinessPolicyMock) RegisterMocks() {
 
 		// Return the settings from the stored policy
 		if settings, ok := policy["settings"]; ok {
-			if settingsArray, isArray := settings.([]interface{}); isArray {
+			if settingsArray, isArray := settings.([]any); isArray {
 				return httpmock.NewJsonResponse(200, map[string]any{
 					"@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/configurationPolicies('" + id + "')/settings",
 					"value":          settingsArray,
@@ -151,7 +151,7 @@ func (m *AppControlForBusinessPolicyMock) RegisterMocks() {
 		// Return empty assignments if none exist
 		return httpmock.NewJsonResponse(200, map[string]any{
 			"@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/configurationPolicies('" + id + "')/assignments",
-			"value":          []interface{}{},
+			"value":          []any{},
 		})
 	})
 
@@ -199,7 +199,7 @@ func (m *AppControlForBusinessPolicyMock) RegisterMocks() {
 		}
 
 		// Assignments are handled separately via the /assign endpoint
-		responseObj["assignments"] = []interface{}{}
+		responseObj["assignments"] = []any{}
 
 		// Store in mock state
 		mockState.Lock()
@@ -263,9 +263,9 @@ func (m *AppControlForBusinessPolicyMock) RegisterMocks() {
 
 		mockState.Lock()
 		if existing, ok := mockState.appControlPolicies[id]; ok {
-			assignments, ok := body["assignments"].([]interface{})
+			assignments, ok := body["assignments"].([]any)
 			if !ok {
-				assignments = []interface{}{}
+				assignments = []any{}
 			}
 			existing["assignments"] = assignments
 			mockState.appControlPolicies[id] = existing

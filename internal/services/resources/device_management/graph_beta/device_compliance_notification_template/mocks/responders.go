@@ -51,7 +51,7 @@ func (m *WindowsDeviceComplianceNotificationsMock) RegisterMocks() {
 		defer mockState.Unlock()
 
 		if len(mockState.templates) == 0 {
-			responseObj["value"] = []interface{}{}
+			responseObj["value"] = []any{}
 		} else {
 			list := make([]map[string]any, 0, len(mockState.templates))
 			for _, v := range mockState.templates {
@@ -94,7 +94,7 @@ func (m *WindowsDeviceComplianceNotificationsMock) RegisterMocks() {
 
 		// Include localized messages if expand parameter is present
 		if strings.Contains(req.URL.RawQuery, "expand") && strings.Contains(req.URL.RawQuery, "localizedNotificationMessages") {
-			messages := []interface{}{}
+			messages := []any{}
 			for messageId, message := range mockState.localizedMessages {
 				if strings.HasPrefix(messageId, id+"_") {
 					messages = append(messages, message)
@@ -195,7 +195,7 @@ func (m *WindowsDeviceComplianceNotificationsMock) RegisterMocks() {
 		defer mockState.Unlock()
 
 		// Find all localized messages for this template
-		messages := []interface{}{}
+		messages := []any{}
 		for messageId, message := range mockState.localizedMessages {
 			if strings.HasPrefix(messageId, templateId+"_") {
 				messages = append(messages, message)

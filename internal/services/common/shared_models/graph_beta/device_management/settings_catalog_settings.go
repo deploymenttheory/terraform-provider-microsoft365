@@ -31,7 +31,7 @@ type SettingInstance struct {
 type SimpleSettingStruct struct {
 	ODataType                     string                         `json:"@odata.type"`
 	SettingValueTemplateReference *SettingValueTemplateReference `json:"settingValueTemplateReference"`
-	Value                         interface{}                    `json:"value"`
+	Value                         any                            `json:"value"`
 	ValueState                    string                         `json:"valueState,omitempty"`
 }
 

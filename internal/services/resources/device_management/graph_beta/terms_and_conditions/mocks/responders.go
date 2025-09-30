@@ -294,7 +294,7 @@ func (m *TermsAndConditionsMock) getTermsAndConditionsAssignmentsResponder() htt
 	return func(req *http.Request) (*http.Response, error) {
 		// For unit tests, return empty assignments collection
 		response := map[string]any{
-			"value": []interface{}{},
+			"value": []any{},
 		}
 		return factories.SuccessResponse(200, response)(req)
 	}

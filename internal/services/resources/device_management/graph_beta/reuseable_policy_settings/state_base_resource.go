@@ -57,7 +57,7 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *sharedmodels.R
 	if settingInstance := remoteResource.GetSettingInstance(); settingInstance != nil {
 		// Create a wrapper to match the expected format
 		wrappedSettings := map[string]any{
-			"settings": []interface{}{
+			"settings": []any{
 				map[string]any{
 					"id":              "0", // Single setting always has ID 0
 					"settingInstance": settingInstance,
