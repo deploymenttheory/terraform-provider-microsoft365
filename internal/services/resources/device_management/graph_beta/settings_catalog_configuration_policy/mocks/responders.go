@@ -65,15 +65,15 @@ func (m *SettingsCatalogConfigurationPolicyMock) RegisterMocks() {
 				if strings.Contains(expandParam, "assignments") {
 					// Include assignments if they exist in the policy data
 					if assignments, hasAssignments := policy["assignments"]; hasAssignments && assignments != nil {
-						if assignmentList, ok := assignments.([]interface{}); ok && len(assignmentList) > 0 {
+						if assignmentList, ok := assignments.([]any); ok && len(assignmentList) > 0 {
 							policyCopy["assignments"] = assignments
 						} else {
 							// If assignments array is empty, return empty array (not null)
-							policyCopy["assignments"] = []interface{}{}
+							policyCopy["assignments"] = []any{}
 						}
 					} else {
 						// If no assignments stored, return empty array (not null)
-						policyCopy["assignments"] = []interface{}{}
+						policyCopy["assignments"] = []any{}
 					}
 				}
 
@@ -165,17 +165,17 @@ func (m *SettingsCatalogConfigurationPolicyMock) RegisterMocks() {
 			if strings.Contains(expandParam, "assignments") {
 				// Include assignments if they exist in the policy data
 				if assignments, hasAssignments := policy["assignments"]; hasAssignments && assignments != nil {
-					if assignmentList, ok := assignments.([]interface{}); ok && len(assignmentList) > 0 {
+					if assignmentList, ok := assignments.([]any); ok && len(assignmentList) > 0 {
 						// Return assignments in Microsoft Graph SDK format (not transformed)
 						// The SDK will handle the transformation to Terraform structure
 						policyCopy["assignments"] = assignments
 					} else {
 						// If assignments array is empty, return empty array (not null)
-						policyCopy["assignments"] = []interface{}{}
+						policyCopy["assignments"] = []any{}
 					}
 				} else {
 					// If no assignments stored, return empty array (not null)
-					policyCopy["assignments"] = []interface{}{}
+					policyCopy["assignments"] = []any{}
 				}
 			}
 
@@ -253,9 +253,9 @@ func (m *SettingsCatalogConfigurationPolicyMock) RegisterMocks() {
 				}
 			}
 			if settings, exists := requestBody["settings"]; exists {
-				if settingsList, ok := settings.([]interface{}); ok {
+				if settingsList, ok := settings.([]any); ok {
 					// Ensure each setting has an ID for proper state mapping
-					processedSettings := make([]interface{}, 0, len(settingsList))
+					processedSettings := make([]any, 0, len(settingsList))
 					for i, setting := range settingsList {
 						if settingMap, ok := setting.(map[string]any); ok {
 							// Create a copy of the setting
@@ -280,7 +280,7 @@ func (m *SettingsCatalogConfigurationPolicyMock) RegisterMocks() {
 			}
 
 			// Initialize assignments as empty array
-			policy["assignments"] = []interface{}{}
+			policy["assignments"] = []any{}
 
 			// Store in mock state
 			mockState.Lock()
@@ -319,10 +319,10 @@ func (m *SettingsCatalogConfigurationPolicyMock) RegisterMocks() {
 			if existing, ok := mockState.settingsCatalogConfigurationPolicies[id]; ok {
 				// Preserve or assign IDs to settings if provided in request
 				if settings, hasSettings := requestBody["settings"]; hasSettings {
-					if settingsList, okList := settings.([]interface{}); okList {
-						processedSettings := make([]interface{}, 0, len(settingsList))
-						var existingSettings []interface{}
-						if ex, okEx := existing["settings"].([]interface{}); okEx {
+					if settingsList, okList := settings.([]any); okList {
+						processedSettings := make([]any, 0, len(settingsList))
+						var existingSettings []any
+						if ex, okEx := existing["settings"].([]any); okEx {
 							existingSettings = ex
 						}
 						for i, setting := range settingsList {
@@ -462,10 +462,10 @@ func (m *SettingsCatalogConfigurationPolicyMock) registerAssignmentMocks() {
 			mockState.Lock()
 			if policyData, exists := mockState.settingsCatalogConfigurationPolicies[policyId]; exists {
 				if assignments, hasAssignments := requestBody["assignments"]; hasAssignments && assignments != nil {
-					assignmentList := assignments.([]interface{})
+					assignmentList := assignments.([]any)
 					if len(assignmentList) > 0 {
 						// Extract the actual assignment data from the request
-						graphAssignments := []interface{}{}
+						graphAssignments := []any{}
 						for _, assignment := range assignmentList {
 							if assignmentMap, ok := assignment.(map[string]any); ok {
 								// Generate a unique assignment ID
@@ -515,12 +515,12 @@ func (m *SettingsCatalogConfigurationPolicyMock) registerAssignmentMocks() {
 						policyData["isAssigned"] = len(graphAssignments) > 0
 					} else {
 						// Set empty assignments array instead of deleting
-						policyData["assignments"] = []interface{}{}
+						policyData["assignments"] = []any{}
 						policyData["isAssigned"] = false
 					}
 				} else {
 					// Set empty assignments array instead of deleting
-					policyData["assignments"] = []interface{}{}
+					policyData["assignments"] = []any{}
 					policyData["isAssigned"] = false
 				}
 				mockState.settingsCatalogConfigurationPolicies[policyId] = policyData
@@ -549,9 +549,9 @@ func (m *SettingsCatalogConfigurationPolicyMock) registerAssignmentMocks() {
 			}
 
 			// Get assignments from stored policy data
-			assignments := []interface{}{}
+			assignments := []any{}
 			if storedAssignments, hasAssignments := policyData["assignments"]; hasAssignments {
-				if assignmentArray, ok := storedAssignments.([]interface{}); ok {
+				if assignmentArray, ok := storedAssignments.([]any); ok {
 					assignments = assignmentArray
 				}
 			}
@@ -586,9 +586,9 @@ func (m *SettingsCatalogConfigurationPolicyMock) registerSettingsMocks() {
 			}
 
 			// Get settings from stored policy data
-			settings := []interface{}{}
+			settings := []any{}
 			if storedSettings, hasSettings := policyData["settings"]; hasSettings {
-				if settingsArray, ok := storedSettings.([]interface{}); ok {
+				if settingsArray, ok := storedSettings.([]any); ok {
 					settings = settingsArray
 				}
 			}

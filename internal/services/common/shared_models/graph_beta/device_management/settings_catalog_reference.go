@@ -34,7 +34,7 @@ var DeviceConfigurationPolicyV2GraphServiceModelReference struct {
 							SettingValueTemplateId string `json:"settingValueTemplateId"`
 							UseTemplateDefault     bool   `json:"useTemplateDefault"`
 						} `json:"settingValueTemplateReference,omitempty"`
-						Value interface{} `json:"value"`
+						Value any `json:"value"`
 					} `json:"simpleSettingValue,omitempty"`
 				} `json:"children"`
 				SettingValueTemplateReference *struct {
@@ -74,7 +74,7 @@ var DeviceConfigurationPolicyV2GraphServiceModelReference struct {
 									SettingValueTemplateId string `json:"settingValueTemplateId"`
 									UseTemplateDefault     bool   `json:"useTemplateDefault"`
 								} `json:"settingValueTemplateReference,omitempty"`
-								Value interface{} `json:"value"`
+								Value any `json:"value"`
 							} `json:"simpleSettingValue,omitempty"`
 						} `json:"children"`
 						SettingValueTemplateReference *struct {
@@ -103,7 +103,7 @@ var DeviceConfigurationPolicyV2GraphServiceModelReference struct {
 							SettingValueTemplateId string `json:"settingValueTemplateId"`
 							UseTemplateDefault     bool   `json:"useTemplateDefault"`
 						} `json:"settingValueTemplateReference,omitempty"`
-						Value interface{} `json:"value"`
+						Value any `json:"value"`
 					} `json:"simpleSettingValue,omitempty"`
 				} `json:"children"`
 				SettingValueTemplateReference *struct {
@@ -141,7 +141,7 @@ var DeviceConfigurationPolicyV2GraphServiceModelReference struct {
 									SettingValueTemplateId string `json:"settingValueTemplateId"`
 									UseTemplateDefault     bool   `json:"useTemplateDefault"`
 								} `json:"settingValueTemplateReference,omitempty"`
-								Value interface{} `json:"value"`
+								Value any `json:"value"`
 							} `json:"simpleSettingValue,omitempty"`
 						} `json:"children"`
 						SettingValueTemplateReference *struct {
@@ -164,8 +164,8 @@ var DeviceConfigurationPolicyV2GraphServiceModelReference struct {
 											SettingValueTemplateId string `json:"settingValueTemplateId"`
 											UseTemplateDefault     bool   `json:"useTemplateDefault"`
 										} `json:"settingValueTemplateReference,omitempty"`
-										Value      interface{} `json:"value"`
-										ValueState string      `json:"valueState,omitempty"`
+										Value      any    `json:"value"`
+										ValueState string `json:"valueState,omitempty"`
 									} `json:"simpleSettingValue,omitempty"`
 								} `json:"children"`
 								SettingValueTemplateReference *struct {
@@ -192,7 +192,7 @@ var DeviceConfigurationPolicyV2GraphServiceModelReference struct {
 													SettingValueTemplateId string `json:"settingValueTemplateId"`
 													UseTemplateDefault     bool   `json:"useTemplateDefault"`
 												} `json:"settingValueTemplateReference,omitempty"`
-												Value interface{} `json:"value"`
+												Value any `json:"value"`
 											} `json:"simpleSettingValue,omitempty"`
 										} `json:"children"`
 										SettingValueTemplateReference *struct {
@@ -222,7 +222,7 @@ var DeviceConfigurationPolicyV2GraphServiceModelReference struct {
 											SettingValueTemplateId string `json:"settingValueTemplateId"`
 											UseTemplateDefault     bool   `json:"useTemplateDefault"`
 										} `json:"settingValueTemplateReference,omitempty"`
-										Value interface{} `json:"value"`
+										Value any `json:"value"`
 									} `json:"simpleSettingValue,omitempty"`
 								} `json:"children"`
 								SettingValueTemplateReference *struct {
@@ -251,8 +251,8 @@ var DeviceConfigurationPolicyV2GraphServiceModelReference struct {
 									SettingValueTemplateId string `json:"settingValueTemplateId"`
 									UseTemplateDefault     bool   `json:"useTemplateDefault"`
 								} `json:"settingValueTemplateReference,omitempty"`
-								Value      interface{} `json:"value"`
-								ValueState string      `json:"valueState,omitempty"`
+								Value      any    `json:"value"`
+								ValueState string `json:"valueState,omitempty"`
 							} `json:"simpleSettingValue,omitempty"`
 						} `json:"children"`
 						SettingValueTemplateReference *struct {
@@ -272,8 +272,8 @@ var DeviceConfigurationPolicyV2GraphServiceModelReference struct {
 							SettingValueTemplateId string `json:"settingValueTemplateId"`
 							UseTemplateDefault     bool   `json:"useTemplateDefault"`
 						} `json:"settingValueTemplateReference,omitempty"`
-						Value      interface{} `json:"value"`
-						ValueState string      `json:"valueState,omitempty"`
+						Value      any    `json:"value"`
+						ValueState string `json:"valueState,omitempty"`
 					} `json:"simpleSettingValue,omitempty"`
 					// For nested simple setting collections within group setting collection (Level 2)
 					SimpleSettingCollectionValue []struct {
@@ -316,7 +316,7 @@ var DeviceConfigurationPolicyV2GraphServiceModelReference struct {
 					SettingValueTemplateId string `json:"settingValueTemplateId"`
 					UseTemplateDefault     bool   `json:"useTemplateDefault"`
 				} `json:"settingValueTemplateReference,omitempty"`
-				Value interface{} `json:"value"`
+				Value any `json:"value"`
 			} `json:"simpleSettingValue,omitempty"`
 		} `json:"settingInstance"`
 	} `json:"settings"`

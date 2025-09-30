@@ -13,7 +13,7 @@ import (
 )
 
 // constructResource constructs a RoleDefinition resource using data from the Terraform model.
-func constructResource(ctx context.Context, client *msgraphbetasdk.GraphServiceClient, data *RoleDefinitionResourceModel, resp interface{}, readPermissions []string) (graphmodels.RoleDefinitionable, error) {
+func constructResource(ctx context.Context, client *msgraphbetasdk.GraphServiceClient, data *RoleDefinitionResourceModel, resp any, readPermissions []string) (graphmodels.RoleDefinitionable, error) {
 	tflog.Debug(ctx, fmt.Sprintf("Constructing %s resource from model", ResourceName))
 
 	requestBody := graphmodels.NewRoleDefinition()

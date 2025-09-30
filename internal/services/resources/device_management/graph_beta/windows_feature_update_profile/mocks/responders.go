@@ -85,7 +85,7 @@ func (m *WindowsFeatureUpdateProfileMock) RegisterMocks() {
 			"featureUpdateVersion": body["featureUpdateVersion"],
 			"createdDateTime":      "2024-01-01T00:00:00Z",
 			"lastModifiedDateTime": "2024-01-01T00:00:00Z",
-			"assignments":          []interface{}{},
+			"assignments":          []any{},
 		}
 
 		// Only add optional fields if they were provided in the request
@@ -172,9 +172,9 @@ func (m *WindowsFeatureUpdateProfileMock) RegisterMocks() {
 		}
 		mockState.Lock()
 		if existing, ok := mockState.featureProfiles[id]; ok {
-			assignments, _ := body["assignments"].([]interface{})
+			assignments, _ := body["assignments"].([]any)
 			if assignments == nil {
-				assignments = []interface{}{}
+				assignments = []any{}
 			}
 			existing["assignments"] = assignments
 			mockState.featureProfiles[id] = existing
@@ -198,7 +198,7 @@ func (m *WindowsFeatureUpdateProfileMock) RegisterErrorMocks() {
 	mockState.featureProfiles = make(map[string]map[string]any)
 	mockState.Unlock()
 	httpmock.RegisterResponder("GET", "https://graph.microsoft.com/beta/deviceManagement/windowsFeatureUpdateProfiles", func(req *http.Request) (*http.Response, error) {
-		return httpmock.NewJsonResponse(200, map[string]any{"@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/windowsFeatureUpdateProfiles", "value": []interface{}{}})
+		return httpmock.NewJsonResponse(200, map[string]any{"@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/windowsFeatureUpdateProfiles", "value": []any{}})
 	})
 	httpmock.RegisterResponder("POST", "https://graph.microsoft.com/beta/deviceManagement/windowsFeatureUpdateProfiles", func(req *http.Request) (*http.Response, error) {
 		jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_create/post_windows_feature_update_profile_error.json")

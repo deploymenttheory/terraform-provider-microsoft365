@@ -20,7 +20,7 @@ import (
 // ConvertToPNG converts an image from various formats (JPEG, GIF, etc.) to PNG.
 // It accepts either a byte slice containing the image data or a file path.
 // Returns the PNG image as a byte slice.
-func ConvertToPNG(ctx context.Context, input interface{}) ([]byte, error) {
+func ConvertToPNG(ctx context.Context, input any) ([]byte, error) {
 	var img image.Image
 	var err error
 	var format string

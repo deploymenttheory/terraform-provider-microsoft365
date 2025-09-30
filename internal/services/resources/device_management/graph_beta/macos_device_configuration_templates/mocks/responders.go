@@ -16,12 +16,12 @@ import (
 var mockState struct {
 	sync.Mutex
 	deviceConfigurations map[string]map[string]any
-	assignments          map[string][]interface{}
+	assignments          map[string][]any
 }
 
 func init() {
 	mockState.deviceConfigurations = make(map[string]map[string]any)
-	mockState.assignments = make(map[string][]interface{})
+	mockState.assignments = make(map[string][]any)
 	httpmock.RegisterNoResponder(httpmock.NewStringResponder(404, `{"error":{"code":"ResourceNotFound","message":"Resource not found"}}`))
 	mocks.GlobalRegistry.Register("macos_device_configuration_templates", &MacosDeviceConfigurationTemplatesMock{})
 }
@@ -33,7 +33,7 @@ var _ mocks.MockRegistrar = (*MacosDeviceConfigurationTemplatesMock)(nil)
 func (m *MacosDeviceConfigurationTemplatesMock) RegisterMocks() {
 	mockState.Lock()
 	mockState.deviceConfigurations = make(map[string]map[string]any)
-	mockState.assignments = make(map[string][]interface{})
+	mockState.assignments = make(map[string][]any)
 	mockState.Unlock()
 
 	// Register basic dependency mocks
@@ -201,13 +201,13 @@ func (m *MacosDeviceConfigurationTemplatesMock) RegisterMocks() {
 					if assignmentValue, ok := assignmentObj["value"]; ok {
 						responseObj["assignments"] = assignmentValue
 					} else {
-						responseObj["assignments"] = []interface{}{}
+						responseObj["assignments"] = []any{}
 					}
 				} else {
-					responseObj["assignments"] = []interface{}{}
+					responseObj["assignments"] = []any{}
 				}
 			} else {
-				responseObj["assignments"] = []interface{}{}
+				responseObj["assignments"] = []any{}
 			}
 
 			return httpmock.NewJsonResponse(200, responseObj)
@@ -333,7 +333,7 @@ func (m *MacosDeviceConfigurationTemplatesMock) RegisterMocks() {
 
 		// Store assignments in mock state
 		mockState.Lock()
-		if assignments, ok := requestBody["assignments"].([]interface{}); ok {
+		if assignments, ok := requestBody["assignments"].([]any); ok {
 			mockState.assignments[configId] = assignments
 		}
 		mockState.Unlock()
@@ -365,7 +365,7 @@ func (m *MacosDeviceConfigurationTemplatesMock) RegisterMocks() {
 func (m *MacosDeviceConfigurationTemplatesMock) RegisterErrorMocks() {
 	mockState.Lock()
 	mockState.deviceConfigurations = make(map[string]map[string]any)
-	mockState.assignments = make(map[string][]interface{})
+	mockState.assignments = make(map[string][]any)
 	mockState.Unlock()
 
 	// Register basic dependency mocks
@@ -422,7 +422,7 @@ func (m *MacosDeviceConfigurationTemplatesMock) RegisterErrorMocks() {
 func (m *MacosDeviceConfigurationTemplatesMock) CleanupMockState() {
 	mockState.Lock()
 	mockState.deviceConfigurations = make(map[string]map[string]any)
-	mockState.assignments = make(map[string][]interface{})
+	mockState.assignments = make(map[string][]any)
 	mockState.Unlock()
 }
 
@@ -496,7 +496,7 @@ func (m *MacosDeviceConfigurationTemplatesMock) registerDependencyMocks() {
 		}
 
 		if assignments == nil {
-			response["value"] = []interface{}{}
+			response["value"] = []any{}
 		}
 
 		jsonBytes, _ := json.Marshal(response)

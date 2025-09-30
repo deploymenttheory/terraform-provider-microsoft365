@@ -40,7 +40,7 @@ func (m *AppControlForBusinessBuiltInControlsMock) RegisterMocks() {
 		// Filter by template for app control policies
 		if !strings.Contains(req.URL.RawQuery, "4321b946-b76b-4450-8afd-769c08b16ffc_1") {
 			return httpmock.NewJsonResponse(200, map[string]any{
-				"value": []interface{}{},
+				"value": []any{},
 			})
 		}
 
@@ -86,7 +86,7 @@ func (m *AppControlForBusinessBuiltInControlsMock) RegisterMocks() {
 		var jsonTemplate string
 		assignments, assignmentsExist := policy["assignments"]
 		if assignmentsExist && assignments != nil {
-			if assignmentSlice, ok := assignments.([]interface{}); ok && len(assignmentSlice) > 0 {
+			if assignmentSlice, ok := assignments.([]any); ok && len(assignmentSlice) > 0 {
 				jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_get/get_app_control_with_assignments.json")
 				jsonTemplate = jsonStr
 			} else if strings.Contains(fmt.Sprintf("%v", policy["settings"]), "_enable_app_control_1") {
@@ -132,7 +132,7 @@ func (m *AppControlForBusinessBuiltInControlsMock) RegisterMocks() {
 
 		// Return the settings from the stored policy
 		if settings, ok := policy["settings"]; ok {
-			if settingsArray, isArray := settings.([]interface{}); isArray {
+			if settingsArray, isArray := settings.([]any); isArray {
 				return httpmock.NewJsonResponse(200, map[string]any{
 					"@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/configurationPolicies('" + id + "')/settings",
 					"value":          settingsArray,
@@ -143,7 +143,7 @@ func (m *AppControlForBusinessBuiltInControlsMock) RegisterMocks() {
 		// Return empty settings if none exist
 		return httpmock.NewJsonResponse(200, map[string]any{
 			"@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/configurationPolicies('" + id + "')/settings",
-			"value":          []interface{}{},
+			"value":          []any{},
 		})
 	})
 
@@ -173,7 +173,7 @@ func (m *AppControlForBusinessBuiltInControlsMock) RegisterMocks() {
 		// Return empty assignments if none exist
 		return httpmock.NewJsonResponse(200, map[string]any{
 			"@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/configurationPolicies('" + id + "')/assignments",
-			"value":          []interface{}{},
+			"value":          []any{},
 		})
 	})
 
@@ -221,7 +221,7 @@ func (m *AppControlForBusinessBuiltInControlsMock) RegisterMocks() {
 		}
 
 		// Assignments are handled separately via the /assign endpoint
-		responseObj["assignments"] = []interface{}{}
+		responseObj["assignments"] = []any{}
 
 		// Store in mock state
 		mockState.Lock()
@@ -285,9 +285,9 @@ func (m *AppControlForBusinessBuiltInControlsMock) RegisterMocks() {
 
 		mockState.Lock()
 		if existing, ok := mockState.appControlPolicies[id]; ok {
-			assignments, ok := body["assignments"].([]interface{})
+			assignments, ok := body["assignments"].([]any)
 			if !ok {
-				assignments = []interface{}{}
+				assignments = []any{}
 			}
 			existing["assignments"] = assignments
 			mockState.appControlPolicies[id] = existing

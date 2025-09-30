@@ -20,7 +20,7 @@ func ListValue(elementType attr.Type, elements []attr.Value) types.List {
 
 // ListValueFrom creates a types.List from a Go slice.
 // Panics if creation fails, which should only happen with programming errors.
-func ListValueFrom(ctx context.Context, elementType attr.Type, elements interface{}) types.List {
+func ListValueFrom(ctx context.Context, elementType attr.Type, elements any) types.List {
 	list, diags := types.ListValueFrom(ctx, elementType, elements)
 	if diags.HasError() {
 		tflog.Error(ctx, "Failed to convert to types.List", map[string]any{

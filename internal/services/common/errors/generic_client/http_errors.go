@@ -255,7 +255,7 @@ func categorizeHTTPError(errorInfo *HTTPGraphError) errors.ErrorCategory {
 }
 
 // HandleHTTPGraphError processes HTTP Graph API errors - exact replica of HandleKiotaGraphError
-func HandleHTTPGraphError(ctx context.Context, httpResp *http.Response, resp interface{}, operation string, requiredPermissions []string) {
+func HandleHTTPGraphError(ctx context.Context, httpResp *http.Response, resp any, operation string, requiredPermissions []string) {
 	errorInfo := ExtractHTTPGraphError(ctx, httpResp)
 	errorDesc := getHTTPErrorDescription(errorInfo.StatusCode)
 
@@ -461,7 +461,7 @@ func recordHTTPErrorMetrics(ctx context.Context, errorInfo *HTTPGraphError, oper
 }
 
 // handleHTTPPermissionError processes permission-related errors - mirrors SDK
-func handleHTTPPermissionError(ctx context.Context, errorInfo HTTPGraphError, resp interface{}, operation string, requiredPermissions []string) {
+func handleHTTPPermissionError(ctx context.Context, errorInfo HTTPGraphError, resp any, operation string, requiredPermissions []string) {
 	var permissionMsg string
 
 	if len(requiredPermissions) == 1 {
@@ -482,7 +482,7 @@ func handleHTTPPermissionError(ctx context.Context, errorInfo HTTPGraphError, re
 }
 
 // handleHTTPRateLimitError processes rate limit errors - mirrors SDK
-func handleHTTPRateLimitError(ctx context.Context, errorInfo HTTPGraphError, resp interface{}) {
+func handleHTTPRateLimitError(ctx context.Context, errorInfo HTTPGraphError, resp any) {
 	tflog.Warn(ctx, "Rate limit exceeded", map[string]any{
 		"retry_after":      errorInfo.RetryAfter,
 		"throttled_reason": errorInfo.ThrottledReason,
@@ -505,7 +505,7 @@ func handleHTTPRateLimitError(ctx context.Context, errorInfo HTTPGraphError, res
 }
 
 // handleHTTPServiceUnavailableError processes 503 Service Unavailable errors - mirrors SDK
-func handleHTTPServiceUnavailableError(ctx context.Context, errorInfo HTTPGraphError, resp interface{}) {
+func handleHTTPServiceUnavailableError(ctx context.Context, errorInfo HTTPGraphError, resp any) {
 	retryAfter := errorInfo.RetryAfter
 	if retryAfter == "" {
 		retryAfter = "unspecified"
@@ -550,7 +550,7 @@ func getHTTPErrorDescription(statusCode int) errors.ErrorDescription {
 }
 
 // addHTTPErrorToDiagnostics adds an error to the response diagnostics - mirrors SDK
-func addHTTPErrorToDiagnostics(ctx context.Context, resp interface{}, summary, detail string) {
+func addHTTPErrorToDiagnostics(ctx context.Context, resp any, summary, detail string) {
 	switch r := resp.(type) {
 	case *resource.CreateResponse:
 		r.Diagnostics.AddError(summary, detail)
@@ -572,7 +572,7 @@ func addHTTPErrorToDiagnostics(ctx context.Context, resp interface{}, summary, d
 }
 
 // removeHTTPResourceFromState removes a resource from the state - mirrors SDK
-func removeHTTPResourceFromState(ctx context.Context, resp interface{}) {
+func removeHTTPResourceFromState(ctx context.Context, resp any) {
 	switch r := resp.(type) {
 	case *resource.ReadResponse:
 		r.State.RemoveResource(ctx)

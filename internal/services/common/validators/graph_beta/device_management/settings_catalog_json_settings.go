@@ -36,7 +36,7 @@ func (v settingsCatalogJSONValidator) ValidateString(ctx context.Context, req va
 		return
 	}
 
-	var jsonData interface{}
+	var jsonData any
 	if err := json.Unmarshal([]byte(req.ConfigValue.ValueString()), &jsonData); err != nil {
 		resp.Diagnostics.AddAttributeError(
 			req.Path,
@@ -63,7 +63,7 @@ func (v settingsCatalogJSONValidator) ValidateString(ctx context.Context, req va
 //----------------------------------------------------------------------------------------------//
 
 // validateJSONSecretSettings recursively searches through the JSON structure for secret settings
-func validateJSONSecretSettings(path path.Path, data interface{}, resp *validator.StringResponse) {
+func validateJSONSecretSettings(path path.Path, data any, resp *validator.StringResponse) {
 	switch v := data.(type) {
 	case map[string]any:
 		if isJSONSecretSetting(v) {
@@ -72,7 +72,7 @@ func validateJSONSecretSettings(path path.Path, data interface{}, resp *validato
 		for _, value := range v {
 			validateJSONSecretSettings(path, value, resp)
 		}
-	case []interface{}:
+	case []any:
 		for _, elem := range v {
 			validateJSONSecretSettings(path, elem, resp)
 		}
@@ -136,14 +136,14 @@ func findJSONSettingDefinitionId(m map[string]any) string {
 
 // validateJSONSettingsCatalogIDSequences validates that settings IDs start at 0 and increment sequentially
 // It validates that all settings have an ID and that the IDs are sequential, or the correct field value type
-func validateJSONSettingsCatalogIDSequences(path path.Path, data interface{}, resp *validator.StringResponse) {
+func validateJSONSettingsCatalogIDSequences(path path.Path, data any, resp *validator.StringResponse) {
 
 	dataMap, ok := data.(map[string]any)
 	if !ok {
 		return
 	}
 
-	settingsDetails, ok := dataMap["settings"].([]interface{})
+	settingsDetails, ok := dataMap["settings"].([]any)
 	if !ok || len(settingsDetails) == 0 {
 		return
 	}
@@ -228,13 +228,13 @@ func validateJSONSettingsCatalogIDSequences(path path.Path, data interface{}, re
 //----------------------------------------------------------------------------------------------//
 
 // validateJSONSettingsHierarchy validates that settingsDetails entries follow the required structure and ordering
-func validateJSONSettingsHierarchy(path path.Path, data interface{}, resp *validator.StringResponse) {
+func validateJSONSettingsHierarchy(path path.Path, data any, resp *validator.StringResponse) {
 	dataMap, ok := data.(map[string]any)
 	if !ok {
 		return
 	}
 
-	settingsDetails, ok := dataMap["settings"].([]interface{})
+	settingsDetails, ok := dataMap["settings"].([]any)
 	if !ok || len(settingsDetails) == 0 {
 		return
 	}
@@ -284,7 +284,7 @@ func extractJSONFieldOrderAndPairs(jsonBytes []byte) ([]string, []string) {
 		fieldOrder = append(fieldOrder, keyStr)
 
 		// Read value
-		var value interface{}
+		var value any
 		if err := dec.Decode(&value); err != nil {
 			break
 		}
@@ -298,13 +298,13 @@ func extractJSONFieldOrderAndPairs(jsonBytes []byte) ([]string, []string) {
 }
 
 // formatJSONKeyValuePair handles different value types and returns a formatted string
-func formatJSONKeyValuePair(key string, value interface{}) string {
+func formatJSONKeyValuePair(key string, value any) string {
 	switch val := value.(type) {
 	case string:
 		return fmt.Sprintf(`"%s" = "%s"`, key, val)
 	case map[string]any:
 		return fmt.Sprintf(`"%s" = <object>`, key)
-	case []interface{}:
+	case []any:
 		return fmt.Sprintf(`"%s" = <array>`, key)
 	default:
 		return fmt.Sprintf(`"%s" = %v`, key, value)
@@ -342,7 +342,7 @@ func validateJSONFieldOrder(fieldOrder []string, keyValuePairs []string, index i
 //----------------------------------------------------------------------------------------------//
 
 // validateJSONSettingsTemplates validates that settingTemplates are not present in the JSON structure
-func validateJSONSettingsTemplates(path path.Path, data interface{}, resp *validator.StringResponse) {
+func validateJSONSettingsTemplates(path path.Path, data any, resp *validator.StringResponse) {
 	dataMap, ok := data.(map[string]any)
 	if !ok {
 		return
@@ -351,7 +351,7 @@ func validateJSONSettingsTemplates(path path.Path, data interface{}, resp *valid
 	// Check if settingTemplates exists in the JSON
 	if templates, exists := dataMap["settingTemplates"]; exists {
 		// If it exists, check if it's an array (which is the expected type if present)
-		if templatesArray, ok := templates.([]interface{}); ok && len(templatesArray) > 0 {
+		if templatesArray, ok := templates.([]any); ok && len(templatesArray) > 0 {
 			resp.Diagnostics.AddAttributeError(
 				path,
 				"Invalid Settings Configuration",

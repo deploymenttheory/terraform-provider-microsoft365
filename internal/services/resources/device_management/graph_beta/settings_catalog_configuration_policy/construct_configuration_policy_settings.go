@@ -140,9 +140,9 @@ func processSetting(ctx context.Context, setting Setting, settingsRequestPayload
 // - settingDefinitionId: The ID of the setting definition associated with this instance.
 //
 // Returns:
-// - interface{}: The newly created setting instance, or nil if the OData type is unsupported.
+// - any: The newly created setting instance, or nil if the OData type is unsupported.
 // - string: A string identifier for the type of the instance (e.g., "simple", "choice").
-func createBaseInstance(ctx context.Context, odataType types.String, settingDefinitionId types.String) (interface{}, string) {
+func createBaseInstance(ctx context.Context, odataType types.String, settingDefinitionId types.String) (any, string) {
 	// Check if odataType is null, unknown, or empty
 	if odataType.IsNull() || odataType.IsUnknown() || odataType.ValueString() == "" {
 		tflog.Error(ctx, "Invalid input: OData type is empty", map[string]any{
@@ -525,7 +525,7 @@ func setInstanceTemplateReference(instance graphmodels.DeviceManagementConfigura
 // - GroupSettingValue
 // - ChoiceSettingValue
 // - SimpleSettingValue
-func setValueTemplateReference(value interface{}, ref *SettingValueTemplateReference) {
+func setValueTemplateReference(value any, ref *SettingValueTemplateReference) {
 	if ref == nil {
 		return
 	}

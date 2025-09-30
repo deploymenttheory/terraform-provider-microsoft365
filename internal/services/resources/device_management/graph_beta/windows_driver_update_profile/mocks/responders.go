@@ -41,7 +41,7 @@ func (m *WindowsDriverUpdateProfileMock) RegisterMocks() {
 			jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_get/get_windows_driver_update_profiles_list.json")
 			var responseObj map[string]any
 			_ = json.Unmarshal([]byte(jsonStr), &responseObj)
-			responseObj["value"] = []interface{}{}
+			responseObj["value"] = []any{}
 			return httpmock.NewJsonResponse(200, responseObj)
 		}
 
@@ -80,7 +80,7 @@ func (m *WindowsDriverUpdateProfileMock) RegisterMocks() {
 		if profile["approvalType"] == "automatic" {
 			jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_get/get_windows_driver_update_profile_automatic.json")
 			jsonTemplate = jsonStr
-		} else if len(profile["assignments"].([]interface{})) > 0 {
+		} else if len(profile["assignments"].([]any)) > 0 {
 			jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_get/get_windows_driver_update_profile_with_assignments.json")
 			jsonTemplate = jsonStr
 		} else {
@@ -143,7 +143,7 @@ func (m *WindowsDriverUpdateProfileMock) RegisterMocks() {
 		} else {
 			// Ensure assignments field exists (empty array by default)
 			if _, exists := responseObj["assignments"]; !exists {
-				responseObj["assignments"] = []interface{}{}
+				responseObj["assignments"] = []any{}
 			}
 		}
 
@@ -223,9 +223,9 @@ func (m *WindowsDriverUpdateProfileMock) RegisterMocks() {
 
 		mockState.Lock()
 		if existing, ok := mockState.driverProfiles[id]; ok {
-			assignments, _ := body["assignments"].([]interface{})
+			assignments, _ := body["assignments"].([]any)
 			if assignments == nil {
-				assignments = []interface{}{}
+				assignments = []any{}
 			}
 			existing["assignments"] = assignments
 			mockState.driverProfiles[id] = existing
@@ -257,7 +257,7 @@ func (m *WindowsDriverUpdateProfileMock) RegisterErrorMocks() {
 		jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_get/get_windows_driver_update_profiles_list.json")
 		var responseObj map[string]any
 		_ = json.Unmarshal([]byte(jsonStr), &responseObj)
-		responseObj["value"] = []interface{}{}
+		responseObj["value"] = []any{}
 		return httpmock.NewJsonResponse(200, responseObj)
 	})
 

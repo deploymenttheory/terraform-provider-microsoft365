@@ -63,15 +63,15 @@ func (m *WindowsRemediationScriptMock) RegisterMocks() {
 				if strings.Contains(expandParam, "assignments") {
 					// Include assignments if they exist in the script data
 					if assignments, hasAssignments := script["assignments"]; hasAssignments && assignments != nil {
-						if assignmentList, ok := assignments.([]interface{}); ok && len(assignmentList) > 0 {
+						if assignmentList, ok := assignments.([]any); ok && len(assignmentList) > 0 {
 							scriptCopy["assignments"] = assignments
 						} else {
 							// If assignments array is empty, return empty array (not null)
-							scriptCopy["assignments"] = []interface{}{}
+							scriptCopy["assignments"] = []any{}
 						}
 					} else {
 						// If no assignments stored, return empty array (not null)
-						scriptCopy["assignments"] = []interface{}{}
+						scriptCopy["assignments"] = []any{}
 					}
 				}
 
@@ -145,7 +145,7 @@ func (m *WindowsRemediationScriptMock) RegisterMocks() {
 			if strings.Contains(expandParam, "assignments") {
 				// Include assignments if they exist in the script data
 				if assignments, hasAssignments := script["assignments"]; hasAssignments && assignments != nil {
-					if assignmentList, ok := assignments.([]interface{}); ok && len(assignmentList) > 0 {
+					if assignmentList, ok := assignments.([]any); ok && len(assignmentList) > 0 {
 
 						// Return assignments in Microsoft Graph SDK format (not transformed)
 						// The SDK will handle the transformation to Terraform structure
@@ -153,11 +153,11 @@ func (m *WindowsRemediationScriptMock) RegisterMocks() {
 
 					} else {
 						// If assignments array is empty, return empty array (not null)
-						scriptCopy["assignments"] = []interface{}{}
+						scriptCopy["assignments"] = []any{}
 					}
 				} else {
 					// If no assignments stored, return empty array (not null)
-					scriptCopy["assignments"] = []interface{}{}
+					scriptCopy["assignments"] = []any{}
 				}
 			}
 
@@ -206,7 +206,7 @@ func (m *WindowsRemediationScriptMock) RegisterMocks() {
 			}
 
 			// Initialize assignments as empty array
-			script["assignments"] = []interface{}{}
+			script["assignments"] = []any{}
 
 			// Store in mock state
 			mockState.Lock()
@@ -316,10 +316,10 @@ func (m *WindowsRemediationScriptMock) registerAssignmentMocks() {
 			mockState.Lock()
 			if scriptData, exists := mockState.windowsRemediationScripts[scriptId]; exists {
 				if assignments, hasAssignments := requestBody["deviceHealthScriptAssignments"]; hasAssignments && assignments != nil {
-					assignmentList := assignments.([]interface{})
+					assignmentList := assignments.([]any)
 					if len(assignmentList) > 0 {
 						// Extract the actual assignment data from the request
-						graphAssignments := []interface{}{}
+						graphAssignments := []any{}
 						for _, assignment := range assignmentList {
 							if assignmentMap, ok := assignment.(map[string]any); ok {
 								// Generate a unique assignment ID
@@ -369,11 +369,11 @@ func (m *WindowsRemediationScriptMock) registerAssignmentMocks() {
 						scriptData["assignments"] = graphAssignments
 					} else {
 						// Set empty assignments array instead of deleting
-						scriptData["assignments"] = []interface{}{}
+						scriptData["assignments"] = []any{}
 					}
 				} else {
 					// Set empty assignments array instead of deleting
-					scriptData["assignments"] = []interface{}{}
+					scriptData["assignments"] = []any{}
 				}
 				mockState.windowsRemediationScripts[scriptId] = scriptData
 			}
@@ -401,9 +401,9 @@ func (m *WindowsRemediationScriptMock) registerAssignmentMocks() {
 			}
 
 			// Get assignments from stored script data
-			assignments := []interface{}{}
+			assignments := []any{}
 			if storedAssignments, hasAssignments := scriptData["assignments"]; hasAssignments {
-				if assignmentArray, ok := storedAssignments.([]interface{}); ok {
+				if assignmentArray, ok := storedAssignments.([]any); ok {
 					assignments = assignmentArray
 				}
 			}

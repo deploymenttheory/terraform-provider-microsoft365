@@ -30,7 +30,7 @@ data "microsoft365_graph_beta_device_management_windows_driver_update_inventory"
   windows_driver_update_profile_id = "00000000-0000-0000-0000-000000000000" # Replace with your actual profile ID
   id                               = "11111111-1111-1111-1111-111111111111" # Replace with your actual inventory ID
 
-  timeouts {
+  timeouts = {
     read = "5m"
   }
 }
@@ -40,7 +40,7 @@ data "microsoft365_graph_beta_device_management_windows_driver_update_inventory"
   windows_driver_update_profile_id = "00000000-0000-0000-0000-000000000000" # Replace with your actual profile ID
   name                             = "Intel(R) Wireless Bluetooth(R)"       # Replace with your actual driver name
 
-  timeouts {
+  timeouts = {
     read = "5m"
   }
 }

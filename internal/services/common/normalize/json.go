@@ -14,13 +14,13 @@ import (
 // This approach preserves the semantics of JSON arrays while ensuring consistent
 // ordering of keys in objects for easier comparison or processing.
 func JSONAlphabetically(input string) (string, error) {
-	var data interface{}
+	var data any
 	if err := json.Unmarshal([]byte(input), &data); err != nil {
 		return "", err
 	}
 
-	var normalize func(interface{}) interface{}
-	normalize = func(v interface{}) interface{} {
+	var normalize func(any) any
+	normalize = func(v any) any {
 		switch v := v.(type) {
 		case map[string]any:
 			// Sort keys in maps
@@ -35,9 +35,9 @@ func JSONAlphabetically(input string) (string, error) {
 			}
 			return sorted
 
-		case []interface{}:
+		case []any:
 			// Retain array order but normalize nested objects within the array
-			normalizedArray := make([]interface{}, len(v))
+			normalizedArray := make([]any, len(v))
 			for i, val := range v {
 				normalizedArray[i] = normalize(val) // Normalize each element
 			}

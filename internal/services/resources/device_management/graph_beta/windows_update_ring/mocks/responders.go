@@ -106,15 +106,15 @@ func (m *WindowsUpdateRingMock) RegisterMocks() {
 			if strings.Contains(expandParam, "assignments") {
 				// Include assignments if they exist in the ring data
 				if assignments, hasAssignments := ringData["assignments"]; hasAssignments && assignments != nil {
-					if assignmentList, ok := assignments.([]interface{}); ok && len(assignmentList) > 0 {
+					if assignmentList, ok := assignments.([]any); ok && len(assignmentList) > 0 {
 						responseCopy["assignments"] = assignments
 					} else {
 						// If assignments array is empty, return empty array (not null)
-						responseCopy["assignments"] = []interface{}{}
+						responseCopy["assignments"] = []any{}
 					}
 				} else {
 					// If no assignments stored, return empty array (not null)
-					responseCopy["assignments"] = []interface{}{}
+					responseCopy["assignments"] = []any{}
 				}
 			}
 
@@ -237,7 +237,7 @@ func (m *WindowsUpdateRingMock) RegisterMocks() {
 			ringData["lastModifiedDateTime"] = "2024-01-01T00:00:00Z"
 
 			// Initialize assignments as empty array
-			ringData["assignments"] = []interface{}{}
+			ringData["assignments"] = []any{}
 
 			// Store in mock state
 			mockState.Lock()
@@ -331,10 +331,10 @@ func (m *WindowsUpdateRingMock) RegisterMocks() {
 			mockState.Lock()
 			if ringData, exists := mockState.windowsUpdateRings[ringId]; exists {
 				if assignments, hasAssignments := requestBody["assignments"]; hasAssignments && assignments != nil {
-					assignmentList := assignments.([]interface{})
+					assignmentList := assignments.([]any)
 					if len(assignmentList) > 0 {
 						// Extract the actual assignment data from the request
-						graphAssignments := []interface{}{}
+						graphAssignments := []any{}
 						for _, assignment := range assignmentList {
 							if assignmentMap, ok := assignment.(map[string]any); ok {
 								if target, hasTarget := assignmentMap["target"].(map[string]any); hasTarget {
@@ -359,11 +359,11 @@ func (m *WindowsUpdateRingMock) RegisterMocks() {
 						ringData["assignments"] = graphAssignments
 					} else {
 						// Set empty assignments array instead of deleting
-						ringData["assignments"] = []interface{}{}
+						ringData["assignments"] = []any{}
 					}
 				} else {
 					// Set empty assignments array instead of deleting
-					ringData["assignments"] = []interface{}{}
+					ringData["assignments"] = []any{}
 				}
 				mockState.windowsUpdateRings[ringId] = ringData
 			}

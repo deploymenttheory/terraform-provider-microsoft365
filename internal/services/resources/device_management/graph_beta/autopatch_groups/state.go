@@ -115,7 +115,7 @@ func MapRemoteStateToTerraform(ctx context.Context, data *AutopatchGroupsResourc
 	}
 
 	// Scope Tags
-	if scopeTagsRaw, ok := autopatchGroup["scopeTags"].([]interface{}); ok {
+	if scopeTagsRaw, ok := autopatchGroup["scopeTags"].([]any); ok {
 		scopeTagsValues := make([]attr.Value, 0, len(scopeTagsRaw))
 		for _, tagRaw := range scopeTagsRaw {
 			if tagFloat, ok := tagRaw.(float32); ok {
@@ -132,7 +132,7 @@ func MapRemoteStateToTerraform(ctx context.Context, data *AutopatchGroupsResourc
 	}
 
 	// Global User Managed AAD Groups
-	if globalGroupsRaw, ok := autopatchGroup["globalUserManagedAadGroups"].([]interface{}); ok {
+	if globalGroupsRaw, ok := autopatchGroup["globalUserManagedAadGroups"].([]any); ok {
 		globalGroupsValues := make([]attr.Value, 0, len(globalGroupsRaw))
 		for _, groupRaw := range globalGroupsRaw {
 			if groupMap, ok := groupRaw.(map[string]any); ok {

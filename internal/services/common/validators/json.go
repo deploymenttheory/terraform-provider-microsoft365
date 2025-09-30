@@ -38,7 +38,7 @@ func (v jsonSchemaValidator) ValidateString(ctx context.Context, req validator.S
 	}
 
 	// First check if it's valid JSON
-	var jsonData interface{}
+	var jsonData any
 	if err := json.Unmarshal([]byte(req.ConfigValue.ValueString()), &jsonData); err != nil {
 		resp.Diagnostics.AddAttributeError(
 			req.Path,
@@ -60,7 +60,7 @@ func (v jsonSchemaValidator) ValidateString(ctx context.Context, req validator.S
 }
 
 // getJSONDepth recursively determines the maximum nesting depth of a JSON structure
-func getJSONDepth(v interface{}) int {
+func getJSONDepth(v any) int {
 	switch val := v.(type) {
 	case map[string]any:
 		maxChildDepth := 0
@@ -71,7 +71,7 @@ func getJSONDepth(v interface{}) int {
 			}
 		}
 		return maxChildDepth + 1
-	case []interface{}:
+	case []any:
 		maxChildDepth := 0
 		for _, child := range val {
 			childDepth := getJSONDepth(child)

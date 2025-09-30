@@ -50,12 +50,12 @@ resource "microsoft365_graph_beta_device_management_windows_autopilot_device_ide
 
   # User assignment configuration - enables personalized setup
   # Warning: Ensure the UPN exists or device may become inaccessible
-  user_assignment {
+  user_assignment = {
     user_principal_name = "finance-user@example.com"
     # addressable_user_name is computed and returned by the API
   }
 
-  timeouts {
+  timeouts = {
     create = "30m"
     read   = "10m"
     update = "30m"

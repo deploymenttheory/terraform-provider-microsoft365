@@ -299,7 +299,7 @@ func extractChoiceValue(ctx context.Context, settingInstance models.DeviceManage
 }
 
 // extractCollectionValue extracts collection values using the additional data property
-func extractCollectionValue(ctx context.Context, settingInstance models.DeviceManagementConfigurationSettingInstanceable, target interface{}) {
+func extractCollectionValue(ctx context.Context, settingInstance models.DeviceManagementConfigurationSettingInstanceable, target any) {
 	if settingInstance == nil {
 		tflog.Warn(ctx, "Setting instance is nil when extracting collection value")
 		return
@@ -359,7 +359,7 @@ func extractAllowedAppsCollection(ctx context.Context, settingInstance models.De
 
 	// Try collection values directly
 	if collectionValues, ok := additionalData["simpleSettingCollectionValue"]; ok {
-		if collectionArray, ok := collectionValues.([]interface{}); ok {
+		if collectionArray, ok := collectionValues.([]any); ok {
 			var apps []AllowedAppModel
 			for _, item := range collectionArray {
 				if itemMap, ok := item.(map[string]any); ok {
@@ -468,7 +468,7 @@ func extractSimpleStringCollection(ctx context.Context, settingInstance models.D
 
 	// Also try collection values directly
 	if collectionValues, ok := additionalData["simpleSettingCollectionValue"]; ok {
-		if collectionArray, ok := collectionValues.([]interface{}); ok {
+		if collectionArray, ok := collectionValues.([]any); ok {
 			var values []string
 			for _, item := range collectionArray {
 				if itemMap, ok := item.(map[string]any); ok {

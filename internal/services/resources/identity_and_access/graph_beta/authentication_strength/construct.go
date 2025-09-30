@@ -40,7 +40,7 @@ func constructResource(ctx context.Context, data *AuthenticationStrengthResource
 	}
 
 	// Always include an empty combinationConfigurations array
-	requestBody["combinationConfigurations"] = []interface{}{}
+	requestBody["combinationConfigurations"] = []any{}
 
 	// Debug logging using plain JSON marshal
 	if debugJSON, err := json.MarshalIndent(requestBody, "", "    "); err == nil {

@@ -58,7 +58,7 @@ func (m *WindowsQualityUpdateExpeditePolicyMock) RegisterMocks() {
 			if !ok {
 				if strings.Contains(id, "minimal") {
 					// Return a minimal-like shape
-					resp := map[string]any{"@odata.type": "#microsoft.graph.windowsQualityUpdateProfile", "id": id, "displayName": "Test Minimal Windows Quality Update Expedite Policy - Unique", "roleScopeTagIds": []interface{}{"0"}, "assignments": []interface{}{}}
+					resp := map[string]any{"@odata.type": "#microsoft.graph.windowsQualityUpdateProfile", "id": id, "displayName": "Test Minimal Windows Quality Update Expedite Policy - Unique", "roleScopeTagIds": []any{"0"}, "assignments": []any{}}
 					return factories.SuccessResponse(200, resp)(req)
 				}
 				jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_delete/get_windows_quality_update_expedite_policy_not_found.json")
@@ -93,7 +93,7 @@ func (m *WindowsQualityUpdateExpeditePolicyMock) RegisterMocks() {
 			if v, ok := body["expeditedUpdateSettings"]; ok {
 				policy["expeditedUpdateSettings"] = v
 			}
-			policy["assignments"] = []interface{}{}
+			policy["assignments"] = []any{}
 			mockState.Lock()
 			mockState.expeditePolicies[id] = policy
 			mockState.Unlock()
@@ -138,9 +138,9 @@ func (m *WindowsQualityUpdateExpeditePolicyMock) RegisterMocks() {
 			}
 			mockState.Lock()
 			if existing, ok := mockState.expeditePolicies[id]; ok {
-				assignments, _ := body["assignments"].([]interface{})
+				assignments, _ := body["assignments"].([]any)
 				if assignments == nil {
-					assignments = []interface{}{}
+					assignments = []any{}
 				}
 				existing["assignments"] = assignments
 				mockState.expeditePolicies[id] = existing
@@ -165,7 +165,7 @@ func (m *WindowsQualityUpdateExpeditePolicyMock) RegisterErrorMocks() {
 	mockState.expeditePolicies = make(map[string]map[string]any)
 	mockState.Unlock()
 	httpmock.RegisterResponder("GET", "https://graph.microsoft.com/beta/deviceManagement/windowsQualityUpdateProfiles", func(req *http.Request) (*http.Response, error) {
-		return httpmock.NewJsonResponse(200, map[string]any{"@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/windowsQualityUpdateProfiles", "value": []interface{}{}})
+		return httpmock.NewJsonResponse(200, map[string]any{"@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/windowsQualityUpdateProfiles", "value": []any{}})
 	})
 	httpmock.RegisterResponder("POST", "https://graph.microsoft.com/beta/deviceManagement/windowsQualityUpdateProfiles", func(req *http.Request) (*http.Response, error) {
 		jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_create/post_windows_quality_update_expedite_policy_error.json")

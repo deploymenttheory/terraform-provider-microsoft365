@@ -78,15 +78,15 @@ func (m *CloudPcProvisioningPolicyMock) RegisterMocks() {
 			if strings.Contains(expandParam, "assignments") {
 				// Include assignments if they exist in the policy data
 				if assignments, hasAssignments := policyData["assignments"]; hasAssignments && assignments != nil {
-					if assignmentList, ok := assignments.([]interface{}); ok && len(assignmentList) > 0 {
+					if assignmentList, ok := assignments.([]any); ok && len(assignmentList) > 0 {
 						responseCopy["assignments"] = assignments
 					} else {
 						// If assignments array is empty, return empty array (not null)
-						responseCopy["assignments"] = []interface{}{}
+						responseCopy["assignments"] = []any{}
 					}
 				} else {
 					// If no assignments stored, return empty array (not null)
-					responseCopy["assignments"] = []interface{}{}
+					responseCopy["assignments"] = []any{}
 				}
 			}
 
@@ -159,7 +159,7 @@ func (m *CloudPcProvisioningPolicyMock) RegisterMocks() {
 			if domainJoinConfigs, exists := requestBody["domainJoinConfigurations"]; exists {
 				// Ensure empty array is preserved as empty array, not null
 				if domainJoinConfigs == nil {
-					policyData["domainJoinConfigurations"] = []interface{}{}
+					policyData["domainJoinConfigurations"] = []any{}
 				} else {
 					policyData["domainJoinConfigurations"] = domainJoinConfigs
 				}
@@ -189,10 +189,10 @@ func (m *CloudPcProvisioningPolicyMock) RegisterMocks() {
 
 			// Initialize assignments if provided
 			if assignments, exists := requestBody["assignments"]; exists {
-				if assignmentList, ok := assignments.([]interface{}); ok {
+				if assignmentList, ok := assignments.([]any); ok {
 					policyData["assignments"] = assignmentList
 				} else {
-					policyData["assignments"] = []interface{}{}
+					policyData["assignments"] = []any{}
 				}
 			}
 
@@ -255,8 +255,8 @@ func (m *CloudPcProvisioningPolicyMock) RegisterMocks() {
 
 			// Special handling for assignments - if explicitly provided as empty array, set as empty
 			if assignments, hasField := requestBody["assignments"]; hasField {
-				if assignmentList, ok := assignments.([]interface{}); ok && len(assignmentList) == 0 {
-					policyData["assignments"] = []interface{}{}
+				if assignmentList, ok := assignments.([]any); ok && len(assignmentList) == 0 {
+					policyData["assignments"] = []any{}
 				}
 			}
 
@@ -268,8 +268,8 @@ func (m *CloudPcProvisioningPolicyMock) RegisterMocks() {
 				} else {
 					// Special handling for domainJoinConfigurations to preserve empty arrays
 					if key == "domainJoinConfigurations" {
-						if configList, ok := value.([]interface{}); ok && len(configList) == 0 {
-							policyData[key] = []interface{}{}
+						if configList, ok := value.([]any); ok && len(configList) == 0 {
+							policyData[key] = []any{}
 						} else {
 							policyData[key] = value
 						}
@@ -323,10 +323,10 @@ func (m *CloudPcProvisioningPolicyMock) RegisterMocks() {
 			mockState.Lock()
 			if policyData, exists := mockState.provisioningPolicies[policyId]; exists {
 				if assignments, hasAssignments := requestBody["assignments"]; hasAssignments && assignments != nil {
-					assignmentList := assignments.([]interface{})
+					assignmentList := assignments.([]any)
 					if len(assignmentList) > 0 {
 						// Extract the actual assignment data from the request
-						graphAssignments := []interface{}{}
+						graphAssignments := []any{}
 						for _, assignment := range assignmentList {
 							if assignmentMap, ok := assignment.(map[string]any); ok {
 								if target, hasTarget := assignmentMap["target"].(map[string]any); hasTarget {
@@ -350,11 +350,11 @@ func (m *CloudPcProvisioningPolicyMock) RegisterMocks() {
 						policyData["assignments"] = graphAssignments
 					} else {
 						// Set empty assignments array instead of deleting
-						policyData["assignments"] = []interface{}{}
+						policyData["assignments"] = []any{}
 					}
 				} else {
 					// Set empty assignments array instead of deleting
-					policyData["assignments"] = []interface{}{}
+					policyData["assignments"] = []any{}
 				}
 				mockState.provisioningPolicies[policyId] = policyData
 			}

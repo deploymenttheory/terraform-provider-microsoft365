@@ -44,7 +44,7 @@ func constructResource(ctx context.Context, data *AutopatchGroupsResourceModel) 
 		}
 		requestBody["globalUserManagedAadGroups"] = globalGroupsAPI
 	} else {
-		requestBody["globalUserManagedAadGroups"] = []interface{}{}
+		requestBody["globalUserManagedAadGroups"] = []any{}
 	}
 
 	// Deployment Groups
@@ -90,7 +90,7 @@ func constructResource(ctx context.Context, data *AutopatchGroupsResourceModel) 
 				}
 				groupMap["userManagedAadGroups"] = userGroupsAPI
 			} else {
-				groupMap["userManagedAadGroups"] = []interface{}{}
+				groupMap["userManagedAadGroups"] = []any{}
 			}
 
 			// Deployment Group Policy Settings
@@ -162,15 +162,15 @@ func constructResource(ctx context.Context, data *AutopatchGroupsResourceModel) 
 		}
 		requestBody["deploymentGroups"] = deploymentGroupsAPI
 	} else {
-		requestBody["deploymentGroups"] = []interface{}{}
+		requestBody["deploymentGroups"] = []any{}
 	}
 
 	// Default fields based on API example
-	requestBody["windowsUpdateSettings"] = []interface{}{}
+	requestBody["windowsUpdateSettings"] = []any{}
 	requestBody["status"] = "Unknown"
 	requestBody["type"] = "Unknown"
 	requestBody["distributionType"] = "Unknown"
-	requestBody["driverUpdateSettings"] = []interface{}{}
+	requestBody["driverUpdateSettings"] = []any{}
 
 	if !data.EnableDriverUpdate.IsNull() && !data.EnableDriverUpdate.IsUnknown() {
 		requestBody["enableDriverUpdate"] = data.EnableDriverUpdate.ValueBool()

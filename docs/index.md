@@ -735,10 +735,14 @@ If omitted, the system-assigned managed identity will be used. If specified, it 
 Can be set using the `AZURE_CLIENT_ID` or `M365_MANAGED_IDENTITY_ID` environment variables.
 - `oidc_request_token` (String, Sensitive) The bearer token for the request to the OIDC provider. This field is only used with the 'oidc' or 'oidc_github' authentication methods.
 
-Can be set using the `M365_OIDC_REQUEST_TOKEN` or `ACTIONS_ID_TOKEN_REQUEST_TOKEN` environment variables.
+**GitHub Actions Integration:** When running in GitHub Actions workflows with `permissions: id-token: write`, this field is automatically populated from the `ACTIONS_ID_TOKEN_REQUEST_TOKEN` environment variable that GitHub injects into the runner environment. No manual configuration is required.
+
+For other environments, can be set using the `M365_OIDC_REQUEST_TOKEN` environment variable.
 - `oidc_request_url` (String) The URL for the OIDC provider from which to request an ID token. This field is only used with the 'oidc' or 'oidc_github' authentication methods.
 
-Can be set using the `M365_OIDC_REQUEST_URL` or `ACTIONS_ID_TOKEN_REQUEST_URL` environment variables.
+**GitHub Actions Integration:** When running in GitHub Actions workflows with `permissions: id-token: write`, this field is automatically populated from the `ACTIONS_ID_TOKEN_REQUEST_URL` environment variable that GitHub injects into the runner environment. No manual configuration is required.
+
+For other environments, can be set using the `M365_OIDC_REQUEST_URL` environment variable.
 - `oidc_token_file_path` (String) Path to a file containing an OIDC token for authentication. This field is only used with the 'oidc' authentication method.
 
 The file should contain a valid JWT assertion that will be used to authenticate the application. This is commonly used in CI/CD pipelines or other environments that support OIDC federation with Azure AD.

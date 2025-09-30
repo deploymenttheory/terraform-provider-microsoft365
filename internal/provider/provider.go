@@ -15,6 +15,7 @@ import (
 
 // Ensure provider defined types fully satisfy framework interfaces
 var _ provider.Provider = &M365Provider{}
+var _ provider.ProviderWithActions = &M365Provider{}
 
 // M365Provider defines the provider implementation.
 type M365Provider struct {

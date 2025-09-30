@@ -23,7 +23,7 @@ const (
 
 // API Response structures
 type MSStoreAPIResponse struct {
-	Data interface{} `json:"Data"`
+	Data any `json:"Data"`
 }
 
 type MSStoreSearchRequest struct {
@@ -81,7 +81,7 @@ func (d *MicrosoftStorePackageManifestDataSource) Read(ctx context.Context, req 
 	}
 	defer cancel()
 
-	var manifests []interface{}
+	var manifests []any
 	var err error
 
 	// Get package manifests
@@ -99,7 +99,7 @@ func (d *MicrosoftStorePackageManifestDataSource) Read(ctx context.Context, req 
 		}
 
 		if manifest != nil {
-			manifests = []interface{}{manifest}
+			manifests = []any{manifest}
 		}
 	} else {
 		searchTerm := config.SearchTerm.ValueString()
@@ -139,7 +139,7 @@ func (d *MicrosoftStorePackageManifestDataSource) Read(ctx context.Context, req 
 }
 
 // getPackageManifestById retrieves a specific package manifest by ID
-func (d *MicrosoftStorePackageManifestDataSource) getPackageManifestById(ctx context.Context, packageId string) (interface{}, error) {
+func (d *MicrosoftStorePackageManifestDataSource) getPackageManifestById(ctx context.Context, packageId string) (any, error) {
 	url := fmt.Sprintf("%s/%s", MSStoreManifestURL, packageId)
 
 	tflog.Debug(ctx, fmt.Sprintf("Making GET request to: %s", url))
@@ -174,7 +174,7 @@ func (d *MicrosoftStorePackageManifestDataSource) getPackageManifestById(ctx con
 }
 
 // searchAndGetManifests searches for packages and retrieves their manifests
-func (d *MicrosoftStorePackageManifestDataSource) searchAndGetManifests(ctx context.Context, searchTerm string) ([]interface{}, error) {
+func (d *MicrosoftStorePackageManifestDataSource) searchAndGetManifests(ctx context.Context, searchTerm string) ([]any, error) {
 	// First, search for packages
 	searchResults, err := d.searchPackages(ctx, searchTerm)
 	if err != nil {
@@ -183,12 +183,12 @@ func (d *MicrosoftStorePackageManifestDataSource) searchAndGetManifests(ctx cont
 
 	if len(searchResults) == 0 {
 		tflog.Debug(ctx, fmt.Sprintf("No packages found for search term: %s", searchTerm))
-		return []interface{}{}, nil
+		return []any{}, nil
 	}
 
 	tflog.Debug(ctx, fmt.Sprintf("Found %d package(s), retrieving manifests", len(searchResults)))
 
-	var manifests []interface{}
+	var manifests []any
 	for _, result := range searchResults {
 		manifest, err := d.getPackageManifestById(ctx, result.PackageIdentifier)
 		if err != nil {
@@ -247,9 +247,9 @@ func (d *MicrosoftStorePackageManifestDataSource) searchPackages(ctx context.Con
 		return nil, fmt.Errorf("error unmarshaling search response: %w", err)
 	}
 
-	// Convert the interface{} to []MSStoreSearchResult
+	// Convert the any to []MSStoreSearchResult
 	var searchResults []MSStoreSearchResult
-	if data, ok := apiResponse.Data.([]interface{}); ok {
+	if data, ok := apiResponse.Data.([]any); ok {
 		for _, item := range data {
 			if itemMap, ok := item.(map[string]any); ok {
 				result := MSStoreSearchResult{}

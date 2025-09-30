@@ -130,7 +130,7 @@ func TestJSONDepth(t *testing.T) {
 	for _, test := range tests {
 		test := test
 		t.Run(test.name, func(t *testing.T) {
-			var data interface{}
+			var data any
 			err := json.Unmarshal([]byte(test.json), &data)
 			assert.NoError(t, err)
 

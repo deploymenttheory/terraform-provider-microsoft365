@@ -42,7 +42,7 @@ func mapAllPolicyFieldsFromJson(ctx context.Context, p map[string]any, data *Tea
 	// Helper for lists
 	listVal := func(name string) types.List {
 		if v, ok := p[name]; ok && v != nil {
-			if arr, ok := v.([]interface{}); ok {
+			if arr, ok := v.([]any); ok {
 				var result []attr.Value
 				for _, item := range arr {
 					if s, ok := item.(string); ok {

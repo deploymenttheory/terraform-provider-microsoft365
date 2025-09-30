@@ -154,7 +154,7 @@ func (m *UserLicenseAssignmentMock) RegisterMocks() {
 			}
 
 			// Process add licenses
-			if addLicenses, ok := requestBody["addLicenses"].([]interface{}); ok {
+			if addLicenses, ok := requestBody["addLicenses"].([]any); ok {
 				currentLicenses := make([]map[string]any, 0)
 
 				// Get existing licenses
@@ -175,7 +175,7 @@ func (m *UserLicenseAssignmentMock) RegisterMocks() {
 						for i, existing := range currentLicenses {
 							if existing["skuId"] == skuId {
 								// Update existing license
-								if disabledPlans, ok := licenseObj["disabledPlans"].([]interface{}); ok {
+								if disabledPlans, ok := licenseObj["disabledPlans"].([]any); ok {
 									disabledPlanStrings := make([]string, 0, len(disabledPlans))
 									for _, plan := range disabledPlans {
 										if planStr, ok := plan.(string); ok {
@@ -195,7 +195,7 @@ func (m *UserLicenseAssignmentMock) RegisterMocks() {
 								"skuId": skuId,
 							}
 
-							if disabledPlans, ok := licenseObj["disabledPlans"].([]interface{}); ok {
+							if disabledPlans, ok := licenseObj["disabledPlans"].([]any); ok {
 								disabledPlanStrings := make([]string, 0, len(disabledPlans))
 								for _, plan := range disabledPlans {
 									if planStr, ok := plan.(string); ok {
@@ -213,7 +213,7 @@ func (m *UserLicenseAssignmentMock) RegisterMocks() {
 				}
 
 				// Process remove licenses
-				if removeLicenses, ok := requestBody["removeLicenses"].([]interface{}); ok && len(removeLicenses) > 0 {
+				if removeLicenses, ok := requestBody["removeLicenses"].([]any); ok && len(removeLicenses) > 0 {
 					removeLicenseMap := make(map[string]bool)
 					for _, licenseId := range removeLicenses {
 						if licenseStr, ok := licenseId.(string); ok {

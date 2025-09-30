@@ -45,7 +45,7 @@ func getContentVersionObjectType() types.ObjectType {
 func MapCommittedContentVersionStateToTerraform(
 	ctx context.Context,
 	committedVersionId string,
-	respFiles interface{},
+	respFiles any,
 	err error,
 	installerFileName string, // Optional - if provided, will filter to this file only
 ) types.List {

@@ -38,7 +38,7 @@ func (m *WindowsEnrollmentStatusPageMock) RegisterMocks() {
 		mockApps := map[string]any{
 			"@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceAppManagement/mobileApps",
 			"@odata.count":   5,
-			"value": []interface{}{
+			"value": []any{
 				map[string]any{
 					"@odata.type":     "#microsoft.graph.win32LobApp",
 					"id":              "12345678-1234-1234-1234-123456789012",
@@ -93,7 +93,7 @@ func (m *WindowsEnrollmentStatusPageMock) RegisterMocks() {
 			jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_get/get_windows_enrollment_status_pages_list.json")
 			var responseObj map[string]any
 			_ = json.Unmarshal([]byte(jsonStr), &responseObj)
-			responseObj["value"] = []interface{}{}
+			responseObj["value"] = []any{}
 			return httpmock.NewJsonResponse(200, responseObj)
 		}
 
@@ -129,7 +129,7 @@ func (m *WindowsEnrollmentStatusPageMock) RegisterMocks() {
 
 		// Get the appropriate template based on configuration
 		var jsonTemplate string
-		if len(enrollmentStatusPage["assignments"].([]interface{})) > 0 {
+		if len(enrollmentStatusPage["assignments"].([]any)) > 0 {
 			jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_get/get_windows_enrollment_status_page_with_assignments.json")
 			jsonTemplate = jsonStr
 		} else {
@@ -217,7 +217,7 @@ func (m *WindowsEnrollmentStatusPageMock) RegisterMocks() {
 		} else {
 			// Ensure assignments field exists (empty array by default)
 			if _, exists := responseObj["assignments"]; !exists {
-				responseObj["assignments"] = []interface{}{}
+				responseObj["assignments"] = []any{}
 			}
 		}
 
@@ -288,9 +288,9 @@ func (m *WindowsEnrollmentStatusPageMock) RegisterMocks() {
 
 		mockState.Lock()
 		if existing, ok := mockState.enrollmentStatusPages[id]; ok {
-			assignments, _ := body["enrollmentConfigurationAssignments"].([]interface{})
+			assignments, _ := body["enrollmentConfigurationAssignments"].([]any)
 			if assignments == nil {
-				assignments = []interface{}{}
+				assignments = []any{}
 			}
 			existing["assignments"] = assignments
 			mockState.enrollmentStatusPages[id] = existing
@@ -322,7 +322,7 @@ func (m *WindowsEnrollmentStatusPageMock) RegisterErrorMocks() {
 		jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_get/get_windows_enrollment_status_pages_list.json")
 		var responseObj map[string]any
 		_ = json.Unmarshal([]byte(jsonStr), &responseObj)
-		responseObj["value"] = []interface{}{}
+		responseObj["value"] = []any{}
 		return httpmock.NewJsonResponse(200, responseObj)
 	})
 

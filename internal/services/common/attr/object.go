@@ -34,7 +34,7 @@ func ObjectNullIfEmpty(attrTypes map[string]attr.Type, values map[string]attr.Va
 
 // ObjectValueFrom creates a types.Object from a Go struct.
 // Panics if creation fails, which should only happen with programming errors.
-func ObjectValueFrom(ctx context.Context, attrTypes map[string]attr.Type, value interface{}) types.Object {
+func ObjectValueFrom(ctx context.Context, attrTypes map[string]attr.Type, value any) types.Object {
 	object, diags := types.ObjectValueFrom(ctx, attrTypes, value)
 	if diags.HasError() {
 		tflog.Error(ctx, "Failed to convert to types.Object", map[string]any{

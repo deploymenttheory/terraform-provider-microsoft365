@@ -217,8 +217,8 @@ func (m *UserSettingMock) RegisterMocks() {
 			if userSettingData, exists := mockState.userSettings[userSettingId]; exists {
 				if assignments, hasAssignments := requestBody["assignments"]; hasAssignments {
 					// Convert assignments to the format returned by Graph API
-					assignmentList := assignments.([]interface{})
-					graphAssignments := make([]interface{}, len(assignmentList))
+					assignmentList := assignments.([]any)
+					graphAssignments := make([]any, len(assignmentList))
 
 					for i, assignment := range assignmentList {
 						assignmentMap := assignment.(map[string]any)
@@ -307,7 +307,7 @@ func registerSpecificUserSettingMocks() {
 		"notificationSetting": map[string]any{
 			"restartPromptsDisabled": false,
 		},
-		"assignments": []interface{}{
+		"assignments": []any{
 			map[string]any{
 				"id": "test-group-id-12345",
 				"target": map[string]any{
@@ -343,7 +343,7 @@ func registerSpecificUserSettingMocks() {
 }
 
 // getOrDefault returns the value from the map or a default value if the key doesn't exist
-func getOrDefault(m map[string]any, key string, defaultValue interface{}) interface{} {
+func getOrDefault(m map[string]any, key string, defaultValue any) any {
 	if value, exists := m[key]; exists {
 		return value
 	}

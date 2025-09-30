@@ -41,7 +41,7 @@ func MockTenantWideGroupSettingsResponders() {
 			_ = json.Unmarshal(body, &requestBody)
 
 			// Check if this is an error test by looking at the values
-			values, ok := requestBody["values"].([]interface{})
+			values, ok := requestBody["values"].([]any)
 			if !ok {
 				return nil, nil // Not an error test, continue to next responder
 			}
@@ -79,7 +79,7 @@ func MockTenantWideGroupSettingsResponders() {
 			_ = json.Unmarshal(body, &requestBody)
 
 			// Check if this is a minimal or maximal request by looking at the values
-			values := requestBody["values"].([]interface{})
+			values := requestBody["values"].([]any)
 			isMinimal := true
 
 			// Check if this is a maximal request by looking for specific values
@@ -298,7 +298,7 @@ func RegisterErrorMocks() {
 			_ = json.Unmarshal(body, &requestBody)
 
 			// Check if this is an error test by looking at the values
-			values, ok := requestBody["values"].([]interface{})
+			values, ok := requestBody["values"].([]any)
 			if !ok {
 				return nil, nil // Not an error test, continue to next responder
 			}

@@ -299,7 +299,7 @@ func registerTestUsers() {
 }
 
 // Helper function to ensure collection fields exist
-func ensureCollectionField(data map[string]any, fieldName string, defaultValue interface{}) {
+func ensureCollectionField(data map[string]any, fieldName string, defaultValue any) {
 	if data[fieldName] == nil {
 		data[fieldName] = defaultValue
 	}

@@ -88,7 +88,7 @@ func (m *GroupPolicyUploadedDefinitionFilesMock) RegisterMocks() {
 			// Get the appropriate template based on file configuration
 			languageFiles, hasLanguageFiles := file["groupPolicyUploadedLanguageFiles"]
 			if hasLanguageFiles && languageFiles != nil {
-				if languageFilesSlice, ok := languageFiles.([]interface{}); ok && len(languageFilesSlice) > 1 {
+				if languageFilesSlice, ok := languageFiles.([]any); ok && len(languageFilesSlice) > 1 {
 					jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_get/get_group_policy_uploaded_definition_files_multiple.json")
 					jsonTemplate = jsonStr
 				} else {
@@ -146,7 +146,7 @@ func (m *GroupPolicyUploadedDefinitionFilesMock) RegisterMocks() {
 			responseObj["groupPolicyUploadedLanguageFiles"] = v
 
 			// Update language codes based on language files
-			if languageFiles, ok := v.([]interface{}); ok && len(languageFiles) > 0 {
+			if languageFiles, ok := v.([]any); ok && len(languageFiles) > 0 {
 				languageCodes := []string{}
 				for _, lf := range languageFiles {
 					if lfMap, ok := lf.(map[string]any); ok {

@@ -41,7 +41,7 @@ func (m *WindowsDeviceComplianceScriptMock) RegisterMocks() {
 			jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_get/get_windows_device_compliance_scripts_list.json")
 			var responseObj map[string]any
 			_ = json.Unmarshal([]byte(jsonStr), &responseObj)
-			responseObj["value"] = []interface{}{}
+			responseObj["value"] = []any{}
 			return httpmock.NewJsonResponse(200, responseObj)
 		}
 
@@ -152,7 +152,7 @@ func (m *WindowsDeviceComplianceScriptMock) RegisterMocks() {
 		}
 
 		// No assignments for device compliance scripts
-		responseObj["assignments"] = []interface{}{}
+		responseObj["assignments"] = []any{}
 
 		// Store in mock state
 		mockState.Lock()
@@ -238,7 +238,7 @@ func (m *WindowsDeviceComplianceScriptMock) RegisterErrorMocks() {
 		jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_get/get_windows_device_compliance_scripts_list.json")
 		var responseObj map[string]any
 		_ = json.Unmarshal([]byte(jsonStr), &responseObj)
-		responseObj["value"] = []interface{}{}
+		responseObj["value"] = []any{}
 		return httpmock.NewJsonResponse(200, responseObj)
 	})
 
