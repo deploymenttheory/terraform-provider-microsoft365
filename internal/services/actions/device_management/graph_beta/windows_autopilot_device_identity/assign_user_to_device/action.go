@@ -2,12 +2,15 @@ package graphBetaAssignUserToDevice
 
 import (
 	"context"
+	"regexp"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/client"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/schema"
 	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-framework/action/schema"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 
 	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
 )
@@ -71,16 +74,31 @@ func (a *AssignUserToDeviceAction) Schema(ctx context.Context, req action.Schema
 				Required: true,
 				MarkdownDescription: "The unique identifier of the Windows Autopilot device identity to assign the user to. " +
 					"This is the ID of the Windows Autopilot device in Microsoft Intune.",
+				Validators: []validator.String{
+					stringvalidator.RegexMatches(
+						regexp.MustCompile(constants.GuidRegex),
+						"must be a valid GUID format (e.g., 12345678-1234-1234-1234-123456789abc)",
+					),
+				},
 			},
 			"user_principal_name": schema.StringAttribute{
 				Required: true,
 				MarkdownDescription: "The user principal name (UPN) of the user to assign to the device. " +
 					"This is typically the user's email address in the format user@domain.com.",
+				Validators: []validator.String{
+					stringvalidator.RegexMatches(
+						regexp.MustCompile(constants.EmailRegex),
+						"must be a valid email address format (e.g., user@domain.com)",
+					),
+				},
 			},
 			"addressable_user_name": schema.StringAttribute{
 				Required: true,
 				MarkdownDescription: "The addressable user name for the user being assigned to the device. " +
 					"This is the display name or friendly name of the user.",
+				Validators: []validator.String{
+					stringvalidator.LengthAtLeast(1),
+				},
 			},
 			"timeouts": commonschema.Timeouts(ctx),
 		},

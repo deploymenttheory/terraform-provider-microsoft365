@@ -26,7 +26,7 @@ func (a *AssignUserToDeviceAction) Invoke(ctx context.Context, req action.Invoke
 	tflog.Debug(ctx, fmt.Sprintf("Performing action %s, assigning user %s to device ID: %s", ActionName, userPrincipalName, deviceID))
 
 	resp.SendProgress(action.InvokeProgressEvent{
-		Message: "Assigning user to Autopilot device...",
+		Message: fmt.Sprintf("Assigning user %s to device %s...", userPrincipalName, deviceID),
 	})
 
 	requestBody, err := constructRequest(ctx, &data)
@@ -46,14 +46,14 @@ func (a *AssignUserToDeviceAction) Invoke(ctx context.Context, req action.Invoke
 		Post(ctx, requestBody, nil)
 
 	if err != nil {
-		errors.HandleKiotaGraphError(ctx, err, resp, "AssignUserToDevice", a.WritePermissions)
+		errors.HandleKiotaGraphError(ctx, err, resp, "Action", a.WritePermissions)
 		return
 	}
 
 	tflog.Debug(ctx, fmt.Sprintf("Successfully assigned user %s to device %s", userPrincipalName, deviceID))
 
 	resp.SendProgress(action.InvokeProgressEvent{
-		Message: fmt.Sprintf("Successfully assigned user %s to device %s", userPrincipalName, deviceID),
+		Message: fmt.Sprintf("User assignment completed successfully for device %s", deviceID),
 	})
 
 	tflog.Debug(ctx, fmt.Sprintf("Finished %s", ActionName))

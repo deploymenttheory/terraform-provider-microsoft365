@@ -1,3 +1,4 @@
+// REF: https://learn.microsoft.com/en-us/graph/api/intune-enrollment-windowsautopilotdeviceidentity-updatedeviceproperties?view=graph-rest-beta
 package graphBetaUpdateDeviceProperties
 
 import (

@@ -1,0 +1,34 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
+subcategory: "Device Management"
+
+description: |-
+  Allows the next enrollment for an Autopilot device in Microsoft Intune. This action enables the device to be enrolled again.
+---
+
+# {{.Name}} ({{.Type}})
+
+Allows the next enrollment for an Autopilot device in Microsoft Intune using the `/deviceManagement/windowsAutopilotDeviceIdentities/{windowsAutopilotDeviceIdentityId}/allowNextEnrollment` endpoint. This action enables the device to be enrolled again.
+
+## Microsoft Documentation
+
+- [allowNextEnrollment action](https://learn.microsoft.com/en-us/graph/api/intune-enrollment-windowsautopilotdeviceidentity-allownextenrollment?view=graph-rest-beta)
+- [windowsAutopilotDeviceIdentity resource type](https://learn.microsoft.com/en-us/graph/api/resources/intune-enrollment-windowsautopilotdeviceidentity?view=graph-rest-beta)
+
+## API Permissions
+
+The following API permissions are required in order to use this action.
+
+### Microsoft Graph
+
+- **Application**: `DeviceManagementServiceConfig.ReadWrite.All`
+
+## Version History
+
+| Version | Status | Notes |
+|---------|--------|-------|
+| v0.31.0-alpha | Experimental | Initial release |
+
+## Example Usage
+
+{{ tffile "examples/actions/graph_beta_device_management_windows_autopilot_device_identity_allow_next_enrollment/action.tf" }}

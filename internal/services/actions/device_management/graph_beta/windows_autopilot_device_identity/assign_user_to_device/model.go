@@ -1,3 +1,4 @@
+// REF: https://learn.microsoft.com/en-us/graph/api/intune-enrollment-windowsautopilotdeviceidentity-assignusertodevice?view=graph-rest-beta
 package graphBetaAssignUserToDevice
 
 import (

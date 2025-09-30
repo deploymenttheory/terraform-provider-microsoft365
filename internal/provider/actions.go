@@ -6,6 +6,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/action"
 
 	// Graph Beta - Device management actions
+	graphBetaDeviceManagementWindowsAutopilotDeviceIdentityAllowNextEnrollment "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/actions/device_management/graph_beta/windows_autopilot_device_identity/allow_next_enrollment"
 	graphBetaDeviceManagementWindowsAutopilotDeviceIdentityAssignUserToDevice "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/actions/device_management/graph_beta/windows_autopilot_device_identity/assign_user_to_device"
 	graphBetaDeviceManagementWindowsAutopilotDeviceIdentityUnassignUserFromDevice "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/actions/device_management/graph_beta/windows_autopilot_device_identity/unassign_user_from_device"
 	graphBetaDeviceManagementWindowsAutopilotDeviceIdentityUpdateDeviceProperties "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/actions/device_management/graph_beta/windows_autopilot_device_identity/update_device_properties"
@@ -26,6 +27,7 @@ import (
 func (p *M365Provider) Actions(ctx context.Context) []func() action.Action {
 	return []func() action.Action{
 		// Graph Beta - Device management actions
+		graphBetaDeviceManagementWindowsAutopilotDeviceIdentityAllowNextEnrollment.NewAllowNextEnrollmentAction,
 		graphBetaDeviceManagementWindowsAutopilotDeviceIdentityAssignUserToDevice.NewAssignUserToDeviceAction,
 		graphBetaDeviceManagementWindowsAutopilotDeviceIdentityUnassignUserFromDevice.NewUnassignUserFromDeviceAction,
 		graphBetaDeviceManagementWindowsAutopilotDeviceIdentityUpdateDeviceProperties.NewUpdateDevicePropertiesAction,

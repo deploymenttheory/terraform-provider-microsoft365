@@ -5,31 +5,26 @@ import (
 	"fmt"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/constructors"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/microsoftgraph/msgraph-beta-sdk-go/devicemanagement"
 )
 
 // constructRequest constructs the request body for the assignUserToDevice action
 func constructRequest(ctx context.Context, data *AssignUserToDeviceActionModel) (*devicemanagement.WindowsAutopilotDeviceIdentitiesItemAssignUserToDevicePostRequestBody, error) {
-	tflog.Debug(ctx, fmt.Sprintf("Constructing assignUserToDevice request for device ID: %s", data.WindowsAutopilotDeviceIdentityID.ValueString()))
+	tflog.Debug(ctx, fmt.Sprintf("Constructing %s request for device ID: %s", ActionName, data.WindowsAutopilotDeviceIdentityID.ValueString()))
 
 	requestBody := devicemanagement.NewWindowsAutopilotDeviceIdentitiesItemAssignUserToDevicePostRequestBody()
 
-	userPrincipalName := data.UserPrincipalName.ValueString()
-	addressableUserName := data.AddressableUserName.ValueString()
+	convert.FrameworkToGraphString(data.UserPrincipalName, requestBody.SetUserPrincipalName)
+	convert.FrameworkToGraphString(data.AddressableUserName, requestBody.SetAddressableUserName)
 
-	requestBody.SetUserPrincipalName(&userPrincipalName)
-	requestBody.SetAddressableUserName(&addressableUserName)
-
-	tflog.Debug(ctx, fmt.Sprintf("Request body created with UserPrincipalName: %s, AddressableUserName: %s",
-		userPrincipalName, addressableUserName))
-
-	if err := constructors.DebugLogGraphObject(ctx, "Constructed assignUserToDevice request", requestBody); err != nil {
-		tflog.Error(ctx, "Failed to debug log assignUserToDevice request", map[string]any{
+	if err := constructors.DebugLogGraphObject(ctx, fmt.Sprintf("Final JSON to be sent to Graph API for action %s", ActionName), requestBody); err != nil {
+		tflog.Error(ctx, "Failed to debug log object", map[string]any{
 			"error": err.Error(),
 		})
 	}
 
-	tflog.Debug(ctx, "Finished constructing assignUserToDevice request")
+	tflog.Debug(ctx, fmt.Sprintf("Finished constructing %s request for %s", ActionName, data.WindowsAutopilotDeviceIdentityID.ValueString()))
 	return requestBody, nil
 }

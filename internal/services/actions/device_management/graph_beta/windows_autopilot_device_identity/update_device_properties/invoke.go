@@ -25,7 +25,7 @@ func (a *UpdateDevicePropertiesAction) Invoke(ctx context.Context, req action.In
 	tflog.Debug(ctx, fmt.Sprintf("Performing action %s, updating device properties for device ID: %s", ActionName, deviceID))
 
 	resp.SendProgress(action.InvokeProgressEvent{
-		Message: "Updating Autopilot device properties...",
+		Message: fmt.Sprintf("Updating device properties for %s...", deviceID),
 	})
 
 	requestBody, err := constructRequest(ctx, &data)
@@ -45,14 +45,14 @@ func (a *UpdateDevicePropertiesAction) Invoke(ctx context.Context, req action.In
 		Post(ctx, requestBody, nil)
 
 	if err != nil {
-		errors.HandleKiotaGraphError(ctx, err, resp, "UpdateDeviceProperties", a.WritePermissions)
+		errors.HandleKiotaGraphError(ctx, err, resp, "Action", a.WritePermissions)
 		return
 	}
 
 	tflog.Debug(ctx, fmt.Sprintf("Successfully updated device properties for device %s", deviceID))
 
 	resp.SendProgress(action.InvokeProgressEvent{
-		Message: fmt.Sprintf("Successfully updated device properties for device %s", deviceID),
+		Message: fmt.Sprintf("Device properties updated successfully for %s", deviceID),
 	})
 
 	tflog.Debug(ctx, fmt.Sprintf("Finished %s", ActionName))
