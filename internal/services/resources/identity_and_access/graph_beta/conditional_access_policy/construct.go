@@ -119,7 +119,29 @@ func constructConditions(ctx context.Context, data *ConditionalAccessConditions)
 		}
 
 		if err := convert.FrameworkToGraphStringSet(ctx, data.Applications.IncludeAuthenticationContextClassReferences, func(values []string) {
-			applications["includeAuthenticationContextClassReferences"] = values
+			// Map predefined values to their corresponding IDs
+			mappedValues := make([]string, len(values))
+			for i, value := range values {
+				switch value {
+				case "require_trusted_device":
+					mappedValues[i] = "c1"
+				case "require_terms_of_use":
+					mappedValues[i] = "c2"
+				case "require_trusted_location":
+					mappedValues[i] = "c3"
+				case "require_strong_authentication":
+					mappedValues[i] = "c4"
+				case "required_trust_type:azure_ad_joined":
+					mappedValues[i] = "c5"
+				case "require_access_from_an_approved_app":
+					mappedValues[i] = "c6"
+				case "required_trust_type:hybrid_azure_ad_joined":
+					mappedValues[i] = "c7"
+				default:
+					mappedValues[i] = value
+				}
+			}
+			applications["includeAuthenticationContextClassReferences"] = mappedValues
 		}); err != nil {
 			return nil, fmt.Errorf("failed to convert include auth context class refs: %w", err)
 		}
@@ -489,7 +511,17 @@ func constructGrantControls(ctx context.Context, data *ConditionalAccessGrantCon
 
 		convert.FrameworkToGraphString(data.AuthenticationStrength.ID, func(value *string) {
 			if value != nil {
-				authStrength["id"] = *value
+				// Map predefined string values to their corresponding GUIDs
+				switch *value {
+				case "multifactor_authentication":
+					authStrength["id"] = "00000000-0000-0000-0000-000000000002"
+				case "passwordless_mfa":
+					authStrength["id"] = "00000000-0000-0000-0000-000000000003"
+				case "phishing_resistant_mfa":
+					authStrength["id"] = "00000000-0000-0000-0000-000000000004"
+				default:
+					authStrength["id"] = *value
+				}
 			}
 		})
 

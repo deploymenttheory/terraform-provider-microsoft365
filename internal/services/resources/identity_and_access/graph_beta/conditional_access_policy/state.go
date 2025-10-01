@@ -269,7 +269,7 @@ func mapApplications(ctx context.Context, applicationsRaw any) *ConditionalAcces
 	// Map includeAuthenticationContextClassReferences (set)
 	if includeAuthContextRaw, ok := applications["includeAuthenticationContextClassReferences"]; ok {
 		tflog.Debug(ctx, "Mapping includeAuthenticationContextClassReferences", map[string]any{"includeAuthenticationContextClassReferences": includeAuthContextRaw})
-		result.IncludeAuthenticationContextClassReferences = mapStringSliceToSet(ctx, includeAuthContextRaw, "includeAuthenticationContextClassReferences")
+		result.IncludeAuthenticationContextClassReferences = mapAuthContextClassReferencesToSet(ctx, includeAuthContextRaw, "includeAuthenticationContextClassReferences")
 	} else {
 		tflog.Debug(ctx, "includeAuthenticationContextClassReferences not found, setting to null")
 		result.IncludeAuthenticationContextClassReferences = types.SetNull(types.StringType)
@@ -756,6 +756,65 @@ func mapSessionControls(ctx context.Context, sessionControlsRaw any) *Conditiona
 	return result
 }
 
+// Helper function to map authentication context class references with predefined value mapping
+func mapAuthContextClassReferencesToSet(ctx context.Context, raw any, fieldName string) types.Set {
+	tflog.Debug(ctx, fmt.Sprintf("Processing %s: %v (type: %T)", fieldName, raw, raw))
+
+	if raw == nil {
+		tflog.Debug(ctx, fmt.Sprintf("%s is null, returning null set", fieldName))
+		return types.SetNull(types.StringType)
+	}
+
+	// Handle []any from JSON unmarshaling
+	if slice, ok := raw.([]any); ok {
+		tflog.Debug(ctx, fmt.Sprintf("%s is []any with %d elements", fieldName, len(slice)))
+
+		// Convert []any to []string with reverse mapping
+		stringSlice := make([]string, len(slice))
+		for i, v := range slice {
+			if str, ok := v.(string); ok {
+				// Map predefined IDs back to their user-friendly names
+				switch str {
+				case "c1":
+					stringSlice[i] = "require_trusted_device"
+				case "c2":
+					stringSlice[i] = "require_terms_of_use"
+				case "c3":
+					stringSlice[i] = "require_trusted_location"
+				case "c4":
+					stringSlice[i] = "require_strong_authentication"
+				case "c5":
+					stringSlice[i] = "required_trust_type:azure_ad_joined"
+				case "c6":
+					stringSlice[i] = "require_access_from_an_approved_app"
+				case "c7":
+					stringSlice[i] = "required_trust_type:hybrid_azure_ad_joined"
+				default:
+					stringSlice[i] = str
+				}
+				tflog.Trace(ctx, fmt.Sprintf("Element %d in %s: %q", i, fieldName, stringSlice[i]))
+			} else {
+				// Convert non-string values to strings
+				stringSlice[i] = fmt.Sprintf("%v", v)
+				tflog.Debug(ctx, fmt.Sprintf("Converting element %d in %s from %T to string: %q", i, fieldName, v, stringSlice[i]))
+			}
+		}
+
+		// Use types.SetValueFrom to convert []string to types.Set
+		setValue, diags := types.SetValueFrom(ctx, types.StringType, stringSlice)
+		if diags.HasError() {
+			tflog.Error(ctx, fmt.Sprintf("Error creating set for %s", fieldName), map[string]any{"diags": diags})
+			return types.SetNull(types.StringType)
+		}
+
+		tflog.Debug(ctx, fmt.Sprintf("Successfully created set for %s with %d elements", fieldName, len(stringSlice)))
+		return setValue
+	}
+
+	tflog.Error(ctx, fmt.Sprintf("Unexpected type for %s: %T", fieldName, raw))
+	return types.SetNull(types.StringType)
+}
+
 // Helper function to map string slices to Terraform sets, handling null vs empty arrays
 func mapStringSliceToSet(ctx context.Context, raw any, fieldName string) types.Set {
 	tflog.Debug(ctx, fmt.Sprintf("Processing %s: %v (type: %T)", fieldName, raw, raw))
@@ -974,7 +1033,17 @@ func mapAuthenticationStrength(ctx context.Context, authenticationStrengthRaw an
 
 	if id, ok := authenticationStrength["id"].(string); ok {
 		tflog.Debug(ctx, "Mapping authenticationStrength id", map[string]any{"id": id})
-		result.ID = types.StringValue(id)
+		// Map known GUIDs back to predefined string values for consistency
+		switch id {
+		case "00000000-0000-0000-0000-000000000002":
+			result.ID = types.StringValue("multifactor_authentication")
+		case "00000000-0000-0000-0000-000000000003":
+			result.ID = types.StringValue("passwordless_mfa")
+		case "00000000-0000-0000-0000-000000000004":
+			result.ID = types.StringValue("phishing_resistant_mfa")
+		default:
+			result.ID = types.StringValue(id)
+		}
 	} else {
 		tflog.Debug(ctx, "authenticationStrength id not found or not a string")
 		result.ID = types.StringNull()

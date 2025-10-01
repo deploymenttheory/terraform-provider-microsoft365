@@ -205,19 +205,35 @@ func (r *ConditionalAccessPolicyResource) Schema(ctx context.Context, req resour
 									setvalidator.ValueStringsAre(
 										stringvalidator.OneOf(
 											"urn:user:registersecurityinfo",
+											"urn:user:registerdevice",
 										),
 									),
 								},
 							},
 							"include_authentication_context_class_references": schema.SetAttribute{
-								MarkdownDescription: "Authentication context class references to include in the policy.",
-								ElementType:         types.StringType,
-								Required:            true,
+								MarkdownDescription: "Authentication context secures data and actions in applications, including custom applications, line-of-business (LOB) " +
+									"applications, SharePoint, and applications protected by Microsoft Defender for Cloud Apps. Can be predefined builtin contexts " +
+									"(require_trusted_device, require_terms_of_use, require_trusted_location, require_strong_authentication, required_trust_type:azure_ad_joined, " +
+									"require_access_from_an_approved_app, required_trust_type:hybrid_azure_ad_joined) or full format 'c' followed by a GUID for custom authentication " +
+									"context class references. Learn more here 'https://learn.microsoft.com/en-us/entra/identity/conditional-access/concept-conditional-access-cloud-apps#authentication-context'.",
+								ElementType: types.StringType,
+								Required:    true,
 								Validators: []validator.Set{
 									setvalidator.ValueStringsAre(
-										stringvalidator.RegexMatches(
-											regexp.MustCompile(`^c[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`),
-											"must be in the format 'c' followed by a GUID",
+										stringvalidator.Any(
+											stringvalidator.OneOf(
+												"require_trusted_device",
+												"require_terms_of_use",
+												"require_trusted_location",
+												"require_strong_authentication",
+												"required_trust_type:azure_ad_joined",
+												"require_access_from_an_approved_app",
+												"required_trust_type:hybrid_azure_ad_joined",
+											),
+											stringvalidator.RegexMatches(
+												regexp.MustCompile(`^c[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`),
+												"must be in the format 'c' followed by a GUID",
+											),
 										),
 									),
 								},
@@ -457,7 +473,6 @@ func (r *ConditionalAccessPolicyResource) Schema(ctx context.Context, req resour
 											"windowsPhone",
 											"macOS",
 											"linux",
-											"unknownFutureValue",
 										),
 									),
 								},
@@ -476,7 +491,6 @@ func (r *ConditionalAccessPolicyResource) Schema(ctx context.Context, req resour
 											"windowsPhone",
 											"macOS",
 											"linux",
-											"unknownFutureValue",
 										),
 									),
 								},
@@ -698,7 +712,7 @@ func (r *ConditionalAccessPolicyResource) Schema(ctx context.Context, req resour
 				Required:            true,
 				Attributes: map[string]schema.Attribute{
 					"operator": schema.StringAttribute{
-						MarkdownDescription: "Operator to apply to the controls. Possible values are: AND, OR.",
+						MarkdownDescription: "Operator to apply to the controls. Possible values are: AND, OR. When setting a singular operator, use 'OR'.",
 						Required:            true,
 						Validators: []validator.String{
 							stringvalidator.OneOf("AND", "OR"),
@@ -718,7 +732,6 @@ func (r *ConditionalAccessPolicyResource) Schema(ctx context.Context, req resour
 									"approvedApplication",
 									"compliantApplication",
 									"passwordChange",
-									"unknownFutureValue",
 								),
 							),
 						},
@@ -734,16 +747,24 @@ func (r *ConditionalAccessPolicyResource) Schema(ctx context.Context, req resour
 						Optional:            true,
 					},
 					"authentication_strength": schema.SingleNestedAttribute{
-						MarkdownDescription: "Authentication strength required for granting access.",
-						Optional:            true,
+						MarkdownDescription: "Authentication strength is a Conditional Access control that specifies which combinations of authentication " +
+							"methods can be used to access a resource. Users can satisfy the strength requirements by authenticating with any of the allowed " +
+							"combinations. read more here 'https://learn.microsoft.com/en-us/entra/identity/authentication/concept-authentication-strengths'.",
+						Optional: true,
 						Attributes: map[string]schema.Attribute{
 							"id": schema.StringAttribute{
-								MarkdownDescription: "ID of the authentication strength policy.",
+								MarkdownDescription: "ID of the authentication strength policy. Can be a GUID or predefined built-in values: 'multifactor_authentication' (maps to '00000000-0000-0000-0000-000000000002'), 'passwordless_mfa' (maps to '00000000-0000-0000-0000-000000000003'), or 'phishing_resistant_mfa' (maps to '00000000-0000-0000-0000-000000000004').",
 								Required:            true,
 								Validators: []validator.String{
-									stringvalidator.RegexMatches(
-										regexp.MustCompile(constants.GuidRegex),
-										"must be a valid GUID in the format '00000000-0000-0000-0000-000000000000'",
+									stringvalidator.Any(
+										stringvalidator.RegexMatches(
+											regexp.MustCompile(constants.GuidRegex),
+											"must be a valid GUID in the format '00000000-0000-0000-0000-000000000000'",
+										),
+										stringvalidator.OneOf(
+											"multifactor_authentication",
+											"passwordless_mfa",
+											"phishing_resistant_mfa"),
 									),
 								},
 							},
@@ -774,6 +795,7 @@ func (r *ConditionalAccessPolicyResource) Schema(ctx context.Context, req resour
 								MarkdownDescription: "The allowed authentication method combinations that satisfy the authentication strength policy.",
 								ElementType:         types.StringType,
 								Optional:            true,
+								Computed:            true,
 								Validators: []validator.Set{
 									setvalidator.ValueStringsAre(
 										stringvalidator.OneOf(
