@@ -13,6 +13,9 @@ import (
 	graphBetaWindows365CloudPcSourceDeviceImage "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/windows_365/graph_beta/cloud_pc_source_device_image"
 	graphBetaWindows365CloudPcs "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/windows_365/graph_beta/cloud_pcs"
 
+	// Graph Beta - Applications datasources
+	graphBetaApplicationsServicePrincipal "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/applications/service_principle"
+
 	// Graph Beta - Intune datasources
 	graphBetaDeviceAndAppManagementApplicationCategory "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/device_and_app_management/graph_beta/application_category"
 	graphBetaDeviceAndAppManagementMobileApp "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/device_and_app_management/graph_beta/mobile_app"
@@ -67,6 +70,9 @@ import (
 //	[]func() datasource.DataSource: A slice of functions, each returning a datasource.DataSource.
 func (p *M365Provider) DataSources(ctx context.Context) []func() datasource.DataSource {
 	return []func() datasource.DataSource{
+		// Graph Beta - Applications
+		graphBetaApplicationsServicePrincipal.NewServicePrincipalDataSource,
+
 		// Graph Beta - Device and app management
 		graphBetaDeviceAndAppManagementApplicationCategory.NewApplicationCategoryDataSource,
 		graphBetaDeviceAndAppManagementMobileApp.NewMobileAppDataSource,
