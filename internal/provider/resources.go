@@ -81,6 +81,9 @@ import (
 	graphBetaIdentityAndAccessConditionalAccessPolicy "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/identity_and_access/graph_beta/conditional_access_policy"
 	graphBetaIdentityAndAccessNamedLocation "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/identity_and_access/graph_beta/named_location"
 
+	// Graph v1.0 - Identity and Access resources
+	graphIdentityAndAccessConditionalAccessTermsOfUse "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/identity_and_access/graph_v1.0/conditional_access_terms_of_use"
+
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 
 	// Graph Beta - User resources
@@ -236,6 +239,9 @@ func (p *M365Provider) Resources(ctx context.Context) []func() resource.Resource
 		graphBetaWindows365CloudPcDeviceImage.NewCloudPcDeviceImageResource,
 		graphBetaWindows365CloudPcAlertRule.NewCloudPcAlertRuleResource,
 		graphBetaWindows365CloudPcRoleDefinition.NewRoleDefinitionResource,
+
+		// Graph v1.0 - Identity and Access resources
+		graphIdentityAndAccessConditionalAccessTermsOfUse.NewConditionalAccessTermsOfUseResource,
 
 		// Graph v1.0 - Intune resources
 		graphDeviceManagementDeviceConfigurationAssignment.NewDeviceConfigurationAssignmentResource,

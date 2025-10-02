@@ -1,0 +1,26 @@
+{
+  "@odata.context": "https://graph.microsoft.com/v1.0/$metadata#agreements/$entity",
+  "id": "ba66d872-67f2-4438-a64f-0264b13db06a",
+  "displayName": "Updated Terms of Use Agreement",
+  "isViewingBeforeAcceptanceRequired": false,
+  "isPerDeviceAcceptanceRequired": true,
+  "userReacceptRequiredFrequency": "P180D",
+  "termsExpiration": {
+    "startDateTime": "2026-06-30T23:59:59.000Z",
+    "frequency": "P180D"
+  },
+  "file": {
+    "localizations": [
+      {
+        "fileName": "updated-terms.pdf",
+        "displayName": "Updated Terms of Use",
+        "language": "en-US",
+        "isDefault": true,
+        "isMajorVersion": true,
+        "fileData": {
+          "data": "JVBERi0xLjQNCiW0tba3DQolDQoxIDAgb2JqDQo8PA0KL0Rlc3RzIDIgMCBSDQovUGFnZXMgMyAwIFINCi9QYWdlTGF5b3V0IC9PbmVDb2x1bW4NCi9UeXBlIC9DYXRhbG9nDQovVmlld2VyUHJlZmVyZW5jZXMgNCAwIFINCi9QYWdlTW9kZSAvVXNlTm9uZQ0KPj4NCmVuZG9iag0KOSAwIG9iag0KPDwNCi9GaWx0ZXIgL1N0YW5kYXJkDQovUCAxOTINCi9VIDxDNjdCNzA0RUoNCg0Kc3RhcnR4cmVmDQozODQyOA0KJSVFT0YNCg=="
+        }
+      }
+    ]
+  }
+}

@@ -80,6 +80,32 @@ func FrameworkToGraphTime(value basetypes.StringValue, setter func(*time.Time)) 
 	return nil
 }
 
+// FrameworkToGraphTimeFromDateOnly parses a Terraform Framework string as date-only format (YYYY-MM-DD) and sets a Graph SDK time property.
+// Returns an error if parsing fails. No-op if the value is null, unknown, empty, or zero-value time.
+func FrameworkToGraphTimeFromDateOnly(value basetypes.StringValue, setter func(*time.Time)) error {
+	if value.IsNull() || value.IsUnknown() {
+		return nil
+	}
+
+	dateStr := value.ValueString()
+	if dateStr == "" {
+		return nil
+	}
+
+	parsed, err := time.Parse("2006-01-02", dateStr)
+	if err != nil {
+		return fmt.Errorf("failed to parse date string: %s", err)
+	}
+
+	// Skip zero-value timestamps to avoid API validation errors
+	if parsed.IsZero() {
+		return nil
+	}
+
+	setter(&parsed)
+	return nil
+}
+
 // FrameworkToGraphDateOnly parses a Terraform Framework string as a date and sets a Graph SDK DateOnly property.
 // Returns an error if parsing fails. No-op if the value is null, unknown, or empty.
 func FrameworkToGraphDateOnly(value basetypes.StringValue, setter func(*serialization.DateOnly)) error {
