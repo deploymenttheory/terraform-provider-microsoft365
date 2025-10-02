@@ -379,7 +379,7 @@ Required:
 
 - `exclude_applications` (Set of String) Applications to exclude from the policy.
 - `include_applications` (Set of String) Applications to include in the policy. Can use the special value 'All' to include all applications.
-- `include_authentication_context_class_references` (Set of String) Authentication context class references to include in the policy.
+- `include_authentication_context_class_references` (Set of String) Authentication context secures data and actions in applications, including custom applications, line-of-business (LOB) applications, SharePoint, and applications protected by Microsoft Defender for Cloud Apps. Can be predefined builtin contexts: `require_trusted_device` (or c1), `require_terms_of_use` (or c2), `require_trusted_location` (or c3), `require_strong_authentication` (or c4), `required_trust_type:azure_ad_joined` (or c5), `require_access_from_an_approved_app` (or c6), `required_trust_type:hybrid_azure_ad_joined` (or c7) or custom authentication context class references in the format 'c' followed by a number from 8 through to 99 (e.g., c1, c8, c10, c25, c99). Learn more here 'https://learn.microsoft.com/en-us/entra/identity/conditional-access/concept-conditional-access-cloud-apps#authentication-context'.
 - `include_user_actions` (Set of String) User actions to include in the policy.
 
 Optional:
@@ -534,11 +534,11 @@ Required:
 
 - `built_in_controls` (Set of String) List of built-in controls required by the policy. Possible values are: block, mfa, compliantDevice, domainJoinedDevice, approvedApplication, compliantApplication, passwordChange, unknownFutureValue.
 - `custom_authentication_factors` (Set of String) Custom authentication factors for granting access.
-- `operator` (String) Operator to apply to the controls. Possible values are: AND, OR.
+- `operator` (String) Operator to apply to the controls. Possible values are: AND, OR. When setting a singular operator, use 'OR'.
 
 Optional:
 
-- `authentication_strength` (Attributes) Authentication strength required for granting access. (see [below for nested schema](#nestedatt--grant_controls--authentication_strength))
+- `authentication_strength` (Attributes) Authentication strength is a Conditional Access control that specifies which combinations of authentication methods can be used to access a resource. Users can satisfy the strength requirements by authenticating with any of the allowed combinations. read more here 'https://learn.microsoft.com/en-us/entra/identity/authentication/concept-authentication-strengths'. (see [below for nested schema](#nestedatt--grant_controls--authentication_strength))
 - `terms_of_use` (Set of String) Terms of use required for granting access.
 
 <a id="nestedatt--grant_controls--authentication_strength"></a>
@@ -546,7 +546,7 @@ Optional:
 
 Required:
 
-- `id` (String) ID of the authentication strength policy.
+- `id` (String) ID of the authentication strength policy. Can be a GUID or predefined built-in values: 'multifactor_authentication' (maps to '00000000-0000-0000-0000-000000000002'), 'passwordless_mfa' (maps to '00000000-0000-0000-0000-000000000003'), or 'phishing_resistant_mfa' (maps to '00000000-0000-0000-0000-000000000004').
 
 Optional:
 

@@ -1,0 +1,7 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#identity/conditionalAccess/authenticationContextClassReferences/$entity",
+  "id": "c8",
+  "displayName": "Test Authentication Context",
+  "description": "Test authentication context for unit testing",
+  "isAvailable": true
+}
