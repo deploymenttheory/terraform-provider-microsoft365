@@ -41,13 +41,47 @@ func setEntraIDOptions(ctx context.Context, config types.Object) (types.Object, 
 
 	entraIDSchema := schemaToAttrTypes(EntraIDOptionsSchema())
 
-	if config.IsNull() || config.IsUnknown() {
-		return types.ObjectNull(entraIDSchema), diags
-	}
+	if !config.IsNull() && !config.IsUnknown() {
+		diags.Append(config.As(ctx, &entraIDOptions, basetypes.ObjectAsOptions{})...)
+		if diags.HasError() {
+			return types.ObjectNull(entraIDSchema), diags
+		}
+	} else {
+		// If config is null/unknown, check if any relevant environment variables are set
+		// If no env vars are set, return null.
+		envVarsToCheck := []string{
+			"M365_CLIENT_ID",
+			"M365_CLIENT_SECRET",
+			"M365_CLIENT_CERTIFICATE_FILE_PATH",
+			"M365_CLIENT_CERTIFICATE_PASSWORD",
+			"M365_USERNAME",
+			"M365_SEND_CERTIFICATE_CHAIN",
+			"M365_DISABLE_INSTANCE_DISCOVERY",
+			"M365_ADDITIONALLY_ALLOWED_TENANTS",
+			"M365_REDIRECT_URI",
+			"AZURE_FEDERATED_TOKEN_FILE",
+			"M365_MANAGED_IDENTITY_ID",
+			"AZURE_CLIENT_ID",
+			"M365_OIDC_TOKEN_FILE_PATH",
+			"M365_OIDC_REQUEST_URL",
+			"ACTIONS_ID_TOKEN_REQUEST_URL",
+			"M365_OIDC_REQUEST_TOKEN",
+			"ACTIONS_ID_TOKEN_REQUEST_TOKEN",
+			"ARM_ADO_PIPELINE_SERVICE_CONNECTION_ID",
+			"ARM_OIDC_AZURE_SERVICE_CONNECTION_ID",
+		}
 
-	diags.Append(config.As(ctx, &entraIDOptions, basetypes.ObjectAsOptions{})...)
-	if diags.HasError() {
-		return types.ObjectNull(entraIDSchema), diags
+		hasEnvVars := false
+		for _, envVar := range envVarsToCheck {
+			if os.Getenv(envVar) != "" {
+				hasEnvVars = true
+				break
+			}
+		}
+
+		if !hasEnvVars {
+			return types.ObjectNull(entraIDSchema), diags
+		}
 	}
 
 	var defaultAllowedTenants []string

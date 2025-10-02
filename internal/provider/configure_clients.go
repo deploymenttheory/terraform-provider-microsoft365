@@ -99,9 +99,9 @@ func convertToClientProviderData(ctx context.Context, data *M365ProviderModel) *
 
 	oidcRequestURL := entraIDOptions.OIDCRequestURL.ValueString()
 	oidcRequestToken := entraIDOptions.OIDCRequestToken.ValueString()
-	
+
 	tflog.Info(ctx, "convertToClientProviderData OIDC values", map[string]any{
-		"oidc_request_url":     oidcRequestURL,
+		"oidc_request_url":       oidcRequestURL,
 		"oidc_request_token_set": oidcRequestToken != "",
 	})
 
