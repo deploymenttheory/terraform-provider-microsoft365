@@ -212,10 +212,11 @@ func (r *ConditionalAccessPolicyResource) Schema(ctx context.Context, req resour
 							},
 							"include_authentication_context_class_references": schema.SetAttribute{
 								MarkdownDescription: "Authentication context secures data and actions in applications, including custom applications, line-of-business (LOB) " +
-									"applications, SharePoint, and applications protected by Microsoft Defender for Cloud Apps. Can be predefined builtin contexts " +
-									"(require_trusted_device, require_terms_of_use, require_trusted_location, require_strong_authentication, required_trust_type:azure_ad_joined, " +
-									"require_access_from_an_approved_app, required_trust_type:hybrid_azure_ad_joined) or full format 'c' followed by a GUID for custom authentication " +
-									"context class references. Learn more here 'https://learn.microsoft.com/en-us/entra/identity/conditional-access/concept-conditional-access-cloud-apps#authentication-context'.",
+									"applications, SharePoint, and applications protected by Microsoft Defender for Cloud Apps. Can be predefined builtin contexts: " +
+									"`require_trusted_device` (or c1), `require_terms_of_use` (or c2), `require_trusted_location` (or c3), `require_strong_authentication` (or c4), " +
+									"`required_trust_type:azure_ad_joined` (or c5), `require_access_from_an_approved_app` (or c6), `required_trust_type:hybrid_azure_ad_joined` (or c7) " +
+									"or custom authentication context class references in the format 'c' followed by a number from 8 through to 99 " +
+									"(e.g., c1, c8, c10, c25, c99). Learn more here 'https://learn.microsoft.com/en-us/entra/identity/conditional-access/concept-conditional-access-cloud-apps#authentication-context'.",
 								ElementType: types.StringType,
 								Required:    true,
 								Validators: []validator.Set{
@@ -231,8 +232,8 @@ func (r *ConditionalAccessPolicyResource) Schema(ctx context.Context, req resour
 												"required_trust_type:hybrid_azure_ad_joined",
 											),
 											stringvalidator.RegexMatches(
-												regexp.MustCompile(`^c[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`),
-												"must be in the format 'c' followed by a GUID",
+												regexp.MustCompile(`^c([1-9]|[1-9][0-9])$`),
+												"must be in the format 'c' followed by a number from 1 to 99",
 											),
 										),
 									),

@@ -1,0 +1,44 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
+subcategory: "Applications"
+
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Name}} ({{.Type}})
+
+{{ .Description | trimspace }}
+
+## Microsoft Documentation
+
+- [servicePrincipal resource type](https://learn.microsoft.com/en-us/graph/api/resources/serviceprincipal?view=graph-rest-beta)
+
+## API Permissions
+
+The following API permissions are required in order to use this data source.
+
+### Microsoft Graph
+
+- **Application**: `Application.Read.All`, `Application.ReadWrite.All`, `Directory.Read.All`, `Directory.ReadWrite.All`.
+
+## Version History
+
+| Version | Status | Notes |
+|---------|--------|-------|
+| v0.31.0-alpha | Experimental | Initial release |
+
+## Important Notes
+This method supports the $select and $expand OData query parameters to help customize the response.
+
+This method supports the $count, $expand, $filter, $orderby, $search, $select, and $top OData query parameters to help customize the response. Some queries are supported only when you use the ConsistencyLevel header set to eventual and $count. For more information, see Advanced query capabilities on directory objects.
+
+By default, this API doesn't return the public key value of the key in the keyCredentials property unless keyCredentials is specified in a $select query. For example, $select=id,appId,keyCredentials.
+
+The use of $select to get keyCredentials for service principals has a throttling limit of 150 requests per minute for every tenant.
+
+## Example Usage
+
+{{ tffile "examples/data-sources/microsoft365_graph_beta_applications_service_principal/datasource.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}
