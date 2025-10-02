@@ -5,6 +5,31 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.31.0-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.30.4-alpha...v0.31.0-alpha) (2025-10-02)
+
+
+### Features
+
+* added actions and restructured docs ([7d0d98f](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/7d0d98ffe81884c14684228420e83334939245af))
+* added actions and restructured docs ([#802](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/802)) ([1416d59](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/1416d593967750133a0725173072cd44ea4b5d71))
+* added actions for windows_autopilot_device_identity in prep for tf v1.14.0 ([e06a1b9](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/e06a1b995af3c031ace47cc5b5de8def29e8ea77))
+* added conditional_access_terms_of_use ([363bf7d](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/363bf7d471855977bdd87cbc2ebe801a2d67a77e))
+* added conditional_access_terms_of_use ([#807](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/807)) ([b147bc9](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/b147bc9cfe82ed518e6fd3ac732070aadd2688cf))
+* added data-source microsoft365_graph_beta_applications_service_principal ([08ab815](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/08ab815855dadf4941f51645973331ae983c4cb1))
+* added data-source microsoft365_graph_beta_applications_service_principal ([#805](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/805)) ([0852753](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/0852753e38f4a2353bf3f195c881710287f071ce))
+* added resource authentication_context with test harness and updated docs ([2c139a7](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/2c139a7119529ba729707d965e49d849a308537a))
+* added resource authentication_context with test harness and updated docs ([#806](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/806)) ([0bc0452](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/0bc0452cb1e7760ad543c5e83aa5fc4267b32bfc))
+
+
+### Bug Fixes
+
+* Export environment variable Client ID ([90b8d90](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/90b8d906e8e9fa1e40cbd98bece0fc000b1a7dbe))
+* Export environment variable Client ID ([#808](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/808)) ([49b2c1b](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/49b2c1b8fea97d8514f1c4f41bbeccf50bf09f51))
+* interface{} -&gt; any ([8074ff4](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/8074ff43bff9ffd6714f56fe281a418a438f9f59))
+* restore main ([e3ddd31](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/e3ddd3140c8e9f2729f8ead1d1ef09bdc0d38054))
+* schema refinements to improve dev ux ([4e132b5](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/4e132b5f154d7afc349b08fccf45af573ebdbb3c))
+* test for future regression ([d319a1a](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/d319a1a59a80874bccbdf5b6f4fc6a0244ec3abe))
+
 ## [0.30.4-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.30.3-alpha...v0.30.4-alpha) (2025-09-29)
 
 
