@@ -1,0 +1,26 @@
+{
+  "@odata.context": "https://graph.microsoft.com/v1.0/$metadata#agreements/$entity",
+  "id": "ba66d872-67f2-4438-a64f-0264b13db06a",
+  "displayName": "Test Terms of Use Agreement",
+  "isViewingBeforeAcceptanceRequired": true,
+  "isPerDeviceAcceptanceRequired": false,
+  "userReacceptRequiredFrequency": "P90D",
+  "termsExpiration": {
+    "startDateTime": "2025-12-31T23:59:59.000Z",
+    "frequency": "P365D"
+  },
+  "file": {
+    "localizations": [
+      {
+        "fileName": "test-terms.pdf",
+        "displayName": "Test Terms of Use",
+        "language": "en-US",
+        "isDefault": true,
+        "isMajorVersion": true,
+        "fileData": {
+          "data": "JVBERi0xLjQNCiW0tba3DQolDQoxIDAgb2JqDQo8PA0KL0Rlc3RzIDIgMCBSDQovUGFnZXMgMyAwIFINCi9QYWdlTGF5b3V0IC9PbmVDb2x1bW4NCi9UeXBlIC9DYXRhbG9nDQovVmlld2VyUHJlZmVyZW5jZXMgNCAwIFINCi9QYWdlTW9kZSAvVXNlTm9uZQ0KPj4NCmVuZG9iag0KOSAwIG9iag0KPDwNCi9GaWx0ZXIgL1N0YW5kYXJkDQovUCAxOTINCi9VIDxDNjdCNzA0RUoNCg0Kc3RhcnR4cmVmDQozODQyOA0KJSVFT0YNCg=="
+        }
+      }
+    ]
+  }
+}
