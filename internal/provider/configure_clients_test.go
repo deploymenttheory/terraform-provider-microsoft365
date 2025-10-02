@@ -12,8 +12,9 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// TestConvertToClientProviderData_EmptyProviderBlockWithEnvVars tests the specific bug
-// where environment variables are set but the provider block is empty (like in GitHub Actions OIDC)
+// TestConvertToClientProviderData_EmptyProviderBlockWithEnvVars is a regression test that verifies
+// environment variables are correctly processed when using an empty provider block (like in GitHub Actions OIDC).
+// This test ensures the fix for the bug where M365_CLIENT_ID appeared empty in logs continues to work.
 func TestConvertToClientProviderData_EmptyProviderBlockWithEnvVars(t *testing.T) {
 	// Clear environment and set test variables (simulating GitHub Actions OIDC scenario)
 	clearM365EnvVarsWithRestore(t)
@@ -42,33 +43,27 @@ func TestConvertToClientProviderData_EmptyProviderBlockWithEnvVars(t *testing.T)
 	assert.Equal(t, "github-actions-tenant-id", processedConfig.TenantID.ValueString(), "TenantID should be processed from env var")
 	assert.Equal(t, "oidc_github", processedConfig.AuthMethod.ValueString(), "AuthMethod should be processed from env var")
 
-	// Debug: Check if the processed EntraIDOptions contains the expected values
-	t.Logf("processedConfig.EntraIDOptions.IsNull(): %t", processedConfig.EntraIDOptions.IsNull())
-	t.Logf("processedConfig.EntraIDOptions.IsUnknown(): %t", processedConfig.EntraIDOptions.IsUnknown())
+	// Verify the processed EntraIDOptions contains the expected values
+	assert.False(t, processedConfig.EntraIDOptions.IsNull(), "EntraIDOptions should not be null when env vars are set")
+	assert.False(t, processedConfig.EntraIDOptions.IsUnknown(), "EntraIDOptions should not be unknown when env vars are set")
 
 	// Extract the processed EntraIDOptions to verify it contains the expected values
 	var processedEntraIDOptions EntraIDOptionsModel
 	extractDiags := processedConfig.EntraIDOptions.As(context.Background(), &processedEntraIDOptions, basetypes.ObjectAsOptions{})
 	require.False(t, extractDiags.HasError(), "Failed to extract processed EntraIDOptions")
-	t.Logf("processedEntraIDOptions.ClientID.ValueString(): '%s'", processedEntraIDOptions.ClientID.ValueString())
+	assert.Equal(t, "github-actions-client-id", processedEntraIDOptions.ClientID.ValueString(), "ClientID should be processed from env var")
 
-	// Step 2: Convert to client provider data (this is where the bug occurs)
+	// Step 2: Convert to client provider data - this should work correctly now
 	clientData := convertToClientProviderData(context.Background(), &processedConfig)
 
-	// This is the bug: clientData.EntraIDOptions.ClientID should be "github-actions-client-id" but it's empty
-	t.Logf("TenantID from clientData: '%s'", clientData.TenantID)
-	t.Logf("ClientID from clientData.EntraIDOptions: '%s'", clientData.EntraIDOptions.ClientID)
-
-	// These assertions demonstrate the bug
+	// Verify the conversion works correctly (regression test for the original bug)
 	assert.Equal(t, "github-actions-tenant-id", clientData.TenantID, "TenantID should be correctly converted")
-
-	// This assertion will FAIL, demonstrating the bug
 	assert.Equal(t, "github-actions-client-id", clientData.EntraIDOptions.ClientID,
-		"ClientID should be correctly converted from processed EntraIDOptions, but it's empty due to the bug")
+		"ClientID should be correctly converted from processed EntraIDOptions")
 }
 
-// TestConvertToClientProviderData_ExplicitProviderBlockWithEnvVars tests that the bug doesn't occur
-// when the provider block explicitly sets entra_id_options
+// TestConvertToClientProviderData_ExplicitProviderBlockWithEnvVars tests that when entra_id_options is explicitly provided,
+// environment variables still take precedence (standard Terraform behavior).
 func TestConvertToClientProviderData_ExplicitProviderBlockWithEnvVars(t *testing.T) {
 	// Clear environment and set test variables
 	clearM365EnvVarsWithRestore(t)
@@ -123,10 +118,10 @@ func TestConvertToClientProviderData_ExplicitProviderBlockWithEnvVars(t *testing
 	t.Logf("TenantID from clientData: '%s'", clientData.TenantID)
 	t.Logf("ClientID from clientData.EntraIDOptions: '%s'", clientData.EntraIDOptions.ClientID)
 
-	// These assertions should pass because the EntraIDOptions were explicitly provided
-	assert.Equal(t, "env-tenant-id", clientData.TenantID, "TenantID should be correctly converted")
+	// Verify that environment variables take precedence over explicit configuration
+	assert.Equal(t, "env-tenant-id", clientData.TenantID, "TenantID should be overridden by environment variable")
 	assert.Equal(t, "env-client-id", clientData.EntraIDOptions.ClientID,
-		"ClientID should be correctly converted when entra_id_options is explicitly provided")
+		"ClientID should be overridden by environment variable, demonstrating proper precedence")
 }
 
 // clearM365EnvVarsWithRestore clears M365 related environment variables and restores them after the test.
