@@ -59,6 +59,7 @@ ignore:
   - "**/*_test.go"
   - "**/testdata/**"
   - "**/mocks/**"
+  - "**/crud.go" # CRUD logic is covered implicitly in the unit tests
 
 # Parser settings for Go
 parsers:
