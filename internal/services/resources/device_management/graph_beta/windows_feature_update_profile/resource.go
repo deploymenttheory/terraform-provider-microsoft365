@@ -106,10 +106,12 @@ func (r *WindowsFeatureUpdateProfileResource) Schema(ctx context.Context, req re
 				MarkdownDescription: "The description of the profile which is specified by the user.",
 			},
 			"feature_update_version": schema.StringAttribute{
-				Required:            true,
-				MarkdownDescription: "The feature update version that will be deployed to the devices targeted by this profile. Valid values are: \"Windows 11, version 24H2\", \"Windows 11, version 23H2\", \"Windows 11, version 22H2\", \"Windows 10, version 22H2\". By selecting this Feature update to deploy you are agreeing that when applying this operating system to a device either (1) the applicable Windows license was purchased though volume licensing, or (2) that you are authorized to bind your organization and are accepting on its behalf the relevant Microsoft Software License Terms to be found here https://go.microsoft.com/fwlink/?linkid=2171206.",
+				Required: true,
+				MarkdownDescription: "The feature update version that will be deployed to the devices targeted by this profile. " +
+					"Valid values are: \"Windows 11, version 25H2\", \"Windows 11, version 24H2\", \"Windows 11, version 23H2\", \"Windows 11, version 22H2\", \"Windows 10, version 22H2\". By selecting this Feature update to deploy you are agreeing that when applying this operating system to a device either (1) the applicable Windows license was purchased though volume licensing, or (2) that you are authorized to bind your organization and are accepting on its behalf the relevant Microsoft Software License Terms to be found here https://go.microsoft.com/fwlink/?linkid=2171206.",
 				Validators: []validator.String{
 					stringvalidator.OneOf(
+						"Windows 11, version 25H2",
 						"Windows 11, version 24H2",
 						"Windows 11, version 23H2",
 						"Windows 11, version 22H2",
