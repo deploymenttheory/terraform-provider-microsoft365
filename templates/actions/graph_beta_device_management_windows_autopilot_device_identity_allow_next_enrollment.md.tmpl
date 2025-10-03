@@ -3,12 +3,12 @@ page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
 subcategory: "Device Management"
 
 description: |-
-  Allows the next enrollment for an Autopilot device in Microsoft Intune. This action enables the device to be enrolled again.
+{{ if .Description }}{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}{{ else }}  Retrieves audit events from Microsoft 365 managed tenants as an ephemeral resource.{{ end }}
 ---
 
 # {{.Name}} ({{.Type}})
 
-Allows the next enrollment for an Autopilot device in Microsoft Intune using the `/deviceManagement/windowsAutopilotDeviceIdentities/{windowsAutopilotDeviceIdentityId}/allowNextEnrollment` endpoint. This action enables the device to be enrolled again.
+{{ if .Description }}{{ .Description | trimspace }}{{ else }}Retrieves audit events from Microsoft 365 managed tenants as an ephemeral resource. This does not persist in state and fetches fresh data on each execution.{{ end }}
 
 ## Microsoft Documentation
 
@@ -32,3 +32,5 @@ The following API permissions are required in order to use this action.
 ## Example Usage
 
 {{ tffile "examples/actions/graph_beta_device_management_windows_autopilot_device_identity_allow_next_enrollment/action.tf" }}
+
+{{ if .SchemaMarkdown }}{{ .SchemaMarkdown | trimspace }}{{ else }}Schema documentation not available.{{ end }}
