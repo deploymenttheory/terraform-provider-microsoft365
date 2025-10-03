@@ -33,7 +33,7 @@ The following API permissions are required in order to use this action.
 
 ```terraform
 # Update device properties action
-action "microsoft365_graph_beta_device_management_update_device_properties" "example" {
+action "microsoft365_graph_beta_device_management_windows_autopilot_device_identity_update_device_properties" "example" {
   windows_autopilot_device_identity_id = "12345678-1234-1234-1234-123456789012"
   user_principal_name                  = "user@contoso.com"
   addressable_user_name                = "John Doe"
