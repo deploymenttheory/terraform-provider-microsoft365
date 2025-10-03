@@ -10,6 +10,14 @@ import (
 	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
 )
 
+const (
+	EphemeralResourceName = "graph_beta_multitenant_management_audit_event"
+	CreateTimeout         = 180
+	UpdateTimeout         = 180
+	ReadTimeout           = 180
+	DeleteTimeout         = 180
+)
+
 // Ensure the implementation satisfies the expected interfaces
 var (
 	_ ephemeral.EphemeralResource              = &AuditEventsEphemeralResource{}
@@ -35,7 +43,7 @@ type AuditEventsEphemeralResource struct {
 
 // Metadata returns the resource type name
 func (r *AuditEventsEphemeralResource) Metadata(_ context.Context, req ephemeral.MetadataRequest, resp *ephemeral.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_multitenant_management_audit_events"
+	resp.TypeName = req.ProviderTypeName + "_" + EphemeralResourceName
 }
 
 // Schema defines the schema for the ephemeral resource
