@@ -1,8 +1,8 @@
 resource "microsoft365_graph_identity_and_access_conditional_access_terms_of_use" "maximal" {
-  display_name                             = "Maximal Terms of Use Agreement"
-  is_viewing_before_acceptance_required    = true
-  is_per_device_acceptance_required        = true
-  user_reaccept_required_frequency         = "P90D"
+  display_name                          = "Maximal Terms of Use Agreement"
+  is_viewing_before_acceptance_required = true
+  is_per_device_acceptance_required     = true
+  user_reaccept_required_frequency      = "P90D"
 
   terms_expiration = {
     start_date_time = "2025-12-31"

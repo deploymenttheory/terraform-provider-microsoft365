@@ -1,7 +1,7 @@
 resource "microsoft365_graph_identity_and_access_conditional_access_terms_of_use" "minimal" {
-  display_name                            = "Minimal Terms of Use"
-  is_viewing_before_acceptance_required   = false
-  is_per_device_acceptance_required       = false
+  display_name                          = "Minimal Terms of Use"
+  is_viewing_before_acceptance_required = false
+  is_per_device_acceptance_required     = false
 
   file = {
     localizations = [
