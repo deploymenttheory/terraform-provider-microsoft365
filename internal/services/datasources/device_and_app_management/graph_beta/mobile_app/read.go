@@ -12,7 +12,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	abstractions "github.com/microsoft/kiota-abstractions-go"
 	"github.com/microsoftgraph/msgraph-beta-sdk-go/deviceappmanagement"
-	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
 func (d *MobileAppDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
@@ -36,7 +35,8 @@ func (d *MobileAppDataSource) Read(ctx context.Context, req datasource.ReadReque
 	filterValue := object.FilterValue.ValueString()
 	appTypeFilter := object.AppTypeFilter.ValueString()
 
-	if filterType == "id" {
+	switch filterType {
+	case "id":
 		requestParameters := &deviceappmanagement.MobileAppsMobileAppItemRequestBuilderGetRequestConfiguration{
 			QueryParameters: &deviceappmanagement.MobileAppsMobileAppItemRequestBuilderGetQueryParameters{
 				Expand: []string{"categories"},
@@ -67,7 +67,7 @@ func (d *MobileAppDataSource) Read(ctx context.Context, req datasource.ReadReque
 		}
 		appItem := MapRemoteStateToDataSource(ctx, mobileApp)
 		filteredItems = append(filteredItems, appItem)
-	} else if filterType == "odata" {
+	case "odata":
 		// Add "ConsistencyLevel: eventual" header for advanced OData queries
 		headers := abstractions.NewRequestHeaders()
 		headers.Add("ConsistencyLevel", "eventual")
@@ -127,7 +127,7 @@ func (d *MobileAppDataSource) Read(ctx context.Context, req datasource.ReadReque
 			appItem := MapRemoteStateToDataSource(ctx, mobileApp)
 			filteredItems = append(filteredItems, appItem)
 		}
-	} else {
+	default:
 		// For "all" and "display_name", get the full list and filter locally
 		respList, err := d.client.
 			DeviceAppManagement().
@@ -139,12 +139,7 @@ func (d *MobileAppDataSource) Read(ctx context.Context, req datasource.ReadReque
 			return
 		}
 
-		for _, app := range respList.GetValue() {
-			mobileApp, ok := app.(graphmodels.MobileAppable)
-			if !ok {
-				continue
-			}
-
+		for _, mobileApp := range respList.GetValue() {
 			currentAppType := getAppTypeFromMobileApp(mobileApp)
 
 			if appTypeFilter != "" && currentAppType != appTypeFilter {

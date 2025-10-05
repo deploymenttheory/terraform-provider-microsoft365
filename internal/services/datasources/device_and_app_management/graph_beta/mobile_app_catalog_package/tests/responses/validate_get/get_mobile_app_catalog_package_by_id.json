@@ -1,0 +1,14 @@
+{
+    "@odata.type": "#microsoft.graph.win32MobileAppCatalogPackage",
+    "id": "5af1ade9-6966-3608-7e04-848252e29681",
+    "productId": "3a6307ef-6991-faf1-01e1-35e1557287aa",
+    "productDisplayName": "7-Zip",
+    "publisherDisplayName": "Igor Pavlov",
+    "versionDisplayName": "25.01",
+    "branchDisplayName": "7-Zip (x64)",
+    "applicableArchitectures": "x64",
+    "locales": [
+        "mul"
+    ],
+    "packageAutoUpdateCapable": false
+}
