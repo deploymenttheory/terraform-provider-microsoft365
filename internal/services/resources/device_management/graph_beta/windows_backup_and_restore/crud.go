@@ -7,7 +7,6 @@ import (
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
-	customrequests "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/custom_requests"
 	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -32,7 +31,20 @@ func (r *WindowsBackupAndRestoreResource) Create(ctx context.Context, req resour
 	}
 	defer cancel()
 
-	requestBody, err := constructResource(ctx, &object, true)
+	// Resolve the Windows Restore Device Enrollment Configuration ID
+	configID := resolveWindowsRestoreDeviceEnrollmentConfigurationID(
+		ctx,
+		r.client.DeviceManagement(),
+		resp,
+		"Create",
+		r.WritePermissions,
+	)
+	if configID == "" {
+		// Error already handled by the resolver function
+		return
+	}
+
+	requestBody, err := constructResource(ctx, &object)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error constructing resource",
@@ -41,29 +53,18 @@ func (r *WindowsBackupAndRestoreResource) Create(ctx context.Context, req resour
 		return
 	}
 
-	// Update the existing Windows Restore configuration using custom PATCH request
-	// The Windows Restore configuration ID follows the pattern: {defaultWindowsRestoreConfigurationId}_WindowsRestore
-	patchConfig := customrequests.PatchRequestConfig{
-		APIVersion:        customrequests.GraphAPIBeta,
-		Endpoint:          "deviceManagement/deviceEnrollmentConfigurations",
-		ResourceID:        "54fac284-7866-43e5-860a-9c8e10fa3d7d_WindowsRestore",
-		ResourceIDPattern: "/{id}",
-		RequestBody:       requestBody,
-	}
-
-	err = customrequests.PatchRequestByResourceId(
-		ctx,
-		r.client.GetAdapter(),
-		patchConfig,
-	)
+	_, err = r.client.
+		DeviceManagement().
+		DeviceEnrollmentConfigurations().
+		ByDeviceEnrollmentConfigurationId(configID).
+		Patch(ctx, requestBody, nil)
 
 	if err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, "Create", r.WritePermissions)
 		return
 	}
 
-	// default Windows Restore configuration id applied with the lowest priority to all users and all devices regardless of group membership.
-	object.ID = types.StringValue(patchConfig.ResourceID)
+	object.ID = types.StringValue(configID)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
@@ -95,12 +96,6 @@ func (r *WindowsBackupAndRestoreResource) Read(ctx context.Context, req resource
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting Read method for: %s", ResourceName))
 
-	operation := "Read"
-	if ctxOp := ctx.Value("retry_operation"); ctxOp != nil {
-		if opStr, ok := ctxOp.(string); ok {
-			operation = opStr
-		}
-	}
 	resp.Diagnostics.Append(req.State.Get(ctx, &object)...)
 
 	if resp.Diagnostics.HasError() {
@@ -115,21 +110,23 @@ func (r *WindowsBackupAndRestoreResource) Read(ctx context.Context, req resource
 	}
 	defer cancel()
 
-	// For now, let's create a simple Windows Restore configuration
-	// In a real implementation, we would query for the existing configuration
-	respResource := graphmodels.NewWindowsRestoreDeviceEnrollmentConfiguration()
+	configuration, err := r.client.
+		DeviceManagement().
+		DeviceEnrollmentConfigurations().
+		ByDeviceEnrollmentConfigurationId(object.ID.ValueString()).
+		Get(ctx, nil)
 
-	// Set default values
-	id := "windows-restore-configuration"
-	respResource.SetId(&id)
+	if err != nil {
+		errors.HandleKiotaGraphError(ctx, err, resp, "Read", r.ReadPermissions)
+		return
+	}
 
-	displayName := "Windows Backup and Restore"
-	respResource.SetDescription(&displayName)
-
-	state := graphmodels.ENABLED_ENABLEMENT
-	respResource.SetState(&state)
-
-	MapRemoteStateToTerraform(ctx, &object, respResource)
+	// Map the configuration to Terraform state (includes type validation)
+	if !MapRemoteStateToTerraform(ctx, &object, configuration) {
+		tflog.Warn(ctx, "Configuration is not a Windows Restore Device Enrollment Configuration, removing from state")
+		resp.State.RemoveResource(ctx)
+		return
+	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
@@ -158,7 +155,7 @@ func (r *WindowsBackupAndRestoreResource) Update(ctx context.Context, req resour
 	}
 	defer cancel()
 
-	requestBody, err := constructResource(ctx, &plan, false)
+	requestBody, err := constructResource(ctx, &plan)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error constructing resource for update method",
@@ -167,19 +164,11 @@ func (r *WindowsBackupAndRestoreResource) Update(ctx context.Context, req resour
 		return
 	}
 
-	patchConfig := customrequests.PatchRequestConfig{
-		APIVersion:        customrequests.GraphAPIBeta,
-		Endpoint:          "deviceManagement/deviceEnrollmentConfigurations",
-		ResourceID:        "54fac284-7866-43e5-860a-9c8e10fa3d7d_WindowsRestore",
-		ResourceIDPattern: "/{id}",
-		RequestBody:       requestBody,
-	}
-
-	err = customrequests.PatchRequestByResourceId(
-		ctx,
-		r.client.GetAdapter(),
-		patchConfig,
-	)
+	_, err = r.client.
+		DeviceManagement().
+		DeviceEnrollmentConfigurations().
+		ByDeviceEnrollmentConfigurationId(state.ID.ValueString()).
+		Patch(ctx, requestBody, nil)
 
 	if err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, "Update", r.WritePermissions)
@@ -222,17 +211,24 @@ func (r *WindowsBackupAndRestoreResource) Delete(ctx context.Context, req resour
 	}
 	defer cancel()
 
-	err := r.client.
+	// set the state to "notConfigured" to
+	// disable the Windows Restore configuration. setting is builtin. cant be deleted.
+	config := graphmodels.NewWindowsRestoreDeviceEnrollmentConfiguration()
+	notConfiguredState := graphmodels.NOTCONFIGURED_ENABLEMENT
+	config.SetState(&notConfiguredState)
+
+	_, err := r.client.
 		DeviceManagement().
 		DeviceEnrollmentConfigurations().
 		ByDeviceEnrollmentConfigurationId(object.ID.ValueString()).
-		Delete(ctx, nil)
+		Patch(ctx, config, nil)
 
 	if err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, "Delete", r.WritePermissions)
 		return
 	}
 
+	tflog.Debug(ctx, "Successfully set Windows Restore configuration to notConfigured state")
 	tflog.Debug(ctx, fmt.Sprintf("Removing %s from Terraform state", ResourceName))
 
 	resp.State.RemoveResource(ctx)

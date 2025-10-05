@@ -7,16 +7,12 @@ import (
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	planmodifiers "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/plan_modifiers"
 	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/schema"
-	commonschemagraphbeta "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/schema/graph_beta/device_management"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
-	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
-	"github.com/hashicorp/terraform-plugin-framework/types"
 	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
 )
 
@@ -87,7 +83,7 @@ func (r *WindowsBackupAndRestoreResource) Schema(ctx context.Context, req resour
 	resp.Schema = schema.Schema{
 		MarkdownDescription: "Manages Windows Backup and Restore device enrollment configuration in Microsoft Intune using the `/deviceManagement/deviceEnrollmentConfigurations` " +
 			"endpoint. This configuration controls the Windows Restore feature for device enrollment. " +
-			"Learn more here: 'https://learn.microsoft.com/en-us/graph/api/resources/intune-deviceconfig-windowsrestoredeviceenrollmentconfiguration?view=graph-rest-beta'.",
+			"Learn more here: 'https://learn.microsoft.com/en-us/windows/configuration/windows-backup/?tabs=intune'.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed: true,
@@ -96,70 +92,14 @@ func (r *WindowsBackupAndRestoreResource) Schema(ctx context.Context, req resour
 				},
 				MarkdownDescription: "The unique identifier of the Windows Backup and Restore configuration.",
 			},
-			"display_name": schema.StringAttribute{
-				Required:            true,
-				MarkdownDescription: "The display name of the Windows Backup and Restore configuration.",
-			},
-			"description": schema.StringAttribute{
-				Optional:            true,
-				MarkdownDescription: "Admin provided description of the Windows Backup and Restore configuration.",
-			},
-			"priority": schema.Int32Attribute{
-				Optional: true,
-				Computed: true,
-				MarkdownDescription: "Priority is used when a user is enrolled in multiple configurations that have the same setting. " +
-					"Intune will apply the setting from the configuration with the smallest priority value.",
-			},
-			"created_date_time": schema.StringAttribute{
-				Computed:            true,
-				MarkdownDescription: "Created date time of the configuration.",
-				PlanModifiers: []planmodifier.String{
-					planmodifiers.UseStateForUnknownString(),
-				},
-			},
-			"last_modified_date_time": schema.StringAttribute{
-				Computed:            true,
-				MarkdownDescription: "Last modified date time of the configuration.",
-				PlanModifiers: []planmodifier.String{
-					planmodifiers.UseStateForUnknownString(),
-				},
-			},
-			"version": schema.Int32Attribute{
-				Computed:            true,
-				MarkdownDescription: "Version of the configuration.",
-				PlanModifiers: []planmodifier.Int32{
-					planmodifiers.UseStateForUnknownInt32(),
-				},
-			},
-			"role_scope_tag_ids": schema.SetAttribute{
-				ElementType:         types.StringType,
-				Optional:            true,
-				Computed:            true,
-				MarkdownDescription: "Set of scope tag IDs for this Entity instance.",
-				PlanModifiers: []planmodifier.Set{
-					planmodifiers.DefaultSetValue(
-						[]attr.Value{types.StringValue("0")},
-					),
-				},
-			},
-			"device_enrollment_configuration_type": schema.StringAttribute{
-				Computed:            true,
-				MarkdownDescription: "The type of device enrollment configuration. Always 'windowsRestore' for this resource.",
-				PlanModifiers: []planmodifier.String{
-					planmodifiers.UseStateForUnknownString(),
-				},
-			},
 			"state": schema.StringAttribute{
-				Optional:            true,
-				Computed:            true,
-				MarkdownDescription: "The state of the Windows Restore configuration. Possible values are: 'enabled', 'disabled', 'notConfigured'.",
+				Required:            true,
+				MarkdownDescription: "The enablement state of Windows Backup and Restore. Possible values are: 'enabled', 'disabled', 'notConfigured'.",
 				Validators: []validator.String{
 					stringvalidator.OneOf("enabled", "disabled", "notConfigured"),
 				},
-				Default: stringdefault.StaticString("enabled"),
 			},
-			"assignments": commonschemagraphbeta.ComplianceScriptAssignmentsSchema(),
-			"timeouts":    commonschema.Timeouts(ctx),
+			"timeouts": commonschema.Timeouts(ctx),
 		},
 	}
 }

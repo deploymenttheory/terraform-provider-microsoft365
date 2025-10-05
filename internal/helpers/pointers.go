@@ -9,3 +9,11 @@ func BoolPtr(b bool) *bool {
 func StringPtr(s string) *string {
 	return &s
 }
+
+// GetStringValue safely extracts a string value from a pointer, returning empty string if nil
+func GetStringValue(value *string) string {
+	if value == nil {
+		return ""
+	}
+	return *value
+}
