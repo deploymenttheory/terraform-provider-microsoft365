@@ -17,9 +17,9 @@ ephemeral "microsoft365_multitenant_management_audit_events" "activity_filter" {
 
 # Example 4: Use OData filtering for recent events
 ephemeral "microsoft365_multitenant_management_audit_events" "recent_events" {
-  filter_type  = "odata"
-  odata_filter = "activityDateTime ge 2024-01-01T00:00:00Z"
-  odata_top    = 100
+  filter_type   = "odata"
+  odata_filter  = "activityDateTime ge 2024-01-01T00:00:00Z"
+  odata_top     = 100
   odata_orderby = "activityDateTime desc"
 }
 
