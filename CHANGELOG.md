@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.32.0-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.31.1-alpha...v0.32.0-alpha) (2025-10-05)
+
+
+### Features
+
+* added graph_beta_device_management_windows_backup_and_restore ([bd318ce](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/bd318ce494f1ccb88f71b3b8a03a4e232c80c30b))
+* ground work for windows_backup_and_restore ([670ce4a](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/670ce4a88b12f1b289a51bc3fdcf11bb7b5699d4))
+* ground work for windows_backup_and_restore and doc fixes for actions ([#815](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/815)) ([62c5340](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/62c5340fce676a1557df261e76f6b13e02090525))
+
+
+### Bug Fixes
+
+* added Windows 11, version 25H2 to windows_feature_update_profile Resource ([d60f511](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/d60f51155af1aeee3d3be8cabb73000fef64317d))
+* for microsoft365_graph_beta_multitenant_management_audit_event Ephemeral Resource ([c8e0529](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/c8e05296c29c7c2d5aa07bc63c2fe1f86f173637))
+* for microsoft365_graph_beta_multitenant_management_audit_event ephemeral Resource ([#813](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/813)) ([4ba0f13](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/4ba0f13ea1af19c92ce01e5969f188ec637acd18))
+* linter fix, package restructure with docs bump ([d1f527a](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/d1f527af4e4a3d3574a8a4f0d3b2f180ab734fd9))
+* linter fix, package restructure with docs bump ([#811](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/811)) ([856856f](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/856856fbbcf6aa123cc3a2a8ec6800357d4c655e))
+
 ## [0.31.1-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.31.0-alpha...v0.31.1-alpha) (2025-10-02)
 
 
