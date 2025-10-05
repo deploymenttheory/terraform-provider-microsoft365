@@ -35,68 +35,82 @@ func setProviderConfiguration(ctx context.Context, config M365ProviderModel) (M3
 	}, diags
 }
 
-func setEntraIDOptions(ctx context.Context, config types.Object) (types.Object, diag.Diagnostics) {
-	var diags diag.Diagnostics
-	var entraIDOptions EntraIDOptionsModel
-
-	entraIDSchema := schemaToAttrTypes(EntraIDOptionsSchema())
-
+// unmarshalConfigOrCheckEnvVars attempts to unmarshal the config object into the target model.
+// If config is null/unknown and checkEnvVars is true, it checks if any of the provided
+// environment variables are set. Returns the unmarshaled model, whether to proceed, and any diagnostics.
+func unmarshalConfigOrCheckEnvVars(
+	ctx context.Context,
+	config types.Object,
+	target interface{},
+	checkEnvVars bool,
+	envVarsToCheck []string,
+) (shouldProceed bool, diags diag.Diagnostics) {
 	if !config.IsNull() && !config.IsUnknown() {
-		diags.Append(config.As(ctx, &entraIDOptions, basetypes.ObjectAsOptions{})...)
-		if diags.HasError() {
-			return types.ObjectNull(entraIDSchema), diags
-		}
-	} else {
-		// If config is null/unknown, check if any relevant environment variables are set
-		// If no env vars are set, return null.
-		envVarsToCheck := []string{
-			"M365_CLIENT_ID",
-			"M365_CLIENT_SECRET",
-			"M365_CLIENT_CERTIFICATE_FILE_PATH",
-			"M365_CLIENT_CERTIFICATE_PASSWORD",
-			"M365_USERNAME",
-			"M365_SEND_CERTIFICATE_CHAIN",
-			"M365_DISABLE_INSTANCE_DISCOVERY",
-			"M365_ADDITIONALLY_ALLOWED_TENANTS",
-			"M365_REDIRECT_URI",
-			"AZURE_FEDERATED_TOKEN_FILE",
-			"M365_MANAGED_IDENTITY_ID",
-			"AZURE_CLIENT_ID",
-			"M365_OIDC_TOKEN_FILE_PATH",
-			"M365_OIDC_REQUEST_URL",
-			"ACTIONS_ID_TOKEN_REQUEST_URL",
-			"M365_OIDC_REQUEST_TOKEN",
-			"ACTIONS_ID_TOKEN_REQUEST_TOKEN",
-			"ARM_ADO_PIPELINE_SERVICE_CONNECTION_ID",
-			"ARM_OIDC_AZURE_SERVICE_CONNECTION_ID",
-		}
+		diags.Append(config.As(ctx, target, basetypes.ObjectAsOptions{})...)
+		return !diags.HasError(), diags
+	}
 
-		hasEnvVars := false
-		for _, envVar := range envVarsToCheck {
-			if os.Getenv(envVar) != "" {
-				hasEnvVars = true
-				break
-			}
-		}
+	if !checkEnvVars {
+		return false, diags
+	}
 
-		if !hasEnvVars {
-			return types.ObjectNull(entraIDSchema), diags
+	// Check if any relevant environment variables are set
+	for _, envVar := range envVarsToCheck {
+		if os.Getenv(envVar) != "" {
+			return true, diags
 		}
 	}
 
+	return false, diags
+}
+
+// setEntraIDOptions sets the EntraIDOptionsModel from the configuration or environment variables
+func setEntraIDOptions(ctx context.Context, config types.Object) (types.Object, diag.Diagnostics) {
+	var diags diag.Diagnostics
+	var entraIDOptions EntraIDOptionsModel
+	entraIDSchema := schemaToAttrTypes(EntraIDOptionsSchema())
+
+	envVarsToCheck := []string{
+		"M365_CLIENT_ID", "M365_CLIENT_SECRET", "M365_CLIENT_CERTIFICATE_FILE_PATH",
+		"M365_CLIENT_CERTIFICATE_PASSWORD", "M365_USERNAME", "M365_SEND_CERTIFICATE_CHAIN",
+		"M365_DISABLE_INSTANCE_DISCOVERY", "M365_ADDITIONALLY_ALLOWED_TENANTS",
+		"M365_REDIRECT_URI", "AZURE_FEDERATED_TOKEN_FILE", "M365_MANAGED_IDENTITY_ID",
+		"AZURE_CLIENT_ID", "M365_OIDC_TOKEN_FILE_PATH", "M365_OIDC_REQUEST_URL",
+		"ACTIONS_ID_TOKEN_REQUEST_URL", "M365_OIDC_REQUEST_TOKEN",
+		"ACTIONS_ID_TOKEN_REQUEST_TOKEN", "ARM_ADO_PIPELINE_SERVICE_CONNECTION_ID",
+		"ARM_OIDC_AZURE_SERVICE_CONNECTION_ID",
+	}
+
+	shouldProceed, unmarshalDiags := unmarshalConfigOrCheckEnvVars(
+		ctx, config, &entraIDOptions, true, envVarsToCheck,
+	)
+	diags.Append(unmarshalDiags...)
+
+	if !shouldProceed {
+		return types.ObjectNull(entraIDSchema), diags
+	}
+
+	// Handle additionally_allowed_tenants list
 	var defaultAllowedTenants []string
 	if !entraIDOptions.AdditionallyAllowedTenants.IsNull() && !entraIDOptions.AdditionallyAllowedTenants.IsUnknown() {
 		entraIDOptions.AdditionallyAllowedTenants.ElementsAs(ctx, &defaultAllowedTenants, false)
 	}
-
 	allowedTenants := helpers.GetEnvStringSlice("M365_ADDITIONALLY_ALLOWED_TENANTS", defaultAllowedTenants)
-	allowedTenantsList, diags := types.ListValueFrom(ctx, types.StringType, allowedTenants)
+	allowedTenantsList, listDiags := types.ListValueFrom(ctx, types.StringType, allowedTenants)
+	diags.Append(listDiags...)
 	if diags.HasError() {
 		return types.ObjectNull(entraIDSchema), diags
 	}
 
-	oidcRequestURL := helpers.GetFirstEnvString([]string{"M365_OIDC_REQUEST_URL", "ACTIONS_ID_TOKEN_REQUEST_URL"}, entraIDOptions.OIDCRequestURL.ValueString())
-	oidcRequestToken := helpers.GetFirstEnvString([]string{"M365_OIDC_REQUEST_TOKEN", "ACTIONS_ID_TOKEN_REQUEST_TOKEN"}, entraIDOptions.OIDCRequestToken.ValueString())
+	// Handle OIDC fields with multiple env var sources
+	oidcRequestURL := helpers.GetFirstEnvString(
+		[]string{"M365_OIDC_REQUEST_URL", "ACTIONS_ID_TOKEN_REQUEST_URL"},
+		entraIDOptions.OIDCRequestURL.ValueString(),
+	)
+	oidcRequestToken := helpers.GetFirstEnvString(
+		[]string{"M365_OIDC_REQUEST_TOKEN", "ACTIONS_ID_TOKEN_REQUEST_TOKEN"},
+		entraIDOptions.OIDCRequestToken.ValueString(),
+	)
 
 	tflog.Info(ctx, "OIDC configuration debug", map[string]any{
 		"oidc_request_url":       oidcRequestURL,
@@ -124,18 +138,18 @@ func setEntraIDOptions(ctx context.Context, config types.Object) (types.Object, 
 	}), diags
 }
 
+// setClientOptions sets the ClientOptionsModel from the configuration or environment variables
 func setClientOptions(ctx context.Context, config types.Object) (types.Object, diag.Diagnostics) {
 	var diags diag.Diagnostics
 	var clientOptions ClientOptionsModel
-
 	clientSchema := schemaToAttrTypes(ClientOptionsSchema())
 
-	if config.IsNull() || config.IsUnknown() {
-		return types.ObjectNull(clientSchema), diags
-	}
+	shouldProceed, unmarshalDiags := unmarshalConfigOrCheckEnvVars(
+		ctx, config, &clientOptions, false, nil,
+	)
+	diags.Append(unmarshalDiags...)
 
-	diags.Append(config.As(ctx, &clientOptions, basetypes.ObjectAsOptions{})...)
-	if diags.HasError() {
+	if !shouldProceed {
 		return types.ObjectNull(clientSchema), diags
 	}
 

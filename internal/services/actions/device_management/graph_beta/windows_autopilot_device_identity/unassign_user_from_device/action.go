@@ -7,10 +7,10 @@ import (
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/client"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/schema"
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-framework/action/schema"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
-	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 
 	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
 )
@@ -56,7 +56,7 @@ func (a *UnassignUserFromDeviceAction) Metadata(ctx context.Context, req action.
 
 // FullTypeName returns the full action type name in the format "providername_actionname".
 func (a *UnassignUserFromDeviceAction) FullTypeName() string {
-	return a.ProviderTypeName + "_" + a.TypeName
+	return a.ProviderTypeName + "_" + ActionName
 }
 
 // Description returns the action description.

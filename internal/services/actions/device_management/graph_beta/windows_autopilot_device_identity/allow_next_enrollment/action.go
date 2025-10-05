@@ -56,7 +56,7 @@ func (a *AllowNextEnrollmentAction) Metadata(ctx context.Context, req action.Met
 
 // FullTypeName returns the full action type name in the format "providername_actionname".
 func (a *AllowNextEnrollmentAction) FullTypeName() string {
-	return a.ProviderTypeName + "_" + a.TypeName
+	return a.ProviderTypeName + "_" + ActionName
 }
 
 // Configure sets the client for the action.

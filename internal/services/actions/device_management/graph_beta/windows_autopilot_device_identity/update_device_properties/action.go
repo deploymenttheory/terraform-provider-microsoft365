@@ -58,14 +58,7 @@ func (a *UpdateDevicePropertiesAction) Metadata(ctx context.Context, req action.
 
 // FullTypeName returns the full action type name in the format "providername_actionname".
 func (a *UpdateDevicePropertiesAction) FullTypeName() string {
-	return a.ProviderTypeName + "_" + a.TypeName
-}
-
-// Description returns the action description.
-func (a *UpdateDevicePropertiesAction) Description(ctx context.Context) string {
-	return "Updates properties on an Autopilot device in Microsoft Intune using the " +
-		"`/deviceManagement/windowsAutopilotDeviceIdentities/{windowsAutopilotDeviceIdentityId}/updateDeviceProperties` endpoint. " +
-		"This action allows updating various properties of Autopilot devices including user assignment, group tag, and display name."
+	return a.ProviderTypeName + "_" + ActionName
 }
 
 // Configure sets the client for the action.
