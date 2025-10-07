@@ -135,6 +135,8 @@ Optional:
 Import is supported using the following syntax:
 
 ```shell
+#!/bin/bash
+
 # {resource_id}
-terraform import microsoft365_graph_beta_device_management_apple_user_initiated_enrollment_profile_assignment.example apple-user-initiated-enrollment-profile-assignment-id
+terraform import microsoft365_graph_beta_device_management_apple_user_initiated_enrollment_profile_assignment.example 00000000-0000-0000-0000-000000000000
 ``` 

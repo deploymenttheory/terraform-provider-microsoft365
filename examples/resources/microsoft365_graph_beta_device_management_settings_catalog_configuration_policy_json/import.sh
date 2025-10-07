@@ -1,3 +1,5 @@
+#!/bin/bash
+
 # {resource_id}
 terraform import microsoft365_graph_beta_device_management_settings_catalog_configuration_policy_json.example 00000000-0000-0000-0000-000000000000
 

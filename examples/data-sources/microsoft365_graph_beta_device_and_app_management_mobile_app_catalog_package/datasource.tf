@@ -15,13 +15,13 @@ output "all_catalog_package" {
 output "all_packages_summary" {
   value = data.microsoft365_graph_beta_device_and_app_management_mobile_app_catalog_package.all_packages.items != null ? [
     for package in data.microsoft365_graph_beta_device_and_app_management_mobile_app_catalog_package.all_packages.items : {
-      id                        = package.id
-      product_id                = package.product_id
-      product_display_name      = package.product_display_name
-      publisher_display_name    = package.publisher_display_name
-      version_display_name      = package.version_display_name
-      branch_display_name       = package.branch_display_name
-      applicable_architectures  = package.applicable_architectures
+      id                          = package.id
+      product_id                  = package.product_id
+      product_display_name        = package.product_display_name
+      publisher_display_name      = package.publisher_display_name
+      version_display_name        = package.version_display_name
+      branch_display_name         = package.branch_display_name
+      applicable_architectures    = package.applicable_architectures
       package_auto_update_capable = package.package_auto_update_capable
     }
   ] : []
@@ -74,11 +74,11 @@ output "packages_by_publisher_name" {
 
 # Example 5: Get packages using OData filter
 data "microsoft365_graph_beta_device_and_app_management_mobile_app_catalog_package" "odata_filter" {
-  filter_type    = "odata"
-  odata_filter   = "productDisplayName eq '7-Zip'"
-  odata_count    = true
-  odata_orderby  = "productDisplayName"
-  odata_top      = 10
+  filter_type   = "odata"
+  odata_filter  = "productDisplayName eq '7-Zip'"
+  odata_count   = true
+  odata_orderby = "productDisplayName"
+  odata_top     = 10
 
   timeouts = {
     read = "30s"
@@ -92,14 +92,14 @@ output "packages_odata_filter" {
 
 # Example 6: Advanced OData query with multiple parameters
 data "microsoft365_graph_beta_device_and_app_management_mobile_app_catalog_package" "odata_advanced" {
-  filter_type    = "odata"
-  odata_filter   = "contains(productDisplayName, 'Microsoft')"
-  odata_top      = 5
-  odata_skip     = 0
-  odata_select   = "id,productId,productDisplayName,publisherDisplayName,versionDisplayName"
-  odata_orderby  = "productDisplayName"
-  odata_count    = true
-  odata_search   = "\"productDisplayName:Microsoft\""
+  filter_type   = "odata"
+  odata_filter  = "contains(productDisplayName, 'Microsoft')"
+  odata_top     = 5
+  odata_skip    = 0
+  odata_select  = "id,productId,productDisplayName,publisherDisplayName,versionDisplayName"
+  odata_orderby = "productDisplayName"
+  odata_count   = true
+  odata_search  = "\"productDisplayName:Microsoft\""
 
   timeouts = {
     read = "30s"

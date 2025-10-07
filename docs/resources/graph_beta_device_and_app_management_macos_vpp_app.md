@@ -62,7 +62,7 @@ resource "microsoft365_graph_beta_device_and_app_management_macos_vpp_app" "exam
   # }
 
   # Licensing type (optional)
-  licensing_type {
+  licensing_type = {
     support_user_licensing    = true
     support_device_licensing  = true
     supports_user_licensing   = true
