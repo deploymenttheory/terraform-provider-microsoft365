@@ -1,0 +1,65 @@
+{
+    "@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceAppManagement/mobileAppCatalogPackages",
+    "@odata.count": 0,
+    "value": [
+        {
+            "@odata.type": "#microsoft.graph.win32MobileAppCatalogPackage",
+            "id": "5af1ade9-6966-3608-7e04-848252e29681",
+            "productId": "3a6307ef-6991-faf1-01e1-35e1557287aa",
+            "productDisplayName": "7-Zip",
+            "publisherDisplayName": "Igor Pavlov",
+            "versionDisplayName": "25.01",
+            "branchDisplayName": "7-Zip (x64)",
+            "applicableArchitectures": "x64",
+            "locales": [
+                "mul"
+            ],
+            "packageAutoUpdateCapable": false
+        },
+        {
+            "@odata.type": "#microsoft.graph.win32MobileAppCatalogPackage",
+            "id": "8b2fade9-6966-3608-7e04-848252e29682",
+            "productId": "752bbff6-5cca-7dd6-ef1f-36cc75df8512",
+            "productDisplayName": "3CXPhone for Windows",
+            "publisherDisplayName": "3CX",
+            "versionDisplayName": "18.0.7",
+            "branchDisplayName": "3CXPhone for Windows (x64)",
+            "applicableArchitectures": "x64",
+            "locales": [
+                "en-US",
+                "mul"
+            ],
+            "packageAutoUpdateCapable": true
+        },
+        {
+            "@odata.type": "#microsoft.graph.win32MobileAppCatalogPackage",
+            "id": "9c3fade9-6966-3608-7e04-848252e29683",
+            "productId": "5ae2c14f-0ca9-2805-430c-365e0ac7ca86",
+            "productDisplayName": "3DF Zephyr Free",
+            "publisherDisplayName": "3Dflow srl",
+            "versionDisplayName": "2023.1.0",
+            "branchDisplayName": "3DF Zephyr Free (x64)",
+            "applicableArchitectures": "x64",
+            "locales": [
+                "en-US"
+            ],
+            "packageAutoUpdateCapable": false
+        },
+        {
+            "@odata.type": "#microsoft.graph.win32MobileAppCatalogPackage",
+            "id": "ad4fade9-6966-3608-7e04-848252e29684",
+            "productId": "307ebf5f-4e9f-ab0d-5a36-36ca7cdebd56",
+            "productDisplayName": "3DxWare 10",
+            "publisherDisplayName": "3Dconnexion UK",
+            "versionDisplayName": "10.7.0",
+            "branchDisplayName": "3DxWare 10 (x64)",
+            "applicableArchitectures": "x64",
+            "locales": [
+                "en-US",
+                "de-DE",
+                "fr-FR"
+            ],
+            "packageAutoUpdateCapable": true
+        }
+    ]
+}

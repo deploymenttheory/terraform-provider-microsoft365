@@ -118,11 +118,7 @@ func (d *MobileAppRelationshipDataSource) Read(ctx context.Context, req datasour
 		tflog.Debug(ctx, fmt.Sprintf("API returned %d results", len(respList.GetValue())))
 
 		for _, relationship := range respList.GetValue() {
-			mobileAppRelationship, ok := relationship.(graphmodels.MobileAppRelationshipable)
-			if !ok {
-				continue
-			}
-			appItem := MapRemoteStateToDataSource(ctx, mobileAppRelationship)
+			appItem := MapRemoteStateToDataSource(ctx, relationship)
 			filteredItems = append(filteredItems, appItem)
 		}
 	} else if filterType == "source_id" || filterType == "target_id" {
@@ -164,11 +160,7 @@ func (d *MobileAppRelationshipDataSource) Read(ctx context.Context, req datasour
 		}
 
 		for _, relationship := range respList.GetValue() {
-			mobileAppRelationship, ok := relationship.(graphmodels.MobileAppRelationshipable)
-			if !ok {
-				continue
-			}
-			appItem := MapRemoteStateToDataSource(ctx, mobileAppRelationship)
+			appItem := MapRemoteStateToDataSource(ctx, relationship)
 			filteredItems = append(filteredItems, appItem)
 		}
 	}

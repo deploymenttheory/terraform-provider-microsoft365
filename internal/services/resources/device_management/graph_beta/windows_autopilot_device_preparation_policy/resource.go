@@ -293,11 +293,12 @@ func (r *WindowsAutopilotDevicePreparationPolicyResource) Schema(ctx context.Con
 						},
 						"app_type": schema.StringAttribute{
 							Required:            true,
-							MarkdownDescription: "The type of the application. Valid values are: 'winGetApp', 'win32LobApp', 'officeSuiteApp', 'windowsUniversalAppX'.",
+							MarkdownDescription: "The type of the application. Valid values are: 'winGetApp', 'win32LobApp', 'win32CatalogApp', 'officeSuiteApp', 'windowsUniversalAppX'.",
 							Validators: []validator.String{
 								stringvalidator.OneOf(
 									"winGetApp",
 									"win32LobApp",
+									"win32CatalogApp",
 									"officeSuiteApp",
 									"windowsUniversalAppX",
 								),

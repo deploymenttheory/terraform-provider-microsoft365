@@ -149,7 +149,7 @@ Optional:
 Required:
 
 - `app_id` (String) The ID of the application.
-- `app_type` (String) The type of the application. Valid values are: 'winGetApp', 'win32LobApp', 'officeSuiteApp', 'windowsUniversalAppX'.
+- `app_type` (String) The type of the application. Valid values are: 'winGetApp', 'win32LobApp', 'win32CatalogApp', 'officeSuiteApp', 'windowsUniversalAppX'.
 
 
 <a id="nestedatt--assignments"></a>

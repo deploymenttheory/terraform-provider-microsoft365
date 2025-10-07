@@ -15,7 +15,6 @@ func (a *AllowNextEnrollmentAction) Invoke(ctx context.Context, req action.Invok
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting %s", ActionName))
 
-	// Read action config data into the model
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 	if resp.Diagnostics.HasError() {
 		return
