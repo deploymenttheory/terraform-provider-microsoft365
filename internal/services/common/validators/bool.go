@@ -221,3 +221,72 @@ func BoolCanOnlyBeTrueWhenStringEquals(dependentField string, dependentValue str
 func BoolCanOnlyBeFalseWhenStringEquals(dependentField string, dependentValue string, validationMessage string) validator.Bool {
 	return ConditionalStringBoolValue(dependentField, dependentValue, false, validationMessage)
 }
+
+// mutuallyExclusiveBoolValidator validates that two boolean fields cannot both be true at the same time
+type mutuallyExclusiveBoolValidator struct {
+	otherField        string
+	validationMessage string
+}
+
+// Description describes the validation in plain text formatting.
+func (v mutuallyExclusiveBoolValidator) Description(_ context.Context) string {
+	if v.validationMessage != "" {
+		return v.validationMessage
+	}
+
+	return fmt.Sprintf("this field and %s cannot both be set to true", v.otherField)
+}
+
+// MarkdownDescription describes the validation in Markdown formatting.
+func (v mutuallyExclusiveBoolValidator) MarkdownDescription(ctx context.Context) string {
+	return v.Description(ctx)
+}
+
+// ValidateBool performs the validation.
+func (v mutuallyExclusiveBoolValidator) ValidateBool(ctx context.Context, req validator.BoolRequest, resp *validator.BoolResponse) {
+	// Skip validation if the current value is null, unknown, or false
+	if req.ConfigValue.IsNull() || req.ConfigValue.IsUnknown() || !req.ConfigValue.ValueBool() {
+		return
+	}
+
+	// Skip validation if the config is empty (for testing purposes)
+	if req.Config.Raw.IsNull() {
+		return
+	}
+
+	// Try to get the other field value
+	var otherValue types.Bool
+	diags := req.Config.GetAttribute(ctx, path.Root(v.otherField), &otherValue)
+	if diags.HasError() {
+		// If we can't find the field, skip validation
+		return
+	}
+
+	// Skip validation if other field is null or unknown
+	if otherValue.IsNull() || otherValue.IsUnknown() {
+		return
+	}
+
+	// If both fields are true, add an error
+	if otherValue.ValueBool() {
+		errorMessage := v.validationMessage
+		if errorMessage == "" {
+			errorMessage = fmt.Sprintf("The fields cannot both be set to true. Either this field or %s must be false.", v.otherField)
+		}
+
+		resp.Diagnostics.AddAttributeError(
+			req.Path,
+			"Mutually Exclusive Fields",
+			errorMessage,
+		)
+	}
+}
+
+// MutuallyExclusiveBool returns a boolean validator which ensures that the current field
+// and another boolean field cannot both be true at the same time.
+func MutuallyExclusiveBool(otherField string, validationMessage string) validator.Bool {
+	return &mutuallyExclusiveBoolValidator{
+		otherField:        otherField,
+		validationMessage: validationMessage,
+	}
+}

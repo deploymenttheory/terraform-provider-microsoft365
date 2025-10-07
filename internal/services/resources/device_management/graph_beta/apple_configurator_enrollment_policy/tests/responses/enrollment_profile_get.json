@@ -1,0 +1,10 @@
+{
+    "@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/depOnboardingSettings('54fac284-7866-43e5-860a-9c8e10fa3d7d')/enrollmentProfiles/$entity",
+    "id": "54fac284-7866-43e5-860a-9c8e10fa3d7d_b4cda2e6-3d9f-4eb6-aac3-bab920178f4a",
+    "displayName": "Test Minimal Apple Configurator Enrollment Policy - Unique",
+    "description": "Minimal apple configurator enrollment policy for unit testing",
+    "requiresUserAuthentication": false,
+    "configurationEndpointUrl": "https://appleconfigurator2.manage.microsoft.com/EnrollmentServer/MDMServiceConfig?id=54fac284-7866-43e5-860a-9c8e10fa3d7d&AADTenantId=2fd6bb84-ad40-4ec5-9369-a215b25c9952",
+    "enableAuthenticationViaCompanyPortal": false,
+    "requireCompanyPortalOnSetupAssistantEnrolledDevices": false
+}
