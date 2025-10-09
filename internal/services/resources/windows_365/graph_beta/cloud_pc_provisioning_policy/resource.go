@@ -146,7 +146,7 @@ func (r *CloudPcProvisioningPolicyResource) Schema(ctx context.Context, req reso
 							MarkdownDescription: "Specifies the method by which the provisioned Cloud PC joins Microsoft Entra ID.",
 							Default:             stringdefault.StaticString("azureADJoin"),
 							Validators: []validator.String{
-								stringvalidator.OneOf("azureADJoin", "hybridAzureADJoin", "unknownFutureValue"),
+								stringvalidator.OneOf("azureADJoin", "hybridAzureADJoin"),
 							},
 						},
 						"on_premises_connection_id": schema.StringAttribute{
@@ -216,12 +216,14 @@ func (r *CloudPcProvisioningPolicyResource) Schema(ctx context.Context, req reso
 			"image_id": schema.StringAttribute{
 				Required: true,
 				MarkdownDescription: "The unique identifier that represents an operating system image used for provisioning new Cloud PCs. Must be one of:" +
+					"'microsoftwindowsdesktop_windows-ent-cpc_win11-25h2-ent-cpc-m365'," +
 					"'microsoftwindowsdesktop_windows-ent-cpc_win11-24H2-ent-cpc'," +
 					"'microsoftwindowsdesktop_windows-ent-cpc_win11-24H2-ent-cpc-m365'," +
 					"'microsoftwindowsdesktop_windows-ent-cpc_win11-23h2-ent-cpc-m365'," +
 					"'microsoftwindowsdesktop_windows-ent-cpc_win11-23h2-ent-cpc'.",
 				Validators: []validator.String{
 					stringvalidator.OneOf(
+						"microsoftwindowsdesktop_windows-ent-cpc_win11-25h2-ent-cpc-m365",
 						"microsoftwindowsdesktop_windows-ent-cpc_win11-24H2-ent-cpc",
 						"microsoftwindowsdesktop_windows-ent-cpc_win11-24H2-ent-cpc-m365",
 						"microsoftwindowsdesktop_windows-ent-cpc_win11-23h2-ent-cpc",
