@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/constructors"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/microsoftgraph/msgraph-beta-sdk-go/devicemanagement"
 )
@@ -18,6 +19,8 @@ func constructRequest(ctx context.Context, data *ApplyCloudPcProvisioningPolicyA
 		policySettings := data.PolicySettings.ValueString()
 		requestBody.GetAdditionalData()["policySettings"] = policySettings
 	}
+
+	convert.FrameworkToGraphInt32(data.ReservePercentage, requestBody.SetReservePercentage)
 
 	if err := constructors.DebugLogGraphObject(ctx, fmt.Sprintf("Final JSON to be sent to Graph API for action %s", ActionName), requestBody); err != nil {
 		tflog.Error(ctx, "Failed to debug log object", map[string]any{

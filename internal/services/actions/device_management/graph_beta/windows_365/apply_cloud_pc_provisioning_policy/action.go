@@ -7,6 +7,7 @@ import (
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/client"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/schema"
+	"github.com/hashicorp/terraform-plugin-framework-validators/int32validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-framework/action/schema"
@@ -79,14 +80,25 @@ func (a *ApplyCloudPcProvisioningPolicyAction) Schema(ctx context.Context, req a
 				},
 			},
 			"policy_settings": schema.StringAttribute{
-				Required: true,
-				MarkdownDescription: "The type of policy settings to apply to existing Cloud PCs. " +
+				Optional: true,
+				MarkdownDescription: "The target property of the apply action. " +
 					"Valid values are:\n" +
-					"- `singleSignOn`: Apply single sign-on configuration changes to existing Cloud PCs\n" +
-					"- `region`: Apply region configuration changes to existing Cloud PCs\n\n" +
+					"- `region`: Apply region configuration changes to existing Cloud PCs (default)\n" +
+					"- `singleSignOn`: Apply single sign-on configuration changes to existing Cloud PCs\n\n" +
+					"The default value is `region`. This action applies region as a value if this parameter is null.\n" +
 					"Note: Network and image changes cannot be applied retrospectively and require reprovisioning.",
 				Validators: []validator.String{
 					stringvalidator.OneOf("singleSignOn", "region"),
+				},
+			},
+			"reserve_percentage": schema.Int32Attribute{
+				Optional: true,
+				MarkdownDescription: "For Frontline shared Cloud PCs only. The percentage of Cloud PCs to keep available. " +
+					"Administrators can set this property to a value from 0 to 99. " +
+					"Cloud PCs are reprovisioned only when there are no active and connected Cloud PC users. " +
+					"This parameter is only applicable for Frontline shared provisioning policies.",
+				Validators: []validator.Int32{
+					int32validator.Between(0, 99),
 				},
 			},
 			"timeouts": commonschema.Timeouts(ctx),

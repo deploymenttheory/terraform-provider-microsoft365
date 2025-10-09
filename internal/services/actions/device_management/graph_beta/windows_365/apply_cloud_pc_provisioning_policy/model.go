@@ -9,5 +9,6 @@ import (
 type ApplyCloudPcProvisioningPolicyActionModel struct {
 	ProvisioningPolicyID types.String   `tfsdk:"provisioning_policy_id"`
 	PolicySettings       types.String   `tfsdk:"policy_settings"`
+	ReservePercentage    types.Int32    `tfsdk:"reserve_percentage"`
 	Timeouts             timeouts.Value `tfsdk:"timeouts"`
 }
