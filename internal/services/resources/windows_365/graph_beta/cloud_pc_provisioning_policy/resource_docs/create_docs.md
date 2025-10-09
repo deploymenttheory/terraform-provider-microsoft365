@@ -1,0 +1,28 @@
+{
+  "displayName":"test",
+  "description":"test",
+  "provisioningType":"dedicated",
+  "userExperienceType":"cloudPc",
+  "managedBy":"windows365",
+  "imageId":"microsoftwindowsdesktop_windows-ent-cpc_win11-25h2-ent-cpc",
+  "imageDisplayName":"Windows 11 Enterprise 25H2",
+  "imageType":"gallery",
+  "microsoftManagedDesktop":{
+    "type":"notManaged",
+    "profile":""
+  },
+  "enableSingleSignOn":true,
+  "domainJoinConfigurations":[
+    {
+      "type":"azureADJoin",
+      "regionGroup":"japan",
+      "regionName":"automatic"
+    }],
+  "windowsSettings":{
+    "language":"en-US"
+    },
+  "cloudPcNamingTemplate":"CPC-%USERNAME:5%-%RAND:5%",
+  "scopeIds":["0"],
+  "autopatch":{},
+  "userSettingsPersistenceEnabled":false
+}

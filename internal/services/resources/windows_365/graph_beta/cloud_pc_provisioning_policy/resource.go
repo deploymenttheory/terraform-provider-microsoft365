@@ -3,10 +3,13 @@ package graphBetaCloudPcProvisioningPolicy
 import (
 	"context"
 
+	"regexp"
+
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/client"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	planmodifiers "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/plan_modifiers"
 	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/schema"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/validators"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -98,7 +101,14 @@ func (r *CloudPcProvisioningPolicyResource) Schema(ctx context.Context, req reso
 			},
 			"display_name": schema.StringAttribute{
 				Required:            true,
-				MarkdownDescription: "The display name for the provisioning policy.",
+				MarkdownDescription: "The display name for the provisioning policy. May not contain any of the following characters: <>()&|$'\",;^ and may not start or end with spaces.",
+				Validators: []validator.String{
+					validators.StringLengthAtMost(120),
+					stringvalidator.RegexMatches(
+						regexp.MustCompile(`^[^\s]([^<>()&|$'",;^]*[^\s])?$`),
+						"display name may not contain any of the following characters: <>()&|$'\",;^ and may not start or end with spaces",
+					),
+				},
 			},
 			"alternate_resource_url": schema.StringAttribute{
 				Computed:            true,
@@ -216,6 +226,7 @@ func (r *CloudPcProvisioningPolicyResource) Schema(ctx context.Context, req reso
 			"image_id": schema.StringAttribute{
 				Required: true,
 				MarkdownDescription: "The unique identifier that represents an operating system image used for provisioning new Cloud PCs. Must be one of:" +
+					"'microsoftwindowsdesktop_windows-ent-cpc_win11-25h2-ent-cpc'," +
 					"'microsoftwindowsdesktop_windows-ent-cpc_win11-25h2-ent-cpc-m365'," +
 					"'microsoftwindowsdesktop_windows-ent-cpc_win11-24H2-ent-cpc'," +
 					"'microsoftwindowsdesktop_windows-ent-cpc_win11-24H2-ent-cpc-m365'," +
@@ -223,6 +234,7 @@ func (r *CloudPcProvisioningPolicyResource) Schema(ctx context.Context, req reso
 					"'microsoftwindowsdesktop_windows-ent-cpc_win11-23h2-ent-cpc'.",
 				Validators: []validator.String{
 					stringvalidator.OneOf(
+						"microsoftwindowsdesktop_windows-ent-cpc_win11-25h2-ent-cpc",
 						"microsoftwindowsdesktop_windows-ent-cpc_win11-25h2-ent-cpc-m365",
 						"microsoftwindowsdesktop_windows-ent-cpc_win11-24H2-ent-cpc",
 						"microsoftwindowsdesktop_windows-ent-cpc_win11-24H2-ent-cpc-m365",
