@@ -256,7 +256,6 @@ func (r *CloudPcProvisioningPolicyResource) Schema(ctx context.Context, req reso
 				Optional:            true,
 				Computed:            true,
 				MarkdownDescription: "When true, the local admin is enabled for Cloud PCs; false indicates that the local admin isn't enabled for Cloud PCs. The default value is false. Supports $filter, $select, and $orderBy.",
-				Default:             booldefault.StaticBool(false),
 			},
 			"managed_by": schema.StringAttribute{
 				Optional:            true,
@@ -264,7 +263,7 @@ func (r *CloudPcProvisioningPolicyResource) Schema(ctx context.Context, req reso
 				MarkdownDescription: "Specifies which service manages the Cloud PC provisioning policy. Possible values: windows365, devBox, unknownFutureValue, rpaBox. See Microsoft Graph documentation for details.",
 				Default:             stringdefault.StaticString("windows365"),
 				Validators: []validator.String{
-					stringvalidator.OneOf("windows365", "devBox", "unknownFutureValue", "rpaBox"),
+					stringvalidator.OneOf("windows365", "devBox", "rpaBox"),
 				},
 			},
 			"scope_ids": schema.SetAttribute{
