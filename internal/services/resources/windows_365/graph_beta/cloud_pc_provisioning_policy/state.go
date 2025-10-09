@@ -31,7 +31,6 @@ func MapRemoteStateToTerraform(ctx context.Context, data *CloudPcProvisioningPol
 	data.ImageDisplayName = convert.GraphToFrameworkString(remoteResource.GetImageDisplayName())
 	data.ImageId = convert.GraphToFrameworkString(remoteResource.GetImageId())
 	data.ImageType = convert.GraphToFrameworkEnum(remoteResource.GetImageType())
-	data.LocalAdminEnabled = convert.GraphToFrameworkBool(remoteResource.GetLocalAdminEnabled())
 	data.ProvisioningType = convert.GraphToFrameworkEnum(remoteResource.GetProvisioningType())
 	data.ManagedBy = convert.GraphToFrameworkEnum(remoteResource.GetManagedBy())
 	data.ScopeIds = convert.GraphToFrameworkStringSet(ctx, remoteResource.GetScopeIds())

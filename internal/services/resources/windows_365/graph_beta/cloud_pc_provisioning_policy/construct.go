@@ -51,7 +51,6 @@ func constructResource(ctx context.Context, data *CloudPcProvisioningPolicyResou
 	}
 
 	convert.FrameworkToGraphBool(data.EnableSingleSignOn, requestBody.SetEnableSingleSignOn)
-	convert.FrameworkToGraphBool(data.LocalAdminEnabled, requestBody.SetLocalAdminEnabled)
 
 	// Set ManagedBy if present
 	if !data.ManagedBy.IsNull() && !data.ManagedBy.IsUnknown() && data.ManagedBy.ValueString() != "" {

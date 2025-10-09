@@ -28,6 +28,7 @@ type RestorePointSettingModel struct {
 }
 
 type CrossRegionDisasterRecoverySettingModel struct {
+	CrossRegionDisasterRecoveryEnabled     types.Bool                           `tfsdk:"cross_region_disaster_recovery_enabled"`
 	MaintainCrossRegionRestorePointEnabled types.Bool                           `tfsdk:"maintain_cross_region_restore_point_enabled"`
 	UserInitiatedDisasterRecoveryAllowed   types.Bool                           `tfsdk:"user_initiated_disaster_recovery_allowed"`
 	DisasterRecoveryType                   types.String                         `tfsdk:"disaster_recovery_type"`

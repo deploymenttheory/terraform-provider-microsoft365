@@ -252,11 +252,6 @@ func (r *CloudPcProvisioningPolicyResource) Schema(ctx context.Context, req reso
 					stringvalidator.OneOf("gallery", "custom"),
 				},
 			},
-			"local_admin_enabled": schema.BoolAttribute{
-				Optional:            true,
-				Computed:            true,
-				MarkdownDescription: "When true, the local admin is enabled for Cloud PCs; false indicates that the local admin isn't enabled for Cloud PCs. The default value is false. Supports $filter, $select, and $orderBy.",
-			},
 			"managed_by": schema.StringAttribute{
 				Optional:            true,
 				Computed:            true,

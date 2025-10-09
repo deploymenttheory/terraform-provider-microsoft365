@@ -19,7 +19,6 @@ type CloudPcProvisioningPolicyResourceModel struct {
 	ImageDisplayName         types.String                   `tfsdk:"image_display_name"`
 	ImageId                  types.String                   `tfsdk:"image_id"`
 	ImageType                types.String                   `tfsdk:"image_type"`
-	LocalAdminEnabled        types.Bool                     `tfsdk:"local_admin_enabled"`
 	MicrosoftManagedDesktop  *MicrosoftManagedDesktopModel  `tfsdk:"microsoft_managed_desktop"`
 	ProvisioningType         types.String                   `tfsdk:"provisioning_type"`
 	WindowsSetting           *WindowsSettingModel           `tfsdk:"windows_setting"`
