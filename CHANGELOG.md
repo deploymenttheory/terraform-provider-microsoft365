@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.33.0-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.32.0-alpha...v0.33.0-alpha) (2025-10-10)
+
+
+### Features
+
+* added action apply_cloud_pc_provisioning_policy and fixes for cloud_pc_user_setting ([8eaf974](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/8eaf974bb610154e88fd88ebae5ac70e34d136fd))
+* added resource apple_configurator_enrollment_policy ([a88130f](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/a88130f9843849d0a464bd602d1f519539c4919c))
+* added resource apple_configurator_enrollment_policy and datasource mobile_app_catalog_package ([#817](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/817)) ([3ddecd8](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/3ddecd87d66e90e9d9a738729d804546a332968e))
+
+
+### Bug Fixes
+
+* added microsoftwindowsdesktop_windows-ent-cpc_win11-25h2-ent-cpc-m365 to resource graph_beta_windows_365_cloud_pc_provisioning_policy ([a7a8329](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/a7a83297a0c9e4432e40626bbd32e331155eb835))
+* added valdiation for display_name ([1b69f43](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/1b69f436c4a05da154ec666d267e52e81a49e7fb))
+* added validation for frontline type with provisioning_policy_id ([e85e622](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/e85e622a97b412323334947ea3d9dff41d97731c))
+* changed behaviour of local_admin_enabled . ([f593884](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/f593884d28426a6931659163a983f4a481cc5290))
+* numerous fixes for windows_365 resources ([#819](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/819)) ([07f6699](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/07f6699366ea4ae4f330c64264210c19e93e0963))
+
 ## [0.32.0-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.31.1-alpha...v0.32.0-alpha) (2025-10-05)
 
 
