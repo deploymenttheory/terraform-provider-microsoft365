@@ -6,6 +6,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/action"
 
 	// Graph Beta - Device management actions
+	graphBetaDeviceManagementWindows365ApplyCloudPcProvisioningPolicy "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/actions/device_management/graph_beta/windows_365/apply_cloud_pc_provisioning_policy"
 	graphBetaDeviceManagementWindowsAutopilotDeviceIdentityAllowNextEnrollment "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/actions/device_management/graph_beta/windows_autopilot_device_identity/allow_next_enrollment"
 	graphBetaDeviceManagementWindowsAutopilotDeviceIdentityAssignUserToDevice "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/actions/device_management/graph_beta/windows_autopilot_device_identity/assign_user_to_device"
 	graphBetaDeviceManagementWindowsAutopilotDeviceIdentityUnassignUserFromDevice "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/actions/device_management/graph_beta/windows_autopilot_device_identity/unassign_user_from_device"
@@ -31,6 +32,7 @@ func (p *M365Provider) Actions(ctx context.Context) []func() action.Action {
 		graphBetaDeviceManagementWindowsAutopilotDeviceIdentityAssignUserToDevice.NewAssignUserToDeviceAction,
 		graphBetaDeviceManagementWindowsAutopilotDeviceIdentityUnassignUserFromDevice.NewUnassignUserFromDeviceAction,
 		graphBetaDeviceManagementWindowsAutopilotDeviceIdentityUpdateDeviceProperties.NewUpdateDevicePropertiesAction,
+		graphBetaDeviceManagementWindows365ApplyCloudPcProvisioningPolicy.NewApplyCloudPcProvisioningPolicyAction,
 
 		// Add microsoft 365 provider actions here
 	}

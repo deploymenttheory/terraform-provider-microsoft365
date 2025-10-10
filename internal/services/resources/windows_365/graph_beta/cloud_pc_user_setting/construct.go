@@ -36,6 +36,7 @@ func constructResource(ctx context.Context, data *CloudPcUserSettingResourceMode
 
 	if data.CrossRegionDisasterRecoverySetting != nil {
 		disasterRecoverySetting := graphmodels.NewCloudPcCrossRegionDisasterRecoverySetting()
+		convert.FrameworkToGraphBool(data.CrossRegionDisasterRecoverySetting.CrossRegionDisasterRecoveryEnabled, disasterRecoverySetting.SetCrossRegionDisasterRecoveryEnabled)
 		convert.FrameworkToGraphBool(data.CrossRegionDisasterRecoverySetting.MaintainCrossRegionRestorePointEnabled, disasterRecoverySetting.SetMaintainCrossRegionRestorePointEnabled)
 		convert.FrameworkToGraphBool(data.CrossRegionDisasterRecoverySetting.UserInitiatedDisasterRecoveryAllowed, disasterRecoverySetting.SetUserInitiatedDisasterRecoveryAllowed)
 

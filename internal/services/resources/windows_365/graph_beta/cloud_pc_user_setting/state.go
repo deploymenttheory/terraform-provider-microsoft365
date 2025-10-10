@@ -50,6 +50,7 @@ func MapRemoteStateToTerraform(ctx context.Context, data *CloudPcUserSettingReso
 
 	if disasterRecoverySetting := remoteResource.GetCrossRegionDisasterRecoverySetting(); disasterRecoverySetting != nil {
 		data.CrossRegionDisasterRecoverySetting = &CrossRegionDisasterRecoverySettingModel{
+			CrossRegionDisasterRecoveryEnabled:     convert.GraphToFrameworkBool(disasterRecoverySetting.GetCrossRegionDisasterRecoveryEnabled()),
 			MaintainCrossRegionRestorePointEnabled: convert.GraphToFrameworkBool(disasterRecoverySetting.GetMaintainCrossRegionRestorePointEnabled()),
 			UserInitiatedDisasterRecoveryAllowed:   convert.GraphToFrameworkBool(disasterRecoverySetting.GetUserInitiatedDisasterRecoveryAllowed()),
 			DisasterRecoveryType:                   convert.GraphToFrameworkEnum(disasterRecoverySetting.GetDisasterRecoveryType()),
@@ -89,11 +90,7 @@ func MapRemoteStateToTerraform(ctx context.Context, data *CloudPcUserSettingReso
 				RegionGroup: convert.GraphToFrameworkString(regionGroupPtr),
 			}
 		} else {
-			data.CrossRegionDisasterRecoverySetting.DisasterRecoveryNetworkSetting = &DisasterRecoveryNetworkSettingModel{
-				NetworkType: convert.GraphToFrameworkString(nil),
-				RegionName:  convert.GraphToFrameworkString(nil),
-				RegionGroup: convert.GraphToFrameworkString(nil),
-			}
+			data.CrossRegionDisasterRecoverySetting.DisasterRecoveryNetworkSetting = nil
 		}
 	} else {
 		data.CrossRegionDisasterRecoverySetting = nil

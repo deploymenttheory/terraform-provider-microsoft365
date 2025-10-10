@@ -29,6 +29,12 @@ func constructResource(ctx context.Context, data *CloudPcProvisioningPolicyResou
 	// these have been extracted from api calls. undocumented.
 	if !data.ImageId.IsNull() && !data.ImageId.IsUnknown() {
 		switch data.ImageId.ValueString() {
+		case "microsoftwindowsdesktop_windows-ent-cpc_win11-25h2-ent-cpc":
+			val := "Windows 11 Enterprise 25H2"
+			requestBody.SetImageDisplayName(&val)
+		case "microsoftwindowsdesktop_windows-ent-cpc_win11-25h2-ent-cpc-m365":
+			val := "Windows 11 Enterprise + Microsoft 365 Apps 25H2"
+			requestBody.SetImageDisplayName(&val)
 		case "microsoftwindowsdesktop_windows-ent-cpc_win11-24H2-ent-cpc":
 			val := "Windows 11 Enterprise 24H2"
 			requestBody.SetImageDisplayName(&val)
@@ -45,7 +51,6 @@ func constructResource(ctx context.Context, data *CloudPcProvisioningPolicyResou
 	}
 
 	convert.FrameworkToGraphBool(data.EnableSingleSignOn, requestBody.SetEnableSingleSignOn)
-	convert.FrameworkToGraphBool(data.LocalAdminEnabled, requestBody.SetLocalAdminEnabled)
 
 	// Set ManagedBy if present
 	if !data.ManagedBy.IsNull() && !data.ManagedBy.IsUnknown() && data.ManagedBy.ValueString() != "" {

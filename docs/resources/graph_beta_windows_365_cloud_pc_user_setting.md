@@ -103,6 +103,7 @@ Required:
 
 Optional:
 
+- `cross_region_disaster_recovery_enabled` (Boolean) Indicates whether cross-region disaster recovery is enabled for the user's Cloud PC. When true, cross-region disaster recovery is enabled. The default value is false. This property is deprecated and will stop returning data on December 1, 2024.
 - `disaster_recovery_network_setting` (Attributes) Indicates the network settings of the Cloud PC during a cross-region disaster recovery operation. (see [below for nested schema](#nestedatt--cross_region_disaster_recovery_setting--disaster_recovery_network_setting))
 - `disaster_recovery_type` (String) Indicates the type of disaster recovery to perform when a disaster occurs on the user's Cloud PC.The possible values are: notConfigured, crossRegion, premium, unknownFutureValue. The default value is notConfigured.
 - `maintain_cross_region_restore_point_enabled` (Boolean) Indicates whether Windows 365 maintain the cross-region disaster recovery function generated restore points.If true, the Windows 365 stored restore points; false indicates that Windows 365 doesn't generate or keep the restore point from the original Cloud PC. If a disaster occurs, the new Cloud PC can only be provisioned using the initial image.This limitation can result in the loss of some user data on the original Cloud PC. The default value is false.

@@ -156,6 +156,14 @@ func (r *CloudPcUserSettingResource) Schema(ctx context.Context, req resource.Sc
 				Optional:            true,
 				MarkdownDescription: "Defines whether the user's Cloud PC enables cross-region disaster recovery and specifies the network for the disaster recovery.",
 				Attributes: map[string]schema.Attribute{
+					"cross_region_disaster_recovery_enabled": schema.BoolAttribute{
+						Optional: true,
+						Computed: true,
+						Default:  booldefault.StaticBool(false),
+						MarkdownDescription: "Indicates whether cross-region disaster recovery is enabled for the user's Cloud PC. " +
+							"When true, cross-region disaster recovery is enabled. The default value is false. " +
+							"This property is deprecated and will stop returning data on December 1, 2024.",
+					},
 					"maintain_cross_region_restore_point_enabled": schema.BoolAttribute{
 						Optional: true,
 						Computed: true,
