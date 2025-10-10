@@ -52,6 +52,7 @@ import (
 	graphBetaDeviceManagementMacOSSoftwareUpdateConfiguration "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_management/graph_beta/macos_software_update_configuration"
 	graphBetaDeviceManagementManagedDeviceCleanupRule "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_management/graph_beta/managed_device_cleanup_rule"
 	graphBetaDeviceManagementOperationApprovalPolicy "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_management/graph_beta/operation_approval_policy"
+	graphBetaDeviceManagementPolicySet "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_management/graph_beta/policy_set"
 	graphBetaDeviceManagementRBACResourceOperation "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_management/graph_beta/rbac_resource_operation"
 	graphBetaDeviceManagementReuseablePolicySettings "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_management/graph_beta/reuseable_policy_settings"
 	graphBetaDeviceManagementRoleAssignment "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_management/graph_beta/role_assignment"
@@ -186,6 +187,7 @@ func (p *M365Provider) Resources(ctx context.Context) []func() resource.Resource
 		graphBetaDeviceManagementMacOSSoftwareUpdateConfiguration.NewMacOSSoftwareUpdateConfigurationResource,
 		graphBetaDeviceManagementManagedDeviceCleanupRule.NewManagedDeviceCleanupRuleResource,
 		graphBetaDeviceManagementOperationApprovalPolicy.NewOperationApprovalPolicyResource,
+		graphBetaDeviceManagementPolicySet.NewPolicySetResource,
 		graphBetaDeviceManagementRBACResourceOperation.NewRBACResourceOperationResource,
 		graphBetaDeviceManagementReuseablePolicySettings.NewReuseablePolicySettingsResource,
 		graphBetaDeviceManagementRoleDefinition.NewRoleDefinitionResource,

@@ -52,3 +52,9 @@ type AndroidNotificationAssignmentModel struct {
 	Type    types.String `tfsdk:"type"`     // "allLicensedUsersAssignmentTarget", "groupAssignmentTarget"
 	GroupId types.String `tfsdk:"group_id"` // For group targets (both include and exclude)
 }
+
+// InclusionGroupAndExclusionGroupAssignmentModel defines the schema for a Inclusion Group and Exclusion Group assignment.
+type InclusionGroupAndExclusionGroupAssignmentModel struct {
+	Type    types.String `tfsdk:"type"`     // "groupAssignmentTarget", "exclusionGroupAssignmentTarget"
+	GroupId types.String `tfsdk:"group_id"` // For group targets (both include and exclude)
+}
