@@ -47,6 +47,7 @@ func MapRemoteStateToTerraform(ctx context.Context, data *PolicySetResourceModel
 	} else {
 		data.Items = types.SetNull(types.ObjectType{
 			AttrTypes: map[string]attr.Type{
+				"id":         types.StringType,
 				"payload_id": types.StringType,
 				"type":       types.StringType,
 				"intent":     types.StringType,
@@ -127,6 +128,7 @@ func mapItemsToTerraform(ctx context.Context, items []graphmodels.PolicySetItema
 	if len(items) == 0 {
 		return types.SetValueMust(types.ObjectType{
 			AttrTypes: map[string]attr.Type{
+				"id":         types.StringType,
 				"payload_id": types.StringType,
 				"type":       types.StringType,
 				"intent":     types.StringType,
@@ -146,6 +148,7 @@ func mapItemsToTerraform(ctx context.Context, items []graphmodels.PolicySetItema
 	itemValues := make([]attr.Value, len(items))
 	for i, item := range items {
 		itemAttrs := map[string]attr.Value{
+			"id":         convert.GraphToFrameworkString(item.GetId()),
 			"payload_id": convert.GraphToFrameworkString(item.GetPayloadId()),
 			"type":       types.StringNull(),
 			"intent":     types.StringNull(),
@@ -174,6 +177,7 @@ func mapItemsToTerraform(ctx context.Context, items []graphmodels.PolicySetItema
 
 		itemValues[i] = types.ObjectValueMust(
 			map[string]attr.Type{
+				"id":         types.StringType,
 				"payload_id": types.StringType,
 				"type":       types.StringType,
 				"intent":     types.StringType,
@@ -193,10 +197,10 @@ func mapItemsToTerraform(ctx context.Context, items []graphmodels.PolicySetItema
 
 	return types.SetValueMust(types.ObjectType{
 		AttrTypes: map[string]attr.Type{
+			"id":         types.StringType,
 			"payload_id": types.StringType,
 			"type":       types.StringType,
 			"intent":     types.StringType,
-			//"guided_deployment_tags": types.SetType{ElemType: types.StringType},
 			"settings": types.ObjectType{
 				AttrTypes: map[string]attr.Type{
 					"odata_type":                  types.StringType,

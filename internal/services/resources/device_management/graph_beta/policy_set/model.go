@@ -25,6 +25,7 @@ type PolicySetResourceModel struct {
 type PolicySetAssignmentModel = sharedmodels.InclusionGroupAndExclusionGroupAssignmentModel
 
 type PolicySetItemModel struct {
+	ID        types.String `tfsdk:"id"`
 	PayloadId types.String `tfsdk:"payload_id"`
 	Type      types.String `tfsdk:"type"`
 	Intent    types.String `tfsdk:"intent"`

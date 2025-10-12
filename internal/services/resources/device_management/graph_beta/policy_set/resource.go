@@ -129,9 +129,13 @@ func (r *PolicySetResource) Schema(ctx context.Context, req resource.SchemaReque
 					"'windows autopilot deployment profiles') included in this policy set.",
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
+						"id": schema.StringAttribute{
+							Computed:            true,
+							MarkdownDescription: "The unique identifier of the policy set item",
+						},
 						"payload_id": schema.StringAttribute{
 							Required:            true,
-							MarkdownDescription: "The ID of the policy or application being included",
+							MarkdownDescription: "The ID reference of the policy or application being included in the policy set.",
 							Validators: []validator.String{
 								stringvalidator.RegexMatches(
 									regexp.MustCompile(constants.GuidOrPrefixedGuidRegex),

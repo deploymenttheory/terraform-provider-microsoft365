@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	deviceappmanagement "github.com/microsoftgraph/msgraph-beta-sdk-go/deviceappmanagement"
+	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
 func (r *PolicySetResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
@@ -143,48 +144,92 @@ func (r *PolicySetResource) Update(ctx context.Context, req resource.UpdateReque
 	}
 	defer cancel()
 
-	// First, update policy set items using /update endpoint
-	policySetUpdateRequest, err := constructPolicySetUpdateRequest(ctx, r.client, &state, &plan, resp, r.ReadPermissions)
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error constructing policy set update request",
-			fmt.Sprintf("Could not construct policy set update request: %s: %s", ResourceName, err.Error()),
-		)
-		return
+	var err error
+
+	// Step 1: PATCH base properties only if displayName or description changed
+	if !plan.DisplayName.Equal(state.DisplayName) || !plan.Description.Equal(state.Description) {
+		tflog.Debug(ctx, "Base properties changed, updating via PATCH")
+
+		var patchBody graphmodels.PolicySetable
+		patchBody, err = constructBasePatchRequest(ctx, &plan)
+		if err != nil {
+			resp.Diagnostics.AddError(
+				"Error constructing base patch request",
+				fmt.Sprintf("Could not construct base patch request: %s: %s", ResourceName, err.Error()),
+			)
+			return
+		}
+
+		_, err = r.client.
+			DeviceAppManagement().
+			PolicySets().
+			ByPolicySetId(state.ID.ValueString()).
+			Patch(ctx, patchBody, nil)
+
+		if err != nil {
+			errors.HandleKiotaGraphError(ctx, err, resp, "Update", r.WritePermissions)
+			return
+		}
+	} else {
+		tflog.Debug(ctx, "Base properties unchanged, skipping PATCH")
 	}
 
-	err = r.client.
-		DeviceAppManagement().
-		PolicySets().
-		ByPolicySetId(state.ID.ValueString()).
-		Update().
-		Post(ctx, policySetUpdateRequest, nil)
+	// Step 2: POST to /update for policy set items only if items changed
+	if !plan.Items.Equal(state.Items) {
+		tflog.Debug(ctx, "Items changed, updating via /update endpoint")
 
-	if err != nil {
-		errors.HandleKiotaGraphError(ctx, err, resp, "Update", r.WritePermissions)
-		return
+		var itemsUpdateRequest deviceappmanagement.PolicySetsItemUpdatePostRequestBodyable
+		itemsUpdateRequest, err = constructItemsUpdateRequest(ctx, r.client, &state, &plan, resp, r.ReadPermissions)
+		if err != nil {
+			resp.Diagnostics.AddError(
+				"Error constructing policy set items update request",
+				fmt.Sprintf("Could not construct policy set items update request: %s: %s", ResourceName, err.Error()),
+			)
+			return
+		}
+
+		err = r.client.
+			DeviceAppManagement().
+			PolicySets().
+			ByPolicySetId(state.ID.ValueString()).
+			Update().
+			Post(ctx, itemsUpdateRequest, nil)
+
+		if err != nil {
+			errors.HandleKiotaGraphError(ctx, err, resp, "Update", r.WritePermissions)
+			return
+		}
+	} else {
+		tflog.Debug(ctx, "Items unchanged, skipping items update")
 	}
 
-	// Second, update assignments using /update endpoint  
-	assignmentUpdateRequest, err := constructAssignmentUpdateRequest(ctx, &plan)
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error constructing assignment update request",
-			fmt.Sprintf("Could not construct assignment update request: %s: %s", ResourceName, err.Error()),
-		)
-		return
-	}
+	// Step 3: POST to /update for assignments only if assignments changed
+	if !plan.Assignments.Equal(state.Assignments) {
+		tflog.Debug(ctx, "Assignments changed, updating via /update endpoint")
 
-	err = r.client.
-		DeviceAppManagement().
-		PolicySets().
-		ByPolicySetId(state.ID.ValueString()).
-		Update().
-		Post(ctx, assignmentUpdateRequest, nil)
+		var assignmentsUpdateRequest deviceappmanagement.PolicySetsItemUpdatePostRequestBodyable
+		assignmentsUpdateRequest, err = constructAssignmentsUpdateRequest(ctx, &plan)
+		if err != nil {
+			resp.Diagnostics.AddError(
+				"Error constructing assignments update request",
+				fmt.Sprintf("Could not construct assignments update request: %s: %s", ResourceName, err.Error()),
+			)
+			return
+		}
 
-	if err != nil {
-		errors.HandleKiotaGraphError(ctx, err, resp, "Update", r.WritePermissions)
-		return
+		err = r.client.
+			DeviceAppManagement().
+			PolicySets().
+			ByPolicySetId(state.ID.ValueString()).
+			Update().
+			Post(ctx, assignmentsUpdateRequest, nil)
+
+		if err != nil {
+			errors.HandleKiotaGraphError(ctx, err, resp, "Update", r.WritePermissions)
+			return
+		}
+	} else {
+		tflog.Debug(ctx, "Assignments unchanged, skipping assignments update")
 	}
 
 	readReq := resource.ReadRequest{State: resp.State, ProviderMeta: req.ProviderMeta}
@@ -205,7 +250,6 @@ func (r *PolicySetResource) Update(ctx context.Context, req resource.UpdateReque
 
 	tflog.Debug(ctx, fmt.Sprintf("Finished updating %s with ID: %s", ResourceName, state.ID.ValueString()))
 }
-
 
 func (r *PolicySetResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var object PolicySetResourceModel

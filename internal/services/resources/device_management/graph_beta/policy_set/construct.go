@@ -11,7 +11,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 
 	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
-	deviceappmanagement "github.com/microsoftgraph/msgraph-beta-sdk-go/deviceappmanagement"
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
@@ -252,103 +251,4 @@ func constructPolicySetItemSettings(ctx context.Context, settingsObj types.Objec
 	default:
 		return nil, fmt.Errorf("unsupported mobile app assignment settings type: %s", odataType)
 	}
-}
-
-// constructPolicySetUpdateRequest creates the SDK request body for policy set item updates
-func constructPolicySetUpdateRequest(ctx context.Context, client *msgraphbetasdk.GraphServiceClient, currentData, planData *PolicySetResourceModel, resp any, requiredPermissions []string) (deviceappmanagement.PolicySetsItemUpdatePostRequestBodyable, error) {
-	tflog.Debug(ctx, fmt.Sprintf("Constructing policy set update request for %s resource", ResourceName))
-
-	// Validate the request data first
-	if err := validateRequest(ctx, client, planData, resp, requiredPermissions); err != nil {
-		return nil, err
-	}
-
-	updateRequest := deviceappmanagement.NewPolicySetsItemUpdatePostRequestBody()
-
-	// Compare current and planned items to determine changes
-	currentItems := make(map[string]PolicySetItemModel)
-	if !currentData.Items.IsNull() && !currentData.Items.IsUnknown() {
-		var currentItemModels []PolicySetItemModel
-		diags := currentData.Items.ElementsAs(ctx, &currentItemModels, false)
-		if diags.HasError() {
-			return nil, fmt.Errorf("failed to convert current items: %v", diags)
-		}
-		for _, item := range currentItemModels {
-			key := item.Type.ValueString() + "_" + item.PayloadId.ValueString()
-			currentItems[key] = item
-		}
-	}
-
-	plannedItems := make(map[string]PolicySetItemModel)
-	if !planData.Items.IsNull() && !planData.Items.IsUnknown() {
-		var plannedItemModels []PolicySetItemModel
-		diags := planData.Items.ElementsAs(ctx, &plannedItemModels, false)
-		if diags.HasError() {
-			return nil, fmt.Errorf("failed to convert planned items: %v", diags)
-		}
-		for _, item := range plannedItemModels {
-			key := item.Type.ValueString() + "_" + item.PayloadId.ValueString()
-			plannedItems[key] = item
-		}
-	}
-
-	// Find added items (in planned but not in current)
-	var addedItems []graphmodels.PolicySetItemable
-	for key, item := range plannedItems {
-		if _, exists := currentItems[key]; !exists {
-			policySetItem, err := constructPolicySetItem(ctx, &item)
-			if err != nil {
-				return nil, fmt.Errorf("failed to construct added item: %s", err)
-			}
-			addedItems = append(addedItems, policySetItem)
-		}
-	}
-
-	// Find deleted items (in current but not in planned)
-	var deletedItems []string
-	for key := range currentItems {
-		if _, exists := plannedItems[key]; !exists {
-			deletedItems = append(deletedItems, key+"_Parcel")
-		}
-	}
-
-	updateRequest.SetAddedPolicySetItems(addedItems)
-	updateRequest.SetDeletedPolicySetItems(deletedItems)
-	// Set empty array for updated items for now
-	updateRequest.SetUpdatedPolicySetItems([]graphmodels.PolicySetItemable{})
-
-	if err := constructors.DebugLogGraphObject(ctx, fmt.Sprintf("Final JSON to be sent to Graph API for resource %s", ResourceName), updateRequest); err != nil {
-		tflog.Error(ctx, "Failed to debug log object", map[string]any{
-			"error": err.Error(),
-		})
-	}
-
-	tflog.Debug(ctx, fmt.Sprintf("Finished constructing %s resource", ResourceName))
-
-	return updateRequest, nil
-}
-
-// constructAssignmentUpdateRequest creates the SDK request body for assignment updates
-func constructAssignmentUpdateRequest(ctx context.Context, data *PolicySetResourceModel) (deviceappmanagement.PolicySetsItemUpdatePostRequestBodyable, error) {
-	tflog.Debug(ctx, fmt.Sprintf("Constructing assignment update request for %s resource", ResourceName))
-
-	updateRequest := deviceappmanagement.NewPolicySetsItemUpdatePostRequestBody()
-
-	if !data.Assignments.IsNull() && !data.Assignments.IsUnknown() {
-		assignments, err := constructAssignments(ctx, data.Assignments)
-		if err != nil {
-			return nil, fmt.Errorf("failed to construct assignments for update: %s", err)
-		}
-		updateRequest.SetAssignments(assignments)
-	}
-
-	if err := constructors.DebugLogGraphObject(ctx, fmt.Sprintf("Final JSON to be sent to Graph API for resource %s", ResourceName), updateRequest); err != nil {
-		tflog.Error(ctx, "Failed to debug log object", map[string]any{
-			"error": err.Error(),
-		})
-	}
-
-	tflog.Debug(ctx, fmt.Sprintf("Finished constructing %s resource", ResourceName))
-
-	return updateRequest, nil
 }

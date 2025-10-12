@@ -4850,3 +4850,37 @@ GET
         }
     ]
 }
+
+update base resource
+
+Request URL
+https://graph.microsoft.com/beta/deviceAppManagement/policySets/3976eca6-b1c0-4c5d-99c7-08814fca68bf
+Request Method
+PATCH
+
+{"displayName":"test-2","description":"test-2"}
+
+update main resource
+
+Request URL
+https://graph.microsoft.com/beta/deviceAppManagement/policySets/3976eca6-b1c0-4c5d-99c7-08814fca68bf/update
+Request Method
+POST
+
+{
+    "addedPolicySetItems":[
+        {"@odata.type":"#microsoft.graph.deviceManagementConfigurationPolicyPolicySetItem","payloadId":"4b196a09-803f-48dc-a877-6279579f0fc5","guidedDeploymentTags":[]
+    },
+    {
+        "@odata.type":"#microsoft.graph.deviceManagementConfigurationPolicyPolicySetItem","payloadId":"a768c8eb-3b81-4e34-bfb5-ba34a338e1b8","guidedDeploymentTags":[]
+    },
+    {"@odata.type":"#microsoft.graph.windows10EnrollmentCompletionPageConfigurationPolicySetItem","payloadId":"acdf7778-98be-4086-8a43-f5d89b305229_Windows10EnrollmentCompletionPageConfiguration","guidedDeploymentTags":[]},{"@odata.type":"#microsoft.graph.deviceCompliancePolicyPolicySetItem","payloadId":"f6645903-bd42-4776-a5fc-d753ecaf12d7","guidedDeploymentTags":[]},{"@odata.type":"#microsoft.graph.deviceCompliancePolicyPolicySetItem","payloadId":"f88090d3-a720-4ff6-bf1a-56bde7bab8b0","guidedDeploymentTags":[]}],"updatedPolicySetItems":[{"@odata.type":"#microsoft.graph.mobileAppPolicySetItem","payloadId":"b200f17f-1f5b-4806-8985-9d2a910a47f9","intent":"required","settings":null,"guidedDeploymentTags":[]}],"deletedPolicySetItems":["3976eca6-b1c0-4c5d-99c7-08814fca68bf_04ab1704-76f9-4306-b9a6-4dd5056bd466_DeviceCompliance_Parcel","3976eca6-b1c0-4c5d-99c7-08814fca68bf_04f8c68f-00a8-4ded-8c17-3aad2a5172e7_WindowsAutopilotDeploymentProfile_Parcel","3976eca6-b1c0-4c5d-99c7-08814fca68bf_0fc6a704-662d-4334-a233-a272529aa0f9_DeviceConfigurationPolicy_Parcel","3976eca6-b1c0-4c5d-99c7-08814fca68bf_110b7be5-1ca8-4504-adb1-017f5812c18c_DeviceCompliance_Parcel","3976eca6-b1c0-4c5d-99c7-08814fca68bf_229bab1c-dfde-4433-9e57-02c081e8f2c7_DeviceCompliance_Parcel","3976eca6-b1c0-4c5d-99c7-08814fca68bf_33d1c79b-0477-43e3-b9cc-f015f82dcf37_DeviceConfigurationPolicy_Parcel","3976eca6-b1c0-4c5d-99c7-08814fca68bf_3aa6e3d1-76bf-4ee4-8a31-aad8977f3538_DeviceCompliance_Parcel","3976eca6-b1c0-4c5d-99c7-08814fca68bf_3bbaebc7-9b8c-4a1c-951f-5248b2f7f9bb_WindowsAutopilotDeploymentProfile_Parcel","3976eca6-b1c0-4c5d-99c7-08814fca68bf_465712ec-13fe-4c99-a918-0496461ef884_DeviceCompliance_Parcel","3976eca6-b1c0-4c5d-99c7-08814fca68bf_4d964631-ff9f-4da2-b59d-162c01ee1e09_DeviceCompliance_Parcel","3976eca6-b1c0-4c5d-99c7-08814fca68bf_500f7039-1ecd-4b2c-bd33-ec12310050f3_DeviceCompliance_Parcel","3976eca6-b1c0-4c5d-99c7-08814fca68bf_608440c0-6fd0-46ba-8510-dfa3c9c1d15e_WindowsAutopilotDeploymentProfile_Parcel","3976eca6-b1c0-4c5d-99c7-08814fca68bf_6b894d4a-f95a-4992-b158-d13b8c4d7133_WindowsAutopilotDeploymentProfile_Parcel","3976eca6-b1c0-4c5d-99c7-08814fca68bf_6ca8f216-471b-478b-bb14-62b92fe33c54_DeviceManagementConfigurationPolicy_Parcel","3976eca6-b1c0-4c5d-99c7-08814fca68bf_A_936da198-54cb-4c9c-886a-0947e71d63b9_TargetedManagedAppConfiguration_Parcel","3976eca6-b1c0-4c5d-99c7-08814fca68bf_a36aab37-ba2d-4522-9515-0a9013ccdeab_WindowsAutopilotDeploymentProfile_Parcel","3976eca6-b1c0-4c5d-99c7-08814fca68bf_a5204f11-fe5b-4ac5-b379-945d79889188_MobileApp_Parcel","3976eca6-b1c0-4c5d-99c7-08814fca68bf_a9ee3ba9-2eff-4241-a29a-52b846a9a7fe_DeviceConfigurationPolicy_Parcel","3976eca6-b1c0-4c5d-99c7-08814fca68bf_aacbe987-672e-4a96-afd1-3bc4c068b3ea_DeviceManagementConfigurationPolicy_Parcel","3976eca6-b1c0-4c5d-99c7-08814fca68bf_b0079b61-617d-4b3f-8222-09e641c75644_DeviceConfigurationPolicy_Parcel","3976eca6-b1c0-4c5d-99c7-08814fca68bf_df287451-37e4-4e45-8cc8-6aa35638cb51_DeviceManagementConfigurationPolicy_Parcel","3976eca6-b1c0-4c5d-99c7-08814fca68bf_T_443f240c-14de-4538-a5a7-410625a9cbdc_ManagedAppProtection_Parcel","3976eca6-b1c0-4c5d-99c7-08814fca68bf_T_b149f8ef-4244-4ed0-8536-4fd975eda462_ManagedAppProtection_Parcel"]}
+
+assignments
+
+Request URL
+https://graph.microsoft.com/beta/deviceAppManagement/policySets/3976eca6-b1c0-4c5d-99c7-08814fca68bf/update
+Request Method
+POST
+
+{"assignments":[{"target":{"@odata.type":"#microsoft.graph.exclusionGroupAssignmentTarget","groupId":"d7e6ac2e-4b31-481f-81ca-3e0cab841674"}},{"target":{"@odata.type":"#microsoft.graph.exclusionGroupAssignmentTarget","groupId":"2e3819e7-d935-4419-a5c0-b256777b27bc"}},{"target":{"@odata.type":"#microsoft.graph.groupAssignmentTarget","groupId":"fdf755b0-cce8-43ed-b047-17dac8c905af"}},{"target":{"@odata.type":"#microsoft.graph.groupAssignmentTarget","groupId":"dd13e083-30e9-451b-9df3-7f3880e39fa3"}}]}
