@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strings"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/client"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
@@ -163,6 +164,15 @@ func constructConditions(ctx context.Context, data *ConditionalAccessConditions)
 			}
 		}
 
+		// Handle global_secure_access (typically null)
+		if !data.Applications.GlobalSecureAccess.IsNull() && !data.Applications.GlobalSecureAccess.IsUnknown() {
+			// For now, since this field is typically null in API examples, 
+			// we'll set it to null. Future implementation can expand this as needed.
+			applications["globalSecureAccess"] = nil
+		} else {
+			applications["globalSecureAccess"] = nil
+		}
+
 		if len(applications) > 0 {
 			conditions["applications"] = applications
 		}
@@ -221,7 +231,7 @@ func constructConditions(ctx context.Context, data *ConditionalAccessConditions)
 				if guestTypesSet, ok := guestTypesAttr.(types.Set); ok {
 					if err := convert.FrameworkToGraphStringSet(ctx, guestTypesSet, func(values []string) {
 						if len(values) > 0 {
-							includeGuestsOrExternalUsers["guestOrExternalUserTypes"] = values
+							includeGuestsOrExternalUsers["guestOrExternalUserTypes"] = strings.Join(values, ",")
 						}
 					}); err != nil {
 						return nil, fmt.Errorf("failed to convert include guest or external user types: %w", err)
@@ -241,6 +251,12 @@ func constructConditions(ctx context.Context, data *ConditionalAccessConditions)
 							convert.FrameworkToGraphString(membershipKindStr, func(value *string) {
 								if value != nil {
 									externalTenants["membershipKind"] = *value
+									// Add the required @odata.type based on membership kind
+									if *value == "all" {
+										externalTenants["@odata.type"] = "#microsoft.graph.conditionalAccessAllExternalTenants"
+									} else if *value == "enumerated" {
+										externalTenants["@odata.type"] = "#microsoft.graph.conditionalAccessEnumeratedExternalTenants"
+									}
 								}
 							})
 						}
@@ -281,7 +297,7 @@ func constructConditions(ctx context.Context, data *ConditionalAccessConditions)
 				if guestTypesSet, ok := guestTypesAttr.(types.Set); ok {
 					if err := convert.FrameworkToGraphStringSet(ctx, guestTypesSet, func(values []string) {
 						if len(values) > 0 {
-							excludeGuestsOrExternalUsers["guestOrExternalUserTypes"] = values
+							excludeGuestsOrExternalUsers["guestOrExternalUserTypes"] = strings.Join(values, ",")
 						}
 					}); err != nil {
 						return nil, fmt.Errorf("failed to convert exclude guest or external user types: %w", err)
@@ -301,6 +317,12 @@ func constructConditions(ctx context.Context, data *ConditionalAccessConditions)
 							convert.FrameworkToGraphString(membershipKindStr, func(value *string) {
 								if value != nil {
 									externalTenants["membershipKind"] = *value
+									// Add the required @odata.type based on membership kind
+									if *value == "all" {
+										externalTenants["@odata.type"] = "#microsoft.graph.conditionalAccessAllExternalTenants"
+									} else if *value == "enumerated" {
+										externalTenants["@odata.type"] = "#microsoft.graph.conditionalAccessEnumeratedExternalTenants"
+									}
 								}
 							})
 						}

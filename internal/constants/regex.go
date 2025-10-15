@@ -11,6 +11,14 @@ const (
 	// Example: "123e4567-e89b-12d3-a456-426614174000" or ""
 	GuidOrEmptyValueRegex = "^(?:[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})?$"
 
+	// PrefixedGuidRegex matches a GUID with a single character prefix followed by underscore.
+	// Example: "A_123e4567-e89b-12d3-a456-426614174000" or "T_00000000-0000-0000-0000-000000000000"
+	PrefixedGuidRegex = "^[0-9a-zA-Z]_[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+
+	// GuidOrPrefixedGuidRegex matches either a standard GUID or a GUID with a single character prefix.
+	// Example: "123e4567-e89b-12d3-a456-426614174000" or "A_123e4567-e89b-12d3-a456-426614174000"
+	GuidOrPrefixedGuidRegex = "^(?:[0-9a-zA-Z]_)?[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+
 	// UrlValidStringRegex matches a valid URL string (letters, numbers, and URL-safe characters).
 	// Example: "https://example.com/path?query=1"
 	UrlValidStringRegex = "(?i)^[A-Za-z0-9-._~%/:/?=]+$"

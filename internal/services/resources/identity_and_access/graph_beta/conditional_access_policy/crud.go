@@ -312,6 +312,14 @@ func (r *ConditionalAccessPolicyResource) Update(ctx context.Context, req resour
 		return
 	}
 
+	// Add delay before read to allow for eventual consistency
+	// it's possible to perform a valid GET request before the update has propagated,
+	// and the response will lack the updated values.
+	// Testing has shown a range between around 5-10 seconds is sufficient for the update to propagate and reach eventual consistency.
+	// The period varies depending on what fields are updated..
+	tflog.Debug(ctx, "Waiting 10 seconds for conditional access policy update to propagate and reach eventual consistency")
+	time.Sleep(10 * time.Second)
+
 	readReq := resource.ReadRequest{State: resp.State, ProviderMeta: req.ProviderMeta}
 	stateContainer := &crud.UpdateResponseContainer{UpdateResponse: resp}
 
