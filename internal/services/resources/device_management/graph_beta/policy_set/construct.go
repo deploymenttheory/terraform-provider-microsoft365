@@ -17,7 +17,6 @@ import (
 func constructResource(ctx context.Context, client *msgraphbetasdk.GraphServiceClient, data *PolicySetResourceModel, resp any, requiredPermissions []string) (graphmodels.PolicySetable, error) {
 	tflog.Debug(ctx, fmt.Sprintf("Constructing %s resource from model", ResourceName))
 
-	// Validate the request data first
 	if err := validateRequest(ctx, client, data, resp, requiredPermissions); err != nil {
 		return nil, err
 	}

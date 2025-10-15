@@ -17,7 +17,6 @@ func InclusionGroupAndExclusionGroupAssignmentsSchema() schema.SetNestedAttribut
 		Optional:            true,
 		NestedObject: schema.NestedAttributeObject{
 			Attributes: map[string]schema.Attribute{
-				// Target assignment fields - only one should be used at a time
 				"type": schema.StringAttribute{
 					Required:            true,
 					MarkdownDescription: "Type of assignment target. Must be one of: 'allLicensedUsersAssignmentTarget', 'groupAssignmentTarget'.",

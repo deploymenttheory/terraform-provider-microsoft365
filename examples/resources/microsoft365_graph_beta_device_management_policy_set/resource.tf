@@ -12,7 +12,7 @@ resource "microsoft365_graph_beta_device_management_policy_set" "example" {
     },
     # iOS Store App example
     {
-      type       = "app" 
+      type       = "app"
       payload_id = "00000000-0000-0000-0000-000000000000"
       intent     = "required"
       settings = {
@@ -44,7 +44,7 @@ resource "microsoft365_graph_beta_device_management_policy_set" "example" {
     {
       type       = "device_configuration_profile"
       payload_id = "00000000-0000-0000-0000-000000000000"
-    },  
+    },
     {
       type       = "device_configuration_profile"
       payload_id = "00000000-0000-0000-0000-000000000000"
