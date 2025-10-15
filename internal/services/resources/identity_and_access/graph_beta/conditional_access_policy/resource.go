@@ -173,12 +173,13 @@ func (r *ConditionalAccessPolicyResource) Schema(ctx context.Context, req resour
 								ElementType:         types.StringType,
 								Required:            true,
 								Validators: []validator.Set{
+									setvalidator.SizeAtLeast(1),
 									setvalidator.ValueStringsAre(
 										stringvalidator.Any(
-											stringvalidator.OneOf("All", "Office365"),
+											stringvalidator.OneOf("All", "None", "Office365"),
 											stringvalidator.RegexMatches(
 												regexp.MustCompile(constants.GuidRegex),
-												"must be a valid GUID or one of the special values: All, Office365",
+												"must be a valid GUID or one of the special values: All, None, Office365",
 											),
 										),
 									),
@@ -359,25 +360,23 @@ func (r *ConditionalAccessPolicyResource) Schema(ctx context.Context, req resour
 										Validators: []validator.Set{
 											setvalidator.ValueStringsAre(
 												stringvalidator.OneOf(
-													"B2bCollaborationGuest",
-													"B2bCollaborationMember",
-													"B2bDirectConnectUser",
-													"InternalGuest",
-													"ServiceProvider",
-													"OtherExternalUser",
+													"b2bCollaborationGuest",
+													"b2bCollaborationMember",
+													"b2bDirectConnectUser",
+													"internalGuest",
+													"serviceProvider",
+													"otherExternalUser",
 												),
 											),
 										},
 									},
 									"external_tenants": schema.SingleNestedAttribute{
 										MarkdownDescription: "Configuration for external tenants.",
-										Optional:            true,
-										Computed:            true,
+										Required:            true,
 										Attributes: map[string]schema.Attribute{
 											"membership_kind": schema.StringAttribute{
 												MarkdownDescription: "Kind of membership. Possible values are: all, enumerated, unknownFutureValue.",
-												Optional:            true,
-												Computed:            true,
+												Required:            true,
 												Validators: []validator.String{
 													stringvalidator.OneOf("all", "enumerated", "unknownFutureValue"),
 												},
@@ -413,25 +412,23 @@ func (r *ConditionalAccessPolicyResource) Schema(ctx context.Context, req resour
 										Validators: []validator.Set{
 											setvalidator.ValueStringsAre(
 												stringvalidator.OneOf(
-													"B2bCollaborationGuest",
-													"B2bCollaborationMember",
-													"B2bDirectConnectUser",
-													"InternalGuest",
-													"ServiceProvider",
-													"OtherExternalUser",
+													"b2bCollaborationGuest",
+													"b2bCollaborationMember",
+													"b2bDirectConnectUser",
+													"internalGuest",
+													"serviceProvider",
+													"otherExternalUser",
 												),
 											),
 										},
 									},
 									"external_tenants": schema.SingleNestedAttribute{
 										MarkdownDescription: "Configuration for external tenants.",
-										Optional:            true,
-										Computed:            true,
+										Required:            true,
 										Attributes: map[string]schema.Attribute{
 											"membership_kind": schema.StringAttribute{
 												MarkdownDescription: "Kind of membership. Possible values are: all, enumerated, unknownFutureValue.",
-												Optional:            true,
-												Computed:            true,
+												Required:            true,
 												Validators: []validator.String{
 													stringvalidator.OneOf("all", "enumerated", "unknownFutureValue"),
 												},
@@ -503,9 +500,10 @@ func (r *ConditionalAccessPolicyResource) Schema(ctx context.Context, req resour
 						Optional:            true,
 						Attributes: map[string]schema.Attribute{
 							"include_locations": schema.SetAttribute{
-								MarkdownDescription: "Locations to include in the policy. Can use special values like 'All' or 'AllTrusted'.",
-								ElementType:         types.StringType,
-								Required:            true,
+								MarkdownDescription: "Named locations to include in the policy. Can use special values like 'All' or 'AllTrusted' 'or provide guid's" +
+									"of named locations.",
+								ElementType: types.StringType,
+								Required:    true,
 								Validators: []validator.Set{
 									setvalidator.ValueStringsAre(
 										stringvalidator.Any(
@@ -519,9 +517,10 @@ func (r *ConditionalAccessPolicyResource) Schema(ctx context.Context, req resour
 								},
 							},
 							"exclude_locations": schema.SetAttribute{
-								MarkdownDescription: "Locations to exclude from the policy. Can use special values like 'AllTrusted'.",
-								ElementType:         types.StringType,
-								Required:            true,
+								MarkdownDescription: "Named locations to exclude from the policy. Can use special values like 'AllTrusted' or provide guid's" +
+									"of named locations.",
+								ElementType: types.StringType,
+								Required:    true,
 								Validators: []validator.Set{
 									setvalidator.ValueStringsAre(
 										stringvalidator.Any(

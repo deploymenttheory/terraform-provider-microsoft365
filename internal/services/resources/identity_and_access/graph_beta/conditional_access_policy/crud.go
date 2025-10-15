@@ -312,6 +312,10 @@ func (r *ConditionalAccessPolicyResource) Update(ctx context.Context, req resour
 		return
 	}
 
+	// Add delay before read to allow for eventual consistency
+	tflog.Debug(ctx, "Waiting 7 seconds for conditional access policy update to propagate")
+	time.Sleep(7 * time.Second)
+
 	readReq := resource.ReadRequest{State: resp.State, ProviderMeta: req.ProviderMeta}
 	stateContainer := &crud.UpdateResponseContainer{UpdateResponse: resp}
 

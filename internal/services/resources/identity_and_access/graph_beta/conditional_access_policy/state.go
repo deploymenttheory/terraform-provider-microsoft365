@@ -3,6 +3,7 @@ package graphBetaConditionalAccessPolicy
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -947,7 +948,7 @@ func mapGuestsOrExternalUsersToObject(ctx context.Context, raw any) types.Object
 
 	// Map guest_or_external_user_types
 	if guestOrExternalUserTypesRaw, ok := data["guestOrExternalUserTypes"]; ok {
-		attrs["guest_or_external_user_types"] = mapStringSliceToSet(ctx, guestOrExternalUserTypesRaw, "guestOrExternalUserTypes")
+		attrs["guest_or_external_user_types"] = mapCommaSeparatedStringToSet(ctx, guestOrExternalUserTypesRaw, "guestOrExternalUserTypes")
 	} else {
 		attrs["guest_or_external_user_types"] = types.SetNull(types.StringType)
 	}
@@ -1282,4 +1283,49 @@ func mapSecureSignInSession(ctx context.Context, secureSignInSessionRaw any) *Co
 	}
 
 	return result
+}
+
+// Helper function to map comma-separated string to Terraform set
+func mapCommaSeparatedStringToSet(ctx context.Context, raw any, fieldName string) types.Set {
+	tflog.Debug(ctx, fmt.Sprintf("Processing comma-separated string %s: %v (type: %T)", fieldName, raw, raw))
+
+	if raw == nil {
+		tflog.Debug(ctx, fmt.Sprintf("%s is null, returning null set", fieldName))
+		return types.SetNull(types.StringType)
+	}
+
+	// Handle string from JSON unmarshaling
+	if str, ok := raw.(string); ok {
+		tflog.Debug(ctx, fmt.Sprintf("%s is string: %s", fieldName, str))
+
+		if str == "" {
+			// Empty string should return empty set, not null
+			setValue, diags := types.SetValueFrom(ctx, types.StringType, []string{})
+			if diags.HasError() {
+				tflog.Error(ctx, fmt.Sprintf("Error creating empty set for %s", fieldName), map[string]any{"diags": diags})
+				return types.SetNull(types.StringType)
+			}
+			return setValue
+		}
+
+		// Split comma-separated string
+		stringSlice := strings.Split(str, ",")
+		// Trim whitespace from each value
+		for i, value := range stringSlice {
+			stringSlice[i] = strings.TrimSpace(value)
+		}
+
+		// Use types.SetValueFrom to convert []string to types.Set
+		setValue, diags := types.SetValueFrom(ctx, types.StringType, stringSlice)
+		if diags.HasError() {
+			tflog.Error(ctx, fmt.Sprintf("Error creating set for %s", fieldName), map[string]any{"diags": diags})
+			return types.SetNull(types.StringType)
+		}
+
+		tflog.Debug(ctx, fmt.Sprintf("Successfully created set for %s with %d elements", fieldName, len(stringSlice)))
+		return setValue
+	}
+
+	tflog.Debug(ctx, fmt.Sprintf("%s is not a string, returning null set", fieldName))
+	return types.SetNull(types.StringType)
 }
