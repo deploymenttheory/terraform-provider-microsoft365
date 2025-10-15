@@ -40,15 +40,20 @@ var (
 	_ resource.ResourceWithModifyPlan = &ConditionalAccessPolicyResource{}
 )
 
+// https://learn.microsoft.com/en-us/graph/custom-security-attributes-examples?tabs=http#prerequisites
 func NewConditionalAccessPolicyResource() resource.Resource {
 	return &ConditionalAccessPolicyResource{
 		ReadPermissions: []string{
 			"Policy.Read.All",
 			"Policy.Read.ConditionalAccess",
-			"Directory.Read.All", // for validation of roles
+			"Directory.Read.All",                    // for validation of roles
+			"CustomSecAttributeAssignment.Read.All", // for custom security attributes
+			"Application.Read.All",                  // for custom security attributes
 		},
 		WritePermissions: []string{
 			"Policy.ReadWrite.ConditionalAccess",
+			"CustomSecAttributeAssignment.ReadWrite.All", // Read and write custom security attribute assignments
+			"Application.Read.All",                       // needs read permissions for write operations
 		},
 		ResourcePath: "/identity/conditionalAccess/policies",
 	}
@@ -173,7 +178,6 @@ func (r *ConditionalAccessPolicyResource) Schema(ctx context.Context, req resour
 								ElementType:         types.StringType,
 								Required:            true,
 								Validators: []validator.Set{
-									setvalidator.SizeAtLeast(1),
 									setvalidator.ValueStringsAre(
 										stringvalidator.Any(
 											stringvalidator.OneOf("All", "None", "Office365"),
@@ -241,8 +245,10 @@ func (r *ConditionalAccessPolicyResource) Schema(ctx context.Context, req resour
 								},
 							},
 							"application_filter": schema.SingleNestedAttribute{
-								MarkdownDescription: "Filter that defines the applications the policy applies to.",
-								Optional:            true,
+								MarkdownDescription: "Configure app filters you want to policy to apply to. Using custom security attributes you can use the rule builder " +
+									"or rule syntax text box to create or edit the filter rules. this feature is currently in preview, only attributes of type String are supported. " +
+									"Attributes of type Integer or Boolean are not currently supported. Learn more here 'https://learn.microsoft.com/en-us/entra/identity/conditional-access/concept-filter-for-applications'.",
+								Optional: true,
 								Attributes: map[string]schema.Attribute{
 									"mode": schema.StringAttribute{
 										MarkdownDescription: "Mode of the filter. Possible values are: include, exclude.",
@@ -255,6 +261,15 @@ func (r *ConditionalAccessPolicyResource) Schema(ctx context.Context, req resour
 										MarkdownDescription: "Rule syntax for the filter.",
 										Required:            true,
 									},
+								},
+							},
+							"global_secure_access": schema.SingleNestedAttribute{
+								MarkdownDescription: "Global Secure Access settings for the conditional access policy.",
+								Optional:            true,
+								Computed:            true,
+								Attributes:          map[string]schema.Attribute{
+									// Note: This field appears in API responses but is typically null
+									// Adding minimal structure based on API observations
 								},
 							},
 						},

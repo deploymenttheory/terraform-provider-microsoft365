@@ -285,6 +285,16 @@ func mapApplications(ctx context.Context, applicationsRaw any) *ConditionalAcces
 		result.ApplicationFilter = nil
 	}
 
+	// Map globalSecureAccess (typically null)
+	if globalSecureAccessRaw, ok := applications["globalSecureAccess"]; ok && globalSecureAccessRaw != nil {
+		tflog.Debug(ctx, "Mapping globalSecureAccess", map[string]any{"globalSecureAccess": globalSecureAccessRaw})
+		// For now, since this field is typically null, we'll map it as null object
+		result.GlobalSecureAccess = types.ObjectNull(map[string]attr.Type{})
+	} else {
+		tflog.Debug(ctx, "globalSecureAccess not found or is null")
+		result.GlobalSecureAccess = types.ObjectNull(map[string]attr.Type{})
+	}
+
 	return result
 }
 

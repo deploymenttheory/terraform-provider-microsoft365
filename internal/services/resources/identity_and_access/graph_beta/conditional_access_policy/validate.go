@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/client"
 	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/generic_client"
@@ -122,14 +123,21 @@ func validateRequest(ctx context.Context, httpClient *client.AuthenticatedHTTPCl
 	// Validate user inclusion assignment requirements
 	if data.Conditions != nil && data.Conditions.Users != nil {
 		if err := validateUserInclusionAssignments(ctx, data.Conditions.Users); err != nil {
-			return fmt.Errorf("validation failed for user inclusion assignments: %w", err)
+			return fmt.Errorf("validation failed for 'include_users': %w", err)
+		}
+	}
+
+	// Validate application inclusion assignment requirements
+	if data.Conditions != nil && data.Conditions.Applications != nil {
+		if err := validateApplicationInclusionAssignments(ctx, data.Conditions.Applications); err != nil {
+			return fmt.Errorf("validation failed for 'include_applications': %w", err)
 		}
 	}
 
 	// Validate trusted locations
 	if data.Conditions != nil && data.Conditions.Locations != nil {
 		if err := validateTrustedLocations(ctx, httpClient, data.Conditions.Locations); err != nil {
-			return fmt.Errorf("validation failed for trusted locations: %w", err)
+			return fmt.Errorf("validation failed for 'include_locations' or 'exclude_locations': %w", err)
 		}
 	}
 
@@ -662,4 +670,80 @@ func fetchNamedLocations(ctx context.Context, httpClient *client.AuthenticatedHT
 
 	tflog.Debug(ctx, fmt.Sprintf("Successfully fetched %d named locations", len(response.Value)))
 	return response.Value, nil
+}
+
+// validateApplicationInclusionAssignments validates that conditional access policies have proper application inclusion assignments
+// Rules:
+// 1. If all fields are empty, include_applications must be set to "None"
+// 2. application_filter can only be set if include_applications has GUID-based values
+// 3. include_applications and exclude_applications can be set at the same time
+// 4. If include_applications is set, then include_user_actions and include_authentication_context_class_references cannot be set
+func validateApplicationInclusionAssignments(ctx context.Context, applications *ConditionalAccessApplications) error {
+	tflog.Debug(ctx, "Starting conditional access policy application inclusion assignment validation")
+
+	// Helper function to check if a set has non-empty values
+	hasNonEmptyValues := func(set types.Set) bool {
+		if set.IsNull() || set.IsUnknown() {
+			return false
+		}
+		for _, element := range set.Elements() {
+			if stringVal, ok := element.(types.String); ok && !stringVal.IsNull() && stringVal.ValueString() != "" {
+				return true
+			}
+		}
+		return false
+	}
+
+	// Helper function to check if include_applications allows application_filter
+	// application_filter is allowed with GUID values and "Office365", but not with "All" or "None"
+	allowsApplicationFilter := func() bool {
+		if applications.IncludeApplications.IsNull() || applications.IncludeApplications.IsUnknown() {
+			return false
+		}
+		for _, element := range applications.IncludeApplications.Elements() {
+			if stringVal, ok := element.(types.String); ok && !stringVal.IsNull() {
+				value := stringVal.ValueString()
+				// Allow application_filter for GUIDs and "Office365", but not for "All" or "None"
+				if value == "All" || value == "None" {
+					return false
+				}
+				// If it's "Office365" or a GUID-like value, allow application_filter
+				if value == "Office365" || (len(value) == 36 && strings.Count(value, "-") == 4) {
+					return true
+				}
+			}
+		}
+		return false
+	}
+
+	// Check if all application targeting fields are empty
+	includeApplicationsEmpty := !hasNonEmptyValues(applications.IncludeApplications)
+	excludeApplicationsEmpty := !hasNonEmptyValues(applications.ExcludeApplications)
+	includeUserActionsEmpty := !hasNonEmptyValues(applications.IncludeUserActions)
+	includeAuthContextEmpty := !hasNonEmptyValues(applications.IncludeAuthenticationContextClassReferences)
+
+	// Rule 1: If all fields are empty, include_applications must be "None"
+	if includeApplicationsEmpty && excludeApplicationsEmpty && includeUserActionsEmpty && includeAuthContextEmpty {
+		return fmt.Errorf("when conditional access policy application fields 'include_applications', 'exclude_applications', 'include_user_actions', and 'include_authentication_context_class_references' are all empty, then 'include_applications' must be set to 'None'")
+	}
+
+	// Rule 2: application_filter can only be set if include_applications has GUID or "Office365" values (not "All" or "None")
+	if applications.ApplicationFilter != nil && !applications.ApplicationFilter.Mode.IsNull() && !applications.ApplicationFilter.Rule.IsNull() {
+		if !allowsApplicationFilter() {
+			return fmt.Errorf("conditional access policy 'application_filter' cannot be used when 'include_applications' contains 'All' or 'None' values. It can be used with GUID values or 'Office365'")
+		}
+	}
+
+	// Rule 4: If include_applications is set, then include_user_actions and include_authentication_context_class_references cannot be set
+	if !includeApplicationsEmpty {
+		if !includeUserActionsEmpty {
+			return fmt.Errorf("conditional access policy cannot have both 'include_applications' and 'include_user_actions' configured at the same time")
+		}
+		if !includeAuthContextEmpty {
+			return fmt.Errorf("conditional access policy cannot have both 'include_applications' and 'include_authentication_context_class_references' configured at the same time")
+		}
+	}
+
+	tflog.Debug(ctx, "Conditional access policy application inclusion assignment validation completed successfully")
+	return nil
 }
