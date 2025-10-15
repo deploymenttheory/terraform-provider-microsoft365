@@ -384,7 +384,8 @@ Required:
 
 Optional:
 
-- `application_filter` (Attributes) Filter that defines the applications the policy applies to. (see [below for nested schema](#nestedatt--conditions--applications--application_filter))
+- `application_filter` (Attributes) Configure app filters you want to policy to apply to. Using custom security attributes you can use the rule builder or rule syntax text box to create or edit the filter rules. this feature is currently in preview, only attributes of type String are supported. Attributes of type Integer or Boolean are not currently supported. Learn more here 'https://learn.microsoft.com/en-us/entra/identity/conditional-access/concept-filter-for-applications'. (see [below for nested schema](#nestedatt--conditions--applications--application_filter))
+- `global_secure_access` (Attributes) Global Secure Access settings for the conditional access policy. (see [below for nested schema](#nestedatt--conditions--applications--global_secure_access))
 
 <a id="nestedatt--conditions--applications--application_filter"></a>
 ### Nested Schema for `conditions.applications.application_filter`
@@ -393,6 +394,10 @@ Required:
 
 - `mode` (String) Mode of the filter. Possible values are: include, exclude.
 - `rule` (String) Rule syntax for the filter.
+
+
+<a id="nestedatt--conditions--applications--global_secure_access"></a>
+### Nested Schema for `conditions.applications.global_secure_access`
 
 
 
@@ -416,36 +421,48 @@ Optional:
 <a id="nestedatt--conditions--users--exclude_guests_or_external_users"></a>
 ### Nested Schema for `conditions.users.exclude_guests_or_external_users`
 
-Optional:
+Required:
 
 - `external_tenants` (Attributes) Configuration for external tenants. (see [below for nested schema](#nestedatt--conditions--users--exclude_guests_or_external_users--external_tenants))
+
+Optional:
+
 - `guest_or_external_user_types` (Set of String) Types of guests or external users to exclude. Possible values are: InternalGuest, B2bCollaborationGuest, B2bCollaborationMember, B2bDirectConnectUser, OtherExternalUser, ServiceProvider.
 
 <a id="nestedatt--conditions--users--exclude_guests_or_external_users--external_tenants"></a>
 ### Nested Schema for `conditions.users.exclude_guests_or_external_users.external_tenants`
 
+Required:
+
+- `membership_kind` (String) Kind of membership. Possible values are: all, enumerated, unknownFutureValue.
+
 Optional:
 
 - `members` (Set of String) The list of tenant IDs for external tenants.
-- `membership_kind` (String) Kind of membership. Possible values are: all, enumerated, unknownFutureValue.
 
 
 
 <a id="nestedatt--conditions--users--include_guests_or_external_users"></a>
 ### Nested Schema for `conditions.users.include_guests_or_external_users`
 
-Optional:
+Required:
 
 - `external_tenants` (Attributes) Configuration for external tenants. (see [below for nested schema](#nestedatt--conditions--users--include_guests_or_external_users--external_tenants))
+
+Optional:
+
 - `guest_or_external_user_types` (Set of String) Types of guests or external users to include. Possible values are: InternalGuest, B2bCollaborationGuest, B2bCollaborationMember, B2bDirectConnectUser, OtherExternalUser, ServiceProvider.
 
 <a id="nestedatt--conditions--users--include_guests_or_external_users--external_tenants"></a>
 ### Nested Schema for `conditions.users.include_guests_or_external_users.external_tenants`
 
+Required:
+
+- `membership_kind` (String) Kind of membership. Possible values are: all, enumerated, unknownFutureValue.
+
 Optional:
 
 - `members` (Set of String) The list of Microsoft Entra organization tenant IDs for external tenants to exclude from the CA policy.
-- `membership_kind` (String) Kind of membership. Possible values are: all, enumerated, unknownFutureValue.
 
 
 
@@ -497,8 +514,8 @@ Required:
 
 Required:
 
-- `exclude_locations` (Set of String) Locations to exclude from the policy. Can use special values like 'AllTrusted'.
-- `include_locations` (Set of String) Locations to include in the policy. Can use special values like 'All' or 'AllTrusted'.
+- `exclude_locations` (Set of String) Named locations to exclude from the policy. Can use special values like 'AllTrusted' or provide guid'sof named locations.
+- `include_locations` (Set of String) Named locations to include in the policy. Can use special values like 'All' or 'AllTrusted' 'or provide guid'sof named locations.
 
 
 <a id="nestedatt--conditions--platforms"></a>
