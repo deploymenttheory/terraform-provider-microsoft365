@@ -1,0 +1,12 @@
+{
+  "error": {
+    "code": "ResourceNotFound",
+    "message": "Attribute set not found",
+    "details": [
+      {
+        "code": "AttributeSetNotFound",
+        "message": "The specified attribute set does not exist"
+      }
+    ]
+  }
+}

@@ -80,6 +80,7 @@ import (
 	graphBetaDeviceManagementWindowsUpdateRing "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_management/graph_beta/windows_update_ring"
 
 	// Graph Beta - Identity and Access resources
+	graphBetaIdentityAndAccessAttributeSet "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/identity_and_access/graph_beta/attribute_set"
 	graphBetaIdentityAndAccessAuthenticationContext "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/identity_and_access/graph_beta/authentication_context"
 	graphBetaIdentityAndAccessAuthenticationStrength "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/identity_and_access/graph_beta/authentication_strength"
 	graphBetaIdentityAndAccessConditionalAccessPolicy "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/identity_and_access/graph_beta/conditional_access_policy"
@@ -217,6 +218,7 @@ func (p *M365Provider) Resources(ctx context.Context) []func() resource.Resource
 		graphBetaDeviceManagementWindowsBackupAndRestore.NewWindowsBackupAndRestoreResource,
 
 		// Graph Beta - Identity and Access resources
+		graphBetaIdentityAndAccessAttributeSet.NewAttributeSetResource,
 		graphBetaIdentityAndAccessAuthenticationContext.NewAuthenticationContextResource,
 		graphBetaIdentityAndAccessAuthenticationStrength.NewAuthenticationStrengthResource,
 		graphBetaIdentityAndAccessConditionalAccessPolicy.NewConditionalAccessPolicyResource,
