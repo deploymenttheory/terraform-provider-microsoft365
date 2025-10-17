@@ -1,0 +1,13 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#directory/customSecurityAttributeDefinitions/$entity",
+  "id": "Engineering_ProjectName",
+  "attributeSet": "Engineering",
+  "name": "ProjectName",
+  "description": "Name of the project the user is assigned to",
+  "type": "String",
+  "status": "Available",
+  "isCollection": false,
+  "isSearchable": true,
+  "usePreDefinedValuesOnly": false
+}
+

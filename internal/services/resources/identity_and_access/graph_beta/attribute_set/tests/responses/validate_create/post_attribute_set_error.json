@@ -1,0 +1,12 @@
+{
+  "error": {
+    "code": "BadRequest",
+    "message": "Invalid attribute set data",
+    "details": [
+      {
+        "code": "InvalidAttributeSet",
+        "message": "The provided attribute set data is invalid"
+      }
+    ]
+  }
+}

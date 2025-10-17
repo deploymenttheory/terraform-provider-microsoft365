@@ -1,0 +1,6 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#directory/attributeSets/$entity",
+  "id": "Engineering",
+  "description": "Updated attributes for engineering team",
+  "maxAttributesPerSet": 50
+}
