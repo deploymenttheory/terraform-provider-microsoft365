@@ -84,6 +84,7 @@ import (
 	graphBetaIdentityAndAccessAuthenticationContext "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/identity_and_access/graph_beta/authentication_context"
 	graphBetaIdentityAndAccessAuthenticationStrength "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/identity_and_access/graph_beta/authentication_strength"
 	graphBetaIdentityAndAccessConditionalAccessPolicy "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/identity_and_access/graph_beta/conditional_access_policy"
+	graphBetaIdentityAndAccessCustomSecurityAttributeDefinition "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/identity_and_access/graph_beta/custom_security_attribute_definition"
 	graphBetaIdentityAndAccessNamedLocation "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/identity_and_access/graph_beta/named_location"
 
 	// Graph v1.0 - Identity and Access resources
@@ -219,6 +220,7 @@ func (p *M365Provider) Resources(ctx context.Context) []func() resource.Resource
 
 		// Graph Beta - Identity and Access resources
 		graphBetaIdentityAndAccessAttributeSet.NewAttributeSetResource,
+		graphBetaIdentityAndAccessCustomSecurityAttributeDefinition.NewCustomSecurityAttributeDefinitionResource,
 		graphBetaIdentityAndAccessAuthenticationContext.NewAuthenticationContextResource,
 		graphBetaIdentityAndAccessAuthenticationStrength.NewAuthenticationStrengthResource,
 		graphBetaIdentityAndAccessConditionalAccessPolicy.NewConditionalAccessPolicyResource,

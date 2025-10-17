@@ -1,0 +1,13 @@
+{
+  "error": {
+    "code": "NotFound",
+    "message": "Custom security attribute definition not found",
+    "details": [
+      {
+        "code": "ResourceNotFound",
+        "message": "The requested custom security attribute definition was not found"
+      }
+    ]
+  }
+}
+

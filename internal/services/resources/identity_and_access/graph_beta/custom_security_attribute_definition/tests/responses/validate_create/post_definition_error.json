@@ -1,0 +1,13 @@
+{
+  "error": {
+    "code": "BadRequest",
+    "message": "Invalid custom security attribute definition data",
+    "details": [
+      {
+        "code": "InvalidDefinition",
+        "message": "The provided custom security attribute definition data is invalid"
+      }
+    ]
+  }
+}
+

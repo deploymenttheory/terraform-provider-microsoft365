@@ -156,3 +156,35 @@ func (m RequiresReplaceIfChangedBool) PlanModifyBool(ctx context.Context, req pl
 func NewRequiresReplaceIfChangedBool() planmodifier.Bool {
 	return RequiresReplaceIfChangedBool{}
 }
+
+// RequiresReplaceIfFalseToTrue is a custom PlanModifier that prevents changing from false to true
+type RequiresReplaceIfFalseToTrue struct{}
+
+func (m RequiresReplaceIfFalseToTrue) Description(_ context.Context) string {
+	return "Requires resource replacement if the boolean value changes from false to true. Changes from true to false are allowed."
+}
+
+func (m RequiresReplaceIfFalseToTrue) MarkdownDescription(_ context.Context) string {
+	return "Requires resource replacement if the boolean value changes from false to true. Changes from true to false are allowed."
+}
+
+func (m RequiresReplaceIfFalseToTrue) PlanModifyBool(ctx context.Context, req planmodifier.BoolRequest, resp *planmodifier.BoolResponse) {
+	if req.StateValue.IsNull() || req.StateValue.IsUnknown() {
+		return
+	}
+	if req.PlanValue.IsNull() || req.PlanValue.IsUnknown() {
+		return
+	}
+
+	stateVal := req.StateValue.ValueBool()
+	planVal := req.PlanValue.ValueBool()
+
+	if !stateVal && planVal {
+		resp.RequiresReplace = true
+	}
+}
+
+// NewRequiresReplaceIfFalseToTrue returns a new instance of the RequiresReplaceIfFalseToTrue plan modifier.
+func NewRequiresReplaceIfFalseToTrue() planmodifier.Bool {
+	return RequiresReplaceIfFalseToTrue{}
+}
