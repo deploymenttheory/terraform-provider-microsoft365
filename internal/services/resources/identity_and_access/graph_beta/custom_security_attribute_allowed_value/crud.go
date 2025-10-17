@@ -1,4 +1,4 @@
-package graphBetaBrowserSiteList
+package graphBetaCustomSecurityAttributeAllowedValue
 
 import (
 	"context"
@@ -13,9 +13,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
-// Create handles the Create operation.
-func (r *BrowserSiteListResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var object BrowserSiteListResourceModel
+// Create handles the Create operation for Custom Security Attribute Allowed Value resources.
+func (r *CustomSecurityAttributeAllowedValueResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	var object CustomSecurityAttributeAllowedValueResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting creation of resource: %s", ResourceName))
 
@@ -30,6 +30,15 @@ func (r *BrowserSiteListResource) Create(ctx context.Context, req resource.Creat
 	}
 	defer cancel()
 
+	// Validate request to check the 100 allowed values limit per definition
+	if err := validateRequest(ctx, r.client, &object); err != nil {
+		resp.Diagnostics.AddError(
+			"Validation Error",
+			fmt.Sprintf("Allowed value validation failed: %s", err.Error()),
+		)
+		return
+	}
+
 	requestBody, err := constructResource(ctx, &object)
 	if err != nil {
 		resp.Diagnostics.AddError(
@@ -40,10 +49,10 @@ func (r *BrowserSiteListResource) Create(ctx context.Context, req resource.Creat
 	}
 
 	createdResource, err := r.client.
-		Admin().
-		Edge().
-		InternetExplorerMode().
-		SiteLists().
+		Directory().
+		CustomSecurityAttributeDefinitions().
+		ByCustomSecurityAttributeDefinitionId(object.CustomSecurityAttributeDefinitionId.ValueString()).
+		AllowedValues().
 		Post(ctx, requestBody, nil)
 
 	if err != nil {
@@ -58,7 +67,7 @@ func (r *BrowserSiteListResource) Create(ctx context.Context, req resource.Creat
 		return
 	}
 
-	readReq := resource.ReadRequest{State: resp.State, ProviderMeta: req.ProviderMeta}
+	readReq := resource.ReadRequest{State: resp.State}
 	stateContainer := &crud.CreateResponseContainer{CreateResponse: resp}
 
 	opts := crud.DefaultReadWithRetryOptions()
@@ -77,9 +86,10 @@ func (r *BrowserSiteListResource) Create(ctx context.Context, req resource.Creat
 	tflog.Debug(ctx, fmt.Sprintf("Finished Create Method: %s", ResourceName))
 }
 
-// Read handles the Read operation.
-func (r *BrowserSiteListResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var state BrowserSiteListResourceModel
+// Read handles the Read operation for Custom Security Attribute Allowed Value resources.
+func (r *CustomSecurityAttributeAllowedValueResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	var object CustomSecurityAttributeAllowedValueResourceModel
+
 	tflog.Debug(ctx, fmt.Sprintf("Starting Read method for: %s", ResourceName))
 
 	operation := "Read"
@@ -88,25 +98,26 @@ func (r *BrowserSiteListResource) Read(ctx context.Context, req resource.ReadReq
 			operation = opStr
 		}
 	}
-	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+
+	resp.Diagnostics.Append(req.State.Get(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Reading %s with ID: %s", ResourceName, state.ID.ValueString()))
+	tflog.Debug(ctx, fmt.Sprintf("Reading %s with ID: %s", ResourceName, object.ID.ValueString()))
 
-	ctx, cancel := crud.HandleTimeout(ctx, state.Timeouts.Read, ReadTimeout*time.Second, &resp.Diagnostics)
+	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Read, ReadTimeout*time.Second, &resp.Diagnostics)
 	if cancel == nil {
 		return
 	}
 	defer cancel()
 
-	browserSiteList, err := r.client.
-		Admin().
-		Edge().
-		InternetExplorerMode().
-		SiteLists().
-		ByBrowserSiteListId(state.ID.ValueString()).
+	resource, err := r.client.
+		Directory().
+		CustomSecurityAttributeDefinitions().
+		ByCustomSecurityAttributeDefinitionId(object.CustomSecurityAttributeDefinitionId.ValueString()).
+		AllowedValues().
+		ByAllowedValueId(object.ID.ValueString()).
 		Get(ctx, nil)
 
 	if err != nil {
@@ -114,9 +125,9 @@ func (r *BrowserSiteListResource) Read(ctx context.Context, req resource.ReadReq
 		return
 	}
 
-	MapRemoteStateToTerraform(ctx, &state, browserSiteList)
+	MapRemoteResourceStateToTerraform(ctx, &object, resource)
 
-	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -124,10 +135,10 @@ func (r *BrowserSiteListResource) Read(ctx context.Context, req resource.ReadReq
 	tflog.Debug(ctx, fmt.Sprintf("Finished Read Method: %s", ResourceName))
 }
 
-// Update handles the Update operation.
-func (r *BrowserSiteListResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var plan BrowserSiteListResourceModel
-	var state BrowserSiteListResourceModel
+// Update handles the Update operation for Custom Security Attribute Allowed Value resources.
+func (r *CustomSecurityAttributeAllowedValueResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	var plan CustomSecurityAttributeAllowedValueResourceModel
+	var state CustomSecurityAttributeAllowedValueResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Updating %s with ID: %s", ResourceName, state.ID.ValueString()))
 
@@ -146,18 +157,18 @@ func (r *BrowserSiteListResource) Update(ctx context.Context, req resource.Updat
 	requestBody, err := constructResource(ctx, &plan)
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error constructing resource for update method",
+			"Error constructing resource",
 			fmt.Sprintf("Could not construct resource: %s: %s", ResourceName, err.Error()),
 		)
 		return
 	}
 
 	_, err = r.client.
-		Admin().
-		Edge().
-		InternetExplorerMode().
-		SiteLists().
-		ByBrowserSiteListId(state.ID.ValueString()).
+		Directory().
+		CustomSecurityAttributeDefinitions().
+		ByCustomSecurityAttributeDefinitionId(state.CustomSecurityAttributeDefinitionId.ValueString()).
+		AllowedValues().
+		ByAllowedValueId(state.ID.ValueString()).
 		Patch(ctx, requestBody, nil)
 
 	if err != nil {
@@ -189,11 +200,14 @@ func (r *BrowserSiteListResource) Update(ctx context.Context, req resource.Updat
 	tflog.Debug(ctx, fmt.Sprintf("Finished updating %s with ID: %s", ResourceName, state.ID.ValueString()))
 }
 
-// Delete handles the Delete operation.
-func (r *BrowserSiteListResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var object BrowserSiteListResourceModel
+// Delete handles the Delete operation for Custom Security Attribute Allowed Value resources.
+// Note: According to Microsoft Graph API documentation, allowed values cannot be deleted.
+// Instead, this function deactivates the allowed value by setting its status to false and then removes it from Terraform state.
+// https://learn.microsoft.com/en-us/graph/api/resources/allowedvalue?view=graph-rest-beta
+func (r *CustomSecurityAttributeAllowedValueResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	var object CustomSecurityAttributeAllowedValueResourceModel
 
-	tflog.Debug(ctx, fmt.Sprintf("Starting deletion of resource: %s", ResourceName))
+	tflog.Debug(ctx, fmt.Sprintf("Starting Delete of resource: %s", ResourceName))
 
 	resp.Diagnostics.Append(req.State.Get(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
@@ -206,20 +220,34 @@ func (r *BrowserSiteListResource) Delete(ctx context.Context, req resource.Delet
 	}
 	defer cancel()
 
-	err := r.client.
-		Admin().
-		Edge().
-		InternetExplorerMode().
-		SiteLists().
-		ByBrowserSiteListId(object.ID.ValueString()).
-		Delete(ctx, nil)
+	tflog.Info(ctx, fmt.Sprintf("Deactivating custom security attribute allowed value '%s' by setting is_active to false", object.ID.ValueString()))
+
+	// Set is_active to false to deactivate the allowed value
+	object.IsActive = types.BoolValue(false)
+
+	requestBody, err := constructResource(ctx, &object)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error constructing resource for deactivation",
+			fmt.Sprintf("Could not construct resource: %s: %s", ResourceName, err.Error()),
+		)
+		return
+	}
+
+	_, err = r.client.
+		Directory().
+		CustomSecurityAttributeDefinitions().
+		ByCustomSecurityAttributeDefinitionId(object.CustomSecurityAttributeDefinitionId.ValueString()).
+		AllowedValues().
+		ByAllowedValueId(object.ID.ValueString()).
+		Patch(ctx, requestBody, nil)
 
 	if err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, "Delete", r.WritePermissions)
 		return
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Removing %s from Terraform state", ResourceName))
+	tflog.Info(ctx, fmt.Sprintf("Successfully deactivated custom security attribute allowed value '%s'. Removing from Terraform state.", object.ID.ValueString()))
 
 	resp.State.RemoveResource(ctx)
 

@@ -1,0 +1,46 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
+subcategory: "Identity and Access"
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Name}} ({{.Type}})
+
+{{ .Description | trimspace }}
+
+## Microsoft Documentation
+
+- [customSecurityAttributeAllowedValue resource type](https://learn.microsoft.com/en-us/graph/api/resources/allowedvalue?view=graph-rest-beta)
+- [Create customSecurityAttributeAllowedValue](https://learn.microsoft.com/en-us/graph/api/customsecurityattributedefinition-post-allowedvalues?view=graph-rest-beta&tabs=http)
+- [Update customSecurityAttributeAllowedValue](https://learn.microsoft.com/en-us/graph/api/allowedvalue-update?view=graph-rest-beta&tabs=http)
+
+## API Permissions
+
+The following API permissions are required in order to use this resource.
+
+### Microsoft Graph
+
+- **Application**: `CustomSecAttributeDefinition.Read.All`, `CustomSecAttributeDefinition.ReadWrite.All`
+
+## Version History
+
+| Version | Status | Notes |
+|---------|--------|-------|
+| v0.33.0-alpha | Experimental | Initial release |
+
+## Example Usage
+
+{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_custom_security_attribute_allowed_value/resource.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}
+
+## Important Notes
+
+You can define up to 100 allowed values per custom security attribute definition. Allowed values cannot be renamed or deleted, but they can be deactivated.
+
+## Import
+
+Import is supported using the following syntax:
+
+{{ codefile "shell" "examples/resources/microsoft365_graph_beta_identity_and_access_custom_security_attribute_allowed_value/import.sh" }} 

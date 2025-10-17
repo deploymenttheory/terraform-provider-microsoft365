@@ -1,0 +1,6 @@
+{
+    "@odata.context": "https://graph.microsoft.com/beta/$metadata#directory/customSecurityAttributeDefinitions('Engineering_Project')/allowedValues/$entity",
+    "id": "Alpine",
+    "isActive": true
+}
+
