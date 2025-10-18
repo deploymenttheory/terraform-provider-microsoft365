@@ -5,8 +5,10 @@ import (
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/client"
 	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/schema"
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
 )
@@ -46,15 +48,50 @@ func (d *ManagedDeviceDataSource) Configure(ctx context.Context, req datasource.
 
 func (d *ManagedDeviceDataSource) Schema(ctx context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Retrieves Windows Managed Devices from Microsoft Intune. Using the endpoint '/deviceManagement/managedDevices'.",
+		MarkdownDescription: "Retrieves Managed Devices from Microsoft Intune using the `/deviceManagement/managedDevices` endpoint. This data source enables querying managed devices with advanced filtering capabilities.",
 		Attributes: map[string]schema.Attribute{
 			"filter_type": schema.StringAttribute{
 				Required:            true,
-				MarkdownDescription: "Type of filter to apply. Valid values are: `all`, `id`, `device_name`, `serial_number` and `user_id`.",
+				MarkdownDescription: "Type of filter to apply. Valid values are: `all`, `id`, `device_name`, `serial_number`, `user_id`, `odata`.",
+				Validators: []validator.String{
+					stringvalidator.OneOf("all", "id", "device_name", "serial_number", "user_id", "odata"),
+				},
 			},
 			"filter_value": schema.StringAttribute{
 				Optional:            true,
-				MarkdownDescription: "Value to filter by. Not required when filter_type is 'all'.",
+				MarkdownDescription: "Value to filter by. Not required when filter_type is 'all' or 'odata'.",
+			},
+			"odata_filter": schema.StringAttribute{
+				Optional:            true,
+				MarkdownDescription: "OData $filter parameter for filtering results. Only used when filter_type is 'odata'. Example: operatingSystem eq 'Windows'.",
+			},
+			"odata_top": schema.Int32Attribute{
+				Optional:            true,
+				MarkdownDescription: "OData $top parameter to limit the number of results. Only used when filter_type is 'odata'.",
+			},
+			"odata_skip": schema.Int32Attribute{
+				Optional:            true,
+				MarkdownDescription: "OData $skip parameter for pagination. Only used when filter_type is 'odata'.",
+			},
+			"odata_select": schema.StringAttribute{
+				Optional:            true,
+				MarkdownDescription: "OData $select parameter to specify which fields to include. Only used when filter_type is 'odata'.",
+			},
+			"odata_orderby": schema.StringAttribute{
+				Optional:            true,
+				MarkdownDescription: "OData $orderby parameter to sort results. Only used when filter_type is 'odata'. Example: deviceName.",
+			},
+			"odata_count": schema.BoolAttribute{
+				Optional:            true,
+				MarkdownDescription: "OData $count parameter to include count of total results. Only used when filter_type is 'odata'.",
+			},
+			"odata_search": schema.StringAttribute{
+				Optional:            true,
+				MarkdownDescription: "OData $search parameter for full-text search. Only used when filter_type is 'odata'.",
+			},
+			"odata_expand": schema.StringAttribute{
+				Optional:            true,
+				MarkdownDescription: "OData $expand parameter to include related entities. Only used when filter_type is 'odata'.",
 			},
 			"items": schema.ListNestedAttribute{
 				Computed:            true,
