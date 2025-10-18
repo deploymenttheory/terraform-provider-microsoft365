@@ -8,10 +8,18 @@ import (
 
 // ManagedDeviceDataSourceModel represents the Terraform data source model for Windows Managed Devices
 type ManagedDeviceDataSourceModel struct {
-	FilterType  types.String                       `tfsdk:"filter_type"`
-	FilterValue types.String                       `tfsdk:"filter_value"`
-	Items       []ManagedDeviceDeviceDataItemModel `tfsdk:"items"`
-	Timeouts    timeouts.Value                     `tfsdk:"timeouts"`
+	FilterType   types.String                       `tfsdk:"filter_type"`
+	FilterValue  types.String                       `tfsdk:"filter_value"`
+	ODataFilter  types.String                       `tfsdk:"odata_filter"`
+	ODataTop     types.Int32                        `tfsdk:"odata_top"`
+	ODataSkip    types.Int32                        `tfsdk:"odata_skip"`
+	ODataSelect  types.String                       `tfsdk:"odata_select"`
+	ODataOrderBy types.String                       `tfsdk:"odata_orderby"`
+	ODataCount   types.Bool                         `tfsdk:"odata_count"`
+	ODataSearch  types.String                       `tfsdk:"odata_search"`
+	ODataExpand  types.String                       `tfsdk:"odata_expand"`
+	Items        []ManagedDeviceDeviceDataItemModel `tfsdk:"items"`
+	Timeouts     timeouts.Value                     `tfsdk:"timeouts"`
 }
 
 // ManagedDeviceDeviceDataItemModel represents an individual Windows Managed Device, aligned with the provided JSON structure.
