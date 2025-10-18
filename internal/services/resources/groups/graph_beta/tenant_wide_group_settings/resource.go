@@ -85,7 +85,7 @@ func (r *TenantWideGroupSettingsResource) Schema(ctx context.Context, req resour
 	resp.Schema = schema.Schema{
 		MarkdownDescription: "Manages tenant-wide directory settings for Microsoft 365 groups using the `/settings` endpoint. This resource enables a collection of configurations that allow admins to manage behaviors for specific Microsoft Entra objects like Microsoft 365 groups." +
 			"This resource applies settings tenant-wide, enabling admins to control various aspects of group functionality." +
-			"Use this resource in conjunction with the datasource 'microsoft365_graph_beta_directory_management_directory_setting_templates' to get the template_id, settings and values.",
+			"Use this resource in conjunction with the datasource 'microsoft365_graph_beta_identity_and_access_directory_setting_templates' to get the template_id, settings and values.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed: true,

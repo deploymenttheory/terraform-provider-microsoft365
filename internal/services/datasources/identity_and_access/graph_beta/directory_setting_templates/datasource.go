@@ -14,7 +14,7 @@ import (
 )
 
 const (
-	DataSourceName = "graph_beta_directory_management_directory_setting_templates"
+	DataSourceName = "graph_beta_identity_and_access_directory_setting_templates"
 	ReadTimeout    = 180
 )
 

@@ -1,0 +1,54 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#roleManagement/directory/roleDefinitions",
+  "@odata.count": 2,
+  "value": [
+    {
+      "id": "62e90394-69f5-4237-9190-012177145e10",
+      "description": "Can manage all aspects of Azure AD and Microsoft services that use Azure AD identities.",
+      "displayName": "Global Administrator",
+      "isBuiltIn": true,
+      "isEnabled": true,
+      "isPrivileged": true,
+      "resourceScopes": [
+        "/"
+      ],
+      "templateId": "62e90394-69f5-4237-9190-012177145e10",
+      "version": "1",
+      "rolePermissions": [
+        {
+          "allowedResourceActions": [
+            "microsoft.directory/accessReviews/allProperties/allTasks",
+            "microsoft.directory/administrativeUnits/allProperties/allTasks",
+            "microsoft.directory/applications/allProperties/allTasks",
+            "microsoft.directory/organization/allProperties/allTasks"
+          ],
+          "condition": null
+        }
+      ]
+    },
+    {
+      "id": "e8611ab8-c189-46e8-94e1-60213ab1f814",
+      "description": "Can manage all aspects of privileged roles in Azure AD and Privileged Identity Management.",
+      "displayName": "Privileged Role Administrator",
+      "isBuiltIn": true,
+      "isEnabled": true,
+      "isPrivileged": true,
+      "resourceScopes": [
+        "/"
+      ],
+      "templateId": "e8611ab8-c189-46e8-94e1-60213ab1f814",
+      "version": "1",
+      "rolePermissions": [
+        {
+          "allowedResourceActions": [
+            "microsoft.directory/roleAssignments/allProperties/allTasks",
+            "microsoft.directory/roleDefinitions/allProperties/allTasks",
+            "microsoft.directory/scopedRoleMemberships/allProperties/allTasks"
+          ],
+          "condition": null
+        }
+      ]
+    }
+  ]
+}
+

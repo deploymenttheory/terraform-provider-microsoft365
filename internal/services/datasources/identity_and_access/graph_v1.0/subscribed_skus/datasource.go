@@ -16,7 +16,7 @@ import (
 )
 
 const (
-	DataSourceName = "graph_directory_management_subscribed_skus"
+	DataSourceName = "graph_beta_identity_and_access_subscribed_skus"
 	ReadTimeout    = 180
 )
 

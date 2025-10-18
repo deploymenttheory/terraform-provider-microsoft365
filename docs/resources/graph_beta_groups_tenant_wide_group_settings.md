@@ -2,12 +2,12 @@
 page_title: "microsoft365_graph_beta_groups_tenant_wide_group_settings Resource - terraform-provider-microsoft365"
 subcategory: "Groups"
 description: |-
-    Manages tenant-wide directory settings for Microsoft 365 groups using the /settings endpoint. This resource enables a collection of configurations that allow admins to manage behaviors for specific Microsoft Entra objects like Microsoft 365 groups.This resource applies settings tenant-wide, enabling admins to control various aspects of group functionality.Use this resource in conjunction with the datasource 'microsoft365_graph_beta_directory_management_directory_setting_templates' to get the template_id, settings and values.
+    Manages tenant-wide directory settings for Microsoft 365 groups using the /settings endpoint. This resource enables a collection of configurations that allow admins to manage behaviors for specific Microsoft Entra objects like Microsoft 365 groups.This resource applies settings tenant-wide, enabling admins to control various aspects of group functionality.Use this resource in conjunction with the datasource 'microsoft365_graph_beta_identity_and_access_directory_setting_templates' to get the template_id, settings and values.
 ---
 
 # microsoft365_graph_beta_groups_tenant_wide_group_settings (Resource)
 
-Manages tenant-wide directory settings for Microsoft 365 groups using the `/settings` endpoint. This resource enables a collection of configurations that allow admins to manage behaviors for specific Microsoft Entra objects like Microsoft 365 groups.This resource applies settings tenant-wide, enabling admins to control various aspects of group functionality.Use this resource in conjunction with the datasource 'microsoft365_graph_beta_directory_management_directory_setting_templates' to get the template_id, settings and values.
+Manages tenant-wide directory settings for Microsoft 365 groups using the `/settings` endpoint. This resource enables a collection of configurations that allow admins to manage behaviors for specific Microsoft Entra objects like Microsoft 365 groups.This resource applies settings tenant-wide, enabling admins to control various aspects of group functionality.Use this resource in conjunction with the datasource 'microsoft365_graph_beta_identity_and_access_directory_setting_templates' to get the template_id, settings and values.
 
 ## Microsoft Documentation
 
@@ -38,7 +38,7 @@ The following API permissions are required in order to use this resource.
 # This resource manages organization-wide policies for Microsoft 365 groups
 
 # First, get the Group.Unified template details to see available settings
-data "microsoft365_graph_beta_directory_management_directory_setting_templates" "group_unified" {
+data "microsoft365_graph_beta_identity_and_access_directory_setting_templates" "group_unified" {
   filter_type  = "display_name"
   filter_value = "Group.Unified"
 }
@@ -46,7 +46,7 @@ data "microsoft365_graph_beta_directory_management_directory_setting_templates" 
 # Configure tenant-wide group creation and guest access policies using the Group.Unified template
 resource "microsoft365_graph_beta_groups_tenant_wide_group_settings" "unified_settings" {
   # Use the template ID from the data source
-  template_id = data.microsoft365_graph_beta_directory_management_directory_setting_templates.group_unified.directory_setting_templates[0].id
+  template_id = data.microsoft365_graph_beta_identity_and_access_directory_setting_templates.group_unified.directory_setting_templates[0].id
 
   # Example 1: Minimal configuration with only essential settings
   # This shows how to configure just the most commonly used settings
@@ -76,7 +76,7 @@ resource "microsoft365_graph_beta_groups_tenant_wide_group_settings" "unified_se
 # Example 2: Comprehensive configuration with naming policies and guest restrictions
 resource "microsoft365_graph_beta_groups_tenant_wide_group_settings" "comprehensive_settings" {
   # Use the template ID from the data source
-  template_id = data.microsoft365_graph_beta_directory_management_directory_setting_templates.group_unified.directory_setting_templates[0].id
+  template_id = data.microsoft365_graph_beta_identity_and_access_directory_setting_templates.group_unified.directory_setting_templates[0].id
 
   values = [
     # Group creation controls

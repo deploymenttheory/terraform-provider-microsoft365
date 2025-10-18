@@ -1,11 +1,11 @@
 ---
-page_title: "microsoft365_graph_beta_directory_management_directory_setting_templates Data Source - terraform-provider-microsoft365"
+page_title: "microsoft365_graph_beta_identity_and_access_directory_setting_templates Data Source - terraform-provider-microsoft365"
 subcategory: "Directory Management"
 description: |-
     Retrieves information about directory setting templates available in Microsoft 365. Directory setting templates represent system-defined settings available to the tenant. Directory settings can be created based on the available templates, and values changed from their preset defaults. These templates are read-only and define the allowed behaviors for specific Microsoft Entra objects like Microsoft 365 groups.
 ---
 
-# microsoft365_graph_beta_directory_management_directory_setting_templates (Data Source)
+# microsoft365_graph_beta_identity_and_access_directory_setting_templates (Data Source)
 
 Retrieves information about directory setting templates available in Microsoft 365. Directory setting templates represent system-defined settings available to the tenant. Directory settings can be created based on the available templates, and values changed from their preset defaults. These templates are read-only and define the allowed behaviors for specific Microsoft Entra objects like Microsoft 365 groups.
 
@@ -30,6 +30,13 @@ This data source supports filtering using the following attributes:
 - `filter_type` (Required): Type of filter to apply. Valid values are `all`, `id`, `display_name`.
 - `filter_value` (Optional): Value to filter by. Not required when `filter_type` is `all`.
 
+## Version History
+
+| Version | Status | Notes |
+|---------|--------|-------|
+| v0.15.0-alpha | Experimental | Initial release |
+| v0.33.0-alpha | Experimental | Renamed from graph_beta_directory_management_directory_setting_templates |
+
 ## Example Usage
 
 ```terraform
@@ -38,7 +45,7 @@ This data source supports filtering using the following attributes:
 # These templates define the settings that can be applied to Microsoft 365 groups and other resources
 
 # Get all directory setting templates
-data "microsoft365_graph_beta_directory_management_directory_setting_templates" "all" {
+data "microsoft365_graph_beta_identity_and_access_directory_setting_templates" "all" {
   filter_type = "all"
 
   timeouts = {
@@ -48,7 +55,7 @@ data "microsoft365_graph_beta_directory_management_directory_setting_templates" 
 
 # Get a specific directory setting template by ID
 # This example uses the Group.Unified template ID
-data "microsoft365_graph_beta_directory_management_directory_setting_templates" "group_unified" {
+data "microsoft365_graph_beta_identity_and_access_directory_setting_templates" "group_unified" {
   filter_type  = "id"
   filter_value = "62375ab9-6b52-47ed-826b-58e47e0e304b" # Group.Unified template ID
 
@@ -58,7 +65,7 @@ data "microsoft365_graph_beta_directory_management_directory_setting_templates" 
 }
 
 # Get directory setting templates by display name filter
-data "microsoft365_graph_beta_directory_management_directory_setting_templates" "group_templates" {
+data "microsoft365_graph_beta_identity_and_access_directory_setting_templates" "group_templates" {
   filter_type  = "display_name"
   filter_value = "Group.Unified"
 
@@ -69,7 +76,7 @@ data "microsoft365_graph_beta_directory_management_directory_setting_templates" 
 
 # Output all template IDs and display names
 output "all_template_ids" {
-  value = [for template in data.microsoft365_graph_beta_directory_management_directory_setting_templates.all.directory_setting_templates : {
+  value = [for template in data.microsoft365_graph_beta_identity_and_access_directory_setting_templates.all.directory_setting_templates : {
     id           = template.id
     display_name = template.display_name
   }]
@@ -79,10 +86,10 @@ output "all_template_ids" {
 # Output the Group.Unified template details
 output "group_unified_template" {
   value = {
-    id           = data.microsoft365_graph_beta_directory_management_directory_setting_templates.group_unified.directory_setting_templates[0].id
-    display_name = data.microsoft365_graph_beta_directory_management_directory_setting_templates.group_unified.directory_setting_templates[0].display_name
-    description  = data.microsoft365_graph_beta_directory_management_directory_setting_templates.group_unified.directory_setting_templates[0].description
-    settings = [for value in data.microsoft365_graph_beta_directory_management_directory_setting_templates.group_unified.directory_setting_templates[0].values : {
+    id           = data.microsoft365_graph_beta_identity_and_access_directory_setting_templates.group_unified.directory_setting_templates[0].id
+    display_name = data.microsoft365_graph_beta_identity_and_access_directory_setting_templates.group_unified.directory_setting_templates[0].display_name
+    description  = data.microsoft365_graph_beta_identity_and_access_directory_setting_templates.group_unified.directory_setting_templates[0].description
+    settings = [for value in data.microsoft365_graph_beta_identity_and_access_directory_setting_templates.group_unified.directory_setting_templates[0].values : {
       name          = value.name
       type          = value.type
       default_value = value.default_value

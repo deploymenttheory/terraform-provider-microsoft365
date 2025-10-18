@@ -2,12 +2,12 @@
 page_title: "microsoft365_graph_beta_groups_group_settings Resource - terraform-provider-microsoft365"
 subcategory: "Groups"
 description: |-
-    Manages group-specific directory settings for Microsoft 365 groups using the /groups/{group-id}/settings endpoint.This resource enables configuration of group-level settings such as guest access permissions and other group-specific policies that override tenant-wide defaults.Use this resource in conjunction with the datasource 'microsoft365_graph_beta_directory_management_directory_setting_templates' to get the template_id, settings and values.Use this resource in conjection with the resource 'microsoft365_graph_beta_groups_group' to get the group_id.
+    Manages group-specific directory settings for Microsoft 365 groups using the /groups/{group-id}/settings endpoint.This resource enables configuration of group-level settings such as guest access permissions and other group-specific policies that override tenant-wide defaults.Use this resource in conjunction with the datasource 'microsoft365_graph_beta_identity_and_access_directory_setting_templates' to get the template_id, settings and values.Use this resource in conjection with the resource 'microsoft365_graph_beta_groups_group' to get the group_id.
 ---
 
 # microsoft365_graph_beta_groups_group_settings (Resource)
 
-Manages group-specific directory settings for Microsoft 365 groups using the `/groups/{group-id}/settings` endpoint.This resource enables configuration of group-level settings such as guest access permissions and other group-specific policies that override tenant-wide defaults.Use this resource in conjunction with the datasource 'microsoft365_graph_beta_directory_management_directory_setting_templates' to get the template_id, settings and values.Use this resource in conjection with the resource 'microsoft365_graph_beta_groups_group' to get the group_id.
+Manages group-specific directory settings for Microsoft 365 groups using the `/groups/{group-id}/settings` endpoint.This resource enables configuration of group-level settings such as guest access permissions and other group-specific policies that override tenant-wide defaults.Use this resource in conjunction with the datasource 'microsoft365_graph_beta_identity_and_access_directory_setting_templates' to get the template_id, settings and values.Use this resource in conjection with the resource 'microsoft365_graph_beta_groups_group' to get the group_id.
 
 ## Microsoft Documentation
 
@@ -38,7 +38,7 @@ The following API permissions are required in order to use this resource.
 # This resource manages directory settings for a specific Microsoft 365 group
 
 # Get the Group.Unified.Guest template details to see available settings
-data "microsoft365_graph_beta_directory_management_directory_setting_templates" "group_unified_guest" {
+data "microsoft365_graph_beta_identity_and_access_directory_setting_templates" "group_unified_guest" {
   filter_type  = "display_name"
   filter_value = "Group.Unified.Guest"
 }
@@ -52,7 +52,7 @@ data "microsoft365_graph_beta_groups_group" "example" {
 # This overrides tenant-wide guest settings for this specific group
 resource "microsoft365_graph_beta_groups_group_settings" "guest_settings" {
   group_id    = data.microsoft365_graph_beta_groups_group.example.id
-  template_id = data.microsoft365_graph_beta_directory_management_directory_setting_templates.group_unified_guest.directory_setting_templates[0].id
+  template_id = data.microsoft365_graph_beta_identity_and_access_directory_setting_templates.group_unified_guest.directory_setting_templates[0].id
 
   values = [
     {
@@ -70,7 +70,7 @@ resource "microsoft365_graph_beta_groups_group_settings" "guest_settings" {
 }
 
 # Get the Group.Unified template details
-data "microsoft365_graph_beta_directory_management_directory_setting_templates" "group_unified" {
+data "microsoft365_graph_beta_identity_and_access_directory_setting_templates" "group_unified" {
   filter_type  = "display_name"
   filter_value = "Group.Unified"
 }
@@ -79,7 +79,7 @@ data "microsoft365_graph_beta_directory_management_directory_setting_templates" 
 # This shows how to override other group settings for a specific group
 resource "microsoft365_graph_beta_groups_group_settings" "unified_settings" {
   group_id    = data.microsoft365_graph_beta_groups_group.example.id
-  template_id = data.microsoft365_graph_beta_directory_management_directory_setting_templates.group_unified.directory_setting_templates[0].id
+  template_id = data.microsoft365_graph_beta_identity_and_access_directory_setting_templates.group_unified.directory_setting_templates[0].id
 
   values = [
     {

@@ -21,7 +21,7 @@ The following API permissions are required in order to use this data source.
 
 ### Microsoft Graph
 
-- **Application**: `Directory.Read.All`, `Directory.ReadWrite.All`
+- **Application**: `RoleManagement.Read.All`.
 
 ## Filtering
 
@@ -30,8 +30,14 @@ This data source supports filtering using the following attributes:
 - `filter_type` (Required): Type of filter to apply. Valid values are `all`, `id`, `display_name`.
 - `filter_value` (Optional): Value to filter by. Not required when `filter_type` is `all`.
 
+## Version History
+
+| Version | Status | Notes |
+|---------|--------|-------|
+| v0.33.0-alpha | Experimental | Initial release |
+
 ## Example Usage
 
-{{ tffile "examples/data-sources/microsoft365_graph_beta_directory_management_directory_setting_templates/datasource.tf" }}
+{{ tffile "examples/data-sources/microsoft365_graph_beta_identity_and_access_role_definitions/datasource.tf" }}
 
 {{ .SchemaMarkdown | trimspace }}
