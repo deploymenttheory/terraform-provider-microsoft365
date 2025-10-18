@@ -5,6 +5,40 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.33.0-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.32.0-alpha...v0.33.0-alpha) (2025-10-18)
+
+
+### Features
+
+* added action apply_cloud_pc_provisioning_policy and fixes for cloud_pc_user_setting ([8eaf974](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/8eaf974bb610154e88fd88ebae5ac70e34d136fd))
+* added attribute_set ([60d8dde](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/60d8ddee9a64a466c821735aab545267c5dd7b55))
+* added datasource directory role definitions ([28c50a8](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/28c50a872f456dd70776e5260d1f9add356f0557))
+* added datasource directory role definitions and fixes for miss named datasources ([#830](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/830)) ([994a608](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/994a60804f9e91cde84f95589f51c7aa4816147b))
+* added microsoft365_graph_beta_device_management_policy_set docs ([5286a1e](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/5286a1eb4c380b9920dce62c460ea28eb954431c))
+* added microsoft365_graph_beta_identity_and_access_custom_security_attribute_allowed_value ([9061ae1](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/9061ae1b0f8b5d0f108ad569bd15a80ac72ac5e3))
+* added microsoft365_graph_beta_identity_and_access_custom_securiy_attribute_allowed_value ([#829](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/829)) ([cef2d52](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/cef2d529106b5527313b045d546871a58617a2aa))
+* added resource apple_configurator_enrollment_policy ([a88130f](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/a88130f9843849d0a464bd602d1f519539c4919c))
+* added resource apple_configurator_enrollment_policy and datasource mobile_app_catalog_package ([#817](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/817)) ([3ddecd8](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/3ddecd87d66e90e9d9a738729d804546a332968e))
+* added resource identity_and_access_attribute_set and identity_and_access_custom_security_attribute_definition ([#828](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/828)) ([50f9864](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/50f9864eba9a99e9abe944ddbdeb1a885c583617))
+* added resource intune policy_set ([6a51cc3](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/6a51cc3a637076d19951efe849086c3af24aa7ad))
+* added resource microsoft365_graph_beta_identity_and_access_custom_security_attribute_definition ([2b144bc](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/2b144bc82ff40f468bbe6b561057d9c0d1b4c4f5))
+
+
+### Bug Fixes
+
+* added additional validation and missing fields and timeouts ([402a7fa](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/402a7fa6543523e97d02f9f076a7f7692eb67618))
+* added fixes for update handling ([f5d0b45](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/f5d0b4572f5d63ec22abfd1580bef7bb122b9d07))
+* added full odata  query support and page itteration to datasource managed_device ([3809f2c](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/3809f2c76bc59b698ce9ea2ce299447c1c3afb39))
+* added full odata  query support and page itteration to datasource managed_device ([#831](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/831)) ([2ac60e2](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/2ac60e28dbd9f708c732a68faae66fb126f3ed32))
+* added microsoftwindowsdesktop_windows-ent-cpc_win11-25h2-ent-cpc-m365 to resource graph_beta_windows_365_cloud_pc_provisioning_policy ([a7a8329](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/a7a83297a0c9e4432e40626bbd32e331155eb835))
+* added valdiation for display_name ([1b69f43](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/1b69f436c4a05da154ec666d267e52e81a49e7fb))
+* added validation for frontline type with provisioning_policy_id ([e85e622](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/e85e622a97b412323334947ea3d9dff41d97731c))
+* changed behaviour of local_admin_enabled . ([f593884](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/f593884d28426a6931659163a983f4a481cc5290))
+* for ca constructor field include_users ([4dc908f](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/4dc908f786a945152fae25afd83c05314d76e348))
+* for conditional access validations ([d70db24](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/d70db24cba02492ba07ff05f463590f9e4da25ab))
+* numerous fixes for conditional access ([#827](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/827)) ([e42b9a9](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/e42b9a9e196dd43251bb9fe2f2f2e7c2883fd420))
+* numerous fixes for windows_365 resources ([#819](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/819)) ([07f6699](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/07f6699366ea4ae4f330c64264210c19e93e0963))
+
 ## [0.32.0-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.31.1-alpha...v0.32.0-alpha) (2025-10-05)
 
 
