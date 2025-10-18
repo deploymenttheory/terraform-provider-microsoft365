@@ -166,7 +166,7 @@ func constructConditions(ctx context.Context, data *ConditionalAccessConditions)
 
 		// Handle global_secure_access (typically null)
 		if !data.Applications.GlobalSecureAccess.IsNull() && !data.Applications.GlobalSecureAccess.IsUnknown() {
-			// For now, since this field is typically null in API examples, 
+			// For now, since this field is typically null in API examples,
 			// we'll set it to null. Future implementation can expand this as needed.
 			applications["globalSecureAccess"] = nil
 		} else {
@@ -183,9 +183,7 @@ func constructConditions(ctx context.Context, data *ConditionalAccessConditions)
 		users := make(map[string]any)
 
 		if err := convert.FrameworkToGraphStringSet(ctx, data.Users.IncludeUsers, func(values []string) {
-			if len(values) > 0 {
-				users["includeUsers"] = values
-			}
+			users["includeUsers"] = values
 		}); err != nil {
 			return nil, fmt.Errorf("failed to convert include users: %w", err)
 		}

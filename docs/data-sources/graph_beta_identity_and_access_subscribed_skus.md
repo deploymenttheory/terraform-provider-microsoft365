@@ -1,11 +1,11 @@
 ---
-page_title: "microsoft365_graph_directory_management_subscribed_skus Data Source - terraform-provider-microsoft365"
+page_title: "microsoft365_graph_beta_identity_and_access_subscribed_skus Data Source - terraform-provider-microsoft365"
 subcategory: "Directory Management"
 description: |-
   Retrieves information about Microsoft 365 license SKUs (Stock Keeping Units) that an organization has subscribed to. This data source provides details about available licenses, their consumption, and service plans.
 ---
 
-# microsoft365_graph_directory_management_subscribed_skus (Data Source)
+# microsoft365_graph_beta_identity_and_access_subscribed_skus (Data Source)
 
 Retrieves information about Microsoft 365 license SKUs (Stock Keeping Units) that an organization has subscribed to. This data source provides details about available licenses, their consumption, and service plans.
 
@@ -22,19 +22,20 @@ The following API permissions are required in order to use this data source.
 | Version | Status | Notes |
 |---------|--------|-------|
 | v0.15.0-alpha | Experimental | Initial release |
+| v0.35.0-alpha | Experimental | Renamed from graph_directory_management_subscribed_skus |
 
 ## Example Usage
 
 ```terraform
 # Example: Get all subscribed SKUs
-data "microsoft365_graph_directory_management_subscribed_skus" "all" {
+data "microsoft365_graph_beta_identity_and_access_subscribed_skus" "all" {
   timeouts = {
     read = "30s"
   }
 }
 
 # Example: Filter by SKU part number
-data "microsoft365_graph_directory_management_subscribed_skus" "enterprise_premium" {
+data "microsoft365_graph_beta_identity_and_access_subscribed_skus" "enterprise_premium" {
   sku_part_number = "ENTERPRISEPREMIUM"
 
   timeouts = {
@@ -43,7 +44,7 @@ data "microsoft365_graph_directory_management_subscribed_skus" "enterprise_premi
 }
 
 # Example: Filter by applies_to User
-data "microsoft365_graph_directory_management_subscribed_skus" "user_skus" {
+data "microsoft365_graph_beta_identity_and_access_subscribed_skus" "user_skus" {
   applies_to = "User"
 
   timeouts = {
@@ -52,7 +53,7 @@ data "microsoft365_graph_directory_management_subscribed_skus" "user_skus" {
 }
 
 # Example: Get specific SKU by ID
-data "microsoft365_graph_directory_management_subscribed_skus" "specific_sku" {
+data "microsoft365_graph_beta_identity_and_access_subscribed_skus" "specific_sku" {
   sku_id = "c7df2760-2c81-4ef7-b578-5b5392b571df"
 
   timeouts = {
@@ -61,7 +62,7 @@ data "microsoft365_graph_directory_management_subscribed_skus" "specific_sku" {
 }
 
 # Example: Filter by partial SKU part number match
-data "microsoft365_graph_directory_management_subscribed_skus" "premium_skus" {
+data "microsoft365_graph_beta_identity_and_access_subscribed_skus" "premium_skus" {
   sku_part_number = "PREMIUM"
 
   timeouts = {
@@ -71,18 +72,18 @@ data "microsoft365_graph_directory_management_subscribed_skus" "premium_skus" {
 
 # Output examples
 output "all_skus_count" {
-  value       = length(data.microsoft365_graph_directory_management_subscribed_skus.all.subscribed_skus)
+  value       = length(data.microsoft365_graph_beta_identity_and_access_subscribed_skus.all.subscribed_skus)
   description = "Total number of subscribed SKUs"
 }
 
 output "enterprise_premium_sku" {
-  value       = data.microsoft365_graph_directory_management_subscribed_skus.enterprise_premium.subscribed_skus
+  value       = data.microsoft365_graph_beta_identity_and_access_subscribed_skus.enterprise_premium.subscribed_skus
   description = "Enterprise Premium SKU details"
 }
 
 output "user_assignable_skus" {
   value = [
-    for sku in data.microsoft365_graph_directory_management_subscribed_skus.user_skus.subscribed_skus : {
+    for sku in data.microsoft365_graph_beta_identity_and_access_subscribed_skus.user_skus.subscribed_skus : {
       sku_part_number   = sku.sku_part_number
       consumed_units    = sku.consumed_units
       enabled_units     = sku.prepaid_units.enabled
@@ -93,13 +94,13 @@ output "user_assignable_skus" {
 }
 
 output "specific_sku_service_plans" {
-  value       = length(data.microsoft365_graph_directory_management_subscribed_skus.specific_sku.subscribed_skus) > 0 ? data.microsoft365_graph_directory_management_subscribed_skus.specific_sku.subscribed_skus[0].service_plans : []
+  value       = length(data.microsoft365_graph_beta_identity_and_access_subscribed_skus.specific_sku.subscribed_skus) > 0 ? data.microsoft365_graph_beta_identity_and_access_subscribed_skus.specific_sku.subscribed_skus[0].service_plans : []
   description = "Service plans for the specific SKU"
 }
 
 output "premium_skus_summary" {
   value = [
-    for sku in data.microsoft365_graph_directory_management_subscribed_skus.premium_skus.subscribed_skus : {
+    for sku in data.microsoft365_graph_beta_identity_and_access_subscribed_skus.premium_skus.subscribed_skus : {
       name               = sku.sku_part_number
       total_licenses     = sku.prepaid_units.enabled
       used_licenses      = sku.consumed_units

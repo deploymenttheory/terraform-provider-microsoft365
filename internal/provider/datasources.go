@@ -5,14 +5,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 
-	// Graph Beta - Windows 365 datasources
-	graphBetaWindows365CloudPcAuditEvent "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/windows_365/graph_beta/cloud_pc_audit_event"
-	graphBetaWindows365CloudPcDeviceImage "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/windows_365/graph_beta/cloud_pc_device_image"
-	graphBetaWindows365CloudPcFrontlineServicePlan "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/windows_365/graph_beta/cloud_pc_frontline_service_plan"
-	graphBetaWindows365CloudPcGalleryImage "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/windows_365/graph_beta/cloud_pc_gallery_image"
-	graphBetaWindows365CloudPcSourceDeviceImage "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/windows_365/graph_beta/cloud_pc_source_device_image"
-	graphBetaWindows365CloudPcs "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/windows_365/graph_beta/cloud_pcs"
-
 	// Graph Beta - Applications datasources
 	graphBetaApplicationsServicePrincipal "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/applications/service_principle"
 
@@ -39,7 +31,10 @@ import (
 	graphBetaDeviceManagementWindowsUpdateRing "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/device_management/graph_beta/windows_update_ring"
 
 	// Graph Beta - Directory Management datasources
-	graphBetaDirectoryManagementDirectorySettingTemplates "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/directory_management/graph_beta/directory_setting_templates"
+	graphBetaIdentityAndAccessDirectorySettingTemplates "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/identity_and_access/graph_beta/directory_setting_templates"
+
+	// Graph Beta - Identity and Access datasources
+	graphBetaIdentityAndAccessRoleDefinitions "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/identity_and_access/graph_beta/role_definitions"
 
 	// Graph Beta - M365 Admin datasources
 	graphBetaM365AdminBrowserSite "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/m365_admin/graph_beta/browser_site"
@@ -50,7 +45,15 @@ import (
 	graphBetaMultitenantManagementAuditEvents "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/multitenant_management/graph_beta/audit_events"
 
 	// Graph v1.0 - Directory Management datasources
-	graphDirectoryManagementSubscribedSkus "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/directory_management/graph_v1.0/subscribed_skus"
+	graphBetaIdentityAndAccessSubscribedSkus "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/identity_and_access/graph_v1.0/subscribed_skus"
+
+	// Graph Beta - Windows 365 datasources
+	graphBetaWindows365CloudPcAuditEvent "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/windows_365/graph_beta/cloud_pc_audit_event"
+	graphBetaWindows365CloudPcDeviceImage "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/windows_365/graph_beta/cloud_pc_device_image"
+	graphBetaWindows365CloudPcFrontlineServicePlan "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/windows_365/graph_beta/cloud_pc_frontline_service_plan"
+	graphBetaWindows365CloudPcGalleryImage "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/windows_365/graph_beta/cloud_pc_gallery_image"
+	graphBetaWindows365CloudPcSourceDeviceImage "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/windows_365/graph_beta/cloud_pc_source_device_image"
+	graphBetaWindows365CloudPcs "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/windows_365/graph_beta/cloud_pcs"
 
 	// Utilities
 	utilityItunesAppMetadata "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/utility/itunes_app_metadata"
@@ -98,8 +101,9 @@ func (p *M365Provider) DataSources(ctx context.Context) []func() datasource.Data
 		graphBetaDeviceManagementWindowsQualityUpdateExpeditePolicy.NewWindowsQualityUpdateExpeditePolicyDataSource,
 		graphBetaDeviceManagementWindowsUpdateRing.NewWindowsUpdateRingDataSource,
 
-		// Graph Beta - Directory Management datasources
-		graphBetaDirectoryManagementDirectorySettingTemplates.NewDirectorySettingTemplatesDataSource,
+		// Graph Beta - Identity and Access datasources
+		graphBetaIdentityAndAccessDirectorySettingTemplates.NewDirectorySettingTemplatesDataSource,
+		graphBetaIdentityAndAccessRoleDefinitions.NewRoleDefinitionsDataSource,
 		// Graph Beta - M365 Admin datasources
 		graphBetaM365AdminBrowserSite.NewBrowserSiteDataSource,
 		graphBetaM365AdminBrowserSiteList.NewBrowserSiteListDataSource,
@@ -113,8 +117,9 @@ func (p *M365Provider) DataSources(ctx context.Context) []func() datasource.Data
 		graphBetaWindows365CloudPcDeviceImage.NewCloudPcDeviceImageDataSource,
 		graphBetaWindows365CloudPcs.NewCloudPcsDataSource,
 		graphBetaWindows365CloudPcSourceDeviceImage.NewCloudPcSourceDeviceImageDataSource,
-		// Graph v1.0 - Directory Management datasources
-		graphDirectoryManagementSubscribedSkus.NewSubscribedSkusDataSource,
+
+		// Graph v1.0 - Identity and Access datasources
+		graphBetaIdentityAndAccessSubscribedSkus.NewSubscribedSkusDataSource,
 
 		// Utilities
 		utilityMacOSPKGAppMetadata.NewMacOSPKGAppMetadataDataSource,

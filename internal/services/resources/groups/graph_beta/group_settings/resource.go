@@ -84,7 +84,7 @@ func (r *GroupSettingsResource) Schema(ctx context.Context, req resource.SchemaR
 	resp.Schema = schema.Schema{
 		MarkdownDescription: "Manages group-specific directory settings for Microsoft 365 groups using the `/groups/{group-id}/settings` endpoint." +
 			"This resource enables configuration of group-level settings such as guest access permissions and other group-specific policies that override tenant-wide defaults." +
-			"Use this resource in conjunction with the datasource 'microsoft365_graph_beta_directory_management_directory_setting_templates' to get the template_id, settings and values." +
+			"Use this resource in conjunction with the datasource 'microsoft365_graph_beta_identity_and_access_directory_setting_templates' to get the template_id, settings and values." +
 			"Use this resource in conjection with the resource 'microsoft365_graph_beta_groups_group' to get the group_id.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{

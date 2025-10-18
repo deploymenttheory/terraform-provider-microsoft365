@@ -1,0 +1,66 @@
+{
+  "id": "62e90394-69f5-4237-9190-012177145e10",
+  "description": "Can manage all aspects of Azure AD and Microsoft services that use Azure AD identities.",
+  "displayName": "Global Administrator",
+  "isBuiltIn": true,
+  "isEnabled": true,
+  "isPrivileged": true,
+  "resourceScopes": [
+    "/"
+  ],
+  "templateId": "62e90394-69f5-4237-9190-012177145e10",
+  "version": "1",
+  "rolePermissions": [
+    {
+      "allowedResourceActions": [
+        "microsoft.directory/accessReviews/allProperties/allTasks",
+        "microsoft.directory/administrativeUnits/allProperties/allTasks",
+        "microsoft.directory/applications/allProperties/allTasks",
+        "microsoft.directory/auditLogs/allProperties/read",
+        "microsoft.directory/authorizationPolicy/allProperties/allTasks",
+        "microsoft.directory/bitlockerKeys/key/read",
+        "microsoft.directory/cloudAppSecurity/allProperties/allTasks",
+        "microsoft.directory/connectorGroups/allProperties/read",
+        "microsoft.directory/connectors/allProperties/read",
+        "microsoft.directory/contacts/allProperties/allTasks",
+        "microsoft.directory/contracts/allProperties/allTasks",
+        "microsoft.directory/customAuthenticationExtensions/allProperties/allTasks",
+        "microsoft.directory/deletedItems/delete",
+        "microsoft.directory/deletedItems/restore",
+        "microsoft.directory/devices/allProperties/allTasks",
+        "microsoft.directory/deviceManagementPolicies/standard/read",
+        "microsoft.directory/deviceManagementPolicies/basic/update",
+        "microsoft.directory/deviceRegistrationPolicy/standard/read",
+        "microsoft.directory/deviceRegistrationPolicy/basic/update",
+        "microsoft.directory/directoryRoles/allProperties/allTasks",
+        "microsoft.directory/directoryRoleTemplates/allProperties/allTasks",
+        "microsoft.directory/domains/allProperties/allTasks",
+        "microsoft.directory/entitlementManagement/allProperties/allTasks",
+        "microsoft.directory/groups/allProperties/allTasks",
+        "microsoft.directory/groupsAssignableToRoles/create",
+        "microsoft.directory/groupsAssignableToRoles/delete",
+        "microsoft.directory/groupsAssignableToRoles/restore",
+        "microsoft.directory/groupsAssignableToRoles/allProperties/update",
+        "microsoft.directory/groupSettings/allProperties/allTasks",
+        "microsoft.directory/groupSettingTemplates/allProperties/allTasks",
+        "microsoft.directory/identityProtection/allProperties/allTasks",
+        "microsoft.directory/loginOrganizationBranding/allProperties/allTasks",
+        "microsoft.directory/oAuth2PermissionGrants/allProperties/allTasks",
+        "microsoft.directory/organization/allProperties/allTasks",
+        "microsoft.directory/passwordHashSync/allProperties/allTasks",
+        "microsoft.directory/policies/allProperties/allTasks",
+        "microsoft.directory/conditionalAccessPolicies/allProperties/allTasks",
+        "microsoft.directory/privilegedIdentityManagement/allProperties/allTasks",
+        "microsoft.directory/provisioningLogs/allProperties/read",
+        "microsoft.directory/roleAssignments/allProperties/allTasks",
+        "microsoft.directory/roleDefinitions/allProperties/allTasks",
+        "microsoft.directory/scopedRoleMemberships/allProperties/allTasks",
+        "microsoft.directory/servicePrincipals/allProperties/allTasks",
+        "microsoft.directory/subscribedSkus/allProperties/allTasks",
+        "microsoft.directory/users/allProperties/allTasks"
+      ],
+      "condition": null
+    }
+  ]
+}
+

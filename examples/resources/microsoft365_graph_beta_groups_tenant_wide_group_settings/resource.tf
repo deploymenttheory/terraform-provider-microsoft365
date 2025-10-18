@@ -2,7 +2,7 @@
 # This resource manages organization-wide policies for Microsoft 365 groups
 
 # First, get the Group.Unified template details to see available settings
-data "microsoft365_graph_beta_directory_management_directory_setting_templates" "group_unified" {
+data "microsoft365_graph_beta_identity_and_access_directory_setting_templates" "group_unified" {
   filter_type  = "display_name"
   filter_value = "Group.Unified"
 }
@@ -10,7 +10,7 @@ data "microsoft365_graph_beta_directory_management_directory_setting_templates" 
 # Configure tenant-wide group creation and guest access policies using the Group.Unified template
 resource "microsoft365_graph_beta_groups_tenant_wide_group_settings" "unified_settings" {
   # Use the template ID from the data source
-  template_id = data.microsoft365_graph_beta_directory_management_directory_setting_templates.group_unified.directory_setting_templates[0].id
+  template_id = data.microsoft365_graph_beta_identity_and_access_directory_setting_templates.group_unified.directory_setting_templates[0].id
 
   # Example 1: Minimal configuration with only essential settings
   # This shows how to configure just the most commonly used settings
@@ -40,7 +40,7 @@ resource "microsoft365_graph_beta_groups_tenant_wide_group_settings" "unified_se
 # Example 2: Comprehensive configuration with naming policies and guest restrictions
 resource "microsoft365_graph_beta_groups_tenant_wide_group_settings" "comprehensive_settings" {
   # Use the template ID from the data source
-  template_id = data.microsoft365_graph_beta_directory_management_directory_setting_templates.group_unified.directory_setting_templates[0].id
+  template_id = data.microsoft365_graph_beta_identity_and_access_directory_setting_templates.group_unified.directory_setting_templates[0].id
 
   values = [
     # Group creation controls
