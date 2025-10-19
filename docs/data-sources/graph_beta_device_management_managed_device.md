@@ -32,156 +32,110 @@ The following API permissions are required in order to use this data source.
 ## Example Usage
 
 ```terraform
-data "microsoft365_graph_beta_device_management_managed_device" "all_devices" {
+# Example 1: Get all managed devices
+data "microsoft365_graph_beta_device_management_managed_device" "all" {
   filter_type = "all"
 }
 
-output "first_device" {
-  value = data.microsoft365_graph_beta_device_management_managed_device.all_devices.items[0]
+# Example 2: Get a specific managed device by ID
+data "microsoft365_graph_beta_device_management_managed_device" "by_id" {
+  filter_type  = "id"
+  filter_value = "00000000-0000-0000-0000-000000000000"
 }
 
-output "first_device_id" {
-  value = data.microsoft365_graph_beta_device_management_managed_device.all_devices.items[0].id
+# Example 3: Get managed devices by device name (partial match)
+data "microsoft365_graph_beta_device_management_managed_device" "by_device_name" {
+  filter_type  = "device_name"
+  filter_value = "DESKTOP"
 }
 
-output "first_device_name" {
-  value = data.microsoft365_graph_beta_device_management_managed_device.all_devices.items[0].device_name
+# Example 4: Get managed devices by serial number (partial match)
+data "microsoft365_graph_beta_device_management_managed_device" "by_serial_number" {
+  filter_type  = "serial_number"
+  filter_value = "ABC123"
 }
 
-output "first_device_operating_system" {
-  value = data.microsoft365_graph_beta_device_management_managed_device.all_devices.items[0].operating_system
+# Example 5: Get managed devices by user ID (partial match)
+data "microsoft365_graph_beta_device_management_managed_device" "by_user_id" {
+  filter_type  = "user_id"
+  filter_value = "user@example.com"
 }
 
-output "first_device_user_principal_name" {
-  value = data.microsoft365_graph_beta_device_management_managed_device.all_devices.items[0].user_principal_name
+# Example 6: Get managed devices using OData filter (Windows devices only)
+data "microsoft365_graph_beta_device_management_managed_device" "odata_filter" {
+  filter_type  = "odata"
+  odata_filter = "operatingSystem eq 'Windows'"
 }
 
-output "first_device_serial_number" {
-  value = data.microsoft365_graph_beta_device_management_managed_device.all_devices.items[0].serial_number
+# Example 7: Advanced OData query with filter, orderby, and select
+data "microsoft365_graph_beta_device_management_managed_device" "odata_advanced" {
+  filter_type   = "odata"
+  odata_filter  = "operatingSystem eq 'Windows'"
+  odata_orderby = "deviceName"
+  odata_select  = "id,deviceName,operatingSystem,complianceState"
 }
 
-output "first_device_model" {
-  value = data.microsoft365_graph_beta_device_management_managed_device.all_devices.items[0].model
+# Example 8: Comprehensive OData query with top and orderby
+data "microsoft365_graph_beta_device_management_managed_device" "odata_comprehensive" {
+  filter_type   = "odata"
+  odata_filter  = "operatingSystem eq 'Windows'"
+  odata_top     = 50
+  odata_orderby = "lastSyncDateTime desc"
 }
 
-output "first_device_manufacturer" {
-  value = data.microsoft365_graph_beta_device_management_managed_device.all_devices.items[0].manufacturer
+# Example 9: OData with count and filter
+data "microsoft365_graph_beta_device_management_managed_device" "odata_with_count" {
+  filter_type  = "odata"
+  odata_filter = "complianceState eq 'compliant'"
+  odata_count  = true
 }
 
-output "first_device_compliance_state" {
-  value = data.microsoft365_graph_beta_device_management_managed_device.all_devices.items[0].compliance_state
+# Example 10: OData search query
+data "microsoft365_graph_beta_device_management_managed_device" "odata_search" {
+  filter_type  = "odata"
+  odata_search = "\"displayName:LAPTOP\""
+  odata_count  = true
 }
 
-output "first_device_enrolled_date_time" {
-  value = data.microsoft365_graph_beta_device_management_managed_device.all_devices.items[0].enrolled_date_time
+# Example 11: OData with expand to include related entities
+data "microsoft365_graph_beta_device_management_managed_device" "odata_expand" {
+  filter_type  = "odata"
+  odata_filter = "operatingSystem eq 'iOS'"
+  odata_expand = "deviceCategory"
 }
 
-output "first_device_last_sync_date_time" {
-  value = data.microsoft365_graph_beta_device_management_managed_device.all_devices.items[0].last_sync_date_time
+# Output examples
+output "all_managed_devices_count" {
+  value       = length(data.microsoft365_graph_beta_device_management_managed_device.all.items)
+  description = "Total number of managed devices"
 }
 
-output "first_device_owner_type" {
-  value = data.microsoft365_graph_beta_device_management_managed_device.all_devices.items[0].owner_type
+output "windows_devices" {
+  value = [
+    for device in data.microsoft365_graph_beta_device_management_managed_device.odata_advanced.items :
+    {
+      id               = device.id
+      device_name      = device.device_name
+      operating_system = device.operating_system
+      compliance_state = device.compliance_state
+    }
+  ]
+  description = "List of Windows devices with selected fields"
 }
 
-output "first_device_management_state" {
-  value = data.microsoft365_graph_beta_device_management_managed_device.all_devices.items[0].management_state
+output "compliant_devices_count" {
+  value       = length(data.microsoft365_graph_beta_device_management_managed_device.odata_with_count.items)
+  description = "Number of compliant devices"
 }
 
-output "first_device_jail_broken" {
-  value = data.microsoft365_graph_beta_device_management_managed_device.all_devices.items[0].jail_broken
-}
-
-output "first_device_os_version" {
-  value = data.microsoft365_graph_beta_device_management_managed_device.all_devices.items[0].os_version
-}
-
-output "first_device_aad_registered" {
-  value = data.microsoft365_graph_beta_device_management_managed_device.all_devices.items[0].aad_registered
-}
-
-output "first_device_device_type" {
-  value = data.microsoft365_graph_beta_device_management_managed_device.all_devices.items[0].device_type
-}
-
-output "first_device_email_address" {
-  value = data.microsoft365_graph_beta_device_management_managed_device.all_devices.items[0].email_address
-}
-
-output "first_device_is_supervised" {
-  value = data.microsoft365_graph_beta_device_management_managed_device.all_devices.items[0].is_supervised
-}
-
-output "first_device_is_encrypted" {
-  value = data.microsoft365_graph_beta_device_management_managed_device.all_devices.items[0].is_encrypted
-}
-
-output "first_device_user_id" {
-  value = data.microsoft365_graph_beta_device_management_managed_device.all_devices.items[0].user_id
-}
-
-output "first_device_device_registration_state" {
-  value = data.microsoft365_graph_beta_device_management_managed_device.all_devices.items[0].device_registration_state
-}
-
-output "first_device_device_category_display_name" {
-  value = data.microsoft365_graph_beta_device_management_managed_device.all_devices.items[0].device_category_display_name
-}
-
-output "first_device_azure_ad_device_id" {
-  value = data.microsoft365_graph_beta_device_management_managed_device.all_devices.items[0].azure_ad_device_id
-}
-
-output "first_device_azure_active_directory_device_id" {
-  value = data.microsoft365_graph_beta_device_management_managed_device.all_devices.items[0].azure_active_directory_device_id
-}
-
-output "first_device_managed_device_owner_type" {
-  value = data.microsoft365_graph_beta_device_management_managed_device.all_devices.items[0].managed_device_owner_type
-}
-
-output "first_device_management_agent" {
-  value = data.microsoft365_graph_beta_device_management_managed_device.all_devices.items[0].management_agent
-}
-
-output "first_device_eas_activated" {
-  value = data.microsoft365_graph_beta_device_management_managed_device.all_devices.items[0].eas_activated
-}
-
-output "first_device_eas_device_id" {
-  value = data.microsoft365_graph_beta_device_management_managed_device.all_devices.items[0].eas_device_id
-}
-
-output "first_device_eas_activation_date_time" {
-  value = data.microsoft365_graph_beta_device_management_managed_device.all_devices.items[0].eas_activation_date_time
-}
-
-output "first_device_lost_mode_state" {
-  value = data.microsoft365_graph_beta_device_management_managed_device.all_devices.items[0].lost_mode_state
-}
-
-output "first_device_activation_lock_bypass_code" {
-  value = data.microsoft365_graph_beta_device_management_managed_device.all_devices.items[0].activation_lock_bypass_code
-}
-
-output "first_device_exchange_last_successful_sync_date_time" {
-  value = data.microsoft365_graph_beta_device_management_managed_device.all_devices.items[0].exchange_last_successful_sync_date_time
-}
-
-output "first_device_exchange_access_state" {
-  value = data.microsoft365_graph_beta_device_management_managed_device.all_devices.items[0].exchange_access_state
-}
-
-output "first_device_exchange_access_state_reason" {
-  value = data.microsoft365_graph_beta_device_management_managed_device.all_devices.items[0].exchange_access_state_reason
-}
-
-output "first_device_remote_assistance_session_url" {
-  value = data.microsoft365_graph_beta_device_management_managed_device.all_devices.items[0].remote_assistance_session_url
-}
-
-output "first_device_remote_assistance_session_error_details" {
-  value = data.microsoft365_graph_beta_device_management_managed_device.all_devices.items[0].remote_assistance_session_error_details
+output "device_by_id_info" {
+  value = length(data.microsoft365_graph_beta_device_management_managed_device.by_id.items) > 0 ? {
+    name       = data.microsoft365_graph_beta_device_management_managed_device.by_id.items[0].device_name
+    os         = data.microsoft365_graph_beta_device_management_managed_device.by_id.items[0].operating_system
+    enrolled   = data.microsoft365_graph_beta_device_management_managed_device.by_id.items[0].enrolled_date_time
+    compliance = data.microsoft365_graph_beta_device_management_managed_device.by_id.items[0].compliance_state
+  } : null
+  description = "Device information by ID"
 }
 ```
 
@@ -190,11 +144,19 @@ output "first_device_remote_assistance_session_error_details" {
 
 ### Required
 
-- `filter_type` (String) Type of filter to apply. Valid values are: `all`, `id`, `device_name`, `serial_number` and `user_id`.
+- `filter_type` (String) Type of filter to apply. Valid values are: `all`, `id`, `device_name`, `serial_number`, `user_id`, `odata`.
 
 ### Optional
 
-- `filter_value` (String) Value to filter by. Not required when filter_type is 'all'.
+- `filter_value` (String) Value to filter by. Not required when filter_type is 'all' or 'odata'.
+- `odata_count` (Boolean) OData $count parameter to include count of total results. Only used when filter_type is 'odata'.
+- `odata_expand` (String) OData $expand parameter to include related entities. Only used when filter_type is 'odata'.
+- `odata_filter` (String) OData $filter parameter for filtering results. Only used when filter_type is 'odata'. Example: operatingSystem eq 'Windows'.
+- `odata_orderby` (String) OData $orderby parameter to sort results. Only used when filter_type is 'odata'. Example: deviceName.
+- `odata_search` (String) OData $search parameter for full-text search. Only used when filter_type is 'odata'.
+- `odata_select` (String) OData $select parameter to specify which fields to include. Only used when filter_type is 'odata'.
+- `odata_skip` (Number) OData $skip parameter for pagination. Only used when filter_type is 'odata'.
+- `odata_top` (Number) OData $top parameter to limit the number of results. Only used when filter_type is 'odata'.
 - `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))
 
 ### Read-Only

@@ -96,10 +96,10 @@ output "compliant_devices_count" {
 
 output "device_by_id_info" {
   value = length(data.microsoft365_graph_beta_device_management_managed_device.by_id.items) > 0 ? {
-    name         = data.microsoft365_graph_beta_device_management_managed_device.by_id.items[0].device_name
-    os           = data.microsoft365_graph_beta_device_management_managed_device.by_id.items[0].operating_system
-    enrolled     = data.microsoft365_graph_beta_device_management_managed_device.by_id.items[0].enrolled_date_time
-    compliance   = data.microsoft365_graph_beta_device_management_managed_device.by_id.items[0].compliance_state
+    name       = data.microsoft365_graph_beta_device_management_managed_device.by_id.items[0].device_name
+    os         = data.microsoft365_graph_beta_device_management_managed_device.by_id.items[0].operating_system
+    enrolled   = data.microsoft365_graph_beta_device_management_managed_device.by_id.items[0].enrolled_date_time
+    compliance = data.microsoft365_graph_beta_device_management_managed_device.by_id.items[0].compliance_state
   } : null
   description = "Device information by ID"
 }
