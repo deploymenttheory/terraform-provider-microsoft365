@@ -1,0 +1,85 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
+subcategory: "Device Management"
+
+description: |-
+{{ if .Description }}{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}{{ else }}  Plays a sound on iOS and iPadOS managed devices in lost mode.{{ end }}
+---
+
+# {{.Name}} ({{.Type}})
+
+{{ if .Description }}{{ .Description | trimspace }}{{ else }}Plays a sound on iOS and iPadOS managed devices that are in lost mode, helping to physically locate the device.{{ end }}
+
+## Microsoft Documentation
+
+### Graph API References
+- [playLostModeSound action](https://learn.microsoft.com/en-us/graph/api/intune-devices-manageddevice-playlostmodesound?view=graph-rest-beta)
+- [managedDevice resource type](https://learn.microsoft.com/en-us/graph/api/resources/intune-devices-manageddevice?view=graph-rest-beta)
+
+### Intune Remote Actions Guides
+- [Play lost mode sound - iOS](https://learn.microsoft.com/en-us/intune/intune-service/remote-actions/device-play-lost-mode-sound?pivots=ios)
+- [Play lost mode sound - Android](https://learn.microsoft.com/en-us/intune/intune-service/remote-actions/device-play-lost-mode-sound?pivots=android)
+
+## API Permissions
+
+The following API permissions are required in order to use this action.
+
+### Microsoft Graph
+
+- **Application**: `DeviceManagementManagedDevices.PrivilegedOperations.All`
+- **Delegated**: `DeviceManagementManagedDevices.PrivilegedOperations.All`
+
+## Version History
+
+| Version | Status | Notes |
+|---------|--------|-------|
+| v0.33.0-alpha | Experimental | Initial release |
+
+## Notes
+
+### Platform Compatibility
+
+| Platform | Support | Requirements |
+|----------|---------|--------------|
+| **iOS** | ✅ Full Support | Supervised devices in lost mode only |
+| **iPadOS** | ✅ Full Support | Supervised devices in lost mode only |
+| **macOS** | ❌ Not Supported | Lost mode is iOS/iPadOS only |
+| **Windows** | ❌ Not Supported | Lost mode is iOS/iPadOS only |
+| **Android** | ❌ Not Supported | Lost mode is iOS/iPadOS only |
+
+### What is Play Lost Mode Sound?
+
+Play Lost Mode Sound is a feature that:
+- Plays an audible alert on iOS/iPadOS devices
+- Works only when device is in lost mode
+- Sound plays even if device is in silent mode
+- Helps physically locate devices that are nearby
+- Sound duration can be customized per device
+- Useful for finding devices in known general locations
+
+### When to Play Lost Mode Sound
+
+- Device is believed to be nearby but cannot be visually located
+- Confirming device location before physical recovery
+- Assisting user in finding device in office, home, or vehicle
+- Device is in lost mode and approximate location is known
+- Need audible confirmation of device presence in area
+- Supplementing GPS location tracking with audio cues
+
+### What Happens When Sound is Played
+
+- Device immediately begins playing an audible alert
+- Sound plays regardless of device silent mode setting
+- Alert continues for the specified duration
+- Helps pinpoint exact physical location of device
+- Lost mode status remains unchanged
+- Action can be repeated as needed
+- No visual indication on device screen beyond lost mode message
+
+## Example Usage
+
+{{ tffile "examples/actions/graph_beta_device_management_managed_device_play_lost_mode_sound/action.tf" }}
+
+{{ if .SchemaMarkdown }}{{ .SchemaMarkdown | trimspace }}{{ else }}Schema documentation not available.{{ end }}
+
+

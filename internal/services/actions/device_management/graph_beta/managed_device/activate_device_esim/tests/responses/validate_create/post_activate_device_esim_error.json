@@ -1,0 +1,18 @@
+{
+    "error": {
+        "code": "BadRequest",
+        "message": "Invalid carrier URL provided for eSIM activation",
+        "details": [
+            {
+                "code": "InvalidCarrierUrl",
+                "message": "The carrier URL must be a valid HTTPS URL provided by the mobile carrier",
+                "target": "carrierUrl"
+            }
+        ],
+        "innerError": {
+            "code": "ValidationFailed",
+            "date": "2024-01-01T12:00:00Z",
+            "request-id": "test-request-id-error"
+        }
+    }
+}

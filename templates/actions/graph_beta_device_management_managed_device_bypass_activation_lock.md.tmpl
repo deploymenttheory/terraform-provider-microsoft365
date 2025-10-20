@@ -1,0 +1,82 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
+subcategory: "Device Management"
+
+description: |-
+{{ if .Description }}{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}{{ else }}  Bypasses Activation Lock on iOS, iPadOS, and macOS managed devices.{{ end }}
+---
+
+# {{.Name}} ({{.Type}})
+
+{{ if .Description }}{{ .Description | trimspace }}{{ else }}Bypasses Activation Lock on iOS, iPadOS, and macOS managed devices, generating bypass codes that allow IT administrators to reactivate devices without user Apple ID credentials.{{ end }}
+
+## Microsoft Documentation
+
+### Graph API References
+- [bypassActivationLock action](https://learn.microsoft.com/en-us/graph/api/intune-devices-manageddevice-bypassactivationlock?view=graph-rest-beta)
+- [managedDevice resource type](https://learn.microsoft.com/en-us/graph/api/resources/intune-devices-manageddevice?view=graph-rest-beta)
+
+### Intune Remote Actions Guides
+- [Device activation lock disable - iOS](https://learn.microsoft.com/en-us/intune/intune-service/remote-actions/device-activation-lock-disable?pivots=ios)
+- [Device activation lock disable - macOS](https://learn.microsoft.com/en-us/intune/intune-service/remote-actions/device-activation-lock-disable?pivots=macos)
+
+## API Permissions
+
+The following API permissions are required in order to use this action.
+
+### Microsoft Graph
+
+- **Application**: `DeviceManagementManagedDevices.PrivilegedOperations.All`
+- **Delegated**: `DeviceManagementManagedDevices.PrivilegedOperations.All`
+
+## Version History
+
+| Version | Status | Notes |
+|---------|--------|-------|
+| v0.33.0-alpha | Experimental | Initial release |
+
+## Notes
+
+### Platform Compatibility
+
+| Platform | Support | Requirements |
+|----------|---------|--------------|
+| **iOS** | ✅ Full Support | iOS 7.1+, supervised devices only |
+| **iPadOS** | ✅ Full Support | Supervised devices only |
+| **macOS** | ✅ Full Support | macOS 10.11+, DEP/ABM enrolled |
+| **Windows** | ❌ Not Supported | Activation Lock is Apple-only |
+| **Android** | ❌ Not Supported | Activation Lock is Apple-only |
+
+### What is Activation Lock?
+
+Activation Lock is an Apple security feature that:
+- Prevents unauthorized device reactivation after factory reset
+- Automatically enabled when Find My iPhone/iPad/Mac is turned on
+- Requires original Apple ID and password to reactivate
+- Links device to specific Apple ID
+
+### How Bypass Works
+
+1. Issue bypass command via this action
+2. Intune generates unique bypass code for device
+3. Bypass code stored in Intune device properties
+4. Retrieve code from Intune admin portal
+5. Factory reset/wipe the device
+6. During setup, device shows Activation Lock screen
+7. Enter bypass code to unlock device
+8. Device completes setup without user's Apple ID
+
+### Important Considerations
+
+- **Supervised iOS/iPadOS**: Devices must be supervised (DEP/ABM or Apple Configurator)
+- **macOS DEP**: Best results with DEP/ABM enrolled macOS devices
+- **Code Security**: Bypass codes are sensitive credentials - treat like passwords
+- **Single Use**: Bypass code only works for specific device it was generated for
+- **Physical Access**: Code must be entered during device setup at Activation Lock screen
+
+## Example Usage
+
+{{ tffile "examples/actions/graph_beta_device_management_managed_device_bypass_activation_lock/action.tf" }}
+
+{{ if .SchemaMarkdown }}{{ .SchemaMarkdown | trimspace }}{{ else }}Schema documentation not available.{{ end }}
+

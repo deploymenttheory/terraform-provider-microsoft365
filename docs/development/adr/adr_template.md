@@ -93,4 +93,4 @@ Chosen option: "{Option X}", because {justification}
 3. Replace `{Title}` with a short, descriptive title
 4. Fill in all sections, removing any that are not applicable
 5. Update the status as the ADR progresses through its lifecycle
-6. Remove these instructions from the actual ADR 
+6. Remove these instructions from the actual ADR

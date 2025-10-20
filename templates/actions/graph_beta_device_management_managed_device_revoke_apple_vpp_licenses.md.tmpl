@@ -1,0 +1,125 @@
+---
+page_title: "{{.ProviderShortName}}_{{.Name}} {{.Type}}"
+subcategory: "Actions - Device Management"
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.ProviderShortName}}_{{.Name}} ({{.Type}})
+
+{{ .Description | trimspace }}
+
+## Use Cases
+
+This action is essential for managing Apple Volume Purchase Program (VPP) licenses across iOS and iPadOS devices:
+
+### License Management
+- **Device Retirement**: Reclaim VPP licenses from devices being retired, decommissioned, or returned to inventory
+- **User Departure**: Recover VPP app licenses when employees or students leave the organization
+- **License Reallocation**: Free up licenses from inactive or underutilized devices for reassignment to active users
+- **Device Platform Change**: Reclaim licenses when replacing iOS/iPadOS devices with other platforms
+- **License Optimization**: Identify and revoke licenses from devices that no longer need specific VPP apps
+- **Compliance Requirements**: Ensure license compliance by revoking licenses from non-compliant or unsupported devices
+- **Emergency Scenarios**: Quickly revoke licenses from lost or stolen devices to prevent unauthorized app usage
+
+### IT Operations
+- **Bulk License Recovery**: Perform large-scale license reclamation across multiple devices simultaneously
+- **Automated License Cleanup**: Schedule regular license audits to recover licenses from inactive devices
+- **Cost Optimization**: Maximize ROI on VPP app purchases by ensuring licenses are actively used
+- **Inventory Management**: Maintain accurate license inventory and availability tracking
+- **Deployment Preparation**: Clear old licenses before deploying new VPP app assignments
+
+### Educational Institutions
+- **Semester End Cleanup**: Revoke licenses from graduating students' devices or devices returned at term end
+- **Device Reassignment**: Prepare devices for new students by revoking previous VPP app licenses
+- **Shared Device Programs**: Manage VPP licenses on shared iPads between different students or classes
+- **Lab Equipment Management**: Reclaim licenses from lab devices when upgrading or retiring equipment
+
+## API Documentation
+
+- [Microsoft Graph API - Revoke Apple VPP Licenses](https://learn.microsoft.com/en-us/graph/api/intune-devices-manageddevice-revokeapplevpplicenses?view=graph-rest-beta)
+
+## Permissions
+
+The following Microsoft Graph API permissions are required to use this action:
+
+| Permission Type | Permissions (Least Privileged) |
+|:----------------|:------------------------------|
+| Delegated (work or school account) | DeviceManagementManagedDevices.PrivilegedOperations.All |
+| Delegated (personal Microsoft account) | Not supported |
+| Application | DeviceManagementManagedDevices.PrivilegedOperations.All |
+
+~> **Note:** This action requires privileged operations permissions as it directly affects app license assignments and availability.
+
+## Related Documentation
+
+- [Microsoft Intune Remote Actions - iOS/iPadOS](https://learn.microsoft.com/en-us/intune/intune-service/remote-actions/?tabs=ios-ipados)
+- [Microsoft Intune Remote Actions - macOS](https://learn.microsoft.com/en-us/intune/intune-service/remote-actions/?tabs=macos)
+
+## Notes
+
+### Platform Compatibility
+
+This remote action is only available for iOS and iPadOS devices with VPP-purchased apps. The table below shows platform support:
+
+| Platform | Supported | Notes |
+|:---------|:----------|:------|
+| **Windows** | ❌ | Not supported - VPP is Apple-specific |
+| **macOS** | ❌ | Not supported - Uses different licensing model |
+| **iOS** | ✅ | Fully supported for VPP apps |
+| **iPadOS** | ✅ | Fully supported for VPP apps |
+| **Android** | ❌ | Not supported - Uses Google Play licensing |
+| **Android Enterprise** | ❌ | Not supported - Uses managed Google Play |
+| **ChromeOS** | ❌ | Not supported - Uses Chrome Web Store licensing |
+
+### Important Considerations
+
+**License Impact:**
+- **All VPP Licenses Revoked**: This action revokes ALL Apple Volume Purchase Program licenses from the specified devices, not individual apps
+- **Immediate Effect**: Licenses are immediately returned to your organization's available VPP license pool
+- **App Removal**: VPP apps may be automatically removed from the devices depending on app configuration and policies
+- **User Data**: User data for VPP apps is typically preserved on the device unless apps are removed by policy
+- **License Availability**: Revoked licenses are immediately available for reassignment to other devices or users in Apple Business Manager
+- **Cannot Be Undone**: License revocation cannot be easily undone; licenses must be manually reassigned if needed
+
+**Device Requirements:**
+- **Online Status**: Devices should be online to receive and acknowledge license revocation commands
+- **VPP Enrollment**: Only affects apps purchased through Apple Volume Purchase Program (now Apple Business Manager)
+- **Supervised Devices**: Works for both supervised and unsupervised iOS/iPadOS devices with VPP apps
+- **Management Status**: Devices must be actively enrolled and managed by Intune
+- **Network Connectivity**: Devices need network access to sync license changes with Apple's servers
+
+**Apple Business Manager:**
+- **License Pool**: Revoked licenses return to your organization's VPP license pool visible in Apple Business Manager
+- **License Tracking**: License changes are audited and tracked in both Intune and Apple Business Manager portals
+- **Sync Delay**: There may be a brief delay before license counts update in Apple Business Manager
+- **Assignment Flexibility**: Revoked licenses can be reassigned to any device or user in your organization
+
+**VPP Program:**
+- **VPP Apps Only**: Only affects apps purchased through Apple's Volume Purchase Program (VPP) / Apps and Books
+- **Non-VPP Apps**: Apps purchased through other means (App Store, custom enterprise apps) are not affected
+- **App Store Apps**: Regular App Store apps installed by users are not affected by this action
+- **In-House Apps**: Custom in-house enterprise apps distributed outside VPP are not affected
+
+**Operational Considerations:**
+- **Bulk Operations**: Consider breaking very large operations (100+ devices) into smaller batches to manage execution time
+- **Device Responsiveness**: Devices must check in with Intune to receive and process the license revocation command
+- **Error Handling**: Some devices may fail to revoke licenses due to offline status or network issues; check action results carefully
+- **Monitoring**: Monitor Apple Business Manager for license count changes to confirm successful revocations
+- **Coordination**: Coordinate with Apple Business Manager administrators when performing large-scale license revocations
+
+**Best Practices:**
+- **License Audit**: Regularly audit VPP license usage to identify underutilized licenses for potential revocation
+- **Device Status Check**: Verify device online status before revoking licenses to ensure timely processing
+- **User Communication**: Inform users before revoking VPP licenses to prevent disruption and manage expectations
+- **License Tracking**: Maintain records of license revocations for audit and inventory management purposes
+- **Staged Approach**: For large-scale revocations, use a phased approach to minimize impact and monitor results
+- **Backup Plan**: Have a process to quickly reassign licenses if revocation was performed in error
+- **ABM Integration**: Ensure proper integration between Intune and Apple Business Manager for seamless license management
+
+## Example Usage
+
+{{ tffile (printf "examples/actions/%s/action.tf" .Name)}}
+
+{{ .SchemaMarkdown | trimspace }}
+

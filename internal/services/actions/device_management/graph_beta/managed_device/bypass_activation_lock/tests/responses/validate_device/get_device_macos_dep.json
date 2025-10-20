@@ -1,0 +1,10 @@
+{
+    "@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/managedDevices/$entity",
+    "@odata.type": "#microsoft.graph.managedDevice",
+    "id": "11111111-2222-3333-4444-555555555555",
+    "deviceName": "Test-MacBook-003",
+    "operatingSystem": "macOS",
+    "isSupervised": false,
+    "activationLockBypassCode": null,
+    "enrollmentType": "deviceEnrollmentProgram"
+}

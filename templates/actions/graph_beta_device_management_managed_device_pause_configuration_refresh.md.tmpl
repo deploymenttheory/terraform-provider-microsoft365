@@ -1,0 +1,160 @@
+---
+page_title: "{{.ProviderShortName}}_{{.Name}} {{.Type}} - {{.ProviderName}}"
+subcategory: "Actions - Device Management"
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.ProviderShortName}}_{{.Name}} ({{.Type}})
+
+{{ .Description | trimspace }}
+
+## Example Usage
+
+### Basic Configuration Refresh Pause
+
+{{ tffile "examples/actions/graph_beta_device_management_managed_device_pause_configuration_refresh/action.tf" }}
+
+## API Permissions
+
+The following [Microsoft Graph API permissions](https://learn.microsoft.com/en-us/graph/permissions-reference) are required to use this action:
+
+### Read Permissions
+- `DeviceManagementConfiguration.Read.All`
+- `DeviceManagementManagedDevices.Read.All`
+
+### Write Permissions
+- `DeviceManagementConfiguration.Read.All`
+- `DeviceManagementManagedDevices.Read.All`
+
+## Authentication Mechanism
+
+This action uses the configured Microsoft 365 provider authentication. Ensure you have properly configured the provider with appropriate credentials and permissions.
+
+## Important Notes
+
+### Pause Duration
+- **Minimum**: 1 minute
+- **Maximum**: 1440 minutes (24 hours)
+- **Auto-Resume**: Configuration refresh automatically resumes after the pause period expires
+- **Cannot Extend**: Once initiated, the pause duration cannot be extended. You must wait for it to expire and re-pause if needed.
+
+### What Gets Paused
+Configuration refresh pause prevents the following from being applied to devices:
+- New policy deployments
+- Policy updates and changes
+- Configuration profile updates
+- Application deployment policy changes
+- Compliance policy updates
+- Settings catalog changes
+
+### What Does NOT Get Paused
+The following continue to operate normally during the pause:
+- **Existing Policies**: All previously applied policies remain in effect
+- **Device Check-Ins**: Devices continue checking in and reporting status
+- **Manual Syncs**: Users can manually sync from the Company Portal app
+- **Critical Updates**: Critical security updates may still be applied
+- **Remote Actions**: Emergency actions (wipe, lock, locate) still work
+- **Compliance Evaluation**: Compliance checks continue with existing policies
+
+### Common Use Cases
+
+#### Maintenance Windows
+Pause configuration refresh during scheduled maintenance to prevent policy changes from interfering:
+- Application updates (60-120 minutes)
+- System upgrades (240-480 minutes)
+- Infrastructure changes (240-480 minutes)
+
+#### Troubleshooting
+Temporarily freeze configuration to investigate issues:
+- Policy conflict investigation (360-720 minutes)
+- Performance issue isolation (240-360 minutes)
+- Application compatibility testing (480-720 minutes)
+- Rollback procedures (120-240 minutes)
+
+#### Business-Critical Operations
+Prevent policy changes during critical business operations:
+- Trading floor operations (480 minutes)
+- Retail POS systems (600 minutes)
+- Medical device operations (720 minutes)
+- Manufacturing floor (480-720 minutes)
+
+#### Testing and Staging
+Maintain stable configuration during testing phases:
+- User acceptance testing (1440 minutes)
+- Pilot deployments (720-1440 minutes)
+- Policy validation (480-720 minutes)
+- Staged rollouts (varies)
+
+#### Incident Response
+Freeze configuration during security investigations:
+- Forensic analysis (480-720 minutes)
+- Containment phase (360-480 minutes)
+- Evidence collection (240-360 minutes)
+
+### Best Practices
+
+1. **Minimum Necessary Duration**
+   - Use the shortest pause duration that meets your needs
+   - Avoid unnecessary extended pauses
+   - Plan ahead for anticipated maintenance duration
+
+2. **Communication and Documentation**
+   - Document the reason for pausing in change management systems
+   - Notify affected teams and stakeholders
+   - Track pause start and end times
+   - Document any issues encountered
+
+3. **Monitoring During Pause**
+   - Monitor device status and health
+   - Watch for user-reported issues
+   - Check for critical security alerts
+   - Verify devices remain compliant
+
+4. **Post-Pause Actions**
+   - Verify configuration refresh has resumed
+   - Check for pending policy updates
+   - Monitor for successful policy application
+   - Review device compliance status
+
+5. **Security Considerations**
+   - Balance operational needs with security requirements
+   - Don't pause during active security incidents (unless for containment)
+   - Consider compliance implications
+   - Document security exceptions if applicable
+
+### Platform Support
+- **Windows 10/11**: Fully supported
+- **Earlier Windows versions**: Not supported
+- **Non-Windows platforms**: Not applicable
+
+### Compliance Considerations
+- Pausing configuration refresh may temporarily affect compliance reporting
+- Existing security policies remain enforced
+- Document all pauses for audit purposes
+- Consider regulatory requirements before pausing
+- Some compliance frameworks may require approval for pauses
+
+### Limitations and Constraints
+- **Maximum Pause**: 24 hours (1440 minutes)
+- **No Extension**: Cannot extend an active pause
+- **Windows Only**: Only works on Windows 10/11 devices
+- **Policy Type**: Affects Intune policies only (not SCCM in co-managed scenarios)
+- **Emergency Actions**: Some critical updates may override the pause
+
+### Monitoring and Validation
+After initiating a pause, you should:
+1. Verify the pause is active on target devices
+2. Monitor for any unexpected policy applications
+3. Check device check-in status
+4. Review error logs if sync attempts occur
+5. Confirm automatic resume after pause expires
+
+## Microsoft Graph API References
+
+- [pauseConfigurationRefresh action](https://learn.microsoft.com/en-us/graph/api/intune-devices-manageddevice-pauseconfigurationrefresh?view=graph-rest-beta)
+- [Intune Device Management](https://learn.microsoft.com/en-us/mem/intune/remote-actions/device-management)
+- [Device Configuration Refresh](https://learn.microsoft.com/en-us/mem/intune/configuration/device-profile-troubleshoot)
+
+{{ .SchemaMarkdown | trimspace }}
+

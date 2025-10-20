@@ -1,0 +1,126 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
+subcategory: "Device Management"
+
+description: |-
+{{ if .Description }}{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}{{ else }}  Remotely shuts down managed devices completely.{{ end }}
+---
+
+# {{.Name}} ({{.Type}})
+
+{{ if .Description }}{{ .Description | trimspace }}{{ else }}Remotely shuts down managed devices, powering them off completely. Physical access is required to power devices back on. Use with extreme caution.{{ end }}
+
+## Microsoft Documentation
+
+### Graph API References
+- [shutDown action](https://learn.microsoft.com/en-us/graph/api/intune-devices-manageddevice-shutdown?view=graph-rest-beta)
+- [managedDevice resource type](https://learn.microsoft.com/en-us/graph/api/resources/intune-devices-manageddevice?view=graph-rest-beta)
+
+### Intune Remote Actions Guides
+- [Windows Remote Actions](https://learn.microsoft.com/en-us/intune/intune-service/remote-actions/?tabs=windows)
+- [iOS/iPadOS Remote Actions](https://learn.microsoft.com/en-us/intune/intune-service/remote-actions/?tabs=ios-ipados)
+- [macOS Remote Actions](https://learn.microsoft.com/en-us/intune/intune-service/remote-actions/?tabs=macos)
+- [Android Remote Actions](https://learn.microsoft.com/en-us/intune/intune-service/remote-actions/?tabs=android)
+- [ChromeOS Remote Actions](https://learn.microsoft.com/en-us/intune/intune-service/remote-actions/?tabs=chromeos)
+
+## API Permissions
+
+The following API permissions are required in order to use this action.
+
+### Microsoft Graph
+
+- **Application**: `DeviceManagementManagedDevices.PrivilegedOperations.All`
+- **Delegated**: `DeviceManagementManagedDevices.PrivilegedOperations.All`
+
+## Version History
+
+| Version | Status | Notes |
+|---------|--------|-------|
+| v0.33.0-alpha | Experimental | Initial release |
+
+## Notes
+
+### Platform Compatibility
+
+| Platform | Support | Requirements |
+|----------|---------|--------------|
+| **Windows** | ✅ Full Support | All versions including Home |
+| **macOS** | ✅ Supported | User-approved MDM or supervised |
+| **iOS** | ⚠️ Limited | Supervised devices only, uncommon |
+| **iPadOS** | ⚠️ Limited | Supervised devices only, uncommon |
+| **Android** | ❌ Not Supported | Shutdown not available |
+
+### ⚠️ Critical Warning
+
+**SHUTDOWN POWERS DEVICES OFF COMPLETELY**
+- Devices will NOT restart automatically
+- Physical access required to power devices back on
+- More disruptive than reboot
+- Use with extreme caution
+- Consider reboot action if devices need to come back online
+
+### Shutdown vs Reboot
+
+| Action | Result | Recovery | Use Case |
+|--------|--------|----------|----------|
+| **Shutdown** | Powers off | Manual restart required | Long-term offline, energy conservation |
+| **Reboot** | Restarts | Automatic (2-5 min) | Updates, troubleshooting, config changes |
+
+### Common Use Cases
+
+- Energy conservation (weekends, holidays)
+- Security incident response (device isolation)
+- Hardware maintenance requiring full power-off
+- Decommissioning devices before storage/shipment
+- Emergency response to prevent data exfiltration
+- Scheduled shutdowns for lab/classroom devices
+- Extended maintenance periods
+- Device preparation for physical relocation
+
+### User Impact - CRITICAL
+
+- Users lose ALL unsaved work
+- Device becomes COMPLETELY unavailable
+- Physical access required to restart
+- Significant productivity loss possible
+- Users cannot access device remotely
+- Active sessions terminated immediately
+- No automatic recovery
+- Device remains offline indefinitely
+
+### Best Practices
+
+- ONLY use when devices must remain offline
+- Ensure physical access available for restart
+- Notify users well in advance
+- Schedule for end of day or weekends
+- Document reason in change management
+- Verify device location (ensure accessible)
+- **Consider reboot instead whenever possible**
+- Test with small groups first
+- Have rollback plan (manual power-on procedure)
+
+### Prerequisites Before Shutdown
+
+- Confirm physical access for power-on
+- User notification completed
+- Business justification documented
+- Management approval (if required)
+- Backup power-on procedure ready
+- Contact information for on-site staff
+- Emergency access plan
+
+### Alternatives to Consider
+
+- **Reboot**: If device needs to come back online
+- **Sleep/Hibernate**: For temporary offline
+- **Network isolation**: For security without full shutdown
+- **Remote lock**: To prevent use without power-off
+- **Lost mode**: For iOS/iPadOS devices
+
+## Example Usage
+
+{{ tffile "examples/actions/graph_beta_device_management_managed_device_shutdown/action.tf" }}
+
+{{ if .SchemaMarkdown }}{{ .SchemaMarkdown | trimspace }}{{ else }}Schema documentation not available.{{ end }}
+

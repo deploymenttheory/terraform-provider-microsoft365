@@ -93,8 +93,6 @@ func MapRemoteStateToDataSource(data graphmodels.ManagedDeviceable) ManagedDevic
 	}
 }
 
-// --- Mapping helpers for nested/complex fields ---
-
 func mapHardwareInformation(hw graphmodels.HardwareInformationable) *ManagedDeviceHardwareInformation {
 	if hw == nil {
 		return nil

@@ -1,0 +1,9 @@
+{
+    "@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/managedDevices/$entity",
+    "@odata.type": "#microsoft.graph.managedDevice",
+    "id": "12345678-1234-1234-1234-123456789abc",
+    "deviceName": "WIN-001",
+    "operatingSystem": "Windows",
+    "osVersion": "10.0.19042",
+    "enrollmentType": "windowsCoManagement"
+}
