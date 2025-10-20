@@ -1,0 +1,84 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
+subcategory: "Device Management"
+
+description: |-
+{{ if .Description }}{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}{{ else }}  Rotates FileVault recovery keys for macOS managed devices.{{ end }}
+---
+
+# {{.Name}} ({{.Type}})
+
+{{ if .Description }}{{ .Description | trimspace }}{{ else }}Rotates FileVault recovery keys for macOS managed devices to maintain security compliance and limit exposure if keys are compromised.{{ end }}
+
+## Microsoft Documentation
+
+### Graph API References
+- [rotateFileVaultKey action](https://learn.microsoft.com/en-us/graph/api/intune-devices-manageddevice-rotatefilevaultkey?view=graph-rest-beta)
+- [managedDevice resource type](https://learn.microsoft.com/en-us/graph/api/resources/intune-devices-manageddevice?view=graph-rest-beta)
+
+### Intune Remote Actions Guides
+- [Device rotate FileVault](https://learn.microsoft.com/en-us/intune/intune-service/remote-actions/device-rotate-filevault)
+
+## API Permissions
+
+The following API permissions are required in order to use this action.
+
+### Microsoft Graph
+
+- **Application**: `DeviceManagementManagedDevices.PrivilegedOperations.All`
+- **Delegated**: `DeviceManagementManagedDevices.PrivilegedOperations.All`
+
+## Version History
+
+| Version | Status | Notes |
+|---------|--------|-------|
+| v0.33.0-alpha | Experimental | Initial release |
+
+## Notes
+
+### Platform Compatibility
+
+| Platform | Support | Requirements |
+|----------|---------|--------------|
+| **macOS** | ✅ Full Support | FileVault must be enabled on device |
+| **Windows** | ❌ Not Supported | FileVault is macOS-only (use BitLocker rotation instead) |
+| **iOS/iPadOS** | ❌ Not Supported | FileVault is macOS-only |
+| **Android** | ❌ Not Supported | FileVault is macOS-only |
+
+### What is FileVault Key Rotation?
+
+FileVault Key Rotation is an action that:
+- Generates a new FileVault personal recovery key
+- Automatically escrows the new key with Intune
+- Invalidates the previous recovery key
+- Operates without user interaction
+- Enhances security through regular key changes
+- Maintains continuous disk encryption protection
+
+### When to Rotate FileVault Keys
+
+- Regular compliance-driven rotation (quarterly/annually per security policy)
+- After suspected recovery key compromise or exposure
+- When reassigning devices to new users or departments
+- As part of security incident response procedures
+- Before or after employee termination or transfer
+- To meet regulatory or audit requirements
+- After key has been accessed by administrative staff
+
+### What Happens When FileVault Key is Rotated
+
+- Intune sends rotation command to the macOS device
+- Device generates new unique FileVault recovery key
+- New key is automatically escrowed with Intune
+- Previous recovery key is invalidated immediately
+- Process completes without user interaction or awareness
+- No device restart or user password change required
+- Disk encryption continues without interruption
+- New key becomes available in Intune portal for admin access
+
+## Example Usage
+
+{{ tffile "examples/actions/graph_beta_device_management_managed_device_rotate_file_vault_key/action.tf" }}
+
+{{ if .SchemaMarkdown }}{{ .SchemaMarkdown | trimspace }}{{ else }}Schema documentation not available.{{ end }}
+

@@ -1,0 +1,10 @@
+{
+    "@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/managedDevices/$entity",
+    "@odata.type": "#microsoft.graph.managedDevice",
+    "id": "87654321-4321-4321-4321-987654321cba",
+    "deviceName": "Test-iPad-002",
+    "operatingSystem": "iPadOS",
+    "isSupervised": true,
+    "activationLockBypassCode": null,
+    "enrollmentType": "deviceEnrollmentProgram"
+}

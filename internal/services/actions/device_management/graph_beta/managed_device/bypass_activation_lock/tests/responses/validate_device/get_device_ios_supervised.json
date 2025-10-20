@@ -1,0 +1,10 @@
+{
+    "@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/managedDevices/$entity",
+    "@odata.type": "#microsoft.graph.managedDevice",
+    "id": "12345678-1234-1234-1234-123456789abc",
+    "deviceName": "Test-iPhone-001",
+    "operatingSystem": "iOS",
+    "isSupervised": true,
+    "activationLockBypassCode": null,
+    "enrollmentType": "deviceEnrollmentProgram"
+}

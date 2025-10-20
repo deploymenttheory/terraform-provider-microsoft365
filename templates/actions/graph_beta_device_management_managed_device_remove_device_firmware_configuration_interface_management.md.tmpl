@@ -1,0 +1,148 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
+subcategory: "Device Management"
+
+description: |-
+{{ if .Description }}{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}{{ else }}  Removes managed devices from Device Firmware Configuration Interface (DFCI) management.{{ end }}
+---
+
+# {{.Name}} ({{.Type}})
+
+{{ if .Description }}{{ .Description | trimspace }}{{ else }}Removes managed devices from Device Firmware Configuration Interface (DFCI) management, disabling remote UEFI/BIOS configuration via Intune while maintaining standard MDM management.{{ end }}
+
+## Microsoft Documentation
+
+### Graph API References
+- [removeDeviceFirmwareConfigurationInterfaceManagement action](https://learn.microsoft.com/en-us/graph/api/intune-devices-manageddevice-removedevicefirmwareconfigurationinterfacemanagement?view=graph-rest-beta)
+- [managedDevice resource type](https://learn.microsoft.com/en-us/graph/api/resources/intune-devices-manageddevice?view=graph-rest-beta)
+
+### DFCI and Firmware Management Guides
+- [Device Firmware Configuration Interface (DFCI) overview](https://learn.microsoft.com/en-us/mem/intune/configuration/device-firmware-configuration-interface-windows)
+- [DFCI management with Intune](https://learn.microsoft.com/en-us/mem/intune/configuration/device-firmware-configuration-interface-windows-settings)
+- [Surface DFCI management](https://learn.microsoft.com/en-us/surface/surface-manage-dfci-guide)
+
+## API Permissions
+
+The following API permissions are required in order to use this action.
+
+### Microsoft Graph
+
+- **Application**: `DeviceManagementConfiguration.Read.All`, `DeviceManagementManagedDevices.Read.All`
+- **Delegated**: `DeviceManagementConfiguration.Read.All`, `DeviceManagementManagedDevices.Read.All`
+
+## Version History
+
+| Version | Status | Notes |
+|---------|--------|-------|
+| v0.33.0-alpha | Experimental | Initial release |
+
+## Notes
+
+### Platform Compatibility
+
+| Platform | Support | Requirements |
+|----------|---------|--------------|
+| **Windows** | ✅ Conditional | DFCI-capable firmware (Surface, select OEM devices) |
+| **macOS** | ❌ Not Supported | DFCI is Windows-specific technology |
+| **iOS/iPadOS** | ❌ Not Supported | DFCI is Windows-specific technology |
+| **Android** | ❌ Not Supported | DFCI is Windows-specific technology |
+
+### What is DFCI?
+
+**Device Firmware Configuration Interface (DFCI)** is a technology that:
+- Enables cloud-based management of UEFI (BIOS) settings on Windows devices
+- Provides firmware-level security controls managed through Intune
+- Works at a lower level than traditional MDM management
+- Helps protect devices from unauthorized firmware changes
+- Primarily available on Surface devices and select OEM devices
+- Requires specific firmware support from the device manufacturer
+
+### What is DFCI Management Removal?
+
+Removing DFCI management is an action that:
+- Disables Intune's ability to manage UEFI/BIOS settings remotely
+- Removes firmware-level configuration control
+- **Does not** unenroll the device from Intune
+- **Does not** affect standard MDM management
+- Reverts device to local firmware configuration only
+- Typically cannot be easily reversed without physical device access
+- Maintains all other Intune management capabilities
+
+### DFCI Management States
+
+| State | UEFI Remote Management | Standard MDM | Use Case |
+|-------|------------------------|--------------|----------|
+| **DFCI Enabled** | ✅ Yes | ✅ Yes | Full firmware + MDM control |
+| **DFCI Removed** | ❌ No | ✅ Yes | Standard MDM only |
+| **Unenrolled** | ❌ No | ❌ No | No Intune management |
+
+### When to Remove DFCI Management
+
+- **Decommissioning devices** from DFCI-enabled fleet
+- **Transitioning to standard management** for devices that don't require firmware control
+- **Preparing devices for transfer** to different organization or user
+- **Troubleshooting DFCI-related issues** that prevent device operation
+- **Removing firmware restrictions** for specific use cases
+- **Preparing devices for resale** or repurposing
+
+### What Happens When DFCI is Removed
+
+1. **Immediate**: API request is processed by Microsoft Graph
+2. **Device Contact**: Device receives DFCI removal command at next check-in
+3. **Firmware Update**: Device firmware processes DFCI removal
+4. **Management Change**: Remote UEFI configuration is disabled
+5. **MDM Continues**: Standard Intune MDM management remains active
+6. **User Impact**: Minimal - device continues normal operation
+
+### Compatible Devices
+
+DFCI management is primarily available on:
+
+**Microsoft Surface Devices:**
+- Surface Pro 7 and later
+- Surface Laptop 3 and later
+- Surface Book 3 and later
+- Surface Go 2 and later
+- Surface Studio 2+ and later
+
+**Select OEM Devices:**
+- Certain HP, Dell, Lenovo enterprise models with DFCI firmware support
+- Check with device manufacturer for DFCI compatibility
+
+### Important Considerations
+
+⚠️ **Critical Points:**
+
+1. **Irreversible Without Physical Access**: Once DFCI is removed remotely, re-enabling it may require physical device access
+2. **Not the Same as Unenrollment**: Device remains enrolled in Intune with full MDM management
+3. **Firmware Control Lost**: UEFI/BIOS settings can no longer be managed remotely
+4. **Security Implications**: Consider impact on device security posture before removal
+5. **Planning Required**: Ensure you understand why DFCI is being removed
+
+### DFCI vs Standard MDM
+
+| Feature | DFCI Management | Standard MDM |
+|---------|----------------|--------------|
+| **Operating System Settings** | ✅ Yes | ✅ Yes |
+| **Applications** | ✅ Yes | ✅ Yes |
+| **Policies** | ✅ Yes | ✅ Yes |
+| **UEFI/BIOS Settings** | ✅ Yes | ❌ No |
+| **Boot Configuration** | ✅ Yes | ❌ No |
+| **Firmware Protection** | ✅ Yes | ❌ No |
+
+### Re-enabling DFCI After Removal
+
+To re-enable DFCI after removal:
+
+1. **Physical Access Required**: Typically need physical device access
+2. **UEFI Configuration**: May need to reset DFCI settings in UEFI
+3. **Re-enrollment**: May require device re-enrollment or reset
+4. **Manufacturer Support**: Consult device manufacturer documentation
+5. **Complex Process**: Not a simple remote action
+
+## Example Usage
+
+{{ tffile "examples/actions/graph_beta_device_management_managed_device_remove_device_firmware_configuration_interface_management/action.tf" }}
+
+{{ if .SchemaMarkdown }}{{ .SchemaMarkdown | trimspace }}{{ else }}Schema documentation not available.{{ end }}
+

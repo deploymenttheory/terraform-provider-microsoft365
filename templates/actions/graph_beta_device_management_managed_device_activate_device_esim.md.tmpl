@@ -1,0 +1,95 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
+subcategory: "Device Management"
+
+description: |-
+{{ if .Description }}{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}{{ else }}  Activates eSIM profiles on managed devices.{{ end }}
+---
+
+# {{.Name}} ({{.Type}})
+
+{{ if .Description }}{{ .Description | trimspace }}{{ else }}Activates eSIM profiles on supported iOS and iPadOS devices, enabling cellular connectivity without physical SIM cards. This action downloads and activates predefined eSIM profiles managed through Intune, requiring devices to be enrolled and have eSIM hardware capability.{{ end }}
+
+## Microsoft Documentation
+
+### Graph API References
+- [activateDeviceEsim action](https://learn.microsoft.com/en-us/graph/api/intune-devices-manageddevice-activatedeviceesim?view=graph-rest-beta)
+- [managedDevice resource type](https://learn.microsoft.com/en-us/graph/api/resources/intune-devices-manageddevice?view=graph-rest-beta)
+
+### Intune eSIM and Cellular Management
+- [Activate device eSim action - iOS](https://learn.microsoft.com/en-us/intune/intune-service/remote-actions/update-cellular-data-plan
+
+## API Permissions
+
+The following API permissions are required in order to use this action.
+
+### Microsoft Graph
+
+- **Application**: `DeviceManagementManagedDevices.PrivilegedOperations.All`
+- **Delegated**: `DeviceManagementManagedDevices.PrivilegedOperations.All`
+
+## Version History
+
+|| Version | Status | Notes |
+||---------|--------|-------|
+|| v0.33.0-alpha | Experimental | Initial release |
+
+## Notes
+
+### Platform Compatibility
+
+|| Platform | Support | Requirements |
+||----------|---------|--------------|
+|| **iPad** | ✅ Full Support | iPadOS 12.1+ |
+|| **iPhone** | ✅ Full Support | iOS 12.1+ |
+|| **Android** | ❌ Not Supported | eSIM activation not supported |
+|| **Windows** | ❌ Not Supported | eSIM activation not supported |
+|| **macOS** | ❌ Not Supported | eSIM activation not supported |
+
+### What is eSIM?
+
+eSIM is an embedded SIM that:
+- Enables cellular connectivity without physical SIM cards
+- Allows remote activation of carrier profiles
+- Supports profile switching without device restart
+- Reduces physical SIM inventory management
+- Provides more secure device management options
+- Works through Intune management policies
+
+### How eSIM Activation Works
+
+1. IT configures eSIM cellular plans in carrier systems
+2. Intune receives eSIM activation server URLs from carriers
+3. Intune pushes eSIM activation details to iOS/iPadOS devices
+4. This action triggers device to activate eSIM profile
+5. Device contacts activation server and downloads eSIM profile
+6. eSIM profile is installed on device's embedded SIM
+7. Cellular connectivity becomes active automatically
+8. Device appears in Settings app's cellular section
+
+### Prerequisites
+
+- Device must be iOS/iPadOS device with eSIM hardware capability
+- Device must be enrolled in Intune
+- Device must have WiFi or existing cellular connectivity
+- eSIM activation server URL must be configured in Intune
+- eSIM plan must be provisioned by carrier
+- Device must be in line of sight with internet connectivity
+
+### Important Considerations
+
+- **iOS/iPadOS Only**: This action only works on iOS 12.1+ and iPadOS 12.1+ devices
+- **eSIM Hardware Required**: Device must have embedded SIM capability (not all iOS devices do)
+- **Connectivity Required**: Device needs WiFi or existing cellular to download eSIM profile
+- **Activation Server**: Requires activation server URL from carrier
+- **One Profile at a Time**: Action activates a single eSIM profile per invocation
+- **Dual SIM Support**: Some devices support multiple eSIM profiles or eSIM + physical SIM
+- **Permanent Activation**: Once activated, eSIM profile remains on device until manually removed
+- **No User Interaction**: Activation happens automatically without requiring user action
+
+
+## Example Usage
+
+{{ tffile "examples/actions/graph_beta_device_management_managed_device_activate_device_esim/action.tf" }}
+
+{{ if .SchemaMarkdown }}{{ .SchemaMarkdown | trimspace }}{{ else }}Schema documentation not available.{{ end }}

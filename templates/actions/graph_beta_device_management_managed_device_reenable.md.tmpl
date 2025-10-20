@@ -1,0 +1,95 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
+subcategory: "Device Management"
+
+description: |-
+{{ if .Description }}{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}{{ else }}  Re-enables previously disabled managed devices in Intune.{{ end }}
+---
+
+# {{.Name}} ({{.Type}})
+
+{{ if .Description }}{{ .Description | trimspace }}{{ else }}Re-enables previously disabled managed devices in Intune, restoring their ability to sync and receive policy updates.{{ end }}
+
+## Microsoft Documentation
+
+### Graph API References
+- [reenable action](https://learn.microsoft.com/en-us/graph/api/intune-devices-manageddevice-reenable?view=graph-rest-beta)
+- [managedDevice resource type](https://learn.microsoft.com/en-us/graph/api/resources/intune-devices-manageddevice?view=graph-rest-beta)
+
+### Intune Device Management Guides
+- [Remote actions in Microsoft Intune](https://learn.microsoft.com/en-us/mem/intune/remote-actions/device-management)
+- [Device compliance in Intune](https://learn.microsoft.com/en-us/mem/intune/protect/device-compliance-get-started)
+
+## API Permissions
+
+The following API permissions are required in order to use this action.
+
+### Microsoft Graph
+
+- **Application**: `DeviceManagementConfiguration.Read.All`, `DeviceManagementManagedDevices.Read.All`
+- **Delegated**: `DeviceManagementConfiguration.Read.All`, `DeviceManagementManagedDevices.Read.All`
+
+## Version History
+
+| Version | Status | Notes |
+|---------|--------|-------|
+| v0.33.0-alpha | Experimental | Initial release |
+
+## Notes
+
+### Platform Compatibility
+
+| Platform | Support | Requirements |
+|----------|---------|--------------|
+| **Windows** | ✅ Full Support | Previously disabled device enrolled in Intune |
+| **macOS** | ✅ Full Support | Previously disabled device enrolled in Intune |
+| **iOS/iPadOS** | ✅ Full Support | Previously disabled device enrolled in Intune |
+| **Android** | ✅ Full Support | Previously disabled device enrolled in Intune |
+
+### What is Device Re-enable?
+
+Device Re-enable is an action that:
+- Restores a disabled device's ability to interact with Intune
+- Re-enables device syncing with Intune services
+- Allows policy application and updates to resume
+- Maintains the device's enrollment record
+- Preserves all user data on the device
+- Reverses the effects of the disable action
+- Completes the disable-investigate-re-enable workflow
+
+### Disable/Re-enable Workflow
+
+| Step | Action | Device State | Management Active |
+|------|--------|--------------|-------------------|
+| 1 | Device operating normally | Active | ✅ Yes |
+| 2 | Disable action triggered | Disabled | ❌ No |
+| 3 | Investigation/resolution occurs | Disabled | ❌ No |
+| 4 | **Re-enable action triggered** | **Active** | **✅ Yes** |
+
+### When to Re-enable Devices
+
+- Security investigation has been completed successfully
+- Device compliance violations have been resolved
+- Temporary quarantine period has ended
+- Policy issues have been fixed and tested
+- Troubleshooting has been completed
+- Incident response procedures are finished
+- Device has been cleared to resume normal operations
+
+### What Happens When Device is Re-enabled
+
+- Device is marked as enabled in Intune
+- Device can sync with Intune services again
+- New policies and updates are applied
+- Existing management operations resume
+- Device enrollment record remains active
+- User can continue using the device normally
+- All user data and applications remain intact
+- Full management capabilities are restored
+
+## Example Usage
+
+{{ tffile "examples/actions/graph_beta_device_management_managed_device_reenable/action.tf" }}
+
+{{ if .SchemaMarkdown }}{{ .SchemaMarkdown | trimspace }}{{ else }}Schema documentation not available.{{ end }}
+

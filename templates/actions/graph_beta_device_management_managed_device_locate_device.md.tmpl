@@ -1,0 +1,96 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
+subcategory: "Device Management"
+
+description: |-
+{{ if .Description }}{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}{{ else }}  Requests managed devices to report their current geographic location.{{ end }}
+---
+
+# {{.Name}} ({{.Type}})
+
+{{ if .Description }}{{ .Description | trimspace }}{{ else }}Triggers device location requests for managed devices, enabling IT administrators to track device locations via the Microsoft Intune admin center.{{ end }}
+
+## Microsoft Documentation
+
+### Graph API References
+- [locateDevice action](https://learn.microsoft.com/en-us/graph/api/intune-devices-manageddevice-locatedevice?view=graph-rest-beta)
+- [managedDevice resource type](https://learn.microsoft.com/en-us/graph/api/resources/intune-devices-manageddevice?view=graph-rest-beta)
+
+### Intune Remote Actions Guides
+- [Device locate - Windows](https://learn.microsoft.com/en-us/intune/intune-service/remote-actions/device-locate?pivots=windows)
+- [Device locate - iOS](https://learn.microsoft.com/en-us/intune/intune-service/remote-actions/device-locate?pivots=ios)
+- [Device locate - Android](https://learn.microsoft.com/en-us/intune/intune-service/remote-actions/device-locate?pivots=android)
+
+## API Permissions
+
+The following API permissions are required in order to use this action.
+
+### Microsoft Graph
+
+- **Application**: `DeviceManagementManagedDevices.PrivilegedOperations.All`
+- **Delegated**: `DeviceManagementManagedDevices.PrivilegedOperations.All`
+
+## Version History
+
+| Version | Status | Notes |
+|---------|--------|-------|
+| v0.33.0-alpha | Experimental | Initial release |
+
+## Notes
+
+### Platform Compatibility
+
+| Platform | Support | Requirements |
+|----------|---------|--------------|
+| **Windows** | ⚠️ Limited | Location services must be enabled |
+| **iOS** | ✅ Full Support | iOS 9.3+, supervised devices |
+| **iPadOS** | ✅ Full Support | Supervised devices |
+| **Android** | ✅ Supported | Fully managed, dedicated, or work profile |
+| **macOS** | ❌ Not Supported | Not available on macOS devices |
+| **ChromeOS** | ❌ Not Supported | Not available on ChromeOS devices |
+
+### How Location Works
+
+- Device must be online to receive command
+- Location services must be enabled
+- Device queries GPS, WiFi, or cellular location
+- Location data reported back to Intune
+- Data displayed in Intune admin center
+- Includes latitude, longitude, accuracy radius
+- Timestamp of when location was captured
+- Multiple requests can track device movement
+
+### Location Data Access
+
+Location information is displayed in:
+- Microsoft Intune admin center
+- Device properties > Hardware section
+- Shows coordinates, accuracy, and timestamp
+- May include altitude if available
+- Location history (platform dependent)
+
+### Privacy Considerations
+
+- Users may receive notification of location request
+- Follow organizational privacy policies
+- Document business justification
+- Consider legal requirements in your jurisdiction
+- Ensure device ownership agreements cover tracking
+- Comply with employee privacy laws
+
+### Common Use Cases
+
+- Lost device recovery
+- Theft investigation
+- Asset tracking and inventory
+- Security incident response
+- Compliance verification
+- Lost mode tracking over time
+- Coordinate device recovery with users
+
+## Example Usage
+
+{{ tffile "examples/actions/graph_beta_device_management_managed_device_locate_device/action.tf" }}
+
+{{ if .SchemaMarkdown }}{{ .SchemaMarkdown | trimspace }}{{ else }}Schema documentation not available.{{ end }}
+

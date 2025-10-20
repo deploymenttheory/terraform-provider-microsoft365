@@ -1,0 +1,18 @@
+{
+    "error": {
+        "code": "BadRequest",
+        "message": "Device does not support Activation Lock bypass",
+        "details": [
+            {
+                "code": "ActivationLockNotSupported",
+                "message": "The device does not have Activation Lock enabled or does not support bypass operation",
+                "target": "deviceId"
+            }
+        ],
+        "innerError": {
+            "code": "OperationNotSupported",
+            "date": "2024-01-01T12:00:00Z",
+            "request-id": "test-request-id-error"
+        }
+    }
+}
