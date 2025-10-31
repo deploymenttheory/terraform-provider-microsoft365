@@ -140,6 +140,11 @@
       "value": 1024,
       "authenticationType": "String",
       "frequencyInterval": "String"
+    },
+    "globalSecureAccessFilteringProfile": {
+      "@odata.type": "microsoft.graph.globalSecureAccessFilteringProfileSessionControl",
+      "isEnabled": true,
+      "profileId": "String"
     }
   },
   "state": "string"

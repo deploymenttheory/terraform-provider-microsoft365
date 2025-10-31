@@ -138,13 +138,14 @@ type ConditionalAccessAuthenticationStrength struct {
 
 // ConditionalAccessSessionControls represents the session controls for the conditional access policy
 type ConditionalAccessSessionControls struct {
-	ApplicationEnforcedRestrictions *ConditionalAccessApplicationEnforcedRestrictions `tfsdk:"application_enforced_restrictions"`
-	CloudAppSecurity                *ConditionalAccessCloudAppSecurity                `tfsdk:"cloud_app_security"`
-	SignInFrequency                 *ConditionalAccessSignInFrequency                 `tfsdk:"sign_in_frequency"`
-	PersistentBrowser               *ConditionalAccessPersistentBrowser               `tfsdk:"persistent_browser"`
-	DisableResilienceDefaults       types.Bool                                        `tfsdk:"disable_resilience_defaults"`
-	ContinuousAccessEvaluation      *ConditionalAccessContinuousAccessEvaluation      `tfsdk:"continuous_access_evaluation"`
-	SecureSignInSession             *ConditionalAccessSecureSignInSession             `tfsdk:"secure_sign_in_session"`
+	ApplicationEnforcedRestrictions    *ConditionalAccessApplicationEnforcedRestrictions    `tfsdk:"application_enforced_restrictions"`
+	CloudAppSecurity                   *ConditionalAccessCloudAppSecurity                   `tfsdk:"cloud_app_security"`
+	SignInFrequency                    *ConditionalAccessSignInFrequency                    `tfsdk:"sign_in_frequency"`
+	PersistentBrowser                  *ConditionalAccessPersistentBrowser                  `tfsdk:"persistent_browser"`
+	DisableResilienceDefaults          types.Bool                                           `tfsdk:"disable_resilience_defaults"`
+	ContinuousAccessEvaluation         *ConditionalAccessContinuousAccessEvaluation         `tfsdk:"continuous_access_evaluation"`
+	SecureSignInSession                *ConditionalAccessSecureSignInSession                `tfsdk:"secure_sign_in_session"`
+	GlobalSecureAccessFilteringProfile *ConditionalAccessGlobalSecureAccessFilteringProfile `tfsdk:"global_secure_access_filtering_profile"`
 }
 
 // ConditionalAccessApplicationEnforcedRestrictions represents the application enforced restrictions configuration
@@ -187,4 +188,10 @@ type ConditionalAccessSecureSignInSession struct {
 type ConditionalAccessClientApplications struct {
 	IncludeServicePrincipals types.Set `tfsdk:"include_service_principals"`
 	ExcludeServicePrincipals types.Set `tfsdk:"exclude_service_principals"`
+}
+
+// ConditionalAccessGlobalSecureAccessFilteringProfile represents the global secure access filtering profile configuration
+type ConditionalAccessGlobalSecureAccessFilteringProfile struct {
+	ProfileId types.String `tfsdk:"profile_id"`
+	IsEnabled types.Bool   `tfsdk:"is_enabled"`
 }

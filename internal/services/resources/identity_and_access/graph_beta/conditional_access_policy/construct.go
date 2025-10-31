@@ -702,5 +702,22 @@ func constructSessionControls(ctx context.Context, data *ConditionalAccessSessio
 		}
 	}
 
+	if data.GlobalSecureAccessFilteringProfile != nil {
+		globalSecureAccessFilteringProfile := make(map[string]any)
+		convert.FrameworkToGraphBool(data.GlobalSecureAccessFilteringProfile.IsEnabled, func(value *bool) {
+			if value != nil {
+				globalSecureAccessFilteringProfile["isEnabled"] = *value
+			}
+		})
+		convert.FrameworkToGraphString(data.GlobalSecureAccessFilteringProfile.ProfileId, func(value *string) {
+			if value != nil {
+				globalSecureAccessFilteringProfile["profileId"] = *value
+			}
+		})
+		if len(globalSecureAccessFilteringProfile) > 0 {
+			sessionControls["globalSecureAccessFilteringProfile"] = globalSecureAccessFilteringProfile
+		}
+	}
+
 	return sessionControls, nil
 }

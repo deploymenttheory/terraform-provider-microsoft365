@@ -971,6 +971,20 @@ func (r *ConditionalAccessPolicyResource) Schema(ctx context.Context, req resour
 							},
 						},
 					},
+					"global_secure_access_filtering_profile": schema.SingleNestedAttribute{
+						MarkdownDescription: "Global Secure Access filtering profile for the session.",
+						Optional:            true,
+						Attributes: map[string]schema.Attribute{
+							"is_enabled": schema.BoolAttribute{
+								MarkdownDescription: "Whether global secure access filtering controls are enabled.",
+								Required:            true,
+							},
+							"profile_id": schema.StringAttribute{
+								MarkdownDescription: "ID of the global secure access filtering profile.",
+								Required:            true,
+							},
+						},
+					},
 				},
 			},
 			"template_id": schema.StringAttribute{

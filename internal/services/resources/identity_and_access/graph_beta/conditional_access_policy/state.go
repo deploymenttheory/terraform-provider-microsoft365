@@ -764,6 +764,15 @@ func mapSessionControls(ctx context.Context, sessionControlsRaw any) *Conditiona
 		result.SecureSignInSession = nil
 	}
 
+	// Map globalSecureAccessFilteringProfile
+	if globalSecureAccessFilteringProfileRaw, ok := sessionControls["globalSecureAccessFilteringProfile"]; ok {
+		tflog.Debug(ctx, "Mapping globalSecureAccessFilteringProfile", map[string]any{"globalSecureAccessFilteringProfile": globalSecureAccessFilteringProfileRaw})
+		result.GlobalSecureAccessFilteringProfile = mapGlobalSecureAccessFilteringProfile(ctx, globalSecureAccessFilteringProfileRaw)
+	} else {
+		tflog.Debug(ctx, "globalSecureAccessFilteringProfile not found")
+		result.GlobalSecureAccessFilteringProfile = nil
+	}
+
 	return result
 }
 
@@ -1290,6 +1299,33 @@ func mapSecureSignInSession(ctx context.Context, secureSignInSessionRaw any) *Co
 	} else {
 		tflog.Debug(ctx, "secureSignInSession isEnabled not found or not a bool")
 		result.IsEnabled = types.BoolNull()
+	}
+
+	return result
+}
+
+func mapGlobalSecureAccessFilteringProfile(ctx context.Context, globalSecureAccessFilteringProfileRaw any) *ConditionalAccessGlobalSecureAccessFilteringProfile {
+	globalSecureAccessFilteringProfile, ok := globalSecureAccessFilteringProfileRaw.(map[string]any)
+	if !ok {
+		tflog.Debug(ctx, "globalSecureAccessFilteringProfile is not a map[string]any")
+		return nil
+	}
+	result := &ConditionalAccessGlobalSecureAccessFilteringProfile{}
+
+	if isEnabled, ok := globalSecureAccessFilteringProfile["isEnabled"].(bool); ok {
+		tflog.Debug(ctx, "Mapping globalSecureAccessFilteringProfile isEnabled", map[string]any{"isEnabled": isEnabled})
+		result.IsEnabled = types.BoolValue(isEnabled)
+	} else {
+		tflog.Debug(ctx, "globalSecureAccessFilteringProfile isEnabled not found or not a bool")
+		result.IsEnabled = types.BoolNull()
+	}
+
+	if profileId, ok := globalSecureAccessFilteringProfile["profileId"].(string); ok {
+		tflog.Debug(ctx, "Mapping globalSecureAccessFilteringProfile profileId", map[string]any{"profileId": profileId})
+		result.ProfileId = types.StringValue(profileId)
+	} else {
+		tflog.Debug(ctx, "globalSecureAccessFilteringProfile profileId not found or not a string")
+		result.ProfileId = types.StringNull()
 	}
 
 	return result
