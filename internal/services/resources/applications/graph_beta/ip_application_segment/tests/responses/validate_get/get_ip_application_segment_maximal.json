@@ -1,0 +1,13 @@
+{
+  "id": "22222222-2222-2222-2222-222222222222",
+  "destinationHost": "*.example.com",
+  "destinationType": "dnsSuffix",
+  "ports": [
+    "80-80",
+    "443-443",
+    "8080-8080",
+    "8443-8443"
+  ],
+  "protocol": "tcp"
+}
+

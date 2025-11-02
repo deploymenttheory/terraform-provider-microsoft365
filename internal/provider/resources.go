@@ -79,6 +79,9 @@ import (
 	graphBetaDeviceManagementWindowsRemediationScript "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_management/graph_beta/windows_remediation_script"
 	graphBetaDeviceManagementWindowsUpdateRing "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_management/graph_beta/windows_update_ring"
 
+	// Graph Beta - Applications resources
+	graphBetaApplicationsIpApplicationSegment "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/applications/graph_beta/ip_application_segment"
+
 	// Graph Beta - Identity and Access resources
 	graphBetaIdentityAndAccessAttributeSet "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/identity_and_access/graph_beta/attribute_set"
 	graphBetaIdentityAndAccessAuthenticationContext "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/identity_and_access/graph_beta/authentication_context"
@@ -218,6 +221,9 @@ func (p *M365Provider) Resources(ctx context.Context) []func() resource.Resource
 		graphBetaDeviceManagementWindowsQualityUpdatePolicy.NewWindowsQualityUpdatePolicyResource,
 		graphBetaDeviceManagementWindowsUpdateRing.NewWindowsUpdateRingResource,
 		graphBetaDeviceManagementWindowsBackupAndRestore.NewWindowsBackupAndRestoreResource,
+
+		// Graph Beta - Applications resources
+		graphBetaApplicationsIpApplicationSegment.NewIpApplicationSegmentResource,
 
 		// Graph Beta - Identity and Access resources
 		graphBetaIdentityAndAccessAttributeSet.NewAttributeSetResource,
