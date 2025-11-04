@@ -43,7 +43,7 @@ action "microsoft365_graph_beta_device_management_managed_device_shutdown" "shut
 action "microsoft365_graph_beta_device_management_managed_device_shutdown" "emergency_shutdown" {
 
   device_ids = [
-    "12345678-abcd-1234-abcd-123456789def"  # Replace with actual compromised device ID
+    "12345678-abcd-1234-abcd-123456789def" # Replace with actual compromised device ID
   ]
 
   timeouts = {

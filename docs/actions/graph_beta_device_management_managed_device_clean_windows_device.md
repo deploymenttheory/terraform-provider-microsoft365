@@ -216,7 +216,7 @@ When `keep_user_data = true`:
 action "microsoft365_graph_beta_device_management_managed_device_clean_windows_device" "single_device_full_clean" {
 
   device_ids = ["12345678-1234-1234-1234-123456789abc"]
-  
+
   keep_user_data = false
 
   timeouts = {
@@ -231,7 +231,7 @@ action "microsoft365_graph_beta_device_management_managed_device_clean_windows_d
 action "microsoft365_graph_beta_device_management_managed_device_clean_windows_device" "single_device_preserve_data" {
 
   device_ids = ["12345678-1234-1234-1234-123456789abc"]
-  
+
   keep_user_data = true
 
   timeouts = {
@@ -250,7 +250,7 @@ action "microsoft365_graph_beta_device_management_managed_device_clean_windows_d
     "87654321-4321-4321-4321-ba9876543210",
     "abcdef12-3456-7890-abcd-ef1234567890"
   ]
-  
+
   keep_user_data = false
 
   timeouts = {
@@ -270,7 +270,7 @@ data "microsoft365_graph_beta_device_management_managed_device" "windows_noncomp
 action "microsoft365_graph_beta_device_management_managed_device_clean_windows_device" "clean_noncompliant" {
 
   device_ids = [for device in data.microsoft365_graph_beta_device_management_managed_device.windows_noncompliant.items : device.id]
-  
+
   keep_user_data = false
 
   timeouts = {
@@ -290,7 +290,7 @@ data "microsoft365_graph_beta_device_management_managed_device" "windows11_devic
 action "microsoft365_graph_beta_device_management_managed_device_clean_windows_device" "clean_win11_preserve_data" {
 
   device_ids = [for device in data.microsoft365_graph_beta_device_management_managed_device.windows11_devices.items : device.id]
-  
+
   keep_user_data = true
 
   timeouts = {
@@ -310,7 +310,7 @@ data "microsoft365_graph_beta_device_management_managed_device" "corporate_windo
 action "microsoft365_graph_beta_device_management_managed_device_clean_windows_device" "clean_corporate_devices" {
 
   device_ids = [for device in data.microsoft365_graph_beta_device_management_managed_device.corporate_windows.items : device.id]
-  
+
   keep_user_data = false
 
   timeouts = {

@@ -213,7 +213,7 @@ locals {
     "12345678-1234-1234-1234-123456789abc",
     "87654321-4321-4321-4321-ba9876543210"
   ]
-  
+
   # Devices needing quick scan
   devices_need_quick_scan = [
     "abcdef12-3456-7890-abcd-ef1234567890",

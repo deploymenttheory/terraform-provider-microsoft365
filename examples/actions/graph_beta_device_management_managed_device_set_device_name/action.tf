@@ -116,7 +116,7 @@ action "microsoft365_graph_beta_device_management_managed_device_set_device_name
 # Example 7: Rename devices after asset reassignment
 variable "reassigned_devices" {
   description = "Map of device IDs to new names after reassignment"
-  type = map(string)
+  type        = map(string)
   default = {
     "11111111-1111-1111-1111-111111111111" = "Finance-Laptop-A"
     "22222222-2222-2222-2222-222222222222" = "Finance-Laptop-B"

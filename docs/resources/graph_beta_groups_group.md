@@ -33,100 +33,86 @@ The following API permissions are required in order to use this resource.
 ## Example Usage
 
 ```terraform
-# Security Group Example
-resource "microsoft365_graph_beta_group" "security_group" {
-  display_name     = "Security Team"
-  description      = "Security team members with access to security resources"
-  mail_nickname    = "security-team"
+# Example 1: Basic Security Group with Assigned Membership
+# Creates a standard security group where members are manually assigned.
+# This is the most common type of security group used for access control.
+resource "microsoft365_graph_beta_groups_group" "security_basic" {
+  display_name     = "Engineering Team"
+  mail_nickname    = "engineering-team"
   mail_enabled     = false
   security_enabled = true
-  visibility       = "Private"
-
-  timeouts = {
-    create = "30s"
-    read   = "30s"
-    update = "30s"
-    delete = "30s"
-  }
+  description      = "Security group for engineering team members"
 }
 
-# Microsoft 365 Group Example
-resource "microsoft365_graph_beta_group" "m365_group" {
-  display_name     = "Marketing Team"
-  description      = "Marketing team collaboration group"
-  mail_nickname    = "marketing-team"
-  mail_enabled     = true
-  security_enabled = true
-  group_types      = ["Unified"]
-  visibility       = "Public"
-
-  preferred_language      = "en-US"
-  preferred_data_location = "US"
-  theme                   = "Blue"
-  classification          = "General"
-
-  timeouts = {
-    create = "30s"
-    read   = "30s"
-    update = "30s"
-    delete = "30s"
-  }
-}
-
-# Dynamic Security Group Example
-resource "microsoft365_graph_beta_group" "dynamic_group" {
-  display_name     = "Dynamic IT Department"
-  description      = "All users in IT department (dynamic membership)"
-  mail_nickname    = "dynamic-it"
-  mail_enabled     = false
-  security_enabled = true
-  group_types      = ["DynamicMembership"]
-  visibility       = "Private"
-
-  membership_rule                  = "(user.department -eq \"IT\")"
+# Example 2: Security Group with Dynamic User Membership
+# Creates a security group that automatically adds/removes users based on a membership rule.
+# Useful for automatically managing group membership based on user attributes.
+resource "microsoft365_graph_beta_groups_group" "security_dynamic_users" {
+  display_name                     = "Active Employees"
+  mail_nickname                    = "active-employees"
+  mail_enabled                     = false
+  security_enabled                 = true
+  description                      = "Security group containing all active employees"
+  group_types                      = ["DynamicMembership"]
+  membership_rule                  = "(user.accountEnabled -eq true)"
   membership_rule_processing_state = "On"
-
-  timeouts = {
-    create = "30s"
-    read   = "30s"
-    update = "30s"
-    delete = "30s"
-  }
 }
 
-# Role Assignable Group Example
-resource "microsoft365_graph_beta_group" "role_assignable_group" {
-  display_name          = "Azure AD Administrators"
-  description           = "Group that can be assigned to Azure AD roles"
-  mail_nickname         = "aad-admins"
+# Example 3: Security Group with Dynamic Device Membership
+# Creates a security group that automatically includes devices based on a membership rule.
+# Ideal for device management scenarios like Conditional Access or Intune policies.
+resource "microsoft365_graph_beta_groups_group" "security_dynamic_devices" {
+  display_name                     = "Corporate Managed Devices"
+  mail_nickname                    = "corporate-devices"
+  mail_enabled                     = false
+  security_enabled                 = true
+  description                      = "Security group containing all corporate managed devices"
+  group_types                      = ["DynamicMembership"]
+  membership_rule                  = "(device.accountEnabled -eq true)"
+  membership_rule_processing_state = "On"
+}
+
+# Example 4: Role-Assignable Security Group
+# Creates a security group that can be assigned to Entra ID roles.
+# Note: Requires elevated permissions and visibility must be "Private".
+# Once created, is_assignable_to_role cannot be changed.
+resource "microsoft365_graph_beta_groups_group" "security_role_assignable" {
+  display_name          = "Privileged Access Administrators"
+  mail_nickname         = "privileged-admins"
   mail_enabled          = false
   security_enabled      = true
-  visibility            = "Private"
+  description           = "Security group for privileged access administration"
   is_assignable_to_role = true
-
-  timeouts = {
-    create = "30s"
-    read   = "30s"
-    update = "30s"
-    delete = "30s"
-  }
+  visibility            = "Private"
 }
 
-# Distribution Group Example
-resource "microsoft365_graph_beta_group" "distribution_group" {
-  display_name     = "Company Announcements"
-  description      = "Distribution list for company-wide announcements"
-  mail_nickname    = "company-announce"
-  mail_enabled     = true
-  security_enabled = false
-  visibility       = "Public"
+# Example 5: Microsoft 365 Group with Dynamic User Membership
+# Creates a Microsoft 365 group (formerly Office 365 group) with automatic membership.
+# Includes Teams, SharePoint, Outlook, and other Microsoft 365 services.
+resource "microsoft365_graph_beta_groups_group" "m365_dynamic_users" {
+  display_name                     = "Marketing Department"
+  mail_nickname                    = "marketing-dept"
+  mail_enabled                     = true
+  security_enabled                 = true
+  group_types                      = ["Unified", "DynamicMembership"]
+  membership_rule                  = "(user.accountEnabled -eq true)"
+  membership_rule_processing_state = "On"
+  visibility                       = "Private"
+}
 
-  timeouts = {
-    create = "30s"
-    read   = "30s"
-    update = "30s"
-    delete = "30s"
-  }
+# Example 6: Microsoft 365 Group with Role Assignment
+# Creates a Microsoft 365 group that can be assigned to Entra ID roles.
+# Combines collaboration features with privileged access management.
+# Note: Requires elevated permissions and visibility must be "Private".
+resource "microsoft365_graph_beta_groups_group" "m365_role_assignable" {
+  display_name          = "Executive Leadership Team"
+  mail_nickname         = "executive-team"
+  mail_enabled          = true
+  security_enabled      = true
+  group_types           = ["Unified"]
+  description           = "Microsoft 365 group for executive leadership"
+  is_assignable_to_role = true
+  visibility            = "Private"
 }
 ```
 
@@ -142,28 +128,20 @@ resource "microsoft365_graph_beta_group" "distribution_group" {
 
 ### Optional
 
-- `classification` (String) Describes a classification for the group (such as low, medium, or high business impact). Valid values for this property are defined by creating a ClassificationList setting value, based on the template definition.
 - `description` (String) An optional description for the group.
+- `group_members` (Set of String) The members of the group at creation time. A maximum of 20 relationships, such as owners and members, can be added as part of group creation. Specify the user IDs (GUIDs) of the users who should be members of the group. Additional members can be added after creation using the `/groups/{id}/members/$ref` endpoint or JSON batching.
+- `group_owners` (Set of String) The owners of the group at creation time. A maximum of 20 relationships, such as owners and members, can be added as part of group creation. Specify the user IDs (GUIDs) of the users who should be owners of the group. Note: A non-admin user cannot add themselves to the group owners collection. Owners can be added after creation using the `/groups/{id}/owners/$ref` endpoint.
 - `group_types` (Set of String) Specifies the group type and its membership. If the collection contains 'Unified', the group is a Microsoft 365 group; otherwise, it's either a security group or a distribution group. If the collection includes 'DynamicMembership', the group has dynamic membership; otherwise, membership is static.
 - `is_assignable_to_role` (Boolean) Indicates whether this group can be assigned to a Microsoft Entra role. This property can only be set while creating the group and is immutable. If set to true, the securityEnabled property must also be set to true, visibility must be Hidden, and the group can't be a dynamic group. Default is false.
 - `membership_rule` (String) The rule that determines members for this group if the group is a dynamic group (groupTypes contains DynamicMembership). For more information about the syntax of the membership rule, see Membership Rules syntax.
-- `membership_rule_processing_state` (String) Indicates whether the dynamic membership processing is on or paused. Possible values are 'On' or 'Paused'. Default is 'Paused'.
-- `preferred_data_location` (String) The preferred data location for the Microsoft 365 group. By default, the group inherits the group creator's preferred data location.
-- `preferred_language` (String) The preferred language for a Microsoft 365 group. Should follow ISO 639-1 Code; for example, en-US.
-- `theme` (String) Specifies a Microsoft 365 group's color theme. Possible values are Teal, Purple, Green, Blue, Pink, Orange, or Red.
+- `membership_rule_processing_state` (String) Indicates whether the dynamic membership processing is on or paused. Possible values are 'On' or 'Paused'. Only applicable for dynamic groups (when groupTypes contains DynamicMembership).
 - `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))
-- `visibility` (String) Specifies the group join policy and group content visibility for groups. Possible values are: Private, Public, or HiddenMembership. Default is 'Private'.
+- `visibility` (String) Specifies the group join policy and group content visibility for groups. Possible values are: `Private`, `Public`, or `HiddenMembership`. `HiddenMembership` can be set only for Microsoft 365 groups when the groups are created and cannot be updated later. Other values of visibility can be updated after group creation. If visibility value is not specified during group creation, a security group is created as `Private` by default, and a Microsoft 365 group is `Public`. Groups assignable to roles are always `Private`. Returned by default. Nullable.
 
 ### Read-Only
 
 - `created_date_time` (String) Timestamp of when the group was created. The value can't be modified and is automatically populated when the group is created. Read-only.
-- `expiration_date_time` (String) Timestamp of when the group is set to expire. It's null for security groups, but for Microsoft 365 groups, it represents when the group is set to expire as defined in the groupLifecyclePolicy. Read-only.
 - `id` (String) The unique identifier for the group. Read-only.
-- `mail` (String) The SMTP address for the group. Read-only.
-- `on_premises_sync_enabled` (Boolean) true if this group is synced from an on-premises directory; false if this group was originally synced from an on-premises directory but is no longer synced; null if this object has never synced from an on-premises directory. Read-only.
-- `proxy_addresses` (Set of String) Email addresses for the group that direct to the same group mailbox. Read-only.
-- `renewed_date_time` (String) Timestamp of when the group was last renewed. This value can't be modified directly and is only updated via the renew service action. Read-only.
-- `security_identifier` (String) Security identifier of the group, used in Windows scenarios. Read-only.
 
 <a id="nestedatt--timeouts"></a>
 ### Nested Schema for `timeouts`

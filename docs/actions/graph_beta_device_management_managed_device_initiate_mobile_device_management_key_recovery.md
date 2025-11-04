@@ -331,8 +331,8 @@ action "microsoft365_graph_beta_device_management_managed_device_initiate_mobile
 # Example 8: Department-specific key recovery
 locals {
   finance_department_devices = {
-    "finance_laptop_1" = "11111111-1111-1111-1111-111111111111"
-    "finance_laptop_2" = "22222222-2222-2222-2222-222222222222"
+    "finance_laptop_1"  = "11111111-1111-1111-1111-111111111111"
+    "finance_laptop_2"  = "22222222-2222-2222-2222-222222222222"
     "finance_desktop_1" = "33333333-3333-3333-3333-333333333333"
   }
 }

@@ -5,8 +5,8 @@ action "graph_beta_device_management_managed_device_bypass_activation_lock" "tes
     "11111111-2222-3333-4444-555555555555",
   ]
 
-  ignore_partial_failures  = false
-  validate_device_exists   = true
+  ignore_partial_failures = false
+  validate_device_exists  = true
 
   timeouts = {
     create = "5m"

@@ -118,8 +118,8 @@ Device Deprovisioning is an action that:
 action "microsoft365_graph_beta_device_management_managed_device_deprovision" "deprovision_single" {
 
   managed_devices {
-    device_id           = "12345678-1234-1234-1234-123456789abc"
-    deprovision_reason  = "Device being transitioned to new management solution"
+    device_id          = "12345678-1234-1234-1234-123456789abc"
+    deprovision_reason = "Device being transitioned to new management solution"
   }
 
   timeouts = {
@@ -148,7 +148,7 @@ action "microsoft365_graph_beta_device_management_managed_device_deprovision" "d
 # Example 3: Deprovision devices by user
 variable "departing_user_devices" {
   description = "Device IDs for departing user"
-  type = map(string)
+  type        = map(string)
   default = {
     "device1" = "11111111-1111-1111-1111-111111111111"
     "device2" = "22222222-2222-2222-2222-222222222222"

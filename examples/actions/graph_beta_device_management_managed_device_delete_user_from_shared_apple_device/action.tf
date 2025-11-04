@@ -80,7 +80,7 @@ data "microsoft365_graph_beta_device_management_managed_device" "lab_ipads" {
 locals {
   # List of users to remove
   departed_users = ["student1@school.edu", "student2@school.edu", "student3@school.edu"]
-  
+
   # Create device-user pairs for each combination
   device_user_pairs = flatten([
     for device in data.microsoft365_graph_beta_device_management_managed_device.lab_ipads.items : [
@@ -113,7 +113,7 @@ data "microsoft365_graph_beta_device_management_managed_device" "supervised_ipad
 locals {
   # List of inactive users to remove for storage space
   inactive_users = ["inactive1@school.edu", "inactive2@school.edu"]
-  
+
   # Map each inactive user to each supervised iPad
   storage_cleanup_pairs = flatten([
     for device in data.microsoft365_graph_beta_device_management_managed_device.supervised_ipads.items : [
