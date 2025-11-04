@@ -97,6 +97,9 @@ jobs:
             elif [[ "$pkg" == *"internal/acceptance"* ]]; then
               echo "Skipping test requirement check for acceptance directory: $pkg"
               continue
+            elif [[ "$pkg" == *"internal/constants"* ]]; then
+              echo "Skipping test requirement check for constants directory: $pkg"
+              continue
             fi
             
             # Check if package has test files
@@ -115,7 +118,7 @@ jobs:
           if [ "$MISSING_TESTS" = true ]; then
             echo ""
             echo "ERROR: Some packages with Go code changes are missing tests"
-            echo "All Go code changes must include tests (except mocks, schema, shared_models, and common directories)"
+            echo "All Go code changes must include tests (except mocks, schema, shared_models, acceptance, and constants directories)"
             exit 1
           fi
           
