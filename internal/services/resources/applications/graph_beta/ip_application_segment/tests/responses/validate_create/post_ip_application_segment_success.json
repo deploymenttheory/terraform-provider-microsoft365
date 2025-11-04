@@ -1,0 +1,11 @@
+{
+  "id": "00000000-0000-0000-0000-000000000000",
+  "destinationHost": "192.168.1.100",
+  "destinationType": "ipAddress",
+  "ports": [
+    "80-80",
+    "443-443"
+  ],
+  "protocol": "tcp"
+}
+

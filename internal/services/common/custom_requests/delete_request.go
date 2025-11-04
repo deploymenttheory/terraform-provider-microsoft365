@@ -3,6 +3,7 @@ package customrequests
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	abstractions "github.com/microsoft/kiota-abstractions-go"
 )
@@ -55,7 +56,26 @@ type DeleteRequestConfig struct {
 func DeleteRequestByResourceId(ctx context.Context, adapter abstractions.RequestAdapter, reqConfig DeleteRequestConfig) error {
 	requestInfo := abstractions.NewRequestInformation()
 	requestInfo.Method = abstractions.DELETE
-	requestInfo.UrlTemplate = ByIDRequestUrlTemplate(reqConfig)
+
+	endpoint := reqConfig.Endpoint
+	endpoint = strings.TrimPrefix(endpoint, "/")
+
+	var urlTemplate string
+	switch reqConfig.ResourceIDPattern {
+	case "/{id}":
+		urlTemplate = fmt.Sprintf("{+baseurl}/%s/%s", endpoint, reqConfig.ResourceID)
+	case "('id')":
+		urlTemplate = fmt.Sprintf("{+baseurl}/%s('%s')", endpoint, reqConfig.ResourceID)
+	default:
+		idPart := strings.ReplaceAll(reqConfig.ResourceIDPattern, "id", reqConfig.ResourceID)
+		urlTemplate = fmt.Sprintf("{+baseurl}/%s%s", endpoint, idPart)
+	}
+
+	if reqConfig.EndpointSuffix != "" {
+		urlTemplate += reqConfig.EndpointSuffix
+	}
+
+	requestInfo.UrlTemplate = urlTemplate
 	requestInfo.PathParameters = map[string]string{
 		"baseurl": fmt.Sprintf("https://graph.microsoft.com/%s", reqConfig.APIVersion),
 	}
