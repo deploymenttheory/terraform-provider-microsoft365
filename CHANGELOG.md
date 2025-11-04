@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.33.2-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.33.1-alpha...v0.33.2-alpha) (2025-11-04)
+
+
+### Bug Fixes
+
+* refactor of "graph_beta_groups_group" with more precise schema validation, constructor logic for creates vs. updates and full test harness ([3981df3](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/3981df302316b7707db4dbfc43b071716abb03b4))
+* refactor of "graph_beta_groups_group" with more precise schema validation, constructor logic for creates vs. updates and full test harness ([#846](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/846)) ([87777da](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/87777dadf37553cf91730428bb5431e02c6ca030))
+
 ## [0.33.1-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.33.0-alpha...v0.33.1-alpha) (2025-11-04)
 
 
