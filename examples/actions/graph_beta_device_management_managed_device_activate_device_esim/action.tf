@@ -32,7 +32,7 @@ action "microsoft365_graph_beta_device_management_managed_device_activate_device
 # Example 3: Bulk eSIM activation for new device deployment
 variable "new_devices_with_esim" {
   description = "Map of device IDs to carrier activation URLs"
-  type = map(string)
+  type        = map(string)
   default = {
     "11111111-1111-1111-1111-111111111111" = "https://carrier.com/activate?id=1"
     "22222222-2222-2222-2222-222222222222" = "https://carrier.com/activate?id=2"

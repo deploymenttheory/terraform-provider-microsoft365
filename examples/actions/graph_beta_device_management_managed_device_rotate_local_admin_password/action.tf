@@ -89,9 +89,9 @@ action "rotate_password_admin_offboarding" {
   provider_type = microsoft365.graph_beta_device_management_managed_device_rotate_local_admin_password
 
   managed_device_ids = [
-    "it-admin-workstation-1",  # Admin's primary workstation
-    "server-mgmt-device-1",    # Server management device
-    "backup-admin-device-1",   # Backup admin access device
+    "it-admin-workstation-1", # Admin's primary workstation
+    "server-mgmt-device-1",   # Server management device
+    "backup-admin-device-1",  # Backup admin access device
   ]
 
   timeouts {

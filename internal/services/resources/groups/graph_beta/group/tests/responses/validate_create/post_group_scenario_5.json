@@ -1,0 +1,16 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#groups/$entity",
+  "id": "55555555-5555-5555-5555-555555555555",
+  "displayName": "acc-m365-group-with-dynamic-user-membership-type",
+  "description": null,
+  "mailNickname": "some-string",
+  "mailEnabled": true,
+  "securityEnabled": true,
+  "groupTypes": ["Unified", "DynamicMembership"],
+  "visibility": "Private",
+  "isAssignableToRole": false,
+  "membershipRule": "(user.accountEnabled -eq true)",
+  "membershipRuleProcessingState": "On",
+  "createdDateTime": "2024-01-01T00:00:00Z"
+}
+

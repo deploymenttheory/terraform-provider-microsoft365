@@ -14,7 +14,7 @@ action "microsoft365_graph_beta_device_management_managed_device_play_lost_mode_
 action "microsoft365_graph_beta_device_management_managed_device_play_lost_mode_sound" "play_sound_with_duration" {
 
   managed_devices {
-    device_id          = "12345678-1234-1234-1234-123456789abc"
+    device_id           = "12345678-1234-1234-1234-123456789abc"
     duration_in_minutes = "5"
   }
 
@@ -27,12 +27,12 @@ action "microsoft365_graph_beta_device_management_managed_device_play_lost_mode_
 action "microsoft365_graph_beta_device_management_managed_device_play_lost_mode_sound" "play_sound_multiple" {
 
   managed_devices {
-    device_id          = "12345678-1234-1234-1234-123456789abc"
+    device_id           = "12345678-1234-1234-1234-123456789abc"
     duration_in_minutes = "3"
   }
 
   managed_devices {
-    device_id          = "87654321-4321-4321-4321-ba9876543210"
+    device_id           = "87654321-4321-4321-4321-ba9876543210"
     duration_in_minutes = "10"
   }
 
@@ -52,7 +52,7 @@ action "microsoft365_graph_beta_device_management_managed_device_play_lost_mode_
   dynamic "managed_devices" {
     for_each = data.microsoft365_graph_beta_device_management_managed_device.devices_in_lost_mode.items
     content {
-      device_id          = managed_devices.value.id
+      device_id           = managed_devices.value.id
       duration_in_minutes = "5"
     }
   }
@@ -73,7 +73,7 @@ action "microsoft365_graph_beta_device_management_managed_device_play_lost_mode_
   dynamic "managed_devices" {
     for_each = data.microsoft365_graph_beta_device_management_managed_device.user_lost_devices.items
     content {
-      device_id          = managed_devices.value.id
+      device_id           = managed_devices.value.id
       duration_in_minutes = "3"
     }
   }
@@ -87,7 +87,7 @@ action "microsoft365_graph_beta_device_management_managed_device_play_lost_mode_
 action "microsoft365_graph_beta_device_management_managed_device_play_lost_mode_sound" "play_sound_comanaged" {
 
   comanaged_devices {
-    device_id          = "abcdef12-3456-7890-abcd-ef1234567890"
+    device_id           = "abcdef12-3456-7890-abcd-ef1234567890"
     duration_in_minutes = "5"
   }
 
@@ -100,7 +100,7 @@ action "microsoft365_graph_beta_device_management_managed_device_play_lost_mode_
 action "microsoft365_graph_beta_device_management_managed_device_play_lost_mode_sound" "locate_nearby_device" {
 
   managed_devices {
-    device_id          = "12345678-1234-1234-1234-123456789abc"
+    device_id           = "12345678-1234-1234-1234-123456789abc"
     duration_in_minutes = "2"
   }
 

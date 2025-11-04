@@ -62,25 +62,12 @@ func (m *GroupMock) RegisterMocks() {
 		})
 
 	// Register GET for specific group with special test IDs
-	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/groups/(.+)$`,
+	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/groups/([a-fA-F0-9\-]+)`,
 		func(req *http.Request) (*http.Response, error) {
 			groupID := httpmock.MustGetSubmatch(req, 1)
 
 			// Handle special test IDs with external JSON files
-			switch {
-			case strings.Contains(groupID, "minimal"):
-				jsonStr, err := helpers.ParseJSONFile("../tests/responses/validate_read/get_group_minimal.json")
-				if err != nil {
-					return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to load mock response"}}`), nil
-				}
-				return httpmock.NewStringResponse(200, jsonStr), nil
-			case strings.Contains(groupID, "maximal"):
-				jsonStr, err := helpers.ParseJSONFile("../tests/responses/validate_read/get_group_maximal.json")
-				if err != nil {
-					return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to load mock response"}}`), nil
-				}
-				return httpmock.NewStringResponse(200, jsonStr), nil
-			case strings.Contains(groupID, "error"):
+			if strings.Contains(groupID, "error") {
 				jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_error/error_resource_not_found.json")
 				return httpmock.NewStringResponse(404, jsonStr), nil
 			}
@@ -90,7 +77,9 @@ func (m *GroupMock) RegisterMocks() {
 
 			if group, exists := mockState.groups[groupID]; exists {
 				respBody, _ := json.Marshal(group)
-				return httpmock.NewStringResponse(200, string(respBody)), nil
+				resp := httpmock.NewStringResponse(200, string(respBody))
+				resp.Header.Set("Content-Type", "application/json")
+				return resp, nil
 			}
 
 			return httpmock.NewStringResponse(404, `{"error":{"code":"ResourceNotFound","message":"Resource not found"}}`), nil
@@ -114,19 +103,42 @@ func (m *GroupMock) RegisterMocks() {
 
 			// Handle special test cases based on display name
 			if displayName, ok := requestBody["displayName"].(string); ok {
-				switch {
-				case strings.Contains(displayName, "minimal"):
-					jsonStr, err := helpers.ParseJSONFile("../tests/responses/validate_create/post_group_minimal.json")
+				var jsonFile string
+				switch displayName {
+				case "acc-security-group-with-assigned-membership-type":
+					jsonFile = "../tests/responses/validate_create/post_group_scenario_1.json"
+				case "acc-security-group-with-dynamic-user-membership-type":
+					jsonFile = "../tests/responses/validate_create/post_group_scenario_2.json"
+				case "acc-security-group-with-dynamic-device-membership-type":
+					jsonFile = "../tests/responses/validate_create/post_group_scenario_3.json"
+				case "acc-security-group-with-entra-role-assignment":
+					jsonFile = "../tests/responses/validate_create/post_group_scenario_4.json"
+				case "acc-m365-group-with-dynamic-user-membership-type":
+					jsonFile = "../tests/responses/validate_create/post_group_scenario_5.json"
+				case "acc-m365-group-with-assigned-membership-type":
+					jsonFile = "../tests/responses/validate_create/post_group_scenario_6.json"
+				}
+
+				if jsonFile != "" {
+					jsonStr, err := helpers.ParseJSONFile(jsonFile)
 					if err != nil {
 						return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to load mock response"}}`), nil
 					}
-					return httpmock.NewStringResponse(201, jsonStr), nil
-				case strings.Contains(displayName, "maximal"):
-					jsonStr, err := helpers.ParseJSONFile("../tests/responses/validate_create/post_group_maximal.json")
-					if err != nil {
-						return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to load mock response"}}`), nil
+					// Parse the JSON and store it in mockState for subsequent GET requests
+					var groupData map[string]any
+					if err := json.Unmarshal([]byte(jsonStr), &groupData); err != nil {
+						return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to parse mock response"}}`), nil
 					}
-					return httpmock.NewStringResponse(201, jsonStr), nil
+					mockState.Lock()
+					if id, ok := groupData["id"].(string); ok {
+						mockState.groups[id] = groupData
+					}
+					mockState.Unlock()
+
+					// Return with proper JSON content type
+					resp := httpmock.NewStringResponse(201, jsonStr)
+					resp.Header.Set("Content-Type", "application/json")
+					return resp, nil
 				}
 			}
 
@@ -135,31 +147,19 @@ func (m *GroupMock) RegisterMocks() {
 			mockState.Unlock()
 
 			respBody, _ := json.Marshal(requestBody)
-			return httpmock.NewStringResponse(201, string(respBody)), nil
+			resp := httpmock.NewStringResponse(201, string(respBody))
+			resp.Header.Set("Content-Type", "application/json")
+			return resp, nil
 		})
 
 	// Register PATCH for updating groups
-	httpmock.RegisterResponder("PATCH", `=~^https://graph\.microsoft\.com/beta/groups/(.+)$`,
+	httpmock.RegisterResponder("PATCH", `=~^https://graph\.microsoft\.com/beta/groups/([a-fA-F0-9\-]+)`,
 		func(req *http.Request) (*http.Response, error) {
 			groupID := httpmock.MustGetSubmatch(req, 1)
 
 			var requestBody map[string]any
 			if err := json.NewDecoder(req.Body).Decode(&requestBody); err != nil {
 				return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"Invalid request body"}}`), nil
-			}
-
-			// Handle special test cases
-			if displayName, ok := requestBody["displayName"].(string); ok {
-				switch {
-				case strings.Contains(displayName, "minimal_to_maximal"):
-					return httpmock.NewStringResponse(204, ""), nil
-				case strings.Contains(displayName, "maximal_to_minimal"):
-					return httpmock.NewStringResponse(204, ""), nil
-				case strings.Contains(displayName, "minimal"):
-					return httpmock.NewStringResponse(204, ""), nil
-				case strings.Contains(displayName, "maximal"):
-					return httpmock.NewStringResponse(204, ""), nil
-				}
 			}
 
 			mockState.Lock()
@@ -177,7 +177,7 @@ func (m *GroupMock) RegisterMocks() {
 		})
 
 	// Register DELETE for deleting groups
-	httpmock.RegisterResponder("DELETE", `=~^https://graph\.microsoft\.com/beta/groups/(.+)$`,
+	httpmock.RegisterResponder("DELETE", `=~^https://graph\.microsoft\.com/beta/groups/([a-fA-F0-9\-]+)`,
 		func(req *http.Request) (*http.Response, error) {
 			groupID := httpmock.MustGetSubmatch(req, 1)
 
@@ -201,7 +201,7 @@ func (m *GroupMock) RegisterErrorMocks() {
 			return httpmock.NewStringResponse(400, jsonStr), nil
 		})
 
-	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/groups/(.+)$`,
+	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/groups/([a-fA-F0-9\-]+)`,
 		func(req *http.Request) (*http.Response, error) {
 			jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_error/error_resource_not_found.json")
 			return httpmock.NewStringResponse(404, jsonStr), nil

@@ -292,10 +292,10 @@ action "microsoft365_graph_beta_device_management_managed_device_wipe" "wipe_com
     "12345678-1234-1234-1234-123456789abc"
   ]
 
-  keep_enrollment_data  = true
-  keep_user_data        = true
+  keep_enrollment_data   = true
+  keep_user_data         = true
   persist_esim_data_plan = true
-  obliteration_behavior = "doNotObliterate"
+  obliteration_behavior  = "doNotObliterate"
 
   timeouts = {
     invoke = "5m"

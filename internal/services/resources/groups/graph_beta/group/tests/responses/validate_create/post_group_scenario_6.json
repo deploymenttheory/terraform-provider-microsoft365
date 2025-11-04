@@ -1,0 +1,16 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#groups/$entity",
+  "id": "66666666-6666-6666-6666-666666666666",
+  "displayName": "acc-m365-group-with-assigned-membership-type",
+  "description": "something",
+  "mailNickname": "acc-m365-group-with-assigned-membership-type",
+  "mailEnabled": true,
+  "securityEnabled": true,
+  "groupTypes": ["Unified"],
+  "visibility": "Private",
+  "isAssignableToRole": true,
+  "membershipRule": null,
+  "membershipRuleProcessingState": null,
+  "createdDateTime": "2024-01-01T00:00:00Z"
+}
+

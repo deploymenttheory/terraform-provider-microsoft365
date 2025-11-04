@@ -534,7 +534,7 @@ data "microsoft365_graph_beta_device_management_managed_device" "all_devices" {
 locals {
   # Get current timestamp
   one_day_ago = timeadd(timestamp(), "-24h")
-  
+
   # Filter to devices that checked in within last 24 hours (likely online)
   online_devices = [
     for device in data.microsoft365_graph_beta_device_management_managed_device.all_devices.items :
