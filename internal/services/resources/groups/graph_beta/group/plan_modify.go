@@ -9,9 +9,26 @@ import (
 
 // ModifyPlan handles plan modification for groups
 func (r *GroupResource) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
-	if req.State.Raw.IsNull() || req.Plan.Raw.IsNull() {
+	// Don't validate on destroy
+	if req.Plan.Raw.IsNull() {
 		return
 	}
 
-	tflog.Debug(ctx, "Modify Plan - no modifications needed for groups")
+	tflog.Debug(ctx, "Starting plan modification for group resource")
+
+	var plan GroupResourceModel
+
+	// Get the planned configuration
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// Perform cross-attribute validation
+	resp.Diagnostics.Append(ValidateGroupConfiguration(ctx, &plan)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	tflog.Debug(ctx, "Finished plan modification for group resource")
 }

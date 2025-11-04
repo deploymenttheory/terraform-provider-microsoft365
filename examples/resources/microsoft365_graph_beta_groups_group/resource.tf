@@ -1,95 +1,81 @@
-# Security Group Example
-resource "microsoft365_graph_beta_group" "security_group" {
-  display_name     = "Security Team"
-  description      = "Security team members with access to security resources"
-  mail_nickname    = "security-team"
+# Example 1: Basic Security Group with Assigned Membership
+# Creates a standard security group where members are manually assigned.
+# This is the most common type of security group used for access control.
+resource "microsoft365_graph_beta_groups_group" "security_basic" {
+  display_name     = "Engineering Team"
+  mail_nickname    = "engineering-team"
   mail_enabled     = false
   security_enabled = true
-  visibility       = "Private"
-
-  timeouts = {
-    create = "30s"
-    read   = "30s"
-    update = "30s"
-    delete = "30s"
-  }
+  description      = "Security group for engineering team members"
 }
 
-# Microsoft 365 Group Example
-resource "microsoft365_graph_beta_group" "m365_group" {
-  display_name     = "Marketing Team"
-  description      = "Marketing team collaboration group"
-  mail_nickname    = "marketing-team"
-  mail_enabled     = true
-  security_enabled = true
-  group_types      = ["Unified"]
-  visibility       = "Public"
-
-  preferred_language      = "en-US"
-  preferred_data_location = "US"
-  theme                   = "Blue"
-  classification          = "General"
-
-  timeouts = {
-    create = "30s"
-    read   = "30s"
-    update = "30s"
-    delete = "30s"
-  }
-}
-
-# Dynamic Security Group Example
-resource "microsoft365_graph_beta_group" "dynamic_group" {
-  display_name     = "Dynamic IT Department"
-  description      = "All users in IT department (dynamic membership)"
-  mail_nickname    = "dynamic-it"
-  mail_enabled     = false
-  security_enabled = true
-  group_types      = ["DynamicMembership"]
-  visibility       = "Private"
-
-  membership_rule                  = "(user.department -eq \"IT\")"
+# Example 2: Security Group with Dynamic User Membership
+# Creates a security group that automatically adds/removes users based on a membership rule.
+# Useful for automatically managing group membership based on user attributes.
+resource "microsoft365_graph_beta_groups_group" "security_dynamic_users" {
+  display_name                     = "Active Employees"
+  mail_nickname                    = "active-employees"
+  mail_enabled                     = false
+  security_enabled                 = true
+  description                      = "Security group containing all active employees"
+  group_types                      = ["DynamicMembership"]
+  membership_rule                  = "(user.accountEnabled -eq true)"
   membership_rule_processing_state = "On"
-
-  timeouts = {
-    create = "30s"
-    read   = "30s"
-    update = "30s"
-    delete = "30s"
-  }
 }
 
-# Role Assignable Group Example
-resource "microsoft365_graph_beta_group" "role_assignable_group" {
-  display_name          = "Azure AD Administrators"
-  description           = "Group that can be assigned to Azure AD roles"
-  mail_nickname         = "aad-admins"
+# Example 3: Security Group with Dynamic Device Membership
+# Creates a security group that automatically includes devices based on a membership rule.
+# Ideal for device management scenarios like Conditional Access or Intune policies.
+resource "microsoft365_graph_beta_groups_group" "security_dynamic_devices" {
+  display_name                     = "Corporate Managed Devices"
+  mail_nickname                    = "corporate-devices"
+  mail_enabled                     = false
+  security_enabled                 = true
+  description                      = "Security group containing all corporate managed devices"
+  group_types                      = ["DynamicMembership"]
+  membership_rule                  = "(device.accountEnabled -eq true)"
+  membership_rule_processing_state = "On"
+}
+
+# Example 4: Role-Assignable Security Group
+# Creates a security group that can be assigned to Entra ID roles.
+# Note: Requires elevated permissions and visibility must be "Private".
+# Once created, is_assignable_to_role cannot be changed.
+resource "microsoft365_graph_beta_groups_group" "security_role_assignable" {
+  display_name          = "Privileged Access Administrators"
+  mail_nickname         = "privileged-admins"
   mail_enabled          = false
   security_enabled      = true
-  visibility            = "Private"
+  description           = "Security group for privileged access administration"
   is_assignable_to_role = true
-
-  timeouts = {
-    create = "30s"
-    read   = "30s"
-    update = "30s"
-    delete = "30s"
-  }
+  visibility            = "Private"
 }
 
-# Distribution Group Example
-resource "microsoft365_graph_beta_group" "distribution_group" {
-  display_name     = "Company Announcements"
-  description      = "Distribution list for company-wide announcements"
-  mail_nickname    = "company-announce"
-  mail_enabled     = true
-  security_enabled = false
-  visibility       = "Public"
+# Example 5: Microsoft 365 Group with Dynamic User Membership
+# Creates a Microsoft 365 group (formerly Office 365 group) with automatic membership.
+# Includes Teams, SharePoint, Outlook, and other Microsoft 365 services.
+resource "microsoft365_graph_beta_groups_group" "m365_dynamic_users" {
+  display_name                     = "Marketing Department"
+  mail_nickname                    = "marketing-dept"
+  mail_enabled                     = true
+  security_enabled                 = true
+  group_types                      = ["Unified", "DynamicMembership"]
+  membership_rule                  = "(user.accountEnabled -eq true)"
+  membership_rule_processing_state = "On"
+  visibility                       = "Private"
+}
 
-  timeouts = {
-    create = "30s"
-    read   = "30s"
-    update = "30s"
-    delete = "30s"
-  }
-} 
+# Example 6: Microsoft 365 Group with Role Assignment
+# Creates a Microsoft 365 group that can be assigned to Entra ID roles.
+# Combines collaboration features with privileged access management.
+# Note: Requires elevated permissions and visibility must be "Private".
+resource "microsoft365_graph_beta_groups_group" "m365_role_assignable" {
+  display_name          = "Executive Leadership Team"
+  mail_nickname         = "executive-team"
+  mail_enabled          = true
+  security_enabled      = true
+  group_types           = ["Unified"]
+  description           = "Microsoft 365 group for executive leadership"
+  is_assignable_to_role = true
+  visibility            = "Private"
+}

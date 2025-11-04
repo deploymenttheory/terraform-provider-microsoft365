@@ -10,6 +10,7 @@ import (
 	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
+	"github.com/microsoftgraph/msgraph-beta-sdk-go/groups"
 )
 
 // Create handles the Create operation.
@@ -29,7 +30,7 @@ func (r *GroupResource) Create(ctx context.Context, req resource.CreateRequest, 
 	}
 	defer cancel()
 
-	requestBody, err := constructResource(ctx, &object)
+	requestBody, err := constructResource(ctx, &object, false)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error constructing resource for Create method",
@@ -99,10 +100,30 @@ func (r *GroupResource) Read(ctx context.Context, req resource.ReadRequest, resp
 
 	groupId := object.ID.ValueString()
 
+	// Configure request to include non-default properties via $select
+	requestConfig := &groups.GroupItemRequestBuilderGetRequestConfiguration{
+		QueryParameters: &groups.GroupItemRequestBuilderGetQueryParameters{
+			Select: []string{
+				"id",
+				"displayName",
+				"description",
+				"mailNickname",
+				"mailEnabled",
+				"securityEnabled",
+				"groupTypes",
+				"visibility",
+				"isAssignableToRole",
+				"membershipRule",
+				"membershipRuleProcessingState",
+				"createdDateTime",
+			},
+		},
+	}
+
 	groupObject, err := r.client.
 		Groups().
 		ByGroupId(groupId).
-		Get(ctx, nil)
+		Get(ctx, requestConfig)
 
 	if err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, operation, r.ReadPermissions)
@@ -135,7 +156,7 @@ func (r *GroupResource) Update(ctx context.Context, req resource.UpdateRequest, 
 	}
 	defer cancel()
 
-	requestBody, err := constructResource(ctx, &plan)
+	requestBody, err := constructResource(ctx, &plan, true)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error constructing resource for Update method",

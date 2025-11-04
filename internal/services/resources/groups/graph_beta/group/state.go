@@ -32,16 +32,6 @@ func MapRemoteStateToTerraform(ctx context.Context, data *GroupResourceModel, re
 	data.MembershipRule = convert.GraphToFrameworkString(remoteResource.GetMembershipRule())
 	data.MembershipRuleProcessingState = convert.GraphToFrameworkString(remoteResource.GetMembershipRuleProcessingState())
 	data.CreatedDateTime = convert.GraphToFrameworkTime(remoteResource.GetCreatedDateTime())
-	data.Mail = convert.GraphToFrameworkString(remoteResource.GetMail())
-	data.ProxyAddresses = convert.GraphToFrameworkStringSet(ctx, remoteResource.GetProxyAddresses())
-	data.OnPremisesSyncEnabled = convert.GraphToFrameworkBool(remoteResource.GetOnPremisesSyncEnabled())
-	data.PreferredDataLocation = convert.GraphToFrameworkString(remoteResource.GetPreferredDataLocation())
-	data.PreferredLanguage = convert.GraphToFrameworkString(remoteResource.GetPreferredLanguage())
-	data.Theme = convert.GraphToFrameworkString(remoteResource.GetTheme())
-	data.Classification = convert.GraphToFrameworkString(remoteResource.GetClassification())
-	data.ExpirationDateTime = convert.GraphToFrameworkTime(remoteResource.GetExpirationDateTime())
-	data.RenewedDateTime = convert.GraphToFrameworkTime(remoteResource.GetRenewedDateTime())
-	data.SecurityIdentifier = convert.GraphToFrameworkString(remoteResource.GetSecurityIdentifier())
 
 	tflog.Debug(ctx, fmt.Sprintf("Finished mapping remote state to Terraform state %s with id %s", ResourceName, data.ID.ValueString()))
 }

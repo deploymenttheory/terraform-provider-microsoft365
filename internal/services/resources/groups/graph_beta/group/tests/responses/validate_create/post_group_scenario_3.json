@@ -1,0 +1,16 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#groups/$entity",
+  "id": "33333333-3333-3333-3333-333333333333",
+  "displayName": "acc-security-group-with-dynamic-device-membership-type",
+  "description": "acc-security-group-with-dynamic-device-membership-type",
+  "mailNickname": "17bf0e02-0",
+  "mailEnabled": false,
+  "securityEnabled": true,
+  "groupTypes": ["DynamicMembership"],
+  "visibility": "Private",
+  "isAssignableToRole": false,
+  "membershipRule": "(device.accountEnabled -eq true)",
+  "membershipRuleProcessingState": "On",
+  "createdDateTime": "2024-01-01T00:00:00Z"
+}
+

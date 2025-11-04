@@ -19,15 +19,7 @@ type GroupResourceModel struct {
 	MembershipRule                types.String   `tfsdk:"membership_rule"`
 	MembershipRuleProcessingState types.String   `tfsdk:"membership_rule_processing_state"`
 	CreatedDateTime               types.String   `tfsdk:"created_date_time"`
-	Mail                          types.String   `tfsdk:"mail"`
-	ProxyAddresses                types.Set      `tfsdk:"proxy_addresses"`
-	OnPremisesSyncEnabled         types.Bool     `tfsdk:"on_premises_sync_enabled"`
-	PreferredDataLocation         types.String   `tfsdk:"preferred_data_location"`
-	PreferredLanguage             types.String   `tfsdk:"preferred_language"`
-	Theme                         types.String   `tfsdk:"theme"`
-	Classification                types.String   `tfsdk:"classification"`
-	ExpirationDateTime            types.String   `tfsdk:"expiration_date_time"`
-	RenewedDateTime               types.String   `tfsdk:"renewed_date_time"`
-	SecurityIdentifier            types.String   `tfsdk:"security_identifier"`
+	GroupOwners                   types.Set      `tfsdk:"group_owners"`
+	GroupMembers                  types.Set      `tfsdk:"group_members"`
 	Timeouts                      timeouts.Value `tfsdk:"timeouts"`
 }

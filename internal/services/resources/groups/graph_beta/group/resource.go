@@ -51,6 +51,7 @@ func NewGroupResource() resource.Resource {
 			"Directory.Read.All",
 		},
 		WritePermissions: []string{
+			"Group.Create",
 			"Group.ReadWrite.All",
 			"Directory.ReadWrite.All",
 		},
@@ -140,10 +141,15 @@ func (r *GroupResource) Schema(ctx context.Context, req resource.SchemaRequest, 
 				},
 			},
 			"visibility": schema.StringAttribute{
-				Optional:            true,
-				Computed:            true,
-				Default:             stringdefault.StaticString("Private"),
-				MarkdownDescription: "Specifies the group join policy and group content visibility for groups. Possible values are: Private, Public, or HiddenMembership. Default is 'Private'.",
+				Optional: true,
+				Computed: true,
+				Default:  stringdefault.StaticString("Private"),
+				MarkdownDescription: "Specifies the group join policy and group content visibility for groups. " +
+					"Possible values are: `Private`, `Public`, or `HiddenMembership`. `HiddenMembership` can be set " +
+					"only for Microsoft 365 groups when the groups are created and cannot be updated later. Other values " +
+					"of visibility can be updated after group creation. If visibility value is not specified during group " +
+					"creation, a security group is created as `Private` by default, and a Microsoft 365 group is `Public`. " +
+					"Groups assignable to roles are always `Private`. Returned by default. Nullable.",
 				Validators: []validator.String{
 					stringvalidator.OneOf("Private", "Public", "HiddenMembership"),
 				},
@@ -161,8 +167,7 @@ func (r *GroupResource) Schema(ctx context.Context, req resource.SchemaRequest, 
 			"membership_rule_processing_state": schema.StringAttribute{
 				Optional:            true,
 				Computed:            true,
-				Default:             stringdefault.StaticString("Paused"),
-				MarkdownDescription: "Indicates whether the dynamic membership processing is on or paused. Possible values are 'On' or 'Paused'. Default is 'Paused'.",
+				MarkdownDescription: "Indicates whether the dynamic membership processing is on or paused. Possible values are 'On' or 'Paused'. Only applicable for dynamic groups (when groupTypes contains DynamicMembership).",
 				Validators: []validator.String{
 					stringvalidator.OneOf("On", "Paused"),
 				},
@@ -171,52 +176,31 @@ func (r *GroupResource) Schema(ctx context.Context, req resource.SchemaRequest, 
 				Computed:            true,
 				MarkdownDescription: "Timestamp of when the group was created. The value can't be modified and is automatically populated when the group is created. Read-only.",
 			},
-			"mail": schema.StringAttribute{
-				Computed:            true,
-				MarkdownDescription: "The SMTP address for the group. Read-only.",
-			},
-			"proxy_addresses": schema.SetAttribute{
-				ElementType:         types.StringType,
-				Computed:            true,
-				MarkdownDescription: "Email addresses for the group that direct to the same group mailbox. Read-only.",
-			},
-			"on_premises_sync_enabled": schema.BoolAttribute{
-				Computed:            true,
-				MarkdownDescription: "true if this group is synced from an on-premises directory; false if this group was originally synced from an on-premises directory but is no longer synced; null if this object has never synced from an on-premises directory. Read-only.",
-			},
-			"preferred_data_location": schema.StringAttribute{
-				Optional:            true,
-				MarkdownDescription: "The preferred data location for the Microsoft 365 group. By default, the group inherits the group creator's preferred data location.",
-			},
-			"preferred_language": schema.StringAttribute{
-				Optional:            true,
-				MarkdownDescription: "The preferred language for a Microsoft 365 group. Should follow ISO 639-1 Code; for example, en-US.",
-				Validators: []validator.String{
-					validators.RegexMatches(regexp.MustCompile(`^[a-z]{2}(-[A-Z]{2})?$`), "language code must follow ISO 639-1 format (e.g., en, en-US)"),
+			"group_owners": schema.SetAttribute{
+				ElementType: types.StringType,
+				Optional:    true,
+				MarkdownDescription: "The owners of the group at creation time. A maximum of 20 relationships, such as owners and members, can be added as part of group creation. " +
+					"Specify the user IDs (GUIDs) of the users who should be owners of the group. Note: A non-admin user cannot add themselves to the group owners collection. " +
+					"Owners can be added after creation using the `/groups/{id}/owners/$ref` endpoint.",
+				Validators: []validator.Set{
+					setvalidator.SizeAtMost(20),
+					setvalidator.ValueStringsAre(
+						validators.RegexMatches(regexp.MustCompile(`^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`), "value must be a valid UUID/GUID"),
+					),
 				},
 			},
-			"theme": schema.StringAttribute{
-				Optional:            true,
-				MarkdownDescription: "Specifies a Microsoft 365 group's color theme. Possible values are Teal, Purple, Green, Blue, Pink, Orange, or Red.",
-				Validators: []validator.String{
-					stringvalidator.OneOf("Teal", "Purple", "Green", "Blue", "Pink", "Orange", "Red"),
+			"group_members": schema.SetAttribute{
+				ElementType: types.StringType,
+				Optional:    true,
+				MarkdownDescription: "The members of the group at creation time. A maximum of 20 relationships, such as owners and members, can be added as part of group creation. " +
+					"Specify the user IDs (GUIDs) of the users who should be members of the group. " +
+					"Additional members can be added after creation using the `/groups/{id}/members/$ref` endpoint or JSON batching.",
+				Validators: []validator.Set{
+					setvalidator.SizeAtMost(20),
+					setvalidator.ValueStringsAre(
+						validators.RegexMatches(regexp.MustCompile(`^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`), "value must be a valid UUID/GUID"),
+					),
 				},
-			},
-			"classification": schema.StringAttribute{
-				Optional:            true,
-				MarkdownDescription: "Describes a classification for the group (such as low, medium, or high business impact). Valid values for this property are defined by creating a ClassificationList setting value, based on the template definition.",
-			},
-			"expiration_date_time": schema.StringAttribute{
-				Computed:            true,
-				MarkdownDescription: "Timestamp of when the group is set to expire. It's null for security groups, but for Microsoft 365 groups, it represents when the group is set to expire as defined in the groupLifecyclePolicy. Read-only.",
-			},
-			"renewed_date_time": schema.StringAttribute{
-				Computed:            true,
-				MarkdownDescription: "Timestamp of when the group was last renewed. This value can't be modified directly and is only updated via the renew service action. Read-only.",
-			},
-			"security_identifier": schema.StringAttribute{
-				Computed:            true,
-				MarkdownDescription: "Security identifier of the group, used in Windows scenarios. Read-only.",
 			},
 			"timeouts": commonschema.Timeouts(ctx),
 		},
