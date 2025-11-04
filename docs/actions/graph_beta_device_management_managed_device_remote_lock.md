@@ -47,11 +47,9 @@ Remotely locks managed devices using the `/deviceManagement/managedDevices/{mana
 - [managedDevice resource type](https://learn.microsoft.com/en-us/graph/api/resources/intune-devices-manageddevice?view=graph-rest-beta)
 
 ### Intune Remote Actions Guides
-- [Windows Remote Actions](https://learn.microsoft.com/en-us/intune/intune-service/remote-actions/?tabs=windows)
-- [iOS/iPadOS Remote Actions](https://learn.microsoft.com/en-us/intune/intune-service/remote-actions/?tabs=ios-ipados)
-- [macOS Remote Actions](https://learn.microsoft.com/en-us/intune/intune-service/remote-actions/?tabs=macos)
-- [Android Remote Actions](https://learn.microsoft.com/en-us/intune/intune-service/remote-actions/?tabs=android)
-- [ChromeOS Remote Actions](https://learn.microsoft.com/en-us/intune/intune-service/remote-actions/?tabs=chromeos)
+- [Device remote lock - iOS](https://learn.microsoft.com/en-us/intune/intune-service/remote-actions/device-remote-lock?pivots=ios)
+- [Device remote lock - macOS](https://learn.microsoft.com/en-us/intune/intune-service/remote-actions/device-remote-lock?pivots=macos)
+- [Device remote lock - Android](https://learn.microsoft.com/en-us/intune/intune-service/remote-actions/device-remote-lock?pivots=android)
 
 ## API Permissions
 

@@ -28,11 +28,10 @@ Retires managed devices from Microsoft Intune using the `/deviceManagement/manag
 - [managedDevice resource type](https://learn.microsoft.com/en-us/graph/api/resources/intune-devices-manageddevice?view=graph-rest-beta)
 
 ### Intune Remote Actions Guides
-- [Windows Remote Actions](https://learn.microsoft.com/en-us/intune/intune-service/remote-actions/?tabs=windows)
-- [iOS/iPadOS Remote Actions](https://learn.microsoft.com/en-us/intune/intune-service/remote-actions/?tabs=ios-ipados)
-- [macOS Remote Actions](https://learn.microsoft.com/en-us/intune/intune-service/remote-actions/?tabs=macos)
-- [Android Remote Actions](https://learn.microsoft.com/en-us/intune/intune-service/remote-actions/?tabs=android)
-- [ChromeOS Remote Actions](https://learn.microsoft.com/en-us/intune/intune-service/remote-actions/?tabs=chromeos)
+- [Device retire - Windows](https://learn.microsoft.com/en-us/intune/intune-service/remote-actions/device-retire?pivots=windows)
+- [Device retire - iOS](https://learn.microsoft.com/en-us/intune/intune-service/remote-actions/device-retire?pivots=ios)
+- [Device retire - macOS](https://learn.microsoft.com/en-us/intune/intune-service/remote-actions/device-retire?pivots=macos)
+- [Device retire - Android](https://learn.microsoft.com/en-us/intune/intune-service/remote-actions/device-retire?pivots=android)
 
 ## API Permissions
 
@@ -60,6 +59,7 @@ The following API permissions are required in order to use this action.
 | **iOS** | ✅ Full Support | Company apps, email profiles | Personal apps, photos |
 | **iPadOS** | ✅ Full Support | Company apps, email profiles | Personal apps, photos |
 | **Android** | ✅ Full Support | Work profile removed | Personal profile intact |
+| **ChromeOS** | ✅ Full Support | Enterprise policies, user profiles | User files (optional) |
 
 ### Retire vs Wipe
 
@@ -95,6 +95,12 @@ The following API permissions are required in order to use this action.
 - Entire work profile (on BYOD)
 - Company apps within work profile
 - Work profile data
+
+#### ChromeOS
+- Google Admin policies
+- Enterprise user profiles
+- Managed apps and extensions
+- Organization unit settings
 
 ### What is Preserved
 

@@ -14,13 +14,13 @@ func TestAccM365Provider_AuthMethods(t *testing.T) {
 	validAuthMethods := []string{
 		"azure_developer_cli",
 		"client_secret",
-		"client_certificate", 
+		"client_certificate",
 		"interactive_browser",
 		"device_code",
 		"workload_identity",
 		"managed_identity",
 		"oidc",
-		"oidc_github", 
+		"oidc_github",
 		"oidc_azure_devops",
 	}
 
@@ -70,7 +70,7 @@ func TestAccM365Provider_CloudEnvironments(t *testing.T) {
 	validClouds := []string{
 		"public",
 		"dod",
-		"gcc", 
+		"gcc",
 		"gcchigh",
 		"china",
 		"ex",
@@ -122,11 +122,11 @@ data "microsoft365_graph_beta_device_management_windows_remediation_script" "tes
 func TestAccM365Provider_EnvVarPrecedence(t *testing.T) {
 	// Test that environment variables take precedence over HCL configuration
 	envVars := map[string]string{
-		"M365_CLOUD":           "gcc",
-		"M365_AUTH_METHOD":     "device_code",
-		"M365_CLIENT_ID":       "env-client-id",
-		"M365_TENANT_ID":       "00000000-0000-0000-0000-000000000001",
-		"M365_DEBUG_MODE":      "true",
+		"M365_CLOUD":            "gcc",
+		"M365_AUTH_METHOD":      "device_code",
+		"M365_CLIENT_ID":        "env-client-id",
+		"M365_TENANT_ID":        "00000000-0000-0000-0000-000000000001",
+		"M365_DEBUG_MODE":       "true",
 		"M365_TELEMETRY_OPTOUT": "true",
 	}
 
@@ -256,6 +256,7 @@ func TestAccM365Provider_InvalidProxyURL(t *testing.T) {
 			{
 				Config: `
 provider "microsoft365" {
+  cloud = "public"
   auth_method = "device_code"
   client_options = {
     use_proxy = true

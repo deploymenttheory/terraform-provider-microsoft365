@@ -119,11 +119,8 @@ Bypasses Activation Lock on iOS, iPadOS, and macOS devices using the `/deviceMan
 - [managedDevice resource type](https://learn.microsoft.com/en-us/graph/api/resources/intune-devices-manageddevice?view=graph-rest-beta)
 
 ### Intune Remote Actions Guides
-- [Windows Remote Actions](https://learn.microsoft.com/en-us/intune/intune-service/remote-actions/?tabs=windows)
-- [iOS/iPadOS Remote Actions](https://learn.microsoft.com/en-us/intune/intune-service/remote-actions/?tabs=ios-ipados)
-- [macOS Remote Actions](https://learn.microsoft.com/en-us/intune/intune-service/remote-actions/?tabs=macos)
-- [Android Remote Actions](https://learn.microsoft.com/en-us/intune/intune-service/remote-actions/?tabs=android)
-- [ChromeOS Remote Actions](https://learn.microsoft.com/en-us/intune/intune-service/remote-actions/?tabs=chromeos)
+- [Device activation lock disable - iOS](https://learn.microsoft.com/en-us/intune/intune-service/remote-actions/device-activation-lock-disable?pivots=ios)
+- [Device activation lock disable - macOS](https://learn.microsoft.com/en-us/intune/intune-service/remote-actions/device-activation-lock-disable?pivots=macos)
 
 ## API Permissions
 
@@ -415,7 +412,9 @@ output "bypassed_corporate_count" {
 
 ### Optional
 
+- `ignore_partial_failures` (Boolean) If set to `true`, the action will succeed even if some devices fail Activation Lock bypass. Failed devices will be reported as warnings instead of errors. Default: `false` (action fails if any device fails).
 - `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))
+- `validate_device_exists` (Boolean) Whether to validate that devices exist and support Activation Lock before attempting bypass. Disabling this can speed up planning but may result in runtime errors for non-existent or unsupported devices. Default: `true`.
 
 <a id="nestedatt--timeouts"></a>
 ### Nested Schema for `timeouts`

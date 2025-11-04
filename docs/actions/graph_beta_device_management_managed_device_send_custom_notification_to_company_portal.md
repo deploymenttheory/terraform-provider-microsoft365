@@ -118,28 +118,24 @@ The following Microsoft Graph API permissions are required to use this action:
 
 ## Related Documentation
 
-- [Microsoft Intune Remote Actions - Windows](https://learn.microsoft.com/en-us/intune/intune-service/remote-actions/?tabs=windows)
-- [Microsoft Intune Remote Actions - iOS/iPadOS](https://learn.microsoft.com/en-us/intune/intune-service/remote-actions/?tabs=ios-ipados)
-- [Microsoft Intune Remote Actions - macOS](https://learn.microsoft.com/en-us/intune/intune-service/remote-actions/?tabs=macos)
-- [Microsoft Intune Remote Actions - Android](https://learn.microsoft.com/en-us/intune/intune-service/remote-actions/?tabs=android)
-- [Microsoft Intune Remote Actions - ChromeOS](https://learn.microsoft.com/en-us/intune/intune-service/remote-actions/?tabs=chromeos)
+- [Custom notifications - iOS](https://learn.microsoft.com/en-us/intune/intune-service/remote-actions/custom-notifications?pivots=ios)
+- [Custom notifications - Android](https://learn.microsoft.com/en-us/intune/intune-service/remote-actions/custom-notifications?pivots=android)
 
 ## Notes
 
 ### Platform Compatibility
 
-This action works across all platforms where the Company Portal app is available and installed:
+Custom notifications to Company Portal are only supported on mobile platforms:
 
 | Platform | Supported | Company Portal App Required |
 |:---------|:----------|:---------------------------|
-| **Windows 10** | ✅ | Company Portal from Microsoft Store |
-| **Windows 11** | ✅ | Company Portal from Microsoft Store |
-| **macOS** | ✅ | Company Portal from App Store |
 | **iOS** | ✅ | Company Portal from App Store |
 | **iPadOS** | ✅ | Company Portal from App Store |
 | **Android** | ✅ | Company Portal from Google Play |
 | **Android Enterprise** | ✅ | Company Portal from managed Google Play |
-| **ChromeOS** | ⚠️ | Limited support - requires Company Portal extension |
+| **Windows 10/11** | ❌ | Not supported for custom notifications |
+| **macOS** | ❌ | Not supported for custom notifications |
+| **ChromeOS** | ❌ | Not supported for custom notifications |
 
 ### Important Considerations
 

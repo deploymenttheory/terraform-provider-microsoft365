@@ -76,11 +76,10 @@ Forces managed and co-managed devices to immediately check in with Intune using 
 - [managedDevice resource type](https://learn.microsoft.com/en-us/graph/api/resources/intune-devices-manageddevice?view=graph-rest-beta)
 
 ### Intune Remote Actions Guides
-- [Windows Remote Actions](https://learn.microsoft.com/en-us/intune/intune-service/remote-actions/?tabs=windows)
-- [iOS/iPadOS Remote Actions](https://learn.microsoft.com/en-us/intune/intune-service/remote-actions/?tabs=ios-ipados)
-- [macOS Remote Actions](https://learn.microsoft.com/en-us/intune/intune-service/remote-actions/?tabs=macos)
-- [Android Remote Actions](https://learn.microsoft.com/en-us/intune/intune-service/remote-actions/?tabs=android)
-- [ChromeOS Remote Actions](https://learn.microsoft.com/en-us/intune/intune-service/remote-actions/?tabs=chromeos)
+- [Device sync - Windows](https://learn.microsoft.com/en-us/intune/intune-service/remote-actions/device-sync?pivots=windows)
+- [Device sync - iOS](https://learn.microsoft.com/en-us/intune/intune-service/remote-actions/device-sync?pivots=ios)
+- [Device sync - macOS](https://learn.microsoft.com/en-us/intune/intune-service/remote-actions/device-sync?pivots=macos)
+- [Device sync - Android](https://learn.microsoft.com/en-us/intune/intune-service/remote-actions/device-sync?pivots=android)
 
 ## API Permissions
 
@@ -108,7 +107,7 @@ The following API permissions are required in order to use this action.
 | **iOS** | ✅ Full Support | ❌ Not Applicable | Supervised devices recommended |
 | **iPadOS** | ✅ Full Support | ❌ Not Applicable | Supervised devices recommended |
 | **Android** | ✅ Full Support | ❌ Not Applicable | Includes Android Enterprise |
-| **ChromeOS** | ⚠️ Limited Support | ❌ Not Applicable | Sync may be delayed |
+| **ChromeOS** | ❌ Not Supported | ❌ Not Applicable | Not available for ChromeOS devices |
 
 ### Managed vs Co-Managed Devices
 

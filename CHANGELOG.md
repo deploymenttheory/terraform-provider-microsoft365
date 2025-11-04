@@ -51,7 +51,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 * Export environment variable Client ID ([90b8d90](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/90b8d906e8e9fa1e40cbd98bece0fc000b1a7dbe))
 * Export environment variable Client ID ([#808](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/808)) ([49b2c1b](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/49b2c1b8fea97d8514f1c4f41bbeccf50bf09f51))
-* interface{} -&gt; any ([8074ff4](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/8074ff43bff9ffd6714f56fe281a418a438f9f59))
+* any -&gt; any ([8074ff4](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/8074ff43bff9ffd6714f56fe281a418a438f9f59))
 * restore main ([e3ddd31](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/e3ddd3140c8e9f2729f8ead1d1ef09bdc0d38054))
 * schema refinements to improve dev ux ([4e132b5](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/4e132b5f154d7afc349b08fccf45af573ebdbb3c))
 * test for future regression ([d319a1a](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/d319a1a59a80874bccbdf5b6f4fc6a0244ec3abe))
@@ -61,8 +61,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Bug Fixes
 
-* map[string]interface{} -&gt; map[string]any ([dbe67b1](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/dbe67b18f48b5a9643ccb7f802db55792cf49174))
-* map[string]interface{} -&gt; map[string]any ([#797](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/797)) ([7f7434f](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/7f7434fd60327fcbcd4e47e68bd243a2ecb69773))
+* map[string]any -&gt; map[string]any ([dbe67b1](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/dbe67b18f48b5a9643ccb7f802db55792cf49174))
+* map[string]any -&gt; map[string]any ([#797](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/797)) ([7f7434f](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/7f7434fd60327fcbcd4e47e68bd243a2ecb69773))
 
 ## [0.30.3-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.30.2-alpha...v0.30.3-alpha) (2025-09-29)
 

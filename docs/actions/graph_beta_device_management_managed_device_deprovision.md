@@ -45,8 +45,7 @@ Deprovisions Windows managed devices from Intune management using the `/deviceMa
 - [managedDevice resource type](https://learn.microsoft.com/en-us/graph/api/resources/intune-devices-manageddevice?view=graph-rest-beta)
 
 ### Intune Device Management Guides
-- [Remove devices by using wipe, retire, or manually unenrolling](https://learn.microsoft.com/en-us/mem/intune/remote-actions/devices-wipe)
-- [Retire or wipe devices](https://learn.microsoft.com/en-us/mem/intune/remote-actions/devices-wipe)
+- [Deprovision devices](https://learn.microsoft.com/en-us/intune/intune-service/remote-actions/device-deprovision)
 
 ## API Permissions
 

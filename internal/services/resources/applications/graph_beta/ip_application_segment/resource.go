@@ -36,9 +36,6 @@ var (
 
 	// Enables import functionality
 	_ resource.ResourceWithImportState = &IpApplicationSegmentResource{}
-
-	// Compiled regex for port: range 0-65535, hyphen separated
-	portRegex = regexp.MustCompile(`^(?:0|[1-9]\d{0,3}|[1-5]\d{4}|6[0-4]\d{3}|65[0-4]\d{2}|655[0-2]\d|6553[0-5])-(?:0|[1-9]\d{0,3}|[1-5]\d{4}|6[0-4]\d{3}|65[0-4]\d{2}|655[0-2]\d|6553[0-5])$`)
 )
 
 func NewIpApplicationSegmentResource() resource.Resource {
@@ -119,7 +116,7 @@ func (r *IpApplicationSegmentResource) Schema(ctx context.Context, req resource.
 				ElementType:         types.StringType,
 				Validators: []validator.Set{
 					setvalidator.ValueStringsAre(
-						stringvalidator.RegexMatches(portRegex, "Each port must be a valid format (xxxx-xxxx)"),
+						stringvalidator.RegexMatches(regexp.MustCompile(constants.PortRangeRegex), "Each port defined in the set must be a valid format (xxxx-xxxx) e.g 80-80, 443-443, 8080-8080, 8443-8443"),
 					),
 				},
 			},
@@ -128,7 +125,7 @@ func (r *IpApplicationSegmentResource) Schema(ctx context.Context, req resource.
 					"The possible values are: `tcp`, `udp`, `unknownFutureValue`.",
 				Required: true,
 				Validators: []validator.String{
-					stringvalidator.OneOf("tcp", "udp", "unknownFutureValue"),
+					stringvalidator.OneOf("tcp", "udp"),
 				},
 			},
 			"timeouts": commonschema.Timeouts(ctx),

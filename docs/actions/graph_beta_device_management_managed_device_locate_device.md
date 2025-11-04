@@ -65,11 +65,9 @@ Triggers device location for one or more managed devices using the `/deviceManag
 - [managedDevice resource type](https://learn.microsoft.com/en-us/graph/api/resources/intune-devices-manageddevice?view=graph-rest-beta)
 
 ### Intune Remote Actions Guides
-- [Windows Remote Actions](https://learn.microsoft.com/en-us/intune/intune-service/remote-actions/?tabs=windows)
-- [iOS/iPadOS Remote Actions](https://learn.microsoft.com/en-us/intune/intune-service/remote-actions/?tabs=ios-ipados)
-- [macOS Remote Actions](https://learn.microsoft.com/en-us/intune/intune-service/remote-actions/?tabs=macos)
-- [Android Remote Actions](https://learn.microsoft.com/en-us/intune/intune-service/remote-actions/?tabs=android)
-- [ChromeOS Remote Actions](https://learn.microsoft.com/en-us/intune/intune-service/remote-actions/?tabs=chromeos)
+- [Device locate - Windows](https://learn.microsoft.com/en-us/intune/intune-service/remote-actions/device-locate?pivots=windows)
+- [Device locate - iOS](https://learn.microsoft.com/en-us/intune/intune-service/remote-actions/device-locate?pivots=ios)
+- [Device locate - Android](https://learn.microsoft.com/en-us/intune/intune-service/remote-actions/device-locate?pivots=android)
 
 ## API Permissions
 
@@ -92,11 +90,12 @@ The following API permissions are required in order to use this action.
 
 | Platform | Support | Requirements |
 |----------|---------|--------------|
+| **Windows** | ⚠️ Limited | Location services must be enabled |
 | **iOS** | ✅ Full Support | iOS 9.3+, supervised devices |
 | **iPadOS** | ✅ Full Support | Supervised devices |
-| **macOS** | ✅ Supported | macOS 10.13+, supervised or user-approved MDM |
-| **Windows** | ⚠️ Limited | Location services must be enabled |
 | **Android** | ✅ Supported | Fully managed, dedicated, or work profile |
+| **macOS** | ❌ Not Supported | Not available on macOS devices |
+| **ChromeOS** | ❌ Not Supported | Not available on ChromeOS devices |
 
 ### How Location Works
 
