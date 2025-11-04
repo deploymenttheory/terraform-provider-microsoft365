@@ -94,7 +94,7 @@ func MapRemoteStateToDataSource(ctx context.Context, roleDefinition graphmodels.
 		model.RolePermissions = []RolePermissionModel{}
 	}
 
-	tflog.Debug(ctx, "Successfully mapped role definition to data source model", map[string]interface{}{
+	tflog.Debug(ctx, "Successfully mapped role definition to data source model", map[string]any{
 		"id":          model.ID.ValueString(),
 		"displayName": model.DisplayName.ValueString(),
 	})

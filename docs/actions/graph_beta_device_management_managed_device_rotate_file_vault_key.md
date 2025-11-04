@@ -47,7 +47,7 @@ Rotates the FileVault recovery key for macOS managed devices using the `/deviceM
 - [managedDevice resource type](https://learn.microsoft.com/en-us/graph/api/resources/intune-devices-manageddevice?view=graph-rest-beta)
 
 ### Intune Remote Actions Guides
-- [macOS Remote Actions](https://learn.microsoft.com/en-us/intune/intune-service/remote-actions/?tabs=macos)
+- [Device rotate FileVault](https://learn.microsoft.com/en-us/intune/intune-service/remote-actions/device-rotate-filevault)
 
 ## API Permissions
 

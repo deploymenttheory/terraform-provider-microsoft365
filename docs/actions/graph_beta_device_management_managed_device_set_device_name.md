@@ -46,10 +46,10 @@ Sets a custom device name for managed devices using the `/deviceManagement/manag
 - [managedDevice resource type](https://learn.microsoft.com/en-us/graph/api/resources/intune-devices-manageddevice?view=graph-rest-beta)
 
 ### Intune Remote Actions Guides
-- [Windows Remote Actions](https://learn.microsoft.com/en-us/intune/intune-service/remote-actions/?tabs=windows)
-- [iOS/iPadOS Remote Actions](https://learn.microsoft.com/en-us/intune/intune-service/remote-actions/?tabs=ios-ipados)
-- [macOS Remote Actions](https://learn.microsoft.com/en-us/intune/intune-service/remote-actions/?tabs=macos)
-- [Android Remote Actions](https://learn.microsoft.com/en-us/intune/intune-service/remote-actions/?tabs=android)
+- [Device rename - Windows](https://learn.microsoft.com/en-us/intune/intune-service/remote-actions/device-rename?pivots=windows)
+- [Device rename - iOS](https://learn.microsoft.com/en-us/intune/intune-service/remote-actions/device-rename?pivots=ios)
+- [Device rename - macOS](https://learn.microsoft.com/en-us/intune/intune-service/remote-actions/device-rename?pivots=macos)
+- [Device rename - Android](https://learn.microsoft.com/en-us/intune/intune-service/remote-actions/device-rename?pivots=android)
 
 ## API Permissions
 

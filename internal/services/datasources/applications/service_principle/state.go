@@ -250,10 +250,10 @@ func MapRemoteStateToDataSource(ctx context.Context, servicePrincipal graphmodel
 		model.Info = nil
 	}
 
-	tflog.Debug(ctx, "Successfully mapped service principal to data source model", map[string]interface{}{
-		"id":           model.ID.ValueString(),
-		"displayName":  model.DisplayName.ValueString(),
-		"appId":        model.AppID.ValueString(),
+	tflog.Debug(ctx, "Successfully mapped service principal to data source model", map[string]any{
+		"id":          model.ID.ValueString(),
+		"displayName": model.DisplayName.ValueString(),
+		"appId":       model.AppID.ValueString(),
 	})
 
 	return model

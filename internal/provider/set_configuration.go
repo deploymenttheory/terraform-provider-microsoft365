@@ -41,7 +41,7 @@ func setProviderConfiguration(ctx context.Context, config M365ProviderModel) (M3
 func unmarshalConfigOrCheckEnvVars(
 	ctx context.Context,
 	config types.Object,
-	target interface{},
+	target any,
 	checkEnvVars bool,
 	envVarsToCheck []string,
 ) (shouldProceed bool, diags diag.Diagnostics) {

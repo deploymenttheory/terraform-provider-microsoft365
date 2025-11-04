@@ -589,6 +589,7 @@ Optional:
 - `cloud_app_security` (Attributes) Cloud app security controls for the session. (see [below for nested schema](#nestedatt--session_controls--cloud_app_security))
 - `continuous_access_evaluation` (Attributes) Continuous access evaluation controls for the session. (see [below for nested schema](#nestedatt--session_controls--continuous_access_evaluation))
 - `disable_resilience_defaults` (Boolean) Whether to disable resilience defaults.
+- `global_secure_access_filtering_profile` (Attributes) Global Secure Access filtering profile for the session. (see [below for nested schema](#nestedatt--session_controls--global_secure_access_filtering_profile))
 - `persistent_browser` (Attributes) Persistent browser controls for the session. (see [below for nested schema](#nestedatt--session_controls--persistent_browser))
 - `secure_sign_in_session` (Attributes) Secure sign-in session controls. (see [below for nested schema](#nestedatt--session_controls--secure_sign_in_session))
 - `sign_in_frequency` (Attributes) Sign-in frequency controls for the session. (see [below for nested schema](#nestedatt--session_controls--sign_in_frequency))
@@ -616,6 +617,15 @@ Required:
 Required:
 
 - `mode` (String) Mode for continuous access evaluation. Possible values are: disabled, basic, strict.
+
+
+<a id="nestedatt--session_controls--global_secure_access_filtering_profile"></a>
+### Nested Schema for `session_controls.global_secure_access_filtering_profile`
+
+Required:
+
+- `is_enabled` (Boolean) Whether global secure access filtering controls are enabled.
+- `profile_id` (String) ID of the global secure access filtering profile.
 
 
 <a id="nestedatt--session_controls--persistent_browser"></a>

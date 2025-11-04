@@ -1,6 +1,8 @@
 package constants
 
-import "time"
+import (
+	"time"
+)
 
 const (
 	// GuidRegex matches a standard GUID/UUID.
@@ -82,4 +84,8 @@ const (
 	// IPv6CIDRRegex matches a valid IPv6 CIDR range.
 	// Example: "2001:db8::/32"
 	IPv6CIDRRegex = `^([0-9a-fA-F]{0,4}:){1,7}[0-9a-fA-F]{0,4}(\/([0-9]|[1-9][0-9]|1[0-1][0-9]|12[0-8]))?$`
+
+	// PortRangeRegex matches a valid port range 0-65535, hyphen separated
+	// Example: "80-80", "443-443", "8080-8080", "8443-8443"
+	PortRangeRegex = `^(?:0|[1-9]\d{0,3}|[1-5]\d{4}|6[0-4]\d{3}|65[0-4]\d{2}|655[0-2]\d|6553[0-5])-(?:0|[1-9]\d{0,3}|[1-5]\d{4}|6[0-4]\d{3}|65[0-4]\d{2}|655[0-2]\d|6553[0-5])$`
 )

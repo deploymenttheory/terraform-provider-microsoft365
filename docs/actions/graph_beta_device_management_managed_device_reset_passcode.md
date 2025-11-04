@@ -38,11 +38,7 @@ Resets the passcode on managed devices using the `/deviceManagement/managedDevic
 - [managedDevice resource type](https://learn.microsoft.com/en-us/graph/api/resources/intune-devices-manageddevice?view=graph-rest-beta)
 
 ### Intune Remote Actions Guides
-- [Windows Remote Actions](https://learn.microsoft.com/en-us/intune/intune-service/remote-actions/?tabs=windows)
-- [iOS/iPadOS Remote Actions](https://learn.microsoft.com/en-us/intune/intune-service/remote-actions/?tabs=ios-ipados)
-- [macOS Remote Actions](https://learn.microsoft.com/en-us/intune/intune-service/remote-actions/?tabs=macos)
-- [Android Remote Actions](https://learn.microsoft.com/en-us/intune/intune-service/remote-actions/?tabs=android)
-- [ChromeOS Remote Actions](https://learn.microsoft.com/en-us/intune/intune-service/remote-actions/?tabs=chromeos)
+- [Device passcode reset](https://learn.microsoft.com/en-us/intune/intune-service/remote-actions/device-passcode-reset)
 
 ## API Permissions
 
@@ -65,33 +61,21 @@ The following API permissions are required in order to use this action.
 
 | Platform | Support | Requirements |
 |----------|---------|--------------|
-| **iOS** | ✅ Full Support | Supervised devices only |
-| **iPadOS** | ✅ Full Support | Supervised devices only |
-| **macOS** | ⚠️ Limited | Supervised or DEP enrolled devices |
-| **Windows** | ⚠️ Limited | Azure AD joined devices |
-| **Android** | ⚠️ Limited | Work profile or fully managed devices |
+| **Android** | ✅ Full Support | Work profile or fully managed devices |
+| **iOS** | ❌ Not Supported | Not available for iOS devices |
+| **iPadOS** | ❌ Not Supported | Not available for iPadOS devices |
+| **macOS** | ❌ Not Supported | Not available for macOS devices |
+| **Windows** | ❌ Not Supported | Not available for Windows devices |
+| **ChromeOS** | ❌ Not Supported | Not available for ChromeOS devices |
 
 ### Platform-Specific Requirements
 
-#### iOS/iPadOS
-- Device must be supervised
-- Enrollment via DEP/ABM or Apple Configurator
-- User will be prompted to set new passcode after unlock
-
 #### Android
 - Device must be fully managed or have work profile
-- May only reset work profile passcode on BYOD
-- Device may need to be online
-
-#### Windows
-- Device must be Azure AD joined
-- May require specific Windows version
-- BitLocker recovery key access may be needed
-
-#### macOS
-- Best support with supervised or DEP enrolled devices
-- May require user to be present
-- FileVault considerations apply
+- May only reset work profile passcode on BYOD devices
+- Device needs to be online to receive the command
+- Applies to screen lock PIN, password, or pattern
+- User will be prompted to set new passcode after reset
 
 ### How Passcode Reset Works
 

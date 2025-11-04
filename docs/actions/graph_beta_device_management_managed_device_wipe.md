@@ -29,11 +29,11 @@ Wipes managed devices from Microsoft Intune using the `/deviceManagement/managed
 - [managedDevice resource type](https://learn.microsoft.com/en-us/graph/api/resources/intune-devices-manageddevice?view=graph-rest-beta)
 
 ### Intune Remote Actions Guides
-- [Windows Remote Actions](https://learn.microsoft.com/en-us/intune/intune-service/remote-actions/?tabs=windows)
-- [iOS/iPadOS Remote Actions](https://learn.microsoft.com/en-us/intune/intune-service/remote-actions/?tabs=ios-ipados)
-- [macOS Remote Actions](https://learn.microsoft.com/en-us/intune/intune-service/remote-actions/?tabs=macos)
-- [Android Remote Actions](https://learn.microsoft.com/en-us/intune/intune-service/remote-actions/?tabs=android)
-- [ChromeOS Remote Actions](https://learn.microsoft.com/en-us/intune/intune-service/remote-actions/?tabs=chromeos)
+- [Wipe devices - Windows](https://learn.microsoft.com/en-us/intune/intune-service/remote-actions/device-wipe?pivots=windows)
+- [Wipe devices - iOS](https://learn.microsoft.com/en-us/intune/intune-service/remote-actions/device-wipe?pivots=ios)
+- [Wipe devices - macOS](https://learn.microsoft.com/en-us/intune/intune-service/remote-actions/device-wipe?pivots=macos)
+- [Wipe devices - Android](https://learn.microsoft.com/en-us/intune/intune-service/remote-actions/device-wipe?pivots=android)
+- [Wipe devices - ChromeOS](https://learn.microsoft.com/en-us/intune/intune-service/remote-actions/device-wipe?pivots=chromeos)
 
 ## API Permissions
 
@@ -61,6 +61,7 @@ The following API permissions are required in order to use this action.
 | **iOS** | ✅ Full Support | Enrollment data, user data, eSIM retention |
 | **iPadOS** | ✅ Full Support | Enrollment data, user data, eSIM retention |
 | **Android** | ✅ Full Support | Enrollment data retention |
+| **ChromeOS** | ❌ Not Supported | Not available for ChromeOS devices |
 
 ### Wipe vs Retire
 
