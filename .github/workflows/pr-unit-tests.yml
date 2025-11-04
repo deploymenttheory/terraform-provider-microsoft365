@@ -32,7 +32,6 @@ jobs:
           go-version-file: 'go.mod'
           cache-dependency-path: 'go.sum'
           cache: true
-          go-version: stable
 
       - name: Install dependencies
         run: go mod download
