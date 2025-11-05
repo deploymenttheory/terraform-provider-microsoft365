@@ -1,6 +1,7 @@
 ---
-page_title: "Microsoft 365_microsoft365_graph_beta_device_management_managed_device_rotate_local_admin_password Action - terraform-provider-microsoft365"
-subcategory: "Actions - Device Management"
+page_title: "microsoft365_graph_beta_device_management_managed_device_rotate_local_admin_password Action - terraform-provider-microsoft365"
+subcategory: "Device Management"
+
 description: |-
   Initiates manual rotation of the local administrator password on managed Windows devices using the /deviceManagement/managedDevices/{managedDeviceId}/rotateLocalAdminPassword and /deviceManagement/comanagedDevices/{managedDeviceId}/rotateLocalAdminPassword endpoints. This action works with Windows Local Administrator Password Solution (LAPS) to generate and rotate local admin passwords on Windows devices. The new password is automatically generated, stored securely in Azure AD or Intune, and can be retrieved by authorized administrators. This enhances security by ensuring regular password rotation and centralized password management for local administrator accounts.
   Important Notes:
@@ -12,7 +13,7 @@ description: |-
   Reference: Microsoft Graph API - Rotate Local Admin Password https://learn.microsoft.com/en-us/graph/api/intune-devices-manageddevice-rotatelocaladminpassword?view=graph-rest-beta
 ---
 
-# Microsoft 365_microsoft365_graph_beta_device_management_managed_device_rotate_local_admin_password (Action)
+# microsoft365_graph_beta_device_management_managed_device_rotate_local_admin_password (Action)
 
 Initiates manual rotation of the local administrator password on managed Windows devices using the `/deviceManagement/managedDevices/{managedDeviceId}/rotateLocalAdminPassword` and `/deviceManagement/comanagedDevices/{managedDeviceId}/rotateLocalAdminPassword` endpoints. This action works with Windows Local Administrator Password Solution (LAPS) to generate and rotate local admin passwords on Windows devices. The new password is automatically generated, stored securely in Azure AD or Intune, and can be retrieved by authorized administrators. This enhances security by ensuring regular password rotation and centralized password management for local administrator accounts.
 
@@ -39,9 +40,136 @@ Initiates manual rotation of the local administrator password on managed Windows
 
 **Reference:** [Microsoft Graph API - Rotate Local Admin Password](https://learn.microsoft.com/en-us/graph/api/intune-devices-manageddevice-rotatelocaladminpassword?view=graph-rest-beta)
 
-## Example Usage
+## Microsoft Documentation
 
-### Basic - Managed Devices
+### Graph API References
+- [rotateLocalAdminPassword action](https://learn.microsoft.com/en-us/graph/api/intune-devices-manageddevice-rotatelocaladminpassword?view=graph-rest-beta)
+- [managedDevice resource type](https://learn.microsoft.com/en-us/graph/api/resources/intune-devices-manageddevice?view=graph-rest-beta)
+
+### Intune LAPS Guides
+- [Windows LAPS in Intune](https://learn.microsoft.com/en-us/mem/intune/protect/windows-laps-overview)
+- [Local Administrator Password Solution (LAPS)](https://learn.microsoft.com/en-us/windows-server/identity/laps/laps-overview)
+
+## API Permissions
+
+The following API permissions are required in order to use this action.
+
+### Microsoft Graph
+
+- **Application**: `DeviceManagementManagedDevices.PrivilegedOperations.All`
+- **Delegated**: `DeviceManagementManagedDevices.PrivilegedOperations.All`
+
+## Version History
+
+| Version | Status | Notes |
+|---------|--------|-------|
+| v0.33.0-alpha | Experimental | Initial release |
+
+## Notes
+
+### Platform Compatibility
+
+| Platform | Support | Requirements |
+|----------|---------|--------------|
+| **Windows 10** | ✅ Full Support | Windows LAPS policy configured and assigned |
+| **Windows 11** | ✅ Full Support | Windows LAPS policy configured and assigned |
+| **Windows 8.1 and earlier** | ❌ Not Supported | Windows LAPS not available |
+| **macOS** | ❌ Not Supported | LAPS is Windows-specific |
+| **iOS/iPadOS** | ❌ Not Supported | LAPS is Windows-specific |
+| **Android** | ❌ Not Supported | LAPS is Windows-specific |
+
+### What is Windows LAPS Password Rotation?
+
+Windows LAPS Password Rotation is an action that:
+- Generates a new complex, random local administrator password
+- Automatically stores the new password securely in Azure AD or Intune
+- Invalidates the previous local administrator password
+- Operates without user interaction or device restart
+- Enhances security through regular credential changes
+- Maintains audit trail of password changes
+
+### When to Rotate Local Admin Passwords
+
+- Regular compliance-driven rotation (quarterly/semi-annually per security policy)
+- After suspected password compromise or exposure
+- When reassigning devices to new users or departments
+- As part of security incident response procedures
+- Before or after employee termination or transfer (IT admin access)
+- To meet regulatory or audit requirements (PCI-DSS, HIPAA, SOC 2)
+- After password has been accessed by administrative staff
+- Following privilege escalation security incidents
+- As required by Zero Trust security model
+
+### What Happens When Password is Rotated
+
+- Intune sends rotation command to the Windows device
+- Device generates new complex password per LAPS policy settings
+- New password is automatically escrowed with Azure AD/Intune
+- Previous local administrator password is invalidated immediately
+- Process completes without user interaction or awareness
+- No device restart or user interruption required
+- Password history is maintained for audit purposes
+- New password becomes available in Intune portal for authorized admin retrieval
+
+### Password Retrieval and Access
+
+**Who Can Retrieve Passwords:**
+- Only authorized administrators with specific Azure AD role permissions:
+  - Cloud Device Administrator
+  - Intune Administrator
+  - Global Administrator
+
+**How to Retrieve Passwords:**
+- Azure Portal (Azure AD > Devices)
+- Microsoft Graph API
+- Intune Admin Center
+
+**Security Measures:**
+- Password retrieval actions are audited in Azure AD logs
+- Passwords stored securely encrypted in Azure AD/Intune
+- Just-in-time (JIT) retrieval model recommended
+- Multi-factor authentication required for retrieval
+- Time-limited access windows enforced
+
+### Security Best Practices
+
+- Implement regular rotation schedule (quarterly or semi-annual)
+- Rotate immediately after administrator offboarding
+- Rotate immediately after suspected credential compromise
+- Limit password retrieval permissions to essential staff
+- Enable MFA for all password retrieval operations
+- Monitor and alert on password retrieval events
+- Use just-in-time (JIT) password access patterns
+- Implement time-limited access windows
+- Regular rotation reduces credential exposure window
+- Maintain audit logs for compliance requirements
+
+### Compliance Considerations
+
+This action helps meet compliance requirements for:
+
+| Framework | Requirement |
+|-----------|-------------|
+| **PCI-DSS** | Privileged account password management and rotation |
+| **HIPAA** | Security rule for password controls and privileged access |
+| **SOC 2 Type II** | Privileged access controls and credential management |
+| **NIST** | Password management and rotation after compromise |
+| **ISO 27001** | Information security controls for privileged access |
+
+### Common Use Cases
+
+- Scheduled compliance-driven password rotation
+- Emergency password rotation after security incidents
+- Device provisioning and deprovisioning workflows
+- IT administrator offboarding procedures
+- Privilege access management (PAM) integration
+- Zero Trust security model implementation
+- Audit preparation and remediation
+- Security incident response and recovery
+- Device reassignment to different users/departments
+- Regular security hygiene maintenance
+
+## Example Usage
 
 ```terraform
 # Example 1: Basic - Rotate local admin password for managed devices
@@ -267,91 +395,6 @@ action "rotate_password_it_dept" {
 #    - HIPAA security rule requires password management
 #    - SOC 2 Type II requires privileged access controls
 ```
-
-## API Permissions
-
-The following [Microsoft Graph API permissions](https://learn.microsoft.com/en-us/graph/permissions-reference) are required to use this action:
-
-### Read Permissions
-- `DeviceManagementConfiguration.Read.All`
-- `DeviceManagementManagedDevices.Read.All`
-
-### Write Permissions
-- `DeviceManagementConfiguration.Read.All`
-- `DeviceManagementManagedDevices.Read.All`
-
-## Authentication Mechanism
-
-This action uses the configured Microsoft 365 provider authentication. Ensure you have properly configured the provider with appropriate credentials and permissions.
-
-## Important Notes
-
-### Windows LAPS Requirements
-- Devices must be Windows 10 or Windows 11
-- Windows LAPS policy must be configured and assigned in Intune
-- Policy must be active and applied on target devices
-- Devices must support Windows LAPS (modern Windows versions)
-
-### Password Generation and Storage
-- Passwords are automatically generated as complex, random strings
-- Length and complexity based on LAPS policy settings
-- Stored securely in Azure AD or Intune
-- Previous password immediately invalidated upon rotation
-- Password history maintained for audit purposes
-
-### Password Retrieval
-- Only authorized administrators can retrieve passwords
-- Retrieval requires specific Azure AD role permissions:
-  - Cloud Device Administrator
-  - Intune Administrator
-  - Global Administrator
-- Password retrieval actions are audited in Azure AD logs
-- Passwords can be retrieved via:
-  - Azure Portal (Azure AD > Devices)
-  - Microsoft Graph API
-  - Intune Admin Center
-
-### Security Best Practices
-1. **Regular Rotation Schedule**: Implement quarterly or semi-annual rotation
-2. **Incident Response**: Rotate immediately after:
-   - Administrator offboarding
-   - Suspected credential compromise
-   - Security incidents
-   - Failed audit findings
-3. **Access Control**: 
-   - Limit password retrieval permissions
-   - Enable MFA for password retrieval
-   - Monitor retrieval events
-4. **Zero Trust Alignment**:
-   - Use just-in-time (JIT) password retrieval
-   - Implement time-limited access
-   - Regular rotation reduces exposure window
-
-### Compliance Considerations
-This action helps meet compliance requirements for:
-- **PCI-DSS**: Privileged account password management
-- **HIPAA**: Security rule for password controls
-- **SOC 2 Type II**: Privileged access controls
-- **NIST**: Password management and rotation after compromise
-- **ISO 27001**: Information security controls for privileged access
-
-### Platform Support
-- **Windows 10/11**: Fully supported with Windows LAPS
-- **Earlier Windows versions**: Not supported
-- **Non-Windows platforms**: Not applicable (LAPS is Windows-specific)
-
-### Operation Impact
-- No device restart required
-- No user interruption
-- No service disruption
-- Immediate effect on local administrator account
-- Previous password becomes invalid immediately
-
-## Microsoft Graph API References
-
-- [rotateLocalAdminPassword action](https://learn.microsoft.com/en-us/graph/api/intune-devices-manageddevice-rotatelocaladminpassword?view=graph-rest-beta)
-- [Windows LAPS in Intune](https://learn.microsoft.com/en-us/mem/intune/protect/windows-laps-overview)
-- [Local Administrator Password Solution (LAPS)](https://learn.microsoft.com/en-us/windows-server/identity/laps/laps-overview)
 
 <!-- action schema generated by tfplugindocs -->
 ## Schema

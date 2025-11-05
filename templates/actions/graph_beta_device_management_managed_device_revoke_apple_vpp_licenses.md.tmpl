@@ -1,6 +1,6 @@
 ---
 page_title: "{{.ProviderShortName}}_{{.Name}} {{.Type}}"
-subcategory: "Actions - Device Management"
+subcategory: "Device Management"
 description: |-
 {{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
 ---
@@ -56,6 +56,12 @@ The following Microsoft Graph API permissions are required to use this action:
 - [Microsoft Intune Remote Actions - iOS/iPadOS](https://learn.microsoft.com/en-us/intune/intune-service/remote-actions/?tabs=ios-ipados)
 - [Microsoft Intune Remote Actions - macOS](https://learn.microsoft.com/en-us/intune/intune-service/remote-actions/?tabs=macos)
 
+## Version History
+
+| Version | Status | Notes |
+|---------|--------|-------|
+| v0.33.0-alpha | Experimental | Initial release |
+
 ## Notes
 
 ### Platform Compatibility
@@ -72,50 +78,6 @@ This remote action is only available for iOS and iPadOS devices with VPP-purchas
 | **Android Enterprise** | ❌ | Not supported - Uses managed Google Play |
 | **ChromeOS** | ❌ | Not supported - Uses Chrome Web Store licensing |
 
-### Important Considerations
-
-**License Impact:**
-- **All VPP Licenses Revoked**: This action revokes ALL Apple Volume Purchase Program licenses from the specified devices, not individual apps
-- **Immediate Effect**: Licenses are immediately returned to your organization's available VPP license pool
-- **App Removal**: VPP apps may be automatically removed from the devices depending on app configuration and policies
-- **User Data**: User data for VPP apps is typically preserved on the device unless apps are removed by policy
-- **License Availability**: Revoked licenses are immediately available for reassignment to other devices or users in Apple Business Manager
-- **Cannot Be Undone**: License revocation cannot be easily undone; licenses must be manually reassigned if needed
-
-**Device Requirements:**
-- **Online Status**: Devices should be online to receive and acknowledge license revocation commands
-- **VPP Enrollment**: Only affects apps purchased through Apple Volume Purchase Program (now Apple Business Manager)
-- **Supervised Devices**: Works for both supervised and unsupervised iOS/iPadOS devices with VPP apps
-- **Management Status**: Devices must be actively enrolled and managed by Intune
-- **Network Connectivity**: Devices need network access to sync license changes with Apple's servers
-
-**Apple Business Manager:**
-- **License Pool**: Revoked licenses return to your organization's VPP license pool visible in Apple Business Manager
-- **License Tracking**: License changes are audited and tracked in both Intune and Apple Business Manager portals
-- **Sync Delay**: There may be a brief delay before license counts update in Apple Business Manager
-- **Assignment Flexibility**: Revoked licenses can be reassigned to any device or user in your organization
-
-**VPP Program:**
-- **VPP Apps Only**: Only affects apps purchased through Apple's Volume Purchase Program (VPP) / Apps and Books
-- **Non-VPP Apps**: Apps purchased through other means (App Store, custom enterprise apps) are not affected
-- **App Store Apps**: Regular App Store apps installed by users are not affected by this action
-- **In-House Apps**: Custom in-house enterprise apps distributed outside VPP are not affected
-
-**Operational Considerations:**
-- **Bulk Operations**: Consider breaking very large operations (100+ devices) into smaller batches to manage execution time
-- **Device Responsiveness**: Devices must check in with Intune to receive and process the license revocation command
-- **Error Handling**: Some devices may fail to revoke licenses due to offline status or network issues; check action results carefully
-- **Monitoring**: Monitor Apple Business Manager for license count changes to confirm successful revocations
-- **Coordination**: Coordinate with Apple Business Manager administrators when performing large-scale license revocations
-
-**Best Practices:**
-- **License Audit**: Regularly audit VPP license usage to identify underutilized licenses for potential revocation
-- **Device Status Check**: Verify device online status before revoking licenses to ensure timely processing
-- **User Communication**: Inform users before revoking VPP licenses to prevent disruption and manage expectations
-- **License Tracking**: Maintain records of license revocations for audit and inventory management purposes
-- **Staged Approach**: For large-scale revocations, use a phased approach to minimize impact and monitor results
-- **Backup Plan**: Have a process to quickly reassign licenses if revocation was performed in error
-- **ABM Integration**: Ensure proper integration between Intune and Apple Business Manager for seamless license management
 
 ## Example Usage
 
