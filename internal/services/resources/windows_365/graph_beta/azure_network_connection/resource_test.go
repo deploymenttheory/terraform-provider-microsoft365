@@ -61,9 +61,9 @@ resource "microsoft365_graph_beta_windows_365_azure_network_connection" "error" 
   ad_domain_username  = "testuser"
   ad_domain_password  = "TestPassword123!"
   resource_group_id   = "invalid-resource-group-id"
-  subnet_id           = "/subscriptions/11111111-1111-1111-1111-111111111111/resourcegroups/test-rg/providers/microsoft.network/virtualnetworks/test-vnet/subnets/test-subnet"
+  subnet_id           = "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/test-rg/providers/Microsoft.Network/virtualNetworks/test-vnet/subnets/test-subnet"
   subscription_id     = "11111111-1111-1111-1111-111111111111"
-  virtual_network_id  = "/subscriptions/11111111-1111-1111-1111-111111111111/resourcegroups/test-rg/providers/microsoft.network/virtualnetworks/test-vnet"
+  virtual_network_id  = "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/test-rg/providers/Microsoft.Network/virtualNetworks/test-vnet"
   
   timeouts = {
     create = "30s"
@@ -136,10 +136,10 @@ func testConfigMinimalWithResourceName(resourceName string) string {
   ad_domain_name      = "example.local"
   ad_domain_username  = "testuser"
   ad_domain_password  = "TestPassword123!"
-  resource_group_id   = "/subscriptions/11111111-1111-1111-1111-111111111111/resourcegroups/test-rg"
-  subnet_id           = "/subscriptions/11111111-1111-1111-1111-111111111111/resourcegroups/test-rg/providers/microsoft.network/virtualnetworks/test-vnet/subnets/test-subnet"
+  resource_group_id   = "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/test-rg"
+  subnet_id           = "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/test-rg/providers/Microsoft.Network/virtualNetworks/test-vnet/subnets/test-subnet"
   subscription_id     = "11111111-1111-1111-1111-111111111111"
-  virtual_network_id  = "/subscriptions/11111111-1111-1111-1111-111111111111/resourcegroups/test-rg/providers/microsoft.network/virtualnetworks/test-vnet"
+  virtual_network_id  = "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/test-rg/providers/Microsoft.Network/virtualNetworks/test-vnet"
   
   timeouts = {
     create = "30s"
@@ -172,9 +172,9 @@ func TestUnitAzureNetworkConnectionResource_Create_Minimal(t *testing.T) {
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_windows_365_azure_network_connection.minimal", "ad_domain_name", "example.local"),
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_windows_365_azure_network_connection.minimal", "ad_domain_username", "testuser"),
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_windows_365_azure_network_connection.minimal", "subscription_id", "11111111-1111-1111-1111-111111111111"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_windows_365_azure_network_connection.minimal", "resource_group_id", "/subscriptions/11111111-1111-1111-1111-111111111111/resourcegroups/test-rg"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_windows_365_azure_network_connection.minimal", "subnet_id", "/subscriptions/11111111-1111-1111-1111-111111111111/resourcegroups/test-rg/providers/microsoft.network/virtualnetworks/test-vnet/subnets/test-subnet"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_windows_365_azure_network_connection.minimal", "virtual_network_id", "/subscriptions/11111111-1111-1111-1111-111111111111/resourcegroups/test-rg/providers/microsoft.network/virtualnetworks/test-vnet"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_windows_365_azure_network_connection.minimal", "resource_group_id", "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/test-rg"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_windows_365_azure_network_connection.minimal", "subnet_id", "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/test-rg/providers/Microsoft.Network/virtualNetworks/test-vnet/subnets/test-subnet"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_windows_365_azure_network_connection.minimal", "virtual_network_id", "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/test-rg/providers/Microsoft.Network/virtualNetworks/test-vnet"),
 					resource.TestCheckResourceAttrSet("microsoft365_graph_beta_windows_365_azure_network_connection.minimal", "id"),
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_windows_365_azure_network_connection.minimal", "health_check_status", "passed"),
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_windows_365_azure_network_connection.minimal", "managed_by", "windows365"),
@@ -208,9 +208,9 @@ func TestUnitAzureNetworkConnectionResource_Create_Maximal(t *testing.T) {
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_windows_365_azure_network_connection.maximal", "ad_domain_username", "testuser"),
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_windows_365_azure_network_connection.maximal", "organizational_unit", "OU=CloudPCs,DC=example,DC=local"),
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_windows_365_azure_network_connection.maximal", "subscription_id", "22222222-2222-2222-2222-222222222222"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_windows_365_azure_network_connection.maximal", "resource_group_id", "/subscriptions/22222222-2222-2222-2222-222222222222/resourcegroups/test-rg-maximal"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_windows_365_azure_network_connection.maximal", "subnet_id", "/subscriptions/22222222-2222-2222-2222-222222222222/resourcegroups/test-rg-maximal/providers/microsoft.network/virtualnetworks/test-vnet-maximal/subnets/test-subnet-maximal"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_windows_365_azure_network_connection.maximal", "virtual_network_id", "/subscriptions/22222222-2222-2222-2222-222222222222/resourcegroups/test-rg-maximal/providers/microsoft.network/virtualnetworks/test-vnet-maximal"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_windows_365_azure_network_connection.maximal", "resource_group_id", "/subscriptions/22222222-2222-2222-2222-222222222222/resourceGroups/test-rg-maximal"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_windows_365_azure_network_connection.maximal", "subnet_id", "/subscriptions/22222222-2222-2222-2222-222222222222/resourceGroups/test-rg-maximal/providers/Microsoft.Network/virtualNetworks/test-vnet-maximal/subnets/test-subnet-maximal"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_windows_365_azure_network_connection.maximal", "virtual_network_id", "/subscriptions/22222222-2222-2222-2222-222222222222/resourceGroups/test-rg-maximal/providers/Microsoft.Network/virtualNetworks/test-vnet-maximal"),
 					resource.TestCheckResourceAttrSet("microsoft365_graph_beta_windows_365_azure_network_connection.maximal", "id"),
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_windows_365_azure_network_connection.maximal", "health_check_status", "passed"),
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_windows_365_azure_network_connection.maximal", "managed_by", "windows365"),
