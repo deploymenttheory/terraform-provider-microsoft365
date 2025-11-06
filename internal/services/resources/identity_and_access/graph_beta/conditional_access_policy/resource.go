@@ -180,24 +180,27 @@ func (r *ConditionalAccessPolicyResource) Schema(ctx context.Context, req resour
 								Validators: []validator.Set{
 									setvalidator.ValueStringsAre(
 										stringvalidator.Any(
-											stringvalidator.OneOf("All", "None", "Office365"),
+											stringvalidator.OneOf("All", "None", "MicrosoftAdminPortals", "Office365"),
 											stringvalidator.RegexMatches(
 												regexp.MustCompile(constants.GuidRegex),
-												"must be a valid GUID or one of the special values: All, None, Office365",
+												"must be a valid GUID or one of the special values: All, None, MicrosoftAdminPortals, Office365",
 											),
 										),
 									),
 								},
 							},
 							"exclude_applications": schema.SetAttribute{
-								MarkdownDescription: "Applications to exclude from the policy.",
+								MarkdownDescription: "Applications to exclude from the policy. For empty requests, use []",
 								ElementType:         types.StringType,
 								Required:            true,
 								Validators: []validator.Set{
 									setvalidator.ValueStringsAre(
-										stringvalidator.RegexMatches(
-											regexp.MustCompile(constants.GuidRegex),
-											"must be a valid GUID in the format '00000000-0000-0000-0000-000000000000'",
+										stringvalidator.Any(
+											stringvalidator.OneOf("All", "MicrosoftAdminPortals", "Office365"),
+											stringvalidator.RegexMatches(
+												regexp.MustCompile(constants.GuidRegex),
+												"must be a valid GUID or one of the special values: All, MicrosoftAdminPortals, Office365",
+											),
 										),
 									),
 								},
@@ -899,15 +902,15 @@ func (r *ConditionalAccessPolicyResource) Schema(ctx context.Context, req resour
 								Required:            true,
 							},
 							"type": schema.StringAttribute{
-								MarkdownDescription: "Type of sign-in frequency control. Possible values are: days, hours.",
-								Required:            true,
+								MarkdownDescription: "Type of sign-in frequency control. Possible values are: days, hours. Not used when frequency_interval is everyTime.",
+								Optional:            true,
 								Validators: []validator.String{
 									stringvalidator.OneOf("days", "hours"),
 								},
 							},
 							"value": schema.Int64Attribute{
-								MarkdownDescription: "Value for the sign-in frequency.",
-								Required:            true,
+								MarkdownDescription: "Value for the sign-in frequency. Not used when frequency_interval is everyTime.",
+								Optional:            true,
 							},
 							"authentication_type": schema.StringAttribute{
 								MarkdownDescription: "Authentication type for sign-in frequency. Possible values are: primaryAndSecondaryAuthentication, secondaryAuthentication.",

@@ -1,6 +1,6 @@
 ---
 page_title: "Microsoft 365_microsoft365_graph_beta_device_management_managed_device_send_custom_notification_to_company_portal Action"
-subcategory: "Actions - Device Management"
+subcategory: "Device Management"
 description: |-
   Sends custom notifications to the Company Portal app on managed devices using the /deviceManagement/managedDevices/{managedDeviceId}/sendCustomNotificationToCompanyPortal and /deviceManagement/comanagedDevices/{managedDeviceId}/sendCustomNotificationToCompanyPortal endpoints. This action enables IT administrators to send targeted messages to end users through the Company Portal app.
   What This Action Does:

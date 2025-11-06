@@ -1,6 +1,6 @@
 ---
 page_title: "Microsoft 365_microsoft365_graph_beta_device_management_managed_device_rotate_bitlocker_keys Action"
-subcategory: "Actions - Device Management"
+subcategory: "Device Management"
 description: |-
   Rotates BitLocker encryption recovery keys on Windows devices using the /deviceManagement/managedDevices/{managedDeviceId}/rotateBitLockerKeys and /deviceManagement/comanagedDevices/{managedDeviceId}/rotateBitLockerKeys endpoints. This action generates new BitLocker recovery keys and escrows them to Intune, invalidating the previous recovery keys.
   What This Action Does:
@@ -55,39 +55,6 @@ Rotates BitLocker encryption recovery keys on Windows devices using the `/device
 
 This action is critical for maintaining BitLocker encryption security and compliance across Windows devices:
 
-### Security Operations
-- **Security Incident Response**: Rotate BitLocker keys immediately after a security breach or suspected key compromise
-- **Proactive Key Management**: Implement scheduled key rotation as part of security hardening strategies
-- **Recovery Key Exposure**: Rotate keys when recovery keys may have been inadvertently exposed or shared
-- **Access Control Changes**: Rotate keys when administrative access changes or IT staff departures occur
-- **Compliance Remediation**: Ensure compliance with security policies requiring periodic key rotation
-- **Zero Trust Security**: Regularly rotate keys as part of zero trust security model implementation
-- **Audit Findings**: Respond to audit findings requiring demonstration of key rotation capabilities
-
-### Device Management
-- **Device Ownership Transfer**: Rotate keys when devices are reassigned between users or departments
-- **Device Reprovisioning**: Ensure new keys during device wipe and reimage operations
-- **Pre-Retirement Security**: Rotate keys on devices scheduled for retirement to protect historical data
-- **BitLocker Policy Updates**: Refresh keys after implementing new BitLocker configuration policies
-- **Hardware Changes**: Rotate keys after significant hardware changes that might affect TPM state
-- **Firmware Updates**: Refresh keys after BIOS/UEFI firmware updates that could impact BitLocker
-
-### Compliance & Governance
-- **Regulatory Requirements**: Meet industry regulations (HIPAA, PCI-DSS, etc.) requiring periodic encryption key rotation
-- **Corporate Policy Enforcement**: Enforce organizational policies mandating regular key rotation schedules
-- **Security Audits**: Demonstrate active key lifecycle management during security audits
-- **Data Protection Standards**: Align with data protection frameworks requiring encryption key management
-- **Industry Best Practices**: Follow NIST, ISO, or other security framework guidelines for key rotation
-- **Insurance Requirements**: Meet cyber insurance policy requirements for encryption key management
-
-### IT Operations
-- **Mass Key Rotation**: Perform large-scale key rotation across entire device fleets efficiently
-- **Targeted Rotation**: Rotate keys for specific departments, locations, or device groups
-- **Emergency Response**: Quickly rotate keys across affected devices during security incidents
-- **Automation & Orchestration**: Integrate key rotation into automated security workflows and runbooks
-- **Key Escrow Verification**: Confirm proper key escrow to Intune/Azure AD through rotation testing
-- **Device Health Validation**: Use key rotation as a test of device connectivity and BitLocker functionality
-
 ## API Documentation
 
 - [Microsoft Graph API - Rotate BitLocker Keys](https://learn.microsoft.com/en-us/graph/api/intune-devices-manageddevice-rotatebitlockerkeys?view=graph-rest-beta)
@@ -103,6 +70,12 @@ The following Microsoft Graph API permissions are required to use this action:
 | Application | DeviceManagementConfiguration.ReadWrite.All, DeviceManagementManagedDevices.ReadWrite.All |
 
 ~> **Note:** This action requires both device configuration and device management write permissions as it modifies BitLocker encryption settings.
+
+## Version History
+
+| Version | Status | Notes |
+|---------|--------|-------|
+| v0.33.0-alpha | Experimental | Initial release |
 
 ## Related Documentation
 

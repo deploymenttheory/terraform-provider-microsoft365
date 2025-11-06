@@ -1,6 +1,6 @@
 ---
 page_title: "{{.ProviderShortName}}_{{.Name}} {{.Type}} - {{.ProviderName}}"
-subcategory: "Actions - Device Management"
+subcategory: "Device Management"
 description: |-
 {{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
 ---
@@ -26,6 +26,12 @@ The following [Microsoft Graph API permissions](https://learn.microsoft.com/en-u
 ### Write Permissions
 - `DeviceManagementConfiguration.Read.All`
 - `DeviceManagementManagedDevices.Read.All`
+
+## Version History
+
+| Version | Status | Notes |
+|---------|--------|-------|
+| v0.33.0-alpha | Experimental | Initial release |
 
 ## Authentication Mechanism
 
