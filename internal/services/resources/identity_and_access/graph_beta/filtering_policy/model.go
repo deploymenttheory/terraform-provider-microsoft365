@@ -14,14 +14,15 @@ import (
 // This appears to be a documentation error on Microsoft's side.
 //
 // Additionally, the 'version' property is not documented in the Microsoft Graph API documentation,
-// but it is actually included in the API responses.
+// but it is actually included in the API responses. This appears to be an internal property that
+// tracks the policy structure version and does not change with regular updates (name, description, action).
 type FilteringPolicyResourceModel struct {
 	ID                   types.String   `tfsdk:"id"`
 	Name                 types.String   `tfsdk:"name"`
 	Description          types.String   `tfsdk:"description"`
 	CreatedDateTime      types.String   `tfsdk:"created_date_time"`
 	LastModifiedDateTime types.String   `tfsdk:"last_modified_date_time"`
-	Version              types.String   `tfsdk:"version"`
+	Version              types.String   `tfsdk:"version"` // Internal property, does not change with regular updates
 	Action               types.String   `tfsdk:"action"`
 	Timeouts             timeouts.Value `tfsdk:"timeouts"`
 }

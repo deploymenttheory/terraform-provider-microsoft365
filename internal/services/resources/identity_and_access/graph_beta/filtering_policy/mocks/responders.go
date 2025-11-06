@@ -61,6 +61,11 @@ func (m *FilteringPolicyMock) RegisterMocks() {
 				policyCopy[k] = v
 			}
 
+			// Ensure @odata.context is present in GET response
+			if _, exists := policyCopy["@odata.context"]; !exists {
+				policyCopy["@odata.context"] = "https://graph.microsoft.com/beta/$metadata#filteringPolicies/$entity"
+			}
+
 			return httpmock.NewJsonResponse(200, policyCopy)
 		})
 
@@ -77,18 +82,22 @@ func (m *FilteringPolicyMock) RegisterMocks() {
 			id := "00000000-0000-0000-0000-000000000001"
 
 			response := map[string]any{
+				"@odata.context":       "https://graph.microsoft.com/beta/$metadata#filteringPolicies/$entity",
 				"id":                   id,
 				"createdDateTime":      "2024-01-01T00:00:00Z",
 				"lastModifiedDateTime": "2024-01-01T00:00:00Z",
-				"version":              "1.0",
+				"version":              "1.0.0",
 			}
 
 			// Copy fields from request
 			if name, ok := requestBody["name"].(string); ok {
 				response["name"] = name
 			}
+			// Handle description - can be null if not provided
 			if description, ok := requestBody["description"].(string); ok {
 				response["description"] = description
+			} else {
+				response["description"] = nil
 			}
 			if action, ok := requestBody["action"].(string); ok {
 				response["action"] = action
@@ -133,6 +142,7 @@ func (m *FilteringPolicyMock) RegisterMocks() {
 			if name, ok := requestBody["name"].(string); ok {
 				updatedPolicy["name"] = name
 			}
+			// Handle description - can be updated or set to null
 			if description, ok := requestBody["description"].(string); ok {
 				updatedPolicy["description"] = description
 			}
@@ -140,10 +150,6 @@ func (m *FilteringPolicyMock) RegisterMocks() {
 				updatedPolicy["action"] = action
 			}
 			updatedPolicy["lastModifiedDateTime"] = "2024-01-02T00:00:00Z"
-			updatedPolicy["version"] = "1.1" // Increment version on update
-
-			// Note: 'state' and 'priority' are not included here as they are properties used when
-			// linking policies to security profiles, not direct properties of filtering policies.
 
 			mockState.filteringPolicies[id] = updatedPolicy
 
