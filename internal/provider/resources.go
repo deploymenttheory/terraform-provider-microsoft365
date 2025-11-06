@@ -89,6 +89,7 @@ import (
 	graphBetaIdentityAndAccessConditionalAccessPolicy "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/identity_and_access/graph_beta/conditional_access_policy"
 	graphBetaIdentityAndAccessCustomSecurityAttributeAllowedValue "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/identity_and_access/graph_beta/custom_security_attribute_allowed_value"
 	graphBetaIdentityAndAccessCustomSecurityAttributeDefinition "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/identity_and_access/graph_beta/custom_security_attribute_definition"
+	graphBetaIdentityAndAccessFilteringPolicy "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/identity_and_access/graph_beta/filtering_policy"
 	graphBetaIdentityAndAccessNamedLocation "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/identity_and_access/graph_beta/named_location"
 
 	// Graph v1.0 - Identity and Access resources
@@ -232,6 +233,7 @@ func (p *M365Provider) Resources(ctx context.Context) []func() resource.Resource
 		graphBetaIdentityAndAccessAuthenticationContext.NewAuthenticationContextResource,
 		graphBetaIdentityAndAccessAuthenticationStrength.NewAuthenticationStrengthResource,
 		graphBetaIdentityAndAccessConditionalAccessPolicy.NewConditionalAccessPolicyResource,
+		graphBetaIdentityAndAccessFilteringPolicy.NewFilteringPolicyResource,
 		graphBetaIdentityAndAccessNamedLocation.NewNamedLocationResource,
 
 		// Graph Beta - User resources
