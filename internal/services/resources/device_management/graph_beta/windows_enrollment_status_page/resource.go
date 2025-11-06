@@ -152,24 +152,24 @@ func (r *WindowsEnrollmentStatusPageResource) Schema(ctx context.Context, req re
 				Required:            true,
 			},
 			"allow_device_reset_on_install_failure": schema.BoolAttribute{
-				MarkdownDescription: "Allow or block device reset on installation failure. Can only be set to true if block_device_use_until_all_apps_and_profiles_are_installed is false.",
+				MarkdownDescription: "Allow or block device reset on installation failure. When block_device_use_until_all_apps_and_profiles_are_installed is true, this must be false. When block_device_use_until_all_apps_and_profiles_are_installed is false, this can be true or false.",
 				Required:            true,
 				Validators: []validator.Bool{
-					validators.BoolCanOnlyBeTrueWhen(
+					validators.BoolCanOnlyBeFalseWhen(
 						"block_device_use_until_all_apps_and_profiles_are_installed",
-						false,
-						"allow_device_reset_on_install_failure can only be set to true if block_device_use_until_all_apps_and_profiles_are_installed is false",
+						true,
+						"allow_device_reset_on_install_failure must be false when block_device_use_until_all_apps_and_profiles_are_installed is true",
 					),
 				},
 			},
 			"allow_device_use_on_install_failure": schema.BoolAttribute{
-				MarkdownDescription: "Allow the user to continue using the device on installation failure. Can only be set to true if block_device_use_until_all_apps_and_profiles_are_installed is false.",
+				MarkdownDescription: "Allow the user to continue using the device on installation failure. When block_device_use_until_all_apps_and_profiles_are_installed is true, this must be false. When block_device_use_until_all_apps_and_profiles_are_installed is false, this can be true or false.",
 				Required:            true,
 				Validators: []validator.Bool{
-					validators.BoolCanOnlyBeTrueWhen(
+					validators.BoolCanOnlyBeFalseWhen(
 						"block_device_use_until_all_apps_and_profiles_are_installed",
-						false,
-						"allow_device_use_on_install_failure can only be set to true if block_device_use_until_all_apps_and_profiles_are_installed is false",
+						true,
+						"allow_device_use_on_install_failure must be false when block_device_use_until_all_apps_and_profiles_are_installed is true",
 					),
 				},
 			},
@@ -193,13 +193,13 @@ func (r *WindowsEnrollmentStatusPageResource) Schema(ctx context.Context, req re
 				},
 			},
 			"only_fail_selected_blocking_apps_in_technician_phase": schema.BoolAttribute{
-				MarkdownDescription: "When this is true, only the selected blocking apps will be failed in the technician phase.",
+				MarkdownDescription: "When true, only the selected blocking apps will be failed in the technician phase. When block_device_use_until_all_apps_and_profiles_are_installed is true, this must be false. When block_device_use_until_all_apps_and_profiles_are_installed is false, this can be true or false.",
 				Required:            true,
 				Validators: []validator.Bool{
-					validators.BoolCanOnlyBeTrueWhen(
+					validators.BoolCanOnlyBeFalseWhen(
 						"block_device_use_until_all_apps_and_profiles_are_installed",
-						false,
-						"allow_device_use_on_install_failure can only be set to true if block_device_use_until_all_apps_and_profiles_are_installed is false",
+						true,
+						"only_fail_selected_blocking_apps_in_technician_phase must be false when block_device_use_until_all_apps_and_profiles_are_installed is true",
 					),
 				},
 			},
