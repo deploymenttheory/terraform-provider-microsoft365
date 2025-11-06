@@ -173,7 +173,7 @@ func (r *WindowsUpdateRingResource) Schema(ctx context.Context, req resource.Sch
 			},
 			"automatic_update_mode": schema.StringAttribute{
 				Required:            true,
-				MarkdownDescription: "The Automatic Update Mode. Possible values are: UserDefined, NotifyDownload, AutoInstallAtMaintenanceTime, AutoInstallAndRebootAtMaintenanceTime, AutoInstallAndRebootAtScheduledTime, AutoInstallAndRebootWithoutEndUserControl, WindowsDefault. UserDefined is the default value, no intent. Returned by default. Query parameters are not supported. Possible values are: userDefined, notifyDownload, autoInstallAtMaintenanceTime, autoInstallAndRebootAtMaintenanceTime, autoInstallAndRebootAtScheduledTime, autoInstallAndRebootWithoutEndUserControl.",
+				MarkdownDescription: "The Automatic Update Mode. Possible values are: UserDefined, NotifyDownload, AutoInstallAtMaintenanceTime, AutoInstallAndRebootAtMaintenanceTime, AutoInstallAndRebootAtScheduledTime, AutoInstallAndRebootWithoutEndUserControl, WindowsDefault. UserDefined is the default value, no intent. Returned by default. Query parameters are not supported. Possible values are: userDefined, notifyDownload, autoInstallAtMaintenanceTime, autoInstallAndRebootAtMaintenanceTime, autoInstallAndRebootAtScheduledTime, autoInstallAndRebootWithoutEndUserControl, windowsDefault.",
 				Validators: []validator.String{
 					stringvalidator.OneOf(
 						"userDefined",                               // reset to default - no other fields should be set
@@ -182,6 +182,7 @@ func (r *WindowsUpdateRingResource) Schema(ctx context.Context, req resource.Sch
 						"autoInstallAndRebootAtMaintenanceTime",     // auto install and reboot at maintenance time - requires active_hours_start and active_hours_end to be set
 						"autoInstallAndRebootAtScheduledTime",       // auto install and reboot at scheduled time - requires active_hours_start and active_hours_end to be set and update_weeks to be set
 						"autoInstallAndRebootWithoutEndUserControl", // auto install and reboot without end user control - no other fields should be set
+						"windowsDefault",                            // windows default - no other fields should be set
 					),
 				},
 			},
