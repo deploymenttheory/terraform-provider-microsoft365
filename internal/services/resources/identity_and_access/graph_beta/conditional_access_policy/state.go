@@ -90,13 +90,20 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *ConditionalAcc
 		data.Conditions = nil
 	}
 
-	// Map grant controls
-	if grantControlsRaw, ok := remoteResource["grantControls"]; ok {
+	// Map grant controls (Required field - must always be present)
+	if grantControlsRaw, ok := remoteResource["grantControls"]; ok && grantControlsRaw != nil {
 		tflog.Debug(ctx, "Mapping grantControls", map[string]any{"grantControls": grantControlsRaw})
 		data.GrantControls = mapGrantControls(ctx, grantControlsRaw)
 	} else {
-		tflog.Debug(ctx, "grantControls not found")
-		data.GrantControls = nil
+		tflog.Debug(ctx, "grantControls not found or null, creating empty grant controls for required field")
+		// grant_controls is Required in schema, so we must return an empty object when API returns null
+		data.GrantControls = &ConditionalAccessGrantControls{
+			Operator:                    types.StringValue("OR"), // Default operator
+			BuiltInControls:             types.SetValueMust(types.StringType, []attr.Value{}),
+			CustomAuthenticationFactors: types.SetValueMust(types.StringType, []attr.Value{}),
+			TermsOfUse:                  types.SetNull(types.StringType),
+			AuthenticationStrength:      nil,
+		}
 	}
 
 	// Map session controls
@@ -138,10 +145,10 @@ func mapConditions(ctx context.Context, conditionsRaw any) *ConditionalAccessCon
 		result.SignInRiskLevels = types.SetNull(types.StringType)
 	}
 
-	// Map userRiskLevels (set)
+	// Map userRiskLevels (set) - OPTIONAL field
 	if userRiskLevelsRaw, ok := conditions["userRiskLevels"]; ok {
 		tflog.Debug(ctx, "Mapping userRiskLevels", map[string]any{"userRiskLevels": userRiskLevelsRaw})
-		result.UserRiskLevels = mapStringSliceToSet(ctx, userRiskLevelsRaw, "userRiskLevels")
+		result.UserRiskLevels = mapOptionalStringSliceToSet(ctx, userRiskLevelsRaw, "userRiskLevels")
 	} else {
 		tflog.Debug(ctx, "userRiskLevels not found, setting to null")
 		result.UserRiskLevels = types.SetNull(types.StringType)
@@ -467,37 +474,37 @@ func mapDevices(ctx context.Context, devicesRaw any) *ConditionalAccessDevices {
 
 	result := &ConditionalAccessDevices{}
 
-	// Map includeDevices (set)
+	// Map includeDevices (set) - OPTIONAL field
 	if includeDevicesRaw, ok := devices["includeDevices"]; ok {
 		tflog.Debug(ctx, "Mapping includeDevices", map[string]any{"includeDevices": includeDevicesRaw})
-		result.IncludeDevices = mapStringSliceToSet(ctx, includeDevicesRaw, "includeDevices")
+		result.IncludeDevices = mapOptionalStringSliceToSet(ctx, includeDevicesRaw, "includeDevices")
 	} else {
 		tflog.Debug(ctx, "includeDevices not found, setting to null")
 		result.IncludeDevices = types.SetNull(types.StringType)
 	}
 
-	// Map excludeDevices (set)
+	// Map excludeDevices (set) - OPTIONAL field
 	if excludeDevicesRaw, ok := devices["excludeDevices"]; ok {
 		tflog.Debug(ctx, "Mapping excludeDevices", map[string]any{"excludeDevices": excludeDevicesRaw})
-		result.ExcludeDevices = mapStringSliceToSet(ctx, excludeDevicesRaw, "excludeDevices")
+		result.ExcludeDevices = mapOptionalStringSliceToSet(ctx, excludeDevicesRaw, "excludeDevices")
 	} else {
 		tflog.Debug(ctx, "excludeDevices not found, setting to null")
 		result.ExcludeDevices = types.SetNull(types.StringType)
 	}
 
-	// Map includeDeviceStates (set)
+	// Map includeDeviceStates (set) - OPTIONAL field
 	if includeDeviceStatesRaw, ok := devices["includeDeviceStates"]; ok {
 		tflog.Debug(ctx, "Mapping includeDeviceStates", map[string]any{"includeDeviceStates": includeDeviceStatesRaw})
-		result.IncludeDeviceStates = mapStringSliceToSet(ctx, includeDeviceStatesRaw, "includeDeviceStates")
+		result.IncludeDeviceStates = mapOptionalStringSliceToSet(ctx, includeDeviceStatesRaw, "includeDeviceStates")
 	} else {
 		tflog.Debug(ctx, "includeDeviceStates not found, setting to null")
 		result.IncludeDeviceStates = types.SetNull(types.StringType)
 	}
 
-	// Map excludeDeviceStates (set)
+	// Map excludeDeviceStates (set) - OPTIONAL field
 	if excludeDeviceStatesRaw, ok := devices["excludeDeviceStates"]; ok {
 		tflog.Debug(ctx, "Mapping excludeDeviceStates", map[string]any{"excludeDeviceStates": excludeDeviceStatesRaw})
-		result.ExcludeDeviceStates = mapStringSliceToSet(ctx, excludeDeviceStatesRaw, "excludeDeviceStates")
+		result.ExcludeDeviceStates = mapOptionalStringSliceToSet(ctx, excludeDeviceStatesRaw, "excludeDeviceStates")
 	} else {
 		tflog.Debug(ctx, "excludeDeviceStates not found, setting to null")
 		result.ExcludeDeviceStates = types.SetNull(types.StringType)
@@ -672,10 +679,10 @@ func mapGrantControls(ctx context.Context, grantControlsRaw any) *ConditionalAcc
 		result.CustomAuthenticationFactors = types.SetNull(types.StringType)
 	}
 
-	// Map termsOfUse (set)
+	// Map termsOfUse (set) - OPTIONAL field
 	if termsOfUseRaw, ok := grantControls["termsOfUse"]; ok {
 		tflog.Debug(ctx, "Mapping termsOfUse", map[string]any{"termsOfUse": termsOfUseRaw})
-		result.TermsOfUse = mapStringSliceToSet(ctx, termsOfUseRaw, "termsOfUse")
+		result.TermsOfUse = mapOptionalStringSliceToSet(ctx, termsOfUseRaw, "termsOfUse")
 	} else {
 		tflog.Debug(ctx, "termsOfUse not found, setting to null")
 		result.TermsOfUse = types.SetNull(types.StringType)
@@ -1053,17 +1060,8 @@ func mapAuthenticationStrength(ctx context.Context, authenticationStrengthRaw an
 
 	if id, ok := authenticationStrength["id"].(string); ok {
 		tflog.Debug(ctx, "Mapping authenticationStrength id", map[string]any{"id": id})
-		// Map known GUIDs back to predefined string values for consistency
-		switch id {
-		case "00000000-0000-0000-0000-000000000002":
-			result.ID = types.StringValue("multifactor_authentication")
-		case "00000000-0000-0000-0000-000000000003":
-			result.ID = types.StringValue("passwordless_mfa")
-		case "00000000-0000-0000-0000-000000000004":
-			result.ID = types.StringValue("phishing_resistant_mfa")
-		default:
-			result.ID = types.StringValue(id)
-		}
+		// Preserve the exact value from the API (GUID or custom ID)
+		result.ID = types.StringValue(id)
 	} else {
 		tflog.Debug(ctx, "authenticationStrength id not found or not a string")
 		result.ID = types.StringNull()
@@ -1374,4 +1372,29 @@ func mapCommaSeparatedStringToSet(ctx context.Context, raw any, fieldName string
 
 	tflog.Debug(ctx, fmt.Sprintf("%s is not a string, returning null set", fieldName))
 	return types.SetNull(types.StringType)
+}
+
+// Helper function to map REQUIRED string slices to Terraform sets
+// For required fields: null or empty arrays from API should become [] in Terraform state
+func mapRequiredStringSliceToSet(ctx context.Context, raw any, fieldName string) types.Set {
+	// Delegate to existing mapStringSliceToSet which already implements required field behavior
+	return mapStringSliceToSet(ctx, raw, fieldName)
+}
+
+// Helper function to map OPTIONAL string slices to Terraform sets
+// For optional fields: null or empty arrays from API should remain null in Terraform state
+func mapOptionalStringSliceToSet(ctx context.Context, raw any, fieldName string) types.Set {
+	tflog.Debug(ctx, fmt.Sprintf("Processing optional field %s: %v (type: %T)", fieldName, raw, raw))
+
+	// For optional fields, keep as null if empty
+	if slice, ok := raw.([]any); ok && len(slice) == 0 {
+		tflog.Debug(ctx, fmt.Sprintf("%s is empty array, keeping as null for optional field", fieldName))
+		return types.SetNull(types.StringType)
+	} else if raw == nil {
+		tflog.Debug(ctx, fmt.Sprintf("%s is null, keeping as null for optional field", fieldName))
+		return types.SetNull(types.StringType)
+	}
+
+	// If it has values, process normally
+	return mapStringSliceToSet(ctx, raw, fieldName)
 }

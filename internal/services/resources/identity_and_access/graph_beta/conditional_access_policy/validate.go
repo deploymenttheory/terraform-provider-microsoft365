@@ -141,6 +141,13 @@ func validateRequest(ctx context.Context, httpClient *client.AuthenticatedHTTPCl
 		}
 	}
 
+	// Validate session controls
+	if data.SessionControls != nil {
+		if err := validateSessionControls(ctx, data.SessionControls); err != nil {
+			return fmt.Errorf("validation failed for 'session_controls': %w", err)
+		}
+	}
+
 	tflog.Debug(ctx, "Conditional access policy request validation completed successfully")
 	return nil
 }
@@ -745,5 +752,33 @@ func validateApplicationInclusionAssignments(ctx context.Context, applications *
 	}
 
 	tflog.Debug(ctx, "Conditional access policy application inclusion assignment validation completed successfully")
+	return nil
+}
+
+// validateSessionControls validates session controls configuration
+func validateSessionControls(ctx context.Context, sessionControls *ConditionalAccessSessionControls) error {
+	tflog.Debug(ctx, "Starting conditional access policy session controls validation")
+
+	// Validate sign-in frequency configuration
+	if sessionControls.SignInFrequency != nil {
+		signInFreq := sessionControls.SignInFrequency
+
+		// Rule: When frequency_interval is "everyTime", type and value should not be set
+		if !signInFreq.FrequencyInterval.IsNull() && !signInFreq.FrequencyInterval.IsUnknown() {
+			frequencyInterval := signInFreq.FrequencyInterval.ValueString()
+			if frequencyInterval == "everyTime" {
+				// Check if type is set
+				if !signInFreq.Type.IsNull() && !signInFreq.Type.IsUnknown() {
+					return fmt.Errorf("when 'frequency_interval' is set to 'everyTime', the 'type' field must not be set in the configuration")
+				}
+				// Check if value is set
+				if !signInFreq.Value.IsNull() && !signInFreq.Value.IsUnknown() {
+					return fmt.Errorf("when 'frequency_interval' is set to 'everyTime', the 'value' field must not be set in the configuration")
+				}
+			}
+		}
+	}
+
+	tflog.Debug(ctx, "Conditional access policy session controls validation completed successfully")
 	return nil
 }

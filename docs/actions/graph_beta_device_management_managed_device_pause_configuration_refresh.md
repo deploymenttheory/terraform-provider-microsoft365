@@ -338,6 +338,12 @@ The following [Microsoft Graph API permissions](https://learn.microsoft.com/en-u
 - `DeviceManagementConfiguration.Read.All`
 - `DeviceManagementManagedDevices.Read.All`
 
+## Version History
+
+| Version | Status | Notes |
+|---------|--------|-------|
+| v0.33.0-alpha | Experimental | Initial release |
+
 ## Authentication Mechanism
 
 This action uses the configured Microsoft 365 provider authentication. Ensure you have properly configured the provider with appropriate credentials and permissions.

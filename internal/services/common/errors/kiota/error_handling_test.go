@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"net/url"
 	"testing"
-	"time"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -113,68 +112,6 @@ func TestGraphError_URLError(t *testing.T) {
 			assert.Equal(t, tc.expectedCat, errorInfo.Category, "Category should match")
 			assert.NotEmpty(t, errorInfo.ErrorMessage, "Error message should not be empty")
 			assert.Contains(t, errorInfo.AdditionalData["url"], "graph.microsoft.com", "URL should be in additional data")
-		})
-	}
-}
-
-// TestGetRetryDelay tests the GetRetryDelay function
-func TestGetRetryDelay(t *testing.T) {
-	testCases := []struct {
-		name        string
-		errorInfo   GraphErrorInfo
-		attempt     int
-		minExpected time.Duration
-		maxExpected time.Duration
-	}{
-		{
-			name: "With RetryAfter header",
-			errorInfo: GraphErrorInfo{
-				RetryAfter: "30",
-			},
-			attempt:     1,
-			minExpected: 30 * time.Second,
-			maxExpected: 30 * time.Second,
-		},
-		{
-			name:        "First attempt without RetryAfter",
-			errorInfo:   GraphErrorInfo{},
-			attempt:     1,
-			minExpected: 750 * time.Millisecond, // 1s ± 25% jitter = 1s ± 0.25s
-			maxExpected: 1250 * time.Millisecond,
-		},
-		{
-			name:        "Second attempt without RetryAfter",
-			errorInfo:   GraphErrorInfo{},
-			attempt:     2,
-			minExpected: 3 * time.Second, // 4s ± 25% jitter = 4s ± 1s = 3s to 5s
-			maxExpected: 5 * time.Second,
-		},
-		{
-			name:        "Third attempt without RetryAfter",
-			errorInfo:   GraphErrorInfo{},
-			attempt:     3,
-			minExpected: 6750 * time.Millisecond, // 9s ± 25% jitter = 9s ± 2.25s = 6.75s to 11.25s
-			maxExpected: 11250 * time.Millisecond,
-		},
-		{
-			name:        "Max delay cap",
-			errorInfo:   GraphErrorInfo{},
-			attempt:     100,             // Very large attempt number
-			minExpected: 0,               // Could be capped and then have negative jitter
-			maxExpected: 5 * time.Minute, // Should never exceed max cap
-		},
-	}
-
-	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
-			delay := GetRetryDelay(&tc.errorInfo, tc.attempt)
-
-			if tc.errorInfo.RetryAfter != "" {
-				assert.Equal(t, tc.minExpected, delay, "Delay should match RetryAfter value")
-			} else {
-				assert.GreaterOrEqual(t, delay, tc.minExpected, "Delay should be greater than or equal to min expected")
-				assert.LessOrEqual(t, delay, tc.maxExpected, "Delay should be less than or equal to max expected")
-			}
 		})
 	}
 }

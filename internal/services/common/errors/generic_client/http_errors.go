@@ -623,7 +623,7 @@ func logHTTPErrorDetails(ctx context.Context, errorInfo *HTTPGraphError) {
 }
 
 // GetHTTPRetryDelay calculates the appropriate retry delay - mirrors SDK logic
-func GetHTTPRetryDelay(errorInfo *HTTPGraphError, attempt int) time.Duration {
+func GetHTTPRetryDelay(ctx context.Context, errorInfo *HTTPGraphError, attempt int) time.Duration {
 	graphErrorInfo := toGraphErrorInfo(errorInfo)
-	return errors.GetRetryDelay(graphErrorInfo, attempt)
+	return GetRetryDelay(ctx, graphErrorInfo, attempt)
 }

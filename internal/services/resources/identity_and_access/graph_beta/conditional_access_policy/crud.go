@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/client"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
 	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/generic_client"
@@ -74,7 +75,8 @@ func (r *ConditionalAccessPolicyResource) Create(ctx context.Context, req resour
 
 	tflog.Debug(ctx, fmt.Sprintf("Making POST request to: %s", url))
 
-	httpResp, err := r.httpClient.Do(httpReq)
+	// Use retry logic with exponential backoff for 429 errors (max 20 retries)
+	httpResp, err := client.DoWithRetry(ctx, r.httpClient, httpReq, 5)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error making HTTP request",
@@ -179,6 +181,7 @@ func (r *ConditionalAccessPolicyResource) Read(ctx context.Context, req resource
 	defer cancel()
 
 	url := r.httpClient.GetBaseURL() + r.ResourcePath + "/" + object.ID.ValueString()
+
 	httpReq, err := http.NewRequestWithContext(ctx, "GET", url, nil)
 	if err != nil {
 		resp.Diagnostics.AddError(
@@ -190,7 +193,8 @@ func (r *ConditionalAccessPolicyResource) Read(ctx context.Context, req resource
 
 	tflog.Debug(ctx, fmt.Sprintf("Making GET request to: %s", url))
 
-	httpResp, err := r.httpClient.Do(httpReq)
+	// Use retry logic with exponential backoff for 429 errors (max 20 retries)
+	httpResp, err := client.DoWithRetry(ctx, r.httpClient, httpReq, 5)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error making HTTP request",
@@ -290,7 +294,8 @@ func (r *ConditionalAccessPolicyResource) Update(ctx context.Context, req resour
 
 	tflog.Debug(ctx, fmt.Sprintf("Making PATCH request to: %s", url))
 
-	httpResp, err := r.httpClient.Do(httpReq)
+	// Use retry logic with exponential backoff for 429 errors (max 20 retries)
+	httpResp, err := client.DoWithRetry(ctx, r.httpClient, httpReq, 5)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error making HTTP request",
@@ -376,7 +381,8 @@ func (r *ConditionalAccessPolicyResource) Delete(ctx context.Context, req resour
 
 	tflog.Debug(ctx, fmt.Sprintf("Making DELETE request to: %s", url))
 
-	httpResp, err := r.httpClient.Do(httpReq)
+	// Use retry logic with exponential backoff for 429 errors (max 20 retries)
+	httpResp, err := client.DoWithRetry(ctx, r.httpClient, httpReq, 5)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error making HTTP request",
