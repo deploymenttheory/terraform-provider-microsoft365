@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.34.0-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.33.2-alpha...v0.34.0-alpha) (2025-11-06)
+
+
+### Features
+
+* added retry logic for generic http client and numerous bug fixes for conditional access policies ([ad07337](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/ad07337285367d919ea99048b7c0ba1eb8c8cf43))
+* added retry logic for generic http client and numerous bug fixes for conditional access policies ([#849](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/849)) ([38206f1](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/38206f1aac2d9e536e13388b204238ed0443b041))
+
+
+### Bug Fixes
+
+* **azure:** enforce camelCase for azure api resource ids ([1c09ee0](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/1c09ee05064edb907407c01552abaa1dcf836533))
+* **azure:** enforce camelCase for azure api resource ids ([#848](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/848)) ([7373ebe](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/7373ebe87e97f3255419b07b97f6398416521449))
+
 ## [0.33.2-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.33.1-alpha...v0.33.2-alpha) (2025-11-04)
 
 
