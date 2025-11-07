@@ -194,6 +194,39 @@ func (r *ConditionalAccessTermsOfUseResource) Schema(ctx context.Context, req re
 										"When `is_default` is `false`, must use only the two-letter language code (e.g., `en`, `fr`, `de`). " +
 										"The language code is a lowercase two-letter code derived from ISO 639-1.",
 									Required: true,
+									Validators: []validator.String{
+										stringvalidator.OneOf("en-US", // Default
+											"en",             // English
+											"en-GB",          // English (United Kingdom)
+											"af",             // Afrikaans
+											"am",             // Amharic
+											"ar-SA",          // Arabic (Saudi Arabia)
+											"hy",             // Armenian
+											"as",             // Assamese
+											"az",             // Azerbaijani
+											"be",             // Belarusian
+											"bn",             // Bangla
+											"bn-IN",          // Bangla (India)
+											"eu",             // Basque
+											"ku-Arab",        // Central Kurdish (Arabic)
+											"ja",             // Japanese
+											"zu",             // Zulu
+											"te",             // Telugu
+											"th",             // Thai
+											"ti",             // Tigrinya
+											"tr",             // Turkish
+											"tk",             // Turkmen
+											"uk",             // Ukrainian
+											"ur",             // Urdu
+											"ug",             // Uyghur
+											"uz",             // Uzbek
+											"ca-ES-valencia", // Valencian (Spain)
+											"vi",             // Vietnamese
+											"cy",             // Welsh
+											"wo",             // Wolof
+											"yo",             // Yoruba
+										),
+									},
 								},
 								"is_default": schema.BoolAttribute{
 									MarkdownDescription: "If none of the languages matches the client preference, indicates whether this is the default agreement file. If none of the files are marked as default, the first one is treated as the default. Must be true if the language is 'en-US'.",

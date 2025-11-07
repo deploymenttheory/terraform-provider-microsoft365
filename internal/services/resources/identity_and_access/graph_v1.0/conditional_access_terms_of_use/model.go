@@ -41,6 +41,5 @@ type AgreementFileLocalizationModel struct {
 
 // AgreementFileDataModel represents the file data
 type AgreementFileDataModel struct {
-	FilePathSource types.String `tfsdk:"file_path_source"`
-	Data           types.String `tfsdk:"data"`
+	Data types.String `tfsdk:"data"`
 }

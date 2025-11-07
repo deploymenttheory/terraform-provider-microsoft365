@@ -28,11 +28,14 @@ func TestAccConditionalAccessTermsOfUseResource_Basic(t *testing.T) {
 			{
 				Config: testAccConditionalAccessTermsOfUseConfigBasic(),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("microsoft365_graph_identity_and_access_conditional_access_terms_of_use.test", "display_name", "Acceptance Test Terms of Use"),
-					resource.TestCheckResourceAttr("microsoft365_graph_identity_and_access_conditional_access_terms_of_use.test", "is_viewing_before_acceptance_required", "true"),
-					resource.TestCheckResourceAttr("microsoft365_graph_identity_and_access_conditional_access_terms_of_use.test", "is_per_device_acceptance_required", "false"),
-					resource.TestCheckResourceAttr("microsoft365_graph_identity_and_access_conditional_access_terms_of_use.test", "user_reaccept_required_frequency", "P90D"),
-					resource.TestCheckResourceAttrSet("microsoft365_graph_identity_and_access_conditional_access_terms_of_use.test", "id"),
+					resource.TestCheckResourceAttr("microsoft365_graph_identity_and_access_conditional_access_terms_of_use.acc_test_conditional_access_terms_of_use_minimal", "display_name", "acc_test_conditional_access_terms_of_use_minimal"),
+					resource.TestCheckResourceAttr("microsoft365_graph_identity_and_access_conditional_access_terms_of_use.acc_test_conditional_access_terms_of_use_minimal", "is_viewing_before_acceptance_required", "true"),
+					resource.TestCheckResourceAttr("microsoft365_graph_identity_and_access_conditional_access_terms_of_use.acc_test_conditional_access_terms_of_use_minimal", "is_per_device_acceptance_required", "false"),
+					resource.TestCheckResourceAttr("microsoft365_graph_identity_and_access_conditional_access_terms_of_use.acc_test_conditional_access_terms_of_use_minimal", "user_reaccept_required_frequency", "P10D"),
+					resource.TestCheckResourceAttr("microsoft365_graph_identity_and_access_conditional_access_terms_of_use.acc_test_conditional_access_terms_of_use_minimal", "terms_expiration.start_date_time", "2025-11-06"),
+					resource.TestCheckResourceAttr("microsoft365_graph_identity_and_access_conditional_access_terms_of_use.acc_test_conditional_access_terms_of_use_minimal", "terms_expiration.frequency", "P180D"),
+					resource.TestCheckResourceAttr("microsoft365_graph_identity_and_access_conditional_access_terms_of_use.acc_test_conditional_access_terms_of_use_minimal", "file.localizations.#", "1"),
+					resource.TestCheckResourceAttrSet("microsoft365_graph_identity_and_access_conditional_access_terms_of_use.acc_test_conditional_access_terms_of_use_minimal", "id"),
 				),
 			},
 		},
@@ -54,18 +57,20 @@ func TestAccConditionalAccessTermsOfUseResource_Update(t *testing.T) {
 			{
 				Config: testAccConditionalAccessTermsOfUseConfigBasic(),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("microsoft365_graph_identity_and_access_conditional_access_terms_of_use.test", "display_name", "Acceptance Test Terms of Use"),
-					resource.TestCheckResourceAttr("microsoft365_graph_identity_and_access_conditional_access_terms_of_use.test", "is_viewing_before_acceptance_required", "true"),
-					resource.TestCheckResourceAttr("microsoft365_graph_identity_and_access_conditional_access_terms_of_use.test", "is_per_device_acceptance_required", "false"),
+					resource.TestCheckResourceAttr("microsoft365_graph_identity_and_access_conditional_access_terms_of_use.acc_test_conditional_access_terms_of_use_minimal", "display_name", "acc_test_conditional_access_terms_of_use_minimal"),
+					resource.TestCheckResourceAttr("microsoft365_graph_identity_and_access_conditional_access_terms_of_use.acc_test_conditional_access_terms_of_use_minimal", "is_viewing_before_acceptance_required", "true"),
+					resource.TestCheckResourceAttr("microsoft365_graph_identity_and_access_conditional_access_terms_of_use.acc_test_conditional_access_terms_of_use_minimal", "is_per_device_acceptance_required", "false"),
+					resource.TestCheckResourceAttr("microsoft365_graph_identity_and_access_conditional_access_terms_of_use.acc_test_conditional_access_terms_of_use_minimal", "file.localizations.#", "1"),
 				),
 			},
 			{
 				Config: testAccConditionalAccessTermsOfUseConfigUpdate(),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("microsoft365_graph_identity_and_access_conditional_access_terms_of_use.test", "display_name", "Updated Acceptance Test Terms of Use"),
-					resource.TestCheckResourceAttr("microsoft365_graph_identity_and_access_conditional_access_terms_of_use.test", "is_viewing_before_acceptance_required", "false"),
-					resource.TestCheckResourceAttr("microsoft365_graph_identity_and_access_conditional_access_terms_of_use.test", "is_per_device_acceptance_required", "true"),
-					resource.TestCheckResourceAttr("microsoft365_graph_identity_and_access_conditional_access_terms_of_use.test", "user_reaccept_required_frequency", "P180D"),
+					resource.TestCheckResourceAttr("microsoft365_graph_identity_and_access_conditional_access_terms_of_use.acc_test_conditional_access_terms_of_use_maximal", "display_name", "acc_test_conditional_access_terms_of_use_maximal"),
+					resource.TestCheckResourceAttr("microsoft365_graph_identity_and_access_conditional_access_terms_of_use.acc_test_conditional_access_terms_of_use_maximal", "is_viewing_before_acceptance_required", "true"),
+					resource.TestCheckResourceAttr("microsoft365_graph_identity_and_access_conditional_access_terms_of_use.acc_test_conditional_access_terms_of_use_maximal", "is_per_device_acceptance_required", "false"),
+					resource.TestCheckResourceAttr("microsoft365_graph_identity_and_access_conditional_access_terms_of_use.acc_test_conditional_access_terms_of_use_maximal", "user_reaccept_required_frequency", "P10D"),
+					resource.TestCheckResourceAttr("microsoft365_graph_identity_and_access_conditional_access_terms_of_use.acc_test_conditional_access_terms_of_use_maximal", "file.localizations.#", "30"),
 				),
 			},
 		},
@@ -88,9 +93,14 @@ func TestAccConditionalAccessTermsOfUseResource_Import(t *testing.T) {
 				Config: testAccConditionalAccessTermsOfUseConfigBasic(),
 			},
 			{
-				ResourceName:      "microsoft365_graph_identity_and_access_conditional_access_terms_of_use.test",
+				ResourceName:      "microsoft365_graph_identity_and_access_conditional_access_terms_of_use.acc_test_conditional_access_terms_of_use_minimal",
 				ImportState:       true,
 				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"file.localizations.0.file_data",
+					"file.localizations.0.file_data.data",
+					"file.localizations.0.file_data.%",
+				},
 			},
 		},
 	})
@@ -134,7 +144,7 @@ func testAccCheckConditionalAccessTermsOfUseDestroy(s *terraform.State) error {
 }
 
 func testAccConditionalAccessTermsOfUseConfigBasic() string {
-	accTestConfig, err := helpers.ParseHCLFile("tests/terraform/acceptance/01_basic.tf")
+	accTestConfig, err := helpers.ParseHCLFile("tests/terraform/acceptance/resource_minimal.tf")
 	if err != nil {
 		panic(fmt.Sprintf("failed to load acceptance test config: %s", err.Error()))
 	}
@@ -142,7 +152,7 @@ func testAccConditionalAccessTermsOfUseConfigBasic() string {
 }
 
 func testAccConditionalAccessTermsOfUseConfigUpdate() string {
-	accTestConfig, err := helpers.ParseHCLFile("tests/terraform/acceptance/02_update.tf")
+	accTestConfig, err := helpers.ParseHCLFile("tests/terraform/acceptance/resource_maximal.tf")
 	if err != nil {
 		panic(fmt.Sprintf("failed to load acceptance test config: %s", err.Error()))
 	}

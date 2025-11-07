@@ -42,9 +42,8 @@ func (m *ConditionalAccessTermsOfUseMock) RegisterMocks() {
 	mockState.agreements = make(map[string]map[string]any)
 	mockState.Unlock()
 
-	// Register POST for creating agreements
-	httpmock.RegisterResponder("POST", "https://graph.microsoft.com/v1.0/agreements",
-		func(req *http.Request) (*http.Response, error) {
+	// Helper function to create agreement response
+	createAgreementResponder := func(req *http.Request) (*http.Response, error) {
 			var requestBody map[string]any
 			err := json.NewDecoder(req.Body).Decode(&requestBody)
 			if err != nil {
@@ -99,11 +98,14 @@ func (m *ConditionalAccessTermsOfUseMock) RegisterMocks() {
 			mockState.Unlock()
 
 			return httpmock.NewJsonResponse(201, response)
-		})
+		}
 
-	// Register GET for individual agreements
-	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/v1\.0/agreements/[a-fA-F0-9-]+$`,
-		func(req *http.Request) (*http.Response, error) {
+	// Register POST for creating agreements (v1.0 and beta)
+	httpmock.RegisterResponder("POST", "https://graph.microsoft.com/v1.0/agreements", createAgreementResponder)
+	httpmock.RegisterResponder("POST", "https://graph.microsoft.com/beta/agreements", createAgreementResponder)
+
+	// Helper function to get agreement response
+	getAgreementResponder := func(req *http.Request) (*http.Response, error) {
 			// Extract ID from URL
 			urlParts := strings.Split(req.URL.Path, "/")
 			id := urlParts[len(urlParts)-1]
@@ -126,11 +128,14 @@ func (m *ConditionalAccessTermsOfUseMock) RegisterMocks() {
 			}
 
 			return httpmock.NewJsonResponse(200, agreementCopy)
-		})
+		}
 
-	// Register PATCH for updating agreements
-	httpmock.RegisterResponder("PATCH", `=~^https://graph\.microsoft\.com/v1\.0/agreements/[a-fA-F0-9-]+$`,
-		func(req *http.Request) (*http.Response, error) {
+	// Register GET for individual agreements (v1.0 and beta)
+	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/v1\.0/agreements/[a-fA-F0-9-]+$`, getAgreementResponder)
+	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/agreements/[a-fA-F0-9-]+$`, getAgreementResponder)
+
+	// Helper function to update agreement response
+	updateAgreementResponder := func(req *http.Request) (*http.Response, error) {
 			// Extract ID from URL
 			urlParts := strings.Split(req.URL.Path, "/")
 			id := urlParts[len(urlParts)-1]
@@ -179,11 +184,14 @@ func (m *ConditionalAccessTermsOfUseMock) RegisterMocks() {
 			mockState.Unlock()
 
 			return factories.SuccessResponse(200, updatedAgreement)(req)
-		})
+		}
 
-	// Register DELETE for agreements
-	httpmock.RegisterResponder("DELETE", `=~^https://graph\.microsoft\.com/v1\.0/agreements/[a-fA-F0-9-]+$`,
-		func(req *http.Request) (*http.Response, error) {
+	// Register PATCH for updating agreements (v1.0 and beta)
+	httpmock.RegisterResponder("PATCH", `=~^https://graph\.microsoft\.com/v1\.0/agreements/[a-fA-F0-9-]+$`, updateAgreementResponder)
+	httpmock.RegisterResponder("PATCH", `=~^https://graph\.microsoft\.com/beta/agreements/[a-fA-F0-9-]+$`, updateAgreementResponder)
+
+	// Helper function to delete agreement response
+	deleteAgreementResponder := func(req *http.Request) (*http.Response, error) {
 			// Extract ID from URL
 			urlParts := strings.Split(req.URL.Path, "/")
 			id := urlParts[len(urlParts)-1]
@@ -203,7 +211,11 @@ func (m *ConditionalAccessTermsOfUseMock) RegisterMocks() {
 			}
 
 			return httpmock.NewStringResponse(204, ""), nil
-		})
+		}
+
+	// Register DELETE for agreements (v1.0 and beta)
+	httpmock.RegisterResponder("DELETE", `=~^https://graph\.microsoft\.com/v1\.0/agreements/[a-fA-F0-9-]+$`, deleteAgreementResponder)
+	httpmock.RegisterResponder("DELETE", `=~^https://graph\.microsoft\.com/beta/agreements/[a-fA-F0-9-]+$`, deleteAgreementResponder)
 }
 
 // CleanupMockState clears the mock state for clean test runs
@@ -224,21 +236,27 @@ func (m *ConditionalAccessTermsOfUseMock) RegisterErrorMocks() {
 	mockState.agreements = make(map[string]map[string]any)
 	mockState.Unlock()
 
-	// Register error response for creating agreement with invalid data
-	httpmock.RegisterResponder("POST", "https://graph.microsoft.com/v1.0/agreements",
-		func(req *http.Request) (*http.Response, error) {
-			jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_create/post_agreement_error.json")
-			var errorResponse map[string]any
-			_ = json.Unmarshal([]byte(jsonStr), &errorResponse)
-			return httpmock.NewJsonResponse(400, errorResponse)
-		})
+	// Helper for error response when creating agreement with invalid data
+	createErrorResponder := func(req *http.Request) (*http.Response, error) {
+		jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_create/post_agreement_error.json")
+		var errorResponse map[string]any
+		_ = json.Unmarshal([]byte(jsonStr), &errorResponse)
+		return httpmock.NewJsonResponse(400, errorResponse)
+	}
 
-	// Register error response for agreement not found
-	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/v1\.0/agreements/[a-fA-F0-9-]+$`,
-		func(req *http.Request) (*http.Response, error) {
-			jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_delete/get_agreement_not_found.json")
-			var errorResponse map[string]any
-			_ = json.Unmarshal([]byte(jsonStr), &errorResponse)
-			return httpmock.NewJsonResponse(404, errorResponse)
-		})
+	// Helper for error response when agreement not found
+	getErrorResponder := func(req *http.Request) (*http.Response, error) {
+		jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_delete/get_agreement_not_found.json")
+		var errorResponse map[string]any
+		_ = json.Unmarshal([]byte(jsonStr), &errorResponse)
+		return httpmock.NewJsonResponse(404, errorResponse)
+	}
+
+	// Register error response for creating agreement with invalid data (v1.0 and beta)
+	httpmock.RegisterResponder("POST", "https://graph.microsoft.com/v1.0/agreements", createErrorResponder)
+	httpmock.RegisterResponder("POST", "https://graph.microsoft.com/beta/agreements", createErrorResponder)
+
+	// Register error response for agreement not found (v1.0 and beta)
+	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/v1\.0/agreements/[a-fA-F0-9-]+$`, getErrorResponder)
+	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/agreements/[a-fA-F0-9-]+$`, getErrorResponder)
 }

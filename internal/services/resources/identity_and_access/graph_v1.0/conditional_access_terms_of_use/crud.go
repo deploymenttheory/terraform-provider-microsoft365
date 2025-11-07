@@ -45,7 +45,7 @@ func (r *ConditionalAccessTermsOfUseResource) Create(ctx context.Context, req re
 	}
 	defer cancel()
 
-	requestBody, err := constructResource(ctx, r.httpClient, &object, true)
+	requestBody, err := constructResource(ctx, &object)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error constructing resource",
@@ -231,7 +231,7 @@ func (r *ConditionalAccessTermsOfUseResource) Update(ctx context.Context, req re
 	}
 	defer cancel()
 
-	requestBody, err := constructResource(ctx, r.httpClient, &plan, false)
+	requestBody, err := constructResource(ctx, &plan)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error constructing resource",
