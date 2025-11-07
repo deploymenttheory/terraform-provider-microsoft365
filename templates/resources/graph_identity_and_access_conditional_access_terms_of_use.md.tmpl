@@ -1,0 +1,44 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
+subcategory: "Identity and Access"
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Name}} ({{.Type}})
+
+{{ .Description | trimspace }}
+
+## Microsoft Documentation
+
+- [conditionalAccessTermsOfUse resource type](https://learn.microsoft.com/en-us/graph/api/resources/agreement?view=graph-rest-1.0)
+- [Create conditionalAccessTermsOfUse](https://learn.microsoft.com/en-us/graph/api/termsofusecontainer-post-agreements?view=graph-rest-1.0&tabs=http)
+- [Update conditionalAccessTermsOfUse](https://learn.microsoft.com/en-us/graph/api/agreement-update?view=graph-rest-1.0&tabs=http)
+- [Delete conditionalAccessTermsOfUse](https://learn.microsoft.com/en-us/graph/api/agreement-delete?view=graph-rest-1.0&tabs=http)
+
+## API Permissions
+
+The following API permissions are required in order to use this resource.
+
+### Microsoft Graph
+
+- **Read**: `DeviceManagementConfiguration.Read.All`
+- **Write**: `DeviceManagementConfiguration.ReadWrite.All`
+
+## Version History
+
+| Version | Status | Notes |
+|---------|--------|-------|
+| v0.34.0-alpha | Experimental | Initial release |
+
+## Example Usage
+
+{{ tffile "examples/resources/microsoft365_graph_identity_and_access_conditional_access_terms_of_use/resource.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}
+
+## Import
+
+Import is supported using the following syntax:
+
+{{ codefile "shell" "examples/resources/microsoft365_graph_identity_and_access_conditional_access_terms_of_use/import.sh" }} 

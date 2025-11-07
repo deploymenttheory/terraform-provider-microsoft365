@@ -250,9 +250,10 @@ func constructConditions(ctx context.Context, data *ConditionalAccessConditions)
 								if value != nil {
 									externalTenants["membershipKind"] = *value
 									// Add the required @odata.type based on membership kind
-									if *value == "all" {
+									switch *value {
+									case "all":
 										externalTenants["@odata.type"] = "#microsoft.graph.conditionalAccessAllExternalTenants"
-									} else if *value == "enumerated" {
+									case "enumerated":
 										externalTenants["@odata.type"] = "#microsoft.graph.conditionalAccessEnumeratedExternalTenants"
 									}
 								}
@@ -316,9 +317,10 @@ func constructConditions(ctx context.Context, data *ConditionalAccessConditions)
 								if value != nil {
 									externalTenants["membershipKind"] = *value
 									// Add the required @odata.type based on membership kind
-									if *value == "all" {
+									switch *value {
+									case "all":
 										externalTenants["@odata.type"] = "#microsoft.graph.conditionalAccessAllExternalTenants"
-									} else if *value == "enumerated" {
+									case "enumerated":
 										externalTenants["@odata.type"] = "#microsoft.graph.conditionalAccessEnumeratedExternalTenants"
 									}
 								}

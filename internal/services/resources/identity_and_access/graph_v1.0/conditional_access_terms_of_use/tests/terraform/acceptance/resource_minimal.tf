@@ -1,5 +1,5 @@
-resource "microsoft365_graph_identity_and_access_conditional_access_terms_of_use" "unit_test_conditional_access_terms_of_use_minimal" {
-  display_name                          = "unit_test_conditional_access_terms_of_use_minimal"
+resource "microsoft365_graph_identity_and_access_conditional_access_terms_of_use" "acc_test_conditional_access_terms_of_use_minimal" {
+  display_name                          = "acc_test_conditional_access_terms_of_use_minimal"
   is_viewing_before_acceptance_required = true
   is_per_device_acceptance_required     = false
   user_reaccept_required_frequency      = "P10D"
