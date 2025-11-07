@@ -24,7 +24,7 @@ resource "microsoft365_graph_identity_and_access_conditional_access_terms_of_use
       {
         file_name        = "terms-fr.pdf"
         display_name     = "Terms of Use - French"
-        language         = "fr-FR"
+        language         = "fr"
         is_default       = false
         is_major_version = false
         file_data = {

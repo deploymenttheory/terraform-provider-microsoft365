@@ -2,116 +2,72 @@ package graphConditionalAccessTermsOfUse
 
 import (
 	"context"
+	"encoding/base64"
+	"encoding/json"
 	"fmt"
+	"strings"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/constructors"
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/client"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
-	"github.com/microsoft/kiota-abstractions-go/serialization"
-	msgraphsdk "github.com/microsoftgraph/msgraph-sdk-go"
-	"github.com/microsoftgraph/msgraph-sdk-go/models"
 )
 
-// constructResource uses the Microsoft Graph SDK models directly instead of raw HTTP calls
-func constructResource(ctx context.Context, client *msgraphsdk.GraphServiceClient, data *ConditionalAccessTermsOfUseResourceModel, isCreate bool) (models.Agreementable, error) {
+// constructResource constructs a map representing the Agreement resource for API calls
+func constructResource(ctx context.Context, httpClient *client.AuthenticatedHTTPClient, data *ConditionalAccessTermsOfUseResourceModel, isCreate bool) (map[string]any, error) {
 	tflog.Debug(ctx, fmt.Sprintf("Constructing %s resource from model", ResourceName))
 
-	if err := validateRequest(ctx, client, data, isCreate); err != nil {
+	if err := validateRequest(ctx, data); err != nil {
 		return nil, fmt.Errorf("validation failed: %w", err)
 	}
 
-	requestBody := models.NewAgreement()
+	requestBody := make(map[string]any)
 
-	convert.FrameworkToGraphString(data.DisplayName, requestBody.SetDisplayName)
-	convert.FrameworkToGraphBool(data.IsViewingBeforeAcceptanceRequired, requestBody.SetIsViewingBeforeAcceptanceRequired)
-	convert.FrameworkToGraphBool(data.IsPerDeviceAcceptanceRequired, requestBody.SetIsPerDeviceAcceptanceRequired)
+	if !data.DisplayName.IsNull() && !data.DisplayName.IsUnknown() {
+		requestBody["displayName"] = data.DisplayName.ValueString()
+	}
 
-	// Handle UserReacceptRequiredFrequency - use months to prevent day->week normalization
+	if !data.IsViewingBeforeAcceptanceRequired.IsNull() && !data.IsViewingBeforeAcceptanceRequired.IsUnknown() {
+		requestBody["isViewingBeforeAcceptanceRequired"] = data.IsViewingBeforeAcceptanceRequired.ValueBool()
+	}
+
+	if !data.IsPerDeviceAcceptanceRequired.IsNull() && !data.IsPerDeviceAcceptanceRequired.IsUnknown() {
+		requestBody["isPerDeviceAcceptanceRequired"] = data.IsPerDeviceAcceptanceRequired.ValueBool()
+	}
+
+	// Handle UserReacceptRequiredFrequency
 	if !data.UserReacceptRequiredFrequency.IsNull() && !data.UserReacceptRequiredFrequency.IsUnknown() {
 		frequencyStr := data.UserReacceptRequiredFrequency.ValueString()
 		if frequencyStr != "" {
-			var isoDuration *serialization.ISODuration
-			// Use months instead of days to prevent normalization (days get converted to weeks when months=0)
-			// The normalize() function only converts days to weeks when both months=0 AND years=0
-			switch frequencyStr {
-			case "P365D":
-				// 365 days = 12 months + 5 days (approximate, but close enough for the API)
-				isoDuration = serialization.NewDuration(0, 12, 5, 0, 0, 0, 0)
-			case "P180D":
-				// 180 days = 6 months (30 days per month average)
-				isoDuration = serialization.NewDuration(0, 6, 0, 0, 0, 0, 0)
-			case "P90D":
-				// 90 days = 3 months (30 days per month average)
-				isoDuration = serialization.NewDuration(0, 3, 0, 0, 0, 0, 0)
-			case "P30D":
-				// 30 days = 1 month
-				isoDuration = serialization.NewDuration(0, 1, 0, 0, 0, 0, 0)
-			default:
-				// Fallback to parsing if it's not one of our standard values
-				if parsed, err := serialization.ParseISODuration(frequencyStr); err == nil {
-					isoDuration = parsed
-				} else {
-					tflog.Warn(ctx, "Failed to parse UserReacceptRequiredFrequency", map[string]any{
-						"error": err.Error(),
-					})
-				}
-			}
-			if isoDuration != nil {
-				requestBody.SetUserReacceptRequiredFrequency(isoDuration)
-			}
+			requestBody["userReacceptRequiredFrequency"] = frequencyStr
 		}
 	}
 
+	// Handle terms expiration
 	if !data.TermsExpiration.IsNull() && !data.TermsExpiration.IsUnknown() {
 		var termsExpiration TermsExpirationModel
 		diags := data.TermsExpiration.As(ctx, &termsExpiration, basetypes.ObjectAsOptions{})
 		if !diags.HasError() {
-			termsExpirationObj := models.NewTermsExpiration()
+			termsExpirationObj := make(map[string]any)
 
-			if err := convert.FrameworkToGraphTimeFromDateOnly(termsExpiration.StartDateTime, termsExpirationObj.SetStartDateTime); err != nil {
-				tflog.Warn(ctx, "Failed to convert terms expiration start date time", map[string]any{
-					"error": err.Error(),
-				})
+			if !termsExpiration.StartDateTime.IsNull() && !termsExpiration.StartDateTime.IsUnknown() {
+				startDateTime := termsExpiration.StartDateTime.ValueString()
+				// If the datetime doesn't contain 'T', append T00:00:00Z for ISO 8601 format
+				if !strings.Contains(startDateTime, "T") {
+					startDateTime = startDateTime + "T00:00:00Z"
+				}
+				termsExpirationObj["startDateTime"] = startDateTime
 			}
 
-			// Handle Frequency - use months to prevent day->week normalization
 			if !termsExpiration.Frequency.IsNull() && !termsExpiration.Frequency.IsUnknown() {
 				frequencyStr := termsExpiration.Frequency.ValueString()
 				if frequencyStr != "" {
-					var isoDuration *serialization.ISODuration
-					// Use months instead of days to prevent normalization (days get converted to weeks when months=0)
-					// The normalize() function only converts days to weeks when both months=0 AND years=0
-					switch frequencyStr {
-					case "P365D":
-						// 365 days = 12 months + 5 days (approximate, but close enough for the API)
-						isoDuration = serialization.NewDuration(0, 12, 5, 0, 0, 0, 0)
-					case "P180D":
-						// 180 days = 6 months (30 days per month average)
-						isoDuration = serialization.NewDuration(0, 6, 0, 0, 0, 0, 0)
-					case "P90D":
-						// 90 days = 3 months (30 days per month average)
-						isoDuration = serialization.NewDuration(0, 3, 0, 0, 0, 0, 0)
-					case "P30D":
-						// 30 days = 1 month
-						isoDuration = serialization.NewDuration(0, 1, 0, 0, 0, 0, 0)
-					default:
-						// Fallback to parsing if it's not one of our standard values
-						if parsed, err := serialization.ParseISODuration(frequencyStr); err == nil {
-							isoDuration = parsed
-						} else {
-							tflog.Warn(ctx, "Failed to parse terms expiration frequency", map[string]any{
-								"error": err.Error(),
-							})
-						}
-					}
-					if isoDuration != nil {
-						termsExpirationObj.SetFrequency(isoDuration)
-					}
+					termsExpirationObj["frequency"] = frequencyStr
 				}
 			}
 
-			requestBody.SetTermsExpiration(termsExpirationObj)
+			if len(termsExpirationObj) > 0 {
+				requestBody["termsExpiration"] = termsExpirationObj
+			}
 		}
 	}
 
@@ -120,50 +76,86 @@ func constructResource(ctx context.Context, client *msgraphsdk.GraphServiceClien
 		var file AgreementFileModel
 		diags := data.File.As(ctx, &file, basetypes.ObjectAsOptions{})
 		if !diags.HasError() {
-			agreementFile := models.NewAgreementFile()
+			agreementFile := make(map[string]any)
 
 			// Handle localizations
 			if !file.Localizations.IsNull() && !file.Localizations.IsUnknown() {
 				var localizations []AgreementFileLocalizationModel
 				diags := file.Localizations.ElementsAs(ctx, &localizations, false)
 				if !diags.HasError() {
-					agreementLocalizations := make([]models.AgreementFileLocalizationable, len(localizations))
+					agreementLocalizations := make([]map[string]any, len(localizations))
 					for i, loc := range localizations {
-						localization := models.NewAgreementFileLocalization()
-						convert.FrameworkToGraphString(loc.FileName, localization.SetFileName)
-						convert.FrameworkToGraphString(loc.DisplayName, localization.SetDisplayName)
-						convert.FrameworkToGraphString(loc.Language, localization.SetLanguage)
-						convert.FrameworkToGraphBool(loc.IsDefault, localization.SetIsDefault)
-						convert.FrameworkToGraphBool(loc.IsMajorVersion, localization.SetIsMajorVersion)
+						localization := make(map[string]any)
+
+						if !loc.FileName.IsNull() && !loc.FileName.IsUnknown() {
+							localization["fileName"] = loc.FileName.ValueString()
+						}
+
+						if !loc.DisplayName.IsNull() && !loc.DisplayName.IsUnknown() {
+							localization["displayName"] = loc.DisplayName.ValueString()
+						}
+
+						if !loc.Language.IsNull() && !loc.Language.IsUnknown() {
+							localization["language"] = loc.Language.ValueString()
+						}
+
+						if !loc.IsDefault.IsNull() && !loc.IsDefault.IsUnknown() {
+							localization["isDefault"] = loc.IsDefault.ValueBool()
+						}
+
+						if !loc.IsMajorVersion.IsNull() && !loc.IsMajorVersion.IsUnknown() {
+							localization["isMajorVersion"] = loc.IsMajorVersion.ValueBool()
+						}
 
 						// Handle file data
 						if !loc.FileData.IsNull() && !loc.FileData.IsUnknown() {
 							var fileData AgreementFileDataModel
 							diags := loc.FileData.As(ctx, &fileData, basetypes.ObjectAsOptions{})
 							if !diags.HasError() {
-								fileDataObj := models.NewAgreementFileData()
-								convert.FrameworkToGraphBytes(fileData.Data, fileDataObj.SetData)
-								localization.SetFileData(fileDataObj)
+								fileDataObj := make(map[string]any)
+
+								if !fileData.Data.IsNull() && !fileData.Data.IsUnknown() {
+									// Data should already be base64 encoded
+									dataStr := fileData.Data.ValueString()
+									// Validate it's proper base64
+									if _, err := base64.StdEncoding.DecodeString(dataStr); err != nil {
+										tflog.Warn(ctx, "File data is not valid base64", map[string]any{
+											"error": err.Error(),
+										})
+									}
+									fileDataObj["data"] = dataStr
+								}
+
+								if len(fileDataObj) > 0 {
+									localization["fileData"] = fileDataObj
+								}
 							}
 						}
 
 						agreementLocalizations[i] = localization
 					}
-					agreementFile.SetLocalizations(agreementLocalizations)
+					agreementFile["localizations"] = agreementLocalizations
 				}
 			}
 
-			requestBody.SetFile(agreementFile)
+			if len(agreementFile) > 0 {
+				requestBody["file"] = agreementFile
+			}
 		}
 	}
 
-	if err := constructors.DebugLogGraphObject(ctx, fmt.Sprintf("Final JSON to be sent to Graph API for resource %s", ResourceName), requestBody); err != nil {
-		tflog.Error(ctx, "Failed to debug log object", map[string]any{
+	// Debug log the final JSON that will be sent to the API
+	if debugJSON, err := json.MarshalIndent(requestBody, "", "    "); err == nil {
+		tflog.Debug(ctx, fmt.Sprintf("Final JSON to be sent to Graph API for resource %s", ResourceName), map[string]any{
+			"json": "\n" + string(debugJSON),
+		})
+	} else {
+		tflog.Error(ctx, "Failed to marshal request body for debug logging", map[string]any{
 			"error": err.Error(),
 		})
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Finished constructing %s resource using Graph SDK", ResourceName))
+	tflog.Debug(ctx, fmt.Sprintf("Finished constructing %s resource", ResourceName))
 
 	return requestBody, nil
 }

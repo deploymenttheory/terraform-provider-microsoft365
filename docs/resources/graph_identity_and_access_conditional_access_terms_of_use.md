@@ -26,7 +26,13 @@ Manages Microsoft 365 Terms of Use Agreements using the `/agreements` endpoint. 
 
 - `terms_expiration` (Attributes) Expiration schedule and frequency of agreement for all users. (see [below for nested schema](#nestedatt--terms_expiration))
 - `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))
-- `user_reaccept_required_frequency` (String) The duration after which the user must reaccept the terms of use. Accepted values: `P365D` for annually, `P180D` for bi-annually, `P90D` for quarterly, `P30D` for monthly.
+- `user_reaccept_required_frequency` (String) The duration after which the user must reaccept the terms of use. The value must be in ISO 8601 duration format.
+
+**Accepted values:**
+- `P365D` - Annually (365 days)
+- `P180D` - Bi-annually (180 days)
+- `P90D` - Quarterly (90 days)
+- `P30D` - Monthly (30 days)
 
 ### Read-Only
 
@@ -69,7 +75,13 @@ Required:
 
 Optional:
 
-- `frequency` (String) Represents the frequency at which the terms will expire, after its first expiration as set in startDateTime. Accepted values: `P365D` for annually, `P180D` for bi-annually, `P90D` for quarterly, `P30D` for monthly.
+- `frequency` (String) Represents the frequency at which the terms will expire, after its first expiration as set in startDateTime. The value must be in ISO 8601 duration format.
+
+**Accepted values:**
+- `P365D` - Annually (365 days)
+- `P180D` - Bi-annually (180 days)
+- `P90D` - Quarterly (90 days)
+- `P30D` - Monthly (30 days)
 - `start_date_time` (String) The DateTime when the agreement is set to expire for all users. The Timestamp type represents date and time information using ISO 8601 format and is always in UTC time.
 
 

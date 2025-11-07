@@ -3,79 +3,72 @@ package graphConditionalAccessTermsOfUse
 import (
 	"context"
 	"fmt"
+	"strings"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
-	"github.com/microsoftgraph/msgraph-sdk-go/models"
 )
 
-// MapRemoteResourceStateToTerraform maps the Graph API model into the Terraform state model
-func MapRemoteResourceStateToTerraform(ctx context.Context, data *ConditionalAccessTermsOfUseResourceModel, remoteResource models.Agreementable) {
+// MapRemoteResourceStateToTerraform maps the Graph API response map into the Terraform state model
+func MapRemoteResourceStateToTerraform(ctx context.Context, data *ConditionalAccessTermsOfUseResourceModel, remoteResource map[string]any) {
 	if remoteResource == nil {
 		tflog.Debug(ctx, "Remote resource is nil")
 		return
 	}
 
 	tflog.Debug(ctx, "Starting to map remote state to Terraform state", map[string]any{
-		"resourceName": remoteResource.GetDisplayName(),
-		"resourceId":   remoteResource.GetId(),
+		"resourceName":       remoteResource["displayName"],
+		"resourceId":         remoteResource["id"],
+		"hasFilesArray":      remoteResource["files"] != nil,
+		"remoteResourceKeys": fmt.Sprintf("%v", getMapKeys(remoteResource)),
 	})
 
-	data.ID = convert.GraphToFrameworkString(remoteResource.GetId())
-	data.DisplayName = convert.GraphToFrameworkString(remoteResource.GetDisplayName())
-	data.IsViewingBeforeAcceptanceRequired = convert.GraphToFrameworkBool(remoteResource.GetIsViewingBeforeAcceptanceRequired())
-	data.IsPerDeviceAcceptanceRequired = convert.GraphToFrameworkBool(remoteResource.GetIsPerDeviceAcceptanceRequired())
+	// Preserve existing file_data from prior state for matching purposes
+	priorFileDataMap := extractPriorFileData(ctx, data)
 
-	if remoteResource.GetUserReacceptRequiredFrequency() != nil {
-		isoValue := convert.GraphToFrameworkISODuration(remoteResource.GetUserReacceptRequiredFrequency())
-		if !isoValue.IsNull() {
-			// Handle server-side normalization by converting back to expected format
-			normalizedValue := isoValue.ValueString()
-			switch normalizedValue {
-			case "P52W", "P1Y", "P365DT0.001S", "P12M5D":
-				data.UserReacceptRequiredFrequency = types.StringValue("P365D")
-			case "P12W", "P3M", "P2M30D", "P90DT0.001S":
-				data.UserReacceptRequiredFrequency = types.StringValue("P90D")
-			case "P26W", "P6M", "P180DT0.001S":
-				data.UserReacceptRequiredFrequency = types.StringValue("P180D")
-			case "P4W", "P1M", "P30DT0.001S":
-				data.UserReacceptRequiredFrequency = types.StringValue("P30D")
-			default:
-				data.UserReacceptRequiredFrequency = isoValue
-			}
-		} else {
-			data.UserReacceptRequiredFrequency = types.StringNull()
-		}
+	// Map ID
+	if id, ok := remoteResource["id"].(string); ok {
+		data.ID = types.StringValue(id)
+	}
+
+	// Map DisplayName
+	if displayName, ok := remoteResource["displayName"].(string); ok {
+		data.DisplayName = types.StringValue(displayName)
+	}
+
+	// Map IsViewingBeforeAcceptanceRequired
+	if isViewingBeforeAcceptanceRequired, ok := remoteResource["isViewingBeforeAcceptanceRequired"].(bool); ok {
+		data.IsViewingBeforeAcceptanceRequired = types.BoolValue(isViewingBeforeAcceptanceRequired)
+	}
+
+	// Map IsPerDeviceAcceptanceRequired
+	if isPerDeviceAcceptanceRequired, ok := remoteResource["isPerDeviceAcceptanceRequired"].(bool); ok {
+		data.IsPerDeviceAcceptanceRequired = types.BoolValue(isPerDeviceAcceptanceRequired)
+	}
+
+	// Map UserReacceptRequiredFrequency
+	if userReacceptRequiredFrequency, ok := remoteResource["userReacceptRequiredFrequency"].(string); ok && userReacceptRequiredFrequency != "" {
+		data.UserReacceptRequiredFrequency = types.StringValue(userReacceptRequiredFrequency)
 	} else {
 		data.UserReacceptRequiredFrequency = types.StringNull()
 	}
 
-	if termsExpiration := remoteResource.GetTermsExpiration(); termsExpiration != nil {
+	// Map TermsExpiration
+	if termsExpirationRaw, ok := remoteResource["termsExpiration"].(map[string]any); ok {
 		var startDateTimeValue attr.Value = types.StringNull()
 		var frequencyValue attr.Value = types.StringNull()
 
-		startDateTimeValue = convert.GraphToFrameworkTimeAsDateOnly(termsExpiration.GetStartDateTime())
+		if startDateTime, ok := termsExpirationRaw["startDateTime"].(string); ok {
+			// Strip time portion to return just the date (YYYY-MM-DD)
+			// API returns "2025-11-06T00:00:00Z", we store "2025-11-06"
+			dateOnly := stripTimeFromISO8601DateTime(startDateTime)
+			startDateTimeValue = types.StringValue(dateOnly)
+		}
 
-		// Handle frequency with server-side normalization conversion
-		if termsExpiration.GetFrequency() != nil {
-			isoValue := convert.GraphToFrameworkISODuration(termsExpiration.GetFrequency())
-			if !isoValue.IsNull() {
-				normalizedValue := isoValue.ValueString()
-				switch normalizedValue {
-				case "P52W", "P1Y", "P365DT0.001S", "P12M5D":
-					frequencyValue = types.StringValue("P365D")
-				case "P12W", "P3M", "P2M30D", "P90DT0.001S":
-					frequencyValue = types.StringValue("P90D")
-				case "P26W", "P6M", "P180DT0.001S":
-					frequencyValue = types.StringValue("P180D")
-				case "P4W", "P1M", "P30DT0.001S":
-					frequencyValue = types.StringValue("P30D")
-				default:
-					frequencyValue = isoValue
-				}
-			}
+		if frequency, ok := termsExpirationRaw["frequency"].(string); ok && frequency != "" {
+			frequencyValue = types.StringValue(frequency)
 		}
 
 		termsExpirationAttrs := map[string]attr.Value{
@@ -98,52 +91,71 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *ConditionalAcc
 		})
 	}
 
-	// Handle file configuration
-	if file := remoteResource.GetFile(); file != nil {
+	// Map File configuration
+	// The API returns "files" array at the root level, not nested under "file"
+	if filesRaw, ok := remoteResource["files"].([]any); ok && len(filesRaw) > 0 {
+		tflog.Debug(ctx, "Mapping files from API response", map[string]any{
+			"filesCount": len(filesRaw),
+		})
+
 		fileAttrs := map[string]attr.Value{}
 
-		// Handle localizations
-		if localizations := file.GetLocalizations(); len(localizations) > 0 {
-			localizationElements := make([]attr.Value, len(localizations))
+		// Handle localizations (files array from API)
+		localizationsRaw := filesRaw
+		if len(localizationsRaw) > 0 {
+			localizationElements := make([]attr.Value, len(localizationsRaw))
 
-			for i, loc := range localizations {
-				var fileDataValue attr.Value = types.StringNull()
-				if fileData := loc.GetFileData(); fileData != nil {
-					fileDataValue = convert.GraphToFrameworkBytes(fileData.GetData())
-				}
+			for i, locRaw := range localizationsRaw {
+				if loc, ok := locRaw.(map[string]any); ok {
+					tflog.Debug(ctx, "Processing localization", map[string]any{
+						"index":            i,
+						"fileName":         loc["fileName"],
+						"language":         loc["language"],
+						"isDefault":        loc["isDefault"],
+						"isMajorVersion":   loc["isMajorVersion"],
+						"localizationKeys": fmt.Sprintf("%v", getMapKeys(loc)),
+					})
 
-				fileDataAttrs := map[string]attr.Value{
-					"data": fileDataValue,
-				}
+					// Try to preserve file_data from prior state by matching on fileName
+					fileDataValue := types.ObjectNull(map[string]attr.Type{"data": types.StringType})
+					if fileName, ok := loc["fileName"].(string); ok {
+						if priorData, exists := priorFileDataMap[fileName]; exists {
+							fileDataValue = priorData
+							tflog.Debug(ctx, "Preserved file_data from prior state", map[string]any{
+								"fileName": fileName,
+							})
+						}
+					}
 
-				fileDataObj, diags := types.ObjectValue(map[string]attr.Type{
-					"data": types.StringType,
-				}, fileDataAttrs)
+					localizationAttrs := map[string]attr.Value{
+						"file_name":        getStringValue(loc, "fileName"),
+						"display_name":     getStringValue(loc, "displayName"),
+						"language":         getStringValue(loc, "language"),
+						"is_default":       getBoolValue(loc, "isDefault"),
+						"is_major_version": getBoolValue(loc, "isMajorVersion"),
+						"file_data":        fileDataValue,
+					}
 
-				if diags.HasError() {
-					continue
-				}
+					tflog.Debug(ctx, "Mapped localization attributes", map[string]any{
+						"index":            i,
+						"file_name":        localizationAttrs["file_name"],
+						"language":         localizationAttrs["language"],
+						"is_default":       localizationAttrs["is_default"],
+						"is_major_version": localizationAttrs["is_major_version"],
+					})
 
-				localizationAttrs := map[string]attr.Value{
-					"file_name":        convert.GraphToFrameworkString(loc.GetFileName()),
-					"display_name":     convert.GraphToFrameworkString(loc.GetDisplayName()),
-					"language":         convert.GraphToFrameworkString(loc.GetLanguage()),
-					"is_default":       convert.GraphToFrameworkBool(loc.GetIsDefault()),
-					"is_major_version": convert.GraphToFrameworkBool(loc.GetIsMajorVersion()),
-					"file_data":        fileDataObj,
-				}
+					localizationObj, diags := types.ObjectValue(map[string]attr.Type{
+						"file_name":        types.StringType,
+						"display_name":     types.StringType,
+						"language":         types.StringType,
+						"is_default":       types.BoolType,
+						"is_major_version": types.BoolType,
+						"file_data":        types.ObjectType{AttrTypes: map[string]attr.Type{"data": types.StringType}},
+					}, localizationAttrs)
 
-				localizationObj, diags := types.ObjectValue(map[string]attr.Type{
-					"file_name":        types.StringType,
-					"display_name":     types.StringType,
-					"language":         types.StringType,
-					"is_default":       types.BoolType,
-					"is_major_version": types.BoolType,
-					"file_data":        types.ObjectType{AttrTypes: map[string]attr.Type{"data": types.StringType}},
-				}, localizationAttrs)
-
-				if !diags.HasError() {
-					localizationElements[i] = localizationObj
+					if !diags.HasError() {
+						localizationElements[i] = localizationObj
+					}
 				}
 			}
 
@@ -163,25 +175,112 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *ConditionalAcc
 			}
 		}
 
-		fileObj, diags := types.ObjectValue(map[string]attr.Type{
-			"localizations": types.SetType{
-				ElemType: types.ObjectType{
-					AttrTypes: map[string]attr.Type{
-						"file_name":        types.StringType,
-						"display_name":     types.StringType,
-						"language":         types.StringType,
-						"is_default":       types.BoolType,
-						"is_major_version": types.BoolType,
-						"file_data":        types.ObjectType{AttrTypes: map[string]attr.Type{"data": types.StringType}},
+		if len(fileAttrs) > 0 {
+			fileObj, diags := types.ObjectValue(map[string]attr.Type{
+				"localizations": types.SetType{
+					ElemType: types.ObjectType{
+						AttrTypes: map[string]attr.Type{
+							"file_name":        types.StringType,
+							"display_name":     types.StringType,
+							"language":         types.StringType,
+							"is_default":       types.BoolType,
+							"is_major_version": types.BoolType,
+							"file_data":        types.ObjectType{AttrTypes: map[string]attr.Type{"data": types.StringType}},
+						},
 					},
 				},
-			},
-		}, fileAttrs)
+			}, fileAttrs)
 
-		if !diags.HasError() {
-			data.File = fileObj
+			if !diags.HasError() {
+				data.File = fileObj
+				tflog.Debug(ctx, "Successfully mapped file configuration to state")
+			} else {
+				tflog.Error(ctx, "Error mapping file configuration", map[string]any{
+					"diagnostics": diags,
+				})
+			}
 		}
+	} else {
+		tflog.Warn(ctx, "No files array found in API response or files array is empty")
 	}
 
 	tflog.Debug(ctx, fmt.Sprintf("Finished mapping resource %s with id %s", ResourceName, data.ID.ValueString()))
+}
+
+// Helper functions to safely extract values from maps
+func getStringValue(m map[string]any, key string) types.String {
+	if val, ok := m[key].(string); ok {
+		return types.StringValue(val)
+	}
+	return types.StringNull()
+}
+
+func getBoolValue(m map[string]any, key string) types.Bool {
+	if val, ok := m[key].(bool); ok {
+		return types.BoolValue(val)
+	}
+	return types.BoolNull()
+}
+
+// stripTimeFromISO8601DateTime extracts just the date portion from an ISO 8601 datetime
+// Converts "2025-11-06T00:00:00Z" to "2025-11-06"
+func stripTimeFromISO8601DateTime(datetime string) string {
+	if idx := strings.Index(datetime, "T"); idx > 0 {
+		return datetime[:idx]
+	}
+	return datetime
+}
+
+// getMapKeys returns the keys of a map as a slice
+func getMapKeys(m map[string]any) []string {
+	keys := make([]string, 0, len(m))
+	for k := range m {
+		keys = append(keys, k)
+	}
+	return keys
+}
+
+// extractPriorFileData extracts file_data values from the prior state, keyed by fileName
+func extractPriorFileData(ctx context.Context, data *ConditionalAccessTermsOfUseResourceModel) map[string]types.Object {
+	fileDataMap := make(map[string]types.Object)
+
+	if data.File.IsNull() || data.File.IsUnknown() {
+		return fileDataMap
+	}
+
+	var file AgreementFileModel
+	diags := data.File.As(ctx, &file, basetypes.ObjectAsOptions{})
+	if diags.HasError() {
+		tflog.Debug(ctx, "Failed to extract file from prior state", map[string]any{
+			"diagnostics": diags,
+		})
+		return fileDataMap
+	}
+
+	if file.Localizations.IsNull() || file.Localizations.IsUnknown() {
+		return fileDataMap
+	}
+
+	var localizations []AgreementFileLocalizationModel
+	diags = file.Localizations.ElementsAs(ctx, &localizations, false)
+	if diags.HasError() {
+		tflog.Debug(ctx, "Failed to extract localizations from prior state", map[string]any{
+			"diagnostics": diags,
+		})
+		return fileDataMap
+	}
+
+	for _, loc := range localizations {
+		if !loc.FileName.IsNull() && !loc.FileName.IsUnknown() {
+			fileName := loc.FileName.ValueString()
+			if !loc.FileData.IsNull() && !loc.FileData.IsUnknown() {
+				fileDataMap[fileName] = loc.FileData
+				tflog.Debug(ctx, "Extracted file_data from prior state", map[string]any{
+					"fileName": fileName,
+				})
+			}
+		}
+	}
+
+	return fileDataMap
 }
