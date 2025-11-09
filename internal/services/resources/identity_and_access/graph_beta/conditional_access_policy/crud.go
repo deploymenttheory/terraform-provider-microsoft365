@@ -75,7 +75,6 @@ func (r *ConditionalAccessPolicyResource) Create(ctx context.Context, req resour
 
 	tflog.Debug(ctx, fmt.Sprintf("Making POST request to: %s", url))
 
-	// Use retry logic with exponential backoff for 429 errors (max 20 retries)
 	httpResp, err := client.DoWithRetry(ctx, r.httpClient, httpReq, 10)
 	if err != nil {
 		resp.Diagnostics.AddError(
@@ -193,7 +192,6 @@ func (r *ConditionalAccessPolicyResource) Read(ctx context.Context, req resource
 
 	tflog.Debug(ctx, fmt.Sprintf("Making GET request to: %s", url))
 
-	// Use retry logic with exponential backoff for 429 errors (max 20 retries)
 	httpResp, err := client.DoWithRetry(ctx, r.httpClient, httpReq, 10)
 	if err != nil {
 		resp.Diagnostics.AddError(
@@ -220,7 +218,6 @@ func (r *ConditionalAccessPolicyResource) Read(ctx context.Context, req resource
 		return
 	}
 
-	// Debug: Pretty print the raw API response
 	if prettyJson, err := json.MarshalIndent(baseResource, "", "  "); err == nil {
 		tflog.Debug(ctx, fmt.Sprintf("Raw API Response:\n%s", string(prettyJson)))
 	}
@@ -294,7 +291,6 @@ func (r *ConditionalAccessPolicyResource) Update(ctx context.Context, req resour
 
 	tflog.Debug(ctx, fmt.Sprintf("Making PATCH request to: %s", url))
 
-	// Use retry logic with exponential backoff for 429 errors (max 20 retries)
 	httpResp, err := client.DoWithRetry(ctx, r.httpClient, httpReq, 10)
 	if err != nil {
 		resp.Diagnostics.AddError(
@@ -381,7 +377,6 @@ func (r *ConditionalAccessPolicyResource) Delete(ctx context.Context, req resour
 
 	tflog.Debug(ctx, fmt.Sprintf("Making DELETE request to: %s", url))
 
-	// Use retry logic with exponential backoff for 429 errors (max 20 retries)
 	httpResp, err := client.DoWithRetry(ctx, r.httpClient, httpReq, 10)
 	if err != nil {
 		resp.Diagnostics.AddError(

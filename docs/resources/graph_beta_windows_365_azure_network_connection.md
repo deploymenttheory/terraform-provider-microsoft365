@@ -65,10 +65,10 @@ variable "ad_domain_password" {
 
 - `connection_type` (String) Specifies the method by which a provisioned Cloud PC is joined to Microsoft Entra. The azureADJoin option indicates the absence of an on-premises Active Directory (AD) in the current tenant that results in the Cloud PC device only joining to Microsoft Entra. The hybridAzureADJoin option indicates the presence of an on-premises AD in the current tenant and that the Cloud PC joins both the on-premises AD and Microsoft Entra. The selected option also determines the types of users who can be assigned and can sign into a Cloud PC. The azureADJoin option allows both cloud-only and hybrid users to be assigned and sign in, whereas hybridAzureADJoin is restricted to hybrid users only. Default: hybridAzureADJoin. Possible values: hybridAzureADJoin, azureADJoin, unknownFutureValue.
 - `display_name` (String) The display name for the Azure network connection.
-- `resource_group_id` (String) The ID of the target resource group. Required format: /subscriptions/{subscription-id}/resourceGroups/{resourceGroupName}.
-- `subnet_id` (String) The ID of the target subnet. Required format: /subscriptions/{subscription-id}/resourceGroups/{resourceGroupName}/providers/Microsoft.Network/virtualNetworks/{virtualNetworkId}/subnets/{subnetName}.
+- `resource_group_id` (String) The ID of the target resource group. Required format: /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}.
+- `subnet_id` (String) The ID of the target subnet. Required format: /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Network/virtualNetworks/{virtualNetworkId}/subnets/{subnetName}.
 - `subscription_id` (String) The ID of the target Azure subscription associated with your tenant.
-- `virtual_network_id` (String) The ID of the target virtual network. Required format: /subscriptions/{subscription-id}/resourceGroups/{resourceGroupName}/providers/Microsoft.Network/virtualNetworks/{virtualNetworkName}.
+- `virtual_network_id` (String) The ID of the target virtual network. Required format: /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Network/virtualNetworks/{virtualNetworkName}.
 
 ### Optional
 

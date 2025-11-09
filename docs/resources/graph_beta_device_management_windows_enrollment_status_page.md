@@ -87,14 +87,14 @@ resource "microsoft365_graph_beta_device_management_windows_enrollment_status_pa
 
 ### Required
 
-- `allow_device_reset_on_install_failure` (Boolean) Allow or block device reset on installation failure. Can only be set to true if block_device_use_until_all_apps_and_profiles_are_installed is false.
-- `allow_device_use_on_install_failure` (Boolean) Allow the user to continue using the device on installation failure. Can only be set to true if block_device_use_until_all_apps_and_profiles_are_installed is false.
+- `allow_device_reset_on_install_failure` (Boolean) Allow or block device reset on installation failure. When block_device_use_until_all_apps_and_profiles_are_installed is true, this must be false. When block_device_use_until_all_apps_and_profiles_are_installed is false, this can be true or false.
+- `allow_device_use_on_install_failure` (Boolean) Allow the user to continue using the device on installation failure. When block_device_use_until_all_apps_and_profiles_are_installed is true, this must be false. When block_device_use_until_all_apps_and_profiles_are_installed is false, this can be true or false.
 - `allow_log_collection_on_install_failure` (Boolean) Allow or block log collection on installation failure.
 - `block_device_use_until_all_apps_and_profiles_are_installed` (Boolean) Allow the user to retry the setup on installation failure.
 - `display_name` (String) The display name of the enrollment status page configuration.
 - `install_progress_timeout_in_minutes` (Number) Set installation progress timeout in minutes. Valid values are 1 to 1440 (24 hours).
 - `install_quality_updates` (Boolean) Whether to install quality updates during the enrollment status page experience.
-- `only_fail_selected_blocking_apps_in_technician_phase` (Boolean) When this is true, only the selected blocking apps will be failed in the technician phase.
+- `only_fail_selected_blocking_apps_in_technician_phase` (Boolean) When true, only the selected blocking apps will be failed in the technician phase. When block_device_use_until_all_apps_and_profiles_are_installed is true, this must be false. When block_device_use_until_all_apps_and_profiles_are_installed is false, this can be true or false.
 - `only_show_page_to_devices_provisioned_by_out_of_box_experience_oobe` (Boolean) Only show autopilot status page during initial device setup and during first user sign in to devices provisioned by oobe.
 - `show_installation_progress` (Boolean) Show or hide installation progress to user.
 
