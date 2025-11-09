@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/client"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
 	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/generic_client"
@@ -63,7 +64,7 @@ func (r *NamedLocationResource) Create(ctx context.Context, req resource.CreateR
 
 	tflog.Debug(ctx, fmt.Sprintf("Making POST request to: %s", url))
 
-	httpResp, err := r.httpClient.Do(httpReq)
+	httpResp, err := client.DoWithRetry(ctx, r.httpClient, httpReq, 10)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error making HTTP request",
@@ -173,7 +174,7 @@ func (r *NamedLocationResource) Read(ctx context.Context, req resource.ReadReque
 
 	tflog.Debug(ctx, fmt.Sprintf("Making GET request to: %s", url))
 
-	httpResp, err := r.httpClient.Do(httpReq)
+	httpResp, err := client.DoWithRetry(ctx, r.httpClient, httpReq, 10)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error making HTTP request",
@@ -258,7 +259,7 @@ func (r *NamedLocationResource) Update(ctx context.Context, req resource.UpdateR
 
 	tflog.Debug(ctx, fmt.Sprintf("Making PATCH request to: %s", url))
 
-	httpResp, err := r.httpClient.Do(httpReq)
+	httpResp, err := client.DoWithRetry(ctx, r.httpClient, httpReq, 10)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error making HTTP request",
@@ -366,7 +367,7 @@ func (r *NamedLocationResource) Delete(ctx context.Context, req resource.DeleteR
 
 	tflog.Debug(ctx, fmt.Sprintf("Making initial GET request to check resource before deletion: %s", getURL))
 
-	getResp, err := r.httpClient.Do(getReq)
+	getResp, err := client.DoWithRetry(ctx, r.httpClient, getReq, 10)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error making GET HTTP request",
@@ -432,7 +433,8 @@ func (r *NamedLocationResource) Delete(ctx context.Context, req resource.DeleteR
 
 		tflog.Debug(ctx, fmt.Sprintf("Making PATCH request to set isTrusted=false: %s", patchURL))
 
-		patchResp, err := r.httpClient.Do(patchReq)
+		// Use retry logic with exponential backoff for 429 errors (max 10 retries)
+		patchResp, err := client.DoWithRetry(ctx, r.httpClient, patchReq, 10)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error making PATCH HTTP request",
@@ -468,7 +470,8 @@ func (r *NamedLocationResource) Delete(ctx context.Context, req resource.DeleteR
 				return
 			}
 
-			verifyResp, err := r.httpClient.Do(verifyReq)
+			// Use retry logic with exponential backoff for 429 errors (max 10 retries)
+			verifyResp, err := client.DoWithRetry(ctx, r.httpClient, verifyReq, 10)
 			if err != nil {
 				resp.Diagnostics.AddError(
 					"Error making verification GET HTTP request",
@@ -530,7 +533,8 @@ func (r *NamedLocationResource) Delete(ctx context.Context, req resource.DeleteR
 
 	tflog.Debug(ctx, fmt.Sprintf("Making DELETE request to: %s", url))
 
-	httpResp, err := r.httpClient.Do(httpReq)
+	// Use retry logic with exponential backoff for 429 errors (max 10 retries)
+	httpResp, err := client.DoWithRetry(ctx, r.httpClient, httpReq, 10)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error making HTTP request",
