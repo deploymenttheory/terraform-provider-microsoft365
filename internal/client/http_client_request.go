@@ -24,8 +24,6 @@ func (c *AuthenticatedHTTPClient) Do(req *http.Request) (*http.Response, error) 
 	}
 
 	req.Header.Set("Authorization", "Bearer "+token.Token)
-
-	// Set standard Microsoft Graph API headers
 	req.Header.Set("Accept", "application/json")
 
 	// Set default headers for Graph API
