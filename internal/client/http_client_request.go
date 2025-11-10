@@ -24,8 +24,6 @@ func (c *AuthenticatedHTTPClient) Do(req *http.Request) (*http.Response, error) 
 	}
 
 	req.Header.Set("Authorization", "Bearer "+token.Token)
-
-	// Set standard Microsoft Graph API headers
 	req.Header.Set("Accept", "application/json")
 
 	// Set default headers for Graph API
@@ -104,11 +102,31 @@ func DoWithRetry(ctx context.Context, httpClient *AuthenticatedHTTPClient, req *
 		// Don't sleep after the last attempt
 		if attempt < maxRetries {
 			// Check if context is still valid before sleeping
-			select {
-			case <-ctx.Done():
+			if ctx.Err() != nil {
+				tflog.Warn(ctx, "Context cancelled before retry delay", map[string]any{
+					"attempt":     attempt + 1,
+					"context_err": ctx.Err().Error(),
+				})
 				return nil, ctx.Err()
-			case <-time.After(retryDelay):
-				// Continue to next retry
+			}
+
+			// Sleep for the retry delay
+			// Note: We use time.Sleep instead of select with ctx.Done() to ensure
+			// we respect the API's Retry-After header. If the context is cancelled
+			// during the sleep, the next attempt will detect it immediately.
+			tflog.Debug(ctx, fmt.Sprintf("Waiting %s before retry attempt %d", retryDelay, attempt+2), map[string]any{
+				"retry_delay":  retryDelay.String(),
+				"next_attempt": attempt + 2,
+			})
+			time.Sleep(retryDelay)
+
+			// Check context validity immediately after sleep
+			if ctx.Err() != nil {
+				tflog.Warn(ctx, "Context cancelled during retry delay", map[string]any{
+					"attempt":     attempt + 1,
+					"context_err": ctx.Err().Error(),
+				})
+				return nil, ctx.Err()
 			}
 		}
 	}

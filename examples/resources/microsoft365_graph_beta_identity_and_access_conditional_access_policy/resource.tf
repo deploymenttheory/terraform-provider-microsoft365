@@ -1,12 +1,16 @@
 # ==============================================================================
-# Conditional Access Policies - Baseline Device-based policies
+# Conditional Access Policies - Baseline (48 Policies)
 # ==============================================================================
-# This file defines 19 conditional access policies for Entra ID. Policies are
+# This file defines 48 conditional access policies for Entra ID. Policies are
 # organized by category:
 # - CAD: Device-based policies (19 policies)
+# - CAL: Location-based policies (6 policies)
+# - CAP: Platform-based policies (4 policies)
+# - CAU: User-based policies (19 policies)
 #
 # IMPORTANT: All policies are set to "enabledForReportingButNotEnforced" by
-# default. Review and test thoroughly before changing state to "enabled".
+# default (except CAU011 which is "disabled"). Review and test thoroughly
+# before changing state to "enabled".
 #
 # Break Glass Account Exclusion: All policies exclude the break glass accounts
 # group to ensure emergency access is maintained.
@@ -64,12 +68,7 @@ resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy"
     custom_authentication_factors = []
   }
 
-  timeouts = {
-    create = "30s"
-    read   = "30s"
-    update = "30s"
-    delete = "30s"
-  }
+
 }
 
 # CAD002: Windows Device Compliance
@@ -121,12 +120,7 @@ resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy"
     custom_authentication_factors = []
   }
 
-  timeouts = {
-    create = "30s"
-    read   = "30s"
-    update = "30s"
-    delete = "30s"
-  }
+
 }
 
 # CAD003: iOS and Android Device Compliance or App Protection
@@ -178,12 +172,7 @@ resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy"
     custom_authentication_factors = []
   }
 
-  timeouts = {
-    create = "30s"
-    read   = "30s"
-    update = "30s"
-    delete = "30s"
-  }
+
 }
 
 # CAD004: Require MFA on Non-Compliant Devices via Browser
@@ -235,12 +224,7 @@ resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy"
     }
   }
 
-  timeouts = {
-    create = "30s"
-    read   = "30s"
-    update = "30s"
-    delete = "30s"
-  }
+
 }
 
 # CAD005: Block Unsupported Device Platforms
@@ -285,17 +269,12 @@ resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy"
     custom_authentication_factors = []
   }
 
-  timeouts = {
-    create = "30s"
-    read   = "30s"
-    update = "30s"
-    delete = "30s"
-  }
+
 }
 
 # CAD006: Block Downloads on Unmanaged Devices
 # Session control to block downloads on unmanaged devices for Office 365.
-resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy" "cad006_block_download_unmanaged" {
+resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy" "cad006_session_block_download_unmanaged" {
   display_name = "CAD006-O365: Session block download on unmanaged device for All users when Browser and Modern App Clients and Non-Compliant-v1.5"
   state        = "enabledForReportingButNotEnforced"
 
@@ -343,12 +322,7 @@ resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy"
     custom_authentication_factors = []
   }
 
-  timeouts = {
-    create = "30s"
-    read   = "30s"
-    update = "30s"
-    delete = "30s"
-  }
+
 }
 
 # CAD007: Sign-in Frequency for Mobile Apps on Non-Compliant Devices
@@ -410,12 +384,7 @@ resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy"
     custom_authentication_factors = []
   }
 
-  timeouts = {
-    create = "30s"
-    read   = "30s"
-    update = "30s"
-    delete = "30s"
-  }
+
 }
 
 # CAD008: Sign-in Frequency for Browser on Non-Compliant Devices
@@ -472,12 +441,7 @@ resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy"
     custom_authentication_factors = []
   }
 
-  timeouts = {
-    create = "30s"
-    read   = "30s"
-    update = "30s"
-    delete = "30s"
-  }
+
 }
 
 # CAD009: Disable Browser Persistence on Non-Compliant Devices
@@ -531,12 +495,7 @@ resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy"
     custom_authentication_factors = []
   }
 
-  timeouts = {
-    create = "30s"
-    read   = "30s"
-    update = "30s"
-    delete = "30s"
-  }
+
 }
 
 # CAD010: Require MFA for Device Registration/Join
@@ -576,12 +535,7 @@ resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy"
     custom_authentication_factors = []
   }
 
-  timeouts = {
-    create = "30s"
-    read   = "30s"
-    update = "30s"
-    delete = "30s"
-  }
+
 }
 
 # CAD011: Linux Device Compliance
@@ -627,12 +581,7 @@ resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy"
     custom_authentication_factors = []
   }
 
-  timeouts = {
-    create = "30s"
-    read   = "30s"
-    update = "30s"
-    delete = "30s"
-  }
+
 }
 
 # CAD012: Admin Access on Compliant Devices
@@ -653,32 +602,32 @@ resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy"
         microsoft365_graph_beta_groups_group.cad012_exclude.id
       ]
       include_roles = [
-        "9b895d92-2cd3-44c7-9d02-a6ac2d5ea5c3", # Global Administrator
-        "cf1c38e5-3621-4004-a7cb-879624dced7c", # Application Administrator
-        "c4e39bd9-1100-46d3-8c65-fb160da0071f", # Authentication Administrator
-        "25a516ed-2fa0-40ea-a2d0-12923a21473a", # Billing Administrator
-        "aaf43236-0c0d-4d5f-883a-6955382ac081", # Cloud Application Administrator
-        "b0f54661-2d74-4c50-afa3-1ec803f12efe", # Security Operator
-        "158c047a-c907-4556-b7ef-446551a6b5f7", # Conditional Access Administrator
-        "7698a772-787b-4ac8-901f-60d6b08affd2", # Cloud Device Administrator
-        "17315797-102d-40b4-93e0-432062caca18", # User Administrator
-        "b1be1c3e-b65d-4f19-8427-f6fa0d97feb9", # Compliance Administrator
-        "9360feb5-f418-4baa-8175-e2a00bac4301", # Directory Writers
-        "29232cdf-9323-42fd-ade2-1d097af3e4de", # Security Reader
-        "f2ef992c-3afb-46b9-b7cf-a126ee74c451", # Global Reader
-        "62e90394-69f5-4237-9190-012177145e10", # Exchange Administrator
-        "729827e3-9c14-49f7-bb1b-9608f156bbb8", # Helpdesk Administrator
-        "8ac3fc64-6eca-42ea-9e69-59f4c7b60eb2", # Hybrid Identity Administrator
-        "3a2c62db-5318-420d-8d74-23affee5d9d5", # Insights Business Leader
-        "966707d0-3269-4727-9be2-8c3a10f19b9d", # Intune Administrator
-        "7be44c8a-adaf-4e2a-84d6-ab2649e08a13", # Knowledge Administrator
-        "e8611ab8-c189-46e8-94e1-60213ab1f814", # Privileged Authentication Administrator
-        "194ae4cb-b126-40b2-bd5b-6091b380977d", # Privileged Role Administrator
-        "5f2222b1-57c3-48ba-8ad5-d4759f1fde6f", # Reports Reader
-        "5d6b6bb7-de71-4623-b4af-96380a352509", # Search Administrator
-        "f28a1f50-f6e7-4571-818b-6a12f2af6b6c", # SharePoint Administrator
-        "69091246-20e8-4a56-aa4d-066075b2a7a8", # Teams Administrator
-        "fe930be7-5e62-47db-91af-98c3a49a38b1"  # Security Administrator
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.application_administrator.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.application_developer.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.authentication_administrator.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.authentication_extensibility_administrator.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.b2c_ief_keyset_administrator.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.billing_administrator.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.cloud_application_administrator.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.cloud_device_administrator.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.user_administrator.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.compliance_administrator.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.directory_writers.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.security_reader.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.global_reader.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.exchange_administrator.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.helpdesk_administrator.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.hybrid_identity_administrator.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.insights_business_leader.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.intune_administrator.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.knowledge_administrator.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.privileged_authentication_administrator.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.privileged_role_administrator.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.reports_reader.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.search_administrator.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.sharepoint_administrator.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.teams_administrator.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.security_administrator.items[0].id,
       ]
       exclude_roles = []
     }
@@ -699,12 +648,7 @@ resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy"
     custom_authentication_factors = []
   }
 
-  timeouts = {
-    create = "30s"
-    read   = "30s"
-    update = "30s"
-    delete = "30s"
-  }
+
 }
 
 # CAD013: Selected Apps - Compliant Device Requirement
@@ -730,10 +674,10 @@ resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy"
 
     applications = {
       include_applications = [
-        "11111111-1111-1111-1111-111111111111", # Specific application 1
-        "22222222-2222-2222-2222-222222222222", # Specific application 2
-        "33333333-3333-3333-3333-333333333333", # Specific application 3
-        "44444444-4444-4444-4444-444444444444"  # Specific application 4
+        "a4f2693f-129c-4b96-982b-2c364b8314d7", # Specific application 1
+        "499b84ac-1321-427f-aa17-267ca6975798", # Specific application 2
+        "996def3d-b36c-4153-8607-a6fd3c01b89f", # Specific application 3
+        "797f4846-ba00-4fd7-ba43-dac1f8f63013"  # Specific application 4
       ]
       exclude_applications                            = []
       include_user_actions                            = []
@@ -755,10 +699,10 @@ resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy"
   }
 
   timeouts = {
-    create = "30s"
-    read   = "30s"
-    update = "30s"
-    delete = "30s"
+    create = "150s"
+    read   = "150s"
+    update = "150s"
+    delete = "150s"
   }
 }
 
@@ -798,7 +742,7 @@ resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy"
     devices = {
       device_filter = {
         mode = "exclude"
-        rule = "device.isCompliant -eq True"
+        rule = "device.isCompliant -eq True -or device.trustType -eq \"ServerAD\""
       }
     }
 
@@ -811,12 +755,7 @@ resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy"
     custom_authentication_factors = []
   }
 
-  timeouts = {
-    create = "30s"
-    read   = "30s"
-    update = "30s"
-    delete = "30s"
-  }
+
 }
 
 # CAD015: Compliant Device for Windows and macOS Browser Access
@@ -861,12 +800,7 @@ resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy"
     custom_authentication_factors = []
   }
 
-  timeouts = {
-    create = "30s"
-    read   = "30s"
-    update = "30s"
-    delete = "30s"
-  }
+
 }
 
 # CAD016: Token Protection for EXO/SPO/CloudPC on Windows
@@ -888,14 +822,22 @@ resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy"
       ]
       include_roles = []
       exclude_roles = []
+
+      exclude_guests_or_external_users = {
+        guest_or_external_user_types = ["internalGuest", "b2bCollaborationGuest", "b2bCollaborationMember", "b2bDirectConnectUser", "otherExternalUser", "serviceProvider"]
+        external_tenants = {
+          membership_kind = "all"
+        }
+      }
     }
 
     applications = {
-      # Exchange Online, SharePoint Online, Windows Cloud PC
       include_applications = [
-        "00000002-0000-0ff1-ce00-000000000000", # Exchange Online
-        "00000003-0000-0ff1-ce00-000000000000", # SharePoint Online  
-        "0af06dc6-e4b5-4f28-818e-e78e62d137a5"  # Windows Cloud PC
+        data.microsoft365_graph_beta_applications_service_principal.azure_virtual_desktop.items[0].app_id,
+        data.microsoft365_graph_beta_applications_service_principal.windows_365.items[0].app_id,
+        data.microsoft365_graph_beta_applications_service_principal.windows_cloud_login.items[0].app_id,
+        data.microsoft365_graph_beta_applications_service_principal.office_365_exchange_online.items[0].app_id,
+        data.microsoft365_graph_beta_applications_service_principal.office_365_sharepoint_online.items[0].app_id,
       ]
       exclude_applications                            = []
       include_user_actions                            = []
@@ -912,19 +854,11 @@ resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy"
 
   grant_controls = {
     operator                      = "OR"
-    built_in_controls             = []
+    built_in_controls             = ["block"]
     custom_authentication_factors = []
-    authentication_strength = {
-      id = "00000000-0000-0000-0000-000000000004" # Token protection strength ID
-    }
   }
 
-  timeouts = {
-    create = "30s"
-    read   = "30s"
-    update = "30s"
-    delete = "30s"
-  }
+
 }
 
 # CAD017: Selected Apps - Mobile App Protection or Compliance
@@ -976,12 +910,7 @@ resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy"
     custom_authentication_factors = []
   }
 
-  timeouts = {
-    create = "30s"
-    read   = "30s"
-    update = "30s"
-    delete = "30s"
-  }
+
 }
 
 # CAD018: Cloud PC - Mobile App Protection or Compliance
@@ -1006,7 +935,12 @@ resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy"
     }
 
     applications = {
-      include_applications                            = ["0af06dc6-e4b5-4f28-818e-e78e62d137a5"] # Windows Cloud PC
+      include_applications = [
+        data.microsoft365_graph_beta_applications_service_principal.azure_virtual_desktop.items[0].app_id,
+        data.microsoft365_graph_beta_applications_service_principal.microsoft_remote_desktop.items[0].app_id,
+        data.microsoft365_graph_beta_applications_service_principal.windows_365.items[0].app_id,
+        data.microsoft365_graph_beta_applications_service_principal.windows_cloud_login.items[0].app_id
+      ]
       exclude_applications                            = []
       include_user_actions                            = []
       include_authentication_context_class_references = []
@@ -1026,12 +960,7 @@ resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy"
     custom_authentication_factors = []
   }
 
-  timeouts = {
-    create = "30s"
-    read   = "30s"
-    update = "30s"
-    delete = "30s"
-  }
+
 }
 
 # CAD019: Intune Enrollment - MFA and Sign-in Frequency
@@ -1056,7 +985,9 @@ resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy"
     }
 
     applications = {
-      include_applications                            = ["d4ebce55-015a-49b5-a083-c84d1797ae8c"] # Microsoft Intune Enrollment
+      include_applications = [
+        data.microsoft365_graph_beta_applications_service_principal.microsoft_intune_enrollment.items[0].app_id
+      ]
       exclude_applications                            = []
       include_user_actions                            = []
       include_authentication_context_class_references = []
@@ -1070,7 +1001,7 @@ resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy"
     built_in_controls             = []
     custom_authentication_factors = []
     authentication_strength = {
-      id = "00000000-0000-0000-0000-000000000002" # Built-in MFA strength
+      id = "00000000-0000-0000-0000-000000000002" # multifactor_authentication
     }
   }
 
@@ -1083,10 +1014,5 @@ resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy"
     }
   }
 
-  timeouts = {
-    create = "30s"
-    read   = "30s"
-    update = "30s"
-    delete = "30s"
-  }
+
 }

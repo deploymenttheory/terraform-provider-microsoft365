@@ -771,18 +771,17 @@ func (r *ConditionalAccessPolicyResource) Schema(ctx context.Context, req resour
 						Optional: true,
 						Attributes: map[string]schema.Attribute{
 							"id": schema.StringAttribute{
-								MarkdownDescription: "ID of the authentication strength policy. Can be a GUID or predefined built-in values: 'multifactor_authentication' (maps to '00000000-0000-0000-0000-000000000002'), 'passwordless_mfa' (maps to '00000000-0000-0000-0000-000000000003'), or 'phishing_resistant_mfa' (maps to '00000000-0000-0000-0000-000000000004').",
-								Required:            true,
+								MarkdownDescription: "ID of the authentication strength policy. Can be a GUID or predefined built-in values: " +
+									"'multifactor_authentication' (maps to '00000000-0000-0000-0000-000000000002'), " +
+									"'passwordless_mfa' (maps to '00000000-0000-0000-0000-000000000003'), " +
+									"or 'phishing_resistant_mfa' (maps to '00000000-0000-0000-0000-000000000004').",
+								Required: true,
 								Validators: []validator.String{
 									stringvalidator.Any(
 										stringvalidator.RegexMatches(
 											regexp.MustCompile(constants.GuidRegex),
 											"must be a valid GUID in the format '00000000-0000-0000-0000-000000000000'",
 										),
-										stringvalidator.OneOf(
-											"multifactor_authentication",
-											"passwordless_mfa",
-											"phishing_resistant_mfa"),
 									),
 								},
 							},

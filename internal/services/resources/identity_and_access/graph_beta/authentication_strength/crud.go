@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/client"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
 	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/generic_client"
@@ -66,7 +67,7 @@ func (r *AuthenticationStrengthResource) Create(ctx context.Context, req resourc
 
 	tflog.Debug(ctx, fmt.Sprintf("Making POST request to: %s", url))
 
-	httpResp, err := r.httpClient.Do(httpReq)
+	httpResp, err := client.DoWithRetry(ctx, r.httpClient, httpReq, 10)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error making HTTP request",
@@ -176,7 +177,7 @@ func (r *AuthenticationStrengthResource) Read(ctx context.Context, req resource.
 
 	tflog.Debug(ctx, fmt.Sprintf("Making GET request to: %s", url))
 
-	httpResp, err := r.httpClient.Do(httpReq)
+	httpResp, err := client.DoWithRetry(ctx, r.httpClient, httpReq, 10)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error making HTTP request",
@@ -264,7 +265,7 @@ func (r *AuthenticationStrengthResource) Update(ctx context.Context, req resourc
 
 	tflog.Debug(ctx, fmt.Sprintf("Making PATCH request to: %s", url))
 
-	httpResp, err := r.httpClient.Do(httpReq)
+	httpResp, err := client.DoWithRetry(ctx, r.httpClient, httpReq, 10)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error making HTTP request",
@@ -336,7 +337,7 @@ func (r *AuthenticationStrengthResource) Delete(ctx context.Context, req resourc
 
 	tflog.Debug(ctx, fmt.Sprintf("Making DELETE request to: %s", url))
 
-	httpResp, err := r.httpClient.Do(httpReq)
+	httpResp, err := client.DoWithRetry(ctx, r.httpClient, httpReq, 10)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error making HTTP request",

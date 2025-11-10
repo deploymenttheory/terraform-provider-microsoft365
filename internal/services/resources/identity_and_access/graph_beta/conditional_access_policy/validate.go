@@ -288,7 +288,7 @@ func getRoleDefinitions(ctx context.Context, httpClient *client.AuthenticatedHTT
 
 	tflog.Debug(ctx, fmt.Sprintf("Making GET request to: %s", url))
 
-	httpResp, err := httpClient.Do(httpReq)
+	httpResp, err := client.DoWithRetry(ctx, httpClient, httpReq, 10)
 	if err != nil {
 		return nil, fmt.Errorf("error making HTTP request: %w", err)
 	}
@@ -372,7 +372,7 @@ func validateMicrosoftEntraOrganization(ctx context.Context, httpClient *client.
 
 	// Return error if any invalid tenant IDs found
 	if len(invalidTenantIDs) > 0 {
-		return fmt.Errorf("invalid Microsoft Entra organization tenant ID found: %v. Please verify these tenant IDs are valid.", invalidTenantIDs)
+		return fmt.Errorf("invalid Microsoft Entra organization tenant ID found: %v. Please verify these tenant IDs are valid", invalidTenantIDs)
 	}
 
 	tflog.Debug(ctx, fmt.Sprintf("All %d tenant IDs are valid", len(tenantIDsList)))
@@ -385,6 +385,7 @@ func getTenantInformationByTenantID(ctx context.Context, httpClient *client.Auth
 
 	// First attempt: Try direct lookup by tenant ID
 	url := httpClient.GetBaseURL() + "/tenantRelationships/findTenantInformationByTenantId(tenantId='" + tenantID + "')"
+
 	httpReq, err := http.NewRequestWithContext(ctx, "GET", url, nil)
 	if err != nil {
 		return nil, fmt.Errorf("error creating HTTP request: %w", err)
@@ -392,7 +393,7 @@ func getTenantInformationByTenantID(ctx context.Context, httpClient *client.Auth
 
 	tflog.Debug(ctx, fmt.Sprintf("Making GET request to: %s", url))
 
-	httpResp, err := httpClient.Do(httpReq)
+	httpResp, err := client.DoWithRetry(ctx, httpClient, httpReq, 10)
 	if err != nil {
 		return nil, fmt.Errorf("error making HTTP request: %w", err)
 	}
@@ -433,7 +434,7 @@ func validateUserExists(ctx context.Context, httpClient *client.AuthenticatedHTT
 
 	tflog.Debug(ctx, fmt.Sprintf("Making GET request to: %s", httpReq.URL.String()))
 
-	httpResp, err := httpClient.Do(httpReq)
+	httpResp, err := client.DoWithRetry(ctx, httpClient, httpReq, 10)
 	if err != nil {
 		return fmt.Errorf("error making HTTP request: %w", err)
 	}
@@ -654,7 +655,7 @@ func fetchNamedLocations(ctx context.Context, httpClient *client.AuthenticatedHT
 
 	tflog.Debug(ctx, fmt.Sprintf("Making GET request to: %s", url))
 
-	httpResp, err := httpClient.Do(httpReq)
+	httpResp, err := client.DoWithRetry(ctx, httpClient, httpReq, 10)
 	if err != nil {
 		return nil, fmt.Errorf("error making HTTP request: %w", err)
 	}

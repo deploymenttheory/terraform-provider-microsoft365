@@ -533,17 +533,7 @@ func constructGrantControls(ctx context.Context, data *ConditionalAccessGrantCon
 
 		convert.FrameworkToGraphString(data.AuthenticationStrength.ID, func(value *string) {
 			if value != nil {
-				// Map predefined string values to their corresponding GUIDs
-				switch *value {
-				case "multifactor_authentication":
-					authStrength["id"] = "00000000-0000-0000-0000-000000000002"
-				case "passwordless_mfa":
-					authStrength["id"] = "00000000-0000-0000-0000-000000000003"
-				case "phishing_resistant_mfa":
-					authStrength["id"] = "00000000-0000-0000-0000-000000000004"
-				default:
-					authStrength["id"] = *value
-				}
+				authStrength["id"] = *value
 			}
 		})
 
