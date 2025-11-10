@@ -385,6 +385,7 @@ func getTenantInformationByTenantID(ctx context.Context, httpClient *client.Auth
 
 	// First attempt: Try direct lookup by tenant ID
 	url := httpClient.GetBaseURL() + "/tenantRelationships/findTenantInformationByTenantId(tenantId='" + tenantID + "')"
+
 	httpReq, err := http.NewRequestWithContext(ctx, "GET", url, nil)
 	if err != nil {
 		return nil, fmt.Errorf("error creating HTTP request: %w", err)
