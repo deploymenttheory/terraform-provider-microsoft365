@@ -75,7 +75,7 @@ func (r *ConditionalAccessTermsOfUseResource) Create(ctx context.Context, req re
 
 	tflog.Debug(ctx, fmt.Sprintf("Making POST request to: %s", url))
 
-	httpResp, err := client.DoWithRetry(ctx, r.httpClient, httpReq, 1)
+	httpResp, err := client.DoWithRetry(ctx, r.httpClient, httpReq, 10)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error making HTTP request",
@@ -176,7 +176,7 @@ func (r *ConditionalAccessTermsOfUseResource) Read(ctx context.Context, req reso
 
 	tflog.Debug(ctx, fmt.Sprintf("Making GET request to: %s", url))
 
-	httpResp, err := client.DoWithRetry(ctx, r.httpClient, httpReq, 1)
+	httpResp, err := client.DoWithRetry(ctx, r.httpClient, httpReq, 10)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error making HTTP request",
@@ -261,7 +261,7 @@ func (r *ConditionalAccessTermsOfUseResource) Update(ctx context.Context, req re
 
 	tflog.Debug(ctx, fmt.Sprintf("Making PATCH request to: %s", url))
 
-	httpResp, err := client.DoWithRetry(ctx, r.httpClient, httpReq, 1)
+	httpResp, err := client.DoWithRetry(ctx, r.httpClient, httpReq, 10)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error making HTTP request",
@@ -331,7 +331,7 @@ func (r *ConditionalAccessTermsOfUseResource) Delete(ctx context.Context, req re
 
 	tflog.Debug(ctx, fmt.Sprintf("Making DELETE request to: %s", url))
 
-	httpResp, err := client.DoWithRetry(ctx, r.httpClient, httpReq, 1)
+	httpResp, err := client.DoWithRetry(ctx, r.httpClient, httpReq, 10)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error making HTTP request",
