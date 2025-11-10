@@ -288,7 +288,7 @@ func getRoleDefinitions(ctx context.Context, httpClient *client.AuthenticatedHTT
 
 	tflog.Debug(ctx, fmt.Sprintf("Making GET request to: %s", url))
 
-	httpResp, err := httpClient.Do(httpReq)
+	httpResp, err := client.DoWithRetry(ctx, httpClient, httpReq, 10)
 	if err != nil {
 		return nil, fmt.Errorf("error making HTTP request: %w", err)
 	}
@@ -392,7 +392,7 @@ func getTenantInformationByTenantID(ctx context.Context, httpClient *client.Auth
 
 	tflog.Debug(ctx, fmt.Sprintf("Making GET request to: %s", url))
 
-	httpResp, err := httpClient.Do(httpReq)
+	httpResp, err := client.DoWithRetry(ctx, httpClient, httpReq, 10)
 	if err != nil {
 		return nil, fmt.Errorf("error making HTTP request: %w", err)
 	}
@@ -433,7 +433,7 @@ func validateUserExists(ctx context.Context, httpClient *client.AuthenticatedHTT
 
 	tflog.Debug(ctx, fmt.Sprintf("Making GET request to: %s", httpReq.URL.String()))
 
-	httpResp, err := httpClient.Do(httpReq)
+	httpResp, err := client.DoWithRetry(ctx, httpClient, httpReq, 10)
 	if err != nil {
 		return fmt.Errorf("error making HTTP request: %w", err)
 	}
@@ -654,7 +654,7 @@ func fetchNamedLocations(ctx context.Context, httpClient *client.AuthenticatedHT
 
 	tflog.Debug(ctx, fmt.Sprintf("Making GET request to: %s", url))
 
-	httpResp, err := httpClient.Do(httpReq)
+	httpResp, err := client.DoWithRetry(ctx, httpClient, httpReq, 10)
 	if err != nil {
 		return nil, fmt.Errorf("error making HTTP request: %w", err)
 	}
