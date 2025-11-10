@@ -1060,20 +1060,7 @@ func mapAuthenticationStrength(ctx context.Context, authenticationStrengthRaw an
 
 	if id, ok := authenticationStrength["id"].(string); ok {
 		tflog.Debug(ctx, "Mapping authenticationStrength id", map[string]any{"id": id})
-		// Map predefined GUIDs back to their friendly string values
-		// This ensures consistency with user-provided values in configuration
-		var mappedID string
-		switch id {
-		case "00000000-0000-0000-0000-000000000002":
-			mappedID = "multifactor_authentication"
-		case "00000000-0000-0000-0000-000000000003":
-			mappedID = "passwordless_mfa"
-		case "00000000-0000-0000-0000-000000000004":
-			mappedID = "phishing_resistant_mfa"
-		default:
-			mappedID = id
-		}
-		result.ID = types.StringValue(mappedID)
+		result.ID = types.StringValue(id)
 	} else {
 		tflog.Debug(ctx, "authenticationStrength id not found or not a string")
 		result.ID = types.StringNull()
