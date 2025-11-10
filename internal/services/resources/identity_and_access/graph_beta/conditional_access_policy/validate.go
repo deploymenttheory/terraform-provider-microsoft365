@@ -372,7 +372,7 @@ func validateMicrosoftEntraOrganization(ctx context.Context, httpClient *client.
 
 	// Return error if any invalid tenant IDs found
 	if len(invalidTenantIDs) > 0 {
-		return fmt.Errorf("invalid Microsoft Entra organization tenant ID found: %v. Please verify these tenant IDs are valid.", invalidTenantIDs)
+		return fmt.Errorf("invalid Microsoft Entra organization tenant ID found: %v. Please verify these tenant IDs are valid", invalidTenantIDs)
 	}
 
 	tflog.Debug(ctx, fmt.Sprintf("All %d tenant IDs are valid", len(tenantIDsList)))
