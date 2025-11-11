@@ -1,6 +1,6 @@
 ---
 page_title: "microsoft365_utility_microsoft_store_package_manifest_metadata Data Source - terraform-provider-microsoft365"
-subcategory: "Utilities"
+subcategory: "Utility"
 
 description: |-
   Retrieves Microsoft Store package manifests by package identifier or search term. Used for winget packages.
@@ -8,9 +8,9 @@ description: |-
 
 # microsoft365_utility_microsoft_store_package_manifest_metadata (Data Source)
 
-The `graph_beta_macos_pkg_app_metadata` data source extracts metadata from macOS PKG installer files (.pkg), providing essential information needed for deploying macOS applications in Microsoft Intune. It can extract metadata from either local files or remote URLs.
+Use this data source to retrieve Microsoft Store package manifests by package identifier or search term. Used for winget packages.
 
-This data source is particularly useful when creating macOS PKG app resources in Intune, as it automatically extracts critical information such as bundle identifier, version, package IDs, and other metadata required for proper app configuration and management.
+This data source is particularly useful when creating winget app resources in Intune, as it automatically extracts critical information such as bundle identifier, version, package IDs, and other metadata required for proper app configuration and management.
 
 ## Example Usage
 
