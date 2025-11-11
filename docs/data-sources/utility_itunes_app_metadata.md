@@ -1,8 +1,9 @@
 ---
 page_title: "microsoft365_utility_itunes_app_metadata Data Source - terraform-provider-microsoft365"
-subcategory: "Utilities"
+subcategory: "Utility"
+
 description: |-
-  Use this data source to query the iTunes App Store API for app metadata.
+  Use this data source to query the iTunes App Store API for app metadata. This data source allows you to search for apps by name and country code, returning details like bundle ID and artwork URLs.
 ---
 
 # microsoft365_utility_itunes_app_metadata
@@ -17,7 +18,6 @@ with the intunes vpp app resource, 'microsoft365_graph_beta_device_and_app_manag
 
 ## Example Usage
 
-```terraform
 ```terraform
 # Example usage of the iTunes app metadata data source
 # This data source allows you to query the iTunes App Store API for app metadata
@@ -64,7 +64,6 @@ output "office_app_vpp_device_based_licensed" {
 output "office_app_release_notes" {
   value = data.microsoft365_utility_itunes_app_metadata.office_us.results[0].release_notes
 }
-```
 ```
 
 ## Argument Reference

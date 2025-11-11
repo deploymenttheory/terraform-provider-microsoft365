@@ -1,8 +1,9 @@
 ---
-page_title: "{{.Name}} Data Source - {{.ProviderName}}"
-subcategory: "Utilities"
+page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
+subcategory: "Utility"
+
 description: |-
-  Use this data source to query the iTunes App Store API for app metadata.
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
 ---
 
 # {{.Name}}
@@ -13,9 +14,7 @@ returning details like product name, version, and other metadata.
 
 ## Example Usage
 
-```terraform
 {{ tffile "examples/data-sources/microsoft365_utility_windows_msi_app_metadata/datasource.tf" }}
-```
 
 ## Argument Reference
 

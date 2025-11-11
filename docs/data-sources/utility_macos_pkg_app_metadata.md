@@ -1,6 +1,6 @@
 ---
 page_title: "microsoft365_utility_macos_pkg_app_metadata Data Source - terraform-provider-microsoft365"
-subcategory: "Utilities"
+subcategory: "Utility"
 
 description: |-
   Extracts metadata from a macOS PKG file specified by file path or URL.
@@ -8,7 +8,7 @@ description: |-
 
 # microsoft365_utility_macos_pkg_app_metadata (Data Source)
 
-The `graph_beta_macos_pkg_app_metadata` data source extracts metadata from macOS PKG installer files (.pkg), providing essential information needed for deploying macOS applications in Microsoft Intune. It can extract metadata from either local files or remote URLs.
+Use this data source to extract metadata from macOS PKG installer files (.pkg), providing essential information needed for deploying macOS applications in Microsoft Intune. It can extract metadata from either local files or remote URLs.
 
 This data source is particularly useful when creating macOS PKG app resources in Intune, as it automatically extracts critical information such as bundle identifier, version, package IDs, and other metadata required for proper app configuration and management.
 

@@ -1,8 +1,9 @@
 ---
 page_title: "microsoft365_utility_windows_msi_app_metadata Data Source - terraform-provider-microsoft365"
-subcategory: "Utilities"
+subcategory: "Utility"
+
 description: |-
-  Use this data source to query the iTunes App Store API for app metadata.
+  Extracts comprehensive metadata from Windows MSI installer files. Supports both local file paths and remote URLs.
 ---
 
 # microsoft365_utility_windows_msi_app_metadata
@@ -13,7 +14,6 @@ returning details like product name, version, and other metadata.
 
 ## Example Usage
 
-```terraform
 ```terraform
 # # Example 1: Extract metadata from a local MSI file
 # data "microsoft365_utility_windows_msi_app_metadata" "example_file_path_msi" {
@@ -108,7 +108,6 @@ output "min_os_version" {
 output "architecture" {
   value = data.microsoft365_utility_windows_msi_app_metadata.example_url_msi.metadata.architecture
 }
-```
 ```
 
 ## Argument Reference

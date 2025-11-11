@@ -1,0 +1,49 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
+subcategory: "Utility"
+
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Name}}
+
+Converts between Microsoft Entra ID (formerly Azure AD) Security Identifiers (SIDs) and Object IDs.
+
+This utility performs bidirectional conversion - provide either a SID to get an Object ID, or an Object ID to get a SID. 
+This is particularly useful for hybrid environments where on-premises Active Directory identities are synced to Entra ID,
+and you need to correlate SIDs from on-premises systems with Object IDs in the cloud.
+
+## Background
+
+When on-premises Active Directory users, groups, or devices are synchronized to Microsoft Entra ID (Azure AD), 
+they receive both a Security Identifier (SID) from the on-premises directory and an Object ID (GUID) in the cloud.
+These identifiers are mathematically related through a specific conversion algorithm.
+
+## Version History
+
+| Version | Status | Notes |
+|---------|--------|-------|
+| v0.35.0-alpha | Experimental | Initial release |
+
+## Example Usage
+
+{{ tffile "examples/data-sources/microsoft365_utility_entra_id_sid_converter/datasource.tf" }}
+
+## Argument Reference
+
+**Note:** Exactly one of `sid` or `object_id` must be provided.
+
+* `sid` - (Optional) The Security Identifier (SID) in the format `S-1-12-1-<rid1>-<rid2>-<rid3>-<rid4>`. Provide this to convert to an Object ID. Each RID component must be a valid 32-bit unsigned integer (0 to 4,294,967,295).
+* `object_id` - (Optional) The Object ID (GUID) in the format `xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx`. Provide this to convert to a SID.
+
+## Attributes Reference
+
+In addition to the argument provided, the following attributes are exported:
+
+* `id` - The ID of this resource (same as the input value).
+* `sid` - The Security Identifier. If `object_id` was provided as input, this will be the converted SID.
+* `object_id` - The Object ID (GUID). If `sid` was provided as input, this will be the converted Object ID.
+
+{{ .SchemaMarkdown | trimspace }}
+

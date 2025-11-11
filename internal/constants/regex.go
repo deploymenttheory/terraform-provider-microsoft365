@@ -9,6 +9,10 @@ const (
 	// Example: "123e4567-e89b-12d3-a456-426614174000"
 	GuidRegex = "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
 
+	// EntraIdSidRegex matches a Microsoft Entra ID (Azure AD) Security Identifier (SID).
+	// Example: "S-1-12-1-1943430372-1249052806-2496021943-3034400218"
+	EntraIdSidRegex = `^S-1-12-1-\d+-\d+-\d+-\d+$`
+
 	// GuidOrEmptyValueRegex matches a standard GUID/UUID or an empty string.
 	// Example: "123e4567-e89b-12d3-a456-426614174000" or ""
 	GuidOrEmptyValueRegex = "^(?:[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})?$"
