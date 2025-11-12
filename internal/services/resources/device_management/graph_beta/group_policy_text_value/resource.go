@@ -2,6 +2,8 @@ package graphBetaGroupPolicyTextValue
 
 import (
 	"context"
+	"fmt"
+	"strings"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/client"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
@@ -76,8 +78,25 @@ func (r *GroupPolicyTextValueResource) Configure(ctx context.Context, req resour
 }
 
 // ImportState imports the resource state.
+// Expected format: configID/definitionValueID/presentationValueID
 func (r *GroupPolicyTextValueResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+	importID := req.ID
+
+	// Parse composite ID format
+	parts := strings.Split(importID, "/")
+	if len(parts) != 3 {
+		resp.Diagnostics.AddError(
+			"Invalid import ID format",
+			fmt.Sprintf("Expected format: 'configID/definitionValueID/presentationValueID', got: %s", importID),
+		)
+		return
+	}
+
+	// Set the parsed IDs into state
+	// The Read function will detect missing metadata and fetch it from the API
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("id"), parts[2])...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("group_policy_configuration_id"), parts[0])...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("group_policy_definition_value_id"), parts[1])...)
 }
 
 // Schema returns the schema for the resource.
