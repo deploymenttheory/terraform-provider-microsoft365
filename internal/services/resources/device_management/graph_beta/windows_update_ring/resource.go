@@ -299,31 +299,36 @@ func (r *WindowsUpdateRingResource) Schema(ctx context.Context, req resource.Sch
 			},
 			"deadline_settings": schema.SingleNestedAttribute{
 				Optional:            true,
+				Computed:            true,
 				MarkdownDescription: "Settings for update installation deadlines and reboot behavior.",
 				Attributes: map[string]schema.Attribute{
 					"deadline_for_feature_updates_in_days": schema.Int32Attribute{
-						Required:            true,
+						Optional:            true,
+						Computed:            true,
 						MarkdownDescription: "Number of days before feature updates are installed automatically with valid range from 0 to 30 days. Returned by default. Query parameters are not supported.",
 						Validators: []validator.Int32{
 							int32validator.Between(0, 30),
 						},
 					},
 					"deadline_for_quality_updates_in_days": schema.Int32Attribute{
-						Required:            true,
+						Optional:            true,
+						Computed:            true,
 						MarkdownDescription: "Number of days before quality updates are installed automatically with valid range from 0 to 30 days. Returned by default. Query parameters are not supported.",
 						Validators: []validator.Int32{
 							int32validator.Between(0, 30),
 						},
 					},
 					"deadline_grace_period_in_days": schema.Int32Attribute{
-						Required:            true,
+						Optional:            true,
+						Computed:            true,
 						MarkdownDescription: "Number of days after deadline until restarts occur automatically with valid range from 0 to 7 days. Returned by default. Query parameters are not supported.",
 						Validators: []validator.Int32{
 							int32validator.Between(0, 7),
 						},
 					},
 					"postpone_reboot_until_after_deadline": schema.BoolAttribute{
-						Required:            true,
+						Optional:            true,
+						Computed:            true,
 						MarkdownDescription: "When TRUE the device should wait until deadline for rebooting outside of active hours. When FALSE the device should not wait until deadline for rebooting outside of active hours. Returned by default. Query parameters are not supported.",
 					},
 				},
