@@ -19,9 +19,8 @@ import (
 func (d *WindowsMSIAppMetadataDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
 	var config WindowsMSIAppMetadataDataSourceModel
 
-	tflog.Debug(ctx, fmt.Sprintf("Starting Read method for: %s_%s", d.ProviderTypeName, d.TypeName))
+	tflog.Debug(ctx, fmt.Sprintf("Starting Read method for: %s", DataSourceName))
 
-	// Get the configuration
 	resp.Diagnostics.Append(req.Config.Get(ctx, &config)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -30,8 +29,8 @@ func (d *WindowsMSIAppMetadataDataSource) Read(ctx context.Context, req datasour
 	filePathProvided := !config.InstallerFilePathSource.IsNull() && config.InstallerFilePathSource.ValueString() != ""
 	urlProvided := !config.InstallerURLSource.IsNull() && config.InstallerURLSource.ValueString() != ""
 
-	tflog.Debug(ctx, fmt.Sprintf("Reading %s_%s with file path provided: %t, URL provided: %t",
-		d.ProviderTypeName, d.TypeName, filePathProvided, urlProvided))
+	tflog.Debug(ctx, fmt.Sprintf("Reading %s with file path provided: %t, URL provided: %t",
+		DataSourceName, filePathProvided, urlProvided))
 
 	// Validate inputs - must have either a file path or URL, but not both
 	if !filePathProvided && !urlProvided {
@@ -106,8 +105,9 @@ func (d *WindowsMSIAppMetadataDataSource) Read(ctx context.Context, req datasour
 
 	tflog.Debug(ctx, "Successfully extracted MSI metadata")
 
-	// Set the state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
+
+	tflog.Debug(ctx, fmt.Sprintf("Finished Read Method: %s", DataSourceName))
 }
 
 // createFileReader creates a reader for a local file
@@ -144,7 +144,6 @@ func (d *WindowsMSIAppMetadataDataSource) createURLReader(ctx context.Context, u
 		return nil, 0, fmt.Errorf("HTTP %d when downloading from %s", resp.StatusCode, url)
 	}
 
-	// Read the entire file into memory
 	data, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, 0, fmt.Errorf("reading response body from %s: %w", url, err)

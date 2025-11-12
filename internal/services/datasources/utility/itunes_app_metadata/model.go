@@ -1,15 +1,17 @@
 package itunes_app_metadata
 
 import (
+	"github.com/hashicorp/terraform-plugin-framework-timeouts/datasource/timeouts"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
 // ItunesAppMetadataDataSourceModel represents the data source model for iTunes app metadata
 type ItunesAppMetadataDataSourceModel struct {
-	Id          types.String `tfsdk:"id"`
-	SearchTerm  types.String `tfsdk:"search_term"`
-	CountryCode types.String `tfsdk:"country_code"`
-	Results     types.List   `tfsdk:"results"`
+	Id          types.String   `tfsdk:"id"`
+	SearchTerm  types.String   `tfsdk:"search_term"`
+	CountryCode types.String   `tfsdk:"country_code"`
+	Results     types.List     `tfsdk:"results"`
+	Timeouts    timeouts.Value `tfsdk:"timeouts"`
 }
 
 // ItunesAppResult represents an individual app result from the iTunes API

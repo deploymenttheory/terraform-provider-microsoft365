@@ -1,10 +1,11 @@
-package entra_id_sid_converter
+package utilityEntraIdSidConverter
 
 import (
 	"context"
 	"regexp"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
+	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/schema"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
@@ -12,8 +13,16 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 )
 
+const (
+	DataSourceName = "utility_entra_id_sid_converter"
+	ReadTimeout    = 180
+)
+
 var (
-	_ datasource.DataSource              = &entraIdSidConverterDataSource{}
+	// Basic datasource interface (Read operations)
+	_ datasource.DataSource = &entraIdSidConverterDataSource{}
+
+	// Allows the datasource to be configured with the provider client
 	_ datasource.DataSourceWithConfigure = &entraIdSidConverterDataSource{}
 )
 
@@ -24,16 +33,21 @@ func NewEntraIdSidConverterDataSource() datasource.DataSource {
 type entraIdSidConverterDataSource struct{}
 
 func (d *entraIdSidConverterDataSource) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_utility_entra_id_sid_converter"
+	resp.TypeName = req.ProviderTypeName + "_" + DataSourceName
 }
 
+// Configure implements the DataSourceWithConfigure interface.
+// For utility datasources that perform local computations (like SID conversion or data transformation),
+// this method doesn't need to extract Microsoft Graph clients from ProviderData. However, it's still
+// required for interface compliance and maintains consistency across all datasources in the provider.
+// This pattern allows for future flexibility if the datasource later needs access to provider configuration.
 func (d *entraIdSidConverterDataSource) Configure(_ context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
 	if req.ProviderData == nil {
 		return
 	}
 }
 
-func (d *entraIdSidConverterDataSource) Schema(_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+func (d *entraIdSidConverterDataSource) Schema(ctx context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		MarkdownDescription: "Converts between Microsoft Entra ID (formerly Azure AD) Security Identifiers (SIDs) and Object IDs. " +
 			"This utility performs bidirectional conversion - provide either a SID to get an Object ID, or an Object ID to get a SID. " +
@@ -71,6 +85,7 @@ func (d *entraIdSidConverterDataSource) Schema(_ context.Context, _ datasource.S
 					),
 				},
 			},
+			"timeouts": commonschema.DatasourceTimeouts(ctx),
 		},
 	}
 }

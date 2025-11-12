@@ -15,7 +15,7 @@ import (
 )
 
 const (
-	datasourceName = "utility_windows_msi_app_metadata"
+	DataSourceName = "utility_windows_msi_app_metadata"
 	ReadTimeout    = 300 // Extended timeout for file processing
 )
 
@@ -38,11 +38,11 @@ type WindowsMSIAppMetadataDataSource struct {
 }
 
 // Metadata returns the datasource type name.
-func (r *WindowsMSIAppMetadataDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_" + datasourceName
+func (r *WindowsMSIAppMetadataDataSource) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
+	resp.TypeName = req.ProviderTypeName + "_" + DataSourceName
 }
 
-// Configure configures the data source with the provider client
+// For utility datasources that perform local computations. Required for interface compliance.
 func (d *WindowsMSIAppMetadataDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
 	d.client = client.SetGraphBetaClientForDataSource(ctx, req, resp, d.TypeName)
 }
@@ -156,7 +156,7 @@ func (d *WindowsMSIAppMetadataDataSource) Schema(ctx context.Context, _ datasour
 					},
 				},
 			},
-			"timeouts": commonschema.Timeouts(ctx),
+			"timeouts": commonschema.DatasourceTimeouts(ctx),
 		},
 	}
 }

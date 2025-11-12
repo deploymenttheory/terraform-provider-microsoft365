@@ -11,6 +11,7 @@ import (
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
@@ -46,7 +47,6 @@ func (d *MicrosoftStorePackageManifestDataSource) Read(ctx context.Context, req 
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting Read method for: %s_%s", d.ProviderTypeName, d.TypeName))
 
-	// Get the configuration
 	resp.Diagnostics.Append(req.Config.Get(ctx, &config)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -98,8 +98,10 @@ func (d *MicrosoftStorePackageManifestDataSource) Read(ctx context.Context, req 
 			return
 		}
 
+		// Initialize manifests slice
+		manifests = make([]any, 0)
 		if manifest != nil {
-			manifests = []any{manifest}
+			manifests = append(manifests, manifest)
 		}
 	} else {
 		searchTerm := config.SearchTerm.ValueString()
@@ -123,6 +125,13 @@ func (d *MicrosoftStorePackageManifestDataSource) Read(ctx context.Context, req 
 	state.SearchTerm = config.SearchTerm
 	state.Timeouts = config.Timeouts
 
+	// Set ID based on which input parameter was provided
+	if packageIdProvided {
+		state.ID = types.StringValue(config.PackageIdentifier.ValueString())
+	} else {
+		state.ID = types.StringValue(config.SearchTerm.ValueString())
+	}
+
 	// Convert API response to Terraform model
 	terraformManifests, diags := d.mapRemoteStateToTerraformState(ctx, manifests)
 	resp.Diagnostics.Append(diags...)
@@ -130,9 +139,14 @@ func (d *MicrosoftStorePackageManifestDataSource) Read(ctx context.Context, req 
 		return
 	}
 
-	state.Manifests = terraformManifests
+	// Ensure Manifests is always initialized, even if empty
+	if terraformManifests == nil {
+		state.Manifests = []PackageManifestDataSourceModel{}
+	} else {
+		state.Manifests = terraformManifests
+	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Successfully retrieved %d package manifest(s)", len(terraformManifests)))
+	tflog.Debug(ctx, fmt.Sprintf("Successfully retrieved %d package manifest(s)", len(state.Manifests)))
 
 	// Set the state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)

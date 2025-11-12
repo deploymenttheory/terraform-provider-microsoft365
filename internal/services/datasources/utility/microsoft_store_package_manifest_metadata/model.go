@@ -1,12 +1,13 @@
 package utilityMicrosoftStorePackageManifest
 
 import (
-	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
+	"github.com/hashicorp/terraform-plugin-framework-timeouts/datasource/timeouts"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
 // MicrosoftStorePackageManifestDataSourceModel defines the data source model
 type MicrosoftStorePackageManifestDataSourceModel struct {
+	ID                types.String                     `tfsdk:"id"`
 	PackageIdentifier types.String                     `tfsdk:"package_identifier"`
 	SearchTerm        types.String                     `tfsdk:"search_term"`
 	Manifests         []PackageManifestDataSourceModel `tfsdk:"manifests"`

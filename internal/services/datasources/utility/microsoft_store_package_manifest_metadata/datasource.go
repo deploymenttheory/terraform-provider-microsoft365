@@ -52,6 +52,10 @@ func (d *MicrosoftStorePackageManifestDataSource) Schema(ctx context.Context, _ 
 	resp.Schema = schema.Schema{
 		MarkdownDescription: "Retrieves Microsoft Store package manifests by package identifier or search term. Used for winget packages.",
 		Attributes: map[string]schema.Attribute{
+			"id": schema.StringAttribute{
+				Computed:            true,
+				MarkdownDescription: "The ID of this resource.",
+			},
 			"package_identifier": schema.StringAttribute{
 				Optional:            true,
 				MarkdownDescription: "The specific package identifier to retrieve manifest for. Either this or search_term must be provided.",
@@ -372,7 +376,7 @@ func (d *MicrosoftStorePackageManifestDataSource) Schema(ctx context.Context, _ 
 					},
 				},
 			},
-			"timeouts": commonschema.Timeouts(ctx),
+			"timeouts": commonschema.DatasourceTimeouts(ctx),
 		},
 	}
 }

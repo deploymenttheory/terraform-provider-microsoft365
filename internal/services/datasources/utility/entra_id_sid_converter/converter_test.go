@@ -1,4 +1,4 @@
-package entra_id_sid_converter
+package utilityEntraIdSidConverter
 
 import (
 	"testing"

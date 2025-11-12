@@ -3,11 +3,18 @@ package itunes_app_metadata
 import (
 	"context"
 
+	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/schema"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+)
+
+const (
+	DataSourceName      = "utility_itunes_app_metadata"
+	ReadTimeout         = 180
+	itunesSearchBaseURL = "https://itunes.apple.com/search"
 )
 
 // Ensure the implementation satisfies the expected interfaces
@@ -31,7 +38,7 @@ type itunesAppMetadataDataSource struct {
 
 // Metadata returns the data source type name
 func (d *itunesAppMetadataDataSource) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_utility_itunes_app_metadata"
+	resp.TypeName = req.ProviderTypeName + "_" + DataSourceName
 }
 
 // Configure adds the provider configured client to the data source
@@ -43,7 +50,7 @@ func (d *itunesAppMetadataDataSource) Configure(_ context.Context, req datasourc
 }
 
 // Schema defines the schema for the data source
-func (d *itunesAppMetadataDataSource) Schema(_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+func (d *itunesAppMetadataDataSource) Schema(ctx context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		MarkdownDescription: "Use this data source to query the iTunes App Store API for app metadata. " +
 			"This data source allows you to search for apps by name and country code, returning details like bundle ID and artwork URLs.",
@@ -259,6 +266,7 @@ func (d *itunesAppMetadataDataSource) Schema(_ context.Context, _ datasource.Sch
 					},
 				},
 			},
+			"timeouts": commonschema.DatasourceTimeouts(ctx),
 		},
 	}
 }

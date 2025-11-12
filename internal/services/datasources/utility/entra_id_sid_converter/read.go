@@ -1,24 +1,34 @@
-package entra_id_sid_converter
+package utilityEntraIdSidConverter
 
 import (
 	"context"
 	"fmt"
+	"time"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
+// Read handles the Read operation for Entra ID SID Converter data source.
 func (d *entraIdSidConverterDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	tflog.Debug(ctx, "Reading Entra ID SID Converter data source")
-
 	var state EntraIdSidConverterDataSourceModel
+
+	tflog.Debug(ctx, fmt.Sprintf("Starting Read method for: %s", DataSourceName))
+
 	diags := req.Config.Get(ctx, &state)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
+	ctx, cancel := crud.HandleTimeout(ctx, state.Timeouts.Read, ReadTimeout*time.Second, &resp.Diagnostics)
+	if cancel == nil {
+		return
+	}
+	defer cancel()
 
 	if !state.Sid.IsNull() && !state.Sid.IsUnknown() {
 		sid := state.Sid.ValueString()
@@ -70,4 +80,6 @@ func (d *entraIdSidConverterDataSource) Read(ctx context.Context, req datasource
 
 	diags = resp.State.Set(ctx, &state)
 	resp.Diagnostics.Append(diags...)
+
+	tflog.Debug(ctx, fmt.Sprintf("Finished Read Method: %s", DataSourceName))
 }

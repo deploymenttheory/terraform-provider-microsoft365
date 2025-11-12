@@ -146,7 +146,7 @@ func (d *MacOSPKGAppMetadataDataSource) Schema(ctx context.Context, _ datasource
 					},
 				},
 			},
-			"timeouts": commonschema.Timeouts(ctx),
+			"timeouts": commonschema.DatasourceTimeouts(ctx),
 		},
 	}
 }
