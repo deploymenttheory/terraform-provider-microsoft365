@@ -1,4 +1,4 @@
-package entra_id_sid_converter_test
+package utilityEntraIdSidConverter_test
 
 import (
 	"regexp"

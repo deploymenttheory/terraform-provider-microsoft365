@@ -61,6 +61,7 @@ import (
 	utilityMacOSPKGAppMetadata "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/utility/macos_pkg_app_metadata"
 	utilityMicrosoftStorePackageManifestMetadata "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/utility/microsoft_store_package_manifest_metadata"
 	utilityWindowsMSIAppMetadata "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/utility/windows_msi_app_metadata"
+	utilityWindowsRemediationScriptRegistryKeyGenerator "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/utility/windows_remediation_script_registry_key_generator"
 )
 
 // DataSources returns a slice of functions that each return a datasource.DataSource.
@@ -124,6 +125,7 @@ func (p *M365Provider) DataSources(ctx context.Context) []func() datasource.Data
 
 		// Utilities
 		utilityEntraIdSidConverter.NewEntraIdSidConverterDataSource,
+		utilityWindowsRemediationScriptRegistryKeyGenerator.NewWindowsRemediationScriptRegistryKeyGeneratorDataSource,
 		utilityMacOSPKGAppMetadata.NewMacOSPKGAppMetadataDataSource,
 		utilityItunesAppMetadata.NewItunesAppMetadataDataSource,
 		utilityMicrosoftStorePackageManifestMetadata.NewMicrosoftStorePackageManifestDataSource,

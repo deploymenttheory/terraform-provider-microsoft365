@@ -20,11 +20,16 @@ func (d *MacOSPKGAppMetadataDataSource) Read(ctx context.Context, req datasource
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting Read method for: %s_%s", d.ProviderTypeName, d.TypeName))
 
-	// Get the configuration
 	resp.Diagnostics.Append(req.Config.Get(ctx, &config)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
+	ctx, cancel := crud.HandleTimeout(ctx, config.Timeouts.Read, ReadTimeout*time.Second, &resp.Diagnostics)
+	if cancel == nil {
+		return
+	}
+	defer cancel()
 
 	filePathProvided := !config.InstallerFilePathSource.IsNull() && config.InstallerFilePathSource.ValueString() != ""
 	urlProvided := !config.InstallerURLSource.IsNull() && config.InstallerURLSource.ValueString() != ""
@@ -48,12 +53,6 @@ func (d *MacOSPKGAppMetadataDataSource) Read(ctx context.Context, req datasource
 		)
 		return
 	}
-
-	ctx, cancel := crud.HandleTimeout(ctx, config.Timeouts.Read, ReadTimeout*time.Second, &resp.Diagnostics)
-	if cancel == nil {
-		return
-	}
-	defer cancel()
 
 	var metadata *xar.InstallerMetadata
 	var md5Checksum, sha256Checksum []byte

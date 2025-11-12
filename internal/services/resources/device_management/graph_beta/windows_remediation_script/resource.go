@@ -47,10 +47,10 @@ var (
 func NewDeviceHealthScriptResource() resource.Resource {
 	return &DeviceHealthScriptResource{
 		ReadPermissions: []string{
-			"DeviceManagementConfiguration.Read.All",
+			"DeviceManagementScripts.Read.All",
 		},
 		WritePermissions: []string{
-			"DeviceManagementConfiguration.ReadWrite.All",
+			"DeviceManagementScripts.ReadWrite.All",
 		},
 		ResourcePath: "/deviceManagement/deviceHealthScripts",
 	}
