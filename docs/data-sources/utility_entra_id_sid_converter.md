@@ -122,8 +122,16 @@ In addition to the argument provided, the following attributes are exported:
 
 - `object_id` (String) The Object ID (GUID) in the format `xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx`. Provide this to convert to a SID, or leave empty to convert from a SID.
 - `sid` (String) The Security Identifier (SID) in the format `S-1-12-1-<rid1>-<rid2>-<rid3>-<rid4>`. Provide this to convert to an Object ID, or leave empty to convert from an Object ID. Each RID component must be a valid 32-bit unsigned integer (0 to 4,294,967,295).
+- `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))
 
 ### Read-Only
 
 - `id` (String) The ID of this resource.
+
+<a id="nestedatt--timeouts"></a>
+### Nested Schema for `timeouts`
+
+Optional:
+
+- `read` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours).
 

@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	DataSourceName = "windows_remediation_script_registry_key_generator"
+	DataSourceName = "utility_windows_remediation_script_registry_key_generator"
 	ReadTimeout    = 180
 )
 
