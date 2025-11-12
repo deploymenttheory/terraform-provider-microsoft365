@@ -5,6 +5,38 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.35.0-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.34.0-alpha...v0.35.0-alpha) (2025-11-12)
+
+
+### Features
+
+* add datasource Entra ID SID regex and update data source templates for consistency ([e166a4d](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/e166a4d179b96f7947b0dc4afc3b96505542e38e))
+* add datasource Entra ID SID regex and update data source templates for consistency ([#864](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/864)) ([55f8a36](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/55f8a36dd48fd363064a0ec39d4be137c5c228a9))
+* added new utility datasources entra_id_sid_converter and windows_remediation_script_registry_key_generator ([#865](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/865)) ([9e16617](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/9e166177fa14fe32382d036aa22cf4cbc09e3209))
+* enhance data sources with timeouts and new utility functions ([63e1f4c](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/63e1f4c0ae241ed804f136d7b1645792c1476a90))
+* enhance mapping of authentication strength IDs to user-friendly values in conditional access policy ([9900a49](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/9900a4934abd45d2639ddacbde5d01890a3db9a1))
+* refactored microsoft365_graph_identity_and_access_conditional_access_terms_of_use and added full test harness ([efdded8](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/efdded8a3c1906019231d2dbbd252d8ac95c7068))
+
+
+### Bug Fixes
+
+* added test harness to microsoft365_utility_macos_pkg_app_metadata ([9a8b16a](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/9a8b16ab876d03fc3ecd4670e4e7c1c1877ccbce))
+* changed resource named_locations to use dowithretry for reqs and updated docs ([#857](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/857)) ([b5ee323](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/b5ee3239a47f6ca2f2c446c4685d7ce64365aaf0))
+* changed resource to use dowithretry for reqs ([6dffc15](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/6dffc150d30f6ef4d712e5cdb34d3ce656f6ccce))
+* doc chores, refactored microsoft365_graph_identity_and_access_conditional_access_terms_of_use and added full test harness ([#855](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/855)) ([59f6c9e](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/59f6c9edd7a25ad5a39f5826d719b947ee0f3e97))
+* implement retry logic for HTTP requests in authentication strength CRUD operations ([39921d3](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/39921d3f156cdc25d315050d1519311cee27e8dd))
+* increase retry attempts for HTTP requests in conditional access policy CRUD operations ([ffe8a54](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/ffe8a543f6a1a0e1a80c5dc2bc3b05baa4e53710))
+* increase retry attempts for HTTP requests in conditional access terms of use CRUD operations ([c99cdeb](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/c99cdebd507446ecc6b49da547cf1b3d8f697c2c))
+* naming pattern ([af54568](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/af54568132e0ca6367e056daf3bb3249431c80d3))
+* numerous fixes ([b61c193](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/b61c19323728aa4737fc307f11fae451ee442d0e))
+* replace direct HTTP request calls with retry logic in conditional access policy validation functions ([5832bd5](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/5832bd57a038ea7e1f3c72ce467fa91dcb549662))
+* retry logic for standard http client ([#858](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/858)) ([e513257](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/e51325700b07eaffa01123e8dfe7f156e52637ba))
+* update conditional access policies to include additional policies and improve timeout settings ([fd39d92](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/fd39d920dd0e83ccefc77f0db58cb1991640b21f))
+* update error message formatting for invalid tenant ID validation in conditional access policy ([99413c4](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/99413c4883c353fa790e9510be5448a5b489d988))
+* update test requirement check to exclude schema directory ([b38e1ba](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/b38e1ba21235d37f58c3f1706e0eb34554614bd4))
+* **windows_enrollment_status_page:** enforce false for reset/use/technician flags when blocking is enabled ([414c91b](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/414c91bd862e6f17c74630b10ea2563521ec91aa))
+* **windows_esp:** correct validation logic ([#854](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/854)) ([7a43f42](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/7a43f427ae9088ca844cbd8fc8b2159dee0e0189))
+
 ## [0.34.0-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.33.2-alpha...v0.34.0-alpha) (2025-11-06)
 
 
