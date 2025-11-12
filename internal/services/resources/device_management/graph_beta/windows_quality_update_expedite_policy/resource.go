@@ -137,17 +137,17 @@ func (r *WindowsQualityUpdateExpeditePolicyResource) Schema(ctx context.Context,
 			},
 			"expedited_update_settings": schema.SingleNestedAttribute{
 				Optional:            true,
+				Computed:            true,
 				MarkdownDescription: "Expedited Quality update settings.",
 				Attributes: map[string]schema.Attribute{
 					"quality_update_release": schema.StringAttribute{
 						Optional:            true,
+						Computed:            true,
 						MarkdownDescription: "Expedite installation of quality updates if device OS version less than the quality update release identifier. ",
-						Validators: []validator.String{
-							stringvalidator.OneOf("2025-04-22T00:00:00Z", "2025-04-08T00:00:00Z", "2025-03-11T00:00:00Z"),
-						},
 					},
 					"days_until_forced_reboot": schema.Int32Attribute{
 						Optional:            true,
+						Computed:            true,
 						MarkdownDescription: "Number of days to wait before restart is enforced. Valid values are: 0, 1, and 2.",
 						Validators: []validator.Int32{
 							int32validator.OneOf(0, 1, 2),
