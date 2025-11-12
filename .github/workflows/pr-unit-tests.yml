@@ -87,7 +87,7 @@ jobs:
             if [[ "$pkg" == *"/mocks" ]]; then
               echo "Skipping test requirement check for mocks directory: $pkg"
               continue
-            elif [[ "$pkg" == *"/schema/"* ]]; then
+            elif [[ "$pkg" == *"/schema" ]] || [[ "$pkg" == *"/schema/"* ]]; then
               echo "Skipping test requirement check for schema directory: $pkg"
               continue
             elif [[ "$pkg" == *"/shared_models/"* ]]; then
