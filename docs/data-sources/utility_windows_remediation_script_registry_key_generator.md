@@ -41,7 +41,7 @@ This utility data source creates production-ready PowerShell scripts that integr
 # This data source generates PowerShell detection and remediation scripts for managing Windows registry keys via Intune
 
 # Example 1: Generate scripts and deploy to Intune as a Proactive Remediation
-data "microsoft365_windows_remediation_script_registry_key_generator" "private_store" {
+data "microsoft365_utility_windows_remediation_script_registry_key_generator" "private_store" {
   context           = "current_user"
   registry_key_path = "Software\\Policies\\Microsoft\\WindowsStore\\"
   value_name        = "RequirePrivateStoreOnly"
@@ -60,10 +60,10 @@ resource "microsoft365_graph_beta_device_management_windows_remediation_script" 
   run_as_account          = "user" // Use "user" context for current_user registry scripts
 
   # Use the generated detection script
-  detection_script_content = data.microsoft365_windows_remediation_script_registry_key_generator.private_store.detection_script
+  detection_script_content = data.microsoft365_utility_windows_remediation_script_registry_key_generator.private_store.detection_script
 
   # Use the generated remediation script
-  remediation_script_content = data.microsoft365_windows_remediation_script_registry_key_generator.private_store.remediation_script
+  remediation_script_content = data.microsoft365_utility_windows_remediation_script_registry_key_generator.private_store.remediation_script
 
   assignments = [
     {
@@ -88,7 +88,7 @@ resource "microsoft365_graph_beta_device_management_windows_remediation_script" 
 }
 
 # Example 2: Set registry value for all users with SYSTEM context
-data "microsoft365_windows_remediation_script_registry_key_generator" "disable_cortana" {
+data "microsoft365_utility_windows_remediation_script_registry_key_generator" "disable_cortana" {
   context           = "all_users"
   registry_key_path = "Software\\Policies\\Microsoft\\Windows\\Windows Search\\"
   value_name        = "AllowCortana"
@@ -105,8 +105,8 @@ resource "microsoft365_graph_beta_device_management_windows_remediation_script" 
   role_scope_tag_ids      = ["0"]
   run_as_account          = "system" // Use "system" context for all_users registry scripts
 
-  detection_script_content   = data.microsoft365_windows_remediation_script_registry_key_generator.disable_cortana.detection_script
-  remediation_script_content = data.microsoft365_windows_remediation_script_registry_key_generator.disable_cortana.remediation_script
+  detection_script_content   = data.microsoft365_utility_windows_remediation_script_registry_key_generator.disable_cortana.detection_script
+  remediation_script_content = data.microsoft365_utility_windows_remediation_script_registry_key_generator.disable_cortana.remediation_script
 
   assignments = [
     {
@@ -122,7 +122,7 @@ resource "microsoft365_graph_beta_device_management_windows_remediation_script" 
 }
 
 # Example 3: String value with environment variables
-data "microsoft365_windows_remediation_script_registry_key_generator" "app_install_path" {
+data "microsoft365_utility_windows_remediation_script_registry_key_generator" "app_install_path" {
   context           = "current_user"
   registry_key_path = "Software\\MyApp\\"
   value_name        = "InstallPath"
@@ -138,8 +138,8 @@ resource "microsoft365_graph_beta_device_management_windows_remediation_script" 
   enforce_signature_check    = false
   role_scope_tag_ids         = ["0"]
   run_as_account             = "user"
-  detection_script_content   = data.microsoft365_windows_remediation_script_registry_key_generator.app_install_path.detection_script
-  remediation_script_content = data.microsoft365_windows_remediation_script_registry_key_generator.app_install_path.remediation_script
+  detection_script_content   = data.microsoft365_utility_windows_remediation_script_registry_key_generator.app_install_path.detection_script
+  remediation_script_content = data.microsoft365_utility_windows_remediation_script_registry_key_generator.app_install_path.remediation_script
 
   assignments = [
     {
@@ -194,7 +194,7 @@ variable "registry_policies" {
 }
 
 # Generate scripts for each policy
-data "microsoft365_windows_remediation_script_registry_key_generator" "policies" {
+data "microsoft365_utility_windows_remediation_script_registry_key_generator" "policies" {
   for_each          = var.registry_policies
   context           = each.value.context
   registry_key_path = each.value.registry_key_path
@@ -213,8 +213,8 @@ resource "microsoft365_graph_beta_device_management_windows_remediation_script" 
   enforce_signature_check    = false
   role_scope_tag_ids         = ["0"]
   run_as_account             = each.value.run_as_account
-  detection_script_content   = data.microsoft365_windows_remediation_script_registry_key_generator.policies[each.key].detection_script
-  remediation_script_content = data.microsoft365_windows_remediation_script_registry_key_generator.policies[each.key].remediation_script
+  detection_script_content   = data.microsoft365_utility_windows_remediation_script_registry_key_generator.policies[each.key].detection_script
+  remediation_script_content = data.microsoft365_utility_windows_remediation_script_registry_key_generator.policies[each.key].remediation_script
 
   assignments = [
     {
@@ -232,7 +232,7 @@ resource "microsoft365_graph_beta_device_management_windows_remediation_script" 
 }
 
 # Example 5: Multi-string value (e.g., for allowed sites list)
-data "microsoft365_windows_remediation_script_registry_key_generator" "allowed_sites" {
+data "microsoft365_utility_windows_remediation_script_registry_key_generator" "allowed_sites" {
   context           = "all_users"
   registry_key_path = "Software\\MyApp\\Security\\"
   value_name        = "AllowedSites"
@@ -248,8 +248,8 @@ resource "microsoft365_graph_beta_device_management_windows_remediation_script" 
   enforce_signature_check    = false
   role_scope_tag_ids         = ["0"]
   run_as_account             = "system"
-  detection_script_content   = data.microsoft365_windows_remediation_script_registry_key_generator.allowed_sites.detection_script
-  remediation_script_content = data.microsoft365_windows_remediation_script_registry_key_generator.allowed_sites.remediation_script
+  detection_script_content   = data.microsoft365_utility_windows_remediation_script_registry_key_generator.allowed_sites.detection_script
+  remediation_script_content = data.microsoft365_utility_windows_remediation_script_registry_key_generator.allowed_sites.remediation_script
 
   assignments = [
     {
@@ -267,7 +267,7 @@ resource "microsoft365_graph_beta_device_management_windows_remediation_script" 
 }
 
 # Example 6: Binary data
-data "microsoft365_windows_remediation_script_registry_key_generator" "binary_config" {
+data "microsoft365_utility_windows_remediation_script_registry_key_generator" "binary_config" {
   context           = "current_user"
   registry_key_path = "Software\\MyApp\\Config\\"
   value_name        = "BinarySettings"
@@ -283,8 +283,8 @@ resource "microsoft365_graph_beta_device_management_windows_remediation_script" 
   enforce_signature_check    = false
   role_scope_tag_ids         = ["0"]
   run_as_account             = "user"
-  detection_script_content   = data.microsoft365_windows_remediation_script_registry_key_generator.binary_config.detection_script
-  remediation_script_content = data.microsoft365_windows_remediation_script_registry_key_generator.binary_config.remediation_script
+  detection_script_content   = data.microsoft365_utility_windows_remediation_script_registry_key_generator.binary_config.detection_script
+  remediation_script_content = data.microsoft365_utility_windows_remediation_script_registry_key_generator.binary_config.remediation_script
 
   assignments = [
     {
@@ -304,12 +304,12 @@ resource "microsoft365_graph_beta_device_management_windows_remediation_script" 
 # Output examples for manual script review
 output "private_store_detection_script" {
   description = "Detection script for private store policy"
-  value       = data.microsoft365_windows_remediation_script_registry_key_generator.private_store.detection_script
+  value       = data.microsoft365_utility_windows_remediation_script_registry_key_generator.private_store.detection_script
 }
 
 output "private_store_remediation_script" {
   description = "Remediation script for private store policy"
-  value       = data.microsoft365_windows_remediation_script_registry_key_generator.private_store.remediation_script
+  value       = data.microsoft365_utility_windows_remediation_script_registry_key_generator.private_store.remediation_script
 }
 ```
 
