@@ -2,7 +2,7 @@
 set -euo pipefail
 
 # Test runner for nightly acceptance tests
-# Usage: ./test-runner.sh <type> [service] [coverage-file]
+# Usage: ./run-tests.sh <type> [service] [coverage-file]
 
 TYPE="${1:-}"
 SERVICE="${2:-}"
@@ -12,6 +12,13 @@ if [[ -z "$TYPE" ]]; then
     echo "Usage: $0 <type> [service] [coverage-file]"
     echo "Types: provider-core, resources, datasources"
     exit 1
+fi
+
+# Check if tests should be skipped (set by map-credentials.sh)
+if [[ "${SKIP_TESTS:-false}" == "true" ]]; then
+    echo "⏭️  Skipping tests - no credentials configured"
+    echo "mode: atomic" > "$COVERAGE_FILE"
+    exit 0
 fi
 
 run_provider_core_tests() {

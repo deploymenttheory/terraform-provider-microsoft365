@@ -188,6 +188,7 @@ jobs:
         run: ./scripts/pipeline/map-credentials.sh ${{ matrix.service }}
 
       - name: Run datasource tests
+        if: env.SKIP_TESTS != 'true'
         env:
           TF_ACC: 1
           M365_TENANT_ID: ${{ secrets.M365_TENANT_ID }}
