@@ -44,7 +44,7 @@ jobs:
           M365_CLIENT_SECRET: ${{ secrets.M365_CLIENT_SECRET }}
           M365_AUTH_METHOD: client_secret
           M365_CLOUD: public
-        run: ./scripts/pipeline/test-runner.sh provider-core "" coverage-provider-core.txt
+        run: ./scripts/pipeline/run-tests.sh provider-core "" coverage-provider-core.txt
 
       - name: Upload coverage artifact
         if: always()
@@ -92,6 +92,7 @@ jobs:
         run: go mod download
 
       - name: Set service credentials
+        id: creds
         env:
           M365_CLIENT_ID_APPLICATIONS: ${{ secrets.M365_CLIENT_ID_APPLICATIONS }}
           M365_CLIENT_SECRET_APPLICATIONS: ${{ secrets.M365_CLIENT_SECRET_APPLICATIONS }}
@@ -114,12 +115,13 @@ jobs:
         run: ./scripts/pipeline/map-credentials.sh ${{ matrix.service }}
 
       - name: Run resource tests
+        if: env.SKIP_TESTS != 'true'
         env:
           TF_ACC: 1
           M365_TENANT_ID: ${{ secrets.M365_TENANT_ID }}
           M365_AUTH_METHOD: client_secret
           M365_CLOUD: public
-        run: ./scripts/pipeline/test-runner.sh resources ${{ matrix.service }} coverage-resources-${{ matrix.service }}.txt
+        run: ./scripts/pipeline/run-tests.sh resources ${{ matrix.service }} coverage-resources-${{ matrix.service }}.txt
 
       - name: Upload coverage artifact
         if: always()
@@ -191,7 +193,7 @@ jobs:
           M365_TENANT_ID: ${{ secrets.M365_TENANT_ID }}
           M365_AUTH_METHOD: client_secret
           M365_CLOUD: public
-        run: ./scripts/pipeline/test-runner.sh datasources ${{ matrix.service }} coverage-datasources-${{ matrix.service }}.txt
+        run: ./scripts/pipeline/run-tests.sh datasources ${{ matrix.service }} coverage-datasources-${{ matrix.service }}.txt
 
       - name: Upload coverage artifact
         if: always()
@@ -274,7 +276,7 @@ jobs:
           # Remove trailing comma
           FAILED_JOBS=${FAILED_JOBS%,}
 
-          ./scripts/pipeline/handle-failure.sh \
+          ./scripts/pipeline/report-failure.sh \
             deploymenttheory \
             terraform-provider-microsoft365 \
             ${{ github.run_id }} \

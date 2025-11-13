@@ -1,7 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 
-# Merges multiple Go coverage files into one
+# Merges multiple unit and acceptance test coverage files into one for code cov
 # Usage: ./merge-coverage.sh <input-dir> <output-file>
 
 INPUT_DIR="${1:-}"

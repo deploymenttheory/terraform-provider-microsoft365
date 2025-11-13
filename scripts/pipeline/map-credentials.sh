@@ -70,21 +70,28 @@ map_credentials() {
     local client_id="${!client_id_var:-}"
     local client_secret="${!client_secret_var:-}"
 
+    # Check if credentials are available
+    if [[ -z "$client_id" || -z "$client_secret" ]]; then
+        echo "⚠️  No credentials found for ${service} - tests will be skipped"
+        # Export skip flag to GITHUB_ENV
+        if [[ -n "${GITHUB_ENV:-}" ]]; then
+            echo "SKIP_TESTS=true" >> "$GITHUB_ENV"
+        fi
+        exit 0
+    fi
+
     # Export to GITHUB_ENV if available (for GitHub Actions)
     if [[ -n "${GITHUB_ENV:-}" ]]; then
         echo "M365_CLIENT_ID=${client_id}" >> "$GITHUB_ENV"
         echo "M365_CLIENT_SECRET=${client_secret}" >> "$GITHUB_ENV"
+        echo "SKIP_TESTS=false" >> "$GITHUB_ENV"
     else
         # For local testing, just print
         echo "export M365_CLIENT_ID=${client_id}"
         echo "export M365_CLIENT_SECRET=${client_secret}"
     fi
 
-    if [[ -n "$client_id" && -n "$client_secret" ]]; then
-        echo "✅ Credentials configured for ${service}"
-    else
-        echo "⚠️  No credentials found for ${service}"
-    fi
+    echo "✅ Credentials configured for ${service}"
 }
 
 map_credentials "$SERVICE"
