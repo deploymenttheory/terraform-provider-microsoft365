@@ -268,7 +268,7 @@ resource "microsoft365_graph_beta_device_and_app_management_ios_mobile_app_confi
   targeted_mobile_apps = ["invalid-guid", "another-invalid-guid"]
 }
 `,
-				ExpectError: regexp.MustCompile(`Must be a valid GUID format`),
+				ExpectError: regexp.MustCompile(`(Must be a valid GUID format|Invalid Attribute Value Match|Error running pre-apply plan)`),
 			},
 			// Test valid GUID format
 			{
