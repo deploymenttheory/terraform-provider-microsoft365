@@ -43,21 +43,21 @@ func (h *Handler) Handle(ctx context.Context) error {
 
 	// Create new branch
 	branchName := h.config.GetBranchName()
-	if err := h.createBranch(ctx, branchName, defaultBranch); err != nil {
+	if err := h.CreateBranch(ctx, branchName, defaultBranch); err != nil {
 		return fmt.Errorf("failed to create branch: %w", err)
 	}
 
 	fmt.Printf("✅ Created branch: %s\n", branchName)
 
 	// Create failure report file
-	if err := h.createFailureReport(ctx, branchName); err != nil {
+	if err := h.CreateFailureReport(ctx, branchName); err != nil {
 		return fmt.Errorf("failed to create failure report: %w", err)
 	}
 
 	fmt.Println("✅ Created FAILURE_REPORT.md")
 
 	// Create pull request
-	pr, err := h.createPullRequest(ctx, branchName, defaultBranch)
+	pr, err := h.CreatePR(ctx, branchName, defaultBranch)
 	if err != nil {
 		return fmt.Errorf("failed to create pull request: %w", err)
 	}
@@ -65,7 +65,7 @@ func (h *Handler) Handle(ctx context.Context) error {
 	fmt.Printf("✅ Created PR #%d: %s\n", pr.GetNumber(), pr.GetHTMLURL())
 
 	// Create issue
-	issue, err := h.createIssue(ctx, pr.GetHTMLURL())
+	issue, err := h.CreateIssue(ctx, pr.GetHTMLURL())
 	if err != nil {
 		return fmt.Errorf("failed to create issue: %w", err)
 	}
@@ -84,15 +84,13 @@ func (h *Handler) getDefaultBranch(ctx context.Context) (string, error) {
 	return repo.GetDefaultBranch(), nil
 }
 
-// createBranch creates a new branch from the default branch.
-func (h *Handler) createBranch(ctx context.Context, branchName, baseBranch string) error {
-	// Get reference to base branch
+// CreateBranch creates a new branch from the default branch.
+func (h *Handler) CreateBranch(ctx context.Context, branchName, baseBranch string) error {
 	baseRef, _, err := h.client.Git.GetRef(ctx, h.config.Owner, h.config.Repo, "refs/heads/"+baseBranch)
 	if err != nil {
 		return err
 	}
 
-	// Create new branch reference
 	newRef := &github.Reference{
 		Ref: github.String("refs/heads/" + branchName),
 		Object: &github.GitObject{
@@ -104,16 +102,16 @@ func (h *Handler) createBranch(ctx context.Context, branchName, baseBranch strin
 	return err
 }
 
-// createFailureReport creates the FAILURE_REPORT.md file in the repository.
-func (h *Handler) createFailureReport(ctx context.Context, branchName string) error {
-	content := buildFailureReport(
+// CreateFailureReport creates the FAILURE_REPORT.md file in the repository.
+func (h *Handler) CreateFailureReport(ctx context.Context, branchName string) error {
+	content := BuildFailureReport(
 		h.config.GetDate(),
 		h.config.ParseFailedJobs(),
 		h.config.GetWorkflowURL(),
 		h.config.GetCodecovURL(),
 	)
 
-	commitMessage := buildCommitMessage(
+	commitMessage := BuildCommitMessage(
 		h.config.GetDate(),
 		h.config.FailedJobs,
 		h.config.GetWorkflowURL(),
@@ -136,10 +134,10 @@ func (h *Handler) createFailureReport(ctx context.Context, branchName string) er
 	return err
 }
 
-// createPullRequest creates a pull request for the failure report.
-func (h *Handler) createPullRequest(ctx context.Context, headBranch, baseBranch string) (*github.PullRequest, error) {
-	title := buildPRTitle(h.config.FailedJobs, h.config.GetDate())
-	body := buildPRBody(
+// CreatePR creates a pull request for the failure report.
+func (h *Handler) CreatePR(ctx context.Context, headBranch, baseBranch string) (*github.PullRequest, error) {
+	title := BuildPRTitle(h.config.FailedJobs, h.config.GetDate())
+	body := BuildPRBody(
 		h.config.GetDate(),
 		h.config.FailedJobs,
 		h.config.GetWorkflowURL(),
@@ -158,7 +156,7 @@ func (h *Handler) createPullRequest(ctx context.Context, headBranch, baseBranch 
 		return nil, err
 	}
 
-	// Add labels to PR
+	// Add labels
 	if _, _, err := h.client.Issues.AddLabelsToIssue(
 		ctx,
 		h.config.Owner,
@@ -172,10 +170,10 @@ func (h *Handler) createPullRequest(ctx context.Context, headBranch, baseBranch 
 	return pr, nil
 }
 
-// createIssue creates a tracking issue for the failure.
-func (h *Handler) createIssue(ctx context.Context, prURL string) (*github.Issue, error) {
-	title := buildIssueTitle(h.config.GetDate(), h.config.FailedJobs)
-	body := buildIssueBody(
+// CreateIssue creates a tracking issue for the failure.
+func (h *Handler) CreateIssue(ctx context.Context, prURL string) (*github.Issue, error) {
+	title := BuildIssueTitle(h.config.GetDate(), h.config.FailedJobs)
+	body := BuildIssueBody(
 		h.config.GetDate(),
 		h.config.FailedJobs,
 		h.config.GetWorkflowURL(),

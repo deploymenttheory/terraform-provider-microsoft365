@@ -5,8 +5,8 @@ import (
 	"strings"
 )
 
-// buildFailureReport constructs the content for FAILURE_REPORT.md.
-func buildFailureReport(date string, failedJobs []string, workflowURL, codecovURL string) string {
+// BuildFailureReport constructs the content for FAILURE_REPORT.md.
+func BuildFailureReport(date string, failedJobs []string, workflowURL, codecovURL string) string {
 	var sb strings.Builder
 
 	sb.WriteString(fmt.Sprintf("# Nightly Test Failure Report - %s\n\n", date))
@@ -35,8 +35,8 @@ func buildFailureReport(date string, failedJobs []string, workflowURL, codecovUR
 	return sb.String()
 }
 
-// buildCommitMessage constructs the git commit message.
-func buildCommitMessage(date, failedJobs, workflowURL string) string {
+// BuildCommitMessage constructs the git commit message.
+func BuildCommitMessage(date, failedJobs, workflowURL string) string {
 	var sb strings.Builder
 
 	sb.WriteString(fmt.Sprintf("chore: nightly test failure report - %s\n\n", date))
@@ -47,13 +47,13 @@ func buildCommitMessage(date, failedJobs, workflowURL string) string {
 	return sb.String()
 }
 
-// buildPRTitle constructs the pull request title.
-func buildPRTitle(failedJobs, date string) string {
+// BuildPRTitle constructs the pull request title.
+func BuildPRTitle(failedJobs, date string) string {
 	return fmt.Sprintf("Fix: Nightly Tests Failed - %s - %s", failedJobs, date)
 }
 
-// buildPRBody constructs the pull request body.
-func buildPRBody(date, failedJobs, workflowURL, codecovURL string) string {
+// BuildPRBody constructs the pull request body.
+func BuildPRBody(date, failedJobs, workflowURL, codecovURL string) string {
 	var sb strings.Builder
 
 	sb.WriteString("## Nightly Test Failures Detected\n\n")
@@ -75,13 +75,13 @@ func buildPRBody(date, failedJobs, workflowURL, codecovURL string) string {
 	return sb.String()
 }
 
-// buildIssueTitle constructs the issue title.
-func buildIssueTitle(date, failedJobs string) string {
+// BuildIssueTitle constructs the issue title.
+func BuildIssueTitle(date, failedJobs string) string {
 	return fmt.Sprintf("Nightly Tests Failed - %s - %s", date, failedJobs)
 }
 
-// buildIssueBody constructs the issue body.
-func buildIssueBody(date, failedJobs, workflowURL, prURL, codecovURL string) string {
+// BuildIssueBody constructs the issue body.
+func BuildIssueBody(date, failedJobs, workflowURL, prURL, codecovURL string) string {
 	var sb strings.Builder
 
 	sb.WriteString("## Nightly Tests Failed\n\n")
