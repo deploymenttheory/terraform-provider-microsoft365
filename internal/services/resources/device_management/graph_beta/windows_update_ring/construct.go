@@ -6,6 +6,7 @@ import (
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/constructors"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
@@ -104,11 +105,24 @@ func constructResource(ctx context.Context, data *WindowsUpdateRingResourceModel
 	convert.FrameworkToGraphInt32(data.FeatureUpdatesRollbackWindowInDays, requestBody.SetFeatureUpdatesRollbackWindowInDays)
 
 	// Handle deadline settings nested block
-	if data.DeadlineSettings != nil {
-		convert.FrameworkToGraphInt32(data.DeadlineSettings.DeadlineForFeatureUpdatesInDays, requestBody.SetDeadlineForFeatureUpdatesInDays)
-		convert.FrameworkToGraphInt32(data.DeadlineSettings.DeadlineForQualityUpdatesInDays, requestBody.SetDeadlineForQualityUpdatesInDays)
-		convert.FrameworkToGraphInt32(data.DeadlineSettings.DeadlineGracePeriodInDays, requestBody.SetDeadlineGracePeriodInDays)
-		convert.FrameworkToGraphBool(data.DeadlineSettings.PostponeRebootUntilAfterDeadline, requestBody.SetPostponeRebootUntilAfterDeadline)
+	if !data.DeadlineSettings.IsNull() && !data.DeadlineSettings.IsUnknown() {
+		attrs := data.DeadlineSettings.Attributes()
+
+		if deadlineForFeatureUpdatesInDays, ok := attrs["deadline_for_feature_updates_in_days"].(types.Int32); ok {
+			convert.FrameworkToGraphInt32(deadlineForFeatureUpdatesInDays, requestBody.SetDeadlineForFeatureUpdatesInDays)
+		}
+
+		if deadlineForQualityUpdatesInDays, ok := attrs["deadline_for_quality_updates_in_days"].(types.Int32); ok {
+			convert.FrameworkToGraphInt32(deadlineForQualityUpdatesInDays, requestBody.SetDeadlineForQualityUpdatesInDays)
+		}
+
+		if deadlineGracePeriodInDays, ok := attrs["deadline_grace_period_in_days"].(types.Int32); ok {
+			convert.FrameworkToGraphInt32(deadlineGracePeriodInDays, requestBody.SetDeadlineGracePeriodInDays)
+		}
+
+		if postponeRebootUntilAfterDeadline, ok := attrs["postpone_reboot_until_after_deadline"].(types.Bool); ok {
+			convert.FrameworkToGraphBool(postponeRebootUntilAfterDeadline, requestBody.SetPostponeRebootUntilAfterDeadline)
+		}
 	}
 	convert.FrameworkToGraphInt32(data.EngagedRestartDeadlineInDays, requestBody.SetEngagedRestartDeadlineInDays)
 	convert.FrameworkToGraphInt32(data.EngagedRestartSnoozeScheduleInDays, requestBody.SetEngagedRestartSnoozeScheduleInDays)
