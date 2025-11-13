@@ -1,4 +1,24 @@
-// REF: https://learn.microsoft.com/en-us/graph/api/resources/mobileappcatalogpackage?view=graph-rest-beta
+// REF: undocumented api endpoint
+//
+// IMPORTANT: Microsoft Graph API Limitations for mobileAppCatalogPackages endpoint
+// This endpoint has significant limitations with OData query parameters that affect the model design.
+//
+// WORKING OData Parameters:
+//   - odata_filter: Only works with startswith() function (e.g., "startswith(publisherDisplayName, 'Microsoft')")
+//   - odata_top: Works for limiting results
+//
+// NOT WORKING/PROBLEMATIC OData Parameters:
+//   - odata_skip: Causes 500 Internal Server errors and timeouts - DO NOT USE
+//   - odata_select: Causes 500 Internal Server errors and timeouts - DO NOT USE
+//   - odata_orderby: Returns no results when combined with odata_filter - DO NOT COMBINE
+//   - odata_count: Returns no results when combined with odata_filter - DO NOT COMBINE
+//   - odata_search: Not reliably supported by this endpoint - AVOID
+//   - eq operator in filters: Not reliable, use startswith() instead
+//
+// RECOMMENDED USAGE:
+//   - Use simple filter_type values: "all", "id", "product_name", "publisher_name"
+//   - If using OData, only use odata_filter (with startswith()) and odata_top
+//   - Avoid combining multiple OData parameters as they cause empty results or errors
 
 package graphBetaMobileAppCatalogPackage
 

@@ -1,3 +1,20 @@
+# Mobile App Catalog Package Data Source Examples
+#
+# IMPORTANT: Microsoft Graph API Limitations for mobileAppCatalogPackages endpoint:
+# ✅ Supported OData features:
+#    - $filter with startswith() function (e.g., startswith(publisherDisplayName, 'value'))
+#    - $top for limiting results
+# ❌ Not supported/problematic OData features:
+#    - $skip - causes 500 errors and timeouts
+#    - $select - causes 500 errors and timeouts
+#    - $orderby - returns no results when combined with $filter
+#    - $count - returns no results when combined with $filter
+#    - $search - not reliably supported
+#    - eq operator in filters - not reliable, use startswith() instead
+#
+# For best results, use the simple filter types (all, id, product_name, publisher_name)
+# or OData with only $filter (using startswith()) and $top parameters.
+
 # Example 1: Get all mobile app catalog packages
 data "microsoft365_graph_beta_device_and_app_management_mobile_app_catalog_package" "all_packages" {
   filter_type = "all"
@@ -72,13 +89,14 @@ output "packages_by_publisher_name" {
   value = data.microsoft365_graph_beta_device_and_app_management_mobile_app_catalog_package.by_publisher_name.items != null ? data.microsoft365_graph_beta_device_and_app_management_mobile_app_catalog_package.by_publisher_name.items : []
 }
 
-# Example 5: Get packages using OData filter
+# Example 5: Get packages using OData filter with startswith()
+# Note: The mobileAppCatalogPackages endpoint has limited OData support
+# Working: $filter with startswith(), $top
+# Not working: $orderby, $count, $skip, $select, $search when combined with $filter
 data "microsoft365_graph_beta_device_and_app_management_mobile_app_catalog_package" "odata_filter" {
-  filter_type   = "odata"
-  odata_filter  = "productDisplayName eq '7-Zip'"
-  odata_count   = true
-  odata_orderby = "productDisplayName"
-  odata_top     = 10
+  filter_type  = "odata"
+  odata_filter = "startswith(publisherDisplayName, 'Microsoft')"
+  odata_top    = 10
 
   timeouts = {
     read = "30s"
@@ -90,16 +108,13 @@ output "packages_odata_filter" {
   value = data.microsoft365_graph_beta_device_and_app_management_mobile_app_catalog_package.odata_filter.items != null ? data.microsoft365_graph_beta_device_and_app_management_mobile_app_catalog_package.odata_filter.items : []
 }
 
-# Example 6: Advanced OData query with multiple parameters
+# Example 6: OData query with different publisher filter
+# WARNING: Do not use $skip or $select as they cause 500 errors/timeouts
+# Do not combine $filter with $orderby or $count as they return no results
 data "microsoft365_graph_beta_device_and_app_management_mobile_app_catalog_package" "odata_advanced" {
-  filter_type   = "odata"
-  odata_filter  = "contains(productDisplayName, 'Microsoft')"
-  odata_top     = 5
-  odata_skip    = 0
-  odata_select  = "id,productId,productDisplayName,publisherDisplayName,versionDisplayName"
-  odata_orderby = "productDisplayName"
-  odata_count   = true
-  odata_search  = "\"productDisplayName:Microsoft\""
+  filter_type  = "odata"
+  odata_filter = "startswith(publisherDisplayName, 'Google')"
+  odata_top    = 5
 
   timeouts = {
     read = "30s"
@@ -111,17 +126,19 @@ output "packages_odata_advanced" {
   value = data.microsoft365_graph_beta_device_and_app_management_mobile_app_catalog_package.odata_advanced.items != null ? data.microsoft365_graph_beta_device_and_app_management_mobile_app_catalog_package.odata_advanced.items : []
 }
 
-# Example 7: Search-only OData query
-data "microsoft365_graph_beta_device_and_app_management_mobile_app_catalog_package" "odata_search_only" {
+# Example 7: Filter by product display name
+# Note: Use startswith() instead of $search which is not reliably supported
+data "microsoft365_graph_beta_device_and_app_management_mobile_app_catalog_package" "odata_by_product" {
   filter_type  = "odata"
-  odata_search = "\"productDisplayName:Microsoft\""
+  odata_filter = "startswith(productDisplayName, 'Microsoft Edge')"
+  odata_top    = 10
 
   timeouts = {
     read = "30s"
   }
 }
 
-# Output for search-only query
-output "packages_search_only" {
-  value = data.microsoft365_graph_beta_device_and_app_management_mobile_app_catalog_package.odata_search_only.items != null ? data.microsoft365_graph_beta_device_and_app_management_mobile_app_catalog_package.odata_search_only.items : []
+# Output for product filter query
+output "packages_by_product" {
+  value = data.microsoft365_graph_beta_device_and_app_management_mobile_app_catalog_package.odata_by_product.items != null ? data.microsoft365_graph_beta_device_and_app_management_mobile_app_catalog_package.odata_by_product.items : []
 }
