@@ -39,32 +39,36 @@ func TestAccManagedDeviceDataSource_All(t *testing.T) {
 	})
 }
 
-func TestAccManagedDeviceDataSource_ByDeviceName(t *testing.T) {
-	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
-		ExternalProviders: map[string]resource.ExternalProvider{
-			"azuread": {
-				Source:            "hashicorp/azuread",
-				VersionConstraint: ">= 2.47.0",
-			},
-			"random": {
-				Source:            "hashicorp/random",
-				VersionConstraint: ">= 3.7.2",
-			},
-		},
-		Steps: []resource.TestStep{
-			{
-				Config: testAccConfigByDeviceName(),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("data.microsoft365_graph_beta_device_management_managed_device.by_device_name", "filter_type", "device_name"),
-					resource.TestCheckResourceAttr("data.microsoft365_graph_beta_device_management_managed_device.by_device_name", "filter_value", "DESKTOP"),
-					resource.TestCheckResourceAttrSet("data.microsoft365_graph_beta_device_management_managed_device.by_device_name", "items.#"),
-				),
-			},
-		},
-	})
-}
+// this test will fail if a real dvice in intune does not have the word "DESKTOP" in the device name.
+// since this is a lab, this is highly likely to fail based upon what test devices are in lab at any
+// given point in time.
+//
+// func TestAccManagedDeviceDataSource_ByDeviceName(t *testing.T) {
+// 	resource.Test(t, resource.TestCase{
+// 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
+// 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+// 		ExternalProviders: map[string]resource.ExternalProvider{
+// 			"azuread": {
+// 				Source:            "hashicorp/azuread",
+// 				VersionConstraint: ">= 2.47.0",
+// 			},
+// 			"random": {
+// 				Source:            "hashicorp/random",
+// 				VersionConstraint: ">= 3.7.2",
+// 			},
+// 		},
+// 		Steps: []resource.TestStep{
+// 			{
+// 				Config: testAccConfigByDeviceName(),
+// 				Check: resource.ComposeTestCheckFunc(
+// 					resource.TestCheckResourceAttr("data.microsoft365_graph_beta_device_management_managed_device.by_device_name", "filter_type", "device_name"),
+// 					resource.TestCheckResourceAttr("data.microsoft365_graph_beta_device_management_managed_device.by_device_name", "filter_value", "DESKTOP"),
+// 					resource.TestCheckResourceAttrSet("data.microsoft365_graph_beta_device_management_managed_device.by_device_name", "items.#"),
+// 				),
+// 			},
+// 		},
+// 	})
+// }
 
 func TestAccManagedDeviceDataSource_ODataFilter(t *testing.T) {
 	resource.Test(t, resource.TestCase{
