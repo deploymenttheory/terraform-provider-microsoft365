@@ -70,39 +70,21 @@ jobs:
       matrix:
         include:
           - service: applications
-            client_id_secret: M365_CLIENT_ID_APPLICATIONS
-            client_secret_secret: M365_CLIENT_SECRET_APPLICATIONS
           - service: backup_storage
-            client_id_secret: M365_CLIENT_ID_BACKUP_STORAGE
-            client_secret_secret: M365_CLIENT_SECRET_BACKUP_STORAGE
           - service: device_and_app_management
-            client_id_secret: M365_CLIENT_ID_DEVICE_AND_APP_MGMT
-            client_secret_secret: M365_CLIENT_SECRET_DEVICE_AND_APP_MGMT
           - service: device_management
-            client_id_secret: M365_CLIENT_ID_DEVICE_MGMT
-            client_secret_secret: M365_CLIENT_SECRET_DEVICE_MGMT
           - service: groups
-            client_id_secret: M365_CLIENT_ID_GROUPS
-            client_secret_secret: M365_CLIENT_SECRET_GROUPS
           - service: identity_and_access
-            client_id_secret: M365_CLIENT_ID_IDENTITY_ACCESS
-            client_secret_secret: M365_CLIENT_SECRET_IDENTITY_ACCESS
           - service: m365_admin
-            client_id_secret: M365_CLIENT_ID_M365_ADMIN
-            client_secret_secret: M365_CLIENT_SECRET_M365_ADMIN
           - service: users
-            client_id_secret: M365_CLIENT_ID_USERS
-            client_secret_secret: M365_CLIENT_SECRET_USERS
           - service: windows_365
-            client_id_secret: M365_CLIENT_ID_WINDOWS_365
-            client_secret_secret: M365_CLIENT_SECRET_WINDOWS_365
     steps:
       - name: Harden Runner
         uses: step-security/harden-runner@95d9a5deda9de15063e7595e9719c11c38c90ae2 # v2.13.2
         with:
           egress-policy: audit
-          
-      - name: Check Out  
+
+      - name: Check Out
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
 
       - name: Set up Go
@@ -115,10 +97,55 @@ jobs:
       - name: Install dependencies
         run: go mod download
 
+      - name: Set service credentials
+        run: |
+          case "${{ matrix.service }}" in
+            "applications")
+              echo "CLIENT_ID=${{ secrets.M365_CLIENT_ID_APPLICATIONS }}" >> $GITHUB_ENV
+              echo "CLIENT_SECRET=${{ secrets.M365_CLIENT_SECRET_APPLICATIONS }}" >> $GITHUB_ENV
+              ;;
+            "backup_storage")
+              echo "CLIENT_ID=${{ secrets.M365_CLIENT_ID_BACKUP_STORAGE }}" >> $GITHUB_ENV
+              echo "CLIENT_SECRET=${{ secrets.M365_CLIENT_SECRET_BACKUP_STORAGE }}" >> $GITHUB_ENV
+              ;;
+            "device_and_app_management")
+              echo "CLIENT_ID=${{ secrets.M365_CLIENT_ID_DEVICE_AND_APP_MGMT }}" >> $GITHUB_ENV
+              echo "CLIENT_SECRET=${{ secrets.M365_CLIENT_SECRET_DEVICE_AND_APP_MGMT }}" >> $GITHUB_ENV
+              ;;
+            "device_management")
+              echo "CLIENT_ID=${{ secrets.M365_CLIENT_ID_DEVICE_MGMT }}" >> $GITHUB_ENV
+              echo "CLIENT_SECRET=${{ secrets.M365_CLIENT_SECRET_DEVICE_MGMT }}" >> $GITHUB_ENV
+              ;;
+            "groups")
+              echo "CLIENT_ID=${{ secrets.M365_CLIENT_ID_GROUPS }}" >> $GITHUB_ENV
+              echo "CLIENT_SECRET=${{ secrets.M365_CLIENT_SECRET_GROUPS }}" >> $GITHUB_ENV
+              ;;
+            "identity_and_access")
+              echo "CLIENT_ID=${{ secrets.M365_CLIENT_ID_IDENTITY_ACCESS }}" >> $GITHUB_ENV
+              echo "CLIENT_SECRET=${{ secrets.M365_CLIENT_SECRET_IDENTITY_ACCESS }}" >> $GITHUB_ENV
+              ;;
+            "m365_admin")
+              echo "CLIENT_ID=${{ secrets.M365_CLIENT_ID_M365_ADMIN }}" >> $GITHUB_ENV
+              echo "CLIENT_SECRET=${{ secrets.M365_CLIENT_SECRET_M365_ADMIN }}" >> $GITHUB_ENV
+              ;;
+            "users")
+              echo "CLIENT_ID=${{ secrets.M365_CLIENT_ID_USERS }}" >> $GITHUB_ENV
+              echo "CLIENT_SECRET=${{ secrets.M365_CLIENT_SECRET_USERS }}" >> $GITHUB_ENV
+              ;;
+            "windows_365")
+              echo "CLIENT_ID=${{ secrets.M365_CLIENT_ID_WINDOWS_365 }}" >> $GITHUB_ENV
+              echo "CLIENT_SECRET=${{ secrets.M365_CLIENT_SECRET_WINDOWS_365 }}" >> $GITHUB_ENV
+              ;;
+            *)
+              echo "❌ Unknown service: ${{ matrix.service }}"
+              exit 1
+              ;;
+          esac
+
       - name: Check credentials
         id: check-creds
         run: |
-          if [ -n "${{ secrets[matrix.client_id_secret] }}" ] && [ -n "${{ secrets[matrix.client_secret_secret] }}" ]; then
+          if [ -n "$CLIENT_ID" ] && [ -n "$CLIENT_SECRET" ]; then
             echo "credentials_available=true" >> $GITHUB_OUTPUT
             echo "✅ Credentials found for ${{ matrix.service }}"
           else
@@ -131,8 +158,8 @@ jobs:
         env:
           TF_ACC: 1
           M365_TENANT_ID: ${{ secrets.M365_TENANT_ID }}
-          M365_CLIENT_ID: ${{ secrets[matrix.client_id_secret] }}
-          M365_CLIENT_SECRET: ${{ secrets[matrix.client_secret_secret] }}
+          M365_CLIENT_ID: ${{ env.CLIENT_ID }}
+          M365_CLIENT_SECRET: ${{ env.CLIENT_SECRET }}
           M365_AUTH_METHOD: client_secret
           M365_CLOUD: public
         run: |
@@ -180,36 +207,20 @@ jobs:
       matrix:
         include:
           - service: applications
-            client_id_secret: M365_CLIENT_ID_APPLICATIONS
-            client_secret_secret: M365_CLIENT_SECRET_APPLICATIONS
           - service: device_and_app_management
-            client_id_secret: M365_CLIENT_ID_DEVICE_AND_APP_MGMT
-            client_secret_secret: M365_CLIENT_SECRET_DEVICE_AND_APP_MGMT
           - service: device_management
-            client_id_secret: M365_CLIENT_ID_DEVICE_MGMT
-            client_secret_secret: M365_CLIENT_SECRET_DEVICE_MGMT
           - service: identity_and_access
-            client_id_secret: M365_CLIENT_ID_IDENTITY_ACCESS
-            client_secret_secret: M365_CLIENT_SECRET_IDENTITY_ACCESS
           - service: m365_admin
-            client_id_secret: M365_CLIENT_ID_M365_ADMIN
-            client_secret_secret: M365_CLIENT_SECRET_M365_ADMIN
           - service: multitenant_management
-            client_id_secret: M365_CLIENT_ID_MULTITENANT_MGMT
-            client_secret_secret: M365_CLIENT_SECRET_MULTITENANT_MGMT
           - service: utility
-            client_id_secret: M365_CLIENT_ID_UTILITY
-            client_secret_secret: M365_CLIENT_SECRET_UTILITY
           - service: windows_365
-            client_id_secret: M365_CLIENT_ID_WINDOWS_365
-            client_secret_secret: M365_CLIENT_SECRET_WINDOWS_365
     steps:
       - name: Harden Runner
         uses: step-security/harden-runner@95d9a5deda9de15063e7595e9719c11c38c90ae2 # v2.13.2
         with:
           egress-policy: audit
-          
-      - name: Check Out  
+
+      - name: Check Out
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
 
       - name: Set up Go
@@ -222,10 +233,51 @@ jobs:
       - name: Install dependencies
         run: go mod download
 
+      - name: Set service credentials
+        run: |
+          case "${{ matrix.service }}" in
+            "applications")
+              echo "CLIENT_ID=${{ secrets.M365_CLIENT_ID_APPLICATIONS }}" >> $GITHUB_ENV
+              echo "CLIENT_SECRET=${{ secrets.M365_CLIENT_SECRET_APPLICATIONS }}" >> $GITHUB_ENV
+              ;;
+            "device_and_app_management")
+              echo "CLIENT_ID=${{ secrets.M365_CLIENT_ID_DEVICE_AND_APP_MGMT }}" >> $GITHUB_ENV
+              echo "CLIENT_SECRET=${{ secrets.M365_CLIENT_SECRET_DEVICE_AND_APP_MGMT }}" >> $GITHUB_ENV
+              ;;
+            "device_management")
+              echo "CLIENT_ID=${{ secrets.M365_CLIENT_ID_DEVICE_MGMT }}" >> $GITHUB_ENV
+              echo "CLIENT_SECRET=${{ secrets.M365_CLIENT_SECRET_DEVICE_MGMT }}" >> $GITHUB_ENV
+              ;;
+            "identity_and_access")
+              echo "CLIENT_ID=${{ secrets.M365_CLIENT_ID_IDENTITY_ACCESS }}" >> $GITHUB_ENV
+              echo "CLIENT_SECRET=${{ secrets.M365_CLIENT_SECRET_IDENTITY_ACCESS }}" >> $GITHUB_ENV
+              ;;
+            "m365_admin")
+              echo "CLIENT_ID=${{ secrets.M365_CLIENT_ID_M365_ADMIN }}" >> $GITHUB_ENV
+              echo "CLIENT_SECRET=${{ secrets.M365_CLIENT_SECRET_M365_ADMIN }}" >> $GITHUB_ENV
+              ;;
+            "multitenant_management")
+              echo "CLIENT_ID=${{ secrets.M365_CLIENT_ID_MULTITENANT_MGMT }}" >> $GITHUB_ENV
+              echo "CLIENT_SECRET=${{ secrets.M365_CLIENT_SECRET_MULTITENANT_MGMT }}" >> $GITHUB_ENV
+              ;;
+            "utility")
+              echo "CLIENT_ID=${{ secrets.M365_CLIENT_ID_UTILITY }}" >> $GITHUB_ENV
+              echo "CLIENT_SECRET=${{ secrets.M365_CLIENT_SECRET_UTILITY }}" >> $GITHUB_ENV
+              ;;
+            "windows_365")
+              echo "CLIENT_ID=${{ secrets.M365_CLIENT_ID_WINDOWS_365 }}" >> $GITHUB_ENV
+              echo "CLIENT_SECRET=${{ secrets.M365_CLIENT_SECRET_WINDOWS_365 }}" >> $GITHUB_ENV
+              ;;
+            *)
+              echo "❌ Unknown service: ${{ matrix.service }}"
+              exit 1
+              ;;
+          esac
+
       - name: Check credentials
         id: check-creds
         run: |
-          if [ -n "${{ secrets[matrix.client_id_secret] }}" ] && [ -n "${{ secrets[matrix.client_secret_secret] }}" ]; then
+          if [ -n "$CLIENT_ID" ] && [ -n "$CLIENT_SECRET" ]; then
             echo "credentials_available=true" >> $GITHUB_OUTPUT
             echo "✅ Credentials found for ${{ matrix.service }}"
           else
@@ -238,8 +290,8 @@ jobs:
         env:
           TF_ACC: 1
           M365_TENANT_ID: ${{ secrets.M365_TENANT_ID }}
-          M365_CLIENT_ID: ${{ secrets[matrix.client_id_secret] }}
-          M365_CLIENT_SECRET: ${{ secrets[matrix.client_secret_secret] }}
+          M365_CLIENT_ID: ${{ env.CLIENT_ID }}
+          M365_CLIENT_SECRET: ${{ env.CLIENT_SECRET }}
           M365_AUTH_METHOD: client_secret
           M365_CLOUD: public
         run: |
