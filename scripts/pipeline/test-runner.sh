@@ -39,13 +39,16 @@ run_service_tests() {
         return 0
     fi
 
-    if ! ls "${test_dir}"/*_test.go >/dev/null 2>&1; then
+    # Check for test files recursively
+    local test_count
+    test_count=$(find "${test_dir}" -name "*_test.go" -type f | wc -l | tr -d ' ')
+
+    if [[ "$test_count" -eq 0 ]]; then
         echo "No test files found in ${test_dir}, creating empty coverage file"
         echo "mode: atomic" > "$COVERAGE_FILE"
         return 0
     fi
 
-    local test_count=$(ls "${test_dir}"/*_test.go 2>/dev/null | wc -l | tr -d ' ')
     echo "Found ${test_count} test files"
 
     go test -v -race \
