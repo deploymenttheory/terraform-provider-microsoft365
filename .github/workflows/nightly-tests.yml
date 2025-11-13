@@ -1,8 +1,9 @@
 name: provider | Nightly Tests
 
 permissions:
-  contents: read
+  contents: write
   issues: write
+  pull-requests: write
 
 on:
   schedule:
@@ -21,8 +22,8 @@ jobs:
         uses: step-security/harden-runner@95d9a5deda9de15063e7595e9719c11c38c90ae2 # v2.13.2
         with:
           egress-policy: audit
-          
-      - name: Check Out  
+
+      - name: Check Out
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
 
       - name: Set up Go
@@ -35,7 +36,12 @@ jobs:
       - name: Install dependencies
         run: go mod download
 
-      - name: Run tests
+      - name: Build test tools
+        run: |
+          cd scripts/go/nightly_tests/testrunner
+          go build -o ../../../../testrunner .
+
+      - name: Run provider core tests
         env:
           TF_ACC: 1
           M365_TENANT_ID: ${{ secrets.M365_TENANT_ID }}
@@ -44,21 +50,17 @@ jobs:
           M365_AUTH_METHOD: client_secret
           M365_CLOUD: public
         run: |
-          echo "Running provider core tests..."
-          go test -v -race -coverprofile=coverage-provider-core.txt -covermode=atomic \
-            ./internal/client/... \
-            ./internal/helpers/... \
-            ./internal/provider/... \
-            ./internal/utilities/...
+          ./testrunner \
+            -type=provider-core \
+            -coverage=coverage-provider-core.txt
 
-      - name: Upload coverage
-        uses: codecov/codecov-action@5a1091511ad55cbe89839c7260b706298ca349f7 # v5.5.1
+      - name: Upload coverage artifact
+        if: always()
+        uses: actions/upload-artifact@6f51ac03b9356f520e9adb1b1b7802705f340c2b # v4.5.0
         with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          files: ./coverage-provider-core.txt
-          flags: provider-core
-          name: provider-core
-          fail_ci_if_error: false
+          name: coverage-provider-core
+          path: coverage-provider-core.txt
+          retention-days: 1
 
   # Resources Tests - Matrix for each service area with service-specific credentials
   test-resources:
@@ -97,105 +99,53 @@ jobs:
       - name: Install dependencies
         run: go mod download
 
+      - name: Build test tools
+        run: |
+          cd scripts/go/nightly_tests
+          go build -o ../../../credmapper ./credmapper
+          go build -o ../../../testrunner ./testrunner
+
       - name: Set service credentials
-        run: |
-          case "${{ matrix.service }}" in
-            "applications")
-              echo "CLIENT_ID=${{ secrets.M365_CLIENT_ID_APPLICATIONS }}" >> $GITHUB_ENV
-              echo "CLIENT_SECRET=${{ secrets.M365_CLIENT_SECRET_APPLICATIONS }}" >> $GITHUB_ENV
-              ;;
-            "backup_storage")
-              echo "CLIENT_ID=${{ secrets.M365_CLIENT_ID_BACKUP_STORAGE }}" >> $GITHUB_ENV
-              echo "CLIENT_SECRET=${{ secrets.M365_CLIENT_SECRET_BACKUP_STORAGE }}" >> $GITHUB_ENV
-              ;;
-            "device_and_app_management")
-              echo "CLIENT_ID=${{ secrets.M365_CLIENT_ID_DEVICE_AND_APP_MGMT }}" >> $GITHUB_ENV
-              echo "CLIENT_SECRET=${{ secrets.M365_CLIENT_SECRET_DEVICE_AND_APP_MGMT }}" >> $GITHUB_ENV
-              ;;
-            "device_management")
-              echo "CLIENT_ID=${{ secrets.M365_CLIENT_ID_DEVICE_MGMT }}" >> $GITHUB_ENV
-              echo "CLIENT_SECRET=${{ secrets.M365_CLIENT_SECRET_DEVICE_MGMT }}" >> $GITHUB_ENV
-              ;;
-            "groups")
-              echo "CLIENT_ID=${{ secrets.M365_CLIENT_ID_GROUPS }}" >> $GITHUB_ENV
-              echo "CLIENT_SECRET=${{ secrets.M365_CLIENT_SECRET_GROUPS }}" >> $GITHUB_ENV
-              ;;
-            "identity_and_access")
-              echo "CLIENT_ID=${{ secrets.M365_CLIENT_ID_IDENTITY_ACCESS }}" >> $GITHUB_ENV
-              echo "CLIENT_SECRET=${{ secrets.M365_CLIENT_SECRET_IDENTITY_ACCESS }}" >> $GITHUB_ENV
-              ;;
-            "m365_admin")
-              echo "CLIENT_ID=${{ secrets.M365_CLIENT_ID_M365_ADMIN }}" >> $GITHUB_ENV
-              echo "CLIENT_SECRET=${{ secrets.M365_CLIENT_SECRET_M365_ADMIN }}" >> $GITHUB_ENV
-              ;;
-            "users")
-              echo "CLIENT_ID=${{ secrets.M365_CLIENT_ID_USERS }}" >> $GITHUB_ENV
-              echo "CLIENT_SECRET=${{ secrets.M365_CLIENT_SECRET_USERS }}" >> $GITHUB_ENV
-              ;;
-            "windows_365")
-              echo "CLIENT_ID=${{ secrets.M365_CLIENT_ID_WINDOWS_365 }}" >> $GITHUB_ENV
-              echo "CLIENT_SECRET=${{ secrets.M365_CLIENT_SECRET_WINDOWS_365 }}" >> $GITHUB_ENV
-              ;;
-            *)
-              echo "❌ Unknown service: ${{ matrix.service }}"
-              exit 1
-              ;;
-          esac
+        env:
+          M365_CLIENT_ID_APPLICATIONS: ${{ secrets.M365_CLIENT_ID_APPLICATIONS }}
+          M365_CLIENT_SECRET_APPLICATIONS: ${{ secrets.M365_CLIENT_SECRET_APPLICATIONS }}
+          M365_CLIENT_ID_BACKUP_STORAGE: ${{ secrets.M365_CLIENT_ID_BACKUP_STORAGE }}
+          M365_CLIENT_SECRET_BACKUP_STORAGE: ${{ secrets.M365_CLIENT_SECRET_BACKUP_STORAGE }}
+          M365_CLIENT_ID_DEVICE_AND_APP_MGMT: ${{ secrets.M365_CLIENT_ID_DEVICE_AND_APP_MGMT }}
+          M365_CLIENT_SECRET_DEVICE_AND_APP_MGMT: ${{ secrets.M365_CLIENT_SECRET_DEVICE_AND_APP_MGMT }}
+          M365_CLIENT_ID_DEVICE_MGMT: ${{ secrets.M365_CLIENT_ID_DEVICE_MGMT }}
+          M365_CLIENT_SECRET_DEVICE_MGMT: ${{ secrets.M365_CLIENT_SECRET_DEVICE_MGMT }}
+          M365_CLIENT_ID_GROUPS: ${{ secrets.M365_CLIENT_ID_GROUPS }}
+          M365_CLIENT_SECRET_GROUPS: ${{ secrets.M365_CLIENT_SECRET_GROUPS }}
+          M365_CLIENT_ID_IDENTITY_ACCESS: ${{ secrets.M365_CLIENT_ID_IDENTITY_ACCESS }}
+          M365_CLIENT_SECRET_IDENTITY_ACCESS: ${{ secrets.M365_CLIENT_SECRET_IDENTITY_ACCESS }}
+          M365_CLIENT_ID_M365_ADMIN: ${{ secrets.M365_CLIENT_ID_M365_ADMIN }}
+          M365_CLIENT_SECRET_M365_ADMIN: ${{ secrets.M365_CLIENT_SECRET_M365_ADMIN }}
+          M365_CLIENT_ID_USERS: ${{ secrets.M365_CLIENT_ID_USERS }}
+          M365_CLIENT_SECRET_USERS: ${{ secrets.M365_CLIENT_SECRET_USERS }}
+          M365_CLIENT_ID_WINDOWS_365: ${{ secrets.M365_CLIENT_ID_WINDOWS_365 }}
+          M365_CLIENT_SECRET_WINDOWS_365: ${{ secrets.M365_CLIENT_SECRET_WINDOWS_365 }}
+        run: ./credmapper -service=${{ matrix.service }}
 
-      - name: Check credentials
-        id: check-creds
-        run: |
-          if [ -n "$CLIENT_ID" ] && [ -n "$CLIENT_SECRET" ]; then
-            echo "credentials_available=true" >> $GITHUB_OUTPUT
-            echo "✅ Credentials found for ${{ matrix.service }}"
-          else
-            echo "credentials_available=false" >> $GITHUB_OUTPUT
-            echo "⚠️ No credentials configured for ${{ matrix.service }}, skipping tests"
-          fi
-
-      - name: Run tests
-        if: steps.check-creds.outputs.credentials_available == 'true'
+      - name: Run resource tests
         env:
           TF_ACC: 1
           M365_TENANT_ID: ${{ secrets.M365_TENANT_ID }}
-          M365_CLIENT_ID: ${{ env.CLIENT_ID }}
-          M365_CLIENT_SECRET: ${{ env.CLIENT_SECRET }}
           M365_AUTH_METHOD: client_secret
           M365_CLOUD: public
         run: |
-          echo "Running tests for resources/${{ matrix.service }}..."
-          
-          # Check if directory exists and has test files
-          if [ -d "./internal/services/resources/${{ matrix.service }}" ]; then
-            TEST_FILES=$(find ./internal/services/resources/${{ matrix.service }} -name "*_test.go" 2>/dev/null | wc -l)
-            
-            if [ "$TEST_FILES" -gt 0 ]; then
-              echo "Found $TEST_FILES test files"
-              go test -v -race -coverprofile=coverage-resources-${{ matrix.service }}.txt -covermode=atomic \
-                ./internal/services/resources/${{ matrix.service }}/...
-            else
-              echo "No test files found, creating empty coverage file"
-              echo "mode: atomic" > coverage-resources-${{ matrix.service }}.txt
-            fi
-          else
-            echo "Directory not found, skipping"
-            echo "mode: atomic" > coverage-resources-${{ matrix.service }}.txt
-          fi
+          ./testrunner \
+            -type=resources \
+            -service=${{ matrix.service }} \
+            -coverage=coverage-resources-${{ matrix.service }}.txt
 
-      - name: Create empty coverage file
-        if: steps.check-creds.outputs.credentials_available == 'false'
-        run: |
-          echo "mode: atomic" > coverage-resources-${{ matrix.service }}.txt
-
-      - name: Upload coverage
+      - name: Upload coverage artifact
         if: always()
-        uses: codecov/codecov-action@5a1091511ad55cbe89839c7260b706298ca349f7 # v5.5.1
+        uses: actions/upload-artifact@6f51ac03b9356f520e9adb1b1b7802705f340c2b # v4.5.0
         with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          files: ./coverage-resources-${{ matrix.service }}.txt
-          flags: resources-${{ matrix.service }}
-          name: resources-${{ matrix.service }}
-          fail_ci_if_error: false
+          name: coverage-resources-${{ matrix.service }}
+          path: coverage-resources-${{ matrix.service }}.txt
+          retention-days: 1
 
   # Datasources Tests - Matrix for each service area with service-specific credentials
   test-datasources:
@@ -233,101 +183,51 @@ jobs:
       - name: Install dependencies
         run: go mod download
 
+      - name: Build test tools
+        run: |
+          cd scripts/go/nightly_tests
+          go build -o ../../../credmapper ./credmapper
+          go build -o ../../../testrunner ./testrunner
+
       - name: Set service credentials
-        run: |
-          case "${{ matrix.service }}" in
-            "applications")
-              echo "CLIENT_ID=${{ secrets.M365_CLIENT_ID_APPLICATIONS }}" >> $GITHUB_ENV
-              echo "CLIENT_SECRET=${{ secrets.M365_CLIENT_SECRET_APPLICATIONS }}" >> $GITHUB_ENV
-              ;;
-            "device_and_app_management")
-              echo "CLIENT_ID=${{ secrets.M365_CLIENT_ID_DEVICE_AND_APP_MGMT }}" >> $GITHUB_ENV
-              echo "CLIENT_SECRET=${{ secrets.M365_CLIENT_SECRET_DEVICE_AND_APP_MGMT }}" >> $GITHUB_ENV
-              ;;
-            "device_management")
-              echo "CLIENT_ID=${{ secrets.M365_CLIENT_ID_DEVICE_MGMT }}" >> $GITHUB_ENV
-              echo "CLIENT_SECRET=${{ secrets.M365_CLIENT_SECRET_DEVICE_MGMT }}" >> $GITHUB_ENV
-              ;;
-            "identity_and_access")
-              echo "CLIENT_ID=${{ secrets.M365_CLIENT_ID_IDENTITY_ACCESS }}" >> $GITHUB_ENV
-              echo "CLIENT_SECRET=${{ secrets.M365_CLIENT_SECRET_IDENTITY_ACCESS }}" >> $GITHUB_ENV
-              ;;
-            "m365_admin")
-              echo "CLIENT_ID=${{ secrets.M365_CLIENT_ID_M365_ADMIN }}" >> $GITHUB_ENV
-              echo "CLIENT_SECRET=${{ secrets.M365_CLIENT_SECRET_M365_ADMIN }}" >> $GITHUB_ENV
-              ;;
-            "multitenant_management")
-              echo "CLIENT_ID=${{ secrets.M365_CLIENT_ID_MULTITENANT_MGMT }}" >> $GITHUB_ENV
-              echo "CLIENT_SECRET=${{ secrets.M365_CLIENT_SECRET_MULTITENANT_MGMT }}" >> $GITHUB_ENV
-              ;;
-            "utility")
-              echo "CLIENT_ID=${{ secrets.M365_CLIENT_ID_UTILITY }}" >> $GITHUB_ENV
-              echo "CLIENT_SECRET=${{ secrets.M365_CLIENT_SECRET_UTILITY }}" >> $GITHUB_ENV
-              ;;
-            "windows_365")
-              echo "CLIENT_ID=${{ secrets.M365_CLIENT_ID_WINDOWS_365 }}" >> $GITHUB_ENV
-              echo "CLIENT_SECRET=${{ secrets.M365_CLIENT_SECRET_WINDOWS_365 }}" >> $GITHUB_ENV
-              ;;
-            *)
-              echo "❌ Unknown service: ${{ matrix.service }}"
-              exit 1
-              ;;
-          esac
+        env:
+          M365_CLIENT_ID_APPLICATIONS: ${{ secrets.M365_CLIENT_ID_APPLICATIONS }}
+          M365_CLIENT_SECRET_APPLICATIONS: ${{ secrets.M365_CLIENT_SECRET_APPLICATIONS }}
+          M365_CLIENT_ID_DEVICE_AND_APP_MGMT: ${{ secrets.M365_CLIENT_ID_DEVICE_AND_APP_MGMT }}
+          M365_CLIENT_SECRET_DEVICE_AND_APP_MGMT: ${{ secrets.M365_CLIENT_SECRET_DEVICE_AND_APP_MGMT }}
+          M365_CLIENT_ID_DEVICE_MGMT: ${{ secrets.M365_CLIENT_ID_DEVICE_MGMT }}
+          M365_CLIENT_SECRET_DEVICE_MGMT: ${{ secrets.M365_CLIENT_SECRET_DEVICE_MGMT }}
+          M365_CLIENT_ID_IDENTITY_ACCESS: ${{ secrets.M365_CLIENT_ID_IDENTITY_ACCESS }}
+          M365_CLIENT_SECRET_IDENTITY_ACCESS: ${{ secrets.M365_CLIENT_SECRET_IDENTITY_ACCESS }}
+          M365_CLIENT_ID_M365_ADMIN: ${{ secrets.M365_CLIENT_ID_M365_ADMIN }}
+          M365_CLIENT_SECRET_M365_ADMIN: ${{ secrets.M365_CLIENT_SECRET_M365_ADMIN }}
+          M365_CLIENT_ID_MULTITENANT_MGMT: ${{ secrets.M365_CLIENT_ID_MULTITENANT_MGMT }}
+          M365_CLIENT_SECRET_MULTITENANT_MGMT: ${{ secrets.M365_CLIENT_SECRET_MULTITENANT_MGMT }}
+          M365_CLIENT_ID_UTILITY: ${{ secrets.M365_CLIENT_ID_UTILITY }}
+          M365_CLIENT_SECRET_UTILITY: ${{ secrets.M365_CLIENT_SECRET_UTILITY }}
+          M365_CLIENT_ID_WINDOWS_365: ${{ secrets.M365_CLIENT_ID_WINDOWS_365 }}
+          M365_CLIENT_SECRET_WINDOWS_365: ${{ secrets.M365_CLIENT_SECRET_WINDOWS_365 }}
+        run: ./credmapper -service=${{ matrix.service }}
 
-      - name: Check credentials
-        id: check-creds
-        run: |
-          if [ -n "$CLIENT_ID" ] && [ -n "$CLIENT_SECRET" ]; then
-            echo "credentials_available=true" >> $GITHUB_OUTPUT
-            echo "✅ Credentials found for ${{ matrix.service }}"
-          else
-            echo "credentials_available=false" >> $GITHUB_OUTPUT
-            echo "⚠️ No credentials configured for ${{ matrix.service }}, skipping tests"
-          fi
-
-      - name: Run tests
-        if: steps.check-creds.outputs.credentials_available == 'true'
+      - name: Run datasource tests
         env:
           TF_ACC: 1
           M365_TENANT_ID: ${{ secrets.M365_TENANT_ID }}
-          M365_CLIENT_ID: ${{ env.CLIENT_ID }}
-          M365_CLIENT_SECRET: ${{ env.CLIENT_SECRET }}
           M365_AUTH_METHOD: client_secret
           M365_CLOUD: public
         run: |
-          echo "Running tests for datasources/${{ matrix.service }}..."
-          
-          # Check if directory exists and has test files
-          if [ -d "./internal/services/datasources/${{ matrix.service }}" ]; then
-            TEST_FILES=$(find ./internal/services/datasources/${{ matrix.service }} -name "*_test.go" 2>/dev/null | wc -l)
-            
-            if [ "$TEST_FILES" -gt 0 ]; then
-              echo "Found $TEST_FILES test files"
-              go test -v -race -coverprofile=coverage-datasources-${{ matrix.service }}.txt -covermode=atomic \
-                ./internal/services/datasources/${{ matrix.service }}/...
-            else
-              echo "No test files found, creating empty coverage file"
-              echo "mode: atomic" > coverage-datasources-${{ matrix.service }}.txt
-            fi
-          else
-            echo "Directory not found, skipping"
-            echo "mode: atomic" > coverage-datasources-${{ matrix.service }}.txt
-          fi
+          ./testrunner \
+            -type=datasources \
+            -service=${{ matrix.service }} \
+            -coverage=coverage-datasources-${{ matrix.service }}.txt
 
-      - name: Create empty coverage file
-        if: steps.check-creds.outputs.credentials_available == 'false'
-        run: |
-          echo "mode: atomic" > coverage-datasources-${{ matrix.service }}.txt
-
-      - name: Upload coverage
+      - name: Upload coverage artifact
         if: always()
-        uses: codecov/codecov-action@5a1091511ad55cbe89839c7260b706298ca349f7 # v5.5.1
+        uses: actions/upload-artifact@6f51ac03b9356f520e9adb1b1b7802705f340c2b # v4.5.0
         with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          files: ./coverage-datasources-${{ matrix.service }}.txt
-          flags: datasources-${{ matrix.service }}
-          name: datasources-${{ matrix.service }}
-          fail_ci_if_error: false
+          name: coverage-datasources-${{ matrix.service }}
+          path: coverage-datasources-${{ matrix.service }}.txt
+          retention-days: 1
 
   # Final aggregation job
   test-summary:
@@ -336,8 +236,41 @@ jobs:
     runs-on: ubuntu-24.04-arm
     if: always()
     steps:
-      - name: Check Out  
+      - name: Check Out
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+
+      - name: Set up Go
+        uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00 # v6.0.0
+        with:
+          go-version-file: 'go.mod'
+          cache: true
+
+      - name: Download all coverage artifacts
+        uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # v4.1.8
+        with:
+          path: coverage-artifacts
+          pattern: coverage-*
+          merge-multiple: false
+
+      - name: Build coverage merger
+        run: |
+          cd scripts/go/nightly_tests/coveragemerger
+          go build -o ../../../../coveragemerger .
+
+      - name: Merge coverage files
+        run: |
+          ./coveragemerger \
+            -input=coverage-artifacts \
+            -output=coverage-merged.txt
+
+      - name: Upload consolidated coverage to Codecov
+        uses: codecov/codecov-action@5a1091511ad55cbe89839c7260b706298ca349f7 # v5.5.1
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./coverage-merged.txt
+          flags: nightly-tests
+          name: nightly-consolidated
+          fail_ci_if_error: false
 
       - name: Generate test summary
         run: |
@@ -346,50 +279,55 @@ jobs:
           echo "**Workflow:** ${{ github.workflow }}" >> summary.md
           echo "**Run ID:** ${{ github.run_id }}" >> summary.md
           echo "" >> summary.md
-          
+
           echo "### Test Results" >> summary.md
           echo "- **Provider Core:** ${{ needs.test-provider-core.result }}" >> summary.md
           echo "- **Resources:** ${{ needs.test-resources.result }}" >> summary.md
           echo "- **Datasources:** ${{ needs.test-datasources.result }}" >> summary.md
           echo "" >> summary.md
-          
+
           echo "### Coverage Reports" >> summary.md
           echo "[View Coverage on Codecov](https://codecov.io/gh/${{ github.repository }})" >> summary.md
-          
+
           cat summary.md
 
-      - name: Create Issue on Failure
+      - name: Build failure handler
         if: |
           needs.test-provider-core.result == 'failure' ||
           needs.test-resources.result == 'failure' ||
           needs.test-datasources.result == 'failure'
         run: |
-          DATE=$(date -I)
-          
-          echo "## Nightly Tests Failed - $DATE" > issue.md
-          echo "" >> issue.md
-          echo "### Failed Jobs" >> issue.md
-          
-          if [ "${{ needs.test-provider-core.result }}" == "failure" ]; then
-            echo "- ❌ Provider Core" >> issue.md
-          fi
-          
-          if [ "${{ needs.test-resources.result }}" == "failure" ]; then
-            echo "- ❌ Resources Tests" >> issue.md
-          fi
-          
-          if [ "${{ needs.test-datasources.result }}" == "failure" ]; then
-            echo "- ❌ Datasources Tests" >> issue.md
-          fi
-          
-          echo "" >> issue.md
-          echo "### Links" >> issue.md
-          echo "- [Workflow Run](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})" >> issue.md
-          echo "- [Codecov Report](https://codecov.io/gh/${{ github.repository }})" >> issue.md
-          
-          gh issue create \
-            --title "Nightly Tests Failed - $DATE" \
-            --body "$(cat issue.md)" \
-            --label "bug,testing,automated"
+          cd scripts/go/nightly_tests/failurehandler
+          go mod download
+          go build -o ../../../../failurehandler .
+
+      - name: Handle test failures
+        if: |
+          needs.test-provider-core.result == 'failure' ||
+          needs.test-resources.result == 'failure' ||
+          needs.test-datasources.result == 'failure'
         env:
-          GH_TOKEN: ${{ github.token }}
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          FAILED_JOBS=""
+
+          if [ "${{ needs.test-provider-core.result }}" == "failure" ]; then
+            FAILED_JOBS="${FAILED_JOBS}Provider-Core,"
+          fi
+
+          if [ "${{ needs.test-resources.result }}" == "failure" ]; then
+            FAILED_JOBS="${FAILED_JOBS}Resources,"
+          fi
+
+          if [ "${{ needs.test-datasources.result }}" == "failure" ]; then
+            FAILED_JOBS="${FAILED_JOBS}Datasources,"
+          fi
+
+          # Remove trailing comma
+          FAILED_JOBS=${FAILED_JOBS%,}
+
+          ./failurehandler \
+            -owner=deploymenttheory \
+            -repo=terraform-provider-microsoft365 \
+            -run-id=${{ github.run_id }} \
+            -failed-jobs="$FAILED_JOBS"
