@@ -39,8 +39,8 @@ jobs:
       - name: Run provider core tests
         env:
           TF_ACC: 1
-          M365_TENANT_ID: ${{ secrets.M365_TENANT_ID }}
-          M365_CLIENT_ID: ${{ secrets.M365_CLIENT_ID }}
+          M365_TENANT_ID: ${{ secrets.M365_CLIENT_ID_DEVICE_AND_APP_MGMT }}
+          M365_CLIENT_ID: ${{ secrets.M365_CLIENT_SECRET_DEVICE_AND_APP_MGMT }} # required for acc tests of the provider.
           M365_CLIENT_SECRET: ${{ secrets.M365_CLIENT_SECRET }}
           M365_AUTH_METHOD: client_secret
           M365_CLOUD: public

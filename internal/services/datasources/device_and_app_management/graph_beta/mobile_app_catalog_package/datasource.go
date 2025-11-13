@@ -29,7 +29,7 @@ var (
 func NewMobileAppCatalogPackageDataSource() datasource.DataSource {
 	return &MobileAppCatalogPackageDataSource{
 		ReadPermissions: []string{
-			"DeviceAppManagement.Read.All",
+			"DeviceManagementApps.Read.All",
 		},
 	}
 }
