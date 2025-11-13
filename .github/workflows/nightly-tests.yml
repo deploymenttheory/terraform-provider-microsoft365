@@ -36,11 +36,6 @@ jobs:
       - name: Install dependencies
         run: go mod download
 
-      - name: Build test tools
-        run: |
-          cd scripts/go/nightly_tests/testrunner
-          go build -o ../../../../testrunner .
-
       - name: Run provider core tests
         env:
           TF_ACC: 1
@@ -49,10 +44,7 @@ jobs:
           M365_CLIENT_SECRET: ${{ secrets.M365_CLIENT_SECRET }}
           M365_AUTH_METHOD: client_secret
           M365_CLOUD: public
-        run: |
-          ./testrunner \
-            -type=provider-core \
-            -coverage=coverage-provider-core.txt
+        run: ./scripts/pipeline/test-runner.sh provider-core "" coverage-provider-core.txt
 
       - name: Upload coverage artifact
         if: always()
@@ -99,12 +91,6 @@ jobs:
       - name: Install dependencies
         run: go mod download
 
-      - name: Build test tools
-        run: |
-          cd scripts/go/nightly_tests
-          go build -o ../../../credmapper ./credmapper
-          go build -o ../../../testrunner ./testrunner
-
       - name: Set service credentials
         env:
           M365_CLIENT_ID_APPLICATIONS: ${{ secrets.M365_CLIENT_ID_APPLICATIONS }}
@@ -125,7 +111,7 @@ jobs:
           M365_CLIENT_SECRET_USERS: ${{ secrets.M365_CLIENT_SECRET_USERS }}
           M365_CLIENT_ID_WINDOWS_365: ${{ secrets.M365_CLIENT_ID_WINDOWS_365 }}
           M365_CLIENT_SECRET_WINDOWS_365: ${{ secrets.M365_CLIENT_SECRET_WINDOWS_365 }}
-        run: ./credmapper -service=${{ matrix.service }}
+        run: ./scripts/pipeline/map-credentials.sh ${{ matrix.service }}
 
       - name: Run resource tests
         env:
@@ -133,11 +119,7 @@ jobs:
           M365_TENANT_ID: ${{ secrets.M365_TENANT_ID }}
           M365_AUTH_METHOD: client_secret
           M365_CLOUD: public
-        run: |
-          ./testrunner \
-            -type=resources \
-            -service=${{ matrix.service }} \
-            -coverage=coverage-resources-${{ matrix.service }}.txt
+        run: ./scripts/pipeline/test-runner.sh resources ${{ matrix.service }} coverage-resources-${{ matrix.service }}.txt
 
       - name: Upload coverage artifact
         if: always()
@@ -183,12 +165,6 @@ jobs:
       - name: Install dependencies
         run: go mod download
 
-      - name: Build test tools
-        run: |
-          cd scripts/go/nightly_tests
-          go build -o ../../../credmapper ./credmapper
-          go build -o ../../../testrunner ./testrunner
-
       - name: Set service credentials
         env:
           M365_CLIENT_ID_APPLICATIONS: ${{ secrets.M365_CLIENT_ID_APPLICATIONS }}
@@ -207,7 +183,7 @@ jobs:
           M365_CLIENT_SECRET_UTILITY: ${{ secrets.M365_CLIENT_SECRET_UTILITY }}
           M365_CLIENT_ID_WINDOWS_365: ${{ secrets.M365_CLIENT_ID_WINDOWS_365 }}
           M365_CLIENT_SECRET_WINDOWS_365: ${{ secrets.M365_CLIENT_SECRET_WINDOWS_365 }}
-        run: ./credmapper -service=${{ matrix.service }}
+        run: ./scripts/pipeline/map-credentials.sh ${{ matrix.service }}
 
       - name: Run datasource tests
         env:
@@ -215,11 +191,7 @@ jobs:
           M365_TENANT_ID: ${{ secrets.M365_TENANT_ID }}
           M365_AUTH_METHOD: client_secret
           M365_CLOUD: public
-        run: |
-          ./testrunner \
-            -type=datasources \
-            -service=${{ matrix.service }} \
-            -coverage=coverage-datasources-${{ matrix.service }}.txt
+        run: ./scripts/pipeline/test-runner.sh datasources ${{ matrix.service }} coverage-datasources-${{ matrix.service }}.txt
 
       - name: Upload coverage artifact
         if: always()
@@ -239,12 +211,6 @@ jobs:
       - name: Check Out
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
 
-      - name: Set up Go
-        uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00 # v6.0.0
-        with:
-          go-version-file: 'go.mod'
-          cache: true
-
       - name: Download all coverage artifacts
         uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # v4.1.8
         with:
@@ -252,16 +218,8 @@ jobs:
           pattern: coverage-*
           merge-multiple: false
 
-      - name: Build coverage merger
-        run: |
-          cd scripts/go/nightly_tests/coveragemerger
-          go build -o ../../../../coveragemerger .
-
       - name: Merge coverage files
-        run: |
-          ./coveragemerger \
-            -input=coverage-artifacts \
-            -output=coverage-merged.txt
+        run: ./scripts/pipeline/merge-coverage.sh coverage-artifacts coverage-merged.txt
 
       - name: Upload consolidated coverage to Codecov
         uses: codecov/codecov-action@5a1091511ad55cbe89839c7260b706298ca349f7 # v5.5.1
@@ -291,16 +249,6 @@ jobs:
 
           cat summary.md
 
-      - name: Build failure handler
-        if: |
-          needs.test-provider-core.result == 'failure' ||
-          needs.test-resources.result == 'failure' ||
-          needs.test-datasources.result == 'failure'
-        run: |
-          cd scripts/go/nightly_tests/failurehandler
-          go mod download
-          go build -o ../../../../failurehandler .
-
       - name: Handle test failures
         if: |
           needs.test-provider-core.result == 'failure' ||
@@ -326,8 +274,8 @@ jobs:
           # Remove trailing comma
           FAILED_JOBS=${FAILED_JOBS%,}
 
-          ./failurehandler \
-            -owner=deploymenttheory \
-            -repo=terraform-provider-microsoft365 \
-            -run-id=${{ github.run_id }} \
-            -failed-jobs="$FAILED_JOBS"
+          ./scripts/pipeline/handle-failure.sh \
+            deploymenttheory \
+            terraform-provider-microsoft365 \
+            ${{ github.run_id }} \
+            "$FAILED_JOBS"
