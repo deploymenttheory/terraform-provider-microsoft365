@@ -7,9 +7,10 @@ set -euo pipefail
 TYPE="${1:-}"
 SERVICE="${2:-}"
 COVERAGE_FILE="${3:-coverage.txt}"
+TEST_OUTPUT_FILE="${4:-test-output.log}"
 
 if [[ -z "$TYPE" ]]; then
-    echo "Usage: $0 <type> [service] [coverage-file]"
+    echo "Usage: $0 <type> [service] [coverage-file] [test-output-file]"
     echo "Types: provider-core, resources, datasources"
     exit 1
 fi
@@ -23,13 +24,25 @@ fi
 
 run_provider_core_tests() {
     echo "Running provider core tests..."
+    
+    # Run tests and capture output, but allow failures
+    set +e
     go test -v -race \
         -coverprofile="$COVERAGE_FILE" \
         -covermode=atomic \
         ./internal/client/... \
         ./internal/helpers/... \
         ./internal/provider/... \
-        ./internal/utilities/...
+        ./internal/utilities/... \
+        2>&1 | tee "$TEST_OUTPUT_FILE"
+    
+    TEST_EXIT_CODE=$?
+    set -e
+    
+    # Parse test failures and create JSON report
+    parse_test_failures "$TEST_OUTPUT_FILE" "provider-core" ""
+    
+    return $TEST_EXIT_CODE
 }
 
 run_service_tests() {
@@ -58,10 +71,67 @@ run_service_tests() {
 
     echo "Found ${test_count} test files"
 
+    # Run tests and capture output, but allow failures
+    set +e
     go test -v -race \
         -coverprofile="$COVERAGE_FILE" \
         -covermode=atomic \
-        "${test_dir}/..."
+        "${test_dir}/..." \
+        2>&1 | tee "$TEST_OUTPUT_FILE"
+    
+    TEST_EXIT_CODE=$?
+    set -e
+    
+    # Parse test failures and create JSON report
+    parse_test_failures "$TEST_OUTPUT_FILE" "$category" "$service"
+    
+    return $TEST_EXIT_CODE
+}
+
+parse_test_failures() {
+    local output_file="$1"
+    local category="$2"
+    local service="$3"
+    
+    local json_file="test-failures.json"
+    
+    # Initialize JSON array
+    echo "[" > "$json_file"
+    
+    local first_entry=true
+    
+    # Parse test output for FAIL lines
+    # Matches patterns like: "--- FAIL: TestName (0.01s)"
+    while IFS= read -r line; do
+        if echo "$line" | grep -q "^--- FAIL:"; then
+            # Extract test name
+            test_name=$(echo "$line" | sed 's/^--- FAIL: \([^ ]*\).*/\1/')
+            
+            # Get context (next few lines for error details)
+            context=$(grep -A 10 "^--- FAIL: ${test_name}" "$output_file" | head -n 11 | tail -n 10 | sed 's/"/\\"/g' | sed ':a;N;$!ba;s/\n/\\n/g')
+            
+            # Add comma if not first entry
+            if [ "$first_entry" = false ]; then
+                echo "," >> "$json_file"
+            fi
+            first_entry=false
+            
+            # Add JSON object
+            cat >> "$json_file" <<EOF
+{
+  "test_name": "${test_name}",
+  "category": "${category}",
+  "service": "${service}",
+  "context": "${context}"
+}
+EOF
+        fi
+    done < "$output_file"
+    
+    echo "" >> "$json_file"
+    echo "]" >> "$json_file"
+    
+    echo "✅ Test failure report created: $json_file"
 }
 
 case "$TYPE" in
@@ -89,4 +159,4 @@ case "$TYPE" in
         ;;
 esac
 
-echo "Tests completed successfully"
+echo "Tests completed"

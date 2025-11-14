@@ -1,9 +1,8 @@
 name: provider | Nightly Tests
 
 permissions:
-  contents: write
+  contents: read
   issues: write
-  pull-requests: write
 
 on:
   schedule:
@@ -44,7 +43,19 @@ jobs:
           M365_CLIENT_SECRET: ${{ secrets.M365_CLIENT_SECRET }}
           M365_AUTH_METHOD: client_secret
           M365_CLOUD: public
-        run: ./scripts/pipeline/run-tests.sh provider-core "" coverage-provider-core.txt
+        run: ./scripts/pipeline/run-tests.sh provider-core "" coverage-provider-core.txt test-output-provider-core.log
+        continue-on-error: true
+
+      - name: Upload test failures
+        if: always()
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
+        with:
+          name: test-failures-provider-core
+          path: |
+            test-failures.json
+            test-output-provider-core.log
+          if-no-files-found: ignore
+          retention-days: 7
 
       - name: Upload coverage to Codecov
         if: always()
@@ -123,7 +134,19 @@ jobs:
           M365_TENANT_ID: ${{ secrets.M365_TENANT_ID }}
           M365_AUTH_METHOD: client_secret
           M365_CLOUD: public
-        run: ./scripts/pipeline/run-tests.sh resources ${{ matrix.service }} coverage-resources-${{ matrix.service }}.txt
+        run: ./scripts/pipeline/run-tests.sh resources ${{ matrix.service }} coverage-resources-${{ matrix.service }}.txt test-output-resources-${{ matrix.service }}.log
+        continue-on-error: true
+
+      - name: Upload test failures
+        if: always()
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
+        with:
+          name: test-failures-resources-${{ matrix.service }}
+          path: |
+            test-failures.json
+            test-output-resources-${{ matrix.service }}.log
+          if-no-files-found: ignore
+          retention-days: 7
 
       - name: Upload coverage to Codecov
         if: always()
@@ -198,7 +221,19 @@ jobs:
           M365_TENANT_ID: ${{ secrets.M365_TENANT_ID }}
           M365_AUTH_METHOD: client_secret
           M365_CLOUD: public
-        run: ./scripts/pipeline/run-tests.sh datasources ${{ matrix.service }} coverage-datasources-${{ matrix.service }}.txt
+        run: ./scripts/pipeline/run-tests.sh datasources ${{ matrix.service }} coverage-datasources-${{ matrix.service }}.txt test-output-datasources-${{ matrix.service }}.log
+        continue-on-error: true
+
+      - name: Upload test failures
+        if: always()
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
+        with:
+          name: test-failures-datasources-${{ matrix.service }}
+          path: |
+            test-failures.json
+            test-output-datasources-${{ matrix.service }}.log
+          if-no-files-found: ignore
+          retention-days: 7
 
       - name: Upload coverage to Codecov
         if: always()
@@ -220,6 +255,14 @@ jobs:
       - name: Check Out
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
 
+      - name: Download all test failure artifacts
+        if: always()
+        uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # v4.1.8
+        with:
+          pattern: test-failures-*
+          path: test-artifacts
+          merge-multiple: false
+
       - name: Generate test summary
         run: |
           echo "## Nightly Test Summary" > summary.md
@@ -239,7 +282,7 @@ jobs:
 
           cat summary.md
 
-      - name: Handle test failures
+      - name: Create GitHub Issues for Test Failures
         if: |
           needs.test-provider-core.result == 'failure' ||
           needs.test-resources.result == 'failure' ||
@@ -247,25 +290,33 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}
         run: |
-          FAILED_JOBS=""
-
-          if [ "${{ needs.test-provider-core.result }}" == "failure" ]; then
-            FAILED_JOBS="${FAILED_JOBS}Provider-Core,"
+          echo "🔍 Processing test failures and creating issues..."
+          
+          # Merge all test-failures.json files
+          echo "[]" > merged-failures.json
+          
+          # Find all test-failures.json files and merge them
+          if [ -d "test-artifacts" ]; then
+            for failure_file in $(find test-artifacts -name "test-failures.json" -type f); do
+              echo "Processing: $failure_file"
+              
+              # Merge JSON arrays using jq
+              jq -s '.[0] + .[1]' merged-failures.json "$failure_file" > temp.json
+              mv temp.json merged-failures.json
+            done
           fi
-
-          if [ "${{ needs.test-resources.result }}" == "failure" ]; then
-            FAILED_JOBS="${FAILED_JOBS}Resources,"
+          
+          # Display merged failures count
+          TOTAL_FAILURES=$(jq 'length' merged-failures.json)
+          echo "📊 Total test failures found: ${TOTAL_FAILURES}"
+          
+          if [ "$TOTAL_FAILURES" -gt 0 ]; then
+            # Create individual issues for each failing test
+            ./scripts/pipeline/create-test-issues.sh \
+              ${{ github.repository_owner }} \
+              ${{ github.event.repository.name }} \
+              ${{ github.run_id }} \
+              merged-failures.json
+          else
+            echo "✅ No test failures to process"
           fi
-
-          if [ "${{ needs.test-datasources.result }}" == "failure" ]; then
-            FAILED_JOBS="${FAILED_JOBS}Datasources,"
-          fi
-
-          # Remove trailing comma
-          FAILED_JOBS=${FAILED_JOBS%,}
-
-          ./scripts/pipeline/report-failure.sh \
-            deploymenttheory \
-            terraform-provider-microsoft365 \
-            ${{ github.run_id }} \
-            "$FAILED_JOBS"
