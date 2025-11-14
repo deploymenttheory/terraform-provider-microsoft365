@@ -95,7 +95,7 @@ resource "microsoft365_graph_beta_device_and_app_management_ios_managed_device_a
 
 # Data source to find specific iOS app by display name (e.g., "Company Portal")
 data "microsoft365_graph_beta_device_and_app_management_mobile_app" "company_portal" {
-  filter_type    = "display_name"
-  filter_value   = "Microsoft Intune Company Portal"
-  app_type_filter = "iosStoreApp"  # Only search iOS store apps
+  filter_type     = "display_name"
+  filter_value    = "Microsoft Intune Company Portal"
+  app_type_filter = "iosStoreApp" # Only search iOS store apps
 }
