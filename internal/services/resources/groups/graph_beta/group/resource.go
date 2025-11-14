@@ -8,7 +8,7 @@ import (
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	planmodifiers "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/plan_modifiers"
 	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/schema"
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/validators"
+	validate "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/validate/attribute"
 	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -106,7 +106,7 @@ func (r *GroupResource) Schema(ctx context.Context, req resource.SchemaRequest, 
 				Required:            true,
 				MarkdownDescription: "The display name for the group. This property is required when a group is created and can't be cleared during updates. Maximum length is 256 characters.",
 				Validators: []validator.String{
-					validators.StringLengthAtMost(256),
+					validate.StringLengthAtMost(256),
 				},
 			},
 			"description": schema.StringAttribute{
@@ -117,9 +117,9 @@ func (r *GroupResource) Schema(ctx context.Context, req resource.SchemaRequest, 
 				Required:            true,
 				MarkdownDescription: "The mail alias for the group, unique for Microsoft 365 groups in the organization. Maximum length is 64 characters. This property can contain only characters in the ASCII character set 0 - 127 except the following: @ () \\ [] \" ; : <> , SPACE.",
 				Validators: []validator.String{
-					validators.StringLengthAtMost(64),
-					validators.ASCIIOnly(),
-					validators.IllegalCharactersInString([]rune{'@', '(', ')', '\\', '[', ']', '"', ';', ':', '<', '>', ',', ' '}, "mail nickname cannot contain: @ () \\ [] \" ; : <> , SPACE"),
+					validate.StringLengthAtMost(64),
+					validate.ASCIIOnly(),
+					validate.IllegalCharactersInString([]rune{'@', '(', ')', '\\', '[', ']', '"', ';', ':', '<', '>', ',', ' '}, "mail nickname cannot contain: @ () \\ [] \" ; : <> , SPACE"),
 				},
 			},
 			"mail_enabled": schema.BoolAttribute{
@@ -185,7 +185,7 @@ func (r *GroupResource) Schema(ctx context.Context, req resource.SchemaRequest, 
 				Validators: []validator.Set{
 					setvalidator.SizeAtMost(20),
 					setvalidator.ValueStringsAre(
-						validators.RegexMatches(regexp.MustCompile(`^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`), "value must be a valid UUID/GUID"),
+						validate.RegexMatches(regexp.MustCompile(`^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`), "value must be a valid UUID/GUID"),
 					),
 				},
 			},
@@ -198,7 +198,7 @@ func (r *GroupResource) Schema(ctx context.Context, req resource.SchemaRequest, 
 				Validators: []validator.Set{
 					setvalidator.SizeAtMost(20),
 					setvalidator.ValueStringsAre(
-						validators.RegexMatches(regexp.MustCompile(`^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`), "value must be a valid UUID/GUID"),
+						validate.RegexMatches(regexp.MustCompile(`^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`), "value must be a valid UUID/GUID"),
 					),
 				},
 			},

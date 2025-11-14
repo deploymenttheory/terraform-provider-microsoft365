@@ -9,7 +9,7 @@ import (
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	planmodifiers "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/plan_modifiers"
 	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/schema"
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/validators"
+	validate "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/validate/attribute"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -103,7 +103,7 @@ func (r *CloudPcProvisioningPolicyResource) Schema(ctx context.Context, req reso
 				Required:            true,
 				MarkdownDescription: "The display name for the provisioning policy. May not contain any of the following characters: <>()&|$'\",;^ and may not start or end with spaces.",
 				Validators: []validator.String{
-					validators.StringLengthAtMost(120),
+					validate.StringLengthAtMost(120),
 					stringvalidator.RegexMatches(
 						regexp.MustCompile(`^[^\s]([^<>()&|$'",;^]*[^\s])?$`),
 						"display name may not contain any of the following characters: <>()&|$'\",;^ and may not start or end with spaces",

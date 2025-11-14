@@ -1,0 +1,22 @@
+{
+  "@odata.type": "#microsoft.graph.iosMobileAppConfiguration",
+  "id": "aaaaaaaa-1111-1111-1111-111111111111",
+  "displayName": "unit-test-ios-managed-device-app-configuration-policy-custom-settings",
+  "description": "Updated description for acceptance testing",
+  "targetedMobileApps": ["12345678-1234-1234-1234-123456789012"],
+  "roleScopeTagIds": ["0"],
+  "version": 1,
+  "encodedSettingXml": null,
+  "settings": [
+    {
+      "appConfigKey": "testKey1",
+      "appConfigKeyType": "stringType",
+      "appConfigKeyValue": "testValue1"
+    },
+    {
+      "appConfigKey": "testKey2",
+      "appConfigKeyType": "integerType",
+      "appConfigKeyValue": "123"
+    }
+  ]
+}
