@@ -8,7 +8,7 @@ import (
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	planmodifiers "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/plan_modifiers"
 	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/schema"
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/validators"
+	validate "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/validate/attribute"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -130,7 +130,7 @@ func (r *CustomSecurityAttributeDefinitionResource) Schema(ctx context.Context, 
 				MarkdownDescription: "Indicates whether multiple values can be assigned to the custom security attribute. Cannot be changed later. If type is set to Boolean, isCollection cannot be set to true.",
 				Required:            true,
 				Validators: []validator.Bool{
-					validators.BoolCanOnlyBeFalseWhenStringEquals("type", "Boolean", "When type is set to Boolean, isCollection must be set to false"),
+					validate.BoolCanOnlyBeFalseWhenStringEquals("type", "Boolean", "When type is set to Boolean, isCollection must be set to false"),
 				},
 				PlanModifiers: []planmodifier.Bool{
 					planmodifiers.NewRequiresReplaceIfChangedBool(),
@@ -164,7 +164,7 @@ func (r *CustomSecurityAttributeDefinitionResource) Schema(ctx context.Context, 
 				MarkdownDescription: "Indicates whether only predefined values can be assigned to the custom security attribute. If set to false, free-form values are allowed. Can later be changed from true to false, but cannot be changed from false to true. If type is set to Boolean, usePreDefinedValuesOnly cannot be set to true.",
 				Required:            true,
 				Validators: []validator.Bool{
-					validators.BoolCanOnlyBeFalseWhenStringEquals("type", "Boolean", "When type is set to Boolean, usePreDefinedValuesOnly must be set to false"),
+					validate.BoolCanOnlyBeFalseWhenStringEquals("type", "Boolean", "When type is set to Boolean, usePreDefinedValuesOnly must be set to false"),
 				},
 				PlanModifiers: []planmodifier.Bool{
 					planmodifiers.NewRequiresReplaceIfFalseToTrue(),

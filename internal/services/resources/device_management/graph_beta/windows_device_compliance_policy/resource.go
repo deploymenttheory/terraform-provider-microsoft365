@@ -9,7 +9,7 @@ import (
 	planmodifiers "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/plan_modifiers"
 	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/schema"
 	commonschemagraphbeta "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/schema/graph_beta/device_management"
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/validators"
+	validate "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/validate/attribute"
 	"github.com/hashicorp/terraform-plugin-framework-validators/int32validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
@@ -450,21 +450,21 @@ func (r *WindowsDeviceCompliancePolicyResource) Schema(ctx context.Context, req 
 							Required:            true,
 							MarkdownDescription: "The name of the WSL distribution",
 							Validators: []validator.String{
-								validators.MutuallyExclusiveObjectAndSet("device_compliance_policy_script", "wsl_distributions"),
+								validate.MutuallyExclusiveObjectAndSet("device_compliance_policy_script", "wsl_distributions"),
 							},
 						},
 						"minimum_os_version": schema.StringAttribute{
 							Required:            true,
 							MarkdownDescription: "The minimum OS version for the WSL distribution",
 							Validators: []validator.String{
-								validators.MutuallyExclusiveObjectAndSet("device_compliance_policy_script", "wsl_distributions"),
+								validate.MutuallyExclusiveObjectAndSet("device_compliance_policy_script", "wsl_distributions"),
 							},
 						},
 						"maximum_os_version": schema.StringAttribute{
 							Required:            true,
 							MarkdownDescription: "The maximum OS version for the WSL distribution",
 							Validators: []validator.String{
-								validators.MutuallyExclusiveObjectAndSet("device_compliance_policy_script", "wsl_distributions"),
+								validate.MutuallyExclusiveObjectAndSet("device_compliance_policy_script", "wsl_distributions"),
 							},
 						},
 					},

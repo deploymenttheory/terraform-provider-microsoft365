@@ -5,7 +5,7 @@ import (
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	planmodifiers "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/plan_modifiers"
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/validators"
+	validate "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/validate/attribute"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
@@ -21,7 +21,7 @@ func ImageSchema(description string) schema.SingleNestedAttribute {
 			planmodifiers.UseStateForUnknownObject(),
 		},
 		Validators: []validator.Object{
-			validators.ExactlyOneOf("image_file_path_source", "image_url_source"),
+			validate.ExactlyOneOf("image_file_path_source", "image_url_source"),
 		},
 		Attributes: map[string]schema.Attribute{
 			"image_file_path_source": schema.StringAttribute{

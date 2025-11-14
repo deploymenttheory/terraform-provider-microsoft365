@@ -5,7 +5,7 @@ import (
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/client"
 	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/schema"
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/validators"
+	validate "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/validate/attribute"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
@@ -55,7 +55,7 @@ func (d *CloudPcsDataSource) Schema(ctx context.Context, _ datasource.SchemaRequ
 				MarkdownDescription: "Type of filter to apply. Valid values are: `all`, `id`, `display_name`, `odata`. Use 'all' to retrieve all Cloud PCs, 'id' to retrieve a specific Cloud PC by its unique identifier, 'display_name' to filter by name, or 'odata' to use advanced OData query parameters.",
 				Validators: []validator.String{
 					stringvalidator.OneOf("all", "id", "display_name", "odata"),
-					validators.ODataParameterValidator("odata_filter", "odata_select", "odata_top", "odata_count"),
+					validate.ODataParameterValidator("odata_filter", "odata_select", "odata_top", "odata_count"),
 				},
 			},
 			"filter_value": schema.StringAttribute{

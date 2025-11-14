@@ -7,7 +7,7 @@ import (
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	planmodifiers "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/plan_modifiers"
 	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/schema"
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/validators"
+	validate "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/validate/attribute"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -110,14 +110,14 @@ func (r *AppleConfiguratorEnrollmentPolicyResource) Schema(ctx context.Context, 
 				Required:            true,
 				MarkdownDescription: "How users first sign in to authenticate with Intune.If your organization uses multi-factor authentication, set this to true; the app will then automatically install on devices at time of enrollment. ",
 				Validators: []validator.Bool{
-					validators.MutuallyExclusiveBool("require_company_portal_on_setup_assistant_enrolled_devices", "enable_authentication_via_company_portal and require_company_portal_on_setup_assistant_enrolled_devices cannot both be set to true"),
+					validate.MutuallyExclusiveBool("require_company_portal_on_setup_assistant_enrolled_devices", "enable_authentication_via_company_portal and require_company_portal_on_setup_assistant_enrolled_devices cannot both be set to true"),
 				},
 			},
 			"require_company_portal_on_setup_assistant_enrolled_devices": schema.BoolAttribute{
 				Required:            true,
 				MarkdownDescription: "How users first sign in to authenticate with Intune. Setup assistant as a standalone authentication method has been superseded by setup assistant with modern authentication. The modern authentication method prompts users to authenticate based on the settings you've configured in Microsoft Entra ID.",
 				Validators: []validator.Bool{
-					validators.MutuallyExclusiveBool("enable_authentication_via_company_portal", "enable_authentication_via_company_portal and require_company_portal_on_setup_assistant_enrolled_devices cannot both be set to true"),
+					validate.MutuallyExclusiveBool("enable_authentication_via_company_portal", "enable_authentication_via_company_portal and require_company_portal_on_setup_assistant_enrolled_devices cannot both be set to true"),
 				},
 			},
 			"configuration_endpoint_url": schema.StringAttribute{

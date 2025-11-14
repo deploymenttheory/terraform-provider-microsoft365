@@ -2,6 +2,7 @@ package convert
 
 import (
 	"context"
+	"encoding/base64"
 	"errors"
 	"strings"
 	"testing"
@@ -800,4 +801,46 @@ func TestFrameworkToGraphBitmaskEnumFromSet(t *testing.T) {
 		})
 	assert.Error(t, err, "Should return error for invalid enum value")
 	assert.Nil(t, result, "Setter should not be called for invalid value")
+}
+
+func TestFrameworkToGraphBase64String(t *testing.T) {
+	var result *string
+
+	// Case: Valid JSON payload
+	result = nil
+	jsonPayload := `{"kind":"androidenterprise#managedConfiguration","productId":"app:com.test"}`
+	optString := types.StringValue(jsonPayload)
+	FrameworkToGraphBase64String(optString, func(val *string) {
+		result = val
+	})
+	assert.NotNil(t, result, "Setter should be called for a valid string value")
+	// Decode and verify
+	decodedBytes, err := base64.StdEncoding.DecodeString(*result)
+	assert.NoError(t, err, "Should be valid base64")
+	assert.Equal(t, jsonPayload, string(decodedBytes), "Decoded value should match original")
+
+	// Case: Empty string value
+	result = nil
+	optString = types.StringValue("")
+	FrameworkToGraphBase64String(optString, func(val *string) {
+		result = val
+	})
+	assert.NotNil(t, result, "Setter should be called for an empty string value")
+	assert.Equal(t, "", *result, "Base64 encoded empty string should be empty string")
+
+	// Case: Null value
+	result = nil
+	optString = types.StringNull()
+	FrameworkToGraphBase64String(optString, func(val *string) {
+		result = val
+	})
+	assert.Nil(t, result, "Setter should not be called for a null value")
+
+	// Case: Unknown value
+	result = nil
+	optString = types.StringUnknown()
+	FrameworkToGraphBase64String(optString, func(val *string) {
+		result = val
+	})
+	assert.Nil(t, result, "Setter should not be called for an unknown value")
 }

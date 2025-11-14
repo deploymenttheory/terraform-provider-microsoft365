@@ -1,0 +1,16 @@
+{
+  "@odata.type": "#microsoft.graph.androidManagedStoreAppConfiguration",
+  "id": "aaaaaaaa-1111-1111-1111-111111111111",
+  "displayName": "unit-test-android-managed-device-app-configuration-policy-minimal-updated",
+  "description": "Updated description for unit testing",
+  "targetedMobileApps": ["12345678-1234-1234-1234-123456789012"],
+  "roleScopeTagIds": ["0"],
+  "version": 2,
+  "packageId": "app:com.microsoft.office.officehubrow",
+  "payloadJson": "eyJraW5kIjoiYW5kcm9pZGVudGVycHJpc2UjbWFuYWdlZENvbmZpZ3VyYXRpb24iLCJwcm9kdWN0SWQiOiJhcHA6Y29tLm1pY3Jvc29mdC5vZmZpY2Uub2ZmaWNlaHVicm93IiwibWFuYWdlZFByb3BlcnR5IjpbeyJrZXkiOiJ1cGRhdGVkLmtleSIsInZhbHVlU3RyaW5nIjoidXBkYXRlZC12YWx1ZSJ9XX0=",
+  "appSupportsOemConfig": false,
+  "profileApplicability": "androidDeviceOwner",
+  "connectedAppsEnabled": false,
+  "permissionActions": []
+}
+

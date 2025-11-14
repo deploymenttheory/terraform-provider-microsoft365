@@ -9,7 +9,7 @@ import (
 	planmodifiers "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/plan_modifiers"
 	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/schema"
 	commonschemagraphbeta "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/schema/graph_beta/device_and_app_management"
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/validators"
+	validate "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/validate/attribute"
 	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
@@ -283,7 +283,7 @@ func (r *MacOSLobAppResource) Schema(ctx context.Context, req resource.SchemaReq
 				MarkdownDescription: "The Line of Business (LOB) application file to be uploaded. Resource supports both local file sources and URL based sources.",
 				Optional:            true,
 				Validators: []validator.Object{
-					validators.ExactlyOneOf("installer_file_path_source", "installer_url_source"),
+					validate.ExactlyOneOf("installer_file_path_source", "installer_url_source"),
 				},
 				Attributes: map[string]schema.Attribute{
 					"bundle_id": schema.StringAttribute{

@@ -7,7 +7,7 @@ import (
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	planmodifiers "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/plan_modifiers"
 	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/schema"
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/validators"
+	validate "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/validate/attribute"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -134,7 +134,7 @@ func (r *AssignmentFilterResource) Schema(ctx context.Context, req resource.Sche
 						"androidMobileApplicationManagement",
 						"iOSMobileApplicationManagement",
 						"windowsMobileApplicationManagement"),
-					validators.RequiredOneOfWhen(
+					validate.RequiredOneOfWhen(
 						"assignment_filter_management_type",
 						"apps",
 						"androidMobileApplicationManagement",

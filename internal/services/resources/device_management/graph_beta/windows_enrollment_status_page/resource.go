@@ -9,7 +9,7 @@ import (
 	planmodifiers "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/plan_modifiers"
 	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/schema"
 	commonschemagraphbeta "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/schema/graph_beta/device_management"
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/validators"
+	validate "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/validate/attribute"
 	"github.com/hashicorp/terraform-plugin-framework-validators/int32validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
@@ -155,7 +155,7 @@ func (r *WindowsEnrollmentStatusPageResource) Schema(ctx context.Context, req re
 				MarkdownDescription: "Allow or block device reset on installation failure. When block_device_use_until_all_apps_and_profiles_are_installed is true, this must be false. When block_device_use_until_all_apps_and_profiles_are_installed is false, this can be true or false.",
 				Required:            true,
 				Validators: []validator.Bool{
-					validators.BoolCanOnlyBeFalseWhen(
+					validate.BoolCanOnlyBeFalseWhen(
 						"block_device_use_until_all_apps_and_profiles_are_installed",
 						true,
 						"allow_device_reset_on_install_failure must be false when block_device_use_until_all_apps_and_profiles_are_installed is true",
@@ -166,7 +166,7 @@ func (r *WindowsEnrollmentStatusPageResource) Schema(ctx context.Context, req re
 				MarkdownDescription: "Allow the user to continue using the device on installation failure. When block_device_use_until_all_apps_and_profiles_are_installed is true, this must be false. When block_device_use_until_all_apps_and_profiles_are_installed is false, this can be true or false.",
 				Required:            true,
 				Validators: []validator.Bool{
-					validators.BoolCanOnlyBeFalseWhen(
+					validate.BoolCanOnlyBeFalseWhen(
 						"block_device_use_until_all_apps_and_profiles_are_installed",
 						true,
 						"allow_device_use_on_install_failure must be false when block_device_use_until_all_apps_and_profiles_are_installed is true",
@@ -185,7 +185,7 @@ func (r *WindowsEnrollmentStatusPageResource) Schema(ctx context.Context, req re
 							"must be a valid GUID in the format 00000000-0000-0000-0000-000000000000",
 						),
 					),
-					validators.SetRequiresBoolValue(
+					validate.SetRequiresBoolValue(
 						"block_device_use_until_all_apps_and_profiles_are_installed",
 						false,
 						"selected_mobile_app_ids can only be specified when block_device_use_until_all_apps_and_profiles_are_installed is false",
@@ -196,7 +196,7 @@ func (r *WindowsEnrollmentStatusPageResource) Schema(ctx context.Context, req re
 				MarkdownDescription: "When true, only the selected blocking apps will be failed in the technician phase. When block_device_use_until_all_apps_and_profiles_are_installed is true, this must be false. When block_device_use_until_all_apps_and_profiles_are_installed is false, this can be true or false.",
 				Required:            true,
 				Validators: []validator.Bool{
-					validators.BoolCanOnlyBeFalseWhen(
+					validate.BoolCanOnlyBeFalseWhen(
 						"block_device_use_until_all_apps_and_profiles_are_installed",
 						true,
 						"only_fail_selected_blocking_apps_in_technician_phase must be false when block_device_use_until_all_apps_and_profiles_are_installed is true",

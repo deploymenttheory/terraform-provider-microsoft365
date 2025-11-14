@@ -9,7 +9,7 @@ import (
 	planmodifiers "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/plan_modifiers"
 	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/schema"
 	commonschemagraphbeta "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/schema/graph_beta/device_management"
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/validators"
+	validate "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/validate/attribute"
 	"github.com/hashicorp/terraform-plugin-framework-validators/int32validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
@@ -230,7 +230,7 @@ func (r *WindowsUpdateRingResource) Schema(ctx context.Context, req resource.Sch
 						"everyWeek",
 						"unknownFutureValue",
 					),
-					validators.RequiredWith("automatic_update_mode", "autoInstallAndRebootAtScheduledTime"),
+					validate.RequiredWith("automatic_update_mode", "autoInstallAndRebootAtScheduledTime"),
 				},
 			},
 			"active_hours_start": schema.StringAttribute{
@@ -242,9 +242,9 @@ func (r *WindowsUpdateRingResource) Schema(ctx context.Context, req resource.Sch
 						regexp.MustCompile(constants.TimeFormatHHMMSSRegex),
 						"must be in format HH:MM:SS",
 					),
-					validators.RequiredWith("automatic_update_mode", "autoInstallAtMaintenanceTime"),
-					validators.RequiredWith("automatic_update_mode", "autoInstallAndRebootAtMaintenanceTime"),
-					validators.RequiredWith("automatic_update_mode", "autoInstallAndRebootAtScheduledTime"),
+					validate.RequiredWith("automatic_update_mode", "autoInstallAtMaintenanceTime"),
+					validate.RequiredWith("automatic_update_mode", "autoInstallAndRebootAtMaintenanceTime"),
+					validate.RequiredWith("automatic_update_mode", "autoInstallAndRebootAtScheduledTime"),
 				},
 			},
 			"active_hours_end": schema.StringAttribute{
@@ -256,9 +256,9 @@ func (r *WindowsUpdateRingResource) Schema(ctx context.Context, req resource.Sch
 						regexp.MustCompile(constants.TimeFormatHHMMSSRegex),
 						"must be in format HH:MM:SS",
 					),
-					validators.RequiredWith("automatic_update_mode", "autoInstallAtMaintenanceTime"),
-					validators.RequiredWith("automatic_update_mode", "autoInstallAndRebootAtMaintenanceTime"),
-					validators.RequiredWith("automatic_update_mode", "autoInstallAndRebootAtScheduledTime"),
+					validate.RequiredWith("automatic_update_mode", "autoInstallAtMaintenanceTime"),
+					validate.RequiredWith("automatic_update_mode", "autoInstallAndRebootAtMaintenanceTime"),
+					validate.RequiredWith("automatic_update_mode", "autoInstallAndRebootAtScheduledTime"),
 				},
 			},
 			"user_pause_access": schema.StringAttribute{

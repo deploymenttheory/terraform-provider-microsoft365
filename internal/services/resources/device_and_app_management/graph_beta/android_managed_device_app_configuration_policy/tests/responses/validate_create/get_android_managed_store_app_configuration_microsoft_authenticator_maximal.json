@@ -1,0 +1,149 @@
+{
+  "@odata.type": "#microsoft.graph.androidManagedStoreAppConfiguration",
+  "id": "cccccccc-3333-3333-3333-333333333333",
+  "displayName": "unit-test-android-managed-device-app-configuration-policy-microsoft-authenticator-maximal",
+  "description": "",
+  "targetedMobileApps": ["0e8ea6ec-63bb-436f-a89e-3adc475eb628"],
+  "roleScopeTagIds": ["0"],
+  "version": 1,
+  "packageId": "app:com.azure.authenticator",
+  "payloadJson": "eyJraW5kIjoiYW5kcm9pZGVudGVycHJpc2UjbWFuYWdlZENvbmZpZ3VyYXRpb24iLCJwcm9kdWN0SWQiOiJhcHA6Y29tLmF6dXJlLmF1dGhlbnRpY2F0b3IiLCJtYW5hZ2VkUHJvcGVydHkiOlt7ImtleSI6InN1cHByZXNzX2NhbWVyYV9jb25zZW50IiwidmFsdWVCb29sIjpmYWxzZX0seyJrZXkiOiJwcmVmZXJyZWRfYXV0aF9jb25maWciLCJ2YWx1ZVN0cmluZyI6InRoaW5nIn0seyJrZXkiOiJzaGFyZWREZXZpY2VSZWdpc3RyYXRpb25Ub2tlbiIsInZhbHVlU3RyaW5nIjoidGhpbmcifSx7ImtleSI6InNoYXJlZERldmljZVRlbmFudElkIiwidmFsdWVTdHJpbmciOiJ0aGluZyJ9LHsia2V5Ijoic2hhcmVkRGV2aWNlUmVnaXN0cmF0aW9uUHJlZmlsbFVwbiIsInZhbHVlU3RyaW5nIjoidGhpbmcifSx7ImtleSI6InNoYXJlZERldmljZU1vZGUiLCJ2YWx1ZUJvb2wiOmZhbHNlfV19",
+  "appSupportsOemConfig": false,
+  "profileApplicability": "androidDeviceOwner",
+  "connectedAppsEnabled": true,
+  "permissionActions": [
+    {
+      "permission": "android.permission-group.NEARBY_DEVICES",
+      "action": "prompt"
+    },
+    {
+      "permission": "android.permission.NEARBY_WIFI_DEVICES",
+      "action": "prompt"
+    },
+    {
+      "permission": "android.permission.BLUETOOTH_CONNECT",
+      "action": "prompt"
+    },
+    {
+      "permission": "android.permission.READ_MEDIA_AUDIO",
+      "action": "prompt"
+    },
+    {
+      "permission": "android.permission.READ_MEDIA_IMAGES",
+      "action": "prompt"
+    },
+    {
+      "permission": "android.permission.READ_MEDIA_VIDEO",
+      "action": "prompt"
+    },
+    {
+      "permission": "android.permission.POST_NOTIFICATIONS",
+      "action": "prompt"
+    },
+    {
+      "permission": "android.permission.WRITE_EXTERNAL_STORAGE",
+      "action": "prompt"
+    },
+    {
+      "permission": "android.permission.READ_EXTERNAL_STORAGE",
+      "action": "autoDeny"
+    },
+    {
+      "permission": "android.permission.RECEIVE_MMS",
+      "action": "prompt"
+    },
+    {
+      "permission": "android.permission.RECEIVE_WAP_PUSH",
+      "action": "prompt"
+    },
+    {
+      "permission": "android.permission.READ_SMS",
+      "action": "prompt"
+    },
+    {
+      "permission": "android.permission.RECEIVE_SMS",
+      "action": "autoGrant"
+    },
+    {
+      "permission": "android.permission.SEND_SMS",
+      "action": "prompt"
+    },
+    {
+      "permission": "android.permission.BODY_SENSORS_BACKGROUND",
+      "action": "prompt"
+    },
+    {
+      "permission": "android.permission.BODY_SENSORS",
+      "action": "prompt"
+    },
+    {
+      "permission": "android.permission.PROCESS_OUTGOING_CALLS",
+      "action": "prompt"
+    },
+    {
+      "permission": "android.permission.USE_SIP",
+      "action": "prompt"
+    },
+    {
+      "permission": "android.permission.ADD_VOICEMAIL",
+      "action": "prompt"
+    },
+    {
+      "permission": "android.permission.WRITE_CALL_LOG",
+      "action": "prompt"
+    },
+    {
+      "permission": "android.permission.READ_CALL_LOG",
+      "action": "prompt"
+    },
+    {
+      "permission": "android.permission.CALL_PHONE",
+      "action": "prompt"
+    },
+    {
+      "permission": "android.permission.READ_PHONE_STATE",
+      "action": "prompt"
+    },
+    {
+      "permission": "android.permission.RECORD_AUDIO",
+      "action": "prompt"
+    },
+    {
+      "permission": "android.permission.ACCESS_BACKGROUND_LOCATION",
+      "action": "prompt"
+    },
+    {
+      "permission": "android.permission.ACCESS_COARSE_LOCATION",
+      "action": "prompt"
+    },
+    {
+      "permission": "android.permission.ACCESS_FINE_LOCATION",
+      "action": "prompt"
+    },
+    {
+      "permission": "android.permission.GET_ACCOUNTS",
+      "action": "autoGrant"
+    },
+    {
+      "permission": "android.permission.WRITE_CONTACTS",
+      "action": "prompt"
+    },
+    {
+      "permission": "android.permission.READ_CONTACTS",
+      "action": "prompt"
+    },
+    {
+      "permission": "android.permission.CAMERA",
+      "action": "prompt"
+    },
+    {
+      "permission": "android.permission.WRITE_CALENDAR",
+      "action": "prompt"
+    },
+    {
+      "permission": "android.permission.READ_CALENDAR",
+      "action": "prompt"
+    }
+  ]
+}
+

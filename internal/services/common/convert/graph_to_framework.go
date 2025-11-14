@@ -2,6 +2,7 @@ package convert
 
 import (
 	"context"
+	"encoding/base64"
 	"fmt"
 	"strings"
 	"time"
@@ -219,6 +220,24 @@ func GraphToFrameworkBytes(value []byte) types.String {
 		return types.StringNull()
 	}
 	return types.StringValue(string(value))
+}
+
+// GraphToFrameworkBase64String decodes a base64 encoded Graph SDK string pointer to a Terraform Framework string.
+// Returns types.StringNull() if the input is nil.
+// If decoding fails, logs a warning and returns the original base64 string.
+func GraphToFrameworkBase64String(ctx context.Context, value *string) types.String {
+	if value == nil {
+		return types.StringNull()
+	}
+
+	decodedBytes, err := base64.StdEncoding.DecodeString(*value)
+	if err != nil {
+		tflog.Warn(ctx, fmt.Sprintf("Failed to decode base64 string: %s", err.Error()))
+		// Return the original value if decoding fails
+		return types.StringValue(*value)
+	}
+
+	return types.StringValue(string(decodedBytes))
 }
 
 // GraphToFrameworkEnum converts a Graph SDK enum pointer to a Terraform Framework string.
