@@ -21,7 +21,6 @@ func MapRemoteStateToTerraform(ctx context.Context, data *TargetedManagedAppConf
 		"resourceId": convert.GraphToFrameworkString(remoteResource.GetId()).ValueString(),
 	})
 
-	// Basic entity properties
 	data.ID = convert.GraphToFrameworkString(remoteResource.GetId())
 	data.DisplayName = convert.GraphToFrameworkString(remoteResource.GetDisplayName())
 	data.Description = convert.GraphToFrameworkString(remoteResource.GetDescription())
@@ -37,14 +36,17 @@ func MapRemoteStateToTerraform(ctx context.Context, data *TargetedManagedAppConf
 		data.CustomSettings = []KeyValuePairResourceModel{}
 	}
 
-	// App group type
 	data.AppGroupType = convert.GraphToFrameworkEnum(remoteResource.GetAppGroupType())
 
-	// Apps
-	if apps := remoteResource.GetApps(); apps != nil {
-		data.Apps = mapAppsToTerraformSet(ctx, apps)
-	} else {
-		data.Apps = types.SetNull(types.ObjectType{
+	// Apps - conditionally populate based on app_group_type
+	// When app_group_type = "allApps", the API response includes all possible mobile app identifiers.
+	// These identifiers are not required for a valid request but are set by the API automatically.
+	// To prevent configuration drift, only populate state with apps when the app_group_type requires explicit app tracking.
+	appGroupType := convert.GraphToFrameworkEnum(remoteResource.GetAppGroupType())
+	if !appGroupType.IsNull() && appGroupType.ValueString() == "allApps" {
+		tflog.Debug(ctx, "AppGroupType is 'allApps', setting apps to empty set to avoid drift from API-populated app list")
+		// Keep apps as empty set - API auto-populates all apps, but they're not required for this group type
+		data.Apps = types.SetValueMust(types.ObjectType{
 			AttrTypes: map[string]attr.Type{
 				"mobile_app_identifier": types.ObjectType{
 					AttrTypes: map[string]attr.Type{
@@ -56,10 +58,28 @@ func MapRemoteStateToTerraform(ctx context.Context, data *TargetedManagedAppConf
 				},
 				"version": types.StringType,
 			},
-		})
+		}, []attr.Value{})
+	} else {
+		tflog.Debug(ctx, "AppGroupType is not 'allApps', populating apps from API response")
+		if apps := remoteResource.GetApps(); apps != nil {
+			data.Apps = mapAppsToTerraformSet(ctx, apps)
+		} else {
+			data.Apps = types.SetNull(types.ObjectType{
+				AttrTypes: map[string]attr.Type{
+					"mobile_app_identifier": types.ObjectType{
+						AttrTypes: map[string]attr.Type{
+							"type":           types.StringType,
+							"bundle_id":      types.StringType,
+							"package_id":     types.StringType,
+							"windows_app_id": types.StringType,
+						},
+					},
+					"version": types.StringType,
+				},
+			})
+		}
 	}
 
-	// Assignments
 	if assignments := remoteResource.GetAssignments(); assignments != nil {
 		data.Assignments = mapAssignmentsToTerraform(ctx, assignments)
 	} else {
@@ -74,9 +94,9 @@ func MapRemoteStateToTerraform(ctx context.Context, data *TargetedManagedAppConf
 	// Settings catalog mapping - use direct settings array processing
 	if settings := remoteResource.GetSettings(); len(settings) > 0 {
 		tflog.Debug(ctx, "Mapping settings catalog from remote response")
-		// Initialize settings model
+
 		data.SettingsCatalog = &DeviceConfigV2GraphServiceResourceModel{}
-		// Process settings array directly
+
 		if err := StateConfigurationPolicySettings(ctx, data, settings, nil); err != nil {
 			tflog.Error(ctx, "Failed to map settings catalog", map[string]any{"error": err})
 			data.SettingsCatalog = nil
@@ -237,7 +257,6 @@ func mapAssignmentsToTerraform(_ context.Context, assignments []graphmodels.Targ
 		}
 
 		if target := assignment.GetTarget(); target != nil {
-			// Map odata type to user-friendly type
 			if odataType := target.GetOdataType(); odataType != nil {
 				switch *odataType {
 				case "#microsoft.graph.groupAssignmentTarget":
@@ -247,7 +266,6 @@ func mapAssignmentsToTerraform(_ context.Context, assignments []graphmodels.Targ
 				}
 			}
 
-			// Extract group ID for both group and exclusion group targets
 			if groupTarget, ok := target.(graphmodels.GroupAssignmentTargetable); ok {
 				if groupId := groupTarget.GetGroupId(); groupId != nil {
 					assignmentAttrs["group_id"] = types.StringValue(*groupId)
