@@ -1,0 +1,184 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
+subcategory: "Utility"
+
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Name}}
+
+Retrieves Microsoft 365 network endpoints from the official [Microsoft 365 IP Address and URL Web Service](https://learn.microsoft.com/en-us/microsoft-365/enterprise/microsoft-365-ip-web-service).
+
+This datasource queries `https://endpoints.office.com` to get current IP addresses, URLs, and ports for Microsoft 365 services. 
+It's designed for automating firewall rules, proxy configurations, SD-WAN policies, and PAC files with always up-to-date Microsoft 365 network requirements.
+
+## Background
+
+Microsoft publishes network endpoints for Microsoft 365 services through a REST API that is updated regularly. These endpoints include:
+
+- **FQDNs/URLs**: Destination domains and URL patterns (may include wildcards like `*.office.com`)
+- **IP Ranges**: IPv4 and IPv6 address ranges in CIDR notation
+- **Ports**: TCP and UDP port numbers required for each service
+- **Categories**: Network optimization categories (`Optimize`, `Allow`, `Default`)
+- **Service Areas**: Exchange Online, SharePoint Online, Microsoft Teams, and common services
+
+Network administrators use this data to:
+- Configure firewalls and security appliances
+- Define proxy bypass lists (PAC files)
+- Implement SD-WAN and QoS policies
+- Plan Azure ExpressRoute for Microsoft 365
+- Optimize network paths for latency-sensitive traffic
+
+## Network Categories
+
+Microsoft defines three network categories based on optimization requirements:
+
+### Optimize (Highest Priority)
+- **Description**: Latency-sensitive services with highest traffic volume
+- **Examples**: Exchange Online mailbox access, Teams real-time media (audio/video)
+- **Recommended Treatment**:
+  - Direct internet routing (bypass proxy and packet inspection)
+  - Lowest latency network path
+  - QoS marking: DSCP EF (46) for real-time media
+  - Never proxy or perform TLS inspection
+- **Typical Impact**: 70% of Microsoft 365 bandwidth, most sensitive to network conditions
+
+### Allow (Medium Priority)
+- **Description**: Required endpoints for core functionality with lower latency sensitivity
+- **Examples**: Exchange mail flow (SMTP), SharePoint/OneDrive file operations
+- **Recommended Treatment**:
+  - Direct routing preferred but proxy acceptable
+  - Standard QoS policies
+  - TLS inspection acceptable with caution
+- **Typical Impact**: 20% of Microsoft 365 bandwidth
+
+### Default (Standard Priority)
+- **Description**: Optional services or low-priority traffic
+- **Examples**: Office CDNs, telemetry, updates, optional features
+- **Recommended Treatment**:
+  - Can route through standard proxy
+  - Normal firewall inspection
+  - Standard QoS
+- **Typical Impact**: 10% of Microsoft 365 bandwidth
+
+See [Microsoft 365 Network Connectivity Principles](https://learn.microsoft.com/en-us/microsoft-365/enterprise/microsoft-365-network-connectivity-principles) for detailed guidance.
+
+## Supported Cloud Instances
+
+| Instance Value | Description | API Endpoint |
+|----------------|-------------|--------------|
+| `worldwide` | Worldwide commercial cloud (includes US GCC) | `https://endpoints.office.com/endpoints/worldwide` |
+| `usgov-dod` | US Government DoD | `https://endpoints.office.com/endpoints/USGOVDoD` |
+| `usgov-gcchigh` | US Government GCC High | `https://endpoints.office.com/endpoints/USGOVGCCHigh` |
+| `china` | Microsoft 365 operated by 21Vianet (China) | `https://endpoints.office.com/endpoints/China` |
+
+## Service Areas
+
+- **Exchange**: Exchange Online, Outlook, Exchange Online Protection (EOP)
+- **SharePoint**: SharePoint Online and OneDrive for Business
+- **Skype**: Microsoft Teams and Skype for Business Online
+- **Common**: Microsoft Entra ID, Office 365 portal, shared services
+
+## Version History
+
+| Version | Status | Notes |
+|---------|--------|-------|
+| v0.36.0-alpha | Experimental | Initial release |
+
+## Example Usage
+
+### Basic Usage
+
+{{ tffile "examples/data-sources/microsoft365_utility_microsoft_365_endpoints/basic.tf" }}
+
+### Comprehensive Filtering and Outputs
+
+{{ tffile "examples/data-sources/microsoft365_utility_microsoft_365_endpoints/data-source.tf" }}
+
+### Advanced Firewall Automation
+
+{{ tffile "examples/data-sources/microsoft365_utility_microsoft_365_endpoints/firewall-automation.tf" }}
+
+## Argument Reference
+
+* `instance` - (Required) The Microsoft 365 cloud instance to query. Valid values: `worldwide`, `usgov-dod`, `usgov-gcchigh`, `china`.
+
+* `service_areas` - (Optional) Filter endpoints by service area. Valid values: `Exchange`, `SharePoint`, `Skype`, `Common`. If omitted, returns all service areas.
+
+* `categories` - (Optional) Filter endpoints by network optimization category. Valid values: `Optimize`, `Allow`, `Default`. If omitted, returns all categories.
+
+* `required_only` - (Optional) If `true`, only returns endpoints marked as required by Microsoft. Optional endpoints provide enhanced functionality but are not necessary for core service operation. Defaults to `false`.
+
+* `express_route` - (Optional) If `true`, only returns endpoints that support Azure ExpressRoute for Microsoft 365. Useful for organizations using ExpressRoute for optimized connectivity. Defaults to `false`.
+
+* `timeouts` - (Optional) Timeout configuration block. See [Timeouts](#timeouts) below.
+
+## Attributes Reference
+
+* `id` - The computed ID of this datasource in the format `{instance}_{hash}`.
+
+* `endpoints` - List of endpoint objects. Each endpoint contains:
+  - `id` - Unique identifier for this endpoint set (from Microsoft's service)
+  - `service_area` - Service area code: `Exchange`, `SharePoint`, `Skype`, or `Common`
+  - `service_area_display_name` - Human-readable service area name
+  - `urls` - List of URL patterns/FQDNs (may include wildcards like `*.office.com`)
+  - `ips` - List of IP address ranges in CIDR notation (e.g., `40.96.0.0/13`)
+  - `tcp_ports` - TCP ports (comma-separated or ranges, e.g., `80,443` or `1024-65535`)
+  - `udp_ports` - UDP ports (comma-separated or ranges, e.g., `3478-3481`)
+  - `express_route` - Whether this endpoint supports Azure ExpressRoute for Microsoft 365
+  - `category` - Network routing category: `Optimize`, `Allow`, or `Default`
+  - `required` - Whether this endpoint is required for core Microsoft 365 functionality
+  - `notes` - Additional notes from Microsoft (e.g., "Teams media traffic", "Optional feature")
+
+## Timeouts
+
+The `timeouts` block supports:
+
+* `read` - (Optional) Timeout for reading endpoint data from Microsoft's API. Defaults to 3 minutes.
+
+{{ .SchemaMarkdown | trimspace }}
+
+## Use Cases
+
+This datasource supports multiple network automation scenarios:
+
+1. **Firewall Rule Automation** - Dynamically generate allow rules based on current Microsoft 365 IP ranges
+2. **PAC File Generation** - Create proxy bypass lists for Optimize category traffic
+3. **SD-WAN / QoS Configuration** - Configure intelligent routing with priority for latency-sensitive traffic
+4. **Azure ExpressRoute Planning** - Identify which endpoints support ExpressRoute
+5. **Service-Specific Configuration** - Configure rules per service area (Exchange, Teams, SharePoint)
+
+See the "Advanced Firewall Automation" example above for detailed implementations of these use cases.
+
+## Best Practices
+
+1. **Regular Updates**: Run Terraform apply regularly (e.g., weekly) to keep rules current as Microsoft updates endpoints
+2. **Separate Categories**: Create distinct firewall/routing policies for Optimize, Allow, and Default categories
+3. **Teams Media Priority**: Always prioritize Teams UDP media traffic (3478-3481) with lowest latency and no inspection
+4. **Wildcard Handling**: Ensure your firewall supports wildcard FQDNs (e.g., `*.office.com`) or implement FQDN resolution
+5. **ExpressRoute**: Use `express_route = true` filter to identify endpoints that can leverage your ExpressRoute connection
+
+## Important Notes
+
+### No Authentication Required
+This datasource calls a public Microsoft API that doesn't require authentication. Unlike other datasources in this provider, it doesn't use Microsoft Graph API credentials.
+
+### Data Freshness
+Endpoints are fetched in real-time from Microsoft's API on every Terraform refresh/plan/apply. Microsoft updates this data regularly as services evolve and infrastructure changes.
+
+### Rate Limiting
+The Microsoft endpoint service has no published rate limits, but it's recommended to avoid excessive calls (e.g., thousands per minute).
+
+### Client Request ID
+Each API call includes a unique `clientrequestid` (UUID) parameter for Microsoft's telemetry, as recommended by the API documentation.
+
+## Additional Resources
+
+- [Microsoft 365 Network Connectivity Principles](https://learn.microsoft.com/en-us/microsoft-365/enterprise/microsoft-365-network-connectivity-principles)
+- [Managing Microsoft 365 Endpoints](https://learn.microsoft.com/en-us/microsoft-365/enterprise/managing-office-365-endpoints)
+- [Microsoft 365 IP Address and URL Web Service](https://learn.microsoft.com/en-us/microsoft-365/enterprise/microsoft-365-ip-web-service)
+- [Microsoft 365 Endpoints Documentation](https://learn.microsoft.com/en-us/microsoft-365/enterprise/microsoft-365-endpoints)
+- [Unified cloud.microsoft Domain](https://learn.microsoft.com/en-us/microsoft-365/enterprise/cloud-microsoft-domain)
+- [Office 365 URLs and IP address ranges](https://learn.microsoft.com/en-us/microsoft-365/enterprise/urls-and-ip-address-ranges)
+
