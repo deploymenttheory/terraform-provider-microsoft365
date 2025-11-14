@@ -6,6 +6,7 @@ import (
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/constructors"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
@@ -25,11 +26,19 @@ func constructResource(ctx context.Context, data *WindowsQualityUpdateExpeditePo
 		return nil, fmt.Errorf("failed to set role scope tags: %s", err)
 	}
 
-	if data.ExpeditedUpdateSettings != nil {
+	if !data.ExpeditedUpdateSettings.IsNull() && !data.ExpeditedUpdateSettings.IsUnknown() {
 		expeditedSettings := graphmodels.NewExpeditedWindowsQualityUpdateSettings()
 
-		convert.FrameworkToGraphString(data.ExpeditedUpdateSettings.QualityUpdateRelease, expeditedSettings.SetQualityUpdateRelease)
-		convert.FrameworkToGraphInt32(data.ExpeditedUpdateSettings.DaysUntilForcedReboot, expeditedSettings.SetDaysUntilForcedReboot)
+		// Extract attributes from the object
+		attrs := data.ExpeditedUpdateSettings.Attributes()
+
+		if qualityUpdateRelease, ok := attrs["quality_update_release"].(types.String); ok {
+			convert.FrameworkToGraphString(qualityUpdateRelease, expeditedSettings.SetQualityUpdateRelease)
+		}
+
+		if daysUntilForcedReboot, ok := attrs["days_until_forced_reboot"].(types.Int32); ok {
+			convert.FrameworkToGraphInt32(daysUntilForcedReboot, expeditedSettings.SetDaysUntilForcedReboot)
+		}
 
 		requestBody.SetExpeditedUpdateSettings(expeditedSettings)
 	}
