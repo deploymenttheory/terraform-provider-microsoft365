@@ -26,8 +26,10 @@ run_provider_core_tests() {
     echo "Running provider core tests..."
     
     # Run tests and capture output, but allow failures
+    # Keep -race flag for unit tests to detect concurrency issues
     set +e
     go test -v -race \
+        -timeout=90m \
         -coverprofile="$COVERAGE_FILE" \
         -covermode=atomic \
         ./internal/client/... \
@@ -72,8 +74,11 @@ run_service_tests() {
     echo "Found ${test_count} test files"
 
     # Run tests and capture output, but allow failures
+    # Note: -race flag removed for acceptance tests to prevent OOM kills on ARM runners
+    # The race detector uses 5-10x more memory and is unnecessary for API integration tests
     set +e
-    go test -v -race \
+    go test -v \
+        -timeout=90m \
         -coverprofile="$COVERAGE_FILE" \
         -covermode=atomic \
         "${test_dir}/..." \
@@ -95,10 +100,8 @@ parse_test_failures() {
     
     local json_file="test-failures.json"
     
-    # Initialize JSON array
-    echo "[" > "$json_file"
-    
-    local first_entry=true
+    # Initialize empty JSON array
+    echo "[]" > "$json_file"
     
     # Parse test output for FAIL lines
     # Matches patterns like: "--- FAIL: TestName (0.01s)"
@@ -108,28 +111,23 @@ parse_test_failures() {
             test_name=$(echo "$line" | sed 's/^--- FAIL: \([^ ]*\).*/\1/')
             
             # Get context (next few lines for error details)
-            context=$(grep -A 10 "^--- FAIL: ${test_name}" "$output_file" | head -n 11 | tail -n 10 | sed 's/"/\\"/g' | sed ':a;N;$!ba;s/\n/\\n/g')
+            # Limit to first 500 chars to avoid huge contexts
+            context=$(grep -A 10 "^--- FAIL: ${test_name}" "$output_file" | head -n 11 | tail -n 10 | head -c 500)
             
-            # Add comma if not first entry
-            if [ "$first_entry" = false ]; then
-                echo "," >> "$json_file"
-            fi
-            first_entry=false
+            # Use jq to properly create JSON object with correct escaping
+            # This handles all control characters, quotes, backslashes, etc.
+            new_entry=$(jq -n \
+                --arg test_name "$test_name" \
+                --arg category "$category" \
+                --arg service "$service" \
+                --arg context "$context" \
+                '{test_name: $test_name, category: $category, service: $service, context: $context}')
             
-            # Add JSON object
-            cat >> "$json_file" <<EOF
-{
-  "test_name": "${test_name}",
-  "category": "${category}",
-  "service": "${service}",
-  "context": "${context}"
-}
-EOF
+            # Append to array using jq
+            jq --argjson entry "$new_entry" '. += [$entry]' "$json_file" > "${json_file}.tmp"
+            mv "${json_file}.tmp" "$json_file"
         fi
     done < "$output_file"
-    
-    echo "" >> "$json_file"
-    echo "]" >> "$json_file"
     
     echo "✅ Test failure report created: $json_file"
 }

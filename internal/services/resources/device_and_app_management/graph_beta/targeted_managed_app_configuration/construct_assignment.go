@@ -13,7 +13,8 @@ import (
 // this is the same for both create and update requests
 func constructAssignments(ctx context.Context, assignmentsSet types.Set) ([]graphmodels.TargetedManagedAppPolicyAssignmentable, error) {
 	if assignmentsSet.IsNull() || assignmentsSet.IsUnknown() {
-		return nil, nil
+		// Return empty slice instead of nil to ensure the field is present in JSON
+		return []graphmodels.TargetedManagedAppPolicyAssignmentable{}, nil
 	}
 
 	var assignmentModels []sharedmodels.InclusionGroupAndExclusionGroupAssignmentModel
