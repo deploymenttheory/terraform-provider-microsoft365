@@ -15,6 +15,7 @@ func InclusionGroupAndExclusionGroupAssignmentsSchema() schema.SetNestedAttribut
 	return schema.SetNestedAttribute{
 		MarkdownDescription: "Assignments for the compliance policy. Each assignment specifies the target group and schedule for script execution.",
 		Optional:            true,
+		Computed:            true,
 		NestedObject: schema.NestedAttributeObject{
 			Attributes: map[string]schema.Attribute{
 				"type": schema.StringAttribute{

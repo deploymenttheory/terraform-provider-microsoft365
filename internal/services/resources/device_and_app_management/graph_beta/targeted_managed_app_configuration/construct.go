@@ -117,13 +117,13 @@ func constructResource(ctx context.Context, data *TargetedManagedAppConfiguratio
 		requestBody.SetSettings(settings)
 	}
 
-	if !data.Assignments.IsNull() && !data.Assignments.IsUnknown() {
-		assignments, err := constructAssignments(ctx, data.Assignments)
-		if err != nil {
-			return nil, fmt.Errorf("failed to construct assignments: %s", err)
-		}
-		requestBody.SetAssignments(assignments)
+	// Handle assignments - always set assignments field, even if empty
+	// The API requires this field to be present
+	assignments, err := constructAssignments(ctx, data.Assignments)
+	if err != nil {
+		return nil, fmt.Errorf("failed to construct assignments: %s", err)
 	}
+	requestBody.SetAssignments(assignments)
 
 	if err := constructors.DebugLogGraphObject(ctx, fmt.Sprintf("Final JSON to be sent to Graph API for resource %s", ResourceName), requestBody); err != nil {
 		tflog.Error(ctx, "Failed to debug log object", map[string]any{

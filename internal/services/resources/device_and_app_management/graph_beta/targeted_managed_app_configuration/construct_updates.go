@@ -46,7 +46,8 @@ func constructTargetAppsUpdate(ctx context.Context, data *TargetedManagedAppConf
 		}
 	}
 
-	// Set apps
+	graphApps := make([]graphmodels.ManagedMobileAppable, 0)
+
 	if !data.Apps.IsNull() && !data.Apps.IsUnknown() {
 		var appModels []ManagedMobileAppResourceModel
 		diags := data.Apps.ElementsAs(ctx, &appModels, false)
@@ -54,7 +55,6 @@ func constructTargetAppsUpdate(ctx context.Context, data *TargetedManagedAppConf
 			return nil, fmt.Errorf("failed to convert apps set: %v", diags)
 		}
 
-		graphApps := make([]graphmodels.ManagedMobileAppable, 0, len(appModels))
 		for _, appModel := range appModels {
 			app := graphmodels.NewManagedMobileApp()
 
@@ -84,8 +84,9 @@ func constructTargetAppsUpdate(ctx context.Context, data *TargetedManagedAppConf
 			convert.FrameworkToGraphString(appModel.Version, app.SetVersion)
 			graphApps = append(graphApps, app)
 		}
-		appsRequest.SetApps(graphApps)
 	}
+
+	appsRequest.SetApps(graphApps)
 
 	return appsRequest, nil
 }
