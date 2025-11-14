@@ -63,7 +63,7 @@ jobs:
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: ./coverage-provider-core.txt
-          flags: nightly-tests,provider-core
+          flags: provider-core
           name: provider-core
           fail_ci_if_error: false
 
@@ -154,7 +154,7 @@ jobs:
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: ./coverage-resources-${{ matrix.service }}.txt
-          flags: nightly-tests,resources,${{ matrix.service }}
+          flags: ${{ matrix.service }}
           name: resources-${{ matrix.service }}
           fail_ci_if_error: false
 
@@ -241,7 +241,7 @@ jobs:
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: ./coverage-datasources-${{ matrix.service }}.txt
-          flags: nightly-tests,datasources,${{ matrix.service }}
+          flags: ${{ matrix.service }}
           name: datasources-${{ matrix.service }}
           fail_ci_if_error: false
 
@@ -263,6 +263,10 @@ jobs:
           path: test-artifacts
           merge-multiple: false
 
+      - name: Install jq
+        if: always()
+        run: sudo apt-get update && sudo apt-get install -y jq
+
       - name: Generate test summary
         run: |
           echo "## Nightly Test Summary" > summary.md
@@ -283,10 +287,7 @@ jobs:
           cat summary.md
 
       - name: Create GitHub Issues for Test Failures
-        if: |
-          needs.test-provider-core.result == 'failure' ||
-          needs.test-resources.result == 'failure' ||
-          needs.test-datasources.result == 'failure'
+        if: always()
         env:
           GITHUB_TOKEN: ${{ github.token }}
         run: |
