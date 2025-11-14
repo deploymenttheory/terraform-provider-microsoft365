@@ -1,0 +1,33 @@
+{
+  "@odata.type": "#microsoft.graph.androidManagedStoreAppConfiguration",
+  "id": "bbbbbbbb-2222-2222-2222-222222222222",
+  "displayName": "unit-test-android-managed-device-app-configuration-policy-with-permissions",
+  "description": "Unit test Android managed store app configuration with permissions",
+  "targetedMobileApps": ["87654321-4321-4321-4321-210987654321"],
+  "roleScopeTagIds": ["0"],
+  "version": 1,
+  "packageId": "app:com.microsoft.office.officehubrow",
+  "payloadJson": "eyJraW5kIjoiYW5kcm9pZGVudGVycHJpc2UjbWFuYWdlZENvbmZpZ3VyYXRpb24iLCJwcm9kdWN0SWQiOiJhcHA6Y29tLm1pY3Jvc29mdC5vZmZpY2Uub2ZmaWNlaHVicm93IiwibWFuYWdlZFByb3BlcnR5IjpbeyJrZXkiOiJjb20ubWljcm9zb2Z0LmludHVuZS5tYW0uQWxsb3dlZEFjY291bnRVUE5zIiwidmFsdWVTdHJpbmciOiJ0aGluZyJ9LHsia2V5IjoiY29tLm1pY3Jvc29mdC5vZmZpY2UuTm90ZXNDcmVhdGlvbkVuYWJsZWQiLCJ2YWx1ZUJvb2wiOnRydWV9XX0=",
+  "appSupportsOemConfig": false,
+  "profileApplicability": "androidDeviceOwner",
+  "connectedAppsEnabled": true,
+  "permissionActions": [
+    {
+      "permission": "android.permission.CAMERA",
+      "action": "autoDeny"
+    },
+    {
+      "permission": "android.permission.GET_ACCOUNTS",
+      "action": "autoGrant"
+    },
+    {
+      "permission": "android.permission.READ_CALENDAR",
+      "action": "autoGrant"
+    },
+    {
+      "permission": "android.permission.RECORD_AUDIO",
+      "action": "prompt"
+    }
+  ]
+}
+

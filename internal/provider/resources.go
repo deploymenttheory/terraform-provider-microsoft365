@@ -3,6 +3,7 @@ package provider
 import (
 	"context"
 	// Graph Beta - Device & app management
+	graphBetaDeviceAndAppManagementAndroidManagedDeviceAppConfigurationPolicy "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_and_app_management/graph_beta/android_managed_device_app_configuration_policy"
 	graphBetaDeviceAndAppManagementAndroidManagedMobileApp "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_and_app_management/graph_beta/android_managed_mobile_app"
 	graphBetaDeviceAndAppManagementApplicationCategory "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_and_app_management/graph_beta/application_category"
 	graphBetaDeviceAndAppManagementIOSiPadOSWebClip "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_and_app_management/graph_beta/ios_ipados_web_clip"
@@ -146,6 +147,7 @@ import (
 func (p *M365Provider) Resources(ctx context.Context) []func() resource.Resource {
 	return []func() resource.Resource{
 		// Graph Beta - Device & app management
+		graphBetaDeviceAndAppManagementAndroidManagedDeviceAppConfigurationPolicy.NewAndroidManagedDeviceAppConfigurationPolicyResource,
 		graphBetaDeviceAndAppManagementApplicationCategory.NewApplicationCategoryResource,
 		graphBetaDeviceAndAppManagementApplicationAssignment.NewMobileAppAssignmentResource,
 		graphBetaDeviceAndAppManagementIOSStoreApp.NewIOSStoreAppResource,

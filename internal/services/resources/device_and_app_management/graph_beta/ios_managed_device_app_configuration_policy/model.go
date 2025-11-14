@@ -12,7 +12,7 @@ type IOSManagedDeviceAppConfigurationPolicyResourceModel struct {
 	Description        types.String   `tfsdk:"description"`
 	TargetedMobileApps types.Set      `tfsdk:"targeted_mobile_apps"`
 	RoleScopeTagIds    types.Set      `tfsdk:"role_scope_tag_ids"`
-	Version            types.Int64    `tfsdk:"version"`
+	Version            types.Int32    `tfsdk:"version"`
 	EncodedSettingXml  types.String   `tfsdk:"encoded_setting_xml"`
 	Settings           types.Set      `tfsdk:"settings"`
 	Timeouts           timeouts.Value `tfsdk:"timeouts"`

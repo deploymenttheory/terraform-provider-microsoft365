@@ -2,6 +2,7 @@ package convert
 
 import (
 	"context"
+	"encoding/base64"
 	"fmt"
 	"regexp"
 	"strings"
@@ -412,4 +413,14 @@ func FrameworkToGraphBitmaskEnumFromSet[T any](
 
 	setter(typed)
 	return nil
+}
+
+// FrameworkToGraphBase64String encodes a Terraform Framework string value as base64 and sets it on the Graph SDK.
+// Only sets the value if it's not null or unknown.
+func FrameworkToGraphBase64String(value types.String, setter func(*string)) {
+	if !value.IsNull() && !value.IsUnknown() {
+		jsonPayload := value.ValueString()
+		encodedPayload := base64.StdEncoding.EncodeToString([]byte(jsonPayload))
+		setter(&encodedPayload)
+	}
 }

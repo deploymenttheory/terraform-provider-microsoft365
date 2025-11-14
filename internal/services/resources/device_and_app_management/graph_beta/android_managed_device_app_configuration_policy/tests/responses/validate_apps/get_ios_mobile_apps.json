@@ -1,0 +1,55 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceAppManagement/mobileApps",
+  "@odata.count": 3,
+  "value": [
+    {
+      "@odata.type": "#microsoft.graph.iosStoreApp",
+      "id": "12345678-1234-1234-1234-123456789012",
+      "displayName": "Test iOS App 1",
+      "description": "Test iOS app for validation",
+      "publisher": "Test Publisher",
+      "bundleId": "com.test.app1",
+      "appStoreUrl": "https://itunes.apple.com/us/app/test-app/id123456789?mt=8",
+      "publishingState": "published",
+      "isAssigned": true,
+      "roleScopeTagIds": ["0"],
+      "dependentAppCount": 0,
+      "supersedingAppCount": 0,
+      "supersededAppCount": 0,
+      "applicableDeviceType": {
+        "iPad": true,
+        "iPhoneAndIPod": true
+      }
+    },
+    {
+      "@odata.type": "#microsoft.graph.iosStoreApp",
+      "id": "87654321-4321-4321-4321-210987654321",
+      "displayName": "Test iOS App 2",
+      "description": "Another test iOS app for validation",
+      "publisher": "Test Publisher",
+      "bundleId": "com.test.app2",
+      "appStoreUrl": "https://itunes.apple.com/us/app/test-app2/id987654321?mt=8",
+      "publishingState": "published",
+      "isAssigned": false,
+      "roleScopeTagIds": ["0"],
+      "dependentAppCount": 0,
+      "supersedingAppCount": 0,
+      "supersededAppCount": 0,
+      "applicableDeviceType": {
+        "iPad": true,
+        "iPhoneAndIPod": true
+      }
+    },
+    {
+      "@odata.type": "#microsoft.graph.iosLobApp",
+      "id": "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee",
+      "displayName": "Test iOS LOB App",
+      "description": "Test iOS line of business app",
+      "publisher": "Test Publisher",
+      "bundleId": "com.test.lobapp",
+      "publishingState": "published",
+      "isAssigned": true,
+      "roleScopeTagIds": ["0"]
+    }
+  ]
+}

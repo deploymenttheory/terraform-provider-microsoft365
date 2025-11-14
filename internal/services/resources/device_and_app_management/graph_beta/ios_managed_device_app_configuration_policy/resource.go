@@ -136,7 +136,7 @@ func (r *IOSManagedDeviceAppConfigurationPolicyResource) Schema(ctx context.Cont
 					),
 				},
 			},
-			"version": schema.Int64Attribute{
+			"version": schema.Int32Attribute{
 				Computed:            true,
 				MarkdownDescription: "Version of the iOS mobile app configuration.",
 			},

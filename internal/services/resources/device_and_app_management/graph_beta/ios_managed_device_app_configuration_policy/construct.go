@@ -20,18 +20,14 @@ func constructResource(ctx context.Context, client *msgraphbetasdk.GraphServiceC
 	requestBody := graphmodels.NewIosMobileAppConfiguration()
 
 	convert.FrameworkToGraphString(data.DisplayName, requestBody.SetDisplayName)
-
 	convert.FrameworkToGraphString(data.Description, requestBody.SetDescription)
 
-	// Validate and set targeted mobile apps
 	if !data.TargetedMobileApps.IsNull() && !data.TargetedMobileApps.IsUnknown() {
-		// Extract app IDs for validation
 		var appIds []string
 		if diags := data.TargetedMobileApps.ElementsAs(ctx, &appIds, false); diags.HasError() {
 			return nil, fmt.Errorf("failed to extract targeted mobile app IDs: %v", diags)
 		}
 
-		// Validate app IDs against Intune
 		if err := validateIOSMobileAppIds(ctx, client, appIds); err != nil {
 			return nil, fmt.Errorf("validation failed for targeted_mobile_apps: %w", err)
 		}

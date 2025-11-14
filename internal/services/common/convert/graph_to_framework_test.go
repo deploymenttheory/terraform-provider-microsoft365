@@ -2,6 +2,7 @@ package convert
 
 import (
 	"context"
+	"encoding/base64"
 	"strings"
 	"testing"
 	"time"
@@ -469,4 +470,32 @@ func TestGraphToFrameworkBitmaskEnumAsSet(t *testing.T) {
 	assert.Contains(t, values, "none", "Set should contain 'none'")
 	assert.Contains(t, values, "one", "Set should contain 'one'")
 	assert.Contains(t, values, "two", "Set should contain 'two'")
+}
+
+func TestGraphToFrameworkBase64String(t *testing.T) {
+	ctx := context.Background()
+
+	// Case: Valid base64 encoded string
+	jsonPayload := `{"kind":"androidenterprise#managedConfiguration","productId":"app:com.test"}`
+	encodedPayload := base64.StdEncoding.EncodeToString([]byte(jsonPayload))
+	result := GraphToFrameworkBase64String(ctx, &encodedPayload)
+	assert.False(t, result.IsNull(), "Should not be null for valid base64 string")
+	assert.Equal(t, jsonPayload, result.ValueString(), "Should decode base64 to original JSON")
+
+	// Case: Nil string pointer
+	var nilInput *string
+	result = GraphToFrameworkBase64String(ctx, nilInput)
+	assert.True(t, result.IsNull(), "Should return types.StringNull() for nil input")
+
+	// Case: Empty base64 string (which decodes to empty string)
+	emptyEncoded := ""
+	result = GraphToFrameworkBase64String(ctx, &emptyEncoded)
+	assert.False(t, result.IsNull(), "Should not be null for empty string")
+	assert.Equal(t, "", result.ValueString(), "Empty base64 should decode to empty string")
+
+	// Case: Invalid base64 string (should return original string with warning)
+	invalidBase64 := "this is not base64!!!"
+	result = GraphToFrameworkBase64String(ctx, &invalidBase64)
+	assert.False(t, result.IsNull(), "Should not be null for invalid base64")
+	assert.Equal(t, invalidBase64, result.ValueString(), "Should return original string when decoding fails")
 }

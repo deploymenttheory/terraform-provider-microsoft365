@@ -27,12 +27,7 @@ func MapRemoteStateToTerraform(ctx context.Context, data *IOSManagedDeviceAppCon
 	data.Description = convert.GraphToFrameworkString(remoteResource.GetDescription())
 	data.TargetedMobileApps = convert.GraphToFrameworkStringSet(ctx, remoteResource.GetTargetedMobileApps())
 	data.RoleScopeTagIds = convert.GraphToFrameworkStringSet(ctx, remoteResource.GetRoleScopeTagIds())
-
-	if version := remoteResource.GetVersion(); version != nil {
-		data.Version = types.Int64Value(int64(*version))
-	} else {
-		data.Version = types.Int64Null()
-	}
+	data.Version = convert.GraphToFrameworkInt32(remoteResource.GetVersion())
 
 	if iosConfig, ok := remoteResource.(graphmodels.IosMobileAppConfigurationable); ok {
 
@@ -44,19 +39,9 @@ func MapRemoteStateToTerraform(ctx context.Context, data *IOSManagedDeviceAppCon
 			for _, setting := range settings {
 				settingAttrs := make(map[string]attr.Value)
 
-				if key := setting.GetAppConfigKey(); key != nil {
-					settingAttrs["app_config_key"] = types.StringValue(*key)
-				} else {
-					settingAttrs["app_config_key"] = types.StringNull()
-				}
-
+				settingAttrs["app_config_key"] = convert.GraphToFrameworkString(setting.GetAppConfigKey())
 				settingAttrs["app_config_key_type"] = convert.GraphToFrameworkEnum(setting.GetAppConfigKeyType())
-
-				if keyValue := setting.GetAppConfigKeyValue(); keyValue != nil {
-					settingAttrs["app_config_key_value"] = types.StringValue(*keyValue)
-				} else {
-					settingAttrs["app_config_key_value"] = types.StringNull()
-				}
+				settingAttrs["app_config_key_value"] = convert.GraphToFrameworkString(setting.GetAppConfigKeyValue())
 
 				settingObj, _ := types.ObjectValue(
 					map[string]attr.Type{

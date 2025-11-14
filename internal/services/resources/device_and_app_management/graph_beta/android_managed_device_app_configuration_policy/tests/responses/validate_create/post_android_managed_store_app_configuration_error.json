@@ -1,0 +1,12 @@
+{
+  "error": {
+    "code": "BadRequest",
+    "message": "Invalid request. The payload_json field contains invalid JSON.",
+    "innerError": {
+      "date": "2025-11-14T10:00:00",
+      "request-id": "00000000-0000-0000-0000-000000000000",
+      "client-request-id": "00000000-0000-0000-0000-000000000000"
+    }
+  }
+}
+

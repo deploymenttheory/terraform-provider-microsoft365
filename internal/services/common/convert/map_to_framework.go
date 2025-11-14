@@ -125,10 +125,10 @@ func MapToFrameworkStringSet(ctx context.Context, data map[string]any, key strin
 }
 
 // MapToFrameworkStringList extracts a string slice from a map and converts it to a Terraform Framework string list.
-// Returns null if the key doesn't exist or the value is not a []any containing strings.
+// Returns empty list for empty arrays, null only if key doesn't exist or value is not a slice.
 func MapToFrameworkStringList(ctx context.Context, data map[string]any, key string) types.List {
 	if rawSlice, ok := data[key].([]any); ok {
-		var strings []string
+		strings := make([]string, 0, len(rawSlice))
 		for _, item := range rawSlice {
 			if str, ok := item.(string); ok {
 				strings = append(strings, str)
