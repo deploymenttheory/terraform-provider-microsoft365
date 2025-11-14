@@ -1,0 +1,408 @@
+[
+  {
+    "id": 1,
+    "serviceArea": "Exchange",
+    "serviceAreaDisplayName": "Exchange Online",
+    "urls": [
+      "outlook-dod.office365.us",
+      "webmail.apps.mil"
+    ],
+    "ips": [
+      "20.35.192.0/20",
+      "40.66.24.0/21",
+      "2001:489a:2200:500::/56",
+      "2001:489a:2200:700::/56"
+    ],
+    "tcpPorts": "80,443",
+    "expressRoute": true,
+    "category": "Optimize",
+    "required": true
+  },
+  {
+    "id": 4,
+    "serviceArea": "Exchange",
+    "serviceAreaDisplayName": "Exchange Online",
+    "urls": [
+      "outlook-dod.office365.us",
+      "webmail.apps.mil"
+    ],
+    "tcpPorts": "25,143,587,993,995",
+    "expressRoute": true,
+    "category": "Default",
+    "required": true
+  },
+  {
+    "id": 5,
+    "serviceArea": "Exchange",
+    "serviceAreaDisplayName": "Exchange Online",
+    "urls": [
+      "attachments-dod.office365-net.us",
+      "autodiscover-s-dod.office365.us",
+      "autodiscover.*.mail.onmicrosoft.com",
+      "autodiscover.*.mail.onmicrosoft.us",
+      "autodiscover.*.onmicrosoft.com",
+      "autodiscover.*.onmicrosoft.us"
+    ],
+    "tcpPorts": "80,443",
+    "expressRoute": true,
+    "category": "Default",
+    "required": true
+  },
+  {
+    "id": 6,
+    "serviceArea": "Exchange",
+    "serviceAreaDisplayName": "Exchange Online",
+    "urls": [
+      "*.protection.apps.mil",
+      "*.protection.office365.us",
+      "*.usgovcloud-mx.microsoft"
+    ],
+    "ips": [
+      "23.103.191.0/24",
+      "23.103.199.0/25",
+      "23.103.204.0/22",
+      "62.10.144.0/20",
+      "2001:489a:2202::/62",
+      "2001:489a:2202:8::/62",
+      "2001:489a:2202:2000::/63",
+      "2001:489a:2202:c000::/50"
+    ],
+    "tcpPorts": "25,443",
+    "expressRoute": true,
+    "category": "Allow",
+    "required": true
+  },
+  {
+    "id": 7,
+    "serviceArea": "Skype",
+    "serviceAreaDisplayName": "Microsoft Teams",
+    "urls": [
+      "*.dod.teams.microsoft.us",
+      "*.online.dod.skypeforbusiness.us",
+      "dod.teams.microsoft.us"
+    ],
+    "ips": [
+      "13.72.128.0/20",
+      "52.127.64.0/21",
+      "104.212.32.0/22",
+      "195.134.240.0/22",
+      "2001:489a:2250::/44"
+    ],
+    "tcpPorts": "443",
+    "udpPorts": "3478,3479,3480,3481",
+    "expressRoute": true,
+    "category": "Optimize",
+    "required": true
+  },
+  {
+    "id": 9,
+    "serviceArea": "SharePoint",
+    "serviceAreaDisplayName": "SharePoint Online and OneDrive for Business",
+    "urls": [
+      "*.dps.mil",
+      "*.sharepoint-mil.us"
+    ],
+    "ips": [
+      "20.34.12.0/22",
+      "2001:489a:2204:902::/63",
+      "2001:489a:2204:c00::/63"
+    ],
+    "tcpPorts": "80,443",
+    "udpPorts": "443",
+    "expressRoute": true,
+    "category": "Optimize",
+    "required": true
+  },
+  {
+    "id": 10,
+    "serviceArea": "SharePoint",
+    "serviceAreaDisplayName": "SharePoint Online and OneDrive for Business",
+    "urls": [
+      "*.wns.windows.com",
+      "g.live.com",
+      "oneclient.sfx.ms"
+    ],
+    "tcpPorts": "80,443",
+    "expressRoute": false,
+    "category": "Default",
+    "required": true
+  },
+  {
+    "id": 11,
+    "serviceArea": "Common",
+    "serviceAreaDisplayName": "Microsoft 365 Common and Office Online",
+    "urls": [
+      "*.dod.online.office365.us"
+    ],
+    "ips": [
+      "52.127.80.0/23",
+      "2001:489a:2208:8000::/49"
+    ],
+    "tcpPorts": "443",
+    "expressRoute": true,
+    "category": "Allow",
+    "required": true
+  },
+  {
+    "id": 12,
+    "serviceArea": "Common",
+    "serviceAreaDisplayName": "Microsoft 365 Common and Office Online",
+    "urls": [
+      "*.apps.mil",
+      "*.office365.us",
+      "*.usgovcloud-static.microsoft",
+      "*.usgovcloud-usercontent.microsoft",
+      "*.usgovcloud.microsoft"
+    ],
+    "tcpPorts": "443,80",
+    "expressRoute": false,
+    "category": "Default",
+    "required": true
+  },
+  {
+    "id": 13,
+    "serviceArea": "Common",
+    "serviceAreaDisplayName": "Microsoft 365 Common and Office Online",
+    "urls": [
+      "*.auth.microsoft.us",
+      "*.gov.us.microsoftonline.com",
+      "dod-graph.microsoft.us",
+      "graph.microsoftazure.us",
+      "login.microsoftonline.us"
+    ],
+    "ips": [
+      "20.140.232.0/23",
+      "52.126.194.0/23",
+      "2001:489a:3500::/50"
+    ],
+    "tcpPorts": "443",
+    "expressRoute": true,
+    "category": "Allow",
+    "required": true
+  },
+  {
+    "id": 14,
+    "serviceArea": "Common",
+    "serviceAreaDisplayName": "Microsoft 365 Common and Office Online",
+    "urls": [
+      "*.msauth.net",
+      "*.msauthimages.us",
+      "*.msftauth.net",
+      "*.msftauthimages.us",
+      "clientconfig.microsoftonline-p.net",
+      "graph.windows.net",
+      "login-us.microsoftonline.com",
+      "login.microsoftonline-p.com",
+      "login.microsoftonline.com",
+      "login.windows.net",
+      "loginex.microsoftonline.com",
+      "mscrl.microsoft.com",
+      "nexus.microsoftonline-p.com",
+      "secure.aadcdn.microsoftonline-p.com"
+    ],
+    "tcpPorts": "443",
+    "expressRoute": false,
+    "category": "Default",
+    "required": true
+  },
+  {
+    "id": 15,
+    "serviceArea": "Common",
+    "serviceAreaDisplayName": "Microsoft 365 Common and Office Online",
+    "urls": [
+      "portal.apps.mil",
+      "reports.apps.mil",
+      "webshell.dodsuite.office365.us",
+      "www.ohome.apps.mil"
+    ],
+    "ips": [
+      "52.127.72.42/32",
+      "52.127.76.42/32",
+      "52.180.251.166/32",
+      "52.181.24.112/32",
+      "52.181.160.113/32",
+      "52.182.24.200/32",
+      "52.182.54.237/32"
+    ],
+    "tcpPorts": "443",
+    "expressRoute": true,
+    "category": "Allow",
+    "required": true
+  },
+  {
+    "id": 16,
+    "serviceArea": "Common",
+    "serviceAreaDisplayName": "Microsoft 365 Common and Office Online",
+    "urls": [
+      "dod.loki.office365.us"
+    ],
+    "ips": [
+      "52.127.72.0/21",
+      "2001:489a:2206::/48"
+    ],
+    "tcpPorts": "443",
+    "expressRoute": true,
+    "category": "Allow",
+    "required": true
+  },
+  {
+    "id": 17,
+    "serviceArea": "Common",
+    "serviceAreaDisplayName": "Microsoft 365 Common and Office Online",
+    "urls": [
+      "activation.sls.microsoft.com",
+      "crl.microsoft.com",
+      "go.microsoft.com",
+      "insertmedia.bing.office.net",
+      "ocsa.officeapps.live.com",
+      "ocsredir.officeapps.live.com",
+      "ocws.officeapps.live.com",
+      "office15client.microsoft.com",
+      "officecdn.microsoft.com",
+      "officecdn.microsoft.com.edgesuite.net",
+      "officepreviewredir.microsoft.com",
+      "officeredir.microsoft.com",
+      "ols.officeapps.live.com",
+      "r.office.microsoft.com"
+    ],
+    "tcpPorts": "80,443",
+    "expressRoute": false,
+    "category": "Default",
+    "required": true
+  },
+  {
+    "id": 18,
+    "serviceArea": "Common",
+    "serviceAreaDisplayName": "Microsoft 365 Common and Office Online",
+    "urls": [
+      "cdn.odc.officeapps.live.com",
+      "mrodevicemgr.officeapps.live.com",
+      "odc.officeapps.live.com",
+      "officeclient.microsoft.com"
+    ],
+    "tcpPorts": "80,443",
+    "expressRoute": false,
+    "category": "Default",
+    "required": true
+  },
+  {
+    "id": 20,
+    "serviceArea": "SharePoint",
+    "serviceAreaDisplayName": "SharePoint Online and OneDrive for Business",
+    "urls": [
+      "*.svc.ms"
+    ],
+    "tcpPorts": "80,443",
+    "expressRoute": false,
+    "category": "Default",
+    "required": true
+  },
+  {
+    "id": 21,
+    "serviceArea": "Skype",
+    "serviceAreaDisplayName": "Microsoft Teams",
+    "urls": [
+      "msteamsstatics.blob.core.usgovcloudapi.net",
+      "statics.teams.microsoft.com"
+    ],
+    "tcpPorts": "443",
+    "expressRoute": false,
+    "category": "Default",
+    "required": true
+  },
+  {
+    "id": 24,
+    "serviceArea": "Common",
+    "serviceAreaDisplayName": "Microsoft 365 Common and Office Online",
+    "urls": [
+      "lpcres.delve.office.com"
+    ],
+    "tcpPorts": "443",
+    "expressRoute": false,
+    "category": "Default",
+    "required": true
+  },
+  {
+    "id": 25,
+    "serviceArea": "Common",
+    "serviceAreaDisplayName": "Microsoft 365 Common and Office Online",
+    "urls": [
+      "*.cdn.office.net"
+    ],
+    "tcpPorts": "443",
+    "expressRoute": false,
+    "category": "Default",
+    "required": true
+  },
+  {
+    "id": 26,
+    "serviceArea": "Common",
+    "serviceAreaDisplayName": "Microsoft 365 Common and Office Online",
+    "urls": [
+      "*.security.apps.mil",
+      "compliance.apps.mil",
+      "purview.apps.mil",
+      "scc.protection.apps.mil",
+      "security.apps.mil"
+    ],
+    "ips": [
+      "23.103.204.0/22",
+      "52.127.72.0/21"
+    ],
+    "tcpPorts": "80,443",
+    "expressRoute": true,
+    "category": "Allow",
+    "required": true
+  },
+  {
+    "id": 28,
+    "serviceArea": "Common",
+    "serviceAreaDisplayName": "Microsoft 365 Common and Office Online",
+    "urls": [
+      "activity.windows.com",
+      "dod.activity.windows.us"
+    ],
+    "tcpPorts": "443",
+    "expressRoute": false,
+    "category": "Default",
+    "required": true
+  },
+  {
+    "id": 29,
+    "serviceArea": "Common",
+    "serviceAreaDisplayName": "Microsoft 365 Common and Office Online",
+    "urls": [
+      "dod-mtis.cortana.ai"
+    ],
+    "tcpPorts": "443",
+    "expressRoute": false,
+    "category": "Default",
+    "required": true
+  },
+  {
+    "id": 30,
+    "serviceArea": "Common",
+    "serviceAreaDisplayName": "Microsoft 365 Common and Office Online",
+    "urls": [
+      "*.aadrm.us",
+      "*.informationprotection.azure.us"
+    ],
+    "tcpPorts": "443",
+    "expressRoute": false,
+    "category": "Default",
+    "required": true
+  },
+  {
+    "id": 31,
+    "serviceArea": "Common",
+    "serviceAreaDisplayName": "Microsoft 365 Common and Office Online",
+    "urls": [
+      "pf.events.data.microsoft.com",
+      "pf.pipe.aria.microsoft.com"
+    ],
+    "tcpPorts": "443,80",
+    "expressRoute": false,
+    "category": "Default",
+    "required": true
+  }
+]

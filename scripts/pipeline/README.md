@@ -29,7 +29,7 @@ This directory contains scripts used in the GitHub Actions CI/CD pipeline for th
 - `coverage-*.txt`: Coverage profile
 
 #### `create-test-issues.sh`
-**Purpose:** Creates individual GitHub issues for each failing test  
+**Purpose:** Creates test failure reports for each failing test (not incidents)  
 **Usage:** `./create-test-issues.sh <owner> <repo> <run-id> <failures-json>`
 
 **Parameters:**
@@ -39,16 +39,20 @@ This directory contains scripts used in the GitHub Actions CI/CD pipeline for th
 - `failures-json`: Path to test failures JSON file
 
 **Features:**
-- **Individual Issue Per Test**: Each failing test gets its own issue
-- **De-duplication**: Checks if issue already exists by test name
-- **Auto-update**: If issue exists, adds comment with latest failure info
-- **Rich Context**: Includes test name, service path, failure context, workflow links
-- **Automatic Labels**: Tags issues with `bug`, `nightly-test-failure`, `automated`
+- **Individual Report Per Test**: Each failing test gets its own report
+- **De-duplication**: Checks if report already exists by test name
+- **Auto-update**: If report exists, adds comment with latest occurrence
+- **Clear Classification**: Distinguishes test failures from production incidents
+- **Escalation Criteria**: Provides guidelines for when to escalate to incident
+- **Rich Context**: Includes failure details, impact assessment, investigation checklist
+- **Automatic Labels**: Tags with `test-failure`, `automated`, `needs-triage`
+- **Recurring Detection**: Adds `recurring` label for repeated failures
 
 **Behavior:**
-- **New Failure**: Creates new issue with title `🔴 Nightly Test Failure: TestName`
-- **Existing Failure**: Updates existing issue with comment containing latest run info
-- **Resolved Tests**: Issues remain open until manually closed (after verification)
+- **New Failure**: Creates report with title `Test Failure: TestName`
+- **Existing Failure**: Updates report with latest occurrence
+- **Escalation**: Manual escalation to incident if criteria met (3+ failures, blocks deployment, etc.)
+- **Resolution**: Reports closed when test passes and root cause documented
 
 #### `map-credentials.sh`
 **Purpose:** Maps service-specific credentials to environment variables  
@@ -105,57 +109,120 @@ graph TD
     K -->|New| M[Create New Issue]
 ```
 
-### Test Failure Issue Lifecycle
+### Test Failure Report Lifecycle
 
 1. **Detection**: Test fails in nightly run
 2. **Artifact Upload**: `test-failures.json` uploaded as artifact
 3. **Aggregation**: Summary job downloads all artifacts
-4. **De-duplication**: Script checks for existing issues by test name
-5. **Issue Creation**:
-   - **If new**: Create issue with title `🔴 Nightly Test Failure: TestName`
-   - **If exists**: Add comment with latest failure details
-6. **Resolution**: Developer fixes test and manually closes issue
+4. **De-duplication**: Script checks for existing reports by test name
+5. **Report Creation**:
+   - **If new**: Create report with title `Test Failure: TestName`
+   - **If exists**: Add update comment and apply `recurring` label
+6. **Triage**: Developer investigates and classifies (flaky test, genuine bug, environment issue, test maintenance)
+7. **Escalation** (if needed): Convert to incident if meets escalation criteria
+8. **Resolution**: Developer fixes issue, documents root cause, and closes report
 
-### Example Issue Format
+### Example Test Failure Report
 
-**Title:** `🔴 Nightly Test Failure: TestAccAndroidPolicyResource_Lifecycle`
+**Title:** `Test Failure: TestAccAndroidPolicyResource_Lifecycle`
 
 **Body:**
 ```markdown
-## Test Failure Details
+## Test Failure Report
 
-**Test Name:** `TestAccAndroidPolicyResource_Lifecycle`
-**Service Path:** `resources/device_and_app_management`
-**First Detected:** 2025-11-14
+**Status:** Under Investigation  
+**Test Name:** `TestAccAndroidPolicyResource_Lifecycle`  
+**Service Area:** `resources/device_and_app_management`  
+**First Detected:** 2025-11-14  
 **Workflow Run:** [123456](link)
 
+## Failure Details
+
+### Test Information
+
+- **Test Path:** `TestAccAndroidPolicyResource_Lifecycle`
+- **Test Type:** Acceptance Test
+- **Service:** resources/device_and_app_management
+- **Failure Pattern:** First Occurrence
+
 ### Failure Context
+
 ```
 --- FAIL: TestAccAndroidPolicyResource_Lifecycle (5.23s)
     resource_test.go:45: Expected success but got error...
 ```
 
-### Action Items
-- [ ] Review workflow logs
-- [ ] Identify root cause
-- [ ] Fix failing test
-- [ ] Verify in next nightly run
-- [ ] Close issue when resolved
+## Impact Assessment
+
+**Pre-Production Environment:**
+- ⚠️ Test suite quality gate failing
+- ⚠️ Potential regression if deployed to production
+- ✅ No customer impact (pre-production only)
+
+**Severity Classification:**
+- **Not Yet an Incident** - No production service disruption
+- **Could Escalate** - If persists or blocks critical deployments
+
+## Investigation Required
+
+### Initial Analysis Checklist
+
+- [ ] Review workflow logs for details
+- [ ] Identify root cause (code change, environment, flaky test)
+- [ ] Determine severity and regression risk
+- [ ] Check if this affects production release readiness
+
+### Classification Decision
+
+After investigation, classify this failure:
+
+- [ ] **Flaky Test** - Intermittent failure, test needs improvement
+- [ ] **Environment Issue** - Test infrastructure problem
+- [ ] **Genuine Bug** - Code defect requiring fix
+- [ ] **Test Maintenance** - Test needs updating for new behavior
+
+### Escalation Criteria
+
+**Escalate to INCIDENT if:**
+- Test fails 3+ consecutive times (persistent failure)
+- Failure blocks critical production deployment
+- Failure indicates production service degradation
+- Security or data integrity concern
+
+## Resolution Actions
+
+- [ ] Fix identified root cause
+- [ ] Verify fix locally and in CI/CD
+- [ ] Document findings
+- [ ] Close report when test passes
+- [ ] Update test if maintenance needed
 ```
 
-## 🏷️ Issue Labels
+## 🏷️ Report Labels
 
-Issues created by `create-test-issues.sh` use these labels:
+Test failure reports created by `create-test-issues.sh` use these labels:
 
-- `bug`: Indicates a problem that needs fixing
-- `nightly-test-failure`: Identifies automated nightly test failures
+- `test-failure`: Indicates a test failure report (not an incident)
 - `automated`: Marks as automatically generated
+- `needs-triage`: Requires investigation and classification
+- `recurring`: Added when test fails multiple times (auto-applied on recurrence)
+
+### Label Lifecycle
+
+**Initial:** `test-failure`, `automated`, `needs-triage`  
+**After Triage:** Remove `needs-triage`, add one of:
+- `flaky-test`: Intermittent failures
+- `test-maintenance`: Test needs updating
+- `bug`: Genuine code defect
+- `environment`: Infrastructure issue
+
+**Escalation:** If escalated, add `incident` label and update title
 
 ## 🔍 Troubleshooting
 
-### No Issues Created
+### No Reports Created
 
-**Problem:** Tests fail but no issues are created  
+**Problem:** Tests fail but no reports are created  
 **Causes:**
 - `test-failures.json` is empty
 - No failing tests matched the `--- FAIL:` pattern
@@ -166,21 +233,21 @@ Issues created by `create-test-issues.sh` use these labels:
 2. Verify `test-failures.json` contains data
 3. Ensure workflow has `issues: write` permission
 
-### Duplicate Issues
+### Duplicate Reports
 
-**Problem:** Multiple issues created for same test  
+**Problem:** Multiple reports created for same test  
 **Causes:**
 - Test name variation (e.g., TestFoo vs TestFoo/subtest)
-- Issue title search not matching
+- Report title search not matching
 
 **Solution:**
-- Issue titles use exact test name for matching
-- Script searches for `in:title "TestName"`
+- Report titles use exact test name for matching
+- Script searches for `in:title "Test Failure: TestName"`
 - Ensure test names are stable
 
 ### Missing Context
 
-**Problem:** Issue created but no failure details  
+**Problem:** Report created but no failure details  
 **Causes:**
 - Test output parsing failed
 - Context extraction logic didn't match output format
@@ -190,16 +257,38 @@ Issues created by `create-test-issues.sh` use these labels:
 - Verify Go test output follows standard format
 - Update parse logic in `run-tests.sh` if needed
 
+### When is it an Incident?
+
+**Question:** How do I know if a test failure should be escalated to an incident?
+
+**Answer:** Use these criteria:
+
+| Criteria | Test Failure | Incident |
+|----------|-------------|----------|
+| **Customer Impact** | None (pre-prod) | Yes (production affected) |
+| **Service Status** | Running normally | Service degraded/down |
+| **Deployment Status** | Tests failing | Deployment blocked |
+| **Failure Pattern** | 1-2 occurrences | 3+ consecutive failures |
+| **Severity** | Potential regression | Active regression |
+
+**Escalation Process:**
+1. Test fails 3+ times in a row → Escalate
+2. Failure blocks critical deployment → Escalate  
+3. Failure indicates prod issue → Escalate
+4. Otherwise → Keep as test failure report
+
 ## 🚀 Future Improvements
 
 Potential enhancements:
 
-1. **Auto-close Resolved Issues**: Close issues when test passes in subsequent run
-2. **Flaky Test Detection**: Track failure frequency, label tests that fail intermittently
-3. **Trend Analysis**: Add metrics on failure rates over time
-4. **Slack/Teams Integration**: Notify team channels of new failures
-5. **Test Retry Logic**: Automatically retry failed tests once
-6. **Priority Assignment**: Auto-assign priority based on test criticality
+1. **Auto-close Resolved Reports**: Close reports when test passes in subsequent run
+2. **Flaky Test Detection**: Track failure frequency, auto-label intermittent failures
+3. **Auto-escalation**: Automatically escalate to incident after 3 consecutive failures
+4. **Trend Analysis**: Add metrics on failure rates and patterns over time
+5. **Slack/Teams Integration**: Notify team channels of new failures and escalations
+6. **Test Retry Logic**: Automatically retry failed tests once before reporting
+7. **Classification ML**: Use patterns to suggest classification (flaky vs bug)
+8. **SLA Tracking**: Monitor time-to-resolution for test failures
 
 ## 📚 Related Documentation
 
