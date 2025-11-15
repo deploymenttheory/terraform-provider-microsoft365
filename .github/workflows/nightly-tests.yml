@@ -43,7 +43,7 @@ jobs:
           M365_CLIENT_SECRET: ${{ secrets.M365_CLIENT_SECRET }}
           M365_AUTH_METHOD: client_secret
           M365_CLOUD: public
-        run: ./scripts/pipeline/run-tests.sh provider-core "" coverage-provider-core.txt test-output-provider-core.log
+        run: ./scripts/pipeline/run-tests.py provider-core "" coverage-provider-core.txt test-output-provider-core.log
         continue-on-error: true
 
       - name: Upload test failures
@@ -134,7 +134,7 @@ jobs:
           M365_TENANT_ID: ${{ secrets.M365_TENANT_ID }}
           M365_AUTH_METHOD: client_secret
           M365_CLOUD: public
-        run: ./scripts/pipeline/run-tests.sh resources ${{ matrix.service }} coverage-resources-${{ matrix.service }}.txt test-output-resources-${{ matrix.service }}.log
+        run: ./scripts/pipeline/run-tests.py resources ${{ matrix.service }} coverage-resources-${{ matrix.service }}.txt test-output-resources-${{ matrix.service }}.log
         continue-on-error: true
 
       - name: Upload test failures
@@ -221,7 +221,7 @@ jobs:
           M365_TENANT_ID: ${{ secrets.M365_TENANT_ID }}
           M365_AUTH_METHOD: client_secret
           M365_CLOUD: public
-        run: ./scripts/pipeline/run-tests.sh datasources ${{ matrix.service }} coverage-datasources-${{ matrix.service }}.txt test-output-datasources-${{ matrix.service }}.log
+        run: ./scripts/pipeline/run-tests.py datasources ${{ matrix.service }} coverage-datasources-${{ matrix.service }}.txt test-output-datasources-${{ matrix.service }}.log
         continue-on-error: true
 
       - name: Upload test failures
@@ -263,10 +263,6 @@ jobs:
           path: test-artifacts
           merge-multiple: false
 
-      - name: Install jq
-        if: always()
-        run: sudo apt-get update && sudo apt-get install -y jq
-
       - name: Generate test summary
         run: |
           echo "## Nightly Test Summary" > summary.md
@@ -293,27 +289,13 @@ jobs:
         run: |
           echo "🔍 Processing test failures and creating issues..."
           
-          # Merge all test-failures.json files
-          echo "[]" > merged-failures.json
+          # Merge all test-failures.json files using Python
+          ./scripts/pipeline/merge-test-failures.py test-artifacts merged-failures.json
           
-          # Find all test-failures.json files and merge them
-          if [ -d "test-artifacts" ]; then
-            for failure_file in $(find test-artifacts -name "test-failures.json" -type f); do
-              echo "Processing: $failure_file"
-              
-              # Merge JSON arrays using jq
-              jq -s '.[0] + .[1]' merged-failures.json "$failure_file" > temp.json
-              mv temp.json merged-failures.json
-            done
-          fi
-          
-          # Display merged failures count
-          TOTAL_FAILURES=$(jq 'length' merged-failures.json)
-          echo "📊 Total test failures found: ${TOTAL_FAILURES}"
-          
-          if [ "$TOTAL_FAILURES" -gt 0 ]; then
+          # Check if there are failures
+          if [ -s merged-failures.json ] && [ "$(cat merged-failures.json)" != "[]" ]; then
             # Create individual issues for each failing test
-            ./scripts/pipeline/create-test-issues.sh \
+            ./scripts/pipeline/create-test-issues.py \
               ${{ github.repository_owner }} \
               ${{ github.event.repository.name }} \
               ${{ github.run_id }} \
