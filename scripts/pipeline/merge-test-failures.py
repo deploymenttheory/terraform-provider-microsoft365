@@ -23,10 +23,17 @@ def merge_failures(failure_files: list[Path]) -> list[dict]:
             with open(failure_file) as f:
                 failures = json.load(f)
                 if isinstance(failures, list):
+                    # Show which tests failed from this file
+                    for failure in failures:
+                        test_name = failure.get("test_name", "Unknown")
+                        category = failure.get("category", "")
+                        service = failure.get("service", "")
+                        service_path = f"{category}/{service}" if service else category
+                        print(f"  ❌ {test_name} ({service_path})")
+                    
                     merged.extend(failures)
-                    print(f"  Merged {failure_file.relative_to(failure_file.parents[2])}: {len(failures)} failures")
         except (json.JSONDecodeError, IOError) as e:
-            print(f"  Warning: Could not read {failure_file}: {e}", file=sys.stderr)
+            print(f"  ⚠️  Could not read {failure_file}: {e}", file=sys.stderr)
             continue
     
     return merged
@@ -48,20 +55,23 @@ def main():
     failure_files = find_failure_files(artifacts_dir)
     
     if not failure_files:
-        print("No test-failures.json files found")
+        print("✅ No test-failures.json files found")
         with open(output_file, 'w') as f:
             json.dump([], f)
-        print(f"Created empty {output_file}")
         return
     
-    print(f"Found {len(failure_files)} test failure file(s)")
+    print(f"\nProcessing {len(failure_files)} test failure file(s):\n")
     merged = merge_failures(failure_files)
     
     with open(output_file, 'w') as f:
         json.dump(merged, f, indent=2)
     
-    print(f"\nTotal failures: {len(merged)}")
-    print(f"Merged results written to {output_file}")
+    if merged:
+        print(f"\n{'='*60}")
+        print(f"Total test failures: {len(merged)}")
+        print(f"{'='*60}")
+    else:
+        print("✅ No test failures found")
 
 
 if __name__ == "__main__":

@@ -81,8 +81,6 @@ def update_existing_issue(owner: str, repo: str, issue_number: str,
         "--repo", f"{owner}/{repo}",
         "--add-label", "recurring"
     ])
-    
-    print(f"✅ Updated existing issue #{issue_number}")
 
 
 def create_new_issue(owner: str, repo: str, test_name: str, 
@@ -143,13 +141,18 @@ def process_test_failures(owner: str, repo: str, run_id: str,
     failure_count = len(failures)
     
     if failure_count == 0:
-        print("No test failures found")
+        print("✅ No test failures to process")
         return
     
-    print(f"Processing {failure_count} test failure(s)")
+    print(f"\n{'='*60}")
+    print(f"Creating GitHub issues for {failure_count} test failure(s)")
+    print(f"{'='*60}\n")
     
     date = datetime.utcnow().strftime("%Y-%m-%d")
     workflow_url = f"https://github.com/{owner}/{repo}/actions/runs/{run_id}"
+    
+    created_count = 0
+    updated_count = 0
     
     for failure in failures:
         test_name = failure["test_name"]
@@ -159,25 +162,30 @@ def process_test_failures(owner: str, repo: str, run_id: str,
         
         service_path = f"{category}/{service}" if service and service != "null" else category
         
-        print(f"\n{test_name}")
+        print(f"• {test_name}")
+        print(f"  Service: {service_path}")
         
         existing_issue = find_existing_issue(owner, repo, test_name)
         
         if existing_issue:
-            print(f"  → Updating issue #{existing_issue}")
+            print(f"  Action: Updated existing issue #{existing_issue}")
             update_existing_issue(
                 owner, repo, existing_issue, test_name, 
                 service_path, context, date, run_id, workflow_url
             )
+            updated_count += 1
         else:
-            print(f"  → Creating new issue")
             issue_url = create_new_issue(
                 owner, repo, test_name, service_path, 
                 context, date, run_id, workflow_url
             )
-            print(f"  → {issue_url}")
+            print(f"  Action: Created new issue → {issue_url}")
+            created_count += 1
+        print()
     
-    print(f"\nProcessed {failure_count} test failure(s)")
+    print(f"{'='*60}")
+    print(f"Summary: {created_count} created, {updated_count} updated")
+    print(f"{'='*60}")
 
 
 def main():

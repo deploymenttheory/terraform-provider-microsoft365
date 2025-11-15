@@ -282,24 +282,17 @@ jobs:
 
           cat summary.md
 
+      - name: Merge test failures
+        if: always()
+        run: ./scripts/pipeline/merge-test-failures.py test-artifacts merged-failures.json
+
       - name: Create GitHub Issues for Test Failures
         if: always()
         env:
           GITHUB_TOKEN: ${{ github.token }}
         run: |
-          echo "🔍 Processing test failures and creating issues..."
-          
-          # Merge all test-failures.json files using Python
-          ./scripts/pipeline/merge-test-failures.py test-artifacts merged-failures.json
-          
-          # Check if there are failures
-          if [ -s merged-failures.json ] && [ "$(cat merged-failures.json)" != "[]" ]; then
-            # Create individual issues for each failing test
-            ./scripts/pipeline/create-test-issues.py \
-              ${{ github.repository_owner }} \
-              ${{ github.event.repository.name }} \
-              ${{ github.run_id }} \
-              merged-failures.json
-          else
-            echo "✅ No test failures to process"
-          fi
+          ./scripts/pipeline/create-test-issues.py \
+            ${{ github.repository_owner }} \
+            ${{ github.event.repository.name }} \
+            ${{ github.run_id }} \
+            merged-failures.json
