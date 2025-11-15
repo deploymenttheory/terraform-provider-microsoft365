@@ -91,21 +91,22 @@ def run_service_tests(category: str, service: str,
     """Run tests for a specific service."""
     print(f"Running tests for {category}/{service}...")
     
-    test_dir = Path(f"./internal/services/{category}/{service}")
+    test_dir_str = f"./internal/services/{category}/{service}"
+    test_dir = Path(test_dir_str)
     
     # Check if directory exists
     if not test_dir.exists():
-        print(f"Directory not found: {test_dir}, creating empty coverage file")
+        print(f"Directory not found: {test_dir_str}, creating empty coverage file")
         with open(coverage_file, 'w') as f:
             f.write("mode: atomic\n")
         return 0
     
-    # Check for test files
+    # Check for test files recursively
     test_files = list(test_dir.rglob("*_test.go"))
     test_count = len(test_files)
     
     if test_count == 0:
-        print(f"No test files found in {test_dir}, creating empty coverage file")
+        print(f"No test files found in {test_dir_str}, creating empty coverage file")
         with open(coverage_file, 'w') as f:
             f.write("mode: atomic\n")
         return 0
@@ -114,12 +115,13 @@ def run_service_tests(category: str, service: str,
     
     # Run tests without -race flag for acceptance tests
     # (prevents OOM on ARM runners)
+    # Use string path with /... for recursive package matching
     cmd = [
         "go", "test", "-v",
         "-timeout=90m",
         f"-coverprofile={coverage_file}",
         "-covermode=atomic",
-        f"{test_dir}/..."
+        f"{test_dir_str}/..."
     ]
     
     exit_code = run_command(cmd, test_output_file)
