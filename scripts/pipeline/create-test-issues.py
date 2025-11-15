@@ -7,7 +7,7 @@ Usage: ./create-test-issues.py <owner> <repo> <run-id> <failures-json>
 import sys
 import json
 import subprocess
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Optional
 
@@ -25,6 +25,30 @@ def run_gh_command(args: list[str]) -> str:
     except subprocess.CalledProcessError as e:
         print(f"Error running gh command: {e.stderr}", file=sys.stderr)
         raise
+
+
+def ensure_label_exists(owner: str, repo: str, label_name: str, color: str, description: str) -> None:
+    """Create a label if it doesn't exist."""
+    try:
+        # Check if label exists
+        run_gh_command([
+            "label", "list",
+            "--repo", f"{owner}/{repo}",
+            "--search", label_name,
+            "--limit", "1"
+        ])
+    except subprocess.CalledProcessError:
+        # Label doesn't exist, create it
+        try:
+            run_gh_command([
+                "label", "create", label_name,
+                "--repo", f"{owner}/{repo}",
+                "--color", color,
+                "--description", description
+            ])
+            print(f"  Created label: {label_name}")
+        except subprocess.CalledProcessError:
+            print(f"  Warning: Could not create label '{label_name}'", file=sys.stderr)
 
 
 def find_existing_issue(owner: str, repo: str, test_name: str) -> Optional[str]:
@@ -144,11 +168,17 @@ def process_test_failures(owner: str, repo: str, run_id: str,
         print("✅ No test failures to process")
         return
     
+    # Ensure required labels exist
+    print("Checking required labels...")
+    ensure_label_exists(owner, repo, "test-failure", "d73a4a", "Automated test failure report")
+    ensure_label_exists(owner, repo, "automated", "0366d6", "Automatically generated")
+    ensure_label_exists(owner, repo, "recurring", "b60205", "Test has failed multiple times")
+    
     print(f"\n{'='*60}")
     print(f"Creating GitHub issues for {failure_count} test failure(s)")
     print(f"{'='*60}\n")
     
-    date = datetime.utcnow().strftime("%Y-%m-%d")
+    date = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     workflow_url = f"https://github.com/{owner}/{repo}/actions/runs/{run_id}"
     
     created_count = 0
