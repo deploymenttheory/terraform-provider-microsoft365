@@ -124,6 +124,26 @@ func (r *GroupPolicyTextValueResource) Read(ctx context.Context, req resource.Re
 	}
 	defer cancel()
 
+	// Check if this is an import scenario (we have IDs but no metadata)
+	isImportScenario := (object.PolicyName.IsNull() || object.PolicyName.IsUnknown()) &&
+		!object.ID.IsNull() && !object.ID.IsUnknown() &&
+		!object.GroupPolicyConfigurationID.IsNull() && !object.GroupPolicyConfigurationID.IsUnknown() &&
+		!object.GroupPolicyDefinitionValueID.IsNull() && !object.GroupPolicyDefinitionValueID.IsUnknown()
+
+	if isImportScenario {
+		tflog.Debug(ctx, "[TEXT_VALUE] Import scenario detected - fetching metadata from API")
+		err := r.populateMetadataFromAPI(ctx, &object)
+		if err != nil {
+			resp.Diagnostics.AddError(
+				"Error fetching metadata during import",
+				fmt.Sprintf("Could not fetch policy metadata from API: %s", err.Error()),
+			)
+			return
+		}
+		tflog.Debug(ctx, fmt.Sprintf("[TEXT_VALUE] Successfully fetched metadata: policy_name=%s, class_type=%s, category_path=%s",
+			object.PolicyName.ValueString(), object.ClassType.ValueString(), object.CategoryPath.ValueString()))
+	}
+
 	err, statusCode := GroupPolicyIDResolver(ctx, &object, r.client, "read")
 	if err != nil {
 		tflog.Debug(ctx, "[TEXT_VALUE] GroupPolicyIDResolver returned error during read", map[string]any{
