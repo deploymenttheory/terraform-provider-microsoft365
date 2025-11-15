@@ -38,9 +38,9 @@ jobs:
       - name: Run provider core tests
         env:
           TF_ACC: 1
-          M365_TENANT_ID: ${{ secrets.M365_CLIENT_ID_DEVICE_AND_APP_MGMT }}
-          M365_CLIENT_ID: ${{ secrets.M365_CLIENT_SECRET_DEVICE_AND_APP_MGMT }} # required for acc tests of the provider.
-          M365_CLIENT_SECRET: ${{ secrets.M365_CLIENT_SECRET }}
+          M365_TENANT_ID: ${{ secrets.M365_TENANT_ID }}
+          M365_CLIENT_ID: ${{ secrets.M365_CLIENT_ID_DEVICE_AND_APP_MGMT }}
+          M365_CLIENT_SECRET: ${{ secrets.M365_CLIENT_SECRET_DEVICE_AND_APP_MGMT }}
           M365_AUTH_METHOD: client_secret
           M365_CLOUD: public
         run: ./scripts/pipeline/run-tests.py provider-core "" coverage-provider-core.txt test-output-provider-core.log
@@ -125,7 +125,7 @@ jobs:
           M365_CLIENT_SECRET_USERS: ${{ secrets.M365_CLIENT_SECRET_USERS }}
           M365_CLIENT_ID_WINDOWS_365: ${{ secrets.M365_CLIENT_ID_WINDOWS_365 }}
           M365_CLIENT_SECRET_WINDOWS_365: ${{ secrets.M365_CLIENT_SECRET_WINDOWS_365 }}
-        run: ./scripts/pipeline/map-credentials.sh ${{ matrix.service }}
+        run: ./scripts/pipeline/map-credentials.py ${{ matrix.service }}
 
       - name: Run resource tests
         if: env.SKIP_TESTS != 'true'
@@ -212,7 +212,7 @@ jobs:
           M365_CLIENT_SECRET_UTILITY: ${{ secrets.M365_CLIENT_SECRET_UTILITY }}
           M365_CLIENT_ID_WINDOWS_365: ${{ secrets.M365_CLIENT_ID_WINDOWS_365 }}
           M365_CLIENT_SECRET_WINDOWS_365: ${{ secrets.M365_CLIENT_SECRET_WINDOWS_365 }}
-        run: ./scripts/pipeline/map-credentials.sh ${{ matrix.service }}
+        run: ./scripts/pipeline/map-credentials.py ${{ matrix.service }}
 
       - name: Run datasource tests
         if: env.SKIP_TESTS != 'true'
