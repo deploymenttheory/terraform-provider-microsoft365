@@ -5,6 +5,33 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.36.0-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.35.0-alpha...v0.36.0-alpha) (2025-11-15)
+
+
+### Features
+
+* add label management for test failures in create-test-issues.py ([5bf33c5](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/5bf33c57c31dcf04a45a5563511eb9fa2cd98983))
+* added new datasource utility_microsoft_365_endpoints ([75737db](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/75737dbf90f72e23844d8fc0e5d64494d9f9901d))
+* added new datasource utility_microsoft_365_endpoints ([#894](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/894)) ([e7bc9d2](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/e7bc9d267de3457cc955bfe00444b68f842b5dfd))
+* added resource android_managed_device_app_configuration_policy ([0da497e](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/0da497ecc62aefe75f7db01c527ad71355738ea6))
+* refactor nightly test acceptance test pipeline ([91a92ab](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/91a92abd2a7548022d5d452de19536a037aadf6c))
+* refactor nightly test acceptance test pipeline ([#870](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/870)) ([6388d61](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/6388d6151feb5b50c1b7632b31c9307b5d0f8560))
+* restructured validators by resource and att types ([2335fac](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/2335fac0443ebbf451f484f65d0ebd8e52d9430a))
+
+
+### Bug Fixes
+
+* for datasource mobile_app_catalog_package test harness ([8c1071f](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/8c1071f5c392109560bf83d1ebc44b68fc521ae7))
+* for datasource mobile_app_catalog_package test harness ([#885](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/885)) ([6f759db](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/6f759db9399259ab2ae5fea52b0f0153ad301c9a))
+* for jq: parse error: Invalid string: control characters ([5be22bb](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/5be22bb4c1cb0c842932cd93b24fb6418e335c46))
+* for jq: parse error: Invalid string: control characters ([#896](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/896)) ([ce5a66d](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/ce5a66db4d2672001e1aeb38b061fbcffaf02d16))
+* for multiple failing unit and acc tests ([#892](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/892)) ([26aeefb](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/26aeefb365cd3ac20efc2399179bf84b60e35c8c))
+* nightly test pipeline to raise issues on gh when tests fail ([#895](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/895)) ([a7feb15](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/a7feb150489a9c4df20d7abcdd1e19cb34ddbcd7))
+* refactor pipeline scripts to python ([#898](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/898)) ([de2ea6e](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/de2ea6eefc978756b08ae9119a14bf52cb82fbc0))
+* script permissions ([#897](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/897)) ([cda6a41](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/cda6a41a32b570c31a8034b48f9fdd8b7299530f))
+* update M365 credentials in nightly tests workflow for improved authentication ([8242ea7](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/8242ea737903e0b38aa1212519ebfe1b2df162ec))
+* update test directory path handling in run-tests.py for improved error messages ([087d4ed](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/087d4ed368a31d483234bf611d440b2cc48c41b3))
+
 ## [0.35.0-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.34.0-alpha...v0.35.0-alpha) (2025-11-12)
 
 
