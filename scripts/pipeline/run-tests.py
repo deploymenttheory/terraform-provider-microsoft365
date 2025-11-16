@@ -42,15 +42,58 @@ def parse_test_results(output_file: str, category: str, service: str) -> None:
     with open(output_file, 'r') as f:
         content = f.read()
     
-    # Find all FAIL lines
+    # Find all FAIL lines and extract context BEFORE the failure
     fail_pattern = re.compile(r'^--- FAIL: (\S+)', re.MULTILINE)
     for match in fail_pattern.finditer(content):
         test_name = match.group(1)
         
-        # Get context (next 10 lines after FAIL, limit to 500 chars)
-        start_pos = match.start()
-        lines_after = content[start_pos:].split('\n')[1:11]
-        context = '\n'.join(lines_after)[:500]
+        # Look backwards to find the "=== RUN TestName" line
+        # Extract everything between RUN and FAIL as the error context
+        run_pattern = re.compile(rf'^=== RUN\s+{re.escape(test_name)}', re.MULTILINE)
+        run_match = None
+        
+        # Search backwards from the FAIL position
+        search_start = max(0, match.start() - 50000)  # Look back up to 50KB
+        search_content = content[search_start:match.start()]
+        
+        for run_match_candidate in run_pattern.finditer(search_content):
+            run_match = run_match_candidate
+        
+        if run_match:
+            # Extract content between RUN and FAIL
+            context_start = search_start + run_match.end()
+            context_end = match.start()
+            full_context = content[context_start:context_end].strip()
+            
+            # Find the first error line (skip DEBUG logs)
+            # Look for lines with .go:, Error:, panic:, or indentation (test output)
+            lines = full_context.split('\n')
+            error_start_idx = None
+            
+            for idx, line in enumerate(lines):
+                # Skip DEBUG lines
+                if '[DEBUG]' in line or '[INFO]' in line:
+                    continue
+                # Look for error indicators
+                if any(indicator in line for indicator in ['.go:', 'Error:', 'panic:', '    ', '\t']):
+                    error_start_idx = idx
+                    break
+            
+            if error_start_idx is not None:
+                context = '\n'.join(lines[error_start_idx:])
+            else:
+                # No error line found, use full context
+                context = full_context
+            
+            # Limit to first 1000 chars to keep issue size reasonable
+            if len(context) > 1000:
+                context = context[:1000] + "\n... (truncated)"
+        else:
+            # Fallback: just get some context before FAIL
+            context_start = max(0, match.start() - 500)
+            context = content[context_start:match.start()].strip()
+            if len(context) > 500:
+                context = "... " + context[-500:]
         
         failures.append({
             "test_name": test_name,
