@@ -72,28 +72,68 @@ This directory contains scripts used in the GitHub Actions CI/CD pipeline for th
 - Sets `SKIP_TESTS=true` if credentials are not configured
 - Enables per-service credential management
 
-### ⚠️ Deprecated Scripts
+#### `merge-test-results.py`
+**Purpose:** Merges multiple test result JSON files into a single file  
+**Usage:** `./merge-test-results.py <artifacts-dir> <output-file> <filename-to-merge>`
 
-#### `report-failure.py` (DEPRECATED)
-**Status:** ⛔ No longer used  
-**Replaced By:** `manage-test-issues.py`
+**Parameters:**
+- `artifacts-dir`: Directory containing downloaded artifacts
+- `output-file`: Output merged JSON file
+- `filename-to-merge`: Name of files to merge (e.g., `test-failures.json`, `test-successes.json`)
 
-**Why Deprecated:**
-- Created PRs (unnecessary overhead)
-- Created single issue for all failures (poor granularity)
-- No de-duplication logic
-- No per-test tracking
+**Features:**
+- Recursively finds all matching JSON files in artifacts directory
+- Merges JSON arrays into single consolidated file
+- Handles empty files gracefully
+- Used for both failures and successes
 
-**Migration:**
-The workflow now uses `manage-test-issues.py` which provides:
-- Individual issues per failing test
-- Automatic de-duplication
-- Better tracking and resolution workflow
-- No unnecessary PR creation
+#### `detect-job-failures.py`
+**Purpose:** Detects job-level failures using GitHub API  
+**Usage:** `./detect-job-failures.py <owner> <repo> <run-id> [output-file]`
 
-#### `merge-coverage.py`
-**Status:** ⚠️ Potentially obsolete  
-**Note:** Codecov now handles automatic report merging. This script may be removed in the future.
+**Parameters:**
+- `owner`: GitHub repository owner
+- `repo`: Repository name
+- `run-id`: Workflow run ID
+- `output-file`: Output JSON file (default: `job-failures.json`)
+
+**Features:**
+- **Comprehensive Detection**: Identifies timeouts, OOM errors, runner failures, infrastructure issues
+- **API-Based**: Uses GitHub API to query job statuses and steps
+- **Intelligent Filtering**: Distinguishes job-level failures from expected test failures
+- **Detailed Context**: Captures failed step, job duration, runner info
+
+**Detection Types:**
+- `timeout`: Job exceeded maximum execution time
+- `out_of_memory`: OOM kill detected
+- `runner_failure`: GitHub Actions runner/infrastructure issue
+- `infrastructure`: Setup or dependency failure
+- `step_failure`: Non-test step failure
+- `cancelled`: Job was cancelled
+
+#### `manage-job-failure-issues.py`
+**Purpose:** Manages GitHub issues for job-level failures  
+**Usage:** `./manage-job-failure-issues.py <owner> <repo> <run-id> [job-failures-json]`
+
+**Parameters:**
+- `owner`: GitHub repository owner
+- `repo`: Repository name
+- `run-id`: Workflow run ID
+- `job-failures-json`: Path to job failures JSON file (default: `job-failures.json`)
+
+**Features:**
+- **Automatic Issue Creation**: Creates issues for infrastructure failures
+- **Severity Indicators**: Uses emojis to indicate failure type (⏱️ timeout, 💥 OOM, 🚨 infrastructure)
+- **Troubleshooting Hints**: Includes specific guidance based on failure type
+- **De-duplication**: Updates existing issues for recurring failures
+- **Labels**: `job-failure`, `infrastructure`, `automated`, `recurring`
+
+**Issue Contents:**
+- Job name and failure type
+- Failed step details
+- Job ID, runner info, timestamps
+- Direct link to job logs
+- Troubleshooting guidance specific to failure type
 
 ## 🔄 Workflow Integration
 
@@ -101,32 +141,50 @@ The workflow now uses `manage-test-issues.py` which provides:
 
 ```mermaid
 graph TD
-    A[Run Tests] -->|Success| B[Upload Coverage]
-    A -->|Failure| C[Capture Test Output]
-    C --> D[Parse Failures to JSON]
-    D --> E[Upload Artifacts]
-    E --> F[Download in Summary Job]
-    F --> G[Merge All Failures]
-    G --> H{Failures Found?}
-    H -->|Yes| I[Create/Update Issues]
-    H -->|No| J[Complete]
-    I --> K[Check Existing Issues]
-    K -->|Exists| L[Add Comment to Issue]
-    K -->|New| M[Create New Issue]
+    A[Run Tests] -->|Success or Failure| B[Parse Test Results]
+    B --> C[Upload test-failures.json]
+    B --> D[Upload test-successes.json]
+    C --> E[Summary Job: Download Artifacts]
+    D --> E
+    E --> F[Merge Test Results]
+    F --> G[Manage Test Issues]
+    G --> H[Detect Job-Level Failures via API]
+    H --> I{Job Failures?}
+    I -->|Yes| J[Create/Update Job Failure Issues]
+    I -->|No| K[Complete]
+    
+    G --> L{Test Failures?}
+    L -->|Yes| M[Create/Update Test Issues]
+    L -->|No| N[Close Resolved Issues]
+    M --> H
+    N --> H
 ```
 
 ### Test Failure Report Lifecycle
 
 1. **Detection**: Test fails in nightly run
-2. **Artifact Upload**: `test-failures.json` uploaded as artifact
+2. **Artifact Upload**: `test-failures.json` and `test-successes.json` uploaded as artifacts
 3. **Aggregation**: Summary job downloads all artifacts
 4. **De-duplication**: Script checks for existing issues by test name
-5. **Issue Creation**:
-   - **If new**: Create issue with test name as title
-   - **If exists**: Add comment with latest failure and apply `recurring` label
-6. **Resolution**: Fix issue and close when test passes
+5. **Issue Management**:
+   - **If test fails**: Create new issue or update existing with `recurring` label
+   - **If test passes**: Automatically close previously opened issue
+6. **Resolution**: Issues auto-close when tests pass
 
-### Example Issue
+### Job Failure Detection Lifecycle
+
+1. **API Query**: Summary job queries GitHub API for all job statuses
+2. **Analysis**: Each job analyzed for:
+   - Job-level failures (timeout, OOM, cancelled)
+   - Infrastructure failures (runner issues, setup failures)
+   - Non-test step failures (dependency installation, checkout)
+3. **Filtering**: Distinguishes job failures from expected test failures
+4. **Issue Creation**:
+   - **If new job failure**: Create issue with failure type emoji and details
+   - **If recurring**: Update existing issue and add `recurring` label
+5. **Context**: Include failed step, job logs, troubleshooting guidance
+
+### Example Test Failure Issue
 
 **Title:** `TestAccAndroidPolicyResource_Lifecycle`
 
@@ -160,13 +218,61 @@ graph TD
 *Automated report from nightly tests*
 ```
 
+### Example Job Failure Issue
+
+**Title:** `💥 Job Failure: Test Resources - device_and_app_management`
+
+**Body:**
+```markdown
+## Job-Level Failure
+
+**Job:** `Test Resources - device_and_app_management`  
+**Failure Type:** Out Of Memory  
+**Failed Step:** `Run tests for resources/device_and_app_management`  
+**Date:** 2025-11-15  
+**Workflow:** [19383092062](https://github.com/deploymenttheory/terraform-provider-microsoft365/actions/runs/19383092062)
+
+### Details
+
+- **Job ID:** 123456789
+- **Conclusion:** failure
+- **Runner:** ubuntu-24.04-arm-16core
+- **Started:** 2025-11-15T02:30:45Z
+- **Completed:** 2025-11-15T02:45:12Z
+
+### Job Logs
+
+[View Job Logs](https://github.com/deploymenttheory/terraform-provider-microsoft365/actions/runs/19383092062/job/123456789)
+
+### Possible Causes
+
+- Job ran out of memory (OOM)
+- Consider reducing parallel test execution
+- May need larger runner or memory optimization
+- Check if `-race` flag is causing excessive memory usage
+
+---
+*Automated report from nightly test pipeline*
+```
+
 ## 🏷️ Issue Labels
+
+### Test Failure Labels
 
 Issues managed by `manage-test-issues.py` use these labels:
 
 - `test-failure`: Identifies failing test issues
 - `automated`: Automatically generated
 - `recurring`: Added when test fails multiple times
+
+### Job Failure Labels
+
+Issues managed by `manage-job-failure-issues.py` use these labels:
+
+- `job-failure`: Identifies job-level infrastructure failures
+- `infrastructure`: Runner or setup issues
+- `automated`: Automatically generated
+- `recurring`: Added when job fails multiple times
 
 ### Label Lifecycle
 

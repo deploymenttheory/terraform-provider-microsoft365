@@ -194,18 +194,18 @@ def create_new_issue(owner: str, repo: str, test_name: str,
 
 
 def process_test_failures(owner: str, repo: str, run_id: str, 
-                         failures_json_path: str, successes_json_path: Optional[str] = None) -> None:
+                        failures_json_path: str, successes_json_path: Optional[str] = None) -> None:
     """Process test failures and successes, create/update/close issues as needed."""
     if not all([owner, repo, run_id]):
         print("Usage: manage-test-issues.py <owner> <repo> <run-id> <failures-json> [successes-json]", 
-              file=sys.stderr)
+            file=sys.stderr)
         sys.exit(1)
     
     # Load failures
     failures_path = Path(failures_json_path)
     if not failures_path.exists():
         print(f"Error: Failures JSON file not found: {failures_json_path}", 
-              file=sys.stderr)
+            file=sys.stderr)
         sys.exit(1)
     
     with open(failures_path) as f:
@@ -319,7 +319,7 @@ def process_test_failures(owner: str, repo: str, run_id: str,
 def main():
     if len(sys.argv) < 4:
         print("Usage: manage-test-issues.py <owner> <repo> <run-id> [failures-json] [successes-json]", 
-              file=sys.stderr)
+            file=sys.stderr)
         sys.exit(1)
     
     owner = sys.argv[1]
