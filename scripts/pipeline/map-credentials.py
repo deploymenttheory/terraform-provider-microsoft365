@@ -62,10 +62,6 @@ def map_credentials(service: str) -> None:
         export_to_github_env("M365_CLIENT_ID", client_id)
         export_to_github_env("M365_CLIENT_SECRET", client_secret)
         export_to_github_env("SKIP_TESTS", "false")
-    else:
-        # For local testing, just print
-        print(f"export M365_CLIENT_ID={client_id}")
-        print(f"export M365_CLIENT_SECRET={client_secret}")
     
     print(f"✅ Credentials configured for {service}")
 
