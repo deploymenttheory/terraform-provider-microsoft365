@@ -159,7 +159,7 @@ def create_new_issue(owner: str, repo: str, test_name: str,
                     service_path: str, context: str, date: str, 
                     run_id: str, workflow_url: str) -> str:
     """Create a new issue for test failure."""
-    issue_title = test_name
+    issue_title = f"Bug: {test_name} Failing"
     
     issue_body = f"""## Test Failure
 
@@ -297,13 +297,18 @@ def process_test_failures(owner: str, repo: str, run_id: str,
             issue_title = issue["title"]
             issue_number = str(issue["number"])
             
+            # Extract test name from title "Bug: TestName Failing" → "TestName"
+            test_name = issue_title
+            if issue_title.startswith("Bug: ") and issue_title.endswith(" Failing"):
+                test_name = issue_title[5:-8]  # Remove "Bug: " prefix and " Failing" suffix
+            
             # If test is not failing AND is in passed tests, close it
-            if issue_title not in failed_test_names and issue_title in passed_test_names:
+            if test_name not in failed_test_names and test_name in passed_test_names:
                 print(f"• {issue_title}")
                 print(f"  Action: Closing resolved issue #{issue_number}")
                 close_resolved_issue(
                     owner, repo, issue_number, 
-                    issue_title, date, run_id, workflow_url
+                    test_name, date, run_id, workflow_url
                 )
                 closed_count += 1
                 print()
