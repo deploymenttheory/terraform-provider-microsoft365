@@ -23,7 +23,6 @@ def merge_results(result_files: list[Path], show_details: bool = False) -> list[
             with open(result_file) as f:
                 results = json.load(f)
                 if isinstance(results, list):
-                    # Optionally show test details (for failures only)
                     if show_details:
                         for result in results:
                             test_name = result.get("test_name", "Unknown")
@@ -53,7 +52,6 @@ def main():
         print(f"Error: Artifacts directory not found: {artifacts_dir}", file=sys.stderr)
         sys.exit(1)
     
-    # Determine if we're processing failures (show details) or successes (count only)
     is_failures = "failure" in filename
     result_type = "failures" if is_failures else "successes"
     

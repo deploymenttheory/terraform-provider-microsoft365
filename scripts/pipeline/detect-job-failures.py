@@ -176,7 +176,7 @@ def detect_job_failures(owner: str, repo: str, run_id: str, output_file: str) ->
 def main():
     if len(sys.argv) < 4:
         print("Usage: detect-job-failures.py <owner> <repo> <run-id> [output-file]", 
-              file=sys.stderr)
+            file=sys.stderr)
         sys.exit(1)
     
     owner = sys.argv[1]

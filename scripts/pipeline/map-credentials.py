@@ -50,13 +50,11 @@ def map_credentials(service: str) -> None:
     """Map service-specific credentials to standard env vars."""
     client_id, client_secret = get_credentials(service)
     
-    # Check if credentials are available
     if not client_id or not client_secret:
         print(f"⚠️  No credentials found for {service} - tests will be skipped")
         export_to_github_env("SKIP_TESTS", "true")
         return
     
-    # Export to GITHUB_ENV if available (for GitHub Actions)
     github_env = os.environ.get("GITHUB_ENV")
     if github_env:
         export_to_github_env("M365_CLIENT_ID", client_id)
