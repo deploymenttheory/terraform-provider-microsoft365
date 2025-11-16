@@ -291,7 +291,7 @@ jobs:
           ./scripts/pipeline/merge-test-results.py test-artifacts merged-failures.json test-failures.json
           ./scripts/pipeline/merge-test-results.py test-artifacts merged-successes.json test-successes.json
 
-      - name: Manage GitHub Issues
+      - name: Manage GitHub Issues for Test Failures
         if: always()
         env:
           GITHUB_TOKEN: ${{ github.token }}
@@ -302,3 +302,29 @@ jobs:
             ${{ github.run_id }} \
             merged-failures.json \
             merged-successes.json
+
+      - name: Detect Job-Level Failures
+        if: always()
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          ./scripts/pipeline/detect-job-failures.py \
+            ${{ github.repository_owner }} \
+            ${{ github.event.repository.name }} \
+            ${{ github.run_id }} \
+            job-failures.json
+
+      - name: Manage GitHub Issues for Job Failures
+        if: always()
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          if [ -f job-failures.json ] && [ "$(cat job-failures.json)" != "[]" ]; then
+            ./scripts/pipeline/manage-job-failure-issues.py \
+              ${{ github.repository_owner }} \
+              ${{ github.event.repository.name }} \
+              ${{ github.run_id }} \
+              job-failures.json
+          else
+            echo "✅ No job-level failures detected"
+          fi
