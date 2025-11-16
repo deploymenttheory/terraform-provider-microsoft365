@@ -46,13 +46,14 @@ jobs:
         run: ./scripts/pipeline/run-tests.py provider-core "" coverage-provider-core.txt test-output-provider-core.log
         continue-on-error: true
 
-      - name: Upload test failures
+      - name: Upload test results
         if: always()
         uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
         with:
-          name: test-failures-provider-core
+          name: test-results-provider-core
           path: |
             test-failures.json
+            test-successes.json
             test-output-provider-core.log
           if-no-files-found: ignore
           retention-days: 7
@@ -137,13 +138,14 @@ jobs:
         run: ./scripts/pipeline/run-tests.py resources ${{ matrix.service }} coverage-resources-${{ matrix.service }}.txt test-output-resources-${{ matrix.service }}.log
         continue-on-error: true
 
-      - name: Upload test failures
+      - name: Upload test results
         if: always()
         uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
         with:
-          name: test-failures-resources-${{ matrix.service }}
+          name: test-results-resources-${{ matrix.service }}
           path: |
             test-failures.json
+            test-successes.json
             test-output-resources-${{ matrix.service }}.log
           if-no-files-found: ignore
           retention-days: 7
@@ -224,13 +226,14 @@ jobs:
         run: ./scripts/pipeline/run-tests.py datasources ${{ matrix.service }} coverage-datasources-${{ matrix.service }}.txt test-output-datasources-${{ matrix.service }}.log
         continue-on-error: true
 
-      - name: Upload test failures
+      - name: Upload test results
         if: always()
         uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
         with:
-          name: test-failures-datasources-${{ matrix.service }}
+          name: test-results-datasources-${{ matrix.service }}
           path: |
             test-failures.json
+            test-successes.json
             test-output-datasources-${{ matrix.service }}.log
           if-no-files-found: ignore
           retention-days: 7
@@ -255,11 +258,11 @@ jobs:
       - name: Check Out
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
 
-      - name: Download all test failure artifacts
+      - name: Download all test result artifacts
         if: always()
         uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # v4.1.8
         with:
-          pattern: test-failures-*
+          pattern: test-results-*
           path: test-artifacts
           merge-multiple: false
 
@@ -282,17 +285,20 @@ jobs:
 
           cat summary.md
 
-      - name: Merge test failures
+      - name: Merge test results
         if: always()
-        run: ./scripts/pipeline/merge-test-failures.py test-artifacts merged-failures.json
+        run: |
+          ./scripts/pipeline/merge-test-results.py test-artifacts merged-failures.json test-failures.json
+          ./scripts/pipeline/merge-test-results.py test-artifacts merged-successes.json test-successes.json
 
-      - name: Create GitHub Issues for Test Failures
+      - name: Manage GitHub Issues
         if: always()
         env:
           GITHUB_TOKEN: ${{ github.token }}
         run: |
-          ./scripts/pipeline/create-test-issues.py \
+          ./scripts/pipeline/manage-test-issues.py \
             ${{ github.repository_owner }} \
             ${{ github.event.repository.name }} \
             ${{ github.run_id }} \
-            merged-failures.json
+            merged-failures.json \
+            merged-successes.json

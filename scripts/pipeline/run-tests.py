@@ -31,10 +31,12 @@ def run_command(cmd: List[str], output_file: str) -> int:
         return process.returncode
 
 
-def parse_test_failures(output_file: str, category: str, service: str) -> None:
-    """Parse test output and create JSON report of failures."""
-    json_file = "test-failures.json"
+def parse_test_results(output_file: str, category: str, service: str) -> None:
+    """Parse test output and create JSON reports of failures and successes."""
+    failures_file = "test-failures.json"
+    successes_file = "test-successes.json"
     failures = []
+    successes = []
     
     # Read test output
     with open(output_file, 'r') as f:
@@ -42,7 +44,6 @@ def parse_test_failures(output_file: str, category: str, service: str) -> None:
     
     # Find all FAIL lines
     fail_pattern = re.compile(r'^--- FAIL: (\S+)', re.MULTILINE)
-    
     for match in fail_pattern.finditer(content):
         test_name = match.group(1)
         
@@ -58,11 +59,25 @@ def parse_test_failures(output_file: str, category: str, service: str) -> None:
             "context": context
         })
     
-    # Write JSON report
-    with open(json_file, 'w') as f:
+    # Find all PASS lines
+    pass_pattern = re.compile(r'^--- PASS: (\S+)', re.MULTILINE)
+    for match in pass_pattern.finditer(content):
+        test_name = match.group(1)
+        
+        successes.append({
+            "test_name": test_name,
+            "category": category,
+            "service": service
+        })
+    
+    # Write JSON reports
+    with open(failures_file, 'w') as f:
         json.dump(failures, f, indent=2)
     
-    print(f"✅ Test failure report created: {json_file}")
+    with open(successes_file, 'w') as f:
+        json.dump(successes, f, indent=2)
+    
+    print(f"✅ Test results: {len(failures)} failures, {len(successes)} successes")
 
 
 def run_provider_core_tests(coverage_file: str, test_output_file: str) -> int:
@@ -81,7 +96,7 @@ def run_provider_core_tests(coverage_file: str, test_output_file: str) -> int:
     ]
     
     exit_code = run_command(cmd, test_output_file)
-    parse_test_failures(test_output_file, "provider-core", "")
+    parse_test_results(test_output_file, "provider-core", "")
     
     return exit_code
 
@@ -125,7 +140,7 @@ def run_service_tests(category: str, service: str,
     ]
     
     exit_code = run_command(cmd, test_output_file)
-    parse_test_failures(test_output_file, category, service)
+    parse_test_results(test_output_file, category, service)
     
     return exit_code
 
