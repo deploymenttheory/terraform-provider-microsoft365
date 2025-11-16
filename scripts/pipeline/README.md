@@ -28,35 +28,37 @@ This directory contains scripts used in the GitHub Actions CI/CD pipeline for th
 - `test-output-*.log`: Raw test output logs
 - `coverage-*.txt`: Coverage profile
 
-#### `create-test-issues.py`
-**Purpose:** Creates GitHub issues for failing tests with factual error details  
-**Usage:** `./create-test-issues.py <owner> <repo> <run-id> <failures-json>`
+#### `manage-test-issues.py`
+**Purpose:** Manages GitHub issues for test failures (create, update, close)  
+**Usage:** `./manage-test-issues.py <owner> <repo> <run-id> <failures-json> [successes-json]`
 
 **Parameters:**
 - `owner`: GitHub repository owner
 - `repo`: Repository name
 - `run-id`: Workflow run ID
 - `failures-json`: Path to test failures JSON file
+- `successes-json`: (Optional) Path to test successes JSON file
 
 **Features:**
-- **Individual Issue Per Test**: Each failing test gets its own issue
-- **De-duplication**: Automatically detects and updates existing issues
+- **Full Issue Lifecycle**: Creates, updates, and closes issues automatically
+- **De-duplication**: Detects and updates existing issues
 - **Factual Reporting**: Contains only actionable information (test name, error, service, date, workflow link)
 - **Recurring Detection**: Adds `recurring` label for repeated failures
-- **Automatic Labels**: Tags with `test-failure`, `automated`
+- **Auto-close Resolved**: Closes issues when tests pass (if successes provided)
+- **Automatic Labels**: Tags with `test-failure`, `automated`, `recurring`
 
 **Issue Contents:**
 - Test name (as title)
 - Service area
-- Failure date
+- Failure date and timestamp
 - Workflow run ID and URL
 - Error output
 - Links to test source and logs
 
 **Behavior:**
 - **New Failure**: Creates issue with test name as title
-- **Existing Failure**: Adds comment with latest occurrence details
-- **Resolution**: Close issue when test is fixed
+- **Existing Failure**: Adds comment with timestamp and latest error
+- **Resolved Test**: Automatically closes issue when test passes
 
 #### `map-credentials.py`
 **Purpose:** Maps service-specific credentials to environment variables  
@@ -74,7 +76,7 @@ This directory contains scripts used in the GitHub Actions CI/CD pipeline for th
 
 #### `report-failure.py` (DEPRECATED)
 **Status:** ⛔ No longer used  
-**Replaced By:** `create-test-issues.py`
+**Replaced By:** `manage-test-issues.py`
 
 **Why Deprecated:**
 - Created PRs (unnecessary overhead)
@@ -83,7 +85,7 @@ This directory contains scripts used in the GitHub Actions CI/CD pipeline for th
 - No per-test tracking
 
 **Migration:**
-The workflow now uses `create-test-issues.py` which provides:
+The workflow now uses `manage-test-issues.py` which provides:
 - Individual issues per failing test
 - Automatic de-duplication
 - Better tracking and resolution workflow
@@ -160,7 +162,7 @@ graph TD
 
 ## 🏷️ Issue Labels
 
-Issues created by `create-test-issues.py` use these labels:
+Issues managed by `manage-test-issues.py` use these labels:
 
 - `test-failure`: Identifies failing test issues
 - `automated`: Automatically generated

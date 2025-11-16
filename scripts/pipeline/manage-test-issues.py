@@ -1,7 +1,13 @@
 #!/usr/bin/env python3
 """
-Creates individual GitHub issues for each failing test.
-Usage: ./create-test-issues.py <owner> <repo> <run-id> <failures-json>
+Manages GitHub issues for test failures (create, update, close).
+Usage: ./manage-test-issues.py <owner> <repo> <run-id> <failures-json> [successes-json]
+
+Behavior:
+- Creates new issues for first-time test failures
+- Updates existing issues with timestamp and workflow run when test continues to fail
+- Marks recurring failures with 'recurring' label
+- Auto-closes issues when tests pass (if successes-json provided)
 """
 
 import sys
@@ -29,26 +35,19 @@ def run_gh_command(args: list[str]) -> str:
 
 def ensure_label_exists(owner: str, repo: str, label_name: str, color: str, description: str) -> None:
     """Create a label if it doesn't exist."""
+    # Simply try to create the label with --force flag to update if exists
+    # This is simpler than checking first - gh handles the logic
     try:
-        # Check if label exists
         run_gh_command([
-            "label", "list",
+            "label", "create", label_name,
             "--repo", f"{owner}/{repo}",
-            "--search", label_name,
-            "--limit", "1"
+            "--color", color,
+            "--description", description,
+            "--force"  # Update if exists, create if not
         ])
-    except subprocess.CalledProcessError:
-        # Label doesn't exist, create it
-        try:
-            run_gh_command([
-                "label", "create", label_name,
-                "--repo", f"{owner}/{repo}",
-                "--color", color,
-                "--description", description
-            ])
-            print(f"  Created label: {label_name}")
-        except subprocess.CalledProcessError:
-            print(f"  Warning: Could not create label '{label_name}'", file=sys.stderr)
+        print(f"  ✅ Ensured label exists: {label_name}")
+    except subprocess.CalledProcessError as e:
+        print(f"  ⚠️  Warning: Could not create/update label '{label_name}': {e}", file=sys.stderr)
 
 
 def find_existing_issue(owner: str, repo: str, test_name: str) -> Optional[str]:
@@ -76,16 +75,41 @@ def find_existing_issue(owner: str, repo: str, test_name: str) -> Optional[str]:
         return None
 
 
+def get_all_open_test_issues(owner: str, repo: str) -> list[dict]:
+    """Get all open test-failure issues."""
+    try:
+        result = run_gh_command([
+            "issue", "list",
+            "--repo", f"{owner}/{repo}",
+            "--state", "open",
+            "--label", "test-failure",
+            "--json", "number,title",
+            "--limit", "1000"
+        ])
+        
+        if not result:
+            return []
+        
+        return json.loads(result)
+    except Exception:
+        return []
+
+
 def update_existing_issue(owner: str, repo: str, issue_number: str, 
                          test_name: str, service_path: str, context: str, 
                          date: str, run_id: str, workflow_url: str) -> None:
     """Add a comment to existing issue with latest failure details."""
-    comment_body = f"""## Failure Recurrence: {date}
+    # Get current timestamp
+    timestamp = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
+    
+    comment_body = f"""## Still Failing
 
-**Workflow Run:** [{run_id}]({workflow_url})  
+**Timestamp:** {timestamp}  
+**Date:** {date}  
+**Workflow:** [{run_id}]({workflow_url})  
 **Service:** `{service_path}`
 
-### Error Output
+### Latest Error Output
 
 ```
 {context}
@@ -94,16 +118,40 @@ def update_existing_issue(owner: str, repo: str, issue_number: str,
 ---
 *Automated update from nightly tests*"""
     
+    # Add comment with latest failure details
     run_gh_command([
         "issue", "comment", issue_number,
         "--repo", f"{owner}/{repo}",
         "--body", comment_body
     ])
     
+    # Mark as recurring failure
     run_gh_command([
         "issue", "edit", issue_number,
         "--repo", f"{owner}/{repo}",
         "--add-label", "recurring"
+    ])
+
+
+def close_resolved_issue(owner: str, repo: str, issue_number: str,
+                        test_name: str, date: str, run_id: str, workflow_url: str) -> None:
+    """Close an issue when test is now passing."""
+    timestamp = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
+    
+    run_gh_command([
+        "issue", "close", issue_number,
+        "--repo", f"{owner}/{repo}",
+        "--comment", f"""## ✅ Resolved
+
+**Timestamp:** {timestamp}  
+**Date:** {date}  
+**Workflow:** [{run_id}]({workflow_url})
+
+Test is now passing. Automatically closing this issue.
+
+---
+*Automated closure from nightly tests*""",
+        "--reason", "completed"
     ])
 
 
@@ -146,13 +194,14 @@ def create_new_issue(owner: str, repo: str, test_name: str,
 
 
 def process_test_failures(owner: str, repo: str, run_id: str, 
-                         failures_json_path: str) -> None:
-    """Process test failures and create or update issues."""
+                         failures_json_path: str, successes_json_path: Optional[str] = None) -> None:
+    """Process test failures and successes, create/update/close issues as needed."""
     if not all([owner, repo, run_id]):
-        print("Usage: create-test-issues.py <owner> <repo> <run-id> <failures-json>", 
+        print("Usage: manage-test-issues.py <owner> <repo> <run-id> <failures-json> [successes-json]", 
               file=sys.stderr)
         sys.exit(1)
     
+    # Load failures
     failures_path = Path(failures_json_path)
     if not failures_path.exists():
         print(f"Error: Failures JSON file not found: {failures_json_path}", 
@@ -162,10 +211,21 @@ def process_test_failures(owner: str, repo: str, run_id: str,
     with open(failures_path) as f:
         failures = json.load(f)
     
-    failure_count = len(failures)
+    # Load successes if provided
+    successes = []
+    if successes_json_path:
+        successes_path = Path(successes_json_path)
+        if successes_path.exists():
+            with open(successes_path) as f:
+                successes = json.load(f)
     
-    if failure_count == 0:
-        print("✅ No test failures to process")
+    failure_count = len(failures)
+    success_count = len(successes)
+    
+    print(f"\nTest results: {failure_count} failures, {success_count} successes")
+    
+    if failure_count == 0 and success_count == 0:
+        print("✅ No test results to process")
         return
     
     # Ensure required labels exist
@@ -214,13 +274,51 @@ def process_test_failures(owner: str, repo: str, run_id: str,
         print()
     
     print(f"{'='*60}")
-    print(f"Summary: {created_count} created, {updated_count} updated")
+    print(f"Issue updates: {created_count} created, {updated_count} updated")
     print(f"{'='*60}")
+    
+    # Close resolved issues if we have success data
+    if successes:
+        print(f"\n{'='*60}")
+        print("Checking for resolved issues to close")
+        print(f"{'='*60}\n")
+        
+        # Get all open test-failure issues
+        open_issues = get_all_open_test_issues(owner, repo)
+        
+        # Build sets of test names for fast lookup
+        failed_test_names = {f["test_name"] for f in failures}
+        passed_test_names = {s["test_name"] for s in successes}
+        
+        closed_count = 0
+        
+        # Check each open issue
+        for issue in open_issues:
+            issue_title = issue["title"]
+            issue_number = str(issue["number"])
+            
+            # If test is not failing AND is in passed tests, close it
+            if issue_title not in failed_test_names and issue_title in passed_test_names:
+                print(f"• {issue_title}")
+                print(f"  Action: Closing resolved issue #{issue_number}")
+                close_resolved_issue(
+                    owner, repo, issue_number, 
+                    issue_title, date, run_id, workflow_url
+                )
+                closed_count += 1
+                print()
+        
+        if closed_count > 0:
+            print(f"{'='*60}")
+            print(f"Closed {closed_count} resolved issue(s)")
+            print(f"{'='*60}")
+        else:
+            print("No issues to close - all open issues still failing")
 
 
 def main():
     if len(sys.argv) < 4:
-        print("Usage: create-test-issues.py <owner> <repo> <run-id> [failures-json]", 
+        print("Usage: manage-test-issues.py <owner> <repo> <run-id> [failures-json] [successes-json]", 
               file=sys.stderr)
         sys.exit(1)
     
@@ -228,8 +326,9 @@ def main():
     repo = sys.argv[2]
     run_id = sys.argv[3]
     failures_json = sys.argv[4] if len(sys.argv) > 4 else "test-failures.json"
+    successes_json = sys.argv[5] if len(sys.argv) > 5 else None
     
-    process_test_failures(owner, repo, run_id, failures_json)
+    process_test_failures(owner, repo, run_id, failures_json, successes_json)
 
 
 if __name__ == "__main__":
