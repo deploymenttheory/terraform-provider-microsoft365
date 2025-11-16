@@ -159,7 +159,7 @@ def create_new_issue(owner: str, repo: str, test_name: str,
                     service_path: str, context: str, date: str, 
                     run_id: str, workflow_url: str) -> str:
     """Create a new issue for test failure."""
-    issue_title = test_name
+    issue_title = f"Bug: {test_name} Failing"
     
     issue_body = f"""## Test Failure
 
@@ -201,7 +201,6 @@ def process_test_failures(owner: str, repo: str, run_id: str,
             file=sys.stderr)
         sys.exit(1)
     
-    # Load failures
     failures_path = Path(failures_json_path)
     if not failures_path.exists():
         print(f"Error: Failures JSON file not found: {failures_json_path}", 
@@ -211,7 +210,6 @@ def process_test_failures(owner: str, repo: str, run_id: str,
     with open(failures_path) as f:
         failures = json.load(f)
     
-    # Load successes if provided
     successes = []
     if successes_json_path:
         successes_path = Path(successes_json_path)
@@ -227,8 +225,7 @@ def process_test_failures(owner: str, repo: str, run_id: str,
     if failure_count == 0 and success_count == 0:
         print("✅ No test results to process")
         return
-    
-    # Ensure required labels exist
+
     print("Checking required labels...")
     ensure_label_exists(owner, repo, "test-failure", "d73a4a", "Automated test failure report")
     ensure_label_exists(owner, repo, "automated", "0366d6", "Automatically generated")
@@ -277,33 +274,32 @@ def process_test_failures(owner: str, repo: str, run_id: str,
     print(f"Issue updates: {created_count} created, {updated_count} updated")
     print(f"{'='*60}")
     
-    # Close resolved issues if we have success data
     if successes:
         print(f"\n{'='*60}")
         print("Checking for resolved issues to close")
         print(f"{'='*60}\n")
         
-        # Get all open test-failure issues
         open_issues = get_all_open_test_issues(owner, repo)
         
-        # Build sets of test names for fast lookup
         failed_test_names = {f["test_name"] for f in failures}
         passed_test_names = {s["test_name"] for s in successes}
         
         closed_count = 0
         
-        # Check each open issue
         for issue in open_issues:
             issue_title = issue["title"]
             issue_number = str(issue["number"])
             
-            # If test is not failing AND is in passed tests, close it
-            if issue_title not in failed_test_names and issue_title in passed_test_names:
+            test_name = issue_title
+            if issue_title.startswith("Bug: ") and issue_title.endswith(" Failing"):
+                test_name = issue_title[5:-8]  # Remove "Bug: " prefix and " Failing" suffix
+            
+            if test_name not in failed_test_names and test_name in passed_test_names:
                 print(f"• {issue_title}")
                 print(f"  Action: Closing resolved issue #{issue_number}")
                 close_resolved_issue(
                     owner, repo, issue_number, 
-                    issue_title, date, run_id, workflow_url
+                    test_name, date, run_id, workflow_url
                 )
                 closed_count += 1
                 print()

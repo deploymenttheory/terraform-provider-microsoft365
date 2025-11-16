@@ -186,7 +186,7 @@ graph TD
 
 ### Example Test Failure Issue
 
-**Title:** `TestAccAndroidPolicyResource_Lifecycle`
+**Title:** `Bug: TestAccAndroidPolicyResource_Lifecycle Failing`
 
 **Body:**
 ```markdown
@@ -200,7 +200,6 @@ graph TD
 ### Error Output
 
 ```
---- FAIL: TestAccAndroidPolicyResource_Lifecycle (5.23s)
     resource_test.go:45: Error applying: 
     Error: Provider produced inconsistent result after apply
     

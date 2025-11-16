@@ -75,7 +75,7 @@ def find_existing_issue(owner: str, repo: str, job_name: str) -> Optional[str]:
 
 
 def create_job_failure_issue(owner: str, repo: str, failure: dict, 
-                             date: str, run_id: str, workflow_url: str) -> str:
+                            date: str, run_id: str, workflow_url: str) -> str:
     """Create a new issue for job failure."""
     job_name = failure["job_name"]
     failure_type = failure["failure_type"].replace("_", " ").title()
@@ -167,7 +167,7 @@ def create_job_failure_issue(owner: str, repo: str, failure: dict,
 
 
 def update_job_failure_issue(owner: str, repo: str, issue_number: str,
-                             failure: dict, date: str, run_id: str, workflow_url: str) -> None:
+                            failure: dict, date: str, run_id: str, workflow_url: str) -> None:
     """Add a comment to existing job failure issue."""
     timestamp = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
     failure_type = failure["failure_type"].replace("_", " ").title()
@@ -202,13 +202,13 @@ def process_job_failures(owner: str, repo: str, run_id: str, failures_json_path:
     """Process job failures and create or update issues."""
     if not all([owner, repo, run_id]):
         print("Usage: manage-job-failure-issues.py <owner> <repo> <run-id> <job-failures-json>", 
-              file=sys.stderr)
+            file=sys.stderr)
         sys.exit(1)
     
     failures_path = Path(failures_json_path)
     if not failures_path.exists():
         print(f"Error: Job failures JSON file not found: {failures_json_path}", 
-              file=sys.stderr)
+            file=sys.stderr)
         sys.exit(1)
     
     with open(failures_path) as f:
@@ -268,7 +268,7 @@ def process_job_failures(owner: str, repo: str, run_id: str, failures_json_path:
 def main():
     if len(sys.argv) < 4:
         print("Usage: manage-job-failure-issues.py <owner> <repo> <run-id> [job-failures-json]", 
-              file=sys.stderr)
+            file=sys.stderr)
         sys.exit(1)
     
     owner = sys.argv[1]
