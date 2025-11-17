@@ -7,16 +7,19 @@ This directory contains scripts used in the GitHub Actions CI/CD pipeline for th
 ### ✅ Active Scripts
 
 #### `run-tests.py`
+
 **Purpose:** Runs acceptance tests and captures test failures  
 **Usage:** `./run-tests.py <type> [service] [coverage-file] [test-output-file]`
 
 **Parameters:**
+
 - `type`: Type of tests to run (`provider-core`, `resources`, `datasources`)
 - `service`: Service name (required for resources/datasources tests)
 - `coverage-file`: Output file for coverage data (default: `coverage.txt`)
 - `test-output-file`: Output file for test logs (default: `test-output.log`)
 
 **Features:**
+
 - Runs Go tests with race detection
 - Captures test output for failure analysis
 - Generates JSON report of failing tests (`test-failures.json`)
@@ -24,15 +27,18 @@ This directory contains scripts used in the GitHub Actions CI/CD pipeline for th
 - Includes test context (error messages, stack traces)
 
 **Output:**
+
 - `test-failures.json`: Structured JSON with failing test details
 - `test-output-*.log`: Raw test output logs
 - `coverage-*.txt`: Coverage profile
 
 #### `manage-test-issues.py`
+
 **Purpose:** Manages GitHub issues for test failures (create, update, close)  
 **Usage:** `./manage-test-issues.py <owner> <repo> <run-id> <failures-json> [successes-json]`
 
 **Parameters:**
+
 - `owner`: GitHub repository owner
 - `repo`: Repository name
 - `run-id`: Workflow run ID
@@ -40,6 +46,7 @@ This directory contains scripts used in the GitHub Actions CI/CD pipeline for th
 - `successes-json`: (Optional) Path to test successes JSON file
 
 **Features:**
+
 - **Full Issue Lifecycle**: Creates, updates, and closes issues automatically
 - **De-duplication**: Detects and updates existing issues
 - **Factual Reporting**: Contains only actionable information (test name, error, service, date, workflow link)
@@ -48,6 +55,7 @@ This directory contains scripts used in the GitHub Actions CI/CD pipeline for th
 - **Automatic Labels**: Tags with `test-failure`, `automated`, `recurring`
 
 **Issue Contents:**
+
 - Test name (as title)
 - Service area
 - Failure date and timestamp
@@ -56,54 +64,65 @@ This directory contains scripts used in the GitHub Actions CI/CD pipeline for th
 - Links to test source and logs
 
 **Behavior:**
+
 - **New Failure**: Creates issue with test name as title
 - **Existing Failure**: Adds comment with timestamp and latest error
 - **Resolved Test**: Automatically closes issue when test passes
 
 #### `map-credentials.py`
+
 **Purpose:** Maps service-specific credentials to environment variables  
 **Usage:** `./map-credentials.py <service>`
 
 **Parameters:**
+
 - `service`: Service name (e.g., `device_and_app_management`, `groups`)
 
 **Features:**
+
 - Maps service-specific `M365_CLIENT_ID_*` and `M365_CLIENT_SECRET_*` to generic `M365_CLIENT_ID` and `M365_CLIENT_SECRET`
 - Sets `SKIP_TESTS=true` if credentials are not configured
 - Enables per-service credential management
 
 #### `merge-test-results.py`
+
 **Purpose:** Merges multiple test result JSON files into a single file  
 **Usage:** `./merge-test-results.py <artifacts-dir> <output-file> <filename-to-merge>`
 
 **Parameters:**
+
 - `artifacts-dir`: Directory containing downloaded artifacts
 - `output-file`: Output merged JSON file
 - `filename-to-merge`: Name of files to merge (e.g., `test-failures.json`, `test-successes.json`)
 
 **Features:**
+
 - Recursively finds all matching JSON files in artifacts directory
 - Merges JSON arrays into single consolidated file
 - Handles empty files gracefully
 - Used for both failures and successes
 
 #### `detect-job-failures.py`
+
 **Purpose:** Detects job-level failures using GitHub API  
 **Usage:** `./detect-job-failures.py <owner> <repo> <run-id> [output-file]`
 
 **Parameters:**
+
 - `owner`: GitHub repository owner
 - `repo`: Repository name
 - `run-id`: Workflow run ID
 - `output-file`: Output JSON file (default: `job-failures.json`)
 
 **Features:**
+
 - **Comprehensive Detection**: Identifies timeouts, OOM errors, runner failures, infrastructure issues
 - **API-Based**: Uses GitHub API to query job statuses and steps
 - **Intelligent Filtering**: Distinguishes job-level failures from expected test failures
 - **Detailed Context**: Captures failed step, job duration, runner info
 
 **Detection Types:**
+
 - `timeout`: Job exceeded maximum execution time
 - `out_of_memory`: OOM kill detected
 - `runner_failure`: GitHub Actions runner/infrastructure issue
@@ -112,16 +131,19 @@ This directory contains scripts used in the GitHub Actions CI/CD pipeline for th
 - `cancelled`: Job was cancelled
 
 #### `manage-job-failure-issues.py`
+
 **Purpose:** Manages GitHub issues for job-level failures  
 **Usage:** `./manage-job-failure-issues.py <owner> <repo> <run-id> [job-failures-json]`
 
 **Parameters:**
+
 - `owner`: GitHub repository owner
 - `repo`: Repository name
 - `run-id`: Workflow run ID
 - `job-failures-json`: Path to job failures JSON file (default: `job-failures.json`)
 
 **Features:**
+
 - **Automatic Issue Creation**: Creates issues for infrastructure failures
 - **Severity Indicators**: Uses emojis to indicate failure type (⏱️ timeout, 💥 OOM, 🚨 infrastructure)
 - **Troubleshooting Hints**: Includes specific guidance based on failure type
@@ -129,6 +151,7 @@ This directory contains scripts used in the GitHub Actions CI/CD pipeline for th
 - **Labels**: `job-failure`, `infrastructure`, `automated`, `recurring`
 
 **Issue Contents:**
+
 - Job name and failure type
 - Failed step details
 - Job ID, runner info, timestamps
@@ -189,6 +212,7 @@ graph TD
 **Title:** `Bug: TestAccAndroidPolicyResource_Lifecycle Failing`
 
 **Body:**
+
 ```markdown
 ## Test Failure
 
@@ -198,6 +222,8 @@ graph TD
 **Workflow:** [19383092062](https://github.com/deploymenttheory/terraform-provider-microsoft365/actions/runs/19383092062)
 
 ### Error Output
+
+```
 
 ```
     resource_test.go:45: Error applying: 
@@ -278,6 +304,7 @@ Issues managed by `manage-job-failure-issues.py` use these labels:
 **Initial:** `test-failure`, `automated`  
 **Recurring:** Adds `recurring` label automatically  
 **Manual Labels:** Add as needed:
+
 - `bug`: Code defect
 - `flaky-test`: Intermittent failures  
 - `wontfix`: Test issue, but not fixing
@@ -288,11 +315,13 @@ Issues managed by `manage-job-failure-issues.py` use these labels:
 
 **Problem:** Tests fail but no reports are created  
 **Causes:**
+
 - `test-failures.json` is empty
 - No failing tests matched the `--- FAIL:` pattern
 - `GITHUB_TOKEN` permissions insufficient
 
 **Solution:**
+
 1. Check test output logs in artifacts
 2. Verify `test-failures.json` contains data
 3. Ensure workflow has `issues: write` permission
@@ -301,10 +330,12 @@ Issues managed by `manage-job-failure-issues.py` use these labels:
 
 **Problem:** Multiple reports created for same test  
 **Causes:**
+
 - Test name variation (e.g., TestFoo vs TestFoo/subtest)
 - Report title search not matching
 
 **Solution:**
+
 - Issue titles are the exact test name
 - Script searches for `in:title "TestName"`
 - Ensure test names are stable
@@ -313,10 +344,12 @@ Issues managed by `manage-job-failure-issues.py` use these labels:
 
 **Problem:** Report created but no failure details  
 **Causes:**
+
 - Test output parsing failed
 - Context extraction logic didn't match output format
 
 **Solution:**
+
 - Check `test-output-*.log` artifacts
 - Verify Go test output follows standard format
 - Update parse logic in `run-tests.py` if needed
@@ -336,4 +369,3 @@ Potential enhancements:
 - [GitHub Actions Workflow](.github/workflows/nightly-tests.yml)
 - [Testing Guide](../../docs/TESTING.md)
 - [Contributing Guidelines](../../CONTRIBUTING.md)
-
