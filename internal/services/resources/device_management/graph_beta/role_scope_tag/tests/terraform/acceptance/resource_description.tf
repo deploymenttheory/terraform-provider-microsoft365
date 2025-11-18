@@ -1,6 +1,14 @@
+resource "random_string" "suffix" {
+  length  = 8
+  special = false
+  upper   = true
+  lower   = true
+  numeric = true
+}
+
 resource "microsoft365_graph_beta_device_management_role_scope_tag" "description" {
-  display_name = "Test Description Role Scope Tag"
-  description  = "This is a test role scope tag with description"
+  display_name = "acc-test-role-scope-tag-description-${random_string.suffix.result}"
+  description  = "acc-test-role-scope-tag-description-${random_string.suffix.result}"
 
   timeouts = {
     create = "180s"

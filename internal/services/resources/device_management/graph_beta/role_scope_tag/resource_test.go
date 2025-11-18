@@ -83,16 +83,22 @@ func TestRoleScopeTagResource_Schema(t *testing.T) {
 
 	resource.UnitTest(t, resource.TestCase{
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ExternalProviders: map[string]resource.ExternalProvider{
+			"random": {
+				Source:            "hashicorp/random",
+				VersionConstraint: ">= 3.7.2",
+			},
+		},
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigMinimal(),
 				Check: resource.ComposeTestCheckFunc(
 					// Check required attributes
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_role_scope_tag.minimal", "display_name", "Test Minimal Role Scope Tag - Unique"),
+					resource.TestMatchResourceAttr("microsoft365_graph_beta_device_management_role_scope_tag.minimal", "display_name", regexp.MustCompile(`^unit-test-role-scope-tag-minimal-[A-Za-z0-9]{8}$`)),
 
 					// Check computed attributes are set
 					resource.TestMatchResourceAttr("microsoft365_graph_beta_device_management_role_scope_tag.minimal", "id", regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_role_scope_tag.minimal", "description", ""),
+					resource.TestMatchResourceAttr("microsoft365_graph_beta_device_management_role_scope_tag.minimal", "description", regexp.MustCompile(`^unit-test-role-scope-tag-minimal-[A-Za-z0-9]{8}$`)),
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_role_scope_tag.minimal", "is_built_in", "false"),
 				),
 			},
@@ -109,14 +115,20 @@ func TestRoleScopeTagResource_Minimal(t *testing.T) {
 
 	resource.UnitTest(t, resource.TestCase{
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ExternalProviders: map[string]resource.ExternalProvider{
+			"random": {
+				Source:            "hashicorp/random",
+				VersionConstraint: ">= 3.7.2",
+			},
+		},
 		Steps: []resource.TestStep{
 			// Create and Read testing
 			{
 				Config: testConfigMinimal(),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckExists("microsoft365_graph_beta_device_management_role_scope_tag.minimal"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_role_scope_tag.minimal", "display_name", "Test Minimal Role Scope Tag - Unique"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_role_scope_tag.minimal", "description", ""),
+					resource.TestMatchResourceAttr("microsoft365_graph_beta_device_management_role_scope_tag.minimal", "display_name", regexp.MustCompile(`^unit-test-role-scope-tag-minimal-[A-Za-z0-9]{8}$`)),
+					resource.TestMatchResourceAttr("microsoft365_graph_beta_device_management_role_scope_tag.minimal", "description", regexp.MustCompile(`^unit-test-role-scope-tag-minimal-[A-Za-z0-9]{8}$`)),
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_role_scope_tag.minimal", "is_built_in", "false"),
 				),
 			},
@@ -131,8 +143,8 @@ func TestRoleScopeTagResource_Minimal(t *testing.T) {
 				Config: testConfigMaximal(),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckExists("microsoft365_graph_beta_device_management_role_scope_tag.maximal"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_role_scope_tag.maximal", "display_name", "Test Maximal Role Scope Tag - Unique"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_role_scope_tag.maximal", "description", "Maximal role scope tag for testing with all features"),
+					resource.TestMatchResourceAttr("microsoft365_graph_beta_device_management_role_scope_tag.maximal", "display_name", regexp.MustCompile(`^unit-test-role-scope-tag-maximal-[A-Za-z0-9]{8}$`)),
+					resource.TestMatchResourceAttr("microsoft365_graph_beta_device_management_role_scope_tag.maximal", "description", regexp.MustCompile(`^unit-test-role-scope-tag-maximal-[A-Za-z0-9]{8}$`)),
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_role_scope_tag.maximal", "is_built_in", "false"),
 				),
 			},
@@ -149,20 +161,26 @@ func TestRoleScopeTagResource_UpdateInPlace(t *testing.T) {
 
 	resource.UnitTest(t, resource.TestCase{
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ExternalProviders: map[string]resource.ExternalProvider{
+			"random": {
+				Source:            "hashicorp/random",
+				VersionConstraint: ">= 3.7.2",
+			},
+		},
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigMinimal(),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckExists("microsoft365_graph_beta_device_management_role_scope_tag.minimal"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_role_scope_tag.minimal", "display_name", "Test Minimal Role Scope Tag - Unique"),
+					resource.TestMatchResourceAttr("microsoft365_graph_beta_device_management_role_scope_tag.minimal", "display_name", regexp.MustCompile(`^unit-test-role-scope-tag-minimal-[A-Za-z0-9]{8}$`)),
 				),
 			},
 			{
 				Config: testConfigMaximal(),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckExists("microsoft365_graph_beta_device_management_role_scope_tag.maximal"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_role_scope_tag.maximal", "display_name", "Test Maximal Role Scope Tag - Unique"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_role_scope_tag.maximal", "description", "Maximal role scope tag for testing with all features"),
+					resource.TestMatchResourceAttr("microsoft365_graph_beta_device_management_role_scope_tag.maximal", "display_name", regexp.MustCompile(`^unit-test-role-scope-tag-maximal-[A-Za-z0-9]{8}$`)),
+					resource.TestMatchResourceAttr("microsoft365_graph_beta_device_management_role_scope_tag.maximal", "description", regexp.MustCompile(`^unit-test-role-scope-tag-maximal-[A-Za-z0-9]{8}$`)),
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_role_scope_tag.maximal", "assignments.#", "2"),
 				),
 			},
@@ -263,6 +281,12 @@ func TestRoleScopeTagResource_Assignments(t *testing.T) {
 
 	resource.UnitTest(t, resource.TestCase{
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ExternalProviders: map[string]resource.ExternalProvider{
+			"random": {
+				Source:            "hashicorp/random",
+				VersionConstraint: ">= 3.7.2",
+			},
+		},
 		Steps: []resource.TestStep{
 			{
 				Config: `

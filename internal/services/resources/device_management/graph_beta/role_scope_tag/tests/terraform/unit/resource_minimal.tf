@@ -1,5 +1,14 @@
+resource "random_string" "suffix" {
+  length  = 8
+  special = false
+  upper   = true
+  lower   = true
+  numeric = true
+}
+
 resource "microsoft365_graph_beta_device_management_role_scope_tag" "minimal" {
-  display_name = "Test Minimal Role Scope Tag - Unique"
+  display_name = "unit-test-role-scope-tag-minimal-${random_string.suffix.result}"
+  description  = "unit-test-role-scope-tag-minimal-${random_string.suffix.result}"
 
   timeouts = {
     create = "180s"

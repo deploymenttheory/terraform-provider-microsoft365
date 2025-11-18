@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/boolplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
 )
@@ -107,8 +108,11 @@ func (r *RoleScopeTagResource) Schema(ctx context.Context, req resource.SchemaRe
 				MarkdownDescription: "Description of the Role Scope Tag.",
 			},
 			"is_built_in": schema.BoolAttribute{
-				Computed:            true,
-				MarkdownDescription: "Description of the Role Scope Tag. This property is read-only.",
+				Computed: true,
+				PlanModifiers: []planmodifier.Bool{
+					boolplanmodifier.UseStateForUnknown(),
+				},
+				MarkdownDescription: "Defines if the Role Scope Tag is built-in. This property is read-only.",
 			},
 			"assignments": commonschemagraphbeta.DeviceConfigurationWithInclusionGroupAssignmentsSchema(),
 			"timeouts":    commonschema.Timeouts(ctx),
