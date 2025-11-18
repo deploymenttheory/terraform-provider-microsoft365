@@ -79,7 +79,7 @@ resource "microsoft365_graph_beta_device_management_role_scope_tag" "device_mana
 ### Read-Only
 
 - `id` (String) Key of the entity. This is read-only and automatically generated.
-- `is_built_in` (Boolean) Description of the Role Scope Tag. This property is read-only.
+- `is_built_in` (Boolean) Defines if the Role Scope Tag is built-in. This property is read-only.
 
 <a id="nestedatt--assignments"></a>
 ### Nested Schema for `assignments`

@@ -1,0 +1,44 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#subscribedSkus",
+  "value": [
+    {
+      "id": "00000000-0000-0000-0000-000000000001",
+      "skuId": "1f2f344a-700d-42c9-9427-5cea1d5d7ba6",
+      "skuPartNumber": "Microsoft_Entra_Suite",
+      "capabilityStatus": "Enabled",
+      "consumedUnits": 10,
+      "prepaidUnits": {
+        "enabled": 25,
+        "suspended": 0,
+        "warning": 0
+      },
+      "servicePlans": [
+        {
+          "servicePlanId": "8c098270-9dd4-4350-9b30-ba4703f3b36b",
+          "servicePlanName": "AAD_PREMIUM_P2",
+          "provisioningStatus": "Success",
+          "appliesTo": "User"
+        },
+        {
+          "servicePlanId": "b1188c4c-1b36-4018-b48b-ee07604f6feb",
+          "servicePlanName": "Entra_Identity_Governance",
+          "provisioningStatus": "Success",
+          "appliesTo": "User"
+        },
+        {
+          "servicePlanId": "ac2f2f11-ae3b-4fbc-b9f2-87a12084c542",
+          "servicePlanName": "Entra_Premium_Internet_Access",
+          "provisioningStatus": "Success",
+          "appliesTo": "User"
+        },
+        {
+          "servicePlanId": "b03fd06c-6b83-4a2d-9d8e-d0f7e07e2f5e",
+          "servicePlanName": "Entra_Premium_Private_Access",
+          "provisioningStatus": "Success",
+          "appliesTo": "User"
+        }
+      ]
+    }
+  ]
+}
+

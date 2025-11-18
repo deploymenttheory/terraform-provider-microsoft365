@@ -1,4 +1,4 @@
-package graphBetaFilteringPolicy
+package graphBetaNetworkFilteringPolicy
 
 import (
 	"context"
@@ -13,10 +13,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
+	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
 )
 
 const (
-	ResourceName  = "graph_beta_identity_and_access_filtering_policy"
+	ResourceName  = "graph_beta_identity_and_access_network_filtering_policy"
 	CreateTimeout = 180
 	UpdateTimeout = 180
 	ReadTimeout   = 180
@@ -25,32 +26,30 @@ const (
 
 var (
 	// Basic resource interface (CRUD operations)
-	_ resource.Resource = &FilteringPolicyResource{}
+	_ resource.Resource = &NetworkFilteringPolicyResource{}
 
 	// Allows the resource to be configured with the provider client
-	_ resource.ResourceWithConfigure = &FilteringPolicyResource{}
+	_ resource.ResourceWithConfigure = &NetworkFilteringPolicyResource{}
 
 	// Enables import functionality
-	_ resource.ResourceWithImportState = &FilteringPolicyResource{}
+	_ resource.ResourceWithImportState = &NetworkFilteringPolicyResource{}
 )
 
-// NewFilteringPolicyResource creates a new instance of the FilteringPolicyResource resource.
-func NewFilteringPolicyResource() resource.Resource {
-	return &FilteringPolicyResource{
+// NewNetworkFilteringPolicyResource creates a new instance of the NetworkFilteringPolicyResource resource.
+func NewNetworkFilteringPolicyResource() resource.Resource {
+	return &NetworkFilteringPolicyResource{
 		ReadPermissions: []string{
 			"NetworkAccess.Read.All",
-			"NetworkAccessPolicy.Read.All",
 		},
 		WritePermissions: []string{
 			"NetworkAccess.ReadWrite.All",
-			"NetworkAccessPolicy.ReadWrite.All",
 		},
 		ResourcePath: "/networkAccess/filteringPolicies",
 	}
 }
 
-type FilteringPolicyResource struct {
-	httpClient       *client.AuthenticatedHTTPClient
+type NetworkFilteringPolicyResource struct {
+	client           *msgraphbetasdk.GraphServiceClient
 	ProviderTypeName string
 	TypeName         string
 	ReadPermissions  []string
@@ -59,29 +58,29 @@ type FilteringPolicyResource struct {
 }
 
 // Metadata returns the resource type name.
-func (r *FilteringPolicyResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+func (r *NetworkFilteringPolicyResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	r.ProviderTypeName = req.ProviderTypeName
 	r.TypeName = ResourceName
 	resp.TypeName = r.FullTypeName()
 }
 
 // FullTypeName returns the full resource type name in the format "providername_resourcename".
-func (r *FilteringPolicyResource) FullTypeName() string {
+func (r *NetworkFilteringPolicyResource) FullTypeName() string {
 	return r.ProviderTypeName + "_" + r.TypeName
 }
 
 // Configure sets the client for the resource.
-func (r *FilteringPolicyResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
-	r.httpClient = client.SetGraphBetaHTTPClientForResource(ctx, req, resp, constants.PROVIDER_NAME+"_"+ResourceName)
+func (r *NetworkFilteringPolicyResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+	r.client = client.SetGraphBetaClientForResource(ctx, req, resp, constants.PROVIDER_NAME+"_"+ResourceName)
 }
 
 // ImportState imports the resource state.
-func (r *FilteringPolicyResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+func (r *NetworkFilteringPolicyResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }
 
 // Schema defines the schema for the resource.
-func (r *FilteringPolicyResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+func (r *NetworkFilteringPolicyResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		MarkdownDescription: "Manages Microsoft 365 Filtering Policies using the `/networkAccess/filteringPolicies` endpoint. Filtering policies control network access based on specific rules and conditions.",
 		Attributes: map[string]schema.Attribute{

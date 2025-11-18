@@ -40,6 +40,10 @@ var _ mocks.MockRegistrar = (*AssignmentFilterMock)(nil)
 // RegisterMocks sets up all the mock HTTP responders for assignment filter operations
 // This implements the MockRegistrar interface
 func (m *AssignmentFilterMock) RegisterMocks() {
+	// License check endpoint
+	httpmock.RegisterResponder("GET", "https://graph.microsoft.com/beta/subscribedSkus",
+		m.getLicenseResponder())
+
 	// POST /deviceManagement/assignmentFilters - Create
 	httpmock.RegisterResponder("POST", "https://graph.microsoft.com/beta/deviceManagement/assignmentFilters",
 		m.createAssignmentFilterResponder())
@@ -212,9 +216,24 @@ func (m *AssignmentFilterMock) deleteAssignmentFilterResponder() httpmock.Respon
 	}
 }
 
+// getLicenseResponder handles GET requests for license checking
+func (m *AssignmentFilterMock) getLicenseResponder() httpmock.Responder {
+	return func(req *http.Request) (*http.Response, error) {
+		response, err := mocks.LoadJSONResponse(filepath.Join("tests", "responses", "license", "get_subscribed_skus_success.json"))
+		if err != nil {
+			return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to load license mock"}}`), nil
+		}
+		return factories.SuccessResponse(200, response)(req)
+	}
+}
+
 // RegisterErrorMocks sets up mock responders that return errors for testing error scenarios
 // This implements the MockRegistrar interface
 func (m *AssignmentFilterMock) RegisterErrorMocks() {
+	// License check endpoint
+	httpmock.RegisterResponder("GET", "https://graph.microsoft.com/beta/subscribedSkus",
+		m.getLicenseResponder())
+
 	// POST - Create error
 	httpmock.RegisterResponder("POST", "https://graph.microsoft.com/beta/deviceManagement/assignmentFilters",
 		func(req *http.Request) (*http.Response, error) {
@@ -246,18 +265,7 @@ func (m *AssignmentFilterMock) CleanupMockState() {
 func (m *AssignmentFilterMock) GetMockAssignmentFilterData() map[string]any {
 	response, err := mocks.LoadJSONResponse(filepath.Join("tests", "responses", "validate_create", "get_assignment_filter_maximal.json"))
 	if err != nil {
-		// Fallback to hardcoded response if file loading fails
-		return map[string]any{
-			"id":                             "test-assignment-filter-id",
-			"displayName":                    "Test Assignment Filter",
-			"description":                    "Test assignment filter for unit testing",
-			"platform":                       "windows10AndLater",
-			"rule":                           "(device.osVersion -startsWith \"10.0\")",
-			"assignmentFilterManagementType": "devices",
-			"createdDateTime":                "2024-01-01T00:00:00Z",
-			"lastModifiedDateTime":           "2024-01-01T00:00:00Z",
-			"roleScopeTags":                  []string{"0"},
-		}
+		panic("Failed to load mock response: " + err.Error())
 	}
 	return response
 }
@@ -266,16 +274,7 @@ func (m *AssignmentFilterMock) GetMockAssignmentFilterData() map[string]any {
 func (m *AssignmentFilterMock) GetMockAssignmentFilterMinimalData() map[string]any {
 	response, err := mocks.LoadJSONResponse(filepath.Join("tests", "responses", "validate_create", "get_assignment_filter_minimal.json"))
 	if err != nil {
-		// Fallback to hardcoded response if file loading fails
-		return map[string]any{
-			"id":                   "test-minimal-assignment-filter-id",
-			"displayName":          "Test Minimal Assignment Filter",
-			"platform":             "windows10AndLater",
-			"rule":                 "(device.osVersion -startsWith \"10.0\")",
-			"createdDateTime":      "2024-01-01T00:00:00Z",
-			"lastModifiedDateTime": "2024-01-01T00:00:00Z",
-			"roleScopeTags":        []string{"0"},
-		}
+		panic("Failed to load mock response: " + err.Error())
 	}
 	return response
 }
