@@ -118,3 +118,9 @@ func (t thatWithKeyType) ValidatesWith(fn func(value string) error) resource.Tes
 		return fn(value)
 	}
 }
+
+// ContainsTypeSetElement returns a TestCheckFunc which validates that the TypeSet attribute
+// contains the specified element. This is useful for checking list/set attributes where order doesn't matter.
+func (t thatWithKeyType) ContainsTypeSetElement(value string) resource.TestCheckFunc {
+	return resource.TestCheckTypeSetElemAttr(t.resourceName, t.key, value)
+}

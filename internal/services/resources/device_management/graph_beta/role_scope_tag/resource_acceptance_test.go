@@ -98,6 +98,7 @@ func TestAccRoleScopeTagResource_Description(t *testing.T) {
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			resourceType,
+			0,
 		),
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {

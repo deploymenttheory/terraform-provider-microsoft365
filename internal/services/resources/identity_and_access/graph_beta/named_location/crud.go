@@ -398,18 +398,20 @@ func (r *NamedLocationResource) Delete(ctx context.Context, req resource.DeleteR
 		return
 	}
 
-	// Check if this is an IP named location with isTrusted=true
+	// Step 1: Check if this is an IP named location with isTrusted=true
 	odataType, _ := currentResource["@odata.type"].(string)
 	isTrusted, _ := currentResource["isTrusted"].(bool)
 	needsPatch = odataType == "#microsoft.graph.ipNamedLocation" && isTrusted
 
-	// Step 2: If conditions are met, PATCH to set isTrusted=false
+	// Step 2: If conditions are met, patch with minimum required fields before deletion.
 	if needsPatch {
-		tflog.Debug(ctx, "Named location is an IP location with isTrusted=true, patching to false before deletion")
-
-		patchBody := map[string]any{
-			"@odata.type": "#microsoft.graph.ipNamedLocation",
-			"isTrusted":   false,
+		patchBody, err := constructResourceForDeletion(ctx)
+		if err != nil {
+			resp.Diagnostics.AddError(
+				"Error constructing deletion patch body",
+				fmt.Sprintf("Could not construct deletion patch body: %s: %s", ResourceName, err.Error()),
+			)
+			return
 		}
 
 		jsonBytes, err := json.Marshal(patchBody)
@@ -433,7 +435,6 @@ func (r *NamedLocationResource) Delete(ctx context.Context, req resource.DeleteR
 
 		tflog.Debug(ctx, fmt.Sprintf("Making PATCH request to set isTrusted=false: %s", patchURL))
 
-		// Use retry logic with exponential backoff for 429 errors (max 10 retries)
 		patchResp, err := client.DoWithRetry(ctx, r.httpClient, patchReq, 10)
 		if err != nil {
 			resp.Diagnostics.AddError(
@@ -470,7 +471,6 @@ func (r *NamedLocationResource) Delete(ctx context.Context, req resource.DeleteR
 				return
 			}
 
-			// Use retry logic with exponential backoff for 429 errors (max 10 retries)
 			verifyResp, err := client.DoWithRetry(ctx, r.httpClient, verifyReq, 10)
 			if err != nil {
 				resp.Diagnostics.AddError(
@@ -518,9 +518,14 @@ func (r *NamedLocationResource) Delete(ctx context.Context, req resource.DeleteR
 
 			tflog.Debug(ctx, fmt.Sprintf("isTrusted still true, retrying in %v", retryDelay))
 		}
+
+		// Step 3: Wait for eventual consistency before deletion
+		consistencyDelay := 10 * time.Second
+		tflog.Debug(ctx, fmt.Sprintf("Waiting %v for eventual consistency before deletion", consistencyDelay))
+		time.Sleep(consistencyDelay)
 	}
 
-	// Now proceed with the delete operation
+	// Step 4: Execute DELETE operation
 	url := r.httpClient.GetBaseURL() + r.ResourcePath + "/" + object.ID.ValueString()
 	httpReq, err := http.NewRequestWithContext(ctx, "DELETE", url, nil)
 	if err != nil {
@@ -551,6 +556,7 @@ func (r *NamedLocationResource) Delete(ctx context.Context, req resource.DeleteR
 		return
 	}
 
+	// Step 5: Remove from Terraform state
 	tflog.Debug(ctx, fmt.Sprintf("Removing %s from Terraform state", ResourceName))
 
 	resp.State.RemoveResource(ctx)

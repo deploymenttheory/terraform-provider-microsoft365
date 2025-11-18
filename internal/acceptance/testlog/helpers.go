@@ -14,7 +14,7 @@ func StepAction(resourceType, action string) {
 
 // WaitForConsistency logs a wait message for eventual consistency
 func WaitForConsistency(service string, duration time.Duration) {
-	fmt.Printf("--- Waiting %v for %s eventual consistency...\n", duration, service)
+	fmt.Printf("--- Waiting %v for resource %s to achieve eventual consistency...\n", duration, service)
 }
 
 // deriveResourceName extracts a human-readable resource name from a Terraform resource type

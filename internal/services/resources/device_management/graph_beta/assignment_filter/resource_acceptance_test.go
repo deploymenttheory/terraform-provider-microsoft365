@@ -32,6 +32,7 @@ func TestAccAssignmentFilterResource_Lifecycle(t *testing.T) {
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			resourceType,
+			0,
 		),
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
@@ -107,6 +108,7 @@ func TestAccAssignmentFilterResource_MultiPlatform(t *testing.T) {
 				CheckDestroy: destroy.CheckDestroyedAllFunc(
 					testResource,
 					resourceType,
+					0,
 				),
 				ExternalProviders: map[string]resource.ExternalProvider{
 					"random": {
@@ -172,6 +174,7 @@ func TestAccAssignmentFilterResource_ComplexRule(t *testing.T) {
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			resourceType,
+			0,
 		),
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
@@ -204,6 +207,7 @@ func TestAccAssignmentFilterResource_RoleScopeTags(t *testing.T) {
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			resourceType,
+			0,
 		),
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
@@ -243,6 +247,7 @@ func TestAccAssignmentFilterResource_ManagementTypes(t *testing.T) {
 				CheckDestroy: destroy.CheckDestroyedAllFunc(
 					testResource,
 					resourceType,
+					0,
 				),
 				ExternalProviders: map[string]resource.ExternalProvider{
 					"random": {
