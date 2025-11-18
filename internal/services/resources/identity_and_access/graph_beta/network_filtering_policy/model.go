@@ -1,12 +1,12 @@
 // REF: https://learn.microsoft.com/en-us/graph/api/resources/networkaccess-filteringpolicy?view=graph-rest-beta
-package graphBetaFilteringPolicy
+package graphBetaNetworkFilteringPolicy
 
 import (
 	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-// FilteringPolicyResourceModel represents the schema for the Filtering Policy resource
+// NetworkFilteringPolicyResourceModel represents the schema for the Filtering Policy resource
 //
 // Note: The Microsoft Graph API documentation for filtering policies mentions 'state' and 'priority'
 // properties in the update documentation. However, these properties are actually used when linking
@@ -16,7 +16,7 @@ import (
 // Additionally, the 'version' property is not documented in the Microsoft Graph API documentation,
 // but it is actually included in the API responses. This appears to be an internal property that
 // tracks the policy structure version and does not change with regular updates (name, description, action).
-type FilteringPolicyResourceModel struct {
+type NetworkFilteringPolicyResourceModel struct {
 	ID                   types.String   `tfsdk:"id"`
 	Name                 types.String   `tfsdk:"name"`
 	Description          types.String   `tfsdk:"description"`

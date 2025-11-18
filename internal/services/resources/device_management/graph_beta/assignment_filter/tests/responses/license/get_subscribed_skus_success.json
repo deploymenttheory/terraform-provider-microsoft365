@@ -1,0 +1,58 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#subscribedSkus",
+  "value": [
+    {
+      "id": "00000000-0000-0000-0000-000000000002",
+      "skuId": "c7df2760-2c81-4ef7-b578-5b5392b571df",
+      "skuPartNumber": "Microsoft_Intune_Suite",
+      "capabilityStatus": "Enabled",
+      "consumedUnits": 15,
+      "prepaidUnits": {
+        "enabled": 50,
+        "suspended": 0,
+        "warning": 0
+      },
+      "servicePlans": [
+        {
+          "servicePlanId": "a929cd4d-8e2e-42e4-8f0e-5e0e6b1f8f3c",
+          "servicePlanName": "CLOUD_PKI",
+          "provisioningStatus": "Success",
+          "appliesTo": "User"
+        },
+        {
+          "servicePlanId": "5e0e6b1f-8f3c-4d8e-2e42-e4a929cd4d8e",
+          "servicePlanName": "Intune-EPM",
+          "provisioningStatus": "Success",
+          "appliesTo": "User"
+        },
+        {
+          "servicePlanId": "8f3c4d8e-2e42-e4a9-29cd-4d8e5e0e6b1f",
+          "servicePlanName": "REMOTE_HELP",
+          "provisioningStatus": "Success",
+          "appliesTo": "User"
+        }
+      ]
+    },
+    {
+      "id": "00000000-0000-0000-0000-000000000003",
+      "skuId": "06ebc4ee-1bb5-47dd-8120-11324bc54e06",
+      "skuPartNumber": "SPE_E5",
+      "capabilityStatus": "Enabled",
+      "consumedUnits": 20,
+      "prepaidUnits": {
+        "enabled": 100,
+        "suspended": 0,
+        "warning": 0
+      },
+      "servicePlans": [
+        {
+          "servicePlanId": "efb87545-963c-4e0d-99df-69c6916d9eb0",
+          "servicePlanName": "INTUNE_A",
+          "provisioningStatus": "Success",
+          "appliesTo": "User"
+        }
+      ]
+    }
+  ]
+}
+

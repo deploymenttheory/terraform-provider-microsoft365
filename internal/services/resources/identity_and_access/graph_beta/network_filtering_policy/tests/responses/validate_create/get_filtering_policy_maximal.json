@@ -1,0 +1,11 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#filteringPolicies/$entity",
+  "id": "00000000-0000-0000-0000-000000000003",
+  "name": "Test Maximal Filtering Policy",
+  "description": "Maximal filtering policy for testing with all features",
+  "action": "block",
+  "createdDateTime": "2024-01-01T00:00:00Z",
+  "lastModifiedDateTime": "2024-01-01T00:00:00Z",
+  "version": "1.0.0"
+}
+

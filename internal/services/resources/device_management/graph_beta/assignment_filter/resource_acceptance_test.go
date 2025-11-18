@@ -1,59 +1,81 @@
 package graphBetaAssignmentFilter_test
 
 import (
-	"context"
 	"fmt"
 	"regexp"
 	"testing"
+	"time"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/check"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/destroy"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/testlog"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
-	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
+	graphBetaAssignmentFilter "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_management/graph_beta/assignment_filter"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
+)
+
+var (
+	// Resource type name constructed from exported constants
+	resourceType = constants.PROVIDER_NAME + "_" + graphBetaAssignmentFilter.ResourceName
+
+	// testResource is the test resource implementation for assignment filters
+	testResource = graphBetaAssignmentFilter.AssignmentFilterTestResource{}
 )
 
 func TestAccAssignmentFilterResource_Lifecycle(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		CheckDestroy: destroy.CheckDestroyedAllFunc(
+			testResource,
+			resourceType,
+		),
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
 				Source:            "hashicorp/random",
 				VersionConstraint: ">= 3.7.2",
 			},
 		},
-		CheckDestroy: testAccCheckAssignmentFilterDestroy,
 		Steps: []resource.TestStep{
-			// Create with minimal configuration
 			{
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Creating")
+				},
 				Config: testAccAssignmentFilterConfig_minimal(),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("microsoft365_graph_beta_device_management_assignment_filter.test", "id"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_assignment_filter.test", "display_name", "Test Acceptance Assignment Filter"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_assignment_filter.test", "platform", "windows10AndLater"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_assignment_filter.test", "rule", "(device.osVersion -startsWith \"10.0\")"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_assignment_filter.test", "assignment_filter_management_type", "devices"),
-					resource.TestCheckResourceAttrSet("microsoft365_graph_beta_device_management_assignment_filter.test", "created_date_time"),
-					resource.TestCheckResourceAttrSet("microsoft365_graph_beta_device_management_assignment_filter.test", "last_modified_date_time"),
+					check.That("microsoft365_graph_beta_device_management_assignment_filter.test").ExistsInGraph(testResource),
+					check.That("microsoft365_graph_beta_device_management_assignment_filter.test").Key("id").Exists(),
+					check.That("microsoft365_graph_beta_device_management_assignment_filter.test").Key("display_name").HasValue("Test Acceptance Assignment Filter"),
+					check.That("microsoft365_graph_beta_device_management_assignment_filter.test").Key("platform").HasValue("windows10AndLater"),
+					check.That("microsoft365_graph_beta_device_management_assignment_filter.test").Key("rule").HasValue("(device.osVersion -startsWith \"10.0\")"),
+					check.That("microsoft365_graph_beta_device_management_assignment_filter.test").Key("assignment_filter_management_type").HasValue("devices"),
+					check.That("microsoft365_graph_beta_device_management_assignment_filter.test").Key("created_date_time").Exists(),
+					check.That("microsoft365_graph_beta_device_management_assignment_filter.test").Key("last_modified_date_time").Exists(),
 				),
 			},
-			// ImportState testing
 			{
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Importing")
+				},
 				ResourceName:      "microsoft365_graph_beta_device_management_assignment_filter.test",
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
-			// Update to maximal configuration
 			{
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Updating")
+				},
 				Config: testAccAssignmentFilterConfig_maximal(),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("microsoft365_graph_beta_device_management_assignment_filter.test", "id"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_assignment_filter.test", "display_name", "Test Acceptance Assignment Filter - Updated"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_assignment_filter.test", "description", "Updated description for acceptance testing"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_assignment_filter.test", "platform", "windows10AndLater"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_assignment_filter.test", "assignment_filter_management_type", "devices"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_assignment_filter.test", "role_scope_tags.#", "2"),
+					check.That("microsoft365_graph_beta_device_management_assignment_filter.test").ExistsInGraph(testResource),
+					check.That("microsoft365_graph_beta_device_management_assignment_filter.test").Key("display_name").HasValue("Test Acceptance Assignment Filter - Updated"),
+					check.That("microsoft365_graph_beta_device_management_assignment_filter.test").Key("description").HasValue("Updated description for acceptance testing"),
+					check.That("microsoft365_graph_beta_device_management_assignment_filter.test").Key("platform").HasValue("windows10AndLater"),
+					check.That("microsoft365_graph_beta_device_management_assignment_filter.test").Key("assignment_filter_management_type").HasValue("devices"),
+					check.That("microsoft365_graph_beta_device_management_assignment_filter.test").Key("role_scope_tags.#").HasValue("2"),
 				),
 			},
 		},
@@ -66,11 +88,11 @@ func TestAccAssignmentFilterResource_MultiPlatform(t *testing.T) {
 		"androidForWork",
 		"iOS",
 		"macOS",
-		//"windowsPhone81", , causes a 500 error in acc tests
-		//"windows81AndLater", , causes a 500 error in acc tests
+		//"windowsPhone81", // causes a 500 error in acc tests
+		//"windows81AndLater", // causes a 500 error in acc tests
 		"windows10AndLater",
-		// "androidWorkProfile", causes a 500 error in acc tests
-		//"unknown", causes a 500 error in acc tests
+		//"androidWorkProfile", // causes a 500 error in acc tests
+		//"unknown", // causes a 500 error in acc tests
 		"androidAOSP",
 		"androidMobileApplicationManagement",
 		"iOSMobileApplicationManagement",
@@ -82,19 +104,26 @@ func TestAccAssignmentFilterResource_MultiPlatform(t *testing.T) {
 			resource.Test(t, resource.TestCase{
 				PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 				ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+				CheckDestroy: destroy.CheckDestroyedAllFunc(
+					testResource,
+					resourceType,
+				),
 				ExternalProviders: map[string]resource.ExternalProvider{
 					"random": {
 						Source:            "hashicorp/random",
 						VersionConstraint: ">= 3.7.2",
 					},
 				},
-				CheckDestroy: testAccCheckAssignmentFilterDestroy,
 				Steps: []resource.TestStep{
 					{
+						PreConfig: func() {
+							testlog.StepAction(resourceType, fmt.Sprintf("Creating with platform: %s", platform))
+						},
 						Config: testAccAssignmentFilterConfig_platform(platform),
 						Check: resource.ComposeTestCheckFunc(
-							resource.TestCheckResourceAttrSet(fmt.Sprintf("microsoft365_graph_beta_device_management_assignment_filter.%s", platform), "id"),
-							resource.TestCheckResourceAttr(fmt.Sprintf("microsoft365_graph_beta_device_management_assignment_filter.%s", platform), "platform", platform),
+							check.That(fmt.Sprintf("microsoft365_graph_beta_device_management_assignment_filter.%s", platform)).ExistsInGraph(testResource),
+							check.That(fmt.Sprintf("microsoft365_graph_beta_device_management_assignment_filter.%s", platform)).Key("id").Exists(),
+							check.That(fmt.Sprintf("microsoft365_graph_beta_device_management_assignment_filter.%s", platform)).Key("platform").HasValue(platform),
 							func(state *terraform.State) error {
 								// Check rule and management type based on platform type
 								resourceName := fmt.Sprintf("microsoft365_graph_beta_device_management_assignment_filter.%s", platform)
@@ -140,6 +169,10 @@ func TestAccAssignmentFilterResource_ComplexRule(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		CheckDestroy: destroy.CheckDestroyedAllFunc(
+			testResource,
+			resourceType,
+		),
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
 				Source:            "hashicorp/random",
@@ -148,10 +181,14 @@ func TestAccAssignmentFilterResource_ComplexRule(t *testing.T) {
 		},
 		Steps: []resource.TestStep{
 			{
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Creating with complex rule")
+				},
 				Config: testAccAssignmentFilterConfig_complexRule(),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("microsoft365_graph_beta_device_management_assignment_filter.complex", "id"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_assignment_filter.complex", "display_name", "Test Complex Rule Assignment Filter"),
+					check.That("microsoft365_graph_beta_device_management_assignment_filter.complex").ExistsInGraph(testResource),
+					check.That("microsoft365_graph_beta_device_management_assignment_filter.complex").Key("id").Exists(),
+					check.That("microsoft365_graph_beta_device_management_assignment_filter.complex").Key("display_name").HasValue("Test Complex Rule Assignment Filter"),
 					resource.TestMatchResourceAttr("microsoft365_graph_beta_device_management_assignment_filter.complex", "rule", regexp.MustCompile(`device\.osVersion`)),
 					resource.TestMatchResourceAttr("microsoft365_graph_beta_device_management_assignment_filter.complex", "rule", regexp.MustCompile(`device\.manufacturer`)),
 				),
@@ -161,10 +198,13 @@ func TestAccAssignmentFilterResource_ComplexRule(t *testing.T) {
 }
 
 func TestAccAssignmentFilterResource_RoleScopeTags(t *testing.T) {
-
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		CheckDestroy: destroy.CheckDestroyedAllFunc(
+			testResource,
+			resourceType,
+		),
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
 				Source:            "hashicorp/random",
@@ -173,10 +213,16 @@ func TestAccAssignmentFilterResource_RoleScopeTags(t *testing.T) {
 		},
 		Steps: []resource.TestStep{
 			{
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Creating with role scope tags")
+					testlog.WaitForConsistency("Microsoft Graph", 15*time.Second)
+					time.Sleep(15 * time.Second)
+				},
 				Config: testAccAssignmentFilterConfig_roleScopeTags(),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("microsoft365_graph_beta_device_management_assignment_filter.role_tags", "id"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_assignment_filter.role_tags", "role_scope_tags.#", "3"),
+					check.That("microsoft365_graph_beta_device_management_assignment_filter.role_tags").ExistsInGraph(testResource),
+					check.That("microsoft365_graph_beta_device_management_assignment_filter.role_tags").Key("id").Exists(),
+					check.That("microsoft365_graph_beta_device_management_assignment_filter.role_tags").Key("role_scope_tags.#").HasValue("3"),
 					resource.TestCheckTypeSetElemAttr("microsoft365_graph_beta_device_management_assignment_filter.role_tags", "role_scope_tags.*", "0"),
 					resource.TestCheckTypeSetElemAttr("microsoft365_graph_beta_device_management_assignment_filter.role_tags", "role_scope_tags.*", "1"),
 					resource.TestCheckTypeSetElemAttr("microsoft365_graph_beta_device_management_assignment_filter.role_tags", "role_scope_tags.*", "2"),
@@ -194,6 +240,10 @@ func TestAccAssignmentFilterResource_ManagementTypes(t *testing.T) {
 			resource.Test(t, resource.TestCase{
 				PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 				ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+				CheckDestroy: destroy.CheckDestroyedAllFunc(
+					testResource,
+					resourceType,
+				),
 				ExternalProviders: map[string]resource.ExternalProvider{
 					"random": {
 						Source:            "hashicorp/random",
@@ -202,10 +252,14 @@ func TestAccAssignmentFilterResource_ManagementTypes(t *testing.T) {
 				},
 				Steps: []resource.TestStep{
 					{
+						PreConfig: func() {
+							testlog.StepAction(resourceType, fmt.Sprintf("Creating with management type: %s", mgmtType))
+						},
 						Config: testAccAssignmentFilterConfig_managementType(mgmtType),
 						Check: resource.ComposeTestCheckFunc(
-							resource.TestCheckResourceAttrSet(fmt.Sprintf("microsoft365_graph_beta_device_management_assignment_filter.%s", mgmtType), "id"),
-							resource.TestCheckResourceAttr(fmt.Sprintf("microsoft365_graph_beta_device_management_assignment_filter.%s", mgmtType), "assignment_filter_management_type", mgmtType),
+							check.That(fmt.Sprintf("microsoft365_graph_beta_device_management_assignment_filter.%s", mgmtType)).ExistsInGraph(testResource),
+							check.That(fmt.Sprintf("microsoft365_graph_beta_device_management_assignment_filter.%s", mgmtType)).Key("id").Exists(),
+							check.That(fmt.Sprintf("microsoft365_graph_beta_device_management_assignment_filter.%s", mgmtType)).Key("assignment_filter_management_type").HasValue(mgmtType),
 							func(state *terraform.State) error {
 								// Check platform and rule based on management type
 								resourceName := fmt.Sprintf("microsoft365_graph_beta_device_management_assignment_filter.%s", mgmtType)
@@ -243,49 +297,7 @@ func TestAccAssignmentFilterResource_ManagementTypes(t *testing.T) {
 	}
 }
 
-// testAccCheckAssignmentFilterDestroy verifies that assignment filters have been destroyed
-func testAccCheckAssignmentFilterDestroy(s *terraform.State) error {
-	// Get a Graph client using the same configuration as acceptance tests
-	graphClient, err := acceptance.TestGraphClient()
-	if err != nil {
-		return fmt.Errorf("error creating Graph client for CheckDestroy: %v", err)
-	}
-
-	ctx := context.Background()
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "microsoft365_graph_beta_device_management_assignment_filter" {
-			continue
-		}
-
-		// Attempt to get the assignment filter by ID
-		_, err := graphClient.
-			DeviceManagement().
-			AssignmentFilters().
-			ByDeviceAndAppManagementAssignmentFilterId(rs.Primary.ID).
-			Get(ctx, nil)
-
-		if err != nil {
-			errorInfo := errors.GraphError(ctx, err)
-
-			if errorInfo.StatusCode == 404 ||
-				errorInfo.ErrorCode == "ResourceNotFound" ||
-				errorInfo.ErrorCode == "ItemNotFound" {
-				fmt.Printf("DEBUG: Resource %s successfully destroyed (404/NotFound)\n", rs.Primary.ID)
-				continue // Resource successfully destroyed
-			}
-			return fmt.Errorf("error checking if assignment filter %s was destroyed: %v", rs.Primary.ID, err)
-		}
-
-		// If we can still get the resource, it wasn't destroyed
-		return fmt.Errorf("assignment filter %s still exists", rs.Primary.ID)
-	}
-
-	return nil
-}
-
 // Test configuration functions
-
 func testAccAssignmentFilterConfig_minimal() string {
 	config := mocks.LoadTerraformConfigFile("resource_minimal.tf")
 	return acceptance.ConfiguredM365ProviderBlock(config)
