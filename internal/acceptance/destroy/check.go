@@ -61,8 +61,9 @@ func CheckDestroyedFunc(testResource types.TestResource, resourceType, resourceN
 	}
 }
 
-// CheckDestroyedAllFunc returns a TestCheckFunc which validates all resources of a given type no longer exist
-func CheckDestroyedAllFunc(testResource types.TestResource, resourceType string) func(state *terraform.State) error {
+// CheckDestroyedAllFunc returns a TestCheckFunc which validates all resources of a given type no longer exist.
+// The waitDuration parameter allows waiting for eventual consistency before checking (use 0 for no wait).
+func CheckDestroyedAllFunc(testResource types.TestResource, resourceType string, waitDuration time.Duration) func(state *terraform.State) error {
 	if testResource == nil {
 		panic("testResource cannot be nil")
 	}
@@ -71,6 +72,10 @@ func CheckDestroyedAllFunc(testResource types.TestResource, resourceType string)
 	}
 
 	return func(state *terraform.State) error {
+		if waitDuration > 0 {
+			time.Sleep(waitDuration)
+		}
+
 		ctx, cancel := context.WithTimeout(context.Background(), checkDestroyTimeout)
 		defer cancel()
 

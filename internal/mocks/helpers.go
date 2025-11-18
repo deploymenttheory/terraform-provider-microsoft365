@@ -150,7 +150,6 @@ func LoadUnitTerraformTemplate(filename string, data any) string {
 func LoadTerraformTemplateFile(filename string, data any) string {
 	content, err := os.ReadFile(filepath.Join("tests", "terraform", "acceptance", filename))
 	if err != nil {
-		// Fallback to empty string if file cannot be read
 		return ""
 	}
 

@@ -3,10 +3,10 @@ package mocks
 import (
 	"encoding/json"
 	"net/http"
+	"path/filepath"
 	"strings"
 	"sync"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
 	"github.com/google/uuid"
 	"github.com/jarcoal/httpmock"
@@ -43,15 +43,15 @@ func (m *NamedLocationMock) RegisterMocks() {
 		newId := uuid.New().String()
 
 		// Determine response based on @odata.type
-		var jsonStr string
+		var responseObj map[string]any
 		var err error
 
 		if odataType, ok := requestBody["@odata.type"].(string); ok {
 			switch odataType {
 			case "#microsoft.graph.ipNamedLocation":
-				jsonStr, err = helpers.ParseJSONFile("../tests/responses/validate_create/post_ip_named_location_success.json")
+				responseObj, err = mocks.LoadJSONResponse(filepath.Join("tests", "responses", "validate_create", "post_ip_named_location_success.json"))
 			case "#microsoft.graph.countryNamedLocation":
-				jsonStr, err = helpers.ParseJSONFile("../tests/responses/validate_create/post_country_named_location_success.json")
+				responseObj, err = mocks.LoadJSONResponse(filepath.Join("tests", "responses", "validate_create", "post_country_named_location_success.json"))
 			default:
 				return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"Invalid @odata.type"}}`), nil
 			}
@@ -61,11 +61,6 @@ func (m *NamedLocationMock) RegisterMocks() {
 
 		if err != nil {
 			return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to load response"}}`), nil
-		}
-
-		var responseObj map[string]any
-		if err := json.Unmarshal([]byte(jsonStr), &responseObj); err != nil {
-			return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to parse response"}}`), nil
 		}
 
 		// Update response with request data

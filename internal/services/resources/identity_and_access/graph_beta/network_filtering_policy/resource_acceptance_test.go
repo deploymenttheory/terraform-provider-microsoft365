@@ -29,6 +29,7 @@ func TestAccNetworkFilteringPolicyResource_Lifecycle(t *testing.T) {
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			resourceType,
+			5*time.Second,
 		),
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
@@ -80,6 +81,7 @@ func TestAccNetworkFilteringPolicyResource_BlockAction(t *testing.T) {
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			resourceType,
+			5*time.Second,
 		),
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
@@ -113,6 +115,7 @@ func TestAccNetworkFilteringPolicyResource_AllowAction(t *testing.T) {
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			resourceType,
+			5*time.Second,
 		),
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
@@ -146,6 +149,7 @@ func TestAccNetworkFilteringPolicyResource_MinimalConfiguration(t *testing.T) {
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			resourceType,
+			5*time.Second,
 		),
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
