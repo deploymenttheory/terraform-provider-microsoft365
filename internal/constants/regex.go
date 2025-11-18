@@ -92,4 +92,16 @@ const (
 	// PortRangeRegex matches a valid port range 0-65535, hyphen separated
 	// Example: "80-80", "443-443", "8080-8080", "8443-8443"
 	PortRangeRegex = `^(?:0|[1-9]\d{0,3}|[1-5]\d{4}|6[0-4]\d{3}|65[0-4]\d{2}|655[0-2]\d|6553[0-5])-(?:0|[1-9]\d{0,3}|[1-5]\d{4}|6[0-4]\d{3}|65[0-4]\d{2}|655[0-2]\d|6553[0-5])$`
+
+	// SubjectKeyIdentifierRegex matches a Subject Key Identifier (SKI) in hexadecimal format (40 hex characters).
+	// Example: "1A2B3C4D5E6F7A8B9C0D1E2F3A4B5C6D7E8F9A0B"
+	SubjectKeyIdentifierRegex = `^[0-9A-Fa-f]{40}$`
+
+	// X509CertificateIssuerRegex matches a custom certificate issuer identifier format (CUSTOMIDENTIFIER: followed by 40-character hex SKI).
+	// Example: "CUSTOMIDENTIFIER:1A2B3C4D5E6F7A8B9C0D1E2F3A4B5C6D7E8F9A0B"
+	X509CertificateIssuerRegex = `^CUSTOMIDENTIFIER:[0-9A-Fa-f]{40}$`
+
+	// OIDRegex matches a valid Object Identifier in dotted decimal notation.
+	// Example: "1.3.6.1.4.1.311.21.8.1.1"
+	OIDRegex = `^[0-9]+(\.[0-9]+)+$`
 )

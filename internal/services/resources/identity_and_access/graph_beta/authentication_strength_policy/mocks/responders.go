@@ -65,7 +65,18 @@ func (m *AuthenticationStrengthMock) RegisterMocks() {
 			responseObj["allowedCombinations"] = allowedCombinations
 		}
 		if combinationConfigurations, ok := requestBody["combinationConfigurations"]; ok {
-			responseObj["combinationConfigurations"] = combinationConfigurations
+			// Generate IDs for each combination configuration (mimics API behavior)
+			if configsArray, ok := combinationConfigurations.([]any); ok {
+				for i, configRaw := range configsArray {
+					if configMap, ok := configRaw.(map[string]any); ok {
+						configMap["id"] = uuid.New().String()
+						configsArray[i] = configMap
+					}
+				}
+				responseObj["combinationConfigurations"] = configsArray
+			} else {
+				responseObj["combinationConfigurations"] = combinationConfigurations
+			}
 		}
 
 		// Store in mock state
@@ -77,9 +88,10 @@ func (m *AuthenticationStrengthMock) RegisterMocks() {
 	})
 
 	// Get authentication strength policy - GET /identity/conditionalAccess/authenticationStrength/policies/{id}
-	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/identity/conditionalAccess/authenticationStrength/policies/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`, func(req *http.Request) (*http.Response, error) {
-		parts := strings.Split(req.URL.Path, "/")
-		policyId := parts[len(parts)-1]
+	// Supports $expand query parameter for combinationConfigurations
+	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/identity/conditionalAccess/authenticationStrength/policies/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}`, func(req *http.Request) (*http.Response, error) {
+		pathParts := strings.Split(req.URL.Path, "/")
+		policyId := pathParts[len(pathParts)-1]
 
 		mockState.Lock()
 		policy, exists := mockState.authenticationStrengths[policyId]
@@ -89,8 +101,24 @@ func (m *AuthenticationStrengthMock) RegisterMocks() {
 			return httpmock.NewStringResponse(404, `{"error":{"code":"ResourceNotFound","message":"Resource not found"}}`), nil
 		}
 
-		// Return the stored policy data which includes all the request data
-		return httpmock.NewJsonResponse(200, policy)
+		// Deep copy policy to avoid modifying the stored state
+		policyBytes, _ := json.Marshal(policy)
+		var policyResponse map[string]any
+		json.Unmarshal(policyBytes, &policyResponse)
+
+		// Mimic real API behavior: Remove allowedIssuers from all combinationConfigurations
+		// The API accepts this field but never returns it in GET responses
+		if configs, ok := policyResponse["combinationConfigurations"].([]any); ok {
+			for i, configRaw := range configs {
+				if configMap, ok := configRaw.(map[string]any); ok {
+					delete(configMap, "allowedIssuers")
+					configs[i] = configMap
+				}
+			}
+			policyResponse["combinationConfigurations"] = configs
+		}
+
+		return httpmock.NewJsonResponse(200, policyResponse)
 	})
 
 	// Update authentication strength policy - PATCH /identity/conditionalAccess/authenticationStrength/policies/{id}
@@ -136,6 +164,76 @@ func (m *AuthenticationStrengthMock) RegisterMocks() {
 		if !exists {
 			return httpmock.NewStringResponse(404, `{"error":{"code":"ResourceNotFound","message":"Resource not found"}}`), nil
 		}
+
+		return httpmock.NewStringResponse(204, ""), nil
+	})
+
+	// Update allowed combinations - POST /policies/authenticationStrengthPolicies/{id}/updateAllowedCombinations
+	httpmock.RegisterResponder("POST", `=~^https://graph\.microsoft\.com/beta/policies/authenticationStrengthPolicies/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}/updateAllowedCombinations$`, func(req *http.Request) (*http.Response, error) {
+		parts := strings.Split(req.URL.Path, "/")
+		policyId := parts[len(parts)-2]
+
+		var requestBody map[string]any
+		if err := json.NewDecoder(req.Body).Decode(&requestBody); err != nil {
+			return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"Invalid request body"}}`), nil
+		}
+
+		mockState.Lock()
+		policy, exists := mockState.authenticationStrengths[policyId]
+		if !exists {
+			mockState.Unlock()
+			return httpmock.NewStringResponse(404, `{"error":{"code":"ResourceNotFound","message":"Resource not found"}}`), nil
+		}
+
+		// Update allowedCombinations
+		if allowedCombinations, ok := requestBody["allowedCombinations"]; ok {
+			policy["allowedCombinations"] = allowedCombinations
+		}
+		policy["modifiedDateTime"] = "2024-01-02T00:00:00Z"
+		mockState.authenticationStrengths[policyId] = policy
+		mockState.Unlock()
+
+		return httpmock.NewStringResponse(200, ""), nil
+	})
+
+	// Update combination configuration - PATCH /identity/conditionalAccess/authenticationStrength/policies/{id}/combinationConfigurations/{configId}
+	httpmock.RegisterResponder("PATCH", `=~^https://graph\.microsoft\.com/beta/identity/conditionalAccess/authenticationStrength/policies/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}/combinationConfigurations/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`, func(req *http.Request) (*http.Response, error) {
+		parts := strings.Split(req.URL.Path, "/")
+		policyId := parts[len(parts)-3]
+		configId := parts[len(parts)-1]
+
+		var requestBody map[string]any
+		if err := json.NewDecoder(req.Body).Decode(&requestBody); err != nil {
+			return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"Invalid request body"}}`), nil
+		}
+
+		mockState.Lock()
+		policy, exists := mockState.authenticationStrengths[policyId]
+		if !exists {
+			mockState.Unlock()
+			return httpmock.NewStringResponse(404, `{"error":{"code":"ResourceNotFound","message":"Resource not found"}}`), nil
+		}
+
+		// Find and update the specific combination configuration
+		if configs, ok := policy["combinationConfigurations"].([]any); ok {
+			for i, configRaw := range configs {
+				if configMap, ok := configRaw.(map[string]any); ok {
+					if configMap["id"] == configId {
+						// Update the configuration fields from request
+						for key, value := range requestBody {
+							configMap[key] = value
+						}
+						configs[i] = configMap
+						break
+					}
+				}
+			}
+			policy["combinationConfigurations"] = configs
+		}
+
+		policy["modifiedDateTime"] = "2024-01-02T00:00:00Z"
+		mockState.authenticationStrengths[policyId] = policy
+		mockState.Unlock()
 
 		return httpmock.NewStringResponse(204, ""), nil
 	})

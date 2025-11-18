@@ -1,4 +1,4 @@
-package graphBetaAuthenticationStrength
+package graphBetaAuthenticationStrengthPolicy
 
 import (
 	"context"
@@ -19,7 +19,7 @@ import (
 )
 
 const (
-	ResourceName  = "graph_beta_identity_and_access_authentication_strength"
+	ResourceName  = "graph_beta_identity_and_access_authentication_strength_policy"
 	CreateTimeout = 180
 	UpdateTimeout = 180
 	ReadTimeout   = 180
@@ -28,17 +28,17 @@ const (
 
 var (
 	// Basic resource interface (CRUD operations)
-	_ resource.Resource = &AuthenticationStrengthResource{}
+	_ resource.Resource = &AuthenticationStrengthPolicyResource{}
 
 	// Allows the resource to be configured with the provider client
-	_ resource.ResourceWithConfigure = &AuthenticationStrengthResource{}
+	_ resource.ResourceWithConfigure = &AuthenticationStrengthPolicyResource{}
 
 	// Enables import functionality
-	_ resource.ResourceWithImportState = &AuthenticationStrengthResource{}
+	_ resource.ResourceWithImportState = &AuthenticationStrengthPolicyResource{}
 )
 
-func NewAuthenticationStrengthResource() resource.Resource {
-	return &AuthenticationStrengthResource{
+func NewAuthenticationStrengthPolicyResource() resource.Resource {
+	return &AuthenticationStrengthPolicyResource{
 		ReadPermissions: []string{
 			"Policy.Read.AuthenticationMethod",
 			"Policy.Read.All",
@@ -47,11 +47,11 @@ func NewAuthenticationStrengthResource() resource.Resource {
 			"Policy.ReadWrite.AuthenticationMethod",
 			"Policy.ReadWrite.ConditionalAccess",
 		},
-		ResourcePath: "/policies/authenticationStrengthPolicies",
+		ResourcePath: "/identity/conditionalAccess/authenticationStrength/policies",
 	}
 }
 
-type AuthenticationStrengthResource struct {
+type AuthenticationStrengthPolicyResource struct {
 	httpClient       *client.AuthenticatedHTTPClient
 	ProviderTypeName string
 	TypeName         string
@@ -61,29 +61,29 @@ type AuthenticationStrengthResource struct {
 }
 
 // Metadata returns the resource type name.
-func (r *AuthenticationStrengthResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+func (r *AuthenticationStrengthPolicyResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	r.ProviderTypeName = req.ProviderTypeName
 	r.TypeName = ResourceName
 	resp.TypeName = r.FullTypeName()
 }
 
 // FullTypeName returns the full resource type name in the format "providername_resourcename".
-func (r *AuthenticationStrengthResource) FullTypeName() string {
+func (r *AuthenticationStrengthPolicyResource) FullTypeName() string {
 	return r.ProviderTypeName + "_" + r.TypeName
 }
 
 // Configure sets the client for the resource.
-func (r *AuthenticationStrengthResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
-	r.httpClient = client.SetGraphV1HTTPClientForResource(ctx, req, resp, constants.PROVIDER_NAME+"_"+ResourceName)
+func (r *AuthenticationStrengthPolicyResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+	r.httpClient = client.SetGraphBetaHTTPClientForResource(ctx, req, resp, constants.PROVIDER_NAME+"_"+ResourceName)
 }
 
 // ImportState imports the resource state.
-func (r *AuthenticationStrengthResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+func (r *AuthenticationStrengthPolicyResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }
 
 // Schema defines the schema for the resource.
-func (r *AuthenticationStrengthResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+func (r *AuthenticationStrengthPolicyResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		MarkdownDescription: "Manages Microsoft 365 Authentication Strength Policies using the `/identity/conditionalAccess/authenticationStrength/policies` " +
 			"endpoint. Authentication Strength Policies define authentication method combinations that can be used in Conditional Access policies. Learn more here: " +
@@ -103,8 +103,11 @@ func (r *AuthenticationStrengthResource) Schema(ctx context.Context, req resourc
 				},
 			},
 			"display_name": schema.StringAttribute{
-				MarkdownDescription: "The display name of the authentication strength policy.",
+				MarkdownDescription: "The display name of the authentication strength policy. Maximum length is 30 characters.",
 				Required:            true,
+				Validators: []validator.String{
+					stringvalidator.LengthAtMost(30),
+				},
 			},
 			"description": schema.StringAttribute{
 				MarkdownDescription: "The description of the authentication strength policy.",
@@ -145,7 +148,7 @@ func (r *AuthenticationStrengthResource) Schema(ctx context.Context, req resourc
 				},
 			},
 			"allowed_combinations": schema.SetAttribute{
-				MarkdownDescription: "he authentication method combinations allowed by this authentication strength policy. " +
+				MarkdownDescription: "The authentication method combinations allowed by this authentication strength policy. " +
 					"The possible values of this are: password, voice, hardwareOath, softwareOath, sms, fido2, windowsHelloForBusiness, " +
 					"microsoftAuthenticatorPush, deviceBasedPush, temporaryAccessPassOneTime, temporaryAccessPassMultiUse, email, " +
 					"x509CertificateSingleFactor, x509CertificateMultiFactor, federatedSingleFactor, federatedMultiFactor, unknownFutureValue, " +
@@ -179,6 +182,95 @@ func (r *AuthenticationStrengthResource) Schema(ctx context.Context, req resourc
 							"x509CertificateSingleFactor",
 						),
 					),
+				},
+			},
+			"combination_configurations": schema.ListNestedAttribute{
+				MarkdownDescription: "Configuration settings that may be required by certain authentication methods. " +
+					"For example, configuring which FID02 security keys or which X.509 certificate issuers are allowed.",
+				Optional: true,
+				NestedObject: schema.NestedAttributeObject{
+					Attributes: map[string]schema.Attribute{
+						"id": schema.StringAttribute{
+							MarkdownDescription: "The unique identifier for this configuration.",
+							Computed:            true,
+							Validators: []validator.String{
+								stringvalidator.RegexMatches(
+									regexp.MustCompile(constants.GuidRegex),
+									"must be a valid GUID",
+								),
+							},
+						},
+						"odata_type": schema.StringAttribute{
+							MarkdownDescription: "The OData type of the configuration. Must be either `#microsoft.graph.fido2CombinationConfiguration` or `#microsoft.graph.x509CertificateCombinationConfiguration`.",
+							Required:            true,
+							Validators: []validator.String{
+								stringvalidator.OneOf(
+									"#microsoft.graph.fido2CombinationConfiguration",
+									"#microsoft.graph.x509CertificateCombinationConfiguration",
+								),
+							},
+						},
+						"applies_to_combinations": schema.SetAttribute{
+							MarkdownDescription: "Which authentication method combinations this configuration applies to. Must be an authentication method declared in allowed_combinations.",
+							ElementType:         types.StringType,
+							Required:            true,
+						},
+						"allowed_aaguids": schema.SetAttribute{
+							MarkdownDescription: "(FIDO2 only) A list of AAGUIDs (Authenticator Attestation GUIDs) allowed for FIDO2 security keys. Format: `12345678-1234-1234-1234-123456789012`.",
+							ElementType:         types.StringType,
+							Optional:            true,
+							Validators: []validator.Set{
+								setvalidator.ValueStringsAre(
+									stringvalidator.RegexMatches(
+										regexp.MustCompile(constants.GuidRegex),
+										"must be a valid GUID format",
+									),
+								),
+							},
+						},
+						"allowed_issuer_skis": schema.SetAttribute{
+							MarkdownDescription: "(X.509 only) A list of Subject Key Identifiers (SKI) in hexadecimal format identifying allowed certificate issuers. Format: `1A2B3C4D5E6F7A8B9C0D1E2F3A4B5C6D7E8F9A0B` (40 hex characters). Maximum of 5 issuers allowed.",
+							ElementType:         types.StringType,
+							Optional:            true,
+							Validators: []validator.Set{
+								setvalidator.SizeAtMost(5),
+								setvalidator.ValueStringsAre(
+									stringvalidator.RegexMatches(
+										regexp.MustCompile(constants.SubjectKeyIdentifierRegex),
+										"must be a 40-character hexadecimal string",
+									),
+								),
+							},
+						},
+						"allowed_issuers": schema.SetAttribute{
+							MarkdownDescription: "(X.509 only) A list of allowed certificate issuers. Format: `CUSTOMIDENTIFIER:{SKI}` where SKI is the Subject Key Identifier. Maximum of 5 issuers allowed. **Note**: This field is accepted by the API but may not be returned in responses.",
+							ElementType:         types.StringType,
+							Optional:            true,
+							Validators: []validator.Set{
+								setvalidator.SizeAtMost(5),
+								setvalidator.ValueStringsAre(
+									stringvalidator.RegexMatches(
+										regexp.MustCompile(constants.X509CertificateIssuerRegex),
+										"must be in format CUSTOMIDENTIFIER: followed by 40-character hexadecimal string",
+									),
+								),
+							},
+						},
+						"allowed_policy_oids": schema.SetAttribute{
+							MarkdownDescription: "(X.509 only) A list of certificate policy OIDs (Object Identifiers) that are allowed. Format: `1.2.3.4.5` (dotted decimal notation). Maximum of 5 OIDs allowed.",
+							ElementType:         types.StringType,
+							Optional:            true,
+							Validators: []validator.Set{
+								setvalidator.SizeAtMost(5),
+								setvalidator.ValueStringsAre(
+									stringvalidator.RegexMatches(
+										regexp.MustCompile(constants.OIDRegex),
+										"must be a valid OID in dotted decimal notation (e.g., 1.3.6.1.4.1.311.21.8.1.1)",
+									),
+								),
+							},
+						},
+					},
 				},
 			},
 

@@ -14,14 +14,11 @@
     "combinationConfigurations": [
         {
             "@odata.type": "#microsoft.graph.x509CertificateCombinationConfiguration",
+            "id": "aaaaaaaa-1111-2222-3333-444444444444",
             "appliesToCombinations": ["x509CertificateMultiFactor"],
             "allowedIssuerSkis": [
                 "1A4248C6AC8C2931AB2A86537818E92E7B6C97B7",
                 "2A4248C6AC8C2931AB2A86537818E92E7B6C97B7"
-            ],
-            "allowedIssuers": [
-                "CUSTOMIDENTIFIER:1A4248C6AC8C2931AB2A86537818E92E7B6C97B7",
-                "CUSTOMIDENTIFIER:2A4248C6AC8C2931AB2A86537818E92E7B6C97B7"
             ],
             "allowedPolicyOIDs": [
                 "1.1.1.1",
@@ -30,6 +27,7 @@
         },
         {
             "@odata.type": "#microsoft.graph.fido2CombinationConfiguration",
+            "id": "bbbbbbbb-2222-3333-4444-555555555555",
             "appliesToCombinations": ["fido2"],
             "allowedAAGUIDs": [
                 "12345678-0000-0000-0000-123456780000",
@@ -39,14 +37,11 @@
         },
         {
             "@odata.type": "#microsoft.graph.x509CertificateCombinationConfiguration",
+            "id": "cccccccc-3333-4444-5555-666666666666",
             "appliesToCombinations": ["x509CertificateSingleFactor"],
             "allowedIssuerSkis": [
                 "9A4248C6AC8C2931AB2A86537818E92E7B6C97B6",
                 "8A4248C6AC8C2931AB2A86537818E92E7B6C97B6"
-            ],
-            "allowedIssuers": [
-                "CUSTOMIDENTIFIER:9A4248C6AC8C2931AB2A86537818E92E7B6C97B6",
-                "CUSTOMIDENTIFIER:8A4248C6AC8C2931AB2A86537818E92E7B6C97B6"
             ],
             "allowedPolicyOIDs": [
                 "1.1.1.1",

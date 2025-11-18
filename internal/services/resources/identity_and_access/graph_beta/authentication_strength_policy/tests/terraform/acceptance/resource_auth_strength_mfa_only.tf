@@ -1,6 +1,7 @@
 resource "microsoft365_graph_beta_identity_and_access_authentication_strength" "auth_strength_mfa_only" {
-  display_name = "unit-test-authentication-strength-mfa-only"
-  description  = "Unit test MFA-only authentication strength policy"
+  # Display name must be 30 characters or less
+  display_name = "acc-test-auth-strength-mfa"
+  description  = "Acceptance test MFA-only authentication strength policy"
 
   allowed_combinations = [
     "fido2",

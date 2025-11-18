@@ -1,4 +1,4 @@
-package graphBetaAuthenticationStrength_test
+package graphBetaAuthenticationStrengthPolicy_test
 
 import (
 	"regexp"
@@ -6,7 +6,7 @@ import (
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
-	authStrengthMocks "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/identity_and_access/graph_beta/authentication_strength/mocks"
+	authStrengthMocks "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/identity_and_access/graph_beta/authentication_strength_policy/mocks"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/jarcoal/httpmock"
 )
@@ -17,15 +17,6 @@ func setupMockEnvironment() (*mocks.Mocks, *authStrengthMocks.AuthenticationStre
 	mockClient.AuthMocks.RegisterMocks()
 	authStrengthMock := &authStrengthMocks.AuthenticationStrengthMock{}
 	authStrengthMock.RegisterMocks()
-	return mockClient, authStrengthMock
-}
-
-func setupErrorMockEnvironment() (*mocks.Mocks, *authStrengthMocks.AuthenticationStrengthMock) {
-	httpmock.Activate()
-	mockClient := mocks.NewMocks()
-	mockClient.AuthMocks.RegisterMocks()
-	authStrengthMock := &authStrengthMocks.AuthenticationStrengthMock{}
-	authStrengthMock.RegisterErrorMocks()
 	return mockClient, authStrengthMock
 }
 
@@ -46,7 +37,7 @@ func TestAuthenticationStrengthResource_Minimal(t *testing.T) {
 				Config: testConfigAuthStrengthMinimal(),
 				Check: resource.ComposeTestCheckFunc(
 					// Basic attributes
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_identity_and_access_authentication_strength.auth_strength_minimal", "display_name", "unit-test-authentication-strength-minimal"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_identity_and_access_authentication_strength.auth_strength_minimal", "display_name", "unit-test-auth-strength-min"),
 					resource.TestMatchResourceAttr("microsoft365_graph_beta_identity_and_access_authentication_strength.auth_strength_minimal", "id", regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_identity_and_access_authentication_strength.auth_strength_minimal", "description", "Unit test minimal authentication strength policy"),
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_identity_and_access_authentication_strength.auth_strength_minimal", "policy_type", "custom"),
@@ -79,8 +70,8 @@ func TestAuthenticationStrengthResource_Maximal(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					// Basic attributes
 					testCheckExists("microsoft365_graph_beta_identity_and_access_authentication_strength.auth_strength_maximal"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_identity_and_access_authentication_strength.auth_strength_maximal", "display_name", "unit-test-authentication-strength-maximal"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_identity_and_access_authentication_strength.auth_strength_maximal", "description", "Unit test maximal authentication strength policy with all combinations"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_identity_and_access_authentication_strength.auth_strength_maximal", "display_name", "unit-test-auth-strength-max"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_identity_and_access_authentication_strength.auth_strength_maximal", "description", "Unit test maximal authentication strength policy with all combinations and configurations"),
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_identity_and_access_authentication_strength.auth_strength_maximal", "policy_type", "custom"),
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_identity_and_access_authentication_strength.auth_strength_maximal", "requirements_satisfied", "mfa"),
 
@@ -109,8 +100,8 @@ func TestAuthenticationStrengthResource_Maximal(t *testing.T) {
 					resource.TestCheckTypeSetElemAttr("microsoft365_graph_beta_identity_and_access_authentication_strength.auth_strength_maximal", "allowed_combinations.*", "x509CertificateMultiFactor"),
 					resource.TestCheckTypeSetElemAttr("microsoft365_graph_beta_identity_and_access_authentication_strength.auth_strength_maximal", "allowed_combinations.*", "x509CertificateSingleFactor"),
 
-					// Empty combination configurations
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_identity_and_access_authentication_strength.auth_strength_maximal", "combination_configurations.#", "0"),
+					// Combination configurations
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_identity_and_access_authentication_strength.auth_strength_maximal", "combination_configurations.#", "3"),
 				),
 			},
 		},
@@ -131,7 +122,7 @@ func TestAuthenticationStrengthResource_MFAOnly(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					// Basic attributes
 					testCheckExists("microsoft365_graph_beta_identity_and_access_authentication_strength.auth_strength_mfa_only"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_identity_and_access_authentication_strength.auth_strength_mfa_only", "display_name", "unit-test-authentication-strength-mfa-only"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_identity_and_access_authentication_strength.auth_strength_mfa_only", "display_name", "unit-test-auth-strength-mfa"),
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_identity_and_access_authentication_strength.auth_strength_mfa_only", "description", "Unit test MFA-only authentication strength policy"),
 
 					// MFA-only combinations
@@ -177,6 +168,37 @@ func testConfigAuthStrengthWithConfigurations() string {
 		panic("failed to load authentication strength with configurations config: " + err.Error())
 	}
 	return unitTestConfig
+}
+
+// TestAuthenticationStrengthResource_WithConfigurations tests combination configurations
+func TestAuthenticationStrengthResource_WithConfigurations(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
+	_, authStrengthMock := setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+	defer authStrengthMock.CleanupMockState()
+
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testConfigAuthStrengthWithConfigurations(),
+				Check: resource.ComposeTestCheckFunc(
+					// Basic attributes
+					testCheckExists("microsoft365_graph_beta_identity_and_access_authentication_strength.auth_strength_with_configs"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_identity_and_access_authentication_strength.auth_strength_with_configs", "display_name", "unit-test-auth-w-configs"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_identity_and_access_authentication_strength.auth_strength_with_configs", "description", "Unit test authentication strength with FIDO2 and X509 combination configurations"),
+
+					// Allowed combinations
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_identity_and_access_authentication_strength.auth_strength_with_configs", "allowed_combinations.#", "2"),
+					resource.TestCheckTypeSetElemAttr("microsoft365_graph_beta_identity_and_access_authentication_strength.auth_strength_with_configs", "allowed_combinations.*", "fido2"),
+					resource.TestCheckTypeSetElemAttr("microsoft365_graph_beta_identity_and_access_authentication_strength.auth_strength_with_configs", "allowed_combinations.*", "x509CertificateMultiFactor"),
+
+					// Combination configurations
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_identity_and_access_authentication_strength.auth_strength_with_configs", "combination_configurations.#", "2"),
+				),
+			},
+		},
+	})
 }
 
 // TestAuthenticationStrengthResource_Update tests updating an authentication strength policy

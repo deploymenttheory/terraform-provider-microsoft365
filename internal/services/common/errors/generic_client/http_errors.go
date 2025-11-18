@@ -619,6 +619,10 @@ func logHTTPErrorDetails(ctx context.Context, errorInfo *HTTPGraphError) {
 		details["request_headers"] = strings.Split(errorInfo.RequestDetails, "\n")
 	}
 
+	if errorInfo.ResponseBody != "" {
+		details["response_body"] = errorInfo.ResponseBody
+	}
+
 	tflog.Debug(ctx, "Comprehensive HTTP error details", details)
 }
 
