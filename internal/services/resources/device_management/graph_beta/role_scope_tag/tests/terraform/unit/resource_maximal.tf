@@ -1,6 +1,14 @@
+resource "random_string" "suffix" {
+  length  = 8
+  special = false
+  upper   = true
+  lower   = true
+  numeric = true
+}
+
 resource "microsoft365_graph_beta_device_management_role_scope_tag" "maximal" {
-  display_name = "Test Maximal Role Scope Tag - Unique"
-  description  = "Maximal role scope tag for testing with all features"
+  display_name = "unit-test-role-scope-tag-maximal-${random_string.suffix.result}"
+  description  = "unit-test-role-scope-tag-maximal-${random_string.suffix.result}"
 
   assignments = [
     {
