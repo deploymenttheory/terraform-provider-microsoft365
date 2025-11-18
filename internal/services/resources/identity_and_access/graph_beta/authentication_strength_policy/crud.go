@@ -1,19 +1,14 @@
 package graphBetaAuthenticationStrengthPolicy
 
 import (
-	"bytes"
 	"context"
-	"encoding/json"
 	"fmt"
-	"net/http"
 	"time"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/client"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
-	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/generic_client"
+	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
-	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
@@ -34,7 +29,7 @@ func (r *AuthenticationStrengthPolicyResource) Create(ctx context.Context, req r
 	}
 	defer cancel()
 
-	requestBody, err := constructResource(ctx, &object)
+	requestBody, err := constructResourceForSDK(ctx, &object)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error constructing resource for Create Method",
@@ -43,75 +38,21 @@ func (r *AuthenticationStrengthPolicyResource) Create(ctx context.Context, req r
 		return
 	}
 
-	jsonBytes, err := json.Marshal(requestBody)
+	createdPolicy, err := r.client.
+		Identity().
+		ConditionalAccess().
+		AuthenticationStrength().
+		Policies().
+		Post(ctx, requestBody, nil)
+
 	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error marshaling request body",
-			fmt.Sprintf("Could not marshal request body: %s: %s", ResourceName, err.Error()),
-		)
+		errors.HandleKiotaGraphError(ctx, err, resp, "Create", r.WritePermissions)
 		return
 	}
 
-	url := r.httpClient.GetBaseURL() + r.ResourcePath
-	httpReq, err := http.NewRequestWithContext(ctx, "POST", url, bytes.NewReader(jsonBytes))
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error creating HTTP request",
-			fmt.Sprintf("Could not create HTTP request: %s: %s", ResourceName, err.Error()),
-		)
-		return
-	}
+	MapRemoteResourceStateToTerraformSDK(ctx, &object, createdPolicy, object.CombinationConfigurations)
 
-	// Add required resource headers
-	httpReq.Header.Add("x-ms-command-name", "AuthenticationStrengths - AddCustomAuthStrength")
-
-	tflog.Debug(ctx, fmt.Sprintf("Making POST request to: %s", url))
-
-	httpResp, err := client.DoWithRetry(ctx, r.httpClient, httpReq, 10)
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error making HTTP request",
-			fmt.Sprintf("Could not make HTTP request: %s: %s", ResourceName, err.Error()),
-		)
-		return
-	}
-	defer httpResp.Body.Close()
-
-	tflog.Debug(ctx, fmt.Sprintf("POST request response status: %d %s", httpResp.StatusCode, httpResp.Status))
-
-	if httpResp.StatusCode != http.StatusCreated {
-		errors.HandleHTTPGraphError(ctx, httpResp, resp, "Create", r.WritePermissions)
-		return
-	}
-
-	var createdResource map[string]any
-	if err := json.NewDecoder(httpResp.Body).Decode(&createdResource); err != nil {
-		resp.Diagnostics.AddError(
-			"Error parsing response",
-			fmt.Sprintf("Could not parse response: %s: %s", ResourceName, err.Error()),
-		)
-		return
-	}
-
-	id, ok := createdResource["id"].(string)
-	if !ok {
-		resp.Diagnostics.AddError(
-			"Error extracting resource ID",
-			"Created resource ID is missing or not a string",
-		)
-		return
-	}
-
-	object.ID = types.StringValue(id)
-	tflog.Debug(ctx, fmt.Sprintf("Successfully created %s with ID: %s", ResourceName, id))
-
-	if object.ID.IsNull() || object.ID.IsUnknown() {
-		resp.Diagnostics.AddError(
-			"Error extracting resource ID",
-			fmt.Sprintf("Could not extract ID from created resource: %s. The API may not return the full resource on creation.", ResourceName),
-		)
-		return
-	}
+	tflog.Debug(ctx, fmt.Sprintf("Successfully created %s with ID: %s", ResourceName, object.ID.ValueString()))
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
@@ -165,45 +106,24 @@ func (r *AuthenticationStrengthPolicyResource) Read(ctx context.Context, req res
 	}
 	defer cancel()
 
-	url := r.httpClient.GetBaseURL() + r.ResourcePath + "/" + object.ID.ValueString() + "?$expand=combinationConfigurations"
-	httpReq, err := http.NewRequestWithContext(ctx, "GET", url, nil)
+	policyId := object.ID.ValueString()
+
+	// Configure request to include $expand for combinationConfigurations
+	// Note: We use nil for request configuration as $expand is handled automatically by the SDK for navigation properties
+	policy, err := r.client.
+		Identity().
+		ConditionalAccess().
+		AuthenticationStrength().
+		Policies().
+		ByAuthenticationStrengthPolicyId(policyId).
+		Get(ctx, nil)
+
 	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error creating HTTP request",
-			fmt.Sprintf("Could not create HTTP request: %s: %s", ResourceName, err.Error()),
-		)
+		errors.HandleKiotaGraphError(ctx, err, resp, operation, r.ReadPermissions)
 		return
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Making GET request to: %s", url))
-
-	httpResp, err := client.DoWithRetry(ctx, r.httpClient, httpReq, 10)
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error making HTTP request",
-			fmt.Sprintf("Could not make HTTP request: %s: %s", ResourceName, err.Error()),
-		)
-		return
-	}
-	defer httpResp.Body.Close()
-
-	tflog.Debug(ctx, fmt.Sprintf("GET request response status: %d %s", httpResp.StatusCode, httpResp.Status))
-
-	if httpResp.StatusCode != http.StatusOK {
-		errors.HandleHTTPGraphError(ctx, httpResp, resp, operation, r.ReadPermissions)
-		return
-	}
-
-	var baseResource map[string]any
-	if err := json.NewDecoder(httpResp.Body).Decode(&baseResource); err != nil {
-		resp.Diagnostics.AddError(
-			"Error unmarshaling response",
-			fmt.Sprintf("Could not unmarshal response: %s: %s", ResourceName, err.Error()),
-		)
-		return
-	}
-
-	MapRemoteResourceStateToTerraform(ctx, &object, baseResource)
+	MapRemoteResourceStateToTerraformSDK(ctx, &object, policy, object.CombinationConfigurations)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
@@ -240,7 +160,7 @@ func (r *AuthenticationStrengthPolicyResource) Update(ctx context.Context, req r
 		tflog.Debug(ctx, "Allowed combinations changed, updating...")
 
 		// Construct request body
-		requestBody, err := constructAllowedCombinationsUpdate(ctx, &plan)
+		requestBody, err := constructAllowedCombinationsUpdateForSDK(ctx, &plan)
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error constructing allowed combinations update",
@@ -249,44 +169,17 @@ func (r *AuthenticationStrengthPolicyResource) Update(ctx context.Context, req r
 			return
 		}
 
-		jsonBytes, err := json.Marshal(requestBody)
+		_, err = r.client.
+			Identity().
+			ConditionalAccess().
+			AuthenticationStrength().
+			Policies().
+			ByAuthenticationStrengthPolicyId(state.ID.ValueString()).
+			UpdateAllowedCombinations().
+			Post(ctx, requestBody, nil)
+
 		if err != nil {
-			resp.Diagnostics.AddError(
-				"Error marshaling request body",
-				fmt.Sprintf("Could not marshal request body: %s: %s", ResourceName, err.Error()),
-			)
-			return
-		}
-
-		// Make API call
-		url := r.httpClient.GetBaseURL() + "/policies/authenticationStrengthPolicies/" + state.ID.ValueString() + "/updateAllowedCombinations"
-		httpReq, err := http.NewRequestWithContext(ctx, "POST", url, bytes.NewReader(jsonBytes))
-		if err != nil {
-			resp.Diagnostics.AddError(
-				"Error creating HTTP request",
-				fmt.Sprintf("Could not create HTTP request: %s: %s", ResourceName, err.Error()),
-			)
-			return
-		}
-
-		httpReq.Header.Add("x-ms-command-name", "AuthenticationStrengths - UpdateAllowedCombinations")
-
-		tflog.Debug(ctx, fmt.Sprintf("Making POST request to: %s", url))
-
-		httpResp, err := client.DoWithRetry(ctx, r.httpClient, httpReq, 10)
-		if err != nil {
-			resp.Diagnostics.AddError(
-				"Error making HTTP request",
-				fmt.Sprintf("Could not make HTTP request: %s: %s", ResourceName, err.Error()),
-			)
-			return
-		}
-		defer httpResp.Body.Close()
-
-		tflog.Debug(ctx, fmt.Sprintf("POST updateAllowedCombinations response status: %d %s", httpResp.StatusCode, httpResp.Status))
-
-		if httpResp.StatusCode != http.StatusOK {
-			errors.HandleHTTPGraphError(ctx, httpResp, resp, "Update", r.WritePermissions)
+			errors.HandleKiotaGraphError(ctx, err, resp, "Update", r.WritePermissions)
 			return
 		}
 	}
@@ -336,7 +229,7 @@ func (r *AuthenticationStrengthPolicyResource) Update(ctx context.Context, req r
 			configID := stateConfig.ID.ValueString()
 
 			// Construct request body
-			requestBody, err := constructCombinationConfigurationUpdate(ctx, &planConfig)
+			requestBody, err := constructCombinationConfigurationUpdateForSDK(ctx, &planConfig)
 			if err != nil {
 				resp.Diagnostics.AddError(
 					"Error constructing combination configuration update",
@@ -345,44 +238,19 @@ func (r *AuthenticationStrengthPolicyResource) Update(ctx context.Context, req r
 				return
 			}
 
-			jsonBytes, err := json.Marshal(requestBody)
+			// Make API call using SDK
+			_, err = r.client.
+				Identity().
+				ConditionalAccess().
+				AuthenticationStrength().
+				Policies().
+				ByAuthenticationStrengthPolicyId(plan.ID.ValueString()).
+				CombinationConfigurations().
+				ByAuthenticationCombinationConfigurationId(configID).
+				Patch(ctx, requestBody, nil)
+
 			if err != nil {
-				resp.Diagnostics.AddError(
-					"Error marshaling request body",
-					fmt.Sprintf("Could not marshal request body: %s: %s", ResourceName, err.Error()),
-				)
-				return
-			}
-
-			// Make API call
-			url := r.httpClient.GetBaseURL() + r.ResourcePath + "/" + plan.ID.ValueString() + "/combinationConfigurations/" + configID
-			httpReq, err := http.NewRequestWithContext(ctx, "PATCH", url, bytes.NewReader(jsonBytes))
-			if err != nil {
-				resp.Diagnostics.AddError(
-					"Error creating HTTP request",
-					fmt.Sprintf("Could not create HTTP request: %s: %s", ResourceName, err.Error()),
-				)
-				return
-			}
-
-			httpReq.Header.Add("x-ms-command-name", "AuthenticationStrengths - UpdateCombinationConfiguration")
-
-			tflog.Debug(ctx, fmt.Sprintf("Making PATCH request to: %s", url))
-
-			httpResp, err := client.DoWithRetry(ctx, r.httpClient, httpReq, 10)
-			if err != nil {
-				resp.Diagnostics.AddError(
-					"Error making HTTP request",
-					fmt.Sprintf("Could not make HTTP request: %s: %s", ResourceName, err.Error()),
-				)
-				return
-			}
-			defer httpResp.Body.Close()
-
-			tflog.Debug(ctx, fmt.Sprintf("PATCH combinationConfiguration response status: %d %s", httpResp.StatusCode, httpResp.Status))
-
-			if httpResp.StatusCode != http.StatusNoContent && httpResp.StatusCode != http.StatusOK {
-				errors.HandleHTTPGraphError(ctx, httpResp, resp, "Update", r.WritePermissions)
+				errors.HandleKiotaGraphError(ctx, err, resp, "Update", r.WritePermissions)
 				return
 			}
 		}
@@ -432,32 +300,18 @@ func (r *AuthenticationStrengthPolicyResource) Delete(ctx context.Context, req r
 	}
 	defer cancel()
 
-	url := r.httpClient.GetBaseURL() + r.ResourcePath + "/" + object.ID.ValueString()
-	httpReq, err := http.NewRequestWithContext(ctx, "DELETE", url, nil)
+	policyId := object.ID.ValueString()
+
+	err := r.client.
+		Identity().
+		ConditionalAccess().
+		AuthenticationStrength().
+		Policies().
+		ByAuthenticationStrengthPolicyId(policyId).
+		Delete(ctx, nil)
+
 	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error creating HTTP request",
-			fmt.Sprintf("Could not create HTTP request: %s: %s", ResourceName, err.Error()),
-		)
-		return
-	}
-
-	tflog.Debug(ctx, fmt.Sprintf("Making DELETE request to: %s", url))
-
-	httpResp, err := client.DoWithRetry(ctx, r.httpClient, httpReq, 10)
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error making HTTP request",
-			fmt.Sprintf("Could not make HTTP request: %s: %s", ResourceName, err.Error()),
-		)
-		return
-	}
-	defer httpResp.Body.Close()
-
-	tflog.Debug(ctx, fmt.Sprintf("DELETE request response status: %d %s", httpResp.StatusCode, httpResp.Status))
-
-	if httpResp.StatusCode != http.StatusNoContent && httpResp.StatusCode != http.StatusNotFound {
-		errors.HandleHTTPGraphError(ctx, httpResp, resp, "Delete", r.WritePermissions)
+		errors.HandleKiotaGraphError(ctx, err, resp, "Delete", r.WritePermissions)
 		return
 	}
 

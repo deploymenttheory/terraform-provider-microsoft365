@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
 )
 
 const (
@@ -47,17 +48,15 @@ func NewAuthenticationStrengthPolicyResource() resource.Resource {
 			"Policy.ReadWrite.AuthenticationMethod",
 			"Policy.ReadWrite.ConditionalAccess",
 		},
-		ResourcePath: "/identity/conditionalAccess/authenticationStrength/policies",
 	}
 }
 
 type AuthenticationStrengthPolicyResource struct {
-	httpClient       *client.AuthenticatedHTTPClient
+	client           *msgraphbetasdk.GraphServiceClient
 	ProviderTypeName string
 	TypeName         string
 	ReadPermissions  []string
 	WritePermissions []string
-	ResourcePath     string
 }
 
 // Metadata returns the resource type name.
@@ -74,7 +73,7 @@ func (r *AuthenticationStrengthPolicyResource) FullTypeName() string {
 
 // Configure sets the client for the resource.
 func (r *AuthenticationStrengthPolicyResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
-	r.httpClient = client.SetGraphBetaHTTPClientForResource(ctx, req, resp, constants.PROVIDER_NAME+"_"+ResourceName)
+	r.client = client.SetGraphBetaClientForResource(ctx, req, resp, constants.PROVIDER_NAME+"_"+ResourceName)
 }
 
 // ImportState imports the resource state.
