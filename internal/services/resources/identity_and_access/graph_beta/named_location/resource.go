@@ -128,12 +128,14 @@ func (r *NamedLocationResource) Schema(ctx context.Context, req resource.SchemaR
 			"is_trusted": schema.BoolAttribute{
 				MarkdownDescription: "Indicates whether the IP named location is trusted. Only applies to IP named locations.",
 				Optional:            true,
+				Computed:            true,
 			},
 			"ipv4_ranges": schema.SetAttribute{
 				MarkdownDescription: "Set of IPv4 CIDR ranges that define this IP named location. Each range should be specified in CIDR notation (e.g., '192.168.1.0/24'). Used for IP named locations only.",
 				ElementType:         types.StringType,
 				Optional:            true,
 				Validators: []validator.Set{
+					setvalidator.SizeAtLeast(1),
 					setvalidator.ValueStringsAre(
 						stringvalidator.RegexMatches(
 							regexp.MustCompile(constants.IPv4CIDRRegex),
@@ -147,6 +149,7 @@ func (r *NamedLocationResource) Schema(ctx context.Context, req resource.SchemaR
 				ElementType:         types.StringType,
 				Optional:            true,
 				Validators: []validator.Set{
+					setvalidator.SizeAtLeast(1),
 					setvalidator.ValueStringsAre(
 						stringvalidator.RegexMatches(
 							regexp.MustCompile(constants.IPv6CIDRRegex),
@@ -173,6 +176,7 @@ func (r *NamedLocationResource) Schema(ctx context.Context, req resource.SchemaR
 				ElementType:         types.StringType,
 				Optional:            true,
 				Validators: []validator.Set{
+					setvalidator.SizeAtLeast(1),
 					setvalidator.ValueStringsAre(
 						stringvalidator.OneOf(
 							"AF", "AX", "AL", "DZ", "AS", "AD", "AO", "AI", "AQ", "AG", "AR", "AM", "AW", "AU",

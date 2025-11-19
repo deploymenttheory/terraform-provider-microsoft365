@@ -130,6 +130,32 @@ The following API permissions are required in order to use this resource.
 
 {{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_conditional_access_policy/resource_cap004-all.tf" }}
 
+### Location-Based Policies (CAL)
+
+#### CAL001: Block Specified Locations
+
+{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_conditional_access_policy/resource_cal001-all.tf" }}
+
+#### CAL002: MFA Registration from Trusted Locations Only
+
+{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_conditional_access_policy/resource_cal002-rsi.tf" }}
+
+#### CAL003: Block Service Accounts from Non-Trusted Locations
+
+{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_conditional_access_policy/resource_cal003-all.tf" }}
+
+#### CAL004: Block Admin Access from Non-Trusted Locations
+
+{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_conditional_access_policy/resource_cal004-all.tf" }}
+
+#### CAL005: Less-Trusted Locations Require Compliance
+
+{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_conditional_access_policy/resource_cal005-selected.tf" }}
+
+#### CAL006: Allow Access Only from Specified Locations
+
+{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_conditional_access_policy/resource_cal006-all.tf" }}
+
 ### User-Based Policies (CAU)
 
 #### CAU001: Require MFA for Guest Users

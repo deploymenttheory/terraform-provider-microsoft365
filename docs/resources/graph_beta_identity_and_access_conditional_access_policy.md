@@ -1252,6 +1252,327 @@ resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy"
 }
 ```
 
+### Location-Based Policies (CAL)
+
+#### CAL001: Block Specified Locations
+
+```terraform
+# CAL001: Block Specified Locations
+# Blocks access from specified untrusted locations for all users.
+resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy" "cal001_block_locations" {
+  display_name = "CAL001-All: Block specified locations for All users when Browser and Modern Auth Clients-v1.1"
+  state        = "enabledForReportingButNotEnforced"
+
+  conditions = {
+    client_app_types = ["browser", "mobileAppsAndDesktopClients"]
+
+    users = {
+      include_users  = ["All"]
+      exclude_users  = []
+      include_groups = []
+      exclude_groups = [
+        microsoft365_graph_beta_groups_group.breakglass.id,
+        microsoft365_graph_beta_groups_group.cal001_exclude.id
+      ]
+      include_roles = []
+      exclude_roles = []
+    }
+
+    applications = {
+      include_applications                            = ["All"]
+      exclude_applications                            = []
+      include_user_actions                            = []
+      include_authentication_context_class_references = []
+    }
+
+    locations = {
+      # Note: Add specific blocked location IDs
+      include_locations = [
+        microsoft365_graph_beta_identity_and_access_named_location.high_risk_countries_blocked_by_client_ip.id,
+        microsoft365_graph_beta_identity_and_access_named_location.high_risk_countries_blocked_by_authenticator_gps.id
+      ]
+      exclude_locations = []
+    }
+
+    sign_in_risk_levels = []
+  }
+
+  grant_controls = {
+    operator                      = "OR"
+    built_in_controls             = ["block"]
+    custom_authentication_factors = []
+  }
+}
+```
+
+#### CAL002: MFA Registration from Trusted Locations Only
+
+```terraform
+# CAL002: MFA Registration from Trusted Locations Only
+# Requires security info registration to occur from trusted locations only.
+resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy" "cal002_mfa_registration_trusted_locations" {
+  display_name = "CAL002-RSI: Require MFA registration from trusted locations only for All users when Browser and Modern Auth Clients-v1.4"
+  state        = "enabledForReportingButNotEnforced"
+
+  conditions = {
+    client_app_types = ["all"]
+
+    users = {
+      include_users  = ["All"]
+      exclude_users  = []
+      include_groups = []
+      exclude_groups = [
+        microsoft365_graph_beta_groups_group.breakglass.id,
+        microsoft365_graph_beta_groups_group.cal002_exclude.id
+      ]
+      include_roles = []
+      exclude_roles = []
+    }
+
+    applications = {
+      include_applications                            = []
+      exclude_applications                            = []
+      include_user_actions                            = ["urn:user:registersecurityinfo"]
+      include_authentication_context_class_references = []
+    }
+
+    locations = {
+      include_locations = ["All"]
+      exclude_locations = ["AllTrusted"]
+    }
+
+    sign_in_risk_levels = []
+  }
+
+  grant_controls = {
+    operator                      = "OR"
+    built_in_controls             = ["block"]
+    custom_authentication_factors = []
+  }
+}
+```
+
+#### CAL003: Block Service Accounts from Non-Trusted Locations
+
+```terraform
+# CAL003: Block Service Accounts from Non-Trusted Locations
+# Blocks access for specified service accounts except from trusted locations.
+resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy" "cal003_block_service_accounts_untrusted" {
+  display_name = "CAL003-All: Block Access for Specified Service Accounts except from Provided Trusted Locations when Browser and Modern Auth Clients-v1.1"
+  state        = "enabledForReportingButNotEnforced"
+
+  conditions = {
+    client_app_types = ["browser", "mobileAppsAndDesktopClients"]
+
+    users = {
+      include_users  = ["None"]
+      exclude_users  = []
+      include_groups = []
+      exclude_groups = []
+      include_roles  = []
+      exclude_roles  = []
+    }
+
+    applications = {
+      include_applications                            = ["All"]
+      exclude_applications                            = []
+      include_user_actions                            = []
+      include_authentication_context_class_references = []
+    }
+
+    locations = {
+      include_locations = ["All"]
+      exclude_locations = ["AllTrusted"]
+    }
+
+    sign_in_risk_levels = []
+  }
+
+  grant_controls = {
+    operator                      = "OR"
+    built_in_controls             = ["block"]
+    custom_authentication_factors = []
+  }
+}
+```
+
+#### CAL004: Block Admin Access from Non-Trusted Locations
+
+```terraform
+# CAL004: Block Admin Access from Non-Trusted Locations
+# Blocks admin access from non-trusted locations.
+resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy" "cal004_block_admin_untrusted_locations" {
+  display_name = "CAL004-All: Block access for Admins from non-trusted locations when Browser and Modern Auth Clients-v1.2"
+  state        = "enabledForReportingButNotEnforced"
+
+  conditions = {
+    client_app_types = ["browser", "mobileAppsAndDesktopClients"]
+
+    users = {
+      include_users  = []
+      exclude_users  = []
+      include_groups = []
+      exclude_groups = [
+        microsoft365_graph_beta_groups_group.breakglass.id,
+        microsoft365_graph_beta_groups_group.cal004_exclude.id
+      ]
+      include_roles = [
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.global_administrator.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.application_administrator.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.authentication_administrator.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.billing_administrator.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.cloud_application_administrator.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.security_operator.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.conditional_access_administrator.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.cloud_device_administrator.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.user_administrator.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.compliance_administrator.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.directory_writers.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.security_reader.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.exchange_administrator.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.global_reader.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.helpdesk_administrator.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.hybrid_identity_administrator.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.insights_business_leader.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.intune_administrator.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.knowledge_administrator.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.privileged_authentication_administrator.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.privileged_role_administrator.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.reports_reader.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.search_administrator.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.sharepoint_administrator.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.teams_administrator.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.security_administrator.items[0].id,
+      ]
+      exclude_roles = []
+    }
+
+    applications = {
+      include_applications                            = ["All"]
+      exclude_applications                            = []
+      include_user_actions                            = []
+      include_authentication_context_class_references = []
+    }
+
+    locations = {
+      include_locations = ["All"]
+      exclude_locations = ["AllTrusted"]
+    }
+
+    sign_in_risk_levels = []
+  }
+
+  grant_controls = {
+    operator                      = "OR"
+    built_in_controls             = ["block"]
+    custom_authentication_factors = []
+  }
+}
+```
+
+#### CAL005: Less-Trusted Locations Require Compliance
+
+```terraform
+# CAL005: Less-Trusted Locations Require Compliance
+# Requires compliant device when accessing from less-trusted locations.
+resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy" "cal005_less_trusted_locations_compliant" {
+  display_name = "CAL005-Selected: Grant access for All users on less-trusted locations when Browser and Modern Auth Clients and Compliant-v1.0"
+  state        = "enabledForReportingButNotEnforced"
+
+  conditions = {
+    client_app_types = ["browser", "mobileAppsAndDesktopClients"]
+
+    users = {
+      include_users  = ["All"]
+      exclude_users  = []
+      include_groups = []
+      exclude_groups = [
+        microsoft365_graph_beta_groups_group.breakglass.id,
+        microsoft365_graph_beta_groups_group.cal005_exclude.id
+      ]
+      include_roles = []
+      exclude_roles = []
+    }
+
+    applications = {
+      include_applications                            = ["All"]
+      exclude_applications                            = ["Office365"]
+      include_user_actions                            = []
+      include_authentication_context_class_references = []
+    }
+
+    locations = {
+      # Note: Add specific less-trusted location IDs
+      include_locations = [
+        microsoft365_graph_beta_identity_and_access_named_location.semi_trusted_partner_networks.id,
+        microsoft365_graph_beta_identity_and_access_named_location.semi_trusted_public_spaces.id
+      ]
+      exclude_locations = []
+    }
+
+    sign_in_risk_levels = []
+  }
+
+  grant_controls = {
+    operator                      = "OR"
+    built_in_controls             = ["compliantDevice", "domainJoinedDevice"]
+    custom_authentication_factors = []
+  }
+}
+```
+
+#### CAL006: Allow Access Only from Specified Locations
+
+```terraform
+# CAL006: Allow Access Only from Specified Locations
+# Restricts access to only specified trusted locations for specific accounts.
+resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy" "cal006_allow_only_specified_locations" {
+  display_name = "CAL006-All: Only Allow Access from specified locations for specific accounts when Browser and Modern Auth Clients-v1.0"
+  state        = "enabledForReportingButNotEnforced"
+
+  conditions = {
+    client_app_types = ["browser", "mobileAppsAndDesktopClients"]
+
+    users = {
+      include_users  = []
+      exclude_users  = []
+      include_groups = [microsoft365_graph_beta_groups_group.cal006_include.id]
+      exclude_groups = [
+        microsoft365_graph_beta_groups_group.breakglass.id,
+        microsoft365_graph_beta_groups_group.cal006_exclude.id
+      ]
+      include_roles = []
+      exclude_roles = []
+    }
+
+    applications = {
+      include_applications                            = ["All"]
+      exclude_applications                            = []
+      include_user_actions                            = []
+      include_authentication_context_class_references = []
+    }
+
+    locations = {
+      include_locations = ["All"]
+      # Note: Add specific allowed location IDs to exclude_locations
+      exclude_locations = [
+        microsoft365_graph_beta_identity_and_access_named_location.allowed_apac_office_only.id,
+        microsoft365_graph_beta_identity_and_access_named_location.allowed_emea_office_only.id,
+        microsoft365_graph_beta_identity_and_access_named_location.allowed_hazelwood_office_only.id,
+      ]
+    }
+
+    sign_in_risk_levels = []
+  }
+
+  grant_controls = {
+    operator                      = "OR"
+    built_in_controls             = ["block"]
+    custom_authentication_factors = []
+  }
+}
+```
+
 ### User-Based Policies (CAU)
 
 #### CAU001: Require MFA for Guest Users
