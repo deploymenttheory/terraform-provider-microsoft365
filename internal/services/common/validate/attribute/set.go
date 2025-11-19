@@ -3,11 +3,14 @@ package attribute
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
+
+//---------------------------------------------------
 
 // stringSetValidator validates that a string set only contains allowed values.
 type stringSetValidator struct {
@@ -67,6 +70,8 @@ func StringSetAllowedValues(allowedValues ...string) validator.Set {
 		allowedValues: allowedValues,
 	}
 }
+
+//---------------------------------------------------
 
 // blockRequiresSetValueValidator validates that a block can only exist if a specific value exists in a sibling set field
 type blockRequiresSetValueValidator struct {
@@ -141,6 +146,8 @@ func BlockRequiresSetValue(setFieldName, requiredValue, blockFieldName string) v
 		blockFieldName: blockFieldName,
 	}
 }
+
+//---------------------------------------------------
 
 // setRequiresBoolValueValidator validates that a set can only have elements when a boolean field has a specific value
 type setRequiresBoolValueValidator struct {
@@ -217,3 +224,91 @@ func SetRequiresBoolValue(boolFieldName string, requiredBoolValue bool, validati
 		validationMessage: validationMessage,
 	}
 }
+
+//---------------------------------------------------
+
+// setRequiresStringValueValidator validates that a set can only have elements when a sibling string field has specific values
+type setRequiresStringValueValidator struct {
+	stringFieldName   string
+	allowedValues     []string
+	validationMessage string
+}
+
+// Description describes the validation in plain text formatting.
+func (v setRequiresStringValueValidator) Description(_ context.Context) string {
+	if v.validationMessage != "" {
+		return v.validationMessage
+	}
+
+	if len(v.allowedValues) == 1 {
+		return fmt.Sprintf("set can only contain elements when %s is %q", v.stringFieldName, v.allowedValues[0])
+	}
+	return fmt.Sprintf("set can only contain elements when %s is one of: %s", v.stringFieldName, strings.Join(v.allowedValues, ", "))
+}
+
+// MarkdownDescription describes the validation in Markdown formatting.
+func (v setRequiresStringValueValidator) MarkdownDescription(ctx context.Context) string {
+	return v.Description(ctx)
+}
+
+// ValidateSet performs the validation.
+func (v setRequiresStringValueValidator) ValidateSet(ctx context.Context, req validator.SetRequest, resp *validator.SetResponse) {
+	// Skip validation if the set is null, unknown, or empty
+	if req.ConfigValue.IsNull() || req.ConfigValue.IsUnknown() || len(req.ConfigValue.Elements()) == 0 {
+		return
+	}
+
+	// Get the string field value
+	var stringField types.String
+	diags := req.Config.GetAttribute(ctx, req.Path.ParentPath().AtName(v.stringFieldName), &stringField)
+	if diags.HasError() {
+		// If we can't find the field, skip validation
+		return
+	}
+
+	// Skip validation if the string field is null or unknown
+	if stringField.IsNull() || stringField.IsUnknown() {
+		return
+	}
+
+	// Check if the string field has one of the allowed values
+	currentValue := stringField.ValueString()
+	isAllowed := false
+	for _, allowedValue := range v.allowedValues {
+		if currentValue == allowedValue {
+			isAllowed = true
+			break
+		}
+	}
+
+	if !isAllowed {
+		errorMessage := v.validationMessage
+		if errorMessage == "" {
+			if len(v.allowedValues) == 1 {
+				errorMessage = fmt.Sprintf("This field can only be set when %s is %q, but %s is currently set to %q",
+					v.stringFieldName, v.allowedValues[0], v.stringFieldName, currentValue)
+			} else {
+				errorMessage = fmt.Sprintf("This field can only be set when %s is one of [%s], but %s is currently set to %q",
+					v.stringFieldName, strings.Join(v.allowedValues, ", "), v.stringFieldName, currentValue)
+			}
+		}
+
+		resp.Diagnostics.AddAttributeError(
+			req.Path,
+			"Invalid Configuration",
+			errorMessage,
+		)
+	}
+}
+
+// SetRequiresStringValue returns a Set validator which ensures that a set can only have elements
+// when a sibling string field has one of the specified values.
+func SetRequiresStringValue(stringFieldName string, allowedValues []string, validationMessage string) validator.Set {
+	return &setRequiresStringValueValidator{
+		stringFieldName:   stringFieldName,
+		allowedValues:     allowedValues,
+		validationMessage: validationMessage,
+	}
+}
+
+//---------------------------------------------------

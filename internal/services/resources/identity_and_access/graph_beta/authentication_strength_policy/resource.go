@@ -7,6 +7,7 @@ import (
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/client"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/schema"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/validate/attribute"
 	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -94,12 +95,6 @@ func (r *AuthenticationStrengthPolicyResource) Schema(ctx context.Context, req r
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
-				Validators: []validator.String{
-					stringvalidator.RegexMatches(
-						regexp.MustCompile(constants.GuidRegex),
-						"must be a valid GUID",
-					),
-				},
 			},
 			"display_name": schema.StringAttribute{
 				MarkdownDescription: "The display name of the authentication strength policy. Maximum length is 30 characters.",
@@ -109,15 +104,15 @@ func (r *AuthenticationStrengthPolicyResource) Schema(ctx context.Context, req r
 				},
 			},
 			"description": schema.StringAttribute{
-				MarkdownDescription: "The description of the authentication strength policy.",
+				MarkdownDescription: "The description of the authentication strength policy. Maximum length is 100 characters.",
 				Optional:            true,
+				Validators: []validator.String{
+					stringvalidator.LengthAtMost(100),
+				},
 			},
 			"policy_type": schema.StringAttribute{
 				MarkdownDescription: "Indicates whether this is a Microsoft-managed or customer-created policy.",
 				Computed:            true,
-				Validators: []validator.String{
-					stringvalidator.OneOf("builtIn", "custom"),
-				},
 			},
 			"requirements_satisfied": schema.StringAttribute{
 				MarkdownDescription: "Describes the type of authentication method target that this authentication strength satisfies.",
@@ -129,22 +124,10 @@ func (r *AuthenticationStrengthPolicyResource) Schema(ctx context.Context, req r
 			"created_date_time": schema.StringAttribute{
 				MarkdownDescription: "The creation date and time of the authentication strength policy.",
 				Computed:            true,
-				Validators: []validator.String{
-					stringvalidator.RegexMatches(
-						regexp.MustCompile(constants.TimeFormatRFC3339Regex),
-						"must be a valid RFC3339 date-time string",
-					),
-				},
 			},
 			"modified_date_time": schema.StringAttribute{
 				MarkdownDescription: "The last modified date and time of the authentication strength policy.",
 				Computed:            true,
-				Validators: []validator.String{
-					stringvalidator.RegexMatches(
-						regexp.MustCompile(constants.TimeFormatRFC3339Regex),
-						"must be a valid RFC3339 date-time string",
-					),
-				},
 			},
 			"allowed_combinations": schema.SetAttribute{
 				MarkdownDescription: "The authentication method combinations allowed by this authentication strength policy. " +
@@ -200,8 +183,9 @@ func (r *AuthenticationStrengthPolicyResource) Schema(ctx context.Context, req r
 							},
 						},
 						"odata_type": schema.StringAttribute{
-							MarkdownDescription: "The OData type of the configuration. Must be either `#microsoft.graph.fido2CombinationConfiguration` or `#microsoft.graph.x509CertificateCombinationConfiguration`.",
-							Required:            true,
+							MarkdownDescription: "The OData type of the configuration. Automatically inferred from `applies_to_combinations`. Can be either `#microsoft.graph.fido2CombinationConfiguration` or `#microsoft.graph.x509CertificateCombinationConfiguration`. If not specified, it will be determined based on the authentication methods in `applies_to_combinations`.",
+							Computed:            true,
+							Optional:            true,
 							Validators: []validator.String{
 								stringvalidator.OneOf(
 									"#microsoft.graph.fido2CombinationConfiguration",
@@ -209,13 +193,20 @@ func (r *AuthenticationStrengthPolicyResource) Schema(ctx context.Context, req r
 								),
 							},
 						},
-						"applies_to_combinations": schema.SetAttribute{
-							MarkdownDescription: "Which authentication method combinations this configuration applies to. Must be an authentication method declared in allowed_combinations.",
-							ElementType:         types.StringType,
-							Required:            true,
+						"applies_to_combinations": schema.StringAttribute{
+							MarkdownDescription: "Which authentication method combination this configuration applies to. Must be one of " +
+								"`fido2`, `x509CertificateSingleFactor`, or `x509CertificateMultiFactor`.",
+							Required: true,
+							Validators: []validator.String{
+								stringvalidator.OneOf(
+									"fido2",
+									"x509CertificateSingleFactor",
+									"x509CertificateMultiFactor",
+								),
+							},
 						},
 						"allowed_aaguids": schema.SetAttribute{
-							MarkdownDescription: "(FIDO2 only) A list of AAGUIDs (Authenticator Attestation GUIDs) allowed for FIDO2 security keys. Format: `12345678-1234-1234-1234-123456789012`.",
+							MarkdownDescription: "(FIDO2 only) A list of AAGUIDs (Authenticator Attestation GUIDs) allowed for FIDO2 security keys. Format: `12345678-1234-1234-1234-123456789012`. Can only be set when `applies_to_combinations` is `fido2`.",
 							ElementType:         types.StringType,
 							Optional:            true,
 							Validators: []validator.Set{
@@ -225,10 +216,11 @@ func (r *AuthenticationStrengthPolicyResource) Schema(ctx context.Context, req r
 										"must be a valid GUID format",
 									),
 								),
+								attribute.SetRequiresStringValue("applies_to_combinations", []string{"fido2"}, ""),
 							},
 						},
 						"allowed_issuer_skis": schema.SetAttribute{
-							MarkdownDescription: "(X.509 only) A list of Subject Key Identifiers (SKI) in hexadecimal format identifying allowed certificate issuers. Format: `1A2B3C4D5E6F7A8B9C0D1E2F3A4B5C6D7E8F9A0B` (40 hex characters). Maximum of 5 issuers allowed.",
+							MarkdownDescription: "(X.509 only) A list of Subject Key Identifiers (SKI) in hexadecimal format identifying allowed certificate issuers. Format: `1A2B3C4D5E6F7A8B9C0D1E2F3A4B5C6D7E8F9A0B` (40 hex characters). Maximum of 5 issuers allowed. Can only be set when `applies_to_combinations` is `x509CertificateMultiFactor` or `x509CertificateSingleFactor`.",
 							ElementType:         types.StringType,
 							Optional:            true,
 							Validators: []validator.Set{
@@ -239,24 +231,16 @@ func (r *AuthenticationStrengthPolicyResource) Schema(ctx context.Context, req r
 										"must be a 40-character hexadecimal string",
 									),
 								),
+								attribute.SetRequiresStringValue("applies_to_combinations", []string{"x509CertificateMultiFactor", "x509CertificateSingleFactor"}, ""),
 							},
 						},
 						"allowed_issuers": schema.SetAttribute{
-							MarkdownDescription: "(X.509 only) A list of allowed certificate issuers. Format: `CUSTOMIDENTIFIER:{SKI}` where SKI is the Subject Key Identifier. Maximum of 5 issuers allowed. **Note**: This field is accepted by the API but may not be returned in responses.",
+							MarkdownDescription: "(X.509 only) A list of allowed certificate issuers. Automatically computed from `allowed_issuer_skis` by adding the `CUSTOMIDENTIFIER:` prefix. Format: `CUSTOMIDENTIFIER:{SKI}` where SKI is the Subject Key Identifier. **Note**: This field is accepted by the API but may not be returned in responses.",
 							ElementType:         types.StringType,
-							Optional:            true,
-							Validators: []validator.Set{
-								setvalidator.SizeAtMost(5),
-								setvalidator.ValueStringsAre(
-									stringvalidator.RegexMatches(
-										regexp.MustCompile(constants.X509CertificateIssuerRegex),
-										"must be in format CUSTOMIDENTIFIER: followed by 40-character hexadecimal string",
-									),
-								),
-							},
+							Computed:            true,
 						},
 						"allowed_policy_oids": schema.SetAttribute{
-							MarkdownDescription: "(X.509 only) A list of certificate policy OIDs (Object Identifiers) that are allowed. Format: `1.2.3.4.5` (dotted decimal notation). Maximum of 5 OIDs allowed.",
+							MarkdownDescription: "(X.509 only) A list of certificate policy OIDs (Object Identifiers) that are allowed. Format: `1.2.3.4.5` (dotted decimal notation). Maximum of 5 OIDs allowed. Can only be set when `applies_to_combinations` is `x509CertificateMultiFactor` or `x509CertificateSingleFactor`.",
 							ElementType:         types.StringType,
 							Optional:            true,
 							Validators: []validator.Set{
@@ -267,12 +251,12 @@ func (r *AuthenticationStrengthPolicyResource) Schema(ctx context.Context, req r
 										"must be a valid OID in dotted decimal notation (e.g., 1.3.6.1.4.1.311.21.8.1.1)",
 									),
 								),
+								attribute.SetRequiresStringValue("applies_to_combinations", []string{"x509CertificateMultiFactor", "x509CertificateSingleFactor"}, ""),
 							},
 						},
 					},
 				},
 			},
-
 			"timeouts": commonschema.Timeouts(ctx),
 		},
 	}

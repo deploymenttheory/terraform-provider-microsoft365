@@ -16,6 +16,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 )
 
+const (
+	testResourceName = "microsoft365_graph_beta_device_management_role_scope_tag"
+)
+
 var (
 	// Resource type names constructed from exported constants
 	resourceType      = constants.PROVIDER_NAME + "_" + graphBetaRoleScopeTag.ResourceName
@@ -56,18 +60,18 @@ func TestAccRoleScopeTagResource_Lifecycle(t *testing.T) {
 				},
 				Config: testAccRoleScopeTagConfig_minimal(),
 				Check: resource.ComposeTestCheckFunc(
-					check.That("microsoft365_graph_beta_device_management_role_scope_tag.test").ExistsInGraph(testResource),
-					check.That("microsoft365_graph_beta_device_management_role_scope_tag.test").Key("id").Exists(),
-					check.That("microsoft365_graph_beta_device_management_role_scope_tag.test").Key("display_name").IsNotEmpty(),
-					check.That("microsoft365_graph_beta_device_management_role_scope_tag.test").Key("description").IsNotEmpty(),
-					check.That("microsoft365_graph_beta_device_management_role_scope_tag.test").Key("is_built_in").HasValue("false"),
+					check.That(testResourceName+".test").ExistsInGraph(testResource),
+					check.That(testResourceName+".test").Key("id").Exists(),
+					check.That(testResourceName+".test").Key("display_name").IsNotEmpty(),
+					check.That(testResourceName+".test").Key("description").IsNotEmpty(),
+					check.That(testResourceName+".test").Key("is_built_in").HasValue("false"),
 				),
 			},
 			{
 				PreConfig: func() {
 					testlog.StepAction(resourceType, "Importing")
 				},
-				ResourceName:      "microsoft365_graph_beta_device_management_role_scope_tag.test",
+				ResourceName:      testResourceName + ".test",
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
@@ -82,9 +86,9 @@ func TestAccRoleScopeTagResource_Lifecycle(t *testing.T) {
 						time.Sleep(60 * time.Second)
 						return nil
 					},
-					resource.TestCheckResourceAttrSet("microsoft365_graph_beta_device_management_role_scope_tag.test", "id"),
-					resource.TestCheckResourceAttrSet("microsoft365_graph_beta_device_management_role_scope_tag.test", "display_name"),
-					resource.TestCheckResourceAttrSet("microsoft365_graph_beta_device_management_role_scope_tag.test", "description"),
+					resource.TestCheckResourceAttrSet(testResourceName+".test", "id"),
+					resource.TestCheckResourceAttrSet(testResourceName+".test", "display_name"),
+					resource.TestCheckResourceAttrSet(testResourceName+".test", "description"),
 				),
 			},
 		},
@@ -113,10 +117,10 @@ func TestAccRoleScopeTagResource_Description(t *testing.T) {
 				},
 				Config: testAccRoleScopeTagConfig_description(),
 				Check: resource.ComposeTestCheckFunc(
-					check.That("microsoft365_graph_beta_device_management_role_scope_tag.description").ExistsInGraph(testResource),
-					check.That("microsoft365_graph_beta_device_management_role_scope_tag.description").Key("id").Exists(),
-					check.That("microsoft365_graph_beta_device_management_role_scope_tag.description").Key("display_name").IsNotEmpty(),
-					check.That("microsoft365_graph_beta_device_management_role_scope_tag.description").Key("description").IsNotEmpty(),
+					check.That(testResourceName+".description").ExistsInGraph(testResource),
+					check.That(testResourceName+".description").Key("id").Exists(),
+					check.That(testResourceName+".description").Key("display_name").IsNotEmpty(),
+					check.That(testResourceName+".description").Key("description").IsNotEmpty(),
 				),
 			},
 		},
@@ -156,9 +160,9 @@ func TestAccRoleScopeTagResource_Assignments(t *testing.T) {
 						time.Sleep(60 * time.Second)
 						return nil
 					},
-					resource.TestCheckResourceAttrSet("microsoft365_graph_beta_device_management_role_scope_tag.assignments", "id"),
-					resource.TestCheckResourceAttrSet("microsoft365_graph_beta_device_management_role_scope_tag.assignments", "description"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_role_scope_tag.assignments", "assignments.#", "2"),
+					resource.TestCheckResourceAttrSet(testResourceName+".assignments", "id"),
+					resource.TestCheckResourceAttrSet(testResourceName+".assignments", "description"),
+					resource.TestCheckResourceAttr(testResourceName+".assignments", "assignments.#", "2"),
 				),
 			},
 		},

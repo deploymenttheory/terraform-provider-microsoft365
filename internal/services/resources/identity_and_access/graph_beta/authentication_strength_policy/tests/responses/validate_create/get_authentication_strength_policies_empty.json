@@ -1,0 +1,5 @@
+{
+    "@odata.context": "https://graph.microsoft.com/beta/$metadata#identity/conditionalAccess/authenticationStrength/policies",
+    "value": []
+}
+

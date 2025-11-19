@@ -24,7 +24,7 @@ type AuthenticationStrengthPolicyResourceModel struct {
 type CombinationConfigurationModel struct {
 	ID                    types.String `tfsdk:"id"`
 	ODataType             types.String `tfsdk:"odata_type"`
-	AppliesToCombinations types.Set    `tfsdk:"applies_to_combinations"`
+	AppliesToCombinations types.String `tfsdk:"applies_to_combinations"`
 
 	// FIDO2 specific fields
 	AllowedAAGUIDs types.Set `tfsdk:"allowed_aaguids"`

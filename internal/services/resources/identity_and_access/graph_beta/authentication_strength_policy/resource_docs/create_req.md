@@ -1,102 +1,133 @@
-Request URL
-https://graph.microsoft.com/v1.0/$batch
-Request Method
-POST
+// Code snippets are only available for the latest major version. Current major version is $v0.*
 
-{"requests":[{"id":"0178675b-e250-46a9-babd-b92881217c0b","method":"GET","url":"/organization/2fd6bb84-ad40-4ec5-9369-a215b25c9952/certificateBasedAuthConfiguration","headers":{"x-ms-command-name":"AuthenticationStrengths - getCertIssuersForAuthStrengths","x-ms-client-request-id":"a6cd687c-233d-4078-8654-232d3b0e5c0f","client-request-id":"a6cd687c-233d-4078-8654-232d3b0e5c0f","x-ms-client-session-id":"4bdab402b3f54080b4890147387920a3"}}]}
+// Dependencies
+import (
+	  "context"
+	  msgraphsdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
+	  graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
+	  //other-imports
+)
 
-
-Request URL
-https://graph.microsoft.com/beta/$batch
-Request Method
-POST
-
-{"requests":[{"id":"f628f58b-dd22-4128-bee0-3acb96537864","method":"POST","url":"/identity/conditionalAccess/authenticationStrength/policies/","body":{"displayName":"gui-test","description":"gui-test","allowedCombinations":["windowsHelloForBusiness"],"combinationConfigurations":[]},"headers":{"x-ms-command-name":"AuthenticationStrengths - AddCustomAuthStrength","x-ms-client-request-id":"5e21e5d7-c4d8-4d3e-aea5-1b5f2c2c09a8","client-request-id":"5e21e5d7-c4d8-4d3e-aea5-1b5f2c2c09a8","x-ms-client-session-id":"4bdab402b3f54080b4890147387920a3","Content-Type":"application/json"}}]}
-
-Request URL
-https://graph.microsoft.com/beta/identity/conditionalAccess/authenticationStrength/policies/?
-Request Method
-GET
-
-{
-    "@odata.context": "https://graph.microsoft.com/beta/$metadata#identity/conditionalAccess/authenticationStrength/policies",
-    "value": [
-        {
-            "id": "8484189b-f18b-4aea-8401-737bf3069677",
-            "createdDateTime": "2025-08-26T10:05:38.43381Z",
-            "modifiedDateTime": "2025-08-26T10:05:38.4348109Z",
-            "displayName": "gui-test",
-            "description": "gui-test",
-            "policyType": "custom",
-            "requirementsSatisfied": "mfa",
-            "allowedCombinations": [
-                "windowsHelloForBusiness"
-            ],
-            "combinationConfigurations@odata.context": "https://graph.microsoft.com/beta/$metadata#identity/conditionalAccess/authenticationStrength/policies('8484189b-f18b-4aea-8401-737bf3069677')/combinationConfigurations",
-            "combinationConfigurations": []
-        },
-        {
-            "id": "00000000-0000-0000-0000-000000000002",
-            "createdDateTime": "2021-12-01T00:00:00Z",
-            "modifiedDateTime": "2021-12-01T00:00:00Z",
-            "displayName": "Multifactor authentication",
-            "description": "Combinations of methods that satisfy strong authentication, such as a password + SMS",
-            "policyType": "builtIn",
-            "requirementsSatisfied": "mfa",
-            "allowedCombinations": [
-                "windowsHelloForBusiness",
-                "fido2",
-                "x509CertificateMultiFactor",
-                "deviceBasedPush",
-                "temporaryAccessPassOneTime",
-                "temporaryAccessPassMultiUse",
-                "password,microsoftAuthenticatorPush",
-                "password,softwareOath",
-                "password,hardwareOath",
-                "password,sms",
-                "password,voice",
-                "federatedMultiFactor",
-                "microsoftAuthenticatorPush,federatedSingleFactor",
-                "softwareOath,federatedSingleFactor",
-                "hardwareOath,federatedSingleFactor",
-                "sms,federatedSingleFactor",
-                "voice,federatedSingleFactor"
-            ],
-            "combinationConfigurations@odata.context": "https://graph.microsoft.com/beta/$metadata#identity/conditionalAccess/authenticationStrength/policies('00000000-0000-0000-0000-000000000002')/combinationConfigurations",
-            "combinationConfigurations": []
-        },
-        {
-            "id": "00000000-0000-0000-0000-000000000003",
-            "createdDateTime": "2021-12-01T00:00:00Z",
-            "modifiedDateTime": "2021-12-01T00:00:00Z",
-            "displayName": "Passwordless MFA",
-            "description": "Passwordless methods that satisfy strong authentication, such as Passwordless sign-in with the Microsoft Authenticator",
-            "policyType": "builtIn",
-            "requirementsSatisfied": "mfa",
-            "allowedCombinations": [
-                "windowsHelloForBusiness",
-                "fido2",
-                "x509CertificateMultiFactor",
-                "deviceBasedPush"
-            ],
-            "combinationConfigurations@odata.context": "https://graph.microsoft.com/beta/$metadata#identity/conditionalAccess/authenticationStrength/policies('00000000-0000-0000-0000-000000000003')/combinationConfigurations",
-            "combinationConfigurations": []
-        },
-        {
-            "id": "00000000-0000-0000-0000-000000000004",
-            "createdDateTime": "2021-12-01T00:00:00Z",
-            "modifiedDateTime": "2021-12-01T00:00:00Z",
-            "displayName": "Phishing-resistant MFA",
-            "description": "Phishing-resistant, Passwordless methods for the strongest authentication, such as a FIDO2 security key",
-            "policyType": "builtIn",
-            "requirementsSatisfied": "mfa",
-            "allowedCombinations": [
-                "windowsHelloForBusiness",
-                "fido2",
-                "x509CertificateMultiFactor"
-            ],
-            "combinationConfigurations@odata.context": "https://graph.microsoft.com/beta/$metadata#identity/conditionalAccess/authenticationStrength/policies('00000000-0000-0000-0000-000000000004')/combinationConfigurations",
-            "combinationConfigurations": []
-        }
-    ]
+requestBody := graphmodels.NewAuthenticationStrengthPolicy()
+displayName := "test-1"
+requestBody.SetDisplayName(&displayName) 
+description := "test-1"
+requestBody.SetDescription(&description) 
+allowedCombinations := []graphmodels.AuthenticationMethodModesable {
+	authenticationMethodModes := graphmodels.DEVICEBASEDPUSH_AUTHENTICATIONMETHODMODES 
+	requestBody.SetAuthenticationMethodModes(&authenticationMethodModes) 
+	authenticationMethodModes := graphmodels.FEDERATEDMULTIFACTOR_AUTHENTICATIONMETHODMODES 
+	requestBody.SetAuthenticationMethodModes(&authenticationMethodModes) 
+	authenticationMethodModes := graphmodels.FEDERATEDSINGLEFACTOR_AUTHENTICATIONMETHODMODES 
+	requestBody.SetAuthenticationMethodModes(&authenticationMethodModes) 
+	authenticationMethodModes := graphmodels.FIDO2_AUTHENTICATIONMETHODMODES 
+	requestBody.SetAuthenticationMethodModes(&authenticationMethodModes) 
+	authenticationMethodModes := graphmodels.HARDWAREOATH,FEDERATEDSINGLEFACTOR_AUTHENTICATIONMETHODMODES 
+	requestBody.SetAuthenticationMethodModes(&authenticationMethodModes) 
+	authenticationMethodModes := graphmodels.MICROSOFTAUTHENTICATORPUSH,FEDERATEDSINGLEFACTOR_AUTHENTICATIONMETHODMODES 
+	requestBody.SetAuthenticationMethodModes(&authenticationMethodModes) 
+	authenticationMethodModes := graphmodels.PASSWORD_AUTHENTICATIONMETHODMODES 
+	requestBody.SetAuthenticationMethodModes(&authenticationMethodModes) 
+	authenticationMethodModes := graphmodels.PASSWORD,HARDWAREOATH_AUTHENTICATIONMETHODMODES 
+	requestBody.SetAuthenticationMethodModes(&authenticationMethodModes) 
+	authenticationMethodModes := graphmodels.PASSWORD,MICROSOFTAUTHENTICATORPUSH_AUTHENTICATIONMETHODMODES 
+	requestBody.SetAuthenticationMethodModes(&authenticationMethodModes) 
+	authenticationMethodModes := graphmodels.PASSWORD,SMS_AUTHENTICATIONMETHODMODES 
+	requestBody.SetAuthenticationMethodModes(&authenticationMethodModes) 
+	authenticationMethodModes := graphmodels.PASSWORD,SOFTWAREOATH_AUTHENTICATIONMETHODMODES 
+	requestBody.SetAuthenticationMethodModes(&authenticationMethodModes) 
+	authenticationMethodModes := graphmodels.PASSWORD,VOICE_AUTHENTICATIONMETHODMODES 
+	requestBody.SetAuthenticationMethodModes(&authenticationMethodModes) 
+	authenticationMethodModes := graphmodels.QRCODEPIN_AUTHENTICATIONMETHODMODES 
+	requestBody.SetAuthenticationMethodModes(&authenticationMethodModes) 
+	authenticationMethodModes := graphmodels.SMS_AUTHENTICATIONMETHODMODES 
+	requestBody.SetAuthenticationMethodModes(&authenticationMethodModes) 
+	authenticationMethodModes := graphmodels.SMS,FEDERATEDSINGLEFACTOR_AUTHENTICATIONMETHODMODES 
+	requestBody.SetAuthenticationMethodModes(&authenticationMethodModes) 
+	authenticationMethodModes := graphmodels.SOFTWAREOATH,FEDERATEDSINGLEFACTOR_AUTHENTICATIONMETHODMODES 
+	requestBody.SetAuthenticationMethodModes(&authenticationMethodModes) 
+	authenticationMethodModes := graphmodels.TEMPORARYACCESSPASSMULTIUSE_AUTHENTICATIONMETHODMODES 
+	requestBody.SetAuthenticationMethodModes(&authenticationMethodModes) 
+	authenticationMethodModes := graphmodels.TEMPORARYACCESSPASSONETIME_AUTHENTICATIONMETHODMODES 
+	requestBody.SetAuthenticationMethodModes(&authenticationMethodModes) 
+	authenticationMethodModes := graphmodels.VOICE,FEDERATEDSINGLEFACTOR_AUTHENTICATIONMETHODMODES 
+	requestBody.SetAuthenticationMethodModes(&authenticationMethodModes) 
+	authenticationMethodModes := graphmodels.WINDOWSHELLOFORBUSINESS_AUTHENTICATIONMETHODMODES 
+	requestBody.SetAuthenticationMethodModes(&authenticationMethodModes) 
+	authenticationMethodModes := graphmodels.X509CERTIFICATEMULTIFACTOR_AUTHENTICATIONMETHODMODES 
+	requestBody.SetAuthenticationMethodModes(&authenticationMethodModes) 
+	authenticationMethodModes := graphmodels.X509CERTIFICATESINGLEFACTOR_AUTHENTICATIONMETHODMODES 
+	requestBody.SetAuthenticationMethodModes(&authenticationMethodModes)
 }
+requestBody.SetAllowedCombinations(allowedCombinations)
+
+
+authenticationCombinationConfiguration := graphmodels.NewFido2CombinationConfiguration()
+appliesToCombinations := []graphmodels.AuthenticationMethodModesable {
+	authenticationMethodModes := graphmodels.FIDO2_AUTHENTICATIONMETHODMODES 
+	authenticationCombinationConfiguration.SetAuthenticationMethodModes(&authenticationMethodModes)
+}
+authenticationCombinationConfiguration.SetAppliesToCombinations(appliesToCombinations)
+allowedAAGUIDs := []string {
+	"12345678-0000-0000-0000-123456780000",
+	"12345678-0000-0000-0000-123456780001",
+	"90a3ccdf-635c-4729-a248-9b709135078f",
+	"de1e552d-db1d-4423-a619-566b625cdc84",
+}
+authenticationCombinationConfiguration.SetAllowedAAGUIDs(allowedAAGUIDs)
+authenticationCombinationConfiguration1 := graphmodels.NewX509CertificateCombinationConfiguration()
+appliesToCombinations := []graphmodels.AuthenticationMethodModesable {
+	authenticationMethodModes := graphmodels.X509CERTIFICATEMULTIFACTOR_AUTHENTICATIONMETHODMODES 
+	authenticationCombinationConfiguration1.SetAuthenticationMethodModes(&authenticationMethodModes)
+}
+authenticationCombinationConfiguration1.SetAppliesToCombinations(appliesToCombinations)
+allowedIssuerSkis := []string {
+	"9A4248C6AC8C2931AB2A86537818E92E7B6C97B6",
+	"9A4248C6AC8C2931AB2A86537818E92E7B6C97B7",
+}
+authenticationCombinationConfiguration1.SetAllowedIssuerSkis(allowedIssuerSkis)
+allowedPolicyOIDs := []string {
+	"1.3.6.1.4.1.311.21.8.1.4",
+	"1.3.6.1.4.1.311.21.8.1.7",
+}
+authenticationCombinationConfiguration1.SetAllowedPolicyOIDs(allowedPolicyOIDs)
+additionalData := map[string]interface{}{
+	allowedIssuers := []string {
+		"CUSTOMIDENTIFIER:9A4248C6AC8C2931AB2A86537818E92E7B6C97B6",
+		"CUSTOMIDENTIFIER:9A4248C6AC8C2931AB2A86537818E92E7B6C97B7",
+	}
+}
+authenticationCombinationConfiguration1.SetAdditionalData(additionalData)
+authenticationCombinationConfiguration2 := graphmodels.NewX509CertificateCombinationConfiguration()
+appliesToCombinations := []graphmodels.AuthenticationMethodModesable {
+	authenticationMethodModes := graphmodels.X509CERTIFICATESINGLEFACTOR_AUTHENTICATIONMETHODMODES 
+	authenticationCombinationConfiguration2.SetAuthenticationMethodModes(&authenticationMethodModes)
+}
+authenticationCombinationConfiguration2.SetAppliesToCombinations(appliesToCombinations)
+allowedIssuerSkis := []string {
+	"1A2B3C4D5E6F7A8B9C0D1E2F3A4B5C6D7E8F9A0C",
+	"1A2B3C4D5E6F7A8B9C0D1E2F3A4B5C6D7E8F9A0E",
+}
+authenticationCombinationConfiguration2.SetAllowedIssuerSkis(allowedIssuerSkis)
+allowedPolicyOIDs := []string {
+	"1.3.6.1.4.1.311.21.8.1.4",
+	"1.3.6.1.4.1.311.21.8.1.7",
+}
+authenticationCombinationConfiguration2.SetAllowedPolicyOIDs(allowedPolicyOIDs)
+additionalData := map[string]interface{}{
+	allowedIssuers := []string {
+		"CUSTOMIDENTIFIER:1A2B3C4D5E6F7A8B9C0D1E2F3A4B5C6D7E8F9A0C",
+		"CUSTOMIDENTIFIER:1A2B3C4D5E6F7A8B9C0D1E2F3A4B5C6D7E8F9A0E",
+	}
+}
+authenticationCombinationConfiguration2.SetAdditionalData(additionalData)
+
+combinationConfigurations := []graphmodels.AuthenticationCombinationConfigurationable {
+	authenticationCombinationConfiguration,
+	authenticationCombinationConfiguration1,
+	authenticationCombinationConfiguration2,
+}
+requestBody.SetCombinationConfigurations(combinationConfigurations)
+
+// To initialize your graphClient, see https://learn.microsoft.com/en-us/graph/sdks/create-client?from=snippets&tabs=go
+policies, err := graphClient.Identity().ConditionalAccess().AuthenticationStrength().Policies().Post(context.Background(), requestBody, nil)

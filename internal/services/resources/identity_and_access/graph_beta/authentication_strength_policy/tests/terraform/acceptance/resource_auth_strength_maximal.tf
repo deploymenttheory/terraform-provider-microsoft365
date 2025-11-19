@@ -1,8 +1,7 @@
 resource "random_uuid" "auth_strength_maximal" {}
 
-resource "microsoft365_graph_beta_identity_and_access_authentication_strength" "auth_strength_maximal" {
-  # Display name must be 30 characters or less
-  display_name = substr("acc-test-auth-max-${random_uuid.auth_strength_maximal.result}", 0, 30)
+resource "microsoft365_graph_beta_identity_and_access_authentication_strength_policy" "auth_strength_maximal" {
+  display_name = substr("acc-test-max-${random_uuid.auth_strength_maximal.result}", 0, 30)
   description  = "Acceptance test maximal authentication strength policy with all combinations and configurations"
 
   allowed_combinations = [
@@ -32,8 +31,7 @@ resource "microsoft365_graph_beta_identity_and_access_authentication_strength" "
 
   combination_configurations = [
     {
-      odata_type              = "#microsoft.graph.fido2CombinationConfiguration"
-      applies_to_combinations = ["fido2"]
+      applies_to_combinations = "fido2"
       allowed_aaguids = [
         "12345678-0000-0000-0000-123456780000",
         "90a3ccdf-635c-4729-a248-9b709135078f",
@@ -41,18 +39,14 @@ resource "microsoft365_graph_beta_identity_and_access_authentication_strength" "
       ]
     },
     {
-      odata_type              = "#microsoft.graph.x509CertificateCombinationConfiguration"
-      applies_to_combinations = ["x509CertificateMultiFactor"]
-      allowed_issuer_skis     = ["1A2B3C4D5E6F7A8B9C0D1E2F3A4B5C6D7E8F9A0B"]
-      allowed_issuers         = ["CUSTOMIDENTIFIER:1A2B3C4D5E6F7A8B9C0D1E2F3A4B5C6D7E8F9A0B"]
-      allowed_policy_oids     = ["1.3.6.1.4.1.311.21.8.1.1"]
+      applies_to_combinations = "x509CertificateMultiFactor"
+      allowed_issuer_skis     = ["1A2B3C4D5E6F7A8B9C0D1E2F3A4B5C6D7E8F9A0A", "1A2B3C4D5E6F7A8B9C0D1E2F3A4B5C6D7E8F9A0B"]
+      allowed_policy_oids     = ["1.3.6.1.4.1.311.21.8.1.5", "1.2.3.4.5.8"]
     },
     {
-      odata_type              = "#microsoft.graph.x509CertificateCombinationConfiguration"
-      applies_to_combinations = ["x509CertificateSingleFactor"]
-      allowed_issuer_skis     = ["1A2B3C4D5E6F7A8B9C0D1E2F3A4B5C6D7E8F9A0B"]
-      allowed_issuers         = ["CUSTOMIDENTIFIER:1A2B3C4D5E6F7A8B9C0D1E2F3A4B5C6D7E8F9A0B"]
-      allowed_policy_oids     = ["1.3.6.1.4.1.311.21.8.1.1"]
+      applies_to_combinations = "x509CertificateSingleFactor"
+      allowed_issuer_skis     = ["1A2B3C4D5E6F7A8B9C0D1E2F3A4B5C6D7E8F9A0C", "1A2B3C4D5E6F7A8B9C0D1E2F3A4B5C6D7E8F9A0D"]
+      allowed_policy_oids     = ["1.3.6.1.4.1.311.21.8.1.4", "1.2.3.4.5.8"]
     }
   ]
 }

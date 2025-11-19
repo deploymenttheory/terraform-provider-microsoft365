@@ -9,6 +9,7 @@ import (
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
 	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
@@ -28,6 +29,14 @@ func (r *AuthenticationStrengthPolicyResource) Create(ctx context.Context, req r
 		return
 	}
 	defer cancel()
+
+	if err := validateRequest(ctx, r.client, object.DisplayName.ValueString(), ""); err != nil {
+		resp.Diagnostics.AddError(
+			"Validation Error",
+			fmt.Sprintf("Authentication strength policy validation failed: %s", err.Error()),
+		)
+		return
+	}
 
 	requestBody, err := constructResourceForSDK(ctx, &object)
 	if err != nil {
@@ -50,7 +59,7 @@ func (r *AuthenticationStrengthPolicyResource) Create(ctx context.Context, req r
 		return
 	}
 
-	MapRemoteResourceStateToTerraformSDK(ctx, &object, createdPolicy, object.CombinationConfigurations)
+	object.ID = types.StringValue(*createdPolicy.GetId())
 
 	tflog.Debug(ctx, fmt.Sprintf("Successfully created %s with ID: %s", ResourceName, object.ID.ValueString()))
 
@@ -108,8 +117,6 @@ func (r *AuthenticationStrengthPolicyResource) Read(ctx context.Context, req res
 
 	policyId := object.ID.ValueString()
 
-	// Configure request to include $expand for combinationConfigurations
-	// Note: We use nil for request configuration as $expand is handled automatically by the SDK for navigation properties
 	policy, err := r.client.
 		Identity().
 		ConditionalAccess().
@@ -123,7 +130,7 @@ func (r *AuthenticationStrengthPolicyResource) Read(ctx context.Context, req res
 		return
 	}
 
-	MapRemoteResourceStateToTerraformSDK(ctx, &object, policy, object.CombinationConfigurations)
+	MapRemoteResourceStateToTerraform(ctx, &object, policy)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
@@ -155,11 +162,18 @@ func (r *AuthenticationStrengthPolicyResource) Update(ctx context.Context, req r
 	}
 	defer cancel()
 
+	if err := validateRequest(ctx, r.client, plan.DisplayName.ValueString(), state.ID.ValueString()); err != nil {
+		resp.Diagnostics.AddError(
+			"Validation Error",
+			fmt.Sprintf("Authentication strength policy validation failed: %s", err.Error()),
+		)
+		return
+	}
+
 	// Step 1: Update allowedCombinations if changed
 	if !plan.AllowedCombinations.Equal(state.AllowedCombinations) {
 		tflog.Debug(ctx, "Allowed combinations changed, updating...")
 
-		// Construct request body
 		requestBody, err := constructAllowedCombinationsUpdateForSDK(ctx, &plan)
 		if err != nil {
 			resp.Diagnostics.AddError(
@@ -207,20 +221,16 @@ func (r *AuthenticationStrengthPolicyResource) Update(ctx context.Context, req r
 			}
 		}
 
-		// Match plan configs to state configs by index
 		for i, planConfig := range planConfigs {
-			// Find the corresponding state config
 			var stateConfig *CombinationConfigurationModel
 			if i < len(stateConfigs) {
 				stateConfig = &stateConfigs[i]
 			}
 
-			// Skip if nothing changed for this config
 			if stateConfig != nil && combinationConfigurationsEqual(ctx, &planConfig, stateConfig) {
 				continue
 			}
 
-			// If the state config has an ID, we update it
 			if stateConfig == nil || stateConfig.ID.IsNull() || stateConfig.ID.IsUnknown() {
 				tflog.Warn(ctx, fmt.Sprintf("Combination configuration at index %d has no ID, may require full resource recreation", i))
 				continue
@@ -228,7 +238,6 @@ func (r *AuthenticationStrengthPolicyResource) Update(ctx context.Context, req r
 
 			configID := stateConfig.ID.ValueString()
 
-			// Construct request body
 			requestBody, err := constructCombinationConfigurationUpdateForSDK(ctx, &planConfig)
 			if err != nil {
 				resp.Diagnostics.AddError(
@@ -238,7 +247,6 @@ func (r *AuthenticationStrengthPolicyResource) Update(ctx context.Context, req r
 				return
 			}
 
-			// Make API call using SDK
 			_, err = r.client.
 				Identity().
 				ConditionalAccess().
@@ -256,7 +264,6 @@ func (r *AuthenticationStrengthPolicyResource) Update(ctx context.Context, req r
 		}
 	}
 
-	// Step 3: Read back the updated resource
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
 		return
