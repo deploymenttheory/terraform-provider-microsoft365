@@ -1,0 +1,72 @@
+{
+    "id": "00000000-0000-0000-0000-000000000001",
+    "displayName": "unit-test-auth-strength-max",
+    "description": "Unit test maximal authentication strength policy with all combinations and configurations",
+    "policyType": "custom",
+    "requirementsSatisfied": "mfa",
+    "createdDateTime": "2024-01-01T00:00:00Z",
+    "modifiedDateTime": "2024-01-01T00:00:00Z",
+    "allowedCombinations": [
+        "deviceBasedPush",
+        "federatedMultiFactor",
+        "federatedSingleFactor",
+        "fido2",
+        "hardwareOath,federatedSingleFactor",
+        "microsoftAuthenticatorPush,federatedSingleFactor",
+        "password",
+        "password,hardwareOath",
+        "password,microsoftAuthenticatorPush",
+        "password,sms",
+        "password,softwareOath",
+        "password,voice",
+        "qrCodePin",
+        "sms",
+        "sms,federatedSingleFactor",
+        "softwareOath,federatedSingleFactor",
+        "temporaryAccessPassMultiUse",
+        "temporaryAccessPassOneTime",
+        "voice,federatedSingleFactor",
+        "windowsHelloForBusiness",
+        "x509CertificateMultiFactor",
+        "x509CertificateSingleFactor"
+    ],
+    "combinationConfigurations": [
+        {
+            "id": "config-id-fido2",
+            "@odata.type": "#microsoft.graph.fido2CombinationConfiguration",
+            "appliesToCombinations": ["fido2"],
+            "allowedAAGUIDs": [
+                "12345678-0000-0000-0000-123456780000",
+                "90a3ccdf-635c-4729-a248-9b709135078f",
+                "de1e552d-db1d-4423-a619-566b625cdc84"
+            ]
+        },
+        {
+            "id": "config-id-x509-multi",
+            "@odata.type": "#microsoft.graph.x509CertificateCombinationConfiguration",
+            "appliesToCombinations": ["x509CertificateMultiFactor"],
+            "allowedIssuerSkis": [
+                "1A2B3C4D5E6F7A8B9C0D1E2F3A4B5C6D7E8F9A0A",
+                "1A2B3C4D5E6F7A8B9C0D1E2F3A4B5C6D7E8F9A0B"
+            ],
+            "allowedPolicyOIDs": [
+                "1.3.6.1.4.1.311.21.8.1.5",
+                "1.2.3.4.5.8"
+            ]
+        },
+        {
+            "id": "config-id-x509-single",
+            "@odata.type": "#microsoft.graph.x509CertificateCombinationConfiguration",
+            "appliesToCombinations": ["x509CertificateSingleFactor"],
+            "allowedIssuerSkis": [
+                "1A2B3C4D5E6F7A8B9C0D1E2F3A4B5C6D7E8F9A0C",
+                "1A2B3C4D5E6F7A8B9C0D1E2F3A4B5C6D7E8F9A0D"
+            ],
+            "allowedPolicyOIDs": [
+                "1.3.6.1.4.1.311.21.8.1.4",
+                "1.2.3.4.5.8"
+            ]
+        }
+    ]
+}
+

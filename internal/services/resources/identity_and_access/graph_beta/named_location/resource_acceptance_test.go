@@ -16,6 +16,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 )
 
+const (
+	testResourceName = "microsoft365_graph_beta_identity_and_access_named_location"
+)
+
 var (
 	// Resource type name constructed from exported constants
 	resourceType = constants.PROVIDER_NAME + "_" + graphBetaNamedLocation.ResourceName
@@ -51,21 +55,21 @@ func TestAccNamedLocationResource_IPMinimal(t *testing.T) {
 						time.Sleep(30 * time.Second)
 						return nil
 					},
-					check.That("microsoft365_graph_beta_identity_and_access_named_location.ip_minimal").ExistsInGraph(testResource),
-					check.That("microsoft365_graph_beta_identity_and_access_named_location.ip_minimal").Key("id").Exists(),
-					check.That("microsoft365_graph_beta_identity_and_access_named_location.ip_minimal").Key("display_name").MatchesRegex(regexp.MustCompile(`^acc-test-named-location-ip-minimal-[0-9a-fA-F-]+$`)),
-					check.That("microsoft365_graph_beta_identity_and_access_named_location.ip_minimal").Key("is_trusted").HasValue("false"),
-					check.That("microsoft365_graph_beta_identity_and_access_named_location.ip_minimal").Key("ipv4_ranges.#").HasValue("1"),
-					check.That("microsoft365_graph_beta_identity_and_access_named_location.ip_minimal").Key("ipv4_ranges.*").ContainsTypeSetElement("192.168.1.0/24"),
-					check.That("microsoft365_graph_beta_identity_and_access_named_location.ip_minimal").Key("created_date_time").Exists(),
-					check.That("microsoft365_graph_beta_identity_and_access_named_location.ip_minimal").Key("modified_date_time").Exists(),
+					check.That(testResourceName+".ip_minimal").ExistsInGraph(testResource),
+					check.That(testResourceName+".ip_minimal").Key("id").Exists(),
+					check.That(testResourceName+".ip_minimal").Key("display_name").MatchesRegex(regexp.MustCompile(`^acc-test-named-location-ip-minimal-[0-9a-fA-F-]+$`)),
+					check.That(testResourceName+".ip_minimal").Key("is_trusted").HasValue("false"),
+					check.That(testResourceName+".ip_minimal").Key("ipv4_ranges.#").HasValue("1"),
+					check.That(testResourceName+".ip_minimal").Key("ipv4_ranges.*").ContainsTypeSetElement("192.168.1.0/24"),
+					check.That(testResourceName+".ip_minimal").Key("created_date_time").Exists(),
+					check.That(testResourceName+".ip_minimal").Key("modified_date_time").Exists(),
 				),
 			},
 			{
 				PreConfig: func() {
 					testlog.StepAction(resourceType, "Importing IP minimal named location")
 				},
-				ResourceName:      "microsoft365_graph_beta_identity_and_access_named_location.ip_minimal",
+				ResourceName:      testResourceName + ".ip_minimal",
 				ImportState:       true,
 				ImportStateVerify: true,
 				ImportStateVerifyIgnore: []string{
@@ -103,17 +107,17 @@ func TestAccNamedLocationResource_IPMaximal(t *testing.T) {
 						time.Sleep(30 * time.Second)
 						return nil
 					},
-					check.That("microsoft365_graph_beta_identity_and_access_named_location.ip_maximal").ExistsInGraph(testResource),
-					check.That("microsoft365_graph_beta_identity_and_access_named_location.ip_maximal").Key("id").Exists(),
-					check.That("microsoft365_graph_beta_identity_and_access_named_location.ip_maximal").Key("display_name").MatchesRegex(regexp.MustCompile(`^acc-test-named-location-ip-maximal-[0-9a-fA-F-]+$`)),
-					check.That("microsoft365_graph_beta_identity_and_access_named_location.ip_maximal").Key("is_trusted").HasValue("true"),
-					check.That("microsoft365_graph_beta_identity_and_access_named_location.ip_maximal").Key("ipv4_ranges.#").HasValue("2"),
-					check.That("microsoft365_graph_beta_identity_and_access_named_location.ip_maximal").Key("ipv4_ranges.*").ContainsTypeSetElement("192.168.0.0/16"),
-					check.That("microsoft365_graph_beta_identity_and_access_named_location.ip_maximal").Key("ipv4_ranges.*").ContainsTypeSetElement("172.16.0.0/12"),
-					check.That("microsoft365_graph_beta_identity_and_access_named_location.ip_maximal").Key("ipv6_ranges.#").HasValue("3"),
-					check.That("microsoft365_graph_beta_identity_and_access_named_location.ip_maximal").Key("ipv6_ranges.*").ContainsTypeSetElement("2001:db8::/32"),
-					check.That("microsoft365_graph_beta_identity_and_access_named_location.ip_maximal").Key("ipv6_ranges.*").ContainsTypeSetElement("fe80::/10"),
-					check.That("microsoft365_graph_beta_identity_and_access_named_location.ip_maximal").Key("ipv6_ranges.*").ContainsTypeSetElement("2001:4860:4860::/48"),
+					check.That(testResourceName+".ip_maximal").ExistsInGraph(testResource),
+					check.That(testResourceName+".ip_maximal").Key("id").Exists(),
+					check.That(testResourceName+".ip_maximal").Key("display_name").MatchesRegex(regexp.MustCompile(`^acc-test-named-location-ip-maximal-[0-9a-fA-F-]+$`)),
+					check.That(testResourceName+".ip_maximal").Key("is_trusted").HasValue("true"),
+					check.That(testResourceName+".ip_maximal").Key("ipv4_ranges.#").HasValue("2"),
+					check.That(testResourceName+".ip_maximal").Key("ipv4_ranges.*").ContainsTypeSetElement("192.168.0.0/16"),
+					check.That(testResourceName+".ip_maximal").Key("ipv4_ranges.*").ContainsTypeSetElement("172.16.0.0/12"),
+					check.That(testResourceName+".ip_maximal").Key("ipv6_ranges.#").HasValue("3"),
+					check.That(testResourceName+".ip_maximal").Key("ipv6_ranges.*").ContainsTypeSetElement("2001:db8::/32"),
+					check.That(testResourceName+".ip_maximal").Key("ipv6_ranges.*").ContainsTypeSetElement("fe80::/10"),
+					check.That(testResourceName+".ip_maximal").Key("ipv6_ranges.*").ContainsTypeSetElement("2001:4860:4860::/48"),
 				),
 			},
 		},
@@ -147,13 +151,13 @@ func TestAccNamedLocationResource_IPv6Only(t *testing.T) {
 						time.Sleep(30 * time.Second)
 						return nil
 					},
-					check.That("microsoft365_graph_beta_identity_and_access_named_location.ipv6_only").ExistsInGraph(testResource),
-					check.That("microsoft365_graph_beta_identity_and_access_named_location.ipv6_only").Key("id").Exists(),
-					check.That("microsoft365_graph_beta_identity_and_access_named_location.ipv6_only").Key("display_name").MatchesRegex(regexp.MustCompile(`^acc-test-named-location-ipv6-only-[0-9a-fA-F-]+$`)),
-					check.That("microsoft365_graph_beta_identity_and_access_named_location.ipv6_only").Key("is_trusted").HasValue("true"),
-					check.That("microsoft365_graph_beta_identity_and_access_named_location.ipv6_only").Key("ipv6_ranges.#").HasValue("2"),
-					check.That("microsoft365_graph_beta_identity_and_access_named_location.ipv6_only").Key("ipv6_ranges.*").ContainsTypeSetElement("2001:db8::/32"),
-					check.That("microsoft365_graph_beta_identity_and_access_named_location.ipv6_only").Key("ipv6_ranges.*").ContainsTypeSetElement("fe80::/10"),
+					check.That(testResourceName+".ipv6_only").ExistsInGraph(testResource),
+					check.That(testResourceName+".ipv6_only").Key("id").Exists(),
+					check.That(testResourceName+".ipv6_only").Key("display_name").MatchesRegex(regexp.MustCompile(`^acc-test-named-location-ipv6-only-[0-9a-fA-F-]+$`)),
+					check.That(testResourceName+".ipv6_only").Key("is_trusted").HasValue("true"),
+					check.That(testResourceName+".ipv6_only").Key("ipv6_ranges.#").HasValue("2"),
+					check.That(testResourceName+".ipv6_only").Key("ipv6_ranges.*").ContainsTypeSetElement("2001:db8::/32"),
+					check.That(testResourceName+".ipv6_only").Key("ipv6_ranges.*").ContainsTypeSetElement("fe80::/10"),
 				),
 			},
 		},
@@ -187,22 +191,22 @@ func TestAccNamedLocationResource_CountryClientIP(t *testing.T) {
 						time.Sleep(30 * time.Second)
 						return nil
 					},
-					check.That("microsoft365_graph_beta_identity_and_access_named_location.country_client_ip").ExistsInGraph(testResource),
-					check.That("microsoft365_graph_beta_identity_and_access_named_location.country_client_ip").Key("id").Exists(),
-					check.That("microsoft365_graph_beta_identity_and_access_named_location.country_client_ip").Key("display_name").MatchesRegex(regexp.MustCompile(`^acc-test-named-location-country-client-ip-[0-9a-fA-F-]+$`)),
-					check.That("microsoft365_graph_beta_identity_and_access_named_location.country_client_ip").Key("country_lookup_method").HasValue("clientIpAddress"),
-					check.That("microsoft365_graph_beta_identity_and_access_named_location.country_client_ip").Key("include_unknown_countries_and_regions").HasValue("false"),
-					check.That("microsoft365_graph_beta_identity_and_access_named_location.country_client_ip").Key("countries_and_regions.#").HasValue("3"),
-					check.That("microsoft365_graph_beta_identity_and_access_named_location.country_client_ip").Key("countries_and_regions.*").ContainsTypeSetElement("US"),
-					check.That("microsoft365_graph_beta_identity_and_access_named_location.country_client_ip").Key("countries_and_regions.*").ContainsTypeSetElement("CA"),
-					check.That("microsoft365_graph_beta_identity_and_access_named_location.country_client_ip").Key("countries_and_regions.*").ContainsTypeSetElement("GB"),
+					check.That(testResourceName+".country_client_ip").ExistsInGraph(testResource),
+					check.That(testResourceName+".country_client_ip").Key("id").Exists(),
+					check.That(testResourceName+".country_client_ip").Key("display_name").MatchesRegex(regexp.MustCompile(`^acc-test-named-location-country-client-ip-[0-9a-fA-F-]+$`)),
+					check.That(testResourceName+".country_client_ip").Key("country_lookup_method").HasValue("clientIpAddress"),
+					check.That(testResourceName+".country_client_ip").Key("include_unknown_countries_and_regions").HasValue("false"),
+					check.That(testResourceName+".country_client_ip").Key("countries_and_regions.#").HasValue("3"),
+					check.That(testResourceName+".country_client_ip").Key("countries_and_regions.*").ContainsTypeSetElement("US"),
+					check.That(testResourceName+".country_client_ip").Key("countries_and_regions.*").ContainsTypeSetElement("CA"),
+					check.That(testResourceName+".country_client_ip").Key("countries_and_regions.*").ContainsTypeSetElement("GB"),
 				),
 			},
 			{
 				PreConfig: func() {
 					testlog.StepAction(resourceType, "Importing country client IP named location")
 				},
-				ResourceName:      "microsoft365_graph_beta_identity_and_access_named_location.country_client_ip",
+				ResourceName:      testResourceName + ".country_client_ip",
 				ImportState:       true,
 				ImportStateVerify: true,
 				ImportStateVerifyIgnore: []string{
@@ -240,16 +244,16 @@ func TestAccNamedLocationResource_CountryAuthenticatorGPS(t *testing.T) {
 						time.Sleep(30 * time.Second)
 						return nil
 					},
-					check.That("microsoft365_graph_beta_identity_and_access_named_location.country_authenticator_gps").ExistsInGraph(testResource),
-					check.That("microsoft365_graph_beta_identity_and_access_named_location.country_authenticator_gps").Key("id").Exists(),
-					check.That("microsoft365_graph_beta_identity_and_access_named_location.country_authenticator_gps").Key("display_name").MatchesRegex(regexp.MustCompile(`^acc-test-named-location-country-authenticator-gps-[0-9a-fA-F-]+$`)),
-					check.That("microsoft365_graph_beta_identity_and_access_named_location.country_authenticator_gps").Key("country_lookup_method").HasValue("authenticatorAppGps"),
-					check.That("microsoft365_graph_beta_identity_and_access_named_location.country_authenticator_gps").Key("include_unknown_countries_and_regions").HasValue("true"),
-					check.That("microsoft365_graph_beta_identity_and_access_named_location.country_authenticator_gps").Key("countries_and_regions.#").HasValue("4"),
-					check.That("microsoft365_graph_beta_identity_and_access_named_location.country_authenticator_gps").Key("countries_and_regions.*").ContainsTypeSetElement("AD"),
-					check.That("microsoft365_graph_beta_identity_and_access_named_location.country_authenticator_gps").Key("countries_and_regions.*").ContainsTypeSetElement("AO"),
-					check.That("microsoft365_graph_beta_identity_and_access_named_location.country_authenticator_gps").Key("countries_and_regions.*").ContainsTypeSetElement("AI"),
-					check.That("microsoft365_graph_beta_identity_and_access_named_location.country_authenticator_gps").Key("countries_and_regions.*").ContainsTypeSetElement("AQ"),
+					check.That(testResourceName+".country_authenticator_gps").ExistsInGraph(testResource),
+					check.That(testResourceName+".country_authenticator_gps").Key("id").Exists(),
+					check.That(testResourceName+".country_authenticator_gps").Key("display_name").MatchesRegex(regexp.MustCompile(`^acc-test-named-location-country-authenticator-gps-[0-9a-fA-F-]+$`)),
+					check.That(testResourceName+".country_authenticator_gps").Key("country_lookup_method").HasValue("authenticatorAppGps"),
+					check.That(testResourceName+".country_authenticator_gps").Key("include_unknown_countries_and_regions").HasValue("true"),
+					check.That(testResourceName+".country_authenticator_gps").Key("countries_and_regions.#").HasValue("4"),
+					check.That(testResourceName+".country_authenticator_gps").Key("countries_and_regions.*").ContainsTypeSetElement("AD"),
+					check.That(testResourceName+".country_authenticator_gps").Key("countries_and_regions.*").ContainsTypeSetElement("AO"),
+					check.That(testResourceName+".country_authenticator_gps").Key("countries_and_regions.*").ContainsTypeSetElement("AI"),
+					check.That(testResourceName+".country_authenticator_gps").Key("countries_and_regions.*").ContainsTypeSetElement("AQ"),
 				),
 			},
 		},

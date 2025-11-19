@@ -14,6 +14,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
+const (
+	testResourceName = "microsoft365_graph_beta_identity_and_access_network_filtering_policy"
+)
+
 var (
 	// Resource type name constructed from exported constants
 	resourceType = constants.PROVIDER_NAME + "_" + graphBetaNetworkFilteringPolicy.ResourceName
@@ -44,17 +48,17 @@ func TestAccNetworkFilteringPolicyResource_Lifecycle(t *testing.T) {
 				},
 				Config: testAccFilteringPolicyConfig_minimal(),
 				Check: resource.ComposeTestCheckFunc(
-					check.That("microsoft365_graph_beta_identity_and_access_network_filtering_policy.test").ExistsInGraph(testResource),
-					check.That("microsoft365_graph_beta_identity_and_access_network_filtering_policy.test").Key("id").Exists(),
-					check.That("microsoft365_graph_beta_identity_and_access_network_filtering_policy.test").Key("name").IsNotEmpty(),
-					check.That("microsoft365_graph_beta_identity_and_access_network_filtering_policy.test").Key("action").HasValue("block"),
+					check.That(testResourceName+".test").ExistsInGraph(testResource),
+					check.That(testResourceName+".test").Key("id").Exists(),
+					check.That(testResourceName+".test").Key("name").IsNotEmpty(),
+					check.That(testResourceName+".test").Key("action").HasValue("block"),
 				),
 			},
 			{
 				PreConfig: func() {
 					testlog.StepAction(resourceType, "Importing")
 				},
-				ResourceName:      "microsoft365_graph_beta_identity_and_access_network_filtering_policy.test",
+				ResourceName:      testResourceName + ".test",
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
@@ -64,10 +68,10 @@ func TestAccNetworkFilteringPolicyResource_Lifecycle(t *testing.T) {
 				},
 				Config: testAccFilteringPolicyConfig_updated(),
 				Check: resource.ComposeTestCheckFunc(
-					check.That("microsoft365_graph_beta_identity_and_access_network_filtering_policy.test").ExistsInGraph(testResource),
-					check.That("microsoft365_graph_beta_identity_and_access_network_filtering_policy.test").Key("name").IsNotEmpty(),
-					check.That("microsoft365_graph_beta_identity_and_access_network_filtering_policy.test").Key("description").IsNotEmpty(),
-					check.That("microsoft365_graph_beta_identity_and_access_network_filtering_policy.test").Key("action").HasValue("allow"),
+					check.That(testResourceName+".test").ExistsInGraph(testResource),
+					check.That(testResourceName+".test").Key("name").IsNotEmpty(),
+					check.That(testResourceName+".test").Key("description").IsNotEmpty(),
+					check.That(testResourceName+".test").Key("action").HasValue("allow"),
 				),
 			},
 		},
@@ -96,12 +100,12 @@ func TestAccNetworkFilteringPolicyResource_BlockAction(t *testing.T) {
 				},
 				Config: testAccFilteringPolicyConfig_blockAction(),
 				Check: resource.ComposeTestCheckFunc(
-					check.That("microsoft365_graph_beta_identity_and_access_network_filtering_policy.block").ExistsInGraph(testResource),
-					check.That("microsoft365_graph_beta_identity_and_access_network_filtering_policy.block").Key("id").Exists(),
-					check.That("microsoft365_graph_beta_identity_and_access_network_filtering_policy.block").Key("name").IsNotEmpty(),
-					check.That("microsoft365_graph_beta_identity_and_access_network_filtering_policy.block").Key("description").IsNotEmpty(),
-					check.That("microsoft365_graph_beta_identity_and_access_network_filtering_policy.block").Key("action").HasValue("block"),
-					check.That("microsoft365_graph_beta_identity_and_access_network_filtering_policy.block").Key("created_date_time").Exists(),
+					check.That(testResourceName+".block").ExistsInGraph(testResource),
+					check.That(testResourceName+".block").Key("id").Exists(),
+					check.That(testResourceName+".block").Key("name").IsNotEmpty(),
+					check.That(testResourceName+".block").Key("description").IsNotEmpty(),
+					check.That(testResourceName+".block").Key("action").HasValue("block"),
+					check.That(testResourceName+".block").Key("created_date_time").Exists(),
 				),
 			},
 		},
@@ -130,12 +134,12 @@ func TestAccNetworkFilteringPolicyResource_AllowAction(t *testing.T) {
 				},
 				Config: testAccFilteringPolicyConfig_allowAction(),
 				Check: resource.ComposeTestCheckFunc(
-					check.That("microsoft365_graph_beta_identity_and_access_network_filtering_policy.allow").ExistsInGraph(testResource),
-					check.That("microsoft365_graph_beta_identity_and_access_network_filtering_policy.allow").Key("id").Exists(),
-					check.That("microsoft365_graph_beta_identity_and_access_network_filtering_policy.allow").Key("name").IsNotEmpty(),
-					check.That("microsoft365_graph_beta_identity_and_access_network_filtering_policy.allow").Key("description").IsNotEmpty(),
-					check.That("microsoft365_graph_beta_identity_and_access_network_filtering_policy.allow").Key("action").HasValue("allow"),
-					check.That("microsoft365_graph_beta_identity_and_access_network_filtering_policy.allow").Key("created_date_time").Exists(),
+					check.That(testResourceName+".allow").ExistsInGraph(testResource),
+					check.That(testResourceName+".allow").Key("id").Exists(),
+					check.That(testResourceName+".allow").Key("name").IsNotEmpty(),
+					check.That(testResourceName+".allow").Key("description").IsNotEmpty(),
+					check.That(testResourceName+".allow").Key("action").HasValue("allow"),
+					check.That(testResourceName+".allow").Key("created_date_time").Exists(),
 				),
 			},
 		},
@@ -166,10 +170,10 @@ func TestAccNetworkFilteringPolicyResource_MinimalConfiguration(t *testing.T) {
 				},
 				Config: testAccFilteringPolicyConfig_minimalNoDescription(),
 				Check: resource.ComposeTestCheckFunc(
-					check.That("microsoft365_graph_beta_identity_and_access_network_filtering_policy.minimal").ExistsInGraph(testResource),
-					check.That("microsoft365_graph_beta_identity_and_access_network_filtering_policy.minimal").Key("id").Exists(),
-					check.That("microsoft365_graph_beta_identity_and_access_network_filtering_policy.minimal").Key("name").IsNotEmpty(),
-					check.That("microsoft365_graph_beta_identity_and_access_network_filtering_policy.minimal").Key("action").HasValue("block"),
+					check.That(testResourceName+".minimal").ExistsInGraph(testResource),
+					check.That(testResourceName+".minimal").Key("id").Exists(),
+					check.That(testResourceName+".minimal").Key("name").IsNotEmpty(),
+					check.That(testResourceName+".minimal").Key("action").HasValue("block"),
 				),
 			},
 		},

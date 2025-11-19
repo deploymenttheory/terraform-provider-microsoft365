@@ -1,0 +1,14 @@
+{
+    "id": "00000000-0000-0000-0000-000000000002",
+    "displayName": "unit-test-auth-strength-min",
+    "description": "Unit test minimal authentication strength policy",
+    "policyType": "custom",
+    "requirementsSatisfied": "mfa",
+    "createdDateTime": "2024-01-01T00:00:00Z",
+    "modifiedDateTime": "2024-01-01T00:00:00Z",
+    "allowedCombinations": [
+        "password,sms"
+    ],
+    "combinationConfigurations": []
+}
+

@@ -1,0 +1,15 @@
+{
+    "id": "00000000-0000-0000-0000-000000000001",
+    "displayName": "unit-test-auth-strength-updated",
+    "description": "Updated description",
+    "policyType": "custom",
+    "requirementsSatisfied": "mfa",
+    "createdDateTime": "2024-01-01T00:00:00Z",
+    "modifiedDateTime": "2024-01-02T00:00:00Z",
+    "allowedCombinations": [
+        "fido2",
+        "windowsHelloForBusiness"
+    ],
+    "combinationConfigurations": []
+}
+
