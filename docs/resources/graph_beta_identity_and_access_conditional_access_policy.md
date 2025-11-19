@@ -34,33 +34,16 @@ The following API permissions are required in order to use this resource.
 
 ## Example Usage
 
-```terraform
-# ==============================================================================
-# Conditional Access Policies - Baseline (48 Policies)
-# ==============================================================================
-# This file defines 48 conditional access policies for Entra ID. Policies are
-# organized by category:
-# - CAD: Device-based policies (19 policies)
-# - CAL: Location-based policies (6 policies)
-# - CAP: Platform-based policies (4 policies)
-# - CAU: User-based policies (19 policies)
-#
-# IMPORTANT: All policies are set to "enabledForReportingButNotEnforced" by
-# default (except CAU011 which is "disabled"). Review and test thoroughly
-# before changing state to "enabled".
-#
-# Break Glass Account Exclusion: All policies exclude the break glass accounts
-# group to ensure emergency access is maintained.
-# ==============================================================================
+### Device-Based Policies (CAD)
 
-# ==============================================================================
-# Device-Based Policies (CAD) - 19 Policies
-# ==============================================================================
+#### CAD001: macOS Compliant Device Access
+
+```terraform
 # CAD001: macOS Device Compliance
 # Grants macOS access to Office 365 for all users when using modern auth clients
 # and device is compliant.
 resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy" "cad001_macos_compliant" {
-  display_name = "acc-CAD001-O365: Grant macOS access for All users when Modern Auth Clients and Compliant-v1.1"
+  display_name = "CAD001-O365: Grant macOS access for All users when Modern Auth Clients and Compliant-v1.1"
   state        = "enabledForReportingButNotEnforced"
 
   conditions = {
@@ -104,10 +87,12 @@ resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy"
     built_in_controls             = ["compliantDevice"]
     custom_authentication_factors = []
   }
-
-
 }
+```
 
+#### CAD002: Windows Compliant Device Access
+
+```terraform
 # CAD002: Windows Device Compliance
 # Grants Windows access to Office 365 for all users when using modern auth clients
 # and device is compliant.
@@ -156,10 +141,12 @@ resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy"
     built_in_controls             = ["compliantDevice", "domainJoinedDevice"]
     custom_authentication_factors = []
   }
-
-
 }
+```
 
+#### CAD003: iOS/iPadOS Compliant Device Access
+
+```terraform
 # CAD003: iOS and Android Device Compliance or App Protection
 # Grants iOS and Android access to Office 365 for all users when using modern auth
 # clients and device has app protection policy or is compliant.
@@ -208,10 +195,12 @@ resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy"
     built_in_controls             = ["compliantDevice", "compliantApplication"]
     custom_authentication_factors = []
   }
-
-
 }
+```
 
+#### CAD004: Android Compliant Device Access
+
+```terraform
 # CAD004: Require MFA on Non-Compliant Devices via Browser
 # Requires MFA for all users accessing Office 365 via browser when device is non-compliant.
 resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy" "cad004_browser_noncompliant_mfa" {
@@ -260,10 +249,12 @@ resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy"
       id = "00000000-0000-0000-0000-000000000002" # Multifactor authentication (Changed from custom MFA ID)
     }
   }
-
-
 }
+```
 
+#### CAD005: Non-Compliant Device Block
+
+```terraform
 # CAD005: Block Unsupported Device Platforms
 # Blocks access to Office 365 for unsupported device platforms.
 resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy" "cad005_block_unsupported_platforms" {
@@ -305,10 +296,12 @@ resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy"
     built_in_controls             = ["block"]
     custom_authentication_factors = []
   }
-
-
 }
+```
 
+#### CAD006: macOS App Protection Policy
+
+```terraform
 # CAD006: Block Downloads on Unmanaged Devices
 # Session control to block downloads on unmanaged devices for Office 365.
 resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy" "cad006_session_block_download_unmanaged" {
@@ -358,10 +351,12 @@ resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy"
     built_in_controls             = []
     custom_authentication_factors = []
   }
-
-
 }
+```
 
+#### CAD007: Windows App Protection Policy
+
+```terraform
 # CAD007: Sign-in Frequency for Mobile Apps on Non-Compliant Devices
 # Sets sign-in frequency to 7 days for Office 365 mobile apps on non-compliant iOS/Android devices.
 resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy" "cad007_mobile_signin_frequency" {
@@ -420,10 +415,12 @@ resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy"
     built_in_controls             = []
     custom_authentication_factors = []
   }
-
-
 }
+```
 
+#### CAD008: iOS/iPadOS App Protection Policy
+
+```terraform
 # CAD008: Sign-in Frequency for Browser on Non-Compliant Devices
 # Sets sign-in frequency to 1 hour for all apps accessed via browser on non-compliant devices.
 resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy" "cad008_browser_signin_frequency" {
@@ -477,10 +474,12 @@ resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy"
     built_in_controls             = []
     custom_authentication_factors = []
   }
-
-
 }
+```
 
+#### CAD009: Android App Protection Policy
+
+```terraform
 # CAD009: Disable Browser Persistence on Non-Compliant Devices
 # Disables persistent browser session for all apps on non-compliant devices.
 resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy" "cad009_disable_browser_persistence" {
@@ -531,10 +530,12 @@ resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy"
     built_in_controls             = []
     custom_authentication_factors = []
   }
-
-
 }
+```
 
+#### CAD010: Remote Desktop Services Compliance
+
+```terraform
 # CAD010: Require MFA for Device Registration/Join
 # Requires MFA when users register or join devices to Entra ID.
 resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy" "cad010_device_registration_mfa" {
@@ -571,10 +572,12 @@ resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy"
     built_in_controls             = ["mfa"]
     custom_authentication_factors = []
   }
-
-
 }
+```
 
+#### CAD011: Require MFA for Non-Compliant Devices
+
+```terraform
 # CAD011: Linux Device Compliance
 # Grants Linux access to Office 365 for all users (excluding guests) when using
 # modern auth clients and device is compliant.
@@ -617,10 +620,12 @@ resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy"
     built_in_controls             = ["compliantDevice"]
     custom_authentication_factors = []
   }
-
-
 }
+```
 
+#### CAD012: Block Unmanaged Devices
+
+```terraform
 # CAD012: Admin Access on Compliant Devices
 # Grants access for admin users to all apps when using compliant devices.
 resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy" "cad012_admin_compliant_access" {
@@ -684,65 +689,71 @@ resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy"
     built_in_controls             = ["compliantDevice", "domainJoinedDevice"]
     custom_authentication_factors = []
   }
-
-
 }
+```
 
-# CAD013: Selected Apps - Compliant Device Requirement
-# Requires compliant device for access to selected applications.
-resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy" "cad013_selected_apps_compliant" {
-  display_name = "CAD013-Selected: Grant access for All users when Browser and Modern Auth Clients and Compliant-v1.0"
-  state        = "enabledForReportingButNotEnforced"
+#### CAD013: Compliant macOS for Admin Roles
 
-  conditions = {
-    client_app_types = ["browser", "mobileAppsAndDesktopClients"]
+```terraform
+# # # CAD013: Selected Apps - Compliant Device Requirement
+# # # Requires compliant device for access to selected applications.
+# # resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy" "cad013_selected_apps_compliant" {
+# #   display_name = "CAD013-Selected: Grant access for All users when Browser and Modern Auth Clients and Compliant-v1.0"
+# #   state        = "enabledForReportingButNotEnforced"
 
-    users = {
-      include_users  = ["All"]
-      exclude_users  = []
-      include_groups = []
-      exclude_groups = [
-        microsoft365_graph_beta_groups_group.breakglass.id,
-        microsoft365_graph_beta_groups_group.cad013_exclude.id
-      ]
-      include_roles = []
-      exclude_roles = []
-    }
+# #   conditions = {
+# #     client_app_types = ["browser", "mobileAppsAndDesktopClients"]
 
-    applications = {
-      include_applications = [
-        "a4f2693f-129c-4b96-982b-2c364b8314d7", # Specific application 1
-        "499b84ac-1321-427f-aa17-267ca6975798", # Specific application 2
-        "996def3d-b36c-4153-8607-a6fd3c01b89f", # Specific application 3
-        "797f4846-ba00-4fd7-ba43-dac1f8f63013"  # Specific application 4
-      ]
-      exclude_applications                            = []
-      include_user_actions                            = []
-      include_authentication_context_class_references = []
-    }
+# #     users = {
+# #       include_users  = ["All"]
+# #       exclude_users  = []
+# #       include_groups = []
+# #       exclude_groups = [
+# #         microsoft365_graph_beta_groups_group.breakglass.id,
+# #         microsoft365_graph_beta_groups_group.cad013_exclude.id
+# #       ]
+# #       include_roles = []
+# #       exclude_roles = []
+# #     }
 
-    platforms = {
-      include_platforms = ["all"]
-      exclude_platforms = []
-    }
+# #     applications = {
+# #       include_applications = [
+# #         "a4f2693f-129c-4b96-982b-2c364b8314d7", # Specific application 1
+# #         "499b84ac-1321-427f-aa17-267ca6975798", # Specific application 2
+# #         "996def3d-b36c-4153-8607-a6fd3c01b89f", # Specific application 3
+# #         "797f4846-ba00-4fd7-ba43-dac1f8f63013"  # Specific application 4
+# #       ]
+# #       exclude_applications                             = []
+# #       include_user_actions                             = []
+# #       include_authentication_context_class_references = []
+# #     }
 
-    sign_in_risk_levels = []
-  }
+# #     platforms = {
+# #       include_platforms = ["all"]
+# #       exclude_platforms = []
+# #     }
 
-  grant_controls = {
-    operator                      = "OR"
-    built_in_controls             = ["compliantDevice", "domainJoinedDevice"]
-    custom_authentication_factors = []
-  }
+# #     sign_in_risk_levels = []
+# #   }
 
-  timeouts = {
-    create = "150s"
-    read   = "150s"
-    update = "150s"
-    delete = "150s"
-  }
-}
+# #   grant_controls = {
+# #     operator          = "OR"
+# #     built_in_controls = ["compliantDevice", "domainJoinedDevice"]
+# #     custom_authentication_factors = []
+# #   }
 
+# #   timeouts = {
+# #     create = "150s"
+# #     read   = "150s"
+# #     update = "150s"
+# #     delete = "150s"
+# #   }
+# # }
+```
+
+#### CAD014: Compliant Windows for Admin Roles
+
+```terraform
 # CAD014: Edge App Protection on Windows
 # Requires app protection policy for Edge browser on Windows for Office 365 access.
 resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy" "cad014_edge_app_protection_windows" {
@@ -791,10 +802,12 @@ resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy"
     built_in_controls             = ["compliantApplication"]
     custom_authentication_factors = []
   }
-
-
 }
+```
 
+#### CAD015: Compliant iOS/iPadOS for Admin Roles
+
+```terraform
 # CAD015: Compliant Device for Windows and macOS Browser Access
 # Requires compliant device for all users accessing all apps via browser on Windows/macOS.
 resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy" "cad015_windows_macos_browser_compliant" {
@@ -836,10 +849,12 @@ resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy"
     built_in_controls             = ["compliantDevice", "domainJoinedDevice"]
     custom_authentication_factors = []
   }
-
-
 }
+```
 
+#### CAD016: Compliant Device for Exchange/SharePoint/Cloud PC
+
+```terraform
 # CAD016: Token Protection for EXO/SPO/CloudPC on Windows
 # Requires token protection for Exchange Online, SharePoint Online, and Cloud PC on Windows.
 resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy" "cad016_token_protection_windows" {
@@ -894,10 +909,12 @@ resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy"
     built_in_controls             = ["block"]
     custom_authentication_factors = []
   }
-
-
 }
+```
 
+#### CAD017: Compliant Android for Admin Roles
+
+```terraform
 # CAD017: Selected Apps - Mobile App Protection or Compliance
 # Requires app protection policy or device compliance for selected apps on iOS/Android.
 resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy" "cad017_selected_mobile_app_protection" {
@@ -946,10 +963,12 @@ resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy"
     built_in_controls             = ["compliantDevice", "compliantApplication"]
     custom_authentication_factors = []
   }
-
-
 }
+```
 
+#### CAD018: Compliant Device for Cloud PC
+
+```terraform
 # CAD018: Cloud PC - Mobile App Protection or Compliance
 # Requires app protection policy or device compliance for Cloud PC access on iOS/Android.
 resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy" "cad018_cloudpc_mobile_app_protection" {
@@ -996,10 +1015,12 @@ resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy"
     built_in_controls             = ["compliantDevice", "compliantApplication"]
     custom_authentication_factors = []
   }
-
-
 }
+```
 
+#### CAD019: Compliant Device for Intune Enrollment
+
+```terraform
 # CAD019: Intune Enrollment - MFA and Sign-in Frequency
 # Requires MFA and sets sign-in frequency to every time for Intune enrollment.
 resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy" "cad019_intune_enrollment_mfa" {
@@ -1050,8 +1071,1523 @@ resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy"
       # Note: type and value are not set when frequency_interval is "everyTime"
     }
   }
+}
+```
+
+### Platform-Based Policies (CAP)
+
+#### CAP001: Block Legacy Authentication
+
+```terraform
+# CAP001: Block Legacy Authentication
+# Blocks legacy authentication protocols for all users.
+resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy" "cap001_block_legacy_auth" {
+  display_name = "CAP001-All: Block Legacy Authentication for All users when OtherClients-v1.0"
+  state        = "enabledForReportingButNotEnforced"
+
+  conditions = {
+    client_app_types = ["other"]
+
+    users = {
+      include_users  = ["All"]
+      exclude_users  = []
+      include_groups = []
+      exclude_groups = [
+        microsoft365_graph_beta_groups_group.breakglass.id,
+        microsoft365_graph_beta_groups_group.cap001_exclude.id
+      ]
+      include_roles = []
+      exclude_roles = []
+    }
+
+    applications = {
+      include_applications                            = ["All"]
+      exclude_applications                            = []
+      include_user_actions                            = []
+      include_authentication_context_class_references = []
+    }
+
+    sign_in_risk_levels = []
+  }
+
+  grant_controls = {
+    operator                      = "OR"
+    built_in_controls             = ["block"]
+    custom_authentication_factors = []
+  }
+}
+```
+
+#### CAP002: Block Exchange ActiveSync
+
+```terraform
+# CAP002: Block Exchange ActiveSync
+# Blocks Exchange ActiveSync clients for all users.
+resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy" "cap002_block_exchange_activesync" {
+  display_name = "CAP002-All: Block Exchange ActiveSync Clients for All users-v1.1"
+  state        = "enabledForReportingButNotEnforced"
+
+  conditions = {
+    client_app_types = ["exchangeActiveSync"]
+
+    users = {
+      include_users  = ["All"]
+      exclude_users  = []
+      include_groups = []
+      exclude_groups = [
+        microsoft365_graph_beta_groups_group.breakglass.id,
+        microsoft365_graph_beta_groups_group.cap002_exclude.id
+      ]
+      include_roles = []
+      exclude_roles = []
+    }
+
+    applications = {
+      include_applications                            = ["All"]
+      exclude_applications                            = []
+      include_user_actions                            = []
+      include_authentication_context_class_references = []
+    }
+
+    sign_in_risk_levels = []
+  }
+
+  grant_controls = {
+    operator                      = "OR"
+    built_in_controls             = ["block"]
+    custom_authentication_factors = []
+  }
+}
+```
+
+#### CAP003: Block Device Code Flow
+
+```terraform
+# CAP003: Block Device Code Flow
+# Blocks device code authentication flow to prevent phishing attacks.
+resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy" "cap003_block_device_code_flow" {
+  display_name = "CAP003-All: Block device code authentication flow-v1.0"
+  state        = "enabledForReportingButNotEnforced"
+
+  conditions = {
+    client_app_types = ["all"]
+
+    users = {
+      include_users  = ["All"]
+      exclude_users  = []
+      include_groups = []
+      exclude_groups = [
+        microsoft365_graph_beta_groups_group.breakglass.id,
+        microsoft365_graph_beta_groups_group.cap003_exclude.id
+      ]
+      include_roles = []
+      exclude_roles = []
+    }
+
+    applications = {
+      include_applications                            = ["All"]
+      exclude_applications                            = []
+      include_user_actions                            = []
+      include_authentication_context_class_references = []
+    }
+
+    authentication_flows = {
+      transfer_methods = "deviceCodeFlow"
+    }
+
+    sign_in_risk_levels = []
+  }
+
+  grant_controls = {
+    operator                      = "OR"
+    built_in_controls             = ["block"]
+    custom_authentication_factors = []
+  }
+}
+```
+
+#### CAP004: Block Authentication Transfer
+
+```terraform
+# CAP004: Block Authentication Transfer
+# Blocks authentication transfer methods to prevent token theft.
+resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy" "cap004_block_auth_transfer" {
+  display_name = "CAP004-All: Block authentication transfer-v1.0"
+  state        = "enabledForReportingButNotEnforced"
+
+  conditions = {
+    client_app_types = ["all"]
+
+    users = {
+      include_users  = ["All"]
+      exclude_users  = []
+      include_groups = []
+      exclude_groups = [
+        microsoft365_graph_beta_groups_group.breakglass.id,
+        microsoft365_graph_beta_groups_group.cap004_exclude.id
+      ]
+      include_roles = []
+      exclude_roles = []
+    }
+
+    applications = {
+      include_applications                            = ["All"]
+      exclude_applications                            = []
+      include_user_actions                            = []
+      include_authentication_context_class_references = []
+    }
+
+    authentication_flows = {
+      transfer_methods = "authenticationTransfer"
+    }
+
+    sign_in_risk_levels = []
+  }
+
+  grant_controls = {
+    operator                      = "OR"
+    built_in_controls             = ["block"]
+    custom_authentication_factors = []
+  }
+}
+```
+
+### Location-Based Policies (CAL)
+
+#### CAL001: Block Specified Locations
+
+```terraform
+# CAL001: Block Specified Locations
+# Blocks access from specified untrusted locations for all users.
+resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy" "cal001_block_locations" {
+  display_name = "CAL001-All: Block specified locations for All users when Browser and Modern Auth Clients-v1.1"
+  state        = "enabledForReportingButNotEnforced"
+
+  conditions = {
+    client_app_types = ["browser", "mobileAppsAndDesktopClients"]
+
+    users = {
+      include_users  = ["All"]
+      exclude_users  = []
+      include_groups = []
+      exclude_groups = [
+        microsoft365_graph_beta_groups_group.breakglass.id,
+        microsoft365_graph_beta_groups_group.cal001_exclude.id
+      ]
+      include_roles = []
+      exclude_roles = []
+    }
+
+    applications = {
+      include_applications                            = ["All"]
+      exclude_applications                            = []
+      include_user_actions                            = []
+      include_authentication_context_class_references = []
+    }
+
+    locations = {
+      # Note: Add specific blocked location IDs
+      include_locations = [
+        microsoft365_graph_beta_identity_and_access_named_location.high_risk_countries_blocked_by_client_ip.id,
+        microsoft365_graph_beta_identity_and_access_named_location.high_risk_countries_blocked_by_authenticator_gps.id
+      ]
+      exclude_locations = []
+    }
+
+    sign_in_risk_levels = []
+  }
+
+  grant_controls = {
+    operator                      = "OR"
+    built_in_controls             = ["block"]
+    custom_authentication_factors = []
+  }
+}
+```
+
+#### CAL002: MFA Registration from Trusted Locations Only
+
+```terraform
+# CAL002: MFA Registration from Trusted Locations Only
+# Requires security info registration to occur from trusted locations only.
+resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy" "cal002_mfa_registration_trusted_locations" {
+  display_name = "CAL002-RSI: Require MFA registration from trusted locations only for All users when Browser and Modern Auth Clients-v1.4"
+  state        = "enabledForReportingButNotEnforced"
+
+  conditions = {
+    client_app_types = ["all"]
+
+    users = {
+      include_users  = ["All"]
+      exclude_users  = []
+      include_groups = []
+      exclude_groups = [
+        microsoft365_graph_beta_groups_group.breakglass.id,
+        microsoft365_graph_beta_groups_group.cal002_exclude.id
+      ]
+      include_roles = []
+      exclude_roles = []
+    }
+
+    applications = {
+      include_applications                            = []
+      exclude_applications                            = []
+      include_user_actions                            = ["urn:user:registersecurityinfo"]
+      include_authentication_context_class_references = []
+    }
+
+    locations = {
+      include_locations = ["All"]
+      exclude_locations = ["AllTrusted"]
+    }
+
+    sign_in_risk_levels = []
+  }
+
+  grant_controls = {
+    operator                      = "OR"
+    built_in_controls             = ["block"]
+    custom_authentication_factors = []
+  }
+}
+```
+
+#### CAL003: Block Service Accounts from Non-Trusted Locations
+
+```terraform
+# CAL003: Block Service Accounts from Non-Trusted Locations
+# Blocks access for specified service accounts except from trusted locations.
+resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy" "cal003_block_service_accounts_untrusted" {
+  display_name = "CAL003-All: Block Access for Specified Service Accounts except from Provided Trusted Locations when Browser and Modern Auth Clients-v1.1"
+  state        = "enabledForReportingButNotEnforced"
+
+  conditions = {
+    client_app_types = ["browser", "mobileAppsAndDesktopClients"]
+
+    users = {
+      include_users  = ["None"]
+      exclude_users  = []
+      include_groups = []
+      exclude_groups = []
+      include_roles  = []
+      exclude_roles  = []
+    }
+
+    applications = {
+      include_applications                            = ["All"]
+      exclude_applications                            = []
+      include_user_actions                            = []
+      include_authentication_context_class_references = []
+    }
+
+    locations = {
+      include_locations = ["All"]
+      exclude_locations = ["AllTrusted"]
+    }
+
+    sign_in_risk_levels = []
+  }
+
+  grant_controls = {
+    operator                      = "OR"
+    built_in_controls             = ["block"]
+    custom_authentication_factors = []
+  }
+}
+```
+
+#### CAL004: Block Admin Access from Non-Trusted Locations
+
+```terraform
+# CAL004: Block Admin Access from Non-Trusted Locations
+# Blocks admin access from non-trusted locations.
+resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy" "cal004_block_admin_untrusted_locations" {
+  display_name = "CAL004-All: Block access for Admins from non-trusted locations when Browser and Modern Auth Clients-v1.2"
+  state        = "enabledForReportingButNotEnforced"
+
+  conditions = {
+    client_app_types = ["browser", "mobileAppsAndDesktopClients"]
+
+    users = {
+      include_users  = []
+      exclude_users  = []
+      include_groups = []
+      exclude_groups = [
+        microsoft365_graph_beta_groups_group.breakglass.id,
+        microsoft365_graph_beta_groups_group.cal004_exclude.id
+      ]
+      include_roles = [
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.global_administrator.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.application_administrator.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.authentication_administrator.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.billing_administrator.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.cloud_application_administrator.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.security_operator.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.conditional_access_administrator.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.cloud_device_administrator.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.user_administrator.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.compliance_administrator.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.directory_writers.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.security_reader.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.exchange_administrator.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.global_reader.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.helpdesk_administrator.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.hybrid_identity_administrator.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.insights_business_leader.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.intune_administrator.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.knowledge_administrator.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.privileged_authentication_administrator.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.privileged_role_administrator.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.reports_reader.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.search_administrator.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.sharepoint_administrator.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.teams_administrator.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.security_administrator.items[0].id,
+      ]
+      exclude_roles = []
+    }
+
+    applications = {
+      include_applications                            = ["All"]
+      exclude_applications                            = []
+      include_user_actions                            = []
+      include_authentication_context_class_references = []
+    }
+
+    locations = {
+      include_locations = ["All"]
+      exclude_locations = ["AllTrusted"]
+    }
+
+    sign_in_risk_levels = []
+  }
+
+  grant_controls = {
+    operator                      = "OR"
+    built_in_controls             = ["block"]
+    custom_authentication_factors = []
+  }
+}
+```
+
+#### CAL005: Less-Trusted Locations Require Compliance
+
+```terraform
+# CAL005: Less-Trusted Locations Require Compliance
+# Requires compliant device when accessing from less-trusted locations.
+resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy" "cal005_less_trusted_locations_compliant" {
+  display_name = "CAL005-Selected: Grant access for All users on less-trusted locations when Browser and Modern Auth Clients and Compliant-v1.0"
+  state        = "enabledForReportingButNotEnforced"
+
+  conditions = {
+    client_app_types = ["browser", "mobileAppsAndDesktopClients"]
+
+    users = {
+      include_users  = ["All"]
+      exclude_users  = []
+      include_groups = []
+      exclude_groups = [
+        microsoft365_graph_beta_groups_group.breakglass.id,
+        microsoft365_graph_beta_groups_group.cal005_exclude.id
+      ]
+      include_roles = []
+      exclude_roles = []
+    }
+
+    applications = {
+      include_applications                            = ["All"]
+      exclude_applications                            = ["Office365"]
+      include_user_actions                            = []
+      include_authentication_context_class_references = []
+    }
+
+    locations = {
+      # Note: Add specific less-trusted location IDs
+      include_locations = [
+        microsoft365_graph_beta_identity_and_access_named_location.semi_trusted_partner_networks.id,
+        microsoft365_graph_beta_identity_and_access_named_location.semi_trusted_public_spaces.id
+      ]
+      exclude_locations = []
+    }
+
+    sign_in_risk_levels = []
+  }
+
+  grant_controls = {
+    operator                      = "OR"
+    built_in_controls             = ["compliantDevice", "domainJoinedDevice"]
+    custom_authentication_factors = []
+  }
+}
+```
+
+#### CAL006: Allow Access Only from Specified Locations
+
+```terraform
+# CAL006: Allow Access Only from Specified Locations
+# Restricts access to only specified trusted locations for specific accounts.
+resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy" "cal006_allow_only_specified_locations" {
+  display_name = "CAL006-All: Only Allow Access from specified locations for specific accounts when Browser and Modern Auth Clients-v1.0"
+  state        = "enabledForReportingButNotEnforced"
+
+  conditions = {
+    client_app_types = ["browser", "mobileAppsAndDesktopClients"]
+
+    users = {
+      include_users  = []
+      exclude_users  = []
+      include_groups = [microsoft365_graph_beta_groups_group.cal006_include.id]
+      exclude_groups = [
+        microsoft365_graph_beta_groups_group.breakglass.id,
+        microsoft365_graph_beta_groups_group.cal006_exclude.id
+      ]
+      include_roles = []
+      exclude_roles = []
+    }
+
+    applications = {
+      include_applications                            = ["All"]
+      exclude_applications                            = []
+      include_user_actions                            = []
+      include_authentication_context_class_references = []
+    }
+
+    locations = {
+      include_locations = ["All"]
+      # Note: Add specific allowed location IDs to exclude_locations
+      exclude_locations = [
+        microsoft365_graph_beta_identity_and_access_named_location.allowed_apac_office_only.id,
+        microsoft365_graph_beta_identity_and_access_named_location.allowed_emea_office_only.id,
+        microsoft365_graph_beta_identity_and_access_named_location.allowed_hazelwood_office_only.id,
+      ]
+    }
+
+    sign_in_risk_levels = []
+  }
+
+  grant_controls = {
+    operator                      = "OR"
+    built_in_controls             = ["block"]
+    custom_authentication_factors = []
+  }
+}
+```
+
+### User-Based Policies (CAU)
+
+#### CAU001: Require MFA for Guest Users
+
+```terraform
+# CAU001: Require MFA for Guest Users
+# Requires MFA for guest/external users.
+resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy" "cau001_guest_mfa" {
+  display_name = "CAU001-All: Grant Require MFA for guests when Browser and Modern Auth Clients-v1.1"
+  state        = "enabledForReportingButNotEnforced"
+
+  conditions = {
+    client_app_types = ["browser", "mobileAppsAndDesktopClients"]
+
+    users = {
+      include_users  = []
+      exclude_users  = []
+      include_groups = []
+      exclude_groups = [
+        microsoft365_graph_beta_groups_group.breakglass.id,
+        microsoft365_graph_beta_groups_group.cau001_exclude.id
+      ]
+      include_roles = []
+      exclude_roles = []
+
+      include_guests_or_external_users = {
+        guest_or_external_user_types = ["b2bCollaborationGuest", "b2bCollaborationMember", "b2bDirectConnectUser", "internalGuest", "otherExternalUser", "serviceProvider"]
+        external_tenants = {
+          membership_kind = "all"
+        }
+      }
+    }
+
+    applications = {
+      include_applications                            = ["All"]
+      exclude_applications                            = [data.microsoft365_graph_beta_applications_service_principal.microsoft_rights_management_services.items[0].app_id]
+      include_user_actions                            = []
+      include_authentication_context_class_references = []
+    }
+
+    sign_in_risk_levels = []
+  }
+
+  grant_controls = {
+    operator                      = "OR"
+    built_in_controls             = ["mfa"]
+    custom_authentication_factors = []
+  }
+}
+```
+
+#### CAU001A: Require MFA for Guests - Windows Azure AD
+
+```terraform
+# CAU001A: Require MFA for Guests - Windows Azure AD
+# Requires MFA for guest/external users accessing Windows Azure Active Directory.
+resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy" "cau001a_guest_mfa_azure_ad" {
+  display_name = "CAU001A-Windows Azure Active Directory: Grant Require MFA for guests when Browser and Modern Auth Clients-v1.0"
+  state        = "enabledForReportingButNotEnforced"
+
+  conditions = {
+    client_app_types = ["browser", "mobileAppsAndDesktopClients"]
+
+    users = {
+      include_users  = []
+      exclude_users  = []
+      include_groups = []
+      exclude_groups = [
+        microsoft365_graph_beta_groups_group.breakglass.id,
+        microsoft365_graph_beta_groups_group.cau001_exclude.id
+      ]
+      include_roles = []
+      exclude_roles = []
+
+      include_guests_or_external_users = {
+        guest_or_external_user_types = ["b2bCollaborationGuest", "b2bCollaborationMember", "b2bDirectConnectUser", "internalGuest", "otherExternalUser", "serviceProvider"]
+        external_tenants = {
+          membership_kind = "all"
+        }
+      }
+    }
+
+    applications = {
+      include_applications                            = [data.microsoft365_graph_beta_applications_service_principal.windows_azure_active_directory.items[0].app_id] # Windows Azure Active Directory
+      exclude_applications                            = []
+      include_user_actions                            = []
+      include_authentication_context_class_references = []
+    }
+
+    sign_in_risk_levels = []
+  }
+
+  grant_controls = {
+    operator                      = "OR"
+    built_in_controls             = ["mfa"]
+    custom_authentication_factors = []
+  }
+}
+```
+
+#### CAU002: Require MFA for All Users
+
+```terraform
+# CAU002: Require MFA for All Users
+# Requires MFA for all users (with admin role exclusions).
+resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy" "cau002_all_users_mfa" {
+  display_name = "CAU002-All: Grant Require MFA for All users when Browser and Modern Auth Clients-v1.5"
+  state        = "enabledForReportingButNotEnforced"
+
+  conditions = {
+    client_app_types = ["browser", "mobileAppsAndDesktopClients"]
+
+    users = {
+      include_users  = ["All"]
+      exclude_users  = []
+      include_groups = []
+      exclude_groups = [
+        microsoft365_graph_beta_groups_group.breakglass.id,
+        microsoft365_graph_beta_groups_group.cau002_exclude.id
+      ]
+      include_roles = []
+      exclude_roles = [
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.application_administrator.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.application_developer.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.authentication_administrator.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.authentication_extensibility_administrator.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.b2c_ief_keyset_administrator.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.cloud_device_administrator.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.cloud_application_administrator.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.conditional_access_administrator.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.directory_writers.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.global_administrator.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.global_reader.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.helpdesk_administrator.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.hybrid_identity_administrator.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.knowledge_manager.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.password_administrator.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.privileged_authentication_administrator.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.privileged_role_administrator.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.security_administrator.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.security_operator.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.security_reader.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.user_administrator.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.billing_administrator.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.exchange_administrator.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.sharepoint_administrator.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.teams_administrator.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.compliance_administrator.items[0].id
+      ]
+
+      exclude_guests_or_external_users = {
+        guest_or_external_user_types = ["internalGuest", "b2bCollaborationGuest", "b2bCollaborationMember", "b2bDirectConnectUser", "otherExternalUser", "serviceProvider"]
+        external_tenants = {
+          membership_kind = "all"
+        }
+      }
+    }
+
+    applications = {
+      include_applications                            = ["All"]
+      exclude_applications                            = []
+      include_user_actions                            = []
+      include_authentication_context_class_references = []
+    }
+
+    sign_in_risk_levels = []
 
 
+  }
+
+  grant_controls = {
+    operator                      = "OR"
+    built_in_controls             = []
+    custom_authentication_factors = []
+    authentication_strength = {
+      id = "00000000-0000-0000-0000-000000000002" # Maps to "multifactor_authentication"
+    }
+  }
+}
+```
+
+#### CAU003: Block Unapproved Apps for Guests
+
+```terraform
+# CAU003: Block Unapproved Apps for Guests
+# Blocks access to unapproved applications for guest users.
+resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy" "cau003_block_unapproved_apps_guests" {
+  display_name = "CAU003-Selected: Block unapproved apps for guests when Browser and Modern Auth Clients-v1.0"
+  state        = "enabledForReportingButNotEnforced"
+
+  conditions = {
+    client_app_types = ["browser", "mobileAppsAndDesktopClients"]
+
+    users = {
+      include_users  = []
+      exclude_users  = []
+      include_groups = []
+      exclude_groups = [
+        microsoft365_graph_beta_groups_group.breakglass.id,
+        microsoft365_graph_beta_groups_group.cau003_exclude.id
+      ]
+      include_roles = []
+      exclude_roles = []
+
+      include_guests_or_external_users = {
+        guest_or_external_user_types = ["internalGuest", "b2bCollaborationGuest", "b2bCollaborationMember", "b2bDirectConnectUser", "otherExternalUser", "serviceProvider"]
+        external_tenants = {
+          membership_kind = "all"
+        }
+      }
+    }
+
+    applications = {
+      include_applications                            = [data.microsoft365_graph_beta_applications_service_principal.portfolios.items[0].app_id] // Add more spcific app ids as required.
+      exclude_applications                            = []
+      include_user_actions                            = []
+      include_authentication_context_class_references = []
+    }
+
+    sign_in_risk_levels = []
+  }
+
+  grant_controls = {
+    operator                      = "OR"
+    built_in_controls             = ["block"]
+    custom_authentication_factors = []
+  }
+}
+```
+
+#### CAU004: Route Through Microsoft Defender for Cloud Apps
+
+```terraform
+# CAU004: Route Through Microsoft Defender for Cloud Apps
+# Routes browser traffic through Microsoft Defender for Cloud Apps (MDCA) for
+# monitoring and control on non-compliant devices.
+resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy" "cau004_mdca_route" {
+  display_name = "CAU004-Selected: Session route through MDCA for All users when Browser on Non-Compliant-v1.2"
+  state        = "enabledForReportingButNotEnforced"
+
+  conditions = {
+    client_app_types = ["browser"]
+
+    users = {
+      include_users  = ["All"]
+      exclude_users  = []
+      include_groups = []
+      exclude_groups = [
+        microsoft365_graph_beta_groups_group.breakglass.id,
+        microsoft365_graph_beta_groups_group.cau004_exclude.id
+      ]
+      include_roles = []
+      exclude_roles = []
+    }
+
+    applications = {
+      # Note: Add specific application IDs, typically includes Office365
+      include_applications                            = ["Office365"]
+      exclude_applications                            = []
+      include_user_actions                            = []
+      include_authentication_context_class_references = []
+    }
+
+    devices = {
+      device_filter = {
+        mode = "exclude"
+        rule = "device.isCompliant -eq True -or device.trustType -eq \"ServerAD\""
+      }
+    }
+
+    sign_in_risk_levels = []
+  }
+
+  session_controls = {
+    cloud_app_security = {
+      cloud_app_security_type = "mcasConfigured"
+      is_enabled              = true
+    }
+  }
+
+  grant_controls = {
+    operator                      = "OR"
+    built_in_controls             = []
+    custom_authentication_factors = []
+  }
+}
+```
+
+#### CAU006: MFA for Medium/High Sign-in Risk
+
+```terraform
+# CAU006: MFA for Medium/High Sign-in Risk
+# Requires MFA for medium and high sign-in risk.
+resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy" "cau006_signin_risk_mfa" {
+  display_name = "CAU006-All: Grant access for Medium and High Risk Sign-in for All Users when Browser and Modern Auth Clients require MFA-v1.4"
+  state        = "enabledForReportingButNotEnforced"
+
+  conditions = {
+    client_app_types    = ["browser", "mobileAppsAndDesktopClients"]
+    sign_in_risk_levels = ["high", "medium"]
+
+    users = {
+      include_users  = ["All"]
+      exclude_users  = []
+      include_groups = []
+      exclude_groups = [
+        microsoft365_graph_beta_groups_group.breakglass.id,
+        microsoft365_graph_beta_groups_group.cau006_exclude.id
+      ]
+      include_roles = []
+      exclude_roles = []
+    }
+
+    applications = {
+      include_applications                            = ["All"]
+      exclude_applications                            = []
+      include_user_actions                            = []
+      include_authentication_context_class_references = []
+    }
+  }
+
+  grant_controls = {
+    operator                      = "OR"
+    built_in_controls             = ["mfa"]
+    custom_authentication_factors = []
+  }
+
+  session_controls = {
+    sign_in_frequency = {
+      authentication_type = "primaryAndSecondaryAuthentication"
+      frequency_interval  = "everyTime"
+      is_enabled          = true
+    }
+  }
+}
+```
+
+#### CAU007: Password Change for Medium/High User Risk
+
+```terraform
+# CAU007: Password Change for Medium/High User Risk
+# Requires password change for medium and high user risk.
+resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy" "cau007_user_risk_password_change" {
+  display_name = "CAU007-All: Grant access for Medium and High Risk Users for All Users when Browser and Modern Auth Clients require PWD reset-v1.3"
+  state        = "enabledForReportingButNotEnforced"
+
+  conditions = {
+    client_app_types = ["all"]
+    user_risk_levels = ["high", "medium"]
+
+    users = {
+      include_users  = ["All"]
+      exclude_users  = []
+      include_groups = []
+      exclude_groups = [
+        microsoft365_graph_beta_groups_group.breakglass.id,
+        microsoft365_graph_beta_groups_group.cau007_exclude.id
+      ]
+      include_roles = []
+      exclude_roles = []
+
+      exclude_guests_or_external_users = {
+        guest_or_external_user_types = ["internalGuest", "b2bCollaborationGuest", "b2bCollaborationMember", "b2bDirectConnectUser", "otherExternalUser", "serviceProvider"]
+        external_tenants = {
+          membership_kind = "all"
+        }
+      }
+    }
+
+    applications = {
+      include_applications                            = ["All"]
+      exclude_applications                            = []
+      include_user_actions                            = []
+      include_authentication_context_class_references = []
+    }
+
+    sign_in_risk_levels = []
+  }
+
+  grant_controls = {
+    operator                      = "AND"
+    built_in_controls             = ["mfa", "passwordChange"]
+    custom_authentication_factors = []
+  }
+
+  session_controls = {
+    sign_in_frequency = {
+      authentication_type = "primaryAndSecondaryAuthentication"
+      frequency_interval  = "everyTime"
+      is_enabled          = true
+    }
+  }
+}
+```
+
+#### CAU008: Phishing-Resistant MFA for Admins
+
+```terraform
+# CAU008: Phishing-Resistant MFA for Admins
+# Requires phishing-resistant MFA for admin roles.
+resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy" "cau008_admin_phishing_resistant_mfa" {
+  display_name = "CAU008-All: Grant Require Phishing Resistant MFA for Admins when Browser and Modern Auth Clients-v1.4"
+  state        = "enabledForReportingButNotEnforced"
+
+  conditions = {
+    client_app_types = ["browser", "mobileAppsAndDesktopClients"]
+
+    users = {
+      include_users  = []
+      exclude_users  = []
+      include_groups = []
+      exclude_groups = [
+        microsoft365_graph_beta_groups_group.breakglass.id,
+        microsoft365_graph_beta_groups_group.cau008_exclude.id
+      ]
+      include_roles = [
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.application_administrator.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.application_developer.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.authentication_administrator.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.authentication_extensibility_administrator.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.b2c_ief_keyset_administrator.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.billing_administrator.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.cloud_application_administrator.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.cloud_device_administrator.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.compliance_administrator.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.conditional_access_administrator.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.directory_writers.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.exchange_administrator.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.global_administrator.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.global_reader.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.helpdesk_administrator.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.hybrid_identity_administrator.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.intune_administrator.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.password_administrator.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.privileged_authentication_administrator.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.privileged_role_administrator.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.security_administrator.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.security_operator.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.security_reader.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.sharepoint_administrator.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.teams_administrator.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.user_administrator.items[0].id
+      ]
+      exclude_roles = []
+
+      exclude_guests_or_external_users = {
+        guest_or_external_user_types = ["serviceProvider"]
+        external_tenants = {
+          membership_kind = "all"
+        }
+      }
+    }
+
+    applications = {
+      include_applications                            = ["All"]
+      exclude_applications                            = []
+      include_user_actions                            = []
+      include_authentication_context_class_references = []
+    }
+
+    sign_in_risk_levels = []
+  }
+
+  grant_controls = {
+    operator                      = "OR"
+    built_in_controls             = []
+    custom_authentication_factors = []
+    authentication_strength = {
+      id = "00000000-0000-0000-0000-000000000004" # Maps to "phishing_resistant_mfa"
+    }
+  }
+}
+```
+
+#### CAU009: Require MFA for Admin Portals
+
+```terraform
+# CAU009: Require MFA for Admin Portals
+# Requires MFA when accessing admin portals.
+resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy" "cau009_admin_portals_mfa" {
+  display_name = "CAU009-Management: Grant Require MFA for Admin Portals for All Users when Browser and Modern Auth Clients-v1.2"
+  state        = "enabledForReportingButNotEnforced"
+
+  conditions = {
+    client_app_types = ["browser", "mobileAppsAndDesktopClients"]
+
+    users = {
+      include_users  = ["All"]
+      exclude_users  = []
+      include_groups = []
+      exclude_groups = [
+        microsoft365_graph_beta_groups_group.breakglass.id,
+        microsoft365_graph_beta_groups_group.cau009_exclude.id
+      ]
+      include_roles = []
+      exclude_roles = []
+    }
+
+    applications = {
+      include_applications = [
+        "MicrosoftAdminPortals",
+        data.microsoft365_graph_beta_applications_service_principal.windows_azure_service_management_api.items[0].app_id
+      ]
+      exclude_applications                            = []
+      include_user_actions                            = []
+      include_authentication_context_class_references = []
+    }
+
+    sign_in_risk_levels = []
+  }
+
+  grant_controls = {
+    operator                      = "OR"
+    built_in_controls             = ["mfa"]
+    custom_authentication_factors = []
+  }
+}
+```
+
+#### CAU010: Require Terms of Use
+
+```terraform
+# CAU010: Require Terms of Use
+# Requires acceptance of terms of use for all users.
+resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy" "cau010_terms_of_use" {
+  display_name = "CAU010-All: Grant Require ToU for All Users when Browser and Modern Auth Clients-v1.2"
+  state        = "enabledForReportingButNotEnforced"
+
+  conditions = {
+    client_app_types = ["browser", "mobileAppsAndDesktopClients"]
+
+    users = {
+      include_users  = ["All"]
+      exclude_users  = []
+      include_groups = []
+      exclude_groups = [
+        microsoft365_graph_beta_groups_group.breakglass.id,
+        microsoft365_graph_beta_groups_group.cau010_exclude.id
+      ]
+      include_roles = []
+      exclude_roles = []
+    }
+
+    applications = {
+      include_applications                            = ["All"]
+      exclude_applications                            = []
+      include_user_actions                            = []
+      include_authentication_context_class_references = []
+    }
+
+    sign_in_risk_levels = []
+  }
+
+  grant_controls = {
+    operator                      = "OR"
+    built_in_controls             = []
+    custom_authentication_factors = []
+    # include your terms of use ID here
+    terms_of_use = [microsoft365_graph_identity_and_access_conditional_access_terms_of_use.consent_on_every_device.id]
+  }
+}
+```
+
+#### CAU011: Block Unlicensed Users
+
+```terraform
+# CAU011: Block Unlicensed Users
+# Blocks access for all users except those who are licensed (e.g., assigned to
+# license groups). Useful for enforcing license compliance.
+resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy" "cau011_block_unlicensed" {
+  display_name = "CAU011-All: Block access for All users except licensed when Browser and Modern Auth Clients-v1.0"
+  state        = "disabled" # Note: Original policy was disabled
+
+  conditions = {
+    client_app_types = ["browser", "mobileAppsAndDesktopClients"]
+
+    users = {
+      include_users  = ["All"]
+      exclude_users  = ["GuestsOrExternalUsers"]
+      include_groups = []
+      exclude_groups = [
+        microsoft365_graph_beta_groups_group.breakglass.id,
+        microsoft365_graph_beta_groups_group.cau011_exclude.id,
+        microsoft365_graph_beta_groups_group.modern_workplace.id
+      ]
+      include_roles = []
+      exclude_roles = []
+    }
+
+    applications = {
+      include_applications                            = ["All"]
+      exclude_applications                            = []
+      include_user_actions                            = []
+      include_authentication_context_class_references = []
+    }
+
+    sign_in_risk_levels = []
+  }
+
+  grant_controls = {
+    operator                      = "OR"
+    built_in_controls             = ["block"]
+    custom_authentication_factors = []
+  }
+}
+```
+
+#### CAU012: Security Info Registration with TAP
+
+```terraform
+# CAU012: Security Info Registration with TAP
+# Requires MFA for combined security info registration and sets sign-in frequency
+# to every time when registering from non-trusted locations. Supports Temporary Access Pass (TAP).
+resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy" "cau012_security_info_registration_tap" {
+  display_name = "CAU012-RSI: Combined Security Info Registration with TAP-v1.1"
+  state        = "enabledForReportingButNotEnforced"
+
+  conditions = {
+    client_app_types = ["all"]
+
+    users = {
+      include_users  = ["All"]
+      exclude_users  = []
+      include_groups = []
+      exclude_groups = [
+        microsoft365_graph_beta_groups_group.breakglass.id,
+        microsoft365_graph_beta_groups_group.cau012_exclude.id
+      ]
+      include_roles = []
+      exclude_roles = []
+    }
+
+    applications = {
+      include_applications                            = []
+      exclude_applications                            = []
+      include_user_actions                            = ["urn:user:registersecurityinfo"]
+      include_authentication_context_class_references = []
+    }
+
+    locations = {
+      include_locations = ["All"]
+      exclude_locations = ["AllTrusted"]
+    }
+
+    sign_in_risk_levels = []
+  }
+
+  grant_controls = {
+    operator                      = "OR"
+    built_in_controls             = ["mfa"]
+    custom_authentication_factors = []
+  }
+
+  session_controls = {
+    sign_in_frequency = {
+      authentication_type = "primaryAndSecondaryAuthentication"
+      frequency_interval  = "everyTime"
+      is_enabled          = true
+    }
+  }
+}
+```
+
+#### CAU013: Phishing-Resistant MFA for All Users
+
+```terraform
+# CAU013: Phishing-Resistant MFA for All Users
+# Requires phishing-resistant MFA for all users.
+resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy" "cau013_all_users_phishing_resistant_mfa" {
+  display_name = "CAU013-All: Grant Require phishing resistant MFA for All users when Browser and Modern Auth Clients-v1.0"
+  state        = "enabledForReportingButNotEnforced"
+
+  conditions = {
+    client_app_types = ["browser", "mobileAppsAndDesktopClients"]
+
+    users = {
+      include_users  = []
+      exclude_users  = []
+      include_groups = [microsoft365_graph_beta_groups_group.cau013_include.id]
+      exclude_groups = [
+        microsoft365_graph_beta_groups_group.breakglass.id,
+        microsoft365_graph_beta_groups_group.cau013_exclude.id
+      ]
+      include_roles = []
+      exclude_roles = []
+    }
+
+    applications = {
+      include_applications = ["All"]
+      exclude_applications = [
+        data.microsoft365_graph_beta_applications_service_principal.windows_store_for_business.items[0].app_id
+      ]
+      include_user_actions                            = []
+      include_authentication_context_class_references = []
+    }
+
+    sign_in_risk_levels = []
+  }
+
+  grant_controls = {
+    operator                      = "OR"
+    built_in_controls             = []
+    custom_authentication_factors = []
+    authentication_strength = {
+      id = "00000000-0000-0000-0000-000000000004" # Maps to "phishing_resistant_mfa"
+    }
+  }
+}
+```
+
+#### CAU015: Block High Sign-in Risk
+
+```terraform
+# CAU015: Block High Sign-in Risk
+# Blocks access for high sign-in risk.
+resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy" "cau015_block_high_signin_risk" {
+  display_name = "CAU015-All: Block access for High Risk Sign-in for All Users when Browser and Modern Auth Clients-v1.0"
+  state        = "enabledForReportingButNotEnforced"
+
+  conditions = {
+    client_app_types    = ["browser", "mobileAppsAndDesktopClients"]
+    sign_in_risk_levels = ["high"]
+
+    users = {
+      include_users  = []
+      exclude_users  = []
+      include_groups = [microsoft365_graph_beta_groups_group.cau015_include.id]
+      exclude_groups = [
+        microsoft365_graph_beta_groups_group.breakglass.id,
+        microsoft365_graph_beta_groups_group.cau015_exclude.id
+      ]
+      include_roles = []
+      exclude_roles = []
+    }
+
+    applications = {
+      include_applications                            = ["All"]
+      exclude_applications                            = []
+      include_user_actions                            = []
+      include_authentication_context_class_references = []
+    }
+  }
+
+  grant_controls = {
+    operator                      = "OR"
+    built_in_controls             = ["block"]
+    custom_authentication_factors = []
+  }
+}
+```
+
+#### CAU016: Block High User Risk
+
+```terraform
+# CAU016: Block High User Risk
+# Blocks access for high user risk.
+resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy" "cau016_block_high_user_risk" {
+  display_name = "CAU016-All: Block access for High Risk Users for All Users when Browser and Modern Auth Clients-v1.0"
+  state        = "enabledForReportingButNotEnforced"
+
+  conditions = {
+    client_app_types = ["browser", "mobileAppsAndDesktopClients"]
+    user_risk_levels = ["high"]
+
+    users = {
+      include_users  = []
+      exclude_users  = []
+      include_groups = [microsoft365_graph_beta_groups_group.cau016_include.id]
+      exclude_groups = [
+        microsoft365_graph_beta_groups_group.breakglass.id,
+        microsoft365_graph_beta_groups_group.cau016_exclude.id
+      ]
+      include_roles = []
+      exclude_roles = []
+    }
+
+    applications = {
+      include_applications                            = ["All"]
+      exclude_applications                            = []
+      include_user_actions                            = []
+      include_authentication_context_class_references = []
+    }
+
+    sign_in_risk_levels = []
+  }
+
+  grant_controls = {
+    operator                      = "OR"
+    built_in_controls             = ["block"]
+    custom_authentication_factors = []
+  }
+}
+```
+
+#### CAU017: Admin Sign-in Frequency
+
+```terraform
+# CAU017: Admin Sign-in Frequency
+# Sets sign-in frequency for admin users.
+resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy" "cau017_admin_signin_frequency" {
+  display_name = "CAU017-All: Session set Sign-in Frequency for Admins when Browser-v1.0"
+  state        = "enabledForReportingButNotEnforced"
+
+  conditions = {
+    client_app_types = ["browser"]
+
+    users = {
+      include_users  = []
+      exclude_users  = []
+      include_groups = []
+      exclude_groups = [
+        microsoft365_graph_beta_groups_group.breakglass.id,
+        microsoft365_graph_beta_groups_group.cau017_exclude.id
+      ]
+      include_roles = [
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.application_administrator.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.application_developer.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.authentication_administrator.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.authentication_extensibility_administrator.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.b2c_ief_keyset_administrator.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.billing_administrator.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.cloud_application_administrator.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.cloud_device_administrator.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.compliance_administrator.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.conditional_access_administrator.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.directory_writers.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.exchange_administrator.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.global_administrator.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.global_reader.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.helpdesk_administrator.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.hybrid_identity_administrator.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.intune_administrator.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.password_administrator.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.privileged_authentication_administrator.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.privileged_role_administrator.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.security_administrator.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.security_operator.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.security_reader.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.sharepoint_administrator.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.teams_administrator.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.user_administrator.items[0].id
+      ]
+      exclude_roles = []
+
+      exclude_guests_or_external_users = {
+        guest_or_external_user_types = ["serviceProvider"]
+        external_tenants = {
+          membership_kind = "all"
+        }
+      }
+    }
+
+    applications = {
+      include_applications                            = ["All"]
+      exclude_applications                            = []
+      include_user_actions                            = []
+      include_authentication_context_class_references = []
+    }
+
+    sign_in_risk_levels = []
+  }
+
+  session_controls = {
+    sign_in_frequency = {
+      is_enabled          = true
+      authentication_type = "primaryAndSecondaryAuthentication"
+      frequency_interval  = "timeBased"
+      value               = 10
+      type                = "hours"
+    }
+  }
+
+  grant_controls = {
+    operator                      = "OR"
+    built_in_controls             = []
+    custom_authentication_factors = []
+  }
+}
+```
+
+#### CAU018: Disable Browser Persistence for Admins
+
+```terraform
+# CAU018: Disable Browser Persistence for Admins
+# Disables persistent browser sessions for admin users.
+resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy" "cau018_admin_disable_browser_persistence" {
+  display_name = "CAU018-All: Session disable browser persistence for Admins when Browser-v1.0"
+  state        = "enabledForReportingButNotEnforced"
+
+  conditions = {
+    client_app_types = ["browser"]
+
+    users = {
+      include_users  = []
+      exclude_users  = []
+      include_groups = []
+      exclude_groups = [
+        microsoft365_graph_beta_groups_group.breakglass.id,
+        microsoft365_graph_beta_groups_group.cau018_exclude.id
+      ]
+      include_roles = [
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.application_administrator.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.authentication_administrator.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.authentication_extensibility_administrator.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.b2c_ief_keyset_administrator.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.billing_administrator.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.cloud_application_administrator.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.cloud_device_administrator.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.compliance_administrator.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.conditional_access_administrator.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.directory_writers.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.exchange_administrator.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.global_administrator.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.global_reader.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.helpdesk_administrator.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.hybrid_identity_administrator.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.intune_administrator.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.password_administrator.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.privileged_authentication_administrator.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.privileged_role_administrator.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.security_administrator.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.security_operator.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.security_reader.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.sharepoint_administrator.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.teams_administrator.items[0].id,
+        data.microsoft365_graph_beta_identity_and_access_role_definitions.user_administrator.items[0].id
+      ]
+      exclude_roles = []
+    }
+
+    applications = {
+      include_applications                            = ["All"]
+      exclude_applications                            = []
+      include_user_actions                            = []
+      include_authentication_context_class_references = []
+    }
+
+    sign_in_risk_levels = []
+  }
+
+  session_controls = {
+    persistent_browser = {
+      mode       = "never"
+      is_enabled = true
+    }
+  }
+
+  grant_controls = {
+    operator                      = "OR"
+    built_in_controls             = []
+    custom_authentication_factors = []
+  }
+}
+```
+
+#### CAU019: Allow Only Approved Apps for Guests
+
+```terraform
+# CAU019: Allow Only Approved Apps for Guests
+# Blocks access to all applications for guests except approved apps. This is the
+# inverse of CAU003 - allows specific approved apps for guest users.
+resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy" "cau019_allow_only_approved_apps_guests" {
+  display_name = "CAU019-Selected: Only allow approved apps for guests when Browser and Modern Auth Clients-v1.0"
+  state        = "enabledForReportingButNotEnforced"
+
+  conditions = {
+    client_app_types = ["browser", "mobileAppsAndDesktopClients"]
+
+    users = {
+      include_users  = []
+      exclude_users  = []
+      include_groups = []
+      exclude_groups = [
+        microsoft365_graph_beta_groups_group.breakglass.id,
+        microsoft365_graph_beta_groups_group.cau019_exclude.id
+      ]
+      include_roles = []
+      exclude_roles = []
+
+      include_guests_or_external_users = {
+        guest_or_external_user_types = ["internalGuest", "b2bCollaborationGuest", "b2bCollaborationMember", "b2bDirectConnectUser", "otherExternalUser"]
+        external_tenants = {
+          membership_kind = "all"
+        }
+      }
+    }
+
+    applications = {
+      include_applications = ["All"]
+      exclude_applications = [
+        data.microsoft365_graph_beta_applications_service_principal.windows_azure_active_directory.items[0].app_id,
+        data.microsoft365_graph_beta_applications_service_principal.microsoft_approval_management.items[0].app_id,
+        data.microsoft365_graph_beta_applications_service_principal.aad_reporting.items[0].app_id,
+        data.microsoft365_graph_beta_applications_service_principal.azure_credential_configuration_endpoint_service.items[0].app_id,
+        data.microsoft365_graph_beta_applications_service_principal.microsoft_app_access_panel.items[0].app_id,
+        data.microsoft365_graph_beta_applications_service_principal.my_profile.items[0].app_id,
+        data.microsoft365_graph_beta_applications_service_principal.my_apps.items[0].app_id,
+        // TODOs: both of these id's don't exist in my tenant. probably need to en able a service first
+        // and they will appear. 
+        //"19db86c3-b2b9-44cc-b339-36da233a3be2", # my sign-ins
+        //"4660504c-45b3-4674-a709-71951a6b0763", # Microsoft Invitation Acceptance Portal
+        "Office365"
+      ]
+      include_user_actions                            = []
+      include_authentication_context_class_references = []
+    }
+
+    sign_in_risk_levels = []
+  }
+
+  grant_controls = {
+    operator                      = "OR"
+    built_in_controls             = ["block"]
+    custom_authentication_factors = []
+  }
 }
 ```
 

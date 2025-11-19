@@ -34,7 +34,201 @@ The following API permissions are required in order to use this resource.
 
 ## Example Usage
 
-{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_conditional_access_policy/resource.tf" }}
+### Device-Based Policies (CAD)
+
+#### CAD001: macOS Compliant Device Access
+
+{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_conditional_access_policy/resource_cad001-o365.tf" }}
+
+#### CAD002: Windows Compliant Device Access
+
+{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_conditional_access_policy/resource_cad002-o365.tf" }}
+
+#### CAD003: iOS/iPadOS Compliant Device Access
+
+{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_conditional_access_policy/resource_cad003-o365.tf" }}
+
+#### CAD004: Android Compliant Device Access
+
+{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_conditional_access_policy/resource_cad004-o365.tf" }}
+
+#### CAD005: Non-Compliant Device Block
+
+{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_conditional_access_policy/resource_cad005-o365.tf" }}
+
+#### CAD006: macOS App Protection Policy
+
+{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_conditional_access_policy/resource_cad006-o365.tf" }}
+
+#### CAD007: Windows App Protection Policy
+
+{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_conditional_access_policy/resource_cad007-o365.tf" }}
+
+#### CAD008: iOS/iPadOS App Protection Policy
+
+{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_conditional_access_policy/resource_cad008-all.tf" }}
+
+#### CAD009: Android App Protection Policy
+
+{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_conditional_access_policy/resource_cad009-all.tf" }}
+
+#### CAD010: Remote Desktop Services Compliance
+
+{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_conditional_access_policy/resource_cad010-rjd.tf" }}
+
+#### CAD011: Require MFA for Non-Compliant Devices
+
+{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_conditional_access_policy/resource_cad011-o365.tf" }}
+
+#### CAD012: Block Unmanaged Devices
+
+{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_conditional_access_policy/resource_cad012-all.tf" }}
+
+#### CAD013: Compliant macOS for Admin Roles
+
+{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_conditional_access_policy/resource_cad013-selected.tf" }}
+
+#### CAD014: Compliant Windows for Admin Roles
+
+{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_conditional_access_policy/resource_cad014-o365.tf" }}
+
+#### CAD015: Compliant iOS/iPadOS for Admin Roles
+
+{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_conditional_access_policy/resource_cad015-all.tf" }}
+
+#### CAD016: Compliant Device for Exchange/SharePoint/Cloud PC
+
+{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_conditional_access_policy/resource_cad016-exo_spo_cloudpc.tf" }}
+
+#### CAD017: Compliant Android for Admin Roles
+
+{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_conditional_access_policy/resource_cad017-selected.tf" }}
+
+#### CAD018: Compliant Device for Cloud PC
+
+{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_conditional_access_policy/resource_cad018-cloudpc.tf" }}
+
+#### CAD019: Compliant Device for Intune Enrollment
+
+{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_conditional_access_policy/resource_cad019-intune.tf" }}
+
+### Platform-Based Policies (CAP)
+
+#### CAP001: Block Legacy Authentication
+
+{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_conditional_access_policy/resource_cap001-all.tf" }}
+
+#### CAP002: Block Exchange ActiveSync
+
+{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_conditional_access_policy/resource_cap002-all.tf" }}
+
+#### CAP003: Block Device Code Flow
+
+{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_conditional_access_policy/resource_cap003-all.tf" }}
+
+#### CAP004: Block Authentication Transfer
+
+{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_conditional_access_policy/resource_cap004-all.tf" }}
+
+### Location-Based Policies (CAL)
+
+#### CAL001: Block Specified Locations
+
+{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_conditional_access_policy/resource_cal001-all.tf" }}
+
+#### CAL002: MFA Registration from Trusted Locations Only
+
+{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_conditional_access_policy/resource_cal002-rsi.tf" }}
+
+#### CAL003: Block Service Accounts from Non-Trusted Locations
+
+{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_conditional_access_policy/resource_cal003-all.tf" }}
+
+#### CAL004: Block Admin Access from Non-Trusted Locations
+
+{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_conditional_access_policy/resource_cal004-all.tf" }}
+
+#### CAL005: Less-Trusted Locations Require Compliance
+
+{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_conditional_access_policy/resource_cal005-selected.tf" }}
+
+#### CAL006: Allow Access Only from Specified Locations
+
+{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_conditional_access_policy/resource_cal006-all.tf" }}
+
+### User-Based Policies (CAU)
+
+#### CAU001: Require MFA for Guest Users
+
+{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_conditional_access_policy/resource_cau001-all.tf" }}
+
+#### CAU001A: Require MFA for Guests - Windows Azure AD
+
+{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_conditional_access_policy/resource_cau001a-windows_azure_active_directory.tf" }}
+
+#### CAU002: Require MFA for All Users
+
+{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_conditional_access_policy/resource_cau002-all.tf" }}
+
+#### CAU003: Block Unapproved Apps for Guests
+
+{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_conditional_access_policy/resource_cau003-selected.tf" }}
+
+#### CAU004: Route Through Microsoft Defender for Cloud Apps
+
+{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_conditional_access_policy/resource_cau004-selected.tf" }}
+
+#### CAU006: MFA for Medium/High Sign-in Risk
+
+{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_conditional_access_policy/resource_cau006-all.tf" }}
+
+#### CAU007: Password Change for Medium/High User Risk
+
+{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_conditional_access_policy/resource_cau007-all.tf" }}
+
+#### CAU008: Phishing-Resistant MFA for Admins
+
+{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_conditional_access_policy/resource_cau008-all.tf" }}
+
+#### CAU009: Require MFA for Admin Portals
+
+{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_conditional_access_policy/resource_cau009-management.tf" }}
+
+#### CAU010: Require Terms of Use
+
+{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_conditional_access_policy/resource_cau010-all.tf" }}
+
+#### CAU011: Block Unlicensed Users
+
+{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_conditional_access_policy/resource_cau011-all.tf" }}
+
+#### CAU012: Security Info Registration with TAP
+
+{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_conditional_access_policy/resource_cau012-rsi.tf" }}
+
+#### CAU013: Phishing-Resistant MFA for All Users
+
+{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_conditional_access_policy/resource_cau013-all.tf" }}
+
+#### CAU015: Block High Sign-in Risk
+
+{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_conditional_access_policy/resource_cau015-all.tf" }}
+
+#### CAU016: Block High User Risk
+
+{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_conditional_access_policy/resource_cau016-all.tf" }}
+
+#### CAU017: Admin Sign-in Frequency
+
+{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_conditional_access_policy/resource_cau017-all.tf" }}
+
+#### CAU018: Disable Browser Persistence for Admins
+
+{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_conditional_access_policy/resource_cau018-all.tf" }}
+
+#### CAU019: Allow Only Approved Apps for Guests
+
+{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_conditional_access_policy/resource_cau019-selected.tf" }}
 
 {{ .SchemaMarkdown | trimspace }}
 

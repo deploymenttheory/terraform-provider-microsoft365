@@ -1,23 +1,43 @@
 package graphBetaAuthenticationContext_test
 
 import (
-	"context"
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/check"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/destroy"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/testlog"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
-	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
+	graphBetaAuthenticationContext "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/identity_and_access/graph_beta/authentication_context"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
+)
+
+const (
+	testResourceName = "microsoft365_graph_beta_identity_and_access_authentication_context"
+)
+
+var (
+	// Resource type name constructed from exported constants
+	resourceType = constants.PROVIDER_NAME + "_" + graphBetaAuthenticationContext.ResourceName
+
+	// testResource is the test resource implementation for authentication contexts
+	testResource = graphBetaAuthenticationContext.AuthenticationContextTestResource{}
 )
 
 func TestAccAuthenticationContextResource_Basic(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
-		CheckDestroy:             testAccCheckAuthenticationContextDestroy,
+		CheckDestroy: destroy.CheckDestroyedAllFunc(
+			testResource,
+			resourceType,
+			15*time.Second,
+		),
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
 				Source:            "hashicorp/random",
@@ -26,13 +46,21 @@ func TestAccAuthenticationContextResource_Basic(t *testing.T) {
 		},
 		Steps: []resource.TestStep{
 			{
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Creating basic authentication context")
+				},
 				Config: testAccAuthenticationContextConfigBasic(),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_identity_and_access_authentication_context.test", "id", "c90"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_identity_and_access_authentication_context.test", "display_name", "Acceptance Test Context"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_identity_and_access_authentication_context.test", "description", "Context for acceptance testing"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_identity_and_access_authentication_context.test", "is_available", "true"),
-					resource.TestCheckResourceAttrSet("microsoft365_graph_beta_identity_and_access_authentication_context.test", "id"),
+					func(_ *terraform.State) error {
+						testlog.WaitForConsistency("authentication context", 10*time.Second)
+						time.Sleep(5 * time.Second)
+						return nil
+					},
+					check.That(testResourceName+".test").ExistsInGraph(testResource),
+					check.That(testResourceName+".test").Key("id").HasValue("c90"),
+					check.That(testResourceName+".test").Key("display_name").HasValue("Acceptance Test Context"),
+					check.That(testResourceName+".test").Key("description").HasValue("Context for acceptance testing"),
+					check.That(testResourceName+".test").Key("is_available").HasValue("true"),
 				),
 			},
 		},
@@ -43,7 +71,11 @@ func TestAccAuthenticationContextResource_Update(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
-		CheckDestroy:             testAccCheckAuthenticationContextDestroy,
+		CheckDestroy: destroy.CheckDestroyedAllFunc(
+			testResource,
+			resourceType,
+			15*time.Second,
+		),
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
 				Source:            "hashicorp/random",
@@ -52,18 +84,36 @@ func TestAccAuthenticationContextResource_Update(t *testing.T) {
 		},
 		Steps: []resource.TestStep{
 			{
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Creating initial authentication context")
+				},
 				Config: testAccAuthenticationContextConfigUpdate1(),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_identity_and_access_authentication_context.test", "display_name", "Initial Context"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_identity_and_access_authentication_context.test", "is_available", "true"),
+					func(_ *terraform.State) error {
+						testlog.WaitForConsistency("authentication context", 10*time.Second)
+						time.Sleep(5 * time.Second)
+						return nil
+					},
+					check.That(testResourceName+".test").ExistsInGraph(testResource),
+					check.That(testResourceName+".test").Key("display_name").HasValue("Initial Context"),
+					check.That(testResourceName+".test").Key("is_available").HasValue("true"),
 				),
 			},
 			{
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Updating authentication context")
+				},
 				Config: testAccAuthenticationContextConfigUpdate2(),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_identity_and_access_authentication_context.test", "display_name", "Updated Context"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_identity_and_access_authentication_context.test", "description", "Updated description"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_identity_and_access_authentication_context.test", "is_available", "false"),
+					func(_ *terraform.State) error {
+						testlog.WaitForConsistency("authentication context", 10*time.Second)
+						time.Sleep(5 * time.Second)
+						return nil
+					},
+					check.That(testResourceName+".test").ExistsInGraph(testResource),
+					check.That(testResourceName+".test").Key("display_name").HasValue("Updated Context"),
+					check.That(testResourceName+".test").Key("description").HasValue("Updated description"),
+					check.That(testResourceName+".test").Key("is_available").HasValue("false"),
 				),
 			},
 		},
@@ -74,7 +124,11 @@ func TestAccAuthenticationContextResource_Import(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
-		CheckDestroy:             testAccCheckAuthenticationContextDestroy,
+		CheckDestroy: destroy.CheckDestroyedAllFunc(
+			testResource,
+			resourceType,
+			15*time.Second,
+		),
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
 				Source:            "hashicorp/random",
@@ -83,10 +137,23 @@ func TestAccAuthenticationContextResource_Import(t *testing.T) {
 		},
 		Steps: []resource.TestStep{
 			{
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Creating authentication context for import")
+				},
 				Config: testAccAuthenticationContextConfigImport(),
+				Check: resource.ComposeTestCheckFunc(
+					func(_ *terraform.State) error {
+						testlog.WaitForConsistency("authentication context", 10*time.Second)
+						time.Sleep(5 * time.Second)
+						return nil
+					},
+				),
 			},
 			{
-				ResourceName:      "microsoft365_graph_beta_identity_and_access_authentication_context.test",
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Importing authentication context")
+				},
+				ResourceName:      testResourceName + ".test",
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
@@ -98,7 +165,11 @@ func TestAccAuthenticationContextResource_Minimal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
-		CheckDestroy:             testAccCheckAuthenticationContextDestroy,
+		CheckDestroy: destroy.CheckDestroyedAllFunc(
+			testResource,
+			resourceType,
+			15*time.Second,
+		),
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
 				Source:            "hashicorp/random",
@@ -107,57 +178,31 @@ func TestAccAuthenticationContextResource_Minimal(t *testing.T) {
 		},
 		Steps: []resource.TestStep{
 			{
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Creating minimal authentication context")
+				},
 				Config: testAccAuthenticationContextConfigMinimal(),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_identity_and_access_authentication_context.test", "id", "c93"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_identity_and_access_authentication_context.test", "display_name", "Minimal Context"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_identity_and_access_authentication_context.test", "is_available", "false"),
-					resource.TestCheckResourceAttrSet("microsoft365_graph_beta_identity_and_access_authentication_context.test", "id"),
+					func(_ *terraform.State) error {
+						testlog.WaitForConsistency("authentication context", 10*time.Second)
+						time.Sleep(5 * time.Second)
+						return nil
+					},
+					check.That(testResourceName+".test").ExistsInGraph(testResource),
+					check.That(testResourceName+".test").Key("id").HasValue("c93"),
+					check.That(testResourceName+".test").Key("display_name").HasValue("Minimal Context"),
+					check.That(testResourceName+".test").Key("is_available").HasValue("false"),
 				),
 			},
 		},
 	})
 }
 
-func testAccCheckAuthenticationContextDestroy(s *terraform.State) error {
-	graphClient, err := acceptance.TestGraphClient()
-	if err != nil {
-		return fmt.Errorf("error creating Graph client for CheckDestroy: %v", err)
-	}
-	ctx := context.Background()
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "microsoft365_graph_beta_identity_and_access_authentication_context" {
-			continue
-		}
-		_, err := graphClient.
-			Identity().
-			ConditionalAccess().
-			AuthenticationContextClassReferences().
-			ByAuthenticationContextClassReferenceId(rs.Primary.ID).
-			Get(ctx, nil)
-
-		if err != nil {
-			errorInfo := errors.GraphError(ctx, err)
-
-			if errorInfo.StatusCode == 404 ||
-				errorInfo.ErrorCode == "ResourceNotFound" ||
-				errorInfo.ErrorCode == "ItemNotFound" {
-				fmt.Printf("DEBUG: Resource %s successfully destroyed (404/NotFound)\n", rs.Primary.ID)
-				continue
-			}
-			return fmt.Errorf("error checking if authentication context %s was destroyed: %v", rs.Primary.ID, err)
-		}
-
-		return fmt.Errorf("authentication context %s still exists", rs.Primary.ID)
-	}
-
-	return nil
-}
-
+// Configuration helper functions
 func testAccAuthenticationContextConfigBasic() string {
 	accTestConfig, err := helpers.ParseHCLFile("tests/terraform/acceptance/01_basic.tf")
 	if err != nil {
-		panic(fmt.Sprintf("failed to load acceptance test config: %s", err.Error()))
+		panic(fmt.Sprintf("failed to load authentication context basic config: %s", err.Error()))
 	}
 	return acceptance.ConfiguredM365ProviderBlock(accTestConfig)
 }
@@ -165,7 +210,7 @@ func testAccAuthenticationContextConfigBasic() string {
 func testAccAuthenticationContextConfigUpdate1() string {
 	accTestConfig, err := helpers.ParseHCLFile("tests/terraform/acceptance/02_update_1.tf")
 	if err != nil {
-		panic(fmt.Sprintf("failed to load acceptance test config: %s", err.Error()))
+		panic(fmt.Sprintf("failed to load authentication context update 1 config: %s", err.Error()))
 	}
 	return acceptance.ConfiguredM365ProviderBlock(accTestConfig)
 }
@@ -173,7 +218,7 @@ func testAccAuthenticationContextConfigUpdate1() string {
 func testAccAuthenticationContextConfigUpdate2() string {
 	accTestConfig, err := helpers.ParseHCLFile("tests/terraform/acceptance/02_update_2.tf")
 	if err != nil {
-		panic(fmt.Sprintf("failed to load acceptance test config: %s", err.Error()))
+		panic(fmt.Sprintf("failed to load authentication context update 2 config: %s", err.Error()))
 	}
 	return acceptance.ConfiguredM365ProviderBlock(accTestConfig)
 }
@@ -181,7 +226,7 @@ func testAccAuthenticationContextConfigUpdate2() string {
 func testAccAuthenticationContextConfigImport() string {
 	accTestConfig, err := helpers.ParseHCLFile("tests/terraform/acceptance/03_import.tf")
 	if err != nil {
-		panic(fmt.Sprintf("failed to load acceptance test config: %s", err.Error()))
+		panic(fmt.Sprintf("failed to load authentication context import config: %s", err.Error()))
 	}
 	return acceptance.ConfiguredM365ProviderBlock(accTestConfig)
 }
@@ -189,7 +234,7 @@ func testAccAuthenticationContextConfigImport() string {
 func testAccAuthenticationContextConfigMinimal() string {
 	accTestConfig, err := helpers.ParseHCLFile("tests/terraform/acceptance/04_minimal.tf")
 	if err != nil {
-		panic(fmt.Sprintf("failed to load acceptance test config: %s", err.Error()))
+		panic(fmt.Sprintf("failed to load authentication context minimal config: %s", err.Error()))
 	}
 	return acceptance.ConfiguredM365ProviderBlock(accTestConfig)
 }
