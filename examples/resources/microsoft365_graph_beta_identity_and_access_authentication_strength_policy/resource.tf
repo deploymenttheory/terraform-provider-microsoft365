@@ -38,12 +38,12 @@ resource "microsoft365_graph_beta_identity_and_access_authentication_strength_po
     },
     {
       applies_to_combinations = "x509CertificateMultiFactor"
-      allowed_issuer_skis     = ["1A2B3C4D5E6F7A8B9C0D1E2F3A4B5C6D7E8F9A0A","1A2B3C4D5E6F7A8B9C0D1E2F3A4B5C6D7E8F9A0B"]
+      allowed_issuer_skis     = ["1A2B3C4D5E6F7A8B9C0D1E2F3A4B5C6D7E8F9A0A", "1A2B3C4D5E6F7A8B9C0D1E2F3A4B5C6D7E8F9A0B"]
       allowed_policy_oids     = ["1.3.6.1.4.1.311.21.8.1.5", "1.2.3.4.5.8"]
     },
     {
       applies_to_combinations = "x509CertificateSingleFactor"
-      allowed_issuer_skis     = ["1A2B3C4D5E6F7A8B9C0D1E2F3A4B5C6D7E8F9A0C","1A2B3C4D5E6F7A8B9C0D1E2F3A4B5C6D7E8F9A0D"]
+      allowed_issuer_skis     = ["1A2B3C4D5E6F7A8B9C0D1E2F3A4B5C6D7E8F9A0C", "1A2B3C4D5E6F7A8B9C0D1E2F3A4B5C6D7E8F9A0D"]
       allowed_policy_oids     = ["1.3.6.1.4.1.311.21.8.1.4", "1.2.3.4.5.8"]
     }
   ]
