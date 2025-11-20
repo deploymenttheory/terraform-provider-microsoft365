@@ -1,0 +1,20 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#users/$entity",
+  "id": "00000000-0000-0000-0000-000000000002",
+  "userPrincipalName": "test.minimal@contoso.com",
+  "displayName": "Test Minimal User",
+  "assignedLicenses": [
+    {
+      "skuId": "44444444-4444-4444-4444-444444444444",
+      "disabledPlans": [
+        "55555555-5555-5555-5555-555555555555",
+        "66666666-6666-6666-6666-666666666666"
+      ]
+    },
+    {
+      "skuId": "77777777-7777-7777-7777-777777777777",
+      "disabledPlans": []
+    }
+  ]
+}
+

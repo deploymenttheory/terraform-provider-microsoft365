@@ -1,6 +1,7 @@
 resource "microsoft365_graph_beta_users_user" "minimal" {
   display_name        = "Minimal User"
-  user_principal_name = "minimal.user@contoso.com"
+  user_principal_name = "minimal.user@deploymenttheory.com"
+  mail_nickname       = "minimal.user"
   account_enabled     = true
   password_profile = {
     password                           = "SecureP@ssw0rd123!"
