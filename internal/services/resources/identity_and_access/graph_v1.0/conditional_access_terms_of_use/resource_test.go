@@ -1,67 +1,30 @@
 package graphConditionalAccessTermsOfUse_test
 
 import (
-	"fmt"
-	"os"
-	"path/filepath"
 	"regexp"
 	"testing"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/check"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
 	termsOfUseMocks "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/identity_and_access/graph_v1.0/conditional_access_terms_of_use/mocks"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/jarcoal/httpmock"
 )
 
-func setupUnitTestEnvironment() {
-	// Set environment variables for testing
-	os.Setenv("TF_ACC", "0")
-	os.Setenv("MS365_TEST_MODE", "true")
-}
+// resourceType is declared in resource_acceptance_test.go and shared across the package
 
-// setupMockEnvironment sets up the mock environment using centralized mocks
 func setupMockEnvironment() (*mocks.Mocks, *termsOfUseMocks.ConditionalAccessTermsOfUseMock) {
-	// Activate httpmock
 	httpmock.Activate()
-
-	// Create a new Mocks instance and register authentication mocks
 	mockClient := mocks.NewMocks()
 	mockClient.AuthMocks.RegisterMocks()
-
-	// Register local mocks directly
 	termsOfUseMock := &termsOfUseMocks.ConditionalAccessTermsOfUseMock{}
 	termsOfUseMock.RegisterMocks()
-
 	return mockClient, termsOfUseMock
 }
 
-// testCheckExists is a basic check to ensure the resource exists in the state
-func testCheckExists(resourceName string) resource.TestCheckFunc {
-	return resource.TestCheckResourceAttrSet(resourceName, "id")
-}
-
-// testConfigMinimal returns the minimal configuration for testing
-func testConfigMinimal() string {
-	content, err := os.ReadFile(filepath.Join("tests", "terraform", "unit", "resource_minimal.tf"))
-	if err != nil {
-		return ""
-	}
-	return string(content)
-}
-
-// testConfigMaximal returns the maximal configuration for testing
-func testConfigMaximal() string {
-	content, err := os.ReadFile(filepath.Join("tests", "terraform", "unit", "resource_maximal.tf"))
-	if err != nil {
-		return ""
-	}
-	return string(content)
-}
-
-// TestConditionalAccessTermsOfUseResource_Schema validates the resource schema
-func TestConditionalAccessTermsOfUseResource_Schema(t *testing.T) {
-	setupUnitTestEnvironment()
+func TestConditionalAccessTermsOfUseResource_Basic(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
 	_, termsOfUseMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
 	defer termsOfUseMock.CleanupMockState()
@@ -72,47 +35,18 @@ func TestConditionalAccessTermsOfUseResource_Schema(t *testing.T) {
 			{
 				Config: testConfigMinimal(),
 				Check: resource.ComposeTestCheckFunc(
-					// Check required attributes
-					resource.TestCheckResourceAttr("microsoft365_graph_identity_and_access_conditional_access_terms_of_use.unit_test_conditional_access_terms_of_use_minimal", "display_name", "unit_test_conditional_access_terms_of_use_minimal"),
-					resource.TestCheckResourceAttr("microsoft365_graph_identity_and_access_conditional_access_terms_of_use.unit_test_conditional_access_terms_of_use_minimal", "file.localizations.#", "1"),
-					resource.TestCheckResourceAttr("microsoft365_graph_identity_and_access_conditional_access_terms_of_use.unit_test_conditional_access_terms_of_use_minimal", "is_viewing_before_acceptance_required", "true"),
-					resource.TestCheckResourceAttr("microsoft365_graph_identity_and_access_conditional_access_terms_of_use.unit_test_conditional_access_terms_of_use_minimal", "is_per_device_acceptance_required", "false"),
-					resource.TestCheckResourceAttr("microsoft365_graph_identity_and_access_conditional_access_terms_of_use.unit_test_conditional_access_terms_of_use_minimal", "user_reaccept_required_frequency", "P10D"),
-					resource.TestCheckResourceAttr("microsoft365_graph_identity_and_access_conditional_access_terms_of_use.unit_test_conditional_access_terms_of_use_minimal", "terms_expiration.start_date_time", "2025-11-06"),
-					resource.TestCheckResourceAttr("microsoft365_graph_identity_and_access_conditional_access_terms_of_use.unit_test_conditional_access_terms_of_use_minimal", "terms_expiration.frequency", "P180D"),
-
-					// Check computed attributes are set
-					resource.TestMatchResourceAttr("microsoft365_graph_identity_and_access_conditional_access_terms_of_use.unit_test_conditional_access_terms_of_use_minimal", "id", regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(resourceType+".unit_test_conditional_access_terms_of_use_minimal").Key("id").Exists(),
+					check.That(resourceType+".unit_test_conditional_access_terms_of_use_minimal").Key("display_name").HasValue("unit_test_conditional_access_terms_of_use_minimal"),
+					check.That(resourceType+".unit_test_conditional_access_terms_of_use_minimal").Key("file.localizations.#").HasValue("1"),
+					check.That(resourceType+".unit_test_conditional_access_terms_of_use_minimal").Key("is_viewing_before_acceptance_required").HasValue("true"),
+					check.That(resourceType+".unit_test_conditional_access_terms_of_use_minimal").Key("is_per_device_acceptance_required").HasValue("false"),
+					check.That(resourceType+".unit_test_conditional_access_terms_of_use_minimal").Key("user_reaccept_required_frequency").HasValue("P10D"),
+					check.That(resourceType+".unit_test_conditional_access_terms_of_use_minimal").Key("terms_expiration.start_date_time").HasValue("2025-11-06"),
+					check.That(resourceType+".unit_test_conditional_access_terms_of_use_minimal").Key("terms_expiration.frequency").HasValue("P180D"),
 				),
 			},
-		},
-	})
-}
-
-// TestConditionalAccessTermsOfUseResource_Minimal tests basic CRUD operations
-func TestConditionalAccessTermsOfUseResource_Minimal(t *testing.T) {
-	setupUnitTestEnvironment()
-	_, termsOfUseMock := setupMockEnvironment()
-	defer httpmock.DeactivateAndReset()
-	defer termsOfUseMock.CleanupMockState()
-
-	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
-		Steps: []resource.TestStep{
-			// Create and Read testing
 			{
-				Config: testConfigMinimal(),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckExists("microsoft365_graph_identity_and_access_conditional_access_terms_of_use.unit_test_conditional_access_terms_of_use_minimal"),
-					resource.TestCheckResourceAttr("microsoft365_graph_identity_and_access_conditional_access_terms_of_use.unit_test_conditional_access_terms_of_use_minimal", "display_name", "unit_test_conditional_access_terms_of_use_minimal"),
-					resource.TestCheckResourceAttr("microsoft365_graph_identity_and_access_conditional_access_terms_of_use.unit_test_conditional_access_terms_of_use_minimal", "is_viewing_before_acceptance_required", "true"),
-					resource.TestCheckResourceAttr("microsoft365_graph_identity_and_access_conditional_access_terms_of_use.unit_test_conditional_access_terms_of_use_minimal", "is_per_device_acceptance_required", "false"),
-					resource.TestCheckResourceAttr("microsoft365_graph_identity_and_access_conditional_access_terms_of_use.unit_test_conditional_access_terms_of_use_minimal", "user_reaccept_required_frequency", "P10D"),
-				),
-			},
-			// ImportState testing
-			{
-				ResourceName:      "microsoft365_graph_identity_and_access_conditional_access_terms_of_use.unit_test_conditional_access_terms_of_use_minimal",
+				ResourceName:      resourceType + ".unit_test_conditional_access_terms_of_use_minimal",
 				ImportState:       true,
 				ImportStateVerify: true,
 				ImportStateVerifyIgnore: []string{
@@ -131,21 +65,13 @@ func TestConditionalAccessTermsOfUseResource_Minimal(t *testing.T) {
 					"file.localizations.0.is_major_version",
 					"file.localizations.0.language",
 				},
-				ImportStateIdFunc: func(s *terraform.State) (string, error) {
-					rs, ok := s.RootModule().Resources["microsoft365_graph_identity_and_access_conditional_access_terms_of_use.unit_test_conditional_access_terms_of_use_minimal"]
-					if !ok {
-						return "", fmt.Errorf("not found: microsoft365_graph_identity_and_access_conditional_access_terms_of_use.unit_test_conditional_access_terms_of_use_minimal")
-					}
-					return rs.Primary.ID, nil
-				},
 			},
 		},
 	})
 }
 
-// TestConditionalAccessTermsOfUseResource_Maximal tests maximal configuration
 func TestConditionalAccessTermsOfUseResource_Maximal(t *testing.T) {
-	setupUnitTestEnvironment()
+	mocks.SetupUnitTestEnvironment(t)
 	_, termsOfUseMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
 	defer termsOfUseMock.CleanupMockState()
@@ -156,23 +82,32 @@ func TestConditionalAccessTermsOfUseResource_Maximal(t *testing.T) {
 			{
 				Config: testConfigMaximal(),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckExists("microsoft365_graph_identity_and_access_conditional_access_terms_of_use.unit_test_conditional_access_terms_of_use_maximal"),
-					resource.TestCheckResourceAttr("microsoft365_graph_identity_and_access_conditional_access_terms_of_use.unit_test_conditional_access_terms_of_use_maximal", "display_name", "unit_test_conditional_access_terms_of_use_maximal"),
-					resource.TestCheckResourceAttr("microsoft365_graph_identity_and_access_conditional_access_terms_of_use.unit_test_conditional_access_terms_of_use_maximal", "is_viewing_before_acceptance_required", "true"),
-					resource.TestCheckResourceAttr("microsoft365_graph_identity_and_access_conditional_access_terms_of_use.unit_test_conditional_access_terms_of_use_maximal", "is_per_device_acceptance_required", "false"),
-					resource.TestCheckResourceAttr("microsoft365_graph_identity_and_access_conditional_access_terms_of_use.unit_test_conditional_access_terms_of_use_maximal", "user_reaccept_required_frequency", "P10D"),
-					resource.TestCheckResourceAttr("microsoft365_graph_identity_and_access_conditional_access_terms_of_use.unit_test_conditional_access_terms_of_use_maximal", "file.localizations.#", "30"),
-					resource.TestCheckResourceAttr("microsoft365_graph_identity_and_access_conditional_access_terms_of_use.unit_test_conditional_access_terms_of_use_maximal", "terms_expiration.start_date_time", "2025-11-06"),
-					resource.TestCheckResourceAttr("microsoft365_graph_identity_and_access_conditional_access_terms_of_use.unit_test_conditional_access_terms_of_use_maximal", "terms_expiration.frequency", "P180D"),
+					check.That(resourceType+".unit_test_conditional_access_terms_of_use_maximal").Key("id").Exists(),
+					check.That(resourceType+".unit_test_conditional_access_terms_of_use_maximal").Key("display_name").HasValue("unit_test_conditional_access_terms_of_use_maximal"),
+					check.That(resourceType+".unit_test_conditional_access_terms_of_use_maximal").Key("is_viewing_before_acceptance_required").HasValue("true"),
+					check.That(resourceType+".unit_test_conditional_access_terms_of_use_maximal").Key("is_per_device_acceptance_required").HasValue("false"),
+					check.That(resourceType+".unit_test_conditional_access_terms_of_use_maximal").Key("user_reaccept_required_frequency").HasValue("P10D"),
+					check.That(resourceType+".unit_test_conditional_access_terms_of_use_maximal").Key("file.localizations.#").HasValue("30"),
+					check.That(resourceType+".unit_test_conditional_access_terms_of_use_maximal").Key("terms_expiration.start_date_time").HasValue("2025-11-06"),
+					check.That(resourceType+".unit_test_conditional_access_terms_of_use_maximal").Key("terms_expiration.frequency").HasValue("P180D"),
 				),
+			},
+			{
+				ResourceName:      resourceType + ".unit_test_conditional_access_terms_of_use_maximal",
+				ImportState:       true,
+				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"file",
+					"file.%",
+					"file.localizations",
+				},
 			},
 		},
 	})
 }
 
-// TestConditionalAccessTermsOfUseResource_UpdateInPlace tests in-place updates
-func TestConditionalAccessTermsOfUseResource_UpdateInPlace(t *testing.T) {
-	setupUnitTestEnvironment()
+func TestConditionalAccessTermsOfUseResource_Update(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
 	_, termsOfUseMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
 	defer termsOfUseMock.CleanupMockState()
@@ -183,28 +118,37 @@ func TestConditionalAccessTermsOfUseResource_UpdateInPlace(t *testing.T) {
 			{
 				Config: testConfigMinimal(),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckExists("microsoft365_graph_identity_and_access_conditional_access_terms_of_use.unit_test_conditional_access_terms_of_use_minimal"),
-					resource.TestCheckResourceAttr("microsoft365_graph_identity_and_access_conditional_access_terms_of_use.unit_test_conditional_access_terms_of_use_minimal", "display_name", "unit_test_conditional_access_terms_of_use_minimal"),
-					resource.TestCheckResourceAttr("microsoft365_graph_identity_and_access_conditional_access_terms_of_use.unit_test_conditional_access_terms_of_use_minimal", "is_viewing_before_acceptance_required", "true"),
-					resource.TestCheckResourceAttr("microsoft365_graph_identity_and_access_conditional_access_terms_of_use.unit_test_conditional_access_terms_of_use_minimal", "file.localizations.#", "1"),
+					check.That(resourceType+".unit_test_conditional_access_terms_of_use_minimal").Key("id").Exists(),
+					check.That(resourceType+".unit_test_conditional_access_terms_of_use_minimal").Key("display_name").HasValue("unit_test_conditional_access_terms_of_use_minimal"),
+					check.That(resourceType+".unit_test_conditional_access_terms_of_use_minimal").Key("is_viewing_before_acceptance_required").HasValue("true"),
+					check.That(resourceType+".unit_test_conditional_access_terms_of_use_minimal").Key("file.localizations.#").HasValue("1"),
 				),
 			},
 			{
 				Config: testConfigMaximal(),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckExists("microsoft365_graph_identity_and_access_conditional_access_terms_of_use.unit_test_conditional_access_terms_of_use_maximal"),
-					resource.TestCheckResourceAttr("microsoft365_graph_identity_and_access_conditional_access_terms_of_use.unit_test_conditional_access_terms_of_use_maximal", "display_name", "unit_test_conditional_access_terms_of_use_maximal"),
-					resource.TestCheckResourceAttr("microsoft365_graph_identity_and_access_conditional_access_terms_of_use.unit_test_conditional_access_terms_of_use_maximal", "is_viewing_before_acceptance_required", "true"),
-					resource.TestCheckResourceAttr("microsoft365_graph_identity_and_access_conditional_access_terms_of_use.unit_test_conditional_access_terms_of_use_maximal", "file.localizations.#", "30"),
+					check.That(resourceType+".unit_test_conditional_access_terms_of_use_maximal").Key("id").Exists(),
+					check.That(resourceType+".unit_test_conditional_access_terms_of_use_maximal").Key("display_name").HasValue("unit_test_conditional_access_terms_of_use_maximal"),
+					check.That(resourceType+".unit_test_conditional_access_terms_of_use_maximal").Key("is_viewing_before_acceptance_required").HasValue("true"),
+					check.That(resourceType+".unit_test_conditional_access_terms_of_use_maximal").Key("file.localizations.#").HasValue("30"),
 				),
+			},
+			{
+				ResourceName:      resourceType + ".unit_test_conditional_access_terms_of_use_maximal",
+				ImportState:       true,
+				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"file",
+					"file.%",
+					"file.localizations",
+				},
 			},
 		},
 	})
 }
 
-// TestConditionalAccessTermsOfUseResource_FileValidation tests file configuration validation
 func TestConditionalAccessTermsOfUseResource_FileValidation(t *testing.T) {
-	setupUnitTestEnvironment()
+	mocks.SetupUnitTestEnvironment(t)
 	_, termsOfUseMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
 	defer termsOfUseMock.CleanupMockState()
@@ -257,9 +201,8 @@ resource "microsoft365_graph_identity_and_access_conditional_access_terms_of_use
 	}
 }
 
-// TestConditionalAccessTermsOfUseResource_TermsExpiration tests terms expiration configuration
 func TestConditionalAccessTermsOfUseResource_TermsExpiration(t *testing.T) {
-	setupUnitTestEnvironment()
+	mocks.SetupUnitTestEnvironment(t)
 	_, termsOfUseMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
 	defer termsOfUseMock.CleanupMockState()
@@ -303,4 +246,20 @@ resource "microsoft365_graph_identity_and_access_conditional_access_terms_of_use
 			},
 		},
 	})
+}
+
+func testConfigMinimal() string {
+	unitTestConfig, err := helpers.ParseHCLFile("tests/terraform/unit/resource_minimal.tf")
+	if err != nil {
+		panic("failed to load resource_minimal.tf: " + err.Error())
+	}
+	return unitTestConfig
+}
+
+func testConfigMaximal() string {
+	unitTestConfig, err := helpers.ParseHCLFile("tests/terraform/unit/resource_maximal.tf")
+	if err != nil {
+		panic("failed to load resource_maximal.tf: " + err.Error())
+	}
+	return unitTestConfig
 }

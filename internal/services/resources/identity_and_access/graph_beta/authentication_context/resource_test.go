@@ -4,6 +4,7 @@ import (
 	"regexp"
 	"testing"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/check"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
 	authContextMocks "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/identity_and_access/graph_beta/authentication_context/mocks"
@@ -29,10 +30,6 @@ func setupErrorMockEnvironment() (*mocks.Mocks, *authContextMocks.Authentication
 	return mockClient, authContextMock
 }
 
-func testCheckExists(resourceName string) resource.TestCheckFunc {
-	return resource.TestCheckResourceAttrSet(resourceName, "id")
-}
-
 func TestAuthenticationContextResource_Basic(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, authContextMock := setupMockEnvironment()
@@ -46,12 +43,16 @@ func TestAuthenticationContextResource_Basic(t *testing.T) {
 				Config: testConfigBasic(),
 				Check: resource.ComposeTestCheckFunc(
 					// Basic attributes
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_identity_and_access_authentication_context.test", "id", "c90"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_identity_and_access_authentication_context.test", "display_name", "Test Authentication Context"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_identity_and_access_authentication_context.test", "description", "Test authentication context for unit testing"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_identity_and_access_authentication_context.test", "is_available", "true"),
-					testCheckExists("microsoft365_graph_beta_identity_and_access_authentication_context.test"),
+					check.That(resourceType+".test").Key("id").HasValue("c90"),
+					check.That(resourceType+".test").Key("display_name").HasValue("Test Authentication Context"),
+					check.That(resourceType+".test").Key("description").HasValue("Test authentication context for unit testing"),
+					check.That(resourceType+".test").Key("is_available").HasValue("true"),
 				),
+			},
+			{
+				ResourceName:      resourceType + ".test",
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -69,18 +70,23 @@ func TestAuthenticationContextResource_Update(t *testing.T) {
 			{
 				Config: testConfigBasic(),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_identity_and_access_authentication_context.test", "display_name", "Test Authentication Context"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_identity_and_access_authentication_context.test", "is_available", "true"),
+					check.That(resourceType+".test").Key("display_name").HasValue("Test Authentication Context"),
+					check.That(resourceType+".test").Key("is_available").HasValue("true"),
 				),
 			},
 			{
 				Config: testConfigUpdate(),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_identity_and_access_authentication_context.test", "id", "c91"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_identity_and_access_authentication_context.test", "display_name", "Updated Test Authentication Context"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_identity_and_access_authentication_context.test", "description", "Updated test authentication context for unit testing"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_identity_and_access_authentication_context.test", "is_available", "false"),
+					check.That(resourceType+".test").Key("id").HasValue("c91"),
+					check.That(resourceType+".test").Key("display_name").HasValue("Updated Test Authentication Context"),
+					check.That(resourceType+".test").Key("description").HasValue("Updated test authentication context for unit testing"),
+					check.That(resourceType+".test").Key("is_available").HasValue("false"),
 				),
+			},
+			{
+				ResourceName:      resourceType + ".test",
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -139,7 +145,7 @@ func TestAuthenticationContextResource_DuplicateID(t *testing.T) {
 			{
 				Config: firstConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckExists("microsoft365_graph_beta_identity_and_access_authentication_context.test"),
+					check.That(resourceType + ".test").Key("id").Exists(),
 				),
 			},
 			{
