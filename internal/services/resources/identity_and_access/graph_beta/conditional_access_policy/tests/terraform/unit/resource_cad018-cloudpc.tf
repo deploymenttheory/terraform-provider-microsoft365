@@ -21,10 +21,10 @@ resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy"
 
     applications = {
       include_applications = [
-        "66666666-6666-6666-6666-666666666666",
-        "66666666-6666-6666-6666-666666666666",
-        "66666666-6666-6666-6666-666666666666",
-        "66666666-6666-6666-6666-666666666666"
+        "9cdead84-a844-4324-93f2-b2e6bb768d07",
+        "a4a365df-50f1-4397-bc59-1a1564b8bb9c",
+        "0af06dc6-e4b5-4f28-818e-e78e62d137a5",
+        "270efc09-cd0d-444b-a71f-39af4910ec45"
       ]
       exclude_applications                            = []
       include_user_actions                            = []

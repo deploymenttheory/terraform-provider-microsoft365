@@ -24,18 +24,19 @@ type ConditionalAccessPolicyResourceModel struct {
 
 // ConditionalAccessConditions represents the conditions for the conditional access policy
 type ConditionalAccessConditions struct {
-	ClientAppTypes             types.Set                            `tfsdk:"client_app_types"`
-	Applications               *ConditionalAccessApplications       `tfsdk:"applications"`
-	Users                      *ConditionalAccessUsers              `tfsdk:"users"`
-	Platforms                  *ConditionalAccessPlatforms          `tfsdk:"platforms"`
-	Locations                  *ConditionalAccessLocations          `tfsdk:"locations"`
-	Devices                    *ConditionalAccessDevices            `tfsdk:"devices"`
-	SignInRiskLevels           types.Set                            `tfsdk:"sign_in_risk_levels"`
-	UserRiskLevels             types.Set                            `tfsdk:"user_risk_levels"`
-	ServicePrincipalRiskLevels types.Set                            `tfsdk:"service_principal_risk_levels"`
-	ClientApplications         *ConditionalAccessClientApplications `tfsdk:"client_applications"`
-	Times                      *ConditionalAccessTimes              `tfsdk:"times"`
-	DeviceStates               *ConditionalAccessDeviceStates       `tfsdk:"device_states"`
+	ClientAppTypes             types.Set                             `tfsdk:"client_app_types"`
+	Applications               *ConditionalAccessApplications        `tfsdk:"applications"`
+	Users                      *ConditionalAccessUsers               `tfsdk:"users"`
+	Platforms                  *ConditionalAccessPlatforms           `tfsdk:"platforms"`
+	Locations                  *ConditionalAccessLocations           `tfsdk:"locations"`
+	Devices                    *ConditionalAccessDevices             `tfsdk:"devices"`
+	SignInRiskLevels           types.Set                             `tfsdk:"sign_in_risk_levels"`
+	UserRiskLevels             types.Set                             `tfsdk:"user_risk_levels"`
+	ServicePrincipalRiskLevels types.Set                             `tfsdk:"service_principal_risk_levels"`
+	ClientApplications         *ConditionalAccessClientApplications  `tfsdk:"client_applications"`
+	AuthenticationFlows        *ConditionalAccessAuthenticationFlows `tfsdk:"authentication_flows"`
+	Times                      *ConditionalAccessTimes               `tfsdk:"times"`
+	DeviceStates               *ConditionalAccessDeviceStates        `tfsdk:"device_states"`
 }
 
 // ConditionalAccessApplications represents the applications condition
@@ -113,6 +114,11 @@ type ConditionalAccessTimes struct {
 type ConditionalAccessDeviceStates struct {
 	IncludeStates types.Set `tfsdk:"include_states"`
 	ExcludeStates types.Set `tfsdk:"exclude_states"`
+}
+
+// ConditionalAccessAuthenticationFlows represents the authentication flows condition
+type ConditionalAccessAuthenticationFlows struct {
+	TransferMethods types.String `tfsdk:"transfer_methods"`
 }
 
 // ConditionalAccessGrantControls represents the grant controls for the conditional access policy
