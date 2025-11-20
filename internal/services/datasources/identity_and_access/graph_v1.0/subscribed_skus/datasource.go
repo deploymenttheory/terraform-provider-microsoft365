@@ -16,7 +16,7 @@ import (
 )
 
 const (
-	DataSourceName = "graph_beta_identity_and_access_subscribed_skus"
+	DataSourceName = "microsoft365_graph_beta_identity_and_access_subscribed_skus"
 	ReadTimeout    = 180
 )
 
@@ -40,21 +40,19 @@ func NewSubscribedSkusDataSource() datasource.DataSource {
 }
 
 type SubscribedSkusDataSource struct {
-	client           *msgraphsdk.GraphServiceClient
-	ProviderTypeName string
-	TypeName         string
-	ReadPermissions  []string
-	ResourcePath     string
+	client          *msgraphsdk.GraphServiceClient
+	ReadPermissions []string
+	ResourcePath    string
 }
 
 // Metadata returns the data source type name.
 func (d *SubscribedSkusDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_" + DataSourceName
+	resp.TypeName = DataSourceName
 }
 
 // Configure sets the client for the data source.
 func (d *SubscribedSkusDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
-	d.client = client.SetGraphStableClientForDataSource(ctx, req, resp, d.TypeName)
+	d.client = client.SetGraphStableClientForDataSource(ctx, req, resp, DataSourceName)
 }
 
 // Schema returns the schema for the data source.

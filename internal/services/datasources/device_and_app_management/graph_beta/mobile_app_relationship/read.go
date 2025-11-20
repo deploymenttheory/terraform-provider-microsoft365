@@ -12,7 +12,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	abstractions "github.com/microsoft/kiota-abstractions-go"
 	"github.com/microsoftgraph/msgraph-beta-sdk-go/deviceappmanagement"
-	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
 func (d *MobileAppRelationshipDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
@@ -24,7 +23,7 @@ func (d *MobileAppRelationshipDataSource) Read(ctx context.Context, req datasour
 	}
 
 	filterType := object.FilterType.ValueString()
-	tflog.Debug(ctx, fmt.Sprintf("Starting Read method for datasource: %s with filter_type: %s", datasourceName, filterType))
+	tflog.Debug(ctx, fmt.Sprintf("Starting Read method for datasource: %s with filter_type: %s", DataSourceName, filterType))
 
 	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Read, ReadTimeout*time.Second, &resp.Diagnostics)
 	if cancel == nil {
@@ -134,16 +133,11 @@ func (d *MobileAppRelationshipDataSource) Read(ctx context.Context, req datasour
 		}
 
 		for _, relationship := range respList.GetValue() {
-			mobileAppRelationship, ok := relationship.(graphmodels.MobileAppRelationshipable)
-			if !ok {
-				continue
-			}
-
-			if filterType == "source_id" && mobileAppRelationship.GetSourceId() != nil && *mobileAppRelationship.GetSourceId() == filterValue {
-				appItem := MapRemoteStateToDataSource(ctx, mobileAppRelationship)
+			if filterType == "source_id" && relationship.GetSourceId() != nil && *relationship.GetSourceId() == filterValue {
+				appItem := MapRemoteStateToDataSource(ctx, relationship)
 				filteredItems = append(filteredItems, appItem)
-			} else if filterType == "target_id" && mobileAppRelationship.GetTargetId() != nil && *mobileAppRelationship.GetTargetId() == filterValue {
-				appItem := MapRemoteStateToDataSource(ctx, mobileAppRelationship)
+			} else if filterType == "target_id" && relationship.GetTargetId() != nil && *relationship.GetTargetId() == filterValue {
+				appItem := MapRemoteStateToDataSource(ctx, relationship)
 				filteredItems = append(filteredItems, appItem)
 			}
 		}
@@ -172,5 +166,5 @@ func (d *MobileAppRelationshipDataSource) Read(ctx context.Context, req datasour
 		return
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Finished Datasource Read Method: %s, found %d items", datasourceName, len(filteredItems)))
+	tflog.Debug(ctx, fmt.Sprintf("Finished Datasource Read Method: %s, found %d items", DataSourceName, len(filteredItems)))
 }

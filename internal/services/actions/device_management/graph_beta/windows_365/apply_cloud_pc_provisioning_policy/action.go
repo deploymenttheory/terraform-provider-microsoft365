@@ -17,7 +17,7 @@ import (
 )
 
 const (
-	ActionName = "graph_beta_device_management_windows_365_apply_cloud_pc_provisioning_policy"
+	ActionName = "microsoft365_graph_beta_device_management_windows_365_apply_cloud_pc_provisioning_policy"
 )
 
 var (
@@ -39,24 +39,16 @@ func NewApplyCloudPcProvisioningPolicyAction() action.Action {
 
 type ApplyCloudPcProvisioningPolicyAction struct {
 	client           *msgraphbetasdk.GraphServiceClient
-	ProviderTypeName string
-	TypeName         string
 	ReadPermissions  []string
 	WritePermissions []string
 }
 
 func (a *ApplyCloudPcProvisioningPolicyAction) Metadata(ctx context.Context, req action.MetadataRequest, resp *action.MetadataResponse) {
-	a.ProviderTypeName = req.ProviderTypeName
-	a.TypeName = ActionName
-	resp.TypeName = a.FullTypeName()
-}
-
-func (a *ApplyCloudPcProvisioningPolicyAction) FullTypeName() string {
-	return a.ProviderTypeName + "_" + ActionName
+	resp.TypeName = ActionName
 }
 
 func (a *ApplyCloudPcProvisioningPolicyAction) Configure(ctx context.Context, req action.ConfigureRequest, resp *action.ConfigureResponse) {
-	a.client = client.SetGraphBetaClientForAction(ctx, req, resp, constants.PROVIDER_NAME+"_"+ActionName)
+	a.client = client.SetGraphBetaClientForAction(ctx, req, resp, ActionName)
 }
 
 func (a *ApplyCloudPcProvisioningPolicyAction) Schema(ctx context.Context, req action.SchemaRequest, resp *action.SchemaResponse) {

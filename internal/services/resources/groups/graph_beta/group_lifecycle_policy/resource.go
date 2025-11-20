@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/client"
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/schema"
 	"github.com/hashicorp/terraform-plugin-framework-validators/int32validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
@@ -16,7 +15,7 @@ import (
 )
 
 const (
-	ResourceName  = "graph_beta_groups_group_lifecycle_policy"
+	ResourceName  = "microsoft365_graph_beta_groups_group_lifecycle_policy"
 	CreateTimeout = 180
 	UpdateTimeout = 180
 	ReadTimeout   = 180
@@ -50,8 +49,6 @@ func NewGroupLifecyclePolicyResource() resource.Resource {
 
 type GroupLifecyclePolicyResource struct {
 	client           *msgraphbetasdk.GraphServiceClient
-	ProviderTypeName string
-	TypeName         string
 	ReadPermissions  []string
 	WritePermissions []string
 	ResourcePath     string
@@ -59,19 +56,12 @@ type GroupLifecyclePolicyResource struct {
 
 // Metadata returns the resource type name.
 func (r *GroupLifecyclePolicyResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	r.ProviderTypeName = req.ProviderTypeName
-	r.TypeName = ResourceName
-	resp.TypeName = req.ProviderTypeName + "_" + ResourceName
-}
-
-// FullTypeName returns the full type name of the resource for logging purposes.
-func (r *GroupLifecyclePolicyResource) FullTypeName() string {
-	return r.ProviderTypeName + "_" + r.TypeName
+	resp.TypeName = ResourceName
 }
 
 // Configure sets the client for the resource.
 func (r *GroupLifecyclePolicyResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
-	r.client = client.SetGraphBetaClientForResource(ctx, req, resp, constants.PROVIDER_NAME+"_"+ResourceName)
+	r.client = client.SetGraphBetaClientForResource(ctx, req, resp, ResourceName)
 }
 
 // ImportState imports the resource state.

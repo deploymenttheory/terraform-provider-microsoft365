@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	DataSourceName = "graph_beta_device_management_windows_quality_update_policy"
+	DataSourceName = "microsoft365_graph_beta_device_management_windows_quality_update_policy"
 	ReadTimeout    = 180
 )
 
@@ -33,19 +33,19 @@ func NewWindowsQualityUpdateProfileDataSource() datasource.DataSource {
 // WindowsQualityUpdateProfileDataSource defines the data source implementation
 type WindowsQualityUpdateProfileDataSource struct {
 	client           *msgraphbetasdk.GraphServiceClient
-	ProviderTypeName string
-	TypeName         string
+	
+	
 	ReadPermissions  []string
 }
 
 // Metadata returns the data source type name
 func (d *WindowsQualityUpdateProfileDataSource) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_" + DataSourceName
+	resp.TypeName = DataSourceName
 }
 
 // Configure configures the data source with the provider client
 func (d *WindowsQualityUpdateProfileDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
-	d.client = client.SetGraphBetaClientForDataSource(ctx, req, resp, d.ProviderTypeName)
+	d.client = client.SetGraphBetaClientForDataSource(ctx, req, resp, DataSourceName)
 }
 
 // Schema defines the schema for the data source

@@ -5,7 +5,6 @@ import (
 	"regexp"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/client"
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/schema"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -19,7 +18,7 @@ import (
 )
 
 const (
-	ResourceName  = "graph_beta_identity_and_access_authentication_context"
+	ResourceName  = "microsoft365_graph_beta_identity_and_access_authentication_context"
 	CreateTimeout = 180
 	UpdateTimeout = 180
 	ReadTimeout   = 180
@@ -53,26 +52,17 @@ func NewAuthenticationContextResource() resource.Resource {
 
 type AuthenticationContextResource struct {
 	client           *msgraphbetasdk.GraphServiceClient
-	ProviderTypeName string
-	TypeName         string
 	ReadPermissions  []string
 	WritePermissions []string
 	ResourcePath     string
 }
 
 func (r *AuthenticationContextResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	r.ProviderTypeName = req.ProviderTypeName
-	r.TypeName = ResourceName
-	resp.TypeName = r.FullTypeName()
-}
-
-// FullTypeName returns the full resource type name in the format "providername_resourcename".
-func (r *AuthenticationContextResource) FullTypeName() string {
-	return r.ProviderTypeName + "_" + r.TypeName
+	resp.TypeName = ResourceName
 }
 
 func (r *AuthenticationContextResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
-	r.client = client.SetGraphBetaClientForResource(ctx, req, resp, constants.PROVIDER_NAME+"_"+ResourceName)
+	r.client = client.SetGraphBetaClientForResource(ctx, req, resp, ResourceName)
 }
 
 func (r *AuthenticationContextResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {

@@ -1,0 +1,58 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#identity/conditionalAccess/policies/$entity",
+  "@odata.type": "#microsoft.graph.conditionalAccessPolicy",
+  "id": "11111111-1111-1111-1111-111111111111",
+  "displayName": "CAD003-O365: Grant iOS and Android access for All users when Modern Auth Clients and AppProPol or Compliant-v1.3",
+  "createdDateTime": "2024-01-01T00:00:00Z",
+  "modifiedDateTime": "2024-01-01T00:00:00Z",
+  "state": "enabledForReportingButNotEnforced",
+  "conditions": {
+    "@odata.type": "#microsoft.graph.conditionalAccessConditionSet",
+    "userRiskLevels": [],
+    "signInRiskLevels": [],
+    "clientAppTypes": ["mobileAppsAndDesktopClients"],
+    "platforms": {
+      "@odata.type": "#microsoft.graph.conditionalAccessPlatforms",
+      "includePlatforms": ["android","iOS"],
+      "excludePlatforms": []
+    },
+    "applications": {
+      "@odata.type": "#microsoft.graph.conditionalAccessApplications",
+      "includeApplications": ["Office365"],
+      "excludeApplications": [],
+      "includeUserActions": [],
+      "includeAuthenticationContextClassReferences": []
+    },
+    "users": {
+      "@odata.type": "#microsoft.graph.conditionalAccessUsers",
+      "includeUsers": ["All"],
+      "excludeUsers": [],
+      "includeGroups": [],
+      "excludeGroups": [
+        "22222222-2222-2222-2222-222222222222",
+        "33333333-3333-3333-3333-333333333333"
+      ],
+      "includeRoles": [],
+      "excludeRoles": [],
+      "excludeGuestsOrExternalUsers": {
+        "guestOrExternalUserTypes": "internalGuest,b2bCollaborationGuest, b2bCollaborationMember,b2bDirectConnectUser, otherExternalUser,serviceProvider",
+        "externalTenants": {
+          "@odata.type": "#microsoft.graph.conditionalAccessAllExternalTenants",
+          "membershipKind": "all"
+        }
+      }
+    },
+    "locations": null,
+    "devices": null
+  },
+  "grantControls": {
+    "@odata.type": "#microsoft.graph.conditionalAccessGrantControls",
+    "operator": "OR",
+    "builtInControls": ["compliantDevice","compliantApplication"],
+    "customAuthenticationFactors": [],
+    "termsOfUse": [],
+    "authenticationStrength": null
+  },
+  "sessionControls": null
+}
+

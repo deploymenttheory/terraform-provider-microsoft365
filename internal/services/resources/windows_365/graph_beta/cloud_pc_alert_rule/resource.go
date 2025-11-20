@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/client"
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	planmodifiers "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/plan_modifiers"
 	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/schema"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
@@ -17,7 +16,7 @@ import (
 )
 
 const (
-	ResourceName  = "graph_beta_windows_365_cloud_pc_alert_rule"
+	ResourceName  = "microsoft365_graph_beta_windows_365_cloud_pc_alert_rule"
 	CreateTimeout = 180
 	UpdateTimeout = 180
 	ReadTimeout   = 180
@@ -47,24 +46,16 @@ func NewCloudPcAlertRuleResource() resource.Resource {
 
 type CloudPcAlertRuleResource struct {
 	client           *msgraphbetasdk.GraphServiceClient
-	ProviderTypeName string
-	TypeName         string
 	ReadPermissions  []string
 	WritePermissions []string
 }
 
 func (r *CloudPcAlertRuleResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	r.ProviderTypeName = req.ProviderTypeName
-	r.TypeName = ResourceName
-	resp.TypeName = r.FullTypeName()
-}
-
-func (r *CloudPcAlertRuleResource) FullTypeName() string {
-	return r.ProviderTypeName + "_" + r.TypeName
+	resp.TypeName = ResourceName
 }
 
 func (r *CloudPcAlertRuleResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
-	r.client = client.SetGraphBetaClientForResource(ctx, req, resp, constants.PROVIDER_NAME+"_"+ResourceName)
+	r.client = client.SetGraphBetaClientForResource(ctx, req, resp, ResourceName)
 }
 
 func (r *CloudPcAlertRuleResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {

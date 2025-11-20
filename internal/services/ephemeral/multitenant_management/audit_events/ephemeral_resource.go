@@ -3,6 +3,7 @@ package auditEvents
 import (
 	"context"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/client"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral/schema"
@@ -11,7 +12,7 @@ import (
 )
 
 const (
-	EphemeralResourceName = "graph_beta_multitenant_management_audit_event"
+	EphemeralResourceName = "microsoft365_graph_beta_multitenant_management_audit_event"
 	CreateTimeout         = 180
 	UpdateTimeout         = 180
 	ReadTimeout           = 180
@@ -35,15 +36,18 @@ func NewAuditEventsEphemeralResource() ephemeral.EphemeralResource {
 
 // AuditEventsEphemeralResource is the ephemeral resource implementation
 type AuditEventsEphemeralResource struct {
-	client           *msgraphbetasdk.GraphServiceClient
-	ProviderTypeName string
-	TypeName         string
-	ReadPermissions  []string
+	client          *msgraphbetasdk.GraphServiceClient
+	ReadPermissions []string
 }
 
 // Metadata returns the resource type name
 func (r *AuditEventsEphemeralResource) Metadata(_ context.Context, req ephemeral.MetadataRequest, resp *ephemeral.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_" + EphemeralResourceName
+	resp.TypeName = EphemeralResourceName
+}
+
+// Configure is called to pass the provider configured client to the resource
+func (r *AuditEventsEphemeralResource) Configure(ctx context.Context, req ephemeral.ConfigureRequest, resp *ephemeral.ConfigureResponse) {
+	r.client = client.SetGraphBetaClientForEphemeralResource(ctx, req, resp, EphemeralResourceName)
 }
 
 // Schema defines the schema for the ephemeral resource

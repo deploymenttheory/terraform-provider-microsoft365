@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/client"
 	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -145,11 +144,6 @@ func (r *AuditEventsEphemeralResource) Open(ctx context.Context, req ephemeral.O
 	resp.Diagnostics.Append(diags...)
 
 	tflog.Debug(ctx, fmt.Sprintf("Completed ephemeral audit events Open method, found %d items", len(filteredItems)))
-}
-
-// Configure is called to pass the provider configured client to the resource
-func (r *AuditEventsEphemeralResource) Configure(ctx context.Context, req ephemeral.ConfigureRequest, resp *ephemeral.ConfigureResponse) {
-	r.client = client.SetGraphBetaClientForEphemeralResource(ctx, req, resp, r.TypeName)
 }
 
 // ValidateConfig validates the configuration

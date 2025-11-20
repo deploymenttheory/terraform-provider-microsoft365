@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	datasourceName = "graph_beta_device_and_app_management_cloud_pc"
+	DataSourceName = "microsoft365_graph_beta_device_and_app_management_cloud_pc"
 	ReadTimeout    = 180
 )
 
@@ -34,20 +34,18 @@ func NewCloudPCDataSource() datasource.DataSource {
 }
 
 type CloudPCDataSource struct {
-	client           *msgraphbetasdk.GraphServiceClient
-	ProviderTypeName string
-	TypeName         string
-	ReadPermissions  []string
+	client          *msgraphbetasdk.GraphServiceClient
+	ReadPermissions []string
 }
 
 // Metadata returns the datasource type name.
 func (r *CloudPCDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_" + datasourceName
+	resp.TypeName = DataSourceName
 }
 
 // Configure configures the data source with the provider client
 func (d *CloudPCDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
-	d.client = client.SetGraphBetaClientForDataSource(ctx, req, resp, d.TypeName)
+	d.client = client.SetGraphBetaClientForDataSource(ctx, req, resp, DataSourceName)
 }
 
 // Schema defines the schema for the data source

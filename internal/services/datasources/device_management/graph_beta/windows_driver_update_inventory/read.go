@@ -40,14 +40,14 @@ import (
 func (d *WindowsDriverUpdateInventoryDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
 	var object WindowsDriverUpdateInventoryDataSourceModel
 
-	tflog.Debug(ctx, fmt.Sprintf("Starting Read method for: %s_%s", d.ProviderTypeName, d.TypeName))
+	tflog.Debug(ctx, fmt.Sprintf("Starting Read method for: %s", DataSourceName))
 
 	resp.Diagnostics.Append(req.Config.Get(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Reading %s_%s", d.ProviderTypeName, d.TypeName))
+	tflog.Debug(ctx, fmt.Sprintf("Reading %s", DataSourceName))
 
 	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Read, ReadTimeout*time.Second, &resp.Diagnostics)
 	if cancel == nil {
@@ -153,5 +153,5 @@ func (d *WindowsDriverUpdateInventoryDataSource) Read(ctx context.Context, req d
 		return
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Finished Datasource Read Method: %s_%s", d.ProviderTypeName, d.TypeName))
+	tflog.Debug(ctx, fmt.Sprintf("Finished Datasource Read Method: %s", DataSourceName))
 }

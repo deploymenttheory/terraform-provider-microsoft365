@@ -16,7 +16,7 @@ import (
 )
 
 const (
-	ResourceName  = "graph_beta_windows_365_azure_network_connection"
+	ResourceName  = "microsoft365_graph_beta_windows_365_azure_network_connection"
 	CreateTimeout = 180
 	UpdateTimeout = 180
 	ReadTimeout   = 180
@@ -50,27 +50,18 @@ func NewCloudPcOnPremisesConnectionResource() resource.Resource {
 
 type CloudPcOnPremisesConnectionResource struct {
 	client           *msgraphbetasdk.GraphServiceClient
-	ProviderTypeName string
-	TypeName         string
 	ReadPermissions  []string
 	WritePermissions []string
 }
 
 // Metadata returns the resource type name.
 func (r *CloudPcOnPremisesConnectionResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	r.ProviderTypeName = req.ProviderTypeName
-	r.TypeName = ResourceName
-	resp.TypeName = r.FullTypeName()
-}
-
-// FullTypeName returns the full resource type name in the format "providername_resourcename".
-func (r *CloudPcOnPremisesConnectionResource) FullTypeName() string {
-	return r.ProviderTypeName + "_" + r.TypeName
+	resp.TypeName = ResourceName
 }
 
 // Configure sets the client for the resource.
 func (r *CloudPcOnPremisesConnectionResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
-	r.client = client.SetGraphBetaClientForResource(ctx, req, resp, constants.PROVIDER_NAME+"_"+ResourceName)
+	r.client = client.SetGraphBetaClientForResource(ctx, req, resp, ResourceName)
 }
 
 // ImportState imports the resource state.

@@ -18,7 +18,7 @@ import (
 )
 
 const (
-	ResourceName  = "graph_beta_groups_group_owner_assignment"
+	ResourceName  = "microsoft365_graph_beta_groups_group_owner_assignment"
 	CreateTimeout = 180
 	UpdateTimeout = 180
 	ReadTimeout   = 180
@@ -53,8 +53,6 @@ func NewGroupOwnerAssignmentResource() resource.Resource {
 
 type GroupOwnerAssignmentResource struct {
 	client           *msgraphbetasdk.GraphServiceClient
-	ProviderTypeName string
-	TypeName         string
 	ReadPermissions  []string
 	WritePermissions []string
 	ResourcePath     string
@@ -62,19 +60,12 @@ type GroupOwnerAssignmentResource struct {
 
 // Metadata returns the resource type name.
 func (r *GroupOwnerAssignmentResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	r.ProviderTypeName = req.ProviderTypeName
-	r.TypeName = ResourceName
-	resp.TypeName = r.FullTypeName()
-}
-
-// FullTypeName returns the full type name of the resource for logging purposes.
-func (r *GroupOwnerAssignmentResource) FullTypeName() string {
-	return r.ProviderTypeName + "_" + r.TypeName
+	resp.TypeName = ResourceName
 }
 
 // Configure sets the client for the resource.
 func (r *GroupOwnerAssignmentResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
-	r.client = client.SetGraphBetaClientForResource(ctx, req, resp, constants.PROVIDER_NAME+"_"+ResourceName)
+	r.client = client.SetGraphBetaClientForResource(ctx, req, resp, ResourceName)
 }
 
 // ImportState imports the resource state.

@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	construct "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/constructors/graph_beta/device_and_app_management"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
 	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
@@ -81,7 +80,7 @@ func (r *IOSiPadOSWebClipResource) Create(ctx context.Context, req resource.Crea
 
 	opts := crud.DefaultReadWithRetryOptions()
 	opts.Operation = "Create"
-	opts.ResourceTypeName = constants.PROVIDER_NAME + "_" + ResourceName
+	opts.ResourceTypeName = ResourceName
 
 	err = crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)
 	if err != nil {
@@ -217,7 +216,7 @@ func (r *IOSiPadOSWebClipResource) Update(ctx context.Context, req resource.Upda
 
 	opts := crud.DefaultReadWithRetryOptions()
 	opts.Operation = "Update"
-	opts.ResourceTypeName = constants.PROVIDER_NAME + "_" + ResourceName
+	opts.ResourceTypeName = ResourceName
 
 	err = crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)
 	if err != nil {

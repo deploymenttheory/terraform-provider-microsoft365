@@ -47,6 +47,8 @@ type Microsoft365EndpointResponse struct {
 func (d *microsoft365EndpointsDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
 	var data Microsoft365EndpointsDataSourceModel
 
+	tflog.Debug(ctx, fmt.Sprintf("Starting Read method for: %s", DataSourceName))
+
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 	if resp.Diagnostics.HasError() {
 		return

@@ -16,7 +16,7 @@ import (
 )
 
 const (
-	ActionName = "graph_beta_device_management_managed_device_delete_user_from_shared_apple_device"
+	ActionName = "microsoft365_graph_beta_device_management_managed_device_delete_user_from_shared_apple_device"
 )
 
 var (
@@ -38,24 +38,16 @@ func NewDeleteUserFromSharedAppleDeviceAction() action.Action {
 
 type DeleteUserFromSharedAppleDeviceAction struct {
 	client           *msgraphbetasdk.GraphServiceClient
-	ProviderTypeName string
-	TypeName         string
 	ReadPermissions  []string
 	WritePermissions []string
 }
 
 func (a *DeleteUserFromSharedAppleDeviceAction) Metadata(ctx context.Context, req action.MetadataRequest, resp *action.MetadataResponse) {
-	a.ProviderTypeName = req.ProviderTypeName
-	a.TypeName = ActionName
-	resp.TypeName = a.FullTypeName()
-}
-
-func (a *DeleteUserFromSharedAppleDeviceAction) FullTypeName() string {
-	return a.ProviderTypeName + "_" + ActionName
+	resp.TypeName = ActionName
 }
 
 func (a *DeleteUserFromSharedAppleDeviceAction) Configure(ctx context.Context, req action.ConfigureRequest, resp *action.ConfigureResponse) {
-	a.client = client.SetGraphBetaClientForAction(ctx, req, resp, constants.PROVIDER_NAME+"_"+ActionName)
+	a.client = client.SetGraphBetaClientForAction(ctx, req, resp, ActionName)
 }
 
 func (a *DeleteUserFromSharedAppleDeviceAction) Schema(ctx context.Context, req action.SchemaRequest, resp *action.SchemaResponse) {

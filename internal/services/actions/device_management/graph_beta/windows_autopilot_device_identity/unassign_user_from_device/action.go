@@ -16,7 +16,7 @@ import (
 )
 
 const (
-	ActionName = "graph_beta_device_management_windows_autopilot_device_identity_unassign_user_from_device"
+	ActionName = "microsoft365_graph_beta_device_management_windows_autopilot_device_identity_unassign_user_from_device"
 )
 
 var (
@@ -41,22 +41,13 @@ func NewUnassignUserFromDeviceAction() action.Action {
 
 type UnassignUserFromDeviceAction struct {
 	client           *msgraphbetasdk.GraphServiceClient
-	ProviderTypeName string
-	TypeName         string
 	ReadPermissions  []string
 	WritePermissions []string
 }
 
 // Metadata returns the action type name.
 func (a *UnassignUserFromDeviceAction) Metadata(ctx context.Context, req action.MetadataRequest, resp *action.MetadataResponse) {
-	a.ProviderTypeName = req.ProviderTypeName
-	a.TypeName = ActionName
-	resp.TypeName = a.FullTypeName()
-}
-
-// FullTypeName returns the full action type name in the format "providername_actionname".
-func (a *UnassignUserFromDeviceAction) FullTypeName() string {
-	return a.ProviderTypeName + "_" + ActionName
+	resp.TypeName = ActionName
 }
 
 // Description returns the action description.
@@ -68,7 +59,7 @@ func (a *UnassignUserFromDeviceAction) Description(ctx context.Context) string {
 
 // Configure sets the client for the action.
 func (a *UnassignUserFromDeviceAction) Configure(ctx context.Context, req action.ConfigureRequest, resp *action.ConfigureResponse) {
-	a.client = client.SetGraphBetaClientForAction(ctx, req, resp, constants.PROVIDER_NAME+"_"+ActionName)
+	a.client = client.SetGraphBetaClientForAction(ctx, req, resp, ActionName)
 }
 
 // Schema returns the schema for the action.

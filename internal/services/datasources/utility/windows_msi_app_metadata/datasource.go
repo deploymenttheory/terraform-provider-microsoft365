@@ -15,7 +15,7 @@ import (
 )
 
 const (
-	DataSourceName = "utility_windows_msi_app_metadata"
+	DataSourceName = "microsoft365_utility_windows_msi_app_metadata"
 	ReadTimeout    = 300 // Extended timeout for file processing
 )
 
@@ -32,19 +32,17 @@ func NewWindowsMSIAppMetadataDataSource() datasource.DataSource {
 }
 
 type WindowsMSIAppMetadataDataSource struct {
-	client           *msgraphbetasdk.GraphServiceClient
-	ProviderTypeName string
-	TypeName         string
+	client *msgraphbetasdk.GraphServiceClient
 }
 
 // Metadata returns the datasource type name.
 func (r *WindowsMSIAppMetadataDataSource) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_" + DataSourceName
+	resp.TypeName = DataSourceName
 }
 
 // For utility datasources that perform local computations. Required for interface compliance.
 func (d *WindowsMSIAppMetadataDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
-	d.client = client.SetGraphBetaClientForDataSource(ctx, req, resp, d.TypeName)
+	d.client = client.SetGraphBetaClientForDataSource(ctx, req, resp, DataSourceName)
 }
 
 // Schema defines the schema for the data source

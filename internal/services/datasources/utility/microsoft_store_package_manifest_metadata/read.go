@@ -45,7 +45,7 @@ type MSStoreSearchResult struct {
 func (d *MicrosoftStorePackageManifestDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
 	var config MicrosoftStorePackageManifestDataSourceModel
 
-	tflog.Debug(ctx, fmt.Sprintf("Starting Read method for: %s_%s", d.ProviderTypeName, d.TypeName))
+	tflog.Debug(ctx, fmt.Sprintf("Starting Read method for: %s", DataSourceName))
 
 	resp.Diagnostics.Append(req.Config.Get(ctx, &config)...)
 	if resp.Diagnostics.HasError() {
@@ -55,8 +55,8 @@ func (d *MicrosoftStorePackageManifestDataSource) Read(ctx context.Context, req 
 	packageIdProvided := !config.PackageIdentifier.IsNull() && config.PackageIdentifier.ValueString() != ""
 	searchTermProvided := !config.SearchTerm.IsNull() && config.SearchTerm.ValueString() != ""
 
-	tflog.Debug(ctx, fmt.Sprintf("Reading %s_%s with package ID provided: %t, search term provided: %t",
-		d.ProviderTypeName, d.TypeName, packageIdProvided, searchTermProvided))
+	tflog.Debug(ctx, fmt.Sprintf("Reading %s with package ID provided: %t, search term provided: %t",
+		DataSourceName, packageIdProvided, searchTermProvided))
 
 	// Validate inputs - must have either a package identifier or search term, but not both
 	if !packageIdProvided && !searchTermProvided {

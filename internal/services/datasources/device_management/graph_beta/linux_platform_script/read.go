@@ -19,7 +19,7 @@ import (
 func (d *LinuxPlatformScriptDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
 	var object LinuxPlatformScriptDataSourceModel
 
-	tflog.Debug(ctx, fmt.Sprintf("Starting Read method for: %s_%s", d.ProviderTypeName, d.TypeName))
+	tflog.Debug(ctx, fmt.Sprintf("Starting Read method for: %s", DataSourceName))
 
 	resp.Diagnostics.Append(req.Config.Get(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
@@ -27,7 +27,7 @@ func (d *LinuxPlatformScriptDataSource) Read(ctx context.Context, req datasource
 	}
 
 	filterType := object.FilterType.ValueString()
-	tflog.Debug(ctx, fmt.Sprintf("Reading %s_%s with filter_type: %s", d.ProviderTypeName, d.TypeName, filterType))
+	tflog.Debug(ctx, fmt.Sprintf("Reading %s with filter_type: %s", DataSourceName, filterType))
 
 	if filterType != "all" && (object.FilterValue.IsNull() || object.FilterValue.ValueString() == "") {
 		resp.Diagnostics.AddError(
@@ -118,7 +118,7 @@ func (d *LinuxPlatformScriptDataSource) Read(ctx context.Context, req datasource
 		return
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Finished Datasource Read Method: %s_%s, found %d items", d.ProviderTypeName, d.TypeName, len(filteredItems)))
+	tflog.Debug(ctx, fmt.Sprintf("Finished Datasource Read Method: %s, found %d items", DataSourceName, len(filteredItems)))
 }
 
 // hasLinuxMdmTechnology checks if a configuration policy has the Linux MDM technology

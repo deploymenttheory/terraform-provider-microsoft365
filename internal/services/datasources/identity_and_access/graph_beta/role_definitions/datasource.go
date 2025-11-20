@@ -14,7 +14,7 @@ import (
 )
 
 const (
-	datasourceName = "graph_beta_identity_and_access_role_definitions"
+	DataSourceName = "microsoft365_graph_beta_identity_and_access_role_definitions"
 	ReadTimeout    = 180
 )
 
@@ -32,18 +32,16 @@ func NewRoleDefinitionsDataSource() datasource.DataSource {
 }
 
 type RoleDefinitionsDataSource struct {
-	client           *msgraphbetasdk.GraphServiceClient
-	ProviderTypeName string
-	TypeName         string
-	ReadPermissions  []string
+	client          *msgraphbetasdk.GraphServiceClient
+	ReadPermissions []string
 }
 
 func (r *RoleDefinitionsDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_" + datasourceName
+	resp.TypeName = DataSourceName
 }
 
 func (d *RoleDefinitionsDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
-	d.client = client.SetGraphBetaClientForDataSource(ctx, req, resp, d.TypeName)
+	d.client = client.SetGraphBetaClientForDataSource(ctx, req, resp, DataSourceName)
 }
 
 func (d *RoleDefinitionsDataSource) Schema(ctx context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {

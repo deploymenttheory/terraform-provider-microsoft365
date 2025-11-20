@@ -75,7 +75,7 @@ This guide describes the recommended workflow and best practices for developing 
          stateContainer := &crud.CreateResponseContainer{CreateResponse: resp}
          opts := crud.DefaultReadWithRetryOptions()
          opts.Operation = "Create"
-         opts.ResourceTypeName = constants.PROVIDER_NAME + "_" + ResourceName
+         opts.ResourceTypeName = ResourceName
          err = crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)
          if err != nil {
              resp.Diagnostics.AddError("Error reading resource state after create", err.Error())
@@ -144,7 +144,7 @@ This guide describes the recommended workflow and best practices for developing 
          stateContainer := &crud.UpdateResponseContainer{UpdateResponse: resp}
          opts := crud.DefaultReadWithRetryOptions()
          opts.Operation = "Update"
-         opts.ResourceTypeName = constants.PROVIDER_NAME + "_" + ResourceName
+         opts.ResourceTypeName = ResourceName
          err = crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)
          if err != nil {
              resp.Diagnostics.AddError("Error reading resource state after update", err.Error())

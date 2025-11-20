@@ -15,7 +15,7 @@ import (
 )
 
 const (
-	datasourceName = "utility_microsoft_store_package_manifest_metadata"
+	DataSourceName = "microsoft365_utility_microsoft_store_package_manifest_metadata"
 	ReadTimeout    = 240 // Extended timeout for API calls
 )
 
@@ -32,19 +32,17 @@ func NewMicrosoftStorePackageManifestDataSource() datasource.DataSource {
 }
 
 type MicrosoftStorePackageManifestDataSource struct {
-	client           *msgraphbetasdk.GraphServiceClient
-	ProviderTypeName string
-	TypeName         string
+	client *msgraphbetasdk.GraphServiceClient
 }
 
 // Metadata returns the datasource type name.
 func (r *MicrosoftStorePackageManifestDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_" + datasourceName
+	resp.TypeName = DataSourceName
 }
 
 // Configure configures the data source with the provider client
 func (d *MicrosoftStorePackageManifestDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
-	d.client = client.SetGraphBetaClientForDataSource(ctx, req, resp, d.TypeName)
+	d.client = client.SetGraphBetaClientForDataSource(ctx, req, resp, DataSourceName)
 }
 
 // Schema defines the schema for the data source

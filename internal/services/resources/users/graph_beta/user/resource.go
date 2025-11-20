@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/client"
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/schema"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -19,7 +18,7 @@ import (
 )
 
 const (
-	ResourceName  = "graph_beta_users_user"
+	ResourceName  = "microsoft365_graph_beta_users_user"
 	CreateTimeout = 180
 	UpdateTimeout = 180
 	ReadTimeout   = 180
@@ -56,8 +55,6 @@ func NewUserResource() resource.Resource {
 
 type UserResource struct {
 	client           *msgraphbetasdk.GraphServiceClient
-	ProviderTypeName string
-	TypeName         string
 	ReadPermissions  []string
 	WritePermissions []string
 	ResourcePath     string
@@ -65,19 +62,12 @@ type UserResource struct {
 
 // Metadata returns the resource type name.
 func (r *UserResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	r.ProviderTypeName = req.ProviderTypeName
-	r.TypeName = ResourceName
-	resp.TypeName = r.FullTypeName()
-}
-
-// FullTypeName returns the full resource type name in the format "providername_resourcename".
-func (r *UserResource) FullTypeName() string {
-	return r.ProviderTypeName + "_" + r.TypeName
+	resp.TypeName = ResourceName
 }
 
 // Configure sets the client for the resource.
 func (r *UserResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
-	r.client = client.SetGraphBetaClientForResource(ctx, req, resp, constants.PROVIDER_NAME+"_"+ResourceName)
+	r.client = client.SetGraphBetaClientForResource(ctx, req, resp, ResourceName)
 }
 
 // ImportState imports the resource state.

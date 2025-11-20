@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	DataSourceName = "utility_microsoft_365_endpoints"
+	DataSourceName = "microsoft365_utility_microsoft_365_endpoints"
 	ReadTimeout    = 180
 )
 
@@ -32,7 +32,7 @@ func NewMicrosoft365EndpointsDataSource() datasource.DataSource {
 type microsoft365EndpointsDataSource struct{}
 
 func (d *microsoft365EndpointsDataSource) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_" + DataSourceName
+	resp.TypeName = DataSourceName
 }
 
 // Configure implements the DataSourceWithConfigure interface.

@@ -23,7 +23,7 @@ import (
 )
 
 const (
-	ResourceName  = "graph_beta_device_management_role_assignment"
+	ResourceName  = "microsoft365_graph_beta_device_management_role_assignment"
 	CreateTimeout = 180
 	UpdateTimeout = 180
 	ReadTimeout   = 180
@@ -60,8 +60,6 @@ func NewRoleAssignmentResource() resource.Resource {
 
 type RoleAssignmentResource struct {
 	client           *msgraphbetasdk.GraphServiceClient
-	ProviderTypeName string
-	TypeName         string
 	ReadPermissions  []string
 	WritePermissions []string
 	ResourcePath     string
@@ -69,19 +67,12 @@ type RoleAssignmentResource struct {
 
 // Metadata returns the resource type name.
 func (r *RoleAssignmentResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	r.ProviderTypeName = req.ProviderTypeName
-	r.TypeName = ResourceName
-	resp.TypeName = r.FullTypeName()
-}
-
-// FullTypeName returns the full type name of the resource for logging purposes.
-func (r *RoleAssignmentResource) FullTypeName() string {
-	return r.ProviderTypeName + "_" + r.TypeName
+	resp.TypeName = ResourceName
 }
 
 // Configure sets the client for the resource.
 func (r *RoleAssignmentResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
-	r.client = client.SetGraphBetaClientForResource(ctx, req, resp, constants.PROVIDER_NAME+"_"+ResourceName)
+	r.client = client.SetGraphBetaClientForResource(ctx, req, resp, ResourceName)
 }
 
 // ImportState imports the resource state.
@@ -115,16 +106,16 @@ func (r *RoleAssignmentResource) ImportState(ctx context.Context, req resource.I
 		}
 		return
 	}
-	
+
 	fmt.Printf("DEBUG: Successfully set attributes, now calling Read to populate remaining fields\n")
-	
+
 	// After setting the basic attributes, call Read to populate all other attributes from the API
 	readReq := resource.ReadRequest{State: resp.State}
 	readResp := &resource.ReadResponse{State: resp.State}
 	r.Read(ctx, readReq, readResp)
 	resp.Diagnostics.Append(readResp.Diagnostics...)
 	resp.State = readResp.State
-	
+
 	if resp.Diagnostics.HasError() {
 		fmt.Printf("DEBUG: Diagnostics has errors after Read\n")
 		for _, diag := range resp.Diagnostics.Errors() {

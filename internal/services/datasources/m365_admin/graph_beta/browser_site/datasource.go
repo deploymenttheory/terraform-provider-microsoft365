@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	DataSourceName        = "graph_beta_m365_admin_browser_site"
+	DataSourceName        = "microsoft365_graph_beta_m365_admin_browser_site"
 	ReadDataSourceTimeout = 180
 )
 
@@ -36,20 +36,18 @@ func NewBrowserSiteDataSource() datasource.DataSource {
 
 // BrowserSiteDataSource defines the data source implementation
 type BrowserSiteDataSource struct {
-	client           *msgraphbetasdk.GraphServiceClient
-	ProviderTypeName string
-	TypeName         string
-	ReadPermissions  []string
+	client          *msgraphbetasdk.GraphServiceClient
+	ReadPermissions []string
 }
 
 // Metadata returns the data source type name
 func (d *BrowserSiteDataSource) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_" + DataSourceName
+	resp.TypeName = DataSourceName
 }
 
 // Configure configures the data source with the provider client
 func (d *BrowserSiteDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
-	d.client = client.SetGraphBetaClientForDataSource(ctx, req, resp, d.ProviderTypeName)
+	d.client = client.SetGraphBetaClientForDataSource(ctx, req, resp, DataSourceName)
 }
 
 // Schema defines the schema for the data source

@@ -21,7 +21,7 @@ import (
 )
 
 const (
-	ResourceName  = "graph_beta_device_management_apple_user_initiated_enrollment_profile_assignment"
+	ResourceName  = "microsoft365_graph_beta_device_management_apple_user_initiated_enrollment_profile_assignment"
 	CreateTimeout = 180
 	UpdateTimeout = 180
 	ReadTimeout   = 180
@@ -58,8 +58,6 @@ func NewAppleUserInitiatedEnrollmentProfileAssignmentResource() resource.Resourc
 
 type AppleUserInitiatedEnrollmentProfileAssignmentResource struct {
 	client           *msgraphbetasdk.GraphServiceClient
-	ProviderTypeName string
-	TypeName         string
 	ReadPermissions  []string
 	WritePermissions []string
 	ResourcePath     string
@@ -67,19 +65,12 @@ type AppleUserInitiatedEnrollmentProfileAssignmentResource struct {
 
 // Metadata returns the resource type name.
 func (r *AppleUserInitiatedEnrollmentProfileAssignmentResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	r.ProviderTypeName = req.ProviderTypeName
-	r.TypeName = ResourceName
-	resp.TypeName = r.FullTypeName()
-}
-
-// FullTypeName returns the full resource type name in the format "providername_resourcename".
-func (r *AppleUserInitiatedEnrollmentProfileAssignmentResource) FullTypeName() string {
-	return r.ProviderTypeName + "_" + r.TypeName
+	resp.TypeName = ResourceName
 }
 
 // Configure sets the client for the resource.
 func (r *AppleUserInitiatedEnrollmentProfileAssignmentResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
-	r.client = client.SetGraphBetaClientForResource(ctx, req, resp, constants.PROVIDER_NAME+"_"+ResourceName)
+	r.client = client.SetGraphBetaClientForResource(ctx, req, resp, ResourceName)
 }
 
 // ImportState imports the resource state.

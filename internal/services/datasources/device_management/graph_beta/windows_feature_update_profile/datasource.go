@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	DataSourceName = "graph_beta_device_management_windows_feature_update_profile"
+	DataSourceName = "microsoft365_graph_beta_device_management_windows_feature_update_profile"
 	ReadTimeout    = 180
 )
 
@@ -32,20 +32,19 @@ func NewWindowsFeatureUpdateProfileDataSource() datasource.DataSource {
 
 // WindowsFeatureUpdateProfileDataSource defines the data source implementation
 type WindowsFeatureUpdateProfileDataSource struct {
-	client           *msgraphbetasdk.GraphServiceClient
-	ProviderTypeName string
-	TypeName         string
-	ReadPermissions  []string
+	client *msgraphbetasdk.GraphServiceClient
+
+	ReadPermissions []string
 }
 
 // Metadata returns the data source type name
 func (d *WindowsFeatureUpdateProfileDataSource) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_" + DataSourceName
+	resp.TypeName = DataSourceName
 }
 
 // Configure configures the data source with the provider client
 func (d *WindowsFeatureUpdateProfileDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
-	d.client = client.SetGraphBetaClientForDataSource(ctx, req, resp, d.ProviderTypeName)
+	d.client = client.SetGraphBetaClientForDataSource(ctx, req, resp, DataSourceName)
 }
 
 // Schema defines the schema for the data source

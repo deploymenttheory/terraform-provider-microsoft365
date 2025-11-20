@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/client"
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	planmodifiers "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/plan_modifiers"
 	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/schema"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -17,7 +16,7 @@ import (
 )
 
 const (
-	ResourceName  = "graph_beta_device_management_group_policy_multi_text_value"
+	ResourceName  = "microsoft365_graph_beta_device_management_group_policy_multi_text_value"
 	CreateTimeout = 180
 	UpdateTimeout = 180
 	ReadTimeout   = 180
@@ -51,27 +50,18 @@ func NewGroupPolicyMultiTextValueResource() resource.Resource {
 
 type GroupPolicyMultiTextValueResource struct {
 	client           *msgraphbetasdk.GraphServiceClient
-	ProviderTypeName string
-	TypeName         string
 	ReadPermissions  []string
 	WritePermissions []string
 }
 
 // Metadata returns the resource type name.
 func (r *GroupPolicyMultiTextValueResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	r.ProviderTypeName = req.ProviderTypeName
-	r.TypeName = ResourceName
-	resp.TypeName = r.FullTypeName()
-}
-
-// FullTypeName returns the full resource type name in the format "providername_resourcename".
-func (r *GroupPolicyMultiTextValueResource) FullTypeName() string {
-	return r.ProviderTypeName + "_" + r.TypeName
+	resp.TypeName = ResourceName
 }
 
 // Configure sets the client for the resource.
 func (r *GroupPolicyMultiTextValueResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
-	r.client = client.SetGraphBetaClientForResource(ctx, req, resp, constants.PROVIDER_NAME+"_"+ResourceName)
+	r.client = client.SetGraphBetaClientForResource(ctx, req, resp, ResourceName)
 }
 
 // ImportState imports the resource state.

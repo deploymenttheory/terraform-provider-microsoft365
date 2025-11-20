@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
 	customrequest "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/custom_requests"
 	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
@@ -51,7 +50,7 @@ func (r *SettingsCatalogJsonResource) Create(ctx context.Context, req resource.C
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error constructing resource for Create Method",
-			fmt.Sprintf("Could not construct resource: %s_%s: %s", r.ProviderTypeName, r.TypeName, err.Error()),
+			fmt.Sprintf("Could not construct resource: %s: %s", ResourceName, err.Error()),
 		)
 		return
 	}
@@ -98,7 +97,7 @@ func (r *SettingsCatalogJsonResource) Create(ctx context.Context, req resource.C
 	stateContainer := &crud.CreateResponseContainer{CreateResponse: resp}
 	opts := crud.DefaultReadWithRetryOptions()
 	opts.Operation = "Create"
-	opts.ResourceTypeName = constants.PROVIDER_NAME + "_" + ResourceName
+	opts.ResourceTypeName = ResourceName
 
 	err = crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)
 	if err != nil {
@@ -129,7 +128,7 @@ func (r *SettingsCatalogJsonResource) Read(ctx context.Context, req resource.Rea
 	var object sharedmodels.SettingsCatalogJsonResourceModel
 	var baseResource models.DeviceManagementConfigurationPolicyable
 
-	tflog.Debug(ctx, fmt.Sprintf("Starting Read method for: %s_%s", r.ProviderTypeName, r.TypeName))
+	tflog.Debug(ctx, fmt.Sprintf("Starting Read method for: %s", ResourceName))
 
 	operation := "Read"
 	if ctxOp := ctx.Value("retry_operation"); ctxOp != nil {
@@ -143,7 +142,7 @@ func (r *SettingsCatalogJsonResource) Read(ctx context.Context, req resource.Rea
 		return
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Reading %s_%s with ID: %s", r.ProviderTypeName, r.TypeName, object.ID.ValueString()))
+	tflog.Debug(ctx, fmt.Sprintf("Reading %s with ID: %s", ResourceName, object.ID.ValueString()))
 
 	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Read, ReadTimeout*time.Second, &resp.Diagnostics)
 	if cancel == nil {
@@ -211,7 +210,7 @@ func (r *SettingsCatalogJsonResource) Read(ctx context.Context, req resource.Rea
 		return
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Finished Read Method: %s_%s", r.ProviderTypeName, r.TypeName))
+	tflog.Debug(ctx, fmt.Sprintf("Finished Read Method: %s", ResourceName))
 }
 
 // Update handles the Update operation for Settings Catalog resources.
@@ -231,7 +230,7 @@ func (r *SettingsCatalogJsonResource) Update(ctx context.Context, req resource.U
 	var plan sharedmodels.SettingsCatalogJsonResourceModel
 	var state sharedmodels.SettingsCatalogJsonResourceModel
 
-	tflog.Debug(ctx, fmt.Sprintf("Starting Update of resource: %s_%s", r.ProviderTypeName, r.TypeName))
+	tflog.Debug(ctx, fmt.Sprintf("Starting Update of resource: %s", ResourceName))
 
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
@@ -249,7 +248,7 @@ func (r *SettingsCatalogJsonResource) Update(ctx context.Context, req resource.U
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error constructing resource for Update Method",
-			fmt.Sprintf("Could not construct resource: %s_%s: %s", r.ProviderTypeName, r.TypeName, err.Error()),
+			fmt.Sprintf("Could not construct resource: %s: %s", ResourceName, err.Error()),
 		)
 		return
 	}
@@ -297,7 +296,7 @@ func (r *SettingsCatalogJsonResource) Update(ctx context.Context, req resource.U
 
 	opts := crud.DefaultReadWithRetryOptions()
 	opts.Operation = "Update"
-	opts.ResourceTypeName = constants.PROVIDER_NAME + "_" + ResourceName
+	opts.ResourceTypeName = ResourceName
 
 	err = crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)
 	if err != nil {
@@ -322,7 +321,7 @@ func (r *SettingsCatalogJsonResource) Update(ctx context.Context, req resource.U
 func (r *SettingsCatalogJsonResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var object sharedmodels.SettingsCatalogJsonResourceModel
 
-	tflog.Debug(ctx, fmt.Sprintf("Starting deletion of resource: %s_%s", r.ProviderTypeName, r.TypeName))
+	tflog.Debug(ctx, fmt.Sprintf("Starting deletion of resource: %s", ResourceName))
 
 	resp.Diagnostics.Append(req.State.Get(ctx, &object)...)
 	if resp.Diagnostics.HasError() {

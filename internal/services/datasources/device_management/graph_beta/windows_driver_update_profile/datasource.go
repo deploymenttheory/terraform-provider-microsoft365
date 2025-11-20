@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	DataSourceName = "graph_beta_device_management_windows_driver_update_profile"
+	DataSourceName = "microsoft365_graph_beta_device_management_windows_driver_update_profile"
 	ReadTimeout    = 180
 )
 
@@ -33,19 +33,19 @@ func NewWindowsDriverUpdateProfileDataSource() datasource.DataSource {
 // WindowsDriverUpdateProfileDataSource defines the data source implementation
 type WindowsDriverUpdateProfileDataSource struct {
 	client           *msgraphbetasdk.GraphServiceClient
-	ProviderTypeName string
-	TypeName         string
+	
+	
 	ReadPermissions  []string
 }
 
 // Metadata returns the data source type name
 func (d *WindowsDriverUpdateProfileDataSource) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_" + DataSourceName
+	resp.TypeName = DataSourceName
 }
 
 // Configure sets the client for the data source
 func (d *WindowsDriverUpdateProfileDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
-	d.client = client.SetGraphBetaClientForDataSource(ctx, req, resp, d.TypeName)
+	d.client = client.SetGraphBetaClientForDataSource(ctx, req, resp, DataSourceName)
 }
 
 // Schema defines the schema for the data source

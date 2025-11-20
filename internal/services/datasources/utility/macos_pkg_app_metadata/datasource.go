@@ -15,7 +15,7 @@ import (
 )
 
 const (
-	datasourceName = "utility_macos_pkg_app_metadata"
+	DataSourceName = "microsoft365_utility_macos_pkg_app_metadata"
 	ReadTimeout    = 240 // Extended timeout for metadata extraction
 )
 
@@ -32,21 +32,19 @@ func NewMacOSPKGAppMetadataDataSource() datasource.DataSource {
 }
 
 type MacOSPKGAppMetadataDataSource struct {
-	client           *msgraphbetasdk.GraphServiceClient
-	ProviderTypeName string
-	TypeName         string
+	client *msgraphbetasdk.GraphServiceClient
 }
 
 // Metadata returns the datasource type name.
 func (r *MacOSPKGAppMetadataDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_" + datasourceName
+	resp.TypeName = DataSourceName
 }
 
 // Configure configures the data source with the provider client
 func (d *MacOSPKGAppMetadataDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
 	// Even though we don't need the Graph client for local file operations,
 	// we'll set it up in case we need it for any future URL downloads through the Microsoft API
-	d.client = client.SetGraphBetaClientForDataSource(ctx, req, resp, d.TypeName)
+	d.client = client.SetGraphBetaClientForDataSource(ctx, req, resp, DataSourceName)
 }
 
 // Schema defines the schema for the data source

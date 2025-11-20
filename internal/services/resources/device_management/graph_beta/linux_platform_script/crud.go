@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
 	customrequest "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/custom_requests"
 	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
@@ -98,7 +97,7 @@ func (r *LinuxPlatformScriptResource) Create(ctx context.Context, req resource.C
 
 	opts := crud.DefaultReadWithRetryOptions()
 	opts.Operation = "Create"
-	opts.ResourceTypeName = constants.PROVIDER_NAME + "_" + ResourceName
+	opts.ResourceTypeName = ResourceName
 
 	err = crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)
 	if err != nil {
@@ -297,7 +296,7 @@ func (r *LinuxPlatformScriptResource) Update(ctx context.Context, req resource.U
 
 	opts := crud.DefaultReadWithRetryOptions()
 	opts.Operation = "Update"
-	opts.ResourceTypeName = constants.PROVIDER_NAME + "_" + ResourceName
+	opts.ResourceTypeName = ResourceName
 
 	err = crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)
 	if err != nil {

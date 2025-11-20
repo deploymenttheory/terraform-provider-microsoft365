@@ -5,7 +5,6 @@ import (
 	"regexp"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/client"
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/schema"
 	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
@@ -21,7 +20,7 @@ import (
 )
 
 const (
-	ResourceName  = "graph_identity_and_access_conditional_access_terms_of_use"
+	ResourceName  = "microsoft365_graph_identity_and_access_conditional_access_terms_of_use"
 	CreateTimeout = 180
 	UpdateTimeout = 180
 	ReadTimeout   = 180
@@ -54,26 +53,17 @@ func NewConditionalAccessTermsOfUseResource() resource.Resource {
 
 type ConditionalAccessTermsOfUseResource struct {
 	httpClient       *client.AuthenticatedHTTPClient
-	ProviderTypeName string
-	TypeName         string
 	ReadPermissions  []string
 	WritePermissions []string
 	ResourcePath     string
 }
 
 func (r *ConditionalAccessTermsOfUseResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	r.ProviderTypeName = req.ProviderTypeName
-	r.TypeName = ResourceName
-	resp.TypeName = r.FullTypeName()
-}
-
-// FullTypeName returns the full resource type name in the format "providername_resourcename".
-func (r *ConditionalAccessTermsOfUseResource) FullTypeName() string {
-	return r.ProviderTypeName + "_" + r.TypeName
+	resp.TypeName = ResourceName
 }
 
 func (r *ConditionalAccessTermsOfUseResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
-	r.httpClient = client.SetGraphBetaHTTPClientForResource(ctx, req, resp, constants.PROVIDER_NAME+"_"+ResourceName)
+	r.httpClient = client.SetGraphBetaHTTPClientForResource(ctx, req, resp, ResourceName)
 }
 
 func (r *ConditionalAccessTermsOfUseResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {

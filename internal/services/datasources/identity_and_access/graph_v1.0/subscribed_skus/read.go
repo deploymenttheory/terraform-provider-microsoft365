@@ -17,15 +17,15 @@ import (
 func (d *SubscribedSkusDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
 	var object SubscribedSkusDataSourceModel
 
-	tflog.Debug(ctx, fmt.Sprintf("Starting Read method for: %s_%s", d.ProviderTypeName, d.TypeName))
+	tflog.Debug(ctx, fmt.Sprintf("Starting Read method for: %s", DataSourceName))
 
 	resp.Diagnostics.Append(req.Config.Get(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Reading %s_%s with filters - sku_id: %s, sku_part_number: %s, applies_to: %s",
-		d.ProviderTypeName, d.TypeName,
+	tflog.Debug(ctx, fmt.Sprintf("Reading %s with filters - sku_id: %s, sku_part_number: %s, applies_to: %s",
+		DataSourceName,
 		object.SkuId.ValueString(),
 		object.SkuPartNumber.ValueString(),
 		object.AppliesTo.ValueString()))
@@ -93,7 +93,7 @@ func (d *SubscribedSkusDataSource) Read(ctx context.Context, req datasource.Read
 		return
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Finished Datasource Read Method: %s_%s, found %d items", d.ProviderTypeName, d.TypeName, len(filteredItems)))
+	tflog.Debug(ctx, fmt.Sprintf("Finished Datasource Read Method: %s, found %d items", DataSourceName, len(filteredItems)))
 }
 
 // shouldIncludeItem determines whether an item should be included based on the filters

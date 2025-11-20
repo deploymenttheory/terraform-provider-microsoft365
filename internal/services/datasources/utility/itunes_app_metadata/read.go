@@ -20,7 +20,7 @@ import (
 func (d *itunesAppMetadataDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
 	var state ItunesAppMetadataDataSourceModel
 
-	tflog.Debug(ctx, "Reading iTunes App Metadata data source")
+	tflog.Debug(ctx, fmt.Sprintf("Starting Read method for: %s", DataSourceName))
 
 	diags := req.Config.Get(ctx, &state)
 	resp.Diagnostics.Append(diags...)

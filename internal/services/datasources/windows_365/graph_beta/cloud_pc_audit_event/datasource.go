@@ -14,7 +14,7 @@ import (
 )
 
 const (
-	DataSourceName = "graph_beta_windows_365_cloud_pc_audit_event"
+	DataSourceName = "microsoft365_graph_beta_windows_365_cloud_pc_audit_event"
 	ReadTimeout    = 180
 )
 
@@ -32,18 +32,16 @@ func NewCloudPcAuditEventDataSource() datasource.DataSource {
 }
 
 type CloudPcAuditEventDataSource struct {
-	client           *msgraphbetasdk.GraphServiceClient
-	ProviderTypeName string
-	TypeName         string
-	ReadPermissions  []string
+	client          *msgraphbetasdk.GraphServiceClient
+	ReadPermissions []string
 }
 
 func (d *CloudPcAuditEventDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_" + DataSourceName
+	resp.TypeName = DataSourceName
 }
 
 func (d *CloudPcAuditEventDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
-	d.client = client.SetGraphBetaClientForDataSource(ctx, req, resp, d.TypeName)
+	d.client = client.SetGraphBetaClientForDataSource(ctx, req, resp, DataSourceName)
 }
 
 func (d *CloudPcAuditEventDataSource) Schema(ctx context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {

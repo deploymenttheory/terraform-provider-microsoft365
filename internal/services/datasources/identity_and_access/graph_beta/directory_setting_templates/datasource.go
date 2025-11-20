@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/client"
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/schema"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -14,7 +13,7 @@ import (
 )
 
 const (
-	DataSourceName = "graph_beta_identity_and_access_directory_setting_templates"
+	DataSourceName = "microsoft365_graph_beta_identity_and_access_directory_setting_templates"
 	ReadTimeout    = 180
 )
 
@@ -37,23 +36,19 @@ func NewDirectorySettingTemplatesDataSource() datasource.DataSource {
 }
 
 type DirectorySettingTemplatesDataSource struct {
-	client           *msgraphbetasdk.GraphServiceClient
-	ProviderTypeName string
-	TypeName         string
-	ReadPermissions  []string
-	ResourcePath     string
+	client          *msgraphbetasdk.GraphServiceClient
+	ReadPermissions []string
+	ResourcePath    string
 }
 
 // Metadata returns the data source type name.
 func (d *DirectorySettingTemplatesDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-	d.ProviderTypeName = req.ProviderTypeName
-	d.TypeName = DataSourceName
-	resp.TypeName = req.ProviderTypeName + "_" + DataSourceName
+	resp.TypeName = DataSourceName
 }
 
 // Configure sets the client for the data source.
 func (d *DirectorySettingTemplatesDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
-	d.client = client.SetGraphBetaClientForDataSource(ctx, req, resp, constants.PROVIDER_NAME+"_"+DataSourceName)
+	d.client = client.SetGraphBetaClientForDataSource(ctx, req, resp, DataSourceName)
 }
 
 // Schema returns the schema for the data source.

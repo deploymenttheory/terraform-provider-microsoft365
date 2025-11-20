@@ -16,7 +16,7 @@ import (
 )
 
 const (
-	ActionName = "graph_beta_device_management_windows_autopilot_device_identity_allow_next_enrollment"
+	ActionName = "microsoft365_graph_beta_device_management_windows_autopilot_device_identity_allow_next_enrollment"
 )
 
 var (
@@ -41,27 +41,18 @@ func NewAllowNextEnrollmentAction() action.Action {
 
 type AllowNextEnrollmentAction struct {
 	client           *msgraphbetasdk.GraphServiceClient
-	ProviderTypeName string
-	TypeName         string
 	ReadPermissions  []string
 	WritePermissions []string
 }
 
 // Metadata returns the action type name.
 func (a *AllowNextEnrollmentAction) Metadata(ctx context.Context, req action.MetadataRequest, resp *action.MetadataResponse) {
-	a.ProviderTypeName = req.ProviderTypeName
-	a.TypeName = ActionName
-	resp.TypeName = a.FullTypeName()
-}
-
-// FullTypeName returns the full action type name in the format "providername_actionname".
-func (a *AllowNextEnrollmentAction) FullTypeName() string {
-	return a.ProviderTypeName + "_" + ActionName
+	resp.TypeName = ActionName
 }
 
 // Configure sets the client for the action.
 func (a *AllowNextEnrollmentAction) Configure(ctx context.Context, req action.ConfigureRequest, resp *action.ConfigureResponse) {
-	a.client = client.SetGraphBetaClientForAction(ctx, req, resp, constants.PROVIDER_NAME+"_"+ActionName)
+	a.client = client.SetGraphBetaClientForAction(ctx, req, resp, ActionName)
 }
 
 // Schema returns the schema for the action.

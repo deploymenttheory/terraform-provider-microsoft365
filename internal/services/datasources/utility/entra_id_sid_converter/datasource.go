@@ -14,7 +14,7 @@ import (
 )
 
 const (
-	DataSourceName = "utility_entra_id_sid_converter"
+	DataSourceName = "microsoft365_utility_entra_id_sid_converter"
 	ReadTimeout    = 180
 )
 
@@ -33,7 +33,7 @@ func NewEntraIdSidConverterDataSource() datasource.DataSource {
 type entraIdSidConverterDataSource struct{}
 
 func (d *entraIdSidConverterDataSource) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_" + DataSourceName
+	resp.TypeName = DataSourceName
 }
 
 // Configure implements the DataSourceWithConfigure interface.

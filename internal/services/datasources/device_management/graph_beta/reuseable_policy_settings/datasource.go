@@ -13,8 +13,8 @@ import (
 )
 
 const (
-	ResourceName = "graph_beta_device_management_reuseable_policy_setting"
-	ReadTimeout  = 180
+	DataSourceName = "microsoft365_graph_beta_device_management_reuseable_policy_setting"
+	ReadTimeout    = 180
 )
 
 var (
@@ -34,20 +34,18 @@ func NewReuseablePolicySettingsDataSource() datasource.DataSource {
 }
 
 type ReuseablePolicySettingsDataSource struct {
-	client           *msgraphbetasdk.GraphServiceClient
-	ProviderTypeName string
-	TypeName         string
-	ReadPermissions  []string
+	client          *msgraphbetasdk.GraphServiceClient
+	ReadPermissions []string
 }
 
 // Metadata returns the resource type name.
 func (r *ReuseablePolicySettingsDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_" + ResourceName
+	resp.TypeName = DataSourceName
 }
 
 // Configure sets the client for the data source
 func (d *ReuseablePolicySettingsDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
-	d.client = client.SetGraphBetaClientForDataSource(ctx, req, resp, d.TypeName)
+	d.client = client.SetGraphBetaClientForDataSource(ctx, req, resp, DataSourceName)
 }
 
 // Schema defines the schema for the data source

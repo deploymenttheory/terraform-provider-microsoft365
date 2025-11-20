@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/client"
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	planmodifiers "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/plan_modifiers"
 	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/schema"
 	validate "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/validate/attribute"
@@ -17,7 +16,7 @@ import (
 )
 
 const (
-	ResourceName  = "graph_beta_device_management_apple_configurator_enrollment_policy"
+	ResourceName  = "microsoft365_graph_beta_device_management_apple_configurator_enrollment_policy"
 	CreateTimeout = 180
 	UpdateTimeout = 180
 	ReadTimeout   = 180
@@ -52,25 +51,17 @@ func NewAppleConfiguratorEnrollmentPolicyResource() resource.Resource {
 
 type AppleConfiguratorEnrollmentPolicyResource struct {
 	client           *msgraphbetasdk.GraphServiceClient
-	ProviderTypeName string
-	TypeName         string
 	ReadPermissions  []string
 	WritePermissions []string
 	ResourcePath     string
 }
 
-func (r *AppleConfiguratorEnrollmentPolicyResource) FullTypeName() string {
-	return r.ProviderTypeName + "_" + ResourceName
-}
-
 func (r *AppleConfiguratorEnrollmentPolicyResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	r.ProviderTypeName = req.ProviderTypeName
-	r.TypeName = ResourceName
-	resp.TypeName = r.FullTypeName()
+	resp.TypeName = ResourceName
 }
 
 func (r *AppleConfiguratorEnrollmentPolicyResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
-	r.client = client.SetGraphBetaClientForResource(ctx, req, resp, constants.PROVIDER_NAME+"_"+ResourceName)
+	r.client = client.SetGraphBetaClientForResource(ctx, req, resp, ResourceName)
 }
 
 func (r *AppleConfiguratorEnrollmentPolicyResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {

@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	DataSourceName = "graph_beta_windows_365_cloud_pc_source_device_image"
+	DataSourceName = "microsoft365_graph_beta_windows_365_cloud_pc_source_device_image"
 	ReadTimeout    = 180
 )
 
@@ -31,18 +31,16 @@ func NewCloudPcSourceDeviceImageDataSource() datasource.DataSource {
 }
 
 type CloudPcSourceDeviceImageDataSource struct {
-	client           *msgraphbetasdk.GraphServiceClient
-	ProviderTypeName string
-	TypeName         string
-	ReadPermissions  []string
+	client          *msgraphbetasdk.GraphServiceClient
+	ReadPermissions []string
 }
 
 func (d *CloudPcSourceDeviceImageDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_" + DataSourceName
+	resp.TypeName = DataSourceName
 }
 
 func (d *CloudPcSourceDeviceImageDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
-	d.client = client.SetGraphBetaClientForDataSource(ctx, req, resp, d.TypeName)
+	d.client = client.SetGraphBetaClientForDataSource(ctx, req, resp, DataSourceName)
 }
 
 func (d *CloudPcSourceDeviceImageDataSource) Schema(ctx context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {

@@ -10,7 +10,6 @@ import (
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/check"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/destroy"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/testlog"
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
 	graphBetaAuthenticationStrength "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/identity_and_access/graph_beta/authentication_strength_policy"
@@ -18,13 +17,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 )
 
-const (
-	testResourceName = "microsoft365_graph_beta_identity_and_access_authentication_strength_policy"
-)
-
 var (
-	// Resource type name constructed from exported constants
-	resourceType = constants.PROVIDER_NAME + "_" + graphBetaAuthenticationStrength.ResourceName
+	// Resource type name from the resource package
+	resourceType = graphBetaAuthenticationStrength.ResourceName
 
 	// testResource is the test resource implementation for authentication strength policies
 	testResource = graphBetaAuthenticationStrength.AuthenticationStrengthTestResource{}
@@ -57,21 +52,21 @@ func TestAccAuthenticationStrengthResource_Minimal(t *testing.T) {
 						time.Sleep(10 * time.Second)
 						return nil
 					},
-					check.That(testResourceName+".auth_strength_minimal").ExistsInGraph(testResource),
-					check.That(testResourceName+".auth_strength_minimal").Key("id").Exists(),
-					check.That(testResourceName+".auth_strength_minimal").Key("display_name").MatchesRegex(regexp.MustCompile(`^acc-test-min-[0-9a-fA-F-]+$`)),
-					check.That(testResourceName+".auth_strength_minimal").Key("description").HasValue("Acceptance test minimal authentication strength policy"),
-					check.That(testResourceName+".auth_strength_minimal").Key("allowed_combinations.#").HasValue("1"),
-					check.That(testResourceName+".auth_strength_minimal").Key("allowed_combinations.*").ContainsTypeSetElement("password,sms"),
-					check.That(testResourceName+".auth_strength_minimal").Key("created_date_time").Exists(),
-					check.That(testResourceName+".auth_strength_minimal").Key("modified_date_time").Exists(),
+					check.That(resourceType+".auth_strength_minimal").ExistsInGraph(testResource),
+					check.That(resourceType+".auth_strength_minimal").Key("id").Exists(),
+					check.That(resourceType+".auth_strength_minimal").Key("display_name").MatchesRegex(regexp.MustCompile(`^acc-test-min-[0-9a-fA-F-]+$`)),
+					check.That(resourceType+".auth_strength_minimal").Key("description").HasValue("Acceptance test minimal authentication strength policy"),
+					check.That(resourceType+".auth_strength_minimal").Key("allowed_combinations.#").HasValue("1"),
+					check.That(resourceType+".auth_strength_minimal").Key("allowed_combinations.*").ContainsTypeSetElement("password,sms"),
+					check.That(resourceType+".auth_strength_minimal").Key("created_date_time").Exists(),
+					check.That(resourceType+".auth_strength_minimal").Key("modified_date_time").Exists(),
 				),
 			},
 			{
 				PreConfig: func() {
 					testlog.StepAction(resourceType, "Importing minimal authentication strength policy")
 				},
-				ResourceName:      testResourceName + ".auth_strength_minimal",
+				ResourceName:      resourceType + ".auth_strength_minimal",
 				ImportState:       true,
 				ImportStateVerify: true,
 				ImportStateVerifyIgnore: []string{
@@ -109,30 +104,30 @@ func TestAccAuthenticationStrengthResource_Maximal(t *testing.T) {
 						time.Sleep(10 * time.Second)
 						return nil
 					},
-					check.That(testResourceName+".auth_strength_maximal").ExistsInGraph(testResource),
-					check.That(testResourceName+".auth_strength_maximal").Key("id").Exists(),
-					check.That(testResourceName+".auth_strength_maximal").Key("display_name").MatchesRegex(regexp.MustCompile(`^acc-test-max-[0-9a-fA-F-]+$`)),
-					check.That(testResourceName+".auth_strength_maximal").Key("description").HasValue("Acceptance test maximal authentication strength policy with all combinations and configurations"),
-					check.That(testResourceName+".auth_strength_maximal").Key("allowed_combinations.#").HasValue("22"),
-					check.That(testResourceName+".auth_strength_maximal").Key("allowed_combinations.*").ContainsTypeSetElement("deviceBasedPush"),
-					check.That(testResourceName+".auth_strength_maximal").Key("allowed_combinations.*").ContainsTypeSetElement("federatedMultiFactor"),
-					check.That(testResourceName+".auth_strength_maximal").Key("allowed_combinations.*").ContainsTypeSetElement("federatedSingleFactor"),
-					check.That(testResourceName+".auth_strength_maximal").Key("allowed_combinations.*").ContainsTypeSetElement("fido2"),
-					check.That(testResourceName+".auth_strength_maximal").Key("allowed_combinations.*").ContainsTypeSetElement("hardwareOath,federatedSingleFactor"),
-					check.That(testResourceName+".auth_strength_maximal").Key("allowed_combinations.*").ContainsTypeSetElement("microsoftAuthenticatorPush,federatedSingleFactor"),
-					check.That(testResourceName+".auth_strength_maximal").Key("allowed_combinations.*").ContainsTypeSetElement("password"),
-					check.That(testResourceName+".auth_strength_maximal").Key("allowed_combinations.*").ContainsTypeSetElement("windowsHelloForBusiness"),
-					check.That(testResourceName+".auth_strength_maximal").Key("allowed_combinations.*").ContainsTypeSetElement("x509CertificateMultiFactor"),
-					check.That(testResourceName+".auth_strength_maximal").Key("combination_configurations.#").HasValue("3"),
-					check.That(testResourceName+".auth_strength_maximal").Key("created_date_time").Exists(),
-					check.That(testResourceName+".auth_strength_maximal").Key("modified_date_time").Exists(),
+					check.That(resourceType+".auth_strength_maximal").ExistsInGraph(testResource),
+					check.That(resourceType+".auth_strength_maximal").Key("id").Exists(),
+					check.That(resourceType+".auth_strength_maximal").Key("display_name").MatchesRegex(regexp.MustCompile(`^acc-test-max-[0-9a-fA-F-]+$`)),
+					check.That(resourceType+".auth_strength_maximal").Key("description").HasValue("Acceptance test maximal authentication strength policy with all combinations and configurations"),
+					check.That(resourceType+".auth_strength_maximal").Key("allowed_combinations.#").HasValue("22"),
+					check.That(resourceType+".auth_strength_maximal").Key("allowed_combinations.*").ContainsTypeSetElement("deviceBasedPush"),
+					check.That(resourceType+".auth_strength_maximal").Key("allowed_combinations.*").ContainsTypeSetElement("federatedMultiFactor"),
+					check.That(resourceType+".auth_strength_maximal").Key("allowed_combinations.*").ContainsTypeSetElement("federatedSingleFactor"),
+					check.That(resourceType+".auth_strength_maximal").Key("allowed_combinations.*").ContainsTypeSetElement("fido2"),
+					check.That(resourceType+".auth_strength_maximal").Key("allowed_combinations.*").ContainsTypeSetElement("hardwareOath,federatedSingleFactor"),
+					check.That(resourceType+".auth_strength_maximal").Key("allowed_combinations.*").ContainsTypeSetElement("microsoftAuthenticatorPush,federatedSingleFactor"),
+					check.That(resourceType+".auth_strength_maximal").Key("allowed_combinations.*").ContainsTypeSetElement("password"),
+					check.That(resourceType+".auth_strength_maximal").Key("allowed_combinations.*").ContainsTypeSetElement("windowsHelloForBusiness"),
+					check.That(resourceType+".auth_strength_maximal").Key("allowed_combinations.*").ContainsTypeSetElement("x509CertificateMultiFactor"),
+					check.That(resourceType+".auth_strength_maximal").Key("combination_configurations.#").HasValue("3"),
+					check.That(resourceType+".auth_strength_maximal").Key("created_date_time").Exists(),
+					check.That(resourceType+".auth_strength_maximal").Key("modified_date_time").Exists(),
 				),
 			},
 			{
 				PreConfig: func() {
 					testlog.StepAction(resourceType, "Importing maximal authentication strength policy")
 				},
-				ResourceName:      testResourceName + ".auth_strength_maximal",
+				ResourceName:      resourceType + ".auth_strength_maximal",
 				ImportState:       true,
 				ImportStateVerify: true,
 				ImportStateVerifyIgnore: []string{

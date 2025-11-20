@@ -1,0 +1,45 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#identity/conditionalAccess/policies/$entity",
+  "@odata.type": "#microsoft.graph.conditionalAccessPolicy",
+  "id": "11111111-1111-1111-1111-111111111111",
+  "displayName": "unit-test-conditional-access-policy",
+  "createdDateTime": "2024-01-01T00:00:00Z",
+  "modifiedDateTime": "2024-01-01T00:00:00Z",
+  "state": "enabledForReportingButNotEnforced",
+  "conditions": {
+    "@odata.type": "#microsoft.graph.conditionalAccessConditionSet",
+    "userRiskLevels": [],
+    "signInRiskLevels": [],
+    "clientAppTypes": ["mobileAppsAndDesktopClients"],
+    "platforms": {
+      "@odata.type": "#microsoft.graph.conditionalAccessPlatforms",
+      "includePlatforms": ["macOS"],
+      "excludePlatforms": []
+    },
+    "applications": {
+      "@odata.type": "#microsoft.graph.conditionalAccessApplications",
+      "includeApplications": ["Office365"],
+      "excludeApplications": [],
+      "includeUserActions": [],
+      "includeAuthenticationContextClassReferences": []
+    },
+    "users": {
+      "@odata.type": "#microsoft.graph.conditionalAccessUsers",
+      "includeUsers": ["All"],
+      "excludeUsers": [],
+      "includeGroups": [],
+      "excludeGroups": [],
+      "includeRoles": [],
+      "excludeRoles": []
+    }
+  },
+  "grantControls": {
+    "@odata.type": "#microsoft.graph.conditionalAccessGrantControls",
+    "operator": "OR",
+    "builtInControls": ["compliantDevice"],
+    "customAuthenticationFactors": [],
+    "termsOfUse": []
+  },
+  "sessionControls": null
+}
+
