@@ -3,12 +3,13 @@ package mocks
 import (
 	"encoding/json"
 	"net/http"
+	"os"
+	"path/filepath"
 	"strings"
 	"sync"
 	"time"
 
 	commonMocks "github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks/factories"
 	"github.com/google/uuid"
 	"github.com/jarcoal/httpmock"
 )
@@ -203,93 +204,117 @@ func (m *UserMock) RegisterMocks() {
 
 // RegisterErrorMocks registers HTTP mock responses for error scenarios
 func (m *UserMock) RegisterErrorMocks() {
-	// Register error response for user creation
-	httpmock.RegisterResponder("POST", "https://graph.microsoft.com/beta/users",
-		factories.ErrorResponse(400, "BadRequest", "Error creating user"))
+	// Reset the state when registering error mocks
+	mockState.Lock()
+	mockState.users = make(map[string]map[string]any)
+	mockState.Unlock()
 
-	// Register error response for user not found
-	httpmock.RegisterResponder("GET", "https://graph.microsoft.com/beta/users/not-found-user",
-		factories.ErrorResponse(404, "ResourceNotFound", "User not found"))
-
-	// Register error response for duplicate user principal name
+	// Register error response for user creation - always return error
 	httpmock.RegisterResponder("POST", "https://graph.microsoft.com/beta/users",
 		func(req *http.Request) (*http.Response, error) {
-			var userData map[string]any
-			err := json.NewDecoder(req.Body).Decode(&userData)
-			if err != nil {
-				return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"Invalid request body"}}`), nil
-			}
+			return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"Invalid user data"}}`), nil
+		})
 
-			if upn, ok := userData["userPrincipalName"].(string); ok && upn == "duplicate@contoso.com" {
-				return factories.ErrorResponse(400, "BadRequest", "User with this userPrincipalName already exists")(req)
-			}
+	// Register error response for user not found
+	httpmock.RegisterResponder("GET", `=~^https://graph.microsoft.com/beta/users/[^/]+$`,
+		func(req *http.Request) (*http.Response, error) {
+			return httpmock.NewStringResponse(404, `{"error":{"code":"ResourceNotFound","message":"User not found"}}`), nil
+		})
 
-			// Fallback to normal creation flow
-			return nil, nil
+	// Register error response for DELETE
+	httpmock.RegisterResponder("DELETE", `=~^https://graph.microsoft.com/beta/users/[^/]+$`,
+		func(req *http.Request) (*http.Response, error) {
+			return httpmock.NewStringResponse(404, `{"error":{"code":"ResourceNotFound","message":"User not found"}}`), nil
 		})
 }
 
-// registerTestUsers registers predefined test users
-func registerTestUsers() {
-	// Minimal user with only required attributes
-	minimalUserId := "00000000-0000-0000-0000-000000000001"
-	minimalUserData := map[string]any{
-		"id":                minimalUserId,
-		"displayName":       "Minimal User",
-		"userPrincipalName": "minimal.user@contoso.com",
-		"accountEnabled":    true,
-		"passwordProfile": map[string]any{
-			"password":                             "SecureP@ssw0rd!",
-			"forceChangePasswordNextSignIn":        false,
-			"forceChangePasswordNextSignInWithMfa": false,
-		},
-		"createdDateTime": "2023-01-01T00:00:00Z",
-		"businessPhones":  []string{},
-		"identities":      []map[string]any{},
-		"imAddresses":     []string{},
-		"otherMails":      []string{},
-		"proxyAddresses":  []string{},
+// loadFixture loads a JSON fixture file from the tests/responses directory
+func loadFixture(filename string) (map[string]any, error) {
+	// Path relative to the mocks directory: ../tests/responses/
+	fixturesPath := filepath.Join("tests", "responses", filename)
+	data, err := os.ReadFile(fixturesPath)
+	if err != nil {
+		return nil, err
 	}
 
-	// Maximal user with all attributes
-	maximalUserId := "00000000-0000-0000-0000-000000000002"
-	maximalUserData := map[string]any{
-		"id":                maximalUserId,
-		"displayName":       "Maximal User",
-		"userPrincipalName": "maximal.user@contoso.com",
-		"accountEnabled":    true,
-		"givenName":         "Maximal",
-		"surname":           "User",
-		"mail":              "maximal.user@contoso.com",
-		"mailNickname":      "maxuser",
-		"jobTitle":          "Senior Developer",
-		"department":        "Engineering",
-		"companyName":       "Contoso Ltd",
-		"officeLocation":    "Building A",
-		"city":              "Redmond",
-		"state":             "WA",
-		"country":           "US",
-		"postalCode":        "98052",
-		"usageLocation":     "US",
-		"businessPhones":    []string{"+1 425-555-0100"},
-		"mobilePhone":       "+1 425-555-0101",
-		"passwordProfile": map[string]any{
-			"password":                             "SecureP@ssw0rd!",
-			"forceChangePasswordNextSignIn":        true,
-			"forceChangePasswordNextSignInWithMfa": false,
-		},
-		"identities": []map[string]any{
-			{
-				"signInType":       "emailAddress",
-				"issuer":           "contoso.com",
-				"issuerAssignedId": "maximal.user@contoso.com",
-			},
-		},
-		"otherMails":      []string{"maximal.user.other@contoso.com"},
-		"proxyAddresses":  []string{"SMTP:maximal.user@contoso.com"},
-		"createdDateTime": "2023-01-01T00:00:00Z",
-		"imAddresses":     []string{},
+	var result map[string]any
+	if err := json.Unmarshal(data, &result); err != nil {
+		return nil, err
 	}
+
+	return result, nil
+}
+
+// registerTestUsers registers predefined test users from JSON fixtures
+func registerTestUsers() {
+	// Load minimal user from fixture
+	minimalUserData, err := loadFixture("user_minimal.json")
+	if err != nil {
+		// Fallback to inline data if fixture loading fails
+		minimalUserData = map[string]any{
+			"id":                "00000000-0000-0000-0000-000000000001",
+			"displayName":       "Minimal User",
+			"userPrincipalName": "minimal.user@deploymenttheory.com",
+			"accountEnabled":    true,
+			"passwordProfile": map[string]any{
+				"password":                             "SecureP@ssw0rd123!",
+				"forceChangePasswordNextSignIn":        false,
+				"forceChangePasswordNextSignInWithMfa": false,
+			},
+			"createdDateTime": "2023-01-01T00:00:00Z",
+			"businessPhones":  []any{},
+			"identities":      []any{},
+			"imAddresses":     []any{},
+			"otherMails":      []any{},
+			"proxyAddresses":  []any{},
+		}
+	}
+
+	// Load maximal user from fixture
+	maximalUserData, err := loadFixture("user_maximal.json")
+	if err != nil {
+		// Fallback to inline data if fixture loading fails
+		maximalUserData = map[string]any{
+			"id":                "00000000-0000-0000-0000-000000000002",
+			"displayName":       "Maximal User",
+			"userPrincipalName": "maximal.user@deploymenttheory.com",
+			"accountEnabled":    true,
+			"givenName":         "Maximal",
+			"surname":           "User",
+			"mail":              "maximal.user@deploymenttheory.com",
+			"mailNickname":      "maximal.user",
+			"jobTitle":          "Senior Developer",
+			"department":        "Engineering",
+			"companyName":       "Contoso Ltd",
+			"officeLocation":    "Building A",
+			"city":              "Redmond",
+			"state":             "WA",
+			"country":           "US",
+			"postalCode":        "98052",
+			"usageLocation":     "US",
+			"businessPhones":    []any{"+1 425-555-0100"},
+			"mobilePhone":       "+1 425-555-0101",
+			"passwordProfile": map[string]any{
+				"password":                             "SecureP@ssw0rd123!",
+				"forceChangePasswordNextSignIn":        false,
+				"forceChangePasswordNextSignInWithMfa": false,
+			},
+			"identities": []any{
+				map[string]any{
+					"signInType":       "emailAddress",
+					"issuer":           "DeploymentTheory.onmicrosoft.com",
+					"issuerAssignedId": "maximal.user@deploymenttheory.com",
+				},
+			},
+			"otherMails":        []any{"maximal.user.other@deploymenttheory.com"},
+			"showInAddressList": true,
+			"createdDateTime":    "2023-01-01T00:00:00Z",
+			"imAddresses":        []any{},
+		}
+	}
+
+	minimalUserId := minimalUserData["id"].(string)
+	maximalUserId := maximalUserData["id"].(string)
 
 	// Store users in mock state
 	mockState.Lock()
@@ -298,9 +323,9 @@ func registerTestUsers() {
 	mockState.Unlock()
 }
 
-// Helper function to ensure collection fields exist
-func ensureCollectionField(data map[string]any, fieldName string, defaultValue any) {
-	if data[fieldName] == nil {
-		data[fieldName] = defaultValue
-	}
+// CleanupMockState clears the mock state
+func (m *UserMock) CleanupMockState() {
+	mockState.Lock()
+	mockState.users = make(map[string]map[string]any)
+	mockState.Unlock()
 }

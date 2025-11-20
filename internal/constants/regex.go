@@ -37,6 +37,12 @@ const (
 	// Example: "user@example.com"
 	EmailRegex = `^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`
 
+	// UserPrincipalNameRegex matches a valid Microsoft 365 User Principal Name (UPN).
+	// The UPN format follows RFC 822 and only allows specific characters in the alias portion.
+	// Allowed characters: A-Z, a-z, 0-9, ' . - _ ! # ^ ~
+	// Example: "user.name@contoso.com" or "first-last@contoso.onmicrosoft.com"
+	UserPrincipalNameRegex = `^[A-Za-z0-9'.\-_!#^~]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$`
+
 	// ApiIdRegex matches API IDs consisting of alphanumeric characters, slashes, dots, or underscores.
 	// Example: "api/v1/resource_1"
 	ApiIdRegex = "^[0-9a-zA-Z/._]*$"

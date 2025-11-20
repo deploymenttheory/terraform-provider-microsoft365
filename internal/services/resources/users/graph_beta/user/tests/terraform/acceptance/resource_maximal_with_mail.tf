@@ -1,11 +1,11 @@
-resource "microsoft365_graph_beta_users_user" "maximal" {
-  display_name        = "Maximal User"
-  user_principal_name = "maximal.user@contoso.com"
+resource "microsoft365_graph_beta_users_user" "maximal_with_mail" {
+  display_name        = "Maximal User With Mail"
+  user_principal_name = "maximal.mail@deploymenttheory.com"
   account_enabled     = true
   given_name          = "Maximal"
-  surname             = "User"
-  mail                = "maximal.user@contoso.com"
-  mail_nickname       = "maximal.user"
+  surname             = "WithMail"
+  mail                = "maximal.mail@deploymenttheory.com"
+  mail_nickname       = "maximal.mail"
   job_title           = "Senior Developer"
   department          = "Engineering"
   company_name        = "Contoso Ltd"
@@ -24,11 +24,10 @@ resource "microsoft365_graph_beta_users_user" "maximal" {
   identities = [
     {
       sign_in_type       = "emailAddress"
-      issuer             = "contoso.com"
-      issuer_assigned_id = "maximal.user@contoso.com"
+      issuer             = "DeploymentTheory.onmicrosoft.com"
+      issuer_assigned_id = "maximal.mail@deploymenttheory.com"
     }
   ]
-  other_mails          = ["maximal.user.other@contoso.com"]
-  proxy_addresses      = ["SMTP:maximal.user@contoso.com"]
+  other_mails          = ["maximal.mail.other@deploymenttheory.com"]
   show_in_address_list = true
-} 
+}

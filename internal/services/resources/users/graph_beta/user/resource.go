@@ -2,8 +2,10 @@ package graphBetaUsersUser
 
 import (
 	"context"
+	"regexp"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/client"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/schema"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -138,6 +140,9 @@ func (r *UserResource) Schema(ctx context.Context, req resource.SchemaRequest, r
 			"created_date_time": schema.StringAttribute{
 				MarkdownDescription: "The created date of the user object.",
 				Computed:            true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"creation_type": schema.StringAttribute{
 				MarkdownDescription: "Indicates whether the user account was created as a regular school or work account (null), an external account (Invitation), a local account for an Azure Active Directory B2C tenant (LocalAccount) or self-service sign-up using email verification (EmailVerified).",
@@ -205,8 +210,7 @@ func (r *UserResource) Schema(ctx context.Context, req resource.SchemaRequest, r
 			},
 			"mail_nickname": schema.StringAttribute{
 				MarkdownDescription: "The mail alias for the user.",
-				Optional:            true,
-				Computed:            true,
+				Required:            true,
 			},
 			"mobile_phone": schema.StringAttribute{
 				MarkdownDescription: "The primary cellular telephone number for the user.",
@@ -307,8 +311,17 @@ func (r *UserResource) Schema(ctx context.Context, req resource.SchemaRequest, r
 				Computed:            true,
 			},
 			"user_principal_name": schema.StringAttribute{
-				MarkdownDescription: "The user principal name (UPN) of the user. The UPN is an Internet-style login name for the user based on the Internet standard RFC 822. By convention, this should map to the user's email name. The general format is alias@domain, where domain must be present in the tenant's collection of verified domains.",
-				Required:            true,
+				MarkdownDescription: "The user principal name (someuser@contoso.com). It's an Internet-style login name for the user based on the Internet standard RFC 822. " +
+					"By convention, this should map to the user's email name. The general format is alias@domain, where domain must be present in the tenant's collection of verified domains. " +
+					"The verified domains for the tenant can be accessed from the verifiedDomains property of organization. " +
+					"NOTE: This property cannot contain accent characters. Only the following characters are allowed A - Z, a - z, 0 - 9, ' . - _ ! # ^ ~. For the complete list of allowed characters, see https://learn.microsoft.com/en-us/entra/identity/authentication/concept-sspr-policy?tabs=ms-powershell#userprincipalname-policies-that-apply-to-all-user-accounts.",
+				Required: true,
+				Validators: []validator.String{
+					stringvalidator.RegexMatches(
+						regexp.MustCompile(constants.UserPrincipalNameRegex),
+						"must be a valid user principal name in the format alias@domain. Only the following characters are allowed in the alias: A-Z, a-z, 0-9, ' . - _ ! # ^ ~",
+					),
+				},
 			},
 			"user_type": schema.StringAttribute{
 				MarkdownDescription: "A string value that can be used to classify user types in your directory, such as 'Member' and 'Guest'.",
@@ -319,14 +332,16 @@ func (r *UserResource) Schema(ctx context.Context, req resource.SchemaRequest, r
 				},
 			},
 			"identities": schema.SetNestedAttribute{
-				MarkdownDescription: "Identities that can be used to sign in to this user account. An identity can be provided by Microsoft (also known as a local account), by organizations, or by social identity providers such as Facebook, Google, and Microsoft, and tied to a user account.",
-				Optional:            true,
-				Computed:            true,
+				MarkdownDescription: "Identities that can be used to sign in to this user account. An identity can be provided by Microsoft " +
+					"(also known as a local account), by organizations, or by social identity providers such as Facebook, Google, and Microsoft, and tied to a user account.",
+				Optional: true,
+				Computed: true,
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"sign_in_type": schema.StringAttribute{
 							MarkdownDescription: "The type of sign-in used by the identity. The possible values are: emailAddress, userName, federated, or userPrincipalName.",
-							Required:            true,
+							Optional:            true,
+							Computed:            true,
 							Validators: []validator.String{
 								stringvalidator.OneOf(
 									"emailAddress",
@@ -337,12 +352,14 @@ func (r *UserResource) Schema(ctx context.Context, req resource.SchemaRequest, r
 							},
 						},
 						"issuer": schema.StringAttribute{
-							MarkdownDescription: "The name of the identity provider.",
-							Required:            true,
+							MarkdownDescription: "The name of the identity provider. Typically, this is the tenant domain name, such as 'contoso.onmicrosoft.com'.",
+							Optional:            true,
+							Computed:            true,
 						},
 						"issuer_assigned_id": schema.StringAttribute{
-							MarkdownDescription: "The unique identifier assigned to the user by the issuer.",
-							Required:            true,
+							MarkdownDescription: "The unique identifier assigned to the user by the issuer. Typically, this is the user's email address, such as 'jane.smith@contoso.com'.",
+							Optional:            true,
+							Computed:            true,
 						},
 					},
 				},
