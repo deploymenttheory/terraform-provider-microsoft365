@@ -10,7 +10,6 @@ import (
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/check"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/destroy"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/testlog"
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
 	graphBetaAssignmentFilter "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_management/graph_beta/assignment_filter"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -18,8 +17,8 @@ import (
 )
 
 var (
-	// Resource type name constructed from exported constants
-	resourceType = constants.PROVIDER_NAME + "_" + graphBetaAssignmentFilter.ResourceName
+	// Resource type name from the resource package
+	resourceType = graphBetaAssignmentFilter.ResourceName
 
 	// testResource is the test resource implementation for assignment filters
 	testResource = graphBetaAssignmentFilter.AssignmentFilterTestResource{}
@@ -47,21 +46,21 @@ func TestAccAssignmentFilterResource_Lifecycle(t *testing.T) {
 				},
 				Config: testAccAssignmentFilterConfig_minimal(),
 				Check: resource.ComposeTestCheckFunc(
-					check.That("microsoft365_graph_beta_device_management_assignment_filter.test").ExistsInGraph(testResource),
-					check.That("microsoft365_graph_beta_device_management_assignment_filter.test").Key("id").Exists(),
-					check.That("microsoft365_graph_beta_device_management_assignment_filter.test").Key("display_name").HasValue("Test Acceptance Assignment Filter"),
-					check.That("microsoft365_graph_beta_device_management_assignment_filter.test").Key("platform").HasValue("windows10AndLater"),
-					check.That("microsoft365_graph_beta_device_management_assignment_filter.test").Key("rule").HasValue("(device.osVersion -startsWith \"10.0\")"),
-					check.That("microsoft365_graph_beta_device_management_assignment_filter.test").Key("assignment_filter_management_type").HasValue("devices"),
-					check.That("microsoft365_graph_beta_device_management_assignment_filter.test").Key("created_date_time").Exists(),
-					check.That("microsoft365_graph_beta_device_management_assignment_filter.test").Key("last_modified_date_time").Exists(),
+					check.That(resourceType+".test").ExistsInGraph(testResource),
+					check.That(resourceType+".test").Key("id").Exists(),
+					check.That(resourceType+".test").Key("display_name").HasValue("Test Acceptance Assignment Filter"),
+					check.That(resourceType+".test").Key("platform").HasValue("windows10AndLater"),
+					check.That(resourceType+".test").Key("rule").HasValue("(device.osVersion -startsWith \"10.0\")"),
+					check.That(resourceType+".test").Key("assignment_filter_management_type").HasValue("devices"),
+					check.That(resourceType+".test").Key("created_date_time").Exists(),
+					check.That(resourceType+".test").Key("last_modified_date_time").Exists(),
 				),
 			},
 			{
 				PreConfig: func() {
 					testlog.StepAction(resourceType, "Importing")
 				},
-				ResourceName:      "microsoft365_graph_beta_device_management_assignment_filter.test",
+				ResourceName:      resourceType + ".test",
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
@@ -71,12 +70,12 @@ func TestAccAssignmentFilterResource_Lifecycle(t *testing.T) {
 				},
 				Config: testAccAssignmentFilterConfig_maximal(),
 				Check: resource.ComposeTestCheckFunc(
-					check.That("microsoft365_graph_beta_device_management_assignment_filter.test").ExistsInGraph(testResource),
-					check.That("microsoft365_graph_beta_device_management_assignment_filter.test").Key("display_name").HasValue("Test Acceptance Assignment Filter - Updated"),
-					check.That("microsoft365_graph_beta_device_management_assignment_filter.test").Key("description").HasValue("Updated description for acceptance testing"),
-					check.That("microsoft365_graph_beta_device_management_assignment_filter.test").Key("platform").HasValue("windows10AndLater"),
-					check.That("microsoft365_graph_beta_device_management_assignment_filter.test").Key("assignment_filter_management_type").HasValue("devices"),
-					check.That("microsoft365_graph_beta_device_management_assignment_filter.test").Key("role_scope_tags.#").HasValue("2"),
+					check.That(resourceType+".test").ExistsInGraph(testResource),
+					check.That(resourceType+".test").Key("display_name").HasValue("Test Acceptance Assignment Filter - Updated"),
+					check.That(resourceType+".test").Key("description").HasValue("Updated description for acceptance testing"),
+					check.That(resourceType+".test").Key("platform").HasValue("windows10AndLater"),
+					check.That(resourceType+".test").Key("assignment_filter_management_type").HasValue("devices"),
+					check.That(resourceType+".test").Key("role_scope_tags.#").HasValue("2"),
 				),
 			},
 		},
@@ -123,12 +122,12 @@ func TestAccAssignmentFilterResource_MultiPlatform(t *testing.T) {
 						},
 						Config: testAccAssignmentFilterConfig_platform(platform),
 						Check: resource.ComposeTestCheckFunc(
-							check.That(fmt.Sprintf("microsoft365_graph_beta_device_management_assignment_filter.%s", platform)).ExistsInGraph(testResource),
-							check.That(fmt.Sprintf("microsoft365_graph_beta_device_management_assignment_filter.%s", platform)).Key("id").Exists(),
-							check.That(fmt.Sprintf("microsoft365_graph_beta_device_management_assignment_filter.%s", platform)).Key("platform").HasValue(platform),
+							check.That(fmt.Sprintf("%s.%s", resourceType, platform)).ExistsInGraph(testResource),
+							check.That(fmt.Sprintf("%s.%s", resourceType, platform)).Key("id").Exists(),
+							check.That(fmt.Sprintf("%s.%s", resourceType, platform)).Key("platform").HasValue(platform),
 							func(state *terraform.State) error {
 								// Check rule and management type based on platform type
-								resourceName := fmt.Sprintf("microsoft365_graph_beta_device_management_assignment_filter.%s", platform)
+								resourceName := fmt.Sprintf("%s.%s", resourceType, platform)
 								rs, ok := state.RootModule().Resources[resourceName]
 								if !ok {
 									return fmt.Errorf("resource not found: %s", resourceName)
@@ -189,11 +188,11 @@ func TestAccAssignmentFilterResource_ComplexRule(t *testing.T) {
 				},
 				Config: testAccAssignmentFilterConfig_complexRule(),
 				Check: resource.ComposeTestCheckFunc(
-					check.That("microsoft365_graph_beta_device_management_assignment_filter.complex").ExistsInGraph(testResource),
-					check.That("microsoft365_graph_beta_device_management_assignment_filter.complex").Key("id").Exists(),
-					check.That("microsoft365_graph_beta_device_management_assignment_filter.complex").Key("display_name").HasValue("Test Complex Rule Assignment Filter"),
-					resource.TestMatchResourceAttr("microsoft365_graph_beta_device_management_assignment_filter.complex", "rule", regexp.MustCompile(`device\.osVersion`)),
-					resource.TestMatchResourceAttr("microsoft365_graph_beta_device_management_assignment_filter.complex", "rule", regexp.MustCompile(`device\.manufacturer`)),
+					check.That(resourceType+".complex").ExistsInGraph(testResource),
+					check.That(resourceType+".complex").Key("id").Exists(),
+					check.That(resourceType+".complex").Key("display_name").HasValue("Test Complex Rule Assignment Filter"),
+					resource.TestMatchResourceAttr(resourceType+".complex", "rule", regexp.MustCompile(`device\.osVersion`)),
+					resource.TestMatchResourceAttr(resourceType+".complex", "rule", regexp.MustCompile(`device\.manufacturer`)),
 				),
 			},
 		},
@@ -224,12 +223,12 @@ func TestAccAssignmentFilterResource_RoleScopeTags(t *testing.T) {
 				},
 				Config: testAccAssignmentFilterConfig_roleScopeTags(),
 				Check: resource.ComposeTestCheckFunc(
-					check.That("microsoft365_graph_beta_device_management_assignment_filter.role_tags").ExistsInGraph(testResource),
-					check.That("microsoft365_graph_beta_device_management_assignment_filter.role_tags").Key("id").Exists(),
-					check.That("microsoft365_graph_beta_device_management_assignment_filter.role_tags").Key("role_scope_tags.#").HasValue("3"),
-					resource.TestCheckTypeSetElemAttr("microsoft365_graph_beta_device_management_assignment_filter.role_tags", "role_scope_tags.*", "0"),
-					resource.TestCheckTypeSetElemAttr("microsoft365_graph_beta_device_management_assignment_filter.role_tags", "role_scope_tags.*", "1"),
-					resource.TestCheckTypeSetElemAttr("microsoft365_graph_beta_device_management_assignment_filter.role_tags", "role_scope_tags.*", "2"),
+					check.That(resourceType+".role_tags").ExistsInGraph(testResource),
+					check.That(resourceType+".role_tags").Key("id").Exists(),
+					check.That(resourceType+".role_tags").Key("role_scope_tags.#").HasValue("3"),
+					resource.TestCheckTypeSetElemAttr(resourceType+".role_tags", "role_scope_tags.*", "0"),
+					resource.TestCheckTypeSetElemAttr(resourceType+".role_tags", "role_scope_tags.*", "1"),
+					resource.TestCheckTypeSetElemAttr(resourceType+".role_tags", "role_scope_tags.*", "2"),
 				),
 			},
 		},
@@ -262,12 +261,12 @@ func TestAccAssignmentFilterResource_ManagementTypes(t *testing.T) {
 						},
 						Config: testAccAssignmentFilterConfig_managementType(mgmtType),
 						Check: resource.ComposeTestCheckFunc(
-							check.That(fmt.Sprintf("microsoft365_graph_beta_device_management_assignment_filter.%s", mgmtType)).ExistsInGraph(testResource),
-							check.That(fmt.Sprintf("microsoft365_graph_beta_device_management_assignment_filter.%s", mgmtType)).Key("id").Exists(),
-							check.That(fmt.Sprintf("microsoft365_graph_beta_device_management_assignment_filter.%s", mgmtType)).Key("assignment_filter_management_type").HasValue(mgmtType),
+							check.That(fmt.Sprintf("%s.%s", resourceType, mgmtType)).ExistsInGraph(testResource),
+							check.That(fmt.Sprintf("%s.%s", resourceType, mgmtType)).Key("id").Exists(),
+							check.That(fmt.Sprintf("%s.%s", resourceType, mgmtType)).Key("assignment_filter_management_type").HasValue(mgmtType),
 							func(state *terraform.State) error {
 								// Check platform and rule based on management type
-								resourceName := fmt.Sprintf("microsoft365_graph_beta_device_management_assignment_filter.%s", mgmtType)
+								resourceName := fmt.Sprintf("%s.%s", resourceType, mgmtType)
 								rs, ok := state.RootModule().Resources[resourceName]
 								if !ok {
 									return fmt.Errorf("resource not found: %s", resourceName)

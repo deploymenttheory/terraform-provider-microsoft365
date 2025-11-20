@@ -17,7 +17,7 @@ import (
 )
 
 const (
-	ActionName = "graph_beta_device_management_managed_device_pause_configuration_refresh"
+	ActionName = "microsoft365_graph_beta_device_management_managed_device_pause_configuration_refresh"
 )
 
 var (
@@ -41,24 +41,16 @@ func NewPauseConfigurationRefreshManagedDeviceAction() action.Action {
 
 type PauseConfigurationRefreshManagedDeviceAction struct {
 	client           *msgraphbetasdk.GraphServiceClient
-	ProviderTypeName string
-	TypeName         string
 	ReadPermissions  []string
 	WritePermissions []string
 }
 
 func (a *PauseConfigurationRefreshManagedDeviceAction) Metadata(ctx context.Context, req action.MetadataRequest, resp *action.MetadataResponse) {
-	a.ProviderTypeName = req.ProviderTypeName
-	a.TypeName = ActionName
-	resp.TypeName = a.FullTypeName()
-}
-
-func (a *PauseConfigurationRefreshManagedDeviceAction) FullTypeName() string {
-	return a.ProviderTypeName + "_" + ActionName
+	resp.TypeName = ActionName
 }
 
 func (a *PauseConfigurationRefreshManagedDeviceAction) Configure(ctx context.Context, req action.ConfigureRequest, resp *action.ConfigureResponse) {
-	a.client = client.SetGraphBetaClientForAction(ctx, req, resp, constants.PROVIDER_NAME+"_"+ActionName)
+	a.client = client.SetGraphBetaClientForAction(ctx, req, resp, ActionName)
 }
 
 func (a *PauseConfigurationRefreshManagedDeviceAction) Schema(ctx context.Context, req action.SchemaRequest, resp *action.SchemaResponse) {

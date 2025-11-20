@@ -18,7 +18,7 @@ import (
 func (d *MacOSPKGAppMetadataDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
 	var config MacOSPKGAppMetadataDataSourceModel
 
-	tflog.Debug(ctx, fmt.Sprintf("Starting Read method for: %s_%s", d.ProviderTypeName, d.TypeName))
+	tflog.Debug(ctx, fmt.Sprintf("Starting Read method for: %s", DataSourceName))
 
 	resp.Diagnostics.Append(req.Config.Get(ctx, &config)...)
 	if resp.Diagnostics.HasError() {
@@ -34,8 +34,8 @@ func (d *MacOSPKGAppMetadataDataSource) Read(ctx context.Context, req datasource
 	filePathProvided := !config.InstallerFilePathSource.IsNull() && config.InstallerFilePathSource.ValueString() != ""
 	urlProvided := !config.InstallerURLSource.IsNull() && config.InstallerURLSource.ValueString() != ""
 
-	tflog.Debug(ctx, fmt.Sprintf("Reading %s_%s with file path provided: %t, URL provided: %t",
-		d.ProviderTypeName, d.TypeName, filePathProvided, urlProvided))
+	tflog.Debug(ctx, fmt.Sprintf("Reading %s with file path provided: %t, URL provided: %t",
+		DataSourceName, filePathProvided, urlProvided))
 
 	// Validate inputs - must have either a file path or URL, but not both
 	if !filePathProvided && !urlProvided {

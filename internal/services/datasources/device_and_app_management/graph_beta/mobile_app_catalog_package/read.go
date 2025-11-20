@@ -25,7 +25,7 @@ func (d *MobileAppCatalogPackageDataSource) Read(ctx context.Context, req dataso
 	}
 
 	filterType := object.FilterType.ValueString()
-	tflog.Debug(ctx, fmt.Sprintf("Starting Read method for datasource: %s with filter_type: %s", datasourceName, filterType))
+	tflog.Debug(ctx, fmt.Sprintf("Starting Read method for datasource: %s with filter_type: %s", DataSourceName, filterType))
 
 	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Read, ReadTimeout*time.Second, &resp.Diagnostics)
 	if cancel == nil {
@@ -181,7 +181,7 @@ func (d *MobileAppCatalogPackageDataSource) Read(ctx context.Context, req dataso
 		return
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Finished Datasource Read Method: %s, found %d items", datasourceName, len(filteredItems)))
+	tflog.Debug(ctx, fmt.Sprintf("Finished Datasource Read Method: %s, found %d items", DataSourceName, len(filteredItems)))
 }
 
 // getAllMobileAppCatalogPackageWithPageIterator gets all mobile app catalog packages using page iterator for proper pagination

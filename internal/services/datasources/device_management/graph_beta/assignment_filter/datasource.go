@@ -13,8 +13,8 @@ import (
 )
 
 const (
-	ResourceName = "graph_beta_device_management_assignment_filter"
-	ReadTimeout  = 180
+	DataSourceName = "microsoft365_graph_beta_device_management_assignment_filter"
+	ReadTimeout    = 180
 )
 
 var (
@@ -34,20 +34,18 @@ func NewAssignmentFilterDataSource() datasource.DataSource {
 }
 
 type AssignmentFilterDataSource struct {
-	client           *msgraphbetasdk.GraphServiceClient
-	ProviderTypeName string
-	TypeName         string
-	ReadPermissions  []string
+	client          *msgraphbetasdk.GraphServiceClient
+	ReadPermissions []string
 }
 
 // Metadata sets the data source name
 func (d *AssignmentFilterDataSource) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_" + ResourceName
+	resp.TypeName = DataSourceName
 }
 
 // Configure sets the client for the data source
 func (d *AssignmentFilterDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
-	d.client = client.SetGraphBetaClientForDataSource(ctx, req, resp, d.TypeName)
+	d.client = client.SetGraphBetaClientForDataSource(ctx, req, resp, DataSourceName)
 }
 
 // Schema defines the schema for the data source

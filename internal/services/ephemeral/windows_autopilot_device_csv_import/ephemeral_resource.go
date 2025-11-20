@@ -11,9 +11,14 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
+const (
+	EphemeralResourceName = "microsoft365_windows_autopilot_device_csv_import"
+)
+
 // Ensure the implementation satisfies the expected interfaces
 var (
-	_ ephemeral.EphemeralResource = &WindowsAutopilotDeviceCSVImportEphemeralResource{}
+	_ ephemeral.EphemeralResource              = &WindowsAutopilotDeviceCSVImportEphemeralResource{}
+	_ ephemeral.EphemeralResourceWithConfigure = &WindowsAutopilotDeviceCSVImportEphemeralResource{}
 )
 
 // NewWindowsAutopilotDeviceCSVImportEphemeralResource is a helper function to simplify provider implementation
@@ -23,12 +28,12 @@ func NewWindowsAutopilotDeviceCSVImportEphemeralResource() ephemeral.EphemeralRe
 
 // WindowsAutopilotDeviceCSVImportEphemeralResource is the ephemeral resource implementation
 type WindowsAutopilotDeviceCSVImportEphemeralResource struct {
-	// Add any fields needed for the resource implementation
+	// This resource doesn't need a Graph client as it only reads from CSV files
 }
 
 // Metadata returns the resource type name
 func (r *WindowsAutopilotDeviceCSVImportEphemeralResource) Metadata(_ context.Context, req ephemeral.MetadataRequest, resp *ephemeral.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_windows_autopilot_device_csv_import"
+	resp.TypeName = EphemeralResourceName
 }
 
 // Schema defines the schema for the ephemeral resource
@@ -137,8 +142,8 @@ func (r *WindowsAutopilotDeviceCSVImportEphemeralResource) Open(ctx context.Cont
 
 // Configure is called to pass the provider configured client to the resource
 func (r *WindowsAutopilotDeviceCSVImportEphemeralResource) Configure(ctx context.Context, req ephemeral.ConfigureRequest, resp *ephemeral.ConfigureResponse) {
-	tflog.Debug(ctx, "Configuring Windows Autopilot Device CSV Import ephemeral resource")
-	// No configuration needed for this resource
+	// No configuration needed for this resource as it only reads from CSV files
+	tflog.Debug(ctx, "Configure called for Windows Autopilot Device CSV Import ephemeral resource (no-op)")
 }
 
 // ValidateConfig validates the configuration

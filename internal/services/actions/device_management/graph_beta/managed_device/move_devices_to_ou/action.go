@@ -18,7 +18,7 @@ import (
 )
 
 const (
-	ActionName = "graph_beta_device_management_managed_device_move_devices_to_ou"
+	ActionName = "microsoft365_graph_beta_device_management_managed_device_move_devices_to_ou"
 )
 
 var (
@@ -42,24 +42,16 @@ func NewMoveDevicesToOUManagedDeviceAction() action.Action {
 
 type MoveDevicesToOUManagedDeviceAction struct {
 	client           *msgraphbetasdk.GraphServiceClient
-	ProviderTypeName string
-	TypeName         string
 	ReadPermissions  []string
 	WritePermissions []string
 }
 
 func (a *MoveDevicesToOUManagedDeviceAction) Metadata(ctx context.Context, req action.MetadataRequest, resp *action.MetadataResponse) {
-	a.ProviderTypeName = req.ProviderTypeName
-	a.TypeName = ActionName
-	resp.TypeName = a.FullTypeName()
-}
-
-func (a *MoveDevicesToOUManagedDeviceAction) FullTypeName() string {
-	return a.ProviderTypeName + "_" + ActionName
+	resp.TypeName = ActionName
 }
 
 func (a *MoveDevicesToOUManagedDeviceAction) Configure(ctx context.Context, req action.ConfigureRequest, resp *action.ConfigureResponse) {
-	a.client = client.SetGraphBetaClientForAction(ctx, req, resp, constants.PROVIDER_NAME+"_"+ActionName)
+	a.client = client.SetGraphBetaClientForAction(ctx, req, resp, ActionName)
 }
 
 func (a *MoveDevicesToOUManagedDeviceAction) Schema(ctx context.Context, req action.SchemaRequest, resp *action.SchemaResponse) {
@@ -103,7 +95,7 @@ func (a *MoveDevicesToOUManagedDeviceAction) Schema(ctx context.Context, req act
 				Validators: []validator.String{
 					stringvalidator.LengthAtLeast(1),
 					stringvalidator.RegexMatches(
-						regexp.MustCompile(`^(OU=|CN=)[^,]+(,(OU=|CN=|DC=)[^,]+)*$`),
+						regexp.MustCompile(constants.ActiveDirectoryDNRegex),
 						"organizational_unit_path must be a valid Active Directory distinguished name (e.g., OU=Computers,DC=contoso,DC=com)",
 					),
 				},

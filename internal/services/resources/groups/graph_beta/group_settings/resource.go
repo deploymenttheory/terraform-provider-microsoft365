@@ -18,7 +18,7 @@ import (
 )
 
 const (
-	ResourceName  = "graph_beta_groups_group_settings"
+	ResourceName  = "microsoft365_graph_beta_groups_group_settings"
 	CreateTimeout = 180
 	UpdateTimeout = 180
 	ReadTimeout   = 180
@@ -50,8 +50,6 @@ func NewGroupSettingsResource() resource.Resource {
 
 type GroupSettingsResource struct {
 	client           *msgraphbetasdk.GraphServiceClient
-	ProviderTypeName string
-	TypeName         string
 	ReadPermissions  []string
 	WritePermissions []string
 	ResourcePath     string
@@ -59,19 +57,12 @@ type GroupSettingsResource struct {
 
 // Metadata returns the resource type name.
 func (r *GroupSettingsResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	r.ProviderTypeName = req.ProviderTypeName
-	r.TypeName = ResourceName
-	resp.TypeName = req.ProviderTypeName + "_" + ResourceName
-}
-
-// FullTypeName returns the full type name of the resource for logging purposes.
-func (r *GroupSettingsResource) FullTypeName() string {
-	return r.ProviderTypeName + "_" + r.TypeName
+	resp.TypeName = ResourceName
 }
 
 // Configure sets the client for the resource.
 func (r *GroupSettingsResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
-	r.client = client.SetGraphBetaClientForResource(ctx, req, resp, constants.PROVIDER_NAME+"_"+ResourceName)
+	r.client = client.SetGraphBetaClientForResource(ctx, req, resp, ResourceName)
 }
 
 // ImportState imports the resource state.

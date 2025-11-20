@@ -20,7 +20,7 @@ import (
 )
 
 const (
-	ResourceName  = "graph_beta_groups_license_assignment"
+	ResourceName  = "microsoft365_graph_beta_groups_license_assignment"
 	CreateTimeout = 180
 	UpdateTimeout = 180
 	ReadTimeout   = 180
@@ -36,9 +36,6 @@ var (
 
 	// Enables import functionality
 	_ resource.ResourceWithImportState = &GroupLicenseAssignmentResource{}
-
-	// Compiled regex for UUID validation
-	uuidRegex = regexp.MustCompile(`^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`)
 )
 
 func NewGroupLicenseAssignmentResource() resource.Resource {
@@ -58,8 +55,6 @@ func NewGroupLicenseAssignmentResource() resource.Resource {
 
 type GroupLicenseAssignmentResource struct {
 	client           *msgraphbetasdk.GraphServiceClient
-	ProviderTypeName string
-	TypeName         string
 	ReadPermissions  []string
 	WritePermissions []string
 	ResourcePath     string
@@ -67,19 +62,12 @@ type GroupLicenseAssignmentResource struct {
 
 // Metadata returns the resource type name.
 func (r *GroupLicenseAssignmentResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	r.ProviderTypeName = req.ProviderTypeName
-	r.TypeName = ResourceName
-	resp.TypeName = r.FullTypeName()
-}
-
-// FullTypeName returns the full resource type name in the format "providername_resourcename".
-func (r *GroupLicenseAssignmentResource) FullTypeName() string {
-	return r.ProviderTypeName + "_" + r.TypeName
+	resp.TypeName = ResourceName
 }
 
 // Configure sets the client for the resource.
 func (r *GroupLicenseAssignmentResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
-	r.client = client.SetGraphBetaClientForResource(ctx, req, resp, constants.PROVIDER_NAME+"_"+ResourceName)
+	r.client = client.SetGraphBetaClientForResource(ctx, req, resp, ResourceName)
 }
 
 // ImportState imports the resource state.
@@ -103,7 +91,7 @@ func (r *GroupLicenseAssignmentResource) Schema(ctx context.Context, req resourc
 				Required:            true,
 				MarkdownDescription: "The unique identifier (UUID) for the group.",
 				Validators: []validator.String{
-					stringvalidator.RegexMatches(uuidRegex, "Must be a valid UUID format (xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx)"),
+					stringvalidator.RegexMatches(regexp.MustCompile(constants.GuidRegex), "Must be a valid UUID format (xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx)"),
 				},
 			},
 			"display_name": schema.StringAttribute{
@@ -122,7 +110,7 @@ func (r *GroupLicenseAssignmentResource) Schema(ctx context.Context, req resourc
 							Required:            true,
 							MarkdownDescription: "The unique identifier (GUID) for the license SKU.",
 							Validators: []validator.String{
-								stringvalidator.RegexMatches(uuidRegex, "Must be a valid UUID format (xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx)"),
+								stringvalidator.RegexMatches(regexp.MustCompile(constants.GuidRegex), "Must be a valid UUID format (xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx)"),
 							},
 						},
 						"disabled_plans": schema.SetAttribute{
@@ -131,7 +119,7 @@ func (r *GroupLicenseAssignmentResource) Schema(ctx context.Context, req resourc
 							MarkdownDescription: "A collection of the unique identifiers for service plans to disable.",
 							Validators: []validator.Set{
 								setvalidator.ValueStringsAre(
-									stringvalidator.RegexMatches(uuidRegex, "Each disabled plan must be a valid UUID format (xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx)"),
+									stringvalidator.RegexMatches(regexp.MustCompile(constants.GuidRegex), "Each disabled plan must be a valid UUID format (xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx)"),
 								),
 							},
 						},
@@ -144,7 +132,7 @@ func (r *GroupLicenseAssignmentResource) Schema(ctx context.Context, req resourc
 				MarkdownDescription: "A collection of SKU IDs that identify the licenses to remove from the group.",
 				Validators: []validator.Set{
 					setvalidator.ValueStringsAre(
-						stringvalidator.RegexMatches(uuidRegex, "Each license ID must be a valid UUID format (xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx)"),
+						stringvalidator.RegexMatches(regexp.MustCompile(constants.GuidRegex), "Each license ID must be a valid UUID format (xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx)"),
 					),
 				},
 			},

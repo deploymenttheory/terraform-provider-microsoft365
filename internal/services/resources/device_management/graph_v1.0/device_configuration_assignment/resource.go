@@ -23,7 +23,7 @@ import (
 )
 
 const (
-	ResourceName  = "graph_device_management_device_configuration_assignment"
+	ResourceName  = "microsoft365_graph_device_management_device_configuration_assignment"
 	CreateTimeout = 180
 	UpdateTimeout = 180
 	ReadTimeout   = 180
@@ -58,8 +58,6 @@ func NewDeviceConfigurationAssignmentResource() resource.Resource {
 
 type DeviceConfigurationAssignmentResource struct {
 	client           *msgraphsdk.GraphServiceClient
-	ProviderTypeName string
-	TypeName         string
 	ReadPermissions  []string
 	WritePermissions []string
 	ResourcePath     string
@@ -67,19 +65,12 @@ type DeviceConfigurationAssignmentResource struct {
 
 // Metadata returns the resource type name.
 func (r *DeviceConfigurationAssignmentResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	r.ProviderTypeName = req.ProviderTypeName
-	r.TypeName = ResourceName
-	resp.TypeName = r.FullTypeName()
-}
-
-// FullTypeName returns the full resource type name in the format "providername_resourcename".
-func (r *DeviceConfigurationAssignmentResource) FullTypeName() string {
-	return r.ProviderTypeName + "_" + r.TypeName
+	resp.TypeName = ResourceName
 }
 
 // Configure sets the client for the resource.
 func (r *DeviceConfigurationAssignmentResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
-	r.client = client.SetGraphStableClientForResource(ctx, req, resp, constants.PROVIDER_NAME+"_"+ResourceName)
+	r.client = client.SetGraphStableClientForResource(ctx, req, resp, ResourceName)
 }
 
 // ImportState imports the resource state.

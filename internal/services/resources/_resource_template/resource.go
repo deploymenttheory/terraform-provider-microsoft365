@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/client"
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/schema"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -13,7 +12,7 @@ import (
 )
 
 const (
-	ResourceName  = "graph_apitype_resource_type_resource_name"
+	ResourceName  = "microsoft365_graph_api_service_type_resource_name"
 	CreateTimeout = 180
 	UpdateTimeout = 180
 	ReadTimeout   = 180
@@ -37,19 +36,17 @@ var (
 func NewResourceTemplateResource() resource.Resource {
 	return &ResourceTemplateResource{
 		ReadPermissions: []string{
-			"DeviceManagementConfiguration.Read.All",
+			"ReadPermission.Read.All",
 		},
 		WritePermissions: []string{
-			"DeviceManagementConfiguration.ReadWrite.All",
+			"WritePermission.ReadWrite.All",
 		},
-		ResourcePath: "/deviceAppManagement/mobileApps",
+		ResourcePath: "/serviceType/resourceName",
 	}
 }
 
 type ResourceTemplateResource struct {
 	client           *msgraphbetasdk.GraphServiceClient
-	ProviderTypeName string
-	TypeName         string
 	ReadPermissions  []string
 	WritePermissions []string
 	ResourcePath     string
@@ -57,19 +54,12 @@ type ResourceTemplateResource struct {
 
 // Metadata returns the resource type name.
 func (r *ResourceTemplateResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	r.ProviderTypeName = req.ProviderTypeName
-	r.TypeName = ResourceName
-	resp.TypeName = r.FullTypeName()
-}
-
-// FullTypeName returns the full resource type name in the format "providername_resourcename".
-func (r *ResourceTemplateResource) FullTypeName() string {
-	return r.ProviderTypeName + "_" + r.TypeName
+	resp.TypeName = ResourceName
 }
 
 // Configure sets the client for the resource.
 func (r *ResourceTemplateResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
-	r.client = client.SetGraphBetaClientForResource(ctx, req, resp, constants.PROVIDER_NAME+"_"+ResourceName)
+	r.client = client.SetGraphBetaClientForResource(ctx, req, resp, ResourceName)
 }
 
 // ImportState imports the resource state.

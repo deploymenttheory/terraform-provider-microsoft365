@@ -22,7 +22,7 @@ import (
 )
 
 const (
-	ResourceName  = "graph_beta_device_management_settings_catalog_configuration_policy_json"
+	ResourceName  = "microsoft365_graph_beta_device_management_settings_catalog_configuration_policy_json"
 	CreateTimeout = 180
 	UpdateTimeout = 180
 	ReadTimeout   = 180
@@ -57,8 +57,6 @@ func NewSettingsCatalogJsonResource() resource.Resource {
 
 type SettingsCatalogJsonResource struct {
 	client           *msgraphbetasdk.GraphServiceClient
-	ProviderTypeName string
-	TypeName         string
 	ReadPermissions  []string
 	WritePermissions []string
 	ResourcePath     string
@@ -66,12 +64,12 @@ type SettingsCatalogJsonResource struct {
 
 // Metadata returns the resource type name.
 func (r *SettingsCatalogJsonResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_" + ResourceName
+	resp.TypeName = ResourceName
 }
 
 // Configure sets the client for the resource.
 func (r *SettingsCatalogJsonResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
-	r.client = client.SetGraphBetaClientForResource(ctx, req, resp, r.TypeName)
+	r.client = client.SetGraphBetaClientForResource(ctx, req, resp, ResourceName)
 }
 
 // ImportState imports the resource state.

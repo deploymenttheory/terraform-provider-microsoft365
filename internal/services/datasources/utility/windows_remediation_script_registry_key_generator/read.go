@@ -11,9 +11,9 @@ import (
 )
 
 func (d *WindowsRemediationScriptRegistryKeyGeneratorDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	tflog.Debug(ctx, fmt.Sprintf("Starting Read method for: %s", DataSourceName))
-
 	var data WindowsRemediationScriptRegistryKeyGeneratorDataSourceModel
+
+	tflog.Debug(ctx, fmt.Sprintf("Starting Read method for: %s", DataSourceName))
 
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 	if resp.Diagnostics.HasError() {

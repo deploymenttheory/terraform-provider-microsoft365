@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	DataSourceName = "graph_beta_device_management_group_policy_category"
+	DataSourceName = "microsoft365_graph_beta_device_management_group_policy_category"
 	ReadTimeout    = 300
 )
 
@@ -29,18 +29,16 @@ func NewGroupPolicyCategoryDataSource() datasource.DataSource {
 }
 
 type GroupPolicyCategoryDataSource struct {
-	client           *msgraphbetasdk.GraphServiceClient
-	ProviderTypeName string
-	TypeName         string
-	ReadPermissions  []string
+	client          *msgraphbetasdk.GraphServiceClient
+	ReadPermissions []string
 }
 
 func (d *GroupPolicyCategoryDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_" + DataSourceName
+	resp.TypeName = DataSourceName
 }
 
 func (d *GroupPolicyCategoryDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
-	d.client = client.SetGraphBetaClientForDataSource(ctx, req, resp, d.TypeName)
+	d.client = client.SetGraphBetaClientForDataSource(ctx, req, resp, DataSourceName)
 }
 
 func (d *GroupPolicyCategoryDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {

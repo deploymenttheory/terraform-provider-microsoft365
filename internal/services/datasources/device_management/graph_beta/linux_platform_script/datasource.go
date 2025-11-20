@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	DataSourceName = "graph_beta_device_management_linux_platform_script"
+	DataSourceName = "microsoft365_graph_beta_device_management_linux_platform_script"
 	ReadTimeout    = 180
 )
 
@@ -34,20 +34,18 @@ func NewLinuxPlatformScriptDataSource() datasource.DataSource {
 }
 
 type LinuxPlatformScriptDataSource struct {
-	client           *msgraphbetasdk.GraphServiceClient
-	ProviderTypeName string
-	TypeName         string
-	ReadPermissions  []string
+	client          *msgraphbetasdk.GraphServiceClient
+	ReadPermissions []string
 }
 
 // Metadata returns the data source type name.
 func (d *LinuxPlatformScriptDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_" + DataSourceName
+	resp.TypeName = DataSourceName
 }
 
 // Configure sets the client for the data source
 func (d *LinuxPlatformScriptDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
-	d.client = client.SetGraphBetaClientForDataSource(ctx, req, resp, d.TypeName)
+	d.client = client.SetGraphBetaClientForDataSource(ctx, req, resp, DataSourceName)
 }
 
 // Schema defines the schema for the data source

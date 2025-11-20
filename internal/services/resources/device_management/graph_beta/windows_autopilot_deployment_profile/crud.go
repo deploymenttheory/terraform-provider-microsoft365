@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
 	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -88,7 +87,7 @@ func (r *WindowsAutopilotDeploymentProfileResource) Create(ctx context.Context, 
 
 	opts := crud.DefaultReadWithRetryOptions()
 	opts.Operation = "Create"
-	opts.ResourceTypeName = constants.PROVIDER_NAME + "_" + ResourceName
+	opts.ResourceTypeName = ResourceName
 
 	err = crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)
 	if err != nil {
@@ -279,7 +278,7 @@ func (r *WindowsAutopilotDeploymentProfileResource) Update(ctx context.Context, 
 
 	opts := crud.DefaultReadWithRetryOptions()
 	opts.Operation = "Update"
-	opts.ResourceTypeName = constants.PROVIDER_NAME + "_" + ResourceName
+	opts.ResourceTypeName = ResourceName
 
 	err = crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)
 	if err != nil {
@@ -326,7 +325,7 @@ func (r *WindowsAutopilotDeploymentProfileResource) Delete(ctx context.Context, 
 	// Delete existing assignments if any exist
 	if assignments != nil && assignments.GetValue() != nil && len(assignments.GetValue()) > 0 {
 		tflog.Debug(ctx, fmt.Sprintf("Deleting %d assignments for Windows Autopilot Deployment Profile: %s", len(assignments.GetValue()), object.ID.ValueString()))
-		
+
 		for _, assignment := range assignments.GetValue() {
 			if assignment.GetId() != nil {
 				err := r.client.
@@ -343,7 +342,7 @@ func (r *WindowsAutopilotDeploymentProfileResource) Delete(ctx context.Context, 
 				}
 			}
 		}
-		
+
 		tflog.Debug(ctx, fmt.Sprintf("Successfully deleted all assignments for Windows Autopilot Deployment Profile: %s", object.ID.ValueString()))
 	}
 

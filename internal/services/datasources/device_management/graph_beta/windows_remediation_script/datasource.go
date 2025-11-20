@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	DataSourceName = "graph_beta_device_management_windows_remediation_script"
+	DataSourceName = "microsoft365_graph_beta_device_management_windows_remediation_script"
 	ReadTimeout    = 180
 )
 
@@ -35,19 +35,19 @@ func NewWindowsRemediationScriptDataSource() datasource.DataSource {
 // WindowsRemediationScriptDataSource defines the data source implementation
 type WindowsRemediationScriptDataSource struct {
 	client           *msgraphbetasdk.GraphServiceClient
-	ProviderTypeName string
-	TypeName         string
+	
+	
 	ReadPermissions  []string
 }
 
 // Metadata returns the data source type name
 func (d *WindowsRemediationScriptDataSource) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_" + DataSourceName
+	resp.TypeName = DataSourceName
 }
 
 // Configure configures the data source with the provider client
 func (d *WindowsRemediationScriptDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
-	d.client = client.SetGraphBetaClientForDataSource(ctx, req, resp, d.TypeName)
+	d.client = client.SetGraphBetaClientForDataSource(ctx, req, resp, DataSourceName)
 }
 
 // Schema defines the schema for the data source

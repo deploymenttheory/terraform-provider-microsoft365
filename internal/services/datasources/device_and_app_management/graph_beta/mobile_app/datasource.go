@@ -14,7 +14,7 @@ import (
 )
 
 const (
-	datasourceName = "graph_beta_device_and_app_management_mobile_app"
+	DataSourceName = "microsoft365_graph_beta_device_and_app_management_mobile_app"
 	ReadTimeout    = 180
 )
 
@@ -35,20 +35,18 @@ func NewMobileAppDataSource() datasource.DataSource {
 }
 
 type MobileAppDataSource struct {
-	client           *msgraphbetasdk.GraphServiceClient
-	ProviderTypeName string
-	TypeName         string
-	ReadPermissions  []string
+	client          *msgraphbetasdk.GraphServiceClient
+	ReadPermissions []string
 }
 
 // Metadata returns the datasource type name.
 func (r *MobileAppDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_" + datasourceName
+	resp.TypeName = DataSourceName
 }
 
 // Configure sets the client for the data source
 func (d *MobileAppDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
-	d.client = client.SetGraphBetaClientForDataSource(ctx, req, resp, d.TypeName)
+	d.client = client.SetGraphBetaClientForDataSource(ctx, req, resp, DataSourceName)
 }
 
 // Schema defines the schema for the data source

@@ -21,7 +21,7 @@ import (
 )
 
 const (
-	ResourceName  = "graph_beta_device_management_macos_platform_script"
+	ResourceName  = "microsoft365_graph_beta_device_management_macos_platform_script"
 	CreateTimeout = 600
 	UpdateTimeout = 600
 	ReadTimeout   = 180
@@ -58,8 +58,6 @@ func NewMacOSPlatformScriptResource() resource.Resource {
 
 type MacOSPlatformScriptResource struct {
 	client           *msgraphbetasdk.GraphServiceClient
-	ProviderTypeName string
-	TypeName         string
 	ReadPermissions  []string
 	WritePermissions []string
 	ResourcePath     string
@@ -67,19 +65,12 @@ type MacOSPlatformScriptResource struct {
 
 // Metadata returns the resource type name.
 func (r *MacOSPlatformScriptResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	r.ProviderTypeName = req.ProviderTypeName
-	r.TypeName = ResourceName
-	resp.TypeName = r.FullTypeName()
-}
-
-// FullTypeName returns the full type name of the resource for logging purposes.
-func (r *MacOSPlatformScriptResource) FullTypeName() string {
-	return r.ProviderTypeName + "_" + r.TypeName
+	resp.TypeName = ResourceName
 }
 
 // Configure sets the client for the resource.
 func (r *MacOSPlatformScriptResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
-	r.client = client.SetGraphBetaClientForResource(ctx, req, resp, constants.PROVIDER_NAME+"_"+ResourceName)
+	r.client = client.SetGraphBetaClientForResource(ctx, req, resp, ResourceName)
 }
 
 // ImportState imports the resource state.

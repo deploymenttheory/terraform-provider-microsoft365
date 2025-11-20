@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	DataSourceName = "graph_beta_device_management_windows_driver_update_inventory"
+	DataSourceName = "microsoft365_graph_beta_device_management_windows_driver_update_inventory"
 	ReadTimeout    = 180
 )
 
@@ -31,20 +31,18 @@ func NewWindowsDriverUpdateInventoryDataSource() datasource.DataSource {
 
 // WindowsDriverUpdateInventoryDataSource defines the data source implementation
 type WindowsDriverUpdateInventoryDataSource struct {
-	client           *msgraphbetasdk.GraphServiceClient
-	ProviderTypeName string
-	TypeName         string
-	ReadPermissions  []string
+	client          *msgraphbetasdk.GraphServiceClient
+	ReadPermissions []string
 }
 
 // Metadata returns the data source type name
 func (d *WindowsDriverUpdateInventoryDataSource) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_" + DataSourceName
+	resp.TypeName = DataSourceName
 }
 
 // Configure sets the client for the data source
 func (d *WindowsDriverUpdateInventoryDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
-	d.client = client.SetGraphBetaClientForDataSource(ctx, req, resp, d.TypeName)
+	d.client = client.SetGraphBetaClientForDataSource(ctx, req, resp, DataSourceName)
 }
 
 // Schema defines the schema for the data source

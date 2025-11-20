@@ -26,7 +26,7 @@ import (
 )
 
 const (
-	ResourceName  = "graph_beta_device_and_app_management_office_suite_app"
+	ResourceName  = "microsoft365_graph_beta_device_and_app_management_office_suite_app"
 	CreateTimeout = 180
 	UpdateTimeout = 180
 	ReadTimeout   = 180
@@ -63,8 +63,6 @@ func NewOfficeSuiteAppResource() resource.Resource {
 
 type OfficeSuiteAppResource struct {
 	client           *msgraphbetasdk.GraphServiceClient
-	ProviderTypeName string
-	TypeName         string
 	ReadPermissions  []string
 	WritePermissions []string
 	ResourcePath     string
@@ -72,19 +70,11 @@ type OfficeSuiteAppResource struct {
 
 // Metadata returns the resource type name.
 func (r *OfficeSuiteAppResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	r.ProviderTypeName = req.ProviderTypeName
-	r.TypeName = ResourceName
-	resp.TypeName = r.FullTypeName()
+	resp.TypeName = ResourceName
 }
-
-// FullTypeName returns the full resource type name in the format "providername_resourcename".
-func (r *OfficeSuiteAppResource) FullTypeName() string {
-	return r.ProviderTypeName + "_" + r.TypeName
-}
-
 // Configure sets the client for the resource.
 func (r *OfficeSuiteAppResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
-	r.client = client.SetGraphBetaClientForResource(ctx, req, resp, constants.PROVIDER_NAME+"_"+ResourceName)
+	r.client = client.SetGraphBetaClientForResource(ctx, req, resp, ResourceName)
 }
 
 // ImportState imports the resource state.

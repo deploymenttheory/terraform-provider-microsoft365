@@ -8,7 +8,6 @@ import (
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/check"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/destroy"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/testlog"
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
 	graphBetaRoleScopeTag "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_management/graph_beta/role_scope_tag"
 	graphBetaGroup "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/groups/graph_beta/group"
@@ -16,14 +15,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 )
 
-const (
-	testResourceName = "microsoft365_graph_beta_device_management_role_scope_tag"
-)
-
 var (
 	// Resource type names constructed from exported constants
-	resourceType      = constants.PROVIDER_NAME + "_" + graphBetaRoleScopeTag.ResourceName
-	groupResourceType = constants.PROVIDER_NAME + "_" + graphBetaGroup.ResourceName
+	resourceType      = graphBetaRoleScopeTag.ResourceName
+	groupResourceType = graphBetaGroup.ResourceName
 
 	// testResource is the test resource implementation for role scope tags
 	testResource = graphBetaRoleScopeTag.RoleScopeTagTestResource{}
@@ -60,18 +55,18 @@ func TestAccRoleScopeTagResource_Lifecycle(t *testing.T) {
 				},
 				Config: testAccRoleScopeTagConfig_minimal(),
 				Check: resource.ComposeTestCheckFunc(
-					check.That(testResourceName+".test").ExistsInGraph(testResource),
-					check.That(testResourceName+".test").Key("id").Exists(),
-					check.That(testResourceName+".test").Key("display_name").IsNotEmpty(),
-					check.That(testResourceName+".test").Key("description").IsNotEmpty(),
-					check.That(testResourceName+".test").Key("is_built_in").HasValue("false"),
+					check.That(resourceType+".test").ExistsInGraph(testResource),
+					check.That(resourceType+".test").Key("id").Exists(),
+					check.That(resourceType+".test").Key("display_name").IsNotEmpty(),
+					check.That(resourceType+".test").Key("description").IsNotEmpty(),
+					check.That(resourceType+".test").Key("is_built_in").HasValue("false"),
 				),
 			},
 			{
 				PreConfig: func() {
 					testlog.StepAction(resourceType, "Importing")
 				},
-				ResourceName:      testResourceName + ".test",
+				ResourceName:      resourceType + ".test",
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
@@ -86,9 +81,9 @@ func TestAccRoleScopeTagResource_Lifecycle(t *testing.T) {
 						time.Sleep(60 * time.Second)
 						return nil
 					},
-					resource.TestCheckResourceAttrSet(testResourceName+".test", "id"),
-					resource.TestCheckResourceAttrSet(testResourceName+".test", "display_name"),
-					resource.TestCheckResourceAttrSet(testResourceName+".test", "description"),
+					resource.TestCheckResourceAttrSet(resourceType+".test", "id"),
+					resource.TestCheckResourceAttrSet(resourceType+".test", "display_name"),
+					resource.TestCheckResourceAttrSet(resourceType+".test", "description"),
 				),
 			},
 		},
@@ -117,10 +112,10 @@ func TestAccRoleScopeTagResource_Description(t *testing.T) {
 				},
 				Config: testAccRoleScopeTagConfig_description(),
 				Check: resource.ComposeTestCheckFunc(
-					check.That(testResourceName+".description").ExistsInGraph(testResource),
-					check.That(testResourceName+".description").Key("id").Exists(),
-					check.That(testResourceName+".description").Key("display_name").IsNotEmpty(),
-					check.That(testResourceName+".description").Key("description").IsNotEmpty(),
+					check.That(resourceType+".description").ExistsInGraph(testResource),
+					check.That(resourceType+".description").Key("id").Exists(),
+					check.That(resourceType+".description").Key("display_name").IsNotEmpty(),
+					check.That(resourceType+".description").Key("description").IsNotEmpty(),
 				),
 			},
 		},
@@ -160,9 +155,9 @@ func TestAccRoleScopeTagResource_Assignments(t *testing.T) {
 						time.Sleep(60 * time.Second)
 						return nil
 					},
-					resource.TestCheckResourceAttrSet(testResourceName+".assignments", "id"),
-					resource.TestCheckResourceAttrSet(testResourceName+".assignments", "description"),
-					resource.TestCheckResourceAttr(testResourceName+".assignments", "assignments.#", "2"),
+					resource.TestCheckResourceAttrSet(resourceType+".assignments", "id"),
+					resource.TestCheckResourceAttrSet(resourceType+".assignments", "description"),
+					resource.TestCheckResourceAttr(resourceType+".assignments", "assignments.#", "2"),
 				),
 			},
 		},

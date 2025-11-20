@@ -104,4 +104,8 @@ const (
 	// OIDRegex matches a valid Object Identifier in dotted decimal notation.
 	// Example: "1.3.6.1.4.1.311.21.8.1.1"
 	OIDRegex = `^[0-9]+(\.[0-9]+)+$`
+
+	// ActiveDirectoryDNRegex matches a valid Active Directory distinguished name (DN).
+	// Example: "OU=Computers,DC=contoso,DC=com" or "CN=Server1,OU=Servers,DC=contoso,DC=com"
+	ActiveDirectoryDNRegex = `^(OU=|CN=)[^,]+(,(OU=|CN=|DC=)[^,]+)*$`
 )

@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	DataSourceName      = "utility_itunes_app_metadata"
+	DataSourceName      = "microsoft365_utility_itunes_app_metadata"
 	ReadTimeout         = 180
 	itunesSearchBaseURL = "https://itunes.apple.com/search"
 )
@@ -38,7 +38,7 @@ type itunesAppMetadataDataSource struct {
 
 // Metadata returns the data source type name
 func (d *itunesAppMetadataDataSource) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_" + DataSourceName
+	resp.TypeName = DataSourceName
 }
 
 // Configure adds the provider configured client to the data source

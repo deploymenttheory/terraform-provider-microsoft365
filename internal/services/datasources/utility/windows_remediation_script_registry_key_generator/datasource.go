@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	DataSourceName = "utility_windows_remediation_script_registry_key_generator"
+	DataSourceName = "microsoft365_utility_windows_remediation_script_registry_key_generator"
 	ReadTimeout    = 180
 )
 
@@ -30,7 +30,7 @@ func NewWindowsRemediationScriptRegistryKeyGeneratorDataSource() datasource.Data
 type WindowsRemediationScriptRegistryKeyGeneratorDataSource struct{}
 
 func (d *WindowsRemediationScriptRegistryKeyGeneratorDataSource) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_" + DataSourceName
+	resp.TypeName = DataSourceName
 }
 
 // For utility datasources that perform local computations. Required for interface compliance.

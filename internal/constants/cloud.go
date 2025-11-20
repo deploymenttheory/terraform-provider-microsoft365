@@ -1,9 +1,6 @@
 package constants
 
 const (
-	// Provider Name
-	PROVIDER_NAME = "microsoft365"
-
 	// Public Cloud
 	PUBLIC_OAUTH_AUTHORITY_URL         = "https://login.microsoftonline.com/"
 	PUBLIC_GRAPH_API_SCOPE             = "https://graph.microsoft.com/.default"

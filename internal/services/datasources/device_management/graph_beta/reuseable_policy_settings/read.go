@@ -18,7 +18,7 @@ import (
 func (d *ReuseablePolicySettingsDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
 	var object ReuseablePolicySettingsDataSourceModel
 
-	tflog.Debug(ctx, fmt.Sprintf("Starting Read method for: %s_%s", d.ProviderTypeName, d.TypeName))
+	tflog.Debug(ctx, fmt.Sprintf("Starting Read method for: %s", DataSourceName))
 
 	resp.Diagnostics.Append(req.Config.Get(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
@@ -26,7 +26,7 @@ func (d *ReuseablePolicySettingsDataSource) Read(ctx context.Context, req dataso
 	}
 
 	filterType := object.FilterType.ValueString()
-	tflog.Debug(ctx, fmt.Sprintf("Reading %s_%s with filter_type: %s", d.ProviderTypeName, d.TypeName, filterType))
+	tflog.Debug(ctx, fmt.Sprintf("Reading %s with filter_type: %s", DataSourceName, filterType))
 
 	if filterType != "all" && (object.FilterValue.IsNull() || object.FilterValue.ValueString() == "") {
 		resp.Diagnostics.AddError(
@@ -110,5 +110,5 @@ func (d *ReuseablePolicySettingsDataSource) Read(ctx context.Context, req dataso
 		return
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Finished Datasource Read Method: %s_%s, found %d items", d.ProviderTypeName, d.TypeName, len(filteredItems)))
+	tflog.Debug(ctx, fmt.Sprintf("Finished Datasource Read Method: %s, found %d items", DataSourceName, len(filteredItems)))
 }

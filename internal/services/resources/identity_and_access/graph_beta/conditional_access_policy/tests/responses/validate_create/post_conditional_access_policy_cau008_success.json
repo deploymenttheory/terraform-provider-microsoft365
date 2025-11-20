@@ -1,0 +1,84 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#identity/conditionalAccess/policies/$entity",
+  "@odata.type": "#microsoft.graph.conditionalAccessPolicy",
+  "id": "11111111-1111-1111-1111-111111111111",
+  "displayName": "CAU008-All: Grant Require Phishing Resistant MFA for Admins when Browser and Modern Auth Clients-v1.4",
+  "createdDateTime": "2024-01-01T00:00:00Z",
+  "modifiedDateTime": "2024-01-01T00:00:00Z",
+  "state": "enabledForReportingButNotEnforced",
+  "conditions": {
+    "@odata.type": "#microsoft.graph.conditionalAccessConditionSet",
+    "userRiskLevels": [],
+    "signInRiskLevels": [],
+    "clientAppTypes": ["browser","mobileAppsAndDesktopClients"],
+    "platforms": null,
+    "applications": {
+      "@odata.type": "#microsoft.graph.conditionalAccessApplications",
+      "includeApplications": ["All"],
+      "excludeApplications": [],
+      "includeUserActions": [],
+      "includeAuthenticationContextClassReferences": []
+    },
+    "users": {
+      "@odata.type": "#microsoft.graph.conditionalAccessUsers",
+      "includeUsers": [],
+      "excludeUsers": [],
+      "includeGroups": [],
+      "excludeGroups": [
+        "22222222-2222-2222-2222-222222222222",
+        "33333333-3333-3333-3333-333333333333"
+      ],
+      "includeRoles": [
+        "55555555-5555-5555-5555-555555555555",
+        "55555555-5555-5555-5555-555555555555",
+        "55555555-5555-5555-5555-555555555555",
+        "55555555-5555-5555-5555-555555555555",
+        "55555555-5555-5555-5555-555555555555",
+        "55555555-5555-5555-5555-555555555555",
+        "55555555-5555-5555-5555-555555555555",
+        "55555555-5555-5555-5555-555555555555",
+        "55555555-5555-5555-5555-555555555555",
+        "55555555-5555-5555-5555-555555555555",
+        "55555555-5555-5555-5555-555555555555",
+        "55555555-5555-5555-5555-555555555555",
+        "55555555-5555-5555-5555-555555555555",
+        "55555555-5555-5555-5555-555555555555",
+        "55555555-5555-5555-5555-555555555555",
+        "55555555-5555-5555-5555-555555555555",
+        "55555555-5555-5555-5555-555555555555",
+        "55555555-5555-5555-5555-555555555555",
+        "55555555-5555-5555-5555-555555555555",
+        "55555555-5555-5555-5555-555555555555",
+        "55555555-5555-5555-5555-555555555555",
+        "55555555-5555-5555-5555-555555555555",
+        "55555555-5555-5555-5555-555555555555",
+        "55555555-5555-5555-5555-555555555555",
+        "55555555-5555-5555-5555-555555555555",
+        "55555555-5555-5555-5555-555555555555"
+      ],
+      "excludeRoles": [],
+      "excludeGuestsOrExternalUsers": {
+        "guestOrExternalUserTypes": "serviceProvider",
+        "externalTenants": {
+          "@odata.type": "#microsoft.graph.conditionalAccessAllExternalTenants",
+          "membershipKind": "all"
+        }
+      }
+    },
+    "locations": null,
+    "devices": null
+  },
+  "grantControls": {
+    "@odata.type": "#microsoft.graph.conditionalAccessGrantControls",
+    "operator": "OR",
+    "builtInControls": [],
+    "customAuthenticationFactors": [],
+    "termsOfUse": [],
+    "authenticationStrength": {
+      "@odata.type": "#microsoft.graph.authenticationStrengthPolicy",
+      "id": "00000000-0000-0000-0000-000000000004"
+    }
+  },
+  "sessionControls": null
+}
+

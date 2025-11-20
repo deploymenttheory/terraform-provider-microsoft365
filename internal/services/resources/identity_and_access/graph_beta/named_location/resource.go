@@ -19,7 +19,7 @@ import (
 )
 
 const (
-	ResourceName  = "graph_beta_identity_and_access_named_location"
+	ResourceName  = "microsoft365_graph_beta_identity_and_access_named_location"
 	CreateTimeout = 180
 	UpdateTimeout = 180
 	ReadTimeout   = 180
@@ -52,8 +52,6 @@ func NewNamedLocationResource() resource.Resource {
 
 type NamedLocationResource struct {
 	httpClient       *client.AuthenticatedHTTPClient
-	ProviderTypeName string
-	TypeName         string
 	ReadPermissions  []string
 	WritePermissions []string
 	ResourcePath     string
@@ -61,19 +59,12 @@ type NamedLocationResource struct {
 
 // Metadata returns the resource type name.
 func (r *NamedLocationResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	r.ProviderTypeName = req.ProviderTypeName
-	r.TypeName = ResourceName
-	resp.TypeName = r.FullTypeName()
-}
-
-// FullTypeName returns the full resource type name in the format "providername_resourcename".
-func (r *NamedLocationResource) FullTypeName() string {
-	return r.ProviderTypeName + "_" + r.TypeName
+	resp.TypeName = ResourceName
 }
 
 // Configure sets the client for the resource.
 func (r *NamedLocationResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
-	r.httpClient = client.SetGraphBetaHTTPClientForResource(ctx, req, resp, constants.PROVIDER_NAME+"_"+ResourceName)
+	r.httpClient = client.SetGraphBetaHTTPClientForResource(ctx, req, resp, ResourceName)
 }
 
 // ImportState imports the resource state.

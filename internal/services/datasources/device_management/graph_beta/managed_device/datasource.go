@@ -14,7 +14,7 @@ import (
 )
 
 const (
-	DataSourceName = "graph_beta_device_management_managed_device"
+	DataSourceName = "microsoft365_graph_beta_device_management_managed_device"
 	ReadTimeout    = 180
 )
 
@@ -33,17 +33,17 @@ func NewManagedDeviceDataSource() datasource.DataSource {
 
 type ManagedDeviceDataSource struct {
 	client           *msgraphbetasdk.GraphServiceClient
-	ProviderTypeName string
-	TypeName         string
+	
+	
 	ReadPermissions  []string
 }
 
 func (d *ManagedDeviceDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_" + DataSourceName
+	resp.TypeName = DataSourceName
 }
 
 func (d *ManagedDeviceDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
-	d.client = client.SetGraphBetaClientForDataSource(ctx, req, resp, d.TypeName)
+	d.client = client.SetGraphBetaClientForDataSource(ctx, req, resp, DataSourceName)
 }
 
 func (d *ManagedDeviceDataSource) Schema(ctx context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {

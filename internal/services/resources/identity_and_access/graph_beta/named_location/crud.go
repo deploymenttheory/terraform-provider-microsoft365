@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/client"
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
 	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/generic_client"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -120,7 +119,7 @@ func (r *NamedLocationResource) Create(ctx context.Context, req resource.CreateR
 
 	opts := crud.DefaultReadWithRetryOptions()
 	opts.Operation = "Create"
-	opts.ResourceTypeName = constants.PROVIDER_NAME + "_" + ResourceName
+	opts.ResourceTypeName = ResourceName
 	opts.MaxRetries = 60                 // Up from default 30
 	opts.RetryInterval = 5 * time.Second // Up from default 2 seconds
 
@@ -286,7 +285,7 @@ func (r *NamedLocationResource) Update(ctx context.Context, req resource.UpdateR
 
 	opts := crud.DefaultReadWithRetryOptions()
 	opts.Operation = "Update"
-	opts.ResourceTypeName = constants.PROVIDER_NAME + "_" + ResourceName
+	opts.ResourceTypeName = ResourceName
 	opts.MaxRetries = 60                 // Up from default 30
 	opts.RetryInterval = 5 * time.Second // Up from default 2 seconds
 

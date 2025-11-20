@@ -9,7 +9,6 @@ import (
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/check"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/destroy"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/testlog"
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
 	graphBetaAuthenticationContext "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/identity_and_access/graph_beta/authentication_context"
@@ -17,13 +16,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 )
 
-const (
-	testResourceName = "microsoft365_graph_beta_identity_and_access_authentication_context"
-)
-
 var (
-	// Resource type name constructed from exported constants
-	resourceType = constants.PROVIDER_NAME + "_" + graphBetaAuthenticationContext.ResourceName
+	// Resource type name from the resource package
+	resourceType = graphBetaAuthenticationContext.ResourceName
 
 	// testResource is the test resource implementation for authentication contexts
 	testResource = graphBetaAuthenticationContext.AuthenticationContextTestResource{}
@@ -56,11 +51,11 @@ func TestAccAuthenticationContextResource_Basic(t *testing.T) {
 						time.Sleep(5 * time.Second)
 						return nil
 					},
-					check.That(testResourceName+".test").ExistsInGraph(testResource),
-					check.That(testResourceName+".test").Key("id").HasValue("c90"),
-					check.That(testResourceName+".test").Key("display_name").HasValue("Acceptance Test Context"),
-					check.That(testResourceName+".test").Key("description").HasValue("Context for acceptance testing"),
-					check.That(testResourceName+".test").Key("is_available").HasValue("true"),
+					check.That(resourceType+".test").ExistsInGraph(testResource),
+					check.That(resourceType+".test").Key("id").HasValue("c90"),
+					check.That(resourceType+".test").Key("display_name").HasValue("Acceptance Test Context"),
+					check.That(resourceType+".test").Key("description").HasValue("Context for acceptance testing"),
+					check.That(resourceType+".test").Key("is_available").HasValue("true"),
 				),
 			},
 		},
@@ -94,9 +89,9 @@ func TestAccAuthenticationContextResource_Update(t *testing.T) {
 						time.Sleep(5 * time.Second)
 						return nil
 					},
-					check.That(testResourceName+".test").ExistsInGraph(testResource),
-					check.That(testResourceName+".test").Key("display_name").HasValue("Initial Context"),
-					check.That(testResourceName+".test").Key("is_available").HasValue("true"),
+					check.That(resourceType+".test").ExistsInGraph(testResource),
+					check.That(resourceType+".test").Key("display_name").HasValue("Initial Context"),
+					check.That(resourceType+".test").Key("is_available").HasValue("true"),
 				),
 			},
 			{
@@ -110,10 +105,10 @@ func TestAccAuthenticationContextResource_Update(t *testing.T) {
 						time.Sleep(5 * time.Second)
 						return nil
 					},
-					check.That(testResourceName+".test").ExistsInGraph(testResource),
-					check.That(testResourceName+".test").Key("display_name").HasValue("Updated Context"),
-					check.That(testResourceName+".test").Key("description").HasValue("Updated description"),
-					check.That(testResourceName+".test").Key("is_available").HasValue("false"),
+					check.That(resourceType+".test").ExistsInGraph(testResource),
+					check.That(resourceType+".test").Key("display_name").HasValue("Updated Context"),
+					check.That(resourceType+".test").Key("description").HasValue("Updated description"),
+					check.That(resourceType+".test").Key("is_available").HasValue("false"),
 				),
 			},
 		},
@@ -153,7 +148,7 @@ func TestAccAuthenticationContextResource_Import(t *testing.T) {
 				PreConfig: func() {
 					testlog.StepAction(resourceType, "Importing authentication context")
 				},
-				ResourceName:      testResourceName + ".test",
+				ResourceName:      resourceType + ".test",
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
@@ -188,10 +183,10 @@ func TestAccAuthenticationContextResource_Minimal(t *testing.T) {
 						time.Sleep(5 * time.Second)
 						return nil
 					},
-					check.That(testResourceName+".test").ExistsInGraph(testResource),
-					check.That(testResourceName+".test").Key("id").HasValue("c93"),
-					check.That(testResourceName+".test").Key("display_name").HasValue("Minimal Context"),
-					check.That(testResourceName+".test").Key("is_available").HasValue("false"),
+					check.That(resourceType+".test").ExistsInGraph(testResource),
+					check.That(resourceType+".test").Key("id").HasValue("c93"),
+					check.That(resourceType+".test").Key("display_name").HasValue("Minimal Context"),
+					check.That(resourceType+".test").Key("is_available").HasValue("false"),
 				),
 			},
 		},

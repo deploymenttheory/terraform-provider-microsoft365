@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	DataSourceName = "graph_beta_device_management_windows_update_ring"
+	DataSourceName = "microsoft365_graph_beta_device_management_windows_update_ring"
 	ReadTimeout    = 180
 )
 
@@ -34,19 +34,19 @@ func NewWindowsUpdateRingDataSource() datasource.DataSource {
 // WindowsUpdateRingDataSource defines the data source implementation
 type WindowsUpdateRingDataSource struct {
 	client           *msgraphbetasdk.GraphServiceClient
-	ProviderTypeName string
-	TypeName         string
+	
+	
 	ReadPermissions  []string
 }
 
 // Metadata returns the data source type name
 func (d *WindowsUpdateRingDataSource) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_" + DataSourceName
+	resp.TypeName = DataSourceName
 }
 
 // Configure sets the client for the data source
 func (d *WindowsUpdateRingDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
-	d.client = client.SetGraphBetaClientForDataSource(ctx, req, resp, d.TypeName)
+	d.client = client.SetGraphBetaClientForDataSource(ctx, req, resp, DataSourceName)
 }
 
 // Schema defines the schema for the data source
