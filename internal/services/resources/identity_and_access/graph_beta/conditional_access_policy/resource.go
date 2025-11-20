@@ -698,6 +698,19 @@ func (r *ConditionalAccessPolicyResource) Schema(ctx context.Context, req resour
 							},
 						},
 					},
+					"authentication_flows": schema.SingleNestedAttribute{
+						MarkdownDescription: "Authentication flows included in the policy. Used to target specific authentication methods that can be vulnerable to phishing attacks.",
+						Optional:            true,
+						Attributes: map[string]schema.Attribute{
+							"transfer_methods": schema.StringAttribute{
+								MarkdownDescription: "Transfer methods to include in the policy. Possible values are: `none`, `deviceCodeFlow`, `authenticationTransfer`, `unknownFutureValue`.",
+								Required:            true,
+								Validators: []validator.String{
+									stringvalidator.OneOf("none", "deviceCodeFlow", "authenticationTransfer", "unknownFutureValue"),
+								},
+							},
+						},
+					},
 					"client_applications": schema.SingleNestedAttribute{
 						MarkdownDescription: "Client applications configuration for the conditional access policy.",
 						Optional:            true,

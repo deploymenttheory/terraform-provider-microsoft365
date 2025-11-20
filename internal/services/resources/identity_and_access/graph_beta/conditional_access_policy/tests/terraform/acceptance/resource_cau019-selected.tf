@@ -30,17 +30,15 @@ resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy"
     applications = {
       include_applications = ["All"]
       exclude_applications = [
-        data.microsoft365_graph_beta_applications_service_principal.windows_azure_active_directory.items[0].app_id,
-        data.microsoft365_graph_beta_applications_service_principal.microsoft_approval_management.items[0].app_id,
-        data.microsoft365_graph_beta_applications_service_principal.aad_reporting.items[0].app_id,
-        data.microsoft365_graph_beta_applications_service_principal.azure_credential_configuration_endpoint_service.items[0].app_id,
-        data.microsoft365_graph_beta_applications_service_principal.microsoft_app_access_panel.items[0].app_id,
-        data.microsoft365_graph_beta_applications_service_principal.my_profile.items[0].app_id,
-        data.microsoft365_graph_beta_applications_service_principal.my_apps.items[0].app_id,
-        // TODOs: both of these id's don't exist in my tenant. probably need to en able a service first
-        // and they will appear. 
-        //"19db86c3-b2b9-44cc-b339-36da233a3be2", # my sign-ins
-        //"4660504c-45b3-4674-a709-71951a6b0763", # Microsoft Invitation Acceptance Portal
+        "00000002-0000-0000-c000-000000000000",
+        "65d91a3d-ab74-42e6-8a2f-0add61688c74",
+        "1b912ec3-a9dd-4c4d-a53e-76aa7adb28d7",
+        "ea890292-c8c8-4433-b5ea-b09d0668e1a6",
+        "0000000c-0000-0000-c000-000000000000",
+        "19db86c3-b2b9-44cc-b339-36da233a3be2",
+        "4660504c-45b3-4674-a709-71951a6b0763",
+        "8c59ead7-d703-4a27-9e55-c96a0054c8d2",
+        "2793995e-0a7d-40d7-bd35-6968ba142197",
         "Office365"
       ]
       include_user_actions                            = []

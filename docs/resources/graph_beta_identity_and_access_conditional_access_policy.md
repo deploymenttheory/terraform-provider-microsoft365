@@ -2283,6 +2283,61 @@ resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy"
 }
 ```
 
+#### CAU014: Block Managed Identity for Medium/High Sign-in Risk
+
+```terraform
+# CAU014: Block Managed Identity for Medium/High Sign-in Risk
+# Blocks managed identity (service principal) access when sign-in risk is medium or high.
+resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy" "cau014_block_managed_identity_risk" {
+  display_name = "CAU014-All: Block Managed Identity when Sign in Risk is Medium or High-v1.0"
+  state        = "enabledForReportingButNotEnforced"
+
+  conditions = {
+    client_app_types              = ["all"]
+    service_principal_risk_levels = ["high", "medium"]
+
+    users = {
+      include_users  = ["None"]
+      exclude_users  = []
+      include_groups = []
+      exclude_groups = []
+      include_roles  = []
+      exclude_roles  = []
+    }
+
+    applications = {
+      include_applications                            = ["All"]
+      exclude_applications                            = []
+      include_user_actions                            = []
+      include_authentication_context_class_references = []
+    }
+
+    client_applications = {
+      include_service_principals = [
+        # Note: Add specific managed identity/service principal IDs
+        "14ddb4bd-2aee-4603-86d2-467e438cda0a"
+      ]
+      exclude_service_principals = []
+    }
+
+    sign_in_risk_levels = []
+  }
+
+  grant_controls = {
+    operator                      = "OR"
+    built_in_controls             = ["block"]
+    custom_authentication_factors = []
+  }
+
+  timeouts = {
+    create = "150s"
+    read   = "150s"
+    update = "150s"
+    delete = "150s"
+  }
+}
+```
+
 #### CAU015: Block High Sign-in Risk
 
 ```terraform
@@ -2627,6 +2682,7 @@ Required:
 
 Optional:
 
+- `authentication_flows` (Attributes) Authentication flows included in the policy. Used to target specific authentication methods that can be vulnerable to phishing attacks. (see [below for nested schema](#nestedatt--conditions--authentication_flows))
 - `client_applications` (Attributes) Client applications configuration for the conditional access policy. (see [below for nested schema](#nestedatt--conditions--client_applications))
 - `device_states` (Attributes) Device states included in and excluded from the policy. (see [below for nested schema](#nestedatt--conditions--device_states))
 - `devices` (Attributes) Devices included in and excluded from the policy. (see [below for nested schema](#nestedatt--conditions--devices))
@@ -2729,6 +2785,14 @@ Optional:
 - `members` (Set of String) The list of Microsoft Entra organization tenant IDs for external tenants to exclude from the CA policy.
 
 
+
+
+<a id="nestedatt--conditions--authentication_flows"></a>
+### Nested Schema for `conditions.authentication_flows`
+
+Required:
+
+- `transfer_methods` (String) Transfer methods to include in the policy. Possible values are: `none`, `deviceCodeFlow`, `authenticationTransfer`, `unknownFutureValue`.
 
 
 <a id="nestedatt--conditions--client_applications"></a>

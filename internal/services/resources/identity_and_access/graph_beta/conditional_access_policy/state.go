@@ -235,6 +235,15 @@ func mapConditions(ctx context.Context, conditionsRaw any) *ConditionalAccessCon
 		result.DeviceStates = nil
 	}
 
+	// Map authenticationFlows
+	if authenticationFlowsRaw, ok := conditions["authenticationFlows"]; ok {
+		tflog.Debug(ctx, "Mapping authenticationFlows", map[string]any{"authenticationFlows": authenticationFlowsRaw})
+		result.AuthenticationFlows = mapAuthenticationFlows(ctx, authenticationFlowsRaw)
+	} else {
+		tflog.Debug(ctx, "authenticationFlows not found")
+		result.AuthenticationFlows = nil
+	}
+
 	return result
 }
 
@@ -639,6 +648,32 @@ func mapDeviceStates(ctx context.Context, deviceStatesRaw any) *ConditionalAcces
 	} else {
 		tflog.Debug(ctx, "excludeStates not found, setting to null")
 		result.ExcludeStates = types.SetNull(types.StringType)
+	}
+
+	return result
+}
+
+func mapAuthenticationFlows(ctx context.Context, authenticationFlowsRaw any) *ConditionalAccessAuthenticationFlows {
+	authenticationFlows, ok := authenticationFlowsRaw.(map[string]any)
+	if !ok {
+		tflog.Debug(ctx, "authenticationFlows is not a map[string]any")
+		return nil
+	}
+
+	result := &ConditionalAccessAuthenticationFlows{}
+
+	// Map transferMethods (string)
+	if transferMethodsRaw, ok := authenticationFlows["transferMethods"]; ok {
+		if transferMethodsStr, ok := transferMethodsRaw.(string); ok {
+			tflog.Debug(ctx, "Mapping transferMethods", map[string]any{"transferMethods": transferMethodsStr})
+			result.TransferMethods = types.StringValue(transferMethodsStr)
+		} else {
+			tflog.Debug(ctx, "transferMethods is not a string, setting to null")
+			result.TransferMethods = types.StringNull()
+		}
+	} else {
+		tflog.Debug(ctx, "transferMethods not found, setting to null")
+		result.TransferMethods = types.StringNull()
 	}
 
 	return result
@@ -1371,13 +1406,6 @@ func mapCommaSeparatedStringToSet(ctx context.Context, raw any, fieldName string
 
 	tflog.Debug(ctx, fmt.Sprintf("%s is not a string, returning null set", fieldName))
 	return types.SetNull(types.StringType)
-}
-
-// Helper function to map REQUIRED string slices to Terraform sets
-// For required fields: null or empty arrays from API should become [] in Terraform state
-func mapRequiredStringSliceToSet(ctx context.Context, raw any, fieldName string) types.Set {
-	// Delegate to existing mapStringSliceToSet which already implements required field behavior
-	return mapStringSliceToSet(ctx, raw, fieldName)
 }
 
 // Helper function to map OPTIONAL string slices to Terraform sets

@@ -488,6 +488,21 @@ func constructConditions(ctx context.Context, data *ConditionalAccessConditions)
 		return nil, fmt.Errorf("failed to convert user risk levels: %w", err)
 	}
 
+	// Authentication Flows
+	if data.AuthenticationFlows != nil {
+		authenticationFlows := make(map[string]any)
+
+		convert.FrameworkToGraphString(data.AuthenticationFlows.TransferMethods, func(value *string) {
+			if value != nil && *value != "" {
+				authenticationFlows["transferMethods"] = *value
+			}
+		})
+
+		if len(authenticationFlows) > 0 {
+			conditions["authenticationFlows"] = authenticationFlows
+		}
+	}
+
 	return conditions, nil
 }
 

@@ -362,20 +362,38 @@ func (m *ConditionalAccessPolicyMock) registerMockNamedLocations() {
 // registerMockRoleDefinitions registers mock role definition resources for unit tests
 func (m *ConditionalAccessPolicyMock) registerMockRoleDefinitions() {
 	// Mock role definitions list - returns role definitions for validation (no query params)
+	// These are real Azure AD built-in role template IDs
 	httpmock.RegisterResponder("GET", "https://graph.microsoft.com/beta/roleManagement/directory/roleDefinitions", func(req *http.Request) (*http.Response, error) {
 		response := map[string]any{
 			"@odata.context": "https://graph.microsoft.com/beta/$metadata#roleManagement/directory/roleDefinitions",
 			"value": []map[string]any{
-				{
-					"id":          "55555555-5555-5555-5555-555555555555",
-					"displayName": "Global Administrator",
-					"description": "Mock Global Administrator role",
-				},
-				{
-					"id":          "55555555-5555-5555-5555-555555555556",
-					"displayName": "Security Administrator",
-					"description": "Mock Security Administrator role",
-				},
+				{"id": "9b895d92-2cd3-44c7-9d02-a6ac2d5ea5c3", "displayName": "Application Administrator", "description": "Mock role"},
+				{"id": "cf1c38e5-3621-4004-a7cb-879624dced7c", "displayName": "Application Developer", "description": "Mock role"},
+				{"id": "c4e39bd9-1100-46d3-8c65-fb160da0071f", "displayName": "Attack Payload Author", "description": "Mock role"},
+				{"id": "25a516ed-2fa0-40ea-a2d0-12923a21473a", "displayName": "Attack Simulation Administrator", "description": "Mock role"},
+				{"id": "aaf43236-0c0d-4d5f-883a-6955382ac081", "displayName": "Attribute Assignment Administrator", "description": "Mock role"},
+				{"id": "b0f54661-2d74-4c50-afa3-1ec803f12efe", "displayName": "Attribute Assignment Reader", "description": "Mock role"},
+				{"id": "158c047a-c907-4556-b7ef-446551a6b5f7", "displayName": "Cloud Application Administrator", "description": "Mock role"},
+				{"id": "7698a772-787b-4ac8-901f-60d6b08affd2", "displayName": "Cloud App Security Administrator", "description": "Mock role"},
+				{"id": "17315797-102d-40b4-93e0-432062caca18", "displayName": "Compliance Administrator", "description": "Mock role"},
+				{"id": "b1be1c3e-b65d-4f19-8427-f6fa0d97feb9", "displayName": "Conditional Access Administrator", "description": "Mock role"},
+				{"id": "9360feb5-f418-4baa-8175-e2a00bac4301", "displayName": "Directory Writers", "description": "Mock role"},
+				{"id": "29232cdf-9323-42fd-ade2-1d097af3e4de", "displayName": "Exchange Administrator", "description": "Mock role"},
+				{"id": "f2ef992c-3afb-46b9-b7cf-a126ee74c451", "displayName": "Global Administrator", "description": "Mock role"},
+				{"id": "62e90394-69f5-4237-9190-012177145e10", "displayName": "Global Reader", "description": "Mock role"},
+				{"id": "729827e3-9c14-49f7-bb1b-9608f156bbb8", "displayName": "Helpdesk Administrator", "description": "Mock role"},
+				{"id": "8ac3fc64-6eca-42ea-9e69-59f4c7b60eb2", "displayName": "Hybrid Identity Administrator", "description": "Mock role"},
+				{"id": "3a2c62db-5318-420d-8d74-23affee5d9d5", "displayName": "Intune Administrator", "description": "Mock role"},
+				{"id": "744ec460-397e-42ad-a462-8b3f9747a02c", "displayName": "License Administrator", "description": "Mock role"},
+				{"id": "966707d0-3269-4727-9be2-8c3a10f19b9d", "displayName": "Password Administrator", "description": "Mock role"},
+				{"id": "7be44c8a-adaf-4e2a-84d6-ab2649e08a13", "displayName": "Privileged Authentication Administrator", "description": "Mock role"},
+				{"id": "e8611ab8-c189-46e8-94e1-60213ab1f814", "displayName": "Privileged Role Administrator", "description": "Mock role"},
+				{"id": "194ae4cb-b126-40b2-bd5b-6091b380977d", "displayName": "Security Administrator", "description": "Mock role"},
+				{"id": "5f2222b1-57c3-48ba-8ad5-d4759f1fde6f", "displayName": "Security Operator", "description": "Mock role"},
+				{"id": "5d6b6bb7-de71-4623-b4af-96380a352509", "displayName": "Security Reader", "description": "Mock role"},
+				{"id": "f28a1f50-f6e7-4571-818b-6a12f2af6b6c", "displayName": "SharePoint Administrator", "description": "Mock role"},
+				{"id": "69091246-20e8-4a56-aa4d-066075b2a7a8", "displayName": "Teams Administrator", "description": "Mock role"},
+				{"id": "fe930be7-5e62-47db-91af-98c3a49a38b1", "displayName": "User Administrator", "description": "Mock role"},
 			},
 		}
 
@@ -405,18 +423,17 @@ func (m *ConditionalAccessPolicyMock) registerMockRoleDefinitions() {
 // registerMockServicePrincipals registers mock service principal resources for unit tests
 func (m *ConditionalAccessPolicyMock) registerMockServicePrincipals() {
 	// Mock service principals list - returns service principals for data sources
+	// These are real Microsoft service principal app IDs
 	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/servicePrincipals\?`, func(req *http.Request) (*http.Response, error) {
-		// Generate a mock service principal app ID
-		appId := uuid.New().String()
-
 		response := map[string]any{
 			"@odata.context": "https://graph.microsoft.com/beta/$metadata#servicePrincipals",
 			"value": []map[string]any{
-				{
-					"id":          uuid.New().String(),
-					"appId":       appId,
-					"displayName": "Mock Service Principal",
-				},
+				{"id": uuid.New().String(), "appId": "9cdead84-a844-4324-93f2-b2e6bb768d07", "displayName": "Windows 365"},
+				{"id": uuid.New().String(), "appId": "0af06dc6-e4b5-4f28-818e-e78e62d137a5", "displayName": "Microsoft SharePoint"},
+				{"id": uuid.New().String(), "appId": "270efc09-cd0d-444b-a71f-39af4910ec45", "displayName": "Windows Cloud PC"},
+				{"id": uuid.New().String(), "appId": "00000002-0000-0ff1-ce00-000000000000", "displayName": "Office 365 Exchange Online"},
+				{"id": uuid.New().String(), "appId": "00000003-0000-0ff1-ce00-000000000000", "displayName": "Microsoft Office 365 Portal"},
+				{"id": uuid.New().String(), "appId": "a4a365df-50f1-4397-bc59-1a1564b8bb9c", "displayName": "Windows Cloud Login"},
 			},
 		}
 
