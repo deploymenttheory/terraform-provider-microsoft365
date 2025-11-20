@@ -4,12 +4,16 @@ import (
 	"regexp"
 	"testing"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/check"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
+	graphBetaAttributeSet "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/identity_and_access/graph_beta/attribute_set"
 	attributeSetMocks "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/identity_and_access/graph_beta/attribute_set/mocks"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/jarcoal/httpmock"
 )
+
+var resourceType = graphBetaAttributeSet.ResourceName
 
 func setupMockEnvironment() (*mocks.Mocks, *attributeSetMocks.AttributeSetMock) {
 	httpmock.Activate()
@@ -29,10 +33,6 @@ func setupErrorMockEnvironment() (*mocks.Mocks, *attributeSetMocks.AttributeSetM
 	return mockClient, attributeSetMock
 }
 
-func testCheckExists(resourceName string) resource.TestCheckFunc {
-	return resource.TestCheckResourceAttrSet(resourceName, "id")
-}
-
 func TestAttributeSetResource_Basic(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, attributeSetMock := setupMockEnvironment()
@@ -46,11 +46,15 @@ func TestAttributeSetResource_Basic(t *testing.T) {
 				Config: testConfigBasic(),
 				Check: resource.ComposeTestCheckFunc(
 					// Basic attributes
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_identity_and_access_attribute_set.test", "id", "Engineering"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_identity_and_access_attribute_set.test", "description", "Attributes for engineering team"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_identity_and_access_attribute_set.test", "max_attributes_per_set", "25"),
-					testCheckExists("microsoft365_graph_beta_identity_and_access_attribute_set.test"),
+					check.That(resourceType+".test").Key("id").HasValue("Engineering"),
+					check.That(resourceType+".test").Key("description").HasValue("Attributes for engineering team"),
+					check.That(resourceType+".test").Key("max_attributes_per_set").HasValue("25"),
 				),
+			},
+			{
+				ResourceName:      resourceType + ".test",
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -68,11 +72,15 @@ func TestAttributeSetResource_Minimal(t *testing.T) {
 			{
 				Config: testConfigMinimal(),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_identity_and_access_attribute_set.test", "id", "Marketing"),
-					resource.TestCheckNoResourceAttr("microsoft365_graph_beta_identity_and_access_attribute_set.test", "description"),
-					resource.TestCheckNoResourceAttr("microsoft365_graph_beta_identity_and_access_attribute_set.test", "max_attributes_per_set"),
-					testCheckExists("microsoft365_graph_beta_identity_and_access_attribute_set.test"),
+					check.That(resourceType+".test").Key("id").HasValue("Marketing"),
+					check.That(resourceType+".test").Key("description").DoesNotExist(),
+					check.That(resourceType+".test").Key("max_attributes_per_set").DoesNotExist(),
 				),
+			},
+			{
+				ResourceName:      resourceType + ".test",
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -90,18 +98,23 @@ func TestAttributeSetResource_Update(t *testing.T) {
 			{
 				Config: testConfigBasic(),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_identity_and_access_attribute_set.test", "id", "Engineering"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_identity_and_access_attribute_set.test", "description", "Attributes for engineering team"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_identity_and_access_attribute_set.test", "max_attributes_per_set", "25"),
+					check.That(resourceType+".test").Key("id").HasValue("Engineering"),
+					check.That(resourceType+".test").Key("description").HasValue("Attributes for engineering team"),
+					check.That(resourceType+".test").Key("max_attributes_per_set").HasValue("25"),
 				),
 			},
 			{
 				Config: testConfigUpdate(),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_identity_and_access_attribute_set.test", "id", "Engineering"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_identity_and_access_attribute_set.test", "description", "Updated attributes for engineering team"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_identity_and_access_attribute_set.test", "max_attributes_per_set", "50"),
+					check.That(resourceType+".test").Key("id").HasValue("Engineering"),
+					check.That(resourceType+".test").Key("description").HasValue("Updated attributes for engineering team"),
+					check.That(resourceType+".test").Key("max_attributes_per_set").HasValue("50"),
 				),
+			},
+			{
+				ResourceName:      resourceType + ".test",
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})

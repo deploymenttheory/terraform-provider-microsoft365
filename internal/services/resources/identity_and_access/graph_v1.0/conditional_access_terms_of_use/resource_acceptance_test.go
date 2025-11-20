@@ -1,87 +1,35 @@
 package graphConditionalAccessTermsOfUse_test
 
 import (
-	"context"
-	"fmt"
 	"testing"
+	"time"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance"
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/check"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/destroy"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/testlog"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
-	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
+	graphConditionalAccessTermsOfUse "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/identity_and_access/graph_v1.0/conditional_access_terms_of_use"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/hashicorp/terraform-plugin-testing/terraform"
 )
 
-func TestAccConditionalAccessTermsOfUseResource_Basic(t *testing.T) {
-	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
-		CheckDestroy:             testAccCheckConditionalAccessTermsOfUseDestroy,
-		ExternalProviders: map[string]resource.ExternalProvider{
-			"random": {
-				Source:            "hashicorp/random",
-				VersionConstraint: ">= 3.7.2",
-			},
-		},
-		Steps: []resource.TestStep{
-			{
-				Config: testAccConditionalAccessTermsOfUseConfigBasic(),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("microsoft365_graph_identity_and_access_conditional_access_terms_of_use.acc_test_conditional_access_terms_of_use_minimal", "display_name", "acc_test_conditional_access_terms_of_use_minimal"),
-					resource.TestCheckResourceAttr("microsoft365_graph_identity_and_access_conditional_access_terms_of_use.acc_test_conditional_access_terms_of_use_minimal", "is_viewing_before_acceptance_required", "true"),
-					resource.TestCheckResourceAttr("microsoft365_graph_identity_and_access_conditional_access_terms_of_use.acc_test_conditional_access_terms_of_use_minimal", "is_per_device_acceptance_required", "false"),
-					resource.TestCheckResourceAttr("microsoft365_graph_identity_and_access_conditional_access_terms_of_use.acc_test_conditional_access_terms_of_use_minimal", "user_reaccept_required_frequency", "P10D"),
-					resource.TestCheckResourceAttr("microsoft365_graph_identity_and_access_conditional_access_terms_of_use.acc_test_conditional_access_terms_of_use_minimal", "terms_expiration.start_date_time", "2025-11-06"),
-					resource.TestCheckResourceAttr("microsoft365_graph_identity_and_access_conditional_access_terms_of_use.acc_test_conditional_access_terms_of_use_minimal", "terms_expiration.frequency", "P180D"),
-					resource.TestCheckResourceAttr("microsoft365_graph_identity_and_access_conditional_access_terms_of_use.acc_test_conditional_access_terms_of_use_minimal", "file.localizations.#", "1"),
-					resource.TestCheckResourceAttrSet("microsoft365_graph_identity_and_access_conditional_access_terms_of_use.acc_test_conditional_access_terms_of_use_minimal", "id"),
-				),
-			},
-		},
-	})
-}
+var (
+	// Resource type name from the resource package
+	resourceType = graphConditionalAccessTermsOfUse.ResourceName
 
-func TestAccConditionalAccessTermsOfUseResource_Update(t *testing.T) {
-	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
-		CheckDestroy:             testAccCheckConditionalAccessTermsOfUseDestroy,
-		ExternalProviders: map[string]resource.ExternalProvider{
-			"random": {
-				Source:            "hashicorp/random",
-				VersionConstraint: ">= 3.7.2",
-			},
-		},
-		Steps: []resource.TestStep{
-			{
-				Config: testAccConditionalAccessTermsOfUseConfigBasic(),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("microsoft365_graph_identity_and_access_conditional_access_terms_of_use.acc_test_conditional_access_terms_of_use_minimal", "display_name", "acc_test_conditional_access_terms_of_use_minimal"),
-					resource.TestCheckResourceAttr("microsoft365_graph_identity_and_access_conditional_access_terms_of_use.acc_test_conditional_access_terms_of_use_minimal", "is_viewing_before_acceptance_required", "true"),
-					resource.TestCheckResourceAttr("microsoft365_graph_identity_and_access_conditional_access_terms_of_use.acc_test_conditional_access_terms_of_use_minimal", "is_per_device_acceptance_required", "false"),
-					resource.TestCheckResourceAttr("microsoft365_graph_identity_and_access_conditional_access_terms_of_use.acc_test_conditional_access_terms_of_use_minimal", "file.localizations.#", "1"),
-				),
-			},
-			{
-				Config: testAccConditionalAccessTermsOfUseConfigUpdate(),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("microsoft365_graph_identity_and_access_conditional_access_terms_of_use.acc_test_conditional_access_terms_of_use_maximal", "display_name", "acc_test_conditional_access_terms_of_use_maximal"),
-					resource.TestCheckResourceAttr("microsoft365_graph_identity_and_access_conditional_access_terms_of_use.acc_test_conditional_access_terms_of_use_maximal", "is_viewing_before_acceptance_required", "true"),
-					resource.TestCheckResourceAttr("microsoft365_graph_identity_and_access_conditional_access_terms_of_use.acc_test_conditional_access_terms_of_use_maximal", "is_per_device_acceptance_required", "false"),
-					resource.TestCheckResourceAttr("microsoft365_graph_identity_and_access_conditional_access_terms_of_use.acc_test_conditional_access_terms_of_use_maximal", "user_reaccept_required_frequency", "P10D"),
-					resource.TestCheckResourceAttr("microsoft365_graph_identity_and_access_conditional_access_terms_of_use.acc_test_conditional_access_terms_of_use_maximal", "file.localizations.#", "30"),
-				),
-			},
-		},
-	})
-}
+	// testResource is the test resource implementation for conditional access terms of use
+	testResource = graphConditionalAccessTermsOfUse.ConditionalAccessTermsOfUseTestResource{}
+)
 
-func TestAccConditionalAccessTermsOfUseResource_Import(t *testing.T) {
+func TestAccConditionalAccessTermsOfUseResource_Lifecycle(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
-		CheckDestroy:             testAccCheckConditionalAccessTermsOfUseDestroy,
+		CheckDestroy: destroy.CheckDestroyedAllFunc(
+			testResource,
+			resourceType,
+			5*time.Second,
+		),
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
 				Source:            "hashicorp/random",
@@ -90,10 +38,25 @@ func TestAccConditionalAccessTermsOfUseResource_Import(t *testing.T) {
 		},
 		Steps: []resource.TestStep{
 			{
-				Config: testAccConditionalAccessTermsOfUseConfigBasic(),
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Creating")
+				},
+				Config: testAccConditionalAccessTermsOfUseConfig_minimal(),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(resourceType+".acc_test_conditional_access_terms_of_use_minimal").ExistsInGraph(testResource),
+					check.That(resourceType+".acc_test_conditional_access_terms_of_use_minimal").Key("id").Exists(),
+					check.That(resourceType+".acc_test_conditional_access_terms_of_use_minimal").Key("display_name").IsNotEmpty(),
+					check.That(resourceType+".acc_test_conditional_access_terms_of_use_minimal").Key("is_viewing_before_acceptance_required").HasValue("true"),
+					check.That(resourceType+".acc_test_conditional_access_terms_of_use_minimal").Key("is_per_device_acceptance_required").HasValue("false"),
+					check.That(resourceType+".acc_test_conditional_access_terms_of_use_minimal").Key("user_reaccept_required_frequency").HasValue("P10D"),
+					check.That(resourceType+".acc_test_conditional_access_terms_of_use_minimal").Key("file.localizations.#").HasValue("1"),
+				),
 			},
 			{
-				ResourceName:      "microsoft365_graph_identity_and_access_conditional_access_terms_of_use.acc_test_conditional_access_terms_of_use_minimal",
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Importing")
+				},
+				ResourceName:      resourceType + ".acc_test_conditional_access_terms_of_use_minimal",
 				ImportState:       true,
 				ImportStateVerify: true,
 				ImportStateVerifyIgnore: []string{
@@ -102,59 +65,29 @@ func TestAccConditionalAccessTermsOfUseResource_Import(t *testing.T) {
 					"file.localizations.0.file_data.%",
 				},
 			},
+			{
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Updating")
+				},
+				Config: testAccConditionalAccessTermsOfUseConfig_updated(),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(resourceType+".acc_test_conditional_access_terms_of_use_maximal").ExistsInGraph(testResource),
+					check.That(resourceType+".acc_test_conditional_access_terms_of_use_maximal").Key("id").Exists(),
+					check.That(resourceType+".acc_test_conditional_access_terms_of_use_maximal").Key("display_name").IsNotEmpty(),
+					check.That(resourceType+".acc_test_conditional_access_terms_of_use_maximal").Key("file.localizations.#").HasValue("30"),
+				),
+			},
 		},
 	})
 }
 
-func testAccCheckConditionalAccessTermsOfUseDestroy(s *terraform.State) error {
-	graphClient, err := acceptance.TestGraphClient()
-	if err != nil {
-		return fmt.Errorf("error creating Graph client for CheckDestroy: %v", err)
-	}
-	ctx := context.Background()
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "microsoft365_graph_identity_and_access_conditional_access_terms_of_use" {
-			continue
-		}
-
-		agreementId := rs.Primary.ID
-
-		_, err := graphClient.
-			Agreements().
-			ByAgreementId(agreementId).
-			Get(ctx, nil)
-
-		if err != nil {
-			errorInfo := errors.GraphError(ctx, err)
-
-			if errorInfo.StatusCode == 404 ||
-				errorInfo.ErrorCode == "ResourceNotFound" ||
-				errorInfo.ErrorCode == "ItemNotFound" {
-				fmt.Printf("DEBUG: Resource %s successfully destroyed (404/NotFound)\n", rs.Primary.ID)
-				continue
-			}
-			return fmt.Errorf("error checking if conditional access terms of use %s was destroyed: %v", rs.Primary.ID, err)
-		}
-
-		return fmt.Errorf("conditional access terms of use %s still exists", rs.Primary.ID)
-	}
-
-	return nil
+// Test configuration functions
+func testAccConditionalAccessTermsOfUseConfig_minimal() string {
+	config := mocks.LoadTerraformConfigFile("resource_minimal.tf")
+	return acceptance.ConfiguredM365ProviderBlock(config)
 }
 
-func testAccConditionalAccessTermsOfUseConfigBasic() string {
-	accTestConfig, err := helpers.ParseHCLFile("tests/terraform/acceptance/resource_minimal.tf")
-	if err != nil {
-		panic(fmt.Sprintf("failed to load acceptance test config: %s", err.Error()))
-	}
-	return acceptance.ConfiguredM365ProviderBlock(accTestConfig)
-}
-
-func testAccConditionalAccessTermsOfUseConfigUpdate() string {
-	accTestConfig, err := helpers.ParseHCLFile("tests/terraform/acceptance/resource_maximal.tf")
-	if err != nil {
-		panic(fmt.Sprintf("failed to load acceptance test config: %s", err.Error()))
-	}
-	return acceptance.ConfiguredM365ProviderBlock(accTestConfig)
+func testAccConditionalAccessTermsOfUseConfig_updated() string {
+	config := mocks.LoadTerraformConfigFile("resource_maximal.tf")
+	return acceptance.ConfiguredM365ProviderBlock(config)
 }

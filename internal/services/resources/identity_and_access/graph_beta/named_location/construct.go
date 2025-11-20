@@ -15,9 +15,12 @@ func constructResource(ctx context.Context, data *NamedLocationResourceModel) (m
 
 	tflog.Debug(ctx, fmt.Sprintf("Constructing %s resource from model", ResourceName))
 
+	if err := validateRequest(ctx, data); err != nil {
+		return nil, err
+	}
+
 	requestBody := make(map[string]any)
 
-	// Basic properties using convert helpers
 	convert.FrameworkToGraphString(data.DisplayName, func(val *string) {
 		if val != nil {
 			requestBody["displayName"] = *val
@@ -25,19 +28,12 @@ func constructResource(ctx context.Context, data *NamedLocationResourceModel) (m
 	})
 
 	// Determine the type of named location based on which fields are populated
-	isIPLocation := !data.IPv4Ranges.IsNull() || !data.IPv6Ranges.IsNull() || !data.IsTrusted.IsNull()
-	isCountryLocation := !data.CountryLookupMethod.IsNull() || !data.CountriesAndRegions.IsNull() || !data.IncludeUnknownCountriesAndRegions.IsNull()
+	isIPLocation := (!data.IPv4Ranges.IsNull() && !data.IPv4Ranges.IsUnknown()) ||
+		(!data.IPv6Ranges.IsNull() && !data.IPv6Ranges.IsUnknown()) ||
+		(!data.IsTrusted.IsNull() && !data.IsTrusted.IsUnknown())
 
-	if isIPLocation && isCountryLocation {
-		return nil, fmt.Errorf("cannot specify both IP location fields and country location fields in the same resource")
-	}
-
-	if !isIPLocation && !isCountryLocation {
-		return nil, fmt.Errorf("must specify either IP location fields (ipv4_ranges, ipv6_ranges, is_trusted) or country location fields (country_lookup_method, countries_and_regions, include_unknown_countries_and_regions)")
-	}
-
-	if isIPLocation {
-		// Set the @odata.type for IP named locations
+	switch {
+	case isIPLocation:
 		requestBody["@odata.type"] = "#microsoft.graph.ipNamedLocation"
 
 		convert.FrameworkToGraphBool(data.IsTrusted, func(val *bool) {
@@ -46,7 +42,6 @@ func constructResource(ctx context.Context, data *NamedLocationResourceModel) (m
 			}
 		})
 
-		// Build IP ranges array
 		ipRanges, err := constructIPRanges(ctx, data)
 		if err != nil {
 			return nil, fmt.Errorf("failed to construct IP ranges: %w", err)
@@ -55,8 +50,9 @@ func constructResource(ctx context.Context, data *NamedLocationResourceModel) (m
 		if len(ipRanges) > 0 {
 			requestBody["ipRanges"] = ipRanges
 		}
-	} else if isCountryLocation {
-		// Set the @odata.type for country named locations
+
+	default:
+		// Country Named Location (validation ensures exactly one type is configured)
 		requestBody["@odata.type"] = "#microsoft.graph.countryNamedLocation"
 
 		convert.FrameworkToGraphString(data.CountryLookupMethod, func(val *string) {
@@ -71,7 +67,6 @@ func constructResource(ctx context.Context, data *NamedLocationResourceModel) (m
 			}
 		})
 
-		// Build countries and regions array
 		if err := convert.FrameworkToGraphStringSet(ctx, data.CountriesAndRegions, func(values []string) {
 			if len(values) > 0 {
 				requestBody["countriesAndRegions"] = values
@@ -81,7 +76,6 @@ func constructResource(ctx context.Context, data *NamedLocationResourceModel) (m
 		}
 	}
 
-	// Debug logging using plain JSON marshal
 	if debugJSON, err := json.MarshalIndent(requestBody, "", "    "); err == nil {
 		tflog.Debug(ctx, fmt.Sprintf("Final JSON to be sent to Graph API for resource %s", ResourceName), map[string]any{
 			"json": "\n" + string(debugJSON),
@@ -101,7 +95,6 @@ func constructResource(ctx context.Context, data *NamedLocationResourceModel) (m
 func constructIPRanges(ctx context.Context, data *NamedLocationResourceModel) ([]map[string]any, error) {
 	var ipRanges []map[string]any
 
-	// Add IPv4 ranges
 	if err := convert.FrameworkToGraphStringSet(ctx, data.IPv4Ranges, func(values []string) {
 		for _, cidr := range values {
 			ipRange := map[string]any{
@@ -114,7 +107,6 @@ func constructIPRanges(ctx context.Context, data *NamedLocationResourceModel) ([
 		return nil, fmt.Errorf("failed to convert IPv4 ranges: %w", err)
 	}
 
-	// Add IPv6 ranges
 	if err := convert.FrameworkToGraphStringSet(ctx, data.IPv6Ranges, func(values []string) {
 		for _, cidr := range values {
 			ipRange := map[string]any{

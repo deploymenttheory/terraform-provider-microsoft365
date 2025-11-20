@@ -4,6 +4,7 @@ import (
 	"regexp"
 	"testing"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/check"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
 	namedLocationMocks "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/identity_and_access/graph_beta/named_location/mocks"
@@ -29,10 +30,6 @@ func setupErrorMockEnvironment() (*mocks.Mocks, *namedLocationMocks.NamedLocatio
 	return mockClient, namedLocationMock
 }
 
-func testCheckExists(resourceName string) resource.TestCheckFunc {
-	return resource.TestCheckResourceAttrSet(resourceName, "id")
-}
-
 func TestNamedLocationResource_IPMinimal(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, namedLocationMock := setupMockEnvironment()
@@ -46,19 +43,24 @@ func TestNamedLocationResource_IPMinimal(t *testing.T) {
 				Config: testConfigIPMinimal(),
 				Check: resource.ComposeTestCheckFunc(
 					// Basic attributes
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_identity_and_access_named_location.ip_minimal", "display_name", "unit-test-ip-named-location-minimal"),
-					resource.TestMatchResourceAttr("microsoft365_graph_beta_identity_and_access_named_location.ip_minimal", "id", regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_identity_and_access_named_location.ip_minimal", "is_trusted", "false"),
-					
+					check.That(resourceType+".ip_minimal").Key("display_name").HasValue("unit-test-ip-named-location-minimal"),
+					check.That(resourceType+".ip_minimal").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(resourceType+".ip_minimal").Key("is_trusted").HasValue("false"),
+
 					// IPv4 ranges
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_identity_and_access_named_location.ip_minimal", "ipv4_ranges.#", "1"),
-					resource.TestCheckTypeSetElemAttr("microsoft365_graph_beta_identity_and_access_named_location.ip_minimal", "ipv4_ranges.*", "192.168.1.0/24"),
-					
+					check.That(resourceType+".ip_minimal").Key("ipv4_ranges.#").HasValue("1"),
+					check.That(resourceType+".ip_minimal").Key("ipv4_ranges.*").ContainsTypeSetElement("192.168.1.0/24"),
+
 					// Country fields should be null for IP locations
-					resource.TestCheckNoResourceAttr("microsoft365_graph_beta_identity_and_access_named_location.ip_minimal", "country_lookup_method"),
-					resource.TestCheckNoResourceAttr("microsoft365_graph_beta_identity_and_access_named_location.ip_minimal", "countries_and_regions"),
-					resource.TestCheckNoResourceAttr("microsoft365_graph_beta_identity_and_access_named_location.ip_minimal", "include_unknown_countries_and_regions"),
+					check.That(resourceType+".ip_minimal").Key("country_lookup_method").DoesNotExist(),
+					check.That(resourceType+".ip_minimal").Key("countries_and_regions").DoesNotExist(),
+					check.That(resourceType+".ip_minimal").Key("include_unknown_countries_and_regions").DoesNotExist(),
 				),
+			},
+			{
+				ResourceName:      resourceType + ".ip_minimal",
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -77,21 +79,25 @@ func TestNamedLocationResource_IPMaximal(t *testing.T) {
 				Config: testConfigIPMaximal(),
 				Check: resource.ComposeTestCheckFunc(
 					// Basic attributes
-					testCheckExists("microsoft365_graph_beta_identity_and_access_named_location.ip_maximal"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_identity_and_access_named_location.ip_maximal", "display_name", "unit-test-ip-named-location-maximal"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_identity_and_access_named_location.ip_maximal", "is_trusted", "true"),
-					
+					check.That(resourceType+".ip_maximal").Key("display_name").HasValue("unit-test-ip-named-location-maximal"),
+					check.That(resourceType+".ip_maximal").Key("is_trusted").HasValue("true"),
+
 					// IPv4 ranges
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_identity_and_access_named_location.ip_maximal", "ipv4_ranges.#", "2"),
-					resource.TestCheckTypeSetElemAttr("microsoft365_graph_beta_identity_and_access_named_location.ip_maximal", "ipv4_ranges.*", "192.168.0.0/16"),
-					resource.TestCheckTypeSetElemAttr("microsoft365_graph_beta_identity_and_access_named_location.ip_maximal", "ipv4_ranges.*", "172.16.0.0/12"),
-					
+					check.That(resourceType+".ip_maximal").Key("ipv4_ranges.#").HasValue("2"),
+					check.That(resourceType+".ip_maximal").Key("ipv4_ranges.*").ContainsTypeSetElement("192.168.0.0/16"),
+					check.That(resourceType+".ip_maximal").Key("ipv4_ranges.*").ContainsTypeSetElement("172.16.0.0/12"),
+
 					// IPv6 ranges
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_identity_and_access_named_location.ip_maximal", "ipv6_ranges.#", "3"),
-					resource.TestCheckTypeSetElemAttr("microsoft365_graph_beta_identity_and_access_named_location.ip_maximal", "ipv6_ranges.*", "2001:db8::/32"),
-					resource.TestCheckTypeSetElemAttr("microsoft365_graph_beta_identity_and_access_named_location.ip_maximal", "ipv6_ranges.*", "fe80::/10"),
-					resource.TestCheckTypeSetElemAttr("microsoft365_graph_beta_identity_and_access_named_location.ip_maximal", "ipv6_ranges.*", "2001:4860:4860::/48"),
+					check.That(resourceType+".ip_maximal").Key("ipv6_ranges.#").HasValue("3"),
+					check.That(resourceType+".ip_maximal").Key("ipv6_ranges.*").ContainsTypeSetElement("2001:db8::/32"),
+					check.That(resourceType+".ip_maximal").Key("ipv6_ranges.*").ContainsTypeSetElement("fe80::/10"),
+					check.That(resourceType+".ip_maximal").Key("ipv6_ranges.*").ContainsTypeSetElement("2001:4860:4860::/48"),
 				),
+			},
+			{
+				ResourceName:      resourceType + ".ip_maximal",
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -110,15 +116,19 @@ func TestNamedLocationResource_IPv6Only(t *testing.T) {
 				Config: testConfigIPv6Only(),
 				Check: resource.ComposeTestCheckFunc(
 					// Basic attributes
-					testCheckExists("microsoft365_graph_beta_identity_and_access_named_location.ip_ipv6_only"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_identity_and_access_named_location.ip_ipv6_only", "display_name", "unit-test-ip-named-location-ipv6-only"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_identity_and_access_named_location.ip_ipv6_only", "is_trusted", "true"),
-					
+					check.That(resourceType+".ip_ipv6_only").Key("display_name").HasValue("unit-test-ip-named-location-ipv6-only"),
+					check.That(resourceType+".ip_ipv6_only").Key("is_trusted").HasValue("true"),
+
 					// IPv6 ranges only
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_identity_and_access_named_location.ip_ipv6_only", "ipv6_ranges.#", "2"),
-					resource.TestCheckTypeSetElemAttr("microsoft365_graph_beta_identity_and_access_named_location.ip_ipv6_only", "ipv6_ranges.*", "2001:db8::/32"),
-					resource.TestCheckTypeSetElemAttr("microsoft365_graph_beta_identity_and_access_named_location.ip_ipv6_only", "ipv6_ranges.*", "fe80::/10"),
+					check.That(resourceType+".ip_ipv6_only").Key("ipv6_ranges.#").HasValue("2"),
+					check.That(resourceType+".ip_ipv6_only").Key("ipv6_ranges.*").ContainsTypeSetElement("2001:db8::/32"),
+					check.That(resourceType+".ip_ipv6_only").Key("ipv6_ranges.*").ContainsTypeSetElement("fe80::/10"),
 				),
+			},
+			{
+				ResourceName:      resourceType + ".ip_ipv6_only",
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -137,20 +147,24 @@ func TestNamedLocationResource_CountryMinimal(t *testing.T) {
 				Config: testConfigCountryMinimal(),
 				Check: resource.ComposeTestCheckFunc(
 					// Basic attributes
-					testCheckExists("microsoft365_graph_beta_identity_and_access_named_location.country_minimal"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_identity_and_access_named_location.country_minimal", "display_name", "unit-test-country-named-location-minimal"),
-					
+					check.That(resourceType+".country_minimal").Key("display_name").HasValue("unit-test-country-named-location-minimal"),
+
 					// Country attributes
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_identity_and_access_named_location.country_minimal", "country_lookup_method", "clientIpAddress"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_identity_and_access_named_location.country_minimal", "include_unknown_countries_and_regions", "false"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_identity_and_access_named_location.country_minimal", "countries_and_regions.#", "1"),
-					resource.TestCheckTypeSetElemAttr("microsoft365_graph_beta_identity_and_access_named_location.country_minimal", "countries_and_regions.*", "US"),
-					
+					check.That(resourceType+".country_minimal").Key("country_lookup_method").HasValue("clientIpAddress"),
+					check.That(resourceType+".country_minimal").Key("include_unknown_countries_and_regions").HasValue("false"),
+					check.That(resourceType+".country_minimal").Key("countries_and_regions.#").HasValue("1"),
+					check.That(resourceType+".country_minimal").Key("countries_and_regions.*").ContainsTypeSetElement("US"),
+
 					// IP fields should be null for country locations
-					resource.TestCheckNoResourceAttr("microsoft365_graph_beta_identity_and_access_named_location.country_minimal", "is_trusted"),
-					resource.TestCheckNoResourceAttr("microsoft365_graph_beta_identity_and_access_named_location.country_minimal", "ipv4_ranges"),
-					resource.TestCheckNoResourceAttr("microsoft365_graph_beta_identity_and_access_named_location.country_minimal", "ipv6_ranges"),
+					check.That(resourceType+".country_minimal").Key("is_trusted").DoesNotExist(),
+					check.That(resourceType+".country_minimal").Key("ipv4_ranges").DoesNotExist(),
+					check.That(resourceType+".country_minimal").Key("ipv6_ranges").DoesNotExist(),
 				),
+			},
+			{
+				ResourceName:      resourceType + ".country_minimal",
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -169,18 +183,22 @@ func TestNamedLocationResource_CountryAuthenticatorGPS(t *testing.T) {
 				Config: testConfigCountryAuthenticatorGPS(),
 				Check: resource.ComposeTestCheckFunc(
 					// Basic attributes
-					testCheckExists("microsoft365_graph_beta_identity_and_access_named_location.country_authenticator_gps"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_identity_and_access_named_location.country_authenticator_gps", "display_name", "unit-test-country-named-location-authenticator-gps"),
-					
+					check.That(resourceType+".country_authenticator_gps").Key("display_name").HasValue("unit-test-country-named-location-authenticator-gps"),
+
 					// Country attributes
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_identity_and_access_named_location.country_authenticator_gps", "country_lookup_method", "authenticatorAppGps"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_identity_and_access_named_location.country_authenticator_gps", "include_unknown_countries_and_regions", "true"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_identity_and_access_named_location.country_authenticator_gps", "countries_and_regions.#", "4"),
-					resource.TestCheckTypeSetElemAttr("microsoft365_graph_beta_identity_and_access_named_location.country_authenticator_gps", "countries_and_regions.*", "AD"),
-					resource.TestCheckTypeSetElemAttr("microsoft365_graph_beta_identity_and_access_named_location.country_authenticator_gps", "countries_and_regions.*", "AO"),
-					resource.TestCheckTypeSetElemAttr("microsoft365_graph_beta_identity_and_access_named_location.country_authenticator_gps", "countries_and_regions.*", "AI"),
-					resource.TestCheckTypeSetElemAttr("microsoft365_graph_beta_identity_and_access_named_location.country_authenticator_gps", "countries_and_regions.*", "AQ"),
+					check.That(resourceType+".country_authenticator_gps").Key("country_lookup_method").HasValue("authenticatorAppGps"),
+					check.That(resourceType+".country_authenticator_gps").Key("include_unknown_countries_and_regions").HasValue("true"),
+					check.That(resourceType+".country_authenticator_gps").Key("countries_and_regions.#").HasValue("4"),
+					check.That(resourceType+".country_authenticator_gps").Key("countries_and_regions.*").ContainsTypeSetElement("AD"),
+					check.That(resourceType+".country_authenticator_gps").Key("countries_and_regions.*").ContainsTypeSetElement("AO"),
+					check.That(resourceType+".country_authenticator_gps").Key("countries_and_regions.*").ContainsTypeSetElement("AI"),
+					check.That(resourceType+".country_authenticator_gps").Key("countries_and_regions.*").ContainsTypeSetElement("AQ"),
 				),
+			},
+			{
+				ResourceName:      resourceType + ".country_authenticator_gps",
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -241,8 +259,7 @@ func TestNamedLocationResource_TrustedIPDeletion(t *testing.T) {
 				// Create a trusted IP location
 				Config: testConfigIPMaximal(),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_identity_and_access_named_location.ip_maximal", "is_trusted", "true"),
-					testCheckExists("microsoft365_graph_beta_identity_and_access_named_location.ip_maximal"),
+					check.That(resourceType + ".ip_maximal").Key("is_trusted").HasValue("true"),
 				),
 			},
 		},

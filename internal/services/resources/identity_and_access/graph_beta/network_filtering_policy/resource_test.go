@@ -4,11 +4,15 @@ import (
 	"regexp"
 	"testing"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/check"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
 	networkFilteringPolicyMocks "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/identity_and_access/graph_beta/network_filtering_policy/mocks"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/jarcoal/httpmock"
 )
+
+// resourceType is declared in resource_acceptance_test.go and shared across the package
 
 func setupMockEnvironment() (*mocks.Mocks, *networkFilteringPolicyMocks.FilteringPolicyMock) {
 	httpmock.Activate()
@@ -28,10 +32,6 @@ func setupErrorMockEnvironment() (*mocks.Mocks, *networkFilteringPolicyMocks.Fil
 	return mockClient, filteringPolicyMock
 }
 
-func testCheckExists(resourceName string) resource.TestCheckFunc {
-	return resource.TestCheckResourceAttrSet(resourceName, "id")
-}
-
 func TestNetworkFilteringPolicyResource_Basic(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, filteringPolicyMock := setupMockEnvironment()
@@ -44,11 +44,16 @@ func TestNetworkFilteringPolicyResource_Basic(t *testing.T) {
 			{
 				Config: testConfigBasic(),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_identity_and_access_network_filtering_policy.test", "name", "Test Filtering Policy"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_identity_and_access_network_filtering_policy.test", "description", "Test filtering policy for unit testing"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_identity_and_access_network_filtering_policy.test", "action", "block"),
-					testCheckExists("microsoft365_graph_beta_identity_and_access_network_filtering_policy.test"),
+					check.That(resourceType+".test").Key("name").HasValue("Test Filtering Policy"),
+					check.That(resourceType+".test").Key("description").HasValue("Test filtering policy for unit testing"),
+					check.That(resourceType+".test").Key("action").HasValue("block"),
+					check.That(resourceType+".test").Key("id").Exists(),
 				),
+			},
+			{
+				ResourceName:      resourceType + ".test",
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -66,17 +71,22 @@ func TestNetworkFilteringPolicyResource_Update(t *testing.T) {
 			{
 				Config: testConfigBasic(),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_identity_and_access_network_filtering_policy.test", "name", "Test Filtering Policy"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_identity_and_access_network_filtering_policy.test", "action", "block"),
+					check.That(resourceType+".test").Key("name").HasValue("Test Filtering Policy"),
+					check.That(resourceType+".test").Key("action").HasValue("block"),
 				),
 			},
 			{
 				Config: testConfigUpdate(),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_identity_and_access_network_filtering_policy.test", "name", "Updated Filtering Policy"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_identity_and_access_network_filtering_policy.test", "description", "Updated description"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_identity_and_access_network_filtering_policy.test", "action", "allow"),
+					check.That(resourceType+".test").Key("name").HasValue("Updated Filtering Policy"),
+					check.That(resourceType+".test").Key("description").HasValue("Updated description"),
+					check.That(resourceType+".test").Key("action").HasValue("allow"),
 				),
+			},
+			{
+				ResourceName:      resourceType + ".test",
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -117,31 +127,25 @@ func TestNetworkFilteringPolicyResource_CreateError(t *testing.T) {
 }
 
 func testConfigBasic() string {
-	return `
-resource "microsoft365_graph_beta_identity_and_access_network_filtering_policy" "test" {
-  name        = "Test Filtering Policy"
-  description = "Test filtering policy for unit testing"
-  action      = "block"
-}
-`
+	unitTestConfig, err := helpers.ParseHCLFile("tests/terraform/unit/resource_minimal.tf")
+	if err != nil {
+		panic("failed to load resource_minimal.tf: " + err.Error())
+	}
+	return unitTestConfig
 }
 
 func testConfigUpdate() string {
-	return `
-resource "microsoft365_graph_beta_identity_and_access_network_filtering_policy" "test" {
-  name        = "Updated Filtering Policy"
-  description = "Updated description"
-  action      = "allow"
-}
-`
+	unitTestConfig, err := helpers.ParseHCLFile("tests/terraform/unit/resource_updated.tf")
+	if err != nil {
+		panic("failed to load resource_updated.tf: " + err.Error())
+	}
+	return unitTestConfig
 }
 
 func testConfigInvalidAction() string {
-	return `
-resource "microsoft365_graph_beta_identity_and_access_network_filtering_policy" "test" {
-  name        = "Test Filtering Policy"
-  description = "Test filtering policy with invalid action"
-  action      = "invalid_action"
-}
-`
+	unitTestConfig, err := helpers.ParseHCLFile("tests/terraform/unit/resource_invalid.tf")
+	if err != nil {
+		panic("failed to load resource_invalid.tf: " + err.Error())
+	}
+	return unitTestConfig
 }

@@ -4,12 +4,16 @@ import (
 	"regexp"
 	"testing"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/check"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
+	graphBetaCustomSecurityAttributeDefinition "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/identity_and_access/graph_beta/custom_security_attribute_definition"
 	definitionMocks "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/identity_and_access/graph_beta/custom_security_attribute_definition/mocks"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/jarcoal/httpmock"
 )
+
+var resourceType = graphBetaCustomSecurityAttributeDefinition.ResourceName
 
 func setupMockEnvironment() (*mocks.Mocks, *definitionMocks.CustomSecurityAttributeDefinitionMock) {
 	httpmock.Activate()
@@ -29,10 +33,6 @@ func setupErrorMockEnvironment() (*mocks.Mocks, *definitionMocks.CustomSecurityA
 	return mockClient, definitionMock
 }
 
-func testCheckExists(resourceName string) resource.TestCheckFunc {
-	return resource.TestCheckResourceAttrSet(resourceName, "id")
-}
-
 func TestCustomSecurityAttributeDefinitionResource_Basic(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, definitionMock := setupMockEnvironment()
@@ -45,16 +45,21 @@ func TestCustomSecurityAttributeDefinitionResource_Basic(t *testing.T) {
 			{
 				Config: testConfigBasic(),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_identity_and_access_custom_security_attribute_definition.test", "attribute_set", "Engineering"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_identity_and_access_custom_security_attribute_definition.test", "name", "ProjectName"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_identity_and_access_custom_security_attribute_definition.test", "description", "Name of the project the user is assigned to"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_identity_and_access_custom_security_attribute_definition.test", "type", "String"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_identity_and_access_custom_security_attribute_definition.test", "status", "Available"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_identity_and_access_custom_security_attribute_definition.test", "is_collection", "false"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_identity_and_access_custom_security_attribute_definition.test", "is_searchable", "true"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_identity_and_access_custom_security_attribute_definition.test", "use_pre_defined_values_only", "false"),
-					testCheckExists("microsoft365_graph_beta_identity_and_access_custom_security_attribute_definition.test"),
+					check.That(resourceType+".test").Key("attribute_set").HasValue("Engineering"),
+					check.That(resourceType+".test").Key("name").HasValue("ProjectName"),
+					check.That(resourceType+".test").Key("description").HasValue("Name of the project the user is assigned to"),
+					check.That(resourceType+".test").Key("type").HasValue("String"),
+					check.That(resourceType+".test").Key("status").HasValue("Available"),
+					check.That(resourceType+".test").Key("is_collection").HasValue("false"),
+					check.That(resourceType+".test").Key("is_searchable").HasValue("true"),
+					check.That(resourceType+".test").Key("use_pre_defined_values_only").HasValue("false"),
 				),
+			},
+			{
+				ResourceName:      resourceType + ".test",
+				ImportState:       true,
+				ImportStateId:     "Engineering_ProjectName",
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -72,12 +77,17 @@ func TestCustomSecurityAttributeDefinitionResource_Minimal(t *testing.T) {
 			{
 				Config: testConfigMinimal(),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_identity_and_access_custom_security_attribute_definition.test", "attribute_set", "Engineering"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_identity_and_access_custom_security_attribute_definition.test", "name", "MinimalAttribute"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_identity_and_access_custom_security_attribute_definition.test", "type", "String"),
-					resource.TestCheckNoResourceAttr("microsoft365_graph_beta_identity_and_access_custom_security_attribute_definition.test", "description"),
-					testCheckExists("microsoft365_graph_beta_identity_and_access_custom_security_attribute_definition.test"),
+					check.That(resourceType+".test").Key("attribute_set").HasValue("Engineering"),
+					check.That(resourceType+".test").Key("name").HasValue("MinimalAttribute"),
+					check.That(resourceType+".test").Key("type").HasValue("String"),
+					check.That(resourceType+".test").Key("description").DoesNotExist(),
 				),
+			},
+			{
+				ResourceName:      resourceType + ".test",
+				ImportState:       true,
+				ImportStateId:     "Engineering_MinimalAttribute",
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -95,16 +105,22 @@ func TestCustomSecurityAttributeDefinitionResource_Update(t *testing.T) {
 			{
 				Config: testConfigBasic(),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_identity_and_access_custom_security_attribute_definition.test", "description", "Name of the project the user is assigned to"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_identity_and_access_custom_security_attribute_definition.test", "status", "Available"),
+					check.That(resourceType+".test").Key("description").HasValue("Name of the project the user is assigned to"),
+					check.That(resourceType+".test").Key("status").HasValue("Available"),
 				),
 			},
 			{
 				Config: testConfigUpdate(),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_identity_and_access_custom_security_attribute_definition.test", "description", "Updated project name description"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_identity_and_access_custom_security_attribute_definition.test", "status", "Available"),
+					check.That(resourceType+".test").Key("description").HasValue("Updated project name description"),
+					check.That(resourceType+".test").Key("status").HasValue("Available"),
 				),
+			},
+			{
+				ResourceName:      resourceType + ".test",
+				ImportState:       true,
+				ImportStateId:     "Engineering_ProjectName",
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -122,11 +138,16 @@ func TestCustomSecurityAttributeDefinitionResource_BooleanType(t *testing.T) {
 			{
 				Config: testConfigBoolean(),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_identity_and_access_custom_security_attribute_definition.test", "type", "Boolean"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_identity_and_access_custom_security_attribute_definition.test", "is_collection", "false"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_identity_and_access_custom_security_attribute_definition.test", "use_pre_defined_values_only", "false"),
-					testCheckExists("microsoft365_graph_beta_identity_and_access_custom_security_attribute_definition.test"),
+					check.That(resourceType+".test").Key("type").HasValue("Boolean"),
+					check.That(resourceType+".test").Key("is_collection").HasValue("false"),
+					check.That(resourceType+".test").Key("use_pre_defined_values_only").HasValue("false"),
 				),
+			},
+			{
+				ResourceName:      resourceType + ".test",
+				ImportState:       true,
+				ImportStateId:     "Security_HasClearance",
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -144,10 +165,15 @@ func TestCustomSecurityAttributeDefinitionResource_Collection(t *testing.T) {
 			{
 				Config: testConfigCollection(),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_identity_and_access_custom_security_attribute_definition.test", "is_collection", "true"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_identity_and_access_custom_security_attribute_definition.test", "type", "String"),
-					testCheckExists("microsoft365_graph_beta_identity_and_access_custom_security_attribute_definition.test"),
+					check.That(resourceType+".test").Key("is_collection").HasValue("true"),
+					check.That(resourceType+".test").Key("type").HasValue("String"),
 				),
+			},
+			{
+				ResourceName:      resourceType + ".test",
+				ImportState:       true,
+				ImportStateId:     "HumanResources_Skills",
+				ImportStateVerify: true,
 			},
 		},
 	})

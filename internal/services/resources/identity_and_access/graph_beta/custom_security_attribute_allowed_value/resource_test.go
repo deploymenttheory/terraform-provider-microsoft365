@@ -4,11 +4,16 @@ import (
 	"regexp"
 	"testing"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/check"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
+	graphBetaCustomSecurityAttributeAllowedValue "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/identity_and_access/graph_beta/custom_security_attribute_allowed_value"
 	allowedValueMocks "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/identity_and_access/graph_beta/custom_security_attribute_allowed_value/mocks"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/jarcoal/httpmock"
 )
+
+var resourceType = graphBetaCustomSecurityAttributeAllowedValue.ResourceName
 
 func setupMockEnvironment() (*mocks.Mocks, *allowedValueMocks.CustomSecurityAttributeAllowedValueMock) {
 	httpmock.Activate()
@@ -28,10 +33,6 @@ func setupErrorMockEnvironment() (*mocks.Mocks, *allowedValueMocks.CustomSecurit
 	return mockClient, allowedValueMock
 }
 
-func testCheckExists(resourceName string) resource.TestCheckFunc {
-	return resource.TestCheckResourceAttrSet(resourceName, "id")
-}
-
 func TestAllowedValueResource_Basic(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, allowedValueMock := setupMockEnvironment()
@@ -44,11 +45,16 @@ func TestAllowedValueResource_Basic(t *testing.T) {
 			{
 				Config: testConfigBasic(),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_identity_and_access_custom_security_attribute_allowed_value.test", "custom_security_attribute_definition_id", "Engineering_Project"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_identity_and_access_custom_security_attribute_allowed_value.test", "id", "Alpine"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_identity_and_access_custom_security_attribute_allowed_value.test", "is_active", "true"),
-					testCheckExists("microsoft365_graph_beta_identity_and_access_custom_security_attribute_allowed_value.test"),
+					check.That(resourceType+".test").Key("custom_security_attribute_definition_id").HasValue("Engineering_Project"),
+					check.That(resourceType+".test").Key("id").HasValue("Alpine"),
+					check.That(resourceType+".test").Key("is_active").HasValue("true"),
 				),
+			},
+			{
+				ResourceName:      resourceType + ".test",
+				ImportState:       true,
+				ImportStateId:     "Engineering_Project/Alpine",
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -66,11 +72,16 @@ func TestAllowedValueResource_Minimal(t *testing.T) {
 			{
 				Config: testConfigMinimal(),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_identity_and_access_custom_security_attribute_allowed_value.test", "custom_security_attribute_definition_id", "Engineering_Project"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_identity_and_access_custom_security_attribute_allowed_value.test", "id", "Minimal"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_identity_and_access_custom_security_attribute_allowed_value.test", "is_active", "true"),
-					testCheckExists("microsoft365_graph_beta_identity_and_access_custom_security_attribute_allowed_value.test"),
+					check.That(resourceType+".test").Key("custom_security_attribute_definition_id").HasValue("Engineering_Project"),
+					check.That(resourceType+".test").Key("id").HasValue("Minimal"),
+					check.That(resourceType+".test").Key("is_active").HasValue("true"),
 				),
+			},
+			{
+				ResourceName:      resourceType + ".test",
+				ImportState:       true,
+				ImportStateId:     "Engineering_Project/Minimal",
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -88,16 +99,22 @@ func TestAllowedValueResource_Update(t *testing.T) {
 			{
 				Config: testConfigBasic(),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_identity_and_access_custom_security_attribute_allowed_value.test", "id", "Alpine"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_identity_and_access_custom_security_attribute_allowed_value.test", "is_active", "true"),
+					check.That(resourceType+".test").Key("id").HasValue("Alpine"),
+					check.That(resourceType+".test").Key("is_active").HasValue("true"),
 				),
 			},
 			{
 				Config: testConfigUpdate(),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_identity_and_access_custom_security_attribute_allowed_value.test", "id", "Alpine"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_identity_and_access_custom_security_attribute_allowed_value.test", "is_active", "false"),
+					check.That(resourceType+".test").Key("id").HasValue("Alpine"),
+					check.That(resourceType+".test").Key("is_active").HasValue("false"),
 				),
+			},
+			{
+				ResourceName:      resourceType + ".test",
+				ImportState:       true,
+				ImportStateId:     "Engineering_Project/Alpine",
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -115,11 +132,16 @@ func TestAllowedValueResource_Inactive(t *testing.T) {
 			{
 				Config: testConfigInactive(),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_identity_and_access_custom_security_attribute_allowed_value.test", "custom_security_attribute_definition_id", "Engineering_Project"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_identity_and_access_custom_security_attribute_allowed_value.test", "id", "Legacy"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_identity_and_access_custom_security_attribute_allowed_value.test", "is_active", "false"),
-					testCheckExists("microsoft365_graph_beta_identity_and_access_custom_security_attribute_allowed_value.test"),
+					check.That(resourceType+".test").Key("custom_security_attribute_definition_id").HasValue("Engineering_Project"),
+					check.That(resourceType+".test").Key("id").HasValue("Legacy"),
+					check.That(resourceType+".test").Key("is_active").HasValue("false"),
 				),
+			},
+			{
+				ResourceName:      resourceType + ".test",
+				ImportState:       true,
+				ImportStateId:     "Engineering_Project/Legacy",
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -137,11 +159,16 @@ func TestAllowedValueResource_WithSpaces(t *testing.T) {
 			{
 				Config: testConfigWithSpaces(),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_identity_and_access_custom_security_attribute_allowed_value.test", "custom_security_attribute_definition_id", "Engineering_Department"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_identity_and_access_custom_security_attribute_allowed_value.test", "id", "Human Resources"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_identity_and_access_custom_security_attribute_allowed_value.test", "is_active", "true"),
-					testCheckExists("microsoft365_graph_beta_identity_and_access_custom_security_attribute_allowed_value.test"),
+					check.That(resourceType+".test").Key("custom_security_attribute_definition_id").HasValue("Engineering_Department"),
+					check.That(resourceType+".test").Key("id").HasValue("Human Resources"),
+					check.That(resourceType+".test").Key("is_active").HasValue("true"),
 				),
+			},
+			{
+				ResourceName:      resourceType + ".test",
+				ImportState:       true,
+				ImportStateId:     "Engineering_Department/Human Resources",
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -181,75 +208,43 @@ func TestAllowedValueResource_NotFound(t *testing.T) {
 	})
 }
 
-func TestAllowedValueResource_Import(t *testing.T) {
-	mocks.SetupUnitTestEnvironment(t)
-	_, allowedValueMock := setupMockEnvironment()
-	defer httpmock.DeactivateAndReset()
-	defer allowedValueMock.CleanupMockState()
-
-	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
-		Steps: []resource.TestStep{
-			{
-				Config: testConfigBasic(),
-			},
-			{
-				ResourceName:      "microsoft365_graph_beta_identity_and_access_custom_security_attribute_allowed_value.test",
-				ImportState:       true,
-				ImportStateId:     "Engineering_Project/Alpine",
-				ImportStateVerify: true,
-			},
-		},
-	})
-}
-
 // Config helper functions
 func testConfigBasic() string {
-	return `
-resource "microsoft365_graph_beta_identity_and_access_custom_security_attribute_allowed_value" "test" {
-  custom_security_attribute_definition_id = "Engineering_Project"
-  id                                       = "Alpine"
-  is_active                                = true
-}
-`
+	unitTestConfig, err := helpers.ParseHCLFile("tests/terraform/unit/test_config_basic.tf")
+	if err != nil {
+		panic("failed to load test_config_basic.tf: " + err.Error())
+	}
+	return unitTestConfig
 }
 
 func testConfigMinimal() string {
-	return `
-resource "microsoft365_graph_beta_identity_and_access_custom_security_attribute_allowed_value" "test" {
-  custom_security_attribute_definition_id = "Engineering_Project"
-  id                                       = "Minimal"
-  is_active                                = true
-}
-`
+	unitTestConfig, err := helpers.ParseHCLFile("tests/terraform/unit/test_config_minimal.tf")
+	if err != nil {
+		panic("failed to load test_config_minimal.tf: " + err.Error())
+	}
+	return unitTestConfig
 }
 
 func testConfigUpdate() string {
-	return `
-resource "microsoft365_graph_beta_identity_and_access_custom_security_attribute_allowed_value" "test" {
-  custom_security_attribute_definition_id = "Engineering_Project"
-  id                                       = "Alpine"
-  is_active                                = false
-}
-`
+	unitTestConfig, err := helpers.ParseHCLFile("tests/terraform/unit/test_config_update.tf")
+	if err != nil {
+		panic("failed to load test_config_update.tf: " + err.Error())
+	}
+	return unitTestConfig
 }
 
 func testConfigInactive() string {
-	return `
-resource "microsoft365_graph_beta_identity_and_access_custom_security_attribute_allowed_value" "test" {
-  custom_security_attribute_definition_id = "Engineering_Project"
-  id                                       = "Legacy"
-  is_active                                = false
-}
-`
+	unitTestConfig, err := helpers.ParseHCLFile("tests/terraform/unit/test_config_inactive.tf")
+	if err != nil {
+		panic("failed to load test_config_inactive.tf: " + err.Error())
+	}
+	return unitTestConfig
 }
 
 func testConfigWithSpaces() string {
-	return `
-resource "microsoft365_graph_beta_identity_and_access_custom_security_attribute_allowed_value" "test" {
-  custom_security_attribute_definition_id = "Engineering_Department"
-  id                                       = "Human Resources"
-  is_active                                = true
-}
-`
+	unitTestConfig, err := helpers.ParseHCLFile("tests/terraform/unit/test_config_with_spaces.tf")
+	if err != nil {
+		panic("failed to load test_config_with_spaces.tf: " + err.Error())
+	}
+	return unitTestConfig
 }
