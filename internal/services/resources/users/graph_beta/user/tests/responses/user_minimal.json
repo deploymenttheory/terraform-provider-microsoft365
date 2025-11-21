@@ -5,14 +5,11 @@
   "mailNickname": "minimal.user",
   "accountEnabled": true,
   "passwordProfile": {
-    "password": "SecureP@ssw0rd123!",
     "forceChangePasswordNextSignIn": false,
     "forceChangePasswordNextSignInWithMfa": false
   },
   "createdDateTime": "2023-01-01T00:00:00Z",
   "businessPhones": [],
-  "identities": [],
-  "imAddresses": [],
   "otherMails": [],
   "proxyAddresses": []
 }

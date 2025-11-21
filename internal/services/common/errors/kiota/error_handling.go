@@ -117,6 +117,10 @@ func HandleKiotaGraphError(ctx context.Context, err error, resp any, operation s
 			removeResourceFromState(ctx, resp)
 			return
 		}
+		if operation == "Delete" {
+			tflog.Info(ctx, "Resource already deleted or does not exist (404 Response), treating as successful deletion")
+			return
+		}
 		addErrorToDiagnostics(ctx, resp, errorDesc.Summary,
 			constructDetailedErrorMessage(errorDesc.Detail, &errorInfo))
 
@@ -566,7 +570,7 @@ func handlePermissionError(ctx context.Context, errorInfo GraphErrorInfo, resp a
 	if len(requiredPermissions) == 1 {
 		permissionMsg = fmt.Sprintf("%s operation requires permission: %s", operation, requiredPermissions[0])
 	} else if len(requiredPermissions) > 1 {
-		permissionMsg = fmt.Sprintf("%s operation requires one of the following permissions: %s", operation, strings.Join(requiredPermissions, ", "))
+		permissionMsg = fmt.Sprintf("%s operation requires one or more of the following permissions: %s", operation, strings.Join(requiredPermissions, ", "))
 	} else {
 		permissionMsg = fmt.Sprintf("%s operation: No specific permissions defined. Please check Microsoft documentation.", operation)
 	}

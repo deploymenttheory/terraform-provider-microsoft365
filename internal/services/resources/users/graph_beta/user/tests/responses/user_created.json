@@ -19,10 +19,8 @@
   "businessPhones": {{.BusinessPhones}},
   "mobilePhone": "{{.MobilePhone}}",
   "passwordProfile": {{.PasswordProfile}},
-  "identities": {{.Identities}},
   "otherMails": {{.OtherMails}},
   "proxyAddresses": {{.ProxyAddresses}},
   "showInAddressList": {{.ShowInAddressList}},
-  "createdDateTime": "{{.CreatedDateTime}}",
-  "imAddresses": []
+  "createdDateTime": "{{.CreatedDateTime}}"
 }

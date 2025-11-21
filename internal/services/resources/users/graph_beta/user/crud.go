@@ -10,15 +10,24 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
+	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
+	"github.com/microsoftgraph/msgraph-beta-sdk-go/users"
 )
 
 // Create handles the Create operation.
 func (r *UserResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var plan UserResourceModel
+	var hcl UserResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting creation of resource: %s", ResourceName))
 
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// Get hcl values for write-only password_profile fields
+	resp.Diagnostics.Append(req.Config.Get(ctx, &hcl)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -29,7 +38,11 @@ func (r *UserResource) Create(ctx context.Context, req resource.CreateRequest, r
 	}
 	defer cancel()
 
-	requestBody, err := constructResource(ctx, &plan)
+	// Merge write-only password_profile from config (all fields are write-only)
+	constructModel := plan
+	constructModel.PasswordProfile = hcl.PasswordProfile
+
+	requestBody, err := constructResource(ctx, &constructModel)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error constructing resource",
@@ -98,6 +111,7 @@ func (r *UserResource) Read(ctx context.Context, req resource.ReadRequest, resp 
 	}
 	defer cancel()
 
+	// First API call: get standard user properties
 	user, err := r.client.
 		Users().
 		ByUserId(state.ID.ValueString()).
@@ -108,7 +122,43 @@ func (r *UserResource) Read(ctx context.Context, req resource.ReadRequest, resp 
 		return
 	}
 
-	MapRemoteStateToTerraform(ctx, &state, user)
+	// Second API call: get custom security attributes (requires explicit $select)
+	csaRequestConfig := &users.UserItemRequestBuilderGetRequestConfiguration{
+		QueryParameters: &users.UserItemRequestBuilderGetQueryParameters{
+			Select: []string{"customSecurityAttributes"},
+		},
+	}
+
+	userWithCSA, err := r.client.
+		Users().
+		ByUserId(state.ID.ValueString()).
+		Get(ctx, csaRequestConfig)
+
+	if err != nil {
+		// Log warning but don't fail - CSA might not be configured or user might not have permissions
+		tflog.Warn(ctx, "Failed to fetch custom security attributes, continuing without them", map[string]any{
+			"error": err.Error(),
+		})
+		userWithCSA = nil
+	}
+
+	// Third API call: get manager (separate endpoint)
+	var manager graphmodels.DirectoryObjectable
+	manager, err = r.client.
+		Users().
+		ByUserId(state.ID.ValueString()).
+		Manager().
+		Get(ctx, nil)
+
+	if err != nil {
+		// Log debug but don't fail - user might not have a manager assigned
+		tflog.Debug(ctx, "Failed to fetch manager, continuing without it", map[string]any{
+			"error": err.Error(),
+		})
+		manager = nil
+	}
+
+	MapRemoteStateToTerraform(ctx, &state, user, userWithCSA, manager)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
@@ -123,13 +173,13 @@ func (r *UserResource) Update(ctx context.Context, req resource.UpdateRequest, r
 	var plan UserResourceModel
 	var state UserResourceModel
 
-	tflog.Debug(ctx, fmt.Sprintf("Updating %s with ID: %s", ResourceName, state.ID.ValueString()))
-
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
+	tflog.Debug(ctx, fmt.Sprintf("Updating %s with ID: %s", ResourceName, state.ID.ValueString()))
 
 	ctx, cancel := crud.HandleTimeout(ctx, plan.Timeouts.Update, UpdateTimeout*time.Second, &resp.Diagnostics)
 	if cancel == nil {
@@ -138,6 +188,11 @@ func (r *UserResource) Update(ctx context.Context, req resource.UpdateRequest, r
 	defer cancel()
 
 	plan.ID = state.ID
+
+	// password_profile is write-only (used only for initial provisioning)
+	// Never send password_profile on updates - set to nil to exclude from request
+	plan.PasswordProfile = nil
+	tflog.Debug(ctx, "Excluding write-only password_profile from update request")
 
 	requestBody, err := constructResource(ctx, &plan)
 	if err != nil {
@@ -157,6 +212,9 @@ func (r *UserResource) Update(ctx context.Context, req resource.UpdateRequest, r
 		errors.HandleKiotaGraphError(ctx, err, resp, "Update", r.WritePermissions)
 		return
 	}
+
+	tflog.Debug(ctx, fmt.Sprintf("Waiting for eventual consistency before reading updated resource %s with ID: %s", plan.DisplayName.ValueString(), state.ID.ValueString()))
+	time.Sleep(15 * time.Second)
 
 	readReq := resource.ReadRequest{State: resp.State, ProviderMeta: req.ProviderMeta}
 	stateContainer := &crud.UpdateResponseContainer{UpdateResponse: resp}
