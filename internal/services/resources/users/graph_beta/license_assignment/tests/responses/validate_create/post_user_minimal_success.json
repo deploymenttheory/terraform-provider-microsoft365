@@ -5,7 +5,11 @@
   "displayName": "Test Minimal User",
   "assignedLicenses": [
     {
-      "skuId": "33333333-3333-3333-3333-333333333333",
+      "skuId": "a403ebcc-fae0-4ca2-8c8c-7a907fd6c235",
+      "disabledPlans": []
+    },
+    {
+      "skuId": "f30db892-07e9-47e9-837c-80727f46fd3d",
       "disabledPlans": []
     }
   ]

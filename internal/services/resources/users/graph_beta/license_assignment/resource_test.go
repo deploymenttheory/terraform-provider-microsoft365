@@ -27,22 +27,6 @@ func setupMockEnvironment() (*mocks.Mocks, *localMocks.UserLicenseAssignmentMock
 	return mockClient, licenseAssignmentMock
 }
 
-func testConfigMinimal() string {
-	unitTestConfig, err := helpers.ParseHCLFile("tests/terraform/unit/resource_minimal.tf")
-	if err != nil {
-		panic("failed to load resource_minimal.tf: " + err.Error())
-	}
-	return unitTestConfig
-}
-
-func testConfigMaximal() string {
-	unitTestConfig, err := helpers.ParseHCLFile("tests/terraform/unit/resource_maximal.tf")
-	if err != nil {
-		panic("failed to load resource_maximal.tf: " + err.Error())
-	}
-	return unitTestConfig
-}
-
 func testConfigMinimalToMaximal() string {
 	maximalContent := testConfigMaximal()
 	updatedMaximal := strings.Replace(maximalContent, "maximal", "minimal", 1)
@@ -58,9 +42,14 @@ func testConfigMaximalWithResourceName(resourceName string) string {
 func testConfigMinimalWithResourceName(resourceName string) string {
 	return fmt.Sprintf(`resource "microsoft365_graph_beta_users_user_license_assignment" "%s" {
   user_id = "00000000-0000-0000-0000-000000000003"
-  add_licenses = [{
-    sku_id = "33333333-3333-3333-3333-333333333333"
-  }]
+  add_licenses = [
+    {
+      sku_id = "a403ebcc-fae0-4ca2-8c8c-7a907fd6c235" # POWER_BI_STANDARD
+    },
+    {
+      sku_id = "f30db892-07e9-47e9-837c-80727f46fd3d" # FLOW_FREE
+    }
+  ]
 }`, resourceName)
 }
 
@@ -88,15 +77,21 @@ func TestUnitUserLicenseAssignmentResource_Create_Minimal(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					check.That(resourceType+".minimal").Key("id").Exists(),
 					check.That(resourceType+".minimal").Key("user_id").HasValue("00000000-0000-0000-0000-000000000002"),
-					check.That(resourceType+".minimal").Key("add_licenses.#").HasValue("1"),
-					check.That(resourceType+".minimal").Key("add_licenses.0.sku_id").HasValue("33333333-3333-3333-3333-333333333333"),
+					check.That(resourceType+".minimal").Key("add_licenses.#").HasValue("2"),
+					check.That(resourceType+".minimal").Key("add_licenses.0.sku_id").HasValue("a403ebcc-fae0-4ca2-8c8c-7a907fd6c235"),
 					check.That(resourceType+".minimal").Key("add_licenses.0.disabled_plans.#").HasValue("0"),
+					check.That(resourceType+".minimal").Key("add_licenses.1.sku_id").HasValue("f30db892-07e9-47e9-837c-80727f46fd3d"),
+					check.That(resourceType+".minimal").Key("add_licenses.1.disabled_plans.#").HasValue("0"),
 				),
 			},
 			{
 				ResourceName:      resourceType + ".minimal",
 				ImportState:       true,
 				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"add_licenses",
+					"remove_licenses",
+				},
 			},
 		},
 	})
@@ -127,6 +122,10 @@ func TestUnitUserLicenseAssignmentResource_Create_Maximal(t *testing.T) {
 				ResourceName:      resourceType + ".maximal",
 				ImportState:       true,
 				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"add_licenses",
+					"remove_licenses",
+				},
 			},
 		},
 	})
@@ -145,9 +144,10 @@ func TestUnitUserLicenseAssignmentResource_Update_MinimalToMaximal(t *testing.T)
 				Check: resource.ComposeTestCheckFunc(
 					check.That(resourceType+".minimal").Key("id").Exists(),
 					check.That(resourceType+".minimal").Key("user_id").HasValue("00000000-0000-0000-0000-000000000002"),
-					check.That(resourceType+".minimal").Key("add_licenses.#").HasValue("1"),
-					check.That(resourceType+".minimal").Key("add_licenses.0.sku_id").HasValue("33333333-3333-3333-3333-333333333333"),
+					check.That(resourceType+".minimal").Key("add_licenses.#").HasValue("2"),
+					check.That(resourceType+".minimal").Key("add_licenses.0.sku_id").HasValue("a403ebcc-fae0-4ca2-8c8c-7a907fd6c235"),
 					check.That(resourceType+".minimal").Key("add_licenses.0.disabled_plans.#").HasValue("0"),
+					check.That(resourceType+".minimal").Key("add_licenses.1.sku_id").HasValue("f30db892-07e9-47e9-837c-80727f46fd3d"),
 				),
 			},
 			{
@@ -186,8 +186,9 @@ func TestUnitUserLicenseAssignmentResource_Update_MaximalToMinimal(t *testing.T)
 				Config: testConfigMinimalWithResourceName("test"),
 				Check: resource.ComposeTestCheckFunc(
 					check.That(resourceType+".test").Key("id").Exists(),
-					check.That(resourceType+".test").Key("add_licenses.#").HasValue("1"),
-					check.That(resourceType+".test").Key("add_licenses.0.sku_id").HasValue("33333333-3333-3333-3333-333333333333"),
+					check.That(resourceType+".test").Key("add_licenses.#").HasValue("2"),
+					check.That(resourceType+".test").Key("add_licenses.0.sku_id").HasValue("a403ebcc-fae0-4ca2-8c8c-7a907fd6c235"),
+					check.That(resourceType+".test").Key("add_licenses.1.sku_id").HasValue("f30db892-07e9-47e9-837c-80727f46fd3d"),
 				),
 			},
 		},
@@ -266,4 +267,20 @@ func TestUnitUserLicenseAssignmentResource_Error(t *testing.T) {
 			},
 		},
 	})
+}
+
+func testConfigMinimal() string {
+	unitTestConfig, err := helpers.ParseHCLFile("tests/terraform/unit/resource_minimal.tf")
+	if err != nil {
+		panic("failed to load resource_minimal.tf: " + err.Error())
+	}
+	return unitTestConfig
+}
+
+func testConfigMaximal() string {
+	unitTestConfig, err := helpers.ParseHCLFile("tests/terraform/unit/resource_maximal.tf")
+	if err != nil {
+		panic("failed to load resource_maximal.tf: " + err.Error())
+	}
+	return unitTestConfig
 }
