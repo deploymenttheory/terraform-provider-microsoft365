@@ -1,31 +1,29 @@
-variable "test_user_id" {
-  description = "Test user ID for acceptance tests"
-  type        = string
+resource "random_string" "maximal_suffix" {
+  length  = 8
+  special = false
+  upper   = false
 }
 
-variable "test_license_sku_id_1" {
-  description = "First test license SKU ID for acceptance tests"
-  type        = string
-}
+resource "microsoft365_graph_beta_users_user_license_assignment" "dependancy" {
+  user_id = microsoft365_graph_beta_users_user.dependancy.id
+  add_licenses = [
+    {
+      sku_id = "a403ebcc-fae0-4ca2-8c8c-7a907fd6c235" # POWER_BI_STANDARD
+    },
+    {
+      sku_id = "f30db892-07e9-47e9-837c-80727f46fd3d" # FLOW_FREE
+    }
+  ]
+} 
 
-variable "test_license_sku_id_2" {
-  description = "Second test license SKU ID for acceptance tests"
-  type        = string
-}
-
-variable "test_service_plan_id" {
-  description = "Test service plan ID for acceptance tests (optional)"
-  type        = string
-  default     = ""
-}
-
-resource "microsoft365_graph_beta_users_user_license_assignment" "maximal" {
-  user_id = var.test_user_id
-  add_licenses = [{
-    sku_id         = var.test_license_sku_id_1
-    disabled_plans = var.test_service_plan_id != "" ? [var.test_service_plan_id] : []
-    }, {
-    sku_id = var.test_license_sku_id_2
-  }]
-}
-
+resource "microsoft365_graph_beta_users_user" "dependancy" {
+  account_enabled     = false
+  display_name        = "License Test Maximal User"
+  user_principal_name = "license.test.maximal.${random_string.maximal_suffix.result}@deploymenttheory.com"
+  mail_nickname       = "license.test.maximal.${random_string.maximal_suffix.result}"
+  usage_location      = "GB"
+  password_profile = {
+    password                           = "SecureP@ssw0rd123!!!!"
+    force_change_password_next_sign_in = true
+  }
+} 

@@ -8,7 +8,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
+	commonMocks "github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
 	"github.com/jarcoal/httpmock"
 )
 
@@ -21,15 +21,21 @@ var mockState struct {
 func init() {
 	mockState.userLicenses = make(map[string]map[string]any)
 	httpmock.RegisterNoResponder(httpmock.NewStringResponder(404, `{"error":{"code":"ResourceNotFound","message":"Resource not found"}}`))
+
+	// Register with global registry
+	commonMocks.GlobalRegistry.Register("user_license_assignment", &UserLicenseAssignmentMock{})
 }
 
 // UserLicenseAssignmentMock provides mock responses for user license assignment operations
 type UserLicenseAssignmentMock struct{}
 
+// Ensure UserLicenseAssignmentMock implements MockRegistrar interface
+var _ commonMocks.MockRegistrar = (*UserLicenseAssignmentMock)(nil)
+
 // loadJSONResponse loads a JSON response from the tests/responses directory
 func (m *UserLicenseAssignmentMock) loadJSONResponse(filePath string) (map[string]any, error) {
 	fullPath := filepath.Join("tests", "responses", filePath)
-	return mocks.LoadJSONResponse(fullPath)
+	return commonMocks.LoadJSONResponse(fullPath)
 }
 
 // getJSONFileForUserID determines which JSON file to load based on the user ID
@@ -112,10 +118,21 @@ func (m *UserLicenseAssignmentMock) RegisterMocks() {
 					continue
 				}
 
+				// Create mock service plans
+				servicePlans := []map[string]any{
+					{
+						"servicePlanId":      fmt.Sprintf("00000000-0000-0000-0000-%012s", skuID[24:36]),
+						"servicePlanName":    "Exchange Online",
+						"provisioningStatus": "Success",
+						"appliesTo":          "User",
+					},
+				}
+
 				licenseDetail := map[string]any{
 					"id":            userID + "_" + skuID,
 					"skuId":         skuID,
 					"skuPartNumber": fmt.Sprintf("SKU_%s", skuID[0:8]),
+					"servicePlans":  servicePlans,
 				}
 				licenseDetails = append(licenseDetails, licenseDetail)
 			}
@@ -128,7 +145,7 @@ func (m *UserLicenseAssignmentMock) RegisterMocks() {
 			return httpmock.NewJsonResponse(200, response)
 		})
 
-	// Register POST for license assignment (create/update)
+	// Register POST for license assignment (create/update/delete)
 	httpmock.RegisterResponder("POST", `=~^https://graph.microsoft.com/beta/users/[^/]+/assignLicense$`,
 		func(req *http.Request) (*http.Response, error) {
 			urlParts := strings.Split(req.URL.Path, "/")
@@ -151,6 +168,25 @@ func (m *UserLicenseAssignmentMock) RegisterMocks() {
 			err := json.NewDecoder(req.Body).Decode(&requestBody)
 			if err != nil {
 				return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"Invalid request body"}}`), nil
+			}
+
+			// Check if this is a delete operation (removing all licenses)
+			addLicenses, hasAdd := requestBody["addLicenses"].([]any)
+			removeLicenses, hasRemove := requestBody["removeLicenses"].([]any)
+
+			if hasRemove && len(removeLicenses) > 0 && (!hasAdd || len(addLicenses) == 0) {
+				// This is a delete operation - remove user from state
+				mockState.Lock()
+				delete(mockState.userLicenses, userID)
+				mockState.Unlock()
+
+				// Return empty licenses
+				userData := map[string]any{
+					"id":                userID,
+					"userPrincipalName": "test.user@contoso.com",
+					"assignedLicenses":  []any{},
+				}
+				return httpmock.NewJsonResponse(200, userData)
 			}
 
 			// Determine if this is a create or update operation
@@ -177,7 +213,7 @@ func (m *UserLicenseAssignmentMock) RegisterMocks() {
 			}
 
 			// Process the request to merge add/remove licenses
-			if addLicenses, ok := requestBody["addLicenses"].([]any); ok && len(addLicenses) > 0 {
+			if hasAdd && len(addLicenses) > 0 {
 				// For create, just use the JSON file's licenses
 				// For update, merge with existing licenses
 				if operation == "update" {
@@ -211,8 +247,8 @@ func (m *UserLicenseAssignmentMock) RegisterMocks() {
 				}
 			}
 
-			// Process remove licenses
-			if removeLicenses, ok := requestBody["removeLicenses"].([]any); ok && len(removeLicenses) > 0 {
+			// Process remove licenses (but not a full delete)
+			if hasRemove && len(removeLicenses) > 0 && hasAdd && len(addLicenses) > 0 {
 				currentLicenses := userData["assignedLicenses"].([]any)
 				filteredLicenses := make([]any, 0)
 
@@ -242,42 +278,6 @@ func (m *UserLicenseAssignmentMock) RegisterMocks() {
 			mockState.Unlock()
 
 			return httpmock.NewJsonResponse(200, userData)
-		})
-
-	// Register DELETE for license removal (resource deletion)
-	httpmock.RegisterResponder("POST", `=~^https://graph.microsoft.com/beta/users/[^/]+/assignLicense$`,
-		func(req *http.Request) (*http.Response, error) {
-			urlParts := strings.Split(req.URL.Path, "/")
-			userID := urlParts[len(urlParts)-2]
-
-			// Parse request body to check if all licenses are being removed
-			var requestBody map[string]any
-			err := json.NewDecoder(req.Body).Decode(&requestBody)
-			if err != nil {
-				return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"Invalid request body"}}`), nil
-			}
-
-			// Check if this is a delete operation (removing all licenses)
-			addLicenses, hasAdd := requestBody["addLicenses"].([]any)
-			removeLicenses, hasRemove := requestBody["removeLicenses"].([]any)
-
-			if hasRemove && len(removeLicenses) > 0 && (!hasAdd || len(addLicenses) == 0) {
-				// This is a delete operation - remove user from state
-				mockState.Lock()
-				delete(mockState.userLicenses, userID)
-				mockState.Unlock()
-
-				// Return empty licenses
-				userData := map[string]any{
-					"id":                userID,
-					"userPrincipalName": "test.user@contoso.com",
-					"assignedLicenses":  []any{},
-				}
-				return httpmock.NewJsonResponse(200, userData)
-			}
-
-			// Otherwise, handle as normal update
-			return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"Invalid request"}}`), nil
 		})
 }
 
