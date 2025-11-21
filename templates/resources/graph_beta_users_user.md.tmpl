@@ -29,10 +29,21 @@ The following API permissions are required in order to use this resource.
 | Version | Status | Notes |
 |---------|--------|-------|
 | v0.16.0-alpha | Experimental | Initial release |
+| v0.36.0-alpha | Preview | Added support for manager_id and added custom security attributes support|
 
 ## Example Usage
 
-{{ tffile "examples/resources/microsoft365_graph_beta_users_user/resource.tf" }}
+### Minimal Example
+
+{{ tffile "examples/resources/microsoft365_graph_beta_users_user/resource_minimal.tf" }}
+
+### Maximal Example
+
+{{ tffile "examples/resources/microsoft365_graph_beta_users_user/resource_maximal.tf" }}
+
+### Custom Security Attributes Example
+
+{{ tffile "examples/resources/microsoft365_graph_beta_users_user/resource_custom_sec_att.tf" }}
 
 {{ .SchemaMarkdown | trimspace }}
 

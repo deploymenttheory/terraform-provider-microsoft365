@@ -3,12 +3,11 @@ package mocks
 import (
 	"encoding/json"
 	"net/http"
-	"os"
-	"path/filepath"
 	"strings"
 	"sync"
 	"time"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	commonMocks "github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
 	"github.com/google/uuid"
 	"github.com/jarcoal/httpmock"
@@ -56,6 +55,35 @@ func (m *UserMock) RegisterMocks() {
 			}
 
 			return httpmock.NewJsonResponse(200, userData)
+		})
+
+	// Register GET for user manager
+	httpmock.RegisterResponder("GET", `=~^https://graph.microsoft.com/beta/users/[^/]+/manager$`,
+		func(req *http.Request) (*http.Response, error) {
+			urlParts := strings.Split(req.URL.Path, "/")
+			userId := urlParts[len(urlParts)-2]
+
+			mockState.Lock()
+			userData, exists := mockState.users[userId]
+			mockState.Unlock()
+
+			if !exists {
+				return httpmock.NewStringResponse(404, `{"error":{"code":"ResourceNotFound","message":"User not found"}}`), nil
+			}
+
+			// Check if user has a manager set
+			managerId, hasManager := userData["managerId"].(string)
+			if !hasManager || managerId == "" {
+				return httpmock.NewStringResponse(404, `{"error":{"code":"ResourceNotFound","message":"Manager not found"}}`), nil
+			}
+
+			// Return minimal manager info
+			managerData := map[string]any{
+				"@odata.type": "#microsoft.graph.user",
+				"id":          managerId,
+			}
+
+			return httpmock.NewJsonResponse(200, managerData)
 		})
 
 	// Register GET for listing users
@@ -106,12 +134,28 @@ func (m *UserMock) RegisterMocks() {
 			now := time.Now().Format(time.RFC3339)
 			userData["createdDateTime"] = now
 
+			// Handle manager@odata.bind - extract ID and store as managerId
+			if managerBindURL, ok := userData["manager@odata.bind"].(string); ok {
+				// Extract manager ID from the URL
+				// Format: https://graph.microsoft.com/beta/users/{manager-id}
+				parts := strings.Split(managerBindURL, "/")
+				if len(parts) > 0 {
+					managerId := parts[len(parts)-1]
+					userData["managerId"] = managerId
+				}
+				// Remove the binding from the response
+				delete(userData, "manager@odata.bind")
+			}
+
 			// Ensure collection fields are initialized
 			commonMocks.EnsureField(userData, "businessPhones", []string{})
-			commonMocks.EnsureField(userData, "identities", []map[string]any{})
-			commonMocks.EnsureField(userData, "imAddresses", []string{})
 			commonMocks.EnsureField(userData, "otherMails", []string{})
 			commonMocks.EnsureField(userData, "proxyAddresses", []string{})
+
+			// Remove password from response (write-only field)
+			if passwordProfile, ok := userData["passwordProfile"].(map[string]any); ok {
+				delete(passwordProfile, "password")
+			}
 
 			// Store user in mock state
 			userId := userData["id"].(string)
@@ -175,7 +219,20 @@ func (m *UserMock) RegisterMocks() {
 
 			// Apply the updates
 			for k, v := range updateData {
-				userData[k] = v
+				// Handle manager@odata.bind - extract ID and store as managerId
+				if k == "manager@odata.bind" {
+					if managerBindURL, ok := v.(string); ok {
+						// Extract manager ID from the URL
+						// Format: https://graph.microsoft.com/beta/users/{manager-id}
+						parts := strings.Split(managerBindURL, "/")
+						if len(parts) > 0 {
+							managerId := parts[len(parts)-1]
+							userData["managerId"] = managerId
+						}
+					}
+				} else {
+					userData[k] = v
+				}
 			}
 
 			mockState.users[userId] = userData
@@ -228,17 +285,19 @@ func (m *UserMock) RegisterErrorMocks() {
 		})
 }
 
-// loadFixture loads a JSON fixture file from the tests/responses directory
+// loadFixture loads a JSON fixture file from the tests/responses directory using the secure helpers package
 func loadFixture(filename string) (map[string]any, error) {
 	// Path relative to the mocks directory: ../tests/responses/
-	fixturesPath := filepath.Join("tests", "responses", filename)
-	data, err := os.ReadFile(fixturesPath)
+	fixturesPath := "../tests/responses/" + filename
+
+	// Use the secure JSON parser from helpers package
+	jsonContent, err := helpers.ParseJSONFile(fixturesPath)
 	if err != nil {
 		return nil, err
 	}
 
 	var result map[string]any
-	if err := json.Unmarshal(data, &result); err != nil {
+	if err := json.Unmarshal([]byte(jsonContent), &result); err != nil {
 		return nil, err
 	}
 
@@ -255,16 +314,14 @@ func registerTestUsers() {
 			"id":                "00000000-0000-0000-0000-000000000001",
 			"displayName":       "Minimal User",
 			"userPrincipalName": "minimal.user@deploymenttheory.com",
+			"mailNickname":      "minimal.user",
 			"accountEnabled":    true,
 			"passwordProfile": map[string]any{
-				"password":                             "SecureP@ssw0rd123!",
 				"forceChangePasswordNextSignIn":        false,
 				"forceChangePasswordNextSignInWithMfa": false,
 			},
 			"createdDateTime": "2023-01-01T00:00:00Z",
 			"businessPhones":  []any{},
-			"identities":      []any{},
-			"imAddresses":     []any{},
 			"otherMails":      []any{},
 			"proxyAddresses":  []any{},
 		}
@@ -275,41 +332,42 @@ func registerTestUsers() {
 	if err != nil {
 		// Fallback to inline data if fixture loading fails
 		maximalUserData = map[string]any{
-			"id":                "00000000-0000-0000-0000-000000000002",
-			"displayName":       "Maximal User",
-			"userPrincipalName": "maximal.user@deploymenttheory.com",
-			"accountEnabled":    true,
-			"givenName":         "Maximal",
-			"surname":           "User",
-			"mail":              "maximal.user@deploymenttheory.com",
-			"mailNickname":      "maximal.user",
-			"jobTitle":          "Senior Developer",
-			"department":        "Engineering",
-			"companyName":       "Contoso Ltd",
-			"officeLocation":    "Building A",
-			"city":              "Redmond",
-			"state":             "WA",
-			"country":           "US",
-			"postalCode":        "98052",
-			"usageLocation":     "US",
-			"businessPhones":    []any{"+1 425-555-0100"},
-			"mobilePhone":       "+1 425-555-0101",
+			"id":                      "00000000-0000-0000-0000-000000000002",
+			"displayName":             "unit-test-user-maximal",
+			"userPrincipalName":       "unit-test-user-maximal@deploymenttheory.com",
+			"accountEnabled":          true,
+			"givenName":               "Maximal",
+			"surname":                 "User",
+			"mail":                    "unit-test-user-maximal@deploymenttheory.com",
+			"mailNickname":            "unit-test-user-maximal",
+			"jobTitle":                "Senior Developer",
+			"department":              "Engineering",
+			"companyName":             "Deployment Theory",
+			"officeLocation":          "Building A",
+			"city":                    "Redmond",
+			"state":                   "WA",
+			"country":                 "US",
+			"streetAddress":           "123 street",
+			"postalCode":              "98052",
+			"usageLocation":           "US",
+			"businessPhones":          []any{"+1 425-555-0100"},
+			"mobilePhone":             "+1 425-555-0101",
+			"faxNumber":               "+1 425-555-0102",
+			"ageGroup":                "NotAdult",
+			"consentProvidedForMinor": "Granted",
+			"employeeId":              "1234567890",
+			"employeeType":            "full time",
+			"employeeHireDate":        "2025-11-21T00:00:00Z",
+			"preferredLanguage":       "en-US",
+			"passwordPolicies":        "DisablePasswordExpiration",
 			"passwordProfile": map[string]any{
-				"password":                             "SecureP@ssw0rd123!",
 				"forceChangePasswordNextSignIn":        false,
 				"forceChangePasswordNextSignInWithMfa": false,
 			},
-			"identities": []any{
-				map[string]any{
-					"signInType":       "emailAddress",
-					"issuer":           "DeploymentTheory.onmicrosoft.com",
-					"issuerAssignedId": "maximal.user@deploymenttheory.com",
-				},
-			},
-			"otherMails":        []any{"maximal.user.other@deploymenttheory.com"},
+			"otherMails":        []any{"unit-test-user-maximal2.other@deploymenttheory.com"},
 			"showInAddressList": true,
-			"createdDateTime":    "2023-01-01T00:00:00Z",
-			"imAddresses":        []any{},
+			"createdDateTime":   "2023-01-01T00:00:00Z",
+			"managerId":         "11111111-1111-1111-1111-111111111111",
 		}
 	}
 

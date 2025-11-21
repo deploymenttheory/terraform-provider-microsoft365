@@ -7,4 +7,5 @@ resource "microsoft365_graph_beta_users_user" "minimal" {
     password                           = "SecureP@ssw0rd123!"
     force_change_password_next_sign_in = false
   }
-} 
+}
+

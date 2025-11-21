@@ -22,9 +22,9 @@ variable "test_service_plan_id" {
 resource "microsoft365_graph_beta_users_user_license_assignment" "maximal" {
   user_id = var.test_user_id
   add_licenses = [{
-    sku_id = var.test_license_sku_id_1
+    sku_id         = var.test_license_sku_id_1
     disabled_plans = var.test_service_plan_id != "" ? [var.test_service_plan_id] : []
-  }, {
+    }, {
     sku_id = var.test_license_sku_id_2
   }]
 }

@@ -16,12 +16,9 @@ func constructResource(ctx context.Context, data *UserResourceModel) (graphmodel
 
 	user := graphmodels.NewUser()
 
-	// Set required properties
 	convert.FrameworkToGraphString(data.DisplayName, user.SetDisplayName)
 	convert.FrameworkToGraphBool(data.AccountEnabled, user.SetAccountEnabled)
 	convert.FrameworkToGraphString(data.UserPrincipalName, user.SetUserPrincipalName)
-
-	// Set optional properties
 	convert.FrameworkToGraphString(data.AboutMe, user.SetAboutMe)
 	convert.FrameworkToGraphString(data.AgeGroup, user.SetAgeGroup)
 	convert.FrameworkToGraphString(data.City, user.SetCity)
@@ -75,13 +72,8 @@ func constructResource(ctx context.Context, data *UserResourceModel) (graphmodel
 	convert.FrameworkToGraphString(data.UsageLocation, user.SetUsageLocation)
 	convert.FrameworkToGraphString(data.UserType, user.SetUserType)
 
-	// Set collection properties
 	if err := convert.FrameworkToGraphStringSet(ctx, data.BusinessPhones, user.SetBusinessPhones); err != nil {
 		return nil, fmt.Errorf("error converting business phones: %v", err)
-	}
-
-	if err := convert.FrameworkToGraphStringSet(ctx, data.ImAddresses, user.SetImAddresses); err != nil {
-		return nil, fmt.Errorf("error converting IM addresses: %v", err)
 	}
 
 	if err := convert.FrameworkToGraphStringSet(ctx, data.OtherMails, user.SetOtherMails); err != nil {
@@ -92,35 +84,39 @@ func constructResource(ctx context.Context, data *UserResourceModel) (graphmodel
 		return nil, fmt.Errorf("error converting proxy addresses: %v", err)
 	}
 
+	// password_profile is write-only - only included on Create, never on Update
 	if data.PasswordProfile != nil {
 		passwordProfile := graphmodels.NewPasswordProfile()
-
 		convert.FrameworkToGraphString(data.PasswordProfile.Password, passwordProfile.SetPassword)
 		convert.FrameworkToGraphBool(data.PasswordProfile.ForceChangePasswordNextSignIn, passwordProfile.SetForceChangePasswordNextSignIn)
-		convert.FrameworkToGraphBool(data.PasswordProfile.ForceChangePasswordNextSignInWithMfa, passwordProfile.SetForceChangePasswordNextSignInWithMfa)
+
+		// Handle force_change_password_next_sign_in_with_mfa with default of false
+		if !data.PasswordProfile.ForceChangePasswordNextSignInWithMfa.IsNull() && !data.PasswordProfile.ForceChangePasswordNextSignInWithMfa.IsUnknown() {
+			convert.FrameworkToGraphBool(data.PasswordProfile.ForceChangePasswordNextSignInWithMfa, passwordProfile.SetForceChangePasswordNextSignInWithMfa)
+		} else {
+			// Default to false if not specified
+			falseValue := false
+			passwordProfile.SetForceChangePasswordNextSignInWithMfa(&falseValue)
+		}
 
 		user.SetPasswordProfile(passwordProfile)
 	}
 
-	if !data.Identities.IsNull() && !data.Identities.IsUnknown() {
-		var identities []graphmodels.ObjectIdentityable
-
-		identityElements := []ObjectIdentity{}
-		if diags := data.Identities.ElementsAs(ctx, &identityElements, false); diags.HasError() {
-			return nil, fmt.Errorf("error extracting identities: %v", diags)
+	if len(data.CustomSecurityAttributes) > 0 {
+		customSecurityAttributes := constructCustomSecurityAttributes(ctx, data.CustomSecurityAttributes)
+		if customSecurityAttributes != nil {
+			user.SetCustomSecurityAttributes(customSecurityAttributes)
 		}
+	}
 
-		for _, identity := range identityElements {
-			objectIdentity := graphmodels.NewObjectIdentity()
-
-			convert.FrameworkToGraphString(identity.SignInType, objectIdentity.SetSignInType)
-			convert.FrameworkToGraphString(identity.Issuer, objectIdentity.SetIssuer)
-			convert.FrameworkToGraphString(identity.IssuerAssignedId, objectIdentity.SetIssuerAssignedId)
-
-			identities = append(identities, objectIdentity)
+	// Set manager using @odata.bind pattern in additionalData
+	if !data.ManagerId.IsNull() && !data.ManagerId.IsUnknown() {
+		managerId := data.ManagerId.ValueString()
+		if managerId != "" {
+			additionalData := make(map[string]any)
+			additionalData["manager@odata.bind"] = fmt.Sprintf("https://graph.microsoft.com/beta/users/%s", managerId)
+			user.SetAdditionalData(additionalData)
 		}
-
-		user.SetIdentities(identities)
 	}
 
 	if err := constructors.DebugLogGraphObject(ctx, fmt.Sprintf("Final JSON to be sent to Graph API for resource %s", ResourceName), user); err != nil {
@@ -132,4 +128,97 @@ func constructResource(ctx context.Context, data *UserResourceModel) (graphmodel
 	tflog.Debug(ctx, fmt.Sprintf("Finished constructing %s resource", ResourceName))
 
 	return user, nil
+}
+
+// constructCustomSecurityAttributes converts the Terraform custom security attributes to the Graph API format
+// The Graph API expects a structure like:
+//
+//	{
+//	  "Engineering": {
+//	    "@odata.type": "#microsoft.graph.customSecurityAttributeValue",
+//	    "Project@odata.type": "#Collection(String)",
+//	    "Project": ["Baker", "Cascade"],
+//	    "Certification": true
+//	  }
+//	}
+func constructCustomSecurityAttributes(ctx context.Context, attributeSets []CustomSecurityAttributeSet) graphmodels.CustomSecurityAttributeValueable {
+	if len(attributeSets) == 0 {
+		return nil
+	}
+
+	tflog.Debug(ctx, "Constructing custom security attributes", map[string]any{
+		"attributeSetCount": len(attributeSets),
+	})
+
+	customSecurityAttributeValue := graphmodels.NewCustomSecurityAttributeValue()
+	additionalData := make(map[string]any)
+
+	for _, attrSet := range attributeSets {
+		if attrSet.AttributeSet.IsNull() || attrSet.AttributeSet.IsUnknown() {
+			continue
+		}
+
+		attributeSetName := attrSet.AttributeSet.ValueString()
+		attributeSetData := make(map[string]any)
+		attributeSetData["@odata.type"] = "#microsoft.graph.customSecurityAttributeValue"
+
+		for _, attr := range attrSet.Attributes {
+			if attr.Name.IsNull() || attr.Name.IsUnknown() {
+				continue
+			}
+
+			attrName := attr.Name.ValueString()
+
+			// Handle single-valued string
+			if !attr.StringValue.IsNull() && !attr.StringValue.IsUnknown() {
+				attributeSetData[attrName] = attr.StringValue.ValueString()
+				continue
+			}
+
+			// Handle single-valued integer
+			if !attr.IntValue.IsNull() && !attr.IntValue.IsUnknown() {
+				attributeSetData[attrName+"@odata.type"] = "#Int32"
+				attributeSetData[attrName] = attr.IntValue.ValueInt32()
+				continue
+			}
+
+			// Handle boolean
+			if !attr.BoolValue.IsNull() && !attr.BoolValue.IsUnknown() {
+				attributeSetData[attrName] = attr.BoolValue.ValueBool()
+				continue
+			}
+
+			// Handle multi-valued strings
+			if !attr.StringValues.IsNull() && !attr.StringValues.IsUnknown() {
+				var stringValues []string
+				diags := attr.StringValues.ElementsAs(ctx, &stringValues, false)
+				if !diags.HasError() {
+					attributeSetData[attrName+"@odata.type"] = "#Collection(String)"
+					attributeSetData[attrName] = stringValues
+				}
+				continue
+			}
+
+			// Handle multi-valued integers
+			if !attr.IntValues.IsNull() && !attr.IntValues.IsUnknown() {
+				var int32Values []int32
+				diags := attr.IntValues.ElementsAs(ctx, &int32Values, false)
+				if !diags.HasError() {
+					attributeSetData[attrName+"@odata.type"] = "#Collection(Int32)"
+					attributeSetData[attrName] = int32Values
+				}
+				continue
+			}
+		}
+
+		additionalData[attributeSetName] = attributeSetData
+	}
+
+	customSecurityAttributeValue.SetAdditionalData(additionalData)
+
+	tflog.Debug(ctx, "Finished constructing custom security attributes", map[string]any{
+		"additionalDataKeys": len(additionalData),
+	})
+
+	return customSecurityAttributeValue
 }

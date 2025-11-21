@@ -83,14 +83,57 @@ func TestUserResource_Update(t *testing.T) {
 			{
 				Config: testConfigUpdate(),
 				Check: resource.ComposeTestCheckFunc(
-					check.That(resourceType+".maximal").Key("display_name").HasValue("Maximal User"),
+					check.That(resourceType+".maximal").Key("display_name").HasValue("unit-test-user-maximal"),
+					check.That(resourceType+".maximal").Key("user_principal_name").HasValue("unit-test-user-maximal@deploymenttheory.com"),
 					check.That(resourceType+".maximal").Key("given_name").HasValue("Maximal"),
 					check.That(resourceType+".maximal").Key("surname").HasValue("User"),
 					check.That(resourceType+".maximal").Key("job_title").HasValue("Senior Developer"),
+					check.That(resourceType+".maximal").Key("department").HasValue("Engineering"),
+					check.That(resourceType+".maximal").Key("company_name").HasValue("Deployment Theory"),
+					check.That(resourceType+".maximal").Key("employee_id").HasValue("1234567890"),
+					check.That(resourceType+".maximal").Key("employee_type").HasValue("full time"),
+					check.That(resourceType+".maximal").Key("age_group").HasValue("NotAdult"),
+					check.That(resourceType+".maximal").Key("consent_provided_for_minor").HasValue("Granted"),
 				),
 			},
 			{
 				ResourceName:      resourceType + ".maximal",
+				ImportState:       true,
+				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"password_profile",
+					"password_profile.%",
+					"password_profile.password",
+					"password_profile.force_change_password_next_sign_in",
+					"password_profile.force_change_password_next_sign_in_with_mfa",
+				},
+			},
+		},
+	})
+}
+
+func TestUserResource_CustomSecurityAttributes(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
+	_, userMock := setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+	defer userMock.CleanupMockState()
+
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testConfigCustomSecAtt(),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(resourceType+".with_custom_security_attributes").Key("display_name").HasValue("unit-test-user-custom-sec-att"),
+					check.That(resourceType+".with_custom_security_attributes").Key("user_principal_name").HasValue("unit-test-user-custom-sec-att@deploymenttheory.com"),
+					check.That(resourceType+".with_custom_security_attributes").Key("account_enabled").HasValue("true"),
+					check.That(resourceType+".with_custom_security_attributes").Key("custom_security_attributes.#").HasValue("2"),
+					check.That(resourceType+".with_custom_security_attributes").Key("custom_security_attributes.0.attribute_set").HasValue("Engineering"),
+					check.That(resourceType+".with_custom_security_attributes").Key("custom_security_attributes.1.attribute_set").HasValue("Marketing"),
+				),
+			},
+			{
+				ResourceName:      resourceType + ".with_custom_security_attributes",
 				ImportState:       true,
 				ImportStateVerify: true,
 				ImportStateVerifyIgnore: []string{
@@ -151,6 +194,14 @@ func testConfigUpdate() string {
 	unitTestConfig, err := helpers.ParseHCLFile("tests/terraform/unit/resource_maximal.tf")
 	if err != nil {
 		panic("failed to load resource_maximal.tf: " + err.Error())
+	}
+	return unitTestConfig
+}
+
+func testConfigCustomSecAtt() string {
+	unitTestConfig, err := helpers.ParseHCLFile("tests/terraform/unit/resource_custom_sec_att.tf")
+	if err != nil {
+		panic("failed to load resource_custom_sec_att.tf: " + err.Error())
 	}
 	return unitTestConfig
 }

@@ -1,37 +1,37 @@
 {
   "id": "00000000-0000-0000-0000-000000000002",
-  "displayName": "Maximal User",
-  "userPrincipalName": "maximal.user@deploymenttheory.com",
+  "displayName": "unit-test-user-maximal",
+  "userPrincipalName": "unit-test-user-maximal@deploymenttheory.com",
   "accountEnabled": true,
   "givenName": "Maximal",
   "surname": "User",
-  "mail": "maximal.user@deploymenttheory.com",
-  "mailNickname": "maximal.user",
+  "mail": "unit-test-user-maximal@deploymenttheory.com",
+  "mailNickname": "unit-test-user-maximal",
   "jobTitle": "Senior Developer",
   "department": "Engineering",
-  "companyName": "Contoso Ltd",
+  "companyName": "Deployment Theory",
   "officeLocation": "Building A",
   "city": "Redmond",
   "state": "WA",
   "country": "US",
+  "streetAddress": "123 street",
   "postalCode": "98052",
   "usageLocation": "US",
   "businessPhones": ["+1 425-555-0100"],
   "mobilePhone": "+1 425-555-0101",
+  "faxNumber": "+1 425-555-0102",
+  "ageGroup": "NotAdult",
+  "consentProvidedForMinor": "Granted",
+  "employeeId": "1234567890",
+  "employeeType": "full time",
+  "employeeHireDate": "2025-11-21T00:00:00Z",
+  "preferredLanguage": "en-US",
+  "passwordPolicies": "DisablePasswordExpiration",
   "passwordProfile": {
-    "password": "SecureP@ssw0rd123!",
     "forceChangePasswordNextSignIn": false,
     "forceChangePasswordNextSignInWithMfa": false
   },
-  "identities": [
-    {
-      "signInType": "emailAddress",
-      "issuer": "DeploymentTheory.onmicrosoft.com",
-      "issuerAssignedId": "maximal.user@deploymenttheory.com"
-    }
-  ],
-  "otherMails": ["maximal.user.other@deploymenttheory.com"],
+  "otherMails": ["unit-test-user-maximal2.other@deploymenttheory.com"],
   "showInAddressList": true,
-  "createdDateTime": "2023-01-01T00:00:00Z",
-  "imAddresses": []
+  "createdDateTime": "2023-01-01T00:00:00Z"
 }

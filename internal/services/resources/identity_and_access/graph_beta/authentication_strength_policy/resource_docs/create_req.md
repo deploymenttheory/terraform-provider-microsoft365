@@ -91,7 +91,7 @@ allowedPolicyOIDs := []string {
 	"1.3.6.1.4.1.311.21.8.1.7",
 }
 authenticationCombinationConfiguration1.SetAllowedPolicyOIDs(allowedPolicyOIDs)
-additionalData := map[string]interface{}{
+additionalData := map[string]any{
 	allowedIssuers := []string {
 		"CUSTOMIDENTIFIER:9A4248C6AC8C2931AB2A86537818E92E7B6C97B6",
 		"CUSTOMIDENTIFIER:9A4248C6AC8C2931AB2A86537818E92E7B6C97B7",
@@ -114,7 +114,7 @@ allowedPolicyOIDs := []string {
 	"1.3.6.1.4.1.311.21.8.1.7",
 }
 authenticationCombinationConfiguration2.SetAllowedPolicyOIDs(allowedPolicyOIDs)
-additionalData := map[string]interface{}{
+additionalData := map[string]any{
 	allowedIssuers := []string {
 		"CUSTOMIDENTIFIER:1A2B3C4D5E6F7A8B9C0D1E2F3A4B5C6D7E8F9A0C",
 		"CUSTOMIDENTIFIER:1A2B3C4D5E6F7A8B9C0D1E2F3A4B5C6D7E8F9A0E",

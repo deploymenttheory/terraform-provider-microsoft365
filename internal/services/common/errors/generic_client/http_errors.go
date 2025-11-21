@@ -298,6 +298,10 @@ func HandleHTTPGraphError(ctx context.Context, httpResp *http.Response, resp any
 			removeHTTPResourceFromState(ctx, resp)
 			return
 		}
+		if operation == "Delete" {
+			tflog.Info(ctx, "Resource already deleted or does not exist (404 Response), treating as successful deletion")
+			return
+		}
 		addHTTPErrorToDiagnostics(ctx, resp, errorDesc.Summary,
 			constructHTTPDetailedErrorMessage(errorDesc.Detail, errorInfo))
 

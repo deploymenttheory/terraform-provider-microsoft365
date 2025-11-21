@@ -2,10 +2,10 @@ resource "microsoft365_graph_beta_users_user" "maximal" {
   account_enabled = true
 
   // Identity
-  display_name        = "unit-test-user-maximal"
+  display_name        = "acc-test-user-maximal"
   given_name          = "Maximal"
   surname             = "User"
-  user_principal_name = "unit-test-user-maximal@deploymenttheory.com"
+  user_principal_name = "acc-test-user-maximal@deploymenttheory.com"
   preferred_language  = "en-US"
   password_policies   = "DisablePasswordExpiration"
 
@@ -21,7 +21,7 @@ resource "microsoft365_graph_beta_users_user" "maximal" {
   employee_type      = "full time"
   employee_hire_date = "2025-11-21T00:00:00Z"
   office_location    = "Building A"
-  manager_id         = "11111111-1111-1111-1111-111111111111"
+  manager_id         = microsoft365_graph_beta_users_user.dependency_user.id
 
   // Contact Information
   city            = "Redmond"
@@ -32,10 +32,10 @@ resource "microsoft365_graph_beta_users_user" "maximal" {
   usage_location  = "US"
   business_phones = ["+1 425-555-0100"]
   mobile_phone    = "+1 425-555-0101"
-  mail            = "unit-test-user-maximal@deploymenttheory.com"
+  mail            = "acc-test-user-maximal@deploymenttheory.com"
   fax_number      = "+1 425-555-0102"
-  mail_nickname   = "unit-test-user-maximal"
-  other_mails     = ["unit-test-user-maximal2.other@deploymenttheory.com"]
+  mail_nickname   = "acc-test-user-maximal"
+  other_mails     = ["acc-test-user-maximal2.other@deploymenttheory.com"]
 
   password_profile = {
     password                           = "SecureP@ssw0rd123!"

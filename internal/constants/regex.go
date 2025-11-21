@@ -114,4 +114,8 @@ const (
 	// ActiveDirectoryDNRegex matches a valid Active Directory distinguished name (DN).
 	// Example: "OU=Computers,DC=contoso,DC=com" or "CN=Server1,OU=Servers,DC=contoso,DC=com"
 	ActiveDirectoryDNRegex = `^(OU=|CN=)[^,]+(,(OU=|CN=|DC=)[^,]+)*$`
+
+	// ISO8601DateTimeRegex matches an ISO 8601 datetime format with optional milliseconds and timezone.
+	// Examples: "2023-05-01T13:45:30Z", "2023-05-01T13:45:30.123Z", "2023-05-01T13:45:30+00:00", "2023-05-01T13:45:30.123456+05:30"
+	ISO8601DateTimeRegex = `^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?(Z|[+-]\d{2}:\d{2})$`
 )
