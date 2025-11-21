@@ -29,13 +29,28 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *WindowsQuality
 	data.ReleaseDateDisplayName = convert.GraphToFrameworkString(remoteResource.GetReleaseDateDisplayName())
 	data.DeployableContentDisplayName = convert.GraphToFrameworkString(remoteResource.GetDeployableContentDisplayName())
 
+	// expedited_update_settings as an Object
+	expeditedUpdateSettingsTypes := map[string]attr.Type{
+		"quality_update_release":   types.StringType,
+		"days_until_forced_reboot": types.Int32Type,
+	}
+
 	if expeditedSettings := remoteResource.GetExpeditedUpdateSettings(); expeditedSettings != nil {
-		data.ExpeditedUpdateSettings = &ExpeditedWindowsQualityUpdateSettings{
-			QualityUpdateRelease:  convert.GraphToFrameworkString(expeditedSettings.GetQualityUpdateRelease()),
-			DaysUntilForcedReboot: convert.GraphToFrameworkInt32(expeditedSettings.GetDaysUntilForcedReboot()),
+		expeditedUpdateSettingsValues := map[string]attr.Value{
+			"quality_update_release":   convert.GraphToFrameworkString(expeditedSettings.GetQualityUpdateRelease()),
+			"days_until_forced_reboot": convert.GraphToFrameworkInt32(expeditedSettings.GetDaysUntilForcedReboot()),
+		}
+		object, diags := types.ObjectValue(expeditedUpdateSettingsTypes, expeditedUpdateSettingsValues)
+		if diags.HasError() {
+			tflog.Error(ctx, "Failed to create expedited update settings object value", map[string]any{
+				"error": diags.Errors()[0].Detail(),
+			})
+			data.ExpeditedUpdateSettings = types.ObjectNull(expeditedUpdateSettingsTypes)
+		} else {
+			data.ExpeditedUpdateSettings = object
 		}
 	} else {
-		data.ExpeditedUpdateSettings = nil
+		data.ExpeditedUpdateSettings = types.ObjectNull(expeditedUpdateSettingsTypes)
 	}
 
 	assignments := remoteResource.GetAssignments()
