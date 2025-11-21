@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.36.1-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.36.0-alpha...v0.36.1-alpha) (2025-11-21)
+
+
+### Bug Fixes
+
+* go mod ([7de8336](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/7de8336f02aabc8c2f5b11265285af5bd734efee))
+* go mod ([#1100](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/1100)) ([19fb8a6](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/19fb8a6dd84e3c3f4e07a0cdfae5880581959215))
+
 ## [0.36.0-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.35.0-alpha...v0.36.0-alpha) (2025-11-21)
 
 
