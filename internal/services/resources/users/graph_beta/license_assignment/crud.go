@@ -7,15 +7,14 @@ import (
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
 	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
-	"github.com/google/uuid"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
-	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 	"github.com/microsoftgraph/msgraph-beta-sdk-go/users"
 )
 
-// Create handles the creation of a user license assignment.
+// Create handles the creation of a single user license assignment.
 func (r *UserLicenseAssignmentResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var object UserLicenseAssignmentResourceModel
 
@@ -32,9 +31,15 @@ func (r *UserLicenseAssignmentResource) Create(ctx context.Context, req resource
 	}
 	defer cancel()
 
-	object.ID = object.UserId
+	// Create composite ID: user_id_sku_id
+	object.ID = types.StringValue(fmt.Sprintf("%s_%s", object.UserId.ValueString(), object.SkuId.ValueString()))
 
-	requestBody, err := constructResource(ctx, &object)
+	// Ensure disabled_plans is set to empty set if not provided (can't be unknown)
+	if object.DisabledPlans.IsNull() || object.DisabledPlans.IsUnknown() {
+		object.DisabledPlans = types.SetValueMust(types.StringType, []attr.Value{})
+	}
+
+	requestBody, err := constructAddLicensesRequest(ctx, &object)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error constructing license assignment request",
@@ -123,31 +128,17 @@ func (r *UserLicenseAssignmentResource) Read(ctx context.Context, req resource.R
 
 	MapRemoteResourceStateToTerraform(ctx, &object, user)
 
-	licenseDetails, err := r.client.
-		Users().
-		ByUserId(object.UserId.ValueString()).
-		LicenseDetails().
-		Get(ctx, nil)
-
-	if err != nil {
-		tflog.Warn(ctx, fmt.Sprintf("Failed to get license details: %s", err.Error()))
-	} else {
-		MapLicenseDetailsToTerraform(ctx, &object, licenseDetails)
-	}
-
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	tflog.Debug(ctx, fmt.Sprintf("Finished Read Method: %s", ResourceName))
 }
 
-// Update handles updates to a user's license assignments.
+// Update handles updates to a user's license assignment (disabled plans only, since sku_id requires replace).
 func (r *UserLicenseAssignmentResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var plan UserLicenseAssignmentResourceModel
-	var state UserLicenseAssignmentResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting Update method for: %s", ResourceName))
 
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
-	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -158,7 +149,8 @@ func (r *UserLicenseAssignmentResource) Update(ctx context.Context, req resource
 	}
 	defer cancel()
 
-	requestBody, err := constructResource(ctx, &plan)
+	// Update the license (mainly disabled_plans since sku_id has RequiresReplace)
+	requestBody, err := constructUpdateLicenseRequest(ctx, &plan)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error constructing license assignment request for update",
@@ -169,7 +161,7 @@ func (r *UserLicenseAssignmentResource) Update(ctx context.Context, req resource
 
 	_, err = r.client.
 		Users().
-		ByUserId(state.UserId.ValueString()).
+		ByUserId(plan.UserId.ValueString()).
 		AssignLicense().
 		Post(ctx, requestBody, nil)
 
@@ -178,7 +170,7 @@ func (r *UserLicenseAssignmentResource) Update(ctx context.Context, req resource
 		return
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Successfully updated licenses for user: %s", state.UserId.ValueString()))
+	tflog.Debug(ctx, fmt.Sprintf("Successfully updated license for user: %s", plan.UserId.ValueString()))
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
@@ -201,10 +193,10 @@ func (r *UserLicenseAssignmentResource) Update(ctx context.Context, req resource
 		return
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Finished updating %s with ID: %s", ResourceName, state.ID.ValueString()))
+	tflog.Debug(ctx, fmt.Sprintf("Finished updating %s with ID: %s", ResourceName, plan.ID.ValueString()))
 }
 
-// Delete handles the deletion of a user license assignment (removes all managed licenses).
+// Delete handles the deletion of a single user license assignment.
 func (r *UserLicenseAssignmentResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var object UserLicenseAssignmentResourceModel
 
@@ -221,49 +213,28 @@ func (r *UserLicenseAssignmentResource) Delete(ctx context.Context, req resource
 	}
 	defer cancel()
 
-	currentLicenses := make([]string, 0)
-	for _, license := range object.AddLicenses {
-		currentLicenses = append(currentLicenses, license.SkuId.ValueString())
+	// Remove the single license managed by this resource
+	requestBody, err := constructRemoveLicenseRequest(ctx, object.SkuId.ValueString())
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error constructing license removal request",
+			fmt.Sprintf("Could not construct license removal request: %s", err.Error()),
+		)
+		return
 	}
 
-	removeLicensesSet := object.RemoveLicenses.Elements()
-	for _, licenseVal := range removeLicensesSet {
-		if strVal, ok := licenseVal.(types.String); ok {
-			currentLicenses = append(currentLicenses, strVal.ValueString())
-		}
+	_, err = r.client.
+		Users().
+		ByUserId(object.UserId.ValueString()).
+		AssignLicense().
+		Post(ctx, requestBody, nil)
+
+	if err != nil {
+		errors.HandleKiotaGraphError(ctx, err, resp, "Delete", r.WritePermissions)
+		return
 	}
 
-	if len(currentLicenses) > 0 {
-		requestBody := users.NewItemAssignLicensePostRequestBody()
-		requestBody.SetAddLicenses([]graphmodels.AssignedLicenseable{})
-
-		removeLicenseGUIDs := make([]uuid.UUID, 0, len(currentLicenses))
-		for _, licenseId := range currentLicenses {
-			licenseUUID, err := uuid.Parse(licenseId)
-			if err != nil {
-				resp.Diagnostics.AddError(
-					"Error parsing license ID",
-					fmt.Sprintf("Could not parse license ID %s as UUID: %s", licenseId, err.Error()),
-				)
-				return
-			}
-			removeLicenseGUIDs = append(removeLicenseGUIDs, licenseUUID)
-		}
-		requestBody.SetRemoveLicenses(removeLicenseGUIDs)
-
-		_, err := r.client.
-			Users().
-			ByUserId(object.UserId.ValueString()).
-			AssignLicense().
-			Post(ctx, requestBody, nil)
-
-		if err != nil {
-			errors.HandleKiotaGraphError(ctx, err, resp, "Delete", r.WritePermissions)
-			return
-		}
-
-		tflog.Debug(ctx, fmt.Sprintf("Successfully removed licenses from user: %s", object.UserId.ValueString()))
-	}
+	tflog.Debug(ctx, fmt.Sprintf("Successfully removed license %s from user: %s", object.SkuId.ValueString(), object.UserId.ValueString()))
 
 	tflog.Debug(ctx, fmt.Sprintf("Removing %s from Terraform state", ResourceName))
 

@@ -31,135 +31,30 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *UserLicenseAss
 		"resourceId": remoteResource.GetId(),
 	})
 
-	// Set basic user information
-	data.ID = convert.GraphToFrameworkString(remoteResource.GetId())
 	data.UserId = convert.GraphToFrameworkString(remoteResource.GetId())
 	data.UserPrincipalName = convert.GraphToFrameworkString(remoteResource.GetUserPrincipalName())
 
-	tflog.Debug(ctx, fmt.Sprintf("Finished mapping user license assignment resource with id %s", data.ID.ValueString()))
-}
+	assignedLicenses := remoteResource.GetAssignedLicenses()
+	managedSkuId := data.SkuId.ValueString()
 
-// MapLicenseDetailsToTerraform maps the license details response to Terraform state.
-func MapLicenseDetailsToTerraform(ctx context.Context, data *UserLicenseAssignmentResourceModel, licenseDetailsResponse graphmodels.LicenseDetailsCollectionResponseable) {
-	if licenseDetailsResponse == nil {
-		tflog.Debug(ctx, "License details response is nil")
-		return
-	}
+	data.ID = types.StringValue(fmt.Sprintf("%s_%s", data.UserId.ValueString(), managedSkuId))
 
-	licenseDetails := licenseDetailsResponse.GetValue()
-	if len(licenseDetails) == 0 {
-		tflog.Debug(ctx, "No license details found")
-		data.AssignedLicenses = types.ListNull(types.ObjectType{
-			AttrTypes: getLicenseDetailsObjectType(),
-		})
-		return
-	}
-
-	tflog.Debug(ctx, fmt.Sprintf("Mapping %d license details", len(licenseDetails)))
-
-	// Map license details to Terraform state
-	assignedLicenses := make([]attr.Value, 0, len(licenseDetails))
-
-	for _, license := range licenseDetails {
+	for _, license := range assignedLicenses {
 		if license == nil {
 			continue
 		}
 
-		licenseObj := map[string]attr.Value{
-			"sku_id":          uuidPointerToStringValue(license.GetSkuId()),
-			"sku_part_number": convert.GraphToFrameworkString(license.GetSkuPartNumber()),
-			"service_plans":   mapServicePlansToTerraform(ctx, license.GetServicePlans()),
+		licenseSkuId := uuidPointerToStringValue(license.GetSkuId())
+		if licenseSkuId.ValueString() == managedSkuId {
+			disabledPlans := license.GetDisabledPlans()
+			disabledPlanValues := make([]attr.Value, 0, len(disabledPlans))
+			for _, planUUID := range disabledPlans {
+				disabledPlanValues = append(disabledPlanValues, types.StringValue(planUUID.String()))
+			}
+			data.DisabledPlans = types.SetValueMust(types.StringType, disabledPlanValues)
+			break
 		}
-
-		objValue, diag := types.ObjectValue(getLicenseDetailsObjectType(), licenseObj)
-		if diag.HasError() {
-			tflog.Error(ctx, fmt.Sprintf("Error creating license object: %v", diag.Errors()))
-			continue
-		}
-
-		assignedLicenses = append(assignedLicenses, objValue)
 	}
 
-	assignedLicensesList, diag := types.ListValue(
-		types.ObjectType{AttrTypes: getLicenseDetailsObjectType()},
-		assignedLicenses,
-	)
-	if diag.HasError() {
-		tflog.Error(ctx, fmt.Sprintf("Error creating assigned licenses list: %v", diag.Errors()))
-		data.AssignedLicenses = types.ListNull(types.ObjectType{
-			AttrTypes: getLicenseDetailsObjectType(),
-		})
-		return
-	}
-
-	data.AssignedLicenses = assignedLicensesList
-	tflog.Debug(ctx, fmt.Sprintf("Successfully mapped %d assigned licenses", len(assignedLicenses)))
-}
-
-// mapServicePlansToTerraform maps service plans to Terraform state.
-func mapServicePlansToTerraform(ctx context.Context, servicePlans []graphmodels.ServicePlanInfoable) types.List {
-	if len(servicePlans) == 0 {
-		return types.ListNull(types.ObjectType{
-			AttrTypes: getServicePlanObjectType(),
-		})
-	}
-
-	servicePlanValues := make([]attr.Value, 0, len(servicePlans))
-
-	for _, plan := range servicePlans {
-		if plan == nil {
-			continue
-		}
-
-		planObj := map[string]attr.Value{
-			"service_plan_id":     uuidPointerToStringValue(plan.GetServicePlanId()),
-			"service_plan_name":   convert.GraphToFrameworkString(plan.GetServicePlanName()),
-			"provisioning_status": convert.GraphToFrameworkString(plan.GetProvisioningStatus()),
-			"applies_to":          convert.GraphToFrameworkString(plan.GetAppliesTo()),
-		}
-
-		objValue, diag := types.ObjectValue(getServicePlanObjectType(), planObj)
-		if diag.HasError() {
-			tflog.Error(ctx, fmt.Sprintf("Error creating service plan object: %v", diag.Errors()))
-			continue
-		}
-
-		servicePlanValues = append(servicePlanValues, objValue)
-	}
-
-	servicePlansList, diag := types.ListValue(
-		types.ObjectType{AttrTypes: getServicePlanObjectType()},
-		servicePlanValues,
-	)
-	if diag.HasError() {
-		tflog.Error(ctx, fmt.Sprintf("Error creating service plans list: %v", diag.Errors()))
-		return types.ListNull(types.ObjectType{
-			AttrTypes: getServicePlanObjectType(),
-		})
-	}
-
-	return servicePlansList
-}
-
-// getLicenseDetailsObjectType returns the object type for license details.
-func getLicenseDetailsObjectType() map[string]attr.Type {
-	return map[string]attr.Type{
-		"sku_id":          types.StringType,
-		"sku_part_number": types.StringType,
-		"service_plans": types.ListType{
-			ElemType: types.ObjectType{
-				AttrTypes: getServicePlanObjectType(),
-			},
-		},
-	}
-}
-
-// getServicePlanObjectType returns the object type for service plans.
-func getServicePlanObjectType() map[string]attr.Type {
-	return map[string]attr.Type{
-		"service_plan_id":     types.StringType,
-		"service_plan_name":   types.StringType,
-		"provisioning_status": types.StringType,
-		"applies_to":          types.StringType,
-	}
+	tflog.Debug(ctx, fmt.Sprintf("Finished mapping user license assignment resource with id %s", data.ID.ValueString()))
 }

@@ -2,6 +2,7 @@ package graphBetaUserLicenseAssignment
 
 import (
 	"context"
+	"fmt"
 	"regexp"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/client"
@@ -76,21 +77,60 @@ func (r *UserLicenseAssignmentResource) Configure(ctx context.Context, req resou
 }
 
 // ImportState imports the resource state.
+// Expected format: {user_id}_{sku_id}
+// Example: 00000000-0000-0000-0000-000000000001_11111111-1111-1111-1111-111111111111
 func (r *UserLicenseAssignmentResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	resource.ImportStatePassthroughID(ctx, path.Root("user_id"), req, resp)
+	// Split the ID into user_id and sku_id by finding the last underscore that separates two UUIDs
+	// UUIDs are 36 characters long (including hyphens)
+	// So we need to find the underscore at position len - 37
+	id := req.ID
+	if len(id) < 73 { // 36 (uuid) + 1 (_) + 36 (uuid) = 73
+		resp.Diagnostics.AddError(
+			"Invalid Import ID",
+			fmt.Sprintf("Expected import ID format: {user_id}_{sku_id}, got: %s", req.ID),
+		)
+		return
+	}
+
+	// Find the underscore that separates the two UUIDs
+	separatorIndex := len(id) - 37 // 36 chars for second UUID + 1 for underscore
+	if separatorIndex <= 0 || id[separatorIndex] != '_' {
+		resp.Diagnostics.AddError(
+			"Invalid Import ID",
+			fmt.Sprintf("Expected import ID format: {user_id}_{sku_id}, got: %s", req.ID),
+		)
+		return
+	}
+
+	userId := id[0:separatorIndex]
+	skuId := id[separatorIndex+1:]
+
+	// Validate UUIDs using the constant from the regex package
+	guidRegex := regexp.MustCompile(constants.GuidRegex)
+	if !guidRegex.MatchString(userId) || !guidRegex.MatchString(skuId) {
+		resp.Diagnostics.AddError(
+			"Invalid Import ID",
+			fmt.Sprintf("Expected import ID format: {user_id}_{sku_id}, both must be valid UUIDs. Got: %s", req.ID),
+		)
+		return
+	}
+
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("id"), req.ID)...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("user_id"), userId)...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("sku_id"), skuId)...)
 }
 
 // Schema returns the schema for the resource.
 func (r *UserLicenseAssignmentResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Manages Microsoft 365 license assignments for individual users using the `/users/{userId}/assignLicense` endpoint. This resource enables direct license assignment to users, allowing administrators to grant or revoke access to Microsoft cloud services like Office 365, Enterprise Mobility + Security, and Windows licenses.",
+		MarkdownDescription: "Manages a single Microsoft 365 license assignment for an individual user using the `/users/{userId}/assignLicense` endpoint. Each resource instance manages one license (SKU) for a user. To assign multiple licenses to a user, create multiple instances of this resource with different SKU IDs.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed: true,
 				PlanModifiers: []planmodifier.String{
 					planmodifiers.UseStateForUnknownString(),
 				},
-				MarkdownDescription: "The unique identifier for this license assignment resource. This is the same as the user_id.",
+				MarkdownDescription: "The unique identifier for this license assignment resource. Format: `{user_id}_{sku_id}`.",
 			},
 			"user_id": schema.StringAttribute{
 				Required:            true,
@@ -109,82 +149,28 @@ func (r *UserLicenseAssignmentResource) Schema(ctx context.Context, req resource
 				},
 				MarkdownDescription: "The user principal name (UPN) of the user. This is computed and read-only.",
 			},
-			"add_licenses": schema.ListNestedAttribute{
-				Optional:            true,
-				MarkdownDescription: "A collection of licenses to assign to the user.",
-				NestedObject: schema.NestedAttributeObject{
-					Attributes: map[string]schema.Attribute{
-						"sku_id": schema.StringAttribute{
-							Required:            true,
-							MarkdownDescription: "The unique identifier (GUID) for the license SKU.",
-							Validators: []validator.String{
-								stringvalidator.RegexMatches(
-									regexp.MustCompile(constants.GuidRegex),
-									"must be a valid GUID in the format 00000000-0000-0000-0000-000000000000",
-								),
-							},
-						},
-						"disabled_plans": schema.SetAttribute{
-							ElementType:         types.StringType,
-							Optional:            true,
-							MarkdownDescription: "A collection of the unique identifiers for service plans to disable.",
-							Validators: []validator.Set{
-								setvalidator.ValueStringsAre(
-									stringvalidator.RegexMatches(uuidRegex, "Each disabled plan must be a valid UUID format (xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx)"),
-								),
-							},
-						},
-					},
-				},
-			},
-			"remove_licenses": schema.SetAttribute{
-				ElementType:         types.StringType,
-				Optional:            true,
-				MarkdownDescription: "A collection of SKU IDs that identify the licenses to remove from the user.",
-				Validators: []validator.Set{
-					setvalidator.ValueStringsAre(
-						stringvalidator.RegexMatches(uuidRegex, "Each license ID must be a valid UUID format (xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx)"),
+			"sku_id": schema.StringAttribute{
+				Required:            true,
+				MarkdownDescription: "The unique identifier (GUID) for the license SKU to assign to the user.",
+				Validators: []validator.String{
+					stringvalidator.RegexMatches(
+						regexp.MustCompile(constants.GuidRegex),
+						"must be a valid GUID in the format 00000000-0000-0000-0000-000000000000",
 					),
 				},
+				PlanModifiers: []planmodifier.String{
+					planmodifiers.RequiresReplaceString(),
+				},
 			},
-			"assigned_licenses": schema.ListNestedAttribute{
+			"disabled_plans": schema.SetAttribute{
+				ElementType:         types.StringType,
+				Optional:            true,
 				Computed:            true,
-				MarkdownDescription: "The current licenses assigned to the user. This is read-only.",
-				NestedObject: schema.NestedAttributeObject{
-					Attributes: map[string]schema.Attribute{
-						"sku_id": schema.StringAttribute{
-							Computed:            true,
-							MarkdownDescription: "The unique identifier (GUID) for the license SKU.",
-						},
-						"sku_part_number": schema.StringAttribute{
-							Computed:            true,
-							MarkdownDescription: "The string identifier of the license SKU, for example 'AAD_Premium'.",
-						},
-						"service_plans": schema.ListNestedAttribute{
-							Computed:            true,
-							MarkdownDescription: "The service plans available with this license.",
-							NestedObject: schema.NestedAttributeObject{
-								Attributes: map[string]schema.Attribute{
-									"service_plan_id": schema.StringAttribute{
-										Computed:            true,
-										MarkdownDescription: "The unique identifier of the service plan.",
-									},
-									"service_plan_name": schema.StringAttribute{
-										Computed:            true,
-										MarkdownDescription: "The name of the service plan.",
-									},
-									"provisioning_status": schema.StringAttribute{
-										Computed:            true,
-										MarkdownDescription: "The provisioning status of the service plan.",
-									},
-									"applies_to": schema.StringAttribute{
-										Computed:            true,
-										MarkdownDescription: "The object the service plan can be assigned to.",
-									},
-								},
-							},
-						},
-					},
+				MarkdownDescription: "A collection of the unique identifiers for service plans to disable for this license.",
+				Validators: []validator.Set{
+					setvalidator.ValueStringsAre(
+						stringvalidator.RegexMatches(uuidRegex, "Each disabled plan must be a valid UUID format (xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx)"),
+					),
 				},
 			},
 			"timeouts": commonschema.Timeouts(ctx),
