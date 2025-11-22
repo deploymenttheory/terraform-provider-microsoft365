@@ -1,23 +1,34 @@
 package graphBetaGroup_test
 
 import (
-	"context"
-	"fmt"
 	"regexp"
 	"testing"
+	"time"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/check"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/destroy"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/testlog"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
-	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
+	graphBetaGroup "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/groups/graph_beta/group"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
+)
+
+var (
+	// testResource is the test resource implementation for groups
+	testResource = graphBetaGroup.GroupTestResource{}
 )
 
 func TestAccGroupResource_Lifecycle(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
-		CheckDestroy:             testAccCheckGroupDestroy,
+		CheckDestroy: destroy.CheckDestroyedAllFunc(
+			testResource,
+			resourceType,
+			20*time.Second,
+		),
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
 				Source:            "hashicorp/random",
@@ -25,31 +36,31 @@ func TestAccGroupResource_Lifecycle(t *testing.T) {
 			},
 		},
 		Steps: []resource.TestStep{
-			// Create with minimal configuration
 			{
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Creating minimal group")
+				},
 				Config: testAccGroupConfig_minimal(),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("microsoft365_graph_beta_groups_group.test", "id"),
-					resource.TestCheckResourceAttrSet("microsoft365_graph_beta_groups_group.test", "created_date_time"),
-					resource.TestCheckResourceAttrWith("microsoft365_graph_beta_groups_group.test", "display_name", func(value string) error {
-						if !regexp.MustCompile(`^acc-test-group-[a-zA-Z0-9]{8}$`).MatchString(value) {
-							return fmt.Errorf("display_name does not match expected pattern: %s", value)
-						}
+					func(_ *terraform.State) error {
+						testlog.WaitForConsistency("group", 20*time.Second)
+						time.Sleep(20 * time.Second)
 						return nil
-					}),
-					resource.TestCheckResourceAttrWith("microsoft365_graph_beta_groups_group.test", "mail_nickname", func(value string) error {
-						if !regexp.MustCompile(`^acctestgroup[a-zA-Z0-9]{8}$`).MatchString(value) {
-							return fmt.Errorf("mail_nickname does not match expected pattern: %s", value)
-						}
-						return nil
-					}),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_groups_group.test", "mail_enabled", "false"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_groups_group.test", "security_enabled", "true"),
+					},
+					check.That(resourceType+".test").ExistsInGraph(testResource),
+					check.That(resourceType+".test").Key("id").Exists(),
+					check.That(resourceType+".test").Key("created_date_time").Exists(),
+					check.That(resourceType+".test").Key("display_name").MatchesRegex(regexp.MustCompile(`^acc-test-group-[a-zA-Z0-9]{8}$`)),
+					check.That(resourceType+".test").Key("mail_nickname").MatchesRegex(regexp.MustCompile(`^acctestgroup[a-zA-Z0-9]{8}$`)),
+					check.That(resourceType+".test").Key("mail_enabled").HasValue("false"),
+					check.That(resourceType+".test").Key("security_enabled").HasValue("true"),
 				),
 			},
-			// ImportState testing
 			{
-				ResourceName:      "microsoft365_graph_beta_groups_group.test",
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Importing minimal group")
+				},
+				ResourceName:      resourceType + ".test",
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
@@ -61,7 +72,11 @@ func TestAccGroupResource_Maximal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
-		CheckDestroy:             testAccCheckGroupDestroy,
+		CheckDestroy: destroy.CheckDestroyedAllFunc(
+			testResource,
+			resourceType,
+			20*time.Second,
+		),
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
 				Source:            "hashicorp/random",
@@ -69,27 +84,33 @@ func TestAccGroupResource_Maximal(t *testing.T) {
 			},
 		},
 		Steps: []resource.TestStep{
-			// Create with maximal configuration
 			{
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Creating maximal group")
+				},
 				Config: testAccGroupConfig_maximal(),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("microsoft365_graph_beta_groups_group.test", "id"),
-					resource.TestCheckResourceAttrSet("microsoft365_graph_beta_groups_group.test", "created_date_time"),
-					resource.TestCheckResourceAttrWith("microsoft365_graph_beta_groups_group.test", "display_name", func(value string) error {
-						if !regexp.MustCompile(`^acc-test-group-updated-[a-zA-Z0-9]{8}$`).MatchString(value) {
-							return fmt.Errorf("display_name does not match expected pattern: %s", value)
-						}
+					func(_ *terraform.State) error {
+						testlog.WaitForConsistency("group", 20*time.Second)
+						time.Sleep(20 * time.Second)
 						return nil
-					}),
-					resource.TestCheckResourceAttrWith("microsoft365_graph_beta_groups_group.test", "mail_nickname", func(value string) error {
-						if !regexp.MustCompile(`^acctestgroup[a-zA-Z0-9]{8}$`).MatchString(value) {
-							return fmt.Errorf("mail_nickname does not match expected pattern: %s", value)
-						}
-						return nil
-					}),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_groups_group.test", "description", "Updated description for acceptance testing"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_groups_group.test", "visibility", "Private"),
+					},
+					check.That(resourceType+".test").ExistsInGraph(testResource),
+					check.That(resourceType+".test").Key("id").Exists(),
+					check.That(resourceType+".test").Key("created_date_time").Exists(),
+					check.That(resourceType+".test").Key("display_name").MatchesRegex(regexp.MustCompile(`^acc-test-group-updated-[a-zA-Z0-9]{8}$`)),
+					check.That(resourceType+".test").Key("mail_nickname").MatchesRegex(regexp.MustCompile(`^acctestgroup[a-zA-Z0-9]{8}$`)),
+					check.That(resourceType+".test").Key("description").HasValue("Updated description for acceptance testing"),
+					check.That(resourceType+".test").Key("visibility").HasValue("Private"),
 				),
+			},
+			{
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Importing maximal group")
+				},
+				ResourceName:      resourceType + ".test",
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -99,7 +120,11 @@ func TestAccGroupResource_RequiredFields(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
-		CheckDestroy:             testAccCheckGroupDestroy,
+		CheckDestroy: destroy.CheckDestroyedAllFunc(
+			testResource,
+			resourceType,
+			20*time.Second,
+		),
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
 				Source:            "hashicorp/random",
@@ -131,7 +156,11 @@ func TestAccGroupResource_InvalidValues(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
-		CheckDestroy:             testAccCheckGroupDestroy,
+		CheckDestroy: destroy.CheckDestroyedAllFunc(
+			testResource,
+			resourceType,
+			20*time.Second,
+		),
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
 				Source:            "hashicorp/random",
@@ -156,7 +185,11 @@ func TestAccGroupResource_Scenario1_SecurityGroupAssigned(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
-		CheckDestroy:             testAccCheckGroupDestroy,
+		CheckDestroy: destroy.CheckDestroyedAllFunc(
+			testResource,
+			resourceType,
+			20*time.Second,
+		),
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
 				Source:            "hashicorp/random",
@@ -165,25 +198,32 @@ func TestAccGroupResource_Scenario1_SecurityGroupAssigned(t *testing.T) {
 		},
 		Steps: []resource.TestStep{
 			{
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Creating security group with assigned membership")
+				},
 				Config: testAccGroupConfig_scenario1(),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("microsoft365_graph_beta_groups_group.scenario_1", "id"),
-					resource.TestCheckResourceAttrWith("microsoft365_graph_beta_groups_group.scenario_1", "display_name", func(value string) error {
-						if !regexp.MustCompile(`^acc-security-group-assigned-[a-zA-Z0-9]{8}$`).MatchString(value) {
-							return fmt.Errorf("display_name does not match expected pattern: %s", value)
-						}
+					func(_ *terraform.State) error {
+						testlog.WaitForConsistency("group", 20*time.Second)
+						time.Sleep(20 * time.Second)
 						return nil
-					}),
-					resource.TestCheckResourceAttrWith("microsoft365_graph_beta_groups_group.scenario_1", "mail_nickname", func(value string) error {
-						if !regexp.MustCompile(`^accsg1[a-zA-Z0-9]{8}$`).MatchString(value) {
-							return fmt.Errorf("mail_nickname does not match expected pattern: %s", value)
-						}
-						return nil
-					}),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_groups_group.scenario_1", "mail_enabled", "false"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_groups_group.scenario_1", "security_enabled", "true"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_groups_group.scenario_1", "description", "Acceptance test - Security group with assigned membership"),
+					},
+					check.That(resourceType+".scenario_1").ExistsInGraph(testResource),
+					check.That(resourceType+".scenario_1").Key("id").Exists(),
+					check.That(resourceType+".scenario_1").Key("display_name").MatchesRegex(regexp.MustCompile(`^acc-security-group-assigned-[a-zA-Z0-9]{8}$`)),
+					check.That(resourceType+".scenario_1").Key("mail_nickname").MatchesRegex(regexp.MustCompile(`^accsg1[a-zA-Z0-9]{8}$`)),
+					check.That(resourceType+".scenario_1").Key("mail_enabled").HasValue("false"),
+					check.That(resourceType+".scenario_1").Key("security_enabled").HasValue("true"),
+					check.That(resourceType+".scenario_1").Key("description").HasValue("Acceptance test - Security group with assigned membership"),
 				),
+			},
+			{
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Importing security group with assigned membership")
+				},
+				ResourceName:      resourceType + ".scenario_1",
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -194,7 +234,11 @@ func TestAccGroupResource_Scenario2_SecurityGroupDynamicUser(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
-		CheckDestroy:             testAccCheckGroupDestroy,
+		CheckDestroy: destroy.CheckDestroyedAllFunc(
+			testResource,
+			resourceType,
+			20*time.Second,
+		),
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
 				Source:            "hashicorp/random",
@@ -203,21 +247,33 @@ func TestAccGroupResource_Scenario2_SecurityGroupDynamicUser(t *testing.T) {
 		},
 		Steps: []resource.TestStep{
 			{
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Creating security group with dynamic user membership")
+				},
 				Config: testAccGroupConfig_scenario2(),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("microsoft365_graph_beta_groups_group.scenario_2", "id"),
-					resource.TestCheckResourceAttrWith("microsoft365_graph_beta_groups_group.scenario_2", "display_name", func(value string) error {
-						if !regexp.MustCompile(`^acc-security-group-dynamic-user-[a-zA-Z0-9]{8}$`).MatchString(value) {
-							return fmt.Errorf("display_name does not match expected pattern: %s", value)
-						}
+					func(_ *terraform.State) error {
+						testlog.WaitForConsistency("group", 20*time.Second)
+						time.Sleep(20 * time.Second)
 						return nil
-					}),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_groups_group.scenario_2", "mail_enabled", "false"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_groups_group.scenario_2", "security_enabled", "true"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_groups_group.scenario_2", "group_types.#", "1"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_groups_group.scenario_2", "membership_rule", "(user.accountEnabled -eq true)"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_groups_group.scenario_2", "membership_rule_processing_state", "On"),
+					},
+					check.That(resourceType+".scenario_2").ExistsInGraph(testResource),
+					check.That(resourceType+".scenario_2").Key("id").Exists(),
+					check.That(resourceType+".scenario_2").Key("display_name").MatchesRegex(regexp.MustCompile(`^acc-security-group-dynamic-user-[a-zA-Z0-9]{8}$`)),
+					check.That(resourceType+".scenario_2").Key("mail_enabled").HasValue("false"),
+					check.That(resourceType+".scenario_2").Key("security_enabled").HasValue("true"),
+					check.That(resourceType+".scenario_2").Key("group_types.#").HasValue("1"),
+					check.That(resourceType+".scenario_2").Key("membership_rule").HasValue("(user.accountEnabled -eq true)"),
+					check.That(resourceType+".scenario_2").Key("membership_rule_processing_state").HasValue("On"),
 				),
+			},
+			{
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Importing security group with dynamic user membership")
+				},
+				ResourceName:      resourceType + ".scenario_2",
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -228,7 +284,11 @@ func TestAccGroupResource_Scenario3_SecurityGroupDynamicDevice(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
-		CheckDestroy:             testAccCheckGroupDestroy,
+		CheckDestroy: destroy.CheckDestroyedAllFunc(
+			testResource,
+			resourceType,
+			20*time.Second,
+		),
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
 				Source:            "hashicorp/random",
@@ -237,21 +297,33 @@ func TestAccGroupResource_Scenario3_SecurityGroupDynamicDevice(t *testing.T) {
 		},
 		Steps: []resource.TestStep{
 			{
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Creating security group with dynamic device membership")
+				},
 				Config: testAccGroupConfig_scenario3(),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("microsoft365_graph_beta_groups_group.scenario_3", "id"),
-					resource.TestCheckResourceAttrWith("microsoft365_graph_beta_groups_group.scenario_3", "display_name", func(value string) error {
-						if !regexp.MustCompile(`^acc-security-group-dynamic-device-[a-zA-Z0-9]{8}$`).MatchString(value) {
-							return fmt.Errorf("display_name does not match expected pattern: %s", value)
-						}
+					func(_ *terraform.State) error {
+						testlog.WaitForConsistency("group", 20*time.Second)
+						time.Sleep(20 * time.Second)
 						return nil
-					}),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_groups_group.scenario_3", "mail_enabled", "false"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_groups_group.scenario_3", "security_enabled", "true"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_groups_group.scenario_3", "group_types.#", "1"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_groups_group.scenario_3", "membership_rule", "(device.accountEnabled -eq true)"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_groups_group.scenario_3", "membership_rule_processing_state", "On"),
+					},
+					check.That(resourceType+".scenario_3").ExistsInGraph(testResource),
+					check.That(resourceType+".scenario_3").Key("id").Exists(),
+					check.That(resourceType+".scenario_3").Key("display_name").MatchesRegex(regexp.MustCompile(`^acc-security-group-dynamic-device-[a-zA-Z0-9]{8}$`)),
+					check.That(resourceType+".scenario_3").Key("mail_enabled").HasValue("false"),
+					check.That(resourceType+".scenario_3").Key("security_enabled").HasValue("true"),
+					check.That(resourceType+".scenario_3").Key("group_types.#").HasValue("1"),
+					check.That(resourceType+".scenario_3").Key("membership_rule").HasValue("(device.accountEnabled -eq true)"),
+					check.That(resourceType+".scenario_3").Key("membership_rule_processing_state").HasValue("On"),
 				),
+			},
+			{
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Importing security group with dynamic device membership")
+				},
+				ResourceName:      resourceType + ".scenario_3",
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -262,7 +334,11 @@ func TestAccGroupResource_Scenario4_SecurityGroupRoleAssignable(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
-		CheckDestroy:             testAccCheckGroupDestroy,
+		CheckDestroy: destroy.CheckDestroyedAllFunc(
+			testResource,
+			resourceType,
+			20*time.Second,
+		),
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
 				Source:            "hashicorp/random",
@@ -271,20 +347,32 @@ func TestAccGroupResource_Scenario4_SecurityGroupRoleAssignable(t *testing.T) {
 		},
 		Steps: []resource.TestStep{
 			{
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Creating security group with Entra role assignment capability")
+				},
 				Config: testAccGroupConfig_scenario4(),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("microsoft365_graph_beta_groups_group.scenario_4", "id"),
-					resource.TestCheckResourceAttrWith("microsoft365_graph_beta_groups_group.scenario_4", "display_name", func(value string) error {
-						if !regexp.MustCompile(`^acc-security-group-role-assignable-[a-zA-Z0-9]{8}$`).MatchString(value) {
-							return fmt.Errorf("display_name does not match expected pattern: %s", value)
-						}
+					func(_ *terraform.State) error {
+						testlog.WaitForConsistency("group", 20*time.Second)
+						time.Sleep(20 * time.Second)
 						return nil
-					}),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_groups_group.scenario_4", "mail_enabled", "false"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_groups_group.scenario_4", "security_enabled", "true"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_groups_group.scenario_4", "is_assignable_to_role", "true"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_groups_group.scenario_4", "visibility", "Private"),
+					},
+					check.That(resourceType+".scenario_4").ExistsInGraph(testResource),
+					check.That(resourceType+".scenario_4").Key("id").Exists(),
+					check.That(resourceType+".scenario_4").Key("display_name").MatchesRegex(regexp.MustCompile(`^acc-security-group-role-assignable-[a-zA-Z0-9]{8}$`)),
+					check.That(resourceType+".scenario_4").Key("mail_enabled").HasValue("false"),
+					check.That(resourceType+".scenario_4").Key("security_enabled").HasValue("true"),
+					check.That(resourceType+".scenario_4").Key("is_assignable_to_role").HasValue("true"),
+					check.That(resourceType+".scenario_4").Key("visibility").HasValue("Private"),
 				),
+			},
+			{
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Importing security group with Entra role assignment capability")
+				},
+				ResourceName:      resourceType + ".scenario_4",
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -295,7 +383,11 @@ func TestAccGroupResource_Scenario5_M365GroupDynamicUser(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
-		CheckDestroy:             testAccCheckGroupDestroy,
+		CheckDestroy: destroy.CheckDestroyedAllFunc(
+			testResource,
+			resourceType,
+			20*time.Second,
+		),
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
 				Source:            "hashicorp/random",
@@ -304,22 +396,35 @@ func TestAccGroupResource_Scenario5_M365GroupDynamicUser(t *testing.T) {
 		},
 		Steps: []resource.TestStep{
 			{
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Creating M365 group with dynamic user membership")
+				},
 				Config: testAccGroupConfig_scenario5(),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("microsoft365_graph_beta_groups_group.scenario_5", "id"),
-					resource.TestCheckResourceAttrWith("microsoft365_graph_beta_groups_group.scenario_5", "display_name", func(value string) error {
-						if !regexp.MustCompile(`^acc-m365-group-dynamic-user-[a-zA-Z0-9]{8}$`).MatchString(value) {
-							return fmt.Errorf("display_name does not match expected pattern: %s", value)
-						}
+					func(_ *terraform.State) error {
+						testlog.WaitForConsistency("group", 20*time.Second)
+						time.Sleep(20 * time.Second)
 						return nil
-					}),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_groups_group.scenario_5", "mail_enabled", "true"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_groups_group.scenario_5", "security_enabled", "true"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_groups_group.scenario_5", "group_types.#", "2"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_groups_group.scenario_5", "membership_rule", "(user.accountEnabled -eq true)"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_groups_group.scenario_5", "membership_rule_processing_state", "On"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_groups_group.scenario_5", "visibility", "Private"),
+					},
+					check.That(resourceType+".scenario_5").ExistsInGraph(testResource),
+					check.That(resourceType+".scenario_5").Key("id").Exists(),
+					check.That(resourceType+".scenario_5").Key("display_name").MatchesRegex(regexp.MustCompile(`^acc-m365-group-dynamic-user-[a-zA-Z0-9]{8}$`)),
+					check.That(resourceType+".scenario_5").Key("description").HasValue("Acceptance test - M365 group with dynamic user membership"),
+					check.That(resourceType+".scenario_5").Key("mail_enabled").HasValue("true"),
+					check.That(resourceType+".scenario_5").Key("security_enabled").HasValue("true"),
+					check.That(resourceType+".scenario_5").Key("group_types.#").HasValue("2"),
+					check.That(resourceType+".scenario_5").Key("membership_rule").HasValue("(user.accountEnabled -eq true)"),
+					check.That(resourceType+".scenario_5").Key("membership_rule_processing_state").HasValue("On"),
+					check.That(resourceType+".scenario_5").Key("visibility").HasValue("Private"),
 				),
+			},
+			{
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Importing M365 group with dynamic user membership")
+				},
+				ResourceName:      resourceType + ".scenario_5",
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -330,7 +435,11 @@ func TestAccGroupResource_Scenario6_M365GroupAssigned(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
-		CheckDestroy:             testAccCheckGroupDestroy,
+		CheckDestroy: destroy.CheckDestroyedAllFunc(
+			testResource,
+			resourceType,
+			20*time.Second,
+		),
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
 				Source:            "hashicorp/random",
@@ -339,67 +448,105 @@ func TestAccGroupResource_Scenario6_M365GroupAssigned(t *testing.T) {
 		},
 		Steps: []resource.TestStep{
 			{
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Creating M365 group with assigned membership")
+				},
 				Config: testAccGroupConfig_scenario6(),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("microsoft365_graph_beta_groups_group.scenario_6", "id"),
-					resource.TestCheckResourceAttrWith("microsoft365_graph_beta_groups_group.scenario_6", "display_name", func(value string) error {
-						if !regexp.MustCompile(`^acc-m365-group-assigned-[a-zA-Z0-9]{8}$`).MatchString(value) {
-							return fmt.Errorf("display_name does not match expected pattern: %s", value)
-						}
+					func(_ *terraform.State) error {
+						testlog.WaitForConsistency("group", 20*time.Second)
+						time.Sleep(20 * time.Second)
 						return nil
-					}),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_groups_group.scenario_6", "mail_enabled", "true"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_groups_group.scenario_6", "security_enabled", "true"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_groups_group.scenario_6", "group_types.#", "1"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_groups_group.scenario_6", "description", "Acceptance test - M365 group with assigned membership"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_groups_group.scenario_6", "is_assignable_to_role", "true"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_groups_group.scenario_6", "visibility", "Private"),
+					},
+					check.That(resourceType+".scenario_6").ExistsInGraph(testResource),
+					check.That(resourceType+".scenario_6").Key("id").Exists(),
+					check.That(resourceType+".scenario_6").Key("display_name").MatchesRegex(regexp.MustCompile(`^acc-m365-group-assigned-[a-zA-Z0-9]{8}$`)),
+					check.That(resourceType+".scenario_6").Key("mail_enabled").HasValue("true"),
+					check.That(resourceType+".scenario_6").Key("security_enabled").HasValue("true"),
+					check.That(resourceType+".scenario_6").Key("group_types.#").HasValue("1"),
+					check.That(resourceType+".scenario_6").Key("description").HasValue("Acceptance test - M365 group with assigned membership"),
+					check.That(resourceType+".scenario_6").Key("is_assignable_to_role").HasValue("true"),
+					check.That(resourceType+".scenario_6").Key("visibility").HasValue("Private"),
 				),
+			},
+			{
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Importing M365 group with assigned membership")
+				},
+				ResourceName:      resourceType + ".scenario_6",
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
 }
 
+// Config loader functions
 func testAccGroupConfig_minimal() string {
-	accTestConfig := mocks.LoadLocalTerraformConfig("resource_minimal.tf")
-	return acceptance.ConfiguredM365ProviderBlock(accTestConfig)
+	config, err := helpers.ParseHCLFile("tests/terraform/acceptance/resource_minimal.tf")
+	if err != nil {
+		panic("failed to load minimal config: " + err.Error())
+	}
+	return config
 }
 
 func testAccGroupConfig_maximal() string {
-	accTestConfig := mocks.LoadLocalTerraformConfig("resource_maximal.tf")
-	return acceptance.ConfiguredM365ProviderBlock(accTestConfig)
+	config, err := helpers.ParseHCLFile("tests/terraform/acceptance/resource_maximal.tf")
+	if err != nil {
+		panic("failed to load maximal config: " + err.Error())
+	}
+	return config
 }
 
 func testAccGroupConfig_scenario1() string {
-	accTestConfig := mocks.LoadLocalTerraformConfig("resource_scenario_1_security_group_assigned.tf")
-	return acceptance.ConfiguredM365ProviderBlock(accTestConfig)
+	config, err := helpers.ParseHCLFile("tests/terraform/acceptance/resource_scenario_1_security_group_assigned.tf")
+	if err != nil {
+		panic("failed to load scenario 1 config: " + err.Error())
+	}
+	return config
 }
 
 func testAccGroupConfig_scenario2() string {
-	accTestConfig := mocks.LoadLocalTerraformConfig("resource_scenario_2_security_group_dynamic_user.tf")
-	return acceptance.ConfiguredM365ProviderBlock(accTestConfig)
+	config, err := helpers.ParseHCLFile("tests/terraform/acceptance/resource_scenario_2_security_group_dynamic_user.tf")
+	if err != nil {
+		panic("failed to load scenario 2 config: " + err.Error())
+	}
+	return config
 }
 
 func testAccGroupConfig_scenario3() string {
-	accTestConfig := mocks.LoadLocalTerraformConfig("resource_scenario_3_security_group_dynamic_device.tf")
-	return acceptance.ConfiguredM365ProviderBlock(accTestConfig)
+	config, err := helpers.ParseHCLFile("tests/terraform/acceptance/resource_scenario_3_security_group_dynamic_device.tf")
+	if err != nil {
+		panic("failed to load scenario 3 config: " + err.Error())
+	}
+	return config
 }
 
 func testAccGroupConfig_scenario4() string {
-	accTestConfig := mocks.LoadLocalTerraformConfig("resource_scenario_4_security_group_role_assignable.tf")
-	return acceptance.ConfiguredM365ProviderBlock(accTestConfig)
+	config, err := helpers.ParseHCLFile("tests/terraform/acceptance/resource_scenario_4_security_group_role_assignable.tf")
+	if err != nil {
+		panic("failed to load scenario 4 config: " + err.Error())
+	}
+	return config
 }
 
 func testAccGroupConfig_scenario5() string {
-	accTestConfig := mocks.LoadLocalTerraformConfig("resource_scenario_5_m365_group_dynamic_user.tf")
-	return acceptance.ConfiguredM365ProviderBlock(accTestConfig)
+	config, err := helpers.ParseHCLFile("tests/terraform/acceptance/resource_scenario_5_m365_group_dynamic_user.tf")
+	if err != nil {
+		panic("failed to load scenario 5 config: " + err.Error())
+	}
+	return config
 }
 
 func testAccGroupConfig_scenario6() string {
-	accTestConfig := mocks.LoadLocalTerraformConfig("resource_scenario_6_m365_group_assigned.tf")
-	return acceptance.ConfiguredM365ProviderBlock(accTestConfig)
+	config, err := helpers.ParseHCLFile("tests/terraform/acceptance/resource_scenario_6_m365_group_assigned.tf")
+	if err != nil {
+		panic("failed to load scenario 6 config: " + err.Error())
+	}
+	return config
 }
 
+// Inline validation configs
 func testAccGroupConfig_missingDisplayName() string {
 	return `
 resource "microsoft365_graph_beta_groups_group" "test" {
@@ -461,47 +608,4 @@ resource "microsoft365_graph_beta_groups_group" "test" {
   security_enabled = true
 }
 `
-}
-
-// testAccCheckGroupDestroy verifies that groups have been destroyed
-func testAccCheckGroupDestroy(s *terraform.State) error {
-	graphClient, err := acceptance.TestGraphClient()
-	if err != nil {
-		return fmt.Errorf("error creating Graph client for CheckDestroy: %v", err)
-	}
-
-	ctx := context.Background()
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "microsoft365_graph_beta_groups_group" {
-			continue
-		}
-
-		// Attempt to get the group by ID
-		_, err := graphClient.
-			Groups().
-			ByGroupId(rs.Primary.ID).
-			Get(ctx, nil)
-
-		if err != nil {
-			errorInfo := errors.GraphError(ctx, err)
-			fmt.Printf("DEBUG: Error details - StatusCode: %d, ErrorCode: %s, ErrorMessage: %s\n",
-				errorInfo.StatusCode, errorInfo.ErrorCode, errorInfo.ErrorMessage)
-
-			if errorInfo.StatusCode == 404 ||
-				errorInfo.StatusCode == 400 ||
-				errorInfo.ErrorCode == "ResourceNotFound" ||
-				errorInfo.ErrorCode == "Request_ResourceNotFound" ||
-				errorInfo.ErrorCode == "ItemNotFound" {
-				fmt.Printf("DEBUG: Resource %s successfully destroyed (404/400/NotFound)\n", rs.Primary.ID)
-				continue // Resource successfully destroyed
-			}
-			return fmt.Errorf("error checking if group %s was destroyed: %v", rs.Primary.ID, err)
-		}
-
-		// If we can still get the resource, it wasn't destroyed
-		return fmt.Errorf("group %s still exists", rs.Primary.ID)
-	}
-
-	return nil
 }

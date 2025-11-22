@@ -32,6 +32,8 @@ The following API permissions are required in order to use this resource.
 
 ## Example Usage
 
+### Example 1: Basic Security Group with Assigned Membership
+
 ```terraform
 # Example 1: Basic Security Group with Assigned Membership
 # Creates a standard security group where members are manually assigned.
@@ -43,7 +45,11 @@ resource "microsoft365_graph_beta_groups_group" "security_basic" {
   security_enabled = true
   description      = "Security group for engineering team members"
 }
+```
 
+### Example 2: Security Group with Dynamic User Membership
+
+```terraform
 # Example 2: Security Group with Dynamic User Membership
 # Creates a security group that automatically adds/removes users based on a membership rule.
 # Useful for automatically managing group membership based on user attributes.
@@ -57,7 +63,11 @@ resource "microsoft365_graph_beta_groups_group" "security_dynamic_users" {
   membership_rule                  = "(user.accountEnabled -eq true)"
   membership_rule_processing_state = "On"
 }
+```
 
+### Example 3: Security Group with Dynamic Device Membership
+
+```terraform
 # Example 3: Security Group with Dynamic Device Membership
 # Creates a security group that automatically includes devices based on a membership rule.
 # Ideal for device management scenarios like Conditional Access or Intune policies.
@@ -71,7 +81,11 @@ resource "microsoft365_graph_beta_groups_group" "security_dynamic_devices" {
   membership_rule                  = "(device.accountEnabled -eq true)"
   membership_rule_processing_state = "On"
 }
+```
 
+### Example 4: Role-Assignable Security Group
+
+```terraform
 # Example 4: Role-Assignable Security Group
 # Creates a security group that can be assigned to Entra ID roles.
 # Note: Requires elevated permissions and visibility must be "Private".
@@ -85,7 +99,11 @@ resource "microsoft365_graph_beta_groups_group" "security_role_assignable" {
   is_assignable_to_role = true
   visibility            = "Private"
 }
+```
 
+### Example 5: Microsoft 365 Group with Dynamic User Membership
+
+```terraform
 # Example 5: Microsoft 365 Group with Dynamic User Membership
 # Creates a Microsoft 365 group (formerly Office 365 group) with automatic membership.
 # Includes Teams, SharePoint, Outlook, and other Microsoft 365 services.
@@ -99,7 +117,11 @@ resource "microsoft365_graph_beta_groups_group" "m365_dynamic_users" {
   membership_rule_processing_state = "On"
   visibility                       = "Private"
 }
+```
 
+### Example 6: Microsoft 365 Group with Role Assignment
+
+```terraform
 # Example 6: Microsoft 365 Group with Role Assignment
 # Creates a Microsoft 365 group that can be assigned to Entra ID roles.
 # Combines collaboration features with privileged access management.
@@ -128,7 +150,7 @@ resource "microsoft365_graph_beta_groups_group" "m365_role_assignable" {
 
 ### Optional
 
-- `description` (String) An optional description for the group.
+- `description` (String) An optional description for the group. May be auto-populated by the API for certain group types.
 - `group_members` (Set of String) The members of the group at creation time. A maximum of 20 relationships, such as owners and members, can be added as part of group creation. Specify the user IDs (GUIDs) of the users who should be members of the group. Additional members can be added after creation using the `/groups/{id}/members/$ref` endpoint or JSON batching.
 - `group_owners` (Set of String) The owners of the group at creation time. A maximum of 20 relationships, such as owners and members, can be added as part of group creation. Specify the user IDs (GUIDs) of the users who should be owners of the group. Note: A non-admin user cannot add themselves to the group owners collection. Owners can be added after creation using the `/groups/{id}/owners/$ref` endpoint.
 - `group_types` (Set of String) Specifies the group type and its membership. If the collection contains 'Unified', the group is a Microsoft 365 group; otherwise, it's either a security group or a distribution group. If the collection includes 'DynamicMembership', the group has dynamic membership; otherwise, membership is static.
@@ -155,16 +177,15 @@ Optional:
 
 ## Important Notes
 
-- **Group Types**: This resource supports security groups, Microsoft 365 groups, and distribution groups.
+- **Group Types**: This resource supports security groups and Microsoft 365 groups.
 - **Dynamic Membership**: Groups can have dynamic membership based on user or device attributes when `group_types` includes "DynamicMembership".
-- **Role Assignment**: Groups can be made assignable to Azure AD roles by setting `is_assignable_to_role` to true (only during creation).
+- **Role Assignment**: Groups can be made assignable to Entra ID roles by setting `is_assignable_to_role` to true. This property can only be set during creation and is immutable. Requires `RoleManagement.ReadWrite.Directory` permission.
 - **Mail Features**: Microsoft 365 groups automatically get mail functionality when `mail_enabled` is true and `group_types` includes "Unified".
-- **Visibility**: Controls who can see and join the group - Private, Public, or HiddenMembership.
-- **Character Restrictions**: The `mail_nickname` field has strict character restrictions (ASCII only, excluding special characters).
+- **Visibility**: Controls who can see and join the group. Possible values: `Private`, `Public`, or `HiddenMembership`. Role-assignable groups are always `Private`.
+- **Character Restrictions**: The `mail_nickname` field has strict character restrictions (ASCII only, excluding: @ () \\ [] " ; : <> , SPACE).
 - **Length Limits**: Display names are limited to 256 characters, mail nicknames to 64 characters.
-- **Language Codes**: Preferred language should follow ISO 639-1 format (e.g., "en-US").
-- **Theme Colors**: Available themes are Teal, Purple, Green, Blue, Pink, Orange, or Red.
-- **Immutable Properties**: Some properties like `is_assignable_to_role` can only be set during creation.
+- **Owners and Members**: A maximum of 20 relationships (owners and members combined) can be added during group creation. Additional owners/members must be added after creation.
+- **Description**: May be auto-populated by the API for certain group types (e.g., Microsoft 365 groups).
 
 ## Import
 

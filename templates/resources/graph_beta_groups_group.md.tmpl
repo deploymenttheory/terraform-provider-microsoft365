@@ -32,22 +32,43 @@ The following API permissions are required in order to use this resource.
 
 ## Example Usage
 
-{{ tffile "examples/resources/microsoft365_graph_beta_groups_group/resource.tf" }}
+### Example 1: Basic Security Group with Assigned Membership
+
+{{ tffile "examples/resources/microsoft365_graph_beta_groups_group/resource_example_1_security_basic.tf" }}
+
+### Example 2: Security Group with Dynamic User Membership
+
+{{ tffile "examples/resources/microsoft365_graph_beta_groups_group/resource_example_2_security_dynamic_users.tf" }}
+
+### Example 3: Security Group with Dynamic Device Membership
+
+{{ tffile "examples/resources/microsoft365_graph_beta_groups_group/resource_example_3_security_dynamic_devices.tf" }}
+
+### Example 4: Role-Assignable Security Group
+
+{{ tffile "examples/resources/microsoft365_graph_beta_groups_group/resource_example_4_security_role_assignable.tf" }}
+
+### Example 5: Microsoft 365 Group with Dynamic User Membership
+
+{{ tffile "examples/resources/microsoft365_graph_beta_groups_group/resource_example_5_m365_dynamic_users.tf" }}
+
+### Example 6: Microsoft 365 Group with Role Assignment
+
+{{ tffile "examples/resources/microsoft365_graph_beta_groups_group/resource_example_6_m365_role_assignable.tf" }}
 
 {{ .SchemaMarkdown | trimspace }}
 
 ## Important Notes
 
-- **Group Types**: This resource supports security groups, Microsoft 365 groups, and distribution groups.
+- **Group Types**: This resource supports security groups and Microsoft 365 groups.
 - **Dynamic Membership**: Groups can have dynamic membership based on user or device attributes when `group_types` includes "DynamicMembership".
-- **Role Assignment**: Groups can be made assignable to Azure AD roles by setting `is_assignable_to_role` to true (only during creation).
+- **Role Assignment**: Groups can be made assignable to Entra ID roles by setting `is_assignable_to_role` to true. This property can only be set during creation and is immutable. Requires `RoleManagement.ReadWrite.Directory` permission.
 - **Mail Features**: Microsoft 365 groups automatically get mail functionality when `mail_enabled` is true and `group_types` includes "Unified".
-- **Visibility**: Controls who can see and join the group - Private, Public, or HiddenMembership.
-- **Character Restrictions**: The `mail_nickname` field has strict character restrictions (ASCII only, excluding special characters).
+- **Visibility**: Controls who can see and join the group. Possible values: `Private`, `Public`, or `HiddenMembership`. Role-assignable groups are always `Private`.
+- **Character Restrictions**: The `mail_nickname` field has strict character restrictions (ASCII only, excluding: @ () \\ [] " ; : <> , SPACE).
 - **Length Limits**: Display names are limited to 256 characters, mail nicknames to 64 characters.
-- **Language Codes**: Preferred language should follow ISO 639-1 format (e.g., "en-US").
-- **Theme Colors**: Available themes are Teal, Purple, Green, Blue, Pink, Orange, or Red.
-- **Immutable Properties**: Some properties like `is_assignable_to_role` can only be set during creation.
+- **Owners and Members**: A maximum of 20 relationships (owners and members combined) can be added during group creation. Additional owners/members must be added after creation.
+- **Description**: May be auto-populated by the API for certain group types (e.g., Microsoft 365 groups).
 
 ## Import
 

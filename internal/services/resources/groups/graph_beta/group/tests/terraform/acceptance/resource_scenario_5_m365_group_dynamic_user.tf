@@ -5,6 +5,7 @@ resource "random_string" "group_suffix" {
 
 resource "microsoft365_graph_beta_groups_group" "scenario_5" {
   display_name                     = "acc-m365-group-dynamic-user-${random_string.group_suffix.result}"
+  description                      = "Acceptance test - M365 group with dynamic user membership"
   mail_enabled                     = true
   mail_nickname                    = "accm365g5${random_string.group_suffix.result}"
   security_enabled                 = true
