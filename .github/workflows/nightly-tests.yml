@@ -22,6 +22,17 @@ jobs:
         with:
           egress-policy: audit
 
+      - name: Free up Ubuntu runner disk space
+        uses: jlumbroso/free-disk-space@54081f138730dfa15788a46383842cd2f914a1be # v1.3.1
+        with:
+          tool-cache: true
+          android: true
+          dotnet: true
+          haskell: true
+          large-packages: true
+          docker-images: false
+          swap-storage: true
+
       - name: Check Out
         uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
 
@@ -71,26 +82,46 @@ jobs:
   # Resources Tests - Matrix for each service area with service-specific credentials
   test-resources:
     name: '📦 Resources: ${{ matrix.service }}'
-    runs-on: ubuntu-24.04-arm
+    runs-on: ${{ matrix.runner }}
     timeout-minutes: 120
     strategy:
-      fail-fast: false
+      fail-fast: false # https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax#jobsjob_idstrategyfail-fast
       matrix:
         include:
           - service: applications
+            runner: ubuntu-24.04-arm
           - service: backup_storage
+            runner: ubuntu-24.04-arm
           - service: device_and_app_management
+            runner: ubuntu-24.04-arm
           - service: device_management
+            runner: ubuntu-24.04-arm
           - service: groups
+            runner: ubuntu-24.04-arm
           - service: identity_and_access
+            runner: ubuntu-24.04-arm
           - service: m365_admin
+            runner: ubuntu-24.04-arm
           - service: users
+            runner: ubuntu-24.04-arm
           - service: windows_365
+            runner: ubuntu-24.04-arm
     steps:
       - name: Harden Runner
         uses: step-security/harden-runner@95d9a5deda9de15063e7595e9719c11c38c90ae2 # v2.13.2
         with:
           egress-policy: audit
+
+      - name: Free up Ubuntu runner disk space
+        uses: jlumbroso/free-disk-space@54081f138730dfa15788a46383842cd2f914a1be # v1.3.1
+        with:
+          tool-cache: true
+          android: true
+          dotnet: true
+          haskell: true
+          large-packages: true
+          docker-images: false
+          swap-storage: true
 
       - name: Check Out
         uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
@@ -163,25 +194,46 @@ jobs:
   # Datasources Tests - Matrix for each service area with service-specific credentials
   test-datasources:
     name: '📊 Datasources: ${{ matrix.service }}'
-    runs-on: ubuntu-24.04-arm
+    runs-on: ${{ matrix.runner }}
     timeout-minutes: 120
     strategy:
       fail-fast: false
       matrix:
         include:
           - service: applications
+            runner: ubuntu-24.04-arm
           - service: device_and_app_management
+            runner: ubuntu-24.04-arm
           - service: device_management
+            runner: ubuntu-24.04-arm
+          - service: groups
+            runner: ubuntu-24.04-arm
           - service: identity_and_access
+            runner: ubuntu-24.04-arm
           - service: m365_admin
+            runner: ubuntu-24.04-arm
           - service: multitenant_management
+            runner: ubuntu-24.04-arm
           - service: utility
+            runner: ubuntu-24.04-arm
           - service: windows_365
+            runner: ubuntu-24.04-arm
     steps:
       - name: Harden Runner
         uses: step-security/harden-runner@95d9a5deda9de15063e7595e9719c11c38c90ae2 # v2.13.2
         with:
           egress-policy: audit
+
+      - name: Free up Ubuntu runner disk space
+        uses: jlumbroso/free-disk-space@54081f138730dfa15788a46383842cd2f914a1be # v1.3.1
+        with:
+          tool-cache: true
+          android: true
+          dotnet: true
+          haskell: true
+          large-packages: true
+          docker-images: false
+          swap-storage: true
 
       - name: Check Out
         uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
@@ -204,6 +256,8 @@ jobs:
           M365_CLIENT_SECRET_DEVICE_AND_APP_MGMT: ${{ secrets.M365_CLIENT_SECRET_DEVICE_AND_APP_MGMT }}
           M365_CLIENT_ID_DEVICE_MGMT: ${{ secrets.M365_CLIENT_ID_DEVICE_MGMT }}
           M365_CLIENT_SECRET_DEVICE_MGMT: ${{ secrets.M365_CLIENT_SECRET_DEVICE_MGMT }}
+          M365_CLIENT_ID_GROUPS: ${{ secrets.M365_CLIENT_ID_GROUPS }}
+          M365_CLIENT_SECRET_GROUPS: ${{ secrets.M365_CLIENT_SECRET_GROUPS }}
           M365_CLIENT_ID_IDENTITY_ACCESS: ${{ secrets.M365_CLIENT_ID_IDENTITY_ACCESS }}
           M365_CLIENT_SECRET_IDENTITY_ACCESS: ${{ secrets.M365_CLIENT_SECRET_IDENTITY_ACCESS }}
           M365_CLIENT_ID_M365_ADMIN: ${{ secrets.M365_CLIENT_ID_M365_ADMIN }}
