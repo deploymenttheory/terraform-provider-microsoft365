@@ -53,6 +53,7 @@ func NewGroupResource() resource.Resource {
 			"Group.Create",
 			"Group.ReadWrite.All",
 			"Directory.ReadWrite.All",
+			"RoleManagement.ReadWrite.Directory",
 		},
 		ResourcePath: "/groups",
 	}
@@ -101,7 +102,8 @@ func (r *GroupResource) Schema(ctx context.Context, req resource.SchemaRequest, 
 			},
 			"description": schema.StringAttribute{
 				Optional:            true,
-				MarkdownDescription: "An optional description for the group.",
+				Computed:            true,
+				MarkdownDescription: "An optional description for the group. May be auto-populated by the API for certain group types.",
 			},
 			"mail_nickname": schema.StringAttribute{
 				Required:            true,
