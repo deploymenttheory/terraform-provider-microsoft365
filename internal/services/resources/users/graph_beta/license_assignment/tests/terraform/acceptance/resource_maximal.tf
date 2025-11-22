@@ -6,19 +6,12 @@ resource "random_string" "maximal_suffix" {
 
 resource "microsoft365_graph_beta_users_user_license_assignment" "dependancy" {
   user_id = microsoft365_graph_beta_users_user.dependancy.id
-  add_licenses = [
-    {
-      sku_id = "a403ebcc-fae0-4ca2-8c8c-7a907fd6c235" # POWER_BI_STANDARD
-    },
-    {
-      sku_id = "f30db892-07e9-47e9-837c-80727f46fd3d" # FLOW_FREE
-    }
-  ]
-} 
+  sku_id  = "f30db892-07e9-47e9-837c-80727f46fd3d" # FLOW_FREE
+}
 
 resource "microsoft365_graph_beta_users_user" "dependancy" {
   account_enabled     = false
-  display_name        = "License Test Maximal User"
+  display_name        = "License Assignment Test Maximal User"
   user_principal_name = "license.test.maximal.${random_string.maximal_suffix.result}@deploymenttheory.com"
   mail_nickname       = "license.test.maximal.${random_string.maximal_suffix.result}"
   usage_location      = "GB"
@@ -26,4 +19,4 @@ resource "microsoft365_graph_beta_users_user" "dependancy" {
     password                           = "SecureP@ssw0rd123!!!!"
     force_change_password_next_sign_in = true
   }
-} 
+}

@@ -3,7 +3,6 @@ package graphBetaUserLicenseAssignment_test
 import (
 	"fmt"
 	"regexp"
-	"strings"
 	"testing"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/check"
@@ -27,39 +26,11 @@ func setupMockEnvironment() (*mocks.Mocks, *localMocks.UserLicenseAssignmentMock
 	return mockClient, licenseAssignmentMock
 }
 
-func testConfigMinimalToMaximal() string {
-	maximalContent := testConfigMaximal()
-	updatedMaximal := strings.Replace(maximalContent, "maximal", "minimal", 1)
-	updatedMaximal = strings.Replace(updatedMaximal, "00000000-0000-0000-0000-000000000003", "00000000-0000-0000-0000-000000000002", 1)
-	return updatedMaximal
-}
-
-func testConfigMaximalWithResourceName(resourceName string) string {
-	maximalContent := testConfigMaximal()
-	return strings.Replace(maximalContent, "maximal", resourceName, 1)
-}
-
-func testConfigMinimalWithResourceName(resourceName string) string {
-	return fmt.Sprintf(`resource "microsoft365_graph_beta_users_user_license_assignment" "%s" {
-  user_id = "00000000-0000-0000-0000-000000000003"
-  add_licenses = [
-    {
-      sku_id = "a403ebcc-fae0-4ca2-8c8c-7a907fd6c235" # POWER_BI_STANDARD
-    },
-    {
-      sku_id = "f30db892-07e9-47e9-837c-80727f46fd3d" # FLOW_FREE
-    }
-  ]
-}`, resourceName)
-}
-
 func testConfigError() string {
 	return `
 resource "microsoft365_graph_beta_users_user_license_assignment" "error" {
   user_id = "invalid-user-id"
-  add_licenses = [{
-    sku_id = "33333333-3333-3333-3333-333333333333"
-  }]
+  sku_id = "33333333-3333-3333-3333-333333333333"
 }
 `
 }
@@ -77,21 +48,13 @@ func TestUnitUserLicenseAssignmentResource_Create_Minimal(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					check.That(resourceType+".minimal").Key("id").Exists(),
 					check.That(resourceType+".minimal").Key("user_id").HasValue("00000000-0000-0000-0000-000000000002"),
-					check.That(resourceType+".minimal").Key("add_licenses.#").HasValue("2"),
-					check.That(resourceType+".minimal").Key("add_licenses.0.sku_id").HasValue("a403ebcc-fae0-4ca2-8c8c-7a907fd6c235"),
-					check.That(resourceType+".minimal").Key("add_licenses.0.disabled_plans.#").HasValue("0"),
-					check.That(resourceType+".minimal").Key("add_licenses.1.sku_id").HasValue("f30db892-07e9-47e9-837c-80727f46fd3d"),
-					check.That(resourceType+".minimal").Key("add_licenses.1.disabled_plans.#").HasValue("0"),
+					check.That(resourceType+".minimal").Key("sku_id").HasValue("f30db892-07e9-47e9-837c-80727f46fd3d"),
 				),
 			},
 			{
 				ResourceName:      resourceType + ".minimal",
 				ImportState:       true,
 				ImportStateVerify: true,
-				ImportStateVerifyIgnore: []string{
-					"add_licenses",
-					"remove_licenses",
-				},
 			},
 		},
 	})
@@ -110,28 +73,20 @@ func TestUnitUserLicenseAssignmentResource_Create_Maximal(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					check.That(resourceType+".maximal").Key("id").Exists(),
 					check.That(resourceType+".maximal").Key("user_id").HasValue("00000000-0000-0000-0000-000000000003"),
-					check.That(resourceType+".maximal").Key("add_licenses.#").HasValue("2"),
-					check.That(resourceType+".maximal").Key("add_licenses.0.sku_id").HasValue("44444444-4444-4444-4444-444444444444"),
-					check.That(resourceType+".maximal").Key("add_licenses.0.disabled_plans.#").HasValue("2"),
-					check.That(resourceType+".maximal").Key("add_licenses.1.sku_id").HasValue("77777777-7777-7777-7777-777777777777"),
-					check.That(resourceType+".maximal").Key("remove_licenses.#").HasValue("1"),
-					check.That(resourceType+".maximal").Key("remove_licenses.0").HasValue("88888888-8888-8888-8888-888888888888"),
+					check.That(resourceType+".maximal").Key("sku_id").HasValue("44444444-4444-4444-4444-444444444444"),
+					check.That(resourceType+".maximal").Key("disabled_plans.#").HasValue("2"),
 				),
 			},
 			{
 				ResourceName:      resourceType + ".maximal",
 				ImportState:       true,
 				ImportStateVerify: true,
-				ImportStateVerifyIgnore: []string{
-					"add_licenses",
-					"remove_licenses",
-				},
 			},
 		},
 	})
 }
 
-func TestUnitUserLicenseAssignmentResource_Update_MinimalToMaximal(t *testing.T) {
+func TestUnitUserLicenseAssignmentResource_Update(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, _ = setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -144,51 +99,16 @@ func TestUnitUserLicenseAssignmentResource_Update_MinimalToMaximal(t *testing.T)
 				Check: resource.ComposeTestCheckFunc(
 					check.That(resourceType+".minimal").Key("id").Exists(),
 					check.That(resourceType+".minimal").Key("user_id").HasValue("00000000-0000-0000-0000-000000000002"),
-					check.That(resourceType+".minimal").Key("add_licenses.#").HasValue("2"),
-					check.That(resourceType+".minimal").Key("add_licenses.0.sku_id").HasValue("a403ebcc-fae0-4ca2-8c8c-7a907fd6c235"),
-					check.That(resourceType+".minimal").Key("add_licenses.0.disabled_plans.#").HasValue("0"),
-					check.That(resourceType+".minimal").Key("add_licenses.1.sku_id").HasValue("f30db892-07e9-47e9-837c-80727f46fd3d"),
+					check.That(resourceType+".minimal").Key("sku_id").HasValue("f30db892-07e9-47e9-837c-80727f46fd3d"),
 				),
 			},
 			{
-				Config: testConfigMinimalToMaximal(),
+				Config: testConfigMinimalWithDisabledPlans(),
 				Check: resource.ComposeTestCheckFunc(
 					check.That(resourceType+".minimal").Key("id").Exists(),
 					check.That(resourceType+".minimal").Key("user_id").HasValue("00000000-0000-0000-0000-000000000002"),
-					check.That(resourceType+".minimal").Key("add_licenses.#").HasValue("2"),
-					check.That(resourceType+".minimal").Key("add_licenses.0.sku_id").HasValue("44444444-4444-4444-4444-444444444444"),
-					check.That(resourceType+".minimal").Key("add_licenses.0.disabled_plans.#").HasValue("2"),
-					check.That(resourceType+".minimal").Key("add_licenses.1.sku_id").HasValue("77777777-7777-7777-7777-777777777777"),
-					check.That(resourceType+".minimal").Key("remove_licenses.#").HasValue("1"),
-				),
-			},
-		},
-	})
-}
-
-func TestUnitUserLicenseAssignmentResource_Update_MaximalToMinimal(t *testing.T) {
-	mocks.SetupUnitTestEnvironment(t)
-	_, _ = setupMockEnvironment()
-	defer httpmock.DeactivateAndReset()
-
-	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
-		Steps: []resource.TestStep{
-			{
-				Config: testConfigMaximalWithResourceName("test"),
-				Check: resource.ComposeTestCheckFunc(
-					check.That(resourceType+".test").Key("id").Exists(),
-					check.That(resourceType+".test").Key("add_licenses.#").HasValue("2"),
-					check.That(resourceType+".test").Key("remove_licenses.#").HasValue("1"),
-				),
-			},
-			{
-				Config: testConfigMinimalWithResourceName("test"),
-				Check: resource.ComposeTestCheckFunc(
-					check.That(resourceType+".test").Key("id").Exists(),
-					check.That(resourceType+".test").Key("add_licenses.#").HasValue("2"),
-					check.That(resourceType+".test").Key("add_licenses.0.sku_id").HasValue("a403ebcc-fae0-4ca2-8c8c-7a907fd6c235"),
-					check.That(resourceType+".test").Key("add_licenses.1.sku_id").HasValue("f30db892-07e9-47e9-837c-80727f46fd3d"),
+					check.That(resourceType+".minimal").Key("sku_id").HasValue("f30db892-07e9-47e9-837c-80727f46fd3d"),
+					check.That(resourceType+".minimal").Key("disabled_plans.#").HasValue("1"),
 				),
 			},
 		},
@@ -283,4 +203,16 @@ func testConfigMaximal() string {
 		panic("failed to load resource_maximal.tf: " + err.Error())
 	}
 	return unitTestConfig
+}
+
+func testConfigMinimalWithDisabledPlans() string {
+	return `
+resource "microsoft365_graph_beta_users_user_license_assignment" "minimal" {
+  user_id = "00000000-0000-0000-0000-000000000002"
+  sku_id  = "f30db892-07e9-47e9-837c-80727f46fd3d" # FLOW_FREE
+  disabled_plans = [
+    "a403ebcc-fae0-4ca2-8c8c-7a907fd6c235"
+  ]
+}
+`
 }

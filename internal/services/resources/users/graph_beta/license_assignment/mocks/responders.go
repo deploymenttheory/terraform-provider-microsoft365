@@ -15,7 +15,7 @@ import (
 // mockState tracks the state of resources for consistent responses
 var mockState struct {
 	sync.Mutex
-	userLicenses map[string]map[string]any
+	userLicenses map[string]map[string]any // userID -> license data including assignedLicenses array
 }
 
 func init() {
@@ -170,88 +170,74 @@ func (m *UserLicenseAssignmentMock) RegisterMocks() {
 				return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"Invalid request body"}}`), nil
 			}
 
-			// Check if this is a delete operation (removing all licenses)
-			addLicenses, hasAdd := requestBody["addLicenses"].([]any)
-			removeLicenses, hasRemove := requestBody["removeLicenses"].([]any)
-
-			if hasRemove && len(removeLicenses) > 0 && (!hasAdd || len(addLicenses) == 0) {
-				// This is a delete operation - remove user from state
-				mockState.Lock()
-				delete(mockState.userLicenses, userID)
-				mockState.Unlock()
-
-				// Return empty licenses
-				userData := map[string]any{
-					"id":                userID,
-					"userPrincipalName": "test.user@contoso.com",
-					"assignedLicenses":  []any{},
-				}
-				return httpmock.NewJsonResponse(200, userData)
-			}
-
-			// Determine if this is a create or update operation
 			mockState.Lock()
-			_, exists := mockState.userLicenses[userID]
-			mockState.Unlock()
+			defer mockState.Unlock()
 
-			var operation string
-			if exists {
-				operation = "update"
-			} else {
-				operation = "create"
+			// Get or create user data
+			userData, exists := mockState.userLicenses[userID]
+			if !exists {
+				// Load initial user data
+				jsonFile := getJSONFileForUserID(userID, "create")
+				if jsonFile == "" {
+					return httpmock.NewStringResponse(404, `{"error":{"code":"ResourceNotFound","message":"User not found"}}`), nil
+				}
+
+				loadedData, err := m.loadJSONResponse(jsonFile)
+				if err != nil {
+					return httpmock.NewStringResponse(500, fmt.Sprintf(`{"error":{"code":"InternalError","message":"Failed to load mock response: %s"}}`, err.Error())), nil
+				}
+				userData = loadedData
+				mockState.userLicenses[userID] = userData
 			}
 
-			// Load the appropriate JSON response
-			jsonFile := getJSONFileForUserID(userID, operation)
-			if jsonFile == "" {
-				return httpmock.NewStringResponse(404, `{"error":{"code":"ResourceNotFound","message":"User not found"}}`), nil
+			// Get current licenses
+			currentLicenses, ok := userData["assignedLicenses"].([]any)
+			if !ok {
+				currentLicenses = []any{}
 			}
 
-			userData, err := m.loadJSONResponse(jsonFile)
-			if err != nil {
-				return httpmock.NewStringResponse(500, fmt.Sprintf(`{"error":{"code":"InternalError","message":"Failed to load mock response: %s"}}`, err.Error())), nil
-			}
-
-			// Process the request to merge add/remove licenses
+			// Process add licenses
+			addLicenses, hasAdd := requestBody["addLicenses"].([]any)
 			if hasAdd && len(addLicenses) > 0 {
-				// For create, just use the JSON file's licenses
-				// For update, merge with existing licenses
-				if operation == "update" {
-					currentLicenses := userData["assignedLicenses"].([]any)
+				for _, addLicense := range addLicenses {
+					licenseObj := addLicense.(map[string]any)
+					skuID := licenseObj["skuId"].(string)
 
-					// Add new licenses from request
-					for _, addLicense := range addLicenses {
-						licenseObj := addLicense.(map[string]any)
-						skuID := licenseObj["skuId"].(string)
-
-						// Check if license already exists
-						found := false
-						for i, existing := range currentLicenses {
-							existingMap := existing.(map[string]any)
-							if existingMap["skuId"] == skuID {
-								// Update disabled plans
-								if disabledPlans, ok := licenseObj["disabledPlans"]; ok {
-									existingMap["disabledPlans"] = disabledPlans
-									currentLicenses[i] = existingMap
-								}
-								found = true
-								break
+					// Check if license already exists
+					found := false
+					for i, existing := range currentLicenses {
+						existingMap := existing.(map[string]any)
+						if existingMap["skuId"] == skuID {
+							// Update disabled plans
+							if disabledPlans, ok := licenseObj["disabledPlans"]; ok {
+								existingMap["disabledPlans"] = disabledPlans
+							} else {
+								existingMap["disabledPlans"] = []any{}
 							}
-						}
-
-						if !found {
-							currentLicenses = append(currentLicenses, licenseObj)
+							currentLicenses[i] = existingMap
+							found = true
+							break
 						}
 					}
-					userData["assignedLicenses"] = currentLicenses
+
+					if !found {
+						normalizedLicense := map[string]any{
+							"skuId": skuID,
+						}
+						if disabledPlans, ok := licenseObj["disabledPlans"]; ok {
+							normalizedLicense["disabledPlans"] = disabledPlans
+						} else {
+							normalizedLicense["disabledPlans"] = []any{}
+						}
+						currentLicenses = append(currentLicenses, normalizedLicense)
+					}
 				}
 			}
 
-			// Process remove licenses (but not a full delete)
-			if hasRemove && len(removeLicenses) > 0 && hasAdd && len(addLicenses) > 0 {
-				currentLicenses := userData["assignedLicenses"].([]any)
+			// Process remove licenses
+			removeLicenses, hasRemove := requestBody["removeLicenses"].([]any)
+			if hasRemove && len(removeLicenses) > 0 {
 				filteredLicenses := make([]any, 0)
-
 				for _, existing := range currentLicenses {
 					existingMap := existing.(map[string]any)
 					skuID := existingMap["skuId"].(string)
@@ -269,14 +255,10 @@ func (m *UserLicenseAssignmentMock) RegisterMocks() {
 						filteredLicenses = append(filteredLicenses, existing)
 					}
 				}
-				userData["assignedLicenses"] = filteredLicenses
+				currentLicenses = filteredLicenses
 			}
 
-			// Store the updated state
-			mockState.Lock()
-			mockState.userLicenses[userID] = userData
-			mockState.Unlock()
-
+			userData["assignedLicenses"] = currentLicenses
 			return httpmock.NewJsonResponse(200, userData)
 		})
 }
