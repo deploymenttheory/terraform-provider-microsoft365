@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.36.2-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.36.1-alpha...v0.36.2-alpha) (2025-11-22)
+
+
+### Bug Fixes
+
+* enhance nightly tests workflow by adding disk space cleanup step and updating runner configuration ([#1124](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/1124)) ([0ada782](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/0ada7823339ea526785a4f95798d0a5e7e96aee5))
+* resource  user license assignment tests ([eae4e70](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/eae4e701542d1a87e475bce12e176843249ecb16))
+* resource  user license assignment tests ([#1106](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/1106)) ([8b816fb](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/8b816fb8e5ab51caa46d6f759322d613804bc91b))
+* updated resource group test harness to follow new pattern ([4347f6f](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/4347f6f7b29d19d28389265f9dfac2593d626795))
+* updated resource group test harness to follow new pattern ([#1123](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/1123)) ([6f0b0d0](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/6f0b0d06c724945d7f98638d37c0a95fed161409))
+
 ## [0.36.1-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.36.0-alpha...v0.36.1-alpha) (2025-11-21)
 
 
