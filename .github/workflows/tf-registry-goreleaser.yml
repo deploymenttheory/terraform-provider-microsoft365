@@ -43,7 +43,7 @@ jobs:
     runs-on: ubuntu-22.04-arm-4c-l # using gh 'larger runner' for more disk space
     timeout-minutes: 120
     steps:
-      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
+      - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
         with:
           ref: ${{ inputs.git-ref || github.ref }}
           fetch-depth: 0
