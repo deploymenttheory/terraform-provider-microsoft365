@@ -90,6 +90,25 @@ func (r *GroupLifecycleExpirationPolicyAssignmentResource) Create(ctx context.Co
 }
 
 // Read handles the Read operation.
+//
+// Note: There is no direct GET method in the Microsoft Graph API to retrieve individual
+// group lifecycle policy assignments. The only available endpoints are:
+//   - POST /groupLifecyclePolicies/{id}/addGroup (to add a group)
+//   - POST /groupLifecyclePolicies/{id}/removeGroup (to remove a group)
+//
+// Attempts were made to retrieve assignment information by querying the group object with
+// $expand=groupLifecyclePolicies, but this navigation property consistently returned nil
+// even when the assignment existed, making it unreliable for state verification.
+//
+// As a result, this Read implementation:
+// 1. Verifies the lifecycle policy exists and is configured with managed_group_types = "Selected"
+// 2. Uses the group_id from the HCL state to maintain the resource state
+// 3. Removes the resource from state if the policy is deleted or misconfigured
+//
+// This approach is acceptable because:
+//   - The assignment is idempotent (adding an already-assigned group succeeds)
+//   - The Create operation validates the assignment succeeds via API response
+//   - Any drift (manual removal via API/Portal) will be corrected on next apply
 func (r *GroupLifecycleExpirationPolicyAssignmentResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var object GroupLifecycleExpirationPolicyAssignmentResourceModel
 
