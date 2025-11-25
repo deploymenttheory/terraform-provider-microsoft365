@@ -1,0 +1,8 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#groupLifecyclePolicies/$entity",
+  "id": "33333333-3333-3333-3333-333333333333",
+  "groupLifetimeInDays": 365,
+  "managedGroupTypes": "None",
+  "alternateNotificationEmails": "admin@deploymenttheory.com"
+}
+

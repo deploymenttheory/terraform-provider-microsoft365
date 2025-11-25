@@ -1,0 +1,53 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
+subcategory: "Groups"
+description: |-
+  {{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Name}} ({{.Type}})
+
+{{ .Description | trimspace }}
+
+## Microsoft Documentation
+
+- [groupLifecyclePolicy: addGroup](https://learn.microsoft.com/en-us/graph/api/grouplifecyclepolicy-addgroup?view=graph-rest-beta)
+- [groupLifecyclePolicy: removeGroup](https://learn.microsoft.com/en-us/graph/api/grouplifecyclepolicy-removegroup?view=graph-rest-beta)
+- [Group lifecycle policy resource type](https://learn.microsoft.com/en-us/graph/api/resources/grouplifecyclepolicy?view=graph-rest-beta)
+
+## API Permissions
+
+The following API permissions are required in order to use this resource.
+
+### Microsoft Graph
+
+- **Application**: `Group.ReadWrite.All`, `Directory.ReadWrite.All`
+
+## Version History
+
+| Version | Status | Notes |
+|---------|--------|-------|
+| v0.37.0-alpha | Preview | Initial release |
+
+## Example Usage
+
+{{ tffile "examples/resources/microsoft365_graph_beta_groups_group_lifecycle_expiration_policy_assignment/resource.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}
+
+## Important Notes
+
+- **Policy Requirement**: A group lifecycle expiration policy must exist and have `managed_group_types` set to **Selected** before groups can be assigned to it.
+- **Group Limitations**: When `managed_group_types` is set to **Selected**, you can assign up to 500 groups to the policy. If you need more than 500 groups, set the policy's `managed_group_types` to **All** instead.
+- **Group Types**: This resource only works with Microsoft 365 groups (Unified groups). Security-only groups cannot be assigned to lifecycle policies.
+- **Automatic Policy Discovery**: This resource automatically discovers the tenant's single lifecycle policy, so you don't need to specify a policy ID.
+- **Expiration Management**: Once a group is assigned to a lifecycle policy, its `expirationDateTime` is automatically set based on the policy's `group_lifetime_in_days` value.
+- **Renewal Notifications**: Group owners will receive renewal notifications 30 days, 15 days, and 1 day before the group expires. Owners must have Exchange licenses to receive these notifications.
+- **Resource Replacement**: Changing the `group_id` requires destroying and recreating the assignment resource.
+
+## Import
+
+Import is supported using the following syntax:
+
+{{ codefile "shell" "examples/resources/microsoft365_graph_beta_groups_group_lifecycle_expiration_policy_assignment/import.sh" }}
+

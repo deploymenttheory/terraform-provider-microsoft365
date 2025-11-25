@@ -1,0 +1,12 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#groups/$entity",
+  "id": "22222222-2222-2222-2222-222222222222",
+  "displayName": "Test M365 Group",
+  "mailNickname": "testm365group",
+  "mailEnabled": true,
+  "securityEnabled": true,
+  "groupTypes": ["Unified"],
+  "createdDateTime": "2024-12-01T00:00:00Z",
+  "groupLifecyclePolicies": []
+}
+

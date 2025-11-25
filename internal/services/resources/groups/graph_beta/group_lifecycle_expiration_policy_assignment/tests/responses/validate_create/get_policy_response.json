@@ -1,0 +1,13 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#groupLifecyclePolicies",
+  "value": [
+    {
+      "@odata.context": "https://graph.microsoft.com/beta/$metadata#groupLifecyclePolicies/$entity",
+      "id": "11111111-1111-1111-1111-111111111111",
+      "groupLifetimeInDays": 180,
+      "managedGroupTypes": "Selected",
+      "alternateNotificationEmails": "admin@deploymenttheory.com"
+    }
+  ]
+}
+

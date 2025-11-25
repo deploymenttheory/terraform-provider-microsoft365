@@ -104,7 +104,9 @@ import (
 
 	// Graph Beta - Group resources
 	graphBetaGroup "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/groups/graph_beta/group"
-	graphBetaGroupLifecyclePolicy "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/groups/graph_beta/group_lifecycle_policy"
+	graphBetaGroupLifecycleExpirationPolicy "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/groups/graph_beta/group_lifecycle_expiration_policy"
+	graphBetaGroupLifecycleExpirationPolicyAssignment "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/groups/graph_beta/group_lifecycle_expiration_policy_assignment"
+
 	graphBetaGroupMemberAssignment "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/groups/graph_beta/group_member_assignment"
 	graphBetaGroupOwnerAssignment "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/groups/graph_beta/group_owner_assignment"
 	graphBetaGroupSettings "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/groups/graph_beta/group_settings"
@@ -244,11 +246,13 @@ func (p *M365Provider) Resources(ctx context.Context) []func() resource.Resource
 
 		// Graph Beta - Group resources
 		graphBetaGroup.NewGroupResource,
-		graphBetaGroupLifecyclePolicy.NewGroupLifecyclePolicyResource,
+		graphBetaGroupLifecycleExpirationPolicy.NewGroupLifecycleExpirationPolicyResource,
+		graphBetaGroupLifecycleExpirationPolicyAssignment.NewGroupLifecycleExpirationPolicyAssignmentResource,
 		graphBetaGroupMemberAssignment.NewGroupMemberAssignmentResource,
 		graphBetaGroupOwnerAssignment.NewGroupOwnerAssignmentResource,
 		graphBetaGroupSettings.NewGroupSettingsResource,
 		graphBetaGroupLicenseAssignment.NewGroupLicenseAssignmentResource,
+
 		graphBetaTenantWideGroupSettings.NewTenantWideGroupSettingsResource,
 
 		// Graph Beta - M365 Admin Centre
