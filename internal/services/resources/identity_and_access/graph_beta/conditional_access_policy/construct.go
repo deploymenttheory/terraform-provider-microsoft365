@@ -164,15 +164,6 @@ func constructConditions(ctx context.Context, data *ConditionalAccessConditions)
 			}
 		}
 
-		// Handle global_secure_access (typically null)
-		if !data.Applications.GlobalSecureAccess.IsNull() && !data.Applications.GlobalSecureAccess.IsUnknown() {
-			// For now, since this field is typically null in API examples,
-			// we'll set it to null. Future implementation can expand this as needed.
-			applications["globalSecureAccess"] = nil
-		} else {
-			applications["globalSecureAccess"] = nil
-		}
-
 		if len(applications) > 0 {
 			conditions["applications"] = applications
 		}

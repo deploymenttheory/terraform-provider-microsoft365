@@ -257,15 +257,6 @@ func (r *ConditionalAccessPolicyResource) Schema(ctx context.Context, req resour
 									},
 								},
 							},
-							"global_secure_access": schema.SingleNestedAttribute{
-								MarkdownDescription: "Global Secure Access settings for the conditional access policy.",
-								Optional:            true,
-								Computed:            true,
-								Attributes:          map[string]schema.Attribute{
-									// Note: This field appears in API responses but is typically null
-									// Adding minimal structure based on API observations
-								},
-							},
 						},
 					},
 					"users": schema.SingleNestedAttribute{

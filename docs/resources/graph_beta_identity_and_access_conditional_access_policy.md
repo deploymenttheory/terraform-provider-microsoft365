@@ -2705,7 +2705,6 @@ Required:
 Optional:
 
 - `application_filter` (Attributes) Configure app filters you want to policy to apply to. Using custom security attributes you can use the rule builder or rule syntax text box to create or edit the filter rules. this feature is currently in preview, only attributes of type String are supported. Attributes of type Integer or Boolean are not currently supported. Learn more here 'https://learn.microsoft.com/en-us/entra/identity/conditional-access/concept-filter-for-applications'. (see [below for nested schema](#nestedatt--conditions--applications--application_filter))
-- `global_secure_access` (Attributes) Global Secure Access settings for the conditional access policy. (see [below for nested schema](#nestedatt--conditions--applications--global_secure_access))
 
 <a id="nestedatt--conditions--applications--application_filter"></a>
 ### Nested Schema for `conditions.applications.application_filter`
@@ -2714,12 +2713,6 @@ Required:
 
 - `mode` (String) Mode of the filter. Possible values are: include, exclude.
 - `rule` (String) Rule syntax for the filter.
-
-
-<a id="nestedatt--conditions--applications--global_secure_access"></a>
-### Nested Schema for `conditions.applications.global_secure_access`
-
-
 
 <a id="nestedatt--conditions--users"></a>
 ### Nested Schema for `conditions.users`

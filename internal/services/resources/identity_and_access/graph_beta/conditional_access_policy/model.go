@@ -46,7 +46,6 @@ type ConditionalAccessApplications struct {
 	IncludeUserActions                          types.Set                `tfsdk:"include_user_actions"`
 	IncludeAuthenticationContextClassReferences types.Set                `tfsdk:"include_authentication_context_class_references"`
 	ApplicationFilter                           *ConditionalAccessFilter `tfsdk:"application_filter"`
-	GlobalSecureAccess                          types.Object             `tfsdk:"global_secure_access"`
 }
 
 // ConditionalAccessUsers represents the users condition
