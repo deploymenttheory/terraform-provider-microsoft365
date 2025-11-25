@@ -50,7 +50,6 @@ func (r *GroupLifecycleExpirationPolicyAssignmentResource) Create(ctx context.Co
 		return
 	}
 
-	// Check the result - API returns true if successful, false otherwise
 	if result != nil && result.GetValue() != nil {
 		success := *result.GetValue()
 		if !success {
@@ -195,7 +194,6 @@ func (r *GroupLifecycleExpirationPolicyAssignmentResource) Update(ctx context.Co
 	oldGroupID := state.GroupID.ValueString()
 	newGroupID := plan.GroupID.ValueString()
 
-	// If group_id changed, remove old group and add new group
 	if oldGroupID != newGroupID {
 		tflog.Debug(ctx, fmt.Sprintf("Group ID changed from %s to %s, performing remove and add operations", oldGroupID, newGroupID))
 
