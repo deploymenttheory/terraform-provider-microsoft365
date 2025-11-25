@@ -98,11 +98,11 @@ jobs:
             runner: ubuntu-24.04-arm
           - service: groups
             runner: ubuntu-24.04-arm
-          - service: identity_and_access
+          - service: identity_and_access # TODO: try ubuntu-22.04-arm-4c-l 
             runner: ubuntu-24.04-arm
           - service: m365_admin
             runner: ubuntu-24.04-arm
-          - service: users
+          - service: users # TODO: try ubuntu-22.04-arm-4c-l 
             runner: ubuntu-24.04-arm
           - service: windows_365
             runner: ubuntu-24.04-arm
