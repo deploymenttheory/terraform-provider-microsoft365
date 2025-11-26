@@ -201,6 +201,8 @@ github.com/microsoftgraph/msgraph-beta-sdk-go v0.152.0 h1:FTmoNUyBbJr8uHTTpPKDVQ
 github.com/microsoftgraph/msgraph-beta-sdk-go v0.152.0/go.mod h1:lYSEMfGJ9rOb+w3PVaM9Qhf1D3qEemZkgjWD+chcl0k=
 github.com/microsoftgraph/msgraph-sdk-go v1.89.0 h1:iavHsg7nqhVv+cMtTVAajLWbkDONVIethlojDn3gFDM=
 github.com/microsoftgraph/msgraph-sdk-go v1.89.0/go.mod h1:UdZWxbZiFvjPug9DYayD90JNiHjXyNRA39lEpcy3Kms=
+github.com/microsoftgraph/msgraph-sdk-go v1.90.0 h1:ygVeWfGB8TMO4rTFxtrYueZmj1mLqtDKW5UZ4iJwczU=
+github.com/microsoftgraph/msgraph-sdk-go v1.90.0/go.mod h1:UdZWxbZiFvjPug9DYayD90JNiHjXyNRA39lEpcy3Kms=
 github.com/microsoftgraph/msgraph-sdk-go-core v1.4.0 h1:0SrIoFl7TQnMRrsi5TFaeNe0q8KO5lRzRp4GSCCL2So=
 github.com/microsoftgraph/msgraph-sdk-go-core v1.4.0/go.mod h1:A1iXs+vjsRjzANxF6UeKv2ACExG7fqTwHHbwh1FL+EE=
 github.com/mitchellh/copystructure v1.0.0/go.mod h1:SNtv71yrdKgLRyLFxmLdkAbkKEFWgYaq1OVrnRcwhnw=
