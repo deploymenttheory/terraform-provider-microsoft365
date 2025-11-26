@@ -3,9 +3,9 @@ resource "microsoft365_graph_beta_identity_and_access_directory_settings" "conse
   overwrite_existing_settings = true
 
   consent_policy_settings {
-    enable_group_specific_consent                               = true
-    block_user_consent_for_risky_apps                           = true
-    enable_admin_consent_requests                               = true
+    enable_group_specific_consent                           = true
+    block_user_consent_for_risky_apps                       = true
+    enable_admin_consent_requests                           = true
     constrain_group_specific_consent_to_members_of_group_id = "87654321-4321-4321-4321-210987654321"
   }
 

@@ -7,15 +7,14 @@ import (
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
 	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
-	"github.com/google/uuid"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/microsoftgraph/msgraph-beta-sdk-go/groups"
-	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
-// Create handles the creation of a group license assignment.
+// Create handles the creation of a single group license assignment.
 func (r *GroupLicenseAssignmentResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var object GroupLicenseAssignmentResourceModel
 
@@ -32,12 +31,18 @@ func (r *GroupLicenseAssignmentResource) Create(ctx context.Context, req resourc
 	}
 	defer cancel()
 
-	object.ID = object.GroupId
+	// Create composite ID: group_id_sku_id
+	object.ID = types.StringValue(fmt.Sprintf("%s_%s", object.GroupId.ValueString(), object.SkuId.ValueString()))
 
-	requestBody, err := constructResource(ctx, &object)
+	// Ensure disabled_plans is set to empty set if not provided (can't be unknown)
+	if object.DisabledPlans.IsNull() || object.DisabledPlans.IsUnknown() {
+		object.DisabledPlans = types.SetValueMust(types.StringType, []attr.Value{})
+	}
+
+	requestBody, err := constructAddLicensesRequest(ctx, &object)
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error constructing group license assignment request",
+			"Error constructing license assignment request",
 			fmt.Sprintf("Could not construct license assignment request: %s", err.Error()),
 		)
 		return
@@ -54,7 +59,7 @@ func (r *GroupLicenseAssignmentResource) Create(ctx context.Context, req resourc
 		return
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Successfully assigned licenses to group: %s", object.GroupId.ValueString()))
+	tflog.Debug(ctx, fmt.Sprintf("Successfully assigned license to group: %s", object.GroupId.ValueString()))
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
@@ -92,7 +97,6 @@ func (r *GroupLicenseAssignmentResource) Read(ctx context.Context, req resource.
 			operation = opStr
 		}
 	}
-
 	resp.Diagnostics.Append(req.State.Get(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -128,15 +132,13 @@ func (r *GroupLicenseAssignmentResource) Read(ctx context.Context, req resource.
 	tflog.Debug(ctx, fmt.Sprintf("Finished Read Method: %s", ResourceName))
 }
 
-// Update handles updates to a group's license assignments.
+// Update handles updates to a group's license assignment (disabled plans only, since sku_id requires replace).
 func (r *GroupLicenseAssignmentResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var plan GroupLicenseAssignmentResourceModel
-	var state GroupLicenseAssignmentResourceModel
 
-	tflog.Debug(ctx, fmt.Sprintf("Updating %s with ID: %s", ResourceName, state.ID.ValueString()))
+	tflog.Debug(ctx, fmt.Sprintf("Starting Update method for: %s", ResourceName))
 
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
-	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -147,13 +149,11 @@ func (r *GroupLicenseAssignmentResource) Update(ctx context.Context, req resourc
 	}
 	defer cancel()
 
-	plan.ID = state.ID
-	plan.GroupId = state.GroupId
-
-	requestBody, err := constructResource(ctx, &plan)
+	// Update the license (mainly disabled_plans since sku_id has RequiresReplace)
+	requestBody, err := constructUpdateLicenseRequest(ctx, &plan)
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error constructing group license assignment request for update",
+			"Error constructing license assignment request for update",
 			fmt.Sprintf("Could not construct license assignment request: %s", err.Error()),
 		)
 		return
@@ -161,7 +161,7 @@ func (r *GroupLicenseAssignmentResource) Update(ctx context.Context, req resourc
 
 	_, err = r.client.
 		Groups().
-		ByGroupId(state.GroupId.ValueString()).
+		ByGroupId(plan.GroupId.ValueString()).
 		AssignLicense().
 		Post(ctx, requestBody, nil)
 
@@ -170,7 +170,7 @@ func (r *GroupLicenseAssignmentResource) Update(ctx context.Context, req resourc
 		return
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Successfully updated licenses for group: %s", state.GroupId.ValueString()))
+	tflog.Debug(ctx, fmt.Sprintf("Successfully updated license for group: %s", plan.GroupId.ValueString()))
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
@@ -193,10 +193,10 @@ func (r *GroupLicenseAssignmentResource) Update(ctx context.Context, req resourc
 		return
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Finished updating %s with ID: %s", ResourceName, state.ID.ValueString()))
+	tflog.Debug(ctx, fmt.Sprintf("Finished updating %s with ID: %s", ResourceName, plan.ID.ValueString()))
 }
 
-// Delete handles the deletion of a group license assignment (removes all managed licenses).
+// Delete handles the deletion of a single group license assignment.
 func (r *GroupLicenseAssignmentResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var object GroupLicenseAssignmentResourceModel
 
@@ -213,49 +213,28 @@ func (r *GroupLicenseAssignmentResource) Delete(ctx context.Context, req resourc
 	}
 	defer cancel()
 
-	currentLicenses := make([]string, 0)
-	for _, license := range object.AddLicenses {
-		currentLicenses = append(currentLicenses, license.SkuId.ValueString())
+	// Remove the single license managed by this resource
+	requestBody, err := constructRemoveLicenseRequest(ctx, object.SkuId.ValueString())
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error constructing license removal request",
+			fmt.Sprintf("Could not construct license removal request: %s", err.Error()),
+		)
+		return
 	}
 
-	removeLicensesSet := object.RemoveLicenses.Elements()
-	for _, licenseVal := range removeLicensesSet {
-		if strVal, ok := licenseVal.(types.String); ok {
-			currentLicenses = append(currentLicenses, strVal.ValueString())
-		}
+	_, err = r.client.
+		Groups().
+		ByGroupId(object.GroupId.ValueString()).
+		AssignLicense().
+		Post(ctx, requestBody, nil)
+
+	if err != nil {
+		errors.HandleKiotaGraphError(ctx, err, resp, "Delete", r.WritePermissions)
+		return
 	}
 
-	if len(currentLicenses) > 0 {
-		requestBody := groups.NewItemAssignLicensePostRequestBody()
-		requestBody.SetAddLicenses([]graphmodels.AssignedLicenseable{})
-
-		removeLicenseGUIDs := make([]uuid.UUID, 0, len(currentLicenses))
-		for _, licenseId := range currentLicenses {
-			licenseUUID, err := uuid.Parse(licenseId)
-			if err != nil {
-				resp.Diagnostics.AddError(
-					"Error parsing license ID",
-					fmt.Sprintf("Could not parse license ID %s as UUID: %s", licenseId, err.Error()),
-				)
-				return
-			}
-			removeLicenseGUIDs = append(removeLicenseGUIDs, licenseUUID)
-		}
-		requestBody.SetRemoveLicenses(removeLicenseGUIDs)
-
-		_, err := r.client.
-			Groups().
-			ByGroupId(object.GroupId.ValueString()).
-			AssignLicense().
-			Post(ctx, requestBody, nil)
-
-		if err != nil {
-			errors.HandleKiotaGraphError(ctx, err, resp, "Delete", r.WritePermissions)
-			return
-		}
-
-		tflog.Debug(ctx, fmt.Sprintf("Successfully removed licenses from group: %s", object.GroupId.ValueString()))
-	}
+	tflog.Debug(ctx, fmt.Sprintf("Successfully removed license %s from group: %s", object.SkuId.ValueString(), object.GroupId.ValueString()))
 
 	tflog.Debug(ctx, fmt.Sprintf("Removing %s from Terraform state", ResourceName))
 

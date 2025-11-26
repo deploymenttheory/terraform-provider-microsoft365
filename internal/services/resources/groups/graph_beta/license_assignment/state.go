@@ -31,96 +31,30 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *GroupLicenseAs
 		"resourceId": remoteResource.GetId(),
 	})
 
-	// Set basic group information
-	data.ID = convert.GraphToFrameworkString(remoteResource.GetId())
 	data.GroupId = convert.GraphToFrameworkString(remoteResource.GetId())
 	data.DisplayName = convert.GraphToFrameworkString(remoteResource.GetDisplayName())
 
-	// Map assigned licenses
 	assignedLicenses := remoteResource.GetAssignedLicenses()
-	if len(assignedLicenses) > 0 {
-		MapAssignedLicensesToTerraform(ctx, data, assignedLicenses)
-	} else {
-		data.AssignedLicenses = types.ListNull(types.ObjectType{
-			AttrTypes: getLicenseDetailsObjectType(),
-		})
-	}
+	managedSkuId := data.SkuId.ValueString()
 
-	tflog.Debug(ctx, fmt.Sprintf("Finished mapping group license assignment resource with id %s", data.ID.ValueString()))
-}
-
-// MapAssignedLicensesToTerraform maps the assigned licenses to Terraform state.
-func MapAssignedLicensesToTerraform(ctx context.Context, data *GroupLicenseAssignmentResourceModel, assignedLicenses []graphmodels.AssignedLicenseable) {
-	if len(assignedLicenses) == 0 {
-		tflog.Debug(ctx, "No assigned licenses found")
-		data.AssignedLicenses = types.ListNull(types.ObjectType{
-			AttrTypes: getLicenseDetailsObjectType(),
-		})
-		return
-	}
-
-	tflog.Debug(ctx, fmt.Sprintf("Mapping %d assigned licenses", len(assignedLicenses)))
-
-	// Map assigned licenses to Terraform state
-	assignedLicensesList := make([]attr.Value, 0, len(assignedLicenses))
+	data.ID = types.StringValue(fmt.Sprintf("%s_%s", data.GroupId.ValueString(), managedSkuId))
 
 	for _, license := range assignedLicenses {
 		if license == nil {
 			continue
 		}
 
-		// Create a simplified representation for assigned licenses
-		// Note: Unlike user license details, group assigned licenses don't include service plans
-		licenseObj := map[string]attr.Value{
-			"sku_id":          uuidPointerToStringValue(license.GetSkuId()),
-			"sku_part_number": types.StringNull(), // Not available in AssignedLicense
-			"service_plans":   types.ListNull(types.ObjectType{AttrTypes: getServicePlanObjectType()}),
+		licenseSkuId := uuidPointerToStringValue(license.GetSkuId())
+		if licenseSkuId.ValueString() == managedSkuId {
+			disabledPlans := license.GetDisabledPlans()
+			disabledPlanValues := make([]attr.Value, 0, len(disabledPlans))
+			for _, planUUID := range disabledPlans {
+				disabledPlanValues = append(disabledPlanValues, types.StringValue(planUUID.String()))
+			}
+			data.DisabledPlans = types.SetValueMust(types.StringType, disabledPlanValues)
+			break
 		}
-
-		objValue, diag := types.ObjectValue(getLicenseDetailsObjectType(), licenseObj)
-		if diag.HasError() {
-			tflog.Error(ctx, fmt.Sprintf("Error creating license object: %v", diag.Errors()))
-			continue
-		}
-
-		assignedLicensesList = append(assignedLicensesList, objValue)
 	}
 
-	assignedLicensesListValue, diag := types.ListValue(
-		types.ObjectType{AttrTypes: getLicenseDetailsObjectType()},
-		assignedLicensesList,
-	)
-	if diag.HasError() {
-		tflog.Error(ctx, fmt.Sprintf("Error creating assigned licenses list: %v", diag.Errors()))
-		data.AssignedLicenses = types.ListNull(types.ObjectType{
-			AttrTypes: getLicenseDetailsObjectType(),
-		})
-		return
-	}
-
-	data.AssignedLicenses = assignedLicensesListValue
-	tflog.Debug(ctx, fmt.Sprintf("Successfully mapped %d assigned licenses", len(assignedLicensesList)))
-}
-
-// getLicenseDetailsObjectType returns the object type for license details.
-func getLicenseDetailsObjectType() map[string]attr.Type {
-	return map[string]attr.Type{
-		"sku_id":          types.StringType,
-		"sku_part_number": types.StringType,
-		"service_plans": types.ListType{
-			ElemType: types.ObjectType{
-				AttrTypes: getServicePlanObjectType(),
-			},
-		},
-	}
-}
-
-// getServicePlanObjectType returns the object type for service plans.
-func getServicePlanObjectType() map[string]attr.Type {
-	return map[string]attr.Type{
-		"service_plan_id":     types.StringType,
-		"service_plan_name":   types.StringType,
-		"provisioning_status": types.StringType,
-		"applies_to":          types.StringType,
-	}
+	tflog.Debug(ctx, fmt.Sprintf("Finished mapping group license assignment resource with id %s", data.ID.ValueString()))
 }
