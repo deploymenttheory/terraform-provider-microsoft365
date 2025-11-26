@@ -1,0 +1,13 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#settings/$entity",
+  "id": "00000000-0000-0000-0000-000000000000",
+  "displayName": "Custom Policy Settings",
+  "templateId": "898f1161-d651-43d1-805c-3b0b388a9fc2",
+  "values": [
+    {
+      "name": "CustomConditionalAccessPolicyUrl",
+      "value": "https://contoso.com/custom-ca-policy"
+    }
+  ]
+}
+

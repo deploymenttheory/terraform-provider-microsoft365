@@ -1,0 +1,21 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#settings/$entity",
+  "id": "00000000-0000-0000-0000-000000000000",
+  "displayName": "Prohibited Names Restricted Settings",
+  "templateId": "aad3907d-1d1a-448b-b3ef-7bf7f63db63b",
+  "values": [
+    {
+      "name": "CustomAllowedSubStringsList",
+      "value": "contoso,fabrikam,northwind"
+    },
+    {
+      "name": "CustomAllowedWholeWordsList",
+      "value": "ContosoApp,FabrikamSolution,NorthwindTraders"
+    },
+    {
+      "name": "DoNotValidateAgainstTrademark",
+      "value": "true"
+    }
+  ]
+}
+

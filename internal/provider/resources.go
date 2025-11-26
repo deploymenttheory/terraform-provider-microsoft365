@@ -90,6 +90,8 @@ import (
 	graphBetaIdentityAndAccessConditionalAccessPolicy "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/identity_and_access/graph_beta/conditional_access_policy"
 	graphBetaIdentityAndAccessCustomSecurityAttributeAllowedValue "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/identity_and_access/graph_beta/custom_security_attribute_allowed_value"
 	graphBetaIdentityAndAccessCustomSecurityAttributeDefinition "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/identity_and_access/graph_beta/custom_security_attribute_definition"
+
+	//graphBetaIdentityAndAccessDirectorySettings "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/identity_and_access/graph_beta/directory_settings"
 	graphBetaIdentityAndAccessNamedLocation "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/identity_and_access/graph_beta/named_location"
 	graphBetaIdentityAndAccessNetworkFilteringPolicy "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/identity_and_access/graph_beta/network_filtering_policy"
 
@@ -102,16 +104,15 @@ import (
 	graphBetaUsersUserLicenseAssignment "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/users/graph_beta/license_assignment"
 	graphBetaUsersUser "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/users/graph_beta/user"
 
+	// Graph Beta - Directory resources
+
 	// Graph Beta - Group resources
 	graphBetaGroup "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/groups/graph_beta/group"
 	graphBetaGroupLifecycleExpirationPolicy "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/groups/graph_beta/group_lifecycle_expiration_policy"
 	graphBetaGroupLifecycleExpirationPolicyAssignment "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/groups/graph_beta/group_lifecycle_expiration_policy_assignment"
-
 	graphBetaGroupMemberAssignment "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/groups/graph_beta/group_member_assignment"
 	graphBetaGroupOwnerAssignment "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/groups/graph_beta/group_owner_assignment"
-	graphBetaGroupSettings "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/groups/graph_beta/group_settings"
 	graphBetaGroupLicenseAssignment "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/groups/graph_beta/license_assignment"
-	graphBetaTenantWideGroupSettings "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/groups/graph_beta/tenant_wide_group_settings"
 
 	// Graph Beta - M365 Admin Centre
 	graphBetaM365AdminBrowserSite "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/m365_admin/graph_beta/browser_site"
@@ -232,11 +233,12 @@ func (p *M365Provider) Resources(ctx context.Context) []func() resource.Resource
 
 		// Graph Beta - Identity and Access resources
 		graphBetaIdentityAndAccessAttributeSet.NewAttributeSetResource,
-		graphBetaIdentityAndAccessCustomSecurityAttributeAllowedValue.NewCustomSecurityAttributeAllowedValueResource,
-		graphBetaIdentityAndAccessCustomSecurityAttributeDefinition.NewCustomSecurityAttributeDefinitionResource,
 		graphBetaIdentityAndAccessAuthenticationContext.NewAuthenticationContextResource,
 		graphBetaIdentityAndAccessAuthenticationStrengthPolicy.NewAuthenticationStrengthPolicyResource,
+		graphBetaIdentityAndAccessCustomSecurityAttributeAllowedValue.NewCustomSecurityAttributeAllowedValueResource,
+		graphBetaIdentityAndAccessCustomSecurityAttributeDefinition.NewCustomSecurityAttributeDefinitionResource,
 		graphBetaIdentityAndAccessConditionalAccessPolicy.NewConditionalAccessPolicyResource,
+		//graphBetaIdentityAndAccessDirectorySettings.NewDirectorySettingsResource,
 		graphBetaIdentityAndAccessNetworkFilteringPolicy.NewNetworkFilteringPolicyResource,
 		graphBetaIdentityAndAccessNamedLocation.NewNamedLocationResource,
 
@@ -250,10 +252,7 @@ func (p *M365Provider) Resources(ctx context.Context) []func() resource.Resource
 		graphBetaGroupLifecycleExpirationPolicyAssignment.NewGroupLifecycleExpirationPolicyAssignmentResource,
 		graphBetaGroupMemberAssignment.NewGroupMemberAssignmentResource,
 		graphBetaGroupOwnerAssignment.NewGroupOwnerAssignmentResource,
-		graphBetaGroupSettings.NewGroupSettingsResource,
 		graphBetaGroupLicenseAssignment.NewGroupLicenseAssignmentResource,
-
-		graphBetaTenantWideGroupSettings.NewTenantWideGroupSettingsResource,
 
 		// Graph Beta - M365 Admin Centre
 		graphBetaM365AdminBrowserSite.NewBrowserSiteResource,

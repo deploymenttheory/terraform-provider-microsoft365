@@ -1,0 +1,69 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#settings/$entity",
+  "id": "00000000-0000-0000-0000-000000000000",
+  "displayName": "Group.Unified",
+  "templateId": "62375ab9-6b52-47ed-826b-58e47e0e304b",
+  "values": [
+    {
+      "name": "NewUnifiedGroupWritebackDefault",
+      "value": "false"
+    },
+    {
+      "name": "EnableMIPLabels",
+      "value": "true"
+    },
+    {
+      "name": "CustomBlockedWordsList",
+      "value": "CEO,President,Admin,Executive,Confidential"
+    },
+    {
+      "name": "EnableMSStandardBlockedWords",
+      "value": "true"
+    },
+    {
+      "name": "ClassificationDescriptions",
+      "value": "[{\"Value\":\"Low\",\"Description\":\"Low business impact\"},{\"Value\":\"Medium\",\"Description\":\"Medium business impact\"},{\"Value\":\"High\",\"Description\":\"High business impact\"},{\"Value\":\"Confidential\",\"Description\":\"Confidential information\"}]"
+    },
+    {
+      "name": "DefaultClassification",
+      "value": "Medium"
+    },
+    {
+      "name": "PrefixSuffixNamingRequirement",
+      "value": "GRP_[GroupName]_[Department]"
+    },
+    {
+      "name": "AllowGuestsToBeGroupOwner",
+      "value": "false"
+    },
+    {
+      "name": "AllowGuestsToAccessGroups",
+      "value": "false"
+    },
+    {
+      "name": "GuestUsageGuidelinesUrl",
+      "value": "https://contoso.com/guest-guidelines"
+    },
+    {
+      "name": "GroupCreationAllowedGroupId",
+      "value": "12345678-1234-1234-1234-123456789012"
+    },
+    {
+      "name": "AllowToAddGuests",
+      "value": "false"
+    },
+    {
+      "name": "UsageGuidelinesUrl",
+      "value": "https://contoso.com/group-guidelines"
+    },
+    {
+      "name": "ClassificationList",
+      "value": "Low,Medium,High,Confidential"
+    },
+    {
+      "name": "EnableGroupCreation",
+      "value": "false"
+    }
+  ]
+}
+

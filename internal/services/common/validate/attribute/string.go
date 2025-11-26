@@ -781,3 +781,62 @@ func StringMustBeEmptyWhenStringEquals(dependentField string, dependentValue str
 		validationMessage: validationMessage,
 	}
 }
+
+//---------------------------------------------------
+
+// limitItemsInCommaDelimitedStringListValidator validates that a comma-delimited string does not exceed a maximum number of items
+type limitItemsInCommaDelimitedStringListValidator struct {
+	maxItems int
+}
+
+// Description describes the validation in plain text formatting.
+func (v limitItemsInCommaDelimitedStringListValidator) Description(_ context.Context) string {
+	return fmt.Sprintf("comma-delimited list must not exceed %d items", v.maxItems)
+}
+
+// MarkdownDescription describes the validation in Markdown formatting.
+func (v limitItemsInCommaDelimitedStringListValidator) MarkdownDescription(ctx context.Context) string {
+	return v.Description(ctx)
+}
+
+// ValidateString performs the validation.
+func (v limitItemsInCommaDelimitedStringListValidator) ValidateString(ctx context.Context, req validator.StringRequest, resp *validator.StringResponse) {
+	// Skip validation if the value is null or unknown
+	if req.ConfigValue.IsNull() || req.ConfigValue.IsUnknown() {
+		return
+	}
+
+	value := req.ConfigValue.ValueString()
+
+	// Empty string has 0 items
+	if value == "" {
+		return
+	}
+
+	// Split by comma and count items
+	items := strings.Split(value, ",")
+	itemCount := 0
+
+	// Count non-empty items (trim whitespace)
+	for _, item := range items {
+		if strings.TrimSpace(item) != "" {
+			itemCount++
+		}
+	}
+
+	if itemCount > v.maxItems {
+		resp.Diagnostics.AddAttributeError(
+			req.Path,
+			"Too Many Items",
+			fmt.Sprintf("Comma-delimited list contains %d items but maximum allowed is %d", itemCount, v.maxItems),
+		)
+	}
+}
+
+// LimitItemsInCommaDelimitedStringList returns a string validator which ensures that a comma-delimited string
+// does not exceed the specified maximum number of items.
+func LimitItemsInCommaDelimitedStringList(maxItems int) validator.String {
+	return &limitItemsInCommaDelimitedStringListValidator{
+		maxItems: maxItems,
+	}
+}

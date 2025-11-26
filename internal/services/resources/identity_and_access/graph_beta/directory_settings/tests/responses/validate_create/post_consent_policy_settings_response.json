@@ -1,0 +1,25 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#settings/$entity",
+  "id": "00000000-0000-0000-0000-000000000000",
+  "displayName": "Consent Policy Settings",
+  "templateId": "dffd5d46-495d-40a9-8e21-954ff55e198a",
+  "values": [
+    {
+      "name": "EnableGroupSpecificConsent",
+      "value": "true"
+    },
+    {
+      "name": "BlockUserConsentForRiskyApps",
+      "value": "true"
+    },
+    {
+      "name": "EnableAdminConsentRequests",
+      "value": "true"
+    },
+    {
+      "name": "ConstrainGroupSpecificConsentToMembersOfGroupId",
+      "value": "87654321-4321-4321-4321-210987654321"
+    }
+  ]
+}
+

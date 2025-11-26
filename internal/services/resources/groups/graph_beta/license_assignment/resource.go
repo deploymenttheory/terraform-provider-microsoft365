@@ -81,11 +81,11 @@ func (r *GroupLicenseAssignmentResource) Schema(ctx context.Context, req resourc
 		MarkdownDescription: "Manages group-based license assignments in Microsoft 365 using the `/groups/{groupId}/assignLicense` endpoint. This resource enables automatic license inheritance where all current and future group members receive the assigned licenses, providing centralized license management through Azure AD group membership.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
-				Computed: true,
+				Computed:            true,
+				MarkdownDescription: "The unique identifier for this license assignment resource. This is the same as the group_id.",
 				PlanModifiers: []planmodifier.String{
 					planmodifiers.UseStateForUnknownString(),
 				},
-				MarkdownDescription: "The unique identifier for this license assignment resource. This is the same as the group_id.",
 			},
 			"group_id": schema.StringAttribute{
 				Required:            true,
@@ -95,11 +95,11 @@ func (r *GroupLicenseAssignmentResource) Schema(ctx context.Context, req resourc
 				},
 			},
 			"display_name": schema.StringAttribute{
-				Computed: true,
+				Computed:            true,
+				MarkdownDescription: "The display name of the group. This is computed and read-only.",
 				PlanModifiers: []planmodifier.String{
 					planmodifiers.UseStateForUnknownString(),
 				},
-				MarkdownDescription: "The display name of the group. This is computed and read-only.",
 			},
 			"add_licenses": schema.ListNestedAttribute{
 				Optional:            true,
