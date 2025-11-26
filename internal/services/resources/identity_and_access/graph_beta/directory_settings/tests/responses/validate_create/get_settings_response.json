@@ -1,0 +1,72 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#groups('a7a8b8c9-d1e2-4f3a-b4c5-d6e7f8a9b0c1')/settings",
+  "value": [
+    {
+      "id": "00000000-0000-0000-0000-000000000000",
+      "displayName": "Group.Unified.Guest",
+      "templateId": "08d542b9-071f-4e16-94b0-74abb372e3d9",
+      "values": [
+        {
+          "name": "PrefixSuffixNamingRequirement",
+          "value": ""
+        },
+        {
+          "name": "CustomBlockedWordsList",
+          "value": ""
+        },
+        {
+          "name": "EnableMSStandardBlockedWords",
+          "value": "false"
+        },
+        {
+          "name": "EnableGroupCreation",
+          "value": "true"
+        },
+        {
+          "name": "GroupCreationAllowedGroupId",
+          "value": ""
+        },
+        {
+          "name": "AllowGuestsToAccessGroups",
+          "value": "true"
+        },
+        {
+          "name": "AllowGuestsToBeGroupOwner",
+          "value": "false"
+        },
+        {
+          "name": "AllowToAddGuests",
+          "value": "true"
+        },
+        {
+          "name": "GuestUsageGuidelinesUrl",
+          "value": ""
+        },
+        {
+          "name": "ClassificationList",
+          "value": ""
+        },
+        {
+          "name": "DefaultClassification",
+          "value": ""
+        },
+        {
+          "name": "ClassificationDescriptions",
+          "value": ""
+        },
+        {
+          "name": "UsageGuidelinesUrl",
+          "value": ""
+        },
+        {
+          "name": "EnableMIPLabels",
+          "value": "false"
+        },
+        {
+          "name": "NewUnifiedGroupWritebackDefault",
+          "value": "true"
+        }
+      ]
+    }
+  ]
+}

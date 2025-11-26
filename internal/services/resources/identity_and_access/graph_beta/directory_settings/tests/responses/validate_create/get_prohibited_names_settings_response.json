@@ -1,0 +1,17 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#settings/$entity",
+  "id": "00000000-0000-0000-0000-000000000000",
+  "displayName": "Prohibited Names Settings",
+  "templateId": "80661d51-be2f-4d46-9713-98a2fcaec5bc",
+  "values": [
+    {
+      "name": "CustomBlockedSubStringsList",
+      "value": "microsoft,windows,azure,office"
+    },
+    {
+      "name": "CustomBlockedWholeWordsList",
+      "value": "Microsoft,Windows,Azure,Office365,Outlook"
+    }
+  ]
+}
+

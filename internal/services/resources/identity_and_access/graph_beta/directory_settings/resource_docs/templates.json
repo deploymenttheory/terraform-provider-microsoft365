@@ -1,0 +1,267 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#directorySettingTemplates",
+  "value": [
+    {
+      "id": "08d542b9-071f-4e16-94b0-74abb372e3d9",
+      "values": [
+        {
+          "name": "AllowToAddGuests",
+          "defaultValue": "true",
+          "type": "System.Boolean",
+          "description": "Flag indicating if guests are allowed in a specific Unified Group."
+        }
+      ],
+      "deletedDateTime": null,
+      "displayName": "Group.Unified.Guest",
+      "description": "Settings for a specific Unified Group"
+    },
+    {
+      "id": "4bc7f740-180e-4586-adb6-38b2e9024e6b",
+      "values": [
+        {
+          "name": "EnableAccessCheckForPrivilegedApplicationUpdates",
+          "defaultValue": "false",
+          "type": "System.Boolean",
+          "description": "Flag indicating if access check for application privileged updates is turned on."
+        }
+      ],
+      "deletedDateTime": null,
+      "displayName": "Application",
+      "description": "\n        Setting templates define the different settings that can be used for the associated ObjectSettings. This template defines\n        settings that can be used for managing tenant-wide application behavior.\n      "
+    },
+    {
+      "id": "5cf42378-d67d-4f36-ba46-e8b86229381d",
+      "values": [
+        {
+          "name": "BannedPasswordCheckOnPremisesMode",
+          "defaultValue": "Audit",
+          "type": "System.String",
+          "description": "How should we enforce password policy check in on-premises system."
+        },
+        {
+          "name": "EnableBannedPasswordCheckOnPremises",
+          "defaultValue": "true",
+          "type": "System.Boolean",
+          "description": "Flag indicating if the banned password check is turned on or not for on-premises system."
+        },
+        {
+          "name": "EnableBannedPasswordCheck",
+          "defaultValue": "true",
+          "type": "System.Boolean",
+          "description": "Flag indicating if the banned password check for tenant specific banned password list is turned on or not."
+        },
+        {
+          "name": "LockoutDurationInSeconds",
+          "defaultValue": "60",
+          "type": "System.Int32",
+          "description": "The duration in seconds of the initial lockout period."
+        },
+        {
+          "name": "LockoutThreshold",
+          "defaultValue": "10",
+          "type": "System.Int32",
+          "description": "The number of failed login attempts before the first lockout period begins."
+        },
+        {
+          "name": "BannedPasswordList",
+          "defaultValue": "",
+          "type": "System.String",
+          "description": "A tab-delimited banned password list."
+        }
+      ],
+      "deletedDateTime": null,
+      "displayName": "Password Rule Settings",
+      "description": "\n        Setting templates define the different settings that can be used for the associated ObjectSettings. This template defines\n        settings that can be used for managing tenant-wide password rule settings.\n      "
+    },
+    {
+      "id": "62375ab9-6b52-47ed-826b-58e47e0e304b",
+      "values": [
+        {
+          "name": "NewUnifiedGroupWritebackDefault",
+          "defaultValue": "true",
+          "type": "System.Boolean",
+          "description": "Default value of IsWritebackEnabled property for newly created Unified Groups."
+        },
+        {
+          "name": "EnableMIPLabels",
+          "defaultValue": "false",
+          "type": "System.Boolean",
+          "description": "Flag indicating whether Microsoft Information Protection labels can be assigned to Unified Groups."
+        },
+        {
+          "name": "CustomBlockedWordsList",
+          "defaultValue": "",
+          "type": "System.String",
+          "description": "A comma-delimited list of blocked words for Unified Group displayName and mailNickName."
+        },
+        {
+          "name": "EnableMSStandardBlockedWords",
+          "defaultValue": "false",
+          "type": "System.Boolean",
+          "description": "A flag indicating whether or not to enable the Microsoft Standard list of blocked words for Unified Group displayName and mailNickName."
+        },
+        {
+          "name": "ClassificationDescriptions",
+          "defaultValue": "",
+          "type": "System.String",
+          "description": "A comma-delimited list of structured strings describing the classification values in the ClassificationList. The structure of the string is: Value: Description"
+        },
+        {
+          "name": "DefaultClassification",
+          "defaultValue": "",
+          "type": "System.String",
+          "description": "The classification value to be used by default for Unified Group creation."
+        },
+        {
+          "name": "PrefixSuffixNamingRequirement",
+          "defaultValue": "",
+          "type": "System.String",
+          "description": "A structured string describing how a Unified Group displayName and mailNickname should be structured. Please refer to docs to discover how to structure a valid requirement."
+        },
+        {
+          "name": "AllowGuestsToBeGroupOwner",
+          "defaultValue": "false",
+          "type": "System.Boolean",
+          "description": "Flag indicating if guests are allowed to be owner in any Unified Group."
+        },
+        {
+          "name": "AllowGuestsToAccessGroups",
+          "defaultValue": "true",
+          "type": "System.Boolean",
+          "description": "Flag indicating if guests are allowed to access any Unified Group resources."
+        },
+        {
+          "name": "GuestUsageGuidelinesUrl",
+          "defaultValue": "",
+          "type": "System.String",
+          "description": "A link to the Group Usage Guidelines for guests."
+        },
+        {
+          "name": "GroupCreationAllowedGroupId",
+          "defaultValue": "",
+          "type": "System.Guid",
+          "description": "Guid of the security group that is always allowed to create Unified Groups."
+        },
+        {
+          "name": "AllowToAddGuests",
+          "defaultValue": "true",
+          "type": "System.Boolean",
+          "description": "Flag indicating if guests are allowed in any Unified Group."
+        },
+        {
+          "name": "UsageGuidelinesUrl",
+          "defaultValue": "",
+          "type": "System.String",
+          "description": "A link to the Group Usage Guidelines."
+        },
+        {
+          "name": "ClassificationList",
+          "defaultValue": "",
+          "type": "System.String",
+          "description": "A comma-delimited list of valid classification values that can be applied to Unified Groups."
+        },
+        {
+          "name": "EnableGroupCreation",
+          "defaultValue": "true",
+          "type": "System.Boolean",
+          "description": "Flag indicating if group creation feature is on."
+        }
+      ],
+      "deletedDateTime": null,
+      "displayName": "Group.Unified",
+      "description": "\n        Setting templates define the different settings that can be used for the associated ObjectSettings. This template defines\n        settings that can be used for Unified Groups.\n      "
+    },
+    {
+      "id": "80661d51-be2f-4d46-9713-98a2fcaec5bc",
+      "values": [
+        {
+          "name": "CustomBlockedSubStringsList",
+          "defaultValue": "",
+          "type": "System.String",
+          "description": "A comma delimited list of substring reserved words to block for application display names."
+        },
+        {
+          "name": "CustomBlockedWholeWordsList",
+          "defaultValue": "",
+          "type": "System.String",
+          "description": "A comma delimited list of reserved words to block for application display names."
+        }
+      ],
+      "deletedDateTime": null,
+      "displayName": "Prohibited Names Settings",
+      "description": "\n        Setting templates define the different settings that can be used for the associated ObjectSettings. This template defines\n        settings that can be used for managing tenant-wide prohibited names settings.\n      "
+    },
+    {
+      "id": "898f1161-d651-43d1-805c-3b0b388a9fc2",
+      "values": [
+        {
+          "name": "CustomConditionalAccessPolicyUrl",
+          "defaultValue": "",
+          "type": "System.String",
+          "description": "Custom conditional access policy url."
+        }
+      ],
+      "deletedDateTime": null,
+      "displayName": "Custom Policy Settings",
+      "description": "\n        Setting templates define the different settings that can be used for the associated ObjectSettings. This template defines\n        settings that can be used for managing tenant-wide custom policy settings.\n      "
+    },
+    {
+      "id": "aad3907d-1d1a-448b-b3ef-7bf7f63db63b",
+      "values": [
+        {
+          "name": "CustomAllowedSubStringsList",
+          "defaultValue": "",
+          "type": "System.String",
+          "description": "A comma delimited list of substring reserved words to allow for application display names."
+        },
+        {
+          "name": "CustomAllowedWholeWordsList",
+          "defaultValue": "",
+          "type": "System.String",
+          "description": "A comma delimited list of whole reserved words to allow for application display names."
+        },
+        {
+          "name": "DoNotValidateAgainstTrademark",
+          "defaultValue": "false",
+          "type": "System.Boolean",
+          "description": "Flag indicating if prohibited names validation against trademark global list is disabled."
+        }
+      ],
+      "deletedDateTime": null,
+      "displayName": "Prohibited Names Restricted Settings",
+      "description": "\n        Setting templates define the different settings that can be used for the associated ObjectSettings. This template defines\n        settings that can be used for managing tenant-wide prohibited names restricted settings.\n      "
+    },
+    {
+      "id": "dffd5d46-495d-40a9-8e21-954ff55e198a",
+      "values": [
+        {
+          "name": "EnableGroupSpecificConsent",
+          "defaultValue": "",
+          "type": "System.Nullable`1[System.Boolean]",
+          "description": "Flag indicating if groups owners are allowed to grant group specific permissions."
+        },
+        {
+          "name": "BlockUserConsentForRiskyApps",
+          "defaultValue": "true",
+          "type": "System.Boolean",
+          "description": "Flag indicating if user consent will be blocked when a risky request is detected. Administrators will still be able to consent to apps considered risky."
+        },
+        {
+          "name": "EnableAdminConsentRequests",
+          "defaultValue": "false",
+          "type": "System.Boolean",
+          "description": "Flag indicating if users will be able to request admin consent when they are unable to grant consent to an app themselves."
+        },
+        {
+          "name": "ConstrainGroupSpecificConsentToMembersOfGroupId",
+          "defaultValue": "",
+          "type": "System.Guid",
+          "description": "If EnableGroupSpecificConsent is set to “True” and this is set to a security group object ID, members (both direct and transitive) of the group identified will be authorized to grant group-specific permissions to the groups they own."
+        }
+      ],
+      "deletedDateTime": null,
+      "displayName": "Consent Policy Settings",
+      "description": "\n       Setting templates define the different settings that can be used for the associated ObjectSettings. This template defines\n       settings that can be used for managing tenant-wide consent policy.\n      "
+    }
+  ]
+}

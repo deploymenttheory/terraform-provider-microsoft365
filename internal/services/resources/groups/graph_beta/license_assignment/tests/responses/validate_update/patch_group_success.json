@@ -1,0 +1,14 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#groups/$entity",
+  "id": "00000000-0000-0000-0000-000000000002",
+  "displayName": "Test License Group Updated",
+  "description": "Test group for license assignment - updated",
+  "assignedLicenses": [
+    {
+      "skuId": "f30db892-07e9-47e9-837c-80727f46fd3d",
+      "disabledPlans": [
+        "a403ebcc-fae0-4ca2-8c8c-7a907fd6c235"
+      ]
+    }
+  ]
+}

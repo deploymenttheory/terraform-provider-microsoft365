@@ -1,0 +1,68 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#groups('a7a8b8c9-d1e2-4f3a-b4c5-d6e7f8a9b0c1')/settings/$entity",
+  "id": "00000000-0000-0000-0000-000000000000",
+  "displayName": "Group.Unified.Guest",
+  "templateId": "08d542b9-071f-4e16-94b0-74abb372e3d9",
+  "values": [
+    {
+      "name": "PrefixSuffixNamingRequirement",
+      "value": "GRP_[GroupName]_[Department]"
+    },
+    {
+      "name": "CustomBlockedWordsList",
+      "value": "CEO,President,Admin,Executive,Confidential"
+    },
+    {
+      "name": "EnableMSStandardBlockedWords",
+      "value": "true"
+    },
+    {
+      "name": "EnableGroupCreation",
+      "value": "false"
+    },
+    {
+      "name": "GroupCreationAllowedGroupId",
+      "value": "12345678-1234-1234-1234-123456789012"
+    },
+    {
+      "name": "AllowGuestsToAccessGroups",
+      "value": "false"
+    },
+    {
+      "name": "AllowGuestsToBeGroupOwner",
+      "value": "false"
+    },
+    {
+      "name": "AllowToAddGuests",
+      "value": "false"
+    },
+    {
+      "name": "GuestUsageGuidelinesUrl",
+      "value": "https://contoso.com/guest-guidelines"
+    },
+    {
+      "name": "ClassificationList",
+      "value": "Low,Medium,High,Confidential"
+    },
+    {
+      "name": "DefaultClassification",
+      "value": "Medium"
+    },
+    {
+      "name": "ClassificationDescriptions",
+      "value": "[{\"Value\":\"Low\",\"Description\":\"Low business impact\"},{\"Value\":\"Medium\",\"Description\":\"Medium business impact\"},{\"Value\":\"High\",\"Description\":\"High business impact\"},{\"Value\":\"Confidential\",\"Description\":\"Confidential information\"}]"
+    },
+    {
+      "name": "UsageGuidelinesUrl",
+      "value": "https://contoso.com/group-guidelines"
+    },
+    {
+      "name": "EnableMIPLabels",
+      "value": "true"
+    },
+    {
+      "name": "NewUnifiedGroupWritebackDefault",
+      "value": "false"
+    }
+  ]
+}
