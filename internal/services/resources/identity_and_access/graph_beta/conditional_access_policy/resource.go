@@ -7,6 +7,7 @@ import (
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/client"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/schema"
+	"github.com/hashicorp/terraform-plugin-framework-validators/resourcevalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -38,6 +39,9 @@ var (
 
 	// Enables plan modification/diff suppression
 	_ resource.ResourceWithModifyPlan = &ConditionalAccessPolicyResource{}
+
+	// Enables common validations
+	_ resource.ResourceWithConfigValidators = &ConditionalAccessPolicyResource{}
 )
 
 // https://learn.microsoft.com/en-us/graph/custom-security-attributes-examples?tabs=http#prerequisites
@@ -721,8 +725,8 @@ func (r *ConditionalAccessPolicyResource) Schema(ctx context.Context, req resour
 				},
 			},
 			"grant_controls": schema.SingleNestedAttribute{
-				MarkdownDescription: "Controls for granting access.",
-				Required:            true,
+				MarkdownDescription: "Controls for granting access. Either `grant_controls` or `session_controls` or both must be specified.",
+				Optional:            true,
 				Attributes: map[string]schema.Attribute{
 					"operator": schema.StringAttribute{
 						MarkdownDescription: "Operator to apply to the controls. Possible values are: AND, OR. When setting a singular operator, use 'OR'.",
@@ -857,7 +861,7 @@ func (r *ConditionalAccessPolicyResource) Schema(ctx context.Context, req resour
 				},
 			},
 			"session_controls": schema.SingleNestedAttribute{
-				MarkdownDescription: "Controls for managing user sessions.",
+				MarkdownDescription: "Controls for managing user sessions. Either `grant_controls` or `session_controls` or both must be specified.",
 				Optional:            true,
 				Attributes: map[string]schema.Attribute{
 					"application_enforced_restrictions": schema.SingleNestedAttribute{
@@ -1002,5 +1006,14 @@ func (r *ConditionalAccessPolicyResource) Schema(ctx context.Context, req resour
 			},
 			"timeouts": commonschema.Timeouts(ctx),
 		},
+	}
+}
+
+func (r *ConditionalAccessPolicyResource) ConfigValidators(ctx context.Context) []resource.ConfigValidator {
+	return []resource.ConfigValidator{
+		resourcevalidator.AtLeastOneOf(
+			path.MatchRoot("grant_controls"),
+			path.MatchRoot("session_controls"),
+		),
 	}
 }

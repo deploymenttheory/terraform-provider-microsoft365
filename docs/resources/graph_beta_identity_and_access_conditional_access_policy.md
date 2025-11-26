@@ -2653,13 +2653,13 @@ resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy"
 
 - `conditions` (Attributes) Conditions that must be met for the policy to apply. (see [below for nested schema](#nestedatt--conditions))
 - `display_name` (String) The display name for the Conditional Access policy.
-- `grant_controls` (Attributes) Controls for granting access. (see [below for nested schema](#nestedatt--grant_controls))
 - `state` (String) Specifies the state of the policy. Possible values are: enabled, disabled, enabledForReportingButNotEnforced.
 
 ### Optional
 
+- `grant_controls` (Attributes) Controls for granting access. Either `grant_controls` or `session_controls` or both must be specified. (see [below for nested schema](#nestedatt--grant_controls))
 - `partial_enablement_strategy` (String) Strategy for partial enablement of the policy.
-- `session_controls` (Attributes) Controls for managing user sessions. (see [below for nested schema](#nestedatt--session_controls))
+- `session_controls` (Attributes) Controls for managing user sessions. Either `grant_controls` or `session_controls` or both must be specified. (see [below for nested schema](#nestedatt--session_controls))
 - `template_id` (String) ID of the template this policy is derived from.
 - `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))
 
@@ -2713,6 +2713,8 @@ Required:
 
 - `mode` (String) Mode of the filter. Possible values are: include, exclude.
 - `rule` (String) Rule syntax for the filter.
+
+
 
 <a id="nestedatt--conditions--users"></a>
 ### Nested Schema for `conditions.users`
