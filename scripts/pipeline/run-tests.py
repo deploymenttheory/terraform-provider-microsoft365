@@ -18,6 +18,8 @@ import sys
 import json
 import re
 import subprocess
+import time
+from datetime import datetime
 from pathlib import Path
 from typing import List, Dict
 
@@ -59,23 +61,34 @@ def discover_test_packages(base_path: Path) -> List[str]:
     Returns:
         Sorted list of package paths (relative to workspace root) containing tests.
     """
+    print(f"🔍 [DISCOVERY] Starting test package discovery in: {base_path}")
+    
     if not base_path.exists():
+        print(f"⚠️  [DISCOVERY] Path does not exist: {base_path}")
         return []
     
     base_path = base_path.resolve()
     cwd = Path.cwd().resolve()
+    print(f"🔍 [DISCOVERY] Resolved base_path: {base_path}")
+    print(f"🔍 [DISCOVERY] Current working directory: {cwd}")
     
+    print(f"🔍 [DISCOVERY] Searching for *_test.go files...")
     packages = set()
     test_files = list(base_path.rglob("*_test.go"))
+    print(f"🔍 [DISCOVERY] Found {len(test_files)} test files")
     
-    for test_file in test_files:
+    for idx, test_file in enumerate(test_files, 1):
+        if idx % 10 == 0:
+            print(f"🔍 [DISCOVERY] Processing test file {idx}/{len(test_files)}...")
         # Get the package directory (parent of the test file)
         package_dir = test_file.parent.resolve()
         # Convert to relative path from workspace root
         rel_path = f"./{package_dir.relative_to(cwd)}"
         packages.add(rel_path)
     
-    return sorted(list(packages))
+    sorted_packages = sorted(list(packages))
+    print(f"✅ [DISCOVERY] Discovered {len(sorted_packages)} unique packages")
+    return sorted_packages
 
 
 def count_tests_in_package(package_path: str) -> int:
@@ -87,6 +100,7 @@ def count_tests_in_package(package_path: str) -> int:
     Returns:
         Number of test functions found in the package, or 0 if error occurs.
     """
+    print(f"  🔢 [COUNT] Enumerating tests in: {package_path}")
     try:
         result = subprocess.run(
             ["go", "test", "-list", ".", package_path],
@@ -101,8 +115,13 @@ def count_tests_in_package(package_path: str) -> int:
             if line.startswith('Test'):
                 test_count += 1
         
+        print(f"  ✅ [COUNT] Found {test_count} tests in {package_path}")
         return test_count
-    except Exception:
+    except subprocess.TimeoutExpired:
+        print(f"  ⚠️  [COUNT] Timeout counting tests in {package_path}")
+        return 0
+    except Exception as e:
+        print(f"  ⚠️  [COUNT] Error counting tests in {package_path}: {e}")
         return 0
 
 
@@ -215,7 +234,9 @@ def run_provider_core_tests(coverage_file: str, test_output_file: str) -> int:
     Returns:
         0 if all tests passed, 1 if any test failed.
     """
-    print("\n🔍 Discovering provider core test packages...\n")
+    print("\n" + "="*70)
+    print("🔍 [START] Running provider core tests")
+    print("="*70 + "\n")
     
     # Define core directories to test
     core_dirs = [
@@ -225,11 +246,18 @@ def run_provider_core_tests(coverage_file: str, test_output_file: str) -> int:
         "./internal/utilities"
     ]
     
+    print(f"📂 [CONFIG] Core directories to test: {len(core_dirs)}")
+    for dir in core_dirs:
+        print(f"   - {dir}")
+    print()
+    
     # Discover all test packages across core directories
     all_packages = []
-    for core_dir in core_dirs:
+    for idx, core_dir in enumerate(core_dirs, 1):
+        print(f"🔍 [DISCOVERY] Processing directory {idx}/{len(core_dirs)}: {core_dir}")
         packages = discover_test_packages(Path(core_dir))
         all_packages.extend(packages)
+        print(f"✅ [DISCOVERY] Found {len(packages)} packages in {core_dir}\n")
     
     if not all_packages:
         print("⚠️  No test packages found in provider core, creating empty coverage file")
@@ -238,14 +266,23 @@ def run_provider_core_tests(coverage_file: str, test_output_file: str) -> int:
         return 0
     
     # Count tests per package
-    print(f"📊 Enumerating tests in {len(all_packages)} package(s)...\n")
+    print("="*70)
+    print(f"📊 [ENUMERATE] Starting test enumeration for {len(all_packages)} package(s)")
+    print("="*70 + "\n")
     package_test_counts: Dict[str, int] = {}
     total_tests = 0
     
-    for pkg in all_packages:
+    enumerate_start = time.time()
+    for idx, pkg in enumerate(all_packages, 1):
+        pkg_start = time.time()
+        print(f"📊 [ENUMERATE] Package {idx}/{len(all_packages)}: {pkg}")
         count = count_tests_in_package(pkg)
         package_test_counts[pkg] = count
         total_tests += count
+        pkg_elapsed = time.time() - pkg_start
+        print(f"⏱️  [TIMING] Package enumeration took {pkg_elapsed:.2f}s\n")
+    enumerate_elapsed = time.time() - enumerate_start
+    print(f"⏱️  [TIMING] Total enumeration time: {enumerate_elapsed:.2f}s\n")
     
     # Display summary
     print_separator("=")
@@ -263,20 +300,26 @@ def run_provider_core_tests(coverage_file: str, test_output_file: str) -> int:
     print()
     
     # Run tests package by package
-    print(f"🚀 Starting sequential execution ({len(all_packages)} package(s), one at a time)\n")
+    print("="*70)
+    print(f"🚀 [EXECUTE] Starting sequential execution ({len(all_packages)} package(s))")
+    print("="*70 + "\n")
     
     has_failures = False
     
     # Initialize coverage file with mode line
+    print(f"📝 [SETUP] Initializing coverage file: {coverage_file}")
     with open(coverage_file, 'w') as f:
         f.write("mode: atomic\n")
+    print()
     
     for idx, pkg in enumerate(all_packages, 1):
+        pkg_exec_start = time.time()
         test_count = package_test_counts[pkg]
         
         print_separator("-", 70)
         print(f"📦 Package {idx}/{len(all_packages)}: {pkg}")
         print(f"   Tests: {test_count}")
+        print(f"⏱️  [TIMING] Started at: {datetime.now().strftime('%H:%M:%S')}")
         print_separator("-", 70)
         
         # Create temporary coverage file for this package
@@ -291,26 +334,36 @@ def run_provider_core_tests(coverage_file: str, test_output_file: str) -> int:
             pkg
         ]
         
-        print(f"▶️  Running: go test -race {pkg}\n")
+        print(f"▶️  [RUN] Executing: go test -race {pkg}")
+        print(f"📄 [RUN] Output mode: {'append' if idx > 1 else 'write'} to {test_output_file}\n")
         
         # Append to the output file for each package
         exit_code = run_command(cmd, test_output_file, append=(idx > 1))
         
+        pkg_exec_elapsed = time.time() - pkg_exec_start
+        print(f"⏱️  [TIMING] Package execution took {pkg_exec_elapsed:.2f}s")
+        
+        print(f"\n🔍 [COVERAGE] Processing coverage for package...")
         # Append coverage data (skip mode line)
         if Path(temp_coverage).exists():
+            print(f"✅ [COVERAGE] Found coverage file: {temp_coverage}")
             with open(temp_coverage, 'r') as tmp_f:
                 lines = tmp_f.readlines()
+                print(f"📊 [COVERAGE] Coverage file has {len(lines)} lines")
                 with open(coverage_file, 'a') as cov_f:
                     for line in lines:
                         if not line.startswith('mode:'):
                             cov_f.write(line)
             Path(temp_coverage).unlink()
+            print(f"🗑️  [COVERAGE] Deleted temporary coverage file")
+        else:
+            print(f"⚠️  [COVERAGE] No coverage file generated")
         
         if exit_code != 0:
             has_failures = True
-            print(f"\n❌ Package {pkg} completed with failures (exit code: {exit_code})")
+            print(f"\n❌ [RESULT] Package {pkg} completed with failures (exit code: {exit_code})")
         else:
-            print(f"\n✅ Package {pkg} completed successfully")
+            print(f"\n✅ [RESULT] Package {pkg} completed successfully")
         
         print()
     
@@ -341,10 +394,13 @@ def run_service_tests(category: str, service: str,
     Returns:
         0 if all tests passed, 1 if any test failed.
     """
-    print(f"\n🔍 Discovering test packages for {category}/{service}...")
+    print("\n" + "="*70)
+    print(f"🔍 [START] Running {category}/{service} tests")
+    print("="*70 + "\n")
     
     test_dir_str = f"./internal/services/{category}/{service}"
     test_dir = Path(test_dir_str)
+    print(f"📂 [CONFIG] Test directory: {test_dir_str}")
     
     if not test_dir.exists():
         print(f"⚠️  Directory not found: {test_dir_str}, creating empty coverage file")
@@ -353,23 +409,34 @@ def run_service_tests(category: str, service: str,
         return 0
     
     # Discover all test packages
+    print(f"\n🔍 [DISCOVERY] Starting package discovery...")
     test_packages = discover_test_packages(test_dir)
     
     if not test_packages:
-        print(f"⚠️  No test packages found in {test_dir_str}, creating empty coverage file")
+        print(f"⚠️  [DISCOVERY] No test packages found in {test_dir_str}")
+        print(f"✅ [COMPLETE] Creating empty coverage file and exiting")
         with open(coverage_file, 'w') as f:
             f.write("mode: atomic\n")
         return 0
     
     # Count tests per package
-    print(f"\n📊 Enumerating tests in {len(test_packages)} package(s)...\n")
+    print("\n" + "="*70)
+    print(f"📊 [ENUMERATE] Starting test enumeration for {len(test_packages)} package(s)")
+    print("="*70 + "\n")
     package_test_counts: Dict[str, int] = {}
     total_tests = 0
     
-    for pkg in test_packages:
+    enumerate_start = time.time()
+    for idx, pkg in enumerate(test_packages, 1):
+        pkg_start = time.time()
+        print(f"📊 [ENUMERATE] Package {idx}/{len(test_packages)}: {pkg}")
         count = count_tests_in_package(pkg)
         package_test_counts[pkg] = count
         total_tests += count
+        pkg_elapsed = time.time() - pkg_start
+        print(f"⏱️  [TIMING] Package enumeration took {pkg_elapsed:.2f}s\n")
+    enumerate_elapsed = time.time() - enumerate_start
+    print(f"⏱️  [TIMING] Total enumeration time: {enumerate_elapsed:.2f}s\n")
     
     # Display summary
     print_separator("=")
@@ -389,21 +456,27 @@ def run_service_tests(category: str, service: str,
     print()
     
     # Run tests package by package
-    print(f"🚀 Starting sequential execution ({len(test_packages)} package(s), one at a time)\n")
+    print("="*70)
+    print(f"🚀 [EXECUTE] Starting sequential execution ({len(test_packages)} package(s))")
+    print("="*70 + "\n")
     
     has_failures = False
     
     # Initialize coverage file with mode line
+    print(f"📝 [SETUP] Initializing coverage file: {coverage_file}")
     with open(coverage_file, 'w') as f:
         f.write("mode: atomic\n")
+    print()
     
     for idx, pkg in enumerate(test_packages, 1):
+        pkg_exec_start = time.time()
         rel_pkg = pkg.replace(test_dir_str, "").lstrip("/") or "."
         test_count = package_test_counts[pkg]
         
         print_separator("-", 70)
         print(f"📦 Package {idx}/{len(test_packages)}: {rel_pkg}")
         print(f"   Tests: {test_count}")
+        print(f"⏱️  [TIMING] Started at: {datetime.now().strftime('%H:%M:%S')}")
         print_separator("-", 70)
         
         # Create temporary coverage file for this package
@@ -418,26 +491,36 @@ def run_service_tests(category: str, service: str,
             pkg
         ]
         
-        print(f"▶️  Running: go test {pkg}\n")
+        print(f"▶️  [RUN] Executing: go test {pkg}")
+        print(f"📄 [RUN] Output mode: {'append' if idx > 1 else 'write'} to {test_output_file}\n")
         
         # Append to the output file for each package
         exit_code = run_command(cmd, test_output_file, append=(idx > 1))
         
+        pkg_exec_elapsed = time.time() - pkg_exec_start
+        print(f"⏱️  [TIMING] Package execution took {pkg_exec_elapsed:.2f}s")
+        
+        print(f"\n🔍 [COVERAGE] Processing coverage for package...")
         # Append coverage data (skip mode line)
         if Path(temp_coverage).exists():
+            print(f"✅ [COVERAGE] Found coverage file: {temp_coverage}")
             with open(temp_coverage, 'r') as tmp_f:
                 lines = tmp_f.readlines()
+                print(f"📊 [COVERAGE] Coverage file has {len(lines)} lines")
                 with open(coverage_file, 'a') as cov_f:
                     for line in lines:
                         if not line.startswith('mode:'):
                             cov_f.write(line)
             Path(temp_coverage).unlink()
+            print(f"🗑️  [COVERAGE] Deleted temporary coverage file")
+        else:
+            print(f"⚠️  [COVERAGE] No coverage file generated")
         
         if exit_code != 0:
             has_failures = True
-            print(f"\n❌ Package {rel_pkg} completed with failures (exit code: {exit_code})")
+            print(f"\n❌ [RESULT] Package {rel_pkg} completed with failures (exit code: {exit_code})")
         else:
-            print(f"\n✅ Package {rel_pkg} completed successfully")
+            print(f"\n✅ [RESULT] Package {rel_pkg} completed successfully")
         
         print()
     
@@ -453,6 +536,13 @@ def run_service_tests(category: str, service: str,
 
 
 def main():
+    print("\n" + "="*70)
+    print("🚀 [MAIN] Terraform Provider Test Runner Started")
+    print("="*70)
+    print(f"📋 [MAIN] Command: {' '.join(sys.argv)}")
+    print(f"📂 [MAIN] Working directory: {Path.cwd()}")
+    print("="*70 + "\n")
+    
     if len(sys.argv) < 2:
         print("Usage: run-tests.py <type> [service] [coverage-file] [test-output-file]", 
               file=sys.stderr)
@@ -463,6 +553,12 @@ def main():
     service = sys.argv[2] if len(sys.argv) > 2 else ""
     coverage_file = sys.argv[3] if len(sys.argv) > 3 else "coverage.txt"
     test_output_file = sys.argv[4] if len(sys.argv) > 4 else "test-output.log"
+    
+    print(f"⚙️  [CONFIG] Test type: {test_type}")
+    print(f"⚙️  [CONFIG] Service: {service if service else 'N/A'}")
+    print(f"⚙️  [CONFIG] Coverage file: {coverage_file}")
+    print(f"⚙️  [CONFIG] Test output file: {test_output_file}")
+    print()
     
     if os.environ.get("SKIP_TESTS", "false") == "true":
         print("⏭️  Skipping tests - no credentials configured")
