@@ -1,4 +1,4 @@
-name: provider | Nightly Tests
+name: provider | Bi-weekly Tests
 
 permissions:
   contents: read
@@ -6,8 +6,9 @@ permissions:
 
 on:
   schedule:
-    # Run nightly at 2 AM UTC
-    - cron: '0 2 * * *'
+    # Run twice weekly: Sunday and Wednesday at 2 AM UTC
+    - cron: '0 2 * * 0'  # Sunday at 2 AM UTC
+    - cron: '0 2 * * 3'  # Wednesday at 2 AM UTC
   workflow_dispatch: # Allow manual trigger
 
 jobs:
@@ -98,12 +99,12 @@ jobs:
             runner: ubuntu-24.04-arm
           - service: groups
             runner: ubuntu-24.04-arm
-          - service: identity_and_access # TODO: try ubuntu-22.04-arm-4c-l 
-            runner: ubuntu-24.04-arm
+          - service: identity_and_access 
+            runner: ubuntu-22.04-arm-4c-l # Memory intensive
           - service: m365_admin
             runner: ubuntu-24.04-arm
-          - service: users # TODO: try ubuntu-22.04-arm-4c-l 
-            runner: ubuntu-24.04-arm
+          - service: users 
+            runner: ubuntu-22.04-arm-4c-l # Memory intensive
           - service: windows_365
             runner: ubuntu-24.04-arm
     steps:
@@ -322,7 +323,7 @@ jobs:
 
       - name: Generate test summary
         run: |
-          echo "## Nightly Test Summary" > summary.md
+          echo "## Bi-weekly Test Summary" > summary.md
           echo "**Date:** $(date)" >> summary.md
           echo "**Workflow:** ${{ github.workflow }}" >> summary.md
           echo "**Run ID:** ${{ github.run_id }}" >> summary.md
