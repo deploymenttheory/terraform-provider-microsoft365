@@ -1,16 +1,42 @@
 #!/usr/bin/env python3
-"""Test runner for nightly acceptance tests.
+"""Test runner for Terraform provider acceptance tests.
 
-This script runs Terraform provider tests sequentially, one package at a time,
-to conserve memory and provide better progress visibility.
+This script runs Terraform provider tests sequentially, one Go package at a time,
+to conserve memory on resource-constrained runners. Supports configurable parallelism
+and memory management options.
 
 Usage:
-    ./run-tests.py <type> [service] [coverage-file] [test-output-file]
+    ./run-tests.py <type> [service] [coverage-file] [test-output-file] [options]
 
-Types:
-    provider-core: Core provider tests (client, helpers, provider, utilities)
-    resources: Resource tests for a specific service
-    datasources: Datasource tests for a specific service
+Positional Arguments:
+    type              Test type: provider-core, resources, or datasources
+    service           Service name (required for resources/datasources)
+    coverage-file     Coverage output file (default: coverage.txt)
+    test-output-file  Test log output file (default: test-output.log)
+
+Memory & Parallelism Options:
+    --max-procs N          GOMAXPROCS - max CPU cores for Go (default: 2)
+    --test-parallel N      Tests to run in parallel within a package (default: 1)
+    --pkg-parallel N       Packages to build/test in parallel (default: 1)
+    --race / --no-race     Enable/disable race detection (auto: on for provider-core)
+    --skip-enumeration     Skip test enumeration phase for faster startup
+    --force-gc             Force garbage collection between packages (default: enabled)
+    --no-force-gc          Disable forced garbage collection
+
+Examples:
+    # Low memory mode (8GB runners) - default settings
+    ./run-tests.py resources identity_and_access coverage.txt output.log
+
+    # Ultra-conservative mode (minimize memory)
+    ./run-tests.py resources identity_and_access coverage.txt output.log \
+        --max-procs 1 --test-parallel 1 --pkg-parallel 1 --skip-enumeration --no-race
+
+    # Higher performance mode (16GB+ runners)
+    ./run-tests.py resources identity_and_access coverage.txt output.log \
+        --max-procs 4 --test-parallel 2 --pkg-parallel 1
+
+    # Show help
+    ./run-tests.py --help
 """
 
 import os
@@ -230,9 +256,9 @@ def parse_test_results(output_file: str, category: str, service: str) -> None:
 
 
 def run_provider_core_tests(coverage_file: str, test_output_file: str, 
-                           max_procs: int = 2, test_parallel: int = 1, 
-                           pkg_parallel: int = 1, use_race: bool = True,
-                           skip_enumeration: bool = False, force_gc: bool = True) -> int:
+                            max_procs: int = 2, test_parallel: int = 1, 
+                            pkg_parallel: int = 1, use_race: bool = True,
+                            skip_enumeration: bool = False, force_gc: bool = True) -> int:
     """Run provider core tests sequentially, one package at a time to conserve memory.
 
     Discovers all test packages in core directories (client, helpers, provider, utilities),
