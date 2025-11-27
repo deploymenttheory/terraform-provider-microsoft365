@@ -19,6 +19,7 @@ import json
 import re
 import subprocess
 import time
+import gc
 from datetime import datetime
 from pathlib import Path
 from typing import List, Dict
@@ -36,17 +37,19 @@ def run_command(cmd: List[str], output_file: str, append: bool = False) -> int:
         The exit code of the command.
     """
     mode = 'a' if append else 'w'
-    with open(output_file, mode) as f:
+    with open(output_file, mode, buffering=8192) as f:  # Use small buffer
         process = subprocess.Popen(
             cmd,
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
-            text=True
+            text=True,
+            bufsize=1  # Line buffered
         )
         
         for line in process.stdout:
             print(line, end='')
             f.write(line)
+            f.flush()  # Ensure data is written immediately
         
         process.wait()
         return process.returncode
@@ -326,9 +329,13 @@ def run_provider_core_tests(coverage_file: str, test_output_file: str) -> int:
         temp_coverage = f"{coverage_file}.tmp"
         
         # Run tests for this package with -race flag (smaller scope than before)
+        # Use -p=1 to run packages sequentially (not in parallel)
+        # Use -parallel=1 to run tests within package sequentially
         cmd = [
             "go", "test", "-v", "-race",
             "-timeout=90m",
+            "-p=1",  # Only build/test 1 package at a time
+            "-parallel=1",  # Only run 1 test at a time within the package
             f"-coverprofile={temp_coverage}",
             "-covermode=atomic",
             pkg
@@ -365,6 +372,9 @@ def run_provider_core_tests(coverage_file: str, test_output_file: str) -> int:
         else:
             print(f"\n✅ [RESULT] Package {pkg} completed successfully")
         
+        # Force garbage collection to free memory
+        print(f"🗑️  [MEMORY] Running garbage collection...")
+        gc.collect()
         print()
     
     # Parse all test results from the combined output
@@ -483,9 +493,13 @@ def run_service_tests(category: str, service: str,
         temp_coverage = f"{coverage_file}.tmp"
         
         # Run tests for this package only
+        # Use -p=1 to run packages sequentially (not in parallel)
+        # Use -parallel=1 to run tests within package sequentially
         cmd = [
             "go", "test", "-v",
             "-timeout=90m",
+            "-p=1",  # Only build/test 1 package at a time
+            "-parallel=1",  # Only run 1 test at a time within the package
             f"-coverprofile={temp_coverage}",
             "-covermode=atomic",
             pkg
@@ -522,6 +536,9 @@ def run_service_tests(category: str, service: str,
         else:
             print(f"\n✅ [RESULT] Package {rel_pkg} completed successfully")
         
+        # Force garbage collection to free memory
+        print(f"🗑️  [MEMORY] Running garbage collection...")
+        gc.collect()
         print()
     
     # Parse all test results from the combined output
@@ -542,6 +559,16 @@ def main():
     print(f"📋 [MAIN] Command: {' '.join(sys.argv)}")
     print(f"📂 [MAIN] Working directory: {Path.cwd()}")
     print("="*70 + "\n")
+    
+    # Set memory-friendly environment variables for Go
+    # Limit GOMAXPROCS to reduce memory overhead
+    if "GOMAXPROCS" not in os.environ:
+        os.environ["GOMAXPROCS"] = "2"
+        print(f"⚙️  [MEMORY] Set GOMAXPROCS=2 to limit CPU/memory usage")
+    
+    # Disable test caching to save memory
+    os.environ["GOCACHE"] = "off"
+    print(f"⚙️  [MEMORY] Disabled Go build cache to save memory\n")
     
     if len(sys.argv) < 2:
         print("Usage: run-tests.py <type> [service] [coverage-file] [test-output-file]", 
