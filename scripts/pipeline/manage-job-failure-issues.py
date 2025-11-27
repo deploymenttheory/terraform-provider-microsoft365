@@ -28,7 +28,17 @@ from typing import Optional
 
 
 def run_gh_command(args: list[str]) -> str:
-    """Run a GitHub CLI command and return output."""
+    """Run a GitHub CLI command and return output.
+
+    Args:
+        args: List of arguments to pass to 'gh' command.
+
+    Returns:
+        Command stdout as a string.
+
+    Raises:
+        subprocess.CalledProcessError: If the command fails.
+    """
     try:
         result = subprocess.run(
             ["gh"] + args,
@@ -43,7 +53,15 @@ def run_gh_command(args: list[str]) -> str:
 
 
 def ensure_label_exists(owner: str, repo: str, label_name: str, color: str, description: str) -> None:
-    """Create a label if it doesn't exist."""
+    """Create a label if it doesn't exist, or update it if it does.
+
+    Args:
+        owner: GitHub repository owner.
+        repo: GitHub repository name.
+        label_name: Name of the label.
+        color: Hex color code (without #).
+        description: Label description.
+    """
     try:
         run_gh_command([
             "label", "create", label_name,
@@ -58,7 +76,16 @@ def ensure_label_exists(owner: str, repo: str, label_name: str, color: str, desc
 
 
 def find_existing_issue(owner: str, repo: str, job_name: str) -> Optional[str]:
-    """Check if an issue already exists for this job failure."""
+    """Check if an issue already exists for this job failure.
+
+    Args:
+        owner: GitHub repository owner.
+        repo: GitHub repository name.
+        job_name: Name of the failed job.
+
+    Returns:
+        Issue number as string if found, None otherwise.
+    """
     try:
         # Search for issues with the job name
         result = run_gh_command([
@@ -188,7 +215,17 @@ def create_job_failure_issue(owner: str, repo: str, failure: dict,
 
 def update_job_failure_issue(owner: str, repo: str, issue_number: str,
                             failure: dict, date: str, run_id: str, workflow_url: str) -> None:
-    """Add a comment to existing job failure issue."""
+    """Add a comment to existing job failure issue.
+
+    Args:
+        owner: GitHub repository owner.
+        repo: GitHub repository name.
+        issue_number: Issue number to update.
+        failure: Failure dictionary with job details.
+        date: Date string for the failure.
+        run_id: GitHub Actions workflow run ID.
+        workflow_url: URL to the workflow run.
+    """
     timestamp = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
     failure_type = failure["failure_type"].replace("_", " ").title()
     
@@ -219,7 +256,17 @@ def update_job_failure_issue(owner: str, repo: str, issue_number: str,
 
 
 def process_job_failures(owner: str, repo: str, run_id: str, failures_json_path: str) -> None:
-    """Process job failures and create or update issues."""
+    """Process job failures and create or update issues.
+
+    Main processing function that reads job failure JSON, ensures labels exist,
+    and creates or updates GitHub issues for each infrastructure failure.
+
+    Args:
+        owner: GitHub repository owner.
+        repo: GitHub repository name.
+        run_id: GitHub Actions workflow run ID.
+        failures_json_path: Path to JSON file containing job failures.
+    """
     if not all([owner, repo, run_id]):
         print("Usage: manage-job-failure-issues.py <owner> <repo> <run-id> <job-failures-json>", 
             file=sys.stderr)

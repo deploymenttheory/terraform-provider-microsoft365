@@ -111,7 +111,15 @@ def find_existing_issue(owner: str, repo: str, test_name: str) -> Optional[str]:
 
 
 def get_all_open_test_issues(owner: str, repo: str) -> list[dict]:
-    """Get all open test-failure issues."""
+    """Get all open test-failure issues.
+
+    Args:
+        owner: GitHub repository owner.
+        repo: GitHub repository name.
+
+    Returns:
+        List of issue dictionaries with number and title fields.
+    """
     try:
         result = run_gh_command([
             "issue", "list",
@@ -133,7 +141,19 @@ def get_all_open_test_issues(owner: str, repo: str) -> list[dict]:
 def update_existing_issue(owner: str, repo: str, issue_number: str, 
                          test_name: str, service_path: str, context: str, 
                          date: str, run_id: str, workflow_url: str) -> None:
-    """Add a comment to existing issue with latest failure details."""
+    """Add a comment to existing issue with latest failure details.
+
+    Args:
+        owner: GitHub repository owner.
+        repo: GitHub repository name.
+        issue_number: Issue number to update.
+        test_name: Name of the failed test.
+        service_path: Service path (e.g., 'resources/identity_and_access').
+        context: Error context from test output.
+        date: Date string for the failure.
+        run_id: GitHub Actions workflow run ID.
+        workflow_url: URL to the workflow run.
+    """
     # Get current timestamp
     timestamp = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
     
@@ -170,7 +190,17 @@ def update_existing_issue(owner: str, repo: str, issue_number: str,
 
 def close_resolved_issue(owner: str, repo: str, issue_number: str,
                         test_name: str, date: str, run_id: str, workflow_url: str) -> None:
-    """Close an issue when test is now passing."""
+    """Close an issue when test is now passing.
+
+    Args:
+        owner: GitHub repository owner.
+        repo: GitHub repository name.
+        issue_number: Issue number to close.
+        test_name: Name of the test that is now passing.
+        date: Date string for the resolution.
+        run_id: GitHub Actions workflow run ID.
+        workflow_url: URL to the workflow run.
+    """
     timestamp = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
     
     run_gh_command([
@@ -193,7 +223,21 @@ Test is now passing. Automatically closing this issue.
 def create_new_issue(owner: str, repo: str, test_name: str, 
                     service_path: str, context: str, date: str, 
                     run_id: str, workflow_url: str) -> str:
-    """Create a new issue for test failure."""
+    """Create a new issue for test failure.
+
+    Args:
+        owner: GitHub repository owner.
+        repo: GitHub repository name.
+        test_name: Name of the failed test.
+        service_path: Service path (e.g., 'resources/identity_and_access').
+        context: Error context from test output.
+        date: Date string for the failure.
+        run_id: GitHub Actions workflow run ID.
+        workflow_url: URL to the workflow run.
+
+    Returns:
+        URL of the created issue.
+    """
     issue_title = f"Bug: {test_name} Failing"
     
     issue_body = f"""## Test Failure
@@ -230,7 +274,20 @@ def create_new_issue(owner: str, repo: str, test_name: str,
 
 def process_test_failures(owner: str, repo: str, run_id: str, 
                         failures_json_path: str, successes_json_path: Optional[str] = None) -> None:
-    """Process test failures and successes, create/update/close issues as needed."""
+    """Process test failures and successes, create/update/close issues as needed.
+
+    Main processing function that handles the complete lifecycle of test failure issues:
+    - Creates new issues for first-time failures
+    - Updates existing issues for recurring failures
+    - Closes issues for tests that are now passing
+
+    Args:
+        owner: GitHub repository owner.
+        repo: GitHub repository name.
+        run_id: GitHub Actions workflow run ID.
+        failures_json_path: Path to JSON file containing test failures.
+        successes_json_path: Optional path to JSON file containing test successes.
+    """
     if not all([owner, repo, run_id]):
         print("Usage: manage-test-issues.py <owner> <repo> <run-id> <failures-json> [successes-json]", 
             file=sys.stderr)

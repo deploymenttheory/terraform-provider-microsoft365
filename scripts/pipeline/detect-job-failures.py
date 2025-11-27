@@ -27,7 +27,17 @@ from typing import Optional
 
 
 def run_gh_command(args: list[str]) -> str:
-    """Run a GitHub CLI command and return output."""
+    """Run a GitHub CLI command and return output.
+
+    Args:
+        args: List of arguments to pass to 'gh' command.
+
+    Returns:
+        Command stdout as a string.
+
+    Raises:
+        subprocess.CalledProcessError: If the command fails.
+    """
     try:
         result = subprocess.run(
             ["gh"] + args,
@@ -72,6 +82,9 @@ def get_workflow_jobs(owner: str, repo: str, run_id: str) -> list[dict]:
 
 def analyze_job_failure(job: dict) -> Optional[dict]:
     """Analyze a failed job to determine failure type and details.
+
+    Distinguishes between test failures (which are handled separately) and
+    infrastructure/setup failures that require special attention.
 
     Args:
         job: Job dictionary from GitHub API.
@@ -156,7 +169,17 @@ def analyze_job_failure(job: dict) -> Optional[dict]:
 
 
 def detect_job_failures(owner: str, repo: str, run_id: str, output_file: str) -> None:
-    """Detect job-level failures and write to JSON file."""
+    """Detect job-level failures and write to JSON file.
+
+    Main processing function that queries GitHub API for all jobs in a workflow run,
+    analyzes each job for infrastructure failures, and writes results to JSON.
+
+    Args:
+        owner: GitHub repository owner.
+        repo: GitHub repository name.
+        run_id: GitHub Actions workflow run ID.
+        output_file: Path to write job failures JSON output.
+    """
     print(f"\n{'='*60}")
     print(f"Detecting job-level failures for run {run_id}")
     print(f"{'='*60}\n")
