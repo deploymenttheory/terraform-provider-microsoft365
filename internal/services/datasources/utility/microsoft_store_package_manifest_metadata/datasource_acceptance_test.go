@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/check"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -24,12 +25,12 @@ func TestAccMicrosoftStorePackageManifestDataSource_PackageIdentifier(t *testing
 			{
 				Config: testAccConfigPackageIdentifier(),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("data.microsoft365_utility_microsoft_store_package_manifest_metadata.test", "package_identifier", "9PM860492SZD"),
-					resource.TestCheckResourceAttr("data.microsoft365_utility_microsoft_store_package_manifest_metadata.test", "id", "9PM860492SZD"),
-					resource.TestCheckResourceAttr("data.microsoft365_utility_microsoft_store_package_manifest_metadata.test", "manifests.#", "1"),
-					resource.TestCheckResourceAttr("data.microsoft365_utility_microsoft_store_package_manifest_metadata.test", "manifests.0.package_identifier", "9PM860492SZD"),
-					resource.TestCheckResourceAttrSet("data.microsoft365_utility_microsoft_store_package_manifest_metadata.test", "manifests.0.versions.#"),
-					resource.TestCheckResourceAttrSet("data.microsoft365_utility_microsoft_store_package_manifest_metadata.test", "manifests.0.type"),
+					check.That("data."+dataSourceType+".test").Key("package_identifier").HasValue("9PM860492SZD"),
+					check.That("data."+dataSourceType+".test").Key("id").HasValue("9PM860492SZD"),
+					check.That("data."+dataSourceType+".test").Key("manifests.#").HasValue("1"),
+					check.That("data."+dataSourceType+".test").Key("manifests.0.package_identifier").HasValue("9PM860492SZD"),
+					check.That("data."+dataSourceType+".test").Key("manifests.0.versions.#").IsSet(),
+					check.That("data."+dataSourceType+".test").Key("manifests.0.type").IsSet(),
 				),
 			},
 		},
@@ -50,9 +51,9 @@ func TestAccMicrosoftStorePackageManifestDataSource_SearchTerm(t *testing.T) {
 			{
 				Config: testAccConfigSearchTerm(),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("data.microsoft365_utility_microsoft_store_package_manifest_metadata.test", "search_term", "PC Manager"),
-					resource.TestCheckResourceAttr("data.microsoft365_utility_microsoft_store_package_manifest_metadata.test", "id", "PC Manager"),
-					resource.TestCheckResourceAttrSet("data.microsoft365_utility_microsoft_store_package_manifest_metadata.test", "manifests.#"),
+					check.That("data."+dataSourceType+".test").Key("search_term").HasValue("PC Manager"),
+					check.That("data."+dataSourceType+".test").Key("id").HasValue("PC Manager"),
+					check.That("data."+dataSourceType+".test").Key("manifests.#").IsSet(),
 				),
 			},
 		},
@@ -73,15 +74,15 @@ func TestAccMicrosoftStorePackageManifestDataSource_ValidateVersionStructure(t *
 			{
 				Config: testAccConfigValidateStructure(),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("data.microsoft365_utility_microsoft_store_package_manifest_metadata.test", "package_identifier", "XP8M1ZJCZ99QJW"),
-					resource.TestCheckResourceAttr("data.microsoft365_utility_microsoft_store_package_manifest_metadata.test", "id", "XP8M1ZJCZ99QJW"),
-					resource.TestCheckResourceAttr("data.microsoft365_utility_microsoft_store_package_manifest_metadata.test", "manifests.#", "1"),
-					resource.TestCheckResourceAttr("data.microsoft365_utility_microsoft_store_package_manifest_metadata.test", "manifests.0.package_identifier", "XP8M1ZJCZ99QJW"),
-					resource.TestCheckResourceAttrSet("data.microsoft365_utility_microsoft_store_package_manifest_metadata.test", "manifests.0.versions.0.package_version"),
-					resource.TestCheckResourceAttrSet("data.microsoft365_utility_microsoft_store_package_manifest_metadata.test", "manifests.0.versions.0.default_locale.package_name"),
-					resource.TestCheckResourceAttrSet("data.microsoft365_utility_microsoft_store_package_manifest_metadata.test", "manifests.0.versions.0.default_locale.publisher"),
-					resource.TestCheckResourceAttrSet("data.microsoft365_utility_microsoft_store_package_manifest_metadata.test", "manifests.0.versions.0.installers.#"),
-					resource.TestCheckResourceAttrSet("data.microsoft365_utility_microsoft_store_package_manifest_metadata.test", "manifests.0.versions.0.default_locale.tags.#"),
+					check.That("data."+dataSourceType+".test").Key("package_identifier").HasValue("XP8M1ZJCZ99QJW"),
+					check.That("data."+dataSourceType+".test").Key("id").HasValue("XP8M1ZJCZ99QJW"),
+					check.That("data."+dataSourceType+".test").Key("manifests.#").HasValue("1"),
+					check.That("data."+dataSourceType+".test").Key("manifests.0.package_identifier").HasValue("XP8M1ZJCZ99QJW"),
+					check.That("data."+dataSourceType+".test").Key("manifests.0.versions.0.package_version").IsSet(),
+					check.That("data."+dataSourceType+".test").Key("manifests.0.versions.0.default_locale.package_name").IsSet(),
+					check.That("data."+dataSourceType+".test").Key("manifests.0.versions.0.default_locale.publisher").IsSet(),
+					check.That("data."+dataSourceType+".test").Key("manifests.0.versions.0.installers.#").IsSet(),
+					check.That("data."+dataSourceType+".test").Key("manifests.0.versions.0.default_locale.tags.#").IsSet(),
 				),
 			},
 		},
@@ -102,8 +103,8 @@ func TestAccMicrosoftStorePackageManifestDataSource_MultipleResults(t *testing.T
 			{
 				Config: testAccConfigMultipleResults(),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("data.microsoft365_utility_microsoft_store_package_manifest_metadata.test", "search_term", "Microsoft"),
-					resource.TestCheckResourceAttrSet("data.microsoft365_utility_microsoft_store_package_manifest_metadata.test", "manifests.#"),
+					check.That("data."+dataSourceType+".test").Key("search_term").HasValue("Microsoft"),
+					check.That("data."+dataSourceType+".test").Key("manifests.#").IsSet(),
 				),
 			},
 		},
@@ -142,4 +143,3 @@ func testAccConfigMultipleResults() string {
 	}
 	return acceptance.ConfiguredM365ProviderBlock(accTestConfig)
 }
-

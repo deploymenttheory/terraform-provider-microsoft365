@@ -6,15 +6,22 @@ import (
 	"regexp"
 	"testing"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/check"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
+	itunes_app_metadata "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/utility/itunes_app_metadata"
 	localMocks "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/utility/itunes_app_metadata/mocks"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/jarcoal/httpmock"
 )
 
+var (
+	// DataSource type name from the datasource package
+	dataSourceType = itunes_app_metadata.DataSourceName
+)
+
 // Helper functions to return the test configurations by reading from files
 func testConfigFirefox() string {
-	content, err := os.ReadFile(filepath.Join("mocks", "terraform", "datasource_firefox.tf"))
+	content, err := os.ReadFile(filepath.Join("tests", "terraform", "unit", "datasource_firefox.tf"))
 	if err != nil {
 		return ""
 	}
@@ -22,7 +29,7 @@ func testConfigFirefox() string {
 }
 
 func testConfigOffice() string {
-	content, err := os.ReadFile(filepath.Join("mocks", "terraform", "datasource_office.tf"))
+	content, err := os.ReadFile(filepath.Join("tests", "terraform", "unit", "datasource_office.tf"))
 	if err != nil {
 		return ""
 	}
@@ -30,7 +37,7 @@ func testConfigOffice() string {
 }
 
 func testConfigError() string {
-	content, err := os.ReadFile(filepath.Join("mocks", "terraform", "datasource_error.tf"))
+	content, err := os.ReadFile(filepath.Join("tests", "terraform", "unit", "datasource_error.tf"))
 	if err != nil {
 		return ""
 	}
@@ -38,7 +45,7 @@ func testConfigError() string {
 }
 
 func testConfigEmpty() string {
-	content, err := os.ReadFile(filepath.Join("mocks", "terraform", "datasource_empty.tf"))
+	content, err := os.ReadFile(filepath.Join("tests", "terraform", "unit", "datasource_empty.tf"))
 	if err != nil {
 		return ""
 	}
@@ -84,15 +91,15 @@ func TestUnitItunesAppMetadataDataSource_Firefox(t *testing.T) {
 			{
 				Config: testConfigFirefox(),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("data.microsoft365_utility_itunes_app_metadata.firefox", "id", "us_firefox"),
-					resource.TestCheckResourceAttr("data.microsoft365_utility_itunes_app_metadata.firefox", "search_term", "firefox"),
-					resource.TestCheckResourceAttr("data.microsoft365_utility_itunes_app_metadata.firefox", "country_code", "us"),
-					resource.TestCheckResourceAttr("data.microsoft365_utility_itunes_app_metadata.firefox", "results.#", "1"),
-					resource.TestCheckResourceAttr("data.microsoft365_utility_itunes_app_metadata.firefox", "results.0.track_id", "989804926"),
-					resource.TestCheckResourceAttr("data.microsoft365_utility_itunes_app_metadata.firefox", "results.0.track_name", "Firefox Fast & Private Browser"),
-					resource.TestCheckResourceAttr("data.microsoft365_utility_itunes_app_metadata.firefox", "results.0.bundle_id", "org.mozilla.ios.Firefox"),
-					resource.TestCheckResourceAttr("data.microsoft365_utility_itunes_app_metadata.firefox", "results.0.seller_name", "Mozilla Corporation"),
-					resource.TestCheckResourceAttr("data.microsoft365_utility_itunes_app_metadata.firefox", "results.0.version", "140.2"),
+					check.That("data."+dataSourceType+".firefox").Key("id").HasValue("us_firefox"),
+					check.That("data."+dataSourceType+".firefox").Key("search_term").HasValue("firefox"),
+					check.That("data."+dataSourceType+".firefox").Key("country_code").HasValue("us"),
+					check.That("data."+dataSourceType+".firefox").Key("results.#").HasValue("1"),
+					check.That("data."+dataSourceType+".firefox").Key("results.0.track_id").HasValue("989804926"),
+					check.That("data."+dataSourceType+".firefox").Key("results.0.track_name").HasValue("Firefox Fast & Private Browser"),
+					check.That("data."+dataSourceType+".firefox").Key("results.0.bundle_id").HasValue("org.mozilla.ios.Firefox"),
+					check.That("data."+dataSourceType+".firefox").Key("results.0.seller_name").HasValue("Mozilla Corporation"),
+					check.That("data."+dataSourceType+".firefox").Key("results.0.version").HasValue("140.2"),
 				),
 			},
 		},
@@ -115,15 +122,15 @@ func TestUnitItunesAppMetadataDataSource_Office(t *testing.T) {
 			{
 				Config: testConfigOffice(),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("data.microsoft365_utility_itunes_app_metadata.office", "id", "gb_office"),
-					resource.TestCheckResourceAttr("data.microsoft365_utility_itunes_app_metadata.office", "search_term", "office"),
-					resource.TestCheckResourceAttr("data.microsoft365_utility_itunes_app_metadata.office", "country_code", "gb"),
-					resource.TestCheckResourceAttr("data.microsoft365_utility_itunes_app_metadata.office", "results.#", "1"),
-					resource.TestCheckResourceAttr("data.microsoft365_utility_itunes_app_metadata.office", "results.0.track_id", "541164041"),
-					resource.TestCheckResourceAttr("data.microsoft365_utility_itunes_app_metadata.office", "results.0.track_name", "Microsoft 365 Copilot"),
-					resource.TestCheckResourceAttr("data.microsoft365_utility_itunes_app_metadata.office", "results.0.bundle_id", "com.microsoft.officemobile"),
-					resource.TestCheckResourceAttr("data.microsoft365_utility_itunes_app_metadata.office", "results.0.seller_name", "Microsoft Corporation"),
-					resource.TestCheckResourceAttr("data.microsoft365_utility_itunes_app_metadata.office", "results.0.version", "2.98.4"),
+					check.That("data."+dataSourceType+".office").Key("id").HasValue("gb_office"),
+					check.That("data."+dataSourceType+".office").Key("search_term").HasValue("office"),
+					check.That("data."+dataSourceType+".office").Key("country_code").HasValue("gb"),
+					check.That("data."+dataSourceType+".office").Key("results.#").HasValue("1"),
+					check.That("data."+dataSourceType+".office").Key("results.0.track_id").HasValue("541164041"),
+					check.That("data."+dataSourceType+".office").Key("results.0.track_name").HasValue("Microsoft 365 Copilot"),
+					check.That("data."+dataSourceType+".office").Key("results.0.bundle_id").HasValue("com.microsoft.officemobile"),
+					check.That("data."+dataSourceType+".office").Key("results.0.seller_name").HasValue("Microsoft Corporation"),
+					check.That("data."+dataSourceType+".office").Key("results.0.version").HasValue("2.98.4"),
 				),
 			},
 		},
@@ -146,10 +153,10 @@ func TestUnitItunesAppMetadataDataSource_Empty(t *testing.T) {
 			{
 				Config: testConfigEmpty(),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("data.microsoft365_utility_itunes_app_metadata.empty", "id", "us_empty"),
-					resource.TestCheckResourceAttr("data.microsoft365_utility_itunes_app_metadata.empty", "search_term", "empty"),
-					resource.TestCheckResourceAttr("data.microsoft365_utility_itunes_app_metadata.empty", "country_code", "us"),
-					resource.TestCheckResourceAttr("data.microsoft365_utility_itunes_app_metadata.empty", "results.#", "0"),
+					check.That("data."+dataSourceType+".empty").Key("id").HasValue("us_empty"),
+					check.That("data."+dataSourceType+".empty").Key("search_term").HasValue("empty"),
+					check.That("data."+dataSourceType+".empty").Key("country_code").HasValue("us"),
+					check.That("data."+dataSourceType+".empty").Key("results.#").HasValue("0"),
 				),
 			},
 		},

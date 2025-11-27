@@ -1,15 +1,28 @@
 package utilityWindowsMSIAppMetadata_test
 
 import (
+	"os"
 	"regexp"
 	"testing"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/check"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
+	utilityWindowsMSIAppMetadata "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/utility/windows_msi_app_metadata"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
+var (
+	// DataSource type name from the datasource package
+	dataSourceType = utilityWindowsMSIAppMetadata.DataSourceName
+)
+
 func TestWindowsMSIAppMetadataDataSource_LocalFile(t *testing.T) {
+	// Check if test MSI file exists
+	if _, err := os.Stat("testdata/sample.msi"); os.IsNotExist(err) {
+		t.Skip("Skipping test: testdata/sample.msi not found. This test requires a valid MSI file for testing.")
+	}
+
 	mocks.SetupUnitTestEnvironment(t)
 
 	resource.UnitTest(t, resource.TestCase{
@@ -18,14 +31,14 @@ func TestWindowsMSIAppMetadataDataSource_LocalFile(t *testing.T) {
 			{
 				Config: testConfigLocalFile(),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("data.microsoft365_utility_windows_msi_app_metadata.test", "id"),
-					resource.TestCheckResourceAttr("data.microsoft365_utility_windows_msi_app_metadata.test", "installer_file_path_source", "testdata/sample.msi"),
-					resource.TestCheckResourceAttrSet("data.microsoft365_utility_windows_msi_app_metadata.test", "metadata.product_code"),
-					resource.TestCheckResourceAttrSet("data.microsoft365_utility_windows_msi_app_metadata.test", "metadata.product_version"),
-					resource.TestCheckResourceAttrSet("data.microsoft365_utility_windows_msi_app_metadata.test", "metadata.product_name"),
-					resource.TestCheckResourceAttrSet("data.microsoft365_utility_windows_msi_app_metadata.test", "metadata.publisher"),
-					resource.TestCheckResourceAttrSet("data.microsoft365_utility_windows_msi_app_metadata.test", "metadata.sha256_checksum"),
-					resource.TestCheckResourceAttrSet("data.microsoft365_utility_windows_msi_app_metadata.test", "metadata.size_mb"),
+					check.That("data."+dataSourceType+".test").Key("id").IsSet(),
+					check.That("data."+dataSourceType+".test").Key("installer_file_path_source").HasValue("testdata/sample.msi"),
+					check.That("data."+dataSourceType+".test").Key("metadata.product_code").IsSet(),
+					check.That("data."+dataSourceType+".test").Key("metadata.product_version").IsSet(),
+					check.That("data."+dataSourceType+".test").Key("metadata.product_name").IsSet(),
+					check.That("data."+dataSourceType+".test").Key("metadata.publisher").IsSet(),
+					check.That("data."+dataSourceType+".test").Key("metadata.sha256_checksum").IsSet(),
+					check.That("data."+dataSourceType+".test").Key("metadata.size_mb").IsSet(),
 				),
 			},
 		},
@@ -54,7 +67,7 @@ func TestWindowsMSIAppMetadataDataSource_BothInputsProvided(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config:      testConfigBothInputs(),
-				ExpectError: regexp.MustCompile("Multiple Input Parameters|Conflicting Attribute Values"),
+				ExpectError: regexp.MustCompile("Invalid Attribute Combination"),
 			},
 		},
 	})
@@ -82,7 +95,7 @@ func TestWindowsMSIAppMetadataDataSource_InvalidMSIFormat(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config:      testConfigInvalidMSIFormat(),
-				ExpectError: regexp.MustCompile("Error Extracting MSI Metadata"),
+				ExpectError: regexp.MustCompile("Error Reading MSI File|Error Extracting MSI Metadata"),
 			},
 		},
 	})

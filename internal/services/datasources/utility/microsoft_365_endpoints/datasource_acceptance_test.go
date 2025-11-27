@@ -6,6 +6,7 @@ import (
 	"regexp"
 	"testing"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/check"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
@@ -60,11 +61,11 @@ func TestAccMicrosoft365EndpointsDataSource_Worldwide(t *testing.T) {
 			{
 				Config: testAccConfigWorldwide(),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("data.microsoft365_utility_microsoft_365_endpoints.test", "instance", "worldwide"),
-					resource.TestCheckResourceAttrSet("data.microsoft365_utility_microsoft_365_endpoints.test", "id"),
-					resource.TestCheckResourceAttrSet("data.microsoft365_utility_microsoft_365_endpoints.test", "endpoints.#"),
+					check.That("data."+dataSourceType+".test").Key("instance").HasValue("worldwide"),
+					check.That("data."+dataSourceType+".test").Key("id").IsSet(),
+					check.That("data."+dataSourceType+".test").Key("endpoints.#").IsSet(),
 					// Verify we get a reasonable number of endpoints (should be >= 50)
-					resource.TestMatchResourceAttr("data.microsoft365_utility_microsoft_365_endpoints.test", "endpoints.#", regexp.MustCompile(`^([5-9][0-9]|[1-9][0-9]{2,})$`)),
+					check.That("data."+dataSourceType+".test").Key("endpoints.#").MatchesRegex(regexp.MustCompile(`^([5-9][0-9]|[1-9][0-9]{2,})$`)),
 				),
 			},
 		},
@@ -79,14 +80,14 @@ func TestAccMicrosoft365EndpointsDataSource_FilterExchangeOptimize(t *testing.T)
 			{
 				Config: testAccConfigFilterExchangeOptimize(),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("data.microsoft365_utility_microsoft_365_endpoints.test", "instance", "worldwide"),
-					resource.TestCheckResourceAttr("data.microsoft365_utility_microsoft_365_endpoints.test", "service_areas.#", "1"),
-					resource.TestCheckTypeSetElemAttr("data.microsoft365_utility_microsoft_365_endpoints.test", "service_areas.*", "Exchange"),
-					resource.TestCheckResourceAttr("data.microsoft365_utility_microsoft_365_endpoints.test", "categories.#", "1"),
-					resource.TestCheckTypeSetElemAttr("data.microsoft365_utility_microsoft_365_endpoints.test", "categories.*", "Optimize"),
-					resource.TestCheckResourceAttrSet("data.microsoft365_utility_microsoft_365_endpoints.test", "endpoints.#"),
+					check.That("data."+dataSourceType+".test").Key("instance").HasValue("worldwide"),
+					check.That("data."+dataSourceType+".test").Key("service_areas.#").HasValue("1"),
+					check.That("data."+dataSourceType+".test").Key("service_areas.*").ContainsTypeSetElement("Exchange"),
+					check.That("data."+dataSourceType+".test").Key("categories.#").HasValue("1"),
+					check.That("data."+dataSourceType+".test").Key("categories.*").ContainsTypeSetElement("Optimize"),
+					check.That("data."+dataSourceType+".test").Key("endpoints.#").IsSet(),
 					// Should get at least 1 Exchange Optimize endpoint
-					resource.TestMatchResourceAttr("data.microsoft365_utility_microsoft_365_endpoints.test", "endpoints.#", regexp.MustCompile(`^[1-9][0-9]*$`)),
+					check.That("data."+dataSourceType+".test").Key("endpoints.#").MatchesRegex(regexp.MustCompile(`^[1-9][0-9]*$`)),
 				),
 			},
 		},
@@ -101,14 +102,14 @@ func TestAccMicrosoft365EndpointsDataSource_TeamsMedia(t *testing.T) {
 			{
 				Config: testAccConfigTeamsMedia(),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("data.microsoft365_utility_microsoft_365_endpoints.test", "instance", "worldwide"),
-					resource.TestCheckResourceAttr("data.microsoft365_utility_microsoft_365_endpoints.test", "service_areas.#", "1"),
-					resource.TestCheckTypeSetElemAttr("data.microsoft365_utility_microsoft_365_endpoints.test", "service_areas.*", "Skype"),
-					resource.TestCheckResourceAttr("data.microsoft365_utility_microsoft_365_endpoints.test", "categories.#", "1"),
-					resource.TestCheckTypeSetElemAttr("data.microsoft365_utility_microsoft_365_endpoints.test", "categories.*", "Optimize"),
-					resource.TestCheckResourceAttrSet("data.microsoft365_utility_microsoft_365_endpoints.test", "endpoints.#"),
+					check.That("data."+dataSourceType+".test").Key("instance").HasValue("worldwide"),
+					check.That("data."+dataSourceType+".test").Key("service_areas.#").HasValue("1"),
+					check.That("data."+dataSourceType+".test").Key("service_areas.*").ContainsTypeSetElement("Skype"),
+					check.That("data."+dataSourceType+".test").Key("categories.#").HasValue("1"),
+					check.That("data."+dataSourceType+".test").Key("categories.*").ContainsTypeSetElement("Optimize"),
+					check.That("data."+dataSourceType+".test").Key("endpoints.#").IsSet(),
 					// Verify UDP ports are present for Teams media
-					resource.TestMatchResourceAttr("data.microsoft365_utility_microsoft_365_endpoints.test", "endpoints.0.udp_ports", regexp.MustCompile(`3478|3479|3480|3481`)),
+					check.That("data."+dataSourceType+".test").Key("endpoints.0.udp_ports").MatchesRegex(regexp.MustCompile(`3478|3479|3480|3481`)),
 				),
 			},
 		},
@@ -123,11 +124,11 @@ func TestAccMicrosoft365EndpointsDataSource_RequiredOnly(t *testing.T) {
 			{
 				Config: testAccConfigRequiredOnly(),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("data.microsoft365_utility_microsoft_365_endpoints.test", "instance", "worldwide"),
-					resource.TestCheckResourceAttr("data.microsoft365_utility_microsoft_365_endpoints.test", "required_only", "true"),
-					resource.TestCheckResourceAttrSet("data.microsoft365_utility_microsoft_365_endpoints.test", "endpoints.#"),
+					check.That("data."+dataSourceType+".test").Key("instance").HasValue("worldwide"),
+					check.That("data."+dataSourceType+".test").Key("required_only").HasValue("true"),
+					check.That("data."+dataSourceType+".test").Key("endpoints.#").IsSet(),
 					// Required endpoints should be fewer than all endpoints
-					resource.TestMatchResourceAttr("data.microsoft365_utility_microsoft_365_endpoints.test", "endpoints.#", regexp.MustCompile(`^[1-9][0-9]+$`)),
+					check.That("data."+dataSourceType+".test").Key("endpoints.#").MatchesRegex(regexp.MustCompile(`^[1-9][0-9]+$`)),
 				),
 			},
 		},
@@ -142,11 +143,11 @@ func TestAccMicrosoft365EndpointsDataSource_ExpressRoute(t *testing.T) {
 			{
 				Config: testAccConfigExpressRoute(),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("data.microsoft365_utility_microsoft_365_endpoints.test", "instance", "worldwide"),
-					resource.TestCheckResourceAttr("data.microsoft365_utility_microsoft_365_endpoints.test", "express_route", "true"),
-					resource.TestCheckResourceAttrSet("data.microsoft365_utility_microsoft_365_endpoints.test", "endpoints.#"),
+					check.That("data."+dataSourceType+".test").Key("instance").HasValue("worldwide"),
+					check.That("data."+dataSourceType+".test").Key("express_route").HasValue("true"),
+					check.That("data."+dataSourceType+".test").Key("endpoints.#").IsSet(),
 					// ExpressRoute endpoints should be subset of all endpoints
-					resource.TestMatchResourceAttr("data.microsoft365_utility_microsoft_365_endpoints.test", "endpoints.#", regexp.MustCompile(`^[1-9][0-9]*$`)),
+					check.That("data."+dataSourceType+".test").Key("endpoints.#").MatchesRegex(regexp.MustCompile(`^[1-9][0-9]*$`)),
 				),
 			},
 		},

@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/check"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -26,33 +27,33 @@ func TestAccWindowsMSIAppMetadataDataSource_FirefoxMSI(t *testing.T) {
 				Config: testAccConfigFirefoxMSI(),
 				Check: resource.ComposeTestCheckFunc(
 					// Core attributes
-					resource.TestCheckResourceAttrSet("data.microsoft365_utility_windows_msi_app_metadata.firefox", "id"),
-					resource.TestCheckResourceAttr("data.microsoft365_utility_windows_msi_app_metadata.firefox", "installer_url_source", "https://download.mozilla.org/?product=firefox-msi-latest-ssl&os=win64&lang=en-US"),
+					check.That("data."+dataSourceType+".firefox").Key("id").IsSet(),
+					check.That("data."+dataSourceType+".firefox").Key("installer_url_source").HasValue("https://download.mozilla.org/?product=firefox-msi-latest-ssl&os=win64&lang=en-US"),
 
 					// Core MSI properties
-					resource.TestCheckResourceAttrSet("data.microsoft365_utility_windows_msi_app_metadata.firefox", "metadata.product_code"),
-					resource.TestMatchResourceAttr("data.microsoft365_utility_windows_msi_app_metadata.firefox", "metadata.product_code", regexp.MustCompile(`^{[A-F0-9-]+}$`)),
-					resource.TestCheckResourceAttrSet("data.microsoft365_utility_windows_msi_app_metadata.firefox", "metadata.product_version"),
-					resource.TestCheckResourceAttrSet("data.microsoft365_utility_windows_msi_app_metadata.firefox", "metadata.product_name"),
-					resource.TestCheckResourceAttrSet("data.microsoft365_utility_windows_msi_app_metadata.firefox", "metadata.publisher"),
+					check.That("data."+dataSourceType+".firefox").Key("metadata.product_code").IsSet(),
+					check.That("data."+dataSourceType+".firefox").Key("metadata.product_code").MatchesRegex(regexp.MustCompile(`^{[A-F0-9-]+}$`)),
+					check.That("data."+dataSourceType+".firefox").Key("metadata.product_version").IsSet(),
+					check.That("data."+dataSourceType+".firefox").Key("metadata.product_name").IsSet(),
+					check.That("data."+dataSourceType+".firefox").Key("metadata.publisher").IsSet(),
 
 					// Commands
-					resource.TestCheckResourceAttrSet("data.microsoft365_utility_windows_msi_app_metadata.firefox", "metadata.install_command"),
-					resource.TestMatchResourceAttr("data.microsoft365_utility_windows_msi_app_metadata.firefox", "metadata.install_command", regexp.MustCompile(`msiexec /i`)),
-					resource.TestCheckResourceAttrSet("data.microsoft365_utility_windows_msi_app_metadata.firefox", "metadata.uninstall_command"),
-					resource.TestMatchResourceAttr("data.microsoft365_utility_windows_msi_app_metadata.firefox", "metadata.uninstall_command", regexp.MustCompile(`msiexec /x`)),
+					check.That("data."+dataSourceType+".firefox").Key("metadata.install_command").IsSet(),
+					check.That("data."+dataSourceType+".firefox").Key("metadata.install_command").MatchesRegex(regexp.MustCompile(`msiexec /i`)),
+					check.That("data."+dataSourceType+".firefox").Key("metadata.uninstall_command").IsSet(),
+					check.That("data."+dataSourceType+".firefox").Key("metadata.uninstall_command").MatchesRegex(regexp.MustCompile(`msiexec /x`)),
 
 					// File information
-					resource.TestCheckResourceAttrSet("data.microsoft365_utility_windows_msi_app_metadata.firefox", "metadata.size_mb"),
-					resource.TestCheckResourceAttrSet("data.microsoft365_utility_windows_msi_app_metadata.firefox", "metadata.sha256_checksum"),
-					resource.TestMatchResourceAttr("data.microsoft365_utility_windows_msi_app_metadata.firefox", "metadata.sha256_checksum", regexp.MustCompile(`^[a-f0-9]{64}$`)),
-					resource.TestCheckResourceAttrSet("data.microsoft365_utility_windows_msi_app_metadata.firefox", "metadata.md5_checksum"),
-					resource.TestMatchResourceAttr("data.microsoft365_utility_windows_msi_app_metadata.firefox", "metadata.md5_checksum", regexp.MustCompile(`^[a-f0-9]{32}$`)),
+					check.That("data."+dataSourceType+".firefox").Key("metadata.size_mb").IsSet(),
+					check.That("data."+dataSourceType+".firefox").Key("metadata.sha256_checksum").IsSet(),
+					check.That("data."+dataSourceType+".firefox").Key("metadata.sha256_checksum").MatchesRegex(regexp.MustCompile(`^[a-f0-9]{64}$`)),
+					check.That("data."+dataSourceType+".firefox").Key("metadata.md5_checksum").IsSet(),
+					check.That("data."+dataSourceType+".firefox").Key("metadata.md5_checksum").MatchesRegex(regexp.MustCompile(`^[a-f0-9]{32}$`)),
 
 					// Additional metadata
-					resource.TestCheckResourceAttrSet("data.microsoft365_utility_windows_msi_app_metadata.firefox", "metadata.upgrade_code"),
-					resource.TestCheckResourceAttrSet("data.microsoft365_utility_windows_msi_app_metadata.firefox", "metadata.language"),
-					resource.TestCheckResourceAttrSet("data.microsoft365_utility_windows_msi_app_metadata.firefox", "metadata.architecture"),
+					check.That("data."+dataSourceType+".firefox").Key("metadata.upgrade_code").IsSet(),
+					check.That("data."+dataSourceType+".firefox").Key("metadata.language").IsSet(),
+					check.That("data."+dataSourceType+".firefox").Key("metadata.architecture").IsSet(),
 				),
 			},
 		},
@@ -61,7 +62,7 @@ func TestAccWindowsMSIAppMetadataDataSource_FirefoxMSI(t *testing.T) {
 
 // Acceptance test configuration function
 func testAccConfigFirefoxMSI() string {
-	accTestConfig, err := helpers.ParseHCLFile("mocks/terraform/datasource_firefox_msi.tf")
+	accTestConfig, err := helpers.ParseHCLFile("tests/terraform/acceptance/datasource_firefox_msi.tf")
 	if err != nil {
 		panic(fmt.Sprintf("failed to load acceptance test config: %s", err.Error()))
 	}

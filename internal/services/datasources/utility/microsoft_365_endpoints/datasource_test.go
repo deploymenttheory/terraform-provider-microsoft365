@@ -6,10 +6,17 @@ import (
 	"regexp"
 	"testing"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/check"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
+	utilityMicrosoft365Endpoints "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/utility/microsoft_365_endpoints"
 	microsoft365EndpointsMocks "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/utility/microsoft_365_endpoints/mocks"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/jarcoal/httpmock"
+)
+
+var (
+	// DataSource type name from the datasource package
+	dataSourceType = utilityMicrosoft365Endpoints.DataSourceName
 )
 
 func setupUnitTestEnvironment(t *testing.T) {
@@ -32,11 +39,6 @@ func setupMockEnvironment() (*mocks.Mocks, *microsoft365EndpointsMocks.Microsoft
 	microsoft365EndpointsMock.RegisterMocks()
 
 	return mockClient, microsoft365EndpointsMock
-}
-
-// testCheckExists is a basic check to ensure the datasource exists in the state
-func testCheckExists(resourceName string) resource.TestCheckFunc {
-	return resource.TestCheckResourceAttrSet(resourceName, "id")
 }
 
 // Helper functions to load each test configuration
@@ -125,11 +127,11 @@ func TestMicrosoft365EndpointsDataSource_Worldwide(t *testing.T) {
 			{
 				Config: testConfigWorldwide(),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("data.microsoft365_utility_microsoft_365_endpoints.test", "instance", "worldwide"),
-					resource.TestCheckResourceAttrSet("data.microsoft365_utility_microsoft_365_endpoints.test", "id"),
-					resource.TestCheckResourceAttrSet("data.microsoft365_utility_microsoft_365_endpoints.test", "endpoints.#"),
+					check.That("data."+dataSourceType+".test").Key("instance").HasValue("worldwide"),
+					check.That("data."+dataSourceType+".test").Key("id").IsSet(),
+					check.That("data."+dataSourceType+".test").Key("endpoints.#").IsSet(),
 					// Should have at least 6 endpoints from our mock data
-					resource.TestMatchResourceAttr("data.microsoft365_utility_microsoft_365_endpoints.test", "endpoints.#", regexp.MustCompile(`^[6-9]$|^[1-9][0-9]+$`)),
+					check.That("data."+dataSourceType+".test").Key("endpoints.#").MatchesRegex(regexp.MustCompile(`^[6-9]$|^[1-9][0-9]+$`)),
 				),
 			},
 		},
@@ -148,10 +150,10 @@ func TestMicrosoft365EndpointsDataSource_FilterByServiceArea(t *testing.T) {
 			{
 				Config: testConfigFilterExchange(),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("data.microsoft365_utility_microsoft_365_endpoints.test", "instance", "worldwide"),
-					resource.TestCheckResourceAttr("data.microsoft365_utility_microsoft_365_endpoints.test", "service_areas.#", "1"),
-					resource.TestCheckTypeSetElemAttr("data.microsoft365_utility_microsoft_365_endpoints.test", "service_areas.*", "Exchange"),
-					resource.TestCheckResourceAttrSet("data.microsoft365_utility_microsoft_365_endpoints.test", "endpoints.#"),
+					check.That("data."+dataSourceType+".test").Key("instance").HasValue("worldwide"),
+					check.That("data."+dataSourceType+".test").Key("service_areas.#").HasValue("1"),
+					check.That("data."+dataSourceType+".test").Key("service_areas.*").ContainsTypeSetElement("Exchange"),
+					check.That("data."+dataSourceType+".test").Key("endpoints.#").IsSet(),
 				),
 			},
 		},
@@ -170,10 +172,10 @@ func TestMicrosoft365EndpointsDataSource_FilterByCategory(t *testing.T) {
 			{
 				Config: testConfigFilterOptimize(),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("data.microsoft365_utility_microsoft_365_endpoints.test", "instance", "worldwide"),
-					resource.TestCheckResourceAttr("data.microsoft365_utility_microsoft_365_endpoints.test", "categories.#", "1"),
-					resource.TestCheckTypeSetElemAttr("data.microsoft365_utility_microsoft_365_endpoints.test", "categories.*", "Optimize"),
-					resource.TestCheckResourceAttrSet("data.microsoft365_utility_microsoft_365_endpoints.test", "endpoints.#"),
+					check.That("data."+dataSourceType+".test").Key("instance").HasValue("worldwide"),
+					check.That("data."+dataSourceType+".test").Key("categories.#").HasValue("1"),
+					check.That("data."+dataSourceType+".test").Key("categories.*").ContainsTypeSetElement("Optimize"),
+					check.That("data."+dataSourceType+".test").Key("endpoints.#").IsSet(),
 				),
 			},
 		},
@@ -192,9 +194,9 @@ func TestMicrosoft365EndpointsDataSource_RequiredOnly(t *testing.T) {
 			{
 				Config: testConfigRequiredOnly(),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("data.microsoft365_utility_microsoft_365_endpoints.test", "instance", "worldwide"),
-					resource.TestCheckResourceAttr("data.microsoft365_utility_microsoft_365_endpoints.test", "required_only", "true"),
-					resource.TestCheckResourceAttrSet("data.microsoft365_utility_microsoft_365_endpoints.test", "endpoints.#"),
+					check.That("data."+dataSourceType+".test").Key("instance").HasValue("worldwide"),
+					check.That("data."+dataSourceType+".test").Key("required_only").HasValue("true"),
+					check.That("data."+dataSourceType+".test").Key("endpoints.#").IsSet(),
 				),
 			},
 		},
@@ -213,9 +215,9 @@ func TestMicrosoft365EndpointsDataSource_ExpressRoute(t *testing.T) {
 			{
 				Config: testConfigExpressRoute(),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("data.microsoft365_utility_microsoft_365_endpoints.test", "instance", "worldwide"),
-					resource.TestCheckResourceAttr("data.microsoft365_utility_microsoft_365_endpoints.test", "express_route", "true"),
-					resource.TestCheckResourceAttrSet("data.microsoft365_utility_microsoft_365_endpoints.test", "endpoints.#"),
+					check.That("data."+dataSourceType+".test").Key("instance").HasValue("worldwide"),
+					check.That("data."+dataSourceType+".test").Key("express_route").HasValue("true"),
+					check.That("data."+dataSourceType+".test").Key("endpoints.#").IsSet(),
 				),
 			},
 		},
@@ -234,9 +236,9 @@ func TestMicrosoft365EndpointsDataSource_USGovDoD(t *testing.T) {
 			{
 				Config: testConfigUSGovDoD(),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("data.microsoft365_utility_microsoft_365_endpoints.test", "instance", "usgov-dod"),
-					resource.TestCheckResourceAttrSet("data.microsoft365_utility_microsoft_365_endpoints.test", "id"),
-					resource.TestCheckResourceAttrSet("data.microsoft365_utility_microsoft_365_endpoints.test", "endpoints.#"),
+					check.That("data."+dataSourceType+".test").Key("instance").HasValue("usgov-dod"),
+					check.That("data."+dataSourceType+".test").Key("id").IsSet(),
+					check.That("data."+dataSourceType+".test").Key("endpoints.#").IsSet(),
 				),
 			},
 		},
@@ -255,9 +257,9 @@ func TestMicrosoft365EndpointsDataSource_USGovGCCHigh(t *testing.T) {
 			{
 				Config: testConfigUSGovGCCHigh(),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("data.microsoft365_utility_microsoft_365_endpoints.test", "instance", "usgov-gcchigh"),
-					resource.TestCheckResourceAttrSet("data.microsoft365_utility_microsoft_365_endpoints.test", "id"),
-					resource.TestCheckResourceAttrSet("data.microsoft365_utility_microsoft_365_endpoints.test", "endpoints.#"),
+					check.That("data."+dataSourceType+".test").Key("instance").HasValue("usgov-gcchigh"),
+					check.That("data."+dataSourceType+".test").Key("id").IsSet(),
+					check.That("data."+dataSourceType+".test").Key("endpoints.#").IsSet(),
 				),
 			},
 		},
@@ -276,9 +278,9 @@ func TestMicrosoft365EndpointsDataSource_China(t *testing.T) {
 			{
 				Config: testConfigChina(),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("data.microsoft365_utility_microsoft_365_endpoints.test", "instance", "china"),
-					resource.TestCheckResourceAttrSet("data.microsoft365_utility_microsoft_365_endpoints.test", "id"),
-					resource.TestCheckResourceAttrSet("data.microsoft365_utility_microsoft_365_endpoints.test", "endpoints.#"),
+					check.That("data."+dataSourceType+".test").Key("instance").HasValue("china"),
+					check.That("data."+dataSourceType+".test").Key("id").IsSet(),
+					check.That("data."+dataSourceType+".test").Key("endpoints.#").IsSet(),
 				),
 			},
 		},
@@ -297,15 +299,15 @@ func TestMicrosoft365EndpointsDataSource_MultipleFilters(t *testing.T) {
 			{
 				Config: testConfigMultipleFilters(),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("data.microsoft365_utility_microsoft_365_endpoints.test", "instance", "worldwide"),
-					resource.TestCheckResourceAttr("data.microsoft365_utility_microsoft_365_endpoints.test", "service_areas.#", "2"),
-					resource.TestCheckTypeSetElemAttr("data.microsoft365_utility_microsoft_365_endpoints.test", "service_areas.*", "Exchange"),
-					resource.TestCheckTypeSetElemAttr("data.microsoft365_utility_microsoft_365_endpoints.test", "service_areas.*", "Skype"),
-					resource.TestCheckResourceAttr("data.microsoft365_utility_microsoft_365_endpoints.test", "categories.#", "2"),
-					resource.TestCheckTypeSetElemAttr("data.microsoft365_utility_microsoft_365_endpoints.test", "categories.*", "Optimize"),
-					resource.TestCheckTypeSetElemAttr("data.microsoft365_utility_microsoft_365_endpoints.test", "categories.*", "Allow"),
-					resource.TestCheckResourceAttr("data.microsoft365_utility_microsoft_365_endpoints.test", "required_only", "true"),
-					resource.TestCheckResourceAttrSet("data.microsoft365_utility_microsoft_365_endpoints.test", "endpoints.#"),
+					check.That("data."+dataSourceType+".test").Key("instance").HasValue("worldwide"),
+					check.That("data."+dataSourceType+".test").Key("service_areas.#").HasValue("2"),
+					check.That("data."+dataSourceType+".test").Key("service_areas.*").ContainsTypeSetElement("Exchange"),
+					check.That("data."+dataSourceType+".test").Key("service_areas.*").ContainsTypeSetElement("Skype"),
+					check.That("data."+dataSourceType+".test").Key("categories.#").HasValue("2"),
+					check.That("data."+dataSourceType+".test").Key("categories.*").ContainsTypeSetElement("Optimize"),
+					check.That("data."+dataSourceType+".test").Key("categories.*").ContainsTypeSetElement("Allow"),
+					check.That("data."+dataSourceType+".test").Key("required_only").HasValue("true"),
+					check.That("data."+dataSourceType+".test").Key("endpoints.#").IsSet(),
 				),
 			},
 		},

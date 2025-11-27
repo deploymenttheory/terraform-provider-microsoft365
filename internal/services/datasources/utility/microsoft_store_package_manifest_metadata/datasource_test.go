@@ -4,9 +4,16 @@ import (
 	"regexp"
 	"testing"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/check"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
+	utilityMicrosoftStorePackageManifest "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/utility/microsoft_store_package_manifest_metadata"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+)
+
+var (
+	// DataSource type name from the datasource package
+	dataSourceType = utilityMicrosoftStorePackageManifest.DataSourceName
 )
 
 func TestMicrosoftStorePackageManifestDataSource_PackageIdentifier(t *testing.T) {
@@ -18,11 +25,11 @@ func TestMicrosoftStorePackageManifestDataSource_PackageIdentifier(t *testing.T)
 			{
 				Config: testConfigPackageIdentifier(),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("data.microsoft365_utility_microsoft_store_package_manifest_metadata.test", "package_identifier", "9PM860492SZD"),
-					resource.TestCheckResourceAttr("data.microsoft365_utility_microsoft_store_package_manifest_metadata.test", "id", "9PM860492SZD"),
-					resource.TestCheckResourceAttrSet("data.microsoft365_utility_microsoft_store_package_manifest_metadata.test", "manifests.#"),
-					resource.TestCheckResourceAttr("data.microsoft365_utility_microsoft_store_package_manifest_metadata.test", "manifests.0.package_identifier", "9PM860492SZD"),
-					resource.TestCheckResourceAttrSet("data.microsoft365_utility_microsoft_store_package_manifest_metadata.test", "manifests.0.versions.#"),
+					check.That("data."+dataSourceType+".test").Key("package_identifier").HasValue("9PM860492SZD"),
+					check.That("data."+dataSourceType+".test").Key("id").HasValue("9PM860492SZD"),
+					check.That("data."+dataSourceType+".test").Key("manifests.#").IsSet(),
+					check.That("data."+dataSourceType+".test").Key("manifests.0.package_identifier").HasValue("9PM860492SZD"),
+					check.That("data."+dataSourceType+".test").Key("manifests.0.versions.#").IsSet(),
 				),
 			},
 		},
@@ -38,9 +45,9 @@ func TestMicrosoftStorePackageManifestDataSource_SearchTerm(t *testing.T) {
 			{
 				Config: testConfigSearchTerm(),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("data.microsoft365_utility_microsoft_store_package_manifest_metadata.test", "search_term", "PC Manager"),
-					resource.TestCheckResourceAttrSet("data.microsoft365_utility_microsoft_store_package_manifest_metadata.test", "id"),
-					resource.TestCheckResourceAttrSet("data.microsoft365_utility_microsoft_store_package_manifest_metadata.test", "manifests.#"),
+					check.That("data."+dataSourceType+".test").Key("search_term").HasValue("PC Manager"),
+					check.That("data."+dataSourceType+".test").Key("id").IsSet(),
+					check.That("data."+dataSourceType+".test").Key("manifests.#").IsSet(),
 				),
 			},
 		},

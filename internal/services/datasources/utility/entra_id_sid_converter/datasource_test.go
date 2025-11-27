@@ -4,9 +4,16 @@ import (
 	"regexp"
 	"testing"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/check"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
+	utilityEntraIdSidConverter "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/utility/entra_id_sid_converter"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+)
+
+var (
+	// DataSource type name from the datasource package
+	dataSourceType = utilityEntraIdSidConverter.DataSourceName
 )
 
 func TestEntraIdSidConverterDataSource_SidToObjectId(t *testing.T) {
@@ -18,9 +25,9 @@ func TestEntraIdSidConverterDataSource_SidToObjectId(t *testing.T) {
 			{
 				Config: testConfigSidToObjectId(),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("data.microsoft365_utility_entra_id_sid_converter.test", "sid", "S-1-12-1-1943430372-1249052806-2496021943-3034400218"),
-					resource.TestCheckResourceAttr("data.microsoft365_utility_entra_id_sid_converter.test", "object_id", "73d664e4-0886-4a73-b745-c694da45ddb4"),
-					resource.TestCheckResourceAttrSet("data.microsoft365_utility_entra_id_sid_converter.test", "id"),
+					check.That("data."+dataSourceType+".test").Key("sid").HasValue("S-1-12-1-1943430372-1249052806-2496021943-3034400218"),
+					check.That("data."+dataSourceType+".test").Key("object_id").HasValue("73d664e4-0886-4a73-b745-c694da45ddb4"),
+					check.That("data."+dataSourceType+".test").Key("id").IsSet(),
 				),
 			},
 		},
@@ -36,9 +43,9 @@ func TestEntraIdSidConverterDataSource_ObjectIdToSid(t *testing.T) {
 			{
 				Config: testConfigObjectIdToSid(),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("data.microsoft365_utility_entra_id_sid_converter.test", "object_id", "73d664e4-0886-4a73-b745-c694da45ddb4"),
-					resource.TestCheckResourceAttr("data.microsoft365_utility_entra_id_sid_converter.test", "sid", "S-1-12-1-1943430372-1249052806-2496021943-3034400218"),
-					resource.TestCheckResourceAttrSet("data.microsoft365_utility_entra_id_sid_converter.test", "id"),
+					check.That("data."+dataSourceType+".test").Key("object_id").HasValue("73d664e4-0886-4a73-b745-c694da45ddb4"),
+					check.That("data."+dataSourceType+".test").Key("sid").HasValue("S-1-12-1-1943430372-1249052806-2496021943-3034400218"),
+					check.That("data."+dataSourceType+".test").Key("id").IsSet(),
 				),
 			},
 		},
