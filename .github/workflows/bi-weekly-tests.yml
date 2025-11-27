@@ -10,6 +10,12 @@ on:
     - cron: '0 2 * * 0'  # Sunday at 2 AM UTC
     - cron: '0 2 * * 3'  # Wednesday at 2 AM UTC
   workflow_dispatch: # Allow manual trigger
+    inputs:
+      enable_debug:
+        description: 'Enable debug logging (ACTIONS_STEP_DEBUG and ACTIONS_RUNNER_DEBUG)'
+        required: false
+        type: boolean
+        default: false
 
 jobs:
   # Provider Core Tests (client, scaffolding, utilities)
@@ -17,6 +23,9 @@ jobs:
     name: '🔧 Provider Core'
     runs-on: ubuntu-24.04-arm
     timeout-minutes: 60
+    env:
+      ACTIONS_STEP_DEBUG: ${{ github.event.inputs.enable_debug == 'true' && 'true' || '' }}
+      ACTIONS_RUNNER_DEBUG: ${{ github.event.inputs.enable_debug == 'true' && 'true' || '' }}
     steps:
       - name: Harden Runner
         uses: step-security/harden-runner@95d9a5deda9de15063e7595e9719c11c38c90ae2 # v2.13.2
@@ -85,6 +94,9 @@ jobs:
     name: '📦 Resources: ${{ matrix.service }}'
     runs-on: ${{ matrix.runner }}
     timeout-minutes: 120
+    env:
+      ACTIONS_STEP_DEBUG: ${{ github.event.inputs.enable_debug == 'true' && 'true' || '' }}
+      ACTIONS_RUNNER_DEBUG: ${{ github.event.inputs.enable_debug == 'true' && 'true' || '' }}
     strategy:
       fail-fast: false # https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax#jobsjob_idstrategyfail-fast
       matrix:
@@ -100,11 +112,11 @@ jobs:
           - service: groups
             runner: ubuntu-24.04-arm
           - service: identity_and_access 
-            runner: ubuntu-22.04-arm-4c-l # Memory intensive
+            runner: ubuntu-24.04-arm
           - service: m365_admin
             runner: ubuntu-24.04-arm
           - service: users 
-            runner: ubuntu-22.04-arm-4c-l # Memory intensive
+            runner: ubuntu-24.04-arm
           - service: windows_365
             runner: ubuntu-24.04-arm
     steps:
@@ -197,6 +209,9 @@ jobs:
     name: '📊 Datasources: ${{ matrix.service }}'
     runs-on: ${{ matrix.runner }}
     timeout-minutes: 120
+    env:
+      ACTIONS_STEP_DEBUG: ${{ github.event.inputs.enable_debug == 'true' && 'true' || '' }}
+      ACTIONS_RUNNER_DEBUG: ${{ github.event.inputs.enable_debug == 'true' && 'true' || '' }}
     strategy:
       fail-fast: false
       matrix:
