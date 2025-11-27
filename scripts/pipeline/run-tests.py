@@ -105,8 +105,9 @@ def count_tests_in_package(package_path: str) -> int:
     """
     print(f"  🔢 [COUNT] Enumerating tests in: {package_path}")
     try:
+        # Use -list=. (with equals sign) to list all tests
         result = subprocess.run(
-            ["go", "test", "-list", ".", package_path],
+            ["go", "test", "-list=.", package_path],
             capture_output=True,
             text=True,
             timeout=30
@@ -117,6 +118,9 @@ def count_tests_in_package(package_path: str) -> int:
         for line in result.stdout.split('\n'):
             if line.startswith('Test'):
                 test_count += 1
+        
+        if result.returncode != 0 and test_count == 0:
+            print(f"  ⚠️  [COUNT] go test -list returned error: {result.stderr[:200]}")
         
         print(f"  ✅ [COUNT] Found {test_count} tests in {package_path}")
         return test_count
@@ -566,9 +570,9 @@ def main():
         os.environ["GOMAXPROCS"] = "2"
         print(f"⚙️  [MEMORY] Set GOMAXPROCS=2 to limit CPU/memory usage")
     
-    # Disable test caching to save memory
-    os.environ["GOCACHE"] = "off"
-    print(f"⚙️  [MEMORY] Disabled Go build cache to save memory\n")
+    # Set GODEBUG to reduce memory usage
+    os.environ["GODEBUG"] = "gctrace=0"
+    print(f"⚙️  [MEMORY] Set GODEBUG to optimize garbage collection\n")
     
     if len(sys.argv) < 2:
         print("Usage: run-tests.py <type> [service] [coverage-file] [test-output-file]", 
