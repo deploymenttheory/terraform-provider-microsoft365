@@ -1,0 +1,2 @@
+This is not a valid MSI file.
+Just some text content for testing invalid format handling.

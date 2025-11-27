@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/check"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -25,16 +26,16 @@ func TestAccWindowsRemediationScriptRegistryKeyGeneratorDataSource_CurrentUserDw
 			{
 				Config: testAccConfigCurrentUserDword(),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("data.microsoft365_utility_windows_remediation_script_registry_key_generator.test", "context", "current_user"),
-					resource.TestCheckResourceAttr("data.microsoft365_utility_windows_remediation_script_registry_key_generator.test", "registry_key_path", "Software\\Policies\\Microsoft\\WindowsStore\\"),
-					resource.TestCheckResourceAttr("data.microsoft365_utility_windows_remediation_script_registry_key_generator.test", "value_name", "RequirePrivateStoreOnly"),
-					resource.TestCheckResourceAttr("data.microsoft365_utility_windows_remediation_script_registry_key_generator.test", "value_type", "REG_DWORD"),
-					resource.TestCheckResourceAttr("data.microsoft365_utility_windows_remediation_script_registry_key_generator.test", "value_data", "1"),
-					resource.TestMatchResourceAttr("data.microsoft365_utility_windows_remediation_script_registry_key_generator.test", "detection_script", regexp.MustCompile("Get-CimInstance win32_computersystem")),
-					resource.TestMatchResourceAttr("data.microsoft365_utility_windows_remediation_script_registry_key_generator.test", "detection_script", regexp.MustCompile("RequirePrivateStoreOnly")),
-					resource.TestMatchResourceAttr("data.microsoft365_utility_windows_remediation_script_registry_key_generator.test", "remediation_script", regexp.MustCompile("New-ItemProperty")),
-					resource.TestMatchResourceAttr("data.microsoft365_utility_windows_remediation_script_registry_key_generator.test", "remediation_script", regexp.MustCompile("PropertyType DWord")),
-					resource.TestCheckResourceAttrSet("data.microsoft365_utility_windows_remediation_script_registry_key_generator.test", "id"),
+					check.That("data."+dataSourceType+".test").Key("context").HasValue("current_user"),
+					check.That("data."+dataSourceType+".test").Key("registry_key_path").HasValue("Software\\Policies\\Microsoft\\WindowsStore\\"),
+					check.That("data."+dataSourceType+".test").Key("value_name").HasValue("RequirePrivateStoreOnly"),
+					check.That("data."+dataSourceType+".test").Key("value_type").HasValue("REG_DWORD"),
+					check.That("data."+dataSourceType+".test").Key("value_data").HasValue("1"),
+					check.That("data."+dataSourceType+".test").Key("detection_script").MatchesRegex(regexp.MustCompile("Get-CimInstance win32_computersystem")),
+					check.That("data."+dataSourceType+".test").Key("detection_script").MatchesRegex(regexp.MustCompile("RequirePrivateStoreOnly")),
+					check.That("data."+dataSourceType+".test").Key("remediation_script").MatchesRegex(regexp.MustCompile("New-ItemProperty")),
+					check.That("data."+dataSourceType+".test").Key("remediation_script").MatchesRegex(regexp.MustCompile("PropertyType DWord")),
+					check.That("data."+dataSourceType+".test").Key("id").IsSet(),
 				),
 			},
 		},
@@ -55,10 +56,10 @@ func TestAccWindowsRemediationScriptRegistryKeyGeneratorDataSource_AllUsersStrin
 			{
 				Config: testAccConfigAllUsersString(),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("data.microsoft365_utility_windows_remediation_script_registry_key_generator.test", "context", "all_users"),
-					resource.TestMatchResourceAttr("data.microsoft365_utility_windows_remediation_script_registry_key_generator.test", "detection_script", regexp.MustCompile(`foreach \(\$User in \$Users\)`)),
-					resource.TestMatchResourceAttr("data.microsoft365_utility_windows_remediation_script_registry_key_generator.test", "detection_script", regexp.MustCompile("S-1-5-18")),
-					resource.TestMatchResourceAttr("data.microsoft365_utility_windows_remediation_script_registry_key_generator.test", "remediation_script", regexp.MustCompile("PropertyType String")),
+					check.That("data."+dataSourceType+".test").Key("context").HasValue("all_users"),
+					check.That("data."+dataSourceType+".test").Key("detection_script").MatchesRegex(regexp.MustCompile(`foreach \(\$User in \$Users\)`)),
+					check.That("data."+dataSourceType+".test").Key("detection_script").MatchesRegex(regexp.MustCompile("S-1-5-18")),
+					check.That("data."+dataSourceType+".test").Key("remediation_script").MatchesRegex(regexp.MustCompile("PropertyType String")),
 				),
 			},
 		},
@@ -79,10 +80,10 @@ func TestAccWindowsRemediationScriptRegistryKeyGeneratorDataSource_QWord(t *test
 			{
 				Config: testAccConfigQWord(),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("data.microsoft365_utility_windows_remediation_script_registry_key_generator.test", "value_type", "REG_QWORD"),
-					resource.TestCheckResourceAttr("data.microsoft365_utility_windows_remediation_script_registry_key_generator.test", "value_data", "9223372036854775807"),
-					resource.TestMatchResourceAttr("data.microsoft365_utility_windows_remediation_script_registry_key_generator.test", "remediation_script", regexp.MustCompile("PropertyType QWord")),
-					resource.TestMatchResourceAttr("data.microsoft365_utility_windows_remediation_script_registry_key_generator.test", "remediation_script", regexp.MustCompile("9223372036854775807")),
+					check.That("data."+dataSourceType+".test").Key("value_type").HasValue("REG_QWORD"),
+					check.That("data."+dataSourceType+".test").Key("value_data").HasValue("9223372036854775807"),
+					check.That("data."+dataSourceType+".test").Key("remediation_script").MatchesRegex(regexp.MustCompile("PropertyType QWord")),
+					check.That("data."+dataSourceType+".test").Key("remediation_script").MatchesRegex(regexp.MustCompile("9223372036854775807")),
 				),
 			},
 		},
@@ -103,9 +104,9 @@ func TestAccWindowsRemediationScriptRegistryKeyGeneratorDataSource_ExpandString(
 			{
 				Config: testAccConfigExpandString(),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("data.microsoft365_utility_windows_remediation_script_registry_key_generator.test", "value_type", "REG_EXPAND_SZ"),
-					resource.TestMatchResourceAttr("data.microsoft365_utility_windows_remediation_script_registry_key_generator.test", "remediation_script", regexp.MustCompile("PropertyType ExpandString")),
-					resource.TestMatchResourceAttr("data.microsoft365_utility_windows_remediation_script_registry_key_generator.test", "remediation_script", regexp.MustCompile("%ProgramFiles%")),
+					check.That("data."+dataSourceType+".test").Key("value_type").HasValue("REG_EXPAND_SZ"),
+					check.That("data."+dataSourceType+".test").Key("remediation_script").MatchesRegex(regexp.MustCompile("PropertyType ExpandString")),
+					check.That("data."+dataSourceType+".test").Key("remediation_script").MatchesRegex(regexp.MustCompile("%ProgramFiles%")),
 				),
 			},
 		},

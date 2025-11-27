@@ -10,12 +10,13 @@ import json
 import re
 import subprocess
 from pathlib import Path
-from typing import List, Tuple, Optional
+from typing import List, Dict
 
 
-def run_command(cmd: List[str], output_file: str) -> int:
+def run_command(cmd: List[str], output_file: str, append: bool = False) -> int:
     """Run a command and capture output to file and stdout."""
-    with open(output_file, 'w') as f:
+    mode = 'a' if append else 'w'
+    with open(output_file, mode) as f:
         process = subprocess.Popen(
             cmd,
             stdout=subprocess.PIPE,
@@ -29,6 +30,50 @@ def run_command(cmd: List[str], output_file: str) -> int:
         
         process.wait()
         return process.returncode
+
+
+def discover_test_packages(base_path: Path) -> List[str]:
+    """Discover all Go packages that contain test files."""
+    if not base_path.exists():
+        return []
+    
+    packages = set()
+    test_files = list(base_path.rglob("*_test.go"))
+    
+    for test_file in test_files:
+        # Get the package directory (parent of the test file)
+        package_dir = test_file.parent
+        # Convert to relative path from workspace root
+        rel_path = f"./{package_dir.relative_to(Path.cwd())}"
+        packages.add(rel_path)
+    
+    return sorted(list(packages))
+
+
+def count_tests_in_package(package_path: str) -> int:
+    """Count the number of test functions in a package."""
+    try:
+        result = subprocess.run(
+            ["go", "test", "-list", ".", package_path],
+            capture_output=True,
+            text=True,
+            timeout=30
+        )
+        
+        # Count lines that start with "Test" (test function names)
+        test_count = 0
+        for line in result.stdout.split('\n'):
+            if line.startswith('Test'):
+                test_count += 1
+        
+        return test_count
+    except Exception:
+        return 0
+
+
+def print_separator(char: str = "=", length: int = 70) -> None:
+    """Print a separator line."""
+    print(char * length)
 
 
 def parse_test_results(output_file: str, category: str, service: str) -> None:
@@ -109,66 +154,229 @@ def parse_test_results(output_file: str, category: str, service: str) -> None:
 
 
 def run_provider_core_tests(coverage_file: str, test_output_file: str) -> int:
-    """Run provider core tests."""
-    print("Running provider core tests...")
+    """Run provider core tests sequentially, one package at a time to conserve memory."""
+    print("\n🔍 Discovering provider core test packages...\n")
     
-    cmd = [
-        "go", "test", "-v", "-race",
-        "-timeout=90m",
-        f"-coverprofile={coverage_file}",
-        "-covermode=atomic",
-        "./internal/client/...",
-        "./internal/helpers/...",
-        "./internal/provider/...",
-        "./internal/utilities/..."
+    # Define core directories to test
+    core_dirs = [
+        "./internal/client",
+        "./internal/helpers",
+        "./internal/provider",
+        "./internal/utilities"
     ]
     
-    exit_code = run_command(cmd, test_output_file)
+    # Discover all test packages across core directories
+    all_packages = []
+    for core_dir in core_dirs:
+        packages = discover_test_packages(Path(core_dir))
+        all_packages.extend(packages)
+    
+    if not all_packages:
+        print("⚠️  No test packages found in provider core, creating empty coverage file")
+        with open(coverage_file, 'w') as f:
+            f.write("mode: atomic\n")
+        return 0
+    
+    # Count tests per package
+    print(f"📊 Enumerating tests in {len(all_packages)} package(s)...\n")
+    package_test_counts: Dict[str, int] = {}
+    total_tests = 0
+    
+    for pkg in all_packages:
+        count = count_tests_in_package(pkg)
+        package_test_counts[pkg] = count
+        total_tests += count
+    
+    # Display summary
+    print_separator("=")
+    print("📋 Test Discovery Summary for provider-core")
+    print_separator("=")
+    print(f"Total Packages: {len(all_packages)}")
+    print(f"Total Tests: {total_tests}")
+    print_separator("-")
+    
+    for pkg in all_packages:
+        count = package_test_counts[pkg]
+        print(f"  📦 {pkg:<50} {count:>4} test(s)")
+    
+    print_separator("=")
+    print()
+    
+    # Run tests package by package
+    print(f"🚀 Starting sequential execution ({len(all_packages)} package(s), one at a time)\n")
+    
+    has_failures = False
+    
+    # Initialize coverage file with mode line
+    with open(coverage_file, 'w') as f:
+        f.write("mode: atomic\n")
+    
+    for idx, pkg in enumerate(all_packages, 1):
+        test_count = package_test_counts[pkg]
+        
+        print_separator("-", 70)
+        print(f"📦 Package {idx}/{len(all_packages)}: {pkg}")
+        print(f"   Tests: {test_count}")
+        print_separator("-", 70)
+        
+        # Create temporary coverage file for this package
+        temp_coverage = f"{coverage_file}.tmp"
+        
+        # Run tests for this package with -race flag (smaller scope than before)
+        cmd = [
+            "go", "test", "-v", "-race",
+            "-timeout=90m",
+            f"-coverprofile={temp_coverage}",
+            "-covermode=atomic",
+            pkg
+        ]
+        
+        print(f"▶️  Running: go test -race {pkg}\n")
+        
+        # Append to the output file for each package
+        exit_code = run_command(cmd, test_output_file, append=(idx > 1))
+        
+        # Append coverage data (skip mode line)
+        if Path(temp_coverage).exists():
+            with open(temp_coverage, 'r') as tmp_f:
+                lines = tmp_f.readlines()
+                with open(coverage_file, 'a') as cov_f:
+                    for line in lines:
+                        if not line.startswith('mode:'):
+                            cov_f.write(line)
+            Path(temp_coverage).unlink()
+        
+        if exit_code != 0:
+            has_failures = True
+            print(f"\n❌ Package {pkg} completed with failures (exit code: {exit_code})")
+        else:
+            print(f"\n✅ Package {pkg} completed successfully")
+        
+        print()
+    
+    # Parse all test results from the combined output
+    print("📝 Parsing test results...")
     parse_test_results(test_output_file, "provider-core", "")
     
-    return exit_code
+    print_separator("=")
+    print("🏁 Sequential execution complete for provider-core")
+    print_separator("=")
+    
+    return 1 if has_failures else 0
 
 
 def run_service_tests(category: str, service: str, 
                     coverage_file: str, test_output_file: str) -> int:
-    """Run tests for a specific service."""
-    print(f"Running tests for {category}/{service}...")
+    """Run tests for a specific service sequentially, one package at a time to conserve memory."""
+    print(f"\n🔍 Discovering test packages for {category}/{service}...")
     
     test_dir_str = f"./internal/services/{category}/{service}"
     test_dir = Path(test_dir_str)
     
     if not test_dir.exists():
-        print(f"Directory not found: {test_dir_str}, creating empty coverage file")
+        print(f"⚠️  Directory not found: {test_dir_str}, creating empty coverage file")
         with open(coverage_file, 'w') as f:
             f.write("mode: atomic\n")
         return 0
     
-    test_files = list(test_dir.rglob("*_test.go"))
-    test_count = len(test_files)
+    # Discover all test packages
+    test_packages = discover_test_packages(test_dir)
     
-    if test_count == 0:
-        print(f"No test files found in {test_dir_str}, creating empty coverage file")
+    if not test_packages:
+        print(f"⚠️  No test packages found in {test_dir_str}, creating empty coverage file")
         with open(coverage_file, 'w') as f:
             f.write("mode: atomic\n")
         return 0
     
-    print(f"Found {test_count} test files")
+    # Count tests per package
+    print(f"\n📊 Enumerating tests in {len(test_packages)} package(s)...\n")
+    package_test_counts: Dict[str, int] = {}
+    total_tests = 0
     
-    # Run tests without -race flag for acceptance tests
-    # (prevents OOM on ARM runners)
-    # Use string path with /... for recursive package matching
-    cmd = [
-        "go", "test", "-v",
-        "-timeout=90m",
-        f"-coverprofile={coverage_file}",
-        "-covermode=atomic",
-        f"{test_dir_str}/..."
-    ]
+    for pkg in test_packages:
+        count = count_tests_in_package(pkg)
+        package_test_counts[pkg] = count
+        total_tests += count
     
-    exit_code = run_command(cmd, test_output_file)
+    # Display summary
+    print_separator("=")
+    print(f"📋 Test Discovery Summary for {category}/{service}")
+    print_separator("=")
+    print(f"Total Packages: {len(test_packages)}")
+    print(f"Total Tests: {total_tests}")
+    print_separator("-")
+    
+    for pkg in test_packages:
+        count = package_test_counts[pkg]
+        # Show package relative to service directory for readability
+        rel_pkg = pkg.replace(test_dir_str, "").lstrip("/")
+        print(f"  📦 {rel_pkg or '.':<50} {count:>4} test(s)")
+    
+    print_separator("=")
+    print()
+    
+    # Run tests package by package
+    print(f"🚀 Starting sequential execution ({len(test_packages)} package(s), one at a time)\n")
+    
+    has_failures = False
+    
+    # Initialize coverage file with mode line
+    with open(coverage_file, 'w') as f:
+        f.write("mode: atomic\n")
+    
+    for idx, pkg in enumerate(test_packages, 1):
+        rel_pkg = pkg.replace(test_dir_str, "").lstrip("/") or "."
+        test_count = package_test_counts[pkg]
+        
+        print_separator("-", 70)
+        print(f"📦 Package {idx}/{len(test_packages)}: {rel_pkg}")
+        print(f"   Tests: {test_count}")
+        print_separator("-", 70)
+        
+        # Create temporary coverage file for this package
+        temp_coverage = f"{coverage_file}.tmp"
+        
+        # Run tests for this package only
+        cmd = [
+            "go", "test", "-v",
+            "-timeout=90m",
+            f"-coverprofile={temp_coverage}",
+            "-covermode=atomic",
+            pkg
+        ]
+        
+        print(f"▶️  Running: go test {pkg}\n")
+        
+        # Append to the output file for each package
+        exit_code = run_command(cmd, test_output_file, append=(idx > 1))
+        
+        # Append coverage data (skip mode line)
+        if Path(temp_coverage).exists():
+            with open(temp_coverage, 'r') as tmp_f:
+                lines = tmp_f.readlines()
+                with open(coverage_file, 'a') as cov_f:
+                    for line in lines:
+                        if not line.startswith('mode:'):
+                            cov_f.write(line)
+            Path(temp_coverage).unlink()
+        
+        if exit_code != 0:
+            has_failures = True
+            print(f"\n❌ Package {rel_pkg} completed with failures (exit code: {exit_code})")
+        else:
+            print(f"\n✅ Package {rel_pkg} completed successfully")
+        
+        print()
+    
+    # Parse all test results from the combined output
+    print("📝 Parsing test results...")
     parse_test_results(test_output_file, category, service)
     
-    return exit_code
+    print_separator("=")
+    print(f"🏁 Sequential execution complete for {category}/{service}")
+    print_separator("=")
+    
+    return 1 if has_failures else 0
 
 
 def main():

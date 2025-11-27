@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/check"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -24,9 +25,9 @@ func TestAccEntraIdSidConverterDataSource_SidToObjectId(t *testing.T) {
 			{
 				Config: testAccConfigSidToObjectId(),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("data.microsoft365_utility_entra_id_sid_converter.test", "sid", "S-1-12-1-1943430372-1249052806-2496021943-3034400218"),
-					resource.TestCheckResourceAttr("data.microsoft365_utility_entra_id_sid_converter.test", "object_id", "73d664e4-0886-4a73-b745-c694da45ddb4"),
-					resource.TestCheckResourceAttrSet("data.microsoft365_utility_entra_id_sid_converter.test", "id"),
+					check.That("data."+dataSourceType+".test").Key("sid").HasValue("S-1-12-1-1943430372-1249052806-2496021943-3034400218"),
+					check.That("data."+dataSourceType+".test").Key("object_id").HasValue("73d664e4-0886-4a73-b745-c694da45ddb4"),
+					check.That("data."+dataSourceType+".test").Key("id").IsSet(),
 				),
 			},
 		},
@@ -47,9 +48,9 @@ func TestAccEntraIdSidConverterDataSource_ObjectIdToSid(t *testing.T) {
 			{
 				Config: testAccConfigObjectIdToSid(),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("data.microsoft365_utility_entra_id_sid_converter.test", "object_id", "73d664e4-0886-4a73-b745-c694da45ddb4"),
-					resource.TestCheckResourceAttr("data.microsoft365_utility_entra_id_sid_converter.test", "sid", "S-1-12-1-1943430372-1249052806-2496021943-3034400218"),
-					resource.TestCheckResourceAttrSet("data.microsoft365_utility_entra_id_sid_converter.test", "id"),
+					check.That("data."+dataSourceType+".test").Key("object_id").HasValue("73d664e4-0886-4a73-b745-c694da45ddb4"),
+					check.That("data."+dataSourceType+".test").Key("sid").HasValue("S-1-12-1-1943430372-1249052806-2496021943-3034400218"),
+					check.That("data."+dataSourceType+".test").Key("id").IsSet(),
 				),
 			},
 		},
@@ -70,9 +71,9 @@ func TestAccEntraIdSidConverterDataSource_MaxUint32Values(t *testing.T) {
 			{
 				Config: testAccConfigMaxUint32(),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("data.microsoft365_utility_entra_id_sid_converter.test", "sid", "S-1-12-1-4294967295-4294967295-4294967295-4294967295"),
-					resource.TestCheckResourceAttrSet("data.microsoft365_utility_entra_id_sid_converter.test", "object_id"),
-					resource.TestCheckResourceAttrSet("data.microsoft365_utility_entra_id_sid_converter.test", "id"),
+					check.That("data."+dataSourceType+".test").Key("sid").HasValue("S-1-12-1-4294967295-4294967295-4294967295-4294967295"),
+					check.That("data."+dataSourceType+".test").Key("object_id").IsSet(),
+					check.That("data."+dataSourceType+".test").Key("id").IsSet(),
 				),
 			},
 		},
@@ -93,10 +94,10 @@ func TestAccEntraIdSidConverterDataSource_BidirectionalConversion(t *testing.T) 
 			{
 				Config: testAccConfigBidirectional(),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("data.microsoft365_utility_entra_id_sid_converter.sid_to_oid", "sid", "S-1-12-1-1943430372-1249052806-2496021943-3034400218"),
-					resource.TestCheckResourceAttr("data.microsoft365_utility_entra_id_sid_converter.sid_to_oid", "object_id", "73d664e4-0886-4a73-b745-c694da45ddb4"),
-					resource.TestCheckResourceAttr("data.microsoft365_utility_entra_id_sid_converter.oid_to_sid", "object_id", "73d664e4-0886-4a73-b745-c694da45ddb4"),
-					resource.TestCheckResourceAttr("data.microsoft365_utility_entra_id_sid_converter.oid_to_sid", "sid", "S-1-12-1-1943430372-1249052806-2496021943-3034400218"),
+					check.That("data."+dataSourceType+".sid_to_oid").Key("sid").HasValue("S-1-12-1-1943430372-1249052806-2496021943-3034400218"),
+					check.That("data."+dataSourceType+".sid_to_oid").Key("object_id").HasValue("73d664e4-0886-4a73-b745-c694da45ddb4"),
+					check.That("data."+dataSourceType+".oid_to_sid").Key("object_id").HasValue("73d664e4-0886-4a73-b745-c694da45ddb4"),
+					check.That("data."+dataSourceType+".oid_to_sid").Key("sid").HasValue("S-1-12-1-1943430372-1249052806-2496021943-3034400218"),
 				),
 			},
 		},
