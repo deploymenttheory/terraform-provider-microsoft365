@@ -215,25 +215,25 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        include:
+        include: # testing both ubuntu-24.04-arm and ubuntu-22.04-arm-4c-l
           - service: applications
-            runner: ubuntu-24.04-arm
+            runner: ubuntu-22.04-arm-4c-l
           - service: device_and_app_management
-            runner: ubuntu-24.04-arm
+            runner: ubuntu-22.04-arm-4c-l
           - service: device_management
-            runner: ubuntu-24.04-arm
+            runner: ubuntu-22.04-arm-4c-l
           - service: groups
-            runner: ubuntu-24.04-arm
+            runner: ubuntu-22.04-arm-4c-l
           - service: identity_and_access
-            runner: ubuntu-24.04-arm
+            runner: ubuntu-22.04-arm-4c-l
           - service: m365_admin
-            runner: ubuntu-24.04-arm
+            runner: ubuntu-22.04-arm-4c-l
           - service: multitenant_management
-            runner: ubuntu-24.04-arm
+            runner: ubuntu-22.04-arm-4c-l
           - service: utility
-            runner: ubuntu-24.04-arm
+            runner: ubuntu-22.04-arm-4c-l
           - service: windows_365
-            runner: ubuntu-24.04-arm
+            runner: ubuntu-22.04-arm-4c-l
     steps:
       - name: Harden Runner
         uses: step-security/harden-runner@95d9a5deda9de15063e7595e9719c11c38c90ae2 # v2.13.2
