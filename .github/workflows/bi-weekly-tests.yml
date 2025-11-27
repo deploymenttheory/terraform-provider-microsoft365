@@ -64,7 +64,7 @@ jobs:
           M365_CLIENT_SECRET: ${{ secrets.M365_CLIENT_SECRET_DEVICE_AND_APP_MGMT }}
           M365_AUTH_METHOD: client_secret
           M365_CLOUD: public
-        run: ./scripts/pipeline/run-tests.py provider-core "" coverage-provider-core.txt test-output-provider-core.log
+        run: ./scripts/pipeline/run-tests.py provider-core "" coverage-provider-core.txt test-output-provider-core.log --max-procs 1 --test-parallel 1 --pkg-parallel 1 --skip-enumeration
         continue-on-error: true
 
       - name: Upload test results
@@ -179,7 +179,7 @@ jobs:
           M365_TENANT_ID: ${{ secrets.M365_TENANT_ID }}
           M365_AUTH_METHOD: client_secret
           M365_CLOUD: public
-        run: ./scripts/pipeline/run-tests.py resources ${{ matrix.service }} coverage-resources-${{ matrix.service }}.txt test-output-resources-${{ matrix.service }}.log
+        run: ./scripts/pipeline/run-tests.py resources ${{ matrix.service }} coverage-resources-${{ matrix.service }}.txt test-output-resources-${{ matrix.service }}.log --max-procs 1 --test-parallel 1 --pkg-parallel 1 --skip-enumeration --no-race
         continue-on-error: true
 
       - name: Upload test results
@@ -293,7 +293,7 @@ jobs:
           M365_TENANT_ID: ${{ secrets.M365_TENANT_ID }}
           M365_AUTH_METHOD: client_secret
           M365_CLOUD: public
-        run: ./scripts/pipeline/run-tests.py datasources ${{ matrix.service }} coverage-datasources-${{ matrix.service }}.txt test-output-datasources-${{ matrix.service }}.log
+        run: ./scripts/pipeline/run-tests.py datasources ${{ matrix.service }} coverage-datasources-${{ matrix.service }}.txt test-output-datasources-${{ matrix.service }}.log --max-procs 1 --test-parallel 1 --pkg-parallel 1 --skip-enumeration --no-race
         continue-on-error: true
 
       - name: Upload test results
