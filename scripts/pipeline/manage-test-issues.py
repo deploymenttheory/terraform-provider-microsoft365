@@ -1,13 +1,21 @@
 #!/usr/bin/env python3
-"""
-Manages GitHub issues for test failures (create, update, close).
-Usage: ./manage-test-issues.py <owner> <repo> <run-id> <failures-json> [successes-json]
+"""Manages GitHub issues for test failures (create, update, close).
 
-Behavior:
-- Creates new issues for first-time test failures
-- Updates existing issues with timestamp and workflow run when test continues to fail
-- Marks recurring failures with 'recurring' label
-- Auto-closes issues when tests pass (if successes-json provided)
+This script automates GitHub issue management for test failures by:
+- Creating new issues for first-time test failures
+- Updating existing issues when tests continue to fail
+- Marking recurring failures with 'recurring' label
+- Auto-closing issues when tests pass
+
+Usage:
+    ./manage-test-issues.py <owner> <repo> <run-id> <failures-json> [successes-json]
+
+Args:
+    owner: GitHub repository owner.
+    repo: GitHub repository name.
+    run-id: GitHub Actions workflow run ID.
+    failures-json: Path to merged test failures JSON file.
+    successes-json: Optional path to merged test successes JSON file.
 """
 
 import sys
@@ -19,7 +27,17 @@ from typing import Optional
 
 
 def run_gh_command(args: list[str]) -> str:
-    """Run a GitHub CLI command and return output."""
+    """Run a GitHub CLI command and return output.
+
+    Args:
+        args: List of arguments to pass to 'gh' command.
+
+    Returns:
+        Command stdout as a string.
+
+    Raises:
+        subprocess.CalledProcessError: If the command fails.
+    """
     try:
         result = subprocess.run(
             ["gh"] + args,
@@ -34,7 +52,15 @@ def run_gh_command(args: list[str]) -> str:
 
 
 def ensure_label_exists(owner: str, repo: str, label_name: str, color: str, description: str) -> None:
-    """Create a label if it doesn't exist."""
+    """Create a label if it doesn't exist, or update it if it does.
+
+    Args:
+        owner: GitHub repository owner.
+        repo: GitHub repository name.
+        label_name: Name of the label.
+        color: Hex color code (without #).
+        description: Label description.
+    """
     # Simply try to create the label with --force flag to update if exists
     # This is simpler than checking first - gh handles the logic
     try:
@@ -51,7 +77,16 @@ def ensure_label_exists(owner: str, repo: str, label_name: str, color: str, desc
 
 
 def find_existing_issue(owner: str, repo: str, test_name: str) -> Optional[str]:
-    """Check if an issue already exists for this test failure."""
+    """Check if an issue already exists for this test failure.
+
+    Args:
+        owner: GitHub repository owner.
+        repo: GitHub repository name.
+        test_name: Name of the failed test.
+
+    Returns:
+        Issue number as string if found, None otherwise.
+    """
     try:
         result = run_gh_command([
             "issue", "list",
