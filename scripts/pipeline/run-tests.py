@@ -20,6 +20,7 @@ import re
 import subprocess
 import time
 import gc
+import argparse
 from datetime import datetime
 from pathlib import Path
 from typing import List, Dict
@@ -228,7 +229,10 @@ def parse_test_results(output_file: str, category: str, service: str) -> None:
     print(f"✅ Test results: {len(failures)} failures, {len(successes)} successes")
 
 
-def run_provider_core_tests(coverage_file: str, test_output_file: str) -> int:
+def run_provider_core_tests(coverage_file: str, test_output_file: str, 
+                           max_procs: int = 2, test_parallel: int = 1, 
+                           pkg_parallel: int = 1, use_race: bool = True,
+                           skip_enumeration: bool = False, force_gc: bool = True) -> int:
     """Run provider core tests sequentially, one package at a time to conserve memory.
 
     Discovers all test packages in core directories (client, helpers, provider, utilities),
@@ -237,6 +241,10 @@ def run_provider_core_tests(coverage_file: str, test_output_file: str) -> int:
     Args:
         coverage_file: Path where merged coverage data will be written.
         test_output_file: Path where test output logs will be written.
+        max_procs: Maximum number of CPU cores for Go to use (GOMAXPROCS).
+        test_parallel: Number of tests to run in parallel within a package.
+        pkg_parallel: Number of packages to build/test in parallel.
+        use_race: Whether to enable race detection (-race flag).
 
     Returns:
         0 if all tests passed, 1 if any test failed.
@@ -272,36 +280,47 @@ def run_provider_core_tests(coverage_file: str, test_output_file: str) -> int:
             f.write("mode: atomic\n")
         return 0
     
-    # Count tests per package
-    print("="*70)
-    print(f"📊 [ENUMERATE] Starting test enumeration for {len(all_packages)} package(s)")
-    print("="*70 + "\n")
+    # Count tests per package (optional)
     package_test_counts: Dict[str, int] = {}
     total_tests = 0
     
-    enumerate_start = time.time()
-    for idx, pkg in enumerate(all_packages, 1):
-        pkg_start = time.time()
-        print(f"📊 [ENUMERATE] Package {idx}/{len(all_packages)}: {pkg}")
-        count = count_tests_in_package(pkg)
-        package_test_counts[pkg] = count
-        total_tests += count
-        pkg_elapsed = time.time() - pkg_start
-        print(f"⏱️  [TIMING] Package enumeration took {pkg_elapsed:.2f}s\n")
-    enumerate_elapsed = time.time() - enumerate_start
-    print(f"⏱️  [TIMING] Total enumeration time: {enumerate_elapsed:.2f}s\n")
+    if not skip_enumeration:
+        print("="*70)
+        print(f"📊 [ENUMERATE] Starting test enumeration for {len(all_packages)} package(s)")
+        print("="*70 + "\n")
+        
+        enumerate_start = time.time()
+        for idx, pkg in enumerate(all_packages, 1):
+            pkg_start = time.time()
+            print(f"📊 [ENUMERATE] Package {idx}/{len(all_packages)}: {pkg}")
+            count = count_tests_in_package(pkg)
+            package_test_counts[pkg] = count
+            total_tests += count
+            pkg_elapsed = time.time() - pkg_start
+            print(f"⏱️  [TIMING] Package enumeration took {pkg_elapsed:.2f}s\n")
+        enumerate_elapsed = time.time() - enumerate_start
+        print(f"⏱️  [TIMING] Total enumeration time: {enumerate_elapsed:.2f}s\n")
+    else:
+        print("⏭️  [ENUMERATE] Skipping test enumeration (--skip-enumeration flag)\n")
+        # Initialize with zero counts
+        for pkg in all_packages:
+            package_test_counts[pkg] = 0
     
     # Display summary
     print_separator("=")
     print("📋 Test Discovery Summary for provider-core")
     print_separator("=")
     print(f"Total Packages: {len(all_packages)}")
-    print(f"Total Tests: {total_tests}")
+    if not skip_enumeration:
+        print(f"Total Tests: {total_tests}")
     print_separator("-")
     
     for pkg in all_packages:
         count = package_test_counts[pkg]
-        print(f"  📦 {pkg:<50} {count:>4} test(s)")
+        if skip_enumeration:
+            print(f"  📦 {pkg}")
+        else:
+            print(f"  📦 {pkg:<50} {count:>4} test(s)")
     
     print_separator("=")
     print()
@@ -332,20 +351,23 @@ def run_provider_core_tests(coverage_file: str, test_output_file: str) -> int:
         # Create temporary coverage file for this package
         temp_coverage = f"{coverage_file}.tmp"
         
-        # Run tests for this package with -race flag (smaller scope than before)
-        # Use -p=1 to run packages sequentially (not in parallel)
-        # Use -parallel=1 to run tests within package sequentially
-        cmd = [
-            "go", "test", "-v", "-race",
+        # Build command with configurable parallelism
+        cmd = ["go", "test", "-v"]
+        
+        if use_race:
+            cmd.append("-race")
+        
+        cmd.extend([
             "-timeout=90m",
-            "-p=1",  # Only build/test 1 package at a time
-            "-parallel=1",  # Only run 1 test at a time within the package
+            f"-p={pkg_parallel}",
+            f"-parallel={test_parallel}",
             f"-coverprofile={temp_coverage}",
             "-covermode=atomic",
             pkg
-        ]
+        ])
         
-        print(f"▶️  [RUN] Executing: go test -race {pkg}")
+        race_flag = "-race" if use_race else ""
+        print(f"▶️  [RUN] Executing: go test {race_flag} -p={pkg_parallel} -parallel={test_parallel} {pkg}")
         print(f"📄 [RUN] Output mode: {'append' if idx > 1 else 'write'} to {test_output_file}\n")
         
         # Append to the output file for each package
@@ -377,8 +399,9 @@ def run_provider_core_tests(coverage_file: str, test_output_file: str) -> int:
             print(f"\n✅ [RESULT] Package {pkg} completed successfully")
         
         # Force garbage collection to free memory
-        print(f"🗑️  [MEMORY] Running garbage collection...")
-        gc.collect()
+        if force_gc:
+            print(f"🗑️  [MEMORY] Running garbage collection...")
+            gc.collect()
         print()
     
     # Parse all test results from the combined output
@@ -393,7 +416,10 @@ def run_provider_core_tests(coverage_file: str, test_output_file: str) -> int:
 
 
 def run_service_tests(category: str, service: str, 
-                    coverage_file: str, test_output_file: str) -> int:
+                    coverage_file: str, test_output_file: str,
+                    max_procs: int = 2, test_parallel: int = 1,
+                    pkg_parallel: int = 1, use_race: bool = False,
+                    skip_enumeration: bool = False, force_gc: bool = True) -> int:
     """Run tests for a specific service sequentially, one package at a time to conserve memory.
 
     Discovers all test packages in the service directory, runs tests package-by-package,
@@ -404,6 +430,10 @@ def run_service_tests(category: str, service: str,
         service: Service name (e.g., 'identity_and_access', 'device_management').
         coverage_file: Path where merged coverage data will be written.
         test_output_file: Path where test output logs will be written.
+        max_procs: Maximum number of CPU cores for Go to use (GOMAXPROCS).
+        test_parallel: Number of tests to run in parallel within a package.
+        pkg_parallel: Number of packages to build/test in parallel.
+        use_race: Whether to enable race detection (-race flag).
 
     Returns:
         0 if all tests passed, 1 if any test failed.
@@ -433,38 +463,49 @@ def run_service_tests(category: str, service: str,
             f.write("mode: atomic\n")
         return 0
     
-    # Count tests per package
-    print("\n" + "="*70)
-    print(f"📊 [ENUMERATE] Starting test enumeration for {len(test_packages)} package(s)")
-    print("="*70 + "\n")
+    # Count tests per package (optional)
     package_test_counts: Dict[str, int] = {}
     total_tests = 0
     
-    enumerate_start = time.time()
-    for idx, pkg in enumerate(test_packages, 1):
-        pkg_start = time.time()
-        print(f"📊 [ENUMERATE] Package {idx}/{len(test_packages)}: {pkg}")
-        count = count_tests_in_package(pkg)
-        package_test_counts[pkg] = count
-        total_tests += count
-        pkg_elapsed = time.time() - pkg_start
-        print(f"⏱️  [TIMING] Package enumeration took {pkg_elapsed:.2f}s\n")
-    enumerate_elapsed = time.time() - enumerate_start
-    print(f"⏱️  [TIMING] Total enumeration time: {enumerate_elapsed:.2f}s\n")
+    if not skip_enumeration:
+        print("\n" + "="*70)
+        print(f"📊 [ENUMERATE] Starting test enumeration for {len(test_packages)} package(s)")
+        print("="*70 + "\n")
+        
+        enumerate_start = time.time()
+        for idx, pkg in enumerate(test_packages, 1):
+            pkg_start = time.time()
+            print(f"📊 [ENUMERATE] Package {idx}/{len(test_packages)}: {pkg}")
+            count = count_tests_in_package(pkg)
+            package_test_counts[pkg] = count
+            total_tests += count
+            pkg_elapsed = time.time() - pkg_start
+            print(f"⏱️  [TIMING] Package enumeration took {pkg_elapsed:.2f}s\n")
+        enumerate_elapsed = time.time() - enumerate_start
+        print(f"⏱️  [TIMING] Total enumeration time: {enumerate_elapsed:.2f}s\n")
+    else:
+        print("\n⏭️  [ENUMERATE] Skipping test enumeration (--skip-enumeration flag)\n")
+        # Initialize with zero counts
+        for pkg in test_packages:
+            package_test_counts[pkg] = 0
     
     # Display summary
     print_separator("=")
     print(f"📋 Test Discovery Summary for {category}/{service}")
     print_separator("=")
     print(f"Total Packages: {len(test_packages)}")
-    print(f"Total Tests: {total_tests}")
+    if not skip_enumeration:
+        print(f"Total Tests: {total_tests}")
     print_separator("-")
     
     for pkg in test_packages:
         count = package_test_counts[pkg]
         # Show package relative to service directory for readability
         rel_pkg = pkg.replace(test_dir_str, "").lstrip("/")
-        print(f"  📦 {rel_pkg or '.':<50} {count:>4} test(s)")
+        if skip_enumeration:
+            print(f"  📦 {rel_pkg or '.'}")
+        else:
+            print(f"  📦 {rel_pkg or '.':<50} {count:>4} test(s)")
     
     print_separator("=")
     print()
@@ -496,20 +537,23 @@ def run_service_tests(category: str, service: str,
         # Create temporary coverage file for this package
         temp_coverage = f"{coverage_file}.tmp"
         
-        # Run tests for this package only
-        # Use -p=1 to run packages sequentially (not in parallel)
-        # Use -parallel=1 to run tests within package sequentially
-        cmd = [
-            "go", "test", "-v",
+        # Build command with configurable parallelism
+        cmd = ["go", "test", "-v"]
+        
+        if use_race:
+            cmd.append("-race")
+        
+        cmd.extend([
             "-timeout=90m",
-            "-p=1",  # Only build/test 1 package at a time
-            "-parallel=1",  # Only run 1 test at a time within the package
+            f"-p={pkg_parallel}",
+            f"-parallel={test_parallel}",
             f"-coverprofile={temp_coverage}",
             "-covermode=atomic",
             pkg
-        ]
+        ])
         
-        print(f"▶️  [RUN] Executing: go test {pkg}")
+        race_flag = "-race" if use_race else ""
+        print(f"▶️  [RUN] Executing: go test {race_flag} -p={pkg_parallel} -parallel={test_parallel} {pkg}")
         print(f"📄 [RUN] Output mode: {'append' if idx > 1 else 'write'} to {test_output_file}\n")
         
         # Append to the output file for each package
@@ -541,8 +585,9 @@ def run_service_tests(category: str, service: str,
             print(f"\n✅ [RESULT] Package {rel_pkg} completed successfully")
         
         # Force garbage collection to free memory
-        print(f"🗑️  [MEMORY] Running garbage collection...")
-        gc.collect()
+        if force_gc:
+            print(f"🗑️  [MEMORY] Running garbage collection...")
+            gc.collect()
         print()
     
     # Parse all test results from the combined output
@@ -557,6 +602,56 @@ def run_service_tests(category: str, service: str,
 
 
 def main():
+    parser = argparse.ArgumentParser(
+        description='Run Terraform Provider tests with configurable parallelism and memory management',
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+  # Run with default settings (low memory mode)
+  ./run-tests.py resources identity_and_access coverage.txt output.log
+  
+  # Run with more parallelism (requires more memory)
+  ./run-tests.py resources identity_and_access coverage.txt output.log --max-procs 4 --test-parallel 4
+  
+  # Disable race detection for faster execution
+  ./run-tests.py resources identity_and_access coverage.txt output.log --no-race
+        """
+    )
+    
+    # Positional arguments
+    parser.add_argument('type', choices=['provider-core', 'resources', 'datasources'],
+                       help='Type of tests to run')
+    parser.add_argument('service', nargs='?', default='',
+                       help='Service name (required for resources/datasources)')
+    parser.add_argument('coverage_file', nargs='?', default='coverage.txt',
+                       help='Output file for coverage data (default: coverage.txt)')
+    parser.add_argument('output_file', nargs='?', default='test-output.log',
+                       help='Output file for test logs (default: test-output.log)')
+    
+    # Optional arguments for memory/parallelism control
+    parser.add_argument('--max-procs', type=int, default=2,
+                       help='GOMAXPROCS value - max CPU cores for Go (default: 2)')
+    parser.add_argument('--test-parallel', type=int, default=1,
+                       help='Number of tests to run in parallel within a package (default: 1)')
+    parser.add_argument('--pkg-parallel', type=int, default=1,
+                       help='Number of packages to build/test in parallel (default: 1)')
+    parser.add_argument('--race', dest='use_race', action='store_true', default=None,
+                       help='Enable race detection (default for provider-core)')
+    parser.add_argument('--no-race', dest='use_race', action='store_false',
+                       help='Disable race detection (default for resources/datasources)')
+    parser.add_argument('--skip-enumeration', action='store_true', default=False,
+                       help='Skip test enumeration phase (faster startup, no test counts)')
+    parser.add_argument('--force-gc', action='store_true', default=True,
+                       help='Force garbage collection between packages (default: enabled)')
+    parser.add_argument('--no-force-gc', dest='force_gc', action='store_false',
+                       help='Disable forced garbage collection')
+    
+    args = parser.parse_args()
+    
+    # Set default for use_race if not specified
+    if args.use_race is None:
+        args.use_race = (args.type == 'provider-core')
+    
     print("\n" + "="*70)
     print("🚀 [MAIN] Terraform Provider Test Runner Started")
     print("="*70)
@@ -565,48 +660,72 @@ def main():
     print("="*70 + "\n")
     
     # Set memory-friendly environment variables for Go
-    # Limit GOMAXPROCS to reduce memory overhead
     if "GOMAXPROCS" not in os.environ:
-        os.environ["GOMAXPROCS"] = "2"
-        print(f"⚙️  [MEMORY] Set GOMAXPROCS=2 to limit CPU/memory usage")
+        os.environ["GOMAXPROCS"] = str(args.max_procs)
+        print(f"⚙️  [MEMORY] Set GOMAXPROCS={args.max_procs}")
+    else:
+        print(f"⚙️  [MEMORY] GOMAXPROCS already set to {os.environ['GOMAXPROCS']}")
     
     # Set GODEBUG to reduce memory usage
     os.environ["GODEBUG"] = "gctrace=0"
     print(f"⚙️  [MEMORY] Set GODEBUG to optimize garbage collection\n")
     
-    if len(sys.argv) < 2:
-        print("Usage: run-tests.py <type> [service] [coverage-file] [test-output-file]", 
-              file=sys.stderr)
-        print("Types: provider-core, resources, datasources", file=sys.stderr)
-        sys.exit(1)
+    print(f"⚙️  [CONFIG] Test type: {args.type}")
+    print(f"⚙️  [CONFIG] Service: {args.service if args.service else 'N/A'}")
+    print(f"⚙️  [CONFIG] Coverage file: {args.coverage_file}")
+    print(f"⚙️  [CONFIG] Test output file: {args.output_file}")
+    print(f"⚙️  [CONFIG] Max procs (GOMAXPROCS): {args.max_procs}")
+    print(f"⚙️  [CONFIG] Test parallel (-parallel): {args.test_parallel}")
+    print(f"⚙️  [CONFIG] Package parallel (-p): {args.pkg_parallel}")
+    print(f"⚙️  [CONFIG] Race detection (-race): {'enabled' if args.use_race else 'disabled'}")
     
-    test_type = sys.argv[1]
-    service = sys.argv[2] if len(sys.argv) > 2 else ""
-    coverage_file = sys.argv[3] if len(sys.argv) > 3 else "coverage.txt"
-    test_output_file = sys.argv[4] if len(sys.argv) > 4 else "test-output.log"
+    # Calculate estimated memory usage
+    base_memory = 500  # Base Go runtime memory in MB
+    test_memory = args.test_parallel * 200  # ~200MB per parallel test
+    race_memory = 1500 if args.use_race else 0  # Race detector overhead
+    estimated_memory = base_memory + test_memory + race_memory
     
-    print(f"⚙️  [CONFIG] Test type: {test_type}")
-    print(f"⚙️  [CONFIG] Service: {service if service else 'N/A'}")
-    print(f"⚙️  [CONFIG] Coverage file: {coverage_file}")
-    print(f"⚙️  [CONFIG] Test output file: {test_output_file}")
+    print(f"⚙️  [CONFIG] Estimated memory usage: ~{estimated_memory}MB")
+    if estimated_memory > 7000:
+        print(f"⚠️  [WARNING] Estimated memory usage exceeds 7GB - may cause OOM on 8GB runners!")
     print()
     
     if os.environ.get("SKIP_TESTS", "false") == "true":
         print("⏭️  Skipping tests - no credentials configured")
-        with open(coverage_file, 'w') as f:
+        with open(args.coverage_file, 'w') as f:
             f.write("mode: atomic\n")
         sys.exit(0)
     
-    if test_type == "provider-core":
-        exit_code = run_provider_core_tests(coverage_file, test_output_file)
-    elif test_type in ["resources", "datasources"]:
-        if not service:
-            print(f"Error: service name required for {test_type} tests", 
+    if args.type == "provider-core":
+        exit_code = run_provider_core_tests(
+            args.coverage_file, 
+            args.output_file,
+            args.max_procs,
+            args.test_parallel,
+            args.pkg_parallel,
+            args.use_race,
+            args.skip_enumeration,
+            args.force_gc
+        )
+    elif args.type in ["resources", "datasources"]:
+        if not args.service:
+            print(f"Error: service name required for {args.type} tests", 
                   file=sys.stderr)
             sys.exit(1)
-        exit_code = run_service_tests(test_type, service, coverage_file, test_output_file)
+        exit_code = run_service_tests(
+            args.type, 
+            args.service, 
+            args.coverage_file, 
+            args.output_file,
+            args.max_procs,
+            args.test_parallel,
+            args.pkg_parallel,
+            args.use_race,
+            args.skip_enumeration,
+            args.force_gc
+        )
     else:
-        print(f"Error: unknown test type: {test_type}", file=sys.stderr)
+        print(f"Error: unknown test type: {args.type}", file=sys.stderr)
         print("Valid types: provider-core, resources, datasources", file=sys.stderr)
         sys.exit(1)
     
