@@ -1,7 +1,16 @@
 #!/usr/bin/env python3
-"""
-Maps service-specific credentials to standard M365 env vars.
-Usage: ./map-credentials.py <service>
+"""Maps service-specific credentials to standard M365 environment variables.
+
+This script maps service-specific credential environment variables to the standard
+M365_CLIENT_ID and M365_CLIENT_SECRET variables used by the provider tests.
+
+Usage:
+    ./map-credentials.py <service>
+
+Services:
+    applications, backup_storage, device_and_app_management, device_management,
+    groups, identity_and_access, m365_admin, multitenant_management, users,
+    utility, windows_365
 """
 
 import os
@@ -26,7 +35,17 @@ CREDENTIAL_MAP = {
 
 
 def get_credentials(service: str) -> Tuple[Optional[str], Optional[str]]:
-    """Get credentials for a service from environment."""
+    """Get credentials for a service from environment variables.
+
+    Args:
+        service: Service name to get credentials for.
+
+    Returns:
+        Tuple of (client_id, client_secret) from environment variables.
+
+    Raises:
+        SystemExit: If service name is not recognized.
+    """
     if service not in CREDENTIAL_MAP:
         print(f"Error: unknown service: {service}", file=sys.stderr)
         sys.exit(1)
@@ -39,7 +58,12 @@ def get_credentials(service: str) -> Tuple[Optional[str], Optional[str]]:
 
 
 def export_to_github_env(key: str, value: str) -> None:
-    """Export variable to GITHUB_ENV if available."""
+    """Export variable to GITHUB_ENV file if running in GitHub Actions.
+
+    Args:
+        key: Environment variable name.
+        value: Environment variable value.
+    """
     github_env = os.environ.get("GITHUB_ENV")
     if github_env:
         with open(github_env, 'a') as f:
@@ -47,7 +71,14 @@ def export_to_github_env(key: str, value: str) -> None:
 
 
 def map_credentials(service: str) -> None:
-    """Map service-specific credentials to standard env vars."""
+    """Map service-specific credentials to standard environment variables.
+
+    Sets M365_CLIENT_ID and M365_CLIENT_SECRET from service-specific credentials,
+    or sets SKIP_TESTS=true if credentials are missing.
+
+    Args:
+        service: Service name to map credentials for.
+    """
     client_id, client_secret = get_credentials(service)
     
     if not client_id or not client_secret:

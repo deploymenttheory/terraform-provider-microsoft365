@@ -1,7 +1,16 @@
 #!/usr/bin/env python3
-"""
-Test runner for nightly acceptance tests.
-Usage: ./run-tests.py <type> [service] [coverage-file] [test-output-file]
+"""Test runner for nightly acceptance tests.
+
+This script runs Terraform provider tests sequentially, one package at a time,
+to conserve memory and provide better progress visibility.
+
+Usage:
+    ./run-tests.py <type> [service] [coverage-file] [test-output-file]
+
+Types:
+    provider-core: Core provider tests (client, helpers, provider, utilities)
+    resources: Resource tests for a specific service
+    datasources: Datasource tests for a specific service
 """
 
 import os
@@ -14,7 +23,16 @@ from typing import List, Dict
 
 
 def run_command(cmd: List[str], output_file: str, append: bool = False) -> int:
-    """Run a command and capture output to file and stdout."""
+    """Run a command and capture output to file and stdout.
+
+    Args:
+        cmd: Command and arguments to execute as a list.
+        output_file: Path to file where output will be written.
+        append: If True, append to output_file; if False, overwrite it.
+
+    Returns:
+        The exit code of the command.
+    """
     mode = 'a' if append else 'w'
     with open(output_file, mode) as f:
         process = subprocess.Popen(
@@ -33,25 +51,42 @@ def run_command(cmd: List[str], output_file: str, append: bool = False) -> int:
 
 
 def discover_test_packages(base_path: Path) -> List[str]:
-    """Discover all Go packages that contain test files."""
+    """Discover all Go packages that contain test files.
+
+    Args:
+        base_path: Base directory path to search for test files.
+
+    Returns:
+        Sorted list of package paths (relative to workspace root) containing tests.
+    """
     if not base_path.exists():
         return []
+    
+    base_path = base_path.resolve()
+    cwd = Path.cwd().resolve()
     
     packages = set()
     test_files = list(base_path.rglob("*_test.go"))
     
     for test_file in test_files:
         # Get the package directory (parent of the test file)
-        package_dir = test_file.parent
+        package_dir = test_file.parent.resolve()
         # Convert to relative path from workspace root
-        rel_path = f"./{package_dir.relative_to(Path.cwd())}"
+        rel_path = f"./{package_dir.relative_to(cwd)}"
         packages.add(rel_path)
     
     return sorted(list(packages))
 
 
 def count_tests_in_package(package_path: str) -> int:
-    """Count the number of test functions in a package."""
+    """Count the number of test functions in a package.
+
+    Args:
+        package_path: Path to the Go package.
+
+    Returns:
+        Number of test functions found in the package, or 0 if error occurs.
+    """
     try:
         result = subprocess.run(
             ["go", "test", "-list", ".", package_path],
@@ -72,12 +107,26 @@ def count_tests_in_package(package_path: str) -> int:
 
 
 def print_separator(char: str = "=", length: int = 70) -> None:
-    """Print a separator line."""
+    """Print a separator line to stdout.
+
+    Args:
+        char: Character to use for the separator line.
+        length: Length of the separator line in characters.
+    """
     print(char * length)
 
 
 def parse_test_results(output_file: str, category: str, service: str) -> None:
-    """Parse test output and create JSON reports of failures and successes."""
+    """Parse test output and create JSON reports of failures and successes.
+
+    Reads the Go test output file and extracts failed and passed tests,
+    creating test-failures.json and test-successes.json files.
+
+    Args:
+        output_file: Path to the test output log file.
+        category: Test category (e.g., 'provider-core', 'resources', 'datasources').
+        service: Service name (e.g., 'identity_and_access'), empty string for provider-core.
+    """
     failures_file = "test-failures.json"
     successes_file = "test-successes.json"
     failures = []
@@ -154,7 +203,18 @@ def parse_test_results(output_file: str, category: str, service: str) -> None:
 
 
 def run_provider_core_tests(coverage_file: str, test_output_file: str) -> int:
-    """Run provider core tests sequentially, one package at a time to conserve memory."""
+    """Run provider core tests sequentially, one package at a time to conserve memory.
+
+    Discovers all test packages in core directories (client, helpers, provider, utilities),
+    runs tests package-by-package with race detection, and collects coverage data.
+
+    Args:
+        coverage_file: Path where merged coverage data will be written.
+        test_output_file: Path where test output logs will be written.
+
+    Returns:
+        0 if all tests passed, 1 if any test failed.
+    """
     print("\n🔍 Discovering provider core test packages...\n")
     
     # Define core directories to test
@@ -267,7 +327,20 @@ def run_provider_core_tests(coverage_file: str, test_output_file: str) -> int:
 
 def run_service_tests(category: str, service: str, 
                     coverage_file: str, test_output_file: str) -> int:
-    """Run tests for a specific service sequentially, one package at a time to conserve memory."""
+    """Run tests for a specific service sequentially, one package at a time to conserve memory.
+
+    Discovers all test packages in the service directory, runs tests package-by-package,
+    and collects coverage data.
+
+    Args:
+        category: Test category ('resources' or 'datasources').
+        service: Service name (e.g., 'identity_and_access', 'device_management').
+        coverage_file: Path where merged coverage data will be written.
+        test_output_file: Path where test output logs will be written.
+
+    Returns:
+        0 if all tests passed, 1 if any test failed.
+    """
     print(f"\n🔍 Discovering test packages for {category}/{service}...")
     
     test_dir_str = f"./internal/services/{category}/{service}"

@@ -1,7 +1,16 @@
 #!/usr/bin/env python3
-"""
-Merges multiple test result JSON files from artifacts directory.
-Usage: ./merge-test-results.py <artifacts-dir> <output-file> [filename-to-merge]
+"""Merges multiple test result JSON files from artifacts directory.
+
+This script recursively searches an artifacts directory for test result JSON files
+(test-failures.json or test-successes.json) and merges them into a single file.
+
+Usage:
+    ./merge-test-results.py <artifacts-dir> <output-file> [filename-to-merge]
+
+Args:
+    artifacts-dir: Directory containing downloaded test artifacts.
+    output-file: Path to write merged JSON output.
+    filename-to-merge: Name of files to merge (default: test-failures.json).
 """
 
 import sys
@@ -10,12 +19,28 @@ from pathlib import Path
 
 
 def find_result_files(artifacts_dir: Path, filename: str) -> list[Path]:
-    """Find all test result files with given filename in artifacts directory."""
+    """Find all test result files with given filename in artifacts directory.
+
+    Args:
+        artifacts_dir: Root directory to search for files.
+        filename: Name of file to search for (e.g., 'test-failures.json').
+
+    Returns:
+        List of Path objects matching the filename.
+    """
     return list(artifacts_dir.rglob(filename))
 
 
 def merge_results(result_files: list[Path], show_details: bool = False) -> list[dict]:
-    """Merge all result JSON files into a single list."""
+    """Merge all result JSON files into a single list.
+
+    Args:
+        result_files: List of JSON files to merge.
+        show_details: If True, print details of each test result.
+
+    Returns:
+        List of merged test result dictionaries.
+    """
     merged = []
     
     for result_file in result_files:

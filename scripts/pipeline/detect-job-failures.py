@@ -1,13 +1,21 @@
 #!/usr/bin/env python3
-"""
-Detects job-level failures in GitHub Actions workflow using GitHub API.
-Usage: ./detect-job-failures.py <owner> <repo> <run-id> <output-file>
+"""Detects job-level failures in GitHub Actions workflow using GitHub API.
 
-Detects:
+This script analyzes GitHub Actions workflow runs to detect infrastructure-level
+failures that are not test failures, including:
 - Job timeouts
 - Job cancellations
 - Infrastructure failures (OOM, runner issues)
-- Step failures that prevented test execution
+- Setup/dependency step failures that prevented test execution
+
+Usage:
+    ./detect-job-failures.py <owner> <repo> <run-id> <output-file>
+
+Args:
+    owner: GitHub repository owner.
+    repo: GitHub repository name.
+    run-id: GitHub Actions workflow run ID.
+    output-file: Path to write job failures JSON output.
 """
 
 import sys
@@ -34,7 +42,16 @@ def run_gh_command(args: list[str]) -> str:
 
 
 def get_workflow_jobs(owner: str, repo: str, run_id: str) -> list[dict]:
-    """Get all jobs for a workflow run."""
+    """Get all jobs for a workflow run.
+
+    Args:
+        owner: GitHub repository owner.
+        repo: GitHub repository name.
+        run_id: GitHub Actions workflow run ID.
+
+    Returns:
+        List of job dictionaries from GitHub API.
+    """
     try:
         result = run_gh_command([
             "api",
@@ -54,7 +71,15 @@ def get_workflow_jobs(owner: str, repo: str, run_id: str) -> list[dict]:
 
 
 def analyze_job_failure(job: dict) -> Optional[dict]:
-    """Analyze a failed job to determine failure type and details."""
+    """Analyze a failed job to determine failure type and details.
+
+    Args:
+        job: Job dictionary from GitHub API.
+
+    Returns:
+        Dictionary with failure details if this is an infrastructure failure,
+        None if it's a test failure or the job didn't fail.
+    """
     # Skip jobs that didn't fail at job level
     if job.get("conclusion") not in ["failure", "cancelled", "timed_out"]:
         return None

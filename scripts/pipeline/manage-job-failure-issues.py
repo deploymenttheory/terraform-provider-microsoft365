@@ -1,14 +1,22 @@
 #!/usr/bin/env python3
-"""
-Manages GitHub issues for job-level failures.
-Usage: ./manage-job-failure-issues.py <owner> <repo> <run-id> <job-failures-json>
+"""Manages GitHub issues for job-level failures.
 
-Creates issues for:
+This script creates or updates GitHub issues for infrastructure-level failures
+in GitHub Actions workflows, including:
 - Infrastructure failures
 - Job timeouts
 - Runner failures
-- OOM errors
-- Step failures that prevented tests from running
+- OOM (Out of Memory) errors
+- Setup/dependency step failures that prevented tests from running
+
+Usage:
+    ./manage-job-failure-issues.py <owner> <repo> <run-id> <job-failures-json>
+
+Args:
+    owner: GitHub repository owner.
+    repo: GitHub repository name.
+    run-id: GitHub Actions workflow run ID.
+    job-failures-json: Path to job failures JSON file from detect-job-failures.py.
 """
 
 import sys
@@ -76,7 +84,19 @@ def find_existing_issue(owner: str, repo: str, job_name: str) -> Optional[str]:
 
 def create_job_failure_issue(owner: str, repo: str, failure: dict, 
                             date: str, run_id: str, workflow_url: str) -> str:
-    """Create a new issue for job failure."""
+    """Create a new issue for job failure.
+
+    Args:
+        owner: GitHub repository owner.
+        repo: GitHub repository name.
+        failure: Failure dictionary with job details.
+        date: Date string for the failure.
+        run_id: GitHub Actions workflow run ID.
+        workflow_url: URL to the workflow run.
+
+    Returns:
+        URL of the created issue.
+    """
     job_name = failure["job_name"]
     failure_type = failure["failure_type"].replace("_", " ").title()
     failed_step = failure.get("failed_step", "Unknown")
