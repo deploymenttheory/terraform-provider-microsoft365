@@ -143,3 +143,42 @@ func MapToFrameworkStringList(ctx context.Context, data map[string]any, key stri
 	}
 	return types.ListNull(types.StringType)
 }
+
+// MapToFrameworkStringSetFromNumbers extracts a numeric slice from a map, converts to strings,
+// and returns a Terraform Framework string set. Handles int, int32, int64, float64, and string types.
+// Returns empty set for empty arrays, null only if key doesn't exist.
+func MapToFrameworkStringSetFromNumbers(ctx context.Context, data map[string]any, key string) types.Set {
+	value, exists := data[key]
+	if !exists {
+		return types.SetNull(types.StringType)
+	}
+
+	rawSlice, ok := value.([]any)
+	if !ok {
+		return types.SetNull(types.StringType)
+	}
+
+	strings := make([]string, 0, len(rawSlice))
+	for _, item := range rawSlice {
+		switch v := item.(type) {
+		case float64:
+			strings = append(strings, fmt.Sprintf("%.0f", v))
+		case int:
+			strings = append(strings, fmt.Sprintf("%d", v))
+		case int32:
+			strings = append(strings, fmt.Sprintf("%d", v))
+		case int64:
+			strings = append(strings, fmt.Sprintf("%d", v))
+		case string:
+			strings = append(strings, v)
+		}
+	}
+
+	set, diags := types.SetValueFrom(ctx, types.StringType, strings)
+	if diags.HasError() {
+		tflog.Error(ctx, fmt.Sprintf("Failed to convert numbers to string set: %v", diags))
+		return types.SetNull(types.StringType)
+	}
+
+	return set
+}

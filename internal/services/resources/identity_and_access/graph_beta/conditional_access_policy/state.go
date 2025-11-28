@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -16,70 +17,15 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *ConditionalAcc
 		"remoteResource": remoteResource,
 	})
 
-	// Basic properties
-	if id, ok := remoteResource["id"].(string); ok {
-		tflog.Debug(ctx, "Mapping ID", map[string]any{"id": id})
-		data.ID = types.StringValue(id)
-	} else {
-		tflog.Debug(ctx, "ID not found or not a string")
-		data.ID = types.StringNull()
-	}
-
-	if displayName, ok := remoteResource["displayName"].(string); ok {
-		tflog.Debug(ctx, "Mapping displayName", map[string]any{"displayName": displayName})
-		data.DisplayName = types.StringValue(displayName)
-	} else {
-		tflog.Debug(ctx, "displayName not found or not a string")
-		data.DisplayName = types.StringNull()
-	}
-
-	if state, ok := remoteResource["state"].(string); ok {
-		tflog.Debug(ctx, "Mapping state", map[string]any{"state": state})
-		data.State = types.StringValue(state)
-	} else {
-		tflog.Debug(ctx, "state not found or not a string")
-		data.State = types.StringNull()
-	}
-
-	if createdDateTime, ok := remoteResource["createdDateTime"].(string); ok {
-		tflog.Debug(ctx, "Mapping createdDateTime", map[string]any{"createdDateTime": createdDateTime})
-		data.CreatedDateTime = types.StringValue(createdDateTime)
-	} else {
-		tflog.Debug(ctx, "createdDateTime not found or not a string")
-		data.CreatedDateTime = types.StringNull()
-	}
-
-	if modifiedDateTime, ok := remoteResource["modifiedDateTime"].(string); ok {
-		tflog.Debug(ctx, "Mapping modifiedDateTime", map[string]any{"modifiedDateTime": modifiedDateTime})
-		data.ModifiedDateTime = types.StringValue(modifiedDateTime)
-	} else {
-		tflog.Debug(ctx, "modifiedDateTime not found or not a string")
-		data.ModifiedDateTime = types.StringNull()
-	}
-
-	if deletedDateTime, ok := remoteResource["deletedDateTime"].(string); ok {
-		tflog.Debug(ctx, "Mapping deletedDateTime", map[string]any{"deletedDateTime": deletedDateTime})
-		data.DeletedDateTime = types.StringValue(deletedDateTime)
-	} else {
-		tflog.Debug(ctx, "deletedDateTime not found or not a string")
-		data.DeletedDateTime = types.StringNull()
-	}
-
-	if templateId, ok := remoteResource["templateId"].(string); ok {
-		tflog.Debug(ctx, "Mapping templateId", map[string]any{"templateId": templateId})
-		data.TemplateId = types.StringValue(templateId)
-	} else {
-		tflog.Debug(ctx, "templateId not found or not a string")
-		data.TemplateId = types.StringNull()
-	}
-
-	if partialEnablementStrategy, ok := remoteResource["partialEnablementStrategy"].(string); ok {
-		tflog.Debug(ctx, "Mapping partialEnablementStrategy", map[string]any{"partialEnablementStrategy": partialEnablementStrategy})
-		data.PartialEnablementStrategy = types.StringValue(partialEnablementStrategy)
-	} else {
-		tflog.Debug(ctx, "partialEnablementStrategy not found or not a string")
-		data.PartialEnablementStrategy = types.StringNull()
-	}
+	// Basic properties - using helper functions
+	data.ID = convert.MapToFrameworkString(remoteResource, "id")
+	data.DisplayName = convert.MapToFrameworkString(remoteResource, "displayName")
+	data.State = convert.MapToFrameworkString(remoteResource, "state")
+	data.CreatedDateTime = convert.MapToFrameworkString(remoteResource, "createdDateTime")
+	data.ModifiedDateTime = convert.MapToFrameworkString(remoteResource, "modifiedDateTime")
+	data.DeletedDateTime = convert.MapToFrameworkString(remoteResource, "deletedDateTime")
+	data.TemplateId = convert.MapToFrameworkString(remoteResource, "templateId")
+	data.PartialEnablementStrategy = convert.MapToFrameworkString(remoteResource, "partialEnablementStrategy")
 
 	// Map conditions
 	if conditionsRaw, ok := remoteResource["conditions"]; ok {
@@ -127,41 +73,11 @@ func mapConditions(ctx context.Context, conditionsRaw any) *ConditionalAccessCon
 
 	result := &ConditionalAccessConditions{}
 
-	// Map clientAppTypes (set)
-	if clientAppTypesRaw, ok := conditions["clientAppTypes"]; ok {
-		tflog.Debug(ctx, "Mapping clientAppTypes", map[string]any{"clientAppTypes": clientAppTypesRaw})
-		result.ClientAppTypes = mapStringSliceToSet(ctx, clientAppTypesRaw, "clientAppTypes")
-	} else {
-		tflog.Debug(ctx, "clientAppTypes not found, setting to null")
-		result.ClientAppTypes = types.SetNull(types.StringType)
-	}
-
-	// Map signInRiskLevels (set)
-	if signInRiskLevelsRaw, ok := conditions["signInRiskLevels"]; ok {
-		tflog.Debug(ctx, "Mapping signInRiskLevels", map[string]any{"signInRiskLevels": signInRiskLevelsRaw})
-		result.SignInRiskLevels = mapStringSliceToSet(ctx, signInRiskLevelsRaw, "signInRiskLevels")
-	} else {
-		tflog.Debug(ctx, "signInRiskLevels not found, setting to null")
-		result.SignInRiskLevels = types.SetNull(types.StringType)
-	}
-
-	// Map userRiskLevels (set) - OPTIONAL field
-	if userRiskLevelsRaw, ok := conditions["userRiskLevels"]; ok {
-		tflog.Debug(ctx, "Mapping userRiskLevels", map[string]any{"userRiskLevels": userRiskLevelsRaw})
-		result.UserRiskLevels = mapOptionalStringSliceToSet(ctx, userRiskLevelsRaw, "userRiskLevels")
-	} else {
-		tflog.Debug(ctx, "userRiskLevels not found, setting to null")
-		result.UserRiskLevels = types.SetNull(types.StringType)
-	}
-
-	// Map servicePrincipalRiskLevels (set)
-	if servicePrincipalRiskLevelsRaw, ok := conditions["servicePrincipalRiskLevels"]; ok {
-		tflog.Debug(ctx, "Mapping servicePrincipalRiskLevels", map[string]any{"servicePrincipalRiskLevels": servicePrincipalRiskLevelsRaw})
-		result.ServicePrincipalRiskLevels = mapStringSliceToSet(ctx, servicePrincipalRiskLevelsRaw, "servicePrincipalRiskLevels")
-	} else {
-		tflog.Debug(ctx, "servicePrincipalRiskLevels not found, setting to null")
-		result.ServicePrincipalRiskLevels = types.SetNull(types.StringType)
-	}
+	// Map sets using helper functions
+	result.ClientAppTypes = mapStringSliceToSet(ctx, conditions["clientAppTypes"], "clientAppTypes")
+	result.SignInRiskLevels = mapStringSliceToSet(ctx, conditions["signInRiskLevels"], "signInRiskLevels")
+	result.UserRiskLevels = mapOptionalStringSliceToSet(ctx, conditions["userRiskLevels"], "userRiskLevels")
+	result.ServicePrincipalRiskLevels = mapStringSliceToSet(ctx, conditions["servicePrincipalRiskLevels"], "servicePrincipalRiskLevels")
 
 	// Map applications
 	if applicationsRaw, ok := conditions["applications"]; ok {
@@ -256,41 +172,11 @@ func mapApplications(ctx context.Context, applicationsRaw any) *ConditionalAcces
 
 	result := &ConditionalAccessApplications{}
 
-	// Map includeApplications (set)
-	if includeApplicationsRaw, ok := applications["includeApplications"]; ok {
-		tflog.Debug(ctx, "Mapping includeApplications", map[string]any{"includeApplications": includeApplicationsRaw})
-		result.IncludeApplications = mapStringSliceToSet(ctx, includeApplicationsRaw, "includeApplications")
-	} else {
-		tflog.Debug(ctx, "includeApplications not found, setting to null")
-		result.IncludeApplications = types.SetNull(types.StringType)
-	}
-
-	// Map excludeApplications (set)
-	if excludeApplicationsRaw, ok := applications["excludeApplications"]; ok {
-		tflog.Debug(ctx, "Mapping excludeApplications", map[string]any{"excludeApplications": excludeApplicationsRaw})
-		result.ExcludeApplications = mapStringSliceToSet(ctx, excludeApplicationsRaw, "excludeApplications")
-	} else {
-		tflog.Debug(ctx, "excludeApplications not found, setting to null")
-		result.ExcludeApplications = types.SetNull(types.StringType)
-	}
-
-	// Map includeUserActions (set)
-	if includeUserActionsRaw, ok := applications["includeUserActions"]; ok {
-		tflog.Debug(ctx, "Mapping includeUserActions", map[string]any{"includeUserActions": includeUserActionsRaw})
-		result.IncludeUserActions = mapStringSliceToSet(ctx, includeUserActionsRaw, "includeUserActions")
-	} else {
-		tflog.Debug(ctx, "includeUserActions not found, setting to null")
-		result.IncludeUserActions = types.SetNull(types.StringType)
-	}
-
-	// Map includeAuthenticationContextClassReferences (set)
-	if includeAuthContextRaw, ok := applications["includeAuthenticationContextClassReferences"]; ok {
-		tflog.Debug(ctx, "Mapping includeAuthenticationContextClassReferences", map[string]any{"includeAuthenticationContextClassReferences": includeAuthContextRaw})
-		result.IncludeAuthenticationContextClassReferences = mapAuthContextClassReferencesToSet(ctx, includeAuthContextRaw, "includeAuthenticationContextClassReferences")
-	} else {
-		tflog.Debug(ctx, "includeAuthenticationContextClassReferences not found, setting to null")
-		result.IncludeAuthenticationContextClassReferences = types.SetNull(types.StringType)
-	}
+	// Map sets
+	result.IncludeApplications = mapStringSliceToSet(ctx, applications["includeApplications"], "includeApplications")
+	result.ExcludeApplications = mapStringSliceToSet(ctx, applications["excludeApplications"], "excludeApplications")
+	result.IncludeUserActions = mapStringSliceToSet(ctx, applications["includeUserActions"], "includeUserActions")
+	result.IncludeAuthenticationContextClassReferences = mapAuthContextClassReferencesToSet(ctx, applications["includeAuthenticationContextClassReferences"], "includeAuthenticationContextClassReferences")
 
 	// Map applicationFilter
 	if applicationFilterRaw, ok := applications["applicationFilter"]; ok {
@@ -313,59 +199,13 @@ func mapUsers(ctx context.Context, usersRaw any) *ConditionalAccessUsers {
 
 	result := &ConditionalAccessUsers{}
 
-	// Map includeUsers (set)
-	if includeUsersRaw, ok := users["includeUsers"]; ok {
-		tflog.Debug(ctx, "Mapping includeUsers", map[string]any{"includeUsers": includeUsersRaw})
-		result.IncludeUsers = mapStringSliceToSet(ctx, includeUsersRaw, "includeUsers")
-	} else {
-		tflog.Debug(ctx, "includeUsers not found, setting to null")
-		result.IncludeUsers = types.SetNull(types.StringType)
-	}
-
-	// Map excludeUsers (set)
-	if excludeUsersRaw, ok := users["excludeUsers"]; ok {
-		tflog.Debug(ctx, "Mapping excludeUsers", map[string]any{"excludeUsers": excludeUsersRaw})
-		result.ExcludeUsers = mapStringSliceToSet(ctx, excludeUsersRaw, "excludeUsers")
-	} else {
-		tflog.Debug(ctx, "excludeUsers not found, setting to null")
-		result.ExcludeUsers = types.SetNull(types.StringType)
-	}
-
-	// Map includeGroups (set)
-	if includeGroupsRaw, ok := users["includeGroups"]; ok {
-		tflog.Debug(ctx, "Mapping includeGroups", map[string]any{"includeGroups": includeGroupsRaw})
-		result.IncludeGroups = mapStringSliceToSet(ctx, includeGroupsRaw, "includeGroups")
-	} else {
-		tflog.Debug(ctx, "includeGroups not found, setting to null")
-		result.IncludeGroups = types.SetNull(types.StringType)
-	}
-
-	// Map excludeGroups (set)
-	if excludeGroupsRaw, ok := users["excludeGroups"]; ok {
-		tflog.Debug(ctx, "Mapping excludeGroups", map[string]any{"excludeGroups": excludeGroupsRaw})
-		result.ExcludeGroups = mapStringSliceToSet(ctx, excludeGroupsRaw, "excludeGroups")
-	} else {
-		tflog.Debug(ctx, "excludeGroups not found, setting to null")
-		result.ExcludeGroups = types.SetNull(types.StringType)
-	}
-
-	// Map includeRoles (set)
-	if includeRolesRaw, ok := users["includeRoles"]; ok {
-		tflog.Debug(ctx, "Mapping includeRoles", map[string]any{"includeRoles": includeRolesRaw})
-		result.IncludeRoles = mapStringSliceToSet(ctx, includeRolesRaw, "includeRoles")
-	} else {
-		tflog.Debug(ctx, "includeRoles not found, setting to null")
-		result.IncludeRoles = types.SetNull(types.StringType)
-	}
-
-	// Map excludeRoles (set)
-	if excludeRolesRaw, ok := users["excludeRoles"]; ok {
-		tflog.Debug(ctx, "Mapping excludeRoles", map[string]any{"excludeRoles": excludeRolesRaw})
-		result.ExcludeRoles = mapStringSliceToSet(ctx, excludeRolesRaw, "excludeRoles")
-	} else {
-		tflog.Debug(ctx, "excludeRoles not found, setting to null")
-		result.ExcludeRoles = types.SetNull(types.StringType)
-	}
+	// Map sets
+	result.IncludeUsers = mapStringSliceToSet(ctx, users["includeUsers"], "includeUsers")
+	result.ExcludeUsers = mapStringSliceToSet(ctx, users["excludeUsers"], "excludeUsers")
+	result.IncludeGroups = mapStringSliceToSet(ctx, users["includeGroups"], "includeGroups")
+	result.ExcludeGroups = mapStringSliceToSet(ctx, users["excludeGroups"], "excludeGroups")
+	result.IncludeRoles = mapStringSliceToSet(ctx, users["includeRoles"], "includeRoles")
+	result.ExcludeRoles = mapStringSliceToSet(ctx, users["excludeRoles"], "excludeRoles")
 
 	// Map includeGuestsOrExternalUsers (object)
 	if includeGuestsOrExternalUsersRaw, ok := users["includeGuestsOrExternalUsers"]; ok {
@@ -412,25 +252,8 @@ func mapLocations(ctx context.Context, locationsRaw any) *ConditionalAccessLocat
 	}
 
 	result := &ConditionalAccessLocations{}
-
-	// Map includeLocations (set)
-	if includeLocationsRaw, ok := locations["includeLocations"]; ok {
-		tflog.Debug(ctx, "Mapping includeLocations", map[string]any{"includeLocations": includeLocationsRaw})
-		result.IncludeLocations = mapStringSliceToSet(ctx, includeLocationsRaw, "includeLocations")
-	} else {
-		tflog.Debug(ctx, "includeLocations not found, setting to null")
-		result.IncludeLocations = types.SetNull(types.StringType)
-	}
-
-	// Map excludeLocations (set)
-	if excludeLocationsRaw, ok := locations["excludeLocations"]; ok {
-		tflog.Debug(ctx, "Mapping excludeLocations", map[string]any{"excludeLocations": excludeLocationsRaw})
-		result.ExcludeLocations = mapStringSliceToSet(ctx, excludeLocationsRaw, "excludeLocations")
-	} else {
-		tflog.Debug(ctx, "excludeLocations not found, setting to null")
-		result.ExcludeLocations = types.SetNull(types.StringType)
-	}
-
+	result.IncludeLocations = mapStringSliceToSet(ctx, locations["includeLocations"], "includeLocations")
+	result.ExcludeLocations = mapStringSliceToSet(ctx, locations["excludeLocations"], "excludeLocations")
 	return result
 }
 
@@ -442,25 +265,8 @@ func mapPlatforms(ctx context.Context, platformsRaw any) *ConditionalAccessPlatf
 	}
 
 	result := &ConditionalAccessPlatforms{}
-
-	// Map includePlatforms (set)
-	if includePlatformsRaw, ok := platforms["includePlatforms"]; ok {
-		tflog.Debug(ctx, "Mapping includePlatforms", map[string]any{"includePlatforms": includePlatformsRaw})
-		result.IncludePlatforms = mapStringSliceToSet(ctx, includePlatformsRaw, "includePlatforms")
-	} else {
-		tflog.Debug(ctx, "includePlatforms not found, setting to null")
-		result.IncludePlatforms = types.SetNull(types.StringType)
-	}
-
-	// Map excludePlatforms (set)
-	if excludePlatformsRaw, ok := platforms["excludePlatforms"]; ok {
-		tflog.Debug(ctx, "Mapping excludePlatforms", map[string]any{"excludePlatforms": excludePlatformsRaw})
-		result.ExcludePlatforms = mapStringSliceToSet(ctx, excludePlatformsRaw, "excludePlatforms")
-	} else {
-		tflog.Debug(ctx, "excludePlatforms not found, setting to null")
-		result.ExcludePlatforms = types.SetNull(types.StringType)
-	}
-
+	result.IncludePlatforms = mapStringSliceToSet(ctx, platforms["includePlatforms"], "includePlatforms")
+	result.ExcludePlatforms = mapStringSliceToSet(ctx, platforms["excludePlatforms"], "excludePlatforms")
 	return result
 }
 
@@ -472,42 +278,10 @@ func mapDevices(ctx context.Context, devicesRaw any) *ConditionalAccessDevices {
 	}
 
 	result := &ConditionalAccessDevices{}
-
-	// Map includeDevices (set) - OPTIONAL field
-	if includeDevicesRaw, ok := devices["includeDevices"]; ok {
-		tflog.Debug(ctx, "Mapping includeDevices", map[string]any{"includeDevices": includeDevicesRaw})
-		result.IncludeDevices = mapOptionalStringSliceToSet(ctx, includeDevicesRaw, "includeDevices")
-	} else {
-		tflog.Debug(ctx, "includeDevices not found, setting to null")
-		result.IncludeDevices = types.SetNull(types.StringType)
-	}
-
-	// Map excludeDevices (set) - OPTIONAL field
-	if excludeDevicesRaw, ok := devices["excludeDevices"]; ok {
-		tflog.Debug(ctx, "Mapping excludeDevices", map[string]any{"excludeDevices": excludeDevicesRaw})
-		result.ExcludeDevices = mapOptionalStringSliceToSet(ctx, excludeDevicesRaw, "excludeDevices")
-	} else {
-		tflog.Debug(ctx, "excludeDevices not found, setting to null")
-		result.ExcludeDevices = types.SetNull(types.StringType)
-	}
-
-	// Map includeDeviceStates (set) - OPTIONAL field
-	if includeDeviceStatesRaw, ok := devices["includeDeviceStates"]; ok {
-		tflog.Debug(ctx, "Mapping includeDeviceStates", map[string]any{"includeDeviceStates": includeDeviceStatesRaw})
-		result.IncludeDeviceStates = mapOptionalStringSliceToSet(ctx, includeDeviceStatesRaw, "includeDeviceStates")
-	} else {
-		tflog.Debug(ctx, "includeDeviceStates not found, setting to null")
-		result.IncludeDeviceStates = types.SetNull(types.StringType)
-	}
-
-	// Map excludeDeviceStates (set) - OPTIONAL field
-	if excludeDeviceStatesRaw, ok := devices["excludeDeviceStates"]; ok {
-		tflog.Debug(ctx, "Mapping excludeDeviceStates", map[string]any{"excludeDeviceStates": excludeDeviceStatesRaw})
-		result.ExcludeDeviceStates = mapOptionalStringSliceToSet(ctx, excludeDeviceStatesRaw, "excludeDeviceStates")
-	} else {
-		tflog.Debug(ctx, "excludeDeviceStates not found, setting to null")
-		result.ExcludeDeviceStates = types.SetNull(types.StringType)
-	}
+	result.IncludeDevices = mapOptionalStringSliceToSet(ctx, devices["includeDevices"], "includeDevices")
+	result.ExcludeDevices = mapOptionalStringSliceToSet(ctx, devices["excludeDevices"], "excludeDevices")
+	result.IncludeDeviceStates = mapOptionalStringSliceToSet(ctx, devices["includeDeviceStates"], "includeDeviceStates")
+	result.ExcludeDeviceStates = mapOptionalStringSliceToSet(ctx, devices["excludeDeviceStates"], "excludeDeviceStates")
 
 	// Map deviceFilter
 	if deviceFilterRaw, ok := devices["deviceFilter"]; ok {
@@ -529,25 +303,8 @@ func mapClientApplications(ctx context.Context, clientApplicationsRaw any) *Cond
 	}
 
 	result := &ConditionalAccessClientApplications{}
-
-	// Map includeServicePrincipals (set)
-	if includeServicePrincipalsRaw, ok := clientApplications["includeServicePrincipals"]; ok {
-		tflog.Debug(ctx, "Mapping includeServicePrincipals", map[string]any{"includeServicePrincipals": includeServicePrincipalsRaw})
-		result.IncludeServicePrincipals = mapStringSliceToSet(ctx, includeServicePrincipalsRaw, "includeServicePrincipals")
-	} else {
-		tflog.Debug(ctx, "includeServicePrincipals not found, setting to null")
-		result.IncludeServicePrincipals = types.SetNull(types.StringType)
-	}
-
-	// Map excludeServicePrincipals (set)
-	if excludeServicePrincipalsRaw, ok := clientApplications["excludeServicePrincipals"]; ok {
-		tflog.Debug(ctx, "Mapping excludeServicePrincipals", map[string]any{"excludeServicePrincipals": excludeServicePrincipalsRaw})
-		result.ExcludeServicePrincipals = mapStringSliceToSet(ctx, excludeServicePrincipalsRaw, "excludeServicePrincipals")
-	} else {
-		tflog.Debug(ctx, "excludeServicePrincipals not found, setting to null")
-		result.ExcludeServicePrincipals = types.SetNull(types.StringType)
-	}
-
+	result.IncludeServicePrincipals = mapStringSliceToSet(ctx, clientApplications["includeServicePrincipals"], "includeServicePrincipals")
+	result.ExcludeServicePrincipals = mapStringSliceToSet(ctx, clientApplications["excludeServicePrincipals"], "excludeServicePrincipals")
 	return result
 }
 
@@ -559,57 +316,12 @@ func mapTimes(ctx context.Context, timesRaw any) *ConditionalAccessTimes {
 	}
 
 	result := &ConditionalAccessTimes{}
-
-	// Map includedRanges (set)
-	if includedRangesRaw, ok := times["includedRanges"]; ok {
-		tflog.Debug(ctx, "Mapping includedRanges", map[string]any{"includedRanges": includedRangesRaw})
-		result.IncludedRanges = mapStringSliceToSet(ctx, includedRangesRaw, "includedRanges")
-	} else {
-		tflog.Debug(ctx, "includedRanges not found, setting to null")
-		result.IncludedRanges = types.SetNull(types.StringType)
-	}
-
-	// Map excludedRanges (set)
-	if excludedRangesRaw, ok := times["excludedRanges"]; ok {
-		tflog.Debug(ctx, "Mapping excludedRanges", map[string]any{"excludedRanges": excludedRangesRaw})
-		result.ExcludedRanges = mapStringSliceToSet(ctx, excludedRangesRaw, "excludedRanges")
-	} else {
-		tflog.Debug(ctx, "excludedRanges not found, setting to null")
-		result.ExcludedRanges = types.SetNull(types.StringType)
-	}
-
-	if allDay, ok := times["allDay"].(bool); ok {
-		tflog.Debug(ctx, "Mapping allDay", map[string]any{"allDay": allDay})
-		result.AllDay = types.BoolValue(allDay)
-	} else {
-		tflog.Debug(ctx, "allDay not found or not a bool")
-		result.AllDay = types.BoolNull()
-	}
-
-	if startTime, ok := times["startTime"].(string); ok {
-		tflog.Debug(ctx, "Mapping startTime", map[string]any{"startTime": startTime})
-		result.StartTime = types.StringValue(startTime)
-	} else {
-		tflog.Debug(ctx, "startTime not found or not a string")
-		result.StartTime = types.StringNull()
-	}
-
-	if endTime, ok := times["endTime"].(string); ok {
-		tflog.Debug(ctx, "Mapping endTime", map[string]any{"endTime": endTime})
-		result.EndTime = types.StringValue(endTime)
-	} else {
-		tflog.Debug(ctx, "endTime not found or not a string")
-		result.EndTime = types.StringNull()
-	}
-
-	if timeZone, ok := times["timeZone"].(string); ok {
-		tflog.Debug(ctx, "Mapping timeZone", map[string]any{"timeZone": timeZone})
-		result.TimeZone = types.StringValue(timeZone)
-	} else {
-		tflog.Debug(ctx, "timeZone not found or not a string")
-		result.TimeZone = types.StringNull()
-	}
-
+	result.IncludedRanges = mapStringSliceToSet(ctx, times["includedRanges"], "includedRanges")
+	result.ExcludedRanges = mapStringSliceToSet(ctx, times["excludedRanges"], "excludedRanges")
+	result.AllDay = convert.MapToFrameworkBool(times, "allDay")
+	result.StartTime = convert.MapToFrameworkString(times, "startTime")
+	result.EndTime = convert.MapToFrameworkString(times, "endTime")
+	result.TimeZone = convert.MapToFrameworkString(times, "timeZone")
 	return result
 }
 
@@ -621,25 +333,8 @@ func mapDeviceStates(ctx context.Context, deviceStatesRaw any) *ConditionalAcces
 	}
 
 	result := &ConditionalAccessDeviceStates{}
-
-	// Map includeStates (set)
-	if includeStatesRaw, ok := deviceStates["includeStates"]; ok {
-		tflog.Debug(ctx, "Mapping includeStates", map[string]any{"includeStates": includeStatesRaw})
-		result.IncludeStates = mapStringSliceToSet(ctx, includeStatesRaw, "includeStates")
-	} else {
-		tflog.Debug(ctx, "includeStates not found, setting to null")
-		result.IncludeStates = types.SetNull(types.StringType)
-	}
-
-	// Map excludeStates (set)
-	if excludeStatesRaw, ok := deviceStates["excludeStates"]; ok {
-		tflog.Debug(ctx, "Mapping excludeStates", map[string]any{"excludeStates": excludeStatesRaw})
-		result.ExcludeStates = mapStringSliceToSet(ctx, excludeStatesRaw, "excludeStates")
-	} else {
-		tflog.Debug(ctx, "excludeStates not found, setting to null")
-		result.ExcludeStates = types.SetNull(types.StringType)
-	}
-
+	result.IncludeStates = mapStringSliceToSet(ctx, deviceStates["includeStates"], "includeStates")
+	result.ExcludeStates = mapStringSliceToSet(ctx, deviceStates["excludeStates"], "excludeStates")
 	return result
 }
 
@@ -651,21 +346,7 @@ func mapAuthenticationFlows(ctx context.Context, authenticationFlowsRaw any) *Co
 	}
 
 	result := &ConditionalAccessAuthenticationFlows{}
-
-	// Map transferMethods (string)
-	if transferMethodsRaw, ok := authenticationFlows["transferMethods"]; ok {
-		if transferMethodsStr, ok := transferMethodsRaw.(string); ok {
-			tflog.Debug(ctx, "Mapping transferMethods", map[string]any{"transferMethods": transferMethodsStr})
-			result.TransferMethods = types.StringValue(transferMethodsStr)
-		} else {
-			tflog.Debug(ctx, "transferMethods is not a string, setting to null")
-			result.TransferMethods = types.StringNull()
-		}
-	} else {
-		tflog.Debug(ctx, "transferMethods not found, setting to null")
-		result.TransferMethods = types.StringNull()
-	}
-
+	result.TransferMethods = convert.MapToFrameworkString(authenticationFlows, "transferMethods")
 	return result
 }
 
@@ -677,41 +358,10 @@ func mapGrantControls(ctx context.Context, grantControlsRaw any) *ConditionalAcc
 	}
 
 	result := &ConditionalAccessGrantControls{}
-
-	if operator, ok := grantControls["operator"].(string); ok {
-		tflog.Debug(ctx, "Mapping grantControls operator", map[string]any{"operator": operator})
-		result.Operator = types.StringValue(operator)
-	} else {
-		tflog.Debug(ctx, "grantControls operator not found or not a string")
-		result.Operator = types.StringNull()
-	}
-
-	// Map builtInControls (set)
-	if builtInControlsRaw, ok := grantControls["builtInControls"]; ok {
-		tflog.Debug(ctx, "Mapping builtInControls", map[string]any{"builtInControls": builtInControlsRaw})
-		result.BuiltInControls = mapStringSliceToSet(ctx, builtInControlsRaw, "builtInControls")
-	} else {
-		tflog.Debug(ctx, "builtInControls not found, setting to null")
-		result.BuiltInControls = types.SetNull(types.StringType)
-	}
-
-	// Map customAuthenticationFactors (set)
-	if customAuthenticationFactorsRaw, ok := grantControls["customAuthenticationFactors"]; ok {
-		tflog.Debug(ctx, "Mapping customAuthenticationFactors", map[string]any{"customAuthenticationFactors": customAuthenticationFactorsRaw})
-		result.CustomAuthenticationFactors = mapStringSliceToSet(ctx, customAuthenticationFactorsRaw, "customAuthenticationFactors")
-	} else {
-		tflog.Debug(ctx, "customAuthenticationFactors not found, setting to null")
-		result.CustomAuthenticationFactors = types.SetNull(types.StringType)
-	}
-
-	// Map termsOfUse (set) - OPTIONAL field
-	if termsOfUseRaw, ok := grantControls["termsOfUse"]; ok {
-		tflog.Debug(ctx, "Mapping termsOfUse", map[string]any{"termsOfUse": termsOfUseRaw})
-		result.TermsOfUse = mapOptionalStringSliceToSet(ctx, termsOfUseRaw, "termsOfUse")
-	} else {
-		tflog.Debug(ctx, "termsOfUse not found, setting to null")
-		result.TermsOfUse = types.SetNull(types.StringType)
-	}
+	result.Operator = convert.MapToFrameworkString(grantControls, "operator")
+	result.BuiltInControls = mapStringSliceToSet(ctx, grantControls["builtInControls"], "builtInControls")
+	result.CustomAuthenticationFactors = mapStringSliceToSet(ctx, grantControls["customAuthenticationFactors"], "customAuthenticationFactors")
+	result.TermsOfUse = mapOptionalStringSliceToSet(ctx, grantControls["termsOfUse"], "termsOfUse")
 
 	// Map authenticationStrength
 	if authenticationStrengthRaw, ok := grantControls["authenticationStrength"]; ok {
@@ -733,14 +383,7 @@ func mapSessionControls(ctx context.Context, sessionControlsRaw any) *Conditiona
 	}
 
 	result := &ConditionalAccessSessionControls{}
-
-	if disableResilienceDefaults, ok := sessionControls["disableResilienceDefaults"].(bool); ok {
-		tflog.Debug(ctx, "Mapping disableResilienceDefaults", map[string]any{"disableResilienceDefaults": disableResilienceDefaults})
-		result.DisableResilienceDefaults = types.BoolValue(disableResilienceDefaults)
-	} else {
-		tflog.Debug(ctx, "disableResilienceDefaults not found or not a bool")
-		result.DisableResilienceDefaults = types.BoolNull()
-	}
+	result.DisableResilienceDefaults = convert.MapToFrameworkBool(sessionControls, "disableResilienceDefaults")
 
 	// Map applicationEnforcedRestrictions
 	if applicationEnforcedRestrictionsRaw, ok := sessionControls["applicationEnforcedRestrictions"]; ok {
@@ -960,23 +603,8 @@ func mapFilter(ctx context.Context, filterRaw any) *ConditionalAccessFilter {
 	}
 
 	result := &ConditionalAccessFilter{}
-
-	if mode, ok := filter["mode"].(string); ok {
-		tflog.Debug(ctx, "Mapping filter mode", map[string]any{"mode": mode})
-		result.Mode = types.StringValue(mode)
-	} else {
-		tflog.Debug(ctx, "filter mode not found or not a string")
-		result.Mode = types.StringNull()
-	}
-
-	if rule, ok := filter["rule"].(string); ok {
-		tflog.Debug(ctx, "Mapping filter rule", map[string]any{"rule": rule})
-		result.Rule = types.StringValue(rule)
-	} else {
-		tflog.Debug(ctx, "filter rule not found or not a string")
-		result.Rule = types.StringNull()
-	}
-
+	result.Mode = convert.MapToFrameworkString(filter, "mode")
+	result.Rule = convert.MapToFrameworkString(filter, "rule")
 	return result
 }
 
@@ -1082,71 +710,14 @@ func mapAuthenticationStrength(ctx context.Context, authenticationStrengthRaw an
 	}
 
 	result := &ConditionalAccessAuthenticationStrength{}
-
-	if id, ok := authenticationStrength["id"].(string); ok {
-		tflog.Debug(ctx, "Mapping authenticationStrength id", map[string]any{"id": id})
-		result.ID = types.StringValue(id)
-	} else {
-		tflog.Debug(ctx, "authenticationStrength id not found or not a string")
-		result.ID = types.StringNull()
-	}
-
-	if displayName, ok := authenticationStrength["displayName"].(string); ok {
-		tflog.Debug(ctx, "Mapping authenticationStrength displayName", map[string]any{"displayName": displayName})
-		result.DisplayName = types.StringValue(displayName)
-	} else {
-		tflog.Debug(ctx, "authenticationStrength displayName not found or not a string")
-		result.DisplayName = types.StringNull()
-	}
-
-	if description, ok := authenticationStrength["description"].(string); ok {
-		tflog.Debug(ctx, "Mapping authenticationStrength description", map[string]any{"description": description})
-		result.Description = types.StringValue(description)
-	} else {
-		tflog.Debug(ctx, "authenticationStrength description not found or not a string")
-		result.Description = types.StringNull()
-	}
-
-	if policyType, ok := authenticationStrength["policyType"].(string); ok {
-		tflog.Debug(ctx, "Mapping authenticationStrength policyType", map[string]any{"policyType": policyType})
-		result.PolicyType = types.StringValue(policyType)
-	} else {
-		tflog.Debug(ctx, "authenticationStrength policyType not found or not a string")
-		result.PolicyType = types.StringNull()
-	}
-
-	if requirementsSatisfied, ok := authenticationStrength["requirementsSatisfied"].(string); ok {
-		tflog.Debug(ctx, "Mapping authenticationStrength requirementsSatisfied", map[string]any{"requirementsSatisfied": requirementsSatisfied})
-		result.RequirementsSatisfied = types.StringValue(requirementsSatisfied)
-	} else {
-		tflog.Debug(ctx, "authenticationStrength requirementsSatisfied not found or not a string")
-		result.RequirementsSatisfied = types.StringNull()
-	}
-
-	if allowedCombinationsRaw, ok := authenticationStrength["allowedCombinations"]; ok {
-		tflog.Debug(ctx, "Mapping authenticationStrength allowedCombinations", map[string]any{"allowedCombinations": allowedCombinationsRaw})
-		result.AllowedCombinations = mapStringSliceToSet(ctx, allowedCombinationsRaw, "allowedCombinations")
-	} else {
-		tflog.Debug(ctx, "authenticationStrength allowedCombinations not found, setting to null")
-		result.AllowedCombinations = types.SetNull(types.StringType)
-	}
-
-	if createdDateTime, ok := authenticationStrength["createdDateTime"].(string); ok {
-		tflog.Debug(ctx, "Mapping authenticationStrength createdDateTime", map[string]any{"createdDateTime": createdDateTime})
-		result.CreatedDateTime = types.StringValue(createdDateTime)
-	} else {
-		tflog.Debug(ctx, "authenticationStrength createdDateTime not found or not a string")
-		result.CreatedDateTime = types.StringNull()
-	}
-
-	if modifiedDateTime, ok := authenticationStrength["modifiedDateTime"].(string); ok {
-		tflog.Debug(ctx, "Mapping authenticationStrength modifiedDateTime", map[string]any{"modifiedDateTime": modifiedDateTime})
-		result.ModifiedDateTime = types.StringValue(modifiedDateTime)
-	} else {
-		tflog.Debug(ctx, "authenticationStrength modifiedDateTime not found or not a string")
-		result.ModifiedDateTime = types.StringNull()
-	}
-
+	result.ID = convert.MapToFrameworkString(authenticationStrength, "id")
+	result.DisplayName = convert.MapToFrameworkString(authenticationStrength, "displayName")
+	result.Description = convert.MapToFrameworkString(authenticationStrength, "description")
+	result.PolicyType = convert.MapToFrameworkString(authenticationStrength, "policyType")
+	result.RequirementsSatisfied = convert.MapToFrameworkString(authenticationStrength, "requirementsSatisfied")
+	result.AllowedCombinations = mapStringSliceToSet(ctx, authenticationStrength["allowedCombinations"], "allowedCombinations")
+	result.CreatedDateTime = convert.MapToFrameworkString(authenticationStrength, "createdDateTime")
+	result.ModifiedDateTime = convert.MapToFrameworkString(authenticationStrength, "modifiedDateTime")
 	return result
 }
 
@@ -1158,15 +729,7 @@ func mapApplicationEnforcedRestrictions(ctx context.Context, applicationEnforced
 	}
 
 	result := &ConditionalAccessApplicationEnforcedRestrictions{}
-
-	if isEnabled, ok := applicationEnforcedRestrictions["isEnabled"].(bool); ok {
-		tflog.Debug(ctx, "Mapping applicationEnforcedRestrictions isEnabled", map[string]any{"isEnabled": isEnabled})
-		result.IsEnabled = types.BoolValue(isEnabled)
-	} else {
-		tflog.Debug(ctx, "applicationEnforcedRestrictions isEnabled not found or not a bool")
-		result.IsEnabled = types.BoolNull()
-	}
-
+	result.IsEnabled = convert.MapToFrameworkBool(applicationEnforcedRestrictions, "isEnabled")
 	return result
 }
 
@@ -1178,23 +741,8 @@ func mapCloudAppSecurity(ctx context.Context, cloudAppSecurityRaw any) *Conditio
 	}
 
 	result := &ConditionalAccessCloudAppSecurity{}
-
-	if isEnabled, ok := cloudAppSecurity["isEnabled"].(bool); ok {
-		tflog.Debug(ctx, "Mapping cloudAppSecurity isEnabled", map[string]any{"isEnabled": isEnabled})
-		result.IsEnabled = types.BoolValue(isEnabled)
-	} else {
-		tflog.Debug(ctx, "cloudAppSecurity isEnabled not found or not a bool")
-		result.IsEnabled = types.BoolNull()
-	}
-
-	if cloudAppSecurityType, ok := cloudAppSecurity["cloudAppSecurityType"].(string); ok {
-		tflog.Debug(ctx, "Mapping cloudAppSecurity cloudAppSecurityType", map[string]any{"cloudAppSecurityType": cloudAppSecurityType})
-		result.CloudAppSecurityType = types.StringValue(cloudAppSecurityType)
-	} else {
-		tflog.Debug(ctx, "cloudAppSecurity cloudAppSecurityType not found or not a string")
-		result.CloudAppSecurityType = types.StringNull()
-	}
-
+	result.IsEnabled = convert.MapToFrameworkBool(cloudAppSecurity, "isEnabled")
+	result.CloudAppSecurityType = convert.MapToFrameworkString(cloudAppSecurity, "cloudAppSecurityType")
 	return result
 }
 
@@ -1206,55 +754,11 @@ func mapSignInFrequency(ctx context.Context, signInFrequencyRaw any) *Conditiona
 	}
 
 	result := &ConditionalAccessSignInFrequency{}
-
-	if isEnabled, ok := signInFrequency["isEnabled"].(bool); ok {
-		tflog.Debug(ctx, "Mapping signInFrequency isEnabled", map[string]any{"isEnabled": isEnabled})
-		result.IsEnabled = types.BoolValue(isEnabled)
-	} else {
-		tflog.Debug(ctx, "signInFrequency isEnabled not found or not a bool")
-		result.IsEnabled = types.BoolNull()
-	}
-
-	if signInFrequencyType, ok := signInFrequency["type"].(string); ok {
-		tflog.Debug(ctx, "Mapping signInFrequency type", map[string]any{"type": signInFrequencyType})
-		result.Type = types.StringValue(signInFrequencyType)
-	} else {
-		tflog.Debug(ctx, "signInFrequency type not found or not a string")
-		result.Type = types.StringNull()
-	}
-
-	if value, ok := signInFrequency["value"]; ok {
-		if intValue, ok := value.(int); ok {
-			tflog.Debug(ctx, "Mapping signInFrequency value (int)", map[string]any{"value": intValue})
-			result.Value = types.Int64Value(int64(intValue))
-		} else if floatValue, ok := value.(float64); ok {
-			tflog.Debug(ctx, "Mapping signInFrequency value (float64)", map[string]any{"value": floatValue})
-			result.Value = types.Int64Value(int64(floatValue))
-		} else {
-			tflog.Debug(ctx, "signInFrequency value not a valid number type")
-			result.Value = types.Int64Null()
-		}
-	} else {
-		tflog.Debug(ctx, "signInFrequency value not found")
-		result.Value = types.Int64Null()
-	}
-
-	if authenticationType, ok := signInFrequency["authenticationType"].(string); ok {
-		tflog.Debug(ctx, "Mapping signInFrequency authenticationType", map[string]any{"authenticationType": authenticationType})
-		result.AuthenticationType = types.StringValue(authenticationType)
-	} else {
-		tflog.Debug(ctx, "signInFrequency authenticationType not found or not a string")
-		result.AuthenticationType = types.StringNull()
-	}
-
-	if frequencyInterval, ok := signInFrequency["frequencyInterval"].(string); ok {
-		tflog.Debug(ctx, "Mapping signInFrequency frequencyInterval", map[string]any{"frequencyInterval": frequencyInterval})
-		result.FrequencyInterval = types.StringValue(frequencyInterval)
-	} else {
-		tflog.Debug(ctx, "signInFrequency frequencyInterval not found or not a string")
-		result.FrequencyInterval = types.StringNull()
-	}
-
+	result.IsEnabled = convert.MapToFrameworkBool(signInFrequency, "isEnabled")
+	result.Type = convert.MapToFrameworkString(signInFrequency, "type")
+	result.Value = convert.MapToFrameworkInt64(signInFrequency, "value")
+	result.AuthenticationType = convert.MapToFrameworkString(signInFrequency, "authenticationType")
+	result.FrequencyInterval = convert.MapToFrameworkString(signInFrequency, "frequencyInterval")
 	return result
 }
 
@@ -1266,23 +770,8 @@ func mapPersistentBrowser(ctx context.Context, persistentBrowserRaw any) *Condit
 	}
 
 	result := &ConditionalAccessPersistentBrowser{}
-
-	if isEnabled, ok := persistentBrowser["isEnabled"].(bool); ok {
-		tflog.Debug(ctx, "Mapping persistentBrowser isEnabled", map[string]any{"isEnabled": isEnabled})
-		result.IsEnabled = types.BoolValue(isEnabled)
-	} else {
-		tflog.Debug(ctx, "persistentBrowser isEnabled not found or not a bool")
-		result.IsEnabled = types.BoolNull()
-	}
-
-	if mode, ok := persistentBrowser["mode"].(string); ok {
-		tflog.Debug(ctx, "Mapping persistentBrowser mode", map[string]any{"mode": mode})
-		result.Mode = types.StringValue(mode)
-	} else {
-		tflog.Debug(ctx, "persistentBrowser mode not found or not a string")
-		result.Mode = types.StringNull()
-	}
-
+	result.IsEnabled = convert.MapToFrameworkBool(persistentBrowser, "isEnabled")
+	result.Mode = convert.MapToFrameworkString(persistentBrowser, "mode")
 	return result
 }
 
@@ -1294,15 +783,7 @@ func mapContinuousAccessEvaluation(ctx context.Context, continuousAccessEvaluati
 	}
 
 	result := &ConditionalAccessContinuousAccessEvaluation{}
-
-	if mode, ok := continuousAccessEvaluation["mode"].(string); ok {
-		tflog.Debug(ctx, "Mapping continuousAccessEvaluation mode", map[string]any{"mode": mode})
-		result.Mode = types.StringValue(mode)
-	} else {
-		tflog.Debug(ctx, "continuousAccessEvaluation mode not found or not a string")
-		result.Mode = types.StringNull()
-	}
-
+	result.Mode = convert.MapToFrameworkString(continuousAccessEvaluation, "mode")
 	return result
 }
 
@@ -1314,15 +795,7 @@ func mapSecureSignInSession(ctx context.Context, secureSignInSessionRaw any) *Co
 	}
 
 	result := &ConditionalAccessSecureSignInSession{}
-
-	if isEnabled, ok := secureSignInSession["isEnabled"].(bool); ok {
-		tflog.Debug(ctx, "Mapping secureSignInSession isEnabled", map[string]any{"isEnabled": isEnabled})
-		result.IsEnabled = types.BoolValue(isEnabled)
-	} else {
-		tflog.Debug(ctx, "secureSignInSession isEnabled not found or not a bool")
-		result.IsEnabled = types.BoolNull()
-	}
-
+	result.IsEnabled = convert.MapToFrameworkBool(secureSignInSession, "isEnabled")
 	return result
 }
 
@@ -1332,24 +805,10 @@ func mapGlobalSecureAccessFilteringProfile(ctx context.Context, globalSecureAcce
 		tflog.Debug(ctx, "globalSecureAccessFilteringProfile is not a map[string]any")
 		return nil
 	}
+
 	result := &ConditionalAccessGlobalSecureAccessFilteringProfile{}
-
-	if isEnabled, ok := globalSecureAccessFilteringProfile["isEnabled"].(bool); ok {
-		tflog.Debug(ctx, "Mapping globalSecureAccessFilteringProfile isEnabled", map[string]any{"isEnabled": isEnabled})
-		result.IsEnabled = types.BoolValue(isEnabled)
-	} else {
-		tflog.Debug(ctx, "globalSecureAccessFilteringProfile isEnabled not found or not a bool")
-		result.IsEnabled = types.BoolNull()
-	}
-
-	if profileId, ok := globalSecureAccessFilteringProfile["profileId"].(string); ok {
-		tflog.Debug(ctx, "Mapping globalSecureAccessFilteringProfile profileId", map[string]any{"profileId": profileId})
-		result.ProfileId = types.StringValue(profileId)
-	} else {
-		tflog.Debug(ctx, "globalSecureAccessFilteringProfile profileId not found or not a string")
-		result.ProfileId = types.StringNull()
-	}
-
+	result.IsEnabled = convert.MapToFrameworkBool(globalSecureAccessFilteringProfile, "isEnabled")
+	result.ProfileId = convert.MapToFrameworkString(globalSecureAccessFilteringProfile, "profileId")
 	return result
 }
 
