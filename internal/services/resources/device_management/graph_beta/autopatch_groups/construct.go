@@ -6,9 +6,22 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
+
+// mapTypeStringToInt converts type strings to integers for API requests
+// "Device" = 0, "None" = 1
+func mapTypeStringToInt(typeStr string) int {
+	switch typeStr {
+	case "None":
+		return 1
+	case "Device":
+		return 0
+	default:
+		return 0 // Default to Device
+	}
+}
 
 // constructResource constructs a JSON request body for the Autopatch Groups API
 func constructResource(ctx context.Context, data *AutopatchGroupsResourceModel) (map[string]any, error) {
@@ -38,7 +51,8 @@ func constructResource(ctx context.Context, data *AutopatchGroupsResourceModel) 
 				groupMap["id"] = group.Id.ValueString()
 			}
 			if !group.Type.IsNull() && !group.Type.IsUnknown() {
-				groupMap["type"] = group.Type.ValueString()
+				// Convert string to integer for API (POST uses integers)
+				groupMap["type"] = mapTypeStringToInt(group.Type.ValueString())
 			}
 			globalGroupsAPI = append(globalGroupsAPI, groupMap)
 		}
@@ -84,7 +98,8 @@ func constructResource(ctx context.Context, data *AutopatchGroupsResourceModel) 
 						userGroupMap["name"] = userGroup.Name.ValueString()
 					}
 					if !userGroup.Type.IsNull() && !userGroup.Type.IsUnknown() {
-						userGroupMap["type"] = userGroup.Type.ValueInt32()
+						// Convert string to integer for API (POST uses integers)
+						userGroupMap["type"] = mapTypeStringToInt(userGroup.Type.ValueString())
 					}
 					userGroupsAPI = append(userGroupsAPI, userGroupMap)
 				}
@@ -95,66 +110,10 @@ func constructResource(ctx context.Context, data *AutopatchGroupsResourceModel) 
 
 			// Deployment Group Policy Settings
 			if group.DeploymentGroupPolicySettings != nil {
-				policyMap := make(map[string]any)
-
-				if !group.DeploymentGroupPolicySettings.AadGroupName.IsNull() && !group.DeploymentGroupPolicySettings.AadGroupName.IsUnknown() {
-					policyMap["aadGroupName"] = group.DeploymentGroupPolicySettings.AadGroupName.ValueString()
+				policyMap, err := constructDeploymentGroupPolicySettings(ctx, group.DeploymentGroupPolicySettings)
+				if err != nil {
+					return nil, fmt.Errorf("error constructing deployment group policy settings: %w", err)
 				}
-				if !group.DeploymentGroupPolicySettings.IsUpdateSettingsModified.IsNull() && !group.DeploymentGroupPolicySettings.IsUpdateSettingsModified.IsUnknown() {
-					policyMap["isUpdateSettingsModified"] = group.DeploymentGroupPolicySettings.IsUpdateSettingsModified.ValueBool()
-				}
-
-				// Device Configuration Settings
-				if group.DeploymentGroupPolicySettings.DeviceConfigurationSetting != nil {
-					deviceConfigMap := make(map[string]any)
-
-					if !group.DeploymentGroupPolicySettings.DeviceConfigurationSetting.PolicyId.IsNull() && !group.DeploymentGroupPolicySettings.DeviceConfigurationSetting.PolicyId.IsUnknown() {
-						deviceConfigMap["policyId"] = group.DeploymentGroupPolicySettings.DeviceConfigurationSetting.PolicyId.ValueString()
-					}
-					if !group.DeploymentGroupPolicySettings.DeviceConfigurationSetting.UpdateBehavior.IsNull() && !group.DeploymentGroupPolicySettings.DeviceConfigurationSetting.UpdateBehavior.IsUnknown() {
-						deviceConfigMap["updateBehavior"] = group.DeploymentGroupPolicySettings.DeviceConfigurationSetting.UpdateBehavior.ValueString()
-					}
-					if !group.DeploymentGroupPolicySettings.DeviceConfigurationSetting.NotificationSetting.IsNull() && !group.DeploymentGroupPolicySettings.DeviceConfigurationSetting.NotificationSetting.IsUnknown() {
-						deviceConfigMap["notificationSetting"] = group.DeploymentGroupPolicySettings.DeviceConfigurationSetting.NotificationSetting.ValueString()
-					}
-
-					// Quality Deployment Settings
-					if group.DeploymentGroupPolicySettings.DeviceConfigurationSetting.QualityDeploymentSettings != nil {
-						qualityMap := make(map[string]any)
-						if !group.DeploymentGroupPolicySettings.DeviceConfigurationSetting.QualityDeploymentSettings.Deadline.IsNull() && !group.DeploymentGroupPolicySettings.DeviceConfigurationSetting.QualityDeploymentSettings.Deadline.IsUnknown() {
-							qualityMap["deadline"] = group.DeploymentGroupPolicySettings.DeviceConfigurationSetting.QualityDeploymentSettings.Deadline.ValueInt32()
-						}
-						if !group.DeploymentGroupPolicySettings.DeviceConfigurationSetting.QualityDeploymentSettings.Deferral.IsNull() && !group.DeploymentGroupPolicySettings.DeviceConfigurationSetting.QualityDeploymentSettings.Deferral.IsUnknown() {
-							qualityMap["deferral"] = group.DeploymentGroupPolicySettings.DeviceConfigurationSetting.QualityDeploymentSettings.Deferral.ValueInt32()
-						}
-						if !group.DeploymentGroupPolicySettings.DeviceConfigurationSetting.QualityDeploymentSettings.GracePeriod.IsNull() && !group.DeploymentGroupPolicySettings.DeviceConfigurationSetting.QualityDeploymentSettings.GracePeriod.IsUnknown() {
-							qualityMap["gracePeriod"] = group.DeploymentGroupPolicySettings.DeviceConfigurationSetting.QualityDeploymentSettings.GracePeriod.ValueInt32()
-						}
-						deviceConfigMap["qualityDeploymentSettings"] = qualityMap
-					}
-
-					// Feature Deployment Settings
-					if group.DeploymentGroupPolicySettings.DeviceConfigurationSetting.FeatureDeploymentSettings != nil {
-						featureMap := make(map[string]any)
-						if !group.DeploymentGroupPolicySettings.DeviceConfigurationSetting.FeatureDeploymentSettings.Deadline.IsNull() && !group.DeploymentGroupPolicySettings.DeviceConfigurationSetting.FeatureDeploymentSettings.Deadline.IsUnknown() {
-							featureMap["deadline"] = group.DeploymentGroupPolicySettings.DeviceConfigurationSetting.FeatureDeploymentSettings.Deadline.ValueInt32()
-						}
-						if !group.DeploymentGroupPolicySettings.DeviceConfigurationSetting.FeatureDeploymentSettings.Deferral.IsNull() && !group.DeploymentGroupPolicySettings.DeviceConfigurationSetting.FeatureDeploymentSettings.Deferral.IsUnknown() {
-							featureMap["deferral"] = group.DeploymentGroupPolicySettings.DeviceConfigurationSetting.FeatureDeploymentSettings.Deferral.ValueInt32()
-						}
-						deviceConfigMap["featureDeploymentSettings"] = featureMap
-					}
-
-					// Add required null fields from API example
-					deviceConfigMap["updateFrequencyUI"] = nil
-					deviceConfigMap["installDays"] = nil
-					deviceConfigMap["installTime"] = nil
-					deviceConfigMap["activeHourEndTime"] = nil
-					deviceConfigMap["activeHourStartTime"] = nil
-
-					policyMap["deviceConfigurationSetting"] = deviceConfigMap
-				}
-
 				groupMap["deploymentGroupPolicySettings"] = policyMap
 			}
 
@@ -178,21 +137,22 @@ func constructResource(ctx context.Context, data *AutopatchGroupsResourceModel) 
 		requestBody["enableDriverUpdate"] = true // Default from API example
 	}
 
+	// Scope Tags - convert from string set to int array for API
 	if !data.ScopeTags.IsNull() && !data.ScopeTags.IsUnknown() {
-		var scopeTags []types.String
-		data.ScopeTags.ElementsAs(ctx, &scopeTags, false)
+		var scopeTagStrings []string
+		convert.FrameworkToGraphStringSet(ctx, data.ScopeTags, func(tags []string) {
+			scopeTagStrings = tags
+		})
 
-		scopeTagsAPI := make([]int32, 0, len(scopeTags))
-		for _, tag := range scopeTags {
-			if !tag.IsNull() && !tag.IsUnknown() {
-				if tagInt, err := strconv.Atoi(tag.ValueString()); err == nil {
-					scopeTagsAPI = append(scopeTagsAPI, int32(tagInt))
-				}
+		scopeTagsAPI := make([]int, 0, len(scopeTagStrings))
+		for _, tagStr := range scopeTagStrings {
+			if tagInt, err := strconv.Atoi(tagStr); err == nil {
+				scopeTagsAPI = append(scopeTagsAPI, tagInt)
 			}
 		}
 		requestBody["scopeTags"] = scopeTagsAPI
 	} else {
-		requestBody["scopeTags"] = []int32{0} // Default
+		requestBody["scopeTags"] = []int{0} // Default
 	}
 
 	// Enabled Content Types
@@ -212,4 +172,203 @@ func constructResource(ctx context.Context, data *AutopatchGroupsResourceModel) 
 	})
 
 	return requestBody, nil
+}
+
+// constructDeploymentGroupPolicySettings constructs the deployment group policy settings
+func constructDeploymentGroupPolicySettings(ctx context.Context, settings *DeploymentGroupPolicySettings) (map[string]any, error) {
+	policyMap := make(map[string]any)
+
+	convert.FrameworkToGraphString(settings.AadGroupName, func(val *string) {
+		if val != nil {
+			policyMap["aadGroupName"] = *val
+		}
+	})
+
+	convert.FrameworkToGraphBool(settings.IsUpdateSettingsModified, func(val *bool) {
+		if val != nil {
+			policyMap["isUpdateSettingsModified"] = *val
+		}
+	})
+
+	// Device Configuration Settings
+	if settings.DeviceConfigurationSetting != nil {
+		deviceConfigMap := make(map[string]any)
+
+		convert.FrameworkToGraphString(settings.DeviceConfigurationSetting.PolicyId, func(val *string) {
+			if val != nil {
+				deviceConfigMap["policyId"] = *val
+			}
+		})
+
+		convert.FrameworkToGraphString(settings.DeviceConfigurationSetting.UpdateBehavior, func(val *string) {
+			if val != nil {
+				deviceConfigMap["updateBehavior"] = *val
+			}
+		})
+
+		convert.FrameworkToGraphString(settings.DeviceConfigurationSetting.NotificationSetting, func(val *string) {
+			if val != nil {
+				deviceConfigMap["notificationSetting"] = *val
+			}
+		})
+
+		// Quality Deployment Settings
+		if settings.DeviceConfigurationSetting.QualityDeploymentSettings != nil {
+			qualityMap := make(map[string]any)
+			convert.FrameworkToGraphInt32(settings.DeviceConfigurationSetting.QualityDeploymentSettings.Deadline, func(val *int32) {
+				if val != nil {
+					qualityMap["deadline"] = *val
+				}
+			})
+			convert.FrameworkToGraphInt32(settings.DeviceConfigurationSetting.QualityDeploymentSettings.Deferral, func(val *int32) {
+				if val != nil {
+					qualityMap["deferral"] = *val
+				}
+			})
+			convert.FrameworkToGraphInt32(settings.DeviceConfigurationSetting.QualityDeploymentSettings.GracePeriod, func(val *int32) {
+				if val != nil {
+					qualityMap["gracePeriod"] = *val
+				}
+			})
+			deviceConfigMap["qualityDeploymentSettings"] = qualityMap
+		}
+
+		// Feature Deployment Settings
+		if settings.DeviceConfigurationSetting.FeatureDeploymentSettings != nil {
+			featureMap := make(map[string]any)
+			convert.FrameworkToGraphInt32(settings.DeviceConfigurationSetting.FeatureDeploymentSettings.Deadline, func(val *int32) {
+				if val != nil {
+					featureMap["deadline"] = *val
+				}
+			})
+			convert.FrameworkToGraphInt32(settings.DeviceConfigurationSetting.FeatureDeploymentSettings.Deferral, func(val *int32) {
+				if val != nil {
+					featureMap["deferral"] = *val
+				}
+			})
+			deviceConfigMap["featureDeploymentSettings"] = featureMap
+		}
+
+		// Add required null fields from API example
+		deviceConfigMap["updateFrequencyUI"] = nil
+		deviceConfigMap["installDays"] = nil
+		deviceConfigMap["installTime"] = nil
+		deviceConfigMap["activeHourEndTime"] = nil
+		deviceConfigMap["activeHourStartTime"] = nil
+
+		policyMap["deviceConfigurationSetting"] = deviceConfigMap
+	}
+
+	// DNF Update Cloud Setting
+	if settings.DnfUpdateCloudSetting != nil {
+		dnfMap := make(map[string]any)
+		convert.FrameworkToGraphString(settings.DnfUpdateCloudSetting.PolicyId, func(val *string) {
+			if val != nil {
+				dnfMap["policyId"] = *val
+			}
+		})
+		convert.FrameworkToGraphString(settings.DnfUpdateCloudSetting.ApprovalType, func(val *string) {
+			if val != nil {
+				dnfMap["approvalType"] = *val
+			}
+		})
+		convert.FrameworkToGraphInt32(settings.DnfUpdateCloudSetting.DeploymentDeferralInDays, func(val *int32) {
+			if val != nil {
+				dnfMap["deploymentDeferralInDays"] = *val
+			} else {
+				dnfMap["deploymentDeferralInDays"] = nil
+			}
+		})
+		policyMap["dnfUpdateCloudSetting"] = dnfMap
+	}
+
+	// Office DCv2 Setting
+	if settings.OfficeDCv2Setting != nil {
+		officeMap := make(map[string]any)
+		convert.FrameworkToGraphString(settings.OfficeDCv2Setting.PolicyId, func(val *string) {
+			if val != nil {
+				officeMap["policyId"] = *val
+			}
+		})
+		convert.FrameworkToGraphInt32(settings.OfficeDCv2Setting.Deadline, func(val *int32) {
+			if val != nil {
+				officeMap["deadline"] = *val
+			}
+		})
+		convert.FrameworkToGraphInt32(settings.OfficeDCv2Setting.Deferral, func(val *int32) {
+			if val != nil {
+				officeMap["deferral"] = *val
+			}
+		})
+		convert.FrameworkToGraphBool(settings.OfficeDCv2Setting.HideUpdateNotifications, func(val *bool) {
+			if val != nil {
+				officeMap["hideUpdateNotifications"] = *val
+			}
+		})
+		convert.FrameworkToGraphString(settings.OfficeDCv2Setting.TargetChannel, func(val *string) {
+			if val != nil {
+				officeMap["targetChannel"] = *val
+			}
+		})
+		convert.FrameworkToGraphBool(settings.OfficeDCv2Setting.EnableAutomaticUpdate, func(val *bool) {
+			if val != nil {
+				officeMap["enableAutomaticUpdate"] = *val
+			}
+		})
+		convert.FrameworkToGraphBool(settings.OfficeDCv2Setting.HideEnableDisableUpdate, func(val *bool) {
+			if val != nil {
+				officeMap["hideEnableDisableUpdate"] = *val
+			}
+		})
+		convert.FrameworkToGraphBool(settings.OfficeDCv2Setting.EnableOfficeMgmt, func(val *bool) {
+			if val != nil {
+				officeMap["enableOfficeMgmt"] = *val
+			}
+		})
+		convert.FrameworkToGraphString(settings.OfficeDCv2Setting.UpdatePath, func(val *string) {
+			if val != nil {
+				officeMap["updatePath"] = *val
+			}
+		})
+		policyMap["officeDCv2Setting"] = officeMap
+	}
+
+	// Edge DCv2 Setting
+	if settings.EdgeDCv2Setting != nil {
+		edgeMap := make(map[string]any)
+		convert.FrameworkToGraphString(settings.EdgeDCv2Setting.PolicyId, func(val *string) {
+			if val != nil {
+				edgeMap["policyId"] = *val
+			}
+		})
+		convert.FrameworkToGraphString(settings.EdgeDCv2Setting.TargetChannel, func(val *string) {
+			if val != nil {
+				edgeMap["targetChannel"] = *val
+			}
+		})
+		policyMap["edgeDCv2Setting"] = edgeMap
+	}
+
+	// Feature Update Anchor Cloud Setting
+	if settings.FeatureUpdateAnchorCloudSetting != nil {
+		featureAnchorMap := make(map[string]any)
+		convert.FrameworkToGraphString(settings.FeatureUpdateAnchorCloudSetting.TargetOSVersion, func(val *string) {
+			if val != nil {
+				featureAnchorMap["targetOSVersion"] = *val
+			}
+		})
+		convert.FrameworkToGraphBool(settings.FeatureUpdateAnchorCloudSetting.InstallLatestWindows10OnWindows11IneligibleDevice, func(val *bool) {
+			if val != nil {
+				featureAnchorMap["installLatestWindows10OnWindows11IneligibleDevice"] = *val
+			}
+		})
+		convert.FrameworkToGraphString(settings.FeatureUpdateAnchorCloudSetting.PolicyId, func(val *string) {
+			if val != nil {
+				featureAnchorMap["policyId"] = *val
+			}
+		})
+		policyMap["featureUpdateAnchorCloudSetting"] = featureAnchorMap
+	}
+
+	return policyMap, nil
 }

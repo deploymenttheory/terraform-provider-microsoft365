@@ -8,7 +8,9 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/client"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
+	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/generic_client"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -40,7 +42,6 @@ func (r *AutopatchGroupsResource) Create(ctx context.Context, req resource.Creat
 		return
 	}
 
-	// Convert the request body to JSON bytes
 	jsonBytes, err := json.Marshal(requestBody)
 	if err != nil {
 		resp.Diagnostics.AddError(
@@ -50,7 +51,6 @@ func (r *AutopatchGroupsResource) Create(ctx context.Context, req resource.Creat
 		return
 	}
 
-	// Create the HTTP request - use custom endpoint
 	url := r.APIEndpoint + r.ResourcePath
 	httpReq, err := http.NewRequestWithContext(ctx, "POST", url, bytes.NewReader(jsonBytes))
 	if err != nil {
@@ -61,10 +61,11 @@ func (r *AutopatchGroupsResource) Create(ctx context.Context, req resource.Creat
 		return
 	}
 
+	httpReq.Header.Set("Content-Type", "application/json")
+
 	tflog.Debug(ctx, fmt.Sprintf("Making POST request to: %s", url))
 
-	// Send the request
-	httpResp, err := r.httpClient.Do(httpReq)
+	httpResp, err := client.DoWithRetry(ctx, r.httpClient, httpReq, 10)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error making HTTP request",
@@ -76,23 +77,13 @@ func (r *AutopatchGroupsResource) Create(ctx context.Context, req resource.Creat
 
 	tflog.Debug(ctx, fmt.Sprintf("POST request response status: %d %s", httpResp.StatusCode, httpResp.Status))
 
-	// Check for successful creation (200 OK or 201 Created)
 	if httpResp.StatusCode != http.StatusOK && httpResp.StatusCode != http.StatusCreated {
-		var errorBody map[string]any
-		if decodeErr := json.NewDecoder(httpResp.Body).Decode(&errorBody); decodeErr == nil {
-			tflog.Debug(ctx, fmt.Sprintf("Error response body: %+v", errorBody))
-		}
-
-		resp.Diagnostics.AddError(
-			"HTTP Error on Create",
-			fmt.Sprintf("Received unexpected response status %d when creating %s", httpResp.StatusCode, ResourceName),
-		)
+		errors.HandleHTTPGraphError(ctx, httpResp, resp, "Create", r.WritePermissions)
 		return
 	}
 
-	// Parse the response to get the resource data
-	var responseData map[string]any
-	if err := json.NewDecoder(httpResp.Body).Decode(&responseData); err != nil {
+	var createdResource map[string]any
+	if err := json.NewDecoder(httpResp.Body).Decode(&createdResource); err != nil {
 		resp.Diagnostics.AddError(
 			"Error parsing response",
 			fmt.Sprintf("Could not parse response: %s: %s", ResourceName, err.Error()),
@@ -100,9 +91,24 @@ func (r *AutopatchGroupsResource) Create(ctx context.Context, req resource.Creat
 		return
 	}
 
-	// Extract ID from response
-	if id, ok := responseData["id"].(string); ok {
-		object.ID = types.StringValue(id)
+	id, ok := createdResource["id"].(string)
+	if !ok {
+		resp.Diagnostics.AddError(
+			"Error extracting resource ID",
+			"Created resource ID is missing or not a string",
+		)
+		return
+	}
+
+	object.ID = types.StringValue(id)
+	tflog.Debug(ctx, fmt.Sprintf("Successfully created %s with ID: %s", ResourceName, id))
+
+	if object.ID.IsNull() || object.ID.IsUnknown() {
+		resp.Diagnostics.AddError(
+			"Error extracting resource ID",
+			fmt.Sprintf("Could not extract ID from created resource: %s. The API may not return the full resource on creation.", ResourceName),
+		)
+		return
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
@@ -135,11 +141,10 @@ func (r *AutopatchGroupsResource) Read(ctx context.Context, req resource.ReadReq
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting Read method for: %s", ResourceName))
 
-	// Get operation type for logging
-	_ = "Read"
+	operation := "Read"
 	if ctxOp := ctx.Value("retry_operation"); ctxOp != nil {
-		if _, ok := ctxOp.(string); ok {
-			// operation context available if needed
+		if opStr, ok := ctxOp.(string); ok {
+			operation = opStr
 		}
 	}
 
@@ -156,7 +161,6 @@ func (r *AutopatchGroupsResource) Read(ctx context.Context, req resource.ReadReq
 	}
 	defer cancel()
 
-	// Create the HTTP request for GET
 	url := r.APIEndpoint + r.ResourcePath + "/" + object.ID.ValueString()
 	httpReq, err := http.NewRequestWithContext(ctx, "GET", url, nil)
 	if err != nil {
@@ -167,10 +171,11 @@ func (r *AutopatchGroupsResource) Read(ctx context.Context, req resource.ReadReq
 		return
 	}
 
+	httpReq.Header.Set("Content-Type", "application/json")
+
 	tflog.Debug(ctx, fmt.Sprintf("Making GET request to: %s", url))
 
-	// Send the request
-	httpResp, err := r.httpClient.Do(httpReq)
+	httpResp, err := client.DoWithRetry(ctx, r.httpClient, httpReq, 10)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error making HTTP request",
@@ -182,38 +187,107 @@ func (r *AutopatchGroupsResource) Read(ctx context.Context, req resource.ReadReq
 
 	tflog.Debug(ctx, fmt.Sprintf("GET request response status: %d %s", httpResp.StatusCode, httpResp.Status))
 
-	// Handle 404 - resource not found
-	if httpResp.StatusCode == http.StatusNotFound {
-		tflog.Debug(ctx, fmt.Sprintf("Resource %s not found, removing from state", ResourceName))
-		resp.State.RemoveResource(ctx)
-		return
-	}
-
-	// Check for successful read
 	if httpResp.StatusCode != http.StatusOK {
-		var errorBody map[string]any
-		if decodeErr := json.NewDecoder(httpResp.Body).Decode(&errorBody); decodeErr == nil {
-			tflog.Debug(ctx, fmt.Sprintf("Error response body: %+v", errorBody))
+		errors.HandleHTTPGraphError(ctx, httpResp, resp, operation, r.ReadPermissions)
+		return
+	}
+
+	var baseResource map[string]any
+	if err := json.NewDecoder(httpResp.Body).Decode(&baseResource); err != nil {
+		resp.Diagnostics.AddError(
+			"Error unmarshaling response",
+			fmt.Sprintf("Could not unmarshal response: %s: %s", ResourceName, err.Error()),
+		)
+		return
+	}
+
+	if prettyJson, err := json.MarshalIndent(baseResource, "", "  "); err == nil {
+		tflog.Debug(ctx, fmt.Sprintf("Raw API Response:\n%s", string(prettyJson)))
+	}
+
+	// Check if resource is still in "Creating" state and retry until "Active"
+	if status, ok := baseResource["status"].(string); ok && status == "Creating" {
+		tflog.Debug(ctx, fmt.Sprintf("Resource %s status is 'Creating', waiting for 'Active' state...", ResourceName))
+
+		maxRetries := 30
+		retryDelay := 10 * time.Second
+
+		for i := range maxRetries {
+			tflog.Debug(ctx, fmt.Sprintf("Retry %d/%d: Waiting %v before checking status again", i+1, maxRetries, retryDelay))
+
+			select {
+			case <-ctx.Done():
+				resp.Diagnostics.AddError(
+					"Context cancelled while waiting for resource to become active",
+					fmt.Sprintf("Resource %s is still in 'Creating' state", ResourceName),
+				)
+				return
+			case <-time.After(retryDelay):
+			}
+
+			retryReq, err := http.NewRequestWithContext(ctx, "GET", url, nil)
+			if err != nil {
+				resp.Diagnostics.AddError(
+					"Error creating retry HTTP request",
+					fmt.Sprintf("Could not create HTTP request: %s: %s", ResourceName, err.Error()),
+				)
+				return
+			}
+			retryReq.Header.Set("Content-Type", "application/json")
+
+			retryResp, err := client.DoWithRetry(ctx, r.httpClient, retryReq, 10)
+			if err != nil {
+				resp.Diagnostics.AddError(
+					"Error making retry HTTP request",
+					fmt.Sprintf("Could not make HTTP request: %s: %s", ResourceName, err.Error()),
+				)
+				return
+			}
+
+			if retryResp.StatusCode != http.StatusOK {
+				retryResp.Body.Close()
+				errors.HandleHTTPGraphError(ctx, retryResp, resp, operation, r.ReadPermissions)
+				return
+			}
+
+			if err := json.NewDecoder(retryResp.Body).Decode(&baseResource); err != nil {
+				retryResp.Body.Close()
+				resp.Diagnostics.AddError(
+					"Error unmarshaling retry response",
+					fmt.Sprintf("Could not unmarshal response: %s: %s", ResourceName, err.Error()),
+				)
+				return
+			}
+			retryResp.Body.Close()
+
+			if status, ok := baseResource["status"].(string); ok {
+				switch status {
+				case "Active":
+					tflog.Debug(ctx, fmt.Sprintf("Resource is now 'Active' after %d retries", i+1))
+					goto exitRetryLoop
+				case "Creating":
+					// Continue waiting
+				default:
+					tflog.Debug(ctx, fmt.Sprintf("Resource status changed to '%s'", status))
+					goto exitRetryLoop
+				}
+			}
+
+			if i == maxRetries-1 {
+				resp.Diagnostics.AddWarning(
+					"Resource still in 'Creating' state",
+					fmt.Sprintf("Resource %s is still in 'Creating' state after %d retries. Proceeding with incomplete data.", ResourceName, maxRetries),
+				)
+			}
 		}
+	exitRetryLoop:
 
-		resp.Diagnostics.AddError(
-			"HTTP Error on Read",
-			fmt.Sprintf("Received unexpected response status %d when reading %s", httpResp.StatusCode, ResourceName),
-		)
-		return
+		if prettyJson, err := json.MarshalIndent(baseResource, "", "  "); err == nil {
+			tflog.Debug(ctx, fmt.Sprintf("Final API Response after status check:\n%s", string(prettyJson)))
+		}
 	}
 
-	// Parse the response
-	var responseData map[string]any
-	if err := json.NewDecoder(httpResp.Body).Decode(&responseData); err != nil {
-		resp.Diagnostics.AddError(
-			"Error parsing response",
-			fmt.Sprintf("Could not parse response: %s: %s", ResourceName, err.Error()),
-		)
-		return
-	}
-
-	MapRemoteStateToTerraform(ctx, &object, responseData)
+	MapRemoteStateToTerraform(ctx, &object, baseResource)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
@@ -230,8 +304,8 @@ func (r *AutopatchGroupsResource) Update(ctx context.Context, req resource.Updat
 
 	tflog.Debug(ctx, fmt.Sprintf("Updating %s with ID: %s", ResourceName, state.ID.ValueString()))
 
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
-	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)   // desired state
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...) // current state (for ID)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -251,7 +325,8 @@ func (r *AutopatchGroupsResource) Update(ctx context.Context, req resource.Updat
 		return
 	}
 
-	// Convert the request body to JSON bytes
+	requestBody["id"] = state.ID.ValueString()
+
 	jsonBytes, err := json.Marshal(requestBody)
 	if err != nil {
 		resp.Diagnostics.AddError(
@@ -261,9 +336,8 @@ func (r *AutopatchGroupsResource) Update(ctx context.Context, req resource.Updat
 		return
 	}
 
-	// Create the HTTP request for PATCH
-	url := r.APIEndpoint + r.ResourcePath + "/" + state.ID.ValueString()
-	httpReq, err := http.NewRequestWithContext(ctx, "PATCH", url, bytes.NewReader(jsonBytes))
+	url := r.APIEndpoint + r.ResourcePath
+	httpReq, err := http.NewRequestWithContext(ctx, "PUT", url, bytes.NewReader(jsonBytes))
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error creating HTTP request",
@@ -272,10 +346,11 @@ func (r *AutopatchGroupsResource) Update(ctx context.Context, req resource.Updat
 		return
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Making PATCH request to: %s", url))
+	httpReq.Header.Set("Content-Type", "application/json")
 
-	// Send the request
-	httpResp, err := r.httpClient.Do(httpReq)
+	tflog.Debug(ctx, fmt.Sprintf("Making PUT request to: %s", url))
+
+	httpResp, err := client.DoWithRetry(ctx, r.httpClient, httpReq, 10)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error making HTTP request",
@@ -285,19 +360,15 @@ func (r *AutopatchGroupsResource) Update(ctx context.Context, req resource.Updat
 	}
 	defer httpResp.Body.Close()
 
-	tflog.Debug(ctx, fmt.Sprintf("PATCH request response status: %d %s", httpResp.StatusCode, httpResp.Status))
+	tflog.Debug(ctx, fmt.Sprintf("PUT request response status: %d %s", httpResp.StatusCode, httpResp.Status))
 
-	// Check for successful update (200 OK or 204 No Content)
-	if httpResp.StatusCode != http.StatusOK && httpResp.StatusCode != http.StatusNoContent {
-		var errorBody map[string]any
-		if decodeErr := json.NewDecoder(httpResp.Body).Decode(&errorBody); decodeErr == nil {
-			tflog.Debug(ctx, fmt.Sprintf("Error response body: %+v", errorBody))
-		}
+	if httpResp.StatusCode != http.StatusNoContent && httpResp.StatusCode != http.StatusOK {
+		errors.HandleHTTPGraphError(ctx, httpResp, resp, "Update", r.WritePermissions)
+		return
+	}
 
-		resp.Diagnostics.AddError(
-			"HTTP Error on Update",
-			fmt.Sprintf("Received unexpected response status %d when updating %s", httpResp.StatusCode, ResourceName),
-		)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+	if resp.Diagnostics.HasError() {
 		return
 	}
 
@@ -337,7 +408,6 @@ func (r *AutopatchGroupsResource) Delete(ctx context.Context, req resource.Delet
 	}
 	defer cancel()
 
-	// Create the HTTP request for DELETE
 	url := r.APIEndpoint + r.ResourcePath + "/" + object.ID.ValueString()
 	httpReq, err := http.NewRequestWithContext(ctx, "DELETE", url, nil)
 	if err != nil {
@@ -348,10 +418,11 @@ func (r *AutopatchGroupsResource) Delete(ctx context.Context, req resource.Delet
 		return
 	}
 
+	httpReq.Header.Set("Content-Type", "application/json")
+
 	tflog.Debug(ctx, fmt.Sprintf("Making DELETE request to: %s", url))
 
-	// Send the request
-	httpResp, err := r.httpClient.Do(httpReq)
+	httpResp, err := client.DoWithRetry(ctx, r.httpClient, httpReq, 10)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error making HTTP request",
@@ -363,19 +434,8 @@ func (r *AutopatchGroupsResource) Delete(ctx context.Context, req resource.Delet
 
 	tflog.Debug(ctx, fmt.Sprintf("DELETE request response status: %d %s", httpResp.StatusCode, httpResp.Status))
 
-	// Check for successful deletion (200 OK, 204 No Content, or 404 Not Found)
-	if httpResp.StatusCode != http.StatusOK &&
-		httpResp.StatusCode != http.StatusNoContent &&
-		httpResp.StatusCode != http.StatusNotFound {
-		var errorBody map[string]any
-		if decodeErr := json.NewDecoder(httpResp.Body).Decode(&errorBody); decodeErr == nil {
-			tflog.Debug(ctx, fmt.Sprintf("Error response body: %+v", errorBody))
-		}
-
-		resp.Diagnostics.AddError(
-			"HTTP Error on Delete",
-			fmt.Sprintf("Received unexpected response status %d when deleting %s", httpResp.StatusCode, ResourceName),
-		)
+	if httpResp.StatusCode != http.StatusNoContent && httpResp.StatusCode != http.StatusNotFound {
+		errors.HandleHTTPGraphError(ctx, httpResp, resp, "Delete", r.WritePermissions)
 		return
 	}
 

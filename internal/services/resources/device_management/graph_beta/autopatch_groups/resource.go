@@ -10,7 +10,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int32default"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -41,10 +40,10 @@ var (
 func NewAutopatchGroupsResource() resource.Resource {
 	return &AutopatchGroupsResource{
 		ReadPermissions: []string{
-			"WindowsUpdates.ReadWrite.All",
+			"WindowsUpdates.ReadWrite.All", // This does not work
 		},
 		WritePermissions: []string{
-			"WindowsUpdates.ReadWrite.All",
+			"WindowsUpdates.ReadWrite.All", // This does not work
 		},
 		ResourcePath: "/device/v2/autopatchGroups",
 		APIEndpoint:  "https://services.autopatch.microsoft.com",
@@ -172,7 +171,7 @@ func (r *AutopatchGroupsResource) Schema(ctx context.Context, req resource.Schem
 					},
 				},
 			},
-			"deployment_groups": schema.SetNestedAttribute{
+			"deployment_groups": schema.ListNestedAttribute{
 				Optional:            true,
 				MarkdownDescription: "The deployment groups (rings) within this Autopatch group",
 				NestedObject: schema.NestedAttributeObject{
@@ -208,11 +207,11 @@ func (r *AutopatchGroupsResource) Schema(ctx context.Context, req resource.Schem
 										Optional:            true,
 										MarkdownDescription: "The name of the Azure AD group",
 									},
-									"type": schema.Int32Attribute{
+									"type": schema.StringAttribute{
 										Optional:            true,
 										Computed:            true,
-										MarkdownDescription: "The type of the group",
-										Default:             int32default.StaticInt32(0),
+										MarkdownDescription: "The type of the group (Device, None)",
+										Default:             stringdefault.StaticString("Device"),
 									},
 								},
 							},
@@ -235,6 +234,7 @@ func (r *AutopatchGroupsResource) Schema(ctx context.Context, req resource.Schem
 									Attributes: map[string]schema.Attribute{
 										"policy_id": schema.StringAttribute{
 											Optional:            true,
+											Computed:            true,
 											MarkdownDescription: "The policy ID",
 										},
 										"update_behavior": schema.StringAttribute{
@@ -279,6 +279,106 @@ func (r *AutopatchGroupsResource) Schema(ctx context.Context, req resource.Schem
 										},
 									},
 								},
+								"dnf_update_cloud_setting": schema.SingleNestedAttribute{
+									Optional:            true,
+									MarkdownDescription: "Driver and firmware update cloud settings",
+									Attributes: map[string]schema.Attribute{
+										"policy_id": schema.StringAttribute{
+											Optional:            true,
+											Computed:            true,
+											MarkdownDescription: "The policy ID",
+										},
+										"approval_type": schema.StringAttribute{
+											Optional:            true,
+											MarkdownDescription: "Approval type (Automatic or Manual)",
+										},
+										"deployment_deferral_in_days": schema.Int32Attribute{
+											Optional:            true,
+											MarkdownDescription: "Deployment deferral in days",
+										},
+									},
+								},
+								"office_dcv2_setting": schema.SingleNestedAttribute{
+									Optional:            true,
+									MarkdownDescription: "Office update delivery optimization v2 settings",
+									Attributes: map[string]schema.Attribute{
+										"policy_id": schema.StringAttribute{
+											Optional:            true,
+											Computed:            true,
+											MarkdownDescription: "The policy ID",
+										},
+										"deadline": schema.Int32Attribute{
+											Optional:            true,
+											MarkdownDescription: "Deadline in days",
+										},
+										"deferral": schema.Int32Attribute{
+											Optional:            true,
+											MarkdownDescription: "Deferral in days",
+										},
+										"hide_update_notifications": schema.BoolAttribute{
+											Optional:            true,
+											MarkdownDescription: "Whether to hide update notifications",
+										},
+										"target_channel": schema.StringAttribute{
+											Optional:            true,
+											MarkdownDescription: "Target channel for Office updates (e.g., MonthlyEnterprise)",
+										},
+										"enable_automatic_update": schema.BoolAttribute{
+											Optional:            true,
+											Computed:            true,
+											MarkdownDescription: "Whether to enable automatic updates",
+										},
+										"hide_enable_disable_update": schema.BoolAttribute{
+											Optional:            true,
+											Computed:            true,
+											MarkdownDescription: "Whether to hide enable/disable update option",
+										},
+										"enable_office_mgmt": schema.BoolAttribute{
+											Optional:            true,
+											Computed:            true,
+											MarkdownDescription: "Whether to enable Office management",
+										},
+										"update_path": schema.StringAttribute{
+											Optional:            true,
+											Computed:            true,
+											MarkdownDescription: "The update path URL for Office updates",
+										},
+									},
+								},
+								"edge_dcv2_setting": schema.SingleNestedAttribute{
+									Optional:            true,
+									MarkdownDescription: "Edge update delivery optimization v2 settings",
+									Attributes: map[string]schema.Attribute{
+										"policy_id": schema.StringAttribute{
+											Optional:            true,
+											Computed:            true,
+											MarkdownDescription: "The policy ID",
+										},
+										"target_channel": schema.StringAttribute{
+											Optional:            true,
+											MarkdownDescription: "Target channel for Edge updates (e.g., Stable, Beta)",
+										},
+									},
+								},
+								"feature_update_anchor_cloud_setting": schema.SingleNestedAttribute{
+									Optional:            true,
+									MarkdownDescription: "Feature update anchor cloud settings",
+									Attributes: map[string]schema.Attribute{
+										"target_os_version": schema.StringAttribute{
+											Optional:            true,
+											MarkdownDescription: "Target OS version (e.g., 'Windows 11, version 25H2')",
+										},
+										"install_latest_windows10_on_windows11_ineligible_device": schema.BoolAttribute{
+											Optional:            true,
+											MarkdownDescription: "Whether to install the latest Windows 10 on Windows 11 ineligible devices",
+										},
+										"policy_id": schema.StringAttribute{
+											Optional:            true,
+											Computed:            true,
+											MarkdownDescription: "The policy ID",
+										},
+									},
+								},
 							},
 						},
 					},
@@ -288,7 +388,7 @@ func (r *AutopatchGroupsResource) Schema(ctx context.Context, req resource.Schem
 				ElementType:         types.StringType,
 				Optional:            true,
 				Computed:            true,
-				MarkdownDescription: "Set of scope tag IDs for this Autopatch group.",
+				MarkdownDescription: "Set of scope tag IDs for this Settings Catalog template profile.",
 				PlanModifiers: []planmodifier.Set{
 					planmodifiers.DefaultSetValue(
 						[]attr.Value{types.StringValue("0")},
