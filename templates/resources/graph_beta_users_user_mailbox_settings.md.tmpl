@@ -1,0 +1,67 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
+subcategory: "Users"
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Name}} ({{.Type}})
+
+{{ .Description | trimspace }}
+
+## Microsoft Documentation
+
+- [mailboxSettings resource type](https://learn.microsoft.com/en-us/graph/api/resources/mailboxsettings?view=graph-rest-beta)
+- [Get mailboxSettings](https://learn.microsoft.com/en-us/graph/api/user-get-mailboxsettings?view=graph-rest-beta)
+- [Update mailboxSettings](https://learn.microsoft.com/en-us/graph/api/user-update-mailboxsettings?view=graph-rest-beta)
+
+## API Permissions
+
+The following API permissions are required in order to use this resource.
+
+### Microsoft Graph
+
+- **Application**: `MailboxSettings.ReadWrite`, `User.ReadWrite.All`
+
+## Version History
+
+| Version | Status | Notes |
+|---------|--------|-------|
+| v0.40.0-alpha | Experimental | Initial release |
+
+## Example Usage
+
+### Minimal Example
+
+{{ tffile "examples/resources/microsoft365_graph_beta_users_user_mailbox_settings/resource_minimal.tf" }}
+
+### Maximal Example
+
+{{ tffile "examples/resources/microsoft365_graph_beta_users_user_mailbox_settings/resource_maximal.tf" }}
+
+### Complete Workflow with Dependencies
+
+{{ tffile "examples/resources/microsoft365_graph_beta_users_user_mailbox_settings/resource_with_dependancies.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}
+
+## Important Notes
+
+- **Exchange Online Requirement**: Mailbox settings can only be configured for users with an active Exchange Online mailbox. Users must have a license that includes Exchange Online (e.g., Microsoft 365 E3/E5, Exchange Online Plan 1/2).
+- **Mailbox Provisioning**: After assigning an Exchange Online license to a user, allow 1-2 minutes for the mailbox to provision before configuring settings.
+- **Resource Behavior**: This resource uses PATCH operations for both create and update. The mailbox settings always exist for a user with an Exchange Online mailbox, so "create" effectively updates the existing settings.
+- **Delete Behavior**: Deleting this resource only removes it from Terraform state without affecting the actual mailbox settings. Mailbox settings cannot be deleted, only reset to defaults manually.
+- **Time Zones**: Use IANA time zone identifiers or Windows time zone names. Common examples: `UTC`, `Pacific Standard Time`, `Eastern Standard Time`.
+- **Date/Time Formats**: Use standard format strings compatible with Outlook. Refer to [.NET standard date and time format strings](https://learn.microsoft.com/en-us/dotnet/standard/base-types/standard-date-and-time-format-strings) for valid formats.
+- **Automatic Replies**: When configuring scheduled automatic replies, both `scheduled_start_date_time` and `scheduled_end_date_time` must be provided.
+- **Working Hours**: The `working_hours` configuration is used by scheduling assistants and affects meeting time suggestions.
+- **Locale Format**: Language locale should follow RFC 4646 format (e.g., `en-US`, `fr-FR`), combining ISO 639 language code and ISO 3166 country code.
+- **User Purpose**: This field is read-only and managed by Microsoft 365 based on license assignment and user type.
+- **Computed Fields**: Fields like `language.display_name` and `user_purpose` are computed and populated by the API.
+
+## Import
+
+Import is supported using the following syntax:
+
+{{ codefile "shell" "examples/resources/microsoft365_graph_beta_users_user_mailbox_settings/import.sh" }}
+
