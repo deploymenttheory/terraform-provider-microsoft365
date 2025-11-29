@@ -17,7 +17,6 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *ConditionalAcc
 		"remoteResource": remoteResource,
 	})
 
-	// Basic properties - using helper functions
 	data.ID = convert.MapToFrameworkString(remoteResource, "id")
 	data.DisplayName = convert.MapToFrameworkString(remoteResource, "displayName")
 	data.State = convert.MapToFrameworkString(remoteResource, "state")
@@ -73,7 +72,6 @@ func mapConditions(ctx context.Context, conditionsRaw any) *ConditionalAccessCon
 
 	result := &ConditionalAccessConditions{}
 
-	// Map sets using helper functions
 	result.ClientAppTypes = mapStringSliceToSet(ctx, conditions["clientAppTypes"], "clientAppTypes")
 	result.SignInRiskLevels = mapStringSliceToSet(ctx, conditions["signInRiskLevels"], "signInRiskLevels")
 	result.UserRiskLevels = mapOptionalStringSliceToSet(ctx, conditions["userRiskLevels"], "userRiskLevels")
@@ -172,7 +170,6 @@ func mapApplications(ctx context.Context, applicationsRaw any) *ConditionalAcces
 
 	result := &ConditionalAccessApplications{}
 
-	// Map sets
 	result.IncludeApplications = mapStringSliceToSet(ctx, applications["includeApplications"], "includeApplications")
 	result.ExcludeApplications = mapStringSliceToSet(ctx, applications["excludeApplications"], "excludeApplications")
 	result.IncludeUserActions = mapStringSliceToSet(ctx, applications["includeUserActions"], "includeUserActions")
@@ -199,7 +196,6 @@ func mapUsers(ctx context.Context, usersRaw any) *ConditionalAccessUsers {
 
 	result := &ConditionalAccessUsers{}
 
-	// Map sets
 	result.IncludeUsers = mapStringSliceToSet(ctx, users["includeUsers"], "includeUsers")
 	result.ExcludeUsers = mapStringSliceToSet(ctx, users["excludeUsers"], "excludeUsers")
 	result.IncludeGroups = mapStringSliceToSet(ctx, users["includeGroups"], "includeGroups")
@@ -460,7 +456,6 @@ func mapAuthContextClassReferencesToSet(ctx context.Context, raw any, fieldName 
 		return types.SetNull(types.StringType)
 	}
 
-	// Handle []any from JSON unmarshaling
 	if slice, ok := raw.([]any); ok {
 		tflog.Debug(ctx, fmt.Sprintf("%s is []any with %d elements", fieldName, len(slice)))
 
@@ -489,13 +484,11 @@ func mapAuthContextClassReferencesToSet(ctx context.Context, raw any, fieldName 
 				}
 				tflog.Trace(ctx, fmt.Sprintf("Element %d in %s: %q", i, fieldName, stringSlice[i]))
 			} else {
-				// Convert non-string values to strings
 				stringSlice[i] = fmt.Sprintf("%v", v)
 				tflog.Debug(ctx, fmt.Sprintf("Converting element %d in %s from %T to string: %q", i, fieldName, v, stringSlice[i]))
 			}
 		}
 
-		// Use types.SetValueFrom to convert []string to types.Set
 		setValue, diags := types.SetValueFrom(ctx, types.StringType, stringSlice)
 		if diags.HasError() {
 			tflog.Error(ctx, fmt.Sprintf("Error creating set for %s", fieldName), map[string]any{"diags": diags})
@@ -519,24 +512,20 @@ func mapStringSliceToSet(ctx context.Context, raw any, fieldName string) types.S
 		return types.SetNull(types.StringType)
 	}
 
-	// Handle []any from JSON unmarshaling
 	if slice, ok := raw.([]any); ok {
 		tflog.Debug(ctx, fmt.Sprintf("%s is []any with %d elements", fieldName, len(slice)))
 
-		// Convert []any to []string
 		stringSlice := make([]string, len(slice))
 		for i, v := range slice {
 			if str, ok := v.(string); ok {
 				stringSlice[i] = str
 				tflog.Trace(ctx, fmt.Sprintf("Element %d in %s: %q", i, fieldName, str))
 			} else {
-				// Convert non-string values to strings
 				stringSlice[i] = fmt.Sprintf("%v", v)
 				tflog.Debug(ctx, fmt.Sprintf("Converting element %d in %s from %T to string: %q", i, fieldName, v, stringSlice[i]))
 			}
 		}
 
-		// Use types.SetValueFrom to convert []string to types.Set
 		setValue, diags := types.SetValueFrom(ctx, types.StringType, stringSlice)
 		if diags.HasError() {
 			tflog.Error(ctx, fmt.Sprintf("Error creating set for %s", fieldName), map[string]any{"diags": diags})
@@ -547,24 +536,20 @@ func mapStringSliceToSet(ctx context.Context, raw any, fieldName string) types.S
 		return setValue
 	}
 
-	// Handle []any (alternative any representation)
 	if slice, ok := raw.([]any); ok {
 		tflog.Debug(ctx, fmt.Sprintf("%s is []any with %d elements", fieldName, len(slice)))
 
-		// Convert []any to []string
 		stringSlice := make([]string, len(slice))
 		for i, v := range slice {
 			if str, ok := v.(string); ok {
 				stringSlice[i] = str
 				tflog.Trace(ctx, fmt.Sprintf("Element %d in %s: %q", i, fieldName, str))
 			} else {
-				// Convert non-string values to strings
 				stringSlice[i] = fmt.Sprintf("%v", v)
 				tflog.Debug(ctx, fmt.Sprintf("Converting element %d in %s from %T to string: %q", i, fieldName, v, stringSlice[i]))
 			}
 		}
 
-		// Use types.SetValueFrom to convert []string to types.Set
 		setValue, diags := types.SetValueFrom(ctx, types.StringType, stringSlice)
 		if diags.HasError() {
 			tflog.Error(ctx, fmt.Sprintf("Error creating set for %s", fieldName), map[string]any{"diags": diags})
@@ -575,11 +560,9 @@ func mapStringSliceToSet(ctx context.Context, raw any, fieldName string) types.S
 		return setValue
 	}
 
-	// Handle []string directly
 	if strSlice, ok := raw.([]string); ok {
 		tflog.Debug(ctx, fmt.Sprintf("%s is []string with %d elements", fieldName, len(strSlice)))
 
-		// Use types.SetValueFrom to convert []string to types.Set
 		setValue, diags := types.SetValueFrom(ctx, types.StringType, strSlice)
 		if diags.HasError() {
 			tflog.Error(ctx, fmt.Sprintf("Error creating set for %s", fieldName), map[string]any{"diags": diags})
@@ -821,12 +804,10 @@ func mapCommaSeparatedStringToSet(ctx context.Context, raw any, fieldName string
 		return types.SetNull(types.StringType)
 	}
 
-	// Handle string from JSON unmarshaling
 	if str, ok := raw.(string); ok {
 		tflog.Debug(ctx, fmt.Sprintf("%s is string: %s", fieldName, str))
 
 		if str == "" {
-			// Empty string should return empty set, not null
 			setValue, diags := types.SetValueFrom(ctx, types.StringType, []string{})
 			if diags.HasError() {
 				tflog.Error(ctx, fmt.Sprintf("Error creating empty set for %s", fieldName), map[string]any{"diags": diags})
@@ -835,14 +816,12 @@ func mapCommaSeparatedStringToSet(ctx context.Context, raw any, fieldName string
 			return setValue
 		}
 
-		// Split comma-separated string
 		stringSlice := strings.Split(str, ",")
-		// Trim whitespace from each value
+
 		for i, value := range stringSlice {
 			stringSlice[i] = strings.TrimSpace(value)
 		}
 
-		// Use types.SetValueFrom to convert []string to types.Set
 		setValue, diags := types.SetValueFrom(ctx, types.StringType, stringSlice)
 		if diags.HasError() {
 			tflog.Error(ctx, fmt.Sprintf("Error creating set for %s", fieldName), map[string]any{"diags": diags})
@@ -862,7 +841,6 @@ func mapCommaSeparatedStringToSet(ctx context.Context, raw any, fieldName string
 func mapOptionalStringSliceToSet(ctx context.Context, raw any, fieldName string) types.Set {
 	tflog.Debug(ctx, fmt.Sprintf("Processing optional field %s: %v (type: %T)", fieldName, raw, raw))
 
-	// For optional fields, keep as null if empty
 	if slice, ok := raw.([]any); ok && len(slice) == 0 {
 		tflog.Debug(ctx, fmt.Sprintf("%s is empty array, keeping as null for optional field", fieldName))
 		return types.SetNull(types.StringType)
@@ -871,6 +849,5 @@ func mapOptionalStringSliceToSet(ctx context.Context, raw any, fieldName string)
 		return types.SetNull(types.StringType)
 	}
 
-	// If it has values, process normally
 	return mapStringSliceToSet(ctx, raw, fieldName)
 }
