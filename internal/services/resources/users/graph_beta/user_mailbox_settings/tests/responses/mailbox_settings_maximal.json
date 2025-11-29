@@ -1,0 +1,41 @@
+{
+    "@odata.context": "https://graph.microsoft.com/beta/$metadata#users('00000000-0000-0000-0000-000000000002')/mailboxSettings",
+    "automaticRepliesSetting": {
+        "status": "scheduled",
+        "externalAudience": "all",
+        "scheduledStartDateTime": {
+            "dateTime": "2016-03-14T07:00:00.0000000",
+            "timeZone": "UTC"
+        },
+        "scheduledEndDateTime": {
+            "dateTime": "2016-03-28T07:00:00.0000000",
+            "timeZone": "UTC"
+        },
+        "internalReplyMessage": "<html>\n<body>\n<p>I'm at our company's worldwide reunion and will respond to your message as soon as I return.<br>\n</p></body>\n</html>\n",
+        "externalReplyMessage": "<html>\n<body>\n<p>I'm at the Contoso worldwide reunion and will respond to your message as soon as I return.<br>\n</p></body>\n</html>\n"
+    },
+    "timeZone": "UTC",
+    "language": {
+        "locale": "en-US",
+        "displayName": "English (United States)"
+    },
+    "workingHours": {
+        "daysOfWeek": [
+            "monday",
+            "tuesday",
+            "wednesday",
+            "thursday",
+            "friday"
+        ],
+        "startTime": "08:00:00.0000000",
+        "endTime": "17:00:00.0000000",
+        "timeZone": {
+            "name": "Pacific Standard Time"
+        }
+    },
+    "userPurpose": "user",
+    "dateFormat": "MM/dd/yyyy",
+    "timeFormat": "hh:mm tt",
+    "delegateMeetingMessageDeliveryOptions": "sendToDelegateOnly"
+}
+

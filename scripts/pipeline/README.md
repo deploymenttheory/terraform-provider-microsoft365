@@ -6,6 +6,64 @@ This directory contains scripts used in the GitHub Actions CI/CD pipeline for th
 
 ### ✅ Active Scripts
 
+#### `get_licensing_service_plan_reference.py`
+
+**Purpose:** Fetches and parses Microsoft licensing service plan reference data to generate Go constants or structured data  
+**Usage:** `./get_licensing_service_plan_reference.py [--output FILE] [--format FORMAT] [--verbose]`
+
+**Parameters:**
+
+- `--output, -o`: Output file path (default: stdout)
+- `--format, -f`: Output format: `go`, `csv`, or `json` (default: `go`)
+- `--verbose, -v`: Enable verbose logging
+- `--url`: Custom URL to fetch license data from (default: Microsoft Learn documentation)
+
+**Features:**
+
+- Fetches latest license data from Microsoft Learn documentation
+- Parses HTML table containing Product names, String IDs, GUIDs, and Service Plans
+- Extracts service plan IDs, friendly names, and relationships
+- Generates Go constants with proper naming conventions and categorization
+- Supports multiple output formats (Go, CSV, JSON)
+- Groups licenses by category (M365 Enterprise, Business, Exchange, etc.)
+- Generates helper functions (`GetSkuGUIDByStringID`, `GetSkuStringIDByGUID`)
+- Pipeline-ready with proper error handling and exit codes
+
+**Output:**
+
+- **Go format**: Complete Go source file with constants and helper functions
+- **CSV format**: Simple comma-separated values for spreadsheet import
+- **JSON format**: Structured JSON for programmatic processing (used by datasource)
+
+**Examples:**
+
+```bash
+# Generate JSON for datasource embedding
+./get_licensing_service_plan_reference.py -v -f json -o ../../internal/services/datasources/utility/licensing_service_plan_reference/data/licensing_service_plan_reference.json
+
+# Generate Go constants to file
+./get_licensing_service_plan_reference.py -o ../../internal/constants/licensing_service_plan.go
+
+# Generate CSV for analysis
+./get_licensing_service_plan_reference.py -f csv -o licenses.csv
+
+# Verbose mode with JSON output
+./get_licensing_service_plan_reference.py -v -f json -o licenses.json
+```
+
+**Automation:**
+
+This script is automatically run weekly by the [Update Licensing Service Plan Reference](.github/workflows/update-licensing-service-plan-reference.yml) GitHub Actions workflow. The workflow:
+- Runs every Monday at 2 AM UTC
+- Fetches the latest data from Microsoft Learn
+- Creates a PR if changes are detected
+- Includes statistics on products and service plans
+
+**Reference:**
+
+- [Microsoft Licensing Service Plan Reference](https://learn.microsoft.com/en-us/entra/identity/users/licensing-service-plan-reference)
+- [Provider Datasource: `microsoft365_utility_licensing_service_plan_reference`](../../internal/services/datasources/utility/licensing_service_plan_reference/)
+
 #### `run-tests.py`
 
 **Purpose:** Runs acceptance tests and captures test failures  

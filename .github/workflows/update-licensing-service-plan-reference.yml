@@ -1,0 +1,237 @@
+name: maintainence | Update Licensing Service Plan Reference
+
+permissions:
+  contents: write
+  pull-requests: write
+
+on:
+  schedule:
+    # Run weekly: Every Monday at 2 AM UTC
+    - cron: '0 2 * * 1'
+  workflow_dispatch: # Allow manual trigger
+    inputs:
+      create_pr:
+        description: 'Create a pull request for changes (true) or commit directly to branch (false)'
+        required: false
+        type: boolean
+        default: true
+
+jobs:
+  update-licensing-data:
+    name: '📊 Update Licensing Service Plan Reference'
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 30
+    
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@95d9a5deda9de15063e7595e9719c11c38c90ae2 # v2.13.2
+        with:
+          egress-policy: audit
+
+      - name: Check Out
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@0b93645e9fea7318ecaed2b359559ac225c90a2b # v5.3.0
+        with:
+          python-version: '3.11'
+
+      - name: Fetch Latest Licensing Data
+        id: fetch_data
+        run: |
+          echo "Fetching latest Microsoft licensing service plan reference data..."
+          
+          # Save the old data for comparison
+          cp internal/services/datasources/utility/licensing_service_plan_reference/data/licensing_service_plan_reference.json \
+             internal/services/datasources/utility/licensing_service_plan_reference/data/licensing_service_plan_reference.json.old || true
+          
+          # Fetch new data
+          python3 scripts/pipeline/get_licensing_service_plan_reference.py \
+            -v \
+            -f json \
+            -o internal/services/datasources/utility/licensing_service_plan_reference/data/licensing_service_plan_reference.json
+          
+          # Check if there are any changes
+          if git diff --quiet internal/services/datasources/utility/licensing_service_plan_reference/data/licensing_service_plan_reference.json; then
+            echo "changes_detected=false" >> $GITHUB_OUTPUT
+            echo "No changes detected in licensing data"
+          else
+            echo "changes_detected=true" >> $GITHUB_OUTPUT
+            echo "Changes detected in licensing data"
+            
+            # Use Python to analyze the data
+            python3 << 'PYTHON_SCRIPT'
+          import json
+          import os
+          from pathlib import Path
+          
+          # Read new data
+          with open('internal/services/datasources/utility/licensing_service_plan_reference/data/licensing_service_plan_reference.json', 'r') as f:
+              new_data = json.load(f)
+          
+          # Count products and service plans in new data
+          products_new = len(new_data)
+          service_plans_new = sum(len(product.get('service_plans_included', [])) for product in new_data)
+          
+          print(f"products_count={products_new}", file=open(os.environ['GITHUB_OUTPUT'], 'a'))
+          print(f"service_plans_count={service_plans_new}", file=open(os.environ['GITHUB_OUTPUT'], 'a'))
+          
+          # Check if old file exists for comparison
+          old_file = Path('internal/services/datasources/utility/licensing_service_plan_reference/data/licensing_service_plan_reference.json.old')
+          
+          if old_file.exists():
+              with open(old_file, 'r') as f:
+                  old_data = json.load(f)
+              
+              # Count products and service plans in old data
+              products_old = len(old_data)
+              service_plans_old = sum(len(product.get('service_plans_included', [])) for product in old_data)
+              
+              # Calculate differences
+              products_added = max(0, products_new - products_old)
+              products_removed = max(0, products_old - products_new)
+              service_plans_added = max(0, service_plans_new - service_plans_old)
+              service_plans_removed = max(0, service_plans_old - service_plans_new)
+              
+              print(f"products_added={products_added}", file=open(os.environ['GITHUB_OUTPUT'], 'a'))
+              print(f"products_removed={products_removed}", file=open(os.environ['GITHUB_OUTPUT'], 'a'))
+              print(f"service_plans_added={service_plans_added}", file=open(os.environ['GITHUB_OUTPUT'], 'a'))
+              print(f"service_plans_removed={service_plans_removed}", file=open(os.environ['GITHUB_OUTPUT'], 'a'))
+              
+              # Get specific product changes
+              old_string_ids = {product['string_id'] for product in old_data}
+              new_string_ids = {product['string_id'] for product in new_data}
+              
+              added_products = sorted(new_string_ids - old_string_ids)[:10]
+              removed_products = sorted(old_string_ids - new_string_ids)[:10]
+              
+              added_list = ', '.join(added_products) if added_products else ''
+              removed_list = ', '.join(removed_products) if removed_products else ''
+              
+              print(f"added_product_list={added_list}", file=open(os.environ['GITHUB_OUTPUT'], 'a'))
+              print(f"removed_product_list={removed_list}", file=open(os.environ['GITHUB_OUTPUT'], 'a'))
+          else:
+              print("products_added=0", file=open(os.environ['GITHUB_OUTPUT'], 'a'))
+              print("products_removed=0", file=open(os.environ['GITHUB_OUTPUT'], 'a'))
+              print("service_plans_added=0", file=open(os.environ['GITHUB_OUTPUT'], 'a'))
+              print("service_plans_removed=0", file=open(os.environ['GITHUB_OUTPUT'], 'a'))
+              print("added_product_list=", file=open(os.environ['GITHUB_OUTPUT'], 'a'))
+              print("removed_product_list=", file=open(os.environ['GITHUB_OUTPUT'], 'a'))
+          PYTHON_SCRIPT
+          fi
+
+      - name: Create Pull Request
+        if: steps.fetch_data.outputs.changes_detected == 'true' && (github.event_name == 'schedule' || github.event.inputs.create_pr == 'true')
+        uses: peter-evans/create-pull-request@5e914681df9dc83aa4e4905692ca88beb2f9e91f # v7.0.5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: |
+            chore(deps): update licensing service plan reference data
+            
+            - Products: ${{ steps.fetch_data.outputs.products_count }}
+            - Service Plans: ${{ steps.fetch_data.outputs.service_plans_count }}
+            
+            This automated update fetches the latest Microsoft licensing service plan
+            reference data from Microsoft Learn documentation.
+            
+            Source: https://learn.microsoft.com/en-us/entra/identity/users/licensing-service-plan-reference
+          branch: automated/update-licensing-data
+          delete-branch: true
+          title: 'chore(deps): update licensing service plan reference data'
+          body: |
+            ## 📊 Automated Licensing Data Update
+            
+            This PR updates the embedded licensing service plan reference data used by the `microsoft365_utility_licensing_service_plan_reference` data source.
+            
+            ### 📈 Current Statistics
+            - **Total Products**: ${{ steps.fetch_data.outputs.products_count }}
+            - **Total Service Plans**: ${{ steps.fetch_data.outputs.service_plans_count }}
+            
+            ### 📊 Changes Detected
+            
+            #### Products
+            - ➕ **Added**: ${{ steps.fetch_data.outputs.products_added }}
+            - ➖ **Removed**: ${{ steps.fetch_data.outputs.products_removed }}
+            
+            #### Service Plans
+            - ➕ **Added**: ${{ steps.fetch_data.outputs.service_plans_added }}
+            - ➖ **Removed**: ${{ steps.fetch_data.outputs.service_plans_removed }}
+            
+            ${{ steps.fetch_data.outputs.added_product_list && format('#### ➕ Products Added (Sample)\n```\n{0}\n```\n', steps.fetch_data.outputs.added_product_list) || '' }}
+            ${{ steps.fetch_data.outputs.removed_product_list && format('#### ➖ Products Removed (Sample)\n```\n{0}\n```\n', steps.fetch_data.outputs.removed_product_list) || '' }}
+            
+            ### 🔍 Data Source
+            The data is fetched from the official Microsoft Learn documentation:
+            https://learn.microsoft.com/en-us/entra/identity/users/licensing-service-plan-reference
+            
+            ### 🤖 Automation
+            This update was automatically generated by the weekly licensing data refresh workflow.
+            
+            ### ✅ Validation
+            - [x] Data fetched successfully from Microsoft Learn
+            - [x] JSON structure validated
+            - [x] Change statistics calculated
+            - [ ] Review changes and verify accuracy
+            
+            ### 📝 Review Guide
+            1. Check the diff to see specific products or service plans that changed
+            2. Verify that additions/removals align with Microsoft's licensing changes
+            3. Ensure the data structure is valid and complete
+            
+            ---
+            *This PR was automatically generated by the [Update Licensing Service Plan Reference](.github/workflows/update-licensing-service-plan-reference.yml) workflow.*
+          labels: |
+            automated
+            dependencies
+            data-update
+
+      - name: Commit Changes Directly
+        if: steps.fetch_data.outputs.changes_detected == 'true' && github.event_name == 'workflow_dispatch' && github.event.inputs.create_pr == 'false'
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add internal/services/datasources/utility/licensing_service_plan_reference/data/licensing_service_plan_reference.json
+          git commit -m "chore(deps): update licensing service plan reference data
+
+          - Products: ${{ steps.fetch_data.outputs.products_count }}
+          - Service Plans: ${{ steps.fetch_data.outputs.service_plans_count }}
+          
+          Source: https://learn.microsoft.com/en-us/entra/identity/users/licensing-service-plan-reference"
+          git push
+
+      - name: Summary
+        if: always()
+        run: |
+          echo "## 📊 Licensing Data Update Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          if [ "${{ steps.fetch_data.outputs.changes_detected }}" == "true" ]; then
+            echo "✅ **Changes Detected**" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "### Current Totals" >> $GITHUB_STEP_SUMMARY
+            echo "- **Products**: ${{ steps.fetch_data.outputs.products_count }}" >> $GITHUB_STEP_SUMMARY
+            echo "- **Service Plans**: ${{ steps.fetch_data.outputs.service_plans_count }}" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "### Changes" >> $GITHUB_STEP_SUMMARY
+            echo "| Type | Added | Removed |" >> $GITHUB_STEP_SUMMARY
+            echo "|------|-------|---------|" >> $GITHUB_STEP_SUMMARY
+            echo "| **Products** | ➕ ${{ steps.fetch_data.outputs.products_added }} | ➖ ${{ steps.fetch_data.outputs.products_removed }} |" >> $GITHUB_STEP_SUMMARY
+            echo "| **Service Plans** | ➕ ${{ steps.fetch_data.outputs.service_plans_added }} | ➖ ${{ steps.fetch_data.outputs.service_plans_removed }} |" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            
+            if [ "${{ github.event_name }}" == "schedule" ] || [ "${{ github.event.inputs.create_pr }}" == "true" ]; then
+              echo "📝 A pull request has been created to review the changes." >> $GITHUB_STEP_SUMMARY
+            else
+              echo "✅ Changes have been committed directly to the branch." >> $GITHUB_STEP_SUMMARY
+            fi
+          else
+            echo "ℹ️ **No Changes Detected**" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "The licensing data is up to date. No updates were needed." >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "📚 **Source**: [Microsoft Learn - Licensing Service Plan Reference](https://learn.microsoft.com/en-us/entra/identity/users/licensing-service-plan-reference)" >> $GITHUB_STEP_SUMMARY
+

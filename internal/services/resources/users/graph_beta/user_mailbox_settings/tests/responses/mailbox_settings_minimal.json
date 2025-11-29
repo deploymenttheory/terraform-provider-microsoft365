@@ -1,0 +1,7 @@
+{
+    "@odata.context": "https://graph.microsoft.com/beta/$metadata#users('00000000-0000-0000-0000-000000000001')/mailboxSettings",
+    "timeZone": "UTC",
+    "dateFormat": "MM/dd/yyyy",
+    "timeFormat": "hh:mm tt"
+}
+
