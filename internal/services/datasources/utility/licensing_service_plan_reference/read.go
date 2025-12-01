@@ -50,7 +50,7 @@ func (d *licensingServicePlanReferenceDataSource) Read(ctx context.Context, req 
 		return
 	}
 
-	tflog.Debug(ctx, "Loaded licensing data", map[string]interface{}{
+	tflog.Debug(ctx, "Loaded licensing data", map[string]any{
 		"product_count": len(licensingData),
 	})
 

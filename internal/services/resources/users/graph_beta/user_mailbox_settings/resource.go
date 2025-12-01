@@ -116,17 +116,20 @@ func (r *UserMailboxSettingsResource) Schema(ctx context.Context, req resource.S
 			"automatic_replies_setting": schema.SingleNestedAttribute{
 				MarkdownDescription: "Configuration for automatic replies (also known as Out of Office or OOF) for the user's mailbox.",
 				Optional:            true,
+				Computed:            true,
 				Attributes: map[string]schema.Attribute{
 					"status": schema.StringAttribute{
 						MarkdownDescription: "The status of automatic replies. Possible values: `disabled`, `alwaysEnabled`, `scheduled`.",
-						Required:            true,
+						Optional:            true,
+						Computed:            true,
 						Validators: []validator.String{
 							stringvalidator.OneOf("disabled", "alwaysEnabled", "scheduled"),
 						},
 					},
 					"external_audience": schema.StringAttribute{
 						MarkdownDescription: "The audience that will receive external automatic reply messages. Possible values: `none`, `contactsOnly`, `all`.",
-						Required:            true,
+						Optional:            true,
+						Computed:            true,
 						Validators: []validator.String{
 							stringvalidator.OneOf("none", "contactsOnly", "all"),
 						},
@@ -134,14 +137,16 @@ func (r *UserMailboxSettingsResource) Schema(ctx context.Context, req resource.S
 					"scheduled_start_date_time": schema.SingleNestedAttribute{
 						MarkdownDescription: "The start date and time when automatic replies are scheduled to be sent. Required when status is `scheduled`.",
 						Optional:            true,
+						Computed:            true,
 						Attributes: map[string]schema.Attribute{
 							"date_time": schema.StringAttribute{
-								MarkdownDescription: "The date and time value in ISO 8601 format (e.g., `2016-03-19T02:00:00.0000000`). The timezone is specified separately in the `time_zone` field.",
-								Required:            true,
+								MarkdownDescription: "The date and time value in ISO 8601 format (e.g., `2026-03-19T02:00:00`). The timezone is specified separately in the `time_zone` field.",
+								Optional:            true,
+								Computed:            true,
 								Validators: []validator.String{
 									stringvalidator.RegexMatches(
 										regexp.MustCompile(`^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?$`),
-										"must be a valid ISO 8601 datetime format (e.g., 2016-03-14T07:00:00 or 2016-03-14T07:00:00.0000000)",
+										"must be a valid ISO 8601 datetime format (e.g., 2026-03-14T07:00:00",
 									),
 								},
 							},
@@ -149,20 +154,69 @@ func (r *UserMailboxSettingsResource) Schema(ctx context.Context, req resource.S
 								MarkdownDescription: "The time zone for the date time value. Defaults to `UTC` if not specified.",
 								Optional:            true,
 								Computed:            true,
+								Validators: []validator.String{
+									stringvalidator.OneOf(
+										"Dateline Standard Time", "UTC-11", "Samoa Standard Time", "Aleutian Standard Time",
+										"Hawaiian Standard Time", "Marquesas Standard Time", "Alaskan Standard Time", "UTC-09",
+										"Yukon Standard Time", "Pacific Standard Time (Mexico)", "UTC-08", "Pacific Standard Time",
+										"US Mountain Standard Time", "Mountain Standard Time (Mexico)", "Mountain Standard Time",
+										"Eastern Standard Time (Mexico)", "Central America Standard Time", "Central Standard Time",
+										"Easter Island Standard Time", "Central Standard Time (Mexico)", "Canada Central Standard Time",
+										"SA Pacific Standard Time", "Eastern Standard Time", "Haiti Standard Time", "Cuba Standard Time",
+										"US Eastern Standard Time", "Turks And Caicos Standard Time", "Venezuela Standard Time",
+										"Magallanes Standard Time", "Paraguay Standard Time", "Atlantic Standard Time",
+										"Central Brazilian Standard Time", "SA Western Standard Time", "Pacific SA Standard Time",
+										"Newfoundland Standard Time", "Tocantins Standard Time", "E. South America Standard Time",
+										"SA Eastern Standard Time", "Argentina Standard Time", "Greenland Standard Time",
+										"Montevideo Standard Time", "Saint Pierre Standard Time", "Bahia Standard Time", "UTC-02",
+										"Mid-Atlantic Standard Time", "Azores Standard Time", "Cape Verde Standard Time", "UTC",
+										"GMT Standard Time", "Greenwich Standard Time", "Morocco Standard Time", "W. Europe Standard Time",
+										"Central Europe Standard Time", "Romance Standard Time", "Central European Standard Time",
+										"W. Central Africa Standard Time", "Libya Standard Time", "Namibia Standard Time",
+										"GTB Standard Time", "Middle East Standard Time", "Egypt Standard Time", "E. Europe Standard Time",
+										"Syria Standard Time", "West Bank Standard Time", "South Africa Standard Time",
+										"FLE Standard Time", "Israel Standard Time", "South Sudan Standard Time",
+										"Kaliningrad Standard Time", "Sudan Standard Time", "Jordan Standard Time", "Turkey Standard Time",
+										"Belarus Standard Time", "Arabic Standard Time", "Arab Standard Time", "Russian Standard Time",
+										"E. Africa Standard Time", "Volgograd Standard Time", "Astrakhan Standard Time",
+										"Russia Time Zone 3", "Saratov Standard Time", "Iran Standard Time", "Arabian Standard Time",
+										"Azerbaijan Standard Time", "Mauritius Standard Time", "Georgian Standard Time",
+										"Caucasus Standard Time", "Afghanistan Standard Time", "West Asia Standard Time",
+										"Qyzylorda Standard Time", "Ekaterinburg Standard Time", "Pakistan Standard Time",
+										"India Standard Time", "Sri Lanka Standard Time", "Nepal Standard Time",
+										"Central Asia Standard Time", "Bangladesh Standard Time", "Omsk Standard Time",
+										"Altai Standard Time", "N. Central Asia Standard Time", "Tomsk Standard Time",
+										"Myanmar Standard Time", "SE Asia Standard Time", "W. Mongolia Standard Time",
+										"North Asia Standard Time", "China Standard Time", "North Asia East Standard Time",
+										"Singapore Standard Time", "W. Australia Standard Time", "Taipei Standard Time",
+										"Ulaanbaatar Standard Time", "Transbaikal Standard Time", "North Korea Standard Time",
+										"Aus Central W. Standard Time", "Tokyo Standard Time", "Korea Standard Time",
+										"Yakutsk Standard Time", "Cen. Australia Standard Time", "AUS Central Standard Time",
+										"E. Australia Standard Time", "AUS Eastern Standard Time", "West Pacific Standard Time",
+										"Tasmania Standard Time", "Vladivostok Standard Time", "Bougainville Standard Time",
+										"Magadan Standard Time", "Sakhalin Standard Time", "Lord Howe Standard Time",
+										"Russia Time Zone 10", "Norfolk Standard Time", "Central Pacific Standard Time",
+										"Russia Time Zone 11", "New Zealand Standard Time", "UTC+12", "Fiji Standard Time",
+										"Kamchatka Standard Time", "Chatham Islands Standard Time", "UTC+13", "Tonga Standard Time",
+										"Line Islands Standard Time",
+									),
+								},
 							},
 						},
 					},
 					"scheduled_end_date_time": schema.SingleNestedAttribute{
 						MarkdownDescription: "The end date and time when automatic replies are scheduled to stop being sent. Required when status is `scheduled`.",
 						Optional:            true,
+						Computed:            true,
 						Attributes: map[string]schema.Attribute{
 							"date_time": schema.StringAttribute{
-								MarkdownDescription: "The date and time value in ISO 8601 format (e.g., `2016-03-20T02:00:00.0000000`). The timezone is specified separately in the `time_zone` field.",
-								Required:            true,
+								MarkdownDescription: "The date and time value in ISO 8601 format (e.g., `2026-03-20T02:00:00`). The timezone is specified separately in the `time_zone` field.",
+								Optional:            true,
+								Computed:            true,
 								Validators: []validator.String{
 									stringvalidator.RegexMatches(
 										regexp.MustCompile(`^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?$`),
-										"must be a valid ISO 8601 datetime format (e.g., 2016-03-14T07:00:00 or 2016-03-14T07:00:00.0000000)",
+										"must be a valid ISO 8601 datetime format (e.g., 2026-03-14T07:00:00)",
 									),
 								},
 							},
@@ -176,10 +230,12 @@ func (r *UserMailboxSettingsResource) Schema(ctx context.Context, req resource.S
 					"internal_reply_message": schema.StringAttribute{
 						MarkdownDescription: "The automatic reply message to send to internal recipients. Supports HTML formatting.",
 						Optional:            true,
+						Computed:            true,
 					},
 					"external_reply_message": schema.StringAttribute{
 						MarkdownDescription: "The automatic reply message to send to external recipients. Supports HTML formatting.",
 						Optional:            true,
+						Computed:            true,
 					},
 				},
 			},
@@ -187,25 +243,25 @@ func (r *UserMailboxSettingsResource) Schema(ctx context.Context, req resource.S
 				MarkdownDescription: "The date format for the user's mailbox. This uses [.NET standard date format patterns](https://learn.microsoft.com/en-us/dotnet/standard/base-types/standard-date-and-time-format-strings#ShortDate) that are culture-specific. Common values include: `M/d/yyyy` (US), `dd/MM/yyyy` (UK/EU), `yyyy-MM-dd` (ISO), `dd.MM.yyyy` (German). The format determines how dates are displayed in the user's mailbox.",
 				Optional:            true,
 				Computed:            true,
-				Validators: []validator.String{
-					stringvalidator.OneOf(
-						// US formats
-						"M/d/yyyy",
-						"MM/dd/yyyy",
-						// European formats
-						"d/M/yyyy",
-						"dd/MM/yyyy",
-						"dd-MM-yyyy",
-						// ISO and Asian formats
-						"yyyy-MM-dd",
-						"yyyy/MM/dd",
-						"yyyy年M月d日", // Japanese
-						// German and other dot-separated formats
-						"dd.MM.yyyy",
-						"d.M.yyyy",
-						"M.d.yyyy",
-					),
-				},
+				// Validators: []validator.String{
+				// 	stringvalidator.OneOf(
+				// 		// US formats
+				// 		"M/d/yyyy",
+				// 		"MM/dd/yyyy",
+				// 		// European formats
+				// 		"d/M/yyyy",
+				// 		"dd/MM/yyyy",
+				// 		"dd-MM-yyyy",
+				// 		// ISO and Asian formats
+				// 		"yyyy-MM-dd",
+				// 		"yyyy/MM/dd",
+				// 		"yyyy年M月d日", // Japanese
+				// 		// German and other dot-separated formats
+				// 		"dd.MM.yyyy",
+				// 		"d.M.yyyy",
+				// 		"M.d.yyyy",
+				// 	),
+				// },
 			},
 			"delegate_meeting_message_delivery_options": schema.StringAttribute{
 				MarkdownDescription: "Specifies how meeting messages and responses are delivered to delegates. Possible values: `sendToDelegateAndInformationToPrincipal`, `sendToDelegateAndPrincipal`, `sendToDelegateOnly`.",
@@ -225,8 +281,16 @@ func (r *UserMailboxSettingsResource) Schema(ctx context.Context, req resource.S
 				Computed:            true,
 				Attributes: map[string]schema.Attribute{
 					"locale": schema.StringAttribute{
-						MarkdownDescription: "A locale representation for the user, which includes the user's preferred language and country/region. For example, `en-us`. The language component follows 2-letter codes as defined in ISO 639-1, and the country component follows 2-letter codes as defined in ISO 3166-1 alpha-2.",
-						Required:            true,
+						MarkdownDescription: "A locale representation for the user, which includes the user's preferred language and country/region. For example, `en-US`. " +
+							"The language component follows 2-letter codes as defined in [ISO 639-1](https://en.wikipedia.org/wiki/List_of_ISO_639_language_codes), " +
+							"and the country component follows 2-letter codes as defined in [ISO 3166-1 alpha-2](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2).",
+						Required: true,
+						Validators: []validator.String{
+							stringvalidator.RegexMatches(
+								regexp.MustCompile(constants.LocaleRegex),
+								"must be in format <language>-<COUNTRY> where language is a 2-letter ISO 639-1 code (lowercase) and COUNTRY is a 2-letter ISO 3166-1 alpha-2 code (uppercase), e.g., en-US, fr-FR, de-DE",
+							),
+						},
 					},
 					"display_name": schema.StringAttribute{
 						MarkdownDescription: "The display name of the locale. Read-only.",
@@ -238,23 +302,23 @@ func (r *UserMailboxSettingsResource) Schema(ctx context.Context, req resource.S
 				MarkdownDescription: "The time format for the user's mailbox. This uses [.NET standard time format patterns](https://learn.microsoft.com/en-us/dotnet/standard/base-types/standard-date-and-time-format-strings#ShortTime) that are culture-specific. Common examples include: `h:mm tt` (1:45 PM - US 12-hour), `HH:mm` (13:45 - European 24-hour). The format determines how times are displayed in the user's mailbox.",
 				Optional:            true,
 				Computed:            true,
-				Validators: []validator.String{
-					stringvalidator.OneOf(
-						// 12-hour formats with AM/PM (en-US style)
-						"h:mm tt",
-						"hh:mm tt",
-						"h:mm:ss tt",
-						"hh:mm:ss tt",
-						// 24-hour formats (hr-HR, es-ES style)
-						"H:mm",
-						"HH:mm",
-						"H:mm:ss",
-						"HH:mm:ss",
-					),
-				},
+				// Validators: []validator.String{
+				// 	stringvalidator.OneOf(
+				// 		// 12-hour formats with AM/PM (en-US style)
+				// 		"h:mm tt",
+				// 		"hh:mm tt",
+				// 		"h:mm:ss tt",
+				// 		"hh:mm:ss tt",
+				// 		// 24-hour formats (hr-HR, es-ES style)
+				// 		"H:mm",
+				// 		"HH:mm",
+				// 		"H:mm:ss",
+				// 		"HH:mm:ss",
+				// 	),
+				// },
 			},
 			"time_zone": schema.StringAttribute{
-				MarkdownDescription: "The default time zone for the user's mailbox. Can be in Windows time zone format or IANA time zone format (Olson format).",
+				MarkdownDescription: "The default time zone for the user's mailbox. Must be one of the Windows time zone names supported by Microsoft Graph API. Common values include `Pacific Standard Time`, `Eastern Standard Time`, `UTC`, etc. See the [Microsoft Graph API documentation](https://learn.microsoft.com/en-us/graph/api/outlookuser-supportedtimezones) for the full list of supported time zones.",
 				Optional:            true,
 				Computed:            true,
 			},
@@ -266,7 +330,8 @@ func (r *UserMailboxSettingsResource) Schema(ctx context.Context, req resource.S
 					"days_of_week": schema.SetAttribute{
 						MarkdownDescription: "The days of the week on which the user works. Possible values: `sunday`, `monday`, `tuesday`, `wednesday`, `thursday`, `friday`, `saturday`.",
 						ElementType:         types.StringType,
-						Required:            true,
+						Optional:            true,
+						Computed:            true,
 						Validators: []validator.Set{
 							setvalidator.ValueStringsAre(
 								stringvalidator.OneOf("sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"),
@@ -274,32 +339,83 @@ func (r *UserMailboxSettingsResource) Schema(ctx context.Context, req resource.S
 						},
 					},
 					"start_time": schema.StringAttribute{
-						MarkdownDescription: "The time the user starts working each day, in HH:mm:ss.fffffff format (e.g., `09:00:00.0000000`).",
-						Required:            true,
+						MarkdownDescription: "The time the user starts working each day, in HH:mm:ss format (e.g., `09:00:00`).",
+						Optional:            true,
+						Computed:            true,
 						Validators: []validator.String{
 							stringvalidator.RegexMatches(
-								regexp.MustCompile(`^\d{2}:\d{2}:\d{2}\.\d{7}$`),
-								"must be in format HH:mm:ss.fffffff (e.g., 09:00:00.0000000)",
+								regexp.MustCompile(constants.TimeFormatHHMMSSRegex),
+								"must be in format HH:mm:ss (e.g., 09:00:00)",
 							),
 						},
 					},
 					"end_time": schema.StringAttribute{
-						MarkdownDescription: "The time the user stops working each day, in HH:mm:ss.fffffff format (e.g., `17:00:00.0000000`).",
-						Required:            true,
+						MarkdownDescription: "The time the user stops working each day, in HH:mm:ss format (e.g., `17:00:00`).",
+						Optional:            true,
+						Computed:            true,
 						Validators: []validator.String{
 							stringvalidator.RegexMatches(
-								regexp.MustCompile(`^\d{2}:\d{2}:\d{2}\.\d{7}$`),
-								"must be in format HH:mm:ss.fffffff (e.g., 17:00:00.0000000)",
+								regexp.MustCompile(constants.TimeFormatHHMMSSRegex),
+								"must be in format HH:mm:ss (e.g., 17:00:00)",
 							),
 						},
 					},
 					"time_zone": schema.SingleNestedAttribute{
-						MarkdownDescription: "The time zone for the working hours. Can be a standard or custom time zone.",
-						Required:            true,
+						MarkdownDescription: "The time zone for the working hours. Must be one of the Windows time zone names supported by Microsoft Graph API.",
+						Optional:            true,
+						Computed:            true,
 						Attributes: map[string]schema.Attribute{
 							"name": schema.StringAttribute{
-								MarkdownDescription: "The name of the time zone (e.g., `Pacific Standard Time`, `America/Los_Angeles`).",
-								Required:            true,
+								MarkdownDescription: "The name of the time zone. Must be one of the supported Windows time zone names (e.g., `Pacific Standard Time`, `Eastern Standard Time`, `UTC`). See the [Microsoft Graph API documentation](https://learn.microsoft.com/en-us/graph/api/outlookuser-supportedtimezones) for the full list.",
+								Optional:            true,
+								Computed:            true,
+								Validators: []validator.String{
+									stringvalidator.OneOf(
+										"Dateline Standard Time", "UTC-11", "Samoa Standard Time", "Aleutian Standard Time",
+										"Hawaiian Standard Time", "Marquesas Standard Time", "Alaskan Standard Time", "UTC-09",
+										"Yukon Standard Time", "Pacific Standard Time (Mexico)", "UTC-08", "Pacific Standard Time",
+										"US Mountain Standard Time", "Mountain Standard Time (Mexico)", "Mountain Standard Time",
+										"Eastern Standard Time (Mexico)", "Central America Standard Time", "Central Standard Time",
+										"Easter Island Standard Time", "Central Standard Time (Mexico)", "Canada Central Standard Time",
+										"SA Pacific Standard Time", "Eastern Standard Time", "Haiti Standard Time", "Cuba Standard Time",
+										"US Eastern Standard Time", "Turks And Caicos Standard Time", "Venezuela Standard Time",
+										"Magallanes Standard Time", "Paraguay Standard Time", "Atlantic Standard Time",
+										"Central Brazilian Standard Time", "SA Western Standard Time", "Pacific SA Standard Time",
+										"Newfoundland Standard Time", "Tocantins Standard Time", "E. South America Standard Time",
+										"SA Eastern Standard Time", "Argentina Standard Time", "Greenland Standard Time",
+										"Montevideo Standard Time", "Saint Pierre Standard Time", "Bahia Standard Time", "UTC-02",
+										"Mid-Atlantic Standard Time", "Azores Standard Time", "Cape Verde Standard Time", "UTC",
+										"GMT Standard Time", "Greenwich Standard Time", "Morocco Standard Time", "W. Europe Standard Time",
+										"Central Europe Standard Time", "Romance Standard Time", "Central European Standard Time",
+										"W. Central Africa Standard Time", "Libya Standard Time", "Namibia Standard Time",
+										"GTB Standard Time", "Middle East Standard Time", "Egypt Standard Time", "E. Europe Standard Time",
+										"Syria Standard Time", "West Bank Standard Time", "South Africa Standard Time",
+										"FLE Standard Time", "Israel Standard Time", "South Sudan Standard Time",
+										"Kaliningrad Standard Time", "Sudan Standard Time", "Jordan Standard Time", "Turkey Standard Time",
+										"Belarus Standard Time", "Arabic Standard Time", "Arab Standard Time", "Russian Standard Time",
+										"E. Africa Standard Time", "Volgograd Standard Time", "Astrakhan Standard Time",
+										"Russia Time Zone 3", "Saratov Standard Time", "Iran Standard Time", "Arabian Standard Time",
+										"Azerbaijan Standard Time", "Mauritius Standard Time", "Georgian Standard Time",
+										"Caucasus Standard Time", "Afghanistan Standard Time", "West Asia Standard Time",
+										"Qyzylorda Standard Time", "Ekaterinburg Standard Time", "Pakistan Standard Time",
+										"India Standard Time", "Sri Lanka Standard Time", "Nepal Standard Time",
+										"Central Asia Standard Time", "Bangladesh Standard Time", "Omsk Standard Time",
+										"Altai Standard Time", "N. Central Asia Standard Time", "Tomsk Standard Time",
+										"Myanmar Standard Time", "SE Asia Standard Time", "W. Mongolia Standard Time",
+										"North Asia Standard Time", "China Standard Time", "North Asia East Standard Time",
+										"Singapore Standard Time", "W. Australia Standard Time", "Taipei Standard Time",
+										"Ulaanbaatar Standard Time", "Transbaikal Standard Time", "North Korea Standard Time",
+										"Aus Central W. Standard Time", "Tokyo Standard Time", "Korea Standard Time",
+										"Yakutsk Standard Time", "Cen. Australia Standard Time", "AUS Central Standard Time",
+										"E. Australia Standard Time", "AUS Eastern Standard Time", "West Pacific Standard Time",
+										"Tasmania Standard Time", "Vladivostok Standard Time", "Bougainville Standard Time",
+										"Magadan Standard Time", "Sakhalin Standard Time", "Lord Howe Standard Time",
+										"Russia Time Zone 10", "Norfolk Standard Time", "Central Pacific Standard Time",
+										"Russia Time Zone 11", "New Zealand Standard Time", "UTC+12", "Fiji Standard Time",
+										"Kamchatka Standard Time", "Chatham Islands Standard Time", "UTC+13", "Tonga Standard Time",
+										"Line Islands Standard Time",
+									),
+								},
 							},
 						},
 					},

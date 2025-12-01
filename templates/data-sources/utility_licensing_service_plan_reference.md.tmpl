@@ -1,0 +1,195 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
+subcategory: "Utility"
+
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Name}}
+
+Queries Microsoft 365 licensing service plan reference data to find license products (SKUs) and service plans using human-readable names, GUIDs, or string IDs.
+
+This utility datasource provides access to Microsoft's official licensing reference data, allowing you to dynamically look up license SKU GUIDs without hardcoding them in your Terraform configurations. This is particularly useful for license assignment operations where you need the `skuId` but want to use human-readable identifiers.
+
+## Background
+
+Microsoft 365 licenses are identified in three ways:
+
+- **Product Name**: The human-readable name displayed in admin portals (e.g., "Microsoft 365 E3")
+- **String ID**: Used by PowerShell v1.0 cmdlets and the `skuPartNumber` property in Microsoft Graph API (e.g., "ENTERPRISEPACK")
+- **GUID**: Used by the `skuId` property in Microsoft Graph API (e.g., "6fd2c87f-b296-42f0-b197-1e91e994b900")
+
+Each license product includes multiple service plans (individual Microsoft 365 services like Exchange Online, Teams, SharePoint, etc.). This datasource allows you to:
+
+1. Search for products by name and retrieve their identifiers
+2. Look up specific products by String ID or GUID
+3. Find which products include specific service plans
+4. Discover relationships between licenses and their included services
+
+The data is automatically kept up-to-date through a weekly automated pipeline that fetches the latest information from Microsoft's official documentation.
+
+## Search Modes
+
+The datasource supports six search modes. **Exactly one** search parameter must be specified:
+
+### Product Search
+- **`product_name`**: Case-insensitive partial match (e.g., "Microsoft 365 E3" finds all E3 variants)
+- **`string_id`**: Exact match by String ID (e.g., "ENTERPRISEPACK")
+- **`guid`**: Exact match by Product GUID
+
+### Service Plan Search
+- **`service_plan_name`**: Case-insensitive partial match (e.g., "Exchange Online")
+- **`service_plan_id`**: Case-insensitive partial match (e.g., "EXCHANGE")
+- **`service_plan_guid`**: Exact match by Service Plan GUID
+
+## Version History
+
+| Version | Status | Notes |
+|---------|--------|-------|
+| v0.37.0-alpha | Experimental | Initial release |
+
+## Example Usage
+
+### Basic License Lookup
+
+{{ tffile "examples/data-sources/microsoft365_utility_licensing_service_plan_reference/datasource.tf" }}
+
+### License Assignment with Dynamic Lookup
+
+{{ tffile "examples/data-sources/microsoft365_utility_licensing_service_plan_reference/search_by_string_id.tf" }}
+
+### Find Products Containing Specific Service Plans
+
+{{ tffile "examples/data-sources/microsoft365_utility_licensing_service_plan_reference/search_service_plans.tf" }}
+
+### Practical Example: Complete User License Assignment
+
+{{ tffile "examples/data-sources/microsoft365_utility_licensing_service_plan_reference/practical_license_lookup.tf" }}
+
+## Argument Reference
+
+**Note:** Exactly one of the following search parameters must be specified:
+
+### Product Search Parameters
+
+* `product_name` - (Optional) Search for products by name (case-insensitive partial match). Returns all products whose names contain this string. Example: `"Microsoft 365 E3"` or `"Office 365"`.
+
+* `string_id` - (Optional) Look up a product by its String ID (exact match, case-insensitive). String IDs are used by PowerShell v1.0 and the `skuPartNumber` property in Microsoft Graph. Example: `"ENTERPRISEPACK"`, `"SPE_E5"`.
+
+* `guid` - (Optional) Look up a product by its GUID (exact match). GUIDs are used by the `skuId` property in Microsoft Graph. Must be in the format `00000000-0000-0000-0000-000000000000`.
+
+### Service Plan Search Parameters
+
+* `service_plan_name` - (Optional) Search for service plans by friendly name (case-insensitive partial match). Returns all service plans whose names contain this string. Example: `"Exchange Online"`, `"Microsoft Teams"`.
+
+* `service_plan_id` - (Optional) Search for service plans by ID (case-insensitive partial match). Returns all service plans whose IDs contain this string. Example: `"EXCHANGE"`, `"TEAMS"`.
+
+* `service_plan_guid` - (Optional) Look up a service plan by its GUID (exact match). Must be in the format `00000000-0000-0000-0000-000000000000`.
+
+* `timeouts` - (Optional) Timeout configuration block. See [Timeouts](#timeouts) below.
+
+## Attributes Reference
+
+* `id` - The computed ID of this datasource operation in the format `{search_type}:{search_value}`.
+
+* `matching_products` - (Computed) List of products matching the search criteria. Populated when searching by `product_name`, `string_id`, or `guid`. Each product contains:
+  - `product_name` - The product name as displayed in management portals
+  - `string_id` - The product String ID used by PowerShell and Graph API
+  - `guid` - The product GUID used by Graph API
+  - `service_plans_included` - List of service plans included in this product:
+    - `id` - Service plan ID
+    - `name` - Service plan friendly name
+    - `guid` - Service plan GUID
+
+* `matching_service_plans` - (Computed) List of service plans matching the search criteria. Populated when searching by `service_plan_name`, `service_plan_id`, or `service_plan_guid`. Each service plan contains:
+  - `id` - Service plan ID
+  - `name` - Service plan friendly name
+  - `guid` - Service plan GUID
+  - `included_in_skus` - List of products (SKUs) that include this service plan:
+    - `product_name` - Product name
+    - `string_id` - Product String ID
+    - `guid` - Product GUID
+
+## Timeouts
+
+The `timeouts` block supports:
+
+* `read` - (Optional) Timeout for reading data. Defaults to 3 minutes. Note: This datasource performs local lookups against embedded data, so operations are typically instantaneous.
+
+{{ .SchemaMarkdown | trimspace }}
+
+## Use Cases
+
+This datasource supports multiple licensing automation scenarios:
+
+1. **Dynamic License Assignment** - Look up license SKU GUIDs by human-readable names instead of hardcoding GUIDs
+2. **License Discovery** - Find all available licenses that include specific service plans (e.g., all licenses with Exchange Online)
+3. **Service Plan Analysis** - Understand which services are included in a license product
+4. **Configuration Validation** - Verify that licenses in your tenant match expected String IDs or GUIDs
+5. **Documentation Generation** - Dynamically generate documentation of available licenses and their capabilities
+
+## Best Practices
+
+1. **Use Product Names**: Search by `product_name` for better readability and maintainability (e.g., `"Microsoft 365 E3"` instead of `"ENTERPRISEPACK"`)
+2. **Validate Results**: Check that `matching_products` or `matching_service_plans` contains at least one result before accessing `[0]`
+3. **Handle Multiple Matches**: Product name searches may return multiple results (e.g., "Microsoft 365 E3" returns both standard and "no Teams" variants)
+4. **Use Locals**: Store looked-up GUIDs in local values for reuse across multiple resources
+5. **Document Your Choice**: Comment why you're using a specific license (e.g., "Microsoft 365 E3 (no Teams) to avoid Teams conflicts")
+
+## Important Notes
+
+### No Authentication Required
+This datasource performs local lookups against embedded reference data and doesn't make any API calls. Unlike other datasources in this provider, it doesn't require Microsoft Graph API credentials.
+
+### Data Freshness
+The embedded licensing data is automatically updated weekly by a GitHub Actions workflow that fetches the latest information from Microsoft's documentation. The data source always reflects the state of the embedded JSON file at provider build time.
+
+### Partial Matching
+When searching by `product_name`, `service_plan_name`, or `service_plan_id`, the datasource performs case-insensitive partial matching. This means `"Microsoft 365 E3"` will match:
+- "Microsoft 365 E3"
+- "Microsoft 365 E3 (no Teams)"
+- "Microsoft 365 E3 - Unattended License"
+
+Use exact identifiers (`string_id` or `guid`) when you need precise matching.
+
+### Multiple Results
+Some searches may return multiple results. Always check the count and access specific array indices appropriately. Consider using filters or selecting the appropriate match based on your requirements.
+
+## Common Licenses
+
+Here are some commonly used licenses that can be looked up with this datasource:
+
+| Product Name | String ID | Common Use Case |
+|--------------|-----------|-----------------|
+| Microsoft 365 E3 | ENTERPRISEPACK | Enterprise productivity suite |
+| Microsoft 365 E3 (no Teams) | Microsoft_365_E3_(no_Teams) | Enterprise suite without Teams |
+| Microsoft 365 E5 | ENTERPRISEPREMIUM | Enterprise with advanced security |
+| Microsoft 365 Business Premium | SPB | Small/medium business suite |
+| Exchange Online Plan 1 | EXCHANGESTANDARD | Email only |
+| Exchange Online Plan 2 | EXCHANGE_S_ENTERPRISE | Email with advanced features |
+
+## Data Updates
+
+The licensing reference data is maintained through an automated pipeline:
+
+- **Update Frequency**: Weekly (every Monday at 2 AM UTC)
+- **Source**: [Microsoft Licensing Service Plan Reference](https://learn.microsoft.com/en-us/entra/identity/users/licensing-service-plan-reference)
+- **Process**: Automated PR created when changes are detected
+- **Review**: Changes are reviewed before merging into the provider
+
+To manually update the data, run:
+```bash
+python3 scripts/pipeline/get_licensing_service_plan_reference.py \
+  -f json \
+  -o internal/services/datasources/utility/licensing_service_plan_reference/data/licensing_service_plan_reference.json
+```
+
+## Additional Resources
+
+- [Microsoft Licensing Service Plan Reference](https://learn.microsoft.com/en-us/entra/identity/users/licensing-service-plan-reference)
+- [Microsoft Graph API - subscribedSku Resource Type](https://learn.microsoft.com/en-us/graph/api/resources/subscribedsku)
+- [Assign Licenses to Users (Microsoft Graph)](https://learn.microsoft.com/en-us/graph/api/user-assignlicense)
+- [Group-Based Licensing in Microsoft Entra ID](https://learn.microsoft.com/en-us/entra/identity/users/licensing-groups-assign)
+
+

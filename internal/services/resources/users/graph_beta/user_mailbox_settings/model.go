@@ -1,5 +1,7 @@
 // REF: https://learn.microsoft.com/en-us/graph/api/user-get-mailboxsettings?view=graph-rest-beta
 // REF: https://learn.microsoft.com/en-us/graph/api/user-update-mailboxsettings?view=graph-rest-beta
+// REF: https://learn.microsoft.com/en-us/graph/api/outlookuser-supportedlanguages?view=graph-rest-beta&tabs=http
+// REF: https://learn.microsoft.com/en-us/graph/api/outlookuser-supportedtimezones?view=graph-rest-beta&tabs=http
 package graphBetaUsersUserMailboxSettings
 
 import (
@@ -9,17 +11,17 @@ import (
 
 // UserMailboxSettingsResourceModel represents the schema for the User Mailbox Settings resource
 type UserMailboxSettingsResourceModel struct {
-	ID                                    types.String             `tfsdk:"id"`
-	UserID                                types.String             `tfsdk:"user_id"`
-	AutomaticRepliesSetting               *AutomaticRepliesSetting `tfsdk:"automatic_replies_setting"`
-	DateFormat                            types.String             `tfsdk:"date_format"`
-	DelegateMeetingMessageDeliveryOptions types.String             `tfsdk:"delegate_meeting_message_delivery_options"`
-	Language                              types.Object             `tfsdk:"language"` // Optional+Computed must be types.Object
-	TimeFormat                            types.String             `tfsdk:"time_format"`
-	TimeZone                              types.String             `tfsdk:"time_zone"`
-	WorkingHours                          types.Object             `tfsdk:"working_hours"` // Optional+Computed must be types.Object
-	UserPurpose                           types.String             `tfsdk:"user_purpose"`
-	Timeouts                              timeouts.Value           `tfsdk:"timeouts"`
+	ID                                    types.String   `tfsdk:"id"`
+	UserID                                types.String   `tfsdk:"user_id"`
+	AutomaticRepliesSetting               types.Object   `tfsdk:"automatic_replies_setting"` // Optional+Computed must be types.Object
+	DateFormat                            types.String   `tfsdk:"date_format"`
+	DelegateMeetingMessageDeliveryOptions types.String   `tfsdk:"delegate_meeting_message_delivery_options"`
+	Language                              types.Object   `tfsdk:"language"` // Optional+Computed must be types.Object
+	TimeFormat                            types.String   `tfsdk:"time_format"`
+	TimeZone                              types.String   `tfsdk:"time_zone"`
+	WorkingHours                          types.Object   `tfsdk:"working_hours"` // Optional+Computed must be types.Object
+	UserPurpose                           types.String   `tfsdk:"user_purpose"`
+	Timeouts                              timeouts.Value `tfsdk:"timeouts"`
 }
 
 // AutomaticRepliesSetting represents the automatic replies settings for a user's mailbox

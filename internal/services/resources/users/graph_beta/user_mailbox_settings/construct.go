@@ -8,44 +8,56 @@ import (
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
+	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
 // constructResource converts the Terraform resource model to the SDK model
-func constructResource(ctx context.Context, data *UserMailboxSettingsResourceModel) (graphmodels.MailboxSettingsable, error) {
+func constructResource(ctx context.Context, client *msgraphbetasdk.GraphServiceClient, userID string, data *UserMailboxSettingsResourceModel) (graphmodels.MailboxSettingsable, error) {
 	tflog.Debug(ctx, fmt.Sprintf("Constructing %s resource from model", ResourceName))
+
+	// Validate the request against supported values from the API
+	if err := validateRequest(ctx, client, userID, data); err != nil {
+		return nil, fmt.Errorf("validation failed: %w", err)
+	}
 
 	mailboxSettings := graphmodels.NewMailboxSettings()
 
-	if data.AutomaticRepliesSetting != nil {
+	if !data.AutomaticRepliesSetting.IsNull() && !data.AutomaticRepliesSetting.IsUnknown() {
+		var automaticRepliesData AutomaticRepliesSetting
+		diags := data.AutomaticRepliesSetting.As(ctx, &automaticRepliesData, basetypes.ObjectAsOptions{})
+		if diags.HasError() {
+			return nil, fmt.Errorf("failed to extract automatic replies data: %s", diags.Errors()[0].Detail())
+		}
+
 		automaticReplies := graphmodels.NewAutomaticRepliesSetting()
 
-		if err := convert.FrameworkToGraphEnum(data.AutomaticRepliesSetting.Status,
+		if err := convert.FrameworkToGraphEnum(automaticRepliesData.Status,
 			graphmodels.ParseAutomaticRepliesStatus,
 			automaticReplies.SetStatus); err != nil {
 			return nil, fmt.Errorf("failed to set automatic replies status: %w", err)
 		}
 
-		if err := convert.FrameworkToGraphEnum(data.AutomaticRepliesSetting.ExternalAudience,
+		if err := convert.FrameworkToGraphEnum(automaticRepliesData.ExternalAudience,
 			graphmodels.ParseExternalAudienceScope,
 			automaticReplies.SetExternalAudience); err != nil {
 			return nil, fmt.Errorf("failed to set external audience: %w", err)
 		}
 
-		convert.FrameworkToGraphString(data.AutomaticRepliesSetting.InternalReplyMessage, automaticReplies.SetInternalReplyMessage)
-		convert.FrameworkToGraphString(data.AutomaticRepliesSetting.ExternalReplyMessage, automaticReplies.SetExternalReplyMessage)
+		convert.FrameworkToGraphString(automaticRepliesData.InternalReplyMessage, automaticReplies.SetInternalReplyMessage)
+		convert.FrameworkToGraphString(automaticRepliesData.ExternalReplyMessage, automaticReplies.SetExternalReplyMessage)
 
-		if data.AutomaticRepliesSetting.ScheduledStartDateTime != nil {
+		if automaticRepliesData.ScheduledStartDateTime != nil {
 			scheduledStart := graphmodels.NewDateTimeTimeZone()
-			convert.FrameworkToGraphString(data.AutomaticRepliesSetting.ScheduledStartDateTime.DateTime, scheduledStart.SetDateTime)
-			convert.FrameworkToGraphString(data.AutomaticRepliesSetting.ScheduledStartDateTime.TimeZone, scheduledStart.SetTimeZone)
+			convert.FrameworkToGraphString(automaticRepliesData.ScheduledStartDateTime.DateTime, scheduledStart.SetDateTime)
+			convert.FrameworkToGraphString(automaticRepliesData.ScheduledStartDateTime.TimeZone, scheduledStart.SetTimeZone)
 			automaticReplies.SetScheduledStartDateTime(scheduledStart)
 		}
 
-		if data.AutomaticRepliesSetting.ScheduledEndDateTime != nil {
+		if automaticRepliesData.ScheduledEndDateTime != nil {
 			scheduledEnd := graphmodels.NewDateTimeTimeZone()
-			convert.FrameworkToGraphString(data.AutomaticRepliesSetting.ScheduledEndDateTime.DateTime, scheduledEnd.SetDateTime)
-			convert.FrameworkToGraphString(data.AutomaticRepliesSetting.ScheduledEndDateTime.TimeZone, scheduledEnd.SetTimeZone)
+			convert.FrameworkToGraphString(automaticRepliesData.ScheduledEndDateTime.DateTime, scheduledEnd.SetDateTime)
+			convert.FrameworkToGraphString(automaticRepliesData.ScheduledEndDateTime.TimeZone, scheduledEnd.SetTimeZone)
 			automaticReplies.SetScheduledEndDateTime(scheduledEnd)
 		}
 
@@ -63,7 +75,6 @@ func constructResource(ctx context.Context, data *UserMailboxSettingsResourceMod
 	convert.FrameworkToGraphString(data.TimeFormat, mailboxSettings.SetTimeFormat)
 	convert.FrameworkToGraphString(data.TimeZone, mailboxSettings.SetTimeZone)
 
-	// Handle language (types.Object)
 	if !data.Language.IsNull() && !data.Language.IsUnknown() {
 		var languageData LocaleInfo
 		diags := data.Language.As(ctx, &languageData, basetypes.ObjectAsOptions{})
@@ -82,7 +93,6 @@ func constructResource(ctx context.Context, data *UserMailboxSettingsResourceMod
 		return nil, fmt.Errorf("failed to set user purpose: %w", err)
 	}
 
-	// Handle working_hours (types.Object)
 	if !data.WorkingHours.IsNull() && !data.WorkingHours.IsUnknown() {
 		var workingHoursData WorkingHours
 		diags := data.WorkingHours.As(ctx, &workingHoursData, basetypes.ObjectAsOptions{})
@@ -123,7 +133,6 @@ func constructResource(ctx context.Context, data *UserMailboxSettingsResourceMod
 			return nil, fmt.Errorf("failed to set working hours end time: %w", err)
 		}
 
-		// Handle time_zone (types.Object) within working_hours
 		if !workingHoursData.TimeZone.IsNull() && !workingHoursData.TimeZone.IsUnknown() {
 			var timeZoneData TimeZoneBase
 			diags := workingHoursData.TimeZone.As(ctx, &timeZoneData, basetypes.ObjectAsOptions{})
@@ -136,6 +145,11 @@ func constructResource(ctx context.Context, data *UserMailboxSettingsResourceMod
 
 		mailboxSettings.SetWorkingHours(workingHours)
 	}
+
+	additionalData := map[string]any{
+		"@odata.context": "https://graph.microsoft.com/beta/$metadata#users('user')/mailboxSettings",
+	}
+	mailboxSettings.SetAdditionalData(additionalData)
 
 	if err := constructors.DebugLogGraphObject(ctx, fmt.Sprintf("Final JSON to be sent to Graph API for resource %s", ResourceName), mailboxSettings); err != nil {
 		tflog.Error(ctx, "Failed to debug log object", map[string]any{

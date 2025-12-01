@@ -2,13 +2,23 @@
 # This example demonstrates creating a user, assigning an Exchange Online license,
 # and then configuring mailbox settings
 
-# Step 1: Create the user
+# Step 1: Look up the license SKU using the licensing service plan reference datasource
+# This ensures you always have the correct GUID without hardcoding it
+data "microsoft365_utility_licensing_service_plan_reference" "m365_e3" {
+  string_id = "ENTERPRISEPACK" # Microsoft 365 E3
+
+  # Alternative search options:
+  # product_name = "Microsoft 365 E3"
+  # guid = "6fd2c87f-b296-42f0-b197-1e91e994b900"
+}
+
+# Step 2: Create the user
 resource "microsoft365_graph_beta_users_user" "example_user" {
   display_name        = "Example User"
   user_principal_name = "example.user@yourdomain.com"
   mail_nickname       = "example.user"
   account_enabled     = true
-  usage_location      = "US" # Required for license assignment
+  usage_location      = "US" # Field is required for license assignment
 
   password_profile = {
     password                           = "SecureP@ssw0rd123!"
@@ -16,44 +26,50 @@ resource "microsoft365_graph_beta_users_user" "example_user" {
   }
 }
 
-# Step 2: Assign a license that includes Exchange Online
-# Note: Replace the sku_id with an actual SKU ID from your tenant
+# Step 3: Assign a license that includes Exchange Online
 resource "microsoft365_graph_beta_users_user_license_assignment" "example_user_license" {
   user_id = microsoft365_graph_beta_users_user.example_user.id
 
-  # Common SKU IDs that include Exchange Online:
-  # - Microsoft 365 E3: 6fd2c87f-b296-42f0-b197-1e91e994b900
-  # - Microsoft 365 E5: c7df2760-2c81-4ef7-b578-5b5392b571df
-  # - Microsoft 365 Business Premium: f245ecc8-75af-4f8e-b61f-27d8114de5f3
-  # - Exchange Online Plan 1: 4b9405b0-7788-4568-add1-99614e613b69
-  # - Exchange Online Plan 2: 19ec0d23-8335-4cbd-94ac-6050e30712fa
-  sku_id = "6fd2c87f-b296-42f0-b197-1e91e994b900" # Microsoft 365 E3
+  # Use the dynamically looked-up SKU ID from the datasource
+  # This is more maintainable than hardcoding GUIDs and ensures accuracy
+  sku_id = data.microsoft365_utility_licensing_service_plan_reference.m365_e3.matching_products[0].guid
 
   # Optional: Disable specific service plans
   disabled_plans = []
 }
 
-# Step 3: Wait for mailbox provisioning
+# Step 4: Wait for mailbox provisioning
 # Exchange Online mailboxes can take 1-2 minutes to provision after license assignment
-resource "time_sleep" "wait_for_mailbox" {
+resource "time_sleep" "wait_for_mailbox_provisioning" {
   depends_on = [microsoft365_graph_beta_users_user_license_assignment.example_user_license]
 
   create_duration = "2m"
 }
 
-# Step 4: Configure mailbox settings
+# Step 5: Configure mailbox settings
 resource "microsoft365_graph_beta_users_user_mailbox_settings" "example_user_settings" {
-  depends_on = [time_sleep.wait_for_mailbox]
+  depends_on = [time_sleep.wait_for_mailbox_provisioning]
 
-  user_id                                   = microsoft365_graph_beta_users_user.example_user.id
-  time_zone                                 = "Eastern Standard Time"
-  date_format                               = "MM/dd/yyyy"
-  time_format                               = "hh:mm tt"
-  delegate_meeting_message_delivery_options = "sendToDelegateAndInformationToPrincipal"
+  user_id                                   = microsoft365_graph_beta_users_user.maximal_dependency_user.id
+  time_zone                                 = "Greenwich Standard Time"
+  delegate_meeting_message_delivery_options = "sendToDelegateOnly"
 
   automatic_replies_setting = {
-    status            = "disabled"
-    external_audience = "none"
+    status            = "scheduled"
+    external_audience = "all"
+
+    scheduled_start_date_time = {
+      date_time = "2030-03-14T07:00:00"
+      time_zone = "UTC"
+    }
+
+    scheduled_end_date_time = {
+      date_time = "2030-03-28T07:00:00"
+      time_zone = "UTC"
+    }
+
+    internal_reply_message = "<html>\n<body>\n<p>I'm at our company's worldwide reunion and will respond to your message as soon as I return.<br>\n</p></body>\n</html>\n"
+    external_reply_message = "<html>\n<body>\n<p>I'm at the Deployment Theory worldwide reunion and will respond to your message as soon as I return.<br>\n</p></body>\n</html>\n"
   }
 
   language = {
@@ -66,7 +82,7 @@ resource "microsoft365_graph_beta_users_user_mailbox_settings" "example_user_set
     end_time     = "17:00:00"
 
     time_zone = {
-      name = "Eastern Standard Time"
+      name = "Greenwich Standard Time"
     }
   }
 }
