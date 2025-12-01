@@ -17,7 +17,6 @@ import (
 
 const (
 	endpointsAPIBaseURL = "https://endpoints.office.com/endpoints"
-	versionAPIURL       = "https://endpoints.office.com/version"
 	apiTimeout          = 30 * time.Second
 )
 
@@ -101,7 +100,11 @@ func getAllowListEndpoints(ctx context.Context, instance string) ([]Microsoft365
 
 	clientRequestID := uuid.New().String()
 
-	url := fmt.Sprintf("%s/%s?clientrequestid=%s", endpointsAPIBaseURL, instance, clientRequestID)
+	// Include all service areas to get maximum endpoint coverage (79 for Worldwide)
+	// Without ServiceAreas=MEM, the API only returns 64 endpoints and misses all 15 Intune/MEM endpoints
+	// Reference: https://learn.microsoft.com/en-us/microsoft-365/enterprise/microsoft-365-ip-web-service
+	serviceAreas := "MEM,Exchange,Skype,SharePoint,Common"
+	url := fmt.Sprintf("%s/%s?ServiceAreas=%s&ClientRequestId=%s", endpointsAPIBaseURL, instance, serviceAreas, clientRequestID)
 
 	tflog.Debug(ctx, fmt.Sprintf("Calling Microsoft 365 endpoints API: %s", url))
 

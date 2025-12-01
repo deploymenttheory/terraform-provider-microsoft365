@@ -75,6 +75,7 @@ See [Microsoft 365 Network Connectivity Principles](https://learn.microsoft.com/
 
 ## Service Areas
 
+- **MEM**: Microsoft Endpoint Manager (Intune, Autopilot, Windows Updates, Remote Help)
 - **Exchange**: Exchange Online, Outlook, Exchange Online Protection (EOP)
 - **SharePoint**: SharePoint Online and OneDrive for Business
 - **Skype**: Microsoft Teams and Skype for Business Online
@@ -100,11 +101,15 @@ See [Microsoft 365 Network Connectivity Principles](https://learn.microsoft.com/
 
 {{ tffile "examples/data-sources/microsoft365_utility_microsoft_365_endpoint_reference/firewall-automation.tf" }}
 
+### Microsoft Endpoint Manager (Intune) Endpoints
+
+{{ tffile "examples/data-sources/microsoft365_utility_microsoft_365_endpoint_reference/mem-endpoints.tf" }}
+
 ## Argument Reference
 
 * `instance` - (Required) The Microsoft 365 cloud instance to query. Valid values: `worldwide`, `usgov-dod`, `usgov-gcchigh`, `china`.
 
-* `service_areas` - (Optional) Filter endpoints by service area. Valid values: `Exchange`, `SharePoint`, `Skype`, `Common`. If omitted, returns all service areas.
+* `service_areas` - (Optional) Filter endpoints by service area. Valid values: `MEM`, `Exchange`, `SharePoint`, `Skype`, `Common`. If omitted, returns all service areas.
 
 * `categories` - (Optional) Filter endpoints by network optimization category. Valid values: `Optimize`, `Allow`, `Default`. If omitted, returns all categories.
 
@@ -120,7 +125,7 @@ See [Microsoft 365 Network Connectivity Principles](https://learn.microsoft.com/
 
 * `endpoints` - List of endpoint objects. Each endpoint contains:
   - `id` - Unique identifier for this endpoint set (from Microsoft's service)
-  - `service_area` - Service area code: `Exchange`, `SharePoint`, `Skype`, or `Common`
+  - `service_area` - Service area code: `MEM`, `Exchange`, `SharePoint`, `Skype`, or `Common`
   - `service_area_display_name` - Human-readable service area name
   - `urls` - List of URL patterns/FQDNs (may include wildcards like `*.office.com`)
   - `ips` - List of IP address ranges in CIDR notation (e.g., `40.96.0.0/13`)
