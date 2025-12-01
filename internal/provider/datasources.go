@@ -60,7 +60,7 @@ import (
 	utilityItunesAppMetadata "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/utility/itunes_app_metadata"
 	utilityLicensingServicePlanReference "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/utility/licensing_service_plan_reference"
 	utilityMacOSPKGAppMetadata "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/utility/macos_pkg_app_metadata"
-	utilityMicrosoft365Endpoints "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/utility/microsoft_365_endpoints"
+	utilityMicrosoft365EndpointReference "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/utility/microsoft_365_endpoint_reference"
 	utilityMicrosoftStorePackageManifestMetadata "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/utility/microsoft_store_package_manifest_metadata"
 	utilityWindowsMSIAppMetadata "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/utility/windows_msi_app_metadata"
 	utilityWindowsRemediationScriptRegistryKeyGenerator "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/utility/windows_remediation_script_registry_key_generator"
@@ -130,7 +130,7 @@ func (p *M365Provider) DataSources(ctx context.Context) []func() datasource.Data
 		utilityWindowsRemediationScriptRegistryKeyGenerator.NewWindowsRemediationScriptRegistryKeyGeneratorDataSource,
 		utilityMacOSPKGAppMetadata.NewMacOSPKGAppMetadataDataSource,
 		utilityItunesAppMetadata.NewItunesAppMetadataDataSource,
-		utilityMicrosoft365Endpoints.NewMicrosoft365EndpointsDataSource,
+		utilityMicrosoft365EndpointReference.NewMicrosoft365EndpointReferenceDataSource,
 		utilityLicensingServicePlanReference.NewlicensingServicePlanReferenceDataSource,
 		utilityMicrosoftStorePackageManifestMetadata.NewMicrosoftStorePackageManifestDataSource,
 		utilityWindowsMSIAppMetadata.NewWindowsMSIAppMetadataDataSource,
