@@ -5,6 +5,45 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.37.0-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.36.1-alpha...v0.37.0-alpha) (2025-12-01)
+
+
+### Features
+
+* added datasource microsoft365_utility_licensing_service_plan_reference ([3c9b30a](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/3c9b30ac577922a3a5507a9cf2b54aca5ea536c9))
+* added datasource microsoft365_utility_licensing_service_plan_reference ([#1262](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/1262)) ([fba52df](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/fba52dfbd9d6f39b5cbab476a3bb2f2af0c0c200))
+* added new resources and refactored test harness ([#1183](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/1183)) ([2b46754](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/2b46754f9f2922b59112c545b72105ba8fc09e78))
+* added resource user mailbox settings with unit test harness ([63b3c09](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/63b3c09d094f41918b6bc3521d78aafa22d6276a))
+* added resource user mailbox settings with unit test harness ([#1277](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/1277)) ([f5f5bd9](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/f5f5bd9982453e57e5a0422046f001457f753dd1))
+* enhance run-tests.py for improved memory management and sequential test execution ([70d20e1](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/70d20e109139bef763965d91d641a558947bb21b))
+* enhance run-tests.py for improved memory management and sequential test execution ([#1231](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/1231)) ([39bc074](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/39bc0748c78eb0040142a97dab8a26ce70fb4d40))
+* enhance run-tests.py with configurable parallelism and improved test enumeration control ([e52e53e](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/e52e53e49b18adde1c9d0fee889ac020d56cb5af))
+* enhance run-tests.py with detailed logging and timing for test discovery and execution ([883fd22](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/883fd220ed79bada9e7de8c509344174675351ec))
+* refactored graphBetaGroupLifecycleExpirationPolicy and added full test harness, added resource graphBetaGroupLifecycleExpirationPolicyAssignment and full test harness ([8abef15](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/8abef1561c6c021910c7993e7306472331171201))
+* refactored utility datasource unit tests to follow new test harness pattern ([e7de954](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/e7de9542953f7f067da0ccfaa12b9952979995c3))
+
+
+### Bug Fixes
+
+* added helpers for stating and more unit tests ([#1261](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/1261)) ([d67836f](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/d67836f60cfce6078be54fe8266eb041d071e643))
+* added pipeline debug log option when bi weekly tests run in workflow dispatch ([#1215](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/1215)) ([552d45f](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/552d45f697974757ba55e08bd3e188532e094043))
+* conditional access control set logic ([#1184](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/1184)) ([1b507a5](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/1b507a519aa89ccf44587f7ff13ad55196506512))
+* datasource rename to microsoft365_utility_microsoft_365_endpoint_reference ([1cac047](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/1cac0472f035b480558c3897157eb0e7dca49740))
+* datasource rename to microsoft365_utility_microsoft_365_endpoint_reference ([#1278](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/1278)) ([b469e69](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/b469e6911d37f40161c1fbb7c98b29a873885b83))
+* enhance nightly tests workflow by adding disk space cleanup step and updating runner configuration ([#1124](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/1124)) ([0ada782](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/0ada7823339ea526785a4f95798d0a5e7e96aee5))
+* for group license assignments and added full test harness ([2980d32](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/2980d325d9454ee6411de63f56849f6ba34d42fa))
+* for group license assignments and added full test harness ([#1194](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/1194)) ([40dc331](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/40dc331ae3f1db3917171939ea9361ba27aea764))
+* remove global_secure_access attribute in applications of conditional access policy ([#1182](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/1182)) ([0dbbbe7](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/0dbbbe719433a6fb2df4ac8b421168dd988c3b25))
+* resource  user license assignment tests ([eae4e70](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/eae4e701542d1a87e475bce12e176843249ecb16))
+* resource  user license assignment tests ([#1106](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/1106)) ([8b816fb](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/8b816fb8e5ab51caa46d6f759322d613804bc91b))
+* trialling run-test.py in sequential mode ([aa92be8](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/aa92be81688ff346bfb6fb71c864e266ecbd3e0a))
+* unit test refactor for datasource utilities ([#1220](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/1220)) ([7c1faaf](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/7c1faaf1f8442f6ed4d4ca7f58ecc2467a56373c))
+* update nightly tests workflow to bi-weekly schedule and changed to larger runners for memory intensive workflows ([#1213](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/1213)) ([a39faae](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/a39faae1b25cc0fcbe7e1bc4bccf7bd894d0655a))
+* update run-tests.py to improve test enumeration and memory management ([1c7212f](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/1c7212f9ba6ad3d5395b0ff13df4d0cf9d4dca3e))
+* update run-tests.py to improve test enumeration and memory management ([#1232](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/1232)) ([e8b8985](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/e8b8985ecc56b20d99ccbb6161d026dfec63ee83))
+* updated resource group test harness to follow new pattern ([4347f6f](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/4347f6f7b29d19d28389265f9dfac2593d626795))
+* updated resource group test harness to follow new pattern ([#1123](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/1123)) ([6f0b0d0](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/6f0b0d06c724945d7f98638d37c0a95fed161409))
+
 ## [0.36.1-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.36.0-alpha...v0.36.1-alpha) (2025-11-21)
 
 
