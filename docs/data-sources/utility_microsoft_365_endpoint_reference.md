@@ -3,7 +3,7 @@ page_title: "microsoft365_utility_microsoft_365_endpoint_reference Data Source -
 subcategory: "Utility"
 
 description: |-
-  Retrieves Microsoft 365 network endpoints from the official Microsoft 365 IP Address and URL Web Service. This datasource queries https://endpoints.office.com to get current IP addresses, URLs, and ports for Microsoft 365 services. Useful for configuring firewalls, proxy servers, SD-WAN devices, and PAC files. Data is filtered by cloud instance (Worldwide, US Government, China) and can be narrowed by service area and category.
+  Retrieves Microsoft 365 network endpoints from the official Microsoft 365 IP Address and URL Web Service. This datasource queries https://endpoints.office.com with all service areas (MEM, Exchange, Skype, SharePoint, Common) to get current IP addresses, URLs, and ports for Microsoft 365 services including Intune/Endpoint Manager. Useful for configuring firewalls, proxy servers, SD-WAN devices, and PAC files. Data is filtered by cloud instance (Worldwide, US Government, China) and can be narrowed by service area and category.
   See Managing Microsoft 365 endpoints https://learn.microsoft.com/en-us/microsoft-365/enterprise/managing-office-365-endpoints for configuration guidance.
 ---
 
@@ -76,6 +76,7 @@ See [Microsoft 365 Network Connectivity Principles](https://learn.microsoft.com/
 
 ## Service Areas
 
+- **MEM**: Microsoft Endpoint Manager (Intune, Autopilot, Windows Updates, Remote Help)
 - **Exchange**: Exchange Online, Outlook, Exchange Online Protection (EOP)
 - **SharePoint**: SharePoint Online and OneDrive for Business
 - **Skype**: Microsoft Teams and Skype for Business Online
@@ -622,11 +623,155 @@ output "network_summary" {
 }
 ```
 
+### Microsoft Endpoint Manager (Intune) Endpoints
+
+```terraform
+# Example: Get all MEM (Microsoft Endpoint Manager / Intune) endpoints
+data "microsoft365_utility_microsoft_365_endpoint_reference" "mem_all" {
+  instance      = "worldwide"
+  service_areas = ["MEM"]
+}
+
+# Output: Total count of MEM endpoints
+output "mem_endpoints_count" {
+  description = "Total number of MEM endpoints (Expected: 15 for Worldwide)"
+  value       = length(data.microsoft365_utility_microsoft_365_endpoint_reference.mem_all.endpoints)
+}
+
+# Output: All MEM URLs/FQDNs (flattened list)
+output "mem_urls" {
+  description = "All MEM/Intune URLs that need to be allowed"
+  value = flatten([
+    for endpoint in data.microsoft365_utility_microsoft_365_endpoint_reference.mem_all.endpoints :
+    coalesce(endpoint.urls, [])
+  ])
+}
+
+# Output: All MEM IP ranges (flattened list)
+output "mem_ip_ranges" {
+  description = "All MEM/Intune IP ranges in CIDR notation"
+  value = flatten([
+    for endpoint in data.microsoft365_utility_microsoft_365_endpoint_reference.mem_all.endpoints :
+    coalesce(endpoint.ips, [])
+  ])
+}
+
+# Output: Detailed breakdown of each MEM endpoint
+output "mem_endpoint_details" {
+  description = "Detailed information for each MEM endpoint"
+  value = [
+    for endpoint in data.microsoft365_utility_microsoft_365_endpoint_reference.mem_all.endpoints : {
+      id            = endpoint.id
+      display_name  = endpoint.service_area_display_name
+      category      = endpoint.category
+      required      = endpoint.required
+      express_route = endpoint.express_route
+      tcp_ports     = endpoint.tcp_ports
+      udp_ports     = endpoint.udp_ports
+      url_count     = length(coalesce(endpoint.urls, []))
+      ip_count      = length(coalesce(endpoint.ips, []))
+      urls          = coalesce(endpoint.urls, [])
+      ips           = coalesce(endpoint.ips, [])
+      notes         = endpoint.notes
+    }
+  ]
+}
+
+# Example: Get only REQUIRED MEM endpoints
+data "microsoft365_utility_microsoft_365_endpoint_reference" "mem_required" {
+  instance      = "worldwide"
+  service_areas = ["MEM"]
+  required_only = true
+}
+
+output "mem_required_urls" {
+  description = "Required MEM URLs only"
+  value = flatten([
+    for endpoint in data.microsoft365_utility_microsoft_365_endpoint_reference.mem_required.endpoints :
+    coalesce(endpoint.urls, [])
+  ])
+}
+
+# Example: Generate firewall rules for MEM endpoints
+locals {
+  mem_firewall_rules = flatten([
+    for endpoint in data.microsoft365_utility_microsoft_365_endpoint_reference.mem_all.endpoints : [
+      for url in coalesce(endpoint.urls, []) : {
+        destination   = url
+        tcp_ports     = endpoint.tcp_ports != "" ? endpoint.tcp_ports : null
+        udp_ports     = endpoint.udp_ports != "" ? endpoint.udp_ports : null
+        category      = endpoint.category
+        required      = endpoint.required
+        express_route = endpoint.express_route
+      }
+    ]
+  ])
+
+  # Group MEM endpoints by category
+  mem_by_category = {
+    for category in distinct([
+      for endpoint in data.microsoft365_utility_microsoft_365_endpoint_reference.mem_all.endpoints :
+      endpoint.category
+    ]) :
+    category => [
+      for endpoint in data.microsoft365_utility_microsoft_365_endpoint_reference.mem_all.endpoints :
+      endpoint if endpoint.category == category
+    ]
+  }
+}
+
+output "mem_firewall_rules" {
+  description = "Firewall rules for MEM endpoints"
+  value       = local.mem_firewall_rules
+}
+
+output "mem_by_category" {
+  description = "MEM endpoints grouped by category (Allow/Default)"
+  value = {
+    for category, endpoints in local.mem_by_category :
+    category => {
+      count = length(endpoints)
+      urls  = distinct(flatten([for ep in endpoints : coalesce(ep.urls, [])]))
+      ips   = distinct(flatten([for ep in endpoints : coalesce(ep.ips, [])]))
+    }
+  }
+}
+
+# Example: Extract specific Intune services
+output "intune_core_management" {
+  description = "Core Intune management endpoints (ID 163)"
+  value = [
+    for endpoint in data.microsoft365_utility_microsoft_365_endpoint_reference.mem_all.endpoints :
+    {
+      urls = coalesce(endpoint.urls, [])
+      ips  = coalesce(endpoint.ips, [])
+    }
+    if endpoint.id == 163
+  ]
+}
+
+output "windows_update_urls" {
+  description = "Windows Update delivery endpoints for Intune"
+  value = flatten([
+    for endpoint in data.microsoft365_utility_microsoft_365_endpoint_reference.mem_all.endpoints :
+    coalesce(endpoint.urls, [])
+    if(endpoint.notes != null && (
+      strcontains(lower(endpoint.notes), "windows") ||
+      strcontains(lower(endpoint.notes), "update")
+    )) ||
+    length([
+      for url in coalesce(endpoint.urls, []) :
+      url if strcontains(lower(url), "update") || strcontains(lower(url), "windowsupdate")
+    ]) > 0
+  ])
+}
+```
+
 ## Argument Reference
 
 * `instance` - (Required) The Microsoft 365 cloud instance to query. Valid values: `worldwide`, `usgov-dod`, `usgov-gcchigh`, `china`.
 
-* `service_areas` - (Optional) Filter endpoints by service area. Valid values: `Exchange`, `SharePoint`, `Skype`, `Common`. If omitted, returns all service areas.
+* `service_areas` - (Optional) Filter endpoints by service area. Valid values: `MEM`, `Exchange`, `SharePoint`, `Skype`, `Common`. If omitted, returns all service areas.
 
 * `categories` - (Optional) Filter endpoints by network optimization category. Valid values: `Optimize`, `Allow`, `Default`. If omitted, returns all categories.
 
@@ -642,7 +787,7 @@ output "network_summary" {
 
 * `endpoints` - List of endpoint objects. Each endpoint contains:
   - `id` - Unique identifier for this endpoint set (from Microsoft's service)
-  - `service_area` - Service area code: `Exchange`, `SharePoint`, `Skype`, or `Common`
+  - `service_area` - Service area code: `MEM`, `Exchange`, `SharePoint`, `Skype`, or `Common`
   - `service_area_display_name` - Human-readable service area name
   - `urls` - List of URL patterns/FQDNs (may include wildcards like `*.office.com`)
   - `ips` - List of IP address ranges in CIDR notation (e.g., `40.96.0.0/13`)
@@ -683,6 +828,7 @@ If omitted, returns endpoints for all categories. See [Microsoft 365 Network Con
 - `express_route` (Boolean) If `true`, only returns endpoints that support Azure ExpressRoute for Microsoft 365. Useful for organizations using ExpressRoute for optimized connectivity. Defaults to `false` (returns all endpoints regardless of ExpressRoute support).
 - `required_only` (Boolean) If `true`, only returns endpoints marked as required by Microsoft. Optional endpoints provide enhanced functionality but are not necessary for core service operation. Defaults to `false` (returns all endpoints).
 - `service_areas` (Set of String) Filter endpoints by service area. Valid values:
+  - `MEM` - Microsoft Endpoint Manager (Intune, Autopilot, Windows Updates)
   - `Exchange` - Exchange Online and Exchange Online Protection
   - `SharePoint` - SharePoint Online and OneDrive for Business
   - `Skype` - Skype for Business Online and Microsoft Teams
@@ -715,7 +861,7 @@ Read-Only:
 - `ips` (List of String) List of IP address ranges in CIDR notation (e.g., `40.96.0.0/13`). May be empty for URL-only endpoints.
 - `notes` (String) Additional notes about this endpoint from Microsoft, such as third-party services or optional features.
 - `required` (Boolean) Whether this endpoint is required for core Microsoft 365 functionality.
-- `service_area` (String) The service area: `Exchange`, `SharePoint`, `Skype`, or `Common`.
+- `service_area` (String) The service area: `MEM`, `Exchange`, `SharePoint`, `Skype`, or `Common`.
 - `service_area_display_name` (String) Human-readable display name for the service area.
 - `tcp_ports` (String) TCP ports used by this endpoint (comma-separated, e.g., `80,443` or ranges like `1024-65535`).
 - `udp_ports` (String) UDP ports used by this endpoint (comma-separated, e.g., `3478-3481`).
