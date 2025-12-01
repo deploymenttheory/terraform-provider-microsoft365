@@ -2,6 +2,7 @@ package graphBetaUsersUserMailboxSettings
 
 import (
 	"context"
+	"strings"
 
 	commonattr "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/attr"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
@@ -28,10 +29,17 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *UserMailboxSet
 
 	if automaticReplies := remoteResource.GetAutomaticRepliesSetting(); automaticReplies != nil {
 		tflog.Debug(ctx, "Mapping automaticRepliesSetting")
-		data.AutomaticRepliesSetting = mapAutomaticRepliesSetting(ctx, automaticReplies)
+		data.AutomaticRepliesSetting = mapAutomaticRepliesSettingToObject(ctx, automaticReplies)
 	} else {
 		tflog.Debug(ctx, "automaticRepliesSetting not found")
-		data.AutomaticRepliesSetting = nil
+		data.AutomaticRepliesSetting = types.ObjectNull(map[string]attr.Type{
+			"status":                    types.StringType,
+			"external_audience":         types.StringType,
+			"internal_reply_message":    types.StringType,
+			"external_reply_message":    types.StringType,
+			"scheduled_start_date_time": types.ObjectType{AttrTypes: map[string]attr.Type{"date_time": types.StringType, "time_zone": types.StringType}},
+			"scheduled_end_date_time":   types.ObjectType{AttrTypes: map[string]attr.Type{"date_time": types.StringType, "time_zone": types.StringType}},
+		})
 	}
 
 	if language := remoteResource.GetLanguage(); language != nil {
@@ -61,7 +69,7 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *UserMailboxSet
 	tflog.Debug(ctx, "Completed mapping remote mailbox settings to Terraform state")
 }
 
-// mapAutomaticRepliesSetting maps the automatic replies setting from API response
+// mapAutomaticRepliesSetting maps the automatic replies setting from API response (for nested use)
 func mapAutomaticRepliesSetting(ctx context.Context, automaticReplies graphmodels.AutomaticRepliesSettingable) *AutomaticRepliesSetting {
 	if automaticReplies == nil {
 		return nil
@@ -82,6 +90,68 @@ func mapAutomaticRepliesSetting(ctx context.Context, automaticReplies graphmodel
 	}
 
 	return result
+}
+
+// mapAutomaticRepliesSettingToObject maps the automatic replies setting to types.Object
+func mapAutomaticRepliesSettingToObject(ctx context.Context, automaticReplies graphmodels.AutomaticRepliesSettingable) types.Object {
+	if automaticReplies == nil {
+		return types.ObjectNull(map[string]attr.Type{
+			"status":                    types.StringType,
+			"external_audience":         types.StringType,
+			"internal_reply_message":    types.StringType,
+			"external_reply_message":    types.StringType,
+			"scheduled_start_date_time": types.ObjectType{AttrTypes: map[string]attr.Type{"date_time": types.StringType, "time_zone": types.StringType}},
+			"scheduled_end_date_time":   types.ObjectType{AttrTypes: map[string]attr.Type{"date_time": types.StringType, "time_zone": types.StringType}},
+		})
+	}
+
+	attrTypes := map[string]attr.Type{
+		"status":                    types.StringType,
+		"external_audience":         types.StringType,
+		"internal_reply_message":    types.StringType,
+		"external_reply_message":    types.StringType,
+		"scheduled_start_date_time": types.ObjectType{AttrTypes: map[string]attr.Type{"date_time": types.StringType, "time_zone": types.StringType}},
+		"scheduled_end_date_time":   types.ObjectType{AttrTypes: map[string]attr.Type{"date_time": types.StringType, "time_zone": types.StringType}},
+	}
+
+	// Map scheduled start date time
+	var scheduledStartValue attr.Value
+	if scheduledStart := automaticReplies.GetScheduledStartDateTime(); scheduledStart != nil {
+		scheduledStartValue = types.ObjectValueMust(
+			map[string]attr.Type{"date_time": types.StringType, "time_zone": types.StringType},
+			map[string]attr.Value{
+				"date_time": normalizeDateTime(convert.GraphToFrameworkString(scheduledStart.GetDateTime())),
+				"time_zone": convert.GraphToFrameworkString(scheduledStart.GetTimeZone()),
+			},
+		)
+	} else {
+		scheduledStartValue = types.ObjectNull(map[string]attr.Type{"date_time": types.StringType, "time_zone": types.StringType})
+	}
+
+	// Map scheduled end date time
+	var scheduledEndValue attr.Value
+	if scheduledEnd := automaticReplies.GetScheduledEndDateTime(); scheduledEnd != nil {
+		scheduledEndValue = types.ObjectValueMust(
+			map[string]attr.Type{"date_time": types.StringType, "time_zone": types.StringType},
+			map[string]attr.Value{
+				"date_time": normalizeDateTime(convert.GraphToFrameworkString(scheduledEnd.GetDateTime())),
+				"time_zone": convert.GraphToFrameworkString(scheduledEnd.GetTimeZone()),
+			},
+		)
+	} else {
+		scheduledEndValue = types.ObjectNull(map[string]attr.Type{"date_time": types.StringType, "time_zone": types.StringType})
+	}
+
+	attrValues := map[string]attr.Value{
+		"status":                    convert.GraphToFrameworkEnum(automaticReplies.GetStatus()),
+		"external_audience":         convert.GraphToFrameworkEnum(automaticReplies.GetExternalAudience()),
+		"internal_reply_message":    convert.GraphToFrameworkString(automaticReplies.GetInternalReplyMessage()),
+		"external_reply_message":    convert.GraphToFrameworkString(automaticReplies.GetExternalReplyMessage()),
+		"scheduled_start_date_time": scheduledStartValue,
+		"scheduled_end_date_time":   scheduledEndValue,
+	}
+
+	return commonattr.ObjectValue(attrTypes, attrValues)
 }
 
 // mapDateTimeTimeZone maps a date time with time zone from API response
@@ -233,4 +303,18 @@ func mapTimeZoneBase(ctx context.Context, timeZone graphmodels.TimeZoneBaseable)
 	result := &TimeZoneBase{}
 	result.Name = convert.GraphToFrameworkString(timeZone.GetName())
 	return result
+}
+
+// normalizeDateTime strips the .0000000 fractional seconds suffix from datetime strings
+// for better hcl authoring experience. example: Converts "2030-03-28T07:00:00.0000000" to "2030-03-28T07:00:00"
+func normalizeDateTime(datetime types.String) types.String {
+	if datetime.IsNull() || datetime.IsUnknown() {
+		return datetime
+	}
+
+	val := datetime.ValueString()
+	// Remove .0000000 suffix if present
+	normalized := strings.TrimSuffix(val, ".0000000")
+
+	return types.StringValue(normalized)
 }

@@ -148,12 +148,12 @@ resource "microsoft365_graph_beta_device_management_autopatch_groups" "auto_patc
 
 ### Optional
 
-- `deployment_groups` (Attributes Set) The deployment groups (rings) within this Autopatch group (see [below for nested schema](#nestedatt--deployment_groups))
+- `deployment_groups` (Attributes List) The deployment groups (rings) within this Autopatch group (see [below for nested schema](#nestedatt--deployment_groups))
 - `description` (String) The description of the Autopatch group
 - `enable_driver_update` (Boolean) Whether driver updates are enabled
 - `enabled_content_types` (Number) Enabled content types bitmask
 - `global_user_managed_aad_groups` (Attributes Set) Global user-managed Azure AD groups (see [below for nested schema](#nestedatt--global_user_managed_aad_groups))
-- `scope_tags` (Set of String) Set of scope tag IDs for this Autopatch group.
+- `scope_tags` (Set of String) Set of scope tag IDs for this Settings Catalog template profile.
 - `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))
 
 ### Read-Only
@@ -197,7 +197,11 @@ Optional:
 
 - `aad_group_name` (String) The Azure AD group name
 - `device_configuration_setting` (Attributes) Device configuration settings (see [below for nested schema](#nestedatt--deployment_groups--deployment_group_policy_settings--device_configuration_setting))
+- `dnf_update_cloud_setting` (Attributes) Driver and firmware update cloud settings (see [below for nested schema](#nestedatt--deployment_groups--deployment_group_policy_settings--dnf_update_cloud_setting))
+- `edge_dcv2_setting` (Attributes) Edge update delivery optimization v2 settings (see [below for nested schema](#nestedatt--deployment_groups--deployment_group_policy_settings--edge_dcv2_setting))
+- `feature_update_anchor_cloud_setting` (Attributes) Feature update anchor cloud settings (see [below for nested schema](#nestedatt--deployment_groups--deployment_group_policy_settings--feature_update_anchor_cloud_setting))
 - `is_update_settings_modified` (Boolean) Whether update settings are modified
+- `office_dcv2_setting` (Attributes) Office update delivery optimization v2 settings (see [below for nested schema](#nestedatt--deployment_groups--deployment_group_policy_settings--office_dcv2_setting))
 
 <a id="nestedatt--deployment_groups--deployment_group_policy_settings--device_configuration_setting"></a>
 ### Nested Schema for `deployment_groups.deployment_group_policy_settings.device_configuration_setting`
@@ -230,6 +234,51 @@ Optional:
 
 
 
+<a id="nestedatt--deployment_groups--deployment_group_policy_settings--dnf_update_cloud_setting"></a>
+### Nested Schema for `deployment_groups.deployment_group_policy_settings.dnf_update_cloud_setting`
+
+Optional:
+
+- `approval_type` (String) Approval type (Automatic or Manual)
+- `deployment_deferral_in_days` (Number) Deployment deferral in days
+- `policy_id` (String) The policy ID
+
+
+<a id="nestedatt--deployment_groups--deployment_group_policy_settings--edge_dcv2_setting"></a>
+### Nested Schema for `deployment_groups.deployment_group_policy_settings.edge_dcv2_setting`
+
+Optional:
+
+- `policy_id` (String) The policy ID
+- `target_channel` (String) Target channel for Edge updates (e.g., Stable, Beta)
+
+
+<a id="nestedatt--deployment_groups--deployment_group_policy_settings--feature_update_anchor_cloud_setting"></a>
+### Nested Schema for `deployment_groups.deployment_group_policy_settings.feature_update_anchor_cloud_setting`
+
+Optional:
+
+- `install_latest_windows10_on_windows11_ineligible_device` (Boolean) Whether to install the latest Windows 10 on Windows 11 ineligible devices
+- `policy_id` (String) The policy ID
+- `target_os_version` (String) Target OS version (e.g., 'Windows 11, version 25H2')
+
+
+<a id="nestedatt--deployment_groups--deployment_group_policy_settings--office_dcv2_setting"></a>
+### Nested Schema for `deployment_groups.deployment_group_policy_settings.office_dcv2_setting`
+
+Optional:
+
+- `deadline` (Number) Deadline in days
+- `deferral` (Number) Deferral in days
+- `enable_automatic_update` (Boolean) Whether to enable automatic updates
+- `enable_office_mgmt` (Boolean) Whether to enable Office management
+- `hide_enable_disable_update` (Boolean) Whether to hide enable/disable update option
+- `hide_update_notifications` (Boolean) Whether to hide update notifications
+- `policy_id` (String) The policy ID
+- `target_channel` (String) Target channel for Office updates (e.g., MonthlyEnterprise)
+- `update_path` (String) The update path URL for Office updates
+
+
 
 <a id="nestedatt--deployment_groups--user_managed_aad_groups"></a>
 ### Nested Schema for `deployment_groups.user_managed_aad_groups`
@@ -241,7 +290,7 @@ Required:
 Optional:
 
 - `name` (String) The name of the Azure AD group
-- `type` (Number) The type of the group
+- `type` (String) The type of the group (Device, None)
 
 
 

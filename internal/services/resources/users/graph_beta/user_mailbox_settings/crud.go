@@ -30,7 +30,7 @@ func (r *UserMailboxSettingsResource) Create(ctx context.Context, req resource.C
 	}
 	defer cancel()
 
-	requestBody, err := constructResource(ctx, &plan)
+	requestBody, err := constructResource(ctx, r.client, plan.UserID.ValueString(), &plan)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error constructing resource for Create Method",
@@ -155,7 +155,7 @@ func (r *UserMailboxSettingsResource) Update(ctx context.Context, req resource.U
 	}
 	defer cancel()
 
-	requestBody, err := constructResource(ctx, &plan)
+	requestBody, err := constructResource(ctx, r.client, plan.UserID.ValueString(), &plan)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error constructing resource for Update Method",

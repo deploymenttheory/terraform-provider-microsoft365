@@ -52,7 +52,7 @@ resource "microsoft365_graph_beta_device_management_autopatch_groups" "unit-test
           target_channel = "Beta"
         }
         feature_update_anchor_cloud_setting = {
-          target_os_version                                         = "Windows 11, version 25H2"
+          target_os_version                                       = "Windows 11, version 25H2"
           install_latest_windows10_on_windows11_ineligible_device = true
         }
       }
@@ -96,7 +96,7 @@ resource "microsoft365_graph_beta_device_management_autopatch_groups" "unit-test
           target_channel = "Stable"
         }
         feature_update_anchor_cloud_setting = {
-          target_os_version                                         = "Windows 11, version 25H2"
+          target_os_version                                       = "Windows 11, version 25H2"
           install_latest_windows10_on_windows11_ineligible_device = true
         }
       }
@@ -139,7 +139,7 @@ resource "microsoft365_graph_beta_device_management_autopatch_groups" "unit-test
           target_channel = "Stable"
         }
         feature_update_anchor_cloud_setting = {
-          target_os_version                                         = "Windows 11, version 25H2"
+          target_os_version                                       = "Windows 11, version 25H2"
           install_latest_windows10_on_windows11_ineligible_device = true
         }
       }
@@ -181,7 +181,7 @@ resource "microsoft365_graph_beta_device_management_autopatch_groups" "unit-test
           target_channel = "Stable"
         }
         feature_update_anchor_cloud_setting = {
-          target_os_version                                         = "Windows 11, version 25H2"
+          target_os_version                                       = "Windows 11, version 25H2"
           install_latest_windows10_on_windows11_ineligible_device = true
         }
       }

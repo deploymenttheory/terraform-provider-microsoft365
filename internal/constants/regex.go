@@ -118,4 +118,9 @@ const (
 	// ISO8601DateTimeRegex matches an ISO 8601 datetime format with optional milliseconds and timezone.
 	// Examples: "2023-05-01T13:45:30Z", "2023-05-01T13:45:30.123Z", "2023-05-01T13:45:30+00:00", "2023-05-01T13:45:30.123456+05:30"
 	ISO8601DateTimeRegex = `^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?(Z|[+-]\d{2}:\d{2})$`
+
+	// LocaleRegex matches a locale string in the format "xx-YY" where xx is a 2-letter ISO 639-1 language code (lowercase)
+	// and YY is a 2-letter ISO 3166-1 alpha-2 country code (uppercase).
+	// Examples: "en-US", "fr-FR", "de-DE", "ja-JP", "es-ES"
+	LocaleRegex = `^[a-z]{2}-[A-Z]{2}$`
 )

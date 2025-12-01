@@ -1,3 +1,4 @@
+// REF: https://learn.microsoft.com/en-us/entra/identity/users/licensing-service-plan-reference
 package utilityLicensingServicePlanReference
 
 import (

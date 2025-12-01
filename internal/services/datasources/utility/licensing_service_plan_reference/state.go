@@ -20,7 +20,7 @@ func searchProductsByName(ctx context.Context, data []LicenseData, searchTerm st
 		}
 	}
 
-	tflog.Debug(ctx, "Product name search completed", map[string]interface{}{
+	tflog.Debug(ctx, "Product name search completed", map[string]any{
 		"search_term":   searchTerm,
 		"matches_found": len(matchingProducts),
 	})
@@ -46,7 +46,7 @@ func searchProductByStringId(ctx context.Context, data []LicenseData, stringId s
 		}
 	}
 
-	tflog.Debug(ctx, "Product string_id search completed", map[string]interface{}{
+	tflog.Debug(ctx, "Product string_id search completed", map[string]any{
 		"string_id":     stringId,
 		"matches_found": len(matchingProducts),
 	})
@@ -73,7 +73,7 @@ func searchProductByGuid(ctx context.Context, data []LicenseData, guid string, m
 		}
 	}
 
-	tflog.Debug(ctx, "Product GUID search completed", map[string]interface{}{
+	tflog.Debug(ctx, "Product GUID search completed", map[string]any{
 		"guid":          guid,
 		"matches_found": len(matchingProducts),
 	})
@@ -102,7 +102,7 @@ func searchServicePlanById(ctx context.Context, data []LicenseData, searchTerm s
 		}
 	}
 
-	tflog.Debug(ctx, "Service plan ID search completed", map[string]interface{}{
+	tflog.Debug(ctx, "Service plan ID search completed", map[string]any{
 		"search_term":   searchTerm,
 		"matches_found": len(matchingPlans),
 	})
@@ -130,7 +130,7 @@ func searchServicePlanByName(ctx context.Context, data []LicenseData, searchTerm
 		}
 	}
 
-	tflog.Debug(ctx, "Service plan name search completed", map[string]interface{}{
+	tflog.Debug(ctx, "Service plan name search completed", map[string]any{
 		"search_term":   searchTerm,
 		"matches_found": len(matchingPlans),
 	})
@@ -158,7 +158,7 @@ func searchServicePlanByGuid(ctx context.Context, data []LicenseData, guid strin
 		}
 	}
 
-	tflog.Debug(ctx, "Service plan GUID search completed", map[string]interface{}{
+	tflog.Debug(ctx, "Service plan GUID search completed", map[string]any{
 		"guid":          guid,
 		"matches_found": len(matchingPlans),
 	})
