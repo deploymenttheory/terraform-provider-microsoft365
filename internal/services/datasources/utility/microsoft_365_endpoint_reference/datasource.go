@@ -48,7 +48,8 @@ func (d *Microsoft365EndpointReferenceDataSource) Configure(_ context.Context, r
 func (d *Microsoft365EndpointReferenceDataSource) Schema(ctx context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		MarkdownDescription: "Retrieves Microsoft 365 network endpoints from the official Microsoft 365 IP Address and URL Web Service. " +
-			"This datasource queries `https://endpoints.office.com` to get current IP addresses, URLs, and ports for Microsoft 365 services. " +
+			"This datasource queries `https://endpoints.office.com` with all service areas (MEM, Exchange, Skype, SharePoint, Common) " +
+			"to get current IP addresses, URLs, and ports for Microsoft 365 services including Intune/Endpoint Manager. " +
 			"Useful for configuring firewalls, proxy servers, SD-WAN devices, and PAC files. " +
 			"Data is filtered by cloud instance (Worldwide, US Government, China) and can be narrowed by service area and category.\n\n" +
 			"See [Managing Microsoft 365 endpoints](https://learn.microsoft.com/en-us/microsoft-365/enterprise/managing-office-365-endpoints) for configuration guidance.",
@@ -73,6 +74,7 @@ func (d *Microsoft365EndpointReferenceDataSource) Schema(ctx context.Context, _ 
 				ElementType: types.StringType,
 				Optional:    true,
 				MarkdownDescription: "Filter endpoints by service area. Valid values:\n" +
+					"  - `MEM` - Microsoft Endpoint Manager (Intune, Autopilot, Windows Updates)\n" +
 					"  - `Exchange` - Exchange Online and Exchange Online Protection\n" +
 					"  - `SharePoint` - SharePoint Online and OneDrive for Business\n" +
 					"  - `Skype` - Skype for Business Online and Microsoft Teams\n" +
@@ -80,7 +82,7 @@ func (d *Microsoft365EndpointReferenceDataSource) Schema(ctx context.Context, _ 
 					"If omitted, returns endpoints for all service areas.",
 				Validators: []validator.Set{
 					setvalidator.ValueStringsAre(
-						stringvalidator.OneOf("Exchange", "SharePoint", "Skype", "Common"),
+						stringvalidator.OneOf("MEM", "Exchange", "SharePoint", "Skype", "Common"),
 					),
 				},
 			},
@@ -122,7 +124,7 @@ func (d *Microsoft365EndpointReferenceDataSource) Schema(ctx context.Context, _ 
 						},
 						"service_area": schema.StringAttribute{
 							Computed:            true,
-							MarkdownDescription: "The service area: `Exchange`, `SharePoint`, `Skype`, or `Common`.",
+							MarkdownDescription: "The service area: `MEM`, `Exchange`, `SharePoint`, `Skype`, or `Common`.",
 						},
 						"service_area_display_name": schema.StringAttribute{
 							Computed:            true,
