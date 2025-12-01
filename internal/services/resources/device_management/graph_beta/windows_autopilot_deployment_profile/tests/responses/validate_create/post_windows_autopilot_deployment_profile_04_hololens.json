@@ -12,7 +12,6 @@
   "roleScopeTagIds": ["0"],
   "deviceType": "holoLens",
   "deviceJoinType": "azureADJoined",
-  "hybridAzureADJoinSkipConnectivityCheck": false,
   "outOfBoxExperienceSetting": {
     "privacySettingsHidden": true,
     "eulaHidden": true,

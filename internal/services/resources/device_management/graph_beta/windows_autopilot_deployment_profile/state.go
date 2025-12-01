@@ -44,17 +44,20 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *WindowsAutopil
 		data.DeviceJoinType = types.StringNull()
 	}
 
-	// Check if this is an ActiveDirectoryWindowsAutopilotDeploymentProfile and handle hybrid Azure AD join setting
+	// Handle hybrid_azure_ad_join_skip_connectivity_check
+	// This property only exists on activeDirectoryWindowsAutopilotDeploymentProfile (Hybrid AD joined)
+	// For azureADWindowsAutopilotDeploymentProfile (Azure AD joined), the API does not return this field
 	if adResource, ok := remoteResource.(graphmodels.ActiveDirectoryWindowsAutopilotDeploymentProfileable); ok {
+		// Hybrid AD joined profile - read from the typed property
 		data.HybridAzureADJoinSkipConnectivityCheck = convert.GraphToFrameworkBool(adResource.GetHybridAzureADJoinSkipConnectivityCheck())
 	} else {
-		// For Azure AD profiles, this field is not applicable but we should preserve the configured value
-		// to avoid Terraform inconsistency errors. The field is not sent to the API for Azure AD profiles.
-		if !data.HybridAzureADJoinSkipConnectivityCheck.IsUnknown() {
-			// Keep the existing value from configuration
-		} else {
-			data.HybridAzureADJoinSkipConnectivityCheck = types.BoolNull()
+		// Azure AD joined profile - this field doesn't exist in the API response
+		// Keep the configured value from state to avoid inconsistency errors
+		// The validator ensures this is always false for Azure AD joined profiles
+		if data.HybridAzureADJoinSkipConnectivityCheck.IsNull() || data.HybridAzureADJoinSkipConnectivityCheck.IsUnknown() {
+			data.HybridAzureADJoinSkipConnectivityCheck = types.BoolValue(false)
 		}
+		// Otherwise preserve the existing value from config/state
 	}
 
 	if deviceType := remoteResource.GetDeviceType(); deviceType != nil {
