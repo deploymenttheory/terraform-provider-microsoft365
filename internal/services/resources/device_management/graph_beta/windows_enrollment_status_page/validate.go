@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
-	"github.com/microsoftgraph/msgraph-beta-sdk-go/deviceappmanagement"
+	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
 // validateRequest validates the entire request payload
@@ -48,60 +48,77 @@ func validateSelectedMobileAppIds(ctx context.Context, client *msgraphbetasdk.Gr
 		return nil
 	}
 
-	// Get all Windows app types from Microsoft Graph
-	filter := "isof('microsoft.graph.windowsAppX') or isof('microsoft.graph.windowsMobileMSI') or isof('microsoft.graph.windowsUniversalAppX') or isof('microsoft.graph.officeSuiteApp') or isof('microsoft.graph.windowsMicrosoftEdgeApp') or isof('microsoft.graph.winGetApp') or isof('microsoft.graph.win32LobApp') or isof('microsoft.graph.win32CatalogApp')"
-	orderby := "displayname"
-	top := int32(250)
-
-	requestConfig := &deviceappmanagement.MobileAppsRequestBuilderGetRequestConfiguration{
-		QueryParameters: &deviceappmanagement.MobileAppsRequestBuilderGetQueryParameters{
-			Filter:  &filter,
-			Orderby: []string{orderby},
-			Top:     &top,
-		},
-	}
-
-	mobileApps, err := client.
-		DeviceAppManagement().
-		MobileApps().
-		Get(ctx, requestConfig)
-
-	if err != nil {
-		tflog.Error(ctx, "Failed to retrieve mobile apps for validation", map[string]any{
-			"error": err.Error(),
-		})
-		return fmt.Errorf("failed to validate mobile app IDs: unable to retrieve available apps from Microsoft Graph")
-	}
-
-	// Create a map of valid app IDs for quick lookup
-	validAppIds := make(map[string]string)   // ID -> DisplayName
-	validAppTypes := make(map[string]string) // ID -> AppType
-
-	if mobileApps.GetValue() != nil {
-		for _, app := range mobileApps.GetValue() {
-			if app.GetId() != nil && app.GetDisplayName() != nil && app.GetOdataType() != nil {
-				validAppIds[*app.GetId()] = *app.GetDisplayName()
-				validAppTypes[*app.GetId()] = *app.GetOdataType()
-			}
-		}
-	}
-
-	// Validate each provided app ID
 	for _, appId := range appIdStrings {
 		appIdValue := appId.ValueString()
-		displayName, exists := validAppIds[appIdValue]
 
-		if !exists {
+		// Query the specific app by ID
+		app, err := client.
+			DeviceAppManagement().
+			MobileApps().
+			ByMobileAppId(appIdValue).
+			Get(ctx, nil)
+
+		if err != nil {
+			tflog.Error(ctx, "Failed to retrieve mobile app for validation", map[string]any{
+				"appId": appIdValue,
+				"error": err.Error(),
+			})
 			return fmt.Errorf("supplied app ID '%s' does not match any valid Windows app types. Valid app types include: windowsAppX, windowsMobileMSI, windowsUniversalAppX, officeSuiteApp, windowsMicrosoftEdgeApp, winGetApp, win32LobApp, win32CatalogApp", appIdValue)
+		}
+
+		// Validate the app type using SDK type assertions
+		isValidType := false
+		var appTypeName string
+
+		switch app.(type) {
+		case *graphmodels.WindowsAppX:
+			isValidType = true
+			appTypeName = "windowsAppX"
+		case *graphmodels.WindowsMobileMSI:
+			isValidType = true
+			appTypeName = "windowsMobileMSI"
+		case *graphmodels.WindowsUniversalAppX:
+			isValidType = true
+			appTypeName = "windowsUniversalAppX"
+		case *graphmodels.OfficeSuiteApp:
+			isValidType = true
+			appTypeName = "officeSuiteApp"
+		case *graphmodels.WindowsMicrosoftEdgeApp:
+			isValidType = true
+			appTypeName = "windowsMicrosoftEdgeApp"
+		case *graphmodels.WinGetApp:
+			isValidType = true
+			appTypeName = "winGetApp"
+		case *graphmodels.Win32LobApp:
+			isValidType = true
+			appTypeName = "win32LobApp"
+		case *graphmodels.Win32CatalogApp:
+			isValidType = true
+			appTypeName = "win32CatalogApp"
+		default:
+			if odataType := app.GetOdataType(); odataType != nil {
+				appTypeName = *odataType
+			} else {
+				appTypeName = "unknown"
+			}
+		}
+
+		if !isValidType {
+			return fmt.Errorf("supplied app ID '%s' has type '%s' which is not a valid Windows app type. Valid app types include: windowsAppX, windowsMobileMSI, windowsUniversalAppX, officeSuiteApp, windowsMicrosoftEdgeApp, winGetApp, win32LobApp, win32CatalogApp", appIdValue, appTypeName)
+		}
+
+		displayName := ""
+		if app.GetDisplayName() != nil {
+			displayName = *app.GetDisplayName()
 		}
 
 		tflog.Debug(ctx, "Validated mobile app", map[string]any{
 			"appId":       appIdValue,
 			"displayName": displayName,
-			"appType":     validAppTypes[appIdValue],
+			"appType":     appTypeName,
 		})
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Validated %d mobile app IDs against %d available Windows apps", len(appIdStrings), len(validAppIds)))
+	tflog.Debug(ctx, fmt.Sprintf("Successfully validated %d mobile app IDs", len(appIdStrings)))
 	return nil
 }
