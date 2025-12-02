@@ -32,34 +32,56 @@ func (m *WindowsEnrollmentStatusPageMock) RegisterMocks() {
 	mockState.enrollmentStatusPages = make(map[string]map[string]any)
 	mockState.Unlock()
 
-	// Define mock apps used in tests
-	mockApps := map[string]string{
-		"12345678-1234-1234-1234-123456789012": "#microsoft.graph.win32LobApp",
-		"87654321-4321-4321-4321-210987654321": "#microsoft.graph.winGetApp",
-		"e4938228-aab3-493b-a9d5-8250aa8e9d55": "#microsoft.graph.win32LobApp",
-		"e83d36e1-3ff2-4567-90d9-940919184ad5": "#microsoft.graph.win32LobApp",
-		"cd4486df-05cc-42bd-8c34-67ac20e10166": "#microsoft.graph.win32LobApp",
-	}
-
-	// Mock individual mobile app lookup by ID
-	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/deviceAppManagement/mobileApps/[0-9a-fA-F-]+$`, func(req *http.Request) (*http.Response, error) {
-		parts := strings.Split(req.URL.Path, "/")
-		appId := parts[len(parts)-1]
-
-		if odataType, ok := mockApps[appId]; ok {
-			return httpmock.NewJsonResponse(200, map[string]any{
-				"@odata.type": odataType,
-				"id":          appId,
-			})
-		}
-
-		// Return 404 for unknown app IDs
-		return httpmock.NewJsonResponse(404, map[string]any{
-			"error": map[string]any{
-				"code":    "ResourceNotFound",
-				"message": "The requested resource does not exist.",
+	// Mock the mobile apps endpoint for validation
+	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/deviceAppManagement/mobileApps.*`, func(req *http.Request) (*http.Response, error) {
+		// Return mock mobile apps that include the test app IDs used in unit tests
+		mockApps := map[string]any{
+			"@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceAppManagement/mobileApps",
+			"@odata.count":   5,
+			"value": []any{
+				map[string]any{
+					"@odata.type":     "#microsoft.graph.win32LobApp",
+					"id":              "12345678-1234-1234-1234-123456789012",
+					"displayName":     "Test App 1",
+					"description":     "Test application 1 for unit testing",
+					"publisher":       "Test Publisher",
+					"publishingState": "published",
+				},
+				map[string]any{
+					"@odata.type":     "#microsoft.graph.winGetApp",
+					"id":              "87654321-4321-4321-4321-210987654321",
+					"displayName":     "Test App 2",
+					"description":     "Test application 2 for unit testing",
+					"publisher":       "Test Publisher",
+					"publishingState": "published",
+				},
+				map[string]any{
+					"@odata.type":     "#microsoft.graph.win32LobApp",
+					"id":              "e4938228-aab3-493b-a9d5-8250aa8e9d55",
+					"displayName":     "Test App 3",
+					"description":     "Test application 3 for unit testing",
+					"publisher":       "Test Publisher",
+					"publishingState": "published",
+				},
+				map[string]any{
+					"@odata.type":     "#microsoft.graph.win32LobApp",
+					"id":              "e83d36e1-3ff2-4567-90d9-940919184ad5",
+					"displayName":     "Test App 4",
+					"description":     "Test application 4 for unit testing",
+					"publisher":       "Test Publisher",
+					"publishingState": "published",
+				},
+				map[string]any{
+					"@odata.type":     "#microsoft.graph.win32LobApp",
+					"id":              "cd4486df-05cc-42bd-8c34-67ac20e10166",
+					"displayName":     "Test App 5",
+					"description":     "Test application 5 for unit testing",
+					"publisher":       "Test Publisher",
+					"publishingState": "published",
+				},
 			},
-		})
+		}
+		return httpmock.NewJsonResponse(200, mockApps)
 	})
 
 	httpmock.RegisterResponder("GET", "https://graph.microsoft.com/beta/deviceManagement/deviceEnrollmentConfigurations", func(req *http.Request) (*http.Response, error) {
@@ -295,16 +317,6 @@ func (m *WindowsEnrollmentStatusPageMock) RegisterErrorMocks() {
 	mockState.Lock()
 	mockState.enrollmentStatusPages = make(map[string]map[string]any)
 	mockState.Unlock()
-
-	// Mock individual mobile app lookup by ID for error scenarios - always return 404
-	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/deviceAppManagement/mobileApps/[0-9a-fA-F-]+$`, func(req *http.Request) (*http.Response, error) {
-		return httpmock.NewJsonResponse(404, map[string]any{
-			"error": map[string]any{
-				"code":    "ResourceNotFound",
-				"message": "The requested resource does not exist.",
-			},
-		})
-	})
 
 	httpmock.RegisterResponder("GET", "https://graph.microsoft.com/beta/deviceManagement/deviceEnrollmentConfigurations", func(req *http.Request) (*http.Response, error) {
 		jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_get/get_windows_enrollment_status_pages_list.json")
