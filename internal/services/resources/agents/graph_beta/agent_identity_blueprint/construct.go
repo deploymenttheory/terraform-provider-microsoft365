@@ -1,61 +1,82 @@
-package graphBetaAgentsAgentIdentityBlueprint
+package graphBetaApplicationsAgentIdentityBlueprint
 
 import (
 	"context"
 	"fmt"
+
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/constructors"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
+	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
-// constructResource maps the Terraform schema to a JSON-serializable map for agent identity blueprint.
-// Since we're using the HTTP client with OData type cast URLs, we work with JSON directly.
-func constructResource(ctx context.Context, data *AgentIdentityBlueprintResourceModel) (map[string]any, error) {
-	// Create a map for the request body
-	// Note: agentIdentityBlueprint is a derived type of application
-	requestBody := make(map[string]any)
+func constructResource(ctx context.Context, data *AgentIdentityBlueprintResourceModel, isCreate bool) (graphmodels.Applicationable, error) {
+	tflog.Debug(ctx, fmt.Sprintf("Constructing %s resource from model", ResourceName))
 
-	// Set the OData type to indicate this is an agentIdentityBlueprint
-	// This is critical for the API to recognize the resource type
-	requestBody["@odata.type"] = "#microsoft.graph.agentIdentityBlueprint"
+	requestBody := graphmodels.NewApplication()
 
-	// Set display name (required)
-	if !data.DisplayName.IsNull() && !data.DisplayName.IsUnknown() {
-		requestBody["displayName"] = data.DisplayName.ValueString()
-	} else {
-		return nil, fmt.Errorf("display_name is required")
+	// Set @odata.type to specify this is an agentIdentityBlueprint
+	odataType := "#microsoft.graph.agentIdentityBlueprint"
+	requestBody.SetOdataType(&odataType)
+
+	convert.FrameworkToGraphString(data.DisplayName, requestBody.SetDisplayName)
+	convert.FrameworkToGraphString(data.Description, requestBody.SetDescription)
+	convert.FrameworkToGraphString(data.SignInAudience, requestBody.SetSignInAudience)
+
+	if err := convert.FrameworkToGraphStringSet(ctx, data.Tags, requestBody.SetTags); err != nil {
+		return nil, fmt.Errorf("failed to set tags: %w", err)
 	}
 
-	// Set optional string fields
-	if !data.Description.IsNull() && !data.Description.IsUnknown() {
-		requestBody["description"] = data.Description.ValueString()
+	// Set sponsors and owners using OData bind properties - only during creation
+	// seperate constructor for update scenarios that requires a separate set of api endpoints.
+	if isCreate {
+		additionalData := requestBody.GetAdditionalData()
+		if additionalData == nil {
+			additionalData = make(map[string]any)
+		}
+
+		if !data.SponsorUserIds.IsNull() && !data.SponsorUserIds.IsUnknown() {
+			var sponsors []string
+			diags := data.SponsorUserIds.ElementsAs(ctx, &sponsors, false)
+			if diags.HasError() {
+				return nil, fmt.Errorf("failed to extract sponsor_user_ids: %v", diags.Errors())
+			}
+			if len(sponsors) > 0 {
+				sponsorUrls := make([]string, len(sponsors))
+				for i, sponsorId := range sponsors {
+					sponsorUrls[i] = fmt.Sprintf("https://graph.microsoft.com/beta/users/%s", sponsorId)
+				}
+				additionalData["sponsors@odata.bind"] = sponsorUrls
+				tflog.Debug(ctx, fmt.Sprintf("Adding %d sponsors to agent identity blueprint", len(sponsors)))
+			}
+		}
+
+		if !data.OwnerUserIds.IsNull() && !data.OwnerUserIds.IsUnknown() {
+			var owners []string
+			diags := data.OwnerUserIds.ElementsAs(ctx, &owners, false)
+			if diags.HasError() {
+				return nil, fmt.Errorf("failed to extract owner_user_ids: %v", diags.Errors())
+			}
+			if len(owners) > 0 {
+				ownerUrls := make([]string, len(owners))
+				for i, ownerId := range owners {
+					ownerUrls[i] = fmt.Sprintf("https://graph.microsoft.com/beta/users/%s", ownerId)
+				}
+				additionalData["owners@odata.bind"] = ownerUrls
+				tflog.Debug(ctx, fmt.Sprintf("Adding %d owners to agent identity blueprint", len(owners)))
+			}
+		}
+
+		requestBody.SetAdditionalData(additionalData)
 	}
 
-	if !data.SignInAudience.IsNull() && !data.SignInAudience.IsUnknown() {
-		requestBody["signInAudience"] = data.SignInAudience.ValueString()
+	if err := constructors.DebugLogGraphObject(ctx, fmt.Sprintf("Final JSON to be sent to Graph API for resource %s", ResourceName), requestBody); err != nil {
+		tflog.Error(ctx, "Failed to debug log object", map[string]any{
+			"error": err.Error(),
+		})
 	}
 
-	if !data.GroupMembershipClaims.IsNull() && !data.GroupMembershipClaims.IsUnknown() {
-		requestBody["groupMembershipClaims"] = data.GroupMembershipClaims.ValueString()
-	}
-
-	if !data.TokenEncryptionKeyId.IsNull() && !data.TokenEncryptionKeyId.IsUnknown() {
-		requestBody["tokenEncryptionKeyId"] = data.TokenEncryptionKeyId.ValueString()
-	}
-
-	if !data.ServiceManagementReference.IsNull() && !data.ServiceManagementReference.IsUnknown() {
-		requestBody["serviceManagementReference"] = data.ServiceManagementReference.ValueString()
-	}
-
-	// Set collection fields
-	if !data.IdentifierUris.IsNull() && !data.IdentifierUris.IsUnknown() {
-		var identifierUris []string
-		data.IdentifierUris.ElementsAs(ctx, &identifierUris, false)
-		requestBody["identifierUris"] = identifierUris
-	}
-
-	if !data.Tags.IsNull() && !data.Tags.IsUnknown() {
-		var tags []string
-		data.Tags.ElementsAs(ctx, &tags, false)
-		requestBody["tags"] = tags
-	}
+	tflog.Debug(ctx, fmt.Sprintf("Finished constructing %s resource", ResourceName))
 
 	return requestBody, nil
 }

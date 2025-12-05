@@ -37,12 +37,6 @@ var (
 
 	// Enables import functionality
 	_ resource.ResourceWithImportState = &UserLicenseAssignmentResource{}
-
-	// Compiled regex for UUID validation
-	uuidRegex = regexp.MustCompile(`^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`)
-
-	// Compiled regex for UPN validation (user principal name)
-	upnRegex = regexp.MustCompile(`^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`)
 )
 
 func NewUserLicenseAssignmentResource() resource.Resource {
@@ -136,9 +130,13 @@ func (r *UserLicenseAssignmentResource) Schema(ctx context.Context, req resource
 				Required:            true,
 				MarkdownDescription: "The unique identifier for the user. Can be either the object ID (UUID) or user principal name (UPN).",
 				Validators: []validator.String{
-					stringvalidator.Any(
-						stringvalidator.RegexMatches(uuidRegex, "Must be a valid UUID format (xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx)"),
-						stringvalidator.RegexMatches(upnRegex, "Must be a valid User Principal Name format (user@domain.com)"),
+					stringvalidator.RegexMatches(
+						regexp.MustCompile(constants.GuidRegex),
+						"Must be a valid UUID format (xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx)",
+					),
+					stringvalidator.RegexMatches(
+						regexp.MustCompile(constants.UserPrincipalNameRegex),
+						"Must be a valid User Principal Name format (user@domain.com)",
 					),
 				},
 			},
@@ -169,7 +167,10 @@ func (r *UserLicenseAssignmentResource) Schema(ctx context.Context, req resource
 				MarkdownDescription: "A collection of the unique identifiers for service plans to disable for this license.",
 				Validators: []validator.Set{
 					setvalidator.ValueStringsAre(
-						stringvalidator.RegexMatches(uuidRegex, "Each disabled plan must be a valid UUID format (xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx)"),
+						stringvalidator.RegexMatches(
+							regexp.MustCompile(constants.GuidRegex),
+							"Each disabled plan must be a valid UUID format (xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx)",
+						),
 					),
 				},
 			},

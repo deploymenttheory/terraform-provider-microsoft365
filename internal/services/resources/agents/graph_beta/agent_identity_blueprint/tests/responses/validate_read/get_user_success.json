@@ -1,0 +1,8 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#users/$entity",
+  "@odata.type": "#microsoft.graph.user",
+  "id": "d27e5154-9e45-493c-a170-dc4ba69c28a2",
+  "displayName": "Test User",
+  "userPrincipalName": "testuser@contoso.com"
+}
+

@@ -1,0 +1,28 @@
+package graphBetaAgentIdentityBlueprintCertificateCredential
+
+import (
+	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
+	"github.com/hashicorp/terraform-plugin-framework/types"
+)
+
+// AgentIdentityBlueprintCertificateCredentialResourceModel describes the resource data model.
+type AgentIdentityBlueprintCertificateCredentialResourceModel struct {
+	// Required inputs
+	BlueprintID types.String `tfsdk:"blueprint_id"`
+	Key         types.String `tfsdk:"key"`
+	Usage       types.String `tfsdk:"usage"`
+	KeyType     types.String `tfsdk:"type"`
+
+	// Optional inputs
+	DisplayName                 types.String `tfsdk:"display_name"`
+	StartDateTime               types.String `tfsdk:"start_date_time"`
+	EndDateTime                 types.String `tfsdk:"end_date_time"`
+	ReplaceExistingCertificates types.Bool   `tfsdk:"replace_existing_certificates"`
+
+	// Computed outputs
+	KeyID               types.String `tfsdk:"key_id"`
+	CustomKeyIdentifier types.String `tfsdk:"custom_key_identifier"`
+	Thumbprint          types.String `tfsdk:"thumbprint"`
+
+	Timeouts timeouts.Value `tfsdk:"timeouts"`
+}

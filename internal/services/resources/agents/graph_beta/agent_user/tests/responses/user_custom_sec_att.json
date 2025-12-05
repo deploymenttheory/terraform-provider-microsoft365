@@ -1,0 +1,25 @@
+{
+  "id": "00000000-0000-0000-0000-000000000003",
+  "displayName": "unit-test-agent-user-custom-sec-att",
+  "userPrincipalName": "unit-test-agent-user-custom-sec-att@deploymenttheory.com",
+  "mailNickname": "unit-test-agent-user-custom-sec-att",
+  "accountEnabled": true,
+  "identityParentId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+  "createdDateTime": "2023-01-01T00:00:00Z",
+  "businessPhones": [],
+  "otherMails": [],
+  "proxyAddresses": [],
+  "customSecurityAttributes": {
+    "Engineering": {
+      "@odata.type": "#microsoft.graph.customSecurityAttributeValue",
+      "Project@odata.type": "#Collection(String)",
+      "Project": ["Baker", "Cascade"],
+      "LastTrainingDate": "2024-10-15"
+    },
+    "Marketing": {
+      "@odata.type": "#microsoft.graph.customSecurityAttributeValue",
+      "IsContractor": false
+    }
+  }
+}
+

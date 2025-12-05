@@ -1,0 +1,13 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#applications/$entity",
+  "@odata.type": "#microsoft.graph.agentIdentityBlueprint",
+  "id": "00000000-0000-0000-0000-000000000000",
+  "appId": "00000000-0000-0000-0000-000000000000",
+  "displayName": "TF Test Minimal Blueprint",
+  "createdDateTime": "2024-01-01T00:00:00Z",
+  "signInAudience": "AzureADMyOrg",
+  "publisherDomain": "contoso.com",
+  "identifierUris": [],
+  "tags": []
+}
+

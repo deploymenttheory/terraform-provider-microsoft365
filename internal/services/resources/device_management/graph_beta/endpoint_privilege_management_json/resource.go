@@ -80,7 +80,9 @@ func (r *EndpointPrivilegeManagementResource) ImportState(ctx context.Context, r
 // Function to create the full device management win32 lob app schema
 func (r *EndpointPrivilegeManagementResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Manages Endpoint Privilege Management policies using the `/deviceManagement/configurationPolicies` endpoint. EPM policies control elevation settings and rules for Windows devices, allowing administrators to grant temporary administrative privileges to standard users for specific applications or processes without compromising overall security posture.",
+		MarkdownDescription: "Manages Endpoint Privilege Management policies using the `/deviceManagement/configurationPolicies` endpoint. " +
+			"EPM policies control elevation settings and rules for Windows devices, allowing administrators to grant temporary administrative " +
+			"privileges to standard users for specific applications or processes without compromising overall security posture.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed: true,
@@ -114,7 +116,7 @@ func (r *EndpointPrivilegeManagementResource) Schema(ctx context.Context, req re
 				Required: true,
 				MarkdownDescription: "Endpoint Privilege Management Policy settings defined as a JSON string. Please provide a valid JSON-encoded settings structure. " +
 					"This can either be extracted from an existing policy using the Intune gui `export JSON` functionality if supported, via a script such as this powershell script." +
-					" [ExportSettingsCatalogConfigurationById](https://github.com/deploymenttheory/terraform-provider-microsoft365/blob/main/scripts/ExportSettingsCatalogConfigurationById.ps1) " +
+					" [Export-IntuneSettingsCatalogConfigurationById](https://github.com/deploymenttheory/terraform-provider-microsoft365/blob/main/scripts/device_management/Export-IntuneSettingsCatalogConfigurationById.ps1) " +
 					"or created from scratch. The JSON structure should match the graph schema of the settings catalog. Please look at the " +
 					"terraform documentation for the Endpoint Privilege Management Policy for examples and how to correctly format the HCL.\n\n" +
 					"A correctly formatted field in the HCL should begin and end like this:\n" +
@@ -153,7 +155,10 @@ func (r *EndpointPrivilegeManagementResource) Schema(ctx context.Context, req re
 					"    }\n" +
 					"  ]\n" +
 					"})\n" +
-					"```\n\n",
+					"```\n\n" +
+					"Alternatively, if you prefer a fully hcl based approach, you can use the resource `microsoft365_graph_beta_device_management_settings_catalog_configuration_policy` " +
+					"by creating the epm policy via thr gui and then exporting the settings catalog configuration to hcl using the [Export-IntuneSettingsCatalogConfigurationToHCL.ps1] (https://github.com/deploymenttheory/terraform-provider-microsoft365/blob/main/scripts/device_management/Export-IntuneSettingsCatalogConfigurationToHCL.ps1) script." +
+					"This will create a fully hcl based epm policy with all the settings catalog settings configured.",
 				Validators: []validator.String{
 					customValidator.JSONSchemaValidator(),
 					sharedValidators.SettingsCatalogJSONValidator(),

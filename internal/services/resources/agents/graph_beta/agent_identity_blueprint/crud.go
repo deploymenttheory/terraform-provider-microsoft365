@@ -1,126 +1,76 @@
-package graphBetaAgentsAgentIdentityBlueprint
+package graphBetaApplicationsAgentIdentityBlueprint
 
 import (
-	"bytes"
 	"context"
-	"encoding/json"
 	"fmt"
-	"net/http"
 	"time"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/client"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
-	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/generic_client"
+	customrequests "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/custom_requests"
+	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
-// Create handles the Create operation for the agent identity blueprint resource.
+// Create handles the Create operation.
+//
+//   - Retrieves the current state from the create request
+//   - Validates the state data and timeout configuration
+//   - Sends POST request to create the resource
+//   - Reads the created resource state
+//   - Cleans up by removing the resource from Terraform state
 func (r *AgentIdentityBlueprintResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var plan AgentIdentityBlueprintResourceModel
+	var object AgentIdentityBlueprintResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting creation of resource: %s", ResourceName))
 
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	ctx, cancel := crud.HandleTimeout(ctx, plan.Timeouts.Create, CreateTimeout*time.Second, &resp.Diagnostics)
+	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Create, CreateTimeout*time.Second, &resp.Diagnostics)
 	if cancel == nil {
 		return
 	}
 	defer cancel()
 
-	requestBody, err := constructResource(ctx, &plan)
+	if err := validateRequest(ctx, r.client, &object); err != nil {
+		resp.Diagnostics.AddError(
+			"Validation Error",
+			fmt.Sprintf("Failed to validate %s: %s", ResourceName, err.Error()),
+		)
+		return
+	}
+
+	requestBody, err := constructResource(ctx, &object, true)
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error constructing resource for create method",
+			"Error constructing agent identity blueprint",
 			fmt.Sprintf("Could not construct resource: %s: %s", ResourceName, err.Error()),
 		)
 		return
 	}
 
-	// Marshal request body to JSON
-	jsonBytes, err := json.Marshal(requestBody)
+	createdApplication, err := r.client.
+		Applications().
+		Post(ctx, requestBody, nil)
+
 	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error marshaling request body",
-			fmt.Sprintf("Could not marshal request body: %s: %s", ResourceName, err.Error()),
-		)
+		errors.HandleKiotaGraphError(ctx, err, resp, "Create", r.WritePermissions)
 		return
 	}
 
-	// Create the agent identity blueprint using POST to /applications endpoint
-	url := r.httpClient.GetBaseURL() + r.ResourcePath
-	httpReq, err := http.NewRequestWithContext(ctx, "POST", url, bytes.NewReader(jsonBytes))
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error creating HTTP request",
-			fmt.Sprintf("Could not create HTTP request: %s: %s", ResourceName, err.Error()),
-		)
-		return
-	}
+	object.ID = types.StringValue(*createdApplication.GetId())
 
-	tflog.Debug(ctx, fmt.Sprintf("Making POST request to: %s", url))
-
-	httpResp, err := client.DoWithRetry(ctx, r.httpClient, httpReq, 10)
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error making HTTP request",
-			fmt.Sprintf("Could not make HTTP request: %s: %s", ResourceName, err.Error()),
-		)
-		return
-	}
-	defer httpResp.Body.Close()
-
-	tflog.Debug(ctx, fmt.Sprintf("POST request response status: %d %s", httpResp.StatusCode, httpResp.Status))
-
-	if httpResp.StatusCode != http.StatusCreated {
-		errors.HandleHTTPGraphError(ctx, httpResp, resp, "Create", r.WritePermissions)
-		return
-	}
-
-	// Decode the response body
-	var createdResource map[string]any
-	if err := json.NewDecoder(httpResp.Body).Decode(&createdResource); err != nil {
-		resp.Diagnostics.AddError(
-			"Error parsing response",
-			fmt.Sprintf("Could not parse response: %s: %s", ResourceName, err.Error()),
-		)
-		return
-	}
-
-	// Extract the ID from the response
-	id, ok := createdResource["id"].(string)
-	if !ok {
-		resp.Diagnostics.AddError(
-			"Error extracting resource ID",
-			"Created resource ID is missing or not a string",
-		)
-		return
-	}
-
-	plan.ID = types.StringValue(id)
-	tflog.Debug(ctx, fmt.Sprintf("Successfully created %s with ID: %s", ResourceName, id))
-
-	if plan.ID.IsNull() || plan.ID.IsUnknown() {
-		resp.Diagnostics.AddError(
-			"Error extracting resource ID",
-			fmt.Sprintf("Could not extract ID from created resource: %s. The API may not return the full resource on creation.", ResourceName),
-		)
-		return
-	}
-
-	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	// Perform a read after create to ensure consistency
-	tflog.Debug(ctx, fmt.Sprintf("Waiting for eventual consistency before reading created resource %s with ID: %s", plan.DisplayName.ValueString(), plan.ID.ValueString()))
-	time.Sleep(15 * time.Second)
+	tflog.Debug(ctx, "Waiting 25 seconds for eventual consistency after create")
+	time.Sleep(25 * time.Second)
 
 	readReq := resource.ReadRequest{State: resp.State, ProviderMeta: req.ProviderMeta}
 	stateContainer := &crud.CreateResponseContainer{CreateResponse: resp}
@@ -141,9 +91,16 @@ func (r *AgentIdentityBlueprintResource) Create(ctx context.Context, req resourc
 	tflog.Debug(ctx, fmt.Sprintf("Finished Create Method: %s", ResourceName))
 }
 
-// Read handles the Read operation for the agent identity blueprint resource.
+// Read handles the Read operation.
+//
+//   - Retrieves the current state from the read request
+//   - Validates the state data and timeout configuration
+//   - Sends GET request to retrieve the resource
+//   - Maps the remote resource state to the Terraform state
+//   - Cleans up by removing the resource from Terraform state
 func (r *AgentIdentityBlueprintResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var state AgentIdentityBlueprintResourceModel
+	var object AgentIdentityBlueprintResourceModel
+
 	tflog.Debug(ctx, fmt.Sprintf("Starting Read method for: %s", ResourceName))
 
 	operation := "Read"
@@ -152,77 +109,64 @@ func (r *AgentIdentityBlueprintResource) Read(ctx context.Context, req resource.
 			operation = opStr
 		}
 	}
-	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 
+	resp.Diagnostics.Append(req.State.Get(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Reading %s with ID: %s", ResourceName, state.ID.ValueString()))
+	tflog.Debug(ctx, fmt.Sprintf("Reading %s with ID: %s", ResourceName, object.ID.ValueString()))
 
-	ctx, cancel := crud.HandleTimeout(ctx, state.Timeouts.Read, ReadTimeout*time.Second, &resp.Diagnostics)
+	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Read, ReadTimeout*time.Second, &resp.Diagnostics)
 	if cancel == nil {
 		return
 	}
 	defer cancel()
 
-	// Read the agent identity blueprint using GET with OData type cast
-	// For agentIdentityBlueprint, we need to use the OData type cast in the URL
-	url := fmt.Sprintf("%s%s/%s/microsoft.graph.agentIdentityBlueprint",
-		r.httpClient.GetBaseURL(), r.ResourcePath, state.ID.ValueString())
+	application, err := r.client.
+		Applications().
+		ByApplicationId(object.ID.ValueString()).
+		Get(ctx, nil)
 
-	httpReq, err := http.NewRequestWithContext(ctx, "GET", url, nil)
 	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error creating HTTP request",
-			fmt.Sprintf("Could not create HTTP request: %s: %s", ResourceName, err.Error()),
-		)
+		errors.HandleKiotaGraphError(ctx, err, resp, operation, r.ReadPermissions)
 		return
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Making GET request to: %s", url))
+	MapRemoteResourceStateToTerraform(ctx, &object, application)
 
-	httpResp, err := client.DoWithRetry(ctx, r.httpClient, httpReq, 10)
+	// Fetch sponsors using custom request (SDK doesn't support the cast endpoint)
+	sponsorConfig := customrequests.GetRequestConfig{
+		APIVersion:        customrequests.GraphAPIBeta,
+		Endpoint:          fmt.Sprintf("/applications/%s/microsoft.graph.agentIdentityBlueprint/sponsors", object.ID.ValueString()),
+		ResourceIDPattern: "",
+		ResourceID:        "",
+		EndpointSuffix:    "",
+	}
+
+	sponsorResponse, err := customrequests.GetRequestByResourceId(ctx, r.client.GetAdapter(), sponsorConfig)
+
 	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error making HTTP request",
-			fmt.Sprintf("Could not make HTTP request: %s: %s", ResourceName, err.Error()),
-		)
-		return
-	}
-	defer httpResp.Body.Close()
-
-	tflog.Debug(ctx, fmt.Sprintf("GET request response status: %d %s", httpResp.StatusCode, httpResp.Status))
-
-	if httpResp.StatusCode != http.StatusOK {
-		errors.HandleHTTPGraphError(ctx, httpResp, resp, operation, r.ReadPermissions)
+		errors.HandleKiotaGraphError(ctx, err, resp, operation, r.ReadPermissions)
 		return
 	}
 
-	// Decode the response body
-	var baseResource map[string]any
-	if err := json.NewDecoder(httpResp.Body).Decode(&baseResource); err != nil {
-		resp.Diagnostics.AddError(
-			"Error unmarshaling response",
-			fmt.Sprintf("Could not unmarshal response: %s: %s", ResourceName, err.Error()),
-		)
+	MapSponsorIdsToTerraform(ctx, &object, sponsorResponse)
+
+	owners, err := r.client.
+		Applications().
+		ByApplicationId(object.ID.ValueString()).
+		Owners().
+		Get(ctx, nil)
+
+	if err != nil {
+		errors.HandleKiotaGraphError(ctx, err, resp, operation, r.ReadPermissions)
 		return
 	}
 
-	// Debug log the response
-	if prettyJson, err := json.MarshalIndent(baseResource, "", "  "); err == nil {
-		tflog.Debug(ctx, fmt.Sprintf("Raw API Response:\n%s", string(prettyJson)))
-	}
+	MapRemoteOwnersToTerraform(ctx, &object, owners)
 
-	// Verify the @odata.type if present
-	if odataType, ok := baseResource["@odata.type"].(string); ok {
-		tflog.Debug(ctx, fmt.Sprintf("Retrieved resource with @odata.type: %s", odataType))
-	}
-
-	// Map the response to Terraform state
-	MapRemoteStateToTerraformFromJSON(ctx, &state, baseResource)
-
-	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -230,7 +174,13 @@ func (r *AgentIdentityBlueprintResource) Read(ctx context.Context, req resource.
 	tflog.Debug(ctx, fmt.Sprintf("Finished Read Method: %s", ResourceName))
 }
 
-// Update handles the Update operation for the agent identity blueprint resource.
+// Update handles the Update operation.
+//
+//   - Retrieves the current state from the update request
+//   - Validates the state data and timeout configuration
+//   - Sends PATCH request to update the resource
+//   - Reads the updated resource state
+//   - Cleans up by removing the resource from Terraform state
 func (r *AgentIdentityBlueprintResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var plan AgentIdentityBlueprintResourceModel
 	var state AgentIdentityBlueprintResourceModel
@@ -241,69 +191,93 @@ func (r *AgentIdentityBlueprintResource) Update(ctx context.Context, req resourc
 		return
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Updating %s with ID: %s", ResourceName, state.ID.ValueString()))
+	tflog.Debug(ctx, fmt.Sprintf("Starting update of resource: %s with ID: %s", ResourceName, state.ID.ValueString()))
 
-	ctx, cancel := crud.HandleTimeout(ctx, plan.Timeouts.Update, UpdateTimeout*time.Second, &resp.Diagnostics)
+	ctx, cancel := crud.HandleTimeout(ctx, state.Timeouts.Update, UpdateTimeout*time.Second, &resp.Diagnostics)
 	if cancel == nil {
 		return
 	}
 	defer cancel()
 
-	plan.ID = state.ID
+	if err := validateRequest(ctx, r.client, &plan); err != nil {
+		resp.Diagnostics.AddError(
+			"Validation Error",
+			fmt.Sprintf("Failed to validate %s: %s", ResourceName, err.Error()),
+		)
+		return
+	}
 
-	requestBody, err := constructResource(ctx, &plan)
+	requestBody, err := constructResource(ctx, &plan, false)
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error constructing resource for update method",
+			"Error constructing agent identity blueprint",
 			fmt.Sprintf("Could not construct resource: %s: %s", ResourceName, err.Error()),
 		)
 		return
 	}
 
-	// Marshal request body to JSON
-	jsonBytes, err := json.Marshal(requestBody)
+	_, err = r.client.
+		Applications().
+		ByApplicationId(state.ID.ValueString()).
+		Patch(ctx, requestBody, nil)
+
 	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error marshaling request body",
-			fmt.Sprintf("Could not marshal request body: %s: %s", ResourceName, err.Error()),
-		)
+		errors.HandleKiotaGraphError(ctx, err, resp, "Update", r.WritePermissions)
 		return
 	}
 
-	// Update the agent identity blueprint using PATCH with OData type cast
-	url := fmt.Sprintf("%s%s/%s/microsoft.graph.agentIdentityBlueprint",
-		r.httpClient.GetBaseURL(), r.ResourcePath, state.ID.ValueString())
+	sponsorsToAdd, sponsorsToRemove, ownersToAdd, ownersToRemove := ResolveSponsorAndOwnerChanges(ctx, &state, &plan)
 
-	httpReq, err := http.NewRequestWithContext(ctx, "PATCH", url, bytes.NewReader(jsonBytes))
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error creating HTTP request",
-			fmt.Sprintf("Could not create HTTP request: %s: %s", ResourceName, err.Error()),
-		)
-		return
+	adapter := r.client.GetAdapter()
+
+	for _, sponsorID := range sponsorsToRemove {
+		if err := RemoveSponsor(ctx, adapter, state.ID.ValueString(), sponsorID); err != nil {
+			resp.Diagnostics.AddError(
+				"Error removing sponsor",
+				fmt.Sprintf("Could not remove sponsor %s from %s: %s", sponsorID, ResourceName, err.Error()),
+			)
+			return
+		}
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Making PATCH request to: %s", url))
-
-	httpResp, err := client.DoWithRetry(ctx, r.httpClient, httpReq, 10)
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error making HTTP request",
-			fmt.Sprintf("Could not make HTTP request: %s: %s", ResourceName, err.Error()),
-		)
-		return
-	}
-	defer httpResp.Body.Close()
-
-	tflog.Debug(ctx, fmt.Sprintf("PATCH request response status: %d %s", httpResp.StatusCode, httpResp.Status))
-
-	if httpResp.StatusCode != http.StatusNoContent && httpResp.StatusCode != http.StatusOK {
-		errors.HandleHTTPGraphError(ctx, httpResp, resp, "Update", r.WritePermissions)
-		return
+	for _, sponsorID := range sponsorsToAdd {
+		if err := AddSponsor(ctx, adapter, state.ID.ValueString(), sponsorID); err != nil {
+			resp.Diagnostics.AddError(
+				"Error adding sponsor",
+				fmt.Sprintf("Could not add sponsor %s to %s: %s", sponsorID, ResourceName, err.Error()),
+			)
+			return
+		}
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Waiting for eventual consistency before reading updated resource %s with ID: %s", plan.DisplayName.ValueString(), state.ID.ValueString()))
+	for _, ownerID := range ownersToRemove {
+		if err := RemoveOwner(ctx, adapter, state.ID.ValueString(), ownerID); err != nil {
+			resp.Diagnostics.AddError(
+				"Error removing owner",
+				fmt.Sprintf("Could not remove owner %s from %s: %s", ownerID, ResourceName, err.Error()),
+			)
+			return
+		}
+	}
+
+	for _, ownerID := range ownersToAdd {
+		if err := AddOwner(ctx, adapter, state.ID.ValueString(), ownerID); err != nil {
+			resp.Diagnostics.AddError(
+				"Error adding owner",
+				fmt.Sprintf("Could not add owner %s to %s: %s", ownerID, ResourceName, err.Error()),
+			)
+			return
+		}
+	}
+
+	tflog.Debug(ctx, "Waiting 15 seconds for eventual consistency ")
 	time.Sleep(15 * time.Second)
+
+	plan.ID = state.ID
+	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
 	readReq := resource.ReadRequest{State: resp.State, ProviderMeta: req.ProviderMeta}
 	stateContainer := &crud.UpdateResponseContainer{UpdateResponse: resp}
@@ -324,7 +298,12 @@ func (r *AgentIdentityBlueprintResource) Update(ctx context.Context, req resourc
 	tflog.Debug(ctx, fmt.Sprintf("Finished updating %s with ID: %s", ResourceName, state.ID.ValueString()))
 }
 
-// Delete handles the Delete operation for the agent identity blueprint resource.
+// Delete handles the Delete operation for resource Agent Identity Blueprint.
+//
+//   - Retrieves the current state from the delete request
+//   - Validates the state data and timeout configuration
+//   - Sends DELETE request to remove the resource
+//   - Cleans up by removing the resource from Terraform state
 func (r *AgentIdentityBlueprintResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var data AgentIdentityBlueprintResourceModel
 
@@ -341,39 +320,15 @@ func (r *AgentIdentityBlueprintResource) Delete(ctx context.Context, req resourc
 	}
 	defer cancel()
 
-	// Delete the agent identity blueprint using DELETE with OData type cast
-	url := fmt.Sprintf("%s%s/%s/microsoft.graph.agentIdentityBlueprint",
-		r.httpClient.GetBaseURL(), r.ResourcePath, data.ID.ValueString())
+	err := r.client.
+		Applications().
+		ByApplicationId(data.ID.ValueString()).
+		Delete(ctx, nil)
 
-	httpReq, err := http.NewRequestWithContext(ctx, "DELETE", url, nil)
 	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error creating HTTP request",
-			fmt.Sprintf("Could not create HTTP request: %s: %s", ResourceName, err.Error()),
-		)
+		errors.HandleKiotaGraphError(ctx, err, resp, "Delete", r.WritePermissions)
 		return
 	}
-
-	tflog.Debug(ctx, fmt.Sprintf("Making DELETE request to: %s", url))
-
-	httpResp, err := client.DoWithRetry(ctx, r.httpClient, httpReq, 10)
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error making HTTP request",
-			fmt.Sprintf("Could not make HTTP request: %s: %s", ResourceName, err.Error()),
-		)
-		return
-	}
-	defer httpResp.Body.Close()
-
-	tflog.Debug(ctx, fmt.Sprintf("DELETE request response status: %d %s", httpResp.StatusCode, httpResp.Status))
-
-	if httpResp.StatusCode != http.StatusNoContent && httpResp.StatusCode != http.StatusOK && httpResp.StatusCode != http.StatusNotFound {
-		errors.HandleHTTPGraphError(ctx, httpResp, resp, "Delete", r.WritePermissions)
-		return
-	}
-
-	tflog.Debug(ctx, fmt.Sprintf("Removing %s from Terraform state", ResourceName))
 
 	resp.State.RemoveResource(ctx)
 

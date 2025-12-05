@@ -1,0 +1,12 @@
+{
+  "id": "00000000-0000-0000-0000-000000000001",
+  "displayName": "unit-test-agent-user-minimal",
+  "userPrincipalName": "unit-test-agent-user-minimal@deploymenttheory.com",
+  "mailNickname": "unit-test-agent-user-minimal",
+  "accountEnabled": true,
+  "identityParentId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+  "createdDateTime": "2023-01-01T00:00:00Z",
+  "businessPhones": [],
+  "otherMails": [],
+  "proxyAddresses": []
+}

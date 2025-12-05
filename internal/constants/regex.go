@@ -123,4 +123,9 @@ const (
 	// and YY is a 2-letter ISO 3166-1 alpha-2 country code (uppercase).
 	// Examples: "en-US", "fr-FR", "de-DE", "ja-JP", "es-ES"
 	LocaleRegex = `^[a-z]{2}-[A-Z]{2}$`
+
+	// IdentifierUriRegex matches a valid Microsoft Entra ID application identifier URI.
+	// Common formats: "api://<guid>", "api://<domain>/<path>", "https://<domain>/<path>", "urn:<namespace>:<identifier>"
+	// Examples: "api://123e4567-e89b-12d3-a456-426614174000", "api://contoso.com/myapp", "https://contoso.com/api"
+	IdentifierUriRegex = `^(api://|https://|urn:)[^\s]+$`
 )
