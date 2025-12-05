@@ -101,6 +101,8 @@ jobs:
       fail-fast: false # https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax#jobsjob_idstrategyfail-fast
       matrix:
         include:
+          - service: agents
+            runner: ubuntu-24.04-arm
           - service: applications
             runner: ubuntu-24.04-arm
           - service: backup_storage
@@ -216,6 +218,8 @@ jobs:
       fail-fast: false
       matrix:
         include: # testing both ubuntu-24.04-arm and ubuntu-24.04-arm
+          - service: agents
+            runner: ubuntu-24.04-arm
           - service: applications
             runner: ubuntu-24.04-arm
           - service: device_and_app_management
@@ -266,6 +270,8 @@ jobs:
 
       - name: Set service credentials
         env:
+          M365_CLIENT_ID_AGENTS: ${{ secrets.M365_CLIENT_ID_AGENTS }}
+          M365_CLIENT_SECRET_AGENTS: ${{ secrets.M365_CLIENT_SECRET_AGENTS }}
           M365_CLIENT_ID_APPLICATIONS: ${{ secrets.M365_CLIENT_ID_APPLICATIONS }}
           M365_CLIENT_SECRET_APPLICATIONS: ${{ secrets.M365_CLIENT_SECRET_APPLICATIONS }}
           M365_CLIENT_ID_DEVICE_AND_APP_MGMT: ${{ secrets.M365_CLIENT_ID_DEVICE_AND_APP_MGMT }}

@@ -376,7 +376,7 @@ resource "microsoft365_graph_beta_device_management_endpoint_privilege_managemen
 ### Required
 
 - `name` (String) Policy name
-- `settings` (String) Endpoint Privilege Management Policy settings defined as a JSON string. Please provide a valid JSON-encoded settings structure. This can either be extracted from an existing policy using the Intune gui `export JSON` functionality if supported, via a script such as this powershell script. [ExportSettingsCatalogConfigurationById](https://github.com/deploymenttheory/terraform-provider-microsoft365/blob/main/scripts/ExportSettingsCatalogConfigurationById.ps1) or created from scratch. The JSON structure should match the graph schema of the settings catalog. Please look at the terraform documentation for the Endpoint Privilege Management Policy for examples and how to correctly format the HCL.
+- `settings` (String) Endpoint Privilege Management Policy settings defined as a JSON string. Please provide a valid JSON-encoded settings structure. This can either be extracted from an existing policy using the Intune gui `export JSON` functionality if supported, via a script such as this powershell script. [Export-IntuneSettingsCatalogConfigurationById](https://github.com/deploymenttheory/terraform-provider-microsoft365/blob/main/scripts/device_management/Export-IntuneSettingsCatalogConfigurationById.ps1) or created from scratch. The JSON structure should match the graph schema of the settings catalog. Please look at the terraform documentation for the Endpoint Privilege Management Policy for examples and how to correctly format the HCL.
 
 A correctly formatted field in the HCL should begin and end like this:
 ```hcl
@@ -415,6 +415,8 @@ settings = jsonencode({
   ]
 })
 ```
+
+Alternatively, if you prefer a fully hcl based approach, you can use the resource `microsoft365_graph_beta_device_management_settings_catalog_configuration_policy` by creating the epm policy via thr gui and then exporting the settings catalog configuration to hcl using the [Export-IntuneSettingsCatalogConfigurationToHCL.ps1] (https://github.com/deploymenttheory/terraform-provider-microsoft365/blob/main/scripts/device_management/Export-IntuneSettingsCatalogConfigurationToHCL.ps1) script.This will create a fully hcl based epm policy with all the settings catalog settings configured.
 - `settings_catalog_template_type` (String) Defines which Endpoint Privilege Management Policy type with settings catalog setting will be deployed. Options available are `elevation_settings_policy` or `elevation_rules_policy`.
 
 ### Optional

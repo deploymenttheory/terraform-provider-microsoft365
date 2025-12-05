@@ -88,7 +88,8 @@ func (r *ConditionalAccessPolicyResource) ImportState(ctx context.Context, req r
 // Schema defines the schema for the resource.
 func (r *ConditionalAccessPolicyResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Manages Microsoft 365 Conditional Access Policies using the `/identity/conditionalAccess/policies` endpoint. Conditional Access policies define the conditions under which users can access cloud apps.",
+		MarkdownDescription: "Manages Microsoft 365 Conditional Access Policies using the `/identity/conditionalAccess/policies` endpoint. " +
+			"Conditional Access policies define the conditions under which users can access cloud apps.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				MarkdownDescription: "String (identifier)",

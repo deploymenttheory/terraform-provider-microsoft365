@@ -1,0 +1,11 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#applications/$entity",
+  "@odata.type": "#microsoft.graph.agentIdentityBlueprint",
+  "id": "00000000-0000-0000-0000-000000000000",
+  "appId": "00000000-0000-0000-0000-000000000000",
+  "displayName": "unit-test-agent-identity-blueprint-minimal-updated",
+  "description": "Updated description",
+  "signInAudience": "AzureADMyOrg",
+  "tags": []
+}
+

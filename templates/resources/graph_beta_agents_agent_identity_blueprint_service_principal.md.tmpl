@@ -1,0 +1,55 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
+subcategory: "Agents"
+
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Name}} ({{.Type}})
+
+{{ .Description | trimspace }}
+
+## Microsoft Documentation
+
+- [agentIdentityBlueprintPrincipal resource type](https://learn.microsoft.com/en-us/graph/api/resources/agentidentityblueprintprincipal?view=graph-rest-beta)
+- [Create service principal for blueprint](https://learn.microsoft.com/en-us/entra/agent-id/identity-platform/create-blueprint?tabs=microsoft-graph-api#create-a-service-principal-for-the-blueprint)
+- [Delete service principal](https://learn.microsoft.com/en-us/graph/api/serviceprincipal-delete?view=graph-rest-beta&tabs=http)
+
+## API Permissions
+
+The following API permissions are required in order to use this resource.
+
+### Microsoft Graph
+
+- **Read Permissions**: `AgentIdentityBlueprintPrincipal.Read.All`
+- **Write Permissions**: `AgentIdentityBlueprintPrincipal.ReadWrite.All`, `Directory.ReadWrite.All`
+
+Find out more about the permissions required for managing agent identities at microsoft learn [here](https://learn.microsoft.com/en-us/graph/api/resources/agentid-platform-overview?view=graph-rest-beta#permissions-for-managing-agent-identities).
+
+## Version History
+
+| Version | Status | Notes |
+|---------|--------|-------|
+| v0.38.0 | Experimental | Initial release |
+
+## Important Notes
+
+- This resource creates an `agentIdentityBlueprintPrincipal` service principal for an existing agent identity blueprint
+- The service principal is created using the blueprint's `app_id`
+- Updates are not supported - the service principal must be deleted and recreated if changes are needed
+- The `app_id` attribute requires the application (client) ID of the agent identity blueprint, not the object ID
+
+## Example Usage
+
+### Basic Example
+
+{{ tffile "examples/resources/microsoft365_graph_beta_agents_agent_identity_blueprint_service_principal/resource_basic.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}
+
+## Import
+
+Import is supported using the following syntax:
+
+{{ codefile "shell" "examples/resources/microsoft365_graph_beta_agents_agent_identity_blueprint_service_principal/import.sh" }}

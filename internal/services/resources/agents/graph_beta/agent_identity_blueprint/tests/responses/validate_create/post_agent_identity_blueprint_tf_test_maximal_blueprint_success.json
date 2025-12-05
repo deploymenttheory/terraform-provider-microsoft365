@@ -1,0 +1,22 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#applications/$entity",
+  "@odata.type": "#microsoft.graph.agentIdentityBlueprint",
+  "id": "00000000-0000-0000-0000-000000000000",
+  "appId": "00000000-0000-0000-0000-000000000000",
+  "displayName": "TF Test Maximal Blueprint",
+  "description": "This is a test agent identity blueprint with all optional fields configured",
+  "createdDateTime": "2024-01-01T00:00:00Z",
+  "signInAudience": "AzureADMyOrg",
+  "groupMembershipClaims": "SecurityGroup",
+  "serviceManagementReference": "SMR-12345",
+  "publisherDomain": "contoso.com",
+  "identifierUris": [
+    "api://tf-test-maximal-blueprint"
+  ],
+  "tags": [
+    "terraform",
+    "test",
+    "agent"
+  ]
+}
+

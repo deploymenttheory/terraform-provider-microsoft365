@@ -2,6 +2,18 @@ package provider
 
 import (
 	"context"
+
+	// Graph Beta - Agents
+	graphBetaApplicationsAgentIdentityBlueprint "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/agents/graph_beta/agent_identity_blueprint"
+	graphBetaAgentIdentityBlueprintCertificateCredential "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/agents/graph_beta/agent_identity_blueprint_certificate_credential"
+
+	// NOTE: Disabled due to Microsoft Graph API issues - see developer_notes.md in the resource directory
+	graphBetaAgentIdentityBlueprintFederatedIdentityCredential "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/agents/graph_beta/agent_identity_blueprint_federated_identity_credential"
+	graphBetaAgentIdentityBlueprintIdentifierUri "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/agents/graph_beta/agent_identity_blueprint_identifier_uri"
+	graphBetaAgentIdentityBlueprintPasswordCredential "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/agents/graph_beta/agent_identity_blueprint_password_credential"
+	graphBetaAgentIdentityBlueprintRotateCertificateCredential "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/agents/graph_beta/agent_identity_blueprint_rotate_certificate_credential"
+	graphBetaApplicationsAgentIdentityBlueprintServicePrincipal "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/agents/graph_beta/agent_identity_blueprint_service_principal"
+
 	// Graph Beta - Device & app management
 	graphBetaDeviceAndAppManagementAndroidManagedDeviceAppConfigurationPolicy "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_and_app_management/graph_beta/android_managed_device_app_configuration_policy"
 	graphBetaDeviceAndAppManagementAndroidManagedMobileApp "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_and_app_management/graph_beta/android_managed_mobile_app"
@@ -151,6 +163,17 @@ import (
 // Resources returns a slice of functions that each return a resource.Resource.
 func (p *M365Provider) Resources(ctx context.Context) []func() resource.Resource {
 	return []func() resource.Resource{
+		// Agents
+		graphBetaApplicationsAgentIdentityBlueprint.NewAgentIdentityBlueprintResource,
+		// NOTE: Disabled due to Microsoft Graph API issues - see developer_notes.md in the resource directory
+		graphBetaAgentIdentityBlueprintFederatedIdentityCredential.NewAgentIdentityBlueprintFederatedIdentityCredentialResource,
+		graphBetaAgentIdentityBlueprintCertificateCredential.NewAgentIdentityBlueprintCertificateCredentialResource,
+
+		graphBetaAgentIdentityBlueprintIdentifierUri.NewAgentIdentityBlueprintIdentifierUriResource,
+		graphBetaAgentIdentityBlueprintRotateCertificateCredential.NewAgentIdentityBlueprintKeyCredentialResource,
+		graphBetaAgentIdentityBlueprintPasswordCredential.NewAgentIdentityBlueprintPasswordCredentialResource,
+		graphBetaApplicationsAgentIdentityBlueprintServicePrincipal.NewAgentIdentityBlueprintServicePrincipalResource,
+
 		// Graph Beta - Device & app management
 		graphBetaDeviceAndAppManagementAndroidManagedDeviceAppConfigurationPolicy.NewAndroidManagedDeviceAppConfigurationPolicyResource,
 		graphBetaDeviceAndAppManagementApplicationCategory.NewApplicationCategoryResource,
@@ -247,6 +270,7 @@ func (p *M365Provider) Resources(ctx context.Context) []func() resource.Resource
 		graphBetaUsersUserLicenseAssignment.NewUserLicenseAssignmentResource,
 		graphBetaUsersUser.NewUserResource,
 		graphBetaUsersUserMailboxSettings.NewUserMailboxSettingsResource,
+
 		// Graph Beta - Group resources
 		graphBetaGroup.NewGroupResource,
 		graphBetaGroupLifecycleExpirationPolicy.NewGroupLifecycleExpirationPolicyResource,
