@@ -1,7 +1,8 @@
-package graphBetaAgentIdentityBlueprintKeyCredential
+package graphBetaAgentIdentityBlueprintCertificateCredential
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/http"
 
@@ -10,13 +11,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 )
 
-// AgentIdentityBlueprintKeyCredentialTestResource implements the types.TestResource interface
-type AgentIdentityBlueprintKeyCredentialTestResource struct{}
+// AgentIdentityBlueprintCertificateCredentialTestResource implements the types.TestResource interface
+type AgentIdentityBlueprintCertificateCredentialTestResource struct{}
 
-// Exists checks whether the key credential exists in Microsoft Graph.
-// Note: Key credentials cannot be directly queried by keyId, so we list all
-// credentials on the blueprint and check if the keyId exists.
-func (r AgentIdentityBlueprintKeyCredentialTestResource) Exists(ctx context.Context, _ any, state *terraform.InstanceState) (*bool, error) {
+// Exists checks whether the certificate credential exists in the application's keyCredentials
+func (r AgentIdentityBlueprintCertificateCredentialTestResource) Exists(ctx context.Context, _ any, state *terraform.InstanceState) (*bool, error) {
 	httpClient, err := acceptance.TestHTTPClient()
 	if err != nil {
 		return nil, fmt.Errorf("failed to get HTTP client: %w", err)
@@ -30,8 +29,7 @@ func (r AgentIdentityBlueprintKeyCredentialTestResource) Exists(ctx context.Cont
 		return &exists, nil
 	}
 
-	// List key credentials on the application
-	url := httpClient.GetBaseURL() + "/applications/" + blueprintID + "?$select=keyCredentials"
+	url := httpClient.GetBaseURL() + "/applications/" + blueprintID
 
 	httpReq, err := http.NewRequestWithContext(ctx, "GET", url, nil)
 	if err != nil {
@@ -58,11 +56,31 @@ func (r AgentIdentityBlueprintKeyCredentialTestResource) Exists(ctx context.Cont
 			return &exists, nil
 		}
 
-		return nil, fmt.Errorf("unexpected error checking key credential existence: %s (status: %d)", errorInfo.ErrorCode, errorInfo.StatusCode)
+		return nil, fmt.Errorf("unexpected error checking certificate credential existence: %s (status: %d)", errorInfo.ErrorCode, errorInfo.StatusCode)
 	}
 
-	// Key credential was removed, so it doesn't exist anymore
-	// For acceptance tests after delete, we assume it doesn't exist if we can read the application
+	// Parse the response to check for the keyCredential
+	var application map[string]any
+	if err := json.NewDecoder(httpResp.Body).Decode(&application); err != nil {
+		return nil, fmt.Errorf("failed to decode response: %w", err)
+	}
+
+	keyCredentials, ok := application["keyCredentials"].([]any)
+	if !ok {
+		exists := false
+		return &exists, nil
+	}
+
+	// Check if the keyId exists in keyCredentials
+	for _, cred := range keyCredentials {
+		if credMap, ok := cred.(map[string]any); ok {
+			if credKeyID, ok := credMap["keyId"].(string); ok && credKeyID == keyID {
+				exists := true
+				return &exists, nil
+			}
+		}
+	}
+
 	exists := false
 	return &exists, nil
 }

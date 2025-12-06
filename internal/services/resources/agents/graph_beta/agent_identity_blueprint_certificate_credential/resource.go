@@ -5,6 +5,7 @@ import (
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/client"
 	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/schema"
+	attribute "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/validate/attribute"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -17,7 +18,7 @@ import (
 )
 
 const (
-	ResourceName  = "graph_beta_agents_agent_identity_blueprint_certificate_credential"
+	ResourceName  = "microsoft365_graph_beta_agents_agent_identity_blueprint_certificate_credential"
 	CreateTimeout = 180
 	UpdateTimeout = 180
 	ReadTimeout   = 180
@@ -43,7 +44,7 @@ type AgentIdentityBlueprintCertificateCredentialResource struct {
 
 // Metadata returns the resource type name.
 func (r *AgentIdentityBlueprintCertificateCredentialResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_" + ResourceName
+	resp.TypeName = ResourceName
 }
 
 // Configure sets the client for the resource.
@@ -79,16 +80,28 @@ func (r *AgentIdentityBlueprintCertificateCredentialResource) Schema(ctx context
 			"key": schema.StringAttribute{
 				Required:            true,
 				Sensitive:           true,
-				MarkdownDescription: "The certificate's raw data in PEM format. Use `file(\"path/to/cert.pem\")` to read the certificate file.",
+				MarkdownDescription: "The certificate data. The format depends on the `encoding` attribute: for `pem`, use `file(\"path/to/cert.pem\")`; for `base64`, use `filebase64(\"path/to/cert.der\")` or a base64 string; for `hex`, provide a hex-encoded string.",
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
+				},
+			},
+			"encoding": schema.StringAttribute{
+				Optional:            true,
+				Computed:            true,
+				Default:             stringdefault.StaticString("pem"),
+				MarkdownDescription: "Specifies the encoding used for the `key` value. Possible values are `pem`, `base64`, or `hex`. Defaults to `pem`.",
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
+				Validators: []validator.String{
+					stringvalidator.OneOf("pem", "base64", "hex"),
 				},
 			},
 			"type": schema.StringAttribute{
 				Optional:            true,
 				Computed:            true,
 				Default:             stringdefault.StaticString("AsymmetricX509Cert"),
-				MarkdownDescription: "The type of key credential. Must be `AsymmetricX509Cert`.",
+				MarkdownDescription: "The type of key credential. Unlike the standard application keyCredentials endpoint which supports both `AsymmetricX509Cert` and `Symmetric`, the Agent Identity Blueprint API only supports `AsymmetricX509Cert` (X.509 certificates).",
 				Validators: []validator.String{
 					stringvalidator.OneOf("AsymmetricX509Cert"),
 				},
@@ -114,7 +127,10 @@ func (r *AgentIdentityBlueprintCertificateCredentialResource) Schema(ctx context
 			"end_date_time": schema.StringAttribute{
 				Optional:            true,
 				Computed:            true,
-				MarkdownDescription: "The date and time at which the credential expires. The timestamp type represents date and time information using ISO 8601 format and is always in UTC. For example, midnight UTC on Jan 1, 2025 is 2025-01-01T00:00:00Z. Required.",
+				MarkdownDescription: "The date and time at which the credential expires. The timestamp type represents date and time information using ISO 8601 format and is always in UTC. For example, midnight UTC on Jan 1, 2025 is 2025-01-01T00:00:00Z. Must be in the future.",
+				Validators: []validator.String{
+					attribute.RolloutDateTime(0, 3650), // Must be in the future, up to 10 years
+				},
 			},
 			"replace_existing_certificates": schema.BoolAttribute{
 				Optional:            true,
