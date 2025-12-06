@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.38.0-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.37.0-alpha...v0.38.0-alpha) (2025-12-06)
+
+
+### Features
+
+* added resource agent_identity_blueprint_certificate_credential ([#1294](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/1294)) ([f587282](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/f5872824e9a72f80dbd03b0ed13cb60efc7d2abb))
+* added resource agent_identity_blueprint_certificate_credential ([#1295](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/1295)) ([be4a92c](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/be4a92c1c8a18c8a8354c6cb4b7781920f643e98))
+* added resource microsoft365_graph_beta_agents_agent_identity_blueprint , microsoft365_graph_beta_agents_agent_identity_blueprint_federated_identity_credential , microsoft365_graph_beta_agents_agent_identity_blueprint_identifier_uri , microsoft365_graph_beta_agents_agent_identity_blueprint_password_credential and microsoft365_graph_beta_agents_agent_identity_blueprint_service_principal ([#1291](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/1291)) ([0fa5ca2](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/0fa5ca23e8836315448b1986cee9f0996a6bb039))
+
+
+### Bug Fixes
+
+* added MEM to datasource utilityMicrosoft365EndpointReference ([#1279](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/1279)) ([8b6c206](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/8b6c20663ba33fcd1c5c6b6088c7d775a0d46840))
+* **autopilot:** preserve hybrid_azure_ad_join_skip_connectivity_check for azure ad joined profiles ([#888](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/888)) ([1141f5c](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/1141f5caf7d5d57f3e15e7f9fd40a59914ee2a8c))
+* **windows_esp:** resolve app validation pagination limit by querying apps individually ([#889](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/889)) ([04eda94](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/04eda94f838bfd073b61ec37255ae26667d4eb31))
+
 ## [0.37.0-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.36.1-alpha...v0.37.0-alpha) (2025-12-01)
 
 
