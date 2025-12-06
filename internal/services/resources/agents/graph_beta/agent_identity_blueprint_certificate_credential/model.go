@@ -10,6 +10,7 @@ type AgentIdentityBlueprintCertificateCredentialResourceModel struct {
 	// Required inputs
 	BlueprintID types.String `tfsdk:"blueprint_id"`
 	Key         types.String `tfsdk:"key"`
+	Encoding    types.String `tfsdk:"encoding"`
 	Usage       types.String `tfsdk:"usage"`
 	KeyType     types.String `tfsdk:"type"`
 
