@@ -11,7 +11,6 @@ import (
 	graphBetaAgentIdentityBlueprintFederatedIdentityCredential "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/agents/graph_beta/agent_identity_blueprint_federated_identity_credential"
 	graphBetaAgentIdentityBlueprintIdentifierUri "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/agents/graph_beta/agent_identity_blueprint_identifier_uri"
 	graphBetaAgentIdentityBlueprintPasswordCredential "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/agents/graph_beta/agent_identity_blueprint_password_credential"
-	graphBetaAgentIdentityBlueprintRotateCertificateCredential "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/agents/graph_beta/agent_identity_blueprint_rotate_certificate_credential"
 	graphBetaApplicationsAgentIdentityBlueprintServicePrincipal "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/agents/graph_beta/agent_identity_blueprint_service_principal"
 
 	// Graph Beta - Device & app management
@@ -170,7 +169,6 @@ func (p *M365Provider) Resources(ctx context.Context) []func() resource.Resource
 		graphBetaAgentIdentityBlueprintCertificateCredential.NewAgentIdentityBlueprintCertificateCredentialResource,
 
 		graphBetaAgentIdentityBlueprintIdentifierUri.NewAgentIdentityBlueprintIdentifierUriResource,
-		graphBetaAgentIdentityBlueprintRotateCertificateCredential.NewAgentIdentityBlueprintKeyCredentialResource,
 		graphBetaAgentIdentityBlueprintPasswordCredential.NewAgentIdentityBlueprintPasswordCredentialResource,
 		graphBetaApplicationsAgentIdentityBlueprintServicePrincipal.NewAgentIdentityBlueprintServicePrincipalResource,
 
