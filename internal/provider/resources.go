@@ -6,8 +6,6 @@ import (
 	// Graph Beta - Agents
 	graphBetaApplicationsAgentIdentityBlueprint "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/agents/graph_beta/agent_identity_blueprint"
 	graphBetaAgentIdentityBlueprintCertificateCredential "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/agents/graph_beta/agent_identity_blueprint_certificate_credential"
-
-	// NOTE: Disabled due to Microsoft Graph API issues - see developer_notes.md in the resource directory
 	graphBetaAgentIdentityBlueprintFederatedIdentityCredential "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/agents/graph_beta/agent_identity_blueprint_federated_identity_credential"
 	graphBetaAgentIdentityBlueprintIdentifierUri "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/agents/graph_beta/agent_identity_blueprint_identifier_uri"
 	graphBetaAgentIdentityBlueprintPasswordCredential "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/agents/graph_beta/agent_identity_blueprint_password_credential"
