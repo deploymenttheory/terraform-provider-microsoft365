@@ -15,7 +15,7 @@
 .PARAMETER ClientSecret
     The client secret for authentication.
 
-.PARAMETER PrincipalId
+.PARAMETER TargetServicePrincipalObjectId
     The Object ID of the service principal to grant permissions TO.
 
 .PARAMETER ResourceId
@@ -31,7 +31,7 @@ REF: https://learn.microsoft.com/en-us/graph/api/resources/agentid-platform-over
         -TenantId "your-tenant-id" `
         -ClientId "your-client-id-for-auth" `
         -ClientSecret "your-client-secret-for-auth" `
-        -PrincipalId "your-target-service-principal-id-for-permissions" ` typically the SP-CPSS-GLBL-AGENTS-C-01 ID
+        -TargetServicePrincipalObjectId "your-target-service-principal-object-id" ` typically the SP Object ID
         -ResourceId "cb57292c-59b4-4e5a-a677-187cb72cb6c6" ` typically the Microsoft Graph SP ID
         -AppRoleIds @(
             # Agent Identity Blueprint permissions
@@ -65,7 +65,7 @@ param (
     [string]$ClientSecret,
     
     [Parameter(Mandatory=$true)]
-    [string]$PrincipalId,
+    [string]$TargetServicePrincipalObjectId,
     
     [Parameter(Mandatory=$true)]
     [string]$ResourceId,
@@ -86,7 +86,7 @@ try {
     
     Write-Host "✅ Connected" -ForegroundColor Green
     Write-Host ""
-    Write-Host "📋 Principal ID: $PrincipalId" -ForegroundColor Cyan
+    Write-Host "📋 Target SP Object ID: $TargetServicePrincipalObjectId" -ForegroundColor Cyan
     Write-Host "📦 Resource ID: $ResourceId" -ForegroundColor Cyan
     Write-Host "🔑 App Roles to assign: $($AppRoleIds.Count)" -ForegroundColor Cyan
     Write-Host ""
@@ -100,12 +100,12 @@ try {
         
         try {
             $body = @{
-                principalId = $PrincipalId
+                principalId = $TargetServicePrincipalObjectId
                 resourceId = $ResourceId
                 appRoleId = $appRoleId
             } | ConvertTo-Json
             
-            $uri = "https://graph.microsoft.com/v1.0/servicePrincipals/$ResourceId/appRoleAssignedTo"
+            $uri = "https://graph.microsoft.com/beta/servicePrincipals/$ResourceId/appRoleAssignedTo"
             
             $result = Invoke-MgGraphRequest -Method POST -Uri $uri -Body $body -ContentType "application/json"
             

@@ -8,7 +8,7 @@ Usage:
     ./map-credentials.py <service>
 
 Services:
-    applications, backup_storage, device_and_app_management, device_management,
+    agents, applications, backup_storage, device_and_app_management, device_management,
     groups, identity_and_access, m365_admin, multitenant_management, users,
     utility, windows_365
 """
@@ -20,6 +20,7 @@ from typing import Tuple, Optional
 
 # Service to credential variable mapping
 CREDENTIAL_MAP = {
+    "agents": ("M365_CLIENT_ID_AGENTS", "M365_CLIENT_SECRET_AGENTS"),
     "applications": ("M365_CLIENT_ID_APPLICATIONS", "M365_CLIENT_SECRET_APPLICATIONS"),
     "backup_storage": ("M365_CLIENT_ID_BACKUP_STORAGE", "M365_CLIENT_SECRET_BACKUP_STORAGE"),
     "device_and_app_management": ("M365_CLIENT_ID_DEVICE_AND_APP_MGMT", "M365_CLIENT_SECRET_DEVICE_AND_APP_MGMT"),
@@ -66,7 +67,7 @@ def export_to_github_env(key: str, value: str) -> None:
     """
     github_env = os.environ.get("GITHUB_ENV")
     if github_env:
-        with open(github_env, 'a') as f:
+        with open(github_env, 'a', encoding='utf-8') as f:
             f.write(f"{key}={value}\n")
 
 

@@ -154,6 +154,8 @@ jobs:
       - name: Set service credentials
         id: creds
         env:
+          M365_CLIENT_ID_AGENTS: ${{ secrets.M365_CLIENT_ID_AGENTS }}
+          M365_CLIENT_SECRET_AGENTS: ${{ secrets.M365_CLIENT_SECRET_AGENTS }}
           M365_CLIENT_ID_APPLICATIONS: ${{ secrets.M365_CLIENT_ID_APPLICATIONS }}
           M365_CLIENT_SECRET_APPLICATIONS: ${{ secrets.M365_CLIENT_SECRET_APPLICATIONS }}
           M365_CLIENT_ID_BACKUP_STORAGE: ${{ secrets.M365_CLIENT_ID_BACKUP_STORAGE }}

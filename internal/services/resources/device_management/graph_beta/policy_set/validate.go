@@ -112,7 +112,7 @@ func validateManagedAppPolicyId(ctx context.Context, client *msgraphbetasdk.Grap
 		DeviceAppManagement().
 		ManagedAppPolicies().
 		Get(ctx, requestConfig)
-	
+
 	if err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, "validation", requiredPermissions)
 		return err
@@ -140,7 +140,7 @@ func validateDeviceConfigurationId(ctx context.Context, client *msgraphbetasdk.G
 	// Create request configuration for deviceConfigurations endpoint with select and top parameters
 	selectFields := "id,displayName,lastModifiedDateTime,roleScopeTagIds,microsoft.graph.unsupportedDeviceConfiguration/originalEntityTypeName"
 	top := int32(1000)
-	
+
 	requestConfig := &devicemanagement.DeviceConfigurationsRequestBuilderGetRequestConfiguration{
 		QueryParameters: &devicemanagement.DeviceConfigurationsRequestBuilderGetQueryParameters{
 			Select: []string{selectFields},
@@ -152,7 +152,7 @@ func validateDeviceConfigurationId(ctx context.Context, client *msgraphbetasdk.G
 		DeviceManagement().
 		DeviceConfigurations().
 		Get(ctx, requestConfig)
-	
+
 	if err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, "validation", requiredPermissions)
 		return err
@@ -186,7 +186,7 @@ func validateWindowsAutopilotDeploymentProfileId(ctx context.Context, client *ms
 		DeviceManagement().
 		WindowsAutopilotDeploymentProfiles().
 		Get(ctx, requestConfig)
-	
+
 	if err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, "validation", requiredPermissions)
 		return err
@@ -229,7 +229,7 @@ func validateDeviceCompliancePolicyId(ctx context.Context, client *msgraphbetasd
 	}
 	expand := []string{"assignments"}
 	top := int32(1000)
-	
+
 	requestConfig := &devicemanagement.DeviceCompliancePoliciesRequestBuilderGetRequestConfiguration{
 		QueryParameters: &devicemanagement.DeviceCompliancePoliciesRequestBuilderGetQueryParameters{
 			Select: selectFields,
@@ -242,7 +242,7 @@ func validateDeviceCompliancePolicyId(ctx context.Context, client *msgraphbetasd
 		DeviceManagement().
 		DeviceCompliancePolicies().
 		Get(ctx, requestConfig)
-	
+
 	if err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, "validation", requiredPermissions)
 		return err

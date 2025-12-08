@@ -1,3 +1,5 @@
+// REF: https://learn.microsoft.com/en-us/graph/api/agentidentityblueprint-addkey?view=graph-rest-beta&tabs=http
+// REF: https://learn.microsoft.com/en-us/graph/api/agentidentityblueprint-removekey?view=graph-rest-beta&tabs=http
 package graphBetaAgentIdentityBlueprintCertificateCredential
 
 import (
