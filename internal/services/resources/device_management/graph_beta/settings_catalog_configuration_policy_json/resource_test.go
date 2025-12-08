@@ -395,7 +395,7 @@ resource "microsoft365_graph_beta_device_management_settings_catalog_configurati
   })
 }
 `,
-				PlanOnly:         true,
+				PlanOnly:           true,
 				ExpectNonEmptyPlan: true,
 			},
 			// Test secret setting with proper valueState
@@ -423,7 +423,7 @@ resource "microsoft365_graph_beta_device_management_settings_catalog_configurati
   })
 }
 `,
-				PlanOnly:         true,
+				PlanOnly:           true,
 				ExpectNonEmptyPlan: true,
 			},
 		},
@@ -442,44 +442,44 @@ func TestSettingsCatalogConfigurationPolicyJsonResource_Schema(t *testing.T) {
 		Steps: []terraformResource.TestStep{
 			// Test JSON Simple String Setting Schema - Plan Only
 			{
-				Config:           testUnitSettingsCatalogJsonSimpleString(),
-				PlanOnly:         true,
+				Config:             testUnitSettingsCatalogJsonSimpleString(),
+				PlanOnly:           true,
 				ExpectNonEmptyPlan: true,
 			},
 			// Test JSON Simple Secret Setting Schema - Plan Only
 			{
-				Config:           testUnitSettingsCatalogJsonSimpleSecret(),
-				PlanOnly:         true,
+				Config:             testUnitSettingsCatalogJsonSimpleSecret(),
+				PlanOnly:           true,
 				ExpectNonEmptyPlan: true,
 			},
 			// Test JSON Choice Setting Schema - Plan Only
 			{
-				Config:           testUnitSettingsCatalogJsonChoice(),
-				PlanOnly:         true,
+				Config:             testUnitSettingsCatalogJsonChoice(),
+				PlanOnly:           true,
 				ExpectNonEmptyPlan: true,
 			},
 			// Test JSON Simple Collection Setting Schema - Plan Only
 			{
-				Config:           testUnitSettingsCatalogJsonSimpleCollection(),
-				PlanOnly:         true,
+				Config:             testUnitSettingsCatalogJsonSimpleCollection(),
+				PlanOnly:           true,
 				ExpectNonEmptyPlan: true,
 			},
 			// Test JSON Choice Collection Setting Schema - Plan Only
 			{
-				Config:           testUnitSettingsCatalogJsonChoiceCollection(),
-				PlanOnly:         true,
+				Config:             testUnitSettingsCatalogJsonChoiceCollection(),
+				PlanOnly:           true,
 				ExpectNonEmptyPlan: true,
 			},
 			// Test JSON Group Collection Setting Schema - Plan Only
 			{
-				Config:           testUnitSettingsCatalogJsonGroupCollection(),
-				PlanOnly:         true,
+				Config:             testUnitSettingsCatalogJsonGroupCollection(),
+				PlanOnly:           true,
 				ExpectNonEmptyPlan: true,
 			},
 			// Test JSON Complex Group Collection Setting Schema - Plan Only
 			{
-				Config:           testUnitSettingsCatalogJsonComplexGroupCollection(),
-				PlanOnly:         true,
+				Config:             testUnitSettingsCatalogJsonComplexGroupCollection(),
+				PlanOnly:           true,
 				ExpectNonEmptyPlan: true,
 			},
 		},

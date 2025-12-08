@@ -55,7 +55,7 @@ func NewUserResource() resource.Resource {
 			"Directory.ReadWrite.All",
 			"CustomSecAttributeAssignment.ReadWrite.All",
 			"LifeCycleInfo.ReadWrite.All ",
-			"User.PasswordProfile.ReadWrite.All",
+			"User-PasswordProfile.ReadWrite.All",
 		},
 		ResourcePath: "/users",
 	}

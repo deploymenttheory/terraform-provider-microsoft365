@@ -1,0 +1,85 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
+subcategory: "Applications"
+
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Name}} ({{.Type}})
+
+{{ .Description | trimspace }}
+
+## Microsoft Documentation
+
+- [appRoleAssignment resource type](https://learn.microsoft.com/en-us/graph/api/resources/approleassignment?view=graph-rest-beta)
+- [List appRoleAssignments](https://learn.microsoft.com/en-us/graph/api/serviceprincipal-list-approleassignedto?view=graph-rest-beta)
+- [Create appRoleAssignment](https://learn.microsoft.com/en-us/graph/api/serviceprincipal-post-approleassignedto?view=graph-rest-beta)
+- [Delete appRoleAssignment](https://learn.microsoft.com/en-us/graph/api/serviceprincipal-delete-approleassignedto?view=graph-rest-beta)
+
+## API Permissions
+
+The following API permissions are required in order to use this resource.
+
+### Microsoft Graph
+
+- **Read Permissions**: `Application.Read.All`, `Directory.Read.All`
+- **Write Permissions**: `Application.ReadWrite.All`, `AppRoleAssignment.ReadWrite.All`
+
+## Version History
+
+| Version | Status | Notes |
+|---------|--------|-------|
+| v0.38.0 | Experimental | Initial release |
+
+## Important Notes
+
+- This resource creates an `appRoleAssignment` that grants an app role to a principal (user, group, or service principal)
+- The `resource_id` is the service principal ID of the application that defines the app roles (e.g., Microsoft Graph)
+- The `principal_id` is the ID of the user, group, or service principal receiving the permission
+- The `app_role_id` must be a valid app role ID from the resource application's `appRoles` collection
+- Use `00000000-0000-0000-0000-000000000000` as the `app_role_id` for the default app role when no specific role is required
+
+## Common App Role IDs
+
+### Microsoft Graph (appId: 00000003-0000-0000-c000-000000000000)
+
+| Permission | App Role ID | Description |
+|------------|-------------|-------------|
+| User.Read.All | `df021288-bdef-4463-88db-98f22de89214` | Read all users' full profiles |
+| Directory.Read.All | `7ab1d382-f21e-4acd-a863-ba3e13f7da61` | Read directory data |
+| Application.Read.All | `9a5d68dd-52b0-4cc2-bd40-abcf44ac3a30` | Read all applications |
+| Application.ReadWrite.All | `1bfefb4e-e0b5-418b-a88f-73c46d2cc8e9` | Read and write all applications |
+
+### Microsoft Entra Agent ID Permissions
+
+For managing AI agent identities, see the [Agent ID permissions reference](https://learn.microsoft.com/en-us/graph/api/resources/agentid-platform-overview?view=graph-rest-beta#permissions-for-managing-agent-identities).
+
+| Permission | App Role ID | Description |
+|------------|-------------|-------------|
+| AgentIdentity.Read.All | `b2b8f011-2898-4234-9092-5059f6c1ebfa` | Read all agent identities |
+| AgentIdentity.ReadWrite.All | `dcf7150a-88d4-4fe6-9be1-c2744c455397` | Read and write all agent identities |
+| AgentIdentity.DeleteRestore.All | `5b016f9b-18eb-41d4-869a-66931914d1c8` | Delete and restore agent identities |
+| AgentCardManifest.Read.All | `3ee18438-e6e5-4858-8f1c-d7b723b45213` | Read agent card manifests |
+| AgentCollection.Read.All | `e65ee1da-d1d5-467b-bdd0-3e9bb94e6e0c` | Read all agent collections |
+| AgentInstance.Read.All | `799a4732-85b8-4c67-b048-75f0e88a232b` | Read all agent instances |
+| AgentInstance.ReadWrite.All | `07abdd95-78dc-4353-bd32-09f880ea43d0` | Read and write all agent instances |
+
+## Example Usage
+
+### Basic Example
+
+{{ tffile "examples/resources/microsoft365_graph_beta_applications_service_principal_app_role_assigned_to/resource.tf" }}
+
+### Agent Identity Permissions Example
+
+{{ tffile "examples/resources/microsoft365_graph_beta_applications_service_principal_app_role_assigned_to/resource_agent_identity.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}
+
+## Import
+
+Import is supported using the following syntax:
+
+{{ codefile "shell" "examples/resources/microsoft365_graph_beta_applications_service_principal_app_role_assigned_to/import.sh" }}
+

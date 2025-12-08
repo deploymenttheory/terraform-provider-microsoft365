@@ -93,6 +93,7 @@ import (
 
 	// Graph Beta - Applications resources
 	graphBetaApplicationsIpApplicationSegment "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/applications/graph_beta/ip_application_segment"
+	graphBetaApplicationsServicePrincipalAppRoleAssignedTo "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/applications/graph_beta/service_principal_app_role_assigned_to"
 
 	// Graph Beta - Identity and Access resources
 	graphBetaIdentityAndAccessAttributeSet "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/identity_and_access/graph_beta/attribute_set"
@@ -162,12 +163,15 @@ import (
 // Resources returns a slice of functions that each return a resource.Resource.
 func (p *M365Provider) Resources(ctx context.Context) []func() resource.Resource {
 	return []func() resource.Resource{
+		// Graph Beta - Applications resources
+		graphBetaApplicationsIpApplicationSegment.NewIpApplicationSegmentResource,
+		graphBetaApplicationsServicePrincipalAppRoleAssignedTo.NewServicePrincipalAppRoleAssignedToResource,
+
 		// Agents
 		graphBetaApplicationsAgentIdentityBlueprint.NewAgentIdentityBlueprintResource,
 		// NOTE: Disabled due to Microsoft Graph API issues - see developer_notes.md in the resource directory
 		graphBetaAgentIdentityBlueprintFederatedIdentityCredential.NewAgentIdentityBlueprintFederatedIdentityCredentialResource,
 		graphBetaAgentIdentityBlueprintCertificateCredential.NewAgentIdentityBlueprintCertificateCredentialResource,
-
 		graphBetaAgentIdentityBlueprintIdentifierUri.NewAgentIdentityBlueprintIdentifierUriResource,
 		graphBetaAgentIdentityBlueprintPasswordCredential.NewAgentIdentityBlueprintPasswordCredentialResource,
 		graphBetaApplicationsAgentIdentityBlueprintServicePrincipal.NewAgentIdentityBlueprintServicePrincipalResource,
@@ -249,9 +253,6 @@ func (p *M365Provider) Resources(ctx context.Context) []func() resource.Resource
 		graphBetaDeviceManagementWindowsQualityUpdatePolicy.NewWindowsQualityUpdatePolicyResource,
 		graphBetaDeviceManagementWindowsUpdateRing.NewWindowsUpdateRingResource,
 		graphBetaDeviceManagementWindowsBackupAndRestore.NewWindowsBackupAndRestoreResource,
-
-		// Graph Beta - Applications resources
-		graphBetaApplicationsIpApplicationSegment.NewIpApplicationSegmentResource,
 
 		// Graph Beta - Identity and Access resources
 		graphBetaIdentityAndAccessAttributeSet.NewAttributeSetResource,

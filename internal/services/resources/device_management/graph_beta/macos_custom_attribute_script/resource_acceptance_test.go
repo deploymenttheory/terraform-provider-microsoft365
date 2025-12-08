@@ -150,7 +150,7 @@ func testAccCheckMacOSCustomAttributeScriptDestroy(s *terraform.State) error {
 	if err != nil {
 		return fmt.Errorf("error creating Graph client for CheckDestroy: %v", err)
 	}
-	
+
 	ctx := context.Background()
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "microsoft365_graph_beta_device_management_macos_custom_attribute_script" {
@@ -163,20 +163,20 @@ func testAccCheckMacOSCustomAttributeScriptDestroy(s *terraform.State) error {
 			DeviceCustomAttributeShellScripts().
 			ByDeviceCustomAttributeShellScriptId(rs.Primary.ID).
 			Get(ctx, nil)
-		
+
 		if err != nil {
 			// Check for various forms of "not found" errors
 			errStr := err.Error()
-			if strings.Contains(errStr, "404") || 
-			   strings.Contains(strings.ToLower(errStr), "not found") ||
-			   strings.Contains(strings.ToLower(errStr), "does not exist") {
+			if strings.Contains(errStr, "404") ||
+				strings.Contains(strings.ToLower(errStr), "not found") ||
+				strings.Contains(strings.ToLower(errStr), "does not exist") {
 				continue
 			}
 			// For other errors, we assume the resource was properly destroyed
 			// This handles cases where the API returns unexpected error formats
 			continue
 		}
-		
+
 		// If no error, the resource still exists
 		return fmt.Errorf("macOS Custom Attribute Script %s still exists", rs.Primary.ID)
 	}

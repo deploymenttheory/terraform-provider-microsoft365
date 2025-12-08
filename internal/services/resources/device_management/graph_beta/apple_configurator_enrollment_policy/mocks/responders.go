@@ -126,7 +126,7 @@ func (m *AppleConfiguratorEnrollmentPolicyMock) RegisterMocks() {
 		return httpmock.NewJsonResponse(200, existing)
 	})
 
-	// 5. Delete enrollment profile - DELETE /deviceManagement/depOnboardingSettings/{depId}/enrollmentProfiles/{id}  
+	// 5. Delete enrollment profile - DELETE /deviceManagement/depOnboardingSettings/{depId}/enrollmentProfiles/{id}
 	httpmock.RegisterResponder("DELETE", `=~^https://graph\.microsoft\.com/beta/deviceManagement/depOnboardingSettings/.+/enrollmentProfiles/.+$`, func(req *http.Request) (*http.Response, error) {
 		parts := strings.Split(req.URL.Path, "/")
 		id := parts[len(parts)-1]
