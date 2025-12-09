@@ -4,10 +4,9 @@ import (
 	"context"
 
 	// Graph Beta - Agents
+	graphBetaAgentIdentity "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/agents/graph_beta/agent_identity"
 	graphBetaApplicationsAgentIdentityBlueprint "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/agents/graph_beta/agent_identity_blueprint"
 	graphBetaAgentIdentityBlueprintCertificateCredential "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/agents/graph_beta/agent_identity_blueprint_certificate_credential"
-
-	// NOTE: Disabled due to Microsoft Graph API issues - see developer_notes.md in the resource directory
 	graphBetaAgentIdentityBlueprintFederatedIdentityCredential "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/agents/graph_beta/agent_identity_blueprint_federated_identity_credential"
 	graphBetaAgentIdentityBlueprintIdentifierUri "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/agents/graph_beta/agent_identity_blueprint_identifier_uri"
 	graphBetaAgentIdentityBlueprintPasswordCredential "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/agents/graph_beta/agent_identity_blueprint_password_credential"
@@ -168,6 +167,7 @@ func (p *M365Provider) Resources(ctx context.Context) []func() resource.Resource
 		graphBetaApplicationsServicePrincipalAppRoleAssignedTo.NewServicePrincipalAppRoleAssignedToResource,
 
 		// Agents
+		graphBetaAgentIdentity.NewAgentIdentityResource,
 		graphBetaApplicationsAgentIdentityBlueprint.NewAgentIdentityBlueprintResource,
 		// NOTE: Disabled due to Microsoft Graph API issues - see developer_notes.md in the resource directory
 		graphBetaAgentIdentityBlueprintFederatedIdentityCredential.NewAgentIdentityBlueprintFederatedIdentityCredentialResource,

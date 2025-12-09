@@ -1,0 +1,13 @@
+{
+  "@odata.type": "#microsoft.graph.agentIdentity",
+  "id": "00000000-0000-0000-0000-000000000000",
+  "displayName": "Updated Agent Identity",
+  "agentIdentityBlueprintId": "11111111-1111-1111-1111-111111111111",
+  "accountEnabled": true,
+  "createdByAppId": "22222222-2222-2222-2222-222222222222",
+  "createdDateTime": "2025-01-01T00:00:00Z",
+  "servicePrincipalType": "ServiceIdentity",
+  "disabledByMicrosoftStatus": null,
+  "tags": []
+}
+

@@ -1,0 +1,64 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
+subcategory: "Agents"
+
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Name}} ({{.Type}})
+
+{{ .Description | trimspace }}
+
+## Microsoft Documentation
+
+- [agentIdentity resource type](https://learn.microsoft.com/en-us/graph/api/resources/agentidentity?view=graph-rest-beta)
+- [Create agentIdentity](https://learn.microsoft.com/en-us/graph/api/agentidentity-post?view=graph-rest-beta&tabs=http)
+- [Get agentIdentity](https://learn.microsoft.com/en-us/graph/api/agentidentity-get?view=graph-rest-beta&tabs=http)
+- [Update agentIdentity](https://learn.microsoft.com/en-us/graph/api/agentidentity-update?view=graph-rest-beta&tabs=http)
+- [List owners](https://learn.microsoft.com/en-us/graph/api/agentidentity-list-owners?view=graph-rest-beta&tabs=http)
+- [List sponsors](https://learn.microsoft.com/en-us/graph/api/agentidentity-list-sponsors?view=graph-rest-beta&tabs=http)
+- [Permanently delete item](https://learn.microsoft.com/en-us/graph/api/directory-deleteditems-delete?view=graph-rest-beta&tabs=http)
+
+## API Permissions
+
+The following API permissions are required in order to use this resource.
+
+### Microsoft Graph
+
+- **Read Permissions**: `AgentInstance.Read.All`, `Directory.Read.All`
+- **Write Permissions**: `AgentInstance.ReadWrite.All`, `Directory.ReadWrite.All`, `AgentIdentity.DeleteRestore.All`
+
+Find out more about the permissions required for managing agent identities at Microsoft Learn [here](https://learn.microsoft.com/en-us/graph/api/resources/agentid-platform-overview?view=graph-rest-beta#permissions-for-managing-agent-identities).
+
+## Version History
+
+| Version | Status | Notes |
+|---------|--------|-------|
+| v0.38.0 | Experimental | Initial release |
+
+## Important Notes
+
+- Agent identities are deleted in two steps: first soft-deleted, then permanently removed from deleted items via the `/directory/deleteditems/{id}` endpoint.
+- An agent identity blueprint and its service principal must exist before creating an agent identity.
+- At least one sponsor and one owner must be specified when creating an agent identity.
+- The `agent_identity_blueprint_id` is the `app_id` (Application/Client ID) of the blueprint, not its Object ID.
+
+## Example Usage
+
+### Basic Example with Tags
+
+{{ tffile "examples/resources/microsoft365_graph_beta_agents_agent_identity/resource_basic.tf" }}
+
+### Full Example with Dependency Chain
+
+{{ tffile "examples/resources/microsoft365_graph_beta_agents_agent_identity/resource_with_dependencies.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}
+
+## Import
+
+Import is supported using the following syntax:
+
+{{ codefile "shell" "examples/resources/microsoft365_graph_beta_agents_agent_identity/import.sh" }}
+
