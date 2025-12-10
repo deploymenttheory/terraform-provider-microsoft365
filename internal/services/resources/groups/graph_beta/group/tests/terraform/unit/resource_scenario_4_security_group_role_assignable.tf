@@ -5,5 +5,6 @@ resource "microsoft365_graph_beta_groups_group" "scenario_4" {
   security_enabled      = true
   description           = "acc-security-group-with-entra-role-assignment"
   is_assignable_to_role = true
+  hard_delete           = true
 }
 

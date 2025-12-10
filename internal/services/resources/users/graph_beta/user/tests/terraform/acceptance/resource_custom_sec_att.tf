@@ -9,6 +9,7 @@ resource "microsoft365_graph_beta_users_user" "with_custom_security_attributes" 
   user_principal_name = "acc-test-user-custom-sec-att-${random_string.custom_sec_att_user_id.result}@deploymenttheory.com"
   mail_nickname       = "acc-test-user-custom-sec-att-${random_string.custom_sec_att_user_id.result}"
   account_enabled     = true
+  hard_delete         = true
   password_profile = {
     password                           = "SecureP@ssw0rd123!"
     force_change_password_next_sign_in = false

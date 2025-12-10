@@ -6,4 +6,5 @@ resource "microsoft365_graph_beta_agents_agent_identity" "test_with_tags" {
   sponsor_ids                 = ["22222222-2222-2222-2222-222222222222"]
   owner_ids                   = ["33333333-3333-3333-3333-333333333333"]
   tags                        = ["test-tag-1", "test-tag-2"]
+  hard_delete                 = true
 }

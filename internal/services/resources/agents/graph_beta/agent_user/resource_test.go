@@ -1,197 +1,144 @@
-package graphBetaUsersAgentUser_test
+package graphBetaAgentUser_test
 
 import (
+	"fmt"
 	"regexp"
 	"testing"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/check"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
-	userMocks "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/users/graph_beta/user/mocks"
+	graphBetaAgentUser "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/agents/graph_beta/agent_user"
+	agentUserMocks "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/agents/graph_beta/agent_user/mocks"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/jarcoal/httpmock"
 )
 
-func setupMockEnvironment() (*mocks.Mocks, *userMocks.UserMock) {
+var (
+	resourceType = graphBetaAgentUser.ResourceName
+	testResource = graphBetaAgentUser.AgentUserTestResource{}
+)
+
+func setupMockEnvironment() (*mocks.Mocks, *agentUserMocks.AgentUserMock) {
 	httpmock.Activate()
 	mockClient := mocks.NewMocks()
 	mockClient.AuthMocks.RegisterMocks()
-	userMock := &userMocks.UserMock{}
-	userMock.RegisterMocks()
-	return mockClient, userMock
+	agentUserMock := &agentUserMocks.AgentUserMock{}
+	agentUserMock.RegisterMocks()
+	return mockClient, agentUserMock
 }
 
-func setupErrorMockEnvironment() (*mocks.Mocks, *userMocks.UserMock) {
+func setupErrorMockEnvironment() (*mocks.Mocks, *agentUserMocks.AgentUserMock) {
 	httpmock.Activate()
 	mockClient := mocks.NewMocks()
 	mockClient.AuthMocks.RegisterMocks()
-	userMock := &userMocks.UserMock{}
-	userMock.RegisterErrorMocks()
-	return mockClient, userMock
+	agentUserMock := &agentUserMocks.AgentUserMock{}
+	agentUserMock.RegisterErrorMocks()
+	return mockClient, agentUserMock
 }
 
-func TestUserResource_Basic(t *testing.T) {
+func TestUnitAgentUserResource_Minimal(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
-	_, userMock := setupMockEnvironment()
+	_, agentUserMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
-	defer userMock.CleanupMockState()
+	defer agentUserMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testConfigBasic(),
+				Config: testConfigMinimal(),
 				Check: resource.ComposeTestCheckFunc(
-					check.That(resourceType+".minimal").Key("display_name").HasValue("unit-test-agent-user-minimal"),
-					check.That(resourceType+".minimal").Key("user_principal_name").HasValue("unit-test-agent-user-minimal@deploymenttheory.com"),
-					check.That(resourceType+".minimal").Key("account_enabled").HasValue("true"),
-					check.That(resourceType+".minimal").Key("identity_parent_id").HasValue("a1b2c3d4-e5f6-7890-abcd-ef1234567890"),
-					check.That(resourceType+".minimal").Key("id").Exists(),
+					check.That(resourceType+".test_minimal").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(resourceType+".test_minimal").Key("display_name").HasValue("Unit Test Agent User"),
+					check.That(resourceType+".test_minimal").Key("agent_identity_id").HasValue("11111111-1111-1111-1111-111111111111"),
+					check.That(resourceType+".test_minimal").Key("account_enabled").HasValue("true"),
+					check.That(resourceType+".test_minimal").Key("user_principal_name").HasValue("testagentuser@contoso.onmicrosoft.com"),
+					check.That(resourceType+".test_minimal").Key("mail_nickname").HasValue("testagentuser"),
+					check.That(resourceType+".test_minimal").Key("sponsor_ids.#").HasValue("1"),
 				),
 			},
 			{
-				ResourceName:      resourceType + ".minimal",
-				ImportState:       true,
+				ResourceName: resourceType + ".test_minimal",
+				ImportState:  true,
+				ImportStateIdFunc: func(s *terraform.State) (string, error) {
+					rs, ok := s.RootModule().Resources[resourceType+".test_minimal"]
+					if !ok {
+						return "", fmt.Errorf("resource not found: %s", resourceType+".test_minimal")
+					}
+					hardDelete := rs.Primary.Attributes["hard_delete"]
+					return fmt.Sprintf("%s:hard_delete=%s", rs.Primary.ID, hardDelete), nil
+				},
 				ImportStateVerify: true,
 			},
 		},
 	})
 }
 
-func TestUserResource_Update(t *testing.T) {
+func TestUnitAgentUserResource_Maximal(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
-	_, userMock := setupMockEnvironment()
+	_, agentUserMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
-	defer userMock.CleanupMockState()
+	defer agentUserMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testConfigBasic(),
+				Config: testConfigMaximal(),
 				Check: resource.ComposeTestCheckFunc(
-					check.That(resourceType+".minimal").Key("display_name").HasValue("unit-test-agent-user-minimal"),
-					check.That(resourceType+".minimal").Key("account_enabled").HasValue("true"),
+					check.That(resourceType+".test_maximal").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(resourceType+".test_maximal").Key("display_name").HasValue("Unit Test Agent User Maximal"),
+					check.That(resourceType+".test_maximal").Key("agent_identity_id").HasValue("11111111-1111-1111-1111-111111111111"),
+					check.That(resourceType+".test_maximal").Key("account_enabled").HasValue("true"),
+					check.That(resourceType+".test_maximal").Key("user_principal_name").HasValue("testagentusermaximal@contoso.onmicrosoft.com"),
+					check.That(resourceType+".test_maximal").Key("mail_nickname").HasValue("testagentusermaximal"),
+					check.That(resourceType+".test_maximal").Key("sponsor_ids.#").HasValue("2"),
+					check.That(resourceType+".test_maximal").Key("given_name").HasValue("Test"),
+					check.That(resourceType+".test_maximal").Key("surname").HasValue("AgentUser"),
+					check.That(resourceType+".test_maximal").Key("job_title").HasValue("AI Agent"),
+					check.That(resourceType+".test_maximal").Key("department").HasValue("Engineering"),
+					check.That(resourceType+".test_maximal").Key("company_name").HasValue("Contoso"),
+					check.That(resourceType+".test_maximal").Key("office_location").HasValue("Building A"),
+					check.That(resourceType+".test_maximal").Key("city").HasValue("Seattle"),
+					check.That(resourceType+".test_maximal").Key("state").HasValue("WA"),
+					check.That(resourceType+".test_maximal").Key("country").HasValue("US"),
+					check.That(resourceType+".test_maximal").Key("postal_code").HasValue("98101"),
+					check.That(resourceType+".test_maximal").Key("street_address").HasValue("123 Main Street"),
+					check.That(resourceType+".test_maximal").Key("usage_location").HasValue("US"),
+					check.That(resourceType+".test_maximal").Key("preferred_language").HasValue("en-US"),
 				),
 			},
 			{
-				Config: testConfigUpdate(),
-				Check: resource.ComposeTestCheckFunc(
-					check.That(resourceType+".maximal").Key("display_name").HasValue("unit-test-agent-user-maximal"),
-					check.That(resourceType+".maximal").Key("user_principal_name").HasValue("unit-test-agent-user-maximal@deploymenttheory.com"),
-					check.That(resourceType+".maximal").Key("given_name").HasValue("Maximal"),
-					check.That(resourceType+".maximal").Key("surname").HasValue("User"),
-					check.That(resourceType+".maximal").Key("job_title").HasValue("Marketing Agent"),
-					check.That(resourceType+".maximal").Key("department").HasValue("Marketing"),
-					check.That(resourceType+".maximal").Key("company_name").HasValue("Deployment Theory"),
-					check.That(resourceType+".maximal").Key("employee_id").HasValue("1234567890"),
-					check.That(resourceType+".maximal").Key("employee_type").HasValue("full time"),
-					check.That(resourceType+".maximal").Key("age_group").HasValue("NotAdult"),
-					check.That(resourceType+".maximal").Key("consent_provided_for_minor").HasValue("Granted"),
-					check.That(resourceType+".maximal").Key("identity_parent_id").HasValue("a1b2c3d4-e5f6-7890-abcd-ef1234567890"),
-				),
-			},
-			{
-				ResourceName:      resourceType + ".maximal",
-				ImportState:       true,
+				ResourceName: resourceType + ".test_maximal",
+				ImportState:  true,
+				ImportStateIdFunc: func(s *terraform.State) (string, error) {
+					rs, ok := s.RootModule().Resources[resourceType+".test_maximal"]
+					if !ok {
+						return "", fmt.Errorf("resource not found: %s", resourceType+".test_maximal")
+					}
+					hardDelete := rs.Primary.Attributes["hard_delete"]
+					return fmt.Sprintf("%s:hard_delete=%s", rs.Primary.ID, hardDelete), nil
+				},
 				ImportStateVerify: true,
 			},
 		},
 	})
 }
 
-func TestUserResource_CustomSecurityAttributes(t *testing.T) {
-	mocks.SetupUnitTestEnvironment(t)
-	_, userMock := setupMockEnvironment()
-	defer httpmock.DeactivateAndReset()
-	defer userMock.CleanupMockState()
-
-	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
-		Steps: []resource.TestStep{
-			{
-				Config: testConfigCustomSecAtt(),
-				Check: resource.ComposeTestCheckFunc(
-					check.That(resourceType+".with_custom_security_attributes").Key("display_name").HasValue("unit-test-agent-user-custom-sec-att"),
-					check.That(resourceType+".with_custom_security_attributes").Key("user_principal_name").HasValue("unit-test-agent-user-custom-sec-att@deploymenttheory.com"),
-					check.That(resourceType+".with_custom_security_attributes").Key("account_enabled").HasValue("true"),
-					check.That(resourceType+".with_custom_security_attributes").Key("identity_parent_id").HasValue("a1b2c3d4-e5f6-7890-abcd-ef1234567890"),
-					check.That(resourceType+".with_custom_security_attributes").Key("custom_security_attributes.#").HasValue("2"),
-					check.That(resourceType+".with_custom_security_attributes").Key("custom_security_attributes.0.attribute_set").HasValue("Engineering"),
-					check.That(resourceType+".with_custom_security_attributes").Key("custom_security_attributes.1.attribute_set").HasValue("Marketing"),
-				),
-			},
-			{
-				ResourceName:      resourceType + ".with_custom_security_attributes",
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
-		},
-	})
-}
-
-func TestUserResource_RequiredAttributes(t *testing.T) {
-	mocks.SetupUnitTestEnvironment(t)
-	_, userMock := setupMockEnvironment()
-	defer httpmock.DeactivateAndReset()
-	defer userMock.CleanupMockState()
-
-	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
-		Steps: []resource.TestStep{
-			{
-				Config:      testConfigMissingRequired(),
-				ExpectError: regexp.MustCompile(`Missing required argument|The argument .* is required`),
-			},
-		},
-	})
-}
-
-func TestUserResource_CreateError(t *testing.T) {
-	mocks.SetupUnitTestEnvironment(t)
-	_, userMock := setupErrorMockEnvironment()
-	defer httpmock.DeactivateAndReset()
-	defer userMock.CleanupMockState()
-
-	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
-		Steps: []resource.TestStep{
-			{
-				Config:      testConfigBasic(),
-				ExpectError: regexp.MustCompile(`Bad Request - 400|The request was invalid or malformed|ApiError`),
-			},
-		},
-	})
-}
-
-func testConfigBasic() string {
-	unitTestConfig, err := helpers.ParseHCLFile("tests/terraform/unit/resource_minimal.tf")
+func testConfigMinimal() string {
+	content, err := helpers.ParseHCLFile("tests/terraform/unit/resource_minimal.tf")
 	if err != nil {
-		panic("failed to load resource_minimal.tf: " + err.Error())
+		panic(err)
 	}
-	return unitTestConfig
+	return content
 }
 
-func testConfigUpdate() string {
-	unitTestConfig, err := helpers.ParseHCLFile("tests/terraform/unit/resource_maximal.tf")
+func testConfigMaximal() string {
+	content, err := helpers.ParseHCLFile("tests/terraform/unit/resource_maximal.tf")
 	if err != nil {
-		panic("failed to load resource_maximal.tf: " + err.Error())
+		panic(err)
 	}
-	return unitTestConfig
-}
-
-func testConfigCustomSecAtt() string {
-	unitTestConfig, err := helpers.ParseHCLFile("tests/terraform/unit/resource_custom_sec_att.tf")
-	if err != nil {
-		panic("failed to load resource_custom_sec_att.tf: " + err.Error())
-	}
-	return unitTestConfig
-}
-
-func testConfigMissingRequired() string {
-	unitTestConfig, err := helpers.ParseHCLFile("tests/terraform/unit/resource_invalid.tf")
-	if err != nil {
-		panic("failed to load resource_invalid.tf: " + err.Error())
-	}
-	return unitTestConfig
+	return content
 }

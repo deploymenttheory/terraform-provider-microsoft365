@@ -17,14 +17,16 @@ import (
 var mockState struct {
 	sync.Mutex
 	agentIdentities map[string]map[string]any
-	sponsors        map[string][]string // agentIdentityId -> []sponsorId
-	owners          map[string][]string // agentIdentityId -> []ownerId
+	sponsors        map[string][]string       // agentIdentityId -> []sponsorId
+	owners          map[string][]string       // agentIdentityId -> []ownerId
+	deletedItems    map[string]map[string]any // soft-deleted items awaiting hard delete
 }
 
 func init() {
 	mockState.agentIdentities = make(map[string]map[string]any)
 	mockState.sponsors = make(map[string][]string)
 	mockState.owners = make(map[string][]string)
+	mockState.deletedItems = make(map[string]map[string]any)
 	mocks.GlobalRegistry.Register("agent_identity", &AgentIdentityMock{})
 }
 
@@ -37,19 +39,22 @@ func (m *AgentIdentityMock) RegisterMocks() {
 	mockState.agentIdentities = make(map[string]map[string]any)
 	mockState.sponsors = make(map[string][]string)
 	mockState.owners = make(map[string][]string)
+	mockState.deletedItems = make(map[string]map[string]any)
 	mockState.Unlock()
 
 	// Create agent identity - POST /servicePrincipals/microsoft.graph.agentIdentity
 	httpmock.RegisterResponder("POST", "https://graph.microsoft.com/beta/servicePrincipals/microsoft.graph.agentIdentity", func(req *http.Request) (*http.Response, error) {
 		var requestBody map[string]any
 		if err := json.NewDecoder(req.Body).Decode(&requestBody); err != nil {
-			return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"Invalid request body"}}`), nil
+			errorResp, _ := helpers.ParseJSONFile("../tests/responses/error_bad_request.json")
+			return httpmock.NewStringResponse(400, errorResp), nil
 		}
 
 		// Verify required fields
 		displayName, ok := requestBody["displayName"].(string)
 		if !ok || displayName == "" {
-			return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"displayName is required"}}`), nil
+			errorResp, _ := helpers.ParseJSONFile("../tests/responses/error_bad_request.json")
+			return httpmock.NewStringResponse(400, errorResp), nil
 		}
 
 		// Load JSON response from file
@@ -85,7 +90,6 @@ func (m *AgentIdentityMock) RegisterMocks() {
 		// Extract and store sponsors from sponsors@odata.bind
 		var sponsorIds []string
 		if sponsorBinds, ok := requestBody["sponsors@odata.bind"].([]any); ok {
-			// Extract sponsor IDs from URLs like "https://graph.microsoft.com/beta/users/{id}"
 			uuidRegex := regexp.MustCompile(`[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}`)
 			for _, bind := range sponsorBinds {
 				if bindStr, ok := bind.(string); ok {
@@ -99,7 +103,6 @@ func (m *AgentIdentityMock) RegisterMocks() {
 		// Extract and store owners from owners@odata.bind
 		var ownerIds []string
 		if ownerBinds, ok := requestBody["owners@odata.bind"].([]any); ok {
-			// Extract owner IDs from URLs like "https://graph.microsoft.com/beta/users/{id}"
 			uuidRegex := regexp.MustCompile(`[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}`)
 			for _, bind := range ownerBinds {
 				if bindStr, ok := bind.(string); ok {
@@ -130,7 +133,8 @@ func (m *AgentIdentityMock) RegisterMocks() {
 		mockState.Unlock()
 
 		if !exists {
-			return httpmock.NewStringResponse(404, `{"error":{"code":"ResourceNotFound","message":"Resource not found"}}`), nil
+			errorResp, _ := helpers.ParseJSONFile("../tests/responses/error_not_found.json")
+			return httpmock.NewStringResponse(404, errorResp), nil
 		}
 
 		return httpmock.NewJsonResponse(200, agentIdentity)
@@ -178,12 +182,14 @@ func (m *AgentIdentityMock) RegisterMocks() {
 		mockState.Unlock()
 
 		if !exists {
-			return httpmock.NewStringResponse(404, `{"error":{"code":"ResourceNotFound","message":"Resource not found"}}`), nil
+			errorResp, _ := helpers.ParseJSONFile("../tests/responses/error_not_found.json")
+			return httpmock.NewStringResponse(404, errorResp), nil
 		}
 
 		var requestBody map[string]any
 		if err := json.NewDecoder(req.Body).Decode(&requestBody); err != nil {
-			return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"Invalid request body"}}`), nil
+			errorResp, _ := helpers.ParseJSONFile("../tests/responses/error_bad_request.json")
+			return httpmock.NewStringResponse(400, errorResp), nil
 		}
 
 		// Merge request body into stored state
@@ -234,22 +240,24 @@ func (m *AgentIdentityMock) RegisterMocks() {
 		return httpmock.NewJsonResponse(200, responseObj)
 	})
 
-	// Delete agent identity - DELETE /servicePrincipals/{id}
+	// Delete agent identity (soft delete) - DELETE /servicePrincipals/{id}
+	// Moves item to deletedItems collection instead of permanently deleting
 	httpmock.RegisterResponder("DELETE", `=~^https://graph\.microsoft\.com/beta/servicePrincipals/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`, func(req *http.Request) (*http.Response, error) {
 		parts := strings.Split(req.URL.Path, "/")
 		agentIdentityId := parts[len(parts)-1]
 
 		mockState.Lock()
-		_, exists := mockState.agentIdentities[agentIdentityId]
+		agentIdentity, exists := mockState.agentIdentities[agentIdentityId]
 		if exists {
+			// Move to deletedItems (soft delete behavior)
+			mockState.deletedItems[agentIdentityId] = agentIdentity
 			delete(mockState.agentIdentities, agentIdentityId)
-			delete(mockState.sponsors, agentIdentityId)
-			delete(mockState.owners, agentIdentityId)
 		}
 		mockState.Unlock()
 
 		if !exists {
-			return httpmock.NewStringResponse(404, `{"error":{"code":"ResourceNotFound","message":"Resource not found"}}`), nil
+			errorResp, _ := helpers.ParseJSONFile("../tests/responses/error_not_found.json")
+			return httpmock.NewStringResponse(404, errorResp), nil
 		}
 
 		return httpmock.NewStringResponse(204, ""), nil
@@ -257,17 +265,15 @@ func (m *AgentIdentityMock) RegisterMocks() {
 
 	// Add sponsor - POST /servicePrincipals/{id}/microsoft.graph.agentIdentity/sponsors/$ref
 	httpmock.RegisterResponder("POST", `=~^https://graph\.microsoft\.com/beta/servicePrincipals/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}/microsoft\.graph\.agentIdentity/sponsors/\$ref$`, func(req *http.Request) (*http.Response, error) {
-		// Path: /beta/servicePrincipals/{id}/microsoft.graph.agentIdentity/sponsors/$ref
 		parts := strings.Split(req.URL.Path, "/")
 		agentIdentityId := parts[3]
 
-		// Parse request body to get sponsor ID
 		var requestBody map[string]any
 		if err := json.NewDecoder(req.Body).Decode(&requestBody); err != nil {
-			return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"Invalid request body"}}`), nil
+			errorResp, _ := helpers.ParseJSONFile("../tests/responses/error_bad_request.json")
+			return httpmock.NewStringResponse(400, errorResp), nil
 		}
 
-		// Extract sponsor ID from @odata.id
 		if odataId, ok := requestBody["@odata.id"].(string); ok {
 			uuidRegex := regexp.MustCompile(`[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}`)
 			if match := uuidRegex.FindString(odataId); match != "" {
@@ -305,17 +311,15 @@ func (m *AgentIdentityMock) RegisterMocks() {
 
 	// Add owner - POST /servicePrincipals/{id}/microsoft.graph.agentIdentity/owners/$ref
 	httpmock.RegisterResponder("POST", `=~^https://graph\.microsoft\.com/beta/servicePrincipals/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}/microsoft\.graph\.agentIdentity/owners/\$ref$`, func(req *http.Request) (*http.Response, error) {
-		// Path: /beta/servicePrincipals/{id}/microsoft.graph.agentIdentity/owners/$ref
 		parts := strings.Split(req.URL.Path, "/")
 		agentIdentityId := parts[3]
 
-		// Parse request body to get owner ID
 		var requestBody map[string]any
 		if err := json.NewDecoder(req.Body).Decode(&requestBody); err != nil {
-			return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"Invalid request body"}}`), nil
+			errorResp, _ := helpers.ParseJSONFile("../tests/responses/error_bad_request.json")
+			return httpmock.NewStringResponse(400, errorResp), nil
 		}
 
-		// Extract owner ID from @odata.id
 		if odataId, ok := requestBody["@odata.id"].(string); ok {
 			uuidRegex := regexp.MustCompile(`[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}`)
 			if match := uuidRegex.FindString(odataId); match != "" {
@@ -351,26 +355,64 @@ func (m *AgentIdentityMock) RegisterMocks() {
 		return httpmock.NewStringResponse(204, ""), nil
 	})
 
+	// Get deleted item - GET /directory/deletedItems/{id}
+	// Used for soft delete verification (polling until resource appears in deleted items)
+	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/directory/deletedItems/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`, func(req *http.Request) (*http.Response, error) {
+		parts := strings.Split(req.URL.Path, "/")
+		resourceId := parts[len(parts)-1]
+
+		mockState.Lock()
+		deletedItem, exists := mockState.deletedItems[resourceId]
+		mockState.Unlock()
+
+		if !exists {
+			errorResp, _ := helpers.ParseJSONFile("../tests/responses/error_not_found.json")
+			return httpmock.NewStringResponse(404, errorResp), nil
+		}
+
+		return httpmock.NewJsonResponse(200, deletedItem)
+	})
+
 	// Permanent delete from deleted items - DELETE /directory/deletedItems/{id}
 	// REF: https://learn.microsoft.com/en-us/graph/api/directory-deleteditems-delete?view=graph-rest-beta
 	httpmock.RegisterResponder("DELETE", `=~^https://graph\.microsoft\.com/beta/directory/deletedItems/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`, func(req *http.Request) (*http.Response, error) {
-		// Path: /beta/directory/deletedItems/{id}
-		// The item was already removed from agentIdentities in the soft delete step
+		parts := strings.Split(req.URL.Path, "/")
+		resourceId := parts[len(parts)-1]
+
+		mockState.Lock()
+		_, exists := mockState.deletedItems[resourceId]
+		if exists {
+			delete(mockState.deletedItems, resourceId)
+			delete(mockState.sponsors, resourceId)
+			delete(mockState.owners, resourceId)
+		}
+		mockState.Unlock()
+
+		if !exists {
+			errorResp, _ := helpers.ParseJSONFile("../tests/responses/error_not_found.json")
+			return httpmock.NewStringResponse(404, errorResp), nil
+		}
+
 		return httpmock.NewStringResponse(204, ""), nil
 	})
 }
 
 func (m *AgentIdentityMock) RegisterErrorMocks() {
+	errorBadRequest, _ := helpers.ParseJSONFile("../tests/responses/error_bad_request.json")
+	errorNotFound, _ := helpers.ParseJSONFile("../tests/responses/error_not_found.json")
+
 	httpmock.RegisterResponder("POST", "https://graph.microsoft.com/beta/servicePrincipals/microsoft.graph.agentIdentity",
-		httpmock.NewStringResponder(400, `{"error":{"code":"BadRequest","message":"Invalid request"}}`))
+		httpmock.NewStringResponder(400, errorBadRequest))
 	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/servicePrincipals/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`,
-		httpmock.NewStringResponder(404, `{"error":{"code":"ResourceNotFound","message":"Resource not found"}}`))
+		httpmock.NewStringResponder(404, errorNotFound))
 	httpmock.RegisterResponder("PATCH", `=~^https://graph\.microsoft\.com/beta/servicePrincipals/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`,
-		httpmock.NewStringResponder(400, `{"error":{"code":"BadRequest","message":"Invalid request"}}`))
+		httpmock.NewStringResponder(400, errorBadRequest))
 	httpmock.RegisterResponder("DELETE", `=~^https://graph\.microsoft\.com/beta/servicePrincipals/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`,
-		httpmock.NewStringResponder(400, `{"error":{"code":"BadRequest","message":"Invalid request"}}`))
+		httpmock.NewStringResponder(400, errorBadRequest))
+	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/directory/deletedItems/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`,
+		httpmock.NewStringResponder(404, errorNotFound))
 	httpmock.RegisterResponder("DELETE", `=~^https://graph\.microsoft\.com/beta/directory/deletedItems/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`,
-		httpmock.NewStringResponder(400, `{"error":{"code":"BadRequest","message":"Invalid request"}}`))
+		httpmock.NewStringResponder(400, errorBadRequest))
 }
 
 func (m *AgentIdentityMock) CleanupMockState() {
@@ -378,5 +420,6 @@ func (m *AgentIdentityMock) CleanupMockState() {
 	mockState.agentIdentities = make(map[string]map[string]any)
 	mockState.sponsors = make(map[string][]string)
 	mockState.owners = make(map[string][]string)
+	mockState.deletedItems = make(map[string]map[string]any)
 	mockState.Unlock()
 }

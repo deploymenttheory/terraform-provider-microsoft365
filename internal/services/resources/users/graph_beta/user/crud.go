@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
+	graphBetaDirectory "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud/graph_beta/directory"
 	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -252,13 +253,34 @@ func (r *UserResource) Delete(ctx context.Context, req resource.DeleteRequest, r
 	}
 	defer cancel()
 
-	err := r.client.
-		Users().
-		ByUserId(data.ID.ValueString()).
-		Delete(ctx, nil)
+	userId := data.ID.ValueString()
+
+	softDeleteFunc := func(ctx context.Context) error {
+		return r.client.
+			Users().
+			ByUserId(userId).
+			Delete(ctx, nil)
+	}
+
+	deleteOpts := graphBetaDirectory.DeleteOptions{
+		ResourceType: graphBetaDirectory.ResourceTypeUser,
+		ResourceID:   userId,
+		ResourceName: data.DisplayName.ValueString(),
+	}
+
+	err := graphBetaDirectory.ExecuteDeleteWithVerification(
+		ctx,
+		r.client,
+		softDeleteFunc,
+		data.HardDelete.ValueBool(),
+		deleteOpts,
+	)
 
 	if err != nil {
-		errors.HandleKiotaGraphError(ctx, err, resp, "Delete", r.WritePermissions)
+		resp.Diagnostics.AddError(
+			"Delete Failed",
+			fmt.Sprintf("Failed to delete %s: %s", ResourceName, err.Error()),
+		)
 		return
 	}
 

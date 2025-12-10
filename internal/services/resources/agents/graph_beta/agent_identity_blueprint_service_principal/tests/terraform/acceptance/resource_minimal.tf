@@ -19,6 +19,7 @@ resource "microsoft365_graph_beta_users_user" "dependency_user_1" {
     password                           = "SecureP@ssw0rd123!"
     force_change_password_next_sign_in = false
   }
+  hard_delete = true
 }
 
 resource "microsoft365_graph_beta_users_user" "dependency_user_2" {
@@ -30,6 +31,7 @@ resource "microsoft365_graph_beta_users_user" "dependency_user_2" {
     password                           = "SecureP@ssw0rd123!"
     force_change_password_next_sign_in = false
   }
+  hard_delete = true
 }
 
 
@@ -44,12 +46,14 @@ resource "microsoft365_graph_beta_agents_agent_identity_blueprint" "test_depende
     microsoft365_graph_beta_users_user.dependency_user_1.id,
     microsoft365_graph_beta_users_user.dependency_user_2.id,
   ]
+  hard_delete = true
 }
 
 ########################################################################################
 # Test Resource
 ########################################################################################
 resource "microsoft365_graph_beta_agents_agent_identity_blueprint_service_principal" "test_minimal" {
-  app_id = microsoft365_graph_beta_agents_agent_identity_blueprint.test_dependency.app_id
+  app_id      = microsoft365_graph_beta_agents_agent_identity_blueprint.test_dependency.app_id
+  hard_delete = true
 }
 

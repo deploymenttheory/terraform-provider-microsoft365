@@ -7,5 +7,6 @@ resource "microsoft365_graph_beta_groups_group" "scenario_6" {
   mail_nickname         = "acc-m365-group-with-assigned-membership-type"
   is_assignable_to_role = true
   visibility            = "Private"
+  hard_delete           = true
 }
 

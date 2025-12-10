@@ -2,6 +2,8 @@ package graphBetaApplicationsAgentIdentityBlueprint
 
 import (
 	"context"
+	"fmt"
+	"strings"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/client"
 	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/schema"
@@ -9,10 +11,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
 	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
 )
 
@@ -48,6 +52,7 @@ func NewAgentIdentityBlueprintResource() resource.Resource {
 			"Directory.ReadWrite.All",
 			"AgentIdentityBlueprint.AddRemoveCreds.All",
 			"AgentIdentityBlueprint.UpdateBranding.All",
+			"AgentIdentity.DeleteRestore.All", // Needed for hard deletion
 		},
 		ResourcePath: "/applications",
 	}
@@ -70,9 +75,44 @@ func (r *AgentIdentityBlueprintResource) Configure(ctx context.Context, req reso
 	r.client = client.SetGraphBetaClientForResource(ctx, req, resp, ResourceName)
 }
 
-// ImportState handles the import functionality.
+// ImportState handles importing the resource with an extended ID format.
+//
+// Supported formats:
+//   - Simple:   "resource_id" (hard_delete defaults to false)
+//   - Extended: "resource_id:hard_delete=true" or "resource_id:hard_delete=false"
+//
+// Example:
+//
+//	terraform import microsoft365_graph_beta_agents_agent_identity_blueprint.example "12345678-1234-1234-1234-123456789012:hard_delete=true"
 func (r *AgentIdentityBlueprintResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+	idParts := strings.Split(req.ID, ":")
+	resourceID := idParts[0]
+	hardDelete := false // Default to soft delete for safety
+
+	if len(idParts) > 1 {
+		for _, part := range idParts[1:] {
+			if strings.HasPrefix(part, "hard_delete=") {
+				value := strings.TrimPrefix(part, "hard_delete=")
+				switch strings.ToLower(value) {
+				case "true":
+					hardDelete = true
+				case "false":
+					hardDelete = false
+				default:
+					resp.Diagnostics.AddError(
+						"Invalid Import ID",
+						fmt.Sprintf("Invalid hard_delete value '%s'. Must be 'true' or 'false'.", value),
+					)
+					return
+				}
+			}
+		}
+	}
+
+	tflog.Info(ctx, fmt.Sprintf("Importing %s with ID: %s, hard_delete: %t", ResourceName, resourceID, hardDelete))
+
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("id"), resourceID)...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("hard_delete"), hardDelete)...)
 }
 
 // Schema returns the schema for the resource.
@@ -142,6 +182,15 @@ func (r *AgentIdentityBlueprintResource) Schema(ctx context.Context, req resourc
 					"when creating an agent identity blueprint. Owners are users who have full control over the blueprint.",
 				Required:    true,
 				ElementType: types.StringType,
+			},
+			"hard_delete": schema.BoolAttribute{
+				MarkdownDescription: "When set to `true`, the resource will be permanently deleted from the Entra ID (hard delete) " +
+					"rather than being moved to deleted items (soft delete). This prevents the resource from being restored " +
+					"and immediately frees up the resource name for reuse. When `false` (default), the resource is soft deleted and can be restored within 30 days. " +
+					"Note: This field defaults to `false` on import since the API does not return this value.",
+				Optional: true,
+				Computed: true,
+				Default:  booldefault.StaticBool(false),
 			},
 			"timeouts": commonschema.Timeouts(ctx),
 		},

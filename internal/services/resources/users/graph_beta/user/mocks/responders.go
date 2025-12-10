@@ -16,12 +16,14 @@ import (
 // mockState tracks the state of resources for consistent responses
 var mockState struct {
 	sync.Mutex
-	users map[string]map[string]any
+	users        map[string]map[string]any
+	deletedItems map[string]map[string]any
 }
 
 func init() {
 	// Initialize mockState
 	mockState.users = make(map[string]map[string]any)
+	mockState.deletedItems = make(map[string]map[string]any)
 
 	// Register a default 404 responder for any unmatched requests
 	httpmock.RegisterNoResponder(httpmock.NewStringResponder(404, `{"error":{"code":"ResourceNotFound","message":"Resource not found"}}`))
@@ -35,6 +37,7 @@ func (m *UserMock) RegisterMocks() {
 	// Reset the state when registering mocks
 	mockState.Lock()
 	mockState.users = make(map[string]map[string]any)
+	mockState.deletedItems = make(map[string]map[string]any)
 	mockState.Unlock()
 
 	// Register specific test users
@@ -51,7 +54,8 @@ func (m *UserMock) RegisterMocks() {
 			mockState.Unlock()
 
 			if !exists {
-				return httpmock.NewStringResponse(404, `{"error":{"code":"ResourceNotFound","message":"User not found"}}`), nil
+				errorResp, _ := helpers.ParseJSONFile("../tests/responses/error_not_found.json")
+				return httpmock.NewStringResponse(404, errorResp), nil
 			}
 
 			return httpmock.NewJsonResponse(200, userData)
@@ -68,13 +72,15 @@ func (m *UserMock) RegisterMocks() {
 			mockState.Unlock()
 
 			if !exists {
-				return httpmock.NewStringResponse(404, `{"error":{"code":"ResourceNotFound","message":"User not found"}}`), nil
+				errorResp, _ := helpers.ParseJSONFile("../tests/responses/error_not_found.json")
+				return httpmock.NewStringResponse(404, errorResp), nil
 			}
 
 			// Check if user has a manager set
 			managerId, hasManager := userData["managerId"].(string)
 			if !hasManager || managerId == "" {
-				return httpmock.NewStringResponse(404, `{"error":{"code":"ResourceNotFound","message":"Manager not found"}}`), nil
+				errorResp, _ := helpers.ParseJSONFile("../tests/responses/error_not_found.json")
+				return httpmock.NewStringResponse(404, errorResp), nil
 			}
 
 			// Return minimal manager info
@@ -111,39 +117,77 @@ func (m *UserMock) RegisterMocks() {
 			var userData map[string]any
 			err := json.NewDecoder(req.Body).Decode(&userData)
 			if err != nil {
-				return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"Invalid request body"}}`), nil
+				errorResp, _ := helpers.ParseJSONFile("../tests/responses/error_bad_request.json")
+				return httpmock.NewStringResponse(400, errorResp), nil
 			}
 
 			// Validate required fields
-			if _, ok := userData["displayName"].(string); !ok {
-				return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"displayName is required"}}`), nil
+			displayName, hasDisplayName := userData["displayName"].(string)
+			if !hasDisplayName {
+				errorResp, _ := helpers.ParseJSONFile("../tests/responses/error_bad_request.json")
+				return httpmock.NewStringResponse(400, errorResp), nil
 			}
 			if _, ok := userData["userPrincipalName"].(string); !ok {
-				return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"userPrincipalName is required"}}`), nil
+				errorResp, _ := helpers.ParseJSONFile("../tests/responses/error_bad_request.json")
+				return httpmock.NewStringResponse(400, errorResp), nil
 			}
 			if passwordProfile, ok := userData["passwordProfile"].(map[string]any); !ok || passwordProfile["password"] == nil {
-				return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"passwordProfile with password is required"}}`), nil
+				errorResp, _ := helpers.ParseJSONFile("../tests/responses/error_bad_request.json")
+				return httpmock.NewStringResponse(400, errorResp), nil
 			}
 
-			// Generate ID if not provided
+			// Determine which fixture to use based on displayName
+			var fixtureData map[string]any
+			var fixtureErr error
+
+			switch displayName {
+			case "Minimal User":
+				fixtureData, fixtureErr = loadFixture("validate_create/post_user_minimal_success.json")
+			case "unit-test-user-maximal":
+				fixtureData, fixtureErr = loadFixture("validate_create/post_user_maximal_success.json")
+			case "unit-test-user-custom-sec-att":
+				fixtureData, fixtureErr = loadFixture("validate_create/post_user_custom_sec_att_success.json")
+			default:
+				fixtureData = nil
+				fixtureErr = nil
+			}
+
+			if fixtureErr == nil && fixtureData != nil {
+				// Use fixture data but update dynamic fields
+				userId := uuid.New().String()
+				fixtureData["id"] = userId
+				fixtureData["createdDateTime"] = time.Now().Format(time.RFC3339)
+
+				// Handle manager@odata.bind if present in request
+				if managerBindURL, ok := userData["manager@odata.bind"].(string); ok {
+					parts := strings.Split(managerBindURL, "/")
+					if len(parts) > 0 {
+						fixtureData["managerId"] = parts[len(parts)-1]
+					}
+				}
+
+				mockState.Lock()
+				mockState.users[userId] = fixtureData
+				mockState.Unlock()
+
+				return httpmock.NewJsonResponse(201, fixtureData)
+			}
+
+			// Fallback to dynamic creation
 			if userData["id"] == nil {
 				userData["id"] = uuid.New().String()
 			}
 
-			// Set computed fields
 			now := time.Now().Format(time.RFC3339)
 			userData["createdDateTime"] = now
 
 			// Handle manager@odata.bind - extract ID and store as managerId
 			if managerBindURL, ok := userData["manager@odata.bind"].(string); ok {
-				// Extract manager ID from the URL
-				// Format: https://graph.microsoft.com/beta/users/{manager-id}
 				parts := strings.Split(managerBindURL, "/")
 				if len(parts) > 0 {
 					managerId := parts[len(parts)-1]
 					userData["managerId"] = managerId
 				}
-				// Remove the binding from the response
 				delete(userData, "manager@odata.bind")
 			}
 
@@ -177,21 +221,61 @@ func (m *UserMock) RegisterMocks() {
 			mockState.Unlock()
 
 			if !exists {
-				return httpmock.NewStringResponse(404, `{"error":{"code":"ResourceNotFound","message":"User not found"}}`), nil
+				errorResp, _ := helpers.ParseJSONFile("../tests/responses/error_not_found.json")
+				return httpmock.NewStringResponse(404, errorResp), nil
 			}
 
 			var updateData map[string]any
 			err := json.NewDecoder(req.Body).Decode(&updateData)
 			if err != nil {
-				return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"Invalid request body"}}`), nil
+				errorResp, _ := helpers.ParseJSONFile("../tests/responses/error_bad_request.json")
+				return httpmock.NewStringResponse(400, errorResp), nil
 			}
 
-			// Update user data
+			// Determine fixture to use based on displayName in update
+			displayName, hasDisplayName := updateData["displayName"].(string)
+			if !hasDisplayName {
+				displayName, _ = userData["displayName"].(string)
+			}
+
+			var fixtureData map[string]any
+			var fixtureErr error
+
+			switch displayName {
+			case "Minimal User":
+				fixtureData, fixtureErr = loadFixture("validate_update/patch_user_minimal_success.json")
+			case "unit-test-user-maximal":
+				fixtureData, fixtureErr = loadFixture("validate_update/patch_user_maximal_success.json")
+			case "unit-test-user-custom-sec-att":
+				fixtureData, fixtureErr = loadFixture("validate_update/patch_user_custom_sec_att_success.json")
+			default:
+				fixtureData = nil
+				fixtureErr = nil
+			}
+
+			if fixtureErr == nil && fixtureData != nil {
+				// Use fixture data but preserve the original ID
+				fixtureData["id"] = userId
+
+				// Handle manager@odata.bind if present in update
+				if managerBindURL, ok := updateData["manager@odata.bind"].(string); ok {
+					parts := strings.Split(managerBindURL, "/")
+					if len(parts) > 0 {
+						fixtureData["managerId"] = parts[len(parts)-1]
+					}
+				}
+
+				mockState.Lock()
+				mockState.users[userId] = fixtureData
+				mockState.Unlock()
+
+				return httpmock.NewJsonResponse(200, fixtureData)
+			}
+
+			// Fallback to dynamic update
 			mockState.Lock()
 
 			// Special handling for updates that remove fields
-			// If we're updating from maximal to minimal, we need to remove fields not in the minimal config
-			// Check if this is a minimal update by looking for key indicators
 			isMinimalUpdate := false
 			if _, hasDisplayName := updateData["displayName"]; hasDisplayName {
 				if _, hasGivenName := updateData["givenName"]; !hasGivenName {
@@ -200,7 +284,6 @@ func (m *UserMock) RegisterMocks() {
 			}
 
 			if isMinimalUpdate {
-				// Remove fields that are not part of minimal configuration
 				fieldsToRemove := []string{
 					"givenName", "surname", "jobTitle", "department", "companyName",
 					"officeLocation", "city", "state", "country", "postalCode",
@@ -211,7 +294,6 @@ func (m *UserMock) RegisterMocks() {
 					delete(userData, field)
 				}
 
-				// Reset collections to empty
 				userData["businessPhones"] = []string{}
 				userData["otherMails"] = []string{}
 				userData["proxyAddresses"] = []string{}
@@ -219,11 +301,8 @@ func (m *UserMock) RegisterMocks() {
 
 			// Apply the updates
 			for k, v := range updateData {
-				// Handle manager@odata.bind - extract ID and store as managerId
 				if k == "manager@odata.bind" {
 					if managerBindURL, ok := v.(string); ok {
-						// Extract manager ID from the URL
-						// Format: https://graph.microsoft.com/beta/users/{manager-id}
 						parts := strings.Split(managerBindURL, "/")
 						if len(parts) > 0 {
 							managerId := parts[len(parts)-1]
@@ -241,20 +320,83 @@ func (m *UserMock) RegisterMocks() {
 			return httpmock.NewJsonResponse(200, userData)
 		})
 
-	// Register DELETE for removing users
+	// Register DELETE for removing users (soft delete)
+	// Moves item to deletedItems collection instead of permanently deleting
 	httpmock.RegisterResponder("DELETE", `=~^https://graph.microsoft.com/beta/users/[^/]+$`,
 		func(req *http.Request) (*http.Response, error) {
 			urlParts := strings.Split(req.URL.Path, "/")
 			userId := urlParts[len(urlParts)-1]
 
 			mockState.Lock()
-			_, exists := mockState.users[userId]
+			userData, exists := mockState.users[userId]
 			if exists {
+				// Move to deletedItems (soft delete behavior)
+				mockState.deletedItems[userId] = userData
 				delete(mockState.users, userId)
 			}
 			mockState.Unlock()
 
+			if !exists {
+				errorResp, _ := helpers.ParseJSONFile("../tests/responses/error_not_found.json")
+				return httpmock.NewStringResponse(404, errorResp), nil
+			}
+
 			// Return 204 No Content for successful deletion
+			return httpmock.NewStringResponse(204, ""), nil
+		})
+
+	// Get deleted item - GET /directory/deletedItems/{id}
+	// Used for soft delete verification (polling until resource appears in deleted items)
+	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/directory/deletedItems/[^/]+$`,
+		func(req *http.Request) (*http.Response, error) {
+			urlParts := strings.Split(req.URL.Path, "/")
+			resourceId := urlParts[len(urlParts)-1]
+
+			mockState.Lock()
+			deletedItem, exists := mockState.deletedItems[resourceId]
+			mockState.Unlock()
+
+			if !exists {
+				errorResp, _ := helpers.ParseJSONFile("../tests/responses/error_not_found.json")
+				return httpmock.NewStringResponse(404, errorResp), nil
+			}
+
+			// Load the deleted item response format from fixture
+			fixtureData, err := loadFixture("validate_delete/get_deleted_item_success.json")
+			if err == nil && fixtureData != nil {
+				// Update with actual deleted item data
+				fixtureData["id"] = resourceId
+				if displayName, ok := deletedItem["displayName"]; ok {
+					fixtureData["displayName"] = displayName
+				}
+				if upn, ok := deletedItem["userPrincipalName"]; ok {
+					fixtureData["userPrincipalName"] = upn
+				}
+				return httpmock.NewJsonResponse(200, fixtureData)
+			}
+
+			return httpmock.NewJsonResponse(200, deletedItem)
+		})
+
+	// Permanent delete from deleted items - DELETE /directory/deletedItems/{id}
+	// REF: https://learn.microsoft.com/en-us/graph/api/directory-deleteditems-delete?view=graph-rest-beta
+	httpmock.RegisterResponder("DELETE", `=~^https://graph\.microsoft\.com/beta/directory/deletedItems/[^/]+$`,
+		func(req *http.Request) (*http.Response, error) {
+			urlParts := strings.Split(req.URL.Path, "/")
+			resourceId := urlParts[len(urlParts)-1]
+
+			mockState.Lock()
+			_, exists := mockState.deletedItems[resourceId]
+			if exists {
+				delete(mockState.deletedItems, resourceId)
+			}
+			mockState.Unlock()
+
+			if !exists {
+				errorResp, _ := helpers.ParseJSONFile("../tests/responses/error_not_found.json")
+				return httpmock.NewStringResponse(404, errorResp), nil
+			}
+
 			return httpmock.NewStringResponse(204, ""), nil
 		})
 }
@@ -264,25 +406,35 @@ func (m *UserMock) RegisterErrorMocks() {
 	// Reset the state when registering error mocks
 	mockState.Lock()
 	mockState.users = make(map[string]map[string]any)
+	mockState.deletedItems = make(map[string]map[string]any)
 	mockState.Unlock()
+
+	errorBadRequest, _ := helpers.ParseJSONFile("../tests/responses/error_bad_request.json")
+	errorNotFound, _ := helpers.ParseJSONFile("../tests/responses/error_not_found.json")
 
 	// Register error response for user creation - always return error
 	httpmock.RegisterResponder("POST", "https://graph.microsoft.com/beta/users",
-		func(req *http.Request) (*http.Response, error) {
-			return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"Invalid user data"}}`), nil
-		})
+		httpmock.NewStringResponder(400, errorBadRequest))
 
 	// Register error response for user not found
 	httpmock.RegisterResponder("GET", `=~^https://graph.microsoft.com/beta/users/[^/]+$`,
-		func(req *http.Request) (*http.Response, error) {
-			return httpmock.NewStringResponse(404, `{"error":{"code":"ResourceNotFound","message":"User not found"}}`), nil
-		})
+		httpmock.NewStringResponder(404, errorNotFound))
+
+	// Register error response for PATCH
+	httpmock.RegisterResponder("PATCH", `=~^https://graph.microsoft.com/beta/users/[^/]+$`,
+		httpmock.NewStringResponder(400, errorBadRequest))
 
 	// Register error response for DELETE
 	httpmock.RegisterResponder("DELETE", `=~^https://graph.microsoft.com/beta/users/[^/]+$`,
-		func(req *http.Request) (*http.Response, error) {
-			return httpmock.NewStringResponse(404, `{"error":{"code":"ResourceNotFound","message":"User not found"}}`), nil
-		})
+		httpmock.NewStringResponder(400, errorBadRequest))
+
+	// Register error response for GET deleted items
+	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/directory/deletedItems/[^/]+$`,
+		httpmock.NewStringResponder(404, errorNotFound))
+
+	// Register error response for DELETE deleted items
+	httpmock.RegisterResponder("DELETE", `=~^https://graph\.microsoft\.com/beta/directory/deletedItems/[^/]+$`,
+		httpmock.NewStringResponder(400, errorBadRequest))
 }
 
 // loadFixture loads a JSON fixture file from the tests/responses directory using the secure helpers package
@@ -306,84 +458,28 @@ func loadFixture(filename string) (map[string]any, error) {
 
 // registerTestUsers registers predefined test users from JSON fixtures
 func registerTestUsers() {
-	// Load minimal user from fixture
-	minimalUserData, err := loadFixture("user_minimal.json")
-	if err != nil {
-		// Fallback to inline data if fixture loading fails
-		minimalUserData = map[string]any{
-			"id":                "00000000-0000-0000-0000-000000000001",
-			"displayName":       "Minimal User",
-			"userPrincipalName": "minimal.user@deploymenttheory.com",
-			"mailNickname":      "minimal.user",
-			"accountEnabled":    true,
-			"passwordProfile": map[string]any{
-				"forceChangePasswordNextSignIn":        false,
-				"forceChangePasswordNextSignInWithMfa": false,
-			},
-			"createdDateTime": "2023-01-01T00:00:00Z",
-			"businessPhones":  []any{},
-			"otherMails":      []any{},
-			"proxyAddresses":  []any{},
-		}
-	}
+	minimalUserData, _ := loadFixture("validate_read/get_user_minimal_success.json")
+	maximalUserData, _ := loadFixture("validate_read/get_user_maximal_success.json")
+	customSecAttUserData, _ := loadFixture("validate_read/get_user_custom_sec_att_success.json")
 
-	// Load maximal user from fixture
-	maximalUserData, err := loadFixture("user_maximal.json")
-	if err != nil {
-		// Fallback to inline data if fixture loading fails
-		maximalUserData = map[string]any{
-			"id":                      "00000000-0000-0000-0000-000000000002",
-			"displayName":             "unit-test-user-maximal",
-			"userPrincipalName":       "unit-test-user-maximal@deploymenttheory.com",
-			"accountEnabled":          true,
-			"givenName":               "Maximal",
-			"surname":                 "User",
-			"mail":                    "unit-test-user-maximal@deploymenttheory.com",
-			"mailNickname":            "unit-test-user-maximal",
-			"jobTitle":                "Senior Developer",
-			"department":              "Engineering",
-			"companyName":             "Deployment Theory",
-			"officeLocation":          "Building A",
-			"city":                    "Redmond",
-			"state":                   "WA",
-			"country":                 "US",
-			"streetAddress":           "123 street",
-			"postalCode":              "98052",
-			"usageLocation":           "US",
-			"businessPhones":          []any{"+1 425-555-0100"},
-			"mobilePhone":             "+1 425-555-0101",
-			"faxNumber":               "+1 425-555-0102",
-			"ageGroup":                "NotAdult",
-			"consentProvidedForMinor": "Granted",
-			"employeeId":              "1234567890",
-			"employeeType":            "full time",
-			"employeeHireDate":        "2025-11-21T00:00:00Z",
-			"preferredLanguage":       "en-US",
-			"passwordPolicies":        "DisablePasswordExpiration",
-			"passwordProfile": map[string]any{
-				"forceChangePasswordNextSignIn":        false,
-				"forceChangePasswordNextSignInWithMfa": false,
-			},
-			"otherMails":        []any{"unit-test-user-maximal2.other@deploymenttheory.com"},
-			"showInAddressList": true,
-			"createdDateTime":   "2023-01-01T00:00:00Z",
-			"managerId":         "11111111-1111-1111-1111-111111111111",
-		}
-	}
-
-	minimalUserId := minimalUserData["id"].(string)
-	maximalUserId := maximalUserData["id"].(string)
-
-	// Store users in mock state
 	mockState.Lock()
-	mockState.users[minimalUserId] = minimalUserData
-	mockState.users[maximalUserId] = maximalUserData
-	mockState.Unlock()
+	defer mockState.Unlock()
+
+	if minimalUserData != nil {
+		mockState.users[minimalUserData["id"].(string)] = minimalUserData
+	}
+	if maximalUserData != nil {
+		mockState.users[maximalUserData["id"].(string)] = maximalUserData
+	}
+	if customSecAttUserData != nil {
+		mockState.users[customSecAttUserData["id"].(string)] = customSecAttUserData
+	}
 }
 
 // CleanupMockState clears the mock state
 func (m *UserMock) CleanupMockState() {
 	mockState.Lock()
 	mockState.users = make(map[string]map[string]any)
+	mockState.deletedItems = make(map[string]map[string]any)
 	mockState.Unlock()
 }

@@ -65,6 +65,7 @@ resource "microsoft365_graph_beta_agents_agent_identity_blueprint" "example" {
   sponsor_user_ids = ["00000000-0000-0000-0000-000000000000"]
   owner_user_ids   = ["00000000-0000-0000-0000-000000000000"]
   description      = "Agent identity blueprint for automated workflows"
+  hard_delete      = true
 }
 
 # Configure the identifier URI using the blueprint's ID
@@ -90,6 +91,7 @@ resource "microsoft365_graph_beta_agents_agent_identity_blueprint" "example" {
   sponsor_user_ids = ["00000000-0000-0000-0000-000000000000"]
   owner_user_ids   = ["00000000-0000-0000-0000-000000000000"]
   description      = "Agent identity blueprint for automated workflows"
+  hard_delete      = true
 }
 
 # Configure the identifier URI with a custom permission scope

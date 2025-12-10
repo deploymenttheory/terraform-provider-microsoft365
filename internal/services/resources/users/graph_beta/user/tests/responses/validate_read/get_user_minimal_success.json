@@ -1,0 +1,18 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#users/$entity",
+  "id": "00000000-0000-0000-0000-000000000001",
+  "displayName": "Minimal User",
+  "userPrincipalName": "minimal.user@deploymenttheory.com",
+  "mailNickname": "minimal.user",
+  "accountEnabled": true,
+  "showInAddressList": true,
+  "passwordProfile": {
+    "forceChangePasswordNextSignIn": false,
+    "forceChangePasswordNextSignInWithMfa": false
+  },
+  "createdDateTime": "2023-01-01T00:00:00Z",
+  "businessPhones": [],
+  "otherMails": [],
+  "proxyAddresses": []
+}
+

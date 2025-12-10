@@ -40,6 +40,7 @@ resource "microsoft365_graph_beta_agents_agent_identity_blueprint" "test_bluepri
     microsoft365_graph_beta_users_user.dependency_user_hex_1.id,
     microsoft365_graph_beta_users_user.dependency_user_hex_2.id,
   ]
+  hard_delete = true
 }
 
 resource "microsoft365_graph_beta_agents_agent_identity_blueprint_certificate_credential" "test_hex" {

@@ -1,6 +1,7 @@
 package graphBetaUsersUser_test
 
 import (
+	"fmt"
 	"regexp"
 	"testing"
 	"time"
@@ -12,6 +13,7 @@ import (
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
 	graphBetaUsersUser "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/users/graph_beta/user"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/terraform"
 )
 
 var (
@@ -44,6 +46,11 @@ func TestAccUserResource_Lifecycle(t *testing.T) {
 				},
 				Config: testAccUserConfig_minimal(),
 				Check: resource.ComposeTestCheckFunc(
+					func(_ *terraform.State) error {
+						testlog.WaitForConsistency("group", 20*time.Second)
+						time.Sleep(20 * time.Second)
+						return nil
+					},
 					check.That(resourceType+".minimal").ExistsInGraph(testResource),
 					check.That(resourceType+".minimal").Key("id").Exists(),
 					check.That(resourceType+".minimal").Key("display_name").MatchesRegex(regexp.MustCompile(`^acc-test-user-minimal-[a-z0-9]{8}$`)),
@@ -56,8 +63,16 @@ func TestAccUserResource_Lifecycle(t *testing.T) {
 				PreConfig: func() {
 					testlog.StepAction(resourceType, "Importing")
 				},
-				ResourceName:      resourceType + ".minimal",
-				ImportState:       true,
+				ResourceName: resourceType + ".minimal",
+				ImportState:  true,
+				ImportStateIdFunc: func(s *terraform.State) (string, error) {
+					rs, ok := s.RootModule().Resources[resourceType+".minimal"]
+					if !ok {
+						return "", fmt.Errorf("resource not found: %s", resourceType+".minimal")
+					}
+					hardDelete := rs.Primary.Attributes["hard_delete"]
+					return fmt.Sprintf("%s:hard_delete=%s", rs.Primary.ID, hardDelete), nil
+				},
 				ImportStateVerify: true,
 				ImportStateVerifyIgnore: []string{
 					"password_profile",
@@ -73,6 +88,11 @@ func TestAccUserResource_Lifecycle(t *testing.T) {
 				},
 				Config: testAccUserConfig_maximal(),
 				Check: resource.ComposeTestCheckFunc(
+					func(_ *terraform.State) error {
+						testlog.WaitForConsistency("group", 20*time.Second)
+						time.Sleep(20 * time.Second)
+						return nil
+					},
 					check.That(resourceType+".maximal").ExistsInGraph(testResource),
 					check.That(resourceType+".maximal").Key("id").Exists(),
 					check.That(resourceType+".maximal").Key("display_name").MatchesRegex(regexp.MustCompile(`^acc-test-user-maximal-[a-z0-9]{8}$`)),
@@ -107,8 +127,16 @@ func TestAccUserResource_Lifecycle(t *testing.T) {
 				PreConfig: func() {
 					testlog.StepAction(resourceType, "Importing Maximal")
 				},
-				ResourceName:      resourceType + ".maximal",
-				ImportState:       true,
+				ResourceName: resourceType + ".maximal",
+				ImportState:  true,
+				ImportStateIdFunc: func(s *terraform.State) (string, error) {
+					rs, ok := s.RootModule().Resources[resourceType+".maximal"]
+					if !ok {
+						return "", fmt.Errorf("resource not found: %s", resourceType+".maximal")
+					}
+					hardDelete := rs.Primary.Attributes["hard_delete"]
+					return fmt.Sprintf("%s:hard_delete=%s", rs.Primary.ID, hardDelete), nil
+				},
 				ImportStateVerify: true,
 				ImportStateVerifyIgnore: []string{
 					"password_profile",
@@ -145,6 +173,11 @@ func TestAccUserResource_CustomSecurityAttributes(t *testing.T) {
 				},
 				Config: testAccUserConfig_customSecAtt(),
 				Check: resource.ComposeTestCheckFunc(
+					func(_ *terraform.State) error {
+						testlog.WaitForConsistency("group", 20*time.Second)
+						time.Sleep(20 * time.Second)
+						return nil
+					},
 					check.That(resourceType+".with_custom_security_attributes").ExistsInGraph(testResource),
 					check.That(resourceType+".with_custom_security_attributes").Key("id").Exists(),
 					check.That(resourceType+".with_custom_security_attributes").Key("display_name").MatchesRegex(regexp.MustCompile(`^acc-test-user-custom-sec-att-[a-z0-9]{8}$`)),
@@ -160,8 +193,16 @@ func TestAccUserResource_CustomSecurityAttributes(t *testing.T) {
 				PreConfig: func() {
 					testlog.StepAction(resourceType, "Importing Custom Security Attributes User")
 				},
-				ResourceName:      resourceType + ".with_custom_security_attributes",
-				ImportState:       true,
+				ResourceName: resourceType + ".with_custom_security_attributes",
+				ImportState:  true,
+				ImportStateIdFunc: func(s *terraform.State) (string, error) {
+					rs, ok := s.RootModule().Resources[resourceType+".with_custom_security_attributes"]
+					if !ok {
+						return "", fmt.Errorf("resource not found: %s", resourceType+".with_custom_security_attributes")
+					}
+					hardDelete := rs.Primary.Attributes["hard_delete"]
+					return fmt.Sprintf("%s:hard_delete=%s", rs.Primary.ID, hardDelete), nil
+				},
 				ImportStateVerify: true,
 				ImportStateVerifyIgnore: []string{
 					"password_profile",

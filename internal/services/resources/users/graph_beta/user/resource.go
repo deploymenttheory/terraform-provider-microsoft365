@@ -2,7 +2,9 @@ package graphBetaUsersUser
 
 import (
 	"context"
+	"fmt"
 	"regexp"
+	"strings"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/client"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
@@ -18,6 +20,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
 	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
 )
 
@@ -78,9 +81,44 @@ func (r *UserResource) Configure(ctx context.Context, req resource.ConfigureRequ
 	r.client = client.SetGraphBetaClientForResource(ctx, req, resp, ResourceName)
 }
 
-// ImportState imports the resource state.
+// ImportState handles importing the resource with an extended ID format.
+//
+// Supported formats:
+//   - Simple:   "resource_id" (hard_delete defaults to false)
+//   - Extended: "resource_id:hard_delete=true" or "resource_id:hard_delete=false"
+//
+// Example:
+//
+//	terraform import microsoft365_graph_beta_users_user.example "12345678-1234-1234-1234-123456789012:hard_delete=true"
 func (r *UserResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+	idParts := strings.Split(req.ID, ":")
+	resourceID := idParts[0]
+	hardDelete := false // Default to soft delete for safety
+
+	if len(idParts) > 1 {
+		for _, part := range idParts[1:] {
+			if strings.HasPrefix(part, "hard_delete=") {
+				value := strings.TrimPrefix(part, "hard_delete=")
+				switch strings.ToLower(value) {
+				case "true":
+					hardDelete = true
+				case "false":
+					hardDelete = false
+				default:
+					resp.Diagnostics.AddError(
+						"Invalid Import ID",
+						fmt.Sprintf("Invalid hard_delete value '%s'. Must be 'true' or 'false'.", value),
+					)
+					return
+				}
+			}
+		}
+	}
+
+	tflog.Info(ctx, fmt.Sprintf("Importing %s with ID: %s, hard_delete: %t", ResourceName, resourceID, hardDelete))
+
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("id"), resourceID)...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("hard_delete"), hardDelete)...)
 }
 
 // Schema defines the schema for the resource.
@@ -565,6 +603,14 @@ func (r *UserResource) Schema(ctx context.Context, req resource.SchemaRequest, r
 				MarkdownDescription: "Any refresh tokens or sessions tokens (session cookies) issued before this time are invalid, and applications get an error when using an invalid refresh or sessions token to acquire a delegated access token (to access APIs such as Microsoft Graph). If this happens, the application needs to acquire a new refresh token by making a request to the authorize endpoint. Read-only. Use revokeSignInSessions to reset.",
 				Optional:            true,
 				Computed:            true,
+			},
+			"hard_delete": schema.BoolAttribute{
+				Optional: true,
+				Computed: true,
+				Default:  booldefault.StaticBool(false),
+				MarkdownDescription: "When `true`, the user will be permanently deleted (hard delete) during destroy. " +
+					"When `false` (default), the user will only be soft deleted and moved to the deleted items container where it can be restored within 30 days. " +
+					"Note: This field defaults to `false` on import since the API does not return this value.",
 			},
 			"timeouts": commonschema.Timeouts(ctx),
 		},

@@ -15,5 +15,9 @@ resource "microsoft365_graph_beta_agents_agent_identity" "basic" {
   sponsor_ids                 = ["00000000-0000-0000-0000-000000000001"] # Replace with user IDs
   owner_ids                   = ["00000000-0000-0000-0000-000000000001"] # Replace with user IDs
   tags                        = ["production", "customer-service", "ai-agent"]
+
+  # When true, permanently deletes from Entra ID on destroy (cannot be restored)
+  # When false, moves to deleted items (can be restored within 30 days)
+  hard_delete = true
 }
 

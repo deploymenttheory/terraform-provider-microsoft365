@@ -11,5 +11,6 @@ resource "microsoft365_graph_beta_groups_group" "scenario_4" {
   description           = "Acceptance test - Security group with Entra role assignment capability"
   is_assignable_to_role = true
   visibility            = "Private"
+  hard_delete           = true
 }
 

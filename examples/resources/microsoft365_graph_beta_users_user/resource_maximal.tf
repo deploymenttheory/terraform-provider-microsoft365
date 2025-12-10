@@ -1,5 +1,6 @@
 resource "microsoft365_graph_beta_users_user" "maximal" {
   account_enabled = true
+  hard_delete     = true
 
   // Identity
   display_name        = "acc-test-user-maximal"

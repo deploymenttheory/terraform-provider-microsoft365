@@ -20,6 +20,10 @@ resource "microsoft365_graph_beta_agents_agent_identity_blueprint" "maximal" {
     "managed-by-terraform"
   ]
 
+  # When true, permanently deletes from Entra ID on destroy (cannot be restored)
+  # When false, moves to deleted items (can be restored within 30 days)
+  hard_delete = true
+
   timeouts = {
     create = "10m"
     read   = "5m"

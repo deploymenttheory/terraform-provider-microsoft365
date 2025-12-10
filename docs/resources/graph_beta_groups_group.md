@@ -44,6 +44,7 @@ resource "microsoft365_graph_beta_groups_group" "security_basic" {
   mail_enabled     = false
   security_enabled = true
   description      = "Security group for engineering team members"
+  hard_delete      = true
 }
 ```
 
@@ -62,6 +63,7 @@ resource "microsoft365_graph_beta_groups_group" "security_dynamic_users" {
   group_types                      = ["DynamicMembership"]
   membership_rule                  = "(user.accountEnabled -eq true)"
   membership_rule_processing_state = "On"
+  hard_delete                      = true
 }
 ```
 
@@ -80,6 +82,7 @@ resource "microsoft365_graph_beta_groups_group" "security_dynamic_devices" {
   group_types                      = ["DynamicMembership"]
   membership_rule                  = "(device.accountEnabled -eq true)"
   membership_rule_processing_state = "On"
+  hard_delete                      = true
 }
 ```
 
@@ -98,6 +101,7 @@ resource "microsoft365_graph_beta_groups_group" "security_role_assignable" {
   description           = "Security group for privileged access administration"
   is_assignable_to_role = true
   visibility            = "Private"
+  hard_delete           = true
 }
 ```
 
@@ -116,6 +120,7 @@ resource "microsoft365_graph_beta_groups_group" "m365_dynamic_users" {
   membership_rule                  = "(user.accountEnabled -eq true)"
   membership_rule_processing_state = "On"
   visibility                       = "Private"
+  hard_delete                      = true
 }
 ```
 
@@ -135,6 +140,7 @@ resource "microsoft365_graph_beta_groups_group" "m365_role_assignable" {
   description           = "Microsoft 365 group for executive leadership"
   is_assignable_to_role = true
   visibility            = "Private"
+  hard_delete           = true
 }
 ```
 
@@ -154,6 +160,7 @@ resource "microsoft365_graph_beta_groups_group" "m365_role_assignable" {
 - `group_members` (Set of String) The members of the group at creation time. A maximum of 20 relationships, such as owners and members, can be added as part of group creation. Specify the user IDs (GUIDs) of the users who should be members of the group. Additional members can be added after creation using the `/groups/{id}/members/$ref` endpoint or JSON batching.
 - `group_owners` (Set of String) The owners of the group at creation time. A maximum of 20 relationships, such as owners and members, can be added as part of group creation. Specify the user IDs (GUIDs) of the users who should be owners of the group. Note: A non-admin user cannot add themselves to the group owners collection. Owners can be added after creation using the `/groups/{id}/owners/$ref` endpoint.
 - `group_types` (Set of String) Specifies the group type and its membership. If the collection contains 'Unified', the group is a Microsoft 365 group; otherwise, it's either a security group or a distribution group. If the collection includes 'DynamicMembership', the group has dynamic membership; otherwise, membership is static.
+- `hard_delete` (Boolean) When `true`, the group will be permanently deleted (hard delete) during destroy. When `false` (default), the group will only be soft deleted and moved to the deleted items container where it can be restored within 30 days. Note: This field defaults to `false` on import since the API does not return this value.
 - `is_assignable_to_role` (Boolean) Indicates whether this group can be assigned to a Microsoft Entra role. This property can only be set while creating the group and is immutable. If set to true, the securityEnabled property must also be set to true, visibility must be Hidden, and the group can't be a dynamic group. Default is false.
 - `membership_rule` (String) The rule that determines members for this group if the group is a dynamic group (groupTypes contains DynamicMembership). For more information about the syntax of the membership rule, see Membership Rules syntax.
 - `membership_rule_processing_state` (String) Indicates whether the dynamic membership processing is on or paused. Possible values are 'On' or 'Paused'. Only applicable for dynamic groups (when groupTypes contains DynamicMembership).
@@ -194,6 +201,16 @@ Import is supported using the following syntax:
 ```shell
 #!/bin/bash
 
-# {group_id}
+# Import an existing group into Terraform
+# The import ID format is: {group_id}[:hard_delete=true|false]
+#
+# Where:
+# - {group_id} is the unique identifier for the group
+# - hard_delete is optional (defaults to false for soft delete only)
+
+# Basic import (hard_delete defaults to false - soft delete only)
 terraform import microsoft365_graph_beta_groups_group.example 00000000-0000-0000-0000-000000000000
+
+# Import with hard_delete enabled (permanently deletes on terraform destroy)
+terraform import microsoft365_graph_beta_groups_group.example "00000000-0000-0000-0000-000000000000:hard_delete=true"
 ``` 

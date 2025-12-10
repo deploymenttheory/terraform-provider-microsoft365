@@ -1,6 +1,7 @@
 {
   "error": {
     "code": "BadRequest",
-    "message": "Invalid user data"
+    "message": "Invalid request body"
   }
 }
+

@@ -15,6 +15,7 @@ resource "microsoft365_graph_beta_users_user" "dependency_user" {
   user_principal_name = "acc-test-dep-user-${random_string.dependency_user_id.result}@deploymenttheory.com"
   mail_nickname       = "acc-test-dep-user-${random_string.dependency_user_id.result}"
   account_enabled     = true
+  hard_delete         = true
   password_profile = {
     password                           = "SecureP@ssw0rd123!"
     force_change_password_next_sign_in = false
@@ -23,6 +24,7 @@ resource "microsoft365_graph_beta_users_user" "dependency_user" {
 
 resource "microsoft365_graph_beta_users_user" "maximal" {
   account_enabled = true
+  hard_delete     = true
 
   // Identity
   display_name        = "acc-test-user-maximal-${random_string.maximal_user_id.result}"

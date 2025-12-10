@@ -45,6 +45,10 @@ resource "microsoft365_graph_beta_agents_agent_identity_blueprint" "minimal" {
 
   sponsor_user_ids = ["00000000-0000-0000-0000-000000000000"]
   owner_user_ids   = ["00000000-0000-0000-0000-000000000000"]
+
+  # When true, permanently deletes from Entra ID on destroy (cannot be restored)
+  # When false, moves to deleted items (can be restored within 30 days)
+  hard_delete = true
 }
 ```
 
@@ -73,6 +77,10 @@ resource "microsoft365_graph_beta_agents_agent_identity_blueprint" "maximal" {
     "managed-by-terraform"
   ]
 
+  # When true, permanently deletes from Entra ID on destroy (cannot be restored)
+  # When false, moves to deleted items (can be restored within 30 days)
+  hard_delete = true
+
   timeouts = {
     create = "10m"
     read   = "5m"
@@ -94,6 +102,7 @@ resource "microsoft365_graph_beta_agents_agent_identity_blueprint" "maximal" {
 ### Optional
 
 - `description` (String) Free text field to provide a description of the agent identity blueprint to end users. Maximum length is 1,024 characters.
+- `hard_delete` (Boolean) When set to `true`, the resource will be permanently deleted from the Entra ID (hard delete) rather than being moved to deleted items (soft delete). This prevents the resource from being restored and immediately frees up the resource name for reuse. When `false` (default), the resource is soft deleted and can be restored within 30 days. Note: This field defaults to `false` on import since the API does not return this value.
 - `sign_in_audience` (String) Specifies the Microsoft accounts that are supported for the current application. Supported values are: `AzureADMyOrg` (Single tenant),  the following values from testing don't work: `AzureADMultipleOrgs` (Multi-tenant), `AzureADandPersonalMicrosoftAccount` (Multi-tenant and personal accounts), `PersonalMicrosoftAccount` (Personal accounts only).
 - `tags` (Set of String) Custom strings that can be used to categorize and identify the agent identity blueprint.
 - `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))
@@ -123,5 +132,10 @@ Import is supported using the following syntax:
 # Import an existing Agent Identity Blueprint using the Object ID (id)
 # The ID can be found in the Microsoft Entra admin center under:
 # Applications > App registrations > [Your Blueprint] > Overview > Object ID
+
+# Basic import (hard_delete defaults to false - soft delete only)
 terraform import microsoft365_graph_beta_agents_agent_identity_blueprint.example 00000000-0000-0000-0000-000000000000
+
+# Import with hard_delete enabled (permanently deletes on terraform destroy)
+terraform import microsoft365_graph_beta_agents_agent_identity_blueprint.example "00000000-0000-0000-0000-000000000000:hard_delete=true"
 ```

@@ -12,5 +12,6 @@ resource "microsoft365_graph_beta_groups_group" "scenario_6" {
   mail_nickname         = "accm365g6${random_string.group_suffix.result}"
   is_assignable_to_role = true
   visibility            = "Private"
+  hard_delete           = true
 }
 

@@ -7,6 +7,7 @@ resource "microsoft365_graph_beta_agents_agent_identity_blueprint" "example_hex"
   sponsor_user_ids = ["00000000-0000-0000-0000-000000000000"]
   owner_user_ids   = ["00000000-0000-0000-0000-000000000000"]
   description      = "Agent identity blueprint for HEX certificate authentication"
+  hard_delete      = true
 }
 
 # Create a certificate credential using a pre-generated hex-encoded certificate

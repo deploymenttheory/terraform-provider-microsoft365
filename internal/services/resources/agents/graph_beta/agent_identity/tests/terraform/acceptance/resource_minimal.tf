@@ -35,6 +35,7 @@ resource "microsoft365_graph_beta_agents_agent_identity_blueprint" "test" {
   description      = "Blueprint for agent identity acceptance test"
   sponsor_user_ids = [microsoft365_graph_beta_users_user.dependency_user_1.id]
   owner_user_ids   = [microsoft365_graph_beta_users_user.dependency_user_1.id]
+  hard_delete      = true
 }
 
 ########################################################################################
@@ -42,7 +43,8 @@ resource "microsoft365_graph_beta_agents_agent_identity_blueprint" "test" {
 ########################################################################################
 
 resource "microsoft365_graph_beta_agents_agent_identity_blueprint_service_principal" "test" {
-  app_id = microsoft365_graph_beta_agents_agent_identity_blueprint.test.app_id
+  app_id      = microsoft365_graph_beta_agents_agent_identity_blueprint.test.app_id
+  hard_delete = true
 }
 
 ########################################################################################
@@ -55,6 +57,7 @@ resource "microsoft365_graph_beta_agents_agent_identity" "test_minimal" {
   account_enabled             = true
   sponsor_ids                 = [microsoft365_graph_beta_users_user.dependency_user_1.id]
   owner_ids                   = [microsoft365_graph_beta_users_user.dependency_user_1.id]
+  hard_delete                 = true
 
   depends_on = [
     microsoft365_graph_beta_agents_agent_identity_blueprint_service_principal.test

@@ -7,5 +7,6 @@ resource "microsoft365_graph_beta_groups_group" "security_basic" {
   mail_enabled     = false
   security_enabled = true
   description      = "Security group for engineering team members"
+  hard_delete      = true
 }
 

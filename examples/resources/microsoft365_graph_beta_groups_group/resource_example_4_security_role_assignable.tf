@@ -10,5 +10,6 @@ resource "microsoft365_graph_beta_groups_group" "security_role_assignable" {
   description           = "Security group for privileged access administration"
   is_assignable_to_role = true
   visibility            = "Private"
+  hard_delete           = true
 }
 
