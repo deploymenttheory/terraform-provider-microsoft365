@@ -1,6 +1,7 @@
 package graphBetaGroup_test
 
 import (
+	"fmt"
 	"regexp"
 	"testing"
 	"time"
@@ -60,8 +61,16 @@ func TestAccGroupResource_Lifecycle(t *testing.T) {
 				PreConfig: func() {
 					testlog.StepAction(resourceType, "Importing minimal group")
 				},
-				ResourceName:      resourceType + ".test",
-				ImportState:       true,
+				ResourceName: resourceType + ".test",
+				ImportState:  true,
+				ImportStateIdFunc: func(s *terraform.State) (string, error) {
+					rs, ok := s.RootModule().Resources[resourceType+".test"]
+					if !ok {
+						return "", fmt.Errorf("resource not found: %s", resourceType+".test")
+					}
+					hardDelete := rs.Primary.Attributes["hard_delete"]
+					return fmt.Sprintf("%s:hard_delete=%s", rs.Primary.ID, hardDelete), nil
+				},
 				ImportStateVerify: true,
 			},
 		},
@@ -108,8 +117,16 @@ func TestAccGroupResource_Maximal(t *testing.T) {
 				PreConfig: func() {
 					testlog.StepAction(resourceType, "Importing maximal group")
 				},
-				ResourceName:      resourceType + ".test",
-				ImportState:       true,
+				ResourceName: resourceType + ".test",
+				ImportState:  true,
+				ImportStateIdFunc: func(s *terraform.State) (string, error) {
+					rs, ok := s.RootModule().Resources[resourceType+".test"]
+					if !ok {
+						return "", fmt.Errorf("resource not found: %s", resourceType+".test")
+					}
+					hardDelete := rs.Primary.Attributes["hard_delete"]
+					return fmt.Sprintf("%s:hard_delete=%s", rs.Primary.ID, hardDelete), nil
+				},
 				ImportStateVerify: true,
 			},
 		},
@@ -221,8 +238,16 @@ func TestAccGroupResource_Scenario1_SecurityGroupAssigned(t *testing.T) {
 				PreConfig: func() {
 					testlog.StepAction(resourceType, "Importing security group with assigned membership")
 				},
-				ResourceName:      resourceType + ".scenario_1",
-				ImportState:       true,
+				ResourceName: resourceType + ".scenario_1",
+				ImportState:  true,
+				ImportStateIdFunc: func(s *terraform.State) (string, error) {
+					rs, ok := s.RootModule().Resources[resourceType+".scenario_1"]
+					if !ok {
+						return "", fmt.Errorf("resource not found: %s", resourceType+".scenario_1")
+					}
+					hardDelete := rs.Primary.Attributes["hard_delete"]
+					return fmt.Sprintf("%s:hard_delete=%s", rs.Primary.ID, hardDelete), nil
+				},
 				ImportStateVerify: true,
 			},
 		},
@@ -271,8 +296,16 @@ func TestAccGroupResource_Scenario2_SecurityGroupDynamicUser(t *testing.T) {
 				PreConfig: func() {
 					testlog.StepAction(resourceType, "Importing security group with dynamic user membership")
 				},
-				ResourceName:      resourceType + ".scenario_2",
-				ImportState:       true,
+				ResourceName: resourceType + ".scenario_2",
+				ImportState:  true,
+				ImportStateIdFunc: func(s *terraform.State) (string, error) {
+					rs, ok := s.RootModule().Resources[resourceType+".scenario_2"]
+					if !ok {
+						return "", fmt.Errorf("resource not found: %s", resourceType+".scenario_2")
+					}
+					hardDelete := rs.Primary.Attributes["hard_delete"]
+					return fmt.Sprintf("%s:hard_delete=%s", rs.Primary.ID, hardDelete), nil
+				},
 				ImportStateVerify: true,
 			},
 		},
@@ -321,8 +354,16 @@ func TestAccGroupResource_Scenario3_SecurityGroupDynamicDevice(t *testing.T) {
 				PreConfig: func() {
 					testlog.StepAction(resourceType, "Importing security group with dynamic device membership")
 				},
-				ResourceName:      resourceType + ".scenario_3",
-				ImportState:       true,
+				ResourceName: resourceType + ".scenario_3",
+				ImportState:  true,
+				ImportStateIdFunc: func(s *terraform.State) (string, error) {
+					rs, ok := s.RootModule().Resources[resourceType+".scenario_3"]
+					if !ok {
+						return "", fmt.Errorf("resource not found: %s", resourceType+".scenario_3")
+					}
+					hardDelete := rs.Primary.Attributes["hard_delete"]
+					return fmt.Sprintf("%s:hard_delete=%s", rs.Primary.ID, hardDelete), nil
+				},
 				ImportStateVerify: true,
 			},
 		},
@@ -370,8 +411,16 @@ func TestAccGroupResource_Scenario4_SecurityGroupRoleAssignable(t *testing.T) {
 				PreConfig: func() {
 					testlog.StepAction(resourceType, "Importing security group with Entra role assignment capability")
 				},
-				ResourceName:      resourceType + ".scenario_4",
-				ImportState:       true,
+				ResourceName: resourceType + ".scenario_4",
+				ImportState:  true,
+				ImportStateIdFunc: func(s *terraform.State) (string, error) {
+					rs, ok := s.RootModule().Resources[resourceType+".scenario_4"]
+					if !ok {
+						return "", fmt.Errorf("resource not found: %s", resourceType+".scenario_4")
+					}
+					hardDelete := rs.Primary.Attributes["hard_delete"]
+					return fmt.Sprintf("%s:hard_delete=%s", rs.Primary.ID, hardDelete), nil
+				},
 				ImportStateVerify: true,
 			},
 		},
@@ -422,8 +471,16 @@ func TestAccGroupResource_Scenario5_M365GroupDynamicUser(t *testing.T) {
 				PreConfig: func() {
 					testlog.StepAction(resourceType, "Importing M365 group with dynamic user membership")
 				},
-				ResourceName:      resourceType + ".scenario_5",
-				ImportState:       true,
+				ResourceName: resourceType + ".scenario_5",
+				ImportState:  true,
+				ImportStateIdFunc: func(s *terraform.State) (string, error) {
+					rs, ok := s.RootModule().Resources[resourceType+".scenario_5"]
+					if !ok {
+						return "", fmt.Errorf("resource not found: %s", resourceType+".scenario_5")
+					}
+					hardDelete := rs.Primary.Attributes["hard_delete"]
+					return fmt.Sprintf("%s:hard_delete=%s", rs.Primary.ID, hardDelete), nil
+				},
 				ImportStateVerify: true,
 			},
 		},
@@ -473,8 +530,16 @@ func TestAccGroupResource_Scenario6_M365GroupAssigned(t *testing.T) {
 				PreConfig: func() {
 					testlog.StepAction(resourceType, "Importing M365 group with assigned membership")
 				},
-				ResourceName:      resourceType + ".scenario_6",
-				ImportState:       true,
+				ResourceName: resourceType + ".scenario_6",
+				ImportState:  true,
+				ImportStateIdFunc: func(s *terraform.State) (string, error) {
+					rs, ok := s.RootModule().Resources[resourceType+".scenario_6"]
+					if !ok {
+						return "", fmt.Errorf("resource not found: %s", resourceType+".scenario_6")
+					}
+					hardDelete := rs.Primary.Attributes["hard_delete"]
+					return fmt.Sprintf("%s:hard_delete=%s", rs.Primary.ID, hardDelete), nil
+				},
 				ImportStateVerify: true,
 			},
 		},

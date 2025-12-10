@@ -60,6 +60,7 @@ resource "microsoft365_graph_beta_agents_agent_identity_blueprint" "example" {
   sponsor_user_ids = ["00000000-0000-0000-0000-000000000000"]
   owner_user_ids   = ["00000000-0000-0000-0000-000000000000"]
   description      = "Agent identity blueprint for automated workflows"
+  hard_delete      = true
 }
 
 # Create a password credential for the blueprint
@@ -93,6 +94,7 @@ resource "microsoft365_graph_beta_agents_agent_identity_blueprint" "example" {
   sponsor_user_ids = ["00000000-0000-0000-0000-000000000000"]
   owner_user_ids   = ["00000000-0000-0000-0000-000000000000"]
   description      = "Agent identity blueprint for automated workflows"
+  hard_delete      = true
 }
 
 # Create a password credential with specific start and end dates

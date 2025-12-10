@@ -7,5 +7,6 @@ resource "microsoft365_graph_beta_groups_group" "scenario_3" {
   group_types                      = ["DynamicMembership"]
   membership_rule                  = "(device.accountEnabled -eq true)"
   membership_rule_processing_state = "On"
+  hard_delete                      = true
 }
 

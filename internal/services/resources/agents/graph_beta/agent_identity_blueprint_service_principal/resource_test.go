@@ -1,6 +1,7 @@
 package graphBetaApplicationsAgentIdentityBlueprintServicePrincipal_test
 
 import (
+	"fmt"
 	"regexp"
 	"testing"
 
@@ -10,6 +11,7 @@ import (
 	graphBetaApplicationsAgentIdentityBlueprintServicePrincipal "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/agents/graph_beta/agent_identity_blueprint_service_principal"
 	agentIdentityBlueprintServicePrincipalMocks "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/agents/graph_beta/agent_identity_blueprint_service_principal/mocks"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/jarcoal/httpmock"
 )
 
@@ -56,8 +58,16 @@ func TestAgentIdentityBlueprintServicePrincipalResource_Minimal(t *testing.T) {
 				),
 			},
 			{
-				ResourceName:      resourceType + ".test_minimal",
-				ImportState:       true,
+				ResourceName: resourceType + ".test_minimal",
+				ImportState:  true,
+				ImportStateIdFunc: func(s *terraform.State) (string, error) {
+					rs, ok := s.RootModule().Resources[resourceType+".test_minimal"]
+					if !ok {
+						return "", fmt.Errorf("resource not found: %s", resourceType+".test_minimal")
+					}
+					hardDelete := rs.Primary.Attributes["hard_delete"]
+					return fmt.Sprintf("%s:hard_delete=%s", rs.Primary.ID, hardDelete), nil
+				},
 				ImportStateVerify: true,
 			},
 		},

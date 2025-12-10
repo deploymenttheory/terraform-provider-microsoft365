@@ -1,40 +1,33 @@
-resource "microsoft365_graph_beta_users_agent_user" "maximal" {
-  account_enabled = true
+# Maximal Agent User configuration - all fields
+resource "microsoft365_graph_beta_agents_agent_user" "test_maximal" {
+  # Required fields
+  display_name        = "Unit Test Agent User Maximal"
+  agent_identity_id   = "11111111-1111-1111-1111-111111111111"
+  account_enabled     = true
+  user_principal_name = "testagentusermaximal@contoso.onmicrosoft.com"
+  mail_nickname       = "testagentusermaximal"
+  sponsor_ids         = ["22222222-2222-2222-2222-222222222222", "33333333-3333-3333-3333-333333333333"]
+  hard_delete         = true
 
-  // Identity
-  display_name        = "unit-test-agent-user-maximal"
-  given_name          = "Maximal"
-  surname             = "User"
-  user_principal_name = "unit-test-agent-user-maximal@deploymenttheory.com"
-  identity_parent_id  = "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
-  preferred_language  = "en-US"
-  password_policies   = "DisablePasswordExpiration"
+  # Optional name fields
+  given_name = "Test"
+  surname    = "AgentUser"
 
-  // Age and Consent (for minor users)
-  age_group                  = "NotAdult"
-  consent_provided_for_minor = "Granted"
+  # Optional organizational fields
+  job_title       = "AI Agent"
+  department      = "Engineering"
+  company_name    = "Contoso"
+  office_location = "Building A"
 
-  // Job Information
-  job_title          = "Marketing Agent"
-  company_name       = "Deployment Theory"
-  department         = "Marketing"
-  employee_id        = "1234567890"
-  employee_type      = "full time"
-  employee_hire_date = "2025-11-21T00:00:00Z"
-  office_location    = "Building A"
-  manager_id         = "11111111-1111-1111-1111-111111111111"
+  # Optional address fields
+  city           = "Seattle"
+  state          = "WA"
+  country        = "US"
+  postal_code    = "98101"
+  street_address = "123 Main Street"
 
-  // Contact Information
-  city            = "Redmond"
-  state           = "WA"
-  country         = "US"
-  street_address  = "123 street"
-  postal_code     = "98052"
-  usage_location  = "US"
-  business_phones = ["+1 425-555-0100"]
-  mobile_phone    = "+1 425-555-0101"
-  mail            = "unit-test-agent-user-maximal@deploymenttheory.com"
-  fax_number      = "+1 425-555-0102"
-  mail_nickname   = "unit-test-agent-user-maximal"
-  other_mails     = ["unit-test-agent-user-maximal2.other@deploymenttheory.com"]
+  # Optional locale fields
+  usage_location     = "US"
+  preferred_language = "en-US"
 }
+

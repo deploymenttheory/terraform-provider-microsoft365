@@ -1,0 +1,9 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#directoryObjects/$entity",
+  "@odata.type": "#microsoft.graph.agentIdentityBlueprint",
+  "id": "00000000-0000-0000-0000-000000000000",
+  "deletedDateTime": "2025-01-01T00:00:00Z",
+  "displayName": "Test Agent Identity Blueprint",
+  "appId": "00000000-0000-0000-0000-000000000000"
+}
+

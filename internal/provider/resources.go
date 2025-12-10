@@ -11,6 +11,7 @@ import (
 	graphBetaAgentIdentityBlueprintIdentifierUri "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/agents/graph_beta/agent_identity_blueprint_identifier_uri"
 	graphBetaAgentIdentityBlueprintPasswordCredential "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/agents/graph_beta/agent_identity_blueprint_password_credential"
 	graphBetaApplicationsAgentIdentityBlueprintServicePrincipal "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/agents/graph_beta/agent_identity_blueprint_service_principal"
+	graphBetaAgentUser "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/agents/graph_beta/agent_user"
 
 	// Graph Beta - Device & app management
 	graphBetaDeviceAndAppManagementAndroidManagedDeviceAppConfigurationPolicy "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_and_app_management/graph_beta/android_managed_device_app_configuration_policy"
@@ -168,6 +169,7 @@ func (p *M365Provider) Resources(ctx context.Context) []func() resource.Resource
 
 		// Agents
 		graphBetaAgentIdentity.NewAgentIdentityResource,
+		graphBetaAgentUser.NewAgentUserResource,
 		graphBetaApplicationsAgentIdentityBlueprint.NewAgentIdentityBlueprintResource,
 		// NOTE: Disabled due to Microsoft Graph API issues - see developer_notes.md in the resource directory
 		graphBetaAgentIdentityBlueprintFederatedIdentityCredential.NewAgentIdentityBlueprintFederatedIdentityCredentialResource,

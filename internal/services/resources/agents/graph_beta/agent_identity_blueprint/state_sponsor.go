@@ -6,12 +6,13 @@ import (
 	"fmt"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
-// MapSponsorIdsToTerraform maps sponsor IDs from raw JSON response to Terraform state
-// This function receives the raw JSON response from the custom API call in crud.go
-// and handles all unmarshaling and mapping logic
+// MapSponsorIdsToTerraform maps sponsor IDs from raw JSON response to Terraform state.
+// It filters the API response to only include sponsors that are explicitly configured
+// in Terraform, ignoring any auto-added sponsors.
 func MapSponsorIdsToTerraform(ctx context.Context, data *AgentIdentityBlueprintResourceModel, sponsorResponse json.RawMessage) {
 	if len(sponsorResponse) == 0 {
 		tflog.Debug(ctx, "No sponsor response received")
@@ -31,15 +32,36 @@ func MapSponsorIdsToTerraform(ctx context.Context, data *AgentIdentityBlueprintR
 
 	if len(sponsorData.Value) == 0 {
 		tflog.Debug(ctx, "No sponsors found for blueprint")
+		data.SponsorUserIds = types.SetNull(types.StringType)
 		return
 	}
 
-	sponsorIds := make([]string, len(sponsorData.Value))
-	for i, s := range sponsorData.Value {
-		sponsorIds[i] = s.ID
+	var configuredSponsorIds []string
+	if !data.SponsorUserIds.IsNull() && !data.SponsorUserIds.IsUnknown() {
+		diags := data.SponsorUserIds.ElementsAs(ctx, &configuredSponsorIds, false)
+		if diags.HasError() {
+			tflog.Warn(ctx, "Failed to extract configured sponsor IDs, falling back to all sponsors")
+			configuredSponsorIds = nil
+		}
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Mapping %d sponsors to Terraform state", len(sponsorIds)))
+	configuredSet := make(map[string]bool)
+	for _, id := range configuredSponsorIds {
+		configuredSet[id] = true
+	}
 
-	data.SponsorUserIds = convert.GraphToFrameworkStringSet(ctx, sponsorIds)
+	filteredSponsorIds := make([]string, 0)
+	for _, s := range sponsorData.Value {
+		if len(configuredSet) == 0 || configuredSet[s.ID] {
+			filteredSponsorIds = append(filteredSponsorIds, s.ID)
+		}
+	}
+
+	tflog.Debug(ctx, fmt.Sprintf("Mapping %d sponsors to Terraform state (filtered from %d total)", len(filteredSponsorIds), len(sponsorData.Value)))
+
+	if len(filteredSponsorIds) > 0 {
+		data.SponsorUserIds = convert.GraphToFrameworkStringSet(ctx, filteredSponsorIds)
+	} else {
+		data.SponsorUserIds = types.SetNull(types.StringType)
+	}
 }

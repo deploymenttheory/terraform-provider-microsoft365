@@ -8,16 +8,10 @@ import (
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/check"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
-	graphBetaServicePrincipalAppRoleAssignedTo "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/applications/graph_beta/service_principal_app_role_assigned_to"
 	appRoleAssignedToMocks "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/applications/graph_beta/service_principal_app_role_assigned_to/mocks"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/jarcoal/httpmock"
-)
-
-var (
-	// Resource type name from the resource package
-	resourceType = graphBetaServicePrincipalAppRoleAssignedTo.ResourceName
 )
 
 func setupMockEnvironment() (*mocks.Mocks, *appRoleAssignedToMocks.ServicePrincipalAppRoleAssignedToMock) {

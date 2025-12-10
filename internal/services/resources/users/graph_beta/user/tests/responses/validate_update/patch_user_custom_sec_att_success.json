@@ -1,0 +1,30 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#users/$entity",
+  "id": "00000000-0000-0000-0000-000000000003",
+  "displayName": "unit-test-user-custom-sec-att",
+  "userPrincipalName": "unit-test-user-custom-sec-att@deploymenttheory.com",
+  "mailNickname": "unit-test-user-custom-sec-att",
+  "accountEnabled": true,
+  "showInAddressList": true,
+  "passwordProfile": {
+    "forceChangePasswordNextSignIn": false,
+    "forceChangePasswordNextSignInWithMfa": false
+  },
+  "createdDateTime": "2023-01-01T00:00:00Z",
+  "businessPhones": [],
+  "otherMails": [],
+  "proxyAddresses": [],
+  "customSecurityAttributes": {
+    "Engineering": {
+      "@odata.type": "#microsoft.graph.customSecurityAttributeValue",
+      "Project@odata.type": "#Collection(String)",
+      "Project": ["Baker", "Cascade"],
+      "LastTrainingDate": "2024-10-15"
+    },
+    "Marketing": {
+      "@odata.type": "#microsoft.graph.customSecurityAttributeValue",
+      "IsContractor": false
+    }
+  }
+}
+

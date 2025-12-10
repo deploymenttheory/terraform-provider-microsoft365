@@ -11,11 +11,13 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/boolplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
 	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
 )
 
@@ -47,7 +49,7 @@ func NewAgentIdentityResource() resource.Resource {
 		WritePermissions: []string{
 			"AgentInstance.ReadWrite.All",
 			"Directory.ReadWrite.All",
-			"AgentIdentity.DeleteRestore.All", // Needed for deletion
+			"AgentIdentity.DeleteRestore.All", // Needed for hard deletion
 		},
 		ResourcePath: "/servicePrincipals",
 	}
@@ -70,14 +72,48 @@ func (r *AgentIdentityResource) Configure(ctx context.Context, req resource.Conf
 	r.client = client.SetGraphBetaClientForResource(ctx, req, resp, ResourceName)
 }
 
-// ImportState handles the import functionality.
-// Import ID format: {agent_identity_id}/{agent_identity_blueprint_id}
+// ImportState handles importing the resource with an extended ID format.
+//
+// Supported formats:
+//   - Simple:   "agent_identity_id/agent_identity_blueprint_id" (hard_delete defaults to false)
+//   - Extended: "agent_identity_id/agent_identity_blueprint_id:hard_delete=true"
+//
+// Example:
+//
+//	terraform import microsoft365_graph_beta_agents_agent_identity.example "12345678-1234-1234-1234-123456789012/87654321-4321-4321-4321-210987654321:hard_delete=true"
 func (r *AgentIdentityResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	parts := strings.Split(req.ID, "/")
+	// First split by ":" to separate the ID part from options
+	colonParts := strings.Split(req.ID, ":")
+	idPart := colonParts[0]
+	hardDelete := false // Default to soft delete for safety
+
+	// Parse hard_delete option if present
+	if len(colonParts) > 1 {
+		for _, part := range colonParts[1:] {
+			if strings.HasPrefix(part, "hard_delete=") {
+				value := strings.TrimPrefix(part, "hard_delete=")
+				switch strings.ToLower(value) {
+				case "true":
+					hardDelete = true
+				case "false":
+					hardDelete = false
+				default:
+					resp.Diagnostics.AddError(
+						"Invalid Import ID",
+						fmt.Sprintf("Invalid hard_delete value '%s'. Must be 'true' or 'false'.", value),
+					)
+					return
+				}
+			}
+		}
+	}
+
+	// Now parse the ID part which contains agent_identity_id/agent_identity_blueprint_id
+	parts := strings.Split(idPart, "/")
 	if len(parts) != 2 {
 		resp.Diagnostics.AddError(
 			"Invalid import ID format",
-			fmt.Sprintf("Import ID must be in format: agent_identity_id/agent_identity_blueprint_id. Got: %s", req.ID),
+			fmt.Sprintf("Import ID must be in format: agent_identity_id/agent_identity_blueprint_id[:hard_delete=true|false]. Got: %s", req.ID),
 		)
 		return
 	}
@@ -85,8 +121,12 @@ func (r *AgentIdentityResource) ImportState(ctx context.Context, req resource.Im
 	agentIdentityID := parts[0]
 	agentIdentityBlueprintID := parts[1]
 
+	tflog.Info(ctx, fmt.Sprintf("Importing %s with ID: %s, blueprint_id: %s, hard_delete: %t",
+		ResourceName, agentIdentityID, agentIdentityBlueprintID, hardDelete))
+
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("id"), agentIdentityID)...)
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("agent_identity_blueprint_id"), agentIdentityBlueprintID)...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("hard_delete"), hardDelete)...)
 }
 
 // Schema returns the schema for the resource.
@@ -176,6 +216,15 @@ func (r *AgentIdentityResource) Schema(ctx context.Context, req resource.SchemaR
 			// can use the same schema as the user resource
 			// currently results in a 403. feature probably
 			// not supported atm via api. will revisit. 09/12/2025
+			"hard_delete": schema.BoolAttribute{
+				MarkdownDescription: "When set to `true`, the resource will be permanently deleted from the Entra ID (hard delete) " +
+					"rather than being moved to deleted items (soft delete). This prevents the resource from being restored " +
+					"and immediately frees up the resource name for reuse. When `false` (default), the resource is soft deleted and can be restored within 30 days. " +
+					"Note: This field defaults to `false` on import since the API does not return this value.",
+				Optional: true,
+				Computed: true,
+				Default:  booldefault.StaticBool(false),
+			},
 			"timeouts": commonschema.Timeouts(ctx),
 		},
 	}

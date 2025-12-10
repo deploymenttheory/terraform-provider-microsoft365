@@ -1,6 +1,7 @@
 package graphBetaUsersUser_test
 
 import (
+	"fmt"
 	"regexp"
 	"testing"
 
@@ -9,6 +10,7 @@ import (
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
 	userMocks "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/users/graph_beta/user/mocks"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/jarcoal/httpmock"
 )
 
@@ -49,8 +51,16 @@ func TestUserResource_Basic(t *testing.T) {
 				),
 			},
 			{
-				ResourceName:      resourceType + ".minimal",
-				ImportState:       true,
+				ResourceName: resourceType + ".minimal",
+				ImportState:  true,
+				ImportStateIdFunc: func(s *terraform.State) (string, error) {
+					rs, ok := s.RootModule().Resources[resourceType+".minimal"]
+					if !ok {
+						return "", fmt.Errorf("resource not found: %s", resourceType+".minimal")
+					}
+					hardDelete := rs.Primary.Attributes["hard_delete"]
+					return fmt.Sprintf("%s:hard_delete=%s", rs.Primary.ID, hardDelete), nil
+				},
 				ImportStateVerify: true,
 				ImportStateVerifyIgnore: []string{
 					"password_profile",
@@ -97,8 +107,16 @@ func TestUserResource_Update(t *testing.T) {
 				),
 			},
 			{
-				ResourceName:      resourceType + ".maximal",
-				ImportState:       true,
+				ResourceName: resourceType + ".maximal",
+				ImportState:  true,
+				ImportStateIdFunc: func(s *terraform.State) (string, error) {
+					rs, ok := s.RootModule().Resources[resourceType+".maximal"]
+					if !ok {
+						return "", fmt.Errorf("resource not found: %s", resourceType+".maximal")
+					}
+					hardDelete := rs.Primary.Attributes["hard_delete"]
+					return fmt.Sprintf("%s:hard_delete=%s", rs.Primary.ID, hardDelete), nil
+				},
 				ImportStateVerify: true,
 				ImportStateVerifyIgnore: []string{
 					"password_profile",
@@ -133,8 +151,16 @@ func TestUserResource_CustomSecurityAttributes(t *testing.T) {
 				),
 			},
 			{
-				ResourceName:      resourceType + ".with_custom_security_attributes",
-				ImportState:       true,
+				ResourceName: resourceType + ".with_custom_security_attributes",
+				ImportState:  true,
+				ImportStateIdFunc: func(s *terraform.State) (string, error) {
+					rs, ok := s.RootModule().Resources[resourceType+".with_custom_security_attributes"]
+					if !ok {
+						return "", fmt.Errorf("resource not found: %s", resourceType+".with_custom_security_attributes")
+					}
+					hardDelete := rs.Primary.Attributes["hard_delete"]
+					return fmt.Sprintf("%s:hard_delete=%s", rs.Primary.ID, hardDelete), nil
+				},
 				ImportStateVerify: true,
 				ImportStateVerifyIgnore: []string{
 					"password_profile",

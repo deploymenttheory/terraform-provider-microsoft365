@@ -9,7 +9,8 @@ import (
 )
 
 type AgentIdentityBlueprintServicePrincipalResourceModel struct {
-	ID       types.String   `tfsdk:"id"`
-	AppId    types.String   `tfsdk:"app_id"`
-	Timeouts timeouts.Value `tfsdk:"timeouts"`
+	ID         types.String   `tfsdk:"id"`
+	AppId      types.String   `tfsdk:"app_id"`
+	HardDelete types.Bool     `tfsdk:"hard_delete"`
+	Timeouts   timeouts.Value `tfsdk:"timeouts"`
 }

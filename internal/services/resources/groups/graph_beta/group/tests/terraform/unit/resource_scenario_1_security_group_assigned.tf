@@ -4,5 +4,6 @@ resource "microsoft365_graph_beta_groups_group" "scenario_1" {
   mail_nickname    = "c660a1b4-5"
   security_enabled = true
   description      = "test"
+  hard_delete      = true
 }
 

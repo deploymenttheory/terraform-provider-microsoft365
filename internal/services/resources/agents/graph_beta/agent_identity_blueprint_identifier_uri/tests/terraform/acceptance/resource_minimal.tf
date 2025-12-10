@@ -27,6 +27,7 @@ resource "microsoft365_graph_beta_agents_agent_identity_blueprint" "test_bluepri
   owner_user_ids = [
     microsoft365_graph_beta_users_user.dependency_user_1.id,
   ]
+  hard_delete = true
 }
 
 resource "microsoft365_graph_beta_agents_agent_identity_blueprint_identifier_uri" "test_minimal" {

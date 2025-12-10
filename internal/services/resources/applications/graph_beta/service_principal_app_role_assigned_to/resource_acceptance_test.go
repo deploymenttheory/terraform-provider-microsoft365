@@ -17,7 +17,7 @@ import (
 
 var (
 	// Resource type name from the resource package
-	accResourceType = graphBetaServicePrincipalAppRoleAssignedTo.ResourceName
+	resourceType = graphBetaServicePrincipalAppRoleAssignedTo.ResourceName
 
 	// testResource is the test resource implementation for app role assignments
 	testResource = graphBetaServicePrincipalAppRoleAssignedTo.ServicePrincipalAppRoleAssignedToTestResource{}
@@ -32,7 +32,7 @@ func TestAccServicePrincipalAppRoleAssignedToResource_ToServicePrincipal(t *test
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
-			accResourceType,
+			resourceType,
 			30*time.Second,
 		),
 		ExternalProviders: map[string]resource.ExternalProvider{
@@ -44,7 +44,7 @@ func TestAccServicePrincipalAppRoleAssignedToResource_ToServicePrincipal(t *test
 		Steps: []resource.TestStep{
 			{
 				PreConfig: func() {
-					testlog.StepAction(accResourceType, "Creating app role assignment to service principal")
+					testlog.StepAction(resourceType, "Creating app role assignment to service principal")
 				},
 				Config: testAccConfigToServicePrincipal(),
 				Check: resource.ComposeTestCheckFunc(
@@ -53,27 +53,27 @@ func TestAccServicePrincipalAppRoleAssignedToResource_ToServicePrincipal(t *test
 						time.Sleep(10 * time.Second)
 						return nil
 					},
-					check.That(accResourceType+".user_read_all").ExistsInGraph(testResource),
-					check.That(accResourceType+".user_read_all").Key("id").Exists(),
-					check.That(accResourceType+".user_read_all").Key("resource_object_id").Exists(),
-					check.That(accResourceType+".user_read_all").Key("app_role_id").HasValue("df021288-bdef-4463-88db-98f22de89214"),
-					check.That(accResourceType+".user_read_all").Key("target_service_principal_object_id").Exists(),
-					check.That(accResourceType+".user_read_all").Key("principal_type").HasValue("ServicePrincipal"),
-					check.That(accResourceType+".user_read_all").Key("principal_display_name").Exists(),
-					check.That(accResourceType+".user_read_all").Key("resource_display_name").Exists(),
-					check.That(accResourceType+".user_read_all").Key("created_date_time").Exists(),
+					check.That(resourceType+".user_read_all").ExistsInGraph(testResource),
+					check.That(resourceType+".user_read_all").Key("id").Exists(),
+					check.That(resourceType+".user_read_all").Key("resource_object_id").Exists(),
+					check.That(resourceType+".user_read_all").Key("app_role_id").HasValue("df021288-bdef-4463-88db-98f22de89214"),
+					check.That(resourceType+".user_read_all").Key("target_service_principal_object_id").Exists(),
+					check.That(resourceType+".user_read_all").Key("principal_type").HasValue("ServicePrincipal"),
+					check.That(resourceType+".user_read_all").Key("principal_display_name").Exists(),
+					check.That(resourceType+".user_read_all").Key("resource_display_name").Exists(),
+					check.That(resourceType+".user_read_all").Key("created_date_time").Exists(),
 				),
 			},
 			{
 				PreConfig: func() {
-					testlog.StepAction(accResourceType, "Importing app role assignment to service principal")
+					testlog.StepAction(resourceType, "Importing app role assignment to service principal")
 				},
-				ResourceName: accResourceType + ".user_read_all",
+				ResourceName: resourceType + ".user_read_all",
 				ImportState:  true,
 				ImportStateIdFunc: func(s *terraform.State) (string, error) {
-					rs, ok := s.RootModule().Resources[accResourceType+".user_read_all"]
+					rs, ok := s.RootModule().Resources[resourceType+".user_read_all"]
 					if !ok {
-						return "", fmt.Errorf("resource not found: %s", accResourceType+".user_read_all")
+						return "", fmt.Errorf("resource not found: %s", resourceType+".user_read_all")
 					}
 					resourceObjectID := rs.Primary.Attributes["resource_object_id"]
 					id := rs.Primary.Attributes["id"]

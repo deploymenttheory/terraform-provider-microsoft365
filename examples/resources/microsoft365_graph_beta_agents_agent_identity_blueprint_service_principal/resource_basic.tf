@@ -6,11 +6,13 @@ resource "microsoft365_graph_beta_agents_agent_identity_blueprint" "example" {
   sponsor_user_ids = ["00000000-0000-0000-0000-000000000000"]
   owner_user_ids   = ["00000000-0000-0000-0000-000000000000"]
   description      = "Example agent identity blueprint for service principal creation"
+  hard_delete      = true
 }
 
 # Create a service principal for the blueprint
 resource "microsoft365_graph_beta_agents_agent_identity_blueprint_service_principal" "example" {
-  app_id = microsoft365_graph_beta_agents_agent_identity_blueprint.example.app_id
+  app_id      = microsoft365_graph_beta_agents_agent_identity_blueprint.example.app_id
+  hard_delete = true
 }
 
 # Output the service principal ID

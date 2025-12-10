@@ -1,0 +1,7 @@
+{
+  "error": {
+    "code": "BadRequest",
+    "message": "displayName is required"
+  }
+}
+

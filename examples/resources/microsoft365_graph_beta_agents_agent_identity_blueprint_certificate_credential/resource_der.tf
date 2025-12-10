@@ -7,6 +7,7 @@ resource "microsoft365_graph_beta_agents_agent_identity_blueprint" "example_der"
   sponsor_user_ids = ["00000000-0000-0000-0000-000000000000"]
   owner_user_ids   = ["00000000-0000-0000-0000-000000000000"]
   description      = "Agent identity blueprint for DER certificate authentication"
+  hard_delete      = true
 }
 
 # Option 1: Load a DER certificate from file using filebase64()

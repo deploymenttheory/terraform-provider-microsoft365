@@ -9,6 +9,7 @@ resource "microsoft365_graph_beta_agents_agent_identity_blueprint" "test_minimal
   owner_user_ids = [
     microsoft365_graph_beta_users_user.dependency_user_1.id,
   ]
+  hard_delete = true
 }
 
 resource "random_string" "test_id" {
@@ -26,6 +27,7 @@ resource "microsoft365_graph_beta_users_user" "dependency_user_1" {
     password                           = "SecureP@ssw0rd123!"
     force_change_password_next_sign_in = false
   }
+  hard_delete = true
 }
 
 resource "microsoft365_graph_beta_users_user" "dependency_user_2" {
@@ -37,5 +39,6 @@ resource "microsoft365_graph_beta_users_user" "dependency_user_2" {
     password                           = "SecureP@ssw0rd123!"
     force_change_password_next_sign_in = false
   }
+  hard_delete = true
 }
 

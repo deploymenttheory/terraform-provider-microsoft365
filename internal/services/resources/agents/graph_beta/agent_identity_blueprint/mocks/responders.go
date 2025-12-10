@@ -15,15 +15,17 @@ import (
 
 var mockState struct {
 	sync.Mutex
-	blueprints map[string]map[string]any
-	sponsors   map[string][]string
-	owners     map[string][]string
+	blueprints   map[string]map[string]any
+	sponsors     map[string][]string
+	owners       map[string][]string
+	deletedItems map[string]map[string]any
 }
 
 func init() {
 	mockState.blueprints = make(map[string]map[string]any)
 	mockState.sponsors = make(map[string][]string)
 	mockState.owners = make(map[string][]string)
+	mockState.deletedItems = make(map[string]map[string]any)
 	httpmock.RegisterNoResponder(httpmock.NewStringResponder(404, `{"error":{"code":"ResourceNotFound","message":"Resource not found"}}`))
 	mocks.GlobalRegistry.Register("agent_identity_blueprint", &AgentIdentityBlueprintMock{})
 }
@@ -45,6 +47,7 @@ func (m *AgentIdentityBlueprintMock) RegisterMocks() {
 	mockState.blueprints = make(map[string]map[string]any)
 	mockState.sponsors = make(map[string][]string)
 	mockState.owners = make(map[string][]string)
+	mockState.deletedItems = make(map[string]map[string]any)
 	mockState.Unlock()
 
 	// Mock user validation - GET /users/{id}
@@ -76,19 +79,22 @@ func (m *AgentIdentityBlueprintMock) RegisterMocks() {
 	httpmock.RegisterResponder("POST", "https://graph.microsoft.com/beta/applications", func(req *http.Request) (*http.Response, error) {
 		var requestBody map[string]any
 		if err := json.NewDecoder(req.Body).Decode(&requestBody); err != nil {
-			return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"Invalid request body"}}`), nil
+			errorResp, _ := helpers.ParseJSONFile("../tests/responses/error_bad_request.json")
+			return httpmock.NewStringResponse(400, errorResp), nil
 		}
 
 		// Verify @odata.type is set correctly
 		odataType, ok := requestBody["@odata.type"].(string)
 		if !ok || odataType != "#microsoft.graph.agentIdentityBlueprint" {
-			return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"@odata.type must be #microsoft.graph.agentIdentityBlueprint"}}`), nil
+			errorResp, _ := helpers.ParseJSONFile("../tests/responses/error_bad_request.json")
+			return httpmock.NewStringResponse(400, errorResp), nil
 		}
 
 		// Determine which JSON file to load based on displayName
 		displayName, ok := requestBody["displayName"].(string)
 		if !ok {
-			return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"displayName is required"}}`), nil
+			errorResp, _ := helpers.ParseJSONFile("../tests/responses/error_bad_request.json")
+			return httpmock.NewStringResponse(400, errorResp), nil
 		}
 
 		jsonFilePath := getCreateJSONFileForDisplayName(displayName)
@@ -157,7 +163,8 @@ func (m *AgentIdentityBlueprintMock) RegisterMocks() {
 		mockState.Unlock()
 
 		if !exists {
-			return httpmock.NewStringResponse(404, `{"error":{"code":"ResourceNotFound","message":"Resource not found"}}`), nil
+			errorResp, _ := helpers.ParseJSONFile("../tests/responses/error_not_found.json")
+			return httpmock.NewStringResponse(404, errorResp), nil
 		}
 
 		return httpmock.NewJsonResponse(200, blueprint)
@@ -262,14 +269,16 @@ func (m *AgentIdentityBlueprintMock) RegisterMocks() {
 
 		var requestBody map[string]any
 		if err := json.NewDecoder(req.Body).Decode(&requestBody); err != nil {
-			return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"Invalid request body"}}`), nil
+			errorResp, _ := helpers.ParseJSONFile("../tests/responses/error_bad_request.json")
+			return httpmock.NewStringResponse(400, errorResp), nil
 		}
 
 		mockState.Lock()
 		blueprint, exists := mockState.blueprints[blueprintId]
 		if !exists {
 			mockState.Unlock()
-			return httpmock.NewStringResponse(404, `{"error":{"code":"ResourceNotFound","message":"Resource not found"}}`), nil
+			errorResp, _ := helpers.ParseJSONFile("../tests/responses/error_not_found.json")
+			return httpmock.NewStringResponse(404, errorResp), nil
 		}
 
 		// If displayName is being updated, try to load from validate_update
@@ -307,12 +316,14 @@ func (m *AgentIdentityBlueprintMock) RegisterMocks() {
 
 		var requestBody map[string]any
 		if err := json.NewDecoder(req.Body).Decode(&requestBody); err != nil {
-			return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"Invalid request body"}}`), nil
+			errorResp, _ := helpers.ParseJSONFile("../tests/responses/error_bad_request.json")
+			return httpmock.NewStringResponse(400, errorResp), nil
 		}
 
 		odataId, ok := requestBody["@odata.id"].(string)
 		if !ok {
-			return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"@odata.id is required"}}`), nil
+			errorResp, _ := helpers.ParseJSONFile("../tests/responses/error_bad_request.json")
+			return httpmock.NewStringResponse(400, errorResp), nil
 		}
 
 		idParts := strings.Split(odataId, "/")
@@ -351,12 +362,14 @@ func (m *AgentIdentityBlueprintMock) RegisterMocks() {
 
 		var requestBody map[string]any
 		if err := json.NewDecoder(req.Body).Decode(&requestBody); err != nil {
-			return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"Invalid request body"}}`), nil
+			errorResp, _ := helpers.ParseJSONFile("../tests/responses/error_bad_request.json")
+			return httpmock.NewStringResponse(400, errorResp), nil
 		}
 
 		odataId, ok := requestBody["@odata.id"].(string)
 		if !ok {
-			return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"@odata.id is required"}}`), nil
+			errorResp, _ := helpers.ParseJSONFile("../tests/responses/error_bad_request.json")
+			return httpmock.NewStringResponse(400, errorResp), nil
 		}
 
 		idParts := strings.Split(odataId, "/")
@@ -388,22 +401,65 @@ func (m *AgentIdentityBlueprintMock) RegisterMocks() {
 		return httpmock.NewStringResponse(204, ""), nil
 	})
 
-	// Delete agent identity blueprint - DELETE /applications/{id}
+	// Delete agent identity blueprint (soft delete) - DELETE /applications/{id}
+	// Moves item to deletedItems collection instead of permanently deleting
 	httpmock.RegisterResponder("DELETE", `=~^https://graph\.microsoft\.com/beta/applications/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`, func(req *http.Request) (*http.Response, error) {
 		parts := strings.Split(req.URL.Path, "/")
 		blueprintId := parts[len(parts)-1]
 
 		mockState.Lock()
-		_, exists := mockState.blueprints[blueprintId]
+		blueprint, exists := mockState.blueprints[blueprintId]
 		if exists {
+			// Move to deletedItems (soft delete behavior)
+			mockState.deletedItems[blueprintId] = blueprint
 			delete(mockState.blueprints, blueprintId)
-			delete(mockState.sponsors, blueprintId)
-			delete(mockState.owners, blueprintId)
 		}
 		mockState.Unlock()
 
 		if !exists {
-			return httpmock.NewStringResponse(404, `{"error":{"code":"ResourceNotFound","message":"Resource not found"}}`), nil
+			errorResp, _ := helpers.ParseJSONFile("../tests/responses/error_not_found.json")
+			return httpmock.NewStringResponse(404, errorResp), nil
+		}
+
+		return httpmock.NewStringResponse(204, ""), nil
+	})
+
+	// Get deleted item - GET /directory/deletedItems/{id}
+	// Used for soft delete verification (polling until resource appears in deleted items)
+	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/directory/deletedItems/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`, func(req *http.Request) (*http.Response, error) {
+		parts := strings.Split(req.URL.Path, "/")
+		resourceId := parts[len(parts)-1]
+
+		mockState.Lock()
+		deletedItem, exists := mockState.deletedItems[resourceId]
+		mockState.Unlock()
+
+		if !exists {
+			errorResp, _ := helpers.ParseJSONFile("../tests/responses/error_not_found.json")
+			return httpmock.NewStringResponse(404, errorResp), nil
+		}
+
+		return httpmock.NewJsonResponse(200, deletedItem)
+	})
+
+	// Permanent delete from deleted items - DELETE /directory/deletedItems/{id}
+	// REF: https://learn.microsoft.com/en-us/graph/api/directory-deleteditems-delete?view=graph-rest-beta
+	httpmock.RegisterResponder("DELETE", `=~^https://graph\.microsoft\.com/beta/directory/deletedItems/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`, func(req *http.Request) (*http.Response, error) {
+		parts := strings.Split(req.URL.Path, "/")
+		resourceId := parts[len(parts)-1]
+
+		mockState.Lock()
+		_, exists := mockState.deletedItems[resourceId]
+		if exists {
+			delete(mockState.deletedItems, resourceId)
+			delete(mockState.sponsors, resourceId)
+			delete(mockState.owners, resourceId)
+		}
+		mockState.Unlock()
+
+		if !exists {
+			errorResp, _ := helpers.ParseJSONFile("../tests/responses/error_not_found.json")
+			return httpmock.NewStringResponse(404, errorResp), nil
 		}
 
 		return httpmock.NewStringResponse(204, ""), nil
@@ -411,10 +467,21 @@ func (m *AgentIdentityBlueprintMock) RegisterMocks() {
 }
 
 func (m *AgentIdentityBlueprintMock) RegisterErrorMocks() {
-	httpmock.RegisterResponder("POST", "https://graph.microsoft.com/beta/applications", httpmock.NewStringResponder(400, `{"error":{"code":"BadRequest","message":"Invalid request"}}`))
-	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/applications/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`, httpmock.NewStringResponder(404, `{"error":{"code":"ResourceNotFound","message":"Resource not found"}}`))
-	httpmock.RegisterResponder("PATCH", `=~^https://graph\.microsoft\.com/beta/applications/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`, httpmock.NewStringResponder(400, `{"error":{"code":"BadRequest","message":"Invalid request"}}`))
-	httpmock.RegisterResponder("DELETE", `=~^https://graph\.microsoft\.com/beta/applications/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`, httpmock.NewStringResponder(400, `{"error":{"code":"BadRequest","message":"Invalid request"}}`))
+	errorBadRequest, _ := helpers.ParseJSONFile("../tests/responses/error_bad_request.json")
+	errorNotFound, _ := helpers.ParseJSONFile("../tests/responses/error_not_found.json")
+
+	httpmock.RegisterResponder("POST", "https://graph.microsoft.com/beta/applications",
+		httpmock.NewStringResponder(400, errorBadRequest))
+	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/applications/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`,
+		httpmock.NewStringResponder(404, errorNotFound))
+	httpmock.RegisterResponder("PATCH", `=~^https://graph\.microsoft\.com/beta/applications/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`,
+		httpmock.NewStringResponder(400, errorBadRequest))
+	httpmock.RegisterResponder("DELETE", `=~^https://graph\.microsoft\.com/beta/applications/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`,
+		httpmock.NewStringResponder(400, errorBadRequest))
+	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/directory/deletedItems/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`,
+		httpmock.NewStringResponder(404, errorNotFound))
+	httpmock.RegisterResponder("DELETE", `=~^https://graph\.microsoft\.com/beta/directory/deletedItems/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`,
+		httpmock.NewStringResponder(400, errorBadRequest))
 }
 
 func (m *AgentIdentityBlueprintMock) CleanupMockState() {
@@ -422,5 +489,6 @@ func (m *AgentIdentityBlueprintMock) CleanupMockState() {
 	mockState.blueprints = make(map[string]map[string]any)
 	mockState.sponsors = make(map[string][]string)
 	mockState.owners = make(map[string][]string)
+	mockState.deletedItems = make(map[string]map[string]any)
 	mockState.Unlock()
 }

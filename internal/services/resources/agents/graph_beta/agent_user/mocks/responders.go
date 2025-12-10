@@ -4,334 +4,334 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"regexp"
 	"strings"
 	"sync"
-	"time"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
-	commonMocks "github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
 	"github.com/google/uuid"
 	"github.com/jarcoal/httpmock"
 )
 
-// mockState tracks the state of resources for consistent responses
 var mockState struct {
 	sync.Mutex
-	users map[string]map[string]any
+	agentUsers   map[string]map[string]any
+	sponsors     map[string][]string       // agentUserId -> []sponsorId
+	deletedItems map[string]map[string]any // soft-deleted users awaiting hard delete
 }
 
 func init() {
-	// Initialize mockState
-	mockState.users = make(map[string]map[string]any)
-
-	// Register a default 404 responder for any unmatched requests
-	httpmock.RegisterNoResponder(httpmock.NewStringResponder(404, `{"error":{"code":"ResourceNotFound","message":"Resource not found"}}`))
+	mockState.agentUsers = make(map[string]map[string]any)
+	mockState.sponsors = make(map[string][]string)
+	mockState.deletedItems = make(map[string]map[string]any)
+	mocks.GlobalRegistry.Register("agent_user", &AgentUserMock{})
 }
 
-// UserMock provides mock responses for user operations
-type UserMock struct{}
+type AgentUserMock struct{}
 
-// RegisterMocks registers HTTP mock responses for user operations
-func (m *UserMock) RegisterMocks() {
-	// Reset the state when registering mocks
+var _ mocks.MockRegistrar = (*AgentUserMock)(nil)
+
+func (m *AgentUserMock) RegisterMocks() {
 	mockState.Lock()
-	mockState.users = make(map[string]map[string]any)
+	mockState.agentUsers = make(map[string]map[string]any)
+	mockState.sponsors = make(map[string][]string)
+	mockState.deletedItems = make(map[string]map[string]any)
 	mockState.Unlock()
 
-	// Register specific test users
-	registerTestUsers()
+	// Create agent user - POST /users
+	httpmock.RegisterResponder("POST", "https://graph.microsoft.com/beta/users", func(req *http.Request) (*http.Response, error) {
+		var requestBody map[string]any
+		if err := json.NewDecoder(req.Body).Decode(&requestBody); err != nil {
+			errorResp, _ := helpers.ParseJSONFile("../tests/responses/error_bad_request.json")
+			return httpmock.NewStringResponse(400, errorResp), nil
+		}
 
-	// Register GET for user by ID
-	httpmock.RegisterResponder("GET", `=~^https://graph.microsoft.com/beta/users/[^/]+$`,
-		func(req *http.Request) (*http.Response, error) {
-			urlParts := strings.Split(req.URL.Path, "/")
-			userId := urlParts[len(urlParts)-1]
+		// Verify required fields
+		displayName, ok := requestBody["displayName"].(string)
+		if !ok || displayName == "" {
+			errorResp, _ := helpers.ParseJSONFile("../tests/responses/error_display_name_required.json")
+			return httpmock.NewStringResponse(400, errorResp), nil
+		}
 
-			mockState.Lock()
-			userData, exists := mockState.users[userId]
-			mockState.Unlock()
+		// Load JSON response from file
+		jsonContent, err := helpers.ParseJSONFile("../tests/responses/validate_create/post_agent_user_success.json")
+		if err != nil {
+			return httpmock.NewStringResponse(500, fmt.Sprintf(`{"error":{"code":"InternalServerError","message":"Failed to load JSON response file: %s"}}`, err.Error())), nil
+		}
 
-			if !exists {
-				return httpmock.NewStringResponse(404, `{"error":{"code":"ResourceNotFound","message":"User not found"}}`), nil
+		// Parse the JSON response
+		var responseObj map[string]any
+		if err := json.Unmarshal([]byte(jsonContent), &responseObj); err != nil {
+			return httpmock.NewStringResponse(500, fmt.Sprintf(`{"error":{"code":"InternalServerError","message":"Failed to parse JSON response: %s"}}`, err.Error())), nil
+		}
+
+		// Generate UUID for the new resource
+		newId := uuid.New().String()
+
+		// Copy all fields from request to response
+		for key, value := range requestBody {
+			if key != "sponsors@odata.bind" && key != "@odata.type" {
+				responseObj[key] = value
 			}
+		}
 
-			return httpmock.NewJsonResponse(200, userData)
-		})
+		// Ensure required fields are set (override any from request)
+		responseObj["id"] = newId
+		responseObj["displayName"] = displayName
+		responseObj["@odata.type"] = "#microsoft.graph.agentUser"
 
-	// Register GET for user manager
-	httpmock.RegisterResponder("GET", `=~^https://graph.microsoft.com/beta/users/[^/]+/manager$`,
-		func(req *http.Request) (*http.Response, error) {
-			urlParts := strings.Split(req.URL.Path, "/")
-			userId := urlParts[len(urlParts)-2]
-
-			mockState.Lock()
-			userData, exists := mockState.users[userId]
-			mockState.Unlock()
-
-			if !exists {
-				return httpmock.NewStringResponse(404, `{"error":{"code":"ResourceNotFound","message":"User not found"}}`), nil
-			}
-
-			// Check if user has a manager set
-			managerId, hasManager := userData["managerId"].(string)
-			if !hasManager || managerId == "" {
-				return httpmock.NewStringResponse(404, `{"error":{"code":"ResourceNotFound","message":"Manager not found"}}`), nil
-			}
-
-			// Return minimal manager info
-			managerData := map[string]any{
-				"@odata.type": "#microsoft.graph.user",
-				"id":          managerId,
-			}
-
-			return httpmock.NewJsonResponse(200, managerData)
-		})
-
-	// Register GET for listing users
-	httpmock.RegisterResponder("GET", `=~^https://graph.microsoft.com/beta/users(\?.+)?$`,
-		func(req *http.Request) (*http.Response, error) {
-			mockState.Lock()
-			defer mockState.Unlock()
-
-			users := make([]map[string]any, 0, len(mockState.users))
-			for _, user := range mockState.users {
-				users = append(users, user)
-			}
-
-			response := map[string]any{
-				"@odata.context": "https://graph.microsoft.com/beta/$metadata#users",
-				"value":          users,
-			}
-
-			return httpmock.NewJsonResponse(200, response)
-		})
-
-	// Register POST for creating users
-	httpmock.RegisterResponder("POST", "https://graph.microsoft.com/beta/users",
-		func(req *http.Request) (*http.Response, error) {
-			var userData map[string]any
-			err := json.NewDecoder(req.Body).Decode(&userData)
-			if err != nil {
-				return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"Invalid request body"}}`), nil
-			}
-
-			// Validate required fields
-			if _, ok := userData["displayName"].(string); !ok {
-				return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"displayName is required"}}`), nil
-			}
-			if _, ok := userData["userPrincipalName"].(string); !ok {
-				return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"userPrincipalName is required"}}`), nil
-			}
-
-			// Generate ID if not provided
-			if userData["id"] == nil {
-				userData["id"] = uuid.New().String()
-			}
-
-			// Set computed fields
-			now := time.Now().Format(time.RFC3339)
-			userData["createdDateTime"] = now
-
-			// Handle manager@odata.bind - extract ID and store as managerId
-			if managerBindURL, ok := userData["manager@odata.bind"].(string); ok {
-				// Extract manager ID from the URL
-				// Format: https://graph.microsoft.com/beta/users/{manager-id}
-				parts := strings.Split(managerBindURL, "/")
-				if len(parts) > 0 {
-					managerId := parts[len(parts)-1]
-					userData["managerId"] = managerId
-				}
-				// Remove the binding from the response
-				delete(userData, "manager@odata.bind")
-			}
-
-			// Ensure collection fields are initialized
-			commonMocks.EnsureField(userData, "businessPhones", []string{})
-			commonMocks.EnsureField(userData, "otherMails", []string{})
-			commonMocks.EnsureField(userData, "proxyAddresses", []string{})
-
-			// Store user in mock state
-			userId := userData["id"].(string)
-			mockState.Lock()
-			mockState.users[userId] = userData
-			mockState.Unlock()
-
-			return httpmock.NewJsonResponse(201, userData)
-		})
-
-	// Register PATCH for updating users
-	httpmock.RegisterResponder("PATCH", `=~^https://graph.microsoft.com/beta/users/[^/]+$`,
-		func(req *http.Request) (*http.Response, error) {
-			urlParts := strings.Split(req.URL.Path, "/")
-			userId := urlParts[len(urlParts)-1]
-
-			mockState.Lock()
-			userData, exists := mockState.users[userId]
-			mockState.Unlock()
-
-			if !exists {
-				return httpmock.NewStringResponse(404, `{"error":{"code":"ResourceNotFound","message":"User not found"}}`), nil
-			}
-
-			var updateData map[string]any
-			err := json.NewDecoder(req.Body).Decode(&updateData)
-			if err != nil {
-				return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"Invalid request body"}}`), nil
-			}
-
-			// Update user data
-			mockState.Lock()
-
-			// Special handling for updates that remove fields
-			// If we're updating from maximal to minimal, we need to remove fields not in the minimal config
-			// Check if this is a minimal update by looking for key indicators
-			isMinimalUpdate := false
-			if _, hasDisplayName := updateData["displayName"]; hasDisplayName {
-				if _, hasGivenName := updateData["givenName"]; !hasGivenName {
-					isMinimalUpdate = true
-				}
-			}
-
-			if isMinimalUpdate {
-				// Remove fields that are not part of minimal configuration
-				fieldsToRemove := []string{
-					"givenName", "surname", "jobTitle", "department", "companyName",
-					"officeLocation", "city", "state", "country", "postalCode",
-					"mobilePhone", "mail", "mailNickname", "usageLocation",
-				}
-
-				for _, field := range fieldsToRemove {
-					delete(userData, field)
-				}
-
-				// Reset collections to empty
-				userData["businessPhones"] = []string{}
-				userData["otherMails"] = []string{}
-				userData["proxyAddresses"] = []string{}
-			}
-
-			// Apply the updates
-			for k, v := range updateData {
-				// Handle manager@odata.bind - extract ID and store as managerId
-				if k == "manager@odata.bind" {
-					if managerBindURL, ok := v.(string); ok {
-						// Extract manager ID from the URL
-						// Format: https://graph.microsoft.com/beta/users/{manager-id}
-						parts := strings.Split(managerBindURL, "/")
-						if len(parts) > 0 {
-							managerId := parts[len(parts)-1]
-							userData["managerId"] = managerId
-						}
+		// Extract and store sponsors from sponsors@odata.bind
+		var sponsorIds []string
+		if sponsorBinds, ok := requestBody["sponsors@odata.bind"].([]any); ok {
+			uuidRegex := regexp.MustCompile(`[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}`)
+			for _, bind := range sponsorBinds {
+				if bindStr, ok := bind.(string); ok {
+					if match := uuidRegex.FindString(bindStr); match != "" {
+						sponsorIds = append(sponsorIds, match)
 					}
-				} else {
-					userData[k] = v
 				}
 			}
+		}
 
-			mockState.users[userId] = userData
-			mockState.Unlock()
+		// Store in mock state
+		mockState.Lock()
+		mockState.agentUsers[newId] = responseObj
+		mockState.sponsors[newId] = sponsorIds
+		mockState.Unlock()
 
-			return httpmock.NewJsonResponse(200, userData)
-		})
+		return httpmock.NewJsonResponse(201, responseObj)
+	})
 
-	// Register DELETE for removing users
-	httpmock.RegisterResponder("DELETE", `=~^https://graph.microsoft.com/beta/users/[^/]+$`,
-		func(req *http.Request) (*http.Response, error) {
-			urlParts := strings.Split(req.URL.Path, "/")
-			userId := urlParts[len(urlParts)-1]
+	// Get agent user - GET /users/{id}
+	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/users/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`, func(req *http.Request) (*http.Response, error) {
+		parts := strings.Split(req.URL.Path, "/")
+		agentUserId := parts[len(parts)-1]
 
-			mockState.Lock()
-			_, exists := mockState.users[userId]
-			if exists {
-				delete(mockState.users, userId)
+		mockState.Lock()
+		storedUser, exists := mockState.agentUsers[agentUserId]
+		mockState.Unlock()
+
+		if !exists {
+			errorResp, _ := helpers.ParseJSONFile("../tests/responses/error_not_found.json")
+			return httpmock.NewStringResponse(404, errorResp), nil
+		}
+
+		// Load JSON response template from file
+		jsonContent, err := helpers.ParseJSONFile("../tests/responses/validate_read/get_agent_user_success.json")
+		if err != nil {
+			return httpmock.NewStringResponse(500, fmt.Sprintf(`{"error":{"code":"InternalServerError","message":"Failed to load JSON response file: %s"}}`, err.Error())), nil
+		}
+
+		var responseObj map[string]any
+		if err := json.Unmarshal([]byte(jsonContent), &responseObj); err != nil {
+			return httpmock.NewStringResponse(500, fmt.Sprintf(`{"error":{"code":"InternalServerError","message":"Failed to parse JSON response: %s"}}`, err.Error())), nil
+		}
+
+		// Overlay stored values onto template
+		for key, value := range storedUser {
+			responseObj[key] = value
+		}
+
+		return httpmock.NewJsonResponse(200, responseObj)
+	})
+
+	// Get sponsors - GET /users/{id}/sponsors
+	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/users/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}/sponsors$`, func(req *http.Request) (*http.Response, error) {
+		parts := strings.Split(req.URL.Path, "/")
+		agentUserId := parts[3]
+
+		mockState.Lock()
+		sponsorIds := mockState.sponsors[agentUserId]
+		mockState.Unlock()
+
+		// Build sponsors response
+		sponsorValues := make([]map[string]any, len(sponsorIds))
+		for i, sponsorId := range sponsorIds {
+			sponsorValues[i] = map[string]any{
+				"@odata.type": "#microsoft.graph.user",
+				"id":          sponsorId,
 			}
-			mockState.Unlock()
+		}
 
-			// Return 204 No Content for successful deletion
-			return httpmock.NewStringResponse(204, ""), nil
-		})
+		responseObj := map[string]any{
+			"@odata.context": "https://graph.microsoft.com/beta/$metadata#directoryObjects",
+			"value":          sponsorValues,
+		}
+
+		return httpmock.NewJsonResponse(200, responseObj)
+	})
+
+	// Update agent user - PATCH /users/{id}
+	httpmock.RegisterResponder("PATCH", `=~^https://graph\.microsoft\.com/beta/users/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`, func(req *http.Request) (*http.Response, error) {
+		parts := strings.Split(req.URL.Path, "/")
+		agentUserId := parts[len(parts)-1]
+
+		mockState.Lock()
+		agentUser, exists := mockState.agentUsers[agentUserId]
+		mockState.Unlock()
+
+		if !exists {
+			errorResp, _ := helpers.ParseJSONFile("../tests/responses/error_not_found.json")
+			return httpmock.NewStringResponse(404, errorResp), nil
+		}
+
+		var requestBody map[string]any
+		if err := json.NewDecoder(req.Body).Decode(&requestBody); err != nil {
+			errorResp, _ := helpers.ParseJSONFile("../tests/responses/error_bad_request.json")
+			return httpmock.NewStringResponse(400, errorResp), nil
+		}
+
+		// Merge request body into stored state
+		for key, value := range requestBody {
+			agentUser[key] = value
+		}
+
+		// Preserve ID and type
+		agentUser["id"] = agentUserId
+		agentUser["@odata.type"] = "#microsoft.graph.agentUser"
+
+		// Update mock state
+		mockState.Lock()
+		mockState.agentUsers[agentUserId] = agentUser
+		mockState.Unlock()
+
+		return httpmock.NewStringResponse(204, ""), nil
+	})
+
+	// Delete agent user (soft delete) - DELETE /users/{id}
+	// Moves user to deletedItems collection instead of permanently deleting
+	httpmock.RegisterResponder("DELETE", `=~^https://graph\.microsoft\.com/beta/users/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`, func(req *http.Request) (*http.Response, error) {
+		parts := strings.Split(req.URL.Path, "/")
+		agentUserId := parts[len(parts)-1]
+
+		mockState.Lock()
+		user, exists := mockState.agentUsers[agentUserId]
+		if exists {
+			// Move to deletedItems (soft delete behavior)
+			mockState.deletedItems[agentUserId] = user
+			delete(mockState.agentUsers, agentUserId)
+			// Keep sponsors in case of restore (not implemented, but realistic behavior)
+		}
+		mockState.Unlock()
+
+		if !exists {
+			errorResp, _ := helpers.ParseJSONFile("../tests/responses/error_not_found.json")
+			return httpmock.NewStringResponse(404, errorResp), nil
+		}
+
+		return httpmock.NewStringResponse(204, ""), nil
+	})
+
+	// Add sponsor - POST /users/{id}/sponsors/$ref
+	httpmock.RegisterResponder("POST", `=~^https://graph\.microsoft\.com/beta/users/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}/sponsors/\$ref$`, func(req *http.Request) (*http.Response, error) {
+		parts := strings.Split(req.URL.Path, "/")
+		agentUserId := parts[3]
+
+		var requestBody map[string]any
+		if err := json.NewDecoder(req.Body).Decode(&requestBody); err != nil {
+			errorResp, _ := helpers.ParseJSONFile("../tests/responses/error_bad_request.json")
+			return httpmock.NewStringResponse(400, errorResp), nil
+		}
+
+		if odataId, ok := requestBody["@odata.id"].(string); ok {
+			uuidRegex := regexp.MustCompile(`[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}`)
+			if match := uuidRegex.FindString(odataId); match != "" {
+				mockState.Lock()
+				mockState.sponsors[agentUserId] = append(mockState.sponsors[agentUserId], match)
+				mockState.Unlock()
+			}
+		}
+
+		return httpmock.NewStringResponse(204, ""), nil
+	})
+
+	// Remove sponsor - DELETE /users/{id}/sponsors/{sponsorId}/$ref
+	httpmock.RegisterResponder("DELETE", `=~^https://graph\.microsoft\.com/beta/users/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}/sponsors/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}/\$ref$`, func(req *http.Request) (*http.Response, error) {
+		parts := strings.Split(req.URL.Path, "/")
+		agentUserId := parts[3]
+		sponsorId := parts[5] // Changed from 6 to 5 since we removed microsoft.graph.agentUser
+
+		mockState.Lock()
+		if sponsors, exists := mockState.sponsors[agentUserId]; exists {
+			var newSponsors []string
+			for _, s := range sponsors {
+				if s != sponsorId {
+					newSponsors = append(newSponsors, s)
+				}
+			}
+			mockState.sponsors[agentUserId] = newSponsors
+		}
+		mockState.Unlock()
+
+		return httpmock.NewStringResponse(204, ""), nil
+	})
+
+	// Get deleted item - GET /directory/deletedItems/{id}
+	// Used for soft delete verification (polling until resource appears in deleted items)
+	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/directory/deletedItems/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`, func(req *http.Request) (*http.Response, error) {
+		parts := strings.Split(req.URL.Path, "/")
+		resourceId := parts[len(parts)-1]
+
+		mockState.Lock()
+		deletedItem, exists := mockState.deletedItems[resourceId]
+		mockState.Unlock()
+
+		if !exists {
+			errorResp, _ := helpers.ParseJSONFile("../tests/responses/error_not_found.json")
+			return httpmock.NewStringResponse(404, errorResp), nil
+		}
+
+		// Return the deleted item
+		return httpmock.NewJsonResponse(200, deletedItem)
+	})
+
+	// Permanent delete from deleted items - DELETE /directory/deletedItems/{id}
+	httpmock.RegisterResponder("DELETE", `=~^https://graph\.microsoft\.com/beta/directory/deletedItems/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`, func(req *http.Request) (*http.Response, error) {
+		parts := strings.Split(req.URL.Path, "/")
+		resourceId := parts[len(parts)-1]
+
+		mockState.Lock()
+		_, exists := mockState.deletedItems[resourceId]
+		if exists {
+			delete(mockState.deletedItems, resourceId)
+			delete(mockState.sponsors, resourceId) // Also remove sponsors on hard delete
+		}
+		mockState.Unlock()
+
+		if !exists {
+			errorResp, _ := helpers.ParseJSONFile("../tests/responses/error_not_found.json")
+			return httpmock.NewStringResponse(404, errorResp), nil
+		}
+
+		return httpmock.NewStringResponse(204, ""), nil
+	})
 }
 
-// RegisterErrorMocks registers HTTP mock responses for error scenarios
-func (m *UserMock) RegisterErrorMocks() {
-	// Reset the state when registering error mocks
-	mockState.Lock()
-	mockState.users = make(map[string]map[string]any)
-	mockState.Unlock()
+func (m *AgentUserMock) RegisterErrorMocks() {
+	errorBadRequest, _ := helpers.ParseJSONFile("../tests/responses/error_bad_request.json")
+	errorNotFound, _ := helpers.ParseJSONFile("../tests/responses/error_not_found.json")
 
-	// Register error response for user creation - always return error
 	httpmock.RegisterResponder("POST", "https://graph.microsoft.com/beta/users",
-		func(req *http.Request) (*http.Response, error) {
-			return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"Invalid user data"}}`), nil
-		})
-
-	// Register error response for user not found
-	httpmock.RegisterResponder("GET", `=~^https://graph.microsoft.com/beta/users/[^/]+$`,
-		func(req *http.Request) (*http.Response, error) {
-			return httpmock.NewStringResponse(404, `{"error":{"code":"ResourceNotFound","message":"User not found"}}`), nil
-		})
-
-	// Register error response for DELETE
-	httpmock.RegisterResponder("DELETE", `=~^https://graph.microsoft.com/beta/users/[^/]+$`,
-		func(req *http.Request) (*http.Response, error) {
-			return httpmock.NewStringResponse(404, `{"error":{"code":"ResourceNotFound","message":"User not found"}}`), nil
-		})
+		httpmock.NewStringResponder(400, errorBadRequest))
+	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/users/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`,
+		httpmock.NewStringResponder(404, errorNotFound))
+	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/users/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}/sponsors$`,
+		httpmock.NewStringResponder(404, errorNotFound))
+	httpmock.RegisterResponder("PATCH", `=~^https://graph\.microsoft\.com/beta/users/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`,
+		httpmock.NewStringResponder(400, errorBadRequest))
+	httpmock.RegisterResponder("DELETE", `=~^https://graph\.microsoft\.com/beta/users/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`,
+		httpmock.NewStringResponder(400, errorBadRequest))
+	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/directory/deletedItems/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`,
+		httpmock.NewStringResponder(404, errorNotFound))
+	httpmock.RegisterResponder("DELETE", `=~^https://graph\.microsoft\.com/beta/directory/deletedItems/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`,
+		httpmock.NewStringResponder(400, errorBadRequest))
 }
 
-// loadFixture loads a JSON fixture file from the tests/responses directory using the secure helpers package
-func loadFixture(filename string) (map[string]any, error) {
-	// Path relative to the mocks directory: ../tests/responses/
-	fixturesPath := "../tests/responses/" + filename
-
-	// Use the secure JSON parser from helpers package
-	jsonContent, err := helpers.ParseJSONFile(fixturesPath)
-	if err != nil {
-		return nil, err
-	}
-
-	var result map[string]any
-	if err := json.Unmarshal([]byte(jsonContent), &result); err != nil {
-		return nil, err
-	}
-
-	return result, nil
-}
-
-// registerTestUsers registers predefined test users from JSON fixtures
-func registerTestUsers() {
-	// Load minimal user from fixture
-	minimalUserData, err := loadFixture("user_minimal.json")
-	if err != nil {
-		panic(fmt.Sprintf("failed to load user_minimal.json fixture: %v", err))
-	}
-
-	// Load maximal user from fixture
-	maximalUserData, err := loadFixture("user_maximal.json")
-	if err != nil {
-		panic(fmt.Sprintf("failed to load user_maximal.json fixture: %v", err))
-	}
-
-	// Load custom security attributes user from fixture
-	customSecAttUserData, err := loadFixture("user_custom_sec_att.json")
-	if err != nil {
-		panic(fmt.Sprintf("failed to load user_custom_sec_att.json fixture: %v", err))
-	}
-
-	minimalUserId := minimalUserData["id"].(string)
-	maximalUserId := maximalUserData["id"].(string)
-	customSecAttUserId := customSecAttUserData["id"].(string)
-
-	// Store users in mock state
+func (m *AgentUserMock) CleanupMockState() {
 	mockState.Lock()
-	mockState.users[minimalUserId] = minimalUserData
-	mockState.users[maximalUserId] = maximalUserData
-	mockState.users[customSecAttUserId] = customSecAttUserData
-	mockState.Unlock()
-}
-
-// CleanupMockState clears the mock state
-func (m *UserMock) CleanupMockState() {
-	mockState.Lock()
-	mockState.users = make(map[string]map[string]any)
+	mockState.agentUsers = make(map[string]map[string]any)
+	mockState.sponsors = make(map[string][]string)
+	mockState.deletedItems = make(map[string]map[string]any)
 	mockState.Unlock()
 }
