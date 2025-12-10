@@ -37,11 +37,13 @@ resource "microsoft365_graph_beta_agents_agent_identity_blueprint" "example" {
   sponsor_user_ids = [microsoft365_graph_beta_users_user.agent_sponsor.id]
   owner_user_ids   = [microsoft365_graph_beta_users_user.agent_owner.id]
   tags             = ["customer-service", "production"]
+  hard_delete      = true
 }
 
 # Create the service principal for the blueprint (required before creating agent identities)
 resource "microsoft365_graph_beta_agents_agent_identity_blueprint_service_principal" "example" {
-  app_id = microsoft365_graph_beta_agents_agent_identity_blueprint.example.app_id
+  app_id      = microsoft365_graph_beta_agents_agent_identity_blueprint.example.app_id
+  hard_delete = true
 }
 
 # Create an agent identity from the blueprint
@@ -52,6 +54,7 @@ resource "microsoft365_graph_beta_agents_agent_identity" "example" {
   sponsor_ids                 = [microsoft365_graph_beta_users_user.agent_sponsor.id]
   owner_ids                   = [microsoft365_graph_beta_users_user.agent_owner.id]
   tags                        = ["customer-service", "agent-instance"]
+  hard_delete                 = true
 
   depends_on = [
     microsoft365_graph_beta_agents_agent_identity_blueprint_service_principal.example

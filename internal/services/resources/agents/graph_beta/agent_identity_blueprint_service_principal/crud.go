@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud/graph_beta/directory"
 	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -190,6 +191,14 @@ func (r *AgentIdentityBlueprintServicePrincipalResource) Update(ctx context.Cont
 }
 
 // Delete deletes the agent identity blueprint service principal.
+// When hard_delete is true, the service principal is deleted in two steps:
+// 1. Delete the service principal (soft delete - moves to deleted items)
+// 2. Wait for the resource to appear in deleted items (handles eventual consistency)
+// 3. Permanently delete from /directory/deleteditems/{id}
+// 4. Verify deletion by confirming resource is gone
+// When hard_delete is false (default), only the soft delete is performed.
+// REF: https://learn.microsoft.com/en-us/graph/api/directory-deleteditems-list?view=graph-rest-beta
+// REF: https://learn.microsoft.com/en-us/graph/api/directory-deleteditems-delete?view=graph-rest-beta
 func (r *AgentIdentityBlueprintServicePrincipalResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var object AgentIdentityBlueprintServicePrincipalResourceModel
 
@@ -206,13 +215,35 @@ func (r *AgentIdentityBlueprintServicePrincipalResource) Delete(ctx context.Cont
 	}
 	defer cancel()
 
-	err := r.client.
-		ServicePrincipals().
-		ByServicePrincipalId(object.ID.ValueString()).
-		Delete(ctx, nil)
+	servicePrincipalId := object.ID.ValueString()
+
+	softDeleteFunc := func(ctx context.Context) error {
+		return r.client.
+			ServicePrincipals().
+			ByServicePrincipalId(servicePrincipalId).
+			Delete(ctx, nil)
+	}
+
+	deleteOpts := directory.DeleteOptions{
+		MaxRetries:    10,
+		RetryInterval: 5 * time.Second,
+		ResourceType:  directory.ResourceTypeServicePrincipal,
+		ResourceID:    servicePrincipalId,
+	}
+
+	err := directory.ExecuteDeleteWithVerification(
+		ctx,
+		r.client,
+		softDeleteFunc,
+		object.HardDelete.ValueBool(),
+		deleteOpts,
+	)
 
 	if err != nil {
-		errors.HandleKiotaGraphError(ctx, err, resp, "Delete", r.WritePermissions)
+		resp.Diagnostics.AddError(
+			"Delete Failed",
+			fmt.Sprintf("Failed to delete %s: %s", ResourceName, err.Error()),
+		)
 		return
 	}
 

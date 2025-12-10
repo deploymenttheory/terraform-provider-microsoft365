@@ -21,5 +21,6 @@ type GroupResourceModel struct {
 	CreatedDateTime               types.String   `tfsdk:"created_date_time"`
 	GroupOwners                   types.Set      `tfsdk:"group_owners"`
 	GroupMembers                  types.Set      `tfsdk:"group_members"`
+	HardDelete                    types.Bool     `tfsdk:"hard_delete"`
 	Timeouts                      timeouts.Value `tfsdk:"timeouts"`
 }

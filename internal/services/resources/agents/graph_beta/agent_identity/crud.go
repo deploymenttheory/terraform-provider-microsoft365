@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud/graph_beta/directory"
 	customrequests "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/custom_requests"
 	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -77,8 +78,9 @@ func (r *AgentIdentityResource) Create(ctx context.Context, req resource.CreateR
 		return
 	}
 
-	tflog.Debug(ctx, "Waiting 15 seconds for eventual consistency after create")
-	time.Sleep(15 * time.Second)
+	// Sponsors and owners are not immediately available after creation
+	tflog.Debug(ctx, "Waiting 20 seconds for eventual consistency after create")
+	time.Sleep(20 * time.Second)
 
 	readReq := resource.ReadRequest{State: resp.State, ProviderMeta: req.ProviderMeta}
 	stateContainer := &crud.CreateResponseContainer{CreateResponse: resp}
@@ -292,9 +294,13 @@ func (r *AgentIdentityResource) Update(ctx context.Context, req resource.UpdateR
 }
 
 // Delete handles the Delete operation.
-// Agent identities are deleted in two steps:
+// When hard_delete is true, agent identities are deleted in two steps:
 // 1. Delete the service principal (soft delete - moves to deleted items)
-// 2. Permanently delete from /directory/deleteditems/{id}
+// 2. Wait for the resource to appear in deleted items (handles eventual consistency)
+// 3. Permanently delete from /directory/deleteditems/{id}
+// 4. Verify deletion by confirming resource is gone
+// When hard_delete is false (default), only the soft delete is performed.
+// REF: https://learn.microsoft.com/en-us/graph/api/directory-deleteditems-list?view=graph-rest-beta
 // REF: https://learn.microsoft.com/en-us/graph/api/directory-deleteditems-delete?view=graph-rest-beta
 func (r *AgentIdentityResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var object AgentIdentityResourceModel
@@ -314,31 +320,34 @@ func (r *AgentIdentityResource) Delete(ctx context.Context, req resource.DeleteR
 
 	agentIdentityId := object.ID.ValueString()
 
-	// Step 1: Soft delete the service principal (moves to deleted items)
-	tflog.Info(ctx, fmt.Sprintf("Soft deleting agent identity %s", agentIdentityId))
-
-	err := r.client.
-		ServicePrincipals().
-		ByServicePrincipalId(agentIdentityId).
-		Delete(ctx, nil)
-
-	if err != nil {
-		errors.HandleKiotaGraphError(ctx, err, resp, "Delete", r.WritePermissions)
-		return
+	softDeleteFunc := func(ctx context.Context) error {
+		return r.client.
+			ServicePrincipals().
+			ByServicePrincipalId(agentIdentityId).
+			Delete(ctx, nil)
 	}
 
-	// Step 2: Permanently delete from deleted items
-	// REF: https://learn.microsoft.com/en-us/graph/api/directory-deleteditems-delete?view=graph-rest-beta
-	tflog.Info(ctx, fmt.Sprintf("Permanently deleting agent identity %s from deleted items", agentIdentityId))
+	deleteOpts := directory.DeleteOptions{
+		MaxRetries:    10,
+		RetryInterval: 5 * time.Second,
+		ResourceType:  directory.ResourceTypeServicePrincipal,
+		ResourceID:    agentIdentityId,
+		ResourceName:  object.DisplayName.ValueString(),
+	}
 
-	err = r.client.
-		Directory().
-		DeletedItems().
-		ByDirectoryObjectId(agentIdentityId).
-		Delete(ctx, nil)
+	err := directory.ExecuteDeleteWithVerification(
+		ctx,
+		r.client,
+		softDeleteFunc,
+		object.HardDelete.ValueBool(),
+		deleteOpts,
+	)
 
 	if err != nil {
-		errors.HandleKiotaGraphError(ctx, err, resp, "Delete", r.WritePermissions)
+		resp.Diagnostics.AddError(
+			"Delete Failed",
+			fmt.Sprintf("Failed to delete %s: %s", ResourceName, err.Error()),
+		)
 		return
 	}
 

@@ -61,6 +61,7 @@ type UserResourceModel struct {
 	UsageLocation                   types.String                 `tfsdk:"usage_location"`
 	UserPrincipalName               types.String                 `tfsdk:"user_principal_name"`
 	UserType                        types.String                 `tfsdk:"user_type"`
+	HardDelete                      types.Bool                   `tfsdk:"hard_delete"`
 	Timeouts                        timeouts.Value               `tfsdk:"timeouts"`
 }
 

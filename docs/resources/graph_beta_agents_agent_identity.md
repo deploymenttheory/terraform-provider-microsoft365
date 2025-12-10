@@ -69,6 +69,10 @@ resource "microsoft365_graph_beta_agents_agent_identity" "basic" {
   sponsor_ids                 = ["00000000-0000-0000-0000-000000000001"] # Replace with user IDs
   owner_ids                   = ["00000000-0000-0000-0000-000000000001"] # Replace with user IDs
   tags                        = ["production", "customer-service", "ai-agent"]
+
+  # When true, permanently deletes from Entra ID on destroy (cannot be restored)
+  # When false, moves to deleted items (can be restored within 30 days)
+  hard_delete = true
 }
 ```
 
@@ -114,11 +118,13 @@ resource "microsoft365_graph_beta_agents_agent_identity_blueprint" "example" {
   sponsor_user_ids = [microsoft365_graph_beta_users_user.agent_sponsor.id]
   owner_user_ids   = [microsoft365_graph_beta_users_user.agent_owner.id]
   tags             = ["customer-service", "production"]
+  hard_delete      = true
 }
 
 # Create the service principal for the blueprint (required before creating agent identities)
 resource "microsoft365_graph_beta_agents_agent_identity_blueprint_service_principal" "example" {
-  app_id = microsoft365_graph_beta_agents_agent_identity_blueprint.example.app_id
+  app_id      = microsoft365_graph_beta_agents_agent_identity_blueprint.example.app_id
+  hard_delete = true
 }
 
 # Create an agent identity from the blueprint
@@ -129,6 +135,7 @@ resource "microsoft365_graph_beta_agents_agent_identity" "example" {
   sponsor_ids                 = [microsoft365_graph_beta_users_user.agent_sponsor.id]
   owner_ids                   = [microsoft365_graph_beta_users_user.agent_owner.id]
   tags                        = ["customer-service", "agent-instance"]
+  hard_delete                 = true
 
   depends_on = [
     microsoft365_graph_beta_agents_agent_identity_blueprint_service_principal.example
@@ -170,6 +177,7 @@ output "blueprint_app_id" {
 
 ### Optional
 
+- `hard_delete` (Boolean) When set to `true`, the resource will be permanently deleted from the Entra ID (hard delete) rather than being moved to deleted items (soft delete). This prevents the resource from being restored and immediately frees up the resource name for reuse. When `false` (default), the resource is soft deleted and can be restored within 30 days. Note: This field defaults to `false` on import since the API does not return this value.
 - `tags` (Set of String) Custom strings that can be used to categorize and identify the agent identity.
 - `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))
 
@@ -197,12 +205,17 @@ Import is supported using the following syntax:
 
 ```shell
 # Import an existing agent identity into Terraform
-# The import ID format is: {agent_identity_id}/{agent_identity_blueprint_id}
+# The import ID format is: {agent_identity_id}/{agent_identity_blueprint_id}[:hard_delete=true|false]
 #
 # Where:
 # - {agent_identity_id} is the Object ID of the agent identity service principal
 # - {agent_identity_blueprint_id} is the Application (client) ID of the blueprint
+# - hard_delete is optional (defaults to false for soft delete only)
 
+# Basic import (hard_delete defaults to false - soft delete only)
 terraform import microsoft365_graph_beta_agents_agent_identity.example "00000000-0000-0000-0000-000000000000/11111111-1111-1111-1111-111111111111"
+
+# Import with hard_delete enabled (permanently deletes on terraform destroy)
+terraform import microsoft365_graph_beta_agents_agent_identity.example "00000000-0000-0000-0000-000000000000/11111111-1111-1111-1111-111111111111:hard_delete=true"
 ```
 

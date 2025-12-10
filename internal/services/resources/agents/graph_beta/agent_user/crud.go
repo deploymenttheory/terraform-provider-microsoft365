@@ -1,4 +1,4 @@
-package graphBetaUsersAgentUser
+package graphBetaAgentUser
 
 import (
 	"context"
@@ -6,41 +6,42 @@ import (
 	"time"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud/graph_beta/directory"
 	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
-	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
-	"github.com/microsoftgraph/msgraph-beta-sdk-go/users"
 )
 
 // Create handles the Create operation.
+// POST /users/microsoft.graph.agentUser
+// REF: https://learn.microsoft.com/en-us/graph/api/agentuser-post?view=graph-rest-beta
 func (r *AgentUserResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var plan AgentUserResourceModel
+	var object AgentUserResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting creation of resource: %s", ResourceName))
 
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	ctx, cancel := crud.HandleTimeout(ctx, plan.Timeouts.Create, CreateTimeout*time.Second, &resp.Diagnostics)
+	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Create, CreateTimeout*time.Second, &resp.Diagnostics)
 	if cancel == nil {
 		return
 	}
 	defer cancel()
 
-	requestBody, err := constructResource(ctx, &plan)
+	requestBody, err := constructResource(ctx, &object)
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error constructing resource",
+			"Error constructing agent user",
 			fmt.Sprintf("Could not construct resource: %s: %s", ResourceName, err.Error()),
 		)
 		return
 	}
 
-	user, err := r.client.
+	createdUser, err := r.client.
 		Users().
 		Post(ctx, requestBody, nil)
 
@@ -49,12 +50,23 @@ func (r *AgentUserResource) Create(ctx context.Context, req resource.CreateReque
 		return
 	}
 
-	plan.ID = types.StringValue(*user.GetId())
+	if createdUser.GetId() != nil {
+		object.ID = types.StringValue(*createdUser.GetId())
+	} else {
+		resp.Diagnostics.AddError(
+			"Error reading created resource ID",
+			fmt.Sprintf("Could not extract ID from created resource: %s", ResourceName),
+		)
+		return
+	}
 
-	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
+	tflog.Debug(ctx, "Waiting 5 seconds for eventual consistency after create")
+	time.Sleep(5 * time.Second)
 
 	readReq := resource.ReadRequest{State: resp.State, ProviderMeta: req.ProviderMeta}
 	stateContainer := &crud.CreateResponseContainer{CreateResponse: resp}
@@ -76,8 +88,11 @@ func (r *AgentUserResource) Create(ctx context.Context, req resource.CreateReque
 }
 
 // Read handles the Read operation.
+// GET /users/microsoft.graph.agentUser/{userId}
+// REF: https://learn.microsoft.com/en-us/graph/api/agentuser-get?view=graph-rest-beta
 func (r *AgentUserResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var state AgentUserResourceModel
+	var object AgentUserResourceModel
+
 	tflog.Debug(ctx, fmt.Sprintf("Starting Read method for: %s", ResourceName))
 
 	operation := "Read"
@@ -86,24 +101,23 @@ func (r *AgentUserResource) Read(ctx context.Context, req resource.ReadRequest, 
 			operation = opStr
 		}
 	}
-	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 
+	resp.Diagnostics.Append(req.State.Get(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Reading %s with ID: %s", ResourceName, state.ID.ValueString()))
+	tflog.Debug(ctx, fmt.Sprintf("Reading %s with ID: %s", ResourceName, object.ID.ValueString()))
 
-	ctx, cancel := crud.HandleTimeout(ctx, state.Timeouts.Read, ReadTimeout*time.Second, &resp.Diagnostics)
+	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Read, ReadTimeout*time.Second, &resp.Diagnostics)
 	if cancel == nil {
 		return
 	}
 	defer cancel()
 
-	// First API call: get standard user properties
 	user, err := r.client.
 		Users().
-		ByUserId(state.ID.ValueString()).
+		ByUserId(object.ID.ValueString()).
 		Get(ctx, nil)
 
 	if err != nil {
@@ -111,45 +125,22 @@ func (r *AgentUserResource) Read(ctx context.Context, req resource.ReadRequest, 
 		return
 	}
 
-	// Second API call: get custom security attributes (requires explicit $select)
-	csaRequestConfig := &users.UserItemRequestBuilderGetRequestConfiguration{
-		QueryParameters: &users.UserItemRequestBuilderGetQueryParameters{
-			Select: []string{"customSecurityAttributes"},
-		},
-	}
+	MapRemoteResourceStateToTerraform(ctx, &object, user)
 
-	userWithCSA, err := r.client.
+	sponsors, err := r.client.
 		Users().
-		ByUserId(state.ID.ValueString()).
-		Get(ctx, csaRequestConfig)
-
-	if err != nil {
-		// Log warning but don't fail - CSA might not be configured or user might not have permissions
-		tflog.Warn(ctx, "Failed to fetch custom security attributes, continuing without them", map[string]any{
-			"error": err.Error(),
-		})
-		userWithCSA = nil
-	}
-
-	// Third API call: get manager (separate endpoint)
-	var manager graphmodels.DirectoryObjectable
-	manager, err = r.client.
-		Users().
-		ByUserId(state.ID.ValueString()).
-		Manager().
+		ByUserId(object.ID.ValueString()).
+		Sponsors().
 		Get(ctx, nil)
 
 	if err != nil {
-		// Log debug but don't fail - user might not have a manager assigned
-		tflog.Debug(ctx, "Failed to fetch manager, continuing without it", map[string]any{
-			"error": err.Error(),
-		})
-		manager = nil
+		errors.HandleKiotaGraphError(ctx, err, resp, operation, r.ReadPermissions)
+		return
 	}
 
-	MapRemoteStateToTerraform(ctx, &state, user, userWithCSA, manager)
+	MapSponsorsToTerraform(ctx, &object, sponsors)
 
-	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -158,9 +149,13 @@ func (r *AgentUserResource) Read(ctx context.Context, req resource.ReadRequest, 
 }
 
 // Update handles the Update operation.
+// PATCH /users/microsoft.graph.agentUser/{userId}
+// REF: https://learn.microsoft.com/en-us/graph/api/agentuser-update?view=graph-rest-beta
 func (r *AgentUserResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var plan AgentUserResourceModel
 	var state AgentUserResourceModel
+
+	tflog.Debug(ctx, fmt.Sprintf("Starting update of resource: %s", ResourceName))
 
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
@@ -168,20 +163,16 @@ func (r *AgentUserResource) Update(ctx context.Context, req resource.UpdateReque
 		return
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Updating %s with ID: %s", ResourceName, state.ID.ValueString()))
-
-	ctx, cancel := crud.HandleTimeout(ctx, plan.Timeouts.Update, UpdateTimeout*time.Second, &resp.Diagnostics)
+	ctx, cancel := crud.HandleTimeout(ctx, state.Timeouts.Update, UpdateTimeout*time.Second, &resp.Diagnostics)
 	if cancel == nil {
 		return
 	}
 	defer cancel()
 
-	plan.ID = state.ID
-
-	requestBody, err := constructResource(ctx, &plan)
+	requestBody, err := constructUpdateResource(ctx, &plan)
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error constructing resource for update method",
+			"Error constructing agent user for update",
 			fmt.Sprintf("Could not construct resource: %s: %s", ResourceName, err.Error()),
 		)
 		return
@@ -197,8 +188,39 @@ func (r *AgentUserResource) Update(ctx context.Context, req resource.UpdateReque
 		return
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Waiting for eventual consistency before reading updated resource %s with ID: %s", plan.DisplayName.ValueString(), state.ID.ValueString()))
-	time.Sleep(15 * time.Second)
+	// Handle sponsor changes
+	sponsorsToAdd, sponsorsToRemove := ResolveSponsorChanges(ctx, &state, &plan)
+
+	adapter := r.client.GetAdapter()
+
+	for _, sponsorID := range sponsorsToRemove {
+		if err := RemoveSponsor(ctx, adapter, state.ID.ValueString(), sponsorID); err != nil {
+			resp.Diagnostics.AddError(
+				"Error removing sponsor",
+				fmt.Sprintf("Could not remove sponsor %s from %s: %s", sponsorID, ResourceName, err.Error()),
+			)
+			return
+		}
+	}
+
+	for _, sponsorID := range sponsorsToAdd {
+		if err := AddSponsor(ctx, adapter, state.ID.ValueString(), sponsorID); err != nil {
+			resp.Diagnostics.AddError(
+				"Error adding sponsor",
+				fmt.Sprintf("Could not add sponsor %s to %s: %s", sponsorID, ResourceName, err.Error()),
+			)
+			return
+		}
+	}
+
+	tflog.Debug(ctx, "Waiting 5 seconds for eventual consistency after update")
+	time.Sleep(5 * time.Second)
+
+	plan.ID = state.ID
+	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
 	readReq := resource.ReadRequest{State: resp.State, ProviderMeta: req.ProviderMeta}
 	stateContainer := &crud.UpdateResponseContainer{UpdateResponse: resp}
@@ -216,37 +238,69 @@ func (r *AgentUserResource) Update(ctx context.Context, req resource.UpdateReque
 		return
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Finished updating %s with ID: %s", ResourceName, state.ID.ValueString()))
+	tflog.Debug(ctx, fmt.Sprintf("Finished Update Method: %s", ResourceName))
 }
 
-// Delete handles the Delete operation.
+// Delete handles the Delete operation for resource Agent User.
+// When hard_delete is true, the user is deleted in two steps:
+// 1. Delete the user (soft delete - moves to deleted items)
+// 2. Wait for the resource to appear in deleted items (handles eventual consistency)
+// 3. Permanently delete from /directory/deleteditems/{id}
+// 4. Verify deletion by confirming resource is gone
+// When hard_delete is false (default), only the soft delete is performed.
+// REF: https://learn.microsoft.com/en-us/graph/api/agentuser-delete?view=graph-rest-beta
+// REF: https://learn.microsoft.com/en-us/graph/api/directory-deleteditems-list?view=graph-rest-beta
+// REF: https://learn.microsoft.com/en-us/graph/api/directory-deleteditems-delete?view=graph-rest-beta
 func (r *AgentUserResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var data AgentUserResourceModel
+	var object AgentUserResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting deletion of resource: %s", ResourceName))
 
-	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	ctx, cancel := crud.HandleTimeout(ctx, data.Timeouts.Delete, DeleteTimeout*time.Second, &resp.Diagnostics)
+	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Delete, DeleteTimeout*time.Second, &resp.Diagnostics)
 	if cancel == nil {
 		return
 	}
 	defer cancel()
 
-	err := r.client.
-		Users().
-		ByUserId(data.ID.ValueString()).
-		Delete(ctx, nil)
+	agentUserId := object.ID.ValueString()
 
-	if err != nil {
-		errors.HandleKiotaGraphError(ctx, err, resp, "Delete", r.WritePermissions)
-		return
+	// Define the soft delete function
+	softDeleteFunc := func(ctx context.Context) error {
+		return r.client.
+			Users().
+			ByUserId(agentUserId).
+			Delete(ctx, nil)
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Removing %s from Terraform state", ResourceName))
+	// Define delete options
+	deleteOpts := directory.DeleteOptions{
+		MaxRetries:    10,
+		RetryInterval: 5 * time.Second,
+		ResourceType:  directory.ResourceTypeUser,
+		ResourceID:    agentUserId,
+		ResourceName:  object.DisplayName.ValueString(),
+	}
+
+	err := directory.ExecuteDeleteWithVerification(
+		ctx,
+		r.client,
+		softDeleteFunc,
+		object.HardDelete.ValueBool(),
+		deleteOpts,
+	)
+
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Delete Failed",
+			fmt.Sprintf("Failed to delete %s: %s", ResourceName, err.Error()),
+		)
+		return
+	}
 
 	resp.State.RemoveResource(ctx)
 

@@ -16,4 +16,5 @@ resource "microsoft365_graph_beta_agents_agent_identity_blueprint" "test_maximal
     "test",
     "agent"
   ]
+  hard_delete = true
 }

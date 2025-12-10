@@ -11,5 +11,6 @@ resource "microsoft365_graph_beta_groups_group" "m365_role_assignable" {
   description           = "Microsoft 365 group for executive leadership"
   is_assignable_to_role = true
   visibility            = "Private"
+  hard_delete           = true
 }
 

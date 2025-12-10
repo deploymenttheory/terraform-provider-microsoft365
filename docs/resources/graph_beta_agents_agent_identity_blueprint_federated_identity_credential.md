@@ -56,6 +56,7 @@ resource "microsoft365_graph_beta_agents_agent_identity_blueprint" "example" {
   sponsor_user_ids = ["00000000-0000-0000-0000-000000000000"]
   owner_user_ids   = ["00000000-0000-0000-0000-000000000000"]
   description      = "Agent identity blueprint for GitHub Actions workflows"
+  hard_delete      = true
 }
 
 # Create a federated identity credential for GitHub Actions
@@ -86,6 +87,7 @@ resource "microsoft365_graph_beta_agents_agent_identity_blueprint" "example" {
   sponsor_user_ids = ["00000000-0000-0000-0000-000000000000"]
   owner_user_ids   = ["00000000-0000-0000-0000-000000000000"]
   description      = "Agent identity blueprint for AKS workloads"
+  hard_delete      = true
 }
 
 # Create a federated identity credential for AKS workload identity
@@ -116,6 +118,7 @@ resource "microsoft365_graph_beta_agents_agent_identity_blueprint" "example" {
   sponsor_user_ids = ["00000000-0000-0000-0000-000000000000"]
   owner_user_ids   = ["00000000-0000-0000-0000-000000000000"]
   description      = "Agent identity blueprint for AWS workloads"
+  hard_delete      = true
 }
 
 # Create a federated identity credential for AWS IAM

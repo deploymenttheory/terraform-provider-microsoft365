@@ -16,12 +16,12 @@ import (
 func constructResource(ctx context.Context, data *AgentIdentityResourceModel, isCreate bool) (graphmodels.ServicePrincipalable, error) {
 	tflog.Debug(ctx, fmt.Sprintf("Constructing %s resource from model (isCreate: %t)", ResourceName, isCreate))
 
-	requestBody := graphmodels.NewServicePrincipal()
+	requestBody := graphmodels.NewAgentIdentity()
 
 	if isCreate {
 		// Set @odata.type to specify this is an agentIdentity
-		odataType := "#microsoft.graph.agentIdentity"
-		requestBody.SetOdataType(&odataType)
+		// odataType := "#microsoft.graph.agentIdentity"
+		// requestBody.SetOdataType(&odataType)
 
 		// Set the blueprint ID - required for creation
 		additionalData := make(map[string]any)

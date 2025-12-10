@@ -72,7 +72,8 @@ func TestUnitAgentIdentityResource_Minimal(t *testing.T) {
 					}
 					id := rs.Primary.Attributes["id"]
 					blueprintId := rs.Primary.Attributes["agent_identity_blueprint_id"]
-					return fmt.Sprintf("%s/%s", id, blueprintId), nil
+					hardDelete := rs.Primary.Attributes["hard_delete"]
+					return fmt.Sprintf("%s/%s:hard_delete=%s", id, blueprintId, hardDelete), nil
 				},
 				ImportStateVerify: true,
 			},
@@ -110,7 +111,8 @@ func TestUnitAgentIdentityResource_WithTags(t *testing.T) {
 					}
 					id := rs.Primary.Attributes["id"]
 					blueprintId := rs.Primary.Attributes["agent_identity_blueprint_id"]
-					return fmt.Sprintf("%s/%s", id, blueprintId), nil
+					hardDelete := rs.Primary.Attributes["hard_delete"]
+					return fmt.Sprintf("%s/%s:hard_delete=%s", id, blueprintId, hardDelete), nil
 				},
 				ImportStateVerify: true,
 			},

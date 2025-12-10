@@ -15,12 +15,14 @@ import (
 // mockState tracks the state of resources for consistent responses
 var mockState struct {
 	sync.Mutex
-	groups map[string]map[string]any
+	groups       map[string]map[string]any
+	deletedItems map[string]map[string]any
 }
 
 func init() {
 	// Initialize mockState
 	mockState.groups = make(map[string]map[string]any)
+	mockState.deletedItems = make(map[string]map[string]any)
 
 	// Register a default 404 responder for any unmatched requests
 	httpmock.RegisterNoResponder(httpmock.NewStringResponder(404, `{"error":{"code":"ResourceNotFound","message":"Resource not found"}}`))
@@ -40,6 +42,7 @@ func (m *GroupMock) RegisterMocks() {
 	// Reset the state when registering mocks
 	mockState.Lock()
 	mockState.groups = make(map[string]map[string]any)
+	mockState.deletedItems = make(map[string]map[string]any)
 	mockState.Unlock()
 
 	// Register GET for listing groups
@@ -82,7 +85,8 @@ func (m *GroupMock) RegisterMocks() {
 				return resp, nil
 			}
 
-			return httpmock.NewStringResponse(404, `{"error":{"code":"ResourceNotFound","message":"Resource not found"}}`), nil
+			errorResp, _ := helpers.ParseJSONFile("../tests/responses/error_not_found.json")
+			return httpmock.NewStringResponse(404, errorResp), nil
 		})
 
 	// Register POST for creating groups
@@ -90,7 +94,8 @@ func (m *GroupMock) RegisterMocks() {
 		func(req *http.Request) (*http.Response, error) {
 			var requestBody map[string]any
 			if err := json.NewDecoder(req.Body).Decode(&requestBody); err != nil {
-				return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"Invalid request body"}}`), nil
+				errorResp, _ := helpers.ParseJSONFile("../tests/responses/error_bad_request.json")
+				return httpmock.NewStringResponse(400, errorResp), nil
 			}
 
 			// Generate a new ID for the group
@@ -159,7 +164,8 @@ func (m *GroupMock) RegisterMocks() {
 
 			var requestBody map[string]any
 			if err := json.NewDecoder(req.Body).Decode(&requestBody); err != nil {
-				return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"Invalid request body"}}`), nil
+				errorResp, _ := helpers.ParseJSONFile("../tests/responses/error_bad_request.json")
+				return httpmock.NewStringResponse(400, errorResp), nil
 			}
 
 			mockState.Lock()
@@ -173,10 +179,12 @@ func (m *GroupMock) RegisterMocks() {
 				return httpmock.NewStringResponse(204, ""), nil
 			}
 
-			return httpmock.NewStringResponse(404, `{"error":{"code":"ResourceNotFound","message":"Resource not found"}}`), nil
+			errorResp, _ := helpers.ParseJSONFile("../tests/responses/error_not_found.json")
+			return httpmock.NewStringResponse(404, errorResp), nil
 		})
 
-	// Register DELETE for deleting groups
+	// Register DELETE for deleting groups (soft delete)
+	// Moves item to deletedItems collection instead of permanently deleting
 	httpmock.RegisterResponder("DELETE", `=~^https://graph\.microsoft\.com/beta/groups/([a-fA-F0-9\-]+)`,
 		func(req *http.Request) (*http.Response, error) {
 			groupID := httpmock.MustGetSubmatch(req, 1)
@@ -184,17 +192,61 @@ func (m *GroupMock) RegisterMocks() {
 			mockState.Lock()
 			defer mockState.Unlock()
 
-			if _, exists := mockState.groups[groupID]; exists {
+			if group, exists := mockState.groups[groupID]; exists {
+				// Move to deletedItems (soft delete behavior)
+				mockState.deletedItems[groupID] = group
 				delete(mockState.groups, groupID)
 				return httpmock.NewStringResponse(204, ""), nil
 			}
 
-			return httpmock.NewStringResponse(404, `{"error":{"code":"ResourceNotFound","message":"Resource not found"}}`), nil
+			errorResp, _ := helpers.ParseJSONFile("../tests/responses/error_not_found.json")
+			return httpmock.NewStringResponse(404, errorResp), nil
+		})
+
+	// Get deleted item - GET /directory/deletedItems/{id}
+	// Used for soft delete verification (polling until resource appears in deleted items)
+	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/directory/deletedItems/([a-fA-F0-9\-]+)`,
+		func(req *http.Request) (*http.Response, error) {
+			resourceID := httpmock.MustGetSubmatch(req, 1)
+
+			mockState.Lock()
+			defer mockState.Unlock()
+
+			if deletedItem, exists := mockState.deletedItems[resourceID]; exists {
+				respBody, _ := json.Marshal(deletedItem)
+				resp := httpmock.NewStringResponse(200, string(respBody))
+				resp.Header.Set("Content-Type", "application/json")
+				return resp, nil
+			}
+
+			errorResp, _ := helpers.ParseJSONFile("../tests/responses/error_not_found.json")
+			return httpmock.NewStringResponse(404, errorResp), nil
+		})
+
+	// Permanent delete from deleted items - DELETE /directory/deletedItems/{id}
+	// REF: https://learn.microsoft.com/en-us/graph/api/directory-deleteditems-delete?view=graph-rest-beta
+	httpmock.RegisterResponder("DELETE", `=~^https://graph\.microsoft\.com/beta/directory/deletedItems/([a-fA-F0-9\-]+)`,
+		func(req *http.Request) (*http.Response, error) {
+			resourceID := httpmock.MustGetSubmatch(req, 1)
+
+			mockState.Lock()
+			defer mockState.Unlock()
+
+			if _, exists := mockState.deletedItems[resourceID]; exists {
+				delete(mockState.deletedItems, resourceID)
+				return httpmock.NewStringResponse(204, ""), nil
+			}
+
+			errorResp, _ := helpers.ParseJSONFile("../tests/responses/error_not_found.json")
+			return httpmock.NewStringResponse(404, errorResp), nil
 		})
 }
 
 // RegisterErrorMocks registers HTTP mock responses that return errors for testing error handling
 func (m *GroupMock) RegisterErrorMocks() {
+	errorBadRequest, _ := helpers.ParseJSONFile("../tests/responses/error_bad_request.json")
+	errorNotFound, _ := helpers.ParseJSONFile("../tests/responses/error_not_found.json")
+
 	httpmock.RegisterResponder("POST", "https://graph.microsoft.com/beta/groups",
 		func(req *http.Request) (*http.Response, error) {
 			jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_error/error_invalid_display_name.json")
@@ -206,6 +258,18 @@ func (m *GroupMock) RegisterErrorMocks() {
 			jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_error/error_resource_not_found.json")
 			return httpmock.NewStringResponse(404, jsonStr), nil
 		})
+
+	httpmock.RegisterResponder("PATCH", `=~^https://graph\.microsoft\.com/beta/groups/([a-fA-F0-9\-]+)`,
+		httpmock.NewStringResponder(400, errorBadRequest))
+
+	httpmock.RegisterResponder("DELETE", `=~^https://graph\.microsoft\.com/beta/groups/([a-fA-F0-9\-]+)`,
+		httpmock.NewStringResponder(400, errorBadRequest))
+
+	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/directory/deletedItems/([a-fA-F0-9\-]+)`,
+		httpmock.NewStringResponder(404, errorNotFound))
+
+	httpmock.RegisterResponder("DELETE", `=~^https://graph\.microsoft\.com/beta/directory/deletedItems/([a-fA-F0-9\-]+)`,
+		httpmock.NewStringResponder(400, errorBadRequest))
 }
 
 // CleanupMockState cleans up the mock state (called after each test)
@@ -213,4 +277,5 @@ func (m *GroupMock) CleanupMockState() {
 	mockState.Lock()
 	defer mockState.Unlock()
 	mockState.groups = make(map[string]map[string]any)
+	mockState.deletedItems = make(map[string]map[string]any)
 }

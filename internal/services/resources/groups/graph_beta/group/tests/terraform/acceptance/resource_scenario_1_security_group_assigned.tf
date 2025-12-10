@@ -9,5 +9,6 @@ resource "microsoft365_graph_beta_groups_group" "scenario_1" {
   mail_nickname    = "accsg1${random_string.group_suffix.result}"
   security_enabled = true
   description      = "Acceptance test - Security group with assigned membership"
+  hard_delete      = true
 }
 

@@ -1,6 +1,7 @@
 package graphBetaGroup_test
 
 import (
+	"fmt"
 	"regexp"
 	"testing"
 
@@ -10,6 +11,7 @@ import (
 	graphBetaGroup "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/groups/graph_beta/group"
 	groupMocks "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/groups/graph_beta/group/mocks"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/jarcoal/httpmock"
 )
 
@@ -194,8 +196,16 @@ func TestGroupResource_Scenario1_SecurityGroupAssigned(t *testing.T) {
 				),
 			},
 			{
-				ResourceName:      resourceType + ".scenario_1",
-				ImportState:       true,
+				ResourceName: resourceType + ".scenario_1",
+				ImportState:  true,
+				ImportStateIdFunc: func(s *terraform.State) (string, error) {
+					rs, ok := s.RootModule().Resources[resourceType+".scenario_1"]
+					if !ok {
+						return "", fmt.Errorf("resource not found: %s", resourceType+".scenario_1")
+					}
+					hardDelete := rs.Primary.Attributes["hard_delete"]
+					return fmt.Sprintf("%s:hard_delete=%s", rs.Primary.ID, hardDelete), nil
+				},
 				ImportStateVerify: true,
 			},
 		},
@@ -226,8 +236,16 @@ func TestGroupResource_Scenario2_SecurityGroupDynamicUser(t *testing.T) {
 				),
 			},
 			{
-				ResourceName:      resourceType + ".scenario_2",
-				ImportState:       true,
+				ResourceName: resourceType + ".scenario_2",
+				ImportState:  true,
+				ImportStateIdFunc: func(s *terraform.State) (string, error) {
+					rs, ok := s.RootModule().Resources[resourceType+".scenario_2"]
+					if !ok {
+						return "", fmt.Errorf("resource not found: %s", resourceType+".scenario_2")
+					}
+					hardDelete := rs.Primary.Attributes["hard_delete"]
+					return fmt.Sprintf("%s:hard_delete=%s", rs.Primary.ID, hardDelete), nil
+				},
 				ImportStateVerify: true,
 			},
 		},
@@ -258,8 +276,16 @@ func TestGroupResource_Scenario3_SecurityGroupDynamicDevice(t *testing.T) {
 				),
 			},
 			{
-				ResourceName:      resourceType + ".scenario_3",
-				ImportState:       true,
+				ResourceName: resourceType + ".scenario_3",
+				ImportState:  true,
+				ImportStateIdFunc: func(s *terraform.State) (string, error) {
+					rs, ok := s.RootModule().Resources[resourceType+".scenario_3"]
+					if !ok {
+						return "", fmt.Errorf("resource not found: %s", resourceType+".scenario_3")
+					}
+					hardDelete := rs.Primary.Attributes["hard_delete"]
+					return fmt.Sprintf("%s:hard_delete=%s", rs.Primary.ID, hardDelete), nil
+				},
 				ImportStateVerify: true,
 			},
 		},
@@ -289,8 +315,16 @@ func TestGroupResource_Scenario4_SecurityGroupRoleAssignable(t *testing.T) {
 				),
 			},
 			{
-				ResourceName:      resourceType + ".scenario_4",
-				ImportState:       true,
+				ResourceName: resourceType + ".scenario_4",
+				ImportState:  true,
+				ImportStateIdFunc: func(s *terraform.State) (string, error) {
+					rs, ok := s.RootModule().Resources[resourceType+".scenario_4"]
+					if !ok {
+						return "", fmt.Errorf("resource not found: %s", resourceType+".scenario_4")
+					}
+					hardDelete := rs.Primary.Attributes["hard_delete"]
+					return fmt.Sprintf("%s:hard_delete=%s", rs.Primary.ID, hardDelete), nil
+				},
 				ImportStateVerify: true,
 			},
 		},
@@ -322,8 +356,16 @@ func TestGroupResource_Scenario5_M365GroupDynamicUser(t *testing.T) {
 				),
 			},
 			{
-				ResourceName:      resourceType + ".scenario_5",
-				ImportState:       true,
+				ResourceName: resourceType + ".scenario_5",
+				ImportState:  true,
+				ImportStateIdFunc: func(s *terraform.State) (string, error) {
+					rs, ok := s.RootModule().Resources[resourceType+".scenario_5"]
+					if !ok {
+						return "", fmt.Errorf("resource not found: %s", resourceType+".scenario_5")
+					}
+					hardDelete := rs.Primary.Attributes["hard_delete"]
+					return fmt.Sprintf("%s:hard_delete=%s", rs.Primary.ID, hardDelete), nil
+				},
 				ImportStateVerify: true,
 			},
 		},
@@ -355,8 +397,16 @@ func TestGroupResource_Scenario6_M365GroupAssigned(t *testing.T) {
 				),
 			},
 			{
-				ResourceName:      resourceType + ".scenario_6",
-				ImportState:       true,
+				ResourceName: resourceType + ".scenario_6",
+				ImportState:  true,
+				ImportStateIdFunc: func(s *terraform.State) (string, error) {
+					rs, ok := s.RootModule().Resources[resourceType+".scenario_6"]
+					if !ok {
+						return "", fmt.Errorf("resource not found: %s", resourceType+".scenario_6")
+					}
+					hardDelete := rs.Primary.Attributes["hard_delete"]
+					return fmt.Sprintf("%s:hard_delete=%s", rs.Primary.ID, hardDelete), nil
+				},
 				ImportStateVerify: true,
 			},
 		},

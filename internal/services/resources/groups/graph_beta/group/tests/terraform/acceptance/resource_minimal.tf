@@ -8,5 +8,6 @@ resource "microsoft365_graph_beta_groups_group" "test" {
   mail_nickname    = "acctestgroup${random_string.group_suffix.result}"
   mail_enabled     = false
   security_enabled = true
+  hard_delete      = true
 }
 

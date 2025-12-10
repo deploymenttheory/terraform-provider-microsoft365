@@ -10,5 +10,6 @@ resource "microsoft365_graph_beta_groups_group" "security_dynamic_users" {
   group_types                      = ["DynamicMembership"]
   membership_rule                  = "(user.accountEnabled -eq true)"
   membership_rule_processing_state = "On"
+  hard_delete                      = true
 }
 

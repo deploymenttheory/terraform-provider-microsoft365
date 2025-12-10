@@ -53,11 +53,13 @@ resource "microsoft365_graph_beta_agents_agent_identity_blueprint" "example" {
   sponsor_user_ids = ["00000000-0000-0000-0000-000000000000"]
   owner_user_ids   = ["00000000-0000-0000-0000-000000000000"]
   description      = "Example agent identity blueprint for service principal creation"
+  hard_delete      = true
 }
 
 # Create a service principal for the blueprint
 resource "microsoft365_graph_beta_agents_agent_identity_blueprint_service_principal" "example" {
-  app_id = microsoft365_graph_beta_agents_agent_identity_blueprint.example.app_id
+  app_id      = microsoft365_graph_beta_agents_agent_identity_blueprint.example.app_id
+  hard_delete = true
 }
 
 # Output the service principal ID
@@ -76,6 +78,7 @@ output "service_principal_id" {
 
 ### Optional
 
+- `hard_delete` (Boolean) When set to `true`, the resource will be permanently deleted from the Entra ID (hard delete) rather than being moved to deleted items (soft delete). This prevents the resource from being restored and immediately frees up the resource name for reuse. When `false` (default), the resource is soft deleted and can be restored within 30 days. Note: This field defaults to `false` on import since the API does not return this value.
 - `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))
 
 ### Read-Only
@@ -98,6 +101,15 @@ Import is supported using the following syntax:
 
 ```shell
 # Import an existing agent identity blueprint service principal
-# The import ID is the service principal's object ID
+# The import ID format is: {service_principal_id}[:hard_delete=true|false]
+#
+# Where:
+# - {service_principal_id} is the service principal's object ID
+# - hard_delete is optional (defaults to false for soft delete only)
+
+# Basic import (hard_delete defaults to false - soft delete only)
 terraform import microsoft365_graph_beta_agents_agent_identity_blueprint_service_principal.example "00000000-0000-0000-0000-000000000000"
+
+# Import with hard_delete enabled (permanently deletes on terraform destroy)
+terraform import microsoft365_graph_beta_agents_agent_identity_blueprint_service_principal.example "00000000-0000-0000-0000-000000000000:hard_delete=true"
 ```

@@ -7,5 +7,6 @@ resource "microsoft365_graph_beta_groups_group" "scenario_5" {
   membership_rule                  = "(user.accountEnabled -eq true)"
   membership_rule_processing_state = "On"
   visibility                       = "Private"
+  hard_delete                      = true
 }
 

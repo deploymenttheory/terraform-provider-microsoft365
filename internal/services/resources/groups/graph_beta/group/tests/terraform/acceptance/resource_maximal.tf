@@ -10,4 +10,5 @@ resource "microsoft365_graph_beta_groups_group" "test" {
   mail_enabled     = false
   security_enabled = true
   visibility       = "Private"
+  hard_delete      = true
 }

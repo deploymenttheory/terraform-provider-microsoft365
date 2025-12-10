@@ -1,15 +1,15 @@
 {
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#users/$entity",
   "id": "00000000-0000-0000-0000-000000000002",
-  "displayName": "unit-test-agent-user-maximal",
-  "userPrincipalName": "unit-test-agent-user-maximal@deploymenttheory.com",
+  "displayName": "unit-test-user-maximal",
+  "userPrincipalName": "unit-test-user-maximal@deploymenttheory.com",
   "accountEnabled": true,
   "givenName": "Maximal",
   "surname": "User",
-  "mail": "unit-test-agent-user-maximal@deploymenttheory.com",
-  "mailNickname": "unit-test-agent-user-maximal",
-  "identityParentId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
-  "jobTitle": "Marketing Agent",
-  "department": "Marketing",
+  "mail": "unit-test-user-maximal@deploymenttheory.com",
+  "mailNickname": "unit-test-user-maximal",
+  "jobTitle": "Senior Developer",
+  "department": "Engineering",
   "companyName": "Deployment Theory",
   "officeLocation": "Building A",
   "city": "Redmond",
@@ -28,7 +28,12 @@
   "employeeHireDate": "2025-11-21T00:00:00Z",
   "preferredLanguage": "en-US",
   "passwordPolicies": "DisablePasswordExpiration",
-  "otherMails": ["unit-test-agent-user-maximal2.other@deploymenttheory.com"],
+  "passwordProfile": {
+    "forceChangePasswordNextSignIn": false,
+    "forceChangePasswordNextSignInWithMfa": false
+  },
+  "otherMails": ["unit-test-user-maximal2.other@deploymenttheory.com"],
   "showInAddressList": true,
   "createdDateTime": "2023-01-01T00:00:00Z"
 }
+

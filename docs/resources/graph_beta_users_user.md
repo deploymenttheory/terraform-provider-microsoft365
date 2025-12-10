@@ -42,6 +42,7 @@ resource "microsoft365_graph_beta_users_user" "minimal_example" {
   account_enabled     = true
   user_principal_name = "john.doe@contoso.com"
   mail_nickname       = "johndoe"
+  hard_delete         = true
   password_profile = {
     password                           = "SecurePassword123!"
     force_change_password_next_sign_in = true
@@ -54,6 +55,7 @@ resource "microsoft365_graph_beta_users_user" "minimal_example" {
 ```terraform
 resource "microsoft365_graph_beta_users_user" "maximal" {
   account_enabled = true
+  hard_delete     = true
 
   // Identity
   display_name        = "acc-test-user-maximal"
@@ -106,6 +108,7 @@ resource "microsoft365_graph_beta_users_user" "with_custom_security_attributes" 
   user_principal_name = "custom.sec.user@deploymenttheory.com"
   mail_nickname       = "custom.sec.user"
   account_enabled     = true
+  hard_delete         = true
   password_profile = {
     password                           = "SecureP@ssw0rd123!"
     force_change_password_next_sign_in = false
@@ -165,6 +168,7 @@ resource "microsoft365_graph_beta_users_user" "with_custom_security_attributes" 
 - `employee_type` (String) Captures enterprise worker type. For example, `Employee`, `Contractor`, `Consultant`, or `Vendor`.
 - `fax_number` (String) The fax number of the user.
 - `given_name` (String) The given name (first name) of the user. Maximum length is 64 characters.
+- `hard_delete` (Boolean) When `true`, the user will be permanently deleted (hard delete) during destroy. When `false` (default), the user will only be soft deleted and moved to the deleted items container where it can be restored within 30 days. Note: This field defaults to `false` on import since the API does not return this value.
 - `job_title` (String) The user's job title. Maximum length is 128 characters.
 - `mail` (String) The SMTP address for the user, for example, `jeff@contoso.com`. Changes to this property also update the user's proxyAddresses collection to include the value as an SMTP address.
 - `manager_id` (String) The user ID of the user's manager. Used to set the organizational hierarchy. To update the manager, provide the user ID of the new manager. To remove the manager, set this to an empty string.
@@ -272,6 +276,16 @@ Import is supported using the following syntax:
 ```shell
 #!/bin/bash
 
-# {user_id}
+# Import an existing user into Terraform
+# The import ID format is: {user_id}[:hard_delete=true|false]
+#
+# Where:
+# - {user_id} is the unique identifier for the user
+# - hard_delete is optional (defaults to false for soft delete only)
+
+# Basic import (hard_delete defaults to false - soft delete only)
 terraform import microsoft365_graph_beta_users_user.example 00000000-0000-0000-0000-000000000000
+
+# Import with hard_delete enabled (permanently deletes on terraform destroy)
+terraform import microsoft365_graph_beta_users_user.example "00000000-0000-0000-0000-000000000000:hard_delete=true"
 ``` 

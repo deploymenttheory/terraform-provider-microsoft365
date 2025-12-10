@@ -17,5 +17,6 @@ type AgentIdentityBlueprintResourceModel struct {
 	Tags           types.Set      `tfsdk:"tags"`
 	SponsorUserIds types.Set      `tfsdk:"sponsor_user_ids"`
 	OwnerUserIds   types.Set      `tfsdk:"owner_user_ids"`
+	HardDelete     types.Bool     `tfsdk:"hard_delete"`
 	Timeouts       timeouts.Value `tfsdk:"timeouts"`
 }

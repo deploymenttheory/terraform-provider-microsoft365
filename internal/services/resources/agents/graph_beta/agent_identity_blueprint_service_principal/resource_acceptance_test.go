@@ -1,6 +1,7 @@
 package graphBetaApplicationsAgentIdentityBlueprintServicePrincipal_test
 
 import (
+	"fmt"
 	"regexp"
 	"testing"
 	"time"
@@ -48,8 +49,16 @@ func TestAccAgentIdentityBlueprintServicePrincipalResource_Minimal(t *testing.T)
 				PreConfig: func() {
 					testlog.StepAction(resourceType, "Step 2: Import state verification")
 				},
-				ResourceName:      resourceType + ".test_minimal",
-				ImportState:       true,
+				ResourceName: resourceType + ".test_minimal",
+				ImportState:  true,
+				ImportStateIdFunc: func(s *terraform.State) (string, error) {
+					rs, ok := s.RootModule().Resources[resourceType+".test_minimal"]
+					if !ok {
+						return "", fmt.Errorf("resource not found: %s", resourceType+".test_minimal")
+					}
+					hardDelete := rs.Primary.Attributes["hard_delete"]
+					return fmt.Sprintf("%s:hard_delete=%s", rs.Primary.ID, hardDelete), nil
+				},
 				ImportStateVerify: true,
 			},
 		},
