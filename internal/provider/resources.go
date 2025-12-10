@@ -116,6 +116,7 @@ import (
 	graphBetaUsersUserLicenseAssignment "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/users/graph_beta/license_assignment"
 	graphBetaUsersUser "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/users/graph_beta/user"
 	graphBetaUsersUserMailboxSettings "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/users/graph_beta/user_mailbox_settings"
+	graphBetaUsersUserManager "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/users/graph_beta/user_manager"
 
 	// Graph Beta - Directory resources
 
@@ -271,6 +272,7 @@ func (p *M365Provider) Resources(ctx context.Context) []func() resource.Resource
 		graphBetaUsersUserLicenseAssignment.NewUserLicenseAssignmentResource,
 		graphBetaUsersUser.NewUserResource,
 		graphBetaUsersUserMailboxSettings.NewUserMailboxSettingsResource,
+		graphBetaUsersUserManager.NewUserManagerResource,
 
 		// Graph Beta - Group resources
 		graphBetaGroup.NewGroupResource,

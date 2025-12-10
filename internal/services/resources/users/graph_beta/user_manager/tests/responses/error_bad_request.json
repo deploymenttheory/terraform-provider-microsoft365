@@ -1,0 +1,11 @@
+{
+  "error": {
+    "code": "BadRequest",
+    "message": "Invalid request",
+    "innerError": {
+      "date": "2023-01-01T00:00:00",
+      "request-id": "00000000-0000-0000-0000-000000000000"
+    }
+  }
+}
+

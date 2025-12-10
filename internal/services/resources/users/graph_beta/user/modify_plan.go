@@ -13,5 +13,5 @@ func (r *UserResource) ModifyPlan(ctx context.Context, req resource.ModifyPlanRe
 		return
 	}
 
-	tflog.Debug(ctx, "Modify Plan - no modifications needed for device health script assignments")
+	tflog.Debug(ctx, "Modify Plan - no modifications needed for user resource")
 }
