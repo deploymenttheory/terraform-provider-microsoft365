@@ -5,6 +5,7 @@ import (
 
 	// Graph Beta - Agents
 	graphBetaAgentCollection "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/agents/graph_beta/agent_collection"
+	graphBetaAgentCollectionAssignment "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/agents/graph_beta/agent_collection_assignment"
 	graphBetaAgentIdentity "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/agents/graph_beta/agent_identity"
 	graphBetaApplicationsAgentIdentityBlueprint "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/agents/graph_beta/agent_identity_blueprint"
 	graphBetaAgentIdentityBlueprintCertificateCredential "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/agents/graph_beta/agent_identity_blueprint_certificate_credential"
@@ -172,6 +173,7 @@ func (p *M365Provider) Resources(ctx context.Context) []func() resource.Resource
 
 		// Agents
 		graphBetaAgentCollection.NewAgentCollectionResource,
+		graphBetaAgentCollectionAssignment.NewAgentCollectionAssignmentResource,
 		graphBetaAgentIdentity.NewAgentIdentityResource,
 		graphBetaAgentInstance.NewAgentInstanceResource,
 		graphBetaAgentUser.NewAgentUserResource,

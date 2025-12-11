@@ -1,4 +1,4 @@
-package graphBetaAgentCollection
+package graphBetaAgentsAgentCollection
 
 import (
 	"context"
@@ -41,8 +41,6 @@ func NewAgentCollectionResource() resource.Resource {
 		WritePermissions: []string{
 			"AgentCollection.ReadWrite.All",
 			"AgentCollection.ReadWrite.ManagedBy",
-			"AgentCollection.ReadWrite.Global",
-			"AgentCollection.ReadWrite.Quarantined",
 		},
 		ResourcePath: "/agentRegistry/agentCollections",
 	}
