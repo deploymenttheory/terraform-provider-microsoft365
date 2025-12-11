@@ -42,8 +42,8 @@ resource "microsoft365_graph_beta_users_user" "dependency_user_update_2" {
 ########################################################################################
 
 resource "microsoft365_graph_beta_agents_agent_instance" "test_update" {
-  display_name        = "acc-test-agent-update-maximal-${random_string.test_id_update.result}"
-  owner_ids           = [
+  display_name = "acc-test-agent-update-maximal-${random_string.test_id_update.result}"
+  owner_ids = [
     microsoft365_graph_beta_users_user.dependency_user_update_1.id,
     microsoft365_graph_beta_users_user.dependency_user_update_2.id
   ]

@@ -45,8 +45,8 @@ resource "microsoft365_graph_beta_users_user" "dependency_user_maximal_2" {
 ########################################################################################
 
 resource "microsoft365_graph_beta_agents_agent_instance" "test_maximal" {
-  display_name        = "IT Service Desk Agent - ${random_string.test_id_maximal.result}"
-  owner_ids           = [
+  display_name = "IT Service Desk Agent - ${random_string.test_id_maximal.result}"
+  owner_ids = [
     microsoft365_graph_beta_users_user.dependency_user_maximal_1.id,
     microsoft365_graph_beta_users_user.dependency_user_maximal_2.id
   ]
