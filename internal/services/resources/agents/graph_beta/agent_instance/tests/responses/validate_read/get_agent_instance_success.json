@@ -1,0 +1,39 @@
+{
+  "@odata.type": "#microsoft.graph.agentInstance",
+  "id": "00000000-0000-0000-0000-000000000000",
+  "displayName": "Test Agent Instance",
+  "ownerIds": ["11111111-1111-1111-1111-111111111111"],
+  "managedBy": null,
+  "originatingStore": "Terraform",
+  "createdBy": "22222222-2222-2222-2222-222222222222",
+  "sourceAgentId": null,
+  "agentIdentityBlueprintId": null,
+  "agentIdentityId": null,
+  "agentUserId": null,
+  "createdDateTime": "2025-01-01T00:00:00Z",
+  "lastModifiedDateTime": "2025-01-01T00:00:00Z",
+  "url": null,
+  "preferredTransport": null,
+  "additionalInterfaces": [],
+  "signatures": [],
+  "agentCardManifest": {
+    "id": "00000000-0000-0000-0000-000000000001",
+    "displayName": "Test Agent Card",
+    "description": "Test agent card manifest description",
+    "iconUrl": null,
+    "protocolVersion": "1.0",
+    "version": "1.0.0",
+    "documentationUrl": null,
+    "defaultInputModes": [],
+    "defaultOutputModes": [],
+    "supportsAuthenticatedExtendedCard": false,
+    "provider": null,
+    "capabilities": {
+      "streaming": false,
+      "pushNotifications": false,
+      "stateTransitionHistory": false,
+      "extensions": []
+    },
+    "skills": []
+  }
+}

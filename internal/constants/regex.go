@@ -59,6 +59,14 @@ const (
 	// Example: "10.0.22631.9999" or "1.1.1.1"
 	OSVersionRegex = `^\d+\.\d+\.\d+\.\d+$`
 
+	// SemVerRegex matches a Semantic Versioning string in the format "X.Y.Z" (Major.Minor.Patch).
+	// Examples: "1.0.0", "2.1.3", "10.20.30"
+	SemVerRegex = `^[0-9]+\.[0-9]+\.[0-9]+$`
+
+	// MajorMinorVersionRegex matches a version string in the format "X.Y" (Major.Minor).
+	// Examples: "1.0", "2.1", "10.20"
+	MajorMinorVersionRegex = `^[0-9]+\.[0-9]+$`
+
 	// TimeFormatUTCTimeStampRegex matches a UTC timestamp in the format "YYYY-MM-DDTHH:MM:SSZ".
 	// Example: "2023-05-01T13:45:30Z"
 	TimeFormatUTCTimeStampRegex = "^(\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z)$"
