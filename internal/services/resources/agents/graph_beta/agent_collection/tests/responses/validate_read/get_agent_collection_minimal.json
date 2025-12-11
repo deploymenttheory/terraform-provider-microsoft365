@@ -1,0 +1,11 @@
+{
+  "@odata.type": "#microsoft.graph.agentCollection",
+  "id": "c2d9e3ff-01a4-890c-f2bc-8edd3bc2eb24",
+  "displayName": "Unit Test Agent Collection Minimal",
+  "ownerIds": [
+    "11111111-1111-1111-1111-111111111111"
+  ],
+  "createdBy": "d47bffae-411a-4de9-8548-05e79bc01f0d",
+  "createdDateTime": "2025-01-01T00:00:00.1234567Z",
+  "lastModifiedDateTime": "2025-01-01T00:00:00.1234567Z"
+}

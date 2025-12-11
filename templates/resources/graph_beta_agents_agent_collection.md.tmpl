@@ -1,0 +1,71 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
+subcategory: "Agents"
+
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Name}} ({{.Type}})
+
+{{ .Description | trimspace }}
+
+## Microsoft Documentation
+
+- [agentCollection resource type](https://learn.microsoft.com/en-us/graph/api/resources/agentcollection?view=graph-rest-beta)
+- [Create agentCollection](https://learn.microsoft.com/en-us/graph/api/agentregistry-post-agentcollections?view=graph-rest-beta&tabs=http)
+- [Get agentCollection](https://learn.microsoft.com/en-us/graph/api/agentcollection-get?view=graph-rest-beta&tabs=http)
+- [Update agentCollection](https://learn.microsoft.com/en-us/graph/api/agentcollection-update?view=graph-rest-beta&tabs=http)
+
+## API Permissions
+
+The following API permissions are required in order to use this resource.
+
+### Microsoft Graph
+
+- **Read**: `AgentCollection.Read.All`
+- **Write**: `AgentCollection.ReadWrite.All`, `AgentCollection.ReadWrite.ManagedBy`
+
+Additional lesser-privileged permissions scoped to special collections:
+- `AgentCollection.Read.Global` and `AgentCollection.ReadWrite.Global` for the **Global** collection
+- `AgentCollection.Read.Quarantined` and `AgentCollection.ReadWrite.Quarantined` for the **Quarantined** collection
+
+## Version History
+
+| Version | Status | Notes |
+|---------|--------|-------|
+| v0.38.0 | Experimental | Initial release |
+
+## Important Notes
+
+~> **Known Issue: Delete Operation Not Working** The Microsoft Graph API DELETE endpoint for agent collections is currently not functioning correctly. When Terraform attempts to destroy an agent collection, the API returns success but the resource is not actually removed. This is a known issue with the Microsoft Graph API and we are waiting for Microsoft to fix it. In the meantime, you may need to manually clean up agent collections or use `terraform state rm` to remove them from state without attempting deletion.
+
+### Reserved Collections
+
+Two system-reserved collections are always available per tenant and cannot be managed via Terraform:
+
+| Collection  | ID                                   | Purpose                                          |
+|-------------|--------------------------------------|--------------------------------------------------|
+| Global      | 00000000-0000-0000-0000-000000000001 | Tenant-wide pool of generally available agents   |
+| Quarantined | 00000000-0000-0000-0000-000000000002 | Holding area for blocked/review-pending agents   |
+
+- Reserved collections cannot be updated or deleted (returns 403 Forbidden)
+- Creating a collection with a reserved displayName returns 409 Conflict
+
+## Example Usage
+
+### Minimal Example
+
+{{ tffile "examples/resources/microsoft365_graph_beta_agents_agent_collection/resource_minimal.tf" }}
+
+### Maximal Example
+
+{{ tffile "examples/resources/microsoft365_graph_beta_agents_agent_collection/resource_maximal.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}
+
+## Import
+
+Import is supported using the following syntax:
+
+{{ codefile "shell" "examples/resources/microsoft365_graph_beta_agents_agent_collection/import.sh" }}
