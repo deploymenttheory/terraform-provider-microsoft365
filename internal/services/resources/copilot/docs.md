@@ -1,0 +1,1 @@
+https://learn.microsoft.com/en-us/microsoft-365-copilot/extensibility/copilot-apis-overview

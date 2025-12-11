@@ -1,0 +1,6 @@
+{
+  "error": {
+    "code": "BadRequest",
+    "message": "Invalid request"
+  }
+}
