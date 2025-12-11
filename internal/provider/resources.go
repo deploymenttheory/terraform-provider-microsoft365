@@ -4,6 +4,7 @@ import (
 	"context"
 
 	// Graph Beta - Agents
+	graphBetaAgentCollection "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/agents/graph_beta/agent_collection"
 	graphBetaAgentIdentity "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/agents/graph_beta/agent_identity"
 	graphBetaApplicationsAgentIdentityBlueprint "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/agents/graph_beta/agent_identity_blueprint"
 	graphBetaAgentIdentityBlueprintCertificateCredential "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/agents/graph_beta/agent_identity_blueprint_certificate_credential"
@@ -170,6 +171,7 @@ func (p *M365Provider) Resources(ctx context.Context) []func() resource.Resource
 		graphBetaApplicationsServicePrincipalAppRoleAssignedTo.NewServicePrincipalAppRoleAssignedToResource,
 
 		// Agents
+		graphBetaAgentCollection.NewAgentCollectionResource,
 		graphBetaAgentIdentity.NewAgentIdentityResource,
 		graphBetaAgentInstance.NewAgentInstanceResource,
 		graphBetaAgentUser.NewAgentUserResource,
