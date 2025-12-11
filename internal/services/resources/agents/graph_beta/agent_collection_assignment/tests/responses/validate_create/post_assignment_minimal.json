@@ -1,0 +1,6 @@
+{
+  "@odata.type": "#microsoft.graph.agentInstance",
+  "id": "11111111-1111-1111-1111-111111111111",
+  "displayName": "Test Agent Instance",
+  "originatingStore": "Microsoft Security Copilot"
+}

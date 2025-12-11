@@ -2,7 +2,7 @@
 // REF: https://learn.microsoft.com/en-us/graph/api/agentregistry-post-agentcollections?view=graph-rest-beta
 // REF: https://learn.microsoft.com/en-us/graph/api/agentcollection-get?view=graph-rest-beta
 // REF: https://learn.microsoft.com/en-us/graph/api/agentcollection-update?view=graph-rest-beta
-package graphBetaAgentCollection
+package graphBetaAgentsAgentCollection
 
 import (
 	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"

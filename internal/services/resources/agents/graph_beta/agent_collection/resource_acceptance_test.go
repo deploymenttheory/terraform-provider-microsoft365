@@ -1,4 +1,4 @@
-package graphBetaAgentCollection_test
+package graphBetaAgentsAgentCollection_test
 
 // currently disabled as the resource doesnt yet support DELETE
 // however the resource has a delete method in the sdk

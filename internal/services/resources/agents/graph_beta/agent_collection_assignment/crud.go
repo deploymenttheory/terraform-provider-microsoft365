@@ -1,4 +1,4 @@
-package graphBetaAgentsAgentCollection
+package graphBetaAgentsAgentCollectionAssignment
 
 import (
 	"context"
@@ -6,17 +6,17 @@ import (
 	"time"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
+	customrequests "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/custom_requests"
 	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
-	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
 // Create handles the Create operation.
-// POST /agentRegistry/agentCollections
-// REF: https://learn.microsoft.com/en-us/graph/api/agentregistry-post-agentcollections?view=graph-rest-beta
-func (r *AgentCollectionResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var object AgentCollectionResourceModel
+// POST /agentRegistry/agentCollections/{agentCollectionId}/members/$ref
+// REF: https://learn.microsoft.com/en-us/graph/api/agentcollection-post-members?view=graph-rest-beta
+func (r *AgentCollectionAssignmentResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	var object AgentCollectionAssignmentResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting creation of resource: %s", ResourceName))
 
@@ -31,34 +31,30 @@ func (r *AgentCollectionResource) Create(ctx context.Context, req resource.Creat
 	}
 	defer cancel()
 
-	requestBody, err := constructResource(ctx, r.client, &object, "")
+	requestBody, err := constructResource(ctx, r.client, &object)
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error constructing agent collection",
+			"Error constructing resource",
 			fmt.Sprintf("Could not construct resource: %s: %s", ResourceName, err.Error()),
 		)
 		return
 	}
 
-	createdResource, err := r.client.
-		AgentRegistry().
-		AgentCollections().
-		Post(ctx, requestBody, nil)
+	agentCollectionID := object.AgentCollectionID.ValueString()
 
+	config := customrequests.PostRequestConfig{
+		APIVersion:  customrequests.GraphAPIBeta,
+		Endpoint:    fmt.Sprintf("agentRegistry/agentCollections/%s/members/$ref", agentCollectionID),
+		RequestBody: requestBody,
+	}
+
+	err = customrequests.PostRequestNoContent(ctx, r.client.GetAdapter(), config)
 	if err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, "Create", r.WritePermissions)
 		return
 	}
 
-	if createdResource.GetId() != nil {
-		object.ID = types.StringValue(*createdResource.GetId())
-	} else {
-		resp.Diagnostics.AddError(
-			"Error reading created resource ID",
-			fmt.Sprintf("Could not extract ID from created resource: %s", ResourceName),
-		)
-		return
-	}
+	SetCompositeID(&object)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
@@ -85,10 +81,10 @@ func (r *AgentCollectionResource) Create(ctx context.Context, req resource.Creat
 }
 
 // Read handles the Read operation.
-// GET /agentRegistry/agentCollections/{agentCollectionId}
-// REF: https://learn.microsoft.com/en-us/graph/api/agentcollection-get?view=graph-rest-beta
-func (r *AgentCollectionResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var object AgentCollectionResourceModel
+// GET /agentRegistry/agentCollections/{agentCollectionId}/members
+// REF: https://learn.microsoft.com/en-us/graph/api/agentcollection-list-members?view=graph-rest-beta
+func (r *AgentCollectionAssignmentResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	var object AgentCollectionAssignmentResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting Read method for: %s", ResourceName))
 
@@ -104,18 +100,23 @@ func (r *AgentCollectionResource) Read(ctx context.Context, req resource.ReadReq
 		return
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Reading %s with ID: %s", ResourceName, object.ID.ValueString()))
-
 	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Read, ReadTimeout*time.Second, &resp.Diagnostics)
 	if cancel == nil {
 		return
 	}
 	defer cancel()
 
-	agentCollection, err := r.client.
+	agentInstanceID := object.AgentInstanceID.ValueString()
+	agentCollectionID := object.AgentCollectionID.ValueString()
+
+	tflog.Debug(ctx, fmt.Sprintf("Reading %s with agent_instance_id: %s, agent_collection_id: %s",
+		ResourceName, agentInstanceID, agentCollectionID))
+
+	membersResponse, err := r.client.
 		AgentRegistry().
 		AgentCollections().
-		ByAgentCollectionId(object.ID.ValueString()).
+		ByAgentCollectionId(agentCollectionID).
+		Members().
 		Get(ctx, nil)
 
 	if err != nil {
@@ -123,7 +124,7 @@ func (r *AgentCollectionResource) Read(ctx context.Context, req resource.ReadReq
 		return
 	}
 
-	MapRemoteResourceStateToTerraform(ctx, &object, agentCollection)
+	MapRemoteResourceStateToTerraform(ctx, &object, membersResponse)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
@@ -134,13 +135,11 @@ func (r *AgentCollectionResource) Read(ctx context.Context, req resource.ReadReq
 }
 
 // Update handles the Update operation.
-// PATCH /agentRegistry/agentCollections/{agentCollectionId}
-// REF: https://learn.microsoft.com/en-us/graph/api/agentcollection-update?view=graph-rest-beta
-func (r *AgentCollectionResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var plan AgentCollectionResourceModel
-	var state AgentCollectionResourceModel
+// Performs delete + create since this is a reference relationship
+func (r *AgentCollectionAssignmentResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	var plan, state AgentCollectionAssignmentResourceModel
 
-	tflog.Debug(ctx, fmt.Sprintf("Starting update of resource: %s", ResourceName))
+	tflog.Debug(ctx, fmt.Sprintf("Starting Update of resource: %s", ResourceName))
 
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
@@ -148,33 +147,53 @@ func (r *AgentCollectionResource) Update(ctx context.Context, req resource.Updat
 		return
 	}
 
-	ctx, cancel := crud.HandleTimeout(ctx, state.Timeouts.Update, UpdateTimeout*time.Second, &resp.Diagnostics)
+	ctx, cancel := crud.HandleTimeout(ctx, plan.Timeouts.Update, UpdateTimeout*time.Second, &resp.Diagnostics)
 	if cancel == nil {
 		return
 	}
 	defer cancel()
 
-	requestBody, err := constructResource(ctx, r.client, &plan, state.ID.ValueString())
+	oldAgentInstanceID := state.AgentInstanceID.ValueString()
+	oldAgentCollectionID := state.AgentCollectionID.ValueString()
+
+	err := r.client.
+		AgentRegistry().
+		AgentCollections().
+		ByAgentCollectionId(oldAgentCollectionID).
+		Members().
+		ByAgentInstanceId(oldAgentInstanceID).
+		Delete(ctx, nil)
+
+	if err != nil {
+		errors.HandleKiotaGraphError(ctx, err, resp, "Update (Delete old assignment)", r.WritePermissions)
+		return
+	}
+
+	requestBody, err := constructResource(ctx, r.client, &plan)
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error constructing agent collection for update",
+			"Error constructing resource",
 			fmt.Sprintf("Could not construct resource: %s: %s", ResourceName, err.Error()),
 		)
 		return
 	}
 
-	_, err = r.client.
-		AgentRegistry().
-		AgentCollections().
-		ByAgentCollectionId(state.ID.ValueString()).
-		Patch(ctx, requestBody, nil)
+	newAgentCollectionID := plan.AgentCollectionID.ValueString()
 
+	config := customrequests.PostRequestConfig{
+		APIVersion:  customrequests.GraphAPIBeta,
+		Endpoint:    fmt.Sprintf("agentRegistry/agentCollections/%s/members/$ref", newAgentCollectionID),
+		RequestBody: requestBody,
+	}
+
+	err = customrequests.PostRequestNoContent(ctx, r.client.GetAdapter(), config)
 	if err != nil {
-		errors.HandleKiotaGraphError(ctx, err, resp, "Update", r.WritePermissions)
+		errors.HandleKiotaGraphError(ctx, err, resp, "Update (Create new assignment)", r.WritePermissions)
 		return
 	}
 
-	plan.ID = state.ID
+	SetCompositeID(&plan)
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -200,9 +219,10 @@ func (r *AgentCollectionResource) Update(ctx context.Context, req resource.Updat
 }
 
 // Delete handles the Delete operation.
-// DELETE /agentRegistry/agentCollections/{agentCollectionId}
-func (r *AgentCollectionResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var object AgentCollectionResourceModel
+// DELETE /agentRegistry/agentCollections/{agentCollectionId}/members/{agentInstanceId}
+// REF: https://learn.microsoft.com/en-us/graph/api/agentcollection-delete-members?view=graph-rest-beta
+func (r *AgentCollectionAssignmentResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	var object AgentCollectionAssignmentResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting deletion of resource: %s", ResourceName))
 
@@ -217,10 +237,15 @@ func (r *AgentCollectionResource) Delete(ctx context.Context, req resource.Delet
 	}
 	defer cancel()
 
+	agentInstanceID := object.AgentInstanceID.ValueString()
+	agentCollectionID := object.AgentCollectionID.ValueString()
+
 	err := r.client.
 		AgentRegistry().
 		AgentCollections().
-		ByAgentCollectionId(object.ID.ValueString()).
+		ByAgentCollectionId(agentCollectionID).
+		Members().
+		ByAgentInstanceId(agentInstanceID).
 		Delete(ctx, nil)
 
 	if err != nil {

@@ -1,4 +1,4 @@
-package graphBetaAgentCollection
+package graphBetaAgentsAgentCollection
 
 import (
 	"context"

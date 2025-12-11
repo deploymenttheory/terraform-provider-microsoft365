@@ -1,4 +1,4 @@
-package graphBetaAgentCollection_test
+package graphBetaAgentsAgentCollection_test
 
 import (
 	"regexp"
