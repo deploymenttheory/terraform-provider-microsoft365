@@ -77,19 +77,36 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *WindowsUpdateR
 	data.UserWindowsUpdateScanAccess = convert.GraphToFrameworkEnum(remoteResource.GetUserWindowsUpdateScanAccess())
 	data.FeatureUpdatesRollbackWindowInDays = convert.GraphToFrameworkInt32(remoteResource.GetFeatureUpdatesRollbackWindowInDays())
 
+	// deadline_settings as an Object
+	deadlineSettingsTypes := map[string]attr.Type{
+		"deadline_for_feature_updates_in_days": types.Int32Type,
+		"deadline_for_quality_updates_in_days": types.Int32Type,
+		"deadline_grace_period_in_days":        types.Int32Type,
+		"postpone_reboot_until_after_deadline": types.BoolType,
+	}
+
 	// Only set deadline settings if any deadline field has a non-null value from the API
 	if remoteResource.GetDeadlineForFeatureUpdatesInDays() != nil ||
 		remoteResource.GetDeadlineForQualityUpdatesInDays() != nil ||
 		remoteResource.GetDeadlineGracePeriodInDays() != nil ||
 		remoteResource.GetPostponeRebootUntilAfterDeadline() != nil {
-		data.DeadlineSettings = &DeadlineSettingsModel{
-			DeadlineForFeatureUpdatesInDays:  convert.GraphToFrameworkInt32(remoteResource.GetDeadlineForFeatureUpdatesInDays()),
-			DeadlineForQualityUpdatesInDays:  convert.GraphToFrameworkInt32(remoteResource.GetDeadlineForQualityUpdatesInDays()),
-			DeadlineGracePeriodInDays:        convert.GraphToFrameworkInt32(remoteResource.GetDeadlineGracePeriodInDays()),
-			PostponeRebootUntilAfterDeadline: convert.GraphToFrameworkBool(remoteResource.GetPostponeRebootUntilAfterDeadline()),
+		deadlineSettingsValues := map[string]attr.Value{
+			"deadline_for_feature_updates_in_days": convert.GraphToFrameworkInt32(remoteResource.GetDeadlineForFeatureUpdatesInDays()),
+			"deadline_for_quality_updates_in_days": convert.GraphToFrameworkInt32(remoteResource.GetDeadlineForQualityUpdatesInDays()),
+			"deadline_grace_period_in_days":        convert.GraphToFrameworkInt32(remoteResource.GetDeadlineGracePeriodInDays()),
+			"postpone_reboot_until_after_deadline": convert.GraphToFrameworkBool(remoteResource.GetPostponeRebootUntilAfterDeadline()),
+		}
+		object, diags := types.ObjectValue(deadlineSettingsTypes, deadlineSettingsValues)
+		if diags.HasError() {
+			tflog.Error(ctx, "Failed to create deadline settings object value", map[string]any{
+				"error": diags.Errors()[0].Detail(),
+			})
+			data.DeadlineSettings = types.ObjectNull(deadlineSettingsTypes)
+		} else {
+			data.DeadlineSettings = object
 		}
 	} else {
-		data.DeadlineSettings = nil
+		data.DeadlineSettings = types.ObjectNull(deadlineSettingsTypes)
 	}
 
 	data.EngagedRestartDeadlineInDays = convert.GraphToFrameworkInt32(remoteResource.GetEngagedRestartDeadlineInDays())
