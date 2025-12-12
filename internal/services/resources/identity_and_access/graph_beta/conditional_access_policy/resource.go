@@ -17,6 +17,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
 )
 
 const (
@@ -59,15 +60,13 @@ func NewConditionalAccessPolicyResource() resource.Resource {
 			"CustomSecAttributeAssignment.ReadWrite.All", // Read and write custom security attribute assignments
 			"Application.Read.All",                       // needs read permissions for write operations
 		},
-		ResourcePath: "/identity/conditionalAccess/policies",
 	}
 }
 
 type ConditionalAccessPolicyResource struct {
-	httpClient       *client.AuthenticatedHTTPClient
+	client           *msgraphbetasdk.GraphServiceClient
 	ReadPermissions  []string
 	WritePermissions []string
-	ResourcePath     string
 }
 
 // Metadata returns the resource type name.
@@ -77,7 +76,7 @@ func (r *ConditionalAccessPolicyResource) Metadata(ctx context.Context, req reso
 
 // Configure sets the client for the resource.
 func (r *ConditionalAccessPolicyResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
-	r.httpClient = client.SetGraphBetaHTTPClientForResource(ctx, req, resp, ResourceName)
+	r.client = client.SetGraphBetaClientForResource(ctx, req, resp, ResourceName)
 }
 
 // ImportState imports the resource state.
@@ -150,7 +149,7 @@ func (r *ConditionalAccessPolicyResource) Schema(ctx context.Context, req resour
 				Required:            true,
 				Attributes: map[string]schema.Attribute{
 					"client_app_types": schema.SetAttribute{
-						MarkdownDescription: "Client application types included in the policy. Possible values are: all, browser, mobileAppsAndDesktopClients, exchangeActiveSync, other.",
+						MarkdownDescription: "Client application types included in the policy. Possible values are: all, browser, mobileAppsAndDesktopClients, exchangeActiveSync, easSupported, other.",
 						ElementType:         types.StringType,
 						Required:            true,
 						Validators: []validator.Set{
@@ -160,6 +159,7 @@ func (r *ConditionalAccessPolicyResource) Schema(ctx context.Context, req resour
 									"browser",
 									"mobileAppsAndDesktopClients",
 									"exchangeActiveSync",
+									"easSupported",
 									"other",
 								),
 							),
@@ -463,7 +463,7 @@ func (r *ConditionalAccessPolicyResource) Schema(ctx context.Context, req resour
 						Optional:            true,
 						Attributes: map[string]schema.Attribute{
 							"include_platforms": schema.SetAttribute{
-								MarkdownDescription: "Platforms to include in the policy.",
+								MarkdownDescription: "Platforms to include in the policy. Possible values are: android, iOS, windows, windowsPhone, macOS, all, linux.",
 								ElementType:         types.StringType,
 								Required:            true,
 								Validators: []validator.Set{
@@ -481,7 +481,7 @@ func (r *ConditionalAccessPolicyResource) Schema(ctx context.Context, req resour
 								},
 							},
 							"exclude_platforms": schema.SetAttribute{
-								MarkdownDescription: "Platforms to exclude from the policy.",
+								MarkdownDescription: "Platforms to exclude from the policy. Possible values are: android, iOS, windows, windowsPhone, macOS, all, linux.",
 								ElementType:         types.StringType,
 								Optional:            true,
 								Validators: []validator.Set{
@@ -584,7 +584,7 @@ func (r *ConditionalAccessPolicyResource) Schema(ctx context.Context, req resour
 						},
 					},
 					"sign_in_risk_levels": schema.SetAttribute{
-						MarkdownDescription: "Sign-in risk levels included in the policy. Possible values are: low, medium, high, hidden, none, unknownFutureValue.",
+						MarkdownDescription: "Sign-in risk levels included in the policy. Possible values are: low, medium, high, hidden, none.",
 						ElementType:         types.StringType,
 						Required:            true,
 						Validators: []validator.Set{
@@ -595,13 +595,12 @@ func (r *ConditionalAccessPolicyResource) Schema(ctx context.Context, req resour
 									"high",
 									"hidden",
 									"none",
-									"unknownFutureValue",
 								),
 							),
 						},
 					},
 					"user_risk_levels": schema.SetAttribute{
-						MarkdownDescription: "User risk levels included in the policy. Possible values are: low, medium, high, hidden, none, unknownFutureValue.",
+						MarkdownDescription: "User risk levels included in the policy. Possible values are: low, medium, high, hidden, none.",
 						ElementType:         types.StringType,
 						Optional:            true,
 						Validators: []validator.Set{
@@ -612,13 +611,12 @@ func (r *ConditionalAccessPolicyResource) Schema(ctx context.Context, req resour
 									"high",
 									"hidden",
 									"none",
-									"unknownFutureValue",
 								),
 							),
 						},
 					},
 					"service_principal_risk_levels": schema.SetAttribute{
-						MarkdownDescription: "Service principal risk levels included in the policy. Possible values are: low, medium, high, hidden, none, unknownFutureValue.",
+						MarkdownDescription: "Service principal risk levels included in the policy. Possible values are: low, medium, high, hidden, none.",
 						ElementType:         types.StringType,
 						Optional:            true,
 						Validators: []validator.Set{
@@ -629,7 +627,34 @@ func (r *ConditionalAccessPolicyResource) Schema(ctx context.Context, req resour
 									"high",
 									"hidden",
 									"none",
-									"unknownFutureValue",
+								),
+							),
+						},
+					},
+					"agent_id_risk_levels": schema.SetAttribute{
+						MarkdownDescription: "Agent ID risk levels included in the policy. Possible values are: low, medium, high.",
+						ElementType:         types.StringType,
+						Optional:            true,
+						Validators: []validator.Set{
+							setvalidator.ValueStringsAre(
+								stringvalidator.OneOf(
+									"low",
+									"medium",
+									"high",
+								),
+							),
+						},
+					},
+					"insider_risk_levels": schema.SetAttribute{
+						MarkdownDescription: "Insider risk levels included in the policy. Possible values are: minor, moderate, elevated.",
+						ElementType:         types.StringType,
+						Optional:            true,
+						Validators: []validator.Set{
+							setvalidator.ValueStringsAre(
+								stringvalidator.OneOf(
+									"minor",
+									"moderate",
+									"elevated",
 								),
 							),
 						},
@@ -721,6 +746,50 @@ func (r *ConditionalAccessPolicyResource) Schema(ctx context.Context, req resour
 								ElementType:         types.StringType,
 								Optional:            true,
 							},
+							"include_agent_id_service_principals": schema.SetAttribute{
+								MarkdownDescription: "Agent ID service principals to include. Can use the special value 'All' or specify service principal GUIDs.",
+								ElementType:         types.StringType,
+								Optional:            true,
+							},
+							"exclude_agent_id_service_principals": schema.SetAttribute{
+								MarkdownDescription: "Agent ID service principals to exclude. Specify service principal GUIDs.",
+								ElementType:         types.StringType,
+								Optional:            true,
+							},
+							"agent_id_service_principal_filter": schema.SingleNestedAttribute{
+								MarkdownDescription: "Filter for agent ID service principals using custom security attributes.",
+								Optional:            true,
+								Attributes: map[string]schema.Attribute{
+									"mode": schema.StringAttribute{
+										MarkdownDescription: "Filter mode. Possible values are: include, exclude.",
+										Required:            true,
+										Validators: []validator.String{
+											stringvalidator.OneOf("include", "exclude"),
+										},
+									},
+									"rule": schema.StringAttribute{
+										MarkdownDescription: "Filter rule using custom security attribute syntax.",
+										Required:            true,
+									},
+								},
+							},
+							"service_principal_filter": schema.SingleNestedAttribute{
+								MarkdownDescription: "Filter for service principals using custom security attributes.",
+								Optional:            true,
+								Attributes: map[string]schema.Attribute{
+									"mode": schema.StringAttribute{
+										MarkdownDescription: "Filter mode. Possible values are: include, exclude.",
+										Required:            true,
+										Validators: []validator.String{
+											stringvalidator.OneOf("include", "exclude"),
+										},
+									},
+									"rule": schema.StringAttribute{
+										MarkdownDescription: "Filter rule using custom security attribute syntax.",
+										Required:            true,
+									},
+								},
+							},
 						},
 					},
 				},
@@ -737,7 +806,7 @@ func (r *ConditionalAccessPolicyResource) Schema(ctx context.Context, req resour
 						},
 					},
 					"built_in_controls": schema.SetAttribute{
-						MarkdownDescription: "List of built-in controls required by the policy. Possible values are: block, mfa, compliantDevice, domainJoinedDevice, approvedApplication, compliantApplication, passwordChange, unknownFutureValue.",
+						MarkdownDescription: "List of built-in controls required by the policy. Possible values are: block, mfa, compliantDevice, domainJoinedDevice, approvedApplication, compliantApplication, passwordChange, riskRemediation.",
 						ElementType:         types.StringType,
 						Required:            true,
 						Validators: []validator.Set{
@@ -750,6 +819,7 @@ func (r *ConditionalAccessPolicyResource) Schema(ctx context.Context, req resour
 									"approvedApplication",
 									"compliantApplication",
 									"passwordChange",
+									"riskRemediation",
 								),
 							),
 						},
@@ -907,7 +977,7 @@ func (r *ConditionalAccessPolicyResource) Schema(ctx context.Context, req resour
 									stringvalidator.OneOf("days", "hours"),
 								},
 							},
-							"value": schema.Int64Attribute{
+							"value": schema.Int32Attribute{
 								MarkdownDescription: "Value for the sign-in frequency. Not used when frequency_interval is everyTime.",
 								Optional:            true,
 							},
@@ -955,10 +1025,10 @@ func (r *ConditionalAccessPolicyResource) Schema(ctx context.Context, req resour
 						Optional:            true,
 						Attributes: map[string]schema.Attribute{
 							"mode": schema.StringAttribute{
-								MarkdownDescription: "Mode for continuous access evaluation. Possible values are: disabled, basic, strict.",
+								MarkdownDescription: "Mode for continuous access evaluation. Possible values are: strictEnforcement, disabled, strictLocation.",
 								Required:            true,
 								Validators: []validator.String{
-									stringvalidator.OneOf("disabled", "basic", "strict"),
+									stringvalidator.OneOf("strictEnforcement", "disabled", "strictLocation"),
 								},
 							},
 						},

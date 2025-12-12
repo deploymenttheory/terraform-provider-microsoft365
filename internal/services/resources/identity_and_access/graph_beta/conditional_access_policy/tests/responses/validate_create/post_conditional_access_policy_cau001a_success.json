@@ -31,7 +31,7 @@
       "includeRoles": [],
       "excludeRoles": [],
       "includeGuestsOrExternalUsers": {
-        "guestOrExternalUserTypes": "b2bCollaborationGuest,b2bCollaborationMember, b2bDirectConnectUser,internalGuest, otherExternalUser,serviceProvider",
+        "guestOrExternalUserTypes": "b2bCollaborationGuest,b2bCollaborationMember,b2bDirectConnectUser,internalGuest,otherExternalUser,serviceProvider",
         "externalTenants": {
           "@odata.type": "#microsoft.graph.conditionalAccessAllExternalTenants",
           "membershipKind": "all"

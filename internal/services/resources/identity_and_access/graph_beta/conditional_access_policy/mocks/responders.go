@@ -315,9 +315,9 @@ func (m *ConditionalAccessPolicyMock) registerMockNamedLocations() {
 	})
 
 	// Mock named location LIST - return mock named locations for validation
-	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/conditionalAccess/namedLocations`, func(req *http.Request) (*http.Response, error) {
+	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/identity/conditionalAccess/namedLocations`, func(req *http.Request) (*http.Response, error) {
 		response := map[string]any{
-			"@odata.context": "https://graph.microsoft.com/beta/$metadata#conditionalAccess/namedLocations",
+			"@odata.context": "https://graph.microsoft.com/beta/$metadata#identity/conditionalAccess/namedLocations",
 			"value": []map[string]any{
 				{
 					"id":          "44444444-4444-4444-4444-444444444444",

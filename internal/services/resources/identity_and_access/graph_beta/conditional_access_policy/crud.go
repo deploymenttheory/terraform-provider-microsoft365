@@ -1,16 +1,12 @@
 package graphBetaConditionalAccessPolicy
 
 import (
-	"bytes"
 	"context"
-	"encoding/json"
 	"fmt"
-	"net/http"
 	"time"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/client"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
-	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/generic_client"
+	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -44,73 +40,28 @@ func (r *ConditionalAccessPolicyResource) Create(ctx context.Context, req resour
 	}
 	defer cancel()
 
-	requestBody, err := constructResource(ctx, r.httpClient, &object)
+	requestBody, err := constructResource(ctx, r.client, &object)
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error constructing resource for Create Method",
+			"Error constructing resource",
 			fmt.Sprintf("Could not construct resource: %s: %s", ResourceName, err.Error()),
 		)
 		return
 	}
 
-	jsonBytes, err := json.Marshal(requestBody)
+	createdResource, err := r.client.
+		Identity().
+		ConditionalAccess().
+		Policies().
+		Post(ctx, requestBody, nil)
+
 	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error marshaling request body",
-			fmt.Sprintf("Could not marshal request body: %s: %s", ResourceName, err.Error()),
-		)
+		errors.HandleKiotaGraphError(ctx, err, resp, "Create", r.WritePermissions)
 		return
 	}
 
-	url := r.httpClient.GetBaseURL() + r.ResourcePath
-	httpReq, err := http.NewRequestWithContext(ctx, "POST", url, bytes.NewReader(jsonBytes))
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error creating HTTP request",
-			fmt.Sprintf("Could not create HTTP request: %s: %s", ResourceName, err.Error()),
-		)
-		return
-	}
-
-	tflog.Debug(ctx, fmt.Sprintf("Making POST request to: %s", url))
-
-	httpResp, err := client.DoWithRetry(ctx, r.httpClient, httpReq, 10)
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error making HTTP request",
-			fmt.Sprintf("Could not make HTTP request: %s: %s", ResourceName, err.Error()),
-		)
-		return
-	}
-	defer httpResp.Body.Close()
-
-	tflog.Debug(ctx, fmt.Sprintf("POST request response status: %d %s", httpResp.StatusCode, httpResp.Status))
-
-	if httpResp.StatusCode != http.StatusCreated {
-		errors.HandleHTTPGraphError(ctx, httpResp, resp, "Create", r.WritePermissions)
-		return
-	}
-
-	var createdResource map[string]any
-	if err := json.NewDecoder(httpResp.Body).Decode(&createdResource); err != nil {
-		resp.Diagnostics.AddError(
-			"Error parsing response",
-			fmt.Sprintf("Could not parse response: %s: %s", ResourceName, err.Error()),
-		)
-		return
-	}
-
-	id, ok := createdResource["id"].(string)
-	if !ok {
-		resp.Diagnostics.AddError(
-			"Error extracting resource ID",
-			"Created resource ID is missing or not a string",
-		)
-		return
-	}
-
-	object.ID = types.StringValue(id)
-	tflog.Debug(ctx, fmt.Sprintf("Successfully created %s with ID: %s", ResourceName, id))
+	object.ID = types.StringValue(*createdResource.GetId())
+	tflog.Debug(ctx, fmt.Sprintf("Successfully created %s with ID: %s", ResourceName, object.ID.ValueString()))
 
 	if object.ID.IsNull() || object.ID.IsUnknown() {
 		resp.Diagnostics.AddError(
@@ -178,50 +129,19 @@ func (r *ConditionalAccessPolicyResource) Read(ctx context.Context, req resource
 	}
 	defer cancel()
 
-	url := r.httpClient.GetBaseURL() + r.ResourcePath + "/" + object.ID.ValueString()
+	remoteResource, err := r.client.
+		Identity().
+		ConditionalAccess().
+		Policies().
+		ByConditionalAccessPolicyId(object.ID.ValueString()).
+		Get(ctx, nil)
 
-	httpReq, err := http.NewRequestWithContext(ctx, "GET", url, nil)
 	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error creating HTTP request",
-			fmt.Sprintf("Could not create HTTP request: %s: %s", ResourceName, err.Error()),
-		)
+		errors.HandleKiotaGraphError(ctx, err, resp, operation, r.ReadPermissions)
 		return
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Making GET request to: %s", url))
-
-	httpResp, err := client.DoWithRetry(ctx, r.httpClient, httpReq, 10)
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error making HTTP request",
-			fmt.Sprintf("Could not make HTTP request: %s: %s", ResourceName, err.Error()),
-		)
-		return
-	}
-	defer httpResp.Body.Close()
-
-	tflog.Debug(ctx, fmt.Sprintf("GET request response status: %d %s", httpResp.StatusCode, httpResp.Status))
-
-	if httpResp.StatusCode != http.StatusOK {
-		errors.HandleHTTPGraphError(ctx, httpResp, resp, operation, r.ReadPermissions)
-		return
-	}
-
-	var baseResource map[string]any
-	if err := json.NewDecoder(httpResp.Body).Decode(&baseResource); err != nil {
-		resp.Diagnostics.AddError(
-			"Error unmarshaling response",
-			fmt.Sprintf("Could not unmarshal response: %s: %s", ResourceName, err.Error()),
-		)
-		return
-	}
-
-	if prettyJson, err := json.MarshalIndent(baseResource, "", "  "); err == nil {
-		tflog.Debug(ctx, fmt.Sprintf("Raw API Response:\n%s", string(prettyJson)))
-	}
-
-	MapRemoteResourceStateToTerraform(ctx, &object, baseResource)
+	object = MapRemoteResourceStateToTerraform(ctx, object, remoteResource)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
@@ -248,8 +168,8 @@ func (r *ConditionalAccessPolicyResource) Update(ctx context.Context, req resour
 
 	tflog.Debug(ctx, fmt.Sprintf("Updating %s with ID: %s", ResourceName, state.ID.ValueString()))
 
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)   // desired state
-	resp.Diagnostics.Append(req.State.Get(ctx, &state)...) // current state (for ID)
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -260,55 +180,24 @@ func (r *ConditionalAccessPolicyResource) Update(ctx context.Context, req resour
 	}
 	defer cancel()
 
-	requestBody, err := constructResource(ctx, r.httpClient, &plan)
+	requestBody, err := constructResource(ctx, r.client, &plan)
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error constructing resource for Update Method",
+			"Error constructing resource",
 			fmt.Sprintf("Could not construct resource: %s: %s", ResourceName, err.Error()),
 		)
 		return
 	}
 
-	jsonBytes, err := json.Marshal(requestBody)
+	_, err = r.client.
+		Identity().
+		ConditionalAccess().
+		Policies().
+		ByConditionalAccessPolicyId(state.ID.ValueString()).
+		Patch(ctx, requestBody, nil)
+
 	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error marshaling request body",
-			fmt.Sprintf("Could not marshal request body: %s: %s", ResourceName, err.Error()),
-		)
-		return
-	}
-
-	url := r.httpClient.GetBaseURL() + r.ResourcePath + "/" + state.ID.ValueString()
-	httpReq, err := http.NewRequestWithContext(ctx, "PATCH", url, bytes.NewReader(jsonBytes))
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error creating HTTP request",
-			fmt.Sprintf("Could not create HTTP request: %s: %s", ResourceName, err.Error()),
-		)
-		return
-	}
-
-	tflog.Debug(ctx, fmt.Sprintf("Making PATCH request to: %s", url))
-
-	httpResp, err := client.DoWithRetry(ctx, r.httpClient, httpReq, 10)
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error making HTTP request",
-			fmt.Sprintf("Could not make HTTP request: %s: %s", ResourceName, err.Error()),
-		)
-		return
-	}
-	defer httpResp.Body.Close()
-
-	tflog.Debug(ctx, fmt.Sprintf("PATCH request response status: %d %s", httpResp.StatusCode, httpResp.Status))
-
-	if httpResp.StatusCode != http.StatusNoContent && httpResp.StatusCode != http.StatusOK {
-		errors.HandleHTTPGraphError(ctx, httpResp, resp, "Update", r.WritePermissions)
-		return
-	}
-
-	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
-	if resp.Diagnostics.HasError() {
+		errors.HandleKiotaGraphError(ctx, err, resp, "Update", r.WritePermissions)
 		return
 	}
 
@@ -364,32 +253,15 @@ func (r *ConditionalAccessPolicyResource) Delete(ctx context.Context, req resour
 	}
 	defer cancel()
 
-	url := r.httpClient.GetBaseURL() + r.ResourcePath + "/" + object.ID.ValueString()
-	httpReq, err := http.NewRequestWithContext(ctx, "DELETE", url, nil)
+	err := r.client.
+		Identity().
+		ConditionalAccess().
+		Policies().
+		ByConditionalAccessPolicyId(object.ID.ValueString()).
+		Delete(ctx, nil)
+
 	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error creating HTTP request",
-			fmt.Sprintf("Could not create HTTP request: %s: %s", ResourceName, err.Error()),
-		)
-		return
-	}
-
-	tflog.Debug(ctx, fmt.Sprintf("Making DELETE request to: %s", url))
-
-	httpResp, err := client.DoWithRetry(ctx, r.httpClient, httpReq, 10)
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error making HTTP request",
-			fmt.Sprintf("Could not make HTTP request: %s: %s", ResourceName, err.Error()),
-		)
-		return
-	}
-	defer httpResp.Body.Close()
-
-	tflog.Debug(ctx, fmt.Sprintf("DELETE request response status: %d %s", httpResp.StatusCode, httpResp.Status))
-
-	if httpResp.StatusCode != http.StatusNoContent && httpResp.StatusCode != http.StatusNotFound {
-		errors.HandleHTTPGraphError(ctx, httpResp, resp, "Delete", r.WritePermissions)
+		errors.HandleKiotaGraphError(ctx, err, resp, "Delete", r.WritePermissions)
 		return
 	}
 

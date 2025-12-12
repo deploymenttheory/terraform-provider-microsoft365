@@ -16,6 +16,16 @@ param (
     [string]$ClientSecret,
     
     [Parameter(Mandatory=$false,
+    HelpMessage="Path to JSON file containing the policy payload")]
+    [ValidateScript({
+        if ($_ -and -not (Test-Path $_)) {
+            throw "JSON file not found at path: $_"
+        }
+        $true
+    })]
+    [string]$JsonFilePath,
+    
+    [Parameter(Mandatory=$false,
     HelpMessage="Test policy name suffix (will be prefixed with 'TEST-')")]
     [string]$PolicyNameSuffix = "PowerShell-Creation-Test",
     
@@ -27,30 +37,79 @@ param (
 # Import required modules
 Import-Module Microsoft.Graph.Authentication
 
-# Test payload based on Terraform examples - simplified version for testing
-$testPolicyPayload = @'
-{
-    "displayName": "TEST-PowerShell-Creation-Test",
-    "state": "disabled",
-    "conditions": {
-        "applications": {
-            "includeApplications": ["All"]
-        },
-        "users": {
-            "includeUsers": ["All"],
-            "excludeGroups": ["11111111-1111-1111-1111-111111111111"]
-        },
-        "clientAppTypes": ["browser", "mobileAppsAndDesktopClients"],
-        "locations": {
-            "includeLocations": ["All"]
-        }
-    },
-    "grantControls": {
-        "operator": "OR",
-        "builtInControls": ["mfa"]
+# Load policy payload from file or use default inline payload
+if ($JsonFilePath) {
+    Write-Host "📄 Loading policy payload from file: $JsonFilePath" -ForegroundColor Cyan
+    try {
+        $testPolicyPayload = Get-Content -Path $JsonFilePath -Raw
+        Write-Host "✅ Successfully loaded JSON payload from file" -ForegroundColor Green
+        Write-Host ""
+    }
+    catch {
+        Write-Host "❌ Error loading JSON file: $_" -ForegroundColor Red
+        exit 1
     }
 }
+else {
+    Write-Host "📝 Using default inline policy payload" -ForegroundColor Cyan
+    Write-Host ""
+    
+    # Default test payload
+    $testPolicyPayload = @'
+{
+    "displayName": "labtest-caau003",
+    "state": "enabledForReportingButNotEnforced",
+    "conditions": {
+        "applications": {
+            "includeApplications": ["None"],
+            "excludeApplications": [],
+            "includeUserActions": [],
+            "includeAuthenticationContextClassReferences": [],
+            "applicationFilter": null,
+            "globalSecureAccess": null
+        },
+        "clients": null,
+        "users": {
+            "includeUsers": ["None"],
+            "excludeUsers": [],
+            "includeGroups": [],
+            "excludeGroups": [],
+            "includeRoles": [],
+            "excludeRoles": [],
+            "includeGuestsOrExternalUsers": null,
+            "excludeGuestsOrExternalUsers": null
+        },
+        "clientApplications": {
+            "includeAgentIdServicePrincipals": ["7ca55e16-b9fd-4269-afe4-444ceed088fa"],
+            "excludeAgentIdServicePrincipals": ["7ca55e16-b9fd-4269-afe4-444ceed088fa"],
+            "agentIdServicePrincipalFilter": {
+                "mode": "include",
+                "rule": "CustomSecurityAttribute.testset_somename -contains \"thing\" -or CustomSecurityAttribute.Engineering_Locations -notContains \"thing2\" -and CustomSecurityAttribute.Engineering_ProjectName -ne \"thing3\""
+            }
+        },
+        "platforms": null,
+        "locations": null,
+        "userRiskLevels": [],
+        "signInRiskLevels": [],
+        "insiderRiskLevels": null,
+        "signInRiskDetections": null,
+        "clientAppTypes": ["all"],
+        "times": null,
+        "devices": null,
+        "servicePrincipalRiskLevels": [],
+        "authenticationFlows": null
+    },
+    "grantControls": {
+        "operator": "AND",
+        "builtInControls": ["block"],
+        "customAuthenticationFactors": [],
+        "termsOfUse": [],
+        "authenticationStrength": null
+    },
+    "sessionControls": null
+}
 '@
+}
 
 # Function to create conditional access policy
 function New-ConditionalAccessPolicy {
@@ -63,27 +122,24 @@ function New-ConditionalAccessPolicy {
     )
     
     try {
-        # Parse and modify the JSON payload
+        # Parse the JSON payload to get displayName for logging
         $policyObject = $PolicyJson | ConvertFrom-Json
-        $policyObject.displayName = "TEST-$PolicyName"
-        
-        # Convert back to JSON
-        $finalPayload = $policyObject | ConvertTo-Json -Depth 10
+        $displayName = $policyObject.displayName
         
         Write-Host "🔄 Creating conditional access policy..." -ForegroundColor Cyan
-        Write-Host "   Policy Name: TEST-$PolicyName" -ForegroundColor Gray
+        Write-Host "   Policy Name: $displayName" -ForegroundColor Gray
         Write-Host "   Endpoint: https://graph.microsoft.com/beta/identity/conditionalAccess/policies" -ForegroundColor Gray
         Write-Host ""
         
         Write-Host "📋 Request Payload:" -ForegroundColor Cyan
         Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Cyan
-        Write-Host $finalPayload -ForegroundColor Gray
+        Write-Host $PolicyJson -ForegroundColor Gray
         Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Cyan
         Write-Host ""
         
         # Make the POST request
         $uri = "https://graph.microsoft.com/beta/identity/conditionalAccess/policies"
-        $response = Invoke-MgGraphRequest -Method POST -Uri $uri -Body $finalPayload -ContentType "application/json"
+        $response = Invoke-MgGraphRequest -Method POST -Uri $uri -Body $PolicyJson -ContentType "application/json"
         
         Write-Host "✅ Policy creation request completed!" -ForegroundColor Green
         Write-Host ""
@@ -129,13 +185,13 @@ function Get-PolicyByName {
     
     try {
         Write-Host "🔍 Searching for created policy..." -ForegroundColor Cyan
-        Write-Host "   Looking for: TEST-$PolicyName" -ForegroundColor Gray
+        Write-Host "   Looking for: $PolicyName" -ForegroundColor Gray
         
         $uri = "https://graph.microsoft.com/beta/identity/conditionalAccess/policies"
         $response = Invoke-MgGraphRequest -Method GET -Uri $uri
         
         if ($response.value) {
-            $foundPolicy = $response.value | Where-Object { $_.displayName -eq "TEST-$PolicyName" }
+            $foundPolicy = $response.value | Where-Object { $_.displayName -eq $PolicyName }
             if ($foundPolicy) {
                 Write-Host "✅ Found created policy!" -ForegroundColor Green
                 Write-Host "   Policy ID: $($foundPolicy.id)" -ForegroundColor Green
@@ -200,9 +256,15 @@ function Export-ResponseToJson {
             Write-Host "📁 Created output directory: $outputDir" -ForegroundColor Gray
         }
         
-        # Generate timestamp for filename
-        $timestamp = Get-Date -Format "yyyyMMdd_HHmmss"
-        $fileName = "ConditionalAccessPolicy_${PolicyName}_${Suffix}_${timestamp}.json"
+        # Sanitize filename by removing invalid characters
+        $sanitizedName = $PolicyName -replace '[\\/:*?"<>|]', '_'
+        
+        # Generate filename based on suffix type
+        if ($Suffix -eq "CreateResponse") {
+            $fileName = "post_ca_policy_${sanitizedName}_response.json"
+        } else {
+            $fileName = "${Suffix}_${sanitizedName}_response.json"
+        }
         $filePath = Join-Path -Path $outputDir -ChildPath $fileName
         
         $Response | ConvertTo-Json -Depth 10 | Out-File -FilePath $filePath -Encoding UTF8
@@ -231,7 +293,7 @@ function Show-ResponseDetails {
     
     if ($Response) {
         # Check if response is empty
-        if ($Response -eq $null -or ($Response | Get-Member | Measure-Object).Count -eq 0) {
+        if ($null -eq $Response -or ($Response | Get-Member | Measure-Object).Count -eq 0) {
             Write-Host "   ⚠️  Response is empty or null" -ForegroundColor Yellow
         } else {
             # Display response properties
@@ -239,7 +301,7 @@ function Show-ResponseDetails {
                 $propertyName = $_.Name
                 $propertyValue = $Response.$propertyName
                 
-                if ($propertyValue -ne $null) {
+                if ($null -ne $propertyValue) {
                     Write-Host "   • $propertyName : $propertyValue" -ForegroundColor Green
                 } else {
                     Write-Host "   • $propertyName : <null>" -ForegroundColor Gray
@@ -290,15 +352,19 @@ try {
     
     # Export create response if requested
     if ($ExportToJson) {
-        Export-ResponseToJson -Response $createResponse -PolicyName $PolicyNameSuffix -Suffix "CreateResponse"
+        $displayName = $createResponse.displayName
+        if ([string]::IsNullOrEmpty($displayName)) {
+            $displayName = $PolicyNameSuffix
+        }
+        Export-ResponseToJson -Response $createResponse -PolicyName $displayName -Suffix "CreateResponse"
     }
     
     # Wait a moment for the policy to be available
     Write-Host "⏳ Waiting 5 seconds for policy to be available..." -ForegroundColor Yellow
     Start-Sleep -Seconds 5
     
-    # Try to find the created policy
-    $foundPolicy = Get-PolicyByName -PolicyName $PolicyNameSuffix
+    # Try to find the created policy using the actual display name
+    $foundPolicy = Get-PolicyByName -PolicyName $displayName
     
     if ($foundPolicy) {
         # Display found policy details
@@ -306,7 +372,7 @@ try {
         
         # Export found policy if requested
         if ($ExportToJson) {
-            Export-ResponseToJson -Response $foundPolicy -PolicyName $PolicyNameSuffix -Suffix "FoundPolicy"
+            Export-ResponseToJson -Response $foundPolicy -PolicyName $displayName -Suffix "FoundPolicy"
         }
         
         # Ask if user wants to delete the test policy

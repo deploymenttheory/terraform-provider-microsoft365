@@ -55,7 +55,7 @@
         "29232cdf-9323-42fd-ade2-1d097af3e4de"
       ],
       "excludeGuestsOrExternalUsers": {
-        "guestOrExternalUserTypes": "internalGuest,b2bCollaborationGuest, b2bCollaborationMember,b2bDirectConnectUser, otherExternalUser,serviceProvider",
+        "guestOrExternalUserTypes": "internalGuest,b2bCollaborationGuest,b2bCollaborationMember,b2bDirectConnectUser,otherExternalUser,serviceProvider",
         "externalTenants": {
           "@odata.type": "#microsoft.graph.conditionalAccessAllExternalTenants",
           "membershipKind": "all"
