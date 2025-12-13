@@ -3,6 +3,7 @@
 resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy" "cau001_guest_mfa" {
   display_name = "CAU001-All: Grant Require MFA for guests when Browser and Modern Auth Clients-v1.1"
   state        = "enabledForReportingButNotEnforced"
+  hard_delete  = true
 
   conditions = {
     client_app_types = ["browser", "mobileAppsAndDesktopClients"]

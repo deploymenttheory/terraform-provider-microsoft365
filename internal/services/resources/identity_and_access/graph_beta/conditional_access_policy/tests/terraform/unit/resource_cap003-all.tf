@@ -3,6 +3,7 @@
 resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy" "cap003_block_device_code_flow" {
   display_name = "CAP003-All: Block device code authentication flow-v1.0"
   state        = "enabledForReportingButNotEnforced"
+  hard_delete  = true
 
   conditions = {
     client_app_types = ["all"]

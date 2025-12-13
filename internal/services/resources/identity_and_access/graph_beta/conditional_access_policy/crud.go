@@ -230,13 +230,17 @@ func (r *ConditionalAccessPolicyResource) Update(ctx context.Context, req resour
 
 // Delete handles the Delete operation for Conditional Access Policy resources.
 //
-//   - Retrieves the current state from the delete request
-//   - Validates the state data and timeout configuration
-//   - Sends DELETE request to remove the conditional access policy from the API
-//   - Cleans up by removing the resource from Terraform state
+// This function supports two deletion modes:
+//  1. Soft Delete (default): Moves the policy to deleted items container (30-day recovery period)
+//  2. Hard Delete: Permanently deletes the policy immediately
 //
-// The function ensures that the policy is completely removed from the
-// Microsoft Graph API and cleans up the Terraform state accordingly.
+// The deletion mode is controlled by the `hard_delete` field in the resource configuration.
+//
+// Soft delete endpoint: DELETE /identity/conditionalAccess/policies/{id}
+// Hard delete endpoint: DELETE /identity/conditionalAccess/deletedItems/policies/{id}
+//
+// REF: https://learn.microsoft.com/en-us/graph/api/conditionalaccesspolicy-delete?view=graph-rest-beta
+// REF: https://learn.microsoft.com/en-us/graph/api/directory-deleteditems-delete?view=graph-rest-beta
 func (r *ConditionalAccessPolicyResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var object ConditionalAccessPolicyResourceModel
 
@@ -253,16 +257,44 @@ func (r *ConditionalAccessPolicyResource) Delete(ctx context.Context, req resour
 	}
 	defer cancel()
 
+	policyId := object.ID.ValueString()
+	hardDelete := object.HardDelete.ValueBool()
+
+	tflog.Info(ctx, fmt.Sprintf("Deleting %s with ID: %s, hard_delete: %t", ResourceName, policyId, hardDelete))
+
+	// Step 1: Soft delete the policy
 	err := r.client.
 		Identity().
 		ConditionalAccess().
 		Policies().
-		ByConditionalAccessPolicyId(object.ID.ValueString()).
+		ByConditionalAccessPolicyId(policyId).
 		Delete(ctx, nil)
 
 	if err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, "Delete", r.WritePermissions)
 		return
+	}
+
+	tflog.Debug(ctx, fmt.Sprintf("Soft deleted %s with ID: %s", ResourceName, policyId))
+
+	// Step 2: If hard delete is enabled, permanently delete from deleted items
+	if hardDelete {
+		tflog.Info(ctx, fmt.Sprintf("Performing hard delete for %s with ID: %s", ResourceName, policyId))
+
+		err = r.client.
+			Identity().
+			ConditionalAccess().
+			DeletedItems().
+			Policies().
+			ByConditionalAccessPolicyId(policyId).
+			Delete(ctx, nil)
+
+		if err != nil {
+			errors.HandleKiotaGraphError(ctx, err, resp, "Hard Delete", r.WritePermissions)
+			return
+		}
+
+		tflog.Debug(ctx, fmt.Sprintf("Hard deleted %s with ID: %s", ResourceName, policyId))
 	}
 
 	tflog.Debug(ctx, fmt.Sprintf("Removing %s from Terraform state", ResourceName))

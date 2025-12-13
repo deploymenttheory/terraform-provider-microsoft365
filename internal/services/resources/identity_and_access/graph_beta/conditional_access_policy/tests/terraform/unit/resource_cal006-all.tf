@@ -3,6 +3,7 @@
 resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy" "cal006_allow_only_specified_locations" {
   display_name = "CAL006-All: Only Allow Access from specified locations for specific accounts when Browser and Modern Auth Clients-v1.0"
   state        = "enabledForReportingButNotEnforced"
+  hard_delete  = true
 
   conditions = {
     client_app_types = ["browser", "mobileAppsAndDesktopClients"]

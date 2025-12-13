@@ -3,6 +3,7 @@
 resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy" "cal004_block_admin_untrusted_locations" {
   display_name = "CAL004-All: Block access for Admins from non-trusted locations when Browser and Modern Auth Clients-v1.2"
   state        = "enabledForReportingButNotEnforced"
+  hard_delete  = true
 
   conditions = {
     client_app_types = ["browser", "mobileAppsAndDesktopClients"]

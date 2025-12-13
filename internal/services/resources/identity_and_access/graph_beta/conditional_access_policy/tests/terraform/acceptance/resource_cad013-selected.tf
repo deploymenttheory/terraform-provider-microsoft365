@@ -2,7 +2,8 @@
 # # # Requires compliant device for access to selected applications.
 # # resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy" "cad013_selected_apps_compliant" {
 # #   display_name = "CAD013-Selected: Grant access for All users when Browser and Modern Auth Clients and Compliant-v1.0"
-# #   state        = "enabledForReportingButNotEnforced"
+# #  state        = "enabledForReportingButNotEnforced"
+hard_delete = true
 
 # #   conditions = {
 # #     client_app_types = ["browser", "mobileAppsAndDesktopClients"]

@@ -3,6 +3,7 @@
 resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy" "cal002_mfa_registration_trusted_locations" {
   display_name = "CAL002-RSI: Require MFA registration from trusted locations only for All users when Browser and Modern Auth Clients-v1.4"
   state        = "enabledForReportingButNotEnforced"
+  hard_delete  = true
 
   conditions = {
     client_app_types = ["all"]

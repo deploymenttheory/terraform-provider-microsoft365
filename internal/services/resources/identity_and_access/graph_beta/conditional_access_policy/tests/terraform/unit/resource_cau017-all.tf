@@ -3,6 +3,7 @@
 resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy" "cau017_admin_signin_frequency" {
   display_name = "CAU017-All: Session set Sign-in Frequency for Admins when Browser-v1.0"
   state        = "enabledForReportingButNotEnforced"
+  hard_delete  = true
 
   conditions = {
     client_app_types = ["browser"]

@@ -3,6 +3,7 @@
 resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy" "cad005_block_unsupported_platforms" {
   display_name = "CAD005-O365: Block access for unsupported device platforms for All users when Modern Auth Clients-v1.1"
   state        = "enabledForReportingButNotEnforced"
+  hard_delete  = true
 
   conditions = {
     client_app_types = ["mobileAppsAndDesktopClients"]

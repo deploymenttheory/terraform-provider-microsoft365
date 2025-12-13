@@ -3,6 +3,7 @@
 resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy" "cau002_all_users_mfa" {
   display_name = "CAU002-All: Grant Require MFA for All users when Browser and Modern Auth Clients-v1.5"
   state        = "enabledForReportingButNotEnforced"
+  hard_delete  = true
 
   conditions = {
     client_app_types = ["browser", "mobileAppsAndDesktopClients"]

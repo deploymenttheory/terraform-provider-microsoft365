@@ -25,6 +25,7 @@
 resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy" "cad001_macos_compliant" {
   display_name = "acc-CAD001-O365: Grant macOS access for All users when Modern Auth Clients and Compliant-v1.1"
   state        = "enabledForReportingButNotEnforced"
+  hard_delete  = true
 
   conditions = {
     client_app_types = ["mobileAppsAndDesktopClients"]
@@ -77,6 +78,7 @@ resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy"
 resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy" "cad002_windows_compliant" {
   display_name = "CAD002-O365: Grant Windows access for All users when Modern Auth Clients and Compliant-v1.1"
   state        = "enabledForReportingButNotEnforced"
+  hard_delete  = true
 
   conditions = {
     client_app_types = ["mobileAppsAndDesktopClients"]
@@ -129,6 +131,7 @@ resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy"
 resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy" "cad003_mobile_compliant_or_app_protection" {
   display_name = "CAD003-O365: Grant iOS and Android access for All users when Modern Auth Clients and AppProPol or Compliant-v1.3"
   state        = "enabledForReportingButNotEnforced"
+  hard_delete  = true
 
   conditions = {
     client_app_types = ["mobileAppsAndDesktopClients"]
@@ -180,6 +183,7 @@ resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy"
 resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy" "cad004_browser_noncompliant_mfa" {
   display_name = "CAD004-O365: Grant Require MFA for All users when Browser and Non-Compliant-v1.3"
   state        = "enabledForReportingButNotEnforced"
+  hard_delete  = true
 
   conditions = {
     client_app_types = ["browser"]
@@ -232,6 +236,7 @@ resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy"
 resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy" "cad005_block_unsupported_platforms" {
   display_name = "CAD005-O365: Block access for unsupported device platforms for All users when Modern Auth Clients-v1.1"
   state        = "enabledForReportingButNotEnforced"
+  hard_delete  = true
 
   conditions = {
     client_app_types = ["mobileAppsAndDesktopClients"]
@@ -277,6 +282,7 @@ resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy"
 resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy" "cad006_session_block_download_unmanaged" {
   display_name = "CAD006-O365: Session block download on unmanaged device for All users when Browser and Modern App Clients and Non-Compliant-v1.5"
   state        = "enabledForReportingButNotEnforced"
+  hard_delete  = true
 
   conditions = {
     client_app_types = ["browser", "mobileAppsAndDesktopClients"]
@@ -330,6 +336,7 @@ resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy"
 resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy" "cad007_mobile_signin_frequency" {
   display_name = "CAD007-O365: Session set Sign-in Frequency for Apps for All users when Modern Auth Clients and Non-Compliant-v1.2"
   state        = "enabledForReportingButNotEnforced"
+  hard_delete  = true
 
   conditions = {
     client_app_types = ["mobileAppsAndDesktopClients"]
@@ -392,6 +399,7 @@ resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy"
 resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy" "cad008_browser_signin_frequency" {
   display_name = "CAD008-All: Session set Sign-in Frequency for All users when Browser and Non-Compliant-v1.1"
   state        = "enabledForReportingButNotEnforced"
+  hard_delete  = true
 
   conditions = {
     client_app_types = ["browser"]
@@ -449,6 +457,7 @@ resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy"
 resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy" "cad009_disable_browser_persistence" {
   display_name = "CAD009-All: Session disable browser persistence for All users when Browser and Non-Compliant-v1.2"
   state        = "enabledForReportingButNotEnforced"
+  hard_delete  = true
 
   conditions = {
     client_app_types = ["browser"]
@@ -503,6 +512,7 @@ resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy"
 resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy" "cad010_device_registration_mfa" {
   display_name = "CAD010-RJD: Require MFA for device join or registration when Browser and Modern Auth Clients-v1.1"
   state        = "enabledForReportingButNotEnforced"
+  hard_delete  = true
 
   conditions = {
     client_app_types = ["all"]
@@ -544,6 +554,7 @@ resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy"
 resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy" "cad011_linux_compliant" {
   display_name = "CAD011-O365: Grant Linux access for All users when Modern Auth Clients and Compliant-v1.0"
   state        = "enabledForReportingButNotEnforced"
+  hard_delete  = true
 
   conditions = {
     client_app_types = ["mobileAppsAndDesktopClients"]
@@ -589,6 +600,7 @@ resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy"
 resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy" "cad012_admin_compliant_access" {
   display_name = "CAD012-All: Grant access for Admin users when Browser and Modern Auth Clients and Compliant-v1.1"
   state        = "enabledForReportingButNotEnforced"
+  hard_delete  = true
 
   conditions = {
     client_app_types = ["browser", "mobileAppsAndDesktopClients"]
@@ -656,6 +668,7 @@ resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy"
 resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy" "cad013_selected_apps_compliant" {
   display_name = "CAD013-Selected: Grant access for All users when Browser and Modern Auth Clients and Compliant-v1.0"
   state        = "enabledForReportingButNotEnforced"
+  hard_delete  = true
 
   conditions = {
     client_app_types = ["browser", "mobileAppsAndDesktopClients"]
@@ -711,6 +724,7 @@ resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy"
 resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy" "cad014_edge_app_protection_windows" {
   display_name = "CAD014-O365: Require App Protection Policy for Edge on Windows for All users when Browser and Non-Compliant-v1.0"
   state        = "enabledForReportingButNotEnforced"
+  hard_delete  = true
 
   conditions = {
     client_app_types = ["browser"]
@@ -763,6 +777,7 @@ resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy"
 resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy" "cad015_windows_macos_browser_compliant" {
   display_name = "CAD015-All: Grant access for All users when Browser and Modern Auth Clients and Compliant on Windows and macOS-v1.0"
   state        = "enabledForReportingButNotEnforced"
+  hard_delete  = true
 
   conditions = {
     client_app_types = ["browser", "mobileAppsAndDesktopClients"]
@@ -808,6 +823,7 @@ resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy"
 resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy" "cad016_token_protection_windows" {
   display_name = "CAD016-EXO_SPO_CloudPC: Require token protection when Modern Auth Clients on Windows-v1.2"
   state        = "enabledForReportingButNotEnforced"
+  hard_delete  = true
 
   conditions = {
     client_app_types = ["mobileAppsAndDesktopClients"]
@@ -866,6 +882,7 @@ resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy"
 resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy" "cad017_selected_mobile_app_protection" {
   display_name = "CAD017-Selected: Grant iOS and Android access for All users when Modern Auth Clients and AppProPol or Compliant-v1.1"
   state        = "enabledForReportingButNotEnforced"
+  hard_delete  = true
 
   conditions = {
     client_app_types = ["mobileAppsAndDesktopClients"]
@@ -918,6 +935,7 @@ resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy"
 resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy" "cad018_cloudpc_mobile_app_protection" {
   display_name = "CAD018-CloudPC: Grant iOS and Android access for All users when Modern Auth Clients and AppProPol or Compliant-v1.0"
   state        = "enabledForReportingButNotEnforced"
+  hard_delete  = true
 
   conditions = {
     client_app_types = ["mobileAppsAndDesktopClients"]
@@ -968,6 +986,7 @@ resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy"
 resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy" "cad019_intune_enrollment_mfa" {
   display_name = "CAD019-Intune: Require MFA and set sign-in frequency to every time-v1.0"
   state        = "enabledForReportingButNotEnforced"
+  hard_delete  = true
 
   conditions = {
     client_app_types = ["browser", "mobileAppsAndDesktopClients"]

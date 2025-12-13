@@ -3,6 +3,7 @@
 resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy" "cau003_block_unapproved_apps_guests" {
   display_name = "CAU003-Selected: Block unapproved apps for guests when Browser and Modern Auth Clients-v1.0"
   state        = "enabledForReportingButNotEnforced"
+  hard_delete  = true
 
   conditions = {
     client_app_types = ["browser", "mobileAppsAndDesktopClients"]

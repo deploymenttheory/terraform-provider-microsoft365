@@ -4,6 +4,7 @@
 resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy" "cau019_allow_only_approved_apps_guests" {
   display_name = "CAU019-Selected: Only allow approved apps for guests when Browser and Modern Auth Clients-v1.0"
   state        = "enabledForReportingButNotEnforced"
+  hard_delete  = true
 
   conditions = {
     client_app_types = ["browser", "mobileAppsAndDesktopClients"]

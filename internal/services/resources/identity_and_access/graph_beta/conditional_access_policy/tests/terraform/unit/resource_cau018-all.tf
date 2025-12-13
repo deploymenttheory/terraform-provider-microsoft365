@@ -3,6 +3,7 @@
 resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy" "cau018_admin_disable_browser_persistence" {
   display_name = "CAU018-All: Session disable browser persistence for Admins when Browser-v1.0"
   state        = "enabledForReportingButNotEnforced"
+  hard_delete  = true
 
   conditions = {
     client_app_types = ["browser"]

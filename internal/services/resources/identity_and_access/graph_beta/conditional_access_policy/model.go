@@ -19,6 +19,7 @@ type ConditionalAccessPolicyResourceModel struct {
 	SessionControls           *ConditionalAccessSessionControls `tfsdk:"session_controls"`
 	TemplateId                types.String                      `tfsdk:"template_id"`
 	PartialEnablementStrategy types.String                      `tfsdk:"partial_enablement_strategy"`
+	HardDelete                types.Bool                        `tfsdk:"hard_delete"`
 	Timeouts                  timeouts.Value                    `tfsdk:"timeouts"`
 }
 

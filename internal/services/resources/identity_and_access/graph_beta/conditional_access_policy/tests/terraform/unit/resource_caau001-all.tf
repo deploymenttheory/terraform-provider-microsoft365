@@ -2,7 +2,8 @@
 # Block all high and medium risk agentic users from all agentic resources
 resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy" "caau001_agent_risk_block" {
   display_name = "CAAU001-ALL: Block all high and medium risk agentic users from all agentic resource v1.0"
-  state        = "enabledForReportingButNotEnforced"
+ state        = "enabledForReportingButNotEnforced"
+  hard_delete = true
 
   conditions = {
     client_app_types = ["all"]
