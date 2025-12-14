@@ -1,9 +1,52 @@
+# ==============================================================================
+# ==============================================================================
+# Random Suffix for Unique Resource Names
+# ==============================================================================
+
+resource "random_string" "suffix" {
+  length  = 8
+  special = false
+  upper   = false
+}
+
+# Group Dependencies
+# ==============================================================================
+
+# Break Glass Emergency Access Accounts
+resource "microsoft365_graph_beta_groups_group" "breakglass" {
+  display_name     = "EID_UA_ConAcc-Breakglass"
+  mail_nickname    = "eid-ua-conacc-breakglass"
+  mail_enabled     = false
+  security_enabled = true
+  description      = "Group containing Break Glass Accounts"
+}
+
+resource "microsoft365_graph_beta_groups_group" "cad015_exclude" {
+  display_name     = "EID_UA_CAD015_EXCLUDE"
+  mail_nickname    = "eid-ua-cad015-exclude"
+  mail_enabled     = false
+  security_enabled = true
+  description      = "uexcludeion group for CA policy CAD015_EXCLUDE"
+}
+
+resource "microsoft365_graph_beta_groups_group" "cad015_include" {
+  display_name     = "EID_UA_CAD015_INCLUDE"
+  mail_nickname    = "eid-ua-cad015-include"
+  mail_enabled     = false
+  security_enabled = true
+  description      = "uincludeion group for CA policy CAD015_INCLUDE"
+}
+
+# ==============================================================================
+# Conditional Access Policy
+# ==============================================================================
+
+
 # CAD015: Compliant Device for Windows and macOS Browser Access
 # Requires compliant device for all users accessing all apps via browser on Windows/macOS.
 resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy" "cad015_windows_macos_browser_compliant" {
-  display_name = "CAD015-All: Grant access for All users when Browser and Modern Auth Clients and Compliant on Windows and macOS-v1.0"
+  display_name = "acc-test-cad015-all: Grant access for All users when Browser and Modern Auth Clients and Compliant on Windows and macOS ${random_string.suffix.result}"
   state        = "enabledForReportingButNotEnforced"
-  hard_delete  = true
 
   conditions = {
     client_app_types = ["browser", "mobileAppsAndDesktopClients"]

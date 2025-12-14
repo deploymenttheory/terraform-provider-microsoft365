@@ -37,7 +37,7 @@ func (r *AuthenticationStrengthPolicyResource) Create(ctx context.Context, req r
 		return
 	}
 
-	requestBody, err := constructResourceForSDK(ctx, &object)
+	requestBody, err := constructResource(ctx, &object)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error constructing resource for Create Method",

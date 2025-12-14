@@ -3,8 +3,7 @@
 # and device is compliant.
 resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy" "cad002_windows_compliant" {
   display_name = "CAD002-O365: Grant Windows access for All users when Modern Auth Clients and Compliant-v1.1"
- state        = "enabledForReportingButNotEnforced"
-  hard_delete = true
+  state        = "enabledForReportingButNotEnforced"
 
   conditions = {
     client_app_types = ["mobileAppsAndDesktopClients"]

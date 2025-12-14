@@ -4,7 +4,6 @@
 resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy" "cau004_mdca_route" {
   display_name = "CAU004-Selected: Session route through MDCA for All users when Browser on Non-Compliant-v1.2"
   state        = "enabledForReportingButNotEnforced"
-  hard_delete  = true
 
   conditions = {
     client_app_types = ["browser"]

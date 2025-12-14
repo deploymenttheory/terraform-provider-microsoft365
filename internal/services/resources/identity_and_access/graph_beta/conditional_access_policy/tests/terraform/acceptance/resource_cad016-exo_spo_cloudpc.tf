@@ -1,9 +1,52 @@
+# ==============================================================================
+# ==============================================================================
+# Random Suffix for Unique Resource Names
+# ==============================================================================
+
+resource "random_string" "suffix" {
+  length  = 8
+  special = false
+  upper   = false
+}
+
+# Group Dependencies
+# ==============================================================================
+
+# Break Glass Emergency Access Accounts
+resource "microsoft365_graph_beta_groups_group" "breakglass" {
+  display_name     = "EID_UA_ConAcc-Breakglass"
+  mail_nickname    = "eid-ua-conacc-breakglass"
+  mail_enabled     = false
+  security_enabled = true
+  description      = "Group containing Break Glass Accounts"
+}
+
+resource "microsoft365_graph_beta_groups_group" "cad016_exclude" {
+  display_name     = "EID_UA_CAD016_EXCLUDE"
+  mail_nickname    = "eid-ua-cad016-exclude"
+  mail_enabled     = false
+  security_enabled = true
+  description      = "uexcludeion group for CA policy CAD016_EXCLUDE"
+}
+
+resource "microsoft365_graph_beta_groups_group" "cad016_include" {
+  display_name     = "EID_UA_CAD016_INCLUDE"
+  mail_nickname    = "eid-ua-cad016-include"
+  mail_enabled     = false
+  security_enabled = true
+  description      = "uincludeion group for CA policy CAD016_INCLUDE"
+}
+
+# ==============================================================================
+# Conditional Access Policy
+# ==============================================================================
+
+
 # CAD016: Token Protection for EXO/SPO/CloudPC on Windows
 # Requires token protection for Exchange Online, SharePoint Online, and Cloud PC on Windows.
 resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy" "cad016_token_protection_windows" {
-  display_name = "CAD016-EXO_SPO_CloudPC: Require token protection when Modern Auth Clients on Windows-v1.2"
+  display_name = "acc-test-cad016-exo_spo_cloudpc: Require token protection when Modern Auth Clients on Windows ${random_string.suffix.result}"
   state        = "enabledForReportingButNotEnforced"
-  hard_delete  = true
 
   conditions = {
     client_app_types = ["mobileAppsAndDesktopClients"]

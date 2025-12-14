@@ -3,8 +3,7 @@
 # clients and device has app protection policy or is compliant.
 resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy" "cad003_mobile_compliant_or_app_protection" {
   display_name = "CAD003-O365: Grant iOS and Android access for All users when Modern Auth Clients and AppProPol or Compliant-v1.3"
- state        = "enabledForReportingButNotEnforced"
-  hard_delete = true
+  state        = "enabledForReportingButNotEnforced"
 
   conditions = {
     client_app_types = ["mobileAppsAndDesktopClients"]

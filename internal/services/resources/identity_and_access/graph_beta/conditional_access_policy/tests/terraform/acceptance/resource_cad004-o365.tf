@@ -1,9 +1,44 @@
+# ==============================================================================
+# Random Suffix for Unique Resource Names
+# ==============================================================================
+
+resource "random_string" "suffix" {
+  length  = 8
+  special = false
+  upper   = false
+}
+
+# ==============================================================================
+# Group Dependencies
+# ==============================================================================
+
+# Break Glass Emergency Access Accounts
+resource "microsoft365_graph_beta_groups_group" "breakglass" {
+  display_name     = "EID_UA_ConAcc-Breakglass"
+  mail_nickname    = "eid-ua-conacc-breakglass"
+  mail_enabled     = false
+  security_enabled = true
+  description      = "Group containing Break Glass Accounts"
+}
+
+resource "microsoft365_graph_beta_groups_group" "cad004_exclude" {
+  display_name     = "EID_UA_CAD004_EXCLUDE"
+  mail_nickname    = "eid-ua-cad004-exclude"
+  mail_enabled     = false
+  security_enabled = true
+  description      = "uexcludeion group for CA policy CAD004_EXCLUDE"
+}
+
+# ==============================================================================
+# Conditional Access Policy
+# ==============================================================================
+
+
 # CAD004: Require MFA on Non-Compliant Devices via Browser
 # Requires MFA for all users accessing Office 365 via browser when device is non-compliant.
 resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy" "cad004_browser_noncompliant_mfa" {
-  display_name = "CAD004-O365: Grant Require MFA for All users when Browser and Non-Compliant-v1.3"
+  display_name = "acc-test-cad004-o365: Grant Require MFA for All users when Browser and Non-Compliant ${random_string.suffix.result}"
   state        = "enabledForReportingButNotEnforced"
-  hard_delete  = true
 
   conditions = {
     client_app_types = ["browser"]

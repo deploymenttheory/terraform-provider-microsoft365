@@ -1,19 +1,16 @@
 package graphBetaNamedLocation
 
 import (
-	"bytes"
 	"context"
-	"encoding/json"
 	"fmt"
-	"net/http"
 	"time"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/client"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
-	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/generic_client"
+	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
+	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
 // Create handles the Create operation for Named Location resources.
@@ -42,72 +39,29 @@ func (r *NamedLocationResource) Create(ctx context.Context, req resource.CreateR
 		return
 	}
 
-	jsonBytes, err := json.Marshal(requestBody)
+	tflog.Debug(ctx, "Making POST request to create named location")
+
+	createdResource, err := r.client.
+		Identity().
+		ConditionalAccess().
+		NamedLocations().
+		Post(ctx, requestBody, nil)
+
 	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error marshaling request body",
-			fmt.Sprintf("Could not marshal request body: %s: %s", ResourceName, err.Error()),
-		)
+		errors.HandleKiotaGraphError(ctx, err, resp, "Create", r.WritePermissions)
 		return
 	}
 
-	url := r.httpClient.GetBaseURL() + r.ResourcePath
-	httpReq, err := http.NewRequestWithContext(ctx, "POST", url, bytes.NewReader(jsonBytes))
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error creating HTTP request",
-			fmt.Sprintf("Could not create HTTP request: %s: %s", ResourceName, err.Error()),
-		)
-		return
-	}
-
-	tflog.Debug(ctx, fmt.Sprintf("Making POST request to: %s", url))
-
-	httpResp, err := client.DoWithRetry(ctx, r.httpClient, httpReq, 10)
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error making HTTP request",
-			fmt.Sprintf("Could not make HTTP request: %s: %s", ResourceName, err.Error()),
-		)
-		return
-	}
-	defer httpResp.Body.Close()
-
-	tflog.Debug(ctx, fmt.Sprintf("POST request response status: %d %s", httpResp.StatusCode, httpResp.Status))
-
-	if httpResp.StatusCode != http.StatusCreated {
-		errors.HandleHTTPGraphError(ctx, httpResp, resp, "Create", r.WritePermissions)
-		return
-	}
-
-	var createdResource map[string]any
-	if err := json.NewDecoder(httpResp.Body).Decode(&createdResource); err != nil {
-		resp.Diagnostics.AddError(
-			"Error parsing response",
-			fmt.Sprintf("Could not parse response: %s: %s", ResourceName, err.Error()),
-		)
-		return
-	}
-
-	id, ok := createdResource["id"].(string)
-	if !ok {
+	if createdResource == nil || createdResource.GetId() == nil {
 		resp.Diagnostics.AddError(
 			"Error extracting resource ID",
-			"Created resource ID is missing or not a string",
+			"Created resource ID is missing from response",
 		)
 		return
 	}
 
-	object.ID = types.StringValue(id)
-	tflog.Debug(ctx, fmt.Sprintf("Successfully created %s with ID: %s", ResourceName, id))
-
-	if object.ID.IsNull() || object.ID.IsUnknown() {
-		resp.Diagnostics.AddError(
-			"Error extracting resource ID",
-			fmt.Sprintf("Could not extract ID from created resource: %s. The API may not return the full resource on creation.", ResourceName),
-		)
-		return
-	}
+	object.ID = types.StringValue(*createdResource.GetId())
+	tflog.Debug(ctx, fmt.Sprintf("Successfully created %s with ID: %s", ResourceName, object.ID.ValueString()))
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
@@ -161,45 +115,21 @@ func (r *NamedLocationResource) Read(ctx context.Context, req resource.ReadReque
 	}
 	defer cancel()
 
-	url := r.httpClient.GetBaseURL() + r.ResourcePath + "/" + object.ID.ValueString()
-	httpReq, err := http.NewRequestWithContext(ctx, "GET", url, nil)
+	tflog.Debug(ctx, "Making GET request to retrieve named location")
+
+	remoteResource, err := r.client.
+		Identity().
+		ConditionalAccess().
+		NamedLocations().
+		ByNamedLocationId(object.ID.ValueString()).
+		Get(ctx, nil)
+
 	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error creating HTTP request",
-			fmt.Sprintf("Could not create HTTP request: %s: %s", ResourceName, err.Error()),
-		)
+		errors.HandleKiotaGraphError(ctx, err, resp, operation, r.ReadPermissions)
 		return
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Making GET request to: %s", url))
-
-	httpResp, err := client.DoWithRetry(ctx, r.httpClient, httpReq, 10)
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error making HTTP request",
-			fmt.Sprintf("Could not make HTTP request: %s: %s", ResourceName, err.Error()),
-		)
-		return
-	}
-	defer httpResp.Body.Close()
-
-	tflog.Debug(ctx, fmt.Sprintf("GET request response status: %d %s", httpResp.StatusCode, httpResp.Status))
-
-	if httpResp.StatusCode != http.StatusOK {
-		errors.HandleHTTPGraphError(ctx, httpResp, resp, operation, r.ReadPermissions)
-		return
-	}
-
-	var baseResource map[string]any
-	if err := json.NewDecoder(httpResp.Body).Decode(&baseResource); err != nil {
-		resp.Diagnostics.AddError(
-			"Error unmarshaling response",
-			fmt.Sprintf("Could not unmarshal response: %s: %s", ResourceName, err.Error()),
-		)
-		return
-	}
-
-	MapRemoteResourceStateToTerraform(ctx, &object, baseResource)
+	MapRemoteResourceStateToTerraform(ctx, &object, remoteResource)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
@@ -237,41 +167,17 @@ func (r *NamedLocationResource) Update(ctx context.Context, req resource.UpdateR
 		return
 	}
 
-	jsonBytes, err := json.Marshal(requestBody)
+	tflog.Debug(ctx, "Making PATCH request to update named location")
+
+	_, err = r.client.
+		Identity().
+		ConditionalAccess().
+		NamedLocations().
+		ByNamedLocationId(state.ID.ValueString()).
+		Patch(ctx, requestBody, nil)
+
 	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error marshaling request body",
-			fmt.Sprintf("Could not marshal request body: %s: %s", ResourceName, err.Error()),
-		)
-		return
-	}
-
-	url := r.httpClient.GetBaseURL() + r.ResourcePath + "/" + state.ID.ValueString()
-	httpReq, err := http.NewRequestWithContext(ctx, "PATCH", url, bytes.NewReader(jsonBytes))
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error creating HTTP request",
-			fmt.Sprintf("Could not create HTTP request: %s: %s", ResourceName, err.Error()),
-		)
-		return
-	}
-
-	tflog.Debug(ctx, fmt.Sprintf("Making PATCH request to: %s", url))
-
-	httpResp, err := client.DoWithRetry(ctx, r.httpClient, httpReq, 10)
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error making HTTP request",
-			fmt.Sprintf("Could not make HTTP request: %s: %s", ResourceName, err.Error()),
-		)
-		return
-	}
-	defer httpResp.Body.Close()
-
-	tflog.Debug(ctx, fmt.Sprintf("PATCH request response status: %d %s", httpResp.StatusCode, httpResp.Status))
-
-	if httpResp.StatusCode != http.StatusNoContent && httpResp.StatusCode != http.StatusOK {
-		errors.HandleHTTPGraphError(ctx, httpResp, resp, "Update", r.WritePermissions)
+		errors.HandleKiotaGraphError(ctx, err, resp, "Update", r.WritePermissions)
 		return
 	}
 
@@ -350,60 +256,38 @@ func (r *NamedLocationResource) Delete(ctx context.Context, req resource.DeleteR
 	}
 	defer cancel()
 
-	getURL := r.httpClient.GetBaseURL() + r.ResourcePath + "/" + object.ID.ValueString()
+	// Step 1: Get current resource to check if it's a trusted IP location
+	tflog.Debug(ctx, "Making initial GET request to check resource before deletion")
 
-	var currentResource map[string]any
-	var needsPatch bool
+	currentResource, err := r.client.
+		Identity().
+		ConditionalAccess().
+		NamedLocations().
+		ByNamedLocationId(object.ID.ValueString()).
+		Get(ctx, nil)
 
-	getReq, err := http.NewRequestWithContext(ctx, "GET", getURL, nil)
 	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error creating GET HTTP request",
-			fmt.Sprintf("Could not create GET HTTP request: %s: %s", ResourceName, err.Error()),
-		)
-		return
-	}
-
-	tflog.Debug(ctx, fmt.Sprintf("Making initial GET request to check resource before deletion: %s", getURL))
-
-	getResp, err := client.DoWithRetry(ctx, r.httpClient, getReq, 10)
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error making GET HTTP request",
-			fmt.Sprintf("Could not make GET HTTP request: %s: %s", ResourceName, err.Error()),
-		)
-		return
-	}
-	defer getResp.Body.Close()
-
-	tflog.Debug(ctx, fmt.Sprintf("GET request response status: %d %s", getResp.StatusCode, getResp.Status))
-
-	if getResp.StatusCode != http.StatusOK {
-		if getResp.StatusCode == http.StatusNotFound {
+		errorInfo := errors.GraphError(ctx, err)
+		if errorInfo.StatusCode == 404 {
 			tflog.Debug(ctx, "Resource not found during pre-deletion check, considering it already deleted")
 			resp.State.RemoveResource(ctx)
 			return
 		}
-
-		errors.HandleHTTPGraphError(ctx, getResp, resp, "Delete", r.ReadPermissions)
+		errors.HandleKiotaGraphError(ctx, err, resp, "Delete", r.ReadPermissions)
 		return
 	}
 
-	if err := json.NewDecoder(getResp.Body).Decode(&currentResource); err != nil {
-		resp.Diagnostics.AddError(
-			"Error parsing current resource",
-			fmt.Sprintf("Could not parse current resource: %s: %s", ResourceName, err.Error()),
-		)
-		return
+	// Check if this is a trusted IP named location
+	var needsPatch bool
+	if ipLocation, ok := currentResource.(*graphmodels.IpNamedLocation); ok {
+		isTrusted := ipLocation.GetIsTrusted()
+		needsPatch = isTrusted != nil && *isTrusted
 	}
 
-	// Step 1: Check if this is an IP named location with isTrusted=true
-	odataType, _ := currentResource["@odata.type"].(string)
-	isTrusted, _ := currentResource["isTrusted"].(bool)
-	needsPatch = odataType == "#microsoft.graph.ipNamedLocation" && isTrusted
-
-	// Step 2: If conditions are met, patch with minimum required fields before deletion.
+	// Step 2: If it's a trusted IP location, patch it to set isTrusted=false
 	if needsPatch {
+		tflog.Debug(ctx, "Resource is a trusted IP location, patching to set isTrusted=false")
+
 		patchBody, err := constructResourceForDeletion(ctx)
 		if err != nil {
 			resp.Diagnostics.AddError(
@@ -413,46 +297,23 @@ func (r *NamedLocationResource) Delete(ctx context.Context, req resource.DeleteR
 			return
 		}
 
-		jsonBytes, err := json.Marshal(patchBody)
+		tflog.Debug(ctx, "Making PATCH request to set isTrusted=false")
+
+		_, err = r.client.
+			Identity().
+			ConditionalAccess().
+			NamedLocations().
+			ByNamedLocationId(object.ID.ValueString()).
+			Patch(ctx, patchBody, nil)
+
 		if err != nil {
-			resp.Diagnostics.AddError(
-				"Error marshaling patch request body",
-				fmt.Sprintf("Could not marshal patch request body: %s: %s", ResourceName, err.Error()),
-			)
-			return
-		}
-
-		patchURL := r.httpClient.GetBaseURL() + r.ResourcePath + "/" + object.ID.ValueString()
-		patchReq, err := http.NewRequestWithContext(ctx, "PATCH", patchURL, bytes.NewReader(jsonBytes))
-		if err != nil {
-			resp.Diagnostics.AddError(
-				"Error creating PATCH HTTP request",
-				fmt.Sprintf("Could not create PATCH HTTP request: %s: %s", ResourceName, err.Error()),
-			)
-			return
-		}
-
-		tflog.Debug(ctx, fmt.Sprintf("Making PATCH request to set isTrusted=false: %s", patchURL))
-
-		patchResp, err := client.DoWithRetry(ctx, r.httpClient, patchReq, 10)
-		if err != nil {
-			resp.Diagnostics.AddError(
-				"Error making PATCH HTTP request",
-				fmt.Sprintf("Could not make PATCH HTTP request: %s: %s", ResourceName, err.Error()),
-			)
-			return
-		}
-		defer patchResp.Body.Close()
-
-		tflog.Debug(ctx, fmt.Sprintf("PATCH request response status: %d %s", patchResp.StatusCode, patchResp.Status))
-
-		if patchResp.StatusCode != http.StatusNoContent && patchResp.StatusCode != http.StatusOK {
-			errors.HandleHTTPGraphError(ctx, patchResp, resp, "Delete", r.WritePermissions)
+			errors.HandleKiotaGraphError(ctx, err, resp, "Delete", r.WritePermissions)
 			return
 		}
 
 		tflog.Debug(ctx, "Successfully patched isTrusted=false")
 
+		// Step 3: Poll until isTrusted=false is confirmed (eventual consistency)
 		maxRetries := 10
 		retryDelay := 2 * time.Second
 
@@ -461,50 +322,30 @@ func (r *NamedLocationResource) Delete(ctx context.Context, req resource.DeleteR
 
 			time.Sleep(retryDelay)
 
-			verifyReq, err := http.NewRequestWithContext(ctx, "GET", getURL, nil)
-			if err != nil {
-				resp.Diagnostics.AddError(
-					"Error creating verification GET HTTP request",
-					fmt.Sprintf("Could not create verification GET HTTP request: %s: %s", ResourceName, err.Error()),
-				)
-				return
-			}
+			verifyResource, err := r.client.
+				Identity().
+				ConditionalAccess().
+				NamedLocations().
+				ByNamedLocationId(object.ID.ValueString()).
+				Get(ctx, nil)
 
-			verifyResp, err := client.DoWithRetry(ctx, r.httpClient, verifyReq, 10)
 			if err != nil {
-				resp.Diagnostics.AddError(
-					"Error making verification GET HTTP request",
-					fmt.Sprintf("Could not make verification GET HTTP request: %s: %s", ResourceName, err.Error()),
-				)
-				return
-			}
-
-			if verifyResp.StatusCode != http.StatusOK {
-				verifyResp.Body.Close()
-				if verifyResp.StatusCode == http.StatusNotFound {
+				errorInfo := errors.GraphError(ctx, err)
+				if errorInfo.StatusCode == 404 {
 					tflog.Debug(ctx, "Resource not found during verification, considering it already deleted")
 					resp.State.RemoveResource(ctx)
 					return
 				}
-				errors.HandleHTTPGraphError(ctx, verifyResp, resp, "Delete", r.ReadPermissions)
+				errors.HandleKiotaGraphError(ctx, err, resp, "Delete", r.ReadPermissions)
 				return
 			}
 
-			var verifyResource map[string]any
-			if err := json.NewDecoder(verifyResp.Body).Decode(&verifyResource); err != nil {
-				verifyResp.Body.Close()
-				resp.Diagnostics.AddError(
-					"Error parsing verification resource",
-					fmt.Sprintf("Could not parse verification resource: %s: %s", ResourceName, err.Error()),
-				)
-				return
-			}
-			verifyResp.Body.Close()
-
-			verifyIsTrusted, _ := verifyResource["isTrusted"].(bool)
-			if !verifyIsTrusted {
-				tflog.Debug(ctx, "Confirmed isTrusted=false, proceeding to delete")
-				break
+			if ipLocation, ok := verifyResource.(*graphmodels.IpNamedLocation); ok {
+				verifyIsTrusted := ipLocation.GetIsTrusted()
+				if verifyIsTrusted == nil || !*verifyIsTrusted {
+					tflog.Debug(ctx, "Confirmed isTrusted=false, proceeding to delete")
+					break
+				}
 			}
 
 			if i == maxRetries-1 {
@@ -518,42 +359,34 @@ func (r *NamedLocationResource) Delete(ctx context.Context, req resource.DeleteR
 			tflog.Debug(ctx, fmt.Sprintf("isTrusted still true, retrying in %v", retryDelay))
 		}
 
-		// Step 3: Wait for eventual consistency before deletion
+		// Wait for eventual consistency before deletion
 		consistencyDelay := 10 * time.Second
 		tflog.Debug(ctx, fmt.Sprintf("Waiting %v for eventual consistency before deletion", consistencyDelay))
 		time.Sleep(consistencyDelay)
 	}
 
 	// Step 4: Execute DELETE operation
-	url := r.httpClient.GetBaseURL() + r.ResourcePath + "/" + object.ID.ValueString()
-	httpReq, err := http.NewRequestWithContext(ctx, "DELETE", url, nil)
+	tflog.Debug(ctx, fmt.Sprintf("Making DELETE request for %s with ID: %s", ResourceName, object.ID.ValueString()))
+
+	err = r.client.
+		Identity().
+		ConditionalAccess().
+		NamedLocations().
+		ByNamedLocationId(object.ID.ValueString()).
+		Delete(ctx, nil)
+
 	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error creating HTTP request",
-			fmt.Sprintf("Could not create HTTP request: %s: %s", ResourceName, err.Error()),
-		)
+		errorInfo := errors.GraphError(ctx, err)
+		if errorInfo.StatusCode == 404 {
+			tflog.Debug(ctx, "Resource not found during deletion, considering it already deleted")
+			resp.State.RemoveResource(ctx)
+			return
+		}
+		errors.HandleKiotaGraphError(ctx, err, resp, "Delete", r.WritePermissions)
 		return
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Making DELETE request to: %s", url))
-
-	// Use retry logic with exponential backoff for 429 errors (max 10 retries)
-	httpResp, err := client.DoWithRetry(ctx, r.httpClient, httpReq, 10)
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error making HTTP request",
-			fmt.Sprintf("Could not make HTTP request: %s: %s", ResourceName, err.Error()),
-		)
-		return
-	}
-	defer httpResp.Body.Close()
-
-	tflog.Debug(ctx, fmt.Sprintf("DELETE request response status: %d %s", httpResp.StatusCode, httpResp.Status))
-
-	if httpResp.StatusCode != http.StatusNoContent && httpResp.StatusCode != http.StatusNotFound {
-		errors.HandleHTTPGraphError(ctx, httpResp, resp, "Delete", r.WritePermissions)
-		return
-	}
+	tflog.Debug(ctx, fmt.Sprintf("Successfully deleted %s with ID: %s", ResourceName, object.ID.ValueString()))
 
 	// Step 5: Remove from Terraform state
 	tflog.Debug(ctx, fmt.Sprintf("Removing %s from Terraform state", ResourceName))

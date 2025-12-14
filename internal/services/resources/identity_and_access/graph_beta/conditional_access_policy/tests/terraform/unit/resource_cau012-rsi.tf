@@ -4,7 +4,6 @@
 resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy" "cau012_security_info_registration_tap" {
   display_name = "CAU012-RSI: Combined Security Info Registration with TAP-v1.1"
   state        = "enabledForReportingButNotEnforced"
-  hard_delete  = true
 
   conditions = {
     client_app_types = ["all"]

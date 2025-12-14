@@ -1,36 +1,16 @@
 package graphBetaConditionalAccessPolicy_test
 
 import (
-	"fmt"
 	"regexp"
 	"testing"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/check"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
-	graphBetaConditionalAccessPolicy "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/identity_and_access/graph_beta/conditional_access_policy"
 	conditionalAccessPolicyMocks "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/identity_and_access/graph_beta/conditional_access_policy/mocks"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/jarcoal/httpmock"
 )
-
-var (
-	// Resource type name from the resource package
-	resourceType = graphBetaConditionalAccessPolicy.ResourceName
-)
-
-// importStateIdFunc is a reusable function that constructs the import ID with hard_delete parameter
-func importStateIdFunc(resourceName string) resource.ImportStateIdFunc {
-	return func(s *terraform.State) (string, error) {
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return "", fmt.Errorf("resource not found: %s", resourceName)
-		}
-		hardDelete := rs.Primary.Attributes["hard_delete"]
-		return fmt.Sprintf("%s:hard_delete=%s", rs.Primary.ID, hardDelete), nil
-	}
-}
 
 func setupMockEnvironment() (*mocks.Mocks, *conditionalAccessPolicyMocks.ConditionalAccessPolicyMock) {
 	httpmock.Activate()
@@ -66,7 +46,6 @@ func TestConditionalAccessPolicyResource_CAD001(t *testing.T) {
 					check.That(resourceType+".cad001_macos_compliant").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".cad001_macos_compliant").Key("display_name").HasValue("CAD001-O365: Grant macOS access for All users when Modern Auth Clients and Compliant-v1.1"),
 					check.That(resourceType+".cad001_macos_compliant").Key("state").HasValue("enabledForReportingButNotEnforced"),
-					check.That(resourceType+".cad001_macos_compliant").Key("hard_delete").HasValue("true"),
 
 					// Conditions - Client App Types
 					check.That(resourceType+".cad001_macos_compliant").Key("conditions.client_app_types.#").HasValue("1"),
@@ -106,7 +85,6 @@ func TestConditionalAccessPolicyResource_CAD001(t *testing.T) {
 			{
 				ResourceName:      resourceType + ".cad001_macos_compliant",
 				ImportState:       true,
-				ImportStateIdFunc: importStateIdFunc(resourceType + ".cad001_macos_compliant"),
 				ImportStateVerify: true,
 			},
 		},
@@ -129,7 +107,6 @@ func TestConditionalAccessPolicyResource_CAD002(t *testing.T) {
 					check.That(resourceType+".cad002_windows_compliant").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".cad002_windows_compliant").Key("display_name").HasValue("CAD002-O365: Grant Windows access for All users when Modern Auth Clients and Compliant-v1.1"),
 					check.That(resourceType+".cad002_windows_compliant").Key("state").HasValue("enabledForReportingButNotEnforced"),
-					check.That(resourceType+".cad002_windows_compliant").Key("hard_delete").HasValue("true"),
 
 					// Conditions - Client App Types
 					check.That(resourceType+".cad002_windows_compliant").Key("conditions.client_app_types.#").HasValue("1"),
@@ -170,7 +147,6 @@ func TestConditionalAccessPolicyResource_CAD002(t *testing.T) {
 			{
 				ResourceName:      resourceType + ".cad002_windows_compliant",
 				ImportState:       true,
-				ImportStateIdFunc: importStateIdFunc(resourceType + ".cad002_windows_compliant"),
 				ImportStateVerify: true,
 			},
 		},
@@ -193,7 +169,6 @@ func TestConditionalAccessPolicyResource_CAD003(t *testing.T) {
 					check.That(resourceType+".cad003_mobile_compliant_or_app_protection").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".cad003_mobile_compliant_or_app_protection").Key("display_name").HasValue("CAD003-O365: Grant iOS and Android access for All users when Modern Auth Clients and AppProPol or Compliant-v1.3"),
 					check.That(resourceType+".cad003_mobile_compliant_or_app_protection").Key("state").HasValue("enabledForReportingButNotEnforced"),
-					check.That(resourceType+".cad003_mobile_compliant_or_app_protection").Key("hard_delete").HasValue("true"),
 
 					// Conditions - Client App Types
 					check.That(resourceType+".cad003_mobile_compliant_or_app_protection").Key("conditions.client_app_types.#").HasValue("1"),
@@ -235,7 +210,6 @@ func TestConditionalAccessPolicyResource_CAD003(t *testing.T) {
 			{
 				ResourceName:      resourceType + ".cad003_mobile_compliant_or_app_protection",
 				ImportState:       true,
-				ImportStateIdFunc: importStateIdFunc(resourceType + ".cad003_mobile_compliant_or_app_protection"),
 				ImportStateVerify: true,
 			},
 		},
@@ -258,7 +232,6 @@ func TestConditionalAccessPolicyResource_CAD004(t *testing.T) {
 					check.That(resourceType+".cad004_browser_noncompliant_mfa").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".cad004_browser_noncompliant_mfa").Key("display_name").HasValue("CAD004-O365: Grant Require MFA for All users when Browser and Non-Compliant-v1.3"),
 					check.That(resourceType+".cad004_browser_noncompliant_mfa").Key("state").HasValue("enabledForReportingButNotEnforced"),
-					check.That(resourceType+".cad004_browser_noncompliant_mfa").Key("hard_delete").HasValue("true"),
 
 					// Conditions - Client App Types
 					check.That(resourceType+".cad004_browser_noncompliant_mfa").Key("conditions.client_app_types.#").HasValue("1"),
@@ -287,7 +260,6 @@ func TestConditionalAccessPolicyResource_CAD004(t *testing.T) {
 			{
 				ResourceName:      resourceType + ".cad004_browser_noncompliant_mfa",
 				ImportState:       true,
-				ImportStateIdFunc: importStateIdFunc(resourceType + ".cad004_browser_noncompliant_mfa"),
 				ImportStateVerify: true,
 			},
 		},
@@ -310,7 +282,6 @@ func TestConditionalAccessPolicyResource_CAD005(t *testing.T) {
 					check.That(resourceType+".cad005_block_unsupported_platforms").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".cad005_block_unsupported_platforms").Key("display_name").HasValue("CAD005-O365: Block access for unsupported device platforms for All users when Modern Auth Clients-v1.1"),
 					check.That(resourceType+".cad005_block_unsupported_platforms").Key("state").HasValue("enabledForReportingButNotEnforced"),
-					check.That(resourceType+".cad005_block_unsupported_platforms").Key("hard_delete").HasValue("true"),
 
 					// Conditions - Client App Types
 					check.That(resourceType+".cad005_block_unsupported_platforms").Key("conditions.client_app_types.#").HasValue("1"),
@@ -346,7 +317,6 @@ func TestConditionalAccessPolicyResource_CAD005(t *testing.T) {
 			{
 				ResourceName:      resourceType + ".cad005_block_unsupported_platforms",
 				ImportState:       true,
-				ImportStateIdFunc: importStateIdFunc(resourceType + ".cad005_block_unsupported_platforms"),
 				ImportStateVerify: true,
 			},
 		},
@@ -369,7 +339,6 @@ func TestConditionalAccessPolicyResource_CAD006(t *testing.T) {
 					check.That(resourceType+".cad006_session_block_download_unmanaged").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".cad006_session_block_download_unmanaged").Key("display_name").HasValue("CAD006-O365: Session block download on unmanaged device for All users when Browser and Modern App Clients and Non-Compliant-v1.5"),
 					check.That(resourceType+".cad006_session_block_download_unmanaged").Key("state").HasValue("enabledForReportingButNotEnforced"),
-					check.That(resourceType+".cad006_session_block_download_unmanaged").Key("hard_delete").HasValue("true"),
 
 					// Conditions - Client App Types
 					check.That(resourceType+".cad006_session_block_download_unmanaged").Key("conditions.client_app_types.#").HasValue("2"),
@@ -401,7 +370,6 @@ func TestConditionalAccessPolicyResource_CAD006(t *testing.T) {
 			{
 				ResourceName:      resourceType + ".cad006_session_block_download_unmanaged",
 				ImportState:       true,
-				ImportStateIdFunc: importStateIdFunc(resourceType + ".cad006_session_block_download_unmanaged"),
 				ImportStateVerify: true,
 			},
 		},
@@ -424,7 +392,6 @@ func TestConditionalAccessPolicyResource_CAD007(t *testing.T) {
 					check.That(resourceType+".cad007_mobile_signin_frequency").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".cad007_mobile_signin_frequency").Key("display_name").HasValue("CAD007-O365: Session set Sign-in Frequency for Apps for All users when Modern Auth Clients and Non-Compliant-v1.2"),
 					check.That(resourceType+".cad007_mobile_signin_frequency").Key("state").HasValue("enabledForReportingButNotEnforced"),
-					check.That(resourceType+".cad007_mobile_signin_frequency").Key("hard_delete").HasValue("true"),
 
 					// Conditions - Client App Types
 					check.That(resourceType+".cad007_mobile_signin_frequency").Key("conditions.client_app_types.#").HasValue("1"),
@@ -464,7 +431,6 @@ func TestConditionalAccessPolicyResource_CAD007(t *testing.T) {
 			{
 				ResourceName:      resourceType + ".cad007_mobile_signin_frequency",
 				ImportState:       true,
-				ImportStateIdFunc: importStateIdFunc(resourceType + ".cad007_mobile_signin_frequency"),
 				ImportStateVerify: true,
 			},
 		},
@@ -487,7 +453,6 @@ func TestConditionalAccessPolicyResource_CAD008(t *testing.T) {
 					check.That(resourceType+".cad008_browser_signin_frequency").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".cad008_browser_signin_frequency").Key("display_name").HasValue("CAD008-All: Session set Sign-in Frequency for All users when Browser and Non-Compliant-v1.1"),
 					check.That(resourceType+".cad008_browser_signin_frequency").Key("state").HasValue("enabledForReportingButNotEnforced"),
-					check.That(resourceType+".cad008_browser_signin_frequency").Key("hard_delete").HasValue("true"),
 
 					// Conditions - Client App Types
 					check.That(resourceType+".cad008_browser_signin_frequency").Key("conditions.client_app_types.#").HasValue("1"),
@@ -522,7 +487,6 @@ func TestConditionalAccessPolicyResource_CAD008(t *testing.T) {
 			{
 				ResourceName:      resourceType + ".cad008_browser_signin_frequency",
 				ImportState:       true,
-				ImportStateIdFunc: importStateIdFunc(resourceType + ".cad008_browser_signin_frequency"),
 				ImportStateVerify: true,
 			},
 		},
@@ -545,7 +509,6 @@ func TestConditionalAccessPolicyResource_CAD009(t *testing.T) {
 					check.That(resourceType+".cad009_disable_browser_persistence").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".cad009_disable_browser_persistence").Key("display_name").HasValue("CAD009-All: Session disable browser persistence for All users when Browser and Non-Compliant-v1.2"),
 					check.That(resourceType+".cad009_disable_browser_persistence").Key("state").HasValue("enabledForReportingButNotEnforced"),
-					check.That(resourceType+".cad009_disable_browser_persistence").Key("hard_delete").HasValue("true"),
 
 					// Conditions - Client App Types
 					check.That(resourceType+".cad009_disable_browser_persistence").Key("conditions.client_app_types.#").HasValue("1"),
@@ -577,7 +540,6 @@ func TestConditionalAccessPolicyResource_CAD009(t *testing.T) {
 			{
 				ResourceName:      resourceType + ".cad009_disable_browser_persistence",
 				ImportState:       true,
-				ImportStateIdFunc: importStateIdFunc(resourceType + ".cad009_disable_browser_persistence"),
 				ImportStateVerify: true,
 			},
 		},
@@ -600,7 +562,6 @@ func TestConditionalAccessPolicyResource_CAD010(t *testing.T) {
 					check.That(resourceType+".cad010_device_registration_mfa").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".cad010_device_registration_mfa").Key("display_name").HasValue("CAD010-RJD: Require MFA for device join or registration when Browser and Modern Auth Clients-v1.1"),
 					check.That(resourceType+".cad010_device_registration_mfa").Key("state").HasValue("enabledForReportingButNotEnforced"),
-					check.That(resourceType+".cad010_device_registration_mfa").Key("hard_delete").HasValue("true"),
 
 					// Conditions - Client App Types
 					check.That(resourceType+".cad010_device_registration_mfa").Key("conditions.client_app_types.#").HasValue("1"),
@@ -626,7 +587,6 @@ func TestConditionalAccessPolicyResource_CAD010(t *testing.T) {
 			{
 				ResourceName:      resourceType + ".cad010_device_registration_mfa",
 				ImportState:       true,
-				ImportStateIdFunc: importStateIdFunc(resourceType + ".cad010_device_registration_mfa"),
 				ImportStateVerify: true,
 			},
 		},
@@ -649,7 +609,6 @@ func TestConditionalAccessPolicyResource_CAD011(t *testing.T) {
 					check.That(resourceType+".cad011_linux_compliant").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".cad011_linux_compliant").Key("display_name").HasValue("CAD011-O365: Grant Linux access for All users when Modern Auth Clients and Compliant-v1.0"),
 					check.That(resourceType+".cad011_linux_compliant").Key("state").HasValue("enabledForReportingButNotEnforced"),
-					check.That(resourceType+".cad011_linux_compliant").Key("hard_delete").HasValue("true"),
 
 					// Conditions - Client App Types
 					check.That(resourceType+".cad011_linux_compliant").Key("conditions.client_app_types.#").HasValue("1"),
@@ -681,7 +640,6 @@ func TestConditionalAccessPolicyResource_CAD011(t *testing.T) {
 			{
 				ResourceName:      resourceType + ".cad011_linux_compliant",
 				ImportState:       true,
-				ImportStateIdFunc: importStateIdFunc(resourceType + ".cad011_linux_compliant"),
 				ImportStateVerify: true,
 			},
 		},
@@ -704,7 +662,6 @@ func TestConditionalAccessPolicyResource_CAD012(t *testing.T) {
 					check.That(resourceType+".cad012_admin_compliant_access").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".cad012_admin_compliant_access").Key("display_name").HasValue("CAD012-All: Grant access for Admin users when Browser and Modern Auth Clients and Compliant-v1.1"),
 					check.That(resourceType+".cad012_admin_compliant_access").Key("state").HasValue("enabledForReportingButNotEnforced"),
-					check.That(resourceType+".cad012_admin_compliant_access").Key("hard_delete").HasValue("true"),
 
 					// Conditions - Client App Types
 					check.That(resourceType+".cad012_admin_compliant_access").Key("conditions.client_app_types.#").HasValue("2"),
@@ -731,7 +688,6 @@ func TestConditionalAccessPolicyResource_CAD012(t *testing.T) {
 			{
 				ResourceName:      resourceType + ".cad012_admin_compliant_access",
 				ImportState:       true,
-				ImportStateIdFunc: importStateIdFunc(resourceType + ".cad012_admin_compliant_access"),
 				ImportStateVerify: true,
 			},
 		},
@@ -754,7 +710,6 @@ func TestConditionalAccessPolicyResource_CAD013(t *testing.T) {
 					check.That(resourceType+".cad013_selected_apps_compliant").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".cad013_selected_apps_compliant").Key("display_name").HasValue("CAD013-Selected: Grant access for All users when Browser and Modern Auth Clients and Compliant-v1.0"),
 					check.That(resourceType+".cad013_selected_apps_compliant").Key("state").HasValue("enabledForReportingButNotEnforced"),
-					check.That(resourceType+".cad013_selected_apps_compliant").Key("hard_delete").HasValue("true"),
 
 					// Conditions - Client App Types
 					check.That(resourceType+".cad013_selected_apps_compliant").Key("conditions.client_app_types.#").HasValue("2"),
@@ -787,7 +742,6 @@ func TestConditionalAccessPolicyResource_CAD013(t *testing.T) {
 			{
 				ResourceName:      resourceType + ".cad013_selected_apps_compliant",
 				ImportState:       true,
-				ImportStateIdFunc: importStateIdFunc(resourceType + ".cad013_selected_apps_compliant"),
 				ImportStateVerify: true,
 			},
 		},
@@ -810,7 +764,6 @@ func TestConditionalAccessPolicyResource_CAD014(t *testing.T) {
 					check.That(resourceType+".cad014_edge_app_protection_windows").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".cad014_edge_app_protection_windows").Key("display_name").HasValue("CAD014-O365: Require App Protection Policy for Edge on Windows for All users when Browser and Non-Compliant-v1.0"),
 					check.That(resourceType+".cad014_edge_app_protection_windows").Key("state").HasValue("enabledForReportingButNotEnforced"),
-					check.That(resourceType+".cad014_edge_app_protection_windows").Key("hard_delete").HasValue("true"),
 
 					// Conditions - Client App Types
 					check.That(resourceType+".cad014_edge_app_protection_windows").Key("conditions.client_app_types.#").HasValue("1"),
@@ -844,7 +797,6 @@ func TestConditionalAccessPolicyResource_CAD014(t *testing.T) {
 			{
 				ResourceName:      resourceType + ".cad014_edge_app_protection_windows",
 				ImportState:       true,
-				ImportStateIdFunc: importStateIdFunc(resourceType + ".cad014_edge_app_protection_windows"),
 				ImportStateVerify: true,
 			},
 		},
@@ -867,7 +819,6 @@ func TestConditionalAccessPolicyResource_CAD015(t *testing.T) {
 					check.That(resourceType+".cad015_windows_macos_browser_compliant").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".cad015_windows_macos_browser_compliant").Key("display_name").HasValue("CAD015-All: Grant access for All users when Browser and Modern Auth Clients and Compliant on Windows and macOS-v1.0"),
 					check.That(resourceType+".cad015_windows_macos_browser_compliant").Key("state").HasValue("enabledForReportingButNotEnforced"),
-					check.That(resourceType+".cad015_windows_macos_browser_compliant").Key("hard_delete").HasValue("true"),
 
 					// Conditions - Client App Types
 					check.That(resourceType+".cad015_windows_macos_browser_compliant").Key("conditions.client_app_types.#").HasValue("2"),
@@ -900,7 +851,6 @@ func TestConditionalAccessPolicyResource_CAD015(t *testing.T) {
 			{
 				ResourceName:      resourceType + ".cad015_windows_macos_browser_compliant",
 				ImportState:       true,
-				ImportStateIdFunc: importStateIdFunc(resourceType + ".cad015_windows_macos_browser_compliant"),
 				ImportStateVerify: true,
 			},
 		},
@@ -923,7 +873,6 @@ func TestConditionalAccessPolicyResource_CAD016(t *testing.T) {
 					check.That(resourceType+".cad016_token_protection_windows").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".cad016_token_protection_windows").Key("display_name").HasValue("CAD016-EXO_SPO_CloudPC: Require token protection when Modern Auth Clients on Windows-v1.2"),
 					check.That(resourceType+".cad016_token_protection_windows").Key("state").HasValue("enabledForReportingButNotEnforced"),
-					check.That(resourceType+".cad016_token_protection_windows").Key("hard_delete").HasValue("true"),
 
 					// Conditions - Client App Types
 					check.That(resourceType+".cad016_token_protection_windows").Key("conditions.client_app_types.#").HasValue("1"),
@@ -962,7 +911,6 @@ func TestConditionalAccessPolicyResource_CAD016(t *testing.T) {
 			{
 				ResourceName:      resourceType + ".cad016_token_protection_windows",
 				ImportState:       true,
-				ImportStateIdFunc: importStateIdFunc(resourceType + ".cad016_token_protection_windows"),
 				ImportStateVerify: true,
 			},
 		},
@@ -985,7 +933,6 @@ func TestConditionalAccessPolicyResource_CAD017(t *testing.T) {
 					check.That(resourceType+".cad017_selected_mobile_app_protection").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".cad017_selected_mobile_app_protection").Key("display_name").HasValue("CAD017-Selected: Grant iOS and Android access for All users when Modern Auth Clients and AppProPol or Compliant-v1.1"),
 					check.That(resourceType+".cad017_selected_mobile_app_protection").Key("state").HasValue("enabledForReportingButNotEnforced"),
-					check.That(resourceType+".cad017_selected_mobile_app_protection").Key("hard_delete").HasValue("true"),
 
 					// Conditions - Client App Types
 					check.That(resourceType+".cad017_selected_mobile_app_protection").Key("conditions.client_app_types.#").HasValue("1"),
@@ -1027,7 +974,6 @@ func TestConditionalAccessPolicyResource_CAD017(t *testing.T) {
 			{
 				ResourceName:      resourceType + ".cad017_selected_mobile_app_protection",
 				ImportState:       true,
-				ImportStateIdFunc: importStateIdFunc(resourceType + ".cad017_selected_mobile_app_protection"),
 				ImportStateVerify: true,
 			},
 		},
@@ -1050,7 +996,6 @@ func TestConditionalAccessPolicyResource_CAD018(t *testing.T) {
 					check.That(resourceType+".cad018_cloudpc_mobile_app_protection").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".cad018_cloudpc_mobile_app_protection").Key("display_name").HasValue("CAD018-CloudPC: Grant iOS and Android access for All users when Modern Auth Clients and AppProPol or Compliant-v1.0"),
 					check.That(resourceType+".cad018_cloudpc_mobile_app_protection").Key("state").HasValue("enabledForReportingButNotEnforced"),
-					check.That(resourceType+".cad018_cloudpc_mobile_app_protection").Key("hard_delete").HasValue("true"),
 
 					// Conditions - Client App Types
 					check.That(resourceType+".cad018_cloudpc_mobile_app_protection").Key("conditions.client_app_types.#").HasValue("1"),
@@ -1081,7 +1026,6 @@ func TestConditionalAccessPolicyResource_CAD018(t *testing.T) {
 			{
 				ResourceName:      resourceType + ".cad018_cloudpc_mobile_app_protection",
 				ImportState:       true,
-				ImportStateIdFunc: importStateIdFunc(resourceType + ".cad018_cloudpc_mobile_app_protection"),
 				ImportStateVerify: true,
 			},
 		},
@@ -1104,7 +1048,6 @@ func TestConditionalAccessPolicyResource_CAD019(t *testing.T) {
 					check.That(resourceType+".cad019_intune_enrollment_mfa").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".cad019_intune_enrollment_mfa").Key("display_name").HasValue("CAD019-Intune: Require MFA and set sign-in frequency to every time-v1.0"),
 					check.That(resourceType+".cad019_intune_enrollment_mfa").Key("state").HasValue("enabledForReportingButNotEnforced"),
-					check.That(resourceType+".cad019_intune_enrollment_mfa").Key("hard_delete").HasValue("true"),
 
 					// Conditions - Client App Types
 					check.That(resourceType+".cad019_intune_enrollment_mfa").Key("conditions.client_app_types.#").HasValue("2"),
@@ -1134,7 +1077,6 @@ func TestConditionalAccessPolicyResource_CAD019(t *testing.T) {
 			{
 				ResourceName:      resourceType + ".cad019_intune_enrollment_mfa",
 				ImportState:       true,
-				ImportStateIdFunc: importStateIdFunc(resourceType + ".cad019_intune_enrollment_mfa"),
 				ImportStateVerify: true,
 			},
 		},
@@ -1157,7 +1099,6 @@ func TestConditionalAccessPolicyResource_CAL001(t *testing.T) {
 					check.That(resourceType+".cal001_block_locations").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".cal001_block_locations").Key("display_name").HasValue("CAL001-All: Block specified locations for All users when Browser and Modern Auth Clients-v1.1"),
 					check.That(resourceType+".cal001_block_locations").Key("state").HasValue("enabledForReportingButNotEnforced"),
-					check.That(resourceType+".cal001_block_locations").Key("hard_delete").HasValue("true"),
 
 					// Conditions - Client App Types
 					check.That(resourceType+".cal001_block_locations").Key("conditions.client_app_types.#").HasValue("2"),
@@ -1185,7 +1126,6 @@ func TestConditionalAccessPolicyResource_CAL001(t *testing.T) {
 			{
 				ResourceName:      resourceType + ".cal001_block_locations",
 				ImportState:       true,
-				ImportStateIdFunc: importStateIdFunc(resourceType + ".cal001_block_locations"),
 				ImportStateVerify: true,
 			},
 		},
@@ -1208,7 +1148,6 @@ func TestConditionalAccessPolicyResource_CAL002(t *testing.T) {
 					check.That(resourceType+".cal002_mfa_registration_trusted_locations").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".cal002_mfa_registration_trusted_locations").Key("display_name").HasValue("CAL002-RSI: Require MFA registration from trusted locations only for All users when Browser and Modern Auth Clients-v1.4"),
 					check.That(resourceType+".cal002_mfa_registration_trusted_locations").Key("state").HasValue("enabledForReportingButNotEnforced"),
-					check.That(resourceType+".cal002_mfa_registration_trusted_locations").Key("hard_delete").HasValue("true"),
 
 					// Conditions - Client App Types
 					check.That(resourceType+".cal002_mfa_registration_trusted_locations").Key("conditions.client_app_types.#").HasValue("1"),
@@ -1237,7 +1176,6 @@ func TestConditionalAccessPolicyResource_CAL002(t *testing.T) {
 			{
 				ResourceName:      resourceType + ".cal002_mfa_registration_trusted_locations",
 				ImportState:       true,
-				ImportStateIdFunc: importStateIdFunc(resourceType + ".cal002_mfa_registration_trusted_locations"),
 				ImportStateVerify: true,
 			},
 		},
@@ -1260,7 +1198,6 @@ func TestConditionalAccessPolicyResource_CAL003(t *testing.T) {
 					check.That(resourceType+".cal003_block_service_accounts_untrusted").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".cal003_block_service_accounts_untrusted").Key("display_name").HasValue("CAL003-All: Block Access for Specified Service Accounts except from Provided Trusted Locations when Browser and Modern Auth Clients-v1.1"),
 					check.That(resourceType+".cal003_block_service_accounts_untrusted").Key("state").HasValue("enabledForReportingButNotEnforced"),
-					check.That(resourceType+".cal003_block_service_accounts_untrusted").Key("hard_delete").HasValue("true"),
 
 					// Conditions - Client App Types
 					check.That(resourceType+".cal003_block_service_accounts_untrusted").Key("conditions.client_app_types.#").HasValue("2"),
@@ -1290,7 +1227,6 @@ func TestConditionalAccessPolicyResource_CAL003(t *testing.T) {
 			{
 				ResourceName:      resourceType + ".cal003_block_service_accounts_untrusted",
 				ImportState:       true,
-				ImportStateIdFunc: importStateIdFunc(resourceType + ".cal003_block_service_accounts_untrusted"),
 				ImportStateVerify: true,
 			},
 		},
@@ -1313,7 +1249,6 @@ func TestConditionalAccessPolicyResource_CAL004(t *testing.T) {
 					check.That(resourceType+".cal004_block_admin_untrusted_locations").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".cal004_block_admin_untrusted_locations").Key("display_name").HasValue("CAL004-All: Block access for Admins from non-trusted locations when Browser and Modern Auth Clients-v1.2"),
 					check.That(resourceType+".cal004_block_admin_untrusted_locations").Key("state").HasValue("enabledForReportingButNotEnforced"),
-					check.That(resourceType+".cal004_block_admin_untrusted_locations").Key("hard_delete").HasValue("true"),
 
 					// Conditions - Client App Types
 					check.That(resourceType+".cal004_block_admin_untrusted_locations").Key("conditions.client_app_types.#").HasValue("2"),
@@ -1342,7 +1277,6 @@ func TestConditionalAccessPolicyResource_CAL004(t *testing.T) {
 			{
 				ResourceName:      resourceType + ".cal004_block_admin_untrusted_locations",
 				ImportState:       true,
-				ImportStateIdFunc: importStateIdFunc(resourceType + ".cal004_block_admin_untrusted_locations"),
 				ImportStateVerify: true,
 			},
 		},
@@ -1365,7 +1299,6 @@ func TestConditionalAccessPolicyResource_CAL005(t *testing.T) {
 					check.That(resourceType+".cal005_less_trusted_locations_compliant").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".cal005_less_trusted_locations_compliant").Key("display_name").HasValue("CAL005-Selected: Grant access for All users on less-trusted locations when Browser and Modern Auth Clients and Compliant-v1.0"),
 					check.That(resourceType+".cal005_less_trusted_locations_compliant").Key("state").HasValue("enabledForReportingButNotEnforced"),
-					check.That(resourceType+".cal005_less_trusted_locations_compliant").Key("hard_delete").HasValue("true"),
 
 					// Conditions - Client App Types
 					check.That(resourceType+".cal005_less_trusted_locations_compliant").Key("conditions.client_app_types.#").HasValue("2"),
@@ -1395,7 +1328,6 @@ func TestConditionalAccessPolicyResource_CAL005(t *testing.T) {
 			{
 				ResourceName:      resourceType + ".cal005_less_trusted_locations_compliant",
 				ImportState:       true,
-				ImportStateIdFunc: importStateIdFunc(resourceType + ".cal005_less_trusted_locations_compliant"),
 				ImportStateVerify: true,
 			},
 		},
@@ -1418,7 +1350,6 @@ func TestConditionalAccessPolicyResource_CAL006(t *testing.T) {
 					check.That(resourceType+".cal006_allow_only_specified_locations").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".cal006_allow_only_specified_locations").Key("display_name").HasValue("CAL006-All: Only Allow Access from specified locations for specific accounts when Browser and Modern Auth Clients-v1.0"),
 					check.That(resourceType+".cal006_allow_only_specified_locations").Key("state").HasValue("enabledForReportingButNotEnforced"),
-					check.That(resourceType+".cal006_allow_only_specified_locations").Key("hard_delete").HasValue("true"),
 
 					// Conditions - Client App Types
 					check.That(resourceType+".cal006_allow_only_specified_locations").Key("conditions.client_app_types.#").HasValue("2"),
@@ -1448,7 +1379,6 @@ func TestConditionalAccessPolicyResource_CAL006(t *testing.T) {
 			{
 				ResourceName:      resourceType + ".cal006_allow_only_specified_locations",
 				ImportState:       true,
-				ImportStateIdFunc: importStateIdFunc(resourceType + ".cal006_allow_only_specified_locations"),
 				ImportStateVerify: true,
 			},
 		},
@@ -1471,7 +1401,6 @@ func TestConditionalAccessPolicyResource_CAP001(t *testing.T) {
 					check.That(resourceType+".cap001_block_legacy_auth").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".cap001_block_legacy_auth").Key("display_name").HasValue("CAP001-All: Block Legacy Authentication for All users when OtherClients-v1.0"),
 					check.That(resourceType+".cap001_block_legacy_auth").Key("state").HasValue("enabledForReportingButNotEnforced"),
-					check.That(resourceType+".cap001_block_legacy_auth").Key("hard_delete").HasValue("true"),
 
 					// Conditions - Client App Types
 					check.That(resourceType+".cap001_block_legacy_auth").Key("conditions.client_app_types.#").HasValue("1"),
@@ -1494,7 +1423,6 @@ func TestConditionalAccessPolicyResource_CAP001(t *testing.T) {
 			{
 				ResourceName:      resourceType + ".cap001_block_legacy_auth",
 				ImportState:       true,
-				ImportStateIdFunc: importStateIdFunc(resourceType + ".cap001_block_legacy_auth"),
 				ImportStateVerify: true,
 			},
 		},
@@ -1517,7 +1445,6 @@ func TestConditionalAccessPolicyResource_CAP002(t *testing.T) {
 					check.That(resourceType+".cap002_block_exchange_activesync").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".cap002_block_exchange_activesync").Key("display_name").HasValue("CAP002-All: Block Exchange ActiveSync Clients for All users-v1.1"),
 					check.That(resourceType+".cap002_block_exchange_activesync").Key("state").HasValue("enabledForReportingButNotEnforced"),
-					check.That(resourceType+".cap002_block_exchange_activesync").Key("hard_delete").HasValue("true"),
 
 					// Conditions - Client App Types
 					check.That(resourceType+".cap002_block_exchange_activesync").Key("conditions.client_app_types.#").HasValue("1"),
@@ -1540,7 +1467,6 @@ func TestConditionalAccessPolicyResource_CAP002(t *testing.T) {
 			{
 				ResourceName:      resourceType + ".cap002_block_exchange_activesync",
 				ImportState:       true,
-				ImportStateIdFunc: importStateIdFunc(resourceType + ".cap002_block_exchange_activesync"),
 				ImportStateVerify: true,
 			},
 		},
@@ -1563,7 +1489,6 @@ func TestConditionalAccessPolicyResource_CAP003(t *testing.T) {
 					check.That(resourceType+".cap003_block_device_code_flow").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".cap003_block_device_code_flow").Key("display_name").HasValue("CAP003-All: Block device code authentication flow-v1.0"),
 					check.That(resourceType+".cap003_block_device_code_flow").Key("state").HasValue("enabledForReportingButNotEnforced"),
-					check.That(resourceType+".cap003_block_device_code_flow").Key("hard_delete").HasValue("true"),
 
 					// Conditions - Client App Types
 					check.That(resourceType+".cap003_block_device_code_flow").Key("conditions.client_app_types.#").HasValue("1"),
@@ -1589,7 +1514,6 @@ func TestConditionalAccessPolicyResource_CAP003(t *testing.T) {
 			{
 				ResourceName:      resourceType + ".cap003_block_device_code_flow",
 				ImportState:       true,
-				ImportStateIdFunc: importStateIdFunc(resourceType + ".cap003_block_device_code_flow"),
 				ImportStateVerify: true,
 			},
 		},
@@ -1612,7 +1536,6 @@ func TestConditionalAccessPolicyResource_CAP004(t *testing.T) {
 					check.That(resourceType+".cap004_block_auth_transfer").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".cap004_block_auth_transfer").Key("display_name").HasValue("CAP004-All: Block authentication transfer-v1.0"),
 					check.That(resourceType+".cap004_block_auth_transfer").Key("state").HasValue("enabledForReportingButNotEnforced"),
-					check.That(resourceType+".cap004_block_auth_transfer").Key("hard_delete").HasValue("true"),
 
 					// Conditions - Client App Types
 					check.That(resourceType+".cap004_block_auth_transfer").Key("conditions.client_app_types.#").HasValue("1"),
@@ -1638,7 +1561,6 @@ func TestConditionalAccessPolicyResource_CAP004(t *testing.T) {
 			{
 				ResourceName:      resourceType + ".cap004_block_auth_transfer",
 				ImportState:       true,
-				ImportStateIdFunc: importStateIdFunc(resourceType + ".cap004_block_auth_transfer"),
 				ImportStateVerify: true,
 			},
 		},
@@ -1661,7 +1583,6 @@ func TestConditionalAccessPolicyResource_CAU001(t *testing.T) {
 					check.That(resourceType+".cau001_guest_mfa").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".cau001_guest_mfa").Key("display_name").HasValue("CAU001-All: Grant Require MFA for guests when Browser and Modern Auth Clients-v1.1"),
 					check.That(resourceType+".cau001_guest_mfa").Key("state").HasValue("enabledForReportingButNotEnforced"),
-					check.That(resourceType+".cau001_guest_mfa").Key("hard_delete").HasValue("true"),
 
 					// Conditions - Client App Types
 					check.That(resourceType+".cau001_guest_mfa").Key("conditions.client_app_types.#").HasValue("2"),
@@ -1684,7 +1605,6 @@ func TestConditionalAccessPolicyResource_CAU001(t *testing.T) {
 			{
 				ResourceName:      resourceType + ".cau001_guest_mfa",
 				ImportState:       true,
-				ImportStateIdFunc: importStateIdFunc(resourceType + ".cau001_guest_mfa"),
 				ImportStateVerify: true,
 			},
 		},
@@ -1707,7 +1627,6 @@ func TestConditionalAccessPolicyResource_CAU001A(t *testing.T) {
 					check.That(resourceType+".cau001a_guest_mfa_azure_ad").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".cau001a_guest_mfa_azure_ad").Key("display_name").HasValue("CAU001A-Windows Azure Active Directory: Grant Require MFA for guests when Browser and Modern Auth Clients-v1.0"),
 					check.That(resourceType+".cau001a_guest_mfa_azure_ad").Key("state").HasValue("enabledForReportingButNotEnforced"),
-					check.That(resourceType+".cau001a_guest_mfa_azure_ad").Key("hard_delete").HasValue("true"),
 
 					// Conditions - Client App Types
 					check.That(resourceType+".cau001a_guest_mfa_azure_ad").Key("conditions.client_app_types.#").HasValue("2"),
@@ -1729,7 +1648,6 @@ func TestConditionalAccessPolicyResource_CAU001A(t *testing.T) {
 			{
 				ResourceName:      resourceType + ".cau001a_guest_mfa_azure_ad",
 				ImportState:       true,
-				ImportStateIdFunc: importStateIdFunc(resourceType + ".cau001a_guest_mfa_azure_ad"),
 				ImportStateVerify: true,
 			},
 		},
@@ -1752,7 +1670,6 @@ func TestConditionalAccessPolicyResource_CAU002(t *testing.T) {
 					check.That(resourceType+".cau002_all_users_mfa").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".cau002_all_users_mfa").Key("display_name").HasValue("CAU002-All: Grant Require MFA for All users when Browser and Modern Auth Clients-v1.5"),
 					check.That(resourceType+".cau002_all_users_mfa").Key("state").HasValue("enabledForReportingButNotEnforced"),
-					check.That(resourceType+".cau002_all_users_mfa").Key("hard_delete").HasValue("true"),
 
 					// Conditions - Client App Types
 					check.That(resourceType+".cau002_all_users_mfa").Key("conditions.client_app_types.#").HasValue("2"),
@@ -1776,7 +1693,6 @@ func TestConditionalAccessPolicyResource_CAU002(t *testing.T) {
 			{
 				ResourceName:      resourceType + ".cau002_all_users_mfa",
 				ImportState:       true,
-				ImportStateIdFunc: importStateIdFunc(resourceType + ".cau002_all_users_mfa"),
 				ImportStateVerify: true,
 			},
 		},
@@ -1799,7 +1715,6 @@ func TestConditionalAccessPolicyResource_CAU003(t *testing.T) {
 					check.That(resourceType+".cau003_block_unapproved_apps_guests").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".cau003_block_unapproved_apps_guests").Key("display_name").HasValue("CAU003-Selected: Block unapproved apps for guests when Browser and Modern Auth Clients-v1.0"),
 					check.That(resourceType+".cau003_block_unapproved_apps_guests").Key("state").HasValue("enabledForReportingButNotEnforced"),
-					check.That(resourceType+".cau003_block_unapproved_apps_guests").Key("hard_delete").HasValue("true"),
 
 					// Conditions - Client App Types
 					check.That(resourceType+".cau003_block_unapproved_apps_guests").Key("conditions.client_app_types.#").HasValue("2"),
@@ -1821,7 +1736,6 @@ func TestConditionalAccessPolicyResource_CAU003(t *testing.T) {
 			{
 				ResourceName:      resourceType + ".cau003_block_unapproved_apps_guests",
 				ImportState:       true,
-				ImportStateIdFunc: importStateIdFunc(resourceType + ".cau003_block_unapproved_apps_guests"),
 				ImportStateVerify: true,
 			},
 		},
@@ -1844,7 +1758,6 @@ func TestConditionalAccessPolicyResource_CAU004(t *testing.T) {
 					check.That(resourceType+".cau004_mdca_route").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".cau004_mdca_route").Key("display_name").HasValue("CAU004-Selected: Session route through MDCA for All users when Browser on Non-Compliant-v1.2"),
 					check.That(resourceType+".cau004_mdca_route").Key("state").HasValue("enabledForReportingButNotEnforced"),
-					check.That(resourceType+".cau004_mdca_route").Key("hard_delete").HasValue("true"),
 
 					// Conditions - Client App Types
 					check.That(resourceType+".cau004_mdca_route").Key("conditions.client_app_types.#").HasValue("1"),
@@ -1870,7 +1783,6 @@ func TestConditionalAccessPolicyResource_CAU004(t *testing.T) {
 			{
 				ResourceName:      resourceType + ".cau004_mdca_route",
 				ImportState:       true,
-				ImportStateIdFunc: importStateIdFunc(resourceType + ".cau004_mdca_route"),
 				ImportStateVerify: true,
 			},
 		},
@@ -1893,7 +1805,6 @@ func TestConditionalAccessPolicyResource_CAU006(t *testing.T) {
 					check.That(resourceType+".cau006_signin_risk_mfa").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".cau006_signin_risk_mfa").Key("display_name").HasValue("CAU006-All: Grant access for Medium and High Risk Sign-in for All Users when Browser and Modern Auth Clients require MFA-v1.4"),
 					check.That(resourceType+".cau006_signin_risk_mfa").Key("state").HasValue("enabledForReportingButNotEnforced"),
-					check.That(resourceType+".cau006_signin_risk_mfa").Key("hard_delete").HasValue("true"),
 
 					// Conditions - Client App Types
 					check.That(resourceType+".cau006_signin_risk_mfa").Key("conditions.client_app_types.#").HasValue("2"),
@@ -1927,7 +1838,6 @@ func TestConditionalAccessPolicyResource_CAU006(t *testing.T) {
 			{
 				ResourceName:      resourceType + ".cau006_signin_risk_mfa",
 				ImportState:       true,
-				ImportStateIdFunc: importStateIdFunc(resourceType + ".cau006_signin_risk_mfa"),
 				ImportStateVerify: true,
 			},
 		},
@@ -1950,7 +1860,6 @@ func TestConditionalAccessPolicyResource_CAU007(t *testing.T) {
 					check.That(resourceType+".cau007_user_risk_password_change").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".cau007_user_risk_password_change").Key("display_name").HasValue("CAU007-All: Grant access for Medium and High Risk Users for All Users when Browser and Modern Auth Clients require PWD reset-v1.3"),
 					check.That(resourceType+".cau007_user_risk_password_change").Key("state").HasValue("enabledForReportingButNotEnforced"),
-					check.That(resourceType+".cau007_user_risk_password_change").Key("hard_delete").HasValue("true"),
 
 					// Conditions - Client App Types
 					check.That(resourceType+".cau007_user_risk_password_change").Key("conditions.client_app_types.#").HasValue("1"),
@@ -1984,7 +1893,6 @@ func TestConditionalAccessPolicyResource_CAU007(t *testing.T) {
 			{
 				ResourceName:      resourceType + ".cau007_user_risk_password_change",
 				ImportState:       true,
-				ImportStateIdFunc: importStateIdFunc(resourceType + ".cau007_user_risk_password_change"),
 				ImportStateVerify: true,
 			},
 		},
@@ -2007,7 +1915,6 @@ func TestConditionalAccessPolicyResource_CAU008(t *testing.T) {
 					check.That(resourceType+".cau008_admin_phishing_resistant_mfa").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".cau008_admin_phishing_resistant_mfa").Key("display_name").HasValue("CAU008-All: Grant Require Phishing Resistant MFA for Admins when Browser and Modern Auth Clients-v1.4"),
 					check.That(resourceType+".cau008_admin_phishing_resistant_mfa").Key("state").HasValue("enabledForReportingButNotEnforced"),
-					check.That(resourceType+".cau008_admin_phishing_resistant_mfa").Key("hard_delete").HasValue("true"),
 
 					// Conditions - Client App Types
 					check.That(resourceType+".cau008_admin_phishing_resistant_mfa").Key("conditions.client_app_types.#").HasValue("2"),
@@ -2029,7 +1936,6 @@ func TestConditionalAccessPolicyResource_CAU008(t *testing.T) {
 			{
 				ResourceName:      resourceType + ".cau008_admin_phishing_resistant_mfa",
 				ImportState:       true,
-				ImportStateIdFunc: importStateIdFunc(resourceType + ".cau008_admin_phishing_resistant_mfa"),
 				ImportStateVerify: true,
 			},
 		},
@@ -2052,7 +1958,6 @@ func TestConditionalAccessPolicyResource_CAU009(t *testing.T) {
 					check.That(resourceType+".cau009_admin_portals_mfa").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".cau009_admin_portals_mfa").Key("display_name").HasValue("CAU009-Management: Grant Require MFA for Admin Portals for All Users when Browser and Modern Auth Clients-v1.2"),
 					check.That(resourceType+".cau009_admin_portals_mfa").Key("state").HasValue("enabledForReportingButNotEnforced"),
-					check.That(resourceType+".cau009_admin_portals_mfa").Key("hard_delete").HasValue("true"),
 
 					// Conditions - Client App Types
 					check.That(resourceType+".cau009_admin_portals_mfa").Key("conditions.client_app_types.#").HasValue("2"),
@@ -2076,7 +1981,6 @@ func TestConditionalAccessPolicyResource_CAU009(t *testing.T) {
 			{
 				ResourceName:      resourceType + ".cau009_admin_portals_mfa",
 				ImportState:       true,
-				ImportStateIdFunc: importStateIdFunc(resourceType + ".cau009_admin_portals_mfa"),
 				ImportStateVerify: true,
 			},
 		},
@@ -2099,7 +2003,6 @@ func TestConditionalAccessPolicyResource_CAU010(t *testing.T) {
 					check.That(resourceType+".cau010_terms_of_use").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".cau010_terms_of_use").Key("display_name").HasValue("CAU010-All: Grant Require ToU for All Users when Browser and Modern Auth Clients-v1.2"),
 					check.That(resourceType+".cau010_terms_of_use").Key("state").HasValue("enabledForReportingButNotEnforced"),
-					check.That(resourceType+".cau010_terms_of_use").Key("hard_delete").HasValue("true"),
 
 					// Conditions - Client App Types
 					check.That(resourceType+".cau010_terms_of_use").Key("conditions.client_app_types.#").HasValue("2"),
@@ -2122,7 +2025,6 @@ func TestConditionalAccessPolicyResource_CAU010(t *testing.T) {
 			{
 				ResourceName:      resourceType + ".cau010_terms_of_use",
 				ImportState:       true,
-				ImportStateIdFunc: importStateIdFunc(resourceType + ".cau010_terms_of_use"),
 				ImportStateVerify: true,
 			},
 		},
@@ -2145,7 +2047,6 @@ func TestConditionalAccessPolicyResource_CAU011(t *testing.T) {
 					check.That(resourceType+".cau011_block_unlicensed").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".cau011_block_unlicensed").Key("display_name").HasValue("CAU011-All: Block access for All users except licensed when Browser and Modern Auth Clients-v1.0"),
 					check.That(resourceType+".cau011_block_unlicensed").Key("state").HasValue("enabledForReportingButNotEnforced"),
-					check.That(resourceType+".cau011_block_unlicensed").Key("hard_delete").HasValue("true"),
 
 					// Conditions - Client App Types
 					check.That(resourceType+".cau011_block_unlicensed").Key("conditions.client_app_types.#").HasValue("2"),
@@ -2171,7 +2072,6 @@ func TestConditionalAccessPolicyResource_CAU011(t *testing.T) {
 			{
 				ResourceName:      resourceType + ".cau011_block_unlicensed",
 				ImportState:       true,
-				ImportStateIdFunc: importStateIdFunc(resourceType + ".cau011_block_unlicensed"),
 				ImportStateVerify: true,
 			},
 		},
@@ -2194,7 +2094,6 @@ func TestConditionalAccessPolicyResource_CAU012(t *testing.T) {
 					check.That(resourceType+".cau012_security_info_registration_tap").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".cau012_security_info_registration_tap").Key("display_name").HasValue("CAU012-RSI: Combined Security Info Registration with TAP-v1.1"),
 					check.That(resourceType+".cau012_security_info_registration_tap").Key("state").HasValue("enabledForReportingButNotEnforced"),
-					check.That(resourceType+".cau012_security_info_registration_tap").Key("hard_delete").HasValue("true"),
 
 					// Conditions - Client App Types
 					check.That(resourceType+".cau012_security_info_registration_tap").Key("conditions.client_app_types.#").HasValue("1"),
@@ -2228,7 +2127,6 @@ func TestConditionalAccessPolicyResource_CAU012(t *testing.T) {
 			{
 				ResourceName:      resourceType + ".cau012_security_info_registration_tap",
 				ImportState:       true,
-				ImportStateIdFunc: importStateIdFunc(resourceType + ".cau012_security_info_registration_tap"),
 				ImportStateVerify: true,
 			},
 		},
@@ -2251,7 +2149,6 @@ func TestConditionalAccessPolicyResource_CAU013(t *testing.T) {
 					check.That(resourceType+".cau013_all_users_phishing_resistant_mfa").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".cau013_all_users_phishing_resistant_mfa").Key("display_name").HasValue("CAU013-All: Grant Require phishing resistant MFA for All users when Browser and Modern Auth Clients-v1.0"),
 					check.That(resourceType+".cau013_all_users_phishing_resistant_mfa").Key("state").HasValue("enabledForReportingButNotEnforced"),
-					check.That(resourceType+".cau013_all_users_phishing_resistant_mfa").Key("hard_delete").HasValue("true"),
 
 					// Conditions - Client App Types
 					check.That(resourceType+".cau013_all_users_phishing_resistant_mfa").Key("conditions.client_app_types.#").HasValue("2"),
@@ -2273,7 +2170,6 @@ func TestConditionalAccessPolicyResource_CAU013(t *testing.T) {
 			{
 				ResourceName:      resourceType + ".cau013_all_users_phishing_resistant_mfa",
 				ImportState:       true,
-				ImportStateIdFunc: importStateIdFunc(resourceType + ".cau013_all_users_phishing_resistant_mfa"),
 				ImportStateVerify: true,
 			},
 		},
@@ -2296,7 +2192,6 @@ func TestConditionalAccessPolicyResource_CAU014(t *testing.T) {
 					check.That(resourceType+".cau014_block_managed_identity_risk").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".cau014_block_managed_identity_risk").Key("display_name").HasValue("CAU014-All: Block Managed Identity when Sign in Risk is Medium or High-v1.0"),
 					check.That(resourceType+".cau014_block_managed_identity_risk").Key("state").HasValue("enabledForReportingButNotEnforced"),
-					check.That(resourceType+".cau014_block_managed_identity_risk").Key("hard_delete").HasValue("true"),
 
 					// Conditions - Client App Types
 					check.That(resourceType+".cau014_block_managed_identity_risk").Key("conditions.client_app_types.#").HasValue("1"),
@@ -2328,7 +2223,6 @@ func TestConditionalAccessPolicyResource_CAU014(t *testing.T) {
 			{
 				ResourceName:      resourceType + ".cau014_block_managed_identity_risk",
 				ImportState:       true,
-				ImportStateIdFunc: importStateIdFunc(resourceType + ".cau014_block_managed_identity_risk"),
 				ImportStateVerify: true,
 			},
 		},
@@ -2351,7 +2245,6 @@ func TestConditionalAccessPolicyResource_CAU015(t *testing.T) {
 					check.That(resourceType+".cau015_block_high_signin_risk").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".cau015_block_high_signin_risk").Key("display_name").HasValue("CAU015-All: Block access for High Risk Sign-in for All Users when Browser and Modern Auth Clients-v1.0"),
 					check.That(resourceType+".cau015_block_high_signin_risk").Key("state").HasValue("enabledForReportingButNotEnforced"),
-					check.That(resourceType+".cau015_block_high_signin_risk").Key("hard_delete").HasValue("true"),
 
 					// Conditions - Client App Types
 					check.That(resourceType+".cau015_block_high_signin_risk").Key("conditions.client_app_types.#").HasValue("2"),
@@ -2378,7 +2271,6 @@ func TestConditionalAccessPolicyResource_CAU015(t *testing.T) {
 			{
 				ResourceName:      resourceType + ".cau015_block_high_signin_risk",
 				ImportState:       true,
-				ImportStateIdFunc: importStateIdFunc(resourceType + ".cau015_block_high_signin_risk"),
 				ImportStateVerify: true,
 			},
 		},
@@ -2401,7 +2293,6 @@ func TestConditionalAccessPolicyResource_CAU016(t *testing.T) {
 					check.That(resourceType+".cau016_block_high_user_risk").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".cau016_block_high_user_risk").Key("display_name").HasValue("CAU016-All: Block access for High Risk Users for All Users when Browser and Modern Auth Clients-v1.0"),
 					check.That(resourceType+".cau016_block_high_user_risk").Key("state").HasValue("enabledForReportingButNotEnforced"),
-					check.That(resourceType+".cau016_block_high_user_risk").Key("hard_delete").HasValue("true"),
 
 					// Conditions - Client App Types
 					check.That(resourceType+".cau016_block_high_user_risk").Key("conditions.client_app_types.#").HasValue("2"),
@@ -2428,7 +2319,6 @@ func TestConditionalAccessPolicyResource_CAU016(t *testing.T) {
 			{
 				ResourceName:      resourceType + ".cau016_block_high_user_risk",
 				ImportState:       true,
-				ImportStateIdFunc: importStateIdFunc(resourceType + ".cau016_block_high_user_risk"),
 				ImportStateVerify: true,
 			},
 		},
@@ -2451,7 +2341,6 @@ func TestConditionalAccessPolicyResource_CAU017(t *testing.T) {
 					check.That(resourceType+".cau017_admin_signin_frequency").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".cau017_admin_signin_frequency").Key("display_name").HasValue("CAU017-All: Session set Sign-in Frequency for Admins when Browser-v1.0"),
 					check.That(resourceType+".cau017_admin_signin_frequency").Key("state").HasValue("enabledForReportingButNotEnforced"),
-					check.That(resourceType+".cau017_admin_signin_frequency").Key("hard_delete").HasValue("true"),
 
 					// Conditions - Client App Types
 					check.That(resourceType+".cau017_admin_signin_frequency").Key("conditions.client_app_types.#").HasValue("1"),
@@ -2478,7 +2367,6 @@ func TestConditionalAccessPolicyResource_CAU017(t *testing.T) {
 			{
 				ResourceName:      resourceType + ".cau017_admin_signin_frequency",
 				ImportState:       true,
-				ImportStateIdFunc: importStateIdFunc(resourceType + ".cau017_admin_signin_frequency"),
 				ImportStateVerify: true,
 			},
 		},
@@ -2501,7 +2389,6 @@ func TestConditionalAccessPolicyResource_CAU018(t *testing.T) {
 					check.That(resourceType+".cau018_admin_disable_browser_persistence").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".cau018_admin_disable_browser_persistence").Key("display_name").HasValue("CAU018-All: Session disable browser persistence for Admins when Browser-v1.0"),
 					check.That(resourceType+".cau018_admin_disable_browser_persistence").Key("state").HasValue("enabledForReportingButNotEnforced"),
-					check.That(resourceType+".cau018_admin_disable_browser_persistence").Key("hard_delete").HasValue("true"),
 
 					// Conditions - Client App Types
 					check.That(resourceType+".cau018_admin_disable_browser_persistence").Key("conditions.client_app_types.#").HasValue("1"),
@@ -2525,7 +2412,6 @@ func TestConditionalAccessPolicyResource_CAU018(t *testing.T) {
 			{
 				ResourceName:      resourceType + ".cau018_admin_disable_browser_persistence",
 				ImportState:       true,
-				ImportStateIdFunc: importStateIdFunc(resourceType + ".cau018_admin_disable_browser_persistence"),
 				ImportStateVerify: true,
 			},
 		},
@@ -2548,7 +2434,6 @@ func TestConditionalAccessPolicyResource_CAU019(t *testing.T) {
 					check.That(resourceType+".cau019_allow_only_approved_apps_guests").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".cau019_allow_only_approved_apps_guests").Key("display_name").HasValue("CAU019-Selected: Only allow approved apps for guests when Browser and Modern Auth Clients-v1.0"),
 					check.That(resourceType+".cau019_allow_only_approved_apps_guests").Key("state").HasValue("enabledForReportingButNotEnforced"),
-					check.That(resourceType+".cau019_allow_only_approved_apps_guests").Key("hard_delete").HasValue("true"),
 
 					// Conditions - Client App Types
 					check.That(resourceType+".cau019_allow_only_approved_apps_guests").Key("conditions.client_app_types.#").HasValue("2"),
@@ -2577,7 +2462,6 @@ func TestConditionalAccessPolicyResource_CAU019(t *testing.T) {
 			{
 				ResourceName:      resourceType + ".cau019_allow_only_approved_apps_guests",
 				ImportState:       true,
-				ImportStateIdFunc: importStateIdFunc(resourceType + ".cau019_allow_only_approved_apps_guests"),
 				ImportStateVerify: true,
 			},
 		},

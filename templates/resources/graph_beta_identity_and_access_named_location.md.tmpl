@@ -26,10 +26,43 @@ The following API permissions are required in order to use this resource.
 | Version | Status | Notes |
 |---------|--------|-------|
 | v0.28.0-alpha | Experimental | Initial release |
+| v0.38.0-alpha | Preview | Refactored to use Kiota SDK |
 
 ## Example Usage
 
-{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_named_location/resource.tf" }}
+### Country-Based Named Locations
+
+#### High Risk Countries (Client IP)
+{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_named_location/country_high_risk_client_ip.tf" }}
+
+#### High Risk Countries (Authenticator GPS)
+{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_named_location/country_high_risk_authenticator_gps.tf" }}
+
+#### Trusted Countries and Regions
+{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_named_location/country_trusted_regions.tf" }}
+
+#### Semi-Trusted Countries (Requiring Compliance)
+{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_named_location/country_semi_trusted_requiring_compliance.tf" }}
+
+### IP-Based Named Locations
+
+#### Trusted Corporate Headquarters
+{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_named_location/ip_trusted_corporate_hq.tf" }}
+
+#### Trusted Corporate VPN
+{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_named_location/ip_trusted_corporate_vpn.tf" }}
+
+#### Trusted Regional Offices
+{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_named_location/ip_trusted_regional_offices.tf" }}
+
+#### Semi-Trusted Partner Networks
+{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_named_location/ip_semi_trusted_partner_networks.tf" }}
+
+#### Allowed Service Account Sources
+{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_named_location/ip_allowed_service_accounts.tf" }}
+
+#### Allowed Regional Offices (Region-Locked Accounts)
+{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_named_location/ip_allowed_regional_offices.tf" }}
 
 {{ .SchemaMarkdown | trimspace }}
 

@@ -1,785 +1,635 @@
 package graphBetaConditionalAccessPolicy
 
-// // constructResource converts the Terraform resource model to a plain map for JSON marshaling
-// // Returns a map[string]any that can be directly JSON marshaled by the HTTP client
-// func constructResource(ctx context.Context, httpClient *client.AuthenticatedHTTPClient, data *ConditionalAccessPolicyResourceModel) (map[string]any, error) {
-
-// 	tflog.Debug(ctx, fmt.Sprintf("Constructing %s resource from model", ResourceName))
-
-// 	if err := validateRequest(ctx, httpClient, data); err != nil {
-// 		return nil, fmt.Errorf("validation failed: %w", err)
-// 	}
-
-// 	requestBody := make(map[string]any)
-
-// 	convert.FrameworkToGraphString(data.DisplayName, func(val *string) {
-// 		if val != nil {
-// 			requestBody["displayName"] = *val
-// 		}
-// 	})
-
-// 	convert.FrameworkToGraphString(data.State, func(val *string) {
-// 		if val != nil {
-// 			requestBody["state"] = *val
-// 		}
-// 	})
-
-// 	convert.FrameworkToGraphString(data.TemplateId, func(val *string) {
-// 		if val != nil {
-// 			requestBody["templateId"] = *val
-// 		}
-// 	})
-
-// 	// Build conditions
-// 	if data.Conditions != nil {
-// 		conditions, err := constructConditions(ctx, data.Conditions)
-// 		if err != nil {
-// 			return nil, fmt.Errorf("failed to construct conditions: %w", err)
-// 		}
-// 		requestBody["conditions"] = conditions
-// 	}
-
-// 	// Build grant controls
-// 	if data.GrantControls != nil {
-// 		grantControls, err := constructGrantControls(ctx, data.GrantControls)
-// 		if err != nil {
-// 			return nil, fmt.Errorf("failed to construct grant controls: %w", err)
-// 		}
-// 		requestBody["grantControls"] = grantControls
-// 	}
-
-// 	// Build session controls
-// 	if data.SessionControls != nil {
-// 		sessionControls, err := constructSessionControls(ctx, data.SessionControls)
-// 		if err != nil {
-// 			return nil, fmt.Errorf("failed to construct session controls: %w", err)
-// 		}
-// 		requestBody["sessionControls"] = sessionControls
-// 	}
-
-// 	if debugJSON, err := json.MarshalIndent(requestBody, "", "    "); err == nil {
-// 		tflog.Debug(ctx, fmt.Sprintf("Final JSON to be sent to Graph API for resource %s", ResourceName), map[string]any{
-// 			"json": "\n" + string(debugJSON),
-// 		})
-// 	} else {
-// 		tflog.Error(ctx, "Failed to debug log object", map[string]any{
-// 			"error": err.Error(),
-// 		})
-// 	}
-
-// 	tflog.Debug(ctx, fmt.Sprintf("Finished constructing %s resource", ResourceName))
-
-// 	return requestBody, nil
-// }
-
-// // constructConditions builds the conditions object using available Graph models
-// func constructConditions(ctx context.Context, data *ConditionalAccessConditions) (map[string]any, error) {
-// 	conditions := make(map[string]any)
-
-// 	if err := convert.FrameworkToGraphStringSet(ctx, data.ClientAppTypes, func(values []string) {
-// 		if len(values) > 0 {
-// 			conditions["clientAppTypes"] = values
-// 		}
-// 	}); err != nil {
-// 		return nil, fmt.Errorf("failed to convert client app types: %w", err)
-// 	}
-
-// 	if data.Applications != nil {
-// 		applications := make(map[string]any)
-
-// 		if err := convert.FrameworkToGraphStringSet(ctx, data.Applications.IncludeApplications, func(values []string) {
-// 			if len(values) > 0 {
-// 				applications["includeApplications"] = values
-// 			}
-// 		}); err != nil {
-// 			return nil, fmt.Errorf("failed to convert include applications: %w", err)
-// 		}
-
-// 		if err := convert.FrameworkToGraphStringSet(ctx, data.Applications.ExcludeApplications, func(values []string) {
-// 			applications["excludeApplications"] = values
-// 		}); err != nil {
-// 			return nil, fmt.Errorf("failed to convert exclude applications: %w", err)
-// 		}
-
-// 		if err := convert.FrameworkToGraphStringSet(ctx, data.Applications.IncludeUserActions, func(values []string) {
-// 			applications["includeUserActions"] = values
-// 		}); err != nil {
-// 			return nil, fmt.Errorf("failed to convert include user actions: %w", err)
-// 		}
-
-// 		if err := convert.FrameworkToGraphStringSet(ctx, data.Applications.IncludeAuthenticationContextClassReferences, func(values []string) {
-// 			// Map predefined values to their corresponding IDs
-// 			mappedValues := make([]string, len(values))
-// 			for i, value := range values {
-// 				switch value {
-// 				case "require_trusted_device":
-// 					mappedValues[i] = "c1"
-// 				case "require_terms_of_use":
-// 					mappedValues[i] = "c2"
-// 				case "require_trusted_location":
-// 					mappedValues[i] = "c3"
-// 				case "require_strong_authentication":
-// 					mappedValues[i] = "c4"
-// 				case "required_trust_type:azure_ad_joined":
-// 					mappedValues[i] = "c5"
-// 				case "require_access_from_an_approved_app":
-// 					mappedValues[i] = "c6"
-// 				case "required_trust_type:hybrid_azure_ad_joined":
-// 					mappedValues[i] = "c7"
-// 				default:
-// 					mappedValues[i] = value
-// 				}
-// 			}
-// 			applications["includeAuthenticationContextClassReferences"] = mappedValues
-// 		}); err != nil {
-// 			return nil, fmt.Errorf("failed to convert include auth context class refs: %w", err)
-// 		}
-
-// 		if data.Applications.ApplicationFilter != nil {
-// 			appFilter := make(map[string]any)
-// 			convert.FrameworkToGraphString(data.Applications.ApplicationFilter.Mode, func(value *string) {
-// 				if value != nil {
-// 					appFilter["mode"] = *value
-// 				}
-// 			})
-// 			convert.FrameworkToGraphString(data.Applications.ApplicationFilter.Rule, func(value *string) {
-// 				if value != nil {
-// 					appFilter["rule"] = *value
-// 				}
-// 			})
-// 			if len(appFilter) > 0 {
-// 				applications["applicationFilter"] = appFilter
-// 			}
-// 		}
-
-// 		if len(applications) > 0 {
-// 			conditions["applications"] = applications
-// 		}
-// 	}
-
-// 	// Users
-// 	if data.Users != nil {
-// 		users := make(map[string]any)
-
-// 		if err := convert.FrameworkToGraphStringSet(ctx, data.Users.IncludeUsers, func(values []string) {
-// 			users["includeUsers"] = values
-// 		}); err != nil {
-// 			return nil, fmt.Errorf("failed to convert include users: %w", err)
-// 		}
-
-// 		if err := convert.FrameworkToGraphStringSet(ctx, data.Users.ExcludeUsers, func(values []string) {
-// 			users["excludeUsers"] = values
-// 		}); err != nil {
-// 			return nil, fmt.Errorf("failed to convert exclude users: %w", err)
-// 		}
-
-// 		if err := convert.FrameworkToGraphStringSet(ctx, data.Users.IncludeGroups, func(values []string) {
-// 			users["includeGroups"] = values
-// 		}); err != nil {
-// 			return nil, fmt.Errorf("failed to convert include groups: %w", err)
-// 		}
-
-// 		if err := convert.FrameworkToGraphStringSet(ctx, data.Users.ExcludeGroups, func(values []string) {
-// 			users["excludeGroups"] = values
-// 		}); err != nil {
-// 			return nil, fmt.Errorf("failed to convert exclude groups: %w", err)
-// 		}
-
-// 		if err := convert.FrameworkToGraphStringSet(ctx, data.Users.IncludeRoles, func(values []string) {
-// 			users["includeRoles"] = values
-// 		}); err != nil {
-// 			return nil, fmt.Errorf("failed to convert include roles: %w", err)
-// 		}
-
-// 		if err := convert.FrameworkToGraphStringSet(ctx, data.Users.ExcludeRoles, func(values []string) {
-// 			users["excludeRoles"] = values
-// 		}); err != nil {
-// 			return nil, fmt.Errorf("failed to convert exclude roles: %w", err)
-// 		}
-
-// 		// Handle include guests or external users - only process if it's not null and known
-// 		if !data.Users.IncludeGuestsOrExternalUsers.IsNull() && !data.Users.IncludeGuestsOrExternalUsers.IsUnknown() {
-// 			// Convert types.Object to map for processing
-// 			includeGuestsMap := data.Users.IncludeGuestsOrExternalUsers.Attributes()
-// 			includeGuestsOrExternalUsers := make(map[string]any)
-
-// 			// Handle guest_or_external_user_types
-// 			if guestTypesAttr, ok := includeGuestsMap["guest_or_external_user_types"]; ok {
-// 				if guestTypesSet, ok := guestTypesAttr.(types.Set); ok {
-// 					if err := convert.FrameworkToGraphStringSet(ctx, guestTypesSet, func(values []string) {
-// 						if len(values) > 0 {
-// 							includeGuestsOrExternalUsers["guestOrExternalUserTypes"] = strings.Join(values, ",")
-// 						}
-// 					}); err != nil {
-// 						return nil, fmt.Errorf("failed to convert include guest or external user types: %w", err)
-// 					}
-// 				}
-// 			}
-
-// 			// Handle external_tenants
-// 			if externalTenantsAttr, ok := includeGuestsMap["external_tenants"]; ok {
-// 				if externalTenantsObj, ok := externalTenantsAttr.(types.Object); ok && !externalTenantsObj.IsNull() {
-// 					externalTenantsMap := externalTenantsObj.Attributes()
-// 					externalTenants := make(map[string]any)
-
-// 					// Handle membership_kind
-// 					if membershipKindAttr, ok := externalTenantsMap["membership_kind"]; ok {
-// 						if membershipKindStr, ok := membershipKindAttr.(types.String); ok {
-// 							convert.FrameworkToGraphString(membershipKindStr, func(value *string) {
-// 								if value != nil {
-// 									externalTenants["membershipKind"] = *value
-// 									// Add the required @odata.type based on membership kind
-// 									switch *value {
-// 									case "all":
-// 										externalTenants["@odata.type"] = "#microsoft.graph.conditionalAccessAllExternalTenants"
-// 									case "enumerated":
-// 										externalTenants["@odata.type"] = "#microsoft.graph.conditionalAccessEnumeratedExternalTenants"
-// 									}
-// 								}
-// 							})
-// 						}
-// 					}
-
-// 					// Handle members
-// 					if membersAttr, ok := externalTenantsMap["members"]; ok {
-// 						if membersSet, ok := membersAttr.(types.Set); ok {
-// 							if err := convert.FrameworkToGraphStringSet(ctx, membersSet, func(values []string) {
-// 								if len(values) > 0 {
-// 									externalTenants["members"] = values
-// 								}
-// 							}); err != nil {
-// 								return nil, fmt.Errorf("failed to convert include external tenants members: %w", err)
-// 							}
-// 						}
-// 					}
-
-// 					if len(externalTenants) > 0 {
-// 						includeGuestsOrExternalUsers["externalTenants"] = externalTenants
-// 					}
-// 				}
-// 			}
-
-// 			if len(includeGuestsOrExternalUsers) > 0 {
-// 				users["includeGuestsOrExternalUsers"] = includeGuestsOrExternalUsers
-// 			}
-// 		}
-
-// 		// Handle exclude guests or external users - only process if it's not null and known
-// 		if !data.Users.ExcludeGuestsOrExternalUsers.IsNull() && !data.Users.ExcludeGuestsOrExternalUsers.IsUnknown() {
-// 			// Convert types.Object to map for processing
-// 			excludeGuestsMap := data.Users.ExcludeGuestsOrExternalUsers.Attributes()
-// 			excludeGuestsOrExternalUsers := make(map[string]any)
-
-// 			// Handle guest_or_external_user_types
-// 			if guestTypesAttr, ok := excludeGuestsMap["guest_or_external_user_types"]; ok {
-// 				if guestTypesSet, ok := guestTypesAttr.(types.Set); ok {
-// 					if err := convert.FrameworkToGraphStringSet(ctx, guestTypesSet, func(values []string) {
-// 						if len(values) > 0 {
-// 							excludeGuestsOrExternalUsers["guestOrExternalUserTypes"] = strings.Join(values, ",")
-// 						}
-// 					}); err != nil {
-// 						return nil, fmt.Errorf("failed to convert exclude guest or external user types: %w", err)
-// 					}
-// 				}
-// 			}
-
-// 			// Handle external_tenants
-// 			if externalTenantsAttr, ok := excludeGuestsMap["external_tenants"]; ok {
-// 				if externalTenantsObj, ok := externalTenantsAttr.(types.Object); ok && !externalTenantsObj.IsNull() {
-// 					externalTenantsMap := externalTenantsObj.Attributes()
-// 					externalTenants := make(map[string]any)
-
-// 					// Handle membership_kind
-// 					if membershipKindAttr, ok := externalTenantsMap["membership_kind"]; ok {
-// 						if membershipKindStr, ok := membershipKindAttr.(types.String); ok {
-// 							convert.FrameworkToGraphString(membershipKindStr, func(value *string) {
-// 								if value != nil {
-// 									externalTenants["membershipKind"] = *value
-// 									// Add the required @odata.type based on membership kind
-// 									switch *value {
-// 									case "all":
-// 										externalTenants["@odata.type"] = "#microsoft.graph.conditionalAccessAllExternalTenants"
-// 									case "enumerated":
-// 										externalTenants["@odata.type"] = "#microsoft.graph.conditionalAccessEnumeratedExternalTenants"
-// 									}
-// 								}
-// 							})
-// 						}
-// 					}
-
-// 					// Handle members
-// 					if membersAttr, ok := externalTenantsMap["members"]; ok {
-// 						if membersSet, ok := membersAttr.(types.Set); ok {
-// 							if err := convert.FrameworkToGraphStringSet(ctx, membersSet, func(values []string) {
-// 								if len(values) > 0 {
-// 									externalTenants["members"] = values
-// 								}
-// 							}); err != nil {
-// 								return nil, fmt.Errorf("failed to convert exclude external tenants members: %w", err)
-// 							}
-// 						}
-// 					}
-
-// 					if len(externalTenants) > 0 {
-// 						excludeGuestsOrExternalUsers["externalTenants"] = externalTenants
-// 					}
-// 				}
-// 			}
-
-// 			if len(excludeGuestsOrExternalUsers) > 0 {
-// 				users["excludeGuestsOrExternalUsers"] = excludeGuestsOrExternalUsers
-// 			}
-// 		}
-
-// 		if len(users) > 0 {
-// 			conditions["users"] = users
-// 		}
-// 	}
-
-// 	// Platforms
-// 	if data.Platforms != nil {
-// 		platforms := make(map[string]any)
-
-// 		if err := convert.FrameworkToGraphStringSet(ctx, data.Platforms.IncludePlatforms, func(values []string) {
-// 			// Always include includePlatforms if the field is configured (even if empty)
-// 			if !data.Platforms.IncludePlatforms.IsNull() {
-// 				platforms["includePlatforms"] = values
-// 			}
-// 		}); err != nil {
-// 			return nil, fmt.Errorf("failed to convert include platforms: %w", err)
-// 		}
-
-// 		if err := convert.FrameworkToGraphStringSet(ctx, data.Platforms.ExcludePlatforms, func(values []string) {
-// 			// Always include excludePlatforms if the field is configured (even if empty)
-// 			if !data.Platforms.ExcludePlatforms.IsNull() {
-// 				platforms["excludePlatforms"] = values
-// 			}
-// 		}); err != nil {
-// 			return nil, fmt.Errorf("failed to convert exclude platforms: %w", err)
-// 		}
-
-// 		if len(platforms) > 0 {
-// 			conditions["platforms"] = platforms
-// 		}
-// 	}
-
-// 	// Locations
-// 	if data.Locations != nil {
-// 		locations := make(map[string]any)
-
-// 		if err := convert.FrameworkToGraphStringSet(ctx, data.Locations.IncludeLocations, func(values []string) {
-// 			if len(values) > 0 {
-// 				locations["includeLocations"] = values
-// 			}
-// 		}); err != nil {
-// 			return nil, fmt.Errorf("failed to convert include locations: %w", err)
-// 		}
-
-// 		if err := convert.FrameworkToGraphStringSet(ctx, data.Locations.ExcludeLocations, func(values []string) {
-// 			locations["excludeLocations"] = values
-// 		}); err != nil {
-// 			return nil, fmt.Errorf("failed to convert exclude locations: %w", err)
-// 		}
-
-// 		if len(locations) > 0 {
-// 			conditions["locations"] = locations
-// 		}
-// 	}
-
-// 	// Devices
-// 	if data.Devices != nil {
-// 		devices := make(map[string]any)
-
-// 		if err := convert.FrameworkToGraphStringSet(ctx, data.Devices.IncludeDevices, func(values []string) {
-// 			// Always include includeDevices if the field is configured (even if empty)
-// 			if !data.Devices.IncludeDevices.IsNull() {
-// 				devices["includeDevices"] = values
-// 			}
-// 		}); err != nil {
-// 			return nil, fmt.Errorf("failed to convert include devices: %w", err)
-// 		}
-
-// 		if err := convert.FrameworkToGraphStringSet(ctx, data.Devices.ExcludeDevices, func(values []string) {
-// 			// Always include excludeDevices if the field is configured (even if empty)
-// 			if !data.Devices.ExcludeDevices.IsNull() {
-// 				devices["excludeDevices"] = values
-// 			}
-// 		}); err != nil {
-// 			return nil, fmt.Errorf("failed to convert exclude devices: %w", err)
-// 		}
-
-// 		if err := convert.FrameworkToGraphStringSet(ctx, data.Devices.IncludeDeviceStates, func(values []string) {
-// 			// Always include includeDeviceStates if the field is configured (even if empty)
-// 			if !data.Devices.IncludeDeviceStates.IsNull() {
-// 				devices["includeDeviceStates"] = values
-// 			}
-// 		}); err != nil {
-// 			return nil, fmt.Errorf("failed to convert include device states: %w", err)
-// 		}
-
-// 		if err := convert.FrameworkToGraphStringSet(ctx, data.Devices.ExcludeDeviceStates, func(values []string) {
-// 			// Always include excludeDeviceStates if the field is configured (even if empty)
-// 			if !data.Devices.ExcludeDeviceStates.IsNull() {
-// 				devices["excludeDeviceStates"] = values
-// 			}
-// 		}); err != nil {
-// 			return nil, fmt.Errorf("failed to convert exclude device states: %w", err)
-// 		}
-
-// 		if data.Devices.DeviceFilter != nil {
-// 			deviceFilter := make(map[string]any)
-// 			convert.FrameworkToGraphString(data.Devices.DeviceFilter.Mode, func(value *string) {
-// 				if value != nil {
-// 					deviceFilter["mode"] = *value
-// 				}
-// 			})
-// 			convert.FrameworkToGraphString(data.Devices.DeviceFilter.Rule, func(value *string) {
-// 				if value != nil {
-// 					deviceFilter["rule"] = *value
-// 				}
-// 			})
-// 			if len(deviceFilter) > 0 {
-// 				devices["deviceFilter"] = deviceFilter
-// 			}
-// 		}
-
-// 		if len(devices) > 0 {
-// 			conditions["devices"] = devices
-// 		}
-// 	}
-
-// 	// Risk levels
-// 	if err := convert.FrameworkToGraphStringSet(ctx, data.SignInRiskLevels, func(values []string) {
-// 		// Always include signInRiskLevels if the field is configured (even if empty)
-// 		if !data.SignInRiskLevels.IsNull() {
-// 			conditions["signInRiskLevels"] = values
-// 		}
-// 	}); err != nil {
-// 		return nil, fmt.Errorf("failed to convert sign in risk levels: %w", err)
-// 	}
-
-// 	if err := convert.FrameworkToGraphStringSet(ctx, data.UserRiskLevels, func(values []string) {
-// 		// Always include userRiskLevels if the field is configured (even if empty)
-// 		if !data.UserRiskLevels.IsNull() {
-// 			conditions["userRiskLevels"] = values
-// 		}
-// 	}); err != nil {
-// 		return nil, fmt.Errorf("failed to convert user risk levels: %w", err)
-// 	}
-
-// 	if err := convert.FrameworkToGraphStringSet(ctx, data.ServicePrincipalRiskLevels, func(values []string) {
-// 		// Always include servicePrincipalRiskLevels if the field is configured (even if empty)
-// 		if !data.ServicePrincipalRiskLevels.IsNull() {
-// 			conditions["servicePrincipalRiskLevels"] = values
-// 		}
-// 	}); err != nil {
-// 		return nil, fmt.Errorf("failed to convert service principal risk levels: %w", err)
-// 	}
-
-// 	if err := convert.FrameworkToGraphStringSet(ctx, data.AgentIdRiskLevels, func(values []string) {
-// 		if len(values) > 0 {
-// 			conditions["agentIdRiskLevels"] = strings.Join(values, ",")
-// 		}
-// 	}); err != nil {
-// 		return nil, fmt.Errorf("failed to convert agent id risk levels: %w", err)
-// 	}
-
-// 	// Client Applications
-// 	if data.ClientApplications != nil {
-// 		clientApps := make(map[string]any)
-
-// 		if err := convert.FrameworkToGraphStringSet(ctx, data.ClientApplications.IncludeServicePrincipals, func(values []string) {
-// 			if len(values) > 0 {
-// 				clientApps["includeServicePrincipals"] = values
-// 			}
-// 		}); err != nil {
-// 			return nil, fmt.Errorf("failed to convert include service principals: %w", err)
-// 		}
-
-// 		if err := convert.FrameworkToGraphStringSet(ctx, data.ClientApplications.ExcludeServicePrincipals, func(values []string) {
-// 			if len(values) > 0 {
-// 				clientApps["excludeServicePrincipals"] = values
-// 			}
-// 		}); err != nil {
-// 			return nil, fmt.Errorf("failed to convert exclude service principals: %w", err)
-// 		}
-
-// 		if err := convert.FrameworkToGraphStringSet(ctx, data.ClientApplications.IncludeAgentIdServicePrincipals, func(values []string) {
-// 			if len(values) > 0 {
-// 				clientApps["includeAgentIdServicePrincipals"] = values
-// 			}
-// 		}); err != nil {
-// 			return nil, fmt.Errorf("failed to convert include agent id service principals: %w", err)
-// 		}
-
-// 		if err := convert.FrameworkToGraphStringSet(ctx, data.ClientApplications.ExcludeAgentIdServicePrincipals, func(values []string) {
-// 			if len(values) > 0 {
-// 				clientApps["excludeAgentIdServicePrincipals"] = values
-// 			}
-// 		}); err != nil {
-// 			return nil, fmt.Errorf("failed to convert exclude agent id service principals: %w", err)
-// 		}
-
-// 		if data.ClientApplications.AgentIdServicePrincipalFilter != nil {
-// 			filter := make(map[string]any)
-// 			convert.FrameworkToGraphString(data.ClientApplications.AgentIdServicePrincipalFilter.Mode, func(value *string) {
-// 				if value != nil {
-// 					filter["mode"] = *value
-// 				}
-// 			})
-// 			convert.FrameworkToGraphString(data.ClientApplications.AgentIdServicePrincipalFilter.Rule, func(value *string) {
-// 				if value != nil {
-// 					filter["rule"] = *value
-// 				}
-// 			})
-// 			if len(filter) > 0 {
-// 				clientApps["agentIdServicePrincipalFilter"] = filter
-// 			}
-// 		}
-
-// 		if len(clientApps) > 0 {
-// 			conditions["clientApplications"] = clientApps
-// 		}
-// 	}
-
-// 	// Authentication Flows
-// 	if data.AuthenticationFlows != nil {
-// 		authenticationFlows := make(map[string]any)
-
-// 		convert.FrameworkToGraphString(data.AuthenticationFlows.TransferMethods, func(value *string) {
-// 			if value != nil && *value != "" {
-// 				authenticationFlows["transferMethods"] = *value
-// 			}
-// 		})
-
-// 		if len(authenticationFlows) > 0 {
-// 			conditions["authenticationFlows"] = authenticationFlows
-// 		}
-// 	}
-
-// 	return conditions, nil
-// }
-
-// // constructGrantControls builds the grant controls object
-// func constructGrantControls(ctx context.Context, data *ConditionalAccessGrantControls) (map[string]any, error) {
-// 	grantControls := make(map[string]any)
-
-// 	convert.FrameworkToGraphString(data.Operator, func(value *string) {
-// 		if value != nil {
-// 			grantControls["operator"] = *value
-// 		}
-// 	})
-
-// 	var builtInControls []string
-// 	if err := convert.FrameworkToGraphStringSet(ctx, data.BuiltInControls, func(values []string) {
-// 		builtInControls = values
-// 	}); err != nil {
-// 		return nil, fmt.Errorf("failed to convert built-in controls: %w", err)
-// 	}
-// 	grantControls["builtInControls"] = builtInControls
-
-// 	var customAuthFactors []string
-// 	if err := convert.FrameworkToGraphStringSet(ctx, data.CustomAuthenticationFactors, func(values []string) {
-// 		customAuthFactors = values
-// 	}); err != nil {
-// 		return nil, fmt.Errorf("failed to convert custom auth factors: %w", err)
-// 	}
-// 	grantControls["customAuthenticationFactors"] = customAuthFactors
-
-// 	var termsOfUse []string
-// 	if err := convert.FrameworkToGraphStringSet(ctx, data.TermsOfUse, func(values []string) {
-// 		termsOfUse = values
-// 	}); err != nil {
-// 		return nil, fmt.Errorf("failed to convert terms of use: %w", err)
-// 	}
-// 	// Always include termsOfUse if configured (even if empty)
-// 	if !data.TermsOfUse.IsNull() {
-// 		grantControls["termsOfUse"] = termsOfUse
-// 	}
-
-// 	// Authentication Strength - API expands ID-only object to full object, only send ID
-// 	if data.AuthenticationStrength != nil {
-// 		authStrength := make(map[string]any)
-
-// 		convert.FrameworkToGraphString(data.AuthenticationStrength.ID, func(value *string) {
-// 			if value != nil {
-// 				authStrength["id"] = *value
-// 			}
-// 		})
-
-// 		convert.FrameworkToGraphString(data.AuthenticationStrength.DisplayName, func(value *string) {
-// 			if value != nil {
-// 				authStrength["displayName"] = *value
-// 			}
-// 		})
-
-// 		convert.FrameworkToGraphString(data.AuthenticationStrength.Description, func(value *string) {
-// 			if value != nil {
-// 				authStrength["description"] = *value
-// 			}
-// 		})
-
-// 		convert.FrameworkToGraphString(data.AuthenticationStrength.PolicyType, func(value *string) {
-// 			if value != nil {
-// 				authStrength["policyType"] = *value
-// 			}
-// 		})
-
-// 		convert.FrameworkToGraphString(data.AuthenticationStrength.RequirementsSatisfied, func(value *string) {
-// 			if value != nil {
-// 				authStrength["requirementsSatisfied"] = *value
-// 			}
-// 		})
-
-// 		var allowedCombinations []string
-// 		if err := convert.FrameworkToGraphStringSet(ctx, data.AuthenticationStrength.AllowedCombinations, func(values []string) {
-// 			allowedCombinations = values
-// 		}); err != nil {
-// 			return nil, fmt.Errorf("failed to convert allowed combinations: %w", err)
-// 		}
-// 		if len(allowedCombinations) > 0 {
-// 			authStrength["allowedCombinations"] = allowedCombinations
-// 		}
-
-// 		if len(authStrength) > 0 {
-// 			grantControls["authenticationStrength"] = authStrength
-// 		}
-// 	}
-
-// 	return grantControls, nil
-// }
-
-// // constructSessionControls builds the session controls object
-// func constructSessionControls(ctx context.Context, data *ConditionalAccessSessionControls) (map[string]any, error) {
-// 	sessionControls := make(map[string]any)
-
-// 	if data.ApplicationEnforcedRestrictions != nil {
-// 		appEnforcedRestrictions := make(map[string]any)
-// 		convert.FrameworkToGraphBool(data.ApplicationEnforcedRestrictions.IsEnabled, func(value *bool) {
-// 			if value != nil {
-// 				appEnforcedRestrictions["isEnabled"] = *value
-// 			}
-// 		})
-// 		if len(appEnforcedRestrictions) > 0 {
-// 			sessionControls["applicationEnforcedRestrictions"] = appEnforcedRestrictions
-// 		}
-// 	}
-
-// 	if data.CloudAppSecurity != nil {
-// 		cloudAppSecurity := make(map[string]any)
-// 		convert.FrameworkToGraphBool(data.CloudAppSecurity.IsEnabled, func(value *bool) {
-// 			if value != nil {
-// 				cloudAppSecurity["isEnabled"] = *value
-// 			}
-// 		})
-// 		convert.FrameworkToGraphString(data.CloudAppSecurity.CloudAppSecurityType, func(value *string) {
-// 			if value != nil {
-// 				cloudAppSecurity["cloudAppSecurityType"] = *value
-// 			}
-// 		})
-// 		if len(cloudAppSecurity) > 0 {
-// 			sessionControls["cloudAppSecurity"] = cloudAppSecurity
-// 		}
-// 	}
-
-// 	if data.SignInFrequency != nil {
-// 		signInFrequency := make(map[string]any)
-// 		convert.FrameworkToGraphBool(data.SignInFrequency.IsEnabled, func(value *bool) {
-// 			if value != nil {
-// 				signInFrequency["isEnabled"] = *value
-// 			}
-// 		})
-// 		convert.FrameworkToGraphString(data.SignInFrequency.Type, func(value *string) {
-// 			if value != nil {
-// 				signInFrequency["type"] = *value
-// 			}
-// 		})
-// 		convert.FrameworkToGraphInt64(data.SignInFrequency.Value, func(value *int64) {
-// 			if value != nil {
-// 				signInFrequency["value"] = *value
-// 			}
-// 		})
-
-// 		// Include authentication_type and frequency_interval if they are set
-// 		convert.FrameworkToGraphString(data.SignInFrequency.AuthenticationType, func(value *string) {
-// 			if value != nil {
-// 				signInFrequency["authenticationType"] = *value
-// 			}
-// 		})
-// 		convert.FrameworkToGraphString(data.SignInFrequency.FrequencyInterval, func(value *string) {
-// 			if value != nil {
-// 				signInFrequency["frequencyInterval"] = *value
-// 			}
-// 		})
-
-// 		if len(signInFrequency) > 0 {
-// 			sessionControls["signInFrequency"] = signInFrequency
-// 		}
-// 	}
-
-// 	if data.PersistentBrowser != nil {
-// 		persistentBrowser := make(map[string]any)
-// 		convert.FrameworkToGraphBool(data.PersistentBrowser.IsEnabled, func(value *bool) {
-// 			if value != nil {
-// 				persistentBrowser["isEnabled"] = *value
-// 			}
-// 		})
-// 		convert.FrameworkToGraphString(data.PersistentBrowser.Mode, func(value *string) {
-// 			if value != nil {
-// 				persistentBrowser["mode"] = *value
-// 			}
-// 		})
-// 		if len(persistentBrowser) > 0 {
-// 			sessionControls["persistentBrowser"] = persistentBrowser
-// 		}
-// 	}
-
-// 	convert.FrameworkToGraphBool(data.DisableResilienceDefaults, func(value *bool) {
-// 		if value != nil {
-// 			sessionControls["disableResilienceDefaults"] = *value
-// 		}
-// 	})
-
-// 	if data.ContinuousAccessEvaluation != nil {
-// 		continuousAccessEval := make(map[string]any)
-// 		convert.FrameworkToGraphString(data.ContinuousAccessEvaluation.Mode, func(value *string) {
-// 			if value != nil {
-// 				continuousAccessEval["mode"] = *value
-// 			}
-// 		})
-// 		if len(continuousAccessEval) > 0 {
-// 			sessionControls["continuousAccessEvaluation"] = continuousAccessEval
-// 		}
-// 	}
-
-// 	if data.SecureSignInSession != nil {
-// 		secureSignInSession := make(map[string]any)
-// 		convert.FrameworkToGraphBool(data.SecureSignInSession.IsEnabled, func(value *bool) {
-// 			if value != nil {
-// 				secureSignInSession["isEnabled"] = *value
-// 			}
-// 		})
-// 		if len(secureSignInSession) > 0 {
-// 			sessionControls["secureSignInSession"] = secureSignInSession
-// 		}
-// 	}
-
-// 	if data.GlobalSecureAccessFilteringProfile != nil {
-// 		globalSecureAccessFilteringProfile := make(map[string]any)
-// 		convert.FrameworkToGraphBool(data.GlobalSecureAccessFilteringProfile.IsEnabled, func(value *bool) {
-// 			if value != nil {
-// 				globalSecureAccessFilteringProfile["isEnabled"] = *value
-// 			}
-// 		})
-// 		convert.FrameworkToGraphString(data.GlobalSecureAccessFilteringProfile.ProfileId, func(value *string) {
-// 			if value != nil {
-// 				globalSecureAccessFilteringProfile["profileId"] = *value
-// 			}
-// 		})
-// 		if len(globalSecureAccessFilteringProfile) > 0 {
-// 			sessionControls["globalSecureAccessFilteringProfile"] = globalSecureAccessFilteringProfile
-// 		}
-// 	}
-
-// 	return sessionControls, nil
-// }
+import (
+	"context"
+	"fmt"
+
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/constructors"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
+	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
+	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
+	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
+)
+
+// constructResource converts the Terraform resource model to a Kiota SDK model
+// Returns a ConditionalAccessPolicy that can be serialized by Kiota
+func constructResource(ctx context.Context, client *msgraphbetasdk.GraphServiceClient, data *ConditionalAccessPolicyResourceModel) (graphmodels.ConditionalAccessPolicyable, error) {
+
+	tflog.Debug(ctx, fmt.Sprintf("Constructing %s resource from model", ResourceName))
+
+	if err := validateRequest(ctx, client, data); err != nil {
+		return nil, fmt.Errorf("validation failed: %w", err)
+	}
+
+	requestBody := graphmodels.NewConditionalAccessPolicy()
+
+	convert.FrameworkToGraphString(data.DisplayName, requestBody.SetDisplayName)
+
+	if err := convert.FrameworkToGraphEnum(data.State,
+		graphmodels.ParseConditionalAccessPolicyState, requestBody.SetState); err != nil {
+		return nil, fmt.Errorf("failed to set state: %w", err)
+	}
+
+	// Build conditions
+	if data.Conditions != nil {
+		conditions, err := constructConditions(ctx, data.Conditions)
+		if err != nil {
+			return nil, fmt.Errorf("failed to construct conditions: %w", err)
+		}
+		requestBody.SetConditions(conditions)
+	}
+
+	// Build grant controls
+	if data.GrantControls != nil {
+		grantControls, err := constructGrantControls(ctx, data.GrantControls)
+		if err != nil {
+			return nil, fmt.Errorf("failed to construct grant controls: %w", err)
+		}
+		requestBody.SetGrantControls(grantControls)
+	}
+
+	// Build session controls
+	if data.SessionControls != nil {
+		sessionControls, err := constructSessionControls(ctx, data.SessionControls)
+		if err != nil {
+			return nil, fmt.Errorf("failed to construct session controls: %w", err)
+		}
+		requestBody.SetSessionControls(sessionControls)
+	}
+
+	if err := constructors.DebugLogGraphObject(ctx, fmt.Sprintf("Final JSON to be sent to Graph API for resource %s", ResourceName), requestBody); err != nil {
+		tflog.Error(ctx, "Failed to debug log object", map[string]any{
+			"error": err.Error(),
+		})
+	}
+
+	tflog.Debug(ctx, fmt.Sprintf("Finished constructing %s resource", ResourceName))
+
+	return requestBody, nil
+}
+
+// constructConditions builds the conditions object using SDK models
+func constructConditions(ctx context.Context, data *ConditionalAccessConditions) (graphmodels.ConditionalAccessConditionSetable, error) {
+	conditions := graphmodels.NewConditionalAccessConditionSet()
+
+	// Client App Types
+	if err := convert.FrameworkToGraphEnumCollection(ctx, data.ClientAppTypes,
+		graphmodels.ParseConditionalAccessClientApp, conditions.SetClientAppTypes); err != nil {
+		return nil, fmt.Errorf("failed to set client app types: %w", err)
+	}
+
+	// Sign-in Risk Levels
+	if err := convert.FrameworkToGraphEnumCollection(ctx, data.SignInRiskLevels,
+		graphmodels.ParseRiskLevel, conditions.SetSignInRiskLevels); err != nil {
+		return nil, fmt.Errorf("failed to set sign in risk levels: %w", err)
+	}
+
+	// User Risk Levels
+	if err := convert.FrameworkToGraphEnumCollection(ctx, data.UserRiskLevels,
+		graphmodels.ParseRiskLevel, conditions.SetUserRiskLevels); err != nil {
+		return nil, fmt.Errorf("failed to set user risk levels: %w", err)
+	}
+
+	// Service Principal Risk Levels
+	if err := convert.FrameworkToGraphEnumCollection(ctx, data.ServicePrincipalRiskLevels,
+		graphmodels.ParseRiskLevel, conditions.SetServicePrincipalRiskLevels); err != nil {
+		return nil, fmt.Errorf("failed to set service principal risk levels: %w", err)
+	}
+
+	// Agent ID Risk Levels - bitmask enum
+	if err := convert.FrameworkToGraphBitmaskEnumFromSet(
+		ctx,
+		data.AgentIdRiskLevels,
+		graphmodels.ParseConditionalAccessAgentIdRiskLevels,
+		conditions.SetAgentIdRiskLevels,
+	); err != nil {
+		return nil, fmt.Errorf("failed to convert agent id risk levels: %w", err)
+	}
+
+	// Insider Risk Levels - bitmask enum
+	if err := convert.FrameworkToGraphBitmaskEnumFromSet(
+		ctx,
+		data.InsiderRiskLevels,
+		graphmodels.ParseConditionalAccessInsiderRiskLevels,
+		conditions.SetInsiderRiskLevels,
+	); err != nil {
+		return nil, fmt.Errorf("failed to convert insider risk levels: %w", err)
+	}
+
+	// Applications
+	if data.Applications != nil {
+		applications, err := constructApplications(ctx, data.Applications)
+		if err != nil {
+			return nil, fmt.Errorf("failed to construct applications: %w", err)
+		}
+		conditions.SetApplications(applications)
+	}
+
+	// Users
+	if data.Users != nil {
+		users, err := constructUsers(ctx, data.Users)
+		if err != nil {
+			return nil, fmt.Errorf("failed to construct users: %w", err)
+		}
+		conditions.SetUsers(users)
+	}
+
+	// Platforms
+	if data.Platforms != nil {
+		platforms, err := constructPlatforms(ctx, data.Platforms)
+		if err != nil {
+			return nil, fmt.Errorf("failed to construct platforms: %w", err)
+		}
+		conditions.SetPlatforms(platforms)
+	}
+
+	// Locations
+	if data.Locations != nil {
+		locations, err := constructLocations(ctx, data.Locations)
+		if err != nil {
+			return nil, fmt.Errorf("failed to construct locations: %w", err)
+		}
+		conditions.SetLocations(locations)
+	}
+
+	// Devices
+	if data.Devices != nil {
+		devices, err := constructDevices(ctx, data.Devices)
+		if err != nil {
+			return nil, fmt.Errorf("failed to construct devices: %w", err)
+		}
+		conditions.SetDevices(devices)
+	}
+
+	// Client Applications
+	if data.ClientApplications != nil {
+		clientApplications, err := constructClientApplications(ctx, data.ClientApplications)
+		if err != nil {
+			return nil, fmt.Errorf("failed to construct client applications: %w", err)
+		}
+		conditions.SetClientApplications(clientApplications)
+	}
+
+	// Times - not available in SDK, would need to use AdditionalData if required
+	// Skipping for now as it's not in the SDK model
+
+	// Device States
+	if data.DeviceStates != nil {
+		deviceStates, err := constructDeviceStates(ctx, data.DeviceStates)
+		if err != nil {
+			return nil, fmt.Errorf("failed to construct device states: %w", err)
+		}
+		conditions.SetDeviceStates(deviceStates)
+	}
+
+	// Authentication Flows
+	if data.AuthenticationFlows != nil {
+		authFlows, err := constructAuthenticationFlows(ctx, data.AuthenticationFlows)
+		if err != nil {
+			return nil, fmt.Errorf("failed to construct authentication flows: %w", err)
+		}
+		conditions.SetAuthenticationFlows(authFlows)
+	}
+
+	return conditions, nil
+}
+
+// constructApplications builds the applications object using SDK models
+func constructApplications(ctx context.Context, data *ConditionalAccessApplications) (graphmodels.ConditionalAccessApplicationsable, error) {
+	applications := graphmodels.NewConditionalAccessApplications()
+
+	if err := convert.FrameworkToGraphStringSet(ctx, data.IncludeApplications, applications.SetIncludeApplications); err != nil {
+		return nil, fmt.Errorf("failed to convert include applications: %w", err)
+	}
+
+	if err := convert.FrameworkToGraphStringSet(ctx, data.ExcludeApplications, applications.SetExcludeApplications); err != nil {
+		return nil, fmt.Errorf("failed to convert exclude applications: %w", err)
+	}
+
+	if err := convert.FrameworkToGraphStringSet(ctx, data.IncludeUserActions, applications.SetIncludeUserActions); err != nil {
+		return nil, fmt.Errorf("failed to convert include user actions: %w", err)
+	}
+
+	// Handle authentication context class references with predefined value mapping
+	if err := convert.FrameworkToGraphStringSet(ctx, data.IncludeAuthenticationContextClassReferences, func(values []string) {
+		mappedValues := make([]string, len(values))
+		for i, value := range values {
+			switch value {
+			case "require_trusted_device":
+				mappedValues[i] = "c1"
+			case "require_terms_of_use":
+				mappedValues[i] = "c2"
+			case "require_trusted_location":
+				mappedValues[i] = "c3"
+			case "require_strong_authentication":
+				mappedValues[i] = "c4"
+			case "required_trust_type:azure_ad_joined":
+				mappedValues[i] = "c5"
+			case "require_access_from_an_approved_app":
+				mappedValues[i] = "c6"
+			case "required_trust_type:hybrid_azure_ad_joined":
+				mappedValues[i] = "c7"
+			default:
+				mappedValues[i] = value
+			}
+		}
+		applications.SetIncludeAuthenticationContextClassReferences(mappedValues)
+	}); err != nil {
+		return nil, fmt.Errorf("failed to convert include auth context class refs: %w", err)
+	}
+
+	// Application Filter
+	if data.ApplicationFilter != nil {
+		filter := graphmodels.NewConditionalAccessFilter()
+		if err := convert.FrameworkToGraphEnum(data.ApplicationFilter.Mode,
+			graphmodels.ParseFilterMode, filter.SetMode); err != nil {
+			return nil, fmt.Errorf("failed to set application filter mode: %w", err)
+		}
+		convert.FrameworkToGraphString(data.ApplicationFilter.Rule, filter.SetRule)
+		applications.SetApplicationFilter(filter)
+	}
+
+	return applications, nil
+}
+
+// constructUsers builds the users object using SDK models
+func constructUsers(ctx context.Context, data *ConditionalAccessUsers) (graphmodels.ConditionalAccessUsersable, error) {
+	users := graphmodels.NewConditionalAccessUsers()
+
+	if err := convert.FrameworkToGraphStringSet(ctx, data.IncludeUsers, users.SetIncludeUsers); err != nil {
+		return nil, fmt.Errorf("failed to convert include users: %w", err)
+	}
+
+	if err := convert.FrameworkToGraphStringSet(ctx, data.ExcludeUsers, users.SetExcludeUsers); err != nil {
+		return nil, fmt.Errorf("failed to convert exclude users: %w", err)
+	}
+
+	if err := convert.FrameworkToGraphStringSet(ctx, data.IncludeGroups, users.SetIncludeGroups); err != nil {
+		return nil, fmt.Errorf("failed to convert include groups: %w", err)
+	}
+
+	if err := convert.FrameworkToGraphStringSet(ctx, data.ExcludeGroups, users.SetExcludeGroups); err != nil {
+		return nil, fmt.Errorf("failed to convert exclude groups: %w", err)
+	}
+
+	if err := convert.FrameworkToGraphStringSet(ctx, data.IncludeRoles, users.SetIncludeRoles); err != nil {
+		return nil, fmt.Errorf("failed to convert include roles: %w", err)
+	}
+
+	if err := convert.FrameworkToGraphStringSet(ctx, data.ExcludeRoles, users.SetExcludeRoles); err != nil {
+		return nil, fmt.Errorf("failed to convert exclude roles: %w", err)
+	}
+
+	// Include Guests or External Users
+	if !data.IncludeGuestsOrExternalUsers.IsNull() && !data.IncludeGuestsOrExternalUsers.IsUnknown() {
+		includeGuests, err := constructGuestsOrExternalUsers(ctx, data.IncludeGuestsOrExternalUsers)
+		if err != nil {
+			return nil, fmt.Errorf("failed to construct include guests or external users: %w", err)
+		}
+		users.SetIncludeGuestsOrExternalUsers(includeGuests)
+	}
+
+	// Exclude Guests or External Users
+	if !data.ExcludeGuestsOrExternalUsers.IsNull() && !data.ExcludeGuestsOrExternalUsers.IsUnknown() {
+		excludeGuests, err := constructGuestsOrExternalUsers(ctx, data.ExcludeGuestsOrExternalUsers)
+		if err != nil {
+			return nil, fmt.Errorf("failed to construct exclude guests or external users: %w", err)
+		}
+		users.SetExcludeGuestsOrExternalUsers(excludeGuests)
+	}
+
+	return users, nil
+}
+
+// constructGuestsOrExternalUsers builds the guests or external users object
+func constructGuestsOrExternalUsers(ctx context.Context, obj types.Object) (graphmodels.ConditionalAccessGuestsOrExternalUsersable, error) {
+	guestsOrExternalUsers := graphmodels.NewConditionalAccessGuestsOrExternalUsers()
+
+	attrs := obj.Attributes()
+
+	// Handle guest_or_external_user_types - bitmask enum
+	if guestTypesAttr, ok := attrs["guest_or_external_user_types"]; ok {
+		if guestTypesSet, ok := guestTypesAttr.(types.Set); ok {
+			if err := convert.FrameworkToGraphBitmaskEnumFromSet(
+				ctx,
+				guestTypesSet,
+				graphmodels.ParseConditionalAccessGuestOrExternalUserTypes,
+				guestsOrExternalUsers.SetGuestOrExternalUserTypes,
+			); err != nil {
+				return nil, fmt.Errorf("failed to convert guest or external user types: %w", err)
+			}
+		}
+	}
+
+	// Handle external_tenants
+	if externalTenantsAttr, ok := attrs["external_tenants"]; ok {
+		if externalTenantsObj, ok := externalTenantsAttr.(types.Object); ok && !externalTenantsObj.IsNull() {
+			externalTenants, err := constructExternalTenants(ctx, externalTenantsObj)
+			if err != nil {
+				return nil, fmt.Errorf("failed to construct external tenants: %w", err)
+			}
+			guestsOrExternalUsers.SetExternalTenants(externalTenants)
+		}
+	}
+
+	return guestsOrExternalUsers, nil
+}
+
+// constructExternalTenants builds the external tenants object
+func constructExternalTenants(ctx context.Context, obj types.Object) (graphmodels.ConditionalAccessExternalTenantsable, error) {
+	attrs := obj.Attributes()
+
+	var membershipKind string
+	if membershipKindAttr, ok := attrs["membership_kind"]; ok {
+		if membershipKindStr, ok := membershipKindAttr.(types.String); ok {
+			membershipKind = membershipKindStr.ValueString()
+		}
+	}
+
+	// Create the appropriate type based on membership kind
+	switch membershipKind {
+	case "all":
+		externalTenants := graphmodels.NewConditionalAccessAllExternalTenants()
+		return externalTenants, nil
+
+	case "enumerated":
+		externalTenants := graphmodels.NewConditionalAccessEnumeratedExternalTenants()
+
+		// Handle members
+		if membersAttr, ok := attrs["members"]; ok {
+			if membersSet, ok := membersAttr.(types.Set); ok {
+				if err := convert.FrameworkToGraphStringSet(ctx, membersSet, externalTenants.SetMembers); err != nil {
+					return nil, fmt.Errorf("failed to convert external tenants members: %w", err)
+				}
+			}
+		}
+
+		return externalTenants, nil
+
+	default:
+		return nil, fmt.Errorf("invalid membership_kind: %s", membershipKind)
+	}
+}
+
+// constructPlatforms builds the platforms object using SDK models
+func constructPlatforms(ctx context.Context, data *ConditionalAccessPlatforms) (graphmodels.ConditionalAccessPlatformsable, error) {
+	platforms := graphmodels.NewConditionalAccessPlatforms()
+
+	if err := convert.FrameworkToGraphEnumCollection(ctx, data.IncludePlatforms,
+		graphmodels.ParseConditionalAccessDevicePlatform, platforms.SetIncludePlatforms); err != nil {
+		return nil, fmt.Errorf("failed to set include platforms: %w", err)
+	}
+
+	if err := convert.FrameworkToGraphEnumCollection(ctx, data.ExcludePlatforms,
+		graphmodels.ParseConditionalAccessDevicePlatform, platforms.SetExcludePlatforms); err != nil {
+		return nil, fmt.Errorf("failed to set exclude platforms: %w", err)
+	}
+
+	return platforms, nil
+}
+
+// constructLocations builds the locations object using SDK models
+func constructLocations(ctx context.Context, data *ConditionalAccessLocations) (graphmodels.ConditionalAccessLocationsable, error) {
+	locations := graphmodels.NewConditionalAccessLocations()
+
+	if err := convert.FrameworkToGraphStringSet(ctx, data.IncludeLocations, locations.SetIncludeLocations); err != nil {
+		return nil, fmt.Errorf("failed to convert include locations: %w", err)
+	}
+
+	if err := convert.FrameworkToGraphStringSet(ctx, data.ExcludeLocations, locations.SetExcludeLocations); err != nil {
+		return nil, fmt.Errorf("failed to convert exclude locations: %w", err)
+	}
+
+	return locations, nil
+}
+
+// constructDevices builds the devices object using SDK models
+func constructDevices(ctx context.Context, data *ConditionalAccessDevices) (graphmodels.ConditionalAccessDevicesable, error) {
+	devices := graphmodels.NewConditionalAccessDevices()
+
+	if err := convert.FrameworkToGraphStringSet(ctx, data.IncludeDevices, devices.SetIncludeDevices); err != nil {
+		return nil, fmt.Errorf("failed to convert include devices: %w", err)
+	}
+
+	if err := convert.FrameworkToGraphStringSet(ctx, data.ExcludeDevices, devices.SetExcludeDevices); err != nil {
+		return nil, fmt.Errorf("failed to convert exclude devices: %w", err)
+	}
+
+	if err := convert.FrameworkToGraphStringSet(ctx, data.IncludeDeviceStates, devices.SetIncludeDeviceStates); err != nil {
+		return nil, fmt.Errorf("failed to convert include device states: %w", err)
+	}
+
+	if err := convert.FrameworkToGraphStringSet(ctx, data.ExcludeDeviceStates, devices.SetExcludeDeviceStates); err != nil {
+		return nil, fmt.Errorf("failed to convert exclude device states: %w", err)
+	}
+
+	// Device Filter
+	if data.DeviceFilter != nil {
+		filter := graphmodels.NewConditionalAccessFilter()
+		if err := convert.FrameworkToGraphEnum(data.DeviceFilter.Mode,
+			graphmodels.ParseFilterMode, filter.SetMode); err != nil {
+			return nil, fmt.Errorf("failed to set device filter mode: %w", err)
+		}
+		convert.FrameworkToGraphString(data.DeviceFilter.Rule, filter.SetRule)
+		devices.SetDeviceFilter(filter)
+	}
+
+	return devices, nil
+}
+
+// constructClientApplications builds the client applications object using SDK models
+func constructClientApplications(ctx context.Context, data *ConditionalAccessClientApplications) (graphmodels.ConditionalAccessClientApplicationsable, error) {
+	clientApplications := graphmodels.NewConditionalAccessClientApplications()
+
+	if err := convert.FrameworkToGraphStringSet(ctx, data.IncludeServicePrincipals, clientApplications.SetIncludeServicePrincipals); err != nil {
+		return nil, fmt.Errorf("failed to convert include service principals: %w", err)
+	}
+
+	if err := convert.FrameworkToGraphStringSet(ctx, data.ExcludeServicePrincipals, clientApplications.SetExcludeServicePrincipals); err != nil {
+		return nil, fmt.Errorf("failed to convert exclude service principals: %w", err)
+	}
+
+	if err := convert.FrameworkToGraphStringSet(ctx, data.IncludeAgentIdServicePrincipals, clientApplications.SetIncludeAgentIdServicePrincipals); err != nil {
+		return nil, fmt.Errorf("failed to convert include agent id service principals: %w", err)
+	}
+
+	if err := convert.FrameworkToGraphStringSet(ctx, data.ExcludeAgentIdServicePrincipals, clientApplications.SetExcludeAgentIdServicePrincipals); err != nil {
+		return nil, fmt.Errorf("failed to convert exclude agent id service principals: %w", err)
+	}
+
+	if data.AgentIdServicePrincipalFilter != nil {
+		filter := graphmodels.NewConditionalAccessFilter()
+		if err := convert.FrameworkToGraphEnum(data.AgentIdServicePrincipalFilter.Mode,
+			graphmodels.ParseFilterMode, filter.SetMode); err != nil {
+			return nil, fmt.Errorf("failed to set agent id service principal filter mode: %w", err)
+		}
+		convert.FrameworkToGraphString(data.AgentIdServicePrincipalFilter.Rule, filter.SetRule)
+		clientApplications.SetAgentIdServicePrincipalFilter(filter)
+	}
+
+	if data.ServicePrincipalFilter != nil {
+		filter := graphmodels.NewConditionalAccessFilter()
+		if err := convert.FrameworkToGraphEnum(data.ServicePrincipalFilter.Mode,
+			graphmodels.ParseFilterMode, filter.SetMode); err != nil {
+			return nil, fmt.Errorf("failed to set service principal filter mode: %w", err)
+		}
+		convert.FrameworkToGraphString(data.ServicePrincipalFilter.Rule, filter.SetRule)
+		clientApplications.SetServicePrincipalFilter(filter)
+	}
+
+	return clientApplications, nil
+}
+
+// constructTimes - Times is not available in the SDK, skipping
+// If needed, this could be implemented via AdditionalData
+
+// constructDeviceStates builds the device states object using SDK models
+func constructDeviceStates(ctx context.Context, data *ConditionalAccessDeviceStates) (graphmodels.ConditionalAccessDeviceStatesable, error) {
+	deviceStates := graphmodels.NewConditionalAccessDeviceStates()
+
+	if err := convert.FrameworkToGraphStringSet(ctx, data.IncludeStates, deviceStates.SetIncludeStates); err != nil {
+		return nil, fmt.Errorf("failed to convert include states: %w", err)
+	}
+
+	if err := convert.FrameworkToGraphStringSet(ctx, data.ExcludeStates, deviceStates.SetExcludeStates); err != nil {
+		return nil, fmt.Errorf("failed to convert exclude states: %w", err)
+	}
+
+	return deviceStates, nil
+}
+
+// constructAuthenticationFlows builds the authentication flows object using SDK models
+func constructAuthenticationFlows(ctx context.Context, data *ConditionalAccessAuthenticationFlows) (graphmodels.ConditionalAccessAuthenticationFlowsable, error) {
+	authFlows := graphmodels.NewConditionalAccessAuthenticationFlows()
+
+	if err := convert.FrameworkToGraphEnum(data.TransferMethods,
+		graphmodels.ParseConditionalAccessTransferMethods, authFlows.SetTransferMethods); err != nil {
+		return nil, fmt.Errorf("failed to set transfer methods: %w", err)
+	}
+
+	return authFlows, nil
+}
+
+// constructGrantControls builds the grant controls object using SDK models
+func constructGrantControls(ctx context.Context, data *ConditionalAccessGrantControls) (graphmodels.ConditionalAccessGrantControlsable, error) {
+	grantControls := graphmodels.NewConditionalAccessGrantControls()
+
+	convert.FrameworkToGraphString(data.Operator, grantControls.SetOperator)
+
+	if err := convert.FrameworkToGraphEnumCollection(ctx, data.BuiltInControls,
+		graphmodels.ParseConditionalAccessGrantControl, grantControls.SetBuiltInControls); err != nil {
+		return nil, fmt.Errorf("failed to set built in controls: %w", err)
+	}
+
+	if err := convert.FrameworkToGraphStringSet(ctx, data.CustomAuthenticationFactors, grantControls.SetCustomAuthenticationFactors); err != nil {
+		return nil, fmt.Errorf("failed to convert custom authentication factors: %w", err)
+	}
+
+	if err := convert.FrameworkToGraphStringSet(ctx, data.TermsOfUse, grantControls.SetTermsOfUse); err != nil {
+		return nil, fmt.Errorf("failed to convert terms of use: %w", err)
+	}
+
+	// Authentication Strength
+	if data.AuthenticationStrength != nil {
+		authStrength := graphmodels.NewAuthenticationStrengthPolicy()
+		convert.FrameworkToGraphString(data.AuthenticationStrength.ID, authStrength.SetId)
+		grantControls.SetAuthenticationStrength(authStrength)
+	}
+
+	return grantControls, nil
+}
+
+// constructSessionControls builds the session controls object using SDK models
+func constructSessionControls(ctx context.Context, data *ConditionalAccessSessionControls) (graphmodels.ConditionalAccessSessionControlsable, error) {
+	sessionControls := graphmodels.NewConditionalAccessSessionControls()
+
+	convert.FrameworkToGraphBool(data.DisableResilienceDefaults, sessionControls.SetDisableResilienceDefaults)
+
+	// Application Enforced Restrictions
+	if data.ApplicationEnforcedRestrictions != nil {
+		appEnforcedRestrictions := graphmodels.NewApplicationEnforcedRestrictionsSessionControl()
+		convert.FrameworkToGraphBool(data.ApplicationEnforcedRestrictions.IsEnabled, appEnforcedRestrictions.SetIsEnabled)
+		sessionControls.SetApplicationEnforcedRestrictions(appEnforcedRestrictions)
+	}
+
+	// Cloud App Security
+	if data.CloudAppSecurity != nil {
+		cloudAppSecurity := graphmodels.NewCloudAppSecuritySessionControl()
+		convert.FrameworkToGraphBool(data.CloudAppSecurity.IsEnabled, cloudAppSecurity.SetIsEnabled)
+
+		if err := convert.FrameworkToGraphEnum(data.CloudAppSecurity.CloudAppSecurityType,
+			graphmodels.ParseCloudAppSecuritySessionControlType, cloudAppSecurity.SetCloudAppSecurityType); err != nil {
+			return nil, fmt.Errorf("failed to set cloud app security type: %w", err)
+		}
+
+		sessionControls.SetCloudAppSecurity(cloudAppSecurity)
+	}
+
+	// Sign In Frequency
+	if data.SignInFrequency != nil {
+		signInFrequency := graphmodels.NewSignInFrequencySessionControl()
+		convert.FrameworkToGraphBool(data.SignInFrequency.IsEnabled, signInFrequency.SetIsEnabled)
+
+		if err := convert.FrameworkToGraphEnum(data.SignInFrequency.Type,
+			graphmodels.ParseSigninFrequencyType, signInFrequency.SetTypeEscaped); err != nil {
+			return nil, fmt.Errorf("failed to set sign in frequency type: %w", err)
+		}
+
+		convert.FrameworkToGraphInt32(data.SignInFrequency.Value, signInFrequency.SetValue)
+
+		if err := convert.FrameworkToGraphEnum(data.SignInFrequency.AuthenticationType,
+			graphmodels.ParseSignInFrequencyAuthenticationType, signInFrequency.SetAuthenticationType); err != nil {
+			return nil, fmt.Errorf("failed to set authentication type: %w", err)
+		}
+
+		if err := convert.FrameworkToGraphEnum(data.SignInFrequency.FrequencyInterval,
+			graphmodels.ParseSignInFrequencyInterval, signInFrequency.SetFrequencyInterval); err != nil {
+			return nil, fmt.Errorf("failed to set frequency interval: %w", err)
+		}
+
+		sessionControls.SetSignInFrequency(signInFrequency)
+	}
+
+	// Persistent Browser
+	if data.PersistentBrowser != nil {
+		persistentBrowser := graphmodels.NewPersistentBrowserSessionControl()
+		convert.FrameworkToGraphBool(data.PersistentBrowser.IsEnabled, persistentBrowser.SetIsEnabled)
+
+		if err := convert.FrameworkToGraphEnum(data.PersistentBrowser.Mode,
+			graphmodels.ParsePersistentBrowserSessionMode, persistentBrowser.SetMode); err != nil {
+			return nil, fmt.Errorf("failed to set persistent browser mode: %w", err)
+		}
+
+		sessionControls.SetPersistentBrowser(persistentBrowser)
+	}
+
+	// Continuous Access Evaluation
+	if data.ContinuousAccessEvaluation != nil {
+		cae := graphmodels.NewContinuousAccessEvaluationSessionControl()
+
+		if err := convert.FrameworkToGraphEnum(data.ContinuousAccessEvaluation.Mode,
+			graphmodels.ParseContinuousAccessEvaluationMode, cae.SetMode); err != nil {
+			return nil, fmt.Errorf("failed to set continuous access evaluation mode: %w", err)
+		}
+
+		sessionControls.SetContinuousAccessEvaluation(cae)
+	}
+
+	// Secure Sign In Session
+	if data.SecureSignInSession != nil {
+		secureSignInSession := graphmodels.NewSecureSignInSessionControl()
+		convert.FrameworkToGraphBool(data.SecureSignInSession.IsEnabled, secureSignInSession.SetIsEnabled)
+		sessionControls.SetSecureSignInSession(secureSignInSession)
+	}
+
+	// Global Secure Access Filtering Profile
+	if data.GlobalSecureAccessFilteringProfile != nil {
+		gsaProfile := graphmodels.NewGlobalSecureAccessFilteringProfileSessionControl()
+		convert.FrameworkToGraphBool(data.GlobalSecureAccessFilteringProfile.IsEnabled, gsaProfile.SetIsEnabled)
+		convert.FrameworkToGraphString(data.GlobalSecureAccessFilteringProfile.ProfileId, gsaProfile.SetProfileId)
+		sessionControls.SetGlobalSecureAccessFilteringProfile(gsaProfile)
+	}
+
+	return sessionControls, nil
+}
