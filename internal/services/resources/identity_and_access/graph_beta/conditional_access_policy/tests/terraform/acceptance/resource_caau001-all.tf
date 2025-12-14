@@ -1,7 +1,21 @@
-# CAAU001: AI/Agentic Identities Conditional Access Policy
+# ==============================================================================
+# Random Suffix for Unique Resource Names
+# ==============================================================================
+
+resource "random_string" "suffix" {
+  length  = 8
+  special = false
+  upper   = false
+}
+
+# ==============================================================================
+# Conditional Access Policy
+# ==============================================================================
+
+# CAAU001: Agent ID Resources Policy - All
 # Block agent identity access for All agentic identities to all agent resources when Risk is medium or higher
-resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy" "caau001_agent_risk_block" {
-  display_name = "CAAU001-ALL: Block agent identity access for All agentic identities to all agent resources when Risk is medium or higher v1.0"
+resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy" "caau001_all" {
+  display_name = "acc-test-caau001-all: Block agent identity access for All agentic identities to all agent resources when Risk is medium or higher ${random_string.suffix.result}"
   state        = "enabledForReportingButNotEnforced"
 
   conditions = {
@@ -31,8 +45,10 @@ resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy"
     }
 
     sign_in_risk_levels           = []
+    user_risk_levels              = []
     service_principal_risk_levels = []
     agent_id_risk_levels          = ["high", "medium"]
+    insider_risk_levels           = []
   }
 
   grant_controls = {

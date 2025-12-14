@@ -581,7 +581,7 @@ func validateApplicationInclusionAssignments(ctx context.Context, applications *
 	}
 
 	// Helper function to check if include_applications allows application_filter
-	// application_filter is allowed with GUID values and "Office365", but not with "All" or "None"
+	// application_filter is allowed with GUID values and "Office365", but not with "All", "None", or "AllAgentIdResources"
 	allowsApplicationFilter := func() bool {
 		if applications.IncludeApplications.IsNull() || applications.IncludeApplications.IsUnknown() {
 			return false
@@ -589,8 +589,8 @@ func validateApplicationInclusionAssignments(ctx context.Context, applications *
 		for _, element := range applications.IncludeApplications.Elements() {
 			if stringVal, ok := element.(types.String); ok && !stringVal.IsNull() {
 				value := stringVal.ValueString()
-				// Allow application_filter for GUIDs and "Office365", but not for "All" or "None"
-				if value == "All" || value == "None" {
+				// Allow application_filter for GUIDs and "Office365", but not for "All", "None", or "AllAgentIdResources"
+				if value == "All" || value == "None" || value == "AllAgentIdResources" {
 					return false
 				}
 				// If it's "Office365" or a GUID-like value, allow application_filter
@@ -613,10 +613,10 @@ func validateApplicationInclusionAssignments(ctx context.Context, applications *
 		return fmt.Errorf("when conditional access policy application fields 'include_applications', 'exclude_applications', 'include_user_actions', and 'include_authentication_context_class_references' are all empty, then 'include_applications' must be set to 'None'")
 	}
 
-	// Rule 2: application_filter can only be set if include_applications has GUID or "Office365" values (not "All" or "None")
+	// Rule 2: application_filter can only be set if include_applications has GUID or "Office365" values (not "All", "None", or "AllAgentIdResources")
 	if applications.ApplicationFilter != nil && !applications.ApplicationFilter.Mode.IsNull() && !applications.ApplicationFilter.Rule.IsNull() {
 		if !allowsApplicationFilter() {
-			return fmt.Errorf("conditional access policy 'application_filter' cannot be used when 'include_applications' contains 'All' or 'None' values. It can be used with GUID values or 'Office365'")
+			return fmt.Errorf("conditional access policy 'application_filter' cannot be used when 'include_applications' contains 'All', 'None', or 'AllAgentIdResources' values. It can be used with GUID values or 'Office365'")
 		}
 	}
 

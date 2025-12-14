@@ -8,6 +8,24 @@ resource "random_string" "suffix" {
   upper   = false
 }
 
+# ==============================================================================
+# Application Dependencies
+# ==============================================================================
+
+# Test Application for CAU014
+resource "azuread_application" "cau014_test_app" {
+  display_name = "CAU014-TestApp-${random_string.suffix.result}"
+}
+
+# Service Principal for Test Application
+resource "azuread_service_principal" "cau014_test_app" {
+  client_id = azuread_application.cau014_test_app.client_id
+}
+
+# ==============================================================================
+# Conditional Access Policy
+# ==============================================================================
+
 # CAU014: Block Managed Identity for Medium/High Sign-in Risk
 # Blocks managed identity (service principal) access when sign-in risk is medium or high.
 resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy" "cau014_block_managed_identity_risk" {
@@ -36,8 +54,7 @@ resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy"
 
     client_applications = {
       include_service_principals = [
-        # Note: Add specific managed identity/service principal IDs
-        "14ddb4bd-2aee-4603-86d2-467e438cda0a"
+        azuread_service_principal.cau014_test_app.object_id
       ]
       exclude_service_principals = []
     }

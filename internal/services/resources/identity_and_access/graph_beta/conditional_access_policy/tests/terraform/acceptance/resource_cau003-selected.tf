@@ -30,6 +30,20 @@ resource "microsoft365_graph_beta_groups_group" "cau003_exclude" {
 }
 
 # ==============================================================================
+# Application/Service Principal Dependencies
+# ==============================================================================
+
+# Create a test application
+resource "azuread_application" "cau003_test_app" {
+  display_name = "CAU003-TestApp-${random_string.suffix.result}"
+}
+
+# Create service principal for the application
+resource "azuread_service_principal" "cau003_test_app" {
+  client_id = azuread_application.cau003_test_app.client_id
+}
+
+# ==============================================================================
 # Conditional Access Policy
 # ==============================================================================
 
@@ -63,7 +77,7 @@ resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy"
     }
 
     applications = {
-      include_applications                            = [data.microsoft365_graph_beta_applications_service_principal.portfolios.items[0].app_id] // Add more spcific app ids as required.
+      include_applications                            = [azuread_application.cau003_test_app.client_id]
       exclude_applications                            = []
       include_user_actions                            = []
       include_authentication_context_class_references = []

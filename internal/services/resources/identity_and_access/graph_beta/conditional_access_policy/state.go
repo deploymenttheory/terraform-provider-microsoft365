@@ -72,7 +72,7 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data ConditionalAcce
 			Operator:                    types.StringValue("OR"), // Default operator
 			BuiltInControls:             types.SetValueMust(types.StringType, []attr.Value{}),
 			CustomAuthenticationFactors: types.SetValueMust(types.StringType, []attr.Value{}),
-			TermsOfUse:                  types.SetNull(types.StringType),
+			TermsOfUse:                  types.SetValueMust(types.StringType, []attr.Value{}),
 			AuthenticationStrength:      nil,
 		}
 	}
@@ -95,12 +95,22 @@ func stateConditions(ctx context.Context, conditions graphmodels.ConditionalAcce
 
 	result.ClientAppTypes = mapEnumCollectionToSet(ctx, conditions.GetClientAppTypes(), "clientAppTypes")
 	result.SignInRiskLevels = mapEnumCollectionToSet(ctx, conditions.GetSignInRiskLevels(), "signInRiskLevels")
-	// UserRiskLevels: Optional field, API returns [] when not configured, treat as null
-	result.UserRiskLevels = mapEnumCollectionToSetNullIfEmpty(ctx, conditions.GetUserRiskLevels(), "userRiskLevels")
-	// ServicePrincipalRiskLevels: API removes this field when empty, so return null for empty slices
-	result.ServicePrincipalRiskLevels = mapEnumCollectionToSetNullIfEmpty(ctx, conditions.GetServicePrincipalRiskLevels(), "servicePrincipalRiskLevels")
-	result.AgentIdRiskLevels = convert.GraphToFrameworkBitmaskEnumAsSet(ctx, conditions.GetAgentIdRiskLevels())
-	result.InsiderRiskLevels = convert.GraphToFrameworkBitmaskEnumAsSet(ctx, conditions.GetInsiderRiskLevels())
+	// UserRiskLevels: Preserve empty arrays to match Terraform config
+	result.UserRiskLevels = mapEnumCollectionToSet(ctx, conditions.GetUserRiskLevels(), "userRiskLevels")
+	// ServicePrincipalRiskLevels: Preserve empty arrays to match Terraform config
+	result.ServicePrincipalRiskLevels = mapEnumCollectionToSet(ctx, conditions.GetServicePrincipalRiskLevels(), "servicePrincipalRiskLevels")
+	// AgentIdRiskLevels: Bitmask enum, will be empty set if not present
+	if agentRiskEnum := conditions.GetAgentIdRiskLevels(); agentRiskEnum != nil {
+		result.AgentIdRiskLevels = convert.GraphToFrameworkBitmaskEnumAsSet(ctx, agentRiskEnum)
+	} else {
+		result.AgentIdRiskLevels = types.SetValueMust(types.StringType, []attr.Value{})
+	}
+	// InsiderRiskLevels: Bitmask enum, will be empty set if not present
+	if insiderRiskEnum := conditions.GetInsiderRiskLevels(); insiderRiskEnum != nil {
+		result.InsiderRiskLevels = convert.GraphToFrameworkBitmaskEnumAsSet(ctx, insiderRiskEnum)
+	} else {
+		result.InsiderRiskLevels = types.SetValueMust(types.StringType, []attr.Value{})
+	}
 
 	if applications := conditions.GetApplications(); applications != nil {
 		result.Applications = stateApplications(ctx, applications)
@@ -284,44 +294,97 @@ func stateClientApplications(ctx context.Context, clientApplications graphmodels
 	result.IncludeServicePrincipals = convert.GraphToFrameworkStringSetPreserveEmpty(ctx, clientApplications.GetIncludeServicePrincipals())
 	result.ExcludeServicePrincipals = convert.GraphToFrameworkStringSetPreserveEmpty(ctx, clientApplications.GetExcludeServicePrincipals())
 
-	// Agent ID fields and filters may be in AdditionalData
-	if additionalData := clientApplications.GetAdditionalData(); additionalData != nil {
-		if includeAgentIdServicePrincipals, ok := additionalData["includeAgentIdServicePrincipals"].([]any); ok {
-			strings := make([]string, len(includeAgentIdServicePrincipals))
-			for i, v := range includeAgentIdServicePrincipals {
-				if str, ok := v.(string); ok {
-					strings[i] = str
+	// Try to get from SDK methods first
+	includeAgentId := clientApplications.GetIncludeAgentIdServicePrincipals()
+	excludeAgentId := clientApplications.GetExcludeAgentIdServicePrincipals()
+
+	// If SDK methods return data, use them
+	if includeAgentId != nil {
+		result.IncludeAgentIdServicePrincipals = convert.GraphToFrameworkStringSetPreserveEmpty(ctx, includeAgentId)
+	} else {
+		// Otherwise check AdditionalData
+		if additionalData := clientApplications.GetAdditionalData(); additionalData != nil {
+			if includeAgentIdServicePrincipals, ok := additionalData["includeAgentIdServicePrincipals"].([]any); ok {
+				strings := make([]string, len(includeAgentIdServicePrincipals))
+				for i, v := range includeAgentIdServicePrincipals {
+					if str, ok := v.(string); ok {
+						strings[i] = str
+					}
 				}
+				result.IncludeAgentIdServicePrincipals = convert.GraphToFrameworkStringSetPreserveEmpty(ctx, strings)
+			} else {
+				result.IncludeAgentIdServicePrincipals = types.SetNull(types.StringType)
 			}
-			result.IncludeAgentIdServicePrincipals = convert.GraphToFrameworkStringSetPreserveEmpty(ctx, strings)
 		} else {
 			result.IncludeAgentIdServicePrincipals = types.SetNull(types.StringType)
 		}
+	}
 
-		if excludeAgentIdServicePrincipals, ok := additionalData["excludeAgentIdServicePrincipals"].([]any); ok {
-			strings := make([]string, len(excludeAgentIdServicePrincipals))
-			for i, v := range excludeAgentIdServicePrincipals {
-				if str, ok := v.(string); ok {
-					strings[i] = str
-				}
-			}
-			result.ExcludeAgentIdServicePrincipals = convert.GraphToFrameworkStringSetPreserveEmpty(ctx, strings)
-		} else {
-			result.ExcludeAgentIdServicePrincipals = types.SetNull(types.StringType)
-		}
+	if excludeAgentId != nil {
+		result.ExcludeAgentIdServicePrincipals = convert.GraphToFrameworkStringSetPreserveEmpty(ctx, excludeAgentId)
 	} else {
-		result.IncludeAgentIdServicePrincipals = types.SetNull(types.StringType)
-		result.ExcludeAgentIdServicePrincipals = types.SetNull(types.StringType)
+		// Otherwise check AdditionalData
+		if additionalData := clientApplications.GetAdditionalData(); additionalData != nil {
+			if excludeAgentIdServicePrincipals, ok := additionalData["excludeAgentIdServicePrincipals"].([]any); ok {
+				strings := make([]string, len(excludeAgentIdServicePrincipals))
+				for i, v := range excludeAgentIdServicePrincipals {
+					if str, ok := v.(string); ok {
+						strings[i] = str
+					}
+				}
+				result.ExcludeAgentIdServicePrincipals = convert.GraphToFrameworkStringSetPreserveEmpty(ctx, strings)
+			} else {
+				// Preserve empty set to match Terraform config
+				result.ExcludeAgentIdServicePrincipals = types.SetValueMust(types.StringType, []attr.Value{})
+			}
+		} else {
+			// Preserve empty set to match Terraform config
+			result.ExcludeAgentIdServicePrincipals = types.SetValueMust(types.StringType, []attr.Value{})
+		}
 	}
 
 	if servicePrincipalFilter := clientApplications.GetServicePrincipalFilter(); servicePrincipalFilter != nil {
 		result.ServicePrincipalFilter = mapFilter(ctx, servicePrincipalFilter)
 	}
 
-	// AgentIdServicePrincipalFilter might be in AdditionalData
-	result.AgentIdServicePrincipalFilter = nil
+	// Try SDK method first for agent ID filter
+	agentIdFilter := clientApplications.GetAgentIdServicePrincipalFilter()
+	if agentIdFilter != nil {
+		result.AgentIdServicePrincipalFilter = mapFilter(ctx, agentIdFilter)
+	} else {
+		// Otherwise check AdditionalData
+		result.AgentIdServicePrincipalFilter = mapAgentIdServicePrincipalFilter(ctx, clientApplications)
+	}
 
 	return result
+}
+
+// mapAgentIdServicePrincipalFilter extracts agent ID service principal filter from AdditionalData
+func mapAgentIdServicePrincipalFilter(ctx context.Context, clientApplications graphmodels.ConditionalAccessClientApplicationsable) *ConditionalAccessFilter {
+	additionalData := clientApplications.GetAdditionalData()
+	if additionalData == nil {
+		return nil
+	}
+
+	agentIdFilterData, ok := additionalData["agentIdServicePrincipalFilter"].(map[string]any)
+	if !ok {
+		return nil
+	}
+
+	filter := &ConditionalAccessFilter{
+		Mode: types.StringNull(),
+		Rule: types.StringNull(),
+	}
+
+	if mode, ok := agentIdFilterData["mode"].(string); ok {
+		filter.Mode = types.StringValue(mode)
+	}
+
+	if rule, ok := agentIdFilterData["rule"].(string); ok {
+		filter.Rule = types.StringValue(rule)
+	}
+
+	return filter
 }
 
 func stateAuthenticationFlows(ctx context.Context, authenticationFlows graphmodels.ConditionalAccessAuthenticationFlowsable) *ConditionalAccessAuthenticationFlows {
@@ -338,8 +401,7 @@ func mapGrantControls(ctx context.Context, grantControls graphmodels.Conditional
 	result.Operator = convert.GraphToFrameworkString(grantControls.GetOperator())
 	result.BuiltInControls = mapEnumCollectionToSet(ctx, grantControls.GetBuiltInControls(), "builtInControls")
 	result.CustomAuthenticationFactors = mapStringSliceToSetPreserveEmpty(ctx, grantControls.GetCustomAuthenticationFactors())
-	// TermsOfUse: Optional field, API returns [] when not configured, treat as null
-	result.TermsOfUse = mapStringSliceToSetNullIfEmpty(ctx, grantControls.GetTermsOfUse())
+	result.TermsOfUse = mapStringSliceToSetPreserveEmpty(ctx, grantControls.GetTermsOfUse())
 
 	if authenticationStrength := grantControls.GetAuthenticationStrength(); authenticationStrength != nil {
 		result.AuthenticationStrength = mapAuthenticationStrength(ctx, authenticationStrength)

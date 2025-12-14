@@ -9,6 +9,74 @@ resource "random_string" "suffix" {
   upper   = false
 }
 
+# ==============================================================================
+# Named Location Dependencies
+# ==============================================================================
+
+# APAC Office Location
+resource "microsoft365_graph_beta_identity_and_access_named_location" "allowed_apac_office_only" {
+  display_name = "Allowed - APAC Office Only ${random_string.suffix.result}"
+  is_trusted   = true
+
+  ipv4_ranges = [
+    "198.51.100.0/24", # Example: APAC office IP range
+  ]
+
+  ipv6_ranges = [
+    "2001:db8:1234::/48", # Example: APAC office IPv6 range
+  ]
+
+  timeouts = {
+    create = "60s"
+    read   = "60s"
+    update = "60s"
+    delete = "60s"
+  }
+}
+
+# EMEA Office Location
+resource "microsoft365_graph_beta_identity_and_access_named_location" "allowed_emea_office_only" {
+  display_name = "Allowed - EMEA Office Only ${random_string.suffix.result}"
+  is_trusted   = true
+
+  ipv4_ranges = [
+    "203.0.113.0/24", # Example: EMEA office IP range
+  ]
+
+  ipv6_ranges = [
+    "2001:db8:1234::/48", # Example: EMEA office IPv6 range
+  ]
+
+  timeouts = {
+    create = "60s"
+    read   = "60s"
+    update = "60s"
+    delete = "60s"
+  }
+}
+
+# Hazelwood Office Location
+resource "microsoft365_graph_beta_identity_and_access_named_location" "allowed_hazelwood_office_only" {
+  display_name = "Allowed - Hazelwood Office Only ${random_string.suffix.result}"
+  is_trusted   = true
+
+  ipv4_ranges = [
+    "82.44.54.0/24", # Example: Hazelwood office IP range
+  ]
+
+  ipv6_ranges = [
+    "2001:db8:5678::/48", # Example: Hazelwood office IPv6 range
+  ]
+
+  timeouts = {
+    create = "60s"
+    read   = "60s"
+    update = "60s"
+    delete = "60s"
+  }
+}
+
+# ==============================================================================
 # Group Dependencies
 # ==============================================================================
 

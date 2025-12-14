@@ -10,10 +10,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework-validators/resourcevalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/setdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -170,25 +172,29 @@ func (r *ConditionalAccessPolicyResource) Schema(ctx context.Context, req resour
 						Required:            true,
 						Attributes: map[string]schema.Attribute{
 							"include_applications": schema.SetAttribute{
-								MarkdownDescription: "Applications to include in the policy. Can use the special value 'All' to include all applications.",
-								ElementType:         types.StringType,
-								Required:            true,
+								MarkdownDescription: "Applications to include in the policy. Can use special values: 'All' (all applications), " +
+									"'None' (no applications), 'MicrosoftAdminPortals', 'Office365', or 'AllAgentIdResources' (all agent ID resources for Private Access). " +
+									"You can also specify application GUIDs.",
+								ElementType: types.StringType,
+								Required:    true,
 								Validators: []validator.Set{
 									setvalidator.ValueStringsAre(
 										stringvalidator.Any(
-											stringvalidator.OneOf("All", "None", "MicrosoftAdminPortals", "Office365"),
+											stringvalidator.OneOf("All", "None", "MicrosoftAdminPortals", "Office365", "AllAgentIdResources"),
 											stringvalidator.RegexMatches(
 												regexp.MustCompile(constants.GuidRegex),
-												"must be a valid GUID or one of the special values: All, None, MicrosoftAdminPortals, Office365",
+												"must be a valid GUID or one of the special values: All, None, MicrosoftAdminPortals, Office365, AllAgentIdResources",
 											),
 										),
 									),
 								},
 							},
 							"exclude_applications": schema.SetAttribute{
-								MarkdownDescription: "Applications to exclude from the policy. For empty requests, use []",
+								MarkdownDescription: "Applications to exclude from the policy.",
 								ElementType:         types.StringType,
-								Required:            true,
+								Optional:            true,
+								Computed:            true,
+								Default:             setdefault.StaticValue(types.SetValueMust(types.StringType, []attr.Value{})),
 								Validators: []validator.Set{
 									setvalidator.ValueStringsAre(
 										stringvalidator.Any(
@@ -204,7 +210,9 @@ func (r *ConditionalAccessPolicyResource) Schema(ctx context.Context, req resour
 							"include_user_actions": schema.SetAttribute{
 								MarkdownDescription: "User actions to include in the policy.",
 								ElementType:         types.StringType,
-								Required:            true,
+								Optional:            true,
+								Computed:            true,
+								Default:             setdefault.StaticValue(types.SetValueMust(types.StringType, []attr.Value{})),
 								Validators: []validator.Set{
 									setvalidator.ValueStringsAre(
 										stringvalidator.OneOf(
@@ -222,7 +230,9 @@ func (r *ConditionalAccessPolicyResource) Schema(ctx context.Context, req resour
 									"or custom authentication context class references in the format 'c' followed by a number from 8 through to 99 " +
 									"(e.g., c1, c8, c10, c25, c99). Learn more here 'https://learn.microsoft.com/en-us/entra/identity/conditional-access/concept-conditional-access-cloud-apps#authentication-context'.",
 								ElementType: types.StringType,
-								Required:    true,
+								Optional:    true,
+								Computed:    true,
+								Default:     setdefault.StaticValue(types.SetValueMust(types.StringType, []attr.Value{})),
 								Validators: []validator.Set{
 									setvalidator.ValueStringsAre(
 										stringvalidator.Any(
@@ -287,7 +297,9 @@ func (r *ConditionalAccessPolicyResource) Schema(ctx context.Context, req resour
 							"exclude_users": schema.SetAttribute{
 								MarkdownDescription: "Users to exclude from the policy. Can use special values like 'GuestsOrExternalUsers'.",
 								ElementType:         types.StringType,
-								Required:            true,
+								Optional:            true,
+								Computed:            true,
+								Default:             setdefault.StaticValue(types.SetValueMust(types.StringType, []attr.Value{})),
 								Validators: []validator.Set{
 									setvalidator.ValueStringsAre(
 										stringvalidator.Any(
@@ -303,7 +315,9 @@ func (r *ConditionalAccessPolicyResource) Schema(ctx context.Context, req resour
 							"include_groups": schema.SetAttribute{
 								MarkdownDescription: "Groups to include in the policy.",
 								ElementType:         types.StringType,
-								Required:            true,
+								Optional:            true,
+								Computed:            true,
+								Default:             setdefault.StaticValue(types.SetValueMust(types.StringType, []attr.Value{})),
 								Validators: []validator.Set{
 									setvalidator.ValueStringsAre(
 										stringvalidator.RegexMatches(
@@ -316,7 +330,9 @@ func (r *ConditionalAccessPolicyResource) Schema(ctx context.Context, req resour
 							"exclude_groups": schema.SetAttribute{
 								MarkdownDescription: "Groups to exclude from the policy.",
 								ElementType:         types.StringType,
-								Required:            true,
+								Optional:            true,
+								Computed:            true,
+								Default:             setdefault.StaticValue(types.SetValueMust(types.StringType, []attr.Value{})),
 								Validators: []validator.Set{
 									setvalidator.ValueStringsAre(
 										stringvalidator.RegexMatches(
@@ -329,7 +345,9 @@ func (r *ConditionalAccessPolicyResource) Schema(ctx context.Context, req resour
 							"include_roles": schema.SetAttribute{
 								MarkdownDescription: "Roles to include in the policy.",
 								ElementType:         types.StringType,
-								Required:            true,
+								Optional:            true,
+								Computed:            true,
+								Default:             setdefault.StaticValue(types.SetValueMust(types.StringType, []attr.Value{})),
 								Validators: []validator.Set{
 									setvalidator.ValueStringsAre(
 										stringvalidator.RegexMatches(
@@ -342,7 +360,9 @@ func (r *ConditionalAccessPolicyResource) Schema(ctx context.Context, req resour
 							"exclude_roles": schema.SetAttribute{
 								MarkdownDescription: "Microsoft Entra tenant roles to exclude from the policy.",
 								ElementType:         types.StringType,
-								Required:            true,
+								Optional:            true,
+								Computed:            true,
+								Default:             setdefault.StaticValue(types.SetValueMust(types.StringType, []attr.Value{})),
 								Validators: []validator.Set{
 									setvalidator.ValueStringsAre(
 										stringvalidator.RegexMatches(
@@ -484,6 +504,8 @@ func (r *ConditionalAccessPolicyResource) Schema(ctx context.Context, req resour
 								MarkdownDescription: "Platforms to exclude from the policy. Possible values are: android, iOS, windows, windowsPhone, macOS, all, linux.",
 								ElementType:         types.StringType,
 								Optional:            true,
+								Computed:            true,
+								Default:             setdefault.StaticValue(types.SetValueMust(types.StringType, []attr.Value{})),
 								Validators: []validator.Set{
 									setvalidator.ValueStringsAre(
 										stringvalidator.OneOf(
@@ -508,7 +530,9 @@ func (r *ConditionalAccessPolicyResource) Schema(ctx context.Context, req resour
 								MarkdownDescription: "Named locations to include in the policy. Can use special values like 'All' or 'AllTrusted' 'or provide guid's" +
 									"of named locations.",
 								ElementType: types.StringType,
-								Required:    true,
+								Optional:    true,
+								Computed:    true,
+								Default:     setdefault.StaticValue(types.SetValueMust(types.StringType, []attr.Value{})),
 								Validators: []validator.Set{
 									setvalidator.ValueStringsAre(
 										stringvalidator.Any(
@@ -525,7 +549,9 @@ func (r *ConditionalAccessPolicyResource) Schema(ctx context.Context, req resour
 								MarkdownDescription: "Named locations to exclude from the policy. Can use special values like 'AllTrusted' or provide guid's" +
 									"of named locations.",
 								ElementType: types.StringType,
-								Required:    true,
+								Optional:    true,
+								Computed:    true,
+								Default:     setdefault.StaticValue(types.SetValueMust(types.StringType, []attr.Value{})),
 								Validators: []validator.Set{
 									setvalidator.ValueStringsAre(
 										stringvalidator.Any(
@@ -603,6 +629,8 @@ func (r *ConditionalAccessPolicyResource) Schema(ctx context.Context, req resour
 						MarkdownDescription: "User risk levels included in the policy. Possible values are: low, medium, high, hidden, none.",
 						ElementType:         types.StringType,
 						Optional:            true,
+						Computed:            true,
+						Default:             setdefault.StaticValue(types.SetValueMust(types.StringType, []attr.Value{})),
 						Validators: []validator.Set{
 							setvalidator.ValueStringsAre(
 								stringvalidator.OneOf(
@@ -619,6 +647,8 @@ func (r *ConditionalAccessPolicyResource) Schema(ctx context.Context, req resour
 						MarkdownDescription: "Service principal risk levels included in the policy. Possible values are: low, medium, high, hidden, none.",
 						ElementType:         types.StringType,
 						Optional:            true,
+						Computed:            true,
+						Default:             setdefault.StaticValue(types.SetValueMust(types.StringType, []attr.Value{})),
 						Validators: []validator.Set{
 							setvalidator.ValueStringsAre(
 								stringvalidator.OneOf(
@@ -635,6 +665,8 @@ func (r *ConditionalAccessPolicyResource) Schema(ctx context.Context, req resour
 						MarkdownDescription: "Agent ID risk levels included in the policy. Possible values are: low, medium, high.",
 						ElementType:         types.StringType,
 						Optional:            true,
+						Computed:            true,
+						Default:             setdefault.StaticValue(types.SetValueMust(types.StringType, []attr.Value{})),
 						Validators: []validator.Set{
 							setvalidator.ValueStringsAre(
 								stringvalidator.OneOf(
@@ -649,6 +681,8 @@ func (r *ConditionalAccessPolicyResource) Schema(ctx context.Context, req resour
 						MarkdownDescription: "Insider risk levels included in the policy. Possible values are: minor, moderate, elevated.",
 						ElementType:         types.StringType,
 						Optional:            true,
+						Computed:            true,
+						Default:             setdefault.StaticValue(types.SetValueMust(types.StringType, []attr.Value{})),
 						Validators: []validator.Set{
 							setvalidator.ValueStringsAre(
 								stringvalidator.OneOf(
@@ -739,22 +773,49 @@ func (r *ConditionalAccessPolicyResource) Schema(ctx context.Context, req resour
 							"include_service_principals": schema.SetAttribute{
 								MarkdownDescription: "Service principals to include in the policy. Can use the special value 'ServicePrincipalsInMyTenant' to include all service principals.",
 								ElementType:         types.StringType,
-								Required:            true,
+								Optional:            true,
+								Computed:            true,
+								Default:             setdefault.StaticValue(types.SetValueMust(types.StringType, []attr.Value{})),
 							},
 							"exclude_service_principals": schema.SetAttribute{
 								MarkdownDescription: "Service principals to exclude from the policy.",
 								ElementType:         types.StringType,
 								Optional:            true,
+								Computed:            true,
+								Default:             setdefault.StaticValue(types.SetValueMust(types.StringType, []attr.Value{})),
 							},
 							"include_agent_id_service_principals": schema.SetAttribute{
 								MarkdownDescription: "Agent ID service principals to include. Can use the special value 'All' or specify service principal GUIDs.",
 								ElementType:         types.StringType,
 								Optional:            true,
+								Computed:            true,
+								Default:             setdefault.StaticValue(types.SetValueMust(types.StringType, []attr.Value{})),
+								Validators: []validator.Set{
+									setvalidator.ValueStringsAre(
+										stringvalidator.Any(
+											stringvalidator.OneOf("All"),
+											stringvalidator.RegexMatches(
+												regexp.MustCompile(constants.GuidRegex),
+												"must be a valid GUID or the special value: All",
+											),
+										),
+									),
+								},
 							},
 							"exclude_agent_id_service_principals": schema.SetAttribute{
 								MarkdownDescription: "Agent ID service principals to exclude. Specify service principal GUIDs.",
 								ElementType:         types.StringType,
 								Optional:            true,
+								Computed:            true,
+								Default:             setdefault.StaticValue(types.SetValueMust(types.StringType, []attr.Value{})),
+								Validators: []validator.Set{
+									setvalidator.ValueStringsAre(
+										stringvalidator.RegexMatches(
+											regexp.MustCompile(constants.GuidRegex),
+											"must be a valid GUID",
+										),
+									),
+								},
 							},
 							"agent_id_service_principal_filter": schema.SingleNestedAttribute{
 								MarkdownDescription: "Filter for agent ID service principals using custom security attributes.",
@@ -808,7 +869,9 @@ func (r *ConditionalAccessPolicyResource) Schema(ctx context.Context, req resour
 					"built_in_controls": schema.SetAttribute{
 						MarkdownDescription: "List of built-in controls required by the policy. Possible values are: block, mfa, compliantDevice, domainJoinedDevice, approvedApplication, compliantApplication, passwordChange, riskRemediation.",
 						ElementType:         types.StringType,
-						Required:            true,
+						Optional:            true,
+						Computed:            true,
+						Default:             setdefault.StaticValue(types.SetValueMust(types.StringType, []attr.Value{})),
 						Validators: []validator.Set{
 							setvalidator.ValueStringsAre(
 								stringvalidator.OneOf(
@@ -827,12 +890,16 @@ func (r *ConditionalAccessPolicyResource) Schema(ctx context.Context, req resour
 					"custom_authentication_factors": schema.SetAttribute{
 						MarkdownDescription: "Custom authentication factors for granting access.",
 						ElementType:         types.StringType,
-						Required:            true,
+						Optional:            true,
+						Computed:            true,
+						Default:             setdefault.StaticValue(types.SetValueMust(types.StringType, []attr.Value{})),
 					},
 					"terms_of_use": schema.SetAttribute{
 						MarkdownDescription: "Terms of use required for granting access.",
 						ElementType:         types.StringType,
 						Optional:            true,
+						Computed:            true,
+						Default:             setdefault.StaticValue(types.SetValueMust(types.StringType, []attr.Value{})),
 					},
 					"authentication_strength": schema.SingleNestedAttribute{
 						MarkdownDescription: "Authentication strength is a Conditional Access control that specifies which combinations of authentication " +

@@ -9,16 +9,6 @@ resource "random_string" "suffix" {
 }
 
 # ==============================================================================
-# Data Sources
-# ==============================================================================
-
-# Windows Azure Service Management API
-data "microsoft365_graph_beta_applications_service_principal" "windows_azure_service_management_api" {
-  filter_type  = "display_name"
-  filter_value = "Windows Azure Service Management API"
-}
-
-# ==============================================================================
 # Group Dependencies
 # ==============================================================================
 
@@ -31,27 +21,26 @@ resource "microsoft365_graph_beta_groups_group" "breakglass" {
   description      = "Group containing Break Glass Accounts"
 }
 
-resource "microsoft365_graph_beta_groups_group" "cau009_exclude" {
-  display_name     = "EID_UA_CAU009_EXCLUDE"
-  mail_nickname    = "eid-ua-cau009-exclude"
+resource "microsoft365_graph_beta_groups_group" "cau020_exclude" {
+  display_name     = "EID_UA_CAU020_Exclude"
+  mail_nickname    = "eid-ua-cau020-exclude"
   mail_enabled     = false
   security_enabled = true
-  description      = "uexcludeion group for CA policy CAU009_EXCLUDE"
+  description      = "Exclusion group for CA policy CAU020"
 }
 
 # ==============================================================================
 # Conditional Access Policy
 # ==============================================================================
 
-
-# CAU009: Require MFA for Admin Portals
-# Requires MFA when accessing admin portals.
-resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy" "cau009_admin_portals_mfa" {
-  display_name = "acc-test-cau009-management: Grant Require MFA for Admin Portals for All Users when Browser and Modern Auth Clients ${random_string.suffix.result}"
+# CAU020: Insider Risk Conditional Access Policy
+# Block access for Elevated Insider Risk Users for all Users
+resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy" "cau020_all" {
+  display_name = "acc-test-cau020-all: Block access for Elevated Insider Risk Users for all Users ${random_string.suffix.result}"
   state        = "enabledForReportingButNotEnforced"
 
   conditions = {
-    client_app_types = ["browser", "mobileAppsAndDesktopClients"]
+    client_app_types = ["all"]
 
     users = {
       include_users  = ["All"]
@@ -59,29 +48,29 @@ resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy"
       include_groups = []
       exclude_groups = [
         microsoft365_graph_beta_groups_group.breakglass.id,
-        microsoft365_graph_beta_groups_group.cau009_exclude.id
+        microsoft365_graph_beta_groups_group.cau020_exclude.id
       ]
       include_roles = []
       exclude_roles = []
     }
 
     applications = {
-      include_applications = [
-        "MicrosoftAdminPortals",
-        data.microsoft365_graph_beta_applications_service_principal.windows_azure_service_management_api.items[0].app_id
-      ]
+      include_applications                            = ["All"]
       exclude_applications                            = []
       include_user_actions                            = []
       include_authentication_context_class_references = []
     }
 
-    sign_in_risk_levels = []
+    sign_in_risk_levels           = []
+    user_risk_levels              = []
+    service_principal_risk_levels = []
+    agent_id_risk_levels          = []
+    insider_risk_levels           = ["moderate", "elevated"]
   }
 
   grant_controls = {
     operator                      = "OR"
-    built_in_controls             = ["mfa"]
+    built_in_controls             = ["block"]
     custom_authentication_factors = []
   }
 }
-

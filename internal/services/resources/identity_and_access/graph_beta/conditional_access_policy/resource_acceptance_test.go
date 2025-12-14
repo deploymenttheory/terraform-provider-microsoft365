@@ -2867,6 +2867,180 @@ func TestAccConditionalAccessPolicyResource_CAU019(t *testing.T) {
 	})
 }
 
+// CAAU001: Agent ID Resources - Block All
+func TestAccConditionalAccessPolicyResource_CAAU001(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		CheckDestroy: destroy.CheckDestroyedAllFunc(
+			testResource,
+			resourceType,
+			30*time.Second,
+		),
+		ExternalProviders: map[string]resource.ExternalProvider{
+			"random": {
+				Source:            "hashicorp/random",
+				VersionConstraint: ">= 3.7.2",
+			},
+		},
+		Steps: []resource.TestStep{
+			{
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Creating CAAU001 agent ID resources policy")
+				},
+				Config: testAccConfigCAAU001(),
+				Check: resource.ComposeTestCheckFunc(
+					func(_ *terraform.State) error {
+						testlog.WaitForConsistency("conditional access policy", 30*time.Second)
+						time.Sleep(30 * time.Second)
+						return nil
+					},
+					check.That(resourceType+".caau001_all").ExistsInGraph(testResource),
+					check.That(resourceType+".caau001_all").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(resourceType+".caau001_all").Key("display_name").MatchesRegex(regexp.MustCompile(`^acc-test-caau001-[^:]+: .+ [a-z0-9]{8}$`)),
+					check.That(resourceType+".caau001_all").Key("state").HasValue("enabledForReportingButNotEnforced"),
+
+					// Conditions - Client App Types
+					check.That(resourceType+".caau001_all").Key("conditions.client_app_types.#").HasValue("1"),
+					check.That(resourceType+".caau001_all").Key("conditions.client_app_types.*").ContainsTypeSetElement("all"),
+
+					// Conditions - Users
+					check.That(resourceType+".caau001_all").Key("conditions.users.include_users.#").HasValue("1"),
+					check.That(resourceType+".caau001_all").Key("conditions.users.include_users.*").ContainsTypeSetElement("None"),
+					check.That(resourceType+".caau001_all").Key("conditions.users.exclude_users.#").HasValue("0"),
+					check.That(resourceType+".caau001_all").Key("conditions.users.include_groups.#").HasValue("0"),
+					check.That(resourceType+".caau001_all").Key("conditions.users.exclude_groups.#").HasValue("0"),
+					check.That(resourceType+".caau001_all").Key("conditions.users.include_roles.#").HasValue("0"),
+					check.That(resourceType+".caau001_all").Key("conditions.users.exclude_roles.#").HasValue("0"),
+
+					// Conditions - Applications
+					check.That(resourceType+".caau001_all").Key("conditions.applications.include_applications.#").HasValue("1"),
+					check.That(resourceType+".caau001_all").Key("conditions.applications.include_applications.*").ContainsTypeSetElement("AllAgentIdResources"),
+					check.That(resourceType+".caau001_all").Key("conditions.applications.exclude_applications.#").HasValue("0"),
+					check.That(resourceType+".caau001_all").Key("conditions.applications.include_user_actions.#").HasValue("0"),
+					check.That(resourceType+".caau001_all").Key("conditions.applications.include_authentication_context_class_references.#").HasValue("0"),
+
+					// Conditions - Client Applications
+					check.That(resourceType+".caau001_all").Key("conditions.client_applications.include_agent_id_service_principals.#").HasValue("1"),
+					check.That(resourceType+".caau001_all").Key("conditions.client_applications.include_agent_id_service_principals.*").ContainsTypeSetElement("All"),
+					check.That(resourceType+".caau001_all").Key("conditions.client_applications.exclude_agent_id_service_principals.#").HasValue("0"),
+
+					// Conditions - Agent ID Risk Levels
+					check.That(resourceType+".caau001_all").Key("conditions.agent_id_risk_levels.#").HasValue("2"),
+					check.That(resourceType+".caau001_all").Key("conditions.agent_id_risk_levels.*").ContainsTypeSetElement("high"),
+					check.That(resourceType+".caau001_all").Key("conditions.agent_id_risk_levels.*").ContainsTypeSetElement("medium"),
+
+					// Conditions - Other Risk Levels
+					check.That(resourceType+".caau001_all").Key("conditions.sign_in_risk_levels.#").HasValue("0"),
+					check.That(resourceType+".caau001_all").Key("conditions.service_principal_risk_levels.#").HasValue("0"),
+
+					// Grant Controls
+					check.That(resourceType+".caau001_all").Key("grant_controls.operator").HasValue("OR"),
+					check.That(resourceType+".caau001_all").Key("grant_controls.built_in_controls.#").HasValue("1"),
+					check.That(resourceType+".caau001_all").Key("grant_controls.built_in_controls.*").ContainsTypeSetElement("block"),
+					check.That(resourceType+".caau001_all").Key("grant_controls.custom_authentication_factors.#").HasValue("0"),
+				),
+			},
+			{
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Importing CAAU001 policy")
+				},
+				ResourceName:            resourceType + ".caau001_all",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"timeouts"},
+			},
+		},
+	})
+}
+
+// CAAU002: Agent ID Resources - All Applications
+func TestAccConditionalAccessPolicyResource_CAAU002(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		CheckDestroy: destroy.CheckDestroyedAllFunc(
+			testResource,
+			resourceType,
+			30*time.Second,
+		),
+		ExternalProviders: map[string]resource.ExternalProvider{
+			"random": {
+				Source:            "hashicorp/random",
+				VersionConstraint: ">= 3.7.2",
+			},
+		},
+		Steps: []resource.TestStep{
+			{
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Creating CAAU002 agent ID policy targeting all applications")
+				},
+				Config: testAccConfigCAAU002(),
+				Check: resource.ComposeTestCheckFunc(
+					func(_ *terraform.State) error {
+						testlog.WaitForConsistency("conditional access policy", 30*time.Second)
+						time.Sleep(30 * time.Second)
+						return nil
+					},
+					check.That(resourceType+".caau002_o365").ExistsInGraph(testResource),
+					check.That(resourceType+".caau002_o365").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(resourceType+".caau002_o365").Key("display_name").MatchesRegex(regexp.MustCompile(`^acc-test-caau002-[^:]+: .+ [a-z0-9]{8}$`)),
+					check.That(resourceType+".caau002_o365").Key("state").HasValue("enabledForReportingButNotEnforced"),
+
+					// Conditions - Client App Types
+					check.That(resourceType+".caau002_o365").Key("conditions.client_app_types.#").HasValue("1"),
+					check.That(resourceType+".caau002_o365").Key("conditions.client_app_types.*").ContainsTypeSetElement("all"),
+
+					// Conditions - Users
+					check.That(resourceType+".caau002_o365").Key("conditions.users.include_users.#").HasValue("1"),
+					check.That(resourceType+".caau002_o365").Key("conditions.users.include_users.*").ContainsTypeSetElement("None"),
+					check.That(resourceType+".caau002_o365").Key("conditions.users.exclude_users.#").HasValue("0"),
+					check.That(resourceType+".caau002_o365").Key("conditions.users.include_groups.#").HasValue("0"),
+					check.That(resourceType+".caau002_o365").Key("conditions.users.exclude_groups.#").HasValue("0"),
+					check.That(resourceType+".caau002_o365").Key("conditions.users.include_roles.#").HasValue("0"),
+					check.That(resourceType+".caau002_o365").Key("conditions.users.exclude_roles.#").HasValue("0"),
+
+					// Conditions - Applications
+					check.That(resourceType+".caau002_o365").Key("conditions.applications.include_applications.#").HasValue("1"),
+					check.That(resourceType+".caau002_o365").Key("conditions.applications.include_applications.*").ContainsTypeSetElement("All"),
+					check.That(resourceType+".caau002_o365").Key("conditions.applications.exclude_applications.#").HasValue("0"),
+					check.That(resourceType+".caau002_o365").Key("conditions.applications.include_user_actions.#").HasValue("0"),
+					check.That(resourceType+".caau002_o365").Key("conditions.applications.include_authentication_context_class_references.#").HasValue("0"),
+
+					// Conditions - Client Applications
+					check.That(resourceType+".caau002_o365").Key("conditions.client_applications.include_agent_id_service_principals.#").HasValue("1"),
+					check.That(resourceType+".caau002_o365").Key("conditions.client_applications.include_agent_id_service_principals.*").ContainsTypeSetElement("All"),
+					check.That(resourceType+".caau002_o365").Key("conditions.client_applications.exclude_agent_id_service_principals.#").HasValue("0"),
+
+					// Conditions - Agent ID Risk Levels
+					check.That(resourceType+".caau002_o365").Key("conditions.agent_id_risk_levels.#").HasValue("2"),
+					check.That(resourceType+".caau002_o365").Key("conditions.agent_id_risk_levels.*").ContainsTypeSetElement("high"),
+					check.That(resourceType+".caau002_o365").Key("conditions.agent_id_risk_levels.*").ContainsTypeSetElement("medium"),
+
+					// Conditions - Other Risk Levels
+					check.That(resourceType+".caau002_o365").Key("conditions.sign_in_risk_levels.#").HasValue("0"),
+					check.That(resourceType+".caau002_o365").Key("conditions.service_principal_risk_levels.#").HasValue("0"),
+
+					// Grant Controls
+					check.That(resourceType+".caau002_o365").Key("grant_controls.operator").HasValue("OR"),
+					check.That(resourceType+".caau002_o365").Key("grant_controls.built_in_controls.#").HasValue("1"),
+					check.That(resourceType+".caau002_o365").Key("grant_controls.built_in_controls.*").ContainsTypeSetElement("block"),
+					check.That(resourceType+".caau002_o365").Key("grant_controls.custom_authentication_factors.#").HasValue("0"),
+				),
+			},
+			{
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Importing CAAU002 policy")
+				},
+				ResourceName:            resourceType + ".caau002_o365",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"timeouts"},
+			},
+		},
+	})
+}
+
 // Test config loading functions
 func testAccConfigCAD001() string {
 	config := mocks.LoadTerraformConfigFile("resource_cad001-o365.tf")
@@ -3105,5 +3279,103 @@ func testAccConfigCAU018() string {
 
 func testAccConfigCAU019() string {
 	config := mocks.LoadTerraformConfigFile("resource_cau019-selected.tf")
+	return acceptance.ConfiguredM365ProviderBlock(config)
+}
+
+func testAccConfigCAAU001() string {
+	config := mocks.LoadTerraformConfigFile("resource_caau001-all.tf")
+	return acceptance.ConfiguredM365ProviderBlock(config)
+}
+
+func testAccConfigCAAU002() string {
+	config := mocks.LoadTerraformConfigFile("resource_caau002-o365.tf")
+	return acceptance.ConfiguredM365ProviderBlock(config)
+}
+
+// TestAccConditionalAccessPolicyResource_CAU020 tests the conditional access policy resource
+// with insider risk levels for all users.
+func TestAccConditionalAccessPolicyResource_CAU020(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		CheckDestroy: destroy.CheckDestroyedAllFunc(
+			testResource,
+			resourceType,
+			30*time.Second,
+		),
+		ExternalProviders: map[string]resource.ExternalProvider{
+			"random": {
+				Source:            "hashicorp/random",
+				VersionConstraint: ">= 3.7.2",
+			},
+		},
+		Steps: []resource.TestStep{
+			{
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Creating CAU020 insider risk policy")
+				},
+				Config: testAccConfigCAU020(),
+				Check: resource.ComposeTestCheckFunc(
+					func(_ *terraform.State) error {
+						testlog.WaitForConsistency("conditional access policy", 30*time.Second)
+						time.Sleep(30 * time.Second)
+						return nil
+					},
+					check.That(resourceType+".cau020_all").ExistsInGraph(testResource),
+					check.That(resourceType+".cau020_all").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(resourceType+".cau020_all").Key("display_name").MatchesRegex(regexp.MustCompile(`^acc-test-cau020-[^:]+: .+ [a-z0-9]{8}$`)),
+					check.That(resourceType+".cau020_all").Key("state").HasValue("enabledForReportingButNotEnforced"),
+
+					// Conditions - Client App Types
+					check.That(resourceType+".cau020_all").Key("conditions.client_app_types.#").HasValue("1"),
+					check.That(resourceType+".cau020_all").Key("conditions.client_app_types.*").ContainsTypeSetElement("all"),
+
+					// Conditions - Users
+					check.That(resourceType+".cau020_all").Key("conditions.users.include_users.#").HasValue("1"),
+					check.That(resourceType+".cau020_all").Key("conditions.users.include_users.*").ContainsTypeSetElement("All"),
+					check.That(resourceType+".cau020_all").Key("conditions.users.exclude_users.#").HasValue("0"),
+					check.That(resourceType+".cau020_all").Key("conditions.users.include_groups.#").HasValue("0"),
+					check.That(resourceType+".cau020_all").Key("conditions.users.exclude_groups.#").HasValue("2"),
+					check.That(resourceType+".cau020_all").Key("conditions.users.include_roles.#").HasValue("0"),
+					check.That(resourceType+".cau020_all").Key("conditions.users.exclude_roles.#").HasValue("0"),
+
+					// Conditions - Applications
+					check.That(resourceType+".cau020_all").Key("conditions.applications.include_applications.#").HasValue("1"),
+					check.That(resourceType+".cau020_all").Key("conditions.applications.include_applications.*").ContainsTypeSetElement("All"),
+					check.That(resourceType+".cau020_all").Key("conditions.applications.exclude_applications.#").HasValue("0"),
+					check.That(resourceType+".cau020_all").Key("conditions.applications.include_user_actions.#").HasValue("0"),
+					check.That(resourceType+".cau020_all").Key("conditions.applications.include_authentication_context_class_references.#").HasValue("0"),
+
+					// Conditions - Risk Levels
+					check.That(resourceType+".cau020_all").Key("conditions.sign_in_risk_levels.#").HasValue("0"),
+					check.That(resourceType+".cau020_all").Key("conditions.user_risk_levels.#").HasValue("0"),
+					check.That(resourceType+".cau020_all").Key("conditions.service_principal_risk_levels.#").HasValue("0"),
+					check.That(resourceType+".cau020_all").Key("conditions.agent_id_risk_levels.#").HasValue("0"),
+					check.That(resourceType+".cau020_all").Key("conditions.insider_risk_levels.#").HasValue("2"),
+					check.That(resourceType+".cau020_all").Key("conditions.insider_risk_levels.*").ContainsTypeSetElement("moderate"),
+					check.That(resourceType+".cau020_all").Key("conditions.insider_risk_levels.*").ContainsTypeSetElement("elevated"),
+
+					// Grant Controls
+					check.That(resourceType+".cau020_all").Key("grant_controls.operator").HasValue("OR"),
+					check.That(resourceType+".cau020_all").Key("grant_controls.built_in_controls.#").HasValue("1"),
+					check.That(resourceType+".cau020_all").Key("grant_controls.built_in_controls.*").ContainsTypeSetElement("block"),
+					check.That(resourceType+".cau020_all").Key("grant_controls.custom_authentication_factors.#").HasValue("0"),
+				),
+			},
+			{
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Importing CAU020 policy")
+				},
+				Config:            testAccConfigCAU020(),
+				ResourceName:      resourceType + ".cau020_all",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func testAccConfigCAU020() string {
+	config := mocks.LoadTerraformConfigFile("resource_cau020-all.tf")
 	return acceptance.ConfiguredM365ProviderBlock(config)
 }
