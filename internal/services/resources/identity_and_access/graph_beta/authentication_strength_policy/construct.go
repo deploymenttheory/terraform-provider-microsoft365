@@ -11,8 +11,8 @@ import (
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
-// constructResourceForSDK converts the Terraform model to the SDK model for Create operations
-func constructResourceForSDK(ctx context.Context, data *AuthenticationStrengthPolicyResourceModel) (graphmodels.AuthenticationStrengthPolicyable, error) {
+// constructResource converts the Terraform model to the SDK model for Create operations
+func constructResource(ctx context.Context, data *AuthenticationStrengthPolicyResourceModel) (graphmodels.AuthenticationStrengthPolicyable, error) {
 	tflog.Debug(ctx, fmt.Sprintf("Constructing %s resource from model", ResourceName))
 
 	requestBody := graphmodels.NewAuthenticationStrengthPolicy()

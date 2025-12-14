@@ -1,7 +1,43 @@
+# ==============================================================================
+# ==============================================================================
+# Random Suffix for Unique Resource Names
+# ==============================================================================
+
+resource "random_string" "suffix" {
+  length  = 8
+  special = false
+  upper   = false
+}
+
+# Group Dependencies
+# ==============================================================================
+
+# Break Glass Emergency Access Accounts
+resource "microsoft365_graph_beta_groups_group" "breakglass" {
+  display_name     = "EID_UA_ConAcc-Breakglass"
+  mail_nickname    = "eid-ua-conacc-breakglass"
+  mail_enabled     = false
+  security_enabled = true
+  description      = "Group containing Break Glass Accounts"
+}
+
+resource "microsoft365_graph_beta_groups_group" "cau018_exclude" {
+  display_name     = "EID_UA_CAU018_EXCLUDE"
+  mail_nickname    = "eid-ua-cau018-exclude"
+  mail_enabled     = false
+  security_enabled = true
+  description      = "uexcludeion group for CA policy CAU018_EXCLUDE"
+}
+
+# ==============================================================================
+# Conditional Access Policy
+# ==============================================================================
+
+
 # CAU018: Disable Browser Persistence for Admins
 # Disables persistent browser sessions for admin users.
 resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy" "cau018_admin_disable_browser_persistence" {
-  display_name = "CAU018-All: Session disable browser persistence for Admins when Browser-v1.0"
+  display_name = "acc-test-cau018-all: Session disable browser persistence for Admins when Browser ${random_string.suffix.result}"
   state        = "enabledForReportingButNotEnforced"
 
   conditions = {

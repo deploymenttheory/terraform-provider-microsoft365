@@ -38,7 +38,11 @@ resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy"
       }
     }
 
-    sign_in_risk_levels = []
+    sign_in_risk_levels           = []
+    user_risk_levels              = []
+    service_principal_risk_levels = []
+    agent_id_risk_levels          = []
+    insider_risk_levels           = []
   }
 
   session_controls = {

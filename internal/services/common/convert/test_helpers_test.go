@@ -51,3 +51,46 @@ func MockParseBitmaskEnum(input string) (any, error) {
 
 	return &result, nil
 }
+
+// MockRiskLevel represents a mock enum for testing (not a bitmask)
+type MockRiskLevel int
+
+const (
+	MockRiskLevelLow    MockRiskLevel = 0
+	MockRiskLevelMedium MockRiskLevel = 1
+	MockRiskLevelHigh   MockRiskLevel = 2
+)
+
+func (e MockRiskLevel) String() string {
+	switch e {
+	case MockRiskLevelLow:
+		return "low"
+	case MockRiskLevelMedium:
+		return "medium"
+	case MockRiskLevelHigh:
+		return "high"
+	default:
+		return "unknown"
+	}
+}
+
+// MockParseRiskLevel simulates parsing a single string value into an enum (not a bitmask)
+func MockParseRiskLevel(input string) (any, error) {
+	if input == "" {
+		return nil, nil
+	}
+
+	switch strings.ToLower(strings.TrimSpace(input)) {
+	case "low":
+		result := MockRiskLevelLow
+		return &result, nil
+	case "medium":
+		result := MockRiskLevelMedium
+		return &result, nil
+	case "high":
+		result := MockRiskLevelHigh
+		return &result, nil
+	default:
+		return nil, errors.New("invalid risk level: " + input)
+	}
+}

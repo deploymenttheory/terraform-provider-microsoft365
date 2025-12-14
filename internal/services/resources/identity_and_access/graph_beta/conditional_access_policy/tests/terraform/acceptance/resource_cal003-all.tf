@@ -1,7 +1,17 @@
+# ==============================================================================
+# Random Suffix for Unique Resource Names
+# ==============================================================================
+
+resource "random_string" "suffix" {
+  length  = 8
+  special = false
+  upper   = false
+}
+
 # CAL003: Block Service Accounts from Non-Trusted Locations
 # Blocks access for specified service accounts except from trusted locations.
 resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy" "cal003_block_service_accounts_untrusted" {
-  display_name = "CAL003-All: Block Access for Specified Service Accounts except from Provided Trusted Locations when Browser and Modern Auth Clients-v1.1"
+  display_name = "acc-test-cal003-all: Block Access for Specified Service Accounts except from Provided Trusted Locations when Browser and Modern Auth Clients ${random_string.suffix.result}"
   state        = "enabledForReportingButNotEnforced"
 
   conditions = {

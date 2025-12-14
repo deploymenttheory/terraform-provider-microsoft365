@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
 )
 
 const (
@@ -46,15 +47,13 @@ func NewNamedLocationResource() resource.Resource {
 		WritePermissions: []string{
 			"Policy.ReadWrite.ConditionalAccess",
 		},
-		ResourcePath: "/identity/conditionalAccess/namedLocations",
 	}
 }
 
 type NamedLocationResource struct {
-	httpClient       *client.AuthenticatedHTTPClient
+	client           *msgraphbetasdk.GraphServiceClient
 	ReadPermissions  []string
 	WritePermissions []string
-	ResourcePath     string
 }
 
 // Metadata returns the resource type name.
@@ -64,7 +63,7 @@ func (r *NamedLocationResource) Metadata(ctx context.Context, req resource.Metad
 
 // Configure sets the client for the resource.
 func (r *NamedLocationResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
-	r.httpClient = client.SetGraphBetaHTTPClientForResource(ctx, req, resp, ResourceName)
+	r.client = client.SetGraphBetaClientForResource(ctx, req, resp, ResourceName)
 }
 
 // ImportState imports the resource state.

@@ -16,11 +16,13 @@ import (
 
 var mockState struct {
 	sync.Mutex
-	policies map[string]map[string]any
+	policies        map[string]map[string]any
+	deletedPolicies map[string]map[string]any
 }
 
 func init() {
 	mockState.policies = make(map[string]map[string]any)
+	mockState.deletedPolicies = make(map[string]map[string]any)
 	httpmock.RegisterNoResponder(httpmock.NewStringResponder(404, `{"error":{"code":"ResourceNotFound","message":"Resource not found"}}`))
 	mocks.GlobalRegistry.Register("conditional_access_policy", &ConditionalAccessPolicyMock{})
 }
@@ -108,6 +110,7 @@ func deduplicateArray(arr []any) []any {
 func (m *ConditionalAccessPolicyMock) RegisterMocks() {
 	mockState.Lock()
 	mockState.policies = make(map[string]map[string]any)
+	mockState.deletedPolicies = make(map[string]map[string]any)
 	mockState.Unlock()
 
 	// Register mock dependencies for unit tests
@@ -210,23 +213,41 @@ func (m *ConditionalAccessPolicyMock) RegisterMocks() {
 		return httpmock.NewStringResponse(204, ""), nil
 	})
 
-	// Delete conditional access policy - DELETE /identity/conditionalAccess/policies/{id}
+	// Soft delete conditional access policy - DELETE /identity/conditionalAccess/policies/{id}
+	// Moves policy to deletedItems collection instead of permanently deleting
 	httpmock.RegisterResponder("DELETE", `=~^https://graph\.microsoft\.com/beta/identity/conditionalAccess/policies/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`, func(req *http.Request) (*http.Response, error) {
 		parts := strings.Split(req.URL.Path, "/")
 		policyId := parts[len(parts)-1]
 
 		mockState.Lock()
-		_, exists := mockState.policies[policyId]
-		if exists {
+		defer mockState.Unlock()
+
+		if policy, exists := mockState.policies[policyId]; exists {
+			// Move to deletedPolicies (soft delete behavior)
+			mockState.deletedPolicies[policyId] = policy
 			delete(mockState.policies, policyId)
-		}
-		mockState.Unlock()
-
-		if !exists {
-			return httpmock.NewStringResponse(404, `{"error":{"code":"ResourceNotFound","message":"Resource not found"}}`), nil
+			return httpmock.NewStringResponse(204, ""), nil
 		}
 
-		return httpmock.NewStringResponse(204, ""), nil
+		return httpmock.NewStringResponse(404, `{"error":{"code":"ResourceNotFound","message":"Resource not found"}}`), nil
+	})
+
+	// Hard delete conditional access policy - DELETE /identity/conditionalAccess/deletedItems/policies/{id}
+	// Permanently deletes policy from deletedItems collection
+	httpmock.RegisterResponder("DELETE", `=~^https://graph\.microsoft\.com/beta/identity/conditionalAccess/deletedItems/policies/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`, func(req *http.Request) (*http.Response, error) {
+		parts := strings.Split(req.URL.Path, "/")
+		policyId := parts[len(parts)-1]
+
+		mockState.Lock()
+		defer mockState.Unlock()
+
+		if _, exists := mockState.deletedPolicies[policyId]; exists {
+			// Permanently delete from deletedPolicies
+			delete(mockState.deletedPolicies, policyId)
+			return httpmock.NewStringResponse(204, ""), nil
+		}
+
+		return httpmock.NewStringResponse(404, `{"error":{"code":"ResourceNotFound","message":"Resource not found"}}`), nil
 	})
 }
 
@@ -241,6 +262,7 @@ func (m *ConditionalAccessPolicyMock) RegisterErrorMocks() {
 func (m *ConditionalAccessPolicyMock) CleanupMockState() {
 	mockState.Lock()
 	mockState.policies = make(map[string]map[string]any)
+	mockState.deletedPolicies = make(map[string]map[string]any)
 	mockState.Unlock()
 }
 
@@ -315,9 +337,9 @@ func (m *ConditionalAccessPolicyMock) registerMockNamedLocations() {
 	})
 
 	// Mock named location LIST - return mock named locations for validation
-	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/conditionalAccess/namedLocations`, func(req *http.Request) (*http.Response, error) {
+	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/identity/conditionalAccess/namedLocations`, func(req *http.Request) (*http.Response, error) {
 		response := map[string]any{
-			"@odata.context": "https://graph.microsoft.com/beta/$metadata#conditionalAccess/namedLocations",
+			"@odata.context": "https://graph.microsoft.com/beta/$metadata#identity/conditionalAccess/namedLocations",
 			"value": []map[string]any{
 				{
 					"id":          "44444444-4444-4444-4444-444444444444",

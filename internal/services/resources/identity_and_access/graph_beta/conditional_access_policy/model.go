@@ -33,6 +33,8 @@ type ConditionalAccessConditions struct {
 	SignInRiskLevels           types.Set                             `tfsdk:"sign_in_risk_levels"`
 	UserRiskLevels             types.Set                             `tfsdk:"user_risk_levels"`
 	ServicePrincipalRiskLevels types.Set                             `tfsdk:"service_principal_risk_levels"`
+	AgentIdRiskLevels          types.Set                             `tfsdk:"agent_id_risk_levels"`
+	InsiderRiskLevels          types.Set                             `tfsdk:"insider_risk_levels"`
 	ClientApplications         *ConditionalAccessClientApplications  `tfsdk:"client_applications"`
 	AuthenticationFlows        *ConditionalAccessAuthenticationFlows `tfsdk:"authentication_flows"`
 	Times                      *ConditionalAccessTimes               `tfsdk:"times"`
@@ -168,7 +170,7 @@ type ConditionalAccessCloudAppSecurity struct {
 type ConditionalAccessSignInFrequency struct {
 	IsEnabled          types.Bool   `tfsdk:"is_enabled"`
 	Type               types.String `tfsdk:"type"`
-	Value              types.Int64  `tfsdk:"value"`
+	Value              types.Int32  `tfsdk:"value"`
 	AuthenticationType types.String `tfsdk:"authentication_type"`
 	FrequencyInterval  types.String `tfsdk:"frequency_interval"`
 }
@@ -191,8 +193,12 @@ type ConditionalAccessSecureSignInSession struct {
 
 // ConditionalAccessClientApplications represents the client applications configuration
 type ConditionalAccessClientApplications struct {
-	IncludeServicePrincipals types.Set `tfsdk:"include_service_principals"`
-	ExcludeServicePrincipals types.Set `tfsdk:"exclude_service_principals"`
+	IncludeServicePrincipals        types.Set                `tfsdk:"include_service_principals"`
+	ExcludeServicePrincipals        types.Set                `tfsdk:"exclude_service_principals"`
+	IncludeAgentIdServicePrincipals types.Set                `tfsdk:"include_agent_id_service_principals"`
+	ExcludeAgentIdServicePrincipals types.Set                `tfsdk:"exclude_agent_id_service_principals"`
+	AgentIdServicePrincipalFilter   *ConditionalAccessFilter `tfsdk:"agent_id_service_principal_filter"`
+	ServicePrincipalFilter          *ConditionalAccessFilter `tfsdk:"service_principal_filter"`
 }
 
 // ConditionalAccessGlobalSecureAccessFilteringProfile represents the global secure access filtering profile configuration

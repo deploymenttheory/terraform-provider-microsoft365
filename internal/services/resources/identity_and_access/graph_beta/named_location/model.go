@@ -12,12 +12,10 @@ type NamedLocationResourceModel struct {
 	DisplayName      types.String `tfsdk:"display_name"`
 	CreatedDateTime  types.String `tfsdk:"created_date_time"`
 	ModifiedDateTime types.String `tfsdk:"modified_date_time"`
-
 	// IP Named Location fields
 	IsTrusted  types.Bool `tfsdk:"is_trusted"`
 	IPv4Ranges types.Set  `tfsdk:"ipv4_ranges"`
 	IPv6Ranges types.Set  `tfsdk:"ipv6_ranges"`
-
 	// Country Named Location fields
 	CountryLookupMethod               types.String `tfsdk:"country_lookup_method"`
 	IncludeUnknownCountriesAndRegions types.Bool   `tfsdk:"include_unknown_countries_and_regions"`

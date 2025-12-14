@@ -376,11 +376,18 @@ func GraphToFrameworkBitmaskEnumAsSet[T fmt.Stringer](ctx context.Context, value
 		return types.SetValueMust(types.StringType, []attr.Value{})
 	}
 
-	// Split the comma-separated string
+	// Split the comma-separated string and trim whitespace from each part
 	parts := strings.Split(enumStr, ",")
+	trimmedParts := make([]string, 0, len(parts))
+	for _, part := range parts {
+		trimmed := strings.TrimSpace(part)
+		if trimmed != "" {
+			trimmedParts = append(trimmedParts, trimmed)
+		}
+	}
 
-	// Create a set from the parts
-	set, diags := types.SetValueFrom(ctx, types.StringType, parts)
+	// Create a set from the trimmed parts
+	set, diags := types.SetValueFrom(ctx, types.StringType, trimmedParts)
 	if diags.HasError() {
 		tflog.Error(ctx, "Failed to convert bitmask enum to set", map[string]any{
 			"error": diags.Errors()[0].Detail(),

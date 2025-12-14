@@ -60,8 +60,26 @@ if ($null -ne $policyData) {
     
     Write-Output $jsonFormatted
     
-    $jsonFormatted | Out-File "conditionalAccessPolicy.json"
-    Write-Host "`nJSON output has also been saved to 'conditionalAccessPolicy.json'"
+    # Create output directory if it doesn't exist
+    $outputDir = Join-Path -Path (Get-Location) -ChildPath "output"
+    if (-not (Test-Path -Path $outputDir)) {
+        New-Item -Path $outputDir -ItemType Directory | Out-Null
+        Write-Host "Created output directory: $outputDir"
+    }
+    
+    # Extract policy name and create filename
+    $policyName = $policyData.displayName
+    if ([string]::IsNullOrEmpty($policyName)) {
+        $policyName = "unnamed"
+    }
+    # Sanitize filename by removing invalid characters
+    $policyName = $policyName -replace '[\\/:*?"<>|]', '_'
+    
+    $fileName = "get_ca_policy_${policyName}_response.json"
+    $filePath = Join-Path -Path $outputDir -ChildPath $fileName
+    
+    $jsonFormatted | Out-File -FilePath $filePath -Encoding UTF8
+    Write-Host "`nJSON output has been saved to '$filePath'"
 } else {
     Write-Host "No data found for the specified conditional access policy ID."
 }

@@ -1,7 +1,51 @@
+# ==============================================================================
+# ==============================================================================
+# Random Suffix for Unique Resource Names
+# ==============================================================================
+
+resource "random_string" "suffix" {
+  length  = 8
+  special = false
+  upper   = false
+}
+
+# Group Dependencies
+# ==============================================================================
+
+# Break Glass Emergency Access Accounts
+resource "microsoft365_graph_beta_groups_group" "breakglass" {
+  display_name     = "EID_UA_ConAcc-Breakglass"
+  mail_nickname    = "eid-ua-conacc-breakglass"
+  mail_enabled     = false
+  security_enabled = true
+  description      = "Group containing Break Glass Accounts"
+}
+
+resource "microsoft365_graph_beta_groups_group" "cau015_exclude" {
+  display_name     = "EID_UA_CAU015_EXCLUDE"
+  mail_nickname    = "eid-ua-cau015-exclude"
+  mail_enabled     = false
+  security_enabled = true
+  description      = "uexcludeion group for CA policy CAU015_EXCLUDE"
+}
+
+resource "microsoft365_graph_beta_groups_group" "cau015_include" {
+  display_name     = "EID_UA_CAU015_INCLUDE"
+  mail_nickname    = "eid-ua-cau015-include"
+  mail_enabled     = false
+  security_enabled = true
+  description      = "uincludeion group for CA policy CAU015_INCLUDE"
+}
+
+# ==============================================================================
+# Conditional Access Policy
+# ==============================================================================
+
+
 # CAU015: Block High Sign-in Risk
 # Blocks access for high sign-in risk.
 resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy" "cau015_block_high_signin_risk" {
-  display_name = "CAU015-All: Block access for High Risk Sign-in for All Users when Browser and Modern Auth Clients-v1.0"
+  display_name = "acc-test-cau015-all: Block access for High Risk Sign-in for All Users when Browser and Modern Auth Clients ${random_string.suffix.result}"
   state        = "enabledForReportingButNotEnforced"
 
   conditions = {

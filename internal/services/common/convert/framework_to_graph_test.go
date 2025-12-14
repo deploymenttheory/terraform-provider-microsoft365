@@ -803,6 +803,95 @@ func TestFrameworkToGraphBitmaskEnumFromSet(t *testing.T) {
 	assert.Nil(t, result, "Setter should not be called for invalid value")
 }
 
+func TestFrameworkToGraphEnumCollection(t *testing.T) {
+	ctx := context.Background()
+
+	// Case: Null set
+	var result []MockRiskLevel
+	err := FrameworkToGraphEnumCollection(ctx, types.SetNull(types.StringType),
+		MockParseRiskLevel, func(val []MockRiskLevel) {
+			result = val
+		})
+	assert.NoError(t, err)
+	assert.Nil(t, result, "Setter should receive nil for null set")
+
+	// Case: Unknown set
+	result = []MockRiskLevel{MockRiskLevelLow} // Set to non-nil to verify it gets set to nil
+	err = FrameworkToGraphEnumCollection(ctx, types.SetUnknown(types.StringType),
+		MockParseRiskLevel, func(val []MockRiskLevel) {
+			result = val
+		})
+	assert.NoError(t, err)
+	assert.Nil(t, result, "Setter should receive nil for unknown set")
+
+	// Case: Empty set
+	result = nil
+	emptySet, _ := types.SetValue(types.StringType, []attr.Value{})
+	err = FrameworkToGraphEnumCollection(ctx, emptySet,
+		MockParseRiskLevel, func(val []MockRiskLevel) {
+			result = val
+		})
+	assert.NoError(t, err)
+	assert.NotNil(t, result, "Setter should be called for empty set")
+	assert.Equal(t, 0, len(result), "Empty set should result in empty slice")
+
+	// Case: Single value set
+	result = nil
+	singleSet, _ := types.SetValueFrom(ctx, types.StringType, []string{"low"})
+	err = FrameworkToGraphEnumCollection(ctx, singleSet,
+		MockParseRiskLevel, func(val []MockRiskLevel) {
+			result = val
+		})
+	assert.NoError(t, err)
+	assert.NotNil(t, result, "Setter should be called for valid set")
+	assert.Equal(t, 1, len(result), "Should have one element")
+	assert.Equal(t, MockRiskLevelLow, result[0], "Should set the correct enum value")
+
+	// Case: Multiple values set
+	result = nil
+	multiSet, _ := types.SetValueFrom(ctx, types.StringType, []string{"low", "high", "medium"})
+	err = FrameworkToGraphEnumCollection(ctx, multiSet,
+		MockParseRiskLevel, func(val []MockRiskLevel) {
+			result = val
+		})
+	assert.NoError(t, err)
+	assert.NotNil(t, result, "Setter should be called for valid set")
+	assert.Equal(t, 3, len(result), "Should have three elements")
+	// Check that all values are present (order doesn't matter in a set)
+	assert.Contains(t, result, MockRiskLevelLow, "Should contain low")
+	assert.Contains(t, result, MockRiskLevelMedium, "Should contain medium")
+	assert.Contains(t, result, MockRiskLevelHigh, "Should contain high")
+
+	// Case: Invalid value in set
+	result = nil
+	invalidSet, _ := types.SetValueFrom(ctx, types.StringType, []string{"low", "invalid"})
+	err = FrameworkToGraphEnumCollection(ctx, invalidSet,
+		MockParseRiskLevel, func(val []MockRiskLevel) {
+			result = val
+		})
+	assert.Error(t, err, "Should return error for invalid enum value")
+	assert.Contains(t, err.Error(), "failed to parse enum value", "Error message should indicate parsing failure")
+
+	// Case: Set with null and unknown string values (should skip them)
+	result = nil
+	elements := []attr.Value{
+		types.StringValue("high"),
+		types.StringNull(),
+		types.StringUnknown(),
+		types.StringValue("low"),
+	}
+	mixedSet, _ := types.SetValue(types.StringType, elements)
+	err = FrameworkToGraphEnumCollection(ctx, mixedSet,
+		MockParseRiskLevel, func(val []MockRiskLevel) {
+			result = val
+		})
+	assert.NoError(t, err)
+	assert.NotNil(t, result, "Setter should be called")
+	assert.Equal(t, 2, len(result), "Should only have valid string values")
+	assert.Contains(t, result, MockRiskLevelHigh, "Should contain high")
+	assert.Contains(t, result, MockRiskLevelLow, "Should contain low")
+}
+
 func TestFrameworkToGraphBase64String(t *testing.T) {
 	var result *string
 

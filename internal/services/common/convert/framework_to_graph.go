@@ -382,11 +382,15 @@ func FrameworkToGraphBitmaskEnumFromSet[T any](
 		return nil
 	}
 
-	// Convert to string slice
+	// Convert to string slice and trim whitespace
 	var stringValues []string
 	for _, elem := range elements {
 		if strVal, ok := elem.(types.String); ok && !strVal.IsNull() && !strVal.IsUnknown() {
-			stringValues = append(stringValues, strVal.ValueString())
+			// Trim whitespace from each value
+			trimmedValue := strings.TrimSpace(strVal.ValueString())
+			if trimmedValue != "" {
+				stringValues = append(stringValues, trimmedValue)
+			}
 		}
 	}
 
@@ -394,7 +398,7 @@ func FrameworkToGraphBitmaskEnumFromSet[T any](
 		return nil
 	}
 
-	// Join with commas and parse
+	// Join with commas (no spaces) and parse
 	joinedStr := strings.Join(stringValues, ",")
 	result, err := parser(joinedStr)
 	if err != nil {
@@ -412,6 +416,52 @@ func FrameworkToGraphBitmaskEnumFromSet[T any](
 	}
 
 	setter(typed)
+	return nil
+}
+
+// FrameworkToGraphEnumCollection converts a Terraform Framework set of strings to a collection of enums.
+// Each string in the set is individually parsed to an enum value and collected into a slice.
+// Returns an error if parsing fails. No-op if the set is null or unknown.
+func FrameworkToGraphEnumCollection[T any](
+	ctx context.Context,
+	set types.Set,
+	parser func(string) (any, error),
+	setter func([]T)) error {
+
+	if set.IsNull() || set.IsUnknown() {
+		setter(nil)
+		return nil
+	}
+
+	elements := set.Elements()
+	if len(elements) == 0 {
+		setter([]T{})
+		return nil
+	}
+
+	result := make([]T, 0, len(elements))
+	for _, elem := range elements {
+		if strVal, ok := elem.(types.String); ok && !strVal.IsNull() && !strVal.IsUnknown() {
+			enumVal, err := parser(strVal.ValueString())
+			if err != nil {
+				return fmt.Errorf("failed to parse enum value '%s': %v", strVal.ValueString(), err)
+			}
+			if enumVal == nil {
+				continue
+			}
+
+			// Type assert based on whether parser returns pointer or value
+			if typed, ok := enumVal.(*T); ok {
+				result = append(result, *typed)
+			} else if typed, ok := enumVal.(T); ok {
+				result = append(result, typed)
+			} else {
+				return fmt.Errorf("failed to cast parsed value to expected type")
+			}
+		}
+	}
+
+	setter(result)
 	return nil
 }
 

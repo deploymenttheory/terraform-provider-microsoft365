@@ -7,15 +7,9 @@ import (
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/check"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
-	graphBetaConditionalAccessPolicy "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/identity_and_access/graph_beta/conditional_access_policy"
 	conditionalAccessPolicyMocks "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/identity_and_access/graph_beta/conditional_access_policy/mocks"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/jarcoal/httpmock"
-)
-
-var (
-	// Resource type name from the resource package
-	resourceType = graphBetaConditionalAccessPolicy.ResourceName
 )
 
 func setupMockEnvironment() (*mocks.Mocks, *conditionalAccessPolicyMocks.ConditionalAccessPolicyMock) {

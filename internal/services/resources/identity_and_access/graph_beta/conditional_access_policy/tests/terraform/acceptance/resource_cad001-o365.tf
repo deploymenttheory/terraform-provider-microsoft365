@@ -1,8 +1,43 @@
+# ==============================================================================
+# Random Suffix for Unique Resource Names
+# ==============================================================================
+
+resource "random_string" "suffix" {
+  length  = 8
+  special = false
+  upper   = false
+}
+
+# ==============================================================================
+# Group Dependencies
+# ==============================================================================
+
+# Break Glass Emergency Access Accounts
+resource "microsoft365_graph_beta_groups_group" "breakglass" {
+  display_name     = "EID_UA_ConAcc-Breakglass"
+  mail_nickname    = "eid-ua-conacc-breakglass"
+  mail_enabled     = false
+  security_enabled = true
+  description      = "Group containing Break Glass Accounts"
+}
+
+resource "microsoft365_graph_beta_groups_group" "cad001_exclude" {
+  display_name     = "EID_UA_CAD001_Exclude"
+  mail_nickname    = "eid-ua-cad001-exclude"
+  mail_enabled     = false
+  security_enabled = true
+  description      = "Exclusion group for CA policy CAD001"
+}
+
+# ==============================================================================
+# Conditional Access Policy
+# ==============================================================================
+
 # CAD001: macOS Device Compliance
 # Grants macOS access to Office 365 for all users when using modern auth clients
 # and device is compliant.
 resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy" "cad001_macos_compliant" {
-  display_name = "CAD001-O365: Grant macOS access for All users when Modern Auth Clients and Compliant-v1.1"
+  display_name = "acc-test-cad001-o365: Grant macOS access for All users when Modern Auth Clients and Compliant ${random_string.suffix.result}"
   state        = "enabledForReportingButNotEnforced"
 
   conditions = {

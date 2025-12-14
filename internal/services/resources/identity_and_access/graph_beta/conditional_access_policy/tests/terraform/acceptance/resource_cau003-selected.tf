@@ -1,7 +1,57 @@
+# ==============================================================================
+# ==============================================================================
+# Random Suffix for Unique Resource Names
+# ==============================================================================
+
+resource "random_string" "suffix" {
+  length  = 8
+  special = false
+  upper   = false
+}
+
+# Group Dependencies
+# ==============================================================================
+
+# Break Glass Emergency Access Accounts
+resource "microsoft365_graph_beta_groups_group" "breakglass" {
+  display_name     = "EID_UA_ConAcc-Breakglass"
+  mail_nickname    = "eid-ua-conacc-breakglass"
+  mail_enabled     = false
+  security_enabled = true
+  description      = "Group containing Break Glass Accounts"
+}
+
+resource "microsoft365_graph_beta_groups_group" "cau003_exclude" {
+  display_name     = "EID_UA_CAU003_EXCLUDE"
+  mail_nickname    = "eid-ua-cau003-exclude"
+  mail_enabled     = false
+  security_enabled = true
+  description      = "uexcludeion group for CA policy CAU003_EXCLUDE"
+}
+
+# ==============================================================================
+# Application/Service Principal Dependencies
+# ==============================================================================
+
+# Create a test application
+resource "azuread_application" "cau003_test_app" {
+  display_name = "CAU003-TestApp-${random_string.suffix.result}"
+}
+
+# Create service principal for the application
+resource "azuread_service_principal" "cau003_test_app" {
+  client_id = azuread_application.cau003_test_app.client_id
+}
+
+# ==============================================================================
+# Conditional Access Policy
+# ==============================================================================
+
+
 # CAU003: Block Unapproved Apps for Guests
 # Blocks access to unapproved applications for guest users.
 resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy" "cau003_block_unapproved_apps_guests" {
-  display_name = "CAU003-Selected: Block unapproved apps for guests when Browser and Modern Auth Clients-v1.0"
+  display_name = "acc-test-cau003-selected: Block unapproved apps for guests when Browser and Modern Auth Clients ${random_string.suffix.result}"
   state        = "enabledForReportingButNotEnforced"
 
   conditions = {
@@ -27,7 +77,7 @@ resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy"
     }
 
     applications = {
-      include_applications                            = [data.microsoft365_graph_beta_applications_service_principal.portfolios.items[0].app_id] // Add more spcific app ids as required.
+      include_applications                            = [azuread_application.cau003_test_app.client_id]
       exclude_applications                            = []
       include_user_actions                            = []
       include_authentication_context_class_references = []

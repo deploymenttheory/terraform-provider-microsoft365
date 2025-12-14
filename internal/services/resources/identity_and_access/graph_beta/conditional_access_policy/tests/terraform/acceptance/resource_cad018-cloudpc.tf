@@ -1,7 +1,43 @@
+# ==============================================================================
+# ==============================================================================
+# Random Suffix for Unique Resource Names
+# ==============================================================================
+
+resource "random_string" "suffix" {
+  length  = 8
+  special = false
+  upper   = false
+}
+
+# Group Dependencies
+# ==============================================================================
+
+# Break Glass Emergency Access Accounts
+resource "microsoft365_graph_beta_groups_group" "breakglass" {
+  display_name     = "EID_UA_ConAcc-Breakglass"
+  mail_nickname    = "eid-ua-conacc-breakglass"
+  mail_enabled     = false
+  security_enabled = true
+  description      = "Group containing Break Glass Accounts"
+}
+
+resource "microsoft365_graph_beta_groups_group" "cad018_exclude" {
+  display_name     = "EID_UA_CAD018_EXCLUDE"
+  mail_nickname    = "eid-ua-cad018-exclude"
+  mail_enabled     = false
+  security_enabled = true
+  description      = "uexcludeion group for CA policy CAD018_EXCLUDE"
+}
+
+# ==============================================================================
+# Conditional Access Policy
+# ==============================================================================
+
+
 # CAD018: Cloud PC - Mobile App Protection or Compliance
 # Requires app protection policy or device compliance for Cloud PC access on iOS/Android.
 resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy" "cad018_cloudpc_mobile_app_protection" {
-  display_name = "CAD018-CloudPC: Grant iOS and Android access for All users when Modern Auth Clients and AppProPol or Compliant-v1.0"
+  display_name = "acc-test-cad018-cloudpc: Grant iOS and Android access for All users when Modern Auth Clients and AppProPol or Compliant ${random_string.suffix.result}"
   state        = "enabledForReportingButNotEnforced"
 
   conditions = {

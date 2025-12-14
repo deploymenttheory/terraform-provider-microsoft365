@@ -699,7 +699,8 @@ resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy"
 # # # Requires compliant device for access to selected applications.
 # # resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy" "cad013_selected_apps_compliant" {
 # #   display_name = "CAD013-Selected: Grant access for All users when Browser and Modern Auth Clients and Compliant-v1.0"
-# #   state        = "enabledForReportingButNotEnforced"
+# #  state        = "enabledForReportingButNotEnforced"
+hard_delete = true
 
 # #   conditions = {
 # #     client_app_types = ["browser", "mobileAppsAndDesktopClients"]
@@ -2658,6 +2659,7 @@ resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy"
 ### Optional
 
 - `grant_controls` (Attributes) Controls for granting access. Either `grant_controls` or `session_controls` or both must be specified. (see [below for nested schema](#nestedatt--grant_controls))
+- `hard_delete` (Boolean) When `true`, the conditional access policy will be permanently deleted (hard delete) during destroy. When `false` (default), the policy will only be soft deleted and moved to the deleted items container where it can be restored within 30 days. Note: This field defaults to `false` on import since the API does not return this value.
 - `partial_enablement_strategy` (String) Strategy for partial enablement of the policy.
 - `session_controls` (Attributes) Controls for managing user sessions. Either `grant_controls` or `session_controls` or both must be specified. (see [below for nested schema](#nestedatt--session_controls))
 - `template_id` (String) ID of the template this policy is derived from.
@@ -2676,21 +2678,23 @@ resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy"
 Required:
 
 - `applications` (Attributes) Applications and user actions included in and excluded from the policy. (see [below for nested schema](#nestedatt--conditions--applications))
-- `client_app_types` (Set of String) Client application types included in the policy. Possible values are: all, browser, mobileAppsAndDesktopClients, exchangeActiveSync, other.
-- `sign_in_risk_levels` (Set of String) Sign-in risk levels included in the policy. Possible values are: low, medium, high, hidden, none, unknownFutureValue.
+- `client_app_types` (Set of String) Client application types included in the policy. Possible values are: all, browser, mobileAppsAndDesktopClients, exchangeActiveSync, easSupported, other.
+- `sign_in_risk_levels` (Set of String) Sign-in risk levels included in the policy. Possible values are: low, medium, high, hidden, none.
 - `users` (Attributes) Users, groups, and roles included in and excluded from the policy. (see [below for nested schema](#nestedatt--conditions--users))
 
 Optional:
 
+- `agent_id_risk_levels` (Set of String) Agent ID risk levels included in the policy. Possible values are: low, medium, high.
 - `authentication_flows` (Attributes) Authentication flows included in the policy. Used to target specific authentication methods that can be vulnerable to phishing attacks. (see [below for nested schema](#nestedatt--conditions--authentication_flows))
 - `client_applications` (Attributes) Client applications configuration for the conditional access policy. (see [below for nested schema](#nestedatt--conditions--client_applications))
 - `device_states` (Attributes) Device states included in and excluded from the policy. (see [below for nested schema](#nestedatt--conditions--device_states))
 - `devices` (Attributes) Devices included in and excluded from the policy. (see [below for nested schema](#nestedatt--conditions--devices))
+- `insider_risk_levels` (Set of String) Insider risk levels included in the policy. Possible values are: minor, moderate, elevated.
 - `locations` (Attributes) Locations included in and excluded from the policy. (see [below for nested schema](#nestedatt--conditions--locations))
 - `platforms` (Attributes) Platforms included in and excluded from the policy. (see [below for nested schema](#nestedatt--conditions--platforms))
-- `service_principal_risk_levels` (Set of String) Service principal risk levels included in the policy. Possible values are: low, medium, high, hidden, none, unknownFutureValue.
+- `service_principal_risk_levels` (Set of String) Service principal risk levels included in the policy. Possible values are: low, medium, high, hidden, none.
 - `times` (Attributes) Times and days when the policy applies. (see [below for nested schema](#nestedatt--conditions--times))
-- `user_risk_levels` (Set of String) User risk levels included in the policy. Possible values are: low, medium, high, hidden, none, unknownFutureValue.
+- `user_risk_levels` (Set of String) User risk levels included in the policy. Possible values are: low, medium, high, hidden, none.
 
 <a id="nestedatt--conditions--applications"></a>
 ### Nested Schema for `conditions.applications`
@@ -2799,7 +2803,29 @@ Required:
 
 Optional:
 
+- `agent_id_service_principal_filter` (Attributes) Filter for agent ID service principals using custom security attributes. (see [below for nested schema](#nestedatt--conditions--client_applications--agent_id_service_principal_filter))
+- `exclude_agent_id_service_principals` (Set of String) Agent ID service principals to exclude. Specify service principal GUIDs.
 - `exclude_service_principals` (Set of String) Service principals to exclude from the policy.
+- `include_agent_id_service_principals` (Set of String) Agent ID service principals to include. Can use the special value 'All' or specify service principal GUIDs.
+- `service_principal_filter` (Attributes) Filter for service principals using custom security attributes. (see [below for nested schema](#nestedatt--conditions--client_applications--service_principal_filter))
+
+<a id="nestedatt--conditions--client_applications--agent_id_service_principal_filter"></a>
+### Nested Schema for `conditions.client_applications.agent_id_service_principal_filter`
+
+Required:
+
+- `mode` (String) Filter mode. Possible values are: include, exclude.
+- `rule` (String) Filter rule using custom security attribute syntax.
+
+
+<a id="nestedatt--conditions--client_applications--service_principal_filter"></a>
+### Nested Schema for `conditions.client_applications.service_principal_filter`
+
+Required:
+
+- `mode` (String) Filter mode. Possible values are: include, exclude.
+- `rule` (String) Filter rule using custom security attribute syntax.
+
 
 
 <a id="nestedatt--conditions--device_states"></a>
@@ -2846,11 +2872,11 @@ Required:
 
 Required:
 
-- `include_platforms` (Set of String) Platforms to include in the policy.
+- `include_platforms` (Set of String) Platforms to include in the policy. Possible values are: android, iOS, windows, windowsPhone, macOS, all, linux.
 
 Optional:
 
-- `exclude_platforms` (Set of String) Platforms to exclude from the policy.
+- `exclude_platforms` (Set of String) Platforms to exclude from the policy. Possible values are: android, iOS, windows, windowsPhone, macOS, all, linux.
 
 
 <a id="nestedatt--conditions--times"></a>
@@ -2872,7 +2898,7 @@ Optional:
 
 Required:
 
-- `built_in_controls` (Set of String) List of built-in controls required by the policy. Possible values are: block, mfa, compliantDevice, domainJoinedDevice, approvedApplication, compliantApplication, passwordChange, unknownFutureValue.
+- `built_in_controls` (Set of String) List of built-in controls required by the policy. Possible values are: block, mfa, compliantDevice, domainJoinedDevice, approvedApplication, compliantApplication, passwordChange, riskRemediation.
 - `custom_authentication_factors` (Set of String) Custom authentication factors for granting access.
 - `operator` (String) Operator to apply to the controls. Possible values are: AND, OR. When setting a singular operator, use 'OR'.
 
@@ -2939,7 +2965,7 @@ Required:
 
 Required:
 
-- `mode` (String) Mode for continuous access evaluation. Possible values are: disabled, basic, strict.
+- `mode` (String) Mode for continuous access evaluation. Possible values are: strictEnforcement, disabled, strictLocation.
 
 
 <a id="nestedatt--session_controls--global_secure_access_filtering_profile"></a>

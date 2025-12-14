@@ -46,5 +46,6 @@ resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy"
       id = "00000000-0000-0000-0000-000000000002" # Multifactor authentication (Changed from custom MFA ID)
     }
   }
+
 }
 

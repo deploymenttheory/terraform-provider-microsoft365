@@ -1,8 +1,44 @@
+# ==============================================================================
+# ==============================================================================
+# Random Suffix for Unique Resource Names
+# ==============================================================================
+
+resource "random_string" "suffix" {
+  length  = 8
+  special = false
+  upper   = false
+}
+
+# Group Dependencies
+# ==============================================================================
+
+# Break Glass Emergency Access Accounts
+resource "microsoft365_graph_beta_groups_group" "breakglass" {
+  display_name     = "EID_UA_ConAcc-Breakglass"
+  mail_nickname    = "eid-ua-conacc-breakglass"
+  mail_enabled     = false
+  security_enabled = true
+  description      = "Group containing Break Glass Accounts"
+}
+
+resource "microsoft365_graph_beta_groups_group" "cau019_exclude" {
+  display_name     = "EID_UA_CAU019_EXCLUDE"
+  mail_nickname    = "eid-ua-cau019-exclude"
+  mail_enabled     = false
+  security_enabled = true
+  description      = "uexcludeion group for CA policy CAU019_EXCLUDE"
+}
+
+# ==============================================================================
+# Conditional Access Policy
+# ==============================================================================
+
+
 # CAU019: Allow Only Approved Apps for Guests
 # Blocks access to all applications for guests except approved apps. This is the
 # inverse of CAU003 - allows specific approved apps for guest users.
 resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy" "cau019_allow_only_approved_apps_guests" {
-  display_name = "CAU019-Selected: Only allow approved apps for guests when Browser and Modern Auth Clients-v1.0"
+  display_name = "acc-test-cau019-selected: Only allow approved apps for guests when Browser and Modern Auth Clients ${random_string.suffix.result}"
   state        = "enabledForReportingButNotEnforced"
 
   conditions = {

@@ -1,7 +1,43 @@
+# ==============================================================================
+# ==============================================================================
+# Random Suffix for Unique Resource Names
+# ==============================================================================
+
+resource "random_string" "suffix" {
+  length  = 8
+  special = false
+  upper   = false
+}
+
+# Group Dependencies
+# ==============================================================================
+
+# Break Glass Emergency Access Accounts
+resource "microsoft365_graph_beta_groups_group" "breakglass" {
+  display_name     = "EID_UA_ConAcc-Breakglass"
+  mail_nickname    = "eid-ua-conacc-breakglass"
+  mail_enabled     = false
+  security_enabled = true
+  description      = "Group containing Break Glass Accounts"
+}
+
+resource "microsoft365_graph_beta_groups_group" "cau017_exclude" {
+  display_name     = "EID_UA_CAU017_EXCLUDE"
+  mail_nickname    = "eid-ua-cau017-exclude"
+  mail_enabled     = false
+  security_enabled = true
+  description      = "uexcludeion group for CA policy CAU017_EXCLUDE"
+}
+
+# ==============================================================================
+# Conditional Access Policy
+# ==============================================================================
+
+
 # CAU017: Admin Sign-in Frequency
 # Sets sign-in frequency for admin users.
 resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy" "cau017_admin_signin_frequency" {
-  display_name = "CAU017-All: Session set Sign-in Frequency for Admins when Browser-v1.0"
+  display_name = "acc-test-cau017-all: Session set Sign-in Frequency for Admins when Browser ${random_string.suffix.result}"
   state        = "enabledForReportingButNotEnforced"
 
   conditions = {

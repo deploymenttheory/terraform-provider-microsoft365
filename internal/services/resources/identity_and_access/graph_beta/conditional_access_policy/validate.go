@@ -2,86 +2,39 @@ package graphBetaConditionalAccessPolicy
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
-	"net/http"
 	"strings"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/client"
-	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/generic_client"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
+	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
+	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
-// RoleDefinition represents a role definition from Microsoft Graph API
-type RoleDefinition struct {
-	ID          string `json:"id"`
-	DisplayName string `json:"displayName"`
-	Description string `json:"description"`
-}
-
-// RoleDefinitionsResponse represents the response from the role definitions API
-type RoleDefinitionsResponse struct {
-	Value []RoleDefinition `json:"value"`
-}
-
-// TenantInformation represents a Microsoft Entra organization information
-type TenantInformation struct {
-	TenantID            string  `json:"tenantId"`
-	FederationBrandName *string `json:"federationBrandName"`
-	DisplayName         *string `json:"displayName"`
-	DefaultDomainName   *string `json:"defaultDomainName"`
-}
-
-// UserDefinition represents a user from Microsoft Graph API
-type UserDefinition struct {
-	ID                string  `json:"id"`
-	UserPrincipalName string  `json:"userPrincipalName"`
-	DisplayName       *string `json:"displayName"`
-}
-
-// UsersResponse represents the response from the users API
-type UsersResponse struct {
-	Value []UserDefinition `json:"value"`
-}
-
-// NamedLocation represents a named location from Microsoft Graph API
-type NamedLocation struct {
-	ID          string `json:"id"`
-	DisplayName string `json:"displayName"`
-	ODataType   string `json:"@odata.type"`
-	IsTrusted   *bool  `json:"isTrusted,omitempty"` // Only present for IP locations
-}
-
-// NamedLocationsResponse represents the response from the named locations API
-type NamedLocationsResponse struct {
-	Value []NamedLocation `json:"value"`
-}
-
 // validateRequest validates the entire conditional access policy request
-func validateRequest(ctx context.Context, httpClient *client.AuthenticatedHTTPClient, data *ConditionalAccessPolicyResourceModel) error {
+func validateRequest(ctx context.Context, client *msgraphbetasdk.GraphServiceClient, data *ConditionalAccessPolicyResourceModel) error {
 	tflog.Debug(ctx, "Starting conditional access policy request validation")
 
 	if data.Conditions != nil && data.Conditions.Users != nil && !data.Conditions.Users.ExcludeRoles.IsNull() {
-		if err := validateExcludeRoles(ctx, httpClient, data.Conditions.Users.ExcludeRoles); err != nil {
+		if err := validateExcludeRoles(ctx, client, data.Conditions.Users.ExcludeRoles); err != nil {
 			return fmt.Errorf("validation failed for exclude_roles: %w", err)
 		}
 	}
 
 	if data.Conditions != nil && data.Conditions.Users != nil && !data.Conditions.Users.IncludeRoles.IsNull() {
-		if err := validateIncludeRoles(ctx, httpClient, data.Conditions.Users.IncludeRoles); err != nil {
+		if err := validateIncludeRoles(ctx, client, data.Conditions.Users.IncludeRoles); err != nil {
 			return fmt.Errorf("validation failed for include_roles: %w", err)
 		}
 	}
 
 	if data.Conditions != nil && data.Conditions.Users != nil && !data.Conditions.Users.IncludeUsers.IsNull() {
-		if err := validateIncludeUsers(ctx, httpClient, data.Conditions.Users.IncludeUsers); err != nil {
+		if err := validateIncludeUsers(ctx, client, data.Conditions.Users.IncludeUsers); err != nil {
 			return fmt.Errorf("validation failed for include_users: %w", err)
 		}
 	}
 
 	if data.Conditions != nil && data.Conditions.Users != nil && !data.Conditions.Users.ExcludeUsers.IsNull() {
-		if err := validateExcludeUsers(ctx, httpClient, data.Conditions.Users.ExcludeUsers); err != nil {
+		if err := validateExcludeUsers(ctx, client, data.Conditions.Users.ExcludeUsers); err != nil {
 			return fmt.Errorf("validation failed for exclude_users: %w", err)
 		}
 	}
@@ -94,7 +47,7 @@ func validateRequest(ctx context.Context, httpClient *client.AuthenticatedHTTPCl
 				tenantsAttrs := externalTenantsObj.Attributes()
 				if membersAttr, ok := tenantsAttrs["members"]; ok {
 					if membersSet, ok := membersAttr.(types.Set); ok && !membersSet.IsNull() {
-						if err := validateMicrosoftEntraOrganization(ctx, httpClient, membersSet); err != nil {
+						if err := validateMicrosoftEntraOrganization(ctx, client, membersSet); err != nil {
 							return fmt.Errorf("validation failed for include_guests_or_external_users.external_tenants.members: %w", err)
 						}
 					}
@@ -111,7 +64,7 @@ func validateRequest(ctx context.Context, httpClient *client.AuthenticatedHTTPCl
 				tenantsAttrs := externalTenantsObj.Attributes()
 				if membersAttr, ok := tenantsAttrs["members"]; ok {
 					if membersSet, ok := membersAttr.(types.Set); ok && !membersSet.IsNull() {
-						if err := validateMicrosoftEntraOrganization(ctx, httpClient, membersSet); err != nil {
+						if err := validateMicrosoftEntraOrganization(ctx, client, membersSet); err != nil {
 							return fmt.Errorf("validation failed for exclude_guests_or_external_users.external_tenants.members: %w", err)
 						}
 					}
@@ -136,7 +89,7 @@ func validateRequest(ctx context.Context, httpClient *client.AuthenticatedHTTPCl
 
 	// Validate trusted locations
 	if data.Conditions != nil && data.Conditions.Locations != nil {
-		if err := validateTrustedLocations(ctx, httpClient, data.Conditions.Locations); err != nil {
+		if err := validateTrustedLocations(ctx, client, data.Conditions.Locations); err != nil {
 			return fmt.Errorf("validation failed for 'include_locations' or 'exclude_locations': %w", err)
 		}
 	}
@@ -153,27 +106,27 @@ func validateRequest(ctx context.Context, httpClient *client.AuthenticatedHTTPCl
 }
 
 // validateExcludeRoles validates that all role GUIDs in exclude_roles exist in Microsoft Graph
-func validateExcludeRoles(ctx context.Context, httpClient *client.AuthenticatedHTTPClient, excludeRoles types.Set) error {
-	return validateRoles(ctx, httpClient, excludeRoles, "exclude_roles")
+func validateExcludeRoles(ctx context.Context, client *msgraphbetasdk.GraphServiceClient, excludeRoles types.Set) error {
+	return validateRoles(ctx, client, excludeRoles, "exclude_roles")
 }
 
 // validateIncludeRoles validates that all role GUIDs in include_roles exist in Microsoft Graph
-func validateIncludeRoles(ctx context.Context, httpClient *client.AuthenticatedHTTPClient, includeRoles types.Set) error {
-	return validateRoles(ctx, httpClient, includeRoles, "include_roles")
+func validateIncludeRoles(ctx context.Context, client *msgraphbetasdk.GraphServiceClient, includeRoles types.Set) error {
+	return validateRoles(ctx, client, includeRoles, "include_roles")
 }
 
 // validateIncludeUsers validates that all user GUIDs in include_users exist in Microsoft Graph
-func validateIncludeUsers(ctx context.Context, httpClient *client.AuthenticatedHTTPClient, includeUsers types.Set) error {
-	return validateUsers(ctx, httpClient, includeUsers, "include_users")
+func validateIncludeUsers(ctx context.Context, client *msgraphbetasdk.GraphServiceClient, includeUsers types.Set) error {
+	return validateUsers(ctx, client, includeUsers, "include_users")
 }
 
 // validateExcludeUsers validates that all user GUIDs in exclude_users exist in Microsoft Graph
-func validateExcludeUsers(ctx context.Context, httpClient *client.AuthenticatedHTTPClient, excludeUsers types.Set) error {
-	return validateUsers(ctx, httpClient, excludeUsers, "exclude_users")
+func validateExcludeUsers(ctx context.Context, client *msgraphbetasdk.GraphServiceClient, excludeUsers types.Set) error {
+	return validateUsers(ctx, client, excludeUsers, "exclude_users")
 }
 
 // validateRoles performs the actual validation logic for role GUIDs
-func validateRoles(ctx context.Context, httpClient *client.AuthenticatedHTTPClient, roleSet types.Set, fieldName string) error {
+func validateRoles(ctx context.Context, client *msgraphbetasdk.GraphServiceClient, roleSet types.Set, fieldName string) error {
 	if roleSet.IsNull() || roleSet.IsUnknown() {
 		tflog.Debug(ctx, fmt.Sprintf("Skipping validation for %s: field is null or unknown", fieldName))
 		return nil
@@ -195,16 +148,18 @@ func validateRoles(ctx context.Context, httpClient *client.AuthenticatedHTTPClie
 		return nil
 	}
 
-	// Fetch role definitions from Microsoft Graph API
-	roleDefinitions, err := getRoleDefinitions(ctx, httpClient)
+	// Fetch role definitions from Microsoft Graph API using SDK
+	roleDefinitions, err := getRoleDefinitions(ctx, client)
 	if err != nil {
 		return fmt.Errorf("failed to fetch role definitions from Microsoft Graph: %w", err)
 	}
 
 	// Create a map of valid role GUIDs for quick lookup
-	validRoleGUIDs := make(map[string]RoleDefinition)
+	validRoleGUIDs := make(map[string]graphmodels.UnifiedRoleDefinitionable)
 	for _, role := range roleDefinitions {
-		validRoleGUIDs[role.ID] = role
+		if role.GetId() != nil {
+			validRoleGUIDs[*role.GetId()] = role
+		}
 	}
 
 	tflog.Debug(ctx, fmt.Sprintf("Fetched %d valid role definitions from Microsoft Graph", len(validRoleGUIDs)))
@@ -228,7 +183,7 @@ func validateRoles(ctx context.Context, httpClient *client.AuthenticatedHTTPClie
 }
 
 // validateUsers performs the actual validation logic for user GUIDs
-func validateUsers(ctx context.Context, httpClient *client.AuthenticatedHTTPClient, userSet types.Set, fieldName string) error {
+func validateUsers(ctx context.Context, client *msgraphbetasdk.GraphServiceClient, userSet types.Set, fieldName string) error {
 	if userSet.IsNull() || userSet.IsUnknown() {
 		tflog.Debug(ctx, fmt.Sprintf("Skipping validation for %s: field is null or unknown", fieldName))
 		return nil
@@ -261,7 +216,7 @@ func validateUsers(ctx context.Context, httpClient *client.AuthenticatedHTTPClie
 	// Check each user GUID individually since batch lookup might not be efficient
 	var invalidUsers []string
 	for _, userGUID := range userGUIDs {
-		if err := validateUserExists(ctx, httpClient, userGUID); err != nil {
+		if err := validateUserExists(ctx, client, userGUID); err != nil {
 			tflog.Warn(ctx, fmt.Sprintf("Invalid user GUID found in %s: %s", fieldName, userGUID))
 			invalidUsers = append(invalidUsers, userGUID)
 		}
@@ -276,45 +231,27 @@ func validateUsers(ctx context.Context, httpClient *client.AuthenticatedHTTPClie
 	return nil
 }
 
-// getRoleDefinitions retrieves role definitions from Microsoft Graph API
-func getRoleDefinitions(ctx context.Context, httpClient *client.AuthenticatedHTTPClient) ([]RoleDefinition, error) {
+// getRoleDefinitions retrieves role definitions from Microsoft Graph API using SDK
+func getRoleDefinitions(ctx context.Context, client *msgraphbetasdk.GraphServiceClient) ([]graphmodels.UnifiedRoleDefinitionable, error) {
 	tflog.Debug(ctx, "Fetching role definitions from Microsoft Graph API")
 
-	url := httpClient.GetBaseURL() + "/roleManagement/directory/roleDefinitions"
-	httpReq, err := http.NewRequestWithContext(ctx, "GET", url, nil)
+	result, err := client.
+		RoleManagement().
+		Directory().
+		RoleDefinitions().
+		Get(ctx, nil)
 	if err != nil {
-		return nil, fmt.Errorf("error creating HTTP request: %w", err)
+		return nil, fmt.Errorf("error fetching role definitions: %w", err)
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Making GET request to: %s", url))
+	roleDefinitions := result.GetValue()
+	tflog.Debug(ctx, fmt.Sprintf("Successfully fetched %d role definitions", len(roleDefinitions)))
 
-	httpResp, err := client.DoWithRetry(ctx, httpClient, httpReq, 10)
-	if err != nil {
-		return nil, fmt.Errorf("error making HTTP request: %w", err)
-	}
-	defer httpResp.Body.Close()
-
-	tflog.Debug(ctx, fmt.Sprintf("GET request response status: %d %s", httpResp.StatusCode, httpResp.Status))
-
-	if httpResp.StatusCode != http.StatusOK {
-		errorInfo := errors.ExtractHTTPGraphError(ctx, httpResp)
-		return nil, fmt.Errorf("unexpected response from role definitions API: %d %s (RequestID: %s)",
-			httpResp.StatusCode,
-			httpResp.Status,
-			errorInfo.RequestID)
-	}
-
-	var response RoleDefinitionsResponse
-	if err := json.NewDecoder(httpResp.Body).Decode(&response); err != nil {
-		return nil, fmt.Errorf("error parsing role definitions response: %w", err)
-	}
-
-	tflog.Debug(ctx, fmt.Sprintf("Successfully fetched %d role definitions", len(response.Value)))
-	return response.Value, nil
+	return roleDefinitions, nil
 }
 
 // validateMicrosoftEntraOrganization validates tenant IDs by checking if they are valid Microsoft Entra organizations
-func validateMicrosoftEntraOrganization(ctx context.Context, httpClient *client.AuthenticatedHTTPClient, tenantIDs types.Set) error {
+func validateMicrosoftEntraOrganization(ctx context.Context, client *msgraphbetasdk.GraphServiceClient, tenantIDs types.Set) error {
 	if tenantIDs.IsNull() || tenantIDs.IsUnknown() {
 		tflog.Debug(ctx, "Skipping validation for tenant IDs: field is null or unknown")
 		return nil
@@ -341,7 +278,7 @@ func validateMicrosoftEntraOrganization(ctx context.Context, httpClient *client.
 	var tenantDetails []string
 
 	for _, tenantID := range tenantIDsList {
-		tenantInfo, err := getTenantInformationByTenantID(ctx, httpClient, tenantID)
+		tenantInfo, err := getTenantInformationByTenantID(ctx, client, tenantID)
 		if err != nil {
 			tflog.Warn(ctx, fmt.Sprintf("Error validating tenant ID %s: %v", tenantID, err))
 			invalidTenantIDs = append(invalidTenantIDs, tenantID)
@@ -351,12 +288,12 @@ func validateMicrosoftEntraOrganization(ctx context.Context, httpClient *client.
 		displayName := "Unknown"
 		domainName := "Unknown"
 
-		if tenantInfo.DisplayName != nil {
-			displayName = *tenantInfo.DisplayName
+		if tenantInfo.GetDisplayName() != nil {
+			displayName = *tenantInfo.GetDisplayName()
 		}
 
-		if tenantInfo.DefaultDomainName != nil {
-			domainName = *tenantInfo.DefaultDomainName
+		if tenantInfo.GetDefaultDomainName() != nil {
+			domainName = *tenantInfo.GetDefaultDomainName()
 		}
 
 		tenantDetails = append(tenantDetails, fmt.Sprintf("Tenant ID: %s, Name: %s, Domain: %s",
@@ -379,94 +316,50 @@ func validateMicrosoftEntraOrganization(ctx context.Context, httpClient *client.
 	return nil
 }
 
-// getTenantInformationByTenantID retrieves tenant information from Microsoft Graph API
-func getTenantInformationByTenantID(ctx context.Context, httpClient *client.AuthenticatedHTTPClient, tenantID string) (*TenantInformation, error) {
+// getTenantInformationByTenantID retrieves tenant information from Microsoft Graph API using SDK
+func getTenantInformationByTenantID(ctx context.Context, client *msgraphbetasdk.GraphServiceClient, tenantID string) (graphmodels.TenantInformationable, error) {
 	tflog.Debug(ctx, fmt.Sprintf("Validating tenant ID: %s", tenantID))
 
-	// First attempt: Try direct lookup by tenant ID
-	url := httpClient.GetBaseURL() + "/tenantRelationships/findTenantInformationByTenantId(tenantId='" + tenantID + "')"
-
-	httpReq, err := http.NewRequestWithContext(ctx, "GET", url, nil)
+	// Use the SDK to find tenant information by tenant ID
+	tenantInfo, err := client.TenantRelationships().FindTenantInformationByTenantIdWithTenantId(&tenantID).Get(ctx, nil)
 	if err != nil {
-		return nil, fmt.Errorf("error creating HTTP request: %w", err)
+		return nil, fmt.Errorf("tenant ID validation failed: %w", err)
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Making GET request to: %s", url))
-
-	httpResp, err := client.DoWithRetry(ctx, httpClient, httpReq, 10)
-	if err != nil {
-		return nil, fmt.Errorf("error making HTTP request: %w", err)
-	}
-	defer httpResp.Body.Close()
-
-	tflog.Debug(ctx, fmt.Sprintf("GET request response status: %d %s", httpResp.StatusCode, httpResp.Status))
-
-	if httpResp.StatusCode == http.StatusOK {
-		var tenantInfo TenantInformation
-		if err := json.NewDecoder(httpResp.Body).Decode(&tenantInfo); err != nil {
-			return nil, fmt.Errorf("error parsing tenant information response: %w", err)
-		}
-
-		return &tenantInfo, nil
-	}
-
-	errorInfo := errors.ExtractHTTPGraphError(ctx, httpResp)
-	return nil, fmt.Errorf("tenant ID validation failed: %d %s (RequestID: %s)",
-		httpResp.StatusCode,
-		httpResp.Status,
-		errorInfo.RequestID)
+	return tenantInfo, nil
 }
 
-// validateUserExists checks if a user with the given GUID exists in Microsoft Graph
-func validateUserExists(ctx context.Context, httpClient *client.AuthenticatedHTTPClient, userGUID string) error {
+// validateUserExists checks if a user with the given GUID exists in Microsoft Graph using SDK
+func validateUserExists(ctx context.Context, client *msgraphbetasdk.GraphServiceClient, userGUID string) error {
 	tflog.Debug(ctx, fmt.Sprintf("Validating user GUID: %s", userGUID))
 
-	url := httpClient.GetBaseURL() + "/users/" + userGUID
-	httpReq, err := http.NewRequestWithContext(ctx, "GET", url, nil)
+	// Use SDK to fetch user - the SDK automatically handles the request
+	user, err := client.
+		Users().
+		ByUserId(userGUID).
+		Get(ctx, nil)
+
 	if err != nil {
-		return fmt.Errorf("error creating HTTP request: %w", err)
-	}
-
-	// Add select parameter to minimize data transfer - only fetch id and userPrincipalName
-	q := httpReq.URL.Query()
-	q.Add("$select", "id,userPrincipalName,displayName")
-	httpReq.URL.RawQuery = q.Encode()
-
-	tflog.Debug(ctx, fmt.Sprintf("Making GET request to: %s", httpReq.URL.String()))
-
-	httpResp, err := client.DoWithRetry(ctx, httpClient, httpReq, 10)
-	if err != nil {
-		return fmt.Errorf("error making HTTP request: %w", err)
-	}
-	defer httpResp.Body.Close()
-
-	tflog.Debug(ctx, fmt.Sprintf("GET request response status: %d %s", httpResp.StatusCode, httpResp.Status))
-
-	if httpResp.StatusCode == http.StatusOK {
-		var user UserDefinition
-		if err := json.NewDecoder(httpResp.Body).Decode(&user); err != nil {
-			return fmt.Errorf("error parsing user response: %w", err)
+		// Check if it's a not found error
+		if strings.Contains(err.Error(), "404") || strings.Contains(err.Error(), "not found") {
+			return fmt.Errorf("user not found")
 		}
-
-		displayName := "Unknown"
-		if user.DisplayName != nil {
-			displayName = *user.DisplayName
-		}
-
-		tflog.Debug(ctx, fmt.Sprintf("Successfully validated user: ID=%s, UPN=%s, DisplayName=%s",
-			user.ID, user.UserPrincipalName, displayName))
-		return nil
+		return fmt.Errorf("user validation failed: %w", err)
 	}
 
-	if httpResp.StatusCode == http.StatusNotFound {
-		return fmt.Errorf("user not found")
+	displayName := "Unknown"
+	if user.GetDisplayName() != nil {
+		displayName = *user.GetDisplayName()
 	}
 
-	errorInfo := errors.ExtractHTTPGraphError(ctx, httpResp)
-	return fmt.Errorf("user validation failed: %d %s (RequestID: %s)",
-		httpResp.StatusCode,
-		httpResp.Status,
-		errorInfo.RequestID)
+	upn := "Unknown"
+	if user.GetUserPrincipalName() != nil {
+		upn = *user.GetUserPrincipalName()
+	}
+
+	tflog.Debug(ctx, fmt.Sprintf("Successfully validated user: ID=%s, UPN=%s, DisplayName=%s",
+		*user.GetId(), upn, displayName))
+	return nil
 }
 
 // validateUserInclusionAssignments validates that conditional access policies have proper user inclusion assignments
@@ -557,19 +450,19 @@ func validateUserInclusionAssignments(ctx context.Context, users *ConditionalAcc
 }
 
 // validateTrustedLocations validates that location GUIDs in include_locations and exclude_locations exist in Microsoft Graph
-func validateTrustedLocations(ctx context.Context, httpClient *client.AuthenticatedHTTPClient, locations *ConditionalAccessLocations) error {
+func validateTrustedLocations(ctx context.Context, client *msgraphbetasdk.GraphServiceClient, locations *ConditionalAccessLocations) error {
 	tflog.Debug(ctx, "Starting trusted locations validation")
 
 	// Validate include_locations
 	if !locations.IncludeLocations.IsNull() && !locations.IncludeLocations.IsUnknown() {
-		if err := validateLocationSet(ctx, httpClient, locations.IncludeLocations, "include_locations"); err != nil {
+		if err := validateLocationSet(ctx, client, locations.IncludeLocations, "include_locations"); err != nil {
 			return fmt.Errorf("validation failed for include_locations: %w", err)
 		}
 	}
 
 	// Validate exclude_locations
 	if !locations.ExcludeLocations.IsNull() && !locations.ExcludeLocations.IsUnknown() {
-		if err := validateLocationSet(ctx, httpClient, locations.ExcludeLocations, "exclude_locations"); err != nil {
+		if err := validateLocationSet(ctx, client, locations.ExcludeLocations, "exclude_locations"); err != nil {
 			return fmt.Errorf("validation failed for exclude_locations: %w", err)
 		}
 	}
@@ -579,7 +472,7 @@ func validateTrustedLocations(ctx context.Context, httpClient *client.Authentica
 }
 
 // validateLocationSet validates that all location GUIDs in a set exist in Microsoft Graph
-func validateLocationSet(ctx context.Context, httpClient *client.AuthenticatedHTTPClient, locationSet types.Set, fieldName string) error {
+func validateLocationSet(ctx context.Context, client *msgraphbetasdk.GraphServiceClient, locationSet types.Set, fieldName string) error {
 	if locationSet.IsNull() || locationSet.IsUnknown() {
 		tflog.Debug(ctx, fmt.Sprintf("Skipping validation for %s: field is null or unknown", fieldName))
 		return nil
@@ -609,16 +502,18 @@ func validateLocationSet(ctx context.Context, httpClient *client.AuthenticatedHT
 		return nil
 	}
 
-	// Fetch named locations from Microsoft Graph API
-	namedLocations, err := fetchNamedLocations(ctx, httpClient)
+	// Fetch named locations from Microsoft Graph API using SDK
+	namedLocations, err := fetchNamedLocations(ctx, client)
 	if err != nil {
 		return fmt.Errorf("failed to fetch named locations from Microsoft Graph: %w", err)
 	}
 
 	// Create a map of valid location GUIDs for quick lookup
-	validLocationGUIDs := make(map[string]NamedLocation)
+	validLocationGUIDs := make(map[string]graphmodels.NamedLocationable)
 	for _, location := range namedLocations {
-		validLocationGUIDs[location.ID] = location
+		if location.GetId() != nil {
+			validLocationGUIDs[*location.GetId()] = location
+		}
 	}
 
 	tflog.Debug(ctx, fmt.Sprintf("Fetched %d valid named locations from Microsoft Graph", len(validLocationGUIDs)))
@@ -630,7 +525,11 @@ func validateLocationSet(ctx context.Context, httpClient *client.AuthenticatedHT
 			invalidLocations = append(invalidLocations, locationGUID)
 			tflog.Warn(ctx, fmt.Sprintf("Invalid location GUID found in %s: %s", fieldName, locationGUID))
 		} else {
-			tflog.Debug(ctx, fmt.Sprintf("Valid location found in %s: %s (%s)", fieldName, locationGUID, location.DisplayName))
+			displayName := "Unknown"
+			if location.GetDisplayName() != nil {
+				displayName = *location.GetDisplayName()
+			}
+			tflog.Debug(ctx, fmt.Sprintf("Valid location found in %s: %s (%s)", fieldName, locationGUID, displayName))
 		}
 	}
 
@@ -643,41 +542,20 @@ func validateLocationSet(ctx context.Context, httpClient *client.AuthenticatedHT
 	return nil
 }
 
-// fetchNamedLocations retrieves named locations from Microsoft Graph API
-func fetchNamedLocations(ctx context.Context, httpClient *client.AuthenticatedHTTPClient) ([]NamedLocation, error) {
+// fetchNamedLocations retrieves named locations from Microsoft Graph API using SDK
+func fetchNamedLocations(ctx context.Context, client *msgraphbetasdk.GraphServiceClient) ([]graphmodels.NamedLocationable, error) {
 	tflog.Debug(ctx, "Fetching named locations from Microsoft Graph API")
 
-	url := httpClient.GetBaseURL() + "/conditionalAccess/namedLocations?$select=id,displayName,microsoft.graph.ipNamedLocation/isTrusted,microsoft.graph.compliantNetworkNamedLocation/compliantNetworkType"
-	httpReq, err := http.NewRequestWithContext(ctx, "GET", url, nil)
+	// Use SDK to fetch named locations
+	result, err := client.Identity().ConditionalAccess().NamedLocations().Get(ctx, nil)
 	if err != nil {
-		return nil, fmt.Errorf("error creating HTTP request: %w", err)
+		return nil, fmt.Errorf("error fetching named locations: %w", err)
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Making GET request to: %s", url))
+	namedLocations := result.GetValue()
+	tflog.Debug(ctx, fmt.Sprintf("Successfully fetched %d named locations", len(namedLocations)))
 
-	httpResp, err := client.DoWithRetry(ctx, httpClient, httpReq, 10)
-	if err != nil {
-		return nil, fmt.Errorf("error making HTTP request: %w", err)
-	}
-	defer httpResp.Body.Close()
-
-	tflog.Debug(ctx, fmt.Sprintf("GET request response status: %d %s", httpResp.StatusCode, httpResp.Status))
-
-	if httpResp.StatusCode != http.StatusOK {
-		errorInfo := errors.ExtractHTTPGraphError(ctx, httpResp)
-		return nil, fmt.Errorf("unexpected response from named locations API: %d %s (RequestID: %s)",
-			httpResp.StatusCode,
-			httpResp.Status,
-			errorInfo.RequestID)
-	}
-
-	var response NamedLocationsResponse
-	if err := json.NewDecoder(httpResp.Body).Decode(&response); err != nil {
-		return nil, fmt.Errorf("error parsing named locations response: %w", err)
-	}
-
-	tflog.Debug(ctx, fmt.Sprintf("Successfully fetched %d named locations", len(response.Value)))
-	return response.Value, nil
+	return namedLocations, nil
 }
 
 // validateApplicationInclusionAssignments validates that conditional access policies have proper application inclusion assignments
@@ -703,7 +581,7 @@ func validateApplicationInclusionAssignments(ctx context.Context, applications *
 	}
 
 	// Helper function to check if include_applications allows application_filter
-	// application_filter is allowed with GUID values and "Office365", but not with "All" or "None"
+	// application_filter is allowed with GUID values and "Office365", but not with "All", "None", or "AllAgentIdResources"
 	allowsApplicationFilter := func() bool {
 		if applications.IncludeApplications.IsNull() || applications.IncludeApplications.IsUnknown() {
 			return false
@@ -711,8 +589,8 @@ func validateApplicationInclusionAssignments(ctx context.Context, applications *
 		for _, element := range applications.IncludeApplications.Elements() {
 			if stringVal, ok := element.(types.String); ok && !stringVal.IsNull() {
 				value := stringVal.ValueString()
-				// Allow application_filter for GUIDs and "Office365", but not for "All" or "None"
-				if value == "All" || value == "None" {
+				// Allow application_filter for GUIDs and "Office365", but not for "All", "None", or "AllAgentIdResources"
+				if value == "All" || value == "None" || value == "AllAgentIdResources" {
 					return false
 				}
 				// If it's "Office365" or a GUID-like value, allow application_filter
@@ -735,10 +613,10 @@ func validateApplicationInclusionAssignments(ctx context.Context, applications *
 		return fmt.Errorf("when conditional access policy application fields 'include_applications', 'exclude_applications', 'include_user_actions', and 'include_authentication_context_class_references' are all empty, then 'include_applications' must be set to 'None'")
 	}
 
-	// Rule 2: application_filter can only be set if include_applications has GUID or "Office365" values (not "All" or "None")
+	// Rule 2: application_filter can only be set if include_applications has GUID or "Office365" values (not "All", "None", or "AllAgentIdResources")
 	if applications.ApplicationFilter != nil && !applications.ApplicationFilter.Mode.IsNull() && !applications.ApplicationFilter.Rule.IsNull() {
 		if !allowsApplicationFilter() {
-			return fmt.Errorf("conditional access policy 'application_filter' cannot be used when 'include_applications' contains 'All' or 'None' values. It can be used with GUID values or 'Office365'")
+			return fmt.Errorf("conditional access policy 'application_filter' cannot be used when 'include_applications' contains 'All', 'None', or 'AllAgentIdResources' values. It can be used with GUID values or 'Office365'")
 		}
 	}
 
