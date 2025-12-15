@@ -81,15 +81,15 @@ output "by_id_catalog_package_id" {
 output "by_id_rules" {
   value = length(data.microsoft365_graph_beta_device_and_app_management_mobile_app_catalog_package.by_id.items) > 0 ? [
     for rule in data.microsoft365_graph_beta_device_and_app_management_mobile_app_catalog_package.by_id.items[0].rules : {
-      odata_type            = rule.odata_type
-      rule_type             = rule.rule_type
-      path                  = rule.path
-      file_or_folder_name   = rule.file_or_folder_name
-      key_path              = rule.key_path
-      value_name            = rule.value_name
-      operation_type        = rule.operation_type
-      operator              = rule.operator
-      comparison_value      = rule.comparison_value
+      odata_type              = rule.odata_type
+      rule_type               = rule.rule_type
+      path                    = rule.path
+      file_or_folder_name     = rule.file_or_folder_name
+      key_path                = rule.key_path
+      value_name              = rule.value_name
+      operation_type          = rule.operation_type
+      operator                = rule.operator
+      comparison_value        = rule.comparison_value
       check_32bit_on_64system = rule.check_32bit_on_64system
     }
   ] : []
@@ -98,9 +98,9 @@ output "by_id_rules" {
 
 output "by_id_install_experience" {
   value = length(data.microsoft365_graph_beta_device_and_app_management_mobile_app_catalog_package.by_id.items) > 0 ? {
-    run_as_account            = data.microsoft365_graph_beta_device_and_app_management_mobile_app_catalog_package.by_id.items[0].install_experience.run_as_account
-    max_run_time_in_minutes   = data.microsoft365_graph_beta_device_and_app_management_mobile_app_catalog_package.by_id.items[0].install_experience.max_run_time_in_minutes
-    device_restart_behavior   = data.microsoft365_graph_beta_device_and_app_management_mobile_app_catalog_package.by_id.items[0].install_experience.device_restart_behavior
+    run_as_account          = data.microsoft365_graph_beta_device_and_app_management_mobile_app_catalog_package.by_id.items[0].install_experience.run_as_account
+    max_run_time_in_minutes = data.microsoft365_graph_beta_device_and_app_management_mobile_app_catalog_package.by_id.items[0].install_experience.max_run_time_in_minutes
+    device_restart_behavior = data.microsoft365_graph_beta_device_and_app_management_mobile_app_catalog_package.by_id.items[0].install_experience.device_restart_behavior
   } : null
   description = "Install experience settings"
 }
@@ -118,13 +118,13 @@ output "by_id_return_codes" {
 output "by_id_msi_information" {
   value = length(data.microsoft365_graph_beta_device_and_app_management_mobile_app_catalog_package.by_id.items) > 0 ? (
     data.microsoft365_graph_beta_device_and_app_management_mobile_app_catalog_package.by_id.items[0].msi_information != null ? {
-      product_code     = data.microsoft365_graph_beta_device_and_app_management_mobile_app_catalog_package.by_id.items[0].msi_information.product_code
-      product_version  = data.microsoft365_graph_beta_device_and_app_management_mobile_app_catalog_package.by_id.items[0].msi_information.product_version
-      upgrade_code     = data.microsoft365_graph_beta_device_and_app_management_mobile_app_catalog_package.by_id.items[0].msi_information.upgrade_code
-      requires_reboot  = data.microsoft365_graph_beta_device_and_app_management_mobile_app_catalog_package.by_id.items[0].msi_information.requires_reboot
-      package_type     = data.microsoft365_graph_beta_device_and_app_management_mobile_app_catalog_package.by_id.items[0].msi_information.package_type
-      product_name     = data.microsoft365_graph_beta_device_and_app_management_mobile_app_catalog_package.by_id.items[0].msi_information.product_name
-      publisher        = data.microsoft365_graph_beta_device_and_app_management_mobile_app_catalog_package.by_id.items[0].msi_information.publisher
+      product_code    = data.microsoft365_graph_beta_device_and_app_management_mobile_app_catalog_package.by_id.items[0].msi_information.product_code
+      product_version = data.microsoft365_graph_beta_device_and_app_management_mobile_app_catalog_package.by_id.items[0].msi_information.product_version
+      upgrade_code    = data.microsoft365_graph_beta_device_and_app_management_mobile_app_catalog_package.by_id.items[0].msi_information.upgrade_code
+      requires_reboot = data.microsoft365_graph_beta_device_and_app_management_mobile_app_catalog_package.by_id.items[0].msi_information.requires_reboot
+      package_type    = data.microsoft365_graph_beta_device_and_app_management_mobile_app_catalog_package.by_id.items[0].msi_information.package_type
+      product_name    = data.microsoft365_graph_beta_device_and_app_management_mobile_app_catalog_package.by_id.items[0].msi_information.product_name
+      publisher       = data.microsoft365_graph_beta_device_and_app_management_mobile_app_catalog_package.by_id.items[0].msi_information.publisher
     } : null
   ) : null
   description = "MSI package information"

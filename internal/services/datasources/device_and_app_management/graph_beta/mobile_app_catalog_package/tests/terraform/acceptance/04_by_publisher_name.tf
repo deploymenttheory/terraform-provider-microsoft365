@@ -65,9 +65,9 @@ output "publisher_first_return_codes_count" {
 
 output "publisher_first_install_experience" {
   value = length(data.microsoft365_graph_beta_device_and_app_management_mobile_app_catalog_package.by_publisher.items) > 0 ? {
-    run_as_account            = data.microsoft365_graph_beta_device_and_app_management_mobile_app_catalog_package.by_publisher.items[0].install_experience.run_as_account
-    max_run_time_in_minutes   = data.microsoft365_graph_beta_device_and_app_management_mobile_app_catalog_package.by_publisher.items[0].install_experience.max_run_time_in_minutes
-    device_restart_behavior   = data.microsoft365_graph_beta_device_and_app_management_mobile_app_catalog_package.by_publisher.items[0].install_experience.device_restart_behavior
+    run_as_account          = data.microsoft365_graph_beta_device_and_app_management_mobile_app_catalog_package.by_publisher.items[0].install_experience.run_as_account
+    max_run_time_in_minutes = data.microsoft365_graph_beta_device_and_app_management_mobile_app_catalog_package.by_publisher.items[0].install_experience.max_run_time_in_minutes
+    device_restart_behavior = data.microsoft365_graph_beta_device_and_app_management_mobile_app_catalog_package.by_publisher.items[0].install_experience.device_restart_behavior
   } : null
   description = "Install experience settings"
 }

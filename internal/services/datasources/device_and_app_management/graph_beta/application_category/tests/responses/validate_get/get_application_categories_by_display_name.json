@@ -1,0 +1,19 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceAppManagement/mobileAppCategories",
+  "@odata.count": 2,
+  "value": [
+    {
+      "@odata.type": "#microsoft.graph.mobileAppCategory",
+      "id": "6c1f2f9e-8b6d-5g4b-0d3e-2f5g6b7d8e9f",
+      "displayName": "Business",
+      "lastModifiedDateTime": "2024-01-20T14:45:00Z"
+    },
+    {
+      "@odata.type": "#microsoft.graph.mobileAppCategory",
+      "id": "9f4i5i2h-1e9g-8j7e-3g6h-5i8j9e0g1h2i",
+      "displayName": "Business Tools",
+      "lastModifiedDateTime": "2024-02-15T11:30:00Z"
+    }
+  ]
+}
+

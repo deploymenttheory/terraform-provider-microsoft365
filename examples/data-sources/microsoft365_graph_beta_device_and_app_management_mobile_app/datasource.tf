@@ -100,7 +100,7 @@ output "adobe_apps" {
 data "microsoft365_graph_beta_device_and_app_management_mobile_app" "win32_apps" {
   filter_type     = "all"
   app_type_filter = "win32LobApp"
-  
+
   timeouts = {
     read = "10s"
   }
@@ -184,7 +184,7 @@ data "microsoft365_graph_beta_device_and_app_management_mobile_app" "recent_apps
 }
 
 output "recent_apps" {
-  value = try(data.microsoft365_graph_beta_device_and_app_management_mobile_app.recent_apps.items, [])
+  value       = try(data.microsoft365_graph_beta_device_and_app_management_mobile_app.recent_apps.items, [])
   description = "Apps created after January 1, 2024 (limited to 10)"
 }
 
@@ -201,7 +201,7 @@ data "microsoft365_graph_beta_device_and_app_management_mobile_app" "apps_starti
 }
 
 output "apps_starting_with_fire" {
-  value = try(data.microsoft365_graph_beta_device_and_app_management_mobile_app.apps_starting_with.items, [])
+  value       = try(data.microsoft365_graph_beta_device_and_app_management_mobile_app.apps_starting_with.items, [])
   description = "Apps with display name starting with 'Fire'"
 }
 
@@ -218,7 +218,7 @@ data "microsoft365_graph_beta_device_and_app_management_mobile_app" "apps_contai
 }
 
 output "apps_containing_office" {
-  value = try(data.microsoft365_graph_beta_device_and_app_management_mobile_app.apps_containing.items, [])
+  value       = try(data.microsoft365_graph_beta_device_and_app_management_mobile_app.apps_containing.items, [])
   description = "Apps with 'Office' anywhere in the display name"
 }
 

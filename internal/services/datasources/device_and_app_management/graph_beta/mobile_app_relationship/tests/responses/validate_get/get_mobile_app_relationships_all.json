@@ -1,0 +1,49 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceAppManagement/mobileAppRelationships",
+  "@odata.count": 3,
+  "value": [
+    {
+      "@odata.type": "#microsoft.graph.mobileAppDependency",
+      "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+      "targetId": "app-target-001",
+      "targetDisplayName": "Microsoft Edge",
+      "targetDisplayVersion": "120.0.2210.91",
+      "targetPublisher": "Microsoft Corporation",
+      "targetPublisherDisplayName": "Microsoft",
+      "sourceId": "app-source-001",
+      "sourceDisplayName": "Company Portal",
+      "sourceDisplayVersion": "5.0.5954.0",
+      "sourcePublisherDisplayName": "Microsoft",
+      "targetType": "parent"
+    },
+    {
+      "@odata.type": "#microsoft.graph.mobileAppSupersedence",
+      "id": "b2c3d4e5-f6a7-8901-bcde-f12345678901",
+      "targetId": "app-target-002",
+      "targetDisplayName": "Adobe Acrobat Reader DC",
+      "targetDisplayVersion": "23.008.20470",
+      "targetPublisher": "Adobe Inc.",
+      "targetPublisherDisplayName": "Adobe",
+      "sourceId": "app-source-002",
+      "sourceDisplayName": "Adobe Acrobat Reader DC",
+      "sourceDisplayVersion": "24.001.20604",
+      "sourcePublisherDisplayName": "Adobe",
+      "targetType": "child"
+    },
+    {
+      "@odata.type": "#microsoft.graph.mobileAppDependency",
+      "id": "c3d4e5f6-a7b8-9012-cdef-123456789012",
+      "targetId": "app-target-003",
+      "targetDisplayName": ".NET Runtime 8.0",
+      "targetDisplayVersion": "8.0.1",
+      "targetPublisher": "Microsoft Corporation",
+      "targetPublisherDisplayName": "Microsoft",
+      "sourceId": "app-source-003",
+      "sourceDisplayName": "Custom Business App",
+      "sourceDisplayVersion": "1.2.3",
+      "sourcePublisherDisplayName": "Contoso Ltd",
+      "targetType": "parent"
+    }
+  ]
+}
+

@@ -37,38 +37,38 @@ output "all_packages_detailed" {
   value = data.microsoft365_graph_beta_device_and_app_management_mobile_app_catalog_package.all_packages.items != null ? [
     for pkg in data.microsoft365_graph_beta_device_and_app_management_mobile_app_catalog_package.all_packages.items : {
       # Basic app information
-      id                            = pkg.id
-      display_name                  = pkg.display_name
-      publisher                     = pkg.publisher
-      description                   = pkg.description
-      display_version               = pkg.display_version
-      
+      id              = pkg.id
+      display_name    = pkg.display_name
+      publisher       = pkg.publisher
+      description     = pkg.description
+      display_version = pkg.display_version
+
       # Win32 specific deployment details
-      file_name                     = pkg.file_name
-      size                          = pkg.size
-      install_command_line          = pkg.install_command_line
-      uninstall_command_line        = pkg.uninstall_command_line
-      setup_file_path               = pkg.setup_file_path
-      allowed_architectures         = pkg.allowed_architectures
+      file_name                         = pkg.file_name
+      size                              = pkg.size
+      install_command_line              = pkg.install_command_line
+      uninstall_command_line            = pkg.uninstall_command_line
+      setup_file_path                   = pkg.setup_file_path
+      allowed_architectures             = pkg.allowed_architectures
       minimum_supported_windows_release = pkg.minimum_supported_windows_release
-      
+
       # Catalog reference
       mobile_app_catalog_package_id = pkg.mobile_app_catalog_package_id
-      
+
       # Detection rules
-      rules_count                   = length(pkg.rules)
-      has_detection_rules           = length(pkg.rules) > 0
-      
+      rules_count         = length(pkg.rules)
+      has_detection_rules = length(pkg.rules) > 0
+
       # Installation settings
-      run_as_account                = pkg.install_experience != null ? pkg.install_experience.run_as_account : null
-      max_run_time_in_minutes       = pkg.install_experience != null ? pkg.install_experience.max_run_time_in_minutes : null
-      
+      run_as_account          = pkg.install_experience != null ? pkg.install_experience.run_as_account : null
+      max_run_time_in_minutes = pkg.install_experience != null ? pkg.install_experience.max_run_time_in_minutes : null
+
       # Return codes
-      return_codes_count            = length(pkg.return_codes)
-      
+      return_codes_count = length(pkg.return_codes)
+
       # MSI information (if applicable)
-      has_msi_info                  = pkg.msi_information != null
-      msi_product_code              = pkg.msi_information != null ? pkg.msi_information.product_code : null
+      has_msi_info     = pkg.msi_information != null
+      msi_product_code = pkg.msi_information != null ? pkg.msi_information.product_code : null
     }
   ] : []
   description = "All mobile app catalog packages with deployment details"
@@ -80,7 +80,7 @@ output "all_packages_detailed" {
 data "microsoft365_graph_beta_device_and_app_management_mobile_app_catalog_package" "seven_zip" {
   filter_type  = "id"
   filter_value = "3a6307ef-6991-faf1-01e1-35e1557287aa" # 7-Zip product ID
-  
+
   timeouts = {
     read = "2m"
   }
@@ -90,52 +90,52 @@ data "microsoft365_graph_beta_device_and_app_management_mobile_app_catalog_packa
 output "seven_zip_full_details" {
   value = length(data.microsoft365_graph_beta_device_and_app_management_mobile_app_catalog_package.seven_zip.items) > 0 ? {
     # Application metadata
-    id                      = data.microsoft365_graph_beta_device_and_app_management_mobile_app_catalog_package.seven_zip.items[0].id
-    display_name            = data.microsoft365_graph_beta_device_and_app_management_mobile_app_catalog_package.seven_zip.items[0].display_name
-    description             = data.microsoft365_graph_beta_device_and_app_management_mobile_app_catalog_package.seven_zip.items[0].description
-    publisher               = data.microsoft365_graph_beta_device_and_app_management_mobile_app_catalog_package.seven_zip.items[0].publisher
-    developer               = data.microsoft365_graph_beta_device_and_app_management_mobile_app_catalog_package.seven_zip.items[0].developer
-    display_version         = data.microsoft365_graph_beta_device_and_app_management_mobile_app_catalog_package.seven_zip.items[0].display_version
-    
+    id              = data.microsoft365_graph_beta_device_and_app_management_mobile_app_catalog_package.seven_zip.items[0].id
+    display_name    = data.microsoft365_graph_beta_device_and_app_management_mobile_app_catalog_package.seven_zip.items[0].display_name
+    description     = data.microsoft365_graph_beta_device_and_app_management_mobile_app_catalog_package.seven_zip.items[0].description
+    publisher       = data.microsoft365_graph_beta_device_and_app_management_mobile_app_catalog_package.seven_zip.items[0].publisher
+    developer       = data.microsoft365_graph_beta_device_and_app_management_mobile_app_catalog_package.seven_zip.items[0].developer
+    display_version = data.microsoft365_graph_beta_device_and_app_management_mobile_app_catalog_package.seven_zip.items[0].display_version
+
     # URLs
-    privacy_url             = data.microsoft365_graph_beta_device_and_app_management_mobile_app_catalog_package.seven_zip.items[0].privacy_information_url
-    information_url         = data.microsoft365_graph_beta_device_and_app_management_mobile_app_catalog_package.seven_zip.items[0].information_url
-    
+    privacy_url     = data.microsoft365_graph_beta_device_and_app_management_mobile_app_catalog_package.seven_zip.items[0].privacy_information_url
+    information_url = data.microsoft365_graph_beta_device_and_app_management_mobile_app_catalog_package.seven_zip.items[0].information_url
+
     # Installation details
-    file_name               = data.microsoft365_graph_beta_device_and_app_management_mobile_app_catalog_package.seven_zip.items[0].file_name
-    size_bytes              = data.microsoft365_graph_beta_device_and_app_management_mobile_app_catalog_package.seven_zip.items[0].size
-    install_command         = data.microsoft365_graph_beta_device_and_app_management_mobile_app_catalog_package.seven_zip.items[0].install_command_line
-    uninstall_command       = data.microsoft365_graph_beta_device_and_app_management_mobile_app_catalog_package.seven_zip.items[0].uninstall_command_line
-    setup_file_path         = data.microsoft365_graph_beta_device_and_app_management_mobile_app_catalog_package.seven_zip.items[0].setup_file_path
-    
+    file_name         = data.microsoft365_graph_beta_device_and_app_management_mobile_app_catalog_package.seven_zip.items[0].file_name
+    size_bytes        = data.microsoft365_graph_beta_device_and_app_management_mobile_app_catalog_package.seven_zip.items[0].size
+    install_command   = data.microsoft365_graph_beta_device_and_app_management_mobile_app_catalog_package.seven_zip.items[0].install_command_line
+    uninstall_command = data.microsoft365_graph_beta_device_and_app_management_mobile_app_catalog_package.seven_zip.items[0].uninstall_command_line
+    setup_file_path   = data.microsoft365_graph_beta_device_and_app_management_mobile_app_catalog_package.seven_zip.items[0].setup_file_path
+
     # Requirements
     allowed_architectures   = data.microsoft365_graph_beta_device_and_app_management_mobile_app_catalog_package.seven_zip.items[0].allowed_architectures
     minimum_windows_release = data.microsoft365_graph_beta_device_and_app_management_mobile_app_catalog_package.seven_zip.items[0].minimum_supported_windows_release
     allow_uninstall         = data.microsoft365_graph_beta_device_and_app_management_mobile_app_catalog_package.seven_zip.items[0].allow_available_uninstall
-    
+
     # Detection rules
     detection_rules = [
       for rule in data.microsoft365_graph_beta_device_and_app_management_mobile_app_catalog_package.seven_zip.items[0].rules : {
-        type               = rule.odata_type
-        rule_type          = rule.rule_type
-        path               = rule.path
-        file_or_folder     = rule.file_or_folder_name
-        key_path           = rule.key_path
-        value_name         = rule.value_name
-        operation_type     = rule.operation_type
-        operator           = rule.operator
-        comparison_value   = rule.comparison_value
-        check_32bit_on_64  = rule.check_32bit_on_64system
+        type              = rule.odata_type
+        rule_type         = rule.rule_type
+        path              = rule.path
+        file_or_folder    = rule.file_or_folder_name
+        key_path          = rule.key_path
+        value_name        = rule.value_name
+        operation_type    = rule.operation_type
+        operator          = rule.operator
+        comparison_value  = rule.comparison_value
+        check_32bit_on_64 = rule.check_32bit_on_64system
       }
     ]
-    
+
     # Install experience
     install_experience = {
       run_as_account          = data.microsoft365_graph_beta_device_and_app_management_mobile_app_catalog_package.seven_zip.items[0].install_experience.run_as_account
       max_run_time_minutes    = data.microsoft365_graph_beta_device_and_app_management_mobile_app_catalog_package.seven_zip.items[0].install_experience.max_run_time_in_minutes
       device_restart_behavior = data.microsoft365_graph_beta_device_and_app_management_mobile_app_catalog_package.seven_zip.items[0].install_experience.device_restart_behavior
     }
-    
+
     # Return codes
     return_codes = [
       for rc in data.microsoft365_graph_beta_device_and_app_management_mobile_app_catalog_package.seven_zip.items[0].return_codes : {
@@ -143,7 +143,7 @@ output "seven_zip_full_details" {
         type = rc.type
       }
     ]
-    
+
     # MSI information (if applicable)
     msi_info = data.microsoft365_graph_beta_device_and_app_management_mobile_app_catalog_package.seven_zip.items[0].msi_information != null ? {
       product_code    = data.microsoft365_graph_beta_device_and_app_management_mobile_app_catalog_package.seven_zip.items[0].msi_information.product_code
@@ -153,7 +153,7 @@ output "seven_zip_full_details" {
       package_type    = data.microsoft365_graph_beta_device_and_app_management_mobile_app_catalog_package.seven_zip.items[0].msi_information.package_type
       product_name    = data.microsoft365_graph_beta_device_and_app_management_mobile_app_catalog_package.seven_zip.items[0].msi_information.product_name
     } : null
-    
+
     # Catalog reference
     catalog_package_id = data.microsoft365_graph_beta_device_and_app_management_mobile_app_catalog_package.seven_zip.items[0].mobile_app_catalog_package_id
   } : null
@@ -166,7 +166,7 @@ output "seven_zip_full_details" {
 data "microsoft365_graph_beta_device_and_app_management_mobile_app_catalog_package" "by_product_name" {
   filter_type  = "product_name"
   filter_value = "Docker" # This will find all packages with "Docker" in the name
-  
+
   timeouts = {
     read = "3m"
   }
@@ -196,7 +196,7 @@ output "docker_packages" {
 data "microsoft365_graph_beta_device_and_app_management_mobile_app_catalog_package" "microsoft_apps" {
   filter_type  = "publisher_name"
   filter_value = "Microsoft" # Finds all Microsoft published apps
-  
+
   timeouts = {
     read = "5m"
   }
@@ -206,14 +206,14 @@ data "microsoft365_graph_beta_device_and_app_management_mobile_app_catalog_packa
 output "microsoft_apps_summary" {
   value = [
     for pkg in data.microsoft365_graph_beta_device_and_app_management_mobile_app_catalog_package.microsoft_apps.items : {
-      name              = pkg.display_name
-      version           = pkg.display_version
-      file_name         = pkg.file_name
-      size_mb           = floor(pkg.size / 1024 / 1024)
-      min_windows       = pkg.minimum_supported_windows_release
-      has_msi_info      = pkg.msi_information != null
-      detection_rules   = length(pkg.rules)
-      return_codes      = length(pkg.return_codes)
+      name            = pkg.display_name
+      version         = pkg.display_version
+      file_name       = pkg.file_name
+      size_mb         = floor(pkg.size / 1024 / 1024)
+      min_windows     = pkg.minimum_supported_windows_release
+      has_msi_info    = pkg.msi_information != null
+      detection_rules = length(pkg.rules)
+      return_codes    = length(pkg.return_codes)
     }
   ]
   description = "Summary of Microsoft published applications"
@@ -226,7 +226,7 @@ data "microsoft365_graph_beta_device_and_app_management_mobile_app_catalog_packa
   filter_type  = "odata"
   odata_filter = "startswith(publisherDisplayName, 'Google')"
   odata_top    = 5
-  
+
   timeouts = {
     read = "3m"
   }
@@ -252,7 +252,7 @@ output "google_apps" {
 data "microsoft365_graph_beta_device_and_app_management_mobile_app_catalog_package" "app_for_rules" {
   filter_type  = "product_name"
   filter_value = "7-Zip"
-  
+
   timeouts = {
     read = "2m"
   }
@@ -267,11 +267,11 @@ output "detection_rules_example" {
         type = rule.odata_type == "#microsoft.graph.win32LobAppFileSystemRule" ? "File System" : "Registry"
         location = rule.odata_type == "#microsoft.graph.win32LobAppFileSystemRule" ? (
           "${rule.path}\\${rule.file_or_folder_name}"
-        ) : (
+          ) : (
           "${rule.key_path} [${rule.value_name}]"
         )
-        operation    = rule.operation_type
-        operator     = rule.operator
+        operation      = rule.operation_type
+        operator       = rule.operator
         expected_value = rule.comparison_value
       }
     ]
@@ -302,7 +302,7 @@ output "installation_requirements" {
 # ============================================================================
 data "microsoft365_graph_beta_device_and_app_management_mobile_app_catalog_package" "all_versions" {
   filter_type = "all"
-  
+
   timeouts = {
     read = "5m"
   }
@@ -313,11 +313,11 @@ output "packages_by_product" {
   value = {
     for pkg in data.microsoft365_graph_beta_device_and_app_management_mobile_app_catalog_package.all_versions.items :
     pkg.display_name => {
-      version           = pkg.display_version
-      publisher         = pkg.publisher
-      size_mb           = floor(pkg.size / 1024 / 1024)
-      catalog_id        = pkg.mobile_app_catalog_package_id
-      file_name         = pkg.file_name
+      version    = pkg.display_version
+      publisher  = pkg.publisher
+      size_mb    = floor(pkg.size / 1024 / 1024)
+      catalog_id = pkg.mobile_app_catalog_package_id
+      file_name  = pkg.file_name
     }...
   }
   description = "All packages grouped by product name"

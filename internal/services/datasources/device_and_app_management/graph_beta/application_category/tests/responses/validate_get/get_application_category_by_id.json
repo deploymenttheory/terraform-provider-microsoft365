@@ -1,0 +1,8 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceAppManagement/mobileAppCategories/$entity",
+  "@odata.type": "#microsoft.graph.mobileAppCategory",
+  "id": "5b0e1e8d-7a5c-4f3a-9c2d-1e4f5a6b7c8d",
+  "displayName": "Productivity",
+  "lastModifiedDateTime": "2024-01-15T10:30:00Z"
+}
+

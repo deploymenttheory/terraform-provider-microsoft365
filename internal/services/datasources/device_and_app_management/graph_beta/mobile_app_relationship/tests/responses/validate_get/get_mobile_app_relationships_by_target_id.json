@@ -1,0 +1,21 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceAppManagement/mobileAppRelationships",
+  "@odata.count": 1,
+  "value": [
+    {
+      "@odata.type": "#microsoft.graph.mobileAppDependency",
+      "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+      "targetId": "app-target-001",
+      "targetDisplayName": "Microsoft Edge",
+      "targetDisplayVersion": "120.0.2210.91",
+      "targetPublisher": "Microsoft Corporation",
+      "targetPublisherDisplayName": "Microsoft",
+      "sourceId": "app-source-001",
+      "sourceDisplayName": "Company Portal",
+      "sourceDisplayVersion": "5.0.5954.0",
+      "sourcePublisherDisplayName": "Microsoft",
+      "targetType": "parent"
+    }
+  ]
+}
+
