@@ -3,104 +3,157 @@ package graphBetaMobileAppCatalogPackage
 import (
 	"context"
 
-	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
-// MapRemoteStateToDataSource maps the remote state to the data source model
-func MapRemoteStateToDataSource(ctx context.Context, packageItem graphmodels.MobileAppCatalogPackageable) MobileAppCatalogPackageModel {
+// MapRemoteStateToDataSource maps the win32CatalogApp to the data source model
+func MapRemoteStateToDataSource(ctx context.Context, mobileApp graphmodels.MobileAppable) MobileAppCatalogPackageModel {
 	model := MobileAppCatalogPackageModel{}
 
-	// Map ID
-	if packageItem.GetId() != nil {
-		model.ID = types.StringValue(*packageItem.GetId())
-	} else {
-		model.ID = types.StringNull()
-		tflog.Warn(ctx, "id field is missing in mobile app catalog package")
+	// Map base mobile app fields
+	model.ID = convert.GraphToFrameworkString(mobileApp.GetId())
+	model.DisplayName = convert.GraphToFrameworkString(mobileApp.GetDisplayName())
+	model.Description = convert.GraphToFrameworkString(mobileApp.GetDescription())
+	model.Publisher = convert.GraphToFrameworkString(mobileApp.GetPublisher())
+	model.CreatedDateTime = convert.GraphToFrameworkTime(mobileApp.GetCreatedDateTime())
+	model.LastModifiedDateTime = convert.GraphToFrameworkTime(mobileApp.GetLastModifiedDateTime())
+	model.IsFeatured = convert.GraphToFrameworkBool(mobileApp.GetIsFeatured())
+	model.PrivacyInformationUrl = convert.GraphToFrameworkString(mobileApp.GetPrivacyInformationUrl())
+	model.InformationUrl = convert.GraphToFrameworkString(mobileApp.GetInformationUrl())
+	model.Owner = convert.GraphToFrameworkString(mobileApp.GetOwner())
+	model.Developer = convert.GraphToFrameworkString(mobileApp.GetDeveloper())
+	model.Notes = convert.GraphToFrameworkString(mobileApp.GetNotes())
+	model.IsAssigned = convert.GraphToFrameworkBool(mobileApp.GetIsAssigned())
+	model.RoleScopeTagIds = convert.GraphToFrameworkStringSlice(mobileApp.GetRoleScopeTagIds())
+	model.DependentAppCount = convert.GraphToFrameworkInt32(mobileApp.GetDependentAppCount())
+	model.SupersedingAppCount = convert.GraphToFrameworkInt32(mobileApp.GetSupersedingAppCount())
+	model.SupersededAppCount = convert.GraphToFrameworkInt32(mobileApp.GetSupersededAppCount())
+
+	// Map upload state (custom handling for enum to int32)
+	if mobileApp.GetUploadState() != nil {
+		model.UploadState = convert.GraphToFrameworkInt32(mobileApp.GetUploadState())
 	}
 
-	// Map product ID
-	if packageItem.GetProductId() != nil {
-		model.ProductID = types.StringValue(*packageItem.GetProductId())
-	} else {
-		model.ProductID = types.StringNull()
-		tflog.Warn(ctx, "productId field is missing in mobile app catalog package")
-	}
+	// Map publishing state enum
+	model.PublishingState = convert.GraphToFrameworkEnum(mobileApp.GetPublishingState())
 
-	// Map product display name
-	if packageItem.GetProductDisplayName() != nil {
-		model.ProductDisplayName = types.StringValue(*packageItem.GetProductDisplayName())
-	} else {
-		model.ProductDisplayName = types.StringNull()
-		tflog.Warn(ctx, "productDisplayName field is missing in mobile app catalog package")
-	}
+	// Check if it's a Win32CatalogApp to access win32-specific fields
+	if win32App, ok := mobileApp.(graphmodels.Win32CatalogAppable); ok {
+		model.CommittedContentVersion = convert.GraphToFrameworkString(win32App.GetCommittedContentVersion())
+		model.FileName = convert.GraphToFrameworkString(win32App.GetFileName())
+		model.Size = convert.GraphToFrameworkInt64(win32App.GetSize())
+		model.InstallCommandLine = convert.GraphToFrameworkString(win32App.GetInstallCommandLine())
+		model.UninstallCommandLine = convert.GraphToFrameworkString(win32App.GetUninstallCommandLine())
+		model.ApplicableArchitectures = convert.GraphToFrameworkEnum(win32App.GetApplicableArchitectures())
+		model.AllowedArchitectures = convert.GraphToFrameworkEnum(win32App.GetAllowedArchitectures())
+		model.MinimumFreeDiskSpaceInMB = convert.GraphToFrameworkInt32(win32App.GetMinimumFreeDiskSpaceInMB())
+		model.MinimumMemoryInMB = convert.GraphToFrameworkInt32(win32App.GetMinimumMemoryInMB())
+		model.MinimumNumberOfProcessors = convert.GraphToFrameworkInt32(win32App.GetMinimumNumberOfProcessors())
+		model.MinimumCpuSpeedInMHz = convert.GraphToFrameworkInt32(win32App.GetMinimumCpuSpeedInMHz())
+		model.SetupFilePath = convert.GraphToFrameworkString(win32App.GetSetupFilePath())
+		model.MinimumSupportedWindowsRelease = convert.GraphToFrameworkString(win32App.GetMinimumSupportedWindowsRelease())
+		model.DisplayVersion = convert.GraphToFrameworkString(win32App.GetDisplayVersion())
+		model.AllowAvailableUninstall = convert.GraphToFrameworkBool(win32App.GetAllowAvailableUninstall())
+		model.MobileAppCatalogPackageId = convert.GraphToFrameworkString(win32App.GetMobileAppCatalogPackageId())
 
-	// Map publisher display name
-	if packageItem.GetPublisherDisplayName() != nil {
-		model.PublisherDisplayName = types.StringValue(*packageItem.GetPublisherDisplayName())
-	} else {
-		model.PublisherDisplayName = types.StringNull()
-		tflog.Warn(ctx, "publisherDisplayName field is missing in mobile app catalog package")
-	}
-
-	// Map version display name
-	if packageItem.GetVersionDisplayName() != nil {
-		model.VersionDisplayName = types.StringValue(*packageItem.GetVersionDisplayName())
-	} else {
-		model.VersionDisplayName = types.StringNull()
-		tflog.Warn(ctx, "versionDisplayName field is missing in mobile app catalog package")
-	}
-
-	// Map branch display name - check if it's a Win32MobileAppCatalogPackage
-	if win32Package, ok := packageItem.(*graphmodels.Win32MobileAppCatalogPackage); ok {
-		if win32Package.GetBranchDisplayName() != nil {
-			model.BranchDisplayName = types.StringValue(*win32Package.GetBranchDisplayName())
-		} else {
-			model.BranchDisplayName = types.StringNull()
-		}
-	} else {
-		model.BranchDisplayName = types.StringNull()
-	}
-
-	// Map applicable architectures - check if it's a Win32MobileAppCatalogPackage
-	if win32Package, ok := packageItem.(*graphmodels.Win32MobileAppCatalogPackage); ok {
-		if win32Package.GetApplicableArchitectures() != nil {
-			// Convert enum to string
-			archValue := win32Package.GetApplicableArchitectures().String()
-			model.ApplicableArchitectures = types.StringValue(archValue)
-		} else {
-			model.ApplicableArchitectures = types.StringNull()
-		}
-	} else {
-		model.ApplicableArchitectures = types.StringNull()
-	}
-
-	// Map locales - check if it's a Win32MobileAppCatalogPackage
-	if win32Package, ok := packageItem.(*graphmodels.Win32MobileAppCatalogPackage); ok {
-		if win32Package.GetLocales() != nil {
-			var locales []types.String
-			for _, locale := range win32Package.GetLocales() {
-				locales = append(locales, types.StringValue(locale))
+		// Map rules
+		if win32App.GetRules() != nil {
+			var rules []RuleModel
+			for _, rule := range win32App.GetRules() {
+				ruleModel := mapRule(ctx, rule)
+				rules = append(rules, ruleModel)
 			}
-			model.Locales = locales
+			model.Rules = rules
 		} else {
-			model.Locales = []types.String{}
+			model.Rules = []RuleModel{}
 		}
-	} else {
-		model.Locales = []types.String{}
-	}
 
-	// Map package auto update capable - check if it's a Win32MobileAppCatalogPackage
-	if win32Package, ok := packageItem.(*graphmodels.Win32MobileAppCatalogPackage); ok {
-		if win32Package.GetPackageAutoUpdateCapable() != nil {
-			model.PackageAutoUpdateCapable = types.BoolValue(*win32Package.GetPackageAutoUpdateCapable())
+		// Map install experience
+		if win32App.GetInstallExperience() != nil {
+			model.InstallExperience = mapInstallExperience(ctx, win32App.GetInstallExperience())
+		}
+
+		// Map return codes
+		if win32App.GetReturnCodes() != nil {
+			var returnCodes []ReturnCodeModel
+			for _, rc := range win32App.GetReturnCodes() {
+				returnCodeModel := mapReturnCode(ctx, rc)
+				returnCodes = append(returnCodes, returnCodeModel)
+			}
+			model.ReturnCodes = returnCodes
 		} else {
-			model.PackageAutoUpdateCapable = types.BoolNull()
+			model.ReturnCodes = []ReturnCodeModel{}
+		}
+
+		// Map MSI information
+		if win32App.GetMsiInformation() != nil {
+			model.MsiInformation = mapMsiInformation(ctx, win32App.GetMsiInformation())
 		}
 	} else {
-		model.PackageAutoUpdateCapable = types.BoolNull()
+		tflog.Warn(ctx, "MobileApp is not a Win32CatalogApp, some fields will be null")
 	}
 
 	return model
+}
+
+// mapRule maps a Win32LobAppRule to RuleModel
+func mapRule(ctx context.Context, rule graphmodels.Win32LobAppRuleable) RuleModel {
+	model := RuleModel{
+		ODataType: convert.GraphToFrameworkString(rule.GetOdataType()),
+		RuleType:  convert.GraphToFrameworkEnum(rule.GetRuleType()),
+	}
+
+	// Check if it's a file system rule
+	if fsRule, ok := rule.(graphmodels.Win32LobAppFileSystemRuleable); ok {
+		model.Path = convert.GraphToFrameworkString(fsRule.GetPath())
+		model.FileOrFolderName = convert.GraphToFrameworkString(fsRule.GetFileOrFolderName())
+		model.Check32BitOn64System = convert.GraphToFrameworkBool(fsRule.GetCheck32BitOn64System())
+		model.OperationType = convert.GraphToFrameworkEnum(fsRule.GetOperationType())
+		model.Operator = convert.GraphToFrameworkEnum(fsRule.GetOperator())
+		model.ComparisonValue = convert.GraphToFrameworkString(fsRule.GetComparisonValue())
+	}
+
+	// Check if it's a registry rule
+	if regRule, ok := rule.(graphmodels.Win32LobAppRegistryRuleable); ok {
+		model.Check32BitOn64System = convert.GraphToFrameworkBool(regRule.GetCheck32BitOn64System())
+		model.KeyPath = convert.GraphToFrameworkString(regRule.GetKeyPath())
+		model.ValueName = convert.GraphToFrameworkString(regRule.GetValueName())
+		model.OperationType = convert.GraphToFrameworkEnum(regRule.GetOperationType())
+		model.Operator = convert.GraphToFrameworkEnum(regRule.GetOperator())
+		model.ComparisonValue = convert.GraphToFrameworkString(regRule.GetComparisonValue())
+	}
+
+	return model
+}
+
+// mapInstallExperience maps Win32LobAppInstallExperience to InstallExperienceModel
+func mapInstallExperience(ctx context.Context, installExp graphmodels.Win32LobAppInstallExperienceable) *InstallExperienceModel {
+	return &InstallExperienceModel{
+		RunAsAccount:          convert.GraphToFrameworkEnum(installExp.GetRunAsAccount()),
+		MaxRunTimeInMinutes:   convert.GraphToFrameworkInt32(installExp.GetMaxRunTimeInMinutes()),
+		DeviceRestartBehavior: convert.GraphToFrameworkEnum(installExp.GetDeviceRestartBehavior()),
+	}
+}
+
+// mapReturnCode maps Win32LobAppReturnCode to ReturnCodeModel
+func mapReturnCode(ctx context.Context, rc graphmodels.Win32LobAppReturnCodeable) ReturnCodeModel {
+	return ReturnCodeModel{
+		ReturnCode: convert.GraphToFrameworkInt32(rc.GetReturnCode()),
+		Type:       convert.GraphToFrameworkEnum(rc.GetTypeEscaped()),
+	}
+}
+
+// mapMsiInformation maps Win32LobAppMsiInformation to MsiInformationModel
+func mapMsiInformation(ctx context.Context, msiInfo graphmodels.Win32LobAppMsiInformationable) *MsiInformationModel {
+	return &MsiInformationModel{
+		ProductCode:    convert.GraphToFrameworkString(msiInfo.GetProductCode()),
+		ProductVersion: convert.GraphToFrameworkString(msiInfo.GetProductVersion()),
+		UpgradeCode:    convert.GraphToFrameworkString(msiInfo.GetUpgradeCode()),
+		RequiresReboot: convert.GraphToFrameworkBool(msiInfo.GetRequiresReboot()),
+		PackageType:    convert.GraphToFrameworkEnum(msiInfo.GetPackageType()),
+		ProductName:    convert.GraphToFrameworkString(msiInfo.GetProductName()),
+		Publisher:      convert.GraphToFrameworkString(msiInfo.GetPublisher()),
+	}
 }

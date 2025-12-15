@@ -1,0 +1,31 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceAppManagement/mobileAppCategories",
+  "@odata.count": 4,
+  "value": [
+    {
+      "@odata.type": "#microsoft.graph.mobileAppCategory",
+      "id": "5b0e1e8d-7a5c-4f3a-9c2d-1e4f5a6b7c8d",
+      "displayName": "Productivity",
+      "lastModifiedDateTime": "2024-01-15T10:30:00Z"
+    },
+    {
+      "@odata.type": "#microsoft.graph.mobileAppCategory",
+      "id": "6c1f2f9e-8b6d-5g4b-0d3e-2f5g6b7d8e9f",
+      "displayName": "Business",
+      "lastModifiedDateTime": "2024-01-20T14:45:00Z"
+    },
+    {
+      "@odata.type": "#microsoft.graph.mobileAppCategory",
+      "id": "7d2g3g0f-9c7e-6h5c-1e4f-3g6h7c8e9f0g",
+      "displayName": "Finance",
+      "lastModifiedDateTime": "2024-02-01T09:15:00Z"
+    },
+    {
+      "@odata.type": "#microsoft.graph.mobileAppCategory",
+      "id": "8e3h4h1g-0d8f-7i6d-2f5g-4h7i8d9f0g1h",
+      "displayName": "Education",
+      "lastModifiedDateTime": "2024-02-10T16:20:00Z"
+    }
+  ]
+}
+

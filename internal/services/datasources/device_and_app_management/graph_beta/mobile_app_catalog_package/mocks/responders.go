@@ -86,7 +86,7 @@ func (m *MobileAppCatalogPackagesMock) RegisterMocks() {
 
 		// Return mock response for known IDs
 		switch packageId {
-		case "5af1ade9-6966-3608-7e04-848252e29681":
+		case "a09730b0-93d9-bb83-a96e-c5346258734b": // 7-Zip
 			jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_get/get_mobile_app_catalog_package_by_id.json")
 			var responseObj map[string]any
 			json.Unmarshal([]byte(jsonStr), &responseObj)
@@ -139,6 +139,47 @@ func (m *MobileAppCatalogPackagesMock) RegisterMocks() {
 		var responseObj map[string]any
 		json.Unmarshal([]byte(jsonStr), &responseObj)
 		return httpmock.NewJsonResponse(200, responseObj)
+	})
+
+	// 4. Convert mobile app catalog package to win32CatalogApp
+	//    GET /deviceAppManagement/mobileApps/convertFromMobileAppCatalogPackage(mobileAppCatalogPackageId='{id}')
+	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/deviceAppManagement/mobileApps/convertFromMobileAppCatalogPackage\(mobileAppCatalogPackageId='[^']+'\)$`, func(req *http.Request) (*http.Response, error) {
+		// Extract package ID from URL
+		urlPath := req.URL.String()
+		startIdx := strings.Index(urlPath, "mobileAppCatalogPackageId='") + len("mobileAppCatalogPackageId='")
+		endIdx := strings.LastIndex(urlPath, "'")
+		packageId := urlPath[startIdx:endIdx]
+
+		// Map package IDs to their converted win32CatalogApp responses
+		switch packageId {
+		case "a09730b0-93d9-bb83-a96e-c5346258734b": // 7-Zip
+			jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_get/get_win32_catalog_app_7zip.json")
+			var responseObj map[string]any
+			json.Unmarshal([]byte(jsonStr), &responseObj)
+			return httpmock.NewJsonResponse(200, responseObj)
+		case "a8375b62-1909-812c-ee54-044ba1b1461b": // CPU-Z
+			jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_get/get_win32_catalog_app_cpuz.json")
+			var responseObj map[string]any
+			json.Unmarshal([]byte(jsonStr), &responseObj)
+			return httpmock.NewJsonResponse(200, responseObj)
+		case "03ca0d35-9d3b-761e-db57-2116b6f6f2ea": // Adobe AIR
+			jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_get/get_win32_catalog_app_adobe_air.json")
+			var responseObj map[string]any
+			json.Unmarshal([]byte(jsonStr), &responseObj)
+			return httpmock.NewJsonResponse(200, responseObj)
+		case "6274fe37-8968-1a80-e561-5a9fceff4579": // Dell Display Manager
+			jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_get/get_win32_catalog_app_dell_display_manager.json")
+			var responseObj map[string]any
+			json.Unmarshal([]byte(jsonStr), &responseObj)
+			return httpmock.NewJsonResponse(200, responseObj)
+		case "6e8cf1b6-1a04-d641-bc1c-04a8e61bff16": // Docker Desktop
+			jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_get/get_win32_catalog_app_docker_desktop.json")
+			var responseObj map[string]any
+			json.Unmarshal([]byte(jsonStr), &responseObj)
+			return httpmock.NewJsonResponse(200, responseObj)
+		default:
+			return httpmock.NewStringResponse(404, `{"error":{"code":"ResourceNotFound","message":"Mobile app catalog package not found"}}`), nil
+		}
 	})
 }
 

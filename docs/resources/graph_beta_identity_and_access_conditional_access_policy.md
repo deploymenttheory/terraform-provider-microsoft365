@@ -2701,14 +2701,14 @@ Optional:
 
 Required:
 
-- `exclude_applications` (Set of String) Applications to exclude from the policy. For empty requests, use []
-- `include_applications` (Set of String) Applications to include in the policy. Can use the special value 'All' to include all applications.
-- `include_authentication_context_class_references` (Set of String) Authentication context secures data and actions in applications, including custom applications, line-of-business (LOB) applications, SharePoint, and applications protected by Microsoft Defender for Cloud Apps. Can be predefined builtin contexts: `require_trusted_device` (or c1), `require_terms_of_use` (or c2), `require_trusted_location` (or c3), `require_strong_authentication` (or c4), `required_trust_type:azure_ad_joined` (or c5), `require_access_from_an_approved_app` (or c6), `required_trust_type:hybrid_azure_ad_joined` (or c7) or custom authentication context class references in the format 'c' followed by a number from 8 through to 99 (e.g., c1, c8, c10, c25, c99). Learn more here 'https://learn.microsoft.com/en-us/entra/identity/conditional-access/concept-conditional-access-cloud-apps#authentication-context'.
-- `include_user_actions` (Set of String) User actions to include in the policy.
+- `include_applications` (Set of String) Applications to include in the policy. Can use special values: 'All' (all applications), 'None' (no applications), 'MicrosoftAdminPortals', 'Office365', or 'AllAgentIdResources' (all agent ID resources for Private Access). You can also specify application GUIDs.
 
 Optional:
 
 - `application_filter` (Attributes) Configure app filters you want to policy to apply to. Using custom security attributes you can use the rule builder or rule syntax text box to create or edit the filter rules. this feature is currently in preview, only attributes of type String are supported. Attributes of type Integer or Boolean are not currently supported. Learn more here 'https://learn.microsoft.com/en-us/entra/identity/conditional-access/concept-filter-for-applications'. (see [below for nested schema](#nestedatt--conditions--applications--application_filter))
+- `exclude_applications` (Set of String) Applications to exclude from the policy.
+- `include_authentication_context_class_references` (Set of String) Authentication context secures data and actions in applications, including custom applications, line-of-business (LOB) applications, SharePoint, and applications protected by Microsoft Defender for Cloud Apps. Can be predefined builtin contexts: `require_trusted_device` (or c1), `require_terms_of_use` (or c2), `require_trusted_location` (or c3), `require_strong_authentication` (or c4), `required_trust_type:azure_ad_joined` (or c5), `require_access_from_an_approved_app` (or c6), `required_trust_type:hybrid_azure_ad_joined` (or c7) or custom authentication context class references in the format 'c' followed by a number from 8 through to 99 (e.g., c1, c8, c10, c25, c99). Learn more here 'https://learn.microsoft.com/en-us/entra/identity/conditional-access/concept-conditional-access-cloud-apps#authentication-context'.
+- `include_user_actions` (Set of String) User actions to include in the policy.
 
 <a id="nestedatt--conditions--applications--application_filter"></a>
 ### Nested Schema for `conditions.applications.application_filter`
@@ -2725,17 +2725,17 @@ Required:
 
 Required:
 
-- `exclude_groups` (Set of String) Groups to exclude from the policy.
-- `exclude_roles` (Set of String) Microsoft Entra tenant roles to exclude from the policy.
-- `exclude_users` (Set of String) Users to exclude from the policy. Can use special values like 'GuestsOrExternalUsers'.
-- `include_groups` (Set of String) Groups to include in the policy.
-- `include_roles` (Set of String) Roles to include in the policy.
 - `include_users` (Set of String) Users to include in the policy. Can use special values like 'All', 'None', or 'GuestsOrExternalUsers'.
 
 Optional:
 
+- `exclude_groups` (Set of String) Groups to exclude from the policy.
 - `exclude_guests_or_external_users` (Attributes) Configuration for excluding guests or external users. (see [below for nested schema](#nestedatt--conditions--users--exclude_guests_or_external_users))
+- `exclude_roles` (Set of String) Microsoft Entra tenant roles to exclude from the policy.
+- `exclude_users` (Set of String) Users to exclude from the policy. Can use special values like 'GuestsOrExternalUsers'.
+- `include_groups` (Set of String) Groups to include in the policy.
 - `include_guests_or_external_users` (Attributes) Configuration for including guests or external users. (see [below for nested schema](#nestedatt--conditions--users--include_guests_or_external_users))
+- `include_roles` (Set of String) Roles to include in the policy.
 
 <a id="nestedatt--conditions--users--exclude_guests_or_external_users"></a>
 ### Nested Schema for `conditions.users.exclude_guests_or_external_users`
@@ -2797,16 +2797,13 @@ Required:
 <a id="nestedatt--conditions--client_applications"></a>
 ### Nested Schema for `conditions.client_applications`
 
-Required:
-
-- `include_service_principals` (Set of String) Service principals to include in the policy. Can use the special value 'ServicePrincipalsInMyTenant' to include all service principals.
-
 Optional:
 
 - `agent_id_service_principal_filter` (Attributes) Filter for agent ID service principals using custom security attributes. (see [below for nested schema](#nestedatt--conditions--client_applications--agent_id_service_principal_filter))
 - `exclude_agent_id_service_principals` (Set of String) Agent ID service principals to exclude. Specify service principal GUIDs.
 - `exclude_service_principals` (Set of String) Service principals to exclude from the policy.
 - `include_agent_id_service_principals` (Set of String) Agent ID service principals to include. Can use the special value 'All' or specify service principal GUIDs.
+- `include_service_principals` (Set of String) Service principals to include in the policy. Can use the special value 'ServicePrincipalsInMyTenant' to include all service principals.
 - `service_principal_filter` (Attributes) Filter for service principals using custom security attributes. (see [below for nested schema](#nestedatt--conditions--client_applications--service_principal_filter))
 
 <a id="nestedatt--conditions--client_applications--agent_id_service_principal_filter"></a>
@@ -2820,6 +2817,21 @@ Required:
 
 <a id="nestedatt--conditions--client_applications--service_principal_filter"></a>
 ### Nested Schema for `conditions.client_applications.service_principal_filter`
+
+Required:
+
+- `mode` (String) Filter mode. Possible values are: include, exclude.
+- `rule` (String) Filter rule using custom security attribute syntax.
+
+
+- `agent_id_service_principal_filter` (Attributes) Filter for agent ID service principals using custom security attributes. (see [below for nested schema](#nestedatt--conditions--client_applications--agent_id_service_principal_filter))
+- `exclude_agent_id_service_principals` (Set of String) Agent ID service principals to exclude. Specify service principal GUIDs.
+- `exclude_service_principals` (Set of String) Service principals to exclude from the policy.
+- `include_agent_id_service_principals` (Set of String) Agent ID service principals to include. Can use the special value 'All' or specify service principal GUIDs.
+- `service_principal_filter` (Attributes) Filter for service principals using custom security attributes. (see [below for nested schema](#nestedatt--conditions--client_applications--service_principal_filter))
+
+<a id="nestedatt--conditions--client_applications--agent_id_service_principal_filter"></a>
+### Nested Schema for `conditions.client_applications.agent_id_service_principal_filter`
 
 Required:
 
@@ -2861,7 +2873,7 @@ Required:
 <a id="nestedatt--conditions--locations"></a>
 ### Nested Schema for `conditions.locations`
 
-Required:
+Optional:
 
 - `exclude_locations` (Set of String) Named locations to exclude from the policy. Can use special values like 'AllTrusted' or provide guid'sof named locations.
 - `include_locations` (Set of String) Named locations to include in the policy. Can use special values like 'All' or 'AllTrusted' 'or provide guid'sof named locations.
@@ -2905,6 +2917,8 @@ Required:
 Optional:
 
 - `authentication_strength` (Attributes) Authentication strength is a Conditional Access control that specifies which combinations of authentication methods can be used to access a resource. Users can satisfy the strength requirements by authenticating with any of the allowed combinations. read more here 'https://learn.microsoft.com/en-us/entra/identity/authentication/concept-authentication-strengths'. (see [below for nested schema](#nestedatt--grant_controls--authentication_strength))
+- `built_in_controls` (Set of String) List of built-in controls required by the policy. Possible values are: block, mfa, compliantDevice, domainJoinedDevice, approvedApplication, compliantApplication, passwordChange, riskRemediation.
+- `custom_authentication_factors` (Set of String) Custom authentication factors for granting access.
 - `terms_of_use` (Set of String) Terms of use required for granting access.
 
 <a id="nestedatt--grant_controls--authentication_strength"></a>

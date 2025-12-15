@@ -3,12 +3,12 @@ page_title: "microsoft365_graph_beta_device_and_app_management_application_categ
 subcategory: "Device and App Management"
 
 description: |-
-  Retrieves Application Categories from Microsoft Intune with explicit filtering options.
+  Retrieves application categories from Microsoft Intune using the /deviceAppManagement/mobileAppCategories endpoint. This data source enables querying application categories with advanced filtering capabilities including OData queries.
 ---
 
 # microsoft365_graph_beta_device_and_app_management_application_category (Data Source)
 
-Retrieves Application Categories from Microsoft Intune with explicit filtering options.
+Retrieves application categories from Microsoft Intune using the `/deviceAppManagement/mobileAppCategories` endpoint. This data source enables querying application categories with advanced filtering capabilities including OData queries.
 
 ## Microsoft Documentation
 
@@ -172,16 +172,18 @@ output "comparison_summary" {
 
 ### Required
 
-- `filter_type` (String) Type of filter to apply. Valid values are: `all`, `id`, `display_name`, `last_modified_date_time`.
+- `filter_type` (String) Type of filter to apply. Valid values are: `all`, `id`, `display_name`, `odata`.
 
 ### Optional
 
-- `filter_value` (String) Value to filter by. Not required when filter_type is 'all'. For date filters, use RFC3339 format (e.g., '2023-01-01T00:00:00Z').
+- `filter_value` (String) Value to filter by. Required when filter_type is 'id' or 'display_name'. Not required when filter_type is 'all' or 'odata'.
+- `odata_filter` (String) OData filter query. Only used when filter_type is 'odata'. Supports standard OData filter syntax (e.g., `displayName eq 'Finance'`, `startswith(displayName, 'IT')`).
+- `odata_top` (Number) OData $top parameter to limit the number of results. Only used when filter_type is 'odata'.
 - `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))
 
 ### Read-Only
 
-- `items` (Attributes List) The list of Application Categories that match the filter criteria. (see [below for nested schema](#nestedatt--items))
+- `items` (Attributes List) The list of application categories that match the filter criteria. (see [below for nested schema](#nestedatt--items))
 
 <a id="nestedatt--timeouts"></a>
 ### Nested Schema for `timeouts`
@@ -200,5 +202,5 @@ Optional:
 Read-Only:
 
 - `display_name` (String) The display name of the application category.
-- `id` (String) The ID of the application category.
-- `last_modified_date_time` (String) The date and time when the application category was last modified.
+- `id` (String) The unique identifier of the application category.
+- `last_modified_date_time` (String) The date and time when the application category was last modified in RFC3339 format.

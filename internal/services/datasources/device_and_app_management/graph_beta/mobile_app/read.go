@@ -12,6 +12,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	abstractions "github.com/microsoft/kiota-abstractions-go"
 	"github.com/microsoftgraph/msgraph-beta-sdk-go/deviceappmanagement"
+	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
+	graphcore "github.com/microsoftgraph/msgraph-sdk-go-core"
 )
 
 func (d *MobileAppDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
@@ -100,64 +102,92 @@ func (d *MobileAppDataSource) Read(ctx context.Context, req datasource.ReadReque
 
 		if !object.ODataSelect.IsNull() && object.ODataSelect.ValueString() != "" {
 			selectFields := strings.Split(object.ODataSelect.ValueString(), ",")
+			for i, field := range selectFields {
+				selectFields[i] = strings.TrimSpace(field)
+			}
 			requestParameters.QueryParameters.Select = selectFields
 			tflog.Debug(ctx, fmt.Sprintf("Setting OData select: %v", selectFields))
 		}
 
 		if !object.ODataOrderBy.IsNull() && object.ODataOrderBy.ValueString() != "" {
 			orderbyFields := strings.Split(object.ODataOrderBy.ValueString(), ",")
+			for i, field := range orderbyFields {
+				orderbyFields[i] = strings.TrimSpace(field)
+			}
 			requestParameters.QueryParameters.Orderby = orderbyFields
 			tflog.Debug(ctx, fmt.Sprintf("Setting OData orderby: %v", orderbyFields))
 		}
 
-		respList, err := d.client.
-			DeviceAppManagement().
-			MobileApps().
-			Get(ctx, requestParameters)
+		tflog.Debug(ctx, "Using Microsoft Graph SDK PageIterator for mobile apps with OData parameters")
 
+		allMobileApps, err := d.getAllMobileAppsWithPageIterator(ctx, requestParameters)
 		if err != nil {
-			tflog.Error(ctx, fmt.Sprintf("Error in OData query: %v", err))
+			tflog.Error(ctx, fmt.Sprintf("Error in OData query with pagination: %v", err))
 			errors.HandleKiotaGraphError(ctx, err, resp, "Read", d.ReadPermissions)
 			return
 		}
 
-		tflog.Debug(ctx, fmt.Sprintf("API returned %d results", len(respList.GetValue())))
+		tflog.Debug(ctx, fmt.Sprintf("PageIterator returned %d results", len(allMobileApps)))
 
-		for _, mobileApp := range respList.GetValue() {
+		for _, mobileApp := range allMobileApps {
+			if appTypeFilter != "" {
+				currentAppType := getAppTypeFromMobileApp(mobileApp)
+				if currentAppType != appTypeFilter {
+					continue
+				}
+			}
+
 			appItem := MapRemoteStateToDataSource(ctx, mobileApp)
 			filteredItems = append(filteredItems, appItem)
 		}
 	default:
-		// For "all" and "display_name", get the full list and filter locally
-		respList, err := d.client.
-			DeviceAppManagement().
-			MobileApps().
-			Get(ctx, nil)
+		// For "all", "display_name", and "publisher_name", get the full list and filter locally using page iterator
+		tflog.Debug(ctx, "Using Microsoft Graph SDK PageIterator for mobile apps (all/display_name/publisher_name filter)")
 
+		// Build request parameters with expand for categories
+		requestParameters := &deviceappmanagement.MobileAppsRequestBuilderGetRequestConfiguration{
+			QueryParameters: &deviceappmanagement.MobileAppsRequestBuilderGetQueryParameters{
+				Expand: []string{"categories"},
+			},
+		}
+
+		allMobileApps, err := d.getAllMobileAppsWithPageIterator(ctx, requestParameters)
 		if err != nil {
 			errors.HandleKiotaGraphError(ctx, err, resp, "Read", d.ReadPermissions)
 			return
 		}
 
-		for _, mobileApp := range respList.GetValue() {
+		for _, mobileApp := range allMobileApps {
 			currentAppType := getAppTypeFromMobileApp(mobileApp)
 
 			if appTypeFilter != "" && currentAppType != appTypeFilter {
 				continue
 			}
 
-			appItem := MapRemoteStateToDataSource(ctx, mobileApp)
+			shouldInclude := false
 
 			switch filterType {
 			case "all":
-				filteredItems = append(filteredItems, appItem)
+				shouldInclude = true
 
 			case "display_name":
 				if mobileApp.GetDisplayName() != nil && strings.Contains(
 					strings.ToLower(*mobileApp.GetDisplayName()),
 					strings.ToLower(filterValue)) {
-					filteredItems = append(filteredItems, appItem)
+					shouldInclude = true
 				}
+
+			case "publisher_name":
+				if mobileApp.GetPublisher() != nil && strings.Contains(
+					strings.ToLower(*mobileApp.GetPublisher()),
+					strings.ToLower(filterValue)) {
+					shouldInclude = true
+				}
+			}
+
+			if shouldInclude {
+				appItem := MapRemoteStateToDataSource(ctx, mobileApp)
+				filteredItems = append(filteredItems, appItem)
 			}
 		}
 	}
@@ -170,4 +200,50 @@ func (d *MobileAppDataSource) Read(ctx context.Context, req datasource.ReadReque
 	}
 
 	tflog.Debug(ctx, fmt.Sprintf("Finished Datasource Read Method: %s, found %d items", DataSourceName, len(filteredItems)))
+}
+
+// getAllMobileAppsWithPageIterator gets all mobile apps using page iterator for proper pagination
+func (d *MobileAppDataSource) getAllMobileAppsWithPageIterator(ctx context.Context, requestParameters *deviceappmanagement.MobileAppsRequestBuilderGetRequestConfiguration) ([]graphmodels.MobileAppable, error) {
+	var allApps []graphmodels.MobileAppable
+
+	appsResponse, err := d.client.
+		DeviceAppManagement().
+		MobileApps().
+		Get(ctx, requestParameters)
+
+	if err != nil {
+		return nil, err
+	}
+
+	pageIterator, err := graphcore.NewPageIterator[graphmodels.MobileAppable](
+		appsResponse,
+		d.client.GetAdapter(),
+		graphmodels.CreateMobileAppCollectionResponseFromDiscriminatorValue,
+	)
+
+	if err != nil {
+		return nil, fmt.Errorf("failed to create page iterator: %w", err)
+	}
+
+	pageCount := 0
+	err = pageIterator.Iterate(ctx, func(item graphmodels.MobileAppable) bool {
+		if item != nil {
+			allApps = append(allApps, item)
+
+			// Log every 25 items (default page size)
+			if len(allApps)%25 == 0 {
+				pageCount++
+				tflog.Debug(ctx, fmt.Sprintf("PageIterator: collected %d mobile apps (estimated page %d)", len(allApps), pageCount))
+			}
+		}
+		return true
+	})
+
+	if err != nil {
+		return nil, fmt.Errorf("failed to iterate pages: %w", err)
+	}
+
+	tflog.Debug(ctx, fmt.Sprintf("PageIterator complete: collected %d total mobile apps", len(allApps)))
+
+	return allApps, nil
 }

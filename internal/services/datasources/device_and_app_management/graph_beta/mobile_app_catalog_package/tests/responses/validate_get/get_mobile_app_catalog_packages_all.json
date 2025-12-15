@@ -1,65 +1,66 @@
 {
-    "@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceAppManagement/mobileAppCatalogPackages",
-    "@odata.count": 0,
-    "value": [
-        {
-            "@odata.type": "#microsoft.graph.win32MobileAppCatalogPackage",
-            "id": "5af1ade9-6966-3608-7e04-848252e29681",
-            "productId": "3a6307ef-6991-faf1-01e1-35e1557287aa",
-            "productDisplayName": "7-Zip",
-            "publisherDisplayName": "Igor Pavlov",
-            "versionDisplayName": "25.01",
-            "branchDisplayName": "7-Zip (x64)",
-            "applicableArchitectures": "x64",
-            "locales": [
-                "mul"
-            ],
-            "packageAutoUpdateCapable": false
-        },
-        {
-            "@odata.type": "#microsoft.graph.win32MobileAppCatalogPackage",
-            "id": "8b2fade9-6966-3608-7e04-848252e29682",
-            "productId": "752bbff6-5cca-7dd6-ef1f-36cc75df8512",
-            "productDisplayName": "3CXPhone for Windows",
-            "publisherDisplayName": "3CX",
-            "versionDisplayName": "18.0.7",
-            "branchDisplayName": "3CXPhone for Windows (x64)",
-            "applicableArchitectures": "x64",
-            "locales": [
-                "en-US",
-                "mul"
-            ],
-            "packageAutoUpdateCapable": true
-        },
-        {
-            "@odata.type": "#microsoft.graph.win32MobileAppCatalogPackage",
-            "id": "9c3fade9-6966-3608-7e04-848252e29683",
-            "productId": "5ae2c14f-0ca9-2805-430c-365e0ac7ca86",
-            "productDisplayName": "3DF Zephyr Free",
-            "publisherDisplayName": "3Dflow srl",
-            "versionDisplayName": "2023.1.0",
-            "branchDisplayName": "3DF Zephyr Free (x64)",
-            "applicableArchitectures": "x64",
-            "locales": [
-                "en-US"
-            ],
-            "packageAutoUpdateCapable": false
-        },
-        {
-            "@odata.type": "#microsoft.graph.win32MobileAppCatalogPackage",
-            "id": "ad4fade9-6966-3608-7e04-848252e29684",
-            "productId": "307ebf5f-4e9f-ab0d-5a36-36ca7cdebd56",
-            "productDisplayName": "3DxWare 10",
-            "publisherDisplayName": "3Dconnexion UK",
-            "versionDisplayName": "10.7.0",
-            "branchDisplayName": "3DxWare 10 (x64)",
-            "applicableArchitectures": "x64",
-            "locales": [
-                "en-US",
-                "de-DE",
-                "fr-FR"
-            ],
-            "packageAutoUpdateCapable": true
-        }
-    ]
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceAppManagement/mobileAppCatalogPackages",
+  "@odata.count": 5,
+  "value": [
+    {
+      "@odata.type": "#microsoft.graph.win32MobileAppCatalogPackage",
+      "id": "a09730b0-93d9-bb83-a96e-c5346258734b",
+      "productId": "3a6307ef-6991-faf1-01e1-35e1557287aa",
+      "productDisplayName": "7-Zip",
+      "publisherDisplayName": "Igor Pavlov",
+      "versionDisplayName": "25.01",
+      "branchDisplayName": "7-Zip (x64)",
+      "applicableArchitectures": "x64",
+      "locales": ["mul"],
+      "packageAutoUpdateCapable": false
+    },
+    {
+      "@odata.type": "#microsoft.graph.win32MobileAppCatalogPackage",
+      "id": "a8375b62-1909-812c-ee54-044ba1b1461b",
+      "productId": "f9856d6e-3e49-4e15-9c64-78d8e3b27b30",
+      "productDisplayName": "CPU-Z",
+      "publisherDisplayName": "CPUID, Inc",
+      "versionDisplayName": "2.17",
+      "branchDisplayName": "CPU-Z (x64)",
+      "applicableArchitectures": "x64",
+      "locales": ["en-US"],
+      "packageAutoUpdateCapable": false
+    },
+    {
+      "@odata.type": "#microsoft.graph.win32MobileAppCatalogPackage",
+      "id": "03ca0d35-9d3b-761e-db57-2116b6f6f2ea",
+      "productId": "cbc5f29e-1b7f-4b1d-9c3a-2c8f0e5d3b4a",
+      "productDisplayName": "Adobe AIR",
+      "publisherDisplayName": "HARMAN International",
+      "versionDisplayName": "51.2.2.6",
+      "branchDisplayName": "Adobe AIR",
+      "applicableArchitectures": "x64",
+      "locales": ["mul"],
+      "packageAutoUpdateCapable": false
+    },
+    {
+      "@odata.type": "#microsoft.graph.win32MobileAppCatalogPackage",
+      "id": "6274fe37-8968-1a80-e561-5a9fceff4579",
+      "productId": "d1e2f3a4-5b6c-7d8e-9f0a-1b2c3d4e5f6a",
+      "productDisplayName": "Dell Display Manager",
+      "publisherDisplayName": "Dell, Inc.",
+      "versionDisplayName": "1.56.2110",
+      "branchDisplayName": "Dell Display Manager",
+      "applicableArchitectures": "x64",
+      "locales": ["mul"],
+      "packageAutoUpdateCapable": false
+    },
+    {
+      "@odata.type": "#microsoft.graph.win32MobileAppCatalogPackage",
+      "id": "6e8cf1b6-1a04-d641-bc1c-04a8e61bff16",
+      "productId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+      "productDisplayName": "Docker Desktop",
+      "publisherDisplayName": "Docker Inc.",
+      "versionDisplayName": "4.49.0.208700",
+      "branchDisplayName": "Docker Desktop (x64)",
+      "applicableArchitectures": "x64",
+      "locales": ["en-US"],
+      "packageAutoUpdateCapable": false
+    }
+  ]
 }

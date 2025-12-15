@@ -26,7 +26,8 @@ The following API permissions are required in order to use this resource.
 | Version | Status | Notes |
 |---------|--------|-------|
 | v0.28.0-alpha | Experimental | Initial release |
-| v0.38.0-alpha | Preview | Added hard_delete option |
+| v0.38.0-alpha | Preview | Refactored to use Kiota SDK |
+
 
 ## Example Usage
 
@@ -200,7 +201,6 @@ resource "microsoft365_graph_beta_identity_and_access_named_location" "semi_trus
 resource "microsoft365_graph_beta_identity_and_access_named_location" "trusted_corporate_hq" {
   display_name = "Trusted - Corporate Headquarters"
   is_trusted   = true
-  hard_delete  = true
 
   ipv4_ranges = [
     "203.0.113.0/24", # Example: HQ public IP range
@@ -226,7 +226,6 @@ resource "microsoft365_graph_beta_identity_and_access_named_location" "trusted_c
 resource "microsoft365_graph_beta_identity_and_access_named_location" "trusted_corporate_vpn" {
   display_name = "Trusted - Corporate VPN"
   is_trusted   = true
-  hard_delete  = true
 
   ipv4_ranges = [
     "198.51.100.0/24", # Example: VPN endpoint pool
@@ -251,7 +250,6 @@ resource "microsoft365_graph_beta_identity_and_access_named_location" "trusted_c
 resource "microsoft365_graph_beta_identity_and_access_named_location" "trusted_regional_offices" {
   display_name = "Trusted - Regional Offices"
   is_trusted   = true
-  hard_delete  = true
 
   ipv4_ranges = [
     "192.0.2.0/24",    # Example: EMEA Office
@@ -282,7 +280,6 @@ resource "microsoft365_graph_beta_identity_and_access_named_location" "trusted_r
 # Partner/Vendor Networks
 resource "microsoft365_graph_beta_identity_and_access_named_location" "semi_trusted_partner_networks" {
   display_name = "Semi-Trusted - Partner Networks"
-  hard_delete  = true
 
   ipv4_ranges = [
     "198.18.0.0/24", # Example: Partner A network

@@ -56,14 +56,14 @@ func (d *MobileAppDataSource) Schema(ctx context.Context, _ datasource.SchemaReq
 		Attributes: map[string]schema.Attribute{
 			"filter_type": schema.StringAttribute{
 				Required:            true,
-				MarkdownDescription: "Type of filter to apply. Valid values are: `all`, `id`, `display_name`, `odata`.",
+				MarkdownDescription: "Type of filter to apply. Valid values are: `all`, `id`, `display_name`, `publisher_name`, `odata`.",
 				Validators: []validator.String{
-					stringvalidator.OneOf("all", "id", "display_name", "odata"),
+					stringvalidator.OneOf("all", "id", "display_name", "publisher_name", "odata"),
 				},
 			},
 			"filter_value": schema.StringAttribute{
 				Optional:            true,
-				MarkdownDescription: "Value to filter by. Not required when filter_type is 'all'.",
+				MarkdownDescription: "Value to filter by. Not required when filter_type is 'all' or 'odata'.",
 			},
 			"odata_filter": schema.StringAttribute{
 				Optional:            true,

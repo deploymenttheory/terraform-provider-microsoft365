@@ -1,0 +1,115 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceAppManagement/mobileApps",
+  "@odata.count": 4,
+  "value": [
+    {
+      "@odata.type": "#microsoft.graph.win32LobApp",
+      "id": "00000000-0000-0000-0000-000000000001",
+      "displayName": "Microsoft Edge",
+      "description": "Microsoft Edge browser for Windows",
+      "publisher": "Microsoft Corporation",
+      "largeIcon": null,
+      "createdDateTime": "2024-01-15T10:30:00Z",
+      "lastModifiedDateTime": "2024-01-15T10:30:00Z",
+      "isFeatured": true,
+      "privacyInformationUrl": "https://privacy.microsoft.com",
+      "informationUrl": "https://www.microsoft.com/edge",
+      "owner": "IT Department",
+      "developer": "Microsoft Corporation",
+      "notes": "Latest stable version",
+      "uploadState": 1,
+      "publishingState": "published",
+      "isAssigned": true,
+      "roleScopeTagIds": ["0"],
+      "dependentAppCount": 0,
+      "supersedingAppCount": 0,
+      "supersededAppCount": 0,
+      "categories": [
+        {
+          "@odata.type": "#microsoft.graph.mobileAppCategory",
+          "id": "cat-001",
+          "displayName": "Productivity"
+        }
+      ]
+    },
+    {
+      "@odata.type": "#microsoft.graph.macOSPkgApp",
+      "id": "00000000-0000-0000-0000-000000000002",
+      "displayName": "Adobe Acrobat Reader",
+      "description": "PDF reader for macOS",
+      "publisher": "Adobe Inc.",
+      "largeIcon": null,
+      "createdDateTime": "2024-01-10T14:20:00Z",
+      "lastModifiedDateTime": "2024-01-10T14:20:00Z",
+      "isFeatured": false,
+      "privacyInformationUrl": "https://www.adobe.com/privacy.html",
+      "informationUrl": "https://www.adobe.com/acrobat",
+      "owner": null,
+      "developer": "Adobe Inc.",
+      "notes": null,
+      "uploadState": 1,
+      "publishingState": "published",
+      "isAssigned": true,
+      "roleScopeTagIds": ["0"],
+      "dependentAppCount": 0,
+      "supersedingAppCount": 0,
+      "supersededAppCount": 0,
+      "categories": []
+    },
+    {
+      "@odata.type": "#microsoft.graph.iosStoreApp",
+      "id": "00000000-0000-0000-0000-000000000003",
+      "displayName": "Microsoft Teams",
+      "description": "Collaboration app for iOS",
+      "publisher": "Microsoft Corporation",
+      "largeIcon": null,
+      "createdDateTime": "2024-01-05T09:15:00Z",
+      "lastModifiedDateTime": "2024-01-05T09:15:00Z",
+      "isFeatured": true,
+      "privacyInformationUrl": "https://privacy.microsoft.com",
+      "informationUrl": "https://www.microsoft.com/teams",
+      "owner": "IT Department",
+      "developer": "Microsoft Corporation",
+      "notes": "Required for all users",
+      "uploadState": 1,
+      "publishingState": "published",
+      "isAssigned": true,
+      "roleScopeTagIds": ["0"],
+      "dependentAppCount": 0,
+      "supersedingAppCount": 0,
+      "supersededAppCount": 0,
+      "categories": [
+        {
+          "@odata.type": "#microsoft.graph.mobileAppCategory",
+          "id": "cat-002",
+          "displayName": "Communication"
+        }
+      ]
+    },
+    {
+      "@odata.type": "#microsoft.graph.androidManagedStoreApp",
+      "id": "00000000-0000-0000-0000-000000000004",
+      "displayName": "Slack",
+      "description": "Team collaboration app",
+      "publisher": "Slack Technologies",
+      "largeIcon": null,
+      "createdDateTime": "2024-01-12T11:45:00Z",
+      "lastModifiedDateTime": "2024-01-12T11:45:00Z",
+      "isFeatured": false,
+      "privacyInformationUrl": "https://slack.com/privacy",
+      "informationUrl": "https://slack.com",
+      "owner": null,
+      "developer": "Slack Technologies",
+      "notes": null,
+      "uploadState": 1,
+      "publishingState": "published",
+      "isAssigned": false,
+      "roleScopeTagIds": ["0"],
+      "dependentAppCount": 0,
+      "supersedingAppCount": 0,
+      "supersededAppCount": 0,
+      "categories": []
+    }
+  ]
+}
+

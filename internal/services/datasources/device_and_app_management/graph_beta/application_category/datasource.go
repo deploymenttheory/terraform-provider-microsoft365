@@ -52,27 +52,35 @@ func (d *ApplicationCategoryDataSource) Configure(ctx context.Context, req datas
 // Schema defines the schema for the data source
 func (d *ApplicationCategoryDataSource) Schema(ctx context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Retrieves Application Categories from Microsoft Intune with explicit filtering options.",
+		MarkdownDescription: "Retrieves application categories from Microsoft Intune using the `/deviceAppManagement/mobileAppCategories` endpoint. This data source enables querying application categories with advanced filtering capabilities including OData queries.",
 		Attributes: map[string]schema.Attribute{
 			"filter_type": schema.StringAttribute{
 				Required:            true,
-				MarkdownDescription: "Type of filter to apply. Valid values are: `all`, `id`, `display_name`, `last_modified_date_time`.",
+				MarkdownDescription: "Type of filter to apply. Valid values are: `all`, `id`, `display_name`, `odata`.",
 				Validators: []validator.String{
-					stringvalidator.OneOf("all", "id", "display_name", "last_modified_date_time"),
+					stringvalidator.OneOf("all", "id", "display_name", "odata"),
 				},
 			},
 			"filter_value": schema.StringAttribute{
 				Optional:            true,
-				MarkdownDescription: "Value to filter by. Not required when filter_type is 'all'. For date filters, use RFC3339 format (e.g., '2023-01-01T00:00:00Z').",
+				MarkdownDescription: "Value to filter by. Required when filter_type is 'id' or 'display_name'. Not required when filter_type is 'all' or 'odata'.",
+			},
+			"odata_filter": schema.StringAttribute{
+				Optional:            true,
+				MarkdownDescription: "OData filter query. Only used when filter_type is 'odata'. Supports standard OData filter syntax (e.g., `displayName eq 'Finance'`, `startswith(displayName, 'IT')`).",
+			},
+			"odata_top": schema.Int32Attribute{
+				Optional:            true,
+				MarkdownDescription: "OData $top parameter to limit the number of results. Only used when filter_type is 'odata'.",
 			},
 			"items": schema.ListNestedAttribute{
 				Computed:            true,
-				MarkdownDescription: "The list of Application Categories that match the filter criteria.",
+				MarkdownDescription: "The list of application categories that match the filter criteria.",
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"id": schema.StringAttribute{
 							Computed:            true,
-							MarkdownDescription: "The ID of the application category.",
+							MarkdownDescription: "The unique identifier of the application category.",
 						},
 						"display_name": schema.StringAttribute{
 							Computed:            true,
@@ -80,7 +88,7 @@ func (d *ApplicationCategoryDataSource) Schema(ctx context.Context, _ datasource
 						},
 						"last_modified_date_time": schema.StringAttribute{
 							Computed:            true,
-							MarkdownDescription: "The date and time when the application category was last modified.",
+							MarkdownDescription: "The date and time when the application category was last modified in RFC3339 format.",
 						},
 					},
 				},
