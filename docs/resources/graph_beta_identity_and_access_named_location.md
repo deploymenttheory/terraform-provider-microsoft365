@@ -28,7 +28,6 @@ The following API permissions are required in order to use this resource.
 | v0.28.0-alpha | Experimental | Initial release |
 | v0.38.0-alpha | Preview | Refactored to use Kiota SDK |
 
-
 ## Example Usage
 
 ### Country-Based Named Locations
@@ -39,7 +38,6 @@ resource "microsoft365_graph_beta_identity_and_access_named_location" "high_risk
   display_name                          = "High Risk Countries Blocked by Client IP"
   country_lookup_method                 = "clientIpAddress"
   include_unknown_countries_and_regions = false
-  hard_delete                           = true
 
   countries_and_regions = [
     "AF", # Afghanistan
@@ -69,7 +67,6 @@ resource "microsoft365_graph_beta_identity_and_access_named_location" "high_risk
   display_name                          = "High Risk Countries Blocked by Authenticator GPS"
   country_lookup_method                 = "authenticatorAppGps"
   include_unknown_countries_and_regions = false
-  hard_delete                           = true
 
   countries_and_regions = [
     "AF", # Afghanistan
@@ -102,7 +99,6 @@ resource "microsoft365_graph_beta_identity_and_access_named_location" "trusted_c
   display_name                          = "Trusted - Countries and Regions"
   country_lookup_method                 = "clientIpAddress"
   include_unknown_countries_and_regions = false
-  hard_delete                           = true
 
   countries_and_regions = [
     "US", # United States
@@ -148,7 +144,6 @@ resource "microsoft365_graph_beta_identity_and_access_named_location" "semi_trus
   display_name                          = "Semi-Trusted - Countries Requiring Compliance"
   country_lookup_method                 = "clientIpAddress"
   include_unknown_countries_and_regions = false
-  hard_delete                           = true
 
   countries_and_regions = [
     "BR", # Brazil
@@ -308,7 +303,6 @@ resource "microsoft365_graph_beta_identity_and_access_named_location" "semi_trus
 resource "microsoft365_graph_beta_identity_and_access_named_location" "allowed_service_account_sources" {
   display_name = "Allowed - Service Account Sources"
   is_trusted   = true
-  hard_delete  = true
 
   ipv4_ranges = [
     "10.100.0.10/32", # Example: Build server
@@ -335,7 +329,6 @@ resource "microsoft365_graph_beta_identity_and_access_named_location" "allowed_s
 resource "microsoft365_graph_beta_identity_and_access_named_location" "allowed_emea_office_only" {
   display_name = "Allowed - EMEA Office Only"
   is_trusted   = true
-  hard_delete  = true
 
   ipv4_ranges = [
     "203.0.113.0/24", # Example: EMEA office IP range
@@ -355,7 +348,6 @@ resource "microsoft365_graph_beta_identity_and_access_named_location" "allowed_e
 resource "microsoft365_graph_beta_identity_and_access_named_location" "allowed_apac_office_only" {
   display_name = "Allowed - APAC Office Only"
   is_trusted   = true
-  hard_delete  = true
 
   ipv4_ranges = [
     "198.51.100.0/24", # Example: APAC office IP range
@@ -375,7 +367,6 @@ resource "microsoft365_graph_beta_identity_and_access_named_location" "allowed_a
 resource "microsoft365_graph_beta_identity_and_access_named_location" "allowed_americas_office_only" {
   display_name = "Allowed - Americas Office Only"
   is_trusted   = true
-  hard_delete  = true
 
   ipv4_ranges = [
     "192.0.2.0/24", # Example: Americas office IP range
@@ -403,7 +394,6 @@ resource "microsoft365_graph_beta_identity_and_access_named_location" "allowed_a
 
 - `countries_and_regions` (Set of String) Set of countries and/or regions in two-letter format specified by ISO 3166-2 (e.g., 'US', 'GB', 'CA'). Used for country named locations only.
 - `country_lookup_method` (String) Provides the method used to decide which country the user is located in. Possible values are `clientIpAddress` and `authenticatorAppGps`. Used for country named locations only.
-- `hard_delete` (Boolean) When `true`, the named location will be permanently deleted (hard delete) during destroy. When `false` (default), the named location will only be soft deleted and moved to the deleted items container where it can be restored within 30 days. Note: This field defaults to `false` on import since the API does not return this value.
 - `include_unknown_countries_and_regions` (Boolean) True if IP addresses that don't map to a country or region should be included in the named location. Used for country named locations only.
 - `ipv4_ranges` (Set of String) Set of IPv4 CIDR ranges that define this IP named location. Each range should be specified in CIDR notation (e.g., '192.168.1.0/24'). Used for IP named locations only.
 - `ipv6_ranges` (Set of String) Set of IPv6 CIDR ranges that define this IP named location. Each range should be specified in CIDR notation (e.g., '2001:db8::/32'). Used for IP named locations only.
