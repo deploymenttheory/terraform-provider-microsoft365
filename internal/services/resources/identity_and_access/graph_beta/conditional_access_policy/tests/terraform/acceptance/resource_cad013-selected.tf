@@ -29,6 +29,7 @@ resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy"
   display_name = "acc-test-cad013-selected: Grant access for All users when Browser and Modern Auth Clients and Compliant ${random_string.suffix.result}"
   state        = "enabledForReportingButNotEnforced"
 
+
   conditions = {
     client_app_types = ["browser", "mobileAppsAndDesktopClients"]
 
@@ -49,6 +50,7 @@ resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy"
         azuread_application.cad013_app_01.application_id,
         azuread_application.cad013_app_02.application_id
       ]
+
       exclude_applications                            = []
       include_user_actions                            = []
       include_authentication_context_class_references = []
@@ -65,6 +67,7 @@ resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy"
   grant_controls = {
     operator                      = "OR"
     built_in_controls             = ["compliantDevice", "domainJoinedDevice"]
+
     custom_authentication_factors = []
   }
 

@@ -2659,6 +2659,7 @@ resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy"
 ### Optional
 
 - `grant_controls` (Attributes) Controls for granting access. Either `grant_controls` or `session_controls` or both must be specified. (see [below for nested schema](#nestedatt--grant_controls))
+- `hard_delete` (Boolean) When `true`, the conditional access policy will be permanently deleted (hard delete) during destroy. When `false` (default), the policy will only be soft deleted and moved to the deleted items container where it can be restored within 30 days. Note: This field defaults to `false` on import since the API does not return this value.
 - `partial_enablement_strategy` (String) Strategy for partial enablement of the policy.
 - `session_controls` (Attributes) Controls for managing user sessions. Either `grant_controls` or `session_controls` or both must be specified. (see [below for nested schema](#nestedatt--session_controls))
 - `template_id` (String) ID of the template this policy is derived from.
@@ -2823,6 +2824,21 @@ Required:
 - `rule` (String) Filter rule using custom security attribute syntax.
 
 
+- `agent_id_service_principal_filter` (Attributes) Filter for agent ID service principals using custom security attributes. (see [below for nested schema](#nestedatt--conditions--client_applications--agent_id_service_principal_filter))
+- `exclude_agent_id_service_principals` (Set of String) Agent ID service principals to exclude. Specify service principal GUIDs.
+- `exclude_service_principals` (Set of String) Service principals to exclude from the policy.
+- `include_agent_id_service_principals` (Set of String) Agent ID service principals to include. Can use the special value 'All' or specify service principal GUIDs.
+- `service_principal_filter` (Attributes) Filter for service principals using custom security attributes. (see [below for nested schema](#nestedatt--conditions--client_applications--service_principal_filter))
+
+<a id="nestedatt--conditions--client_applications--agent_id_service_principal_filter"></a>
+### Nested Schema for `conditions.client_applications.agent_id_service_principal_filter`
+
+Required:
+
+- `mode` (String) Filter mode. Possible values are: include, exclude.
+- `rule` (String) Filter rule using custom security attribute syntax.
+
+
 
 <a id="nestedatt--conditions--device_states"></a>
 ### Nested Schema for `conditions.device_states`
@@ -2894,6 +2910,8 @@ Optional:
 
 Required:
 
+- `built_in_controls` (Set of String) List of built-in controls required by the policy. Possible values are: block, mfa, compliantDevice, domainJoinedDevice, approvedApplication, compliantApplication, passwordChange, riskRemediation.
+- `custom_authentication_factors` (Set of String) Custom authentication factors for granting access.
 - `operator` (String) Operator to apply to the controls. Possible values are: AND, OR. When setting a singular operator, use 'OR'.
 
 Optional:

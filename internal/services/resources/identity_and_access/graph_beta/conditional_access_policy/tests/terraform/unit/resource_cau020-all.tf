@@ -15,8 +15,8 @@ resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy"
         "22222222-2222-2222-2222-222222222222",
         "33333333-3333-3333-3333-333333333333"
       ]
-      include_roles = []
-      exclude_roles = []
+      include_roles  = []
+      exclude_roles  = []
     }
 
     applications = {
