@@ -53,8 +53,12 @@ func (d *MobileAppCatalogPackageDataSource) Read(ctx context.Context, req dataso
 		}
 
 		for _, packageItem := range allPackages {
-			packageModel := MapRemoteStateToDataSource(ctx, packageItem)
-			filteredItems = append(filteredItems, packageModel)
+			appModel, err := d.convertPackageToApp(ctx, packageItem)
+			if err != nil {
+				tflog.Warn(ctx, fmt.Sprintf("Failed to convert package %s to app: %v", *packageItem.GetId(), err))
+				continue
+			}
+			filteredItems = append(filteredItems, appModel)
 		}
 
 	case "odata":
@@ -136,8 +140,12 @@ func (d *MobileAppCatalogPackageDataSource) Read(ctx context.Context, req dataso
 		tflog.Debug(ctx, fmt.Sprintf("PageIterator returned %d results", len(allPackages)))
 
 		for _, packageItem := range allPackages {
-			packageModel := MapRemoteStateToDataSource(ctx, packageItem)
-			filteredItems = append(filteredItems, packageModel)
+			appModel, err := d.convertPackageToApp(ctx, packageItem)
+			if err != nil {
+				tflog.Warn(ctx, fmt.Sprintf("Failed to convert package %s to app: %v", *packageItem.GetId(), err))
+				continue
+			}
+			filteredItems = append(filteredItems, appModel)
 		}
 
 	default:
@@ -151,25 +159,34 @@ func (d *MobileAppCatalogPackageDataSource) Read(ctx context.Context, req dataso
 		}
 
 		for _, packageItem := range allPackages {
-			packageModel := MapRemoteStateToDataSource(ctx, packageItem)
+			shouldInclude := false
 
 			switch filterType {
 			case "all":
-				filteredItems = append(filteredItems, packageModel)
+				shouldInclude = true
 
 			case "product_name":
 				if packageItem.GetProductDisplayName() != nil && strings.Contains(
 					strings.ToLower(*packageItem.GetProductDisplayName()),
 					strings.ToLower(filterValue)) {
-					filteredItems = append(filteredItems, packageModel)
+					shouldInclude = true
 				}
 
 			case "publisher_name":
 				if packageItem.GetPublisherDisplayName() != nil && strings.Contains(
 					strings.ToLower(*packageItem.GetPublisherDisplayName()),
 					strings.ToLower(filterValue)) {
-					filteredItems = append(filteredItems, packageModel)
+					shouldInclude = true
 				}
+			}
+
+			if shouldInclude {
+				appModel, err := d.convertPackageToApp(ctx, packageItem)
+				if err != nil {
+					tflog.Warn(ctx, fmt.Sprintf("Failed to convert package %s to app: %v", *packageItem.GetId(), err))
+					continue
+				}
+				filteredItems = append(filteredItems, appModel)
 			}
 		}
 	}
@@ -228,4 +245,30 @@ func (d *MobileAppCatalogPackageDataSource) getAllMobileAppCatalogPackageWithPag
 	tflog.Debug(ctx, fmt.Sprintf("PageIterator complete: collected %d total mobile app catalog packages", len(allPackages)))
 
 	return allPackages, nil
+}
+
+// convertPackageToApp converts a mobile app catalog package to a full win32CatalogApp by calling the ConvertFromMobileAppCatalogPackage API
+func (d *MobileAppCatalogPackageDataSource) convertPackageToApp(ctx context.Context, packageItem graphmodels.MobileAppCatalogPackageable) (MobileAppCatalogPackageModel, error) {
+	packageId := packageItem.GetId()
+	if packageId == nil {
+		return MobileAppCatalogPackageModel{}, fmt.Errorf("package ID is nil")
+	}
+
+	tflog.Debug(ctx, fmt.Sprintf("Converting mobile app catalog package %s to win32CatalogApp", *packageId))
+
+	convertedApp, err := d.client.
+		DeviceAppManagement().
+		MobileApps().
+		ConvertFromMobileAppCatalogPackageWithMobileAppCatalogPackageId(packageId).
+		Get(ctx, nil)
+
+	if err != nil {
+		return MobileAppCatalogPackageModel{}, fmt.Errorf("failed to convert package to app: %w", err)
+	}
+
+	appModel := MapRemoteStateToDataSource(ctx, convertedApp)
+
+	tflog.Debug(ctx, fmt.Sprintf("Successfully converted package %s to app", *packageId))
+
+	return appModel, nil
 }
