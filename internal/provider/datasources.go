@@ -35,6 +35,7 @@ import (
 
 	// Graph Beta - Identity and Access datasources
 	graphBetaIdentityAndAccessRoleDefinitions "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/identity_and_access/graph_beta/role_definitions"
+	graphBetaIdentityAndAccessTenantInformation "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/identity_and_access/graph_beta/tenant_information"
 
 	// Graph Beta - M365 Admin datasources
 	graphBetaM365AdminBrowserSite "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/m365_admin/graph_beta/browser_site"
@@ -108,6 +109,7 @@ func (p *M365Provider) DataSources(ctx context.Context) []func() datasource.Data
 		// Graph Beta - Identity and Access datasources
 		graphBetaIdentityAndAccessDirectorySettingTemplates.NewDirectorySettingTemplatesDataSource,
 		graphBetaIdentityAndAccessRoleDefinitions.NewRoleDefinitionsDataSource,
+		graphBetaIdentityAndAccessTenantInformation.NewTenantInformationDataSource,
 		// Graph Beta - M365 Admin datasources
 		graphBetaM365AdminBrowserSite.NewBrowserSiteDataSource,
 		graphBetaM365AdminBrowserSiteList.NewBrowserSiteListDataSource,
