@@ -47,6 +47,9 @@ func TestAccMobileAppCatalogPackageDataSource_All(t *testing.T) {
 					check.That(dataSourceType+".all").Key("items.0.return_codes.#").Exists(),
 					check.That(dataSourceType+".all").Key("items.0.rules.#").Exists(),
 				),
+				// Use ExpectNonEmptyPlan to allow for dynamic catalog changes between API calls
+				// The Microsoft catalog is constantly updated with new packages
+				ExpectNonEmptyPlan: true,
 			},
 		},
 	})

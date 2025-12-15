@@ -1,0 +1,32 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceAppManagement/mobileApps/$entity",
+  "@odata.type": "#microsoft.graph.win32LobApp",
+  "id": "00000000-0000-0000-0000-000000000001",
+  "displayName": "Microsoft Edge",
+  "description": "Microsoft Edge browser for Windows",
+  "publisher": "Microsoft Corporation",
+  "largeIcon": null,
+  "createdDateTime": "2024-01-15T10:30:00Z",
+  "lastModifiedDateTime": "2024-01-15T10:30:00Z",
+  "isFeatured": true,
+  "privacyInformationUrl": "https://privacy.microsoft.com",
+  "informationUrl": "https://www.microsoft.com/edge",
+  "owner": "IT Department",
+  "developer": "Microsoft Corporation",
+  "notes": "Latest stable version",
+  "uploadState": 1,
+  "publishingState": "published",
+  "isAssigned": true,
+  "roleScopeTagIds": ["0"],
+  "dependentAppCount": 0,
+  "supersedingAppCount": 0,
+  "supersededAppCount": 0,
+  "categories": [
+    {
+      "@odata.type": "#microsoft.graph.mobileAppCategory",
+      "id": "cat-001",
+      "displayName": "Productivity"
+    }
+  ]
+}
+
