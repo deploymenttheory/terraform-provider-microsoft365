@@ -1,0 +1,12 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#appRoleAssignments/$entity",
+  "id": "00000000-0000-0000-0000-000000000002-00000000-0000-0000-0000-000000000000",
+  "principalId": "00000000-0000-0000-0000-000000000002",
+  "resourceId": "00000000-0000-0000-0000-000000000010",
+  "appRoleId": "00000000-0000-0000-0000-000000000000",
+  "principalDisplayName": "Minimal Group",
+  "resourceDisplayName": "Microsoft Graph",
+  "principalType": "Group",
+  "creationTimestamp": "2024-01-01T00:00:00Z"
+}
+

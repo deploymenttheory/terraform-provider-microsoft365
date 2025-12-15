@@ -65,8 +65,8 @@ resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy"
   }
 
   grant_controls = {
-    operator                      = "OR"
-    built_in_controls             = ["compliantDevice", "domainJoinedDevice"]
+    operator          = "OR"
+    built_in_controls = ["compliantDevice", "domainJoinedDevice"]
 
     custom_authentication_factors = []
   }
