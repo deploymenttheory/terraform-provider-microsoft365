@@ -38,6 +38,9 @@ type DeviceHealthScriptParameterModel struct {
 
 // WindowsRemediationScriptAssignmentModel defines the schema for a Windows Remediation Script assignment.
 type WindowsRemediationScriptAssignmentModel struct {
+	ID                   types.String `tfsdk:"id"`
+	RunRemediationScript types.Bool   `tfsdk:"run_remediation_script"`
+
 	// Target assignment fields - only one should be used at a time
 	Type    types.String `tfsdk:"type"`     // "allDevicesAssignmentTarget", "allLicensedUsersAssignmentTarget", "groupAssignmentTarget", "exclusionGroupAssignmentTarget"
 	GroupId types.String `tfsdk:"group_id"` // For group targets (both include and exclude)

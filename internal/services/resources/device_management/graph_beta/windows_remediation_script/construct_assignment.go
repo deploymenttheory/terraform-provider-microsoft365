@@ -37,6 +37,8 @@ func constructAssignment(ctx context.Context, data *DeviceHealthScriptResourceMo
 
 		graphAssignment := graphmodels.NewDeviceHealthScriptAssignment()
 
+		graphAssignment.SetRunRemediationScript(assignment.RunRemediationScript.ValueBoolPointer())
+
 		if assignment.Type.IsNull() || assignment.Type.IsUnknown() {
 			tflog.Error(ctx, "Assignment target type is missing or invalid", map[string]any{
 				"index": idx,

@@ -97,13 +97,15 @@ func MapAssignmentsToTerraform(ctx context.Context, data *DeviceHealthScriptReso
 		})
 
 		assignmentObj := map[string]attr.Value{
-			"type":              types.StringNull(),
-			"group_id":          types.StringNull(),
-			"filter_id":         types.StringNull(),
-			"filter_type":       types.StringNull(),
-			"daily_schedule":    types.ObjectNull(dailyScheduleAttrTypes()),
-			"hourly_schedule":   types.ObjectNull(hourlyScheduleAttrTypes()),
-			"run_once_schedule": types.ObjectNull(runOnceScheduleAttrTypes()),
+			"id":                     convert.GraphToFrameworkString(assignment.GetId()),
+			"run_remediation_script": convert.GraphToFrameworkBool(assignment.GetRunRemediationScript()),
+			"type":                   types.StringNull(),
+			"group_id":               types.StringNull(),
+			"filter_id":              types.StringNull(),
+			"filter_type":            types.StringNull(),
+			"daily_schedule":         types.ObjectNull(dailyScheduleAttrTypes()),
+			"hourly_schedule":        types.ObjectNull(hourlyScheduleAttrTypes()),
+			"run_once_schedule":      types.ObjectNull(runOnceScheduleAttrTypes()),
 		}
 
 		switch *odataType {

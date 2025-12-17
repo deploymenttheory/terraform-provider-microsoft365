@@ -16,6 +16,7 @@
   "assignments": [
     {
       "id": "assignment-id-1",
+      "runRemediationScript": false,
       "target": {
         "@odata.type": "#microsoft.graph.groupAssignmentTarget",
         "groupId": "44444444-4444-4444-4444-444444444444",
@@ -31,6 +32,7 @@
     },
     {
       "id": "assignment-id-2",
+      "runRemediationScript": false,
       "target": {
         "@odata.type": "#microsoft.graph.groupAssignmentTarget",
         "groupId": "33333333-3333-3333-3333-333333333333",
@@ -44,6 +46,7 @@
     },
     {
       "id": "assignment-id-3",
+      "runRemediationScript": false,
       "target": {
         "@odata.type": "#microsoft.graph.allDevicesAssignmentTarget"
       },

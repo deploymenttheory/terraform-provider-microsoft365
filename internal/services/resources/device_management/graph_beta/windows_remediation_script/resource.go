@@ -184,6 +184,19 @@ func AssignmentBlock() schema.SetNestedAttribute {
 		Optional:            true,
 		NestedObject: schema.NestedAttributeObject{
 			Attributes: map[string]schema.Attribute{
+				"id": schema.StringAttribute{
+					Computed: true,
+					PlanModifiers: []planmodifier.String{
+						planmodifiers.UseStateForUnknownString(),
+					},
+					MarkdownDescription: "Unique identifier for the assignment.",
+				},
+				"run_remediation_script": schema.BoolAttribute{
+					Optional:            true,
+					Computed:            true,
+					Default:             booldefault.StaticBool(false),
+					MarkdownDescription: "Determine whether we want to run detection script only or run both detection script and remediation script.",
+				},
 				// Target assignment fields - only one should be used at a time
 				"type": schema.StringAttribute{
 					Required:            true,

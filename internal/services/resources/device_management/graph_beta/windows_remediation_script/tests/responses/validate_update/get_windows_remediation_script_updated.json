@@ -16,6 +16,7 @@
   "assignments": [
     {
       "id": "assignment-id-updated",
+      "runRemediationScript": false,
       "target": {
         "@odata.type": "#microsoft.graph.groupAssignmentTarget",
         "groupId": "55555555-5555-5555-5555-555555555555"
