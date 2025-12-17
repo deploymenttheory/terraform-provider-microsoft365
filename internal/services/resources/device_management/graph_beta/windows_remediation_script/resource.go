@@ -153,14 +153,20 @@ func (r *DeviceHealthScriptResource) Schema(ctx context.Context, req resource.Sc
 				MarkdownDescription: "Determines if this is Microsoft Proprietary Script. Proprietary scripts are read-only.",
 			},
 			"device_health_script_type": schema.StringAttribute{
-				Computed:            true,
+				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					planmodifiers.UseStateForUnknownString(),
+				},
 				MarkdownDescription: "DeviceHealthScriptType for the script policy. Possible values are: deviceHealthScript, managedInstallerScript.",
 				Validators: []validator.String{
 					stringvalidator.OneOf("deviceHealthScript", "managedInstallerScript"),
 				},
 			},
 			"created_date_time": schema.StringAttribute{
-				Computed:            true,
+				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					planmodifiers.UseStateForUnknownString(),
+				},
 				MarkdownDescription: "The timestamp of when the device health script was created. This property is read-only.",
 			},
 			"last_modified_date_time": schema.StringAttribute{
