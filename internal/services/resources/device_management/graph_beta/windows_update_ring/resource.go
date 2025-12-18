@@ -16,8 +16,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/boolplanmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/objectplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
@@ -100,7 +103,11 @@ func (r *WindowsUpdateRingResource) Schema(ctx context.Context, req resource.Sch
 			},
 			"description": schema.StringAttribute{
 				Optional:            true,
+				Computed:            true,
 				MarkdownDescription: "Admin provided description of the Device Configuration. Inherited from deviceConfiguration.",
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"role_scope_tag_ids": schema.SetAttribute{
 				ElementType:         types.StringType,
@@ -179,37 +186,9 @@ func (r *WindowsUpdateRingResource) Schema(ctx context.Context, req resource.Sch
 					),
 				},
 			},
-			"delivery_optimization_mode": schema.StringAttribute{
-				Optional:            true,
-				Computed:            true,
-				MarkdownDescription: "The Delivery Optimization Mode. Possible values are: UserDefined, HttpOnly, HttpWithPeeringNat, HttpWithPeeringPrivateGroup, HttpWithInternetPeering, SimpleDownload, BypassMode. UserDefined allows the user to set. Returned by default. Query parameters are not supported. Possible values are: userDefined, httpOnly, httpWithPeeringNat, httpWithPeeringPrivateGroup, httpWithInternetPeering, simpleDownload, bypassMode.",
-				Validators: []validator.String{
-					stringvalidator.OneOf(
-						"userDefined",
-						"httpOnly",
-						"httpWithPeeringNat",
-						"httpWithPeeringPrivateGroup",
-						"httpWithInternetPeering",
-						"simpleDownload",
-						"bypassMode",
-					),
-				},
-			},
-			"prerelease_features": schema.StringAttribute{
-				Optional:            true,
-				Computed:            true,
-				MarkdownDescription: "The Pre-Release Features. Possible values are: UserDefined, SettingsOnly, SettingsAndExperimentations, NotAllowed. UserDefined is the default value, no intent. Returned by default. Query parameters are not supported. Possible values are: userDefined, settingsOnly, settingsAndExperimentations, notAllowed.",
-				Validators: []validator.String{
-					stringvalidator.OneOf(
-						"userDefined",
-						"settingsOnly",
-						"settingsAndExperimentations",
-						"notAllowed",
-					),
-				},
-			},
 			"update_weeks": schema.StringAttribute{
 				Optional:            true,
+				Computed:            true,
 				MarkdownDescription: "Schedule the update installation on the weeks of the month. Possible values are: UserDefined, FirstWeek, SecondWeek, ThirdWeek, FourthWeek, EveryWeek. Returned by default. Query parameters are not supported. Possible values are: userDefined, firstWeek, secondWeek, thirdWeek, fourthWeek, everyWeek, unknownFutureValue.",
 				Validators: []validator.String{
 					stringvalidator.OneOf(
@@ -221,7 +200,6 @@ func (r *WindowsUpdateRingResource) Schema(ctx context.Context, req resource.Sch
 						"everyWeek",
 						"unknownFutureValue",
 					),
-					validate.RequiredWith("automatic_update_mode", "autoInstallAndRebootAtScheduledTime"),
 				},
 			},
 			"active_hours_start": schema.StringAttribute{
@@ -235,7 +213,6 @@ func (r *WindowsUpdateRingResource) Schema(ctx context.Context, req resource.Sch
 					),
 					validate.RequiredWith("automatic_update_mode", "autoInstallAtMaintenanceTime"),
 					validate.RequiredWith("automatic_update_mode", "autoInstallAndRebootAtMaintenanceTime"),
-					validate.RequiredWith("automatic_update_mode", "autoInstallAndRebootAtScheduledTime"),
 				},
 			},
 			"active_hours_end": schema.StringAttribute{
@@ -249,6 +226,37 @@ func (r *WindowsUpdateRingResource) Schema(ctx context.Context, req resource.Sch
 					),
 					validate.RequiredWith("automatic_update_mode", "autoInstallAtMaintenanceTime"),
 					validate.RequiredWith("automatic_update_mode", "autoInstallAndRebootAtMaintenanceTime"),
+				},
+			},
+			"scheduled_install_day": schema.StringAttribute{
+				Optional:            true,
+				Computed:            true,
+				MarkdownDescription: "Scheduled Install Day. Possible values are: userDefined, everyday, sunday, monday, tuesday, wednesday, thursday, friday, saturday, noScheduledScan.",
+				Validators: []validator.String{
+					stringvalidator.OneOf(
+						"userDefined",
+						"everyday",
+						"sunday",
+						"monday",
+						"tuesday",
+						"wednesday",
+						"thursday",
+						"friday",
+						"saturday",
+						"noScheduledScan",
+					),
+					validate.RequiredWith("automatic_update_mode", "autoInstallAndRebootAtScheduledTime"),
+				},
+			},
+			"scheduled_install_time": schema.StringAttribute{
+				Optional:            true,
+				Computed:            true,
+				MarkdownDescription: "Scheduled Install Time (in HH:MM:SS format).",
+				Validators: []validator.String{
+					stringvalidator.RegexMatches(
+						regexp.MustCompile(constants.TimeFormatHHMMSSRegex),
+						"must be in format HH:MM:SS",
+					),
 					validate.RequiredWith("automatic_update_mode", "autoInstallAndRebootAtScheduledTime"),
 				},
 			},
@@ -290,7 +298,11 @@ func (r *WindowsUpdateRingResource) Schema(ctx context.Context, req resource.Sch
 			},
 			"deadline_settings": schema.SingleNestedAttribute{
 				Optional:            true,
+				Computed:            true,
 				MarkdownDescription: "Settings for update installation deadlines and reboot behavior.",
+				PlanModifiers: []planmodifier.Object{
+					objectplanmodifier.UseStateForUnknown(),
+				},
 				Attributes: map[string]schema.Attribute{
 					"deadline_for_feature_updates_in_days": schema.Int32Attribute{
 						Required:            true,
@@ -319,84 +331,63 @@ func (r *WindowsUpdateRingResource) Schema(ctx context.Context, req resource.Sch
 					},
 				},
 			},
-			"engaged_restart_deadline_in_days": schema.Int32Attribute{
-				Optional:            true,
-				MarkdownDescription: "Deadline in days before automatically scheduling and executing a pending restart outside of active hours, with valid range from 2 to 30 days. Returned by default. Query parameters are not supported.",
-			},
-			"engaged_restart_snooze_schedule_in_days": schema.Int32Attribute{
-				Optional:            true,
-				MarkdownDescription: "Number of days a user can snooze Engaged Restart reminder notifications with valid range from 1 to 3 days. Returned by default. Query parameters are not supported.",
-			},
-			"engaged_restart_transition_schedule_in_days": schema.Int32Attribute{
-				Optional:            true,
-				MarkdownDescription: "Number of days before transitioning from Auto Restarts scheduled outside of active hours to Engaged Restart, which requires the user to schedule, with valid range from 0 to 30 days. Returned by default. Query parameters are not supported.",
-			},
-			"auto_restart_notification_dismissal": schema.StringAttribute{
-				Optional:            true,
-				Computed:            true,
-				Default:             stringdefault.StaticString("notConfigured"),
-				MarkdownDescription: "Specify the method by which the auto-restart required notification is dismissed. Possible values are: NotConfigured, Automatic, User. Returned by default. Query parameters are not supported. Possible values are: notConfigured, automatic, user, unknownFutureValue.",
-				Validators: []validator.String{
-					stringvalidator.OneOf("notConfigured", "automatic", "user"),
-				},
-			},
-			"schedule_restart_warning_in_hours": schema.Int32Attribute{
-				Optional:            true,
-				MarkdownDescription: "Specify the period for auto-restart warning reminder notifications. Supported values: 2, 4, 8, 12 or 24 (hours). Returned by default. Query parameters are not supported.",
-				Validators: []validator.Int32{
-					int32validator.OneOf(2, 4, 8, 12, 24),
-				},
-			},
-			"schedule_imminent_restart_warning_in_minutes": schema.Int32Attribute{
-				Optional:            true,
-				MarkdownDescription: "Specify the period for auto-restart imminent warning notifications. Supported values: 15, 30 or 60 (minutes). Returned by default. Query parameters are not supported.",
-				Validators: []validator.Int32{
-					int32validator.OneOf(15, 30, 60),
-				},
-			},
-			"engaged_restart_snooze_schedule_for_feature_updates_in_days": schema.Int32Attribute{
-				Optional:            true,
-				Computed:            true,
-				MarkdownDescription: "Number of days a user can snooze Engaged Restart reminder notifications for feature updates.",
-			},
-			"engaged_restart_transition_schedule_for_feature_updates_in_days": schema.Int32Attribute{
-				Optional:            true,
-				Computed:            true,
-				MarkdownDescription: "Number of days before transitioning from Auto Restarts scheduled outside of active hours to Engaged Restart for feature updates.",
-			},
 			"quality_updates_paused": schema.BoolAttribute{
 				Optional:            true,
 				Computed:            true,
 				MarkdownDescription: "When TRUE, assigned devices are paused from receiving quality updates for up to 35 days from the time you pause the ring. When FALSE, does not pause Quality Updates. Returned by default. Query parameters are not supported.",
+				PlanModifiers: []planmodifier.Bool{
+					boolplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"feature_updates_paused": schema.BoolAttribute{
 				Optional:            true,
 				Computed:            true,
 				MarkdownDescription: "When TRUE, assigned devices are paused from receiving feature updates for up to 35 days from the time you pause the ring. When FALSE, does not pause Feature Updates. Returned by default. Query parameters are not supported.s",
+				PlanModifiers: []planmodifier.Bool{
+					boolplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"feature_updates_pause_expiry_date_time": schema.StringAttribute{
 				Computed:            true,
 				MarkdownDescription: "The date and time when feature updates pause expires. This value is in ISO 8601 format, in UTC time.",
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"feature_updates_rollback_start_date_time": schema.StringAttribute{
 				Computed:            true,
 				MarkdownDescription: "The date and time when feature updates rollback started. This value is in ISO 8601 format, in UTC time.",
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"feature_updates_pause_start_date": schema.StringAttribute{
 				Computed:            true,
 				MarkdownDescription: "The date when feature updates are paused. This value is in ISO 8601 format, in UTC time.",
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"quality_updates_pause_expiry_date_time": schema.StringAttribute{
 				Computed:            true,
 				MarkdownDescription: "The date and time when quality updates pause expires. This value is in ISO 8601 format, in UTC time.",
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"quality_updates_pause_start_date": schema.StringAttribute{
 				Computed:            true,
 				MarkdownDescription: "The date when quality updates are paused. This value is in ISO 8601 format, in UTC time.",
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"quality_updates_rollback_start_date_time": schema.StringAttribute{
 				Computed:            true,
 				MarkdownDescription: "The date and time when quality updates rollback started. This value is in ISO 8601 format, in UTC time.",
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"assignments": commonschemagraphbeta.DeviceConfigurationWithAllGroupAssignmentsAndFilterSchema(),
 			"timeouts":    commonschema.Timeouts(ctx),

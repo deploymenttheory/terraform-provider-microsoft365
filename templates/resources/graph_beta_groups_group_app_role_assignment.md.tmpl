@@ -1,0 +1,53 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
+subcategory: "Groups"
+description: |-
+  {{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Name}} ({{.Type}})
+
+{{ .Description | trimspace }}
+
+## Microsoft Documentation
+
+- [appRoleAssignment resource type](https://learn.microsoft.com/en-us/graph/api/resources/approleassignment?view=graph-rest-beta)
+- [List appRoleAssignments granted to a group](https://learn.microsoft.com/en-us/graph/api/group-list-approleassignments?view=graph-rest-beta)
+- [Grant an appRoleAssignment to a group](https://learn.microsoft.com/en-us/graph/api/group-post-approleassignments?view=graph-rest-beta)
+- [Delete an appRoleAssignment from a group](https://learn.microsoft.com/en-us/graph/api/group-delete-approleassignments?view=graph-rest-beta)
+
+## API Permissions
+
+The following API permissions are required in order to use this resource.
+
+### Microsoft Graph
+
+- **Application**: `AppRoleAssignment.ReadWrite.All`, `Directory.ReadWrite.All`
+
+## Version History
+
+| Version | Status | Notes |
+|---------|--------|-------|
+| v0.39.0-alpha | Experimental | Initial release |
+
+## Example Usage
+
+{{ tffile "examples/resources/microsoft365_graph_beta_groups_group_app_role_assignment/resource.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}
+
+## Important Notes
+
+- **App Role Assignments**: Used to assign application roles to groups, granting members of the group the permissions defined by that role.
+- **Service Principal**: The `resource_object_id` references the service principal (enterprise application) object ID that exposes the app roles. This is the Object ID (not the App ID) of the service principal.
+- **Default Role**: Use `00000000-0000-0000-0000-000000000000` as the `app_role_id` to assign the default access role.
+- **Target Group**: The `target_group_id` identifies the group receiving the app role assignment.
+- **Read-Only Fields**: The `principal_display_name`, `resource_display_name`, and `principal_type` fields are computed and returned by the API.
+- **Finding Service Principals**: Use the `microsoft365_graph_beta_applications_service_principal` data source to find service principal Object IDs by App ID or display name.
+
+## Import
+
+Import is supported using the following syntax:
+
+{{ codefile "shell" "examples/resources/microsoft365_graph_beta_groups_group_app_role_assignment/import.sh" }}
+

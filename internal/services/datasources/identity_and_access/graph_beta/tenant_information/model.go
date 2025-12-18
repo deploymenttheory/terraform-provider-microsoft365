@@ -18,4 +18,3 @@ type TenantInformationDataSourceModel struct {
 	FederationBrandName types.String   `tfsdk:"federation_brand_name"`
 	Timeouts            timeouts.Value `tfsdk:"timeouts"`
 }
-

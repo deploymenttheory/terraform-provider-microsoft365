@@ -6,6 +6,7 @@ import (
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/constructors"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
@@ -67,18 +68,36 @@ func constructResource(ctx context.Context, data *WindowsUpdateRingResourceModel
 		return nil, fmt.Errorf("error setting AutomaticUpdateMode: %v", err)
 	}
 
-	if !data.ActiveHoursStart.IsNull() && !data.ActiveHoursEnd.IsNull() &&
-		data.ActiveHoursStart.ValueString() != "" && data.ActiveHoursEnd.ValueString() != "" {
-		installationSchedule := graphmodels.NewWindowsUpdateActiveHoursInstall()
+	// Handle installation schedule based on automatic update mode
+	if !data.ScheduledInstallDay.IsNull() && !data.ScheduledInstallTime.IsNull() &&
+		data.ScheduledInstallDay.ValueString() != "" && data.ScheduledInstallTime.ValueString() != "" {
+		// WindowsUpdateScheduledInstall for scheduled mode
+		scheduledInstall := graphmodels.NewWindowsUpdateScheduledInstall()
 
-		if err := convert.FrameworkToGraphTimeOnly(data.ActiveHoursStart, installationSchedule.SetActiveHoursStart); err != nil {
+		err = convert.FrameworkToGraphEnum(data.ScheduledInstallDay, graphmodels.ParseWeeklySchedule, scheduledInstall.SetScheduledInstallDay)
+		if err != nil {
+			return nil, fmt.Errorf("error setting scheduled install day: %v", err)
+		}
+
+		if err := convert.FrameworkToGraphTimeOnly(data.ScheduledInstallTime, scheduledInstall.SetScheduledInstallTime); err != nil {
+			return nil, fmt.Errorf("error setting scheduled install time: %v", err)
+		}
+
+		requestBody.SetInstallationSchedule(scheduledInstall)
+	} else if !data.ActiveHoursStart.IsNull() && !data.ActiveHoursEnd.IsNull() &&
+		data.ActiveHoursStart.ValueString() != "" && data.ActiveHoursEnd.ValueString() != "" {
+		// WindowsUpdateActiveHoursInstall for active hours modes
+		activeHoursInstall := graphmodels.NewWindowsUpdateActiveHoursInstall()
+
+		if err := convert.FrameworkToGraphTimeOnly(data.ActiveHoursStart, activeHoursInstall.SetActiveHoursStart); err != nil {
 			return nil, fmt.Errorf("error setting active hours start: %v", err)
 		}
 
-		if err := convert.FrameworkToGraphTimeOnly(data.ActiveHoursEnd, installationSchedule.SetActiveHoursEnd); err != nil {
+		if err := convert.FrameworkToGraphTimeOnly(data.ActiveHoursEnd, activeHoursInstall.SetActiveHoursEnd); err != nil {
 			return nil, fmt.Errorf("error setting active hours end: %v", err)
 		}
-		requestBody.SetInstallationSchedule(installationSchedule)
+
+		requestBody.SetInstallationSchedule(activeHoursInstall)
 	}
 
 	err = convert.FrameworkToGraphEnum(data.UserPauseAccess, graphmodels.ParseEnablement, requestBody.SetUserPauseAccess)
@@ -104,32 +123,16 @@ func constructResource(ctx context.Context, data *WindowsUpdateRingResourceModel
 	convert.FrameworkToGraphInt32(data.FeatureUpdatesRollbackWindowInDays, requestBody.SetFeatureUpdatesRollbackWindowInDays)
 
 	// Handle deadline settings nested block
-	if data.DeadlineSettings != nil {
-		convert.FrameworkToGraphInt32(data.DeadlineSettings.DeadlineForFeatureUpdatesInDays, requestBody.SetDeadlineForFeatureUpdatesInDays)
-		convert.FrameworkToGraphInt32(data.DeadlineSettings.DeadlineForQualityUpdatesInDays, requestBody.SetDeadlineForQualityUpdatesInDays)
-		convert.FrameworkToGraphInt32(data.DeadlineSettings.DeadlineGracePeriodInDays, requestBody.SetDeadlineGracePeriodInDays)
-		convert.FrameworkToGraphBool(data.DeadlineSettings.PostponeRebootUntilAfterDeadline, requestBody.SetPostponeRebootUntilAfterDeadline)
-	}
-	convert.FrameworkToGraphInt32(data.EngagedRestartDeadlineInDays, requestBody.SetEngagedRestartDeadlineInDays)
-	convert.FrameworkToGraphInt32(data.EngagedRestartSnoozeScheduleInDays, requestBody.SetEngagedRestartSnoozeScheduleInDays)
-	convert.FrameworkToGraphInt32(data.EngagedRestartTransitionScheduleInDays, requestBody.SetEngagedRestartTransitionScheduleInDays)
-
-	err = convert.FrameworkToGraphEnum(data.AutoRestartNotificationDismissal, graphmodels.ParseAutoRestartNotificationDismissalMethod, requestBody.SetAutoRestartNotificationDismissal)
-	if err != nil {
-		return nil, fmt.Errorf("error setting AutoRestartNotificationDismissal: %v", err)
-	}
-
-	convert.FrameworkToGraphInt32(data.ScheduleRestartWarningInHours, requestBody.SetScheduleRestartWarningInHours)
-	convert.FrameworkToGraphInt32(data.ScheduleImminentRestartWarningInMinutes, requestBody.SetScheduleImminentRestartWarningInMinutes)
-
-	err = convert.FrameworkToGraphEnum(data.DeliveryOptimizationMode, graphmodels.ParseWindowsDeliveryOptimizationMode, requestBody.SetDeliveryOptimizationMode)
-	if err != nil {
-		return nil, fmt.Errorf("error setting DeliveryOptimizationMode: %v", err)
-	}
-
-	err = convert.FrameworkToGraphEnum(data.PrereleaseFeatures, graphmodels.ParsePrereleaseFeatures, requestBody.SetPrereleaseFeatures)
-	if err != nil {
-		return nil, fmt.Errorf("error setting PrereleaseFeatures: %v", err)
+	if !data.DeadlineSettings.IsNull() && !data.DeadlineSettings.IsUnknown() {
+		var deadlineSettings DeadlineSettingsModel
+		diags := data.DeadlineSettings.As(ctx, &deadlineSettings, basetypes.ObjectAsOptions{})
+		if diags.HasError() {
+			return nil, fmt.Errorf("failed to convert deadline_settings: %v", diags.Errors())
+		}
+		convert.FrameworkToGraphInt32(deadlineSettings.DeadlineForFeatureUpdatesInDays, requestBody.SetDeadlineForFeatureUpdatesInDays)
+		convert.FrameworkToGraphInt32(deadlineSettings.DeadlineForQualityUpdatesInDays, requestBody.SetDeadlineForQualityUpdatesInDays)
+		convert.FrameworkToGraphInt32(deadlineSettings.DeadlineGracePeriodInDays, requestBody.SetDeadlineGracePeriodInDays)
+		convert.FrameworkToGraphBool(deadlineSettings.PostponeRebootUntilAfterDeadline, requestBody.SetPostponeRebootUntilAfterDeadline)
 	}
 
 	if err := constructors.DebugLogGraphObject(ctx, fmt.Sprintf("Final JSON to be sent to Graph API for resource %s", ResourceName), requestBody); err != nil {
