@@ -29,77 +29,332 @@ The following API permissions are required in order to use this resource.
 | Version | Status | Notes |
 |---------|--------|-------|
 | v0.23.0  | Experimental | Initial release |
+| v0.39.0  | Preview | Refactored resource to align with api changes and added full scenario based test harness|
 
 ## Example Usage
 
+### Scenario 1: Notify Download
+
+This configuration notifies users when updates are available but requires manual download and installation.
+
 ```terraform
-resource "microsoft365_graph_beta_device_management_windows_update_ring" "minimal" {
-  display_name                            = "Test Minimal Windows Update Ring - Unique"
+# Scenario 1: Notify Download
+# This configuration notifies users when updates are available for download but does not
+# automatically download or install them. Users maintain full control over the update process.
+
+resource "microsoft365_graph_beta_device_management_windows_update_ring" "notify_download" {
+  display_name                            = "Windows Update Ring - Notify Download"
+  description                             = "Notify users when updates are available for download"
   microsoft_update_service_allowed        = true
   drivers_excluded                        = false
-  quality_updates_deferral_period_in_days = 0
-  feature_updates_deferral_period_in_days = 0
+  quality_updates_deferral_period_in_days = 30
+  feature_updates_deferral_period_in_days = 30
   allow_windows11_upgrade                 = true
+  quality_updates_paused                  = false
+  feature_updates_paused                  = false
+  business_ready_updates_only             = "windowsInsiderBuildRelease"
   skip_checks_before_restart              = false
-  automatic_update_mode                   = "userDefined"
+  automatic_update_mode                   = "notifyDownload"
+  user_pause_access                       = "enabled"
+  user_windows_update_scan_access         = "enabled"
+  update_notification_level               = "restartWarningsOnly"
   feature_updates_rollback_window_in_days = 10
 
-  timeouts = {
-    create = "30s"
-    read   = "30s"
-    update = "30s"
-    delete = "30s"
+  deadline_settings = {
+    deadline_for_feature_updates_in_days = 5
+    deadline_for_quality_updates_in_days = 7
+    deadline_grace_period_in_days        = 7
+    postpone_reboot_until_after_deadline = false
   }
 }
+```
 
-resource "microsoft365_graph_beta_device_management_windows_update_ring" "maximal" {
-  display_name                                 = "Test Maximal Windows Update Ring - Unique"
-  description                                  = "Maximal Windows update ring for testing with all features"
-  microsoft_update_service_allowed             = true
-  drivers_excluded                             = false
-  quality_updates_deferral_period_in_days      = 7
-  feature_updates_deferral_period_in_days      = 14
-  allow_windows11_upgrade                      = false
-  skip_checks_before_restart                   = true
-  automatic_update_mode                        = "autoInstallAndRebootAtScheduledTime"
-  business_ready_updates_only                  = "businessReadyOnly"
-  delivery_optimization_mode                   = "httpWithPeeringNat"
-  prerelease_features                          = "settingsOnly"
-  update_weeks                                 = "firstWeek"
-  active_hours_start                           = "09:00:00"
-  active_hours_end                             = "17:00:00"
-  user_pause_access                            = "disabled"
-  user_windows_update_scan_access              = "disabled"
-  update_notification_level                    = "defaultNotifications"
-  feature_updates_rollback_window_in_days      = 10
-  engaged_restart_deadline_in_days             = 3
-  engaged_restart_snooze_schedule_in_days      = 1
-  engaged_restart_transition_schedule_in_days  = 2
-  auto_restart_notification_dismissal          = "automatic"
-  schedule_restart_warning_in_hours            = 4
-  schedule_imminent_restart_warning_in_minutes = 15
-  role_scope_tag_ids                           = ["0", "1"]
+### Scenario 2: Auto Install at Maintenance Time
+
+This configuration automatically installs updates outside of active hours but requires user interaction to restart.
+
+```terraform
+# Scenario 2: Auto Install at Maintenance Time
+# This configuration automatically installs updates outside of active hours but requires
+# user interaction to restart. Updates install during maintenance windows (outside active hours).
+
+resource "microsoft365_graph_beta_device_management_windows_update_ring" "auto_install_maintenance" {
+  display_name                            = "Windows Update Ring - Auto Install at Maintenance Time"
+  description                             = "Automatically install updates at maintenance time"
+  microsoft_update_service_allowed        = true
+  drivers_excluded                        = false
+  quality_updates_deferral_period_in_days = 30
+  feature_updates_deferral_period_in_days = 30
+  allow_windows11_upgrade                 = true
+  quality_updates_paused                  = false
+  feature_updates_paused                  = false
+  business_ready_updates_only             = "windowsInsiderBuildRelease"
+  skip_checks_before_restart              = false
+  automatic_update_mode                   = "autoInstallAtMaintenanceTime"
+  active_hours_start                      = "08:00:00"
+  active_hours_end                        = "17:00:00"
+  user_pause_access                       = "enabled"
+  user_windows_update_scan_access         = "enabled"
+  update_notification_level               = "restartWarningsOnly"
+  feature_updates_rollback_window_in_days = 10
 
   deadline_settings = {
-    deadline_for_feature_updates_in_days = 7
-    deadline_for_quality_updates_in_days = 2
-    deadline_grace_period_in_days        = 1
-    postpone_reboot_until_after_deadline = true
+    deadline_for_feature_updates_in_days = 5
+    deadline_for_quality_updates_in_days = 7
+    deadline_grace_period_in_days        = 7
+    postpone_reboot_until_after_deadline = false
+  }
+}
+```
+
+### Scenario 3: Auto Install and Reboot at Maintenance Time
+
+This configuration automatically installs updates and restarts devices outside of active hours.
+
+```terraform
+# Scenario 3: Auto Install and Reboot at Maintenance Time
+# This configuration automatically installs updates and restarts devices outside of active hours.
+# Devices will automatically reboot during maintenance windows without user interaction.
+
+resource "microsoft365_graph_beta_device_management_windows_update_ring" "auto_reboot_maintenance" {
+  display_name                            = "Windows Update Ring - Auto Install and Reboot at Maintenance"
+  description                             = "Automatically install and reboot at maintenance time"
+  microsoft_update_service_allowed        = true
+  drivers_excluded                        = false
+  quality_updates_deferral_period_in_days = 30
+  feature_updates_deferral_period_in_days = 30
+  allow_windows11_upgrade                 = true
+  quality_updates_paused                  = false
+  feature_updates_paused                  = false
+  business_ready_updates_only             = "windowsInsiderBuildRelease"
+  skip_checks_before_restart              = false
+  automatic_update_mode                   = "autoInstallAndRebootAtMaintenanceTime"
+  active_hours_start                      = "08:00:00"
+  active_hours_end                        = "17:00:00"
+  user_pause_access                       = "enabled"
+  user_windows_update_scan_access         = "enabled"
+  update_notification_level               = "restartWarningsOnly"
+  feature_updates_rollback_window_in_days = 10
+
+  deadline_settings = {
+    deadline_for_feature_updates_in_days = 5
+    deadline_for_quality_updates_in_days = 7
+    deadline_grace_period_in_days        = 7
+    postpone_reboot_until_after_deadline = false
+  }
+}
+```
+
+### Scenario 4: Auto Install and Restart at Scheduled Time
+
+This configuration automatically installs updates and restarts devices at a specific scheduled time.
+
+```terraform
+# Scenario 4: Auto Install and Restart at Scheduled Time
+# This configuration automatically installs updates and restarts devices at a specific scheduled
+# time and day. Use this for predictable maintenance windows.
+
+resource "microsoft365_graph_beta_device_management_windows_update_ring" "scheduled_install" {
+  display_name                            = "Windows Update Ring - Scheduled Install and Restart"
+  description                             = "Automatically install and restart at scheduled time"
+  microsoft_update_service_allowed        = true
+  drivers_excluded                        = false
+  quality_updates_deferral_period_in_days = 30
+  feature_updates_deferral_period_in_days = 30
+  allow_windows11_upgrade                 = true
+  quality_updates_paused                  = false
+  feature_updates_paused                  = false
+  business_ready_updates_only             = "windowsInsiderBuildRelease"
+  skip_checks_before_restart              = false
+  automatic_update_mode                   = "autoInstallAndRebootAtScheduledTime"
+  scheduled_install_day                   = "everyday"
+  scheduled_install_time                  = "03:00:00"
+  user_pause_access                       = "enabled"
+  user_windows_update_scan_access         = "enabled"
+  update_notification_level               = "restartWarningsOnly"
+  update_weeks                            = "everyWeek"
+  feature_updates_rollback_window_in_days = 10
+
+  deadline_settings = {
+    deadline_for_feature_updates_in_days = 5
+    deadline_for_quality_updates_in_days = 7
+    deadline_grace_period_in_days        = 7
+    postpone_reboot_until_after_deadline = false
+  }
+}
+```
+
+### Scenario 5: Auto Install and Reboot Without End User Control
+
+This configuration provides the most aggressive update policy with no end-user control.
+
+```terraform
+# Scenario 5: Auto Install and Reboot Without End User Control
+# This configuration provides the most aggressive update policy, automatically installing and
+# restarting devices without user interaction or the ability to postpone updates.
+# Use with caution as it provides no end-user control.
+
+resource "microsoft365_graph_beta_device_management_windows_update_ring" "no_end_user_control" {
+  display_name                            = "Windows Update Ring - No End User Control"
+  description                             = "Automatically install and reboot without end user control"
+  microsoft_update_service_allowed        = true
+  drivers_excluded                        = false
+  quality_updates_deferral_period_in_days = 30
+  feature_updates_deferral_period_in_days = 30
+  allow_windows11_upgrade                 = true
+  quality_updates_paused                  = false
+  feature_updates_paused                  = false
+  business_ready_updates_only             = "windowsInsiderBuildRelease"
+  skip_checks_before_restart              = false
+  automatic_update_mode                   = "autoInstallAndRebootWithoutEndUserControl"
+  user_pause_access                       = "enabled"
+  user_windows_update_scan_access         = "enabled"
+  update_notification_level               = "restartWarningsOnly"
+  feature_updates_rollback_window_in_days = 10
+
+  deadline_settings = {
+    deadline_for_feature_updates_in_days = 5
+    deadline_for_quality_updates_in_days = 7
+    deadline_grace_period_in_days        = 7
+    postpone_reboot_until_after_deadline = false
+  }
+}
+```
+
+### Scenario 6: Windows Default
+
+This configuration uses Windows default update behavior, resetting any custom policies.
+
+```terraform
+# Scenario 6: Windows Default (Reset)
+# This configuration uses the Windows default update behavior, essentially resetting any
+# custom update policies to system defaults. Use this to remove custom policies and return
+# devices to default Windows Update behavior.
+
+resource "microsoft365_graph_beta_device_management_windows_update_ring" "windows_default" {
+  display_name                            = "Windows Update Ring - Windows Default"
+  description                             = "Reset to Windows default update behavior"
+  microsoft_update_service_allowed        = true
+  drivers_excluded                        = false
+  quality_updates_deferral_period_in_days = 30
+  feature_updates_deferral_period_in_days = 30
+  allow_windows11_upgrade                 = true
+  quality_updates_paused                  = false
+  feature_updates_paused                  = false
+  business_ready_updates_only             = "windowsInsiderBuildRelease"
+  skip_checks_before_restart              = false
+  automatic_update_mode                   = "windowsDefault"
+  user_pause_access                       = "enabled"
+  user_windows_update_scan_access         = "enabled"
+  update_notification_level               = "disableAllNotifications"
+  feature_updates_rollback_window_in_days = 10
+
+  deadline_settings = {
+    deadline_for_feature_updates_in_days = 5
+    deadline_for_quality_updates_in_days = 7
+    deadline_grace_period_in_days        = 7
+    postpone_reboot_until_after_deadline = false
+  }
+}
+```
+
+### Scenario 7: Maximal Assignments
+
+This configuration demonstrates how to assign policies to multiple groups and targets.
+
+```terraform
+# Scenario 7: Maximal Assignments
+# This configuration demonstrates how to assign a Windows Update Ring to multiple groups
+# and built-in targets, including group assignments, all licensed users, all devices,
+# and exclusion groups.
+
+# Example groups for assignment (you would use your actual group IDs)
+resource "microsoft365_graph_beta_groups_group" "update_ring_group_1" {
+  display_name     = "Windows Update Ring - Group 1"
+  mail_nickname    = "windows-update-ring-group-1"
+  mail_enabled     = false
+  security_enabled = true
+  description      = "First group for windows update ring assignments"
+}
+
+resource "microsoft365_graph_beta_groups_group" "update_ring_group_2" {
+  display_name     = "Windows Update Ring - Group 2"
+  mail_nickname    = "windows-update-ring-group-2"
+  mail_enabled     = false
+  security_enabled = true
+  description      = "Second group for windows update ring assignments"
+}
+
+resource "microsoft365_graph_beta_groups_group" "update_ring_exclusion_group" {
+  display_name     = "Windows Update Ring - Exclusion Group"
+  mail_nickname    = "windows-update-ring-exclusion-group"
+  mail_enabled     = false
+  security_enabled = true
+  description      = "Exclusion group for windows update ring assignments"
+}
+
+# Windows Update Ring with comprehensive assignments
+resource "microsoft365_graph_beta_device_management_windows_update_ring" "maximal_assignments" {
+  display_name                            = "Windows Update Ring - Maximal Assignments"
+  description                             = "Demonstrates multiple assignment types"
+  microsoft_update_service_allowed        = true
+  drivers_excluded                        = false
+  quality_updates_deferral_period_in_days = 30
+  feature_updates_deferral_period_in_days = 30
+  allow_windows11_upgrade                 = true
+  quality_updates_paused                  = false
+  feature_updates_paused                  = false
+  business_ready_updates_only             = "windowsInsiderBuildRelease"
+  skip_checks_before_restart              = false
+  automatic_update_mode                   = "notifyDownload"
+  user_pause_access                       = "enabled"
+  user_windows_update_scan_access         = "enabled"
+  update_notification_level               = "restartWarningsOnly"
+  feature_updates_rollback_window_in_days = 10
+
+  deadline_settings = {
+    deadline_for_feature_updates_in_days = 5
+    deadline_for_quality_updates_in_days = 7
+    deadline_grace_period_in_days        = 7
+    postpone_reboot_until_after_deadline = false
   }
 
+  # Multiple assignment types
   assignments = [
+    # Assign to specific group 1
     {
-      type     = "groupAssignmentTarget"
-      group_id = "44444444-4444-4444-4444-444444444444"
+      type        = "groupAssignmentTarget"
+      group_id    = microsoft365_graph_beta_groups_group.update_ring_group_1.id
+      filter_type = "none"
+      filter_id   = "00000000-0000-0000-0000-000000000000"
+    },
+    # Assign to specific group 2
+    {
+      type        = "groupAssignmentTarget"
+      group_id    = microsoft365_graph_beta_groups_group.update_ring_group_2.id
+      filter_type = "none"
+      filter_id   = "00000000-0000-0000-0000-000000000000"
+    },
+    # Assign to all licensed users
+    {
+      type        = "allLicensedUsersAssignmentTarget"
+      filter_type = "none"
+      filter_id   = "00000000-0000-0000-0000-000000000000"
+    },
+    # Assign to all devices
+    {
+      type        = "allDevicesAssignmentTarget"
+      filter_type = "none"
+      filter_id   = "00000000-0000-0000-0000-000000000000"
+    },
+    # Exclude a specific group
+    {
+      type        = "exclusionGroupAssignmentTarget"
+      group_id    = microsoft365_graph_beta_groups_group.update_ring_exclusion_group.id
+      filter_type = "none"
+      filter_id   = "00000000-0000-0000-0000-000000000000"
     }
   ]
-
-  timeouts = {
-    create = "30s"
-    read   = "30s"
-    update = "30s"
-    delete = "30s"
-  }
 }
 ```
 
@@ -123,22 +378,14 @@ resource "microsoft365_graph_beta_device_management_windows_update_ring" "maxima
 - `active_hours_end` (String) Active Hours End. Part of the Installation Schedule.
 - `active_hours_start` (String) Active Hours Start. Part of the Installation Schedule.
 - `assignments` (Attributes Set) Assignments for the device configuration. Each assignment specifies the target group and schedule for script execution. Supports group filters. (see [below for nested schema](#nestedatt--assignments))
-- `auto_restart_notification_dismissal` (String) Specify the method by which the auto-restart required notification is dismissed. Possible values are: NotConfigured, Automatic, User. Returned by default. Query parameters are not supported. Possible values are: notConfigured, automatic, user, unknownFutureValue.
 - `business_ready_updates_only` (String) Enable pre-release builds if you want devices to be on a Windows Insider channel.Enabling pre-release builds will cause devices to reboot. Determines which update branch devices will receive their updates from. Possible values are: UserDefined, All, BusinessReadyOnly, WindowsInsiderBuildFast, WindowsInsiderBuildSlow, WindowsInsiderBuildRelease.UserDefined equates to 'Not configured' in the gui.all equates to 'Not configured' in the gui.windowsInsiderBuildRelease equates to 'Windows Insider - Release Preview' in the gui.windowsInsiderBuildSlow equates to 'Beta Channel' in the gui.windowsInsiderBuildFast equates to ' Dev Channel' in the gui.
 - `deadline_settings` (Attributes) Settings for update installation deadlines and reboot behavior. (see [below for nested schema](#nestedatt--deadline_settings))
-- `delivery_optimization_mode` (String) The Delivery Optimization Mode. Possible values are: UserDefined, HttpOnly, HttpWithPeeringNat, HttpWithPeeringPrivateGroup, HttpWithInternetPeering, SimpleDownload, BypassMode. UserDefined allows the user to set. Returned by default. Query parameters are not supported. Possible values are: userDefined, httpOnly, httpWithPeeringNat, httpWithPeeringPrivateGroup, httpWithInternetPeering, simpleDownload, bypassMode.
 - `description` (String) Admin provided description of the Device Configuration. Inherited from deviceConfiguration.
-- `engaged_restart_deadline_in_days` (Number) Deadline in days before automatically scheduling and executing a pending restart outside of active hours, with valid range from 2 to 30 days. Returned by default. Query parameters are not supported.
-- `engaged_restart_snooze_schedule_for_feature_updates_in_days` (Number) Number of days a user can snooze Engaged Restart reminder notifications for feature updates.
-- `engaged_restart_snooze_schedule_in_days` (Number) Number of days a user can snooze Engaged Restart reminder notifications with valid range from 1 to 3 days. Returned by default. Query parameters are not supported.
-- `engaged_restart_transition_schedule_for_feature_updates_in_days` (Number) Number of days before transitioning from Auto Restarts scheduled outside of active hours to Engaged Restart for feature updates.
-- `engaged_restart_transition_schedule_in_days` (Number) Number of days before transitioning from Auto Restarts scheduled outside of active hours to Engaged Restart, which requires the user to schedule, with valid range from 0 to 30 days. Returned by default. Query parameters are not supported.
 - `feature_updates_paused` (Boolean) When TRUE, assigned devices are paused from receiving feature updates for up to 35 days from the time you pause the ring. When FALSE, does not pause Feature Updates. Returned by default. Query parameters are not supported.s
-- `prerelease_features` (String) The Pre-Release Features. Possible values are: UserDefined, SettingsOnly, SettingsAndExperimentations, NotAllowed. UserDefined is the default value, no intent. Returned by default. Query parameters are not supported. Possible values are: userDefined, settingsOnly, settingsAndExperimentations, notAllowed.
 - `quality_updates_paused` (Boolean) When TRUE, assigned devices are paused from receiving quality updates for up to 35 days from the time you pause the ring. When FALSE, does not pause Quality Updates. Returned by default. Query parameters are not supported.
 - `role_scope_tag_ids` (Set of String) Set of scope tag IDs for this Settings Catalog template profile.
-- `schedule_imminent_restart_warning_in_minutes` (Number) Specify the period for auto-restart imminent warning notifications. Supported values: 15, 30 or 60 (minutes). Returned by default. Query parameters are not supported.
-- `schedule_restart_warning_in_hours` (Number) Specify the period for auto-restart warning reminder notifications. Supported values: 2, 4, 8, 12 or 24 (hours). Returned by default. Query parameters are not supported.
+- `scheduled_install_day` (String) Scheduled Install Day. Possible values are: userDefined, everyday, sunday, monday, tuesday, wednesday, thursday, friday, saturday, noScheduledScan.
+- `scheduled_install_time` (String) Scheduled Install Time (in HH:MM:SS format).
 - `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))
 - `update_notification_level` (String) Specifies what Windows Update notifications users see. Possible values are: NotConfigured, DefaultNotifications, RestartWarningsOnly, DisableAllNotifications. Returned by default. Query parameters are not supported. Possible values are: notConfigured, defaultNotifications, restartWarningsOnly, disableAllNotifications, unknownFutureValue.
 - `update_weeks` (String) Schedule the update installation on the weeks of the month. Possible values are: UserDefined, FirstWeek, SecondWeek, ThirdWeek, FourthWeek, EveryWeek. Returned by default. Query parameters are not supported. Possible values are: userDefined, firstWeek, secondWeek, thirdWeek, fourthWeek, everyWeek, unknownFutureValue.

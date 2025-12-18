@@ -85,19 +85,19 @@ func GraphToFrameworkInt32AsInt64(value *int32) types.Int64 {
 }
 
 // GraphToFrameworkTime converts a Graph SDK time pointer to a Terraform Framework string.
-// Returns types.StringNull() if the input is nil.
+// Returns types.StringNull() if the input is nil or represents a zero time.
 // Time is formatted using RFC3339 format.
 func GraphToFrameworkTime(value *time.Time) types.String {
-	if value == nil {
+	if value == nil || value.IsZero() {
 		return types.StringNull()
 	}
 	return types.StringValue(value.Format(constants.TimeFormatRFC3339Regex))
 }
 
 // GraphToFrameworkTimeAsDateOnly converts a Graph SDK time pointer to a Terraform Framework string in date-only format (YYYY-MM-DD).
-// Returns types.StringNull() if the input is nil.
+// Returns types.StringNull() if the input is nil or represents a zero time.
 func GraphToFrameworkTimeAsDateOnly(value *time.Time) types.String {
-	if value == nil {
+	if value == nil || value.IsZero() {
 		return types.StringNull()
 	}
 	return types.StringValue(value.Format("2006-01-02"))

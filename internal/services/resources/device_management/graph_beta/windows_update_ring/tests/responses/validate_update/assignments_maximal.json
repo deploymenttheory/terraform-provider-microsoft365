@@ -1,0 +1,63 @@
+{
+  "@odata.type": "#microsoft.graph.windowsUpdateForBusinessConfiguration",
+  "id": "00000000-0000-0000-0000-000000000009",
+  "displayName": "unit-test-windows-update-ring-009-assignments-maximal-test1234",
+  "description": "Maximal Assignments Test",
+  "roleScopeTagIds": ["0"],
+  "microsoftUpdateServiceAllowed": true,
+  "driversExcluded": false,
+  "qualityUpdatesDeferralPeriodInDays": 30,
+  "featureUpdatesDeferralPeriodInDays": 30,
+  "allowWindows11Upgrade": true,
+  "qualityUpdatesPaused": false,
+  "featureUpdatesPaused": false,
+  "businessReadyUpdatesOnly": "windowsInsiderBuildRelease",
+  "skipChecksBeforeRestart": false,
+  "automaticUpdateMode": "notifyDownload",
+  "userPauseAccess": "enabled",
+  "userWindowsUpdateScanAccess": "enabled",
+  "updateNotificationLevel": "restartWarningsOnly",
+  "featureUpdatesRollbackWindowInDays": 10,
+  "deadlineForFeatureUpdatesInDays": 5,
+  "deadlineForQualityUpdatesInDays": 7,
+  "deadlineGracePeriodInDays": 7,
+  "postponeRebootUntilAfterDeadline": false,
+  "createdDateTime": "2024-01-01T00:00:00Z",
+  "lastModifiedDateTime": "2024-01-01T00:00:00Z",
+  "assignments": [
+    {
+      "id": "assignment-00000000-0000-0000-0000-000000000001",
+      "target": {
+        "@odata.type": "#microsoft.graph.groupAssignmentTarget",
+        "groupId": "group-00000000-0000-0000-0000-000000000001"
+      }
+    },
+    {
+      "id": "assignment-00000000-0000-0000-0000-000000000002",
+      "target": {
+        "@odata.type": "#microsoft.graph.groupAssignmentTarget",
+        "groupId": "group-00000000-0000-0000-0000-000000000002"
+      }
+    },
+    {
+      "id": "assignment-00000000-0000-0000-0000-000000000003",
+      "target": {
+        "@odata.type": "#microsoft.graph.allLicensedUsersAssignmentTarget"
+      }
+    },
+    {
+      "id": "assignment-00000000-0000-0000-0000-000000000004",
+      "target": {
+        "@odata.type": "#microsoft.graph.allDevicesAssignmentTarget"
+      }
+    },
+    {
+      "id": "assignment-00000000-0000-0000-0000-000000000005",
+      "target": {
+        "@odata.type": "#microsoft.graph.exclusionGroupAssignmentTarget",
+        "groupId": "group-00000000-0000-0000-0000-000000000003"
+      }
+    }
+  ]
+}
+

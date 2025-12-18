@@ -29,10 +29,51 @@ The following API permissions are required in order to use this resource.
 | Version | Status | Notes |
 |---------|--------|-------|
 | v0.23.0  | Experimental | Initial release |
+| v0.39.0  | Preview | Refactored resource to align with api changes and added full scenario based test harness|
 
 ## Example Usage
 
-{{ tffile "examples/resources/microsoft365_graph_beta_device_management_windows_update_ring/resource.tf" }}
+### Scenario 1: Notify Download
+
+This configuration notifies users when updates are available but requires manual download and installation.
+
+{{ tffile "examples/resources/microsoft365_graph_beta_device_management_windows_update_ring/scenario_001_notify_download.tf" }}
+
+### Scenario 2: Auto Install at Maintenance Time
+
+This configuration automatically installs updates outside of active hours but requires user interaction to restart.
+
+{{ tffile "examples/resources/microsoft365_graph_beta_device_management_windows_update_ring/scenario_002_auto_install_maintenance.tf" }}
+
+### Scenario 3: Auto Install and Reboot at Maintenance Time
+
+This configuration automatically installs updates and restarts devices outside of active hours.
+
+{{ tffile "examples/resources/microsoft365_graph_beta_device_management_windows_update_ring/scenario_003_auto_reboot_maintenance.tf" }}
+
+### Scenario 4: Auto Install and Restart at Scheduled Time
+
+This configuration automatically installs updates and restarts devices at a specific scheduled time.
+
+{{ tffile "examples/resources/microsoft365_graph_beta_device_management_windows_update_ring/scenario_004_scheduled_install.tf" }}
+
+### Scenario 5: Auto Install and Reboot Without End User Control
+
+This configuration provides the most aggressive update policy with no end-user control.
+
+{{ tffile "examples/resources/microsoft365_graph_beta_device_management_windows_update_ring/scenario_005_no_end_user_control.tf" }}
+
+### Scenario 6: Windows Default
+
+This configuration uses Windows default update behavior, resetting any custom policies.
+
+{{ tffile "examples/resources/microsoft365_graph_beta_device_management_windows_update_ring/scenario_006_windows_default.tf" }}
+
+### Scenario 7: Maximal Assignments
+
+This configuration demonstrates how to assign policies to multiple groups and targets.
+
+{{ tffile "examples/resources/microsoft365_graph_beta_device_management_windows_update_ring/scenario_007_maximal_assignments.tf" }}
 
 {{ .SchemaMarkdown | trimspace }}
 

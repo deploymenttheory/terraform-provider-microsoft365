@@ -45,12 +45,12 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *WindowsUpdateR
 	data.BusinessReadyUpdatesOnly = convert.GraphToFrameworkEnum(remoteResource.GetBusinessReadyUpdatesOnly())
 	data.AutomaticUpdateMode = convert.GraphToFrameworkEnum(remoteResource.GetAutomaticUpdateMode())
 	data.UpdateNotificationLevel = convert.GraphToFrameworkEnum(remoteResource.GetUpdateNotificationLevel())
-	data.DeliveryOptimizationMode = convert.GraphToFrameworkEnum(remoteResource.GetDeliveryOptimizationMode())
-	data.PrereleaseFeatures = convert.GraphToFrameworkEnum(remoteResource.GetPrereleaseFeatures())
 	data.UpdateWeeks = convert.GraphToFrameworkEnum(remoteResource.GetUpdateWeeks())
 
+	// Handle installation schedule (can be either active hours or scheduled install)
 	if installationSchedule := remoteResource.GetInstallationSchedule(); installationSchedule != nil {
 		if activeHoursInstall, ok := installationSchedule.(graphmodels.WindowsUpdateActiveHoursInstallable); ok {
+			// Handle WindowsUpdateActiveHoursInstall
 			if activeHoursInstall.GetActiveHoursStart() != nil {
 				data.ActiveHoursStart = types.StringValue(activeHoursInstall.GetActiveHoursStart().String())
 			} else {
@@ -62,15 +62,36 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *WindowsUpdateR
 			} else {
 				data.ActiveHoursEnd = types.StringNull()
 			}
-		} else {
-			tflog.Warn(ctx, "Installation schedule is not of type WindowsUpdateActiveHoursInstallable")
+
+			// Clear scheduled install fields
+			data.ScheduledInstallDay = types.StringNull()
+			data.ScheduledInstallTime = types.StringNull()
+		} else if scheduledInstall, ok := installationSchedule.(graphmodels.WindowsUpdateScheduledInstallable); ok {
+			// Handle WindowsUpdateScheduledInstall
+			data.ScheduledInstallDay = convert.GraphToFrameworkEnum(scheduledInstall.GetScheduledInstallDay())
+
+			if scheduledInstall.GetScheduledInstallTime() != nil {
+				data.ScheduledInstallTime = types.StringValue(scheduledInstall.GetScheduledInstallTime().String())
+			} else {
+				data.ScheduledInstallTime = types.StringNull()
+			}
+
+			// Clear active hours fields
 			data.ActiveHoursStart = types.StringNull()
 			data.ActiveHoursEnd = types.StringNull()
+		} else {
+			tflog.Warn(ctx, "Installation schedule is not of a recognized type")
+			data.ActiveHoursStart = types.StringNull()
+			data.ActiveHoursEnd = types.StringNull()
+			data.ScheduledInstallDay = types.StringNull()
+			data.ScheduledInstallTime = types.StringNull()
 		}
 	} else {
-		// No installation schedule means no active hours configured
+		// No installation schedule configured
 		data.ActiveHoursStart = types.StringNull()
 		data.ActiveHoursEnd = types.StringNull()
+		data.ScheduledInstallDay = types.StringNull()
+		data.ScheduledInstallTime = types.StringNull()
 	}
 
 	data.UserPauseAccess = convert.GraphToFrameworkEnum(remoteResource.GetUserPauseAccess())
@@ -82,24 +103,39 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *WindowsUpdateR
 		remoteResource.GetDeadlineForQualityUpdatesInDays() != nil ||
 		remoteResource.GetDeadlineGracePeriodInDays() != nil ||
 		remoteResource.GetPostponeRebootUntilAfterDeadline() != nil {
-		data.DeadlineSettings = &DeadlineSettingsModel{
+		deadlineSettings := DeadlineSettingsModel{
 			DeadlineForFeatureUpdatesInDays:  convert.GraphToFrameworkInt32(remoteResource.GetDeadlineForFeatureUpdatesInDays()),
 			DeadlineForQualityUpdatesInDays:  convert.GraphToFrameworkInt32(remoteResource.GetDeadlineForQualityUpdatesInDays()),
 			DeadlineGracePeriodInDays:        convert.GraphToFrameworkInt32(remoteResource.GetDeadlineGracePeriodInDays()),
 			PostponeRebootUntilAfterDeadline: convert.GraphToFrameworkBool(remoteResource.GetPostponeRebootUntilAfterDeadline()),
 		}
+		deadlineSettingsObj, diags := types.ObjectValueFrom(ctx, map[string]attr.Type{
+			"deadline_for_feature_updates_in_days": types.Int32Type,
+			"deadline_for_quality_updates_in_days": types.Int32Type,
+			"deadline_grace_period_in_days":        types.Int32Type,
+			"postpone_reboot_until_after_deadline": types.BoolType,
+		}, deadlineSettings)
+		if diags.HasError() {
+			tflog.Error(ctx, "Failed to create deadline settings object", map[string]any{
+				"errors": diags.Errors(),
+			})
+			data.DeadlineSettings = types.ObjectNull(map[string]attr.Type{
+				"deadline_for_feature_updates_in_days": types.Int32Type,
+				"deadline_for_quality_updates_in_days": types.Int32Type,
+				"deadline_grace_period_in_days":        types.Int32Type,
+				"postpone_reboot_until_after_deadline": types.BoolType,
+			})
+		} else {
+			data.DeadlineSettings = deadlineSettingsObj
+		}
 	} else {
-		data.DeadlineSettings = nil
+		data.DeadlineSettings = types.ObjectNull(map[string]attr.Type{
+			"deadline_for_feature_updates_in_days": types.Int32Type,
+			"deadline_for_quality_updates_in_days": types.Int32Type,
+			"deadline_grace_period_in_days":        types.Int32Type,
+			"postpone_reboot_until_after_deadline": types.BoolType,
+		})
 	}
-
-	data.EngagedRestartDeadlineInDays = convert.GraphToFrameworkInt32(remoteResource.GetEngagedRestartDeadlineInDays())
-	data.EngagedRestartSnoozeScheduleInDays = convert.GraphToFrameworkInt32(remoteResource.GetEngagedRestartSnoozeScheduleInDays())
-	data.EngagedRestartTransitionScheduleInDays = convert.GraphToFrameworkInt32(remoteResource.GetEngagedRestartTransitionScheduleInDays())
-	data.AutoRestartNotificationDismissal = convert.GraphToFrameworkEnum(remoteResource.GetAutoRestartNotificationDismissal())
-	data.ScheduleRestartWarningInHours = convert.GraphToFrameworkInt32(remoteResource.GetScheduleRestartWarningInHours())
-	data.ScheduleImminentRestartWarningInMinutes = convert.GraphToFrameworkInt32(remoteResource.GetScheduleImminentRestartWarningInMinutes())
-	data.EngagedRestartSnoozeScheduleForFeatureUpdatesInDays = convert.GraphToFrameworkInt32(remoteResource.GetEngagedRestartSnoozeScheduleInDays())
-	data.EngagedRestartTransitionScheduleForFeatureUpdatesInDays = convert.GraphToFrameworkInt32(remoteResource.GetEngagedRestartTransitionScheduleInDays())
 
 	assignments := remoteResource.GetAssignments()
 	tflog.Debug(ctx, "Retrieved assignments from remote resource", map[string]any{

@@ -1,0 +1,36 @@
+{
+  "@odata.type": "#microsoft.graph.windowsUpdateForBusinessConfiguration",
+  "id": "00000000-0000-0000-0000-000000000008",
+  "displayName": "unit-test-windows-update-ring-008-assignments-minimal-test1234",
+  "description": "Minimal Assignments Test",
+  "roleScopeTagIds": ["0"],
+  "microsoftUpdateServiceAllowed": true,
+  "driversExcluded": false,
+  "qualityUpdatesDeferralPeriodInDays": 30,
+  "featureUpdatesDeferralPeriodInDays": 30,
+  "allowWindows11Upgrade": true,
+  "qualityUpdatesPaused": false,
+  "featureUpdatesPaused": false,
+  "businessReadyUpdatesOnly": "windowsInsiderBuildRelease",
+  "skipChecksBeforeRestart": false,
+  "automaticUpdateMode": "notifyDownload",
+  "userPauseAccess": "enabled",
+  "userWindowsUpdateScanAccess": "enabled",
+  "updateNotificationLevel": "restartWarningsOnly",
+  "featureUpdatesRollbackWindowInDays": 10,
+  "deadlineForFeatureUpdatesInDays": 5,
+  "deadlineForQualityUpdatesInDays": 7,
+  "deadlineGracePeriodInDays": 7,
+  "postponeRebootUntilAfterDeadline": false,
+  "createdDateTime": "2024-01-01T00:00:00Z",
+  "lastModifiedDateTime": "2024-01-01T00:00:00Z",
+  "assignments": [
+    {
+      "id": "assignment-00000000-0000-0000-0000-000000000001",
+      "target": {
+        "@odata.type": "#microsoft.graph.allDevicesAssignmentTarget"
+      }
+    }
+  ]
+}
+

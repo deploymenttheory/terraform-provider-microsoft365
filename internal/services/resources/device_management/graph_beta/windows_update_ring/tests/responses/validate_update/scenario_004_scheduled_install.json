@@ -1,0 +1,35 @@
+{
+  "@odata.type": "#microsoft.graph.windowsUpdateForBusinessConfiguration",
+  "id": "00000000-0000-0000-0000-000000000004",
+  "displayName": "unit-test-windows-update-ring-004-scheduled-install-test1234",
+  "description": "Scenario 4: Auto Install and Restart at Scheduled Time",
+  "roleScopeTagIds": ["0"],
+  "microsoftUpdateServiceAllowed": true,
+  "driversExcluded": false,
+  "qualityUpdatesDeferralPeriodInDays": 30,
+  "featureUpdatesDeferralPeriodInDays": 30,
+  "allowWindows11Upgrade": true,
+  "qualityUpdatesPaused": false,
+  "featureUpdatesPaused": false,
+  "businessReadyUpdatesOnly": "windowsInsiderBuildRelease",
+  "skipChecksBeforeRestart": false,
+  "automaticUpdateMode": "autoInstallAndRebootAtScheduledTime",
+  "installationSchedule": {
+    "@odata.type": "#microsoft.graph.windowsUpdateScheduledInstall",
+    "scheduledInstallDay": "everyday",
+    "scheduledInstallTime": "03:00:00.0000000"
+  },
+  "userPauseAccess": "enabled",
+  "userWindowsUpdateScanAccess": "enabled",
+  "updateNotificationLevel": "restartWarningsOnly",
+  "updateWeeks": "everyWeek",
+  "featureUpdatesRollbackWindowInDays": 10,
+  "deadlineForFeatureUpdatesInDays": 5,
+  "deadlineForQualityUpdatesInDays": 7,
+  "deadlineGracePeriodInDays": 7,
+  "postponeRebootUntilAfterDeadline": false,
+  "createdDateTime": "2024-01-01T00:00:00Z",
+  "lastModifiedDateTime": "2024-01-01T00:00:00Z",
+  "assignments": []
+}
+
