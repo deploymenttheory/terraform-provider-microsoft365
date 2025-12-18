@@ -49,7 +49,7 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *DeviceHealthSc
 		tflog.Debug(ctx, "No assignments found, setting assignments to null", map[string]any{
 			"resourceId": data.ID.ValueString(),
 		})
-		data.Assignments = types.SetNull(WindowsRemediationScriptAssignmentType())
+		data.Assignments = types.ListNull(WindowsRemediationScriptAssignmentType())
 	} else {
 		tflog.Debug(ctx, "Starting assignment mapping process", map[string]any{
 			"resourceId":      data.ID.ValueString(),

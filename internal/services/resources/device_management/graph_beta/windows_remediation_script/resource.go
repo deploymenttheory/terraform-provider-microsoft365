@@ -39,9 +39,6 @@ var (
 
 	// Enables import functionality
 	_ resource.ResourceWithImportState = &DeviceHealthScriptResource{}
-
-	// Enables plan modification/diff suppression
-	_ resource.ResourceWithModifyPlan = &DeviceHealthScriptResource{}
 )
 
 func NewDeviceHealthScriptResource() resource.Resource {
@@ -75,11 +72,6 @@ func (r *DeviceHealthScriptResource) Configure(ctx context.Context, req resource
 // ImportState imports the resource state.
 func (r *DeviceHealthScriptResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
-}
-
-// ModifyPlan modifies the plan for the resource.
-func (r *DeviceHealthScriptResource) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
-	// No modifications needed at this time
 }
 
 // Schema defines the schema for the resource.
@@ -184,8 +176,10 @@ func (r *DeviceHealthScriptResource) Schema(ctx context.Context, req resource.Sc
 }
 
 // AssignmentBlock returns the schema for the assignments block
-func AssignmentBlock() schema.SetNestedAttribute {
-	return schema.SetNestedAttribute{
+// Uses ListNestedAttribute instead of SetNestedAttribute to avoid spurious diffs caused by hash-based comparison
+// of nested objects with Computed+Optional+Default attributes. List preserves the order returned by the API.
+func AssignmentBlock() schema.ListNestedAttribute {
+	return schema.ListNestedAttribute{
 		MarkdownDescription: "Assignments for the Windows remediation script. Each assignment specifies the target group and schedule for script execution.",
 		Optional:            true,
 		NestedObject: schema.NestedAttributeObject{

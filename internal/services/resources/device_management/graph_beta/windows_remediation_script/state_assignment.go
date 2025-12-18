@@ -53,7 +53,7 @@ func runOnceScheduleAttrTypes() map[string]attr.Type {
 func MapAssignmentsToTerraform(ctx context.Context, data *DeviceHealthScriptResourceModel, assignments []graphmodels.DeviceHealthScriptAssignmentable) {
 	if len(assignments) == 0 {
 		tflog.Debug(ctx, "No assignments to process")
-		data.Assignments = types.SetNull(WindowsRemediationScriptAssignmentType())
+		data.Assignments = types.ListNull(WindowsRemediationScriptAssignmentType())
 		return
 	}
 
@@ -556,25 +556,25 @@ func MapAssignmentsToTerraform(ctx context.Context, data *DeviceHealthScriptReso
 	})
 
 	if len(assignmentValues) > 0 {
-		setVal, diags := types.SetValue(WindowsRemediationScriptAssignmentType(), assignmentValues)
+		listVal, diags := types.ListValue(WindowsRemediationScriptAssignmentType(), assignmentValues)
 		if diags.HasError() {
-			tflog.Error(ctx, "Failed to create assignments set", map[string]any{
+			tflog.Error(ctx, "Failed to create assignments list", map[string]any{
 				"errors":     diags.Errors(),
 				"resourceId": data.ID.ValueString(),
 			})
-			data.Assignments = types.SetNull(WindowsRemediationScriptAssignmentType())
+			data.Assignments = types.ListNull(WindowsRemediationScriptAssignmentType())
 		} else {
-			tflog.Debug(ctx, "Successfully created assignments set", map[string]any{
+			tflog.Debug(ctx, "Successfully created assignments list", map[string]any{
 				"assignmentCount": len(assignmentValues),
 				"resourceId":      data.ID.ValueString(),
 			})
-			data.Assignments = setVal
+			data.Assignments = listVal
 		}
 	} else {
 		tflog.Debug(ctx, "No valid assignments processed, setting assignments to null", map[string]any{
 			"resourceId": data.ID.ValueString(),
 		})
-		data.Assignments = types.SetNull(WindowsRemediationScriptAssignmentType())
+		data.Assignments = types.ListNull(WindowsRemediationScriptAssignmentType())
 	}
 
 	tflog.Debug(ctx, "Finished mapping assignments to Terraform state", map[string]any{

@@ -24,7 +24,7 @@ type DeviceHealthScriptResourceModel struct {
 	CreatedDateTime          types.String   `tfsdk:"created_date_time"`
 	LastModifiedDateTime     types.String   `tfsdk:"last_modified_date_time"`
 	HighestAvailableVersion  types.String   `tfsdk:"highest_available_version"`
-	Assignments              types.Set      `tfsdk:"assignments"`
+	Assignments              types.List     `tfsdk:"assignments"`
 	Timeouts                 timeouts.Value `tfsdk:"timeouts"`
 }
 
