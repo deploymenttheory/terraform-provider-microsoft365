@@ -354,8 +354,9 @@ func (m *WindowsRemediationScriptMock) registerAssignmentMocks() {
 								// Keep original Microsoft Graph API field names for SDK processing
 								// The SDK will handle the field name mapping to Terraform structure
 								graphAssignment := map[string]any{
-									"id":     assignmentId,
-									"target": target,
+									"id":                   assignmentId,
+									"target":               target,
+									"runRemediationScript": assignmentMap["runRemediationScript"],
 								}
 
 								// Add runSchedule if present

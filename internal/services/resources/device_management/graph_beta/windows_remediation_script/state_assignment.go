@@ -14,13 +14,15 @@ import (
 func WindowsRemediationScriptAssignmentType() attr.Type {
 	return types.ObjectType{
 		AttrTypes: map[string]attr.Type{
-			"type":              types.StringType,
-			"group_id":          types.StringType,
-			"filter_id":         types.StringType,
-			"filter_type":       types.StringType,
-			"daily_schedule":    types.ObjectType{AttrTypes: dailyScheduleAttrTypes()},
-			"hourly_schedule":   types.ObjectType{AttrTypes: hourlyScheduleAttrTypes()},
-			"run_once_schedule": types.ObjectType{AttrTypes: runOnceScheduleAttrTypes()},
+			"id":                     types.StringType,
+			"run_remediation_script": types.BoolType,
+			"type":                   types.StringType,
+			"group_id":               types.StringType,
+			"filter_id":              types.StringType,
+			"filter_type":            types.StringType,
+			"daily_schedule":         types.ObjectType{AttrTypes: dailyScheduleAttrTypes()},
+			"hourly_schedule":        types.ObjectType{AttrTypes: hourlyScheduleAttrTypes()},
+			"run_once_schedule":      types.ObjectType{AttrTypes: runOnceScheduleAttrTypes()},
 		},
 	}
 }
