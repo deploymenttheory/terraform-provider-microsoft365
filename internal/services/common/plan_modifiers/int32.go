@@ -57,6 +57,31 @@ func UseStateForUnknownInt32() Int32Modifier {
 	}
 }
 
+// Add new default value modifier
+type defaultValueInt32 struct {
+	int32Modifier
+	defaultValue int32
+}
+
+func (m defaultValueInt32) PlanModifyInt32(ctx context.Context, req planmodifier.Int32Request, resp *planmodifier.Int32Response) {
+	if !req.PlanValue.IsNull() {
+		return
+	}
+
+	resp.PlanValue = types.Int32Value(m.defaultValue)
+}
+
+// Int32DefaultValue returns a plan modifier that sets a default value if the planned value is null
+func Int32DefaultValue(defaultValue int32) Int32Modifier {
+	return defaultValueInt32{
+		int32Modifier: int32Modifier{
+			description:         "Set default value if null",
+			markdownDescription: "Set default value if null",
+		},
+		defaultValue: defaultValue,
+	}
+}
+
 // RequiresOtherAttributeEnabledInt32 returns a plan modifier that ensures an Int32 attribute
 // can only be used when another specified attribute is enabled (set to true).
 func RequiresOtherAttributeEnabledInt32(dependencyPath path.Path) planmodifier.Int32 {
