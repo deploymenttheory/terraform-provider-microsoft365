@@ -1,0 +1,28 @@
+{
+  "@odata.type": "#microsoft.graph.deviceHealthScript",
+  "id": "55555555-5555-5555-5555-555555555555",
+  "displayName": "unit-test-windows-remediation-script-005-assignments-minimal",
+  "description": "Scenario 5: Minimal assignments",
+  "publisher": "Terraform Provider Test",
+  "runAs32Bit": false,
+  "runAsAccount": "system",
+  "enforceSignatureCheck": false,
+  "detectionScriptContent": "# Simple detection script\nWrite-Host 'Detection complete'\nexit 0",
+  "remediationScriptContent": "# Simple remediation script\nWrite-Host 'Remediation complete'\nexit 0",
+  "version": "1.0",
+  "isGlobalScript": false,
+  "deviceHealthScriptType": "deviceHealthScript",
+  "roleScopeTagIds": ["0"],
+  "assignments": [
+    {
+      "id": "assignment-id-1",
+      "target": {
+        "@odata.type": "#microsoft.graph.allDevicesAssignmentTarget"
+      }
+    }
+  ],
+  "createdDateTime": "2024-01-01T00:00:00Z",
+  "lastModifiedDateTime": "2024-01-01T00:00:00Z",
+  "highestAvailableVersion": "1.0"
+}
+

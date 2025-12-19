@@ -1,0 +1,75 @@
+{
+  "@odata.type": "#microsoft.graph.deviceHealthScript",
+  "id": "66666666-6666-6666-6666-666666666666",
+  "displayName": "unit-test-windows-remediation-script-006-assignments-maximal",
+  "description": "Scenario 6: Maximal assignments",
+  "publisher": "Terraform Provider Test",
+  "runAs32Bit": false,
+  "runAsAccount": "system",
+  "enforceSignatureCheck": false,
+  "detectionScriptContent": "# Simple detection script\nWrite-Host 'Detection complete'\nexit 0",
+  "remediationScriptContent": "# Simple remediation script\nWrite-Host 'Remediation complete'\nexit 0",
+  "version": "1.0",
+  "isGlobalScript": false,
+  "deviceHealthScriptType": "deviceHealthScript",
+  "roleScopeTagIds": ["0"],
+  "assignments": [
+    {
+      "id": "assignment-id-1",
+      "target": {
+        "@odata.type": "#microsoft.graph.groupAssignmentTarget",
+        "groupId": "44444444-4444-4444-4444-444444444444",
+        "deviceAndAppManagementAssignmentFilterId": "55555555-5555-5555-5555-555555555555",
+        "deviceAndAppManagementAssignmentFilterType": "include"
+      },
+      "runSchedule": {
+        "@odata.type": "#microsoft.graph.deviceHealthScriptDailySchedule",
+        "interval": 1,
+        "time": "09:00:00",
+        "useUtc": true
+      }
+    },
+    {
+      "id": "assignment-id-2",
+      "target": {
+        "@odata.type": "#microsoft.graph.groupAssignmentTarget",
+        "groupId": "33333333-3333-3333-3333-333333333333",
+        "deviceAndAppManagementAssignmentFilterId": "66666666-6666-6666-6666-666666666666",
+        "deviceAndAppManagementAssignmentFilterType": "exclude"
+      },
+      "runSchedule": {
+        "@odata.type": "#microsoft.graph.deviceHealthScriptHourlySchedule",
+        "interval": 4
+      }
+    },
+    {
+      "id": "assignment-id-3",
+      "target": {
+        "@odata.type": "#microsoft.graph.allLicensedUsersAssignmentTarget"
+      }
+    },
+    {
+      "id": "assignment-id-4",
+      "target": {
+        "@odata.type": "#microsoft.graph.allDevicesAssignmentTarget"
+      },
+      "runSchedule": {
+        "@odata.type": "#microsoft.graph.deviceHealthScriptRunOnceSchedule",
+        "date": "2024-12-31",
+        "time": "23:59:00",
+        "useUtc": false
+      }
+    },
+    {
+      "id": "assignment-id-5",
+      "target": {
+        "@odata.type": "#microsoft.graph.exclusionGroupAssignmentTarget",
+        "groupId": "77777777-7777-7777-7777-777777777777"
+      }
+    }
+  ],
+  "createdDateTime": "2024-01-01T00:00:00Z",
+  "lastModifiedDateTime": "2024-01-01T00:00:00Z",
+  "highestAvailableVersion": "1.0"
+}
+

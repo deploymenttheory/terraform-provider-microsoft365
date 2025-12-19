@@ -1,0 +1,20 @@
+{
+  "@odata.type": "#microsoft.graph.deviceHealthScript",
+  "id": "22222222-2222-2222-2222-222222222222",
+  "displayName": "unit-test-windows-remediation-script-002-maximal",
+  "description": "Scenario 2: Maximal configuration without assignments",
+  "publisher": "Terraform Provider Test Suite",
+  "runAs32Bit": true,
+  "runAsAccount": "user",
+  "enforceSignatureCheck": true,
+  "detectionScriptContent": "# Comprehensive detection script\n$computerName = $env:COMPUTERNAME\n$osVersion = (Get-WmiObject Win32_OperatingSystem).Version\nWrite-Host \"Computer: $computerName\"\nWrite-Host \"OS Version: $osVersion\"\n\n# Check for specific condition\nif (Test-Path \"C:\\temp\\marker.txt\") {\n    Write-Host \"Marker file found - issue detected\"\n    exit 1\n} else {\n    Write-Host \"No issues detected\"\n    exit 0\n}",
+  "remediationScriptContent": "# Comprehensive remediation script\n$logPath = \"C:\\temp\\remediation.log\"\n$timestamp = Get-Date -Format \"yyyy-MM-dd HH:mm:ss\"\n\n# Create directory if it doesn't exist\nif (!(Test-Path \"C:\\temp\")) {\n    New-Item -ItemType Directory -Path \"C:\\temp\" -Force\n}\n\n# Log the remediation action\nAdd-Content -Path $logPath -Value \"$timestamp - Remediation started\"\n\n# Remove the marker file\nif (Test-Path \"C:\\temp\\marker.txt\") {\n    Remove-Item \"C:\\temp\\marker.txt\" -Force\n    Add-Content -Path $logPath -Value \"$timestamp - Marker file removed\"\n}\n\nAdd-Content -Path $logPath -Value \"$timestamp - Remediation completed\"\nWrite-Host \"Remediation completed successfully\"\nexit 0",
+  "version": "1.0",
+  "isGlobalScript": false,
+  "deviceHealthScriptType": "deviceHealthScript",
+  "roleScopeTagIds": ["0", "1"],
+  "createdDateTime": "2024-01-01T00:00:00Z",
+  "lastModifiedDateTime": "2024-01-01T00:00:00Z",
+  "highestAvailableVersion": "1.0"
+}
+
