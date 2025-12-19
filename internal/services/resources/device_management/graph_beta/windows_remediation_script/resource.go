@@ -8,13 +8,13 @@ import (
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	planmodifiers "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/plan_modifiers"
 	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/schema"
+	"github.com/hashicorp/terraform-plugin-framework-validators/int32validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int32default"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
@@ -235,10 +235,11 @@ func AssignmentBlock() schema.SetNestedAttribute {
 					MarkdownDescription: "Configuration for daily schedule execution. Only one schedule type (daily_schedule, hourly_schedule, or run_once_schedule) should be specified per assignment.",
 					Attributes: map[string]schema.Attribute{
 						"interval": schema.Int32Attribute{
-							Optional:            true,
-							Computed:            true,
-							Default:             int32default.StaticInt32(1),
-							MarkdownDescription: "Days between runs. Default is 1.",
+							Required:            true,
+							MarkdownDescription: "Define the interval in days between runs. Must be specified when using daily_schedule.",
+							Validators: []validator.Int32{
+								int32validator.AtLeast(1),
+							},
 						},
 						"time": schema.StringAttribute{
 							Required:            true,
@@ -251,10 +252,8 @@ func AssignmentBlock() schema.SetNestedAttribute {
 							},
 						},
 						"use_utc": schema.BoolAttribute{
-							Optional:            true,
-							Computed:            true,
-							Default:             booldefault.StaticBool(false),
-							MarkdownDescription: "Whether to use UTC time. Default is false (local time).",
+							Required:            true,
+							MarkdownDescription: "Whether to use UTC time. Must be specified when using daily_schedule.",
 						},
 					},
 				},
@@ -263,10 +262,11 @@ func AssignmentBlock() schema.SetNestedAttribute {
 					MarkdownDescription: "Configuration for hourly schedule execution. Only one schedule type (daily_schedule, hourly_schedule, or run_once_schedule) should be specified per assignment.",
 					Attributes: map[string]schema.Attribute{
 						"interval": schema.Int32Attribute{
-							Optional:            true,
-							Computed:            true,
-							Default:             int32default.StaticInt32(1),
-							MarkdownDescription: "Hours between runs. Default is 1.",
+							Required:            true,
+							MarkdownDescription: "Define the interval in days between runs. Must be specified when using hourly_schedule.",
+							Validators: []validator.Int32{
+								int32validator.AtLeast(1),
+							},
 						},
 					},
 				},
@@ -295,10 +295,8 @@ func AssignmentBlock() schema.SetNestedAttribute {
 							},
 						},
 						"use_utc": schema.BoolAttribute{
-							Optional:            true,
-							Computed:            true,
-							Default:             booldefault.StaticBool(false),
-							MarkdownDescription: "Whether to use UTC time. Default is false (local time).",
+							Required:            true,
+							MarkdownDescription: "Whether to use UTC time. Must be specified when using run_once_schedule.",
 						},
 					},
 				},

@@ -382,15 +382,36 @@ func MapAssignmentsToTerraform(ctx context.Context, data *DeviceHealthScriptReso
 					})
 
 					if hourlySchedule, ok := runSchedule.(graphmodels.DeviceHealthScriptHourlyScheduleable); ok {
+						interval := hourlySchedule.GetInterval()
+						tflog.Debug(ctx, "READ: Hourly schedule interval from API", map[string]any{
+							"assignmentIndex": i,
+							"assignmentId":    assignment.GetId(),
+							"interval":        interval,
+							"intervalValue": func() int32 {
+								if interval != nil {
+									return *interval
+								}
+								return 0
+							}(),
+							"resourceId": data.ID.ValueString(),
+						})
+
 						hourlyScheduleObj := map[string]attr.Value{
 							"interval": convert.GraphToFrameworkInt32(hourlySchedule.GetInterval()),
 						}
 
 						if interval := hourlySchedule.GetInterval(); interval != nil {
-							tflog.Debug(ctx, "Hourly schedule interval", map[string]any{
+							tflog.Debug(ctx, "Hourly schedule interval converted to Terraform", map[string]any{
+								"assignmentIndex":   i,
+								"assignmentId":      assignment.GetId(),
+								"interval":          *interval,
+								"terraformInterval": convert.GraphToFrameworkInt32(interval),
+								"resourceId":        data.ID.ValueString(),
+							})
+						} else {
+							tflog.Warn(ctx, "Hourly schedule interval is nil from API", map[string]any{
 								"assignmentIndex": i,
 								"assignmentId":    assignment.GetId(),
-								"interval":        *interval,
 								"resourceId":      data.ID.ValueString(),
 							})
 						}

@@ -176,6 +176,27 @@ func (m *WindowsRemediationScriptMock) RegisterMocks() {
 			if description, hasDesc := requestBody["description"]; hasDesc {
 				response["description"] = description
 			}
+			if publisher, hasPublisher := requestBody["publisher"]; hasPublisher {
+				response["publisher"] = publisher
+			}
+			if runAs32Bit, has := requestBody["runAs32Bit"]; has {
+				response["runAs32Bit"] = runAs32Bit
+			}
+			if runAsAccount, has := requestBody["runAsAccount"]; has {
+				response["runAsAccount"] = runAsAccount
+			}
+			if enforceSignatureCheck, has := requestBody["enforceSignatureCheck"]; has {
+				response["enforceSignatureCheck"] = enforceSignatureCheck
+			}
+			if detectionScriptContent, has := requestBody["detectionScriptContent"]; has {
+				response["detectionScriptContent"] = detectionScriptContent
+			}
+			if remediationScriptContent, has := requestBody["remediationScriptContent"]; has {
+				response["remediationScriptContent"] = remediationScriptContent
+			}
+			if roleScopeTagIds, has := requestBody["roleScopeTagIds"]; has {
+				response["roleScopeTagIds"] = roleScopeTagIds
+			}
 
 			// Store in mock state
 			mockState.Lock()

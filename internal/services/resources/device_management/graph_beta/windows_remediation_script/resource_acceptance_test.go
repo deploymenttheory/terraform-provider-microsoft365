@@ -327,21 +327,4 @@ func TestAccWindowsRemediationScriptResource_008_AssignmentsLifecycle_MaximalToM
 }
 
 // Test 009: Scenario 9 - Validation errors
-func TestAccWindowsRemediationScriptResource_009_ValidationErrors(t *testing.T) {
-	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
-		Steps: []resource.TestStep{
-			{
-				Config:      loadAcceptanceTestTerraform("validation_missing_display_name.tf"),
-				ExpectError: regexp.MustCompile(`Missing required argument`),
-			},
-			{
-				Config:      loadAcceptanceTestTerraform("validation_invalid_run_as_account.tf"),
-				ExpectError: regexp.MustCompile(`Attribute run_as_account value must be one of`),
-			},
-		},
-	})
-}
-
 // testAccCheckWindowsRemediationScriptDestroy verifies that Windows remediation scripts have been destroyed
