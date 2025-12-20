@@ -1,14 +1,16 @@
-resource "microsoft365_graph_beta_device_management_windows_remediation_script" "test" {
-  display_name             = "Test Acceptance Windows Remediation Script - Updated"
-  description              = "Updated description for acceptance testing"
+resource "microsoft365_graph_beta_device_management_windows_remediation_script" "test_002" {
+  display_name             = "unit-test-windows-remediation-script-002-maximal"
+  description              = "Scenario 2: Maximal configuration without assignments"
   publisher                = "Terraform Provider Test Suite"
   run_as_account           = "user"
   run_as_32_bit            = true
   enforce_signature_check  = true
   detection_script_content = <<-EOT
-    # Comprehensive detection script for acceptance testing
+    # Comprehensive detection script
     $computerName = $env:COMPUTERNAME
+    $osVersion = (Get-WmiObject Win32_OperatingSystem).Version
     Write-Host "Computer: $computerName"
+    Write-Host "OS Version: $osVersion"
     
     # Check for specific condition
     if (Test-Path "C:\temp\marker.txt") {
@@ -21,7 +23,7 @@ resource "microsoft365_graph_beta_device_management_windows_remediation_script" 
   EOT
 
   remediation_script_content = <<-EOT
-    # Comprehensive remediation script for acceptance testing
+    # Comprehensive remediation script
     $logPath = "C:\temp\remediation.log"
     $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
     
@@ -45,4 +47,12 @@ resource "microsoft365_graph_beta_device_management_windows_remediation_script" 
   EOT
 
   role_scope_tag_ids = ["0", "1"]
+
+  timeouts = {
+    create = "30s"
+    read   = "30s"
+    update = "30s"
+    delete = "30s"
+  }
 }
+

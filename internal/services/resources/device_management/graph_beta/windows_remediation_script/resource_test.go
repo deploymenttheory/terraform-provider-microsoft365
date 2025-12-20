@@ -4,52 +4,57 @@ import (
 	"regexp"
 	"testing"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/check"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
+	graphBetaWindowsRemediationScript "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_management/graph_beta/windows_remediation_script"
 	windowsRemediationScriptMocks "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_management/graph_beta/windows_remediation_script/mocks"
+	groupMocks "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/groups/graph_beta/group/mocks"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/jarcoal/httpmock"
 )
 
 // setupMockEnvironment sets up the mock environment using centralized mocks
 func setupMockEnvironment() (*mocks.Mocks, *windowsRemediationScriptMocks.WindowsRemediationScriptMock) {
-	// Activate httpmock
 	httpmock.Activate()
-
-	// Create a new Mocks instance and register authentication mocks
 	mockClient := mocks.NewMocks()
 	mockClient.AuthMocks.RegisterMocks()
 
-	// Register local mocks directly
+	// Register group mocks for tests that create groups
+	groupMock := &groupMocks.GroupMock{}
+	groupMock.RegisterMocks()
+
 	windowsRemediationScriptMock := &windowsRemediationScriptMocks.WindowsRemediationScriptMock{}
 	windowsRemediationScriptMock.RegisterMocks()
-
 	return mockClient, windowsRemediationScriptMock
 }
 
 // setupErrorMockEnvironment sets up the mock environment for error testing
 func setupErrorMockEnvironment() (*mocks.Mocks, *windowsRemediationScriptMocks.WindowsRemediationScriptMock) {
-	// Activate httpmock
 	httpmock.Activate()
-
-	// Create a new Mocks instance and register authentication mocks
 	mockClient := mocks.NewMocks()
 	mockClient.AuthMocks.RegisterMocks()
 
-	// Register error mocks
+	// Register group mocks for tests that create groups
+	groupMock := &groupMocks.GroupMock{}
+	groupMock.RegisterMocks()
+
 	windowsRemediationScriptMock := &windowsRemediationScriptMocks.WindowsRemediationScriptMock{}
 	windowsRemediationScriptMock.RegisterErrorMocks()
-
 	return mockClient, windowsRemediationScriptMock
 }
 
-// testCheckExists is a basic check to ensure the resource exists in the state
-func testCheckExists(resourceName string) resource.TestCheckFunc {
-	return resource.TestCheckResourceAttrSet(resourceName, "id")
+// Helper function to load test configs from unit directory
+func loadUnitTestTerraform(filename string) string {
+	config, err := helpers.ParseHCLFile("tests/terraform/unit/" + filename)
+	if err != nil {
+		panic("failed to load unit test config " + filename + ": " + err.Error())
+	}
+	return config
 }
 
-// TestWindowsRemediationScriptResource_Schema validates the resource schema
-func TestWindowsRemediationScriptResource_Schema(t *testing.T) {
+// Test 001: Scenario 1 - Minimal configuration without assignments
+func TestWindowsRemediationScriptResource_001_Scenario_Minimal(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, windowsRemediationScriptMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -59,61 +64,34 @@ func TestWindowsRemediationScriptResource_Schema(t *testing.T) {
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testConfigMinimal(),
+				Config: loadUnitTestTerraform("001_scenario_minimal.tf"),
 				Check: resource.ComposeTestCheckFunc(
-					// Check required attributes
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_remediation_script.minimal", "display_name", "Test Minimal Windows Remediation Script - Unique"),
-
-					// Check computed attributes are set
-					resource.TestMatchResourceAttr("microsoft365_graph_beta_device_management_windows_remediation_script.minimal", "id", regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_remediation_script.minimal", "role_scope_tag_ids.#", "1"),
-					resource.TestCheckTypeSetElemAttr("microsoft365_graph_beta_device_management_windows_remediation_script.minimal", "role_scope_tag_ids.*", "0"),
+					check.That(graphBetaWindowsRemediationScript.ResourceName+".test_001").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(graphBetaWindowsRemediationScript.ResourceName+".test_001").Key("display_name").HasValue("unit-test-windows-remediation-script-001-minimal"),
+					check.That(graphBetaWindowsRemediationScript.ResourceName+".test_001").Key("description").HasValue("Scenario 1: Minimal configuration without assignments"),
+					check.That(graphBetaWindowsRemediationScript.ResourceName+".test_001").Key("publisher").HasValue("Terraform Provider Test"),
+					check.That(graphBetaWindowsRemediationScript.ResourceName+".test_001").Key("run_as_account").HasValue("system"),
+					check.That(graphBetaWindowsRemediationScript.ResourceName+".test_001").Key("run_as_32_bit").HasValue("false"),
+					check.That(graphBetaWindowsRemediationScript.ResourceName+".test_001").Key("enforce_signature_check").HasValue("false"),
+					check.That(graphBetaWindowsRemediationScript.ResourceName+".test_001").Key("detection_script_content").Exists(),
+					check.That(graphBetaWindowsRemediationScript.ResourceName+".test_001").Key("remediation_script_content").Exists(),
+					check.That(graphBetaWindowsRemediationScript.ResourceName+".test_001").Key("role_scope_tag_ids.#").HasValue("1"),
+					check.That(graphBetaWindowsRemediationScript.ResourceName+".test_001").Key("version").Exists(),
+					check.That(graphBetaWindowsRemediationScript.ResourceName+".test_001").Key("is_global_script").HasValue("false"),
+					check.That(graphBetaWindowsRemediationScript.ResourceName+".test_001").Key("device_health_script_type").HasValue("deviceHealthScript"),
 				),
 			},
-		},
-	})
-}
-
-// TestWindowsRemediationScriptResource_Minimal tests basic CRUD operations
-func TestWindowsRemediationScriptResource_Minimal(t *testing.T) {
-	mocks.SetupUnitTestEnvironment(t)
-	_, windowsRemediationScriptMock := setupMockEnvironment()
-	defer httpmock.DeactivateAndReset()
-	defer windowsRemediationScriptMock.CleanupMockState()
-
-	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
-		Steps: []resource.TestStep{
-			// Create and Read testing
 			{
-				Config: testConfigMinimal(),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckExists("microsoft365_graph_beta_device_management_windows_remediation_script.minimal"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_remediation_script.minimal", "display_name", "Test Minimal Windows Remediation Script - Unique"),
-				),
-			},
-			// ImportState testing
-			{
-				ResourceName:      "microsoft365_graph_beta_device_management_windows_remediation_script.minimal",
+				ResourceName:      graphBetaWindowsRemediationScript.ResourceName + ".test_001",
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
-			// Update and Read testing
-			{
-				Config: testConfigMaximal(),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckExists("microsoft365_graph_beta_device_management_windows_remediation_script.maximal"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_remediation_script.maximal", "display_name", "Test Maximal Windows Remediation Script - Unique"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_remediation_script.maximal", "description", "Maximal Windows remediation script for testing with all features"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_remediation_script.maximal", "role_scope_tag_ids.#", "2"),
-				),
-			},
 		},
 	})
 }
 
-// TestWindowsRemediationScriptResource_UpdateInPlace tests in-place updates
-func TestWindowsRemediationScriptResource_UpdateInPlace(t *testing.T) {
+// Test 002: Scenario 2 - Maximal configuration without assignments
+func TestWindowsRemediationScriptResource_002_Scenario_Maximal(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, windowsRemediationScriptMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -123,27 +101,34 @@ func TestWindowsRemediationScriptResource_UpdateInPlace(t *testing.T) {
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testConfigMinimal(),
+				Config: loadUnitTestTerraform("002_scenario_maximal.tf"),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckExists("microsoft365_graph_beta_device_management_windows_remediation_script.minimal"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_remediation_script.minimal", "display_name", "Test Minimal Windows Remediation Script - Unique"),
+					check.That(graphBetaWindowsRemediationScript.ResourceName+".test_002").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(graphBetaWindowsRemediationScript.ResourceName+".test_002").Key("display_name").HasValue("unit-test-windows-remediation-script-002-maximal"),
+					check.That(graphBetaWindowsRemediationScript.ResourceName+".test_002").Key("description").HasValue("Scenario 2: Maximal configuration without assignments"),
+					check.That(graphBetaWindowsRemediationScript.ResourceName+".test_002").Key("publisher").HasValue("Terraform Provider Test Suite"),
+					check.That(graphBetaWindowsRemediationScript.ResourceName+".test_002").Key("run_as_account").HasValue("user"),
+					check.That(graphBetaWindowsRemediationScript.ResourceName+".test_002").Key("run_as_32_bit").HasValue("true"),
+					check.That(graphBetaWindowsRemediationScript.ResourceName+".test_002").Key("enforce_signature_check").HasValue("true"),
+					check.That(graphBetaWindowsRemediationScript.ResourceName+".test_002").Key("detection_script_content").Exists(),
+					check.That(graphBetaWindowsRemediationScript.ResourceName+".test_002").Key("remediation_script_content").Exists(),
+					check.That(graphBetaWindowsRemediationScript.ResourceName+".test_002").Key("role_scope_tag_ids.#").HasValue("2"),
+					check.That(graphBetaWindowsRemediationScript.ResourceName+".test_002").Key("version").Exists(),
+					check.That(graphBetaWindowsRemediationScript.ResourceName+".test_002").Key("is_global_script").HasValue("false"),
+					check.That(graphBetaWindowsRemediationScript.ResourceName+".test_002").Key("device_health_script_type").HasValue("deviceHealthScript"),
 				),
 			},
 			{
-				Config: testConfigMaximal(),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckExists("microsoft365_graph_beta_device_management_windows_remediation_script.maximal"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_remediation_script.maximal", "display_name", "Test Maximal Windows Remediation Script - Unique"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_remediation_script.maximal", "description", "Maximal Windows remediation script for testing with all features"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_remediation_script.maximal", "role_scope_tag_ids.#", "2"),
-				),
+				ResourceName:      graphBetaWindowsRemediationScript.ResourceName + ".test_002",
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
 }
 
-// TestWindowsRemediationScriptResource_RequiredFields tests required field validation
-func TestWindowsRemediationScriptResource_RequiredFields(t *testing.T) {
+// Test 003: Scenario 3 - Lifecycle from minimal to maximal
+func TestWindowsRemediationScriptResource_003_Lifecycle_MinimalToMaximal(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, windowsRemediationScriptMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -153,223 +138,273 @@ func TestWindowsRemediationScriptResource_RequiredFields(t *testing.T) {
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: `
-resource "microsoft365_graph_beta_device_management_windows_remediation_script" "test" {
-  # Missing display_name
-  publisher = "Test Publisher"
-  run_as_account = "system"
+				Config: loadUnitTestTerraform("003_lifecycle_minimal_to_maximal_step_1.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(graphBetaWindowsRemediationScript.ResourceName+".test_003").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(graphBetaWindowsRemediationScript.ResourceName+".test_003").Key("display_name").HasValue("unit-test-windows-remediation-script-003-lifecycle"),
+					check.That(graphBetaWindowsRemediationScript.ResourceName+".test_003").Key("run_as_account").HasValue("system"),
+					check.That(graphBetaWindowsRemediationScript.ResourceName+".test_003").Key("run_as_32_bit").HasValue("false"),
+					check.That(graphBetaWindowsRemediationScript.ResourceName+".test_003").Key("enforce_signature_check").HasValue("false"),
+					check.That(graphBetaWindowsRemediationScript.ResourceName+".test_003").Key("detection_script_content").Exists(),
+					check.That(graphBetaWindowsRemediationScript.ResourceName+".test_003").Key("remediation_script_content").Exists(),
+				),
+			},
+			{
+				Config: loadUnitTestTerraform("003_lifecycle_minimal_to_maximal_step_2.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(graphBetaWindowsRemediationScript.ResourceName+".test_003").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(graphBetaWindowsRemediationScript.ResourceName+".test_003").Key("display_name").HasValue("unit-test-windows-remediation-script-003-lifecycle"),
+					check.That(graphBetaWindowsRemediationScript.ResourceName+".test_003").Key("run_as_account").HasValue("user"),
+					check.That(graphBetaWindowsRemediationScript.ResourceName+".test_003").Key("run_as_32_bit").HasValue("true"),
+					check.That(graphBetaWindowsRemediationScript.ResourceName+".test_003").Key("enforce_signature_check").HasValue("true"),
+					check.That(graphBetaWindowsRemediationScript.ResourceName+".test_003").Key("role_scope_tag_ids.#").HasValue("2"),
+					check.That(graphBetaWindowsRemediationScript.ResourceName+".test_003").Key("detection_script_content").Exists(),
+					check.That(graphBetaWindowsRemediationScript.ResourceName+".test_003").Key("remediation_script_content").Exists(),
+				),
+			},
+			{
+				ResourceName:      graphBetaWindowsRemediationScript.ResourceName + ".test_003",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
 }
-`,
+
+// Test 004: Scenario 4 - Lifecycle from maximal to minimal
+func TestWindowsRemediationScriptResource_004_Lifecycle_MaximalToMinimal(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
+	_, windowsRemediationScriptMock := setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+	defer windowsRemediationScriptMock.CleanupMockState()
+
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: loadUnitTestTerraform("004_lifecycle_maximal_to_minimal_step_1.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(graphBetaWindowsRemediationScript.ResourceName+".test_004").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(graphBetaWindowsRemediationScript.ResourceName+".test_004").Key("display_name").HasValue("unit-test-windows-remediation-script-004-downgrade"),
+					check.That(graphBetaWindowsRemediationScript.ResourceName+".test_004").Key("run_as_account").HasValue("user"),
+					check.That(graphBetaWindowsRemediationScript.ResourceName+".test_004").Key("run_as_32_bit").HasValue("true"),
+					check.That(graphBetaWindowsRemediationScript.ResourceName+".test_004").Key("enforce_signature_check").HasValue("true"),
+					check.That(graphBetaWindowsRemediationScript.ResourceName+".test_004").Key("role_scope_tag_ids.#").HasValue("2"),
+				),
+			},
+			{
+				Config: loadUnitTestTerraform("004_lifecycle_maximal_to_minimal_step_2.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(graphBetaWindowsRemediationScript.ResourceName+".test_004").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(graphBetaWindowsRemediationScript.ResourceName+".test_004").Key("display_name").HasValue("unit-test-windows-remediation-script-004-downgrade"),
+					check.That(graphBetaWindowsRemediationScript.ResourceName+".test_004").Key("run_as_account").HasValue("system"),
+					check.That(graphBetaWindowsRemediationScript.ResourceName+".test_004").Key("run_as_32_bit").HasValue("false"),
+					check.That(graphBetaWindowsRemediationScript.ResourceName+".test_004").Key("enforce_signature_check").HasValue("false"),
+					check.That(graphBetaWindowsRemediationScript.ResourceName+".test_004").Key("role_scope_tag_ids.#").HasValue("1"),
+				),
+			},
+			{
+				ResourceName:      graphBetaWindowsRemediationScript.ResourceName + ".test_004",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+// Test 005: Scenario 5 - Minimal assignments
+func TestWindowsRemediationScriptResource_005_AssignmentsMinimal(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
+	_, windowsRemediationScriptMock := setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+	defer windowsRemediationScriptMock.CleanupMockState()
+
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: loadUnitTestTerraform("005_assignments_minimal.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(graphBetaWindowsRemediationScript.ResourceName+".test_005").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(graphBetaWindowsRemediationScript.ResourceName+".test_005").Key("display_name").HasValue("unit-test-windows-remediation-script-005-assignments-minimal"),
+					check.That(graphBetaWindowsRemediationScript.ResourceName+".test_005").Key("description").HasValue("Scenario 5: Minimal assignments"),
+					check.That(graphBetaWindowsRemediationScript.ResourceName+".test_005").Key("assignments.#").HasValue("1"),
+					check.That(graphBetaWindowsRemediationScript.ResourceName+".test_005").Key("detection_script_content").Exists(),
+					check.That(graphBetaWindowsRemediationScript.ResourceName+".test_005").Key("remediation_script_content").Exists(),
+				),
+			},
+			{
+				ResourceName:      graphBetaWindowsRemediationScript.ResourceName + ".test_005",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+// Test 006: Scenario 6 - Maximal assignments
+func TestWindowsRemediationScriptResource_006_AssignmentsMaximal(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
+	_, windowsRemediationScriptMock := setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+	defer windowsRemediationScriptMock.CleanupMockState()
+
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: loadUnitTestTerraform("006_assignments_maximal.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(graphBetaWindowsRemediationScript.ResourceName+".test_006").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(graphBetaWindowsRemediationScript.ResourceName+".test_006").Key("display_name").HasValue("unit-test-windows-remediation-script-006-assignments-maximal"),
+					check.That(graphBetaWindowsRemediationScript.ResourceName+".test_006").Key("description").HasValue("Scenario 6: Maximal assignments"),
+					check.That(graphBetaWindowsRemediationScript.ResourceName+".test_006").Key("assignments.#").HasValue("5"),
+					check.That(graphBetaWindowsRemediationScript.ResourceName+".test_006").Key("detection_script_content").Exists(),
+					check.That(graphBetaWindowsRemediationScript.ResourceName+".test_006").Key("remediation_script_content").Exists(),
+					// Verify assignment types are present
+					resource.TestCheckTypeSetElemNestedAttrs(graphBetaWindowsRemediationScript.ResourceName+".test_006", "assignments.*", map[string]string{
+						"type":        "groupAssignmentTarget",
+						"group_id":    "44444444-4444-4444-4444-444444444444",
+						"filter_type": "include",
+						"filter_id":   "55555555-5555-5555-5555-555555555555",
+					}),
+					resource.TestCheckTypeSetElemNestedAttrs(graphBetaWindowsRemediationScript.ResourceName+".test_006", "assignments.*", map[string]string{
+						"type":        "groupAssignmentTarget",
+						"group_id":    "33333333-3333-3333-3333-333333333333",
+						"filter_type": "exclude",
+						"filter_id":   "66666666-6666-6666-6666-666666666666",
+					}),
+					resource.TestCheckTypeSetElemNestedAttrs(graphBetaWindowsRemediationScript.ResourceName+".test_006", "assignments.*", map[string]string{
+						"type": "allLicensedUsersAssignmentTarget",
+					}),
+					resource.TestCheckTypeSetElemNestedAttrs(graphBetaWindowsRemediationScript.ResourceName+".test_006", "assignments.*", map[string]string{
+						"type": "allDevicesAssignmentTarget",
+					}),
+					resource.TestCheckTypeSetElemNestedAttrs(graphBetaWindowsRemediationScript.ResourceName+".test_006", "assignments.*", map[string]string{
+						"type":     "exclusionGroupAssignmentTarget",
+						"group_id": "77777777-7777-7777-7777-777777777777",
+					}),
+				),
+			},
+			{
+				ResourceName:      graphBetaWindowsRemediationScript.ResourceName + ".test_006",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+// Test 007: Scenario 7 - Assignments lifecycle minimal to maximal
+func TestWindowsRemediationScriptResource_007_AssignmentsLifecycle_MinimalToMaximal(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
+	_, windowsRemediationScriptMock := setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+	defer windowsRemediationScriptMock.CleanupMockState()
+
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: loadUnitTestTerraform("007_assignments_lifecycle_minimal_to_maximal_step_1.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(graphBetaWindowsRemediationScript.ResourceName+".test_007").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(graphBetaWindowsRemediationScript.ResourceName+".test_007").Key("display_name").HasValue("unit-test-windows-remediation-script-007-assignments-lifecycle"),
+					check.That(graphBetaWindowsRemediationScript.ResourceName+".test_007").Key("assignments.#").HasValue("1"),
+					resource.TestCheckTypeSetElemNestedAttrs(graphBetaWindowsRemediationScript.ResourceName+".test_007", "assignments.*", map[string]string{
+						"type": "allDevicesAssignmentTarget",
+					}),
+				),
+			},
+			{
+				Config: loadUnitTestTerraform("007_assignments_lifecycle_minimal_to_maximal_step_2.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(graphBetaWindowsRemediationScript.ResourceName+".test_007").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(graphBetaWindowsRemediationScript.ResourceName+".test_007").Key("display_name").HasValue("unit-test-windows-remediation-script-007-assignments-lifecycle"),
+					check.That(graphBetaWindowsRemediationScript.ResourceName+".test_007").Key("assignments.#").HasValue("5"),
+					resource.TestCheckTypeSetElemNestedAttrs(graphBetaWindowsRemediationScript.ResourceName+".test_007", "assignments.*", map[string]string{
+						"type": "allLicensedUsersAssignmentTarget",
+					}),
+					resource.TestCheckTypeSetElemNestedAttrs(graphBetaWindowsRemediationScript.ResourceName+".test_007", "assignments.*", map[string]string{
+						"type": "allDevicesAssignmentTarget",
+					}),
+					resource.TestCheckTypeSetElemNestedAttrs(graphBetaWindowsRemediationScript.ResourceName+".test_007", "assignments.*", map[string]string{
+						"type":     "exclusionGroupAssignmentTarget",
+						"group_id": "77777777-7777-7777-7777-777777777777",
+					}),
+				),
+			},
+			{
+				ResourceName:      graphBetaWindowsRemediationScript.ResourceName + ".test_007",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+// Test 008: Scenario 8 - Assignments lifecycle maximal to minimal
+func TestWindowsRemediationScriptResource_008_AssignmentsLifecycle_MaximalToMinimal(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
+	_, windowsRemediationScriptMock := setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+	defer windowsRemediationScriptMock.CleanupMockState()
+
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: loadUnitTestTerraform("008_assignments_lifecycle_maximal_to_minimal_step_1.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(graphBetaWindowsRemediationScript.ResourceName+".test_008").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(graphBetaWindowsRemediationScript.ResourceName+".test_008").Key("display_name").HasValue("unit-test-windows-remediation-script-008-assignments-downgrade"),
+					check.That(graphBetaWindowsRemediationScript.ResourceName+".test_008").Key("assignments.#").HasValue("5"),
+					resource.TestCheckTypeSetElemNestedAttrs(graphBetaWindowsRemediationScript.ResourceName+".test_008", "assignments.*", map[string]string{
+						"type": "allLicensedUsersAssignmentTarget",
+					}),
+					resource.TestCheckTypeSetElemNestedAttrs(graphBetaWindowsRemediationScript.ResourceName+".test_008", "assignments.*", map[string]string{
+						"type": "allDevicesAssignmentTarget",
+					}),
+				),
+			},
+			{
+				Config: loadUnitTestTerraform("008_assignments_lifecycle_maximal_to_minimal_step_2.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(graphBetaWindowsRemediationScript.ResourceName+".test_008").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(graphBetaWindowsRemediationScript.ResourceName+".test_008").Key("display_name").HasValue("unit-test-windows-remediation-script-008-assignments-downgrade"),
+					check.That(graphBetaWindowsRemediationScript.ResourceName+".test_008").Key("assignments.#").HasValue("1"),
+					resource.TestCheckTypeSetElemNestedAttrs(graphBetaWindowsRemediationScript.ResourceName+".test_008", "assignments.*", map[string]string{
+						"type": "allDevicesAssignmentTarget",
+					}),
+				),
+			},
+			{
+				ResourceName:      graphBetaWindowsRemediationScript.ResourceName + ".test_008",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+// Test 009: Scenario 9 - Validation errors
+func TestWindowsRemediationScriptResource_009_ValidationErrors(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
+	_, windowsRemediationScriptMock := setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+	defer windowsRemediationScriptMock.CleanupMockState()
+
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config:      loadUnitTestTerraform("009_validation_missing_display_name.tf"),
 				ExpectError: regexp.MustCompile(`The argument "display_name" is required`),
 			},
-		},
-	})
-}
-
-// TestWindowsRemediationScriptResource_ErrorHandling tests error scenarios
-func TestWindowsRemediationScriptResource_ErrorHandling(t *testing.T) {
-	mocks.SetupUnitTestEnvironment(t)
-	_, windowsRemediationScriptMock := setupErrorMockEnvironment()
-	defer httpmock.DeactivateAndReset()
-	defer windowsRemediationScriptMock.CleanupMockState()
-
-	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
-		Steps: []resource.TestStep{
 			{
-				Config: `
-resource "microsoft365_graph_beta_device_management_windows_remediation_script" "test" {
-  display_name = "Test Windows Remediation Script"
-  publisher = "Test Publisher"
-  run_as_account = "system"
-  detection_script_content = "Write-Host 'Test'"
-  remediation_script_content = "Write-Host 'Test'"
-}
-`,
-				ExpectError: regexp.MustCompile(`Invalid Windows remediation script data|BadRequest`),
+				Config:      loadUnitTestTerraform("009_validation_invalid_run_as_account.tf"),
+				ExpectError: regexp.MustCompile(`Attribute run_as_account value must be one of`),
 			},
 		},
 	})
-}
-
-// TestWindowsRemediationScriptResource_GroupAssignments tests group assignment functionality
-func TestWindowsRemediationScriptResource_GroupAssignments(t *testing.T) {
-	mocks.SetupUnitTestEnvironment(t)
-	_, windowsRemediationScriptMock := setupMockEnvironment()
-	defer httpmock.DeactivateAndReset()
-	defer windowsRemediationScriptMock.CleanupMockState()
-
-	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
-		Steps: []resource.TestStep{
-			{
-				Config: testConfigGroupAssignments(),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckExists("microsoft365_graph_beta_device_management_windows_remediation_script.group_assignments"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_remediation_script.group_assignments", "display_name", "Test Group Assignments Windows Remediation Script - Unique"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_remediation_script.group_assignments", "assignments.#", "2"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_remediation_script.group_assignments", "assignments.0.type", "groupAssignmentTarget"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_remediation_script.group_assignments", "assignments.1.type", "groupAssignmentTarget"),
-				),
-			},
-		},
-	})
-}
-
-// TestWindowsRemediationScriptResource_AllUsersAssignment tests all licensed users assignment functionality
-func TestWindowsRemediationScriptResource_AllUsersAssignment(t *testing.T) {
-	mocks.SetupUnitTestEnvironment(t)
-	_, windowsRemediationScriptMock := setupMockEnvironment()
-	defer httpmock.DeactivateAndReset()
-	defer windowsRemediationScriptMock.CleanupMockState()
-
-	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
-		Steps: []resource.TestStep{
-			{
-				Config: testConfigAllUsersAssignment(),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckExists("microsoft365_graph_beta_device_management_windows_remediation_script.all_users_assignment"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_remediation_script.all_users_assignment", "display_name", "Test All Users Assignment Windows Remediation Script - Unique"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_remediation_script.all_users_assignment", "assignments.#", "1"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_remediation_script.all_users_assignment", "assignments.0.type", "allLicensedUsersAssignmentTarget"),
-				),
-			},
-		},
-	})
-}
-
-// TestWindowsRemediationScriptResource_AllDevicesAssignment tests all devices assignment functionality
-func TestWindowsRemediationScriptResource_AllDevicesAssignment(t *testing.T) {
-	mocks.SetupUnitTestEnvironment(t)
-	_, windowsRemediationScriptMock := setupMockEnvironment()
-	defer httpmock.DeactivateAndReset()
-	defer windowsRemediationScriptMock.CleanupMockState()
-
-	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
-		Steps: []resource.TestStep{
-			{
-				Config: testConfigAllDevicesAssignment(),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckExists("microsoft365_graph_beta_device_management_windows_remediation_script.all_devices_assignment"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_remediation_script.all_devices_assignment", "display_name", "Test All Devices Assignment Windows Remediation Script - Unique"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_remediation_script.all_devices_assignment", "assignments.#", "1"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_remediation_script.all_devices_assignment", "assignments.0.type", "allDevicesAssignmentTarget"),
-				),
-			},
-		},
-	})
-}
-
-// TestWindowsRemediationScriptResource_ExclusionAssignment tests exclusion group assignment functionality
-func TestWindowsRemediationScriptResource_ExclusionAssignment(t *testing.T) {
-	mocks.SetupUnitTestEnvironment(t)
-	_, windowsRemediationScriptMock := setupMockEnvironment()
-	defer httpmock.DeactivateAndReset()
-	defer windowsRemediationScriptMock.CleanupMockState()
-
-	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
-		Steps: []resource.TestStep{
-			{
-				Config: testConfigExclusionAssignment(),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckExists("microsoft365_graph_beta_device_management_windows_remediation_script.exclusion_assignment"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_remediation_script.exclusion_assignment", "display_name", "Test Exclusion Assignment Windows Remediation Script - Unique"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_remediation_script.exclusion_assignment", "assignments.#", "1"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_remediation_script.exclusion_assignment", "assignments.0.type", "exclusionGroupAssignmentTarget"),
-				),
-			},
-		},
-	})
-}
-
-// TestWindowsRemediationScriptResource_AllAssignmentTypes tests all assignment types together
-func TestWindowsRemediationScriptResource_AllAssignmentTypes(t *testing.T) {
-	mocks.SetupUnitTestEnvironment(t)
-	_, windowsRemediationScriptMock := setupMockEnvironment()
-	defer httpmock.DeactivateAndReset()
-	defer windowsRemediationScriptMock.CleanupMockState()
-
-	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
-		Steps: []resource.TestStep{
-			{
-				Config: testConfigAllAssignmentTypes(),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckExists("microsoft365_graph_beta_device_management_windows_remediation_script.all_assignment_types"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_remediation_script.all_assignment_types", "display_name", "Test All Assignment Types Windows Remediation Script - Unique"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_remediation_script.all_assignment_types", "assignments.#", "5"),
-					// Verify all assignment types are present
-					resource.TestCheckTypeSetElemNestedAttrs("microsoft365_graph_beta_device_management_windows_remediation_script.all_assignment_types", "assignments.*", map[string]string{"type": "groupAssignmentTarget"}),
-					resource.TestCheckTypeSetElemNestedAttrs("microsoft365_graph_beta_device_management_windows_remediation_script.all_assignment_types", "assignments.*", map[string]string{"type": "allLicensedUsersAssignmentTarget"}),
-					resource.TestCheckTypeSetElemNestedAttrs("microsoft365_graph_beta_device_management_windows_remediation_script.all_assignment_types", "assignments.*", map[string]string{"type": "allDevicesAssignmentTarget"}),
-					resource.TestCheckTypeSetElemNestedAttrs("microsoft365_graph_beta_device_management_windows_remediation_script.all_assignment_types", "assignments.*", map[string]string{"type": "exclusionGroupAssignmentTarget"}),
-				),
-			},
-		},
-	})
-}
-
-func testConfigMinimal() string {
-	unitTestConfig, err := helpers.ParseHCLFile("tests/terraform/unit/resource_minimal.tf")
-	if err != nil {
-		panic("failed to load minimal config: " + err.Error())
-	}
-	return unitTestConfig
-}
-
-// testConfigMaximal returns the maximal configuration for testing
-func testConfigMaximal() string {
-	unitTestConfig, err := helpers.ParseHCLFile("tests/terraform/unit/resource_maximal.tf")
-	if err != nil {
-		panic("failed to load maximal config: " + err.Error())
-	}
-	return unitTestConfig
-}
-
-// testConfigGroupAssignments returns the group assignments configuration for testing
-func testConfigGroupAssignments() string {
-	unitTestConfig, err := helpers.ParseHCLFile("tests/terraform/unit/resource_with_group_assignments.tf")
-	if err != nil {
-		panic("failed to load group assignments config: " + err.Error())
-	}
-	return unitTestConfig
-}
-
-// testConfigAllUsersAssignment returns the all users assignment configuration for testing
-func testConfigAllUsersAssignment() string {
-	unitTestConfig, err := helpers.ParseHCLFile("tests/terraform/unit/resource_with_all_users_assignment.tf")
-	if err != nil {
-		panic("failed to load all users assignment config: " + err.Error())
-	}
-	return unitTestConfig
-}
-
-// testConfigAllDevicesAssignment returns the all devices assignment configuration for testing
-func testConfigAllDevicesAssignment() string {
-	unitTestConfig, err := helpers.ParseHCLFile("tests/terraform/unit/resource_with_all_devices_assignment.tf")
-	if err != nil {
-		panic("failed to load all devices assignment config: " + err.Error())
-	}
-	return unitTestConfig
-}
-
-// testConfigExclusionAssignment returns the exclusion assignment configuration for testing
-func testConfigExclusionAssignment() string {
-	unitTestConfig, err := helpers.ParseHCLFile("tests/terraform/unit/resource_with_exclusion_assignment.tf")
-	if err != nil {
-		panic("failed to load exclusion assignment config: " + err.Error())
-	}
-	return unitTestConfig
-}
-
-// testConfigAllAssignmentTypes returns the all assignment types configuration for testing
-func testConfigAllAssignmentTypes() string {
-	unitTestConfig, err := helpers.ParseHCLFile("tests/terraform/unit/resource_with_all_assignment_types.tf")
-	if err != nil {
-		panic("failed to load all assignment types config: " + err.Error())
-	}
-	return unitTestConfig
 }

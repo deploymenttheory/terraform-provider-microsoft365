@@ -60,6 +60,17 @@ func constructAssignment(ctx context.Context, data *DeviceHealthScriptResourceMo
 		runSchedule := constructRunSchedule(ctx, assignment)
 		if runSchedule != nil {
 			graphAssignment.SetRunSchedule(runSchedule)
+			tflog.Debug(ctx, "Created assignment with run schedule", map[string]any{
+				"index":             idx,
+				"targetType":        targetType,
+				"scheduleType":      fmt.Sprintf("%T", runSchedule),
+				"hasHourlySchedule": assignment.HourlySchedule != nil,
+			})
+		} else {
+			tflog.Debug(ctx, "Created assignment without run schedule", map[string]any{
+				"index":      idx,
+				"targetType": targetType,
+			})
 		}
 
 		scriptAssignments = append(scriptAssignments, graphAssignment)
@@ -181,7 +192,13 @@ func constructRunSchedule(ctx context.Context, assignment WindowsRemediationScri
 
 		if !assignment.HourlySchedule.Interval.IsNull() && !assignment.HourlySchedule.Interval.IsUnknown() {
 			interval := int32(assignment.HourlySchedule.Interval.ValueInt32())
+			tflog.Debug(ctx, "Setting hourly schedule interval", map[string]any{
+				"interval":     interval,
+				"intervalAddr": &interval,
+			})
 			hourlySchedule.SetInterval(&interval)
+		} else {
+			tflog.Warn(ctx, "Hourly schedule interval is null or unknown")
 		}
 
 		return hourlySchedule

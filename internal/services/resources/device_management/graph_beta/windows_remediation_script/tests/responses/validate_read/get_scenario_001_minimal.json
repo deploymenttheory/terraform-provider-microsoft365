@@ -1,7 +1,8 @@
 {
   "@odata.type": "#microsoft.graph.deviceHealthScript",
   "id": "11111111-1111-1111-1111-111111111111",
-  "displayName": "Test Minimal Windows Remediation Script - Unique",
+  "displayName": "unit-test-windows-remediation-script-001-minimal",
+  "description": "Scenario 1: Minimal configuration without assignments",
   "publisher": "Terraform Provider Test",
   "runAs32Bit": false,
   "runAsAccount": "system",
@@ -16,3 +17,4 @@
   "lastModifiedDateTime": "2024-01-01T00:00:00Z",
   "highestAvailableVersion": "1.0"
 }
+

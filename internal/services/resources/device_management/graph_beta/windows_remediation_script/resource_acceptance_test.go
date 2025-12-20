@@ -1,21 +1,34 @@
 package graphBetaWindowsRemediationScript_test
 
 import (
-	"context"
-	"fmt"
-	"log"
 	"regexp"
 	"testing"
+	"time"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/check"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/destroy"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
-	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
+	graphBetaWindowsRemediationScript "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_management/graph_beta/windows_remediation_script"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/hashicorp/terraform-plugin-testing/terraform"
 )
 
-func TestAccWindowsRemediationScriptResource_Lifecycle(t *testing.T) {
+// Helper function to load acceptance test configs
+func loadAcceptanceTestTerraform(filename string) string {
+	config, err := helpers.ParseHCLFile("tests/terraform/acceptance/" + filename)
+	if err != nil {
+		panic("failed to load acceptance test config " + filename + ": " + err.Error())
+	}
+	return acceptance.ConfiguredM365ProviderBlock(config)
+}
+
+const resourceType = graphBetaWindowsRemediationScript.ResourceName
+
+var testResource = graphBetaWindowsRemediationScript.WindowsRemediationScriptTestResource{}
+
+// Test 001: Scenario 1 - Minimal configuration without assignments
+func TestAccWindowsRemediationScriptResource_001_Scenario_Minimal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -25,49 +38,33 @@ func TestAccWindowsRemediationScriptResource_Lifecycle(t *testing.T) {
 				VersionConstraint: ">= 3.7.2",
 			},
 		},
-		CheckDestroy: testAccCheckWindowsRemediationScriptDestroy,
+		CheckDestroy: destroy.CheckDestroyedAllFunc(
+			testResource,
+			graphBetaWindowsRemediationScript.ResourceName,
+			30*time.Second,
+		),
 		Steps: []resource.TestStep{
-			// Create with minimal configuration
 			{
-				Config: testAccWindowsRemediationScriptConfig_minimal(),
+				Config: loadAcceptanceTestTerraform("001_scenario_minimal.tf"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("microsoft365_graph_beta_device_management_windows_remediation_script.test", "id"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_remediation_script.test", "display_name", "Test Acceptance Windows Remediation Script"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_remediation_script.test", "publisher", "Terraform Provider Test"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_remediation_script.test", "run_as_account", "system"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_remediation_script.test", "run_as_32_bit", "false"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_remediation_script.test", "enforce_signature_check", "false"),
-					resource.TestCheckResourceAttrSet("microsoft365_graph_beta_device_management_windows_remediation_script.test", "detection_script_content"),
-					resource.TestCheckResourceAttrSet("microsoft365_graph_beta_device_management_windows_remediation_script.test", "remediation_script_content"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_remediation_script.test", "role_scope_tag_ids.#", "1"),
-					resource.TestCheckTypeSetElemAttr("microsoft365_graph_beta_device_management_windows_remediation_script.test", "role_scope_tag_ids.*", "0"),
+					check.That(resourceType+".test_001").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(resourceType+".test_001").Key("display_name").MatchesRegex(regexp.MustCompile(`^acc-test-windows-remediation-script-001-minimal-[a-z0-9]{8}$`)),
+					check.That(resourceType+".test_001").Key("description").HasValue("Scenario 1: Minimal configuration without assignments"),
+					check.That(resourceType+".test_001").Key("publisher").HasValue("Terraform Provider Test"),
+					check.That(resourceType+".test_001").Key("run_as_account").HasValue("system"),
 				),
 			},
-			// ImportState testing
 			{
-				ResourceName:      "microsoft365_graph_beta_device_management_windows_remediation_script.test",
+				ResourceName:      resourceType + ".test_001",
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
-			// Update to maximal configuration
-			{
-				Config: testAccWindowsRemediationScriptConfig_maximal(),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("microsoft365_graph_beta_device_management_windows_remediation_script.test", "id"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_remediation_script.test", "display_name", "Test Acceptance Windows Remediation Script - Updated"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_remediation_script.test", "description", "Updated description for acceptance testing"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_remediation_script.test", "publisher", "Terraform Provider Test Suite"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_remediation_script.test", "run_as_account", "user"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_remediation_script.test", "run_as_32_bit", "true"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_remediation_script.test", "enforce_signature_check", "true"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_remediation_script.test", "role_scope_tag_ids.#", "2"),
-				),
-			},
 		},
 	})
 }
 
-func TestAccWindowsRemediationScriptResource_WithAssignments(t *testing.T) {
+// Test 002: Scenario 2 - Maximal configuration without assignments
+func TestAccWindowsRemediationScriptResource_002_Scenario_Maximal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -77,26 +74,33 @@ func TestAccWindowsRemediationScriptResource_WithAssignments(t *testing.T) {
 				VersionConstraint: ">= 3.7.2",
 			},
 		},
-		CheckDestroy: testAccCheckWindowsRemediationScriptDestroy,
+		CheckDestroy: destroy.CheckDestroyedAllFunc(
+			testResource,
+			graphBetaWindowsRemediationScript.ResourceName,
+			30*time.Second,
+		),
 		Steps: []resource.TestStep{
 			{
-				Config: testAccWindowsRemediationScriptConfig_withAssignments(),
+				Config: loadAcceptanceTestTerraform("002_scenario_maximal.tf"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("microsoft365_graph_beta_device_management_windows_remediation_script.test_assignments", "id"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_remediation_script.test_assignments", "display_name", "Test Windows Remediation Script with Assignments"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_remediation_script.test_assignments", "assignments.#", "5"),
-					// Verify all assignment types are present
-					resource.TestCheckTypeSetElemNestedAttrs("microsoft365_graph_beta_device_management_windows_remediation_script.test_assignments", "assignments.*", map[string]string{"type": "groupAssignmentTarget"}),
-					resource.TestCheckTypeSetElemNestedAttrs("microsoft365_graph_beta_device_management_windows_remediation_script.test_assignments", "assignments.*", map[string]string{"type": "allLicensedUsersAssignmentTarget"}),
-					resource.TestCheckTypeSetElemNestedAttrs("microsoft365_graph_beta_device_management_windows_remediation_script.test_assignments", "assignments.*", map[string]string{"type": "allDevicesAssignmentTarget"}),
-					resource.TestCheckTypeSetElemNestedAttrs("microsoft365_graph_beta_device_management_windows_remediation_script.test_assignments", "assignments.*", map[string]string{"type": "exclusionGroupAssignmentTarget"}),
+					check.That(resourceType+".test_002").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(resourceType+".test_002").Key("display_name").MatchesRegex(regexp.MustCompile(`^acc-test-windows-remediation-script-002-maximal-[a-z0-9]{8}$`)),
+					check.That(resourceType+".test_002").Key("run_as_account").HasValue("user"),
+					check.That(resourceType+".test_002").Key("run_as_32_bit").HasValue("true"),
+					check.That(resourceType+".test_002").Key("enforce_signature_check").HasValue("true"),
 				),
+			},
+			{
+				ResourceName:      resourceType + ".test_002",
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
 }
 
-func TestAccWindowsRemediationScriptResource_RequiredFields(t *testing.T) {
+// Test 003: Scenario 3 - Lifecycle from minimal to maximal
+func TestAccWindowsRemediationScriptResource_003_Lifecycle_MinimalToMaximal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -106,191 +110,221 @@ func TestAccWindowsRemediationScriptResource_RequiredFields(t *testing.T) {
 				VersionConstraint: ">= 3.7.2",
 			},
 		},
-		CheckDestroy: testAccCheckWindowsRemediationScriptDestroy,
+		CheckDestroy: destroy.CheckDestroyedAllFunc(
+			testResource,
+			graphBetaWindowsRemediationScript.ResourceName,
+			30*time.Second,
+		),
 		Steps: []resource.TestStep{
 			{
-				Config:      testAccWindowsRemediationScriptConfig_missingDisplayName(),
-				ExpectError: regexp.MustCompile("Missing required argument"),
+				Config: loadAcceptanceTestTerraform("003_lifecycle_minimal_to_maximal_step_1.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(resourceType+".test_003").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(resourceType+".test_003").Key("run_as_account").HasValue("system"),
+				),
 			},
 			{
-				Config:      testAccWindowsRemediationScriptConfig_missingPublisher(),
-				ExpectError: regexp.MustCompile("Missing required argument"),
+				Config: loadAcceptanceTestTerraform("003_lifecycle_minimal_to_maximal_step_2.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(resourceType+".test_003").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(resourceType+".test_003").Key("run_as_account").HasValue("user"),
+					check.That(resourceType+".test_003").Key("run_as_32_bit").HasValue("true"),
+				),
 			},
 			{
-				Config:      testAccWindowsRemediationScriptConfig_missingRunAsAccount(),
-				ExpectError: regexp.MustCompile("Missing required argument"),
-			},
-			{
-				Config:      testAccWindowsRemediationScriptConfig_missingDetectionScript(),
-				ExpectError: regexp.MustCompile("Missing required argument"),
-			},
-			{
-				Config:      testAccWindowsRemediationScriptConfig_missingRemediationScript(),
-				ExpectError: regexp.MustCompile("Missing required argument"),
+				ResourceName:      resourceType + ".test_003",
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
 }
 
-func TestAccWindowsRemediationScriptResource_InvalidValues(t *testing.T) {
+// Test 004: Scenario 4 - Lifecycle from maximal to minimal
+func TestAccWindowsRemediationScriptResource_004_Lifecycle_MaximalToMinimal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
-		CheckDestroy:             testAccCheckWindowsRemediationScriptDestroy,
+		ExternalProviders: map[string]resource.ExternalProvider{
+			"random": {
+				Source:            "hashicorp/random",
+				VersionConstraint: ">= 3.7.2",
+			},
+		},
+		CheckDestroy: destroy.CheckDestroyedAllFunc(
+			testResource,
+			graphBetaWindowsRemediationScript.ResourceName,
+			30*time.Second,
+		),
 		Steps: []resource.TestStep{
 			{
-				Config:      testAccWindowsRemediationScriptConfig_invalidRunAsAccount(),
-				ExpectError: regexp.MustCompile("Attribute run_as_account value must be one of"),
+				Config: loadAcceptanceTestTerraform("004_lifecycle_maximal_to_minimal_step_1.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(resourceType+".test_004").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(resourceType+".test_004").Key("run_as_account").HasValue("user"),
+				),
+			},
+			{
+				Config: loadAcceptanceTestTerraform("004_lifecycle_maximal_to_minimal_step_2.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(resourceType+".test_004").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(resourceType+".test_004").Key("run_as_account").HasValue("system"),
+				),
+			},
+			{
+				ResourceName:      resourceType + ".test_004",
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
 }
 
-func testAccWindowsRemediationScriptConfig_minimal() string {
-	accTestConfig, err := helpers.ParseHCLFile("tests/terraform/acceptance/resource_minimal.tf")
-	if err != nil {
-		log.Fatalf("Failed to load minimal test config: %v", err)
-	}
-	return acceptance.ConfiguredM365ProviderBlock(accTestConfig)
+// Test 005: Scenario 5 - Minimal assignments
+func TestAccWindowsRemediationScriptResource_005_AssignmentsMinimal(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ExternalProviders: map[string]resource.ExternalProvider{
+			"random": {
+				Source:            "hashicorp/random",
+				VersionConstraint: ">= 3.7.2",
+			},
+		},
+		CheckDestroy: destroy.CheckDestroyedAllFunc(
+			testResource,
+			graphBetaWindowsRemediationScript.ResourceName,
+			30*time.Second,
+		),
+		Steps: []resource.TestStep{
+			{
+				Config: loadAcceptanceTestTerraform("005_assignments_minimal.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(resourceType+".test_005").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(resourceType+".test_005").Key("assignments.#").HasValue("1"),
+				),
+			},
+			{
+				ResourceName:      resourceType + ".test_005",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
 }
 
-func testAccWindowsRemediationScriptConfig_maximal() string {
-	accTestConfig, err := helpers.ParseHCLFile("tests/terraform/acceptance/resource_maximal.tf")
-	if err != nil {
-		log.Fatalf("Failed to load maximal test config: %v", err)
-	}
-	return acceptance.ConfiguredM365ProviderBlock(accTestConfig)
+// Test 006: Scenario 6 - Maximal assignments
+func TestAccWindowsRemediationScriptResource_006_AssignmentsMaximal(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ExternalProviders: map[string]resource.ExternalProvider{
+			"random": {
+				Source:            "hashicorp/random",
+				VersionConstraint: ">= 3.7.2",
+			},
+		},
+		CheckDestroy: destroy.CheckDestroyedAllFunc(
+			testResource,
+			graphBetaWindowsRemediationScript.ResourceName,
+			30*time.Second,
+		),
+		Steps: []resource.TestStep{
+			{
+				Config: loadAcceptanceTestTerraform("006_assignments_maximal.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(resourceType+".test_006").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(resourceType+".test_006").Key("assignments.#").HasValue("5"),
+				),
+			},
+			{
+				ResourceName:      resourceType + ".test_006",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
 }
 
-func testAccWindowsRemediationScriptConfig_withAssignments() string {
-	groups, err := helpers.ParseHCLFile("../../../../../acceptance/terraform_dependancies/device_management/groups.tf")
-	if err != nil {
-		log.Fatalf("Failed to load groups config: %v", err)
-	}
-
-	roleScopeTags, err := helpers.ParseHCLFile("../../../../../acceptance/terraform_dependancies/device_management/role_scope_tags.tf")
-	if err != nil {
-		log.Fatalf("Failed to load role scope tags config: %v", err)
-	}
-
-	assignmentFilters, err := helpers.ParseHCLFile("../../../../../acceptance/terraform_dependancies/device_management/assignment_filter.tf")
-	if err != nil {
-		log.Fatalf("Failed to load assignment filters config: %v", err)
-	}
-
-	accTestConfig, err := helpers.ParseHCLFile("tests/terraform/acceptance/resource_with_assignments.tf")
-	if err != nil {
-		log.Fatalf("Failed to load assignments test config: %v", err)
-	}
-
-	return acceptance.ConfiguredM365ProviderBlock(groups + "\n" + roleScopeTags + "\n" + assignmentFilters + "\n" + accTestConfig)
+// Test 007: Scenario 7 - Assignments lifecycle minimal to maximal
+func TestAccWindowsRemediationScriptResource_007_AssignmentsLifecycle_MinimalToMaximal(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ExternalProviders: map[string]resource.ExternalProvider{
+			"random": {
+				Source:            "hashicorp/random",
+				VersionConstraint: ">= 3.7.2",
+			},
+		},
+		CheckDestroy: destroy.CheckDestroyedAllFunc(
+			testResource,
+			graphBetaWindowsRemediationScript.ResourceName,
+			30*time.Second,
+		),
+		Steps: []resource.TestStep{
+			{
+				Config: loadAcceptanceTestTerraform("007_assignments_lifecycle_minimal_to_maximal_step_1.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(resourceType+".test_007").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(resourceType+".test_007").Key("assignments.#").HasValue("1"),
+				),
+			},
+			{
+				Config: loadAcceptanceTestTerraform("007_assignments_lifecycle_minimal_to_maximal_step_2.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(resourceType+".test_007").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(resourceType+".test_007").Key("assignments.#").HasValue("5"),
+				),
+			},
+			{
+				ResourceName:      resourceType + ".test_007",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
 }
 
-func testAccWindowsRemediationScriptConfig_missingDisplayName() string {
-	return `
-resource "microsoft365_graph_beta_device_management_windows_remediation_script" "test" {
-  publisher                   = "Terraform Provider Test"
-  run_as_account             = "system"
-  detection_script_content   = "# Detection script\nWrite-Host 'Detection complete'\nexit 0"
-  remediation_script_content = "# Remediation script\nWrite-Host 'Remediation complete'\nexit 0"
-}
-`
-}
-
-func testAccWindowsRemediationScriptConfig_missingPublisher() string {
-	return `
-resource "microsoft365_graph_beta_device_management_windows_remediation_script" "test" {
-  display_name                = "Test Script"
-  run_as_account             = "system"
-  detection_script_content   = "# Detection script\nWrite-Host 'Detection complete'\nexit 0"
-  remediation_script_content = "# Remediation script\nWrite-Host 'Remediation complete'\nexit 0"
-}
-`
-}
-
-func testAccWindowsRemediationScriptConfig_missingRunAsAccount() string {
-	return `
-resource "microsoft365_graph_beta_device_management_windows_remediation_script" "test" {
-  display_name                = "Test Script"
-  publisher                   = "Terraform Provider Test"
-  detection_script_content   = "# Detection script\nWrite-Host 'Detection complete'\nexit 0"
-  remediation_script_content = "# Remediation script\nWrite-Host 'Remediation complete'\nexit 0"
-}
-`
-}
-
-func testAccWindowsRemediationScriptConfig_missingDetectionScript() string {
-	return `
-resource "microsoft365_graph_beta_device_management_windows_remediation_script" "test" {
-  display_name                = "Test Script"
-  publisher                   = "Terraform Provider Test"
-  run_as_account             = "system"
-  remediation_script_content = "# Remediation script\nWrite-Host 'Remediation complete'\nexit 0"
-}
-`
+// Test 008: Scenario 8 - Assignments lifecycle maximal to minimal
+func TestAccWindowsRemediationScriptResource_008_AssignmentsLifecycle_MaximalToMinimal(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ExternalProviders: map[string]resource.ExternalProvider{
+			"random": {
+				Source:            "hashicorp/random",
+				VersionConstraint: ">= 3.7.2",
+			},
+		},
+		CheckDestroy: destroy.CheckDestroyedAllFunc(
+			testResource,
+			graphBetaWindowsRemediationScript.ResourceName,
+			30*time.Second,
+		),
+		Steps: []resource.TestStep{
+			{
+				Config: loadAcceptanceTestTerraform("008_assignments_lifecycle_maximal_to_minimal_step_1.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(resourceType+".test_008").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(resourceType+".test_008").Key("assignments.#").HasValue("5"),
+				),
+			},
+			{
+				Config: loadAcceptanceTestTerraform("008_assignments_lifecycle_maximal_to_minimal_step_2.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(resourceType+".test_008").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(resourceType+".test_008").Key("assignments.#").HasValue("1"),
+				),
+			},
+			{
+				ResourceName:      resourceType + ".test_008",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
 }
 
-func testAccWindowsRemediationScriptConfig_missingRemediationScript() string {
-	return `
-resource "microsoft365_graph_beta_device_management_windows_remediation_script" "test" {
-  display_name                = "Test Script"
-  publisher                   = "Terraform Provider Test"
-  run_as_account             = "system"
-  detection_script_content   = "# Detection script\nWrite-Host 'Detection complete'\nexit 0"
-}
-`
-}
-
-func testAccWindowsRemediationScriptConfig_invalidRunAsAccount() string {
-	return `
-resource "microsoft365_graph_beta_device_management_windows_remediation_script" "test" {
-  display_name                = "Test Script"
-  publisher                   = "Terraform Provider Test"
-  run_as_account             = "invalid"
-  detection_script_content   = "# Detection script\nWrite-Host 'Detection complete'\nexit 0"
-  remediation_script_content = "# Remediation script\nWrite-Host 'Remediation complete'\nexit 0"
-}
-`
-}
-
+// Test 009: Scenario 9 - Validation errors
 // testAccCheckWindowsRemediationScriptDestroy verifies that Windows remediation scripts have been destroyed
-func testAccCheckWindowsRemediationScriptDestroy(s *terraform.State) error {
-	graphClient, err := acceptance.TestGraphClient()
-	if err != nil {
-		return fmt.Errorf("error creating Graph client for CheckDestroy: %v", err)
-	}
-
-	ctx := context.Background()
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "microsoft365_graph_beta_device_management_windows_remediation_script" {
-			continue
-		}
-
-		// Attempt to get the Windows remediation script by ID
-		_, err := graphClient.
-			DeviceManagement().
-			DeviceHealthScripts().
-			ByDeviceHealthScriptId(rs.Primary.ID).
-			Get(ctx, nil)
-
-		if err != nil {
-			errorInfo := errors.GraphError(ctx, err)
-			fmt.Printf("DEBUG: Error details - StatusCode: %d, ErrorCode: %s, ErrorMessage: %s\n",
-				errorInfo.StatusCode, errorInfo.ErrorCode, errorInfo.ErrorMessage)
-
-			if errorInfo.StatusCode == 404 ||
-				errorInfo.ErrorCode == "ResourceNotFound" ||
-				errorInfo.ErrorCode == "ItemNotFound" {
-				fmt.Printf("DEBUG: Resource %s successfully destroyed (404/NotFound)\n", rs.Primary.ID)
-				continue // Resource successfully destroyed
-			}
-			return fmt.Errorf("error checking if Windows remediation script %s was destroyed: %v", rs.Primary.ID, err)
-		}
-
-		// If we can still get the resource, it wasn't destroyed
-		return fmt.Errorf("Windows remediation script %s still exists", rs.Primary.ID)
-	}
-
-	return nil
-}
