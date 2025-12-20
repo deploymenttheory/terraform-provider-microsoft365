@@ -45,7 +45,7 @@ func TestAccWindowsRemediationScriptResource_001_Scenario_Minimal(t *testing.T) 
 		),
 		Steps: []resource.TestStep{
 			{
-				Config: loadAcceptanceTestTerraform("scenario_001_minimal.tf"),
+				Config: loadAcceptanceTestTerraform("001_scenario_minimal.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					check.That(resourceType+".test_001").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".test_001").Key("display_name").MatchesRegex(regexp.MustCompile(`^acc-test-windows-remediation-script-001-minimal-[a-z0-9]{8}$`)),
@@ -81,7 +81,7 @@ func TestAccWindowsRemediationScriptResource_002_Scenario_Maximal(t *testing.T) 
 		),
 		Steps: []resource.TestStep{
 			{
-				Config: loadAcceptanceTestTerraform("scenario_002_maximal.tf"),
+				Config: loadAcceptanceTestTerraform("002_scenario_maximal.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					check.That(resourceType+".test_002").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".test_002").Key("display_name").MatchesRegex(regexp.MustCompile(`^acc-test-windows-remediation-script-002-maximal-[a-z0-9]{8}$`)),
@@ -117,14 +117,14 @@ func TestAccWindowsRemediationScriptResource_003_Lifecycle_MinimalToMaximal(t *t
 		),
 		Steps: []resource.TestStep{
 			{
-				Config: loadAcceptanceTestTerraform("lifecycle_step_1_minimal.tf"),
+				Config: loadAcceptanceTestTerraform("003_lifecycle_minimal_to_maximal_step_1.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					check.That(resourceType+".test_003").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".test_003").Key("run_as_account").HasValue("system"),
 				),
 			},
 			{
-				Config: loadAcceptanceTestTerraform("lifecycle_step_2_maximal.tf"),
+				Config: loadAcceptanceTestTerraform("003_lifecycle_minimal_to_maximal_step_2.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					check.That(resourceType+".test_003").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".test_003").Key("run_as_account").HasValue("user"),
@@ -158,14 +158,14 @@ func TestAccWindowsRemediationScriptResource_004_Lifecycle_MaximalToMinimal(t *t
 		),
 		Steps: []resource.TestStep{
 			{
-				Config: loadAcceptanceTestTerraform("lifecycle_step_1_maximal.tf"),
+				Config: loadAcceptanceTestTerraform("004_lifecycle_maximal_to_minimal_step_1.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					check.That(resourceType+".test_004").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".test_004").Key("run_as_account").HasValue("user"),
 				),
 			},
 			{
-				Config: loadAcceptanceTestTerraform("lifecycle_step_2_minimal.tf"),
+				Config: loadAcceptanceTestTerraform("004_lifecycle_maximal_to_minimal_step_2.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					check.That(resourceType+".test_004").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".test_004").Key("run_as_account").HasValue("system"),
@@ -198,7 +198,7 @@ func TestAccWindowsRemediationScriptResource_005_AssignmentsMinimal(t *testing.T
 		),
 		Steps: []resource.TestStep{
 			{
-				Config: loadAcceptanceTestTerraform("assignments_minimal.tf"),
+				Config: loadAcceptanceTestTerraform("005_assignments_minimal.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					check.That(resourceType+".test_005").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".test_005").Key("assignments.#").HasValue("1"),
@@ -231,7 +231,7 @@ func TestAccWindowsRemediationScriptResource_006_AssignmentsMaximal(t *testing.T
 		),
 		Steps: []resource.TestStep{
 			{
-				Config: loadAcceptanceTestTerraform("assignments_maximal.tf"),
+				Config: loadAcceptanceTestTerraform("006_assignments_maximal.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					check.That(resourceType+".test_006").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".test_006").Key("assignments.#").HasValue("5"),
@@ -264,14 +264,14 @@ func TestAccWindowsRemediationScriptResource_007_AssignmentsLifecycle_MinimalToM
 		),
 		Steps: []resource.TestStep{
 			{
-				Config: loadAcceptanceTestTerraform("assignments_lifecycle_step_1_minimal.tf"),
+				Config: loadAcceptanceTestTerraform("007_assignments_lifecycle_minimal_to_maximal_step_1.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					check.That(resourceType+".test_007").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".test_007").Key("assignments.#").HasValue("1"),
 				),
 			},
 			{
-				Config: loadAcceptanceTestTerraform("assignments_lifecycle_step_2_maximal.tf"),
+				Config: loadAcceptanceTestTerraform("007_assignments_lifecycle_minimal_to_maximal_step_2.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					check.That(resourceType+".test_007").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".test_007").Key("assignments.#").HasValue("5"),
@@ -304,14 +304,14 @@ func TestAccWindowsRemediationScriptResource_008_AssignmentsLifecycle_MaximalToM
 		),
 		Steps: []resource.TestStep{
 			{
-				Config: loadAcceptanceTestTerraform("assignments_downgrade_step_1_maximal.tf"),
+				Config: loadAcceptanceTestTerraform("008_assignments_lifecycle_maximal_to_minimal_step_1.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					check.That(resourceType+".test_008").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".test_008").Key("assignments.#").HasValue("5"),
 				),
 			},
 			{
-				Config: loadAcceptanceTestTerraform("assignments_downgrade_step_2_minimal.tf"),
+				Config: loadAcceptanceTestTerraform("008_assignments_lifecycle_maximal_to_minimal_step_2.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					check.That(resourceType+".test_008").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".test_008").Key("assignments.#").HasValue("1"),

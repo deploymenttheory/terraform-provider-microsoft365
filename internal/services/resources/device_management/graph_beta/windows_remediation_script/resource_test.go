@@ -64,7 +64,7 @@ func TestWindowsRemediationScriptResource_001_Scenario_Minimal(t *testing.T) {
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: loadUnitTestTerraform("scenario_001_minimal.tf"),
+				Config: loadUnitTestTerraform("001_scenario_minimal.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					check.That(graphBetaWindowsRemediationScript.ResourceName+".test_001").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(graphBetaWindowsRemediationScript.ResourceName+".test_001").Key("display_name").HasValue("unit-test-windows-remediation-script-001-minimal"),
@@ -101,7 +101,7 @@ func TestWindowsRemediationScriptResource_002_Scenario_Maximal(t *testing.T) {
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: loadUnitTestTerraform("scenario_002_maximal.tf"),
+				Config: loadUnitTestTerraform("002_scenario_maximal.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					check.That(graphBetaWindowsRemediationScript.ResourceName+".test_002").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(graphBetaWindowsRemediationScript.ResourceName+".test_002").Key("display_name").HasValue("unit-test-windows-remediation-script-002-maximal"),
@@ -138,7 +138,7 @@ func TestWindowsRemediationScriptResource_003_Lifecycle_MinimalToMaximal(t *test
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: loadUnitTestTerraform("lifecycle_step_1_minimal.tf"),
+				Config: loadUnitTestTerraform("003_lifecycle_minimal_to_maximal_step_1.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					check.That(graphBetaWindowsRemediationScript.ResourceName+".test_003").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(graphBetaWindowsRemediationScript.ResourceName+".test_003").Key("display_name").HasValue("unit-test-windows-remediation-script-003-lifecycle"),
@@ -150,7 +150,7 @@ func TestWindowsRemediationScriptResource_003_Lifecycle_MinimalToMaximal(t *test
 				),
 			},
 			{
-				Config: loadUnitTestTerraform("lifecycle_step_2_maximal.tf"),
+				Config: loadUnitTestTerraform("003_lifecycle_minimal_to_maximal_step_2.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					check.That(graphBetaWindowsRemediationScript.ResourceName+".test_003").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(graphBetaWindowsRemediationScript.ResourceName+".test_003").Key("display_name").HasValue("unit-test-windows-remediation-script-003-lifecycle"),
@@ -182,7 +182,7 @@ func TestWindowsRemediationScriptResource_004_Lifecycle_MaximalToMinimal(t *test
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: loadUnitTestTerraform("lifecycle_step_1_maximal.tf"),
+				Config: loadUnitTestTerraform("004_lifecycle_maximal_to_minimal_step_1.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					check.That(graphBetaWindowsRemediationScript.ResourceName+".test_004").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(graphBetaWindowsRemediationScript.ResourceName+".test_004").Key("display_name").HasValue("unit-test-windows-remediation-script-004-downgrade"),
@@ -193,7 +193,7 @@ func TestWindowsRemediationScriptResource_004_Lifecycle_MaximalToMinimal(t *test
 				),
 			},
 			{
-				Config: loadUnitTestTerraform("lifecycle_step_2_minimal.tf"),
+				Config: loadUnitTestTerraform("004_lifecycle_maximal_to_minimal_step_2.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					check.That(graphBetaWindowsRemediationScript.ResourceName+".test_004").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(graphBetaWindowsRemediationScript.ResourceName+".test_004").Key("display_name").HasValue("unit-test-windows-remediation-script-004-downgrade"),
@@ -223,7 +223,7 @@ func TestWindowsRemediationScriptResource_005_AssignmentsMinimal(t *testing.T) {
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: loadUnitTestTerraform("assignments_minimal.tf"),
+				Config: loadUnitTestTerraform("005_assignments_minimal.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					check.That(graphBetaWindowsRemediationScript.ResourceName+".test_005").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(graphBetaWindowsRemediationScript.ResourceName+".test_005").Key("display_name").HasValue("unit-test-windows-remediation-script-005-assignments-minimal"),
@@ -253,7 +253,7 @@ func TestWindowsRemediationScriptResource_006_AssignmentsMaximal(t *testing.T) {
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: loadUnitTestTerraform("assignments_maximal.tf"),
+				Config: loadUnitTestTerraform("006_assignments_maximal.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					check.That(graphBetaWindowsRemediationScript.ResourceName+".test_006").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(graphBetaWindowsRemediationScript.ResourceName+".test_006").Key("display_name").HasValue("unit-test-windows-remediation-script-006-assignments-maximal"),
@@ -306,7 +306,7 @@ func TestWindowsRemediationScriptResource_007_AssignmentsLifecycle_MinimalToMaxi
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: loadUnitTestTerraform("assignments_lifecycle_step_1_minimal.tf"),
+				Config: loadUnitTestTerraform("007_assignments_lifecycle_minimal_to_maximal_step_1.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					check.That(graphBetaWindowsRemediationScript.ResourceName+".test_007").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(graphBetaWindowsRemediationScript.ResourceName+".test_007").Key("display_name").HasValue("unit-test-windows-remediation-script-007-assignments-lifecycle"),
@@ -317,7 +317,7 @@ func TestWindowsRemediationScriptResource_007_AssignmentsLifecycle_MinimalToMaxi
 				),
 			},
 			{
-				Config: loadUnitTestTerraform("assignments_lifecycle_step_2_maximal.tf"),
+				Config: loadUnitTestTerraform("007_assignments_lifecycle_minimal_to_maximal_step_2.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					check.That(graphBetaWindowsRemediationScript.ResourceName+".test_007").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(graphBetaWindowsRemediationScript.ResourceName+".test_007").Key("display_name").HasValue("unit-test-windows-remediation-script-007-assignments-lifecycle"),
@@ -354,7 +354,7 @@ func TestWindowsRemediationScriptResource_008_AssignmentsLifecycle_MaximalToMini
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: loadUnitTestTerraform("assignments_downgrade_step_1_maximal.tf"),
+				Config: loadUnitTestTerraform("008_assignments_lifecycle_maximal_to_minimal_step_1.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					check.That(graphBetaWindowsRemediationScript.ResourceName+".test_008").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(graphBetaWindowsRemediationScript.ResourceName+".test_008").Key("display_name").HasValue("unit-test-windows-remediation-script-008-assignments-downgrade"),
@@ -368,7 +368,7 @@ func TestWindowsRemediationScriptResource_008_AssignmentsLifecycle_MaximalToMini
 				),
 			},
 			{
-				Config: loadUnitTestTerraform("assignments_downgrade_step_2_minimal.tf"),
+				Config: loadUnitTestTerraform("008_assignments_lifecycle_maximal_to_minimal_step_2.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					check.That(graphBetaWindowsRemediationScript.ResourceName+".test_008").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(graphBetaWindowsRemediationScript.ResourceName+".test_008").Key("display_name").HasValue("unit-test-windows-remediation-script-008-assignments-downgrade"),
@@ -398,11 +398,11 @@ func TestWindowsRemediationScriptResource_009_ValidationErrors(t *testing.T) {
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config:      loadUnitTestTerraform("validation_missing_display_name.tf"),
+				Config:      loadUnitTestTerraform("009_validation_missing_display_name.tf"),
 				ExpectError: regexp.MustCompile(`The argument "display_name" is required`),
 			},
 			{
-				Config:      loadUnitTestTerraform("validation_invalid_run_as_account.tf"),
+				Config:      loadUnitTestTerraform("009_validation_invalid_run_as_account.tf"),
 				ExpectError: regexp.MustCompile(`Attribute run_as_account value must be one of`),
 			},
 		},

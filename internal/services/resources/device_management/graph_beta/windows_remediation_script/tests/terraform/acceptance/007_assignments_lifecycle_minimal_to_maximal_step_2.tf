@@ -9,12 +9,13 @@ resource "random_string" "test_suffix" {
 # Group and Filter Dependencies
 # ==============================================================================
 
-resource "microsoft365_graph_beta_device_management_assignment_filter" "acc_test_filter_008_1" {
-  display_name                      = "acc-test-filter-008-1-${random_string.test_suffix.result}"
-  description                       = "Test filter 1 for windows remediation script assignment downgrade"
+resource "microsoft365_graph_beta_device_management_assignment_filter" "acc_test_filter_007_1" {
+  display_name                      = "acc-test-filter-007-1-${random_string.test_suffix.result}"
+  description                       = "Test filter 1 for windows remediation script assignment lifecycle"
   platform                          = "windows10AndLater"
   rule                              = "(device.osVersion -startsWith \"10.0\")"
   assignment_filter_management_type = "devices"
+
 
   timeouts = {
     create = "30s"
@@ -24,40 +25,43 @@ resource "microsoft365_graph_beta_device_management_assignment_filter" "acc_test
   }
 }
 
-resource "microsoft365_graph_beta_groups_group" "acc_test_group_008_1" {
-  display_name     = "acc-test-group-008-1-${random_string.test_suffix.result}"
-  mail_nickname    = "acc-test-group-008-1-${random_string.test_suffix.result}"
+resource "microsoft365_graph_beta_groups_group" "acc_test_group_007_1" {
+  display_name     = "acc-test-group-007-1-${random_string.test_suffix.result}"
+  mail_nickname    = "acc-test-group-007-1-${random_string.test_suffix.result}"
   mail_enabled     = false
   security_enabled = true
-  description      = "Test group 1 for windows remediation script assignment downgrade"
+  description      = "Test group 1 for windows remediation script assignment lifecycle"
   hard_delete      = true
+
 }
 
-resource "microsoft365_graph_beta_groups_group" "acc_test_group_008_2" {
-  display_name     = "acc-test-group-008-2-${random_string.test_suffix.result}"
-  mail_nickname    = "acc-test-group-008-2-${random_string.test_suffix.result}"
+resource "microsoft365_graph_beta_groups_group" "acc_test_group_007_2" {
+  display_name     = "acc-test-group-007-2-${random_string.test_suffix.result}"
+  mail_nickname    = "acc-test-group-007-2-${random_string.test_suffix.result}"
   mail_enabled     = false
   security_enabled = true
-  description      = "Test group 2 for windows remediation script assignment downgrade"
+  description      = "Test group 2 for windows remediation script assignment lifecycle"
   hard_delete      = true
+
 }
 
-resource "microsoft365_graph_beta_groups_group" "acc_test_group_008_3" {
-  display_name     = "acc-test-group-008-3-${random_string.test_suffix.result}"
-  mail_nickname    = "acc-test-group-008-3-${random_string.test_suffix.result}"
+resource "microsoft365_graph_beta_groups_group" "acc_test_group_007_3" {
+  display_name     = "acc-test-group-007-3-${random_string.test_suffix.result}"
+  mail_nickname    = "acc-test-group-007-3-${random_string.test_suffix.result}"
   mail_enabled     = false
   security_enabled = true
-  description      = "Test group 3 for windows remediation script assignment downgrade"
+  description      = "Test group 3 for windows remediation script assignment lifecycle"
   hard_delete      = true
+
 }
 
 # ==============================================================================
-# Windows Remediation Script Resource - Assignment Downgrade Step 1 (Maximal)
+# Windows Remediation Script Resource - Assignment Lifecycle Step 2 (Maximal)
 # ==============================================================================
 
-resource "microsoft365_graph_beta_device_management_windows_remediation_script" "test_008" {
-  display_name               = "acc-test-windows-remediation-script-008-assignments-downgrade-${random_string.test_suffix.result}"
-  description                = "Scenario 8 Step 1: Starting with maximal assignments"
+resource "microsoft365_graph_beta_device_management_windows_remediation_script" "test_007" {
+  display_name               = "acc-test-windows-remediation-script-007-assignments-lifecycle-${random_string.test_suffix.result}"
+  description                = "Scenario 7 Step 2: Updated to maximal assignments"
   publisher                  = "Terraform Provider Test"
   run_as_account             = "system"
   detection_script_content   = "# Simple detection script\nWrite-Host 'Detection complete'\nexit 0"
@@ -66,9 +70,9 @@ resource "microsoft365_graph_beta_device_management_windows_remediation_script" 
   assignments = [
     {
       type        = "groupAssignmentTarget"
-      group_id    = microsoft365_graph_beta_groups_group.acc_test_group_008_1.id
+      group_id    = microsoft365_graph_beta_groups_group.acc_test_group_007_1.id
       filter_type = "include"
-      filter_id   = microsoft365_graph_beta_device_management_assignment_filter.acc_test_filter_008_1.id
+      filter_id   = microsoft365_graph_beta_device_management_assignment_filter.acc_test_filter_007_1.id
       daily_schedule = {
         interval = 1
         time     = "09:00:00"
@@ -77,7 +81,7 @@ resource "microsoft365_graph_beta_device_management_windows_remediation_script" 
     },
     {
       type        = "groupAssignmentTarget"
-      group_id    = microsoft365_graph_beta_groups_group.acc_test_group_008_2.id
+      group_id    = microsoft365_graph_beta_groups_group.acc_test_group_007_2.id
       filter_type = "none"
       hourly_schedule = {
         interval = 4
@@ -98,7 +102,7 @@ resource "microsoft365_graph_beta_device_management_windows_remediation_script" 
     },
     {
       type        = "exclusionGroupAssignmentTarget"
-      group_id    = microsoft365_graph_beta_groups_group.acc_test_group_008_3.id
+      group_id    = microsoft365_graph_beta_groups_group.acc_test_group_007_3.id
       filter_type = "none"
     }
   ]

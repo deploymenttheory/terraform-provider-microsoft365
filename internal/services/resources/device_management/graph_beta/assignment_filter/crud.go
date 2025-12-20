@@ -219,6 +219,10 @@ func (r *AssignmentFilterResource) Delete(ctx context.Context, req resource.Dele
 	deleteOptions := crud.DefaultDeleteWithRetryOptions()
 	deleteOptions.ResourceTypeName = ResourceName
 	deleteOptions.ResourceID = object.ID.ValueString()
+	// Use shorter retry interval for assignment filters due to eventual consistency issues
+	// Assignment filters may be temporarily locked by recent assignments and need retries
+	deleteOptions.RetryInterval = 3 * time.Second
+	deleteOptions.MaxRetries = 15
 
 	err := crud.DeleteWithRetry(ctx, func(ctx context.Context) error {
 		return r.client.

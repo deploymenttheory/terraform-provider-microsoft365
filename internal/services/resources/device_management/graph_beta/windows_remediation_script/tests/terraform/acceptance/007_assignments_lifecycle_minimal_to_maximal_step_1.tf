@@ -16,6 +16,7 @@ resource "microsoft365_graph_beta_device_management_assignment_filter" "acc_test
   rule                              = "(device.osVersion -startsWith \"10.0\")"
   assignment_filter_management_type = "devices"
 
+
   timeouts = {
     create = "30s"
     read   = "30s"
@@ -31,6 +32,7 @@ resource "microsoft365_graph_beta_groups_group" "acc_test_group_007_1" {
   security_enabled = true
   description      = "Test group 1 for windows remediation script assignment lifecycle"
   hard_delete      = true
+
 }
 
 resource "microsoft365_graph_beta_groups_group" "acc_test_group_007_2" {
@@ -40,6 +42,7 @@ resource "microsoft365_graph_beta_groups_group" "acc_test_group_007_2" {
   security_enabled = true
   description      = "Test group 2 for windows remediation script assignment lifecycle"
   hard_delete      = true
+
 }
 
 resource "microsoft365_graph_beta_groups_group" "acc_test_group_007_3" {
@@ -49,6 +52,7 @@ resource "microsoft365_graph_beta_groups_group" "acc_test_group_007_3" {
   security_enabled = true
   description      = "Test group 3 for windows remediation script assignment lifecycle"
   hard_delete      = true
+
 }
 
 # ==============================================================================
