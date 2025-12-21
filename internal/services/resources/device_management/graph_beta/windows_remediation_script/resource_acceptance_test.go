@@ -40,11 +40,11 @@ import (
 //    "resource has been deleted outside of Terraform" errors.
 //
 // 3. ✅ Complete Step 2 with modified assignments (no drift errors)
-// 4. ⏰ Wait 30 seconds before CheckDestroy
+// 4. ⏰ Wait 60 seconds before CheckDestroy
 //    WHY: Groups with hard_delete=true require a two-phase deletion:
 //    - Soft delete: Resource moves to "deleted items" collection
 //    - Hard delete: Resource is permanently removed
-//    The hard delete operation can take 60-30 seconds to fully propagate
+//    The hard delete operation can take 60-90 seconds to fully propagate
 //    through Microsoft Graph's backend. Without this wait, CheckDestroy
 //    may find resources still in the deleted items collection, causing
 //    false test failures.
@@ -282,7 +282,7 @@ func TestAccWindowsRemediationScriptResource_006_AssignmentsMaximal(t *testing.T
 			},
 		},
 		CheckDestroy: destroy.CheckDestroyedTypesFunc(
-			30*time.Second, // Increased wait time for groups hard delete to propagate (can take 60-30s)
+			60*time.Second, // Increased wait time for groups hard delete to propagate (can take 60-90s)
 			destroy.ResourceTypeMapping{
 				ResourceType: graphBetaWindowsRemediationScript.ResourceName,
 				TestResource: graphBetaWindowsRemediationScript.WindowsRemediationScriptTestResource{},
@@ -325,7 +325,7 @@ func TestAccWindowsRemediationScriptResource_007_AssignmentsLifecycle_MinimalToM
 			},
 		},
 		CheckDestroy: destroy.CheckDestroyedTypesFunc(
-			30*time.Second, // Increased wait time for groups hard delete to propagate (can take 60-30s)
+			60*time.Second, // Increased wait time for groups hard delete to propagate (can take 60-90s)
 			destroy.ResourceTypeMapping{
 				ResourceType: graphBetaWindowsRemediationScript.ResourceName,
 				TestResource: graphBetaWindowsRemediationScript.WindowsRemediationScriptTestResource{},
@@ -380,7 +380,7 @@ func TestAccWindowsRemediationScriptResource_008_AssignmentsLifecycle_MaximalToM
 			},
 		},
 		CheckDestroy: destroy.CheckDestroyedTypesFunc(
-			30*time.Second, // Increased wait time for groups hard delete to propagate (can take 60-30s)
+			60*time.Second, // Increased wait time for groups hard delete to propagate (can take 60-90s)
 			destroy.ResourceTypeMapping{
 				ResourceType: graphBetaWindowsRemediationScript.ResourceName,
 				TestResource: graphBetaWindowsRemediationScript.WindowsRemediationScriptTestResource{},

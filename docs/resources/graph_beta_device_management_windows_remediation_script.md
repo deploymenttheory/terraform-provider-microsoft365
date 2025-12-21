@@ -28,6 +28,7 @@ The following API permissions are required in order to use this resource.
 | Version | Status | Notes |
 |---------|--------|-------|
 | v0.14.1-alpha | Experimental | Initial release |
+| v0.39.0-alpha | Preview | Refactored test harness and fixes for schema and validation |
 
 ## Example Usage
 
@@ -193,20 +194,17 @@ Optional:
 
 Required:
 
+- `interval` (Number) Define the interval in days between runs. Must be specified when using daily_schedule.
 - `time` (String) Time of day in format 'HH:MM:SS'.
-
-Optional:
-
-- `interval` (Number) Days between runs. Default is 1.
-- `use_utc` (Boolean) Whether to use UTC time. Default is false (local time).
+- `use_utc` (Boolean) Whether to use UTC time. Must be specified when using daily_schedule.
 
 
 <a id="nestedatt--assignments--hourly_schedule"></a>
 ### Nested Schema for `assignments.hourly_schedule`
 
-Optional:
+Required:
 
-- `interval` (Number) Hours between runs. Default is 1.
+- `interval` (Number) Define the interval in days between runs. Must be specified when using hourly_schedule.
 
 
 <a id="nestedatt--assignments--run_once_schedule"></a>
@@ -216,10 +214,7 @@ Required:
 
 - `date` (String) Date for the one-time execution in format 'YYYY-MM-DD'.
 - `time` (String) Time of day in format 'HH:MM:SS'.
-
-Optional:
-
-- `use_utc` (Boolean) Whether to use UTC time. Default is false (local time).
+- `use_utc` (Boolean) Whether to use UTC time. Must be specified when using run_once_schedule.
 
 
 
