@@ -10,7 +10,9 @@ import (
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/destroy"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
+	graphBetaAssignmentFilter "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_management/graph_beta/assignment_filter"
 	graphBetaWindowsRemediationScript "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_management/graph_beta/windows_remediation_script"
+	graphBetaGroup "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/groups/graph_beta/group"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
@@ -224,10 +226,20 @@ func TestAccWindowsRemediationScriptResource_006_AssignmentsMaximal(t *testing.T
 				VersionConstraint: ">= 3.7.2",
 			},
 		},
-		CheckDestroy: destroy.CheckDestroyedAllFunc(
-			testResource,
-			graphBetaWindowsRemediationScript.ResourceName,
-			30*time.Second,
+		CheckDestroy: destroy.CheckDestroyedTypesFunc(
+			60*time.Second, // Increased wait time for groups hard delete to propagate
+			destroy.ResourceTypeMapping{
+				ResourceType: graphBetaWindowsRemediationScript.ResourceName,
+				TestResource: graphBetaWindowsRemediationScript.WindowsRemediationScriptTestResource{},
+			},
+			destroy.ResourceTypeMapping{
+				ResourceType: graphBetaGroup.ResourceName,
+				TestResource: graphBetaGroup.GroupTestResource{},
+			},
+			destroy.ResourceTypeMapping{
+				ResourceType: graphBetaAssignmentFilter.ResourceName,
+				TestResource: graphBetaAssignmentFilter.AssignmentFilterTestResource{},
+			},
 		),
 		Steps: []resource.TestStep{
 			{
@@ -257,10 +269,20 @@ func TestAccWindowsRemediationScriptResource_007_AssignmentsLifecycle_MinimalToM
 				VersionConstraint: ">= 3.7.2",
 			},
 		},
-		CheckDestroy: destroy.CheckDestroyedAllFunc(
-			testResource,
-			graphBetaWindowsRemediationScript.ResourceName,
-			30*time.Second,
+		CheckDestroy: destroy.CheckDestroyedTypesFunc(
+			60*time.Second, // Increased wait time for groups hard delete to propagate
+			destroy.ResourceTypeMapping{
+				ResourceType: graphBetaWindowsRemediationScript.ResourceName,
+				TestResource: graphBetaWindowsRemediationScript.WindowsRemediationScriptTestResource{},
+			},
+			destroy.ResourceTypeMapping{
+				ResourceType: graphBetaGroup.ResourceName,
+				TestResource: graphBetaGroup.GroupTestResource{},
+			},
+			destroy.ResourceTypeMapping{
+				ResourceType: graphBetaAssignmentFilter.ResourceName,
+				TestResource: graphBetaAssignmentFilter.AssignmentFilterTestResource{},
+			},
 		),
 		Steps: []resource.TestStep{
 			{
@@ -297,10 +319,20 @@ func TestAccWindowsRemediationScriptResource_008_AssignmentsLifecycle_MaximalToM
 				VersionConstraint: ">= 3.7.2",
 			},
 		},
-		CheckDestroy: destroy.CheckDestroyedAllFunc(
-			testResource,
-			graphBetaWindowsRemediationScript.ResourceName,
-			30*time.Second,
+		CheckDestroy: destroy.CheckDestroyedTypesFunc(
+			60*time.Second, // Increased wait time for groups hard delete to propagate
+			destroy.ResourceTypeMapping{
+				ResourceType: graphBetaWindowsRemediationScript.ResourceName,
+				TestResource: graphBetaWindowsRemediationScript.WindowsRemediationScriptTestResource{},
+			},
+			destroy.ResourceTypeMapping{
+				ResourceType: graphBetaGroup.ResourceName,
+				TestResource: graphBetaGroup.GroupTestResource{},
+			},
+			destroy.ResourceTypeMapping{
+				ResourceType: graphBetaAssignmentFilter.ResourceName,
+				TestResource: graphBetaAssignmentFilter.AssignmentFilterTestResource{},
+			},
 		),
 		Steps: []resource.TestStep{
 			{
