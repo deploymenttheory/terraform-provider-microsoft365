@@ -4,8 +4,10 @@ import (
 	"regexp"
 	"testing"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/check"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
+	graphBetaWindowsQualityUpdatePolicy "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_management/graph_beta/windows_quality_update_policy"
 	qualityUpdateMocks "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_management/graph_beta/windows_quality_update_policy/mocks"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/jarcoal/httpmock"
@@ -13,43 +15,37 @@ import (
 
 // setupMockEnvironment sets up the mock environment using centralized mocks
 func setupMockEnvironment() (*mocks.Mocks, *qualityUpdateMocks.WindowsQualityUpdatePolicyMock) {
-	// Activate httpmock
 	httpmock.Activate()
-
-	// Create a new Mocks instance and register authentication mocks
 	mockClient := mocks.NewMocks()
 	mockClient.AuthMocks.RegisterMocks()
 
-	// Register local mocks directly
 	qualityUpdateMock := &qualityUpdateMocks.WindowsQualityUpdatePolicyMock{}
 	qualityUpdateMock.RegisterMocks()
-
 	return mockClient, qualityUpdateMock
 }
 
 // setupErrorMockEnvironment sets up the mock environment for error testing
 func setupErrorMockEnvironment() (*mocks.Mocks, *qualityUpdateMocks.WindowsQualityUpdatePolicyMock) {
-	// Activate httpmock
 	httpmock.Activate()
-
-	// Create a new Mocks instance and register authentication mocks
 	mockClient := mocks.NewMocks()
 	mockClient.AuthMocks.RegisterMocks()
 
-	// Register error mocks
 	qualityUpdateMock := &qualityUpdateMocks.WindowsQualityUpdatePolicyMock{}
 	qualityUpdateMock.RegisterErrorMocks()
-
 	return mockClient, qualityUpdateMock
 }
 
-// testCheckExists is a basic check to ensure the resource exists in the state
-func testCheckExists(resourceName string) resource.TestCheckFunc {
-	return resource.TestCheckResourceAttrSet(resourceName, "id")
+// Helper function to load test configs from unit directory
+func loadUnitTestTerraform(filename string) string {
+	config, err := helpers.ParseHCLFile("tests/terraform/unit/" + filename)
+	if err != nil {
+		panic("failed to load unit test config " + filename + ": " + err.Error())
+	}
+	return config
 }
 
-// TestWindowsQualityUpdatePolicyResource_Schema validates the resource schema
-func TestWindowsQualityUpdatePolicyResource_Schema(t *testing.T) {
+// Test 001: Scenario 1 - Minimal configuration without assignments
+func TestWindowsQualityUpdatePolicyResource_001_Scenario_Minimal(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, qualityUpdateMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -59,56 +55,25 @@ func TestWindowsQualityUpdatePolicyResource_Schema(t *testing.T) {
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testConfigMinimal(),
+				Config: loadUnitTestTerraform("001_scenario_minimal.tf"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_quality_update_policy.minimal", "display_name", "Test Minimal Windows Quality Update Policy - Unique"),
-					resource.TestMatchResourceAttr("microsoft365_graph_beta_device_management_windows_quality_update_policy.minimal", "id", regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_quality_update_policy.minimal", "role_scope_tag_ids.#", "1"),
-					resource.TestCheckTypeSetElemAttr("microsoft365_graph_beta_device_management_windows_quality_update_policy.minimal", "role_scope_tag_ids.*", "0"),
-				),
-			},
-		},
-	})
-}
-
-// TestWindowsQualityUpdatePolicyResource_Minimal tests basic CRUD operations
-func TestWindowsQualityUpdatePolicyResource_Minimal(t *testing.T) {
-	mocks.SetupUnitTestEnvironment(t)
-	_, qualityUpdateMock := setupMockEnvironment()
-	defer httpmock.DeactivateAndReset()
-	defer qualityUpdateMock.CleanupMockState()
-
-	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
-		Steps: []resource.TestStep{
-			{
-				Config: testConfigMinimal(),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckExists("microsoft365_graph_beta_device_management_windows_quality_update_policy.minimal"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_quality_update_policy.minimal", "display_name", "Test Minimal Windows Quality Update Policy - Unique"),
+					check.That(graphBetaWindowsQualityUpdatePolicy.ResourceName+".test_001").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(graphBetaWindowsQualityUpdatePolicy.ResourceName+".test_001").Key("display_name").HasValue("unit-test-windows-quality-update-policy-001-minimal"),
+					check.That(graphBetaWindowsQualityUpdatePolicy.ResourceName+".test_001").Key("role_scope_tag_ids.#").HasValue("1"),
+					check.That(graphBetaWindowsQualityUpdatePolicy.ResourceName+".test_001").Key("role_scope_tag_ids.0").HasValue("0"),
 				),
 			},
 			{
-				ResourceName:      "microsoft365_graph_beta_device_management_windows_quality_update_policy.minimal",
+				ResourceName:      graphBetaWindowsQualityUpdatePolicy.ResourceName + ".test_001",
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
-			{
-				Config: testConfigMaximal(),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckExists("microsoft365_graph_beta_device_management_windows_quality_update_policy.maximal"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_quality_update_policy.maximal", "display_name", "Test Maximal Windows Quality Update Policy - Unique"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_quality_update_policy.maximal", "description", "Maximal Windows Quality Update Policy for testing with all features"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_quality_update_policy.maximal", "hotpatch_enabled", "true"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_quality_update_policy.maximal", "role_scope_tag_ids.#", "2"),
-				),
-			},
 		},
 	})
 }
 
-// TestWindowsQualityUpdatePolicyResource_RequiredFields tests required field validation
-func TestWindowsQualityUpdatePolicyResource_RequiredFields(t *testing.T) {
+// Test 002: Scenario 2 - Maximal configuration without assignments
+func TestWindowsQualityUpdatePolicyResource_002_Scenario_Maximal(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, qualityUpdateMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -118,19 +83,26 @@ func TestWindowsQualityUpdatePolicyResource_RequiredFields(t *testing.T) {
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: `
-resource "microsoft365_graph_beta_device_management_windows_quality_update_policy" "test" {
-  # Missing display_name
-}
-`,
-				ExpectError: regexp.MustCompile(`The argument "display_name" is required`),
+				Config: loadUnitTestTerraform("002_scenario_maximal.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(graphBetaWindowsQualityUpdatePolicy.ResourceName+".test_002").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(graphBetaWindowsQualityUpdatePolicy.ResourceName+".test_002").Key("display_name").HasValue("unit-test-windows-quality-update-policy-002-maximal"),
+					check.That(graphBetaWindowsQualityUpdatePolicy.ResourceName+".test_002").Key("description").HasValue("Scenario 2: Maximal configuration without assignments"),
+					check.That(graphBetaWindowsQualityUpdatePolicy.ResourceName+".test_002").Key("hotpatch_enabled").HasValue("true"),
+					check.That(graphBetaWindowsQualityUpdatePolicy.ResourceName+".test_002").Key("role_scope_tag_ids.#").HasValue("2"),
+				),
+			},
+			{
+				ResourceName:      graphBetaWindowsQualityUpdatePolicy.ResourceName + ".test_002",
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
 }
 
-// TestWindowsQualityUpdatePolicyResource_GroupAssignments tests group assignment functionality
-func TestWindowsQualityUpdatePolicyResource_GroupAssignments(t *testing.T) {
+// Test 003: Scenario 3 - Lifecycle from minimal to maximal
+func TestWindowsQualityUpdatePolicyResource_003_Lifecycle_MinimalToMaximal(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, qualityUpdateMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -140,21 +112,34 @@ func TestWindowsQualityUpdatePolicyResource_GroupAssignments(t *testing.T) {
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testConfigGroupAssignments(),
+				Config: loadUnitTestTerraform("003_lifecycle_minimal_to_maximal_step_1.tf"),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckExists("microsoft365_graph_beta_device_management_windows_quality_update_policy.group_assignments"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_quality_update_policy.group_assignments", "display_name", "Test Group Assignments Windows Quality Update Policy - Unique"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_quality_update_policy.group_assignments", "assignments.#", "2"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_quality_update_policy.group_assignments", "assignments.0.type", "groupAssignmentTarget"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_quality_update_policy.group_assignments", "assignments.1.type", "groupAssignmentTarget"),
+					check.That(graphBetaWindowsQualityUpdatePolicy.ResourceName+".test_003").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(graphBetaWindowsQualityUpdatePolicy.ResourceName+".test_003").Key("display_name").HasValue("unit-test-windows-quality-update-policy-003-lifecycle"),
+					check.That(graphBetaWindowsQualityUpdatePolicy.ResourceName+".test_003").Key("role_scope_tag_ids.#").HasValue("1"),
 				),
+			},
+			{
+				Config: loadUnitTestTerraform("003_lifecycle_minimal_to_maximal_step_2.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(graphBetaWindowsQualityUpdatePolicy.ResourceName+".test_003").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(graphBetaWindowsQualityUpdatePolicy.ResourceName+".test_003").Key("display_name").HasValue("unit-test-windows-quality-update-policy-003-lifecycle"),
+					check.That(graphBetaWindowsQualityUpdatePolicy.ResourceName+".test_003").Key("description").HasValue("Lifecycle Step 2: Updated to maximal configuration"),
+					check.That(graphBetaWindowsQualityUpdatePolicy.ResourceName+".test_003").Key("hotpatch_enabled").HasValue("true"),
+					check.That(graphBetaWindowsQualityUpdatePolicy.ResourceName+".test_003").Key("role_scope_tag_ids.#").HasValue("2"),
+				),
+			},
+			{
+				ResourceName:      graphBetaWindowsQualityUpdatePolicy.ResourceName + ".test_003",
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
 }
 
-// TestWindowsQualityUpdatePolicyResource_ExclusionAssignment tests exclusion group assignment functionality
-func TestWindowsQualityUpdatePolicyResource_ExclusionAssignment(t *testing.T) {
+// Test 004: Scenario 4 - Lifecycle from maximal to minimal
+func TestWindowsQualityUpdatePolicyResource_004_Lifecycle_MaximalToMinimal(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, qualityUpdateMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -164,50 +149,200 @@ func TestWindowsQualityUpdatePolicyResource_ExclusionAssignment(t *testing.T) {
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testConfigExclusionAssignment(),
+				Config: loadUnitTestTerraform("004_lifecycle_maximal_to_minimal_step_1.tf"),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckExists("microsoft365_graph_beta_device_management_windows_quality_update_policy.exclusion_assignment"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_quality_update_policy.exclusion_assignment", "display_name", "Test Exclusion Assignment Windows Quality Update Policy - Unique"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_quality_update_policy.exclusion_assignment", "assignments.#", "1"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_quality_update_policy.exclusion_assignment", "assignments.0.type", "exclusionGroupAssignmentTarget"),
+					check.That(graphBetaWindowsQualityUpdatePolicy.ResourceName+".test_004").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(graphBetaWindowsQualityUpdatePolicy.ResourceName+".test_004").Key("display_name").HasValue("unit-test-windows-quality-update-policy-004-lifecycle"),
+					check.That(graphBetaWindowsQualityUpdatePolicy.ResourceName+".test_004").Key("description").HasValue("Lifecycle Step 1: Starting with maximal configuration"),
+					check.That(graphBetaWindowsQualityUpdatePolicy.ResourceName+".test_004").Key("hotpatch_enabled").HasValue("true"),
+					check.That(graphBetaWindowsQualityUpdatePolicy.ResourceName+".test_004").Key("role_scope_tag_ids.#").HasValue("2"),
 				),
+			},
+			{
+				Config: loadUnitTestTerraform("004_lifecycle_maximal_to_minimal_step_2.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(graphBetaWindowsQualityUpdatePolicy.ResourceName+".test_004").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(graphBetaWindowsQualityUpdatePolicy.ResourceName+".test_004").Key("display_name").HasValue("unit-test-windows-quality-update-policy-004-lifecycle"),
+					check.That(graphBetaWindowsQualityUpdatePolicy.ResourceName+".test_004").Key("role_scope_tag_ids.#").HasValue("1"),
+				),
+			},
+			{
+				ResourceName:      graphBetaWindowsQualityUpdatePolicy.ResourceName + ".test_004",
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
 }
 
-// testConfigMinimal returns the minimal configuration for testing
-func testConfigMinimal() string {
-	unitTestConfig, err := helpers.ParseHCLFile("tests/terraform/unit/resource_minimal.tf")
-	if err != nil {
-		panic("failed to load minimal config: " + err.Error())
-	}
-	return unitTestConfig
+// Test 005: Scenario 5 - Minimal assignments
+func TestWindowsQualityUpdatePolicyResource_005_AssignmentsMinimal(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
+	_, qualityUpdateMock := setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+	defer qualityUpdateMock.CleanupMockState()
+
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: loadUnitTestTerraform("005_assignments_minimal.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(graphBetaWindowsQualityUpdatePolicy.ResourceName+".test_005").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(graphBetaWindowsQualityUpdatePolicy.ResourceName+".test_005").Key("display_name").HasValue("unit-test-windows-quality-update-policy-005-assignments-minimal"),
+					check.That(graphBetaWindowsQualityUpdatePolicy.ResourceName+".test_005").Key("assignments.#").HasValue("1"),
+					resource.TestCheckTypeSetElemNestedAttrs(graphBetaWindowsQualityUpdatePolicy.ResourceName+".test_005", "assignments.*", map[string]string{
+						"type":     "groupAssignmentTarget",
+						"group_id": "11111111-1111-1111-1111-111111111111",
+					}),
+				),
+			},
+			{
+				ResourceName:      graphBetaWindowsQualityUpdatePolicy.ResourceName + ".test_005",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
 }
 
-// testConfigMaximal returns the maximal configuration for testing
-func testConfigMaximal() string {
-	unitTestConfig, err := helpers.ParseHCLFile("tests/terraform/unit/resource_maximal.tf")
-	if err != nil {
-		panic("failed to load maximal config: " + err.Error())
-	}
-	return unitTestConfig
+// Test 006: Scenario 6 - Maximal assignments
+func TestWindowsQualityUpdatePolicyResource_006_AssignmentsMaximal(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
+	_, qualityUpdateMock := setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+	defer qualityUpdateMock.CleanupMockState()
+
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: loadUnitTestTerraform("006_assignments_maximal.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(graphBetaWindowsQualityUpdatePolicy.ResourceName+".test_006").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(graphBetaWindowsQualityUpdatePolicy.ResourceName+".test_006").Key("display_name").HasValue("unit-test-windows-quality-update-policy-006-assignments-maximal"),
+					check.That(graphBetaWindowsQualityUpdatePolicy.ResourceName+".test_006").Key("assignments.#").HasValue("3"),
+					resource.TestCheckTypeSetElemNestedAttrs(graphBetaWindowsQualityUpdatePolicy.ResourceName+".test_006", "assignments.*", map[string]string{
+						"type":     "groupAssignmentTarget",
+						"group_id": "44444444-4444-4444-4444-444444444444",
+					}),
+					resource.TestCheckTypeSetElemNestedAttrs(graphBetaWindowsQualityUpdatePolicy.ResourceName+".test_006", "assignments.*", map[string]string{
+						"type":     "groupAssignmentTarget",
+						"group_id": "33333333-3333-3333-3333-333333333333",
+					}),
+					resource.TestCheckTypeSetElemNestedAttrs(graphBetaWindowsQualityUpdatePolicy.ResourceName+".test_006", "assignments.*", map[string]string{
+						"type":     "exclusionGroupAssignmentTarget",
+						"group_id": "77777777-7777-7777-7777-777777777777",
+					}),
+				),
+			},
+			{
+				ResourceName:      graphBetaWindowsQualityUpdatePolicy.ResourceName + ".test_006",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
 }
 
-// testConfigGroupAssignments returns the group assignments configuration for testing
-func testConfigGroupAssignments() string {
-	unitTestConfig, err := helpers.ParseHCLFile("tests/terraform/unit/resource_with_group_assignments.tf")
-	if err != nil {
-		panic("failed to load group assignments config: " + err.Error())
-	}
-	return unitTestConfig
+// Test 007: Scenario 7 - Assignments lifecycle minimal to maximal
+func TestWindowsQualityUpdatePolicyResource_007_AssignmentsLifecycle_MinimalToMaximal(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
+	_, qualityUpdateMock := setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+	defer qualityUpdateMock.CleanupMockState()
+
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: loadUnitTestTerraform("007_assignments_lifecycle_minimal_to_maximal_step_1.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(graphBetaWindowsQualityUpdatePolicy.ResourceName+".test_007").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(graphBetaWindowsQualityUpdatePolicy.ResourceName+".test_007").Key("display_name").HasValue("unit-test-windows-quality-update-policy-007-lifecycle"),
+					check.That(graphBetaWindowsQualityUpdatePolicy.ResourceName+".test_007").Key("assignments.#").HasValue("1"),
+					resource.TestCheckTypeSetElemNestedAttrs(graphBetaWindowsQualityUpdatePolicy.ResourceName+".test_007", "assignments.*", map[string]string{
+						"type":     "groupAssignmentTarget",
+						"group_id": "11111111-1111-1111-1111-111111111111",
+					}),
+				),
+			},
+			{
+				Config: loadUnitTestTerraform("007_assignments_lifecycle_minimal_to_maximal_step_2.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(graphBetaWindowsQualityUpdatePolicy.ResourceName+".test_007").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(graphBetaWindowsQualityUpdatePolicy.ResourceName+".test_007").Key("display_name").HasValue("unit-test-windows-quality-update-policy-007-lifecycle"),
+					check.That(graphBetaWindowsQualityUpdatePolicy.ResourceName+".test_007").Key("assignments.#").HasValue("3"),
+					resource.TestCheckTypeSetElemNestedAttrs(graphBetaWindowsQualityUpdatePolicy.ResourceName+".test_007", "assignments.*", map[string]string{
+						"type":     "groupAssignmentTarget",
+						"group_id": "11111111-1111-1111-1111-111111111111",
+					}),
+					resource.TestCheckTypeSetElemNestedAttrs(graphBetaWindowsQualityUpdatePolicy.ResourceName+".test_007", "assignments.*", map[string]string{
+						"type":     "groupAssignmentTarget",
+						"group_id": "22222222-2222-2222-2222-222222222222",
+					}),
+					resource.TestCheckTypeSetElemNestedAttrs(graphBetaWindowsQualityUpdatePolicy.ResourceName+".test_007", "assignments.*", map[string]string{
+						"type":     "exclusionGroupAssignmentTarget",
+						"group_id": "33333333-3333-3333-3333-333333333333",
+					}),
+				),
+			},
+			{
+				ResourceName:      graphBetaWindowsQualityUpdatePolicy.ResourceName + ".test_007",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
 }
 
-// testConfigExclusionAssignment returns the exclusion assignment configuration for testing
-func testConfigExclusionAssignment() string {
-	unitTestConfig, err := helpers.ParseHCLFile("tests/terraform/unit/resource_with_exclusion_assignment.tf")
-	if err != nil {
-		panic("failed to load exclusion assignment config: " + err.Error())
-	}
-	return unitTestConfig
+// Test 008: Scenario 8 - Assignments lifecycle maximal to minimal
+func TestWindowsQualityUpdatePolicyResource_008_AssignmentsLifecycle_MaximalToMinimal(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
+	_, qualityUpdateMock := setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+	defer qualityUpdateMock.CleanupMockState()
+
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: loadUnitTestTerraform("008_assignments_lifecycle_maximal_to_minimal_step_1.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(graphBetaWindowsQualityUpdatePolicy.ResourceName+".test_008").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(graphBetaWindowsQualityUpdatePolicy.ResourceName+".test_008").Key("display_name").HasValue("unit-test-windows-quality-update-policy-008-lifecycle"),
+					check.That(graphBetaWindowsQualityUpdatePolicy.ResourceName+".test_008").Key("assignments.#").HasValue("3"),
+					resource.TestCheckTypeSetElemNestedAttrs(graphBetaWindowsQualityUpdatePolicy.ResourceName+".test_008", "assignments.*", map[string]string{
+						"type":     "groupAssignmentTarget",
+						"group_id": "11111111-1111-1111-1111-111111111111",
+					}),
+					resource.TestCheckTypeSetElemNestedAttrs(graphBetaWindowsQualityUpdatePolicy.ResourceName+".test_008", "assignments.*", map[string]string{
+						"type":     "groupAssignmentTarget",
+						"group_id": "22222222-2222-2222-2222-222222222222",
+					}),
+					resource.TestCheckTypeSetElemNestedAttrs(graphBetaWindowsQualityUpdatePolicy.ResourceName+".test_008", "assignments.*", map[string]string{
+						"type":     "exclusionGroupAssignmentTarget",
+						"group_id": "33333333-3333-3333-3333-333333333333",
+					}),
+				),
+			},
+			{
+				Config: loadUnitTestTerraform("008_assignments_lifecycle_maximal_to_minimal_step_2.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(graphBetaWindowsQualityUpdatePolicy.ResourceName+".test_008").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(graphBetaWindowsQualityUpdatePolicy.ResourceName+".test_008").Key("display_name").HasValue("unit-test-windows-quality-update-policy-008-lifecycle"),
+					check.That(graphBetaWindowsQualityUpdatePolicy.ResourceName+".test_008").Key("assignments.#").HasValue("1"),
+					resource.TestCheckTypeSetElemNestedAttrs(graphBetaWindowsQualityUpdatePolicy.ResourceName+".test_008", "assignments.*", map[string]string{
+						"type":     "groupAssignmentTarget",
+						"group_id": "11111111-1111-1111-1111-111111111111",
+					}),
+				),
+			},
+			{
+				ResourceName:      graphBetaWindowsQualityUpdatePolicy.ResourceName + ".test_008",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
 }

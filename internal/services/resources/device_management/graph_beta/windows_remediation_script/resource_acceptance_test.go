@@ -8,11 +8,68 @@ import (
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/check"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/destroy"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/testlog"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
+	graphBetaAssignmentFilter "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_management/graph_beta/assignment_filter"
 	graphBetaWindowsRemediationScript "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_management/graph_beta/windows_remediation_script"
+	graphBetaGroup "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/groups/graph_beta/group"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/terraform"
 )
+
+// ============================================================================
+// Test Strategy & Timing Considerations
+// ============================================================================
+//
+// These acceptance tests interact with Microsoft Graph API which has eventual
+// consistency characteristics that require strategic timing to ensure reliable
+// test execution. The following explains the test flow and why specific waits
+// are necessary:
+//
+// ## Multi-Step Lifecycle Tests (007, 008)
+//
+// For tests that modify assignments across multiple steps:
+//
+// 1. ✅ Complete Step 1 with initial assignment configuration
+// 2. ⏰ Wait 20 seconds for consistency
+//    WHY: When assignments are added/removed from a script, the Microsoft
+//    Graph API needs time to propagate these changes. Without this wait,
+//    Terraform's refresh between steps may detect false drift (resources
+//    appearing as deleted when they still exist). This prevents spurious
+//    "resource has been deleted outside of Terraform" errors.
+//
+// 3. ✅ Complete Step 2 with modified assignments (no drift errors)
+// 4. ⏰ Wait 60 seconds before CheckDestroy
+//    WHY: Groups with hard_delete=true require a two-phase deletion:
+//    - Soft delete: Resource moves to "deleted items" collection
+//    - Hard delete: Resource is permanently removed
+//    The hard delete operation can take 60-90 seconds to fully propagate
+//    through Microsoft Graph's backend. Without this wait, CheckDestroy
+//    may find resources still in the deleted items collection, causing
+//    false test failures.
+//
+// 5. ✅ Verify all resources are properly destroyed
+//
+// ## Assignment Filter Delete Timing
+//
+// Assignment filters have an additional 10-second pre-delete wait:
+//
+// WHY: Assignment filters are locked when actively referenced by remediation
+// script assignments. Even after the script is deleted, there's a brief
+// window where the filter remains locked in the backend. The 10-second pause
+// allows the backend to release the lock before attempting deletion, preventing
+// 500 Internal Server Error responses.
+//
+// ## Idempotent Delete Operations
+//
+// All delete operations (groups, filters, scripts) are idempotent:
+//
+// WHY: Due to eventual consistency and test retries, resources may already be
+// deleted when Terraform attempts to delete them (404 Not Found). Treating
+// 404 as success ensures tests can be re-run without manual cleanup and
+// handles backend timing variations gracefully.
+// ============================================================================
 
 // Helper function to load acceptance test configs
 func loadAcceptanceTestTerraform(filename string) string {
@@ -224,10 +281,20 @@ func TestAccWindowsRemediationScriptResource_006_AssignmentsMaximal(t *testing.T
 				VersionConstraint: ">= 3.7.2",
 			},
 		},
-		CheckDestroy: destroy.CheckDestroyedAllFunc(
-			testResource,
-			graphBetaWindowsRemediationScript.ResourceName,
-			30*time.Second,
+		CheckDestroy: destroy.CheckDestroyedTypesFunc(
+			60*time.Second, // Increased wait time for groups hard delete to propagate (can take 60-90s)
+			destroy.ResourceTypeMapping{
+				ResourceType: graphBetaWindowsRemediationScript.ResourceName,
+				TestResource: graphBetaWindowsRemediationScript.WindowsRemediationScriptTestResource{},
+			},
+			destroy.ResourceTypeMapping{
+				ResourceType: graphBetaGroup.ResourceName,
+				TestResource: graphBetaGroup.GroupTestResource{},
+			},
+			destroy.ResourceTypeMapping{
+				ResourceType: graphBetaAssignmentFilter.ResourceName,
+				TestResource: graphBetaAssignmentFilter.AssignmentFilterTestResource{},
+			},
 		),
 		Steps: []resource.TestStep{
 			{
@@ -257,10 +324,20 @@ func TestAccWindowsRemediationScriptResource_007_AssignmentsLifecycle_MinimalToM
 				VersionConstraint: ">= 3.7.2",
 			},
 		},
-		CheckDestroy: destroy.CheckDestroyedAllFunc(
-			testResource,
-			graphBetaWindowsRemediationScript.ResourceName,
-			30*time.Second,
+		CheckDestroy: destroy.CheckDestroyedTypesFunc(
+			60*time.Second, // Increased wait time for groups hard delete to propagate (can take 60-90s)
+			destroy.ResourceTypeMapping{
+				ResourceType: graphBetaWindowsRemediationScript.ResourceName,
+				TestResource: graphBetaWindowsRemediationScript.WindowsRemediationScriptTestResource{},
+			},
+			destroy.ResourceTypeMapping{
+				ResourceType: graphBetaGroup.ResourceName,
+				TestResource: graphBetaGroup.GroupTestResource{},
+			},
+			destroy.ResourceTypeMapping{
+				ResourceType: graphBetaAssignmentFilter.ResourceName,
+				TestResource: graphBetaAssignmentFilter.AssignmentFilterTestResource{},
+			},
 		),
 		Steps: []resource.TestStep{
 			{
@@ -268,6 +345,11 @@ func TestAccWindowsRemediationScriptResource_007_AssignmentsLifecycle_MinimalToM
 				Check: resource.ComposeTestCheckFunc(
 					check.That(resourceType+".test_007").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".test_007").Key("assignments.#").HasValue("1"),
+					func(_ *terraform.State) error {
+						testlog.WaitForConsistency("windows remediation script assignments", 20*time.Second)
+						time.Sleep(20 * time.Second)
+						return nil
+					},
 				),
 			},
 			{
@@ -297,10 +379,20 @@ func TestAccWindowsRemediationScriptResource_008_AssignmentsLifecycle_MaximalToM
 				VersionConstraint: ">= 3.7.2",
 			},
 		},
-		CheckDestroy: destroy.CheckDestroyedAllFunc(
-			testResource,
-			graphBetaWindowsRemediationScript.ResourceName,
-			30*time.Second,
+		CheckDestroy: destroy.CheckDestroyedTypesFunc(
+			60*time.Second, // Increased wait time for groups hard delete to propagate (can take 60-90s)
+			destroy.ResourceTypeMapping{
+				ResourceType: graphBetaWindowsRemediationScript.ResourceName,
+				TestResource: graphBetaWindowsRemediationScript.WindowsRemediationScriptTestResource{},
+			},
+			destroy.ResourceTypeMapping{
+				ResourceType: graphBetaGroup.ResourceName,
+				TestResource: graphBetaGroup.GroupTestResource{},
+			},
+			destroy.ResourceTypeMapping{
+				ResourceType: graphBetaAssignmentFilter.ResourceName,
+				TestResource: graphBetaAssignmentFilter.AssignmentFilterTestResource{},
+			},
 		),
 		Steps: []resource.TestStep{
 			{
@@ -308,6 +400,11 @@ func TestAccWindowsRemediationScriptResource_008_AssignmentsLifecycle_MaximalToM
 				Check: resource.ComposeTestCheckFunc(
 					check.That(resourceType+".test_008").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".test_008").Key("assignments.#").HasValue("5"),
+					func(_ *terraform.State) error {
+						testlog.WaitForConsistency("windows remediation script assignments", 20*time.Second)
+						time.Sleep(20 * time.Second)
+						return nil
+					},
 				),
 			},
 			{

@@ -76,7 +76,9 @@ func (r *WindowsQualityUpdatePolicyResource) ImportState(ctx context.Context, re
 // Schema defines the schema for the resource.
 func (r *WindowsQualityUpdatePolicyResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Manages a Windows Quality Update Policy in Microsoft Intune. This correlates to the gui location: Devices -> Manage Updates -> Windows Updates -> Quality Updates.",
+		MarkdownDescription: "Manages Windows Quality Update Policies using the `/deviceManagement/WindowsQualityUpdatePolicies` endpoint. " +
+			"Quality Update Policies enable control over Windows quality updates deployment, including hotpatch enablement for " +
+			"non-security updates without requiring device reboots.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed: true,
@@ -87,17 +89,21 @@ func (r *WindowsQualityUpdatePolicyResource) Schema(ctx context.Context, req res
 			},
 			"display_name": schema.StringAttribute{
 				Required:            true,
-				MarkdownDescription: "The display name for the policy.",
+				MarkdownDescription: "The display name for the policy. Max allowed length is 200 chars.",
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(200),
 				},
 			},
 			"description": schema.StringAttribute{
 				Optional:            true,
+				Computed:            true,
 				MarkdownDescription: "The description of the policy which is specified by the user. Max allowed length is 1500 chars.",
+				Validators: []validator.String{
+					stringvalidator.LengthAtMost(1500),
+				},
 			},
 			"hotpatch_enabled": schema.BoolAttribute{
-				Optional:            true,
+				Required:            true,
 				MarkdownDescription: "Indicates if hotpatch is enabled for the tenants. When 'true', tenant can apply quality updates without rebooting their devices. When 'false', tenant devices will receive cold patch associated with Windows quality updates.",
 			},
 			"created_date_time": schema.StringAttribute{

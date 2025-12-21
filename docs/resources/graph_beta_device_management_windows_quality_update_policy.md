@@ -3,17 +3,21 @@ page_title: "microsoft365_graph_beta_device_management_windows_quality_update_po
 subcategory: "Device Management"
 
 description: |-
-  Manages a Windows Quality Update Policy in Microsoft Intune. This correlates to the gui location: Devices -> Manage Updates -> Windows Updates -> Quality Updates.
+  Manages Windows Quality Update Policies using the /deviceManagement/WindowsQualityUpdatePolicies endpoint. Quality Update Policies enable control over Windows quality updates deployment, including hotpatch enablement for non-security updates without requiring device reboots.
 ---
 
 # microsoft365_graph_beta_device_management_windows_quality_update_policy (Resource)
 
-Manages a Windows Quality Update Policy in Microsoft Intune. This correlates to the gui location: Devices -> Manage Updates -> Windows Updates -> Quality Updates.
+Manages Windows Quality Update Policies using the `/deviceManagement/WindowsQualityUpdatePolicies` endpoint. Quality Update Policies enable control over Windows quality updates deployment, including hotpatch enablement for non-security updates without requiring device reboots.
 
 ## Microsoft Documentation
 
 - [windowsQualityUpdatePolicy resource type](https://learn.microsoft.com/en-us/graph/api/resources/intune-softwareupdate-windowsqualityupdatepolicy?view=graph-rest-beta)
 - [Create windowsQualityUpdatePolicy](https://learn.microsoft.com/en-us/graph/api/intune-softwareupdate-windowsqualityupdatepolicy-create?view=graph-rest-beta)
+- [Update windowsQualityUpdatePolicy](https://learn.microsoft.com/en-us/graph/api/intune-softwareupdate-windowsqualityupdatepolicy-update?view=graph-rest-beta)
+- [Delete windowsQualityUpdatePolicy](https://learn.microsoft.com/en-us/graph/api/intune-softwareupdate-windowsqualityupdatepolicy-delete?view=graph-rest-beta)
+- [Get windowsQualityUpdatePolicy](https://learn.microsoft.com/en-us/graph/api/intune-softwareupdate-windowsqualityupdatepolicy-get?view=graph-rest-beta)
+- [List windowsQualityUpdatePolicies](https://learn.microsoft.com/en-us/graph/api/intune-softwareupdate-windowsqualityupdatepolicy-list?view=graph-rest-beta)
 
 ## API Permissions
 
@@ -28,6 +32,7 @@ The following API permissions are required in order to use this resource.
 | Version | Status | Notes |
 |---------|--------|-------|
 | v0.14.1-alpha | Experimental | Initial release |
+| v0.39.0-alpha | Preview | Refactored test harness and fixes for schema and validation |
 
 ## Example Usage
 
@@ -43,21 +48,21 @@ resource "microsoft365_graph_beta_device_management_windows_quality_update_polic
     # Assignment targeting a specific group
     {
       type     = "groupAssignmentTarget"
-      group_id = "00000000-0000-0000-0000-000000000000"
+      group_id = "11111111-1111-1111-1111-111111111111"
     },
-    # Assignment targeting a specific group
+    # Additional assignment targeting a specific group
     {
       type     = "groupAssignmentTarget"
-      group_id = "00000000-0000-0000-0000-000000000000"
+      group_id = "22222222-2222-2222-2222-222222222222"
     },
     # Exclusion group assignments
     {
       type     = "exclusionGroupAssignmentTarget"
-      group_id = "00000000-0000-0000-0000-000000000000"
+      group_id = "33333333-3333-3333-3333-333333333333"
     },
     {
       type     = "exclusionGroupAssignmentTarget"
-      group_id = "00000000-0000-0000-0000-000000000000"
+      group_id = "44444444-4444-4444-4444-444444444444"
     }
   ]
 
@@ -76,13 +81,13 @@ resource "microsoft365_graph_beta_device_management_windows_quality_update_polic
 
 ### Required
 
-- `display_name` (String) The display name for the policy.
+- `display_name` (String) The display name for the policy. Max allowed length is 200 chars.
+- `hotpatch_enabled` (Boolean) Indicates if hotpatch is enabled for the tenants. When 'true', tenant can apply quality updates without rebooting their devices. When 'false', tenant devices will receive cold patch associated with Windows quality updates.
 
 ### Optional
 
 - `assignments` (Attributes Set) Assignments for the Windows Software Update Policies. Each assignment specifies the target group and schedule for script execution. (see [below for nested schema](#nestedatt--assignments))
 - `description` (String) The description of the policy which is specified by the user. Max allowed length is 1500 chars.
-- `hotpatch_enabled` (Boolean) Indicates if hotpatch is enabled for the tenants. When 'true', tenant can apply quality updates without rebooting their devices. When 'false', tenant devices will receive cold patch associated with Windows quality updates.
 - `role_scope_tag_ids` (Set of String) Set of scope tag IDs for this Settings Catalog template profile.
 - `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))
 

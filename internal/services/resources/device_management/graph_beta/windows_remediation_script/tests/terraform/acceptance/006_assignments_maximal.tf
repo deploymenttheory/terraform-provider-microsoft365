@@ -88,7 +88,7 @@ resource "microsoft365_graph_beta_device_management_windows_remediation_script" 
       filter_type = "none"
     },
     {
-      type = "allDevicesAssignmentTarget"
+      type        = "allDevicesAssignmentTarget"
       filter_type = "none"
       run_once_schedule = {
         date    = "2024-12-31"

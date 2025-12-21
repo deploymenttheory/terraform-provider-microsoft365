@@ -216,11 +216,15 @@ func (r *AssignmentFilterResource) Delete(ctx context.Context, req resource.Dele
 	}
 	defer cancel()
 
+	// Assignment filters are locked when assignments are actively
+	// using them. This can cause the delete operation to fail.
+	// We wait for 10 seconds to give the backend time to settle.
+	tflog.Debug(ctx, fmt.Sprintf("Waiting 10 seconds for assignment filter to be unlocked before deleting %s", ResourceName))
+	time.Sleep(10 * time.Second)
+
 	deleteOptions := crud.DefaultDeleteWithRetryOptions()
 	deleteOptions.ResourceTypeName = ResourceName
 	deleteOptions.ResourceID = object.ID.ValueString()
-	// Use shorter retry interval for assignment filters due to eventual consistency issues
-	// Assignment filters may be temporarily locked by recent assignments and need retries
 	deleteOptions.RetryInterval = 3 * time.Second
 	deleteOptions.MaxRetries = 15
 

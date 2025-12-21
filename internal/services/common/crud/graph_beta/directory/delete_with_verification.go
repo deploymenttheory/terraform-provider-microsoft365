@@ -181,6 +181,12 @@ func ExecuteSoftDelete(ctx context.Context, client *msgraphbetasdk.GraphServiceC
 	tflog.Info(ctx, fmt.Sprintf("Performing soft delete for %s %s", opts.ResourceType, opts.ResourceID))
 
 	if err := deleteFunc(ctx); err != nil {
+		// If the resource is already not found, treat as success - it's already deleted
+		// This makes the delete operation idempotent
+		if isNotFoundError(ctx, err) {
+			tflog.Info(ctx, fmt.Sprintf("Resource %s %s already deleted (not found during soft delete attempt)", opts.ResourceType, opts.ResourceID))
+			return nil
+		}
 		errorInfo := errors.GraphError(ctx, err)
 		return fmt.Errorf("soft delete API call failed for %s %s [HTTP %d, Code: %s]: %s",
 			opts.ResourceType, opts.ResourceID, errorInfo.StatusCode, errorInfo.ErrorCode, errorInfo.ErrorMessage)
