@@ -1,0 +1,12 @@
+{
+  "@odata.type": "#microsoft.graph.windowsQualityUpdatePolicy",
+  "id": "22222222-2222-2222-2222-222222222222",
+  "displayName": "unit-test-windows-quality-update-policy-002-maximal",
+  "description": "Scenario 2: Maximal configuration without assignments",
+  "hotpatchEnabled": true,
+  "roleScopeTagIds": ["0", "1"],
+  "createdDateTime": "2024-01-01T00:00:00Z",
+  "lastModifiedDateTime": "2024-01-01T00:00:00Z",
+  "assignments": []
+}
+

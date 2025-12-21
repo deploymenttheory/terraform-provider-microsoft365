@@ -1,0 +1,12 @@
+{
+  "@odata.type": "#microsoft.graph.windowsQualityUpdatePolicy",
+  "id": "44444444-4444-4444-4444-444444444444",
+  "displayName": "unit-test-windows-quality-update-policy-004-lifecycle",
+  "description": "Lifecycle Step 1: Starting with maximal configuration",
+  "hotpatchEnabled": true,
+  "roleScopeTagIds": ["0", "1"],
+  "createdDateTime": "2024-01-01T00:00:00Z",
+  "lastModifiedDateTime": "2024-01-01T00:00:00Z",
+  "assignments": []
+}
+

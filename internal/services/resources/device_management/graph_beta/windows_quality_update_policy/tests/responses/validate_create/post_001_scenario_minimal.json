@@ -1,0 +1,12 @@
+{
+  "@odata.type": "#microsoft.graph.windowsQualityUpdatePolicy",
+  "id": "11111111-1111-1111-1111-111111111111",
+  "displayName": "unit-test-windows-quality-update-policy-001-minimal",
+  "description": null,
+  "hotpatchEnabled": false,
+  "roleScopeTagIds": ["0"],
+  "createdDateTime": "2024-01-01T00:00:00Z",
+  "lastModifiedDateTime": "2024-01-01T00:00:00Z",
+  "assignments": []
+}
+

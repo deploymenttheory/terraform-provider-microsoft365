@@ -1,0 +1,20 @@
+{
+  "@odata.type": "#microsoft.graph.windowsQualityUpdatePolicy",
+  "id": "88888888-8888-8888-8888-888888888888",
+  "displayName": "unit-test-windows-quality-update-policy-008-lifecycle",
+  "description": null,
+  "hotpatchEnabled": false,
+  "roleScopeTagIds": ["0"],
+  "assignments": [
+    {
+      "id": "assignment-id-1",
+      "target": {
+        "@odata.type": "#microsoft.graph.groupAssignmentTarget",
+        "groupId": "11111111-1111-1111-1111-111111111111"
+      }
+    }
+  ],
+  "createdDateTime": "2024-01-01T00:00:00Z",
+  "lastModifiedDateTime": "2024-01-01T00:10:00Z"
+}
+
