@@ -1,0 +1,15 @@
+{
+  "@odata.type": "#microsoft.graph.windowsQualityUpdateProfile",
+  "id": "22222222-2222-2222-2222-222222222222",
+  "displayName": "unit-test-windows-quality-update-expedite-policy-002-maximal",
+  "description": "Scenario 2: Maximal configuration without assignments",
+  "roleScopeTagIds": ["0", "1"],
+  "expeditedUpdateSettings": {
+    "qualityUpdateRelease": "2025-11-20T00:00:00Z",
+    "daysUntilForcedReboot": 1
+  },
+  "createdDateTime": "2024-01-01T00:00:00Z",
+  "lastModifiedDateTime": "2024-01-01T00:00:00Z",
+  "assignments": []
+}
+

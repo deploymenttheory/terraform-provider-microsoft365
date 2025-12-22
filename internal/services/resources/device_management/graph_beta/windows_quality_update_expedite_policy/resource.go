@@ -2,11 +2,14 @@ package graphBetaWindowsQualityUpdateExpeditePolicy
 
 import (
 	"context"
+	"regexp"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/client"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	planmodifiers "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/plan_modifiers"
 	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/schema"
 	commonschemagraphbeta "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/schema/graph_beta/device_management"
+	attributevalidate "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/validate/attribute"
 	"github.com/hashicorp/terraform-plugin-framework-validators/int32validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
@@ -80,11 +83,11 @@ func (r *WindowsQualityUpdateExpeditePolicyResource) Schema(ctx context.Context,
 		MarkdownDescription: "Manages a Windows Quality Update Profile (expedite policy) in Microsoft Intune. This correlates to the gui location: Devices -> Manage Updates -> Windows Updates -> Quality Updates.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
-				Computed: true,
+				Computed:            true,
+				MarkdownDescription: "The Intune Windows Quality Update Profile (expedite policy) profile id.",
 				PlanModifiers: []planmodifier.String{
 					planmodifiers.UseStateForUnknownString(),
 				},
-				MarkdownDescription: "The Intune Windows Quality Update Profile (expedite policy) profile id.",
 			},
 			"display_name": schema.StringAttribute{
 				Required:            true,
@@ -95,7 +98,11 @@ func (r *WindowsQualityUpdateExpeditePolicyResource) Schema(ctx context.Context,
 			},
 			"description": schema.StringAttribute{
 				Optional:            true,
-				MarkdownDescription: "The description of the profile which is specified by the user.",
+				Computed:            true,
+				MarkdownDescription: "The description of the profile which is specified by the user. Max allowed length is 1500 chars.",
+				Validators: []validator.String{
+					stringvalidator.LengthAtMost(1500),
+				},
 			},
 			"created_date_time": schema.StringAttribute{
 				Computed:            true,
@@ -125,19 +132,24 @@ func (r *WindowsQualityUpdateExpeditePolicyResource) Schema(ctx context.Context,
 				MarkdownDescription: "Friendly display name of the quality update profile deployable content",
 			},
 			"expedited_update_settings": schema.SingleNestedAttribute{
-				Optional:            true,
+				Required:            true,
 				MarkdownDescription: "Expedited Quality update settings.",
 				Attributes: map[string]schema.Attribute{
 					"quality_update_release": schema.StringAttribute{
-						Optional:            true,
-						MarkdownDescription: "Expedite installation of quality updates if device OS version less than the quality update release identifier. ",
+						Required: true,
+						MarkdownDescription: "Expedite installation of quality updates if device OS version less than the quality update release identifier. " +
+							"Value must be a valid ISO 8601 datetime format (e.g., 2025-12-09T00:00:00Z). Valid values as of December 2025: 2025-12-09T00:00:00Z, 2025-11-20T00:00:00Z",
 						Validators: []validator.String{
-							stringvalidator.OneOf("2025-04-22T00:00:00Z", "2025-04-08T00:00:00Z", "2025-03-11T00:00:00Z"),
+							stringvalidator.OneOf("2025-12-09T00:00:00Z", "2025-11-20T00:00:00Z"),
+							attributevalidate.RegexMatches(
+								regexp.MustCompile(constants.ISO8601DateTimeRegex),
+								"value must be a valid ISO 8601 datetime format (e.g., 2025-12-09T00:00:00Z)",
+							),
 						},
 					},
 					"days_until_forced_reboot": schema.Int32Attribute{
-						Optional:            true,
-						MarkdownDescription: "Number of days to wait before restart is enforced. Valid values are: 0, 1, and 2.",
+						Required:            true,
+						MarkdownDescription: "If a reboot is required, select the number of days before it's enforced. Valid values are: 0, 1, and 2.",
 						Validators: []validator.Int32{
 							int32validator.OneOf(0, 1, 2),
 						},

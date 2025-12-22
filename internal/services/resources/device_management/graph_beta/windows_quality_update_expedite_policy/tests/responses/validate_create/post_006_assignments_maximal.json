@@ -1,0 +1,37 @@
+{
+  "@odata.type": "#microsoft.graph.windowsQualityUpdateProfile",
+  "id": "66666666-6666-6666-6666-666666666666",
+  "displayName": "unit-test-windows-quality-update-expedite-policy-006-assignments-maximal",
+  "description": "Maximal configuration with multiple assignments",
+  "roleScopeTagIds": ["0", "1"],
+  "expeditedUpdateSettings": {
+    "qualityUpdateRelease": "2025-11-20T00:00:00Z",
+    "daysUntilForcedReboot": 1
+  },
+  "assignments": [
+    {
+      "id": "assignment-id-1",
+      "target": {
+        "@odata.type": "#microsoft.graph.groupAssignmentTarget",
+        "groupId": "44444444-4444-4444-4444-444444444444"
+      }
+    },
+    {
+      "id": "assignment-id-2",
+      "target": {
+        "@odata.type": "#microsoft.graph.groupAssignmentTarget",
+        "groupId": "33333333-3333-3333-3333-333333333333"
+      }
+    },
+    {
+      "id": "assignment-id-3",
+      "target": {
+        "@odata.type": "#microsoft.graph.exclusionGroupAssignmentTarget",
+        "groupId": "77777777-7777-7777-7777-777777777777"
+      }
+    }
+  ],
+  "createdDateTime": "2024-01-01T00:00:00Z",
+  "lastModifiedDateTime": "2024-01-01T00:00:00Z"
+}
+

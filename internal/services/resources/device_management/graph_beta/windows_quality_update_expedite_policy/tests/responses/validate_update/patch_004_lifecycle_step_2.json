@@ -1,0 +1,11 @@
+{
+  "@odata.type": "#microsoft.graph.windowsQualityUpdateProfile",
+  "id": "44444444-4444-4444-4444-444444444444",
+  "displayName": "unit-test-windows-quality-update-expedite-policy-004-lifecycle",
+  "description": null,
+  "roleScopeTagIds": ["0"],
+  "createdDateTime": "2024-01-01T00:00:00Z",
+  "lastModifiedDateTime": "2024-01-01T00:00:00Z",
+  "assignments": []
+}
+
