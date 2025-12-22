@@ -1,133 +1,397 @@
 package graphBetaWindowsQualityUpdateExpeditePolicy_test
 
 import (
-	"context"
-	"fmt"
-	"log"
+	"regexp"
 	"testing"
+	"time"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/check"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/destroy"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/testlog"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
-	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
+	graphBetaWindowsQualityUpdateExpeditePolicy "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_management/graph_beta/windows_quality_update_expedite_policy"
+	graphBetaGroup "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/groups/graph_beta/group"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 )
 
-func TestAccWindowsQualityUpdateExpeditePolicyResource_Lifecycle(t *testing.T) {
+const resourceType = graphBetaWindowsQualityUpdateExpeditePolicy.ResourceName
+
+var testResource = graphBetaWindowsQualityUpdateExpeditePolicy.WindowsQualityUpdateExpeditePolicyTestResource{}
+
+func loadAcceptanceTestTerraform(filename string) string {
+	config, err := helpers.ParseHCLFile("tests/terraform/acceptance/" + filename)
+	if err != nil {
+		panic("failed to load acceptance config " + filename + ": " + err.Error())
+	}
+	return acceptance.ConfiguredM365ProviderBlock(config)
+}
+
+func TestAccWindowsQualityUpdateExpeditePolicyResource_001_Scenario_Minimal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
-		CheckDestroy:             testAccCheckWindowsQualityUpdateExpeditePolicyDestroy,
 		ExternalProviders: map[string]resource.ExternalProvider{
-			"random": {Source: "hashicorp/random", VersionConstraint: ">= 3.7.2"},
+			"random": {
+				Source:            "hashicorp/random",
+				VersionConstraint: ">= 3.6.0",
+			},
 		},
+		CheckDestroy: destroy.CheckDestroyedAllFunc(
+			testResource,
+			graphBetaWindowsQualityUpdateExpeditePolicy.ResourceName,
+			30*time.Second,
+		),
 		Steps: []resource.TestStep{
 			{
-				Config: testAccWindowsQualityUpdateExpeditePolicyConfig_minimal(),
+				Config: loadAcceptanceTestTerraform("001_scenario_minimal.tf"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("microsoft365_graph_beta_device_management_windows_quality_update_expedite_policy.test", "id"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_quality_update_expedite_policy.test", "display_name", "Acceptance - Windows Quality Update Expedite Policy"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_quality_update_expedite_policy.test", "role_scope_tag_ids.#", "1"),
-					resource.TestCheckTypeSetElemAttr("microsoft365_graph_beta_device_management_windows_quality_update_expedite_policy.test", "role_scope_tag_ids.*", "0"),
+					check.That(resourceType+".test_001").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(resourceType+".test_001").Key("display_name").Exists(),
+					check.That(resourceType+".test_001").Key("role_scope_tag_ids.#").HasValue("1"),
 				),
 			},
 			{
-				ResourceName:      "microsoft365_graph_beta_device_management_windows_quality_update_expedite_policy.test",
+				ResourceName:      resourceType + ".test_001",
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
-			{
-				Config: testAccWindowsQualityUpdateExpeditePolicyConfig_maximal(),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("microsoft365_graph_beta_device_management_windows_quality_update_expedite_policy.test", "id"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_quality_update_expedite_policy.test", "display_name", "Acceptance - Windows Quality Update Expedite Policy - Updated"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_quality_update_expedite_policy.test", "description", "Updated description for acceptance testing"),
-				),
-			},
 		},
 	})
 }
 
-func TestAccWindowsQualityUpdateExpeditePolicyResource_Assignments(t *testing.T) {
+func TestAccWindowsQualityUpdateExpeditePolicyResource_002_Scenario_Maximal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
-		CheckDestroy:             testAccCheckWindowsQualityUpdateExpeditePolicyDestroy,
 		ExternalProviders: map[string]resource.ExternalProvider{
-			"random": {Source: "hashicorp/random", VersionConstraint: ">= 3.7.2"},
+			"random": {
+				Source:            "hashicorp/random",
+				VersionConstraint: ">= 3.6.0",
+			},
 		},
+		CheckDestroy: destroy.CheckDestroyedAllFunc(
+			testResource,
+			graphBetaWindowsQualityUpdateExpeditePolicy.ResourceName,
+			30*time.Second,
+		),
 		Steps: []resource.TestStep{
 			{
-				Config: testAccWindowsQualityUpdateExpeditePolicyConfig_withAssignments(),
+				Config: loadAcceptanceTestTerraform("002_scenario_maximal.tf"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("microsoft365_graph_beta_device_management_windows_quality_update_expedite_policy.test_assignments", "id"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_quality_update_expedite_policy.test_assignments", "display_name", "Acceptance - Windows Quality Update Expedite Policy with Assignments"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_quality_update_expedite_policy.test_assignments", "assignments.#", "2"),
-					resource.TestCheckTypeSetElemNestedAttrs("microsoft365_graph_beta_device_management_windows_quality_update_expedite_policy.test_assignments", "assignments.*", map[string]string{"type": "groupAssignmentTarget"}),
-					resource.TestCheckTypeSetElemNestedAttrs("microsoft365_graph_beta_device_management_windows_quality_update_expedite_policy.test_assignments", "assignments.*", map[string]string{"type": "exclusionGroupAssignmentTarget"}),
+					check.That(resourceType+".test_002").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(resourceType+".test_002").Key("display_name").Exists(),
+					check.That(resourceType+".test_002").Key("description").Exists(),
+					check.That(resourceType+".test_002").Key("role_scope_tag_ids.#").HasValue("2"),
+					check.That(resourceType+".test_002").Key("expedited_update_settings.quality_update_release").Exists(),
+					check.That(resourceType+".test_002").Key("expedited_update_settings.days_until_forced_reboot").Exists(),
 				),
+			},
+			{
+				ResourceName:      resourceType + ".test_002",
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
 }
 
-func testAccWindowsQualityUpdateExpeditePolicyConfig_minimal() string {
-	accTestConfig, err := helpers.ParseHCLFile("tests/terraform/acceptance/resource_minimal.tf")
-	if err != nil {
-		log.Fatalf("Failed to load minimal test config: %v", err)
-	}
-	return acceptance.ConfiguredM365ProviderBlock(accTestConfig)
+func TestAccWindowsQualityUpdateExpeditePolicyResource_003_Lifecycle_MinimalToMaximal(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ExternalProviders: map[string]resource.ExternalProvider{
+			"random": {
+				Source:            "hashicorp/random",
+				VersionConstraint: ">= 3.6.0",
+			},
+		},
+		CheckDestroy: destroy.CheckDestroyedAllFunc(
+			testResource,
+			graphBetaWindowsQualityUpdateExpeditePolicy.ResourceName,
+			30*time.Second,
+		),
+		Steps: []resource.TestStep{
+			{
+				Config: loadAcceptanceTestTerraform("003_lifecycle_minimal_to_maximal_step_1.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(resourceType+".test_003").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(resourceType+".test_003").Key("display_name").Exists(),
+					check.That(resourceType+".test_003").Key("role_scope_tag_ids.#").HasValue("1"),
+				),
+			},
+			{
+				Config: loadAcceptanceTestTerraform("003_lifecycle_minimal_to_maximal_step_2.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(resourceType+".test_003").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(resourceType+".test_003").Key("display_name").Exists(),
+					check.That(resourceType+".test_003").Key("description").Exists(),
+					check.That(resourceType+".test_003").Key("role_scope_tag_ids.#").HasValue("2"),
+					check.That(resourceType+".test_003").Key("expedited_update_settings.quality_update_release").Exists(),
+					func(_ *terraform.State) error {
+						testlog.WaitForConsistency("windows quality update expedite policy", 20*time.Second)
+						time.Sleep(20 * time.Second)
+						return nil
+					},
+				),
+			},
+			{
+				ResourceName:      resourceType + ".test_003",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
 }
 
-func testAccWindowsQualityUpdateExpeditePolicyConfig_maximal() string {
-	accTestConfig, err := helpers.ParseHCLFile("tests/terraform/acceptance/resource_maximal.tf")
-	if err != nil {
-		log.Fatalf("Failed to load maximal test config: %v", err)
-	}
-	return acceptance.ConfiguredM365ProviderBlock(accTestConfig)
+func TestAccWindowsQualityUpdateExpeditePolicyResource_004_Lifecycle_MaximalToMinimal(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ExternalProviders: map[string]resource.ExternalProvider{
+			"random": {
+				Source:            "hashicorp/random",
+				VersionConstraint: ">= 3.6.0",
+			},
+		},
+		CheckDestroy: destroy.CheckDestroyedAllFunc(
+			testResource,
+			graphBetaWindowsQualityUpdateExpeditePolicy.ResourceName,
+			30*time.Second,
+		),
+		Steps: []resource.TestStep{
+			{
+				Config: loadAcceptanceTestTerraform("004_lifecycle_maximal_to_minimal_step_1.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(resourceType+".test_004").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(resourceType+".test_004").Key("display_name").Exists(),
+					check.That(resourceType+".test_004").Key("description").Exists(),
+					check.That(resourceType+".test_004").Key("role_scope_tag_ids.#").HasValue("2"),
+					check.That(resourceType+".test_004").Key("expedited_update_settings.quality_update_release").Exists(),
+				),
+			},
+			{
+				Config: loadAcceptanceTestTerraform("004_lifecycle_maximal_to_minimal_step_2.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(resourceType+".test_004").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(resourceType+".test_004").Key("display_name").Exists(),
+					check.That(resourceType+".test_004").Key("role_scope_tag_ids.#").HasValue("1"),
+					func(_ *terraform.State) error {
+						testlog.WaitForConsistency("windows quality update expedite policy", 20*time.Second)
+						time.Sleep(20 * time.Second)
+						return nil
+					},
+				),
+			},
+			{
+				ResourceName:      resourceType + ".test_004",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
 }
 
-func testAccWindowsQualityUpdateExpeditePolicyConfig_withAssignments() string {
-	groups, err := helpers.ParseHCLFile("../../../../../acceptance/terraform_dependancies/device_management/groups.tf")
-	if err != nil {
-		log.Fatalf("Failed to load groups config: %v", err)
-	}
-	roleScopeTags, err := helpers.ParseHCLFile("../../../../../acceptance/terraform_dependancies/device_management/role_scope_tags.tf")
-	if err != nil {
-		log.Fatalf("Failed to load role scope tags config: %v", err)
-	}
-	accTestConfig, err := helpers.ParseHCLFile("tests/terraform/acceptance/resource_with_assignments.tf")
-	if err != nil {
-		log.Fatalf("Failed to load assignments test config: %v", err)
-	}
-	return acceptance.ConfiguredM365ProviderBlock(groups + "\n" + roleScopeTags + "\n" + accTestConfig)
+func TestAccWindowsQualityUpdateExpeditePolicyResource_005_AssignmentsMinimal(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ExternalProviders: map[string]resource.ExternalProvider{
+			"random": {
+				Source:            "hashicorp/random",
+				VersionConstraint: ">= 3.6.0",
+			},
+		},
+		CheckDestroy: destroy.CheckDestroyedTypesFunc(
+			30*time.Second,
+			destroy.ResourceTypeMapping{
+				ResourceType: graphBetaWindowsQualityUpdateExpeditePolicy.ResourceName,
+				TestResource: graphBetaWindowsQualityUpdateExpeditePolicy.WindowsQualityUpdateExpeditePolicyTestResource{},
+			},
+			destroy.ResourceTypeMapping{
+				ResourceType: graphBetaGroup.ResourceName,
+				TestResource: graphBetaGroup.GroupTestResource{},
+			},
+		),
+		Steps: []resource.TestStep{
+			{
+				Config: loadAcceptanceTestTerraform("005_assignments_minimal.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(resourceType+".test_005").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(resourceType+".test_005").Key("display_name").Exists(),
+					check.That(resourceType+".test_005").Key("assignments.#").HasValue("1"),
+					func(_ *terraform.State) error {
+						testlog.WaitForConsistency("windows quality update expedite policy assignments", 20*time.Second)
+						time.Sleep(20 * time.Second)
+						return nil
+					},
+				),
+			},
+			{
+				ResourceName:      resourceType + ".test_005",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
 }
 
-func testAccCheckWindowsQualityUpdateExpeditePolicyDestroy(s *terraform.State) error {
-	graphClient, err := acceptance.TestGraphClient()
-	if err != nil {
-		return fmt.Errorf("error creating Graph client for CheckDestroy: %v", err)
-	}
-	ctx := context.Background()
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "microsoft365_graph_beta_device_management_windows_quality_update_expedite_policy" {
-			continue
-		}
-		_, err := graphClient.
-			DeviceManagement().
-			WindowsQualityUpdateProfiles().
-			ByWindowsQualityUpdateProfileId(rs.Primary.ID).
-			Get(ctx, nil)
-		if err != nil {
-			errorInfo := errors.GraphError(ctx, err)
-			if errorInfo.StatusCode == 404 || errorInfo.ErrorCode == "ResourceNotFound" || errorInfo.ErrorCode == "ItemNotFound" {
-				fmt.Printf("DEBUG: Resource %s successfully destroyed (404/NotFound)\n", rs.Primary.ID)
-				continue
-			}
-			return fmt.Errorf("error checking if windows quality update expedite policy %s was destroyed: %v", rs.Primary.ID, err)
-		}
-		return fmt.Errorf("windows quality update expedite policy %s still exists", rs.Primary.ID)
-	}
-	return nil
+func TestAccWindowsQualityUpdateExpeditePolicyResource_006_AssignmentsMaximal(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ExternalProviders: map[string]resource.ExternalProvider{
+			"random": {
+				Source:            "hashicorp/random",
+				VersionConstraint: ">= 3.6.0",
+			},
+		},
+		CheckDestroy: destroy.CheckDestroyedTypesFunc(
+			30*time.Second,
+			destroy.ResourceTypeMapping{
+				ResourceType: graphBetaWindowsQualityUpdateExpeditePolicy.ResourceName,
+				TestResource: graphBetaWindowsQualityUpdateExpeditePolicy.WindowsQualityUpdateExpeditePolicyTestResource{},
+			},
+			destroy.ResourceTypeMapping{
+				ResourceType: graphBetaGroup.ResourceName,
+				TestResource: graphBetaGroup.GroupTestResource{},
+			},
+		),
+		Steps: []resource.TestStep{
+			{
+				Config: loadAcceptanceTestTerraform("006_assignments_maximal.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(resourceType+".test_006").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(resourceType+".test_006").Key("display_name").Exists(),
+					check.That(resourceType+".test_006").Key("assignments.#").HasValue("3"),
+					func(_ *terraform.State) error {
+						testlog.WaitForConsistency("windows quality update expedite policy assignments", 20*time.Second)
+						time.Sleep(20 * time.Second)
+						return nil
+					},
+				),
+			},
+			{
+				ResourceName:      resourceType + ".test_006",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccWindowsQualityUpdateExpeditePolicyResource_007_AssignmentsLifecycle_MinimalToMaximal(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ExternalProviders: map[string]resource.ExternalProvider{
+			"random": {
+				Source:            "hashicorp/random",
+				VersionConstraint: ">= 3.6.0",
+			},
+		},
+		CheckDestroy: destroy.CheckDestroyedTypesFunc(
+			30*time.Second,
+			destroy.ResourceTypeMapping{
+				ResourceType: graphBetaWindowsQualityUpdateExpeditePolicy.ResourceName,
+				TestResource: graphBetaWindowsQualityUpdateExpeditePolicy.WindowsQualityUpdateExpeditePolicyTestResource{},
+			},
+			destroy.ResourceTypeMapping{
+				ResourceType: graphBetaGroup.ResourceName,
+				TestResource: graphBetaGroup.GroupTestResource{},
+			},
+		),
+		Steps: []resource.TestStep{
+			{
+				Config: loadAcceptanceTestTerraform("007_assignments_lifecycle_minimal_to_maximal_step_1.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(resourceType+".test_007").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(resourceType+".test_007").Key("display_name").Exists(),
+					check.That(resourceType+".test_007").Key("assignments.#").HasValue("1"),
+					func(_ *terraform.State) error {
+						testlog.WaitForConsistency("windows quality update expedite policy assignments", 20*time.Second)
+						time.Sleep(20 * time.Second)
+						return nil
+					},
+				),
+			},
+			{
+				Config: loadAcceptanceTestTerraform("007_assignments_lifecycle_minimal_to_maximal_step_2.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(resourceType+".test_007").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(resourceType+".test_007").Key("display_name").Exists(),
+					check.That(resourceType+".test_007").Key("assignments.#").HasValue("3"),
+					func(_ *terraform.State) error {
+						testlog.WaitForConsistency("windows quality update expedite policy assignments", 20*time.Second)
+						time.Sleep(20 * time.Second)
+						return nil
+					},
+				),
+			},
+			{
+				ResourceName:      resourceType + ".test_007",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccWindowsQualityUpdateExpeditePolicyResource_008_AssignmentsLifecycle_MaximalToMinimal(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ExternalProviders: map[string]resource.ExternalProvider{
+			"random": {
+				Source:            "hashicorp/random",
+				VersionConstraint: ">= 3.6.0",
+			},
+		},
+		CheckDestroy: destroy.CheckDestroyedTypesFunc(
+			30*time.Second,
+			destroy.ResourceTypeMapping{
+				ResourceType: graphBetaWindowsQualityUpdateExpeditePolicy.ResourceName,
+				TestResource: graphBetaWindowsQualityUpdateExpeditePolicy.WindowsQualityUpdateExpeditePolicyTestResource{},
+			},
+			destroy.ResourceTypeMapping{
+				ResourceType: graphBetaGroup.ResourceName,
+				TestResource: graphBetaGroup.GroupTestResource{},
+			},
+		),
+		Steps: []resource.TestStep{
+			{
+				Config: loadAcceptanceTestTerraform("008_assignments_lifecycle_maximal_to_minimal_step_1.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(resourceType+".test_008").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(resourceType+".test_008").Key("display_name").Exists(),
+					check.That(resourceType+".test_008").Key("assignments.#").HasValue("3"),
+					func(_ *terraform.State) error {
+						testlog.WaitForConsistency("windows quality update expedite policy assignments", 20*time.Second)
+						time.Sleep(20 * time.Second)
+						return nil
+					},
+				),
+			},
+			{
+				Config: loadAcceptanceTestTerraform("008_assignments_lifecycle_maximal_to_minimal_step_2.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(resourceType+".test_008").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(resourceType+".test_008").Key("display_name").Exists(),
+					check.That(resourceType+".test_008").Key("assignments.#").HasValue("1"),
+					func(_ *terraform.State) error {
+						testlog.WaitForConsistency("windows quality update expedite policy assignments", 20*time.Second)
+						time.Sleep(20 * time.Second)
+						return nil
+					},
+				),
+			},
+			{
+				ResourceName:      resourceType + ".test_008",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
 }

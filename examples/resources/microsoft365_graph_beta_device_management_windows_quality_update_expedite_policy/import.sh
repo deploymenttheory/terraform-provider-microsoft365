@@ -1,3 +1,3 @@
 # {resource_id}
-terraform import microsoft365_graph_beta_device_and_app_management_windows_quality_update_expedite_policy.example windows-update-expedite-policy-id
+terraform import microsoft365_graph_beta_device_and_app_management_windows_quality_update_expedite_policy.example 00000000-0000-0000-0000-000000000001
 

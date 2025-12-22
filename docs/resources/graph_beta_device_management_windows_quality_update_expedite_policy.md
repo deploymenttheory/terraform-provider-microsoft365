@@ -31,40 +31,84 @@ The following API permissions are required in order to use this resource.
 
 ## Example Usage
 
-```terraform
-resource "microsoft365_graph_beta_device_management_windows_quality_update_expedite_policy" "example" {
-  display_name       = "Windows Quality Update expedite policy"
-  description        = "Emergency fixes"
-  role_scope_tag_ids = ["9", "8"]
+### Maximal Configuration (No Assignments)
 
+```terraform
+# Example: Windows Quality Update Expedite Policy - Maximal Configuration (No Assignments)
+resource "microsoft365_graph_beta_device_management_windows_quality_update_expedite_policy" "maximal_example" {
+  display_name       = "Critical Security Update Expedite Policy"
+  description        = "Expedited deployment for critical security updates - January 2025"
+  role_scope_tag_ids = ["0", "1"]
+
+  # Required: Expedited update settings
+  # Defines which quality update to expedite and reboot behavior
   expedited_update_settings = {
-    quality_update_release   = "2025-04-22T00:00:00Z"
+    # Quality update release to expedite
+    # Valid values: "2025-12-09T00:00:00Z", "2025-11-20T00:00:00Z"
+    quality_update_release = "2025-12-09T00:00:00Z"
+
+    # If a reboot is required, select the number of days before it's enforced
+    # Valid values: 0, 1, or 2
+    # 0 = Immediate reboot after installation
+    # 1 = Allow 1 day for user-initiated reboot
+    # 2 = Allow 2 days for user-initiated reboot
     days_until_forced_reboot = 1
   }
 
-  // Optional assignment blocks
+  # Optional: Custom timeouts for resource operations
+  timeouts = {
+    create = "30m"
+    read   = "10m"
+    update = "30m"
+    delete = "10m"
+  }
+}
+```
+
+### Maximal Configuration with Assignments
+
+```terraform
+# Example: Windows Quality Update Expedite Policy - Maximal Configuration with Assignments
+resource "microsoft365_graph_beta_device_management_windows_quality_update_expedite_policy" "maximal_with_assignments" {
+  display_name       = "Production Critical Update Expedite Policy"
+  description        = "Expedited deployment for critical security updates targeting production devices with exclusions for test environments"
+  role_scope_tag_ids = ["0", "1"]
+
+  # Required: Expedited update settings
+  expedited_update_settings = {
+    # Quality update release to expedite
+    # Valid values: "2025-12-09T00:00:00Z", "2025-11-20T00:00:00Z"
+    quality_update_release = "2025-11-20T00:00:00Z"
+
+    # Force reboot after 2 days to ensure update completion
+    days_until_forced_reboot = 2
+  }
+
+  # Assignments: Target specific groups and exclude others
   assignments = [
-    # Assignment targeting a specific group
+    # Primary production group assignment
     {
       type     = "groupAssignmentTarget"
-      group_id = "00000000-0000-0000-0000-000000000000"
+      group_id = "11111111-1111-1111-1111-111111111111" # Production Devices Group
     },
-    # Assignment targeting a specific group
+    # Secondary production group assignment
     {
       type     = "groupAssignmentTarget"
-      group_id = "00000000-0000-0000-0000-000000000000"
+      group_id = "22222222-2222-2222-2222-222222222222" # Executive Devices Group
     },
-    # Exclusion group assignments
+    # Exclude test environment group
     {
       type     = "exclusionGroupAssignmentTarget"
-      group_id = "00000000-0000-0000-0000-000000000000"
+      group_id = "33333333-3333-3333-3333-333333333333" # Test Devices Group
     },
+    # Exclude development environment group
     {
       type     = "exclusionGroupAssignmentTarget"
-      group_id = "00000000-0000-0000-0000-000000000000"
+      group_id = "44444444-4444-4444-4444-444444444444" # Development Devices Group
     }
   ]
 
+  # Optional: Custom timeouts for resource operations
   timeouts = {
     create = "30m"
     read   = "10m"
@@ -80,12 +124,12 @@ resource "microsoft365_graph_beta_device_management_windows_quality_update_exped
 ### Required
 
 - `display_name` (String) The display name for the Windows Quality Update Profile (expedite policy).
+- `expedited_update_settings` (Attributes) Expedited Quality update settings. (see [below for nested schema](#nestedatt--expedited_update_settings))
 
 ### Optional
 
 - `assignments` (Attributes Set) Assignments for the Windows Software Update Policies. Each assignment specifies the target group and schedule for script execution. (see [below for nested schema](#nestedatt--assignments))
-- `description` (String) The description of the profile which is specified by the user.
-- `expedited_update_settings` (Attributes) Expedited Quality update settings. (see [below for nested schema](#nestedatt--expedited_update_settings))
+- `description` (String) The description of the profile which is specified by the user. Max allowed length is 1500 chars.
 - `role_scope_tag_ids` (Set of String) Set of scope tag IDs for this Settings Catalog template profile.
 - `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))
 
@@ -97,6 +141,15 @@ resource "microsoft365_graph_beta_device_management_windows_quality_update_exped
 - `last_modified_date_time` (String) The date time that the profile was last modified.
 - `release_date_display_name` (String) Friendly release date to display for a Quality Update release
 
+<a id="nestedatt--expedited_update_settings"></a>
+### Nested Schema for `expedited_update_settings`
+
+Required:
+
+- `days_until_forced_reboot` (Number) If a reboot is required, select the number of days before it's enforced. Valid values are: 0, 1, and 2.
+- `quality_update_release` (String) Expedite installation of quality updates if device OS version less than the quality update release identifier. Value must be a valid ISO 8601 datetime format (e.g., 2025-12-09T00:00:00Z). Valid values as of December 2025: 2025-12-09T00:00:00Z, 2025-11-20T00:00:00Z
+
+
 <a id="nestedatt--assignments"></a>
 ### Nested Schema for `assignments`
 
@@ -107,15 +160,6 @@ Required:
 Optional:
 
 - `group_id` (String) The Entra ID group ID to include or exclude in the assignment. Required when type is 'groupAssignmentTarget' or 'exclusionGroupAssignmentTarget'.
-
-
-<a id="nestedatt--expedited_update_settings"></a>
-### Nested Schema for `expedited_update_settings`
-
-Optional:
-
-- `days_until_forced_reboot` (Number) Number of days to wait before restart is enforced. Valid values are: 0, 1, and 2.
-- `quality_update_release` (String) Expedite installation of quality updates if device OS version less than the quality update release identifier.
 
 
 <a id="nestedatt--timeouts"></a>
@@ -134,5 +178,5 @@ Import is supported using the following syntax:
 
 ```shell
 # {resource_id}
-terraform import microsoft365_graph_beta_device_and_app_management_windows_quality_update_expedite_policy.example windows-update-expedite-policy-id
+terraform import microsoft365_graph_beta_device_and_app_management_windows_quality_update_expedite_policy.example 00000000-0000-0000-0000-000000000001
 ```

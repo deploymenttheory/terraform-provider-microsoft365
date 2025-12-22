@@ -31,7 +31,13 @@ The following API permissions are required in order to use this resource.
 
 ## Example Usage
 
-{{ tffile "examples/resources/microsoft365_graph_beta_device_management_windows_quality_update_expedite_policy/resource.tf" }}
+### Maximal Configuration (No Assignments)
+
+{{ tffile "examples/resources/microsoft365_graph_beta_device_management_windows_quality_update_expedite_policy/resource_maximal.tf" }}
+
+### Maximal Configuration with Assignments
+
+{{ tffile "examples/resources/microsoft365_graph_beta_device_management_windows_quality_update_expedite_policy/resource_maximal_with_assignments.tf" }}
 
 {{ .SchemaMarkdown | trimspace }}
 

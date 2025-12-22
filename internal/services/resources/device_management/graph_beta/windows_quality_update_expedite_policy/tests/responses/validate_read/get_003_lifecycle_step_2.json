@@ -1,0 +1,15 @@
+{
+  "@odata.type": "#microsoft.graph.windowsQualityUpdateProfile",
+  "id": "33333333-3333-3333-3333-333333333333",
+  "displayName": "unit-test-windows-quality-update-expedite-policy-003-lifecycle",
+  "description": "Lifecycle Step 2: Updated to maximal configuration",
+  "roleScopeTagIds": ["0", "1"],
+  "expeditedUpdateSettings": {
+    "qualityUpdateRelease": "2025-11-20T00:00:00Z",
+    "daysUntilForcedReboot": 1
+  },
+  "createdDateTime": "2024-01-01T00:00:00Z",
+  "lastModifiedDateTime": "2024-01-01T00:00:00Z",
+  "assignments": []
+}
+
