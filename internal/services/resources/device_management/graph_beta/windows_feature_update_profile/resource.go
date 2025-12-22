@@ -92,19 +92,23 @@ func (r *WindowsFeatureUpdateProfileResource) Schema(ctx context.Context, req re
 			},
 			"description": schema.StringAttribute{
 				Optional:            true,
+				Computed:            true,
 				MarkdownDescription: "The description of the profile which is specified by the user.",
 			},
 			"feature_update_version": schema.StringAttribute{
 				Required: true,
 				MarkdownDescription: "The feature update version that will be deployed to the devices targeted by this profile. " +
-					"Valid values are: \"Windows 11, version 25H2\", \"Windows 11, version 24H2\", \"Windows 11, version 23H2\", \"Windows 11, version 22H2\", \"Windows 10, version 22H2\". By selecting this Feature update to deploy you are agreeing that when applying this operating system to a device either (1) the applicable Windows license was purchased though volume licensing, or (2) that you are authorized to bind your organization and are accepting on its behalf the relevant Microsoft Software License Terms to be found here https://go.microsoft.com/fwlink/?linkid=2171206.",
+					"Valid values are: \"Windows 11, version 25H2\", \"Windows 11, version 24H2\", \"Windows 11, version 23H2\". " +
+					"By selecting this Feature update to deploy you are agreeing that when applying this operating system to a " +
+					"device either (1) the applicable Windows license was purchased though volume licensing, or (2) that you are " +
+					"authorized to bind your organization and are accepting on its behalf the relevant Microsoft Software License " +
+					"Terms to be found here https://go.microsoft.com/fwlink/?linkid=2171206.",
 				Validators: []validator.String{
 					stringvalidator.OneOf(
 						"Windows 11, version 25H2",
 						"Windows 11, version 24H2",
 						"Windows 11, version 23H2",
-						"Windows 11, version 22H2",
-						"Windows 10, version 22H2"),
+					),
 				},
 			},
 			"created_date_time": schema.StringAttribute{
@@ -144,23 +148,28 @@ func (r *WindowsFeatureUpdateProfileResource) Schema(ctx context.Context, req re
 			},
 			"install_feature_updates_optional": schema.BoolAttribute{
 				Optional: true,
+				Computed: true,
 				MarkdownDescription: "If true, the Windows 11 update will become available to users as an optional update. " +
 					"If false, the Windows 11 update will become available to users as a required update",
 			},
 			"rollout_settings": schema.SingleNestedAttribute{
 				Optional:            true,
+				Computed:            true,
 				MarkdownDescription: "The windows update rollout settings, including offer start date time, offer end date time, and days between each set of offers.",
 				Attributes: map[string]schema.Attribute{
 					"offer_start_date_time_in_utc": schema.StringAttribute{
 						Optional:            true,
+						Computed:            true,
 						MarkdownDescription: "The UTC offer start date time of the rollout. Must be in RFC3339 format (e.g., '2025-05-01T00:00:00Z').",
 					},
 					"offer_end_date_time_in_utc": schema.StringAttribute{
 						Optional:            true,
+						Computed:            true,
 						MarkdownDescription: "The UTC offer end date time of the rollout.",
 					},
 					"offer_interval_in_days": schema.Int32Attribute{
 						Optional:            true,
+						Computed:            true,
 						MarkdownDescription: "The number of days between each set of offers. The value must be between 1 and 14.",
 						Validators: []validator.Int32{
 							int32validator.Between(1, 14),

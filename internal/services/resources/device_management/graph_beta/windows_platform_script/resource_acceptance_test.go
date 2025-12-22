@@ -1,146 +1,397 @@
 package graphBetaWindowsPlatformScript_test
 
 import (
-	"context"
-	"fmt"
+	"regexp"
 	"testing"
+	"time"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/check"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/destroy"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/testlog"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
-	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
+	graphBetaWindowsPlatformScript "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_management/graph_beta/windows_platform_script"
+	graphBetaGroup "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/groups/graph_beta/group"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 )
 
-func TestAccWindowsPlatformScriptResource_Lifecycle(t *testing.T) {
+const resourceType = graphBetaWindowsPlatformScript.ResourceName
+
+var testResource = graphBetaWindowsPlatformScript.WindowsPlatformScriptTestResource{}
+
+func loadAcceptanceTestTerraform(filename string) string {
+	config, err := helpers.ParseHCLFile("tests/terraform/acceptance/" + filename)
+	if err != nil {
+		panic("failed to load acceptance config " + filename + ": " + err.Error())
+	}
+	return acceptance.ConfiguredM365ProviderBlock(config)
+}
+
+func TestAccWindowsPlatformScriptResource_001_Scenario_Minimal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
-		CheckDestroy:             testAccCheckWindowsPlatformScriptDestroy,
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
 				Source:            "hashicorp/random",
-				VersionConstraint: ">= 3.7.2",
+				VersionConstraint: ">= 3.6.0",
 			},
 		},
+		CheckDestroy: destroy.CheckDestroyedAllFunc(
+			testResource,
+			graphBetaWindowsPlatformScript.ResourceName,
+			30*time.Second,
+		),
 		Steps: []resource.TestStep{
 			{
-				Config: testAccConfigLifecycleCreate(),
+				Config: loadAcceptanceTestTerraform("001_scenario_minimal.tf"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_platform_script.lifecycle", "display_name", "Acceptance - Windows Platform Script"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_platform_script.lifecycle", "run_as_account", "system"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_platform_script.lifecycle", "enforce_signature_check", "false"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_platform_script.lifecycle", "run_as_32_bit", "false"),
-					resource.TestCheckResourceAttrSet("microsoft365_graph_beta_device_management_windows_platform_script.lifecycle", "id"),
+					check.That(resourceType+".test_001").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(resourceType+".test_001").Key("display_name").Exists(),
+					check.That(resourceType+".test_001").Key("run_as_account").HasValue("system"),
 				),
 			},
 			{
-				Config: testAccConfigLifecycleUpdate(),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_platform_script.lifecycle", "display_name", "Acceptance - Windows Platform Script - Updated"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_platform_script.lifecycle", "description", "Updated description for acceptance testing"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_platform_script.lifecycle", "run_as_account", "user"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_platform_script.lifecycle", "enforce_signature_check", "true"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_platform_script.lifecycle", "run_as_32_bit", "true"),
-				),
-			},
-			{
-				ResourceName:                         "microsoft365_graph_beta_device_management_windows_platform_script.lifecycle",
-				ImportState:                          true,
-				ImportStateVerify:                    true,
-				ImportStateVerifyIdentifierAttribute: "id",
-				ImportStateVerifyIgnore: []string{
-					"timeouts",
-				},
+				ResourceName:      resourceType + ".test_001",
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
 }
 
-func TestAccWindowsPlatformScriptResource_Assignments(t *testing.T) {
+func TestAccWindowsPlatformScriptResource_002_Scenario_Maximal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
-		CheckDestroy:             testAccCheckWindowsPlatformScriptDestroy,
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
 				Source:            "hashicorp/random",
-				VersionConstraint: ">= 3.7.2",
+				VersionConstraint: ">= 3.6.0",
 			},
 		},
+		CheckDestroy: destroy.CheckDestroyedAllFunc(
+			testResource,
+			graphBetaWindowsPlatformScript.ResourceName,
+			30*time.Second,
+		),
 		Steps: []resource.TestStep{
 			{
-				Config: testAccConfigWithAssignments(),
+				Config: loadAcceptanceTestTerraform("002_scenario_maximal.tf"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_platform_script.with_assignments", "display_name", "Acceptance - Windows Platform Script with Assignments"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_platform_script.with_assignments", "assignments.#", "2"),
-					resource.TestCheckTypeSetElemNestedAttrs("microsoft365_graph_beta_device_management_windows_platform_script.with_assignments", "assignments.*", map[string]string{
-						"type": "groupAssignmentTarget",
-					}),
-					resource.TestCheckTypeSetElemNestedAttrs("microsoft365_graph_beta_device_management_windows_platform_script.with_assignments", "assignments.*", map[string]string{
-						"type": "exclusionGroupAssignmentTarget",
-					}),
+					check.That(resourceType+".test_002").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(resourceType+".test_002").Key("display_name").Exists(),
+					check.That(resourceType+".test_002").Key("description").Exists(),
+					check.That(resourceType+".test_002").Key("run_as_account").HasValue("user"),
+					check.That(resourceType+".test_002").Key("enforce_signature_check").HasValue("true"),
+					check.That(resourceType+".test_002").Key("run_as_32_bit").HasValue("true"),
 				),
+			},
+			{
+				ResourceName:      resourceType + ".test_002",
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
 }
 
-func testAccConfigLifecycleCreate() string {
-	accTestConfig, err := helpers.ParseHCLFile("tests/terraform/acceptance/resource_lifecycle_create.tf")
-	if err != nil {
-		panic(fmt.Sprintf("failed to load acceptance test config: %s", err.Error()))
-	}
-	return acceptance.ConfiguredM365ProviderBlock(accTestConfig)
+func TestAccWindowsPlatformScriptResource_003_Lifecycle_MinimalToMaximal(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ExternalProviders: map[string]resource.ExternalProvider{
+			"random": {
+				Source:            "hashicorp/random",
+				VersionConstraint: ">= 3.6.0",
+			},
+		},
+		CheckDestroy: destroy.CheckDestroyedAllFunc(
+			testResource,
+			graphBetaWindowsPlatformScript.ResourceName,
+			30*time.Second,
+		),
+		Steps: []resource.TestStep{
+			{
+				Config: loadAcceptanceTestTerraform("003_lifecycle_minimal_to_maximal_step_1.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(resourceType+".test_003").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(resourceType+".test_003").Key("display_name").Exists(),
+					check.That(resourceType+".test_003").Key("run_as_account").HasValue("system"),
+				),
+			},
+			{
+				Config: loadAcceptanceTestTerraform("003_lifecycle_minimal_to_maximal_step_2.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(resourceType+".test_003").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(resourceType+".test_003").Key("display_name").Exists(),
+					check.That(resourceType+".test_003").Key("description").Exists(),
+					check.That(resourceType+".test_003").Key("run_as_account").HasValue("user"),
+					check.That(resourceType+".test_003").Key("enforce_signature_check").HasValue("true"),
+					check.That(resourceType+".test_003").Key("run_as_32_bit").HasValue("true"),
+					func(_ *terraform.State) error {
+						testlog.WaitForConsistency("windows platform script", 20*time.Second)
+						time.Sleep(20 * time.Second)
+						return nil
+					},
+				),
+			},
+			{
+				ResourceName:      resourceType + ".test_003",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
 }
 
-func testAccConfigLifecycleUpdate() string {
-	accTestConfig, err := helpers.ParseHCLFile("tests/terraform/acceptance/resource_lifecycle_update.tf")
-	if err != nil {
-		panic(fmt.Sprintf("failed to load acceptance test config: %s", err.Error()))
-	}
-	return acceptance.ConfiguredM365ProviderBlock(accTestConfig)
+func TestAccWindowsPlatformScriptResource_004_Lifecycle_MaximalToMinimal(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ExternalProviders: map[string]resource.ExternalProvider{
+			"random": {
+				Source:            "hashicorp/random",
+				VersionConstraint: ">= 3.6.0",
+			},
+		},
+		CheckDestroy: destroy.CheckDestroyedAllFunc(
+			testResource,
+			graphBetaWindowsPlatformScript.ResourceName,
+			30*time.Second,
+		),
+		Steps: []resource.TestStep{
+			{
+				Config: loadAcceptanceTestTerraform("004_lifecycle_maximal_to_minimal_step_1.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(resourceType+".test_004").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(resourceType+".test_004").Key("display_name").Exists(),
+					check.That(resourceType+".test_004").Key("run_as_account").HasValue("user"),
+					check.That(resourceType+".test_004").Key("enforce_signature_check").HasValue("true"),
+				),
+			},
+			{
+				Config: loadAcceptanceTestTerraform("004_lifecycle_maximal_to_minimal_step_2.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(resourceType+".test_004").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(resourceType+".test_004").Key("display_name").Exists(),
+					check.That(resourceType+".test_004").Key("run_as_account").HasValue("system"),
+					func(_ *terraform.State) error {
+						testlog.WaitForConsistency("windows platform script", 20*time.Second)
+						time.Sleep(20 * time.Second)
+						return nil
+					},
+				),
+			},
+			{
+				ResourceName:      resourceType + ".test_004",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
 }
 
-func testAccConfigWithAssignments() string {
-	accTestConfig, err := helpers.ParseHCLFile("tests/terraform/acceptance/resource_with_assignments.tf")
-	if err != nil {
-		panic(fmt.Sprintf("failed to load acceptance test config: %s", err.Error()))
-	}
-
-	dependencies, err := helpers.ParseHCLFile("../../../../../../internal/acceptance/terraform_dependancies/device_management/groups.tf")
-	if err != nil {
-		panic(fmt.Sprintf("failed to load group dependencies: %s", err.Error()))
-	}
-
-	return acceptance.ConfiguredM365ProviderBlock(dependencies + "\n" + accTestConfig)
+func TestAccWindowsPlatformScriptResource_005_AssignmentsMinimal(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ExternalProviders: map[string]resource.ExternalProvider{
+			"random": {
+				Source:            "hashicorp/random",
+				VersionConstraint: ">= 3.6.0",
+			},
+		},
+		CheckDestroy: destroy.CheckDestroyedTypesFunc(
+			30*time.Second,
+			destroy.ResourceTypeMapping{
+				ResourceType: graphBetaWindowsPlatformScript.ResourceName,
+				TestResource: graphBetaWindowsPlatformScript.WindowsPlatformScriptTestResource{},
+			},
+			destroy.ResourceTypeMapping{
+				ResourceType: graphBetaGroup.ResourceName,
+				TestResource: graphBetaGroup.GroupTestResource{},
+			},
+		),
+		Steps: []resource.TestStep{
+			{
+				Config: loadAcceptanceTestTerraform("005_assignments_minimal.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(resourceType+".test_005").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(resourceType+".test_005").Key("display_name").Exists(),
+					check.That(resourceType+".test_005").Key("assignments.#").HasValue("1"),
+					func(_ *terraform.State) error {
+						testlog.WaitForConsistency("windows platform script assignments", 20*time.Second)
+						time.Sleep(20 * time.Second)
+						return nil
+					},
+				),
+			},
+			{
+				ResourceName:      resourceType + ".test_005",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
 }
 
-func testAccCheckWindowsPlatformScriptDestroy(s *terraform.State) error {
-	graphClient, err := acceptance.TestGraphClient()
-	if err != nil {
-		return fmt.Errorf("error creating Graph client for CheckDestroy: %v", err)
-	}
-	ctx := context.Background()
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "microsoft365_graph_beta_device_management_windows_platform_script" {
-			continue
-		}
-		_, err := graphClient.
-			DeviceManagement().
-			DeviceManagementScripts().
-			ByDeviceManagementScriptId(rs.Primary.ID).
-			Get(ctx, nil)
-		if err != nil {
-			errorInfo := errors.GraphError(ctx, err)
-			if errorInfo.StatusCode == 404 || errorInfo.ErrorCode == "ResourceNotFound" || errorInfo.ErrorCode == "ItemNotFound" {
-				fmt.Printf("DEBUG: Resource %s successfully destroyed (404/NotFound)\n", rs.Primary.ID)
-				continue
-			}
-			return fmt.Errorf("error checking if windows platform script %s was destroyed: %v", rs.Primary.ID, err)
-		}
-		return fmt.Errorf("windows platform script %s still exists", rs.Primary.ID)
-	}
-	return nil
+func TestAccWindowsPlatformScriptResource_006_AssignmentsMaximal(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ExternalProviders: map[string]resource.ExternalProvider{
+			"random": {
+				Source:            "hashicorp/random",
+				VersionConstraint: ">= 3.6.0",
+			},
+		},
+		CheckDestroy: destroy.CheckDestroyedTypesFunc(
+			30*time.Second,
+			destroy.ResourceTypeMapping{
+				ResourceType: graphBetaWindowsPlatformScript.ResourceName,
+				TestResource: graphBetaWindowsPlatformScript.WindowsPlatformScriptTestResource{},
+			},
+			destroy.ResourceTypeMapping{
+				ResourceType: graphBetaGroup.ResourceName,
+				TestResource: graphBetaGroup.GroupTestResource{},
+			},
+		),
+		Steps: []resource.TestStep{
+			{
+				Config: loadAcceptanceTestTerraform("006_assignments_maximal.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(resourceType+".test_006").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(resourceType+".test_006").Key("display_name").Exists(),
+					check.That(resourceType+".test_006").Key("assignments.#").HasValue("5"),
+					func(_ *terraform.State) error {
+						testlog.WaitForConsistency("windows platform script assignments", 20*time.Second)
+						time.Sleep(20 * time.Second)
+						return nil
+					},
+				),
+			},
+			{
+				ResourceName:      resourceType + ".test_006",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccWindowsPlatformScriptResource_007_AssignmentsLifecycle_MinimalToMaximal(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ExternalProviders: map[string]resource.ExternalProvider{
+			"random": {
+				Source:            "hashicorp/random",
+				VersionConstraint: ">= 3.6.0",
+			},
+		},
+		CheckDestroy: destroy.CheckDestroyedTypesFunc(
+			30*time.Second,
+			destroy.ResourceTypeMapping{
+				ResourceType: graphBetaWindowsPlatformScript.ResourceName,
+				TestResource: graphBetaWindowsPlatformScript.WindowsPlatformScriptTestResource{},
+			},
+			destroy.ResourceTypeMapping{
+				ResourceType: graphBetaGroup.ResourceName,
+				TestResource: graphBetaGroup.GroupTestResource{},
+			},
+		),
+		Steps: []resource.TestStep{
+			{
+				Config: loadAcceptanceTestTerraform("007_assignments_lifecycle_minimal_to_maximal_step_1.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(resourceType+".test_007").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(resourceType+".test_007").Key("display_name").Exists(),
+					check.That(resourceType+".test_007").Key("assignments.#").HasValue("1"),
+					func(_ *terraform.State) error {
+						testlog.WaitForConsistency("windows platform script assignments", 20*time.Second)
+						time.Sleep(20 * time.Second)
+						return nil
+					},
+				),
+			},
+			{
+				Config: loadAcceptanceTestTerraform("007_assignments_lifecycle_minimal_to_maximal_step_2.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(resourceType+".test_007").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(resourceType+".test_007").Key("display_name").Exists(),
+					check.That(resourceType+".test_007").Key("assignments.#").HasValue("5"),
+					func(_ *terraform.State) error {
+						testlog.WaitForConsistency("windows platform script assignments", 20*time.Second)
+						time.Sleep(20 * time.Second)
+						return nil
+					},
+				),
+			},
+			{
+				ResourceName:      resourceType + ".test_007",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccWindowsPlatformScriptResource_008_AssignmentsLifecycle_MaximalToMinimal(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ExternalProviders: map[string]resource.ExternalProvider{
+			"random": {
+				Source:            "hashicorp/random",
+				VersionConstraint: ">= 3.6.0",
+			},
+		},
+		CheckDestroy: destroy.CheckDestroyedTypesFunc(
+			30*time.Second,
+			destroy.ResourceTypeMapping{
+				ResourceType: graphBetaWindowsPlatformScript.ResourceName,
+				TestResource: graphBetaWindowsPlatformScript.WindowsPlatformScriptTestResource{},
+			},
+			destroy.ResourceTypeMapping{
+				ResourceType: graphBetaGroup.ResourceName,
+				TestResource: graphBetaGroup.GroupTestResource{},
+			},
+		),
+		Steps: []resource.TestStep{
+			{
+				Config: loadAcceptanceTestTerraform("008_assignments_lifecycle_maximal_to_minimal_step_1.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(resourceType+".test_008").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(resourceType+".test_008").Key("display_name").Exists(),
+					check.That(resourceType+".test_008").Key("assignments.#").HasValue("5"),
+					func(_ *terraform.State) error {
+						testlog.WaitForConsistency("windows platform script assignments", 20*time.Second)
+						time.Sleep(20 * time.Second)
+						return nil
+					},
+				),
+			},
+			{
+				Config: loadAcceptanceTestTerraform("008_assignments_lifecycle_maximal_to_minimal_step_2.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(resourceType+".test_008").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(resourceType+".test_008").Key("display_name").Exists(),
+					check.That(resourceType+".test_008").Key("assignments.#").HasValue("1"),
+					func(_ *terraform.State) error {
+						testlog.WaitForConsistency("windows platform script assignments", 20*time.Second)
+						time.Sleep(20 * time.Second)
+						return nil
+					},
+				),
+			},
+			{
+				ResourceName:      resourceType + ".test_008",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
 }

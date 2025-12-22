@@ -4,8 +4,10 @@ import (
 	"regexp"
 	"testing"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/check"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
+	graphBetaWindowsPlatformScript "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_management/graph_beta/windows_platform_script"
 	scriptMocks "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_management/graph_beta/windows_platform_script/mocks"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/jarcoal/httpmock"
@@ -15,6 +17,7 @@ func setupMockEnvironment() (*mocks.Mocks, *scriptMocks.WindowsPlatformScriptMoc
 	httpmock.Activate()
 	mockClient := mocks.NewMocks()
 	mockClient.AuthMocks.RegisterMocks()
+
 	scriptMock := &scriptMocks.WindowsPlatformScriptMock{}
 	scriptMock.RegisterMocks()
 	return mockClient, scriptMock
@@ -24,16 +27,21 @@ func setupErrorMockEnvironment() (*mocks.Mocks, *scriptMocks.WindowsPlatformScri
 	httpmock.Activate()
 	mockClient := mocks.NewMocks()
 	mockClient.AuthMocks.RegisterMocks()
+
 	scriptMock := &scriptMocks.WindowsPlatformScriptMock{}
 	scriptMock.RegisterErrorMocks()
 	return mockClient, scriptMock
 }
 
-func testCheckExists(resourceName string) resource.TestCheckFunc {
-	return resource.TestCheckResourceAttrSet(resourceName, "id")
+func loadUnitTestTerraform(filename string) string {
+	config, err := helpers.ParseHCLFile("tests/terraform/unit/" + filename)
+	if err != nil {
+		panic("failed to load unit test config " + filename + ": " + err.Error())
+	}
+	return config
 }
 
-func TestWindowsPlatformScriptResource_Schema(t *testing.T) {
+func TestWindowsPlatformScriptResource_001_Scenario_Minimal(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, scriptMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -43,19 +51,25 @@ func TestWindowsPlatformScriptResource_Schema(t *testing.T) {
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testConfigMinimal(),
+				Config: loadUnitTestTerraform("001_scenario_minimal.tf"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_platform_script.minimal", "display_name", "Test Minimal Windows Platform Script - Unique"),
-					resource.TestMatchResourceAttr("microsoft365_graph_beta_device_management_windows_platform_script.minimal", "id", regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_platform_script.minimal", "role_scope_tag_ids.#", "1"),
-					resource.TestCheckTypeSetElemAttr("microsoft365_graph_beta_device_management_windows_platform_script.minimal", "role_scope_tag_ids.*", "0"),
+					check.That(graphBetaWindowsPlatformScript.ResourceName+".test_001").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(graphBetaWindowsPlatformScript.ResourceName+".test_001").Key("display_name").HasValue("unit-test-windows-platform-script-001-minimal"),
+					check.That(graphBetaWindowsPlatformScript.ResourceName+".test_001").Key("run_as_account").HasValue("system"),
+					check.That(graphBetaWindowsPlatformScript.ResourceName+".test_001").Key("role_scope_tag_ids.#").HasValue("1"),
+					check.That(graphBetaWindowsPlatformScript.ResourceName+".test_001").Key("role_scope_tag_ids.0").HasValue("0"),
 				),
+			},
+			{
+				ResourceName:      graphBetaWindowsPlatformScript.ResourceName + ".test_001",
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
 }
 
-func TestWindowsPlatformScriptResource_RunAsAccount(t *testing.T) {
+func TestWindowsPlatformScriptResource_002_Scenario_Maximal(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, scriptMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -65,26 +79,27 @@ func TestWindowsPlatformScriptResource_RunAsAccount(t *testing.T) {
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testConfigSystemAccount(),
+				Config: loadUnitTestTerraform("002_scenario_maximal.tf"),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckExists("microsoft365_graph_beta_device_management_windows_platform_script.system_account"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_platform_script.system_account", "display_name", "Test System Account Windows Platform Script - Unique"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_platform_script.system_account", "run_as_account", "system"),
+					check.That(graphBetaWindowsPlatformScript.ResourceName+".test_002").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(graphBetaWindowsPlatformScript.ResourceName+".test_002").Key("display_name").HasValue("unit-test-windows-platform-script-002-maximal"),
+					check.That(graphBetaWindowsPlatformScript.ResourceName+".test_002").Key("description").HasValue("Maximal test configuration for Windows platform script"),
+					check.That(graphBetaWindowsPlatformScript.ResourceName+".test_002").Key("run_as_account").HasValue("user"),
+					check.That(graphBetaWindowsPlatformScript.ResourceName+".test_002").Key("enforce_signature_check").HasValue("true"),
+					check.That(graphBetaWindowsPlatformScript.ResourceName+".test_002").Key("run_as_32_bit").HasValue("true"),
+					check.That(graphBetaWindowsPlatformScript.ResourceName+".test_002").Key("role_scope_tag_ids.#").HasValue("2"),
 				),
 			},
 			{
-				Config: testConfigUserAccount(),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckExists("microsoft365_graph_beta_device_management_windows_platform_script.user_account"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_platform_script.user_account", "display_name", "Test User Account Windows Platform Script - Unique"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_platform_script.user_account", "run_as_account", "user"),
-				),
+				ResourceName:      graphBetaWindowsPlatformScript.ResourceName + ".test_002",
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
 }
 
-func TestWindowsPlatformScriptResource_Assignments(t *testing.T) {
+func TestWindowsPlatformScriptResource_003_Lifecycle_MinimalToMaximal(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, scriptMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -94,24 +109,176 @@ func TestWindowsPlatformScriptResource_Assignments(t *testing.T) {
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testConfigWithAssignments(),
+				Config: loadUnitTestTerraform("003_lifecycle_minimal_to_maximal_step_1.tf"),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckExists("microsoft365_graph_beta_device_management_windows_platform_script.with_assignments"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_platform_script.with_assignments", "display_name", "Test Windows Platform Script with Assignments - Unique"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_platform_script.with_assignments", "assignments.#", "2"),
-					resource.TestCheckTypeSetElemNestedAttrs("microsoft365_graph_beta_device_management_windows_platform_script.with_assignments", "assignments.*", map[string]string{
-						"type": "groupAssignmentTarget",
-					}),
-					resource.TestCheckTypeSetElemNestedAttrs("microsoft365_graph_beta_device_management_windows_platform_script.with_assignments", "assignments.*", map[string]string{
-						"type": "exclusionGroupAssignmentTarget",
-					}),
+					check.That(graphBetaWindowsPlatformScript.ResourceName+".test_003").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(graphBetaWindowsPlatformScript.ResourceName+".test_003").Key("display_name").HasValue("unit-test-windows-platform-script-003-lifecycle"),
+					check.That(graphBetaWindowsPlatformScript.ResourceName+".test_003").Key("run_as_account").HasValue("system"),
+				),
+			},
+			{
+				Config: loadUnitTestTerraform("003_lifecycle_minimal_to_maximal_step_2.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(graphBetaWindowsPlatformScript.ResourceName+".test_003").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(graphBetaWindowsPlatformScript.ResourceName+".test_003").Key("display_name").HasValue("unit-test-windows-platform-script-003-lifecycle"),
+					check.That(graphBetaWindowsPlatformScript.ResourceName+".test_003").Key("description").HasValue("Maximal lifecycle test configuration"),
+					check.That(graphBetaWindowsPlatformScript.ResourceName+".test_003").Key("run_as_account").HasValue("user"),
+					check.That(graphBetaWindowsPlatformScript.ResourceName+".test_003").Key("enforce_signature_check").HasValue("true"),
+					check.That(graphBetaWindowsPlatformScript.ResourceName+".test_003").Key("run_as_32_bit").HasValue("true"),
+					check.That(graphBetaWindowsPlatformScript.ResourceName+".test_003").Key("role_scope_tag_ids.#").HasValue("2"),
 				),
 			},
 		},
 	})
 }
 
-func TestWindowsPlatformScriptResource_ErrorHandling(t *testing.T) {
+func TestWindowsPlatformScriptResource_004_Lifecycle_MaximalToMinimal(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
+	_, scriptMock := setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+	defer scriptMock.CleanupMockState()
+
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: loadUnitTestTerraform("004_lifecycle_maximal_to_minimal_step_1.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(graphBetaWindowsPlatformScript.ResourceName+".test_004").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(graphBetaWindowsPlatformScript.ResourceName+".test_004").Key("display_name").HasValue("unit-test-windows-platform-script-004-lifecycle"),
+					check.That(graphBetaWindowsPlatformScript.ResourceName+".test_004").Key("description").HasValue("Maximal lifecycle test configuration"),
+					check.That(graphBetaWindowsPlatformScript.ResourceName+".test_004").Key("run_as_account").HasValue("user"),
+					check.That(graphBetaWindowsPlatformScript.ResourceName+".test_004").Key("enforce_signature_check").HasValue("true"),
+					check.That(graphBetaWindowsPlatformScript.ResourceName+".test_004").Key("run_as_32_bit").HasValue("true"),
+				),
+			},
+			{
+				Config: loadUnitTestTerraform("004_lifecycle_maximal_to_minimal_step_2.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(graphBetaWindowsPlatformScript.ResourceName+".test_004").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(graphBetaWindowsPlatformScript.ResourceName+".test_004").Key("display_name").HasValue("unit-test-windows-platform-script-004-lifecycle"),
+					check.That(graphBetaWindowsPlatformScript.ResourceName+".test_004").Key("run_as_account").HasValue("system"),
+					check.That(graphBetaWindowsPlatformScript.ResourceName+".test_004").Key("role_scope_tag_ids.#").HasValue("1"),
+				),
+			},
+		},
+	})
+}
+
+func TestWindowsPlatformScriptResource_005_AssignmentsMinimal(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
+	_, scriptMock := setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+	defer scriptMock.CleanupMockState()
+
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: loadUnitTestTerraform("005_assignments_minimal.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(graphBetaWindowsPlatformScript.ResourceName+".test_005").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(graphBetaWindowsPlatformScript.ResourceName+".test_005").Key("display_name").HasValue("unit-test-windows-platform-script-005-assignments-minimal"),
+					check.That(graphBetaWindowsPlatformScript.ResourceName+".test_005").Key("assignments.#").HasValue("1"),
+				),
+			},
+			{
+				ResourceName:      graphBetaWindowsPlatformScript.ResourceName + ".test_005",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestWindowsPlatformScriptResource_006_AssignmentsMaximal(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
+	_, scriptMock := setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+	defer scriptMock.CleanupMockState()
+
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: loadUnitTestTerraform("006_assignments_maximal.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(graphBetaWindowsPlatformScript.ResourceName+".test_006").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(graphBetaWindowsPlatformScript.ResourceName+".test_006").Key("display_name").HasValue("unit-test-windows-platform-script-006-assignments-maximal"),
+					check.That(graphBetaWindowsPlatformScript.ResourceName+".test_006").Key("description").HasValue("Maximal test with multiple assignments"),
+					check.That(graphBetaWindowsPlatformScript.ResourceName+".test_006").Key("assignments.#").HasValue("5"),
+				),
+			},
+			{
+				ResourceName:      graphBetaWindowsPlatformScript.ResourceName + ".test_006",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestWindowsPlatformScriptResource_007_AssignmentsLifecycle_MinimalToMaximal(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
+	_, scriptMock := setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+	defer scriptMock.CleanupMockState()
+
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: loadUnitTestTerraform("007_assignments_lifecycle_minimal_to_maximal_step_1.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(graphBetaWindowsPlatformScript.ResourceName+".test_007").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(graphBetaWindowsPlatformScript.ResourceName+".test_007").Key("display_name").HasValue("unit-test-windows-platform-script-007-assignments-lifecycle"),
+					check.That(graphBetaWindowsPlatformScript.ResourceName+".test_007").Key("assignments.#").HasValue("1"),
+				),
+			},
+			{
+				Config: loadUnitTestTerraform("007_assignments_lifecycle_minimal_to_maximal_step_2.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(graphBetaWindowsPlatformScript.ResourceName+".test_007").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(graphBetaWindowsPlatformScript.ResourceName+".test_007").Key("display_name").HasValue("unit-test-windows-platform-script-007-assignments-lifecycle"),
+					check.That(graphBetaWindowsPlatformScript.ResourceName+".test_007").Key("assignments.#").HasValue("5"),
+				),
+			},
+		},
+	})
+}
+
+func TestWindowsPlatformScriptResource_008_AssignmentsLifecycle_MaximalToMinimal(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
+	_, scriptMock := setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+	defer scriptMock.CleanupMockState()
+
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: loadUnitTestTerraform("008_assignments_lifecycle_maximal_to_minimal_step_1.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(graphBetaWindowsPlatformScript.ResourceName+".test_008").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(graphBetaWindowsPlatformScript.ResourceName+".test_008").Key("display_name").HasValue("unit-test-windows-platform-script-008-assignments-lifecycle"),
+					check.That(graphBetaWindowsPlatformScript.ResourceName+".test_008").Key("description").HasValue("Maximal assignments lifecycle test"),
+					check.That(graphBetaWindowsPlatformScript.ResourceName+".test_008").Key("assignments.#").HasValue("5"),
+				),
+			},
+			{
+				Config: loadUnitTestTerraform("008_assignments_lifecycle_maximal_to_minimal_step_2.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(graphBetaWindowsPlatformScript.ResourceName+".test_008").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(graphBetaWindowsPlatformScript.ResourceName+".test_008").Key("display_name").HasValue("unit-test-windows-platform-script-008-assignments-lifecycle"),
+					check.That(graphBetaWindowsPlatformScript.ResourceName+".test_008").Key("description").HasValue("Maximal assignments lifecycle test"),
+					check.That(graphBetaWindowsPlatformScript.ResourceName+".test_008").Key("assignments.#").HasValue("1"),
+				),
+			},
+		},
+	})
+}
+
+func TestWindowsPlatformScriptResource_009_ErrorHandling(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, scriptMock := setupErrorMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -121,41 +288,9 @@ func TestWindowsPlatformScriptResource_ErrorHandling(t *testing.T) {
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config:      testConfigMinimal(),
+				Config:      loadUnitTestTerraform("009_error_scenario.tf"),
 				ExpectError: regexp.MustCompile("Invalid Windows Platform Script data"),
 			},
 		},
 	})
-}
-
-func testConfigMinimal() string {
-	unitTestConfig, err := helpers.ParseHCLFile("tests/terraform/unit/resource_minimal.tf")
-	if err != nil {
-		panic("failed to load minimal config: " + err.Error())
-	}
-	return unitTestConfig
-}
-
-func testConfigSystemAccount() string {
-	unitTestConfig, err := helpers.ParseHCLFile("tests/terraform/unit/resource_system_account.tf")
-	if err != nil {
-		panic("failed to load system account config: " + err.Error())
-	}
-	return unitTestConfig
-}
-
-func testConfigUserAccount() string {
-	unitTestConfig, err := helpers.ParseHCLFile("tests/terraform/unit/resource_user_account.tf")
-	if err != nil {
-		panic("failed to load user account config: " + err.Error())
-	}
-	return unitTestConfig
-}
-
-func testConfigWithAssignments() string {
-	unitTestConfig, err := helpers.ParseHCLFile("tests/terraform/unit/resource_with_assignments.tf")
-	if err != nil {
-		panic("failed to load with assignments config: " + err.Error())
-	}
-	return unitTestConfig
 }

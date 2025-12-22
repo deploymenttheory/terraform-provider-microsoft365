@@ -1,16 +1,17 @@
 {
   "@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/deviceManagementScripts/$entity",
   "@odata.type": "#microsoft.graph.deviceManagementScript",
-  "id": "00000000-0000-0000-0000-000000000002",
-  "displayName": "Test Windows Platform Script - User Account",
-  "description": "Test description for Windows Platform Script with user account",
-  "scriptContent": "V3JpdGUtSG9zdCAnUnVubmluZyBhcyBVc2VyJw==",
-  "fileName": "test-user-script.ps1",
+  "id": "00000000-0000-0000-0000-000000000004",
+  "displayName": "unit-test-windows-platform-script-004-lifecycle",
+  "description": "Maximal lifecycle test configuration",
+  "fileName": "test-script-004.ps1",
+  "scriptContent": "V3JpdGUtSG9zdCAnTWF4aW1hbCBzY3JpcHQn",
   "runAsAccount": "user",
+  "roleScopeTagIds": ["0", "1"],
   "enforceSignatureCheck": true,
   "runAs32Bit": true,
-  "roleScopeTagIds": ["0"],
   "createdDateTime": "2024-01-01T00:00:00Z",
   "lastModifiedDateTime": "2024-01-01T00:00:00Z",
   "assignments": []
 }
+

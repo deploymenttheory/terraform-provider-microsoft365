@@ -43,7 +43,7 @@ var (
 func NewWindowsPlatformScriptResource() resource.Resource {
 	return &WindowsPlatformScriptResource{
 		ReadPermissions: []string{
-			"",
+			"DeviceManagementConfiguration.Read.All",
 		},
 		WritePermissions: []string{
 			"DeviceManagementConfiguration.ReadWrite.All",
@@ -81,11 +81,11 @@ func (r *WindowsPlatformScriptResource) Schema(ctx context.Context, req resource
 		MarkdownDescription: "Manages Windows PowerShell scripts using the `/deviceManagement/deviceManagementScripts` endpoint. Windows platform scripts enable automated deployment and execution of PowerShell scripts on managed Windows devices, supporting both system and user contexts with configurable signature checking and 32-bit execution options.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
-				Computed: true,
+				Computed:            true,
+				MarkdownDescription: "The unique identifier for this Intune windows platform script",
 				PlanModifiers: []planmodifier.String{
 					planmodifiers.UseStateForUnknownString(),
 				},
-				MarkdownDescription: "The unique identifier for this Intune windows platform script",
 			},
 			"display_name": schema.StringAttribute{
 				MarkdownDescription: "Name of the windows platform script.",
@@ -94,6 +94,7 @@ func (r *WindowsPlatformScriptResource) Schema(ctx context.Context, req resource
 			"description": schema.StringAttribute{
 				MarkdownDescription: "Optional description for the windows platform script.",
 				Optional:            true,
+				Computed:            true,
 			},
 			"script_content": schema.StringAttribute{
 				MarkdownDescription: "The script content.",
@@ -110,6 +111,7 @@ func (r *WindowsPlatformScriptResource) Schema(ctx context.Context, req resource
 			"enforce_signature_check": schema.BoolAttribute{
 				MarkdownDescription: "Indicate whether the script signature needs be checked.",
 				Optional:            true,
+				Computed:            true,
 			},
 			"file_name": schema.StringAttribute{
 				MarkdownDescription: "Script file name.",
@@ -129,6 +131,7 @@ func (r *WindowsPlatformScriptResource) Schema(ctx context.Context, req resource
 			"run_as_32_bit": schema.BoolAttribute{
 				MarkdownDescription: "A value indicating whether the PowerShell script should run as 32-bit.",
 				Optional:            true,
+				Computed:            true,
 			},
 			"assignments": commonschemagraphbeta.PlatformScriptAssignmentsSchema(),
 			"timeouts":    commonschema.Timeouts(ctx),
