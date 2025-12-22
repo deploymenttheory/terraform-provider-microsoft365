@@ -1,16 +1,16 @@
 {
   "@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/deviceManagementScripts/$entity",
   "@odata.type": "#microsoft.graph.deviceManagementScript",
-  "id": "00000000-0000-0000-0000-000000000001",
-  "displayName": "Windows Platform Script with Updated Tags",
-  "description": "Test description for Windows Platform Script",
+  "id": "00000000-0000-0000-0000-000000000003",
+  "displayName": "unit-test-windows-platform-script-003-lifecycle",
+  "fileName": "test-script-003.ps1",
   "scriptContent": "V3JpdGUtSG9zdCAnSGVsbG8gV29ybGQn",
-  "fileName": "test-script.ps1",
   "runAsAccount": "system",
+  "roleScopeTagIds": ["0"],
   "enforceSignatureCheck": false,
   "runAs32Bit": false,
-  "roleScopeTagIds": ["0", "1"],
   "createdDateTime": "2024-01-01T00:00:00Z",
-  "lastModifiedDateTime": "2024-01-02T00:00:00Z",
+  "lastModifiedDateTime": "2024-01-01T00:00:00Z",
   "assignments": []
 }
+
