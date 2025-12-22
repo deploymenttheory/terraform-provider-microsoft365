@@ -1,7 +1,7 @@
 # Example: Windows Quality Update Expedite Policy - Maximal Configuration (No Assignments)
 resource "microsoft365_graph_beta_device_management_windows_quality_update_expedite_policy" "maximal_example" {
-  display_name = "Critical Security Update Expedite Policy"
-  description  = "Expedited deployment for critical security updates - January 2025"
+  display_name       = "Critical Security Update Expedite Policy"
+  description        = "Expedited deployment for critical security updates - January 2025"
   role_scope_tag_ids = ["0", "1"]
 
   # Required: Expedited update settings

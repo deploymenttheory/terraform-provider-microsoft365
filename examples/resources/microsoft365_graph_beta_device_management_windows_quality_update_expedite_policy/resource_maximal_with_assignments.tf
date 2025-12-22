@@ -1,7 +1,7 @@
 # Example: Windows Quality Update Expedite Policy - Maximal Configuration with Assignments
 resource "microsoft365_graph_beta_device_management_windows_quality_update_expedite_policy" "maximal_with_assignments" {
-  display_name = "Production Critical Update Expedite Policy"
-  description  = "Expedited deployment for critical security updates targeting production devices with exclusions for test environments"
+  display_name       = "Production Critical Update Expedite Policy"
+  description        = "Expedited deployment for critical security updates targeting production devices with exclusions for test environments"
   role_scope_tag_ids = ["0", "1"]
 
   # Required: Expedited update settings
