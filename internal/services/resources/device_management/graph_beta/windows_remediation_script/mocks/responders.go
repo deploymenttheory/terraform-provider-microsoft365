@@ -364,6 +364,11 @@ func (m *WindowsRemediationScriptMock) registerAssignmentMocks() {
 									graphAssignment["runSchedule"] = runSchedule
 								}
 
+								// Add runRemediationScript if present
+								if runRemediationScript, hasRunRemediation := assignmentMap["runRemediationScript"]; hasRunRemediation {
+									graphAssignment["runRemediationScript"] = runRemediationScript
+								}
+
 								graphAssignments = append(graphAssignments, graphAssignment)
 							}
 						}

@@ -1,12 +1,12 @@
 ---
-page_title: "microsoft365_graph_beta_device_management_windows_feature_update_profile Resource - terraform-provider-microsoft365"
+page_title: "microsoft365_graph_beta_device_management_windows_feature_update_policy Resource - terraform-provider-microsoft365"
 subcategory: "Device Management"
 
 description: |-
   Manages Windows feature update profiles using the /deviceManagement/windowsFeatureUpdateProfiles endpoint. Feature update profiles control major Windows version deployments (like Windows 11 24H2) with rollout scheduling, device eligibility rules, and deployment timing to ensure controlled OS upgrades across managed devices.
 ---
 
-# microsoft365_graph_beta_device_management_windows_feature_update_profile (Resource)
+# microsoft365_graph_beta_device_management_windows_feature_update_policy (Resource)
 
 Manages Windows feature update profiles using the `/deviceManagement/windowsFeatureUpdateProfiles` endpoint. Feature update profiles control major Windows version deployments (like Windows 11 24H2) with rollout scheduling, device eligibility rules, and deployment timing to ensure controlled OS upgrades across managed devices.
 
@@ -32,7 +32,7 @@ The following API permissions are required in order to use this resource.
 ## Example Usage
 
 ```terraform
-resource "microsoft365_graph_beta_device_management_windows_feature_update_profile" "example" {
+resource "microsoft365_graph_beta_device_management_windows_feature_update_policy" "example" {
   display_name                                            = "Windows 11 22H2 Deployment x"
   description                                             = "Feature update profile for Windows 11 22H2"
   feature_update_version                                  = "Windows 11, version 22H2"
@@ -80,7 +80,7 @@ resource "microsoft365_graph_beta_device_management_windows_feature_update_profi
 
 }
 
-resource "microsoft365_graph_beta_device_management_windows_feature_update_profile" "example_2" {
+resource "microsoft365_graph_beta_device_management_windows_feature_update_policy" "example_2" {
   display_name                                            = "Windows 11 22H2 Deployment y"
   description                                             = "Feature update profile for Windows 11 22H2"
   feature_update_version                                  = "Windows 11, version 22H2"
@@ -125,7 +125,7 @@ resource "microsoft365_graph_beta_device_management_windows_feature_update_profi
   }
 }
 
-resource "microsoft365_graph_beta_device_management_windows_feature_update_profile" "example_3" {
+resource "microsoft365_graph_beta_device_management_windows_feature_update_policy" "example_3" {
   display_name                                            = "Windows 11 22H2 Deployment z"
   description                                             = "Feature update profile for Windows 11 22H2"
   feature_update_version                                  = "Windows 11, version 22H2"

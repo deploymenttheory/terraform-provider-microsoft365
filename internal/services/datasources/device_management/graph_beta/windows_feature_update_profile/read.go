@@ -1,4 +1,4 @@
-package graphBetaWindowsFeatureUpdateProfile
+package graphBetaWindowsFeatureUpdatePolicy
 
 import (
 	"context"

@@ -224,13 +224,21 @@ func AssignmentBlock() schema.SetNestedAttribute {
 				},
 				"filter_type": schema.StringAttribute{
 					Optional:            true,
-					MarkdownDescription: "Type of filter to apply. Must be one of: 'include', 'exclude', or 'none'.",
 					Computed:            true,
+					MarkdownDescription: "Type of filter to apply. Must be one of: 'include', 'exclude', or 'none'.",
 					Default:             stringdefault.StaticString("none"),
 					Validators: []validator.String{
 						stringvalidator.OneOf("include", "exclude", "none"),
 					},
 				},
+				// This field always returns false regardless of the value set in the terraform config
+				// so either it's no longer used or it's a broken api issue.
+				// "run_remediation_script": schema.BoolAttribute{
+				// 	Optional:            true,
+				// 	WriteOnly:           true,
+				// 	MarkdownDescription: "Whether to run the remediation script when the detection script identifies an issue. This is a write-only field.",
+				// },
+
 				// Schedule configuration - only one should be used at a time
 				"daily_schedule": schema.SingleNestedAttribute{
 					Optional:            true,

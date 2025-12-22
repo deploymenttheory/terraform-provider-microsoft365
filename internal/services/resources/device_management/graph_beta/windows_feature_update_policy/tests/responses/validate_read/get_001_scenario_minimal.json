@@ -1,0 +1,14 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/windowsFeatureUpdateProfiles/$entity",
+  "@odata.type": "#microsoft.graph.windowsFeatureUpdateProfile",
+  "id": "00000000-0000-0000-0000-000000000001",
+  "displayName": "unit-test-windows-feature-update-policy-001-minimal",
+  "featureUpdateVersion": "Windows 11, version 23H2",
+  "installLatestWindows10OnWindows11IneligibleDevice": false,
+  "installFeatureUpdatesOptional": false,
+  "roleScopeTagIds": ["0"],
+  "createdDateTime": "2024-01-01T00:00:00Z",
+  "lastModifiedDateTime": "2024-01-01T00:00:00Z",
+  "assignments": []
+}
+

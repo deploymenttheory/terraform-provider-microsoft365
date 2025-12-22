@@ -1,0 +1,20 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/windowsFeatureUpdateProfiles/$entity",
+  "@odata.type": "#microsoft.graph.windowsFeatureUpdateProfile",
+  "id": "00000000-0000-0000-0000-000000000004",
+  "displayName": "unit-test-windows-feature-update-policy-004-lifecycle",
+  "description": "Maximal lifecycle test configuration",
+  "featureUpdateVersion": "Windows 11, version 24H2",
+  "installLatestWindows10OnWindows11IneligibleDevice": true,
+  "installFeatureUpdatesOptional": true,
+  "roleScopeTagIds": ["0", "1"],
+  "rolloutSettings": {
+    "offerStartDateTimeInUTC": "2025-04-01T00:00:00Z",
+    "offerEndDateTimeInUTC": "2025-05-01T00:00:00Z",
+    "offerIntervalInDays": 7
+  },
+  "createdDateTime": "2024-01-01T00:00:00Z",
+  "lastModifiedDateTime": "2024-01-01T00:00:00Z",
+  "assignments": []
+}
+

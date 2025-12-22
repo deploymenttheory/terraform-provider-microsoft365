@@ -1,4 +1,4 @@
-package graphBetaWindowsFeatureUpdateProfile
+package graphBetaWindowsFeatureUpdatePolicy
 
 import (
 	"context"
@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	DataSourceName = "microsoft365_graph_beta_device_management_windows_feature_update_profile"
+	DataSourceName = "microsoft365_graph_beta_device_management_windows_feature_update_policy"
 	ReadTimeout    = 180
 )
 

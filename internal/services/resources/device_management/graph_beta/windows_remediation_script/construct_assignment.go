@@ -57,6 +57,14 @@ func constructAssignment(ctx context.Context, data *DeviceHealthScriptResourceMo
 
 		graphAssignment.SetTarget(target)
 
+		// if !assignment.RunRemediationScript.IsNull() && !assignment.RunRemediationScript.IsUnknown() {
+		// 	convert.FrameworkToGraphBool(assignment.RunRemediationScript, graphAssignment.SetRunRemediationScript)
+		// 	tflog.Debug(ctx, "Set run remediation script flag", map[string]any{
+		// 		"index":                idx,
+		// 		"runRemediationScript": assignment.RunRemediationScript.ValueBool(),
+		// 	})
+		// }
+
 		runSchedule := constructRunSchedule(ctx, assignment)
 		if runSchedule != nil {
 			graphAssignment.SetRunSchedule(runSchedule)
