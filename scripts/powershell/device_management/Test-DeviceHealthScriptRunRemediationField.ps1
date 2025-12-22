@@ -227,10 +227,54 @@ try {
     Write-Host "=============================================" -ForegroundColor Cyan
     
     # ============================================
-    # Step 6: Test with runRemediationScript = false
+    # Step 6: Get specific assignment by ID
     # ============================================
     Write-Host ""
-    Write-Host "🎯 Step 6: Testing with runRemediationScript = false..." -ForegroundColor Yellow
+    Write-Host "🔍 Step 6: Getting specific assignment by ID..." -ForegroundColor Yellow
+    
+    if ($createdAssignmentId) {
+        try {
+            $specificAssignment = Invoke-MgGraphRequest `
+                -Method GET `
+                -Uri "https://graph.microsoft.com/beta/deviceManagement/deviceHealthScripts/${createdScriptId}/assignments/${createdAssignmentId}" `
+                -ContentType "application/json"
+            
+            Write-Host "📥 Retrieved specific assignment" -ForegroundColor Cyan
+            Write-Host ""
+            Write-Host "Specific Assignment Endpoint Test:" -ForegroundColor White
+            
+            if ($null -ne $specificAssignment.PSObject.Properties['runRemediationScript']) {
+                $returnedValue3 = $specificAssignment.runRemediationScript
+                Write-Host "  ✅ Field EXISTS in specific assignment response" -ForegroundColor Green
+                Write-Host "  📊 Returned Value: $returnedValue3" -ForegroundColor Yellow
+                
+                if ($returnedValue3 -eq $true) {
+                    Write-Host "  ✅ Specific endpoint returns: true" -ForegroundColor Green
+                }
+                else {
+                    Write-Host "  ❌ Specific endpoint returns: $returnedValue3" -ForegroundColor Red
+                }
+            }
+            else {
+                Write-Host "  ❌ Field DOES NOT EXIST in specific assignment response" -ForegroundColor Red
+            }
+            
+            Write-Host ""
+            Write-Host "Full Specific Assignment JSON:" -ForegroundColor White
+            Write-Host ($specificAssignment | ConvertTo-Json -Depth 10) -ForegroundColor Gray
+            Write-Host ""
+        }
+        catch {
+            Write-Host "  ⚠️  Failed to get specific assignment: $_" -ForegroundColor Yellow
+            Write-Host ""
+        }
+    }
+    
+    # ============================================
+    # Step 7: Test with runRemediationScript = false
+    # ============================================
+    Write-Host ""
+    Write-Host "🎯 Step 7: Testing with runRemediationScript = false..." -ForegroundColor Yellow
     
     $assignmentParams2 = @{
         deviceHealthScriptAssignments = @(
