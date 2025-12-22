@@ -46,6 +46,11 @@ type WindowsRemediationScriptAssignmentModel struct {
 	FilterId   types.String `tfsdk:"filter_id"`
 	FilterType types.String `tfsdk:"filter_type"` // "include", "exclude", or "none"
 
+	// Remediation script execution
+	// This field always returns false regardless of the value set in the terraform config
+	// so either it's no longer used or it's a broken api issue.
+	// RunRemediationScript types.Bool `tfsdk:"run_remediation_script"` // Whether to run the remediation script
+
 	// Schedule configuration - only one should be used at a time
 	DailySchedule   *WindowsRemediationScriptDailyScheduleModel   `tfsdk:"daily_schedule"`
 	HourlySchedule  *WindowsRemediationScriptHourlyScheduleModel  `tfsdk:"hourly_schedule"`

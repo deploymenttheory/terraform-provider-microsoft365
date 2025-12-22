@@ -1,5 +1,5 @@
 // REF: https://learn.microsoft.com/en-us/graph/api/resources/intune-softwareupdate-WindowsFeatureUpdateprofile?view=graph-rest-beta
-package graphBetaWindowsFeatureUpdateProfile
+package graphBetaWindowsFeatureUpdatePolicy
 
 import (
 	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"

@@ -1,0 +1,11 @@
+{
+  "error": {
+    "code": "BadRequest",
+    "message": "Invalid Windows Feature Update Profile data",
+    "innerError": {
+      "request-id": "00000000-0000-0000-0000-000000000009",
+      "date": "2024-01-01T00:00:00"
+    }
+  }
+}
+

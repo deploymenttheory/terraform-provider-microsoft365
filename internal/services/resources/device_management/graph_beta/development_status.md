@@ -137,7 +137,7 @@ This document tracks the implementation status of Microsoft Graph Beta Device Ma
 | `microsoft365_graph_beta_device_management_windows_autopilot_device_identity` | v0.26.0-alpha | `/deviceManagement/windowsAutopilotDeviceIdentities` | ✅ | ✅ Implemented Unit and Acceptance tests | - |
 | - | - | `/deviceManagement/windowsAutopilotSettings` | - | ❌ Not Implemented | - |
 | `microsoft365_graph_beta_device_management_windows_driver_update_profile` | v0.27.0-alpha | `/deviceManagement/windowsDriverUpdateProfiles` | ✅ | ✅ Implemented Unit and Acceptance tests | TBD |
-| `microsoft365_graph_beta_device_management_windows_feature_update_profile` | v0.27.0-alpha | `/deviceManagement/windowsFeatureUpdateProfiles` | ✅ | ✅ Implemented Unit and Acceptance tests | TBD |
+| `microsoft365_graph_beta_device_management_windows_feature_update_policy` | v0.27.0-alpha | `/deviceManagement/windowsFeatureUpdateProfiles` | ✅ | ✅ Implemented Unit and Acceptance tests | TBD |
 | - | - | `/deviceManagement/windowsInformationProtectionAppLearningSummaries` | - | ❌ Not Implemented | - |
 | - | - | `/deviceManagement/windowsInformationProtectionNetworkLearningSummaries` | - | ❌ Not Implemented | - |
 | - | - | `/deviceManagement/windowsMalwareInformation` | - | ❌ Not Implemented | - |

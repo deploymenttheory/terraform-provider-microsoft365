@@ -1,0 +1,54 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/windowsFeatureUpdateProfiles/$entity",
+  "@odata.type": "#microsoft.graph.windowsFeatureUpdateProfile",
+  "id": "00000000-0000-0000-0000-000000000008",
+  "displayName": "unit-test-windows-feature-update-policy-008-assignments-lifecycle",
+  "description": "Maximal assignments lifecycle test",
+  "featureUpdateVersion": "Windows 11, version 24H2",
+  "installLatestWindows10OnWindows11IneligibleDevice": true,
+  "installFeatureUpdatesOptional": true,
+  "roleScopeTagIds": ["0", "1"],
+  "createdDateTime": "2024-01-01T00:00:00Z",
+  "lastModifiedDateTime": "2024-01-01T00:00:00Z",
+  "assignments": [
+    {
+      "@odata.type": "#microsoft.graph.windowsFeatureUpdateProfileAssignment",
+      "id": "00000000-0000-0000-0000-00000000000a",
+      "target": {
+        "@odata.type": "#microsoft.graph.allDevicesAssignmentTarget"
+      }
+    },
+    {
+      "@odata.type": "#microsoft.graph.windowsFeatureUpdateProfileAssignment",
+      "id": "00000000-0000-0000-0000-00000000000b",
+      "target": {
+        "@odata.type": "#microsoft.graph.allLicensedUsersAssignmentTarget"
+      }
+    },
+    {
+      "@odata.type": "#microsoft.graph.windowsFeatureUpdateProfileAssignment",
+      "id": "00000000-0000-0000-0000-00000000000c",
+      "target": {
+        "@odata.type": "#microsoft.graph.groupAssignmentTarget",
+        "groupId": "00000000-0000-0000-0000-000000000001"
+      }
+    },
+    {
+      "@odata.type": "#microsoft.graph.windowsFeatureUpdateProfileAssignment",
+      "id": "00000000-0000-0000-0000-00000000000d",
+      "target": {
+        "@odata.type": "#microsoft.graph.groupAssignmentTarget",
+        "groupId": "00000000-0000-0000-0000-000000000002"
+      }
+    },
+    {
+      "@odata.type": "#microsoft.graph.windowsFeatureUpdateProfileAssignment",
+      "id": "00000000-0000-0000-0000-00000000000e",
+      "target": {
+        "@odata.type": "#microsoft.graph.exclusionGroupAssignmentTarget",
+        "groupId": "00000000-0000-0000-0000-000000000003"
+      }
+    }
+  ]
+}
+
