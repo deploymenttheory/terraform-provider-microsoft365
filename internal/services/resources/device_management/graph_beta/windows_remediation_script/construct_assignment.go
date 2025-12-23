@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/constructors"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -61,6 +62,11 @@ func constructAssignment(ctx context.Context, data *DeviceHealthScriptResourceMo
 		if runSchedule != nil {
 			graphAssignment.SetRunSchedule(runSchedule)
 		}
+
+		// Intune Admin Center always sets runRemediationScript as `true` when creating assignments via Graph API Beta.
+		// To remain consistent with the service and ensure remediation runs as expected we force this to true when constructing the assignment request.
+		// The Graph API currently returns `false` for this attribute in responses even when it was sent as `true` on creation.
+		graphAssignment.SetRunRemediationScript(helpers.BoolPtr(true))
 
 		scriptAssignments = append(scriptAssignments, graphAssignment)
 	}
