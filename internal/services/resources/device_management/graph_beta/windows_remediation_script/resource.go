@@ -231,11 +231,11 @@ func AssignmentBlock() schema.SetNestedAttribute {
 						stringvalidator.OneOf("include", "exclude", "none"),
 					},
 				},
-				// This field always returns false regardless of the value set in the terraform config
-				// so either it's no longer used or it's a broken api issue.
+				// This field is always sent as part of an assignment request, set to true.
+				// According to graph xray. However, the response always returns false when
+				// performing a GET request.
 				// "run_remediation_script": schema.BoolAttribute{
-				// 	Optional:            true,
-				// 	WriteOnly:           true,
+				// 	Computed:            true,
 				// 	MarkdownDescription: "Whether to run the remediation script when the detection script identifies an issue. This is a write-only field.",
 				// },
 

@@ -129,6 +129,7 @@ def analyze_job_failure(job: dict) -> Optional[dict]:
                 }
     
     # Non-test jobs that failed - always report
+    failed_step = None
     if job.get("conclusion") == "timed_out":
         failure_type = "timeout"
     elif job.get("conclusion") == "cancelled":
@@ -136,7 +137,6 @@ def analyze_job_failure(job: dict) -> Optional[dict]:
     else:
         # Determine failure type from steps
         steps = job.get("steps", [])
-        failed_step = None
         for step in steps:
             if step.get("conclusion") == "failure":
                 failed_step = step
