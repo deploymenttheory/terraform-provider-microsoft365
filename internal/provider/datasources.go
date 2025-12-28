@@ -6,7 +6,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 
 	// Graph Beta - Applications datasources
-	graphBetaApplicationsServicePrincipal "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/applications/service_principle"
+	graphBetaApplicationsServicePrincipal "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/applications/graph_beta/service_principal"
 
 	// Graph Beta - Intune datasources
 	graphBetaDeviceAndAppManagementApplicationCategory "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/device_and_app_management/graph_beta/application_category"
