@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.39.1-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.39.0-alpha...v0.39.1-alpha) (2025-12-28)
+
+
+### Bug Fixes
+
+* extended pipeline timeout to 240mins ([#1463](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/1463)) ([9558169](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/955816919a3b1a2f6b8a7ba00dc6eec1b3ff17cc))
+
 ## [0.39.0-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.38.0-alpha...v0.39.0-alpha) (2025-12-28)
 
 
