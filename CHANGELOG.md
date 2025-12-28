@@ -5,6 +5,28 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.39.0-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.38.0-alpha...v0.39.0-alpha) (2025-12-28)
+
+
+### Features
+
+* added datasource microsoft365_graph_beta_identity_and_access_tenant_information ([#1364](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/1364)) ([236d177](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/236d1770ef7b706a68fc8a4d826fafc949c72e3e))
+* added datasource microsoft365_graph_beta_identity_and_access_tenant_information ([#1365](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/1365)) ([0d8b53c](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/0d8b53c83cf27f6aca5eefd5b3032cc67e11f0aa))
+* new resources and refactors ([#1384](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/1384)) ([ef79681](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/ef796819819b8f554580bca0a96d286338b68250))
+* refactored conditional_access_policy to use kiota sdk and acc tests and default values for [] ([#1361](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/1361)) ([d37b8b3](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/d37b8b351af454e24f13690fd4164535db316065))
+* refactored test harness for resource windows_remediation_script and fixed issue with schedule interval default values ([#1386](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/1386)) ([b93bb03](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/b93bb03c05adfc38da4eb8a185930562cd441ecf))
+* various additons to test harness ([#1363](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/1363)) ([6be4931](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/6be4931147687d8186d66076f34f836e8f85ed56))
+
+
+### Bug Fixes
+
+* Add a runRemediationScript attribute of microsoft365_graph_beta_device_management_windows_remediation_script resource assignment ([#1385](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/1385)) ([49e871f](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/49e871fd8bc452b1c97da9b072c6962a67e1e8d9))
+* extended bi weekly test pipeline to 180m and fixed an issue in python script where failed_step was only initialized inside the else block ([#1404](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/1404)) ([5d7a473](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/5d7a47302ad37f4e92b18c131ca719694b7a41b8))
+* numerous fixes for test harness for resources microsoft365_graph_beta_device_management_windows_quality_update_policy and microsoft365_graph_beta_device_management_windows_quality_update_policy ([#1397](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/1397)) ([05b7adc](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/05b7adc7c570185a36db196eddfa26ee6291ccd4))
+* refactor windows_feature_update_policy test harness ([#1402](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/1402)) ([5d258f9](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/5d258f9c63f0af995281a63f59f88345e7c0316d))
+* refactored test harness for windows_quality_update_expedite_policy ([#1398](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/1398)) ([3c7507a](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/3c7507ab2db7fc6ee2f906fd6a0b92eecd46b113))
+* refactored windows_platform_script test harness ([#1401](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/1401)) ([4e11255](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/4e11255e2de00fdc10bf7bb657582c30649c6650))
+
 ## [0.38.0-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.37.0-alpha...v0.38.0-alpha) (2025-12-11)
 
 
