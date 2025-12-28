@@ -51,36 +51,32 @@ class GraphAPIEndpoint:
         Convert SDK method chain to Graph API path.
         
         Examples:
-          DeviceManagement().DeviceHealthScripts() 
+          DeviceManagement.DeviceHealthScripts 
             → /deviceManagement/deviceHealthScripts
           
-          DeviceManagement().DeviceHealthScripts().ByDeviceHealthScriptId(id)
+          DeviceManagement.DeviceHealthScripts.ByDeviceHealthScriptId
             → /deviceManagement/deviceHealthScripts/{id}
-        """
-        # Remove common prefixes
-        chain = chain.replace('client.', '').replace('r.client.', '')
         
-        # Split by method calls
-        methods = re.findall(r'([A-Z][a-zA-Z0-9]*)\(\)', chain)
+        Input chain format: "Method1.Method2.Method3" (dot-separated method names)
+        """
+        if not chain:
+            return None
+        
+        # Split by dots to get method names
+        methods = chain.split('.')
         
         if not methods:
             return None
         
         path_parts = []
         for method in methods:
-            # Handle By{Type}Id() pattern - these are ID placeholders
+            # Handle By{Type}Id pattern - these are ID placeholders
             if method.startswith('By') and method.endswith('Id'):
                 path_parts.append('{id}')
             else:
-                # Convert PascalCase to camelCase for first segment
-                if len(path_parts) == 0:
-                    # First segment: PascalCase → camelCase (DeviceManagement → deviceManagement)
-                    camel = method[0].lower() + method[1:]
-                    path_parts.append(camel)
-                else:
-                    # Subsequent segments: keep camelCase (DeviceHealthScripts → deviceHealthScripts)
-                    camel = method[0].lower() + method[1:]
-                    path_parts.append(camel)
+                # Convert PascalCase to camelCase
+                camel = method[0].lower() + method[1:] if method else method
+                path_parts.append(camel)
         
         return '/' + '/'.join(path_parts)
     
@@ -160,39 +156,44 @@ def extract_sdk_calls(file_path: str) -> List[Tuple[str, str]]:
         # Pattern to match multi-line SDK method chains
         # Matches: r.client.\n\t\tDeviceManagement().\n\t\tDeviceHealthScripts().\n\t\tPost(...)
         
-        # First, normalize whitespace in method chains
-        # Find patterns like: r.client. or client. followed by chained methods
-        pattern = r'(?:r\.client|client)\s*\.\s*([A-Z][a-zA-Z0-9]*\(\)[.\s]*)+([A-Z][a-z]+)\s*\('
+        # Normalize content: remove all whitespace to make pattern matching easier
+        content_normalized = re.sub(r'\s+', '', content)
         
-        matches = re.finditer(pattern, content, re.MULTILINE)
+        # Find all client method chains ending with CRUD operations
+        # Pattern: (r.client|client).Method1().Method2()...MethodN().CRUDOp(
+        pattern = r'(?:r\.client|client)((?:\.[A-Z][a-zA-Z0-9]*\([^)]*\))+)'
+        
+        matches = re.finditer(pattern, content_normalized)
         
         for match in matches:
-            full_match = match.group(0)
+            chain = match.group(1)  # The method chain: .Method1().Method2()...
             
-            # Extract the method chain (without final operation)
-            # Remove whitespace and newlines
-            chain = re.sub(r'\s+', '', full_match)
+            # Extract all method calls from the chain
+            methods = re.findall(r'\.([A-Z][a-zA-Z0-9]+)\(', chain)
             
-            # Extract operation (last method call before final parenthesis)
-            operation_match = re.search(r'\.([A-Z][a-z]+)\(', chain)
-            if operation_match:
-                operation = operation_match.group(1).lower()
-                
-                # Map operation to CRUD - ONLY accept valid operations
-                crud_operation = None
-                if operation in ['post', 'create']:
-                    crud_operation = 'create'
-                elif operation in ['get', 'list']:
-                    crud_operation = 'read'
-                elif operation in ['patch', 'put', 'update']:
-                    crud_operation = 'update'
-                elif operation in ['delete']:
-                    crud_operation = 'delete'
-                
-                # Only add if it's a valid CRUD operation
-                if crud_operation:
-                    # Remove the final operation from chain for path extraction
-                    chain_without_op = re.sub(r'\.[A-Z][a-z]+\($', '', chain)
+            if not methods:
+                continue
+            
+            # Last method is the operation
+            last_method = methods[-1]
+            operation = last_method.lower()
+            
+            # Map operation to CRUD - ONLY accept valid operations
+            crud_operation = None
+            if operation in ['post', 'create']:
+                crud_operation = 'create'
+            elif operation in ['get', 'list']:
+                crud_operation = 'read'
+            elif operation in ['patch', 'put', 'update']:
+                crud_operation = 'update'
+            elif operation in ['delete']:
+                crud_operation = 'delete'
+            
+            # Only add if it's a valid CRUD operation
+            if crud_operation:
+                # Chain without the final operation
+                chain_without_op = '.'.join(methods[:-1]) if len(methods) > 1 else ''
+                if chain_without_op:
                     sdk_calls.append((chain_without_op, crud_operation))
     
     except (OSError, UnicodeDecodeError) as e:
