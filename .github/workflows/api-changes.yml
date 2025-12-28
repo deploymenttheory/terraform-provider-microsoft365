@@ -1,5 +1,6 @@
 name: maintainence | Microsoft Graph API Changes Monitor
 
+
 on:
   schedule:
     # Run every Monday at 9 AM UTC
