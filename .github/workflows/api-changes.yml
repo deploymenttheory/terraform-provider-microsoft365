@@ -1,0 +1,120 @@
+name: Microsoft Graph API Changes Monitor
+
+on:
+  schedule:
+    # Run every Monday at 9 AM UTC
+    - cron: '0 9 * * 1'
+  workflow_dispatch:
+    inputs:
+      lookback_days:
+        description: 'Number of days to look back for changes'
+        required: false
+        default: '30'
+      create_issues:
+        description: 'Create GitHub issues for findings'
+        required: false
+        default: 'true'
+        type: choice
+        options:
+          - 'true'
+          - 'false'
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  monitor-api-changes:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r scripts/pipeline/requirements.txt
+
+      - name: Parse Microsoft Graph Changelog RSS
+        id: parse_changelog
+        run: |
+          python scripts/pipeline/parse-graph-changelog.py \
+            --output changelog-data.json \
+            --lookback-days ${{ github.event.inputs.lookback_days || '30' }}
+        env:
+          PYTHONUNBUFFERED: 1
+
+      - name: Scan provider for implemented endpoints
+        id: scan_provider
+        run: |
+          python scripts/pipeline/scan-provider-endpoints.py \
+            --output provider-endpoints.json
+        env:
+          PYTHONUNBUFFERED: 1
+
+      - name: Compare and identify gaps
+        id: compare
+        run: |
+          python scripts/pipeline/compare-and-create-issues.py \
+            --changelog changelog-data.json \
+            --provider provider-endpoints.json \
+            --output gaps-report.json \
+            --create-issues ${{ github.event.inputs.create_issues || 'true' }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          PYTHONUNBUFFERED: 1
+
+      - name: Upload artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: api-changes-analysis
+          path: |
+            changelog-data.json
+            provider-endpoints.json
+            gaps-report.json
+          retention-days: 30
+
+      - name: Generate summary
+        if: always()
+        run: |
+          echo "## Microsoft Graph API Changes Analysis" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          if [ -f gaps-report.json ]; then
+            python - <<EOF
+          import json
+          import sys
+          
+          with open('gaps-report.json', 'r') as f:
+              report = json.load(f)
+          
+          print(f"### Summary")
+          print(f"")
+          print(f"- **Total API Changes Found:** {report.get('total_changes', 0)}")
+          print(f"- **Relevant Changes:** {report.get('relevant_changes', 0)}")
+          print(f"- **Already Implemented:** {report.get('already_implemented', 0)}")
+          print(f"- **Gaps Identified:** {report.get('gaps_identified', 0)}")
+          print(f"- **Issues Created:** {report.get('issues_created', 0)}")
+          print(f"")
+          
+          if report.get('gaps', []):
+              print(f"### Top Gaps")
+              print(f"")
+              for gap in report['gaps'][:10]:
+                  priority = gap.get('priority', 'medium')
+                  emoji = '🔴' if priority == 'high' else '🟡' if priority == 'medium' else '🟢'
+                  print(f"{emoji} **{gap['title']}** - {gap['category']}")
+          EOF
+          fi >> $GITHUB_STEP_SUMMARY
+
