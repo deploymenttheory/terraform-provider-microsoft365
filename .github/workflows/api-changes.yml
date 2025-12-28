@@ -50,7 +50,8 @@ jobs:
         run: |
           python scripts/pipeline/parse-graph-changelog.py \
             --output changelog-data.json \
-            --lookback-days ${{ github.event.inputs.lookback_days || '30' }}
+            --lookback-days ${{ github.event.inputs.lookback_days || '30' }} \
+            --debug
         env:
           PYTHONUNBUFFERED: 1
 
