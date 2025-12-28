@@ -241,17 +241,77 @@ class GraphAPIChange:
         # The comparison script will determine if it's a gap
         return True
     
-    def supports_crud_or_minimal(self) -> bool:
-        """Check if this change involves CRUD operations."""
-        if not self.methods:
+    def should_filter_by_version(self, provider_api_versions: Dict[str, str]) -> bool:
+        """
+        Check if this change should be filtered out because the resource is 
+        already implemented in a different API version.
+        
+        Returns True if should be filtered (ignored), False if relevant.
+        """
+        if not provider_api_versions or not self.resources:
             return False
         
-        # Look for CRUD-related method names
-        crud_keywords = ['create', 'get', 'list', 'update', 'patch', 'delete', 'post', 'put']
-        return any(keyword in method.lower() for method in self.methods for keyword in crud_keywords)
+        # Check each resource in this change
+        for resource in self.resources:
+            resource_lower = resource.lower()
+            if resource_lower in provider_api_versions:
+                implemented_version = provider_api_versions[resource_lower]
+                # If resource is implemented in v1.0, ignore beta changes
+                # If resource is implemented in beta, ignore v1.0 changes
+                if implemented_version != self.api_version:
+                    return True  # Filter out - wrong API version
+        
+        return False  # Don't filter - relevant change
+    
+    def supports_crud_or_minimal(self) -> bool:
+        """
+        Check if this change has sufficient CRUD operations.
+        
+        Requirements for new resources:
+        - Minimal: GET/LIST + UPDATE
+        - OR Full CRUD: CREATE + READ + UPDATE + DELETE
+        """
+        if not self.methods:
+            # No methods means it's likely just a new resource definition
+            # We can't determine CRUD support from methods alone
+            return False
+        
+        # Normalize method names
+        methods_lower = [m.lower() for m in self.methods]
+        
+        # Check for CRUD operations
+        has_create = any(kw in methods_lower for kw in ['create', 'post'])
+        has_read = any(kw in methods_lower for kw in ['get', 'list'])
+        has_update = any(kw in methods_lower for kw in ['update', 'patch', 'put'])
+        has_delete = any(kw in methods_lower for kw in ['delete'])
+        
+        # Full CRUD
+        if has_create and has_read and has_update and has_delete:
+            return True
+        
+        # Minimal: READ + UPDATE
+        if has_read and has_update:
+            return True
+        
+        return False
     
     def to_dict(self) -> Dict:
         """Convert to dictionary for JSON serialization."""
+        # Determine what's missing for CRUD
+        methods_lower = [m.lower() for m in self.methods] if self.methods else []
+        has_create = any(kw in methods_lower for kw in ['create', 'post'])
+        has_read = any(kw in methods_lower for kw in ['get', 'list'])
+        has_update = any(kw in methods_lower for kw in ['update', 'patch', 'put'])
+        has_delete = any(kw in methods_lower for kw in ['delete'])
+        
+        crud_status = {
+            'has_create': has_create,
+            'has_read': has_read,
+            'has_update': has_update,
+            'has_delete': has_delete,
+            'meets_requirements': self.supports_crud_or_minimal()
+        }
+        
         return {
             'guid': self.guid,
             'title': self.title,
@@ -265,14 +325,18 @@ class GraphAPIChange:
             'doc_urls': self.doc_urls,
             'change_type': self.change_type,
             'change_actions': self.change_actions,
-            'supports_crud_or_minimal': self.supports_crud_or_minimal()
+            'crud_status': crud_status
         }
 
 
 def parse_rss_feed(url: str, lookback_days: int = 30, debug: bool = False, 
-                   verbose: bool = False, provider_resources: Set[str] = None) -> List[GraphAPIChange]:
+                   verbose: bool = False, provider_resources: Set[str] = None,
+                   provider_api_versions: Dict[str, str] = None) -> List[GraphAPIChange]:
     """Parse the RSS feed and return a list of API changes."""
     print(f"Fetching RSS feed from {url}...")
+    
+    if provider_api_versions is None:
+        provider_api_versions = {}
     
     feed = feedparser.parse(url)
     
@@ -344,6 +408,13 @@ def parse_rss_feed(url: str, lookback_days: int = 30, debug: bool = False,
     if provider_resources:
         relevant_changes = [c for c in changes if c.is_relevant_to_provider(provider_resources, debug=debug)]
         print(f"Found {len(relevant_changes)} changes with extractable resources/methods")
+        
+        # Apply API version filtering
+        pre_filter_count = len(relevant_changes)
+        relevant_changes = [c for c in relevant_changes if not c.should_filter_by_version(provider_api_versions)]
+        filtered_count = pre_filter_count - len(relevant_changes)
+        if filtered_count > 0:
+            print(f"Filtered out {filtered_count} changes (already implemented in different API version)")
     else:
         # Without provider resources, include all that have resources/methods
         relevant_changes = [c for c in changes if c.resources or c.methods]
@@ -406,12 +477,34 @@ def main():
     try:
         # Load provider resources if provided
         provider_resources = None
+        provider_api_versions = {}  # Map resource -> api_version
         if args.provider_resources:
             with open(args.provider_resources, 'r', encoding='utf-8') as f:
                 provider_data = json.load(f)
-                # Extract all Graph resource types from provider
-                provider_resources = set(provider_data.get('lookup', {}).get('operations', {}).keys())
+                
+                # Build map of resource -> API version for filtering
+                for resource in provider_data.get('resources', []):
+                    api_version = resource.get('api_version', '')
+                    # Normalize API version
+                    if 'beta' in api_version:
+                        normalized_version = 'beta'
+                    elif 'v1.0' in api_version or 'v1' in api_version:
+                        normalized_version = 'v1.0'
+                    else:
+                        normalized_version = 'unknown'
+                    
+                    # Map graph resources to API version
+                    for graph_resource in resource.get('graph_resources', []):
+                        provider_api_versions[graph_resource.lower()] = normalized_version
+                
+                provider_resources = set(provider_api_versions.keys())
                 print(f"Loaded {len(provider_resources)} provider resources for comparison")
+                if args.debug:
+                    # Show API version distribution
+                    version_dist = {}
+                    for v in provider_api_versions.values():
+                        version_dist[v] = version_dist.get(v, 0) + 1
+                    print(f"DEBUG: Provider API versions: {version_dist}")
         
         # Parse RSS feed
         changes = parse_rss_feed(
@@ -419,7 +512,8 @@ def main():
             args.lookback_days, 
             debug=args.debug, 
             verbose=args.verbose,
-            provider_resources=provider_resources
+            provider_resources=provider_resources,
+            provider_api_versions=provider_api_versions
         )
         
         # Convert to JSON
@@ -490,7 +584,15 @@ def main():
             if count > 0:
                 print(f"  - {impact}: {count}")
         
-        print(f"\nWith CRUD/minimal operations: {sum(1 for c in changes if c.supports_crud_or_minimal())}")
+        # CRUD validation summary
+        with_crud = sum(1 for c in changes if c.supports_crud_or_minimal())
+        without_crud = len(changes) - with_crud
+        new_resources = sum(1 for c in changes if any(a.get('type') == 'added_resource' for a in c.change_actions))
+        
+        print(f"\nCRUD Validation:")
+        print(f"  - Changes with sufficient CRUD (READ+UPDATE or full CRUD): {with_crud}")
+        print(f"  - Changes without sufficient CRUD: {without_crud}")
+        print(f"  - New resources requiring implementation: {new_resources}")
     
     except (OSError, json.JSONDecodeError, KeyError, ValueError) as e:
         print(f"Error: {e}", file=sys.stderr)
