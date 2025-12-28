@@ -3,7 +3,9 @@
 Parse Microsoft Graph API Changelog RSS feed and extract API changes.
 
 This script fetches the Microsoft Graph changelog RSS feed, parses it,
-and extracts relevant API changes including new resources, methods, and endpoints.
+and extracts relevant API changes including new resources, methods, and endpoints
+across all Microsoft Graph API service areas (Device Management, Identity & Access,
+Applications, Security, Groups, Users, Conditional Access, etc.).
 """
 
 import argparse
@@ -23,7 +25,9 @@ except ImportError:
 
 RSS_FEED_URL = "https://developer.microsoft.com/en-us/graph/changelog/rss"
 
-# API categories we care about for Device Management / Intune
+# API categories relevant to the Microsoft 365 Terraform Provider
+# Covers all major service areas: Device Management, Identity, Security, 
+# Applications, Groups, Conditional Access, and more
 RELEVANT_CATEGORIES = [
     "Device and app management",
     "Devices and app management",
@@ -36,6 +40,8 @@ RELEVANT_CATEGORIES = [
     "Calendar",
     "Files",
     "Applications",
+    "Users",
+    "Groups",
 ]
 
 
@@ -78,20 +84,17 @@ class GraphAPIChange:
             if resource_match:
                 resource_name = resource_match.group(1)
                 
-                # Check if it's a device management related resource
-                if any(keyword in resource_name.lower() for keyword in 
-                       ['device', 'intune', 'management', 'policy', 'configuration', 
-                        'app', 'mobile', 'conditional', 'compliance']):
-                    self.resources.append(resource_name)
-                    
-                    # Extract link to documentation
-                    link_tag = div.find('a')
-                    if link_tag and link_tag.get('href'):
-                        doc_url = link_tag['href']
-                        # Extract endpoint from documentation URL
-                        endpoint = self._extract_endpoint_from_url(doc_url)
-                        if endpoint:
-                            self.endpoints.append(endpoint)
+                # Add ALL resources - we'll filter for relevance later in is_relevant()
+                self.resources.append(resource_name)
+                
+                # Extract link to documentation
+                link_tag = div.find('a')
+                if link_tag and link_tag.get('href'):
+                    doc_url = link_tag['href']
+                    # Extract endpoint from documentation URL
+                    endpoint = self._extract_endpoint_from_url(doc_url)
+                    if endpoint:
+                        self.endpoints.append(endpoint)
             
             # Extract methods
             method_match = re.search(r'the\s+<a[^>]*>([a-zA-Z0-9_]+)</a>\s+method', text)
@@ -103,11 +106,9 @@ class GraphAPIChange:
                 resource_match = re.search(r'to the\s+<a[^>]*>([a-zA-Z0-9_]+)</a>\s+resource', text)
                 if resource_match:
                     resource_name = resource_match.group(1)
-                    if any(keyword in resource_name.lower() for keyword in 
-                           ['device', 'intune', 'management', 'policy', 'configuration', 
-                            'app', 'mobile', 'conditional', 'compliance']):
-                        endpoint = f"{resource_name}/{method_name}"
-                        self.endpoints.append(endpoint)
+                    # Add all resource/method combinations
+                    endpoint = f"{resource_name}/{method_name}"
+                    self.endpoints.append(endpoint)
             
             # Extract properties
             property_match = re.search(r'the\s+<b>([a-zA-Z0-9_]+)</b>\s+property', text)
@@ -147,16 +148,54 @@ class GraphAPIChange:
             # For now, include beta changes but mark them
             pass
         
-        # Check if it involves device management resources
+        # Expanded keywords covering all service areas the provider implements
         relevant_keywords = [
-            'device', 'intune', 'management', 'policy', 'configuration',
-            'app', 'mobile', 'conditional', 'compliance', 'security',
-            'identity', 'enrollment', 'assignment', 'remediation'
+            # Device Management
+            'device', 'intune', 'management', 'mdm', 'mam', 'enrollment',
+            
+            # Policies & Configuration
+            'policy', 'policies', 'configuration', 'compliance', 'conditional',
+            'assignment', 'remediation', 'setting',
+            
+            # Applications
+            'app', 'application', 'mobile', 'mobileapp', 'appmanagement',
+            
+            # Identity & Access
+            'identity', 'user', 'group', 'role', 'permission', 'authentication',
+            'authorization', 'access', 'entitlement', 'governance',
+            
+            # Security
+            'security', 'threat', 'protection', 'defender', 'vulnerability',
+            'attack', 'risk', 'incident', 'alert',
+            
+            # Directory & Users
+            'directory', 'azuread', 'entra', 'tenant', 'domain',
+            
+            # Service Principals & Apps
+            'serviceprincipal', 'oauth', 'consent', 'api', 'permission',
+            
+            # Conditional Access
+            'conditionalaccess', 'ca', 'mfa', 'authentication',
+            
+            # Microsoft 365 Services
+            'teams', 'sharepoint', 'onedrive', 'exchange', 'calendar',
+            
+            # Administrative Units & Management
+            'administrativeunit', 'organization', 'subscription',
         ]
         
         full_text = f"{self.title} {self.description} {' '.join(self.resources)} {' '.join(self.endpoints)}".lower()
         
-        return any(keyword in full_text for keyword in relevant_keywords)
+        # If any keyword matches, it's relevant
+        if any(keyword in full_text for keyword in relevant_keywords):
+            return True
+        
+        # Also consider it relevant if it's in a relevant category and has resources or endpoints
+        # This catches new resources even if they don't match keywords yet
+        if (self.resources or self.endpoints) and self.change_type == 'added':
+            return True
+        
+        return False
     
     def supports_crud_or_minimal(self) -> bool:
         """Check if this change supports full CRUD or at least update+get."""
@@ -270,7 +309,7 @@ def parse_rss_feed(url: str, lookback_days: int = 30) -> List[GraphAPIChange]:
     
     # Filter to relevant changes
     relevant_changes = [c for c in changes if c.is_relevant()]
-    print(f"Found {len(relevant_changes)} relevant changes for device management")
+    print(f"Found {len(relevant_changes)} relevant changes for Microsoft Graph API")
     
     return relevant_changes
 
