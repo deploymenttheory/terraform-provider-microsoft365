@@ -1,9 +1,13 @@
 #!/usr/bin/env python3
 """
-Scan the Terraform provider codebase to identify implemented Microsoft Graph API endpoints.
+Scan Terraform provider codebase to extract REAL Microsoft Graph API endpoints
+from Go SDK method calls.
 
-This script walks through the provider codebase and extracts information about
-what Graph API resources and endpoints are currently implemented.
+This version parses actual SDK method chains like:
+  client.DeviceManagement().DeviceHealthScripts().ByDeviceHealthScriptId(id).Get()
+  
+And converts them to Graph API paths:
+  /deviceManagement/deviceHealthScripts/{id}
 """
 
 import argparse
@@ -12,37 +16,106 @@ import os
 import re
 import sys
 from pathlib import Path
-from typing import Dict, List, Set
+from typing import Dict, List, Set, Tuple
 
 
-class ProviderEndpoint:
-    """Represents a Graph API endpoint implemented in the provider."""
+class GraphAPIEndpoint:
+    """Represents a Graph API endpoint extracted from SDK calls."""
     
-    def __init__(self, resource_name: str, file_path: str):
+    def __init__(self, resource_name: str, file_path: str, service_type: str, service_domain: str, api_version: str):
         self.resource_name = resource_name
         self.file_path = file_path
-        self.graph_resources = set()  # Graph API resource types
-        self.graph_methods = set()    # HTTP methods and operations
-        self.endpoints = set()         # Actual API endpoint paths
-        self.operations = set()        # CRUD operations supported
+        self.service_type = service_type  # resources, datasources, ephemeral, actions
+        self.service_domain = service_domain  # device_management, identity_and_access, m365_admin, windows_365
+        self.api_version = api_version  # graph_beta, graph_v1.0
+        self.sdk_chains = set()  # Raw SDK method chains
+        self.api_paths = set()    # Converted API paths
+        self.operations = set()   # CRUD operations
+        self.graph_resources = set()  # Resource type names
         
+    def add_sdk_chain(self, chain: str, operation: str):
+        """Add an SDK method chain and convert it to an API path."""
+        self.sdk_chains.add(chain)
+        self.operations.add(operation)
+        
+        # Convert SDK chain to API path
+        api_path = self._sdk_chain_to_api_path(chain)
+        if api_path:
+            self.api_paths.add(api_path)
+            
+            # Extract resource types from path
+            self._extract_resources_from_path(api_path)
+    
+    def _sdk_chain_to_api_path(self, chain: str) -> str:
+        """
+        Convert SDK method chain to Graph API path.
+        
+        Examples:
+          DeviceManagement().DeviceHealthScripts() 
+            → /deviceManagement/deviceHealthScripts
+          
+          DeviceManagement().DeviceHealthScripts().ByDeviceHealthScriptId(id)
+            → /deviceManagement/deviceHealthScripts/{id}
+        """
+        # Remove common prefixes
+        chain = chain.replace('client.', '').replace('r.client.', '')
+        
+        # Split by method calls
+        methods = re.findall(r'([A-Z][a-zA-Z0-9]*)\(\)', chain)
+        
+        if not methods:
+            return None
+        
+        path_parts = []
+        for method in methods:
+            # Handle By{Type}Id() pattern - these are ID placeholders
+            if method.startswith('By') and method.endswith('Id'):
+                path_parts.append('{id}')
+            else:
+                # Convert PascalCase to camelCase for first segment
+                if len(path_parts) == 0:
+                    # First segment: PascalCase → camelCase (DeviceManagement → deviceManagement)
+                    camel = method[0].lower() + method[1:]
+                    path_parts.append(camel)
+                else:
+                    # Subsequent segments: keep camelCase (DeviceHealthScripts → deviceHealthScripts)
+                    camel = method[0].lower() + method[1:]
+                    path_parts.append(camel)
+        
+        return '/' + '/'.join(path_parts)
+    
+    def _extract_resources_from_path(self, path: str):
+        """Extract resource type names from API path."""
+        # Remove leading slash and split
+        parts = path.lstrip('/').split('/')
+        
+        for part in parts:
+            # Skip ID placeholders
+            if part == '{id}' or '{' in part:
+                continue
+            # Add non-trivial path segments as resources
+            if len(part) > 2 and part not in ['api', 'v1.0', 'beta']:
+                self.graph_resources.add(part)
+    
     def to_dict(self) -> Dict:
         """Convert to dictionary for JSON serialization."""
         return {
             'resource_name': self.resource_name,
             'file_path': self.file_path,
+            'service_type': self.service_type,
+            'service_domain': self.service_domain,
+            'api_version': self.api_version,
+            'api_paths': sorted(list(self.api_paths)),
             'graph_resources': sorted(list(self.graph_resources)),
-            'graph_methods': sorted(list(self.graph_methods)),
-            'endpoints': sorted(list(self.endpoints)),
-            'operations': sorted(list(self.operations))
+            'operations': sorted(list(self.operations)),
+            'sdk_chains': sorted(list(self.sdk_chains))[:10]  # Limit to 10 examples
         }
 
 
-def find_resource_files(base_path: str) -> List[str]:
-    """Find all resource implementation files in the provider."""
-    resource_paths = []
+def find_go_files(base_path: str) -> List[str]:
+    """Find all Go files in resource directories."""
+    go_files = []
     
-    # Main resource directories
     resource_dirs = [
         'internal/resources',
         'internal/services',
@@ -53,174 +126,173 @@ def find_resource_files(base_path: str) -> List[str]:
         if not os.path.exists(full_path):
             continue
         
-        # Walk through directories
         for root, dirs, files in os.walk(full_path):
             for file in files:
-                # Look for Go files that likely contain resource implementations
                 if file.endswith('.go') and not file.endswith('_test.go'):
-                    if any(keyword in file for keyword in ['resource.go', 'crud.go', 'create.go', 'read.go', 'update.go', 'delete.go']):
-                        resource_paths.append(os.path.join(root, file))
+                    go_files.append(os.path.join(root, file))
     
-    return resource_paths
+    return go_files
 
 
-def extract_graph_api_calls(file_path: str) -> Set[str]:
-    """Extract Graph API endpoint calls from a Go file."""
-    endpoints = set()
+def extract_sdk_calls(file_path: str) -> List[Tuple[str, str]]:
+    """
+    Extract Graph SDK method chains and their operations from a Go file.
+    
+    Returns list of (sdk_chain, operation) tuples.
+    """
+    sdk_calls = []
     
     try:
         with open(file_path, 'r', encoding='utf-8') as f:
             content = f.read()
         
-        # Pattern 1: Direct URL construction
-        # Example: fmt.Sprintf("/deviceManagement/deviceHealthScripts/%s", id)
-        url_patterns = [
-            r'["\']/?([a-zA-Z0-9/{}%\-_]+)["\']',
-            r'fmt\.Sprintf\(["\']([^"\']+)["\']',
-            r'uri\s*:?=\s*["\']([^"\']+)["\']',
-        ]
+        # Pattern to match multi-line SDK method chains
+        # Matches: r.client.\n\t\tDeviceManagement().\n\t\tDeviceHealthScripts().\n\t\tPost(...)
         
-        for pattern in url_patterns:
-            matches = re.findall(pattern, content)
-            for match in matches:
-                # Filter for Graph API paths
-                if any(keyword in match.lower() for keyword in [
-                    'devicemanagement', 'device', 'intune', 'policy',
-                    'configuration', 'application', 'users', 'groups',
-                    'conditional', 'identity', 'security'
-                ]):
-                    # Clean up the endpoint
-                    endpoint = match.replace('%s', '{id}').replace('%d', '{id}')
-                    endpoint = re.sub(r'\$\{[^}]+\}', '{id}', endpoint)
-                    endpoints.add(endpoint)
+        # First, normalize whitespace in method chains
+        # Find patterns like: r.client. or client. followed by chained methods
+        pattern = r'(?:r\.client|client)\s*\.\s*([A-Z][a-zA-Z0-9]*\(\)[.\s]*)+([A-Z][a-z]+)\s*\('
         
-        # Pattern 2: Model/SDK calls
-        # Example: client.Get(ctx, "deviceManagement/deviceHealthScripts/...")
-        sdk_pattern = r'client\.(Get|Post|Patch|Put|Delete|Create|Update|Read)\([^,]+,\s*["\']([^"\']+)["\']'
-        sdk_matches = re.findall(sdk_pattern, content, re.IGNORECASE)
-        for method, endpoint in sdk_matches:
-            if any(keyword in endpoint.lower() for keyword in [
-                'devicemanagement', 'device', 'intune', 'policy',
-                'configuration', 'application', 'users', 'groups'
-            ]):
-                endpoints.add(endpoint)
+        matches = re.finditer(pattern, content, re.MULTILINE)
         
-        # Pattern 3: Resource type constants
-        # Example: const resourceType = "microsoft.graph.deviceManagementScript"
-        resource_pattern = r'microsoft\.graph\.([a-zA-Z0-9_]+)'
-        resource_matches = re.findall(resource_pattern, content)
-        for resource in resource_matches:
-            endpoints.add(f"resources/{resource}")
+        for match in matches:
+            full_match = match.group(0)
+            
+            # Extract the method chain (without final operation)
+            # Remove whitespace and newlines
+            chain = re.sub(r'\s+', '', full_match)
+            
+            # Extract operation (last method call before final parenthesis)
+            operation_match = re.search(r'\.([A-Z][a-z]+)\(', chain)
+            if operation_match:
+                operation = operation_match.group(1).lower()
+                
+                # Map operation to CRUD
+                if operation in ['post', 'create']:
+                    operation = 'create'
+                elif operation in ['get', 'list']:
+                    operation = 'read'
+                elif operation in ['patch', 'put', 'update']:
+                    operation = 'update'
+                elif operation in ['delete']:
+                    operation = 'delete'
+                
+                # Remove the final operation from chain for path extraction
+                chain_without_op = re.sub(r'\.[A-Z][a-z]+\($', '', chain)
+                
+                sdk_calls.append((chain_without_op, operation))
     
     except Exception as e:
         print(f"Warning: Error reading {file_path}: {e}", file=sys.stderr)
     
-    return endpoints
+    return sdk_calls
 
 
-def extract_operations_from_file(file_path: str) -> Set[str]:
-    """Determine which CRUD operations are implemented in a file."""
-    operations = set()
-    
-    try:
-        with open(file_path, 'r', encoding='utf-8') as f:
-            content = f.read()
-        
-        # Look for function signatures
-        if re.search(r'func.*Create\(', content):
-            operations.add('create')
-        if re.search(r'func.*Read\(', content):
-            operations.add('read')
-        if re.search(r'func.*Update\(', content):
-            operations.add('update')
-        if re.search(r'func.*Delete\(', content):
-            operations.add('delete')
-        
-        # Also check for HTTP method calls
-        if re.search(r'\.Post\(', content):
-            operations.add('create')
-        if re.search(r'\.Get\(', content):
-            operations.add('read')
-        if re.search(r'\.(Patch|Put)\(', content):
-            operations.add('update')
-        if re.search(r'\.Delete\(', content):
-            operations.add('delete')
-    
-    except Exception as e:
-        print(f"Warning: Error reading {file_path}: {e}", file=sys.stderr)
-    
-    return operations
-
-
-def extract_resource_name_from_path(file_path: str, base_path: str) -> str:
-    """Extract a human-readable resource name from the file path."""
-    rel_path = os.path.relpath(file_path, base_path)
-    
-    # Remove common prefixes and suffixes
-    name = rel_path.replace('internal/services/resources/', '')
-    name = name.replace('internal/resources/', '')
-    name = name.replace('/resource.go', '')
-    name = name.replace('/crud.go', '')
-    name = name.replace('.go', '')
-    
-    # Convert path separators to underscores
-    name = name.replace('/', '_')
-    
-    return name
-
-
-def scan_provider(base_path: str) -> List[ProviderEndpoint]:
-    """Scan the provider codebase and extract endpoint information."""
+def scan_provider(base_path: str, verbose: bool = False) -> List[GraphAPIEndpoint]:
+    """Scan the provider codebase and extract Graph API endpoints from SDK calls."""
     print(f"Scanning provider at: {base_path}")
     
-    # Find all resource files
-    resource_files = find_resource_files(base_path)
-    print(f"Found {len(resource_files)} resource files")
+    go_files = find_go_files(base_path)
+    print(f"Found {len(go_files)} Go files")
     
-    endpoints = []
+    # Group by full resource path (action/service_domain/version/resource)
+    resources_map = {}
     
-    for file_path in resource_files:
-        # Extract resource name
-        resource_name = extract_resource_name_from_path(file_path, base_path)
+    for file_path in go_files:
+        # Extract resource metadata from path
+        resource_name, service_type, service_domain, api_version = extract_resource_metadata_from_path(file_path, base_path)
         
-        # Create endpoint object
-        endpoint = ProviderEndpoint(resource_name, os.path.relpath(file_path, base_path))
+        # Create unique key for grouping
+        resource_key = f"{service_type}/{service_domain}/{api_version}/{resource_name}"
         
-        # Extract Graph API calls
-        endpoint.endpoints = extract_graph_api_calls(file_path)
+        if resource_key not in resources_map:
+            resources_map[resource_key] = GraphAPIEndpoint(
+                resource_name,
+                os.path.relpath(os.path.dirname(file_path), base_path),
+                service_type,
+                service_domain,
+                api_version
+            )
         
-        # Extract operations
-        endpoint.operations = extract_operations_from_file(file_path)
+        endpoint = resources_map[resource_key]
         
-        # Extract Graph resource types from endpoints
-        for ep in endpoint.endpoints:
-            # Try to extract resource type from endpoint path
-            parts = ep.split('/')
-            if len(parts) > 0:
-                # First part is usually the resource collection
-                resource_type = parts[0]
-                if resource_type and not resource_type.startswith('{'):
-                    endpoint.graph_resources.add(resource_type)
-                
-                # Check for specific resource names in subsequent parts
-                for part in parts:
-                    if part and not part.startswith('{') and len(part) > 3:
-                        # Looks like a resource name, not an ID
-                        if not part.isdigit():
-                            endpoint.graph_resources.add(part)
+        # Extract SDK calls from file
+        sdk_calls = extract_sdk_calls(file_path)
         
-        # Only add if we found something
-        if endpoint.endpoints or endpoint.operations:
-            endpoints.append(endpoint)
+        if verbose and sdk_calls:
+            print(f"\n  [{service_type}] {service_domain}/{api_version}/{resource_name}:")
+            for chain, operation in sdk_calls[:3]:
+                path = endpoint._sdk_chain_to_api_path(chain)
+                print(f"    {operation}: {path}")
+        
+        for chain, operation in sdk_calls:
+            endpoint.add_sdk_chain(chain, operation)
     
-    print(f"Extracted {len(endpoints)} implemented resources")
+    # Filter to only resources that have API paths
+    endpoints = [ep for ep in resources_map.values() if ep.api_paths]
+    
+    print(f"Extracted {len(endpoints)} provider resources with Graph API endpoints")
     
     return endpoints
+
+
+def extract_resource_metadata_from_path(file_path: str, base_path: str) -> Tuple[str, str, str, str]:
+    """
+    Extract resource metadata from file path matching provider structure.
+    
+    Returns: (resource_name, service_type, service_domain, api_version)
+    
+    Example path:
+      internal/services/resources/device_management/graph_beta/windows_remediation_script/crud.go
+      → ('windows_remediation_script', 'resources', 'device_management', 'graph_beta')
+    
+    Provider structure:
+      internal/services/{service_type}/{service_domain}/{api_version}/{resource_name}/
+      
+      service_type: resources, datasources, ephemeral, actions
+      service_domain: device_management, identity_and_access, m365_admin, windows_365
+      api_version: graph_beta, graph_v1.0
+      resource_name: the specific resource
+    """
+    rel_path = os.path.relpath(file_path, base_path)
+    parts = rel_path.split('/')
+    
+    service_type = 'unknown'
+    service_domain = 'unknown'
+    api_version = 'unknown'
+    resource_name = 'unknown'
+    
+    try:
+        # Find 'services' index
+        if 'services' in parts:
+            services_idx = parts.index('services')
+            
+            # Service type is next: resources, datasources, ephemeral, actions
+            if services_idx + 1 < len(parts):
+                service_type = parts[services_idx + 1]
+            
+            # Service domain is next: device_management, identity_and_access, etc.
+            if services_idx + 2 < len(parts):
+                service_domain = parts[services_idx + 2]
+            
+            # API version is next: graph_beta, graph_v1.0
+            if services_idx + 3 < len(parts):
+                api_version = parts[services_idx + 3]
+            
+            # Resource name is the directory containing the file
+            if services_idx + 4 < len(parts):
+                resource_name = parts[services_idx + 4]
+    
+    except (ValueError, IndexError):
+        # Fallback for non-standard paths
+        resource_name = os.path.basename(os.path.dirname(file_path))
+    
+    return resource_name, service_type, service_domain, api_version
 
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Scan Terraform provider for implemented Graph API endpoints"
+        description="Scan Terraform provider for Graph API endpoints from SDK calls"
     )
     parser.add_argument(
         '--output',
@@ -232,52 +304,53 @@ def main():
         '--base-path',
         type=str,
         default='.',
-        help='Base path of the provider codebase (default: current directory)'
+        help='Base path of provider codebase (default: current directory)'
+    )
+    parser.add_argument(
+        '--verbose',
+        action='store_true',
+        help='Enable verbose output with SDK call examples'
     )
     
     args = parser.parse_args()
     
     try:
-        # Scan provider
-        endpoints = scan_provider(args.base_path)
+        endpoints = scan_provider(args.base_path, verbose=args.verbose)
         
-        # Build a lookup structure for efficient comparison
+        # Build lookup structures
         endpoint_lookup = {
-            'resources': {},
-            'endpoints': {},
-            'operations': {}
+            'api_paths': {},
+            'graph_resources': {}
         }
         
         for ep in endpoints:
-            # Index by resource name
-            endpoint_lookup['resources'][ep.resource_name] = ep.to_dict()
-            
-            # Index by endpoint paths
-            for endpoint_path in ep.endpoints:
-                if endpoint_path not in endpoint_lookup['endpoints']:
-                    endpoint_lookup['endpoints'][endpoint_path] = []
-                endpoint_lookup['endpoints'][endpoint_path].append(ep.resource_name)
+            # Index by API paths
+            for path in ep.api_paths:
+                if path not in endpoint_lookup['api_paths']:
+                    endpoint_lookup['api_paths'][path] = []
+                endpoint_lookup['api_paths'][path].append(ep.resource_name)
             
             # Index by Graph resource types
-            for graph_resource in ep.graph_resources:
-                if graph_resource not in endpoint_lookup['operations']:
-                    endpoint_lookup['operations'][graph_resource] = {
+            for resource in ep.graph_resources:
+                if resource not in endpoint_lookup['graph_resources']:
+                    endpoint_lookup['graph_resources'][resource] = {
                         'resources': [],
                         'operations': set()
                     }
-                endpoint_lookup['operations'][graph_resource]['resources'].append(ep.resource_name)
-                endpoint_lookup['operations'][graph_resource]['operations'].update(ep.operations)
+                endpoint_lookup['graph_resources'][resource]['resources'].append(ep.resource_name)
+                endpoint_lookup['graph_resources'][resource]['operations'].update(ep.operations)
         
-        # Convert sets to lists for JSON serialization
-        for resource in endpoint_lookup['operations'].values():
+        # Convert sets to lists for JSON
+        for resource in endpoint_lookup['graph_resources'].values():
             resource['operations'] = sorted(list(resource['operations']))
         
-        # Create output structure
+        # Create output
         output_data = {
-            'generated_at': json.dumps(sys.maxsize),  # Will be replaced with timestamp
+            'generated_at': json.dumps(sys.maxsize),  # Placeholder
+            'extraction_method': 'sdk_call_parsing',
             'total_resources': len(endpoints),
-            'total_endpoints': len(endpoint_lookup['endpoints']),
-            'total_graph_resources': len(endpoint_lookup['operations']),
+            'total_api_paths': len(endpoint_lookup['api_paths']),
+            'total_graph_resources': len(endpoint_lookup['graph_resources']),
             'resources': [ep.to_dict() for ep in endpoints],
             'lookup': endpoint_lookup
         }
@@ -294,20 +367,28 @@ def main():
         
         # Print summary
         print("\n" + "="*60)
-        print("SUMMARY")
+        print("SUMMARY (SDK-Based Extraction)")
         print("="*60)
         print(f"Total resources: {len(endpoints)}")
-        print(f"Total unique endpoints: {len(endpoint_lookup['endpoints'])}")
-        print(f"Total Graph resource types: {len(endpoint_lookup['operations'])}")
+        print(f"Total API paths: {len(endpoint_lookup['api_paths'])}")
+        print(f"Total Graph resource types: {len(endpoint_lookup['graph_resources'])}")
         
         print(f"\nTop Graph resource types:")
         sorted_resources = sorted(
-            endpoint_lookup['operations'].items(),
+            endpoint_lookup['graph_resources'].items(),
             key=lambda x: len(x[1]['resources']),
             reverse=True
-        )[:10]
+        )[:15]
         for resource, data in sorted_resources:
-            print(f"  - {resource}: {len(data['resources'])} resources, {data['operations']}")
+            ops = ', '.join(data['operations']) if data['operations'] else 'none'
+            print(f"  - {resource}: {len(data['resources'])} resources [{ops}]")
+        
+        if args.verbose:
+            print(f"\nSample API paths:")
+            for path in sorted(list(endpoint_lookup['api_paths'].keys()))[:10]:
+                resources = endpoint_lookup['api_paths'][path]
+                print(f"  {path}")
+                print(f"    Used by: {', '.join(resources[:3])}")
     
     except Exception as e:
         print(f"Error: {e}", file=sys.stderr)
