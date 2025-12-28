@@ -45,21 +45,23 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r scripts/pipeline/requirements.txt
 
+      - name: Scan provider for implemented endpoints
+        id: scan_provider
+        run: |
+          python scripts/pipeline/scan-provider-endpoints.py \
+            --output provider-endpoints.json
+        env:
+          PYTHONUNBUFFERED: 1
+
       - name: Parse Microsoft Graph Changelog RSS
         id: parse_changelog
         run: |
           python scripts/pipeline/parse-graph-changelog.py \
             --output changelog-data.json \
             --lookback-days ${{ github.event.inputs.lookback_days || '30' }} \
-            --debug
-        env:
-          PYTHONUNBUFFERED: 1
-
-      - name: Scan provider for implemented endpoints
-        id: scan_provider
-        run: |
-          python scripts/pipeline/scan-provider-endpoints.py \
-            --output provider-endpoints.json
+            --provider-resources provider-endpoints.json \
+            --debug \
+            --verbose
         env:
           PYTHONUNBUFFERED: 1
 

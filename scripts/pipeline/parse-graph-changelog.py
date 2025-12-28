@@ -1,11 +1,9 @@
 #!/usr/bin/env python3
 """
-Parse Microsoft Graph API Changelog RSS feed and extract API changes.
+Parse Microsoft Graph API Changelog RSS feed using URL-based matching (v2).
 
-This script fetches the Microsoft Graph changelog RSS feed, parses it,
-and extracts relevant API changes including new resources, methods, and endpoints
-across all Microsoft Graph API service areas (Device Management, Identity & Access,
-Applications, Security, Groups, Users, Conditional Access, etc.).
+This version extracts API resources and methods from documentation URLs in the
+description field, providing precise matching instead of keyword-based filtering.
 """
 
 import argparse
@@ -13,7 +11,8 @@ import json
 import re
 import sys
 from datetime import datetime, timedelta
-from typing import Dict, List, Optional
+from typing import Dict, List, Set, Optional
+from urllib.parse import urlparse, parse_qs
 
 try:
     import feedparser
@@ -24,25 +23,6 @@ except ImportError:
 
 
 RSS_FEED_URL = "https://developer.microsoft.com/en-us/graph/changelog/rss"
-
-# API categories relevant to the Microsoft 365 Terraform Provider
-# Covers all major service areas: Device Management, Identity, Security, 
-# Applications, Groups, Conditional Access, and more
-RELEVANT_CATEGORIES = [
-    "Device and app management",
-    "Devices and app management",
-    "Identity and access",
-    "Security",
-    "Agents",
-    "Cloud communications",
-    "Teamwork and communications",
-    "Teamwork",
-    "Calendar",
-    "Files",
-    "Applications",
-    "Users",
-    "Groups",
-]
 
 
 class GraphAPIChange:
@@ -56,201 +36,167 @@ class GraphAPIChange:
         self.pub_date = pub_date
         self.categories = categories
         self.api_version = api_version
-        self.resources = []
-        self.methods = []
-        self.endpoints = []
-        self.properties = []
-        self.change_type = None  # 'added', 'removed', 'deprecated', 'updated'
         
-    def parse_description(self):
-        """Parse the HTML description to extract API details."""
+        # Extracted from description URLs
+        self.resources = []  # Resource type names
+        self.methods = []    # Method names
+        self.doc_urls = []   # Documentation URLs
+        self.endpoints = []  # API endpoint patterns
+        
+        # Metadata
+        self.change_type = None  # 'added', 'removed', 'deprecated', 'updated'
+        self.change_actions = []  # List of specific actions (added resource, added method, etc.)
+        
+    def parse_description(self, debug: bool = False):
+        """Parse the HTML description to extract API details from URLs."""
         soup = BeautifulSoup(self.description, 'html.parser')
         
-        for div in soup.find_all('div'):
-            text = div.get_text(strip=True)
+        # Determine change type from text
+        desc_lower = self.description.lower()
+        if 'added' in desc_lower:
+            self.change_type = 'added'
+        elif 'removed' in desc_lower:
+            self.change_type = 'removed'
+        elif 'deprecated' in desc_lower:
+            self.change_type = 'deprecated'
+        elif 'updated' in desc_lower or 'changed' in desc_lower:
+            self.change_type = 'updated'
+        
+        # Extract all links from description
+        for link in soup.find_all('a'):
+            href = link.get('href')
+            if not href or 'learn.microsoft.com/en-us/graph/api' not in href:
+                continue
             
-            # Detect change type
-            if 'Added the' in text or 'added the' in text:
-                self.change_type = 'added'
-            elif 'Removed the' in text or 'removed the' in text:
-                self.change_type = 'removed'
-            elif 'Deprecated the' in text or 'deprecated the' in text:
-                self.change_type = 'deprecated'
-            elif 'Updated the' in text or 'updated the' in text:
-                self.change_type = 'updated'
+            self.doc_urls.append(href)
             
-            # Extract resources
-            resource_match = re.search(r'the\s+<a[^>]*>([a-zA-Z0-9_]+)</a>\s+resource', text)
-            if resource_match:
-                resource_name = resource_match.group(1)
-                
-                # Add ALL resources - we'll filter for relevance later in is_relevant()
-                self.resources.append(resource_name)
-                
-                # Extract link to documentation
-                link_tag = div.find('a')
-                if link_tag and link_tag.get('href'):
-                    doc_url = link_tag['href']
-                    # Extract endpoint from documentation URL
-                    endpoint = self._extract_endpoint_from_url(doc_url)
-                    if endpoint:
-                        self.endpoints.append(endpoint)
+            # Parse URL to extract resource/method information
+            parsed_url = urlparse(href)
+            path = parsed_url.path
             
-            # Extract methods
-            method_match = re.search(r'the\s+<a[^>]*>([a-zA-Z0-9_]+)</a>\s+method', text)
-            if method_match:
-                method_name = method_match.group(1)
-                self.methods.append(method_name)
-                
-                # Extract associated resource
-                resource_match = re.search(r'to the\s+<a[^>]*>([a-zA-Z0-9_]+)</a>\s+resource', text)
-                if resource_match:
-                    resource_name = resource_match.group(1)
-                    # Add all resource/method combinations
-                    endpoint = f"{resource_name}/{method_name}"
+            # Extract API version from query params
+            query_params = parse_qs(parsed_url.query)
+            url_api_version = None
+            if 'view' in query_params:
+                view = query_params['view'][0]
+                if 'graph-rest-beta' in view:
+                    url_api_version = 'beta'
+                elif 'graph-rest-1.0' in view:
+                    url_api_version = 'v1.0'
+            
+            # Extract resource/method from path
+            # Patterns:
+            # /en-us/graph/api/resources/RESOURCE_NAME
+            # /en-us/graph/api/RESOURCE-METHOD
+            # /en-us/graph/api/METHOD
+            
+            path_parts = path.split('/')
+            
+            if 'resources' in path_parts:
+                # This is a resource definition
+                idx = path_parts.index('resources')
+                if idx + 1 < len(path_parts):
+                    resource_name = path_parts[idx + 1]
+                    # Remove query params if they leaked into the path
+                    resource_name = resource_name.split('?')[0]
+                    self.resources.append(resource_name)
+                    
+                    # Generate endpoint pattern
+                    endpoint = f"resources/{resource_name}"
                     self.endpoints.append(endpoint)
+                    
+                    if debug:
+                        print(f"      Found resource: {resource_name} ({url_api_version})")
             
-            # Extract properties
-            property_match = re.search(r'the\s+<b>([a-zA-Z0-9_]+)</b>\s+property', text)
-            if property_match:
-                property_name = property_match.group(1)
-                self.properties.append(property_name)
+            elif '/api/' in path:
+                # This is a method/operation
+                # Extract the part after /api/
+                api_idx = path.rfind('/api/')
+                if api_idx != -1:
+                    method_part = path[api_idx + 5:].split('?')[0]
+                    
+                    # Parse method name and resource
+                    # Format: resourceName-methodName or just methodName
+                    if '-' in method_part:
+                        resource_name, method_name = method_part.split('-', 1)
+                        self.resources.append(resource_name)
+                        self.methods.append(method_name)
+                        endpoint = f"{resource_name}/{method_name}"
+                        self.endpoints.append(endpoint)
+                        
+                        if debug:
+                            print(f"      Found method: {resource_name}.{method_name} ({url_api_version})")
+                    else:
+                        # Just a method name
+                        self.methods.append(method_part)
+                        self.endpoints.append(f"api/{method_part}")
+                        
+                        if debug:
+                            print(f"      Found operation: {method_part} ({url_api_version})")
+        
+        # Remove duplicates
+        self.resources = list(set(self.resources))
+        self.methods = list(set(self.methods))
+        self.endpoints = list(set(self.endpoints))
+        self.doc_urls = list(set(self.doc_urls))
     
-    def _extract_endpoint_from_url(self, url: str) -> Optional[str]:
-        """Extract API endpoint pattern from documentation URL."""
-        # Example: https://learn.microsoft.com/en-us/graph/api/resources/intune-...
-        # or: https://learn.microsoft.com/en-us/graph/api/device-post-...
-        
-        if '/api/resources/' in url:
-            # Resource documentation
-            parts = url.split('/api/resources/')
-            if len(parts) > 1:
-                resource = parts[1].split('?')[0].split('#')[0]
-                return f"resources/{resource}"
-        
-        elif '/api/' in url:
-            # Method documentation
-            parts = url.split('/api/')
-            if len(parts) > 1:
-                method = parts[1].split('?')[0].split('#')[0]
-                return f"api/{method}"
-        
-        return None
-    
-    def is_relevant(self, debug: bool = False) -> bool:
-        """Determine if this change is relevant to the Terraform provider."""
-        # Check if it's in a relevant category
-        if not any(cat in self.categories for cat in RELEVANT_CATEGORIES):
+    def is_relevant_to_provider(self, provider_resources: Set[str], debug: bool = False) -> bool:
+        """
+        Determine if this change is relevant by checking if any extracted resources
+        match what's implemented in the provider.
+        """
+        # Always include if we have resources or methods (we'll compare later)
+        if not self.resources and not self.methods:
             if debug:
-                print(f"    DEBUG: Filtered - categories {self.categories} not in {RELEVANT_CATEGORIES}")
+                print(f"    No resources or methods extracted from URLs")
             return False
         
-        # Check if it's a beta-only change (we might want to skip these)
-        if self.api_version == 'beta':
-            # For now, include beta changes but mark them
-            pass
+        # Check if any of our resources match provider resources
+        matches = []
+        for resource in self.resources:
+            resource_lower = resource.lower()
+            for provider_resource in provider_resources:
+                provider_lower = provider_resource.lower()
+                # Check for exact match or substring match
+                if resource_lower == provider_lower or resource_lower in provider_lower or provider_lower in resource_lower:
+                    matches.append(f"{resource} ↔ {provider_resource}")
         
-        # Expanded keywords covering all service areas the provider implements
-        relevant_keywords = [
-            # Device Management
-            'device', 'intune', 'management', 'mdm', 'mam', 'enrollment',
-            
-            # Policies & Configuration
-            'policy', 'policies', 'configuration', 'compliance', 'conditional',
-            'assignment', 'remediation', 'setting',
-            
-            # Applications
-            'app', 'application', 'mobile', 'mobileapp', 'appmanagement',
-            
-            # Identity & Access
-            'identity', 'user', 'group', 'role', 'permission', 'authentication',
-            'authorization', 'access', 'entitlement', 'governance',
-            
-            # Security
-            'security', 'threat', 'protection', 'defender', 'vulnerability',
-            'attack', 'risk', 'incident', 'alert',
-            
-            # Directory & Users
-            'directory', 'azuread', 'entra', 'tenant', 'domain',
-            
-            # Service Principals & Apps
-            'serviceprincipal', 'oauth', 'consent', 'api', 'permission',
-            
-            # Conditional Access
-            'conditionalaccess', 'ca', 'mfa', 'authentication',
-            
-            # Microsoft 365 Services
-            'teams', 'sharepoint', 'onedrive', 'exchange', 'calendar',
-            
-            # Administrative Units & Management
-            'administrativeunit', 'organization', 'subscription',
-        ]
+        if matches and debug:
+            print(f"    Matches provider resources: {matches}")
         
-        full_text = f"{self.title} {self.description} {' '.join(self.resources)} {' '.join(self.endpoints)}".lower()
-        
-        # If any keyword matches, it's relevant
-        if any(keyword in full_text for keyword in relevant_keywords):
-            return True
-        
-        # Also consider it relevant if it's in a relevant category and has resources or endpoints
-        # This catches new resources even if they don't match keywords yet
-        if (self.resources or self.endpoints) and self.change_type == 'added':
-            return True
-        
-        return False
+        # For now, include ALL changes that have resources/methods
+        # The comparison script will determine if it's a gap
+        return True
     
     def supports_crud_or_minimal(self) -> bool:
-        """Check if this change supports full CRUD or at least update+get."""
-        # This is a heuristic - we look for methods that suggest CRUD operations
-        crud_methods = ['create', 'get', 'list', 'update', 'patch', 'delete', 'post', 'put']
+        """Check if this change involves CRUD operations."""
+        if not self.methods:
+            return False
         
-        found_methods = set()
-        for method in self.methods:
-            method_lower = method.lower()
-            for crud in crud_methods:
-                if crud in method_lower:
-                    found_methods.add(crud)
-        
-        # Check description for HTTP methods
-        if 'POST' in self.description or 'post' in self.description.lower():
-            found_methods.add('create')
-        if 'GET' in self.description or 'get' in self.description.lower():
-            found_methods.add('get')
-        if 'PATCH' in self.description or 'patch' in self.description.lower():
-            found_methods.add('update')
-        if 'PUT' in self.description or 'put' in self.description.lower():
-            found_methods.add('update')
-        if 'DELETE' in self.description or 'delete' in self.description.lower():
-            found_methods.add('delete')
-        
-        # Full CRUD: create, read (get), update, delete
-        has_full_crud = all(op in found_methods for op in ['create', 'get', 'update', 'delete'])
-        
-        # Minimal: update and get
-        has_minimal = 'get' in found_methods and 'update' in found_methods
-        
-        return has_full_crud or has_minimal
+        # Look for CRUD-related method names
+        crud_keywords = ['create', 'get', 'list', 'update', 'patch', 'delete', 'post', 'put']
+        return any(keyword in method.lower() for method in self.methods for keyword in crud_keywords)
     
     def to_dict(self) -> Dict:
         """Convert to dictionary for JSON serialization."""
         return {
             'guid': self.guid,
             'title': self.title,
-            'description': self.description[:500],  # Truncate for readability
+            'description': self.description[:500],
             'pub_date': self.pub_date,
             'categories': self.categories,
             'api_version': self.api_version,
             'resources': self.resources,
             'methods': self.methods,
             'endpoints': self.endpoints,
-            'properties': self.properties,
+            'doc_urls': self.doc_urls,
             'change_type': self.change_type,
-            'is_relevant': self.is_relevant(),
             'supports_crud_or_minimal': self.supports_crud_or_minimal()
         }
 
 
-def parse_rss_feed(url: str, lookback_days: int = 30, debug: bool = False, verbose: bool = False) -> List[GraphAPIChange]:
+def parse_rss_feed(url: str, lookback_days: int = 30, debug: bool = False, 
+                   verbose: bool = False, provider_resources: Set[str] = None) -> List[GraphAPIChange]:
     """Parse the RSS feed and return a list of API changes."""
     print(f"Fetching RSS feed from {url}...")
     
@@ -263,7 +209,9 @@ def parse_rss_feed(url: str, lookback_days: int = 30, debug: bool = False, verbo
     
     if debug:
         print(f"\nDEBUG: Cutoff date: {datetime.now() - timedelta(days=lookback_days)}")
-        print(f"DEBUG: Relevant categories: {RELEVANT_CATEGORIES}\n")
+        print(f"DEBUG: Using URL-based extraction from documentation links")
+        if provider_resources:
+            print(f"DEBUG: Comparing against {len(provider_resources)} provider resources\n")
     
     changes = []
     cutoff_date = datetime.now() - timedelta(days=lookback_days)
@@ -306,63 +254,43 @@ def parse_rss_feed(url: str, lookback_days: int = 30, debug: bool = False, verbo
             api_version=api_version
         )
         
-        # Parse description to extract details
-        change.parse_description()
+        # Parse description to extract details from URLs
+        if verbose and len(changes) < 3:
+            print(f"\n  Parsing entry {len(changes) + 1}:")
+            print(f"    Title: {change.title}")
+            change.parse_description(debug=True)
+        else:
+            change.parse_description(debug=False)
         
         changes.append(change)
-        
-        if verbose and len(changes) <= 5:  # Show first 5 in verbose mode
-            print(f"\n  Sample entry {len(changes)}:")
-            print(f"    Title: {change.title}")
-            print(f"    Categories: {change.categories}")
-            print(f"    Resources: {change.resources}")
-            print(f"    Methods: {change.methods}")
     
     print(f"Parsed {len(changes)} changes within the last {lookback_days} days")
     
-    # Filter to relevant changes with debug info
-    relevant_changes = []
-    filtered_out = []
-    
-    for change in changes:
-        if change.is_relevant():
-            relevant_changes.append(change)
-        else:
-            filtered_out.append(change)
-    
-    print(f"Found {len(relevant_changes)} relevant changes for Microsoft Graph API")
-    
-    if debug and len(filtered_out) > 0:
-        print(f"\nDEBUG: Filtered out {len(filtered_out)} changes")
-        print("\nDEBUG: Sample of filtered changes (first 10):")
-        for i, change in enumerate(filtered_out[:10], 1):
-            print(f"\n  {i}. Title: {change.title}")
-            print(f"     Categories: {change.categories}")
-            print(f"     API Version: {change.api_version}")
-            print(f"     Resources: {change.resources}")
-            print(f"     Endpoints: {change.endpoints}")
-            print(f"     Change Type: {change.change_type}")
-            
-            # Check why it was filtered
-            has_category = any(cat in change.categories for cat in RELEVANT_CATEGORIES)
-            print(f"     Has relevant category: {has_category}")
-            if not has_category:
-                print(f"     -> Filtered: Not in relevant categories")
+    # Filter to relevant changes
+    if provider_resources:
+        relevant_changes = [c for c in changes if c.is_relevant_to_provider(provider_resources, debug=debug)]
+        print(f"Found {len(relevant_changes)} changes with extractable resources/methods")
+    else:
+        # Without provider resources, include all that have resources/methods
+        relevant_changes = [c for c in changes if c.resources or c.methods]
+        print(f"Found {len(relevant_changes)} changes with extractable resources/methods")
     
     if debug and len(relevant_changes) > 0:
         print(f"\nDEBUG: Sample of relevant changes (first 5):")
         for i, change in enumerate(relevant_changes[:5], 1):
             print(f"\n  {i}. Title: {change.title}")
-            print(f"     Categories: {change.categories}")
+            print(f"     API Version: {change.api_version}")
             print(f"     Resources: {change.resources}")
+            print(f"     Methods: {change.methods}")
             print(f"     Endpoints: {change.endpoints}")
+            print(f"     Doc URLs: {len(change.doc_urls)} links")
     
     return relevant_changes
 
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Parse Microsoft Graph API Changelog RSS feed"
+        description="Parse Microsoft Graph API Changelog RSS feed using URL-based extraction"
     )
     parser.add_argument(
         '--output',
@@ -385,25 +313,46 @@ def main():
     parser.add_argument(
         '--debug',
         action='store_true',
-        help='Enable debug output to see filtering decisions'
+        help='Enable debug output'
     )
     parser.add_argument(
         '--verbose',
         action='store_true',
-        help='Enable verbose output with detailed parsing info'
+        help='Enable verbose parsing output'
+    )
+    parser.add_argument(
+        '--provider-resources',
+        type=str,
+        help='Path to provider endpoints JSON for comparison filtering'
     )
     
     args = parser.parse_args()
     
     try:
+        # Load provider resources if provided
+        provider_resources = None
+        if args.provider_resources:
+            with open(args.provider_resources, 'r') as f:
+                provider_data = json.load(f)
+                # Extract all Graph resource types from provider
+                provider_resources = set(provider_data.get('lookup', {}).get('operations', {}).keys())
+                print(f"Loaded {len(provider_resources)} provider resources for comparison")
+        
         # Parse RSS feed
-        changes = parse_rss_feed(args.url, args.lookback_days, debug=args.debug, verbose=args.verbose)
+        changes = parse_rss_feed(
+            args.url, 
+            args.lookback_days, 
+            debug=args.debug, 
+            verbose=args.verbose,
+            provider_resources=provider_resources
+        )
         
         # Convert to JSON
         output_data = {
             'generated_at': datetime.now().isoformat(),
             'lookback_days': args.lookback_days,
             'total_changes': len(changes),
+            'extraction_method': 'url_based',
             'changes': [c.to_dict() for c in changes]
         }
         
@@ -418,13 +367,24 @@ def main():
         print("SUMMARY")
         print("="*60)
         print(f"Total changes: {len(changes)}")
-        print(f"By category:")
-        category_counts = {}
+        print(f"Extraction method: URL-based (from documentation links)")
+        
+        # Count unique resources
+        all_resources = set()
+        all_methods = set()
         for change in changes:
-            for cat in change.categories:
-                category_counts[cat] = category_counts.get(cat, 0) + 1
-        for cat, count in sorted(category_counts.items(), key=lambda x: x[1], reverse=True):
-            print(f"  - {cat}: {count}")
+            all_resources.update(change.resources)
+            all_methods.update(change.methods)
+        
+        print(f"\nUnique resources extracted: {len(all_resources)}")
+        print(f"Unique methods extracted: {len(all_methods)}")
+        
+        print(f"\nBy API version:")
+        version_counts = {}
+        for change in changes:
+            version_counts[change.api_version] = version_counts.get(change.api_version, 0) + 1
+        for version, count in sorted(version_counts.items()):
+            print(f"  - {version}: {count}")
         
         print(f"\nBy change type:")
         type_counts = {}
@@ -434,12 +394,15 @@ def main():
         for change_type, count in sorted(type_counts.items(), key=lambda x: x[1], reverse=True):
             print(f"  - {change_type}: {count}")
         
-        print(f"\nSupporting CRUD or minimal operations: {sum(1 for c in changes if c.supports_crud_or_minimal())}")
-        
+        print(f"\nWith CRUD/minimal operations: {sum(1 for c in changes if c.supports_crud_or_minimal())}")
+    
     except Exception as e:
         print(f"Error: {e}", file=sys.stderr)
+        import traceback
+        traceback.print_exc()
         sys.exit(1)
 
 
 if __name__ == '__main__':
     main()
+
