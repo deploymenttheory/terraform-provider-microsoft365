@@ -137,10 +137,12 @@ class GraphAPIChange:
         
         return None
     
-    def is_relevant(self) -> bool:
+    def is_relevant(self, debug: bool = False) -> bool:
         """Determine if this change is relevant to the Terraform provider."""
         # Check if it's in a relevant category
         if not any(cat in self.categories for cat in RELEVANT_CATEGORIES):
+            if debug:
+                print(f"    DEBUG: Filtered - categories {self.categories} not in {RELEVANT_CATEGORIES}")
             return False
         
         # Check if it's a beta-only change (we might want to skip these)
@@ -248,7 +250,7 @@ class GraphAPIChange:
         }
 
 
-def parse_rss_feed(url: str, lookback_days: int = 30) -> List[GraphAPIChange]:
+def parse_rss_feed(url: str, lookback_days: int = 30, debug: bool = False, verbose: bool = False) -> List[GraphAPIChange]:
     """Parse the RSS feed and return a list of API changes."""
     print(f"Fetching RSS feed from {url}...")
     
@@ -258,6 +260,10 @@ def parse_rss_feed(url: str, lookback_days: int = 30) -> List[GraphAPIChange]:
         print(f"Warning: Feed parsing encountered an error: {feed.bozo_exception}")
     
     print(f"Found {len(feed.entries)} entries in feed")
+    
+    if debug:
+        print(f"\nDEBUG: Cutoff date: {datetime.now() - timedelta(days=lookback_days)}")
+        print(f"DEBUG: Relevant categories: {RELEVANT_CATEGORIES}\n")
     
     changes = []
     cutoff_date = datetime.now() - timedelta(days=lookback_days)
@@ -304,12 +310,52 @@ def parse_rss_feed(url: str, lookback_days: int = 30) -> List[GraphAPIChange]:
         change.parse_description()
         
         changes.append(change)
+        
+        if verbose and len(changes) <= 5:  # Show first 5 in verbose mode
+            print(f"\n  Sample entry {len(changes)}:")
+            print(f"    Title: {change.title}")
+            print(f"    Categories: {change.categories}")
+            print(f"    Resources: {change.resources}")
+            print(f"    Methods: {change.methods}")
     
     print(f"Parsed {len(changes)} changes within the last {lookback_days} days")
     
-    # Filter to relevant changes
-    relevant_changes = [c for c in changes if c.is_relevant()]
+    # Filter to relevant changes with debug info
+    relevant_changes = []
+    filtered_out = []
+    
+    for change in changes:
+        if change.is_relevant():
+            relevant_changes.append(change)
+        else:
+            filtered_out.append(change)
+    
     print(f"Found {len(relevant_changes)} relevant changes for Microsoft Graph API")
+    
+    if debug and len(filtered_out) > 0:
+        print(f"\nDEBUG: Filtered out {len(filtered_out)} changes")
+        print("\nDEBUG: Sample of filtered changes (first 10):")
+        for i, change in enumerate(filtered_out[:10], 1):
+            print(f"\n  {i}. Title: {change.title}")
+            print(f"     Categories: {change.categories}")
+            print(f"     API Version: {change.api_version}")
+            print(f"     Resources: {change.resources}")
+            print(f"     Endpoints: {change.endpoints}")
+            print(f"     Change Type: {change.change_type}")
+            
+            # Check why it was filtered
+            has_category = any(cat in change.categories for cat in RELEVANT_CATEGORIES)
+            print(f"     Has relevant category: {has_category}")
+            if not has_category:
+                print(f"     -> Filtered: Not in relevant categories")
+    
+    if debug and len(relevant_changes) > 0:
+        print(f"\nDEBUG: Sample of relevant changes (first 5):")
+        for i, change in enumerate(relevant_changes[:5], 1):
+            print(f"\n  {i}. Title: {change.title}")
+            print(f"     Categories: {change.categories}")
+            print(f"     Resources: {change.resources}")
+            print(f"     Endpoints: {change.endpoints}")
     
     return relevant_changes
 
@@ -336,12 +382,22 @@ def main():
         default=RSS_FEED_URL,
         help='RSS feed URL (default: Microsoft Graph changelog)'
     )
+    parser.add_argument(
+        '--debug',
+        action='store_true',
+        help='Enable debug output to see filtering decisions'
+    )
+    parser.add_argument(
+        '--verbose',
+        action='store_true',
+        help='Enable verbose output with detailed parsing info'
+    )
     
     args = parser.parse_args()
     
     try:
         # Parse RSS feed
-        changes = parse_rss_feed(args.url, args.lookback_days)
+        changes = parse_rss_feed(args.url, args.lookback_days, debug=args.debug, verbose=args.verbose)
         
         # Convert to JSON
         output_data = {
