@@ -1,4 +1,5 @@
-name: Microsoft Graph API Changes Monitor
+name: maintainence | Microsoft Graph API Changes Monitor
+
 
 on:
   schedule:
