@@ -10,8 +10,9 @@ import argparse
 import json
 import re
 import sys
+import traceback
 from datetime import datetime, timedelta
-from typing import Dict, List, Set, Optional
+from typing import Dict, List, Set
 from urllib.parse import urlparse, parse_qs
 
 try:
@@ -48,19 +49,91 @@ class GraphAPIChange:
         self.change_actions = []  # List of specific actions (added resource, added method, etc.)
         
     def parse_description(self, debug: bool = False):
-        """Parse the HTML description to extract API details from URLs."""
+        """Parse the HTML description to extract API details from URLs and change actions."""
         soup = BeautifulSoup(self.description, 'html.parser')
         
-        # Determine change type from text
-        desc_lower = self.description.lower()
-        if 'added' in desc_lower:
-            self.change_type = 'added'
-        elif 'removed' in desc_lower:
-            self.change_type = 'removed'
-        elif 'deprecated' in desc_lower:
-            self.change_type = 'deprecated'
-        elif 'updated' in desc_lower or 'changed' in desc_lower:
-            self.change_type = 'updated'
+        # Extract text content for pattern matching
+        desc_text = soup.get_text()
+        desc_lower = desc_text.lower()
+        
+        # Parse each div/line to extract specific change actions
+        change_patterns = [
+            # New resource
+            (r'added the <(?:a|b).*?>([\w]+)<\/(?:a|b)> resource', 'added_resource'),
+            # New property/field
+            (r'added the <(?:a|b).*?>([\w]+)<\/(?:a|b)> (?:property|member|enumeration) to the <(?:a|b).*?>([\w]+)<\/(?:a|b)> (?:resource|enumeration)', 'added_property'),
+            # New method
+            (r'added the <a.*?>([\w-]+)<\/a> method to the <(?:a|b).*?>([\w]+)<\/(?:a|b)> resource', 'added_method'),
+            # New relationship
+            (r'added the <(?:a|b).*?>([\w]+)<\/(?:a|b)> relationship to the <(?:a|b).*?>([\w]+)<\/(?:a|b)> resource', 'added_relationship'),
+            # Removed property
+            (r'removed the <(?:a|b).*?>([\w]+)<\/(?:a|b)> (?:property|member) from the <(?:a|b).*?>([\w]+)<\/(?:a|b)> resource', 'removed_property'),
+            # Deprecated
+            (r'deprecated the <(?:a|b).*?>([\w]+)<\/(?:a|b)>', 'deprecated'),
+        ]
+        
+        for pattern, action_type in change_patterns:
+            for match in re.finditer(pattern, self.description, re.IGNORECASE):
+                groups = match.groups()
+                if action_type == 'added_resource':
+                    self.change_actions.append({
+                        'type': 'added_resource',
+                        'resource': groups[0],
+                        'impact': 'new_provider_resource'
+                    })
+                elif action_type == 'added_property':
+                    self.change_actions.append({
+                        'type': 'added_property',
+                        'property': groups[0],
+                        'resource': groups[1],
+                        'impact': 'schema_update'
+                    })
+                elif action_type == 'added_method':
+                    self.change_actions.append({
+                        'type': 'added_method',
+                        'method': groups[0],
+                        'resource': groups[1],
+                        'impact': 'new_operation'
+                    })
+                elif action_type == 'added_relationship':
+                    self.change_actions.append({
+                        'type': 'added_relationship',
+                        'relationship': groups[0],
+                        'resource': groups[1],
+                        'impact': 'schema_update'
+                    })
+                elif action_type == 'removed_property':
+                    self.change_actions.append({
+                        'type': 'removed_property',
+                        'property': groups[0],
+                        'resource': groups[1],
+                        'impact': 'breaking_change'
+                    })
+                elif action_type == 'deprecated':
+                    self.change_actions.append({
+                        'type': 'deprecated',
+                        'item': groups[0],
+                        'impact': 'deprecation_warning'
+                    })
+        
+        # Determine overall change type from parsed actions
+        if self.change_actions:
+            if any(a['type'].startswith('added') for a in self.change_actions):
+                self.change_type = 'added'
+            elif any(a['type'].startswith('removed') for a in self.change_actions):
+                self.change_type = 'removed'
+            elif any(a['type'] == 'deprecated' for a in self.change_actions):
+                self.change_type = 'deprecated'
+        else:
+            # Fallback to simple text matching
+            if 'added' in desc_lower:
+                self.change_type = 'added'
+            elif 'removed' in desc_lower:
+                self.change_type = 'removed'
+            elif 'deprecated' in desc_lower:
+                self.change_type = 'deprecated'
+            elif 'updated' in desc_lower or 'changed' in desc_lower:
+                self.change_type = 'updated'
         
         # Extract all links from description
         for link in soup.find_all('a'):
@@ -148,7 +221,7 @@ class GraphAPIChange:
         # Always include if we have resources or methods (we'll compare later)
         if not self.resources and not self.methods:
             if debug:
-                print(f"    No resources or methods extracted from URLs")
+                print("    No resources or methods extracted from URLs")
             return False
         
         # Check if any of our resources match provider resources
@@ -191,6 +264,7 @@ class GraphAPIChange:
             'endpoints': self.endpoints,
             'doc_urls': self.doc_urls,
             'change_type': self.change_type,
+            'change_actions': self.change_actions,
             'supports_crud_or_minimal': self.supports_crud_or_minimal()
         }
 
@@ -209,7 +283,7 @@ def parse_rss_feed(url: str, lookback_days: int = 30, debug: bool = False,
     
     if debug:
         print(f"\nDEBUG: Cutoff date: {datetime.now() - timedelta(days=lookback_days)}")
-        print(f"DEBUG: Using URL-based extraction from documentation links")
+        print("DEBUG: Using URL-based extraction from documentation links")
         if provider_resources:
             print(f"DEBUG: Comparing against {len(provider_resources)} provider resources\n")
     
@@ -276,7 +350,7 @@ def parse_rss_feed(url: str, lookback_days: int = 30, debug: bool = False,
         print(f"Found {len(relevant_changes)} changes with extractable resources/methods")
     
     if debug and len(relevant_changes) > 0:
-        print(f"\nDEBUG: Sample of relevant changes (first 5):")
+        print("\nDEBUG: Sample of relevant changes (first 5):")
         for i, change in enumerate(relevant_changes[:5], 1):
             print(f"\n  {i}. Title: {change.title}")
             print(f"     API Version: {change.api_version}")
@@ -289,6 +363,7 @@ def parse_rss_feed(url: str, lookback_days: int = 30, debug: bool = False,
 
 
 def main():
+    """Main entry point for the changelog parser."""
     parser = argparse.ArgumentParser(
         description="Parse Microsoft Graph API Changelog RSS feed using URL-based extraction"
     )
@@ -332,7 +407,7 @@ def main():
         # Load provider resources if provided
         provider_resources = None
         if args.provider_resources:
-            with open(args.provider_resources, 'r') as f:
+            with open(args.provider_resources, 'r', encoding='utf-8') as f:
                 provider_data = json.load(f)
                 # Extract all Graph resource types from provider
                 provider_resources = set(provider_data.get('lookup', {}).get('operations', {}).keys())
@@ -357,7 +432,7 @@ def main():
         }
         
         # Write output
-        with open(args.output, 'w') as f:
+        with open(args.output, 'w', encoding='utf-8') as f:
             json.dump(output_data, f, indent=2)
         
         print(f"\n✓ Successfully wrote {len(changes)} changes to {args.output}")
@@ -367,7 +442,7 @@ def main():
         print("SUMMARY")
         print("="*60)
         print(f"Total changes: {len(changes)}")
-        print(f"Extraction method: URL-based (from documentation links)")
+        print("Extraction method: URL-based (from documentation links)")
         
         # Count unique resources
         all_resources = set()
@@ -379,14 +454,14 @@ def main():
         print(f"\nUnique resources extracted: {len(all_resources)}")
         print(f"Unique methods extracted: {len(all_methods)}")
         
-        print(f"\nBy API version:")
+        print("\nBy API version:")
         version_counts = {}
         for change in changes:
             version_counts[change.api_version] = version_counts.get(change.api_version, 0) + 1
         for version, count in sorted(version_counts.items()):
             print(f"  - {version}: {count}")
         
-        print(f"\nBy change type:")
+        print("\nBy change type:")
         type_counts = {}
         for change in changes:
             change_type = change.change_type or 'unknown'
@@ -394,11 +469,31 @@ def main():
         for change_type, count in sorted(type_counts.items(), key=lambda x: x[1], reverse=True):
             print(f"  - {change_type}: {count}")
         
+        print("\nBy impact type:")
+        impact_counts = {
+            'new_provider_resource': 0,
+            'schema_update': 0,
+            'new_operation': 0,
+            'breaking_change': 0,
+            'deprecation_warning': 0,
+            'uncategorized': 0
+        }
+        for change in changes:
+            if change.change_actions:
+                for action in change.change_actions:
+                    impact = action.get('impact', 'uncategorized')
+                    impact_counts[impact] = impact_counts.get(impact, 0) + 1
+            else:
+                impact_counts['uncategorized'] += 1
+        
+        for impact, count in sorted(impact_counts.items(), key=lambda x: x[1], reverse=True):
+            if count > 0:
+                print(f"  - {impact}: {count}")
+        
         print(f"\nWith CRUD/minimal operations: {sum(1 for c in changes if c.supports_crud_or_minimal())}")
     
-    except Exception as e:
+    except (OSError, json.JSONDecodeError, KeyError, ValueError) as e:
         print(f"Error: {e}", file=sys.stderr)
-        import traceback
         traceback.print_exc()
         sys.exit(1)
 
