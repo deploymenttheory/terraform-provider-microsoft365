@@ -90,6 +90,6 @@ func TestAccServicePrincipalAppRoleAssignedToResource_ToServicePrincipal(t *test
 
 // Test configuration functions using mocks.LoadTerraformConfigFile and acceptance.ConfiguredM365ProviderBlock
 func testAccConfigToServicePrincipal() string {
-	config := mocks.LoadTerraformConfigFile("app_role_assignment_to_service_principle.tf")
+	config := mocks.LoadTerraformConfigFile("app_role_assignment_to_service_principal.tf")
 	return acceptance.ConfiguredM365ProviderBlock(config)
 }
