@@ -1,0 +1,11 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/groupPolicyDefinitions('eaca0db8-9673-4487-8055-d6dc037a3ef9')/presentations",
+  "value": [
+    {
+      "@odata.type": "#microsoft.graph.groupPolicyPresentationCheckBox",
+      "id": "pres-home-00000000-0000-0000-0000-000000000001",
+      "label": "Show home button"
+    }
+  ]
+}
+

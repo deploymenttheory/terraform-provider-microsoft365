@@ -1,0 +1,13 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/groupPolicyConfigurations/definitionValues/presentationValues",
+  "value": [
+    {
+      "@odata.type": "#microsoft.graph.groupPolicyPresentationValueBoolean",
+      "id": "pres-value-001",
+      "value": true,
+      "createdDateTime": "2024-01-01T00:00:00Z",
+      "lastModifiedDateTime": "2024-01-01T00:00:00Z"
+    }
+  ]
+}
+

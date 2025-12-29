@@ -1,0 +1,11 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/groupPolicyDefinitions('bb67ec37-f275-484c-942c-36a07e80add8')/presentations",
+  "value": [
+    {
+      "@odata.type": "#microsoft.graph.groupPolicyPresentationCheckBox",
+      "id": "pres-rdp-00000000-0000-0000-0000-000000000001",
+      "label": "Allow users to connect remotely"
+    }
+  ]
+}
+

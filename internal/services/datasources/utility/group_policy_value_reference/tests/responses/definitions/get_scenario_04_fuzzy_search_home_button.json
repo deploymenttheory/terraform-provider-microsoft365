@@ -1,0 +1,16 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/groupPolicyDefinitions",
+  "value": [
+    {
+      "@odata.type": "#microsoft.graph.groupPolicyDefinition",
+      "id": "eaca0db8-9673-4487-8055-d6dc037a3ef9",
+      "displayName": "Show Home button on toolbar",
+      "classType": "machine",
+      "categoryPath": "\\Microsoft Edge\\Startup, home page and new tab page",
+      "explainText": "Show the Home button on the Microsoft Edge toolbar",
+      "supportedOn": "Microsoft Edge version 77, Windows 7 or later",
+      "policyType": "admxIngested"
+    }
+  ]
+}
+

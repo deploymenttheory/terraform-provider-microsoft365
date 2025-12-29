@@ -58,6 +58,7 @@ import (
 
 	// Utilities
 	utilityEntraIdSidConverter "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/utility/entra_id_sid_converter"
+	utilityGroupPolicyValueReference "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/utility/group_policy_value_reference"
 	utilityItunesAppMetadata "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/utility/itunes_app_metadata"
 	utilityLicensingServicePlanReference "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/utility/licensing_service_plan_reference"
 	utilityMacOSPKGAppMetadata "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/utility/macos_pkg_app_metadata"
@@ -129,11 +130,12 @@ func (p *M365Provider) DataSources(ctx context.Context) []func() datasource.Data
 
 		// Utilities
 		utilityEntraIdSidConverter.NewEntraIdSidConverterDataSource,
+		utilityGroupPolicyValueReference.NewGroupPolicyValueReferenceDataSource,
 		utilityWindowsRemediationScriptRegistryKeyGenerator.NewWindowsRemediationScriptRegistryKeyGeneratorDataSource,
 		utilityMacOSPKGAppMetadata.NewMacOSPKGAppMetadataDataSource,
 		utilityItunesAppMetadata.NewItunesAppMetadataDataSource,
-		utilityMicrosoft365EndpointReference.NewMicrosoft365EndpointReferenceDataSource,
 		utilityLicensingServicePlanReference.NewlicensingServicePlanReferenceDataSource,
+		utilityMicrosoft365EndpointReference.NewMicrosoft365EndpointReferenceDataSource,
 		utilityMicrosoftStorePackageManifestMetadata.NewMicrosoftStorePackageManifestDataSource,
 		utilityWindowsMSIAppMetadata.NewWindowsMSIAppMetadataDataSource,
 
