@@ -28,7 +28,7 @@ resource "microsoft365_graph_beta_device_management_group_policy_text_value" "vh
   class_type    = local.fslogix_sddl_policy.class_type
   category_path = local.fslogix_sddl_policy.category_path
   enabled       = true
-  
+
   # SDDL string giving Full access for admins, read/write for authenticated users
   value = "D:P(A;;FA;;;BA)(A;;FRFW;;;AU)"
 
@@ -43,11 +43,11 @@ resource "microsoft365_graph_beta_device_management_group_policy_text_value" "vh
 # Output the discovered policy information
 output "sddl_policy_info" {
   value = {
-    display_name   = local.fslogix_sddl_policy.display_name
-    class_type     = local.fslogix_sddl_policy.class_type
-    category_path  = local.fslogix_sddl_policy.category_path
-    explain_text   = local.fslogix_sddl_policy.explain_text
-    presentations  = length(local.fslogix_sddl_policy.presentations)
+    display_name  = local.fslogix_sddl_policy.display_name
+    class_type    = local.fslogix_sddl_policy.class_type
+    category_path = local.fslogix_sddl_policy.category_path
+    explain_text  = local.fslogix_sddl_policy.explain_text
+    presentations = length(local.fslogix_sddl_policy.presentations)
   }
 }
 

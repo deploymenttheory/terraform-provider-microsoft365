@@ -16,6 +16,7 @@ require (
 	github.com/hashicorp/terraform-plugin-sdk/v2 v2.38.1
 	github.com/hashicorp/terraform-plugin-testing v1.14.0
 	github.com/jarcoal/httpmock v1.4.1
+	github.com/lithammer/fuzzysearch v1.1.8
 	github.com/microsoft/kiota-abstractions-go v1.9.3
 	github.com/microsoft/kiota-http-go v1.5.4
 	github.com/microsoft/kiota-serialization-json-go v1.1.2
@@ -74,7 +75,6 @@ require (
 	github.com/huandu/xstrings v1.3.3 // indirect
 	github.com/imdario/mergo v0.3.15 // indirect
 	github.com/kylelemons/godebug v1.1.0 // indirect
-	github.com/lithammer/fuzzysearch v1.1.8 // indirect
 	github.com/mattn/go-colorable v0.1.14 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/mattn/go-runewidth v0.0.16 // indirect

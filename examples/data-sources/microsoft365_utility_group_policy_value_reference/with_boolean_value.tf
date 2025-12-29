@@ -22,7 +22,7 @@ resource "microsoft365_graph_beta_device_management_group_policy_configuration" 
 # Create the boolean value using discovered metadata
 resource "microsoft365_graph_beta_device_management_group_policy_boolean_value" "enable_profile_containers" {
   group_policy_configuration_id = microsoft365_graph_beta_device_management_group_policy_configuration.fslogix_config.id
-  
+
   # Use the discovered metadata from the datasource
   policy_name   = local.fslogix_machine_policy.display_name
   class_type    = local.fslogix_machine_policy.class_type
@@ -35,7 +35,7 @@ resource "microsoft365_graph_beta_device_management_group_policy_boolean_value" 
       value = true # Enable Profile Containers
     }
   ]
-  
+
   timeouts = {
     create = "10m"
     read   = "5m"

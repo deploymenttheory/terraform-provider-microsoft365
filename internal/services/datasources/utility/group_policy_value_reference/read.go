@@ -6,8 +6,10 @@ import (
 	"strings"
 	"time"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
 	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/lithammer/fuzzysearch/fuzzy"
@@ -20,30 +22,68 @@ import (
 func (d *groupPolicyValueReferenceDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
 	var config groupPolicyValueReferenceDataSourceModel
 
+	tflog.Debug(ctx, fmt.Sprintf("Starting Read method for: %s", DataSourceName))
+
 	resp.Diagnostics.Append(req.Config.Get(ctx, &config)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	readTimeout, diags := config.Timeouts.Read(ctx, ReadTimeout*time.Second)
-	resp.Diagnostics.Append(diags...)
-	if resp.Diagnostics.HasError() {
+	ctx, cancel := crud.HandleTimeout(ctx, config.Timeouts.Read, ReadTimeout*time.Second, &resp.Diagnostics)
+	if cancel == nil {
 		return
 	}
-
-	ctx, cancel := context.WithTimeout(ctx, readTimeout)
 	defer cancel()
 
 	policyName := config.PolicyName.ValueString()
 	tflog.Debug(ctx, fmt.Sprintf("Searching for group policy definitions with name: %s", policyName))
 
-	// Normalize the policy name for fuzzy matching
-	normalizedPolicyName := normalizeString(policyName)
+	// Query API and collect matching definitions
+	exactMatches, fuzzyMatches, err := d.queryAndCollectDefinitions(ctx, policyName)
+	if err != nil {
+		errors.HandleKiotaGraphError(ctx, err, resp, "Read", d.ReadPermissions)
+		return
+	}
 
-	// Query Microsoft Graph API for group policy definitions
-	// We use contains() for a broader search since we'll do fuzzy matching in code
+	// Determine which definitions to use based on matches
+	allDefinitions := d.processMatchResults(ctx, policyName, exactMatches, fuzzyMatches, &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// Handle no results case
+	if len(allDefinitions) == 0 {
+		setEmptyResults(ctx, policyName, &config, &resp.Diagnostics)
+		resp.Diagnostics.Append(resp.State.Set(ctx, &config)...)
+		return
+	}
+
+	// Fetch presentations for all definitions
+	presentationsMap := d.fetchPresentationsForDefinitions(ctx, allDefinitions)
+
+	// Map to state
+	definitionsList := mapDefinitionsToState(ctx, allDefinitions, presentationsMap, &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	config.Id = types.StringValue(fmt.Sprintf("policy_name:%s", policyName))
+	config.Definitions = definitionsList
+
+	tflog.Info(ctx, fmt.Sprintf("Successfully retrieved %d definitions for policy '%s'", len(allDefinitions), policyName))
+
+	resp.Diagnostics.Append(resp.State.Set(ctx, &config)...)
+}
+
+// queryAndCollectDefinitions queries the API and collects exact and fuzzy matching definitions
+func (d *groupPolicyValueReferenceDataSource) queryAndCollectDefinitions(
+	ctx context.Context,
+	policyName string,
+) ([]graphmodels.GroupPolicyDefinitionable, []fuzzyMatchResult, error) {
+	normalizedPolicyName := normalizeString(policyName)
 	filter := fmt.Sprintf("contains(displayName, '%s')", escapeSingleQuotes(policyName))
 
+	// Query API
 	definitions, err := d.client.
 		DeviceManagement().
 		GroupPolicyDefinitions().
@@ -55,11 +95,10 @@ func (d *groupPolicyValueReferenceDataSource) Read(ctx context.Context, req data
 		})
 
 	if err != nil {
-		errors.HandleKiotaGraphError(ctx, err, resp, "Read", d.ReadPermissions)
-		return
+		return nil, nil, err
 	}
 
-	// Use PageIterator to collect exact and fuzzy matching definitions
+	// Iterate and collect matches
 	var exactMatches []graphmodels.GroupPolicyDefinitionable
 	var fuzzyMatches []fuzzyMatchResult
 
@@ -70,27 +109,21 @@ func (d *groupPolicyValueReferenceDataSource) Read(ctx context.Context, req data
 	)
 
 	if err != nil {
-		resp.Diagnostics.AddError(
-			"Failed to Create Page Iterator",
-			fmt.Sprintf("Could not create page iterator for group policy definitions: %s", err.Error()),
-		)
-		return
+		return nil, nil, fmt.Errorf("failed to create page iterator: %w", err)
 	}
 
 	err = pageIterator.Iterate(ctx, func(item graphmodels.GroupPolicyDefinitionable) bool {
 		if item.GetDisplayName() == nil {
-			return true // continue iteration
+			return true
 		}
 
 		itemDisplayName := strings.TrimSpace(*item.GetDisplayName())
 		normalizedItemName := normalizeString(itemDisplayName)
 
-		// Check for exact match first
 		if normalizedPolicyName == normalizedItemName {
 			exactMatches = append(exactMatches, item)
 			tflog.Debug(ctx, fmt.Sprintf("Exact match found: '%s'", itemDisplayName))
 		} else if fuzzy.Match(normalizedPolicyName, normalizedItemName) {
-			// Calculate similarity score for fuzzy matches
 			score := calculateSimilarityScore(normalizedPolicyName, normalizedItemName)
 			fuzzyMatches = append(fuzzyMatches, fuzzyMatchResult{
 				definition: item,
@@ -100,76 +133,107 @@ func (d *groupPolicyValueReferenceDataSource) Read(ctx context.Context, req data
 			tflog.Debug(ctx, fmt.Sprintf("Fuzzy match found: '%s' (score: %d)", itemDisplayName, score))
 		}
 
-		return true // continue iteration
+		return true
 	})
 
 	if err != nil {
-		resp.Diagnostics.AddError(
-			"Failed to Iterate Group Policy Definitions",
-			fmt.Sprintf("Error while iterating through group policy definitions: %s", err.Error()),
-		)
-		return
+		return nil, nil, fmt.Errorf("failed to iterate definitions: %w", err)
 	}
 
-	// Handle exact matches
-	var allDefinitions []graphmodels.GroupPolicyDefinitionable
+	return exactMatches, fuzzyMatches, nil
+}
+
+// processMatchResults determines which definitions to use based on exact/fuzzy matches
+func (d *groupPolicyValueReferenceDataSource) processMatchResults(
+	ctx context.Context,
+	policyName string,
+	exactMatches []graphmodels.GroupPolicyDefinitionable,
+	fuzzyMatches []fuzzyMatchResult,
+	diags *diag.Diagnostics,
+) []graphmodels.GroupPolicyDefinitionable {
 	if len(exactMatches) > 0 {
-		allDefinitions = exactMatches
 		tflog.Debug(ctx, fmt.Sprintf("Found %d exact matches for '%s'", len(exactMatches), policyName))
 
-		// If multiple exact matches found, add informational warning
 		if len(exactMatches) > 1 {
-			matchDetails := formatMultipleMatchDetails(exactMatches)
-			resp.Diagnostics.AddWarning(
-				"Multiple Definitions Found",
-				fmt.Sprintf("Found %d group policy definitions with the exact name '%s'.\n\n"+
-					"This is common when policies exist for both User and Machine configurations.\n\n"+
-					"Matched definitions:\n%s\n"+
-					"All matching definitions are included in the results. "+
-					"Use the class_type, category_path, and other attributes to distinguish between them in your configuration.",
-					len(exactMatches), policyName, matchDetails),
-			)
+			addMultipleMatchesWarning(policyName, exactMatches, diags)
 		}
-	} else if len(fuzzyMatches) > 0 {
-		// No exact match, but fuzzy matches found - return error with suggestions
-		sortedSuggestions := sortAndFormatSuggestions(fuzzyMatches)
-		resp.Diagnostics.AddError(
-			"No Exact Match Found",
-			fmt.Sprintf("No exact match found for policy name '%s'.\n\n"+
-				"Did you mean one of these? (ranked by similarity):\n%s\n\n"+
-				"Please use the exact policy name from the list above.",
-				policyName, sortedSuggestions),
-		)
-		return
+
+		return exactMatches
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Using %d definitions for policy '%s'", len(allDefinitions), policyName))
-
-	if len(allDefinitions) == 0 {
-		resp.Diagnostics.AddWarning(
-			"No Matching Definitions Found",
-			fmt.Sprintf("No group policy definitions found with display name '%s'. Verify the policy name is correct and matches exactly.", policyName),
-		)
-
-		// Set empty results
-		config.Id = types.StringValue(fmt.Sprintf("policy_name:%s", policyName))
-		config.Definitions = types.ListNull(types.ObjectType{
-			AttrTypes: definitionAttrTypes(),
-		})
-
-		resp.Diagnostics.Append(resp.State.Set(ctx, &config)...)
-		return
+	if len(fuzzyMatches) > 0 {
+		addFuzzyMatchError(policyName, fuzzyMatches, diags)
+		return nil
 	}
 
-	// For each definition, fetch its presentations
+	return []graphmodels.GroupPolicyDefinitionable{}
+}
+
+// addMultipleMatchesWarning adds a warning when multiple exact matches are found
+func addMultipleMatchesWarning(
+	policyName string,
+	exactMatches []graphmodels.GroupPolicyDefinitionable,
+	diags *diag.Diagnostics,
+) {
+	matchDetails := formatMultipleMatchDetails(exactMatches)
+	diags.AddWarning(
+		"Multiple Definitions Found",
+		fmt.Sprintf("Found %d group policy definitions with the exact name '%s'.\n\n"+
+			"This is common when policies exist for both User and Machine configurations.\n\n"+
+			"Matched definitions:\n%s\n"+
+			"All matching definitions are included in the results. "+
+			"Use the class_type, category_path, and other attributes to distinguish between them in your configuration.",
+			len(exactMatches), policyName, matchDetails),
+	)
+}
+
+// addFuzzyMatchError adds an error with fuzzy match suggestions
+func addFuzzyMatchError(
+	policyName string,
+	fuzzyMatches []fuzzyMatchResult,
+	diags *diag.Diagnostics,
+) {
+	sortedSuggestions := sortAndFormatSuggestions(fuzzyMatches)
+	diags.AddError(
+		"No Exact Match Found",
+		fmt.Sprintf("No exact match found for policy name '%s'.\n\n"+
+			"Did you mean one of these? (ranked by similarity):\n%s\n\n"+
+			"Please use the exact policy name from the list above.",
+			policyName, sortedSuggestions),
+	)
+}
+
+// setEmptyResults sets empty results when no definitions are found
+func setEmptyResults(
+	ctx context.Context,
+	policyName string,
+	config *groupPolicyValueReferenceDataSourceModel,
+	diags *diag.Diagnostics,
+) {
+	diags.AddWarning(
+		"No Matching Definitions Found",
+		fmt.Sprintf("No group policy definitions found with display name '%s'. Verify the policy name is correct and matches exactly.", policyName),
+	)
+
+	config.Id = types.StringValue(fmt.Sprintf("policy_name:%s", policyName))
+	config.Definitions = types.ListNull(types.ObjectType{
+		AttrTypes: definitionAttrTypes(),
+	})
+}
+
+// fetchPresentationsForDefinitions fetches presentations for all definitions
+func (d *groupPolicyValueReferenceDataSource) fetchPresentationsForDefinitions(
+	ctx context.Context,
+	definitions []graphmodels.GroupPolicyDefinitionable,
+) map[string][]PresentationModel {
 	presentationsMap := make(map[string][]PresentationModel)
-	for _, def := range allDefinitions {
+
+	for _, def := range definitions {
 		definitionID := ""
 		if def.GetId() != nil {
 			definitionID = *def.GetId()
 		}
 
-		// Fetch presentations for this definition
 		presentations, err := d.client.
 			DeviceManagement().
 			GroupPolicyDefinitions().
@@ -179,7 +243,6 @@ func (d *groupPolicyValueReferenceDataSource) Read(ctx context.Context, req data
 
 		if err != nil {
 			tflog.Warn(ctx, fmt.Sprintf("Failed to fetch presentations for definition %s: %s", definitionID, err.Error()))
-			// Continue without presentations rather than failing the entire operation
 			presentationsMap[definitionID] = []PresentationModel{}
 			continue
 		}
@@ -191,18 +254,7 @@ func (d *groupPolicyValueReferenceDataSource) Read(ctx context.Context, req data
 		}
 	}
 
-	// Map all definitions to state
-	definitionsList := mapDefinitionsToState(ctx, allDefinitions, presentationsMap, &resp.Diagnostics)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	config.Id = types.StringValue(fmt.Sprintf("policy_name:%s", policyName))
-	config.Definitions = definitionsList
-
-	tflog.Debug(ctx, fmt.Sprintf("Successfully retrieved %d definitions for policy '%s'", len(allDefinitions), policyName))
-
-	resp.Diagnostics.Append(resp.State.Set(ctx, &config)...)
+	return presentationsMap
 }
 
 // normalizeString normalizes a string for fuzzy matching by:

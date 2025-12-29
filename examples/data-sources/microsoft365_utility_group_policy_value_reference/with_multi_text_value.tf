@@ -28,7 +28,7 @@ resource "microsoft365_graph_beta_device_management_group_policy_multi_text_valu
   class_type    = local.vhd_locations_policy.class_type
   category_path = local.vhd_locations_policy.category_path
   enabled       = true
-  
+
   # Multiple UNC paths for profile storage (primary, secondary, tertiary)
   values = [
     "\\\\fileserver01\\profiles",
@@ -47,11 +47,11 @@ resource "microsoft365_graph_beta_device_management_group_policy_multi_text_valu
 # Output the discovered policy information
 output "vhd_locations_policy_info" {
   value = {
-    display_name   = local.vhd_locations_policy.display_name
-    class_type     = local.vhd_locations_policy.class_type
-    category_path  = local.vhd_locations_policy.category_path
-    explain_text   = local.vhd_locations_policy.explain_text
-    presentations  = [
+    display_name  = local.vhd_locations_policy.display_name
+    class_type    = local.vhd_locations_policy.class_type
+    category_path = local.vhd_locations_policy.category_path
+    explain_text  = local.vhd_locations_policy.explain_text
+    presentations = [
       for pres in local.vhd_locations_policy.presentations : {
         label = pres.label
         type  = pres.presentation_type

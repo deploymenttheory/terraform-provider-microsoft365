@@ -11,7 +11,7 @@ locals {
     for def in data.microsoft365_utility_group_policy_value_reference.onedrive_feedback.definitions :
     def if def.class_type == "machine" && contains(def.category_path, "OneDrive")
   ][0]
-  
+
   # Number of boolean presentations (checkboxes) for this policy
   presentation_count = length(local.feedback_policy.presentations)
 }
@@ -25,7 +25,7 @@ resource "microsoft365_graph_beta_device_management_group_policy_configuration" 
 # Step 3: Create the boolean value using discovered metadata
 resource "microsoft365_graph_beta_device_management_group_policy_boolean_value" "onedrive_feedback_settings" {
   group_policy_configuration_id = microsoft365_graph_beta_device_management_group_policy_configuration.onedrive_config.id
-  
+
   # Use the discovered metadata from the datasource
   policy_name   = local.feedback_policy.display_name
   class_type    = local.feedback_policy.class_type
@@ -56,12 +56,12 @@ resource "microsoft365_graph_beta_device_management_group_policy_boolean_value" 
 # Output the discovered policy details
 output "policy_metadata" {
   value = {
-    display_name      = local.feedback_policy.display_name
-    class_type        = local.feedback_policy.class_type
-    category_path     = local.feedback_policy.category_path
-    policy_type       = local.feedback_policy.policy_type
+    display_name       = local.feedback_policy.display_name
+    class_type         = local.feedback_policy.class_type
+    category_path      = local.feedback_policy.category_path
+    policy_type        = local.feedback_policy.policy_type
     presentation_count = local.presentation_count
-    presentations     = [
+    presentations = [
       for pres in local.feedback_policy.presentations : {
         label = pres.label
         type  = pres.presentation_type

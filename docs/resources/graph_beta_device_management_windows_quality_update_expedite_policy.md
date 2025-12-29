@@ -3,12 +3,12 @@ page_title: "microsoft365_graph_beta_device_management_windows_quality_update_ex
 subcategory: "Device Management"
 
 description: |-
-  Manages a Windows Quality Update Profile (expedite policy) in Microsoft Intune. This correlates to the gui location: Devices -> Manage Updates -> Windows Updates -> Quality Updates.
+  Manages Windows quality update expedite policies using the /deviceManagement/windowsQualityUpdateProfiles endpoint. Expedite policies enable accelerated deployment of critical Windows quality updates with forced reboot enforcement, ensuring rapid security patch distribution across managed Windows 10/11 devices when urgent updates are required.
 ---
 
 # microsoft365_graph_beta_device_management_windows_quality_update_expedite_policy (Resource)
 
-Manages a Windows Quality Update Profile (expedite policy) in Microsoft Intune. This correlates to the gui location: Devices -> Manage Updates -> Windows Updates -> Quality Updates.
+Manages Windows quality update expedite policies using the `/deviceManagement/windowsQualityUpdateProfiles` endpoint. Expedite policies enable accelerated deployment of critical Windows quality updates with forced reboot enforcement, ensuring rapid security patch distribution across managed Windows 10/11 devices when urgent updates are required.
 
 ## Microsoft Documentation
 

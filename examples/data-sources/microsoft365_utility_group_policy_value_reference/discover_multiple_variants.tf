@@ -25,7 +25,7 @@ locals {
     for def in data.microsoft365_utility_group_policy_value_reference.home_button.definitions :
     def if def.class_type == "machine" && contains(def.category_path, "Microsoft Edge\\Startup")
   ][0]
-  
+
   # Get Google Chrome user policy
   chrome_user_policy = [
     for def in data.microsoft365_utility_group_policy_value_reference.home_button.definitions :
