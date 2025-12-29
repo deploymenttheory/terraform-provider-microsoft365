@@ -1,0 +1,16 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/groupPolicyDefinitions",
+  "value": [
+    {
+      "@odata.type": "#microsoft.graph.groupPolicyDefinition",
+      "id": "bb67ec37-f275-484c-942c-36a07e80add8",
+      "displayName": "Allow users to connect remotely by using Remote Desktop Services",
+      "classType": "machine",
+      "categoryPath": "\\Windows Components\\Remote Desktop Services\\Remote Desktop Session Host\\Connections",
+      "explainText": "Allows you to configure user access to Remote Desktop Services.",
+      "supportedOn": "At least Windows Server 2008 or Windows Vista",
+      "policyType": "admxBacked"
+    }
+  ]
+}
+

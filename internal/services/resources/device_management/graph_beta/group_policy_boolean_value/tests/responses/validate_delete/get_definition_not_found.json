@@ -1,0 +1,12 @@
+{
+  "error": {
+    "code": "ResourceNotFound",
+    "message": "Definition value not found",
+    "innerError": {
+      "date": "2024-01-01T00:00:00",
+      "request-id": "test-request-id",
+      "client-request-id": "test-client-request-id"
+    }
+  }
+}
+

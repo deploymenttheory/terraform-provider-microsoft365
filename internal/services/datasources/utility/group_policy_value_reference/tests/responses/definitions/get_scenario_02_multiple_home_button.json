@@ -1,0 +1,86 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/groupPolicyDefinitions",
+  "value": [
+    {
+      "@odata.type": "#microsoft.graph.groupPolicyDefinition",
+      "id": "eaca0db8-9673-4487-8055-d6dc037a3ef9",
+      "displayName": "Show Home button on toolbar",
+      "classType": "machine",
+      "categoryPath": "\\Microsoft Edge\\Startup, home page and new tab page",
+      "explainText": "Show the Home button on the Microsoft Edge toolbar",
+      "supportedOn": "Microsoft Edge version 77, Windows 7 or later",
+      "policyType": "admxIngested"
+    },
+    {
+      "@odata.type": "#microsoft.graph.groupPolicyDefinition",
+      "id": "5e4239e8-de87-4994-a5ca-f744e701d6b5",
+      "displayName": "Show Home button on toolbar",
+      "classType": "machine",
+      "categoryPath": "\\Microsoft Edge - Default Settings (users can override)\\Startup, home page and new tab page",
+      "explainText": "Show the Home button on the Microsoft Edge toolbar (users can override)",
+      "supportedOn": "Microsoft Edge version 77, Windows 7 or later",
+      "policyType": "admxIngested"
+    },
+    {
+      "@odata.type": "#microsoft.graph.groupPolicyDefinition",
+      "id": "18afaa78-2f26-4e3e-a3d3-0f6191cc868a",
+      "displayName": "Show Home button on toolbar",
+      "classType": "machine",
+      "categoryPath": "\\Google\\Google Chrome - Default Settings (users can override)\\Startup, Home page and New Tab page",
+      "explainText": "Show the Home button on the Google Chrome toolbar (users can override)",
+      "supportedOn": "Google Chrome version 4 or later",
+      "policyType": "admxIngested"
+    },
+    {
+      "@odata.type": "#microsoft.graph.groupPolicyDefinition",
+      "id": "cae87e2e-618d-4cd2-b7d4-2805f4aa83c3",
+      "displayName": "Show Home button on toolbar",
+      "classType": "user",
+      "categoryPath": "\\Google\\Google Chrome\\Startup, Home page and New Tab page",
+      "explainText": "Show the Home button on the Google Chrome toolbar",
+      "supportedOn": "Google Chrome version 4 or later",
+      "policyType": "admxIngested"
+    },
+    {
+      "@odata.type": "#microsoft.graph.groupPolicyDefinition",
+      "id": "ec97fcc1-3c4b-4d70-a46e-31fdc063f22c",
+      "displayName": "Show Home button on toolbar",
+      "classType": "user",
+      "categoryPath": "\\Microsoft Edge\\Startup, home page and new tab page",
+      "explainText": "Show the Home button on the Microsoft Edge toolbar",
+      "supportedOn": "Microsoft Edge version 77, Windows 7 or later",
+      "policyType": "admxIngested"
+    },
+    {
+      "@odata.type": "#microsoft.graph.groupPolicyDefinition",
+      "id": "2b088840-f531-4090-96d1-48c399825d90",
+      "displayName": "Show Home button on toolbar",
+      "classType": "machine",
+      "categoryPath": "\\Google\\Google Chrome\\Startup, Home page and New Tab page",
+      "explainText": "Show the Home button on the Google Chrome toolbar",
+      "supportedOn": "Google Chrome version 4 or later",
+      "policyType": "admxIngested"
+    },
+    {
+      "@odata.type": "#microsoft.graph.groupPolicyDefinition",
+      "id": "8b4c9402-29de-4051-ad74-9e9462bfe619",
+      "displayName": "Show Home button on toolbar",
+      "classType": "user",
+      "categoryPath": "\\Microsoft Edge - Default Settings (users can override)\\Startup, home page and new tab page",
+      "explainText": "Show the Home button on the Microsoft Edge toolbar (users can override)",
+      "supportedOn": "Microsoft Edge version 77, Windows 7 or later",
+      "policyType": "admxIngested"
+    },
+    {
+      "@odata.type": "#microsoft.graph.groupPolicyDefinition",
+      "id": "869bcf44-7180-4a96-9ee9-8f85e89ebf4d",
+      "displayName": "Show Home button on toolbar",
+      "classType": "user",
+      "categoryPath": "\\Google\\Google Chrome - Default Settings (users can override)\\Startup, Home page and New Tab page",
+      "explainText": "Show the Home button on the Google Chrome toolbar (users can override)",
+      "supportedOn": "Google Chrome version 4 or later",
+      "policyType": "admxIngested"
+    }
+  ]
+}
+
