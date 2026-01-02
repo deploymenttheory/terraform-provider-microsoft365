@@ -1,0 +1,14 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/groupPolicyDefinitions('def-textbox')/presentations",
+  "value": [
+    {
+      "@odata.type": "#microsoft.graph.groupPolicyPresentationTextBox",
+      "id": "pres-text-001",
+      "label": "Text Setting",
+      "required": false,
+      "defaultValue": "",
+      "maxLength": 255
+    }
+  ]
+}
+

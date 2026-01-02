@@ -1,0 +1,29 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/groupPolicyDefinitions('def-dropdown')/presentations",
+  "value": [
+    {
+      "@odata.type": "#microsoft.graph.groupPolicyPresentationDropdownList",
+      "id": "pres-dropdown-001",
+      "label": "Security Level",
+      "required": true,
+      "defaultItem": {
+        "displayName": "Prompt",
+        "value": "1"
+      },
+      "items": [
+        {
+          "displayName": "Enable",
+          "value": "0"
+        },
+        {
+          "displayName": "Prompt",
+          "value": "1"
+        },
+        {
+          "displayName": "Disable",
+          "value": "3"
+        }
+      ]
+    }
+  ]
+}

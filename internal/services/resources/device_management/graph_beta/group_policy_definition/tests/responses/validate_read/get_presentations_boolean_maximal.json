@@ -1,0 +1,180 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/groupPolicyDefinitions('def-boolean-maximal')/presentations",
+  "value": [
+    {
+      "@odata.type": "#microsoft.graph.groupPolicyPresentationCheckBox",
+      "id": "pres-bool-max-001",
+      "label": "Feedback Hub",
+      "required": false,
+      "defaultChecked": false
+    },
+    {
+      "@odata.type": "#microsoft.graph.groupPolicyPresentationCheckBox",
+      "id": "pres-bool-max-002",
+      "label": "Microsoft 365 Copilot",
+      "required": false,
+      "defaultChecked": false
+    },
+    {
+      "@odata.type": "#microsoft.graph.groupPolicyPresentationCheckBox",
+      "id": "pres-bool-max-003",
+      "label": "Microsoft Clipchamp",
+      "required": false,
+      "defaultChecked": false
+    },
+    {
+      "@odata.type": "#microsoft.graph.groupPolicyPresentationCheckBox",
+      "id": "pres-bool-max-004",
+      "label": "Microsoft Copilot",
+      "required": false,
+      "defaultChecked": false
+    },
+    {
+      "@odata.type": "#microsoft.graph.groupPolicyPresentationCheckBox",
+      "id": "pres-bool-max-005",
+      "label": "Microsoft News",
+      "required": false,
+      "defaultChecked": false
+    },
+    {
+      "@odata.type": "#microsoft.graph.groupPolicyPresentationCheckBox",
+      "id": "pres-bool-max-006",
+      "label": "Microsoft Photos",
+      "required": false,
+      "defaultChecked": false
+    },
+    {
+      "@odata.type": "#microsoft.graph.groupPolicyPresentationCheckBox",
+      "id": "pres-bool-max-007",
+      "label": "Microsoft Solitaire Collection",
+      "required": false,
+      "defaultChecked": false
+    },
+    {
+      "@odata.type": "#microsoft.graph.groupPolicyPresentationCheckBox",
+      "id": "pres-bool-max-008",
+      "label": "Microsoft Sticky Notes",
+      "required": false,
+      "defaultChecked": false
+    },
+    {
+      "@odata.type": "#microsoft.graph.groupPolicyPresentationCheckBox",
+      "id": "pres-bool-max-009",
+      "label": "Microsoft Teams",
+      "required": false,
+      "defaultChecked": false
+    },
+    {
+      "@odata.type": "#microsoft.graph.groupPolicyPresentationCheckBox",
+      "id": "pres-bool-max-010",
+      "label": "Microsoft To Do",
+      "required": false,
+      "defaultChecked": false
+    },
+    {
+      "@odata.type": "#microsoft.graph.groupPolicyPresentationCheckBox",
+      "id": "pres-bool-max-011",
+      "label": "MSN Weather",
+      "required": false,
+      "defaultChecked": false
+    },
+    {
+      "@odata.type": "#microsoft.graph.groupPolicyPresentationCheckBox",
+      "id": "pres-bool-max-012",
+      "label": "Outlook for Windows",
+      "required": false,
+      "defaultChecked": false
+    },
+    {
+      "@odata.type": "#microsoft.graph.groupPolicyPresentationCheckBox",
+      "id": "pres-bool-max-013",
+      "label": "Paint",
+      "required": false,
+      "defaultChecked": false
+    },
+    {
+      "@odata.type": "#microsoft.graph.groupPolicyPresentationCheckBox",
+      "id": "pres-bool-max-014",
+      "label": "Quick Assist",
+      "required": false,
+      "defaultChecked": false
+    },
+    {
+      "@odata.type": "#microsoft.graph.groupPolicyPresentationCheckBox",
+      "id": "pres-bool-max-015",
+      "label": "Snipping Tool",
+      "required": false,
+      "defaultChecked": false
+    },
+    {
+      "@odata.type": "#microsoft.graph.groupPolicyPresentationCheckBox",
+      "id": "pres-bool-max-016",
+      "label": "Windows Calculator",
+      "required": false,
+      "defaultChecked": false
+    },
+    {
+      "@odata.type": "#microsoft.graph.groupPolicyPresentationCheckBox",
+      "id": "pres-bool-max-017",
+      "label": "Windows Camera",
+      "required": false,
+      "defaultChecked": false
+    },
+    {
+      "@odata.type": "#microsoft.graph.groupPolicyPresentationCheckBox",
+      "id": "pres-bool-max-018",
+      "label": "Windows Media Player",
+      "required": false,
+      "defaultChecked": false
+    },
+    {
+      "@odata.type": "#microsoft.graph.groupPolicyPresentationCheckBox",
+      "id": "pres-bool-max-019",
+      "label": "Windows Notepad",
+      "required": false,
+      "defaultChecked": false
+    },
+    {
+      "@odata.type": "#microsoft.graph.groupPolicyPresentationCheckBox",
+      "id": "pres-bool-max-020",
+      "label": "Windows Sound Recorder",
+      "required": false,
+      "defaultChecked": false
+    },
+    {
+      "@odata.type": "#microsoft.graph.groupPolicyPresentationCheckBox",
+      "id": "pres-bool-max-021",
+      "label": "Windows Terminal",
+      "required": false,
+      "defaultChecked": false
+    },
+    {
+      "@odata.type": "#microsoft.graph.groupPolicyPresentationCheckBox",
+      "id": "pres-bool-max-022",
+      "label": "Xbox Gaming App",
+      "required": false,
+      "defaultChecked": false
+    },
+    {
+      "@odata.type": "#microsoft.graph.groupPolicyPresentationCheckBox",
+      "id": "pres-bool-max-023",
+      "label": "Xbox Identity Provider",
+      "required": false,
+      "defaultChecked": false
+    },
+    {
+      "@odata.type": "#microsoft.graph.groupPolicyPresentationCheckBox",
+      "id": "pres-bool-max-024",
+      "label": "Xbox Speech To Text Overlay",
+      "required": false,
+      "defaultChecked": false
+    },
+    {
+      "@odata.type": "#microsoft.graph.groupPolicyPresentationCheckBox",
+      "id": "pres-bool-max-025",
+      "label": "Xbox TCUI",
+      "required": false,
+      "defaultChecked": false
+    }
+  ]
+}

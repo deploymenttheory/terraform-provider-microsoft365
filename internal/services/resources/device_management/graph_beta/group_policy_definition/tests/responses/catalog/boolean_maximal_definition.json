@@ -1,0 +1,16 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/groupPolicyDefinitions",
+  "value": [
+    {
+      "@odata.type": "#microsoft.graph.groupPolicyDefinition",
+      "id": "def-boolean-maximal",
+      "displayName": "Test Policy Boolean Maximal",
+      "classType": "machine",
+      "categoryPath": "\\Test\\Boolean\\Maximal",
+      "policyType": "admxBacked",
+      "version": "1.0",
+      "supportedOn": "Windows 10",
+      "explainText": "Test policy for boolean maximal scenario with 25 presentations"
+    }
+  ]
+}

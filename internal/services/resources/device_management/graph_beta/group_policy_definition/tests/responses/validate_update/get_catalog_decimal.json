@@ -1,0 +1,17 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/groupPolicyDefinitions",
+  "value": [
+    {
+      "@odata.type": "#microsoft.graph.groupPolicyDefinition",
+      "id": "def-decimal",
+      "displayName": "Test Policy Decimal",
+      "classType": "machine",
+      "categoryPath": "\\Test\\Decimal",
+      "policyType": "admxBacked",
+      "version": "1.0",
+      "supportedOn": "Windows 10",
+      "explainText": "Test policy for decimal presentation type"
+    }
+  ]
+}
+

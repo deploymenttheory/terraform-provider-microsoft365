@@ -1,0 +1,14 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/groupPolicyDefinitions('def-decimal')/presentations",
+  "value": [
+    {
+      "@odata.type": "#microsoft.graph.groupPolicyPresentationDecimalTextBox",
+      "id": "pres-decimal-001",
+      "label": "Timeout Setting",
+      "required": false,
+      "defaultValue": 0,
+      "minValue": 0,
+      "maxValue": 999999
+    }
+  ]
+}

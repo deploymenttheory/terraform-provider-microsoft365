@@ -1,0 +1,18 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/groupPolicyDefinitions",
+  "value": [
+    {
+      "id": "def-readonly",
+      "displayName": "Test Policy With Read-Only Text",
+      "classType": "machine",
+      "categoryPath": "\\Test\\ReadOnly",
+      "supportedOn": "Windows 10",
+      "policyType": "admxBacked",
+      "hasRelatedDefinitions": false,
+      "version": "1.0.0.0",
+      "lastModifiedDateTime": "2024-01-01T00:00:00Z",
+      "@odata.type": "#microsoft.graph.groupPolicyDefinition"
+    }
+  ]
+}
+

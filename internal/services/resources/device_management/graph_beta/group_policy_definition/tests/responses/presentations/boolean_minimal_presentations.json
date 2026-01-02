@@ -1,0 +1,19 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/groupPolicyDefinitions('def-boolean-minimal')/presentations",
+  "value": [
+    {
+      "@odata.type": "#microsoft.graph.groupPolicyPresentationCheckBox",
+      "id": "pres-bool-min-001",
+      "label": "Enable Feature One",
+      "required": false,
+      "defaultChecked": false
+    },
+    {
+      "@odata.type": "#microsoft.graph.groupPolicyPresentationCheckBox",
+      "id": "pres-bool-min-002",
+      "label": "Enable Feature Two",
+      "required": false,
+      "defaultChecked": false
+    }
+  ]
+}

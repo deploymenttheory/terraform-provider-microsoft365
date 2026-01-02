@@ -1,0 +1,13 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/groupPolicyDefinitions('def-multitext')/presentations",
+  "value": [
+    {
+      "@odata.type": "#microsoft.graph.groupPolicyPresentationMultiTextBox",
+      "id": "pres-multitext-001",
+      "label": "Filter List",
+      "required": false,
+      "maxLength": 1024,
+      "maxStrings": 100
+    }
+  ]
+}

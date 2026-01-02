@@ -1,0 +1,17 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/groupPolicyDefinitions",
+  "value": [
+    {
+      "@odata.type": "#microsoft.graph.groupPolicyDefinition",
+      "id": "def-multitext",
+      "displayName": "Test Policy MultiText",
+      "classType": "machine",
+      "categoryPath": "\\Test\\MultiText",
+      "policyType": "admxBacked",
+      "version": "1.0",
+      "supportedOn": "Windows 10",
+      "explainText": "Test policy for multi-text presentation type"
+    }
+  ]
+}
+

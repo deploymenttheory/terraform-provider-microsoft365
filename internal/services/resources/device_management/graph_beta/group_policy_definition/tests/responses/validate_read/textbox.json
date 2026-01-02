@@ -1,0 +1,14 @@
+{
+  "@odata.type": "#microsoft.graph.groupPolicyDefinitionValue",
+  "id": "defvalue-text-001",
+  "createdDateTime": "2024-01-01T00:00:00Z",
+  "lastModifiedDateTime": "2024-01-01T00:00:00Z",
+  "enabled": true,
+  "definition": {
+    "@odata.type": "#microsoft.graph.groupPolicyDefinition",
+    "id": "def-textbox",
+    "displayName": "Test Policy TextBox",
+    "classType": "machine",
+    "categoryPath": "\\Test\\TextBox"
+  }
+}

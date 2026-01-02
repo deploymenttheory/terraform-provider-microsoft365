@@ -1,5 +1,5 @@
 ---
-page_title: "microsoft365_utility_group_policy_value_reference Data Source - terraform-provider-microsoft365"
+page_title: "microsoft365_graph_beta_device_management_group_policy_value_reference Data Source - terraform-provider-microsoft365"
 subcategory: "Utility"
 
 description: |-
@@ -13,7 +13,7 @@ description: |-
   Reference: Group Policy Definitions API https://learn.microsoft.com/en-us/graph/api/intune-grouppolicy-grouppolicydefinition-get?view=graph-rest-beta
 ---
 
-# microsoft365_utility_group_policy_value_reference
+# microsoft365_graph_beta_device_management_group_policy_value_reference
 
 Queries Microsoft Graph API for group policy definition metadata including class type, category path, presentations, and other policy details. This data source enables you to discover policy structure and configuration requirements before creating group policy values in Microsoft Intune.
 
@@ -49,20 +49,20 @@ If no exact match is found, the error message provides helpful suggestions of si
 
 ```terraform
 # Query group policy definition metadata
-data "microsoft365_utility_group_policy_value_reference" "rdp_allow" {
+data "microsoft365_graph_beta_device_management_group_policy_value_reference" "rdp_allow" {
   policy_name = "Allow users to connect remotely by using Remote Desktop Services"
 }
 
 # Output the policy details
 output "rdp_policy_info" {
   value = {
-    definitions_found = length(data.microsoft365_utility_group_policy_value_reference.rdp_allow.definitions)
+    definitions_found = length(data.microsoft365_graph_beta_device_management_group_policy_value_reference.rdp_allow.definitions)
     first_definition = {
-      id            = data.microsoft365_utility_group_policy_value_reference.rdp_allow.definitions[0].id
-      display_name  = data.microsoft365_utility_group_policy_value_reference.rdp_allow.definitions[0].display_name
-      class_type    = data.microsoft365_utility_group_policy_value_reference.rdp_allow.definitions[0].class_type
-      category_path = data.microsoft365_utility_group_policy_value_reference.rdp_allow.definitions[0].category_path
-      policy_type   = data.microsoft365_utility_group_policy_value_reference.rdp_allow.definitions[0].policy_type
+      id            = data.microsoft365_graph_beta_device_management_group_policy_value_reference.rdp_allow.definitions[0].id
+      display_name  = data.microsoft365_graph_beta_device_management_group_policy_value_reference.rdp_allow.definitions[0].display_name
+      class_type    = data.microsoft365_graph_beta_device_management_group_policy_value_reference.rdp_allow.definitions[0].class_type
+      category_path = data.microsoft365_graph_beta_device_management_group_policy_value_reference.rdp_allow.definitions[0].category_path
+      policy_type   = data.microsoft365_graph_beta_device_management_group_policy_value_reference.rdp_allow.definitions[0].policy_type
     }
   }
 }
@@ -74,14 +74,14 @@ output "rdp_policy_info" {
 # Example: Full dependency chain showing datasource -> configuration -> boolean value
 
 # Step 1: Query the policy definition to discover metadata
-data "microsoft365_utility_group_policy_value_reference" "onedrive_feedback" {
+data "microsoft365_graph_beta_device_management_group_policy_value_reference" "onedrive_feedback" {
   policy_name = "Allow users to contact Microsoft for feedback and support"
 }
 
 # Extract the machine-level policy details
 locals {
   feedback_policy = [
-    for def in data.microsoft365_utility_group_policy_value_reference.onedrive_feedback.definitions :
+    for def in data.microsoft365_graph_beta_device_management_group_policy_value_reference.onedrive_feedback.definitions :
     def if def.class_type == "machine" && contains(def.category_path, "OneDrive")
   ][0]
 
@@ -150,14 +150,14 @@ output "policy_metadata" {
 # Example: Using datasource to discover policy metadata for a boolean value
 
 # Query the policy definition
-data "microsoft365_utility_group_policy_value_reference" "fslogix_enable" {
+data "microsoft365_graph_beta_device_management_group_policy_value_reference" "fslogix_enable" {
   policy_name = "Enable Profile Containers"
 }
 
 # Filter for the machine-level policy in the FSLogix category
 locals {
   fslogix_machine_policy = [
-    for def in data.microsoft365_utility_group_policy_value_reference.fslogix_enable.definitions :
+    for def in data.microsoft365_graph_beta_device_management_group_policy_value_reference.fslogix_enable.definitions :
     def if def.class_type == "machine" && contains(def.category_path, "FSLogix\\Profile Containers")
   ][0]
 }
@@ -212,14 +212,14 @@ output "fslogix_policy_metadata" {
 # Example: Using datasource to discover policy metadata for a text value
 
 # Query the policy definition
-data "microsoft365_utility_group_policy_value_reference" "vhd_sddl" {
+data "microsoft365_graph_beta_device_management_group_policy_value_reference" "vhd_sddl" {
   policy_name = "Attached VHD SDDL"
 }
 
 # Filter for the FSLogix Profile Containers machine policy
 locals {
   fslogix_sddl_policy = [
-    for def in data.microsoft365_utility_group_policy_value_reference.vhd_sddl.definitions :
+    for def in data.microsoft365_graph_beta_device_management_group_policy_value_reference.vhd_sddl.definitions :
     def if def.class_type == "machine" && contains(def.category_path, "FSLogix\\Profile Containers")
   ][0]
 }
@@ -269,14 +269,14 @@ output "sddl_policy_info" {
 # Example: Using datasource to discover policy metadata for a multi-text value
 
 # Query a policy that accepts multiple text values
-data "microsoft365_utility_group_policy_value_reference" "vhd_locations" {
+data "microsoft365_graph_beta_device_management_group_policy_value_reference" "vhd_locations" {
   policy_name = "VHD location"
 }
 
 # Filter for the FSLogix Profile Containers machine policy
 locals {
   vhd_locations_policy = [
-    for def in data.microsoft365_utility_group_policy_value_reference.vhd_locations.definitions :
+    for def in data.microsoft365_graph_beta_device_management_group_policy_value_reference.vhd_locations.definitions :
     def if def.class_type == "machine" && contains(def.category_path, "FSLogix\\Profile Containers")
   ][0]
 }
@@ -335,14 +335,14 @@ output "vhd_locations_policy_info" {
 # Example: Discovering and selecting from multiple policy variants
 
 # Query a policy that exists in multiple locations (Chrome, Edge, etc.)
-data "microsoft365_utility_group_policy_value_reference" "home_button" {
+data "microsoft365_graph_beta_device_management_group_policy_value_reference" "home_button" {
   policy_name = "Show Home button on toolbar"
 }
 
 # Output all discovered variants
 output "all_home_button_variants" {
   value = [
-    for def in data.microsoft365_utility_group_policy_value_reference.home_button.definitions : {
+    for def in data.microsoft365_graph_beta_device_management_group_policy_value_reference.home_button.definitions : {
       id            = def.id
       class_type    = def.class_type
       category_path = def.category_path
@@ -356,13 +356,13 @@ output "all_home_button_variants" {
 locals {
   # Get Microsoft Edge machine policy
   edge_machine_policy = [
-    for def in data.microsoft365_utility_group_policy_value_reference.home_button.definitions :
+    for def in data.microsoft365_graph_beta_device_management_group_policy_value_reference.home_button.definitions :
     def if def.class_type == "machine" && contains(def.category_path, "Microsoft Edge\\Startup")
   ][0]
 
   # Get Google Chrome user policy
   chrome_user_policy = [
-    for def in data.microsoft365_utility_group_policy_value_reference.home_button.definitions :
+    for def in data.microsoft365_graph_beta_device_management_group_policy_value_reference.home_button.definitions :
     def if def.class_type == "user" && contains(def.category_path, "Google\\Google Chrome\\Startup")
   ][0]
 }
@@ -417,14 +417,14 @@ resource "microsoft365_graph_beta_device_management_group_policy_boolean_value" 
 Many group policies exist as both user and machine configurations. The data source returns all matching definitions with a helpful warning:
 
 ```hcl
-data "microsoft365_utility_group_policy_value_reference" "edge_home_button" {
+data "microsoft365_graph_beta_device_management_group_policy_value_reference" "edge_home_button" {
   policy_name = "Show Home button on toolbar"
 }
 
 # Filter for specific class type
 locals {
   machine_policy = [
-    for def in data.microsoft365_utility_group_policy_value_reference.edge_home_button.definitions : 
+    for def in data.microsoft365_graph_beta_device_management_group_policy_value_reference.edge_home_button.definitions : 
     def if def.class_type == "machine" && contains(def.category_path, "Microsoft Edge")
   ][0]
 }
@@ -446,9 +446,9 @@ When you query a policy that exists across multiple browsers and class types, yo
 ╷
 │ Warning: Multiple Definitions Found
 │ 
-│   with data.microsoft365_utility_group_policy_value_reference.edge_home_button,
+│   with data.microsoft365_graph_beta_device_management_group_policy_value_reference.edge_home_button,
 │   on test_group_policy_value_reference.tf line 15:
-│   15: data "microsoft365_utility_group_policy_value_reference" "edge_home_button" {
+│   15: data "microsoft365_graph_beta_device_management_group_policy_value_reference" "edge_home_button" {
 │ 
 │ Found 8 group policy definitions with the exact name 'Show Home button on toolbar'.
 │ 
@@ -500,9 +500,9 @@ If you provide a policy name that doesn't exactly match, you'll receive helpful 
 ╷
 │ Error: No Exact Match Found
 │ 
-│   with data.microsoft365_utility_group_policy_value_reference.fuzzy_test_typo,
+│   with data.microsoft365_graph_beta_device_management_group_policy_value_reference.fuzzy_test_typo,
 │   on test_group_policy_fuzzy_match_demo.tf line 5:
-│    5: data "microsoft365_utility_group_policy_value_reference" "fuzzy_test_typo" {
+│    5: data "microsoft365_graph_beta_device_management_group_policy_value_reference" "fuzzy_test_typo" {
 │ 
 │ No exact match found for policy name 'Show Home button'.
 │ 
@@ -609,7 +609,7 @@ This data source supports multiple Group Policy automation scenarios:
    ```hcl
    locals {
      machine_policy = [
-       for def in data.microsoft365_utility_group_policy_value_reference.example.definitions : 
+       for def in data.microsoft365_graph_beta_device_management_group_policy_value_reference.example.definitions : 
        def if def.class_type == "machine"
      ][0]
    }

@@ -1,0 +1,278 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
+subcategory: "Utility"
+
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Name}}
+
+Queries Microsoft Graph API for group policy definition metadata including class type, category path, presentations, and other policy details. This data source enables you to discover policy structure and configuration requirements before creating group policy values in Microsoft Intune.
+
+## Background
+
+Group Policy Objects (GPOs) in Microsoft Intune are based on ADMX (Administrative Template) files that define policy settings. Each policy definition contains:
+
+- **Display Name**: The human-readable policy name as shown in management portals
+- **Class Type**: Whether the policy applies to `user` or `machine` (computer) configurations
+- **Category Path**: The hierarchical location of the policy in the Group Policy tree
+- **Presentations**: Individual settings/checkboxes available for the policy
+- **Policy Type**: Whether the policy is `admxBacked` (traditional GPO) or `admxIngested` (custom ADMX)
+
+The same policy name may exist multiple times with different class types (user vs machine) or across different category paths (e.g., Microsoft Edge vs Google Chrome). This data source helps you identify exactly which policy variant you need for your configuration.
+
+## Search Behavior
+
+The data source uses **exact matching** with the following normalization:
+- **Case-insensitive**: "Enable Profile Containers" matches "enable profile containers"
+- **Whitespace-normalized**: Extra spaces are collapsed to single spaces
+
+If no exact match is found, the error message provides helpful suggestions of similar policy names ranked by similarity using fuzzy matching.
+
+## Version History
+
+| Version | Status | Notes |
+|---------|--------|-------|
+| v0.41.0-alpha | Experimental | Initial release |
+
+## Example Usage
+
+### Basic Policy Lookup
+
+{{ tffile "examples/data-sources/microsoft365_graph_beta_device_management_group_policy_value_reference/datasource.tf" }}
+
+### Full Dependency Chain: Datasource → Configuration → Boolean Value
+
+{{ tffile "examples/data-sources/microsoft365_graph_beta_device_management_group_policy_value_reference/full_dependency_chain.tf" }}
+
+### Using with Boolean Value Resource
+
+{{ tffile "examples/data-sources/microsoft365_graph_beta_device_management_group_policy_value_reference/with_boolean_value.tf" }}
+
+### Using with Text Value Resource
+
+{{ tffile "examples/data-sources/microsoft365_graph_beta_device_management_group_policy_value_reference/with_text_value.tf" }}
+
+### Using with Multi-Text Value Resource
+
+{{ tffile "examples/data-sources/microsoft365_graph_beta_device_management_group_policy_value_reference/with_multi_text_value.tf" }}
+
+### Discovering and Selecting from Multiple Policy Variants
+
+{{ tffile "examples/data-sources/microsoft365_graph_beta_device_management_group_policy_value_reference/discover_multiple_variants.tf" }}
+
+### Handling Multiple Definitions (User and Machine)
+
+Many group policies exist as both user and machine configurations. The data source returns all matching definitions with a helpful warning:
+
+```hcl
+data "microsoft365_graph_beta_device_management_group_policy_value_reference" "edge_home_button" {
+  policy_name = "Show Home button on toolbar"
+}
+
+# Filter for specific class type
+locals {
+  machine_policy = [
+    for def in data.microsoft365_graph_beta_device_management_group_policy_value_reference.edge_home_button.definitions : 
+    def if def.class_type == "machine" && contains(def.category_path, "Microsoft Edge")
+  ][0]
+}
+
+output "selected_policy" {
+  value = {
+    id            = local.machine_policy.id
+    class_type    = local.machine_policy.class_type
+    category_path = local.machine_policy.category_path
+  }
+}
+```
+
+### Real-World Example: Multiple Definitions
+
+When you query a policy that exists across multiple browsers and class types, you'll receive all variants:
+
+```terraform
+╷
+│ Warning: Multiple Definitions Found
+│ 
+│   with data.microsoft365_graph_beta_device_management_group_policy_value_reference.edge_home_button,
+│   on test_group_policy_value_reference.tf line 15:
+│   15: data "microsoft365_graph_beta_device_management_group_policy_value_reference" "edge_home_button" {
+│ 
+│ Found 8 group policy definitions with the exact name 'Show Home button on toolbar'.
+│ 
+│ This is common when policies exist for both User and Machine configurations.
+│ 
+│ Matched definitions:
+│   1. "Show Home button on toolbar"
+│      - Class Type: user
+│      - Category: \Google\Google Chrome\Startup, Home page and New Tab page
+│ 
+│   2. "Show Home button on toolbar"
+│      - Class Type: machine
+│      - Category: \Microsoft Edge - Default Settings (users can override)\Startup, home page and new tab page
+│ 
+│   3. "Show Home button on toolbar"
+│      - Class Type: machine
+│      - Category: \Google\Google Chrome - Default Settings (users can override)\Startup, Home page and New Tab page
+│ 
+│   4. "Show Home button on toolbar"
+│      - Class Type: machine
+│      - Category: \Microsoft Edge\Startup, home page and new tab page
+│ 
+│   5. "Show Home button on toolbar"
+│      - Class Type: user
+│      - Category: \Microsoft Edge - Default Settings (users can override)\Startup, home page and new tab page
+│ 
+│   6. "Show Home button on toolbar"
+│      - Class Type: machine
+│      - Category: \Google\Google Chrome\Startup, Home page and New Tab page
+│ 
+│   7. "Show Home button on toolbar"
+│      - Class Type: user
+│      - Category: \Microsoft Edge\Startup, home page and new tab page
+│ 
+│   8. "Show Home button on toolbar"
+│      - Class Type: user
+│      - Category: \Google\Google Chrome - Default Settings (users can override)\Startup, Home page and New Tab page
+│ 
+│ All matching definitions are included in the results. Use the class_type, category_path, and other attributes to
+│ distinguish between them in your configuration.
+╵
+```
+
+### Fuzzy Matching with Suggestions
+
+If you provide a policy name that doesn't exactly match, you'll receive helpful suggestions:
+
+```terraform
+╷
+│ Error: No Exact Match Found
+│ 
+│   with data.microsoft365_graph_beta_device_management_group_policy_value_reference.fuzzy_test_typo,
+│   on test_group_policy_fuzzy_match_demo.tf line 5:
+│    5: data "microsoft365_graph_beta_device_management_group_policy_value_reference" "fuzzy_test_typo" {
+│ 
+│ No exact match found for policy name 'Show Home button'.
+│ 
+│ Did you mean one of these? (ranked by similarity):
+│   1. "Show Home button on toolbar"
+│ 
+│ Please use the exact policy name from the list above.
+╵
+```
+
+
+## Argument Reference
+
+* `policy_name` - (Required) The display name of the group policy definition to search for. Requires an exact match (case-insensitive, whitespace-normalized). If no exact match is found, the error message will suggest similar policy names ranked by similarity using fuzzy matching. Example: `"Allow Cloud Policy Management"`, `"Enable Profile Containers"`.
+
+* `timeouts` - (Optional) Timeout configuration block. See [Timeouts](#timeouts) below.
+
+## Attributes Reference
+
+* `id` - The computed ID of this data source operation in the format `policy_name:{policy_name}`.
+
+* `definitions` - (Computed) List of group policy definitions matching the policy name. Multiple definitions may be returned if the same policy name exists in different categories or for different class types. Each definition contains:
+  - `id` - The unique identifier (GUID) of the policy definition
+  - `display_name` - The display name of the policy as shown in management portals
+  - `class_type` - Whether the policy applies to `user` or `machine` configurations
+  - `category_path` - The hierarchical path in the Group Policy tree (e.g., `\FSLogix\Profile Containers`)
+  - `explain_text` - Detailed explanation of what the policy does
+  - `supported_on` - Which operating systems/versions support this policy
+  - `policy_type` - The type of policy: `admxBacked` (traditional GPO) or `admxIngested` (custom ADMX)
+  - `presentations` - List of individual settings/checkboxes available for this policy:
+    - `id` - The presentation GUID
+    - `label` - The label text for the setting
+    - `presentation_type` - The type of presentation (e.g., `groupPolicyPresentationCheckBox`, `groupPolicyPresentationText`)
+
+## Timeouts
+
+The `timeouts` block supports:
+
+* `read` - (Optional) Timeout for reading data. Defaults to 3 minutes.
+
+{{ .SchemaMarkdown | trimspace }}
+
+## Use Cases
+
+This data source supports multiple Group Policy automation scenarios:
+
+1. **Discovery Before Configuration** - Find the exact `class_type` and `category_path` needed for a policy before creating group policy values
+2. **Presentation Enumeration** - Discover which individual settings are available for a policy
+3. **Policy Variant Selection** - Identify the correct policy variant when multiple exist (e.g., Chrome vs Edge, User vs Machine)
+4. **Documentation Generation** - Dynamically generate documentation of available policies and their structure
+5. **Configuration Validation** - Verify that policies exist before attempting to configure them
+
+## Best Practices
+
+1. **Use Exact Names**: Always provide the exact policy display name as it appears in Microsoft Graph API. Use the fuzzy match suggestions when you get them.
+
+2. **Handle Multiple Results**: Many policies exist for both user and machine configurations. Always filter results by `class_type` and `category_path` to select the correct variant:
+   ```hcl
+   locals {
+     machine_policy = [
+       for def in data.microsoft365_graph_beta_device_management_group_policy_value_reference.example.definitions : 
+       def if def.class_type == "machine"
+     ][0]
+   }
+   ```
+
+3. **Check Result Count**: Validate that `definitions` is not empty and contains the expected number of results before accessing array indices.
+
+4. **Use Locals for Filtering**: Store filtered results in local values for reuse across multiple resources to avoid repeating filter logic.
+
+5. **Document Your Selection**: When multiple definitions exist, add comments explaining which variant you chose and why (e.g., "Using Microsoft Edge machine policy, not Chrome variant").
+
+## Important Notes
+
+### Requires Microsoft Graph API Access
+
+This data source queries the Microsoft Graph API and requires appropriate credentials and permissions. Unlike some utility data sources that work offline, this one makes real-time API calls to your Microsoft Intune tenant.
+
+**Required Permissions:**
+- `DeviceManagementConfiguration.Read.All`
+
+### Multiple Definitions are Common
+
+It's normal to receive multiple definitions for the same policy name. This happens because:
+- Policies often exist for both **user** and **machine** configurations
+- The same policy may exist across multiple products (Microsoft Edge, Google Chrome, Firefox)
+- Policies may have "Default Settings (users can override)" variants
+
+Always use `class_type` and `category_path` to select the correct definition for your needs.
+
+### Policy Availability Depends on ADMX Files
+
+The policies available in your tenant depend on which ADMX files have been ingested. Common sources include:
+- **Windows Built-in** - Traditional Windows policies (`admxBacked`)
+- **Microsoft Edge** - Edge browser policies
+- **Microsoft Office** - Office application policies
+- **Custom ADMX** - Uploaded custom ADMX files (`admxIngested`)
+
+If a policy isn't found, verify that the corresponding ADMX files are loaded in your Intune tenant.
+
+### Search Performance
+
+The data source uses the Microsoft Graph API's `contains()` filter for efficient searching, then performs exact matching in code. Large result sets are handled efficiently through pagination using PageIterator.
+
+## Common Policies
+
+Here are some commonly used group policies that can be looked up with this data source:
+
+| Policy Name | Common Class Types | Typical Category Path | Use Case |
+|-------------|-------------------|----------------------|----------|
+| Enable Profile Containers | machine, user | \FSLogix\Profile Containers | FSLogix profile redirection |
+| Allow Cloud Policy Management | machine | \FSLogix\Profile Containers | Enable cloud-based FSLogix policy |
+| Show Home button on toolbar | user, machine | \Microsoft Edge\Startup, home page... | Configure Edge home button |
+| Configure Automatic Updates | machine | \Windows Components\Windows Update | Windows Update settings |
+| Allow users to connect remotely by using Remote Desktop Services | machine | \Windows Components\Remote Desktop Services\... | Enable RDP connections |
+
+## Additional Resources
+
+- [Microsoft Graph API - Group Policy Definitions](https://learn.microsoft.com/en-us/graph/api/intune-grouppolicy-grouppolicydefinition-get?view=graph-rest-beta)
+- [Group Policy Overview](https://learn.microsoft.com/en-us/mem/intune/configuration/administrative-templates-windows)
+- [ADMX-backed Policies in Intune](https://learn.microsoft.com/en-us/mem/intune/configuration/administrative-templates-import-custom)
+- [FSLogix Group Policy Reference](https://learn.microsoft.com/en-us/fslogix/reference-configuration-settings)
+

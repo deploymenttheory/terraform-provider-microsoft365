@@ -1,0 +1,11 @@
+{
+  "@odata.type": "#microsoft.graph.groupPolicyDefinitionValue",
+  "id": "PLACEHOLDER_ID",
+  "createdDateTime": "2024-01-01T00:00:00Z",
+  "lastModifiedDateTime": "2024-01-01T00:00:00Z",
+  "enabled": true,
+  "definition": {
+    "@odata.id": "https://graph.microsoft.com/beta/deviceManagement/groupPolicyDefinitions('def-boolean-minimal')",
+    "id": "def-boolean-minimal"
+  }
+}

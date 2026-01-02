@@ -39,14 +39,64 @@ The following API permissions are required in order to use this resource.
 
 ## Important Notes
 
-- **Resource Structure**: this resource deploys a text value for a group policy configuration. 
+- **Resource Structure**: this resource deploys boolean values for a group policy configuration. 
 It has a hard dependency on the group policy configuration resource.
-- **Authoring**: The policy name, class type, and category path must match what's defined in the Intune gui. The Provider
-will resolve the correct template and presentation IDs for you. The boolean values should be in defined in the HCL
-as to the order within the gui.
+- **Authoring**: The policy name, class type, and category path must match what's defined in the Intune GUI. The Provider
+will resolve the correct template and presentation IDs for you. The boolean values are stored as a set, so order is not significant.
+- **Import ID Format**: When importing, use the composite ID format: `{groupPolicyConfigurationId}/definitionValues/{definitionValueId}`. 
+The resource's `id` attribute is automatically set in this format during creation. During import, the provider will 
+automatically resolve the policy metadata (policy_name, class_type, category_path) from the definition value instance ID.
 
 ## Import
 
-Import is supported using the following syntax:
+Import is supported using the composite ID format: `{groupPolicyConfigurationId}/definitionValues/{definitionValueId}`.
 
-{{ codefile "shell" "examples/resources/microsoft365_graph_beta_device_management_group_policy_boolean_value/import.sh" }} 
+### Manual Import
+
+{{ codefile "shell" "examples/resources/microsoft365_graph_beta_device_management_group_policy_boolean_value/import.sh" }}
+
+### Automated Import with PowerShell Helper Script
+
+For simplified importing of existing boolean value configurations, use the included PowerShell script located at:
+`scripts/powershell/device_management/Export-GroupPolicyBooleanValueToHCLForImport.ps1`
+
+This script will:
+- Connect to Microsoft Graph and retrieve your group policy configurations
+- Identify all boolean value definitions in a selected configuration
+- Generate ready-to-use Terraform import commands
+- Generate complete HCL resource blocks with current values
+- Save both to timestamped files for easy tracking
+
+**Example Usage:**
+
+```powershell
+# Interactive mode - browse and select configuration
+pwsh scripts/powershell/device_management/Export-GroupPolicyBooleanValueToHCLForImport.ps1 \
+    -TenantId "your-tenant-id" \
+    -ClientId "your-client-id" \
+    -ClientSecret "your-client-secret" \
+    -OutputDirectory "./imports"
+
+# Direct mode - specify configuration ID
+pwsh scripts/powershell/device_management/Export-GroupPolicyBooleanValueToHCLForImport.ps1 \
+    -TenantId "your-tenant-id" \
+    -ClientId "your-client-id" \
+    -ClientSecret "your-client-secret" \
+    -ConfigurationId "a1b2c3d4-e5f6-g7h8-i9j0-k1l2m3n4o5p6" \
+    -OutputDirectory "./imports"
+```
+
+**Generated Output:**
+
+The script generates two files:
+1. `import_commands_[timestamp].sh` - Bash script with all import commands
+2. `resources_[timestamp].tf` - Complete HCL resource definitions with current values
+
+**Workflow:**
+
+1. Run the script to generate import files
+2. Review the generated HCL in `resources_[timestamp].tf`
+3. Copy the resource definitions to your Terraform configuration
+4. Update the `group_policy_configuration_id` references if needed
+5. Run the import commands: `bash import_commands_[timestamp].sh`
+6. Run `terraform plan` to verify the import was successful 

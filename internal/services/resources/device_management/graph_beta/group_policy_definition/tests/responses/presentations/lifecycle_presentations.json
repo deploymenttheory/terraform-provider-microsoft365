@@ -1,0 +1,19 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/groupPolicyDefinitions('def-lifecycle')/presentations",
+  "value": [
+    {
+      "@odata.type": "#microsoft.graph.groupPolicyPresentationCheckBox",
+      "id": "pres-lifecycle-bool-001",
+      "label": "Enable Lifecycle Feature",
+      "required": false,
+      "defaultChecked": false
+    },
+    {
+      "@odata.type": "#microsoft.graph.groupPolicyPresentationTextBox",
+      "id": "pres-lifecycle-text-001",
+      "label": "Lifecycle Text",
+      "required": false,
+      "defaultValue": ""
+    }
+  ]
+}

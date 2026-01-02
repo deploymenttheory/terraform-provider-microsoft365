@@ -1,0 +1,16 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/groupPolicyDefinitions",
+  "value": [
+    {
+      "@odata.type": "#microsoft.graph.groupPolicyDefinition",
+      "id": "def-boolean-minimal",
+      "displayName": "Test Policy Boolean Minimal",
+      "classType": "machine",
+      "categoryPath": "\\Test\\Boolean\\Minimal",
+      "policyType": "admxBacked",
+      "version": "1.0",
+      "supportedOn": "Windows 10",
+      "explainText": "Test policy for boolean minimal scenario"
+    }
+  ]
+}
