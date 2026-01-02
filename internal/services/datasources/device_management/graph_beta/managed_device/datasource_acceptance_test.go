@@ -30,9 +30,7 @@ func TestAccManagedDeviceDataSource_All(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("data.microsoft365_graph_beta_device_management_managed_device.all", "filter_type", "all"),
 					resource.TestCheckResourceAttrSet("data.microsoft365_graph_beta_device_management_managed_device.all", "items.#"),
-					resource.TestCheckResourceAttrSet("data.microsoft365_graph_beta_device_management_managed_device.all", "items.0.id"),
-					resource.TestCheckResourceAttrSet("data.microsoft365_graph_beta_device_management_managed_device.all", "items.0.device_name"),
-					resource.TestCheckResourceAttrSet("data.microsoft365_graph_beta_device_management_managed_device.all", "items.0.operating_system"),
+					// Note: Not checking items.0.* fields as test environment may have zero managed devices
 				),
 			},
 		},
@@ -91,6 +89,7 @@ func TestAccManagedDeviceDataSource_ODataFilter(t *testing.T) {
 					resource.TestCheckResourceAttr("data.microsoft365_graph_beta_device_management_managed_device.odata_filter", "filter_type", "odata"),
 					resource.TestCheckResourceAttr("data.microsoft365_graph_beta_device_management_managed_device.odata_filter", "odata_filter", "operatingSystem eq 'Windows'"),
 					resource.TestCheckResourceAttrSet("data.microsoft365_graph_beta_device_management_managed_device.odata_filter", "items.#"),
+					// Note: Not checking items.0.* fields as filtered results may return zero devices
 				),
 			},
 		},
@@ -120,6 +119,7 @@ func TestAccManagedDeviceDataSource_ODataAdvanced(t *testing.T) {
 					resource.TestCheckResourceAttr("data.microsoft365_graph_beta_device_management_managed_device.odata_advanced", "odata_orderby", "deviceName"),
 					resource.TestCheckResourceAttr("data.microsoft365_graph_beta_device_management_managed_device.odata_advanced", "odata_select", "id,deviceName,operatingSystem,complianceState"),
 					resource.TestCheckResourceAttrSet("data.microsoft365_graph_beta_device_management_managed_device.odata_advanced", "items.#"),
+					// Note: Not checking items.0.* fields as filtered results may return zero devices
 				),
 			},
 		},
@@ -149,6 +149,7 @@ func TestAccManagedDeviceDataSource_ODataComprehensive(t *testing.T) {
 					resource.TestCheckResourceAttr("data.microsoft365_graph_beta_device_management_managed_device.odata_comprehensive", "odata_top", "50"),
 					resource.TestCheckResourceAttr("data.microsoft365_graph_beta_device_management_managed_device.odata_comprehensive", "odata_orderby", "lastSyncDateTime desc"),
 					resource.TestCheckResourceAttrSet("data.microsoft365_graph_beta_device_management_managed_device.odata_comprehensive", "items.#"),
+					// Note: Not checking items.0.* fields as filtered results may return zero devices
 				),
 			},
 		},

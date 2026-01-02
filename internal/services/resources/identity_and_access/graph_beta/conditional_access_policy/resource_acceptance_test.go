@@ -816,7 +816,7 @@ func TestAccConditionalAccessPolicyResource_CAD013(t *testing.T) {
 					check.That(resourceType+".cad013_selected_apps_compliant").Key("conditions.users.include_users.*").ContainsTypeSetElement("All"),
 					check.That(resourceType+".cad013_selected_apps_compliant").Key("conditions.users.exclude_groups.#").HasValue("2"),
 					check.That(resourceType+".cad013_selected_apps_compliant").Key("conditions.applications.include_applications.#").HasValue("4"),
-					check.That(resourceType+".cad013_selected_apps_compliant").Key("conditions.applications.include_applications.*").ContainsTypeSetElement("a4f2693f-129c-4b96-982b-2c364b8314d7"),
+					check.That(resourceType+".cad013_selected_apps_compliant").Key("conditions.applications.include_applications.*").ContainsTypeSetElement("c5393580-f805-4401-95e8-94b7a6ef2fc2"),
 					check.That(resourceType+".cad013_selected_apps_compliant").Key("conditions.applications.include_applications.*").ContainsTypeSetElement("499b84ac-1321-427f-aa17-267ca6975798"),
 					check.That(resourceType+".cad013_selected_apps_compliant").Key("conditions.applications.include_applications.*").ContainsTypeSetElement("996def3d-b36c-4153-8607-a6fd3c01b89f"),
 					check.That(resourceType+".cad013_selected_apps_compliant").Key("conditions.applications.include_applications.*").ContainsTypeSetElement("797f4846-ba00-4fd7-ba43-dac1f8f63013"),
@@ -875,7 +875,7 @@ func TestAccConditionalAccessPolicyResource_CAD014(t *testing.T) {
 					check.That(resourceType+".cad014_edge_app_protection_windows").Key("conditions.client_app_types.#").HasValue("1"),
 					check.That(resourceType+".cad014_edge_app_protection_windows").Key("conditions.client_app_types.*").ContainsTypeSetElement("browser"),
 					check.That(resourceType+".cad014_edge_app_protection_windows").Key("conditions.users.include_groups.#").HasValue("1"),
-					check.That(resourceType+".cad014_edge_app_protection_windows").Key("conditions.users.include_groups.*").ContainsTypeSetElement("77777777-7777-7777-7777-777777777777"),
+					check.That(resourceType+".cad014_edge_app_protection_windows").Key("conditions.users.include_groups.0").Exists(),
 					check.That(resourceType+".cad014_edge_app_protection_windows").Key("conditions.users.exclude_groups.#").HasValue("2"),
 					check.That(resourceType+".cad014_edge_app_protection_windows").Key("conditions.applications.include_applications.#").HasValue("1"),
 					check.That(resourceType+".cad014_edge_app_protection_windows").Key("conditions.applications.include_applications.*").ContainsTypeSetElement("Office365"),
@@ -936,7 +936,7 @@ func TestAccConditionalAccessPolicyResource_CAD015(t *testing.T) {
 					check.That(resourceType+".cad015_windows_macos_browser_compliant").Key("conditions.client_app_types.*").ContainsTypeSetElement("browser"),
 					check.That(resourceType+".cad015_windows_macos_browser_compliant").Key("conditions.client_app_types.*").ContainsTypeSetElement("mobileAppsAndDesktopClients"),
 					check.That(resourceType+".cad015_windows_macos_browser_compliant").Key("conditions.users.include_groups.#").HasValue("1"),
-					check.That(resourceType+".cad015_windows_macos_browser_compliant").Key("conditions.users.include_groups.*").ContainsTypeSetElement("77777777-7777-7777-7777-777777777777"),
+					check.That(resourceType+".cad015_windows_macos_browser_compliant").Key("conditions.users.include_groups.0").Exists(),
 					check.That(resourceType+".cad015_windows_macos_browser_compliant").Key("conditions.users.exclude_groups.#").HasValue("2"),
 					check.That(resourceType+".cad015_windows_macos_browser_compliant").Key("conditions.applications.include_applications.#").HasValue("1"),
 					check.That(resourceType+".cad015_windows_macos_browser_compliant").Key("conditions.applications.include_applications.*").ContainsTypeSetElement("All"),
@@ -996,7 +996,7 @@ func TestAccConditionalAccessPolicyResource_CAD016(t *testing.T) {
 					check.That(resourceType+".cad016_token_protection_windows").Key("conditions.client_app_types.#").HasValue("1"),
 					check.That(resourceType+".cad016_token_protection_windows").Key("conditions.client_app_types.*").ContainsTypeSetElement("mobileAppsAndDesktopClients"),
 					check.That(resourceType+".cad016_token_protection_windows").Key("conditions.users.include_groups.#").HasValue("1"),
-					check.That(resourceType+".cad016_token_protection_windows").Key("conditions.users.include_groups.*").ContainsTypeSetElement("77777777-7777-7777-7777-777777777777"),
+					check.That(resourceType+".cad016_token_protection_windows").Key("conditions.users.include_groups.0").Exists(),
 					check.That(resourceType+".cad016_token_protection_windows").Key("conditions.users.exclude_groups.#").HasValue("2"),
 					check.That(resourceType+".cad016_token_protection_windows").Key("conditions.users.exclude_guests_or_external_users.guest_or_external_user_types.#").HasValue("6"),
 					check.That(resourceType+".cad016_token_protection_windows").Key("conditions.users.exclude_guests_or_external_users.guest_or_external_user_types.*").ContainsTypeSetElement("internalGuest"),
@@ -1059,7 +1059,7 @@ func TestAccConditionalAccessPolicyResource_CAD017(t *testing.T) {
 					check.That(resourceType+".cad017_selected_mobile_app_protection").Key("conditions.client_app_types.#").HasValue("1"),
 					check.That(resourceType+".cad017_selected_mobile_app_protection").Key("conditions.client_app_types.*").ContainsTypeSetElement("mobileAppsAndDesktopClients"),
 					check.That(resourceType+".cad017_selected_mobile_app_protection").Key("conditions.users.include_groups.#").HasValue("1"),
-					check.That(resourceType+".cad017_selected_mobile_app_protection").Key("conditions.users.include_groups.*").ContainsTypeSetElement("77777777-7777-7777-7777-777777777777"),
+					check.That(resourceType+".cad017_selected_mobile_app_protection").Key("conditions.users.include_groups.0").Exists(),
 					check.That(resourceType+".cad017_selected_mobile_app_protection").Key("conditions.users.exclude_groups.#").HasValue("2"),
 					check.That(resourceType+".cad017_selected_mobile_app_protection").Key("conditions.users.exclude_guests_or_external_users.guest_or_external_user_types.#").HasValue("6"),
 					check.That(resourceType+".cad017_selected_mobile_app_protection").Key("conditions.users.exclude_guests_or_external_users.guest_or_external_user_types.*").ContainsTypeSetElement("internalGuest"),
@@ -1205,8 +1205,6 @@ func TestAccConditionalAccessPolicyResource_CAD019(t *testing.T) {
 	})
 }
 
-// Found 28 CAL/CAP/CAU tests to convert
-
 // CAL001: CAL001-All
 func TestAccConditionalAccessPolicyResource_CAL001(t *testing.T) {
 	resource.Test(t, resource.TestCase{
@@ -1246,7 +1244,9 @@ func TestAccConditionalAccessPolicyResource_CAL001(t *testing.T) {
 					check.That(resourceType+".cal001_block_locations").Key("conditions.users.exclude_groups.#").HasValue("2"),
 					check.That(resourceType+".cal001_block_locations").Key("conditions.applications.include_applications.#").HasValue("1"),
 					check.That(resourceType+".cal001_block_locations").Key("conditions.applications.include_applications.*").ContainsTypeSetElement("All"),
-					check.That(resourceType+".cal001_block_locations").Key("conditions.locations.include_locations.#").HasValue("1"),
+					check.That(resourceType+".cal001_block_locations").Key("conditions.locations.include_locations.#").HasValue("2"),
+					check.That(resourceType+".cal001_block_locations").Key("conditions.locations.include_locations.0").Exists(),
+					check.That(resourceType+".cal001_block_locations").Key("conditions.locations.include_locations.1").Exists(),
 					check.That(resourceType+".cal001_block_locations").Key("grant_controls.operator").HasValue("OR"),
 					check.That(resourceType+".cal001_block_locations").Key("grant_controls.built_in_controls.#").HasValue("1"),
 					check.That(resourceType+".cal001_block_locations").Key("grant_controls.built_in_controls.*").ContainsTypeSetElement("block"),

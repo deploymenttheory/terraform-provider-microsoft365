@@ -18,17 +18,14 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *AgentIdentityB
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting to map remote state to Terraform state for %s", ResourceName))
 
-	// Map scope from API response
 	api := application.GetApi()
 	if api != nil {
 		scopes := api.GetOauth2PermissionScopes()
 		tflog.Debug(ctx, fmt.Sprintf("Found %d oauth2PermissionScopes in API response", len(scopes)))
 
 		if len(scopes) > 0 {
-			// Find the scope matching our value or use the first one
 			var matchedScope graphmodels.PermissionScopeable
 
-			// If we have a scope value to match against, use it
 			if data.Scope != nil && !data.Scope.Value.IsNull() && !data.Scope.Value.IsUnknown() {
 				scopeValue := data.Scope.Value.ValueString()
 				for _, scope := range scopes {

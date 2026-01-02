@@ -9,6 +9,7 @@ import (
 	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
+	"github.com/microsoftgraph/msgraph-beta-sdk-go/applications"
 )
 
 // Create handles the Create operation.
@@ -31,11 +32,17 @@ func (r *AgentIdentityBlueprintIdentifierUriResource) Create(ctx context.Context
 
 	blueprintID := object.BlueprintID.ValueString()
 
-	// First, get the current application to retrieve existing identifier URIs
+	// First, get the current application to retrieve existing identifier URIs and api configuration
+	// Note: We don't use $expand here as 'api' is a complex type, not a navigation property
+	// Instead, we ensure all properties are returned by not using $select
+	requestConfig := &applications.ApplicationItemRequestBuilderGetRequestConfiguration{
+		QueryParameters: &applications.ApplicationItemRequestBuilderGetQueryParameters{},
+	}
+
 	application, err := r.client.
 		Applications().
 		ByApplicationId(blueprintID).
-		Get(ctx, nil)
+		Get(ctx, requestConfig)
 
 	if err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, "Create", r.WritePermissions)
@@ -44,7 +51,6 @@ func (r *AgentIdentityBlueprintIdentifierUriResource) Create(ctx context.Context
 
 	existingUris := application.GetIdentifierUris()
 
-	// Check if URI already exists
 	for _, uri := range existingUris {
 		if uri == object.IdentifierUri.ValueString() {
 			resp.Diagnostics.AddError(
@@ -55,7 +61,6 @@ func (r *AgentIdentityBlueprintIdentifierUriResource) Create(ctx context.Context
 		}
 	}
 
-	// Construct the PATCH request body
 	requestBody, err := constructResource(ctx, &object, existingUris)
 	if err != nil {
 		resp.Diagnostics.AddError(
@@ -67,7 +72,6 @@ func (r *AgentIdentityBlueprintIdentifierUriResource) Create(ctx context.Context
 
 	tflog.Debug(ctx, fmt.Sprintf("Adding identifier URI to blueprint_id: %s", blueprintID))
 
-	// PATCH the application
 	_, err = r.client.
 		Applications().
 		ByApplicationId(blueprintID).
@@ -134,11 +138,16 @@ func (r *AgentIdentityBlueprintIdentifierUriResource) Read(ctx context.Context, 
 
 	blueprintID := object.BlueprintID.ValueString()
 
-	// Get the application
+	// Get the application with api property fully populated including oauth2PermissionScopes
+	// Note: We don't use $expand or $select to ensure all properties including nested ones are returned
+	requestConfig := &applications.ApplicationItemRequestBuilderGetRequestConfiguration{
+		QueryParameters: &applications.ApplicationItemRequestBuilderGetQueryParameters{},
+	}
+
 	application, err := r.client.
 		Applications().
 		ByApplicationId(blueprintID).
-		Get(ctx, nil)
+		Get(ctx, requestConfig)
 
 	if err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, operation, r.ReadPermissions)
@@ -177,10 +186,14 @@ func (r *AgentIdentityBlueprintIdentifierUriResource) Update(ctx context.Context
 
 	blueprintID := state.BlueprintID.ValueString()
 
+	requestConfig := &applications.ApplicationItemRequestBuilderGetRequestConfiguration{
+		QueryParameters: &applications.ApplicationItemRequestBuilderGetQueryParameters{},
+	}
+
 	application, err := r.client.
 		Applications().
 		ByApplicationId(blueprintID).
-		Get(ctx, nil)
+		Get(ctx, requestConfig)
 
 	if err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, "Update", r.WritePermissions)
@@ -257,10 +270,14 @@ func (r *AgentIdentityBlueprintIdentifierUriResource) Delete(ctx context.Context
 
 	tflog.Debug(ctx, fmt.Sprintf("Removing identifier URI %s from blueprint: %s", identifierUri, blueprintID))
 
+	requestConfig := &applications.ApplicationItemRequestBuilderGetRequestConfiguration{
+		QueryParameters: &applications.ApplicationItemRequestBuilderGetQueryParameters{},
+	}
+
 	application, err := r.client.
 		Applications().
 		ByApplicationId(blueprintID).
-		Get(ctx, nil)
+		Get(ctx, requestConfig)
 
 	if err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, "Delete", r.WritePermissions)

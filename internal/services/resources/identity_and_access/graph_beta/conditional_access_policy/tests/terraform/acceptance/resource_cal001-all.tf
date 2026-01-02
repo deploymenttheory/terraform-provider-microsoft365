@@ -30,6 +30,34 @@ resource "microsoft365_graph_beta_groups_group" "cal001_exclude" {
 }
 
 # ==============================================================================
+# Named Location Dependencies
+# ==============================================================================
+
+# High risk countries blocked by client IP
+resource "microsoft365_graph_beta_identity_and_access_named_location" "high_risk_countries_blocked_by_client_ip" {
+  display_name                          = "CAL001 High Risk Countries (Client IP) - ${random_string.suffix.result}"
+  country_lookup_method                 = "clientIpAddress"
+  include_unknown_countries_and_regions = false
+
+  countries_and_regions = [
+    "KP", # North Korea
+    "IR", # Iran
+  ]
+}
+
+# High risk countries blocked by authenticator GPS
+resource "microsoft365_graph_beta_identity_and_access_named_location" "high_risk_countries_blocked_by_authenticator_gps" {
+  display_name                          = "CAL001 High Risk Countries (GPS) - ${random_string.suffix.result}"
+  country_lookup_method                 = "authenticatorAppGps"
+  include_unknown_countries_and_regions = false
+
+  countries_and_regions = [
+    "KP", # North Korea
+    "IR", # Iran
+  ]
+}
+
+# ==============================================================================
 # Conditional Access Policy
 # ==============================================================================
 
