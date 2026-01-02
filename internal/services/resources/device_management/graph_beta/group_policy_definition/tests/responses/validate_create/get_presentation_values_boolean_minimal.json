@@ -1,0 +1,23 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/groupPolicyConfigurations/definitionValues/presentationValues",
+  "value": [
+    {
+      "@odata.type": "#microsoft.graph.groupPolicyPresentationValueBoolean",
+      "id": "presvalue-bool-min-001",
+      "value": true,
+      "presentationId": "pres-bool-min-001",
+      "presentation": {
+        "id": "pres-bool-min-001"
+      }
+    },
+    {
+      "@odata.type": "#microsoft.graph.groupPolicyPresentationValueBoolean",
+      "id": "presvalue-bool-min-002",
+      "value": false,
+      "presentationId": "pres-bool-min-002",
+      "presentation": {
+        "id": "pres-bool-min-002"
+      }
+    }
+  ]
+}

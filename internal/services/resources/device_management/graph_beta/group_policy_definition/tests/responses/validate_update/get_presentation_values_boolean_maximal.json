@@ -1,0 +1,230 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/groupPolicyConfigurations/definitionValues/presentationValues",
+  "value": [
+    {
+      "@odata.type": "#microsoft.graph.groupPolicyPresentationValueBoolean",
+      "id": "presvalue-bool-max-001",
+      "value": false,
+      "presentationId": "pres-bool-max-001",
+      "presentation": {
+        "id": "pres-bool-max-001"
+      }
+    },
+    {
+      "@odata.type": "#microsoft.graph.groupPolicyPresentationValueBoolean",
+      "id": "presvalue-bool-max-002",
+      "value": true,
+      "presentationId": "pres-bool-max-002",
+      "presentation": {
+        "id": "pres-bool-max-002"
+      }
+    },
+    {
+      "@odata.type": "#microsoft.graph.groupPolicyPresentationValueBoolean",
+      "id": "presvalue-bool-max-003",
+      "value": false,
+      "presentationId": "pres-bool-max-003",
+      "presentation": {
+        "id": "pres-bool-max-003"
+      }
+    },
+    {
+      "@odata.type": "#microsoft.graph.groupPolicyPresentationValueBoolean",
+      "id": "presvalue-bool-max-004",
+      "value": true,
+      "presentationId": "pres-bool-max-004",
+      "presentation": {
+        "id": "pres-bool-max-004"
+      }
+    },
+    {
+      "@odata.type": "#microsoft.graph.groupPolicyPresentationValueBoolean",
+      "id": "presvalue-bool-max-005",
+      "value": false,
+      "presentationId": "pres-bool-max-005",
+      "presentation": {
+        "id": "pres-bool-max-005"
+      }
+    },
+    {
+      "@odata.type": "#microsoft.graph.groupPolicyPresentationValueBoolean",
+      "id": "presvalue-bool-max-006",
+      "value": true,
+      "presentationId": "pres-bool-max-006",
+      "presentation": {
+        "id": "pres-bool-max-006"
+      }
+    },
+    {
+      "@odata.type": "#microsoft.graph.groupPolicyPresentationValueBoolean",
+      "id": "presvalue-bool-max-007",
+      "value": false,
+      "presentationId": "pres-bool-max-007",
+      "presentation": {
+        "id": "pres-bool-max-007"
+      }
+    },
+    {
+      "@odata.type": "#microsoft.graph.groupPolicyPresentationValueBoolean",
+      "id": "presvalue-bool-max-008",
+      "value": true,
+      "presentationId": "pres-bool-max-008",
+      "presentation": {
+        "id": "pres-bool-max-008"
+      }
+    },
+    {
+      "@odata.type": "#microsoft.graph.groupPolicyPresentationValueBoolean",
+      "id": "presvalue-bool-max-009",
+      "value": false,
+      "presentationId": "pres-bool-max-009",
+      "presentation": {
+        "id": "pres-bool-max-009"
+      }
+    },
+    {
+      "@odata.type": "#microsoft.graph.groupPolicyPresentationValueBoolean",
+      "id": "presvalue-bool-max-010",
+      "value": true,
+      "presentationId": "pres-bool-max-010",
+      "presentation": {
+        "id": "pres-bool-max-010"
+      }
+    },
+    {
+      "@odata.type": "#microsoft.graph.groupPolicyPresentationValueBoolean",
+      "id": "presvalue-bool-max-011",
+      "value": false,
+      "presentationId": "pres-bool-max-011",
+      "presentation": {
+        "id": "pres-bool-max-011"
+      }
+    },
+    {
+      "@odata.type": "#microsoft.graph.groupPolicyPresentationValueBoolean",
+      "id": "presvalue-bool-max-012",
+      "value": true,
+      "presentationId": "pres-bool-max-012",
+      "presentation": {
+        "id": "pres-bool-max-012"
+      }
+    },
+    {
+      "@odata.type": "#microsoft.graph.groupPolicyPresentationValueBoolean",
+      "id": "presvalue-bool-max-013",
+      "value": false,
+      "presentationId": "pres-bool-max-013",
+      "presentation": {
+        "id": "pres-bool-max-013"
+      }
+    },
+    {
+      "@odata.type": "#microsoft.graph.groupPolicyPresentationValueBoolean",
+      "id": "presvalue-bool-max-014",
+      "value": true,
+      "presentationId": "pres-bool-max-014",
+      "presentation": {
+        "id": "pres-bool-max-014"
+      }
+    },
+    {
+      "@odata.type": "#microsoft.graph.groupPolicyPresentationValueBoolean",
+      "id": "presvalue-bool-max-015",
+      "value": false,
+      "presentationId": "pres-bool-max-015",
+      "presentation": {
+        "id": "pres-bool-max-015"
+      }
+    },
+    {
+      "@odata.type": "#microsoft.graph.groupPolicyPresentationValueBoolean",
+      "id": "presvalue-bool-max-016",
+      "value": true,
+      "presentationId": "pres-bool-max-016",
+      "presentation": {
+        "id": "pres-bool-max-016"
+      }
+    },
+    {
+      "@odata.type": "#microsoft.graph.groupPolicyPresentationValueBoolean",
+      "id": "presvalue-bool-max-017",
+      "value": false,
+      "presentationId": "pres-bool-max-017",
+      "presentation": {
+        "id": "pres-bool-max-017"
+      }
+    },
+    {
+      "@odata.type": "#microsoft.graph.groupPolicyPresentationValueBoolean",
+      "id": "presvalue-bool-max-018",
+      "value": true,
+      "presentationId": "pres-bool-max-018",
+      "presentation": {
+        "id": "pres-bool-max-018"
+      }
+    },
+    {
+      "@odata.type": "#microsoft.graph.groupPolicyPresentationValueBoolean",
+      "id": "presvalue-bool-max-019",
+      "value": false,
+      "presentationId": "pres-bool-max-019",
+      "presentation": {
+        "id": "pres-bool-max-019"
+      }
+    },
+    {
+      "@odata.type": "#microsoft.graph.groupPolicyPresentationValueBoolean",
+      "id": "presvalue-bool-max-020",
+      "value": true,
+      "presentationId": "pres-bool-max-020",
+      "presentation": {
+        "id": "pres-bool-max-020"
+      }
+    },
+    {
+      "@odata.type": "#microsoft.graph.groupPolicyPresentationValueBoolean",
+      "id": "presvalue-bool-max-021",
+      "value": false,
+      "presentationId": "pres-bool-max-021",
+      "presentation": {
+        "id": "pres-bool-max-021"
+      }
+    },
+    {
+      "@odata.type": "#microsoft.graph.groupPolicyPresentationValueBoolean",
+      "id": "presvalue-bool-max-022",
+      "value": true,
+      "presentationId": "pres-bool-max-022",
+      "presentation": {
+        "id": "pres-bool-max-022"
+      }
+    },
+    {
+      "@odata.type": "#microsoft.graph.groupPolicyPresentationValueBoolean",
+      "id": "presvalue-bool-max-023",
+      "value": false,
+      "presentationId": "pres-bool-max-023",
+      "presentation": {
+        "id": "pres-bool-max-023"
+      }
+    },
+    {
+      "@odata.type": "#microsoft.graph.groupPolicyPresentationValueBoolean",
+      "id": "presvalue-bool-max-024",
+      "value": true,
+      "presentationId": "pres-bool-max-024",
+      "presentation": {
+        "id": "pres-bool-max-024"
+      }
+    },
+    {
+      "@odata.type": "#microsoft.graph.groupPolicyPresentationValueBoolean",
+      "id": "presvalue-bool-max-025",
+      "value": false,
+      "presentationId": "pres-bool-max-025",
+      "presentation": {
+        "id": "pres-bool-max-025"
+      }
+    }
+  ]
+}

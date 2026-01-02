@@ -1,0 +1,14 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/groupPolicyConfigurations/definitionValues/presentationValues",
+  "value": [
+    {
+      "@odata.type": "#microsoft.graph.groupPolicyPresentationValueText",
+      "id": "presvalue-dropdown-001",
+      "value": "1",
+      "presentationId": "pres-dropdown-001",
+      "presentation": {
+        "id": "pres-dropdown-001"
+      }
+    }
+  ]
+}

@@ -16,13 +16,8 @@ func constructResource(ctx context.Context, data *GroupPolicyConfigurationResour
 
 	requestBody := models.NewGroupPolicyConfiguration()
 
-	// Set required fields
 	convert.FrameworkToGraphString(data.DisplayName, requestBody.SetDisplayName)
-
-	// Set optional fields
 	convert.FrameworkToGraphString(data.Description, requestBody.SetDescription)
-
-	// Set role scope tag IDs using helper
 	convert.FrameworkToGraphStringSet(ctx, data.RoleScopeTagIds, requestBody.SetRoleScopeTagIds)
 
 	if err := constructors.DebugLogGraphObject(ctx, fmt.Sprintf("Final JSON to be sent to Graph API for resource %s", ResourceName), requestBody); err != nil {

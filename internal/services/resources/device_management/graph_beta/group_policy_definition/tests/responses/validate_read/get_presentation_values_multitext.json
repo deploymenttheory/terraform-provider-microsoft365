@@ -1,0 +1,18 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/groupPolicyConfigurations/definitionValues/presentationValues",
+  "value": [
+    {
+      "@odata.type": "#microsoft.graph.groupPolicyPresentationValueMultiText",
+      "id": "presvalue-multitext-001",
+      "values": [
+        "FilterDriver1",
+        "FilterDriver2",
+        "FilterDriver3"
+      ],
+      "presentationId": "pres-multitext-001",
+      "presentation": {
+        "id": "pres-multitext-001"
+      }
+    }
+  ]
+}

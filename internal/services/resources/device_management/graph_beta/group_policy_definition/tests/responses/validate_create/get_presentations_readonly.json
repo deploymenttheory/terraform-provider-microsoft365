@@ -1,0 +1,12 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/groupPolicyDefinitions('def-readonly')/presentations",
+  "value": [
+    {
+      "id": "pres-readonly-1",
+      "label": "Read-Only Text Label",
+      "lastModifiedDateTime": "2024-01-01T00:00:00Z",
+      "@odata.type": "#microsoft.graph.groupPolicyPresentationText"
+    }
+  ]
+}
+

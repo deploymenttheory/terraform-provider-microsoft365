@@ -1,0 +1,14 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/groupPolicyConfigurations/definitionValues/presentationValues",
+  "value": [
+    {
+      "@odata.type": "#microsoft.graph.groupPolicyPresentationValueText",
+      "id": "presvalue-text-001",
+      "value": "test-value-string",
+      "presentationId": "pres-text-001",
+      "presentation": {
+        "id": "pres-text-001"
+      }
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/groupPolicyDefinitions",
+  "value": [
+    {
+      "@odata.type": "#microsoft.graph.groupPolicyDefinition",
+      "id": "def-dropdown",
+      "displayName": "Test Policy Dropdown",
+      "classType": "machine",
+      "categoryPath": "\\Test\\Dropdown",
+      "policyType": "admxBacked",
+      "version": "1.0",
+      "supportedOn": "Windows 10",
+      "explainText": "Test policy for dropdown presentation type"
+    }
+  ]
+}

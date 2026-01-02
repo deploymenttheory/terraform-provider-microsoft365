@@ -1,8 +1,0 @@
-{
-  "@odata.type": "#microsoft.graph.groupPolicyDefinitionValue",
-  "id": "def-value-001",
-  "enabled": true,
-  "createdDateTime": "2024-01-01T00:00:00Z",
-  "lastModifiedDateTime": "2024-01-01T00:00:00Z"
-}
-

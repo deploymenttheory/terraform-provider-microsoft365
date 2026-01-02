@@ -16,6 +16,7 @@ import (
 	graphBetaDeviceManagementAssignmentFilter "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/device_management/graph_beta/assignment_filter"
 	graphBetaDeviceManagementDeviceCategory "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/device_management/graph_beta/device_category"
 	graphBetaDeviceManagementGroupPolicyCategories "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/device_management/graph_beta/group_policy_categories"
+	graphBetaDeviceManagementGroupPolicyValueReference "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/device_management/graph_beta/group_policy_value_reference"
 	graphBetaDeviceManagementLinuxPlatformScript "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/device_management/graph_beta/linux_platform_script"
 	graphBetaDeviceManagementManagedDevice "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/device_management/graph_beta/managed_device"
 	graphBetaDeviceManagementReuseablePolicySettings "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/device_management/graph_beta/reuseable_policy_settings"
@@ -58,7 +59,6 @@ import (
 
 	// Utilities
 	utilityEntraIdSidConverter "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/utility/entra_id_sid_converter"
-	utilityGroupPolicyValueReference "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/utility/group_policy_value_reference"
 	utilityItunesAppMetadata "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/utility/itunes_app_metadata"
 	utilityLicensingServicePlanReference "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/utility/licensing_service_plan_reference"
 	utilityMacOSPKGAppMetadata "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/utility/macos_pkg_app_metadata"
@@ -93,6 +93,7 @@ func (p *M365Provider) DataSources(ctx context.Context) []func() datasource.Data
 		graphBetaDeviceManagementAssignmentFilter.NewAssignmentFilterDataSource,
 		graphBetaDeviceManagementDeviceCategory.NewDeviceCategoryDataSource,
 		graphBetaDeviceManagementGroupPolicyCategories.NewGroupPolicyCategoryDataSource,
+		graphBetaDeviceManagementGroupPolicyValueReference.NewGroupPolicyValueReferenceDataSource,
 		graphBetaDeviceManagementLinuxPlatformScript.NewLinuxPlatformScriptDataSource,
 		graphBetaDeviceManagementManagedDevice.NewManagedDeviceDataSource,
 		graphBetaDeviceManagementReuseablePolicySettings.NewReuseablePolicySettingsDataSource,
@@ -130,7 +131,6 @@ func (p *M365Provider) DataSources(ctx context.Context) []func() datasource.Data
 
 		// Utilities
 		utilityEntraIdSidConverter.NewEntraIdSidConverterDataSource,
-		utilityGroupPolicyValueReference.NewGroupPolicyValueReferenceDataSource,
 		utilityWindowsRemediationScriptRegistryKeyGenerator.NewWindowsRemediationScriptRegistryKeyGeneratorDataSource,
 		utilityMacOSPKGAppMetadata.NewMacOSPKGAppMetadataDataSource,
 		utilityItunesAppMetadata.NewItunesAppMetadataDataSource,

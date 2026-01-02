@@ -1,0 +1,16 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/groupPolicyDefinitions",
+  "value": [
+    {
+      "@odata.type": "#microsoft.graph.groupPolicyDefinition",
+      "id": "def-lifecycle",
+      "displayName": "Test Policy Lifecycle Mixed",
+      "classType": "machine",
+      "categoryPath": "\\Test\\Lifecycle",
+      "policyType": "admxBacked",
+      "version": "1.0",
+      "supportedOn": "Windows 10",
+      "explainText": "Test policy for lifecycle testing with mixed presentation types"
+    }
+  ]
+}

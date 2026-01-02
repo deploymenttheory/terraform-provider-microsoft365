@@ -1,0 +1,14 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/groupPolicyConfigurations/definitionValues/presentationValues",
+  "value": [
+    {
+      "@odata.type": "#microsoft.graph.groupPolicyPresentationValueDecimal",
+      "id": "presvalue-decimal-001",
+      "value": 7200,
+      "presentationId": "pres-decimal-001",
+      "presentation": {
+        "id": "pres-decimal-001"
+      }
+    }
+  ]
+}
