@@ -72,6 +72,15 @@ func TestUnitGroupAppRoleAssignmentResource_Minimal(t *testing.T) {
 				ResourceName:      resourceType + ".minimal",
 				ImportState:       true,
 				ImportStateVerify: true,
+				ImportStateIdFunc: func(s *terraform.State) (string, error) {
+					rs, ok := s.RootModule().Resources[resourceType+".minimal"]
+					if !ok {
+						return "", fmt.Errorf("Resource not found: %s", resourceType+".minimal")
+					}
+					groupID := rs.Primary.Attributes["target_group_id"]
+					assignmentID := rs.Primary.ID
+					return fmt.Sprintf("%s/%s", groupID, assignmentID), nil
+				},
 			},
 		},
 	})
@@ -103,6 +112,15 @@ func TestUnitGroupAppRoleAssignmentResource_Maximal(t *testing.T) {
 				ResourceName:      resourceType + ".maximal",
 				ImportState:       true,
 				ImportStateVerify: true,
+				ImportStateIdFunc: func(s *terraform.State) (string, error) {
+					rs, ok := s.RootModule().Resources[resourceType+".maximal"]
+					if !ok {
+						return "", fmt.Errorf("Resource not found: %s", resourceType+".maximal")
+					}
+					groupID := rs.Primary.Attributes["target_group_id"]
+					assignmentID := rs.Primary.ID
+					return fmt.Sprintf("%s/%s", groupID, assignmentID), nil
+				},
 			},
 		},
 	})

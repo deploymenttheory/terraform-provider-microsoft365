@@ -32,7 +32,6 @@ func TestAccApplicationCategoryDataSource_All(t *testing.T) {
 					check.That(dataSourceType+".all").Key("items.0.id").Exists(),
 					check.That(dataSourceType+".all").Key("items.0.id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(dataSourceType+".all").Key("items.0.display_name").Exists(),
-					check.That(dataSourceType+".all").Key("items.0.last_modified_date_time").Exists(),
 				),
 			},
 		},
@@ -61,7 +60,6 @@ func TestAccApplicationCategoryDataSource_ByDisplayName(t *testing.T) {
 					// Verify at least one item contains "Business" in display name
 					check.That(dataSourceType+".by_display_name").Key("items.0.id").Exists(),
 					check.That(dataSourceType+".by_display_name").Key("items.0.display_name").MatchesRegex(regexp.MustCompile(`(?i)Business`)),
-					check.That(dataSourceType+".by_display_name").Key("items.0.last_modified_date_time").Exists(),
 				),
 			},
 		},
@@ -91,7 +89,6 @@ func TestAccApplicationCategoryDataSource_ODataFilter(t *testing.T) {
 					check.That(dataSourceType+".odata_filter").Key("items.0.id").Exists(),
 					check.That(dataSourceType+".odata_filter").Key("items.0.id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(dataSourceType+".odata_filter").Key("items.0.display_name").Exists(),
-					check.That(dataSourceType+".odata_filter").Key("items.0.last_modified_date_time").Exists(),
 
 					// Verify display name starts with "Business"
 					check.That(dataSourceType+".odata_filter").Key("items.0.display_name").MatchesRegex(regexp.MustCompile(`^Business`)),

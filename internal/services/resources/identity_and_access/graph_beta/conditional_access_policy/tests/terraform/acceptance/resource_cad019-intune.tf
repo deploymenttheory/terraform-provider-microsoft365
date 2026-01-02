@@ -1,5 +1,4 @@
 # ==============================================================================
-# ==============================================================================
 # Random Suffix for Unique Resource Names
 # ==============================================================================
 
@@ -26,7 +25,7 @@ resource "microsoft365_graph_beta_groups_group" "cad019_exclude" {
   mail_nickname    = "eid-ua-cad019-exclude"
   mail_enabled     = false
   security_enabled = true
-  description      = "uexcludeion group for CA policy CAD019_EXCLUDE"
+  description      = "exclusion group for CA policy CAD019_EXCLUDE"
 }
 
 # ==============================================================================
@@ -57,7 +56,7 @@ resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy"
 
     applications = {
       include_applications = [
-        data.microsoft365_graph_beta_applications_service_principal.microsoft_intune_enrollment.items[0].app_id
+        "d4ebce55-015a-49b5-a083-c84d1797ae8c" # Microsoft Intune Enrollment
       ]
       exclude_applications                            = []
       include_user_actions                            = []

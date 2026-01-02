@@ -1,5 +1,4 @@
 # ==============================================================================
-# ==============================================================================
 # Random Suffix for Unique Resource Names
 # ==============================================================================
 
@@ -9,6 +8,7 @@ resource "random_string" "suffix" {
   upper   = false
 }
 
+# ==============================================================================
 # Group Dependencies
 # ==============================================================================
 
@@ -26,21 +26,17 @@ resource "microsoft365_graph_beta_groups_group" "cau003_exclude" {
   mail_nickname    = "eid-ua-cau003-exclude"
   mail_enabled     = false
   security_enabled = true
-  description      = "uexcludeion group for CA policy CAU003_EXCLUDE"
+  description      = "exclusion group for CA policy CAU003_EXCLUDE"
 }
 
 # ==============================================================================
-# Application/Service Principal Dependencies
+# Application Dependencies - chosen because it's built-in and will always be available
 # ==============================================================================
 
-# Create a test application
-resource "azuread_application" "cau003_test_app" {
-  display_name = "CAU003-TestApp-${random_string.suffix.result}"
-}
-
-# Create service principal for the application
-resource "azuread_service_principal" "cau003_test_app" {
-  client_id = azuread_application.cau003_test_app.client_id
+# Windows Azure Service Management API - built-in application
+data "microsoft365_graph_beta_applications_service_principal" "windows_azure_service_management_api" {
+  filter_type  = "display_name"
+  filter_value = "Windows Azure Service Management API"
 }
 
 # ==============================================================================
@@ -77,7 +73,7 @@ resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy"
     }
 
     applications = {
-      include_applications                            = [azuread_application.cau003_test_app.client_id]
+      include_applications                            = [data.microsoft365_graph_beta_applications_service_principal.windows_azure_service_management_api.items[0].app_id]
       exclude_applications                            = []
       include_user_actions                            = []
       include_authentication_context_class_references = []

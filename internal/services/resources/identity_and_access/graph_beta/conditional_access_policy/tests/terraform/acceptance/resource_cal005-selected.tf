@@ -1,5 +1,4 @@
 # ==============================================================================
-# ==============================================================================
 # Random Suffix for Unique Resource Names
 # ==============================================================================
 
@@ -26,7 +25,45 @@ resource "microsoft365_graph_beta_groups_group" "cal005_exclude" {
   mail_nickname    = "eid-ua-cal005-exclude"
   mail_enabled     = false
   security_enabled = true
-  description      = "uexcludeion group for CA policy CAL005_EXCLUDE"
+  description      = "exclusion group for CA policy CAL005_EXCLUDE"
+}
+
+# ==============================================================================
+# Named Location Dependencies
+# ==============================================================================
+
+# Semi-trusted partner networks
+resource "microsoft365_graph_beta_identity_and_access_named_location" "semi_trusted_partner_networks" {
+  display_name = "CAL005 Semi-Trusted Partner Networks - ${random_string.suffix.result}"
+
+  ipv4_ranges = [
+    "198.18.0.0/24", # Example: Partner A network
+    "198.18.1.0/24", # Example: Partner B network
+  ]
+}
+
+# Semi-trusted public spaces
+resource "microsoft365_graph_beta_identity_and_access_named_location" "semi_trusted_public_spaces" {
+  display_name = "CAL005 Semi-Trusted Public Spaces - ${random_string.suffix.result}"
+
+  ipv4_ranges = [
+    "198.51.100.0/24", # Example: Public WiFi location 1
+    "203.0.113.0/24",  # Example: Public WiFi location 2
+  ]
+}
+
+# ==============================================================================
+# Propagation Delay for Named Locations
+# ==============================================================================
+
+# Allow time for named locations to propagate in Microsoft Entra ID
+resource "time_sleep" "wait_for_named_locations" {
+  depends_on = [
+    microsoft365_graph_beta_identity_and_access_named_location.semi_trusted_partner_networks,
+    microsoft365_graph_beta_identity_and_access_named_location.semi_trusted_public_spaces
+  ]
+
+  create_duration = "30s"
 }
 
 # ==============================================================================
@@ -39,6 +76,10 @@ resource "microsoft365_graph_beta_groups_group" "cal005_exclude" {
 resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy" "cal005_less_trusted_locations_compliant" {
   display_name = "acc-test-cal005-selected: Grant access for All users on less-trusted locations when Browser and Modern Auth Clients and Compliant ${random_string.suffix.result}"
   state        = "enabledForReportingButNotEnforced"
+
+  depends_on = [
+    time_sleep.wait_for_named_locations
+  ]
 
   conditions = {
     client_app_types = ["browser", "mobileAppsAndDesktopClients"]

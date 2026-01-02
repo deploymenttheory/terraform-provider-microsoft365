@@ -22,6 +22,7 @@ func IsRetryableDeleteError(errorInfo *GraphErrorInfo) bool {
 			"InternalServerError": true,
 			"BadGateway":          true,
 			"GatewayTimeout":      true,
+			"UnknownError":        true, // Generic errors often related to resource locking or propagation
 		}
 		return retryableErrorCodes[errorInfo.ErrorCode]
 	}

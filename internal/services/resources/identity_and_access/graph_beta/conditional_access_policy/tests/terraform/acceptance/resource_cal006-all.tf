@@ -1,5 +1,4 @@
 # ==============================================================================
-# ==============================================================================
 # Random Suffix for Unique Resource Names
 # ==============================================================================
 
@@ -94,7 +93,7 @@ resource "microsoft365_graph_beta_groups_group" "cal006_exclude" {
   mail_nickname    = "eid-ua-cal006-exclude"
   mail_enabled     = false
   security_enabled = true
-  description      = "uexcludeion group for CA policy CAL006_EXCLUDE"
+  description      = "exclusion group for CA policy CAL006_EXCLUDE"
 }
 
 resource "microsoft365_graph_beta_groups_group" "cal006_include" {
@@ -103,6 +102,21 @@ resource "microsoft365_graph_beta_groups_group" "cal006_include" {
   mail_enabled     = false
   security_enabled = true
   description      = "uincludeion group for CA policy CAL006_INCLUDE"
+}
+
+# ==============================================================================
+# Propagation Delay for Named Locations
+# ==============================================================================
+
+# Allow time for named locations to propagate in Microsoft Entra ID
+resource "time_sleep" "wait_for_named_locations" {
+  depends_on = [
+    microsoft365_graph_beta_identity_and_access_named_location.allowed_apac_office_only,
+    microsoft365_graph_beta_identity_and_access_named_location.allowed_emea_office_only,
+    microsoft365_graph_beta_identity_and_access_named_location.allowed_hazelwood_office_only
+  ]
+
+  create_duration = "30s"
 }
 
 # ==============================================================================
@@ -115,6 +129,10 @@ resource "microsoft365_graph_beta_groups_group" "cal006_include" {
 resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy" "cal006_allow_only_specified_locations" {
   display_name = "acc-test-cal006-all: Only Allow Access from specified locations for specific accounts when Browser and Modern Auth Clients ${random_string.suffix.result}"
   state        = "enabledForReportingButNotEnforced"
+
+  depends_on = [
+    time_sleep.wait_for_named_locations
+  ]
 
   conditions = {
     client_app_types = ["browser", "mobileAppsAndDesktopClients"]

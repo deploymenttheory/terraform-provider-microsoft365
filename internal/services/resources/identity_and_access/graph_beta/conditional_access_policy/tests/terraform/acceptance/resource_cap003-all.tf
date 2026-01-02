@@ -1,5 +1,4 @@
 # ==============================================================================
-# ==============================================================================
 # Random Suffix for Unique Resource Names
 # ==============================================================================
 
@@ -26,7 +25,7 @@ resource "microsoft365_graph_beta_groups_group" "cap003_exclude" {
   mail_nickname    = "eid-ua-cap003-exclude"
   mail_enabled     = false
   security_enabled = true
-  description      = "uexcludeion group for CA policy CAP003_EXCLUDE"
+  description      = "exclusion group for CA policy CAP003_EXCLUDE"
 }
 
 # ==============================================================================

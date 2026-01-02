@@ -130,13 +130,15 @@ func (r *UserLicenseAssignmentResource) Schema(ctx context.Context, req resource
 				Required:            true,
 				MarkdownDescription: "The unique identifier for the user. Can be either the object ID (UUID) or user principal name (UPN).",
 				Validators: []validator.String{
-					stringvalidator.RegexMatches(
-						regexp.MustCompile(constants.GuidRegex),
-						"Must be a valid UUID format (xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx)",
-					),
-					stringvalidator.RegexMatches(
-						regexp.MustCompile(constants.UserPrincipalNameRegex),
-						"Must be a valid User Principal Name format (user@domain.com)",
+					stringvalidator.Any(
+						stringvalidator.RegexMatches(
+							regexp.MustCompile(constants.GuidRegex),
+							"Must be a valid UUID format (xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx)",
+						),
+						stringvalidator.RegexMatches(
+							regexp.MustCompile(constants.UserPrincipalNameRegex),
+							"Must be a valid User Principal Name format (user@domain.com)",
+						),
 					),
 				},
 			},

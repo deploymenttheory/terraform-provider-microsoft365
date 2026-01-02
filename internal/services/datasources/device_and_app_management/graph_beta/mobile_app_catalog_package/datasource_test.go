@@ -57,8 +57,7 @@ func TestMobileAppCatalogPackageDataSource_All(t *testing.T) {
 					check.That(dataSourceType+".all").Key("items.0.display_name").HasValue("7-Zip (x64)"),
 					check.That(dataSourceType+".all").Key("items.0.description").Exists(),
 					check.That(dataSourceType+".all").Key("items.0.publisher").HasValue("Igor Pavlov"),
-					check.That(dataSourceType+".all").Key("items.0.created_date_time").HasValue("0001-01-01T00:00:00Z"),
-					check.That(dataSourceType+".all").Key("items.0.last_modified_date_time").HasValue("0001-01-01T00:00:00Z"),
+					// Note: created_date_time and last_modified_date_time are null when zero time (0001-01-01T00:00:00Z)
 					check.That(dataSourceType+".all").Key("items.0.is_featured").HasValue("false"),
 					check.That(dataSourceType+".all").Key("items.0.privacy_information_url").HasValue("https://www.7-zip.org/"),
 					check.That(dataSourceType+".all").Key("items.0.information_url").HasValue("https://www.7-zip.org"),

@@ -15,6 +15,12 @@ func TestAccLicensingServicePlanReferenceDataSource_SearchByProductName(t *testi
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ExternalProviders: map[string]resource.ExternalProvider{
+			"random": {
+				Source:            "hashicorp/random",
+				VersionConstraint: ">= 3.7.2",
+			},
+		},
 		Steps: []resource.TestStep{
 			{
 				Config: testAccConfigSearchByProductName(),
@@ -35,6 +41,12 @@ func TestAccLicensingServicePlanReferenceDataSource_SearchByStringId(t *testing.
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ExternalProviders: map[string]resource.ExternalProvider{
+			"random": {
+				Source:            "hashicorp/random",
+				VersionConstraint: ">= 3.7.2",
+			},
+		},
 		Steps: []resource.TestStep{
 			{
 				Config: testAccConfigSearchByStringId(),
@@ -55,6 +67,12 @@ func TestAccLicensingServicePlanReferenceDataSource_SearchByServicePlan(t *testi
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ExternalProviders: map[string]resource.ExternalProvider{
+			"random": {
+				Source:            "hashicorp/random",
+				VersionConstraint: ">= 3.7.2",
+			},
+		},
 		Steps: []resource.TestStep{
 			{
 				Config: testAccConfigSearchByServicePlan(),

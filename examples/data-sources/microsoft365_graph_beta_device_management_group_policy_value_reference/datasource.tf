@@ -45,13 +45,13 @@ output "rdp_policy_full_details" {
 # Example output for the first definition only (simplified)
 output "rdp_policy_first_definition" {
   value = length(data.microsoft365_graph_beta_device_management_group_policy_value_reference.rdp_allow.definitions) > 0 ? {
-    id               = data.microsoft365_graph_beta_device_management_group_policy_value_reference.rdp_allow.definitions[0].id
-    display_name     = data.microsoft365_graph_beta_device_management_group_policy_value_reference.rdp_allow.definitions[0].display_name
-    class_type       = data.microsoft365_graph_beta_device_management_group_policy_value_reference.rdp_allow.definitions[0].class_type
-    category_path    = data.microsoft365_graph_beta_device_management_group_policy_value_reference.rdp_allow.definitions[0].category_path
-    policy_type      = data.microsoft365_graph_beta_device_management_group_policy_value_reference.rdp_allow.definitions[0].policy_type
-    explain_text     = data.microsoft365_graph_beta_device_management_group_policy_value_reference.rdp_allow.definitions[0].explain_text
-    supported_on     = data.microsoft365_graph_beta_device_management_group_policy_value_reference.rdp_allow.definitions[0].supported_on
-    presentations    = data.microsoft365_graph_beta_device_management_group_policy_value_reference.rdp_allow.definitions[0].presentations
+    id            = data.microsoft365_graph_beta_device_management_group_policy_value_reference.rdp_allow.definitions[0].id
+    display_name  = data.microsoft365_graph_beta_device_management_group_policy_value_reference.rdp_allow.definitions[0].display_name
+    class_type    = data.microsoft365_graph_beta_device_management_group_policy_value_reference.rdp_allow.definitions[0].class_type
+    category_path = data.microsoft365_graph_beta_device_management_group_policy_value_reference.rdp_allow.definitions[0].category_path
+    policy_type   = data.microsoft365_graph_beta_device_management_group_policy_value_reference.rdp_allow.definitions[0].policy_type
+    explain_text  = data.microsoft365_graph_beta_device_management_group_policy_value_reference.rdp_allow.definitions[0].explain_text
+    supported_on  = data.microsoft365_graph_beta_device_management_group_policy_value_reference.rdp_allow.definitions[0].supported_on
+    presentations = data.microsoft365_graph_beta_device_management_group_policy_value_reference.rdp_allow.definitions[0].presentations
   } : null
 }

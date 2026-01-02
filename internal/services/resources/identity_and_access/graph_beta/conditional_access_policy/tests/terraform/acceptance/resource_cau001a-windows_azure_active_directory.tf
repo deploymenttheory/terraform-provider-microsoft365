@@ -1,5 +1,4 @@
 # ==============================================================================
-# ==============================================================================
 # Random Suffix for Unique Resource Names
 # ==============================================================================
 
@@ -9,6 +8,17 @@ resource "random_string" "suffix" {
   upper   = false
 }
 
+# ==============================================================================
+# Data Sources
+# ==============================================================================
+
+# Windows Azure Active Directory
+data "microsoft365_graph_beta_applications_service_principal" "windows_azure_active_directory" {
+  filter_type  = "display_name"
+  filter_value = "Windows Azure Active Directory"
+}
+
+# ==============================================================================
 # Group Dependencies
 # ==============================================================================
 
@@ -26,7 +36,7 @@ resource "microsoft365_graph_beta_groups_group" "cau001_exclude" {
   mail_nickname    = "eid-ua-cau001-exclude"
   mail_enabled     = false
   security_enabled = true
-  description      = "uexcludeion group for CA policy CAU001_EXCLUDE"
+  description      = "exclusion group for CA policy CAU001_EXCLUDE"
 }
 
 # ==============================================================================
