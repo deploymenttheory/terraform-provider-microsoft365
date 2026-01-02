@@ -1,5 +1,4 @@
 # ==============================================================================
-# ==============================================================================
 # Random Suffix for Unique Resource Names
 # ==============================================================================
 
@@ -9,6 +8,7 @@ resource "random_string" "suffix" {
   upper   = false
 }
 
+# ==============================================================================
 # Group Dependencies
 # ==============================================================================
 
@@ -47,7 +47,7 @@ resource "microsoft365_graph_beta_groups_group" "modern_workplace" {
 # license groups). Useful for enforcing license compliance.
 resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy" "cau011_block_unlicensed" {
   display_name = "acc-test-cau011-all: Block access for All users except licensed when Browser and Modern Auth Clients ${random_string.suffix.result}"
-  state        = "disabled" # Note: Original policy was disabled
+  state        = "enabledForReportingButNotEnforced"
 
   conditions = {
     client_app_types = ["browser", "mobileAppsAndDesktopClients"]

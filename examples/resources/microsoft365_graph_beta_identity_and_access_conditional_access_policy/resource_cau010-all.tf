@@ -17,11 +17,21 @@ resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy"
       ]
       include_roles = []
       exclude_roles = []
+
+      exclude_guests_or_external_users = {
+        guest_or_external_user_types = ["serviceProvider"]
+        external_tenants = {
+          membership_kind = "all"
+        }
+      }
     }
 
     applications = {
-      include_applications                            = ["All"]
-      exclude_applications                            = []
+      include_applications = ["All"]
+      exclude_applications = [
+        "0000000a-0000-0000-c000-000000000000", # Microsoft Intune
+        "d4ebce55-015a-49b5-a083-c84d1797ae8c"  # Microsoft Intune Enrollment
+      ]
       include_user_actions                            = []
       include_authentication_context_class_references = []
     }

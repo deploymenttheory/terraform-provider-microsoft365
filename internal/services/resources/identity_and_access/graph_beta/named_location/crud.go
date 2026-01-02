@@ -359,21 +359,35 @@ func (r *NamedLocationResource) Delete(ctx context.Context, req resource.DeleteR
 			tflog.Debug(ctx, fmt.Sprintf("isTrusted still true, retrying in %v", retryDelay))
 		}
 
-		// Wait for eventual consistency before deletion
+		// Wait for eventual consistency of patch operation to complete
+		// before attempting deletion
 		consistencyDelay := 10 * time.Second
 		tflog.Debug(ctx, fmt.Sprintf("Waiting %v for eventual consistency before deletion", consistencyDelay))
 		time.Sleep(consistencyDelay)
 	}
 
-	// Step 4: Execute DELETE operation
+	// Step 4: Execute DELETE operation with retry logic
+	// Named locations may still be referenced by conditional access policies during destroy
+	// They cannot be deleted until the conditional access policy deletions have propagated.
+	tflog.Debug(ctx, "Waiting 10 seconds for conditional access policy deletions to propagate")
+	time.Sleep(10 * time.Second)
+
 	tflog.Debug(ctx, fmt.Sprintf("Making DELETE request for %s with ID: %s", ResourceName, object.ID.ValueString()))
 
-	err = r.client.
-		Identity().
-		ConditionalAccess().
-		NamedLocations().
-		ByNamedLocationId(object.ID.ValueString()).
-		Delete(ctx, nil)
+	deleteOptions := crud.DefaultDeleteWithRetryOptions()
+	deleteOptions.ResourceTypeName = ResourceName
+	deleteOptions.ResourceID = object.ID.ValueString()
+	deleteOptions.RetryInterval = 10 * time.Second
+	deleteOptions.MaxRetries = 6 // 6 * 10s = 60s max retry duration
+
+	err = crud.DeleteWithRetry(ctx, func(ctx context.Context) error {
+		return r.client.
+			Identity().
+			ConditionalAccess().
+			NamedLocations().
+			ByNamedLocationId(object.ID.ValueString()).
+			Delete(ctx, nil)
+	}, deleteOptions)
 
 	if err != nil {
 		errorInfo := errors.GraphError(ctx, err)

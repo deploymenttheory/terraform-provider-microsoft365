@@ -1220,6 +1220,10 @@ func TestAccConditionalAccessPolicyResource_CAL001(t *testing.T) {
 				Source:            "hashicorp/random",
 				VersionConstraint: ">= 3.7.2",
 			},
+			"time": {
+				Source:            "hashicorp/time",
+				VersionConstraint: ">= 0.12.0",
+			},
 		},
 		Steps: []resource.TestStep{
 			{
@@ -1458,6 +1462,10 @@ func TestAccConditionalAccessPolicyResource_CAL005(t *testing.T) {
 				Source:            "hashicorp/random",
 				VersionConstraint: ">= 3.7.2",
 			},
+			"time": {
+				Source:            "hashicorp/time",
+				VersionConstraint: ">= 0.12.0",
+			},
 		},
 		Steps: []resource.TestStep{
 			{
@@ -1483,7 +1491,9 @@ func TestAccConditionalAccessPolicyResource_CAL005(t *testing.T) {
 					check.That(resourceType+".cal005_less_trusted_locations_compliant").Key("conditions.applications.include_applications.*").ContainsTypeSetElement("All"),
 					check.That(resourceType+".cal005_less_trusted_locations_compliant").Key("conditions.applications.exclude_applications.#").HasValue("1"),
 					check.That(resourceType+".cal005_less_trusted_locations_compliant").Key("conditions.applications.exclude_applications.*").ContainsTypeSetElement("Office365"),
-					check.That(resourceType+".cal005_less_trusted_locations_compliant").Key("conditions.locations.include_locations.#").HasValue("1"),
+					check.That(resourceType+".cal005_less_trusted_locations_compliant").Key("conditions.locations.include_locations.#").HasValue("2"),
+					check.That(resourceType+".cal005_less_trusted_locations_compliant").Key("conditions.locations.include_locations.0").Exists(),
+					check.That(resourceType+".cal005_less_trusted_locations_compliant").Key("conditions.locations.include_locations.1").Exists(),
 					check.That(resourceType+".cal005_less_trusted_locations_compliant").Key("grant_controls.operator").HasValue("OR"),
 					check.That(resourceType+".cal005_less_trusted_locations_compliant").Key("grant_controls.built_in_controls.#").HasValue("2"),
 					check.That(resourceType+".cal005_less_trusted_locations_compliant").Key("grant_controls.built_in_controls.*").ContainsTypeSetElement("compliantDevice"),
@@ -1518,6 +1528,10 @@ func TestAccConditionalAccessPolicyResource_CAL006(t *testing.T) {
 				Source:            "hashicorp/random",
 				VersionConstraint: ">= 3.7.2",
 			},
+			"time": {
+				Source:            "hashicorp/time",
+				VersionConstraint: ">= 0.12.0",
+			},
 		},
 		Steps: []resource.TestStep{
 			{
@@ -1542,7 +1556,10 @@ func TestAccConditionalAccessPolicyResource_CAL006(t *testing.T) {
 					check.That(resourceType+".cal006_allow_only_specified_locations").Key("conditions.applications.include_applications.*").ContainsTypeSetElement("All"),
 					check.That(resourceType+".cal006_allow_only_specified_locations").Key("conditions.locations.include_locations.#").HasValue("1"),
 					check.That(resourceType+".cal006_allow_only_specified_locations").Key("conditions.locations.include_locations.*").ContainsTypeSetElement("All"),
-					check.That(resourceType+".cal006_allow_only_specified_locations").Key("conditions.locations.exclude_locations.#").HasValue("1"),
+					check.That(resourceType+".cal006_allow_only_specified_locations").Key("conditions.locations.exclude_locations.#").HasValue("3"),
+					check.That(resourceType+".cal006_allow_only_specified_locations").Key("conditions.locations.exclude_locations.0").Exists(),
+					check.That(resourceType+".cal006_allow_only_specified_locations").Key("conditions.locations.exclude_locations.1").Exists(),
+					check.That(resourceType+".cal006_allow_only_specified_locations").Key("conditions.locations.exclude_locations.2").Exists(),
 					check.That(resourceType+".cal006_allow_only_specified_locations").Key("grant_controls.operator").HasValue("OR"),
 					check.That(resourceType+".cal006_allow_only_specified_locations").Key("grant_controls.built_in_controls.#").HasValue("1"),
 					check.That(resourceType+".cal006_allow_only_specified_locations").Key("grant_controls.built_in_controls.*").ContainsTypeSetElement("block"),
@@ -1963,6 +1980,10 @@ func TestAccConditionalAccessPolicyResource_CAU003(t *testing.T) {
 				Source:            "hashicorp/random",
 				VersionConstraint: ">= 3.7.2",
 			},
+			"azuread": {
+				Source:            "hashicorp/azuread",
+				VersionConstraint: ">= 2.47.0",
+			},
 		},
 		Steps: []resource.TestStep{
 			{
@@ -2307,6 +2328,10 @@ func TestAccConditionalAccessPolicyResource_CAU010(t *testing.T) {
 				Source:            "hashicorp/random",
 				VersionConstraint: ">= 3.7.2",
 			},
+			"time": {
+				Source:            "hashicorp/time",
+				VersionConstraint: ">= 0.12.1",
+			},
 		},
 		Steps: []resource.TestStep{
 			{
@@ -2536,6 +2561,10 @@ func TestAccConditionalAccessPolicyResource_CAU014(t *testing.T) {
 				Source:            "hashicorp/random",
 				VersionConstraint: ">= 3.7.2",
 			},
+			"time": {
+				Source:            "hashicorp/time",
+				VersionConstraint: ">= 0.12.1",
+			},
 		},
 		Steps: []resource.TestStep{
 			{
@@ -2562,7 +2591,7 @@ func TestAccConditionalAccessPolicyResource_CAU014(t *testing.T) {
 					check.That(resourceType+".cau014_block_managed_identity_risk").Key("conditions.applications.include_applications.#").HasValue("1"),
 					check.That(resourceType+".cau014_block_managed_identity_risk").Key("conditions.applications.include_applications.*").ContainsTypeSetElement("All"),
 					check.That(resourceType+".cau014_block_managed_identity_risk").Key("conditions.client_applications.include_service_principals.#").HasValue("1"),
-					check.That(resourceType+".cau014_block_managed_identity_risk").Key("conditions.client_applications.include_service_principals.*").ContainsTypeSetElement("14ddb4bd-2aee-4603-86d2-467e438cda0a"),
+					check.That(resourceType+".cau014_block_managed_identity_risk").Key("conditions.client_applications.include_service_principals.0").Exists(),
 					check.That(resourceType+".cau014_block_managed_identity_risk").Key("grant_controls.operator").HasValue("OR"),
 					check.That(resourceType+".cau014_block_managed_identity_risk").Key("grant_controls.built_in_controls.#").HasValue("1"),
 					check.That(resourceType+".cau014_block_managed_identity_risk").Key("grant_controls.built_in_controls.*").ContainsTypeSetElement("block"),

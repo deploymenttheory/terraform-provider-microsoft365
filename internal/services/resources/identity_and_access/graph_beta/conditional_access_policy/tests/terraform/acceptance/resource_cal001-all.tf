@@ -1,5 +1,4 @@
 # ==============================================================================
-# ==============================================================================
 # Random Suffix for Unique Resource Names
 # ==============================================================================
 
@@ -26,7 +25,7 @@ resource "microsoft365_graph_beta_groups_group" "cal001_exclude" {
   mail_nickname    = "eid-ua-cal001-exclude"
   mail_enabled     = false
   security_enabled = true
-  description      = "uexcludeion group for CA policy CAL001_EXCLUDE"
+  description      = "exclusion group for CA policy CAL001_EXCLUDE"
 }
 
 # ==============================================================================
@@ -58,6 +57,20 @@ resource "microsoft365_graph_beta_identity_and_access_named_location" "high_risk
 }
 
 # ==============================================================================
+# Propagation Delay for Named Locations
+# ==============================================================================
+
+# Allow time for named locations to propagate in Microsoft Entra ID
+resource "time_sleep" "wait_for_named_locations" {
+  depends_on = [
+    microsoft365_graph_beta_identity_and_access_named_location.high_risk_countries_blocked_by_client_ip,
+    microsoft365_graph_beta_identity_and_access_named_location.high_risk_countries_blocked_by_authenticator_gps
+  ]
+
+  create_duration = "30s"
+}
+
+# ==============================================================================
 # Conditional Access Policy
 # ==============================================================================
 
@@ -67,6 +80,10 @@ resource "microsoft365_graph_beta_identity_and_access_named_location" "high_risk
 resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy" "cal001_block_locations" {
   display_name = "acc-test-cal001-all: Block specified locations for All users when Browser and Modern Auth Clients ${random_string.suffix.result}"
   state        = "enabledForReportingButNotEnforced"
+
+  depends_on = [
+    time_sleep.wait_for_named_locations
+  ]
 
   conditions = {
     client_app_types = ["browser", "mobileAppsAndDesktopClients"]

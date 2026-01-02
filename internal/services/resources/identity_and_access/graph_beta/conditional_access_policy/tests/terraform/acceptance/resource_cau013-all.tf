@@ -1,5 +1,4 @@
 # ==============================================================================
-# ==============================================================================
 # Random Suffix for Unique Resource Names
 # ==============================================================================
 
@@ -9,6 +8,7 @@ resource "random_string" "suffix" {
   upper   = false
 }
 
+# ==============================================================================
 # Group Dependencies
 # ==============================================================================
 
@@ -26,7 +26,7 @@ resource "microsoft365_graph_beta_groups_group" "cau013_exclude" {
   mail_nickname    = "eid-ua-cau013-exclude"
   mail_enabled     = false
   security_enabled = true
-  description      = "uexcludeion group for CA policy CAU013_EXCLUDE"
+  description      = "exclusion group for CA policy CAU013_EXCLUDE"
 }
 
 resource "microsoft365_graph_beta_groups_group" "cau013_include" {
@@ -35,6 +35,16 @@ resource "microsoft365_graph_beta_groups_group" "cau013_include" {
   mail_enabled     = false
   security_enabled = true
   description      = "uincludeion group for CA policy CAU013_INCLUDE"
+}
+
+# ==============================================================================
+# Application Dependencies
+# ==============================================================================
+
+# Windows Store for Business - built-in application
+data "microsoft365_graph_beta_applications_service_principal" "windows_store_for_business" {
+  filter_type  = "display_name"
+  filter_value = "Windows Store for Business"
 }
 
 # ==============================================================================

@@ -26,7 +26,7 @@ resource "microsoft365_graph_beta_groups_group" "cad007_exclude" {
   mail_nickname    = "eid-ua-cad007-exclude"
   mail_enabled     = false
   security_enabled = true
-  description      = "uexcludeion group for CA policy CAD007_EXCLUDE"
+  description      = "exclusion group for CA policy CAD007_EXCLUDE"
 }
 
 # ==============================================================================

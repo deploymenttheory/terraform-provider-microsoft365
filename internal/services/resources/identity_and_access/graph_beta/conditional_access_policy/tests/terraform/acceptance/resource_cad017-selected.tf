@@ -1,5 +1,4 @@
 # ==============================================================================
-# ==============================================================================
 # Random Suffix for Unique Resource Names
 # ==============================================================================
 
@@ -26,7 +25,7 @@ resource "microsoft365_graph_beta_groups_group" "cad017_exclude" {
   mail_nickname    = "eid-ua-cad017-exclude"
   mail_enabled     = false
   security_enabled = true
-  description      = "uexcludeion group for CA policy CAD017_EXCLUDE"
+  description      = "exclusion group for CA policy CAD017_EXCLUDE"
 }
 
 resource "microsoft365_graph_beta_groups_group" "cad017_include" {
@@ -34,7 +33,7 @@ resource "microsoft365_graph_beta_groups_group" "cad017_include" {
   mail_nickname    = "eid-ua-cad017-include"
   mail_enabled     = false
   security_enabled = true
-  description      = "uincludeion group for CA policy CAD017_INCLUDE"
+  description      = "inclusion group for CA policy CAD017_INCLUDE"
 }
 
 # ==============================================================================

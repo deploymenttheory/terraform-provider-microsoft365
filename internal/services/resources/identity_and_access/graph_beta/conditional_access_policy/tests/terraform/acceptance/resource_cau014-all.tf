@@ -9,17 +9,20 @@ resource "random_string" "suffix" {
 }
 
 # ==============================================================================
-# Application Dependencies
+# Service Principal Dependencies
 # ==============================================================================
 
-# Test Application for CAU014
-resource "azuread_application" "cau014_test_app" {
-  display_name = "CAU014-TestApp-${random_string.suffix.result}"
+# Use a built-in Microsoft service principal for testing
+data "microsoft365_graph_beta_applications_service_principal" "windows_azure_service_management_api" {
+  filter_type  = "display_name"
+  filter_value = "Windows Azure Service Management API"
 }
 
-# Service Principal for Test Application
-resource "azuread_service_principal" "cau014_test_app" {
-  client_id = azuread_application.cau014_test_app.client_id
+# Wait for service principal to propagate
+resource "time_sleep" "wait_for_sp" {
+  depends_on = [data.microsoft365_graph_beta_applications_service_principal.windows_azure_service_management_api]
+
+  create_duration = "10s"
 }
 
 # ==============================================================================
@@ -29,6 +32,8 @@ resource "azuread_service_principal" "cau014_test_app" {
 # CAU014: Block Managed Identity for Medium/High Sign-in Risk
 # Blocks managed identity (service principal) access when sign-in risk is medium or high.
 resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy" "cau014_block_managed_identity_risk" {
+  depends_on = [time_sleep.wait_for_sp]
+
   display_name = "acc-test-cau014-all: Block Managed Identity when Sign in Risk is Medium or High ${random_string.suffix.result}"
   state        = "enabledForReportingButNotEnforced"
 
@@ -54,7 +59,7 @@ resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy"
 
     client_applications = {
       include_service_principals = [
-        azuread_service_principal.cau014_test_app.object_id
+        data.microsoft365_graph_beta_applications_service_principal.windows_azure_service_management_api.items[0].id
       ]
       exclude_service_principals = []
     }
