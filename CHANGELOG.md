@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.40.0-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.39.2-alpha...v0.40.0-alpha) (2026-01-03)
+
+
+### Features
+
+* added data source /group_policy_value_reference ([5aaa539](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/5aaa5390f2edf59179d0c34c100db57d9bfdf659))
+* added data-source group_policy_value_reference ([#1476](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/1476)) ([a143543](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/a143543c0899ca1509fbfb511344d4ab58ce7983))
+* added resource device_management_group_policy_definition with test harness and removed old group policy resource for specific field types. ([01ceb81](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/01ceb8197cea64f1378e7112711c537abde58ea4))
+* added resource device_management_group_policy_definition with test harness and removed old group policy resource for specific field types. ([#1496](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/1496)) ([7604d2e](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/7604d2eb98e6c07532586050d2e79cdf0488bb3b))
+
+
+### Bug Fixes
+
+* for actions timeouts to use terraform-plugin-framework-timeouts v0.7.0 ([b9cbbb2](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/b9cbbb2788a65819ec27907a7db9108d4d1a539a))
+* for actions timeouts to use terraform-plugin-framework-timeouts v0.7.0 ([#1591](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/1591)) ([0e903d4](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/0e903d433bd5755cbfa23dec583803aa0d9d823d))
+* for conditional access acceptance tests ([8485bea](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/8485beaea2d5ccad5557792c4250543028347d26))
+* for failing conditional access acceptance tests ([#1503](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/1503)) ([d5c3c69](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/d5c3c69dd09799d193eada584d7f8c42f902892c))
+
 ## [0.39.2-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.39.1-alpha...v0.39.2-alpha) (2025-12-29)
 
 
