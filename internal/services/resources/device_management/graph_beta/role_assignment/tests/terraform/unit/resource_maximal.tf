@@ -1,6 +1,6 @@
 resource "microsoft365_graph_beta_device_management_role_assignment" "maximal" {
-  display_name       = "Test Maximal Role Assignment - Unique"
-  description        = "Comprehensive role assignment for testing with all features"
+  display_name       = "unit-test-role-assignment-maximal"
+  description        = "Comprehensive role assignment for unit testing with all features"
   role_definition_id = "9e0cc482-82df-4ab2-a24c-0c23a3f52e1e" # Help Desk Operator
 
   members = [

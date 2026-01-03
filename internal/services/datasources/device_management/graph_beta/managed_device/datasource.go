@@ -32,10 +32,9 @@ func NewManagedDeviceDataSource() datasource.DataSource {
 }
 
 type ManagedDeviceDataSource struct {
-	client           *msgraphbetasdk.GraphServiceClient
-	
-	
-	ReadPermissions  []string
+	client *msgraphbetasdk.GraphServiceClient
+
+	ReadPermissions []string
 }
 
 func (d *ManagedDeviceDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {

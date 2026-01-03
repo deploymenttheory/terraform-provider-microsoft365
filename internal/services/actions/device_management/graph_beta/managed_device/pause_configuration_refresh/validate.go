@@ -169,4 +169,3 @@ func (a *PauseConfigurationRefreshManagedDeviceAction) ValidateConfig(ctx contex
 		)
 	}
 }
-

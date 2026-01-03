@@ -1,5 +1,5 @@
 resource "microsoft365_graph_beta_device_management_role_definition" "minimal" {
-  display_name = "Test Minimal Role Definition - Unique"
+  display_name = "unit-test-role-definition-minimal"
   description  = ""
 
   role_permissions = [

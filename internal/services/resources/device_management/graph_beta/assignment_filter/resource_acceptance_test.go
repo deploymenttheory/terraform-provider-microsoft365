@@ -10,6 +10,7 @@ import (
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/check"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/destroy"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/testlog"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
 	graphBetaAssignmentFilter "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_management/graph_beta/assignment_filter"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -23,6 +24,15 @@ var (
 	// testResource is the test resource implementation for assignment filters
 	testResource = graphBetaAssignmentFilter.AssignmentFilterTestResource{}
 )
+
+// Helper function to load test configs from acceptance directory
+func loadAcceptanceTestTerraform(filename string) string {
+	config, err := helpers.ParseHCLFile("tests/terraform/acceptance/" + filename)
+	if err != nil {
+		panic("failed to load acceptance config " + filename + ": " + err.Error())
+	}
+	return acceptance.ConfiguredM365ProviderBlock(config)
+}
 
 func TestAccAssignmentFilterResource_Lifecycle(t *testing.T) {
 	resource.Test(t, resource.TestCase{
@@ -44,7 +54,7 @@ func TestAccAssignmentFilterResource_Lifecycle(t *testing.T) {
 				PreConfig: func() {
 					testlog.StepAction(resourceType, "Creating")
 				},
-				Config: testAccAssignmentFilterConfig_minimal(),
+				Config: loadAcceptanceTestTerraform("resource_minimal.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					check.That(resourceType+".test").ExistsInGraph(testResource),
 					check.That(resourceType+".test").Key("id").Exists(),
@@ -68,7 +78,7 @@ func TestAccAssignmentFilterResource_Lifecycle(t *testing.T) {
 				PreConfig: func() {
 					testlog.StepAction(resourceType, "Updating")
 				},
-				Config: testAccAssignmentFilterConfig_maximal(),
+				Config: loadAcceptanceTestTerraform("resource_maximal.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					check.That(resourceType+".test").ExistsInGraph(testResource),
 					check.That(resourceType+".test").Key("display_name").HasValue("Test Acceptance Assignment Filter - Updated"),
@@ -186,7 +196,7 @@ func TestAccAssignmentFilterResource_ComplexRule(t *testing.T) {
 				PreConfig: func() {
 					testlog.StepAction(resourceType, "Creating with complex rule")
 				},
-				Config: testAccAssignmentFilterConfig_complexRule(),
+				Config: loadAcceptanceTestTerraform("resource_complex_rule.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					check.That(resourceType+".complex").ExistsInGraph(testResource),
 					check.That(resourceType+".complex").Key("id").Exists(),
@@ -221,7 +231,7 @@ func TestAccAssignmentFilterResource_RoleScopeTags(t *testing.T) {
 					testlog.WaitForConsistency("Microsoft Graph", 15*time.Second)
 					time.Sleep(15 * time.Second)
 				},
-				Config: testAccAssignmentFilterConfig_roleScopeTags(),
+				Config: loadAcceptanceTestTerraform("resource_role_scope_tags.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					check.That(resourceType+".role_tags").ExistsInGraph(testResource),
 					check.That(resourceType+".role_tags").Key("id").Exists(),
@@ -302,15 +312,6 @@ func TestAccAssignmentFilterResource_ManagementTypes(t *testing.T) {
 }
 
 // Test configuration functions
-func testAccAssignmentFilterConfig_minimal() string {
-	config := mocks.LoadTerraformConfigFile("resource_minimal.tf")
-	return acceptance.ConfiguredM365ProviderBlock(config)
-}
-
-func testAccAssignmentFilterConfig_maximal() string {
-	config := mocks.LoadTerraformConfigFile("resource_maximal.tf")
-	return acceptance.ConfiguredM365ProviderBlock(config)
-}
 
 func testAccAssignmentFilterConfig_platform(platform string) string {
 	data := struct {
@@ -335,16 +336,6 @@ func testAccAssignmentFilterConfig_platform(platform string) string {
 	}
 
 	config := mocks.LoadTerraformTemplateFile("resource_platform_template.tf", data)
-	return acceptance.ConfiguredM365ProviderBlock(config)
-}
-
-func testAccAssignmentFilterConfig_complexRule() string {
-	config := mocks.LoadTerraformConfigFile("resource_complex_rule.tf")
-	return acceptance.ConfiguredM365ProviderBlock(config)
-}
-
-func testAccAssignmentFilterConfig_roleScopeTags() string {
-	config := mocks.LoadTerraformConfigFile("resource_role_scope_tags.tf")
 	return acceptance.ConfiguredM365ProviderBlock(config)
 }
 

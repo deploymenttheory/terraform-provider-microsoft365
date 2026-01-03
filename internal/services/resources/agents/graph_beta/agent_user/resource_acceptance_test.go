@@ -9,10 +9,20 @@ import (
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/check"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/destroy"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/testlog"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 )
+
+// Helper function to load test configs from acceptance directory
+func loadAcceptanceTestTerraform(filename string) string {
+	config, err := helpers.ParseHCLFile("tests/terraform/acceptance/" + filename)
+	if err != nil {
+		panic("failed to load acceptance config " + filename + ": " + err.Error())
+	}
+	return acceptance.ConfiguredM365ProviderBlock(config)
+}
 
 // TestAccAgentUserResource_Minimal tests creating an agent user with minimal configuration
 func TestAccAgentUserResource_Minimal(t *testing.T) {
@@ -39,7 +49,7 @@ func TestAccAgentUserResource_Minimal(t *testing.T) {
 				PreConfig: func() {
 					testlog.StepAction(resourceType, "Creating agent user with minimal configuration")
 				},
-				Config: testAccConfigMinimal(),
+				Config: loadAcceptanceTestTerraform("resource_minimal.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					func(_ *terraform.State) error {
 						testlog.WaitForConsistency("agent user", 15*time.Second)
@@ -104,7 +114,7 @@ func TestAccAgentUserResource_Maximal(t *testing.T) {
 				PreConfig: func() {
 					testlog.StepAction(resourceType, "Creating agent user with maximal configuration")
 				},
-				Config: testAccConfigMaximal(),
+				Config: loadAcceptanceTestTerraform("resource_maximal.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					func(_ *terraform.State) error {
 						testlog.WaitForConsistency("agent user with all fields", 15*time.Second)
@@ -155,14 +165,4 @@ func TestAccAgentUserResource_Maximal(t *testing.T) {
 			},
 		},
 	})
-}
-
-func testAccConfigMinimal() string {
-	config := mocks.LoadTerraformConfigFile("resource_minimal.tf")
-	return acceptance.ConfiguredM365ProviderBlock(config)
-}
-
-func testAccConfigMaximal() string {
-	config := mocks.LoadTerraformConfigFile("resource_maximal.tf")
-	return acceptance.ConfiguredM365ProviderBlock(config)
 }

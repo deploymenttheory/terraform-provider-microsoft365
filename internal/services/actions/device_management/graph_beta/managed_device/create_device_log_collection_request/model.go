@@ -21,4 +21,3 @@ type ComanagedDeviceLogCollection struct {
 	DeviceID     types.String `tfsdk:"device_id"`
 	TemplateType types.String `tfsdk:"template_type"`
 }
-

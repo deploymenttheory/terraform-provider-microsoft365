@@ -34,10 +34,9 @@ func NewWindowsRemediationScriptDataSource() datasource.DataSource {
 
 // WindowsRemediationScriptDataSource defines the data source implementation
 type WindowsRemediationScriptDataSource struct {
-	client           *msgraphbetasdk.GraphServiceClient
-	
-	
-	ReadPermissions  []string
+	client *msgraphbetasdk.GraphServiceClient
+
+	ReadPermissions []string
 }
 
 // Metadata returns the data source type name

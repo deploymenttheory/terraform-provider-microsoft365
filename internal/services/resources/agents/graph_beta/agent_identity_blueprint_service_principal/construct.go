@@ -30,4 +30,3 @@ func constructResource(ctx context.Context, data *AgentIdentityBlueprintServiceP
 
 	return requestBody, nil
 }
-

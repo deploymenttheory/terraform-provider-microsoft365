@@ -8,26 +8,26 @@ import (
 
 // ProviderConfigBuilder helps build provider configuration blocks
 type ProviderConfigBuilder struct {
-	cloud            string
-	authMethod       string
-	tenantID         string
-	clientID         string
-	clientSecret     string
-	certificate      string
-	certificatePass  string
-	redirectURL      string
-	debugMode        bool
-	telemetryOptout  bool
-	useProxy         bool
-	proxyURL         string
-	envVarOverrides  bool
+	cloud           string
+	authMethod      string
+	tenantID        string
+	clientID        string
+	clientSecret    string
+	certificate     string
+	certificatePass string
+	redirectURL     string
+	debugMode       bool
+	telemetryOptout bool
+	useProxy        bool
+	proxyURL        string
+	envVarOverrides bool
 }
 
 // NewProviderConfigBuilder creates a new provider configuration builder
 func NewProviderConfigBuilder() *ProviderConfigBuilder {
 	return &ProviderConfigBuilder{
 		cloud:           "public",
-		authMethod:      "device_code", 
+		authMethod:      "device_code",
 		debugMode:       false,
 		telemetryOptout: false,
 		useProxy:        false,
@@ -41,7 +41,7 @@ func (p *ProviderConfigBuilder) WithCloud(cloud string) *ProviderConfigBuilder {
 	return p
 }
 
-// WithAuthMethod sets the authentication method  
+// WithAuthMethod sets the authentication method
 func (p *ProviderConfigBuilder) WithAuthMethod(method string) *ProviderConfigBuilder {
 	p.authMethod = method
 	return p
@@ -92,33 +92,33 @@ func (p *ProviderConfigBuilder) WithEnvironmentVariables() *ProviderConfigBuilde
 // Build generates the Terraform provider configuration string
 func (p *ProviderConfigBuilder) Build() string {
 	var config strings.Builder
-	
+
 	config.WriteString("provider \"microsoft365\" {\n")
-	
+
 	if p.cloud != "" && p.cloud != "public" {
 		config.WriteString(fmt.Sprintf("  cloud = \"%s\"\n", p.cloud))
 	}
-	
+
 	if p.authMethod != "" {
 		config.WriteString(fmt.Sprintf("  auth_method = \"%s\"\n", p.authMethod))
 	}
-	
+
 	if p.tenantID != "" {
 		config.WriteString(fmt.Sprintf("  tenant_id = \"%s\"\n", p.tenantID))
 	}
-	
+
 	if p.debugMode {
 		config.WriteString("  debug_mode = true\n")
 	}
-	
+
 	if p.telemetryOptout {
 		config.WriteString("  telemetry_optout = true\n")
 	}
-	
+
 	// Add Entra ID options if needed
 	if p.clientID != "" || p.clientSecret != "" || p.certificate != "" || p.redirectURL != "" {
 		config.WriteString("  entra_id_options = {\n")
-		
+
 		if p.clientID != "" {
 			config.WriteString(fmt.Sprintf("    client_id = \"%s\"\n", p.clientID))
 		}
@@ -134,10 +134,10 @@ func (p *ProviderConfigBuilder) Build() string {
 		if p.redirectURL != "" {
 			config.WriteString(fmt.Sprintf("    redirect_url = \"%s\"\n", p.redirectURL))
 		}
-		
+
 		config.WriteString("  }\n")
 	}
-	
+
 	// Add client options if needed
 	if p.useProxy {
 		config.WriteString("  client_options = {\n")
@@ -147,9 +147,9 @@ func (p *ProviderConfigBuilder) Build() string {
 		}
 		config.WriteString("  }\n")
 	}
-	
+
 	config.WriteString("}\n")
-	
+
 	return config.String()
 }
 
@@ -192,7 +192,7 @@ func RequiredEnvVars() []string {
 	}
 }
 
-// OptionalEnvVars returns the list of optional environment variables for acceptance tests  
+// OptionalEnvVars returns the list of optional environment variables for acceptance tests
 func OptionalEnvVars() []string {
 	return []string{
 		"M365_REDIRECT_URL",
@@ -207,16 +207,16 @@ func OptionalEnvVars() []string {
 // CheckRequiredEnvVars validates that required environment variables are set
 func CheckRequiredEnvVars() error {
 	var missing []string
-	
+
 	for _, envVar := range RequiredEnvVars() {
 		if v := os.Getenv(envVar); v == "" {
 			missing = append(missing, envVar)
 		}
 	}
-	
+
 	if len(missing) > 0 {
 		return fmt.Errorf("required environment variables are missing: %s", strings.Join(missing, ", "))
 	}
-	
+
 	return nil
 }

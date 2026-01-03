@@ -408,8 +408,8 @@ func EntraIDOptionsSchema() map[string]schema.Attribute {
 				"Can be set using the `M365_OIDC_TOKEN_FILE_PATH` environment variable.",
 		},
 		"oidc_request_token": schema.StringAttribute{
-			Optional:  true,
-			Sensitive: true,
+			Optional:    true,
+			Sensitive:   true,
 			Description: "The bearer token for the request to the OIDC provider.",
 			MarkdownDescription: "The bearer token for the request to the OIDC provider. This field is only used with the " +
 				"'oidc' or 'oidc_github' authentication methods.\n\n" +

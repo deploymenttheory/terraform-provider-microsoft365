@@ -1,5 +1,5 @@
 resource "microsoft365_graph_beta_device_management_terms_and_conditions" "test" {
-  display_name         = "Test Acceptance Terms and Conditions"
+  display_name         = "acc-test-terms-and-conditions-minimal"
   title                = "Company Terms"
   body_text            = "These are the basic terms and conditions."
   acceptance_statement = "I accept these terms"

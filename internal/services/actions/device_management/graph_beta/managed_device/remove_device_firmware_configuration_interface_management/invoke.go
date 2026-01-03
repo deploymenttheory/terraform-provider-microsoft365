@@ -175,4 +175,3 @@ func (a *RemoveDeviceFirmwareConfigurationInterfaceManagementManagedDeviceAction
 
 	return nil
 }
-

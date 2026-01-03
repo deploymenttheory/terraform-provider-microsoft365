@@ -153,4 +153,3 @@ func (m *IpApplicationSegmentMock) CleanupMockState() {
 	mockState.ipApplicationSegments = make(map[string]map[string]any)
 	mockState.Unlock()
 }
-

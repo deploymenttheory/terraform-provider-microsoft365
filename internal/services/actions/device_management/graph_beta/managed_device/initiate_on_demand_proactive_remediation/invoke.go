@@ -190,4 +190,3 @@ func (a *InitiateOnDemandProactiveRemediationManagedDeviceAction) initiateRemedi
 
 	return nil
 }
-

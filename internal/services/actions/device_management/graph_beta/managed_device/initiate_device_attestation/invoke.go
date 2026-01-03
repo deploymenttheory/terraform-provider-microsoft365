@@ -178,4 +178,3 @@ func (a *InitiateDeviceAttestationManagedDeviceAction) initiateAttestationComana
 
 	return nil
 }
-

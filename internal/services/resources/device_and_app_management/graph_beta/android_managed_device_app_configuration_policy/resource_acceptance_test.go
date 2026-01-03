@@ -6,11 +6,21 @@ import (
 	"testing"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
 	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 )
+
+// Helper function to load test configs from acceptance directory
+func loadAcceptanceTestTerraform(filename string) string {
+	config, err := helpers.ParseHCLFile("tests/terraform/acceptance/" + filename)
+	if err != nil {
+		panic("failed to load acceptance config " + filename + ": " + err.Error())
+	}
+	return acceptance.ConfiguredM365ProviderBlock(config)
+}
 
 // TestAccAndroidManagedDeviceAppConfigurationPolicyResource_Lifecycle tests full lifecycle of the resource
 func TestAccAndroidManagedDeviceAppConfigurationPolicyResource_Lifecycle(t *testing.T) {
@@ -27,7 +37,7 @@ func TestAccAndroidManagedDeviceAppConfigurationPolicyResource_Lifecycle(t *test
 		Steps: []resource.TestStep{
 			// Create minimal configuration
 			{
-				Config: testAccAndroidManagedDeviceAppConfigurationPolicyConfig_minimal(),
+				Config: loadAcceptanceTestTerraform("resource_minimal.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("microsoft365_graph_beta_device_and_app_management_android_managed_device_app_configuration_policy.minimal", "id"),
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_and_app_management_android_managed_device_app_configuration_policy.minimal", "display_name", "acc-test-android-managed-device-app-configuration-policy-minimal"),
@@ -67,7 +77,7 @@ func TestAccAndroidManagedDeviceAppConfigurationPolicyResource_MicrosoftAuthenti
 		},
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAndroidManagedDeviceAppConfigurationPolicyConfig_microsoftAuthenticator(),
+				Config: loadAcceptanceTestTerraform("resource_microsoft_authenticator_maximal.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("microsoft365_graph_beta_device_and_app_management_android_managed_device_app_configuration_policy.microsoft_authenticator_maximal", "id"),
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_and_app_management_android_managed_device_app_configuration_policy.microsoft_authenticator_maximal", "package_id", "app:com.azure.authenticator"),
@@ -97,7 +107,7 @@ func TestAccAndroidManagedDeviceAppConfigurationPolicyResource_Microsoft365Copil
 		},
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAndroidManagedDeviceAppConfigurationPolicyConfig_microsoft365Copilot(),
+				Config: loadAcceptanceTestTerraform("resource_microsoft_365_copilot_maximal.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("microsoft365_graph_beta_device_and_app_management_android_managed_device_app_configuration_policy.microsoft_365_copilot_maximal", "id"),
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_and_app_management_android_managed_device_app_configuration_policy.microsoft_365_copilot_maximal", "package_id", "app:com.microsoft.office.officehubrow"),
@@ -126,7 +136,7 @@ func TestAccAndroidManagedDeviceAppConfigurationPolicyResource_ManagedHomeScreen
 		},
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAndroidManagedDeviceAppConfigurationPolicyConfig_managedHomeScreen(),
+				Config: loadAcceptanceTestTerraform("resource_managed_home_screen_maximal.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("microsoft365_graph_beta_device_and_app_management_android_managed_device_app_configuration_policy.managed_home_screen_maximal", "id"),
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_and_app_management_android_managed_device_app_configuration_policy.managed_home_screen_maximal", "package_id", "app:com.microsoft.launcher.enterprise"),
@@ -155,7 +165,7 @@ func TestAccAndroidManagedDeviceAppConfigurationPolicyResource_MicrosoftDefender
 		},
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAndroidManagedDeviceAppConfigurationPolicyConfig_microsoftDefender(),
+				Config: loadAcceptanceTestTerraform("resource_microsoft_defender_antivirus_maximal.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("microsoft365_graph_beta_device_and_app_management_android_managed_device_app_configuration_policy.microsoft_defender_antivirus_maximal", "id"),
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_and_app_management_android_managed_device_app_configuration_policy.microsoft_defender_antivirus_maximal", "package_id", "app:com.microsoft.scmx"),
@@ -184,7 +194,7 @@ func TestAccAndroidManagedDeviceAppConfigurationPolicyResource_MicrosoftEdge(t *
 		},
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAndroidManagedDeviceAppConfigurationPolicyConfig_microsoftEdge(),
+				Config: loadAcceptanceTestTerraform("resource_microsoft_edge_browser_maximal.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("microsoft365_graph_beta_device_and_app_management_android_managed_device_app_configuration_policy.microsoft_edge_browser_maximal", "id"),
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_and_app_management_android_managed_device_app_configuration_policy.microsoft_edge_browser_maximal", "package_id", "app:com.microsoft.emmx"),
@@ -213,7 +223,7 @@ func TestAccAndroidManagedDeviceAppConfigurationPolicyResource_MicrosoftExcel(t 
 		},
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAndroidManagedDeviceAppConfigurationPolicyConfig_microsoftExcel(),
+				Config: loadAcceptanceTestTerraform("resource_microsoft_excel_maximal.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("microsoft365_graph_beta_device_and_app_management_android_managed_device_app_configuration_policy.microsoft_excel_maximal", "id"),
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_and_app_management_android_managed_device_app_configuration_policy.microsoft_excel_maximal", "package_id", "app:com.microsoft.office.excel"),
@@ -242,7 +252,7 @@ func TestAccAndroidManagedDeviceAppConfigurationPolicyResource_MicrosoftPowerPoi
 		},
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAndroidManagedDeviceAppConfigurationPolicyConfig_microsoftPowerPoint(),
+				Config: loadAcceptanceTestTerraform("resource_microsoft_powerpoint_maximal.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("microsoft365_graph_beta_device_and_app_management_android_managed_device_app_configuration_policy.microsoft_powerpoint_maximal", "id"),
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_and_app_management_android_managed_device_app_configuration_policy.microsoft_powerpoint_maximal", "package_id", "app:com.microsoft.office.powerpoint"),
@@ -271,7 +281,7 @@ func TestAccAndroidManagedDeviceAppConfigurationPolicyResource_MicrosoftWord(t *
 		},
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAndroidManagedDeviceAppConfigurationPolicyConfig_microsoftWord(),
+				Config: loadAcceptanceTestTerraform("resource_microsoft_word_maximal.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("microsoft365_graph_beta_device_and_app_management_android_managed_device_app_configuration_policy.microsoft_word_maximal", "id"),
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_and_app_management_android_managed_device_app_configuration_policy.microsoft_word_maximal", "package_id", "app:com.microsoft.office.word"),
@@ -300,7 +310,7 @@ func TestAccAndroidManagedDeviceAppConfigurationPolicyResource_MicrosoftOneNote(
 		},
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAndroidManagedDeviceAppConfigurationPolicyConfig_microsoftOneNote(),
+				Config: loadAcceptanceTestTerraform("resource_microsoft_onenote_maximal.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("microsoft365_graph_beta_device_and_app_management_android_managed_device_app_configuration_policy.microsoft_onenote_maximal", "id"),
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_and_app_management_android_managed_device_app_configuration_policy.microsoft_onenote_maximal", "package_id", "app:com.microsoft.office.onenote"),
@@ -329,7 +339,7 @@ func TestAccAndroidManagedDeviceAppConfigurationPolicyResource_MicrosoftOneDrive
 		},
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAndroidManagedDeviceAppConfigurationPolicyConfig_microsoftOneDrive(),
+				Config: loadAcceptanceTestTerraform("resource_microsoft_onedrive_maximal.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("microsoft365_graph_beta_device_and_app_management_android_managed_device_app_configuration_policy.microsoft_onedrive_maximal", "id"),
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_and_app_management_android_managed_device_app_configuration_policy.microsoft_onedrive_maximal", "package_id", "app:com.microsoft.skydrive"),
@@ -358,7 +368,7 @@ func TestAccAndroidManagedDeviceAppConfigurationPolicyResource_MicrosoftOutlook(
 		},
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAndroidManagedDeviceAppConfigurationPolicyConfig_microsoftOutlook(),
+				Config: loadAcceptanceTestTerraform("resource_microsoft_outlook_maximal.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("microsoft365_graph_beta_device_and_app_management_android_managed_device_app_configuration_policy.microsoft_outlook_maximal", "id"),
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_and_app_management_android_managed_device_app_configuration_policy.microsoft_outlook_maximal", "package_id", "app:com.microsoft.office.outlook"),
@@ -387,7 +397,7 @@ func TestAccAndroidManagedDeviceAppConfigurationPolicyResource_MicrosoftTeams(t 
 		},
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAndroidManagedDeviceAppConfigurationPolicyConfig_microsoftTeams(),
+				Config: loadAcceptanceTestTerraform("resource_microsoft_teams_maximal.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("microsoft365_graph_beta_device_and_app_management_android_managed_device_app_configuration_policy.microsoft_teams_maximal", "id"),
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_and_app_management_android_managed_device_app_configuration_policy.microsoft_teams_maximal", "package_id", "app:com.microsoft.teams"),
@@ -437,70 +447,4 @@ func testAccCheckAndroidManagedDeviceAppConfigurationPolicyDestroy(s *terraform.
 	}
 
 	return nil
-}
-
-// Helper functions to load acceptance test configurations
-func testAccAndroidManagedDeviceAppConfigurationPolicyConfig_minimal() string {
-	accTestConfig := mocks.LoadLocalTerraformConfig("resource_minimal.tf")
-	return acceptance.ConfiguredM365ProviderBlock(accTestConfig)
-}
-
-func testAccAndroidManagedDeviceAppConfigurationPolicyConfig_microsoftAuthenticator() string {
-	accTestConfig := mocks.LoadLocalTerraformConfig("resource_microsoft_authenticator_maximal.tf")
-	return acceptance.ConfiguredM365ProviderBlock(accTestConfig)
-}
-
-func testAccAndroidManagedDeviceAppConfigurationPolicyConfig_microsoft365Copilot() string {
-	accTestConfig := mocks.LoadLocalTerraformConfig("resource_microsoft_365_copilot_maximal.tf")
-	return acceptance.ConfiguredM365ProviderBlock(accTestConfig)
-}
-
-func testAccAndroidManagedDeviceAppConfigurationPolicyConfig_managedHomeScreen() string {
-	accTestConfig := mocks.LoadLocalTerraformConfig("resource_managed_home_screen_maximal.tf")
-	return acceptance.ConfiguredM365ProviderBlock(accTestConfig)
-}
-
-func testAccAndroidManagedDeviceAppConfigurationPolicyConfig_microsoftDefender() string {
-	accTestConfig := mocks.LoadLocalTerraformConfig("resource_microsoft_defender_antivirus_maximal.tf")
-	return acceptance.ConfiguredM365ProviderBlock(accTestConfig)
-}
-
-func testAccAndroidManagedDeviceAppConfigurationPolicyConfig_microsoftEdge() string {
-	accTestConfig := mocks.LoadLocalTerraformConfig("resource_microsoft_edge_browser_maximal.tf")
-	return acceptance.ConfiguredM365ProviderBlock(accTestConfig)
-}
-
-func testAccAndroidManagedDeviceAppConfigurationPolicyConfig_microsoftExcel() string {
-	accTestConfig := mocks.LoadLocalTerraformConfig("resource_microsoft_excel_maximal.tf")
-	return acceptance.ConfiguredM365ProviderBlock(accTestConfig)
-}
-
-func testAccAndroidManagedDeviceAppConfigurationPolicyConfig_microsoftOneDrive() string {
-	accTestConfig := mocks.LoadLocalTerraformConfig("resource_microsoft_onedrive_maximal.tf")
-	return acceptance.ConfiguredM365ProviderBlock(accTestConfig)
-}
-
-func testAccAndroidManagedDeviceAppConfigurationPolicyConfig_microsoftOneNote() string {
-	accTestConfig := mocks.LoadLocalTerraformConfig("resource_microsoft_onenote_maximal.tf")
-	return acceptance.ConfiguredM365ProviderBlock(accTestConfig)
-}
-
-func testAccAndroidManagedDeviceAppConfigurationPolicyConfig_microsoftOutlook() string {
-	accTestConfig := mocks.LoadLocalTerraformConfig("resource_microsoft_outlook_maximal.tf")
-	return acceptance.ConfiguredM365ProviderBlock(accTestConfig)
-}
-
-func testAccAndroidManagedDeviceAppConfigurationPolicyConfig_microsoftPowerPoint() string {
-	accTestConfig := mocks.LoadLocalTerraformConfig("resource_microsoft_powerpoint_maximal.tf")
-	return acceptance.ConfiguredM365ProviderBlock(accTestConfig)
-}
-
-func testAccAndroidManagedDeviceAppConfigurationPolicyConfig_microsoftTeams() string {
-	accTestConfig := mocks.LoadLocalTerraformConfig("resource_microsoft_teams_maximal.tf")
-	return acceptance.ConfiguredM365ProviderBlock(accTestConfig)
-}
-
-func testAccAndroidManagedDeviceAppConfigurationPolicyConfig_microsoftWord() string {
-	accTestConfig := mocks.LoadLocalTerraformConfig("resource_microsoft_word_maximal.tf")
-	return acceptance.ConfiguredM365ProviderBlock(accTestConfig)
 }

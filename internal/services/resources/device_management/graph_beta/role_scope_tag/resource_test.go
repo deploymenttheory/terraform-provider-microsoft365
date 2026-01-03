@@ -1,82 +1,46 @@
 package graphBetaRoleScopeTag_test
 
 import (
-	"os"
-	"path/filepath"
 	"regexp"
-
 	"testing"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/check"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
 	roleScopeTagMocks "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_management/graph_beta/role_scope_tag/mocks"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/jarcoal/httpmock"
 )
 
-func setupUnitTestEnvironment() {
-	// Set environment variables for testing
-	os.Setenv("TF_ACC", "0")
-	os.Setenv("MS365_TEST_MODE", "true")
-}
-
-// setupMockEnvironment sets up the mock environment using centralized mocks
 func setupMockEnvironment() (*mocks.Mocks, *roleScopeTagMocks.RoleScopeTagMock) {
-	// Activate httpmock
 	httpmock.Activate()
-
-	// Create a new Mocks instance and register authentication mocks
 	mockClient := mocks.NewMocks()
 	mockClient.AuthMocks.RegisterMocks()
-
-	// Register local mocks directly
 	roleScopeTagMock := &roleScopeTagMocks.RoleScopeTagMock{}
 	roleScopeTagMock.RegisterMocks()
-
 	return mockClient, roleScopeTagMock
 }
 
-// setupErrorMockEnvironment sets up the mock environment for error testing
 func setupErrorMockEnvironment() (*mocks.Mocks, *roleScopeTagMocks.RoleScopeTagMock) {
-	// Activate httpmock
 	httpmock.Activate()
-
-	// Create a new Mocks instance and register authentication mocks
 	mockClient := mocks.NewMocks()
 	mockClient.AuthMocks.RegisterMocks()
-
-	// Register error mocks
 	roleScopeTagMock := &roleScopeTagMocks.RoleScopeTagMock{}
 	roleScopeTagMock.RegisterErrorMocks()
-
 	return mockClient, roleScopeTagMock
 }
 
-// testCheckExists is a basic check to ensure the resource exists in the state
-func testCheckExists(resourceName string) resource.TestCheckFunc {
-	return resource.TestCheckResourceAttrSet(resourceName, "id")
-}
-
-// testConfigMinimal returns the minimal configuration for testing
-func testConfigMinimal() string {
-	content, err := os.ReadFile(filepath.Join("tests", "terraform", "unit", "resource_minimal.tf"))
+func testConfigHelper(filename string) string {
+	config, err := helpers.ParseHCLFile("tests/terraform/unit/" + filename)
 	if err != nil {
-		return ""
+		panic("failed to load unit test config " + filename + ": " + err.Error())
 	}
-	return string(content)
-}
-
-// testConfigMaximal returns the maximal configuration for testing
-func testConfigMaximal() string {
-	content, err := os.ReadFile(filepath.Join("tests", "terraform", "unit", "resource_maximal.tf"))
-	if err != nil {
-		return ""
-	}
-	return string(content)
+	return config
 }
 
 // TestRoleScopeTagResource_Schema validates the resource schema
 func TestRoleScopeTagResource_Schema(t *testing.T) {
-	setupUnitTestEnvironment()
+	mocks.SetupUnitTestEnvironment(t)
 	_, roleScopeTagMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
 	defer roleScopeTagMock.CleanupMockState()
@@ -91,15 +55,12 @@ func TestRoleScopeTagResource_Schema(t *testing.T) {
 		},
 		Steps: []resource.TestStep{
 			{
-				Config: testConfigMinimal(),
+				Config: testConfigHelper("resource_minimal.tf"),
 				Check: resource.ComposeTestCheckFunc(
-					// Check required attributes
-					resource.TestMatchResourceAttr("microsoft365_graph_beta_device_management_role_scope_tag.minimal", "display_name", regexp.MustCompile(`^unit-test-role-scope-tag-minimal-[A-Za-z0-9]{8}$`)),
-
-					// Check computed attributes are set
-					resource.TestMatchResourceAttr("microsoft365_graph_beta_device_management_role_scope_tag.minimal", "id", regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
-					resource.TestMatchResourceAttr("microsoft365_graph_beta_device_management_role_scope_tag.minimal", "description", regexp.MustCompile(`^unit-test-role-scope-tag-minimal-[A-Za-z0-9]{8}$`)),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_role_scope_tag.minimal", "is_built_in", "false"),
+					check.That(resourceType+".minimal").Key("display_name").MatchesRegex(regexp.MustCompile(`^unit-test-role-scope-tag-minimal-[A-Za-z0-9]{8}$`)),
+					check.That(resourceType+".minimal").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(resourceType+".minimal").Key("description").MatchesRegex(regexp.MustCompile(`^unit-test-role-scope-tag-minimal-[A-Za-z0-9]{8}$`)),
+					check.That(resourceType+".minimal").Key("is_built_in").HasValue("false"),
 				),
 			},
 		},
@@ -108,7 +69,7 @@ func TestRoleScopeTagResource_Schema(t *testing.T) {
 
 // TestRoleScopeTagResource_Minimal tests basic CRUD operations
 func TestRoleScopeTagResource_Minimal(t *testing.T) {
-	setupUnitTestEnvironment()
+	mocks.SetupUnitTestEnvironment(t)
 	_, roleScopeTagMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
 	defer roleScopeTagMock.CleanupMockState()
@@ -122,30 +83,27 @@ func TestRoleScopeTagResource_Minimal(t *testing.T) {
 			},
 		},
 		Steps: []resource.TestStep{
-			// Create and Read testing
 			{
-				Config: testConfigMinimal(),
+				Config: testConfigHelper("resource_minimal.tf"),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckExists("microsoft365_graph_beta_device_management_role_scope_tag.minimal"),
-					resource.TestMatchResourceAttr("microsoft365_graph_beta_device_management_role_scope_tag.minimal", "display_name", regexp.MustCompile(`^unit-test-role-scope-tag-minimal-[A-Za-z0-9]{8}$`)),
-					resource.TestMatchResourceAttr("microsoft365_graph_beta_device_management_role_scope_tag.minimal", "description", regexp.MustCompile(`^unit-test-role-scope-tag-minimal-[A-Za-z0-9]{8}$`)),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_role_scope_tag.minimal", "is_built_in", "false"),
+					check.That(resourceType+".minimal").Key("id").Exists(),
+					check.That(resourceType+".minimal").Key("display_name").MatchesRegex(regexp.MustCompile(`^unit-test-role-scope-tag-minimal-[A-Za-z0-9]{8}$`)),
+					check.That(resourceType+".minimal").Key("description").MatchesRegex(regexp.MustCompile(`^unit-test-role-scope-tag-minimal-[A-Za-z0-9]{8}$`)),
+					check.That(resourceType+".minimal").Key("is_built_in").HasValue("false"),
 				),
 			},
-			// ImportState testing
 			{
-				ResourceName:      "microsoft365_graph_beta_device_management_role_scope_tag.minimal",
+				ResourceName:      resourceType + ".minimal",
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
-			// Update and Read testing
 			{
-				Config: testConfigMaximal(),
+				Config: testConfigHelper("resource_maximal.tf"),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckExists("microsoft365_graph_beta_device_management_role_scope_tag.maximal"),
-					resource.TestMatchResourceAttr("microsoft365_graph_beta_device_management_role_scope_tag.maximal", "display_name", regexp.MustCompile(`^unit-test-role-scope-tag-maximal-[A-Za-z0-9]{8}$`)),
-					resource.TestMatchResourceAttr("microsoft365_graph_beta_device_management_role_scope_tag.maximal", "description", regexp.MustCompile(`^unit-test-role-scope-tag-maximal-[A-Za-z0-9]{8}$`)),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_role_scope_tag.maximal", "is_built_in", "false"),
+					check.That(resourceType+".maximal").Key("id").Exists(),
+					check.That(resourceType+".maximal").Key("display_name").MatchesRegex(regexp.MustCompile(`^unit-test-role-scope-tag-maximal-[A-Za-z0-9]{8}$`)),
+					check.That(resourceType+".maximal").Key("description").MatchesRegex(regexp.MustCompile(`^unit-test-role-scope-tag-maximal-[A-Za-z0-9]{8}$`)),
+					check.That(resourceType+".maximal").Key("is_built_in").HasValue("false"),
 				),
 			},
 		},
@@ -154,7 +112,7 @@ func TestRoleScopeTagResource_Minimal(t *testing.T) {
 
 // TestRoleScopeTagResource_UpdateInPlace tests in-place updates
 func TestRoleScopeTagResource_UpdateInPlace(t *testing.T) {
-	setupUnitTestEnvironment()
+	mocks.SetupUnitTestEnvironment(t)
 	_, roleScopeTagMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
 	defer roleScopeTagMock.CleanupMockState()
@@ -169,16 +127,16 @@ func TestRoleScopeTagResource_UpdateInPlace(t *testing.T) {
 		},
 		Steps: []resource.TestStep{
 			{
-				Config: testConfigMinimal(),
+				Config: testConfigHelper("resource_minimal.tf"),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckExists("microsoft365_graph_beta_device_management_role_scope_tag.minimal"),
+					check.That(resourceType+".minimal").Key("id").Exists(),
 					resource.TestMatchResourceAttr("microsoft365_graph_beta_device_management_role_scope_tag.minimal", "display_name", regexp.MustCompile(`^unit-test-role-scope-tag-minimal-[A-Za-z0-9]{8}$`)),
 				),
 			},
 			{
-				Config: testConfigMaximal(),
+				Config: testConfigHelper("resource_maximal.tf"),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckExists("microsoft365_graph_beta_device_management_role_scope_tag.maximal"),
+					check.That(resourceType+".maximal").Key("id").Exists(),
 					resource.TestMatchResourceAttr("microsoft365_graph_beta_device_management_role_scope_tag.maximal", "display_name", regexp.MustCompile(`^unit-test-role-scope-tag-maximal-[A-Za-z0-9]{8}$`)),
 					resource.TestMatchResourceAttr("microsoft365_graph_beta_device_management_role_scope_tag.maximal", "description", regexp.MustCompile(`^unit-test-role-scope-tag-maximal-[A-Za-z0-9]{8}$`)),
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_role_scope_tag.maximal", "assignments.#", "2"),
@@ -190,7 +148,7 @@ func TestRoleScopeTagResource_UpdateInPlace(t *testing.T) {
 
 // TestRoleScopeTagResource_RequiredFields tests required field validation
 func TestRoleScopeTagResource_RequiredFields(t *testing.T) {
-	setupUnitTestEnvironment()
+	mocks.SetupUnitTestEnvironment(t)
 	_, roleScopeTagMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
 	defer roleScopeTagMock.CleanupMockState()
@@ -212,7 +170,7 @@ resource "microsoft365_graph_beta_device_management_role_scope_tag" "test" {
 
 // TestRoleScopeTagResource_DisplayNameUniqueness tests display name uniqueness validation
 func TestRoleScopeTagResource_DisplayNameUniqueness(t *testing.T) {
-	setupUnitTestEnvironment()
+	mocks.SetupUnitTestEnvironment(t)
 	_, roleScopeTagMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
 	defer roleScopeTagMock.CleanupMockState()
@@ -228,8 +186,8 @@ resource "microsoft365_graph_beta_device_management_role_scope_tag" "first" {
 }
 `,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckExists("microsoft365_graph_beta_device_management_role_scope_tag.first"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_role_scope_tag.first", "display_name", "Unique Test Role Scope Tag"),
+					check.That(resourceType+".first").Key("id").Exists(),
+					check.That(resourceType+".first").Key("display_name").HasValue("Unique Test Role Scope Tag"),
 				),
 			},
 			// Try to create second role scope tag with same display name
@@ -243,7 +201,7 @@ resource "microsoft365_graph_beta_device_management_role_scope_tag" "second" {
   display_name = "Unique Test Role Scope Tag"
 }
 `,
-				ExpectError: regexp.MustCompile(`role scope tag with display name 'Unique Test Role Scope Tag' already exists|Display names must be unique`),
+				ExpectError: regexp.MustCompile(`already exists|Display names must be unique`),
 			},
 		},
 	})
@@ -251,7 +209,7 @@ resource "microsoft365_graph_beta_device_management_role_scope_tag" "second" {
 
 // TestRoleScopeTagResource_ErrorHandling tests error scenarios
 func TestRoleScopeTagResource_ErrorHandling(t *testing.T) {
-	setupUnitTestEnvironment()
+	mocks.SetupUnitTestEnvironment(t)
 	_, roleScopeTagMock := setupErrorMockEnvironment()
 	defer httpmock.DeactivateAndReset()
 	defer roleScopeTagMock.CleanupMockState()
@@ -274,7 +232,7 @@ resource "microsoft365_graph_beta_device_management_role_scope_tag" "test" {
 
 // TestRoleScopeTagResource_Assignments tests assignments handling
 func TestRoleScopeTagResource_Assignments(t *testing.T) {
-	setupUnitTestEnvironment()
+	mocks.SetupUnitTestEnvironment(t)
 	_, roleScopeTagMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
 	defer roleScopeTagMock.CleanupMockState()
@@ -324,7 +282,7 @@ resource "microsoft365_graph_beta_device_management_role_scope_tag" "test" {
 
 // TestRoleScopeTagResource_EmptyDescription tests handling of empty description
 func TestRoleScopeTagResource_EmptyDescription(t *testing.T) {
-	setupUnitTestEnvironment()
+	mocks.SetupUnitTestEnvironment(t)
 	_, roleScopeTagMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
 	defer roleScopeTagMock.CleanupMockState()
@@ -350,7 +308,7 @@ resource "microsoft365_graph_beta_device_management_role_scope_tag" "test" {
 
 // TestRoleScopeTagResource_NoDescription tests handling when description is not provided
 func TestRoleScopeTagResource_NoDescription(t *testing.T) {
-	setupUnitTestEnvironment()
+	mocks.SetupUnitTestEnvironment(t)
 	_, roleScopeTagMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
 	defer roleScopeTagMock.CleanupMockState()

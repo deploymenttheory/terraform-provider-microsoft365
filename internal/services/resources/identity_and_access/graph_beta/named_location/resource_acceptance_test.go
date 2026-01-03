@@ -9,6 +9,7 @@ import (
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/check"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/destroy"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/testlog"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
 	graphBetaNamedLocation "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/identity_and_access/graph_beta/named_location"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -22,6 +23,15 @@ var (
 	// testResource is the test resource implementation for named locations
 	testResource = graphBetaNamedLocation.NamedLocationTestResource{}
 )
+
+// Helper function to load test configs from acceptance directory
+func loadAcceptanceTestTerraform(filename string) string {
+	config, err := helpers.ParseHCLFile("tests/terraform/acceptance/" + filename)
+	if err != nil {
+		panic("failed to load acceptance config " + filename + ": " + err.Error())
+	}
+	return acceptance.ConfiguredM365ProviderBlock(config)
+}
 
 func TestAccNamedLocationResource_IPMinimal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
@@ -43,7 +53,7 @@ func TestAccNamedLocationResource_IPMinimal(t *testing.T) {
 				PreConfig: func() {
 					testlog.StepAction(resourceType, "Creating IP minimal named location")
 				},
-				Config: testAccConfigIPMinimal(),
+				Config: loadAcceptanceTestTerraform("named_location_ip_minimal.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					func(_ *terraform.State) error {
 						testlog.WaitForConsistency("named location", 30*time.Second)
@@ -95,7 +105,7 @@ func TestAccNamedLocationResource_IPMaximal(t *testing.T) {
 				PreConfig: func() {
 					testlog.StepAction(resourceType, "Creating IP maximal named location")
 				},
-				Config: testAccConfigIPMaximal(),
+				Config: loadAcceptanceTestTerraform("named_location_ip_maximal.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					func(_ *terraform.State) error {
 						testlog.WaitForConsistency("named location", 30*time.Second)
@@ -139,7 +149,7 @@ func TestAccNamedLocationResource_IPv6Only(t *testing.T) {
 				PreConfig: func() {
 					testlog.StepAction(resourceType, "Creating IPv6 only named location")
 				},
-				Config: testAccConfigIPv6Only(),
+				Config: loadAcceptanceTestTerraform("named_location_ipv6_only.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					func(_ *terraform.State) error {
 						testlog.WaitForConsistency("named location", 30*time.Second)
@@ -179,7 +189,7 @@ func TestAccNamedLocationResource_CountryClientIP(t *testing.T) {
 				PreConfig: func() {
 					testlog.StepAction(resourceType, "Creating country client IP named location")
 				},
-				Config: testAccConfigCountryClientIP(),
+				Config: loadAcceptanceTestTerraform("named_location_country_client_ip.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					func(_ *terraform.State) error {
 						testlog.WaitForConsistency("named location", 30*time.Second)
@@ -232,7 +242,7 @@ func TestAccNamedLocationResource_CountryAuthenticatorGPS(t *testing.T) {
 				PreConfig: func() {
 					testlog.StepAction(resourceType, "Creating country authenticator GPS named location")
 				},
-				Config: testAccConfigCountryAuthenticatorGPS(),
+				Config: loadAcceptanceTestTerraform("named_location_country_authenticator_gps.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					func(_ *terraform.State) error {
 						testlog.WaitForConsistency("named location", 30*time.Second)
@@ -253,30 +263,4 @@ func TestAccNamedLocationResource_CountryAuthenticatorGPS(t *testing.T) {
 			},
 		},
 	})
-}
-
-// Test configuration functions
-func testAccConfigIPMinimal() string {
-	config := mocks.LoadTerraformConfigFile("named_location_ip_minimal.tf")
-	return acceptance.ConfiguredM365ProviderBlock(config)
-}
-
-func testAccConfigIPMaximal() string {
-	config := mocks.LoadTerraformConfigFile("named_location_ip_maximal.tf")
-	return acceptance.ConfiguredM365ProviderBlock(config)
-}
-
-func testAccConfigIPv6Only() string {
-	config := mocks.LoadTerraformConfigFile("named_location_ipv6_only.tf")
-	return acceptance.ConfiguredM365ProviderBlock(config)
-}
-
-func testAccConfigCountryClientIP() string {
-	config := mocks.LoadTerraformConfigFile("named_location_country_client_ip.tf")
-	return acceptance.ConfiguredM365ProviderBlock(config)
-}
-
-func testAccConfigCountryAuthenticatorGPS() string {
-	config := mocks.LoadTerraformConfigFile("named_location_country_authenticator_gps.tf")
-	return acceptance.ConfiguredM365ProviderBlock(config)
 }

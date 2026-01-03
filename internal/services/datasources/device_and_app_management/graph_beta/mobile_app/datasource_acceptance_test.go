@@ -6,9 +6,19 @@ import (
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/check"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
+
+// Helper function to load test configs from acceptance directory
+func loadAcceptanceTestTerraform(filename string) string {
+	config, err := helpers.ParseHCLFile("tests/terraform/acceptance/" + filename)
+	if err != nil {
+		panic("failed to load acceptance config " + filename + ": " + err.Error())
+	}
+	return acceptance.ConfiguredM365ProviderBlock(config)
+}
 
 // Test 01: Get all mobile apps
 func TestAccMobileAppDataSource_All(t *testing.T) {
@@ -23,7 +33,7 @@ func TestAccMobileAppDataSource_All(t *testing.T) {
 		},
 		Steps: []resource.TestStep{
 			{
-				Config: testAccConfigAll(),
+				Config: loadAcceptanceTestTerraform("01_all.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					check.That(dataSourceType+".all").Key("filter_type").HasValue("all"),
 					check.That(dataSourceType+".all").Key("items.#").Exists(),
@@ -71,7 +81,7 @@ func TestAccMobileAppDataSource_ByDisplayName(t *testing.T) {
 		},
 		Steps: []resource.TestStep{
 			{
-				Config: testAccConfigByDisplayName(),
+				Config: loadAcceptanceTestTerraform("02_by_display_name.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					check.That(dataSourceType+".by_display_name").Key("filter_type").HasValue("display_name"),
 					check.That(dataSourceType+".by_display_name").Key("filter_value").HasValue("Microsoft"),
@@ -110,7 +120,7 @@ func TestAccMobileAppDataSource_ByPublisherName(t *testing.T) {
 		},
 		Steps: []resource.TestStep{
 			{
-				Config: testAccConfigByPublisherName(),
+				Config: loadAcceptanceTestTerraform("03_by_publisher_name.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					check.That(dataSourceType+".by_publisher").Key("filter_type").HasValue("publisher_name"),
 					check.That(dataSourceType+".by_publisher").Key("filter_value").HasValue("Microsoft"),
@@ -142,20 +152,4 @@ func TestAccMobileAppDataSource_ByPublisherName(t *testing.T) {
 			},
 		},
 	})
-}
-
-// Terraform acceptance test configs
-func testAccConfigAll() string {
-	config := mocks.LoadTerraformConfigFile("01_all.tf")
-	return acceptance.ConfiguredM365ProviderBlock(config)
-}
-
-func testAccConfigByDisplayName() string {
-	config := mocks.LoadTerraformConfigFile("02_by_display_name.tf")
-	return acceptance.ConfiguredM365ProviderBlock(config)
-}
-
-func testAccConfigByPublisherName() string {
-	config := mocks.LoadTerraformConfigFile("03_by_publisher_name.tf")
-	return acceptance.ConfiguredM365ProviderBlock(config)
 }

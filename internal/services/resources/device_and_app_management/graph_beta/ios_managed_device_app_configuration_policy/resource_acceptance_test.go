@@ -7,11 +7,21 @@ import (
 	"testing"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
 	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 )
+
+// Helper function to load test configs from acceptance directory
+func loadAcceptanceTestTerraform(filename string) string {
+	config, err := helpers.ParseHCLFile("tests/terraform/acceptance/" + filename)
+	if err != nil {
+		panic("failed to load acceptance config " + filename + ": " + err.Error())
+	}
+	return acceptance.ConfiguredM365ProviderBlock(config)
+}
 
 func TestAccIOSManagedDeviceAppConfigurationPolicyResource_Lifecycle(t *testing.T) {
 	resource.Test(t, resource.TestCase{
@@ -27,7 +37,7 @@ func TestAccIOSManagedDeviceAppConfigurationPolicyResource_Lifecycle(t *testing.
 		Steps: []resource.TestStep{
 			// Create with custom settings configuration
 			{
-				Config: testAccIOSManagedDeviceAppConfigurationPolicyConfig_customSettings(),
+				Config: loadAcceptanceTestTerraform("resource_minimal.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("microsoft365_graph_beta_device_and_app_management_ios_managed_device_app_configuration_policy.custom_settings", "id"),
 					resource.TestMatchResourceAttr("microsoft365_graph_beta_device_and_app_management_ios_managed_device_app_configuration_policy.custom_settings", "display_name", regexp.MustCompile(`^acc-test-ios-managed-device-app-configuration-policy-custom-settings-[a-z0-9]{8}$`)),
@@ -45,7 +55,7 @@ func TestAccIOSManagedDeviceAppConfigurationPolicyResource_Lifecycle(t *testing.
 			},
 			// Update to xml encoded configuration
 			{
-				Config: testAccIOSManagedDeviceAppConfigurationPolicyConfig_xmlEncoded(),
+				Config: loadAcceptanceTestTerraform("resource_xml_config.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("microsoft365_graph_beta_device_and_app_management_ios_managed_device_app_configuration_policy.xml_encoded", "id"),
 					resource.TestMatchResourceAttr("microsoft365_graph_beta_device_and_app_management_ios_managed_device_app_configuration_policy.xml_encoded", "display_name", regexp.MustCompile(`^acc-test-ios-managed-device-app-configuration-policy-xml-encoded-[a-z0-9]{8}$`)),
@@ -72,7 +82,7 @@ func TestAccIOSManagedDeviceAppConfigurationPolicyResource_CustomSettings(t *tes
 		},
 		Steps: []resource.TestStep{
 			{
-				Config: testAccIOSManagedDeviceAppConfigurationPolicyConfig_customSettings(),
+				Config: loadAcceptanceTestTerraform("resource_minimal.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("microsoft365_graph_beta_device_and_app_management_ios_managed_device_app_configuration_policy.custom_settings", "id"),
 					resource.TestMatchResourceAttr("microsoft365_graph_beta_device_and_app_management_ios_managed_device_app_configuration_policy.custom_settings", "display_name", regexp.MustCompile(`^acc-test-ios-managed-device-app-configuration-policy-custom-settings-[a-z0-9]{8}$`)),
@@ -97,7 +107,7 @@ func TestAccIOSManagedDeviceAppConfigurationPolicyResource_XMLEncoded(t *testing
 		},
 		Steps: []resource.TestStep{
 			{
-				Config: testAccIOSManagedDeviceAppConfigurationPolicyConfig_xmlEncoded(),
+				Config: loadAcceptanceTestTerraform("resource_xml_config.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("microsoft365_graph_beta_device_and_app_management_ios_managed_device_app_configuration_policy.xml_encoded", "id"),
 					resource.TestMatchResourceAttr("microsoft365_graph_beta_device_and_app_management_ios_managed_device_app_configuration_policy.xml_encoded", "display_name", regexp.MustCompile(`^acc-test-ios-managed-device-app-configuration-policy-xml-encoded-[a-z0-9]{8}$`)),
@@ -144,14 +154,4 @@ func testAccCheckIOSManagedDeviceAppConfigurationPolicyDestroy(s *terraform.Stat
 	}
 
 	return nil
-}
-
-func testAccIOSManagedDeviceAppConfigurationPolicyConfig_customSettings() string {
-	accTestConfig := mocks.LoadLocalTerraformConfig("resource_minimal.tf")
-	return acceptance.ConfiguredM365ProviderBlock(accTestConfig)
-}
-
-func testAccIOSManagedDeviceAppConfigurationPolicyConfig_xmlEncoded() string {
-	accTestConfig := mocks.LoadLocalTerraformConfig("resource_xml_config.tf")
-	return acceptance.ConfiguredM365ProviderBlock(accTestConfig)
 }

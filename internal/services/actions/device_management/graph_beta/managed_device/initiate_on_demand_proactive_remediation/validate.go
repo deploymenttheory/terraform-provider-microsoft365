@@ -259,4 +259,3 @@ func (a *InitiateOnDemandProactiveRemediationManagedDeviceAction) ValidateConfig
 		)
 	}
 }
-

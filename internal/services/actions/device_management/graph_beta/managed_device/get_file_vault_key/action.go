@@ -120,4 +120,3 @@ func (a *GetFileVaultKeyManagedDeviceAction) Schema(ctx context.Context, req act
 		},
 	}
 }
-

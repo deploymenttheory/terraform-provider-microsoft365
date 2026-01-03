@@ -21,4 +21,3 @@ type ComanagedDevicePauseConfig struct {
 	DeviceID                 types.String `tfsdk:"device_id"`
 	PauseTimePeriodInMinutes types.Int64  `tfsdk:"pause_time_period_in_minutes"`
 }
-

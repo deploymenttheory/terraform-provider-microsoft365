@@ -8,6 +8,7 @@ import (
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/check"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/destroy"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/testlog"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
 	graphBetaNetworkFilteringPolicy "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/identity_and_access/graph_beta/network_filtering_policy"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -20,6 +21,14 @@ var (
 	// testResource is the test resource implementation for filtering policies
 	testResource = graphBetaNetworkFilteringPolicy.NetworkFilteringPolicyTestResource{}
 )
+
+func loadAcceptanceTestTerraform(filename string) string {
+	config, err := helpers.ParseHCLFile("tests/terraform/acceptance/" + filename)
+	if err != nil {
+		panic("failed to load acceptance config " + filename + ": " + err.Error())
+	}
+	return acceptance.ConfiguredM365ProviderBlock(config)
+}
 
 func TestAccNetworkFilteringPolicyResource_Lifecycle(t *testing.T) {
 	resource.Test(t, resource.TestCase{
@@ -41,7 +50,7 @@ func TestAccNetworkFilteringPolicyResource_Lifecycle(t *testing.T) {
 				PreConfig: func() {
 					testlog.StepAction(resourceType, "Creating")
 				},
-				Config: testAccFilteringPolicyConfig_minimal(),
+				Config: loadAcceptanceTestTerraform("resource_minimal.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					check.That(resourceType+".test").ExistsInGraph(testResource),
 					check.That(resourceType+".test").Key("id").Exists(),
@@ -61,7 +70,7 @@ func TestAccNetworkFilteringPolicyResource_Lifecycle(t *testing.T) {
 				PreConfig: func() {
 					testlog.StepAction(resourceType, "Updating")
 				},
-				Config: testAccFilteringPolicyConfig_updated(),
+				Config: loadAcceptanceTestTerraform("resource_updated.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					check.That(resourceType+".test").ExistsInGraph(testResource),
 					check.That(resourceType+".test").Key("name").IsNotEmpty(),
@@ -93,7 +102,7 @@ func TestAccNetworkFilteringPolicyResource_BlockAction(t *testing.T) {
 				PreConfig: func() {
 					testlog.StepAction(resourceType, "Creating")
 				},
-				Config: testAccFilteringPolicyConfig_blockAction(),
+				Config: loadAcceptanceTestTerraform("resource_block_action.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					check.That(resourceType+".block").ExistsInGraph(testResource),
 					check.That(resourceType+".block").Key("id").Exists(),
@@ -127,7 +136,7 @@ func TestAccNetworkFilteringPolicyResource_AllowAction(t *testing.T) {
 				PreConfig: func() {
 					testlog.StepAction(resourceType, "Creating")
 				},
-				Config: testAccFilteringPolicyConfig_allowAction(),
+				Config: loadAcceptanceTestTerraform("resource_allow_action.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					check.That(resourceType+".allow").ExistsInGraph(testResource),
 					check.That(resourceType+".allow").Key("id").Exists(),
@@ -163,7 +172,7 @@ func TestAccNetworkFilteringPolicyResource_MinimalConfiguration(t *testing.T) {
 					testlog.WaitForConsistency("Microsoft Graph", 15*time.Second)
 					time.Sleep(15 * time.Second)
 				},
-				Config: testAccFilteringPolicyConfig_minimalNoDescription(),
+				Config: loadAcceptanceTestTerraform("resource_minimal_no_description.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					check.That(resourceType+".minimal").ExistsInGraph(testResource),
 					check.That(resourceType+".minimal").Key("id").Exists(),
@@ -173,30 +182,4 @@ func TestAccNetworkFilteringPolicyResource_MinimalConfiguration(t *testing.T) {
 			},
 		},
 	})
-}
-
-// Test configuration functions
-func testAccFilteringPolicyConfig_minimal() string {
-	config := mocks.LoadTerraformConfigFile("resource_minimal.tf")
-	return acceptance.ConfiguredM365ProviderBlock(config)
-}
-
-func testAccFilteringPolicyConfig_updated() string {
-	config := mocks.LoadTerraformConfigFile("resource_updated.tf")
-	return acceptance.ConfiguredM365ProviderBlock(config)
-}
-
-func testAccFilteringPolicyConfig_blockAction() string {
-	config := mocks.LoadTerraformConfigFile("resource_block_action.tf")
-	return acceptance.ConfiguredM365ProviderBlock(config)
-}
-
-func testAccFilteringPolicyConfig_allowAction() string {
-	config := mocks.LoadTerraformConfigFile("resource_allow_action.tf")
-	return acceptance.ConfiguredM365ProviderBlock(config)
-}
-
-func testAccFilteringPolicyConfig_minimalNoDescription() string {
-	config := mocks.LoadTerraformConfigFile("resource_minimal_no_description.tf")
-	return acceptance.ConfiguredM365ProviderBlock(config)
 }

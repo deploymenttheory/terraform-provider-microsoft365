@@ -21,4 +21,3 @@ type ComanagedDeviceProactiveRemediation struct {
 	DeviceID       types.String `tfsdk:"device_id"`
 	ScriptPolicyID types.String `tfsdk:"script_policy_id"`
 }
-

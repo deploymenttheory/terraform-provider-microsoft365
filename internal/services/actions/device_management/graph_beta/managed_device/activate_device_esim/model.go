@@ -23,4 +23,3 @@ type ComanagedDeviceActivateEsim struct {
 	DeviceID   types.String `tfsdk:"device_id"`
 	CarrierURL types.String `tfsdk:"carrier_url"`
 }
-

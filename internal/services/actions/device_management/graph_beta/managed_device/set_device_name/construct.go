@@ -32,4 +32,3 @@ func constructComanagedDeviceRequest(ctx context.Context, device ComanagedDevice
 
 	return requestBody
 }
-

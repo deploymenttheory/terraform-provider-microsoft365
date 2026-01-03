@@ -8,6 +8,7 @@ import (
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/check"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/destroy"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/testlog"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
 	graphConditionalAccessTermsOfUse "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/identity_and_access/graph_v1.0/conditional_access_terms_of_use"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -20,6 +21,14 @@ var (
 	// testResource is the test resource implementation for conditional access terms of use
 	testResource = graphConditionalAccessTermsOfUse.ConditionalAccessTermsOfUseTestResource{}
 )
+
+func loadAcceptanceTestTerraform(filename string) string {
+	config, err := helpers.ParseHCLFile("tests/terraform/acceptance/" + filename)
+	if err != nil {
+		panic("failed to load acceptance config " + filename + ": " + err.Error())
+	}
+	return acceptance.ConfiguredM365ProviderBlock(config)
+}
 
 func TestAccConditionalAccessTermsOfUseResource_Lifecycle(t *testing.T) {
 	resource.Test(t, resource.TestCase{
@@ -41,7 +50,7 @@ func TestAccConditionalAccessTermsOfUseResource_Lifecycle(t *testing.T) {
 				PreConfig: func() {
 					testlog.StepAction(resourceType, "Creating")
 				},
-				Config: testAccConditionalAccessTermsOfUseConfig_minimal(),
+				Config: loadAcceptanceTestTerraform("resource_minimal.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					check.That(resourceType+".acc_test_conditional_access_terms_of_use_minimal").ExistsInGraph(testResource),
 					check.That(resourceType+".acc_test_conditional_access_terms_of_use_minimal").Key("id").Exists(),
@@ -69,7 +78,7 @@ func TestAccConditionalAccessTermsOfUseResource_Lifecycle(t *testing.T) {
 				PreConfig: func() {
 					testlog.StepAction(resourceType, "Updating")
 				},
-				Config: testAccConditionalAccessTermsOfUseConfig_updated(),
+				Config: loadAcceptanceTestTerraform("resource_maximal.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					check.That(resourceType+".acc_test_conditional_access_terms_of_use_maximal").ExistsInGraph(testResource),
 					check.That(resourceType+".acc_test_conditional_access_terms_of_use_maximal").Key("id").Exists(),
@@ -79,15 +88,4 @@ func TestAccConditionalAccessTermsOfUseResource_Lifecycle(t *testing.T) {
 			},
 		},
 	})
-}
-
-// Test configuration functions
-func testAccConditionalAccessTermsOfUseConfig_minimal() string {
-	config := mocks.LoadTerraformConfigFile("resource_minimal.tf")
-	return acceptance.ConfiguredM365ProviderBlock(config)
-}
-
-func testAccConditionalAccessTermsOfUseConfig_updated() string {
-	config := mocks.LoadTerraformConfigFile("resource_maximal.tf")
-	return acceptance.ConfiguredM365ProviderBlock(config)
 }

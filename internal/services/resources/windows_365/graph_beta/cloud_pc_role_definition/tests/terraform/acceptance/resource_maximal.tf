@@ -1,5 +1,5 @@
 resource "microsoft365_graph_beta_windows_365_cloud_pc_role_definition" "test" {
-  display_name = "Test Acceptance Role Definition - Updated"
+  display_name = "acc-test-cloud-pc-role-definition-maximal"
   description  = "Updated description for acceptance testing"
 
   role_permissions = [

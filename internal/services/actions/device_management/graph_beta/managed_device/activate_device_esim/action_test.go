@@ -94,7 +94,7 @@ func TestActivateDeviceEsimAction_Schema(t *testing.T) {
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_managed_device_activate_device_esim.minimal", "managed_devices.#", "1"),
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_managed_device_activate_device_esim.minimal", "managed_devices.0.device_id", "12345678-1234-1234-1234-123456789abc"),
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_managed_device_activate_device_esim.minimal", "managed_devices.0.carrier_url", "https://carrier.example.com/esim/activate?token=test123"),
-					
+
 					// Check default values for simplified options
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_managed_device_activate_device_esim.minimal", "ignore_partial_failures", "false"),
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_managed_device_activate_device_esim.minimal", "validate_device_exists", "true"),
@@ -165,7 +165,7 @@ func TestActivateDeviceEsimAction_BothDeviceTypes(t *testing.T) {
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_managed_device_activate_device_esim.maximal", "managed_devices.#", "2"),
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_managed_device_activate_device_esim.maximal", "managed_devices.0.device_id", "12345678-1234-1234-1234-123456789abc"),
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_managed_device_activate_device_esim.maximal", "managed_devices.1.device_id", "87654321-4321-4321-4321-987654321cba"),
-					
+
 					// Check co-managed devices
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_managed_device_activate_device_esim.maximal", "comanaged_devices.#", "2"),
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_managed_device_activate_device_esim.maximal", "comanaged_devices.0.device_id", "11111111-2222-3333-4444-555555555555"),

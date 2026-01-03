@@ -122,4 +122,3 @@ func (a *InitiateDeviceAttestationManagedDeviceAction) Schema(ctx context.Contex
 		},
 	}
 }
-

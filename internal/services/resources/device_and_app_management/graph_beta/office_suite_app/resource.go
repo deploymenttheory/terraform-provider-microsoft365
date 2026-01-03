@@ -72,6 +72,7 @@ type OfficeSuiteAppResource struct {
 func (r *OfficeSuiteAppResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = ResourceName
 }
+
 // Configure sets the client for the resource.
 func (r *OfficeSuiteAppResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	r.client = client.SetGraphBetaClientForResource(ctx, req, resp, ResourceName)

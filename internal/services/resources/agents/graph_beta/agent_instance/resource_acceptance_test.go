@@ -8,6 +8,7 @@ import (
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/check"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/destroy"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/testlog"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
 	graphBetaAgentInstance "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/agents/graph_beta/agent_instance"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -17,6 +18,15 @@ import (
 var (
 	testResource = graphBetaAgentInstance.AgentInstanceTestResource{}
 )
+
+// Helper function to load test configs from acceptance directory
+func loadAcceptanceTestTerraform(filename string) string {
+	config, err := helpers.ParseHCLFile("tests/terraform/acceptance/" + filename)
+	if err != nil {
+		panic("failed to load acceptance config " + filename + ": " + err.Error())
+	}
+	return acceptance.ConfiguredM365ProviderBlock(config)
+}
 
 // TestAccAgentInstanceResource_Minimal tests creating an agent instance with minimal configuration
 func TestAccAgentInstanceResource_Minimal(t *testing.T) {
@@ -39,7 +49,7 @@ func TestAccAgentInstanceResource_Minimal(t *testing.T) {
 				PreConfig: func() {
 					testlog.StepAction(resourceType, "Creating agent instance with minimal configuration")
 				},
-				Config: testAccConfigMinimal(),
+				Config: loadAcceptanceTestTerraform("resource_minimal.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					func(_ *terraform.State) error {
 						testlog.WaitForConsistency("agent instance", 15*time.Second)
@@ -96,7 +106,7 @@ func TestAccAgentInstanceResource_Maximal(t *testing.T) {
 				PreConfig: func() {
 					testlog.StepAction(resourceType, "Creating agent instance with maximal configuration")
 				},
-				Config: testAccConfigMaximal(),
+				Config: loadAcceptanceTestTerraform("resource_maximal.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					func(_ *terraform.State) error {
 						testlog.WaitForConsistency("agent instance", 15*time.Second)
@@ -165,7 +175,7 @@ func TestAccAgentInstanceResource_UpdateMinimalToMaximal(t *testing.T) {
 				PreConfig: func() {
 					testlog.StepAction(resourceType, "Creating agent instance with minimal configuration")
 				},
-				Config: testAccConfigUpdateMinimal(),
+				Config: loadAcceptanceTestTerraform("resource_update_minimal.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					func(_ *terraform.State) error {
 						testlog.WaitForConsistency("agent instance", 15*time.Second)
@@ -186,7 +196,7 @@ func TestAccAgentInstanceResource_UpdateMinimalToMaximal(t *testing.T) {
 				PreConfig: func() {
 					testlog.StepAction(resourceType, "Updating agent instance to maximal configuration")
 				},
-				Config: testAccConfigUpdateMaximal(),
+				Config: loadAcceptanceTestTerraform("resource_update_maximal.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					func(_ *terraform.State) error {
 						testlog.WaitForConsistency("agent instance update", 15*time.Second)
@@ -231,7 +241,7 @@ func TestAccAgentInstanceResource_UpdateMaximalToMinimal(t *testing.T) {
 				PreConfig: func() {
 					testlog.StepAction(resourceType, "Creating agent instance with maximal configuration")
 				},
-				Config: testAccConfigUpdateMaximal(),
+				Config: loadAcceptanceTestTerraform("resource_update_maximal.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					func(_ *terraform.State) error {
 						testlog.WaitForConsistency("agent instance", 15*time.Second)
@@ -252,7 +262,7 @@ func TestAccAgentInstanceResource_UpdateMaximalToMinimal(t *testing.T) {
 				PreConfig: func() {
 					testlog.StepAction(resourceType, "Updating agent instance to minimal configuration")
 				},
-				Config: testAccConfigUpdateMinimal(),
+				Config: loadAcceptanceTestTerraform("resource_update_minimal.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					func(_ *terraform.State) error {
 						testlog.WaitForConsistency("agent instance update", 15*time.Second)
@@ -269,24 +279,4 @@ func TestAccAgentInstanceResource_UpdateMaximalToMinimal(t *testing.T) {
 			},
 		},
 	})
-}
-
-func testAccConfigMinimal() string {
-	config := mocks.LoadTerraformConfigFile("resource_minimal.tf")
-	return acceptance.ConfiguredM365ProviderBlock(config)
-}
-
-func testAccConfigMaximal() string {
-	config := mocks.LoadTerraformConfigFile("resource_maximal.tf")
-	return acceptance.ConfiguredM365ProviderBlock(config)
-}
-
-func testAccConfigUpdateMinimal() string {
-	config := mocks.LoadTerraformConfigFile("resource_update_minimal.tf")
-	return acceptance.ConfiguredM365ProviderBlock(config)
-}
-
-func testAccConfigUpdateMaximal() string {
-	config := mocks.LoadTerraformConfigFile("resource_update_maximal.tf")
-	return acceptance.ConfiguredM365ProviderBlock(config)
 }

@@ -144,4 +144,3 @@ func (a *SetDeviceNameManagedDeviceAction) Schema(ctx context.Context, req actio
 		},
 	}
 }
-

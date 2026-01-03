@@ -5,10 +5,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/check"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/destroy"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/testlog"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
 	graphBetaConditionalAccessPolicy "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/identity_and_access/graph_beta/conditional_access_policy"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -22,6 +22,14 @@ var (
 	// testResource is the test resource implementation for conditional access policies
 	testResource = graphBetaConditionalAccessPolicy.ConditionalAccessPolicyTestResource{}
 )
+
+// Helper function to load test configs from acceptance directory
+func loadAcceptanceTestTerraform(filename string) string {
+	config, err := helpers.ParseHCLFile("tests/terraform/acceptance/" + filename)
+	if err != nil {
+		panic("failed to load acceptance config " + filename + ": " + err.Error())
+	}
+}
 
 // CAD001: macOS Device Compliance
 func TestAccConditionalAccessPolicyResource_CAD001(t *testing.T) {
@@ -44,7 +52,7 @@ func TestAccConditionalAccessPolicyResource_CAD001(t *testing.T) {
 				PreConfig: func() {
 					testlog.StepAction(resourceType, "Creating CAD001 macOS device compliance policy")
 				},
-				Config: testAccConfigCAD001(),
+				Config: loadAcceptanceTestTerraform("resource_cad001-o365.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					func(_ *terraform.State) error {
 						testlog.WaitForConsistency("conditional access policy", 30*time.Second)
@@ -123,7 +131,7 @@ func TestAccConditionalAccessPolicyResource_CAD002(t *testing.T) {
 				PreConfig: func() {
 					testlog.StepAction(resourceType, "Creating CAD002 Windows device compliance policy")
 				},
-				Config: testAccConfigCAD002(),
+				Config: loadAcceptanceTestTerraform("resource_cad002-o365.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					func(_ *terraform.State) error {
 						testlog.WaitForConsistency("conditional access policy", 30*time.Second)
@@ -203,7 +211,7 @@ func TestAccConditionalAccessPolicyResource_CAD003(t *testing.T) {
 				PreConfig: func() {
 					testlog.StepAction(resourceType, "Creating CAD003 policy")
 				},
-				Config: testAccConfigCAD003(),
+				Config: loadAcceptanceTestTerraform("resource_cad003-o365.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					func(_ *terraform.State) error {
 						testlog.WaitForConsistency("conditional access policy", 30*time.Second)
@@ -266,7 +274,7 @@ func TestAccConditionalAccessPolicyResource_CAD004(t *testing.T) {
 				PreConfig: func() {
 					testlog.StepAction(resourceType, "Creating CAD004 policy")
 				},
-				Config: testAccConfigCAD004(),
+				Config: loadAcceptanceTestTerraform("resource_cad004-o365.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					func(_ *terraform.State) error {
 						testlog.WaitForConsistency("conditional access policy", 30*time.Second)
@@ -323,7 +331,7 @@ func TestAccConditionalAccessPolicyResource_CAD005(t *testing.T) {
 				PreConfig: func() {
 					testlog.StepAction(resourceType, "Creating CAD005 policy")
 				},
-				Config: testAccConfigCAD005(),
+				Config: loadAcceptanceTestTerraform("resource_cad005-o365.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					func(_ *terraform.State) error {
 						testlog.WaitForConsistency("conditional access policy", 30*time.Second)
@@ -386,7 +394,7 @@ func TestAccConditionalAccessPolicyResource_CAD006(t *testing.T) {
 				PreConfig: func() {
 					testlog.StepAction(resourceType, "Creating CAD006 policy")
 				},
-				Config: testAccConfigCAD006(),
+				Config: loadAcceptanceTestTerraform("resource_cad006-o365.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					func(_ *terraform.State) error {
 						testlog.WaitForConsistency("conditional access policy", 30*time.Second)
@@ -444,7 +452,7 @@ func TestAccConditionalAccessPolicyResource_CAD007(t *testing.T) {
 				PreConfig: func() {
 					testlog.StepAction(resourceType, "Creating CAD007 policy")
 				},
-				Config: testAccConfigCAD007(),
+				Config: loadAcceptanceTestTerraform("resource_cad007-o365.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					func(_ *terraform.State) error {
 						testlog.WaitForConsistency("conditional access policy", 30*time.Second)
@@ -507,7 +515,7 @@ func TestAccConditionalAccessPolicyResource_CAD008(t *testing.T) {
 				PreConfig: func() {
 					testlog.StepAction(resourceType, "Creating CAD008 policy")
 				},
-				Config: testAccConfigCAD008(),
+				Config: loadAcceptanceTestTerraform("resource_cad008-all.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					func(_ *terraform.State) error {
 						testlog.WaitForConsistency("conditional access policy", 30*time.Second)
@@ -568,7 +576,7 @@ func TestAccConditionalAccessPolicyResource_CAD009(t *testing.T) {
 				PreConfig: func() {
 					testlog.StepAction(resourceType, "Creating CAD009 policy")
 				},
-				Config: testAccConfigCAD009(),
+				Config: loadAcceptanceTestTerraform("resource_cad009-all.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					func(_ *terraform.State) error {
 						testlog.WaitForConsistency("conditional access policy", 30*time.Second)
@@ -626,7 +634,7 @@ func TestAccConditionalAccessPolicyResource_CAD010(t *testing.T) {
 				PreConfig: func() {
 					testlog.StepAction(resourceType, "Creating CAD010 policy")
 				},
-				Config: testAccConfigCAD010(),
+				Config: loadAcceptanceTestTerraform("resource_cad010-rjd.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					func(_ *terraform.State) error {
 						testlog.WaitForConsistency("conditional access policy", 30*time.Second)
@@ -682,7 +690,7 @@ func TestAccConditionalAccessPolicyResource_CAD011(t *testing.T) {
 				PreConfig: func() {
 					testlog.StepAction(resourceType, "Creating CAD011 policy")
 				},
-				Config: testAccConfigCAD011(),
+				Config: loadAcceptanceTestTerraform("resource_cad011-o365.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					func(_ *terraform.State) error {
 						testlog.WaitForConsistency("conditional access policy", 30*time.Second)
@@ -742,7 +750,7 @@ func TestAccConditionalAccessPolicyResource_CAD012(t *testing.T) {
 				PreConfig: func() {
 					testlog.StepAction(resourceType, "Creating CAD012 policy")
 				},
-				Config: testAccConfigCAD012(),
+				Config: loadAcceptanceTestTerraform("resource_cad012-all.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					func(_ *terraform.State) error {
 						testlog.WaitForConsistency("conditional access policy", 30*time.Second)
@@ -799,7 +807,7 @@ func TestAccConditionalAccessPolicyResource_CAD013(t *testing.T) {
 				PreConfig: func() {
 					testlog.StepAction(resourceType, "Creating CAD013 policy")
 				},
-				Config: testAccConfigCAD013(),
+				Config: loadAcceptanceTestTerraform("resource_cad013-selected.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					func(_ *terraform.State) error {
 						testlog.WaitForConsistency("conditional access policy", 30*time.Second)
@@ -862,7 +870,7 @@ func TestAccConditionalAccessPolicyResource_CAD014(t *testing.T) {
 				PreConfig: func() {
 					testlog.StepAction(resourceType, "Creating CAD014 policy")
 				},
-				Config: testAccConfigCAD014(),
+				Config: loadAcceptanceTestTerraform("resource_cad014-o365.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					func(_ *terraform.State) error {
 						testlog.WaitForConsistency("conditional access policy", 30*time.Second)
@@ -922,7 +930,7 @@ func TestAccConditionalAccessPolicyResource_CAD015(t *testing.T) {
 				PreConfig: func() {
 					testlog.StepAction(resourceType, "Creating CAD015 policy")
 				},
-				Config: testAccConfigCAD015(),
+				Config: loadAcceptanceTestTerraform("resource_cad015-all.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					func(_ *terraform.State) error {
 						testlog.WaitForConsistency("conditional access policy", 30*time.Second)
@@ -983,7 +991,7 @@ func TestAccConditionalAccessPolicyResource_CAD016(t *testing.T) {
 				PreConfig: func() {
 					testlog.StepAction(resourceType, "Creating CAD016 policy")
 				},
-				Config: testAccConfigCAD016(),
+				Config: loadAcceptanceTestTerraform("resource_cad016-exo_spo_cloudpc.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					func(_ *terraform.State) error {
 						testlog.WaitForConsistency("conditional access policy", 30*time.Second)
@@ -1046,7 +1054,7 @@ func TestAccConditionalAccessPolicyResource_CAD017(t *testing.T) {
 				PreConfig: func() {
 					testlog.StepAction(resourceType, "Creating CAD017 policy")
 				},
-				Config: testAccConfigCAD017(),
+				Config: loadAcceptanceTestTerraform("resource_cad017-selected.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					func(_ *terraform.State) error {
 						testlog.WaitForConsistency("conditional access policy", 30*time.Second)
@@ -1109,7 +1117,7 @@ func TestAccConditionalAccessPolicyResource_CAD018(t *testing.T) {
 				PreConfig: func() {
 					testlog.StepAction(resourceType, "Creating CAD018 policy")
 				},
-				Config: testAccConfigCAD018(),
+				Config: loadAcceptanceTestTerraform("resource_cad018-cloudpc.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					func(_ *terraform.State) error {
 						testlog.WaitForConsistency("conditional access policy", 30*time.Second)
@@ -1168,7 +1176,7 @@ func TestAccConditionalAccessPolicyResource_CAD019(t *testing.T) {
 				PreConfig: func() {
 					testlog.StepAction(resourceType, "Creating CAD019 policy")
 				},
-				Config: testAccConfigCAD019(),
+				Config: loadAcceptanceTestTerraform("resource_cad019-intune.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					func(_ *terraform.State) error {
 						testlog.WaitForConsistency("conditional access policy", 30*time.Second)
@@ -1230,7 +1238,7 @@ func TestAccConditionalAccessPolicyResource_CAL001(t *testing.T) {
 				PreConfig: func() {
 					testlog.StepAction(resourceType, "Creating CAL001 policy")
 				},
-				Config: testAccConfigCAL001(),
+				Config: loadAcceptanceTestTerraform("resource_cal001-all.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					func(_ *terraform.State) error {
 						testlog.WaitForConsistency("conditional access policy", 30*time.Second)
@@ -1290,7 +1298,7 @@ func TestAccConditionalAccessPolicyResource_CAL002(t *testing.T) {
 				PreConfig: func() {
 					testlog.StepAction(resourceType, "Creating CAL002 policy")
 				},
-				Config: testAccConfigCAL002(),
+				Config: loadAcceptanceTestTerraform("resource_cal002-rsi.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					func(_ *terraform.State) error {
 						testlog.WaitForConsistency("conditional access policy", 30*time.Second)
@@ -1349,7 +1357,7 @@ func TestAccConditionalAccessPolicyResource_CAL003(t *testing.T) {
 				PreConfig: func() {
 					testlog.StepAction(resourceType, "Creating CAL003 policy")
 				},
-				Config: testAccConfigCAL003(),
+				Config: loadAcceptanceTestTerraform("resource_cal003-all.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					func(_ *terraform.State) error {
 						testlog.WaitForConsistency("conditional access policy", 30*time.Second)
@@ -1409,7 +1417,7 @@ func TestAccConditionalAccessPolicyResource_CAL004(t *testing.T) {
 				PreConfig: func() {
 					testlog.StepAction(resourceType, "Creating CAL004 policy")
 				},
-				Config: testAccConfigCAL004(),
+				Config: loadAcceptanceTestTerraform("resource_cal004-all.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					func(_ *terraform.State) error {
 						testlog.WaitForConsistency("conditional access policy", 30*time.Second)
@@ -1472,7 +1480,7 @@ func TestAccConditionalAccessPolicyResource_CAL005(t *testing.T) {
 				PreConfig: func() {
 					testlog.StepAction(resourceType, "Creating CAL005 policy")
 				},
-				Config: testAccConfigCAL005(),
+				Config: loadAcceptanceTestTerraform("resource_cal005-selected.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					func(_ *terraform.State) error {
 						testlog.WaitForConsistency("conditional access policy", 30*time.Second)
@@ -1538,7 +1546,7 @@ func TestAccConditionalAccessPolicyResource_CAL006(t *testing.T) {
 				PreConfig: func() {
 					testlog.StepAction(resourceType, "Creating CAL006 policy")
 				},
-				Config: testAccConfigCAL006(),
+				Config: loadAcceptanceTestTerraform("resource_cal006-all.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					func(_ *terraform.State) error {
 						testlog.WaitForConsistency("conditional access policy", 30*time.Second)
@@ -1599,7 +1607,7 @@ func TestAccConditionalAccessPolicyResource_CAP001(t *testing.T) {
 				PreConfig: func() {
 					testlog.StepAction(resourceType, "Creating CAP001 policy")
 				},
-				Config: testAccConfigCAP001(),
+				Config: loadAcceptanceTestTerraform("resource_cap001-all.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					func(_ *terraform.State) error {
 						testlog.WaitForConsistency("conditional access policy", 30*time.Second)
@@ -1654,7 +1662,7 @@ func TestAccConditionalAccessPolicyResource_CAP002(t *testing.T) {
 				PreConfig: func() {
 					testlog.StepAction(resourceType, "Creating CAP002 policy")
 				},
-				Config: testAccConfigCAP002(),
+				Config: loadAcceptanceTestTerraform("resource_cap002-all.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					func(_ *terraform.State) error {
 						testlog.WaitForConsistency("conditional access policy", 30*time.Second)
@@ -1709,7 +1717,7 @@ func TestAccConditionalAccessPolicyResource_CAP003(t *testing.T) {
 				PreConfig: func() {
 					testlog.StepAction(resourceType, "Creating CAP003 policy")
 				},
-				Config: testAccConfigCAP003(),
+				Config: loadAcceptanceTestTerraform("resource_cap003-all.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					func(_ *terraform.State) error {
 						testlog.WaitForConsistency("conditional access policy", 30*time.Second)
@@ -1765,7 +1773,7 @@ func TestAccConditionalAccessPolicyResource_CAP004(t *testing.T) {
 				PreConfig: func() {
 					testlog.StepAction(resourceType, "Creating CAP004 policy")
 				},
-				Config: testAccConfigCAP004(),
+				Config: loadAcceptanceTestTerraform("resource_cap004-all.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					func(_ *terraform.State) error {
 						testlog.WaitForConsistency("conditional access policy", 30*time.Second)
@@ -1821,7 +1829,7 @@ func TestAccConditionalAccessPolicyResource_CAU001(t *testing.T) {
 				PreConfig: func() {
 					testlog.StepAction(resourceType, "Creating CAU001 policy")
 				},
-				Config: testAccConfigCAU001(),
+				Config: loadAcceptanceTestTerraform("resource_cau001-all.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					func(_ *terraform.State) error {
 						testlog.WaitForConsistency("conditional access policy", 30*time.Second)
@@ -1876,7 +1884,7 @@ func TestAccConditionalAccessPolicyResource_CAU001A(t *testing.T) {
 				PreConfig: func() {
 					testlog.StepAction(resourceType, "Creating CAU001A policy")
 				},
-				Config: testAccConfigCAU001A(),
+				Config: loadAcceptanceTestTerraform("resource_cau001a-windows_azure_active_directory.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					func(_ *terraform.State) error {
 						testlog.WaitForConsistency("conditional access policy", 30*time.Second)
@@ -1930,7 +1938,7 @@ func TestAccConditionalAccessPolicyResource_CAU002(t *testing.T) {
 				PreConfig: func() {
 					testlog.StepAction(resourceType, "Creating CAU002 policy")
 				},
-				Config: testAccConfigCAU002(),
+				Config: loadAcceptanceTestTerraform("resource_cau002-all.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					func(_ *terraform.State) error {
 						testlog.WaitForConsistency("conditional access policy", 30*time.Second)
@@ -1990,7 +1998,7 @@ func TestAccConditionalAccessPolicyResource_CAU003(t *testing.T) {
 				PreConfig: func() {
 					testlog.StepAction(resourceType, "Creating CAU003 policy")
 				},
-				Config: testAccConfigCAU003(),
+				Config: loadAcceptanceTestTerraform("resource_cau003-selected.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					func(_ *terraform.State) error {
 						testlog.WaitForConsistency("conditional access policy", 30*time.Second)
@@ -2044,7 +2052,7 @@ func TestAccConditionalAccessPolicyResource_CAU004(t *testing.T) {
 				PreConfig: func() {
 					testlog.StepAction(resourceType, "Creating CAU004 policy")
 				},
-				Config: testAccConfigCAU004(),
+				Config: loadAcceptanceTestTerraform("resource_cau004-selected.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					func(_ *terraform.State) error {
 						testlog.WaitForConsistency("conditional access policy", 30*time.Second)
@@ -2100,7 +2108,7 @@ func TestAccConditionalAccessPolicyResource_CAU006(t *testing.T) {
 				PreConfig: func() {
 					testlog.StepAction(resourceType, "Creating CAU006 policy")
 				},
-				Config: testAccConfigCAU006(),
+				Config: loadAcceptanceTestTerraform("resource_cau006-all.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					func(_ *terraform.State) error {
 						testlog.WaitForConsistency("conditional access policy", 30*time.Second)
@@ -2162,7 +2170,7 @@ func TestAccConditionalAccessPolicyResource_CAU007(t *testing.T) {
 				PreConfig: func() {
 					testlog.StepAction(resourceType, "Creating CAU007 policy")
 				},
-				Config: testAccConfigCAU007(),
+				Config: loadAcceptanceTestTerraform("resource_cau007-all.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					func(_ *terraform.State) error {
 						testlog.WaitForConsistency("conditional access policy", 30*time.Second)
@@ -2224,7 +2232,7 @@ func TestAccConditionalAccessPolicyResource_CAU008(t *testing.T) {
 				PreConfig: func() {
 					testlog.StepAction(resourceType, "Creating CAU008 policy")
 				},
-				Config: testAccConfigCAU008(),
+				Config: loadAcceptanceTestTerraform("resource_cau008-all.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					func(_ *terraform.State) error {
 						testlog.WaitForConsistency("conditional access policy", 30*time.Second)
@@ -2278,7 +2286,7 @@ func TestAccConditionalAccessPolicyResource_CAU009(t *testing.T) {
 				PreConfig: func() {
 					testlog.StepAction(resourceType, "Creating CAU009 policy")
 				},
-				Config: testAccConfigCAU009(),
+				Config: loadAcceptanceTestTerraform("resource_cau009-management.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					func(_ *terraform.State) error {
 						testlog.WaitForConsistency("conditional access policy", 30*time.Second)
@@ -2338,7 +2346,7 @@ func TestAccConditionalAccessPolicyResource_CAU010(t *testing.T) {
 				PreConfig: func() {
 					testlog.StepAction(resourceType, "Creating CAU010 policy")
 				},
-				Config: testAccConfigCAU010(),
+				Config: loadAcceptanceTestTerraform("resource_cau010-all.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					func(_ *terraform.State) error {
 						testlog.WaitForConsistency("conditional access policy", 30*time.Second)
@@ -2393,7 +2401,7 @@ func TestAccConditionalAccessPolicyResource_CAU011(t *testing.T) {
 				PreConfig: func() {
 					testlog.StepAction(resourceType, "Creating CAU011 policy")
 				},
-				Config: testAccConfigCAU011(),
+				Config: loadAcceptanceTestTerraform("resource_cau011-all.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					func(_ *terraform.State) error {
 						testlog.WaitForConsistency("conditional access policy", 30*time.Second)
@@ -2451,7 +2459,7 @@ func TestAccConditionalAccessPolicyResource_CAU012(t *testing.T) {
 				PreConfig: func() {
 					testlog.StepAction(resourceType, "Creating CAU012 policy")
 				},
-				Config: testAccConfigCAU012(),
+				Config: loadAcceptanceTestTerraform("resource_cau012-rsi.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					func(_ *terraform.State) error {
 						testlog.WaitForConsistency("conditional access policy", 30*time.Second)
@@ -2513,7 +2521,7 @@ func TestAccConditionalAccessPolicyResource_CAU013(t *testing.T) {
 				PreConfig: func() {
 					testlog.StepAction(resourceType, "Creating CAU013 policy")
 				},
-				Config: testAccConfigCAU013(),
+				Config: loadAcceptanceTestTerraform("resource_cau013-all.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					func(_ *terraform.State) error {
 						testlog.WaitForConsistency("conditional access policy", 30*time.Second)
@@ -2571,7 +2579,7 @@ func TestAccConditionalAccessPolicyResource_CAU014(t *testing.T) {
 				PreConfig: func() {
 					testlog.StepAction(resourceType, "Creating CAU014 policy")
 				},
-				Config: testAccConfigCAU014(),
+				Config: loadAcceptanceTestTerraform("resource_cau014-all.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					func(_ *terraform.State) error {
 						testlog.WaitForConsistency("conditional access policy", 30*time.Second)
@@ -2631,7 +2639,7 @@ func TestAccConditionalAccessPolicyResource_CAU015(t *testing.T) {
 				PreConfig: func() {
 					testlog.StepAction(resourceType, "Creating CAU015 policy")
 				},
-				Config: testAccConfigCAU015(),
+				Config: loadAcceptanceTestTerraform("resource_cau015-all.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					func(_ *terraform.State) error {
 						testlog.WaitForConsistency("conditional access policy", 30*time.Second)
@@ -2688,7 +2696,7 @@ func TestAccConditionalAccessPolicyResource_CAU016(t *testing.T) {
 				PreConfig: func() {
 					testlog.StepAction(resourceType, "Creating CAU016 policy")
 				},
-				Config: testAccConfigCAU016(),
+				Config: loadAcceptanceTestTerraform("resource_cau016-all.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					func(_ *terraform.State) error {
 						testlog.WaitForConsistency("conditional access policy", 30*time.Second)
@@ -2745,7 +2753,7 @@ func TestAccConditionalAccessPolicyResource_CAU017(t *testing.T) {
 				PreConfig: func() {
 					testlog.StepAction(resourceType, "Creating CAU017 policy")
 				},
-				Config: testAccConfigCAU017(),
+				Config: loadAcceptanceTestTerraform("resource_cau017-all.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					func(_ *terraform.State) error {
 						testlog.WaitForConsistency("conditional access policy", 30*time.Second)
@@ -2802,7 +2810,7 @@ func TestAccConditionalAccessPolicyResource_CAU018(t *testing.T) {
 				PreConfig: func() {
 					testlog.StepAction(resourceType, "Creating CAU018 policy")
 				},
-				Config: testAccConfigCAU018(),
+				Config: loadAcceptanceTestTerraform("resource_cau018-all.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					func(_ *terraform.State) error {
 						testlog.WaitForConsistency("conditional access policy", 30*time.Second)
@@ -2856,7 +2864,7 @@ func TestAccConditionalAccessPolicyResource_CAU019(t *testing.T) {
 				PreConfig: func() {
 					testlog.StepAction(resourceType, "Creating CAU019 policy")
 				},
-				Config: testAccConfigCAU019(),
+				Config: loadAcceptanceTestTerraform("resource_cau019-selected.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					func(_ *terraform.State) error {
 						testlog.WaitForConsistency("conditional access policy", 30*time.Second)
@@ -2917,7 +2925,7 @@ func TestAccConditionalAccessPolicyResource_CAAU001(t *testing.T) {
 				PreConfig: func() {
 					testlog.StepAction(resourceType, "Creating CAAU001 agent ID resources policy")
 				},
-				Config: testAccConfigCAAU001(),
+				Config: loadAcceptanceTestTerraform("resource_caau001-all.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					func(_ *terraform.State) error {
 						testlog.WaitForConsistency("conditional access policy", 30*time.Second)
@@ -3004,7 +3012,7 @@ func TestAccConditionalAccessPolicyResource_CAAU002(t *testing.T) {
 				PreConfig: func() {
 					testlog.StepAction(resourceType, "Creating CAAU002 agent ID policy targeting all applications")
 				},
-				Config: testAccConfigCAAU002(),
+				Config: loadAcceptanceTestTerraform("resource_caau002-o365.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					func(_ *terraform.State) error {
 						testlog.WaitForConsistency("conditional access policy", 30*time.Second)
@@ -3072,253 +3080,203 @@ func TestAccConditionalAccessPolicyResource_CAAU002(t *testing.T) {
 
 // Test config loading functions
 func testAccConfigCAD001() string {
-	config := mocks.LoadTerraformConfigFile("resource_cad001-o365.tf")
-	return acceptance.ConfiguredM365ProviderBlock(config)
+	return loadAcceptanceTestTerraform("resource_cad001-o365.tf")
 }
 
 func testAccConfigCAD002() string {
-	config := mocks.LoadTerraformConfigFile("resource_cad002-o365.tf")
-	return acceptance.ConfiguredM365ProviderBlock(config)
+	return loadAcceptanceTestTerraform("resource_cad002-o365.tf")
 }
 
 func testAccConfigCAD003() string {
-	config := mocks.LoadTerraformConfigFile("resource_cad003-o365.tf")
-	return acceptance.ConfiguredM365ProviderBlock(config)
+	return loadAcceptanceTestTerraform("resource_cad003-o365.tf")
 }
 
 func testAccConfigCAD004() string {
-	config := mocks.LoadTerraformConfigFile("resource_cad004-o365.tf")
-	return acceptance.ConfiguredM365ProviderBlock(config)
+	return loadAcceptanceTestTerraform("resource_cad004-o365.tf")
 }
 
 func testAccConfigCAD005() string {
-	config := mocks.LoadTerraformConfigFile("resource_cad005-o365.tf")
-	return acceptance.ConfiguredM365ProviderBlock(config)
+	return loadAcceptanceTestTerraform("resource_cad005-o365.tf")
 }
 
 func testAccConfigCAD006() string {
-	config := mocks.LoadTerraformConfigFile("resource_cad006-o365.tf")
-	return acceptance.ConfiguredM365ProviderBlock(config)
+	return loadAcceptanceTestTerraform("resource_cad006-o365.tf")
 }
 
 func testAccConfigCAD007() string {
-	config := mocks.LoadTerraformConfigFile("resource_cad007-o365.tf")
-	return acceptance.ConfiguredM365ProviderBlock(config)
+	return loadAcceptanceTestTerraform("resource_cad007-o365.tf")
 }
 
 func testAccConfigCAD008() string {
-	config := mocks.LoadTerraformConfigFile("resource_cad008-all.tf")
-	return acceptance.ConfiguredM365ProviderBlock(config)
+	return loadAcceptanceTestTerraform("resource_cad008-all.tf")
 }
 
 func testAccConfigCAD009() string {
-	config := mocks.LoadTerraformConfigFile("resource_cad009-all.tf")
-	return acceptance.ConfiguredM365ProviderBlock(config)
+	return loadAcceptanceTestTerraform("resource_cad009-all.tf")
 }
 
 func testAccConfigCAD010() string {
-	config := mocks.LoadTerraformConfigFile("resource_cad010-rjd.tf")
-	return acceptance.ConfiguredM365ProviderBlock(config)
+	return loadAcceptanceTestTerraform("resource_cad010-rjd.tf")
 }
 
 func testAccConfigCAD011() string {
-	config := mocks.LoadTerraformConfigFile("resource_cad011-o365.tf")
-	return acceptance.ConfiguredM365ProviderBlock(config)
+	return loadAcceptanceTestTerraform("resource_cad011-o365.tf")
 }
 
 func testAccConfigCAD012() string {
-	config := mocks.LoadTerraformConfigFile("resource_cad012-all.tf")
-	return acceptance.ConfiguredM365ProviderBlock(config)
+	return loadAcceptanceTestTerraform("resource_cad012-all.tf")
 }
 
 func testAccConfigCAD013() string {
-	config := mocks.LoadTerraformConfigFile("resource_cad013-selected.tf")
-	return acceptance.ConfiguredM365ProviderBlock(config)
+	return loadAcceptanceTestTerraform("resource_cad013-selected.tf")
 }
 
 func testAccConfigCAD014() string {
-	config := mocks.LoadTerraformConfigFile("resource_cad014-o365.tf")
-	return acceptance.ConfiguredM365ProviderBlock(config)
+	return loadAcceptanceTestTerraform("resource_cad014-o365.tf")
 }
 
 func testAccConfigCAD015() string {
-	config := mocks.LoadTerraformConfigFile("resource_cad015-all.tf")
-	return acceptance.ConfiguredM365ProviderBlock(config)
+	return loadAcceptanceTestTerraform("resource_cad015-all.tf")
 }
 
 func testAccConfigCAD016() string {
-	config := mocks.LoadTerraformConfigFile("resource_cad016-exo_spo_cloudpc.tf")
-	return acceptance.ConfiguredM365ProviderBlock(config)
+	return loadAcceptanceTestTerraform("resource_cad016-exo_spo_cloudpc.tf")
 }
 
 func testAccConfigCAD017() string {
-	config := mocks.LoadTerraformConfigFile("resource_cad017-selected.tf")
-	return acceptance.ConfiguredM365ProviderBlock(config)
+	return loadAcceptanceTestTerraform("resource_cad017-selected.tf")
 }
 
 func testAccConfigCAD018() string {
-	config := mocks.LoadTerraformConfigFile("resource_cad018-cloudpc.tf")
-	return acceptance.ConfiguredM365ProviderBlock(config)
+	return loadAcceptanceTestTerraform("resource_cad018-cloudpc.tf")
 }
 
 func testAccConfigCAD019() string {
-	config := mocks.LoadTerraformConfigFile("resource_cad019-intune.tf")
-	return acceptance.ConfiguredM365ProviderBlock(config)
+	return loadAcceptanceTestTerraform("resource_cad019-intune.tf")
 }
 
 func testAccConfigCAL001() string {
-	config := mocks.LoadTerraformConfigFile("resource_cal001-all.tf")
-	return acceptance.ConfiguredM365ProviderBlock(config)
+	return loadAcceptanceTestTerraform("resource_cal001-all.tf")
 }
 
 func testAccConfigCAL002() string {
-	config := mocks.LoadTerraformConfigFile("resource_cal002-rsi.tf")
-	return acceptance.ConfiguredM365ProviderBlock(config)
+	return loadAcceptanceTestTerraform("resource_cal002-rsi.tf")
 }
 
 func testAccConfigCAL003() string {
-	config := mocks.LoadTerraformConfigFile("resource_cal003-all.tf")
-	return acceptance.ConfiguredM365ProviderBlock(config)
+	return loadAcceptanceTestTerraform("resource_cal003-all.tf")
 }
 
 func testAccConfigCAL004() string {
-	config := mocks.LoadTerraformConfigFile("resource_cal004-all.tf")
-	return acceptance.ConfiguredM365ProviderBlock(config)
+	return loadAcceptanceTestTerraform("resource_cal004-all.tf")
 }
 
 func testAccConfigCAL005() string {
-	config := mocks.LoadTerraformConfigFile("resource_cal005-selected.tf")
-	return acceptance.ConfiguredM365ProviderBlock(config)
+	return loadAcceptanceTestTerraform("resource_cal005-selected.tf")
 }
 
 func testAccConfigCAL006() string {
-	config := mocks.LoadTerraformConfigFile("resource_cal006-all.tf")
-	return acceptance.ConfiguredM365ProviderBlock(config)
+	return loadAcceptanceTestTerraform("resource_cal006-all.tf")
 }
 
 func testAccConfigCAP001() string {
-	config := mocks.LoadTerraformConfigFile("resource_cap001-all.tf")
-	return acceptance.ConfiguredM365ProviderBlock(config)
+	return loadAcceptanceTestTerraform("resource_cap001-all.tf")
 }
 
 func testAccConfigCAP002() string {
-	config := mocks.LoadTerraformConfigFile("resource_cap002-all.tf")
-	return acceptance.ConfiguredM365ProviderBlock(config)
+	return loadAcceptanceTestTerraform("resource_cap002-all.tf")
 }
 
 func testAccConfigCAP003() string {
-	config := mocks.LoadTerraformConfigFile("resource_cap003-all.tf")
-	return acceptance.ConfiguredM365ProviderBlock(config)
+	return loadAcceptanceTestTerraform("resource_cap003-all.tf")
 }
 
 func testAccConfigCAP004() string {
-	config := mocks.LoadTerraformConfigFile("resource_cap004-all.tf")
-	return acceptance.ConfiguredM365ProviderBlock(config)
+	return loadAcceptanceTestTerraform("resource_cap004-all.tf")
 }
 
 func testAccConfigCAU001() string {
-	config := mocks.LoadTerraformConfigFile("resource_cau001-all.tf")
-	return acceptance.ConfiguredM365ProviderBlock(config)
+	return loadAcceptanceTestTerraform("resource_cau001-all.tf")
 }
 
 func testAccConfigCAU001A() string {
-	config := mocks.LoadTerraformConfigFile("resource_cau001a-windows_azure_active_directory.tf")
-	return acceptance.ConfiguredM365ProviderBlock(config)
+	return loadAcceptanceTestTerraform("resource_cau001a-windows_azure_active_directory.tf")
 }
 
 func testAccConfigCAU002() string {
-	config := mocks.LoadTerraformConfigFile("resource_cau002-all.tf")
-	return acceptance.ConfiguredM365ProviderBlock(config)
+	return loadAcceptanceTestTerraform("resource_cau002-all.tf")
 }
 
 func testAccConfigCAU003() string {
-	config := mocks.LoadTerraformConfigFile("resource_cau003-selected.tf")
-	return acceptance.ConfiguredM365ProviderBlock(config)
+	return loadAcceptanceTestTerraform("resource_cau003-selected.tf")
 }
 
 func testAccConfigCAU004() string {
-	config := mocks.LoadTerraformConfigFile("resource_cau004-selected.tf")
-	return acceptance.ConfiguredM365ProviderBlock(config)
+	return loadAcceptanceTestTerraform("resource_cau004-selected.tf")
 }
 
 func testAccConfigCAU006() string {
-	config := mocks.LoadTerraformConfigFile("resource_cau006-all.tf")
-	return acceptance.ConfiguredM365ProviderBlock(config)
+	return loadAcceptanceTestTerraform("resource_cau006-all.tf")
 }
 
 func testAccConfigCAU007() string {
-	config := mocks.LoadTerraformConfigFile("resource_cau007-all.tf")
-	return acceptance.ConfiguredM365ProviderBlock(config)
+	return loadAcceptanceTestTerraform("resource_cau007-all.tf")
 }
 
 func testAccConfigCAU008() string {
-	config := mocks.LoadTerraformConfigFile("resource_cau008-all.tf")
-	return acceptance.ConfiguredM365ProviderBlock(config)
+	return loadAcceptanceTestTerraform("resource_cau008-all.tf")
 }
 
 func testAccConfigCAU009() string {
-	config := mocks.LoadTerraformConfigFile("resource_cau009-management.tf")
-	return acceptance.ConfiguredM365ProviderBlock(config)
+	return loadAcceptanceTestTerraform("resource_cau009-management.tf")
 }
 
 func testAccConfigCAU010() string {
-	config := mocks.LoadTerraformConfigFile("resource_cau010-all.tf")
-	return acceptance.ConfiguredM365ProviderBlock(config)
+	return loadAcceptanceTestTerraform("resource_cau010-all.tf")
 }
 
 func testAccConfigCAU011() string {
-	config := mocks.LoadTerraformConfigFile("resource_cau011-all.tf")
-	return acceptance.ConfiguredM365ProviderBlock(config)
+	return loadAcceptanceTestTerraform("resource_cau011-all.tf")
 }
 
 func testAccConfigCAU012() string {
-	config := mocks.LoadTerraformConfigFile("resource_cau012-rsi.tf")
-	return acceptance.ConfiguredM365ProviderBlock(config)
+	return loadAcceptanceTestTerraform("resource_cau012-rsi.tf")
 }
 
 func testAccConfigCAU013() string {
-	config := mocks.LoadTerraformConfigFile("resource_cau013-all.tf")
-	return acceptance.ConfiguredM365ProviderBlock(config)
+	return loadAcceptanceTestTerraform("resource_cau013-all.tf")
 }
 
 func testAccConfigCAU014() string {
-	config := mocks.LoadTerraformConfigFile("resource_cau014-all.tf")
-	return acceptance.ConfiguredM365ProviderBlock(config)
+	return loadAcceptanceTestTerraform("resource_cau014-all.tf")
 }
 
 func testAccConfigCAU015() string {
-	config := mocks.LoadTerraformConfigFile("resource_cau015-all.tf")
-	return acceptance.ConfiguredM365ProviderBlock(config)
+	return loadAcceptanceTestTerraform("resource_cau015-all.tf")
 }
 
 func testAccConfigCAU016() string {
-	config := mocks.LoadTerraformConfigFile("resource_cau016-all.tf")
-	return acceptance.ConfiguredM365ProviderBlock(config)
+	return loadAcceptanceTestTerraform("resource_cau016-all.tf")
 }
 
 func testAccConfigCAU017() string {
-	config := mocks.LoadTerraformConfigFile("resource_cau017-all.tf")
-	return acceptance.ConfiguredM365ProviderBlock(config)
+	return loadAcceptanceTestTerraform("resource_cau017-all.tf")
 }
 
 func testAccConfigCAU018() string {
-	config := mocks.LoadTerraformConfigFile("resource_cau018-all.tf")
-	return acceptance.ConfiguredM365ProviderBlock(config)
+	return loadAcceptanceTestTerraform("resource_cau018-all.tf")
 }
 
 func testAccConfigCAU019() string {
-	config := mocks.LoadTerraformConfigFile("resource_cau019-selected.tf")
-	return acceptance.ConfiguredM365ProviderBlock(config)
+	return loadAcceptanceTestTerraform("resource_cau019-selected.tf")
 }
 
 func testAccConfigCAAU001() string {
-	config := mocks.LoadTerraformConfigFile("resource_caau001-all.tf")
-	return acceptance.ConfiguredM365ProviderBlock(config)
+	return loadAcceptanceTestTerraform("resource_caau001-all.tf")
 }
 
 func testAccConfigCAAU002() string {
-	config := mocks.LoadTerraformConfigFile("resource_caau002-o365.tf")
-	return acceptance.ConfiguredM365ProviderBlock(config)
+	return loadAcceptanceTestTerraform("resource_caau002-o365.tf")
 }
 
 // TestAccConditionalAccessPolicyResource_CAU020 tests the conditional access policy resource
@@ -3343,7 +3301,7 @@ func TestAccConditionalAccessPolicyResource_CAU020(t *testing.T) {
 				PreConfig: func() {
 					testlog.StepAction(resourceType, "Creating CAU020 insider risk policy")
 				},
-				Config: testAccConfigCAU020(),
+				Config: loadAcceptanceTestTerraform("resource_cau020-all.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					func(_ *terraform.State) error {
 						testlog.WaitForConsistency("conditional access policy", 30*time.Second)
@@ -3405,6 +3363,5 @@ func TestAccConditionalAccessPolicyResource_CAU020(t *testing.T) {
 }
 
 func testAccConfigCAU020() string {
-	config := mocks.LoadTerraformConfigFile("resource_cau020-all.tf")
-	return acceptance.ConfiguredM365ProviderBlock(config)
+	return loadAcceptanceTestTerraform("resource_cau020-all.tf")
 }

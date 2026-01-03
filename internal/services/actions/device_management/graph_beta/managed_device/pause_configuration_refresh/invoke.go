@@ -192,4 +192,3 @@ func (a *PauseConfigurationRefreshManagedDeviceAction) pauseConfigComanagedDevic
 
 	return nil
 }
-

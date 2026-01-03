@@ -33,10 +33,9 @@ func NewWindowsUpdateRingDataSource() datasource.DataSource {
 
 // WindowsUpdateRingDataSource defines the data source implementation
 type WindowsUpdateRingDataSource struct {
-	client           *msgraphbetasdk.GraphServiceClient
-	
-	
-	ReadPermissions  []string
+	client *msgraphbetasdk.GraphServiceClient
+
+	ReadPermissions []string
 }
 
 // Metadata returns the data source type name

@@ -42,9 +42,9 @@ func (p *ProviderMock) RegisterMocks() {
 	httpmock.RegisterResponder("GET",
 		"https://login.microsoftonline.com/common/v2.0/.well-known/openid-configuration",
 		httpmock.NewJsonResponderOrPanic(200, map[string]any{
-			"issuer":                   "https://login.microsoftonline.com/{tenantid}/v2.0",
-			"authorization_endpoint":   "https://login.microsoftonline.com/common/oauth2/v2.0/authorize",
-			"token_endpoint":          "https://login.microsoftonline.com/common/oauth2/v2.0/token",
+			"issuer":                        "https://login.microsoftonline.com/{tenantid}/v2.0",
+			"authorization_endpoint":        "https://login.microsoftonline.com/common/oauth2/v2.0/authorize",
+			"token_endpoint":                "https://login.microsoftonline.com/common/oauth2/v2.0/token",
 			"device_authorization_endpoint": "https://login.microsoftonline.com/common/oauth2/v2.0/devicecode",
 		}))
 
@@ -95,7 +95,7 @@ func (p *ProviderMock) RegisterCloudSpecificMocks() {
 	clouds := map[string]string{
 		"gcc":     "https://login.microsoftonline.us",
 		"gcchigh": "https://login.microsoftonline.us",
-		"dod":     "https://login.microsoftonline.us", 
+		"dod":     "https://login.microsoftonline.us",
 		"china":   "https://login.chinacloudapi.cn",
 		"public":  "https://login.microsoftonline.com",
 	}

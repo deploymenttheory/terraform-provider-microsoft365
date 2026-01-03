@@ -21,7 +21,7 @@ func createRetryableError() error {
 
 func createNonRetryableError() error {
 	return &url.Error{
-		Op:  "DELETE", 
+		Op:  "DELETE",
 		URL: "https://graph.microsoft.com/v1.0/resource",
 		Err: fmt.Errorf("resource not found"),
 	}

@@ -1,103 +1,113 @@
 package graphBetaRoleDefinitionAssignment_test
 
 import (
-	"context"
 	"fmt"
+	"regexp"
 	"testing"
+	"time"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/check"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/destroy"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/testlog"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
-	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
+	graphBetaRoleAssignment "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_management/graph_beta/role_assignment"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 )
 
-// testAccCheckRoleAssignmentDestroy verifies that role assignments have been destroyed
-func testAccCheckRoleAssignmentDestroy(s *terraform.State) error {
-	graphClient, err := acceptance.TestGraphClient()
+var (
+	// resourceType is the Terraform resource type name
+	resourceType = graphBetaRoleAssignment.ResourceName
+
+	// testResource is the test resource implementation for role assignments
+	testResource = graphBetaRoleAssignment.RoleAssignmentTestResource{}
+)
+
+// Helper function to load test configs from acceptance directory
+func loadAcceptanceTestTerraform(filename string) string {
+	config, err := helpers.ParseHCLFile("tests/terraform/acceptance/" + filename)
 	if err != nil {
-		return fmt.Errorf("error creating Graph client for CheckDestroy: %v", err)
+		panic("failed to load acceptance config " + filename + ": " + err.Error())
 	}
-
-	ctx := context.Background()
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "microsoft365_graph_beta_device_management_role_assignment" {
-			continue
-		}
-
-		// Attempt to get the role assignment by ID
-		_, err := graphClient.
-			DeviceManagement().
-			RoleAssignments().
-			ByDeviceAndAppManagementRoleAssignmentId(rs.Primary.ID).
-			Get(ctx, nil)
-
-		if err != nil {
-			errorInfo := errors.GraphError(ctx, err)
-			fmt.Printf("DEBUG: Error details - StatusCode: %d, ErrorCode: %s, ErrorMessage: %s\n",
-				errorInfo.StatusCode, errorInfo.ErrorCode, errorInfo.ErrorMessage)
-
-			if errorInfo.StatusCode == 404 ||
-				errorInfo.ErrorCode == "ResourceNotFound" ||
-				errorInfo.ErrorCode == "ItemNotFound" {
-				fmt.Printf("DEBUG: Resource %s successfully destroyed (404/NotFound)\n", rs.Primary.ID)
-				continue // Resource successfully destroyed
-			}
-			return fmt.Errorf("error checking if role assignment %s was destroyed: %v", rs.Primary.ID, err)
-		}
-
-		// If we can still get the resource, it wasn't destroyed
-		return fmt.Errorf("role assignment %s still exists", rs.Primary.ID)
-	}
-
-	return nil
+	return acceptance.ConfiguredM365ProviderBlock(config)
 }
 
 func TestAccRoleAssignmentResource_Lifecycle(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
-		CheckDestroy:             testAccCheckRoleAssignmentDestroy,
+		CheckDestroy: destroy.CheckDestroyedAllFunc(
+			testResource,
+			resourceType,
+			30*time.Second,
+		),
+		ExternalProviders: map[string]resource.ExternalProvider{
+			"random": {
+				Source:            "hashicorp/random",
+				VersionConstraint: ">= 3.7.2",
+			},
+		},
 		Steps: []resource.TestStep{
 			// Create with minimal configuration
 			{
-				Config: testAccRoleAssignmentConfig_minimal(),
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Creating role assignment with minimal configuration")
+				},
+				Config: loadAcceptanceTestTerraform("resource_minimal.tf"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("microsoft365_graph_beta_device_management_role_assignment.test", "id"),
-					resource.TestCheckResourceAttrSet("microsoft365_graph_beta_device_management_role_assignment.test", "display_name"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_role_assignment.test", "role_definition_id", "0bd113fe-6be5-400c-a28f-ae5553f9c0be"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_role_assignment.test", "members.#", "1"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_role_assignment.test", "scope_configuration.#", "1"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_role_assignment.test", "scope_configuration.0.type", "AllLicensedUsers"),
+					func(_ *terraform.State) error {
+						testlog.WaitForConsistency("role assignment", 15*time.Second)
+						time.Sleep(15 * time.Second)
+						return nil
+					},
+					check.That(resourceType+".test").ExistsInGraph(testResource),
+					check.That(resourceType+".test").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(resourceType+".test").Key("display_name").Exists(),
+					check.That(resourceType+".test").Key("role_definition_id").HasValue("0bd113fe-6be5-400c-a28f-ae5553f9c0be"),
+					check.That(resourceType+".test").Key("members.#").HasValue("1"),
+					check.That(resourceType+".test").Key("scope_configuration.#").HasValue("1"),
+					check.That(resourceType+".test").Key("scope_configuration.0.type").HasValue("AllLicensedUsers"),
 				),
 			},
 			// ImportState testing
 			{
-				ResourceName:      "microsoft365_graph_beta_device_management_role_assignment.test",
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Importing role assignment")
+				},
+				ResourceName:      resourceType + ".test",
 				ImportState:       true,
 				ImportStateVerify: true,
 				ImportStateIdFunc: func(s *terraform.State) (string, error) {
-					rs, ok := s.RootModule().Resources["microsoft365_graph_beta_device_management_role_assignment.test"]
+					rs, ok := s.RootModule().Resources[resourceType+".test"]
 					if !ok {
-						return "", fmt.Errorf("not found: microsoft365_graph_beta_device_management_role_assignment.test")
+						return "", fmt.Errorf("not found: %s.test", resourceType)
 					}
 					id := rs.Primary.ID
 					roleDefId := rs.Primary.Attributes["role_definition_id"]
 					compositeId := fmt.Sprintf("%s/%s", id, roleDefId)
-					fmt.Printf("DEBUG: ImportStateIdFunc - id: %s, roleDefId: %s, compositeId: %s\n", id, roleDefId, compositeId)
 					return compositeId, nil
 				},
 			},
 			// Update to maximal configuration
 			{
-				Config: testAccRoleAssignmentConfig_maximal(),
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Updating role assignment to maximal configuration")
+				},
+				Config: loadAcceptanceTestTerraform("resource_maximal.tf"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("microsoft365_graph_beta_device_management_role_assignment.test", "id"),
-					resource.TestCheckResourceAttrSet("microsoft365_graph_beta_device_management_role_assignment.test", "display_name"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_role_assignment.test", "role_definition_id", "9e0cc482-82df-4ab2-a24c-0c23a3f52e1e"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_role_assignment.test", "members.#", "2"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_role_assignment.test", "scope_configuration.0.type", "AllDevices"),
+					func(_ *terraform.State) error {
+						testlog.WaitForConsistency("role assignment", 15*time.Second)
+						time.Sleep(15 * time.Second)
+						return nil
+					},
+					check.That(resourceType+".test").ExistsInGraph(testResource),
+					check.That(resourceType+".test").Key("id").Exists(),
+					check.That(resourceType+".test").Key("display_name").Exists(),
+					check.That(resourceType+".test").Key("role_definition_id").HasValue("0bd113fe-6be5-400c-a28f-ae5553f9c0be"),
+					check.That(resourceType+".test").Key("members.#").HasValue("2"),
+					check.That(resourceType+".test").Key("scope_configuration.0.type").HasValue("AllDevices"),
 				),
 			},
 		},
@@ -108,15 +118,34 @@ func TestAccRoleAssignmentResource_ResourceScopes(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
-		CheckDestroy:             testAccCheckRoleAssignmentDestroy,
+		CheckDestroy: destroy.CheckDestroyedAllFunc(
+			testResource,
+			resourceType,
+			30*time.Second,
+		),
+		ExternalProviders: map[string]resource.ExternalProvider{
+			"random": {
+				Source:            "hashicorp/random",
+				VersionConstraint: ">= 3.7.2",
+			},
+		},
 		Steps: []resource.TestStep{
 			{
-				Config: testAccRoleAssignmentConfig_resourceScopes(),
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Creating role assignment with resource scopes")
+				},
+				Config: loadAcceptanceTestTerraform("resource_resource_scopes.tf"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("microsoft365_graph_beta_device_management_role_assignment.resource_scopes", "id"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_role_assignment.resource_scopes", "scope_configuration.0.type", "ResourceScopes"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_role_assignment.resource_scopes", "scope_configuration.0.resource_scopes.#", "2"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_role_assignment.resource_scopes", "members.#", "2"),
+					func(_ *terraform.State) error {
+						testlog.WaitForConsistency("role assignment", 15*time.Second)
+						time.Sleep(15 * time.Second)
+						return nil
+					},
+					check.That(resourceType+".resource_scopes").ExistsInGraph(testResource),
+					check.That(resourceType+".resource_scopes").Key("id").Exists(),
+					check.That(resourceType+".resource_scopes").Key("scope_configuration.0.type").HasValue("ResourceScopes"),
+					check.That(resourceType+".resource_scopes").Key("scope_configuration.0.resource_scopes.#").HasValue("2"),
+					check.That(resourceType+".resource_scopes").Key("members.#").HasValue("2"),
 				),
 			},
 		},
@@ -127,14 +156,33 @@ func TestAccRoleAssignmentResource_AllDevicesScope(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
-		CheckDestroy:             testAccCheckRoleAssignmentDestroy,
+		CheckDestroy: destroy.CheckDestroyedAllFunc(
+			testResource,
+			resourceType,
+			30*time.Second,
+		),
+		ExternalProviders: map[string]resource.ExternalProvider{
+			"random": {
+				Source:            "hashicorp/random",
+				VersionConstraint: ">= 3.7.2",
+			},
+		},
 		Steps: []resource.TestStep{
 			{
-				Config: testAccRoleAssignmentConfig_allDevices(),
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Creating role assignment with AllDevices scope")
+				},
+				Config: loadAcceptanceTestTerraform("resource_all_devices.tf"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("microsoft365_graph_beta_device_management_role_assignment.all_devices", "id"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_role_assignment.all_devices", "scope_configuration.0.type", "AllDevices"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_role_assignment.all_devices", "members.#", "2"),
+					func(_ *terraform.State) error {
+						testlog.WaitForConsistency("role assignment", 15*time.Second)
+						time.Sleep(15 * time.Second)
+						return nil
+					},
+					check.That(resourceType+".all_devices").ExistsInGraph(testResource),
+					check.That(resourceType+".all_devices").Key("id").Exists(),
+					check.That(resourceType+".all_devices").Key("scope_configuration.0.type").HasValue("AllDevices"),
+					check.That(resourceType+".all_devices").Key("members.#").HasValue("2"),
 				),
 			},
 		},
@@ -145,47 +193,35 @@ func TestAccRoleAssignmentResource_AllUsersScope(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
-		CheckDestroy:             testAccCheckRoleAssignmentDestroy,
+		CheckDestroy: destroy.CheckDestroyedAllFunc(
+			testResource,
+			resourceType,
+			30*time.Second,
+		),
+		ExternalProviders: map[string]resource.ExternalProvider{
+			"random": {
+				Source:            "hashicorp/random",
+				VersionConstraint: ">= 3.7.2",
+			},
+		},
 		Steps: []resource.TestStep{
 			{
-				Config: testAccRoleAssignmentConfig_allUsers(),
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Creating role assignment with AllLicensedUsers scope")
+				},
+				Config: loadAcceptanceTestTerraform("resource_all_users.tf"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("microsoft365_graph_beta_device_management_role_assignment.all_users", "id"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_role_assignment.all_users", "scope_configuration.0.type", "AllLicensedUsers"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_role_assignment.all_users", "members.#", "2"),
+					func(_ *terraform.State) error {
+						testlog.WaitForConsistency("role assignment", 15*time.Second)
+						time.Sleep(15 * time.Second)
+						return nil
+					},
+					check.That(resourceType+".all_users").ExistsInGraph(testResource),
+					check.That(resourceType+".all_users").Key("id").Exists(),
+					check.That(resourceType+".all_users").Key("scope_configuration.0.type").HasValue("AllLicensedUsers"),
+					check.That(resourceType+".all_users").Key("members.#").HasValue("2"),
 				),
 			},
 		},
 	})
-}
-
-// Test configuration functions
-func testAccRoleAssignmentConfig_minimal() string {
-	dependencies := mocks.LoadTerraformConfigFile("resource_dependencies.tf")
-	config := mocks.LoadTerraformConfigFile("resource_minimal.tf")
-	return acceptance.ConfiguredM365ProviderBlock(dependencies + "\n" + config)
-}
-
-func testAccRoleAssignmentConfig_maximal() string {
-	dependencies := mocks.LoadTerraformConfigFile("resource_dependencies.tf")
-	config := mocks.LoadTerraformConfigFile("resource_maximal.tf")
-	return acceptance.ConfiguredM365ProviderBlock(dependencies + "\n" + config)
-}
-
-func testAccRoleAssignmentConfig_resourceScopes() string {
-	dependencies := mocks.LoadTerraformConfigFile("resource_dependencies.tf")
-	config := mocks.LoadTerraformConfigFile("resource_resource_scopes.tf")
-	return acceptance.ConfiguredM365ProviderBlock(dependencies + "\n" + config)
-}
-
-func testAccRoleAssignmentConfig_allDevices() string {
-	dependencies := mocks.LoadTerraformConfigFile("resource_dependencies.tf")
-	config := mocks.LoadTerraformConfigFile("resource_all_devices.tf")
-	return acceptance.ConfiguredM365ProviderBlock(dependencies + "\n" + config)
-}
-
-func testAccRoleAssignmentConfig_allUsers() string {
-	dependencies := mocks.LoadTerraformConfigFile("resource_dependencies.tf")
-	config := mocks.LoadTerraformConfigFile("resource_all_users.tf")
-	return acceptance.ConfiguredM365ProviderBlock(dependencies + "\n" + config)
 }

@@ -2,82 +2,46 @@ package graphBetaTermsAndConditions_test
 
 import (
 	"fmt"
-	"os"
-	"path/filepath"
 	"regexp"
-
 	"testing"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/check"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
 	termsAndConditionsMocks "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_management/graph_beta/terms_and_conditions/mocks"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/jarcoal/httpmock"
 )
 
-func setupUnitTestEnvironment() {
-	// Set environment variables for testing
-	os.Setenv("TF_ACC", "0")
-	os.Setenv("MS365_TEST_MODE", "true")
-}
-
-// setupMockEnvironment sets up the mock environment using centralized mocks
 func setupMockEnvironment() (*mocks.Mocks, *termsAndConditionsMocks.TermsAndConditionsMock) {
-	// Activate httpmock
 	httpmock.Activate()
-
-	// Create a new Mocks instance and register authentication mocks
 	mockClient := mocks.NewMocks()
 	mockClient.AuthMocks.RegisterMocks()
-
-	// Register local mocks directly
 	termsAndConditionsMock := &termsAndConditionsMocks.TermsAndConditionsMock{}
 	termsAndConditionsMock.RegisterMocks()
-
 	return mockClient, termsAndConditionsMock
 }
 
-// setupErrorMockEnvironment sets up the mock environment for error testing
 func setupErrorMockEnvironment() (*mocks.Mocks, *termsAndConditionsMocks.TermsAndConditionsMock) {
-	// Activate httpmock
 	httpmock.Activate()
-
-	// Create a new Mocks instance and register authentication mocks
 	mockClient := mocks.NewMocks()
 	mockClient.AuthMocks.RegisterMocks()
-
-	// Register error mocks
 	termsAndConditionsMock := &termsAndConditionsMocks.TermsAndConditionsMock{}
 	termsAndConditionsMock.RegisterErrorMocks()
-
 	return mockClient, termsAndConditionsMock
 }
 
-// testCheckExists is a basic check to ensure the resource exists in the state
-func testCheckExists(resourceName string) resource.TestCheckFunc {
-	return resource.TestCheckResourceAttrSet(resourceName, "id")
-}
-
-// testConfigMinimal returns the minimal configuration for testing
-func testConfigMinimal() string {
-	content, err := os.ReadFile(filepath.Join("tests", "terraform", "unit", "resource_minimal.tf"))
+func testConfigHelper(filename string) string {
+	config, err := helpers.ParseHCLFile("tests/terraform/unit/" + filename)
 	if err != nil {
-		return ""
+		panic("failed to load unit test config " + filename + ": " + err.Error())
 	}
-	return string(content)
-}
-
-// testConfigMaximal returns the maximal configuration for testing
-func testConfigMaximal() string {
-	content, err := os.ReadFile(filepath.Join("tests", "terraform", "unit", "resource_maximal.tf"))
-	if err != nil {
-		return ""
-	}
-	return string(content)
+	return config
 }
 
 // TestTermsAndConditionsResource_Schema validates the resource schema
 func TestTermsAndConditionsResource_Schema(t *testing.T) {
-	setupUnitTestEnvironment()
+	mocks.SetupUnitTestEnvironment(t)
 	_, termsAndConditionsMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
 	defer termsAndConditionsMock.CleanupMockState()
@@ -86,18 +50,15 @@ func TestTermsAndConditionsResource_Schema(t *testing.T) {
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testConfigMinimal(),
+				Config: testConfigHelper("resource_minimal.tf"),
 				Check: resource.ComposeTestCheckFunc(
-					// Check required attributes
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_terms_and_conditions.minimal", "display_name", "Test Minimal Terms and Conditions - Unique"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_terms_and_conditions.minimal", "title", "Company Terms"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_terms_and_conditions.minimal", "body_text", "These are the basic terms and conditions."),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_terms_and_conditions.minimal", "acceptance_statement", "I accept these terms"),
-
-					// Check computed attributes are set
-					resource.TestMatchResourceAttr("microsoft365_graph_beta_device_management_terms_and_conditions.minimal", "id", regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_terms_and_conditions.minimal", "description", ""),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_terms_and_conditions.minimal", "version", "1"),
+					check.That(resourceType+".minimal").Key("display_name").HasValue("unit-test-terms-and-conditions-minimal"),
+					check.That(resourceType+".minimal").Key("title").HasValue("Company Terms"),
+					check.That(resourceType+".minimal").Key("body_text").HasValue("These are the basic terms and conditions."),
+					check.That(resourceType+".minimal").Key("acceptance_statement").HasValue("I accept these terms"),
+					check.That(resourceType+".minimal").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(resourceType+".minimal").Key("description").HasValue(""),
+					check.That(resourceType+".minimal").Key("version").HasValue("1"),
 				),
 			},
 		},
@@ -106,7 +67,7 @@ func TestTermsAndConditionsResource_Schema(t *testing.T) {
 
 // TestTermsAndConditionsResource_Minimal tests basic CRUD operations
 func TestTermsAndConditionsResource_Minimal(t *testing.T) {
-	setupUnitTestEnvironment()
+	mocks.SetupUnitTestEnvironment(t)
 	_, termsAndConditionsMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
 	defer termsAndConditionsMock.CleanupMockState()
@@ -116,29 +77,29 @@ func TestTermsAndConditionsResource_Minimal(t *testing.T) {
 		Steps: []resource.TestStep{
 			// Create and Read testing
 			{
-				Config: testConfigMinimal(),
+				Config: testConfigHelper("resource_minimal.tf"),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckExists("microsoft365_graph_beta_device_management_terms_and_conditions.minimal"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_terms_and_conditions.minimal", "display_name", "Test Minimal Terms and Conditions - Unique"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_terms_and_conditions.minimal", "title", "Company Terms"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_terms_and_conditions.minimal", "body_text", "These are the basic terms and conditions."),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_terms_and_conditions.minimal", "acceptance_statement", "I accept these terms"),
+					check.That(resourceType+".minimal").Key("id").Exists(),
+					check.That(resourceType+".minimal").Key("display_name").HasValue("unit-test-terms-and-conditions-minimal"),
+					check.That(resourceType+".minimal").Key("title").HasValue("Company Terms"),
+					check.That(resourceType+".minimal").Key("body_text").HasValue("These are the basic terms and conditions."),
+					check.That(resourceType+".minimal").Key("acceptance_statement").HasValue("I accept these terms"),
 				),
 			},
 			// ImportState testing
 			{
-				ResourceName:      "microsoft365_graph_beta_device_management_terms_and_conditions.minimal",
+				ResourceName:      resourceType + ".minimal",
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
 			// Update and Read testing
 			{
-				Config: testConfigMaximal(),
+				Config: testConfigHelper("resource_maximal.tf"),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckExists("microsoft365_graph_beta_device_management_terms_and_conditions.maximal"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_terms_and_conditions.maximal", "display_name", "Test Maximal Terms and Conditions - Unique"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_terms_and_conditions.maximal", "description", "Comprehensive terms and conditions for testing with all features"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_terms_and_conditions.maximal", "version", "2"),
+					check.That(resourceType+".maximal").Key("id").Exists(),
+					check.That(resourceType+".maximal").Key("display_name").HasValue("unit-test-terms-and-conditions-maximal"),
+					check.That(resourceType+".maximal").Key("description").HasValue("Comprehensive terms and conditions for testing with all features"),
+					check.That(resourceType+".maximal").Key("version").HasValue("2"),
 				),
 			},
 		},
@@ -147,7 +108,7 @@ func TestTermsAndConditionsResource_Minimal(t *testing.T) {
 
 // TestTermsAndConditionsResource_UpdateInPlace tests in-place updates
 func TestTermsAndConditionsResource_UpdateInPlace(t *testing.T) {
-	setupUnitTestEnvironment()
+	mocks.SetupUnitTestEnvironment(t)
 	_, termsAndConditionsMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
 	defer termsAndConditionsMock.CleanupMockState()
@@ -156,19 +117,19 @@ func TestTermsAndConditionsResource_UpdateInPlace(t *testing.T) {
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testConfigMinimal(),
+				Config: testConfigHelper("resource_minimal.tf"),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckExists("microsoft365_graph_beta_device_management_terms_and_conditions.minimal"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_terms_and_conditions.minimal", "display_name", "Test Minimal Terms and Conditions - Unique"),
+					check.That(resourceType+".minimal").Key("id").Exists(),
+					check.That(resourceType+".minimal").Key("display_name").HasValue("unit-test-terms-and-conditions-minimal"),
 				),
 			},
 			{
-				Config: testConfigMaximal(),
+				Config: testConfigHelper("resource_maximal.tf"),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckExists("microsoft365_graph_beta_device_management_terms_and_conditions.maximal"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_terms_and_conditions.maximal", "display_name", "Test Maximal Terms and Conditions - Unique"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_terms_and_conditions.maximal", "description", "Comprehensive terms and conditions for testing with all features"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_terms_and_conditions.maximal", "role_scope_tag_ids.#", "2"),
+					check.That(resourceType+".maximal").Key("id").Exists(),
+					check.That(resourceType+".maximal").Key("display_name").HasValue("unit-test-terms-and-conditions-maximal"),
+					check.That(resourceType+".maximal").Key("description").HasValue("Comprehensive terms and conditions for testing with all features"),
+					check.That(resourceType+".maximal").Key("role_scope_tag_ids.#").HasValue("2"),
 				),
 			},
 		},
@@ -177,7 +138,7 @@ func TestTermsAndConditionsResource_UpdateInPlace(t *testing.T) {
 
 // TestTermsAndConditionsResource_RequiredFields tests required field validation
 func TestTermsAndConditionsResource_RequiredFields(t *testing.T) {
-	setupUnitTestEnvironment()
+	mocks.SetupUnitTestEnvironment(t)
 	_, termsAndConditionsMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
 	defer termsAndConditionsMock.CleanupMockState()
@@ -250,7 +211,7 @@ resource "microsoft365_graph_beta_device_management_terms_and_conditions" "test"
 
 // TestTermsAndConditionsResource_ErrorHandling tests error scenarios
 func TestTermsAndConditionsResource_ErrorHandling(t *testing.T) {
-	setupUnitTestEnvironment()
+	mocks.SetupUnitTestEnvironment(t)
 	_, termsAndConditionsMock := setupErrorMockEnvironment()
 	defer httpmock.DeactivateAndReset()
 	defer termsAndConditionsMock.CleanupMockState()
@@ -275,7 +236,7 @@ resource "microsoft365_graph_beta_device_management_terms_and_conditions" "test"
 
 // TestTermsAndConditionsResource_DescriptionValidation tests description length validation
 func TestTermsAndConditionsResource_DescriptionValidation(t *testing.T) {
-	setupUnitTestEnvironment()
+	mocks.SetupUnitTestEnvironment(t)
 	_, termsAndConditionsMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
 	defer termsAndConditionsMock.CleanupMockState()
@@ -307,7 +268,7 @@ resource "microsoft365_graph_beta_device_management_terms_and_conditions" "test"
 
 // TestTermsAndConditionsResource_BodyTextValidation tests body text length validation
 func TestTermsAndConditionsResource_BodyTextValidation(t *testing.T) {
-	setupUnitTestEnvironment()
+	mocks.SetupUnitTestEnvironment(t)
 	_, termsAndConditionsMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
 	defer termsAndConditionsMock.CleanupMockState()
@@ -338,7 +299,7 @@ resource "microsoft365_graph_beta_device_management_terms_and_conditions" "test"
 
 // TestTermsAndConditionsResource_AcceptanceStatementValidation tests acceptance statement length validation
 func TestTermsAndConditionsResource_AcceptanceStatementValidation(t *testing.T) {
-	setupUnitTestEnvironment()
+	mocks.SetupUnitTestEnvironment(t)
 	_, termsAndConditionsMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
 	defer termsAndConditionsMock.CleanupMockState()
@@ -369,7 +330,7 @@ resource "microsoft365_graph_beta_device_management_terms_and_conditions" "test"
 
 // TestTermsAndConditionsResource_RoleScopeTagIds tests role scope tag IDs handling
 func TestTermsAndConditionsResource_RoleScopeTagIds(t *testing.T) {
-	setupUnitTestEnvironment()
+	mocks.SetupUnitTestEnvironment(t)
 	_, termsAndConditionsMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
 	defer termsAndConditionsMock.CleanupMockState()
@@ -400,7 +361,7 @@ resource "microsoft365_graph_beta_device_management_terms_and_conditions" "test"
 
 // TestTermsAndConditionsResource_VersionHandling tests version handling
 func TestTermsAndConditionsResource_VersionHandling(t *testing.T) {
-	setupUnitTestEnvironment()
+	mocks.SetupUnitTestEnvironment(t)
 	_, termsAndConditionsMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
 	defer termsAndConditionsMock.CleanupMockState()
