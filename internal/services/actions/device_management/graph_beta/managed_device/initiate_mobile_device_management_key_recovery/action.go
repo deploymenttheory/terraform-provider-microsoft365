@@ -19,6 +19,7 @@ import (
 
 const (
 	ActionName = "microsoft365_graph_beta_device_management_managed_device_initiate_mobile_device_management_key_recovery"
+	InvokeTimeout = 60
 )
 
 var (
@@ -117,7 +118,7 @@ func (a *InitiateMobileDeviceManagementKeyRecoveryManagedDeviceAction) Schema(ct
 					),
 				},
 			},
-			"timeouts": commonschema.Timeouts(ctx),
+			"timeouts": commonschema.ActionTimeouts(ctx),
 		},
 	}
 }

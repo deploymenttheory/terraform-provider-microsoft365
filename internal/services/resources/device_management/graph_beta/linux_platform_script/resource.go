@@ -180,7 +180,7 @@ func (r *LinuxPlatformScriptResource) Schema(ctx context.Context, req resource.S
 				PlanModifiers: []planmodifier.String{planmodifiers.DefaultValueString("1")},
 			},
 			"assignments": commonschemagraphbeta.DeviceConfigurationWithAllGroupAssignmentsAndFilterSchema(),
-			"timeouts":    commonschema.Timeouts(ctx),
+			"timeouts":    commonschema.ResourceTimeouts(ctx),
 		},
 	}
 }

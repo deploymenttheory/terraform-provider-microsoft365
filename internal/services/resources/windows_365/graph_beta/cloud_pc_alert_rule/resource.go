@@ -235,7 +235,7 @@ func (r *CloudPcAlertRuleResource) Schema(ctx context.Context, req resource.Sche
 					},
 				},
 			},
-			"timeouts": commonschema.Timeouts(ctx),
+			"timeouts": commonschema.ResourceTimeouts(ctx),
 		},
 	}
 }

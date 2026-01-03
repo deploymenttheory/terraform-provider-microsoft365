@@ -151,7 +151,7 @@ func (r *CloudPcDeviceImageResource) Schema(ctx context.Context, req resource.Sc
 					stringvalidator.OneOf("pending", "ready", "warning", "failed", "unknownFutureValue"),
 				},
 			},
-			"timeouts": commonschema.Timeouts(ctx),
+			"timeouts": commonschema.ResourceTimeouts(ctx),
 		},
 	}
 }

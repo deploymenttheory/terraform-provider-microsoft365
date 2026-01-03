@@ -176,7 +176,7 @@ func (r *UserLicenseAssignmentResource) Schema(ctx context.Context, req resource
 					),
 				},
 			},
-			"timeouts": commonschema.Timeouts(ctx),
+			"timeouts": commonschema.ResourceTimeouts(ctx),
 		},
 	}
 }

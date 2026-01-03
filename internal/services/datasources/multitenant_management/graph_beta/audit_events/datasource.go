@@ -148,7 +148,7 @@ func (d *AuditEventsDataSource) Schema(ctx context.Context, _ datasource.SchemaR
 					},
 				},
 			},
-			"timeouts": commonschema.Timeouts(ctx),
+			"timeouts": commonschema.ResourceTimeouts(ctx),
 		},
 	}
 }

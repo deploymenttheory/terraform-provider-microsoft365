@@ -138,7 +138,7 @@ func (r *TermsAndConditionsResource) Schema(ctx context.Context, req resource.Sc
 				},
 			},
 			"assignments": commonschemagraphbeta.DeviceConfigurationWithAllLicensedUsersInclusionGroupConfigurationManagerCollectionAssignmentsSchema(),
-			"timeouts":    commonschema.Timeouts(ctx),
+			"timeouts":    commonschema.ResourceTimeouts(ctx),
 		},
 	}
 }

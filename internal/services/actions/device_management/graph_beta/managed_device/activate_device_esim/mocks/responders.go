@@ -7,6 +7,7 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks/factories"
 
@@ -62,23 +63,48 @@ func (m *ActivateDeviceEsimMock) activateManagedDeviceEsimResponder() httpmock.R
 		// Validate carrier URL is provided
 		carrierURL, hasCarrierURL := requestBody["carrierUrl"]
 		if !hasCarrierURL || carrierURL == "" {
-			errorResponse, _ := mocks.LoadJSONResponse(filepath.Join("tests", "responses", "validate_create", "post_activate_device_esim_error.json"))
+			jsonContent, err := helpers.ParseJSONFile(filepath.Join("..", "tests", "responses", "validate_create", "post_activate_device_esim_error.json"))
+			if err != nil {
+				return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to load mock response"}}`), nil
+			}
+			var errorResponse map[string]any
+			if err := json.Unmarshal([]byte(jsonContent), &errorResponse); err != nil {
+				return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to parse JSON response"}}`), nil
+			}
 			return httpmock.NewJsonResponse(400, errorResponse)
 		}
 
 		// Check for special test device IDs
 		switch {
 		case strings.Contains(deviceID, "error"):
-			errorResponse, _ := mocks.LoadJSONResponse(filepath.Join("tests", "responses", "validate_create", "post_activate_device_esim_error.json"))
+			jsonContent, err := helpers.ParseJSONFile(filepath.Join("..", "tests", "responses", "validate_create", "post_activate_device_esim_error.json"))
+			if err != nil {
+				return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to load mock response"}}`), nil
+			}
+			var errorResponse map[string]any
+			if err := json.Unmarshal([]byte(jsonContent), &errorResponse); err != nil {
+				return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to parse JSON response"}}`), nil
+			}
 			return httpmock.NewJsonResponse(400, errorResponse)
 		case strings.Contains(deviceID, "not-found"):
-			errorResponse, _ := mocks.LoadJSONResponse(filepath.Join("tests", "responses", "validate_delete", "post_activate_device_esim_not_found.json"))
+			jsonContent, err := helpers.ParseJSONFile(filepath.Join("..", "tests", "responses", "validate_delete", "post_activate_device_esim_not_found.json"))
+			if err != nil {
+				return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to load mock response"}}`), nil
+			}
+			var errorResponse map[string]any
+			if err := json.Unmarshal([]byte(jsonContent), &errorResponse); err != nil {
+				return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to parse JSON response"}}`), nil
+			}
 			return httpmock.NewJsonResponse(404, errorResponse)
 		default:
 			// Load success response
-			response, err := mocks.LoadJSONResponse(filepath.Join("tests", "responses", "validate_create", "post_activate_device_esim_success.json"))
+			jsonContent, err := helpers.ParseJSONFile(filepath.Join("..", "tests", "responses", "validate_create", "post_activate_device_esim_success.json"))
 			if err != nil {
 				return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to load mock response"}}`), nil
+			}
+			var response map[string]any
+			if err := json.Unmarshal([]byte(jsonContent), &response); err != nil {
+				return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to parse JSON response"}}`), nil
 			}
 
 			// Store in mock state for tracking
@@ -108,23 +134,48 @@ func (m *ActivateDeviceEsimMock) activateComanagedDeviceEsimResponder() httpmock
 		// Validate carrier URL is provided
 		carrierURL, hasCarrierURL := requestBody["carrierUrl"]
 		if !hasCarrierURL || carrierURL == "" {
-			errorResponse, _ := mocks.LoadJSONResponse(filepath.Join("tests", "responses", "validate_create", "post_activate_device_esim_error.json"))
+			jsonContent, err := helpers.ParseJSONFile(filepath.Join("..", "tests", "responses", "validate_create", "post_activate_device_esim_error.json"))
+			if err != nil {
+				return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to load mock response"}}`), nil
+			}
+			var errorResponse map[string]any
+			if err := json.Unmarshal([]byte(jsonContent), &errorResponse); err != nil {
+				return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to parse JSON response"}}`), nil
+			}
 			return httpmock.NewJsonResponse(400, errorResponse)
 		}
 
 		// Check for special test device IDs
 		switch {
 		case strings.Contains(deviceID, "error"):
-			errorResponse, _ := mocks.LoadJSONResponse(filepath.Join("tests", "responses", "validate_create", "post_activate_device_esim_error.json"))
+			jsonContent, err := helpers.ParseJSONFile(filepath.Join("..", "tests", "responses", "validate_create", "post_activate_device_esim_error.json"))
+			if err != nil {
+				return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to load mock response"}}`), nil
+			}
+			var errorResponse map[string]any
+			if err := json.Unmarshal([]byte(jsonContent), &errorResponse); err != nil {
+				return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to parse JSON response"}}`), nil
+			}
 			return httpmock.NewJsonResponse(400, errorResponse)
 		case strings.Contains(deviceID, "not-found"):
-			errorResponse, _ := mocks.LoadJSONResponse(filepath.Join("tests", "responses", "validate_delete", "post_activate_device_esim_not_found.json"))
+			jsonContent, err := helpers.ParseJSONFile(filepath.Join("..", "tests", "responses", "validate_delete", "post_activate_device_esim_not_found.json"))
+			if err != nil {
+				return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to load mock response"}}`), nil
+			}
+			var errorResponse map[string]any
+			if err := json.Unmarshal([]byte(jsonContent), &errorResponse); err != nil {
+				return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to parse JSON response"}}`), nil
+			}
 			return httpmock.NewJsonResponse(404, errorResponse)
 		default:
 			// Load success response
-			response, err := mocks.LoadJSONResponse(filepath.Join("tests", "responses", "validate_create", "post_activate_device_esim_success.json"))
+			jsonContent, err := helpers.ParseJSONFile(filepath.Join("..", "tests", "responses", "validate_create", "post_activate_device_esim_success.json"))
 			if err != nil {
 				return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to load mock response"}}`), nil
+			}
+			var response map[string]any
+			if err := json.Unmarshal([]byte(jsonContent), &response); err != nil {
+				return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to parse JSON response"}}`), nil
 			}
 
 			// Store in mock state for tracking
@@ -169,13 +220,17 @@ func (m *ActivateDeviceEsimMock) CleanupMockState() {
 
 // GetMockActivateDeviceEsimData returns sample activate device esim data for testing
 func (m *ActivateDeviceEsimMock) GetMockActivateDeviceEsimData() map[string]any {
-	response, err := mocks.LoadJSONResponse(filepath.Join("tests", "responses", "validate_create", "post_activate_device_esim_success.json"))
+	jsonContent, err := helpers.ParseJSONFile(filepath.Join("..", "tests", "responses", "validate_create", "post_activate_device_esim_success.json"))
 	if err != nil {
 		// Fallback to hardcoded response if file loading fails
 		return map[string]any{
 			"@odata.context": "https://graph.microsoft.com/beta/$metadata#Edm.Null",
 			"value":          nil,
 		}
+	}
+	var response map[string]any
+	if err := json.Unmarshal([]byte(jsonContent), &response); err != nil {
+		panic("Failed to parse JSON response: " + err.Error())
 	}
 	return response
 }

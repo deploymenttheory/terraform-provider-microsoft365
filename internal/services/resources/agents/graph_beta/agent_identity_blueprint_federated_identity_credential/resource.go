@@ -161,7 +161,7 @@ func (r *AgentIdentityBlueprintFederatedIdentityCredentialResource) Schema(ctx c
 					"visit the [Flexible FIC reference](https://aka.ms/flexiblefic).",
 				Optional: true,
 			},
-			"timeouts": commonschema.Timeouts(ctx),
+			"timeouts": commonschema.ResourceTimeouts(ctx),
 		},
 	}
 }

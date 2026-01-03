@@ -77,7 +77,7 @@ func (d *CloudPcFrontlineServicePlanDataSource) Schema(ctx context.Context, _ da
 					},
 				},
 			},
-			"timeouts": commonschema.Timeouts(ctx),
+			"timeouts": commonschema.ResourceTimeouts(ctx),
 		},
 	}
 }

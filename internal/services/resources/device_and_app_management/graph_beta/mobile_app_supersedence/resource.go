@@ -157,7 +157,7 @@ func (r *MobileAppSupersedenceResource) Schema(ctx context.Context, req resource
 				Computed:            true,
 				MarkdownDescription: "The total number of apps directly or indirectly superseding the parent app. Read-Only.",
 			},
-			"timeouts": commonschema.Timeouts(ctx),
+			"timeouts": commonschema.ResourceTimeouts(ctx),
 		},
 	}
 }

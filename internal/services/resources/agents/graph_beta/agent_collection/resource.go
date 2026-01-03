@@ -142,7 +142,7 @@ func (r *AgentCollectionResource) Schema(ctx context.Context, req resource.Schem
 				MarkdownDescription: "Timestamp of last modification. Read-only.",
 				Computed:            true,
 			},
-			"timeouts": commonschema.Timeouts(ctx),
+			"timeouts": commonschema.ResourceTimeouts(ctx),
 		},
 	}
 }

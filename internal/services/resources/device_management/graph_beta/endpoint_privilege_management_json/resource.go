@@ -224,7 +224,7 @@ func (r *EndpointPrivilegeManagementResource) Schema(ctx context.Context, req re
 				MarkdownDescription: "Indicates if the policy is assigned to any scope",
 			},
 			"assignments": commonschemagraphbeta.DeviceConfigurationWithAllGroupAssignmentsAndFilterSchema(),
-			"timeouts":    commonschema.Timeouts(ctx),
+			"timeouts":    commonschema.ResourceTimeouts(ctx),
 		},
 	}
 }

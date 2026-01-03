@@ -7,6 +7,7 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks/factories"
 
@@ -70,9 +71,14 @@ func (m *AssignmentFilterMock) createAssignmentFilterResponder() httpmock.Respon
 		}
 
 		// Load base response from JSON file
-		response, err := mocks.LoadJSONResponse(filepath.Join("tests", "responses", "validate_create", "post_assignment_filter.json"))
+		jsonContent, err := helpers.ParseJSONFile(filepath.Join("..", "tests", "responses", "validate_create", "post_assignment_filter.json"))
 		if err != nil {
 			return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to load mock response"}}`), nil
+		}
+
+		var response map[string]any
+		if err := json.Unmarshal([]byte(jsonContent), &response); err != nil {
+			return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to parse mock response"}}`), nil
 		}
 
 		// Generate a new ID for the created resource
@@ -122,22 +128,38 @@ func (m *AssignmentFilterMock) getAssignmentFilterResponder() httpmock.Responder
 			// Check for special test IDs
 			switch {
 			case strings.Contains(id, "minimal"):
-				response, err := mocks.LoadJSONResponse(filepath.Join("tests", "responses", "validate_create", "get_assignment_filter_minimal.json"))
+				jsonContent, err := helpers.ParseJSONFile(filepath.Join("..", "tests", "responses", "validate_create", "get_assignment_filter_minimal.json"))
 				if err != nil {
 					return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to load mock response"}}`), nil
+				}
+
+				var response map[string]any
+				if err := json.Unmarshal([]byte(jsonContent), &response); err != nil {
+					return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to parse mock response"}}`), nil
 				}
 				response["id"] = id
 				return factories.SuccessResponse(200, response)(req)
 			case strings.Contains(id, "maximal"):
-				response, err := mocks.LoadJSONResponse(filepath.Join("tests", "responses", "validate_create", "get_assignment_filter_maximal.json"))
+				jsonContent, err := helpers.ParseJSONFile(filepath.Join("..", "tests", "responses", "validate_create", "get_assignment_filter_maximal.json"))
 				if err != nil {
 					return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to load mock response"}}`), nil
+				}
+
+				var response map[string]any
+				if err := json.Unmarshal([]byte(jsonContent), &response); err != nil {
+					return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to parse mock response"}}`), nil
 				}
 				response["id"] = id
 				return factories.SuccessResponse(200, response)(req)
 			default:
-				errorResponse, _ := mocks.LoadJSONResponse(filepath.Join("tests", "responses", "validate_delete", "get_assignment_filter_not_found.json"))
-				return httpmock.NewJsonResponse(404, errorResponse)
+				jsonContent, err := helpers.ParseJSONFile(filepath.Join("..", "tests", "responses", "validate_delete", "get_assignment_filter_not_found.json"))
+				if err == nil {
+					var errorResponse map[string]any
+					if json.Unmarshal([]byte(jsonContent), &errorResponse) == nil {
+						return httpmock.NewJsonResponse(404, errorResponse)
+					}
+				}
+				return httpmock.NewStringResponse(404, `{"error":{"code":"ResourceNotFound","message":"Resource not found"}}`), nil
 			}
 		}
 
@@ -156,20 +178,37 @@ func (m *AssignmentFilterMock) updateAssignmentFilterResponder() httpmock.Respon
 		mockState.Unlock()
 
 		if !exists {
-			errorResponse, _ := mocks.LoadJSONResponse(filepath.Join("tests", "responses", "validate_delete", "get_assignment_filter_not_found.json"))
-			return httpmock.NewJsonResponse(404, errorResponse)
+			jsonContent, err := helpers.ParseJSONFile(filepath.Join("..", "tests", "responses", "validate_delete", "get_assignment_filter_not_found.json"))
+			if err == nil {
+				var errorResponse map[string]any
+				if json.Unmarshal([]byte(jsonContent), &errorResponse) == nil {
+					return httpmock.NewJsonResponse(404, errorResponse)
+				}
+			}
+			return httpmock.NewStringResponse(404, `{"error":{"code":"ResourceNotFound","message":"Resource not found"}}`), nil
 		}
 
 		var requestBody map[string]any
 		if err := json.NewDecoder(req.Body).Decode(&requestBody); err != nil {
-			errorResponse, _ := mocks.LoadJSONResponse(filepath.Join("tests", "responses", "validate_create", "post_assignment_filter_error.json"))
-			return httpmock.NewJsonResponse(400, errorResponse)
+			jsonContent, err := helpers.ParseJSONFile(filepath.Join("..", "tests", "responses", "validate_create", "post_assignment_filter_error.json"))
+			if err == nil {
+				var errorResponse map[string]any
+				if json.Unmarshal([]byte(jsonContent), &errorResponse) == nil {
+					return httpmock.NewJsonResponse(400, errorResponse)
+				}
+			}
+			return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"Invalid JSON"}}`), nil
 		}
 
 		// Load update template
-		updatedFilter, err := mocks.LoadJSONResponse(filepath.Join("tests", "responses", "validate_update", "get_assignment_filter_updated.json"))
+		jsonContent, err := helpers.ParseJSONFile(filepath.Join("..", "tests", "responses", "validate_update", "get_assignment_filter_updated.json"))
 		if err != nil {
 			return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to load mock response"}}`), nil
+		}
+
+		var updatedFilter map[string]any
+		if err := json.Unmarshal([]byte(jsonContent), &updatedFilter); err != nil {
+			return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to parse mock response"}}`), nil
 		}
 
 		// Start with existing data
@@ -208,8 +247,14 @@ func (m *AssignmentFilterMock) deleteAssignmentFilterResponder() httpmock.Respon
 		mockState.Unlock()
 
 		if !exists {
-			errorResponse, _ := mocks.LoadJSONResponse(filepath.Join("tests", "responses", "validate_delete", "get_assignment_filter_not_found.json"))
-			return httpmock.NewJsonResponse(404, errorResponse)
+			jsonContent, err := helpers.ParseJSONFile(filepath.Join("..", "tests", "responses", "validate_delete", "get_assignment_filter_not_found.json"))
+			if err == nil {
+				var errorResponse map[string]any
+				if json.Unmarshal([]byte(jsonContent), &errorResponse) == nil {
+					return httpmock.NewJsonResponse(404, errorResponse)
+				}
+			}
+			return httpmock.NewStringResponse(404, `{"error":{"code":"ResourceNotFound","message":"Resource not found"}}`), nil
 		}
 
 		return factories.EmptySuccessResponse(204)(req)
@@ -219,9 +264,14 @@ func (m *AssignmentFilterMock) deleteAssignmentFilterResponder() httpmock.Respon
 // getLicenseResponder handles GET requests for license checking
 func (m *AssignmentFilterMock) getLicenseResponder() httpmock.Responder {
 	return func(req *http.Request) (*http.Response, error) {
-		response, err := mocks.LoadJSONResponse(filepath.Join("tests", "responses", "license", "get_subscribed_skus_success.json"))
+		jsonContent, err := helpers.ParseJSONFile(filepath.Join("..", "tests", "responses", "license", "get_subscribed_skus_success.json"))
 		if err != nil {
 			return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to load license mock"}}`), nil
+		}
+
+		var response map[string]any
+		if err := json.Unmarshal([]byte(jsonContent), &response); err != nil {
+			return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to parse license mock"}}`), nil
 		}
 		return factories.SuccessResponse(200, response)(req)
 	}
@@ -237,8 +287,14 @@ func (m *AssignmentFilterMock) RegisterErrorMocks() {
 	// POST - Create error
 	httpmock.RegisterResponder("POST", "https://graph.microsoft.com/beta/deviceManagement/assignmentFilters",
 		func(req *http.Request) (*http.Response, error) {
-			errorResponse, _ := mocks.LoadJSONResponse(filepath.Join("tests", "responses", "validate_create", "post_assignment_filter_error.json"))
-			return httpmock.NewJsonResponse(400, errorResponse)
+			jsonContent, err := helpers.ParseJSONFile(filepath.Join("..", "tests", "responses", "validate_create", "post_assignment_filter_error.json"))
+			if err == nil {
+				var errorResponse map[string]any
+				if json.Unmarshal([]byte(jsonContent), &errorResponse) == nil {
+					return httpmock.NewJsonResponse(400, errorResponse)
+				}
+			}
+			return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"Invalid request"}}`), nil
 		})
 
 	// GET - Read error (simulates not found or access denied)
@@ -263,18 +319,28 @@ func (m *AssignmentFilterMock) CleanupMockState() {
 
 // GetMockAssignmentFilterData returns sample assignment filter data for testing
 func (m *AssignmentFilterMock) GetMockAssignmentFilterData() map[string]any {
-	response, err := mocks.LoadJSONResponse(filepath.Join("tests", "responses", "validate_create", "get_assignment_filter_maximal.json"))
+	jsonContent, err := helpers.ParseJSONFile(filepath.Join("..", "tests", "responses", "validate_create", "get_assignment_filter_maximal.json"))
 	if err != nil {
 		panic("Failed to load mock response: " + err.Error())
+	}
+
+	var response map[string]any
+	if err := json.Unmarshal([]byte(jsonContent), &response); err != nil {
+		panic("Failed to parse mock response: " + err.Error())
 	}
 	return response
 }
 
 // GetMockAssignmentFilterMinimalData returns minimal assignment filter data for testing
 func (m *AssignmentFilterMock) GetMockAssignmentFilterMinimalData() map[string]any {
-	response, err := mocks.LoadJSONResponse(filepath.Join("tests", "responses", "validate_create", "get_assignment_filter_minimal.json"))
+	jsonContent, err := helpers.ParseJSONFile(filepath.Join("..", "tests", "responses", "validate_create", "get_assignment_filter_minimal.json"))
 	if err != nil {
 		panic("Failed to load mock response: " + err.Error())
+	}
+
+	var response map[string]any
+	if err := json.Unmarshal([]byte(jsonContent), &response); err != nil {
+		panic("Failed to parse mock response: " + err.Error())
 	}
 	return response
 }

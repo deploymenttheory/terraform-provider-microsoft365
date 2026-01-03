@@ -7,6 +7,7 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks/factories"
 	"github.com/jarcoal/httpmock"
@@ -67,9 +68,13 @@ func (m *FilteringPolicyMock) createFilteringPolicyResponder() httpmock.Responde
 		}
 
 		// Load base response from JSON file
-		response, err := mocks.LoadJSONResponse(filepath.Join("tests", "responses", "validate_create", "post_filtering_policy.json"))
+		jsonContent, err := helpers.ParseJSONFile(filepath.Join("..", "tests", "responses", "validate_create", "post_filtering_policy.json"))
 		if err != nil {
 			return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to load mock response"}}`), nil
+		}
+		var response map[string]any
+		if err := json.Unmarshal([]byte(jsonContent), &response); err != nil {
+			return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to parse JSON response"}}`), nil
 		}
 
 		// Generate a mock ID
@@ -115,21 +120,36 @@ func (m *FilteringPolicyMock) getFilteringPolicyResponder() httpmock.Responder {
 			// Check for special test IDs
 			switch {
 			case strings.Contains(id, "minimal"):
-				response, err := mocks.LoadJSONResponse(filepath.Join("tests", "responses", "validate_create", "get_filtering_policy_minimal.json"))
+				jsonContent, err := helpers.ParseJSONFile(filepath.Join("..", "tests", "responses", "validate_create", "get_filtering_policy_minimal.json"))
 				if err != nil {
 					return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to load mock response"}}`), nil
+				}
+				var response map[string]any
+				if err := json.Unmarshal([]byte(jsonContent), &response); err != nil {
+					return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to parse JSON response"}}`), nil
 				}
 				response["id"] = id
 				return factories.SuccessResponse(200, response)(req)
 			case strings.Contains(id, "maximal"):
-				response, err := mocks.LoadJSONResponse(filepath.Join("tests", "responses", "validate_create", "get_filtering_policy_maximal.json"))
+				jsonContent, err := helpers.ParseJSONFile(filepath.Join("..", "tests", "responses", "validate_create", "get_filtering_policy_maximal.json"))
 				if err != nil {
 					return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to load mock response"}}`), nil
+				}
+				var response map[string]any
+				if err := json.Unmarshal([]byte(jsonContent), &response); err != nil {
+					return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to parse JSON response"}}`), nil
 				}
 				response["id"] = id
 				return factories.SuccessResponse(200, response)(req)
 			default:
-				errorResponse, _ := mocks.LoadJSONResponse(filepath.Join("tests", "responses", "validate_delete", "get_filtering_policy_not_found.json"))
+				jsonContent, err := helpers.ParseJSONFile(filepath.Join("..", "tests", "responses", "validate_delete", "get_filtering_policy_not_found.json"))
+				if err != nil {
+					return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to load mock response"}}`), nil
+				}
+				var errorResponse map[string]any
+				if err := json.Unmarshal([]byte(jsonContent), &errorResponse); err != nil {
+					return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to parse JSON response"}}`), nil
+				}
 				return httpmock.NewJsonResponse(404, errorResponse)
 			}
 		}
@@ -160,20 +180,38 @@ func (m *FilteringPolicyMock) updateFilteringPolicyResponder() httpmock.Responde
 		mockState.Unlock()
 
 		if !exists {
-			errorResponse, _ := mocks.LoadJSONResponse(filepath.Join("tests", "responses", "validate_delete", "get_filtering_policy_not_found.json"))
+			jsonContent, err := helpers.ParseJSONFile(filepath.Join("..", "tests", "responses", "validate_delete", "get_filtering_policy_not_found.json"))
+			if err != nil {
+				return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to load mock response"}}`), nil
+			}
+			var errorResponse map[string]any
+			if err := json.Unmarshal([]byte(jsonContent), &errorResponse); err != nil {
+				return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to parse JSON response"}}`), nil
+			}
 			return httpmock.NewJsonResponse(404, errorResponse)
 		}
 
 		var requestBody map[string]any
 		if err := json.NewDecoder(req.Body).Decode(&requestBody); err != nil {
-			errorResponse, _ := mocks.LoadJSONResponse(filepath.Join("tests", "responses", "validate_create", "post_filtering_policy_error.json"))
+			jsonContent, errLoad := helpers.ParseJSONFile(filepath.Join("..", "tests", "responses", "validate_create", "post_filtering_policy_error.json"))
+			if errLoad != nil {
+				return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to load mock response"}}`), nil
+			}
+			var errorResponse map[string]any
+			if err := json.Unmarshal([]byte(jsonContent), &errorResponse); err != nil {
+				return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to parse JSON response"}}`), nil
+			}
 			return httpmock.NewJsonResponse(400, errorResponse)
 		}
 
 		// Load update template
-		updatedPolicy, err := mocks.LoadJSONResponse(filepath.Join("tests", "responses", "validate_update", "get_filtering_policy_updated.json"))
+		jsonContent, err := helpers.ParseJSONFile(filepath.Join("..", "tests", "responses", "validate_update", "get_filtering_policy_updated.json"))
 		if err != nil {
 			return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to load mock response"}}`), nil
+		}
+		var updatedPolicy map[string]any
+		if err := json.Unmarshal([]byte(jsonContent), &updatedPolicy); err != nil {
+			return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to parse JSON response"}}`), nil
 		}
 
 		// Start with existing data
@@ -212,7 +250,14 @@ func (m *FilteringPolicyMock) deleteFilteringPolicyResponder() httpmock.Responde
 		mockState.Unlock()
 
 		if !exists {
-			errorResponse, _ := mocks.LoadJSONResponse(filepath.Join("tests", "responses", "validate_delete", "get_filtering_policy_not_found.json"))
+			jsonContent, err := helpers.ParseJSONFile(filepath.Join("..", "tests", "responses", "validate_delete", "get_filtering_policy_not_found.json"))
+			if err != nil {
+				return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to load mock response"}}`), nil
+			}
+			var errorResponse map[string]any
+			if err := json.Unmarshal([]byte(jsonContent), &errorResponse); err != nil {
+				return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to parse JSON response"}}`), nil
+			}
 			return httpmock.NewJsonResponse(404, errorResponse)
 		}
 
@@ -234,9 +279,13 @@ func (m *FilteringPolicyMock) CleanupMockState() {
 // getLicenseResponder handles GET requests for license checking
 func (m *FilteringPolicyMock) getLicenseResponder() httpmock.Responder {
 	return func(req *http.Request) (*http.Response, error) {
-		response, err := mocks.LoadJSONResponse(filepath.Join("tests", "responses", "license", "get_subscribed_skus_success.json"))
+		jsonContent, err := helpers.ParseJSONFile(filepath.Join("..", "tests", "responses", "license", "get_subscribed_skus_success.json"))
 		if err != nil {
 			return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to load license mock"}}`), nil
+		}
+		var response map[string]any
+		if err := json.Unmarshal([]byte(jsonContent), &response); err != nil {
+			return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to parse JSON response"}}`), nil
 		}
 		return factories.SuccessResponse(200, response)(req)
 	}
@@ -251,7 +300,14 @@ func (m *FilteringPolicyMock) RegisterErrorMocks() {
 	// POST - Create error
 	httpmock.RegisterResponder("POST", "https://graph.microsoft.com/beta/networkAccess/filteringPolicies",
 		func(req *http.Request) (*http.Response, error) {
-			errorResponse, _ := mocks.LoadJSONResponse(filepath.Join("tests", "responses", "validate_create", "post_filtering_policy_error.json"))
+			jsonContent, err := helpers.ParseJSONFile(filepath.Join("..", "tests", "responses", "validate_create", "post_filtering_policy_error.json"))
+			if err != nil {
+				return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to load mock response"}}`), nil
+			}
+			var errorResponse map[string]any
+			if err := json.Unmarshal([]byte(jsonContent), &errorResponse); err != nil {
+				return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to parse JSON response"}}`), nil
+			}
 			return httpmock.NewJsonResponse(400, errorResponse)
 		})
 
@@ -270,18 +326,26 @@ func (m *FilteringPolicyMock) RegisterErrorMocks() {
 
 // GetMockFilteringPolicyData returns sample filtering policy data for testing
 func (m *FilteringPolicyMock) GetMockFilteringPolicyData() map[string]any {
-	response, err := mocks.LoadJSONResponse(filepath.Join("tests", "responses", "validate_create", "get_filtering_policy_maximal.json"))
+	jsonContent, err := helpers.ParseJSONFile(filepath.Join("..", "tests", "responses", "validate_create", "get_filtering_policy_maximal.json"))
 	if err != nil {
 		panic("Failed to load mock response: " + err.Error())
+	}
+	var response map[string]any
+	if err := json.Unmarshal([]byte(jsonContent), &response); err != nil {
+		panic("Failed to parse JSON response: " + err.Error())
 	}
 	return response
 }
 
 // GetMockFilteringPolicyMinimalData returns minimal filtering policy data for testing
 func (m *FilteringPolicyMock) GetMockFilteringPolicyMinimalData() map[string]any {
-	response, err := mocks.LoadJSONResponse(filepath.Join("tests", "responses", "validate_create", "get_filtering_policy_minimal.json"))
+	jsonContent, err := helpers.ParseJSONFile(filepath.Join("..", "tests", "responses", "validate_create", "get_filtering_policy_minimal.json"))
 	if err != nil {
 		panic("Failed to load mock response: " + err.Error())
+	}
+	var response map[string]any
+	if err := json.Unmarshal([]byte(jsonContent), &response); err != nil {
+		panic("Failed to parse JSON response: " + err.Error())
 	}
 	return response
 }

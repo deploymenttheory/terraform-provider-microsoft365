@@ -160,7 +160,7 @@ func (r *CustomSecurityAttributeDefinitionResource) Schema(ctx context.Context, 
 					planmodifiers.NewRequiresReplaceIfFalseToTrue(),
 				},
 			},
-			"timeouts": commonschema.Timeouts(ctx),
+			"timeouts": commonschema.ResourceTimeouts(ctx),
 		},
 	}
 }

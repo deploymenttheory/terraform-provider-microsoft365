@@ -221,7 +221,7 @@ func (r *AndroidManagedDeviceAppConfigurationPolicyResource) Schema(ctx context.
 					},
 				},
 			},
-			"timeouts": commonschema.Timeouts(ctx),
+			"timeouts": commonschema.ResourceTimeouts(ctx),
 		},
 	}
 }

@@ -136,7 +136,7 @@ func (r *AgentIdentityBlueprintServicePrincipalResource) Schema(ctx context.Cont
 				Computed: true,
 				Default:  booldefault.StaticBool(false),
 			},
-			"timeouts": commonschema.Timeouts(ctx),
+			"timeouts": commonschema.ResourceTimeouts(ctx),
 		},
 	}
 }

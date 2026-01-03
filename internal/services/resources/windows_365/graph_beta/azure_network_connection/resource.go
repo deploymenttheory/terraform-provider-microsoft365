@@ -163,7 +163,7 @@ func (r *CloudPcOnPremisesConnectionResource) Schema(ctx context.Context, req re
 				Computed:            true,
 				MarkdownDescription: "Indicates whether a Cloud PC is using this on-premises network connection. true if at least one Cloud PC is using it. Otherwise, false. Read-only. Default is false.",
 			},
-			"timeouts": commonschema.Timeouts(ctx),
+			"timeouts": commonschema.ResourceTimeouts(ctx),
 		},
 	}
 }

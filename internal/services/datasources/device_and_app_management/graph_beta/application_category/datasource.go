@@ -93,7 +93,7 @@ func (d *ApplicationCategoryDataSource) Schema(ctx context.Context, _ datasource
 					},
 				},
 			},
-			"timeouts": commonschema.Timeouts(ctx),
+			"timeouts": commonschema.ResourceTimeouts(ctx),
 		},
 	}
 }

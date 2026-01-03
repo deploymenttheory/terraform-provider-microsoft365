@@ -192,7 +192,7 @@ func (r *AgentIdentityBlueprintResource) Schema(ctx context.Context, req resourc
 				Computed: true,
 				Default:  booldefault.StaticBool(false),
 			},
-			"timeouts": commonschema.Timeouts(ctx),
+			"timeouts": commonschema.ResourceTimeouts(ctx),
 		},
 	}
 }

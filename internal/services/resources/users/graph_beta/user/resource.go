@@ -612,7 +612,7 @@ func (r *UserResource) Schema(ctx context.Context, req resource.SchemaRequest, r
 					"When `false` (default), the user will only be soft deleted and moved to the deleted items container where it can be restored within 30 days. " +
 					"Note: This field defaults to `false` on import since the API does not return this value.",
 			},
-			"timeouts": commonschema.Timeouts(ctx),
+			"timeouts": commonschema.ResourceTimeouts(ctx),
 		},
 	}
 }

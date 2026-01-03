@@ -232,7 +232,7 @@ func (r *IOSiPadOSWebClipResource) Schema(ctx context.Context, req resource.Sche
 				MarkdownDescription: "The upload state. Possible values are: 0 - Not Ready, 1 - Ready, 2 - Processing. This property is read-only.",
 			},
 			"app_icon": commonschemagraphbeta.MobileAppIconSchema(),
-			"timeouts": commonschema.Timeouts(ctx),
+			"timeouts": commonschema.ResourceTimeouts(ctx),
 		},
 	}
 }

@@ -425,7 +425,7 @@ func (r *UserMailboxSettingsResource) Schema(ctx context.Context, req resource.S
 				MarkdownDescription: "The purpose of the mailbox. Differentiates a mailbox for a single user from a shared mailbox and equipment mailbox in Exchange Online. Possible values are: user, linked, shared, room, equipment, others, unknownFutureValue. Read-only.",
 				Computed:            true,
 			},
-			"timeouts": commonschema.Timeouts(ctx),
+			"timeouts": commonschema.ResourceTimeouts(ctx),
 		},
 	}
 }

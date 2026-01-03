@@ -226,7 +226,7 @@ func (r *CloudPcUserSettingResource) Schema(ctx context.Context, req resource.Sc
 				},
 			},
 			"assignments": Windows365UserSettingsAssignmentSchema(),
-			"timeouts":    commonschema.Timeouts(ctx),
+			"timeouts":    commonschema.ResourceTimeouts(ctx),
 		},
 	}
 }

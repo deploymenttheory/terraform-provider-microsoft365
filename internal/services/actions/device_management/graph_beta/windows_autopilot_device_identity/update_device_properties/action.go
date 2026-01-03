@@ -17,6 +17,7 @@ import (
 
 const (
 	ActionName = "microsoft365_graph_beta_device_management_windows_autopilot_device_identity_update_device_properties"
+	InvokeTimeout = 60
 )
 
 var (
@@ -114,7 +115,7 @@ func (a *UpdateDevicePropertiesAction) Schema(ctx context.Context, req action.Sc
 					stringvalidator.LengthAtLeast(1),
 				},
 			},
-			"timeouts": commonschema.Timeouts(ctx),
+			"timeouts": commonschema.ActionTimeouts(ctx),
 		},
 	}
 }

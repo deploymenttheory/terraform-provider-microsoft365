@@ -108,7 +108,7 @@ func (r *NetworkFilteringPolicyResource) Schema(ctx context.Context, req resourc
 				MarkdownDescription: "The version of the policy. Note: This property is not documented in the Microsoft Graph API documentation but is included in API responses. This appears to be an internal property that tracks the policy structure version and does not change with regular updates.",
 				Computed:            true,
 			},
-			"timeouts": commonschema.Timeouts(ctx),
+			"timeouts": commonschema.ResourceTimeouts(ctx),
 		},
 	}
 }

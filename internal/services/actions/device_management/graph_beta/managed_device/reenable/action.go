@@ -19,6 +19,7 @@ import (
 
 const (
 	ActionName = "microsoft365_graph_beta_device_management_managed_device_reenable"
+	InvokeTimeout = 60
 )
 
 var (
@@ -115,7 +116,7 @@ func (a *ReenableManagedDeviceAction) Schema(ctx context.Context, req action.Sch
 					),
 				},
 			},
-			"timeouts": commonschema.Timeouts(ctx),
+			"timeouts": commonschema.ActionTimeouts(ctx),
 		},
 	}
 }

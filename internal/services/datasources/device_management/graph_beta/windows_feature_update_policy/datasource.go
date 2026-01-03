@@ -71,7 +71,7 @@ func (d *WindowsFeatureUpdateProfileDataSource) Schema(ctx context.Context, _ da
 				Computed:            true,
 				MarkdownDescription: "List of Scope Tags for this Feature Update entity.",
 			},
-			"timeouts": commonschema.Timeouts(ctx),
+			"timeouts": commonschema.ResourceTimeouts(ctx),
 		},
 	}
 }

@@ -71,7 +71,7 @@ func (d *WindowsDriverUpdateProfileDataSource) Schema(ctx context.Context, _ dat
 				Computed:            true,
 				MarkdownDescription: "List of Scope Tags for this Driver Update entity.",
 			},
-			"timeouts": commonschema.Timeouts(ctx),
+			"timeouts": commonschema.ResourceTimeouts(ctx),
 		},
 	}
 }

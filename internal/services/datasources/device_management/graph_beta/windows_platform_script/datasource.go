@@ -72,7 +72,7 @@ func (d *WindowsPlatformScriptDataSource) Schema(ctx context.Context, req dataso
 				Computed:            true,
 				ElementType:         types.StringType,
 			},
-			"timeouts": commonschema.Timeouts(ctx),
+			"timeouts": commonschema.ResourceTimeouts(ctx),
 		},
 	}
 }

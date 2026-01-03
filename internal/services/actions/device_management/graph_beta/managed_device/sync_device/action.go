@@ -19,6 +19,7 @@ import (
 
 const (
 	ActionName = "microsoft365_graph_beta_device_management_managed_device_sync_device"
+	InvokeTimeout = 60
 )
 
 var (
@@ -137,7 +138,7 @@ func (a *SyncManagedDeviceAction) Schema(ctx context.Context, req action.SchemaR
 					),
 				},
 			},
-			"timeouts": commonschema.Timeouts(ctx),
+			"timeouts": commonschema.ActionTimeouts(ctx),
 		},
 	}
 }

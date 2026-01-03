@@ -133,7 +133,7 @@ func (r *GroupMemberAssignmentResource) Schema(ctx context.Context, req resource
 				Computed:            true,
 				MarkdownDescription: "The display name of the member. Read-only.",
 			},
-			"timeouts": commonschema.Timeouts(ctx),
+			"timeouts": commonschema.ResourceTimeouts(ctx),
 		},
 	}
 }

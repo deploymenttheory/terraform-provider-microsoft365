@@ -189,7 +189,7 @@ func (r *AgentInstanceResource) Schema(ctx context.Context, req resource.SchemaR
 					stringvalidator.OneOf("JSONRPC", "GRPC", "HTTP+JSON"),
 				},
 			},
-			"timeouts": commonschema.Timeouts(ctx),
+			"timeouts": commonschema.ResourceTimeouts(ctx),
 			"additional_interfaces": schema.ListNestedAttribute{
 				MarkdownDescription: "Additional interfaces/transports supported by the agent.",
 				Optional:            true,

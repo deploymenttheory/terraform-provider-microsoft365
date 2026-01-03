@@ -7,6 +7,7 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
 	"github.com/google/uuid"
 	"github.com/jarcoal/httpmock"
@@ -44,23 +45,33 @@ func (m *NamedLocationMock) RegisterMocks() {
 
 		// Determine response based on @odata.type
 		var responseObj map[string]any
-		var err error
 
 		if odataType, ok := requestBody["@odata.type"].(string); ok {
+			var jsonContent string
+			var err error
+
 			switch odataType {
 			case "#microsoft.graph.ipNamedLocation":
-				responseObj, err = mocks.LoadJSONResponse(filepath.Join("tests", "responses", "validate_create", "post_ip_named_location_success.json"))
+				jsonContent, err = helpers.ParseJSONFile(filepath.Join("..", "tests", "responses", "validate_create", "post_ip_named_location_success.json"))
+				if err != nil {
+					return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to load mock response"}}`), nil
+				}
+				if err := json.Unmarshal([]byte(jsonContent), &responseObj); err != nil {
+					return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to parse JSON response"}}`), nil
+				}
 			case "#microsoft.graph.countryNamedLocation":
-				responseObj, err = mocks.LoadJSONResponse(filepath.Join("tests", "responses", "validate_create", "post_country_named_location_success.json"))
+				jsonContent, err = helpers.ParseJSONFile(filepath.Join("..", "tests", "responses", "validate_create", "post_country_named_location_success.json"))
+				if err != nil {
+					return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to load mock response"}}`), nil
+				}
+				if err := json.Unmarshal([]byte(jsonContent), &responseObj); err != nil {
+					return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to parse JSON response"}}`), nil
+				}
 			default:
 				return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"Invalid @odata.type"}}`), nil
 			}
 		} else {
 			return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"Missing @odata.type"}}`), nil
-		}
-
-		if err != nil {
-			return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to load response"}}`), nil
 		}
 
 		// Update response with request data

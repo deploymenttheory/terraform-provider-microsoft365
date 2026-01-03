@@ -17,6 +17,7 @@ import (
 
 const (
 	ActionName = "microsoft365_graph_beta_device_management_windows_autopilot_device_identity_unassign_user_from_device"
+	InvokeTimeout = 60
 )
 
 var (
@@ -80,7 +81,7 @@ func (a *UnassignUserFromDeviceAction) Schema(ctx context.Context, req action.Sc
 					),
 				},
 			},
-			"timeouts": commonschema.Timeouts(ctx),
+			"timeouts": commonschema.ActionTimeouts(ctx),
 		},
 	}
 }

@@ -19,6 +19,7 @@ import (
 
 const (
 	ActionName = "microsoft365_graph_beta_device_management_managed_device_initiate_device_attestation"
+	InvokeTimeout = 60
 )
 
 var (
@@ -118,7 +119,7 @@ func (a *InitiateDeviceAttestationManagedDeviceAction) Schema(ctx context.Contex
 					),
 				},
 			},
-			"timeouts": commonschema.Timeouts(ctx),
+			"timeouts": commonschema.ActionTimeouts(ctx),
 		},
 	}
 }

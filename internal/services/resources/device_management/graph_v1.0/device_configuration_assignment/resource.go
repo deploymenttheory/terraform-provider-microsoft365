@@ -152,7 +152,7 @@ func (r *DeviceConfigurationAssignmentResource) Schema(ctx context.Context, req 
 					),
 				},
 			},
-			"timeouts": commonschema.Timeouts(ctx),
+			"timeouts": commonschema.ResourceTimeouts(ctx),
 		},
 	}
 }

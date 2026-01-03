@@ -84,7 +84,7 @@ func (d *AssignmentFilterDataSource) Schema(ctx context.Context, _ datasource.Sc
 					},
 				},
 			},
-			"timeouts": commonschema.Timeouts(ctx),
+			"timeouts": commonschema.ResourceTimeouts(ctx),
 		},
 	}
 }

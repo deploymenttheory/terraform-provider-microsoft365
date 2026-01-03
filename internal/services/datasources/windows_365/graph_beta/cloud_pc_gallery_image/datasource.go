@@ -110,7 +110,7 @@ func (d *CloudPcGalleryImageDataSource) Schema(ctx context.Context, _ datasource
 					},
 				},
 			},
-			"timeouts": commonschema.Timeouts(ctx),
+			"timeouts": commonschema.ResourceTimeouts(ctx),
 		},
 	}
 }

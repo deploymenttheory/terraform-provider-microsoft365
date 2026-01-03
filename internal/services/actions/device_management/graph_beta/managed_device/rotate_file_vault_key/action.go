@@ -19,6 +19,7 @@ import (
 
 const (
 	ActionName = "microsoft365_graph_beta_device_management_managed_device_rotate_file_vault_key"
+	InvokeTimeout = 60
 )
 
 var (
@@ -114,7 +115,7 @@ func (a *RotateFileVaultKeyManagedDeviceAction) Schema(ctx context.Context, req 
 					),
 				},
 			},
-			"timeouts": commonschema.Timeouts(ctx),
+			"timeouts": commonschema.ActionTimeouts(ctx),
 		},
 	}
 }

@@ -445,7 +445,7 @@ func (d *ManagedDeviceDataSource) Schema(ctx context.Context, _ datasource.Schem
 					},
 				},
 			},
-			"timeouts": commonschema.Timeouts(ctx),
+			"timeouts": commonschema.ResourceTimeouts(ctx),
 		},
 	}
 }

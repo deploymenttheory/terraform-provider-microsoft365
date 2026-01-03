@@ -153,7 +153,7 @@ func (r *ServicePrincipalAppRoleAssignedToResource) Schema(ctx context.Context, 
 				Computed:            true,
 				MarkdownDescription: "The time when the app role assignment was created. The Timestamp type represents date and time information using ISO 8601 format and is always in UTC time. Read-only.",
 			},
-			"timeouts": commonschema.Timeouts(ctx),
+			"timeouts": commonschema.ResourceTimeouts(ctx),
 		},
 	}
 }

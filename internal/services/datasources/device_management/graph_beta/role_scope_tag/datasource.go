@@ -85,7 +85,7 @@ func (d *RoleScopeTagDataSource) Schema(ctx context.Context, _ datasource.Schema
 					},
 				},
 			},
-			"timeouts": commonschema.Timeouts(ctx),
+			"timeouts": commonschema.ResourceTimeouts(ctx),
 		},
 	}
 }

@@ -19,6 +19,7 @@ import (
 
 const (
 	ActionName = "microsoft365_graph_beta_device_management_managed_device_rotate_local_admin_password"
+	InvokeTimeout = 60
 )
 
 var (
@@ -118,7 +119,7 @@ func (a *RotateLocalAdminPasswordManagedDeviceAction) Schema(ctx context.Context
 					),
 				},
 			},
-			"timeouts": commonschema.Timeouts(ctx),
+			"timeouts": commonschema.ActionTimeouts(ctx),
 		},
 	}
 }

@@ -170,7 +170,7 @@ func (r *GroupLicenseAssignmentResource) Schema(ctx context.Context, req resourc
 					),
 				},
 			},
-			"timeouts": commonschema.Timeouts(ctx),
+			"timeouts": commonschema.ResourceTimeouts(ctx),
 		},
 	}
 }

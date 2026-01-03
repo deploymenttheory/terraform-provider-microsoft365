@@ -84,7 +84,7 @@ func (d *DeviceCategoryDataSource) Schema(ctx context.Context, _ datasource.Sche
 					},
 				},
 			},
-			"timeouts": commonschema.Timeouts(ctx),
+			"timeouts": commonschema.ResourceTimeouts(ctx),
 		},
 	}
 }

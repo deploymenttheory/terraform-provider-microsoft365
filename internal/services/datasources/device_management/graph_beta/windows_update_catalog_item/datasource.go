@@ -88,7 +88,7 @@ func (d *WindowsUpdateCatalogItemDataSource) Schema(ctx context.Context, _ datas
 					},
 				},
 			},
-			"timeouts": commonschema.Timeouts(ctx),
+			"timeouts": commonschema.ResourceTimeouts(ctx),
 		},
 	}
 }

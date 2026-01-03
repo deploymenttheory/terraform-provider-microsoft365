@@ -19,6 +19,7 @@ import (
 
 const (
 	ActionName = "microsoft365_graph_beta_device_management_managed_device_logout_shared_apple_device_active_user"
+	InvokeTimeout = 60
 )
 
 var (
@@ -121,7 +122,7 @@ func (a *LogoutSharedAppleDeviceActiveUserAction) Schema(ctx context.Context, re
 					),
 				},
 			},
-			"timeouts": commonschema.Timeouts(ctx),
+			"timeouts": commonschema.ActionTimeouts(ctx),
 		},
 	}
 }

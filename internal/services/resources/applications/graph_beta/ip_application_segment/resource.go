@@ -119,7 +119,7 @@ func (r *IpApplicationSegmentResource) Schema(ctx context.Context, req resource.
 					stringvalidator.OneOf("tcp", "udp"),
 				},
 			},
-			"timeouts": commonschema.Timeouts(ctx),
+			"timeouts": commonschema.ResourceTimeouts(ctx),
 		},
 	}
 }

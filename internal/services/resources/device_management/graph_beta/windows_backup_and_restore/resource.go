@@ -89,7 +89,7 @@ func (r *WindowsBackupAndRestoreResource) Schema(ctx context.Context, req resour
 					stringvalidator.OneOf("enabled", "disabled", "notConfigured"),
 				},
 			},
-			"timeouts": commonschema.Timeouts(ctx),
+			"timeouts": commonschema.ResourceTimeouts(ctx),
 		},
 	}
 }

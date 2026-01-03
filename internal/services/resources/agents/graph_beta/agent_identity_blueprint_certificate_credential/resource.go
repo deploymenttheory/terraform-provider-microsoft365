@@ -153,7 +153,7 @@ func (r *AgentIdentityBlueprintCertificateCredentialResource) Schema(ctx context
 				Computed:            true,
 				MarkdownDescription: "The thumbprint (SHA-1 hash) of the certificate.",
 			},
-			"timeouts": commonschema.Timeouts(ctx),
+			"timeouts": commonschema.ResourceTimeouts(ctx),
 		},
 	}
 }

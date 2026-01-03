@@ -7,6 +7,7 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks/factories"
 
@@ -74,25 +75,30 @@ func (m *RoleDefinitionMock) createRoleDefinitionResponder() httpmock.Responder 
 		}
 
 		// Load base response from JSON file - choose based on request content
-		var response map[string]any
+		var jsonContent string
 		var err error
 		if _, hasRolePermissions := requestBody["rolePermissions"]; !hasRolePermissions {
 			// No role permissions specified
-			response, err = mocks.LoadJSONResponse(filepath.Join("tests", "responses", "validate_create", "get_role_definition_no_permissions.json"))
+			jsonContent, err = helpers.ParseJSONFile(filepath.Join("..", "tests", "responses", "validate_create", "get_role_definition_no_permissions.json"))
 		} else if isBuiltIn, ok := requestBody["isBuiltIn"].(bool); ok && isBuiltIn {
 			// Built-in role definition
-			response, err = mocks.LoadJSONResponse(filepath.Join("tests", "responses", "validate_create", "get_role_definition_maximal_builtin.json"))
+			jsonContent, err = helpers.ParseJSONFile(filepath.Join("..", "tests", "responses", "validate_create", "get_role_definition_maximal_builtin.json"))
 		} else if isBuiltInRoleDefinition, ok := requestBody["isBuiltInRoleDefinition"].(bool); ok && isBuiltInRoleDefinition {
 			// Built-in role definition (alternative field)
-			response, err = mocks.LoadJSONResponse(filepath.Join("tests", "responses", "validate_create", "get_role_definition_maximal_builtin.json"))
+			jsonContent, err = helpers.ParseJSONFile(filepath.Join("..", "tests", "responses", "validate_create", "get_role_definition_maximal_builtin.json"))
 		} else if description, hasDesc := requestBody["description"]; hasDesc && description != "" {
-			response, err = mocks.LoadJSONResponse(filepath.Join("tests", "responses", "validate_create", "get_role_definition_maximal.json"))
+			jsonContent, err = helpers.ParseJSONFile(filepath.Join("..", "tests", "responses", "validate_create", "get_role_definition_maximal.json"))
 		} else {
-			response, err = mocks.LoadJSONResponse(filepath.Join("tests", "responses", "validate_create", "get_role_definition_minimal.json"))
+			jsonContent, err = helpers.ParseJSONFile(filepath.Join("..", "tests", "responses", "validate_create", "get_role_definition_minimal.json"))
 		}
 
 		if err != nil {
 			return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to load mock response"}}`), nil
+		}
+
+		var response map[string]any
+		if err := json.Unmarshal([]byte(jsonContent), &response); err != nil {
+			return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to parse mock response"}}`), nil
 		}
 
 		// Generate a new ID for the created resource
@@ -148,22 +154,36 @@ func (m *RoleDefinitionMock) getRoleDefinitionResponder() httpmock.Responder {
 		// Check for special test IDs
 		switch {
 		case strings.Contains(id, "minimal"):
-			response, err := mocks.LoadJSONResponse(filepath.Join("tests", "responses", "validate_create", "get_role_definition_minimal.json"))
+			jsonContent, err := helpers.ParseJSONFile(filepath.Join("..", "tests", "responses", "validate_create", "get_role_definition_minimal.json"))
 			if err != nil {
 				return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to load mock response"}}`), nil
+			}
+			var response map[string]any
+			if err := json.Unmarshal([]byte(jsonContent), &response); err != nil {
+				return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to parse mock response"}}`), nil
 			}
 			response["id"] = id
 			return factories.SuccessResponse(200, response)(req)
 		case strings.Contains(id, "maximal"):
-			response, err := mocks.LoadJSONResponse(filepath.Join("tests", "responses", "validate_create", "get_role_definition_maximal.json"))
+			jsonContent, err := helpers.ParseJSONFile(filepath.Join("..", "tests", "responses", "validate_create", "get_role_definition_maximal.json"))
 			if err != nil {
 				return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to load mock response"}}`), nil
+			}
+			var response map[string]any
+			if err := json.Unmarshal([]byte(jsonContent), &response); err != nil {
+				return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to parse mock response"}}`), nil
 			}
 			response["id"] = id
 			return factories.SuccessResponse(200, response)(req)
 		default:
-			errorResponse, _ := mocks.LoadJSONResponse(filepath.Join("tests", "responses", "validate_delete", "get_role_definition_not_found.json"))
-			return httpmock.NewJsonResponse(404, errorResponse)
+			jsonContent, err := helpers.ParseJSONFile(filepath.Join("..", "tests", "responses", "validate_delete", "get_role_definition_not_found.json"))
+			if err == nil {
+				var errorResponse map[string]any
+				if json.Unmarshal([]byte(jsonContent), &errorResponse) == nil {
+					return httpmock.NewJsonResponse(404, errorResponse)
+				}
+			}
+			return httpmock.NewStringResponse(404, `{"error":{"code":"ResourceNotFound","message":"Resource not found"}}`), nil
 		}
 	}
 }
@@ -179,8 +199,14 @@ func (m *RoleDefinitionMock) updateRoleDefinitionResponder() httpmock.Responder 
 		mockState.Unlock()
 
 		if !exists {
-			errorResponse, _ := mocks.LoadJSONResponse(filepath.Join("tests", "responses", "validate_delete", "get_role_definition_not_found.json"))
-			return httpmock.NewJsonResponse(404, errorResponse)
+			jsonContent, err := helpers.ParseJSONFile(filepath.Join("..", "tests", "responses", "validate_delete", "get_role_definition_not_found.json"))
+			if err == nil {
+				var errorResponse map[string]any
+				if json.Unmarshal([]byte(jsonContent), &errorResponse) == nil {
+					return httpmock.NewJsonResponse(404, errorResponse)
+				}
+			}
+			return httpmock.NewStringResponse(404, `{"error":{"code":"ResourceNotFound","message":"Resource not found"}}`), nil
 		}
 
 		var requestBody map[string]any
@@ -194,9 +220,14 @@ func (m *RoleDefinitionMock) updateRoleDefinitionResponder() httpmock.Responder 
 		}
 
 		// Load update template
-		updatedRoleDefinition, err := mocks.LoadJSONResponse(filepath.Join("tests", "responses", "validate_update", "get_role_definition_updated.json"))
+		jsonContent, err := helpers.ParseJSONFile(filepath.Join("..", "tests", "responses", "validate_update", "get_role_definition_updated.json"))
 		if err != nil {
 			return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to load mock response"}}`), nil
+		}
+		
+		var updatedRoleDefinition map[string]any
+		if err := json.Unmarshal([]byte(jsonContent), &updatedRoleDefinition); err != nil {
+			return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to parse mock response"}}`), nil
 		}
 
 		// Start with existing data
@@ -232,8 +263,14 @@ func (m *RoleDefinitionMock) deleteRoleDefinitionResponder() httpmock.Responder 
 		mockState.Unlock()
 
 		if !exists {
-			errorResponse, _ := mocks.LoadJSONResponse(filepath.Join("tests", "responses", "validate_delete", "get_role_definition_not_found.json"))
-			return httpmock.NewJsonResponse(404, errorResponse)
+			jsonContent, err := helpers.ParseJSONFile(filepath.Join("..", "tests", "responses", "validate_delete", "get_role_definition_not_found.json"))
+			if err == nil {
+				var errorResponse map[string]any
+				if json.Unmarshal([]byte(jsonContent), &errorResponse) == nil {
+					return httpmock.NewJsonResponse(404, errorResponse)
+				}
+			}
+			return httpmock.NewStringResponse(404, `{"error":{"code":"ResourceNotFound","message":"Resource not found"}}`), nil
 		}
 
 		return factories.EmptySuccessResponse(204)(req)
@@ -298,9 +335,30 @@ func (m *RoleDefinitionMock) CleanupMockState() {
 
 // GetMockRoleDefinitionData returns sample role definition data for testing
 func (m *RoleDefinitionMock) GetMockRoleDefinitionData() map[string]any {
-	response, err := mocks.LoadJSONResponse(filepath.Join("tests", "responses", "validate_create", "get_role_definition_maximal.json"))
+	jsonContent, err := helpers.ParseJSONFile(filepath.Join("..", "tests", "responses", "validate_create", "get_role_definition_maximal.json"))
 	if err != nil {
 		// Fallback to hardcoded response if file loading fails
+		return map[string]any{
+			"id":                      "test-role-definition-id",
+			"displayName":             "Test Role Definition",
+			"description":             "Test role definition for unit testing",
+			"isBuiltIn":               false,
+			"isBuiltInRoleDefinition": false,
+			"roleScopeTagIds":         []string{"0"},
+			"rolePermissions": []map[string]any{
+				{
+					"allowedResourceActions": []string{
+						"microsoft.management/managedDevices/read",
+						"microsoft.management/managedDevices/write",
+					},
+				},
+			},
+		}
+	}
+	
+	var response map[string]any
+	if err := json.Unmarshal([]byte(jsonContent), &response); err != nil {
+		// Fallback to hardcoded response if parsing fails
 		return map[string]any{
 			"id":                      "test-role-definition-id",
 			"displayName":             "Test Role Definition",
@@ -514,9 +572,30 @@ func (m *RoleDefinitionMock) listResourceOperationsResponder() httpmock.Responde
 
 // GetMockRoleDefinitionMinimalData returns minimal role definition data for testing
 func (m *RoleDefinitionMock) GetMockRoleDefinitionMinimalData() map[string]any {
-	response, err := mocks.LoadJSONResponse(filepath.Join("tests", "responses", "validate_create", "get_role_definition_minimal.json"))
+	jsonContent, err := helpers.ParseJSONFile(filepath.Join("..", "tests", "responses", "validate_create", "get_role_definition_minimal.json"))
 	if err != nil {
 		// Fallback to hardcoded response if file loading fails
+		return map[string]any{
+			"id":                      "test-minimal-role-definition-id",
+			"displayName":             "Test Minimal Role Definition",
+			"description":             "",
+			"isBuiltIn":               false,
+			"isBuiltInRoleDefinition": false,
+			"roleScopeTagIds":         []string{"0"},
+			"rolePermissions": []map[string]any{
+				{
+					"allowedResourceActions": []string{
+						"microsoft.management/managedDevices/read",
+						"microsoft.management/managedDevices/write",
+					},
+				},
+			},
+		}
+	}
+	
+	var response map[string]any
+	if err := json.Unmarshal([]byte(jsonContent), &response); err != nil {
+		// Fallback to hardcoded response if parsing fails
 		return map[string]any{
 			"id":                      "test-minimal-role-definition-id",
 			"displayName":             "Test Minimal Role Definition",

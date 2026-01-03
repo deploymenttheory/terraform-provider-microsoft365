@@ -171,7 +171,7 @@ func (r *ReuseablePolicySettingsResource) Schema(ctx context.Context, req resour
 				Computed:            true,
 				MarkdownDescription: "Number of configuration policies referencing this reuseable policy",
 			},
-			"timeouts": commonschema.Timeouts(ctx),
+			"timeouts": commonschema.ResourceTimeouts(ctx),
 		},
 	}
 }

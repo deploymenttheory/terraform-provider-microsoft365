@@ -287,7 +287,7 @@ func (r *AndroidDeviceOwnerCompliancePolicyResource) Schema(ctx context.Context,
 				},
 			},
 			"assignments": commonschemagraphbeta.ComplianceScriptAssignmentsSchema(),
-			"timeouts":    commonschema.Timeouts(ctx),
+			"timeouts":    commonschema.ResourceTimeouts(ctx),
 		},
 	}
 }

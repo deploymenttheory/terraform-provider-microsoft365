@@ -141,7 +141,7 @@ func (r *DeviceCustomAttributeShellScriptResource) Schema(ctx context.Context, r
 				MarkdownDescription: "The date and time the script was last modified. Read-only.",
 			},
 			"assignments": commonschemagraphbeta.PlatformScriptAssignmentsSchema(),
-			"timeouts":    commonschema.Timeouts(ctx),
+			"timeouts":    commonschema.ResourceTimeouts(ctx),
 		},
 	}
 }

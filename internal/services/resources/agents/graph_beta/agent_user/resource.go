@@ -337,7 +337,7 @@ func (r *AgentUserResource) Schema(ctx context.Context, req resource.SchemaReque
 				Computed: true,
 				Default:  booldefault.StaticBool(false),
 			},
-			"timeouts": commonschema.Timeouts(ctx),
+			"timeouts": commonschema.ResourceTimeouts(ctx),
 		},
 	}
 }

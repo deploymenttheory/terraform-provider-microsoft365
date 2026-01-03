@@ -111,7 +111,7 @@ func (r *RBACResourceOperationResource) Schema(ctx context.Context, req resource
 					boolplanmodifier.UseStateForUnknown(),
 				},
 			},
-			"timeouts": commonschema.Timeouts(ctx),
+			"timeouts": commonschema.ResourceTimeouts(ctx),
 		},
 	}
 }

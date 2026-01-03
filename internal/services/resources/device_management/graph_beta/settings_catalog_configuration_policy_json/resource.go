@@ -230,7 +230,7 @@ func (r *SettingsCatalogJsonResource) Schema(ctx context.Context, req resource.S
 				MarkdownDescription: "Indicates if the policy is assigned to any scope",
 			},
 			"assignments": commonschemagraphbeta.DeviceConfigurationWithAllGroupAssignmentsAndFilterSchema(),
-			"timeouts":    commonschema.Timeouts(ctx),
+			"timeouts":    commonschema.ResourceTimeouts(ctx),
 		},
 	}
 }

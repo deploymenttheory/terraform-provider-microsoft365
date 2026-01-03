@@ -40,7 +40,7 @@ func TestAccUserManagerResource_Lifecycle(t *testing.T) {
 				PreConfig: func() {
 					testlog.StepAction(resourceType, "Creating user manager relationship")
 				},
-				Config: testAccConfigMinimal(),
+				Config: loadAcceptanceTestTerraform("resource_minimal.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					func(_ *terraform.State) error {
 						testlog.WaitForConsistency("user_manager", 20*time.Second)
@@ -65,11 +65,11 @@ func TestAccUserManagerResource_Lifecycle(t *testing.T) {
 	})
 }
 
-// Config loader functions
-func testAccConfigMinimal() string {
-	config, err := helpers.ParseHCLFile("tests/terraform/acceptance/resource_minimal.tf")
+// Config loader function
+func loadAcceptanceTestTerraform(filename string) string {
+	config, err := helpers.ParseHCLFile("tests/terraform/acceptance/" + filename)
 	if err != nil {
-		panic("failed to load minimal config: " + err.Error())
+		panic("failed to load acceptance config " + filename + ": " + err.Error())
 	}
 	return acceptance.ConfiguredM365ProviderBlock(config)
 }

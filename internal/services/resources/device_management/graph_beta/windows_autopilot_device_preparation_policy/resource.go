@@ -334,7 +334,7 @@ func (r *WindowsAutopilotDevicePreparationPolicyResource) Schema(ctx context.Con
 					},
 				},
 			},
-			"timeouts": commonschema.Timeouts(ctx),
+			"timeouts": commonschema.ResourceTimeouts(ctx),
 		},
 	}
 }

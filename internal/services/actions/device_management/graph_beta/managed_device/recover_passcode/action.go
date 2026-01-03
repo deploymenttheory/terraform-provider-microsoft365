@@ -19,6 +19,7 @@ import (
 
 const (
 	ActionName = "microsoft365_graph_beta_device_management_managed_device_recover_passcode"
+	InvokeTimeout = 60
 )
 
 var (
@@ -110,7 +111,7 @@ func (a *RecoverManagedDevicePasscodeAction) Schema(ctx context.Context, req act
 					),
 				},
 			},
-			"timeouts": commonschema.Timeouts(ctx),
+			"timeouts": commonschema.ActionTimeouts(ctx),
 		},
 	}
 }

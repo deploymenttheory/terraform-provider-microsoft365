@@ -147,7 +147,7 @@ func (r *DeviceEnrollmentLimitConfigurationResource) Schema(ctx context.Context,
 					int32validator.AtLeast(1),
 				},
 			},
-			"timeouts": commonschema.Timeouts(ctx),
+			"timeouts": commonschema.ResourceTimeouts(ctx),
 		},
 	}
 }

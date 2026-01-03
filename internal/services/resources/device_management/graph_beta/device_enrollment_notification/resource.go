@@ -219,7 +219,7 @@ func (r *DeviceEnrollmentNotificationResource) Schema(ctx context.Context, _ res
 				},
 			},
 			"assignments": commonschemagraphbeta.AndroidNotificationAssignmentsSchema(),
-			"timeouts":    commonschema.Timeouts(ctx),
+			"timeouts":    commonschema.ResourceTimeouts(ctx),
 		},
 	}
 }

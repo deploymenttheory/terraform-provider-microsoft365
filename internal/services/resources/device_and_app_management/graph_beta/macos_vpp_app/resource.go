@@ -424,7 +424,7 @@ func (r *MacOSVppAppResource) Schema(ctx context.Context, req resource.SchemaReq
 				},
 			},
 			"app_icon": commonschemagraphbeta.MobileAppIconSchema(),
-			"timeouts": commonschema.Timeouts(ctx),
+			"timeouts": commonschema.ResourceTimeouts(ctx),
 		},
 	}
 }

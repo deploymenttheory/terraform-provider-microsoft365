@@ -229,7 +229,7 @@ func (r *Win32LobAppResource) Schema(ctx context.Context, req resource.SchemaReq
 			"content_version": commonschemagraphbeta.MobileAppContentVersionSchema(),
 			"app_installer":   commonschemagraphbeta.MobileAppWin32LobInstallerMetadataSchema(),
 			"app_icon":        commonschemagraphbeta.MobileAppIconSchema(),
-			"timeouts":        commonschema.Timeouts(ctx),
+			"timeouts":        commonschema.ResourceTimeouts(ctx),
 		},
 	}
 }

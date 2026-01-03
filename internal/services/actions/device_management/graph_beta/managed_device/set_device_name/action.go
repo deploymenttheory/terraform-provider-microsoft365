@@ -17,6 +17,7 @@ import (
 
 const (
 	ActionName = "microsoft365_graph_beta_device_management_managed_device_set_device_name"
+	InvokeTimeout = 60
 )
 
 var (
@@ -78,15 +79,13 @@ func (a *SetDeviceNameManagedDeviceAction) Schema(ctx context.Context, req actio
 			"- **Android**: Support varies by management mode\n\n" +
 			"**Reference:** [Microsoft Graph API - Set Device Name](https://learn.microsoft.com/en-us/graph/api/intune-devices-manageddevice-setdevicename?view=graph-rest-beta)",
 		Attributes: map[string]schema.Attribute{
-			"timeouts": commonschema.Timeouts(ctx),
-		},
-		Blocks: map[string]schema.Block{
-			"managed_devices": schema.ListNestedBlock{
+			"managed_devices": schema.ListNestedAttribute{
+				Optional: true,
 				MarkdownDescription: "List of managed devices to set custom names for. These are devices fully managed by Intune only. " +
 					"Each entry specifies a device ID and the new name to assign to that device.\n\n" +
 					"**Note:** At least one of `managed_devices` or `comanaged_devices` must be provided. " +
 					"You can provide both to set names on different types of devices in one action.",
-				NestedObject: schema.NestedBlockObject{
+				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"device_id": schema.StringAttribute{
 							Required: true,
@@ -112,11 +111,12 @@ func (a *SetDeviceNameManagedDeviceAction) Schema(ctx context.Context, req actio
 					},
 				},
 			},
-			"comanaged_devices": schema.ListNestedBlock{
+			"comanaged_devices": schema.ListNestedAttribute{
+				Optional: true,
 				MarkdownDescription: "List of co-managed devices to set custom names for. These are devices managed by both Intune and " +
 					"Configuration Manager (SCCM). Each entry specifies a device ID and the new name to assign.\n\n" +
 					"**Note:** At least one of `managed_devices` or `comanaged_devices` must be provided.",
-				NestedObject: schema.NestedBlockObject{
+				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"device_id": schema.StringAttribute{
 							Required: true,
@@ -141,6 +141,7 @@ func (a *SetDeviceNameManagedDeviceAction) Schema(ctx context.Context, req actio
 					},
 				},
 			},
+			"timeouts": commonschema.ActionTimeouts(ctx),
 		},
 	}
 }

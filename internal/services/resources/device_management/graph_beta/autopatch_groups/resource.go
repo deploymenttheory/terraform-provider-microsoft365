@@ -395,7 +395,7 @@ func (r *AutopatchGroupsResource) Schema(ctx context.Context, req resource.Schem
 					),
 				},
 			},
-			"timeouts": commonschema.Timeouts(ctx),
+			"timeouts": commonschema.ResourceTimeouts(ctx),
 		},
 	}
 }

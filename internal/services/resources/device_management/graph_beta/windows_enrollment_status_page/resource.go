@@ -207,7 +207,7 @@ func (r *WindowsEnrollmentStatusPageResource) Schema(ctx context.Context, req re
 				},
 			},
 			"assignments": commonschemagraphbeta.DeviceConfigurationWithAllLicensedUsersAllDevicesInclusionGroupAssignmentsSchema(),
-			"timeouts":    commonschema.Timeouts(ctx),
+			"timeouts":    commonschema.ResourceTimeouts(ctx),
 		},
 	}
 }

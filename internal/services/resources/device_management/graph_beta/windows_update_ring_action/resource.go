@@ -142,7 +142,7 @@ func (r *WindowsUpdateRingActionResource) Schema(ctx context.Context, req resour
 				Computed:            true,
 				MarkdownDescription: "Timestamp when the last action was performed.",
 			},
-			"timeouts": commonschema.Timeouts(ctx),
+			"timeouts": commonschema.ResourceTimeouts(ctx),
 		},
 	}
 }

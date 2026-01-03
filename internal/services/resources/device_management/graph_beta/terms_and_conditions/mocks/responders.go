@@ -7,6 +7,7 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks/factories"
 
@@ -74,16 +75,21 @@ func (m *TermsAndConditionsMock) createTermsAndConditionsResponder() httpmock.Re
 		}
 
 		// Load base response from JSON file - use minimal if no description provided
-		var response map[string]any
+		var jsonContent string
 		var err error
 		if description, hasDesc := requestBody["description"]; hasDesc && description != "" {
-			response, err = mocks.LoadJSONResponse(filepath.Join("tests", "responses", "validate_create", "get_terms_and_conditions_maximal.json"))
+			jsonContent, err = helpers.ParseJSONFile(filepath.Join("..", "tests", "responses", "validate_create", "get_terms_and_conditions_maximal.json"))
 		} else {
-			response, err = mocks.LoadJSONResponse(filepath.Join("tests", "responses", "validate_create", "get_terms_and_conditions_minimal.json"))
+			jsonContent, err = helpers.ParseJSONFile(filepath.Join("..", "tests", "responses", "validate_create", "get_terms_and_conditions_minimal.json"))
 		}
 
 		if err != nil {
 			return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to load mock response"}}`), nil
+		}
+
+		var response map[string]any
+		if err := json.Unmarshal([]byte(jsonContent), &response); err != nil {
+			return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to parse mock response"}}`), nil
 		}
 
 		// Generate a new ID for the created resource
@@ -136,22 +142,36 @@ func (m *TermsAndConditionsMock) getTermsAndConditionsResponder() httpmock.Respo
 			// Check for special test IDs
 			switch {
 			case strings.Contains(id, "minimal"):
-				response, err := mocks.LoadJSONResponse(filepath.Join("tests", "responses", "validate_create", "get_terms_and_conditions_minimal.json"))
+				jsonContent, err := helpers.ParseJSONFile(filepath.Join("..", "tests", "responses", "validate_create", "get_terms_and_conditions_minimal.json"))
 				if err != nil {
 					return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to load mock response"}}`), nil
+				}
+				var response map[string]any
+				if err := json.Unmarshal([]byte(jsonContent), &response); err != nil {
+					return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to parse mock response"}}`), nil
 				}
 				response["id"] = id
 				return factories.SuccessResponse(200, response)(req)
 			case strings.Contains(id, "maximal"):
-				response, err := mocks.LoadJSONResponse(filepath.Join("tests", "responses", "validate_create", "get_terms_and_conditions_maximal.json"))
+				jsonContent, err := helpers.ParseJSONFile(filepath.Join("..", "tests", "responses", "validate_create", "get_terms_and_conditions_maximal.json"))
 				if err != nil {
 					return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to load mock response"}}`), nil
+				}
+				var response map[string]any
+				if err := json.Unmarshal([]byte(jsonContent), &response); err != nil {
+					return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to parse mock response"}}`), nil
 				}
 				response["id"] = id
 				return factories.SuccessResponse(200, response)(req)
 			default:
-				errorResponse, _ := mocks.LoadJSONResponse(filepath.Join("tests", "responses", "validate_delete", "get_terms_and_conditions_not_found.json"))
-				return httpmock.NewJsonResponse(404, errorResponse)
+				jsonContent, err := helpers.ParseJSONFile(filepath.Join("..", "tests", "responses", "validate_delete", "get_terms_and_conditions_not_found.json"))
+				if err == nil {
+					var errorResponse map[string]any
+					if json.Unmarshal([]byte(jsonContent), &errorResponse) == nil {
+						return httpmock.NewJsonResponse(404, errorResponse)
+					}
+				}
+				return httpmock.NewStringResponse(404, `{"error":{"code":"ResourceNotFound","message":"Resource not found"}}`), nil
 			}
 		}
 
@@ -170,8 +190,14 @@ func (m *TermsAndConditionsMock) updateTermsAndConditionsResponder() httpmock.Re
 		mockState.Unlock()
 
 		if !exists {
-			errorResponse, _ := mocks.LoadJSONResponse(filepath.Join("tests", "responses", "validate_delete", "get_terms_and_conditions_not_found.json"))
-			return httpmock.NewJsonResponse(404, errorResponse)
+			jsonContent, err := helpers.ParseJSONFile(filepath.Join("..", "tests", "responses", "validate_delete", "get_terms_and_conditions_not_found.json"))
+			if err == nil {
+				var errorResponse map[string]any
+				if json.Unmarshal([]byte(jsonContent), &errorResponse) == nil {
+					return httpmock.NewJsonResponse(404, errorResponse)
+				}
+			}
+			return httpmock.NewStringResponse(404, `{"error":{"code":"ResourceNotFound","message":"Resource not found"}}`), nil
 		}
 
 		var requestBody map[string]any
@@ -185,9 +211,14 @@ func (m *TermsAndConditionsMock) updateTermsAndConditionsResponder() httpmock.Re
 		}
 
 		// Load update template
-		updatedTermsAndConditions, err := mocks.LoadJSONResponse(filepath.Join("tests", "responses", "validate_update", "get_terms_and_conditions_updated.json"))
+		jsonContent, err := helpers.ParseJSONFile(filepath.Join("..", "tests", "responses", "validate_update", "get_terms_and_conditions_updated.json"))
 		if err != nil {
 			return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to load mock response"}}`), nil
+		}
+
+		var updatedTermsAndConditions map[string]any
+		if err := json.Unmarshal([]byte(jsonContent), &updatedTermsAndConditions); err != nil {
+			return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to parse mock response"}}`), nil
 		}
 
 		// Start with existing data
@@ -226,8 +257,14 @@ func (m *TermsAndConditionsMock) deleteTermsAndConditionsResponder() httpmock.Re
 		mockState.Unlock()
 
 		if !exists {
-			errorResponse, _ := mocks.LoadJSONResponse(filepath.Join("tests", "responses", "validate_delete", "get_terms_and_conditions_not_found.json"))
-			return httpmock.NewJsonResponse(404, errorResponse)
+			jsonContent, err := helpers.ParseJSONFile(filepath.Join("..", "tests", "responses", "validate_delete", "get_terms_and_conditions_not_found.json"))
+			if err == nil {
+				var errorResponse map[string]any
+				if json.Unmarshal([]byte(jsonContent), &errorResponse) == nil {
+					return httpmock.NewJsonResponse(404, errorResponse)
+				}
+			}
+			return httpmock.NewStringResponse(404, `{"error":{"code":"ResourceNotFound","message":"Resource not found"}}`), nil
 		}
 
 		return factories.EmptySuccessResponse(204)(req)
@@ -270,9 +307,26 @@ func (m *TermsAndConditionsMock) CleanupMockState() {
 
 // GetMockTermsAndConditionsData returns sample terms and conditions data for testing
 func (m *TermsAndConditionsMock) GetMockTermsAndConditionsData() map[string]any {
-	response, err := mocks.LoadJSONResponse(filepath.Join("tests", "responses", "validate_create", "get_terms_and_conditions_maximal.json"))
+	jsonContent, err := helpers.ParseJSONFile(filepath.Join("..", "tests", "responses", "validate_create", "get_terms_and_conditions_maximal.json"))
 	if err != nil {
 		// Fallback to hardcoded response if file loading fails
+		return map[string]any{
+			"id":                   "test-terms-and-conditions-id",
+			"displayName":          "Test Terms and Conditions",
+			"description":          "Test terms and conditions for unit testing",
+			"title":                "Company Terms and Conditions",
+			"bodyText":             "These are the terms and conditions that users must accept.",
+			"acceptanceStatement":  "I accept the terms and conditions",
+			"version":              1,
+			"roleScopeTagIds":      []string{"0"},
+			"createdDateTime":      "2024-01-01T00:00:00Z",
+			"lastModifiedDateTime": "2024-01-01T00:00:00Z",
+		}
+	}
+
+	var response map[string]any
+	if err := json.Unmarshal([]byte(jsonContent), &response); err != nil {
+		// Fallback to hardcoded response if parsing fails
 		return map[string]any{
 			"id":                   "test-terms-and-conditions-id",
 			"displayName":          "Test Terms and Conditions",
@@ -320,9 +374,25 @@ func (m *TermsAndConditionsMock) createTermsAndConditionsAssignmentResponder() h
 
 // GetMockTermsAndConditionsMinimalData returns minimal terms and conditions data for testing
 func (m *TermsAndConditionsMock) GetMockTermsAndConditionsMinimalData() map[string]any {
-	response, err := mocks.LoadJSONResponse(filepath.Join("tests", "responses", "validate_create", "get_terms_and_conditions_minimal.json"))
+	jsonContent, err := helpers.ParseJSONFile(filepath.Join("..", "tests", "responses", "validate_create", "get_terms_and_conditions_minimal.json"))
 	if err != nil {
 		// Fallback to hardcoded response if file loading fails
+		return map[string]any{
+			"id":                   "test-minimal-terms-and-conditions-id",
+			"displayName":          "Test Minimal Terms and Conditions",
+			"title":                "Simple Terms",
+			"bodyText":             "Basic terms and conditions.",
+			"acceptanceStatement":  "I agree",
+			"version":              1,
+			"roleScopeTagIds":      []string{"0"},
+			"createdDateTime":      "2024-01-01T00:00:00Z",
+			"lastModifiedDateTime": "2024-01-01T00:00:00Z",
+		}
+	}
+
+	var response map[string]any
+	if err := json.Unmarshal([]byte(jsonContent), &response); err != nil {
+		// Fallback to hardcoded response if parsing fails
 		return map[string]any{
 			"id":                   "test-minimal-terms-and-conditions-id",
 			"displayName":          "Test Minimal Terms and Conditions",

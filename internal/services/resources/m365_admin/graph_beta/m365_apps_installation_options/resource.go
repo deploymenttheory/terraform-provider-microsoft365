@@ -120,7 +120,7 @@ func (r *M365AppsInstallationOptionsResource) Schema(ctx context.Context, req re
 				},
 				Description: "The Microsoft 365 apps installation options container object for a MAC platform.",
 			},
-			"timeouts": commonschema.Timeouts(ctx),
+			"timeouts": commonschema.ResourceTimeouts(ctx),
 		},
 	}
 }

@@ -240,7 +240,7 @@ func (r *GroupResource) Schema(ctx context.Context, req resource.SchemaRequest, 
 					"When `false` (default), the group will only be soft deleted and moved to the deleted items container where it can be restored within 30 days. " +
 					"Note: This field defaults to `false` on import since the API does not return this value.",
 			},
-			"timeouts": commonschema.Timeouts(ctx),
+			"timeouts": commonschema.ResourceTimeouts(ctx),
 		},
 	}
 }

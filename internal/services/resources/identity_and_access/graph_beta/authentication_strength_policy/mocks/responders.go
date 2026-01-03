@@ -7,6 +7,7 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks/factories"
 	"github.com/google/uuid"
@@ -102,9 +103,14 @@ func (m *AuthenticationStrengthMock) createAuthenticationStrengthPolicyResponder
 		}
 
 		// Load base response from JSON file
-		response, err := mocks.LoadJSONResponse(filepath.Join("tests", "responses", "validate_create", "post_authentication_strength_policy_success.json"))
+		jsonContent, err := helpers.ParseJSONFile(filepath.Join("..", "tests", "responses", "validate_create", "post_authentication_strength_policy_success.json"))
 		if err != nil {
 			return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to load mock response"}}`), nil
+		}
+
+		var response map[string]any
+		if err := json.Unmarshal([]byte(jsonContent), &response); err != nil {
+			return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to parse mock response"}}`), nil
 		}
 
 		// Generate a mock ID
@@ -164,8 +170,14 @@ func (m *AuthenticationStrengthMock) getAuthenticationStrengthPolicyResponder() 
 		mockState.Unlock()
 
 		if !exists {
-			errorResponse, _ := mocks.LoadJSONResponse(filepath.Join("tests", "responses", "validate_delete", "get_authentication_strength_policy_not_found.json"))
-			return httpmock.NewJsonResponse(404, errorResponse)
+			jsonContent, err := helpers.ParseJSONFile(filepath.Join("..", "tests", "responses", "validate_delete", "get_authentication_strength_policy_not_found.json"))
+			if err == nil {
+				var errorResponse map[string]any
+				if json.Unmarshal([]byte(jsonContent), &errorResponse) == nil {
+					return httpmock.NewJsonResponse(404, errorResponse)
+				}
+			}
+			return httpmock.NewStringResponse(404, `{"error":{"code":"ResourceNotFound","message":"Resource not found"}}`), nil
 		}
 
 		// Create response copy (deep copy to avoid concurrent modification issues)
@@ -207,8 +219,14 @@ func (m *AuthenticationStrengthMock) updateAuthenticationStrengthPolicyResponder
 		mockState.Unlock()
 
 		if !exists {
-			errorResponse, _ := mocks.LoadJSONResponse(filepath.Join("tests", "responses", "validate_delete", "get_authentication_strength_policy_not_found.json"))
-			return httpmock.NewJsonResponse(404, errorResponse)
+			jsonContent, err := helpers.ParseJSONFile(filepath.Join("..", "tests", "responses", "validate_delete", "get_authentication_strength_policy_not_found.json"))
+			if err == nil {
+				var errorResponse map[string]any
+				if json.Unmarshal([]byte(jsonContent), &errorResponse) == nil {
+					return httpmock.NewJsonResponse(404, errorResponse)
+				}
+			}
+			return httpmock.NewStringResponse(404, `{"error":{"code":"ResourceNotFound","message":"Resource not found"}}`), nil
 		}
 
 		var requestBody map[string]any
@@ -322,8 +340,14 @@ func (m *AuthenticationStrengthMock) deleteAuthenticationStrengthPolicyResponder
 		mockState.Unlock()
 
 		if !exists {
-			errorResponse, _ := mocks.LoadJSONResponse(filepath.Join("tests", "responses", "validate_delete", "get_authentication_strength_policy_not_found.json"))
-			return httpmock.NewJsonResponse(404, errorResponse)
+			jsonContent, err := helpers.ParseJSONFile(filepath.Join("..", "tests", "responses", "validate_delete", "get_authentication_strength_policy_not_found.json"))
+			if err == nil {
+				var errorResponse map[string]any
+				if json.Unmarshal([]byte(jsonContent), &errorResponse) == nil {
+					return httpmock.NewJsonResponse(404, errorResponse)
+				}
+			}
+			return httpmock.NewStringResponse(404, `{"error":{"code":"ResourceNotFound","message":"Resource not found"}}`), nil
 		}
 
 		return factories.EmptySuccessResponse(204)(req)
@@ -362,18 +386,28 @@ func (m *AuthenticationStrengthMock) RegisterErrorMocks() {
 
 // GetMockAuthenticationStrengthData returns sample authentication strength policy data for testing
 func (m *AuthenticationStrengthMock) GetMockAuthenticationStrengthData() map[string]any {
-	response, err := mocks.LoadJSONResponse(filepath.Join("tests", "responses", "validate_create", "get_authentication_strength_policy_maximal.json"))
+	jsonContent, err := helpers.ParseJSONFile(filepath.Join("..", "tests", "responses", "validate_create", "get_authentication_strength_policy_maximal.json"))
 	if err != nil {
 		panic("Failed to load mock response: " + err.Error())
+	}
+
+	var response map[string]any
+	if err := json.Unmarshal([]byte(jsonContent), &response); err != nil {
+		panic("Failed to parse mock response: " + err.Error())
 	}
 	return response
 }
 
 // GetMockAuthenticationStrengthMinimalData returns minimal authentication strength policy data for testing
 func (m *AuthenticationStrengthMock) GetMockAuthenticationStrengthMinimalData() map[string]any {
-	response, err := mocks.LoadJSONResponse(filepath.Join("tests", "responses", "validate_create", "get_authentication_strength_policy_minimal.json"))
+	jsonContent, err := helpers.ParseJSONFile(filepath.Join("..", "tests", "responses", "validate_create", "get_authentication_strength_policy_minimal.json"))
 	if err != nil {
 		panic("Failed to load mock response: " + err.Error())
+	}
+
+	var response map[string]any
+	if err := json.Unmarshal([]byte(jsonContent), &response); err != nil {
+		panic("Failed to parse mock response: " + err.Error())
 	}
 	return response
 }

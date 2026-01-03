@@ -16,7 +16,8 @@ import (
 )
 
 const (
-	ActionName = "microsoft365_graph_beta_device_management_managed_device_activate_device_esim"
+	ActionName    = "microsoft365_graph_beta_device_management_managed_device_activate_device_esim"
+	InvokeTimeout = 60
 )
 
 var (
@@ -80,22 +81,8 @@ func (a *ActivateDeviceEsimManagedDeviceAction) Schema(ctx context.Context, req 
 			"- **Other Platforms**: Not applicable\n\n" +
 			"**Reference:** [Microsoft Graph API - Activate Device eSIM](https://learn.microsoft.com/en-us/graph/api/intune-devices-manageddevice-activatedeviceesim?view=graph-rest-beta)",
 		Attributes: map[string]schema.Attribute{
-			"timeouts": commonschema.Timeouts(ctx),
-			"ignore_partial_failures": schema.BoolAttribute{
+			"managed_devices": schema.ListNestedAttribute{
 				Optional: true,
-				MarkdownDescription: "If set to `true`, the action will succeed even if some devices fail eSIM activation. " +
-					"Failed devices will be reported as warnings instead of errors. " +
-					"Default: `false` (action fails if any device fails).",
-			},
-			"validate_device_exists": schema.BoolAttribute{
-				Optional: true,
-				MarkdownDescription: "Whether to validate that devices exist before attempting activation. " +
-					"Disabling this can speed up planning but may result in runtime errors for non-existent devices. " +
-					"Default: `true`.",
-			},
-		},
-		Blocks: map[string]schema.Block{
-			"managed_devices": schema.ListNestedBlock{
 				MarkdownDescription: "List of managed devices to activate eSIM on. These are devices fully managed by Intune only. " +
 					"Each entry specifies a device ID and the carrier-specific activation URL.\n\n" +
 					"**Examples:**\n" +
@@ -114,7 +101,7 @@ func (a *ActivateDeviceEsimManagedDeviceAction) Schema(ctx context.Context, req 
 					"**Platform Support:** iOS (iPhone XS+), Windows 10/11 with cellular, Android (varies by manufacturer)\n\n" +
 					"**Note:** At least one of `managed_devices` or `comanaged_devices` must be provided. " +
 					"Device must be online and support eSIM technology.",
-				NestedObject: schema.NestedBlockObject{
+				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"device_id": schema.StringAttribute{
 							Required: true,
@@ -141,7 +128,8 @@ func (a *ActivateDeviceEsimManagedDeviceAction) Schema(ctx context.Context, req 
 					},
 				},
 			},
-			"comanaged_devices": schema.ListNestedBlock{
+			"comanaged_devices": schema.ListNestedAttribute{
+				Optional: true,
 				MarkdownDescription: "List of co-managed devices to activate eSIM on. These are devices managed by both Intune and " +
 					"Configuration Manager (SCCM). Each entry specifies a device ID and the carrier activation URL.\n\n" +
 					"**Examples:**\n" +
@@ -156,7 +144,7 @@ func (a *ActivateDeviceEsimManagedDeviceAction) Schema(ctx context.Context, req 
 					"**Platform Support:** Windows 10/11 with cellular modems (primary), limited iOS/Android support\n\n" +
 					"**Note:** At least one of `managed_devices` or `comanaged_devices` must be provided. " +
 					"Device must be online and support eSIM technology.",
-				NestedObject: schema.NestedBlockObject{
+				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"device_id": schema.StringAttribute{
 							Required: true,
@@ -180,6 +168,19 @@ func (a *ActivateDeviceEsimManagedDeviceAction) Schema(ctx context.Context, req 
 					},
 				},
 			},
+			"ignore_partial_failures": schema.BoolAttribute{
+				Optional: true,
+				MarkdownDescription: "If set to `true`, the action will succeed even if some devices fail eSIM activation. " +
+					"Failed devices will be reported as warnings instead of errors. " +
+					"Default: `false` (action fails if any device fails).",
+			},
+			"validate_device_exists": schema.BoolAttribute{
+				Optional: true,
+				MarkdownDescription: "Whether to validate that devices exist before attempting activation. " +
+					"Disabling this can speed up planning but may result in runtime errors for non-existent devices. " +
+					"Default: `true`.",
+			},
+			"timeouts": commonschema.ActionTimeouts(ctx),
 		},
 	}
 }

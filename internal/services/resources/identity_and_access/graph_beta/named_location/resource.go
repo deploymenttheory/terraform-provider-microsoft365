@@ -192,7 +192,7 @@ func (r *NamedLocationResource) Schema(ctx context.Context, req resource.SchemaR
 				},
 			},
 
-			"timeouts": commonschema.Timeouts(ctx),
+			"timeouts": commonschema.ResourceTimeouts(ctx),
 		},
 	}
 }

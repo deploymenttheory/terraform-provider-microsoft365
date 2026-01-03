@@ -118,7 +118,7 @@ func (d *DirectorySettingTemplatesDataSource) Schema(ctx context.Context, req da
 					},
 				},
 			},
-			"timeouts": commonschema.Timeouts(ctx),
+			"timeouts": commonschema.ResourceTimeouts(ctx),
 		},
 	}
 }

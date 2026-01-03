@@ -156,7 +156,7 @@ func (d *CloudPcAuditEventDataSource) Schema(ctx context.Context, _ datasource.S
 					},
 				},
 			},
-			"timeouts": commonschema.Timeouts(ctx),
+			"timeouts": commonschema.ResourceTimeouts(ctx),
 		},
 	}
 }

@@ -2,7 +2,7 @@
 package graphBetaPlayLostModeSoundManagedDevice
 
 import (
-	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
+	"github.com/hashicorp/terraform-plugin-framework-timeouts/action/timeouts"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 

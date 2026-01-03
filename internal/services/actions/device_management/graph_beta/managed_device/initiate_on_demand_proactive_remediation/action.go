@@ -17,6 +17,7 @@ import (
 
 const (
 	ActionName = "microsoft365_graph_beta_device_management_managed_device_initiate_on_demand_proactive_remediation"
+	InvokeTimeout = 60
 )
 
 var (
@@ -81,17 +82,15 @@ func (a *InitiateOnDemandProactiveRemediationManagedDeviceAction) Schema(ctx con
 			"- **Other Platforms**: Not supported (Windows-specific feature)\n\n" +
 			"**Reference:** [Microsoft Graph API - Initiate On Demand Proactive Remediation](https://learn.microsoft.com/en-us/graph/api/intune-devices-manageddevice-initiateondemandproactiveremediation?view=graph-rest-beta)",
 		Attributes: map[string]schema.Attribute{
-			"timeouts": commonschema.Timeouts(ctx),
-		},
-		Blocks: map[string]schema.Block{
-			"managed_devices": schema.ListNestedBlock{
+			"managed_devices": schema.ListNestedAttribute{
+				Optional: true,
 				MarkdownDescription: "List of managed devices to initiate proactive remediation for. " +
 					"Each entry specifies a device and the remediation script to run.\n\n" +
 					"**Note:** At least one of `managed_devices` or `comanaged_devices` must be provided. " +
 					"Each device can have a different script policy executed.\n\n" +
 					"**Important:** The script policy must already be deployed to the device. This action triggers " +
 					"immediate execution but does not create a new deployment.",
-				NestedObject: schema.NestedBlockObject{
+				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"device_id": schema.StringAttribute{
 							Required: true,
@@ -117,11 +116,12 @@ func (a *InitiateOnDemandProactiveRemediationManagedDeviceAction) Schema(ctx con
 					},
 				},
 			},
-			"comanaged_devices": schema.ListNestedBlock{
+			"comanaged_devices": schema.ListNestedAttribute{
+				Optional: true,
 				MarkdownDescription: "List of co-managed devices to initiate proactive remediation for. " +
 					"These are devices managed by both Intune and Configuration Manager (SCCM).\n\n" +
 					"**Note:** At least one of `managed_devices` or `comanaged_devices` must be provided.",
-				NestedObject: schema.NestedBlockObject{
+				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"device_id": schema.StringAttribute{
 							Required: true,
@@ -146,6 +146,7 @@ func (a *InitiateOnDemandProactiveRemediationManagedDeviceAction) Schema(ctx con
 					},
 				},
 			},
+			"timeouts": commonschema.ActionTimeouts(ctx),
 		},
 	}
 }

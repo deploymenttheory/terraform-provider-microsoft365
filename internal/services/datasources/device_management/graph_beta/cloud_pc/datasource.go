@@ -172,7 +172,7 @@ func (d *CloudPCDataSource) Schema(ctx context.Context, _ datasource.SchemaReque
 					},
 				},
 			},
-			"timeouts": commonschema.Timeouts(ctx),
+			"timeouts": commonschema.ResourceTimeouts(ctx),
 		},
 	}
 }

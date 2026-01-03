@@ -18,6 +18,7 @@ import (
 
 const (
 	ActionName = "microsoft365_graph_beta_device_management_managed_device_windows_defender_scan"
+	InvokeTimeout = 60
 )
 
 var (
@@ -185,7 +186,7 @@ func (a *WindowsDefenderScanAction) Schema(ctx context.Context, req action.Schem
 					listvalidator.SizeAtLeast(1),
 				},
 			},
-			"timeouts": commonschema.Timeouts(ctx),
+			"timeouts": commonschema.ActionTimeouts(ctx),
 		},
 	}
 }

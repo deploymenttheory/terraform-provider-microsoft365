@@ -114,7 +114,7 @@ func (r *BrowserSiteListResource) Schema(ctx context.Context, req resource.Schem
 						"unknownFutureValue"),
 				},
 			},
-			"timeouts": commonschema.Timeouts(ctx),
+			"timeouts": commonschema.ResourceTimeouts(ctx),
 		},
 	}
 }

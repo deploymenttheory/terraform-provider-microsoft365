@@ -102,7 +102,7 @@ func (r *CustomSecurityAttributeAllowedValueResource) Schema(ctx context.Context
 				MarkdownDescription: "Indicates whether the predefined value is active or deactivated. If set to false, this predefined value cannot be assigned to any more supported directory objects. Can be changed later.",
 				Required:            true,
 			},
-			"timeouts": commonschema.Timeouts(ctx),
+			"timeouts": commonschema.ResourceTimeouts(ctx),
 		},
 	}
 }

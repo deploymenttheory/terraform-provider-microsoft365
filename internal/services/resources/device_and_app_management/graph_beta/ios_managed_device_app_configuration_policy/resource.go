@@ -165,7 +165,7 @@ func (r *IOSManagedDeviceAppConfigurationPolicyResource) Schema(ctx context.Cont
 					},
 				},
 			},
-			"timeouts": commonschema.Timeouts(ctx),
+			"timeouts": commonschema.ResourceTimeouts(ctx),
 		},
 	}
 }

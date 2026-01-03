@@ -116,7 +116,7 @@ func (r *AppControlForBusinessPolicyResource) Schema(ctx context.Context, req re
 				},
 			},
 			"assignments": commonschemagraphbeta.DeviceConfigurationWithAllGroupAssignmentsAndFilterSchema(),
-			"timeouts":    commonschema.Timeouts(ctx),
+			"timeouts":    commonschema.ResourceTimeouts(ctx),
 		},
 	}
 }

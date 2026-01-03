@@ -1,11 +1,13 @@
 package mocks
 
 import (
+	"encoding/json"
 	"net/http"
 	"path/filepath"
 	"strings"
 	"sync"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks/factories"
 
@@ -56,16 +58,34 @@ func (m *BypassActivationLockMock) bypassActivationLockResponder() httpmock.Resp
 		// Check for special test device IDs
 		switch {
 		case strings.Contains(deviceID, "error"):
-			errorResponse, _ := mocks.LoadJSONResponse(filepath.Join("tests", "responses", "validate_create", "post_bypass_activation_lock_error.json"))
+			jsonContent, err := helpers.ParseJSONFile(filepath.Join("..", "tests", "responses", "validate_create", "post_bypass_activation_lock_error.json"))
+			if err != nil {
+				return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to load mock response"}}`), nil
+			}
+			var errorResponse map[string]any
+			if err := json.Unmarshal([]byte(jsonContent), &errorResponse); err != nil {
+				return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to parse JSON response"}}`), nil
+			}
 			return httpmock.NewJsonResponse(400, errorResponse)
 		case strings.Contains(deviceID, "not-found"):
-			errorResponse, _ := mocks.LoadJSONResponse(filepath.Join("tests", "responses", "validate_delete", "post_bypass_activation_lock_not_found.json"))
+			jsonContent, err := helpers.ParseJSONFile(filepath.Join("..", "tests", "responses", "validate_delete", "post_bypass_activation_lock_not_found.json"))
+			if err != nil {
+				return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to load mock response"}}`), nil
+			}
+			var errorResponse map[string]any
+			if err := json.Unmarshal([]byte(jsonContent), &errorResponse); err != nil {
+				return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to parse JSON response"}}`), nil
+			}
 			return httpmock.NewJsonResponse(404, errorResponse)
 		default:
 			// Load success response
-			response, err := mocks.LoadJSONResponse(filepath.Join("tests", "responses", "validate_create", "post_bypass_activation_lock_success.json"))
+			jsonContent, err := helpers.ParseJSONFile(filepath.Join("..", "tests", "responses", "validate_create", "post_bypass_activation_lock_success.json"))
 			if err != nil {
 				return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to load mock response"}}`), nil
+			}
+			var response map[string]any
+			if err := json.Unmarshal([]byte(jsonContent), &response); err != nil {
+				return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to parse JSON response"}}`), nil
 			}
 
 			// Store in mock state for tracking
@@ -90,27 +110,69 @@ func (m *BypassActivationLockMock) getDeviceResponder() httpmock.Responder {
 		// Check for special test device IDs and load appropriate response
 		switch {
 		case strings.Contains(deviceID, "not-found"):
-			errorResponse, _ := mocks.LoadJSONResponse(filepath.Join("tests", "responses", "validate_delete", "post_bypass_activation_lock_not_found.json"))
+			jsonContent, err := helpers.ParseJSONFile(filepath.Join("..", "tests", "responses", "validate_delete", "post_bypass_activation_lock_not_found.json"))
+			if err != nil {
+				return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to load mock response"}}`), nil
+			}
+			var errorResponse map[string]any
+			if err := json.Unmarshal([]byte(jsonContent), &errorResponse); err != nil {
+				return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to parse JSON response"}}`), nil
+			}
 			return httpmock.NewJsonResponse(404, errorResponse)
 		case strings.Contains(deviceID, "error"):
 			// Android device - unsupported OS
-			deviceResponse, _ := mocks.LoadJSONResponse(filepath.Join("tests", "responses", "validate_device", "get_device_android_unsupported.json"))
+			jsonContent, err := helpers.ParseJSONFile(filepath.Join("..", "tests", "responses", "validate_device", "get_device_android_unsupported.json"))
+			if err != nil {
+				return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to load mock response"}}`), nil
+			}
+			var deviceResponse map[string]any
+			if err := json.Unmarshal([]byte(jsonContent), &deviceResponse); err != nil {
+				return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to parse JSON response"}}`), nil
+			}
 			return httpmock.NewJsonResponse(200, deviceResponse)
 		case strings.Contains(deviceID, "12345678-1234-1234-1234-123456789abc"):
 			// iOS device - supervised
-			deviceResponse, _ := mocks.LoadJSONResponse(filepath.Join("tests", "responses", "validate_device", "get_device_ios_supervised.json"))
+			jsonContent, err := helpers.ParseJSONFile(filepath.Join("..", "tests", "responses", "validate_device", "get_device_ios_supervised.json"))
+			if err != nil {
+				return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to load mock response"}}`), nil
+			}
+			var deviceResponse map[string]any
+			if err := json.Unmarshal([]byte(jsonContent), &deviceResponse); err != nil {
+				return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to parse JSON response"}}`), nil
+			}
 			return httpmock.NewJsonResponse(200, deviceResponse)
 		case strings.Contains(deviceID, "87654321-4321-4321-4321-987654321cba"):
 			// iPadOS device - supervised
-			deviceResponse, _ := mocks.LoadJSONResponse(filepath.Join("tests", "responses", "validate_device", "get_device_ipados_supervised.json"))
+			jsonContent, err := helpers.ParseJSONFile(filepath.Join("..", "tests", "responses", "validate_device", "get_device_ipados_supervised.json"))
+			if err != nil {
+				return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to load mock response"}}`), nil
+			}
+			var deviceResponse map[string]any
+			if err := json.Unmarshal([]byte(jsonContent), &deviceResponse); err != nil {
+				return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to parse JSON response"}}`), nil
+			}
 			return httpmock.NewJsonResponse(200, deviceResponse)
 		case strings.Contains(deviceID, "11111111-2222-3333-4444-555555555555"):
 			// macOS device - DEP enrolled
-			deviceResponse, _ := mocks.LoadJSONResponse(filepath.Join("tests", "responses", "validate_device", "get_device_macos_dep.json"))
+			jsonContent, err := helpers.ParseJSONFile(filepath.Join("..", "tests", "responses", "validate_device", "get_device_macos_dep.json"))
+			if err != nil {
+				return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to load mock response"}}`), nil
+			}
+			var deviceResponse map[string]any
+			if err := json.Unmarshal([]byte(jsonContent), &deviceResponse); err != nil {
+				return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to parse JSON response"}}`), nil
+			}
 			return httpmock.NewJsonResponse(200, deviceResponse)
 		default:
 			// Default device response - iOS supervised
-			deviceResponse, _ := mocks.LoadJSONResponse(filepath.Join("tests", "responses", "validate_device", "get_device_ios_supervised.json"))
+			jsonContent, err := helpers.ParseJSONFile(filepath.Join("..", "tests", "responses", "validate_device", "get_device_ios_supervised.json"))
+			if err != nil {
+				return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to load mock response"}}`), nil
+			}
+			var deviceResponse map[string]any
+			if err := json.Unmarshal([]byte(jsonContent), &deviceResponse); err != nil {
+				return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to parse JSON response"}}`), nil
+			}
 			return httpmock.NewJsonResponse(200, deviceResponse)
 		}
 	}
@@ -137,13 +199,17 @@ func (m *BypassActivationLockMock) CleanupMockState() {
 
 // GetMockBypassActivationLockData returns sample bypass activation lock data for testing
 func (m *BypassActivationLockMock) GetMockBypassActivationLockData() map[string]any {
-	response, err := mocks.LoadJSONResponse(filepath.Join("tests", "responses", "validate_create", "post_bypass_activation_lock_success.json"))
+	jsonContent, err := helpers.ParseJSONFile(filepath.Join("..", "tests", "responses", "validate_create", "post_bypass_activation_lock_success.json"))
 	if err != nil {
 		// Fallback to hardcoded response if file loading fails
 		return map[string]any{
 			"@odata.context": "https://graph.microsoft.com/beta/$metadata#Edm.Null",
 			"value":          nil,
 		}
+	}
+	var response map[string]any
+	if err := json.Unmarshal([]byte(jsonContent), &response); err != nil {
+		panic("Failed to parse JSON response: " + err.Error())
 	}
 	return response
 }

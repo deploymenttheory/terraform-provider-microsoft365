@@ -177,7 +177,7 @@ func (d *SubscribedSkusDataSource) Schema(ctx context.Context, req datasource.Sc
 					},
 				},
 			},
-			"timeouts": commonschema.Timeouts(ctx),
+			"timeouts": commonschema.ResourceTimeouts(ctx),
 		},
 	}
 }

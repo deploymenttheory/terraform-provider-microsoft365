@@ -8,6 +8,7 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks/factories"
 
@@ -99,16 +100,21 @@ func (m *RoleScopeTagMock) createRoleScopeTagResponder() httpmock.Responder {
 		}
 
 		// Load base response from JSON file - use minimal if no description provided
-		var response map[string]any
+		var jsonContent string
 		var err error
 		if description, hasDesc := requestBody["description"]; hasDesc && description != "" {
-			response, err = mocks.LoadJSONResponse(filepath.Join("tests", "responses", "validate_create", "get_role_scope_tag_maximal.json"))
+			jsonContent, err = helpers.ParseJSONFile(filepath.Join("..", "tests", "responses", "validate_create", "get_role_scope_tag_maximal.json"))
 		} else {
-			response, err = mocks.LoadJSONResponse(filepath.Join("tests", "responses", "validate_create", "get_role_scope_tag_minimal.json"))
+			jsonContent, err = helpers.ParseJSONFile(filepath.Join("..", "tests", "responses", "validate_create", "get_role_scope_tag_minimal.json"))
 		}
 
 		if err != nil {
 			return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to load mock response"}}`), nil
+		}
+
+		var response map[string]any
+		if err := json.Unmarshal([]byte(jsonContent), &response); err != nil {
+			return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to parse mock response"}}`), nil
 		}
 
 		// Generate a new ID for the created resource
@@ -148,22 +154,36 @@ func (m *RoleScopeTagMock) getRoleScopeTagResponder() httpmock.Responder {
 			// Check for special test IDs
 			switch {
 			case strings.Contains(id, "minimal"):
-				response, err := mocks.LoadJSONResponse(filepath.Join("tests", "responses", "validate_create", "get_role_scope_tag_minimal.json"))
+				jsonContent, err := helpers.ParseJSONFile(filepath.Join("..", "tests", "responses", "validate_create", "get_role_scope_tag_minimal.json"))
 				if err != nil {
 					return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to load mock response"}}`), nil
+				}
+				var response map[string]any
+				if err := json.Unmarshal([]byte(jsonContent), &response); err != nil {
+					return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to parse mock response"}}`), nil
 				}
 				response["id"] = id
 				return factories.SuccessResponse(200, response)(req)
 			case strings.Contains(id, "maximal"):
-				response, err := mocks.LoadJSONResponse(filepath.Join("tests", "responses", "validate_create", "get_role_scope_tag_maximal.json"))
+				jsonContent, err := helpers.ParseJSONFile(filepath.Join("..", "tests", "responses", "validate_create", "get_role_scope_tag_maximal.json"))
 				if err != nil {
 					return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to load mock response"}}`), nil
+				}
+				var response map[string]any
+				if err := json.Unmarshal([]byte(jsonContent), &response); err != nil {
+					return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to parse mock response"}}`), nil
 				}
 				response["id"] = id
 				return factories.SuccessResponse(200, response)(req)
 			default:
-				errorResponse, _ := mocks.LoadJSONResponse(filepath.Join("tests", "responses", "validate_delete", "get_role_scope_tag_not_found.json"))
-				return httpmock.NewJsonResponse(404, errorResponse)
+				jsonContent, err := helpers.ParseJSONFile(filepath.Join("..", "tests", "responses", "validate_delete", "get_role_scope_tag_not_found.json"))
+				if err == nil {
+					var errorResponse map[string]any
+					if json.Unmarshal([]byte(jsonContent), &errorResponse) == nil {
+						return httpmock.NewJsonResponse(404, errorResponse)
+					}
+				}
+				return httpmock.NewStringResponse(404, `{"error":{"code":"ResourceNotFound","message":"Resource not found"}}`), nil
 			}
 		}
 
@@ -182,8 +202,14 @@ func (m *RoleScopeTagMock) updateRoleScopeTagResponder() httpmock.Responder {
 		mockState.Unlock()
 
 		if !exists {
-			errorResponse, _ := mocks.LoadJSONResponse(filepath.Join("tests", "responses", "validate_delete", "get_role_scope_tag_not_found.json"))
-			return httpmock.NewJsonResponse(404, errorResponse)
+			jsonContent, err := helpers.ParseJSONFile(filepath.Join("..", "tests", "responses", "validate_delete", "get_role_scope_tag_not_found.json"))
+			if err == nil {
+				var errorResponse map[string]any
+				if json.Unmarshal([]byte(jsonContent), &errorResponse) == nil {
+					return httpmock.NewJsonResponse(404, errorResponse)
+				}
+			}
+			return httpmock.NewStringResponse(404, `{"error":{"code":"ResourceNotFound","message":"Resource not found"}}`), nil
 		}
 
 		var requestBody map[string]any
@@ -216,9 +242,14 @@ func (m *RoleScopeTagMock) updateRoleScopeTagResponder() httpmock.Responder {
 		}
 
 		// Load update template
-		updatedTag, err := mocks.LoadJSONResponse(filepath.Join("tests", "responses", "validate_update", "get_role_scope_tag_updated.json"))
+		jsonContent, err := helpers.ParseJSONFile(filepath.Join("..", "tests", "responses", "validate_update", "get_role_scope_tag_updated.json"))
 		if err != nil {
 			return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to load mock response"}}`), nil
+		}
+
+		var updatedTag map[string]any
+		if err := json.Unmarshal([]byte(jsonContent), &updatedTag); err != nil {
+			return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to parse mock response"}}`), nil
 		}
 
 		// Start with existing data
@@ -258,8 +289,14 @@ func (m *RoleScopeTagMock) deleteRoleScopeTagResponder() httpmock.Responder {
 		mockState.Unlock()
 
 		if !exists {
-			errorResponse, _ := mocks.LoadJSONResponse(filepath.Join("tests", "responses", "validate_delete", "get_role_scope_tag_not_found.json"))
-			return httpmock.NewJsonResponse(404, errorResponse)
+			jsonContent, err := helpers.ParseJSONFile(filepath.Join("..", "tests", "responses", "validate_delete", "get_role_scope_tag_not_found.json"))
+			if err == nil {
+				var errorResponse map[string]any
+				if json.Unmarshal([]byte(jsonContent), &errorResponse) == nil {
+					return httpmock.NewJsonResponse(404, errorResponse)
+				}
+			}
+			return httpmock.NewStringResponse(404, `{"error":{"code":"ResourceNotFound","message":"Resource not found"}}`), nil
 		}
 
 		return factories.EmptySuccessResponse(204)(req)
@@ -302,8 +339,14 @@ func (m *RoleScopeTagMock) assignRoleScopeTagResponder() httpmock.Responder {
 		mockState.Unlock()
 
 		if !exists {
-			errorResponse, _ := mocks.LoadJSONResponse(filepath.Join("tests", "responses", "validate_delete", "get_role_scope_tag_not_found.json"))
-			return httpmock.NewJsonResponse(404, errorResponse)
+			jsonContent, err := helpers.ParseJSONFile(filepath.Join("..", "tests", "responses", "validate_delete", "get_role_scope_tag_not_found.json"))
+			if err == nil {
+				var errorResponse map[string]any
+				if json.Unmarshal([]byte(jsonContent), &errorResponse) == nil {
+					return httpmock.NewJsonResponse(404, errorResponse)
+				}
+			}
+			return httpmock.NewStringResponse(404, `{"error":{"code":"ResourceNotFound","message":"Resource not found"}}`), nil
 		}
 
 		var requestBody map[string]any
@@ -330,9 +373,14 @@ func (m *RoleScopeTagMock) assignRoleScopeTagResponder() httpmock.Responder {
 		}
 
 		// Load and return assignment response
-		response, err := mocks.LoadJSONResponse(filepath.Join("tests", "responses", "validate_assignments", "post_role_scope_tag_assign.json"))
+		jsonContent, err := helpers.ParseJSONFile(filepath.Join("..", "tests", "responses", "validate_assignments", "post_role_scope_tag_assign.json"))
 		if err != nil {
 			return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to load mock response"}}`), nil
+		}
+
+		var response map[string]any
+		if err := json.Unmarshal([]byte(jsonContent), &response); err != nil {
+			return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to parse mock response"}}`), nil
 		}
 
 		return factories.SuccessResponse(200, response)(req)
@@ -365,14 +413,22 @@ func (m *RoleScopeTagMock) getAssignmentsResponder() httpmock.Responder {
 		}
 
 		// Load assignments template and merge with stored assignments
-		response, err := mocks.LoadJSONResponse(filepath.Join("tests", "responses", "validate_assignments", "get_role_scope_tag_assignments.json"))
+		jsonContent, err := helpers.ParseJSONFile(filepath.Join("..", "tests", "responses", "validate_assignments", "get_role_scope_tag_assignments.json"))
+		var response map[string]any
 		if err != nil {
 			// Fallback to empty response
 			response = map[string]any{
 				"value": assignments,
 			}
 		} else {
-			response["value"] = assignments
+			if err := json.Unmarshal([]byte(jsonContent), &response); err != nil {
+				// Fallback to empty response if parsing fails
+				response = map[string]any{
+					"value": assignments,
+				}
+			} else {
+				response["value"] = assignments
+			}
 		}
 
 		return factories.SuccessResponse(200, response)(req)
@@ -420,9 +476,22 @@ func (m *RoleScopeTagMock) CleanupMockState() {
 
 // GetMockRoleScopeTagData returns sample role scope tag data for testing
 func (m *RoleScopeTagMock) GetMockRoleScopeTagData() map[string]any {
-	response, err := mocks.LoadJSONResponse(filepath.Join("tests", "responses", "validate_create", "get_role_scope_tag_maximal.json"))
+	jsonContent, err := helpers.ParseJSONFile(filepath.Join("..", "tests", "responses", "validate_create", "get_role_scope_tag_maximal.json"))
 	if err != nil {
 		// Fallback to hardcoded response if file loading fails
+		return map[string]any{
+			"id":                   "test-role-scope-tag-id",
+			"displayName":          "Test Role Scope Tag",
+			"description":          "Test role scope tag for unit testing",
+			"isBuiltIn":            false,
+			"createdDateTime":      "2024-01-01T00:00:00Z",
+			"lastModifiedDateTime": "2024-01-01T00:00:00Z",
+		}
+	}
+
+	var response map[string]any
+	if err := json.Unmarshal([]byte(jsonContent), &response); err != nil {
+		// Fallback to hardcoded response if parsing fails
 		return map[string]any{
 			"id":                   "test-role-scope-tag-id",
 			"displayName":          "Test Role Scope Tag",
@@ -437,9 +506,22 @@ func (m *RoleScopeTagMock) GetMockRoleScopeTagData() map[string]any {
 
 // GetMockRoleScopeTagMinimalData returns minimal role scope tag data for testing
 func (m *RoleScopeTagMock) GetMockRoleScopeTagMinimalData() map[string]any {
-	response, err := mocks.LoadJSONResponse(filepath.Join("tests", "responses", "validate_create", "get_role_scope_tag_minimal.json"))
+	jsonContent, err := helpers.ParseJSONFile(filepath.Join("..", "tests", "responses", "validate_create", "get_role_scope_tag_minimal.json"))
 	if err != nil {
 		// Fallback to hardcoded response if file loading fails
+		return map[string]any{
+			"id":                   "test-minimal-role-scope-tag-id",
+			"displayName":          "Test Minimal Role Scope Tag",
+			"description":          "",
+			"isBuiltIn":            false,
+			"createdDateTime":      "2024-01-01T00:00:00Z",
+			"lastModifiedDateTime": "2024-01-01T00:00:00Z",
+		}
+	}
+
+	var response map[string]any
+	if err := json.Unmarshal([]byte(jsonContent), &response); err != nil {
+		// Fallback to hardcoded response if parsing fails
 		return map[string]any{
 			"id":                   "test-minimal-role-scope-tag-id",
 			"displayName":          "Test Minimal Role Scope Tag",
