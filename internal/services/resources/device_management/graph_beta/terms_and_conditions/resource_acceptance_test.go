@@ -1,91 +1,83 @@
 package graphBetaTermsAndConditions_test
 
 import (
-	"context"
-	"fmt"
 	"testing"
+	"time"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/check"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/destroy"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
-	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
+	graphBetaTermsAndConditions "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_management/graph_beta/terms_and_conditions"
+	graphBetaGroup "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/groups/graph_beta/group"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/hashicorp/terraform-plugin-testing/terraform"
 )
 
-// testAccCheckTermsAndConditionsDestroy verifies that terms and conditions have been destroyed
-func testAccCheckTermsAndConditionsDestroy(s *terraform.State) error {
-	graphClient, err := acceptance.TestGraphClient()
+var (
+	resourceType      = graphBetaTermsAndConditions.ResourceName
+	groupResourceType = graphBetaGroup.ResourceName
+	testResource      = graphBetaTermsAndConditions.TermsAndConditionsTestResource{}
+	groupTestResource = graphBetaGroup.GroupTestResource{}
+)
+
+func loadAcceptanceTestTerraform(filename string) string {
+	config, err := helpers.ParseHCLFile("tests/terraform/acceptance/" + filename)
 	if err != nil {
-		return fmt.Errorf("error creating Graph client for CheckDestroy: %v", err)
+		panic("failed to load acceptance config " + filename + ": " + err.Error())
 	}
-
-	ctx := context.Background()
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "microsoft365_graph_beta_device_management_terms_and_conditions" {
-			continue
-		}
-
-		// Attempt to get the terms and conditions by ID
-		_, err := graphClient.
-			DeviceManagement().
-			TermsAndConditions().
-			ByTermsAndConditionsId(rs.Primary.ID).
-			Get(ctx, nil)
-
-		if err != nil {
-			errorInfo := errors.GraphError(ctx, err)
-			if errorInfo.StatusCode == 404 ||
-				errorInfo.ErrorCode == "ResourceNotFound" ||
-				errorInfo.ErrorCode == "ItemNotFound" {
-				continue // Resource successfully destroyed
-			}
-			return fmt.Errorf("error checking if terms and conditions %s was destroyed: %v", rs.Primary.ID, err)
-		}
-
-		// If we can still get the resource, it wasn't destroyed
-		return fmt.Errorf("terms and conditions %s still exists", rs.Primary.ID)
-	}
-
-	return nil
+	return acceptance.ConfiguredM365ProviderBlock(config)
 }
 
 func TestAccTermsAndConditionsResource_Lifecycle(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
-		CheckDestroy:             testAccCheckTermsAndConditionsDestroy,
+		ExternalProviders: map[string]resource.ExternalProvider{
+			"random": {
+				Source:            "hashicorp/random",
+				VersionConstraint: "~> 3.6",
+			},
+		},
+		CheckDestroy: destroy.CheckDestroyedTypesFunc(
+			15*time.Second,
+			destroy.ResourceTypeMapping{
+				ResourceType: resourceType,
+				TestResource: testResource,
+			},
+			destroy.ResourceTypeMapping{
+				ResourceType: groupResourceType,
+				TestResource: groupTestResource,
+			},
+		),
 		Steps: []resource.TestStep{
-			// Create with minimal configuration
 			{
-				Config: testAccTermsAndConditionsConfig_minimal(),
+				Config: loadAcceptanceTestTerraform("resource_minimal.tf"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("microsoft365_graph_beta_device_management_terms_and_conditions.test", "id"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_terms_and_conditions.test", "display_name", "Test Acceptance Terms and Conditions"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_terms_and_conditions.test", "title", "Company Terms"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_terms_and_conditions.test", "body_text", "These are the basic terms and conditions."),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_terms_and_conditions.test", "acceptance_statement", "I accept these terms"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_terms_and_conditions.test", "version", "1"),
+					check.That(resourceType+".test").Key("id").Exists(),
+					check.That(resourceType+".test").Key("display_name").HasValue("acc-test-terms-and-conditions-minimal"),
+					check.That(resourceType+".test").Key("title").HasValue("Company Terms"),
+					check.That(resourceType+".test").Key("body_text").HasValue("These are the basic terms and conditions."),
+					check.That(resourceType+".test").Key("acceptance_statement").HasValue("I accept these terms"),
+					check.That(resourceType+".test").Key("version").HasValue("1"),
 				),
 			},
-			// ImportState testing
 			{
-				ResourceName:      "microsoft365_graph_beta_device_management_terms_and_conditions.test",
+				ResourceName:      resourceType + ".test",
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
-			// Update to maximal configuration
 			{
-				Config: testAccTermsAndConditionsConfig_maximal(),
+				Config: loadAcceptanceTestTerraform("resource_maximal.tf"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("microsoft365_graph_beta_device_management_terms_and_conditions.test", "id"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_terms_and_conditions.test", "display_name", "Test Acceptance Terms and Conditions - Updated"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_terms_and_conditions.test", "description", "Updated description for acceptance testing"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_terms_and_conditions.test", "title", "Complete Company Terms and Conditions"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_terms_and_conditions.test", "body_text", "These are the comprehensive terms and conditions that all users must read and accept before accessing company resources."),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_terms_and_conditions.test", "acceptance_statement", "I have read and agree to abide by all terms and conditions outlined above"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_terms_and_conditions.test", "version", "2"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_terms_and_conditions.test", "assignments.#", "3"),
+					check.That(resourceType+".test").Key("id").Exists(),
+					check.That(resourceType+".test").Key("display_name").HasValue("acc-test-terms-and-conditions-maximal"),
+					check.That(resourceType+".test").Key("description").HasValue("Updated description for acceptance testing"),
+					check.That(resourceType+".test").Key("title").HasValue("Complete Company Terms and Conditions"),
+					check.That(resourceType+".test").Key("body_text").HasValue("These are the comprehensive terms and conditions that all users must read and accept before accessing company resources."),
+					check.That(resourceType+".test").Key("acceptance_statement").HasValue("I have read and agree to abide by all terms and conditions outlined above"),
+					check.That(resourceType+".test").Key("version").HasValue("2"),
+					check.That(resourceType+".test").Key("assignments.#").HasValue("3"),
 				),
 			},
 		},
@@ -96,14 +88,24 @@ func TestAccTermsAndConditionsResource_Description(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
-		CheckDestroy:             testAccCheckTermsAndConditionsDestroy,
+		ExternalProviders: map[string]resource.ExternalProvider{
+			"random": {
+				Source:            "hashicorp/random",
+				VersionConstraint: "~> 3.6",
+			},
+		},
+		CheckDestroy: destroy.CheckDestroyedAllFunc(
+			testResource,
+			resourceType,
+			0,
+		),
 		Steps: []resource.TestStep{
 			{
-				Config: testAccTermsAndConditionsConfig_description(),
+				Config: loadAcceptanceTestTerraform("resource_description.tf"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("microsoft365_graph_beta_device_management_terms_and_conditions.description", "id"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_terms_and_conditions.description", "display_name", "Test Description Terms and Conditions"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_terms_and_conditions.description", "description", "This is a test terms and conditions with description"),
+					check.That(resourceType+".description").Key("id").Exists(),
+					check.That(resourceType+".description").Key("display_name").HasValue("acc-test-terms-and-conditions-description"),
+					check.That(resourceType+".description").Key("description").HasValue("This is a test terms and conditions with description"),
 				),
 			},
 		},
@@ -114,41 +116,33 @@ func TestAccTermsAndConditionsResource_Assignments(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
-		CheckDestroy:             testAccCheckTermsAndConditionsDestroy,
+		ExternalProviders: map[string]resource.ExternalProvider{
+			"random": {
+				Source:            "hashicorp/random",
+				VersionConstraint: "~> 3.6",
+			},
+		},
+		CheckDestroy: destroy.CheckDestroyedTypesFunc(
+			15*time.Second,
+			destroy.ResourceTypeMapping{
+				ResourceType: resourceType,
+				TestResource: testResource,
+			},
+			destroy.ResourceTypeMapping{
+				ResourceType: groupResourceType,
+				TestResource: groupTestResource,
+			},
+		),
 		Steps: []resource.TestStep{
 			{
-				Config: testAccTermsAndConditionsConfig_assignments(),
+				Config: loadAcceptanceTestTerraform("resource_assignments.tf"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("microsoft365_graph_beta_device_management_terms_and_conditions.assignments", "id"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_terms_and_conditions.assignments", "display_name", "Test Assignments Terms and Conditions"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_terms_and_conditions.assignments", "description", "Terms and conditions policy with assignments for acceptance testing"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_terms_and_conditions.assignments", "assignments.#", "3"),
+					check.That(resourceType+".assignments").Key("id").Exists(),
+					check.That(resourceType+".assignments").Key("display_name").HasValue("acc-test-terms-and-conditions-assignments"),
+					check.That(resourceType+".assignments").Key("description").HasValue("Terms and conditions policy with assignments for acceptance testing"),
+					check.That(resourceType+".assignments").Key("assignments.#").HasValue("3"),
 				),
 			},
 		},
 	})
-}
-
-// Test configuration functions
-
-func testAccTermsAndConditionsConfig_minimal() string {
-	config := mocks.LoadTerraformConfigFile("resource_minimal.tf")
-	return acceptance.ConfiguredM365ProviderBlock(config)
-}
-
-func testAccTermsAndConditionsConfig_maximal() string {
-	dependencies := mocks.LoadTerraformConfigFile("resource_dependencies.tf")
-	config := mocks.LoadTerraformConfigFile("resource_maximal.tf")
-	return acceptance.ConfiguredM365ProviderBlock(dependencies + "\n" + config)
-}
-
-func testAccTermsAndConditionsConfig_description() string {
-	config := mocks.LoadTerraformConfigFile("resource_description.tf")
-	return acceptance.ConfiguredM365ProviderBlock(config)
-}
-
-func testAccTermsAndConditionsConfig_assignments() string {
-	dependencies := mocks.LoadTerraformConfigFile("resource_dependencies.tf")
-	config := mocks.LoadTerraformConfigFile("resource_assignments.tf")
-	return acceptance.ConfiguredM365ProviderBlock(dependencies + "\n" + config)
 }

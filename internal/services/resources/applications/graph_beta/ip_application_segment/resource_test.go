@@ -202,4 +202,3 @@ func testConfigIpSegmentFQDN() string {
 	}
 	return unitTestConfig
 }
-

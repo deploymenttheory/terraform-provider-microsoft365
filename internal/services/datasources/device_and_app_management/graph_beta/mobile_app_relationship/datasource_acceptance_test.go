@@ -5,9 +5,19 @@ import (
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/check"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
+
+// Helper function to load test configs from acceptance directory
+func loadAcceptanceTestTerraform(filename string) string {
+	config, err := helpers.ParseHCLFile("tests/terraform/acceptance/" + filename)
+	if err != nil {
+		panic("failed to load acceptance config " + filename + ": " + err.Error())
+	}
+	return acceptance.ConfiguredM365ProviderBlock(config)
+}
 
 // TestAccMobileAppRelationshipDataSource_All tests fetching all mobile app relationships from live API
 func TestAccMobileAppRelationshipDataSource_All(t *testing.T) {
@@ -22,7 +32,7 @@ func TestAccMobileAppRelationshipDataSource_All(t *testing.T) {
 		},
 		Steps: []resource.TestStep{
 			{
-				Config: testAccConfigAll(),
+				Config: loadAcceptanceTestTerraform("01_all.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					check.That(dataSourceType + ".all").Key("filter_type").HasValue("all"),
 					// Note: items.# may be 0 if no relationships exist in the tenant
@@ -45,7 +55,7 @@ func TestAccMobileAppRelationshipDataSource_BySourceId(t *testing.T) {
 		},
 		Steps: []resource.TestStep{
 			{
-				Config: testAccConfigBySourceId(),
+				Config: loadAcceptanceTestTerraform("02_by_source_id.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					check.That(dataSourceType+".by_source_id").Key("filter_type").HasValue("source_id"),
 					check.That(dataSourceType+".by_source_id").Key("filter_value").HasValue("app-source-test-001"),
@@ -69,7 +79,7 @@ func TestAccMobileAppRelationshipDataSource_ODataFilter(t *testing.T) {
 		},
 		Steps: []resource.TestStep{
 			{
-				Config: testAccConfigODataFilter(),
+				Config: loadAcceptanceTestTerraform("03_odata_filter.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					check.That(dataSourceType+".odata_filter").Key("filter_type").HasValue("odata"),
 					check.That(dataSourceType+".odata_filter").Key("odata_filter").HasValue("targetType eq 'parent'"),
@@ -78,20 +88,4 @@ func TestAccMobileAppRelationshipDataSource_ODataFilter(t *testing.T) {
 			},
 		},
 	})
-}
-
-// Helper functions to load acceptance test configurations
-func testAccConfigAll() string {
-	config := mocks.LoadTerraformConfigFile("01_all.tf")
-	return acceptance.ConfiguredM365ProviderBlock(config)
-}
-
-func testAccConfigBySourceId() string {
-	config := mocks.LoadTerraformConfigFile("02_by_source_id.tf")
-	return acceptance.ConfiguredM365ProviderBlock(config)
-}
-
-func testAccConfigODataFilter() string {
-	config := mocks.LoadTerraformConfigFile("03_odata_filter.tf")
-	return acceptance.ConfiguredM365ProviderBlock(config)
 }

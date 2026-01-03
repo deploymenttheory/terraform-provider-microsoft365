@@ -1,5 +1,5 @@
 resource "microsoft365_graph_beta_device_management_role_definition" "description" {
-  display_name = "Test Description Role Definition"
+  display_name = "acc-test-role-definition-description"
   description  = "This is a test role definition with description"
 
   role_permissions = [

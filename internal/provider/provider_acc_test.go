@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
@@ -135,7 +136,10 @@ func TestAccM365Provider_EnvVarPrecedence(t *testing.T) {
 		t.Setenv(key, value)
 	}
 
-	config := mocks.LoadTerraformConfigFile("provider_env_precedence.tf")
+	config, err := helpers.ParseHCLFile("tests/terraform/acceptance/provider_env_precedence.tf")
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	resource.Test(t, resource.TestCase{
 		PreCheck: func() {
@@ -158,7 +162,10 @@ func TestAccM365Provider_EnvVarPrecedence(t *testing.T) {
 }
 
 func TestAccM365Provider_ClientSecretAuth(t *testing.T) {
-	config := mocks.LoadTerraformConfigFile("provider_client_secret.tf")
+	config, err := helpers.ParseHCLFile("tests/terraform/acceptance/provider_client_secret.tf")
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
@@ -173,7 +180,10 @@ func TestAccM365Provider_ClientSecretAuth(t *testing.T) {
 }
 
 func TestAccM365Provider_ClientCertificateAuth(t *testing.T) {
-	config := mocks.LoadTerraformConfigFile("provider_client_certificate.tf")
+	config, err := helpers.ParseHCLFile("tests/terraform/acceptance/provider_client_certificate.tf")
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
@@ -188,7 +198,10 @@ func TestAccM365Provider_ClientCertificateAuth(t *testing.T) {
 }
 
 func TestAccM365Provider_ProxyConfiguration(t *testing.T) {
-	config := mocks.LoadTerraformConfigFile("provider_proxy.tf")
+	config, err := helpers.ParseHCLFile("tests/terraform/acceptance/provider_proxy.tf")
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
@@ -300,7 +313,10 @@ data "microsoft365_graph_beta_device_management_windows_remediation_script" "tes
 }
 
 func TestAccM365Provider_CompleteConfiguration(t *testing.T) {
-	config := mocks.LoadTerraformConfigFile("provider_maximal.tf")
+	config, err := helpers.ParseHCLFile("tests/terraform/acceptance/provider_maximal.tf")
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },

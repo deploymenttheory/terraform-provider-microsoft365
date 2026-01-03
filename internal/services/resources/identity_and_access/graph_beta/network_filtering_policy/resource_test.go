@@ -42,9 +42,9 @@ func TestNetworkFilteringPolicyResource_Basic(t *testing.T) {
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testConfigBasic(),
+				Config: testConfigHelper("resource_minimal.tf"),
 				Check: resource.ComposeTestCheckFunc(
-					check.That(resourceType+".test").Key("name").HasValue("Test Filtering Policy"),
+					check.That(resourceType+".test").Key("name").HasValue("unit-test-filtering-policy-minimal"),
 					check.That(resourceType+".test").Key("description").HasValue("Test filtering policy for unit testing"),
 					check.That(resourceType+".test").Key("action").HasValue("block"),
 					check.That(resourceType+".test").Key("id").Exists(),
@@ -69,16 +69,16 @@ func TestNetworkFilteringPolicyResource_Update(t *testing.T) {
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testConfigBasic(),
+				Config: testConfigHelper("resource_minimal.tf"),
 				Check: resource.ComposeTestCheckFunc(
-					check.That(resourceType+".test").Key("name").HasValue("Test Filtering Policy"),
+					check.That(resourceType+".test").Key("name").HasValue("unit-test-filtering-policy-minimal"),
 					check.That(resourceType+".test").Key("action").HasValue("block"),
 				),
 			},
 			{
-				Config: testConfigUpdate(),
+				Config: testConfigHelper("resource_updated.tf"),
 				Check: resource.ComposeTestCheckFunc(
-					check.That(resourceType+".test").Key("name").HasValue("Updated Filtering Policy"),
+					check.That(resourceType+".test").Key("name").HasValue("unit-test-filtering-policy-updated"),
 					check.That(resourceType+".test").Key("description").HasValue("Updated description"),
 					check.That(resourceType+".test").Key("action").HasValue("allow"),
 				),
@@ -102,7 +102,7 @@ func TestNetworkFilteringPolicyResource_InvalidAction(t *testing.T) {
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config:      testConfigInvalidAction(),
+				Config:      testConfigHelper("resource_invalid.tf"),
 				ExpectError: regexp.MustCompile(`Invalid Attribute Value Match`),
 			},
 		},
@@ -119,33 +119,17 @@ func TestNetworkFilteringPolicyResource_CreateError(t *testing.T) {
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config:      testConfigBasic(),
+				Config:      testConfigHelper("resource_minimal.tf"),
 				ExpectError: regexp.MustCompile(`Invalid filtering policy data`),
 			},
 		},
 	})
 }
 
-func testConfigBasic() string {
-	unitTestConfig, err := helpers.ParseHCLFile("tests/terraform/unit/resource_minimal.tf")
+func testConfigHelper(filename string) string {
+	config, err := helpers.ParseHCLFile("tests/terraform/unit/" + filename)
 	if err != nil {
-		panic("failed to load resource_minimal.tf: " + err.Error())
+		panic("failed to load unit test config " + filename + ": " + err.Error())
 	}
-	return unitTestConfig
-}
-
-func testConfigUpdate() string {
-	unitTestConfig, err := helpers.ParseHCLFile("tests/terraform/unit/resource_updated.tf")
-	if err != nil {
-		panic("failed to load resource_updated.tf: " + err.Error())
-	}
-	return unitTestConfig
-}
-
-func testConfigInvalidAction() string {
-	unitTestConfig, err := helpers.ParseHCLFile("tests/terraform/unit/resource_invalid.tf")
-	if err != nil {
-		panic("failed to load resource_invalid.tf: " + err.Error())
-	}
-	return unitTestConfig
+	return config
 }

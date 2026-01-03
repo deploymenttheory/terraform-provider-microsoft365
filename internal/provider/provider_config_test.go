@@ -31,7 +31,7 @@ func TestAccM365Provider_ConfigurationBuilder(t *testing.T) {
 		{
 			name: "client_certificate_full",
 			config: acceptance.ProviderConfigForClientCertificate(
-				"00000000-0000-0000-0000-000000000001", 
+				"00000000-0000-0000-0000-000000000001",
 				"/path/to/cert.pfx",
 				"cert-password",
 			),
@@ -97,7 +97,7 @@ provider "microsoft365" {
 			expectError: "must be a valid GUID",
 		},
 		{
-			name: "invalid_client_id", 
+			name: "invalid_client_id",
 			config: `
 provider "microsoft365" {
   auth_method = "client_secret"

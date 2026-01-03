@@ -2,11 +2,11 @@ package graphBetaRoleDefinitionAssignment_test
 
 import (
 	"fmt"
-	"os"
-	"path/filepath"
 	"regexp"
 	"testing"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/check"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
 	roleAssignmentMocks "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_management/graph_beta/role_assignment/mocks"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -14,54 +14,27 @@ import (
 	"github.com/jarcoal/httpmock"
 )
 
-func setupUnitTestEnvironment() {
-	// Set environment variables for testing
-	os.Setenv("TF_ACC", "0")
-	os.Setenv("MS365_TEST_MODE", "true")
-}
-
-// setupMockEnvironment sets up the mock environment using centralized mocks
 func setupMockEnvironment() (*mocks.Mocks, *roleAssignmentMocks.RoleAssignmentMock) {
-	// Activate httpmock
 	httpmock.Activate()
-
-	// Create a new Mocks instance and register authentication mocks
 	mockClient := mocks.NewMocks()
 	mockClient.AuthMocks.RegisterMocks()
-
-	// Register local mocks directly
 	roleAssignmentMock := &roleAssignmentMocks.RoleAssignmentMock{}
 	roleAssignmentMock.RegisterMocks()
-
 	return mockClient, roleAssignmentMock
 }
 
-// testCheckExists is a basic check to ensure the resource exists in the state
-func testCheckExists(resourceName string) resource.TestCheckFunc {
-	return resource.TestCheckResourceAttrSet(resourceName, "id")
-}
-
-// testConfigMinimal returns the minimal configuration for testing
-func testConfigMinimal() string {
-	content, err := os.ReadFile(filepath.Join("tests", "terraform", "unit", "resource_minimal.tf"))
+// Helper function to load test configs from unit directory
+func testConfigHelper(filename string) string {
+	config, err := helpers.ParseHCLFile("tests/terraform/unit/" + filename)
 	if err != nil {
-		return ""
+		panic("failed to load unit test config " + filename + ": " + err.Error())
 	}
-	return string(content)
-}
-
-// testConfigMaximal returns the maximal configuration for testing
-func testConfigMaximal() string {
-	content, err := os.ReadFile(filepath.Join("tests", "terraform", "unit", "resource_maximal.tf"))
-	if err != nil {
-		return ""
-	}
-	return string(content)
+	return config
 }
 
 // TestRoleAssignmentResource_Schema validates the resource schema
 func TestRoleAssignmentResource_Schema(t *testing.T) {
-	setupUnitTestEnvironment()
+	mocks.SetupUnitTestEnvironment(t)
 	_, roleAssignmentMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
 	defer roleAssignmentMock.CleanupMockState()
@@ -70,18 +43,15 @@ func TestRoleAssignmentResource_Schema(t *testing.T) {
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testConfigMinimal(),
+				Config: testConfigHelper("resource_minimal.tf"),
 				Check: resource.ComposeTestCheckFunc(
-					// Check required attributes
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_role_assignment.minimal", "display_name", "Test Minimal Role Assignment - Unique"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_role_assignment.minimal", "description", "Minimal role assignment for testing"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_role_assignment.minimal", "role_definition_id", "0bd113fe-6be5-400c-a28f-ae5553f9c0be"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_role_assignment.minimal", "members.#", "1"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_role_assignment.minimal", "scope_configuration.#", "1"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_role_assignment.minimal", "scope_configuration.0.type", "AllLicensedUsers"),
-
-					// Check computed attributes are set
-					resource.TestMatchResourceAttr("microsoft365_graph_beta_device_management_role_assignment.minimal", "id", regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(resourceType+".minimal").Key("display_name").HasValue("unit-test-role-assignment-minimal"),
+					check.That(resourceType+".minimal").Key("description").HasValue("Minimal role assignment for unit testing"),
+					check.That(resourceType+".minimal").Key("role_definition_id").HasValue("0bd113fe-6be5-400c-a28f-ae5553f9c0be"),
+					check.That(resourceType+".minimal").Key("members.#").HasValue("1"),
+					check.That(resourceType+".minimal").Key("scope_configuration.#").HasValue("1"),
+					check.That(resourceType+".minimal").Key("scope_configuration.0.type").HasValue("AllLicensedUsers"),
+					check.That(resourceType+".minimal").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 				),
 			},
 		},
@@ -90,7 +60,7 @@ func TestRoleAssignmentResource_Schema(t *testing.T) {
 
 // TestRoleAssignmentResource_Minimal tests basic CRUD operations
 func TestRoleAssignmentResource_Minimal(t *testing.T) {
-	setupUnitTestEnvironment()
+	mocks.SetupUnitTestEnvironment(t)
 	_, roleAssignmentMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
 	defer roleAssignmentMock.CleanupMockState()
@@ -100,29 +70,28 @@ func TestRoleAssignmentResource_Minimal(t *testing.T) {
 		Steps: []resource.TestStep{
 			// Create and Read testing
 			{
-				Config: testConfigMinimal(),
+				Config: testConfigHelper("resource_minimal.tf"),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckExists("microsoft365_graph_beta_device_management_role_assignment.minimal"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_role_assignment.minimal", "display_name", "Test Minimal Role Assignment - Unique"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_role_assignment.minimal", "description", "Minimal role assignment for testing"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_role_assignment.minimal", "role_definition_id", "0bd113fe-6be5-400c-a28f-ae5553f9c0be"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_role_assignment.minimal", "scope_configuration.0.type", "AllLicensedUsers"),
+					check.That(resourceType+".minimal").Key("id").Exists(),
+					check.That(resourceType+".minimal").Key("display_name").HasValue("unit-test-role-assignment-minimal"),
+					check.That(resourceType+".minimal").Key("description").HasValue("Minimal role assignment for unit testing"),
+					check.That(resourceType+".minimal").Key("role_definition_id").HasValue("0bd113fe-6be5-400c-a28f-ae5553f9c0be"),
+					check.That(resourceType+".minimal").Key("scope_configuration.0.type").HasValue("AllLicensedUsers"),
 				),
 			},
 			// ImportState testing
 			{
-				ResourceName:      "microsoft365_graph_beta_device_management_role_assignment.minimal",
+				ResourceName:      resourceType + ".minimal",
 				ImportState:       true,
 				ImportStateVerify: true,
 				ImportStateIdFunc: func(s *terraform.State) (string, error) {
-					rs, ok := s.RootModule().Resources["microsoft365_graph_beta_device_management_role_assignment.minimal"]
+					rs, ok := s.RootModule().Resources[resourceType+".minimal"]
 					if !ok {
-						return "", fmt.Errorf("not found: microsoft365_graph_beta_device_management_role_assignment.minimal")
+						return "", fmt.Errorf("not found: %s.minimal", resourceType)
 					}
 					id := rs.Primary.ID
 					roleDefId := rs.Primary.Attributes["role_definition_id"]
 					compositeId := fmt.Sprintf("%s/%s", id, roleDefId)
-					fmt.Printf("DEBUG: ImportStateIdFunc - id: %s, roleDefId: %s, compositeId: %s\n", id, roleDefId, compositeId)
 					return compositeId, nil
 				},
 			},
@@ -132,7 +101,7 @@ func TestRoleAssignmentResource_Minimal(t *testing.T) {
 
 // TestRoleAssignmentResource_Maximal tests maximal configuration
 func TestRoleAssignmentResource_Maximal(t *testing.T) {
-	setupUnitTestEnvironment()
+	mocks.SetupUnitTestEnvironment(t)
 	_, roleAssignmentMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
 	defer roleAssignmentMock.CleanupMockState()
@@ -141,15 +110,15 @@ func TestRoleAssignmentResource_Maximal(t *testing.T) {
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testConfigMaximal(),
+				Config: testConfigHelper("resource_maximal.tf"),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckExists("microsoft365_graph_beta_device_management_role_assignment.maximal"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_role_assignment.maximal", "display_name", "Test Maximal Role Assignment - Unique"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_role_assignment.maximal", "description", "Comprehensive role assignment for testing with all features"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_role_assignment.maximal", "role_definition_id", "9e0cc482-82df-4ab2-a24c-0c23a3f52e1e"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_role_assignment.maximal", "members.#", "3"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_role_assignment.maximal", "scope_configuration.0.type", "ResourceScopes"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_role_assignment.maximal", "scope_configuration.0.resource_scopes.#", "3"),
+					check.That(resourceType+".maximal").Key("id").Exists(),
+					check.That(resourceType+".maximal").Key("display_name").HasValue("unit-test-role-assignment-maximal"),
+					check.That(resourceType+".maximal").Key("description").HasValue("Comprehensive role assignment for unit testing with all features"),
+					check.That(resourceType+".maximal").Key("role_definition_id").HasValue("9e0cc482-82df-4ab2-a24c-0c23a3f52e1e"),
+					check.That(resourceType+".maximal").Key("members.#").HasValue("3"),
+					check.That(resourceType+".maximal").Key("scope_configuration.0.type").HasValue("ResourceScopes"),
+					check.That(resourceType+".maximal").Key("scope_configuration.0.resource_scopes.#").HasValue("3"),
 				),
 			},
 		},
@@ -158,7 +127,7 @@ func TestRoleAssignmentResource_Maximal(t *testing.T) {
 
 // TestRoleAssignmentResource_UpdateInPlace tests in-place updates
 func TestRoleAssignmentResource_UpdateInPlace(t *testing.T) {
-	setupUnitTestEnvironment()
+	mocks.SetupUnitTestEnvironment(t)
 	_, roleAssignmentMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
 	defer roleAssignmentMock.CleanupMockState()
@@ -167,19 +136,19 @@ func TestRoleAssignmentResource_UpdateInPlace(t *testing.T) {
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testConfigMinimal(),
+				Config: testConfigHelper("resource_minimal.tf"),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckExists("microsoft365_graph_beta_device_management_role_assignment.minimal"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_role_assignment.minimal", "display_name", "Test Minimal Role Assignment - Unique"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_role_assignment.minimal", "scope_configuration.0.type", "AllLicensedUsers"),
+					check.That(resourceType+".minimal").Key("id").Exists(),
+					check.That(resourceType+".minimal").Key("display_name").HasValue("unit-test-role-assignment-minimal"),
+					check.That(resourceType+".minimal").Key("scope_configuration.0.type").HasValue("AllLicensedUsers"),
 				),
 			},
 			{
-				Config: testConfigMaximal(),
+				Config: testConfigHelper("resource_maximal.tf"),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckExists("microsoft365_graph_beta_device_management_role_assignment.maximal"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_role_assignment.maximal", "display_name", "Test Maximal Role Assignment - Unique"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_role_assignment.maximal", "scope_configuration.0.type", "ResourceScopes"),
+					check.That(resourceType+".maximal").Key("id").Exists(),
+					check.That(resourceType+".maximal").Key("display_name").HasValue("unit-test-role-assignment-maximal"),
+					check.That(resourceType+".maximal").Key("scope_configuration.0.type").HasValue("ResourceScopes"),
 				),
 			},
 		},
@@ -188,7 +157,7 @@ func TestRoleAssignmentResource_UpdateInPlace(t *testing.T) {
 
 // TestRoleAssignmentResource_ScopeValidation tests scope configuration validation
 func TestRoleAssignmentResource_ScopeValidation(t *testing.T) {
-	setupUnitTestEnvironment()
+	mocks.SetupUnitTestEnvironment(t)
 	_, roleAssignmentMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
 	defer roleAssignmentMock.CleanupMockState()
@@ -259,7 +228,7 @@ resource "microsoft365_graph_beta_device_management_role_assignment" "test" {
 
 // TestRoleAssignmentResource_AllDevicesScope tests AllDevices scope type
 func TestRoleAssignmentResource_AllDevicesScope(t *testing.T) {
-	setupUnitTestEnvironment()
+	mocks.SetupUnitTestEnvironment(t)
 	_, roleAssignmentMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
 	defer roleAssignmentMock.CleanupMockState()
@@ -270,7 +239,7 @@ func TestRoleAssignmentResource_AllDevicesScope(t *testing.T) {
 			{
 				Config: `
 resource "microsoft365_graph_beta_device_management_role_assignment" "test" {
-  display_name       = "Test All Devices Role Assignment"
+  display_name       = "unit-test-role-assignment-all-devices"
   description        = "Role assignment for all devices scope"
   role_definition_id = "9e0cc482-82df-4ab2-a24c-0c23a3f52e1e"
   
@@ -285,9 +254,9 @@ resource "microsoft365_graph_beta_device_management_role_assignment" "test" {
 }
 `,
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_role_assignment.test", "display_name", "Test All Devices Role Assignment"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_role_assignment.test", "scope_configuration.0.type", "AllDevices"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_role_assignment.test", "members.#", "2"),
+					check.That(resourceType+".test").Key("display_name").HasValue("unit-test-role-assignment-all-devices"),
+					check.That(resourceType+".test").Key("scope_configuration.0.type").HasValue("AllDevices"),
+					check.That(resourceType+".test").Key("members.#").HasValue("2"),
 				),
 			},
 		},
@@ -296,7 +265,7 @@ resource "microsoft365_graph_beta_device_management_role_assignment" "test" {
 
 // TestRoleAssignmentResource_Members tests members handling
 func TestRoleAssignmentResource_Members(t *testing.T) {
-	setupUnitTestEnvironment()
+	mocks.SetupUnitTestEnvironment(t)
 	_, roleAssignmentMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
 	defer roleAssignmentMock.CleanupMockState()
@@ -307,8 +276,8 @@ func TestRoleAssignmentResource_Members(t *testing.T) {
 			{
 				Config: `
 resource "microsoft365_graph_beta_device_management_role_assignment" "test" {
-  display_name       = "Test Members Role Assignment"
-  description        = "Minimal role assignment for testing"
+  display_name       = "unit-test-role-assignment-members"
+  description        = "Minimal role assignment for unit testing"
   role_definition_id = "0bd113fe-6be5-400c-a28f-ae5553f9c0be"
   
   members = [
@@ -323,10 +292,10 @@ resource "microsoft365_graph_beta_device_management_role_assignment" "test" {
 }
 `,
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_role_assignment.test", "members.#", "3"),
-					resource.TestCheckTypeSetElemAttr("microsoft365_graph_beta_device_management_role_assignment.test", "members.*", "ea8e2fb8-e909-44e6-bae7-56757cf6f347"),
-					resource.TestCheckTypeSetElemAttr("microsoft365_graph_beta_device_management_role_assignment.test", "members.*", "b15228f4-9d49-41ed-9b4f-0e7c721fd9c2"),
-					resource.TestCheckTypeSetElemAttr("microsoft365_graph_beta_device_management_role_assignment.test", "members.*", "35d09841-af73-43e6-a59f-024fef1b6b95"),
+					check.That(resourceType+".test").Key("members.#").HasValue("3"),
+					check.That(resourceType+".test").Key("members.*").ContainsTypeSetElement("ea8e2fb8-e909-44e6-bae7-56757cf6f347"),
+					check.That(resourceType+".test").Key("members.*").ContainsTypeSetElement("b15228f4-9d49-41ed-9b4f-0e7c721fd9c2"),
+					check.That(resourceType+".test").Key("members.*").ContainsTypeSetElement("35d09841-af73-43e6-a59f-024fef1b6b95"),
 				),
 			},
 		},

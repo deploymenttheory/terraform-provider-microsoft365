@@ -32,10 +32,9 @@ func NewWindowsQualityUpdateProfileDataSource() datasource.DataSource {
 
 // WindowsQualityUpdateProfileDataSource defines the data source implementation
 type WindowsQualityUpdateProfileDataSource struct {
-	client           *msgraphbetasdk.GraphServiceClient
-	
-	
-	ReadPermissions  []string
+	client *msgraphbetasdk.GraphServiceClient
+
+	ReadPermissions []string
 }
 
 // Metadata returns the data source type name

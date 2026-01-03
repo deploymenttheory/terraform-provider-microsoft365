@@ -33,7 +33,7 @@ func TestConditionalAccessTermsOfUseResource_Basic(t *testing.T) {
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testConfigMinimal(),
+				Config: testConfigHelper("resource_minimal.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					check.That(resourceType+".unit_test_conditional_access_terms_of_use_minimal").Key("id").Exists(),
 					check.That(resourceType+".unit_test_conditional_access_terms_of_use_minimal").Key("display_name").HasValue("unit_test_conditional_access_terms_of_use_minimal"),
@@ -80,7 +80,7 @@ func TestConditionalAccessTermsOfUseResource_Maximal(t *testing.T) {
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testConfigMaximal(),
+				Config: testConfigHelper("resource_maximal.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					check.That(resourceType+".unit_test_conditional_access_terms_of_use_maximal").Key("id").Exists(),
 					check.That(resourceType+".unit_test_conditional_access_terms_of_use_maximal").Key("display_name").HasValue("unit_test_conditional_access_terms_of_use_maximal"),
@@ -116,7 +116,7 @@ func TestConditionalAccessTermsOfUseResource_Update(t *testing.T) {
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testConfigMinimal(),
+				Config: testConfigHelper("resource_minimal.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					check.That(resourceType+".unit_test_conditional_access_terms_of_use_minimal").Key("id").Exists(),
 					check.That(resourceType+".unit_test_conditional_access_terms_of_use_minimal").Key("display_name").HasValue("unit_test_conditional_access_terms_of_use_minimal"),
@@ -125,7 +125,7 @@ func TestConditionalAccessTermsOfUseResource_Update(t *testing.T) {
 				),
 			},
 			{
-				Config: testConfigMaximal(),
+				Config: testConfigHelper("resource_maximal.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					check.That(resourceType+".unit_test_conditional_access_terms_of_use_maximal").Key("id").Exists(),
 					check.That(resourceType+".unit_test_conditional_access_terms_of_use_maximal").Key("display_name").HasValue("unit_test_conditional_access_terms_of_use_maximal"),
@@ -248,18 +248,10 @@ resource "microsoft365_graph_identity_and_access_conditional_access_terms_of_use
 	})
 }
 
-func testConfigMinimal() string {
-	unitTestConfig, err := helpers.ParseHCLFile("tests/terraform/unit/resource_minimal.tf")
+func testConfigHelper(filename string) string {
+	config, err := helpers.ParseHCLFile("tests/terraform/unit/" + filename)
 	if err != nil {
-		panic("failed to load resource_minimal.tf: " + err.Error())
+		panic("failed to load unit test config " + filename + ": " + err.Error())
 	}
-	return unitTestConfig
-}
-
-func testConfigMaximal() string {
-	unitTestConfig, err := helpers.ParseHCLFile("tests/terraform/unit/resource_maximal.tf")
-	if err != nil {
-		panic("failed to load resource_maximal.tf: " + err.Error())
-	}
-	return unitTestConfig
+	return config
 }

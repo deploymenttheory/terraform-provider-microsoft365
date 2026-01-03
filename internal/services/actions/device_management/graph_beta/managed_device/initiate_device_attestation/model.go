@@ -11,4 +11,3 @@ type InitiateDeviceAttestationManagedDeviceActionModel struct {
 	ComanagedDeviceIDs types.List     `tfsdk:"comanaged_device_ids"`
 	Timeouts           timeouts.Value `tfsdk:"timeouts"`
 }
-

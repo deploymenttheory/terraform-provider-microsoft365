@@ -1,5 +1,5 @@
 resource "microsoft365_graph_beta_device_management_terms_and_conditions" "maximal" {
-  display_name         = "Test Maximal Terms and Conditions - Unique"
+  display_name         = "unit-test-terms-and-conditions-maximal"
   description          = "Comprehensive terms and conditions for testing with all features"
   title                = "Complete Company Terms and Conditions"
   body_text            = "These are the comprehensive terms and conditions that all users must read and accept before accessing company resources. This includes detailed policies about data usage, privacy, security requirements, and acceptable use of company systems."

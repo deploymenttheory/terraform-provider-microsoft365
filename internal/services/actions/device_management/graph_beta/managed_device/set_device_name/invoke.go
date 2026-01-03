@@ -171,4 +171,3 @@ func (a *SetDeviceNameManagedDeviceAction) setDeviceNameComanagedDevice(ctx cont
 
 	return nil
 }
-

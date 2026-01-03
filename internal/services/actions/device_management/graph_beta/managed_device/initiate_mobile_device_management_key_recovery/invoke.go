@@ -176,4 +176,3 @@ func (a *InitiateMobileDeviceManagementKeyRecoveryManagedDeviceAction) initiateK
 
 	return nil
 }
-

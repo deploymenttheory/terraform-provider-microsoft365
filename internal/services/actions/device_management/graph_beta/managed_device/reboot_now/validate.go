@@ -24,7 +24,6 @@ func (a *RebootNowManagedDeviceAction) ValidateConfig(ctx context.Context, req a
 		deviceIDs = append(deviceIDs, elem.String())
 	}
 
-	
 	seen := make(map[string]bool)
 	var duplicates []string
 	for _, id := range deviceIDs {
@@ -44,7 +43,6 @@ func (a *RebootNowManagedDeviceAction) ValidateConfig(ctx context.Context, req a
 		)
 	}
 
-	
 	tflog.Debug(ctx, fmt.Sprintf("Validating reboot now action for %d device(s)", len(deviceIDs)))
 
 	var nonExistentDevices []string

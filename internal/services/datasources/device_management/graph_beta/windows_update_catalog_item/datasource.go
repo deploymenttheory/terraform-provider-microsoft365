@@ -33,10 +33,9 @@ func NewWindowsUpdateCatalogItemDataSource() datasource.DataSource {
 
 // WindowsUpdateCatalogItemDataSource defines the data source implementation
 type WindowsUpdateCatalogItemDataSource struct {
-	client           *msgraphbetasdk.GraphServiceClient
-	
-	
-	ReadPermissions  []string
+	client *msgraphbetasdk.GraphServiceClient
+
+	ReadPermissions []string
 }
 
 // Metadata returns the data source type name

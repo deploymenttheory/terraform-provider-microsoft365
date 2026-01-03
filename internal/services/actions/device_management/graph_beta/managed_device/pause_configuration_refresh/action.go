@@ -152,4 +152,3 @@ func (a *PauseConfigurationRefreshManagedDeviceAction) Schema(ctx context.Contex
 		},
 	}
 }
-

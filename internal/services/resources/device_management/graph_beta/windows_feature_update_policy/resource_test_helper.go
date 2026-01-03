@@ -39,4 +39,3 @@ func (r WindowsFeatureUpdatePolicyTestResource) Exists(ctx context.Context, _ an
 	exists := true
 	return &exists, nil
 }
-

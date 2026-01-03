@@ -9,10 +9,20 @@ import (
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/check"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/destroy"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/testlog"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 )
+
+// Helper function to load test configs from acceptance directory
+func loadAcceptanceTestTerraform(filename string) string {
+	config, err := helpers.ParseHCLFile("tests/terraform/acceptance/" + filename)
+	if err != nil {
+		panic("failed to load acceptance config " + filename + ": " + err.Error())
+	}
+	return acceptance.ConfiguredM365ProviderBlock(config)
+}
 
 // TestAccAgentIdentityResource_Minimal tests creating an agent identity with minimal configuration
 func TestAccAgentIdentityResource_Minimal(t *testing.T) {
@@ -35,7 +45,7 @@ func TestAccAgentIdentityResource_Minimal(t *testing.T) {
 				PreConfig: func() {
 					testlog.StepAction(resourceType, "Creating agent identity with minimal configuration")
 				},
-				Config: testAccConfigMinimal(),
+				Config: loadAcceptanceTestTerraform("resource_minimal.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					func(_ *terraform.State) error {
 						testlog.WaitForConsistency("agent identity", 15*time.Second)
@@ -98,7 +108,7 @@ func TestAccAgentIdentityResource_WithTags(t *testing.T) {
 				PreConfig: func() {
 					testlog.StepAction(resourceType, "Creating agent identity with tags")
 				},
-				Config: testAccConfigWithTags(),
+				Config: loadAcceptanceTestTerraform("resource_with_tags.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					func(_ *terraform.State) error {
 						testlog.WaitForConsistency("agent identity with tags", 15*time.Second)
@@ -139,14 +149,4 @@ func TestAccAgentIdentityResource_WithTags(t *testing.T) {
 			},
 		},
 	})
-}
-
-func testAccConfigMinimal() string {
-	config := mocks.LoadTerraformConfigFile("resource_minimal.tf")
-	return acceptance.ConfiguredM365ProviderBlock(config)
-}
-
-func testAccConfigWithTags() string {
-	config := mocks.LoadTerraformConfigFile("resource_with_tags.tf")
-	return acceptance.ConfiguredM365ProviderBlock(config)
 }

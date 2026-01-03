@@ -1,5 +1,5 @@
 resource "microsoft365_graph_beta_windows_365_cloud_pc_role_definition" "minimal" {
-  display_name = "Test Minimal Role Definition - Unique"
+  display_name = "unit-test-cloud-pc-role-definition-minimal"
   description  = ""
 
   role_permissions = [

@@ -135,7 +135,7 @@ func TestDownloadFile(t *testing.T) {
 					w.Write([]byte("malicious content"))
 				}))
 			},
-			expectError:   false, // The sanitizer will clean the filename, not cause an error
+			expectError: false, // The sanitizer will clean the filename, not cause an error
 			validateResult: func(path string, t *testing.T) {
 				// The filename should be sanitized, not cause a path traversal error
 				if strings.Contains(path, "..") || strings.Contains(path, "/etc/") {
@@ -341,11 +341,11 @@ func TestSanitizeFileName(t *testing.T) {
 
 func TestParseContentDisposition(t *testing.T) {
 	tests := []struct {
-		name              string
-		header            string
-		expectedType      string
-		expectedFilename  string
-		expectError       bool
+		name             string
+		header           string
+		expectedType     string
+		expectedFilename string
+		expectError      bool
 	}{
 		{
 			name:             "attachment with filename",
@@ -542,10 +542,10 @@ func TestDownloadFile_FileExistsHandling(t *testing.T) {
 	// Create a temp file with the same name that would be generated
 	tempDir := os.TempDir()
 	existingFile := filepath.Join(tempDir, "duplicate.txt")
-	
+
 	// Clean up any existing file first
 	os.Remove(existingFile)
-	
+
 	// Create the existing file
 	if err := os.WriteFile(existingFile, []byte("existing"), 0644); err != nil {
 		t.Fatalf("Failed to create existing file: %v", err)

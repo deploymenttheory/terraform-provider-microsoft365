@@ -179,4 +179,3 @@ func (a *RotateLocalAdminPasswordManagedDeviceAction) rotatePasswordComanagedDev
 
 	return nil
 }
-

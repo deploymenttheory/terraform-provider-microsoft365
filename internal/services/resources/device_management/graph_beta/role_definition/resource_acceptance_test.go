@@ -1,92 +1,110 @@
 package graphBetaRoleDefinition_test
 
 import (
-	"context"
-	"fmt"
+	"regexp"
 	"testing"
+	"time"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/check"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/destroy"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/testlog"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
-	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
+	graphBetaRoleDefinition "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_management/graph_beta/role_definition"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 )
 
-// testAccCheckRoleDefinitionDestroy verifies that role definitions have been destroyed
-func testAccCheckRoleDefinitionDestroy(s *terraform.State) error {
-	graphClient, err := acceptance.TestGraphClient()
+var (
+	// testResource is the test resource implementation for role definitions
+	testResource = graphBetaRoleDefinition.RoleDefinitionTestResource{}
+
+	// resourceType is the Terraform resource type name
+	resourceType = graphBetaRoleDefinition.ResourceName
+)
+
+// Helper function to load test configs from acceptance directory
+func loadAcceptanceTestTerraform(filename string) string {
+	config, err := helpers.ParseHCLFile("tests/terraform/acceptance/" + filename)
 	if err != nil {
-		return fmt.Errorf("error creating Graph client for CheckDestroy: %v", err)
+		panic("failed to load acceptance config " + filename + ": " + err.Error())
 	}
-
-	ctx := context.Background()
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "microsoft365_graph_beta_device_management_role_definition" {
-			continue
-		}
-
-		// Attempt to get the role definition by ID
-		_, err := graphClient.
-			DeviceManagement().
-			RoleDefinitions().
-			ByRoleDefinitionId(rs.Primary.ID).
-			Get(ctx, nil)
-
-		if err != nil {
-			errorInfo := errors.GraphError(ctx, err)
-			fmt.Printf("DEBUG: Error details - StatusCode: %d, ErrorCode: %s, ErrorMessage: %s\n",
-				errorInfo.StatusCode, errorInfo.ErrorCode, errorInfo.ErrorMessage)
-
-			if errorInfo.StatusCode == 404 ||
-				errorInfo.ErrorCode == "ResourceNotFound" ||
-				errorInfo.ErrorCode == "ItemNotFound" {
-				fmt.Printf("DEBUG: Resource %s successfully destroyed (404/NotFound)\n", rs.Primary.ID)
-				continue // Resource successfully destroyed
-			}
-			return fmt.Errorf("error checking if role definition %s was destroyed: %v", rs.Primary.ID, err)
-		}
-
-		// If we can still get the resource, it wasn't destroyed
-		return fmt.Errorf("role definition %s still exists", rs.Primary.ID)
-	}
-
-	return nil
+	return acceptance.ConfiguredM365ProviderBlock(config)
 }
 
 func TestAccRoleDefinitionResource_Lifecycle(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
-		CheckDestroy:             testAccCheckRoleDefinitionDestroy,
+		CheckDestroy: destroy.CheckDestroyedAllFunc(
+			testResource,
+			resourceType,
+			30*time.Second,
+		),
+		ExternalProviders: map[string]resource.ExternalProvider{
+			"random": {
+				Source:            "hashicorp/random",
+				VersionConstraint: ">= 3.7.2",
+			},
+		},
 		Steps: []resource.TestStep{
 			// Create with minimal configuration
 			{
-				Config: testAccRoleDefinitionConfig_minimal(),
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Creating role definition with minimal configuration")
+				},
+				Config: loadAcceptanceTestTerraform("resource_minimal.tf"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("microsoft365_graph_beta_device_management_role_definition.test", "id"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_role_definition.test", "display_name", "Test Acceptance Role Definition"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_role_definition.test", "description", ""),
-					resource.TestCheckResourceAttrSet("microsoft365_graph_beta_device_management_role_definition.test", "is_built_in_role_definition"),
-					resource.TestCheckResourceAttrSet("microsoft365_graph_beta_device_management_role_definition.test", "is_built_in"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_role_definition.test", "role_permissions.#", "1"),
+					func(_ *terraform.State) error {
+						testlog.WaitForConsistency("role definition", 15*time.Second)
+						time.Sleep(15 * time.Second)
+						return nil
+					},
+					check.That(resourceType+".test").ExistsInGraph(testResource),
+					check.That(resourceType+".test").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(resourceType+".test").Key("display_name").HasValue("acc-test-role-definition-minimal"),
+					check.That(resourceType+".test").Key("description").HasValue(""),
+					check.That(resourceType+".test").Key("is_built_in_role_definition").Exists(),
+					check.That(resourceType+".test").Key("is_built_in").Exists(),
+					check.That(resourceType+".test").Key("role_permissions.#").HasValue("1"),
+					check.That(resourceType+".test").Key("role_permissions.0.allowed_resource_actions.#").HasValue("2"),
+					check.That(resourceType+".test").Key("role_permissions.0.allowed_resource_actions.*").ContainsTypeSetElement("Microsoft.Intune_ManagedDevices_Read"),
+					check.That(resourceType+".test").Key("role_permissions.0.allowed_resource_actions.*").ContainsTypeSetElement("Microsoft.Intune_ManagedDevices_Update"),
 				),
 			},
 			// ImportState testing
 			{
-				ResourceName:      "microsoft365_graph_beta_device_management_role_definition.test",
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Importing role definition")
+				},
+				ResourceName:      resourceType + ".test",
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
 			// Update to maximal configuration
 			{
-				Config: testAccRoleDefinitionConfig_maximal(),
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Updating role definition to maximal configuration")
+				},
+				Config: loadAcceptanceTestTerraform("resource_maximal.tf"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("microsoft365_graph_beta_device_management_role_definition.test", "id"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_role_definition.test", "display_name", "Test Acceptance Role Definition - Updated"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_role_definition.test", "description", "Updated description for acceptance testing"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_role_definition.test", "role_scope_tag_ids.#", "2"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_role_definition.test", "role_permissions.#", "1"),
+					func(_ *terraform.State) error {
+						testlog.WaitForConsistency("role definition", 15*time.Second)
+						time.Sleep(15 * time.Second)
+						return nil
+					},
+					check.That(resourceType+".test").ExistsInGraph(testResource),
+					check.That(resourceType+".test").Key("id").Exists(),
+					check.That(resourceType+".test").Key("display_name").HasValue("acc-test-role-definition-maximal"),
+					check.That(resourceType+".test").Key("description").HasValue("Updated description for acceptance testing"),
+					check.That(resourceType+".test").Key("is_built_in_role_definition").Exists(),
+					check.That(resourceType+".test").Key("is_built_in").Exists(),
+					check.That(resourceType+".test").Key("role_scope_tag_ids.#").HasValue("2"),
+					check.That(resourceType+".test").Key("role_scope_tag_ids.*").ContainsTypeSetElement("0"),
+					check.That(resourceType+".test").Key("role_scope_tag_ids.*").ContainsTypeSetElement("1"),
+					check.That(resourceType+".test").Key("role_permissions.#").HasValue("1"),
+					check.That(resourceType+".test").Key("role_permissions.0.allowed_resource_actions.#").Exists(),
 				),
 			},
 		},
@@ -97,32 +115,39 @@ func TestAccRoleDefinitionResource_Description(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
-		CheckDestroy:             testAccCheckRoleDefinitionDestroy,
+		CheckDestroy: destroy.CheckDestroyedAllFunc(
+			testResource,
+			resourceType,
+			30*time.Second,
+		),
+		ExternalProviders: map[string]resource.ExternalProvider{
+			"random": {
+				Source:            "hashicorp/random",
+				VersionConstraint: ">= 3.7.2",
+			},
+		},
 		Steps: []resource.TestStep{
 			{
-				Config: testAccRoleDefinitionConfig_description(),
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Creating role definition with description")
+				},
+				Config: loadAcceptanceTestTerraform("resource_description.tf"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("microsoft365_graph_beta_device_management_role_definition.description", "id"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_role_definition.description", "display_name", "Test Description Role Definition"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_role_definition.description", "description", "This is a test role definition with description"),
+					func(_ *terraform.State) error {
+						testlog.WaitForConsistency("role definition", 15*time.Second)
+						time.Sleep(15 * time.Second)
+						return nil
+					},
+					check.That(resourceType+".description").ExistsInGraph(testResource),
+					check.That(resourceType+".description").Key("id").Exists(),
+					check.That(resourceType+".description").Key("display_name").HasValue("acc-test-role-definition-description"),
+					check.That(resourceType+".description").Key("description").HasValue("This is a test role definition with description"),
+					check.That(resourceType+".description").Key("is_built_in_role_definition").Exists(),
+					check.That(resourceType+".description").Key("is_built_in").Exists(),
+					check.That(resourceType+".description").Key("role_permissions.#").HasValue("1"),
+					check.That(resourceType+".description").Key("role_permissions.0.allowed_resource_actions.#").HasValue("1"),
 				),
 			},
 		},
 	})
-}
-
-// Test configuration functions
-func testAccRoleDefinitionConfig_minimal() string {
-	config := mocks.LoadTerraformConfigFile("resource_minimal.tf")
-	return acceptance.ConfiguredM365ProviderBlock(config)
-}
-
-func testAccRoleDefinitionConfig_maximal() string {
-	config := mocks.LoadTerraformConfigFile("resource_maximal.tf")
-	return acceptance.ConfiguredM365ProviderBlock(config)
-}
-
-func testAccRoleDefinitionConfig_description() string {
-	config := mocks.LoadTerraformConfigFile("resource_description.tf")
-	return acceptance.ConfiguredM365ProviderBlock(config)
 }

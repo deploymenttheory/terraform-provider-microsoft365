@@ -1,65 +1,38 @@
 package graphBetaRoleDefinition_test
 
 import (
-	"os"
-	"path/filepath"
 	"regexp"
 	"testing"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/check"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
 	roleDefinitionMocks "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_management/graph_beta/role_definition/mocks"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/jarcoal/httpmock"
 )
 
-func setupUnitTestEnvironment() {
-	// Set environment variables for testing
-	os.Setenv("TF_ACC", "0")
-	os.Setenv("MS365_TEST_MODE", "true")
-}
-
-// setupMockEnvironment sets up the mock environment using centralized mocks
 func setupMockEnvironment() (*mocks.Mocks, *roleDefinitionMocks.RoleDefinitionMock) {
-	// Activate httpmock
 	httpmock.Activate()
-
-	// Create a new Mocks instance and register authentication mocks
 	mockClient := mocks.NewMocks()
 	mockClient.AuthMocks.RegisterMocks()
-
-	// Register local mocks directly
 	roleDefinitionMock := &roleDefinitionMocks.RoleDefinitionMock{}
 	roleDefinitionMock.RegisterMocks()
-
 	return mockClient, roleDefinitionMock
 }
 
-// testCheckExists is a basic check to ensure the resource exists in the state
-func testCheckExists(resourceName string) resource.TestCheckFunc {
-	return resource.TestCheckResourceAttrSet(resourceName, "id")
-}
-
-// testConfigMinimal returns the minimal configuration for testing
-func testConfigMinimal() string {
-	content, err := os.ReadFile(filepath.Join("tests", "terraform", "unit", "resource_minimal.tf"))
+// Helper function to load test configs from unit directory
+func testConfigHelper(filename string) string {
+	config, err := helpers.ParseHCLFile("tests/terraform/unit/" + filename)
 	if err != nil {
-		return ""
+		panic("failed to load unit test config " + filename + ": " + err.Error())
 	}
-	return string(content)
-}
-
-// testConfigMaximal returns the maximal custom configuration for testing
-func testConfigMaximal() string {
-	content, err := os.ReadFile(filepath.Join("tests", "terraform", "unit", "resource_maximal.tf"))
-	if err != nil {
-		return ""
-	}
-	return string(content)
+	return config
 }
 
 // TestRoleDefinitionResource_Schema validates the resource schema
 func TestRoleDefinitionResource_Schema(t *testing.T) {
-	setupUnitTestEnvironment()
+	mocks.SetupUnitTestEnvironment(t)
 	_, roleDefinitionMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
 	defer roleDefinitionMock.CleanupMockState()
@@ -68,17 +41,17 @@ func TestRoleDefinitionResource_Schema(t *testing.T) {
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testConfigMinimal(),
+				Config: testConfigHelper("resource_minimal.tf"),
 				Check: resource.ComposeTestCheckFunc(
-					// Check required attributes
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_role_definition.minimal", "display_name", "Test Minimal Role Definition - Unique"),
-					resource.TestCheckResourceAttrSet("microsoft365_graph_beta_device_management_role_definition.minimal", "is_built_in_role_definition"),
-					resource.TestCheckResourceAttrSet("microsoft365_graph_beta_device_management_role_definition.minimal", "is_built_in"),
-
-					// Check computed attributes are set
-					resource.TestMatchResourceAttr("microsoft365_graph_beta_device_management_role_definition.minimal", "id", regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_role_definition.minimal", "description", ""),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_role_definition.minimal", "role_permissions.#", "1"),
+					check.That(resourceType+".minimal").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(resourceType+".minimal").Key("display_name").HasValue("unit-test-role-definition-minimal"),
+					check.That(resourceType+".minimal").Key("description").HasValue(""),
+					check.That(resourceType+".minimal").Key("is_built_in_role_definition").Exists(),
+					check.That(resourceType+".minimal").Key("is_built_in").Exists(),
+					check.That(resourceType+".minimal").Key("role_permissions.#").HasValue("1"),
+					check.That(resourceType+".minimal").Key("role_permissions.0.allowed_resource_actions.#").HasValue("2"),
+					check.That(resourceType+".minimal").Key("role_permissions.0.allowed_resource_actions.*").ContainsTypeSetElement("Microsoft.Intune_ManagedDevices_Read"),
+					check.That(resourceType+".minimal").Key("role_permissions.0.allowed_resource_actions.*").ContainsTypeSetElement("Microsoft.Intune_ManagedDevices_Update"),
 				),
 			},
 		},
@@ -87,7 +60,7 @@ func TestRoleDefinitionResource_Schema(t *testing.T) {
 
 // TestRoleDefinitionResource_Minimal tests basic CRUD operations
 func TestRoleDefinitionResource_Minimal(t *testing.T) {
-	setupUnitTestEnvironment()
+	mocks.SetupUnitTestEnvironment(t)
 	_, roleDefinitionMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
 	defer roleDefinitionMock.CleanupMockState()
@@ -97,28 +70,37 @@ func TestRoleDefinitionResource_Minimal(t *testing.T) {
 		Steps: []resource.TestStep{
 			// Create and Read testing
 			{
-				Config: testConfigMinimal(),
+				Config: testConfigHelper("resource_minimal.tf"),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckExists("microsoft365_graph_beta_device_management_role_definition.minimal"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_role_definition.minimal", "display_name", "Test Minimal Role Definition - Unique"),
-					resource.TestCheckResourceAttrSet("microsoft365_graph_beta_device_management_role_definition.minimal", "is_built_in_role_definition"),
-					resource.TestCheckResourceAttrSet("microsoft365_graph_beta_device_management_role_definition.minimal", "is_built_in"),
+					check.That(resourceType+".minimal").Key("id").Exists(),
+					check.That(resourceType+".minimal").Key("display_name").HasValue("unit-test-role-definition-minimal"),
+					check.That(resourceType+".minimal").Key("description").HasValue(""),
+					check.That(resourceType+".minimal").Key("is_built_in_role_definition").Exists(),
+					check.That(resourceType+".minimal").Key("is_built_in").Exists(),
+					check.That(resourceType+".minimal").Key("role_permissions.#").HasValue("1"),
+					check.That(resourceType+".minimal").Key("role_permissions.0.allowed_resource_actions.#").HasValue("2"),
 				),
 			},
 			// ImportState testing
 			{
-				ResourceName:      "microsoft365_graph_beta_device_management_role_definition.minimal",
+				ResourceName:      resourceType + ".minimal",
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
 			// Update and Read testing
 			{
-				Config: testConfigMaximal(),
+				Config: testConfigHelper("resource_maximal.tf"),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckExists("microsoft365_graph_beta_device_management_role_definition.maximal_custom"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_role_definition.maximal_custom", "display_name", "Test Maximal Custom Role Definition - Unique"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_role_definition.maximal_custom", "description", "Comprehensive custom role definition for testing with all features"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_role_definition.maximal_custom", "role_scope_tag_ids.#", "2"),
+					check.That(resourceType+".maximal_custom").Key("id").Exists(),
+					check.That(resourceType+".maximal_custom").Key("display_name").HasValue("unit-test-role-definition-maximal"),
+					check.That(resourceType+".maximal_custom").Key("description").HasValue("Comprehensive custom role definition for testing with all features"),
+					check.That(resourceType+".maximal_custom").Key("is_built_in_role_definition").Exists(),
+					check.That(resourceType+".maximal_custom").Key("is_built_in").Exists(),
+					check.That(resourceType+".maximal_custom").Key("role_scope_tag_ids.#").HasValue("2"),
+					check.That(resourceType+".maximal_custom").Key("role_scope_tag_ids.*").ContainsTypeSetElement("0"),
+					check.That(resourceType+".maximal_custom").Key("role_scope_tag_ids.*").ContainsTypeSetElement("1"),
+					check.That(resourceType+".maximal_custom").Key("role_permissions.#").HasValue("1"),
+					check.That(resourceType+".maximal_custom").Key("role_permissions.0.allowed_resource_actions.#").HasValue("10"),
 				),
 			},
 		},
@@ -127,7 +109,7 @@ func TestRoleDefinitionResource_Minimal(t *testing.T) {
 
 // TestRoleDefinitionResource_UpdateInPlace tests in-place updates
 func TestRoleDefinitionResource_UpdateInPlace(t *testing.T) {
-	setupUnitTestEnvironment()
+	mocks.SetupUnitTestEnvironment(t)
 	_, roleDefinitionMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
 	defer roleDefinitionMock.CleanupMockState()
@@ -136,19 +118,23 @@ func TestRoleDefinitionResource_UpdateInPlace(t *testing.T) {
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testConfigMinimal(),
+				Config: testConfigHelper("resource_minimal.tf"),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckExists("microsoft365_graph_beta_device_management_role_definition.minimal"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_role_definition.minimal", "display_name", "Test Minimal Role Definition - Unique"),
+					check.That(resourceType+".minimal").Key("id").Exists(),
+					check.That(resourceType+".minimal").Key("display_name").HasValue("unit-test-role-definition-minimal"),
+					check.That(resourceType+".minimal").Key("description").HasValue(""),
+					check.That(resourceType+".minimal").Key("role_permissions.#").HasValue("1"),
 				),
 			},
 			{
-				Config: testConfigMaximal(),
+				Config: testConfigHelper("resource_maximal.tf"),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckExists("microsoft365_graph_beta_device_management_role_definition.maximal_custom"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_role_definition.maximal_custom", "display_name", "Test Maximal Custom Role Definition - Unique"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_role_definition.maximal_custom", "description", "Comprehensive custom role definition for testing with all features"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_role_definition.maximal_custom", "role_scope_tag_ids.#", "2"),
+					check.That(resourceType+".maximal_custom").Key("id").Exists(),
+					check.That(resourceType+".maximal_custom").Key("display_name").HasValue("unit-test-role-definition-maximal"),
+					check.That(resourceType+".maximal_custom").Key("description").HasValue("Comprehensive custom role definition for testing with all features"),
+					check.That(resourceType+".maximal_custom").Key("role_scope_tag_ids.#").HasValue("2"),
+					check.That(resourceType+".maximal_custom").Key("role_permissions.#").HasValue("1"),
+					check.That(resourceType+".maximal_custom").Key("role_permissions.0.allowed_resource_actions.#").HasValue("10"),
 				),
 			},
 		},
@@ -157,7 +143,7 @@ func TestRoleDefinitionResource_UpdateInPlace(t *testing.T) {
 
 // TestRoleDefinitionResource_RequiredFields tests required field validation
 func TestRoleDefinitionResource_RequiredFields(t *testing.T) {
-	setupUnitTestEnvironment()
+	mocks.SetupUnitTestEnvironment(t)
 	_, roleDefinitionMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
 	defer roleDefinitionMock.CleanupMockState()
@@ -203,7 +189,7 @@ resource "microsoft365_graph_beta_device_management_role_definition" "test" {
 
 // TestRoleDefinitionResource_ErrorHandling tests error scenarios
 func TestRoleDefinitionResource_ErrorHandling(t *testing.T) {
-	setupUnitTestEnvironment()
+	mocks.SetupUnitTestEnvironment(t)
 	_, roleDefinitionMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
 	defer roleDefinitionMock.CleanupMockState()
@@ -233,7 +219,7 @@ resource "microsoft365_graph_beta_device_management_role_definition" "test" {
 
 // TestRoleDefinitionResource_RoleScopeTagIds tests role scope tag IDs handling
 func TestRoleDefinitionResource_RoleScopeTagIds(t *testing.T) {
-	setupUnitTestEnvironment()
+	mocks.SetupUnitTestEnvironment(t)
 	_, roleDefinitionMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
 	defer roleDefinitionMock.CleanupMockState()
@@ -250,10 +236,10 @@ resource "microsoft365_graph_beta_device_management_role_definition" "test" {
 }
 `,
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_role_definition.test", "role_scope_tag_ids.#", "3"),
-					resource.TestCheckTypeSetElemAttr("microsoft365_graph_beta_device_management_role_definition.test", "role_scope_tag_ids.*", "0"),
-					resource.TestCheckTypeSetElemAttr("microsoft365_graph_beta_device_management_role_definition.test", "role_scope_tag_ids.*", "1"),
-					resource.TestCheckTypeSetElemAttr("microsoft365_graph_beta_device_management_role_definition.test", "role_scope_tag_ids.*", "2"),
+					check.That(resourceType+".test").Key("role_scope_tag_ids.#").HasValue("3"),
+					check.That(resourceType+".test").Key("role_scope_tag_ids.*").ContainsTypeSetElement("0"),
+					check.That(resourceType+".test").Key("role_scope_tag_ids.*").ContainsTypeSetElement("1"),
+					check.That(resourceType+".test").Key("role_scope_tag_ids.*").ContainsTypeSetElement("2"),
 				),
 			},
 		},
@@ -262,7 +248,7 @@ resource "microsoft365_graph_beta_device_management_role_definition" "test" {
 
 // TestRoleDefinitionResource_RolePermissions tests role permissions handling
 func TestRoleDefinitionResource_RolePermissions(t *testing.T) {
-	setupUnitTestEnvironment()
+	mocks.SetupUnitTestEnvironment(t)
 	_, roleDefinitionMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
 	defer roleDefinitionMock.CleanupMockState()
@@ -288,9 +274,9 @@ resource "microsoft365_graph_beta_device_management_role_definition" "test" {
 }
 `,
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_role_definition.test", "display_name", "Test Role Definition with Permissions"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_role_definition.test", "role_permissions.#", "1"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_role_definition.test", "role_permissions.0.allowed_resource_actions.#", "3"),
+					check.That(resourceType+".test").Key("display_name").HasValue("Test Role Definition with Permissions"),
+					check.That(resourceType+".test").Key("role_permissions.#").HasValue("1"),
+					check.That(resourceType+".test").Key("role_permissions.0.allowed_resource_actions.#").HasValue("3"),
 				),
 			},
 		},

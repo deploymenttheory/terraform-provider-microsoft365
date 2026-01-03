@@ -87,7 +87,7 @@ func (m *RoleDefinitionMock) createRoleDefinitionResponder() httpmock.Responder 
 		} else {
 			response, err = mocks.LoadJSONResponse(filepath.Join("tests", "responses", "validate_create", "get_role_definition_minimal.json"))
 		}
-		
+
 		if err != nil {
 			return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to load mock response"}}`), nil
 		}
@@ -184,7 +184,7 @@ func (m *RoleDefinitionMock) updateRoleDefinitionResponder() httpmock.Responder 
 		if err := json.NewDecoder(req.Body).Decode(&requestBody); err != nil {
 			return httpmock.NewJsonResponse(400, map[string]any{
 				"error": map[string]any{
-					"code":    "BadRequest", 
+					"code":    "BadRequest",
 					"message": "Invalid JSON",
 				},
 			})
@@ -523,4 +523,3 @@ func (m *RoleDefinitionMock) GetMockRoleDefinitionMinimalData() map[string]any {
 	}
 	return response
 }
-

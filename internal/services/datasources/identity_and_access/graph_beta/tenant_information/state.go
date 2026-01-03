@@ -17,4 +17,3 @@ func MapRemoteStateToDataSource(ctx context.Context, data graphmodels.TenantInfo
 
 	return model
 }
-

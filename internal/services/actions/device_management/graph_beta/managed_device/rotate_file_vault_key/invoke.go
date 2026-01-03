@@ -168,4 +168,3 @@ func (a *RotateFileVaultKeyManagedDeviceAction) rotateFileVaultKeyComanagedDevic
 
 	return nil
 }
-

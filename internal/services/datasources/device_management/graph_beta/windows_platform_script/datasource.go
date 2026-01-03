@@ -13,7 +13,7 @@ import (
 
 const (
 	DataSourceName = "microsoft365_graph_beta_device_management_windows_platform_script"
-	ReadTimeout  = 180
+	ReadTimeout    = 180
 )
 
 var (
@@ -33,10 +33,9 @@ func NewWindowsPlatformScriptDataSource() datasource.DataSource {
 }
 
 type WindowsPlatformScriptDataSource struct {
-	client           *msgraphbetasdk.GraphServiceClient
-	
-	
-	ReadPermissions  []string
+	client *msgraphbetasdk.GraphServiceClient
+
+	ReadPermissions []string
 }
 
 // Metadata returns the resource type name.

@@ -11,10 +11,10 @@ import (
 )
 
 type getKeyResult struct {
-	deviceID     string
-	deviceType   string // "managed" or "comanaged"
-	recoveryKey  string
-	err          error
+	deviceID    string
+	deviceType  string // "managed" or "comanaged"
+	recoveryKey string
+	err         error
 }
 
 func (a *GetFileVaultKeyManagedDeviceAction) Invoke(ctx context.Context, req action.InvokeRequest, resp *action.InvokeResponse) {
@@ -103,7 +103,7 @@ func (a *GetFileVaultKeyManagedDeviceAction) Invoke(ctx context.Context, req act
 			keyMessage := fmt.Sprintf("✓ Device %s (%s): FileVault Recovery Key = %s",
 				result.deviceID, result.deviceType, result.recoveryKey)
 			retrievedKeys = append(retrievedKeys, keyMessage)
-			
+
 			resp.SendProgress(action.InvokeProgressEvent{
 				Message: keyMessage,
 			})
@@ -146,9 +146,9 @@ func (a *GetFileVaultKeyManagedDeviceAction) Invoke(ctx context.Context, req act
 			"Store these keys securely and ensure compliance with your organization's security policies.\n\n"+
 			"%s\n"+
 			"========================================================",
-			totalDevices, successCount, len(failedDevices), 
+			totalDevices, successCount, len(failedDevices),
 			fmt.Sprintf("%v", retrievedKeys))
-		
+
 		resp.SendProgress(action.InvokeProgressEvent{
 			Message: summaryMessage,
 		})
@@ -198,4 +198,3 @@ func (a *GetFileVaultKeyManagedDeviceAction) getFileVaultKeyComanagedDevice(ctx 
 
 	return *result.GetValue(), nil
 }
-

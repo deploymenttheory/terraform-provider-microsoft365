@@ -118,4 +118,3 @@ func (a *RotateFileVaultKeyManagedDeviceAction) Schema(ctx context.Context, req 
 		},
 	}
 }
-

@@ -6,9 +6,19 @@ import (
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/check"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
+
+// Helper function to load test configs from acceptance directory
+func loadAcceptanceTestTerraform(filename string) string {
+	config, err := helpers.ParseHCLFile("tests/terraform/acceptance/" + filename)
+	if err != nil {
+		panic("failed to load acceptance config " + filename + ": " + err.Error())
+	}
+	return acceptance.ConfiguredM365ProviderBlock(config)
+}
 
 // Test 01: Get all mobile app catalog packages
 func TestAccMobileAppCatalogPackageDataSource_All(t *testing.T) {
@@ -23,7 +33,7 @@ func TestAccMobileAppCatalogPackageDataSource_All(t *testing.T) {
 		},
 		Steps: []resource.TestStep{
 			{
-				Config: testAccConfigAll(),
+				Config: loadAcceptanceTestTerraform("01_all.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					check.That(dataSourceType+".all").Key("filter_type").HasValue("all"),
 					check.That(dataSourceType+".all").Key("items.#").Exists(),
@@ -68,7 +78,7 @@ func TestAccMobileAppCatalogPackageDataSource_ById(t *testing.T) {
 		},
 		Steps: []resource.TestStep{
 			{
-				Config: testAccConfigById(),
+				Config: loadAcceptanceTestTerraform("02_by_id.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					check.That(dataSourceType+".by_id").Key("filter_type").HasValue("id"),
 					check.That(dataSourceType+".by_id").Key("filter_value").HasValue("3a6307ef-6991-faf1-01e1-35e1557287aa"),
@@ -114,7 +124,7 @@ func TestAccMobileAppCatalogPackageDataSource_ByProductName(t *testing.T) {
 		},
 		Steps: []resource.TestStep{
 			{
-				Config: testAccConfigByProductName(),
+				Config: loadAcceptanceTestTerraform("03_by_product_name.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					check.That(dataSourceType+".by_product_name").Key("filter_type").HasValue("product_name"),
 					check.That(dataSourceType+".by_product_name").Key("filter_value").HasValue("7-Zip"),
@@ -140,7 +150,7 @@ func TestAccMobileAppCatalogPackageDataSource_ByPublisherName(t *testing.T) {
 		},
 		Steps: []resource.TestStep{
 			{
-				Config: testAccConfigByPublisherName(),
+				Config: loadAcceptanceTestTerraform("04_by_publisher_name.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					check.That(dataSourceType+".by_publisher").Key("filter_type").HasValue("publisher_name"),
 					check.That(dataSourceType+".by_publisher").Key("filter_value").HasValue("Microsoft"),
@@ -150,25 +160,4 @@ func TestAccMobileAppCatalogPackageDataSource_ByPublisherName(t *testing.T) {
 			},
 		},
 	})
-}
-
-// Terraform acceptance test configs
-func testAccConfigAll() string {
-	config := mocks.LoadTerraformConfigFile("01_all.tf")
-	return acceptance.ConfiguredM365ProviderBlock(config)
-}
-
-func testAccConfigById() string {
-	config := mocks.LoadTerraformConfigFile("02_by_id.tf")
-	return acceptance.ConfiguredM365ProviderBlock(config)
-}
-
-func testAccConfigByProductName() string {
-	config := mocks.LoadTerraformConfigFile("03_by_product_name.tf")
-	return acceptance.ConfiguredM365ProviderBlock(config)
-}
-
-func testAccConfigByPublisherName() string {
-	config := mocks.LoadTerraformConfigFile("04_by_publisher_name.tf")
-	return acceptance.ConfiguredM365ProviderBlock(config)
 }

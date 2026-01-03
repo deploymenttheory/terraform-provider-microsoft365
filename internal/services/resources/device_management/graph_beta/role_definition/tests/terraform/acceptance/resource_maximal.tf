@@ -1,5 +1,5 @@
 resource "microsoft365_graph_beta_device_management_role_definition" "test" {
-  display_name       = "Test Acceptance Role Definition - Updated"
+  display_name       = "acc-test-role-definition-maximal"
   description        = "Updated description for acceptance testing"
   role_scope_tag_ids = ["0", "1"]
 

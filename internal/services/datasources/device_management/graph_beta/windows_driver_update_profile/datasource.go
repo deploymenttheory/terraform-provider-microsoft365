@@ -32,10 +32,9 @@ func NewWindowsDriverUpdateProfileDataSource() datasource.DataSource {
 
 // WindowsDriverUpdateProfileDataSource defines the data source implementation
 type WindowsDriverUpdateProfileDataSource struct {
-	client           *msgraphbetasdk.GraphServiceClient
-	
-	
-	ReadPermissions  []string
+	client *msgraphbetasdk.GraphServiceClient
+
+	ReadPermissions []string
 }
 
 // Metadata returns the data source type name

@@ -1,5 +1,5 @@
 resource "microsoft365_graph_beta_windows_365_cloud_pc_role_definition" "maximal_custom" {
-  display_name = "Test Maximal Custom Role Definition - Unique"
+  display_name = "unit-test-cloud-pc-role-definition-maximal"
   description  = "Comprehensive custom role definition for testing with all features"
 
   role_permissions = [

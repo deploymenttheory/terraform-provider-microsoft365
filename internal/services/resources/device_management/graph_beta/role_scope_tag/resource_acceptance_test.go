@@ -8,6 +8,7 @@ import (
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/check"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/destroy"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/testlog"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
 	graphBetaRoleScopeTag "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_management/graph_beta/role_scope_tag"
 	graphBetaGroup "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/groups/graph_beta/group"
@@ -16,16 +17,19 @@ import (
 )
 
 var (
-	// Resource type names constructed from exported constants
 	resourceType      = graphBetaRoleScopeTag.ResourceName
 	groupResourceType = graphBetaGroup.ResourceName
-
-	// testResource is the test resource implementation for role scope tags
-	testResource = graphBetaRoleScopeTag.RoleScopeTagTestResource{}
-
-	// groupTestResource is the test resource implementation for groups (used when testing dependencies)
+	testResource      = graphBetaRoleScopeTag.RoleScopeTagTestResource{}
 	groupTestResource = graphBetaGroup.GroupTestResource{}
 )
+
+func loadAcceptanceTestTerraform(filename string) string {
+	config, err := helpers.ParseHCLFile("tests/terraform/acceptance/" + filename)
+	if err != nil {
+		panic("failed to load acceptance config " + filename + ": " + err.Error())
+	}
+	return acceptance.ConfiguredM365ProviderBlock(config)
+}
 
 func TestAccRoleScopeTagResource_Lifecycle(t *testing.T) {
 	resource.Test(t, resource.TestCase{
@@ -53,7 +57,7 @@ func TestAccRoleScopeTagResource_Lifecycle(t *testing.T) {
 				PreConfig: func() {
 					testlog.StepAction(resourceType, "Creating")
 				},
-				Config: testAccRoleScopeTagConfig_minimal(),
+				Config: loadAcceptanceTestTerraform("resource_minimal.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					check.That(resourceType+".test").ExistsInGraph(testResource),
 					check.That(resourceType+".test").Key("id").Exists(),
@@ -74,7 +78,7 @@ func TestAccRoleScopeTagResource_Lifecycle(t *testing.T) {
 				PreConfig: func() {
 					testlog.StepAction(resourceType, "Updating")
 				},
-				Config: testAccRoleScopeTagConfig_maximal(),
+				Config: loadAcceptanceTestTerraform("resource_maximal.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					func(s *terraform.State) error {
 						testlog.WaitForConsistency("Microsoft Entra ID", 60*time.Second)
@@ -110,7 +114,7 @@ func TestAccRoleScopeTagResource_Description(t *testing.T) {
 				PreConfig: func() {
 					testlog.StepAction(resourceType, "Creating")
 				},
-				Config: testAccRoleScopeTagConfig_description(),
+				Config: loadAcceptanceTestTerraform("resource_description.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					check.That(resourceType+".description").ExistsInGraph(testResource),
 					check.That(resourceType+".description").Key("id").Exists(),
@@ -148,7 +152,7 @@ func TestAccRoleScopeTagResource_Assignments(t *testing.T) {
 				PreConfig: func() {
 					testlog.StepAction(resourceType, "Creating")
 				},
-				Config: testAccRoleScopeTagConfig_assignments(),
+				Config: loadAcceptanceTestTerraform("resource_assignments.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					func(s *terraform.State) error {
 						testlog.WaitForConsistency("Microsoft Entra ID", 60*time.Second)
@@ -162,27 +166,4 @@ func TestAccRoleScopeTagResource_Assignments(t *testing.T) {
 			},
 		},
 	})
-}
-
-// Test configuration functions
-func testAccRoleScopeTagConfig_minimal() string {
-	config := mocks.LoadTerraformConfigFile("resource_minimal.tf")
-	return acceptance.ConfiguredM365ProviderBlock(config)
-}
-
-func testAccRoleScopeTagConfig_maximal() string {
-	dependencies := mocks.LoadTerraformConfigFile("resource_dependencies.tf")
-	config := mocks.LoadTerraformConfigFile("resource_maximal.tf")
-	return acceptance.ConfiguredM365ProviderBlock(dependencies + "\n" + config)
-}
-
-func testAccRoleScopeTagConfig_description() string {
-	config := mocks.LoadTerraformConfigFile("resource_description.tf")
-	return acceptance.ConfiguredM365ProviderBlock(config)
-}
-
-func testAccRoleScopeTagConfig_assignments() string {
-	dependencies := mocks.LoadTerraformConfigFile("resource_dependencies.tf")
-	config := mocks.LoadTerraformConfigFile("resource_assignments.tf")
-	return acceptance.ConfiguredM365ProviderBlock(dependencies + "\n" + config)
 }

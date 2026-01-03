@@ -19,47 +19,47 @@ func EnsureField(data map[string]any, fieldName string, defaultValue any) {
 	}
 }
 
-// LoadTerraformConfigFile reads a terraform configuration file from the localised
-// acceptance test directory in services/<resource>/<resource_type>/tests/terraform/acceptance
-// folder.
-// Deprecated: Use LoadUnitTerraformConfig for unit tests instead
-func LoadTerraformConfigFile(filename string) string {
-	content, err := os.ReadFile(filepath.Join("tests", "terraform", "acceptance", filename))
-	if err != nil {
-		// Fallback to empty string if file cannot be read
-		return ""
-	}
-	return string(content)
-}
+// // LoadTerraformConfigFile reads a terraform configuration file from the localised
+// // acceptance test directory in services/<resource>/<resource_type>/tests/terraform/acceptance
+// // folder.
+// // Deprecated: Use LoadUnitTerraformConfig for unit tests instead
+// func LoadTerraformConfigFile(filename string) string {
+// 	content, err := os.ReadFile(filepath.Join("tests", "terraform", "acceptance", filename))
+// 	if err != nil {
+// 		// Fallback to empty string if file cannot be read
+// 		return ""
+// 	}
+// 	return string(content)
+// }
 
-// LoadLocalTerraformConfig reads a terraform configuration file from the local test directory
-// in services/<resource>/<resource_type>/tests/terraform/acceptance folder.
-// Falls back to unit directory if not found in acceptance.
-// Deprecated: Use LoadUnitTerraformConfig for unit tests instead
-func LoadLocalTerraformConfig(filename string) string {
-	content, err := os.ReadFile(filepath.Join("tests", "terraform", "acceptance", filename))
-	if err != nil {
-		// Try loading from unit directory as fallback
-		content, err = os.ReadFile(filepath.Join("tests", "terraform", "unit", filename))
-		if err != nil {
-			// Fallback to empty string if file cannot be read
-			return ""
-		}
-	}
-	return string(content)
-}
+// // LoadLocalTerraformConfig reads a terraform configuration file from the local test directory
+// // in services/<resource>/<resource_type>/tests/terraform/acceptance folder.
+// // Falls back to unit directory if not found in acceptance.
+// // Deprecated: Use LoadUnitTerraformConfig for unit tests instead
+// func LoadLocalTerraformConfig(filename string) string {
+// 	content, err := os.ReadFile(filepath.Join("tests", "terraform", "acceptance", filename))
+// 	if err != nil {
+// 		// Try loading from unit directory as fallback
+// 		content, err = os.ReadFile(filepath.Join("tests", "terraform", "unit", filename))
+// 		if err != nil {
+// 			// Fallback to empty string if file cannot be read
+// 			return ""
+// 		}
+// 	}
+// 	return string(content)
+// }
 
-// LoadCentralizedTerraformConfig reads a terraform configuration file from centralized dependencies
-// This is used for loading shared dependency files from the acceptance/terraform_dependencies directory
-// Deprecated: Use LoadAcceptanceDependencyConfig instead
-func LoadCentralizedTerraformConfig(filepath string) string {
-	content, err := os.ReadFile(filepath)
-	if err != nil {
-		// Fallback to empty string if file cannot be read
-		return ""
-	}
-	return string(content)
-}
+// // LoadCentralizedTerraformConfig reads a terraform configuration file from centralized dependencies
+// // This is used for loading shared dependency files from the acceptance/terraform_dependencies directory
+// // Deprecated: Use LoadAcceptanceDependencyConfig instead
+// func LoadCentralizedTerraformConfig(filepath string) string {
+// 	content, err := os.ReadFile(filepath)
+// 	if err != nil {
+// 		// Fallback to empty string if file cannot be read
+// 		return ""
+// 	}
+// 	return string(content)
+// }
 
 // LoadUnitTerraformConfig loads a terraform configuration file for unit tests from the caller's local directory.
 // This function is specifically designed for unit tests and only looks in tests/terraform/unit/.

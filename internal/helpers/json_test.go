@@ -12,7 +12,7 @@ import (
 // TestParseJSONFile_EmptyPath tests the empty path validation unit
 func TestParseJSONFile_EmptyPath(t *testing.T) {
 	content, err := ParseJSONFile("")
-	
+
 	assert.Error(t, err, "Expected error for empty file path")
 	assert.Empty(t, content, "Expected empty content for empty path")
 	assert.Contains(t, err.Error(), "file path for json file cannot be empty")
@@ -92,7 +92,7 @@ func TestParseJSONFile_FileExistence(t *testing.T) {
 		nonExistentFile := "nonexistent.json"
 
 		content, err := ParseJSONFile(nonExistentFile)
-		
+
 		assert.Error(t, err, "Expected error for non-existent file")
 		assert.Empty(t, content, "Expected empty content for non-existent file")
 		assert.Contains(t, err.Error(), "json file does not exist")
@@ -109,7 +109,7 @@ func TestParseJSONFile_FileTypeValidation(t *testing.T) {
 		}()
 
 		content, err := ParseJSONFile(dirPath)
-		
+
 		assert.Error(t, err, "Expected error when trying to read directory")
 		assert.Empty(t, content, "Expected empty content when reading directory")
 		assert.Contains(t, err.Error(), "supplied path does not resolve to a file")
@@ -121,14 +121,14 @@ func TestParseJSONFile_FileSizeValidation(t *testing.T) {
 	t.Run("file size within limit", func(t *testing.T) {
 		testFile := "small.json"
 		testContent := `{"comments": ["` + strings.Repeat("small json content ", 100) + `"]}`
-		
+
 		require.NoError(t, os.WriteFile(testFile, []byte(testContent), 0644))
 		defer func() {
 			assert.NoError(t, os.Remove(testFile))
 		}()
 
 		content, err := ParseJSONFile(testFile)
-		
+
 		assert.NoError(t, err, "ParseJSONFile should not fail for small file")
 		assert.Equal(t, testContent, content, "Content should match for small file")
 	})
@@ -138,14 +138,14 @@ func TestParseJSONFile_FileSizeValidation(t *testing.T) {
 		// Create file larger than 10MB limit (create ~12MB file)
 		largeArray := strings.Repeat(`"This is a long string that will be repeated to create a large JSON file",`, 200000)
 		largeContent := `{"data": [` + largeArray[:len(largeArray)-1] + `]}`
-		
+
 		require.NoError(t, os.WriteFile(testFile, []byte(largeContent), 0644))
 		defer func() {
 			assert.NoError(t, os.Remove(testFile))
 		}()
 
 		content, err := ParseJSONFile(testFile)
-		
+
 		assert.Error(t, err, "Expected error for oversized file")
 		assert.Empty(t, content, "Expected empty content for oversized file")
 		assert.Contains(t, err.Error(), "file too large")
@@ -175,7 +175,7 @@ func TestParseJSONFile_PathTraversalSecurity(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			content, err := ParseJSONFile(tc.path)
-			
+
 			assert.Error(t, err, "Expected error for path traversal attempt: %s", tc.path)
 			assert.Empty(t, content, "Expected empty content for path traversal")
 
@@ -199,7 +199,7 @@ func TestParseJSONFile_EmptyFileContent(t *testing.T) {
 		}()
 
 		content, err := ParseJSONFile(emptyFile)
-		
+
 		assert.NoError(t, err, "ParseJSONFile should not fail for empty file")
 		assert.Empty(t, content, "Expected empty content for empty file")
 	})
@@ -268,7 +268,7 @@ func TestParseJSONFile_ValidFileContent(t *testing.T) {
 			}()
 
 			content, err := ParseJSONFile(tc.filename)
-			
+
 			assert.NoError(t, err, "ParseJSONFile should not fail for valid content")
 			assert.Equal(t, tc.content, content, "Content should match exactly")
 		})
@@ -308,7 +308,7 @@ func TestParseJSONFile_MalformedJSON(t *testing.T) {
 
 			// The parser should load the content successfully - JSON validation is not its responsibility
 			content, err := ParseJSONFile(tc.filename)
-			
+
 			assert.NoError(t, err, "ParseJSONFile should load malformed JSON (validation is not its responsibility)")
 			assert.Equal(t, tc.content, content, "Content should match exactly even if malformed")
 		})
