@@ -17,6 +17,7 @@ import (
 
 const (
 	ActionName = "microsoft365_graph_beta_device_management_managed_device_send_custom_notification_to_company_portal"
+	InvokeTimeout = 60
 )
 
 var (
@@ -87,15 +88,13 @@ func (a *SendCustomNotificationToCompanyPortalAction) Schema(ctx context.Context
 			"- Consider user time zones for timing\n\n" +
 			"**Reference:** [Microsoft Graph API - Send Custom Notification To Company Portal](https://learn.microsoft.com/en-us/graph/api/intune-devices-manageddevice-sendcustomnotificationtocompanyportal?view=graph-rest-beta)",
 		Attributes: map[string]schema.Attribute{
-			"timeouts": commonschema.Timeouts(ctx),
-		},
-		Blocks: map[string]schema.Block{
-			"managed_devices": schema.ListNestedBlock{
+			"managed_devices": schema.ListNestedAttribute{
+				Optional: true,
 				MarkdownDescription: "List of managed devices to send custom notifications to. These are devices fully managed by Intune only. " +
 					"Each entry specifies a device ID and the custom notification title and body for that device.\n\n" +
 					"**Note:** At least one of `managed_devices` or `comanaged_devices` must be provided. " +
 					"You can provide both to send notifications to different types of devices in one action.",
-				NestedObject: schema.NestedBlockObject{
+				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"device_id": schema.StringAttribute{
 							Required: true,
@@ -131,11 +130,12 @@ func (a *SendCustomNotificationToCompanyPortalAction) Schema(ctx context.Context
 					},
 				},
 			},
-			"comanaged_devices": schema.ListNestedBlock{
+			"comanaged_devices": schema.ListNestedAttribute{
+				Optional: true,
 				MarkdownDescription: "List of co-managed devices to send custom notifications to. These are devices managed by both Intune and " +
 					"Configuration Manager (SCCM). Each entry specifies a device ID and the custom notification title and body.\n\n" +
 					"**Note:** At least one of `managed_devices` or `comanaged_devices` must be provided.",
-				NestedObject: schema.NestedBlockObject{
+				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"device_id": schema.StringAttribute{
 							Required: true,
@@ -171,6 +171,7 @@ func (a *SendCustomNotificationToCompanyPortalAction) Schema(ctx context.Context
 					},
 				},
 			},
+			"timeouts": commonschema.ActionTimeouts(ctx),
 		},
 	}
 }

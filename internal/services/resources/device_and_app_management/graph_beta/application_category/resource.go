@@ -92,7 +92,7 @@ func (r *ApplicationCategoryResource) Schema(ctx context.Context, req resource.S
 				Computed:    true,
 				Description: "The date and time when the Intune application category was last modified. This property is read-only.",
 			},
-			"timeouts": commonschema.Timeouts(ctx),
+			"timeouts": commonschema.ResourceTimeouts(ctx),
 		},
 	}
 }

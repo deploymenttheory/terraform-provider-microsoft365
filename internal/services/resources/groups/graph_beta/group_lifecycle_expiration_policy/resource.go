@@ -111,7 +111,7 @@ func (r *GroupLifecycleExpirationPolicyResource) Schema(ctx context.Context, req
 					"configuration specified in this resource. This is useful for first-time adoption when a policy already exists. Since only one lifecycle " +
 					"expiration policy is allowed per tenant, setting this to `true` forces a PATCH operation to replace the existing policy settings. Defaults to `false`, which attempts to create (POST) a new policy first.",
 			},
-			"timeouts": commonschema.Timeouts(ctx),
+			"timeouts": commonschema.ResourceTimeouts(ctx),
 		},
 	}
 }

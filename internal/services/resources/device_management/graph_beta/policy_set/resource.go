@@ -173,7 +173,7 @@ func (r *PolicySetResource) Schema(ctx context.Context, req resource.SchemaReque
 					},
 				},
 			},
-			"timeouts": commonschema.Timeouts(ctx),
+			"timeouts": commonschema.ResourceTimeouts(ctx),
 		},
 	}
 }

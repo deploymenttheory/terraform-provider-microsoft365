@@ -175,7 +175,7 @@ func (r *AgentIdentityBlueprintIdentifierUriResource) Schema(ctx context.Context
 					},
 				},
 			},
-			"timeouts": commonschema.Timeouts(ctx),
+			"timeouts": commonschema.ResourceTimeouts(ctx),
 		},
 	}
 }

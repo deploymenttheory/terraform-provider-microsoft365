@@ -4,6 +4,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/check"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/destroy"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/testlog"
@@ -42,7 +43,7 @@ func TestAccUserLicenseAssignmentResource_Lifecycle(t *testing.T) {
 				PreConfig: func() {
 					testlog.StepAction(resourceType, "Creating")
 				},
-				Config: testAccLicenseAssignmentConfig_minimal(),
+				Config: loadAcceptanceTestTerraform("resource_minimal.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					func(_ *terraform.State) error {
 						testlog.WaitForConsistency("user license assignment", 20*time.Second)
@@ -86,7 +87,7 @@ func TestAccUserLicenseAssignmentResource_Maximal(t *testing.T) {
 				PreConfig: func() {
 					testlog.StepAction(resourceType, "Creating")
 				},
-				Config: testAccLicenseAssignmentConfig_maximal(),
+				Config: loadAcceptanceTestTerraform("resource_maximal.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					func(_ *terraform.State) error {
 						testlog.WaitForConsistency("user license assignment", 20*time.Second)
@@ -110,20 +111,10 @@ func TestAccUserLicenseAssignmentResource_Maximal(t *testing.T) {
 	})
 }
 
-func testAccLicenseAssignmentConfig_minimal() string {
-	acceptanceTestConfig, err := helpers.ParseHCLFile("tests/terraform/acceptance/resource_minimal.tf")
+func loadAcceptanceTestTerraform(filename string) string {
+	config, err := helpers.ParseHCLFile("tests/terraform/acceptance/" + filename)
 	if err != nil {
-		panic("failed to load acceptance resource_minimal.tf: " + err.Error())
+		panic("failed to load acceptance config " + filename + ": " + err.Error())
 	}
-
-	return acceptanceTestConfig
-}
-
-func testAccLicenseAssignmentConfig_maximal() string {
-	acceptanceTestConfig, err := helpers.ParseHCLFile("tests/terraform/acceptance/resource_maximal.tf")
-	if err != nil {
-		panic("failed to load acceptance resource_maximal.tf: " + err.Error())
-	}
-
-	return acceptanceTestConfig
+	return acceptance.ConfiguredM365ProviderBlock(config)
 }

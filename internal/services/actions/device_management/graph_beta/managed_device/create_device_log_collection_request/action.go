@@ -17,6 +17,7 @@ import (
 
 const (
 	ActionName = "microsoft365_graph_beta_device_management_managed_device_create_device_log_collection_request"
+	InvokeTimeout = 60
 )
 
 var (
@@ -80,14 +81,12 @@ func (a *CreateDeviceLogCollectionRequestManagedDeviceAction) Schema(ctx context
 			"- **Other Platforms**: Not supported (macOS, iOS/iPadOS, Android use different logging mechanisms)\n\n" +
 			"**Reference:** [Microsoft Graph API - Create Device Log Collection Request](https://learn.microsoft.com/en-us/graph/api/intune-devices-manageddevice-createdevicelogcollectionrequest?view=graph-rest-beta)",
 		Attributes: map[string]schema.Attribute{
-			"timeouts": commonschema.Timeouts(ctx),
-		},
-		Blocks: map[string]schema.Block{
-			"managed_devices": schema.ListNestedBlock{
+			"managed_devices": schema.ListNestedAttribute{
+				Optional: true,
 				MarkdownDescription: "List of managed devices to collect logs from. These are Windows devices " +
 					"fully managed by Intune only. Each device can have its own template type configuration.\n\n" +
 					"**Note:** At least one of `managed_devices` or `comanaged_devices` must be provided.",
-				NestedObject: schema.NestedBlockObject{
+				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"device_id": schema.StringAttribute{
 							Required: true,
@@ -115,11 +114,12 @@ func (a *CreateDeviceLogCollectionRequestManagedDeviceAction) Schema(ctx context
 					},
 				},
 			},
-			"comanaged_devices": schema.ListNestedBlock{
+			"comanaged_devices": schema.ListNestedAttribute{
+				Optional: true,
 				MarkdownDescription: "List of co-managed devices to collect logs from. These are Windows devices " +
 					"managed by both Intune and Configuration Manager (SCCM).\n\n" +
 					"**Note:** At least one of `managed_devices` or `comanaged_devices` must be provided.",
-				NestedObject: schema.NestedBlockObject{
+				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"device_id": schema.StringAttribute{
 							Required: true,
@@ -147,6 +147,7 @@ func (a *CreateDeviceLogCollectionRequestManagedDeviceAction) Schema(ctx context
 					},
 				},
 			},
+			"timeouts": commonschema.ActionTimeouts(ctx),
 		},
 	}
 }

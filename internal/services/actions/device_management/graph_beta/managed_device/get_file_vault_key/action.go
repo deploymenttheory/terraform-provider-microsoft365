@@ -19,6 +19,7 @@ import (
 
 const (
 	ActionName = "microsoft365_graph_beta_device_management_managed_device_get_file_vault_key"
+	InvokeTimeout = 60
 )
 
 var (
@@ -116,7 +117,7 @@ func (a *GetFileVaultKeyManagedDeviceAction) Schema(ctx context.Context, req act
 					),
 				},
 			},
-			"timeouts": commonschema.Timeouts(ctx),
+			"timeouts": commonschema.ActionTimeouts(ctx),
 		},
 	}
 }

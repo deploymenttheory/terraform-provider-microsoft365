@@ -1142,7 +1142,7 @@ func (r *ConditionalAccessPolicyResource) Schema(ctx context.Context, req resour
 				Optional:            true,
 				Computed:            true,
 			},
-			"timeouts": commonschema.Timeouts(ctx),
+			"timeouts": commonschema.ResourceTimeouts(ctx),
 		},
 	}
 }

@@ -113,7 +113,7 @@ func (r *IOSManagedMobileAppResource) Schema(ctx context.Context, req resource.S
 					},
 				},
 			},
-			"timeouts": commonschema.Timeouts(ctx),
+			"timeouts": commonschema.ResourceTimeouts(ctx),
 		},
 	}
 }

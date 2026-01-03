@@ -362,7 +362,7 @@ func (d *MobileAppCatalogPackageDataSource) Schema(ctx context.Context, _ dataso
 					},
 				},
 			},
-			"timeouts": commonschema.Timeouts(ctx),
+			"timeouts": commonschema.ResourceTimeouts(ctx),
 		},
 	}
 }

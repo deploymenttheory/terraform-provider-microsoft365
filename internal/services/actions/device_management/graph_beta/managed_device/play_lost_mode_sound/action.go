@@ -17,6 +17,7 @@ import (
 
 const (
 	ActionName = "microsoft365_graph_beta_device_management_managed_device_play_lost_mode_sound"
+	InvokeTimeout = 60
 )
 
 var (
@@ -75,15 +76,13 @@ func (a *PlayLostModeSoundManagedDeviceAction) Schema(ctx context.Context, req a
 			"- **Other Platforms**: Not applicable - lost mode is iOS/iPadOS only\n\n" +
 			"**Reference:** [Microsoft Graph API - Play Lost Mode Sound](https://learn.microsoft.com/en-us/graph/api/intune-devices-manageddevice-playlostmodesound?view=graph-rest-beta)",
 		Attributes: map[string]schema.Attribute{
-			"timeouts": commonschema.Timeouts(ctx),
-		},
-		Blocks: map[string]schema.Block{
-			"managed_devices": schema.ListNestedBlock{
+			"managed_devices": schema.ListNestedAttribute{
+				Optional: true,
 				MarkdownDescription: "List of managed devices to play lost mode sound on. These are iOS/iPadOS devices fully managed by Intune only. " +
 					"Each entry specifies a device ID and the duration to play the sound.\n\n" +
 					"**Note:** At least one of `managed_devices` or `comanaged_devices` must be provided. " +
 					"You can provide both to play sounds on different types of devices in one action.",
-				NestedObject: schema.NestedBlockObject{
+				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"device_id": schema.StringAttribute{
 							Required: true,
@@ -105,11 +104,12 @@ func (a *PlayLostModeSoundManagedDeviceAction) Schema(ctx context.Context, req a
 					},
 				},
 			},
-			"comanaged_devices": schema.ListNestedBlock{
+			"comanaged_devices": schema.ListNestedAttribute{
+				Optional: true,
 				MarkdownDescription: "List of co-managed devices to play lost mode sound on. These are iOS/iPadOS devices managed by both Intune and " +
 					"Configuration Manager (SCCM). Each entry specifies a device ID and the duration to play the sound.\n\n" +
 					"**Note:** At least one of `managed_devices` or `comanaged_devices` must be provided.",
-				NestedObject: schema.NestedBlockObject{
+				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"device_id": schema.StringAttribute{
 							Required: true,
@@ -130,6 +130,7 @@ func (a *PlayLostModeSoundManagedDeviceAction) Schema(ctx context.Context, req a
 					},
 				},
 			},
+			"timeouts": commonschema.ActionTimeouts(ctx),
 		},
 	}
 }

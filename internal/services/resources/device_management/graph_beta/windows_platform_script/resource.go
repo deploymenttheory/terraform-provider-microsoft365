@@ -134,7 +134,7 @@ func (r *WindowsPlatformScriptResource) Schema(ctx context.Context, req resource
 				Computed:            true,
 			},
 			"assignments": commonschemagraphbeta.PlatformScriptAssignmentsSchema(),
-			"timeouts":    commonschema.Timeouts(ctx),
+			"timeouts":    commonschema.ResourceTimeouts(ctx),
 		},
 	}
 }

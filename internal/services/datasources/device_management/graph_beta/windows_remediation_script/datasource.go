@@ -86,7 +86,7 @@ func (d *WindowsRemediationScriptDataSource) Schema(ctx context.Context, _ datas
 					},
 				},
 			},
-			"timeouts": commonschema.Timeouts(ctx),
+			"timeouts": commonschema.ResourceTimeouts(ctx),
 		},
 	}
 }

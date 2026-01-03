@@ -19,6 +19,7 @@ import (
 
 const (
 	ActionName = "microsoft365_graph_beta_device_management_managed_device_remote_lock"
+	InvokeTimeout = 60
 )
 
 var (
@@ -98,7 +99,7 @@ func (a *RemoteLockManagedDeviceAction) Schema(ctx context.Context, req action.S
 					),
 				},
 			},
-			"timeouts": commonschema.Timeouts(ctx),
+			"timeouts": commonschema.ActionTimeouts(ctx),
 		},
 	}
 }

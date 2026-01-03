@@ -19,6 +19,7 @@ import (
 
 const (
 	ActionName = "microsoft365_graph_beta_device_management_managed_device_bypass_activation_lock"
+	InvokeTimeout = 60
 )
 
 var (
@@ -157,7 +158,7 @@ func (a *BypassActivationLockManagedDeviceAction) Schema(ctx context.Context, re
 					"Disabling this can speed up planning but may result in runtime errors for non-existent or unsupported devices. " +
 					"Default: `true`.",
 			},
-			"timeouts": commonschema.Timeouts(ctx),
+			"timeouts": commonschema.ActionTimeouts(ctx),
 		},
 	}
 }

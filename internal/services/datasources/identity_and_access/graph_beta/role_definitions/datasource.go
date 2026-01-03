@@ -153,7 +153,7 @@ func (d *RoleDefinitionsDataSource) Schema(ctx context.Context, _ datasource.Sch
 					},
 				},
 			},
-			"timeouts": commonschema.Timeouts(ctx),
+			"timeouts": commonschema.ResourceTimeouts(ctx),
 		},
 	}
 }

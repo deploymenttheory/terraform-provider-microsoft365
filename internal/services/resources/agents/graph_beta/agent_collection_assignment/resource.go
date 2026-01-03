@@ -121,7 +121,7 @@ func (r *AgentCollectionAssignmentResource) Schema(ctx context.Context, req reso
 					),
 				},
 			},
-			"timeouts": commonschema.Timeouts(ctx),
+			"timeouts": commonschema.ResourceTimeouts(ctx),
 		},
 	}
 }

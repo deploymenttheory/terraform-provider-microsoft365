@@ -503,7 +503,7 @@ func (r *WindowsDeviceCompliancePolicyResource) Schema(ctx context.Context, req 
 				},
 			},
 			"assignments": commonschemagraphbeta.ComplianceScriptAssignmentsSchema(),
-			"timeouts":    commonschema.Timeouts(ctx),
+			"timeouts":    commonschema.ResourceTimeouts(ctx),
 		},
 	}
 }

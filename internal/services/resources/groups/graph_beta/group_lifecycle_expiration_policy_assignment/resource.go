@@ -101,7 +101,7 @@ func (r *GroupLifecycleExpirationPolicyAssignmentResource) Schema(ctx context.Co
 					stringvalidator.RegexMatches(regexp.MustCompile(constants.GuidRegex), "group_id must be a valid UUID"),
 				},
 			},
-			"timeouts": commonschema.Timeouts(ctx),
+			"timeouts": commonschema.ResourceTimeouts(ctx),
 		},
 	}
 }

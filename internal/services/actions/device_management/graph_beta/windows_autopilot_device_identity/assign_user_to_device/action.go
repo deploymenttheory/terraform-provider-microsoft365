@@ -17,6 +17,7 @@ import (
 
 const (
 	ActionName = "microsoft365_graph_beta_device_management_windows_autopilot_device_identity_assign_user_to_device"
+	InvokeTimeout = 60
 )
 
 var (
@@ -91,7 +92,7 @@ func (a *AssignUserToDeviceAction) Schema(ctx context.Context, req action.Schema
 					stringvalidator.LengthAtLeast(1),
 				},
 			},
-			"timeouts": commonschema.Timeouts(ctx),
+			"timeouts": commonschema.ActionTimeouts(ctx),
 		},
 	}
 }

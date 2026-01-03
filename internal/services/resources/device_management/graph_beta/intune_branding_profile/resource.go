@@ -325,7 +325,7 @@ func (r *IntuneBrandingProfileResource) Schema(ctx context.Context, req resource
 				},
 			},
 			"assignments": AssignmentBlock(),
-			"timeouts":    commonschema.Timeouts(ctx),
+			"timeouts":    commonschema.ResourceTimeouts(ctx),
 		},
 	}
 }

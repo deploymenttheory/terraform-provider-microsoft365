@@ -103,7 +103,7 @@ func (r *DeviceCategoryResource) Schema(ctx context.Context, req resource.Schema
 					),
 				},
 			},
-			"timeouts": commonschema.Timeouts(ctx),
+			"timeouts": commonschema.ResourceTimeouts(ctx),
 		},
 	}
 }

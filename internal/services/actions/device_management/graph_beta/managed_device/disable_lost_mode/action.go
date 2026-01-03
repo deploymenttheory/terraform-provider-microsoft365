@@ -19,6 +19,7 @@ import (
 
 const (
 	ActionName = "microsoft365_graph_beta_device_management_managed_device_disable_lost_mode"
+	InvokeTimeout = 60
 )
 
 var (
@@ -110,7 +111,7 @@ func (a *DisableLostModeManagedDeviceAction) Schema(ctx context.Context, req act
 					),
 				},
 			},
-			"timeouts": commonschema.Timeouts(ctx),
+			"timeouts": commonschema.ActionTimeouts(ctx),
 		},
 	}
 }

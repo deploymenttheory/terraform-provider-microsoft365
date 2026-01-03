@@ -160,7 +160,7 @@ func (r *DeviceComplianceNotificationTemplateResource) Schema(ctx context.Contex
 					},
 				},
 			},
-			"timeouts": commonschema.Timeouts(ctx),
+			"timeouts": commonschema.ResourceTimeouts(ctx),
 		},
 	}
 }

@@ -144,7 +144,7 @@ func (r *CloudPcDeviceImageResource) Schema(ctx context.Context, req resource.Sc
 				Required:    true,
 				Description: "The image version. For example, 0.0.1 and 1.5.13.",
 			},
-			"timeouts": commonschema.Timeouts(ctx),
+			"timeouts": commonschema.ResourceTimeouts(ctx),
 		},
 	}
 }

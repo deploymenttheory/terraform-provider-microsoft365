@@ -323,7 +323,7 @@ func (r *DeviceManagementTemplateJsonResource) Schema(ctx context.Context, req r
 				MarkdownDescription: "Indicates if the policy template is assigned to any user or device scope",
 			},
 			"assignments": commonschemagraphbeta.DeviceConfigurationWithAllGroupAssignmentsAndFilterSchema(),
-			"timeouts":    commonschema.Timeouts(ctx),
+			"timeouts":    commonschema.ResourceTimeouts(ctx),
 		},
 	}
 }

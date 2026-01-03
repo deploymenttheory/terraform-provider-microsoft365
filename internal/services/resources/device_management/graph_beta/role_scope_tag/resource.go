@@ -105,7 +105,7 @@ func (r *RoleScopeTagResource) Schema(ctx context.Context, req resource.SchemaRe
 				MarkdownDescription: "Defines if the Role Scope Tag is built-in. This property is read-only.",
 			},
 			"assignments": commonschemagraphbeta.DeviceConfigurationWithInclusionGroupAssignmentsSchema(),
-			"timeouts":    commonschema.Timeouts(ctx),
+			"timeouts":    commonschema.ResourceTimeouts(ctx),
 		},
 	}
 }

@@ -432,7 +432,7 @@ func (r *MacosDeviceConfigurationTemplatesResource) Schema(ctx context.Context, 
 				},
 			},
 			"assignments": commonschemagraphbeta.DeviceConfigurationWithAllGroupAssignmentsAndFilterSchema(),
-			"timeouts":    commonschema.Timeouts(ctx),
+			"timeouts":    commonschema.ResourceTimeouts(ctx),
 		},
 	}
 }

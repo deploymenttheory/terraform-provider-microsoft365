@@ -430,7 +430,7 @@ func (r *IOSStoreAppResource) Schema(ctx context.Context, req resource.SchemaReq
 				MarkdownDescription: "The total number of apps this app is directly or indirectly superseded by. This property is read-only.",
 			},
 			"app_icon": commonschemagraphbeta.MobileAppIconSchema(),
-			"timeouts": commonschema.Timeouts(ctx),
+			"timeouts": commonschema.ResourceTimeouts(ctx),
 		},
 	}
 }

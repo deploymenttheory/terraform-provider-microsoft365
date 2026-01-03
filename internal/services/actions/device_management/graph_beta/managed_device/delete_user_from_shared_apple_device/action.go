@@ -17,6 +17,7 @@ import (
 
 const (
 	ActionName = "microsoft365_graph_beta_device_management_managed_device_delete_user_from_shared_apple_device"
+	InvokeTimeout = 60
 )
 
 var (
@@ -70,12 +71,10 @@ func (a *DeleteUserFromSharedAppleDeviceAction) Schema(ctx context.Context, req 
 			"- **Other platforms**: Not supported\n\n" +
 			"**Reference:** [Microsoft Graph API - Delete User From Shared Apple Device](https://learn.microsoft.com/en-us/graph/api/intune-devices-manageddevice-deleteuserfromsharedappledevice?view=graph-rest-beta)",
 		Attributes: map[string]schema.Attribute{
-			"timeouts": commonschema.Timeouts(ctx),
-		},
-		Blocks: map[string]schema.Block{
-			"managed_devices": schema.ListNestedBlock{
+			"managed_devices": schema.ListNestedAttribute{
+				Optional:            true,
 				MarkdownDescription: "List of managed device-user pairs. Managed devices are fully managed by Intune only.",
-				NestedObject: schema.NestedBlockObject{
+				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"device_id": schema.StringAttribute{
 							Required:            true,
@@ -94,9 +93,10 @@ func (a *DeleteUserFromSharedAppleDeviceAction) Schema(ctx context.Context, req 
 					},
 				},
 			},
-			"comanaged_devices": schema.ListNestedBlock{
+			"comanaged_devices": schema.ListNestedAttribute{
+				Optional:            true,
 				MarkdownDescription: "List of co-managed device-user pairs. Co-managed devices are managed by both Intune and Configuration Manager (SCCM).",
-				NestedObject: schema.NestedBlockObject{
+				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"device_id": schema.StringAttribute{
 							Required:            true,
@@ -115,6 +115,7 @@ func (a *DeleteUserFromSharedAppleDeviceAction) Schema(ctx context.Context, req 
 					},
 				},
 			},
+			"timeouts": commonschema.ActionTimeouts(ctx),
 		},
 	}
 }

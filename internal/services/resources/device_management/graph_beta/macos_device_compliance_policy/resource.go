@@ -276,7 +276,7 @@ func (r *MacosDeviceCompliancePolicyResource) Schema(ctx context.Context, req re
 				},
 			},
 			"assignments": commonschemagraphbeta.ComplianceScriptAssignmentsSchema(),
-			"timeouts":    commonschema.Timeouts(ctx),
+			"timeouts":    commonschema.ResourceTimeouts(ctx),
 		},
 	}
 }

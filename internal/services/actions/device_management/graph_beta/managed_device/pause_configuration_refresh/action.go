@@ -18,6 +18,7 @@ import (
 
 const (
 	ActionName = "microsoft365_graph_beta_device_management_managed_device_pause_configuration_refresh"
+	InvokeTimeout = 60
 )
 
 var (
@@ -81,14 +82,12 @@ func (a *PauseConfigurationRefreshManagedDeviceAction) Schema(ctx context.Contex
 			"- **Other Platforms**: Not supported\n\n" +
 			"**Reference:** [Microsoft Graph API - Pause Configuration Refresh](https://learn.microsoft.com/en-us/graph/api/intune-devices-manageddevice-pauseconfigurationrefresh?view=graph-rest-beta)",
 		Attributes: map[string]schema.Attribute{
-			"timeouts": commonschema.Timeouts(ctx),
-		},
-		Blocks: map[string]schema.Block{
-			"managed_devices": schema.ListNestedBlock{
+			"managed_devices": schema.ListNestedAttribute{
+				Optional: true,
 				MarkdownDescription: "List of managed devices to pause configuration refresh for. " +
 					"Each device can have a different pause duration based on specific requirements.\n\n" +
 					"**Note:** At least one of `managed_devices` or `comanaged_devices` must be provided.",
-				NestedObject: schema.NestedBlockObject{
+				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"device_id": schema.StringAttribute{
 							Required: true,
@@ -121,11 +120,12 @@ func (a *PauseConfigurationRefreshManagedDeviceAction) Schema(ctx context.Contex
 					},
 				},
 			},
-			"comanaged_devices": schema.ListNestedBlock{
+			"comanaged_devices": schema.ListNestedAttribute{
+				Optional: true,
 				MarkdownDescription: "List of co-managed devices to pause configuration refresh for. " +
 					"These are devices managed by both Intune and Configuration Manager (SCCM).\n\n" +
 					"**Note:** At least one of `managed_devices` or `comanaged_devices` must be provided.",
-				NestedObject: schema.NestedBlockObject{
+				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"device_id": schema.StringAttribute{
 							Required: true,
@@ -149,6 +149,7 @@ func (a *PauseConfigurationRefreshManagedDeviceAction) Schema(ctx context.Contex
 					},
 				},
 			},
+			"timeouts": commonschema.ActionTimeouts(ctx),
 		},
 	}
 }

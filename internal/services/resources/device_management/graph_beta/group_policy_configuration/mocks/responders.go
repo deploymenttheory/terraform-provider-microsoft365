@@ -4,10 +4,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"path/filepath"
 	"regexp"
 	"strings"
 	"sync"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
 	"github.com/google/uuid"
 	"github.com/jarcoal/httpmock"
@@ -88,12 +90,22 @@ func (m *GroupPolicyConfigurationMock) createGroupPolicyConfiguration(req *http.
 	}
 
 	id := uuid.New().String()
-	response, err := mocks.LoadJSONResponse("tests/responses/validate_create/post_group_policy_configuration_success.json")
+	jsonContent, err := helpers.ParseJSONFile(filepath.Join("..", "tests", "responses", "validate_create", "post_group_policy_configuration_success.json"))
 	if err != nil {
 		return httpmock.NewJsonResponse(500, map[string]interface{}{
 			"error": map[string]interface{}{
 				"code":    "InternalServerError",
 				"message": fmt.Sprintf("Failed to load response fixture: %v", err),
+			},
+		})
+	}
+
+	var response map[string]interface{}
+	if err := json.Unmarshal([]byte(jsonContent), &response); err != nil {
+		return httpmock.NewJsonResponse(500, map[string]interface{}{
+			"error": map[string]interface{}{
+				"code":    "InternalServerError",
+				"message": fmt.Sprintf("Failed to parse response fixture: %v", err),
 			},
 		})
 	}

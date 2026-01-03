@@ -114,7 +114,7 @@ func (r *GroupPolicyConfigurationResource) Schema(ctx context.Context, req resou
 				MarkdownDescription: "The date and time the entity was last modified",
 			},
 			"assignments": commonschemagraphbeta.DeviceConfigurationWithAllGroupAssignmentsAndFilterSchema(),
-			"timeouts":    commonschema.Timeouts(ctx),
+			"timeouts":    commonschema.ResourceTimeouts(ctx),
 		},
 	}
 }

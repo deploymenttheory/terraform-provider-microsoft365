@@ -144,7 +144,7 @@ func (r *DeviceComplianceScriptResource) Schema(ctx context.Context, req resourc
 				Computed:            true,
 				MarkdownDescription: "The timestamp of when the device compliance script was modified. This property is read-only.",
 			},
-			"timeouts": commonschema.Timeouts(ctx),
+			"timeouts": commonschema.ResourceTimeouts(ctx),
 		},
 	}
 }

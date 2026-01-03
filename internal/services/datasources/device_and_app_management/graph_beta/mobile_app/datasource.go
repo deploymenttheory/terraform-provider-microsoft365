@@ -214,7 +214,7 @@ func (d *MobileAppDataSource) Schema(ctx context.Context, _ datasource.SchemaReq
 					},
 				},
 			},
-			"timeouts": commonschema.Timeouts(ctx),
+			"timeouts": commonschema.ResourceTimeouts(ctx),
 		},
 	}
 }

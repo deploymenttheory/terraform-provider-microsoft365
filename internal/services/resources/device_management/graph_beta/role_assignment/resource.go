@@ -181,7 +181,7 @@ func (r *RoleAssignmentResource) Schema(ctx context.Context, req resource.Schema
 					),
 				},
 			},
-			"timeouts": commonschema.Timeouts(ctx),
+			"timeouts": commonschema.ResourceTimeouts(ctx),
 		},
 		Blocks: map[string]schema.Block{
 			"scope_configuration": schema.ListNestedBlock{

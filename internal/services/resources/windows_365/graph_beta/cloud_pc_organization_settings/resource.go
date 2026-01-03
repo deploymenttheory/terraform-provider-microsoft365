@@ -105,7 +105,7 @@ func (r *CloudPcOrganizationSettingsResource) Schema(ctx context.Context, req re
 					},
 				},
 			},
-			"timeouts": commonschema.Timeouts(ctx),
+			"timeouts": commonschema.ResourceTimeouts(ctx),
 		},
 	}
 }

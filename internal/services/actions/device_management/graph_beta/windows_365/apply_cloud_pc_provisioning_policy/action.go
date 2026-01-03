@@ -18,6 +18,7 @@ import (
 
 const (
 	ActionName = "microsoft365_graph_beta_device_management_windows_365_apply_cloud_pc_provisioning_policy"
+	InvokeTimeout = 60
 )
 
 var (
@@ -93,7 +94,7 @@ func (a *ApplyCloudPcProvisioningPolicyAction) Schema(ctx context.Context, req a
 					int32validator.Between(0, 99),
 				},
 			},
-			"timeouts": commonschema.Timeouts(ctx),
+			"timeouts": commonschema.ActionTimeouts(ctx),
 		},
 	}
 }

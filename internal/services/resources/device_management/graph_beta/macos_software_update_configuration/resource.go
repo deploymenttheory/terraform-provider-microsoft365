@@ -193,7 +193,7 @@ func (r *MacOSSoftwareUpdateConfigurationResource) Schema(ctx context.Context, r
 				},
 			},
 			"assignments": commonschemagraphbeta.DeviceConfigurationWithAllGroupAssignmentsSchema(),
-			"timeouts":    commonschema.Timeouts(ctx),
+			"timeouts":    commonschema.ResourceTimeouts(ctx),
 		},
 	}
 }

@@ -102,7 +102,7 @@ func (r *AttributeSetResource) Schema(ctx context.Context, req resource.SchemaRe
 					int32validator.Between(1, 500),
 				},
 			},
-			"timeouts": commonschema.Timeouts(ctx),
+			"timeouts": commonschema.ResourceTimeouts(ctx),
 		},
 	}
 }

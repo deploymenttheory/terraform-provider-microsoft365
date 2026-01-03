@@ -174,7 +174,7 @@ func (r *DeviceHealthScriptResource) Schema(ctx context.Context, req resource.Sc
 				MarkdownDescription: "Highest available version for a Microsoft Proprietary script.",
 			},
 			"assignments": AssignmentBlock(),
-			"timeouts":    commonschema.Timeouts(ctx),
+			"timeouts":    commonschema.ResourceTimeouts(ctx),
 		},
 	}
 }

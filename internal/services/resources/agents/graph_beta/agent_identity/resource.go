@@ -225,7 +225,7 @@ func (r *AgentIdentityResource) Schema(ctx context.Context, req resource.SchemaR
 				Computed: true,
 				Default:  booldefault.StaticBool(false),
 			},
-			"timeouts": commonschema.Timeouts(ctx),
+			"timeouts": commonschema.ResourceTimeouts(ctx),
 		},
 	}
 }

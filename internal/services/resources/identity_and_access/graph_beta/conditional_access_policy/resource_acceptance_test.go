@@ -29,6 +29,7 @@ func loadAcceptanceTestTerraform(filename string) string {
 	if err != nil {
 		panic("failed to load acceptance config " + filename + ": " + err.Error())
 	}
+	return config
 }
 
 // CAD001: macOS Device Compliance
@@ -3078,207 +3079,6 @@ func TestAccConditionalAccessPolicyResource_CAAU002(t *testing.T) {
 	})
 }
 
-// Test config loading functions
-func testAccConfigCAD001() string {
-	return loadAcceptanceTestTerraform("resource_cad001-o365.tf")
-}
-
-func testAccConfigCAD002() string {
-	return loadAcceptanceTestTerraform("resource_cad002-o365.tf")
-}
-
-func testAccConfigCAD003() string {
-	return loadAcceptanceTestTerraform("resource_cad003-o365.tf")
-}
-
-func testAccConfigCAD004() string {
-	return loadAcceptanceTestTerraform("resource_cad004-o365.tf")
-}
-
-func testAccConfigCAD005() string {
-	return loadAcceptanceTestTerraform("resource_cad005-o365.tf")
-}
-
-func testAccConfigCAD006() string {
-	return loadAcceptanceTestTerraform("resource_cad006-o365.tf")
-}
-
-func testAccConfigCAD007() string {
-	return loadAcceptanceTestTerraform("resource_cad007-o365.tf")
-}
-
-func testAccConfigCAD008() string {
-	return loadAcceptanceTestTerraform("resource_cad008-all.tf")
-}
-
-func testAccConfigCAD009() string {
-	return loadAcceptanceTestTerraform("resource_cad009-all.tf")
-}
-
-func testAccConfigCAD010() string {
-	return loadAcceptanceTestTerraform("resource_cad010-rjd.tf")
-}
-
-func testAccConfigCAD011() string {
-	return loadAcceptanceTestTerraform("resource_cad011-o365.tf")
-}
-
-func testAccConfigCAD012() string {
-	return loadAcceptanceTestTerraform("resource_cad012-all.tf")
-}
-
-func testAccConfigCAD013() string {
-	return loadAcceptanceTestTerraform("resource_cad013-selected.tf")
-}
-
-func testAccConfigCAD014() string {
-	return loadAcceptanceTestTerraform("resource_cad014-o365.tf")
-}
-
-func testAccConfigCAD015() string {
-	return loadAcceptanceTestTerraform("resource_cad015-all.tf")
-}
-
-func testAccConfigCAD016() string {
-	return loadAcceptanceTestTerraform("resource_cad016-exo_spo_cloudpc.tf")
-}
-
-func testAccConfigCAD017() string {
-	return loadAcceptanceTestTerraform("resource_cad017-selected.tf")
-}
-
-func testAccConfigCAD018() string {
-	return loadAcceptanceTestTerraform("resource_cad018-cloudpc.tf")
-}
-
-func testAccConfigCAD019() string {
-	return loadAcceptanceTestTerraform("resource_cad019-intune.tf")
-}
-
-func testAccConfigCAL001() string {
-	return loadAcceptanceTestTerraform("resource_cal001-all.tf")
-}
-
-func testAccConfigCAL002() string {
-	return loadAcceptanceTestTerraform("resource_cal002-rsi.tf")
-}
-
-func testAccConfigCAL003() string {
-	return loadAcceptanceTestTerraform("resource_cal003-all.tf")
-}
-
-func testAccConfigCAL004() string {
-	return loadAcceptanceTestTerraform("resource_cal004-all.tf")
-}
-
-func testAccConfigCAL005() string {
-	return loadAcceptanceTestTerraform("resource_cal005-selected.tf")
-}
-
-func testAccConfigCAL006() string {
-	return loadAcceptanceTestTerraform("resource_cal006-all.tf")
-}
-
-func testAccConfigCAP001() string {
-	return loadAcceptanceTestTerraform("resource_cap001-all.tf")
-}
-
-func testAccConfigCAP002() string {
-	return loadAcceptanceTestTerraform("resource_cap002-all.tf")
-}
-
-func testAccConfigCAP003() string {
-	return loadAcceptanceTestTerraform("resource_cap003-all.tf")
-}
-
-func testAccConfigCAP004() string {
-	return loadAcceptanceTestTerraform("resource_cap004-all.tf")
-}
-
-func testAccConfigCAU001() string {
-	return loadAcceptanceTestTerraform("resource_cau001-all.tf")
-}
-
-func testAccConfigCAU001A() string {
-	return loadAcceptanceTestTerraform("resource_cau001a-windows_azure_active_directory.tf")
-}
-
-func testAccConfigCAU002() string {
-	return loadAcceptanceTestTerraform("resource_cau002-all.tf")
-}
-
-func testAccConfigCAU003() string {
-	return loadAcceptanceTestTerraform("resource_cau003-selected.tf")
-}
-
-func testAccConfigCAU004() string {
-	return loadAcceptanceTestTerraform("resource_cau004-selected.tf")
-}
-
-func testAccConfigCAU006() string {
-	return loadAcceptanceTestTerraform("resource_cau006-all.tf")
-}
-
-func testAccConfigCAU007() string {
-	return loadAcceptanceTestTerraform("resource_cau007-all.tf")
-}
-
-func testAccConfigCAU008() string {
-	return loadAcceptanceTestTerraform("resource_cau008-all.tf")
-}
-
-func testAccConfigCAU009() string {
-	return loadAcceptanceTestTerraform("resource_cau009-management.tf")
-}
-
-func testAccConfigCAU010() string {
-	return loadAcceptanceTestTerraform("resource_cau010-all.tf")
-}
-
-func testAccConfigCAU011() string {
-	return loadAcceptanceTestTerraform("resource_cau011-all.tf")
-}
-
-func testAccConfigCAU012() string {
-	return loadAcceptanceTestTerraform("resource_cau012-rsi.tf")
-}
-
-func testAccConfigCAU013() string {
-	return loadAcceptanceTestTerraform("resource_cau013-all.tf")
-}
-
-func testAccConfigCAU014() string {
-	return loadAcceptanceTestTerraform("resource_cau014-all.tf")
-}
-
-func testAccConfigCAU015() string {
-	return loadAcceptanceTestTerraform("resource_cau015-all.tf")
-}
-
-func testAccConfigCAU016() string {
-	return loadAcceptanceTestTerraform("resource_cau016-all.tf")
-}
-
-func testAccConfigCAU017() string {
-	return loadAcceptanceTestTerraform("resource_cau017-all.tf")
-}
-
-func testAccConfigCAU018() string {
-	return loadAcceptanceTestTerraform("resource_cau018-all.tf")
-}
-
-func testAccConfigCAU019() string {
-	return loadAcceptanceTestTerraform("resource_cau019-selected.tf")
-}
-
-func testAccConfigCAAU001() string {
-	return loadAcceptanceTestTerraform("resource_caau001-all.tf")
-}
-
-func testAccConfigCAAU002() string {
-	return loadAcceptanceTestTerraform("resource_caau002-o365.tf")
-}
-
 // TestAccConditionalAccessPolicyResource_CAU020 tests the conditional access policy resource
 // with insider risk levels for all users.
 func TestAccConditionalAccessPolicyResource_CAU020(t *testing.T) {
@@ -3353,15 +3153,11 @@ func TestAccConditionalAccessPolicyResource_CAU020(t *testing.T) {
 				PreConfig: func() {
 					testlog.StepAction(resourceType, "Importing CAU020 policy")
 				},
-				Config:            testAccConfigCAU020(),
+				Config:            loadAcceptanceTestTerraform("resource_cau020-all.tf"),
 				ResourceName:      resourceType + ".cau020_all",
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
 		},
 	})
-}
-
-func testAccConfigCAU020() string {
-	return loadAcceptanceTestTerraform("resource_cau020-all.tf")
 }

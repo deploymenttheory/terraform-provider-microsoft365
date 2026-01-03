@@ -17,6 +17,7 @@ import (
 
 const (
 	ActionName = "microsoft365_graph_beta_device_management_managed_device_enable_lost_mode"
+	InvokeTimeout = 60
 )
 
 var (
@@ -76,15 +77,13 @@ func (a *EnableLostModeManagedDeviceAction) Schema(ctx context.Context, req acti
 			"- **Other Platforms**: Not applicable - lost mode is iOS/iPadOS only\n\n" +
 			"**Reference:** [Microsoft Graph API - Enable Lost Mode](https://learn.microsoft.com/en-us/graph/api/intune-devices-manageddevice-enablelostmode?view=graph-rest-beta)",
 		Attributes: map[string]schema.Attribute{
-			"timeouts": commonschema.Timeouts(ctx),
-		},
-		Blocks: map[string]schema.Block{
-			"managed_devices": schema.ListNestedBlock{
+			"managed_devices": schema.ListNestedAttribute{
+				Optional: true,
 				MarkdownDescription: "List of managed devices to enable lost mode for. These are iOS/iPadOS devices fully managed by Intune only. " +
 					"Each entry specifies a device ID and the custom lost mode configuration for that device.\n\n" +
 					"**Note:** At least one of `managed_devices` or `comanaged_devices` must be provided. " +
 					"You can provide both to enable lost mode on different types of devices in one action.",
-				NestedObject: schema.NestedBlockObject{
+				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"device_id": schema.StringAttribute{
 							Required: true,
@@ -130,11 +129,12 @@ func (a *EnableLostModeManagedDeviceAction) Schema(ctx context.Context, req acti
 					},
 				},
 			},
-			"comanaged_devices": schema.ListNestedBlock{
+			"comanaged_devices": schema.ListNestedAttribute{
+				Optional: true,
 				MarkdownDescription: "List of co-managed devices to enable lost mode for. These are iOS/iPadOS devices managed by both Intune and " +
 					"Configuration Manager (SCCM). Each entry specifies a device ID and the custom lost mode configuration.\n\n" +
 					"**Note:** At least one of `managed_devices` or `comanaged_devices` must be provided.",
-				NestedObject: schema.NestedBlockObject{
+				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"device_id": schema.StringAttribute{
 							Required: true,
@@ -170,6 +170,7 @@ func (a *EnableLostModeManagedDeviceAction) Schema(ctx context.Context, req acti
 					},
 				},
 			},
+			"timeouts": commonschema.ActionTimeouts(ctx),
 		},
 	}
 }

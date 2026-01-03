@@ -22,6 +22,6 @@ action "microsoft365_graph_beta_device_management_managed_device_activate_device
   ]
 
   timeouts = {
-    create = "10m"
+    invoke = "10m"
   }
 }

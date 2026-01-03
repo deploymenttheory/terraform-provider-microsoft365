@@ -325,7 +325,7 @@ func (r *GroupPolicyDefinitionResource) Schema(ctx context.Context, req resource
 				Computed:            true,
 				MarkdownDescription: "The date and time when the definition value was last modified",
 			},
-			"timeouts": commonschema.Timeouts(ctx),
+			"timeouts": commonschema.ResourceTimeouts(ctx),
 		},
 	}
 }

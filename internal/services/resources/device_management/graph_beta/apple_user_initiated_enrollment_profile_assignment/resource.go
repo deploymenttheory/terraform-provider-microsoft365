@@ -173,7 +173,7 @@ func (r *AppleUserInitiatedEnrollmentProfileAssignmentResource) Schema(ctx conte
 					},
 				},
 			},
-			"timeouts": commonschema.Timeouts(ctx),
+			"timeouts": commonschema.ResourceTimeouts(ctx),
 		},
 	}
 }

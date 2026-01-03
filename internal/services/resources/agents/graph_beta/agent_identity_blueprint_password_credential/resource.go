@@ -142,7 +142,7 @@ func (r *AgentIdentityBlueprintPasswordCredentialResource) Schema(ctx context.Co
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
-			"timeouts": commonschema.Timeouts(ctx),
+			"timeouts": commonschema.ResourceTimeouts(ctx),
 		},
 	}
 }

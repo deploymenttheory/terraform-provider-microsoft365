@@ -144,7 +144,7 @@ func (r *GroupOwnerAssignmentResource) Schema(ctx context.Context, req resource.
 				Computed:            true,
 				MarkdownDescription: "The display name of the owner. Read-only.",
 			},
-			"timeouts": commonschema.Timeouts(ctx),
+			"timeouts": commonschema.ResourceTimeouts(ctx),
 		},
 	}
 }

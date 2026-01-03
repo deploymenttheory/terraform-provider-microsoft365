@@ -19,6 +19,7 @@ import (
 
 const (
 	ActionName = "microsoft365_graph_beta_device_management_managed_device_windows_defender_update_signatures"
+	InvokeTimeout = 60
 )
 
 var (
@@ -133,7 +134,7 @@ func (a *WindowsDefenderUpdateSignaturesAction) Schema(ctx context.Context, req 
 					),
 				},
 			},
-			"timeouts": commonschema.Timeouts(ctx),
+			"timeouts": commonschema.ActionTimeouts(ctx),
 		},
 	}
 }

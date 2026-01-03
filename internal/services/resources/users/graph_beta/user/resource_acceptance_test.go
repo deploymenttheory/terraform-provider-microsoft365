@@ -10,6 +10,7 @@ import (
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/check"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/destroy"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/testlog"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
 	graphBetaUsersUser "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/users/graph_beta/user"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -44,7 +45,7 @@ func TestAccUserResource_Lifecycle(t *testing.T) {
 				PreConfig: func() {
 					testlog.StepAction(resourceType, "Creating")
 				},
-				Config: testAccUserConfig_minimal(),
+				Config: loadAcceptanceTestTerraform("resource_minimal.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					func(_ *terraform.State) error {
 						testlog.WaitForConsistency("group", 20*time.Second)
@@ -86,7 +87,7 @@ func TestAccUserResource_Lifecycle(t *testing.T) {
 				PreConfig: func() {
 					testlog.StepAction(resourceType, "Updating to Maximal")
 				},
-				Config: testAccUserConfig_maximal(),
+				Config: loadAcceptanceTestTerraform("resource_maximal.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					func(_ *terraform.State) error {
 						testlog.WaitForConsistency("group", 20*time.Second)
@@ -171,7 +172,7 @@ func TestAccUserResource_CustomSecurityAttributes(t *testing.T) {
 				PreConfig: func() {
 					testlog.StepAction(resourceType, "Creating with Custom Security Attributes")
 				},
-				Config: testAccUserConfig_customSecAtt(),
+				Config: loadAcceptanceTestTerraform("resource_custom_sec_att.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					func(_ *terraform.State) error {
 						testlog.WaitForConsistency("group", 20*time.Second)
@@ -216,18 +217,11 @@ func TestAccUserResource_CustomSecurityAttributes(t *testing.T) {
 	})
 }
 
-// Test configuration functions
-func testAccUserConfig_minimal() string {
-	config := mocks.LoadTerraformConfigFile("resource_minimal.tf")
-	return acceptance.ConfiguredM365ProviderBlock(config)
-}
-
-func testAccUserConfig_maximal() string {
-	config := mocks.LoadTerraformConfigFile("resource_maximal.tf")
-	return acceptance.ConfiguredM365ProviderBlock(config)
-}
-
-func testAccUserConfig_customSecAtt() string {
-	config := mocks.LoadTerraformConfigFile("resource_custom_sec_att.tf")
+// Test configuration function
+func loadAcceptanceTestTerraform(filename string) string {
+	config, err := helpers.ParseHCLFile("tests/terraform/acceptance/" + filename)
+	if err != nil {
+		panic("failed to load acceptance config " + filename + ": " + err.Error())
+	}
 	return acceptance.ConfiguredM365ProviderBlock(config)
 }

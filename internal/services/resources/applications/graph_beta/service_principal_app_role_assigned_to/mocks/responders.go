@@ -8,6 +8,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
 	"github.com/google/uuid"
 	"github.com/jarcoal/httpmock"
@@ -43,9 +44,13 @@ func (m *ServicePrincipalAppRoleAssignedToMock) RegisterMocks() {
 		newId := uuid.New().String()
 
 		// Load the template response
-		responseObj, err := mocks.LoadJSONResponse(filepath.Join("tests", "responses", "validate_create", "post_app_role_assignment_success.json"))
+		jsonContent, err := helpers.ParseJSONFile(filepath.Join("..", "tests", "responses", "validate_create", "post_app_role_assignment_success.json"))
 		if err != nil {
 			return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to load response"}}`), nil
+		}
+		var responseObj map[string]any
+		if err := json.Unmarshal([]byte(jsonContent), &responseObj); err != nil {
+			return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to parse JSON response"}}`), nil
 		}
 
 		// Update response with request data and generated ID

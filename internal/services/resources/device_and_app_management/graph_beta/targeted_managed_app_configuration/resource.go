@@ -234,5 +234,5 @@ func (r *TargetedManagedAppConfigurationResource) Schema(ctx context.Context, re
 		},
 	}
 
-	resp.Schema.Attributes["timeouts"] = commonschema.Timeouts(ctx)
+	resp.Schema.Attributes["timeouts"] = commonschema.ResourceTimeouts(ctx)
 }

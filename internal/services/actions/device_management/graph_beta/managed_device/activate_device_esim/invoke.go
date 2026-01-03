@@ -3,7 +3,9 @@ package graphBetaActivateDeviceEsimManagedDevice
 import (
 	"context"
 	"fmt"
+	"time"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
 	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -18,6 +20,12 @@ func (a *ActivateDeviceEsimManagedDeviceAction) Invoke(ctx context.Context, req 
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
+	ctx, cancel := crud.HandleTimeout(ctx, data.Timeouts.Invoke, InvokeTimeout*time.Second, &resp.Diagnostics)
+	if cancel == nil {
+		return
+	}
+	defer cancel()
 
 	totalDevices := len(data.ManagedDevices) + len(data.ComanagedDevices)
 	tflog.Debug(ctx, "Processing devices for eSIM activation", map[string]any{

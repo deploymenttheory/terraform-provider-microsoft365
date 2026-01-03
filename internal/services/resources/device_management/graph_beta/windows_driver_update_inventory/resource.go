@@ -137,7 +137,7 @@ func (r *WindowsDriverUpdateInventoryResource) Schema(ctx context.Context, req r
 					),
 				},
 			},
-			"timeouts": commonschema.Timeouts(ctx),
+			"timeouts": commonschema.ResourceTimeouts(ctx),
 		},
 	}
 }

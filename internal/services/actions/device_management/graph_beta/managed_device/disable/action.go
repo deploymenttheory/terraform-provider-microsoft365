@@ -19,6 +19,7 @@ import (
 
 const (
 	ActionName = "microsoft365_graph_beta_device_management_managed_device_disable"
+	InvokeTimeout = 60
 )
 
 var (
@@ -116,7 +117,7 @@ func (a *DisableManagedDeviceAction) Schema(ctx context.Context, req action.Sche
 					),
 				},
 			},
-			"timeouts": commonschema.Timeouts(ctx),
+			"timeouts": commonschema.ActionTimeouts(ctx),
 		},
 	}
 }

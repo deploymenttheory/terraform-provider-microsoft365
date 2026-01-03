@@ -80,7 +80,7 @@ func (r *ResourceTemplateResource) Schema(ctx context.Context, req resource.Sche
 				Description: "Add schema from here.",
 				Computed:    true,
 			},
-			"timeouts": commonschema.Timeouts(ctx),
+			"timeouts": commonschema.ResourceTimeouts(ctx),
 		},
 	}
 }

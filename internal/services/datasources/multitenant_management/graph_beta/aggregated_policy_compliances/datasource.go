@@ -140,7 +140,7 @@ func (d *AggregatedPolicyCompliancesDataSource) Schema(ctx context.Context, _ da
 					},
 				},
 			},
-			"timeouts": commonschema.Timeouts(ctx),
+			"timeouts": commonschema.ResourceTimeouts(ctx),
 		},
 	}
 }

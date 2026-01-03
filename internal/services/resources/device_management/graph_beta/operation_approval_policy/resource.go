@@ -286,7 +286,7 @@ func (r *OperationApprovalPolicyResource) Schema(ctx context.Context, req resour
 					),
 				},
 			},
-			"timeouts": commonschema.Timeouts(ctx),
+			"timeouts": commonschema.ResourceTimeouts(ctx),
 		},
 	}
 }

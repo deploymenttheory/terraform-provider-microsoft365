@@ -134,7 +134,7 @@ func (r *GroupAppRoleAssignmentResource) Schema(ctx context.Context, req resourc
 				Computed:            true,
 				MarkdownDescription: "The date and time the app role assignment was created. Read-only.",
 			},
-			"timeouts": commonschema.Timeouts(ctx),
+			"timeouts": commonschema.ResourceTimeouts(ctx),
 		},
 	}
 }

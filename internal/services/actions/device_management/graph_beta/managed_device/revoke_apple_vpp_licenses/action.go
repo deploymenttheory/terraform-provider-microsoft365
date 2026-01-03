@@ -19,6 +19,7 @@ import (
 
 const (
 	ActionName = "microsoft365_graph_beta_device_management_managed_device_revoke_apple_vpp_licenses"
+	InvokeTimeout = 60
 )
 
 var (
@@ -121,7 +122,7 @@ func (a *RevokeAppleVppLicensesAction) Schema(ctx context.Context, req action.Sc
 					),
 				},
 			},
-			"timeouts": commonschema.Timeouts(ctx),
+			"timeouts": commonschema.ActionTimeouts(ctx),
 		},
 	}
 }

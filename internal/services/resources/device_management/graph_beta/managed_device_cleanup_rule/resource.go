@@ -130,7 +130,7 @@ func (r *ManagedDeviceCleanupRuleResource) Schema(ctx context.Context, req resou
 				MarkdownDescription: "The date and time when the device cleanup rule was last modified. This property is read-only.",
 				Computed:            true,
 			},
-			"timeouts": commonschema.Timeouts(ctx),
+			"timeouts": commonschema.ResourceTimeouts(ctx),
 		},
 	}
 }

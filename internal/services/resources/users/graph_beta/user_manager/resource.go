@@ -113,7 +113,7 @@ func (r *UserManagerResource) Schema(ctx context.Context, req resource.SchemaReq
 					),
 				},
 			},
-			"timeouts": commonschema.Timeouts(ctx),
+			"timeouts": commonschema.ResourceTimeouts(ctx),
 		},
 	}
 }

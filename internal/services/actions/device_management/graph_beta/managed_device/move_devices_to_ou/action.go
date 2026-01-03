@@ -19,6 +19,7 @@ import (
 
 const (
 	ActionName = "microsoft365_graph_beta_device_management_managed_device_move_devices_to_ou"
+	InvokeTimeout = 60
 )
 
 var (
@@ -135,7 +136,7 @@ func (a *MoveDevicesToOUManagedDeviceAction) Schema(ctx context.Context, req act
 					),
 				},
 			},
-			"timeouts": commonschema.Timeouts(ctx),
+			"timeouts": commonschema.ActionTimeouts(ctx),
 		},
 	}
 }

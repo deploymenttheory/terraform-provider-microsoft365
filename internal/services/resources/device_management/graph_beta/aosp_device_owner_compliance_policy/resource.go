@@ -202,7 +202,7 @@ func (r *AospDeviceOwnerCompliancePolicyResource) Schema(ctx context.Context, re
 				},
 			},
 			"assignments": commonschemagraphbeta.ComplianceScriptAssignmentsSchema(),
-			"timeouts":    commonschema.Timeouts(ctx),
+			"timeouts":    commonschema.ResourceTimeouts(ctx),
 		},
 	}
 }

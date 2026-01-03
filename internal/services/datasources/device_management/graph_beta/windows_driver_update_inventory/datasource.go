@@ -64,7 +64,7 @@ func (d *WindowsDriverUpdateInventoryDataSource) Schema(ctx context.Context, _ d
 				Required:            true,
 				MarkdownDescription: "The ID of the Windows Driver Update Profile this inventory belongs to.",
 			},
-			"timeouts": commonschema.Timeouts(ctx),
+			"timeouts": commonschema.ResourceTimeouts(ctx),
 		},
 	}
 }

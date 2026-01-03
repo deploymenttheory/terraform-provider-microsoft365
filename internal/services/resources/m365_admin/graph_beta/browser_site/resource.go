@@ -152,7 +152,7 @@ func (r *BrowserSiteResource) Schema(ctx context.Context, req resource.SchemaReq
 				Description: "The URL of the site.",
 				Required:    true,
 			},
-			"timeouts": commonschema.Timeouts(ctx),
+			"timeouts": commonschema.ResourceTimeouts(ctx),
 		},
 	}
 }

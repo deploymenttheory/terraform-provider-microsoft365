@@ -146,7 +146,7 @@ func (r *MacOSPlatformScriptResource) Schema(ctx context.Context, req resource.S
 				},
 			},
 			"assignments": commonschemagraphbeta.PlatformScriptAssignmentsSchema(),
-			"timeouts":    commonschema.Timeouts(ctx),
+			"timeouts":    commonschema.ResourceTimeouts(ctx),
 		},
 	}
 }

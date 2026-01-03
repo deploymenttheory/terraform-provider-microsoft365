@@ -19,6 +19,7 @@ import (
 
 const (
 	ActionName = "microsoft365_graph_beta_device_management_managed_device_rotate_bitlocker_keys"
+	InvokeTimeout = 60
 )
 
 var (
@@ -123,7 +124,7 @@ func (a *RotateBitLockerKeysAction) Schema(ctx context.Context, req action.Schem
 					),
 				},
 			},
-			"timeouts": commonschema.Timeouts(ctx),
+			"timeouts": commonschema.ActionTimeouts(ctx),
 		},
 	}
 }

@@ -180,7 +180,7 @@ func (d *CloudPcsDataSource) Schema(ctx context.Context, _ datasource.SchemaRequ
 					},
 				},
 			},
-			"timeouts": commonschema.Timeouts(ctx),
+			"timeouts": commonschema.ResourceTimeouts(ctx),
 		},
 	}
 }

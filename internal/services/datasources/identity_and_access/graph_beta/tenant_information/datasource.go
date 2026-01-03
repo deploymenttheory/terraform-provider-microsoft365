@@ -80,7 +80,7 @@ func (d *TenantInformationDataSource) Schema(ctx context.Context, req datasource
 				Computed:            true,
 				MarkdownDescription: "The federation brand name of the tenant, if configured.",
 			},
-			"timeouts": commonschema.Timeouts(ctx),
+			"timeouts": commonschema.ResourceTimeouts(ctx),
 		},
 	}
 }

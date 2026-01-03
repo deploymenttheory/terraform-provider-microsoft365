@@ -8,6 +8,7 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	commonMocks "github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
 	"github.com/jarcoal/httpmock"
 )
@@ -34,8 +35,16 @@ var _ commonMocks.MockRegistrar = (*UserLicenseAssignmentMock)(nil)
 
 // loadJSONResponse loads a JSON response from the tests/responses directory
 func (m *UserLicenseAssignmentMock) loadJSONResponse(filePath string) (map[string]any, error) {
-	fullPath := filepath.Join("tests", "responses", filePath)
-	return commonMocks.LoadJSONResponse(fullPath)
+	fullPath := filepath.Join("..", "tests", "responses", filePath)
+	jsonContent, err := helpers.ParseJSONFile(fullPath)
+	if err != nil {
+		return nil, err
+	}
+	var response map[string]any
+	if err := json.Unmarshal([]byte(jsonContent), &response); err != nil {
+		return nil, err
+	}
+	return response, nil
 }
 
 // getJSONFileForUserID determines which JSON file to load based on the user ID
