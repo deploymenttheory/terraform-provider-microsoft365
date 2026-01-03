@@ -21,6 +21,6 @@ action "microsoft365_graph_beta_device_management_managed_device_clean_windows_d
   validate_device_exists  = true
 
   timeouts = {
-    create = "5m"
+    invoke = "5m"
   }
 }
