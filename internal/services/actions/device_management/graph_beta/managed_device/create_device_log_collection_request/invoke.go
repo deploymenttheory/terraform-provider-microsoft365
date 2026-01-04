@@ -3,8 +3,13 @@ package graphBetaCreateDeviceLogCollectionRequestManagedDevice
 import (
 	"context"
 	"fmt"
-	"strings"
+	"time"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/progress"
+
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/validation"
+
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
 	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -20,6 +25,12 @@ func (a *CreateDeviceLogCollectionRequestManagedDeviceAction) Invoke(ctx context
 		return
 	}
 
+	ctx, cancel := crud.HandleTimeout(ctx, data.Timeouts.Invoke, InvokeTimeout*time.Second, &resp.Diagnostics)
+	if cancel == nil {
+		return
+	}
+	defer cancel()
+
 	totalDevices := len(data.ManagedDevices) + len(data.ComanagedDevices)
 	tflog.Debug(ctx, "Processing devices for log collection", map[string]any{
 		"managed_devices":   len(data.ManagedDevices),
@@ -27,96 +38,115 @@ func (a *CreateDeviceLogCollectionRequestManagedDeviceAction) Invoke(ctx context
 		"total_devices":     totalDevices,
 	})
 
-	resp.SendProgress(action.InvokeProgressEvent{
-		Message: fmt.Sprintf("Starting log collection requests for %d devices (%d managed, %d co-managed)",
-			totalDevices, len(data.ManagedDevices), len(data.ComanagedDevices)),
-	})
+	ignorePartialFailures := false
+	if !data.IgnorePartialFailures.IsNull() && !data.IgnorePartialFailures.IsUnknown() {
+		ignorePartialFailures = data.IgnorePartialFailures.ValueBool()
+	}
 
-	successCount := 0
-	var failedDevices []string
-	var lastError error
+	// Get validate_device_exists setting (default: true)
+	validateDeviceExists := true
+	if !data.ValidateDeviceExists.IsNull() && !data.ValidateDeviceExists.IsUnknown() {
+		validateDeviceExists = data.ValidateDeviceExists.ValueBool()
+	}
+
+	// Perform API validation of devices if enabled
+	if validateDeviceExists {
+		tflog.Debug(ctx, "Performing device validation via API")
+
+		validationResult, err := validateRequest(ctx, a.client, data.ManagedDevices, data.ComanagedDevices)
+		if err != nil {
+			tflog.Error(ctx, "Failed to validate devices via API", map[string]any{"error": err.Error()})
+			resp.Diagnostics.AddError(
+				"Device Validation Failed",
+				fmt.Sprintf("Failed to validate devices: %s", err.Error()),
+			)
+			return
+		}
+
+		// Report validation results
+		results := validation.NewResults().
+			Error(validationResult.NonExistentManagedDevices, "managed device", "do not exist or are not managed by Intune").
+			Error(validationResult.NonExistentComanagedDevices, "co-managed device", "do not exist or are not managed by Intune").
+			Error(validationResult.UnsupportedManagedDevices, "managed device", "are not Windows devices or do not support log collection (requires Windows 10 version 1709 or later, or Windows 11)").
+			Error(validationResult.UnsupportedComanagedDevices, "co-managed device", "are not Windows devices or do not support log collection (requires Windows 10 version 1709 or later, or Windows 11)")
+
+		if results.Report(resp) {
+			return
+		}
+
+		tflog.Debug(ctx, "Device validation completed successfully")
+	} else {
+		tflog.Debug(ctx, "Device validation disabled, skipping API checks")
+	}
+
+	// Create progress tracker and send initial message
+	progressTracker := progress.For(resp).WithTotalDevices(totalDevices).
+		Starting("device log collection",
+			fmt.Sprintf("%d managed, %d co-managed", len(data.ManagedDevices), len(data.ComanagedDevices)))
 
 	// Process managed devices
 	for _, device := range data.ManagedDevices {
 		deviceID := device.DeviceID.ValueString()
-		templateType := "predefined"
-		if !device.TemplateType.IsNull() && !device.TemplateType.IsUnknown() {
-			templateType = device.TemplateType.ValueString()
-		}
-
 		err := a.createLogCollectionManagedDevice(ctx, device)
 		if err != nil {
-			failedDevices = append(failedDevices, fmt.Sprintf("%s (managed)", deviceID))
-			lastError = err
+			progressTracker.Device(deviceID, "Managed").Failed(err.Error())
 			tflog.Error(ctx, "Failed to create log collection request for managed device", map[string]any{
-				"device_id":     deviceID,
-				"template_type": templateType,
-				"error":         err.Error(),
+				"device_id": deviceID,
+				"error":     err.Error(),
 			})
 		} else {
-			successCount++
-			tflog.Debug(ctx, "Successfully initiated log collection for managed device", map[string]any{
-				"device_id":     deviceID,
-				"template_type": templateType,
+			progressTracker.Device(deviceID, "Managed").Succeeded("log collection request initiated successfully")
+			tflog.Info(ctx, "Successfully initiated log collection for managed device", map[string]any{
+				"device_id": deviceID,
 			})
 		}
-
-		processed := successCount + len(failedDevices)
-		progress := float64(processed) / float64(totalDevices) * 100
-		resp.SendProgress(action.InvokeProgressEvent{
-			Message: fmt.Sprintf("Processed %d of %d devices (%.0f%% complete)",
-				processed, totalDevices, progress),
-		})
 	}
 
 	// Process co-managed devices
 	for _, device := range data.ComanagedDevices {
 		deviceID := device.DeviceID.ValueString()
-		templateType := "predefined"
-		if !device.TemplateType.IsNull() && !device.TemplateType.IsUnknown() {
-			templateType = device.TemplateType.ValueString()
-		}
-
 		err := a.createLogCollectionComanagedDevice(ctx, device)
 		if err != nil {
-			failedDevices = append(failedDevices, fmt.Sprintf("%s (co-managed)", deviceID))
-			lastError = err
+			progressTracker.Device(deviceID, "Co-managed").Failed(err.Error())
 			tflog.Error(ctx, "Failed to create log collection request for co-managed device", map[string]any{
-				"device_id":     deviceID,
-				"template_type": templateType,
-				"error":         err.Error(),
+				"device_id": deviceID,
+				"error":     err.Error(),
 			})
 		} else {
-			successCount++
-			tflog.Debug(ctx, "Successfully initiated log collection for co-managed device", map[string]any{
-				"device_id":     deviceID,
-				"template_type": templateType,
+			progressTracker.Device(deviceID, "Co-managed").Succeeded("log collection request initiated successfully")
+			tflog.Info(ctx, "Successfully initiated log collection for co-managed device", map[string]any{
+				"device_id": deviceID,
 			})
 		}
-
-		processed := successCount + len(failedDevices)
-		progress := float64(processed) / float64(totalDevices) * 100
-		resp.SendProgress(action.InvokeProgressEvent{
-			Message: fmt.Sprintf("Processed %d of %d devices (%.0f%% complete)",
-				processed, totalDevices, progress),
-		})
 	}
 
-	a.reportResults(ctx, resp, successCount, totalDevices, failedDevices, lastError)
+	// Handle results
+	if progressTracker.HasFailures() {
+		if ignorePartialFailures {
+			progressTracker.CompletedWithIgnoredFailures("device log collection")
+			tflog.Warn(ctx, "Device log collection completed with ignored failures", map[string]any{
+				"success_count": progressTracker.SuccessCount(),
+				"failed_count":  progressTracker.FailureCount(),
+			})
+		} else {
+			progressTracker.Failed("Device Log Collection Failed", "create log collection requests")
+			return
+		}
+	} else {
+		progressTracker.CompletedSuccessfully("initiated log collection requests for all devices. Logs will be available in the Intune portal after collection completes")
+	}
 
-	tflog.Debug(ctx, "Completed device log collection action", map[string]any{
-		"action":        ActionName,
-		"success_count": successCount,
-		"failed_count":  len(failedDevices),
-		"total_devices": totalDevices,
+	tflog.Info(ctx, "Device log collection action completed", map[string]any{
+		"success_count":            progressTracker.SuccessCount(),
+		"failed_count":             progressTracker.FailureCount(),
+		"total_devices":            totalDevices,
+		"partial_failures_ignored": ignorePartialFailures && progressTracker.HasFailures(),
 	})
 }
 
-// createLogCollectionManagedDevice performs atomic log collection for a managed device
+// createLogCollectionManagedDevice performs log collection request for a managed device
 func (a *CreateDeviceLogCollectionRequestManagedDeviceAction) createLogCollectionManagedDevice(ctx context.Context, device ManagedDeviceLogCollection) error {
 	deviceID := device.DeviceID.ValueString()
-	tflog.Debug(ctx, "Creating log collection request for managed device", map[string]any{"device_id": deviceID})
-
 	requestBody := constructManagedDeviceRequest(ctx, device)
 
 	_, err := a.client.
@@ -127,18 +157,15 @@ func (a *CreateDeviceLogCollectionRequestManagedDeviceAction) createLogCollectio
 		Post(ctx, requestBody, nil)
 
 	if err != nil {
-		return err
+		return fmt.Errorf("%s", errors.HandleKiotaGraphErrorForAction(ctx, err))
 	}
 
-	tflog.Debug(ctx, "Successfully initiated log collection for managed device", map[string]any{"device_id": deviceID})
 	return nil
 }
 
-// createLogCollectionComanagedDevice performs atomic log collection for a co-managed device
+// createLogCollectionComanagedDevice performs log collection request for a co-managed device
 func (a *CreateDeviceLogCollectionRequestManagedDeviceAction) createLogCollectionComanagedDevice(ctx context.Context, device ComanagedDeviceLogCollection) error {
 	deviceID := device.DeviceID.ValueString()
-	tflog.Debug(ctx, "Creating log collection request for co-managed device", map[string]any{"device_id": deviceID})
-
 	requestBody := constructComanagedDeviceRequest(ctx, device)
 
 	_, err := a.client.
@@ -149,39 +176,8 @@ func (a *CreateDeviceLogCollectionRequestManagedDeviceAction) createLogCollectio
 		Post(ctx, requestBody, nil)
 
 	if err != nil {
-		return err
+		return fmt.Errorf("%s", errors.HandleKiotaGraphErrorForAction(ctx, err))
 	}
 
-	tflog.Debug(ctx, "Successfully initiated log collection for co-managed device", map[string]any{"device_id": deviceID})
 	return nil
-}
-
-// reportResults handles final result reporting according to ADR-001 principles
-func (a *CreateDeviceLogCollectionRequestManagedDeviceAction) reportResults(ctx context.Context, resp *action.InvokeResponse, successCount, totalDevices int, failedDevices []string, lastError error) {
-	if len(failedDevices) > 0 {
-		if successCount > 0 {
-			// Partial success
-			resp.SendProgress(action.InvokeProgressEvent{
-				Message: fmt.Sprintf("Partial success: %d of %d devices succeeded. Failed devices: %v",
-					successCount, totalDevices, failedDevices),
-			})
-			resp.Diagnostics.AddWarning(
-				"Partial Success",
-				fmt.Sprintf("Log collection requests created for %d of %d devices. Failed devices: %s. "+
-					"Devices that received the command will collect logs and upload them to Intune.",
-					successCount, totalDevices, strings.Join(failedDevices, ", ")),
-			)
-		} else {
-			// Complete failure
-			errors.HandleKiotaGraphError(ctx, lastError, resp, "Action", a.WritePermissions)
-			return
-		}
-	} else {
-		// Full success
-		resp.SendProgress(action.InvokeProgressEvent{
-			Message: fmt.Sprintf("Log collection requests initiated successfully for all %d devices. "+
-				"Logs will be available in the Intune portal after collection completes.",
-				successCount),
-		})
-	}
 }

@@ -101,6 +101,8 @@ The following API permissions are required in order to use this action.
 | Version | Status | Notes |
 |---------|--------|-------|
 | v0.33.0-alpha | Experimental | Initial release |
+| v0.40.0-alpha | Experimental | Example fixes and refactored sync progress logic |
+
 
 ## Notes
 
@@ -185,294 +187,109 @@ The following API permissions are required in order to use this action.
 ## Example Usage
 
 ```terraform
-# Example 1: Shutdown a single device
+# Example 1: Shutdown a single device - Minimal
 action "microsoft365_graph_beta_device_management_managed_device_shutdown" "shutdown_single" {
-
-  device_ids = [
-    "12345678-1234-1234-1234-123456789abc"
-  ]
-
-  timeouts = {
-    invoke = "5m"
+  config {
+    device_ids = [
+      "12345678-1234-1234-1234-123456789abc"
+    ]
   }
 }
 
 # Example 2: Shutdown multiple devices
 action "microsoft365_graph_beta_device_management_managed_device_shutdown" "shutdown_batch" {
+  config {
+    device_ids = [
+      "12345678-1234-1234-1234-123456789abc",
+      "87654321-4321-4321-4321-ba9876543210",
+      "abcdef12-3456-7890-abcd-ef1234567890"
+    ]
 
-  device_ids = [
-    "12345678-1234-1234-1234-123456789abc",
-    "87654321-4321-4321-4321-ba9876543210",
-    "abcdef12-3456-7890-abcd-ef1234567890"
-  ]
-
-  timeouts = {
-    invoke = "10m"
+    timeouts = {
+      invoke = "10m"
+    }
   }
 }
 
-# Example 3: Shutdown lab devices for weekend energy conservation
+# Example 3: Shutdown with validation and failure handling - Maximal
+action "microsoft365_graph_beta_device_management_managed_device_shutdown" "shutdown_with_validation" {
+  config {
+    device_ids = [
+      "12345678-1234-1234-1234-123456789abc",
+      "87654321-4321-4321-4321-ba9876543210",
+      "abcdef12-3456-7890-abcd-ef1234567890"
+    ]
+
+    ignore_partial_failures = true
+    validate_device_exists  = true
+
+    timeouts = {
+      invoke = "5m"
+    }
+  }
+}
+
+# Example 4: Shutdown lab devices for weekend energy conservation
 data "microsoft365_graph_beta_device_management_managed_device" "lab_devices" {
-  filter_type  = "device_name"
-  filter_value = "LAB-"
+  filter_type  = "odata"
+  odata_filter = "startsWith(deviceName, 'LAB-')"
 }
 
 action "microsoft365_graph_beta_device_management_managed_device_shutdown" "shutdown_lab_weekend" {
+  config {
+    device_ids = [for device in data.microsoft365_graph_beta_device_management_managed_device.lab_devices.items : device.id]
 
-  device_ids = [for device in data.microsoft365_graph_beta_device_management_managed_device.lab_devices.items : device.id]
-
-  timeouts = {
-    invoke = "10m"
+    timeouts = {
+      invoke = "10m"
+    }
   }
 }
 
-# Example 4: Emergency shutdown for specific device by ID
+# Example 5: Emergency shutdown for specific device
 action "microsoft365_graph_beta_device_management_managed_device_shutdown" "emergency_shutdown" {
+  config {
+    device_ids = [
+      "12345678-abcd-1234-abcd-123456789def"
+    ]
 
-  device_ids = [
-    "12345678-abcd-1234-abcd-123456789def" # Replace with actual compromised device ID
-  ]
-
-  timeouts = {
-    invoke = "2m"
+    timeouts = {
+      invoke = "2m"
+    }
   }
 }
 
-# Example 5: Shutdown kiosk devices overnight
+# Example 6: Shutdown kiosk devices overnight
 data "microsoft365_graph_beta_device_management_managed_device" "kiosk_devices" {
-  filter_type  = "device_name"
-  filter_value = "KIOSK-"
+  filter_type  = "odata"
+  odata_filter = "startsWith(deviceName, 'KIOSK-')"
 }
 
 action "microsoft365_graph_beta_device_management_managed_device_shutdown" "shutdown_kiosks_overnight" {
+  config {
+    device_ids = [for device in data.microsoft365_graph_beta_device_management_managed_device.kiosk_devices.items : device.id]
 
-  device_ids = [for device in data.microsoft365_graph_beta_device_management_managed_device.kiosk_devices.items : device.id]
+    ignore_partial_failures = true
 
-  timeouts = {
-    invoke = "10m"
-  }
-}
-
-# Example 6: Shutdown classroom devices for extended break
-data "microsoft365_graph_beta_device_management_managed_device" "classroom_devices" {
-  filter_type  = "device_name"
-  filter_value = "CLASSROOM-"
-}
-
-action "microsoft365_graph_beta_device_management_managed_device_shutdown" "shutdown_classroom_break" {
-
-  device_ids = [for device in data.microsoft365_graph_beta_device_management_managed_device.classroom_devices.items : device.id]
-
-  timeouts = {
-    invoke = "15m"
+    timeouts = {
+      invoke = "10m"
+    }
   }
 }
 
 # Output examples
 output "shutdown_device_count" {
-  value       = length(action.shutdown_batch.device_ids)
+  value       = length(action.microsoft365_graph_beta_device_management_managed_device_shutdown.shutdown_batch.config.device_ids)
   description = "Number of devices that received shutdown command"
 }
 
 output "lab_shutdown_count" {
-  value       = length(action.shutdown_lab_weekend.device_ids)
+  value       = length(action.microsoft365_graph_beta_device_management_managed_device_shutdown.shutdown_lab_weekend.config.device_ids)
   description = "Number of lab devices shut down for energy conservation"
 }
 
-# Important Notes:
-#
-# Critical Warning:
-# SHUTDOWN POWERS DEVICES OFF COMPLETELY!
-# - Devices will NOT restart automatically
-# - Physical access required to power devices back on
-# - Use with extreme caution
-# - Consider using reboot action instead if devices need to come back online
-#
-# What is Shutdown?
-# - Completely powers off devices
-# - Requires manual power-on to restart
-# - More disruptive than reboot
-# - Used when devices need to remain offline
-# - Typically for energy conservation or security incidents
-#
-# When to Use Shutdown (vs Reboot):
-# - Energy conservation during extended non-use (weekends, holidays)
-# - Security incident response (isolate compromised device)
-# - Hardware maintenance requiring full power-off
-# - Decommissioning devices before storage/shipment
-# - Emergency response to prevent data exfiltration
-# - Scheduled shutdowns for lab/classroom devices
-# - Preparing devices for physical relocation
-# - Extended maintenance periods
-#
-# Platform Support:
-# - Windows: Fully supported (all versions)
-# - macOS: Supported (user-approved MDM or supervised)
-# - iOS/iPadOS: Limited (supervised only, very rare use case)
-# - Android: Not supported
-#
-# User Impact - CRITICAL:
-# - Users lose ALL unsaved work
-# - Device becomes COMPLETELY unavailable
-# - Physical access required to restart
-# - May cause significant productivity loss
-# - Users cannot access device remotely
-# - Active sessions terminated immediately
-# - No automatic recovery
-#
-# Shutdown vs Reboot Comparison:
-#
-# Shutdown:
-# - Powers off completely
-# - Manual restart required
-# - Use for: Long-term offline, security, energy savings
-# - Impact: Device offline until manually restarted
-#
-# Reboot:
-# - Restarts automatically
-# - Device comes back online
-# - Use for: Updates, troubleshooting, config changes
-# - Impact: Brief downtime (2-5 minutes)
-#
-# Best Practices:
-# - ONLY use when devices must remain offline
-# - Ensure physical access available to restart
-# - Notify users well in advance
-# - Schedule for end of day or weekends
-# - Document reason in change management
-# - Verify device location (ensure accessible)
-# - Consider reboot instead if possible
-# - Test with small groups first
-# - Have rollback plan (manual power-on process)
-#
-# Common Use Cases:
-#
-# Case 1: Weekend Energy Conservation
-# - Shutdown lab/classroom devices Friday evening
-# - Manually power on Monday morning
-# - Reduces energy costs
-# - Environmental benefits
-#
-# Case 2: Security Incident Response
-# - Immediately isolate compromised device
-# - Prevent continued data exfiltration
-# - Preserve forensic evidence (no auto-restart)
-# - Part of incident response playbook
-#
-# Case 3: Extended Maintenance
-# - Hardware upgrades requiring physical access
-# - Facility maintenance (power/HVAC)
-# - Building closures (holidays, renovations)
-# - Device relocation projects
-#
-# Case 4: Device Decommissioning
-# - Preparing devices for storage
-# - Devices awaiting disposal/recycling
-# - Inventory consolidation
-# - Asset retirement process
-#
-# Scheduling Recommendations:
-# - Lab devices: Friday 6pm (weekend shutdown)
-# - Classroom devices: Before extended breaks
-# - Kiosks: During facility closure
-# - Corporate: Extended holidays only
-# - Emergency: Immediate (security incidents)
-#
-# Prerequisites:
-# - Physical access plan for restart
-# - User notification completed
-# - Business justification documented
-# - Management approval (if required)
-# - Backup power-on procedure
-# - Contact information for on-site staff
-#
-# Validation Checklist:
-# - [ ] Verified devices need to remain offline
-# - [ ] Confirmed reboot won't suffice
-# - [ ] Physical access available for restart
-# - [ ] Users notified and approved
-# - [ ] Change management ticket created
-# - [ ] Rollback plan documented
-# - [ ] Emergency contact designated
-#
-# Monitoring:
-# - Track which devices were shut down
-# - Monitor for unexpected shutdowns
-# - Verify devices stay offline as expected
-# - Alert if device comes back online unexpectedly
-# - Document manual restart times
-#
-# Troubleshooting:
-#
-# Issue: Device won't shutdown
-# Solution: Check connectivity, verify command received
-#
-# Issue: Device restarts automatically
-# Solution: Check BIOS settings, Wake-on-LAN configuration
-#
-# Issue: Can't power device back on
-# Solution: Check physical power, hardware issues
-#
-# Issue: Shutdown command fails
-# Solution: Verify device online, check permissions
-#
-# Security Considerations:
-# - Shutdown isolates device from network
-# - Prevents remote attacks during incident
-# - May affect monitoring/security agents
-# - Consider forensic evidence preservation
-# - Document in security audit logs
-# - Part of incident response procedures
-#
-# Energy Conservation Benefits:
-# - Reduces electricity costs
-# - Environmental impact reduction
-# - Extends hardware lifespan
-# - Complies with sustainability policies
-# - Reduces cooling/HVAC requirements
-#
-# Automation Examples:
-# - Friday evening shutdown scripts
-# - Holiday schedule automation
-# - Security playbook integration
-# - Facility management coordination
-# - Environmental monitoring triggers
-#
-# Emergency Response Workflow:
-# 1. Security incident detected
-# 2. Identify affected device(s)
-# 3. Issue immediate shutdown command
-# 4. Isolate device from network
-# 5. Notify security team
-# 6. Preserve forensic evidence
-# 7. Document incident timeline
-# 8. Follow incident response plan
-#
-# Recovery Procedures:
-# - Document manual power-on steps
-# - Assign responsibility for restart
-# - Verify device connectivity after restart
-# - Confirm services restore properly
-# - Monitor for issues post-restart
-# - Update asset management systems
-#
-# Approval Requirements:
-# - Management approval for bulk shutdowns
-# - Security team approval for incidents
-# - Facility coordination for physical access
-# - User notification and consent
-# - Change management board review
-# - Business impact assessment
-#
-# Alternatives to Consider:
-# - Reboot: If device needs to come back online
-# - Sleep/Hibernate: For temporary offline
-# - Network isolation: For security without full shutdown
-# - Remote lock: To prevent use without full power-off
-# - Lost mode: For iOS/iPadOS devices
-#
-# Reference:
-# https://learn.microsoft.com/en-us/graph/api/intune-devices-manageddevice-shutdown?view=graph-rest-beta
+# Important Note: 
+# Shutdown powers devices OFF completely and requires manual power-on to restart.
+# Use with caution. Consider using reboot action if devices need to come back online automatically.
 ```
 
 <!-- action schema generated by tfplugindocs -->
@@ -486,15 +303,14 @@ output "lab_shutdown_count" {
 
 ### Optional
 
+- `ignore_partial_failures` (Boolean) When set to `true`, the action will complete successfully even if some devices fail to shut down. When `false` (default), the action will fail if any device shutdown fails. Use this flag when shutting down multiple devices and you want the action to succeed even if some shutdowns fail.
 - `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))
+- `validate_device_exists` (Boolean) When set to `true` (default), the action will validate that all specified devices exist and support shutdown before attempting to shut them down. When `false`, device validation is skipped and the action will attempt to shut down devices directly. Disabling validation can improve performance but may result in errors if devices don't exist or are unsupported.
 
 <a id="nestedatt--timeouts"></a>
 ### Nested Schema for `timeouts`
 
 Optional:
 
-- `create` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours).
-- `delete` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours). Setting a timeout for a Delete operation is only applicable if changes are saved into state before the destroy operation occurs.
-- `read` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours). Read operations occur during any refresh or planning operation when refresh is enabled.
-- `update` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours).
+- `invoke` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours).
 

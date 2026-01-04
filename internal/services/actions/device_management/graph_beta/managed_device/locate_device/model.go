@@ -7,6 +7,8 @@ import (
 )
 
 type LocateManagedDeviceActionModel struct {
-	DeviceIDs types.List     `tfsdk:"device_ids"`
-	Timeouts  timeouts.Value `tfsdk:"timeouts"`
+	DeviceIDs             types.List     `tfsdk:"device_ids"`
+	IgnorePartialFailures types.Bool     `tfsdk:"ignore_partial_failures"`
+	ValidateDeviceExists  types.Bool     `tfsdk:"validate_device_exists"`
+	Timeouts              timeouts.Value `tfsdk:"timeouts"`
 }

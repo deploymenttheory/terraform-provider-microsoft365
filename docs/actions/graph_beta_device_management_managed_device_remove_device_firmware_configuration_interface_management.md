@@ -65,6 +65,8 @@ The following API permissions are required in order to use this action.
 | Version | Status | Notes |
 |---------|--------|-------|
 | v0.33.0-alpha | Experimental | Initial release |
+| v0.40.0-alpha | Experimental | Example fixes and refactored sync progress logic |
+
 
 ## Notes
 
@@ -173,123 +175,84 @@ To re-enable DFCI after removal:
 ## Example Usage
 
 ```terraform
-# Example 1: Remove DFCI management from single device
-action "microsoft365_graph_beta_device_management_managed_device_remove_device_firmware_configuration_interface_management" "remove_dfci_single" {
-  managed_device_ids = ["12345678-1234-1234-1234-123456789abc"]
-
-  timeouts = {
-    invoke = "5m"
+# Example 1: Remove DFCI management from a single device - Minimal
+action "microsoft365_graph_beta_device_management_managed_device_remove_device_firmware_configuration_interface_management" "remove_single" {
+  config {
+    managed_device_ids = [
+      "12345678-1234-1234-1234-123456789abc"
+    ]
   }
 }
 
-# Example 2: Remove DFCI from multiple Surface devices
-action "microsoft365_graph_beta_device_management_managed_device_remove_device_firmware_configuration_interface_management" "remove_dfci_multiple_surface" {
-  managed_device_ids = [
-    "12345678-1234-1234-1234-123456789abc",
-    "87654321-4321-4321-4321-ba9876543210",
-    "abcdef12-3456-7890-abcd-ef1234567890"
-  ]
+# Example 2: Remove DFCI management from multiple devices
+action "microsoft365_graph_beta_device_management_managed_device_remove_device_firmware_configuration_interface_management" "remove_multiple" {
+  config {
+    managed_device_ids = [
+      "12345678-1234-1234-1234-123456789abc",
+      "87654321-4321-4321-4321-ba9876543210",
+      "abcdef12-3456-7890-abcd-ef1234567890"
+    ]
 
-  timeouts = {
-    invoke = "10m"
+    timeouts = {
+      invoke = "10m"
+    }
   }
 }
 
-# Example 3: Remove DFCI from devices being decommissioned
-variable "decommissioned_devices" {
-  description = "Device IDs being decommissioned from DFCI management"
-  type        = list(string)
-  default = [
-    "aaaa1111-1111-1111-1111-111111111111",
-    "bbbb2222-2222-2222-2222-222222222222"
-  ]
-}
+# Example 3: Remove with validation - Maximal
+action "microsoft365_graph_beta_device_management_managed_device_remove_device_firmware_configuration_interface_management" "remove_maximal" {
+  config {
+    managed_device_ids = [
+      "12345678-1234-1234-1234-123456789abc",
+      "87654321-4321-4321-4321-ba9876543210"
+    ]
 
-action "microsoft365_graph_beta_device_management_managed_device_remove_device_firmware_configuration_interface_management" "decommission_dfci" {
-  managed_device_ids = var.decommissioned_devices
+    comanaged_device_ids = [
+      "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"
+    ]
 
-  timeouts = {
-    invoke = "10m"
+    ignore_partial_failures = true
+    validate_device_exists  = true
+
+    timeouts = {
+      invoke = "5m"
+    }
   }
 }
 
-# Example 4: Remove DFCI based on data source filter
-data "microsoft365_graph_beta_device_management_managed_device" "dfci_devices_to_remove" {
+# Example 4: Remove DFCI from all Surface devices
+data "microsoft365_graph_beta_device_management_managed_device" "surface_devices" {
   filter_type  = "odata"
-  odata_filter = "model eq 'Surface Pro' and deviceCategoryDisplayName eq 'Remove DFCI'"
+  odata_filter = "startsWith(model, 'Surface')"
 }
 
-action "microsoft365_graph_beta_device_management_managed_device_remove_device_firmware_configuration_interface_management" "filtered_removal" {
-  managed_device_ids = [for device in data.microsoft365_graph_beta_device_management_managed_device.dfci_devices_to_remove.items : device.id]
+action "microsoft365_graph_beta_device_management_managed_device_remove_device_firmware_configuration_interface_management" "remove_all_surface" {
+  config {
+    managed_device_ids = [for device in data.microsoft365_graph_beta_device_management_managed_device.surface_devices.items : device.id]
 
-  timeouts = {
-    invoke = "20m"
+    validate_device_exists  = true
+    ignore_partial_failures = true
+
+    timeouts = {
+      invoke = "20m"
+    }
   }
 }
 
-# Example 5: Transition to standard management
-locals {
-  transition_devices = [
-    "11111111-1111-1111-1111-111111111111",
-    "22222222-2222-2222-2222-222222222222",
-    "33333333-3333-3333-3333-333333333333"
-  ]
-}
-
-action "microsoft365_graph_beta_device_management_managed_device_remove_device_firmware_configuration_interface_management" "transition_standard" {
-  managed_device_ids = local.transition_devices
-
-  timeouts = {
-    invoke = "15m"
-  }
-}
-
-# Example 6: Remove DFCI from co-managed device
-action "microsoft365_graph_beta_device_management_managed_device_remove_device_firmware_configuration_interface_management" "remove_comanaged_dfci" {
-  comanaged_device_ids = ["abcdef12-3456-7890-abcd-ef1234567890"]
-
-  timeouts = {
-    invoke = "5m"
-  }
-}
-
-# Example 7: Remove DFCI before device transfer
-data "microsoft365_graph_beta_device_management_managed_device" "transfer_devices" {
+# Example 5: Remove DFCI from devices being decommissioned
+data "microsoft365_graph_beta_device_management_managed_device" "decommission_devices" {
   filter_type  = "odata"
-  odata_filter = "deviceCategoryDisplayName eq 'Transfer'"
+  odata_filter = "deviceCategoryDisplayName eq 'Decommission Queue'"
 }
 
-action "microsoft365_graph_beta_device_management_managed_device_remove_device_firmware_configuration_interface_management" "pre_transfer_removal" {
-  managed_device_ids = [for device in data.microsoft365_graph_beta_device_management_managed_device.transfer_devices.items : device.id]
+action "microsoft365_graph_beta_device_management_managed_device_remove_device_firmware_configuration_interface_management" "remove_decommission" {
+  config {
+    managed_device_ids = [for device in data.microsoft365_graph_beta_device_management_managed_device.decommission_devices.items : device.id]
 
-  timeouts = {
-    invoke = "30m"
+    timeouts = {
+      invoke = "15m"
+    }
   }
-}
-
-# Example 8: Remove DFCI from specific device models
-locals {
-  surface_models_map = {
-    "surface_pro_7" = "11111111-1111-1111-1111-111111111111"
-    "surface_pro_8" = "22222222-2222-2222-2222-222222222222"
-  }
-}
-
-action "microsoft365_graph_beta_device_management_managed_device_remove_device_firmware_configuration_interface_management" "surface_models" {
-  managed_device_ids = values(local.surface_models_map)
-
-  timeouts = {
-    invoke = "15m"
-  }
-}
-
-# Output examples
-output "dfci_removal_summary" {
-  value = {
-    managed   = length(action.remove_dfci_multiple_surface.managed_device_ids)
-    comanaged = length(action.remove_comanaged_dfci.comanaged_device_ids)
-  }
-  description = "Count of devices with DFCI removed"
 }
 ```
 
@@ -303,6 +266,7 @@ output "dfci_removal_summary" {
 **Note:** At least one of `managed_device_ids` or `comanaged_device_ids` must be provided.
 
 Example: `["abcdef12-3456-7890-abcd-ef1234567890"]`
+- `ignore_partial_failures` (Boolean) If set to `true`, the action will succeed even if some operations fail. Failed operations will be reported as warnings instead of errors. Default: `false` (action fails if any operation fails).
 - `managed_device_ids` (List of String) List of managed device IDs (GUIDs) to remove from DFCI management. These are devices fully managed by Intune that currently have DFCI management enabled.
 
 **Note:** At least one of `managed_device_ids` or `comanaged_device_ids` must be provided. You can provide both to remove DFCI management from different types of devices in one action.
@@ -311,14 +275,12 @@ Example: `["abcdef12-3456-7890-abcd-ef1234567890"]`
 
 Example: `["12345678-1234-1234-1234-123456789abc", "87654321-4321-4321-4321-ba9876543210"]`
 - `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))
+- `validate_device_exists` (Boolean) Whether to validate that devices exist and are Windows devices before attempting DFCI removal. Disabling this can speed up planning but may result in runtime errors for non-existent or non-Windows devices. Default: `true`.
 
 <a id="nestedatt--timeouts"></a>
 ### Nested Schema for `timeouts`
 
 Optional:
 
-- `create` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours).
-- `delete` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours). Setting a timeout for a Delete operation is only applicable if changes are saved into state before the destroy operation occurs.
-- `read` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours). Read operations occur during any refresh or planning operation when refresh is enabled.
-- `update` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours).
+- `invoke` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours).
 

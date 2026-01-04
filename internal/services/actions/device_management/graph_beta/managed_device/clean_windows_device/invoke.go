@@ -3,7 +3,13 @@ package graphBetaCleanWindowsManagedDevice
 import (
 	"context"
 	"fmt"
+	"time"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/progress"
+
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/validation"
+
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
 	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -19,6 +25,12 @@ func (a *CleanWindowsManagedDeviceAction) Invoke(ctx context.Context, req action
 		return
 	}
 
+	ctx, cancel := crud.HandleTimeout(ctx, data.Timeouts.Invoke, InvokeTimeout*time.Second, &resp.Diagnostics)
+	if cancel == nil {
+		return
+	}
+	defer cancel()
+
 	totalDevices := len(data.ManagedDevices) + len(data.ComanagedDevices)
 	tflog.Debug(ctx, "Processing devices for Windows clean", map[string]any{
 		"managed_devices":   len(data.ManagedDevices),
@@ -31,89 +43,114 @@ func (a *CleanWindowsManagedDeviceAction) Invoke(ctx context.Context, req action
 		ignorePartialFailures = data.IgnorePartialFailures.ValueBool()
 	}
 
-	resp.SendProgress(action.InvokeProgressEvent{
-		Message: fmt.Sprintf("Starting Windows device clean for %d devices (%d managed, %d co-managed)",
-			totalDevices, len(data.ManagedDevices), len(data.ComanagedDevices)),
-	})
+	// Get validate_device_exists setting (default: true)
+	validateDeviceExists := true
+	if !data.ValidateDeviceExists.IsNull() && !data.ValidateDeviceExists.IsUnknown() {
+		validateDeviceExists = data.ValidateDeviceExists.ValueBool()
+	}
 
-	successCount := 0
-	var failedDevices []string
-	var lastError error
+	// Perform API validation of devices if enabled
+	if validateDeviceExists {
+		tflog.Debug(ctx, "Performing device validation via API")
+
+		validationResult, err := validateRequest(ctx, a.client, data.ManagedDevices, data.ComanagedDevices)
+		if err != nil {
+			tflog.Error(ctx, "Failed to validate devices via API", map[string]any{"error": err.Error()})
+			resp.Diagnostics.AddError(
+				"Device Validation Failed",
+				fmt.Sprintf("Failed to validate devices: %s", err.Error()),
+			)
+			return
+		}
+
+		// Report validation results
+		results := validation.NewResults().
+			Error(validationResult.NonExistentManagedDevices, "managed device", "do not exist or are not managed by Intune").
+			Error(validationResult.NonExistentComanagedDevices, "co-managed device", "do not exist or are not managed by Intune").
+			Error(validationResult.NonWindowsManagedDevices, "managed device", "are not Windows devices (only Windows 10 and Windows 11 are supported)").
+			Error(validationResult.NonWindowsComanagedDevices, "co-managed device", "are not Windows devices (only Windows 10 and Windows 11 are supported)").
+			Warning(validationResult.UnsupportedVersionManagedDevices, "managed device", "may be running unsupported Windows versions (designed for Windows 10 and Windows 11)").
+			Warning(validationResult.UnsupportedVersionComanagedDevices, "co-managed device", "may be running unsupported Windows versions (designed for Windows 10 and Windows 11)")
+
+		if results.Report(resp) {
+			return
+		}
+
+		tflog.Debug(ctx, "Device validation completed successfully")
+	} else {
+		tflog.Debug(ctx, "Device validation disabled, skipping API checks")
+	}
+
+	// Create progress tracker and send initial message
+	progressTracker := progress.For(resp).WithTotalDevices(totalDevices).
+		Starting("Windows device clean",
+			fmt.Sprintf("%d managed, %d co-managed", len(data.ManagedDevices), len(data.ComanagedDevices)))
 
 	// Process managed devices
 	for _, device := range data.ManagedDevices {
 		deviceID := device.DeviceID.ValueString()
-		keepUserData := device.KeepUserData.ValueBool()
 		err := a.cleanManagedDevice(ctx, device)
 		if err != nil {
-			failedDevices = append(failedDevices, fmt.Sprintf("%s (managed)", deviceID))
-			lastError = err
+			progressTracker.Device(deviceID, "Managed").Failed(err.Error())
 			tflog.Error(ctx, "Failed to clean managed device", map[string]any{
-				"device_id":      deviceID,
-				"keep_user_data": keepUserData,
-				"error":          err.Error(),
+				"device_id": deviceID,
+				"error":     err.Error(),
 			})
 		} else {
-			successCount++
-			tflog.Debug(ctx, "Successfully initiated clean for managed device", map[string]any{
-				"device_id":      deviceID,
-				"keep_user_data": keepUserData,
+			progressTracker.Device(deviceID, "Managed").Succeeded("clean operation initiated successfully")
+			tflog.Info(ctx, "Successfully initiated clean for managed device", map[string]any{
+				"device_id": deviceID,
 			})
 		}
-
-		processed := successCount + len(failedDevices)
-		progress := float64(processed) / float64(totalDevices) * 100
-		resp.SendProgress(action.InvokeProgressEvent{
-			Message: fmt.Sprintf("Processed %d of %d devices (%.0f%% complete)",
-				processed, totalDevices, progress),
-		})
 	}
 
 	// Process co-managed devices
 	for _, device := range data.ComanagedDevices {
 		deviceID := device.DeviceID.ValueString()
-		keepUserData := device.KeepUserData.ValueBool()
 		err := a.cleanComanagedDevice(ctx, device)
 		if err != nil {
-			failedDevices = append(failedDevices, fmt.Sprintf("%s (comanaged)", deviceID))
-			lastError = err
+			progressTracker.Device(deviceID, "Co-managed").Failed(err.Error())
 			tflog.Error(ctx, "Failed to clean co-managed device", map[string]any{
-				"device_id":      deviceID,
-				"keep_user_data": keepUserData,
-				"error":          err.Error(),
+				"device_id": deviceID,
+				"error":     err.Error(),
 			})
 		} else {
-			successCount++
-			tflog.Debug(ctx, "Successfully initiated clean for co-managed device", map[string]any{
-				"device_id":      deviceID,
-				"keep_user_data": keepUserData,
+			progressTracker.Device(deviceID, "Co-managed").Succeeded("clean operation initiated successfully")
+			tflog.Info(ctx, "Successfully initiated clean for co-managed device", map[string]any{
+				"device_id": deviceID,
 			})
 		}
-
-		processed := successCount + len(failedDevices)
-		progress := float64(processed) / float64(totalDevices) * 100
-		resp.SendProgress(action.InvokeProgressEvent{
-			Message: fmt.Sprintf("Processed %d of %d devices (%.0f%% complete)",
-				processed, totalDevices, progress),
-		})
 	}
 
-	a.reportResults(ctx, resp, successCount, totalDevices, failedDevices, lastError, ignorePartialFailures)
+	// Handle results
+	if progressTracker.HasFailures() {
+		if ignorePartialFailures {
+			progressTracker.CompletedWithIgnoredFailures("Windows device clean")
+			tflog.Warn(ctx, "Windows device clean completed with ignored failures", map[string]any{
+				"success_count": progressTracker.SuccessCount(),
+				"failed_count":  progressTracker.FailureCount(),
+			})
+		} else {
+			progressTracker.Failed("Windows Device Clean Failed", "clean devices")
+			return
+		}
+	} else {
+		progressTracker.CompletedSuccessfully("initiated Windows device clean for all devices. Devices will begin the clean process. This may take several minutes to complete")
+	}
 
-	tflog.Debug(ctx, "Completed Windows device clean action", map[string]any{
-		"action":        ActionName,
-		"success_count": successCount,
-		"failed_count":  len(failedDevices),
-		"total_devices": totalDevices,
+	tflog.Info(ctx, "Windows device clean action completed", map[string]any{
+		"success_count":            progressTracker.SuccessCount(),
+		"failed_count":             progressTracker.FailureCount(),
+		"total_devices":            totalDevices,
+		"partial_failures_ignored": ignorePartialFailures && progressTracker.HasFailures(),
 	})
 }
 
-// cleanManagedDevice performs atomic clean for a managed device
+// cleanManagedDevice performs clean operation for a managed device
 func (a *CleanWindowsManagedDeviceAction) cleanManagedDevice(ctx context.Context, device ManagedDeviceCleanWindows) error {
 	deviceID := device.DeviceID.ValueString()
-	tflog.Debug(ctx, "Cleaning managed device", map[string]any{"device_id": deviceID})
-
 	requestBody := constructManagedDeviceRequest(ctx, device)
+
 	err := a.client.
 		DeviceManagement().
 		ManagedDevices().
@@ -122,19 +159,17 @@ func (a *CleanWindowsManagedDeviceAction) cleanManagedDevice(ctx context.Context
 		Post(ctx, requestBody, nil)
 
 	if err != nil {
-		return err
+		return fmt.Errorf("%s", errors.HandleKiotaGraphErrorForAction(ctx, err))
 	}
 
-	tflog.Debug(ctx, "Successfully initiated clean for managed device", map[string]any{"device_id": deviceID})
 	return nil
 }
 
-// cleanComanagedDevice performs atomic clean for a co-managed device
+// cleanComanagedDevice performs clean operation for a co-managed device
 func (a *CleanWindowsManagedDeviceAction) cleanComanagedDevice(ctx context.Context, device ComanagedDeviceCleanWindows) error {
 	deviceID := device.DeviceID.ValueString()
-	tflog.Debug(ctx, "Cleaning co-managed device", map[string]any{"device_id": deviceID})
-
 	requestBody := constructComanagedDeviceRequest(ctx, device)
+
 	err := a.client.
 		DeviceManagement().
 		ComanagedDevices().
@@ -143,49 +178,8 @@ func (a *CleanWindowsManagedDeviceAction) cleanComanagedDevice(ctx context.Conte
 		Post(ctx, requestBody, nil)
 
 	if err != nil {
-		return err
+		return fmt.Errorf("%s", errors.HandleKiotaGraphErrorForAction(ctx, err))
 	}
 
-	tflog.Debug(ctx, "Successfully initiated clean for co-managed device", map[string]any{"device_id": deviceID})
 	return nil
-}
-
-// reportResults handles final result reporting according to ADR-001 principles
-func (a *CleanWindowsManagedDeviceAction) reportResults(ctx context.Context, resp *action.InvokeResponse, successCount, totalDevices int, failedDevices []string, lastError error, ignorePartialFailures bool) {
-	if len(failedDevices) > 0 {
-		if successCount > 0 {
-			if ignorePartialFailures {
-				resp.SendProgress(action.InvokeProgressEvent{
-					Message: fmt.Sprintf("Partial success: %d of %d devices processed. %d failed devices ignored. Clean operation initiated for successful devices.",
-						successCount, totalDevices, len(failedDevices)),
-				})
-			} else {
-				resp.SendProgress(action.InvokeProgressEvent{
-					Message: fmt.Sprintf("Partial success: %d of %d devices cleaned. Failed devices: %v",
-						successCount, totalDevices, failedDevices),
-				})
-				resp.Diagnostics.AddWarning(
-					"Partial Success",
-					fmt.Sprintf("Windows device clean partially completed. %d of %d devices succeeded. Failed devices: %v",
-						successCount, totalDevices, failedDevices),
-				)
-			}
-		} else {
-			if ignorePartialFailures {
-				resp.SendProgress(action.InvokeProgressEvent{
-					Message: fmt.Sprintf("All %d devices failed clean. Failures ignored per configuration.",
-						totalDevices),
-				})
-			} else {
-				errors.HandleKiotaGraphError(ctx, lastError, resp, "Action", a.WritePermissions)
-				return
-			}
-		}
-	} else {
-		resp.SendProgress(action.InvokeProgressEvent{
-			Message: fmt.Sprintf("Windows device clean initiated successfully for all %d devices. "+
-				"Devices will begin the clean process. This may take several minutes to complete.",
-				successCount),
-		})
-	}
 }

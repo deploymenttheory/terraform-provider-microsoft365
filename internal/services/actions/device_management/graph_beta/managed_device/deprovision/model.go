@@ -7,9 +7,11 @@ import (
 )
 
 type DeprovisionManagedDeviceActionModel struct {
-	ManagedDevices   []ManagedDeviceDeprovision   `tfsdk:"managed_devices"`
-	ComanagedDevices []ComanagedDeviceDeprovision `tfsdk:"comanaged_devices"`
-	Timeouts         timeouts.Value               `tfsdk:"timeouts"`
+	ManagedDevices        []ManagedDeviceDeprovision   `tfsdk:"managed_devices"`
+	ComanagedDevices      []ComanagedDeviceDeprovision `tfsdk:"comanaged_devices"`
+	IgnorePartialFailures types.Bool                   `tfsdk:"ignore_partial_failures"`
+	ValidateDeviceExists  types.Bool                   `tfsdk:"validate_device_exists"`
+	Timeouts              timeouts.Value               `tfsdk:"timeouts"`
 }
 
 type ManagedDeviceDeprovision struct {

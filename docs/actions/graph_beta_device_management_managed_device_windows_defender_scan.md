@@ -95,6 +95,8 @@ The following API permissions are required in order to use this action.
 | Version | Status | Notes |
 |---------|--------|-------|
 | v0.33.0-alpha | Experimental | Initial release |
+| v0.40.0-alpha | Experimental | Example fixes and refactored sync progress logic |
+
 
 ## Notes
 
@@ -407,318 +409,151 @@ The following API permissions are required in order to use this action.
 ## Example Usage
 
 ```terraform
-# ============================================================================
-# Example 1: Quick scan on managed devices
-# ============================================================================
-# Use case: Routine security check on selected Windows devices
-action "microsoft365_graph_beta_device_management_managed_device_windows_defender_scan" "quick_scan_managed" {
-
-  managed_devices = [
-    {
-      device_id  = "12345678-1234-1234-1234-123456789abc"
-      quick_scan = true
-    },
-    {
-      device_id  = "87654321-4321-4321-4321-ba9876543210"
-      quick_scan = true
-    }
-  ]
-
-  timeouts = {
-    invoke = "10m"
+# Example 1: Quick scan on a single Windows device - Minimal
+action "microsoft365_graph_beta_device_management_managed_device_windows_defender_scan" "quick_scan_single" {
+  config {
+    managed_devices = [
+      {
+        device_id  = "12345678-1234-1234-1234-123456789abc"
+        quick_scan = true
+      }
+    ]
   }
 }
 
-# ============================================================================
-# Example 2: Full scan on specific device
-# ============================================================================
-# Use case: Comprehensive scan after security incident
-action "microsoft365_graph_beta_device_management_managed_device_windows_defender_scan" "full_scan_incident" {
-
-  managed_devices = [
-    {
-      device_id  = "12345678-1234-1234-1234-123456789abc"
-      quick_scan = false # Full comprehensive scan
-    }
-  ]
-
-  timeouts = {
-    invoke = "5m"
+# Example 2: Full scan on a single Windows device
+action "microsoft365_graph_beta_device_management_managed_device_windows_defender_scan" "full_scan_single" {
+  config {
+    managed_devices = [
+      {
+        device_id  = "12345678-1234-1234-1234-123456789abc"
+        quick_scan = false
+      }
+    ]
   }
 }
 
-# ============================================================================
-# Example 3: Mixed scan types on different devices
-# ============================================================================
-# Use case: Quick scan for most, full scan for suspicious devices
-action "microsoft365_graph_beta_device_management_managed_device_windows_defender_scan" "mixed_scan_types" {
+# Example 3: Mixed scans on multiple devices
+action "microsoft365_graph_beta_device_management_managed_device_windows_defender_scan" "mixed_scans" {
+  config {
+    managed_devices = [
+      {
+        device_id  = "12345678-1234-1234-1234-123456789abc"
+        quick_scan = true
+      },
+      {
+        device_id  = "87654321-4321-4321-4321-ba9876543210"
+        quick_scan = false
+      }
+    ]
 
-  managed_devices = [
-    {
-      device_id  = "12345678-1234-1234-1234-123456789abc"
-      quick_scan = true # Routine check
-    },
-    {
-      device_id  = "87654321-4321-4321-4321-ba9876543210"
-      quick_scan = false # Suspected malware - full scan
-    },
-    {
-      device_id  = "abcdef12-3456-7890-abcd-ef1234567890"
-      quick_scan = true # Routine check
+    timeouts = {
+      invoke = "20m"
     }
-  ]
-
-  timeouts = {
-    invoke = "10m"
   }
 }
 
-# ============================================================================
-# Example 4: Scan co-managed devices
-# ============================================================================
-# Use case: Scan Windows devices managed by both Intune and ConfigMgr
-action "microsoft365_graph_beta_device_management_managed_device_windows_defender_scan" "scan_comanaged" {
+# Example 4: Maximal configuration with validation
+action "microsoft365_graph_beta_device_management_managed_device_windows_defender_scan" "scan_maximal" {
+  config {
+    managed_devices = [
+      {
+        device_id  = "12345678-1234-1234-1234-123456789abc"
+        quick_scan = true
+      },
+      {
+        device_id  = "87654321-4321-4321-4321-ba9876543210"
+        quick_scan = false
+      }
+    ]
 
-  comanaged_devices = [
-    {
-      device_id  = "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"
-      quick_scan = true
-    },
-    {
-      device_id  = "11111111-2222-3333-4444-555555555555"
-      quick_scan = true
+    comanaged_devices = [
+      {
+        device_id  = "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"
+        quick_scan = true
+      }
+    ]
+
+    ignore_partial_failures = true
+    validate_device_exists  = true
+
+    timeouts = {
+      invoke = "5m"
     }
-  ]
-
-  timeouts = {
-    invoke = "10m"
   }
 }
 
-# ============================================================================
-# Example 5: Scan both managed and co-managed devices
-# ============================================================================
-# Use case: Mixed environment with different management types
-action "microsoft365_graph_beta_device_management_managed_device_windows_defender_scan" "scan_mixed_management" {
-
-  managed_devices = [
-    {
-      device_id  = "12345678-1234-1234-1234-123456789abc"
-      quick_scan = true
-    }
-  ]
-
-  comanaged_devices = [
-    {
-      device_id  = "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"
-      quick_scan = true
-    }
-  ]
-
-  timeouts = {
-    invoke = "10m"
-  }
-}
-
-# ============================================================================
-# Example 6: Quick scan all Windows devices using datasource
-# ============================================================================
-# Use case: Routine security scan across entire Windows fleet
-data "microsoft365_graph_beta_device_management_managed_device" "all_windows" {
+# Example 5: Quick scan all Windows devices from data source
+data "microsoft365_graph_beta_device_management_managed_device" "windows_devices" {
   filter_type  = "odata"
   odata_filter = "operatingSystem eq 'Windows'"
 }
 
-action "microsoft365_graph_beta_device_management_managed_device_windows_defender_scan" "scan_all_windows" {
+action "microsoft365_graph_beta_device_management_managed_device_windows_defender_scan" "quick_scan_all_windows" {
+  config {
+    managed_devices = [
+      for device in data.microsoft365_graph_beta_device_management_managed_device.windows_devices.items : {
+        device_id  = device.id
+        quick_scan = true
+      }
+    ]
 
-  managed_devices = [
-    for device in data.microsoft365_graph_beta_device_management_managed_device.all_windows.items : {
-      device_id  = device.id
-      quick_scan = true
+    validate_device_exists  = true
+    ignore_partial_failures = true
+
+    timeouts = {
+      invoke = "30m"
     }
-  ]
-
-  timeouts = {
-    invoke = "30m"
   }
 }
 
-# ============================================================================
-# Example 7: Full scan on non-compliant Windows devices
-# ============================================================================
-# Use case: Thorough scan on devices that failed compliance
-data "microsoft365_graph_beta_device_management_managed_device" "non_compliant_windows" {
+# Example 6: Full scan on non-compliant devices
+data "microsoft365_graph_beta_device_management_managed_device" "noncompliant_windows" {
   filter_type  = "odata"
   odata_filter = "(operatingSystem eq 'Windows') and (complianceState eq 'noncompliant')"
 }
 
-action "microsoft365_graph_beta_device_management_managed_device_windows_defender_scan" "scan_non_compliant" {
-
-  managed_devices = [
-    for device in data.microsoft365_graph_beta_device_management_managed_device.non_compliant_windows.items : {
-      device_id  = device.id
-      quick_scan = false # Full scan for non-compliant devices
-    }
-  ]
-
-  timeouts = {
-    invoke = "20m"
-  }
-}
-
-# ============================================================================
-# Example 8: Scan Windows devices by naming convention
-# ============================================================================
-# Use case: Scan specific department or location devices
-data "microsoft365_graph_beta_device_management_managed_device" "finance_windows" {
-  filter_type  = "device_name"
-  filter_value = "FIN-WS-"
-}
-
-action "microsoft365_graph_beta_device_management_managed_device_windows_defender_scan" "scan_finance_dept" {
-
-  managed_devices = [
-    for device in data.microsoft365_graph_beta_device_management_managed_device.finance_windows.items : {
-      device_id  = device.id
-      quick_scan = true
-    }
-  ]
-
-  timeouts = {
-    invoke = "15m"
-  }
-}
-
-# ============================================================================
-# Example 9: After-hours full scan on workstations
-# ============================================================================
-# Use case: Comprehensive scan during off-hours to avoid performance impact
-data "microsoft365_graph_beta_device_management_managed_device" "workstations" {
-  filter_type  = "device_name"
-  filter_value = "WKSTN-"
-}
-
-action "microsoft365_graph_beta_device_management_managed_device_windows_defender_scan" "after_hours_full_scan" {
-
-  managed_devices = [
-    for device in data.microsoft365_graph_beta_device_management_managed_device.workstations.items : {
-      device_id  = device.id
-      quick_scan = false # Full scan during off-hours
-    }
-  ]
-
-  timeouts = {
-    invoke = "30m"
-  }
-}
-
-# ============================================================================
-# Example 10: Conditional scan based on last scan time
-# ============================================================================
-# Use case: Full scan on devices that haven't been scanned recently
-locals {
-  # Devices needing full scan (example logic)
-  devices_need_full_scan = [
-    "12345678-1234-1234-1234-123456789abc",
-    "87654321-4321-4321-4321-ba9876543210"
-  ]
-
-  # Devices needing quick scan
-  devices_need_quick_scan = [
-    "abcdef12-3456-7890-abcd-ef1234567890",
-    "fedcba98-7654-3210-fedc-ba9876543210"
-  ]
-}
-
-action "microsoft365_graph_beta_device_management_managed_device_windows_defender_scan" "conditional_scan" {
-
-  managed_devices = concat(
-    [
-      for device_id in local.devices_need_full_scan : {
-        device_id  = device_id
+action "microsoft365_graph_beta_device_management_managed_device_windows_defender_scan" "full_scan_noncompliant" {
+  config {
+    managed_devices = [
+      for device in data.microsoft365_graph_beta_device_management_managed_device.noncompliant_windows.items : {
+        device_id  = device.id
         quick_scan = false
       }
-    ],
-    [
-      for device_id in local.devices_need_quick_scan : {
-        device_id  = device_id
+    ]
+
+    ignore_partial_failures = false
+
+    timeouts = {
+      invoke = "60m"
+    }
+  }
+}
+
+# Example 7: Scan co-managed devices
+action "microsoft365_graph_beta_device_management_managed_device_windows_defender_scan" "scan_comanaged" {
+  config {
+    comanaged_devices = [
+      {
+        device_id  = "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"
         quick_scan = true
+      },
+      {
+        device_id  = "bbbbbbbb-cccc-dddd-eeee-ffffffffffff"
+        quick_scan = false
       }
     ]
-  )
 
-  timeouts = {
-    invoke = "20m"
-  }
-}
-
-# ============================================================================
-# Example 11: Emergency threat response scan
-# ============================================================================
-# Use case: Immediate full scan after threat intel indicates new malware
-data "microsoft365_graph_beta_device_management_managed_device" "all_windows_devices" {
-  filter_type  = "odata"
-  odata_filter = "operatingSystem eq 'Windows'"
-}
-
-action "microsoft365_graph_beta_device_management_managed_device_windows_defender_scan" "emergency_threat_scan" {
-
-  managed_devices = [
-    for device in data.microsoft365_graph_beta_device_management_managed_device.all_windows_devices.items : {
-      device_id  = device.id
-      quick_scan = false # Full scan for threat response
+    timeouts = {
+      invoke = "15m"
     }
-  ]
-
-  timeouts = {
-    invoke = "60m"
   }
 }
 
-# ============================================================================
-# Example 12: Scan Windows servers only
-# ============================================================================
-# Use case: Security scan on Windows Server infrastructure
-data "microsoft365_graph_beta_device_management_managed_device" "windows_servers" {
-  filter_type  = "odata"
-  odata_filter = "(operatingSystem eq 'Windows') and (contains(deviceName, 'SRV'))"
-}
-
-action "microsoft365_graph_beta_device_management_managed_device_windows_defender_scan" "scan_servers" {
-
-  managed_devices = [
-    for device in data.microsoft365_graph_beta_device_management_managed_device.windows_servers.items : {
-      device_id  = device.id
-      quick_scan = true # Quick scan for servers to minimize impact
-    }
-  ]
-
-  timeouts = {
-    invoke = "20m"
-  }
-}
-
-# ============================================================================
-# Example 13: Scan by user assignment
-# ============================================================================
-# Use case: Scan all Windows devices assigned to specific user
-data "microsoft365_graph_beta_device_management_managed_device" "user_devices" {
-  filter_type  = "odata"
-  odata_filter = "(operatingSystem eq 'Windows') and (userPrincipalName eq 'john.doe@company.com')"
-}
-
-action "microsoft365_graph_beta_device_management_managed_device_windows_defender_scan" "scan_user_devices" {
-
-  managed_devices = [
-    for device in data.microsoft365_graph_beta_device_management_managed_device.user_devices.items : {
-      device_id  = device.id
-      quick_scan = true
-    }
-  ]
-
-  timeouts = {
-    invoke = "10m"
-  }
+# Output examples
+output "scanned_devices_count" {
+  value       = length(action.microsoft365_graph_beta_device_management_managed_device_windows_defender_scan.mixed_scans.config.managed_devices)
+  description = "Number of devices that had scans initiated"
 }
 ```
 
@@ -736,6 +571,7 @@ action "microsoft365_graph_beta_device_management_managed_device_windows_defende
 - ConfigMgr can also trigger scans independently
 
 **Note:** At least one of `managed_devices` or `comanaged_devices` must be provided. (see [below for nested schema](#nestedatt--comanaged_devices))
+- `ignore_partial_failures` (Boolean) When set to `true`, the action will complete successfully even if some devices fail to scan. When `false` (default), the action will fail if any device scan fails. Use this flag when scanning multiple devices and you want the action to succeed even if some scans fail.
 - `managed_devices` (Attributes List) List of managed Windows devices to scan with individual scan type configuration. Each entry specifies a device ID and whether to perform a quick scan or full scan. These are devices fully managed by Intune only.
 
 Example:
@@ -754,6 +590,7 @@ managed_devices = [
 
 **Note:** At least one of `managed_devices` or `comanaged_devices` must be provided. (see [below for nested schema](#nestedatt--managed_devices))
 - `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))
+- `validate_device_exists` (Boolean) When set to `true` (default), the action will validate that all specified devices exist and are Windows devices before attempting to scan them. When `false`, device validation is skipped and the action will attempt to scan devices directly. Disabling validation can improve performance but may result in errors if devices don't exist or are not Windows devices.
 
 <a id="nestedatt--comanaged_devices"></a>
 ### Nested Schema for `comanaged_devices`
@@ -791,9 +628,6 @@ Required:
 
 Optional:
 
-- `create` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours).
-- `delete` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours). Setting a timeout for a Delete operation is only applicable if changes are saved into state before the destroy operation occurs.
-- `read` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours). Read operations occur during any refresh or planning operation when refresh is enabled.
-- `update` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours).
+- `invoke` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours).
 
 

@@ -3,126 +3,159 @@ package graphBetaPlayLostModeSoundManagedDevice
 import (
 	"context"
 	"fmt"
-	"sync"
+	"time"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/progress"
+
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/validation"
+
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
 	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
-type playLostModeSoundResult struct {
-	deviceID   string
-	deviceType string // "managed" or "comanaged"
-	err        error
-}
-
 func (a *PlayLostModeSoundManagedDeviceAction) Invoke(ctx context.Context, req action.InvokeRequest, resp *action.InvokeResponse) {
 	var data PlayLostModeSoundManagedDeviceActionModel
 
-	tflog.Debug(ctx, fmt.Sprintf("Starting %s", ActionName))
+	tflog.Debug(ctx, "Starting play lost mode sound action", map[string]any{"action": ActionName})
 
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	totalDevices := len(data.ManagedDevices) + len(data.ComanagedDevices)
-	tflog.Debug(ctx, fmt.Sprintf("Playing lost mode sound for %d managed device(s) and %d co-managed device(s)",
-		len(data.ManagedDevices), len(data.ComanagedDevices)))
+	// Handle timeout
+	ctx, cancel := crud.HandleTimeout(ctx, data.Timeouts.Invoke, InvokeTimeout*time.Second, &resp.Diagnostics)
+	if cancel == nil {
+		return
+	}
+	defer cancel()
 
-	resp.SendProgress(action.InvokeProgressEvent{
-		Message: fmt.Sprintf("Starting play lost mode sound for %d device(s) (%d managed, %d co-managed)...",
-			totalDevices, len(data.ManagedDevices), len(data.ComanagedDevices)),
+	totalDevices := len(data.ManagedDevices) + len(data.ComanagedDevices)
+	tflog.Debug(ctx, "Processing devices for lost mode sound", map[string]any{
+		"managed_devices":   len(data.ManagedDevices),
+		"comanaged_devices": len(data.ComanagedDevices),
+		"total_devices":     totalDevices,
 	})
 
-	// Play sound on devices concurrently with error collection
-	results := make(chan playLostModeSoundResult, totalDevices)
-	var wg sync.WaitGroup
-
-	// Play sound on managed devices
-	for _, device := range data.ManagedDevices {
-		wg.Add(1)
-		go func(d ManagedDevicePlaySound) {
-			defer wg.Done()
-			err := a.playLostModeSoundManagedDevice(ctx, d)
-			results <- playLostModeSoundResult{deviceID: d.DeviceID.ValueString(), deviceType: "managed", err: err}
-		}(device)
+	// Get ignore_partial_failures setting
+	ignorePartialFailures := false
+	if !data.IgnorePartialFailures.IsNull() && !data.IgnorePartialFailures.IsUnknown() {
+		ignorePartialFailures = data.IgnorePartialFailures.ValueBool()
 	}
 
-	// Play sound on co-managed devices
-	for _, device := range data.ComanagedDevices {
-		wg.Add(1)
-		go func(d ComanagedDevicePlaySound) {
-			defer wg.Done()
-			err := a.playLostModeSoundComanagedDevice(ctx, d)
-			results <- playLostModeSoundResult{deviceID: d.DeviceID.ValueString(), deviceType: "comanaged", err: err}
-		}(device)
+	// Get validate_device_exists setting (default: true)
+	validateDeviceExists := true
+	if !data.ValidateDeviceExists.IsNull() && !data.ValidateDeviceExists.IsUnknown() {
+		validateDeviceExists = data.ValidateDeviceExists.ValueBool()
 	}
 
-	// Close results channel once all goroutines complete
-	go func() {
-		wg.Wait()
-		close(results)
-	}()
+	// Perform API validation of devices if enabled
+	if validateDeviceExists {
+		tflog.Debug(ctx, "Performing device validation via API")
 
-	// Collect results and track progress
-	successCount := 0
-	var failedDevices []string
-	var lastError error
-
-	for result := range results {
-		if result.err != nil {
-			failedDevices = append(failedDevices, fmt.Sprintf("%s (%s)", result.deviceID, result.deviceType))
-			lastError = result.err
-			tflog.Error(ctx, fmt.Sprintf("Failed to play lost mode sound for %s device %s: %v",
-				result.deviceType, result.deviceID, result.err))
-		} else {
-			successCount++
-			tflog.Debug(ctx, fmt.Sprintf("Successfully played lost mode sound for %s device %s",
-				result.deviceType, result.deviceID))
-		}
-
-		// Send progress update
-		progress := float64(successCount+len(failedDevices)) / float64(totalDevices) * 100
-		resp.SendProgress(action.InvokeProgressEvent{
-			Message: fmt.Sprintf("Processed %d of %d devices (%.0f%% complete)",
-				successCount+len(failedDevices), totalDevices, progress),
-		})
-	}
-
-	// Report results
-	if len(failedDevices) > 0 {
-		if successCount > 0 {
-			// Partial success
-			resp.Diagnostics.AddWarning(
-				"Partial Success",
-				fmt.Sprintf("Successfully played lost mode sound for %d of %d devices. Failed devices: %v. Last error: %v\n\n"+
-					"Devices that received the command will play the lost mode sound to assist in locating them.",
-					successCount, totalDevices, failedDevices, lastError),
+		validationResult, err := validateRequest(ctx, a.client, data.ManagedDevices, data.ComanagedDevices)
+		if err != nil {
+			tflog.Error(ctx, "Failed to validate devices via API", map[string]any{"error": err.Error()})
+			resp.Diagnostics.AddError(
+				"Device Validation Failed",
+				fmt.Sprintf("Failed to validate devices: %s", err.Error()),
 			)
-		} else {
-			// Complete failure
-			errors.HandleKiotaGraphError(ctx, lastError, resp, "Action", a.WritePermissions)
 			return
 		}
+
+		// Report validation results
+		results := validation.NewResults().
+			Error(validationResult.NonExistentManagedDevices, "managed device", "do not exist or are not managed by Intune").
+			Error(validationResult.NonExistentComanagedDevices, "co-managed device", "do not exist or are not co-managed by Intune").
+			Error(validationResult.UnsupportedManagedDevices, "managed device", "are not iOS/iPadOS devices (lost mode sound only works on supervised iOS/iPadOS devices)").
+			Error(validationResult.UnsupportedComanagedDevices, "co-managed device", "are not iOS/iPadOS devices (lost mode sound only works on supervised iOS/iPadOS devices)").
+			Error(validationResult.UnsupervisedManagedDevices, "managed device", "are not supervised (lost mode sound requires supervised devices)").
+			Error(validationResult.UnsupervisedComanagedDevices, "co-managed device", "are not supervised (lost mode sound requires supervised devices)").
+			Error(validationResult.NotInLostModeManagedDevices, "managed device", "are not in lost mode (lost mode sound requires device to be in lost mode)").
+			Error(validationResult.NotInLostModeComanagedDevices, "co-managed device", "are not in lost mode (lost mode sound requires device to be in lost mode)")
+
+		if results.Report(resp) {
+			return
+		}
+
+		tflog.Debug(ctx, "Device validation completed successfully")
+	} else {
+		tflog.Debug(ctx, "Device validation disabled, skipping API checks")
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Successfully played lost mode sound for %d device(s)", successCount))
+	// Create progress tracker and send initial message
+	progressTracker := progress.For(resp).WithTotalDevices(totalDevices).
+		Starting("play lost mode sound", fmt.Sprintf("%d devices (%d managed, %d co-managed)", totalDevices, len(data.ManagedDevices), len(data.ComanagedDevices)))
 
-	if successCount > 0 {
-		resp.SendProgress(action.InvokeProgressEvent{
-			Message: fmt.Sprintf("Play lost mode sound complete: %d device(s) will now play an audible alert. "+
-				"The sound will play even if the device is in silent mode, helping to locate the device physically.",
-				successCount),
-		})
+	// Process managed devices sequentially
+	for _, device := range data.ManagedDevices {
+		deviceID := device.DeviceID.ValueString()
+
+		err := a.playLostModeSoundManagedDevice(ctx, device)
+		if err != nil {
+			progressTracker.Device(deviceID, "").Failed(err.Error())
+			tflog.Error(ctx, "Failed to play lost mode sound for managed device", map[string]any{
+				"device_id": deviceID,
+				"error":     err.Error(),
+			})
+		} else {
+			progressTracker.Device(deviceID, "").Succeeded("lost mode sound initiated")
+			tflog.Info(ctx, "Successfully played lost mode sound for managed device", map[string]any{
+				"device_id": deviceID,
+			})
+		}
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Finished %s", ActionName))
+	// Process co-managed devices sequentially
+	for _, device := range data.ComanagedDevices {
+		deviceID := device.DeviceID.ValueString()
+
+		err := a.playLostModeSoundComanagedDevice(ctx, device)
+		if err != nil {
+			progressTracker.Device(deviceID, "").Failed(err.Error())
+			tflog.Error(ctx, "Failed to play lost mode sound for co-managed device", map[string]any{
+				"device_id": deviceID,
+				"error":     err.Error(),
+			})
+		} else {
+			progressTracker.Device(deviceID, "").Succeeded("lost mode sound initiated")
+			tflog.Info(ctx, "Successfully played lost mode sound for co-managed device", map[string]any{
+				"device_id": deviceID,
+			})
+		}
+	}
+
+	// Handle results
+	if progressTracker.HasFailures() {
+		if ignorePartialFailures {
+			progressTracker.CompletedWithIgnoredFailures("play lost mode sound")
+			tflog.Warn(ctx, "Play lost mode sound completed with ignored failures", map[string]any{
+				"success_count": progressTracker.SuccessCount(),
+				"failed_count":  progressTracker.FailureCount(),
+			})
+		} else {
+			progressTracker.Failed("Play Lost Mode Sound Failed", "play lost mode sound on devices")
+			return
+		}
+	} else {
+		progressTracker.CompletedSuccessfully("played lost mode sound on all devices. The sound will play even if the device is in silent mode, helping to locate the device physically")
+	}
+
+	tflog.Info(ctx, "Play lost mode sound action completed", map[string]any{
+		"success_count":            progressTracker.SuccessCount(),
+		"failed_count":             progressTracker.FailureCount(),
+		"total_devices":            totalDevices,
+		"partial_failures_ignored": ignorePartialFailures && progressTracker.HasFailures(),
+	})
 }
 
 func (a *PlayLostModeSoundManagedDeviceAction) playLostModeSoundManagedDevice(ctx context.Context, device ManagedDevicePlaySound) error {
 	deviceID := device.DeviceID.ValueString()
-	tflog.Debug(ctx, fmt.Sprintf("Playing lost mode sound for managed device with ID: %s", deviceID))
+	tflog.Debug(ctx, "Playing lost mode sound for managed device", map[string]any{
+		"device_id": deviceID,
+	})
 
 	requestBody := constructManagedDeviceRequest(ctx, device)
 
@@ -134,7 +167,7 @@ func (a *PlayLostModeSoundManagedDeviceAction) playLostModeSoundManagedDevice(ct
 		Post(ctx, requestBody, nil)
 
 	if err != nil {
-		return fmt.Errorf("failed to play lost mode sound for managed device %s: %w", deviceID, err)
+		return fmt.Errorf("%s", errors.HandleKiotaGraphErrorForAction(ctx, err))
 	}
 
 	return nil
@@ -142,7 +175,9 @@ func (a *PlayLostModeSoundManagedDeviceAction) playLostModeSoundManagedDevice(ct
 
 func (a *PlayLostModeSoundManagedDeviceAction) playLostModeSoundComanagedDevice(ctx context.Context, device ComanagedDevicePlaySound) error {
 	deviceID := device.DeviceID.ValueString()
-	tflog.Debug(ctx, fmt.Sprintf("Playing lost mode sound for co-managed device with ID: %s", deviceID))
+	tflog.Debug(ctx, "Playing lost mode sound for co-managed device", map[string]any{
+		"device_id": deviceID,
+	})
 
 	requestBody := constructComanagedDeviceRequest(ctx, device)
 
@@ -154,7 +189,7 @@ func (a *PlayLostModeSoundManagedDeviceAction) playLostModeSoundComanagedDevice(
 		Post(ctx, requestBody, nil)
 
 	if err != nil {
-		return fmt.Errorf("failed to play lost mode sound for co-managed device %s: %w", deviceID, err)
+		return fmt.Errorf("%s", errors.HandleKiotaGraphErrorForAction(ctx, err))
 	}
 
 	return nil

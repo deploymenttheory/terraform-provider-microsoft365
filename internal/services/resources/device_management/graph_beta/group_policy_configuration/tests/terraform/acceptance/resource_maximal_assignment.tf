@@ -12,9 +12,9 @@ data "azuread_group" "test_exclusion" {
 }
 
 resource "microsoft365_graph_beta_device_management_group_policy_configuration" "maximal_assignment" {
-  display_name        = "AccTest-MaxAssign-GPC-${random_string.suffix.result}"
-  description         = "Configuration with comprehensive assignments for acceptance testing"
-  role_scope_tag_ids  = ["0"]
+  display_name       = "AccTest-MaxAssign-GPC-${random_string.suffix.result}"
+  description        = "Configuration with comprehensive assignments for acceptance testing"
+  role_scope_tag_ids = ["0"]
 
   assignments = [
     {

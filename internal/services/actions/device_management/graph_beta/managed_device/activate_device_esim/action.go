@@ -1,3 +1,4 @@
+// REF: https://learn.microsoft.com/en-us/graph/api/intune-devices-manageddevice-activatedeviceesim?view=graph-rest-beta
 package graphBetaActivateDeviceEsimManagedDevice
 
 import (
@@ -11,47 +12,40 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-framework/action/schema"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
-
 	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
 )
 
 const (
 	ActionName    = "microsoft365_graph_beta_device_management_managed_device_activate_device_esim"
-	InvokeTimeout = 60
+	InvokeTimeout = 120
 )
 
+// Ensure the implementation satisfies the expected interfaces.
 var (
-	_ action.ActionWithValidateConfig = (*ActivateDeviceEsimManagedDeviceAction)(nil)
-	_ action.ActionWithConfigure      = (*ActivateDeviceEsimManagedDeviceAction)(nil)
+	_ action.Action                   = &ActivateDeviceEsimManagedDeviceAction{}
+	_ action.ActionWithConfigure      = &ActivateDeviceEsimManagedDeviceAction{}
+	_ action.ActionWithValidateConfig = &ActivateDeviceEsimManagedDeviceAction{}
 )
 
 func NewActivateDeviceEsimManagedDeviceAction() action.Action {
-	return &ActivateDeviceEsimManagedDeviceAction{
-		ReadPermissions: []string{
-			"DeviceManagementConfiguration.Read.All",
-			"DeviceManagementManagedDevices.Read.All",
-		},
-		WritePermissions: []string{
-			"DeviceManagementConfiguration.Read.All",
-			"DeviceManagementManagedDevices.Read.All",
-		},
-	}
+	return &ActivateDeviceEsimManagedDeviceAction{}
 }
 
 type ActivateDeviceEsimManagedDeviceAction struct {
-	client           *msgraphbetasdk.GraphServiceClient
-	ReadPermissions  []string
-	WritePermissions []string
+	client *msgraphbetasdk.GraphServiceClient
 }
 
+// Metadata returns the action type name.
 func (a *ActivateDeviceEsimManagedDeviceAction) Metadata(ctx context.Context, req action.MetadataRequest, resp *action.MetadataResponse) {
 	resp.TypeName = ActionName
 }
 
+// Configure adds the provider configured client to the action.
 func (a *ActivateDeviceEsimManagedDeviceAction) Configure(ctx context.Context, req action.ConfigureRequest, resp *action.ConfigureResponse) {
 	a.client = client.SetGraphBetaClientForAction(ctx, req, resp, ActionName)
 }
 
+// Schema defines the schema for the action.
 func (a *ActivateDeviceEsimManagedDeviceAction) Schema(ctx context.Context, req action.SchemaRequest, resp *action.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		MarkdownDescription: "Activates eSIM on managed cellular devices using the " +

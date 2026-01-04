@@ -32,12 +32,25 @@ The following API permissions are required in order to use this action.
 ## Example Usage
 
 ```terraform
-# Allow next enrollment for an Autopilot device
-action "microsoft365_graph_beta_device_management_windows_autopilot_device_identity_allow_next_enrollment" "example" {
-  windows_autopilot_device_identity_id = "12345678-1234-1234-1234-123456789abc"
+# Example 1: Allow next enrollment for an Autopilot device
+action "microsoft365_graph_beta_device_management_windows_autopilot_device_identity_allow_next_enrollment" "allow_enrollment" {
+  config {
+    windows_autopilot_device_identity_id = "12345678-1234-1234-1234-123456789abc"
 
-  timeouts = {
-    create = "5m"
+    timeouts = {
+      invoke = "5m"
+    }
+  }
+}
+
+# Example 2: Allow next enrollment with extended timeout
+action "microsoft365_graph_beta_device_management_windows_autopilot_device_identity_allow_next_enrollment" "allow_enrollment_extended" {
+  config {
+    windows_autopilot_device_identity_id = "87654321-4321-4321-4321-ba9876543210"
+
+    timeouts = {
+      invoke = "10m"
+    }
   }
 }
 ```
@@ -58,7 +71,4 @@ action "microsoft365_graph_beta_device_management_windows_autopilot_device_ident
 
 Optional:
 
-- `create` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours).
-- `delete` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours). Setting a timeout for a Delete operation is only applicable if changes are saved into state before the destroy operation occurs.
-- `read` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours). Read operations occur during any refresh or planning operation when refresh is enabled.
-- `update` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours).
+- `invoke` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours).

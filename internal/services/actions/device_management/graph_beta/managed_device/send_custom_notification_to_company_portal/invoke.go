@@ -3,142 +3,164 @@ package graphBetaSendCustomNotificationToCompanyPortal
 import (
 	"context"
 	"fmt"
-	"sync"
+	"time"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/progress"
+
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/validation"
+
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
 	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
-type notificationResult struct {
-	deviceID   string
-	deviceType string // "managed" or "comanaged"
-	title      string
-	err        error
-}
-
 func (a *SendCustomNotificationToCompanyPortalAction) Invoke(ctx context.Context, req action.InvokeRequest, resp *action.InvokeResponse) {
 	var data SendCustomNotificationToCompanyPortalActionModel
 
-	tflog.Debug(ctx, fmt.Sprintf("Starting %s", ActionName))
+	tflog.Debug(ctx, "Starting custom notification delivery action", map[string]any{"action": ActionName})
 
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	totalDevices := len(data.ManagedDevices) + len(data.ComanagedDevices)
-	tflog.Debug(ctx, fmt.Sprintf("Sending custom notifications to %d managed device(s) and %d co-managed device(s)",
-		len(data.ManagedDevices), len(data.ComanagedDevices)))
+	// Handle timeout
+	ctx, cancel := crud.HandleTimeout(ctx, data.Timeouts.Invoke, InvokeTimeout*time.Second, &resp.Diagnostics)
+	if cancel == nil {
+		return
+	}
+	defer cancel()
 
-	resp.SendProgress(action.InvokeProgressEvent{
-		Message: fmt.Sprintf("Starting custom notification delivery to %d device(s) (%d managed, %d co-managed)...",
-			totalDevices, len(data.ManagedDevices), len(data.ComanagedDevices)),
+	totalDevices := len(data.ManagedDevices) + len(data.ComanagedDevices)
+	tflog.Debug(ctx, "Processing devices for custom notification delivery", map[string]any{
+		"managed_devices":   len(data.ManagedDevices),
+		"comanaged_devices": len(data.ComanagedDevices),
+		"total_devices":     totalDevices,
 	})
 
-	// Send notifications concurrently with error collection
-	results := make(chan notificationResult, totalDevices)
-	var wg sync.WaitGroup
-
-	// Send notifications to managed devices
-	for _, device := range data.ManagedDevices {
-		wg.Add(1)
-		go func(d ManagedDeviceNotification) {
-			defer wg.Done()
-			err := a.sendToManagedDevice(ctx, d)
-			results <- notificationResult{
-				deviceID:   d.DeviceID.ValueString(),
-				deviceType: "managed",
-				title:      d.NotificationTitle.ValueString(),
-				err:        err,
-			}
-		}(device)
+	// Get ignore_partial_failures setting
+	ignorePartialFailures := false
+	if !data.IgnorePartialFailures.IsNull() && !data.IgnorePartialFailures.IsUnknown() {
+		ignorePartialFailures = data.IgnorePartialFailures.ValueBool()
 	}
 
-	// Send notifications to co-managed devices
-	for _, device := range data.ComanagedDevices {
-		wg.Add(1)
-		go func(d ComanagedDeviceNotification) {
-			defer wg.Done()
-			err := a.sendToComanagedDevice(ctx, d)
-			results <- notificationResult{
-				deviceID:   d.DeviceID.ValueString(),
-				deviceType: "comanaged",
-				title:      d.NotificationTitle.ValueString(),
-				err:        err,
-			}
-		}(device)
+	// Get validate_device_exists setting (default: true)
+	validateDeviceExists := true
+	if !data.ValidateDeviceExists.IsNull() && !data.ValidateDeviceExists.IsUnknown() {
+		validateDeviceExists = data.ValidateDeviceExists.ValueBool()
 	}
 
-	// Close results channel once all goroutines complete
-	go func() {
-		wg.Wait()
-		close(results)
-	}()
+	// Perform API validation of devices if enabled
+	if validateDeviceExists {
+		tflog.Debug(ctx, "Performing device validation via API")
 
-	// Collect results and track progress
-	successCount := 0
-	var failedDevices []string
-	var lastError error
-
-	for result := range results {
-		if result.err != nil {
-			failedDevices = append(failedDevices, fmt.Sprintf("%s (%s)", result.deviceID, result.deviceType))
-			lastError = result.err
-			tflog.Error(ctx, fmt.Sprintf("Failed to send notification to %s device %s: %v",
-				result.deviceType, result.deviceID, result.err))
-		} else {
-			successCount++
-			tflog.Debug(ctx, fmt.Sprintf("Successfully sent notification '%s' to %s device %s",
-				result.title, result.deviceType, result.deviceID))
-		}
-
-		// Send progress update
-		progress := float64(successCount+len(failedDevices)) / float64(totalDevices) * 100
-		resp.SendProgress(action.InvokeProgressEvent{
-			Message: fmt.Sprintf("Processed %d of %d devices (%.0f%% complete)",
-				successCount+len(failedDevices), totalDevices, progress),
-		})
-	}
-
-	// Report results
-	if len(failedDevices) > 0 {
-		if successCount > 0 {
-			// Partial success
-			resp.Diagnostics.AddWarning(
-				"Partial Success",
-				fmt.Sprintf("Successfully sent custom notifications to %d of %d devices. Failed devices: %v. Last error: %v\n\n"+
-					"Devices that received notifications will display them in the Company Portal app. "+
-					"Failed devices may be offline, not have Company Portal installed, or the user may not be signed into Company Portal. "+
-					"Users will see the notification the next time they open the Company Portal app.",
-					successCount, totalDevices, failedDevices, lastError),
+		validationResult, err := validateRequest(ctx, a.client, data.ManagedDevices, data.ComanagedDevices)
+		if err != nil {
+			tflog.Error(ctx, "Failed to validate devices via API", map[string]any{"error": err.Error()})
+			resp.Diagnostics.AddError(
+				"Device Validation Failed",
+				fmt.Sprintf("Failed to validate devices: %s", err.Error()),
 			)
-		} else {
-			// Complete failure
-			errors.HandleKiotaGraphError(ctx, lastError, resp, "Action", a.WritePermissions)
 			return
 		}
+
+		// Report validation results
+		results := validation.NewResults().
+			Error(validationResult.NonExistentManagedDevices, "managed device", "do not exist or are not managed by Intune").
+			Error(validationResult.NonExistentComanagedDevices, "co-managed device", "do not exist or are not co-managed by Intune").
+			Error(validationResult.UnsupportedManagedDevices, "managed device", "are not supported for custom notifications. Only iOS, iPadOS, and Android devices support Company Portal notifications").
+			Error(validationResult.UnsupportedComanagedDevices, "co-managed device", "are not supported for custom notifications. Only iOS, iPadOS, and Android devices support Company Portal notifications")
+
+		if results.Report(resp) {
+			return
+		}
+
+		tflog.Debug(ctx, "Device validation completed successfully")
+	} else {
+		tflog.Debug(ctx, "Device validation disabled, skipping API checks")
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Successfully sent custom notifications to %d device(s)", successCount))
+	// Create progress tracker and send initial message
+	progressTracker := progress.For(resp).WithTotalDevices(totalDevices).
+		Starting("custom notification delivery", fmt.Sprintf("%d devices (%d managed, %d co-managed)", totalDevices, len(data.ManagedDevices), len(data.ComanagedDevices)))
 
-	if successCount > 0 {
-		resp.SendProgress(action.InvokeProgressEvent{
-			Message: fmt.Sprintf("Custom notification delivery completed for %d device(s). "+
-				"Notifications have been sent to the Company Portal app on the target devices. "+
-				"Users will see the notifications when they open or check the Company Portal app. "+
-				"Notifications appear in the Company Portal notifications section and may also trigger push notifications "+
-				"depending on the user's notification settings and device configuration.",
-				successCount),
-		})
+	// Process managed devices sequentially
+	for _, device := range data.ManagedDevices {
+		deviceID := device.DeviceID.ValueString()
+		notificationTitle := device.NotificationTitle.ValueString()
+
+		err := a.sendToManagedDevice(ctx, device)
+		if err != nil {
+			progressTracker.Device(deviceID, "").Failed(fmt.Sprintf("notification delivery failed: %s", err.Error()))
+			tflog.Error(ctx, "Failed to send notification to managed device", map[string]any{
+				"device_id":          deviceID,
+				"notification_title": notificationTitle,
+				"error":              err.Error(),
+			})
+		} else {
+			progressTracker.Device(deviceID, "").Succeeded(fmt.Sprintf("notification sent: \"%s\"", notificationTitle))
+			tflog.Info(ctx, "Successfully sent notification to managed device", map[string]any{
+				"device_id":          deviceID,
+				"notification_title": notificationTitle,
+			})
+		}
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Finished %s", ActionName))
+	// Process co-managed devices sequentially
+	for _, device := range data.ComanagedDevices {
+		deviceID := device.DeviceID.ValueString()
+		notificationTitle := device.NotificationTitle.ValueString()
+
+		err := a.sendToComanagedDevice(ctx, device)
+		if err != nil {
+			progressTracker.Device(deviceID, "").Failed(fmt.Sprintf("notification delivery failed: %s", err.Error()))
+			tflog.Error(ctx, "Failed to send notification to co-managed device", map[string]any{
+				"device_id":          deviceID,
+				"notification_title": notificationTitle,
+				"error":              err.Error(),
+			})
+		} else {
+			progressTracker.Device(deviceID, "").Succeeded(fmt.Sprintf("notification sent: \"%s\"", notificationTitle))
+			tflog.Info(ctx, "Successfully sent notification to co-managed device", map[string]any{
+				"device_id":          deviceID,
+				"notification_title": notificationTitle,
+			})
+		}
+	}
+
+	// Handle results
+	if progressTracker.HasFailures() {
+		if ignorePartialFailures {
+			progressTracker.CompletedWithIgnoredFailures("custom notification delivery")
+			tflog.Warn(ctx, "Custom notification delivery action completed with ignored failures", map[string]any{
+				"success_count": progressTracker.SuccessCount(),
+				"failed_count":  progressTracker.FailureCount(),
+			})
+		} else {
+			progressTracker.Failed("Custom Notification Delivery Failed", "send notifications to devices")
+			return
+		}
+	} else {
+		progressTracker.CompletedSuccessfully("sent all custom notifications. Notifications have been delivered to the Company Portal app on the target devices. " +
+			"Users will see the notifications when they open or check the Company Portal app. Notifications appear in the Company Portal notifications section " +
+			"and may also trigger push notifications depending on the user's notification settings and device configuration")
+	}
+
+	tflog.Info(ctx, "Custom notification delivery action completed", map[string]any{
+		"success_count":            progressTracker.SuccessCount(),
+		"failed_count":             progressTracker.FailureCount(),
+		"total_devices":            totalDevices,
+		"partial_failures_ignored": ignorePartialFailures && progressTracker.HasFailures(),
+	})
 }
 
 func (a *SendCustomNotificationToCompanyPortalAction) sendToManagedDevice(ctx context.Context, device ManagedDeviceNotification) error {
 	deviceID := device.DeviceID.ValueString()
-	tflog.Debug(ctx, fmt.Sprintf("Sending custom notification to managed device with ID: %s", deviceID))
+	tflog.Debug(ctx, "Sending custom notification to managed device", map[string]any{
+		"device_id":          deviceID,
+		"notification_title": device.NotificationTitle.ValueString(),
+	})
 
 	requestBody := constructManagedDeviceRequest(ctx, device)
 
@@ -150,7 +172,7 @@ func (a *SendCustomNotificationToCompanyPortalAction) sendToManagedDevice(ctx co
 		Post(ctx, requestBody, nil)
 
 	if err != nil {
-		return fmt.Errorf("failed to send custom notification to managed device %s: %w", deviceID, err)
+		return fmt.Errorf("%s", errors.HandleKiotaGraphErrorForAction(ctx, err))
 	}
 
 	return nil
@@ -158,7 +180,10 @@ func (a *SendCustomNotificationToCompanyPortalAction) sendToManagedDevice(ctx co
 
 func (a *SendCustomNotificationToCompanyPortalAction) sendToComanagedDevice(ctx context.Context, device ComanagedDeviceNotification) error {
 	deviceID := device.DeviceID.ValueString()
-	tflog.Debug(ctx, fmt.Sprintf("Sending custom notification to co-managed device with ID: %s", deviceID))
+	tflog.Debug(ctx, "Sending custom notification to co-managed device", map[string]any{
+		"device_id":          deviceID,
+		"notification_title": device.NotificationTitle.ValueString(),
+	})
 
 	requestBody := constructComanagedDeviceRequest(ctx, device)
 
@@ -170,7 +195,7 @@ func (a *SendCustomNotificationToCompanyPortalAction) sendToComanagedDevice(ctx 
 		Post(ctx, requestBody, nil)
 
 	if err != nil {
-		return fmt.Errorf("failed to send custom notification to co-managed device %s: %w", deviceID, err)
+		return fmt.Errorf("%s", errors.HandleKiotaGraphErrorForAction(ctx, err))
 	}
 
 	return nil

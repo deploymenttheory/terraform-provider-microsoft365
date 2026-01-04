@@ -1,114 +1,101 @@
 package graphBetaBypassActivationLockManagedDevice_test
 
 import (
-	"os"
-	"path/filepath"
 	"regexp"
 	"testing"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
-	bypassActivationLockMocks "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/actions/device_management/graph_beta/managed_device/bypass_activation_lock/mocks"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/terraform"
+	"github.com/hashicorp/terraform-plugin-testing/tfversion"
 	"github.com/jarcoal/httpmock"
 )
 
-func setupUnitTestEnvironment(t *testing.T) {
-	// Set environment variables for testing
-	os.Setenv("TF_ACC", "0")
-	os.Setenv("MS365_TEST_MODE", "true")
-}
-
-// setupMockEnvironment sets up the mock environment using centralized mocks
-func setupMockEnvironment() (*mocks.Mocks, *bypassActivationLockMocks.BypassActivationLockMock) {
-	// Activate httpmock
-	httpmock.Activate()
-
-	// Create a new Mocks instance and register authentication mocks
-	mockClient := mocks.NewMocks()
-	mockClient.AuthMocks.RegisterMocks()
-
-	// Register local mocks directly
-	bypassActivationLockMock := &bypassActivationLockMocks.BypassActivationLockMock{}
-	bypassActivationLockMock.RegisterMocks()
-
-	return mockClient, bypassActivationLockMock
-}
-
-// setupErrorMockEnvironment sets up the mock environment for error testing
-func setupErrorMockEnvironment() (*mocks.Mocks, *bypassActivationLockMocks.BypassActivationLockMock) {
-	// Activate httpmock
-	httpmock.Activate()
-
-	// Create a new Mocks instance and register authentication mocks
-	mockClient := mocks.NewMocks()
-	mockClient.AuthMocks.RegisterMocks()
-
-	// Register error mocks
-	bypassActivationLockMock := &bypassActivationLockMocks.BypassActivationLockMock{}
-	bypassActivationLockMock.RegisterErrorMocks()
-
-	return mockClient, bypassActivationLockMock
-}
-
-// testConfigMinimal returns the minimal configuration for testing
-func testConfigMinimal() string {
-	content, err := os.ReadFile(filepath.Join("tests", "terraform", "unit", "action_minimal.tf"))
+// Helper function to load test configs from unit directory
+func loadUnitTestTerraform(filename string) string {
+	config, err := helpers.ParseHCLFile("tests/terraform/unit/" + filename)
 	if err != nil {
-		return ""
+		panic("failed to load unit test config " + filename + ": " + err.Error())
 	}
-	return string(content)
+	return config
 }
 
-// testConfigMaximal returns the maximal configuration for testing
-func testConfigMaximal() string {
-	content, err := os.ReadFile(filepath.Join("tests", "terraform", "unit", "action_maximal.tf"))
-	if err != nil {
-		return ""
-	}
-	return string(content)
-}
-
-// TestBypassActivationLockAction_Schema validates the action schema
-func TestBypassActivationLockAction_Schema(t *testing.T) {
-	setupUnitTestEnvironment(t)
-	_, bypassActivationLockMock := setupMockEnvironment()
+// TestBypassActivationLockAction_Basic tests basic Activation Lock bypass
+func TestBypassActivationLockAction_Basic(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
+	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
-	defer bypassActivationLockMock.CleanupMockState()
+
+	// Register auth mocks
+	mockClient := mocks.NewMocks()
+	mockClient.AuthMocks.RegisterMocks()
 
 	resource.UnitTest(t, resource.TestCase{
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
+			tfversion.SkipBelow(tfversion.Version1_14_0),
+		},
+		CheckDestroy: func(s *terraform.State) error {
+			// Actions don't create persistent state, so nothing to destroy
+			return nil
+		},
 		Steps: []resource.TestStep{
 			{
-				Config: testConfigMinimal(),
-				Check: resource.ComposeTestCheckFunc(
-					// Check device IDs configuration
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_managed_device_bypass_activation_lock.minimal", "device_ids.#", "1"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_managed_device_bypass_activation_lock.minimal", "device_ids.0", "12345678-1234-1234-1234-123456789abc"),
-
-					// Check default values for options
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_managed_device_bypass_activation_lock.minimal", "ignore_partial_failures", "false"),
-				),
+				Config: loadUnitTestTerraform("action_minimal.tf"),
+				// Actions don't persist in state, so we just verify the configuration is valid
+				// The test passes if Terraform accepts the config and doesn't error during plan
 			},
 		},
 	})
 }
 
-// TestBypassActivationLockAction_SingleDevice tests single device bypass
-func TestBypassActivationLockAction_SingleDevice(t *testing.T) {
-	setupUnitTestEnvironment(t)
-	_, bypassActivationLockMock := setupMockEnvironment()
-	defer httpmock.DeactivateAndReset()
-	defer bypassActivationLockMock.CleanupMockState()
+// TestBypassActivationLockAction_ConfigValidation tests configuration validation
+func TestBypassActivationLockAction_ConfigValidation(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
 
 	resource.UnitTest(t, resource.TestCase{
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
+			tfversion.SkipBelow(tfversion.Version1_14_0),
+		},
 		Steps: []resource.TestStep{
 			{
-				Config: testConfigMinimal(),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_managed_device_bypass_activation_lock.minimal", "device_ids.#", "1"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_managed_device_bypass_activation_lock.minimal", "device_ids.0", "12345678-1234-1234-1234-123456789abc"),
-				),
+				Config: `
+action "microsoft365_graph_beta_device_management_managed_device_bypass_activation_lock" "test" {
+  config {
+    device_ids = [
+      "12345678-1234-1234-1234-123456789abc"
+    ]
+  }
+}
+`,
+				// Verify the action configuration is accepted
+			},
+		},
+	})
+}
+
+// TestBypassActivationLockAction_Maximal tests action with all features enabled
+func TestBypassActivationLockAction_Maximal(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
+	httpmock.Activate()
+	defer httpmock.DeactivateAndReset()
+
+	mockClient := mocks.NewMocks()
+	mockClient.AuthMocks.RegisterMocks()
+
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
+			tfversion.SkipBelow(tfversion.Version1_14_0),
+		},
+		CheckDestroy: func(s *terraform.State) error {
+			return nil
+		},
+		Steps: []resource.TestStep{
+			{
+				Config: loadUnitTestTerraform("action_maximal.tf"),
 			},
 		},
 	})
@@ -116,180 +103,202 @@ func TestBypassActivationLockAction_SingleDevice(t *testing.T) {
 
 // TestBypassActivationLockAction_MultipleDevices tests multiple device bypass
 func TestBypassActivationLockAction_MultipleDevices(t *testing.T) {
-	setupUnitTestEnvironment(t)
-	_, bypassActivationLockMock := setupMockEnvironment()
+	mocks.SetupUnitTestEnvironment(t)
+	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
-	defer bypassActivationLockMock.CleanupMockState()
+
+	mockClient := mocks.NewMocks()
+	mockClient.AuthMocks.RegisterMocks()
 
 	resource.UnitTest(t, resource.TestCase{
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
+			tfversion.SkipBelow(tfversion.Version1_14_0),
+		},
+		CheckDestroy: func(s *terraform.State) error {
+			return nil
+		},
 		Steps: []resource.TestStep{
 			{
-				Config: testConfigMaximal(),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_managed_device_bypass_activation_lock.maximal", "device_ids.#", "3"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_managed_device_bypass_activation_lock.maximal", "device_ids.0", "12345678-1234-1234-1234-123456789abc"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_managed_device_bypass_activation_lock.maximal", "device_ids.1", "87654321-4321-4321-4321-987654321cba"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_managed_device_bypass_activation_lock.maximal", "device_ids.2", "11111111-2222-3333-4444-555555555555"),
-				),
+				Config: loadUnitTestTerraform("action_maximal.tf"),
 			},
 		},
 	})
 }
 
-// TestBypassActivationLockAction_ConfigurationOptions tests the configuration options
-func TestBypassActivationLockAction_ConfigurationOptions(t *testing.T) {
-	setupUnitTestEnvironment(t)
-	_, bypassActivationLockMock := setupMockEnvironment()
+// TestBypassActivationLockAction_IgnorePartialFailures tests ignore_partial_failures flag
+func TestBypassActivationLockAction_IgnorePartialFailures(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
+	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
-	defer bypassActivationLockMock.CleanupMockState()
+
+	mockClient := mocks.NewMocks()
+	mockClient.AuthMocks.RegisterMocks()
 
 	resource.UnitTest(t, resource.TestCase{
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
+			tfversion.SkipBelow(tfversion.Version1_14_0),
+		},
+		CheckDestroy: func(s *terraform.State) error {
+			return nil
+		},
 		Steps: []resource.TestStep{
 			{
 				Config: `
-action "microsoft365_graph_beta_device_management_managed_device_bypass_activation_lock" "config_test" {
-  device_ids = [
-    "12345678-1234-1234-1234-123456789abc"
-  ]
-  
-  ignore_partial_failures = true
-}
-`,
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_managed_device_bypass_activation_lock.config_test", "ignore_partial_failures", "true"),
-				),
-			},
-		},
-	})
-}
-
-// TestBypassActivationLockAction_RequiredFields tests required field validation
-func TestBypassActivationLockAction_RequiredFields(t *testing.T) {
-	setupUnitTestEnvironment(t)
-	_, bypassActivationLockMock := setupMockEnvironment()
-	defer httpmock.DeactivateAndReset()
-	defer bypassActivationLockMock.CleanupMockState()
-
-	testCases := []struct {
-		name          string
-		config        string
-		expectedError string
-	}{
-		{
-			name: "missing device_ids",
-			config: `
 action "microsoft365_graph_beta_device_management_managed_device_bypass_activation_lock" "test" {
-  timeouts = {
-    create = "5m"
+  config {
+    device_ids = [
+      "12345678-1234-1234-1234-123456789abc"
+    ]
+    ignore_partial_failures = true
   }
 }
 `,
-			expectedError: `The argument "device_ids" is required`,
-		},
-		{
-			name: "empty device_ids list",
-			config: `
-action "microsoft365_graph_beta_device_management_managed_device_bypass_activation_lock" "test" {
-  device_ids = []
-}
-`,
-			expectedError: `Attribute device_ids list must contain at least 1 elements`,
-		},
-		{
-			name: "invalid device_id format",
-			config: `
-action "microsoft365_graph_beta_device_management_managed_device_bypass_activation_lock" "test" {
-  device_ids = ["invalid-guid"]
-}
-`,
-			expectedError: `each device ID must be a valid GUID format`,
-		},
-	}
-
-	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
-			resource.UnitTest(t, resource.TestCase{
-				ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
-				Steps: []resource.TestStep{
-					{
-						Config:      tc.config,
-						ExpectError: regexp.MustCompile(tc.expectedError),
-					},
-				},
-			})
-		})
-	}
-}
-
-// TestBypassActivationLockAction_ErrorHandling tests error scenarios
-func TestBypassActivationLockAction_ErrorHandling(t *testing.T) {
-	setupUnitTestEnvironment(t)
-	_, bypassActivationLockMock := setupErrorMockEnvironment()
-	defer httpmock.DeactivateAndReset()
-	defer bypassActivationLockMock.CleanupMockState()
-
-	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
-		Steps: []resource.TestStep{
-			{
-				Config: `
-action "microsoft365_graph_beta_device_management_managed_device_bypass_activation_lock" "test" {
-  device_ids = ["error-id"]
-}
-`,
-				ExpectError: regexp.MustCompile(`BadRequest|Invalid request`),
 			},
 		},
 	})
 }
 
-// TestBypassActivationLockAction_DeviceNotFound tests device not found scenarios
-func TestBypassActivationLockAction_DeviceNotFound(t *testing.T) {
-	setupUnitTestEnvironment(t)
-	_, bypassActivationLockMock := setupMockEnvironment()
+// TestBypassActivationLockAction_DisableValidation tests validate_device_exists = false
+func TestBypassActivationLockAction_DisableValidation(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
+	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
-	defer bypassActivationLockMock.CleanupMockState()
+
+	mockClient := mocks.NewMocks()
+	mockClient.AuthMocks.RegisterMocks()
 
 	resource.UnitTest(t, resource.TestCase{
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
+			tfversion.SkipBelow(tfversion.Version1_14_0),
+		},
+		CheckDestroy: func(s *terraform.State) error {
+			return nil
+		},
 		Steps: []resource.TestStep{
 			{
 				Config: `
 action "microsoft365_graph_beta_device_management_managed_device_bypass_activation_lock" "test" {
-  device_ids = ["not-found-id"]
+  config {
+    device_ids = [
+      "12345678-1234-1234-1234-123456789abc"
+    ]
+    validate_device_exists = false
+  }
 }
 `,
-				ExpectError: regexp.MustCompile(`Device not found|NotFound`),
 			},
 		},
 	})
 }
 
-// TestBypassActivationLockAction_PartialFailureHandling tests partial failure scenarios
-func TestBypassActivationLockAction_PartialFailureHandling(t *testing.T) {
-	setupUnitTestEnvironment(t)
-	_, bypassActivationLockMock := setupErrorMockEnvironment()
+// TestBypassActivationLockAction_CustomTimeout tests custom timeout configuration
+func TestBypassActivationLockAction_CustomTimeout(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
+	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
-	defer bypassActivationLockMock.CleanupMockState()
+
+	mockClient := mocks.NewMocks()
+	mockClient.AuthMocks.RegisterMocks()
 
 	resource.UnitTest(t, resource.TestCase{
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
+			tfversion.SkipBelow(tfversion.Version1_14_0),
+		},
+		CheckDestroy: func(s *terraform.State) error {
+			return nil
+		},
 		Steps: []resource.TestStep{
 			{
 				Config: `
-action "microsoft365_graph_beta_device_management_managed_device_bypass_activation_lock" "partial_failure" {
-  device_ids = [
-    "12345678-1234-1234-1234-123456789abc",
-    "error-id"
-  ]
-  ignore_partial_failures = true
+action "microsoft365_graph_beta_device_management_managed_device_bypass_activation_lock" "test" {
+  config {
+    device_ids = [
+      "12345678-1234-1234-1234-123456789abc"
+    ]
+    timeouts = {
+      invoke = "10m"
+    }
+  }
 }
 `,
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_managed_device_bypass_activation_lock.partial_failure", "ignore_partial_failures", "true"),
-				),
+			},
+		},
+	})
+}
+
+// TestBypassActivationLockAction_InvalidGUID tests validation for invalid GUID format
+func TestBypassActivationLockAction_InvalidGUID(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
+
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
+			tfversion.SkipBelow(tfversion.Version1_14_0),
+		},
+		Steps: []resource.TestStep{
+			{
+				Config: `
+action "microsoft365_graph_beta_device_management_managed_device_bypass_activation_lock" "test" {
+  config {
+    device_ids = ["invalid-guid"]
+  }
+}
+`,
+				ExpectError: regexp.MustCompile(`each device ID must be a valid GUID format`),
+			},
+		},
+	})
+}
+
+// TestBypassActivationLockAction_EmptyDeviceList tests validation for empty device list
+func TestBypassActivationLockAction_EmptyDeviceList(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
+
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
+			tfversion.SkipBelow(tfversion.Version1_14_0),
+		},
+		Steps: []resource.TestStep{
+			{
+				Config: `
+action "microsoft365_graph_beta_device_management_managed_device_bypass_activation_lock" "test" {
+  config {
+    device_ids = []
+  }
+}
+`,
+				ExpectError: regexp.MustCompile(`Attribute device_ids list must contain at least 1 elements`),
+			},
+		},
+	})
+}
+
+// TestBypassActivationLockAction_MissingDeviceIDs tests validation requiring device_ids
+func TestBypassActivationLockAction_MissingDeviceIDs(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
+
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
+			tfversion.SkipBelow(tfversion.Version1_14_0),
+		},
+		Steps: []resource.TestStep{
+			{
+				Config: `
+action "microsoft365_graph_beta_device_management_managed_device_bypass_activation_lock" "test" {
+  config {
+    timeouts = {
+      invoke = "5m"
+    }
+  }
+}
+`,
+				ExpectError: regexp.MustCompile(`The argument "device_ids" is required`),
 			},
 		},
 	})

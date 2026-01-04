@@ -7,9 +7,11 @@ import (
 )
 
 type UpdateWindowsDeviceAccountActionModel struct {
-	ManagedDevices   []ManagedDeviceAccount   `tfsdk:"managed_devices"`
-	ComanagedDevices []ComanagedDeviceAccount `tfsdk:"comanaged_devices"`
-	Timeouts         timeouts.Value           `tfsdk:"timeouts"`
+	ManagedDevices        []ManagedDeviceAccount   `tfsdk:"managed_devices"`
+	ComanagedDevices      []ComanagedDeviceAccount `tfsdk:"comanaged_devices"`
+	IgnorePartialFailures types.Bool               `tfsdk:"ignore_partial_failures"`
+	ValidateDeviceExists  types.Bool               `tfsdk:"validate_device_exists"`
+	Timeouts              timeouts.Value           `tfsdk:"timeouts"`
 }
 
 type ManagedDeviceAccount struct {

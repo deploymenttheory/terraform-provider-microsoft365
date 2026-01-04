@@ -3,28 +3,34 @@ package graphBetaRemoveDeviceFirmwareConfigurationInterfaceManagementManagedDevi
 import (
 	"context"
 	"fmt"
-	"sync"
+	"time"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/progress"
+
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/validation"
+
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
 	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
-type removeDFCIResult struct {
-	deviceID   string
-	deviceType string // "managed" or "comanaged"
-	err        error
-}
-
 func (a *RemoveDeviceFirmwareConfigurationInterfaceManagementManagedDeviceAction) Invoke(ctx context.Context, req action.InvokeRequest, resp *action.InvokeResponse) {
 	var data RemoveDeviceFirmwareConfigurationInterfaceManagementManagedDeviceActionModel
 
-	tflog.Debug(ctx, fmt.Sprintf("Starting %s", ActionName))
+	tflog.Debug(ctx, "Starting remove DFCI management action", map[string]any{"action": ActionName})
 
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
+	// Handle timeout
+	ctx, cancel := crud.HandleTimeout(ctx, data.Timeouts.Invoke, InvokeTimeout*time.Second, &resp.Diagnostics)
+	if cancel == nil {
+		return
+	}
+	defer cancel()
 
 	// Convert framework lists to Go slices
 	var managedDeviceIDs []string
@@ -43,107 +49,120 @@ func (a *RemoveDeviceFirmwareConfigurationInterfaceManagementManagedDeviceAction
 	}
 
 	totalDevices := len(managedDeviceIDs) + len(comanagedDeviceIDs)
-	tflog.Debug(ctx, fmt.Sprintf("Removing DFCI management from %d managed device(s) and %d co-managed device(s)",
-		len(managedDeviceIDs), len(comanagedDeviceIDs)))
-
-	resp.SendProgress(action.InvokeProgressEvent{
-		Message: fmt.Sprintf("Starting DFCI management removal for %d device(s) (%d managed, %d co-managed)...",
-			totalDevices, len(managedDeviceIDs), len(comanagedDeviceIDs)),
+	tflog.Debug(ctx, "Processing devices for DFCI removal", map[string]any{
+		"managed_devices":   len(managedDeviceIDs),
+		"comanaged_devices": len(comanagedDeviceIDs),
+		"total_devices":     totalDevices,
 	})
 
-	// Remove DFCI management from devices concurrently with error collection
-	results := make(chan removeDFCIResult, totalDevices)
-	var wg sync.WaitGroup
-
-	// Remove DFCI from managed devices
-	for _, deviceID := range managedDeviceIDs {
-		wg.Add(1)
-		go func(id string) {
-			defer wg.Done()
-			err := a.removeDFCIManagedDevice(ctx, id)
-			results <- removeDFCIResult{deviceID: id, deviceType: "managed", err: err}
-		}(deviceID)
+	// Get ignore_partial_failures setting
+	ignorePartialFailures := false
+	if !data.IgnorePartialFailures.IsNull() && !data.IgnorePartialFailures.IsUnknown() {
+		ignorePartialFailures = data.IgnorePartialFailures.ValueBool()
 	}
 
-	// Remove DFCI from co-managed devices
-	for _, deviceID := range comanagedDeviceIDs {
-		wg.Add(1)
-		go func(id string) {
-			defer wg.Done()
-			err := a.removeDFCIComanagedDevice(ctx, id)
-			results <- removeDFCIResult{deviceID: id, deviceType: "comanaged", err: err}
-		}(deviceID)
+	// Get validate_device_exists setting (default: true)
+	validateDeviceExists := true
+	if !data.ValidateDeviceExists.IsNull() && !data.ValidateDeviceExists.IsUnknown() {
+		validateDeviceExists = data.ValidateDeviceExists.ValueBool()
 	}
 
-	// Close results channel once all goroutines complete
-	go func() {
-		wg.Wait()
-		close(results)
-	}()
+	// Perform API validation of devices if enabled
+	if validateDeviceExists {
+		tflog.Debug(ctx, "Performing device validation via API")
 
-	// Collect results and track progress
-	successCount := 0
-	var failedDevices []string
-	var lastError error
-
-	for result := range results {
-		if result.err != nil {
-			failedDevices = append(failedDevices, fmt.Sprintf("%s (%s)", result.deviceID, result.deviceType))
-			lastError = result.err
-			tflog.Error(ctx, fmt.Sprintf("Failed to remove DFCI management from %s device %s: %v",
-				result.deviceType, result.deviceID, result.err))
-		} else {
-			successCount++
-			tflog.Debug(ctx, fmt.Sprintf("Successfully removed DFCI management from %s device %s",
-				result.deviceType, result.deviceID))
-
-			resp.SendProgress(action.InvokeProgressEvent{
-				Message: fmt.Sprintf("✓ Device %s (%s): DFCI management removed", result.deviceID, result.deviceType),
-			})
-		}
-
-		// Send overall progress update
-		progress := float64(successCount+len(failedDevices)) / float64(totalDevices) * 100
-		resp.SendProgress(action.InvokeProgressEvent{
-			Message: fmt.Sprintf("Processed %d of %d devices (%.0f%% complete)",
-				successCount+len(failedDevices), totalDevices, progress),
-		})
-	}
-
-	// Report results
-	if len(failedDevices) > 0 {
-		if successCount > 0 {
-			// Partial success
-			resp.Diagnostics.AddWarning(
-				"Partial Success",
-				fmt.Sprintf("Successfully removed DFCI management from %d of %d devices. Failed devices: %v. Last error: %v\n\n"+
-					"Devices with DFCI removed will no longer support remote UEFI/BIOS configuration via Intune. "+
-					"Standard MDM management continues.",
-					successCount, totalDevices, failedDevices, lastError),
+		validationResult, err := validateRequest(ctx, a.client, managedDeviceIDs, comanagedDeviceIDs)
+		if err != nil {
+			tflog.Error(ctx, "Failed to validate devices via API", map[string]any{"error": err.Error()})
+			resp.Diagnostics.AddError(
+				"Device Validation Failed",
+				fmt.Sprintf("Failed to validate devices: %s", err.Error()),
 			)
-		} else {
-			// Complete failure
-			errors.HandleKiotaGraphError(ctx, lastError, resp, "Action", a.WritePermissions)
 			return
 		}
+
+		// Report validation results
+		results := validation.NewResults().
+			Error(validationResult.NonExistentManagedDevices, "managed device", "do not exist or are not managed by Intune").
+			Error(validationResult.NonExistentComanagedDevices, "co-managed device", "do not exist or are not co-managed by Intune").
+			Warning(validationResult.UnsupportedManagedDevices, "managed device", "are not Windows devices. DFCI is only supported on Windows devices with compatible firmware").
+			Warning(validationResult.UnsupportedComanagedDevices, "co-managed device", "are not Windows devices. DFCI is only supported on Windows devices with compatible firmware")
+
+		if results.Report(resp) {
+			return
+		}
+
+		tflog.Debug(ctx, "Device validation completed successfully")
+	} else {
+		tflog.Debug(ctx, "Device validation disabled, skipping API checks")
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Successfully removed DFCI management from %d device(s)", successCount))
+	// Create progress tracker and send initial message
+	progressTracker := progress.For(resp).WithTotalDevices(totalDevices).
+		Starting("DFCI management removal", fmt.Sprintf("%d devices (%d managed, %d co-managed)", totalDevices, len(managedDeviceIDs), len(comanagedDeviceIDs)))
 
-	if successCount > 0 {
-		resp.SendProgress(action.InvokeProgressEvent{
-			Message: fmt.Sprintf("DFCI removal complete: %d device(s) removed from firmware-level management.\n\n"+
-				"Note: These devices will continue standard Intune MDM management but will no longer support "+
-				"remote UEFI/BIOS configuration. Physical access may be required to re-enable DFCI.",
-				successCount),
-		})
+	// Process managed devices sequentially
+	for _, deviceID := range managedDeviceIDs {
+		err := a.removeDFCIManagedDevice(ctx, deviceID)
+		if err != nil {
+			progressTracker.Device(deviceID, "").Failed(err.Error())
+			tflog.Error(ctx, "Failed to remove DFCI management from managed device", map[string]any{
+				"device_id": deviceID,
+				"error":     err.Error(),
+			})
+		} else {
+			progressTracker.Device(deviceID, "").Succeeded("DFCI management removed")
+			tflog.Info(ctx, "Successfully removed DFCI management from managed device", map[string]any{
+				"device_id": deviceID,
+			})
+		}
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Finished %s", ActionName))
+	// Process co-managed devices sequentially
+	for _, deviceID := range comanagedDeviceIDs {
+		err := a.removeDFCIComanagedDevice(ctx, deviceID)
+		if err != nil {
+			progressTracker.Device(deviceID, "").Failed(err.Error())
+			tflog.Error(ctx, "Failed to remove DFCI management from co-managed device", map[string]any{
+				"device_id": deviceID,
+				"error":     err.Error(),
+			})
+		} else {
+			progressTracker.Device(deviceID, "").Succeeded("DFCI management removed")
+			tflog.Info(ctx, "Successfully removed DFCI management from co-managed device", map[string]any{
+				"device_id": deviceID,
+			})
+		}
+	}
+
+	// Handle results
+	if progressTracker.HasFailures() {
+		if ignorePartialFailures {
+			progressTracker.CompletedWithIgnoredFailures("DFCI management removal")
+			tflog.Warn(ctx, "DFCI removal action completed with ignored failures", map[string]any{
+				"success_count": progressTracker.SuccessCount(),
+				"failed_count":  progressTracker.FailureCount(),
+			})
+		} else {
+			progressTracker.Failed("DFCI Management Removal Failed", "remove DFCI management from devices")
+			return
+		}
+	} else {
+		progressTracker.CompletedSuccessfully("removed DFCI management from all devices. These devices will no longer support remote UEFI/BIOS configuration via Intune. Standard MDM management continues")
+	}
+
+	tflog.Info(ctx, "DFCI removal action completed", map[string]any{
+		"success_count":            progressTracker.SuccessCount(),
+		"failed_count":             progressTracker.FailureCount(),
+		"total_devices":            totalDevices,
+		"partial_failures_ignored": ignorePartialFailures && progressTracker.HasFailures(),
+	})
 }
 
 func (a *RemoveDeviceFirmwareConfigurationInterfaceManagementManagedDeviceAction) removeDFCIManagedDevice(ctx context.Context, deviceID string) error {
-	tflog.Debug(ctx, fmt.Sprintf("Removing DFCI management from managed device with ID: %s", deviceID))
+	tflog.Debug(ctx, "Removing DFCI management from managed device", map[string]any{
+		"device_id": deviceID,
+	})
 
 	err := a.client.
 		DeviceManagement().
@@ -153,14 +172,16 @@ func (a *RemoveDeviceFirmwareConfigurationInterfaceManagementManagedDeviceAction
 		Post(ctx, nil)
 
 	if err != nil {
-		return fmt.Errorf("failed to remove DFCI management from managed device %s: %w", deviceID, err)
+		return fmt.Errorf("%s", errors.HandleKiotaGraphErrorForAction(ctx, err))
 	}
 
 	return nil
 }
 
 func (a *RemoveDeviceFirmwareConfigurationInterfaceManagementManagedDeviceAction) removeDFCIComanagedDevice(ctx context.Context, deviceID string) error {
-	tflog.Debug(ctx, fmt.Sprintf("Removing DFCI management from co-managed device with ID: %s", deviceID))
+	tflog.Debug(ctx, "Removing DFCI management from co-managed device", map[string]any{
+		"device_id": deviceID,
+	})
 
 	err := a.client.
 		DeviceManagement().
@@ -170,7 +191,7 @@ func (a *RemoveDeviceFirmwareConfigurationInterfaceManagementManagedDeviceAction
 		Post(ctx, nil)
 
 	if err != nil {
-		return fmt.Errorf("failed to remove DFCI management from co-managed device %s: %w", deviceID, err)
+		return fmt.Errorf("%s", errors.HandleKiotaGraphErrorForAction(ctx, err))
 	}
 
 	return nil

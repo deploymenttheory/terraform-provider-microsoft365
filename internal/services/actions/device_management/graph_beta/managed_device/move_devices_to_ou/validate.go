@@ -45,6 +45,7 @@ func (a *MoveDevicesToOUManagedDeviceAction) ValidateConfig(ctx context.Context,
 		return
 	}
 
+	// Validate at least one device list is provided
 	if len(managedDeviceIDs) == 0 && len(comanagedDeviceIDs) == 0 {
 		resp.Diagnostics.AddError(
 			"No Devices Specified",
@@ -53,6 +54,7 @@ func (a *MoveDevicesToOUManagedDeviceAction) ValidateConfig(ctx context.Context,
 		return
 	}
 
+	// Check for duplicate managed device IDs
 	if len(managedDeviceIDs) > 0 {
 		seen := make(map[string]bool)
 		var duplicates []string
@@ -67,13 +69,14 @@ func (a *MoveDevicesToOUManagedDeviceAction) ValidateConfig(ctx context.Context,
 			resp.Diagnostics.AddAttributeWarning(
 				path.Root("managed_device_ids"),
 				"Duplicate Managed Device IDs Found",
-				fmt.Sprintf("The following managed device IDs are duplicated in the configuration: %s. "+
+				fmt.Sprintf("The following managed device IDs are duplicated in managed_device_ids: %s. "+
 					"Duplicates will be ignored, but you should remove them from your configuration.",
 					strings.Join(duplicates, ", ")),
 			)
 		}
 	}
 
+	// Check for duplicate co-managed device IDs
 	if len(comanagedDeviceIDs) > 0 {
 		seen := make(map[string]bool)
 		var duplicates []string
@@ -88,13 +91,14 @@ func (a *MoveDevicesToOUManagedDeviceAction) ValidateConfig(ctx context.Context,
 			resp.Diagnostics.AddAttributeWarning(
 				path.Root("comanaged_device_ids"),
 				"Duplicate Co-Managed Device IDs Found",
-				fmt.Sprintf("The following co-managed device IDs are duplicated in the configuration: %s. "+
+				fmt.Sprintf("The following co-managed device IDs are duplicated in comanaged_device_ids: %s. "+
 					"Duplicates will be ignored, but you should remove them from your configuration.",
 					strings.Join(duplicates, ", ")),
 			)
 		}
 	}
 
+	// Check for devices in both lists
 	for _, managedID := range managedDeviceIDs {
 		for _, comanagedID := range comanagedDeviceIDs {
 			if managedID == comanagedID {
@@ -110,128 +114,8 @@ func (a *MoveDevicesToOUManagedDeviceAction) ValidateConfig(ctx context.Context,
 		}
 	}
 
-	ouPath := data.OrganizationalUnitPath.ValueString()
-	tflog.Debug(ctx, fmt.Sprintf("Validating move devices to OU action for %d managed and %d co-managed device(s) to OU: %s",
-		len(managedDeviceIDs), len(comanagedDeviceIDs), ouPath))
-
-	var nonExistentManagedDevices []string
-	var nonExistentComanagedDevices []string
-	var unsupportedManagedDevices []string
-	var unsupportedComanagedDevices []string
-
-	for _, deviceID := range managedDeviceIDs {
-		device, err := a.client.
-			DeviceManagement().
-			ManagedDevices().
-			ByManagedDeviceId(deviceID).
-			Get(ctx, nil)
-
-		if err != nil {
-			if strings.Contains(err.Error(), "404") || strings.Contains(err.Error(), "not found") {
-				nonExistentManagedDevices = append(nonExistentManagedDevices, deviceID)
-			} else {
-				resp.Diagnostics.AddAttributeError(
-					path.Root("managed_device_ids"),
-					"Error Validating Managed Device Existence",
-					fmt.Sprintf("Failed to check existence of managed device %s: %s", deviceID, err.Error()),
-				)
-			}
-		} else if device != nil {
-			// Check if device is Windows (only Windows devices support OU moves)
-			if device.GetOperatingSystem() != nil {
-				osName := *device.GetOperatingSystem()
-				if !strings.Contains(strings.ToLower(osName), "windows") {
-					unsupportedManagedDevices = append(unsupportedManagedDevices, fmt.Sprintf("%s (OS: %s)", deviceID, osName))
-					continue
-				}
-			}
-
-			// Check if device is hybrid Azure AD joined
-			if device.GetAzureADDeviceId() != nil {
-				tflog.Debug(ctx, fmt.Sprintf("Managed device %s validated successfully - hybrid Azure AD joined Windows device", deviceID))
-			} else {
-				resp.Diagnostics.AddAttributeWarning(
-					path.Root("managed_device_ids"),
-					"Device May Not Be Hybrid Azure AD Joined",
-					fmt.Sprintf("Device %s may not be hybrid Azure AD joined. This action only works on hybrid Azure AD joined devices. "+
-						"Cloud-only or workplace-joined devices cannot be moved to an Active Directory OU.", deviceID),
-				)
-			}
-		}
-	}
-
-	for _, deviceID := range comanagedDeviceIDs {
-		device, err := a.client.
-			DeviceManagement().
-			ComanagedDevices().
-			ByManagedDeviceId(deviceID).
-			Get(ctx, nil)
-
-		if err != nil {
-			if strings.Contains(err.Error(), "404") || strings.Contains(err.Error(), "not found") {
-				nonExistentComanagedDevices = append(nonExistentComanagedDevices, deviceID)
-			} else {
-				resp.Diagnostics.AddAttributeError(
-					path.Root("comanaged_device_ids"),
-					"Error Validating Co-Managed Device Existence",
-					fmt.Sprintf("Failed to check existence of co-managed device %s: %s", deviceID, err.Error()),
-				)
-			}
-		} else if device != nil {
-			// Check if device is Windows
-			if device.GetOperatingSystem() != nil {
-				osName := *device.GetOperatingSystem()
-				if !strings.Contains(strings.ToLower(osName), "windows") {
-					unsupportedComanagedDevices = append(unsupportedComanagedDevices, fmt.Sprintf("%s (OS: %s)", deviceID, osName))
-					continue
-				}
-			}
-
-			tflog.Debug(ctx, fmt.Sprintf("Co-managed device %s validated successfully", deviceID))
-		}
-	}
-
-	if len(nonExistentManagedDevices) > 0 {
-		resp.Diagnostics.AddAttributeError(
-			path.Root("managed_device_ids"),
-			"Non-Existent Managed Devices",
-			fmt.Sprintf("The following managed device IDs do not exist or are not managed by Intune: %s. "+
-				"Please ensure all device IDs are correct and refer to existing managed devices.",
-				strings.Join(nonExistentManagedDevices, ", ")),
-		)
-	}
-
-	if len(nonExistentComanagedDevices) > 0 {
-		resp.Diagnostics.AddAttributeError(
-			path.Root("comanaged_device_ids"),
-			"Non-Existent Co-Managed Devices",
-			fmt.Sprintf("The following co-managed device IDs do not exist or are not managed by Intune: %s. "+
-				"Please ensure all device IDs are correct and refer to existing co-managed devices.",
-				strings.Join(nonExistentComanagedDevices, ", ")),
-		)
-	}
-
-	if len(unsupportedManagedDevices) > 0 {
-		resp.Diagnostics.AddAttributeWarning(
-			path.Root("managed_device_ids"),
-			"Non-Windows Devices Detected",
-			fmt.Sprintf("The following managed devices are not Windows devices and cannot be moved to an Active Directory OU: %s. "+
-				"This action only works on hybrid Azure AD joined Windows devices. These devices will be skipped.",
-				strings.Join(unsupportedManagedDevices, ", ")),
-		)
-	}
-
-	if len(unsupportedComanagedDevices) > 0 {
-		resp.Diagnostics.AddAttributeWarning(
-			path.Root("comanaged_device_ids"),
-			"Non-Windows Devices Detected",
-			fmt.Sprintf("The following co-managed devices are not Windows devices and cannot be moved to an Active Directory OU: %s. "+
-				"This action only works on hybrid Azure AD joined Windows devices. These devices will be skipped.",
-				strings.Join(unsupportedComanagedDevices, ", ")),
-		)
-	}
-
 	// Add informational note about the operation
+	ouPath := data.OrganizationalUnitPath.ValueString()
 	if len(managedDeviceIDs)+len(comanagedDeviceIDs) > 0 {
 		resp.Diagnostics.AddWarning(
 			"Active Directory OU Move Operation",
@@ -245,4 +129,10 @@ func (a *MoveDevicesToOUManagedDeviceAction) ValidateConfig(ctx context.Context,
 				len(managedDeviceIDs)+len(comanagedDeviceIDs), ouPath),
 		)
 	}
+
+	tflog.Debug(ctx, "Static validation completed", map[string]any{
+		"managed_count":   len(managedDeviceIDs),
+		"comanaged_count": len(comanagedDeviceIDs),
+		"ou_path":         ouPath,
+	})
 }

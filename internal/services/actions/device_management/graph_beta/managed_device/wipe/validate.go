@@ -3,7 +3,6 @@ package graphBetaWipeManagedDevice
 import (
 	"context"
 	"fmt"
-	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -43,6 +42,7 @@ func (a *WipeManagedDeviceAction) ValidateConfig(ctx context.Context, req action
 		return
 	}
 
+	// Check for duplicate device IDs
 	deviceIDMap := make(map[string]bool)
 	var duplicates []string
 
@@ -78,7 +78,7 @@ func (a *WipeManagedDeviceAction) ValidateConfig(ctx context.Context, req action
 		}
 	}
 
-	// Validate macOS unlock code is only used when needed
+	// Validate macOS unlock code format
 	if !data.MacOsUnlockCode.IsNull() && !data.MacOsUnlockCode.IsUnknown() {
 		macOsUnlockCode := data.MacOsUnlockCode.ValueString()
 		if len(macOsUnlockCode) != 6 {
@@ -88,94 +88,6 @@ func (a *WipeManagedDeviceAction) ValidateConfig(ctx context.Context, req action
 				"The macOS unlock code must be exactly 6 digits.",
 			)
 		}
-	}
-
-	tflog.Debug(ctx, fmt.Sprintf("Validating wipe action for %d device(s)", len(deviceIDs)))
-
-	var unsupportedDevices []string
-
-	for _, deviceID := range deviceIDs {
-		device, err := a.client.
-			DeviceManagement().
-			ManagedDevices().
-			ByManagedDeviceId(deviceID).
-			Get(ctx, nil)
-
-		if err != nil {
-			resp.Diagnostics.AddAttributeWarning(
-				path.Root("device_ids"),
-				"Unable to Validate Device",
-				fmt.Sprintf("Could not fetch managed device with ID %s to validate. "+
-					"Ensure the device exists and you have permission to manage it. "+
-					"Error: %s", deviceID, err.Error()),
-			)
-			continue
-		}
-
-		if device == nil {
-			resp.Diagnostics.AddAttributeWarning(
-				path.Root("device_ids"),
-				"Device Not Found",
-				fmt.Sprintf("Managed device with ID %s was not found. "+
-					"Ensure the device ID is correct and the device is enrolled in Intune.", deviceID),
-			)
-			continue
-		}
-
-		// Check platform compatibility - wipe is supported on Windows, iOS, iPadOS, macOS, and Android (NOT ChromeOS)
-		if device.GetOperatingSystem() != nil {
-			os := strings.ToLower(*device.GetOperatingSystem())
-			supportedOS := map[string]bool{
-				"windows": true,
-				"ios":     true,
-				"ipados":  true,
-				"macos":   true,
-				"android": true,
-			}
-			if !supportedOS[os] {
-				unsupportedDevices = append(unsupportedDevices, fmt.Sprintf("%s (OS: %s)", deviceID, *device.GetOperatingSystem()))
-				continue
-			}
-		} else {
-			unsupportedDevices = append(unsupportedDevices, fmt.Sprintf("%s (Unknown OS)", deviceID))
-			continue
-		}
-
-		// Check for activation lock on iOS/macOS devices
-		operatingSystem := device.GetOperatingSystem()
-		if operatingSystem != nil {
-			os := *operatingSystem
-			if (os == "iOS" || os == "iPadOS" || os == "macOS") &&
-				(data.MacOsUnlockCode.IsNull() || data.MacOsUnlockCode.IsUnknown()) {
-				activationLockBypassCode := device.GetActivationLockBypassCode()
-				if activationLockBypassCode != nil && *activationLockBypassCode != "" {
-					resp.Diagnostics.AddAttributeWarning(
-						path.Root("macos_unlock_code"),
-						"Activation Lock May Be Enabled",
-						fmt.Sprintf("Device %s (%s) may have Activation Lock enabled. "+
-							"If wiping fails, you may need to provide the macos_unlock_code parameter. "+
-							"The bypass code is available in the device details.", deviceID, os),
-					)
-				}
-			}
-		}
-
-		// Log device details for debugging
-		deviceName := "unknown"
-		if device.GetDeviceName() != nil {
-			deviceName = *device.GetDeviceName()
-		}
-		tflog.Debug(ctx, fmt.Sprintf("Validated device %s (Name: %s) for wipe", deviceID, deviceName))
-	}
-
-	if len(unsupportedDevices) > 0 {
-		resp.Diagnostics.AddAttributeError(
-			path.Root("device_ids"),
-			"Unsupported Devices for Wipe",
-			fmt.Sprintf("Wipe is supported on Windows, iOS, iPadOS, macOS, and Android devices only. The following devices are not supported: %s. "+
-				"Please remove unsupported devices from the configuration.",
-				strings.Join(unsupportedDevices, ", ")),
-		)
 	}
 
 	// Final warning about data loss
@@ -188,5 +100,7 @@ func (a *WipeManagedDeviceAction) ValidateConfig(ctx context.Context, req action
 		)
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Validation complete for %d device(s)", len(deviceIDs)))
+	tflog.Debug(ctx, "Static validation completed", map[string]any{
+		"device_count": len(deviceIDs),
+	})
 }

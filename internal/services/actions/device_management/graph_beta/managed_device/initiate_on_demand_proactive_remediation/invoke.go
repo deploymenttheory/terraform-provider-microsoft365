@@ -3,189 +3,184 @@ package graphBetaInitiateOnDemandProactiveRemediationManagedDevice
 import (
 	"context"
 	"fmt"
-	"sync"
+	"time"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/progress"
+
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/validation"
+
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
 	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
-type remediationResult struct {
-	deviceID       string
-	scriptPolicyID string
-	deviceType     string // "managed" or "comanaged"
-	err            error
-}
-
 func (a *InitiateOnDemandProactiveRemediationManagedDeviceAction) Invoke(ctx context.Context, req action.InvokeRequest, resp *action.InvokeResponse) {
 	var data InitiateOnDemandProactiveRemediationManagedDeviceActionModel
 
-	tflog.Debug(ctx, fmt.Sprintf("Starting %s", ActionName))
+	tflog.Debug(ctx, "Starting on-demand proactive remediation action", map[string]any{"action": ActionName})
 
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	totalDevices := len(data.ManagedDevices) + len(data.ComanagedDevices)
-	tflog.Debug(ctx, fmt.Sprintf("Initiating on-demand proactive remediation for %d managed device(s) and %d co-managed device(s)",
-		len(data.ManagedDevices), len(data.ComanagedDevices)))
+	// Handle timeout
+	ctx, cancel := crud.HandleTimeout(ctx, data.Timeouts.Invoke, InvokeTimeout*time.Second, &resp.Diagnostics)
+	if cancel == nil {
+		return
+	}
+	defer cancel()
 
-	resp.SendProgress(action.InvokeProgressEvent{
-		Message: fmt.Sprintf("Starting on-demand proactive remediation for %d device(s) (%d managed, %d co-managed)...",
-			totalDevices, len(data.ManagedDevices), len(data.ComanagedDevices)),
+	totalDevices := len(data.ManagedDevices) + len(data.ComanagedDevices)
+	tflog.Debug(ctx, "Processing devices for proactive remediation", map[string]any{
+		"total_devices": totalDevices,
 	})
 
-	// Initiate remediation concurrently with error collection
-	results := make(chan remediationResult, totalDevices)
-	var wg sync.WaitGroup
-
-	// Initiate remediation on managed devices
-	for _, device := range data.ManagedDevices {
-		wg.Add(1)
-		go func(d ManagedDeviceProactiveRemediation) {
-			defer wg.Done()
-			err := a.initiateRemediationManagedDevice(ctx, d)
-			results <- remediationResult{
-				deviceID:       d.DeviceID.ValueString(),
-				scriptPolicyID: d.ScriptPolicyID.ValueString(),
-				deviceType:     "managed",
-				err:            err,
-			}
-		}(device)
+	// Get ignore_partial_failures setting
+	ignorePartialFailures := false
+	if !data.IgnorePartialFailures.IsNull() && !data.IgnorePartialFailures.IsUnknown() {
+		ignorePartialFailures = data.IgnorePartialFailures.ValueBool()
 	}
 
-	// Initiate remediation on co-managed devices
-	for _, device := range data.ComanagedDevices {
-		wg.Add(1)
-		go func(d ComanagedDeviceProactiveRemediation) {
-			defer wg.Done()
-			err := a.initiateRemediationComanagedDevice(ctx, d)
-			results <- remediationResult{
-				deviceID:       d.DeviceID.ValueString(),
-				scriptPolicyID: d.ScriptPolicyID.ValueString(),
-				deviceType:     "comanaged",
-				err:            err,
-			}
-		}(device)
+	// Get validate_device_exists setting (default: true)
+	validateDeviceExists := true
+	if !data.ValidateDeviceExists.IsNull() && !data.ValidateDeviceExists.IsUnknown() {
+		validateDeviceExists = data.ValidateDeviceExists.ValueBool()
 	}
 
-	// Close results channel once all goroutines complete
-	go func() {
-		wg.Wait()
-		close(results)
-	}()
+	// Perform API validation of devices if enabled
+	if validateDeviceExists {
+		tflog.Debug(ctx, "Performing device validation via API")
 
-	// Collect results and track progress
-	successCount := 0
-	var failedDevices []string
-	var lastError error
-
-	for result := range results {
-		if result.err != nil {
-			failedDevices = append(failedDevices, fmt.Sprintf("%s (%s, script: %s)",
-				result.deviceID, result.deviceType, result.scriptPolicyID))
-			lastError = result.err
-			tflog.Error(ctx, fmt.Sprintf("Failed to initiate remediation for %s device %s with script %s: %v",
-				result.deviceType, result.deviceID, result.scriptPolicyID, result.err))
-		} else {
-			successCount++
-			tflog.Debug(ctx, fmt.Sprintf("Successfully initiated remediation for %s device %s with script %s",
-				result.deviceType, result.deviceID, result.scriptPolicyID))
-
-			resp.SendProgress(action.InvokeProgressEvent{
-				Message: fmt.Sprintf("✓ Device %s (%s): Remediation initiated (Script: %s)",
-					result.deviceID, result.deviceType, result.scriptPolicyID),
-			})
-		}
-
-		// Send overall progress update
-		progress := float64(successCount+len(failedDevices)) / float64(totalDevices) * 100
-		resp.SendProgress(action.InvokeProgressEvent{
-			Message: fmt.Sprintf("Processed %d of %d devices (%.0f%% complete)",
-				successCount+len(failedDevices), totalDevices, progress),
-		})
-	}
-
-	// Report results
-	if len(failedDevices) > 0 {
-		if successCount > 0 {
-			// Partial success
-			resp.Diagnostics.AddWarning(
-				"Partial Success",
-				fmt.Sprintf("Successfully initiated on-demand proactive remediation for %d of %d devices. "+
-					"Failed devices: %v. Last error: %v\n\n"+
-					"Devices with successful initiation will execute the remediation script at next check-in. "+
-					"Results will be available in Intune portal.",
-					successCount, totalDevices, failedDevices, lastError),
+		validationResult, err := validateRequest(ctx, a.client, data.ManagedDevices, data.ComanagedDevices)
+		if err != nil {
+			tflog.Error(ctx, "Failed to validate devices via API", map[string]any{"error": err.Error()})
+			resp.Diagnostics.AddError(
+				"Device Validation Failed",
+				fmt.Sprintf("Failed to validate devices: %s", err.Error()),
 			)
-		} else {
-			// Complete failure
-			errors.HandleKiotaGraphError(ctx, lastError, resp, "Action", a.WritePermissions)
 			return
 		}
+
+		// Report validation results
+		results := validation.NewResults().
+			Error(validationResult.NonExistentManagedDevices, "managed device", "do not exist or are not managed by Intune").
+			Error(validationResult.NonExistentComanagedDevices, "co-managed device", "do not exist or are not managed by Intune").
+			Error(validationResult.UnsupportedManagedDevices, "managed device", "are not Windows devices").
+			Error(validationResult.UnsupportedComanagedDevices, "co-managed device", "are not Windows devices")
+
+		if results.Report(resp) {
+			return
+		}
+
+		tflog.Debug(ctx, "Device validation completed successfully")
+	} else {
+		tflog.Debug(ctx, "Device validation disabled, skipping API checks")
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Successfully initiated on-demand proactive remediation for %d device(s)", successCount))
+	// Create progress tracker and send initial message
+	progressTracker := progress.For(resp).WithTotalDevices(totalDevices).
+		Starting("on-demand proactive remediation",
+			fmt.Sprintf("%d managed, %d co-managed", len(data.ManagedDevices), len(data.ComanagedDevices)))
 
-	if successCount > 0 {
-		resp.SendProgress(action.InvokeProgressEvent{
-			Message: fmt.Sprintf("✓ On-demand proactive remediation initiated: %d device(s) will execute remediation scripts at next check-in.\n\n"+
-				"Script execution details:\n"+
-				"- Scripts run with SYSTEM privileges\n"+
-				"- Execution may take several minutes\n"+
-				"- Results available in Intune → Devices → Remediations\n"+
-				"- Check device-specific logs for detailed execution status",
-				successCount),
-		})
+	// Process managed devices
+	for _, device := range data.ManagedDevices {
+		deviceID := device.DeviceID.ValueString()
+		scriptPolicyID := device.ScriptPolicyID.ValueString()
+
+		err := a.initiateRemediationManagedDevice(ctx, device)
+		if err != nil {
+			progressTracker.Device(deviceID, "Managed").Failed(fmt.Sprintf("script policy %s: %s", scriptPolicyID, err.Error()))
+			tflog.Error(ctx, "Failed to initiate remediation for managed device", map[string]any{
+				"device_id":        deviceID,
+				"script_policy_id": scriptPolicyID,
+				"error":            err.Error(),
+			})
+		} else {
+			progressTracker.Device(deviceID, "Managed").Succeeded(fmt.Sprintf("proactive remediation initiated for script policy %s", scriptPolicyID))
+			tflog.Info(ctx, "Successfully initiated remediation for managed device", map[string]any{
+				"device_id":        deviceID,
+				"script_policy_id": scriptPolicyID,
+			})
+		}
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Finished %s", ActionName))
+	// Process co-managed devices
+	for _, device := range data.ComanagedDevices {
+		deviceID := device.DeviceID.ValueString()
+		scriptPolicyID := device.ScriptPolicyID.ValueString()
+
+		err := a.initiateRemediationComanagedDevice(ctx, device)
+		if err != nil {
+			progressTracker.Device(deviceID, "Co-managed").Failed(fmt.Sprintf("script policy %s: %s", scriptPolicyID, err.Error()))
+			tflog.Error(ctx, "Failed to initiate remediation for co-managed device", map[string]any{
+				"device_id":        deviceID,
+				"script_policy_id": scriptPolicyID,
+				"error":            err.Error(),
+			})
+		} else {
+			progressTracker.Device(deviceID, "Co-managed").Succeeded(fmt.Sprintf("proactive remediation initiated for script policy %s", scriptPolicyID))
+			tflog.Info(ctx, "Successfully initiated remediation for co-managed device", map[string]any{
+				"device_id":        deviceID,
+				"script_policy_id": scriptPolicyID,
+			})
+		}
+	}
+
+	// Handle results
+	if progressTracker.HasFailures() {
+		if ignorePartialFailures {
+			progressTracker.CompletedWithIgnoredFailures("on-demand proactive remediation")
+			tflog.Warn(ctx, "Proactive remediation completed with ignored failures", map[string]any{
+				"success_count": progressTracker.SuccessCount(),
+				"failed_count":  progressTracker.FailureCount(),
+			})
+		} else {
+			progressTracker.Failed("Proactive Remediation Failed", "initiate on-demand proactive remediation on devices")
+			return
+		}
+	} else {
+		progressTracker.CompletedSuccessfully("initiated on-demand proactive remediation on all devices")
+	}
+
+	tflog.Info(ctx, "On-demand proactive remediation action completed", map[string]any{
+		"success_count":            progressTracker.SuccessCount(),
+		"failed_count":             progressTracker.FailureCount(),
+		"total_devices":            totalDevices,
+		"partial_failures_ignored": ignorePartialFailures && progressTracker.HasFailures(),
+	})
 }
 
 func (a *InitiateOnDemandProactiveRemediationManagedDeviceAction) initiateRemediationManagedDevice(ctx context.Context, device ManagedDeviceProactiveRemediation) error {
-	deviceID := device.DeviceID.ValueString()
-	scriptPolicyID := device.ScriptPolicyID.ValueString()
-
-	tflog.Debug(ctx, fmt.Sprintf("Initiating on-demand proactive remediation for managed device %s with script policy %s",
-		deviceID, scriptPolicyID))
-
 	requestBody := constructManagedDeviceRequest(ctx, device)
 
 	err := a.client.
 		DeviceManagement().
 		ManagedDevices().
-		ByManagedDeviceId(deviceID).
+		ByManagedDeviceId(device.DeviceID.ValueString()).
 		InitiateOnDemandProactiveRemediation().
 		Post(ctx, requestBody, nil)
 
 	if err != nil {
-		return fmt.Errorf("failed to initiate on-demand proactive remediation for managed device %s with script policy %s: %w",
-			deviceID, scriptPolicyID, err)
+		return fmt.Errorf("%s", errors.HandleKiotaGraphErrorForAction(ctx, err))
 	}
 
 	return nil
 }
 
 func (a *InitiateOnDemandProactiveRemediationManagedDeviceAction) initiateRemediationComanagedDevice(ctx context.Context, device ComanagedDeviceProactiveRemediation) error {
-	deviceID := device.DeviceID.ValueString()
-	scriptPolicyID := device.ScriptPolicyID.ValueString()
-
-	tflog.Debug(ctx, fmt.Sprintf("Initiating on-demand proactive remediation for co-managed device %s with script policy %s",
-		deviceID, scriptPolicyID))
-
 	requestBody := constructComanagedDeviceRequest(ctx, device)
 
 	err := a.client.
 		DeviceManagement().
 		ComanagedDevices().
-		ByManagedDeviceId(deviceID).
+		ByManagedDeviceId(device.DeviceID.ValueString()).
 		InitiateOnDemandProactiveRemediation().
 		Post(ctx, requestBody, nil)
 
 	if err != nil {
-		return fmt.Errorf("failed to initiate on-demand proactive remediation for co-managed device %s with script policy %s: %w",
-			deviceID, scriptPolicyID, err)
+		return fmt.Errorf("%s", errors.HandleKiotaGraphErrorForAction(ctx, err))
 	}
 
 	return nil

@@ -61,6 +61,8 @@ The following API permissions are required in order to use this action.
 | Version | Status | Notes |
 |---------|--------|-------|
 | v0.33.0-alpha | Experimental | Initial release |
+| v0.40.0-alpha | Experimental | Example fixes and refactored sync progress logic |
+
 
 ## Notes
 
@@ -106,126 +108,122 @@ Play Lost Mode Sound is a feature that:
 ## Example Usage
 
 ```terraform
-# Example 1: Play lost mode sound on a single device with default duration
+# Example 1: Play lost mode sound for a single device - Minimal
 action "microsoft365_graph_beta_device_management_managed_device_play_lost_mode_sound" "play_sound_single" {
-
-  managed_devices {
-    device_id = "12345678-1234-1234-1234-123456789abc"
-  }
-
-  timeouts = {
-    invoke = "5m"
-  }
-}
-
-# Example 2: Play lost mode sound with specific duration
-action "microsoft365_graph_beta_device_management_managed_device_play_lost_mode_sound" "play_sound_with_duration" {
-
-  managed_devices {
-    device_id           = "12345678-1234-1234-1234-123456789abc"
-    duration_in_minutes = "5"
-  }
-
-  timeouts = {
-    invoke = "5m"
+  config {
+    managed_devices = [
+      {
+        device_id = "12345678-1234-1234-1234-123456789abc"
+      }
+    ]
   }
 }
 
-# Example 3: Play sound on multiple devices with different durations
+# Example 2: Play lost mode sound for multiple devices
 action "microsoft365_graph_beta_device_management_managed_device_play_lost_mode_sound" "play_sound_multiple" {
+  config {
+    managed_devices = [
+      {
+        device_id = "12345678-1234-1234-1234-123456789abc"
+      },
+      {
+        device_id = "87654321-4321-4321-4321-ba9876543210"
+      },
+      {
+        device_id = "abcdef12-3456-7890-abcd-ef1234567890"
+      }
+    ]
 
-  managed_devices {
-    device_id           = "12345678-1234-1234-1234-123456789abc"
-    duration_in_minutes = "3"
-  }
-
-  managed_devices {
-    device_id           = "87654321-4321-4321-4321-ba9876543210"
-    duration_in_minutes = "10"
-  }
-
-  timeouts = {
-    invoke = "10m"
+    timeouts = {
+      invoke = "10m"
+    }
   }
 }
 
-# Example 4: Play sound on all devices currently in lost mode
+# Example 3: Maximal configuration with validation
+action "microsoft365_graph_beta_device_management_managed_device_play_lost_mode_sound" "play_sound_maximal" {
+  config {
+    managed_devices = [
+      {
+        device_id = "12345678-1234-1234-1234-123456789abc"
+      },
+      {
+        device_id = "87654321-4321-4321-4321-ba9876543210"
+      }
+    ]
+
+    comanaged_devices = [
+      {
+        device_id = "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"
+      }
+    ]
+
+    ignore_partial_failures = true
+    validate_device_exists  = true
+
+    timeouts = {
+      invoke = "5m"
+    }
+  }
+}
+
+# Example 4: Play sound for all devices in lost mode
 data "microsoft365_graph_beta_device_management_managed_device" "devices_in_lost_mode" {
   filter_type  = "odata"
-  odata_filter = "lostModeState ne 'disabled' and operatingSystem eq 'iOS'"
+  odata_filter = "lostModeState eq 'enabled'"
 }
 
 action "microsoft365_graph_beta_device_management_managed_device_play_lost_mode_sound" "play_sound_all_lost_mode" {
+  config {
+    managed_devices = [
+      for device in data.microsoft365_graph_beta_device_management_managed_device.devices_in_lost_mode.items : {
+        device_id = device.id
+      }
+    ]
 
-  dynamic "managed_devices" {
-    for_each = data.microsoft365_graph_beta_device_management_managed_device.devices_in_lost_mode.items
-    content {
-      device_id           = managed_devices.value.id
-      duration_in_minutes = "5"
+    validate_device_exists = true
+
+    timeouts = {
+      invoke = "15m"
     }
-  }
-
-  timeouts = {
-    invoke = "15m"
   }
 }
 
-# Example 5: Play sound for specific user's devices in lost mode
+# Example 5: Play sound for user's devices in lost mode
 data "microsoft365_graph_beta_device_management_managed_device" "user_lost_devices" {
   filter_type  = "odata"
-  odata_filter = "userId eq 'user@example.com' and lostModeState ne 'disabled'"
+  odata_filter = "(userPrincipalName eq 'user@example.com') and (lostModeState eq 'enabled')"
 }
 
 action "microsoft365_graph_beta_device_management_managed_device_play_lost_mode_sound" "play_sound_user_devices" {
+  config {
+    managed_devices = [
+      for device in data.microsoft365_graph_beta_device_management_managed_device.user_lost_devices.items : {
+        device_id = device.id
+      }
+    ]
 
-  dynamic "managed_devices" {
-    for_each = data.microsoft365_graph_beta_device_management_managed_device.user_lost_devices.items
-    content {
-      device_id           = managed_devices.value.id
-      duration_in_minutes = "3"
+    timeouts = {
+      invoke = "5m"
     }
   }
-
-  timeouts = {
-    invoke = "10m"
-  }
 }
 
-# Example 6: Play sound on co-managed device
+# Example 6: Play sound for co-managed device
 action "microsoft365_graph_beta_device_management_managed_device_play_lost_mode_sound" "play_sound_comanaged" {
+  config {
+    comanaged_devices = [
+      {
+        device_id = "abcdef12-3456-7890-abcd-ef1234567890"
+      }
+    ]
 
-  comanaged_devices {
-    device_id           = "abcdef12-3456-7890-abcd-ef1234567890"
-    duration_in_minutes = "5"
-  }
-
-  timeouts = {
-    invoke = "5m"
-  }
-}
-
-# Example 7: Play sound to locate device nearby
-action "microsoft365_graph_beta_device_management_managed_device_play_lost_mode_sound" "locate_nearby_device" {
-
-  managed_devices {
-    device_id           = "12345678-1234-1234-1234-123456789abc"
-    duration_in_minutes = "2"
-  }
-
-  timeouts = {
-    invoke = "5m"
+    timeouts = {
+      invoke = "5m"
+    }
   }
 }
 
-# Output examples
-output "devices_with_sound" {
-  value       = length(action.play_sound_multiple.managed_devices)
-  description = "Number of devices that had lost mode sound played"
-}
-
-output "lost_mode_devices_count" {
-  value       = length(action.play_sound_all_lost_mode.managed_devices)
-  description = "Number of devices in lost mode that received sound command"
 }
 ```
 
@@ -234,15 +232,17 @@ output "lost_mode_devices_count" {
 
 ### Optional
 
-- `comanaged_devices` (Block List) List of co-managed devices to play lost mode sound on. These are iOS/iPadOS devices managed by both Intune and Configuration Manager (SCCM). Each entry specifies a device ID and the duration to play the sound.
+- `comanaged_devices` (Attributes List) List of co-managed devices to play lost mode sound on. These are iOS/iPadOS devices managed by both Intune and Configuration Manager (SCCM). Each entry specifies a device ID and the duration to play the sound.
 
-**Note:** At least one of `managed_devices` or `comanaged_devices` must be provided. (see [below for nested schema](#nestedblock--comanaged_devices))
-- `managed_devices` (Block List) List of managed devices to play lost mode sound on. These are iOS/iPadOS devices fully managed by Intune only. Each entry specifies a device ID and the duration to play the sound.
+**Note:** At least one of `managed_devices` or `comanaged_devices` must be provided. (see [below for nested schema](#nestedatt--comanaged_devices))
+- `ignore_partial_failures` (Boolean) If set to `true`, the action will succeed even if some operations fail. Failed operations will be reported as warnings instead of errors. Default: `false` (action fails if any operation fails).
+- `managed_devices` (Attributes List) List of managed devices to play lost mode sound on. These are iOS/iPadOS devices fully managed by Intune only. Each entry specifies a device ID and the duration to play the sound.
 
-**Note:** At least one of `managed_devices` or `comanaged_devices` must be provided. You can provide both to play sounds on different types of devices in one action. (see [below for nested schema](#nestedblock--managed_devices))
+**Note:** At least one of `managed_devices` or `comanaged_devices` must be provided. You can provide both to play sounds on different types of devices in one action. (see [below for nested schema](#nestedatt--managed_devices))
 - `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))
+- `validate_device_exists` (Boolean) Whether to validate that devices exist, are iOS/iPadOS devices, are supervised, and are in lost mode before attempting to play the sound. Disabling this can speed up planning but may result in runtime errors for non-existent, unsupported, or devices not in lost mode. Default: `true`.
 
-<a id="nestedblock--comanaged_devices"></a>
+<a id="nestedatt--comanaged_devices"></a>
 ### Nested Schema for `comanaged_devices`
 
 Required:
@@ -254,7 +254,7 @@ Optional:
 - `duration_in_minutes` (String) The duration in minutes to play the lost mode sound. Example: `"5"`
 
 
-<a id="nestedblock--managed_devices"></a>
+<a id="nestedatt--managed_devices"></a>
 ### Nested Schema for `managed_devices`
 
 Required:
@@ -271,9 +271,6 @@ Optional:
 
 Optional:
 
-- `create` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours).
-- `delete` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours). Setting a timeout for a Delete operation is only applicable if changes are saved into state before the destroy operation occurs.
-- `read` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours). Read operations occur during any refresh or planning operation when refresh is enabled.
-- `update` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours).
+- `invoke` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours).
 
 

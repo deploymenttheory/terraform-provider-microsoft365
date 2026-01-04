@@ -3,27 +3,34 @@ package graphBetaRetireManagedDevice
 import (
 	"context"
 	"fmt"
-	"sync"
+	"time"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/progress"
+
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/validation"
+
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
 	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
-type retireResult struct {
-	deviceID string
-	err      error
-}
-
 func (a *RetireManagedDeviceAction) Invoke(ctx context.Context, req action.InvokeRequest, resp *action.InvokeResponse) {
 	var data RetireManagedDeviceActionModel
 
-	tflog.Debug(ctx, fmt.Sprintf("Starting %s", ActionName))
+	tflog.Debug(ctx, "Starting retire action", map[string]any{"action": ActionName})
 
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
+	// Handle timeout
+	ctx, cancel := crud.HandleTimeout(ctx, data.Timeouts.Invoke, InvokeTimeout*time.Second, &resp.Diagnostics)
+	if cancel == nil {
+		return
+	}
+	defer cancel()
 
 	var deviceIDs []string
 	resp.Diagnostics.Append(data.DeviceIDs.ElementsAs(ctx, &deviceIDs, false)...)
@@ -32,80 +39,99 @@ func (a *RetireManagedDeviceAction) Invoke(ctx context.Context, req action.Invok
 	}
 
 	totalDevices := len(deviceIDs)
-	tflog.Debug(ctx, fmt.Sprintf("Performing action %s for %d device(s)", ActionName, totalDevices))
-
-	resp.SendProgress(action.InvokeProgressEvent{
-		Message: fmt.Sprintf("Starting retirement of %d managed device(s)...", totalDevices),
+	tflog.Debug(ctx, "Processing devices for retirement", map[string]any{
+		"total_devices": totalDevices,
 	})
 
-	// Retire devices concurrently with error collection
-	results := make(chan retireResult, totalDevices)
-	var wg sync.WaitGroup
-
-	for _, deviceID := range deviceIDs {
-		wg.Add(1)
-		go func(id string) {
-			defer wg.Done()
-			err := a.retireDevice(ctx, id)
-			results <- retireResult{deviceID: id, err: err}
-		}(deviceID)
+	// Get ignore_partial_failures setting
+	ignorePartialFailures := false
+	if !data.IgnorePartialFailures.IsNull() && !data.IgnorePartialFailures.IsUnknown() {
+		ignorePartialFailures = data.IgnorePartialFailures.ValueBool()
 	}
 
-	// Close results channel once all goroutines complete
-	go func() {
-		wg.Wait()
-		close(results)
-	}()
-
-	// Collect results and track progress
-	successCount := 0
-	var failedDevices []string
-	var lastError error
-
-	for result := range results {
-		if result.err != nil {
-			failedDevices = append(failedDevices, result.deviceID)
-			lastError = result.err
-			tflog.Error(ctx, fmt.Sprintf("Failed to retire device %s: %v", result.deviceID, result.err))
-		} else {
-			successCount++
-			tflog.Debug(ctx, fmt.Sprintf("Successfully retired device %s", result.deviceID))
-		}
-
-		// Send progress update
-		progress := float64(successCount+len(failedDevices)) / float64(totalDevices) * 100
-		resp.SendProgress(action.InvokeProgressEvent{
-			Message: fmt.Sprintf("Retired %d of %d devices (%.0f%% complete)", successCount+len(failedDevices), totalDevices, progress),
-		})
+	// Get validate_device_exists setting (default: true)
+	validateDeviceExists := true
+	if !data.ValidateDeviceExists.IsNull() && !data.ValidateDeviceExists.IsUnknown() {
+		validateDeviceExists = data.ValidateDeviceExists.ValueBool()
 	}
 
-	// Report results
-	if len(failedDevices) > 0 {
-		if successCount > 0 {
-			// Partial success
-			resp.Diagnostics.AddWarning(
-				"Partial Success",
-				fmt.Sprintf("Successfully retired %d of %d devices. Failed devices: %v. Last error: %v",
-					successCount, totalDevices, failedDevices, lastError),
+	// Perform API validation of devices if enabled
+	if validateDeviceExists {
+		tflog.Debug(ctx, "Performing device validation via API")
+
+		validationResult, err := validateRequest(ctx, a.client, deviceIDs)
+		if err != nil {
+			tflog.Error(ctx, "Failed to validate devices via API", map[string]any{"error": err.Error()})
+			resp.Diagnostics.AddError(
+				"Device Validation Failed",
+				fmt.Sprintf("Failed to validate devices: %s", err.Error()),
 			)
-		} else {
-			// Complete failure
-			errors.HandleKiotaGraphError(ctx, lastError, resp, "Action", a.WritePermissions)
 			return
 		}
+
+		// Report validation results
+		results := validation.NewResults().
+			Error(validationResult.NonExistentDevices, "device", "do not exist or are not managed by Intune").
+			Error(validationResult.UnsupportedDevices, "device", "are not supported for retire. Retire is supported on Windows, iOS, iPadOS, macOS, Android, and ChromeOS devices")
+
+		if results.Report(resp) {
+			return
+		}
+
+		tflog.Debug(ctx, "Device validation completed successfully")
+	} else {
+		tflog.Debug(ctx, "Device validation disabled, skipping API checks")
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Successfully retired %d device(s)", successCount))
+	// Create progress tracker and send initial message
+	progressTracker := progress.For(resp).WithTotalDevices(totalDevices).
+		Starting("retirement", fmt.Sprintf("%d devices", totalDevices))
 
-	resp.SendProgress(action.InvokeProgressEvent{
-		Message: fmt.Sprintf("Retirement complete: %d device(s) successfully retired", successCount),
+	// Process devices sequentially
+	for _, deviceID := range deviceIDs {
+		err := a.retireDevice(ctx, deviceID)
+		if err != nil {
+			progressTracker.Device(deviceID, "").Failed(err.Error())
+			tflog.Error(ctx, "Failed to retire device", map[string]any{
+				"device_id": deviceID,
+				"error":     err.Error(),
+			})
+		} else {
+			progressTracker.Device(deviceID, "").Succeeded("retired")
+			tflog.Info(ctx, "Successfully retired device", map[string]any{
+				"device_id": deviceID,
+			})
+		}
+	}
+
+	// Handle results
+	if progressTracker.HasFailures() {
+		if ignorePartialFailures {
+			progressTracker.CompletedWithIgnoredFailures("retirement")
+			tflog.Warn(ctx, "Retire action completed with ignored failures", map[string]any{
+				"success_count": progressTracker.SuccessCount(),
+				"failed_count":  progressTracker.FailureCount(),
+			})
+		} else {
+			progressTracker.Failed("Device Retirement Failed", "retire devices")
+			return
+		}
+	} else {
+		progressTracker.CompletedSuccessfully("retired all devices from Intune management. Company data has been removed and devices can no longer access company resources")
+	}
+
+	tflog.Info(ctx, "Retire action completed", map[string]any{
+		"success_count":            progressTracker.SuccessCount(),
+		"failed_count":             progressTracker.FailureCount(),
+		"total_devices":            totalDevices,
+		"partial_failures_ignored": ignorePartialFailures && progressTracker.HasFailures(),
 	})
-
-	tflog.Debug(ctx, fmt.Sprintf("Finished %s", ActionName))
 }
 
 func (a *RetireManagedDeviceAction) retireDevice(ctx context.Context, deviceID string) error {
-	tflog.Debug(ctx, fmt.Sprintf("Retiring device with ID: %s", deviceID))
+	tflog.Debug(ctx, "Retiring device", map[string]any{
+		"device_id": deviceID,
+	})
 
 	err := a.client.
 		DeviceManagement().
@@ -115,7 +141,7 @@ func (a *RetireManagedDeviceAction) retireDevice(ctx context.Context, deviceID s
 		Post(ctx, nil)
 
 	if err != nil {
-		return fmt.Errorf("failed to retire device %s: %w", deviceID, err)
+		return fmt.Errorf("%s", errors.HandleKiotaGraphErrorForAction(ctx, err))
 	}
 
 	return nil

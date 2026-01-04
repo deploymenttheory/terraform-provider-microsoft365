@@ -32,16 +32,45 @@ The following API permissions are required in order to use this action.
 ## Example Usage
 
 ```terraform
-# Update device properties action
-action "microsoft365_graph_beta_device_management_windows_autopilot_device_identity_update_device_properties" "example" {
-  windows_autopilot_device_identity_id = "12345678-1234-1234-1234-123456789012"
-  user_principal_name                  = "user@contoso.com"
-  addressable_user_name                = "John Doe"
-  group_tag                            = "Finance"
-  display_name                         = "John's Laptop"
+# Example 1: Update Autopilot device properties
+action "microsoft365_graph_beta_device_management_windows_autopilot_device_identity_update_device_properties" "update_properties" {
+  config {
+    windows_autopilot_device_identity_id = "12345678-1234-1234-1234-123456789abc"
+    user_principal_name                  = "user@contoso.com"
+    addressable_user_name                = "John Doe"
+    group_tag                            = "Finance"
+    display_name                         = "John's Laptop"
 
-  timeouts = {
-    create = "5m"
+    timeouts = {
+      invoke = "5m"
+    }
+  }
+}
+
+# Example 2: Update Autopilot device properties with minimal fields
+action "microsoft365_graph_beta_device_management_windows_autopilot_device_identity_update_device_properties" "update_minimal" {
+  config {
+    windows_autopilot_device_identity_id = "87654321-4321-4321-4321-ba9876543210"
+    display_name                         = "IT Department Laptop"
+
+    timeouts = {
+      invoke = "5m"
+    }
+  }
+}
+
+# Example 3: Update multiple Autopilot device properties
+action "microsoft365_graph_beta_device_management_windows_autopilot_device_identity_update_device_properties" "update_extended" {
+  config {
+    windows_autopilot_device_identity_id = "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"
+    user_principal_name                  = "jane.smith@contoso.com"
+    addressable_user_name                = "Jane Smith"
+    group_tag                            = "Marketing"
+    display_name                         = "Jane's Surface Pro"
+
+    timeouts = {
+      invoke = "10m"
+    }
   }
 }
 ```
@@ -66,7 +95,4 @@ action "microsoft365_graph_beta_device_management_windows_autopilot_device_ident
 
 Optional:
 
-- `create` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours).
-- `delete` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours). Setting a timeout for a Delete operation is only applicable if changes are saved into state before the destroy operation occurs.
-- `read` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours). Read operations occur during any refresh or planning operation when refresh is enabled.
-- `update` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours).
+- `invoke` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours).

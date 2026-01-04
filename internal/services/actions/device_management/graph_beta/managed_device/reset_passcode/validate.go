@@ -3,7 +3,6 @@ package graphBetaResetManagedDevicePasscode
 import (
 	"context"
 	"fmt"
-	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -19,31 +18,13 @@ func (a *ResetManagedDevicePasscodeAction) ValidateConfig(ctx context.Context, r
 		return
 	}
 
-	// Validate that device_ids is not empty
-	if data.DeviceIDs.IsNull() || data.DeviceIDs.IsUnknown() {
-		resp.Diagnostics.AddAttributeError(
-			path.Root("device_ids"),
-			"Missing Required Configuration",
-			"device_ids must be specified and contain at least one device ID.",
-		)
-		return
-	}
-
 	var deviceIDs []string
 	resp.Diagnostics.Append(data.DeviceIDs.ElementsAs(ctx, &deviceIDs, false)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	if len(deviceIDs) == 0 {
-		resp.Diagnostics.AddAttributeError(
-			path.Root("device_ids"),
-			"Invalid Configuration",
-			"device_ids must contain at least one device ID.",
-		)
-		return
-	}
-
+	// Check for duplicate device IDs
 	deviceIDMap := make(map[string]bool)
 	var duplicates []string
 
@@ -64,70 +45,7 @@ func (a *ResetManagedDevicePasscodeAction) ValidateConfig(ctx context.Context, r
 		)
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Validating passcode reset action for %d device(s)", len(deviceIDs)))
-
-	var unsupportedDevices []string
-
-	for _, deviceID := range deviceIDs {
-		device, err := a.client.
-			DeviceManagement().
-			ManagedDevices().
-			ByManagedDeviceId(deviceID).
-			Get(ctx, nil)
-
-		if err != nil {
-			resp.Diagnostics.AddAttributeWarning(
-				path.Root("device_ids"),
-				"Unable to Validate Device",
-				fmt.Sprintf("Could not fetch managed device with ID %s to validate. "+
-					"Ensure the device exists and you have permission to manage it. "+
-					"Error: %s", deviceID, err.Error()),
-			)
-			continue
-		}
-
-		if device == nil {
-			resp.Diagnostics.AddAttributeWarning(
-				path.Root("device_ids"),
-				"Device Not Found",
-				fmt.Sprintf("Managed device with ID %s was not found. "+
-					"Ensure the device ID is correct and the device is enrolled in Intune.", deviceID),
-			)
-			continue
-		}
-
-		// Check platform compatibility - reset passcode is only supported on Android
-		if device.GetOperatingSystem() != nil {
-			os := strings.ToLower(*device.GetOperatingSystem())
-			if os != "android" {
-				unsupportedDevices = append(unsupportedDevices, fmt.Sprintf("%s (OS: %s)", deviceID, *device.GetOperatingSystem()))
-				continue
-			}
-		} else {
-			unsupportedDevices = append(unsupportedDevices, fmt.Sprintf("%s (Unknown OS)", deviceID))
-			continue
-		}
-
-		// Log device details for debugging
-		deviceName := "unknown"
-		if device.GetDeviceName() != nil {
-			deviceName = *device.GetDeviceName()
-		}
-		tflog.Debug(ctx, fmt.Sprintf("Validated device %s (Name: %s) for passcode reset", deviceID, deviceName))
-	}
-
-	// Error for unsupported devices
-	if len(unsupportedDevices) > 0 {
-		resp.Diagnostics.AddAttributeError(
-			path.Root("device_ids"),
-			"Unsupported Devices for Reset Passcode",
-			fmt.Sprintf("Reset passcode is only supported on Android devices. The following devices are not supported: %s. "+
-				"Please remove unsupported devices from the configuration.",
-				strings.Join(unsupportedDevices, ", ")),
-		)
-	}
-
-	// General warning about device connectivity
+	// General warning about device connectivity and passcode retrieval
 	if len(deviceIDs) > 0 {
 		resp.Diagnostics.AddWarning(
 			"Device Connectivity Required",
@@ -140,5 +58,7 @@ func (a *ResetManagedDevicePasscodeAction) ValidateConfig(ctx context.Context, r
 		)
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Validation complete for %d device(s)", len(deviceIDs)))
+	tflog.Debug(ctx, "Static validation completed", map[string]any{
+		"total_devices": len(deviceIDs),
+	})
 }

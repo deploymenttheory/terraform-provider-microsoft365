@@ -1,109 +1,73 @@
-# ============================================================================
-# Example 1: Logout active user from single Shared iPad
-# ============================================================================
-# Use case: End of class period logout
-action "microsoft365_graph_beta_device_management_managed_device_logout_shared_apple_device_active_user" "single_device" {
-
-  device_ids = ["12345678-1234-1234-1234-123456789abc"]
-
-  timeouts = {
-    invoke = "5m"
+# Example 1: Logout active user from a single shared Apple device - Minimal
+action "microsoft365_graph_beta_device_management_managed_device_logout_shared_apple_device_active_user" "logout_single" {
+  config {
+    device_ids = ["12345678-1234-1234-1234-123456789abc"]
   }
 }
 
-# ============================================================================
-# Example 2: Logout active users from multiple Shared iPads
-# ============================================================================
-# Use case: End of day logout for classroom cart devices
-action "microsoft365_graph_beta_device_management_managed_device_logout_shared_apple_device_active_user" "multiple_devices" {
+# Example 2: Logout active users from multiple shared Apple devices
+action "microsoft365_graph_beta_device_management_managed_device_logout_shared_apple_device_active_user" "logout_multiple" {
+  config {
+    device_ids = [
+      "12345678-1234-1234-1234-123456789abc",
+      "87654321-4321-4321-4321-ba9876543210",
+      "abcdef12-3456-7890-abcd-ef1234567890"
+    ]
 
-  device_ids = [
-    "12345678-1234-1234-1234-123456789abc",
-    "87654321-4321-4321-4321-ba9876543210",
-    "abcdef12-3456-7890-abcd-ef1234567890"
-  ]
-
-  timeouts = {
-    invoke = "10m"
+    timeouts = {
+      invoke = "10m"
+    }
   }
 }
 
-# ============================================================================
-# Example 3: Logout all Shared iPads in specific group
-# ============================================================================
-# Use case: Classroom management for scheduled logout
-data "microsoft365_graph_beta_device_management_managed_device" "classroom_shared_ipads" {
+# Example 3: Logout with validation - Maximal
+action "microsoft365_graph_beta_device_management_managed_device_logout_shared_apple_device_active_user" "logout_maximal" {
+  config {
+    device_ids = [
+      "12345678-1234-1234-1234-123456789abc",
+      "87654321-4321-4321-4321-ba9876543210"
+    ]
+
+    ignore_partial_failures = true
+    validate_device_exists  = true
+
+    timeouts = {
+      invoke = "5m"
+    }
+  }
+}
+
+# Example 4: Logout users from all shared iPads
+data "microsoft365_graph_beta_device_management_managed_device" "shared_ipads" {
   filter_type  = "odata"
-  odata_filter = "(operatingSystem eq 'iPadOS') and (isSupervised eq true)"
+  odata_filter = "(operatingSystem eq 'iPadOS') and (managementMode eq 'shared')"
 }
 
-# Filter to only devices with "SharediPad" in the name
-locals {
-  shared_ipad_devices = [
-    for device in data.microsoft365_graph_beta_device_management_managed_device.classroom_shared_ipads.items :
-    device.id if can(regex("SharediPad", device.device_name))
-  ]
-}
+action "microsoft365_graph_beta_device_management_managed_device_logout_shared_apple_device_active_user" "logout_all_shared_ipads" {
+  config {
+    device_ids = [for device in data.microsoft365_graph_beta_device_management_managed_device.shared_ipads.items : device.id]
 
-action "microsoft365_graph_beta_device_management_managed_device_logout_shared_apple_device_active_user" "logout_classroom" {
+    validate_device_exists  = true
+    ignore_partial_failures = true
 
-  device_ids = local.shared_ipad_devices
-
-  timeouts = {
-    invoke = "15m"
+    timeouts = {
+      invoke = "15m"
+    }
   }
 }
 
-# ============================================================================
-# Example 4: Logout Shared iPads by device name pattern
-# ============================================================================
-# Use case: Lab or cart devices with specific naming convention
-data "microsoft365_graph_beta_device_management_managed_device" "lab_ipads" {
-  filter_type  = "device_name"
-  filter_value = "LAB-IPAD-"
-}
-
-action "microsoft365_graph_beta_device_management_managed_device_logout_shared_apple_device_active_user" "logout_lab_devices" {
-
-  device_ids = [for device in data.microsoft365_graph_beta_device_management_managed_device.lab_ipads.items : device.id]
-
-  timeouts = {
-    invoke = "10m"
-  }
-}
-
-# ============================================================================
-# Example 5: Logout supervised iPads (potential Shared iPads)
-# ============================================================================
-# Use case: End of semester cleanup for all supervised iPads
-data "microsoft365_graph_beta_device_management_managed_device" "supervised_ipads" {
+# Example 5: Logout users from classroom iPads at end of day
+data "microsoft365_graph_beta_device_management_managed_device" "classroom_ipads" {
   filter_type  = "odata"
-  odata_filter = "(operatingSystem eq 'iPadOS') and (isSupervised eq true)"
+  odata_filter = "(deviceCategoryDisplayName eq 'Classroom') and (operatingSystem eq 'iPadOS')"
 }
 
-action "microsoft365_graph_beta_device_management_managed_device_logout_shared_apple_device_active_user" "logout_supervised" {
+action "microsoft365_graph_beta_device_management_managed_device_logout_shared_apple_device_active_user" "logout_classroom_ipads" {
+  config {
+    device_ids = [for device in data.microsoft365_graph_beta_device_management_managed_device.classroom_ipads.items : device.id]
 
-  device_ids = [for device in data.microsoft365_graph_beta_device_management_managed_device.supervised_ipads.items : device.id]
-
-  timeouts = {
-    invoke = "20m"
-  }
-}
-
-# ============================================================================
-# Example 6: Logout company-owned supervised iPads
-# ============================================================================
-# Use case: Institutional device rotation
-data "microsoft365_graph_beta_device_management_managed_device" "company_ipads" {
-  filter_type  = "odata"
-  odata_filter = "(operatingSystem eq 'iPadOS') and (managedDeviceOwnerType eq 'company') and (isSupervised eq true)"
-}
-
-action "microsoft365_graph_beta_device_management_managed_device_logout_shared_apple_device_active_user" "logout_company_ipads" {
-
-  device_ids = [for device in data.microsoft365_graph_beta_device_management_managed_device.company_ipads.items : device.id]
-
-  timeouts = {
-    invoke = "15m"
+    timeouts = {
+      invoke = "10m"
+    }
   }
 }

@@ -85,6 +85,8 @@ The following API permissions are required in order to use this action.
 | Version | Status | Notes |
 |---------|--------|-------|
 | v0.33.0-alpha | Experimental | Initial release |
+| v0.40.0-alpha | Experimental | Example fixes and refactored sync progress logic |
+
 
 ## Notes
 
@@ -469,159 +471,120 @@ The following API permissions are required in order to use this action.
 ## Example Usage
 
 ```terraform
-# ============================================================================
-# Example 1: Update signatures on managed devices only
-# ============================================================================
-# Use case: Force signature update on fully Intune-managed Windows devices
-action "microsoft365_graph_beta_device_management_managed_device_windows_defender_update_signatures" "update_managed_only" {
-
-  managed_device_ids = [
-    "12345678-1234-1234-1234-123456789abc",
-    "87654321-4321-4321-4321-ba9876543210",
-    "abcdef12-3456-7890-abcd-ef1234567890"
-  ]
-
-  timeouts = {
-    invoke = "10m"
+# Example 1: Update signatures on a single managed device - Minimal
+action "microsoft365_graph_beta_device_management_managed_device_windows_defender_update_signatures" "update_single" {
+  config {
+    managed_device_ids = [
+      "12345678-1234-1234-1234-123456789abc"
+    ]
   }
 }
 
-# ============================================================================
-# Example 2: Update signatures on co-managed devices only
-# ============================================================================
-# Use case: Update definitions on devices managed by both Intune and ConfigMgr
-action "microsoft365_graph_beta_device_management_managed_device_windows_defender_update_signatures" "update_comanaged_only" {
+# Example 2: Update signatures on multiple managed devices
+action "microsoft365_graph_beta_device_management_managed_device_windows_defender_update_signatures" "update_multiple_managed" {
+  config {
+    managed_device_ids = [
+      "12345678-1234-1234-1234-123456789abc",
+      "87654321-4321-4321-4321-ba9876543210",
+      "abcdef12-3456-7890-abcd-ef1234567890"
+    ]
 
-  comanaged_device_ids = [
-    "12345678-1234-1234-1234-123456789abc",
-    "87654321-4321-4321-4321-ba9876543210"
-  ]
-
-  timeouts = {
-    invoke = "10m"
+    timeouts = {
+      invoke = "10m"
+    }
   }
 }
 
-# ============================================================================
-# Example 3: Update both managed and co-managed devices
-# ============================================================================
-# Use case: Mixed environment with both device types
+# Example 3: Update signatures on co-managed devices
+action "microsoft365_graph_beta_device_management_managed_device_windows_defender_update_signatures" "update_comanaged" {
+  config {
+    comanaged_device_ids = [
+      "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee",
+      "11111111-2222-3333-4444-555555555555"
+    ]
+
+    timeouts = {
+      invoke = "10m"
+    }
+  }
+}
+
+# Example 4: Update both managed and co-managed devices - Maximal
 action "microsoft365_graph_beta_device_management_managed_device_windows_defender_update_signatures" "update_mixed_devices" {
+  config {
+    managed_device_ids = [
+      "12345678-1234-1234-1234-123456789abc",
+      "87654321-4321-4321-4321-ba9876543210"
+    ]
 
-  managed_device_ids = [
-    "12345678-1234-1234-1234-123456789abc",
-    "87654321-4321-4321-4321-ba9876543210"
-  ]
+    comanaged_device_ids = [
+      "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"
+    ]
 
-  comanaged_device_ids = [
-    "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee",
-    "11111111-2222-3333-4444-555555555555"
-  ]
+    ignore_partial_failures = true
+    validate_device_exists  = true
 
-  timeouts = {
-    invoke = "15m"
+    timeouts = {
+      invoke = "15m"
+    }
   }
 }
 
-# ============================================================================
-# Example 4: Update all Windows devices using datasource
-# ============================================================================
-# Use case: Emergency update after new threat discovered
+# Example 5: Update all Windows devices using datasource
 data "microsoft365_graph_beta_device_management_managed_device" "all_windows" {
   filter_type  = "odata"
   odata_filter = "operatingSystem eq 'Windows'"
 }
 
 action "microsoft365_graph_beta_device_management_managed_device_windows_defender_update_signatures" "update_all_windows" {
+  config {
+    managed_device_ids = [for device in data.microsoft365_graph_beta_device_management_managed_device.all_windows.items : device.id]
 
-  managed_device_ids = [for device in data.microsoft365_graph_beta_device_management_managed_device.all_windows.items : device.id]
+    validate_device_exists  = true
+    ignore_partial_failures = true
 
-  timeouts = {
-    invoke = "30m"
-  }
-}
-
-# ============================================================================
-# Example 5: Update signatures before scheduled scan
-# ============================================================================
-# Use case: Ensure latest definitions before running antivirus scans
-data "microsoft365_graph_beta_device_management_managed_device" "workstations" {
-  filter_type  = "device_name"
-  filter_value = "WKSTN-"
-}
-
-# First, update signatures
-action "microsoft365_graph_beta_device_management_managed_device_windows_defender_update_signatures" "pre_scan_update" {
-
-  managed_device_ids = [for device in data.microsoft365_graph_beta_device_management_managed_device.workstations.items : device.id]
-
-  timeouts = {
-    invoke = "15m"
-  }
-}
-
-# Then, run full scan (would need to wait for signature update to complete)
-action "microsoft365_graph_beta_device_management_managed_device_windows_defender_scan" "post_update_scan" {
-
-  managed_devices = [
-    for device in data.microsoft365_graph_beta_device_management_managed_device.workstations.items : {
-      device_id  = device.id
-      quick_scan = false
+    timeouts = {
+      invoke = "30m"
     }
-  ]
-
-  timeouts = {
-    invoke = "20m"
-  }
-
-  # In practice, you'd want to ensure signature update completes first
-  depends_on = [action.microsoft365_graph_beta_device_management_managed_device_windows_defender_update_signatures.pre_scan_update]
-}
-
-# ============================================================================
-# Example 6: Update devices with outdated definitions
-# ============================================================================
-# Use case: Target devices that haven't updated recently
-locals {
-  # Example list of devices with outdated signatures
-  devices_need_update = [
-    "12345678-1234-1234-1234-123456789abc",
-    "87654321-4321-4321-4321-ba9876543210",
-    "abcdef12-3456-7890-abcd-ef1234567890"
-  ]
-}
-
-action "microsoft365_graph_beta_device_management_managed_device_windows_defender_update_signatures" "update_outdated" {
-
-  managed_device_ids = local.devices_need_update
-
-  timeouts = {
-    invoke = "15m"
   }
 }
 
-# ============================================================================
-# Example 7: Department-specific update
-# ============================================================================
-# Use case: Update signatures for specific department or location
-data "microsoft365_graph_beta_device_management_managed_device" "finance_devices" {
-  filter_type  = "device_name"
-  filter_value = "FIN-"
+# Example 6: Update signatures before scheduled scan
+data "microsoft365_graph_beta_device_management_managed_device" "workstations" {
+  filter_type  = "odata"
+  odata_filter = "startsWith(deviceName, 'WKSTN-')"
 }
 
-action "microsoft365_graph_beta_device_management_managed_device_windows_defender_update_signatures" "update_finance_dept" {
+action "microsoft365_graph_beta_device_management_managed_device_windows_defender_update_signatures" "pre_scan_update" {
+  config {
+    managed_device_ids = [for device in data.microsoft365_graph_beta_device_management_managed_device.workstations.items : device.id]
 
-  managed_device_ids = [for device in data.microsoft365_graph_beta_device_management_managed_device.finance_devices.items : device.id]
-
-  timeouts = {
-    invoke = "10m"
+    timeouts = {
+      invoke = "15m"
+    }
   }
 }
 
-# ============================================================================
-# Example 8: Update after threat intelligence alert
-# ============================================================================
-# Use case: Zero-day threat response - immediate update across fleet
+# Example 7: Update non-compliant devices
+data "microsoft365_graph_beta_device_management_managed_device" "non_compliant_windows" {
+  filter_type  = "odata"
+  odata_filter = "(operatingSystem eq 'Windows') and (complianceState eq 'noncompliant')"
+}
+
+action "microsoft365_graph_beta_device_management_managed_device_windows_defender_update_signatures" "update_non_compliant" {
+  config {
+    managed_device_ids = [for device in data.microsoft365_graph_beta_device_management_managed_device.non_compliant_windows.items : device.id]
+
+    validate_device_exists  = true
+    ignore_partial_failures = false
+
+    timeouts = {
+      invoke = "20m"
+    }
+  }
+}
+
+# Example 8: Emergency threat response across fleet
 data "microsoft365_graph_beta_device_management_managed_device" "all_windows_devices" {
   filter_type  = "odata"
   odata_filter = "operatingSystem eq 'Windows'"
@@ -633,102 +596,16 @@ data "microsoft365_graph_beta_device_management_managed_device" "all_comanaged" 
 }
 
 action "microsoft365_graph_beta_device_management_managed_device_windows_defender_update_signatures" "emergency_threat_response" {
+  config {
+    managed_device_ids   = [for device in data.microsoft365_graph_beta_device_management_managed_device.all_windows_devices.items : device.id]
+    comanaged_device_ids = [for device in data.microsoft365_graph_beta_device_management_managed_device.all_comanaged.items : device.id]
 
-  managed_device_ids   = [for device in data.microsoft365_graph_beta_device_management_managed_device.all_windows_devices.items : device.id]
-  comanaged_device_ids = [for device in data.microsoft365_graph_beta_device_management_managed_device.all_comanaged.items : device.id]
+    validate_device_exists  = true
+    ignore_partial_failures = true
 
-  timeouts = {
-    invoke = "60m"
-  }
-}
-
-# ============================================================================
-# Example 9: Update Windows Servers only
-# ============================================================================
-# Use case: Ensure server infrastructure has latest threat definitions
-data "microsoft365_graph_beta_device_management_managed_device" "windows_servers" {
-  filter_type  = "odata"
-  odata_filter = "(operatingSystem eq 'Windows') and (contains(deviceName, 'SRV'))"
-}
-
-action "microsoft365_graph_beta_device_management_managed_device_windows_defender_update_signatures" "update_servers" {
-
-  managed_device_ids = [for device in data.microsoft365_graph_beta_device_management_managed_device.windows_servers.items : device.id]
-
-  timeouts = {
-    invoke = "15m"
-  }
-}
-
-# ============================================================================
-# Example 10: Update non-compliant devices
-# ============================================================================
-# Use case: Force update on non-compliant devices to help remediation
-data "microsoft365_graph_beta_device_management_managed_device" "non_compliant_windows" {
-  filter_type  = "odata"
-  odata_filter = "(operatingSystem eq 'Windows') and (complianceState eq 'noncompliant')"
-}
-
-action "microsoft365_graph_beta_device_management_managed_device_windows_defender_update_signatures" "update_non_compliant" {
-
-  managed_device_ids = [for device in data.microsoft365_graph_beta_device_management_managed_device.non_compliant_windows.items : device.id]
-
-  timeouts = {
-    invoke = "20m"
-  }
-}
-
-# ============================================================================
-# Example 11: Update by user assignment
-# ============================================================================
-# Use case: Update all Windows devices for specific user
-data "microsoft365_graph_beta_device_management_managed_device" "user_devices" {
-  filter_type  = "odata"
-  odata_filter = "(operatingSystem eq 'Windows') and (userPrincipalName eq 'john.doe@company.com')"
-}
-
-action "microsoft365_graph_beta_device_management_managed_device_windows_defender_update_signatures" "update_user_devices" {
-
-  managed_device_ids = [for device in data.microsoft365_graph_beta_device_management_managed_device.user_devices.items : device.id]
-
-  timeouts = {
-    invoke = "10m"
-  }
-}
-
-# ============================================================================
-# Example 12: Scheduled monthly update (using Terraform Cloud/Enterprise)
-# ============================================================================
-# Use case: Regular maintenance - ensure all devices have current definitions
-data "microsoft365_graph_beta_device_management_managed_device" "all_managed_windows" {
-  filter_type  = "odata"
-  odata_filter = "operatingSystem eq 'Windows'"
-}
-
-action "microsoft365_graph_beta_device_management_managed_device_windows_defender_update_signatures" "monthly_signature_refresh" {
-
-  managed_device_ids = [for device in data.microsoft365_graph_beta_device_management_managed_device.all_managed_windows.items : device.id]
-
-  timeouts = {
-    invoke = "45m"
-  }
-}
-
-# ============================================================================
-# Example 13: Compliance preparation
-# ============================================================================
-# Use case: Update signatures before compliance audit
-data "microsoft365_graph_beta_device_management_managed_device" "audit_scope_devices" {
-  filter_type  = "device_name"
-  filter_value = "AUDIT-"
-}
-
-action "microsoft365_graph_beta_device_management_managed_device_windows_defender_update_signatures" "pre_audit_update" {
-
-  managed_device_ids = [for device in data.microsoft365_graph_beta_device_management_managed_device.audit_scope_devices.items : device.id]
-
-  timeouts = {
-    invoke = "15m"
+    timeouts = {
+      invoke = "60m"
+    }
   }
 }
 ```
@@ -748,19 +625,18 @@ action "microsoft365_graph_beta_device_management_managed_device_windows_defende
 - No conflict between systems
 
 **Note:** At least one of `managed_device_ids` or `comanaged_device_ids` must be provided.
+- `ignore_partial_failures` (Boolean) When set to `true`, the action will complete successfully even if some devices fail to update signatures. When `false` (default), the action will fail if any device update fails. Use this flag when updating multiple devices and you want the action to succeed even if some updates fail.
 - `managed_device_ids` (List of String) List of managed device IDs to update Windows Defender signatures. These are devices fully managed by Intune only. Each ID must be a valid GUID format. Multiple devices can be updated in a single action. Example: `["12345678-1234-1234-1234-123456789abc", "87654321-4321-4321-4321-ba9876543210"]`
 
 **Note:** At least one of `managed_device_ids` or `comanaged_device_ids` must be provided. You can provide both to update different types of devices in one action.
 - `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))
+- `validate_device_exists` (Boolean) When set to `true` (default), the action will validate that all specified devices exist and are Windows devices before attempting to update signatures. When `false`, device validation is skipped and the action will attempt to update signatures directly. Disabling validation can improve performance but may result in errors if devices don't exist or are not Windows devices.
 
 <a id="nestedatt--timeouts"></a>
 ### Nested Schema for `timeouts`
 
 Optional:
 
-- `create` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours).
-- `delete` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours). Setting a timeout for a Delete operation is only applicable if changes are saved into state before the destroy operation occurs.
-- `read` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours). Read operations occur during any refresh or planning operation when refresh is enabled.
-- `update` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours).
+- `invoke` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours).
 
 

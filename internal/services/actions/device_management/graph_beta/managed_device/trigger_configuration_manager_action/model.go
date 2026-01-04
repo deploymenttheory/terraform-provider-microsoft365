@@ -7,9 +7,11 @@ import (
 )
 
 type TriggerConfigurationManagerActionManagedDeviceActionModel struct {
-	ManagedDevices   []ManagedDeviceConfigManagerAction   `tfsdk:"managed_devices"`
-	ComanagedDevices []ComanagedDeviceConfigManagerAction `tfsdk:"comanaged_devices"`
-	Timeouts         timeouts.Value                       `tfsdk:"timeouts"`
+	ManagedDevices        []ManagedDeviceConfigManagerAction   `tfsdk:"managed_devices"`
+	ComanagedDevices      []ComanagedDeviceConfigManagerAction `tfsdk:"comanaged_devices"`
+	IgnorePartialFailures types.Bool                           `tfsdk:"ignore_partial_failures"`
+	ValidateDeviceExists  types.Bool                           `tfsdk:"validate_device_exists"`
+	Timeouts              timeouts.Value                       `tfsdk:"timeouts"`
 }
 
 type ManagedDeviceConfigManagerAction struct {

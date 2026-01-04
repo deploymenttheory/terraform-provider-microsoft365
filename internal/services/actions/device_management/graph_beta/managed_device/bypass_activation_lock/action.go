@@ -18,7 +18,7 @@ import (
 )
 
 const (
-	ActionName = "microsoft365_graph_beta_device_management_managed_device_bypass_activation_lock"
+	ActionName    = "microsoft365_graph_beta_device_management_managed_device_bypass_activation_lock"
 	InvokeTimeout = 60
 )
 
@@ -29,20 +29,11 @@ var (
 )
 
 func NewBypassActivationLockManagedDeviceAction() action.Action {
-	return &BypassActivationLockManagedDeviceAction{
-		ReadPermissions: []string{
-			"DeviceManagementManagedDevices.PrivilegedOperations.All",
-		},
-		WritePermissions: []string{
-			"DeviceManagementManagedDevices.PrivilegedOperations.All",
-		},
-	}
+	return &BypassActivationLockManagedDeviceAction{}
 }
 
 type BypassActivationLockManagedDeviceAction struct {
-	client           *msgraphbetasdk.GraphServiceClient
-	ReadPermissions  []string
-	WritePermissions []string
+	client *msgraphbetasdk.GraphServiceClient
 }
 
 func (a *BypassActivationLockManagedDeviceAction) Metadata(ctx context.Context, req action.MetadataRequest, resp *action.MetadataResponse) {

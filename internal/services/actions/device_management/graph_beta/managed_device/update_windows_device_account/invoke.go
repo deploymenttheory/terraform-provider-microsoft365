@@ -3,139 +3,165 @@ package graphBetaUpdateWindowsDeviceAccount
 import (
 	"context"
 	"fmt"
-	"sync"
+	"time"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/progress"
+
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/validation"
+
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
 	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
-type updateResult struct {
-	deviceID   string
-	deviceType string // "managed" or "comanaged"
-	email      string
-	err        error
-}
-
 func (a *UpdateWindowsDeviceAccountAction) Invoke(ctx context.Context, req action.InvokeRequest, resp *action.InvokeResponse) {
 	var data UpdateWindowsDeviceAccountActionModel
 
-	tflog.Debug(ctx, fmt.Sprintf("Starting %s", ActionName))
+	tflog.Debug(ctx, "Starting Windows device account update", map[string]any{"action": ActionName})
 
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	totalDevices := len(data.ManagedDevices) + len(data.ComanagedDevices)
-	tflog.Debug(ctx, fmt.Sprintf("Updating device accounts for %d managed device(s) and %d co-managed device(s)",
-		len(data.ManagedDevices), len(data.ComanagedDevices)))
+	// Handle timeout
+	ctx, cancel := crud.HandleTimeout(ctx, data.Timeouts.Invoke, InvokeTimeout*time.Second, &resp.Diagnostics)
+	if cancel == nil {
+		return
+	}
+	defer cancel()
 
-	resp.SendProgress(action.InvokeProgressEvent{
-		Message: fmt.Sprintf("Starting Windows device account update for %d device(s) (%d managed, %d co-managed)...",
-			totalDevices, len(data.ManagedDevices), len(data.ComanagedDevices)),
+	totalDevices := len(data.ManagedDevices) + len(data.ComanagedDevices)
+	tflog.Debug(ctx, "Processing devices for Windows device account update", map[string]any{
+		"managed_devices":   len(data.ManagedDevices),
+		"comanaged_devices": len(data.ComanagedDevices),
+		"total_devices":     totalDevices,
 	})
 
-	// Update device accounts concurrently with error collection
-	results := make(chan updateResult, totalDevices)
-	var wg sync.WaitGroup
-
-	// Update managed devices
-	for _, device := range data.ManagedDevices {
-		wg.Add(1)
-		go func(d ManagedDeviceAccount) {
-			defer wg.Done()
-			deviceID := d.DeviceID.ValueString()
-			email := d.DeviceAccountEmail.ValueString()
-			err := a.updateManagedDevice(ctx, d)
-			results <- updateResult{deviceID: deviceID, deviceType: "managed", email: email, err: err}
-		}(device)
+	// Get ignore_partial_failures setting
+	ignorePartialFailures := false
+	if !data.IgnorePartialFailures.IsNull() && !data.IgnorePartialFailures.IsUnknown() {
+		ignorePartialFailures = data.IgnorePartialFailures.ValueBool()
 	}
 
-	// Update co-managed devices
-	for _, device := range data.ComanagedDevices {
-		wg.Add(1)
-		go func(d ComanagedDeviceAccount) {
-			defer wg.Done()
-			deviceID := d.DeviceID.ValueString()
-			email := d.DeviceAccountEmail.ValueString()
-			err := a.updateComanagedDevice(ctx, d)
-			results <- updateResult{deviceID: deviceID, deviceType: "comanaged", email: email, err: err}
-		}(device)
+	// Get validate_device_exists setting (default: true)
+	validateDeviceExists := true
+	if !data.ValidateDeviceExists.IsNull() && !data.ValidateDeviceExists.IsUnknown() {
+		validateDeviceExists = data.ValidateDeviceExists.ValueBool()
 	}
 
-	// Close results channel once all goroutines complete
-	go func() {
-		wg.Wait()
-		close(results)
-	}()
+	// Perform API validation of devices if enabled
+	if validateDeviceExists {
+		tflog.Debug(ctx, "Performing device validation via API")
 
-	// Collect results and track progress
-	successCount := 0
-	var failedDevices []string
-	var lastError error
-
-	for result := range results {
-		if result.err != nil {
-			failedDevices = append(failedDevices, fmt.Sprintf("%s (%s, %s)", result.deviceID, result.deviceType, result.email))
-			lastError = result.err
-			tflog.Error(ctx, fmt.Sprintf("Failed to update device account on %s device %s (%s): %v",
-				result.deviceType, result.deviceID, result.email, result.err))
-		} else {
-			successCount++
-			tflog.Debug(ctx, fmt.Sprintf("Successfully updated device account on %s device %s (%s)",
-				result.deviceType, result.deviceID, result.email))
-		}
-
-		// Send progress update
-		progress := float64(successCount+len(failedDevices)) / float64(totalDevices) * 100
-		resp.SendProgress(action.InvokeProgressEvent{
-			Message: fmt.Sprintf("Processed %d of %d devices (%.0f%% complete)",
-				successCount+len(failedDevices), totalDevices, progress),
-		})
-	}
-
-	// Report results
-	if len(failedDevices) > 0 {
-		if successCount > 0 {
-			// Partial success
-			resp.Diagnostics.AddWarning(
-				"Partial Success",
-				fmt.Sprintf("Successfully updated device accounts on %d of %d devices. Failed devices: %v. Last error: %v\n\n"+
-					"Devices that were successfully updated will apply the new device account configuration. "+
-					"The devices may need to be rebooted for changes to take full effect. "+
-					"Failed devices may be offline, not Windows collaboration devices, or may have configuration issues.",
-					successCount, totalDevices, failedDevices, lastError),
+		validationResult, err := validateRequest(ctx, a.client, data.ManagedDevices, data.ComanagedDevices)
+		if err != nil {
+			tflog.Error(ctx, "Failed to validate devices via API", map[string]any{"error": err.Error()})
+			resp.Diagnostics.AddError(
+				"Device Validation Failed",
+				fmt.Sprintf("Failed to validate devices: %s", err.Error()),
 			)
-		} else {
-			// Complete failure
-			errors.HandleKiotaGraphError(ctx, lastError, resp, "Action", a.WritePermissions)
 			return
 		}
+
+		// Report validation results
+		results := validation.NewResults().
+			Error(validationResult.NonExistentManagedDevices, "managed device", "do not exist or are not managed by Intune").
+			Error(validationResult.NonWindowsManagedDevices, "managed device", "are not Windows devices. This action only works on Windows devices").
+			Error(validationResult.NonExistentComanagedDevices, "co-managed device", "do not exist or are not co-managed by Intune").
+			Error(validationResult.NonWindowsComanagedDevices, "co-managed device", "are not Windows devices. This action only works on Windows devices")
+
+		if results.Report(resp) {
+			return
+		}
+
+		tflog.Debug(ctx, "Device validation completed successfully")
+	} else {
+		tflog.Debug(ctx, "Device validation disabled, skipping API checks")
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Successfully updated device accounts on %d device(s)", successCount))
+	// Create progress tracker and send initial message
+	progressTracker := progress.For(resp).WithTotalDevices(totalDevices).
+		Starting("Windows device account updates", fmt.Sprintf("%d devices (%d managed, %d co-managed)", totalDevices, len(data.ManagedDevices), len(data.ComanagedDevices)))
 
-	if successCount > 0 {
-		resp.SendProgress(action.InvokeProgressEvent{
-			Message: fmt.Sprintf("Windows device account update completed on %d device(s). "+
-				"Device account credentials, Exchange server settings, and synchronization options have been updated. "+
-				"Devices may require a reboot for all changes to take effect. "+
-				"Verify functionality after devices restart and reconnect to Exchange and Teams/Skype for Business services.",
-				successCount),
-		})
+	// Process managed devices sequentially
+	for _, device := range data.ManagedDevices {
+		deviceID := device.DeviceID.ValueString()
+		email := device.DeviceAccountEmail.ValueString()
+
+		err := a.updateManagedDevice(ctx, device)
+		if err != nil {
+			progressTracker.Device(deviceID, "").Failed(fmt.Sprintf("device account update failed (account: %s): %s", email, err.Error()))
+			tflog.Error(ctx, "Failed to update device account on managed device", map[string]any{
+				"device_id": deviceID,
+				"email":     email,
+				"error":     err.Error(),
+			})
+		} else {
+			progressTracker.Device(deviceID, "").Succeeded(fmt.Sprintf("device account updated (account: %s)", email))
+			tflog.Info(ctx, "Successfully updated device account on managed device", map[string]any{
+				"device_id": deviceID,
+				"email":     email,
+			})
+		}
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Finished %s", ActionName))
+	// Process co-managed devices sequentially
+	for _, device := range data.ComanagedDevices {
+		deviceID := device.DeviceID.ValueString()
+		email := device.DeviceAccountEmail.ValueString()
+
+		err := a.updateComanagedDevice(ctx, device)
+		if err != nil {
+			progressTracker.Device(deviceID, "").Failed(fmt.Sprintf("device account update failed (account: %s): %s", email, err.Error()))
+			tflog.Error(ctx, "Failed to update device account on co-managed device", map[string]any{
+				"device_id": deviceID,
+				"email":     email,
+				"error":     err.Error(),
+			})
+		} else {
+			progressTracker.Device(deviceID, "").Succeeded(fmt.Sprintf("device account updated (account: %s)", email))
+			tflog.Info(ctx, "Successfully updated device account on co-managed device", map[string]any{
+				"device_id": deviceID,
+				"email":     email,
+			})
+		}
+	}
+
+	// Handle results
+	if progressTracker.HasFailures() {
+		if ignorePartialFailures {
+			progressTracker.CompletedWithIgnoredFailures("Windows device account updates")
+			tflog.Warn(ctx, "Windows device account update completed with ignored failures", map[string]any{
+				"success_count": progressTracker.SuccessCount(),
+				"failed_count":  progressTracker.FailureCount(),
+			})
+		} else {
+			progressTracker.Failed("Windows Device Account Update Failed", "update device accounts on devices")
+			return
+		}
+	} else {
+		progressTracker.CompletedSuccessfully("updated device accounts on all devices. Device account credentials, Exchange server settings, and synchronization options have been updated. Devices may require a reboot for all changes to take effect. Verify functionality after devices restart and reconnect to Exchange and Teams/Skype for Business services")
+	}
+
+	tflog.Info(ctx, "Windows device account update completed", map[string]any{
+		"success_count":            progressTracker.SuccessCount(),
+		"failed_count":             progressTracker.FailureCount(),
+		"total_devices":            totalDevices,
+		"partial_failures_ignored": ignorePartialFailures && progressTracker.HasFailures(),
+	})
 }
 
 func (a *UpdateWindowsDeviceAccountAction) updateManagedDevice(ctx context.Context, device ManagedDeviceAccount) error {
 	deviceID := device.DeviceID.ValueString()
 	email := device.DeviceAccountEmail.ValueString()
 
-	tflog.Debug(ctx, fmt.Sprintf("Updating device account on managed device %s (account: %s)", deviceID, email))
+	tflog.Debug(ctx, "Updating device account on managed device", map[string]any{
+		"device_id": deviceID,
+		"email":     email,
+	})
 
-	// Construct the request body
 	requestBody := constructManagedDeviceRequest(ctx, device)
 
 	err := a.client.
@@ -146,7 +172,7 @@ func (a *UpdateWindowsDeviceAccountAction) updateManagedDevice(ctx context.Conte
 		Post(ctx, requestBody, nil)
 
 	if err != nil {
-		return fmt.Errorf("failed to update device account on managed device %s: %w", deviceID, err)
+		return fmt.Errorf("%s", errors.HandleKiotaGraphErrorForAction(ctx, err))
 	}
 
 	return nil
@@ -156,9 +182,11 @@ func (a *UpdateWindowsDeviceAccountAction) updateComanagedDevice(ctx context.Con
 	deviceID := device.DeviceID.ValueString()
 	email := device.DeviceAccountEmail.ValueString()
 
-	tflog.Debug(ctx, fmt.Sprintf("Updating device account on co-managed device %s (account: %s)", deviceID, email))
+	tflog.Debug(ctx, "Updating device account on co-managed device", map[string]any{
+		"device_id": deviceID,
+		"email":     email,
+	})
 
-	// Construct the request body
 	requestBody := constructComanagedDeviceRequest(ctx, device)
 
 	err := a.client.
@@ -169,7 +197,7 @@ func (a *UpdateWindowsDeviceAccountAction) updateComanagedDevice(ctx context.Con
 		Post(ctx, requestBody, nil)
 
 	if err != nil {
-		return fmt.Errorf("failed to update device account on co-managed device %s: %w", deviceID, err)
+		return fmt.Errorf("%s", errors.HandleKiotaGraphErrorForAction(ctx, err))
 	}
 
 	return nil

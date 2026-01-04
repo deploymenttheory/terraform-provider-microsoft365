@@ -19,6 +19,7 @@ func (a *SendCustomNotificationToCompanyPortalAction) ValidateConfig(ctx context
 		return
 	}
 
+	// Validate that at least one device list is provided
 	if len(data.ManagedDevices) == 0 && len(data.ComanagedDevices) == 0 {
 		resp.Diagnostics.AddError(
 			"No Devices Specified",
@@ -27,6 +28,7 @@ func (a *SendCustomNotificationToCompanyPortalAction) ValidateConfig(ctx context
 		return
 	}
 
+	// Check for duplicate device IDs in managed devices
 	if len(data.ManagedDevices) > 0 {
 		seen := make(map[string]bool)
 		var duplicates []string
@@ -49,6 +51,7 @@ func (a *SendCustomNotificationToCompanyPortalAction) ValidateConfig(ctx context
 		}
 	}
 
+	// Check for duplicate device IDs in co-managed devices
 	if len(data.ComanagedDevices) > 0 {
 		seen := make(map[string]bool)
 		var duplicates []string
@@ -71,6 +74,7 @@ func (a *SendCustomNotificationToCompanyPortalAction) ValidateConfig(ctx context
 		}
 	}
 
+	// Check for devices appearing in both lists
 	managedDeviceIDs := make(map[string]bool)
 	for _, device := range data.ManagedDevices {
 		managedDeviceIDs[device.DeviceID.ValueString()] = true
@@ -90,133 +94,7 @@ func (a *SendCustomNotificationToCompanyPortalAction) ValidateConfig(ctx context
 		}
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Validating custom notification action for %d managed and %d co-managed device(s)",
-		len(data.ManagedDevices), len(data.ComanagedDevices)))
-
-	var nonExistentManagedDevices []string
-	var nonExistentComanagedDevices []string
-	var unsupportedManagedDevices []string
-	var unsupportedComanagedDevices []string
-
-	for _, device := range data.ManagedDevices {
-		deviceID := device.DeviceID.ValueString()
-		managedDevice, err := a.client.
-			DeviceManagement().
-			ManagedDevices().
-			ByManagedDeviceId(deviceID).
-			Get(ctx, nil)
-
-		if err != nil {
-			if strings.Contains(err.Error(), "404") || strings.Contains(err.Error(), "not found") {
-				nonExistentManagedDevices = append(nonExistentManagedDevices, deviceID)
-			} else {
-				resp.Diagnostics.AddAttributeError(
-					path.Root("managed_devices"),
-					"Error Validating Managed Device Existence",
-					fmt.Sprintf("Failed to check existence of managed device %s: %s", deviceID, err.Error()),
-				)
-			}
-		} else if managedDevice != nil {
-			// Check platform compatibility - custom notifications only supported on iOS, iPadOS, and Android
-			if managedDevice.GetOperatingSystem() != nil {
-				os := strings.ToLower(*managedDevice.GetOperatingSystem())
-				supportedOS := map[string]bool{
-					"ios":     true,
-					"ipados":  true,
-					"android": true,
-				}
-				if !supportedOS[os] {
-					unsupportedManagedDevices = append(unsupportedManagedDevices, fmt.Sprintf("%s (OS: %s)", deviceID, *managedDevice.GetOperatingSystem()))
-					continue
-				}
-			} else {
-				unsupportedManagedDevices = append(unsupportedManagedDevices, fmt.Sprintf("%s (Unknown OS)", deviceID))
-				continue
-			}
-			tflog.Debug(ctx, fmt.Sprintf("Managed device %s validated successfully", deviceID))
-		}
-	}
-
-	for _, device := range data.ComanagedDevices {
-		deviceID := device.DeviceID.ValueString()
-		comanagedDevice, err := a.client.
-			DeviceManagement().
-			ComanagedDevices().
-			ByManagedDeviceId(deviceID).
-			Get(ctx, nil)
-
-		if err != nil {
-			if strings.Contains(err.Error(), "404") || strings.Contains(err.Error(), "not found") {
-				nonExistentComanagedDevices = append(nonExistentComanagedDevices, deviceID)
-			} else {
-				resp.Diagnostics.AddAttributeError(
-					path.Root("comanaged_devices"),
-					"Error Validating Co-Managed Device Existence",
-					fmt.Sprintf("Failed to check existence of co-managed device %s: %s", deviceID, err.Error()),
-				)
-			}
-		} else if comanagedDevice != nil {
-			// Check platform compatibility - custom notifications only supported on iOS, iPadOS, and Android
-			if comanagedDevice.GetOperatingSystem() != nil {
-				os := strings.ToLower(*comanagedDevice.GetOperatingSystem())
-				supportedOS := map[string]bool{
-					"ios":     true,
-					"ipados":  true,
-					"android": true,
-				}
-				if !supportedOS[os] {
-					unsupportedComanagedDevices = append(unsupportedComanagedDevices, fmt.Sprintf("%s (OS: %s)", deviceID, *comanagedDevice.GetOperatingSystem()))
-					continue
-				}
-			} else {
-				unsupportedComanagedDevices = append(unsupportedComanagedDevices, fmt.Sprintf("%s (Unknown OS)", deviceID))
-				continue
-			}
-			tflog.Debug(ctx, fmt.Sprintf("Co-managed device %s validated successfully", deviceID))
-		}
-	}
-
-	if len(nonExistentManagedDevices) > 0 {
-		resp.Diagnostics.AddAttributeError(
-			path.Root("managed_devices"),
-			"Non-Existent Managed Devices",
-			fmt.Sprintf("The following managed device IDs do not exist or are not managed by Intune: %s. "+
-				"Please ensure all device IDs are correct and refer to existing managed devices.",
-				strings.Join(nonExistentManagedDevices, ", ")),
-		)
-	}
-
-	if len(nonExistentComanagedDevices) > 0 {
-		resp.Diagnostics.AddAttributeError(
-			path.Root("comanaged_devices"),
-			"Non-Existent Co-Managed Devices",
-			fmt.Sprintf("The following co-managed device IDs do not exist or are not managed by Intune: %s. "+
-				"Please ensure all device IDs are correct and refer to existing co-managed devices.",
-				strings.Join(nonExistentComanagedDevices, ", ")),
-		)
-	}
-
-	if len(unsupportedManagedDevices) > 0 {
-		resp.Diagnostics.AddAttributeError(
-			path.Root("managed_devices"),
-			"Unsupported Managed Devices for Custom Notifications",
-			fmt.Sprintf("Custom notifications are only supported on iOS, iPadOS, and Android devices. The following managed devices are not supported: %s. "+
-				"Please remove unsupported devices from the configuration.",
-				strings.Join(unsupportedManagedDevices, ", ")),
-		)
-	}
-
-	if len(unsupportedComanagedDevices) > 0 {
-		resp.Diagnostics.AddAttributeError(
-			path.Root("comanaged_devices"),
-			"Unsupported Co-Managed Devices for Custom Notifications",
-			fmt.Sprintf("Custom notifications are only supported on iOS, iPadOS, and Android devices. The following co-managed devices are not supported: %s. "+
-				"Please remove unsupported devices from the configuration.",
-				strings.Join(unsupportedComanagedDevices, ", ")),
-		)
-	}
-
-	// Validate notification content
+	// Validate notification content for managed devices
 	for i, device := range data.ManagedDevices {
 		if device.NotificationTitle.IsNull() || device.NotificationTitle.ValueString() == "" {
 			resp.Diagnostics.AddAttributeError(
@@ -237,6 +115,7 @@ func (a *SendCustomNotificationToCompanyPortalAction) ValidateConfig(ctx context
 		}
 	}
 
+	// Validate notification content for co-managed devices
 	for i, device := range data.ComanagedDevices {
 		if device.NotificationTitle.IsNull() || device.NotificationTitle.ValueString() == "" {
 			resp.Diagnostics.AddAttributeError(
@@ -287,4 +166,10 @@ func (a *SendCustomNotificationToCompanyPortalAction) ValidateConfig(ctx context
 			"Notifications appear in the Company Portal app notifications section.",
 			totalDevices),
 	)
+
+	tflog.Debug(ctx, "Static validation completed", map[string]any{
+		"managed_count":   len(data.ManagedDevices),
+		"comanaged_count": len(data.ComanagedDevices),
+		"total_devices":   totalDevices,
+	})
 }

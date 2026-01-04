@@ -3,28 +3,34 @@ package graphBetaReenableManagedDevice
 import (
 	"context"
 	"fmt"
-	"sync"
+	"time"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/progress"
+
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/validation"
+
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
 	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
-type reenableResult struct {
-	deviceID   string
-	deviceType string // "managed" or "comanaged"
-	err        error
-}
-
 func (a *ReenableManagedDeviceAction) Invoke(ctx context.Context, req action.InvokeRequest, resp *action.InvokeResponse) {
 	var data ReenableManagedDeviceActionModel
 
-	tflog.Debug(ctx, fmt.Sprintf("Starting %s", ActionName))
+	tflog.Debug(ctx, "Starting reenable action", map[string]any{"action": ActionName})
 
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
+	// Handle timeout
+	ctx, cancel := crud.HandleTimeout(ctx, data.Timeouts.Invoke, InvokeTimeout*time.Second, &resp.Diagnostics)
+	if cancel == nil {
+		return
+	}
+	defer cancel()
 
 	// Convert framework lists to Go slices
 	var managedDeviceIDs []string
@@ -43,104 +49,118 @@ func (a *ReenableManagedDeviceAction) Invoke(ctx context.Context, req action.Inv
 	}
 
 	totalDevices := len(managedDeviceIDs) + len(comanagedDeviceIDs)
-	tflog.Debug(ctx, fmt.Sprintf("Re-enabling %d managed device(s) and %d co-managed device(s)",
-		len(managedDeviceIDs), len(comanagedDeviceIDs)))
-
-	resp.SendProgress(action.InvokeProgressEvent{
-		Message: fmt.Sprintf("Starting re-enable for %d device(s) (%d managed, %d co-managed)...",
-			totalDevices, len(managedDeviceIDs), len(comanagedDeviceIDs)),
+	tflog.Debug(ctx, "Processing devices for reenable", map[string]any{
+		"managed_devices":   len(managedDeviceIDs),
+		"comanaged_devices": len(comanagedDeviceIDs),
+		"total_devices":     totalDevices,
 	})
 
-	// Re-enable devices concurrently with error collection
-	results := make(chan reenableResult, totalDevices)
-	var wg sync.WaitGroup
-
-	// Re-enable managed devices
-	for _, deviceID := range managedDeviceIDs {
-		wg.Add(1)
-		go func(id string) {
-			defer wg.Done()
-			err := a.reenableManagedDevice(ctx, id)
-			results <- reenableResult{deviceID: id, deviceType: "managed", err: err}
-		}(deviceID)
+	// Get ignore_partial_failures setting
+	ignorePartialFailures := false
+	if !data.IgnorePartialFailures.IsNull() && !data.IgnorePartialFailures.IsUnknown() {
+		ignorePartialFailures = data.IgnorePartialFailures.ValueBool()
 	}
 
-	// Re-enable co-managed devices
-	for _, deviceID := range comanagedDeviceIDs {
-		wg.Add(1)
-		go func(id string) {
-			defer wg.Done()
-			err := a.reenableComanagedDevice(ctx, id)
-			results <- reenableResult{deviceID: id, deviceType: "comanaged", err: err}
-		}(deviceID)
+	// Get validate_device_exists setting (default: true)
+	validateDeviceExists := true
+	if !data.ValidateDeviceExists.IsNull() && !data.ValidateDeviceExists.IsUnknown() {
+		validateDeviceExists = data.ValidateDeviceExists.ValueBool()
 	}
 
-	// Close results channel once all goroutines complete
-	go func() {
-		wg.Wait()
-		close(results)
-	}()
+	// Perform API validation of devices if enabled
+	if validateDeviceExists {
+		tflog.Debug(ctx, "Performing device validation via API")
 
-	// Collect results and track progress
-	successCount := 0
-	var failedDevices []string
-	var lastError error
-
-	for result := range results {
-		if result.err != nil {
-			failedDevices = append(failedDevices, fmt.Sprintf("%s (%s)", result.deviceID, result.deviceType))
-			lastError = result.err
-			tflog.Error(ctx, fmt.Sprintf("Failed to re-enable %s device %s: %v",
-				result.deviceType, result.deviceID, result.err))
-		} else {
-			successCount++
-			tflog.Debug(ctx, fmt.Sprintf("Successfully re-enabled %s device %s",
-				result.deviceType, result.deviceID))
-
-			resp.SendProgress(action.InvokeProgressEvent{
-				Message: fmt.Sprintf("✓ Device %s (%s): Re-enabled", result.deviceID, result.deviceType),
-			})
-		}
-
-		// Send overall progress update
-		progress := float64(successCount+len(failedDevices)) / float64(totalDevices) * 100
-		resp.SendProgress(action.InvokeProgressEvent{
-			Message: fmt.Sprintf("Processed %d of %d devices (%.0f%% complete)",
-				successCount+len(failedDevices), totalDevices, progress),
-		})
-	}
-
-	// Report results
-	if len(failedDevices) > 0 {
-		if successCount > 0 {
-			// Partial success
-			resp.Diagnostics.AddWarning(
-				"Partial Success",
-				fmt.Sprintf("Successfully re-enabled %d of %d devices. Failed devices: %v. Last error: %v\n\n"+
-					"Re-enabled devices will now be able to sync with Intune and receive policy updates.",
-					successCount, totalDevices, failedDevices, lastError),
+		validationResult, err := validateRequest(ctx, a.client, managedDeviceIDs, comanagedDeviceIDs)
+		if err != nil {
+			tflog.Error(ctx, "Failed to validate devices via API", map[string]any{"error": err.Error()})
+			resp.Diagnostics.AddError(
+				"Device Validation Failed",
+				fmt.Sprintf("Failed to validate devices: %s", err.Error()),
 			)
-		} else {
-			// Complete failure
-			errors.HandleKiotaGraphError(ctx, lastError, resp, "Action", a.WritePermissions)
 			return
 		}
+
+		// Report validation results
+		results := validation.NewResults().
+			Error(validationResult.NonExistentManagedDevices, "managed device", "do not exist or are not managed by Intune").
+			Error(validationResult.NonExistentComanagedDevices, "co-managed device", "do not exist or are not co-managed by Intune")
+
+		if results.Report(resp) {
+			return
+		}
+
+		tflog.Debug(ctx, "Device validation completed successfully")
+	} else {
+		tflog.Debug(ctx, "Device validation disabled, skipping API checks")
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Successfully re-enabled %d device(s)", successCount))
+	// Create progress tracker and send initial message
+	progressTracker := progress.For(resp).WithTotalDevices(totalDevices).
+		Starting("reenable", fmt.Sprintf("%d devices (%d managed, %d co-managed)", totalDevices, len(managedDeviceIDs), len(comanagedDeviceIDs)))
 
-	if successCount > 0 {
-		resp.SendProgress(action.InvokeProgressEvent{
-			Message: fmt.Sprintf("Re-enable complete: %d device(s) have been re-enabled for Intune management.",
-				successCount),
-		})
+	// Process managed devices sequentially
+	for _, deviceID := range managedDeviceIDs {
+		err := a.reenableManagedDevice(ctx, deviceID)
+		if err != nil {
+			progressTracker.Device(deviceID, "").Failed(err.Error())
+			tflog.Error(ctx, "Failed to reenable managed device", map[string]any{
+				"device_id": deviceID,
+				"error":     err.Error(),
+			})
+		} else {
+			progressTracker.Device(deviceID, "").Succeeded("re-enabled")
+			tflog.Info(ctx, "Successfully re-enabled managed device", map[string]any{
+				"device_id": deviceID,
+			})
+		}
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Finished %s", ActionName))
+	// Process co-managed devices sequentially
+	for _, deviceID := range comanagedDeviceIDs {
+		err := a.reenableComanagedDevice(ctx, deviceID)
+		if err != nil {
+			progressTracker.Device(deviceID, "").Failed(err.Error())
+			tflog.Error(ctx, "Failed to reenable co-managed device", map[string]any{
+				"device_id": deviceID,
+				"error":     err.Error(),
+			})
+		} else {
+			progressTracker.Device(deviceID, "").Succeeded("re-enabled")
+			tflog.Info(ctx, "Successfully re-enabled co-managed device", map[string]any{
+				"device_id": deviceID,
+			})
+		}
+	}
+
+	// Handle results
+	if progressTracker.HasFailures() {
+		if ignorePartialFailures {
+			progressTracker.CompletedWithIgnoredFailures("reenable")
+			tflog.Warn(ctx, "Reenable action completed with ignored failures", map[string]any{
+				"success_count": progressTracker.SuccessCount(),
+				"failed_count":  progressTracker.FailureCount(),
+			})
+		} else {
+			progressTracker.Failed("Reenable Action Failed", "re-enable devices")
+			return
+		}
+	} else {
+		progressTracker.CompletedSuccessfully("re-enabled all devices. Re-enabled devices will now be able to sync with Intune and receive policy updates")
+	}
+
+	tflog.Info(ctx, "Reenable action completed", map[string]any{
+		"success_count":            progressTracker.SuccessCount(),
+		"failed_count":             progressTracker.FailureCount(),
+		"total_devices":            totalDevices,
+		"partial_failures_ignored": ignorePartialFailures && progressTracker.HasFailures(),
+	})
 }
 
 func (a *ReenableManagedDeviceAction) reenableManagedDevice(ctx context.Context, deviceID string) error {
-	tflog.Debug(ctx, fmt.Sprintf("Re-enabling managed device with ID: %s", deviceID))
+	tflog.Debug(ctx, "Re-enabling managed device", map[string]any{
+		"device_id": deviceID,
+	})
 
 	err := a.client.
 		DeviceManagement().
@@ -150,14 +170,16 @@ func (a *ReenableManagedDeviceAction) reenableManagedDevice(ctx context.Context,
 		Post(ctx, nil)
 
 	if err != nil {
-		return fmt.Errorf("failed to re-enable managed device %s: %w", deviceID, err)
+		return fmt.Errorf("%s", errors.HandleKiotaGraphErrorForAction(ctx, err))
 	}
 
 	return nil
 }
 
 func (a *ReenableManagedDeviceAction) reenableComanagedDevice(ctx context.Context, deviceID string) error {
-	tflog.Debug(ctx, fmt.Sprintf("Re-enabling co-managed device with ID: %s", deviceID))
+	tflog.Debug(ctx, "Re-enabling co-managed device", map[string]any{
+		"device_id": deviceID,
+	})
 
 	err := a.client.
 		DeviceManagement().
@@ -167,7 +189,7 @@ func (a *ReenableManagedDeviceAction) reenableComanagedDevice(ctx context.Contex
 		Post(ctx, nil)
 
 	if err != nil {
-		return fmt.Errorf("failed to re-enable co-managed device %s: %w", deviceID, err)
+		return fmt.Errorf("%s", errors.HandleKiotaGraphErrorForAction(ctx, err))
 	}
 
 	return nil

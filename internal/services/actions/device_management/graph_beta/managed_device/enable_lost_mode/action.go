@@ -16,7 +16,7 @@ import (
 )
 
 const (
-	ActionName = "microsoft365_graph_beta_device_management_managed_device_enable_lost_mode"
+	ActionName    = "microsoft365_graph_beta_device_management_managed_device_enable_lost_mode"
 	InvokeTimeout = 60
 )
 
@@ -66,7 +66,7 @@ func (a *EnableLostModeManagedDeviceAction) Schema(ctx context.Context, req acti
 			"- Requires device to be online to receive command\n" +
 			"- Locks device and displays custom message with contact information\n" +
 			"- Enables device location tracking\n" +
-			"- Each device can have its own custom message, phone number, and footnote\n\n" +
+			"- Each device can have its own custom message, phone number, and footer\n\n" +
 			"**Use Cases:**\n" +
 			"- Device has been reported lost or stolen\n" +
 			"- Need to lock device and display recovery contact information\n" +
@@ -120,9 +120,9 @@ func (a *EnableLostModeManagedDeviceAction) Schema(ctx context.Context, req acti
 								stringvalidator.LengthAtLeast(1),
 							},
 						},
-						"footnote": schema.StringAttribute{
+						"footer": schema.StringAttribute{
 							Optional: true,
-							MarkdownDescription: "An optional footnote to display below the message on this device's lock screen. " +
+							MarkdownDescription: "An optional footer to display below the message on this device's lock screen. " +
 								"This can be used for additional instructions or legal information. " +
 								"Example: `\"Property of Contoso Corporation\"`",
 						},
@@ -169,6 +169,18 @@ func (a *EnableLostModeManagedDeviceAction) Schema(ctx context.Context, req acti
 						},
 					},
 				},
+			},
+			"ignore_partial_failures": schema.BoolAttribute{
+				Optional: true,
+				MarkdownDescription: "If set to `true`, the action will succeed even if some operations fail. " +
+					"Failed operations will be reported as warnings instead of errors. " +
+					"Default: `false` (action fails if any operation fails).",
+			},
+			"validate_device_exists": schema.BoolAttribute{
+				Optional: true,
+				MarkdownDescription: "Whether to validate that devices exist and are iOS/iPadOS devices before attempting to enable lost mode. " +
+					"Disabling this can speed up planning but may result in runtime errors for non-existent or unsupported devices. " +
+					"Default: `true`.",
 			},
 			"timeouts": commonschema.ActionTimeouts(ctx),
 		},

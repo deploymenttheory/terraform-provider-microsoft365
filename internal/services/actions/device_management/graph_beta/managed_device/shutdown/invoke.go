@@ -3,28 +3,36 @@ package graphBetaShutdownManagedDevice
 import (
 	"context"
 	"fmt"
-	"sync"
+	"time"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/progress"
+
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/validation"
+
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
 	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
-type shutdownResult struct {
-	deviceID string
-	err      error
-}
-
 func (a *ShutdownManagedDeviceAction) Invoke(ctx context.Context, req action.InvokeRequest, resp *action.InvokeResponse) {
 	var data ShutdownManagedDeviceActionModel
 
-	tflog.Debug(ctx, fmt.Sprintf("Starting %s", ActionName))
+	tflog.Debug(ctx, "Starting shutdown action", map[string]any{"action": ActionName})
 
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
+	// Handle timeout
+	ctx, cancel := crud.HandleTimeout(ctx, data.Timeouts.Invoke, InvokeTimeout*time.Second, &resp.Diagnostics)
+	if cancel == nil {
+		return
+	}
+	defer cancel()
+
+	// Convert framework list to Go slice
 	var deviceIDs []string
 	resp.Diagnostics.Append(data.DeviceIDs.ElementsAs(ctx, &deviceIDs, false)...)
 	if resp.Diagnostics.HasError() {
@@ -32,87 +40,102 @@ func (a *ShutdownManagedDeviceAction) Invoke(ctx context.Context, req action.Inv
 	}
 
 	totalDevices := len(deviceIDs)
-	tflog.Debug(ctx, fmt.Sprintf("Performing action %s for %d device(s)", ActionName, totalDevices))
-
-	resp.SendProgress(action.InvokeProgressEvent{
-		Message: fmt.Sprintf("Starting shutdown for %d managed device(s)...", totalDevices),
+	tflog.Debug(ctx, "Processing devices for shutdown", map[string]any{
+		"device_count": totalDevices,
 	})
 
-	// Shutdown devices concurrently with error collection
-	results := make(chan shutdownResult, totalDevices)
-	var wg sync.WaitGroup
-
-	for _, deviceID := range deviceIDs {
-		wg.Add(1)
-		go func(id string) {
-			defer wg.Done()
-			err := a.shutdown(ctx, id)
-			results <- shutdownResult{deviceID: id, err: err}
-		}(deviceID)
+	// Get ignore_partial_failures setting
+	ignorePartialFailures := false
+	if !data.IgnorePartialFailures.IsNull() && !data.IgnorePartialFailures.IsUnknown() {
+		ignorePartialFailures = data.IgnorePartialFailures.ValueBool()
 	}
 
-	// Close results channel once all goroutines complete
-	go func() {
-		wg.Wait()
-		close(results)
-	}()
-
-	// Collect results and track progress
-	successCount := 0
-	var failedDevices []string
-	var lastError error
-
-	for result := range results {
-		if result.err != nil {
-			failedDevices = append(failedDevices, result.deviceID)
-			lastError = result.err
-			tflog.Error(ctx, fmt.Sprintf("Failed to shutdown device %s: %v", result.deviceID, result.err))
-		} else {
-			successCount++
-			tflog.Debug(ctx, fmt.Sprintf("Successfully sent shutdown command to device %s", result.deviceID))
-		}
-
-		// Send progress update
-		progress := float64(successCount+len(failedDevices)) / float64(totalDevices) * 100
-		resp.SendProgress(action.InvokeProgressEvent{
-			Message: fmt.Sprintf("Processed %d of %d devices (%.0f%% complete)", successCount+len(failedDevices), totalDevices, progress),
-		})
+	// Get validate_device_exists setting (default: true)
+	validateDeviceExists := true
+	if !data.ValidateDeviceExists.IsNull() && !data.ValidateDeviceExists.IsUnknown() {
+		validateDeviceExists = data.ValidateDeviceExists.ValueBool()
 	}
 
-	// Report results
-	if len(failedDevices) > 0 {
-		if successCount > 0 {
-			// Partial success
-			resp.Diagnostics.AddWarning(
-				"Partial Success",
-				fmt.Sprintf("Successfully sent shutdown command to %d of %d devices. Failed devices: %v. Last error: %v\n\n"+
-					"Devices that received the shutdown command will power off immediately if online, or when they next check in with Intune. "+
-					"Physical access will be required to power devices back on.",
-					successCount, totalDevices, failedDevices, lastError),
+	// Perform API validation of devices if enabled
+	if validateDeviceExists {
+		tflog.Debug(ctx, "Performing device validation via API")
+
+		validationResult, err := validateRequest(ctx, a.client, deviceIDs)
+		if err != nil {
+			tflog.Error(ctx, "Failed to validate devices via API", map[string]any{"error": err.Error()})
+			resp.Diagnostics.AddError(
+				"Device Validation Failed",
+				fmt.Sprintf("Failed to validate devices: %s", err.Error()),
 			)
-		} else {
-			// Complete failure
-			errors.HandleKiotaGraphError(ctx, lastError, resp, "Action", a.WritePermissions)
 			return
 		}
+
+		// Report validation results
+		results := validation.NewResults().
+			Error(validationResult.NonExistentDevices, "device", "do not exist or are not managed by Intune").
+			Error(validationResult.UnsupportedOSDevices, "device", "do not support remote shutdown. Shutdown is supported on Windows, macOS, and supervised iOS/iPadOS devices. Android devices do not support shutdown via Intune").
+			Warning(validationResult.OfflineDevices, "device", "may be offline or not properly registered. The shutdown command will be queued and executed when the device comes online and checks in with Intune")
+
+		if results.Report(resp) {
+			return
+		}
+
+		tflog.Debug(ctx, "Device validation completed successfully")
+	} else {
+		tflog.Debug(ctx, "Device validation disabled, skipping API checks")
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Successfully sent shutdown command to %d device(s)", successCount))
+	// Create progress tracker and send initial message
+	progressTracker := progress.For(resp).WithTotalDevices(totalDevices).
+		Starting("shutdown", fmt.Sprintf("%d devices", totalDevices))
 
-	if successCount > 0 {
-		resp.SendProgress(action.InvokeProgressEvent{
-			Message: fmt.Sprintf("Shutdown complete: %d device(s) received shutdown command. "+
-				"Online devices will power off immediately. Offline devices will shutdown when they next check in with Intune. "+
-				"Physical access will be required to power devices back on. Users may lose unsaved work.",
-				successCount),
-		})
+	// Process devices sequentially
+	for _, deviceID := range deviceIDs {
+		err := a.shutdown(ctx, deviceID)
+		if err != nil {
+			progressTracker.Device(deviceID, "").Failed(fmt.Sprintf("shutdown command failed: %s", err.Error()))
+			tflog.Error(ctx, "Failed to send shutdown command", map[string]any{
+				"device_id": deviceID,
+				"error":     err.Error(),
+			})
+		} else {
+			progressTracker.Device(deviceID, "").Succeeded("shutdown command sent")
+			tflog.Info(ctx, "Successfully sent shutdown command", map[string]any{
+				"device_id": deviceID,
+			})
+		}
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Finished %s", ActionName))
+	// Handle results
+	if progressTracker.HasFailures() {
+		if ignorePartialFailures {
+			progressTracker.CompletedWithIgnoredFailures("shutdown")
+			tflog.Warn(ctx, "Shutdown action completed with ignored failures", map[string]any{
+				"success_count": progressTracker.SuccessCount(),
+				"failed_count":  progressTracker.FailureCount(),
+			})
+		} else {
+			progressTracker.Failed("Shutdown Failed", "send shutdown commands to devices")
+			return
+		}
+	} else {
+		progressTracker.CompletedSuccessfully("sent shutdown commands to all devices. Online devices will power off immediately. " +
+			"Offline devices will shutdown when they next check in with Intune. Physical access will be required to power devices " +
+			"back on. Users may lose unsaved work. Ensure you have proper authorization for this disruptive action")
+	}
+
+	tflog.Info(ctx, "Shutdown action completed", map[string]any{
+		"success_count":            progressTracker.SuccessCount(),
+		"failed_count":             progressTracker.FailureCount(),
+		"total_devices":            totalDevices,
+		"partial_failures_ignored": ignorePartialFailures && progressTracker.HasFailures(),
+	})
 }
 
 func (a *ShutdownManagedDeviceAction) shutdown(ctx context.Context, deviceID string) error {
-	tflog.Debug(ctx, fmt.Sprintf("Sending shutdown command to device with ID: %s", deviceID))
+	tflog.Debug(ctx, "Sending shutdown command to device", map[string]any{
+		"device_id": deviceID,
+	})
 
 	err := a.client.
 		DeviceManagement().
@@ -122,7 +145,7 @@ func (a *ShutdownManagedDeviceAction) shutdown(ctx context.Context, deviceID str
 		Post(ctx, nil)
 
 	if err != nil {
-		return fmt.Errorf("failed to send shutdown command to device %s: %w", deviceID, err)
+		return fmt.Errorf("%s", errors.HandleKiotaGraphErrorForAction(ctx, err))
 	}
 
 	return nil

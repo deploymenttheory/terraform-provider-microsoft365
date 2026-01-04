@@ -3,27 +3,34 @@ package graphBetaRecoverManagedDevicePasscode
 import (
 	"context"
 	"fmt"
-	"sync"
+	"time"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/progress"
+
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/validation"
+
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
 	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
-type recoverPasscodeResult struct {
-	deviceID string
-	err      error
-}
-
 func (a *RecoverManagedDevicePasscodeAction) Invoke(ctx context.Context, req action.InvokeRequest, resp *action.InvokeResponse) {
 	var data RecoverManagedDevicePasscodeActionModel
 
-	tflog.Debug(ctx, fmt.Sprintf("Starting %s", ActionName))
+	tflog.Debug(ctx, "Starting recover passcode action", map[string]any{"action": ActionName})
 
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
+	// Handle timeout
+	ctx, cancel := crud.HandleTimeout(ctx, data.Timeouts.Invoke, InvokeTimeout*time.Second, &resp.Diagnostics)
+	if cancel == nil {
+		return
+	}
+	defer cancel()
 
 	var deviceIDs []string
 	resp.Diagnostics.Append(data.DeviceIDs.ElementsAs(ctx, &deviceIDs, false)...)
@@ -32,87 +39,112 @@ func (a *RecoverManagedDevicePasscodeAction) Invoke(ctx context.Context, req act
 	}
 
 	totalDevices := len(deviceIDs)
-	tflog.Debug(ctx, fmt.Sprintf("Performing action %s for %d device(s)", ActionName, totalDevices))
-
-	resp.SendProgress(action.InvokeProgressEvent{
-		Message: fmt.Sprintf("Starting passcode recovery for %d managed device(s)...", totalDevices),
+	tflog.Debug(ctx, "Processing devices for passcode recovery", map[string]any{
+		"total_devices": totalDevices,
 	})
 
-	// Recover passcodes from devices concurrently with error collection
-	results := make(chan recoverPasscodeResult, totalDevices)
-	var wg sync.WaitGroup
-
-	for _, deviceID := range deviceIDs {
-		wg.Add(1)
-		go func(id string) {
-			defer wg.Done()
-			err := a.recoverPasscode(ctx, id)
-			results <- recoverPasscodeResult{deviceID: id, err: err}
-		}(deviceID)
+	// Get ignore_partial_failures setting
+	ignorePartialFailures := false
+	if !data.IgnorePartialFailures.IsNull() && !data.IgnorePartialFailures.IsUnknown() {
+		ignorePartialFailures = data.IgnorePartialFailures.ValueBool()
 	}
 
-	// Close results channel once all goroutines complete
-	go func() {
-		wg.Wait()
-		close(results)
-	}()
-
-	// Collect results and track progress
-	successCount := 0
-	var failedDevices []string
-	var lastError error
-
-	for result := range results {
-		if result.err != nil {
-			failedDevices = append(failedDevices, result.deviceID)
-			lastError = result.err
-			tflog.Error(ctx, fmt.Sprintf("Failed to recover passcode for device %s: %v", result.deviceID, result.err))
-		} else {
-			successCount++
-			tflog.Debug(ctx, fmt.Sprintf("Successfully recovered passcode for device %s", result.deviceID))
-		}
-
-		// Send progress update
-		progress := float64(successCount+len(failedDevices)) / float64(totalDevices) * 100
-		resp.SendProgress(action.InvokeProgressEvent{
-			Message: fmt.Sprintf("Processed %d of %d devices (%.0f%% complete)", successCount+len(failedDevices), totalDevices, progress),
-		})
+	// Get validate_device_exists setting (default: true)
+	validateDeviceExists := true
+	if !data.ValidateDeviceExists.IsNull() && !data.ValidateDeviceExists.IsUnknown() {
+		validateDeviceExists = data.ValidateDeviceExists.ValueBool()
 	}
 
-	// Report results
-	if len(failedDevices) > 0 {
-		if successCount > 0 {
-			// Partial success
-			resp.Diagnostics.AddWarning(
-				"Partial Success",
-				fmt.Sprintf("Successfully recovered passcode for %d of %d devices. Failed devices: %v. Last error: %v\n\n"+
-					"Recovered passcodes are available in the Microsoft Intune admin center under device properties. "+
-					"Failed devices may not have passcode escrow enabled or passcodes may not have been escrowed.",
-					successCount, totalDevices, failedDevices, lastError),
+	// Perform API validation of devices if enabled
+	if validateDeviceExists {
+		tflog.Debug(ctx, "Performing device validation via API")
+
+		validationResult, err := validateRequest(ctx, a.client, deviceIDs)
+		if err != nil {
+			tflog.Error(ctx, "Failed to validate devices via API", map[string]any{"error": err.Error()})
+			resp.Diagnostics.AddError(
+				"Device Validation Failed",
+				fmt.Sprintf("Failed to validate devices: %s", err.Error()),
 			)
-		} else {
-			// Complete failure
-			errors.HandleKiotaGraphError(ctx, lastError, resp, "Action", a.WritePermissions)
 			return
 		}
+
+		// Report validation results
+		results := validation.NewResults().
+			Error(validationResult.NonExistentDevices, "device", "do not exist or are not managed by Intune").
+			Warning(validationResult.UnsupportedOSDevices, "device", "may have limited or no support for passcode recovery (primarily supported on supervised iOS/iPadOS devices)").
+			Warning(validationResult.UnsupervisedDevices, "iOS/iPadOS device", "are not supervised (passcode recovery works best with supervised devices enrolled via DEP/ABM)")
+
+		if results.Report(resp) {
+			return
+		}
+
+		// Add general escrow warning if we have devices
+		if len(deviceIDs) > 0 {
+			resp.Diagnostics.AddWarning(
+				"Passcode Escrow Requirement",
+				fmt.Sprintf("Passcode recovery requires that passcodes were escrowed during device enrollment. "+
+					"If passcodes were not escrowed for the %d device(s) in this action, recovery will fail. "+
+					"Check device enrollment profiles to ensure passcode escrow is enabled. "+
+					"If recovery fails, consider using the reset passcode action instead, which generates a new temporary passcode.",
+					len(deviceIDs)),
+			)
+		}
+
+		tflog.Debug(ctx, "Device validation completed successfully")
+	} else {
+		tflog.Debug(ctx, "Device validation disabled, skipping API checks")
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Successfully recovered passcode for %d device(s)", successCount))
+	// Create progress tracker and send initial message
+	progressTracker := progress.For(resp).WithTotalDevices(totalDevices).
+		Starting("passcode recovery", fmt.Sprintf("%d devices", totalDevices))
 
-	if successCount > 0 {
-		resp.SendProgress(action.InvokeProgressEvent{
-			Message: fmt.Sprintf("Passcode recovery complete: %d device(s) had passcodes successfully recovered. "+
-				"Retrieved passcodes are available in the Microsoft Intune admin center under device properties. "+
-				"Securely communicate passcodes to authorized users.",
-				successCount),
-		})
+	// Process devices sequentially
+	for _, deviceID := range deviceIDs {
+		err := a.recoverPasscode(ctx, deviceID)
+		if err != nil {
+			progressTracker.Device(deviceID, "").Failed(err.Error())
+			tflog.Error(ctx, "Failed to recover passcode for device", map[string]any{
+				"device_id": deviceID,
+				"error":     err.Error(),
+			})
+		} else {
+			progressTracker.Device(deviceID, "").Succeeded("passcode recovered")
+			tflog.Info(ctx, "Successfully recovered passcode for device", map[string]any{
+				"device_id": deviceID,
+			})
+		}
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Finished %s", ActionName))
+	// Handle results
+	if progressTracker.HasFailures() {
+		if ignorePartialFailures {
+			progressTracker.CompletedWithIgnoredFailures("passcode recovery")
+			tflog.Warn(ctx, "Passcode recovery completed with ignored failures", map[string]any{
+				"success_count": progressTracker.SuccessCount(),
+				"failed_count":  progressTracker.FailureCount(),
+			})
+		} else {
+			progressTracker.Failed("Passcode Recovery Failed", "recover passcodes for devices")
+			return
+		}
+	} else {
+		progressTracker.CompletedSuccessfully("recovered passcodes for all devices. Retrieved passcodes are available in the Microsoft Intune admin center under device properties. Securely communicate passcodes to authorized users")
+	}
+
+	tflog.Info(ctx, "Recover passcode action completed", map[string]any{
+		"success_count":            progressTracker.SuccessCount(),
+		"failed_count":             progressTracker.FailureCount(),
+		"total_devices":            totalDevices,
+		"partial_failures_ignored": ignorePartialFailures && progressTracker.HasFailures(),
+	})
 }
 
 func (a *RecoverManagedDevicePasscodeAction) recoverPasscode(ctx context.Context, deviceID string) error {
-	tflog.Debug(ctx, fmt.Sprintf("Recovering passcode for device with ID: %s", deviceID))
+	tflog.Debug(ctx, "Recovering passcode for device", map[string]any{
+		"device_id": deviceID,
+	})
 
 	err := a.client.
 		DeviceManagement().
@@ -122,7 +154,7 @@ func (a *RecoverManagedDevicePasscodeAction) recoverPasscode(ctx context.Context
 		Post(ctx, nil)
 
 	if err != nil {
-		return fmt.Errorf("failed to recover passcode for device %s: %w", deviceID, err)
+		return fmt.Errorf("%s", errors.HandleKiotaGraphErrorForAction(ctx, err))
 	}
 
 	return nil

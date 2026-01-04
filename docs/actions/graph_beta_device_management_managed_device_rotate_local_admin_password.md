@@ -64,6 +64,8 @@ The following API permissions are required in order to use this action.
 | Version | Status | Notes |
 |---------|--------|-------|
 | v0.33.0-alpha | Experimental | Initial release |
+| v0.40.0-alpha | Experimental | Example fixes and refactored sync progress logic |
+
 
 ## Notes
 
@@ -172,228 +174,107 @@ This action helps meet compliance requirements for:
 ## Example Usage
 
 ```terraform
-# Example 1: Basic - Rotate local admin password for managed devices
-# Use case: Regular security password rotation (quarterly security maintenance)
-action "rotate_password_basic" {
-  provider_type = microsoft365.graph_beta_device_management_managed_device_rotate_local_admin_password
-
-  managed_device_ids = [
-    "12345678-1234-1234-1234-123456789abc", # Windows 10 workstation
-    "87654321-4321-4321-4321-ba9876543210", # Windows 11 laptop
-  ]
-
-  timeouts {
-    invoke = "10m"
+# Example 1: Rotate local admin password on a single Windows device - Minimal
+action "microsoft365_graph_beta_device_management_managed_device_rotate_local_admin_password" "rotate_single" {
+  config {
+    managed_device_ids = [
+      "12345678-1234-1234-1234-123456789abc"
+    ]
   }
 }
 
-# Example 2: Co-managed devices - Hybrid SCCM and Intune environment
-# Use case: Password rotation in hybrid cloud/on-prem environment
-action "rotate_password_comanaged" {
-  provider_type = microsoft365.graph_beta_device_management_managed_device_rotate_local_admin_password
+# Example 2: Rotate local admin passwords on multiple Windows devices
+action "microsoft365_graph_beta_device_management_managed_device_rotate_local_admin_password" "rotate_multiple" {
+  config {
+    managed_device_ids = [
+      "12345678-1234-1234-1234-123456789abc",
+      "87654321-4321-4321-4321-ba9876543210",
+      "abcdef12-3456-7890-abcd-ef1234567890"
+    ]
 
-  comanaged_device_ids = [
-    "abcdef12-3456-7890-abcd-ef1234567890", # SCCM + Intune device
-  ]
-
-  timeouts {
-    invoke = "5m"
+    timeouts = {
+      invoke = "10m"
+    }
   }
 }
 
-# Example 3: Mixed environment - Both managed and co-managed devices
-# Use case: Large-scale password rotation across entire Windows fleet
-action "rotate_password_mixed" {
-  provider_type = microsoft365.graph_beta_device_management_managed_device_rotate_local_admin_password
+# Example 3: Rotate local admin passwords with validation - Maximal
+action "microsoft365_graph_beta_device_management_managed_device_rotate_local_admin_password" "rotate_with_validation" {
+  config {
+    managed_device_ids = [
+      "12345678-1234-1234-1234-123456789abc",
+      "87654321-4321-4321-4321-ba9876543210"
+    ]
 
-  managed_device_ids = [
-    "12345678-1234-1234-1234-123456789abc", # Pure Intune devices
-    "22334455-6677-8899-aabb-ccddeefffabc",
-  ]
+    comanaged_device_ids = [
+      "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"
+    ]
 
-  comanaged_device_ids = [
-    "abcdef12-3456-7890-abcd-ef1234567890", # Hybrid SCCM devices
-    "fedcba09-8765-4321-fedc-ba0987654321",
-  ]
+    ignore_partial_failures = true
+    validate_device_exists  = true
 
-  timeouts {
-    invoke = "15m"
+    timeouts = {
+      invoke = "5m"
+    }
   }
 }
 
-# Example 4: Post-incident response - Emergency password rotation
-# Use case: Security incident requiring immediate password reset
-action "rotate_password_emergency" {
-  provider_type = microsoft365.graph_beta_device_management_managed_device_rotate_local_admin_password
+# Example 4: Rotate local admin passwords on all Windows 10/11 devices
+data "microsoft365_graph_beta_device_management_managed_device" "windows_devices" {
+  filter_type  = "odata"
+  odata_filter = "operatingSystem eq 'Windows'"
+}
 
-  managed_device_ids = [
-    "compromised-device-guid-1", # Device with potential compromise
-    "compromised-device-guid-2", # Related device in same network
-    "compromised-device-guid-3", # Device accessed by same admin
-  ]
+action "microsoft365_graph_beta_device_management_managed_device_rotate_local_admin_password" "rotate_all_windows" {
+  config {
+    managed_device_ids = [for device in data.microsoft365_graph_beta_device_management_managed_device.windows_devices.items : device.id]
 
-  timeouts {
-    invoke = "10m"
+    validate_device_exists  = true
+    ignore_partial_failures = true
+
+    timeouts = {
+      invoke = "30m"
+    }
   }
 }
 
-# Example 5: Compliance-driven rotation - Quarterly security compliance
-# Use case: Scheduled password rotation for PCI-DSS, HIPAA, or other compliance
-action "rotate_password_compliance_q1" {
-  provider_type = microsoft365.graph_beta_device_management_managed_device_rotate_local_admin_password
+# Example 5: Rotate local admin passwords for co-managed devices
+action "microsoft365_graph_beta_device_management_managed_device_rotate_local_admin_password" "rotate_comanaged" {
+  config {
+    comanaged_device_ids = [
+      "11111111-1111-1111-1111-111111111111",
+      "22222222-2222-2222-2222-222222222222"
+    ]
 
-  managed_device_ids = [
-    # Finance department devices (PCI-DSS compliance)
-    "finance-device-1",
-    "finance-device-2",
-    "finance-device-3",
-    # Healthcare devices (HIPAA compliance)
-    "medical-workstation-1",
-    "medical-workstation-2",
-  ]
-
-  timeouts {
-    invoke = "15m"
+    timeouts = {
+      invoke = "10m"
+    }
   }
 }
 
-# Example 6: Admin lifecycle - Offboarding administrator
-# Use case: Administrator leaving organization, rotate all devices they had access to
-action "rotate_password_admin_offboarding" {
-  provider_type = microsoft365.graph_beta_device_management_managed_device_rotate_local_admin_password
+# Example 6: Scheduled rotation for compliance
+data "microsoft365_graph_beta_device_management_managed_device" "corporate_windows" {
+  filter_type  = "odata"
+  odata_filter = "(operatingSystem eq 'Windows') and (managedDeviceOwnerType eq 'company')"
+}
 
-  managed_device_ids = [
-    "it-admin-workstation-1", # Admin's primary workstation
-    "server-mgmt-device-1",   # Server management device
-    "backup-admin-device-1",  # Backup admin access device
-  ]
+action "microsoft365_graph_beta_device_management_managed_device_rotate_local_admin_password" "scheduled_rotation" {
+  config {
+    managed_device_ids = [for device in data.microsoft365_graph_beta_device_management_managed_device.corporate_windows.items : device.id]
 
-  timeouts {
-    invoke = "10m"
+    ignore_partial_failures = false
+
+    timeouts = {
+      invoke = "25m"
+    }
   }
 }
 
-# Example 7: Zero Trust implementation - Rotate passwords for privileged access workstations (PAWs)
-# Use case: Zero Trust security model requiring frequent password rotation
-action "rotate_password_zero_trust" {
-  provider_type = microsoft365.graph_beta_device_management_managed_device_rotate_local_admin_password
-
-  managed_device_ids = [
-    "paw-tier0-1", # Domain Admin PAW
-    "paw-tier0-2", # Enterprise Admin PAW
-    "paw-tier1-1", # Server Admin PAW
-    "paw-tier1-2", # Application Admin PAW
-    "paw-tier2-1", # Workstation Admin PAW
-  ]
-
-  timeouts {
-    invoke = "15m"
-  }
+# Output examples
+output "rotated_passwords_count" {
+  value       = length(action.microsoft365_graph_beta_device_management_managed_device_rotate_local_admin_password.rotate_multiple.config.managed_device_ids)
+  description = "Number of devices that had local admin passwords rotated"
 }
-
-# Example 8: Audit preparation - Pre-audit password validation
-# Use case: Preparing for security audit, ensure all passwords are recently rotated
-action "rotate_password_pre_audit" {
-  provider_type = microsoft365.graph_beta_device_management_managed_device_rotate_local_admin_password
-
-  managed_device_ids = [
-    # Critical infrastructure devices
-    "domain-controller-mgmt",
-    "exchange-admin-device",
-    "sql-admin-device",
-    "backup-mgmt-device",
-  ]
-
-  comanaged_device_ids = [
-    # Hybrid devices requiring audit compliance
-    "sccm-admin-device",
-    "hybrid-server-mgmt",
-  ]
-
-  timeouts {
-    invoke = "10m"
-  }
-}
-
-# Example 9: Using data sources to dynamically select devices
-# Use case: Rotate passwords for all Windows devices in specific group
-data "microsoft365_graph_beta_device_management_managed_device_list" "windows_devices" {
-  filter = "operatingSystem eq 'Windows'"
-}
-
-action "rotate_password_dynamic" {
-  provider_type = microsoft365.graph_beta_device_management_managed_device_rotate_local_admin_password
-
-  managed_device_ids = [for device in data.microsoft365_graph_beta_device_management_managed_device_list.windows_devices.managed_devices : device.id]
-
-  timeouts {
-    invoke = "30m"
-  }
-}
-
-# Example 10: Departmental rotation - IT department quarterly maintenance
-# Use case: Regular password rotation for IT department devices
-action "rotate_password_it_dept" {
-  provider_type = microsoft365.graph_beta_device_management_managed_device_rotate_local_admin_password
-
-  managed_device_ids = [
-    # Helpdesk devices
-    "helpdesk-1",
-    "helpdesk-2",
-    # IT admin devices
-    "it-admin-1",
-    "it-admin-2",
-    # Network admin devices
-    "network-admin-1",
-    # Security admin devices
-    "security-admin-1",
-  ]
-
-  timeouts {
-    invoke = "15m"
-  }
-}
-
-# Important Notes:
-#
-# 1. Windows LAPS Requirements:
-#    - Devices must be Windows 10/11
-#    - Windows LAPS policy must be configured in Intune
-#    - Policy must be assigned and active on target devices
-#    - Devices must have checked in and applied the policy
-#
-# 2. Password Generation:
-#    - Passwords automatically generated (complex, random)
-#    - Length and complexity based on LAPS policy settings
-#    - Stored securely in Azure AD or Intune
-#    - Previous password immediately invalidated
-#
-# 3. Password Retrieval:
-#    - Authorized administrators can retrieve passwords
-#    - Access requires appropriate Azure AD permissions
-#    - Retrieval actions are audited
-#    - Passwords can be retrieved via Azure Portal or Graph API
-#
-# 4. Security Best Practices:
-#    - Rotate passwords regularly (quarterly or semi-annually)
-#    - Rotate immediately after admin offboarding
-#    - Rotate after suspected compromise
-#    - Rotate as part of incident response
-#    - Document rotation schedule for compliance
-#
-# 5. Zero Trust Considerations:
-#    - Align rotation with Zero Trust principles
-#    - Use just-in-time (JIT) password retrieval
-#    - Enable MFA for password retrieval
-#    - Monitor password retrieval events
-#    - Regular rotation reduces exposure window
-#
-# 6. Compliance Requirements:
-#    - Many frameworks require regular password rotation
-#    - NIST recommends rotation after compromise
-#    - PCI-DSS requires periodic password changes
-#    - HIPAA security rule requires password management
-#    - SOC 2 Type II requires privileged access controls
 ```
 
 <!-- action schema generated by tfplugindocs -->
@@ -406,6 +287,7 @@ action "rotate_password_it_dept" {
 **Note:** At least one of `managed_device_ids` or `comanaged_device_ids` must be provided.
 
 Example: `["abcdef12-3456-7890-abcd-ef1234567890"]`
+- `ignore_partial_failures` (Boolean) If set to `true`, the action will succeed even if some operations fail. Failed operations will be reported as warnings instead of errors. Default: `false` (action fails if any operation fails).
 - `managed_device_ids` (List of String) List of managed device IDs (GUIDs) to rotate local administrator passwords for. These are devices fully managed by Intune with Windows LAPS enabled.
 
 **Note:** At least one of `managed_device_ids` or `comanaged_device_ids` must be provided. You can provide both to rotate passwords on different types of devices in one action.
@@ -414,14 +296,12 @@ Example: `["abcdef12-3456-7890-abcd-ef1234567890"]`
 
 Example: `["12345678-1234-1234-1234-123456789abc", "87654321-4321-4321-4321-ba9876543210"]`
 - `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))
+- `validate_device_exists` (Boolean) Whether to validate that devices exist and are Windows devices before attempting to rotate local admin passwords. Disabling this can speed up planning but may result in runtime errors for non-existent or non-Windows devices. Default: `true`.
 
 <a id="nestedatt--timeouts"></a>
 ### Nested Schema for `timeouts`
 
 Optional:
 
-- `create` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours).
-- `delete` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours). Setting a timeout for a Delete operation is only applicable if changes are saved into state before the destroy operation occurs.
-- `read` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours). Read operations occur during any refresh or planning operation when refresh is enabled.
-- `update` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours).
+- `invoke` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours).
 
