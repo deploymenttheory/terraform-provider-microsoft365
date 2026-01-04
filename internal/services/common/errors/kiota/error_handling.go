@@ -148,6 +148,59 @@ func HandleKiotaGraphError(ctx context.Context, err error, resp any, operation s
 	}
 }
 
+// HandleKiotaGraphErrorForAction processes Graph API errors and returns a formatted error string for actions
+// This is used by action implementations which use SendProgress instead of Diagnostics
+// Returns a concise single-line format suitable for progress messages
+func HandleKiotaGraphErrorForAction(ctx context.Context, err error) string {
+	if err == nil {
+		return "unknown error occurred"
+	}
+
+	errorInfo := GraphError(ctx, err)
+
+	tflog.Debug(ctx, "Formatting Graph error for action:", map[string]any{
+		"status_code":    errorInfo.StatusCode,
+		"error_code":     errorInfo.ErrorCode,
+		"error_message":  errorInfo.ErrorMessage,
+		"target":         errorInfo.Target,
+		"is_odata_error": errorInfo.IsODataError,
+		"request_id":     errorInfo.RequestID,
+		"correlation_id": errorInfo.CorrelationID,
+		"category":       errorInfo.Category,
+	})
+
+	var parts []string
+
+	if errorInfo.ErrorMessage != "" {
+		parts = append(parts, errorInfo.ErrorMessage)
+	}
+
+	// Add error code if different from message and available
+	if errorInfo.ErrorCode != "" && errorInfo.ErrorCode != "UnknownError" {
+		if description, exists := comprehensiveODataErrorCodes[errorInfo.ErrorCode]; exists {
+			parts = append(parts, fmt.Sprintf("Code: %s (%s)", errorInfo.ErrorCode, description))
+		} else {
+			parts = append(parts, fmt.Sprintf("Code: %s", errorInfo.ErrorCode))
+		}
+	}
+
+	if errorInfo.Target != "" {
+		parts = append(parts, fmt.Sprintf("Target: %s", errorInfo.Target))
+	}
+
+	if len(parts) > 0 {
+		return strings.Join(parts, ". ")
+	}
+
+	// Fallback to status-based error if nothing else is available
+	if errorInfo.StatusCode > 0 {
+		errorDesc := getErrorDescription(errorInfo.StatusCode)
+		return errorDesc.Summary
+	}
+
+	return "API error occurred"
+}
+
 // GraphError extracts and analyzes error information from Graph API errors
 func GraphError(ctx context.Context, err error) GraphErrorInfo {
 	errorInfo := GraphErrorInfo{

@@ -16,7 +16,7 @@ import (
 )
 
 const (
-	ActionName = "microsoft365_graph_beta_device_management_managed_device_send_custom_notification_to_company_portal"
+	ActionName    = "microsoft365_graph_beta_device_management_managed_device_send_custom_notification_to_company_portal"
 	InvokeTimeout = 60
 )
 
@@ -170,6 +170,19 @@ func (a *SendCustomNotificationToCompanyPortalAction) Schema(ctx context.Context
 						},
 					},
 				},
+			},
+			"ignore_partial_failures": schema.BoolAttribute{
+				Optional: true,
+				MarkdownDescription: "When set to `true`, the action will complete successfully even if some devices fail to receive notifications. " +
+					"When `false` (default), the action will fail if any device notification delivery fails. " +
+					"Use this flag when sending notifications to multiple devices and you want the action to succeed even if some deliveries fail.",
+			},
+			"validate_device_exists": schema.BoolAttribute{
+				Optional: true,
+				MarkdownDescription: "When set to `true` (default), the action will validate that all specified devices exist and support " +
+					"custom notifications (iOS, iPadOS, Android only) before sending notifications. " +
+					"When `false`, device validation is skipped and the action will attempt to send notifications directly. " +
+					"Disabling validation can improve performance but may result in errors if devices don't exist or are unsupported.",
 			},
 			"timeouts": commonschema.ActionTimeouts(ctx),
 		},

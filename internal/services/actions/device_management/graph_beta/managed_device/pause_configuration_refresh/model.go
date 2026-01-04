@@ -7,9 +7,11 @@ import (
 )
 
 type PauseConfigurationRefreshManagedDeviceActionModel struct {
-	ManagedDevices   []ManagedDevicePauseConfig   `tfsdk:"managed_devices"`
-	ComanagedDevices []ComanagedDevicePauseConfig `tfsdk:"comanaged_devices"`
-	Timeouts         timeouts.Value               `tfsdk:"timeouts"`
+	ManagedDevices        []ManagedDevicePauseConfig   `tfsdk:"managed_devices"`
+	ComanagedDevices      []ComanagedDevicePauseConfig `tfsdk:"comanaged_devices"`
+	IgnorePartialFailures types.Bool                   `tfsdk:"ignore_partial_failures"`
+	ValidateDeviceExists  types.Bool                   `tfsdk:"validate_device_exists"`
+	Timeouts              timeouts.Value               `tfsdk:"timeouts"`
 }
 
 type ManagedDevicePauseConfig struct {

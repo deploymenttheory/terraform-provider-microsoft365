@@ -60,21 +60,22 @@ The following API permissions are required in order to use this action.
 
 ## Version History
 
-|| Version | Status | Notes |
-||---------|--------|-------|
-|| v0.33.0-alpha | Experimental | Initial release |
+| Version | Status | Notes |
+|---------|--------|-------|
+| v0.33.0-alpha | Experimental | Initial release |
+| v0.40.0-alpha | Experimental | Example fixes and refactored sync progress logic |
 
 ## Notes
 
 ### Platform Compatibility
 
-|| Platform | Support | Requirements |
-||----------|---------|--------------|
-|| **iPad** | ✅ Full Support | iPadOS 12.1+ |
-|| **iPhone** | ✅ Full Support | iOS 12.1+ |
-|| **Android** | ❌ Not Supported | eSIM activation not supported |
-|| **Windows** | ❌ Not Supported | eSIM activation not supported |
-|| **macOS** | ❌ Not Supported | eSIM activation not supported |
+| Platform | Support | Requirements |
+|----------|---------|--------------|
+| **iPad** | ✅ Full Support | iPadOS 12.1+ |
+| **iPhone** | ✅ Full Support | iOS 12.1+ |
+| **Android** | ❌ Not Supported | eSIM activation not supported |
+| **Windows** | ❌ Not Supported | eSIM activation not supported |
+| **macOS** | ❌ Not Supported | eSIM activation not supported |
 
 ### What is eSIM?
 
@@ -123,32 +124,37 @@ eSIM is an embedded SIM that:
 ```terraform
 # Example 1: Activate eSIM on a single device
 action "microsoft365_graph_beta_device_management_managed_device_activate_device_esim" "activate_single" {
+  config {
+    managed_devices = [
+      {
+        device_id   = "12345678-1234-1234-1234-123456789abc"
+        carrier_url = "https://carrier.example.com/esim/activate?token=abc123xyz"
+      }
+    ]
 
-  managed_devices {
-    device_id   = "12345678-1234-1234-1234-123456789abc"
-    carrier_url = "https://carrier.example.com/esim/activate?token=abc123xyz"
-  }
-
-  timeouts = {
-    invoke = "5m"
+    timeouts = {
+      invoke = "5m"
+    }
   }
 }
 
 # Example 2: Activate eSIM on multiple devices with different carriers
 action "microsoft365_graph_beta_device_management_managed_device_activate_device_esim" "activate_multiple" {
+  config {
+    managed_devices = [
+      {
+        device_id   = "12345678-1234-1234-1234-123456789abc"
+        carrier_url = "https://carrier-a.example.com/esim/activate?code=device1"
+      },
+      {
+        device_id   = "87654321-4321-4321-4321-ba9876543210"
+        carrier_url = "https://carrier-b.example.com/esim/activate?code=device2"
+      }
+    ]
 
-  managed_devices {
-    device_id   = "12345678-1234-1234-1234-123456789abc"
-    carrier_url = "https://carrier-a.example.com/esim/activate?code=device1"
-  }
-
-  managed_devices {
-    device_id   = "87654321-4321-4321-4321-ba9876543210"
-    carrier_url = "https://carrier-b.example.com/esim/activate?code=device2"
-  }
-
-  timeouts = {
-    invoke = "10m"
+    timeouts = {
+      invoke = "10m"
+    }
   }
 }
 
@@ -164,17 +170,17 @@ variable "new_devices_with_esim" {
 }
 
 action "microsoft365_graph_beta_device_management_managed_device_activate_device_esim" "bulk_activation" {
+  config {
+    managed_devices = [
+      for device_id, carrier_url in var.new_devices_with_esim : {
+        device_id   = device_id
+        carrier_url = carrier_url
+      }
+    ]
 
-  dynamic "managed_devices" {
-    for_each = var.new_devices_with_esim
-    content {
-      device_id   = managed_devices.key
-      carrier_url = managed_devices.value
+    timeouts = {
+      invoke = "15m"
     }
-  }
-
-  timeouts = {
-    invoke = "15m"
   }
 }
 
@@ -193,17 +199,17 @@ locals {
 }
 
 action "microsoft365_graph_beta_device_management_managed_device_activate_device_esim" "activate_ipads" {
+  config {
+    managed_devices = [
+      for device_id, carrier_url in local.ipad_carrier_urls : {
+        device_id   = device_id
+        carrier_url = carrier_url
+      }
+    ]
 
-  dynamic "managed_devices" {
-    for_each = local.ipad_carrier_urls
-    content {
-      device_id   = managed_devices.key
-      carrier_url = managed_devices.value
+    timeouts = {
+      invoke = "20m"
     }
-  }
-
-  timeouts = {
-    invoke = "20m"
   }
 }
 
@@ -220,30 +226,33 @@ locals {
 }
 
 action "microsoft365_graph_beta_device_management_managed_device_activate_device_esim" "international_activation" {
+  config {
+    managed_devices = [
+      for device_id, carrier_url in local.international_devices : {
+        device_id   = device_id
+        carrier_url = carrier_url
+      }
+    ]
 
-  dynamic "managed_devices" {
-    for_each = local.international_devices
-    content {
-      device_id   = managed_devices.key
-      carrier_url = managed_devices.value
+    timeouts = {
+      invoke = "15m"
     }
-  }
-
-  timeouts = {
-    invoke = "15m"
   }
 }
 
 # Example 6: Activate eSIM on co-managed device
 action "microsoft365_graph_beta_device_management_managed_device_activate_device_esim" "activate_comanaged" {
+  config {
+    comanaged_devices = [
+      {
+        device_id   = "abcdef12-3456-7890-abcd-ef1234567890"
+        carrier_url = "https://carrier.example.com/esim/activate?device=comanaged001"
+      }
+    ]
 
-  comanaged_devices {
-    device_id   = "abcdef12-3456-7890-abcd-ef1234567890"
-    carrier_url = "https://carrier.example.com/esim/activate?device=comanaged001"
-  }
-
-  timeouts = {
-    invoke = "5m"
+    timeouts = {
+      invoke = "5m"
+    }
   }
 }
 
@@ -254,135 +263,33 @@ data "microsoft365_graph_beta_device_management_managed_device" "windows_cellula
 }
 
 action "microsoft365_graph_beta_device_management_managed_device_activate_device_esim" "activate_windows_cellular" {
+  config {
+    managed_devices = [
+      for device in data.microsoft365_graph_beta_device_management_managed_device.windows_cellular.items : {
+        device_id   = device.id
+        carrier_url = format("https://carrier.example.com/esim/activate?imei=%s", device.imei)
+      }
+    ]
 
-  dynamic "managed_devices" {
-    for_each = { for device in data.microsoft365_graph_beta_device_management_managed_device.windows_cellular.items : device.id => device }
-    content {
-      device_id   = managed_devices.key
-      carrier_url = format("https://carrier.example.com/esim/activate?imei=%s", managed_devices.value.imei)
+    timeouts = {
+      invoke = "15m"
     }
-  }
-
-  timeouts = {
-    invoke = "15m"
   }
 }
 
-# Output examples
+# Output examples - demonstrating how to reference action configuration
 output "devices_activated_count" {
-  value       = length(action.activate_multiple.managed_devices)
+  value       = length(action.microsoft365_graph_beta_device_management_managed_device_activate_device_esim.activate_multiple.config.managed_devices)
   description = "Number of devices that had eSIM activation initiated"
 }
 
 output "activation_summary" {
   value = {
-    managed   = length(action.bulk_activation.managed_devices)
-    comanaged = length(action.activate_comanaged.comanaged_devices)
+    managed   = length(action.microsoft365_graph_beta_device_management_managed_device_activate_device_esim.bulk_activation.config.managed_devices)
+    comanaged = length(action.microsoft365_graph_beta_device_management_managed_device_activate_device_esim.activate_comanaged.config.comanaged_devices)
   }
   description = "Count of eSIM activations by device type"
 }
-
-# Important Notes:
-# eSIM Activation Features:
-# - Enables cellular connectivity without physical SIM cards
-# - Supports multiple carrier profiles on compatible devices
-# - Allows remote provisioning and carrier switching
-# - Each device requires carrier-specific activation URL
-# - Device must have eSIM hardware capability
-# - Carrier must support eSIM technology
-#
-# When to Activate eSIM:
-# - Initial deployment of eSIM-capable devices
-# - Switching carriers on existing devices
-# - International deployments with local carriers
-# - Field devices requiring remote cellular setup
-# - Corporate devices needing managed connectivity
-# - Devices supporting dual SIM (physical + eSIM)
-#
-# What Happens When eSIM is Activated:
-# - Device receives carrier activation profile
-# - eSIM downloads and installs carrier settings
-# - Device activates cellular service
-# - eSIM appears in device settings
-# - Device can connect to carrier network
-# - May require device restart on some platforms
-# - Physical SIM (if present) remains functional
-#
-# Platform-Specific Support:
-# - iOS/iPadOS: iPhone XS and later, cellular iPad models
-# - Windows: Surface Pro X, Surface Pro 9 5G, other eSIM-capable PCs
-# - Android: Varies by manufacturer and model
-# - Must verify device eSIM capability before activation
-# - Check carrier eSIM support for target region
-#
-# Carrier URL Requirements:
-# - Provided by mobile carrier or MVNO
-# - Format varies by carrier
-# - May include activation tokens or codes
-# - Often time-limited or single-use
-# - Secure URL for profile download
-# - Contains encrypted activation profile
-#
-# Best Practices:
-# - Verify device eSIM capability before activation
-# - Obtain valid carrier URLs before deployment
-# - Test activation on pilot devices first
-# - Coordinate with carrier for bulk activations
-# - Document carrier URLs and activation dates
-# - Plan for activation failures and retries
-# - Consider time zones for international deployments
-#
-# eSIM vs Physical SIM:
-# - No physical card required
-# - Remote provisioning and management
-# - Faster deployment at scale
-# - Easier carrier switching
-# - Supports multiple profiles (eSIM + physical)
-# - Reduced logistics and shipping costs
-# - Better for international deployments
-#
-# Device Requirements:
-# - eSIM-capable hardware
-# - Supported cellular modem
-# - Compatible with carrier's network
-# - Proper Intune enrollment
-# - Online connectivity for activation
-# - Sufficient storage for eSIM profile
-#
-# Carrier Considerations:
-# - Must support eSIM technology
-# - Provides activation URLs or QR codes
-# - May have regional restrictions
-# - Different pricing than physical SIM
-# - Support for device management platforms
-# - Activation process varies by carrier
-#
-# Troubleshooting:
-# - Verify device eSIM support
-# - Check carrier URL validity
-# - Ensure device is online
-# - Verify carrier network availability
-# - Check for device restrictions
-# - Review carrier activation logs
-# - Contact carrier support if needed
-#
-# Security Considerations:
-# - Carrier URLs may contain sensitive tokens
-# - Store URLs securely
-# - Use HTTPS for all carrier communications
-# - Limit URL exposure and sharing
-# - Monitor for unauthorized activations
-# - Requires appropriate Intune permissions
-# - Audit eSIM activation events
-#
-# Related Actions:
-# - Device enrollment: Initial device setup
-# - Network configuration: VPN and WiFi settings
-# - Compliance policies: Ensure device requirements
-# - Inventory management: Track eSIM-capable devices
-#
-# Reference:
-# https://learn.microsoft.com/en-us/graph/api/intune-devices-manageddevice-activatedeviceesim?view=graph-rest-beta
 ```
 
 <!-- action schema generated by tfplugindocs -->
@@ -390,7 +297,7 @@ output "activation_summary" {
 
 ### Optional
 
-- `comanaged_devices` (Block List) List of co-managed devices to activate eSIM on. These are devices managed by both Intune and Configuration Manager (SCCM). Each entry specifies a device ID and the carrier activation URL.
+- `comanaged_devices` (Attributes List) List of co-managed devices to activate eSIM on. These are devices managed by both Intune and Configuration Manager (SCCM). Each entry specifies a device ID and the carrier activation URL.
 
 **Examples:**
 ```hcl
@@ -404,9 +311,9 @@ comanaged_devices = [
 
 **Platform Support:** Windows 10/11 with cellular modems (primary), limited iOS/Android support
 
-**Note:** At least one of `managed_devices` or `comanaged_devices` must be provided. Device must be online and support eSIM technology. (see [below for nested schema](#nestedblock--comanaged_devices))
+**Note:** At least one of `managed_devices` or `comanaged_devices` must be provided. Device must be online and support eSIM technology. (see [below for nested schema](#nestedatt--comanaged_devices))
 - `ignore_partial_failures` (Boolean) If set to `true`, the action will succeed even if some devices fail eSIM activation. Failed devices will be reported as warnings instead of errors. Default: `false` (action fails if any device fails).
-- `managed_devices` (Block List) List of managed devices to activate eSIM on. These are devices fully managed by Intune only. Each entry specifies a device ID and the carrier-specific activation URL.
+- `managed_devices` (Attributes List) List of managed devices to activate eSIM on. These are devices fully managed by Intune only. Each entry specifies a device ID and the carrier-specific activation URL.
 
 **Examples:**
 ```hcl
@@ -424,11 +331,11 @@ managed_devices = [
 
 **Platform Support:** iOS (iPhone XS+), Windows 10/11 with cellular, Android (varies by manufacturer)
 
-**Note:** At least one of `managed_devices` or `comanaged_devices` must be provided. Device must be online and support eSIM technology. (see [below for nested schema](#nestedblock--managed_devices))
+**Note:** At least one of `managed_devices` or `comanaged_devices` must be provided. Device must be online and support eSIM technology. (see [below for nested schema](#nestedatt--managed_devices))
 - `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))
 - `validate_device_exists` (Boolean) Whether to validate that devices exist before attempting activation. Disabling this can speed up planning but may result in runtime errors for non-existent devices. Default: `true`.
 
-<a id="nestedblock--comanaged_devices"></a>
+<a id="nestedatt--comanaged_devices"></a>
 ### Nested Schema for `comanaged_devices`
 
 Required:
@@ -437,7 +344,7 @@ Required:
 - `device_id` (String) The unique identifier (GUID) of the co-managed device to activate eSIM on. Example: `"12345678-1234-1234-1234-123456789abc"`
 
 
-<a id="nestedblock--managed_devices"></a>
+<a id="nestedatt--managed_devices"></a>
 ### Nested Schema for `managed_devices`
 
 Required:
@@ -451,7 +358,4 @@ Required:
 
 Optional:
 
-- `create` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours).
-- `delete` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours). Setting a timeout for a Delete operation is only applicable if changes are saved into state before the destroy operation occurs.
-- `read` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours). Read operations occur during any refresh or planning operation when refresh is enabled.
-- `update` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours).
+- `invoke` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours).

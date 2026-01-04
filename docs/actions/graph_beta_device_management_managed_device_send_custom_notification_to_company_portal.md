@@ -234,210 +234,143 @@ Custom notifications to Company Portal are only supported on mobile platforms:
 ## Example Usage
 
 ```terraform
-# REF: https://learn.microsoft.com/en-us/graph/api/intune-devices-manageddevice-sendcustomnotificationtocompanyportal?view=graph-rest-beta
-
-# Data source to find devices for targeted messaging
-data "microsoft365_graph_beta_device_management_managed_device" "all_devices" {}
-
-# Example 1: Send compliance reminder to specific non-compliant devices
-# Use this to remind users about compliance issues
-action "microsoft365_graph_beta_device_management_managed_device_send_custom_notification_to_company_portal" "compliance_reminder" {
-  managed_devices {
-    device_id          = "12345678-1234-1234-1234-123456789abc"
-    notification_title = "Action Required: Device Compliance"
-    notification_body  = "Your device is not compliant with company security policies. Please update your device settings to regain access to company resources."
-  }
-
-  managed_devices {
-    device_id          = "87654321-4321-4321-4321-ba9876543210"
-    notification_title = "Action Required: Device Compliance"
-    notification_body  = "Your device requires immediate attention. Please update your antivirus software to maintain compliance."
+# Example 1: Send custom notification to a single device - Minimal
+action "microsoft365_graph_beta_device_management_managed_device_send_custom_notification_to_company_portal" "send_single" {
+  config {
+    managed_devices = [
+      {
+        device_id          = "12345678-1234-1234-1234-123456789abc"
+        notification_title = "Action Required"
+        notification_body  = "Please update your device password to maintain access to company resources."
+      }
+    ]
   }
 }
 
-# Example 2: Send password expiration warning with different messages per device
-# Use this to send personalized password expiration reminders
-action "microsoft365_graph_beta_device_management_managed_device_send_custom_notification_to_company_portal" "password_expiration_warning" {
-  managed_devices {
-    device_id          = "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"
-    notification_title = "Password Expires in 3 Days"
-    notification_body  = "Your device password will expire on October 22, 2025. Please update it now to avoid losing access to company resources."
-  }
+# Example 2: Send custom notifications to multiple devices with different messages
+action "microsoft365_graph_beta_device_management_managed_device_send_custom_notification_to_company_portal" "send_multiple" {
+  config {
+    managed_devices = [
+      {
+        device_id          = "12345678-1234-1234-1234-123456789abc"
+        notification_title = "Action Required: Update Password"
+        notification_body  = "Your device password will expire in 3 days. Please update it to maintain access to company resources."
+      },
+      {
+        device_id          = "87654321-4321-4321-4321-ba9876543210"
+        notification_title = "Compliance Alert"
+        notification_body  = "Your device is not compliant with corporate security policies. Please contact IT support."
+      }
+    ]
 
-  managed_devices {
-    device_id          = "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"
-    notification_title = "Password Expires Tomorrow"
-    notification_body  = "URGENT: Your device password expires tomorrow! Update it immediately to prevent account lockout."
+    timeouts = {
+      invoke = "10m"
+    }
   }
 }
 
-# Example 3: Send security alert to all Windows devices
-# Use this for critical security communications
+# Example 3: Maximal configuration with validation
+action "microsoft365_graph_beta_device_management_managed_device_send_custom_notification_to_company_portal" "send_maximal" {
+  config {
+    managed_devices = [
+      {
+        device_id          = "12345678-1234-1234-1234-123456789abc"
+        notification_title = "Action Required: Update Password"
+        notification_body  = "Your device password will expire in 3 days. Please update it to maintain access to company resources."
+      },
+      {
+        device_id          = "87654321-4321-4321-4321-ba9876543210"
+        notification_title = "Compliance Alert"
+        notification_body  = "Your device is not compliant with corporate security policies. Please contact IT support."
+      }
+    ]
+
+    comanaged_devices = [
+      {
+        device_id          = "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"
+        notification_title = "Maintenance Window"
+        notification_body  = "A scheduled maintenance will occur tonight from 10 PM to 2 AM. Please save your work."
+      }
+    ]
+
+    ignore_partial_failures = true
+    validate_device_exists  = true
+
+    timeouts = {
+      invoke = "5m"
+    }
+  }
+}
+
+# Example 4: Send notification to non-compliant devices
+data "microsoft365_graph_beta_device_management_managed_device" "noncompliant_devices" {
+  filter_type  = "odata"
+  odata_filter = "complianceState eq 'noncompliant'"
+}
+
+action "microsoft365_graph_beta_device_management_managed_device_send_custom_notification_to_company_portal" "notify_noncompliant" {
+  config {
+    managed_devices = [
+      for device in data.microsoft365_graph_beta_device_management_managed_device.noncompliant_devices.items : {
+        device_id          = device.id
+        notification_title = "Compliance Action Required"
+        notification_body  = "Your device is not compliant. Please ensure all required policies are applied."
+      }
+    ]
+
+    validate_device_exists = true
+
+    timeouts = {
+      invoke = "15m"
+    }
+  }
+}
+
+# Example 5: Send notification for upcoming maintenance
 data "microsoft365_graph_beta_device_management_managed_device" "windows_devices" {
-  filter = "operatingSystem eq 'Windows'"
+  filter_type  = "odata"
+  odata_filter = "operatingSystem eq 'Windows'"
 }
 
-action "microsoft365_graph_beta_device_management_managed_device_send_custom_notification_to_company_portal" "security_alert" {
-  dynamic "managed_devices" {
-    for_each = data.microsoft365_graph_beta_device_management_managed_device.windows_devices.managed_devices
-    content {
-      device_id          = managed_devices.value.id
-      notification_title = "Security Alert: Update Required"
-      notification_body  = "A critical security update is available for your Windows device. Please install updates through the Company Portal app within 24 hours."
-    }
-  }
+action "microsoft365_graph_beta_device_management_managed_device_send_custom_notification_to_company_portal" "maintenance_notification" {
+  config {
+    managed_devices = [
+      for device in data.microsoft365_graph_beta_device_management_managed_device.windows_devices.items : {
+        device_id          = device.id
+        notification_title = "Scheduled Maintenance"
+        notification_body  = "System maintenance is scheduled for this weekend. Please ensure your work is saved."
+      }
+    ]
 
-  timeouts = {
-    invoke = "20m"
-  }
-}
+    ignore_partial_failures = true
 
-# Example 4: Send maintenance window notification to specific departments
-# Use this to communicate scheduled maintenance
-data "microsoft365_graph_beta_device_management_managed_device" "finance_devices" {
-  filter = "startswith(deviceName, 'FIN-')"
-}
-
-action "microsoft365_graph_beta_device_management_managed_device_send_custom_notification_to_company_portal" "maintenance_notice" {
-  dynamic "managed_devices" {
-    for_each = data.microsoft365_graph_beta_device_management_managed_device.finance_devices.managed_devices
-    content {
-      device_id          = managed_devices.value.id
-      notification_title = "Scheduled Maintenance: October 25"
-      notification_body  = "Your device will undergo maintenance on October 25 from 10 PM to 2 AM. Please save your work and leave your device powered on."
+    timeouts = {
+      invoke = "20m"
     }
   }
 }
 
-# Example 5: Send app update notification to iOS devices
-# Use this to notify users about required app updates
-data "microsoft365_graph_beta_device_management_managed_device" "ios_devices" {
-  filter = "operatingSystem eq 'iOS' or operatingSystem eq 'iPadOS'"
-}
+# Example 6: Send notification to co-managed devices
+action "microsoft365_graph_beta_device_management_managed_device_send_custom_notification_to_company_portal" "send_comanaged" {
+  config {
+    comanaged_devices = [
+      {
+        device_id          = "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"
+        notification_title = "Important Update"
+        notification_body  = "Please restart your device to apply critical security updates."
+      }
+    ]
 
-action "microsoft365_graph_beta_device_management_managed_device_send_custom_notification_to_company_portal" "app_update_required" {
-  dynamic "managed_devices" {
-    for_each = data.microsoft365_graph_beta_device_management_managed_device.ios_devices.managed_devices
-    content {
-      device_id          = managed_devices.value.id
-      notification_title = "App Update Available"
-      notification_body  = "Important security updates are available for your corporate apps. Open the Company Portal to update your apps now."
+    timeouts = {
+      invoke = "5m"
     }
   }
 }
 
-# Example 6: Send policy change notification to Android devices
-# Use this to communicate new policies to Android users
-data "microsoft365_graph_beta_device_management_managed_device" "android_devices" {
-  filter = "operatingSystem eq 'Android'"
-}
-
-action "microsoft365_graph_beta_device_management_managed_device_send_custom_notification_to_company_portal" "policy_update" {
-  dynamic "managed_devices" {
-    for_each = data.microsoft365_graph_beta_device_management_managed_device.android_devices.managed_devices
-    content {
-      device_id          = managed_devices.value.id
-      notification_title = "New Device Policy Effective October 30"
-      notification_body  = "New security policies will be enforced on your Android device starting October 30. Please review the policy changes in the Company Portal."
-    }
-  }
-}
-
-# Example 7: Send custom notifications to both managed and co-managed devices
-# Use this for mixed management scenarios
-action "microsoft365_graph_beta_device_management_managed_device_send_custom_notification_to_company_portal" "mixed_notification" {
-  managed_devices {
-    device_id          = "11111111-1111-1111-1111-111111111111"
-    notification_title = "IT Support Notification"
-    notification_body  = "Your device enrollment is about to expire. Please contact IT support at ext. 5555 to renew."
-  }
-
-  comanaged_devices {
-    device_id          = "22222222-2222-2222-2222-222222222222"
-    notification_title = "IT Support Notification"
-    notification_body  = "Your device enrollment is about to expire. Please contact IT support at ext. 5555 to renew."
-  }
-}
-
-# Example 8: Send BitLocker recovery key reminder
-# Use this to inform users about BitLocker key escrow
-data "microsoft365_graph_beta_device_management_managed_device" "windows_bitlocker" {
-  filter = "operatingSystem eq 'Windows' and encryptionState eq 'encrypted'"
-}
-
-action "microsoft365_graph_beta_device_management_managed_device_send_custom_notification_to_company_portal" "bitlocker_reminder" {
-  dynamic "managed_devices" {
-    for_each = data.microsoft365_graph_beta_device_management_managed_device.windows_bitlocker.managed_devices
-    content {
-      device_id          = managed_devices.value.id
-      notification_title = "BitLocker Recovery Key Information"
-      notification_body  = "Your BitLocker recovery key is safely stored. If you need to recover your device, contact IT support with your device ID."
-    }
-  }
-}
-
-# Example 9: Send enrollment completion notification
-# Use this to welcome newly enrolled devices
-data "microsoft365_graph_beta_device_management_managed_device" "recently_enrolled" {
-  filter = "enrolledDateTime gt 2024-10-15T00:00:00Z"
-}
-
-action "microsoft365_graph_beta_device_management_managed_device_send_custom_notification_to_company_portal" "welcome_notification" {
-  dynamic "managed_devices" {
-    for_each = data.microsoft365_graph_beta_device_management_managed_device.recently_enrolled.managed_devices
-    content {
-      device_id          = managed_devices.value.id
-      notification_title = "Welcome to Company Portal"
-      notification_body  = "Your device has been successfully enrolled. You now have access to company apps and resources. For help, visit the IT portal at portal.company.com."
-    }
-  }
-}
-
-# Example 10: Send certificate expiration warning
-# Use this to notify users about expiring certificates
-action "microsoft365_graph_beta_device_management_managed_device_send_custom_notification_to_company_portal" "certificate_expiration" {
-  managed_devices {
-    device_id          = "cert-device-1"
-    notification_title = "Certificate Expires in 7 Days"
-    notification_body  = "Your device authentication certificate will expire on November 1. It will be automatically renewed, but please ensure your device stays connected."
-  }
-
-  managed_devices {
-    device_id          = "cert-device-2"
-    notification_title = "Certificate Renewal Required"
-    notification_body  = "Your device certificate requires manual renewal. Please sync your device through the Company Portal within 48 hours."
-  }
-}
-
-# Example 11: Send VPN configuration update notice
-# Use this to communicate VPN changes to users
-action "microsoft365_graph_beta_device_management_managed_device_send_custom_notification_to_company_portal" "vpn_update" {
-  managed_devices {
-    device_id          = "vpn-device-1"
-    notification_title = "VPN Configuration Update"
-    notification_body  = "Your VPN configuration will be updated automatically on October 28. You may need to reconnect to the VPN after the update completes."
-  }
-}
-
-# Example 12: Send custom notification with extended timeout for large deployments
-# Use this for organization-wide notifications
-data "microsoft365_graph_beta_device_management_managed_device" "all_managed" {
-  filter = "managementAgent eq 'mdm'"
-}
-
-action "microsoft365_graph_beta_device_management_managed_device_send_custom_notification_to_company_portal" "org_wide_notification" {
-  dynamic "managed_devices" {
-    for_each = data.microsoft365_graph_beta_device_management_managed_device.all_managed.managed_devices
-    content {
-      device_id          = managed_devices.value.id
-      notification_title = "Important Company Announcement"
-      notification_body  = "Our company is implementing new security measures. All devices will receive updated policies over the next week. Thank you for your cooperation."
-    }
-  }
-
-  timeouts = {
-    invoke = "45m"
-  }
+# Output examples
+output "notifications_sent_count" {
+  value       = length(action.microsoft365_graph_beta_device_management_managed_device_send_custom_notification_to_company_portal.send_multiple.config.managed_devices)
+  description = "Number of notifications sent to managed devices"
 }
 ```
 
@@ -446,15 +379,17 @@ action "microsoft365_graph_beta_device_management_managed_device_send_custom_not
 
 ### Optional
 
-- `comanaged_devices` (Block List) List of co-managed devices to send custom notifications to. These are devices managed by both Intune and Configuration Manager (SCCM). Each entry specifies a device ID and the custom notification title and body.
+- `comanaged_devices` (Attributes List) List of co-managed devices to send custom notifications to. These are devices managed by both Intune and Configuration Manager (SCCM). Each entry specifies a device ID and the custom notification title and body.
 
-**Note:** At least one of `managed_devices` or `comanaged_devices` must be provided. (see [below for nested schema](#nestedblock--comanaged_devices))
-- `managed_devices` (Block List) List of managed devices to send custom notifications to. These are devices fully managed by Intune only. Each entry specifies a device ID and the custom notification title and body for that device.
+**Note:** At least one of `managed_devices` or `comanaged_devices` must be provided. (see [below for nested schema](#nestedatt--comanaged_devices))
+- `ignore_partial_failures` (Boolean) When set to `true`, the action will complete successfully even if some devices fail to receive notifications. When `false` (default), the action will fail if any device notification delivery fails. Use this flag when sending notifications to multiple devices and you want the action to succeed even if some deliveries fail.
+- `managed_devices` (Attributes List) List of managed devices to send custom notifications to. These are devices fully managed by Intune only. Each entry specifies a device ID and the custom notification title and body for that device.
 
-**Note:** At least one of `managed_devices` or `comanaged_devices` must be provided. You can provide both to send notifications to different types of devices in one action. (see [below for nested schema](#nestedblock--managed_devices))
+**Note:** At least one of `managed_devices` or `comanaged_devices` must be provided. You can provide both to send notifications to different types of devices in one action. (see [below for nested schema](#nestedatt--managed_devices))
 - `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))
+- `validate_device_exists` (Boolean) When set to `true` (default), the action will validate that all specified devices exist and support custom notifications (iOS, iPadOS, Android only) before sending notifications. When `false`, device validation is skipped and the action will attempt to send notifications directly. Disabling validation can improve performance but may result in errors if devices don't exist or are unsupported.
 
-<a id="nestedblock--comanaged_devices"></a>
+<a id="nestedatt--comanaged_devices"></a>
 ### Nested Schema for `comanaged_devices`
 
 Required:
@@ -464,7 +399,7 @@ Required:
 - `notification_title` (String) The title of the custom notification to display in the Company Portal app. Should be concise and descriptive. Maximum recommended length: 50-60 characters. Example: `"Compliance Alert"`
 
 
-<a id="nestedblock--managed_devices"></a>
+<a id="nestedatt--managed_devices"></a>
 ### Nested Schema for `managed_devices`
 
 Required:
@@ -479,8 +414,5 @@ Required:
 
 Optional:
 
-- `create` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours).
-- `delete` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours). Setting a timeout for a Delete operation is only applicable if changes are saved into state before the destroy operation occurs.
-- `read` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours). Read operations occur during any refresh or planning operation when refresh is enabled.
-- `update` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours).
+- `invoke` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours).
 

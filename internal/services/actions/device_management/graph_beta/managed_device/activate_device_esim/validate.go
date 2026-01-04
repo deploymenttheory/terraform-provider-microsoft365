@@ -12,7 +12,7 @@ import (
 )
 
 func (a *ActivateDeviceEsimManagedDeviceAction) ValidateConfig(ctx context.Context, req action.ValidateConfigRequest, resp *action.ValidateConfigResponse) {
-	var data ActivateDeviceEsimManagedDeviceActionModel
+	var data ActivateDeviceEsimManagedDeviceActionModelV2
 
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 
@@ -28,8 +28,6 @@ func (a *ActivateDeviceEsimManagedDeviceAction) ValidateConfig(ctx context.Conte
 		)
 		return
 	}
-
-	// No additional configuration validation needed for simplified model
 
 	if len(data.ManagedDevices) > 0 {
 		seen := make(map[string]bool)
@@ -215,7 +213,7 @@ func (a *ActivateDeviceEsimManagedDeviceAction) ValidateConfig(ctx context.Conte
 	}
 
 	if len(unsupportedDeviceTypeManagedDevices) > 0 {
-		resp.Diagnostics.AddAttributeWarning(
+		resp.Diagnostics.AddAttributeError(
 			path.Root("managed_devices"),
 			"Unsupported Device Type for eSIM on Managed Devices",
 			fmt.Sprintf("The following managed devices do not support eSIM activation: %s. "+
@@ -225,7 +223,7 @@ func (a *ActivateDeviceEsimManagedDeviceAction) ValidateConfig(ctx context.Conte
 	}
 
 	if len(unsupportedDeviceTypeComanagedDevices) > 0 {
-		resp.Diagnostics.AddAttributeWarning(
+		resp.Diagnostics.AddAttributeError(
 			path.Root("comanaged_devices"),
 			"Unsupported Device Type for eSIM on Co-Managed Devices",
 			fmt.Sprintf("The following co-managed devices do not support eSIM activation: %s. "+

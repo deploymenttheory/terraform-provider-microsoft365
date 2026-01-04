@@ -7,9 +7,11 @@ import (
 )
 
 type WindowsDefenderScanActionModel struct {
-	ManagedDevices   []ManagedDeviceScan   `tfsdk:"managed_devices"`
-	ComanagedDevices []ComanagedDeviceScan `tfsdk:"comanaged_devices"`
-	Timeouts         timeouts.Value        `tfsdk:"timeouts"`
+	ManagedDevices        []ManagedDeviceScan   `tfsdk:"managed_devices"`
+	ComanagedDevices      []ComanagedDeviceScan `tfsdk:"comanaged_devices"`
+	IgnorePartialFailures types.Bool            `tfsdk:"ignore_partial_failures"`
+	ValidateDeviceExists  types.Bool            `tfsdk:"validate_device_exists"`
+	Timeouts              timeouts.Value        `tfsdk:"timeouts"`
 }
 
 type ManagedDeviceScan struct {

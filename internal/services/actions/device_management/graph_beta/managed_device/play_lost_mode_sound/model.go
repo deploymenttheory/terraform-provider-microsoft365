@@ -7,9 +7,11 @@ import (
 )
 
 type PlayLostModeSoundManagedDeviceActionModel struct {
-	ManagedDevices   []ManagedDevicePlaySound   `tfsdk:"managed_devices"`
-	ComanagedDevices []ComanagedDevicePlaySound `tfsdk:"comanaged_devices"`
-	Timeouts         timeouts.Value             `tfsdk:"timeouts"`
+	ManagedDevices        []ManagedDevicePlaySound   `tfsdk:"managed_devices"`
+	ComanagedDevices      []ComanagedDevicePlaySound `tfsdk:"comanaged_devices"`
+	IgnorePartialFailures types.Bool                 `tfsdk:"ignore_partial_failures"`
+	ValidateDeviceExists  types.Bool                 `tfsdk:"validate_device_exists"`
+	Timeouts              timeouts.Value             `tfsdk:"timeouts"`
 }
 
 type ManagedDevicePlaySound struct {

@@ -3,27 +3,34 @@ package graphBetaResetManagedDevicePasscode
 import (
 	"context"
 	"fmt"
-	"sync"
+	"time"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/progress"
+
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/validation"
+
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
 	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
-type resetResult struct {
-	deviceID string
-	err      error
-}
-
 func (a *ResetManagedDevicePasscodeAction) Invoke(ctx context.Context, req action.InvokeRequest, resp *action.InvokeResponse) {
 	var data ResetManagedDevicePasscodeActionModel
 
-	tflog.Debug(ctx, fmt.Sprintf("Starting %s", ActionName))
+	tflog.Debug(ctx, "Starting reset passcode action", map[string]any{"action": ActionName})
 
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
+	// Handle timeout
+	ctx, cancel := crud.HandleTimeout(ctx, data.Timeouts.Invoke, InvokeTimeout*time.Second, &resp.Diagnostics)
+	if cancel == nil {
+		return
+	}
+	defer cancel()
 
 	var deviceIDs []string
 	resp.Diagnostics.Append(data.DeviceIDs.ElementsAs(ctx, &deviceIDs, false)...)
@@ -32,86 +39,99 @@ func (a *ResetManagedDevicePasscodeAction) Invoke(ctx context.Context, req actio
 	}
 
 	totalDevices := len(deviceIDs)
-	tflog.Debug(ctx, fmt.Sprintf("Performing action %s for %d device(s)", ActionName, totalDevices))
-
-	resp.SendProgress(action.InvokeProgressEvent{
-		Message: fmt.Sprintf("Starting passcode reset for %d managed device(s)...", totalDevices),
+	tflog.Debug(ctx, "Processing devices for passcode reset", map[string]any{
+		"total_devices": totalDevices,
 	})
 
-	// Reset passcodes concurrently with error collection
-	results := make(chan resetResult, totalDevices)
-	var wg sync.WaitGroup
-
-	for _, deviceID := range deviceIDs {
-		wg.Add(1)
-		go func(id string) {
-			defer wg.Done()
-			err := a.resetPasscode(ctx, id)
-			results <- resetResult{deviceID: id, err: err}
-		}(deviceID)
+	// Get ignore_partial_failures setting
+	ignorePartialFailures := false
+	if !data.IgnorePartialFailures.IsNull() && !data.IgnorePartialFailures.IsUnknown() {
+		ignorePartialFailures = data.IgnorePartialFailures.ValueBool()
 	}
 
-	// Close results channel once all goroutines complete
-	go func() {
-		wg.Wait()
-		close(results)
-	}()
-
-	// Collect results and track progress
-	successCount := 0
-	var failedDevices []string
-	var lastError error
-
-	for result := range results {
-		if result.err != nil {
-			failedDevices = append(failedDevices, result.deviceID)
-			lastError = result.err
-			tflog.Error(ctx, fmt.Sprintf("Failed to reset passcode for device %s: %v", result.deviceID, result.err))
-		} else {
-			successCount++
-			tflog.Debug(ctx, fmt.Sprintf("Successfully reset passcode for device %s", result.deviceID))
-		}
-
-		// Send progress update
-		progress := float64(successCount+len(failedDevices)) / float64(totalDevices) * 100
-		resp.SendProgress(action.InvokeProgressEvent{
-			Message: fmt.Sprintf("Reset %d of %d device passcodes (%.0f%% complete)", successCount+len(failedDevices), totalDevices, progress),
-		})
+	// Get validate_device_exists setting (default: true)
+	validateDeviceExists := true
+	if !data.ValidateDeviceExists.IsNull() && !data.ValidateDeviceExists.IsUnknown() {
+		validateDeviceExists = data.ValidateDeviceExists.ValueBool()
 	}
 
-	// Report results
-	if len(failedDevices) > 0 {
-		if successCount > 0 {
-			// Partial success
-			resp.Diagnostics.AddWarning(
-				"Partial Success",
-				fmt.Sprintf("Successfully reset passcodes for %d of %d devices. Failed devices: %v. Last error: %v\n\n"+
-					"IMPORTANT: Check the Intune portal for the new temporary passcodes for the successfully reset devices. "+
-					"Communicate these passcodes to the device users securely.",
-					successCount, totalDevices, failedDevices, lastError),
+	// Perform API validation of devices if enabled
+	if validateDeviceExists {
+		tflog.Debug(ctx, "Performing device validation via API")
+
+		validationResult, err := validateRequest(ctx, a.client, deviceIDs)
+		if err != nil {
+			tflog.Error(ctx, "Failed to validate devices via API", map[string]any{"error": err.Error()})
+			resp.Diagnostics.AddError(
+				"Device Validation Failed",
+				fmt.Sprintf("Failed to validate devices: %s", err.Error()),
 			)
-		} else {
-			// Complete failure
-			errors.HandleKiotaGraphError(ctx, lastError, resp, "Action", a.WritePermissions)
 			return
 		}
+
+		// Report validation results
+		results := validation.NewResults().
+			Error(validationResult.NonExistentDevices, "device", "do not exist or are not managed by Intune").
+			Error(validationResult.UnsupportedDevices, "device", "are not Android devices. Reset passcode is only supported on Android devices")
+
+		if results.Report(resp) {
+			return
+		}
+
+		tflog.Debug(ctx, "Device validation completed successfully")
+	} else {
+		tflog.Debug(ctx, "Device validation disabled, skipping API checks")
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Successfully reset passcodes for %d device(s)", successCount))
+	// Create progress tracker and send initial message
+	progressTracker := progress.For(resp).WithTotalDevices(totalDevices).
+		Starting("passcode reset", fmt.Sprintf("%d devices", totalDevices))
 
-	if successCount > 0 {
-		resp.SendProgress(action.InvokeProgressEvent{
-			Message: fmt.Sprintf("Passcode reset complete: %d device(s) successfully reset. "+
-				"IMPORTANT: Check the Intune portal (Devices > All devices > select device > Reset passcode) "+
-				"to retrieve the new temporary passcodes and communicate them to device users.", successCount),
-		})
+	// Process devices sequentially
+	for _, deviceID := range deviceIDs {
+		err := a.resetPasscode(ctx, deviceID)
+		if err != nil {
+			progressTracker.Device(deviceID, "").Failed(err.Error())
+			tflog.Error(ctx, "Failed to reset passcode for device", map[string]any{
+				"device_id": deviceID,
+				"error":     err.Error(),
+			})
+		} else {
+			progressTracker.Device(deviceID, "").Succeeded("passcode reset")
+			tflog.Info(ctx, "Successfully reset passcode for device", map[string]any{
+				"device_id": deviceID,
+			})
+		}
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Finished %s", ActionName))
+	// Handle results
+	if progressTracker.HasFailures() {
+		if ignorePartialFailures {
+			progressTracker.CompletedWithIgnoredFailures("passcode reset")
+			tflog.Warn(ctx, "Passcode reset action completed with ignored failures", map[string]any{
+				"success_count": progressTracker.SuccessCount(),
+				"failed_count":  progressTracker.FailureCount(),
+			})
+		} else {
+			progressTracker.Failed("Passcode Reset Failed", "reset passcodes for devices")
+			return
+		}
+	} else {
+		progressTracker.CompletedSuccessfully("reset passcodes for all devices. IMPORTANT: Check the Intune portal (Devices > All devices > select device > Reset passcode) to retrieve the new temporary passcodes and communicate them to device users")
+	}
+
+	tflog.Info(ctx, "Passcode reset action completed", map[string]any{
+		"success_count":            progressTracker.SuccessCount(),
+		"failed_count":             progressTracker.FailureCount(),
+		"total_devices":            totalDevices,
+		"partial_failures_ignored": ignorePartialFailures && progressTracker.HasFailures(),
+	})
 }
 
 func (a *ResetManagedDevicePasscodeAction) resetPasscode(ctx context.Context, deviceID string) error {
-	tflog.Debug(ctx, fmt.Sprintf("Resetting passcode for device with ID: %s", deviceID))
+	tflog.Debug(ctx, "Resetting passcode for device", map[string]any{
+		"device_id": deviceID,
+	})
 
 	err := a.client.
 		DeviceManagement().
@@ -121,7 +141,7 @@ func (a *ResetManagedDevicePasscodeAction) resetPasscode(ctx context.Context, de
 		Post(ctx, nil)
 
 	if err != nil {
-		return fmt.Errorf("failed to reset passcode for device %s: %w", deviceID, err)
+		return fmt.Errorf("%s", errors.HandleKiotaGraphErrorForAction(ctx, err))
 	}
 
 	return nil

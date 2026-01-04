@@ -1,73 +1,98 @@
-# Example 1: Update device account for a single Microsoft Teams Room with Exchange Online
-action "microsoft365_graph_beta_device_management_managed_device_update_windows_device_account" "update_teams_room" {
-
-  managed_devices {
-    device_id                           = "12345678-1234-1234-1234-123456789abc"
-    device_account_email                = "conference-room-01@company.com"
-    password                            = var.teams_room_password # Use sensitive variable
-    password_rotation_enabled           = true
-    calendar_sync_enabled               = true
-    exchange_server                     = "outlook.office365.com"
-    session_initiation_protocol_address = "sip:conference-room-01@company.com"
-  }
-
-  timeouts = {
-    invoke = "5m"
+# Example 1: Update Windows device account on a single device - Minimal
+action "microsoft365_graph_beta_device_management_managed_device_update_windows_device_account" "update_single" {
+  config {
+    managed_devices = [
+      {
+        device_id                 = "12345678-1234-1234-1234-123456789abc"
+        device_account_email      = "conference-room-01@company.com"
+        password                  = "SecurePassword123!"
+        password_rotation_enabled = true
+        calendar_sync_enabled     = true
+      }
+    ]
   }
 }
 
-# Example 2: Update multiple Teams Rooms in bulk
-action "microsoft365_graph_beta_device_management_managed_device_update_windows_device_account" "update_multiple_teams_rooms" {
+# Example 2: Update multiple Windows device accounts
+action "microsoft365_graph_beta_device_management_managed_device_update_windows_device_account" "update_multiple" {
+  config {
+    managed_devices = [
+      {
+        device_id                 = "12345678-1234-1234-1234-123456789abc"
+        device_account_email      = "conference-room-01@company.com"
+        password                  = "SecurePassword123!"
+        password_rotation_enabled = true
+        calendar_sync_enabled     = true
+      },
+      {
+        device_id                 = "87654321-4321-4321-4321-ba9876543210"
+        device_account_email      = "conference-room-02@company.com"
+        password                  = "SecurePassword456!"
+        password_rotation_enabled = false
+        calendar_sync_enabled     = false
+      }
+    ]
 
-  managed_devices {
-    device_id                           = "11111111-1111-1111-1111-111111111111"
-    device_account_email                = "meeting-room-a@company.com"
-    password                            = var.room_a_password
-    password_rotation_enabled           = true
-    calendar_sync_enabled               = true
-    exchange_server                     = "outlook.office365.com"
-    session_initiation_protocol_address = "sip:meeting-room-a@company.com"
-  }
-
-  managed_devices {
-    device_id                           = "22222222-2222-2222-2222-222222222222"
-    device_account_email                = "meeting-room-b@company.com"
-    password                            = var.room_b_password
-    password_rotation_enabled           = true
-    calendar_sync_enabled               = true
-    exchange_server                     = "outlook.office365.com"
-    session_initiation_protocol_address = "sip:meeting-room-b@company.com"
-  }
-
-  managed_devices {
-    device_id                           = "33333333-3333-3333-3333-333333333333"
-    device_account_email                = "meeting-room-c@company.com"
-    password                            = var.room_c_password
-    password_rotation_enabled           = true
-    calendar_sync_enabled               = true
-    exchange_server                     = "outlook.office365.com"
-    session_initiation_protocol_address = "sip:meeting-room-c@company.com"
-  }
-
-  timeouts = {
-    invoke = "10m"
+    timeouts = {
+      invoke = "10m"
+    }
   }
 }
 
-# Example 3: Update co-managed device (managed by both Intune and SCCM)
-action "microsoft365_graph_beta_device_management_managed_device_update_windows_device_account" "update_comanaged_device" {
+# Example 3: Update with validation - Maximal
+action "microsoft365_graph_beta_device_management_managed_device_update_windows_device_account" "update_maximal" {
+  config {
+    managed_devices = [
+      {
+        device_id                 = "12345678-1234-1234-1234-123456789abc"
+        device_account_email      = "conference-room-01@company.com"
+        password                  = "SecurePassword123!"
+        password_rotation_enabled = true
+        calendar_sync_enabled     = true
+      }
+    ]
 
-  comanaged_devices {
-    device_id                           = "55555555-5555-5555-5555-555555555555"
-    device_account_email                = "hybrid-room@company.com"
-    password                            = var.hybrid_room_password
-    password_rotation_enabled           = true
-    calendar_sync_enabled               = true
-    exchange_server                     = "mail.company.local"
-    session_initiation_protocol_address = "sip:hybrid-room@company.com"
+    comanaged_devices = [
+      {
+        device_id                 = "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"
+        device_account_email      = "meeting-room-03@company.com"
+        password                  = "SecurePassword789!"
+        password_rotation_enabled = true
+        calendar_sync_enabled     = true
+      }
+    ]
+
+    ignore_partial_failures = true
+    validate_device_exists  = true
+
+    timeouts = {
+      invoke = "5m"
+    }
   }
+}
 
-  timeouts = {
-    invoke = "5m"
+# Example 4: Update Surface Hub devices from data source
+data "microsoft365_graph_beta_device_management_managed_device" "surface_hubs" {
+  filter_type  = "odata"
+  odata_filter = "model eq 'Surface Hub'"
+}
+
+action "microsoft365_graph_beta_device_management_managed_device_update_windows_device_account" "update_surface_hubs" {
+  config {
+    managed_devices = [
+      for idx, device in data.microsoft365_graph_beta_device_management_managed_device.surface_hubs.items : {
+        device_id                 = device.id
+        device_account_email      = format("hub-%02d@company.com", idx + 1)
+        password                  = format("SecurePass%03d!", idx + 1)
+        password_rotation_enabled = true
+        calendar_sync_enabled     = true
+      }
+    ]
+
+    validate_device_exists = true
+
+    timeouts = {
+      invoke = "15m"
+    }
   }
 }

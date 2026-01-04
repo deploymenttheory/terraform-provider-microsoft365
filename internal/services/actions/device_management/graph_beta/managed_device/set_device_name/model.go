@@ -7,9 +7,11 @@ import (
 )
 
 type SetDeviceNameManagedDeviceActionModel struct {
-	ManagedDevices   []ManagedDeviceSetName   `tfsdk:"managed_devices"`
-	ComanagedDevices []ComanagedDeviceSetName `tfsdk:"comanaged_devices"`
-	Timeouts         timeouts.Value           `tfsdk:"timeouts"`
+	ManagedDevices        []ManagedDeviceSetName   `tfsdk:"managed_devices"`
+	ComanagedDevices      []ComanagedDeviceSetName `tfsdk:"comanaged_devices"`
+	IgnorePartialFailures types.Bool               `tfsdk:"ignore_partial_failures"`
+	ValidateDeviceExists  types.Bool               `tfsdk:"validate_device_exists"`
+	Timeouts              timeouts.Value           `tfsdk:"timeouts"`
 }
 
 type ManagedDeviceSetName struct {

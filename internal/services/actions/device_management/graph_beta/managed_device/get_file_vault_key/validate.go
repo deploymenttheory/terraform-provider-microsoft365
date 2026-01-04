@@ -35,6 +35,7 @@ func (a *GetFileVaultKeyManagedDeviceAction) ValidateConfig(ctx context.Context,
 		return
 	}
 
+	// Validate that at least one device list is provided
 	if len(managedDeviceIDs) == 0 && len(comanagedDeviceIDs) == 0 {
 		resp.Diagnostics.AddError(
 			"No Devices Specified",
@@ -52,6 +53,7 @@ func (a *GetFileVaultKeyManagedDeviceAction) ValidateConfig(ctx context.Context,
 			"Only use this action when necessary for legitimate device recovery purposes.",
 	)
 
+	// Check for duplicate device IDs within managed devices
 	if len(managedDeviceIDs) > 0 {
 		seen := make(map[string]bool)
 		var duplicates []string
@@ -66,13 +68,14 @@ func (a *GetFileVaultKeyManagedDeviceAction) ValidateConfig(ctx context.Context,
 			resp.Diagnostics.AddAttributeWarning(
 				path.Root("managed_device_ids"),
 				"Duplicate Managed Device IDs Found",
-				fmt.Sprintf("The following managed device IDs are duplicated in the configuration: %s. "+
+				fmt.Sprintf("The following managed device IDs are duplicated in managed_device_ids: %s. "+
 					"FileVault key will only be retrieved once per device, but you should remove duplicates from your configuration.",
 					strings.Join(duplicates, ", ")),
 			)
 		}
 	}
 
+	// Check for duplicate device IDs within co-managed devices
 	if len(comanagedDeviceIDs) > 0 {
 		seen := make(map[string]bool)
 		var duplicates []string
@@ -87,135 +90,32 @@ func (a *GetFileVaultKeyManagedDeviceAction) ValidateConfig(ctx context.Context,
 			resp.Diagnostics.AddAttributeWarning(
 				path.Root("comanaged_device_ids"),
 				"Duplicate Co-Managed Device IDs Found",
-				fmt.Sprintf("The following co-managed device IDs are duplicated in the configuration: %s. "+
+				fmt.Sprintf("The following co-managed device IDs are duplicated in comanaged_device_ids: %s. "+
 					"FileVault key will only be retrieved once per device, but you should remove duplicates from your configuration.",
 					strings.Join(duplicates, ", ")),
 			)
 		}
 	}
 
-	for _, managedID := range managedDeviceIDs {
-		for _, comanagedID := range comanagedDeviceIDs {
-			if managedID == comanagedID {
-				resp.Diagnostics.AddAttributeWarning(
-					path.Root("managed_device_ids"),
-					"Device ID in Both Lists",
-					fmt.Sprintf("Device ID %s appears in both managed_device_ids and comanaged_device_ids. "+
-						"A device should only be in one list. FileVault key retrieval will be attempted for both endpoints, "+
-						"but one may fail if the device is not actually of that type.",
-						managedID),
-				)
-			}
-		}
-	}
-
-	tflog.Debug(ctx, fmt.Sprintf("Validating get FileVault key action for %d managed and %d co-managed device(s)",
-		len(managedDeviceIDs), len(comanagedDeviceIDs)))
-
-	var nonExistentManagedDevices []string
-	var nonExistentComanagedDevices []string
-	var unsupportedManagedDevices []string
-	var unsupportedComanagedDevices []string
-
-	for _, deviceID := range managedDeviceIDs {
-		device, err := a.client.
-			DeviceManagement().
-			ManagedDevices().
-			ByManagedDeviceId(deviceID).
-			Get(ctx, nil)
-
-		if err != nil {
-			if strings.Contains(err.Error(), "404") || strings.Contains(err.Error(), "not found") {
-				nonExistentManagedDevices = append(nonExistentManagedDevices, deviceID)
-			} else {
-				resp.Diagnostics.AddAttributeError(
-					path.Root("managed_device_ids"),
-					"Error Validating Managed Device Existence",
-					fmt.Sprintf("Failed to check existence of managed device %s: %s", deviceID, err.Error()),
-				)
-			}
-		} else if device != nil {
-			// Check platform compatibility - FileVault is macOS-only
-			if device.GetOperatingSystem() != nil {
-				os := strings.ToLower(*device.GetOperatingSystem())
-				if os != "macos" && os != "mac" {
-					unsupportedManagedDevices = append(unsupportedManagedDevices, fmt.Sprintf("%s (OS: %s)", deviceID, *device.GetOperatingSystem()))
+	// Check for devices appearing in both lists
+	if len(managedDeviceIDs) > 0 && len(comanagedDeviceIDs) > 0 {
+		for _, managedID := range managedDeviceIDs {
+			for _, comanagedID := range comanagedDeviceIDs {
+				if managedID == comanagedID {
+					resp.Diagnostics.AddWarning(
+						"Device ID in Both Lists",
+						fmt.Sprintf("Device ID %s appears in both managed_device_ids and comanaged_device_ids. "+
+							"A device should only be in one list. FileVault key retrieval will be attempted for both endpoints, "+
+							"but one may fail if the device is not actually of that type.",
+							managedID),
+					)
 				}
-			} else {
-				unsupportedManagedDevices = append(unsupportedManagedDevices, fmt.Sprintf("%s (Unknown OS)", deviceID))
 			}
-			tflog.Debug(ctx, fmt.Sprintf("Managed device %s validated successfully", deviceID))
 		}
 	}
 
-	for _, deviceID := range comanagedDeviceIDs {
-		device, err := a.client.
-			DeviceManagement().
-			ComanagedDevices().
-			ByManagedDeviceId(deviceID).
-			Get(ctx, nil)
-
-		if err != nil {
-			if strings.Contains(err.Error(), "404") || strings.Contains(err.Error(), "not found") {
-				nonExistentComanagedDevices = append(nonExistentComanagedDevices, deviceID)
-			} else {
-				resp.Diagnostics.AddAttributeError(
-					path.Root("comanaged_device_ids"),
-					"Error Validating Co-Managed Device Existence",
-					fmt.Sprintf("Failed to check existence of co-managed device %s: %s", deviceID, err.Error()),
-				)
-			}
-		} else if device != nil {
-			// Check platform compatibility - FileVault is macOS-only
-			if device.GetOperatingSystem() != nil {
-				os := strings.ToLower(*device.GetOperatingSystem())
-				if os != "macos" && os != "mac" {
-					unsupportedComanagedDevices = append(unsupportedComanagedDevices, fmt.Sprintf("%s (OS: %s)", deviceID, *device.GetOperatingSystem()))
-				}
-			} else {
-				unsupportedComanagedDevices = append(unsupportedComanagedDevices, fmt.Sprintf("%s (Unknown OS)", deviceID))
-			}
-			tflog.Debug(ctx, fmt.Sprintf("Co-managed device %s validated successfully", deviceID))
-		}
-	}
-
-	if len(nonExistentManagedDevices) > 0 {
-		resp.Diagnostics.AddAttributeError(
-			path.Root("managed_device_ids"),
-			"Non-Existent Managed Devices",
-			fmt.Sprintf("The following managed device IDs do not exist or are not managed by Intune: %s. "+
-				"Please ensure all device IDs are correct and refer to existing managed devices.",
-				strings.Join(nonExistentManagedDevices, ", ")),
-		)
-	}
-
-	if len(nonExistentComanagedDevices) > 0 {
-		resp.Diagnostics.AddAttributeError(
-			path.Root("comanaged_device_ids"),
-			"Non-Existent Co-Managed Devices",
-			fmt.Sprintf("The following co-managed device IDs do not exist or are not managed by Intune: %s. "+
-				"Please ensure all device IDs are correct and refer to existing co-managed devices.",
-				strings.Join(nonExistentComanagedDevices, ", ")),
-		)
-	}
-
-	if len(unsupportedManagedDevices) > 0 {
-		resp.Diagnostics.AddAttributeError(
-			path.Root("managed_device_ids"),
-			"Unsupported Managed Devices for FileVault",
-			fmt.Sprintf("FileVault key retrieval is only supported on macOS devices. The following managed devices are not supported: %s. "+
-				"Please remove non-macOS devices from the configuration.",
-				strings.Join(unsupportedManagedDevices, ", ")),
-		)
-	}
-
-	if len(unsupportedComanagedDevices) > 0 {
-		resp.Diagnostics.AddAttributeError(
-			path.Root("comanaged_device_ids"),
-			"Unsupported Co-Managed Devices for FileVault",
-			fmt.Sprintf("FileVault key retrieval is only supported on macOS devices. The following co-managed devices are not supported: %s. "+
-				"Please remove non-macOS devices from the configuration.",
-				strings.Join(unsupportedComanagedDevices, ", ")),
-		)
-	}
+	tflog.Debug(ctx, "Static validation completed", map[string]any{
+		"managed_devices":   len(managedDeviceIDs),
+		"comanaged_devices": len(comanagedDeviceIDs),
+	})
 }

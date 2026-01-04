@@ -3,29 +3,35 @@ package graphBetaGetFileVaultKeyManagedDevice
 import (
 	"context"
 	"fmt"
-	"sync"
+	"strings"
+	"time"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/progress"
+
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/validation"
+
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
 	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
-type getKeyResult struct {
-	deviceID    string
-	deviceType  string // "managed" or "comanaged"
-	recoveryKey string
-	err         error
-}
-
 func (a *GetFileVaultKeyManagedDeviceAction) Invoke(ctx context.Context, req action.InvokeRequest, resp *action.InvokeResponse) {
 	var data GetFileVaultKeyManagedDeviceActionModel
 
-	tflog.Debug(ctx, fmt.Sprintf("Starting %s", ActionName))
+	tflog.Debug(ctx, "Starting FileVault key retrieval action", map[string]any{"action": ActionName})
 
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
+	// Handle timeout
+	ctx, cancel := crud.HandleTimeout(ctx, data.Timeouts.Invoke, InvokeTimeout*time.Second, &resp.Diagnostics)
+	if cancel == nil {
+		return
+	}
+	defer cancel()
 
 	// Convert framework lists to Go slices
 	var managedDeviceIDs []string
@@ -44,122 +50,147 @@ func (a *GetFileVaultKeyManagedDeviceAction) Invoke(ctx context.Context, req act
 	}
 
 	totalDevices := len(managedDeviceIDs) + len(comanagedDeviceIDs)
-	tflog.Debug(ctx, fmt.Sprintf("Retrieving FileVault keys for %d managed device(s) and %d co-managed device(s)",
-		len(managedDeviceIDs), len(comanagedDeviceIDs)))
-
-	resp.SendProgress(action.InvokeProgressEvent{
-		Message: fmt.Sprintf("Starting FileVault key retrieval for %d device(s) (%d managed, %d co-managed)...",
-			totalDevices, len(managedDeviceIDs), len(comanagedDeviceIDs)),
+	tflog.Debug(ctx, "Processing devices for FileVault key retrieval", map[string]any{
+		"total_devices": totalDevices,
 	})
 
-	// Retrieve keys concurrently with error collection
-	results := make(chan getKeyResult, totalDevices)
-	var wg sync.WaitGroup
-
-	// Retrieve keys from managed devices
-	for _, deviceID := range managedDeviceIDs {
-		wg.Add(1)
-		go func(id string) {
-			defer wg.Done()
-			key, err := a.getFileVaultKeyManagedDevice(ctx, id)
-			results <- getKeyResult{deviceID: id, deviceType: "managed", recoveryKey: key, err: err}
-		}(deviceID)
+	// Get ignore_partial_failures setting
+	ignorePartialFailures := false
+	if !data.IgnorePartialFailures.IsNull() && !data.IgnorePartialFailures.IsUnknown() {
+		ignorePartialFailures = data.IgnorePartialFailures.ValueBool()
 	}
 
-	// Retrieve keys from co-managed devices
-	for _, deviceID := range comanagedDeviceIDs {
-		wg.Add(1)
-		go func(id string) {
-			defer wg.Done()
-			key, err := a.getFileVaultKeyComanagedDevice(ctx, id)
-			results <- getKeyResult{deviceID: id, deviceType: "comanaged", recoveryKey: key, err: err}
-		}(deviceID)
+	// Get validate_device_exists setting (default: true)
+	validateDeviceExists := true
+	if !data.ValidateDeviceExists.IsNull() && !data.ValidateDeviceExists.IsUnknown() {
+		validateDeviceExists = data.ValidateDeviceExists.ValueBool()
 	}
 
-	// Close results channel once all goroutines complete
-	go func() {
-		wg.Wait()
-		close(results)
-	}()
+	// Perform API validation of devices if enabled
+	if validateDeviceExists {
+		tflog.Debug(ctx, "Performing device validation via API")
 
-	// Collect results and track progress
-	successCount := 0
-	var failedDevices []string
-	var lastError error
-	var retrievedKeys []string
-
-	for result := range results {
-		if result.err != nil {
-			failedDevices = append(failedDevices, fmt.Sprintf("%s (%s)", result.deviceID, result.deviceType))
-			lastError = result.err
-			tflog.Error(ctx, fmt.Sprintf("Failed to retrieve FileVault key for %s device %s: %v",
-				result.deviceType, result.deviceID, result.err))
-		} else {
-			successCount++
-			tflog.Debug(ctx, fmt.Sprintf("Successfully retrieved FileVault key for %s device %s",
-				result.deviceType, result.deviceID))
-
-			// Display the retrieved key in progress message
-			keyMessage := fmt.Sprintf("✓ Device %s (%s): FileVault Recovery Key = %s",
-				result.deviceID, result.deviceType, result.recoveryKey)
-			retrievedKeys = append(retrievedKeys, keyMessage)
-
-			resp.SendProgress(action.InvokeProgressEvent{
-				Message: keyMessage,
-			})
-		}
-
-		// Send overall progress update
-		progress := float64(successCount+len(failedDevices)) / float64(totalDevices) * 100
-		resp.SendProgress(action.InvokeProgressEvent{
-			Message: fmt.Sprintf("Processed %d of %d devices (%.0f%% complete)",
-				successCount+len(failedDevices), totalDevices, progress),
-		})
-	}
-
-	// Report results
-	if len(failedDevices) > 0 {
-		if successCount > 0 {
-			// Partial success
-			resp.Diagnostics.AddWarning(
-				"Partial Success",
-				fmt.Sprintf("Successfully retrieved FileVault keys for %d of %d devices. Failed devices: %v. Last error: %v\n\n"+
-					"Retrieved keys have been displayed in the action output above.",
-					successCount, totalDevices, failedDevices, lastError),
+		validationResult, err := validateRequest(ctx, a.client, managedDeviceIDs, comanagedDeviceIDs)
+		if err != nil {
+			tflog.Error(ctx, "Failed to validate devices via API", map[string]any{"error": err.Error()})
+			resp.Diagnostics.AddError(
+				"Device Validation Failed",
+				fmt.Sprintf("Failed to validate devices: %s", err.Error()),
 			)
-		} else {
-			// Complete failure
-			errors.HandleKiotaGraphError(ctx, lastError, resp, "Action", a.WritePermissions)
 			return
 		}
+
+		// Report validation results
+		results := validation.NewResults().
+			Error(validationResult.NonExistentManagedDevices, "managed device", "do not exist or are not managed by Intune").
+			Error(validationResult.NonExistentComanagedDevices, "co-managed device", "do not exist or are not managed by Intune").
+			Error(validationResult.UnsupportedManagedDevices, "managed device", "are not macOS devices or do not have FileVault enabled").
+			Error(validationResult.UnsupportedComanagedDevices, "co-managed device", "are not macOS devices or do not have FileVault enabled")
+
+		if results.Report(resp) {
+			return
+		}
+
+		tflog.Debug(ctx, "Device validation completed successfully")
+	} else {
+		tflog.Debug(ctx, "Device validation disabled, skipping API checks")
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Successfully retrieved FileVault keys for %d device(s)", successCount))
+	// Security warning
+	resp.SendProgress(action.InvokeProgressEvent{
+		Message: "⚠️  SECURITY WARNING: FileVault recovery keys will be displayed in plain text. " +
+			"These keys grant full access to encrypted device data. Ensure proper security controls are in place.",
+	})
 
-	if successCount > 0 {
-		// Display summary with all keys
+	// Create progress tracker and send initial message
+	progressTracker := progress.For(resp).WithTotalDevices(totalDevices).
+		Starting("FileVault key retrieval",
+			fmt.Sprintf("%d managed, %d co-managed", len(managedDeviceIDs), len(comanagedDeviceIDs)))
+
+	// Track retrieved keys for summary
+	var retrievedKeys []string
+
+	// Process managed devices
+	for _, deviceID := range managedDeviceIDs {
+		key, err := a.getFileVaultKeyManagedDevice(ctx, deviceID)
+		if err != nil {
+			progressTracker.Device(deviceID, "Managed").Failed(err.Error())
+			tflog.Error(ctx, "Failed to retrieve FileVault key for managed device", map[string]any{
+				"device_id": deviceID,
+				"error":     err.Error(),
+			})
+		} else {
+			keyMessage := fmt.Sprintf("FileVault Recovery Key = %s", key)
+			progressTracker.Device(deviceID, "Managed").Succeeded(keyMessage)
+			retrievedKeys = append(retrievedKeys, fmt.Sprintf("Device %s (Managed): %s", deviceID, key))
+			tflog.Info(ctx, "Successfully retrieved FileVault key for managed device", map[string]any{
+				"device_id": deviceID,
+			})
+		}
+	}
+
+	// Process co-managed devices
+	for _, deviceID := range comanagedDeviceIDs {
+		key, err := a.getFileVaultKeyComanagedDevice(ctx, deviceID)
+		if err != nil {
+			progressTracker.Device(deviceID, "Co-managed").Failed(err.Error())
+			tflog.Error(ctx, "Failed to retrieve FileVault key for co-managed device", map[string]any{
+				"device_id": deviceID,
+				"error":     err.Error(),
+			})
+		} else {
+			keyMessage := fmt.Sprintf("FileVault Recovery Key = %s", key)
+			progressTracker.Device(deviceID, "Co-managed").Succeeded(keyMessage)
+			retrievedKeys = append(retrievedKeys, fmt.Sprintf("Device %s (Co-managed): %s", deviceID, key))
+			tflog.Info(ctx, "Successfully retrieved FileVault key for co-managed device", map[string]any{
+				"device_id": deviceID,
+			})
+		}
+	}
+
+	// Handle results
+	if progressTracker.HasFailures() {
+		if ignorePartialFailures {
+			progressTracker.CompletedWithIgnoredFailures("FileVault key retrieval")
+			tflog.Warn(ctx, "FileVault key retrieval completed with ignored failures", map[string]any{
+				"success_count": progressTracker.SuccessCount(),
+				"failed_count":  progressTracker.FailureCount(),
+			})
+		} else {
+			progressTracker.Failed("FileVault Key Retrieval Failed", "retrieve FileVault keys from devices")
+			return
+		}
+	} else {
+		progressTracker.CompletedSuccessfully("retrieved all FileVault recovery keys")
+	}
+
+	// Display summary with all keys if any were retrieved
+	if len(retrievedKeys) > 0 {
 		summaryMessage := fmt.Sprintf("\n========== FileVault Recovery Keys Retrieved ==========\n"+
 			"Total Devices: %d\n"+
 			"Successful: %d\n"+
 			"Failed: %d\n\n"+
-			"SECURITY WARNING: The following recovery keys grant full access to encrypted device data.\n"+
+			"⚠️  SECURITY WARNING: The following recovery keys grant full access to encrypted device data.\n"+
 			"Store these keys securely and ensure compliance with your organization's security policies.\n\n"+
 			"%s\n"+
 			"========================================================",
-			totalDevices, successCount, len(failedDevices),
-			fmt.Sprintf("%v", retrievedKeys))
+			totalDevices, progressTracker.SuccessCount(), progressTracker.FailureCount(),
+			strings.Join(retrievedKeys, "\n"))
 
 		resp.SendProgress(action.InvokeProgressEvent{
 			Message: summaryMessage,
 		})
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Finished %s", ActionName))
+	tflog.Info(ctx, "FileVault key retrieval action completed", map[string]any{
+		"success_count":            progressTracker.SuccessCount(),
+		"failed_count":             progressTracker.FailureCount(),
+		"total_devices":            totalDevices,
+		"partial_failures_ignored": ignorePartialFailures && progressTracker.HasFailures(),
+	})
 }
 
 func (a *GetFileVaultKeyManagedDeviceAction) getFileVaultKeyManagedDevice(ctx context.Context, deviceID string) (string, error) {
-	tflog.Debug(ctx, fmt.Sprintf("Retrieving FileVault key for managed device with ID: %s", deviceID))
-
 	result, err := a.client.
 		DeviceManagement().
 		ManagedDevices().
@@ -168,19 +199,17 @@ func (a *GetFileVaultKeyManagedDeviceAction) getFileVaultKeyManagedDevice(ctx co
 		Get(ctx, nil)
 
 	if err != nil {
-		return "", fmt.Errorf("failed to retrieve FileVault key for managed device %s: %w", deviceID, err)
+		return "", fmt.Errorf("%s", errors.HandleKiotaGraphErrorForAction(ctx, err))
 	}
 
 	if result == nil || result.GetValue() == nil {
-		return "", fmt.Errorf("no FileVault key returned for managed device %s", deviceID)
+		return "", fmt.Errorf("no FileVault key returned for device")
 	}
 
 	return *result.GetValue(), nil
 }
 
 func (a *GetFileVaultKeyManagedDeviceAction) getFileVaultKeyComanagedDevice(ctx context.Context, deviceID string) (string, error) {
-	tflog.Debug(ctx, fmt.Sprintf("Retrieving FileVault key for co-managed device with ID: %s", deviceID))
-
 	result, err := a.client.
 		DeviceManagement().
 		ComanagedDevices().
@@ -189,11 +218,11 @@ func (a *GetFileVaultKeyManagedDeviceAction) getFileVaultKeyComanagedDevice(ctx 
 		Get(ctx, nil)
 
 	if err != nil {
-		return "", fmt.Errorf("failed to retrieve FileVault key for co-managed device %s: %w", deviceID, err)
+		return "", fmt.Errorf("%s", errors.HandleKiotaGraphErrorForAction(ctx, err))
 	}
 
 	if result == nil || result.GetValue() == nil {
-		return "", fmt.Errorf("no FileVault key returned for co-managed device %s", deviceID)
+		return "", fmt.Errorf("no FileVault key returned for device")
 	}
 
 	return *result.GetValue(), nil

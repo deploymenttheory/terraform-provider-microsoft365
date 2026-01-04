@@ -7,7 +7,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
-	"github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
 func (a *CreateDeviceLogCollectionRequestManagedDeviceAction) ValidateConfig(ctx context.Context, req action.ValidateConfigRequest, resp *action.ValidateConfigResponse) {
@@ -84,127 +83,8 @@ func (a *CreateDeviceLogCollectionRequestManagedDeviceAction) ValidateConfig(ctx
 		}
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Validating create device log collection request action for %d managed and %d co-managed device(s)",
-		len(data.ManagedDevices), len(data.ComanagedDevices)))
-
-	var nonExistentManagedDevices []string
-	var nonExistentComanagedDevices []string
-	var unsupportedManagedDevices []string
-	var unsupportedComanagedDevices []string
-
-	for _, deviceConfig := range data.ManagedDevices {
-		deviceID := deviceConfig.DeviceID.ValueString()
-		device, err := a.client.
-			DeviceManagement().
-			ManagedDevices().
-			ByManagedDeviceId(deviceID).
-			Get(ctx, nil)
-
-		if err != nil {
-			if strings.Contains(err.Error(), "404") || strings.Contains(err.Error(), "not found") {
-				nonExistentManagedDevices = append(nonExistentManagedDevices, deviceID)
-			} else {
-				resp.Diagnostics.AddError(
-					"Error Validating Managed Device Existence",
-					fmt.Sprintf("Failed to check existence of managed device %s: %s", deviceID, err.Error()),
-				)
-			}
-		} else if device != nil {
-			// Check platform compatibility - log collection is Windows-only
-			if device.GetDeviceType() != nil {
-				deviceType := *device.GetDeviceType()
-
-				// Windows log collection is supported on Desktop, WindowsRT, Windows10x, and CloudPC
-				isWindowsDevice := deviceType == models.DESKTOP_DEVICETYPE ||
-					deviceType == models.WINDOWSRT_DEVICETYPE ||
-					deviceType == models.WINDOWS10X_DEVICETYPE ||
-					deviceType == models.CLOUDPC_DEVICETYPE
-
-				if !isWindowsDevice {
-					unsupportedManagedDevices = append(unsupportedManagedDevices,
-						fmt.Sprintf("%s (deviceType: %s)", deviceID, deviceType.String()))
-				}
-			} else {
-				unsupportedManagedDevices = append(unsupportedManagedDevices, fmt.Sprintf("%s (Unknown deviceType)", deviceID))
-			}
-			tflog.Debug(ctx, fmt.Sprintf("Managed device %s validated successfully", deviceID))
-		}
-	}
-
-	for _, deviceConfig := range data.ComanagedDevices {
-		deviceID := deviceConfig.DeviceID.ValueString()
-		device, err := a.client.
-			DeviceManagement().
-			ComanagedDevices().
-			ByManagedDeviceId(deviceID).
-			Get(ctx, nil)
-
-		if err != nil {
-			if strings.Contains(err.Error(), "404") || strings.Contains(err.Error(), "not found") {
-				nonExistentComanagedDevices = append(nonExistentComanagedDevices, deviceID)
-			} else {
-				resp.Diagnostics.AddError(
-					"Error Validating Co-Managed Device Existence",
-					fmt.Sprintf("Failed to check existence of co-managed device %s: %s", deviceID, err.Error()),
-				)
-			}
-		} else if device != nil {
-			// Check platform compatibility - log collection is Windows-only
-			if device.GetDeviceType() != nil {
-				deviceType := *device.GetDeviceType()
-
-				// Windows log collection is supported on Desktop, WindowsRT, Windows10x, and CloudPC
-				isWindowsDevice := deviceType == models.DESKTOP_DEVICETYPE ||
-					deviceType == models.WINDOWSRT_DEVICETYPE ||
-					deviceType == models.WINDOWS10X_DEVICETYPE ||
-					deviceType == models.CLOUDPC_DEVICETYPE
-
-				if !isWindowsDevice {
-					unsupportedComanagedDevices = append(unsupportedComanagedDevices,
-						fmt.Sprintf("%s (deviceType: %s)", deviceID, deviceType.String()))
-				}
-			} else {
-				unsupportedComanagedDevices = append(unsupportedComanagedDevices, fmt.Sprintf("%s (Unknown deviceType)", deviceID))
-			}
-			tflog.Debug(ctx, fmt.Sprintf("Co-managed device %s validated successfully", deviceID))
-		}
-	}
-
-	if len(nonExistentManagedDevices) > 0 {
-		resp.Diagnostics.AddError(
-			"Non-Existent Managed Devices",
-			fmt.Sprintf("The following managed device IDs do not exist or are not managed by Intune: %s. "+
-				"Please ensure all device IDs are correct and refer to existing managed devices.",
-				strings.Join(nonExistentManagedDevices, ", ")),
-		)
-	}
-
-	if len(nonExistentComanagedDevices) > 0 {
-		resp.Diagnostics.AddError(
-			"Non-Existent Co-Managed Devices",
-			fmt.Sprintf("The following co-managed device IDs do not exist or are not managed by Intune: %s. "+
-				"Please ensure all device IDs are correct and refer to existing co-managed devices.",
-				strings.Join(nonExistentComanagedDevices, ", ")),
-		)
-	}
-
-	if len(unsupportedManagedDevices) > 0 {
-		resp.Diagnostics.AddError(
-			"Unsupported Managed Devices for Log Collection",
-			fmt.Sprintf("Device log collection is only supported on Windows devices (Windows 10 version 1709 or later, Windows 11). "+
-				"The following managed devices are not supported: %s. "+
-				"Please remove non-Windows devices from the configuration.",
-				strings.Join(unsupportedManagedDevices, ", ")),
-		)
-	}
-
-	if len(unsupportedComanagedDevices) > 0 {
-		resp.Diagnostics.AddError(
-			"Unsupported Co-Managed Devices for Log Collection",
-			fmt.Sprintf("Device log collection is only supported on Windows devices (Windows 10 version 1709 or later, Windows 11). "+
-				"The following co-managed devices are not supported: %s. "+
-				"Please remove non-Windows devices from the configuration.",
-				strings.Join(unsupportedComanagedDevices, ", ")),
-		)
-	}
+	tflog.Debug(ctx, "Static validation completed", map[string]any{
+		"managed_devices":   len(data.ManagedDevices),
+		"comanaged_devices": len(data.ComanagedDevices),
+	})
 }

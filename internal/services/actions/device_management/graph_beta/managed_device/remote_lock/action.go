@@ -18,7 +18,7 @@ import (
 )
 
 const (
-	ActionName = "microsoft365_graph_beta_device_management_managed_device_remote_lock"
+	ActionName    = "microsoft365_graph_beta_device_management_managed_device_remote_lock"
 	InvokeTimeout = 60
 )
 
@@ -98,6 +98,18 @@ func (a *RemoteLockManagedDeviceAction) Schema(ctx context.Context, req action.S
 						),
 					),
 				},
+			},
+			"ignore_partial_failures": schema.BoolAttribute{
+				Optional: true,
+				MarkdownDescription: "If set to `true`, the action will succeed even if some operations fail. " +
+					"Failed operations will be reported as warnings instead of errors. " +
+					"Default: `false` (action fails if any operation fails).",
+			},
+			"validate_device_exists": schema.BoolAttribute{
+				Optional: true,
+				MarkdownDescription: "Whether to validate that devices exist before attempting to lock them. " +
+					"Disabling this can speed up planning but may result in runtime errors for non-existent devices. " +
+					"Default: `true`.",
 			},
 			"timeouts": commonschema.ActionTimeouts(ctx),
 		},

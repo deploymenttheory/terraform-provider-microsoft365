@@ -65,6 +65,8 @@ The following API permissions are required in order to use this action.
 | Version | Status | Notes |
 |---------|--------|-------|
 | v0.33.0-alpha | Experimental | Initial release |
+| v0.40.0-alpha | Experimental | Example fixes and refactored sync progress logic |
+
 
 ## Notes
 
@@ -238,154 +240,66 @@ Device attestation is a security process that:
 ## Example Usage
 
 ```terraform
-# Example 1: Initiate device attestation for single device
-action "microsoft365_graph_beta_device_management_managed_device_initiate_device_attestation" "single_device" {
-  managed_device_ids = ["12345678-1234-1234-1234-123456789abc"]
-
-  timeouts = {
-    invoke = "5m"
+# Example 1: Initiate device attestation on a single device - Minimal
+action "microsoft365_graph_beta_device_management_managed_device_initiate_device_attestation" "initiate_single" {
+  config {
+    managed_device_ids = ["12345678-1234-1234-1234-123456789abc"]
   }
 }
 
-# Example 2: Initiate attestation for multiple devices
-action "microsoft365_graph_beta_device_management_managed_device_initiate_device_attestation" "multiple_devices" {
-  managed_device_ids = [
-    "12345678-1234-1234-1234-123456789abc",
-    "87654321-4321-4321-4321-ba9876543210",
-    "abcdef12-3456-7890-abcd-ef1234567890"
-  ]
+# Example 2: Initiate device attestation on multiple devices
+action "microsoft365_graph_beta_device_management_managed_device_initiate_device_attestation" "initiate_multiple" {
+  config {
+    managed_device_ids = [
+      "12345678-1234-1234-1234-123456789abc",
+      "87654321-4321-4321-4321-ba9876543210",
+      "abcdef12-3456-7890-abcd-ef1234567890"
+    ]
 
-  timeouts = {
-    invoke = "10m"
+    timeouts = {
+      invoke = "10m"
+    }
   }
 }
 
-# Example 3: Conditional access compliance check
-variable "conditional_access_devices" {
-  description = "Device IDs requiring attestation for conditional access"
-  type        = list(string)
-  default = [
-    "aaaa1111-1111-1111-1111-111111111111",
-    "bbbb2222-2222-2222-2222-222222222222"
-  ]
-}
+# Example 3: Initiate with validation - Maximal
+action "microsoft365_graph_beta_device_management_managed_device_initiate_device_attestation" "initiate_maximal" {
+  config {
+    managed_device_ids = [
+      "12345678-1234-1234-1234-123456789abc",
+      "87654321-4321-4321-4321-ba9876543210"
+    ]
 
-action "microsoft365_graph_beta_device_management_managed_device_initiate_device_attestation" "conditional_access" {
-  managed_device_ids = var.conditional_access_devices
+    comanaged_device_ids = [
+      "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"
+    ]
 
-  timeouts = {
-    invoke = "10m"
+    ignore_partial_failures = true
+    validate_device_exists  = true
+
+    timeouts = {
+      invoke = "5m"
+    }
   }
 }
 
-# Example 4: Zero Trust security validation
-data "microsoft365_graph_beta_device_management_managed_device" "zero_trust_devices" {
+# Example 4: Initiate attestation on all Windows devices
+data "microsoft365_graph_beta_device_management_managed_device" "windows_devices" {
   filter_type  = "odata"
-  odata_filter = "operatingSystem eq 'Windows' and deviceCategoryDisplayName eq 'Zero Trust'"
+  odata_filter = "operatingSystem eq 'Windows'"
 }
 
-action "microsoft365_graph_beta_device_management_managed_device_initiate_device_attestation" "zero_trust_validation" {
-  managed_device_ids = [for device in data.microsoft365_graph_beta_device_management_managed_device.zero_trust_devices.items : device.id]
+action "microsoft365_graph_beta_device_management_managed_device_initiate_device_attestation" "initiate_all_windows" {
+  config {
+    managed_device_ids = [for device in data.microsoft365_graph_beta_device_management_managed_device.windows_devices.items : device.id]
 
-  timeouts = {
-    invoke = "20m"
+    validate_device_exists  = true
+    ignore_partial_failures = true
+
+    timeouts = {
+      invoke = "30m"
+    }
   }
-}
-
-# Example 5: Periodic compliance verification
-locals {
-  compliance_scope_devices = [
-    "11111111-1111-1111-1111-111111111111",
-    "22222222-2222-2222-2222-222222222222",
-    "33333333-3333-3333-3333-333333333333"
-  ]
-}
-
-action "microsoft365_graph_beta_device_management_managed_device_initiate_device_attestation" "periodic_compliance" {
-  managed_device_ids = local.compliance_scope_devices
-
-  timeouts = {
-    invoke = "15m"
-  }
-}
-
-# Example 6: Co-managed device attestation
-action "microsoft365_graph_beta_device_management_managed_device_initiate_device_attestation" "comanaged_attestation" {
-  comanaged_device_ids = ["abcdef12-3456-7890-abcd-ef1234567890"]
-
-  timeouts = {
-    invoke = "5m"
-  }
-}
-
-# Example 7: Post-incident device validation
-data "microsoft365_graph_beta_device_management_managed_device" "incident_devices" {
-  filter_type  = "odata"
-  odata_filter = "deviceCategoryDisplayName eq 'Post-Incident Validation'"
-}
-
-action "microsoft365_graph_beta_device_management_managed_device_initiate_device_attestation" "incident_validation" {
-  managed_device_ids = [for device in data.microsoft365_graph_beta_device_management_managed_device.incident_devices.items : device.id]
-
-  timeouts = {
-    invoke = "30m"
-  }
-}
-
-# Example 8: Secure workstation validation
-locals {
-  secure_workstations = {
-    "secure_ws_1" = "11111111-1111-1111-1111-111111111111"
-    "secure_ws_2" = "22222222-2222-2222-2222-222222222222"
-    "secure_ws_3" = "33333333-3333-3333-3333-333333333333"
-  }
-}
-
-action "microsoft365_graph_beta_device_management_managed_device_initiate_device_attestation" "secure_workstations" {
-  managed_device_ids = values(local.secure_workstations)
-
-  timeouts = {
-    invoke = "15m"
-  }
-}
-
-# Example 9: Pre-deployment security check
-data "microsoft365_graph_beta_device_management_managed_device" "pre_deployment" {
-  filter_type  = "odata"
-  odata_filter = "deviceCategoryDisplayName eq 'Pre-Deployment'"
-}
-
-action "microsoft365_graph_beta_device_management_managed_device_initiate_device_attestation" "pre_deployment_check" {
-  managed_device_ids = [for device in data.microsoft365_graph_beta_device_management_managed_device.pre_deployment.items : device.id]
-
-  timeouts = {
-    invoke = "20m"
-  }
-}
-
-# Example 10: VIP device attestation
-locals {
-  vip_devices = [
-    "vip01-1111-1111-1111-111111111111",
-    "vip02-2222-2222-2222-222222222222"
-  ]
-}
-
-action "microsoft365_graph_beta_device_management_managed_device_initiate_device_attestation" "vip_attestation" {
-  managed_device_ids = local.vip_devices
-
-  timeouts = {
-    invoke = "10m"
-  }
-}
-
-# Output examples
-output "attestation_summary" {
-  value = {
-    managed   = length(action.multiple_devices.managed_device_ids)
-    comanaged = length(action.comanaged_attestation.comanaged_device_ids)
-  }
-  description = "Count of devices with attestation initiated"
 }
 ```
 
@@ -399,6 +313,7 @@ output "attestation_summary" {
 **Note:** At least one of `managed_device_ids` or `comanaged_device_ids` must be provided.
 
 Example: `["abcdef12-3456-7890-abcd-ef1234567890"]`
+- `ignore_partial_failures` (Boolean) If set to `true`, the action will succeed even if some operations fail. Failed operations will be reported as warnings instead of errors. Default: `false` (action fails if any operation fails).
 - `managed_device_ids` (List of String) List of managed device IDs (GUIDs) to initiate device attestation for. These are devices fully managed by Intune.
 
 **Note:** At least one of `managed_device_ids` or `comanaged_device_ids` must be provided. You can provide both to initiate attestation on different types of devices in one action.
@@ -407,14 +322,12 @@ Example: `["abcdef12-3456-7890-abcd-ef1234567890"]`
 
 Example: `["12345678-1234-1234-1234-123456789abc", "87654321-4321-4321-4321-ba9876543210"]`
 - `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))
+- `validate_device_exists` (Boolean) Whether to validate that devices exist and are Windows devices with TPM before attempting attestation. Disabling this can speed up planning but may result in runtime errors for non-existent or unsupported devices. Default: `true`.
 
 <a id="nestedatt--timeouts"></a>
 ### Nested Schema for `timeouts`
 
 Optional:
 
-- `create` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours).
-- `delete` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours). Setting a timeout for a Delete operation is only applicable if changes are saved into state before the destroy operation occurs.
-- `read` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours). Read operations occur during any refresh or planning operation when refresh is enabled.
-- `update` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours).
+- `invoke` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours).
 

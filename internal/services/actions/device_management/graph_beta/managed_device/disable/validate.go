@@ -43,14 +43,6 @@ func (a *DisableManagedDeviceAction) ValidateConfig(ctx context.Context, req act
 		return
 	}
 
-	// Warning about disabling devices
-	resp.Diagnostics.AddWarning(
-		"Device Disable Action",
-		"Disabling devices will prevent them from syncing with Intune and receiving policy updates. "+
-			"Devices will remain enrolled but will not be able to perform managed operations until re-enabled. "+
-			"Ensure this is the intended action before proceeding.",
-	)
-
 	if len(managedDeviceIDs) > 0 {
 		seen := make(map[string]bool)
 		var duplicates []string
@@ -108,73 +100,8 @@ func (a *DisableManagedDeviceAction) ValidateConfig(ctx context.Context, req act
 		}
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Validating disable action for %d managed and %d co-managed device(s)",
-		len(managedDeviceIDs), len(comanagedDeviceIDs)))
-
-	var nonExistentManagedDevices []string
-	var nonExistentComanagedDevices []string
-
-	for _, deviceID := range managedDeviceIDs {
-		device, err := a.client.
-			DeviceManagement().
-			ManagedDevices().
-			ByManagedDeviceId(deviceID).
-			Get(ctx, nil)
-
-		if err != nil {
-			if strings.Contains(err.Error(), "404") || strings.Contains(err.Error(), "not found") {
-				nonExistentManagedDevices = append(nonExistentManagedDevices, deviceID)
-			} else {
-				resp.Diagnostics.AddAttributeError(
-					path.Root("managed_device_ids"),
-					"Error Validating Managed Device Existence",
-					fmt.Sprintf("Failed to check existence of managed device %s: %s", deviceID, err.Error()),
-				)
-			}
-		} else if device != nil {
-			tflog.Debug(ctx, fmt.Sprintf("Managed device %s validated successfully", deviceID))
-		}
-	}
-
-	for _, deviceID := range comanagedDeviceIDs {
-		device, err := a.client.
-			DeviceManagement().
-			ComanagedDevices().
-			ByManagedDeviceId(deviceID).
-			Get(ctx, nil)
-
-		if err != nil {
-			if strings.Contains(err.Error(), "404") || strings.Contains(err.Error(), "not found") {
-				nonExistentComanagedDevices = append(nonExistentComanagedDevices, deviceID)
-			} else {
-				resp.Diagnostics.AddAttributeError(
-					path.Root("comanaged_device_ids"),
-					"Error Validating Co-Managed Device Existence",
-					fmt.Sprintf("Failed to check existence of co-managed device %s: %s", deviceID, err.Error()),
-				)
-			}
-		} else if device != nil {
-			tflog.Debug(ctx, fmt.Sprintf("Co-managed device %s validated successfully", deviceID))
-		}
-	}
-
-	if len(nonExistentManagedDevices) > 0 {
-		resp.Diagnostics.AddAttributeError(
-			path.Root("managed_device_ids"),
-			"Non-Existent Managed Devices",
-			fmt.Sprintf("The following managed device IDs do not exist or are not managed by Intune: %s. "+
-				"Please ensure all device IDs are correct and refer to existing managed devices.",
-				strings.Join(nonExistentManagedDevices, ", ")),
-		)
-	}
-
-	if len(nonExistentComanagedDevices) > 0 {
-		resp.Diagnostics.AddAttributeError(
-			path.Root("comanaged_device_ids"),
-			"Non-Existent Co-Managed Devices",
-			fmt.Sprintf("The following co-managed device IDs do not exist or are not managed by Intune: %s. "+
-				"Please ensure all device IDs are correct and refer to existing co-managed devices.",
-				strings.Join(nonExistentComanagedDevices, ", ")),
-		)
-	}
+	tflog.Debug(ctx, "Static validation completed", map[string]any{
+		"managed_devices":   len(managedDeviceIDs),
+		"comanaged_devices": len(comanagedDeviceIDs),
+	})
 }

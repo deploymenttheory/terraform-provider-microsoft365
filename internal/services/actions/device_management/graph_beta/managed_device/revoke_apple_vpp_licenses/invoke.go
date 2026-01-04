@@ -3,146 +3,166 @@ package graphBetaRevokeAppleVppLicenses
 import (
 	"context"
 	"fmt"
-	"sync"
+	"time"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/progress"
+
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/validation"
+
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
 	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
-type revokeResult struct {
-	deviceID   string
-	deviceType string // "managed" or "comanaged"
-	err        error
-}
-
 func (a *RevokeAppleVppLicensesAction) Invoke(ctx context.Context, req action.InvokeRequest, resp *action.InvokeResponse) {
 	var data RevokeAppleVppLicensesActionModel
 
-	tflog.Debug(ctx, fmt.Sprintf("Starting %s", ActionName))
+	tflog.Debug(ctx, "Starting Apple VPP license revocation action", map[string]any{"action": ActionName})
 
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
+	// Handle timeout
+	ctx, cancel := crud.HandleTimeout(ctx, data.Timeouts.Invoke, InvokeTimeout*time.Second, &resp.Diagnostics)
+	if cancel == nil {
+		return
+	}
+	defer cancel()
+
+	// Convert framework lists to Go slices
 	var managedDeviceIDs []string
 	var comanagedDeviceIDs []string
 
 	if !data.ManagedDeviceIDs.IsNull() && !data.ManagedDeviceIDs.IsUnknown() {
 		resp.Diagnostics.Append(data.ManagedDeviceIDs.ElementsAs(ctx, &managedDeviceIDs, false)...)
-		if resp.Diagnostics.HasError() {
-			return
-		}
 	}
 
 	if !data.ComanagedDeviceIDs.IsNull() && !data.ComanagedDeviceIDs.IsUnknown() {
 		resp.Diagnostics.Append(data.ComanagedDeviceIDs.ElementsAs(ctx, &comanagedDeviceIDs, false)...)
-		if resp.Diagnostics.HasError() {
-			return
-		}
+	}
+
+	if resp.Diagnostics.HasError() {
+		return
 	}
 
 	totalDevices := len(managedDeviceIDs) + len(comanagedDeviceIDs)
-	tflog.Debug(ctx, fmt.Sprintf("Revoking Apple VPP licenses for %d managed device(s) and %d co-managed device(s)",
-		len(managedDeviceIDs), len(comanagedDeviceIDs)))
-
-	resp.SendProgress(action.InvokeProgressEvent{
-		Message: fmt.Sprintf("Starting Apple VPP license revocation for %d device(s) (%d managed, %d co-managed)...",
-			totalDevices, len(managedDeviceIDs), len(comanagedDeviceIDs)),
+	tflog.Debug(ctx, "Processing devices for Apple VPP license revocation", map[string]any{
+		"managed_devices":   len(managedDeviceIDs),
+		"comanaged_devices": len(comanagedDeviceIDs),
+		"total_devices":     totalDevices,
 	})
 
-	// Revoke licenses concurrently with error collection
-	results := make(chan revokeResult, totalDevices)
-	var wg sync.WaitGroup
-
-	// Revoke from managed devices
-	for _, deviceID := range managedDeviceIDs {
-		wg.Add(1)
-		go func(id string) {
-			defer wg.Done()
-			err := a.revokeManagedDevice(ctx, id)
-			results <- revokeResult{deviceID: id, deviceType: "managed", err: err}
-		}(deviceID)
+	// Get ignore_partial_failures setting
+	ignorePartialFailures := false
+	if !data.IgnorePartialFailures.IsNull() && !data.IgnorePartialFailures.IsUnknown() {
+		ignorePartialFailures = data.IgnorePartialFailures.ValueBool()
 	}
 
-	// Revoke from co-managed devices
-	for _, deviceID := range comanagedDeviceIDs {
-		wg.Add(1)
-		go func(id string) {
-			defer wg.Done()
-			err := a.revokeComanagedDevice(ctx, id)
-			results <- revokeResult{deviceID: id, deviceType: "comanaged", err: err}
-		}(deviceID)
+	// Get validate_device_exists setting (default: true)
+	validateDeviceExists := true
+	if !data.ValidateDeviceExists.IsNull() && !data.ValidateDeviceExists.IsUnknown() {
+		validateDeviceExists = data.ValidateDeviceExists.ValueBool()
 	}
 
-	// Close results channel once all goroutines complete
-	go func() {
-		wg.Wait()
-		close(results)
-	}()
+	// Perform API validation of devices if enabled
+	if validateDeviceExists {
+		tflog.Debug(ctx, "Performing device validation via API")
 
-	// Collect results and track progress
-	successCount := 0
-	var failedDevices []string
-	var lastError error
-
-	for result := range results {
-		if result.err != nil {
-			failedDevices = append(failedDevices, fmt.Sprintf("%s (%s)", result.deviceID, result.deviceType))
-			lastError = result.err
-			tflog.Error(ctx, fmt.Sprintf("Failed to revoke Apple VPP licenses from %s device %s: %v",
-				result.deviceType, result.deviceID, result.err))
-		} else {
-			successCount++
-			tflog.Debug(ctx, fmt.Sprintf("Successfully revoked Apple VPP licenses from %s device %s",
-				result.deviceType, result.deviceID))
-		}
-
-		// Send progress update
-		progress := float64(successCount+len(failedDevices)) / float64(totalDevices) * 100
-		resp.SendProgress(action.InvokeProgressEvent{
-			Message: fmt.Sprintf("Processed %d of %d devices (%.0f%% complete)",
-				successCount+len(failedDevices), totalDevices, progress),
-		})
-	}
-
-	// Report results
-	if len(failedDevices) > 0 {
-		if successCount > 0 {
-			// Partial success
-			resp.Diagnostics.AddWarning(
-				"Partial Success",
-				fmt.Sprintf("Successfully revoked Apple VPP licenses from %d of %d devices. Failed devices: %v. Last error: %v\n\n"+
-					"Devices that had licenses revoked will have their VPP app licenses returned to the available pool. "+
-					"These licenses can now be reassigned to other devices. VPP apps may be removed from devices. "+
-					"Failed devices may be offline, not iOS/iPadOS devices, or may not have any VPP licenses assigned.",
-					successCount, totalDevices, failedDevices, lastError),
+		validationResult, err := validateRequest(ctx, a.client, managedDeviceIDs, comanagedDeviceIDs)
+		if err != nil {
+			tflog.Error(ctx, "Failed to validate devices via API", map[string]any{"error": err.Error()})
+			resp.Diagnostics.AddError(
+				"Device Validation Failed",
+				fmt.Sprintf("Failed to validate devices: %s", err.Error()),
 			)
-		} else {
-			// Complete failure
-			errors.HandleKiotaGraphError(ctx, lastError, resp, "Action", a.WritePermissions)
 			return
 		}
+
+		// Report validation results
+		results := validation.NewResults().
+			Error(validationResult.NonExistentManagedDevices, "managed device", "do not exist or are not managed by Intune").
+			Error(validationResult.NonExistentComanagedDevices, "co-managed device", "do not exist or are not co-managed by Intune").
+			Error(validationResult.NonAppleManagedDevices, "managed device", "are not iOS/iPadOS devices. Apple VPP license revocation only works on iOS and iPadOS devices").
+			Error(validationResult.NonAppleComanagedDevices, "co-managed device", "are not iOS/iPadOS devices. Apple VPP license revocation only works on iOS and iPadOS devices")
+
+		if results.Report(resp) {
+			return
+		}
+
+		tflog.Debug(ctx, "Device validation completed successfully")
+	} else {
+		tflog.Debug(ctx, "Device validation disabled, skipping API checks")
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Successfully revoked Apple VPP licenses from %d device(s)", successCount))
+	// Create progress tracker and send initial message
+	progressTracker := progress.For(resp).WithTotalDevices(totalDevices).
+		Starting("Apple VPP license revocation", fmt.Sprintf("%d devices (%d managed, %d co-managed)", totalDevices, len(managedDeviceIDs), len(comanagedDeviceIDs)))
 
-	if successCount > 0 {
-		resp.SendProgress(action.InvokeProgressEvent{
-			Message: fmt.Sprintf("Apple VPP license revocation completed for %d device(s). "+
-				"All VPP-purchased app licenses have been revoked from these devices and returned to the available license pool. "+
-				"Licenses are now available for reassignment to other devices or users. "+
-				"VPP apps may be removed from the devices. Check the Apple Business Manager portal for updated license counts.",
-				successCount),
-		})
+	// Process managed devices sequentially
+	for _, deviceID := range managedDeviceIDs {
+		err := a.revokeManagedDevice(ctx, deviceID)
+		if err != nil {
+			progressTracker.Device(deviceID, "").Failed(err.Error())
+			tflog.Error(ctx, "Failed to revoke Apple VPP licenses from managed device", map[string]any{
+				"device_id": deviceID,
+				"error":     err.Error(),
+			})
+		} else {
+			progressTracker.Device(deviceID, "").Succeeded("Apple VPP licenses revoked")
+			tflog.Info(ctx, "Successfully revoked Apple VPP licenses from managed device", map[string]any{
+				"device_id": deviceID,
+			})
+		}
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Finished %s", ActionName))
+	// Process co-managed devices sequentially
+	for _, deviceID := range comanagedDeviceIDs {
+		err := a.revokeComanagedDevice(ctx, deviceID)
+		if err != nil {
+			progressTracker.Device(deviceID, "").Failed(err.Error())
+			tflog.Error(ctx, "Failed to revoke Apple VPP licenses from co-managed device", map[string]any{
+				"device_id": deviceID,
+				"error":     err.Error(),
+			})
+		} else {
+			progressTracker.Device(deviceID, "").Succeeded("Apple VPP licenses revoked")
+			tflog.Info(ctx, "Successfully revoked Apple VPP licenses from co-managed device", map[string]any{
+				"device_id": deviceID,
+			})
+		}
+	}
+
+	// Handle results
+	if progressTracker.HasFailures() {
+		if ignorePartialFailures {
+			progressTracker.CompletedWithIgnoredFailures("Apple VPP license revocation")
+			tflog.Warn(ctx, "Apple VPP license revocation action completed with ignored failures", map[string]any{
+				"success_count": progressTracker.SuccessCount(),
+				"failed_count":  progressTracker.FailureCount(),
+			})
+		} else {
+			progressTracker.Failed("Apple VPP License Revocation Failed", "revoke Apple VPP licenses from devices")
+			return
+		}
+	} else {
+		progressTracker.CompletedSuccessfully("revoked all Apple VPP licenses from devices. All VPP-purchased app licenses have been returned to the available license pool and are now available for reassignment. Check Apple Business Manager portal for updated license counts")
+	}
+
+	tflog.Info(ctx, "Apple VPP license revocation action completed", map[string]any{
+		"success_count":            progressTracker.SuccessCount(),
+		"failed_count":             progressTracker.FailureCount(),
+		"total_devices":            totalDevices,
+		"partial_failures_ignored": ignorePartialFailures && progressTracker.HasFailures(),
+	})
 }
 
 func (a *RevokeAppleVppLicensesAction) revokeManagedDevice(ctx context.Context, deviceID string) error {
-	tflog.Debug(ctx, fmt.Sprintf("Revoking Apple VPP licenses from managed device with ID: %s", deviceID))
+	tflog.Debug(ctx, "Revoking Apple VPP licenses from managed device", map[string]any{
+		"device_id": deviceID,
+	})
 
 	err := a.client.
 		DeviceManagement().
@@ -152,14 +172,16 @@ func (a *RevokeAppleVppLicensesAction) revokeManagedDevice(ctx context.Context, 
 		Post(ctx, nil)
 
 	if err != nil {
-		return fmt.Errorf("failed to revoke Apple VPP licenses from managed device %s: %w", deviceID, err)
+		return fmt.Errorf("%s", errors.HandleKiotaGraphErrorForAction(ctx, err))
 	}
 
 	return nil
 }
 
 func (a *RevokeAppleVppLicensesAction) revokeComanagedDevice(ctx context.Context, deviceID string) error {
-	tflog.Debug(ctx, fmt.Sprintf("Revoking Apple VPP licenses from co-managed device with ID: %s", deviceID))
+	tflog.Debug(ctx, "Revoking Apple VPP licenses from co-managed device", map[string]any{
+		"device_id": deviceID,
+	})
 
 	err := a.client.
 		DeviceManagement().
@@ -169,7 +191,7 @@ func (a *RevokeAppleVppLicensesAction) revokeComanagedDevice(ctx context.Context
 		Post(ctx, nil)
 
 	if err != nil {
-		return fmt.Errorf("failed to revoke Apple VPP licenses from co-managed device %s: %w", deviceID, err)
+		return fmt.Errorf("%s", errors.HandleKiotaGraphErrorForAction(ctx, err))
 	}
 
 	return nil

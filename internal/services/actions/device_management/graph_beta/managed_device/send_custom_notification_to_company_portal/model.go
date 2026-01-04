@@ -7,9 +7,11 @@ import (
 )
 
 type SendCustomNotificationToCompanyPortalActionModel struct {
-	ManagedDevices   []ManagedDeviceNotification   `tfsdk:"managed_devices"`
-	ComanagedDevices []ComanagedDeviceNotification `tfsdk:"comanaged_devices"`
-	Timeouts         timeouts.Value                `tfsdk:"timeouts"`
+	ManagedDevices        []ManagedDeviceNotification   `tfsdk:"managed_devices"`
+	ComanagedDevices      []ComanagedDeviceNotification `tfsdk:"comanaged_devices"`
+	IgnorePartialFailures types.Bool                    `tfsdk:"ignore_partial_failures"`
+	ValidateDeviceExists  types.Bool                    `tfsdk:"validate_device_exists"`
+	Timeouts              timeouts.Value                `tfsdk:"timeouts"`
 }
 
 type ManagedDeviceNotification struct {

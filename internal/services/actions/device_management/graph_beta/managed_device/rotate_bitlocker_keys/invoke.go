@@ -3,147 +3,166 @@ package graphBetaRotateBitLockerKeys
 import (
 	"context"
 	"fmt"
-	"sync"
+	"time"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/progress"
+
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/validation"
+
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
 	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
-type rotateResult struct {
-	deviceID   string
-	deviceType string // "managed" or "comanaged"
-	err        error
-}
-
 func (a *RotateBitLockerKeysAction) Invoke(ctx context.Context, req action.InvokeRequest, resp *action.InvokeResponse) {
 	var data RotateBitLockerKeysActionModel
 
-	tflog.Debug(ctx, fmt.Sprintf("Starting %s", ActionName))
+	tflog.Debug(ctx, "Starting BitLocker key rotation action", map[string]any{"action": ActionName})
 
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
+	// Handle timeout
+	ctx, cancel := crud.HandleTimeout(ctx, data.Timeouts.Invoke, InvokeTimeout*time.Second, &resp.Diagnostics)
+	if cancel == nil {
+		return
+	}
+	defer cancel()
+
+	// Convert framework lists to Go slices
 	var managedDeviceIDs []string
 	var comanagedDeviceIDs []string
 
 	if !data.ManagedDeviceIDs.IsNull() && !data.ManagedDeviceIDs.IsUnknown() {
 		resp.Diagnostics.Append(data.ManagedDeviceIDs.ElementsAs(ctx, &managedDeviceIDs, false)...)
-		if resp.Diagnostics.HasError() {
-			return
-		}
 	}
 
 	if !data.ComanagedDeviceIDs.IsNull() && !data.ComanagedDeviceIDs.IsUnknown() {
 		resp.Diagnostics.Append(data.ComanagedDeviceIDs.ElementsAs(ctx, &comanagedDeviceIDs, false)...)
-		if resp.Diagnostics.HasError() {
-			return
-		}
+	}
+
+	if resp.Diagnostics.HasError() {
+		return
 	}
 
 	totalDevices := len(managedDeviceIDs) + len(comanagedDeviceIDs)
-	tflog.Debug(ctx, fmt.Sprintf("Rotating BitLocker keys for %d managed device(s) and %d co-managed device(s)",
-		len(managedDeviceIDs), len(comanagedDeviceIDs)))
-
-	resp.SendProgress(action.InvokeProgressEvent{
-		Message: fmt.Sprintf("Starting BitLocker key rotation for %d device(s) (%d managed, %d co-managed)...",
-			totalDevices, len(managedDeviceIDs), len(comanagedDeviceIDs)),
+	tflog.Debug(ctx, "Processing devices for BitLocker key rotation", map[string]any{
+		"managed_devices":   len(managedDeviceIDs),
+		"comanaged_devices": len(comanagedDeviceIDs),
+		"total_devices":     totalDevices,
 	})
 
-	// Rotate keys concurrently with error collection
-	results := make(chan rotateResult, totalDevices)
-	var wg sync.WaitGroup
-
-	// Rotate keys on managed devices
-	for _, deviceID := range managedDeviceIDs {
-		wg.Add(1)
-		go func(id string) {
-			defer wg.Done()
-			err := a.rotateManagedDevice(ctx, id)
-			results <- rotateResult{deviceID: id, deviceType: "managed", err: err}
-		}(deviceID)
+	// Get ignore_partial_failures setting
+	ignorePartialFailures := false
+	if !data.IgnorePartialFailures.IsNull() && !data.IgnorePartialFailures.IsUnknown() {
+		ignorePartialFailures = data.IgnorePartialFailures.ValueBool()
 	}
 
-	// Rotate keys on co-managed devices
-	for _, deviceID := range comanagedDeviceIDs {
-		wg.Add(1)
-		go func(id string) {
-			defer wg.Done()
-			err := a.rotateComanagedDevice(ctx, id)
-			results <- rotateResult{deviceID: id, deviceType: "comanaged", err: err}
-		}(deviceID)
+	// Get validate_device_exists setting (default: true)
+	validateDeviceExists := true
+	if !data.ValidateDeviceExists.IsNull() && !data.ValidateDeviceExists.IsUnknown() {
+		validateDeviceExists = data.ValidateDeviceExists.ValueBool()
 	}
 
-	// Close results channel once all goroutines complete
-	go func() {
-		wg.Wait()
-		close(results)
-	}()
+	// Perform API validation of devices if enabled
+	if validateDeviceExists {
+		tflog.Debug(ctx, "Performing device validation via API")
 
-	// Collect results and track progress
-	successCount := 0
-	var failedDevices []string
-	var lastError error
-
-	for result := range results {
-		if result.err != nil {
-			failedDevices = append(failedDevices, fmt.Sprintf("%s (%s)", result.deviceID, result.deviceType))
-			lastError = result.err
-			tflog.Error(ctx, fmt.Sprintf("Failed to rotate BitLocker keys on %s device %s: %v",
-				result.deviceType, result.deviceID, result.err))
-		} else {
-			successCount++
-			tflog.Debug(ctx, fmt.Sprintf("Successfully rotated BitLocker keys on %s device %s",
-				result.deviceType, result.deviceID))
-		}
-
-		// Send progress update
-		progress := float64(successCount+len(failedDevices)) / float64(totalDevices) * 100
-		resp.SendProgress(action.InvokeProgressEvent{
-			Message: fmt.Sprintf("Processed %d of %d devices (%.0f%% complete)",
-				successCount+len(failedDevices), totalDevices, progress),
-		})
-	}
-
-	// Report results
-	if len(failedDevices) > 0 {
-		if successCount > 0 {
-			// Partial success
-			resp.Diagnostics.AddWarning(
-				"Partial Success",
-				fmt.Sprintf("Successfully rotated BitLocker keys on %d of %d devices. Failed devices: %v. Last error: %v\n\n"+
-					"Devices that had keys rotated now have new BitLocker recovery passwords escrowed in Intune/Azure AD. "+
-					"Previous recovery keys are invalidated and can no longer be used for recovery. "+
-					"Failed devices may be offline, not Windows devices, not have BitLocker enabled, or may have configuration issues.",
-					successCount, totalDevices, failedDevices, lastError),
+		validationResult, err := validateRequest(ctx, a.client, managedDeviceIDs, comanagedDeviceIDs)
+		if err != nil {
+			tflog.Error(ctx, "Failed to validate devices via API", map[string]any{"error": err.Error()})
+			resp.Diagnostics.AddError(
+				"Device Validation Failed",
+				fmt.Sprintf("Failed to validate devices: %s", err.Error()),
 			)
-		} else {
-			// Complete failure
-			errors.HandleKiotaGraphError(ctx, lastError, resp, "Action", a.WritePermissions)
 			return
 		}
+
+		// Report validation results
+		results := validation.NewResults().
+			Error(validationResult.NonExistentManagedDevices, "managed device", "do not exist or are not managed by Intune").
+			Error(validationResult.NonExistentComanagedDevices, "co-managed device", "do not exist or are not co-managed by Intune").
+			Error(validationResult.NonWindowsManagedDevices, "managed device", "are not Windows devices. BitLocker key rotation only works on Windows devices").
+			Error(validationResult.NonWindowsComanagedDevices, "co-managed device", "are not Windows devices. BitLocker key rotation only works on Windows devices")
+
+		if results.Report(resp) {
+			return
+		}
+
+		tflog.Debug(ctx, "Device validation completed successfully")
+	} else {
+		tflog.Debug(ctx, "Device validation disabled, skipping API checks")
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Successfully rotated BitLocker keys on %d device(s)", successCount))
+	// Create progress tracker and send initial message
+	progressTracker := progress.For(resp).WithTotalDevices(totalDevices).
+		Starting("BitLocker key rotation", fmt.Sprintf("%d devices (%d managed, %d co-managed)", totalDevices, len(managedDeviceIDs), len(comanagedDeviceIDs)))
 
-	if successCount > 0 {
-		resp.SendProgress(action.InvokeProgressEvent{
-			Message: fmt.Sprintf("BitLocker key rotation completed for %d device(s). "+
-				"New recovery passwords have been generated and escrowed to Intune/Azure AD. "+
-				"Previous BitLocker recovery keys are now invalid and cannot be used for device recovery. "+
-				"New recovery keys are available in the Microsoft Intune admin center and Azure AD portal. "+
-				"No user action or device restart is required.",
-				successCount),
-		})
+	// Process managed devices sequentially
+	for _, deviceID := range managedDeviceIDs {
+		err := a.rotateManagedDevice(ctx, deviceID)
+		if err != nil {
+			progressTracker.Device(deviceID, "").Failed(err.Error())
+			tflog.Error(ctx, "Failed to rotate BitLocker keys on managed device", map[string]any{
+				"device_id": deviceID,
+				"error":     err.Error(),
+			})
+		} else {
+			progressTracker.Device(deviceID, "").Succeeded("BitLocker keys rotated")
+			tflog.Info(ctx, "Successfully rotated BitLocker keys on managed device", map[string]any{
+				"device_id": deviceID,
+			})
+		}
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Finished %s", ActionName))
+	// Process co-managed devices sequentially
+	for _, deviceID := range comanagedDeviceIDs {
+		err := a.rotateComanagedDevice(ctx, deviceID)
+		if err != nil {
+			progressTracker.Device(deviceID, "").Failed(err.Error())
+			tflog.Error(ctx, "Failed to rotate BitLocker keys on co-managed device", map[string]any{
+				"device_id": deviceID,
+				"error":     err.Error(),
+			})
+		} else {
+			progressTracker.Device(deviceID, "").Succeeded("BitLocker keys rotated")
+			tflog.Info(ctx, "Successfully rotated BitLocker keys on co-managed device", map[string]any{
+				"device_id": deviceID,
+			})
+		}
+	}
+
+	// Handle results
+	if progressTracker.HasFailures() {
+		if ignorePartialFailures {
+			progressTracker.CompletedWithIgnoredFailures("BitLocker key rotation")
+			tflog.Warn(ctx, "BitLocker key rotation action completed with ignored failures", map[string]any{
+				"success_count": progressTracker.SuccessCount(),
+				"failed_count":  progressTracker.FailureCount(),
+			})
+		} else {
+			progressTracker.Failed("BitLocker Key Rotation Failed", "rotate BitLocker keys on devices")
+			return
+		}
+	} else {
+		progressTracker.CompletedSuccessfully("rotated all BitLocker recovery keys. New recovery passwords have been generated and escrowed to Intune/Azure AD. Previous BitLocker recovery keys are now invalid. New recovery keys are available in the Microsoft Intune admin center and Azure AD portal")
+	}
+
+	tflog.Info(ctx, "BitLocker key rotation action completed", map[string]any{
+		"success_count":            progressTracker.SuccessCount(),
+		"failed_count":             progressTracker.FailureCount(),
+		"total_devices":            totalDevices,
+		"partial_failures_ignored": ignorePartialFailures && progressTracker.HasFailures(),
+	})
 }
 
 func (a *RotateBitLockerKeysAction) rotateManagedDevice(ctx context.Context, deviceID string) error {
-	tflog.Debug(ctx, fmt.Sprintf("Rotating BitLocker keys on managed device with ID: %s", deviceID))
+	tflog.Debug(ctx, "Rotating BitLocker keys on managed device", map[string]any{
+		"device_id": deviceID,
+	})
 
 	err := a.client.
 		DeviceManagement().
@@ -153,14 +172,16 @@ func (a *RotateBitLockerKeysAction) rotateManagedDevice(ctx context.Context, dev
 		Post(ctx, nil)
 
 	if err != nil {
-		return fmt.Errorf("failed to rotate BitLocker keys on managed device %s: %w", deviceID, err)
+		return fmt.Errorf("%s", errors.HandleKiotaGraphErrorForAction(ctx, err))
 	}
 
 	return nil
 }
 
 func (a *RotateBitLockerKeysAction) rotateComanagedDevice(ctx context.Context, deviceID string) error {
-	tflog.Debug(ctx, fmt.Sprintf("Rotating BitLocker keys on co-managed device with ID: %s", deviceID))
+	tflog.Debug(ctx, "Rotating BitLocker keys on co-managed device", map[string]any{
+		"device_id": deviceID,
+	})
 
 	err := a.client.
 		DeviceManagement().
@@ -170,7 +191,7 @@ func (a *RotateBitLockerKeysAction) rotateComanagedDevice(ctx context.Context, d
 		Post(ctx, nil)
 
 	if err != nil {
-		return fmt.Errorf("failed to rotate BitLocker keys on co-managed device %s: %w", deviceID, err)
+		return fmt.Errorf("%s", errors.HandleKiotaGraphErrorForAction(ctx, err))
 	}
 
 	return nil

@@ -16,7 +16,7 @@ import (
 )
 
 type GroupPolicyConfigurationMock struct {
-	state   map[string]interface{}
+	state   map[string]any
 	stateMu sync.RWMutex
 }
 
@@ -25,7 +25,7 @@ func init() {
 }
 
 func (m *GroupPolicyConfigurationMock) RegisterMocks() {
-	m.state = make(map[string]interface{})
+	m.state = make(map[string]any)
 
 	// POST - Create Group Policy Configuration
 	httpmock.RegisterResponder("POST", "https://graph.microsoft.com/beta/deviceManagement/groupPolicyConfigurations",
@@ -62,8 +62,8 @@ func (m *GroupPolicyConfigurationMock) RegisterErrorMocks() {
 	// Error response for all operations
 	httpmock.RegisterResponder("POST", "https://graph.microsoft.com/beta/deviceManagement/groupPolicyConfigurations",
 		func(req *http.Request) (*http.Response, error) {
-			return httpmock.NewJsonResponse(400, map[string]interface{}{
-				"error": map[string]interface{}{
+			return httpmock.NewJsonResponse(400, map[string]any{
+				"error": map[string]any{
 					"code":    "BadRequest",
 					"message": "Invalid request body",
 				},
@@ -75,14 +75,14 @@ func (m *GroupPolicyConfigurationMock) RegisterErrorMocks() {
 func (m *GroupPolicyConfigurationMock) CleanupMockState() {
 	m.stateMu.Lock()
 	defer m.stateMu.Unlock()
-	m.state = make(map[string]interface{})
+	m.state = make(map[string]any)
 }
 
 func (m *GroupPolicyConfigurationMock) createGroupPolicyConfiguration(req *http.Request) (*http.Response, error) {
-	var requestBody map[string]interface{}
+	var requestBody map[string]any
 	if err := json.NewDecoder(req.Body).Decode(&requestBody); err != nil {
-		return httpmock.NewJsonResponse(400, map[string]interface{}{
-			"error": map[string]interface{}{
+		return httpmock.NewJsonResponse(400, map[string]any{
+			"error": map[string]any{
 				"code":    "BadRequest",
 				"message": "Invalid request body",
 			},
@@ -92,18 +92,18 @@ func (m *GroupPolicyConfigurationMock) createGroupPolicyConfiguration(req *http.
 	id := uuid.New().String()
 	jsonContent, err := helpers.ParseJSONFile(filepath.Join("..", "tests", "responses", "validate_create", "post_group_policy_configuration_success.json"))
 	if err != nil {
-		return httpmock.NewJsonResponse(500, map[string]interface{}{
-			"error": map[string]interface{}{
+		return httpmock.NewJsonResponse(500, map[string]any{
+			"error": map[string]any{
 				"code":    "InternalServerError",
 				"message": fmt.Sprintf("Failed to load response fixture: %v", err),
 			},
 		})
 	}
 
-	var response map[string]interface{}
+	var response map[string]any
 	if err := json.Unmarshal([]byte(jsonContent), &response); err != nil {
-		return httpmock.NewJsonResponse(500, map[string]interface{}{
-			"error": map[string]interface{}{
+		return httpmock.NewJsonResponse(500, map[string]any{
+			"error": map[string]any{
 				"code":    "InternalServerError",
 				"message": fmt.Sprintf("Failed to parse response fixture: %v", err),
 			},
@@ -117,7 +117,7 @@ func (m *GroupPolicyConfigurationMock) createGroupPolicyConfiguration(req *http.
 	if description, ok := requestBody["description"].(string); ok {
 		response["description"] = description
 	}
-	if roleScopeTagIds, ok := requestBody["roleScopeTagIds"].([]interface{}); ok {
+	if roleScopeTagIds, ok := requestBody["roleScopeTagIds"].([]any); ok {
 		response["roleScopeTagIds"] = roleScopeTagIds
 	}
 
@@ -135,10 +135,10 @@ func (m *GroupPolicyConfigurationMock) assignGroupPolicyConfiguration(req *http.
 	pathParts := strings.Split(req.URL.Path, "/")
 	id := pathParts[len(pathParts)-2]
 
-	var requestBody map[string]interface{}
+	var requestBody map[string]any
 	if err := json.NewDecoder(req.Body).Decode(&requestBody); err != nil {
-		return httpmock.NewJsonResponse(400, map[string]interface{}{
-			"error": map[string]interface{}{
+		return httpmock.NewJsonResponse(400, map[string]any{
+			"error": map[string]any{
 				"code":    "BadRequest",
 				"message": "Invalid request body",
 			},
@@ -146,14 +146,14 @@ func (m *GroupPolicyConfigurationMock) assignGroupPolicyConfiguration(req *http.
 	}
 
 	m.stateMu.Lock()
-	if assignments, ok := requestBody["assignments"].([]interface{}); ok {
+	if assignments, ok := requestBody["assignments"].([]any); ok {
 		m.state[id+"_assignments"] = assignments
 	}
 	m.stateMu.Unlock()
 
-	response := map[string]interface{}{
+	response := map[string]any{
 		"@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/groupPolicyConfigurations('" + id + "')/Microsoft.Graph.assign",
-		"value":          []interface{}{},
+		"value":          []any{},
 	}
 
 	return httpmock.NewJsonResponse(200, response)
@@ -168,8 +168,8 @@ func (m *GroupPolicyConfigurationMock) getGroupPolicyConfiguration(req *http.Req
 	m.stateMu.RUnlock()
 
 	if !exists {
-		return httpmock.NewJsonResponse(404, map[string]interface{}{
-			"error": map[string]interface{}{
+		return httpmock.NewJsonResponse(404, map[string]any{
+			"error": map[string]any{
 				"code":    "NotFound",
 				"message": fmt.Sprintf("Resource '%s' does not exist", id),
 			},
@@ -188,10 +188,10 @@ func (m *GroupPolicyConfigurationMock) getGroupPolicyConfigurationAssignments(re
 	m.stateMu.RUnlock()
 
 	if !exists {
-		assignments = []interface{}{}
+		assignments = []any{}
 	}
 
-	response := map[string]interface{}{
+	response := map[string]any{
 		"@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/groupPolicyConfigurations('" + id + "')/assignments",
 		"value":          assignments,
 	}
@@ -208,18 +208,18 @@ func (m *GroupPolicyConfigurationMock) updateGroupPolicyConfiguration(req *http.
 	m.stateMu.RUnlock()
 
 	if !exists {
-		return httpmock.NewJsonResponse(404, map[string]interface{}{
-			"error": map[string]interface{}{
+		return httpmock.NewJsonResponse(404, map[string]any{
+			"error": map[string]any{
 				"code":    "NotFound",
 				"message": fmt.Sprintf("Resource '%s' does not exist", id),
 			},
 		})
 	}
 
-	var updateBody map[string]interface{}
+	var updateBody map[string]any
 	if err := json.NewDecoder(req.Body).Decode(&updateBody); err != nil {
-		return httpmock.NewJsonResponse(400, map[string]interface{}{
-			"error": map[string]interface{}{
+		return httpmock.NewJsonResponse(400, map[string]any{
+			"error": map[string]any{
 				"code":    "BadRequest",
 				"message": "Invalid request body",
 			},
@@ -227,7 +227,7 @@ func (m *GroupPolicyConfigurationMock) updateGroupPolicyConfiguration(req *http.
 	}
 
 	m.stateMu.Lock()
-	if configMap, ok := config.(map[string]interface{}); ok {
+	if configMap, ok := config.(map[string]any); ok {
 		for k, v := range updateBody {
 			configMap[k] = v
 		}

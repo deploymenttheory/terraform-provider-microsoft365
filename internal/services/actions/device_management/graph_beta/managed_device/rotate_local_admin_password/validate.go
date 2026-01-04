@@ -35,6 +35,7 @@ func (a *RotateLocalAdminPasswordManagedDeviceAction) ValidateConfig(ctx context
 		return
 	}
 
+	// Validate that at least one device list is provided
 	if len(managedDeviceIDs) == 0 && len(comanagedDeviceIDs) == 0 {
 		resp.Diagnostics.AddError(
 			"No Devices Specified",
@@ -43,6 +44,7 @@ func (a *RotateLocalAdminPasswordManagedDeviceAction) ValidateConfig(ctx context
 		return
 	}
 
+	// Check for duplicate device IDs in managed devices
 	if len(managedDeviceIDs) > 0 {
 		seen := make(map[string]bool)
 		var duplicates []string
@@ -64,6 +66,7 @@ func (a *RotateLocalAdminPasswordManagedDeviceAction) ValidateConfig(ctx context
 		}
 	}
 
+	// Check for duplicate device IDs in co-managed devices
 	if len(comanagedDeviceIDs) > 0 {
 		seen := make(map[string]bool)
 		var duplicates []string
@@ -85,6 +88,7 @@ func (a *RotateLocalAdminPasswordManagedDeviceAction) ValidateConfig(ctx context
 		}
 	}
 
+	// Check for devices appearing in both lists
 	for _, managedID := range managedDeviceIDs {
 		for _, comanagedID := range comanagedDeviceIDs {
 			if managedID == comanagedID {
@@ -100,132 +104,26 @@ func (a *RotateLocalAdminPasswordManagedDeviceAction) ValidateConfig(ctx context
 		}
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Validating local admin password rotation action for %d managed and %d co-managed device(s)",
-		len(managedDeviceIDs), len(comanagedDeviceIDs)))
-
-	var nonExistentManagedDevices []string
-	var nonExistentComanagedDevices []string
-	var unsupportedManagedDevices []string
-	var unsupportedComanagedDevices []string
-
-	for _, deviceID := range managedDeviceIDs {
-		device, err := a.client.
-			DeviceManagement().
-			ManagedDevices().
-			ByManagedDeviceId(deviceID).
-			Get(ctx, nil)
-
-		if err != nil {
-			if strings.Contains(err.Error(), "404") || strings.Contains(err.Error(), "not found") {
-				nonExistentManagedDevices = append(nonExistentManagedDevices, deviceID)
-			} else {
-				resp.Diagnostics.AddAttributeError(
-					path.Root("managed_device_ids"),
-					"Error Validating Managed Device Existence",
-					fmt.Sprintf("Failed to check existence of managed device %s: %s", deviceID, err.Error()),
-				)
-			}
-		} else if device != nil {
-			// Check if device is Windows (LAPS is Windows-specific)
-			if device.GetOperatingSystem() != nil {
-				osName := *device.GetOperatingSystem()
-				if !strings.Contains(strings.ToLower(osName), "windows") {
-					unsupportedManagedDevices = append(unsupportedManagedDevices, fmt.Sprintf("%s (OS: %s)", deviceID, osName))
-					continue
-				}
-			}
-
-			tflog.Debug(ctx, fmt.Sprintf("Managed device %s validated successfully", deviceID))
-		}
-	}
-
-	for _, deviceID := range comanagedDeviceIDs {
-		device, err := a.client.
-			DeviceManagement().
-			ComanagedDevices().
-			ByManagedDeviceId(deviceID).
-			Get(ctx, nil)
-
-		if err != nil {
-			if strings.Contains(err.Error(), "404") || strings.Contains(err.Error(), "not found") {
-				nonExistentComanagedDevices = append(nonExistentComanagedDevices, deviceID)
-			} else {
-				resp.Diagnostics.AddAttributeError(
-					path.Root("comanaged_device_ids"),
-					"Error Validating Co-Managed Device Existence",
-					fmt.Sprintf("Failed to check existence of co-managed device %s: %s", deviceID, err.Error()),
-				)
-			}
-		} else if device != nil {
-			// Check if device is Windows
-			if device.GetOperatingSystem() != nil {
-				osName := *device.GetOperatingSystem()
-				if !strings.Contains(strings.ToLower(osName), "windows") {
-					unsupportedComanagedDevices = append(unsupportedComanagedDevices, fmt.Sprintf("%s (OS: %s)", deviceID, osName))
-					continue
-				}
-			}
-
-			tflog.Debug(ctx, fmt.Sprintf("Co-managed device %s validated successfully", deviceID))
-		}
-	}
-
-	if len(nonExistentManagedDevices) > 0 {
-		resp.Diagnostics.AddAttributeError(
-			path.Root("managed_device_ids"),
-			"Non-Existent Managed Devices",
-			fmt.Sprintf("The following managed device IDs do not exist or are not managed by Intune: %s. "+
-				"Please ensure all device IDs are correct and refer to existing managed devices.",
-				strings.Join(nonExistentManagedDevices, ", ")),
-		)
-	}
-
-	if len(nonExistentComanagedDevices) > 0 {
-		resp.Diagnostics.AddAttributeError(
-			path.Root("comanaged_device_ids"),
-			"Non-Existent Co-Managed Devices",
-			fmt.Sprintf("The following co-managed device IDs do not exist or are not managed by Intune: %s. "+
-				"Please ensure all device IDs are correct and refer to existing co-managed devices.",
-				strings.Join(nonExistentComanagedDevices, ", ")),
-		)
-	}
-
-	if len(unsupportedManagedDevices) > 0 {
-		resp.Diagnostics.AddAttributeWarning(
-			path.Root("managed_device_ids"),
-			"Non-Windows Devices Detected",
-			fmt.Sprintf("The following managed devices are not Windows devices: %s. "+
-				"Windows LAPS (Local Administrator Password Solution) is only supported on Windows 10/11 devices. "+
-				"These devices will be skipped.",
-				strings.Join(unsupportedManagedDevices, ", ")),
-		)
-	}
-
-	if len(unsupportedComanagedDevices) > 0 {
-		resp.Diagnostics.AddAttributeWarning(
-			path.Root("comanaged_device_ids"),
-			"Non-Windows Devices Detected",
-			fmt.Sprintf("The following co-managed devices are not Windows devices: %s. "+
-				"Windows LAPS (Local Administrator Password Solution) is only supported on Windows 10/11 devices. "+
-				"These devices will be skipped.",
-				strings.Join(unsupportedComanagedDevices, ", ")),
-		)
-	}
+	totalDevices := len(managedDeviceIDs) + len(comanagedDeviceIDs)
 
 	// Add important warning about the operation
-	if len(managedDeviceIDs)+len(comanagedDeviceIDs) > 0 {
-		resp.Diagnostics.AddWarning(
-			"Local Administrator Password Rotation",
-			fmt.Sprintf("This action will rotate the local administrator password for %d device(s).\n\n"+
-				"Important notes:\n"+
-				"- Devices must have Windows LAPS policy configured and enabled\n"+
-				"- New password will be automatically generated (complex, random)\n"+
-				"- Password stored securely in Azure AD or Intune\n"+
-				"- Authorized administrators can retrieve the new password\n"+
-				"- Does not affect device operation or require restart\n"+
-				"- Critical for security compliance and privileged access management\n"+
-				"- Previous password will no longer work for local admin access",
-				len(managedDeviceIDs)+len(comanagedDeviceIDs)),
-		)
-	}
+	resp.Diagnostics.AddWarning(
+		"Local Administrator Password Rotation",
+		fmt.Sprintf("This action will rotate the local administrator password for %d device(s).\n\n"+
+			"Important notes:\n"+
+			"- Devices must have Windows LAPS policy configured and enabled\n"+
+			"- New password will be automatically generated (complex, random)\n"+
+			"- Password stored securely in Azure AD or Intune\n"+
+			"- Authorized administrators can retrieve the new password\n"+
+			"- Does not affect device operation or require restart\n"+
+			"- Critical for security compliance and privileged access management\n"+
+			"- Previous password will no longer work for local admin access",
+			totalDevices),
+	)
+
+	tflog.Debug(ctx, "Static validation completed", map[string]any{
+		"managed_count":   len(managedDeviceIDs),
+		"comanaged_count": len(comanagedDeviceIDs),
+		"total_devices":   totalDevices,
+	})
 }

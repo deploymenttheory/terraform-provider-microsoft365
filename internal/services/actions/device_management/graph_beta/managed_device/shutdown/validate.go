@@ -19,11 +19,14 @@ func (a *ShutdownManagedDeviceAction) ValidateConfig(ctx context.Context, req ac
 		return
 	}
 
-	deviceIDs := make([]string, 0, len(data.DeviceIDs.Elements()))
-	for _, elem := range data.DeviceIDs.Elements() {
-		deviceIDs = append(deviceIDs, elem.String())
+	// Convert framework list to Go slice
+	var deviceIDs []string
+	resp.Diagnostics.Append(data.DeviceIDs.ElementsAs(ctx, &deviceIDs, false)...)
+	if resp.Diagnostics.HasError() {
+		return
 	}
 
+	// Check for duplicate device IDs
 	seen := make(map[string]bool)
 	var duplicates []string
 	for _, id := range deviceIDs {
@@ -43,80 +46,6 @@ func (a *ShutdownManagedDeviceAction) ValidateConfig(ctx context.Context, req ac
 		)
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Validating shutdown action for %d device(s)", len(deviceIDs)))
-
-	var nonExistentDevices []string
-	var unsupportedOSDevices []string
-	var offlineDevices []string
-
-	for _, deviceID := range deviceIDs {
-		device, err := a.client.
-			DeviceManagement().
-			ManagedDevices().
-			ByManagedDeviceId(deviceID).
-			Get(ctx, nil)
-
-		if err != nil {
-			if strings.Contains(err.Error(), "404") || strings.Contains(err.Error(), "not found") {
-				nonExistentDevices = append(nonExistentDevices, deviceID)
-			} else {
-				resp.Diagnostics.AddAttributeError(
-					path.Root("device_ids"),
-					"Error Validating Device Existence",
-					fmt.Sprintf("Failed to check existence of device %s: %s", deviceID, err.Error()),
-				)
-				return
-			}
-		} else {
-			// Check OS compatibility - Shutdown is best supported on Windows and macOS
-			if device.GetOperatingSystem() != nil {
-				os := strings.ToLower(*device.GetOperatingSystem())
-				// Android doesn't support shutdown via Intune
-				if strings.Contains(os, "android") {
-					unsupportedOSDevices = append(unsupportedOSDevices, fmt.Sprintf("%s (OS: %s - shutdown not supported)", deviceID, *device.GetOperatingSystem()))
-				}
-			}
-
-			// Warn if device is offline
-			if device.GetDeviceRegistrationState() != nil {
-				regState := device.GetDeviceRegistrationState().String()
-				if regState == "notRegisteredPendingEnrollment" || regState == "notRegistered" {
-					offlineDevices = append(offlineDevices, fmt.Sprintf("%s (state: %s)", deviceID, regState))
-				}
-			}
-		}
-	}
-
-	if len(nonExistentDevices) > 0 {
-		resp.Diagnostics.AddAttributeError(
-			path.Root("device_ids"),
-			"Non-Existent Devices",
-			fmt.Sprintf("The following device IDs do not exist or are not managed by Intune: %s. "+
-				"Please ensure all device IDs are correct and refer to existing managed devices.",
-				strings.Join(nonExistentDevices, ", ")),
-		)
-	}
-
-	if len(unsupportedOSDevices) > 0 {
-		resp.Diagnostics.AddAttributeError(
-			path.Root("device_ids"),
-			"Unsupported Devices for Shutdown",
-			fmt.Sprintf("The following devices do not support remote shutdown: %s. "+
-				"Remote shutdown is supported on Windows, macOS, and supervised iOS/iPadOS devices.",
-				strings.Join(unsupportedOSDevices, ", ")),
-		)
-	}
-
-	if len(offlineDevices) > 0 {
-		resp.Diagnostics.AddAttributeWarning(
-			path.Root("device_ids"),
-			"Offline or Unregistered Devices",
-			fmt.Sprintf("The following devices may be offline or not properly registered: %s. "+
-				"The shutdown command will be queued and executed when the device comes online and checks in with Intune.",
-				strings.Join(offlineDevices, ", ")),
-		)
-	}
-
 	// Critical warning about shutdown requiring manual power-on
 	resp.Diagnostics.AddAttributeWarning(
 		path.Root("device_ids"),
@@ -128,4 +57,8 @@ func (a *ShutdownManagedDeviceAction) ValidateConfig(ctx context.Context, req ac
 			"Ensure you have legitimate business reason and proper authorization for this disruptive action.",
 			len(deviceIDs)),
 	)
+
+	tflog.Debug(ctx, "Static validation completed", map[string]any{
+		"device_count": len(deviceIDs),
+	})
 }

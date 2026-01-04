@@ -3,117 +3,138 @@ package graphBetaLogoutSharedAppleDeviceActiveUser
 import (
 	"context"
 	"fmt"
-	"sync"
+	"time"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/progress"
+
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/validation"
+
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
 	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
-type logoutResult struct {
-	deviceID string
-	err      error
-}
-
 func (a *LogoutSharedAppleDeviceActiveUserAction) Invoke(ctx context.Context, req action.InvokeRequest, resp *action.InvokeResponse) {
 	var data LogoutSharedAppleDeviceActiveUserActionModel
 
-	tflog.Debug(ctx, fmt.Sprintf("Starting %s", ActionName))
+	tflog.Debug(ctx, "Starting logout shared Apple device active user action", map[string]any{"action": ActionName})
 
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
+	// Handle timeout
+	ctx, cancel := crud.HandleTimeout(ctx, data.Timeouts.Invoke, InvokeTimeout*time.Second, &resp.Diagnostics)
+	if cancel == nil {
+		return
+	}
+	defer cancel()
+
+	// Convert framework list to Go slice
 	var deviceIDs []string
-	resp.Diagnostics.Append(data.DeviceIDs.ElementsAs(ctx, &deviceIDs, false)...)
+	if !data.DeviceIDs.IsNull() && !data.DeviceIDs.IsUnknown() {
+		resp.Diagnostics.Append(data.DeviceIDs.ElementsAs(ctx, &deviceIDs, false)...)
+	}
+
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
 	totalDevices := len(deviceIDs)
-	tflog.Debug(ctx, fmt.Sprintf("Performing action %s for %d Shared iPad device(s)", ActionName, totalDevices))
-
-	resp.SendProgress(action.InvokeProgressEvent{
-		Message: fmt.Sprintf("Starting logout of active users from %d Shared iPad device(s)...", totalDevices),
+	tflog.Debug(ctx, "Processing Shared iPad devices for active user logout", map[string]any{
+		"total_devices": totalDevices,
 	})
 
-	// Logout active users from Shared iPad devices concurrently with error collection
-	results := make(chan logoutResult, totalDevices)
-	var wg sync.WaitGroup
-
-	for _, deviceID := range deviceIDs {
-		wg.Add(1)
-		go func(id string) {
-			defer wg.Done()
-			err := a.logoutActiveUser(ctx, id)
-			results <- logoutResult{deviceID: id, err: err}
-		}(deviceID)
+	// Get ignore_partial_failures setting
+	ignorePartialFailures := false
+	if !data.IgnorePartialFailures.IsNull() && !data.IgnorePartialFailures.IsUnknown() {
+		ignorePartialFailures = data.IgnorePartialFailures.ValueBool()
 	}
 
-	// Close results channel once all goroutines complete
-	go func() {
-		wg.Wait()
-		close(results)
-	}()
-
-	// Collect results and track progress
-	successCount := 0
-	var failedDevices []string
-	var lastError error
-
-	for result := range results {
-		if result.err != nil {
-			failedDevices = append(failedDevices, result.deviceID)
-			lastError = result.err
-			tflog.Error(ctx, fmt.Sprintf("Failed to logout active user from Shared iPad %s: %v", result.deviceID, result.err))
-		} else {
-			successCount++
-			tflog.Debug(ctx, fmt.Sprintf("Successfully logged out active user from Shared iPad %s", result.deviceID))
-		}
-
-		// Send progress update
-		progress := float64(successCount+len(failedDevices)) / float64(totalDevices) * 100
-		resp.SendProgress(action.InvokeProgressEvent{
-			Message: fmt.Sprintf("Processed %d of %d devices (%.0f%% complete)", successCount+len(failedDevices), totalDevices, progress),
-		})
+	// Get validate_device_exists setting (default: true)
+	validateDeviceExists := true
+	if !data.ValidateDeviceExists.IsNull() && !data.ValidateDeviceExists.IsUnknown() {
+		validateDeviceExists = data.ValidateDeviceExists.ValueBool()
 	}
 
-	// Report results
-	if len(failedDevices) > 0 {
-		if successCount > 0 {
-			// Partial success
-			resp.Diagnostics.AddWarning(
-				"Partial Success",
-				fmt.Sprintf("Successfully logged out active users from %d of %d Shared iPad devices. Failed devices: %v. Last error: %v\n\n"+
-					"Devices with successful logout have returned to the login screen. "+
-					"Failed devices may not be in Shared iPad mode, may not have an active user, or may be offline.",
-					successCount, totalDevices, failedDevices, lastError),
+	// Perform API validation of devices if enabled
+	if validateDeviceExists {
+		tflog.Debug(ctx, "Performing device validation via API")
+
+		validationResult, err := validateRequest(ctx, a.client, deviceIDs)
+		if err != nil {
+			tflog.Error(ctx, "Failed to validate devices via API", map[string]any{"error": err.Error()})
+			resp.Diagnostics.AddError(
+				"Device Validation Failed",
+				fmt.Sprintf("Failed to validate devices: %s", err.Error()),
 			)
-		} else {
-			// Complete failure
-			errors.HandleKiotaGraphError(ctx, lastError, resp, "Action", a.WritePermissions)
 			return
 		}
+
+		// Report validation results
+		results := validation.NewResults().
+			Error(validationResult.NonExistentDevices, "device", "do not exist or are not managed by Intune").
+			Error(validationResult.NonIPadDevices, "device", "are not iPadOS devices (Shared iPad mode requires iPadOS)").
+			Warning(validationResult.UnsupervisedDevices, "device", "are not supervised (Shared iPad mode requires supervised devices enrolled via DEP/ABM)").
+			Warning(validationResult.PotentiallyNotSharedDevices, "device", "may not support Shared iPad mode (likely iPhones, not iPads)")
+
+		if results.Report(resp) {
+			return
+		}
+
+		tflog.Debug(ctx, "Device validation completed successfully")
+	} else {
+		tflog.Debug(ctx, "Device validation disabled, skipping API checks")
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Successfully logged out active users from %d Shared iPad device(s)", successCount))
+	// Create progress tracker and send initial message
+	progressTracker := progress.For(resp).WithTotalDevices(totalDevices).
+		Starting("active user logout", fmt.Sprintf("%d Shared iPad devices", totalDevices))
 
-	if successCount > 0 {
-		resp.SendProgress(action.InvokeProgressEvent{
-			Message: fmt.Sprintf("Logout complete: %d Shared iPad device(s) have returned to the login screen. "+
-				"Devices are ready for the next user to log in. "+
-				"User data remains cached on the devices.",
-				successCount),
-		})
+	// Process devices sequentially
+	for _, deviceID := range deviceIDs {
+		err := a.logoutActiveUser(ctx, deviceID)
+		if err != nil {
+			progressTracker.Device(deviceID, "").Failed(err.Error())
+			tflog.Error(ctx, "Failed to logout active user from Shared iPad", map[string]any{
+				"device_id": deviceID,
+				"error":     err.Error(),
+			})
+		} else {
+			progressTracker.Device(deviceID, "").Succeeded("active user logged out successfully")
+			tflog.Info(ctx, "Successfully logged out active user from Shared iPad", map[string]any{
+				"device_id": deviceID,
+			})
+		}
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Finished %s", ActionName))
+	// Handle results
+	if progressTracker.HasFailures() {
+		if ignorePartialFailures {
+			progressTracker.CompletedWithIgnoredFailures("active user logout")
+			tflog.Warn(ctx, "Active user logout completed with ignored failures", map[string]any{
+				"success_count": progressTracker.SuccessCount(),
+				"failed_count":  progressTracker.FailureCount(),
+			})
+		} else {
+			progressTracker.Failed("Active User Logout Failed", "logout active users from Shared iPad devices")
+			return
+		}
+	} else {
+		progressTracker.CompletedSuccessfully("logged out active users from all Shared iPad devices. Devices have returned to the login screen")
+	}
+
+	tflog.Info(ctx, "Logout shared Apple device active user action completed", map[string]any{
+		"success_count":            progressTracker.SuccessCount(),
+		"failed_count":             progressTracker.FailureCount(),
+		"total_devices":            totalDevices,
+		"partial_failures_ignored": ignorePartialFailures && progressTracker.HasFailures(),
+	})
 }
 
 func (a *LogoutSharedAppleDeviceActiveUserAction) logoutActiveUser(ctx context.Context, deviceID string) error {
-	tflog.Debug(ctx, fmt.Sprintf("Logging out active user from Shared iPad with ID: %s", deviceID))
-
 	err := a.client.
 		DeviceManagement().
 		ManagedDevices().
@@ -122,7 +143,7 @@ func (a *LogoutSharedAppleDeviceActiveUserAction) logoutActiveUser(ctx context.C
 		Post(ctx, nil)
 
 	if err != nil {
-		return fmt.Errorf("failed to logout active user from Shared iPad %s: %w", deviceID, err)
+		return fmt.Errorf("%s", errors.HandleKiotaGraphErrorForAction(ctx, err))
 	}
 
 	return nil

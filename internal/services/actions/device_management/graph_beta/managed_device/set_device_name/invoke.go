@@ -3,137 +3,163 @@ package graphBetaSetDeviceNameManagedDevice
 import (
 	"context"
 	"fmt"
-	"sync"
+	"time"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/progress"
+
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/validation"
+
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
 	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
-type setDeviceNameResult struct {
-	deviceID   string
-	deviceName string
-	deviceType string // "managed" or "comanaged"
-	err        error
-}
-
 func (a *SetDeviceNameManagedDeviceAction) Invoke(ctx context.Context, req action.InvokeRequest, resp *action.InvokeResponse) {
 	var data SetDeviceNameManagedDeviceActionModel
 
-	tflog.Debug(ctx, fmt.Sprintf("Starting %s", ActionName))
+	tflog.Debug(ctx, "Starting set device name action", map[string]any{"action": ActionName})
 
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	totalDevices := len(data.ManagedDevices) + len(data.ComanagedDevices)
-	tflog.Debug(ctx, fmt.Sprintf("Setting device names for %d managed device(s) and %d co-managed device(s)",
-		len(data.ManagedDevices), len(data.ComanagedDevices)))
+	// Handle timeout
+	ctx, cancel := crud.HandleTimeout(ctx, data.Timeouts.Invoke, InvokeTimeout*time.Second, &resp.Diagnostics)
+	if cancel == nil {
+		return
+	}
+	defer cancel()
 
-	resp.SendProgress(action.InvokeProgressEvent{
-		Message: fmt.Sprintf("Starting set device name for %d device(s) (%d managed, %d co-managed)...",
-			totalDevices, len(data.ManagedDevices), len(data.ComanagedDevices)),
+	totalDevices := len(data.ManagedDevices) + len(data.ComanagedDevices)
+	tflog.Debug(ctx, "Processing devices for set device name", map[string]any{
+		"managed_devices":   len(data.ManagedDevices),
+		"comanaged_devices": len(data.ComanagedDevices),
+		"total_devices":     totalDevices,
 	})
 
-	// Set device names concurrently with error collection
-	results := make(chan setDeviceNameResult, totalDevices)
-	var wg sync.WaitGroup
-
-	// Set names on managed devices
-	for _, device := range data.ManagedDevices {
-		wg.Add(1)
-		go func(d ManagedDeviceSetName) {
-			defer wg.Done()
-			err := a.setDeviceNameManagedDevice(ctx, d)
-			results <- setDeviceNameResult{
-				deviceID:   d.DeviceID.ValueString(),
-				deviceName: d.DeviceName.ValueString(),
-				deviceType: "managed",
-				err:        err,
-			}
-		}(device)
+	// Get ignore_partial_failures setting
+	ignorePartialFailures := false
+	if !data.IgnorePartialFailures.IsNull() && !data.IgnorePartialFailures.IsUnknown() {
+		ignorePartialFailures = data.IgnorePartialFailures.ValueBool()
 	}
 
-	// Set names on co-managed devices
-	for _, device := range data.ComanagedDevices {
-		wg.Add(1)
-		go func(d ComanagedDeviceSetName) {
-			defer wg.Done()
-			err := a.setDeviceNameComanagedDevice(ctx, d)
-			results <- setDeviceNameResult{
-				deviceID:   d.DeviceID.ValueString(),
-				deviceName: d.DeviceName.ValueString(),
-				deviceType: "comanaged",
-				err:        err,
-			}
-		}(device)
+	// Get validate_device_exists setting (default: true)
+	validateDeviceExists := true
+	if !data.ValidateDeviceExists.IsNull() && !data.ValidateDeviceExists.IsUnknown() {
+		validateDeviceExists = data.ValidateDeviceExists.ValueBool()
 	}
 
-	// Close results channel once all goroutines complete
-	go func() {
-		wg.Wait()
-		close(results)
-	}()
+	// Perform API validation of devices if enabled
+	if validateDeviceExists {
+		tflog.Debug(ctx, "Performing device validation via API")
 
-	// Collect results and track progress
-	successCount := 0
-	var failedDevices []string
-	var lastError error
-
-	for result := range results {
-		if result.err != nil {
-			failedDevices = append(failedDevices, fmt.Sprintf("%s (%s)", result.deviceID, result.deviceType))
-			lastError = result.err
-			tflog.Error(ctx, fmt.Sprintf("Failed to set device name for %s device %s: %v",
-				result.deviceType, result.deviceID, result.err))
-		} else {
-			successCount++
-			tflog.Debug(ctx, fmt.Sprintf("Successfully set device name to '%s' for %s device %s",
-				result.deviceName, result.deviceType, result.deviceID))
-		}
-
-		// Send progress update
-		progress := float64(successCount+len(failedDevices)) / float64(totalDevices) * 100
-		resp.SendProgress(action.InvokeProgressEvent{
-			Message: fmt.Sprintf("Processed %d of %d devices (%.0f%% complete)",
-				successCount+len(failedDevices), totalDevices, progress),
-		})
-	}
-
-	// Report results
-	if len(failedDevices) > 0 {
-		if successCount > 0 {
-			// Partial success
-			resp.Diagnostics.AddWarning(
-				"Partial Success",
-				fmt.Sprintf("Successfully set device names for %d of %d devices. Failed devices: %v. Last error: %v\n\n"+
-					"Devices that received the command will have their names updated after their next check-in.",
-					successCount, totalDevices, failedDevices, lastError),
+		validationResult, err := validateRequest(ctx, a.client, data.ManagedDevices, data.ComanagedDevices)
+		if err != nil {
+			tflog.Error(ctx, "Failed to validate devices via API", map[string]any{"error": err.Error()})
+			resp.Diagnostics.AddError(
+				"Device Validation Failed",
+				fmt.Sprintf("Failed to validate devices: %s", err.Error()),
 			)
-		} else {
-			// Complete failure
-			errors.HandleKiotaGraphError(ctx, lastError, resp, "Action", a.WritePermissions)
 			return
 		}
+
+		// Report validation results
+		results := validation.NewResults().
+			Error(validationResult.NonExistentManagedDevices, "managed device", "do not exist or are not managed by Intune").
+			Error(validationResult.NonExistentComanagedDevices, "co-managed device", "do not exist or are not co-managed by Intune")
+
+		if results.Report(resp) {
+			return
+		}
+
+		tflog.Debug(ctx, "Device validation completed successfully")
+	} else {
+		tflog.Debug(ctx, "Device validation disabled, skipping API checks")
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Successfully set device names for %d device(s)", successCount))
+	// Create progress tracker and send initial message
+	progressTracker := progress.For(resp).WithTotalDevices(totalDevices).
+		Starting("device name change", fmt.Sprintf("%d devices (%d managed, %d co-managed)", totalDevices, len(data.ManagedDevices), len(data.ComanagedDevices)))
 
-	if successCount > 0 {
-		resp.SendProgress(action.InvokeProgressEvent{
-			Message: fmt.Sprintf("Set device name complete: %d device(s) will have their names updated after next check-in.",
-				successCount),
-		})
+	// Process managed devices sequentially
+	for _, device := range data.ManagedDevices {
+		deviceID := device.DeviceID.ValueString()
+		deviceName := device.DeviceName.ValueString()
+
+		err := a.setDeviceNameManagedDevice(ctx, device)
+		if err != nil {
+			progressTracker.Device(deviceID, "").Failed(fmt.Sprintf("device name change failed: %s", err.Error()))
+			tflog.Error(ctx, "Failed to set device name for managed device", map[string]any{
+				"device_id":   deviceID,
+				"device_name": deviceName,
+				"error":       err.Error(),
+			})
+		} else {
+			progressTracker.Device(deviceID, "").Succeeded(fmt.Sprintf("device name changed to \"%s\"", deviceName))
+			tflog.Info(ctx, "Successfully set device name for managed device", map[string]any{
+				"device_id":   deviceID,
+				"device_name": deviceName,
+			})
+		}
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Finished %s", ActionName))
+	// Process co-managed devices sequentially
+	for _, device := range data.ComanagedDevices {
+		deviceID := device.DeviceID.ValueString()
+		deviceName := device.DeviceName.ValueString()
+
+		err := a.setDeviceNameComanagedDevice(ctx, device)
+		if err != nil {
+			progressTracker.Device(deviceID, "").Failed(fmt.Sprintf("device name change failed: %s", err.Error()))
+			tflog.Error(ctx, "Failed to set device name for co-managed device", map[string]any{
+				"device_id":   deviceID,
+				"device_name": deviceName,
+				"error":       err.Error(),
+			})
+		} else {
+			progressTracker.Device(deviceID, "").Succeeded(fmt.Sprintf("device name changed to \"%s\"", deviceName))
+			tflog.Info(ctx, "Successfully set device name for co-managed device", map[string]any{
+				"device_id":   deviceID,
+				"device_name": deviceName,
+			})
+		}
+	}
+
+	// Handle results
+	if progressTracker.HasFailures() {
+		if ignorePartialFailures {
+			progressTracker.CompletedWithIgnoredFailures("device name change")
+			tflog.Warn(ctx, "Set device name action completed with ignored failures", map[string]any{
+				"success_count": progressTracker.SuccessCount(),
+				"failed_count":  progressTracker.FailureCount(),
+			})
+		} else {
+			progressTracker.Failed("Device Name Change Failed", "set device names")
+			return
+		}
+	} else {
+		progressTracker.CompletedSuccessfully("changed all device names. The name change command has been sent to all target devices. " +
+			"Device names will be updated in the Intune console after devices check in and process the command. The time required for " +
+			"name changes to reflect varies by platform and device online status")
+	}
+
+	tflog.Info(ctx, "Set device name action completed", map[string]any{
+		"success_count":            progressTracker.SuccessCount(),
+		"failed_count":             progressTracker.FailureCount(),
+		"total_devices":            totalDevices,
+		"partial_failures_ignored": ignorePartialFailures && progressTracker.HasFailures(),
+	})
 }
 
 func (a *SetDeviceNameManagedDeviceAction) setDeviceNameManagedDevice(ctx context.Context, device ManagedDeviceSetName) error {
 	deviceID := device.DeviceID.ValueString()
 	deviceName := device.DeviceName.ValueString()
-	tflog.Debug(ctx, fmt.Sprintf("Setting device name to '%s' for managed device with ID: %s", deviceName, deviceID))
+	tflog.Debug(ctx, "Setting device name for managed device", map[string]any{
+		"device_id":   deviceID,
+		"device_name": deviceName,
+	})
 
 	requestBody := constructManagedDeviceRequest(ctx, device)
 
@@ -145,7 +171,7 @@ func (a *SetDeviceNameManagedDeviceAction) setDeviceNameManagedDevice(ctx contex
 		Post(ctx, requestBody, nil)
 
 	if err != nil {
-		return fmt.Errorf("failed to set device name for managed device %s: %w", deviceID, err)
+		return fmt.Errorf("%s", errors.HandleKiotaGraphErrorForAction(ctx, err))
 	}
 
 	return nil
@@ -154,7 +180,10 @@ func (a *SetDeviceNameManagedDeviceAction) setDeviceNameManagedDevice(ctx contex
 func (a *SetDeviceNameManagedDeviceAction) setDeviceNameComanagedDevice(ctx context.Context, device ComanagedDeviceSetName) error {
 	deviceID := device.DeviceID.ValueString()
 	deviceName := device.DeviceName.ValueString()
-	tflog.Debug(ctx, fmt.Sprintf("Setting device name to '%s' for co-managed device with ID: %s", deviceName, deviceID))
+	tflog.Debug(ctx, "Setting device name for co-managed device", map[string]any{
+		"device_id":   deviceID,
+		"device_name": deviceName,
+	})
 
 	requestBody := constructComanagedDeviceRequest(ctx, device)
 
@@ -166,7 +195,7 @@ func (a *SetDeviceNameManagedDeviceAction) setDeviceNameComanagedDevice(ctx cont
 		Post(ctx, requestBody, nil)
 
 	if err != nil {
-		return fmt.Errorf("failed to set device name for co-managed device %s: %w", deviceID, err)
+		return fmt.Errorf("%s", errors.HandleKiotaGraphErrorForAction(ctx, err))
 	}
 
 	return nil

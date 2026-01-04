@@ -138,6 +138,19 @@ func (a *SyncManagedDeviceAction) Schema(ctx context.Context, req action.SchemaR
 					),
 				},
 			},
+			"ignore_partial_failures": schema.BoolAttribute{
+				Optional: true,
+				MarkdownDescription: "When set to `true`, the action will complete successfully even if some devices fail to sync. " +
+					"When `false` (default), the action will fail if any device sync fails. " +
+					"Use this flag when syncing multiple devices and you want the action to succeed even if some syncs fail.",
+			},
+			"validate_device_exists": schema.BoolAttribute{
+				Optional: true,
+				MarkdownDescription: "When set to `true` (default), the action will validate that all specified devices exist " +
+					"and support sync before attempting to sync them. " +
+					"When `false`, device validation is skipped and the action will attempt to sync devices directly. " +
+					"Disabling validation can improve performance but may result in errors if devices don't exist or are unsupported.",
+			},
 			"timeouts": commonschema.ActionTimeouts(ctx),
 		},
 	}

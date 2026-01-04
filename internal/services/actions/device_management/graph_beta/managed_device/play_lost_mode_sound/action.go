@@ -130,6 +130,18 @@ func (a *PlayLostModeSoundManagedDeviceAction) Schema(ctx context.Context, req a
 					},
 				},
 			},
+			"ignore_partial_failures": schema.BoolAttribute{
+				Optional: true,
+				MarkdownDescription: "If set to `true`, the action will succeed even if some operations fail. " +
+					"Failed operations will be reported as warnings instead of errors. " +
+					"Default: `false` (action fails if any operation fails).",
+			},
+			"validate_device_exists": schema.BoolAttribute{
+				Optional: true,
+				MarkdownDescription: "Whether to validate that devices exist, are iOS/iPadOS devices, are supervised, and are in lost mode before attempting to play the sound. " +
+					"Disabling this can speed up planning but may result in runtime errors for non-existent, unsupported, or devices not in lost mode. " +
+					"Default: `true`.",
+			},
 			"timeouts": commonschema.ActionTimeouts(ctx),
 		},
 	}

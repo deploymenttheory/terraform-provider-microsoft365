@@ -5,7 +5,7 @@ subcategory: "Device Management"
 description: |-
   Enables lost mode on iOS/iPadOS managed devices using the /deviceManagement/managedDevices/{managedDeviceId}/enableLostMode and /deviceManagement/comanagedDevices/{managedDeviceId}/enableLostMode endpoints. This action locks the device and displays a custom message with contact information on the lock screen. Lost mode is a feature that helps locate and secure lost iOS/iPadOS devices by locking them and enabling device location tracking. This action supports enabling lost mode on multiple devices in a single operation with per-device messages.
   Important Notes:
-  Only applicable to iOS and iPadOS devices (iOS 9.3+)Device must be supervisedRequires device to be online to receive commandLocks device and displays custom message with contact informationEnables device location trackingEach device can have its own custom message, phone number, and footnote
+  Only applicable to iOS and iPadOS devices (iOS 9.3+)Device must be supervisedRequires device to be online to receive commandLocks device and displays custom message with contact informationEnables device location trackingEach device can have its own custom message, phone number, and footer
   Use Cases:
   Device has been reported lost or stolenNeed to lock device and display recovery contact informationNeed to track device location for recoveryPrevent unauthorized access to corporate data
   Platform Support:
@@ -23,7 +23,7 @@ Enables lost mode on iOS/iPadOS managed devices using the `/deviceManagement/man
 - Requires device to be online to receive command
 - Locks device and displays custom message with contact information
 - Enables device location tracking
-- Each device can have its own custom message, phone number, and footnote
+- Each device can have its own custom message, phone number, and footer
 
 **Use Cases:**
 - Device has been reported lost or stolen
@@ -61,6 +61,8 @@ The following API permissions are required in order to use this action.
 | Version | Status | Notes |
 |---------|--------|-------|
 | v0.33.0-alpha | Experimental | Initial release |
+| v0.40.0-alpha | Experimental | Example fixes and refactored sync progress logic |
+
 
 ## Notes
 
@@ -113,184 +115,137 @@ Lost mode is an Apple security feature that:
 ## Example Usage
 
 ```terraform
-# Example 1: Enable lost mode for a single device
+# Example 1: Enable lost mode for a single device - Minimal
 action "microsoft365_graph_beta_device_management_managed_device_enable_lost_mode" "enable_single_lost_device" {
-
-  managed_devices {
-    device_id    = "12345678-1234-1234-1234-123456789abc"
-    message      = "This device has been lost. Please contact IT at 555-0123 to return."
-    phone_number = "555-0123"
-    footnote     = "Property of Contoso Corporation"
-  }
-
-  timeouts = {
-    invoke = "5m"
+  config {
+    managed_devices = [
+      {
+        device_id    = "12345678-1234-1234-1234-123456789abc"
+        message      = "This device has been lost"
+        phone_number = "+1234567890"
+      }
+    ]
   }
 }
 
-# Example 2: Enable lost mode for multiple devices with different messages
+# Example 2: Enable lost mode for multiple devices
 action "microsoft365_graph_beta_device_management_managed_device_enable_lost_mode" "enable_multiple_lost_devices" {
+  config {
+    managed_devices = [
+      {
+        device_id    = "12345678-1234-1234-1234-123456789abc"
+        message      = "Lost iPhone - Please call John at IT to return"
+        phone_number = "+1-555-0123"
+        footer       = "Reward available for return"
+      },
+      {
+        device_id    = "87654321-4321-4321-4321-ba9876543210"
+        message      = "Lost iPad - Contact Mary in HR to return"
+        phone_number = "+1-555-0456"
+        footer       = "Property of Contoso"
+      }
+    ]
 
-  managed_devices {
-    device_id    = "12345678-1234-1234-1234-123456789abc"
-    message      = "Lost iPhone - Please call John at IT to return"
-    phone_number = "+1-555-0123"
-    footnote     = "Reward available for return"
-  }
-
-  managed_devices {
-    device_id    = "87654321-4321-4321-4321-ba9876543210"
-    message      = "Lost iPad - Contact Mary in HR to return"
-    phone_number = "+1-555-0456"
-    footnote     = "Property of Contoso - Finance Department"
-  }
-
-  timeouts = {
-    invoke = "10m"
+    timeouts = {
+      invoke = "10m"
+    }
   }
 }
 
-# Example 3: Enable lost mode for supervised iOS devices
+# Example 3: Maximal configuration with validation
+action "microsoft365_graph_beta_device_management_managed_device_enable_lost_mode" "enable_maximal" {
+  config {
+    managed_devices = [
+      {
+        device_id    = "12345678-1234-1234-1234-123456789abc"
+        message      = "This device has been lost"
+        phone_number = "+1234567890"
+        footer       = "Please return to owner"
+      }
+    ]
+
+    comanaged_devices = [
+      {
+        device_id    = "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"
+        message      = "Lost device"
+        phone_number = "+0987654321"
+      }
+    ]
+
+    ignore_partial_failures = false
+    validate_device_exists  = true
+
+    timeouts = {
+      invoke = "5m"
+    }
+  }
+}
+
+# Example 4: Enable lost mode for supervised iOS devices
 data "microsoft365_graph_beta_device_management_managed_device" "supervised_ios" {
   filter_type  = "odata"
-  odata_filter = "operatingSystem eq 'iOS' and isSupervised eq true and lostModeState eq 'disabled'"
+  odata_filter = "(operatingSystem eq 'iOS') and (isSupervised eq true)"
 }
 
 action "microsoft365_graph_beta_device_management_managed_device_enable_lost_mode" "enable_for_supervised_ios" {
+  config {
+    managed_devices = [
+      for device in data.microsoft365_graph_beta_device_management_managed_device.supervised_ios.items : {
+        device_id    = device.id
+        message      = "This iOS device has been lost. Please contact IT."
+        phone_number = "+1-555-0100"
+        footer       = "Company Property"
+      }
+    ]
 
-  dynamic "managed_devices" {
-    for_each = data.microsoft365_graph_beta_device_management_managed_device.supervised_ios.items
-    content {
-      device_id    = managed_devices.value.id
-      message      = "This iOS device has been lost. Please contact IT immediately."
-      phone_number = "555-IT-HELP"
-      footnote     = "Return to Contoso Corporation IT Department"
+    validate_device_exists = true
+
+    timeouts = {
+      invoke = "15m"
     }
-  }
-
-  timeouts = {
-    invoke = "15m"
   }
 }
 
-# Example 4: Enable lost mode with user-specific messages
+# Example 5: Enable lost mode for user's devices
 data "microsoft365_graph_beta_device_management_managed_device" "user_devices" {
   filter_type  = "odata"
-  odata_filter = "userId eq 'user@example.com' and operatingSystem eq 'iOS'"
+  odata_filter = "(userPrincipalName eq 'user@example.com') and ((operatingSystem eq 'iOS') or (operatingSystem eq 'iPadOS'))"
 }
 
 action "microsoft365_graph_beta_device_management_managed_device_enable_lost_mode" "enable_user_lost_devices" {
+  config {
+    managed_devices = [
+      for device in data.microsoft365_graph_beta_device_management_managed_device.user_devices.items : {
+        device_id    = device.id
+        message      = format("Lost device belonging to %s", device.userDisplayName)
+        phone_number = "+1-555-0200"
+      }
+    ]
 
-  dynamic "managed_devices" {
-    for_each = data.microsoft365_graph_beta_device_management_managed_device.user_devices.items
-    content {
-      device_id    = managed_devices.value.id
-      message      = format("Lost device belonging to %s. Please contact IT to return.", data.microsoft365_graph_beta_device_management_managed_device.user_devices.items[0].user_principal_name)
-      phone_number = "555-0123"
-      footnote     = "Corporate Device - Immediate Return Required"
+    timeouts = {
+      invoke = "10m"
     }
   }
-
-  timeouts = {
-    invoke = "10m"
-  }
 }
 
-# Example 5: Enable lost mode for co-managed devices
+# Example 6: Enable lost mode for co-managed device
 action "microsoft365_graph_beta_device_management_managed_device_enable_lost_mode" "enable_comanaged_lost" {
+  config {
+    comanaged_devices = [
+      {
+        device_id    = "abcdef12-3456-7890-abcd-ef1234567890"
+        message      = "Lost co-managed device"
+        phone_number = "+1-555-0300"
+      }
+    ]
 
-  comanaged_devices {
-    device_id    = "abcdef12-3456-7890-abcd-ef1234567890"
-    message      = "This co-managed device has been lost. Contact IT."
-    phone_number = "+1-555-9999"
-  }
-
-  timeouts = {
-    invoke = "5m"
-  }
-}
-
-# Example 6: Enable lost mode with emergency contact information
-action "microsoft365_graph_beta_device_management_managed_device_enable_lost_mode" "enable_with_emergency_contact" {
-
-  managed_devices {
-    device_id    = "12345678-1234-1234-1234-123456789abc"
-    message      = "LOST DEVICE - This device contains sensitive corporate data. Please return immediately!"
-    phone_number = "+1-555-SECURITY"
-    footnote     = "24/7 Security Hotline: +1-555-SEC-HELP | Reward: $100"
-  }
-
-  timeouts = {
-    invoke = "5m"
+    timeouts = {
+      invoke = "5m"
+    }
   }
 }
 
-# Output examples
-output "enabled_lost_mode_count" {
-  value       = length(action.enable_multiple_lost_devices.managed_devices)
-  description = "Number of devices that had lost mode enabled"
 }
-
-output "secured_ios_count" {
-  value       = length(action.enable_for_supervised_ios.managed_devices)
-  description = "Number of iOS devices now secured with lost mode"
-}
-
-# Important Notes:
-# Lost Mode Features:
-# - Only available for iOS and iPadOS devices (iOS 9.3+)
-# - Devices must be supervised to use lost mode
-# - Lost mode locks device and displays custom message with contact info
-# - Lost mode enables device location tracking
-# - Each device can have a unique message, phone number, and footnote
-#
-# When to Enable Lost Mode:
-# - Device has been reported lost or stolen
-# - Need to remotely lock and secure device immediately
-# - Need to display recovery contact information
-# - Need to track device location for recovery
-# - Prevent unauthorized access to corporate data
-# - User cannot be reached to secure device manually
-#
-# What Happens When Lost Mode is Enabled:
-# - Device is immediately locked
-# - Custom message displayed on lock screen with contact info
-# - Location tracking is enabled
-# - Device cannot be unlocked without proper credentials
-# - Device data remains encrypted and protected
-# - User must contact provided phone number to recover device
-#
-# Platform Requirements:
-# - iOS/iPadOS: Fully supported (iOS 9.3+, supervised devices)
-# - macOS: Not supported (lost mode is iOS/iPadOS only)
-# - Windows: Not supported
-# - Android: Not supported
-#
-# Message Best Practices:
-# - Include clear instructions for returning the device
-# - Provide a contact phone number that will be monitored
-# - Keep message concise and professional
-# - Include organization name or identification
-# - Avoid including sensitive information
-# - Consider including reward information if applicable
-#
-# Security Considerations:
-# - Ensure contact number is monitored 24/7 if possible
-# - Document when and why lost mode was enabled
-# - Plan recovery process before enabling
-# - Consider legal implications of location tracking
-# - Have escalation procedure for device not returned
-# - Verify identity of person returning device
-#
-# Related Actions:
-# - Disable Lost Mode: Use to return device to normal operation after recovery
-# - Remote Lock: Alternative for locking device without full lost mode
-# - Locate Device: Use Intune portal to track device location
-# - Wipe Device: Factory reset if device cannot be recovered
-# - Reset Passcode: Change device passcode remotely
-#
-# Reference:
-# https://learn.microsoft.com/en-us/graph/api/intune-devices-manageddevice-enablelostmode?view=graph-rest-beta
 ```
 
 <!-- action schema generated by tfplugindocs -->
@@ -298,15 +253,17 @@ output "secured_ios_count" {
 
 ### Optional
 
-- `comanaged_devices` (Block List) List of co-managed devices to enable lost mode for. These are iOS/iPadOS devices managed by both Intune and Configuration Manager (SCCM). Each entry specifies a device ID and the custom lost mode configuration.
+- `comanaged_devices` (Attributes List) List of co-managed devices to enable lost mode for. These are iOS/iPadOS devices managed by both Intune and Configuration Manager (SCCM). Each entry specifies a device ID and the custom lost mode configuration.
 
-**Note:** At least one of `managed_devices` or `comanaged_devices` must be provided. (see [below for nested schema](#nestedblock--comanaged_devices))
-- `managed_devices` (Block List) List of managed devices to enable lost mode for. These are iOS/iPadOS devices fully managed by Intune only. Each entry specifies a device ID and the custom lost mode configuration for that device.
+**Note:** At least one of `managed_devices` or `comanaged_devices` must be provided. (see [below for nested schema](#nestedatt--comanaged_devices))
+- `ignore_partial_failures` (Boolean) If set to `true`, the action will succeed even if some operations fail. Failed operations will be reported as warnings instead of errors. Default: `false` (action fails if any operation fails).
+- `managed_devices` (Attributes List) List of managed devices to enable lost mode for. These are iOS/iPadOS devices fully managed by Intune only. Each entry specifies a device ID and the custom lost mode configuration for that device.
 
-**Note:** At least one of `managed_devices` or `comanaged_devices` must be provided. You can provide both to enable lost mode on different types of devices in one action. (see [below for nested schema](#nestedblock--managed_devices))
+**Note:** At least one of `managed_devices` or `comanaged_devices` must be provided. You can provide both to enable lost mode on different types of devices in one action. (see [below for nested schema](#nestedatt--managed_devices))
 - `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))
+- `validate_device_exists` (Boolean) Whether to validate that devices exist and are iOS/iPadOS devices before attempting to enable lost mode. Disabling this can speed up planning but may result in runtime errors for non-existent or unsupported devices. Default: `true`.
 
-<a id="nestedblock--comanaged_devices"></a>
+<a id="nestedatt--comanaged_devices"></a>
 ### Nested Schema for `comanaged_devices`
 
 Required:
@@ -320,7 +277,7 @@ Optional:
 - `footer` (String) An optional footer to display below the message on this device's lock screen.
 
 
-<a id="nestedblock--managed_devices"></a>
+<a id="nestedatt--managed_devices"></a>
 ### Nested Schema for `managed_devices`
 
 Required:
@@ -341,7 +298,7 @@ Required:
 
 Optional:
 
-- `footnote` (String) An optional footnote to display below the message on this device's lock screen. This can be used for additional instructions or legal information. Example: `"Property of Contoso Corporation"`
+- `footer` (String) An optional footer to display below the message on this device's lock screen. This can be used for additional instructions or legal information. Example: `"Property of Contoso Corporation"`
 
 
 <a id="nestedatt--timeouts"></a>
@@ -349,9 +306,6 @@ Optional:
 
 Optional:
 
-- `create` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours).
-- `delete` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours). Setting a timeout for a Delete operation is only applicable if changes are saved into state before the destroy operation occurs.
-- `read` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours). Read operations occur during any refresh or planning operation when refresh is enabled.
-- `update` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours).
+- `invoke` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours).
 
 

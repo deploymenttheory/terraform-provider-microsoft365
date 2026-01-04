@@ -134,6 +134,19 @@ func (a *WindowsDefenderUpdateSignaturesAction) Schema(ctx context.Context, req 
 					),
 				},
 			},
+			"ignore_partial_failures": schema.BoolAttribute{
+				Optional: true,
+				MarkdownDescription: "When set to `true`, the action will complete successfully even if some devices fail to update signatures. " +
+					"When `false` (default), the action will fail if any device update fails. " +
+					"Use this flag when updating multiple devices and you want the action to succeed even if some updates fail.",
+			},
+			"validate_device_exists": schema.BoolAttribute{
+				Optional: true,
+				MarkdownDescription: "When set to `true` (default), the action will validate that all specified devices exist " +
+					"and are Windows devices before attempting to update signatures. " +
+					"When `false`, device validation is skipped and the action will attempt to update signatures directly. " +
+					"Disabling validation can improve performance but may result in errors if devices don't exist or are not Windows devices.",
+			},
 			"timeouts": commonschema.ActionTimeouts(ctx),
 		},
 	}

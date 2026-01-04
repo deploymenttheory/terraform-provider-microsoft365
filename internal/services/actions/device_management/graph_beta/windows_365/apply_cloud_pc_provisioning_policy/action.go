@@ -17,7 +17,7 @@ import (
 )
 
 const (
-	ActionName = "microsoft365_graph_beta_device_management_windows_365_apply_cloud_pc_provisioning_policy"
+	ActionName    = "microsoft365_graph_beta_device_management_windows_365_apply_cloud_pc_provisioning_policy"
 	InvokeTimeout = 60
 )
 
@@ -93,6 +93,13 @@ func (a *ApplyCloudPcProvisioningPolicyAction) Schema(ctx context.Context, req a
 				Validators: []validator.Int32{
 					int32validator.Between(0, 99),
 				},
+			},
+			"validate_policy_exists": schema.BoolAttribute{
+				Optional: true,
+				MarkdownDescription: "When set to `true` (default), the action will validate that the provisioning policy exists " +
+					"and check the provisioning type if reserve_percentage is specified before attempting to apply settings. " +
+					"When `false`, policy validation is skipped and the action will attempt to apply settings directly. " +
+					"Disabling validation can improve performance but may result in errors if the policy doesn't exist or is the wrong type.",
 			},
 			"timeouts": commonschema.ActionTimeouts(ctx),
 		},

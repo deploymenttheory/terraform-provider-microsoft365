@@ -65,6 +65,8 @@ The following API permissions are required in order to use this action.
 | Version | Status | Notes |
 |---------|--------|-------|
 | v0.33.0-alpha | Experimental | Initial release |
+| v0.40.0-alpha | Experimental | Example fixes and refactored sync progress logic |
+
 
 ## Notes
 
@@ -123,139 +125,130 @@ The following API permissions are required in order to use this action.
 ## Example Usage
 
 ```terraform
-# Example 1: Remote lock a single device (lost device scenario)
-action "microsoft365_graph_beta_device_management_managed_device_remote_lock" "lock_lost_device" {
-
-  device_ids = [
-    "12345678-1234-1234-1234-123456789abc"
-  ]
-
-  timeouts = {
-    invoke = "5m"
+# Example 1: Remote lock a single device - Minimal
+action "microsoft365_graph_beta_device_management_managed_device_remote_lock" "lock_single" {
+  config {
+    device_ids = [
+      "12345678-1234-1234-1234-123456789abc"
+    ]
   }
 }
 
 # Example 2: Remote lock multiple devices
 action "microsoft365_graph_beta_device_management_managed_device_remote_lock" "lock_batch" {
+  config {
+    device_ids = [
+      "12345678-1234-1234-1234-123456789abc",
+      "87654321-4321-4321-4321-ba9876543210",
+      "abcdef12-3456-7890-abcd-ef1234567890"
+    ]
 
-  device_ids = [
-    "12345678-1234-1234-1234-123456789abc",
-    "87654321-4321-4321-4321-ba9876543210",
-    "abcdef12-3456-7890-abcd-ef1234567890"
-  ]
-
-  timeouts = {
-    invoke = "10m"
+    timeouts = {
+      invoke = "10m"
+    }
   }
 }
 
-# Example 3: Lock all devices for a specific user (security incident)
+# Example 3: Remote lock with validation and failure handling - Maximal
+action "microsoft365_graph_beta_device_management_managed_device_remote_lock" "lock_with_validation" {
+  config {
+    device_ids = [
+      "12345678-1234-1234-1234-123456789abc",
+      "87654321-4321-4321-4321-ba9876543210",
+      "abcdef12-3456-7890-abcd-ef1234567890"
+    ]
+
+    ignore_partial_failures = true
+    validate_device_exists  = true
+
+    timeouts = {
+      invoke = "5m"
+    }
+  }
+}
+
+# Example 4: Lock all devices for a specific user (security incident)
 data "microsoft365_graph_beta_device_management_managed_device" "user_devices" {
-  filter_type  = "user_id"
-  filter_value = "compromised.user@example.com"
+  filter_type  = "odata"
+  odata_filter = "userPrincipalName eq 'compromised.user@example.com'"
 }
 
 action "microsoft365_graph_beta_device_management_managed_device_remote_lock" "lock_compromised_user" {
+  config {
+    device_ids = [for device in data.microsoft365_graph_beta_device_management_managed_device.user_devices.items : device.id]
 
-  device_ids = [for device in data.microsoft365_graph_beta_device_management_managed_device.user_devices.items : device.id]
+    validate_device_exists  = true
+    ignore_partial_failures = false
 
-  timeouts = {
-    invoke = "10m"
+    timeouts = {
+      invoke = "10m"
+    }
   }
 }
 
-# Example 4: Lock non-compliant devices
+# Example 5: Lock non-compliant devices
 data "microsoft365_graph_beta_device_management_managed_device" "non_compliant_devices" {
   filter_type  = "odata"
   odata_filter = "complianceState eq 'noncompliant'"
 }
 
 action "microsoft365_graph_beta_device_management_managed_device_remote_lock" "lock_non_compliant_devices" {
+  config {
+    device_ids = [for device in data.microsoft365_graph_beta_device_management_managed_device.non_compliant_devices.items : device.id]
 
-  device_ids = [for device in data.microsoft365_graph_beta_device_management_managed_device.non_compliant_devices.items : device.id]
+    ignore_partial_failures = true
 
-  timeouts = {
-    invoke = "15m"
+    timeouts = {
+      invoke = "15m"
+    }
   }
 }
 
-# Example 5: Lock iOS devices reported as lost
+# Example 6: Lock iOS devices
 data "microsoft365_graph_beta_device_management_managed_device" "ios_devices" {
   filter_type  = "odata"
   odata_filter = "operatingSystem eq 'iOS'"
 }
 
 action "microsoft365_graph_beta_device_management_managed_device_remote_lock" "lock_ios" {
+  config {
+    device_ids = [for device in data.microsoft365_graph_beta_device_management_managed_device.ios_devices.items : device.id]
 
-  # In production, you would have additional filtering for "lost" status
-  device_ids = [for device in data.microsoft365_graph_beta_device_management_managed_device.ios_devices.items : device.id]
-
-  timeouts = {
-    invoke = "10m"
+    timeouts = {
+      invoke = "10m"
+    }
   }
 }
 
-# Example 6: Emergency lock all corporate Windows devices
+# Example 7: Emergency lock all corporate Windows devices
 data "microsoft365_graph_beta_device_management_managed_device" "corporate_windows" {
   filter_type  = "odata"
-  odata_filter = "operatingSystem eq 'Windows' and managedDeviceOwnerType eq 'company'"
+  odata_filter = "(operatingSystem eq 'Windows') and (managedDeviceOwnerType eq 'company')"
 }
 
 action "microsoft365_graph_beta_device_management_managed_device_remote_lock" "lock_corporate_windows" {
+  config {
+    device_ids = [for device in data.microsoft365_graph_beta_device_management_managed_device.corporate_windows.items : device.id]
 
-  device_ids = [for device in data.microsoft365_graph_beta_device_management_managed_device.corporate_windows.items : device.id]
+    validate_device_exists  = true
+    ignore_partial_failures = true
 
-  timeouts = {
-    invoke = "20m"
-  }
-}
-
-# Example 7: Lock Android Enterprise devices
-data "microsoft365_graph_beta_device_management_managed_device" "android_devices" {
-  filter_type  = "odata"
-  odata_filter = "operatingSystem eq 'Android'"
-}
-
-action "microsoft365_graph_beta_device_management_managed_device_remote_lock" "lock_android" {
-
-  device_ids = [for device in data.microsoft365_graph_beta_device_management_managed_device.android_devices.items : device.id]
-
-  timeouts = {
-    invoke = "15m"
-  }
-}
-
-# Example 8: Lock devices by device name pattern (department-specific)
-data "microsoft365_graph_beta_device_management_managed_device" "department_devices" {
-  filter_type  = "device_name"
-  filter_value = "SALES-"
-}
-
-action "microsoft365_graph_beta_device_management_managed_device_remote_lock" "lock_sales_devices" {
-
-  device_ids = [for device in data.microsoft365_graph_beta_device_management_managed_device.department_devices.items : device.id]
-
-  timeouts = {
-    invoke = "10m"
+    timeouts = {
+      invoke = "20m"
+    }
   }
 }
 
 # Output examples
 output "locked_device_count" {
-  value       = length(action.lock_batch.device_ids)
+  value       = length(action.microsoft365_graph_beta_device_management_managed_device_remote_lock.lock_batch.config.device_ids)
   description = "Number of devices that received remote lock command"
 }
 
 output "emergency_locked_count" {
-  value       = length(action.lock_compromised_user.device_ids)
+  value       = length(action.microsoft365_graph_beta_device_management_managed_device_remote_lock.lock_compromised_user.config.device_ids)
   description = "Number of devices locked in emergency scenario"
 }
-
-# Important Note: 
-# - Devices lock IMMEDIATELY when they receive the command
-# - Users must enter their existing passcode to unlock
-# - For lost devices, follow up with locate/wipe if needed
-# - Document the reason for locking devices for compliance/audit purposes
 ```
 
 <!-- action schema generated by tfplugindocs -->
@@ -269,15 +262,14 @@ output "emergency_locked_count" {
 
 ### Optional
 
+- `ignore_partial_failures` (Boolean) If set to `true`, the action will succeed even if some operations fail. Failed operations will be reported as warnings instead of errors. Default: `false` (action fails if any operation fails).
 - `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))
+- `validate_device_exists` (Boolean) Whether to validate that devices exist before attempting to lock them. Disabling this can speed up planning but may result in runtime errors for non-existent devices. Default: `true`.
 
 <a id="nestedatt--timeouts"></a>
 ### Nested Schema for `timeouts`
 
 Optional:
 
-- `create` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours).
-- `delete` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours). Setting a timeout for a Delete operation is only applicable if changes are saved into state before the destroy operation occurs.
-- `read` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours). Read operations occur during any refresh or planning operation when refresh is enabled.
-- `update` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours).
+- `invoke` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours).
 

@@ -119,6 +119,18 @@ func (a *RotateLocalAdminPasswordManagedDeviceAction) Schema(ctx context.Context
 					),
 				},
 			},
+			"ignore_partial_failures": schema.BoolAttribute{
+				Optional: true,
+				MarkdownDescription: "If set to `true`, the action will succeed even if some operations fail. " +
+					"Failed operations will be reported as warnings instead of errors. " +
+					"Default: `false` (action fails if any operation fails).",
+			},
+			"validate_device_exists": schema.BoolAttribute{
+				Optional: true,
+				MarkdownDescription: "Whether to validate that devices exist and are Windows devices before attempting to rotate local admin passwords. " +
+					"Disabling this can speed up planning but may result in runtime errors for non-existent or non-Windows devices. " +
+					"Default: `true`.",
+			},
 			"timeouts": commonschema.ActionTimeouts(ctx),
 		},
 	}

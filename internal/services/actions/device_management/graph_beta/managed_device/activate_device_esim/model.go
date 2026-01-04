@@ -6,7 +6,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-type ActivateDeviceEsimManagedDeviceActionModel struct {
+// ActivateDeviceEsimManagedDeviceActionModelV2 describes the action data model.
+// Note: Attributes are at root level - Terraform Core handles the config{} wrapper in HCL
+type ActivateDeviceEsimManagedDeviceActionModelV2 struct {
 	ManagedDevices        []ManagedDeviceActivateEsim   `tfsdk:"managed_devices"`
 	ComanagedDevices      []ComanagedDeviceActivateEsim `tfsdk:"comanaged_devices"`
 	Timeouts              timeouts.Value                `tfsdk:"timeouts"`

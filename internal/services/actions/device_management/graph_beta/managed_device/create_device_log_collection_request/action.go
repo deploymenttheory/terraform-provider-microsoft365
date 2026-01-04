@@ -16,7 +16,7 @@ import (
 )
 
 const (
-	ActionName = "microsoft365_graph_beta_device_management_managed_device_create_device_log_collection_request"
+	ActionName    = "microsoft365_graph_beta_device_management_managed_device_create_device_log_collection_request"
 	InvokeTimeout = 60
 )
 
@@ -146,6 +146,18 @@ func (a *CreateDeviceLogCollectionRequestManagedDeviceAction) Schema(ctx context
 						},
 					},
 				},
+			},
+			"ignore_partial_failures": schema.BoolAttribute{
+				Optional: true,
+				MarkdownDescription: "If set to `true`, the action will succeed even if some devices fail log collection request. " +
+					"Failed devices will be reported as warnings instead of errors. " +
+					"Default: `false` (action fails if any device fails).",
+			},
+			"validate_device_exists": schema.BoolAttribute{
+				Optional: true,
+				MarkdownDescription: "Whether to validate that devices exist and are Windows devices before attempting log collection. " +
+					"Disabling this can speed up planning but may result in runtime errors for non-existent or non-Windows devices. " +
+					"Default: `true`.",
 			},
 			"timeouts": commonschema.ActionTimeouts(ctx),
 		},

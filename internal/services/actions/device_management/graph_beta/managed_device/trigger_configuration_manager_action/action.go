@@ -170,6 +170,19 @@ func (a *TriggerConfigurationManagerActionManagedDeviceAction) Schema(ctx contex
 					},
 				},
 			},
+			"ignore_partial_failures": schema.BoolAttribute{
+				Optional: true,
+				MarkdownDescription: "When set to `true`, the action will complete successfully even if some devices fail to trigger Configuration Manager actions. " +
+					"When `false` (default), the action will fail if any device action trigger fails. " +
+					"Use this flag when triggering actions on multiple devices and you want the action to succeed even if some triggers fail.",
+			},
+			"validate_device_exists": schema.BoolAttribute{
+				Optional: true,
+				MarkdownDescription: "When set to `true` (default), the action will validate that all specified devices exist " +
+					"and are Windows devices before attempting to trigger actions. " +
+					"When `false`, device validation is skipped and the action will attempt to trigger actions directly. " +
+					"Disabling validation can improve performance but may result in errors if devices don't exist or are not Windows devices.",
+			},
 			"timeouts": commonschema.ActionTimeouts(ctx),
 		},
 	}

@@ -7,7 +7,9 @@ import (
 )
 
 type GetFileVaultKeyManagedDeviceActionModel struct {
-	ManagedDeviceIDs   types.List     `tfsdk:"managed_device_ids"`
-	ComanagedDeviceIDs types.List     `tfsdk:"comanaged_device_ids"`
-	Timeouts           timeouts.Value `tfsdk:"timeouts"`
+	ManagedDeviceIDs      types.List     `tfsdk:"managed_device_ids"`
+	ComanagedDeviceIDs    types.List     `tfsdk:"comanaged_device_ids"`
+	IgnorePartialFailures types.Bool     `tfsdk:"ignore_partial_failures"`
+	ValidateDeviceExists  types.Bool     `tfsdk:"validate_device_exists"`
+	Timeouts              timeouts.Value `tfsdk:"timeouts"`
 }
