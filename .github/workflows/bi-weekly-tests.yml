@@ -326,10 +326,92 @@ jobs:
           name: datasources-${{ matrix.service }}
           fail_ci_if_error: false
 
+  # Actions Tests
+  test-actions:
+    name: '⚡ Actions: ${{ matrix.service }}'
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 120
+    env:
+      ACTIONS_STEP_DEBUG: ${{ github.event.inputs.enable_debug == 'true' && 'true' || '' }}
+      ACTIONS_RUNNER_DEBUG: ${{ github.event.inputs.enable_debug == 'true' && 'true' || '' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - service: device_management
+            runner: ubuntu-24.04-arm
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@20cf305ff2072d973412fa9b1e3a4f227bda3c76 # v2.14.0
+        with:
+          egress-policy: audit
+
+      - name: Free up Ubuntu runner disk space
+        uses: jlumbroso/free-disk-space@54081f138730dfa15788a46383842cd2f914a1be # v1.3.1
+        with:
+          tool-cache: true
+          android: true
+          dotnet: true
+          haskell: true
+          large-packages: true
+          docker-images: false
+          swap-storage: true
+
+      - name: Check Out
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+
+      - name: Set up Go
+        uses: actions/setup-go@4dc6199c7b1a012772edbd06daecab0f50c9053c # v6.1.0
+        with:
+          go-version-file: 'go.mod'
+          cache-dependency-path: 'go.sum'
+          cache: true
+
+      - name: Install dependencies
+        run: go mod download
+
+      - name: Set service credentials
+        env:
+          M365_CLIENT_ID_DEVICE_MGMT: ${{ secrets.M365_CLIENT_ID_DEVICE_MGMT }}
+          M365_CLIENT_SECRET_DEVICE_MGMT: ${{ secrets.M365_CLIENT_SECRET_DEVICE_MGMT }}
+        run: ./scripts/pipeline/map-credentials.py ${{ matrix.service }}
+
+      - name: Run actions tests
+        if: env.SKIP_TESTS != 'true'
+        env:
+          TF_ACC: 1
+          M365_TENANT_ID: ${{ secrets.M365_TENANT_ID }}
+          M365_AUTH_METHOD: client_secret
+          M365_CLOUD: public
+        run: ./scripts/pipeline/run-tests.py actions ${{ matrix.service }} coverage-actions-${{ matrix.service }}.txt test-output-actions-${{ matrix.service }}.log --max-procs 1 --test-parallel 1 --pkg-parallel 1 --skip-enumeration --no-race
+        continue-on-error: true
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        with:
+          name: test-results-actions-${{ matrix.service }}
+          path: |
+            test-failures.json
+            test-successes.json
+            test-output-actions-${{ matrix.service }}.log
+          if-no-files-found: ignore
+          retention-days: 7
+
+      - name: Upload coverage to Codecov
+        if: always()
+        uses: codecov/codecov-action@671740ac38dd9b0130fbe1cec585b89eea48d3de # v5.5.2
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./coverage-actions-${{ matrix.service }}.txt
+          flags: actions-${{ matrix.service }}
+          name: actions-${{ matrix.service }}
+          fail_ci_if_error: false
+
   # Final aggregation job
   test-summary:
     name: '📊 Test Summary'
-    needs: [test-provider-core, test-resources, test-datasources]
+    needs: [test-provider-core, test-resources, test-datasources, test-actions]
     runs-on: ubuntu-24.04-arm
     if: always()
     env:
@@ -359,6 +441,7 @@ jobs:
           echo "- **Provider Core:** ${{ needs.test-provider-core.result }}" >> summary.md
           echo "- **Resources:** ${{ needs.test-resources.result }}" >> summary.md
           echo "- **Datasources:** ${{ needs.test-datasources.result }}" >> summary.md
+          echo "- **Actions:** ${{ needs.test-actions.result }}" >> summary.md
           echo "" >> summary.md
 
           echo "### Coverage Reports" >> summary.md

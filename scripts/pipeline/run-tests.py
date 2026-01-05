@@ -9,8 +9,8 @@ Usage:
     ./run-tests.py <type> [service] [coverage-file] [test-output-file] [options]
 
 Positional Arguments:
-    type              Test type: provider-core, resources, or datasources
-    service           Service name (required for resources/datasources)
+    type              Test type: provider-core, resources, datasources, or actions
+    service           Service name (required for resources/datasources/actions)
     coverage-file     Coverage output file (default: coverage.txt)
     test-output-file  Test log output file (default: test-output.log)
 
@@ -645,10 +645,10 @@ Examples:
     )
     
     # Positional arguments
-    parser.add_argument('type', choices=['provider-core', 'resources', 'datasources'],
+    parser.add_argument('type', choices=['provider-core', 'resources', 'datasources', 'actions'],
                        help='Type of tests to run')
     parser.add_argument('service', nargs='?', default='',
-                       help='Service name (required for resources/datasources)')
+                       help='Service name (required for resources/datasources/actions)')
     parser.add_argument('coverage_file', nargs='?', default='coverage.txt',
                        help='Output file for coverage data (default: coverage.txt)')
     parser.add_argument('output_file', nargs='?', default='test-output.log',
@@ -733,7 +733,7 @@ Examples:
             args.skip_enumeration,
             args.force_gc
         )
-    elif args.type in ["resources", "datasources"]:
+    elif args.type in ["resources", "datasources", "actions"]:
         if not args.service:
             print(f"Error: service name required for {args.type} tests", 
                   file=sys.stderr)
@@ -752,7 +752,7 @@ Examples:
         )
     else:
         print(f"Error: unknown test type: {args.type}", file=sys.stderr)
-        print("Valid types: provider-core, resources, datasources", file=sys.stderr)
+        print("Valid types: provider-core, resources, datasources, actions", file=sys.stderr)
         sys.exit(1)
     
     print("Tests completed")
