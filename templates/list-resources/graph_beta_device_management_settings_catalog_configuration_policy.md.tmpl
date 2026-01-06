@@ -1,0 +1,149 @@
+---
+page_title: "microsoft365_graph_beta_device_management_settings_catalog_configuration_policy List Resource - terraform-provider-microsoft365"
+subcategory: "Device Management"
+
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Name}} ({{.Type}})
+
+{{ .Description | trimspace }}
+
+Lists Settings Catalog configuration policies from Microsoft Intune using the `/deviceManagement/configurationPolicies` endpoint. Supports filtering by name, platform, template family, assignment status, and custom OData queries.
+
+List resources allow you to query and discover existing infrastructure without managing it. This is useful for:
+- Finding policies for import into Terraform
+- Discovering policies by criteria
+- Auditing policy configuration
+- Building dynamic configurations based on existing policies
+
+## Microsoft Documentation
+
+- [List configurationPolicies](https://learn.microsoft.com/en-us/graph/api/intune-deviceconfigv2-devicemanagementconfigurationpolicy-list?view=graph-rest-beta)
+- [deviceManagementConfigurationPolicy resource type](https://learn.microsoft.com/en-us/graph/api/resources/intune-deviceconfigv2-devicemanagementconfigurationpolicy?view=graph-rest-beta)
+
+## API Permissions
+
+The following API permissions are required in order to use this list resource.
+
+### Microsoft Graph
+
+- **Application**: `DeviceManagementConfiguration.Read.All`.
+
+## Version History
+
+| Version | Status | Notes |
+|---------|--------|-------|
+| v0.40.0-alpha | Experimental | Initial release |
+
+## Example Usage
+
+### List All Policies
+
+{{ tffile "examples/list-resources/microsoft365_graph_beta_device_management_settings_catalog_configuration_policy/list_all.tfquery.hcl" }}
+
+### Filter by Name
+
+{{ tffile "examples/list-resources/microsoft365_graph_beta_device_management_settings_catalog_configuration_policy/list_by_name.tfquery.hcl" }}
+
+### Filter by Platform
+
+{{ tffile "examples/list-resources/microsoft365_graph_beta_device_management_settings_catalog_configuration_policy/list_by_platform.tfquery.hcl" }}
+
+### Filter by Template Family
+
+{{ tffile "examples/list-resources/microsoft365_graph_beta_device_management_settings_catalog_configuration_policy/list_by_template_family.tfquery.hcl" }}
+
+### Filter by Assignment Status
+
+{{ tffile "examples/list-resources/microsoft365_graph_beta_device_management_settings_catalog_configuration_policy/list_assigned_only.tfquery.hcl" }}
+
+{{ tffile "examples/list-resources/microsoft365_graph_beta_device_management_settings_catalog_configuration_policy/list_unassigned_only.tfquery.hcl" }}
+
+### Combined Filters
+
+{{ tffile "examples/list-resources/microsoft365_graph_beta_device_management_settings_catalog_configuration_policy/list_combined_filters.tfquery.hcl" }}
+
+{{ tffile "examples/list-resources/microsoft365_graph_beta_device_management_settings_catalog_configuration_policy/list_with_assignment_filter.tfquery.hcl" }}
+
+### Custom OData Filters
+
+#### Exact Match
+
+{{ tffile "examples/list-resources/microsoft365_graph_beta_device_management_settings_catalog_configuration_policy/odata_exact_match.tfquery.hcl" }}
+
+#### String Functions
+
+{{ tffile "examples/list-resources/microsoft365_graph_beta_device_management_settings_catalog_configuration_policy/odata_startswith.tfquery.hcl" }}
+
+#### Logical Operators
+
+{{ tffile "examples/list-resources/microsoft365_graph_beta_device_management_settings_catalog_configuration_policy/odata_and.tfquery.hcl" }}
+
+{{ tffile "examples/list-resources/microsoft365_graph_beta_device_management_settings_catalog_configuration_policy/odata_or.tfquery.hcl" }}
+
+#### Nested Properties
+
+{{ tffile "examples/list-resources/microsoft365_graph_beta_device_management_settings_catalog_configuration_policy/odata_nested_property.tfquery.hcl" }}
+
+#### Complex Queries
+
+{{ tffile "examples/list-resources/microsoft365_graph_beta_device_management_settings_catalog_configuration_policy/odata_complex.tfquery.hcl" }}
+
+## Filter Behavior
+
+- **API-level filters**: `name_filter`, `platform_filter`, `template_family_filter`, and `odata_filter` are applied at the Microsoft Graph API level.
+- **Local filters**: `is_assigned_filter` checks actual policy assignments via the `/assignments` endpoint because the API's `isAssigned` field is unreliable.
+- **Filter combination**: Multiple filters are combined using AND logic.
+
+## OData Query Patterns
+
+The `odata_filter` parameter supports standard OData query syntax:
+
+### String Functions
+- `contains(name, 'text')` - Partial match
+- `startsWith(name, 'prefix')` - Prefix match
+- `endsWith(name, 'suffix')` - Suffix match
+
+### Comparison Operators
+- `eq` - Equals
+- `ne` - Not equals
+- `gt` / `ge` - Greater than / Greater or equal
+- `lt` / `le` - Less than / Less or equal
+
+### Logical Operators
+- `and` - Logical AND
+- `or` - Logical OR
+- `not` - Logical NOT
+
+### Grouping
+- Use parentheses for complex expressions: `(condition1 or condition2) and condition3`
+
+### Nested Properties
+- Use slash notation: `templateReference/templateFamily eq 'baseline'`
+
+## Supported Platforms
+
+The `platform_filter` parameter accepts the following values:
+- `windows10`
+- `iOS`
+- `macOS`
+- `android`
+- `androidForWork`
+- `linux`
+- `unknownFutureValue`
+
+## Template Families
+
+Common `template_family_filter` values include:
+- `baseline` - Security baselines
+- `none` - Custom policies
+- `endpointSecurityAntivirus`
+- `endpointSecurityDiskEncryption`
+- `endpointSecurityFirewall`
+- `windowsOsRecoveryPolicies`
+- `companyPortal`
+
+{{ .SchemaMarkdown | trimspace }}
+

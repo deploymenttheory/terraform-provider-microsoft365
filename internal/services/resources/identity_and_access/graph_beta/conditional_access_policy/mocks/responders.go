@@ -137,14 +137,12 @@ func (m *ConditionalAccessPolicyMock) RegisterMocks() {
 			return httpmock.NewStringResponse(400, fmt.Sprintf(`{"error":{"code":"BadRequest","message":"Unable to determine JSON file for displayName: %s"}}`, displayName)), nil
 		}
 
-		// Load JSON response from file
 		responsesPath := filepath.Join("tests", "responses", "validate_create", jsonFileName)
 		jsonData, err := os.ReadFile(responsesPath)
 		if err != nil {
 			return httpmock.NewStringResponse(500, fmt.Sprintf(`{"error":{"code":"InternalServerError","message":"Failed to load JSON response file: %s"}}`, err.Error())), nil
 		}
 
-		// Parse the JSON response
 		var responseObj map[string]any
 		if err := json.Unmarshal(jsonData, &responseObj); err != nil {
 			return httpmock.NewStringResponse(500, fmt.Sprintf(`{"error":{"code":"InternalServerError","message":"Failed to parse JSON response: %s"}}`, err.Error())), nil
@@ -157,7 +155,6 @@ func (m *ConditionalAccessPolicyMock) RegisterMocks() {
 		// Deduplicate arrays in the response to match Terraform's Set behavior
 		deduplicateArraysInResponse(responseObj)
 
-		// Store in mock state
 		mockState.Lock()
 		mockState.policies[newId] = responseObj
 		mockState.Unlock()
