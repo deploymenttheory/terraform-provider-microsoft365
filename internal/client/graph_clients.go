@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
+	"github.com/hashicorp/terraform-plugin-framework/list"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
@@ -146,6 +147,13 @@ func SetGraphBetaClientForEphemeralResource(ctx context.Context, req ephemeral.C
 // SetGraphBetaClientForAction is a helper function to retrieve and validate the Graph Beta client for actions.
 func SetGraphBetaClientForAction(ctx context.Context, req action.ConfigureRequest, resp *action.ConfigureResponse, actionName string) *msgraphbetasdk.GraphServiceClient {
 	return getClient(ctx, req.ProviderData, resp, actionName, func(clients GraphClientInterface) *msgraphbetasdk.GraphServiceClient {
+		return clients.GetKiotaGraphBetaClient()
+	})
+}
+
+// SetGraphBetaClientForListResource is a helper function to retrieve and validate the Graph Beta client for list resources.
+func SetGraphBetaClientForListResource(ctx context.Context, req list.ConfigureRequest, resp *list.ConfigureResponse, listResourceName string) *msgraphbetasdk.GraphServiceClient {
+	return getClient(ctx, req.ProviderData, resp, listResourceName, func(clients GraphClientInterface) *msgraphbetasdk.GraphServiceClient {
 		return clients.GetKiotaGraphBetaClient()
 	})
 }

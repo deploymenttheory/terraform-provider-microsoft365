@@ -8,6 +8,7 @@ import (
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
 	customrequest "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/custom_requests"
 	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
+	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/shared_models/graph_beta"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -133,6 +134,7 @@ func (r *SettingsCatalogResource) Create(ctx context.Context, req resource.Creat
 func (r *SettingsCatalogResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var object SettingsCatalogProfileResourceModel
 	var baseResource models.DeviceManagementConfigurationPolicyable
+	var identity sharedmodels.ResourceIdentity
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting Read method for: %s", ResourceName))
 
@@ -175,7 +177,7 @@ func (r *SettingsCatalogResource) Read(ctx context.Context, req resource.ReadReq
 	// Use PageIterator from graph core as default response returns only the first 25 settings.
 	tflog.Debug(ctx, "Using Microsoft Graph SDK PageIterator for settings")
 
-	allSettings, err := r.getAllPolicySettingsWithPageIterator(ctx, object.ID.ValueString())
+	allSettings, err := r.listAllPolicySettingsWithPageIterator(ctx, object.ID.ValueString())
 	if err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, operation, r.ReadPermissions)
 		return
@@ -214,13 +216,19 @@ func (r *SettingsCatalogResource) Read(ctx context.Context, req resource.ReadReq
 		return
 	}
 
+	identity.ID = object.ID.ValueString()
+
+	resp.Diagnostics.Append(resp.Identity.Set(ctx, identity)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
 	tflog.Debug(ctx, fmt.Sprintf("Finished Read Method: %s", ResourceName))
 }
 
-func (r *SettingsCatalogResource) getAllPolicySettingsWithPageIterator(ctx context.Context, policyId string) ([]models.DeviceManagementConfigurationSettingable, error) {
+func (r *SettingsCatalogResource) listAllPolicySettingsWithPageIterator(ctx context.Context, policyId string) ([]models.DeviceManagementConfigurationSettingable, error) {
 	var allSettings []models.DeviceManagementConfigurationSettingable
 
-	// Get the first page
 	settingsResponse, err := r.client.
 		DeviceManagement().
 		ConfigurationPolicies().
@@ -232,7 +240,6 @@ func (r *SettingsCatalogResource) getAllPolicySettingsWithPageIterator(ctx conte
 		return nil, err
 	}
 
-	// Init page iterator with the first page of settings
 	pageIterator, err := graphcore.NewPageIterator[models.DeviceManagementConfigurationSettingable](
 		settingsResponse,
 		r.client.GetAdapter(),
@@ -243,7 +250,6 @@ func (r *SettingsCatalogResource) getAllPolicySettingsWithPageIterator(ctx conte
 		return nil, fmt.Errorf("failed to create page iterator: %w", err)
 	}
 
-	// Collect all items using the iterator
 	pageCount := 0
 	err = pageIterator.Iterate(ctx, func(item models.DeviceManagementConfigurationSettingable) bool {
 		if item != nil {

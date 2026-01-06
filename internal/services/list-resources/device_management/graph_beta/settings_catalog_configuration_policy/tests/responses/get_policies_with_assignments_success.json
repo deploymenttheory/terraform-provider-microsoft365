@@ -1,0 +1,154 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/configurationPolicies",
+  "value": [
+    {
+      "@odata.type": "#microsoft.graph.deviceManagementConfigurationPolicy",
+      "id": "pol-001",
+      "name": "Windows Kerberos Policy - Corporate",
+      "description": "Kerberos settings for corporate Windows devices",
+      "platforms": "windows10",
+      "technologies": "mdm",
+      "createdDateTime": "2024-01-10T10:00:00Z",
+      "lastModifiedDateTime": "2024-01-15T14:30:00Z",
+      "settingsCount": 15,
+      "isAssigned": true,
+      "roleScopeTagIds": ["0"],
+      "templateReference": {
+        "templateId": "template-001",
+        "templateFamily": "baseline",
+        "templateDisplayName": "Security Baseline Template",
+        "templateDisplayVersion": "1.0"
+      },
+      "assignments": [
+        {
+          "@odata.type": "#microsoft.graph.deviceManagementConfigurationPolicyAssignment",
+          "id": "assign-001",
+          "target": {
+            "@odata.type": "#microsoft.graph.allLicensedUsersAssignmentTarget"
+          },
+          "source": "direct"
+        }
+      ]
+    },
+    {
+      "@odata.type": "#microsoft.graph.deviceManagementConfigurationPolicy",
+      "id": "pol-002",
+      "name": "macOS Security Policy",
+      "description": "Security settings for macOS devices",
+      "platforms": "macOS",
+      "technologies": "mdm,appleRemoteManagement",
+      "createdDateTime": "2024-01-12T11:00:00Z",
+      "lastModifiedDateTime": "2024-01-16T09:15:00Z",
+      "settingsCount": 10,
+      "isAssigned": false,
+      "roleScopeTagIds": ["0"],
+      "templateReference": {
+        "templateId": "",
+        "templateFamily": "none",
+        "templateDisplayName": "",
+        "templateDisplayVersion": ""
+      },
+      "assignments": []
+    },
+    {
+      "@odata.type": "#microsoft.graph.deviceManagementConfigurationPolicy",
+      "id": "pol-003",
+      "name": "Windows Defender Policy",
+      "description": "Defender settings for Windows devices",
+      "platforms": "windows10",
+      "technologies": "mdm,intuneManagementExtension",
+      "createdDateTime": "2024-01-14T08:30:00Z",
+      "lastModifiedDateTime": "2024-01-17T16:45:00Z",
+      "settingsCount": 8,
+      "isAssigned": true,
+      "roleScopeTagIds": ["0", "1"],
+      "templateReference": {
+        "templateId": "template-002",
+        "templateFamily": "endpointSecurityAntivirus",
+        "templateDisplayName": "Windows Defender Settings",
+        "templateDisplayVersion": "2.0"
+      },
+      "assignments": [
+        {
+          "@odata.type": "#microsoft.graph.deviceManagementConfigurationPolicyAssignment",
+          "id": "assign-003",
+          "target": {
+            "@odata.type": "#microsoft.graph.groupAssignmentTarget",
+            "groupId": "group-windows-users"
+          },
+          "source": "direct"
+        }
+      ]
+    },
+    {
+      "@odata.type": "#microsoft.graph.deviceManagementConfigurationPolicy",
+      "id": "pol-004",
+      "name": "iOS Device Restrictions",
+      "description": "Restriction settings for iOS devices",
+      "platforms": "iOS",
+      "technologies": "mdm",
+      "createdDateTime": "2024-01-15T09:00:00Z",
+      "lastModifiedDateTime": "2024-01-18T10:00:00Z",
+      "settingsCount": 12,
+      "isAssigned": false,
+      "roleScopeTagIds": ["0"],
+      "templateReference": {
+        "templateId": "",
+        "templateFamily": "none",
+        "templateDisplayName": "",
+        "templateDisplayVersion": ""
+      },
+      "assignments": []
+    },
+    {
+      "@odata.type": "#microsoft.graph.deviceManagementConfigurationPolicy",
+      "id": "pol-005",
+      "name": "Windows Defender Firewall Policy",
+      "description": "Windows Defender firewall settings",
+      "platforms": "windows10",
+      "technologies": "mdm",
+      "createdDateTime": "2024-01-16T12:00:00Z",
+      "lastModifiedDateTime": "2024-01-19T15:30:00Z",
+      "settingsCount": 20,
+      "isAssigned": true,
+      "roleScopeTagIds": ["0", "2"],
+      "templateReference": {
+        "templateId": "template-003",
+        "templateFamily": "endpointSecurityFirewall",
+        "templateDisplayName": "Firewall Template",
+        "templateDisplayVersion": "1.5"
+      },
+      "assignments": [
+        {
+          "@odata.type": "#microsoft.graph.deviceManagementConfigurationPolicyAssignment",
+          "id": "assign-005",
+          "target": {
+            "@odata.type": "#microsoft.graph.groupAssignmentTarget",
+            "groupId": "group-firewall-devices"
+          },
+          "source": "direct"
+        }
+      ]
+    },
+    {
+      "@odata.type": "#microsoft.graph.deviceManagementConfigurationPolicy",
+      "id": "pol-006",
+      "name": "Windows Defender Antivirus Policy",
+      "description": "Windows Defender antivirus settings",
+      "platforms": "windows10",
+      "technologies": "mdm",
+      "createdDateTime": "2024-01-18T12:00:00Z",
+      "lastModifiedDateTime": "2024-01-20T15:30:00Z",
+      "settingsCount": 25,
+      "isAssigned": false,
+      "roleScopeTagIds": ["0"],
+      "templateReference": {
+        "templateId": "template-004",
+        "templateFamily": "endpointSecurityAntivirus",
+        "templateDisplayName": "Antivirus Template",
+        "templateDisplayVersion": "2.0"
+      },
+      "assignments": []
+    }
+  ]
+}
