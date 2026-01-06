@@ -227,7 +227,40 @@ func (r *TermsAndConditionsResource) Update(ctx context.Context, req resource.Up
 		return
 	}
 
-	// Only update assignments if they are specified
+	// Get existing assignments to delete them
+	existingAssignments, err := r.client.
+		DeviceManagement().
+		TermsAndConditions().
+		ByTermsAndConditionsId(state.ID.ValueString()).
+		Assignments().
+		Get(ctx, nil)
+
+	if err != nil {
+		errors.HandleKiotaGraphError(ctx, err, resp, "Update", r.ReadPermissions)
+		return
+	}
+
+	// Delete existing assignments
+	if existingAssignments != nil && existingAssignments.GetValue() != nil {
+		for _, assignment := range existingAssignments.GetValue() {
+			if assignment.GetId() != nil {
+				err := r.client.
+					DeviceManagement().
+					TermsAndConditions().
+					ByTermsAndConditionsId(state.ID.ValueString()).
+					Assignments().
+					ByTermsAndConditionsAssignmentId(*assignment.GetId()).
+					Delete(ctx, nil)
+
+				if err != nil {
+					errors.HandleKiotaGraphError(ctx, err, resp, "Update", r.WritePermissions)
+					return
+				}
+			}
+		}
+	}
+
+	// Create new assignments if provided
 	if !plan.Assignments.IsNull() && !plan.Assignments.IsUnknown() {
 		var terraformAssignments []sharedmodels.DeviceManagementDeviceConfigurationAssignmentWithAllLicensedUsersInclusionGroupConfigurationManagerCollectionAssignmentModel
 		diags := plan.Assignments.ElementsAs(ctx, &terraformAssignments, false)

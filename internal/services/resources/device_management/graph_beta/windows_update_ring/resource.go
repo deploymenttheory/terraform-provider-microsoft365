@@ -104,9 +104,10 @@ func (r *WindowsUpdateRingResource) Schema(ctx context.Context, req resource.Sch
 			"description": schema.StringAttribute{
 				Optional:            true,
 				Computed:            true,
-				MarkdownDescription: "Admin provided description of the Device Configuration. Inherited from deviceConfiguration.",
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
+				Default:             stringdefault.StaticString(""),
+				MarkdownDescription: "Optional description of the resource. Maximum length is 1500 characters.",
+				Validators: []validator.String{
+					stringvalidator.LengthAtMost(1500),
 				},
 			},
 			"role_scope_tag_ids": schema.SetAttribute{

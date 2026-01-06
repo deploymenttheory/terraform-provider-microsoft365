@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
@@ -97,7 +98,8 @@ func (r *WindowsQualityUpdatePolicyResource) Schema(ctx context.Context, req res
 			"description": schema.StringAttribute{
 				Optional:            true,
 				Computed:            true,
-				MarkdownDescription: "The description of the policy which is specified by the user. Max allowed length is 1500 chars.",
+				Default:             stringdefault.StaticString(""),
+				MarkdownDescription: "Optional description of the resource. Maximum length is 1500 characters.",
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(1500),
 				},

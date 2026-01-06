@@ -19,11 +19,13 @@ import (
 var mockState struct {
 	sync.Mutex
 	termsAndConditions map[string]map[string]any
+	assignments        map[string]map[string]map[string]any // termsAndConditionsId -> assignmentId -> assignment data
 }
 
 func init() {
 	// Initialize mockState
 	mockState.termsAndConditions = make(map[string]map[string]any)
+	mockState.assignments = make(map[string]map[string]map[string]any)
 
 	// Register a default 404 responder for any unmatched requests
 	httpmock.RegisterNoResponder(httpmock.NewStringResponder(404, `{"error":{"code":"ResourceNotFound","message":"Resource not found"}}`))
@@ -64,6 +66,10 @@ func (m *TermsAndConditionsMock) RegisterMocks() {
 	// POST /deviceManagement/termsAndConditions/{id}/assignments - Create assignment
 	httpmock.RegisterResponder("POST", `=~^https://graph\.microsoft\.com/beta/deviceManagement/termsAndConditions/([^/]+)/assignments$`,
 		m.createTermsAndConditionsAssignmentResponder())
+
+	// DELETE /deviceManagement/termsAndConditions/{id}/assignments/{assignmentId} - Delete assignment
+	httpmock.RegisterResponder("DELETE", `=~^https://graph\.microsoft\.com/beta/deviceManagement/termsAndConditions/([^/]+)/assignments/([^/]+)$`,
+		m.deleteTermsAndConditionsAssignmentResponder())
 }
 
 // createTermsAndConditionsResponder handles POST requests to create terms and conditions
@@ -346,9 +352,23 @@ func (m *TermsAndConditionsMock) GetMockTermsAndConditionsData() map[string]any 
 // getTermsAndConditionsAssignmentsResponder handles GET requests to retrieve assignments
 func (m *TermsAndConditionsMock) getTermsAndConditionsAssignmentsResponder() httpmock.Responder {
 	return func(req *http.Request) (*http.Response, error) {
-		// For unit tests, return empty assignments collection
+		// Extract terms and conditions ID from URL
+		termsAndConditionsID := factories.ExtractIDFromURL(req.URL.Path, "/deviceManagement/termsAndConditions/")
+
+		mockState.Lock()
+		assignments := mockState.assignments[termsAndConditionsID]
+		mockState.Unlock()
+
+		// Convert assignments map to array
+		assignmentArray := []any{}
+		if assignments != nil {
+			for _, assignment := range assignments {
+				assignmentArray = append(assignmentArray, assignment)
+			}
+		}
+
 		response := map[string]any{
-			"value": []any{},
+			"value": assignmentArray,
 		}
 		return factories.SuccessResponse(200, response)(req)
 	}
@@ -357,16 +377,28 @@ func (m *TermsAndConditionsMock) getTermsAndConditionsAssignmentsResponder() htt
 // createTermsAndConditionsAssignmentResponder handles POST requests to create assignments
 func (m *TermsAndConditionsMock) createTermsAndConditionsAssignmentResponder() httpmock.Responder {
 	return func(req *http.Request) (*http.Response, error) {
+		// Extract terms and conditions ID from URL
+		termsAndConditionsID := factories.ExtractIDFromURL(req.URL.Path, "/deviceManagement/termsAndConditions/")
+
 		var requestBody map[string]any
 		if err := json.NewDecoder(req.Body).Decode(&requestBody); err != nil {
 			return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"Invalid JSON"}}`), nil
 		}
 
 		// Create a mock assignment response
+		assignmentID := uuid.New().String()
 		response := map[string]any{
-			"id":     uuid.New().String(),
+			"id":     assignmentID,
 			"target": requestBody["target"],
 		}
+
+		// Store in mock state
+		mockState.Lock()
+		if mockState.assignments[termsAndConditionsID] == nil {
+			mockState.assignments[termsAndConditionsID] = make(map[string]map[string]any)
+		}
+		mockState.assignments[termsAndConditionsID][assignmentID] = response
+		mockState.Unlock()
 
 		return factories.SuccessResponse(201, response)(req)
 	}
@@ -406,4 +438,32 @@ func (m *TermsAndConditionsMock) GetMockTermsAndConditionsMinimalData() map[stri
 		}
 	}
 	return response
+}
+
+// deleteTermsAndConditionsAssignmentResponder handles DELETE requests to remove individual assignments
+func (m *TermsAndConditionsMock) deleteTermsAndConditionsAssignmentResponder() httpmock.Responder {
+	return func(req *http.Request) (*http.Response, error) {
+		// Extract IDs from URL
+		// URL format: /deviceManagement/termsAndConditions/{id}/assignments/{assignmentId}
+		parts := strings.Split(strings.TrimPrefix(req.URL.Path, "/"), "/")
+		if len(parts) < 5 {
+			return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"Invalid URL format"}}`), nil
+		}
+
+		termsAndConditionsID := parts[2] // deviceManagement/termsAndConditions/{id}/assignments/{assignmentId}
+		assignmentID := parts[4]
+
+		mockState.Lock()
+		defer mockState.Unlock()
+
+		if mockState.assignments[termsAndConditionsID] != nil {
+			if _, exists := mockState.assignments[termsAndConditionsID][assignmentID]; exists {
+				delete(mockState.assignments[termsAndConditionsID], assignmentID)
+				return httpmock.NewStringResponse(204, ""), nil
+			}
+		}
+
+		// Assignment not found
+		return httpmock.NewStringResponse(404, `{"error":{"code":"ResourceNotFound","message":"Assignment not found"}}`), nil
+	}
 }
