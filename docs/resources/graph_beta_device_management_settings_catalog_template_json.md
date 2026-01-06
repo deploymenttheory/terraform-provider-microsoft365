@@ -410,7 +410,7 @@ This value will automatically set the correct `platform` , `templateID` , `creat
 ### Optional
 
 - `assignments` (Attributes Set) Assignments for the device configuration. Each assignment specifies the target group and schedule for script execution. Supports group filters. (see [below for nested schema](#nestedatt--assignments))
-- `description` (String) Settings Catalog Policy template description
+- `description` (String) Optional description of the resource. Maximum length is 1500 characters.
 - `role_scope_tag_ids` (Set of String) Set of scope tag IDs for this Entity instance.
 - `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))
 

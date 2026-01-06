@@ -391,7 +391,7 @@ resource "microsoft365_graph_beta_device_management_windows_device_compliance_po
 
 - `assignments` (Attributes Set) Assignments for the compliance policy. Each assignment specifies the target group and schedule for script execution. (see [below for nested schema](#nestedatt--assignments))
 - `custom_compliance_required` (Boolean) Indicates whether custom compliance is required
-- `description` (String) Admin provided description of the Device Configuration
+- `description` (String) Optional description of the resource. Maximum length is 1500 characters.
 - `device_compliance_policy_script` (Attributes) Device compliance policy script for custom compliance. When wsl block is set, this block is computed and should not be set. (see [below for nested schema](#nestedatt--device_compliance_policy_script))
 - `device_health` (Attributes) Microsoft Attestation Service evaluation settings. Use these settings to confirm that a device has protective measures enabled at boot time.Learn more here 'https://learn.microsoft.com/en-us/intune/intune-service/protect/compliance-policy-create-windows?WT.mc_id=Portal-Microsoft_Intune_DeviceSettings#device-health' (see [below for nested schema](#nestedatt--device_health))
 - `device_properties` (Attributes) Device operating system version requirements and build ranges for compliance evaluation (see [below for nested schema](#nestedatt--device_properties))

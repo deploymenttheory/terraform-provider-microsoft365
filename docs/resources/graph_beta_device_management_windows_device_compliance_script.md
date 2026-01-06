@@ -85,7 +85,7 @@ resource "microsoft365_graph_beta_device_management_windows_device_compliance_sc
 
 ### Optional
 
-- `description` (String) Description of the device compliance script.
+- `description` (String) Optional description of the resource. Maximum length is 1500 characters.
 - `enforce_signature_check` (Boolean) Indicate whether the script signature needs be checked. Default is false, which does not check the script signature.
 - `role_scope_tag_ids` (Set of String) Set of scope tag IDs for this device compliance script.
 - `run_as_32_bit` (Boolean) Indicate whether PowerShell script should run as 32-bit. Default is false, which runs script in 64-bit PowerShell.

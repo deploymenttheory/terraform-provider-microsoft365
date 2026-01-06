@@ -92,7 +92,7 @@ resource "microsoft365_graph_beta_device_management_apple_configurator_enrollmen
 
 ### Optional
 
-- `description` (String) Description of the apple business manager enrollment profile.
+- `description` (String) Optional description of the resource. Maximum length is 1500 characters.
 - `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))
 
 ### Read-Only

@@ -182,7 +182,7 @@ resource "microsoft365_graph_beta_device_management_ios_device_compliance_policy
 
 - `advanced_threat_protection_required_security_level` (String) Require Microsoft Defender for Endpoint minimum risk level to report noncompliance. Possible values are: unavailable, secured, low, medium, high, notSet
 - `assignments` (Attributes Set) Assignments for the compliance policy. Each assignment specifies the target group and schedule for script execution. (see [below for nested schema](#nestedatt--assignments))
-- `description` (String) Admin provided description of the Device Configuration
+- `description` (String) Optional description of the resource. Maximum length is 1500 characters.
 - `device_threat_protection_enabled` (Boolean) Require that devices have enabled device threat protection
 - `device_threat_protection_required_security_level` (String) Require Device Threat Protection minimum risk level to report noncompliance. Possible values are: unavailable, secured, low, medium, high, notSet
 - `managed_email_profile_required` (Boolean) Indicates whether or not to require a managed email profile

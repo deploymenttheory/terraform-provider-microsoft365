@@ -83,7 +83,7 @@ resource "microsoft365_graph_beta_windows_365_cloud_pc_alert_rule" "example" {
 ### Optional
 
 - `conditions` (Attributes List) The conditions that determine when to send alerts. (see [below for nested schema](#nestedatt--conditions))
-- `description` (String) The rule description.
+- `description` (String) Optional description of the resource. Maximum length is 1500 characters.
 - `enabled` (Boolean) Whether the rule is enabled.
 - `notification_channels` (Attributes List) The notification channels of the rule. (see [below for nested schema](#nestedatt--notification_channels))
 - `threshold` (Attributes) The conditions that determine when to send alerts. Deprecated. Use conditions instead. (see [below for nested schema](#nestedatt--threshold))

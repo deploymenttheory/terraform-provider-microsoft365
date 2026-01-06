@@ -129,7 +129,7 @@ resource "microsoft365_graph_beta_device_management_windows_quality_update_exped
 ### Optional
 
 - `assignments` (Attributes Set) Assignments for the Windows Software Update Policies. Each assignment specifies the target group and schedule for script execution. (see [below for nested schema](#nestedatt--assignments))
-- `description` (String) The description of the profile which is specified by the user. Max allowed length is 1500 chars.
+- `description` (String) Optional description of the resource. Maximum length is 1500 characters.
 - `role_scope_tag_ids` (Set of String) Set of scope tag IDs for this Settings Catalog template profile.
 - `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))
 

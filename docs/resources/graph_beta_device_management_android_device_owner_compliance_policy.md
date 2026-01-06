@@ -212,7 +212,7 @@ resource "microsoft365_graph_beta_device_management_android_device_owner_complia
 
 - `advanced_threat_protection_required_security_level` (String) Indicates the Microsoft Defender for Endpoint (also referred to Microsoft Defender Advanced Threat Protection (MDATP)) minimum risk level to report noncompliance. Possible values are: unavailable, secured, low, medium, high, notSet.
 - `assignments` (Attributes Set) Assignments for the compliance policy. Each assignment specifies the target group and schedule for script execution. (see [below for nested schema](#nestedatt--assignments))
-- `description` (String) Admin provided description of the Device Configuration. Inherited from deviceCompliancePolicy
+- `description` (String) Optional description of the resource. Maximum length is 1500 characters.
 - `device_threat_protection_enabled` (Boolean) Indicates whether the policy requires devices have device threat protection enabled. When TRUE, threat protection is enabled. When FALSE, threat protection is not enabled. Default is FALSE.
 - `device_threat_protection_required_security_level` (String) Indicates the minimum mobile threat protection risk level to that results in Intune reporting device noncompliance. Possible values are: unavailable, secured, low, medium, high, notSet.
 - `min_android_security_patch_level` (String) Indicates the minimum Android security patch level required to mark the device as compliant. Must be a valid date format (YYYY-MM-DD). Example: 2026-10-01, 2026-10-31 etc.

@@ -93,7 +93,7 @@ resource "microsoft365_graph_beta_device_management_linux_device_compliance_scri
 
 ### Optional
 
-- `description` (String) Description of the Linux device compliance script.
+- `description` (String) Optional description of the resource. Maximum length is 1500 characters.
 - `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))
 
 ### Read-Only

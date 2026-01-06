@@ -111,7 +111,7 @@ settings = jsonencode({
 
 ### Optional
 
-- `description` (String) Reuseable Settings Policy description
+- `description` (String) Optional description of the resource. Maximum length is 1500 characters.
 - `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))
 
 ### Read-Only

@@ -88,7 +88,7 @@ resource "microsoft365_graph_beta_device_management_macos_custom_attribute_scrip
 ### Optional
 
 - `assignments` (Attributes Set) Assignments for the Windows remediation script. Each assignment specifies the target group and schedule for script execution. (see [below for nested schema](#nestedatt--assignments))
-- `description` (String) Optional description for the device management script.
+- `description` (String) Optional description of the resource. Maximum length is 1500 characters.
 - `role_scope_tag_ids` (Set of String) Set of scope tag IDs for this Settings Catalog template profile.
 - `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))
 

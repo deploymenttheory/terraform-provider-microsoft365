@@ -88,7 +88,7 @@ resource "microsoft365_graph_beta_device_management_group_policy_uploaded_defini
 
 ### Optional
 
-- `description` (String) The description of the group policy uploaded definition file.
+- `description` (String) Optional description of the resource. Maximum length is 1500 characters.
 - `display_name` (String) The display name of the group policy uploaded definition file.
 - `group_policy_uploaded_language_files` (Attributes Set) The language files associated with the group policy uploaded definition file. (see [below for nested schema](#nestedatt--group_policy_uploaded_language_files))
 - `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))

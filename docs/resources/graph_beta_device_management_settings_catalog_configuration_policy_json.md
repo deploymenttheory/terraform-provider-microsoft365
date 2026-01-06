@@ -490,7 +490,7 @@ settings = jsonencode({
 ### Optional
 
 - `assignments` (Attributes Set) Assignments for the device configuration. Each assignment specifies the target group and schedule for script execution. Supports group filters. (see [below for nested schema](#nestedatt--assignments))
-- `description` (String) Optional description for the settings catalog policy.
+- `description` (String) Optional description of the resource. Maximum length is 1500 characters.
 - `platforms` (String) Platform type for this settings catalog policy.Can be one of: `none`, `android`, `iOS`, `macOS`, `windows10X`, `windows10`, `linux`,`unknownFutureValue`, `androidEnterprise`, or `aosp`. Defaults to `none`.
 - `role_scope_tag_ids` (Set of String) Set of scope tag IDs for this Entity instance.
 - `technologies` (List of String) Describes a list of technologies this settings catalog setting can be deployed with. Valid values are: `none`, `mdm`, `windows10XManagement`, `configManager`, `intuneManagementExtension`, `thirdParty`, `documentGateway`, `appleRemoteManagement`, `microsoftSense`, `exchangeOnline`, `mobileApplicationManagement`, `linuxMdm`, `enrollment`, `endpointPrivilegeManagement`, `unknownFutureValue`, `windowsOsRecovery`, and `android`. Defaults to `mdm`.

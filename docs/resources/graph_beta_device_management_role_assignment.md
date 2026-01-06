@@ -148,7 +148,7 @@ resource "microsoft365_graph_beta_device_management_role_assignment" "help_desk_
 
 ### Optional
 
-- `description` (String) Description of the Role Assignment.
+- `description` (String) Optional description of the resource. Maximum length is 1500 characters.
 - `scope_configuration` (Block List) Defines the scope configuration for the role assignment. Exactly one scope configuration block is required. (see [below for nested schema](#nestedblock--scope_configuration))
 - `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))
 

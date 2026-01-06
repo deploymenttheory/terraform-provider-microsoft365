@@ -89,14 +89,14 @@ resource "microsoft365_graph_beta_device_management_terms_and_conditions" "terms
 ### Optional
 
 - `assignments` (Attributes Set) Assignments for the device configuration. Each assignment specifies the target group and schedule for script execution. (see [below for nested schema](#nestedatt--assignments))
-- `description` (String) Administrator-supplied description of the terms and conditions policy. Maximum length is 1500 characters.
+- `description` (String) Optional description of the resource. Maximum length is 1500 characters.
 - `role_scope_tag_ids` (Set of String) Set of scope tag IDs for this Entity instance.
 - `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))
-- `version` (Number) Integer indicating the current version of the terms. Incremented when an administrator makes a change to the terms and wishes to require users to re-accept the modified terms and conditions policy.
 
 ### Read-Only
 
 - `id` (String) The unique identifier of the terms and conditions policy.
+- `version` (Number) Integer indicating the current version of the terms. Incremented when an administrator makes a change to the terms and wishes to require users to re-accept the modified terms and conditions policy.
 
 <a id="nestedatt--assignments"></a>
 ### Nested Schema for `assignments`

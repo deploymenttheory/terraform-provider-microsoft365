@@ -193,7 +193,7 @@ resource "microsoft365_graph_beta_device_management_app_control_for_business_pol
 ### Optional
 
 - `assignments` (Attributes Set) Assignments for the device configuration. Each assignment specifies the target group and schedule for script execution. Supports group filters. (see [below for nested schema](#nestedatt--assignments))
-- `description` (String) Optional description for the App Control for Business policy.
+- `description` (String) Optional description of the resource. Maximum length is 1500 characters.
 - `role_scope_tag_ids` (Set of String) Set of scope tag IDs for this App Control for Business policy.
 - `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))
 

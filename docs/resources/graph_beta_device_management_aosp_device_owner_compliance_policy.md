@@ -134,7 +134,7 @@ resource "microsoft365_graph_beta_device_management_aosp_device_owner_compliance
 ### Optional
 
 - `assignments` (Attributes Set) Assignments for the compliance policy. Each assignment specifies the target group and schedule for script execution. (see [below for nested schema](#nestedatt--assignments))
-- `description` (String) Admin provided description of the Device Configuration. Inherited from deviceCompliancePolicy
+- `description` (String) Optional description of the resource. Maximum length is 1500 characters.
 - `min_android_security_patch_level` (String) Minimum Android security patch level.
 - `os_maximum_version` (String) Maximum Android version.
 - `os_minimum_version` (String) Minimum Android version.

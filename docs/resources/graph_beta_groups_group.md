@@ -156,7 +156,7 @@ resource "microsoft365_graph_beta_groups_group" "m365_role_assignable" {
 
 ### Optional
 
-- `description` (String) An optional description for the group. May be auto-populated by the API for certain group types.
+- `description` (String) Optional description of the resource. Maximum length is 1500 characters.
 - `group_members` (Set of String) The members of the group at creation time. A maximum of 20 relationships, such as owners and members, can be added as part of group creation. Specify the user IDs (GUIDs) of the users who should be members of the group. Additional members can be added after creation using the `/groups/{id}/members/$ref` endpoint or JSON batching.
 - `group_owners` (Set of String) The owners of the group at creation time. A maximum of 20 relationships, such as owners and members, can be added as part of group creation. Specify the user IDs (GUIDs) of the users who should be owners of the group. Note: A non-admin user cannot add themselves to the group owners collection. Owners can be added after creation using the `/groups/{id}/owners/$ref` endpoint.
 - `group_types` (Set of String) Specifies the group type and its membership. If the collection contains 'Unified', the group is a Microsoft 365 group; otherwise, it's either a security group or a distribution group. If the collection includes 'DynamicMembership', the group has dynamic membership; otherwise, membership is static.
