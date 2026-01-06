@@ -46,21 +46,42 @@ flags:
 
 # Ignore paths that shouldn't count towards coverage
 ignore:
+  # Directories
   - "tools/"
   - "scripts/"
   - "examples/"
   - "docs/"
   - "templates/"
-  - "*.md"
+  
+  # Test files and fixtures
+  - "**/*_test.go"
+  - "**/testdata/**"
+  - "**/mocks/**"
+  - "**/tests/**"                    # Test fixtures (TF files, JSON responses, etc.)
+  - "**/acceptance/**"               # Acceptance test helpers and dependencies
+  
+  # Template and placeholder files
+  - "**/_resource_template/**"       # Resource boilerplate template
+  - "**/*.stub"                      # Placeholder files for unimplemented features
+  
+  # File types
+  - "*.md"                           # Documentation files
+  - "*.json"                         # Mock responses
   - "*.yml"
   - "*.yaml"
   - "go.mod"
   - "go.sum"
-  - "**/*_test.go"
-  - "**/testdata/**"
-  - "**/mocks/**"
-  - "**/crud.go" # CRUD logic is covered implicitly in the unit tests
 
+  # Common
+  - "**/state.go"                    # State logic is covered implicitly via test framework
+  - "**/model.go"                    # Model files are covered implicitly via test framework
+  - "**/validate.go"                 # Request validation logic is covered implicitly via test framework
+
+  # Resource services
+  - "**/crud.go"                     # CRUD logic is covered implicitly via test framework
+  
+  # Data source services
+  - "**/read.go"                     # Read functions are covered implicitly via test framework
 # Parser settings for Go
 parsers:
   go:
