@@ -210,7 +210,7 @@ resource "microsoft365_powershell_microsoft_teams_teams_meeting_policy" "example
 - `content_sharing_in_external_meetings` (String) Content sharing in external meetings.
 - `copilot` (String) Copilot setting.
 - `copy_restriction` (Boolean) Copy restriction setting.
-- `description` (String) Description of the Teams Meeting Policy.
+- `description` (String) Optional description of the resource. Maximum length is 1500 characters.
 - `designated_presenter_role_mode` (String) Designated presenter role mode.
 - `detect_sensitive_content_during_screen_sharing` (Boolean) Detect sensitive content during screen sharing.
 - `enroll_user_override` (String) Enroll user override setting.

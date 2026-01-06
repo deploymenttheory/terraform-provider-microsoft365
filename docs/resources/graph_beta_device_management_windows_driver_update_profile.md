@@ -120,7 +120,7 @@ resource "microsoft365_graph_beta_device_management_windows_driver_update_profil
 
 - `assignments` (Attributes Set) Assignments for the Windows Software Update Policies. Each assignment specifies the target group and schedule for script execution. (see [below for nested schema](#nestedatt--assignments))
 - `deployment_deferral_in_days` (Number) Deployment deferral settings in days, only applicable when ApprovalType is set to automatic approval.
-- `description` (String) The description of the profile which is specified by the user.
+- `description` (String) Optional description of the resource. Maximum length is 1500 characters.
 - `role_scope_tag_ids` (Set of String) Set of scope tag IDs for this Settings Catalog template profile.
 - `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))
 

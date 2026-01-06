@@ -97,7 +97,7 @@ func (r *TermsAndConditionsResource) Schema(ctx context.Context, req resource.Sc
 				Optional:            true,
 				Computed:            true,
 				Default:             stringdefault.StaticString(""),
-				MarkdownDescription: "Administrator-supplied description of the terms and conditions policy. Maximum length is 1500 characters.",
+				MarkdownDescription: "Optional description of the resource. Maximum length is 1500 characters.",
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(1500),
 				},
@@ -121,7 +121,6 @@ func (r *TermsAndConditionsResource) Schema(ctx context.Context, req resource.Sc
 				},
 			},
 			"version": schema.Int32Attribute{
-				Optional:            true,
 				Computed:            true,
 				Default:             int32default.StaticInt32(1),
 				MarkdownDescription: "Integer indicating the current version of the terms. Incremented when an administrator makes a change to the terms and wishes to require users to re-accept the modified terms and conditions policy.",

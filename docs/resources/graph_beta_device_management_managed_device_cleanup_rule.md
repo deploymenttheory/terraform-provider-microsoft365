@@ -106,7 +106,7 @@ resource "microsoft365_graph_beta_device_management_managed_device_cleanup_rule"
 
 ### Optional
 
-- `description` (String) The description for the device cleanup rule.
+- `description` (String) Optional description of the resource. Maximum length is 1500 characters.
 - `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))
 
 ### Read-Only

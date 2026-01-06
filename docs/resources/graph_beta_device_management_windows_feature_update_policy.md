@@ -179,7 +179,7 @@ resource "microsoft365_graph_beta_device_management_windows_feature_update_polic
 ### Optional
 
 - `assignments` (Attributes Set) Assignments for the Windows Software Update Policies. Each assignment specifies the target group and schedule for script execution. (see [below for nested schema](#nestedatt--assignments))
-- `description` (String) The description of the profile which is specified by the user.
+- `description` (String) Optional description of the resource. Maximum length is 1500 characters.
 - `install_feature_updates_optional` (Boolean) If true, the Windows 11 update will become available to users as an optional update. If false, the Windows 11 update will become available to users as a required update
 - `install_latest_windows10_on_windows11_ineligible_device` (Boolean) Specifies whether Windows 10 devices that are not eligible for Windows 11 are offered the latest Windows 10 feature updates. Changes to this field require the resource to be replaced.
 - `role_scope_tag_ids` (Set of String) Set of scope tag IDs for this Settings Catalog template profile.

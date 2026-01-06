@@ -144,7 +144,7 @@ resource "microsoft365_graph_beta_device_management_linux_device_compliance_poli
 - `custom_compliance_discovery_script` (String) Reference ID to the custom compliance discovery script for Linux devices.
 - `custom_compliance_required` (Boolean) Indicates whether custom compliance rules are required for Linux devices.
 - `custom_compliance_rules` (String) Base64-encoded JSON string containing custom compliance rules for Linux devices.
-- `description` (String) Description of the Linux device compliance policy.
+- `description` (String) Optional description of the resource. Maximum length is 1500 characters.
 - `device_encryption_required` (Boolean) Indicates whether device encryption is required for Linux devices to be considered compliant.
 - `distribution_allowed_distros` (Attributes List) List of allowed Linux distributions with version constraints. (see [below for nested schema](#nestedatt--distribution_allowed_distros))
 - `password_policy_minimum_digits` (Number) Minimum number of digit characters required in the Linux device password.

@@ -100,7 +100,12 @@ func (r *WindowsDeviceCompliancePolicyResource) Schema(ctx context.Context, req 
 			},
 			"description": schema.StringAttribute{
 				Optional:            true,
-				MarkdownDescription: "Admin provided description of the Device Configuration",
+				Computed:            true,
+				Default:             stringdefault.StaticString(""),
+				MarkdownDescription: "Optional description of the resource. Maximum length is 1500 characters.",
+				Validators: []validator.String{
+					stringvalidator.LengthAtMost(1500),
+				},
 			},
 			"role_scope_tag_ids": schema.SetAttribute{
 				ElementType:         types.StringType,

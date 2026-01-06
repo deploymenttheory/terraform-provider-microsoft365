@@ -102,8 +102,11 @@ func (r *WindowsAutopilotDevicePreparationPolicyResource) Schema(ctx context.Con
 			"description": schema.StringAttribute{
 				Optional:            true,
 				Computed:            true,
-				PlanModifiers:       []planmodifier.String{stringplanmodifier.UseStateForUnknown()},
-				MarkdownDescription: "Optional description for the Windows Autopilot Device Preparation policy.",
+				Default:             stringdefault.StaticString(""),
+				MarkdownDescription: "Optional description of the resource. Maximum length is 1500 characters.",
+				Validators: []validator.String{
+					stringvalidator.LengthAtMost(1500),
+				},
 			},
 			"role_scope_tag_ids": schema.SetAttribute{
 				ElementType:         types.StringType,

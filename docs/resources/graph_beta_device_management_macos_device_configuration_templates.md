@@ -409,7 +409,7 @@ resource "microsoft365_graph_beta_device_management_macos_device_configuration_t
 
 - `assignments` (Attributes Set) Assignments for the device configuration. Each assignment specifies the target group and schedule for script execution. Supports group filters. (see [below for nested schema](#nestedatt--assignments))
 - `custom_configuration` (Attributes) The custom configuration template allows IT admins to assign settings that aren't built into Intune yet. For macOS devices, you can import a .mobileconfig file that you created using Profile Manager or a different tool. (see [below for nested schema](#nestedatt--custom_configuration))
-- `description` (String) The description for the macOS configuration template.
+- `description` (String) Optional description of the resource. Maximum length is 1500 characters.
 - `pkcs_certificate` (Attributes) PKCS certificate profile configuration for macOS devices. (see [below for nested schema](#nestedatt--pkcs_certificate))
 - `preference_file` (Attributes) Configure a preference file that uses the standard property list (.plist) format to define preferences for apps and the device. (see [below for nested schema](#nestedatt--preference_file))
 - `role_scope_tag_ids` (Set of String) Set of scope tag IDs for this Settings Catalog template profile.

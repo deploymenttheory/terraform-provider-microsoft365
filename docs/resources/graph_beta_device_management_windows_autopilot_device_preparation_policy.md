@@ -105,7 +105,7 @@ resource "microsoft365_graph_beta_device_management_windows_autopilot_device_pre
 - `allowed_apps` (Attributes List) List of applications that are allowed to be installed during the Windows Autopilot Device Preparation process. Maximum of 10 items. (see [below for nested schema](#nestedatt--allowed_apps))
 - `allowed_scripts` (List of String) List of script IDs that are allowed to be executed during the Windows Autopilot Device Preparation process. Maximum of 10 items.
 - `assignments` (Attributes) The assignment configuration for this Windows Autopilot Device Preparation policy (see [below for nested schema](#nestedatt--assignments))
-- `description` (String) Optional description for the Windows Autopilot Device Preparation policy.
+- `description` (String) Optional description of the resource. Maximum length is 1500 characters.
 - `role_scope_tag_ids` (Set of String) Set of scope tag IDs for this Entity instance.
 - `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))
 

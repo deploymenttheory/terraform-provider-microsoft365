@@ -387,7 +387,7 @@ EOT
 - `app_installer` (Attributes) Metadata related to the win32 lob app installer file, such as size and checksums. This is automatically computed during app creation and updates. (see [below for nested schema](#nestedatt--app_installer))
 - `categories` (Set of String) Set of category names to associate with this application. You can use either thebpredefined Intune category names like 'Business', 'Productivity', etc., or provide specific category UUIDs. Predefined values include: 'Other apps', 'Books & Reference', 'Data management', 'Productivity', 'Business', 'Development & Design', 'Photos & Media', 'Collaboration & Social', 'Computer management'.
 - `content_version` (Attributes List) The committed content version of the app, including its files. Only the currently committed version is shown. (see [below for nested schema](#nestedatt--content_version))
-- `description` (String) The description of the app.
+- `description` (String) Optional description of the resource. Maximum length is 1500 characters.
 - `detection_rules` (Attributes List) The detection rules to detect Win32 Line of Business (LoB) app. (see [below for nested schema](#nestedatt--detection_rules))
 - `developer` (String) The developer of the app.
 - `display_version` (String) The version displayed in the UX for this app.

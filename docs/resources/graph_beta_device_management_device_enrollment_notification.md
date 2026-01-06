@@ -212,7 +212,7 @@ resource "microsoft365_graph_beta_device_management_device_enrollment_notificati
 
 - `assignments` (Attributes Set) Assignments for the compliance policy. Each assignment specifies the target group and schedule for script execution. (see [below for nested schema](#nestedatt--assignments))
 - `default_locale` (String) The default locale for the notification configuration (e.g., 'en-US').
-- `description` (String) The description for the device enrollment notification configuration.
+- `description` (String) Optional description of the resource. Maximum length is 1500 characters.
 - `notification_templates` (Set of String) The notification template types for this configuration. Can be 'email', 'push', or both. Defaults to ['email', 'push'].
 - `role_scope_tag_ids` (Set of String) Set of scope tag IDs for this Android Enterprise Notification configuration.
 - `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))

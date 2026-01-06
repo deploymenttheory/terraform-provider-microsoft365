@@ -149,7 +149,7 @@ resource "microsoft365_graph_beta_device_management_autopatch_groups" "auto_patc
 ### Optional
 
 - `deployment_groups` (Attributes List) The deployment groups (rings) within this Autopatch group (see [below for nested schema](#nestedatt--deployment_groups))
-- `description` (String) The description of the Autopatch group
+- `description` (String) Optional description of the resource. Maximum length is 1500 characters.
 - `enable_driver_update` (Boolean) Whether driver updates are enabled
 - `enabled_content_types` (Number) Enabled content types bitmask
 - `global_user_managed_aad_groups` (Attributes Set) Global user-managed Azure AD groups (see [below for nested schema](#nestedatt--global_user_managed_aad_groups))

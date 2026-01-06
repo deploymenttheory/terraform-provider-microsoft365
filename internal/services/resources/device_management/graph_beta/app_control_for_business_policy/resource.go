@@ -7,11 +7,14 @@ import (
 	planmodifiers "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/plan_modifiers"
 	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/schema"
 	commonschemagraphbeta "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/schema/graph_beta/device_management"
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
 )
@@ -91,8 +94,11 @@ func (r *AppControlForBusinessPolicyResource) Schema(ctx context.Context, req re
 			"description": schema.StringAttribute{
 				Optional:            true,
 				Computed:            true,
-				PlanModifiers:       []planmodifier.String{planmodifiers.DefaultValueString("")},
-				MarkdownDescription: "Optional description for the App Control for Business policy.",
+				Default:             stringdefault.StaticString(""),
+				MarkdownDescription: "Optional description of the resource. Maximum length is 1500 characters.",
+				Validators: []validator.String{
+					stringvalidator.LengthAtMost(1500),
+				},
 			},
 			"policy_xml": schema.StringAttribute{
 				Required: true,

@@ -111,7 +111,12 @@ func (r *DeviceEnrollmentNotificationResource) Schema(ctx context.Context, _ res
 			},
 			"description": schema.StringAttribute{
 				Optional:            true,
-				MarkdownDescription: "The description for the device enrollment notification configuration.",
+				Computed:            true,
+				Default:             stringdefault.StaticString(""),
+				MarkdownDescription: "Optional description of the resource. Maximum length is 1500 characters.",
+				Validators: []validator.String{
+					stringvalidator.LengthAtMost(1500),
+				},
 			},
 			"platform_type": schema.StringAttribute{
 				Required:            true,

@@ -5,6 +5,7 @@ resource "microsoft365_graph_beta_groups_group" "acc_test_group_1" {
   mail_enabled     = false
   security_enabled = true
   visibility       = "Private"
+  hard_delete      = true
 
   timeouts = {
     create = "60s"
@@ -21,6 +22,7 @@ resource "microsoft365_graph_beta_groups_group" "acc_test_group_2" {
   mail_enabled     = false
   security_enabled = true
   visibility       = "Private"
+  hard_delete      = true
 
   timeouts = {
     create = "60s"
@@ -36,7 +38,6 @@ resource "microsoft365_graph_beta_device_management_terms_and_conditions" "test"
   title                = "Complete Company Terms and Conditions"
   body_text            = "These are the comprehensive terms and conditions that all users must read and accept before accessing company resources."
   acceptance_statement = "I have read and agree to abide by all terms and conditions outlined above"
-  version              = 2
   role_scope_tag_ids   = ["0", "1"]
 
   assignments = [

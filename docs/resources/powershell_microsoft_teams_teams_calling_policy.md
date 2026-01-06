@@ -92,7 +92,7 @@ resource "microsoft365_powershell_microsoft_teams_teams_calling_policy" "example
 - `call_recording_expiration_days` (Number) Call recording expiration days.
 - `calling_spend_user_limit` (Number) Calling spend user limit.
 - `copilot` (String) Copilot setting.
-- `description` (String) Description of the policy.
+- `description` (String) Optional description of the resource. Maximum length is 1500 characters.
 - `enable_spend_limits` (Boolean) Enable spend limits.
 - `enable_web_pstn_media_bypass` (Boolean) Enable web PSTN media bypass.
 - `inbound_federated_call_routing_treatment` (String) Inbound federated call routing treatment.
