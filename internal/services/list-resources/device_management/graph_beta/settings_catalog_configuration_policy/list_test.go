@@ -6,7 +6,7 @@ import (
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
-	listMocks "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/lists/device_management/graph_beta/settings_catalog_configuration_policy/mocks"
+	listMocks "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/list-resources/device_management/graph_beta/settings_catalog_configuration_policy/mocks"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/querycheck"
 	"github.com/hashicorp/terraform-plugin-testing/tfversion"
