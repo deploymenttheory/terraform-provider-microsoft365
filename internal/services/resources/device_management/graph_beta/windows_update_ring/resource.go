@@ -306,7 +306,8 @@ func (r *WindowsUpdateRingResource) Schema(ctx context.Context, req resource.Sch
 				},
 				Attributes: map[string]schema.Attribute{
 					"deadline_for_feature_updates_in_days": schema.Int32Attribute{
-						Required:            true,
+						Optional:            true,
+						Computed:            true,
 						MarkdownDescription: "Number of days before feature updates are installed automatically with valid range from 0 to 30 days. Returned by default. Query parameters are not supported.",
 						Validators: []validator.Int32{
 							int32validator.Between(0, 30),
@@ -320,7 +321,8 @@ func (r *WindowsUpdateRingResource) Schema(ctx context.Context, req resource.Sch
 						},
 					},
 					"deadline_grace_period_in_days": schema.Int32Attribute{
-						Required:            true,
+						Optional:            true,
+						Computed:            true,
 						MarkdownDescription: "Number of days after deadline until restarts occur automatically with valid range from 0 to 7 days. Returned by default. Query parameters are not supported.",
 						Validators: []validator.Int32{
 							int32validator.Between(0, 7),
