@@ -92,9 +92,12 @@ func (r *WindowsPlatformScriptResource) Schema(ctx context.Context, req resource
 				Required:            true,
 			},
 			"description": schema.StringAttribute{
-				MarkdownDescription: "Optional description for the windows platform script.",
 				Optional:            true,
 				Computed:            true,
+				MarkdownDescription: "Optional description of the resource. Maximum length is 1500 characters.",
+				Validators: []validator.String{
+					stringvalidator.LengthAtMost(1500),
+				},
 			},
 			"script_content": schema.StringAttribute{
 				MarkdownDescription: "The script content.",

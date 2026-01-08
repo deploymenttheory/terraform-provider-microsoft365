@@ -198,7 +198,7 @@ resource "microsoft365_graph_beta_identity_and_access_custom_security_attribute_
 
 ### Optional
 
-- `description` (String) Description of the custom security attribute. Can be up to 128 characters long and include Unicode characters. Can be changed later.
+- `description` (String) Optional description of the resource. Maximum length is 1500 characters.
 - `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))
 
 ### Read-Only

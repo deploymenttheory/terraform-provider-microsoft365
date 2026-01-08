@@ -132,8 +132,12 @@ func (r *IOSStoreAppResource) Schema(ctx context.Context, req resource.SchemaReq
 				MarkdownDescription: "The admin provided or imported title of the app.",
 			},
 			"description": schema.StringAttribute{
-				Required:            true,
-				MarkdownDescription: "The description of the app.",
+				Required: true,
+				MarkdownDescription: "A detailed description of the WinGet/ Microsoft Store for Business app." +
+					"This field is automatically populated based on the package identifier when `automatically_generate_metadata` is set to true.",
+				Validators: []validator.String{
+					stringvalidator.LengthAtMost(10000),
+				},
 			},
 			"publisher": schema.StringAttribute{
 				Required:            true,

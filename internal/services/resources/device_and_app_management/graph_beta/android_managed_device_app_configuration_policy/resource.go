@@ -101,6 +101,7 @@ func (r *AndroidManagedDeviceAppConfigurationPolicyResource) Schema(ctx context.
 			},
 			"description": schema.StringAttribute{
 				Optional:    true,
+				Computed:    true,
 				Description: "The optional description of the Android mobile app configuration",
 			},
 			"targeted_mobile_apps": schema.SetAttribute{

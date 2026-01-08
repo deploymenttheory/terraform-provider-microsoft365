@@ -102,7 +102,7 @@ resource "microsoft365_graph_beta_device_management_assignment_filter" "acc_test
 ### Optional
 
 - `assignment_filter_management_type` (String) Indicates filter is applied to either 'devices' or 'apps' management type. Possible values are: devices, apps, unknownFutureValue. Default filter will be applied to 'devices'.
-- `description` (String) The optional description of the assignment filter.
+- `description` (String) Optional description of the resource. Maximum length is 1500 characters.
 - `role_scope_tags` (Set of String) Set of scope tag IDs for this Settings Catalog template profile.
 - `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))
 

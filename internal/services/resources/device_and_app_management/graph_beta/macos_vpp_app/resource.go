@@ -133,7 +133,10 @@ func (r *MacOSVppAppResource) Schema(ctx context.Context, req resource.SchemaReq
 			},
 			"description": schema.StringAttribute{
 				Required:            true,
-				MarkdownDescription: "The description of the app.",
+				MarkdownDescription: "Required. The description of the resource. Maximum length is 1500 characters.",
+				Validators: []validator.String{
+					stringvalidator.LengthAtMost(10000),
+				},
 			},
 			"publisher": schema.StringAttribute{
 				Required:            true,

@@ -156,7 +156,7 @@ resource "microsoft365_graph_beta_device_management_policy_set" "example" {
 ### Optional
 
 - `assignments` (Attributes Set) Assignments for the compliance policy. Each assignment specifies the target group and schedule for script execution. (see [below for nested schema](#nestedatt--assignments))
-- `description` (String) The optional description of the policy set
+- `description` (String) Optional description of the resource. Maximum length is 1500 characters.
 - `items` (Attributes Set) Set of policy set items ('apps', 'app configuration policies', 'app protection policies', 'device configuration profiles', 'device management configuration policies', 'device compliance policies', 'windows autopilot deployment profiles') included in this policy set. (see [below for nested schema](#nestedatt--items))
 - `role_scope_tag_ids` (Set of String) Set of scope tag IDs for this policy set.
 - `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))

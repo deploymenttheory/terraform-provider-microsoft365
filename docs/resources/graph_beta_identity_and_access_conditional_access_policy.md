@@ -2923,7 +2923,7 @@ Required:
 Optional:
 
 - `allowed_combinations` (Set of String) The allowed authentication method combinations that satisfy the authentication strength policy.
-- `description` (String) Description of the authentication strength policy.
+- `description` (String) Optional description of the resource. Maximum length is 1500 characters.
 - `display_name` (String) Display name of the authentication strength policy.
 - `policy_type` (String) Type of the policy. Possible values are: builtIn, custom.
 - `requirements_satisfied` (String) Requirements satisfied by the policy.

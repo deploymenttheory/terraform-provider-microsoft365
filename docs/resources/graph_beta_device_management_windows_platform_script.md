@@ -89,7 +89,7 @@ resource "microsoft365_graph_beta_device_management_windows_platform_script" "ex
 ### Optional
 
 - `assignments` (Attributes Set) Assignments for the Windows remediation script. Each assignment specifies the target group and schedule for script execution. (see [below for nested schema](#nestedatt--assignments))
-- `description` (String) Optional description for the windows platform script.
+- `description` (String) Optional description of the resource. Maximum length is 1500 characters.
 - `enforce_signature_check` (Boolean) Indicate whether the script signature needs be checked.
 - `role_scope_tag_ids` (Set of String) Set of scope tag IDs for this Settings Catalog template profile.
 - `run_as_32_bit` (Boolean) A value indicating whether the PowerShell script should run as 32-bit.

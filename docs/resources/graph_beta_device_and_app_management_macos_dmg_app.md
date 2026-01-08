@@ -138,7 +138,7 @@ resource "microsoft365_graph_beta_device_and_app_management_macos_dmg_app" "jamf
 
 ### Required
 
-- `description` (String) A detailed description of the Intune macOS DMG application.
+- `description` (String) A detailed description of the WinGet/ Microsoft Store for Business app.This field is automatically populated based on the package identifier when `automatically_generate_metadata` is set to true.
 - `display_name` (String) The title of the Intune macOS DMG application.
 - `publisher` (String) The publisher of the Intune macOS DMG application.
 

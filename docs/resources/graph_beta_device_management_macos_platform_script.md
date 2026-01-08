@@ -101,7 +101,7 @@ resource "microsoft365_graph_beta_device_management_macos_platform_script" "exam
 
 - `assignments` (Attributes Set) Assignments for the Windows remediation script. Each assignment specifies the target group and schedule for script execution. (see [below for nested schema](#nestedatt--assignments))
 - `block_execution_notifications` (Boolean) Does not notify the user a script is being executed.
-- `description` (String) Optional description for the macOS Platform Script.
+- `description` (String) Optional description of the resource. Maximum length is 1500 characters.
 - `execution_frequency` (String) The interval for script to run in ISO 8601 duration format (e.g., PT1H for 1 hour, P1D for 1 day). If not defined the script will run once.
 - `retry_count` (Number) Number of times for the script to be retried if it fails.
 - `role_scope_tag_ids` (Set of String) Set of scope tag IDs for this Settings Catalog template profile.

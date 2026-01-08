@@ -100,8 +100,12 @@ func (r *IOSManagedDeviceAppConfigurationPolicyResource) Schema(ctx context.Cont
 				Description: "The display name of the iOS mobile app configuration",
 			},
 			"description": schema.StringAttribute{
-				Optional:    true,
-				Description: "The optional description of the iOS mobile app configuration",
+				Optional:            true,
+				Computed:            true,
+				MarkdownDescription: "Optional description of the resource. Maximum length is 1500 characters.",
+				Validators: []validator.String{
+					stringvalidator.LengthAtMost(1500),
+				},
 			},
 			"targeted_mobile_apps": schema.SetAttribute{
 				ElementType:         types.StringType,

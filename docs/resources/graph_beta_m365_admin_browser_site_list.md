@@ -53,7 +53,7 @@ resource "microsoft365_graph_beta_device_and_app_management_browser_site_list" "
 
 ### Optional
 
-- `description` (String) The description of the site list.
+- `description` (String) Optional description of the resource. Maximum length is 1500 characters.
 - `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))
 
 ### Read-Only

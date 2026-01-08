@@ -90,8 +90,12 @@ func (r *RoleDefinitionResource) Schema(ctx context.Context, req resource.Schema
 				Optional:            true,
 			},
 			"description": schema.StringAttribute{
-				MarkdownDescription: "Description of the Role definition.",
 				Optional:            true,
+				Computed:            true,
+				MarkdownDescription: "Optional description of the resource. Maximum length is 1500 characters.",
+				Validators: []validator.String{
+					stringvalidator.LengthAtMost(1500),
+				},
 			},
 			"is_built_in": schema.BoolAttribute{
 				MarkdownDescription: "Type of Role. Set to True if it is built-in, or set to False if it is a custom role definition.",

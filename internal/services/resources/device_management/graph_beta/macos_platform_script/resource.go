@@ -94,8 +94,12 @@ func (r *MacOSPlatformScriptResource) Schema(ctx context.Context, req resource.S
 				Required:            true,
 			},
 			"description": schema.StringAttribute{
-				MarkdownDescription: "Optional description for the macOS Platform Script.",
 				Optional:            true,
+				Computed:            true,
+				MarkdownDescription: "Optional description of the resource. Maximum length is 1500 characters.",
+				Validators: []validator.String{
+					stringvalidator.LengthAtMost(1500),
+				},
 			},
 			"script_content": schema.StringAttribute{
 				MarkdownDescription: "The script content.",

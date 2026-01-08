@@ -130,6 +130,7 @@ resource "microsoft365_graph_beta_device_and_app_management_win_get_app" "firefo
 ### Required
 
 - `automatically_generate_metadata` (Boolean) When set to `true`, the provider will automatically fetch metadata from the Microsoft Store for Business using the package identifier. This will populate the `display_name`, `description`, `publisher`, and 'icon' fields.
+- `description` (String) A detailed description of the WinGet/ Microsoft Store for Business app.This field is automatically populated based on the package identifier when `automatically_generate_metadata` is set to true.
 - `install_experience` (Attributes) The install experience settings associated with this application.the value is idempotent and any changes to this field will trigger a recreation of the application. (see [below for nested schema](#nestedatt--install_experience))
 - `package_identifier` (String) The **unique package identifier** for the WinGet/Microsoft Store app from the storefront.
 
@@ -144,7 +145,6 @@ attempting to modify this value will result in a failed request.
 ### Optional
 
 - `categories` (Set of String) Set of category names to associate with this application. You can use either thebpredefined Intune category names like 'Business', 'Productivity', etc., or provide specific category UUIDs. Predefined values include: 'Other apps', 'Books & Reference', 'Data management', 'Productivity', 'Business', 'Development & Design', 'Photos & Media', 'Collaboration & Social', 'Computer management'.
-- `description` (String) A detailed description of the WinGet/ Microsoft Store for Business app.This field is automatically populated based on the package identifier when `automatically_generate_metadata` is set to true.
 - `developer` (String) The developer of the app.
 - `display_name` (String) The title of the WinGet app imported from the Microsoft Store for Business.This field value must match the expected title of the app in the Microsoft Store for Business associated with the `package_identifier`.This field is automatically populated based on the package identifier when `automatically_generate_metadata` is set to true.
 - `information_url` (String) The more information Url.

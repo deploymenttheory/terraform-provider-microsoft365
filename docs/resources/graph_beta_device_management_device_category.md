@@ -50,7 +50,7 @@ resource "microsoft365_graph_beta_device_management_device_category" "example" {
 
 ### Optional
 
-- `description` (String) The optional description of the Intune device category
+- `description` (String) Optional description of the resource. Maximum length is 1500 characters.
 - `role_scope_tag_ids` (Set of String) Set of scope tag IDs for this Settings Catalog template profile.
 - `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))
 

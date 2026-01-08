@@ -56,7 +56,7 @@ resource "microsoft365_graph_beta_identity_and_access_network_filtering_policy" 
 
 ### Optional
 
-- `description` (String) The description of the filtering policy.
+- `description` (String) Optional description of the resource. Maximum length is 1500 characters.
 - `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))
 
 ### Read-Only

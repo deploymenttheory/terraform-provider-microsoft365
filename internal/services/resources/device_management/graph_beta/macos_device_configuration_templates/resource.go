@@ -103,7 +103,6 @@ func (r *MacosDeviceConfigurationTemplatesResource) Schema(ctx context.Context, 
 			"description": schema.StringAttribute{
 				Optional:            true,
 				Computed:            true,
-				Default:             stringdefault.StaticString(""),
 				MarkdownDescription: "Optional description of the resource. Maximum length is 1500 characters.",
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(1500),

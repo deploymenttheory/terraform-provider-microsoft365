@@ -95,8 +95,12 @@ func (r *AuthenticationContextResource) Schema(ctx context.Context, req resource
 				Required:            true,
 			},
 			"description": schema.StringAttribute{
-				MarkdownDescription: "A short explanation of the policies that are enforced by authenticationContextClassReference. This value should be used to provide secondary text to describe the authentication context class reference when building user-facing admin experiences. For example, a selection UX.",
 				Optional:            true,
+				Computed:            true,
+				MarkdownDescription: "Optional description of the resource. Maximum length is 1500 characters.",
+				Validators: []validator.String{
+					stringvalidator.LengthAtMost(1500),
+				},
 			},
 			"is_available": schema.BoolAttribute{
 				MarkdownDescription: "Indicates whether the authentication context class reference is available for use by apps. The default value is `false`. When `isAvailable` is set to `false`, the authentication context class reference is not shown in the authentication context UX elements and may not be used by applications.",

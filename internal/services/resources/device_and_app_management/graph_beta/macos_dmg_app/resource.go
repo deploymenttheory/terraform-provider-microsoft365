@@ -134,8 +134,12 @@ func (r *MacOSDmgAppResource) Schema(ctx context.Context, req resource.SchemaReq
 				MarkdownDescription: "The title of the Intune macOS DMG application.",
 			},
 			"description": schema.StringAttribute{
-				Required:            true,
-				MarkdownDescription: "A detailed description of the Intune macOS DMG application.",
+				Required: true,
+				MarkdownDescription: "A detailed description of the WinGet/ Microsoft Store for Business app." +
+					"This field is automatically populated based on the package identifier when `automatically_generate_metadata` is set to true.",
+				Validators: []validator.String{
+					stringvalidator.LengthAtMost(10000),
+				},
 			},
 			"publisher": schema.StringAttribute{
 				Required:            true,

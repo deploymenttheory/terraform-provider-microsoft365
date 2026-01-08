@@ -95,7 +95,7 @@ resource "microsoft365_graph_beta_identity_and_access_authentication_strength_po
 ### Optional
 
 - `combination_configurations` (Attributes List) Configuration settings that may be required by certain authentication methods. For example, configuring which FID02 security keys or which X.509 certificate issuers are allowed. (see [below for nested schema](#nestedatt--combination_configurations))
-- `description` (String) The description of the authentication strength policy. Maximum length is 100 characters.
+- `description` (String) Optional description of the resource. Maximum length is 1500 characters.
 - `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))
 
 ### Read-Only

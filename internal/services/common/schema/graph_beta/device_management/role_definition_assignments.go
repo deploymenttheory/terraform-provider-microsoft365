@@ -33,6 +33,7 @@ func RoleAssignmentsSchema() schema.SetNestedAttribute {
 				"description": schema.StringAttribute{
 					MarkdownDescription: "Description of the Role Assignment.",
 					Optional:            true,
+					Computed:            true,
 				},
 				"admin_group_users_group_ids": schema.SetAttribute{
 					MarkdownDescription: "Group ids that are assigned as members of this role scope.",

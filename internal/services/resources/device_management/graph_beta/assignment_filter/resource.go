@@ -96,8 +96,12 @@ func (r *AssignmentFilterResource) Schema(ctx context.Context, req resource.Sche
 				Description: "The display name of the assignment filter.",
 			},
 			"description": schema.StringAttribute{
-				Optional:    true,
-				Description: "The optional description of the assignment filter.",
+				Optional:            true,
+				Computed:            true,
+				MarkdownDescription: "Optional description of the resource. Maximum length is 1500 characters.",
+				Validators: []validator.String{
+					stringvalidator.LengthAtMost(1500),
+				},
 			},
 			"platform": schema.StringAttribute{
 				Required: true,

@@ -95,8 +95,9 @@ func (r *AuthenticationStrengthPolicyResource) Schema(ctx context.Context, req r
 				},
 			},
 			"description": schema.StringAttribute{
-				MarkdownDescription: "The description of the authentication strength policy. Maximum length is 100 characters.",
 				Optional:            true,
+				Computed:            true,
+				MarkdownDescription: "Optional description of the resource. Maximum length is 1500 characters.",
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(100),
 				},

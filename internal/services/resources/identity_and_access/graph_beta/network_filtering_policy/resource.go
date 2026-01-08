@@ -86,8 +86,12 @@ func (r *NetworkFilteringPolicyResource) Schema(ctx context.Context, req resourc
 				Required:            true,
 			},
 			"description": schema.StringAttribute{
-				MarkdownDescription: "The description of the filtering policy.",
 				Optional:            true,
+				Computed:            true,
+				MarkdownDescription: "Optional description of the resource. Maximum length is 1500 characters.",
+				Validators: []validator.String{
+					stringvalidator.LengthAtMost(1500),
+				},
 			},
 			"action": schema.StringAttribute{
 				MarkdownDescription: "The action to take when the policy is triggered. Possible values are: `block`, `allow`. Note: This is typically set during creation but can also be updated.",

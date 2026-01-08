@@ -81,7 +81,7 @@ resource "microsoft365_graph_beta_device_and_app_management_ios_ipados_web_clip"
 ### Required
 
 - `app_url` (String) Indicates iOS/iPadOS web clip app URL. Example: 'https://www.contoso.com'
-- `description` (String) The description of the app.
+- `description` (String) A detailed description of the WinGet/ Microsoft Store for Business app.This field is automatically populated based on the package identifier when `automatically_generate_metadata` is set to true.
 - `display_name` (String) The admin provided or imported title of the app.
 - `publisher` (String) The publisher of the app.
 

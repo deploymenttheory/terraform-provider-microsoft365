@@ -87,7 +87,7 @@ resource "microsoft365_graph_beta_device_management_macos_software_update_config
 
 - `assignments` (Attributes Set) Assignments for the device configuration. Each assignment specifies the target group and schedule for script execution. (see [below for nested schema](#nestedatt--assignments))
 - `custom_update_time_windows` (Attributes List) Custom time windows when updates will be allowed or blocked. Maximum 20 elements. See [customUpdateTimeWindow](https://learn.microsoft.com/en-us/graph/api/resources/intune-deviceconfig-customupdatetimewindow?view=graph-rest-beta). (see [below for nested schema](#nestedatt--custom_update_time_windows))
-- `description` (String) Admin provided description of the device configuration.
+- `description` (String) Optional description of the resource. Maximum length is 1500 characters.
 - `max_user_deferrals_count` (Number) The maximum number of times the system allows the user to postpone an update before it's installed. Supported values: 0 - 365.
 - `priority` (String) The scheduling priority for downloading and preparing the requested update. Possible values: `low`, `high`, `unknownFutureValue`. See [macOSPriority](https://learn.microsoft.com/en-us/graph/api/resources/intune-deviceconfig-macospriority?view=graph-rest-beta).
 - `role_scope_tag_ids` (Set of String) List of Scope Tags for this Entity instance.

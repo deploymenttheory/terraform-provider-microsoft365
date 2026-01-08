@@ -928,9 +928,12 @@ func (r *ConditionalAccessPolicyResource) Schema(ctx context.Context, req resour
 								Computed:            true,
 							},
 							"description": schema.StringAttribute{
-								MarkdownDescription: "Description of the authentication strength policy.",
 								Optional:            true,
 								Computed:            true,
+								MarkdownDescription: "Optional description of the resource. Maximum length is 1500 characters.",
+								Validators: []validator.String{
+									stringvalidator.LengthAtMost(1500),
+								},
 							},
 							"policy_type": schema.StringAttribute{
 								MarkdownDescription: "Type of the policy. Possible values are: builtIn, custom.",
