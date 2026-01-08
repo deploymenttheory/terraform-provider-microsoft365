@@ -134,6 +134,7 @@ func (r *MacOSPlatformScriptResource) Schema(ctx context.Context, req resource.S
 			},
 			"execution_frequency": schema.StringAttribute{
 				Optional:            true,
+				Computed:            true,
 				MarkdownDescription: "The interval for script to run in ISO 8601 duration format (e.g., PT1H for 1 hour, P1D for 1 day). If not defined the script will run once.",
 				Validators: []validator.String{
 					stringvalidator.RegexMatches(
