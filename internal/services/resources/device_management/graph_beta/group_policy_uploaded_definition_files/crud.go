@@ -173,10 +173,21 @@ func (r *GroupPolicyUploadedDefinitionFileResource) Update(ctx context.Context, 
 		DeviceManagement().
 		GroupPolicyUploadedDefinitionFiles().
 		ByGroupPolicyUploadedDefinitionFileId(state.ID.ValueString()).
-		Delete(ctx, nil)
+		Remove().
+		Post(ctx, nil)
 
 	if err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, "Update - Delete", r.WritePermissions)
+		return
+	}
+
+	// Wait for removal to complete by polling until the resource returns 404
+	err = r.checkADMXRemovalStatus(ctx, state.ID.ValueString())
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error waiting for ADMX removal to complete during update",
+			fmt.Sprintf("Could not verify ADMX removal completion: %s", err.Error()),
+		)
 		return
 	}
 
@@ -195,7 +206,7 @@ func (r *GroupPolicyUploadedDefinitionFileResource) Update(ctx context.Context, 
 		Post(ctx, requestBody, nil)
 
 	if err != nil {
-		errors.HandleKiotaGraphError(ctx, err, resp, "Update - Create", r.WritePermissions)
+		errors.HandleKiotaGraphError(ctx, err, resp, "Update", r.WritePermissions)
 		return
 	}
 
@@ -222,6 +233,12 @@ func (r *GroupPolicyUploadedDefinitionFileResource) Update(ctx context.Context, 
 			"ADMX upload failed",
 			errorMessage,
 		)
+		return
+	}
+
+	// Update state with the new plan (which has the new ID) before reading
+	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+	if resp.Diagnostics.HasError() {
 		return
 	}
 
@@ -261,7 +278,6 @@ func (r *GroupPolicyUploadedDefinitionFileResource) Delete(ctx context.Context, 
 	}
 	defer cancel()
 
-	// For group policy uploaded definition files, we need to call the remove endpoint
 	err := r.client.
 		DeviceManagement().
 		GroupPolicyUploadedDefinitionFiles().
@@ -271,6 +287,15 @@ func (r *GroupPolicyUploadedDefinitionFileResource) Delete(ctx context.Context, 
 
 	if err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, "Delete", r.WritePermissions)
+		return
+	}
+
+	err = r.checkADMXRemovalStatus(ctx, object.ID.ValueString())
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error waiting for ADMX removal to complete",
+			fmt.Sprintf("Could not verify ADMX removal completion: %s", err.Error()),
+		)
 		return
 	}
 
@@ -303,10 +328,10 @@ func (r *GroupPolicyUploadedDefinitionFileResource) Delete(ctx context.Context, 
 //   - string: Detailed error message if the upload failed, empty string otherwise
 //   - error: Any error that occurred during the status check process itself
 func (r *GroupPolicyUploadedDefinitionFileResource) checkADMXUploadStatus(ctx context.Context, id string) (string, string, error) {
-	maxRetries := 30
+	maxRetries := 60
 	retryInterval := 5 * time.Second
 
-	for i := 0; i < maxRetries; i++ {
+	for i := range maxRetries {
 
 		respResource, err := r.client.
 			DeviceManagement().
@@ -327,7 +352,6 @@ func (r *GroupPolicyUploadedDefinitionFileResource) checkADMXUploadStatus(ctx co
 
 			statusDetails := ""
 			if operations := respResource.GetGroupPolicyOperations(); len(operations) > 0 {
-				// Look for the most recent upload operation
 				for _, op := range operations {
 					if op.GetOperationType() != nil && op.GetOperationType().String() == "upload" {
 						if op.GetStatusDetails() != nil {
@@ -340,10 +364,8 @@ func (r *GroupPolicyUploadedDefinitionFileResource) checkADMXUploadStatus(ctx co
 
 			switch statusStr {
 			case "available":
-				// Upload successful
 				return statusStr, statusDetails, nil
 			case "uploadFailed":
-				// Upload failed - delete the resource
 				tflog.Debug(ctx, fmt.Sprintf("ADMX upload failed with details: %s", statusDetails))
 
 				deleteErr := r.client.
@@ -364,7 +386,6 @@ func (r *GroupPolicyUploadedDefinitionFileResource) checkADMXUploadStatus(ctx co
 				time.Sleep(retryInterval)
 				continue
 			default:
-				// Unknown status
 				return statusStr, statusDetails, fmt.Errorf("unknown ADMX upload status: %s", statusStr)
 			}
 		}
@@ -373,4 +394,83 @@ func (r *GroupPolicyUploadedDefinitionFileResource) checkADMXUploadStatus(ctx co
 	}
 
 	return "", "", fmt.Errorf("timed out waiting for ADMX upload to complete after %d attempts", maxRetries)
+}
+
+// checkADMXRemovalStatus polls and monitors the deletion of an ADMX file until it is fully removed.
+//
+// This function handles the asynchronous nature of ADMX file deletion in Intune, which can take time to process.
+// It periodically checks the status of the removal operation and waits for the resource to be completely deleted.
+//
+// The removal process has the following states:
+// 1. "removalInProgress" - Deletion is in progress, function will continue polling
+// 2. 404 Not Found - Resource has been completely deleted (success condition)
+//
+// The function also examines the groupPolicyOperations collection to get detailed information
+// about the removal operation status, which can help diagnose any issues during deletion.
+//
+// Parameters:
+//   - ctx: The context for controlling cancellation and timeout
+//   - id: The ID of the group policy uploaded definition file to monitor
+//
+// Returns:
+//   - error: Any error that occurred during the removal monitoring process, or nil if successful
+func (r *GroupPolicyUploadedDefinitionFileResource) checkADMXRemovalStatus(ctx context.Context, id string) error {
+	maxRetries := 60
+	retryInterval := 5 * time.Second
+
+	for i := range maxRetries {
+
+		respResource, err := r.client.
+			DeviceManagement().
+			GroupPolicyUploadedDefinitionFiles().
+			ByGroupPolicyUploadedDefinitionFileId(id).
+			Get(ctx, &devicemanagement.GroupPolicyUploadedDefinitionFilesGroupPolicyUploadedDefinitionFileItemRequestBuilderGetRequestConfiguration{
+				QueryParameters: &devicemanagement.GroupPolicyUploadedDefinitionFilesGroupPolicyUploadedDefinitionFileItemRequestBuilderGetQueryParameters{
+					Expand: []string{"groupPolicyOperations"},
+				},
+			})
+
+		if err != nil {
+			errorInfo := errors.GraphError(ctx, err)
+			if errorInfo.StatusCode == 404 {
+				tflog.Debug(ctx, "ADMX removal completed - resource no longer exists (404)")
+				return nil
+			}
+			return fmt.Errorf("failed to check removal status: %v", err)
+		}
+
+		if status := respResource.GetStatus(); status != nil {
+			statusStr := status.String()
+
+			if operations := respResource.GetGroupPolicyOperations(); len(operations) > 0 {
+				for _, op := range operations {
+					if op.GetOperationType() != nil && op.GetOperationType().String() == "remove" {
+						opStatus := "unknown"
+						if op.GetOperationStatus() != nil {
+							opStatus = op.GetOperationStatus().String()
+						}
+						tflog.Debug(ctx, fmt.Sprintf("Remove operation status: %s", opStatus))
+					}
+				}
+			}
+
+			switch statusStr {
+			case "removalInProgress":
+				tflog.Debug(ctx, fmt.Sprintf("ADMX removal in progress (attempt %d/%d), waiting %v before checking again",
+					i+1, maxRetries, retryInterval))
+				time.Sleep(retryInterval)
+				continue
+			case "removalFailed":
+				return fmt.Errorf("ADMX removal failed")
+			default:
+				tflog.Warn(ctx, fmt.Sprintf("Unexpected status during removal: %s", statusStr))
+				time.Sleep(retryInterval)
+				continue
+			}
+		}
+
+		time.Sleep(retryInterval)
+	}
+
+	return fmt.Errorf("timed out waiting for ADMX removal to complete after %d attempts", maxRetries)
 }
