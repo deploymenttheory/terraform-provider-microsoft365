@@ -9,7 +9,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	abstractions "github.com/microsoft/kiota-abstractions-go"
-	s "github.com/microsoft/kiota-abstractions-go/serialization"
 )
 
 // GetRequestConfig contains the configuration for a custom GET request
@@ -34,41 +33,6 @@ type ODataResponse struct {
 	Value []json.RawMessage `json:"value"`
 	//  NextLink is the URL for the next page of results used by pagination
 	NextLink string `json:"@odata.nextLink,omitempty"`
-}
-
-func GetRequest(
-	ctx context.Context,
-	adapter abstractions.RequestAdapter,
-	config GetRequestConfig,
-	factory s.ParsableFactory,
-	errorMappings abstractions.ErrorMappings,
-) (s.Parsable, error) {
-	requestInfo := abstractions.NewRequestInformation()
-	requestInfo.Method = abstractions.GET
-	requestInfo.UrlTemplate = "{+baseurl}/" + config.Endpoint
-	if config.GetResourceID() != "" {
-		requestInfo.UrlTemplate += "/" + config.GetResourceID()
-	}
-	if config.GetEndpointSuffix() != "" {
-		requestInfo.UrlTemplate += "/" + config.GetEndpointSuffix()
-	}
-
-	requestInfo.PathParameters = map[string]string{
-		"baseurl": fmt.Sprintf("https://graph.microsoft.com/%s", config.APIVersion),
-	}
-
-	if config.QueryParameters != nil {
-		for key, value := range config.QueryParameters {
-			requestInfo.QueryParameters[key] = value
-		}
-	}
-
-	result, err := adapter.Send(ctx, requestInfo, factory, errorMappings)
-	if err != nil {
-		return nil, err
-	}
-
-	return result, nil
 }
 
 // GetRequestByResourceId performs a custom GET request using the Microsoft Graph SDK when the operation
