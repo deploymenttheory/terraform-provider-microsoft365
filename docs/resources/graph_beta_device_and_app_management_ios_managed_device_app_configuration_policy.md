@@ -147,7 +147,7 @@ data "microsoft365_graph_beta_device_and_app_management_mobile_app" "company_por
 
 ### Optional
 
-- `description` (String) The optional description of the iOS mobile app configuration
+- `description` (String) Optional description of the resource. Maximum length is 1500 characters.
 - `encoded_setting_xml` (String, Sensitive) MDM app configuration in Base64 encoded format. **Note:** This field is mutually exclusive with `settings` - only one can be specified.
 - `role_scope_tag_ids` (Set of String) Set of scope tag IDs for this iOS mobile app configuration.
 - `settings` (Attributes Set) Configuration setting items for the iOS mobile app. **Note:** This field is mutually exclusive with `encoded_setting_xml` - only one can be specified. (see [below for nested schema](#nestedatt--settings))

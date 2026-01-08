@@ -83,8 +83,12 @@ func (r *PolicySetResource) Schema(ctx context.Context, req resource.SchemaReque
 				Description: "The display name of the policy set",
 			},
 			"description": schema.StringAttribute{
-				Optional:    true,
-				Description: "The optional description of the policy set",
+				Optional:            true,
+				Computed:            true,
+				MarkdownDescription: "Optional description of the resource. Maximum length is 1500 characters.",
+				Validators: []validator.String{
+					stringvalidator.LengthAtMost(1500),
+				},
 			},
 			"status": schema.StringAttribute{
 				Computed:            true,

@@ -103,8 +103,9 @@ func (r *WindowsEnrollmentStatusPageResource) Schema(ctx context.Context, req re
 				},
 			},
 			"description": schema.StringAttribute{
-				MarkdownDescription: "The description of the enrollment status page configuration.",
 				Optional:            true,
+				Computed:            true,
+				MarkdownDescription: "Optional description of the resource. Maximum length is 1500 characters.",
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(1000),
 				},

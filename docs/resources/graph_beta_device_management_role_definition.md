@@ -294,7 +294,7 @@ resource "microsoft365_graph_beta_device_management_role_definition" "example" {
 
 ### Optional
 
-- `description` (String) Description of the Role definition.
+- `description` (String) Optional description of the resource. Maximum length is 1500 characters.
 - `display_name` (String) Display Name of the Role definition.
 - `role_permissions` (Attributes List) List of Role Permissions this role is allowed to perform. Not used for in-built Intune role definitions. (see [below for nested schema](#nestedatt--role_permissions))
 - `role_scope_tag_ids` (Set of String) Set of scope tag IDs for this Settings Catalog template profile.

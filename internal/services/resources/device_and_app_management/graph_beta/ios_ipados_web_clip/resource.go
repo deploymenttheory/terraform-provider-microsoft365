@@ -97,7 +97,10 @@ func (r *IOSiPadOSWebClipResource) Schema(ctx context.Context, req resource.Sche
 			},
 			"description": schema.StringAttribute{
 				Required:            true,
-				MarkdownDescription: "The description of the app.",
+				MarkdownDescription: "Required. The description of the resource. Maximum length is 10000 characters.",
+				Validators: []validator.String{
+					stringvalidator.LengthAtMost(10000),
+				},
 			},
 			"publisher": schema.StringAttribute{
 				Required:            true,

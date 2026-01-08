@@ -106,6 +106,7 @@ func (r *AgentCollectionResource) Schema(ctx context.Context, req resource.Schem
 			"description": schema.StringAttribute{
 				MarkdownDescription: "Description / purpose of the collection.",
 				Optional:            true,
+				Computed:            true,
 			},
 			"managed_by": schema.StringAttribute{
 				MarkdownDescription: "**appId** (referred to as **Application (client) ID** on the Microsoft Entra admin center) of the service principal managing this agent collection.",

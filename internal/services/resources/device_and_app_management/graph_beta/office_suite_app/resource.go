@@ -103,7 +103,10 @@ func (r *OfficeSuiteAppResource) Schema(ctx context.Context, req resource.Schema
 			},
 			"description": schema.StringAttribute{
 				Required:            true,
-				MarkdownDescription: "A detailed description of the Microsoft 365 Apps application.",
+				MarkdownDescription: "Required. The description of the resource. Maximum length is 10000 characters.",
+				Validators: []validator.String{
+					stringvalidator.LengthAtMost(10000),
+				},
 			},
 			"publisher": schema.StringAttribute{
 				Computed:            true,

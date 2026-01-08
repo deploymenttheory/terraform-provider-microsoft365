@@ -135,7 +135,10 @@ func (r *MacOSPKGAppResource) Schema(ctx context.Context, req resource.SchemaReq
 			},
 			"description": schema.StringAttribute{
 				Required:            true,
-				MarkdownDescription: "A detailed description of the Intune macOS pkg application.",
+				MarkdownDescription: "Required. The description of the resource. Maximum length is 10000 characters.",
+				Validators: []validator.String{
+					stringvalidator.LengthAtMost(10000),
+				},
 			},
 			"publisher": schema.StringAttribute{
 				Required:            true,

@@ -102,7 +102,7 @@ resource "microsoft365_graph_beta_device_management_windows_enrollment_status_pa
 
 - `assignments` (Attributes Set) Assignments for the device configuration. Each assignment specifies the target group and schedule for script execution. (see [below for nested schema](#nestedatt--assignments))
 - `custom_error_message` (String) Set custom message when time limit or error occurs during initial device setup.
-- `description` (String) The description of the enrollment status page configuration.
+- `description` (String) Optional description of the resource. Maximum length is 1500 characters.
 - `role_scope_tag_ids` (Set of String) Set of scope tag IDs for this Settings Catalog template profile.
 - `selected_mobile_app_ids` (Set of String) Selected applications to track the installation status. This collection can contain a maximum of 100 elements. Can only be used effectively when block_device_use_until_all_apps_and_profiles_are_installed is true.
 - `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))

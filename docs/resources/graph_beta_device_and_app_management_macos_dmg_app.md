@@ -138,7 +138,7 @@ resource "microsoft365_graph_beta_device_and_app_management_macos_dmg_app" "jamf
 
 ### Required
 
-- `description` (String) A detailed description of the Intune macOS DMG application.
+- `description` (String) Required. The description of the resource. Maximum length is 10000 characters.
 - `display_name` (String) The title of the Intune macOS DMG application.
 - `publisher` (String) The publisher of the Intune macOS DMG application.
 

@@ -86,7 +86,7 @@ resource "microsoft365_graph_beta_device_and_app_management_ios_store_app" "exam
 
 - `app_store_url` (String) The Apple AppStoreUrl.
 - `applicable_device_type` (Attributes) The iOS architecture for which this app can run on. (see [below for nested schema](#nestedatt--applicable_device_type))
-- `description` (String) The description of the app.
+- `description` (String) Required. The description of the resource. Maximum length is 10000 characters.
 - `display_name` (String) The admin provided or imported title of the app.
 - `minimum_supported_operating_system` (Attributes) The value for the minimum supported operating system. (see [below for nested schema](#nestedatt--minimum_supported_operating_system))
 - `publisher` (String) The publisher of the app.

@@ -82,8 +82,9 @@ func (r *CustomSecurityAttributeDefinitionResource) Schema(ctx context.Context, 
 				},
 			},
 			"description": schema.StringAttribute{
-				MarkdownDescription: "Description of the custom security attribute. Can be up to 128 characters long and include Unicode characters. Can be changed later.",
 				Optional:            true,
+				Computed:            true,
+				MarkdownDescription: "Optional description of the resource. Maximum length is 1500 characters.",
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(128),
 				},

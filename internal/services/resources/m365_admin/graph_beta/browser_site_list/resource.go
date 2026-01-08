@@ -84,8 +84,12 @@ func (r *BrowserSiteListResource) Schema(ctx context.Context, req resource.Schem
 				},
 			},
 			"description": schema.StringAttribute{
-				Description: "The description of the site list.",
-				Optional:    true,
+				Optional:            true,
+				Computed:            true,
+				MarkdownDescription: "Optional description of the resource. Maximum length is 1500 characters.",
+				Validators: []validator.String{
+					stringvalidator.LengthAtMost(1500),
+				},
 			},
 			"display_name": schema.StringAttribute{
 				Description: "The name of the site list.",

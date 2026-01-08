@@ -84,7 +84,7 @@ resource "microsoft365_graph_beta_device_management_operation_approval_policy" "
 
 ### Optional
 
-- `description` (String) Indicates the description of the policy. Maximum length of the description is 1024 characters. This property is not required, but can be used by the IT Admin to describe the policy.
+- `description` (String) Optional description of the resource. Maximum length is 1500 characters.
 - `policy_platform` (String) Indicates the applicable platform for the policy. Possible values are:
 
 - **notApplicable**: Not applicable to any platform

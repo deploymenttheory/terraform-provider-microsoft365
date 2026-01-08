@@ -17,7 +17,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
@@ -101,12 +100,10 @@ func (r *Win32LobAppResource) Schema(ctx context.Context, req resource.SchemaReq
 				MarkdownDescription: "The admin provided or imported title of the app.",
 			},
 			"description": schema.StringAttribute{
-				Optional:            true,
-				Computed:            true,
-				Default:             stringdefault.StaticString(""),
-				MarkdownDescription: "Optional description of the resource. Maximum length is 1500 characters.",
+				Required:            true,
+				MarkdownDescription: "Required. The description of the resource. Maximum length is 10000 characters.",
 				Validators: []validator.String{
-					stringvalidator.LengthAtMost(1500),
+					stringvalidator.LengthAtMost(10000),
 				},
 			},
 			"publisher": schema.StringAttribute{

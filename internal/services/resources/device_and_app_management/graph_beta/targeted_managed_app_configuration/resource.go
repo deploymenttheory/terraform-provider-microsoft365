@@ -92,8 +92,11 @@ func (r *TargetedManagedAppConfigurationResource) Schema(ctx context.Context, re
 				Description: "Policy display name",
 			},
 			"description": schema.StringAttribute{
-				Optional:    true,
-				Description: "The policy's description",
+				Required:            true,
+				MarkdownDescription: "Required. The description of the resource. Maximum length is 10000 characters.",
+				Validators: []validator.String{
+					stringvalidator.LengthAtMost(10000),
+				},
 			},
 			"created_date_time": schema.StringAttribute{
 				Computed:    true,

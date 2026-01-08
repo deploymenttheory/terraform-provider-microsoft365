@@ -58,7 +58,7 @@ resource "microsoft365_graph_beta_identity_and_access_attribute_set" "example" {
 
 ### Optional
 
-- `description` (String) Description of the attribute set. Can be up to 128 characters long and include Unicode characters. Can be changed later. Optional.
+- `description` (String) Optional description of the resource. Maximum length is 1500 characters.
 - `max_attributes_per_set` (Number) Maximum number of custom security attributes that can be defined in this attribute set. The value must be between 1 and 500. If not specified, the administrator can add up to the maximum of 500 active attributes per tenant. Can be changed later.
 - `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))
 

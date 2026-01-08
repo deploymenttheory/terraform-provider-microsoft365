@@ -51,7 +51,7 @@ resource "microsoft365_graph_beta_identity_and_access_authentication_context" "e
 
 ### Optional
 
-- `description` (String) A short explanation of the policies that are enforced by authenticationContextClassReference. This value should be used to provide secondary text to describe the authentication context class reference when building user-facing admin experiences. For example, a selection UX.
+- `description` (String) Optional description of the resource. Maximum length is 1500 characters.
 - `is_available` (Boolean) Indicates whether the authentication context class reference is available for use by apps. The default value is `false`. When `isAvailable` is set to `false`, the authentication context class reference is not shown in the authentication context UX elements and may not be used by applications.
 - `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))
 

@@ -101,7 +101,6 @@ func (r *WindowsDeviceCompliancePolicyResource) Schema(ctx context.Context, req 
 			"description": schema.StringAttribute{
 				Optional:            true,
 				Computed:            true,
-				Default:             stringdefault.StaticString(""),
 				MarkdownDescription: "Optional description of the resource. Maximum length is 1500 characters.",
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(1500),
@@ -219,6 +218,7 @@ func (r *WindowsDeviceCompliancePolicyResource) Schema(ctx context.Context, req 
 							Attributes: map[string]schema.Attribute{
 								"description": schema.StringAttribute{
 									Optional:            true,
+									Computed:            true,
 									MarkdownDescription: "Description for this valid operating system build range",
 								},
 								"low_os_version": schema.StringAttribute{

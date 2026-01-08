@@ -96,8 +96,9 @@ func (r *OperationApprovalPolicyResource) Schema(ctx context.Context, req resour
 				},
 			},
 			"description": schema.StringAttribute{
-				MarkdownDescription: "Indicates the description of the policy. Maximum length of the description is 1024 characters. This property is not required, but can be used by the IT Admin to describe the policy.",
 				Optional:            true,
+				Computed:            true,
+				MarkdownDescription: "Optional description of the resource. Maximum length is 1500 characters.",
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(1024),
 				},

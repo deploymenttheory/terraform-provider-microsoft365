@@ -149,7 +149,7 @@ resource "microsoft365_graph_beta_windows_365_cloud_pc_role_definition" "example
 
 ### Optional
 
-- `description` (String) Description of the Role definition.
+- `description` (String) Optional description of the resource. Maximum length is 1500 characters.
 - `display_name` (String) Display Name of the Role definition.
 - `role_permissions` (Attributes List) List of Role Permissions this role is allowed to perform. Not used for in-built Cloud PC role definitions. (see [below for nested schema](#nestedatt--role_permissions))
 - `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))
