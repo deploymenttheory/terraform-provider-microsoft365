@@ -332,7 +332,7 @@ resource "microsoft365_graph_beta_device_and_app_management_office_suite_app" "o
 
 ### Required
 
-- `description` (String) Required. The description of the resource. Maximum length is 1500 characters.
+- `description` (String) Required. The description of the resource. Maximum length is 10000 characters.
 - `display_name` (String) The title of the Microsoft 365 Apps application.
 
 ### Optional

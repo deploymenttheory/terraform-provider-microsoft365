@@ -86,7 +86,7 @@ resource "microsoft365_graph_beta_device_and_app_management_macos_pkg_app" "mozi
 
 ### Required
 
-- `description` (String) Required. The description of the resource. Maximum length is 1500 characters.
+- `description` (String) Required. The description of the resource. Maximum length is 10000 characters.
 - `display_name` (String) The title of the Intune macOS pkg application.
 - `publisher` (String) The publisher of the Intune macOS pkg application.
 

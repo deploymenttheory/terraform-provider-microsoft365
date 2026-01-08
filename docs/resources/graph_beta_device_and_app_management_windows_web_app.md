@@ -75,7 +75,7 @@ resource "microsoft365_graph_beta_device_and_app_management_windows_web_app" "ex
 ### Required
 
 - `app_url` (String) Indicates Windows web clip app URL. Example: 'https://www.contoso.com'
-- `description` (String) A detailed description of the WinGet/ Microsoft Store for Business app.This field is automatically populated based on the package identifier when `automatically_generate_metadata` is set to true.
+- `description` (String) Required. The description of the resource. Maximum length is 10000 characters.
 - `display_name` (String) The admin provided or imported title of the app.
 - `publisher` (String) The publisher of the app.
 

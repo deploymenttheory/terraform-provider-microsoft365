@@ -93,7 +93,7 @@ func (r *TargetedManagedAppConfigurationResource) Schema(ctx context.Context, re
 			},
 			"description": schema.StringAttribute{
 				Required:            true,
-				MarkdownDescription: "Required. The description of the resource. Maximum length is 1500 characters.",
+				MarkdownDescription: "Required. The description of the resource. Maximum length is 10000 characters.",
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(10000),
 				},

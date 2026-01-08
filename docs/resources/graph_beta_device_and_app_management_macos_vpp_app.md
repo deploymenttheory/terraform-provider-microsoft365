@@ -87,7 +87,7 @@ resource "microsoft365_graph_beta_device_and_app_management_macos_vpp_app" "exam
 ### Required
 
 - `bundle_id` (String) The Identity Name.
-- `description` (String) Required. The description of the resource. Maximum length is 1500 characters.
+- `description` (String) Required. The description of the resource. Maximum length is 10000 characters.
 - `display_name` (String) The admin provided or imported title of the app.
 - `publisher` (String) The publisher of the app.
 - `vpp_token_account_type` (String) The type of volume purchase program which the given Apple Volume Purchase Program Token is associated with. Possible values are: business, education.
