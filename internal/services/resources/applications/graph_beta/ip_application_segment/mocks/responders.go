@@ -3,6 +3,7 @@ package mocks
 import (
 	"encoding/json"
 	"net/http"
+	"path/filepath"
 	"strings"
 	"sync"
 
@@ -19,7 +20,6 @@ var mockState struct {
 
 func init() {
 	mockState.ipApplicationSegments = make(map[string]map[string]any)
-	httpmock.RegisterNoResponder(httpmock.NewStringResponder(404, `{"error":{"code":"ResourceNotFound","message":"Resource not found"}}`))
 	mocks.GlobalRegistry.Register("ip_application_segment", &IpApplicationSegmentMock{})
 }
 
@@ -43,17 +43,17 @@ func (m *IpApplicationSegmentMock) RegisterMocks() {
 		newId := uuid.New().String()
 
 		// Load the template response
-		jsonStr, err := helpers.ParseJSONFile("../tests/responses/validate_create/post_ip_application_segment_success.json")
+		jsonContent, err := helpers.ParseJSONFile(filepath.Join("..", "tests", "responses", "validate_create", "post_ip_application_segment_success.json"))
 		if err != nil {
-			return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to load response"}}`), nil
+			return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to load response template"}}`), nil
 		}
 
 		var responseObj map[string]any
-		if err := json.Unmarshal([]byte(jsonStr), &responseObj); err != nil {
-			return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to parse response"}}`), nil
+		if err := json.Unmarshal([]byte(jsonContent), &responseObj); err != nil {
+			return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to parse JSON response"}}`), nil
 		}
 
-		// Update response with request data
+		// Update response with request data and generated ID
 		responseObj["id"] = newId
 		if destinationHost, ok := requestBody["destinationHost"]; ok {
 			responseObj["destinationHost"] = destinationHost

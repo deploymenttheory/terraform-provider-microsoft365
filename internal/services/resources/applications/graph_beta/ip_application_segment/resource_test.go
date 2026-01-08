@@ -20,15 +20,6 @@ func setupMockEnvironment() (*mocks.Mocks, *ipSegmentMocks.IpApplicationSegmentM
 	return mockClient, ipSegmentMock
 }
 
-func setupErrorMockEnvironment() (*mocks.Mocks, *ipSegmentMocks.IpApplicationSegmentMock) {
-	httpmock.Activate()
-	mockClient := mocks.NewMocks()
-	mockClient.AuthMocks.RegisterMocks()
-	ipSegmentMock := &ipSegmentMocks.IpApplicationSegmentMock{}
-	ipSegmentMock.RegisterErrorMocks()
-	return mockClient, ipSegmentMock
-}
-
 func testCheckExists(resourceName string) resource.TestCheckFunc {
 	return resource.TestCheckResourceAttrSet(resourceName, "id")
 }
