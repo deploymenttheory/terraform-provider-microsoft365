@@ -96,9 +96,8 @@ func (r *WindowsWebAppResource) Schema(ctx context.Context, req resource.SchemaR
 				MarkdownDescription: "The admin provided or imported title of the app.",
 			},
 			"description": schema.StringAttribute{
-				Required: true,
-				MarkdownDescription: "A detailed description of the WinGet/ Microsoft Store for Business app." +
-					"This field is automatically populated based on the package identifier when `automatically_generate_metadata` is set to true.",
+				Required:            true,
+				MarkdownDescription: "Required. The description of the resource. Maximum length is 1500 characters.",
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(10000),
 				},

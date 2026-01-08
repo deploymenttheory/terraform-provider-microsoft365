@@ -100,9 +100,9 @@ func (r *WinGetAppResource) Schema(ctx context.Context, req resource.SchemaReque
 					"This field is automatically populated based on the package identifier when `automatically_generate_metadata` is set to true.",
 			},
 			"description": schema.StringAttribute{
-				Required: true,
-				MarkdownDescription: "A detailed description of the WinGet/ Microsoft Store for Business app." +
-					"This field is automatically populated based on the package identifier when `automatically_generate_metadata` is set to true.",
+				Optional:            true,
+				Computed:            true,
+				MarkdownDescription: "The description of the resource. Maximum length is 1500 characters. This field is automatically populated based on the package identifier when `automatically_generate_metadata` is set to true.",
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(10000),
 				},
