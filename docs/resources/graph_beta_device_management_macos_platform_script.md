@@ -95,7 +95,7 @@ resource "microsoft365_graph_beta_device_management_macos_platform_script" "exam
 - `display_name` (String) Name of the macOS Platform Script.
 - `file_name` (String) Script file name.
 - `run_as_account` (String) Indicates the type of execution context. Possible values are: `system`, `user`.
-- `script_content` (String, Sensitive) The script content.
+- `script_content` (String, Sensitive) The script content. Can be either inline or a file path. If a file path is provided, the file will be read and the content will be used as the script content.
 
 ### Optional
 

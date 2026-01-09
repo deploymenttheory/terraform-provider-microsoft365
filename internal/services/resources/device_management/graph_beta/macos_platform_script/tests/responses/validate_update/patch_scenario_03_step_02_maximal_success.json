@@ -1,0 +1,16 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/deviceShellScripts/$entity",
+  "@odata.type": "#microsoft.graph.deviceShellScript",
+  "id": "00000000-0000-0000-0000-000000000003",
+  "displayName": "unit-test-update-test-script-updated",
+  "description": "Updated to maximal configuration",
+  "scriptContent": "IyEvYmluL2Jhc2gKZWNobyAnTWF4IFRlc3QnCmV4aXQgMA==",
+  "fileName": "update_test_maximal.sh",
+  "runAsAccount": "user",
+  "roleScopeTagIds": ["0", "1"],
+  "blockExecutionNotifications": true,
+  "executionFrequency": "PT12H",
+  "retryCount": 2,
+  "createdDateTime": "2024-01-08T00:00:00Z",
+  "lastModifiedDateTime": "2024-01-08T01:00:00Z"
+}

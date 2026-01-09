@@ -1,0 +1,16 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/deviceShellScripts/$entity",
+  "@odata.type": "#microsoft.graph.deviceShellScript",
+  "id": "00000000-0000-0000-0000-000000000004",
+  "displayName": "unit-test-downgrade-test-script",
+  "description": "Initial maximal configuration for downgrade testing",
+  "fileName": "downgrade_test.sh",
+  "scriptContent": "IyEvYmluL2Jhc2gKZWNobyAnTWF4IFRlc3QnCmV4aXQgMA==",
+  "runAsAccount": "user",
+  "roleScopeTagIds": ["0", "1", "2"],
+  "blockExecutionNotifications": true,
+  "executionFrequency": "P1D",
+  "retryCount": 5,
+  "createdDateTime": "2024-01-08T00:00:00Z",
+  "lastModifiedDateTime": "2024-01-08T00:00:00Z"
+}

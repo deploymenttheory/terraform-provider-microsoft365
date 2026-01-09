@@ -1,0 +1,16 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/deviceShellScripts/$entity",
+  "@odata.type": "#microsoft.graph.deviceShellScript",
+  "id": "00000000-0000-0000-0000-000000000003",
+  "displayName": "unit-test-update-test-script",
+  "description": "",
+  "fileName": "update_test.sh",
+  "scriptContent": "IyEvYmluL2Jhc2gKZWNobyAnTWluIFRlc3QnCmV4aXQgMA==",
+  "runAsAccount": "system",
+  "roleScopeTagIds": ["0"],
+  "blockExecutionNotifications": false,
+  "executionFrequency": null,
+  "retryCount": 0,
+  "createdDateTime": "2024-01-08T00:00:00Z",
+  "lastModifiedDateTime": "2024-01-08T00:00:00Z"
+}

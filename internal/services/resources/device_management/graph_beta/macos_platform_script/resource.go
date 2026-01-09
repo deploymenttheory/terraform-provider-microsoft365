@@ -102,9 +102,10 @@ func (r *MacOSPlatformScriptResource) Schema(ctx context.Context, req resource.S
 				},
 			},
 			"script_content": schema.StringAttribute{
-				MarkdownDescription: "The script content.",
-				Required:            true,
-				Sensitive:           true,
+				Required:  true,
+				Sensitive: true, // Used to not bloat the state file with the script content.
+				MarkdownDescription: "The script content. Can be either inline or a file path. If a file path is" +
+					" provided, the file will be read and the content will be used as the script content.",
 			},
 			"run_as_account": schema.StringAttribute{
 				MarkdownDescription: "Indicates the type of execution context. Possible values are: `system`, `user`.",
@@ -129,8 +130,9 @@ func (r *MacOSPlatformScriptResource) Schema(ctx context.Context, req resource.S
 				},
 			},
 			"block_execution_notifications": schema.BoolAttribute{
-				MarkdownDescription: "Does not notify the user a script is being executed.",
 				Optional:            true,
+				Computed:            true,
+				MarkdownDescription: "Does not notify the user a script is being executed.",
 			},
 			"execution_frequency": schema.StringAttribute{
 				Optional:            true,
