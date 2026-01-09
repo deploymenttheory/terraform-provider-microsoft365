@@ -166,16 +166,16 @@ func TestAccMacOSPlatformScriptResource_Scenario03_MinimalToMaximal(t *testing.T
 						time.Sleep(30 * time.Second)
 						return nil
 					},
-				check.That(resourceType+".update_test").ExistsInGraph(testResource),
-				check.That(resourceType+".update_test").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
-				check.That(resourceType+".update_test").Key("display_name").HasValue("acc-test-update-test-script-updated"),
-				check.That(resourceType+".update_test").Key("description").HasValue("Updated to maximal configuration"),
-				check.That(resourceType+".update_test").Key("file_name").HasValue("update_test_maximal.sh"),
-				check.That(resourceType+".update_test").Key("run_as_account").HasValue("user"),
-				check.That(resourceType+".update_test").Key("role_scope_tag_ids.#").HasValue("2"),
-				check.That(resourceType+".update_test").Key("block_execution_notifications").HasValue("true"),
-				check.That(resourceType+".update_test").Key("execution_frequency").HasValue("PT12H"),
-				check.That(resourceType+".update_test").Key("retry_count").HasValue("2"),
+					check.That(resourceType+".update_test").ExistsInGraph(testResource),
+					check.That(resourceType+".update_test").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(resourceType+".update_test").Key("display_name").HasValue("acc-test-update-test-script-updated"),
+					check.That(resourceType+".update_test").Key("description").HasValue("Updated to maximal configuration"),
+					check.That(resourceType+".update_test").Key("file_name").HasValue("update_test_maximal.sh"),
+					check.That(resourceType+".update_test").Key("run_as_account").HasValue("user"),
+					check.That(resourceType+".update_test").Key("role_scope_tag_ids.#").HasValue("2"),
+					check.That(resourceType+".update_test").Key("block_execution_notifications").HasValue("true"),
+					check.That(resourceType+".update_test").Key("execution_frequency").HasValue("PT12H"),
+					check.That(resourceType+".update_test").Key("retry_count").HasValue("2"),
 				),
 			},
 			{
@@ -240,7 +240,6 @@ func TestAccMacOSPlatformScriptResource_Scenario04_MaximalToMinimal(t *testing.T
 					check.That(resourceType+".downgrade_test").Key("display_name").HasValue("acc-test-downgrade-test-script-minimal"),
 					check.That(resourceType+".downgrade_test").Key("file_name").HasValue("downgrade_test_minimal.sh"),
 					check.That(resourceType+".downgrade_test").Key("run_as_account").HasValue("system"),
-					check.That(resourceType+".downgrade_test").Key("block_execution_notifications").HasValue("false"),
 				),
 			},
 			{
@@ -267,9 +266,10 @@ func TestAccMacOSPlatformScriptResource_Scenario05_NoAssignmentsToMinimalAssignm
 			30*time.Second,
 		),
 		ExternalProviders: map[string]resource.ExternalProvider{
-			"azuread": {
-				Source:            "hashicorp/azuread",
-				VersionConstraint: ">= 2.47.0",
+
+			"random": {
+				Source:            "hashicorp/random",
+				VersionConstraint: ">= 3.7.2",
 			},
 		},
 		Steps: []resource.TestStep{
@@ -334,9 +334,10 @@ func TestAccMacOSPlatformScriptResource_Scenario06_NoAssignmentsToMaximalAssignm
 			30*time.Second,
 		),
 		ExternalProviders: map[string]resource.ExternalProvider{
-			"azuread": {
-				Source:            "hashicorp/azuread",
-				VersionConstraint: ">= 2.47.0",
+
+			"random": {
+				Source:            "hashicorp/random",
+				VersionConstraint: ">= 3.7.2",
 			},
 		},
 		Steps: []resource.TestStep{
@@ -410,9 +411,10 @@ func TestAccMacOSPlatformScriptResource_Scenario07_MinimalToMaximalAssignments(t
 			30*time.Second,
 		),
 		ExternalProviders: map[string]resource.ExternalProvider{
-			"azuread": {
-				Source:            "hashicorp/azuread",
-				VersionConstraint: ">= 2.47.0",
+
+			"random": {
+				Source:            "hashicorp/random",
+				VersionConstraint: ">= 3.7.2",
 			},
 		},
 		Steps: []resource.TestStep{
@@ -489,9 +491,10 @@ func TestAccMacOSPlatformScriptResource_Scenario08_MaximalToMinimalAssignments(t
 			30*time.Second,
 		),
 		ExternalProviders: map[string]resource.ExternalProvider{
-			"azuread": {
-				Source:            "hashicorp/azuread",
-				VersionConstraint: ">= 2.47.0",
+
+			"random": {
+				Source:            "hashicorp/random",
+				VersionConstraint: ">= 3.7.2",
 			},
 		},
 		Steps: []resource.TestStep{

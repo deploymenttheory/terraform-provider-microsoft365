@@ -19,10 +19,7 @@ func TestAccWindowsAutopilotDevicePreparationPolicyResource_Minimal(t *testing.T
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckWindowsAutopilotDevicePreparationPolicyDestroy,
 		ExternalProviders: map[string]resource.ExternalProvider{
-			"azuread": {
-				Source:            "hashicorp/azuread",
-				VersionConstraint: ">= 2.47.0",
-			},
+
 			"random": {
 				Source:            "hashicorp/random",
 				VersionConstraint: ">= 3.7.2",
@@ -65,10 +62,7 @@ func TestAccWindowsAutopilotDevicePreparationPolicyResource_Enhanced(t *testing.
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckWindowsAutopilotDevicePreparationPolicyDestroy,
 		ExternalProviders: map[string]resource.ExternalProvider{
-			"azuread": {
-				Source:            "hashicorp/azuread",
-				VersionConstraint: ">= 2.47.0",
-			},
+
 			"random": {
 				Source:            "hashicorp/random",
 				VersionConstraint: ">= 3.7.2",
@@ -101,10 +95,7 @@ func TestAccWindowsAutopilotDevicePreparationPolicyResource_SelfDeploying(t *tes
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckWindowsAutopilotDevicePreparationPolicyDestroy,
 		ExternalProviders: map[string]resource.ExternalProvider{
-			"azuread": {
-				Source:            "hashicorp/azuread",
-				VersionConstraint: ">= 2.47.0",
-			},
+
 			"random": {
 				Source:            "hashicorp/random",
 				VersionConstraint: ">= 3.7.2",
@@ -131,10 +122,7 @@ func TestAccWindowsAutopilotDevicePreparationPolicyResource_HybridJoined(t *test
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckWindowsAutopilotDevicePreparationPolicyDestroy,
 		ExternalProviders: map[string]resource.ExternalProvider{
-			"azuread": {
-				Source:            "hashicorp/azuread",
-				VersionConstraint: ">= 2.47.0",
-			},
+
 			"random": {
 				Source:            "hashicorp/random",
 				VersionConstraint: ">= 3.7.2",

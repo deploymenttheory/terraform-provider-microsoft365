@@ -31,6 +31,8 @@ func init() {
 type MacOSPlatformScriptMock struct{}
 
 // RegisterMocks registers HTTP mock responses for macOS platform script operations
+//
+//nolint:gocyclo // Mock registration functions naturally have high complexity
 func (m *MacOSPlatformScriptMock) RegisterMocks() {
 	// Reset the state when registering mocks
 	mockState.Lock()
@@ -68,7 +70,7 @@ func (m *MacOSPlatformScriptMock) RegisterMocks() {
 			if !exists {
 				content, _ := helpers.ParseJSONFile(filepath.Join("../tests", "responses", "validate_delete", "delete_not_found.json"))
 				var errorResponse map[string]any
-				json.Unmarshal([]byte(content), &errorResponse)
+				_ = json.Unmarshal([]byte(content), &errorResponse)
 				return httpmock.NewJsonResponse(404, errorResponse)
 			}
 
@@ -119,7 +121,7 @@ func (m *MacOSPlatformScriptMock) RegisterMocks() {
 			if err != nil {
 				content, _ := helpers.ParseJSONFile(filepath.Join("../tests", "responses", "validate_create", "post_error_invalid_run_as.json"))
 				var errorResponse map[string]any
-				json.Unmarshal([]byte(content), &errorResponse)
+				_ = json.Unmarshal([]byte(content), &errorResponse)
 				return httpmock.NewJsonResponse(400, errorResponse)
 			}
 
@@ -128,7 +130,7 @@ func (m *MacOSPlatformScriptMock) RegisterMocks() {
 				if runAsAccount != "system" && runAsAccount != "user" {
 					content, _ := helpers.ParseJSONFile(filepath.Join("../tests", "responses", "validate_create", "post_error_invalid_run_as.json"))
 					var errorResponse map[string]any
-					json.Unmarshal([]byte(content), &errorResponse)
+					_ = json.Unmarshal([]byte(content), &errorResponse)
 					return httpmock.NewJsonResponse(400, errorResponse)
 				}
 			}
@@ -137,7 +139,7 @@ func (m *MacOSPlatformScriptMock) RegisterMocks() {
 				if len(description) > 1500 {
 					content, _ := helpers.ParseJSONFile(filepath.Join("../tests", "responses", "validate_create", "post_error_description_length.json"))
 					var errorResponse map[string]any
-					json.Unmarshal([]byte(content), &errorResponse)
+					_ = json.Unmarshal([]byte(content), &errorResponse)
 					return httpmock.NewJsonResponse(400, errorResponse)
 				}
 			}
@@ -210,7 +212,7 @@ func (m *MacOSPlatformScriptMock) RegisterMocks() {
 			if !exists {
 				content, _ := helpers.ParseJSONFile(filepath.Join("../tests", "responses", "validate_delete", "delete_not_found.json"))
 				var errorResponse map[string]any
-				json.Unmarshal([]byte(content), &errorResponse)
+				_ = json.Unmarshal([]byte(content), &errorResponse)
 				return httpmock.NewJsonResponse(404, errorResponse)
 			}
 
@@ -282,7 +284,7 @@ func (m *MacOSPlatformScriptMock) RegisterMocks() {
 			if !exists {
 				content, _ := helpers.ParseJSONFile(filepath.Join("../tests", "responses", "validate_delete", "delete_not_found.json"))
 				var errorResponse map[string]any
-				json.Unmarshal([]byte(content), &errorResponse)
+				_ = json.Unmarshal([]byte(content), &errorResponse)
 				return httpmock.NewJsonResponse(404, errorResponse)
 			}
 
@@ -302,7 +304,7 @@ func (m *MacOSPlatformScriptMock) RegisterMocks() {
 			if !exists {
 				content, _ := helpers.ParseJSONFile(filepath.Join("../tests", "responses", "validate_delete", "delete_not_found.json"))
 				var errorResponse map[string]any
-				json.Unmarshal([]byte(content), &errorResponse)
+				_ = json.Unmarshal([]byte(content), &errorResponse)
 				return httpmock.NewJsonResponse(404, errorResponse)
 			}
 
@@ -337,7 +339,7 @@ func (m *MacOSPlatformScriptMock) RegisterMocks() {
 			if !exists {
 				content, _ := helpers.ParseJSONFile(filepath.Join("../tests", "responses", "validate_delete", "delete_not_found.json"))
 				var errorResponse map[string]any
-				json.Unmarshal([]byte(content), &errorResponse)
+				_ = json.Unmarshal([]byte(content), &errorResponse)
 				return httpmock.NewJsonResponse(404, errorResponse)
 			}
 
@@ -354,7 +356,7 @@ func (m *MacOSPlatformScriptMock) RegisterMocks() {
 
 					content, _ := helpers.ParseJSONFile(filepath.Join("../tests", "responses", "validate_assignments", scenarioFile))
 					var response map[string]any
-					json.Unmarshal([]byte(content), &response)
+					_ = json.Unmarshal([]byte(content), &response)
 					return httpmock.NewJsonResponse(200, response)
 				}
 			}
@@ -362,7 +364,7 @@ func (m *MacOSPlatformScriptMock) RegisterMocks() {
 			// No assignments - return empty
 			content, _ := helpers.ParseJSONFile(filepath.Join("../tests", "responses", "validate_assignments", "get_assignments_empty_success.json"))
 			var response map[string]any
-			json.Unmarshal([]byte(content), &response)
+			_ = json.Unmarshal([]byte(content), &response)
 			return httpmock.NewJsonResponse(200, response)
 		})
 }

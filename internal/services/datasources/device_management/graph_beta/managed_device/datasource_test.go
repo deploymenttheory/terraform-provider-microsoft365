@@ -4,12 +4,27 @@ import (
 	"regexp"
 	"testing"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/check"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
+	graphBetaManagedDevice "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/device_management/graph_beta/managed_device"
 	managedDeviceMocks "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/device_management/graph_beta/managed_device/mocks"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/jarcoal/httpmock"
 )
+
+var (
+	dataSourceType = "data." + graphBetaManagedDevice.DataSourceName
+)
+
+// Helper function to load unit test Terraform configurations
+func loadUnitTestTerraform(filename string) string {
+	config, err := helpers.ParseHCLFile("tests/terraform/unit/" + filename)
+	if err != nil {
+		panic("failed to load unit test config " + filename + ": " + err.Error())
+	}
+	return config
+}
 
 func setupMockEnvironment() (*mocks.Mocks, *managedDeviceMocks.ManagedDeviceMock) {
 	httpmock.Activate()
@@ -39,15 +54,15 @@ func TestManagedDeviceDataSource_All(t *testing.T) {
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testConfigAll(),
+				Config: loadUnitTestTerraform("01_all.tf"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("data.microsoft365_graph_beta_device_management_managed_device.all", "filter_type", "all"),
-					resource.TestCheckResourceAttr("data.microsoft365_graph_beta_device_management_managed_device.all", "items.#", "3"),
-					resource.TestCheckResourceAttr("data.microsoft365_graph_beta_device_management_managed_device.all", "items.0.device_name", "DESKTOP-WIN-001"),
-					resource.TestCheckResourceAttr("data.microsoft365_graph_beta_device_management_managed_device.all", "items.0.id", "00000000-0000-0000-0000-000000000001"),
-					resource.TestCheckResourceAttr("data.microsoft365_graph_beta_device_management_managed_device.all", "items.0.operating_system", "Windows"),
-					resource.TestCheckResourceAttr("data.microsoft365_graph_beta_device_management_managed_device.all", "items.1.device_name", "DESKTOP-WIN-002"),
-					resource.TestCheckResourceAttr("data.microsoft365_graph_beta_device_management_managed_device.all", "items.2.device_name", "LAPTOP-WIN-003"),
+					check.That(dataSourceType+".all").Key("filter_type").HasValue("all"),
+					check.That(dataSourceType+".all").Key("items.#").HasValue("3"),
+					check.That(dataSourceType+".all").Key("items.0.device_name").HasValue("DESKTOP-WIN-001"),
+					check.That(dataSourceType+".all").Key("items.0.id").HasValue("00000000-0000-0000-0000-000000000001"),
+					check.That(dataSourceType+".all").Key("items.0.operating_system").HasValue("Windows"),
+					check.That(dataSourceType+".all").Key("items.1.device_name").HasValue("DESKTOP-WIN-002"),
+					check.That(dataSourceType+".all").Key("items.2.device_name").HasValue("LAPTOP-WIN-003"),
 				),
 			},
 		},
@@ -64,15 +79,15 @@ func TestManagedDeviceDataSource_ById(t *testing.T) {
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testConfigById(),
+				Config: loadUnitTestTerraform("02_by_id.tf"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("data.microsoft365_graph_beta_device_management_managed_device.by_id", "filter_type", "id"),
-					resource.TestCheckResourceAttr("data.microsoft365_graph_beta_device_management_managed_device.by_id", "filter_value", "00000000-0000-0000-0000-000000000001"),
-					resource.TestCheckResourceAttr("data.microsoft365_graph_beta_device_management_managed_device.by_id", "items.#", "1"),
-					resource.TestCheckResourceAttr("data.microsoft365_graph_beta_device_management_managed_device.by_id", "items.0.id", "00000000-0000-0000-0000-000000000001"),
-					resource.TestCheckResourceAttr("data.microsoft365_graph_beta_device_management_managed_device.by_id", "items.0.device_name", "DESKTOP-WIN-001"),
-					resource.TestCheckResourceAttr("data.microsoft365_graph_beta_device_management_managed_device.by_id", "items.0.operating_system", "Windows"),
-					resource.TestCheckResourceAttr("data.microsoft365_graph_beta_device_management_managed_device.by_id", "items.0.compliance_state", "compliant"),
+					check.That(dataSourceType+".by_id").Key("filter_type").HasValue("id"),
+					check.That(dataSourceType+".by_id").Key("filter_value").HasValue("00000000-0000-0000-0000-000000000001"),
+					check.That(dataSourceType+".by_id").Key("items.#").HasValue("1"),
+					check.That(dataSourceType+".by_id").Key("items.0.id").HasValue("00000000-0000-0000-0000-000000000001"),
+					check.That(dataSourceType+".by_id").Key("items.0.device_name").HasValue("DESKTOP-WIN-001"),
+					check.That(dataSourceType+".by_id").Key("items.0.operating_system").HasValue("Windows"),
+					check.That(dataSourceType+".by_id").Key("items.0.compliance_state").HasValue("compliant"),
 				),
 			},
 		},
@@ -89,12 +104,12 @@ func TestManagedDeviceDataSource_ByDeviceName(t *testing.T) {
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testConfigByDeviceName(),
+				Config: loadUnitTestTerraform("03_by_device_name.tf"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("data.microsoft365_graph_beta_device_management_managed_device.by_device_name", "filter_type", "device_name"),
-					resource.TestCheckResourceAttr("data.microsoft365_graph_beta_device_management_managed_device.by_device_name", "filter_value", "DESKTOP-WIN-001"),
-					resource.TestCheckResourceAttr("data.microsoft365_graph_beta_device_management_managed_device.by_device_name", "items.#", "1"),
-					resource.TestCheckResourceAttr("data.microsoft365_graph_beta_device_management_managed_device.by_device_name", "items.0.device_name", "DESKTOP-WIN-001"),
+					check.That(dataSourceType+".by_device_name").Key("filter_type").HasValue("device_name"),
+					check.That(dataSourceType+".by_device_name").Key("filter_value").HasValue("DESKTOP-WIN-001"),
+					check.That(dataSourceType+".by_device_name").Key("items.#").HasValue("1"),
+					check.That(dataSourceType+".by_device_name").Key("items.0.device_name").HasValue("DESKTOP-WIN-001"),
 				),
 			},
 		},
@@ -111,12 +126,12 @@ func TestManagedDeviceDataSource_BySerialNumber(t *testing.T) {
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testConfigBySerialNumber(),
+				Config: loadUnitTestTerraform("04_by_serial_number.tf"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("data.microsoft365_graph_beta_device_management_managed_device.by_serial_number", "filter_type", "serial_number"),
-					resource.TestCheckResourceAttr("data.microsoft365_graph_beta_device_management_managed_device.by_serial_number", "filter_value", "SN-WIN-001"),
-					resource.TestCheckResourceAttr("data.microsoft365_graph_beta_device_management_managed_device.by_serial_number", "items.#", "1"),
-					resource.TestCheckResourceAttr("data.microsoft365_graph_beta_device_management_managed_device.by_serial_number", "items.0.serial_number", "SN-WIN-001"),
+					check.That(dataSourceType+".by_serial_number").Key("filter_type").HasValue("serial_number"),
+					check.That(dataSourceType+".by_serial_number").Key("filter_value").HasValue("SN-WIN-001"),
+					check.That(dataSourceType+".by_serial_number").Key("items.#").HasValue("1"),
+					check.That(dataSourceType+".by_serial_number").Key("items.0.serial_number").HasValue("SN-WIN-001"),
 				),
 			},
 		},
@@ -133,13 +148,13 @@ func TestManagedDeviceDataSource_ODataFilter(t *testing.T) {
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testConfigODataFilter(),
+				Config: loadUnitTestTerraform("05_odata_filter.tf"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("data.microsoft365_graph_beta_device_management_managed_device.odata_filter", "filter_type", "odata"),
-					resource.TestCheckResourceAttr("data.microsoft365_graph_beta_device_management_managed_device.odata_filter", "odata_filter", "complianceState eq 'compliant'"),
-					resource.TestCheckResourceAttr("data.microsoft365_graph_beta_device_management_managed_device.odata_filter", "items.#", "2"),
-					resource.TestCheckResourceAttr("data.microsoft365_graph_beta_device_management_managed_device.odata_filter", "items.0.compliance_state", "compliant"),
-					resource.TestCheckResourceAttr("data.microsoft365_graph_beta_device_management_managed_device.odata_filter", "items.1.compliance_state", "compliant"),
+					check.That(dataSourceType+".odata_filter").Key("filter_type").HasValue("odata"),
+					check.That(dataSourceType+".odata_filter").Key("odata_filter").HasValue("complianceState eq 'compliant'"),
+					check.That(dataSourceType+".odata_filter").Key("items.#").HasValue("2"),
+					check.That(dataSourceType+".odata_filter").Key("items.0.compliance_state").HasValue("compliant"),
+					check.That(dataSourceType+".odata_filter").Key("items.1.compliance_state").HasValue("compliant"),
 				),
 			},
 		},
@@ -156,13 +171,13 @@ func TestManagedDeviceDataSource_ODataAdvanced(t *testing.T) {
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testConfigODataAdvanced(),
+				Config: loadUnitTestTerraform("06_odata_advanced.tf"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("data.microsoft365_graph_beta_device_management_managed_device.odata_advanced", "filter_type", "odata"),
-					resource.TestCheckResourceAttr("data.microsoft365_graph_beta_device_management_managed_device.odata_advanced", "odata_filter", "operatingSystem eq 'Windows'"),
-					resource.TestCheckResourceAttr("data.microsoft365_graph_beta_device_management_managed_device.odata_advanced", "odata_orderby", "deviceName"),
-					resource.TestCheckResourceAttr("data.microsoft365_graph_beta_device_management_managed_device.odata_advanced", "odata_select", "id,deviceName,operatingSystem,complianceState"),
-					resource.TestCheckResourceAttr("data.microsoft365_graph_beta_device_management_managed_device.odata_advanced", "items.#", "2"),
+					check.That(dataSourceType+".odata_advanced").Key("filter_type").HasValue("odata"),
+					check.That(dataSourceType+".odata_advanced").Key("odata_filter").HasValue("operatingSystem eq 'Windows'"),
+					check.That(dataSourceType+".odata_advanced").Key("odata_orderby").HasValue("deviceName"),
+					check.That(dataSourceType+".odata_advanced").Key("odata_select").HasValue("id,deviceName,operatingSystem,complianceState"),
+					check.That(dataSourceType+".odata_advanced").Key("items.#").HasValue("2"),
 				),
 			},
 		},
@@ -179,13 +194,13 @@ func TestManagedDeviceDataSource_ODataComprehensive(t *testing.T) {
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testConfigODataComprehensive(),
+				Config: loadUnitTestTerraform("07_odata_comprehensive.tf"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("data.microsoft365_graph_beta_device_management_managed_device.odata_comprehensive", "filter_type", "odata"),
-					resource.TestCheckResourceAttr("data.microsoft365_graph_beta_device_management_managed_device.odata_comprehensive", "odata_filter", "operatingSystem eq 'Windows'"),
-					resource.TestCheckResourceAttr("data.microsoft365_graph_beta_device_management_managed_device.odata_comprehensive", "odata_top", "50"),
-					resource.TestCheckResourceAttr("data.microsoft365_graph_beta_device_management_managed_device.odata_comprehensive", "odata_orderby", "lastSyncDateTime desc"),
-					resource.TestCheckResourceAttr("data.microsoft365_graph_beta_device_management_managed_device.odata_comprehensive", "items.#", "2"),
+					check.That(dataSourceType+".odata_comprehensive").Key("filter_type").HasValue("odata"),
+					check.That(dataSourceType+".odata_comprehensive").Key("odata_filter").HasValue("operatingSystem eq 'Windows'"),
+					check.That(dataSourceType+".odata_comprehensive").Key("odata_top").HasValue("50"),
+					check.That(dataSourceType+".odata_comprehensive").Key("odata_orderby").HasValue("lastSyncDateTime desc"),
+					check.That(dataSourceType+".odata_comprehensive").Key("items.#").HasValue("2"),
 				),
 			},
 		},
@@ -202,66 +217,9 @@ func TestManagedDeviceDataSource_ValidationError(t *testing.T) {
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config:      testConfigAll(),
+				Config:      loadUnitTestTerraform("01_all.tf"),
 				ExpectError: regexp.MustCompile("Forbidden - 403"),
 			},
 		},
 	})
-}
-
-// Configuration functions
-func testConfigAll() string {
-	unitTestConfig, err := helpers.ParseHCLFile("tests/terraform/unit/01_all.tf")
-	if err != nil {
-		panic("failed to load 01_all config: " + err.Error())
-	}
-	return unitTestConfig
-}
-
-func testConfigById() string {
-	unitTestConfig, err := helpers.ParseHCLFile("tests/terraform/unit/02_by_id.tf")
-	if err != nil {
-		panic("failed to load 02_by_id config: " + err.Error())
-	}
-	return unitTestConfig
-}
-
-func testConfigByDeviceName() string {
-	unitTestConfig, err := helpers.ParseHCLFile("tests/terraform/unit/03_by_device_name.tf")
-	if err != nil {
-		panic("failed to load 03_by_device_name config: " + err.Error())
-	}
-	return unitTestConfig
-}
-
-func testConfigBySerialNumber() string {
-	unitTestConfig, err := helpers.ParseHCLFile("tests/terraform/unit/04_by_serial_number.tf")
-	if err != nil {
-		panic("failed to load 04_by_serial_number config: " + err.Error())
-	}
-	return unitTestConfig
-}
-
-func testConfigODataFilter() string {
-	unitTestConfig, err := helpers.ParseHCLFile("tests/terraform/unit/05_odata_filter.tf")
-	if err != nil {
-		panic("failed to load 05_odata_filter config: " + err.Error())
-	}
-	return unitTestConfig
-}
-
-func testConfigODataAdvanced() string {
-	unitTestConfig, err := helpers.ParseHCLFile("tests/terraform/unit/06_odata_advanced.tf")
-	if err != nil {
-		panic("failed to load 06_odata_advanced config: " + err.Error())
-	}
-	return unitTestConfig
-}
-
-func testConfigODataComprehensive() string {
-	unitTestConfig, err := helpers.ParseHCLFile("tests/terraform/unit/07_odata_comprehensive.tf")
-	if err != nil {
-		panic("failed to load 07_odata_comprehensive config: " + err.Error())
-	}
-	return unitTestConfig
 }

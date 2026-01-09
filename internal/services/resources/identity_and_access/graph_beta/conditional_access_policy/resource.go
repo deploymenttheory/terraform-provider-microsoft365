@@ -789,7 +789,6 @@ func (r *ConditionalAccessPolicyResource) Schema(ctx context.Context, req resour
 								ElementType:         types.StringType,
 								Optional:            true,
 								Computed:            true,
-								Default:             setdefault.StaticValue(types.SetValueMust(types.StringType, []attr.Value{})),
 								Validators: []validator.Set{
 									setvalidator.ValueStringsAre(
 										stringvalidator.Any(
@@ -807,7 +806,6 @@ func (r *ConditionalAccessPolicyResource) Schema(ctx context.Context, req resour
 								ElementType:         types.StringType,
 								Optional:            true,
 								Computed:            true,
-								Default:             setdefault.StaticValue(types.SetValueMust(types.StringType, []attr.Value{})),
 								Validators: []validator.Set{
 									setvalidator.ValueStringsAre(
 										stringvalidator.RegexMatches(

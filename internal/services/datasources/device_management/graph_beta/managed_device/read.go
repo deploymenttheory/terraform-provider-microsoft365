@@ -34,7 +34,7 @@ func (d *ManagedDeviceDataSource) Read(ctx context.Context, req datasource.ReadR
 	}
 	defer cancel()
 
-	var filteredItems []ManagedDeviceDeviceDataItemModel
+	filteredItems := []ManagedDeviceDeviceDataItemModel{}
 	filterValue := object.FilterValue.ValueString()
 
 	switch filterType {
@@ -60,7 +60,7 @@ func (d *ManagedDeviceDataSource) Read(ctx context.Context, req datasource.ReadR
 
 		tflog.Debug(ctx, "Using Microsoft Graph SDK PageIterator for managed devices")
 
-		allManagedDevices, err := d.getAllManagedDevicesWithPageIterator(ctx, requestParameters)
+		allManagedDevices, err := d.listAllManagedDevicesWithPageIterator(ctx, requestParameters)
 		if err != nil {
 			tflog.Error(ctx, fmt.Sprintf("Error in OData query with pagination: %v", err))
 			errors.HandleKiotaGraphError(ctx, err, resp, "Read", d.ReadPermissions)
@@ -77,7 +77,7 @@ func (d *ManagedDeviceDataSource) Read(ctx context.Context, req datasource.ReadR
 	default:
 		tflog.Debug(ctx, "Using Microsoft Graph SDK PageIterator for managed devices (all/basic filter)")
 
-		allManagedDevices, err := d.getAllManagedDevicesWithPageIterator(ctx, nil)
+		allManagedDevices, err := d.listAllManagedDevicesWithPageIterator(ctx, nil)
 		if err != nil {
 			errors.HandleKiotaGraphError(ctx, err, resp, "Read", d.ReadPermissions)
 			return
@@ -188,7 +188,7 @@ func (d *ManagedDeviceDataSource) buildODataRequestParameters(ctx context.Contex
 	return requestParameters
 }
 
-func (d *ManagedDeviceDataSource) getAllManagedDevicesWithPageIterator(ctx context.Context, requestParameters *devicemanagement.ManagedDevicesRequestBuilderGetRequestConfiguration) ([]graphmodels.ManagedDeviceable, error) {
+func (d *ManagedDeviceDataSource) listAllManagedDevicesWithPageIterator(ctx context.Context, requestParameters *devicemanagement.ManagedDevicesRequestBuilderGetRequestConfiguration) ([]graphmodels.ManagedDeviceable, error) {
 	var allManagedDevices []graphmodels.ManagedDeviceable
 
 	managedDevicesResponse, err := d.client.

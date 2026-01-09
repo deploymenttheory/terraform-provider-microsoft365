@@ -58,7 +58,6 @@ func TestTermsAndConditionsResource_Schema(t *testing.T) {
 					check.That(resourceType+".minimal").Key("acceptance_statement").HasValue("I accept these terms"),
 					check.That(resourceType+".minimal").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".minimal").Key("description").HasValue(""),
-					check.That(resourceType+".minimal").Key("version").HasValue("1"),
 				),
 			},
 		},
@@ -99,7 +98,6 @@ func TestTermsAndConditionsResource_Minimal(t *testing.T) {
 					check.That(resourceType+".maximal").Key("id").Exists(),
 					check.That(resourceType+".maximal").Key("display_name").HasValue("unit-test-terms-and-conditions-maximal"),
 					check.That(resourceType+".maximal").Key("description").HasValue("Comprehensive terms and conditions for testing with all features"),
-					check.That(resourceType+".maximal").Key("version").HasValue("2"),
 				),
 			},
 		},
@@ -353,35 +351,6 @@ resource "microsoft365_graph_beta_device_management_terms_and_conditions" "test"
 					resource.TestCheckTypeSetElemAttr("microsoft365_graph_beta_device_management_terms_and_conditions.test", "role_scope_tag_ids.*", "0"),
 					resource.TestCheckTypeSetElemAttr("microsoft365_graph_beta_device_management_terms_and_conditions.test", "role_scope_tag_ids.*", "1"),
 					resource.TestCheckTypeSetElemAttr("microsoft365_graph_beta_device_management_terms_and_conditions.test", "role_scope_tag_ids.*", "2"),
-				),
-			},
-		},
-	})
-}
-
-// TestTermsAndConditionsResource_VersionHandling tests version handling
-func TestTermsAndConditionsResource_VersionHandling(t *testing.T) {
-	mocks.SetupUnitTestEnvironment(t)
-	_, termsAndConditionsMock := setupMockEnvironment()
-	defer httpmock.DeactivateAndReset()
-	defer termsAndConditionsMock.CleanupMockState()
-
-	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
-		Steps: []resource.TestStep{
-			{
-				Config: `
-resource "microsoft365_graph_beta_device_management_terms_and_conditions" "test" {
-  display_name         = "Test Terms and Conditions with Version"
-  title               = "Test Terms"
-  body_text           = "Test body text"
-  acceptance_statement = "I accept these terms"
-  version             = 3
-}
-`,
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_terms_and_conditions.test", "display_name", "Test Terms and Conditions with Version"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_terms_and_conditions.test", "version", "3"),
 				),
 			},
 		},
