@@ -4,7 +4,6 @@ resource "microsoft365_graph_beta_device_management_terms_and_conditions" "minim
   title                = "Company Terms with Minimal Assignment"
   body_text            = "These are the terms and conditions with a single assignment."
   acceptance_statement = "I accept these terms and conditions"
-  version              = 1
 
   assignments = [
     {

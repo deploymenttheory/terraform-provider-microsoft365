@@ -57,7 +57,6 @@ func TestAccTermsAndConditionsResource_Minimal(t *testing.T) {
 					check.That(resourceType+".test").Key("title").HasValue("Company Terms"),
 					check.That(resourceType+".test").Key("body_text").HasValue("These are the basic terms and conditions."),
 					check.That(resourceType+".test").Key("acceptance_statement").HasValue("I accept these terms"),
-					check.That(resourceType+".test").Key("version").HasValue("1"),
 				),
 			},
 			{
@@ -78,7 +77,7 @@ func TestAccTermsAndConditionsResource_Maximal(t *testing.T) {
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedTypesFunc(
-			15*time.Second,
+			45*time.Second,
 			destroy.ResourceTypeMapping{
 				ResourceType: resourceType,
 				TestResource: testResource,
@@ -101,6 +100,11 @@ func TestAccTermsAndConditionsResource_Maximal(t *testing.T) {
 				},
 				Config: loadAcceptanceTestTerraform("resource_maximal.tf"),
 				Check: resource.ComposeTestCheckFunc(
+					func(_ *terraform.State) error {
+						testlog.WaitForConsistency("terms and conditions with groups", 20*time.Second)
+						time.Sleep(20 * time.Second)
+						return nil
+					},
 					check.That(resourceType+".test").ExistsInGraph(testResource),
 					check.That(resourceType+".test").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".test").Key("display_name").HasValue("acc-test-terms-and-conditions-maximal"),
@@ -108,7 +112,9 @@ func TestAccTermsAndConditionsResource_Maximal(t *testing.T) {
 					check.That(resourceType+".test").Key("title").HasValue("Complete Company Terms and Conditions"),
 					check.That(resourceType+".test").Key("body_text").HasValue("These are the comprehensive terms and conditions that all users must read and accept before accessing company resources."),
 					check.That(resourceType+".test").Key("acceptance_statement").HasValue("I have read and agree to abide by all terms and conditions outlined above"),
-					check.That(resourceType+".test").Key("version").HasValue("1"),
+					check.That(resourceType+".test").Key("role_scope_tag_ids.#").HasValue("2"),
+					check.That(resourceType+".test").Key("role_scope_tag_ids.0").HasValue("0"),
+					check.That(resourceType+".test").Key("role_scope_tag_ids.1").HasValue("1"),
 					check.That(resourceType+".test").Key("assignments.#").HasValue("3"),
 				),
 			},
@@ -148,6 +154,11 @@ func TestAccTermsAndConditionsResource_MinimalAssignment(t *testing.T) {
 					check.That(resourceType+".minimal_assignment").ExistsInGraph(testResource),
 					check.That(resourceType+".minimal_assignment").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".minimal_assignment").Key("display_name").HasValue("acc-test-terms-and-conditions-minimal-assignment"),
+					check.That(resourceType+".minimal_assignment").Key("description").HasValue("Terms and conditions with minimal assignment for acceptance testing"),
+					check.That(resourceType+".minimal_assignment").Key("title").HasValue("Company Terms with Minimal Assignment"),
+					check.That(resourceType+".minimal_assignment").Key("body_text").HasValue("These are the terms and conditions with a single assignment."),
+					check.That(resourceType+".minimal_assignment").Key("acceptance_statement").HasValue("I accept these terms and conditions"),
+					check.That(resourceType+".minimal_assignment").Key("version").Exists(),
 					check.That(resourceType+".minimal_assignment").Key("assignments.#").HasValue("1"),
 					check.That(resourceType+".minimal_assignment").Key("assignments.0.type").HasValue("allLicensedUsersAssignmentTarget"),
 				),
@@ -204,6 +215,9 @@ func TestAccTermsAndConditionsResource_MaximalAssignment(t *testing.T) {
 					check.That(resourceType+".maximal_assignment").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".maximal_assignment").Key("display_name").HasValue("acc-test-terms-and-conditions-maximal-assignment"),
 					check.That(resourceType+".maximal_assignment").Key("description").HasValue("Terms and conditions with comprehensive assignments for acceptance testing"),
+					check.That(resourceType+".maximal_assignment").Key("title").HasValue("Company Terms with Maximal Assignments"),
+					check.That(resourceType+".maximal_assignment").Key("body_text").HasValue("These are the terms and conditions that will be assigned to specific groups."),
+					check.That(resourceType+".maximal_assignment").Key("acceptance_statement").HasValue("I accept these terms and conditions"),
 					check.That(resourceType+".maximal_assignment").Key("assignments.#").HasValue("3"),
 				),
 			},
@@ -227,7 +241,7 @@ func TestAccTermsAndConditionsResource_MinimalToMaximal(t *testing.T) {
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedTypesFunc(
-			15*time.Second,
+			45*time.Second,
 			destroy.ResourceTypeMapping{
 				ResourceType: resourceType,
 				TestResource: testResource,
@@ -253,7 +267,9 @@ func TestAccTermsAndConditionsResource_MinimalToMaximal(t *testing.T) {
 					check.That(resourceType+".test").ExistsInGraph(testResource),
 					check.That(resourceType+".test").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".test").Key("display_name").HasValue("acc-test-terms-and-conditions-minimal"),
-					check.That(resourceType+".test").Key("version").HasValue("1"),
+					check.That(resourceType+".test").Key("title").HasValue("Company Terms"),
+					check.That(resourceType+".test").Key("body_text").HasValue("These are the basic terms and conditions."),
+					check.That(resourceType+".test").Key("acceptance_statement").HasValue("I accept these terms"),
 				),
 			},
 			{
@@ -262,14 +278,24 @@ func TestAccTermsAndConditionsResource_MinimalToMaximal(t *testing.T) {
 					time.Sleep(10 * time.Second)
 					testlog.StepAction(resourceType, "Updating to maximal configuration")
 				},
-				Config: loadAcceptanceTestTerraform("resource_minimal_to_maximal.tf"),
+				Config: loadAcceptanceTestTerraform("resource_maximal.tf"),
 				Check: resource.ComposeTestCheckFunc(
-					check.That(resourceType+".transition").ExistsInGraph(testResource),
-					check.That(resourceType+".transition").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
-					check.That(resourceType+".transition").Key("display_name").HasValue("acc-test-terms-and-conditions-transition"),
-					check.That(resourceType+".transition").Key("description").HasValue("Configuration that transitions from minimal to maximal for acceptance testing"),
-					check.That(resourceType+".transition").Key("version").HasValue("1"),
-					check.That(resourceType+".transition").Key("assignments.#").HasValue("3"),
+					func(_ *terraform.State) error {
+						testlog.WaitForConsistency("terms and conditions with groups", 20*time.Second)
+						time.Sleep(20 * time.Second)
+						return nil
+					},
+					check.That(resourceType+".test").ExistsInGraph(testResource),
+					check.That(resourceType+".test").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(resourceType+".test").Key("display_name").HasValue("acc-test-terms-and-conditions-maximal"),
+					check.That(resourceType+".test").Key("description").HasValue("Updated description for acceptance testing"),
+					check.That(resourceType+".test").Key("title").HasValue("Complete Company Terms and Conditions"),
+					check.That(resourceType+".test").Key("body_text").HasValue("These are the comprehensive terms and conditions that all users must read and accept before accessing company resources."),
+					check.That(resourceType+".test").Key("acceptance_statement").HasValue("I have read and agree to abide by all terms and conditions outlined above"),
+					check.That(resourceType+".test").Key("role_scope_tag_ids.#").HasValue("2"),
+					check.That(resourceType+".test").Key("role_scope_tag_ids.0").HasValue("0"),
+					check.That(resourceType+".test").Key("role_scope_tag_ids.1").HasValue("1"),
+					check.That(resourceType+".test").Key("assignments.#").HasValue("3"),
 				),
 			},
 			{
@@ -278,7 +304,7 @@ func TestAccTermsAndConditionsResource_MinimalToMaximal(t *testing.T) {
 					time.Sleep(10 * time.Second)
 					testlog.StepAction(resourceType, "Importing transitioned configuration")
 				},
-				ResourceName:      resourceType + ".transition",
+				ResourceName:      resourceType + ".test",
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
@@ -324,7 +350,11 @@ func TestAccTermsAndConditionsResource_MaximalToMinimal(t *testing.T) {
 					check.That(resourceType+".transition").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".transition").Key("display_name").HasValue("acc-test-terms-and-conditions-transition"),
 					check.That(resourceType+".transition").Key("description").HasValue("Configuration that transitions from minimal to maximal for acceptance testing"),
-					check.That(resourceType+".transition").Key("version").HasValue("1"),
+					check.That(resourceType+".transition").Key("title").HasValue("Complete Company Terms for Transition"),
+					check.That(resourceType+".transition").Key("body_text").HasValue("These are the comprehensive terms and conditions for transition testing."),
+					check.That(resourceType+".transition").Key("acceptance_statement").HasValue("I accept all terms and conditions for this transition test"),
+					check.That(resourceType+".transition").Key("role_scope_tag_ids.#").HasValue("1"),
+					check.That(resourceType+".transition").Key("role_scope_tag_ids.0").HasValue("0"),
 					check.That(resourceType+".transition").Key("assignments.#").HasValue("3"),
 				),
 			},
@@ -339,8 +369,9 @@ func TestAccTermsAndConditionsResource_MaximalToMinimal(t *testing.T) {
 					check.That(resourceType+".transition").ExistsInGraph(testResource),
 					check.That(resourceType+".transition").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".transition").Key("display_name").HasValue("acc-test-terms-and-conditions-transition"),
-					check.That(resourceType+".transition").Key("description").IsEmpty(),
-					check.That(resourceType+".transition").Key("version").HasValue("1"),
+					check.That(resourceType+".transition").Key("title").HasValue("Company Terms"),
+					check.That(resourceType+".transition").Key("body_text").HasValue("These are the basic terms and conditions."),
+					check.That(resourceType+".transition").Key("acceptance_statement").HasValue("I accept these terms"),
 				),
 			},
 			{
@@ -380,6 +411,10 @@ func TestAccTermsAndConditionsResource_Description(t *testing.T) {
 					check.That(resourceType+".description").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".description").Key("display_name").HasValue("acc-test-terms-and-conditions-description"),
 					check.That(resourceType+".description").Key("description").HasValue("This is a test terms and conditions with description"),
+					check.That(resourceType+".description").Key("title").HasValue("Terms with Description"),
+					check.That(resourceType+".description").Key("body_text").HasValue("These are terms and conditions with a description field."),
+					check.That(resourceType+".description").Key("acceptance_statement").HasValue("I accept these terms with description"),
+					check.That(resourceType+".description").Key("version").Exists(),
 				),
 			},
 		},

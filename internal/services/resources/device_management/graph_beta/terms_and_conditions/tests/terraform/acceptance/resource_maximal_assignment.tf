@@ -38,7 +38,6 @@ resource "microsoft365_graph_beta_device_management_terms_and_conditions" "maxim
   title                = "Company Terms with Maximal Assignments"
   body_text            = "These are the terms and conditions that will be assigned to specific groups."
   acceptance_statement = "I accept these terms and conditions"
-  version              = 1
 
   assignments = [
     {
