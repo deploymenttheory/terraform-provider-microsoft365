@@ -16,7 +16,7 @@ type GroupPolicyDefinitionTestResource struct{}
 
 // Exists checks whether the Group Policy definition value exists in Microsoft Graph
 func (r GroupPolicyDefinitionTestResource) Exists(ctx context.Context, _ any, state *terraform.InstanceState) (*bool, error) {
-	httpClient, err := acceptance.TestHTTPClient()
+	httpClient, err := acceptance.TestHTTPClient(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get HTTP client: %w", err)
 	}

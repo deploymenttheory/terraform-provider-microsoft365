@@ -16,7 +16,7 @@ type UserLicenseAssignmentTestResource struct{}
 
 // Exists checks whether the specific user license assignment exists in Microsoft Graph
 func (r UserLicenseAssignmentTestResource) Exists(ctx context.Context, _ any, state *terraform.InstanceState) (*bool, error) {
-	httpClient, err := acceptance.TestHTTPClient()
+	httpClient, err := acceptance.TestHTTPClient(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get HTTP client: %w", err)
 	}

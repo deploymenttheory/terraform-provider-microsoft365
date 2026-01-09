@@ -15,7 +15,7 @@ type MacOSPlatformScriptTestResource struct{}
 
 // Exists checks whether the macOS platform script exists in Microsoft Graph
 func (r MacOSPlatformScriptTestResource) Exists(ctx context.Context, _ any, state *terraform.InstanceState) (*bool, error) {
-	httpClient, err := acceptance.TestHTTPClient()
+	httpClient, err := acceptance.TestHTTPClient(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get HTTP client: %w", err)
 	}
@@ -47,6 +47,7 @@ func (r MacOSPlatformScriptTestResource) Exists(ctx context.Context, _ any, stat
 			exists := false
 			return &exists, nil
 		}
+		//nolint:err113 // Dynamic error context needed for debugging
 		return nil, fmt.Errorf("unexpected error checking script existence: %s (status: %d)", errorInfo.ErrorCode, errorInfo.StatusCode)
 	}
 

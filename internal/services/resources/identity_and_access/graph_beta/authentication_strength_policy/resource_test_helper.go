@@ -15,7 +15,7 @@ type AuthenticationStrengthTestResource struct{}
 
 // Exists checks whether the authentication strength policy exists in Microsoft Graph
 func (r AuthenticationStrengthTestResource) Exists(ctx context.Context, _ any, state *terraform.InstanceState) (*bool, error) {
-	httpClient, err := acceptance.TestHTTPClient()
+	httpClient, err := acceptance.TestHTTPClient(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get HTTP client: %w", err)
 	}

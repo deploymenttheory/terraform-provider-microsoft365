@@ -17,7 +17,7 @@ type AgentIdentityBlueprintPasswordCredentialTestResource struct{}
 // Note: Password credentials cannot be directly queried by keyId, so we list all
 // credentials on the blueprint and check if the keyId exists.
 func (r AgentIdentityBlueprintPasswordCredentialTestResource) Exists(ctx context.Context, _ any, state *terraform.InstanceState) (*bool, error) {
-	httpClient, err := acceptance.TestHTTPClient()
+	httpClient, err := acceptance.TestHTTPClient(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get HTTP client: %w", err)
 	}

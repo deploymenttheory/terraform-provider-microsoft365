@@ -74,7 +74,7 @@ func TestGraphClient() (*msgraphbetasdk.GraphServiceClient, error) {
 }
 
 // TestHTTPClient creates an authenticated HTTP client for acceptance tests using environment variables
-func TestHTTPClient() (*client.AuthenticatedHTTPClient, error) {
+func TestHTTPClient(ctx context.Context) (*client.AuthenticatedHTTPClient, error) {
 	// Create provider data similar to how the provider does it
 	providerData := &client.ProviderData{
 		AuthMethod: os.Getenv("M365_AUTH_METHOD"),
@@ -107,7 +107,6 @@ func TestHTTPClient() (*client.AuthenticatedHTTPClient, error) {
 	}
 
 	// Use the same client building logic as the provider
-	ctx := context.Background()
 	var diags diag.Diagnostics
 
 	graphClients := client.NewGraphClients(ctx, providerData, &diags)
