@@ -30,6 +30,14 @@ func setupErrorMockEnvironment() (*mocks.Mocks, *conditionalAccessPolicyMocks.Co
 	return mockClient, conditionalAccessPolicyMock
 }
 
+func loadUnitTestTerraform(filename string) string {
+	config, err := helpers.ParseHCLFile("tests/terraform/unit/" + filename)
+	if err != nil {
+		panic("failed to load unit test config " + filename + ": " + err.Error())
+	}
+	return config
+}
+
 // CAD001: macOS Device Compliance
 func TestConditionalAccessPolicyResource_CAD001(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
@@ -41,7 +49,7 @@ func TestConditionalAccessPolicyResource_CAD001(t *testing.T) {
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testConfigCAD001(),
+				Config: loadUnitTestTerraform("resource_cad001-o365.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					check.That(resourceType+".cad001_macos_compliant").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".cad001_macos_compliant").Key("display_name").HasValue("CAD001-O365: Grant macOS access for All users when Modern Auth Clients and Compliant-v1.1"),
@@ -102,7 +110,7 @@ func TestConditionalAccessPolicyResource_CAD002(t *testing.T) {
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testConfigCAD002(),
+				Config: loadUnitTestTerraform("resource_cad002-o365.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					check.That(resourceType+".cad002_windows_compliant").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".cad002_windows_compliant").Key("display_name").HasValue("CAD002-O365: Grant Windows access for All users when Modern Auth Clients and Compliant-v1.1"),
@@ -164,7 +172,7 @@ func TestConditionalAccessPolicyResource_CAD003(t *testing.T) {
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testConfigCAD003(),
+				Config: loadUnitTestTerraform("resource_cad003-o365.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					check.That(resourceType+".cad003_mobile_compliant_or_app_protection").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".cad003_mobile_compliant_or_app_protection").Key("display_name").HasValue("CAD003-O365: Grant iOS and Android access for All users when Modern Auth Clients and AppProPol or Compliant-v1.3"),
@@ -227,7 +235,7 @@ func TestConditionalAccessPolicyResource_CAD004(t *testing.T) {
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testConfigCAD004(),
+				Config: loadUnitTestTerraform("resource_cad004-o365.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					check.That(resourceType+".cad004_browser_noncompliant_mfa").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".cad004_browser_noncompliant_mfa").Key("display_name").HasValue("CAD004-O365: Grant Require MFA for All users when Browser and Non-Compliant-v1.3"),
@@ -277,7 +285,7 @@ func TestConditionalAccessPolicyResource_CAD005(t *testing.T) {
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testConfigCAD005(),
+				Config: loadUnitTestTerraform("resource_cad005-o365.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					check.That(resourceType+".cad005_block_unsupported_platforms").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".cad005_block_unsupported_platforms").Key("display_name").HasValue("CAD005-O365: Block access for unsupported device platforms for All users when Modern Auth Clients-v1.1"),
@@ -334,7 +342,7 @@ func TestConditionalAccessPolicyResource_CAD006(t *testing.T) {
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testConfigCAD006(),
+				Config: loadUnitTestTerraform("resource_cad006-o365.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					check.That(resourceType+".cad006_session_block_download_unmanaged").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".cad006_session_block_download_unmanaged").Key("display_name").HasValue("CAD006-O365: Session block download on unmanaged device for All users when Browser and Modern App Clients and Non-Compliant-v1.5"),
@@ -387,7 +395,7 @@ func TestConditionalAccessPolicyResource_CAD007(t *testing.T) {
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testConfigCAD007(),
+				Config: loadUnitTestTerraform("resource_cad007-o365.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					check.That(resourceType+".cad007_mobile_signin_frequency").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".cad007_mobile_signin_frequency").Key("display_name").HasValue("CAD007-O365: Session set Sign-in Frequency for Apps for All users when Modern Auth Clients and Non-Compliant-v1.2"),
@@ -448,7 +456,7 @@ func TestConditionalAccessPolicyResource_CAD008(t *testing.T) {
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testConfigCAD008(),
+				Config: loadUnitTestTerraform("resource_cad008-all.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					check.That(resourceType+".cad008_browser_signin_frequency").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".cad008_browser_signin_frequency").Key("display_name").HasValue("CAD008-All: Session set Sign-in Frequency for All users when Browser and Non-Compliant-v1.1"),
@@ -504,7 +512,7 @@ func TestConditionalAccessPolicyResource_CAD009(t *testing.T) {
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testConfigCAD009(),
+				Config: loadUnitTestTerraform("resource_cad009-all.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					check.That(resourceType+".cad009_disable_browser_persistence").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".cad009_disable_browser_persistence").Key("display_name").HasValue("CAD009-All: Session disable browser persistence for All users when Browser and Non-Compliant-v1.2"),
@@ -557,7 +565,7 @@ func TestConditionalAccessPolicyResource_CAD010(t *testing.T) {
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testConfigCAD010(),
+				Config: loadUnitTestTerraform("resource_cad010-rjd.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					check.That(resourceType+".cad010_device_registration_mfa").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".cad010_device_registration_mfa").Key("display_name").HasValue("CAD010-RJD: Require MFA for device join or registration when Browser and Modern Auth Clients-v1.1"),
@@ -604,7 +612,7 @@ func TestConditionalAccessPolicyResource_CAD011(t *testing.T) {
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testConfigCAD011(),
+				Config: loadUnitTestTerraform("resource_cad011-o365.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					check.That(resourceType+".cad011_linux_compliant").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".cad011_linux_compliant").Key("display_name").HasValue("CAD011-O365: Grant Linux access for All users when Modern Auth Clients and Compliant-v1.0"),
@@ -657,7 +665,7 @@ func TestConditionalAccessPolicyResource_CAD012(t *testing.T) {
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testConfigCAD012(),
+				Config: loadUnitTestTerraform("resource_cad012-all.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					check.That(resourceType+".cad012_admin_compliant_access").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".cad012_admin_compliant_access").Key("display_name").HasValue("CAD012-All: Grant access for Admin users when Browser and Modern Auth Clients and Compliant-v1.1"),
@@ -705,7 +713,7 @@ func TestConditionalAccessPolicyResource_CAD013(t *testing.T) {
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testConfigCAD013(),
+				Config: loadUnitTestTerraform("resource_cad013-selected.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					check.That(resourceType+".cad013_selected_apps_compliant").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".cad013_selected_apps_compliant").Key("display_name").HasValue("CAD013-Selected: Grant access for All users when Browser and Modern Auth Clients and Compliant-v1.0"),
@@ -759,7 +767,7 @@ func TestConditionalAccessPolicyResource_CAD014(t *testing.T) {
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testConfigCAD014(),
+				Config: loadUnitTestTerraform("resource_cad014-o365.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					check.That(resourceType+".cad014_edge_app_protection_windows").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".cad014_edge_app_protection_windows").Key("display_name").HasValue("CAD014-O365: Require App Protection Policy for Edge on Windows for All users when Browser and Non-Compliant-v1.0"),
@@ -814,7 +822,7 @@ func TestConditionalAccessPolicyResource_CAD015(t *testing.T) {
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testConfigCAD015(),
+				Config: loadUnitTestTerraform("resource_cad015-all.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					check.That(resourceType+".cad015_windows_macos_browser_compliant").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".cad015_windows_macos_browser_compliant").Key("display_name").HasValue("CAD015-All: Grant access for All users when Browser and Modern Auth Clients and Compliant on Windows and macOS-v1.0"),
@@ -868,7 +876,7 @@ func TestConditionalAccessPolicyResource_CAD016(t *testing.T) {
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testConfigCAD016(),
+				Config: loadUnitTestTerraform("resource_cad016-exo_spo_cloudpc.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					check.That(resourceType+".cad016_token_protection_windows").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".cad016_token_protection_windows").Key("display_name").HasValue("CAD016-EXO_SPO_CloudPC: Require token protection when Modern Auth Clients on Windows-v1.2"),
@@ -928,7 +936,7 @@ func TestConditionalAccessPolicyResource_CAD017(t *testing.T) {
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testConfigCAD017(),
+				Config: loadUnitTestTerraform("resource_cad017-selected.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					check.That(resourceType+".cad017_selected_mobile_app_protection").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".cad017_selected_mobile_app_protection").Key("display_name").HasValue("CAD017-Selected: Grant iOS and Android access for All users when Modern Auth Clients and AppProPol or Compliant-v1.1"),
@@ -991,7 +999,7 @@ func TestConditionalAccessPolicyResource_CAD018(t *testing.T) {
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testConfigCAD018(),
+				Config: loadUnitTestTerraform("resource_cad018-cloudpc.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					check.That(resourceType+".cad018_cloudpc_mobile_app_protection").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".cad018_cloudpc_mobile_app_protection").Key("display_name").HasValue("CAD018-CloudPC: Grant iOS and Android access for All users when Modern Auth Clients and AppProPol or Compliant-v1.0"),
@@ -1043,7 +1051,7 @@ func TestConditionalAccessPolicyResource_CAD019(t *testing.T) {
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testConfigCAD019(),
+				Config: loadUnitTestTerraform("resource_cad019-intune.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					check.That(resourceType+".cad019_intune_enrollment_mfa").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".cad019_intune_enrollment_mfa").Key("display_name").HasValue("CAD019-Intune: Require MFA and set sign-in frequency to every time-v1.0"),
@@ -1094,7 +1102,7 @@ func TestConditionalAccessPolicyResource_CAL001(t *testing.T) {
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testConfigCAL001(),
+				Config: loadUnitTestTerraform("resource_cal001-all.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					check.That(resourceType+".cal001_block_locations").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".cal001_block_locations").Key("display_name").HasValue("CAL001-All: Block specified locations for All users when Browser and Modern Auth Clients-v1.1"),
@@ -1143,7 +1151,7 @@ func TestConditionalAccessPolicyResource_CAL002(t *testing.T) {
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testConfigCAL002(),
+				Config: loadUnitTestTerraform("resource_cal002-rsi.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					check.That(resourceType+".cal002_mfa_registration_trusted_locations").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".cal002_mfa_registration_trusted_locations").Key("display_name").HasValue("CAL002-RSI: Require MFA registration from trusted locations only for All users when Browser and Modern Auth Clients-v1.4"),
@@ -1193,7 +1201,7 @@ func TestConditionalAccessPolicyResource_CAL003(t *testing.T) {
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testConfigCAL003(),
+				Config: loadUnitTestTerraform("resource_cal003-all.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					check.That(resourceType+".cal003_block_service_accounts_untrusted").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".cal003_block_service_accounts_untrusted").Key("display_name").HasValue("CAL003-All: Block Access for Specified Service Accounts except from Provided Trusted Locations when Browser and Modern Auth Clients-v1.1"),
@@ -1244,7 +1252,7 @@ func TestConditionalAccessPolicyResource_CAL004(t *testing.T) {
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testConfigCAL004(),
+				Config: loadUnitTestTerraform("resource_cal004-all.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					check.That(resourceType+".cal004_block_admin_untrusted_locations").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".cal004_block_admin_untrusted_locations").Key("display_name").HasValue("CAL004-All: Block access for Admins from non-trusted locations when Browser and Modern Auth Clients-v1.2"),
@@ -1294,7 +1302,7 @@ func TestConditionalAccessPolicyResource_CAL005(t *testing.T) {
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testConfigCAL005(),
+				Config: loadUnitTestTerraform("resource_cal005-selected.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					check.That(resourceType+".cal005_less_trusted_locations_compliant").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".cal005_less_trusted_locations_compliant").Key("display_name").HasValue("CAL005-Selected: Grant access for All users on less-trusted locations when Browser and Modern Auth Clients and Compliant-v1.0"),
@@ -1345,7 +1353,7 @@ func TestConditionalAccessPolicyResource_CAL006(t *testing.T) {
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testConfigCAL006(),
+				Config: loadUnitTestTerraform("resource_cal006-all.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					check.That(resourceType+".cal006_allow_only_specified_locations").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".cal006_allow_only_specified_locations").Key("display_name").HasValue("CAL006-All: Only Allow Access from specified locations for specific accounts when Browser and Modern Auth Clients-v1.0"),
@@ -1396,7 +1404,7 @@ func TestConditionalAccessPolicyResource_CAP001(t *testing.T) {
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testConfigCAP001(),
+				Config: loadUnitTestTerraform("resource_cap001-all.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					check.That(resourceType+".cap001_block_legacy_auth").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".cap001_block_legacy_auth").Key("display_name").HasValue("CAP001-All: Block Legacy Authentication for All users when OtherClients-v1.0"),
@@ -1440,7 +1448,7 @@ func TestConditionalAccessPolicyResource_CAP002(t *testing.T) {
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testConfigCAP002(),
+				Config: loadUnitTestTerraform("resource_cap002-all.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					check.That(resourceType+".cap002_block_exchange_activesync").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".cap002_block_exchange_activesync").Key("display_name").HasValue("CAP002-All: Block Exchange ActiveSync Clients for All users-v1.1"),
@@ -1484,7 +1492,7 @@ func TestConditionalAccessPolicyResource_CAP003(t *testing.T) {
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testConfigCAP003(),
+				Config: loadUnitTestTerraform("resource_cap003-all.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					check.That(resourceType+".cap003_block_device_code_flow").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".cap003_block_device_code_flow").Key("display_name").HasValue("CAP003-All: Block device code authentication flow-v1.0"),
@@ -1531,7 +1539,7 @@ func TestConditionalAccessPolicyResource_CAP004(t *testing.T) {
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testConfigCAP004(),
+				Config: loadUnitTestTerraform("resource_cap004-all.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					check.That(resourceType+".cap004_block_auth_transfer").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".cap004_block_auth_transfer").Key("display_name").HasValue("CAP004-All: Block authentication transfer-v1.0"),
@@ -1578,7 +1586,7 @@ func TestConditionalAccessPolicyResource_CAU001(t *testing.T) {
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testConfigCAU001(),
+				Config: loadUnitTestTerraform("resource_cau001-all.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					check.That(resourceType+".cau001_guest_mfa").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".cau001_guest_mfa").Key("display_name").HasValue("CAU001-All: Grant Require MFA for guests when Browser and Modern Auth Clients-v1.1"),
@@ -1622,7 +1630,7 @@ func TestConditionalAccessPolicyResource_CAU001A(t *testing.T) {
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testConfigCAU001A(),
+				Config: loadUnitTestTerraform("resource_cau001a-windows_azure_active_directory.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					check.That(resourceType+".cau001a_guest_mfa_azure_ad").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".cau001a_guest_mfa_azure_ad").Key("display_name").HasValue("CAU001A-Windows Azure Active Directory: Grant Require MFA for guests when Browser and Modern Auth Clients-v1.0"),
@@ -1665,7 +1673,7 @@ func TestConditionalAccessPolicyResource_CAU002(t *testing.T) {
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testConfigCAU002(),
+				Config: loadUnitTestTerraform("resource_cau002-all.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					check.That(resourceType+".cau002_all_users_mfa").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".cau002_all_users_mfa").Key("display_name").HasValue("CAU002-All: Grant Require MFA for All users when Browser and Modern Auth Clients-v1.5"),
@@ -1710,7 +1718,7 @@ func TestConditionalAccessPolicyResource_CAU003(t *testing.T) {
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testConfigCAU003(),
+				Config: loadUnitTestTerraform("resource_cau003-selected.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					check.That(resourceType+".cau003_block_unapproved_apps_guests").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".cau003_block_unapproved_apps_guests").Key("display_name").HasValue("CAU003-Selected: Block unapproved apps for guests when Browser and Modern Auth Clients-v1.0"),
@@ -1753,7 +1761,7 @@ func TestConditionalAccessPolicyResource_CAU004(t *testing.T) {
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testConfigCAU004(),
+				Config: loadUnitTestTerraform("resource_cau004-selected.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					check.That(resourceType+".cau004_mdca_route").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".cau004_mdca_route").Key("display_name").HasValue("CAU004-Selected: Session route through MDCA for All users when Browser on Non-Compliant-v1.2"),
@@ -1800,7 +1808,7 @@ func TestConditionalAccessPolicyResource_CAU006(t *testing.T) {
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testConfigCAU006(),
+				Config: loadUnitTestTerraform("resource_cau006-all.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					check.That(resourceType+".cau006_signin_risk_mfa").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".cau006_signin_risk_mfa").Key("display_name").HasValue("CAU006-All: Grant access for Medium and High Risk Sign-in for All Users when Browser and Modern Auth Clients require MFA-v1.4"),
@@ -1855,7 +1863,7 @@ func TestConditionalAccessPolicyResource_CAU007(t *testing.T) {
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testConfigCAU007(),
+				Config: loadUnitTestTerraform("resource_cau007-all.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					check.That(resourceType+".cau007_user_risk_password_change").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".cau007_user_risk_password_change").Key("display_name").HasValue("CAU007-All: Grant access for Medium and High Risk Users for All Users when Browser and Modern Auth Clients require PWD reset-v1.3"),
@@ -1910,7 +1918,7 @@ func TestConditionalAccessPolicyResource_CAU008(t *testing.T) {
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testConfigCAU008(),
+				Config: loadUnitTestTerraform("resource_cau008-all.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					check.That(resourceType+".cau008_admin_phishing_resistant_mfa").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".cau008_admin_phishing_resistant_mfa").Key("display_name").HasValue("CAU008-All: Grant Require Phishing Resistant MFA for Admins when Browser and Modern Auth Clients-v1.4"),
@@ -1953,7 +1961,7 @@ func TestConditionalAccessPolicyResource_CAU009(t *testing.T) {
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testConfigCAU009(),
+				Config: loadUnitTestTerraform("resource_cau009-management.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					check.That(resourceType+".cau009_admin_portals_mfa").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".cau009_admin_portals_mfa").Key("display_name").HasValue("CAU009-Management: Grant Require MFA for Admin Portals for All Users when Browser and Modern Auth Clients-v1.2"),
@@ -1998,7 +2006,7 @@ func TestConditionalAccessPolicyResource_CAU010(t *testing.T) {
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testConfigCAU010(),
+				Config: loadUnitTestTerraform("resource_cau010-all.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					check.That(resourceType+".cau010_terms_of_use").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".cau010_terms_of_use").Key("display_name").HasValue("CAU010-All: Grant Require ToU for All Users when Browser and Modern Auth Clients-v1.2"),
@@ -2042,7 +2050,7 @@ func TestConditionalAccessPolicyResource_CAU011(t *testing.T) {
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testConfigCAU011(),
+				Config: loadUnitTestTerraform("resource_cau011-all.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					check.That(resourceType+".cau011_block_unlicensed").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".cau011_block_unlicensed").Key("display_name").HasValue("CAU011-All: Block access for All users except licensed when Browser and Modern Auth Clients-v1.0"),
@@ -2089,7 +2097,7 @@ func TestConditionalAccessPolicyResource_CAU012(t *testing.T) {
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testConfigCAU012(),
+				Config: loadUnitTestTerraform("resource_cau012-rsi.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					check.That(resourceType+".cau012_security_info_registration_tap").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".cau012_security_info_registration_tap").Key("display_name").HasValue("CAU012-RSI: Combined Security Info Registration with TAP-v1.1"),
@@ -2144,7 +2152,7 @@ func TestConditionalAccessPolicyResource_CAU013(t *testing.T) {
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testConfigCAU013(),
+				Config: loadUnitTestTerraform("resource_cau013-all.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					check.That(resourceType+".cau013_all_users_phishing_resistant_mfa").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".cau013_all_users_phishing_resistant_mfa").Key("display_name").HasValue("CAU013-All: Grant Require phishing resistant MFA for All users when Browser and Modern Auth Clients-v1.0"),
@@ -2187,7 +2195,7 @@ func TestConditionalAccessPolicyResource_CAU014(t *testing.T) {
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testConfigCAU014(),
+				Config: loadUnitTestTerraform("resource_cau014-all.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					check.That(resourceType+".cau014_block_managed_identity_risk").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".cau014_block_managed_identity_risk").Key("display_name").HasValue("CAU014-All: Block Managed Identity when Sign in Risk is Medium or High-v1.0"),
@@ -2240,7 +2248,7 @@ func TestConditionalAccessPolicyResource_CAU015(t *testing.T) {
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testConfigCAU015(),
+				Config: loadUnitTestTerraform("resource_cau015-all.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					check.That(resourceType+".cau015_block_high_signin_risk").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".cau015_block_high_signin_risk").Key("display_name").HasValue("CAU015-All: Block access for High Risk Sign-in for All Users when Browser and Modern Auth Clients-v1.0"),
@@ -2288,7 +2296,7 @@ func TestConditionalAccessPolicyResource_CAU016(t *testing.T) {
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testConfigCAU016(),
+				Config: loadUnitTestTerraform("resource_cau016-all.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					check.That(resourceType+".cau016_block_high_user_risk").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".cau016_block_high_user_risk").Key("display_name").HasValue("CAU016-All: Block access for High Risk Users for All Users when Browser and Modern Auth Clients-v1.0"),
@@ -2336,7 +2344,7 @@ func TestConditionalAccessPolicyResource_CAU017(t *testing.T) {
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testConfigCAU017(),
+				Config: loadUnitTestTerraform("resource_cau017-all.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					check.That(resourceType+".cau017_admin_signin_frequency").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".cau017_admin_signin_frequency").Key("display_name").HasValue("CAU017-All: Session set Sign-in Frequency for Admins when Browser-v1.0"),
@@ -2384,7 +2392,7 @@ func TestConditionalAccessPolicyResource_CAU018(t *testing.T) {
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testConfigCAU018(),
+				Config: loadUnitTestTerraform("resource_cau018-all.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					check.That(resourceType+".cau018_admin_disable_browser_persistence").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".cau018_admin_disable_browser_persistence").Key("display_name").HasValue("CAU018-All: Session disable browser persistence for Admins when Browser-v1.0"),
@@ -2429,7 +2437,7 @@ func TestConditionalAccessPolicyResource_CAU019(t *testing.T) {
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testConfigCAU019(),
+				Config: loadUnitTestTerraform("resource_cau019-selected.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					check.That(resourceType+".cau019_allow_only_approved_apps_guests").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".cau019_allow_only_approved_apps_guests").Key("display_name").HasValue("CAU019-Selected: Only allow approved apps for guests when Browser and Modern Auth Clients-v1.0"),
@@ -2466,389 +2474,4 @@ func TestConditionalAccessPolicyResource_CAU019(t *testing.T) {
 			},
 		},
 	})
-}
-
-// Configuration helper functions
-func testConfigCAD001() string {
-	unitTestConfig, err := helpers.ParseHCLFile("tests/terraform/unit/resource_cad001-o365.tf")
-	if err != nil {
-		panic("failed to load CAD001 config: " + err.Error())
-	}
-	return unitTestConfig
-}
-
-func testConfigCAD002() string {
-	unitTestConfig, err := helpers.ParseHCLFile("tests/terraform/unit/resource_cad002-o365.tf")
-	if err != nil {
-		panic("failed to load CAD002 config: " + err.Error())
-	}
-	return unitTestConfig
-}
-
-func testConfigCAD003() string {
-	unitTestConfig, err := helpers.ParseHCLFile("tests/terraform/unit/resource_cad003-o365.tf")
-	if err != nil {
-		panic("failed to load CAD003 config: " + err.Error())
-	}
-	return unitTestConfig
-}
-
-func testConfigCAD004() string {
-	unitTestConfig, err := helpers.ParseHCLFile("tests/terraform/unit/resource_cad004-o365.tf")
-	if err != nil {
-		panic("failed to load CAD004 config: " + err.Error())
-	}
-	return unitTestConfig
-}
-
-func testConfigCAD005() string {
-	unitTestConfig, err := helpers.ParseHCLFile("tests/terraform/unit/resource_cad005-o365.tf")
-	if err != nil {
-		panic("failed to load CAD005 config: " + err.Error())
-	}
-	return unitTestConfig
-}
-
-func testConfigCAD006() string {
-	unitTestConfig, err := helpers.ParseHCLFile("tests/terraform/unit/resource_cad006-o365.tf")
-	if err != nil {
-		panic("failed to load CAD006 config: " + err.Error())
-	}
-	return unitTestConfig
-}
-
-func testConfigCAD007() string {
-	unitTestConfig, err := helpers.ParseHCLFile("tests/terraform/unit/resource_cad007-o365.tf")
-	if err != nil {
-		panic("failed to load CAD007 config: " + err.Error())
-	}
-	return unitTestConfig
-}
-
-func testConfigCAD008() string {
-	unitTestConfig, err := helpers.ParseHCLFile("tests/terraform/unit/resource_cad008-all.tf")
-	if err != nil {
-		panic("failed to load CAD008 config: " + err.Error())
-	}
-	return unitTestConfig
-}
-
-func testConfigCAD009() string {
-	unitTestConfig, err := helpers.ParseHCLFile("tests/terraform/unit/resource_cad009-all.tf")
-	if err != nil {
-		panic("failed to load CAD009 config: " + err.Error())
-	}
-	return unitTestConfig
-}
-
-func testConfigCAD010() string {
-	unitTestConfig, err := helpers.ParseHCLFile("tests/terraform/unit/resource_cad010-rjd.tf")
-	if err != nil {
-		panic("failed to load CAD010 config: " + err.Error())
-	}
-	return unitTestConfig
-}
-
-func testConfigCAD011() string {
-	unitTestConfig, err := helpers.ParseHCLFile("tests/terraform/unit/resource_cad011-o365.tf")
-	if err != nil {
-		panic("failed to load CAD011 config: " + err.Error())
-	}
-	return unitTestConfig
-}
-
-func testConfigCAD012() string {
-	unitTestConfig, err := helpers.ParseHCLFile("tests/terraform/unit/resource_cad012-all.tf")
-	if err != nil {
-		panic("failed to load CAD012 config: " + err.Error())
-	}
-	return unitTestConfig
-}
-
-func testConfigCAD013() string {
-	unitTestConfig, err := helpers.ParseHCLFile("tests/terraform/unit/resource_cad013-selected.tf")
-	if err != nil {
-		panic("failed to load CAD013 config: " + err.Error())
-	}
-	return unitTestConfig
-}
-
-func testConfigCAD014() string {
-	unitTestConfig, err := helpers.ParseHCLFile("tests/terraform/unit/resource_cad014-o365.tf")
-	if err != nil {
-		panic("failed to load CAD014 config: " + err.Error())
-	}
-	return unitTestConfig
-}
-
-func testConfigCAD015() string {
-	unitTestConfig, err := helpers.ParseHCLFile("tests/terraform/unit/resource_cad015-all.tf")
-	if err != nil {
-		panic("failed to load CAD015 config: " + err.Error())
-	}
-	return unitTestConfig
-}
-
-func testConfigCAD016() string {
-	unitTestConfig, err := helpers.ParseHCLFile("tests/terraform/unit/resource_cad016-exo_spo_cloudpc.tf")
-	if err != nil {
-		panic("failed to load CAD016 config: " + err.Error())
-	}
-	return unitTestConfig
-}
-
-func testConfigCAD017() string {
-	unitTestConfig, err := helpers.ParseHCLFile("tests/terraform/unit/resource_cad017-selected.tf")
-	if err != nil {
-		panic("failed to load CAD017 config: " + err.Error())
-	}
-	return unitTestConfig
-}
-
-func testConfigCAD018() string {
-	unitTestConfig, err := helpers.ParseHCLFile("tests/terraform/unit/resource_cad018-cloudpc.tf")
-	if err != nil {
-		panic("failed to load CAD018 config: " + err.Error())
-	}
-	return unitTestConfig
-}
-
-func testConfigCAD019() string {
-	unitTestConfig, err := helpers.ParseHCLFile("tests/terraform/unit/resource_cad019-intune.tf")
-	if err != nil {
-		panic("failed to load CAD019 config: " + err.Error())
-	}
-	return unitTestConfig
-}
-
-func testConfigCAL001() string {
-	unitTestConfig, err := helpers.ParseHCLFile("tests/terraform/unit/resource_cal001-all.tf")
-	if err != nil {
-		panic("failed to load CAL001 config: " + err.Error())
-	}
-	return unitTestConfig
-}
-
-func testConfigCAL002() string {
-	unitTestConfig, err := helpers.ParseHCLFile("tests/terraform/unit/resource_cal002-rsi.tf")
-	if err != nil {
-		panic("failed to load CAL002 config: " + err.Error())
-	}
-	return unitTestConfig
-}
-
-func testConfigCAL003() string {
-	unitTestConfig, err := helpers.ParseHCLFile("tests/terraform/unit/resource_cal003-all.tf")
-	if err != nil {
-		panic("failed to load CAL003 config: " + err.Error())
-	}
-	return unitTestConfig
-}
-
-func testConfigCAL004() string {
-	unitTestConfig, err := helpers.ParseHCLFile("tests/terraform/unit/resource_cal004-all.tf")
-	if err != nil {
-		panic("failed to load CAL004 config: " + err.Error())
-	}
-	return unitTestConfig
-}
-
-func testConfigCAL005() string {
-	unitTestConfig, err := helpers.ParseHCLFile("tests/terraform/unit/resource_cal005-selected.tf")
-	if err != nil {
-		panic("failed to load CAL005 config: " + err.Error())
-	}
-	return unitTestConfig
-}
-
-func testConfigCAL006() string {
-	unitTestConfig, err := helpers.ParseHCLFile("tests/terraform/unit/resource_cal006-all.tf")
-	if err != nil {
-		panic("failed to load CAL006 config: " + err.Error())
-	}
-	return unitTestConfig
-}
-
-func testConfigCAP001() string {
-	unitTestConfig, err := helpers.ParseHCLFile("tests/terraform/unit/resource_cap001-all.tf")
-	if err != nil {
-		panic("failed to load CAP001 config: " + err.Error())
-	}
-	return unitTestConfig
-}
-
-func testConfigCAP002() string {
-	unitTestConfig, err := helpers.ParseHCLFile("tests/terraform/unit/resource_cap002-all.tf")
-	if err != nil {
-		panic("failed to load CAP002 config: " + err.Error())
-	}
-	return unitTestConfig
-}
-
-func testConfigCAP003() string {
-	unitTestConfig, err := helpers.ParseHCLFile("tests/terraform/unit/resource_cap003-all.tf")
-	if err != nil {
-		panic("failed to load CAP003 config: " + err.Error())
-	}
-	return unitTestConfig
-}
-
-func testConfigCAP004() string {
-	unitTestConfig, err := helpers.ParseHCLFile("tests/terraform/unit/resource_cap004-all.tf")
-	if err != nil {
-		panic("failed to load CAP004 config: " + err.Error())
-	}
-	return unitTestConfig
-}
-
-func testConfigCAU001() string {
-	unitTestConfig, err := helpers.ParseHCLFile("tests/terraform/unit/resource_cau001-all.tf")
-	if err != nil {
-		panic("failed to load CAU001 config: " + err.Error())
-	}
-	return unitTestConfig
-}
-
-func testConfigCAU001A() string {
-	unitTestConfig, err := helpers.ParseHCLFile("tests/terraform/unit/resource_cau001a-windows_azure_active_directory.tf")
-	if err != nil {
-		panic("failed to load CAU001A config: " + err.Error())
-	}
-	return unitTestConfig
-}
-
-func testConfigCAU002() string {
-	unitTestConfig, err := helpers.ParseHCLFile("tests/terraform/unit/resource_cau002-all.tf")
-	if err != nil {
-		panic("failed to load CAU002 config: " + err.Error())
-	}
-	return unitTestConfig
-}
-
-func testConfigCAU003() string {
-	unitTestConfig, err := helpers.ParseHCLFile("tests/terraform/unit/resource_cau003-selected.tf")
-	if err != nil {
-		panic("failed to load CAU003 config: " + err.Error())
-	}
-	return unitTestConfig
-}
-
-func testConfigCAU004() string {
-	unitTestConfig, err := helpers.ParseHCLFile("tests/terraform/unit/resource_cau004-selected.tf")
-	if err != nil {
-		panic("failed to load CAU004 config: " + err.Error())
-	}
-	return unitTestConfig
-}
-
-func testConfigCAU006() string {
-	unitTestConfig, err := helpers.ParseHCLFile("tests/terraform/unit/resource_cau006-all.tf")
-	if err != nil {
-		panic("failed to load CAU006 config: " + err.Error())
-	}
-	return unitTestConfig
-}
-
-func testConfigCAU007() string {
-	unitTestConfig, err := helpers.ParseHCLFile("tests/terraform/unit/resource_cau007-all.tf")
-	if err != nil {
-		panic("failed to load CAU007 config: " + err.Error())
-	}
-	return unitTestConfig
-}
-
-func testConfigCAU008() string {
-	unitTestConfig, err := helpers.ParseHCLFile("tests/terraform/unit/resource_cau008-all.tf")
-	if err != nil {
-		panic("failed to load CAU008 config: " + err.Error())
-	}
-	return unitTestConfig
-}
-
-func testConfigCAU009() string {
-	unitTestConfig, err := helpers.ParseHCLFile("tests/terraform/unit/resource_cau009-management.tf")
-	if err != nil {
-		panic("failed to load CAU009 config: " + err.Error())
-	}
-	return unitTestConfig
-}
-
-func testConfigCAU010() string {
-	unitTestConfig, err := helpers.ParseHCLFile("tests/terraform/unit/resource_cau010-all.tf")
-	if err != nil {
-		panic("failed to load CAU010 config: " + err.Error())
-	}
-	return unitTestConfig
-}
-
-func testConfigCAU011() string {
-	unitTestConfig, err := helpers.ParseHCLFile("tests/terraform/unit/resource_cau011-all.tf")
-	if err != nil {
-		panic("failed to load CAU011 config: " + err.Error())
-	}
-	return unitTestConfig
-}
-
-func testConfigCAU012() string {
-	unitTestConfig, err := helpers.ParseHCLFile("tests/terraform/unit/resource_cau012-rsi.tf")
-	if err != nil {
-		panic("failed to load CAU012 config: " + err.Error())
-	}
-	return unitTestConfig
-}
-
-func testConfigCAU013() string {
-	unitTestConfig, err := helpers.ParseHCLFile("tests/terraform/unit/resource_cau013-all.tf")
-	if err != nil {
-		panic("failed to load CAU013 config: " + err.Error())
-	}
-	return unitTestConfig
-}
-
-func testConfigCAU014() string {
-	unitTestConfig, err := helpers.ParseHCLFile("tests/terraform/unit/resource_cau014-all.tf")
-	if err != nil {
-		panic("failed to load CAU014 config: " + err.Error())
-	}
-	return unitTestConfig
-}
-
-func testConfigCAU015() string {
-	unitTestConfig, err := helpers.ParseHCLFile("tests/terraform/unit/resource_cau015-all.tf")
-	if err != nil {
-		panic("failed to load CAU015 config: " + err.Error())
-	}
-	return unitTestConfig
-}
-
-func testConfigCAU016() string {
-	unitTestConfig, err := helpers.ParseHCLFile("tests/terraform/unit/resource_cau016-all.tf")
-	if err != nil {
-		panic("failed to load CAU016 config: " + err.Error())
-	}
-	return unitTestConfig
-}
-
-func testConfigCAU017() string {
-	unitTestConfig, err := helpers.ParseHCLFile("tests/terraform/unit/resource_cau017-all.tf")
-	if err != nil {
-		panic("failed to load CAU017 config: " + err.Error())
-	}
-	return unitTestConfig
-}
-
-func testConfigCAU018() string {
-	unitTestConfig, err := helpers.ParseHCLFile("tests/terraform/unit/resource_cau018-all.tf")
-	if err != nil {
-		panic("failed to load CAU018 config: " + err.Error())
-	}
-	return unitTestConfig
-}
-
-func testConfigCAU019() string {
-	unitTestConfig, err := helpers.ParseHCLFile("tests/terraform/unit/resource_cau019-selected.tf")
-	if err != nil {
-		panic("failed to load CAU019 config: " + err.Error())
-	}
-	return unitTestConfig
 }
