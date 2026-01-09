@@ -1,0 +1,16 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/deviceShellScripts/$entity",
+  "@odata.type": "#microsoft.graph.deviceShellScript",
+  "id": "00000000-0000-0000-0000-000000000001",
+  "displayName": "unit-test-minimal-macos-script",
+  "description": "",
+  "scriptContent": "IyEvYmluL2Jhc2gKZWNobyAnTWluIFRlc3QnCmV4aXQgMA==",
+  "fileName": "minimal_test.sh",
+  "runAsAccount": "system",
+  "roleScopeTagIds": ["0"],
+  "executionFrequency": null,
+  "retryCount": 0,
+  "createdDateTime": "2024-01-08T00:00:00Z",
+  "lastModifiedDateTime": "2024-01-08T00:00:00Z"
+}
+

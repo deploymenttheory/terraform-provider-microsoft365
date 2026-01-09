@@ -85,17 +85,17 @@ resource "microsoft365_graph_beta_device_management_group_policy_uploaded_defini
 
 - `content` (String) The content of the group policy uploaded definition file. Request is sent as raw bytes. This is a write-only field and will not be stored in state.
 - `file_name` (String) The file name of the group policy uploaded definition file.
+- `group_policy_uploaded_language_files` (Attributes Set) The language file(s) associated with the group policy uploaded definition file. (see [below for nested schema](#nestedatt--group_policy_uploaded_language_files))
 
 ### Optional
 
+- `default_language_code` (String) The default language code of the group policy uploaded definition file. Must be in the format 'xx-YY' (e.g., 'en-US', 'fr-FR').
 - `description` (String) Optional description of the resource. Maximum length is 1500 characters.
 - `display_name` (String) The display name of the group policy uploaded definition file.
-- `group_policy_uploaded_language_files` (Attributes Set) The language files associated with the group policy uploaded definition file. (see [below for nested schema](#nestedatt--group_policy_uploaded_language_files))
 - `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))
 
 ### Read-Only
 
-- `default_language_code` (String) The default language code of the group policy uploaded definition file.
 - `id` (String) The ID of the group policy uploaded definition file.
 - `language_codes` (List of String) The language codes supported by the group policy uploaded definition file.
 - `last_modified_date_time` (String) The date and time when the group policy uploaded definition file was last modified.
@@ -113,7 +113,7 @@ Required:
 
 - `content` (String) The content of the group policy uploaded language file. Request is sent as raw bytes. This is a write-only field and will not be stored in state.
 - `file_name` (String) The file name of the group policy uploaded language file.
-- `language_code` (String) The language code of the group policy uploaded language file.
+- `language_code` (String) The language code of the group policy uploaded language file. Must be in the format 'xx-YY' (e.g., 'en-US', 'fr-FR').
 
 
 <a id="nestedatt--timeouts"></a>

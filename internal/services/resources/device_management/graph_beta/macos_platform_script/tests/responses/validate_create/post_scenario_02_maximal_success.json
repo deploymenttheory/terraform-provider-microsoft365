@@ -1,0 +1,16 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/deviceShellScripts/$entity",
+  "@odata.type": "#microsoft.graph.deviceShellScript",
+  "id": "00000000-0000-0000-0000-000000000002",
+  "displayName": "unit-test-maximal-macos-script",
+  "description": "Comprehensive macOS platform script with all features enabled for unit testing",
+  "scriptContent": "IyEvYmluL2Jhc2gKZWNobyAnTWF4IFRlc3QnCmV4aXQgMA==",
+  "fileName": "maximal_test.sh",
+  "runAsAccount": "user",
+  "roleScopeTagIds": ["0", "1", "2"],
+  "blockExecutionNotifications": true,
+  "executionFrequency": "P1D",
+  "retryCount": 3,
+  "createdDateTime": "2024-01-08T00:00:00Z",
+  "lastModifiedDateTime": "2024-01-08T00:00:00Z"
+}
