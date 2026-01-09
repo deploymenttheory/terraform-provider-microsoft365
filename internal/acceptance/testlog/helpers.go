@@ -45,14 +45,23 @@ func deriveResourceName(resourceType string) string {
 
 	// Known multi-word services to skip
 	knownServices := map[string]int{
-		"device_and_app_management": 4,
-		"identity_and_access":       3,
-		"device_management":         2,
-		"windows_365":               2,
-		"m365_admin":                2,
-		"groups":                    1,
-		"users":                     1,
-		"applications":              1,
+		"agents":                            1,
+		"applications":                      1,
+		"backup_storage":                    2,
+		"copilot":                           1,
+		"device_and_app_management":         4,
+		"device_management":                 2,
+		"education":                         1,
+		"groups":                            1,
+		"identity_and_access":               3,
+		"industry_data_etl":                 3,
+		"m365_admin":                        2,
+		"people_and_workplace_intelligence": 4,
+		"security":                          1,
+		"sites_and_lists":                   3,
+		"teamwork_and_communications":       3,
+		"users":                             1,
+		"windows_365":                       2,
 	}
 
 	// Check for known services
