@@ -52,7 +52,7 @@ func TestAccUserLicenseAssignmentResource_Lifecycle(t *testing.T) {
 					},
 					check.That(resourceType+".minimal").ExistsInGraph(testResource),
 					check.That(resourceType+".minimal").Key("id").Exists(),
-					check.That(resourceType+".minimal").Key("sku_id").HasValue("f30db892-07e9-47e9-837c-80727f46fd3d"),
+					check.That(resourceType+".minimal").Key("sku_id").HasValue("a403ebcc-fae0-4ca2-8c8c-7a907fd6c235"),
 				),
 			},
 			{
@@ -96,7 +96,7 @@ func TestAccUserLicenseAssignmentResource_Maximal(t *testing.T) {
 					},
 					check.That(resourceType+".dependancy").ExistsInGraph(testResource),
 					check.That(resourceType+".dependancy").Key("id").Exists(),
-					check.That(resourceType+".dependancy").Key("sku_id").HasValue("f30db892-07e9-47e9-837c-80727f46fd3d"),
+					check.That(resourceType+".dependancy").Key("sku_id").HasValue("a403ebcc-fae0-4ca2-8c8c-7a907fd6c235"),
 				),
 			},
 			{
