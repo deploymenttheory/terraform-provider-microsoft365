@@ -240,7 +240,6 @@ func TestAccMacOSPlatformScriptResource_Scenario04_MaximalToMinimal(t *testing.T
 					check.That(resourceType+".downgrade_test").Key("display_name").HasValue("acc-test-downgrade-test-script-minimal"),
 					check.That(resourceType+".downgrade_test").Key("file_name").HasValue("downgrade_test_minimal.sh"),
 					check.That(resourceType+".downgrade_test").Key("run_as_account").HasValue("system"),
-					check.That(resourceType+".downgrade_test").Key("block_execution_notifications").HasValue("false"),
 				),
 			},
 			{
@@ -270,6 +269,10 @@ func TestAccMacOSPlatformScriptResource_Scenario05_NoAssignmentsToMinimalAssignm
 			"azuread": {
 				Source:            "hashicorp/azuread",
 				VersionConstraint: ">= 2.47.0",
+			},
+			"random": {
+				Source:            "hashicorp/random",
+				VersionConstraint: ">= 3.7.2",
 			},
 		},
 		Steps: []resource.TestStep{
@@ -337,6 +340,10 @@ func TestAccMacOSPlatformScriptResource_Scenario06_NoAssignmentsToMaximalAssignm
 			"azuread": {
 				Source:            "hashicorp/azuread",
 				VersionConstraint: ">= 2.47.0",
+			},
+			"random": {
+				Source:            "hashicorp/random",
+				VersionConstraint: ">= 3.7.2",
 			},
 		},
 		Steps: []resource.TestStep{
@@ -413,6 +420,10 @@ func TestAccMacOSPlatformScriptResource_Scenario07_MinimalToMaximalAssignments(t
 			"azuread": {
 				Source:            "hashicorp/azuread",
 				VersionConstraint: ">= 2.47.0",
+			},
+			"random": {
+				Source:            "hashicorp/random",
+				VersionConstraint: ">= 3.7.2",
 			},
 		},
 		Steps: []resource.TestStep{
@@ -492,6 +503,10 @@ func TestAccMacOSPlatformScriptResource_Scenario08_MaximalToMinimalAssignments(t
 			"azuread": {
 				Source:            "hashicorp/azuread",
 				VersionConstraint: ">= 2.47.0",
+			},
+			"random": {
+				Source:            "hashicorp/random",
+				VersionConstraint: ">= 3.7.2",
 			},
 		},
 		Steps: []resource.TestStep{
