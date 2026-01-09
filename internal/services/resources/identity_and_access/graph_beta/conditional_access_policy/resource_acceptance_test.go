@@ -1989,10 +1989,6 @@ func TestAccConditionalAccessPolicyResource_CAU003(t *testing.T) {
 				Source:            "hashicorp/random",
 				VersionConstraint: ">= 3.7.2",
 			},
-			"azuread": {
-				Source:            "hashicorp/azuread",
-				VersionConstraint: ">= 2.47.0",
-			},
 		},
 		Steps: []resource.TestStep{
 			{

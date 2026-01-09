@@ -27,10 +27,7 @@ func TestAccManagedDeviceDataSource_All(t *testing.T) {
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
 		ExternalProviders: map[string]resource.ExternalProvider{
-			"azuread": {
-				Source:            "hashicorp/azuread",
-				VersionConstraint: ">= 2.47.0",
-			},
+
 			"random": {
 				Source:            "hashicorp/random",
 				VersionConstraint: ">= 3.7.2",
@@ -54,10 +51,7 @@ func TestAccManagedDeviceDataSource_ByDeviceName(t *testing.T) {
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
 		ExternalProviders: map[string]resource.ExternalProvider{
-			"azuread": {
-				Source:            "hashicorp/azuread",
-				VersionConstraint: ">= 2.47.0",
-			},
+
 			"random": {
 				Source:            "hashicorp/random",
 				VersionConstraint: ">= 3.7.2",
@@ -82,10 +76,7 @@ func TestAccManagedDeviceDataSource_ODataFilter(t *testing.T) {
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
 		ExternalProviders: map[string]resource.ExternalProvider{
-			"azuread": {
-				Source:            "hashicorp/azuread",
-				VersionConstraint: ">= 2.47.0",
-			},
+
 			"random": {
 				Source:            "hashicorp/random",
 				VersionConstraint: ">= 3.7.2",

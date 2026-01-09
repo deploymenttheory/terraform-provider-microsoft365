@@ -19,10 +19,7 @@ func TestAccWindowsAutopilotDeploymentProfileResource_SelfDeployingOSDefaultLoca
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckWindowsAutopilotDeploymentProfileDestroy,
 		ExternalProviders: map[string]resource.ExternalProvider{
-			"azuread": {
-				Source:            "hashicorp/azuread",
-				VersionConstraint: ">= 2.47.0",
-			},
+
 			"random": {
 				Source:            "hashicorp/random",
 				VersionConstraint: ">= 3.7.2",
@@ -69,10 +66,7 @@ func TestAccWindowsAutopilotDeploymentProfileResource_UserDrivenHybridDomainJoin
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckWindowsAutopilotDeploymentProfileDestroy,
 		ExternalProviders: map[string]resource.ExternalProvider{
-			"azuread": {
-				Source:            "hashicorp/azuread",
-				VersionConstraint: ">= 2.47.0",
-			},
+
 			"random": {
 				Source:            "hashicorp/random",
 				VersionConstraint: ">= 3.7.2",
@@ -103,10 +97,7 @@ func TestAccWindowsAutopilotDeploymentProfileResource_UserDrivenWithGroupAssignm
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckWindowsAutopilotDeploymentProfileDestroy,
 		ExternalProviders: map[string]resource.ExternalProvider{
-			"azuread": {
-				Source:            "hashicorp/azuread",
-				VersionConstraint: ">= 2.47.0",
-			},
+
 			"random": {
 				Source:            "hashicorp/random",
 				VersionConstraint: ">= 3.7.2",
@@ -136,10 +127,7 @@ func TestAccWindowsAutopilotDeploymentProfileResource_HololensWithAllDeviceAssig
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckWindowsAutopilotDeploymentProfileDestroy,
 		ExternalProviders: map[string]resource.ExternalProvider{
-			"azuread": {
-				Source:            "hashicorp/azuread",
-				VersionConstraint: ">= 2.47.0",
-			},
+
 			"random": {
 				Source:            "hashicorp/random",
 				VersionConstraint: ">= 3.7.2",
