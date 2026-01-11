@@ -6,7 +6,6 @@ import (
 	"fmt"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
-	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
@@ -25,14 +24,14 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *IpApplicationS
 	}
 
 	tflog.Debug(ctx, "Starting to map remote state to Terraform state", map[string]any{
-		"resourceId": types.StringValue(ipApplicationData.ID),
+		"resourceId": ipApplicationData.ID,
 	})
 
-	data.ID = types.StringValue(ipApplicationData.ID)
-	data.DestinationHost = types.StringValue(ipApplicationData.DestinationHost)
-	data.DestinationType = types.StringValue(ipApplicationData.DestinationType)
+	data.ID = convert.GraphToFrameworkString(&ipApplicationData.ID)
+	data.DestinationHost = convert.GraphToFrameworkString(&ipApplicationData.DestinationHost)
+	data.DestinationType = convert.GraphToFrameworkString(&ipApplicationData.DestinationType)
 	data.Ports = convert.GraphToFrameworkStringSet(ctx, ipApplicationData.Ports)
-	data.Protocol = types.StringValue(ipApplicationData.Protocol)
+	data.Protocol = convert.GraphToFrameworkString(&ipApplicationData.Protocol)
 
 	tflog.Debug(ctx, fmt.Sprintf("Finished mapping resource %s with id %s", ResourceName, data.ID.ValueString()))
 }
