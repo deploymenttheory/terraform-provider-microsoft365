@@ -16,6 +16,8 @@ import (
 	"github.com/microsoftgraph/msgraph-beta-sdk-go/models/odataerrors"
 )
 
+// Request applicationSegments using custom request (SDK doesn't support the cast endpoint)
+
 func (r *IpApplicationSegmentResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var object IpApplicationSegmentResourceModel
 
@@ -112,25 +114,23 @@ func (r *IpApplicationSegmentResource) Read(ctx context.Context, req resource.Re
 	defer cancel()
 
 	endpoint := fmt.Sprintf(
-		"applications/%s/onPremisesPublishing/segmentsConfiguration/microsoft.graph.ipSegmentConfiguration/applicationSegments",
+		"/applications/%s/onPremisesPublishing/segmentsConfiguration/microsoft.graph.ipSegmentConfiguration/applicationSegments/%s",
 		object.ApplicationID.ValueString(),
+		object.ID.ValueString(),
 	)
 
 	config := customrequests.GetRequestConfig{
-		APIVersion: customrequests.GraphAPIBeta,
-		Endpoint:   endpoint,
-		ResourceID: object.ID.ValueString(),
+		APIVersion:        customrequests.GraphAPIBeta,
+		Endpoint:          endpoint,
+		ResourceIDPattern: "",
+		ResourceID:        "",
+		EndpointSuffix:    "",
 	}
 
-	errorMapping := abstractions.ErrorMappings{
-		"XXX": odataerrors.CreateODataErrorFromDiscriminatorValue,
-	}
-	ipApplicationSegment, err := customrequests.GetRequest(
+	ipApplicationSegment, err := customrequests.GetRequestByResourceId(
 		ctx,
 		r.client.GetAdapter(),
 		config,
-		graphmodels.CreateIpApplicationSegmentFromDiscriminatorValue,
-		errorMapping,
 	)
 
 	if err != nil {
@@ -138,7 +138,7 @@ func (r *IpApplicationSegmentResource) Read(ctx context.Context, req resource.Re
 		return
 	}
 
-	MapRemoteResourceStateToTerraform(ctx, &object, ipApplicationSegment.(graphmodels.IpApplicationSegmentable))
+	MapRemoteResourceStateToTerraform(ctx, &object, ipApplicationSegment)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
@@ -182,16 +182,18 @@ func (r *IpApplicationSegmentResource) Update(ctx context.Context, req resource.
 	}
 
 	endpoint := fmt.Sprintf(
-		"applications/%s/onPremisesPublishing/segmentsConfiguration/microsoft.graph.ipSegmentConfiguration/applicationSegments",
+		"/applications/%s/onPremisesPublishing/segmentsConfiguration/microsoft.graph.ipSegmentConfiguration/applicationSegments/%s",
 		state.ApplicationID.ValueString(),
+		state.ID.ValueString(),
 	)
 
 	config := customrequests.PatchRequestConfig{
 		APIVersion:        customrequests.GraphAPIBeta,
 		Endpoint:          endpoint,
-		ResourceID:        state.ID.ValueString(),
-		ResourceIDPattern: "/{id}",
 		RequestBody:       requestBody,
+		ResourceID:        "",
+		ResourceIDPattern: "",
+		EndpointSuffix:    "",
 	}
 
 	if err := customrequests.PatchRequestByResourceId(
@@ -239,15 +241,17 @@ func (r *IpApplicationSegmentResource) Delete(ctx context.Context, req resource.
 	defer cancel()
 
 	endpoint := fmt.Sprintf(
-		"applications/%s/onPremisesPublishing/segmentsConfiguration/microsoft.graph.ipSegmentConfiguration/applicationSegments",
+		"/applications/%s/onPremisesPublishing/segmentsConfiguration/microsoft.graph.ipSegmentConfiguration/applicationSegments/%s",
 		data.ApplicationID.ValueString(),
+		data.ID.ValueString(),
 	)
 
 	config := customrequests.DeleteRequestConfig{
 		APIVersion:        customrequests.GraphAPIBeta,
 		Endpoint:          endpoint,
-		ResourceID:        data.ID.ValueString(),
-		ResourceIDPattern: "/{id}",
+		ResourceID:        "",
+		ResourceIDPattern: "",
+		EndpointSuffix:    "",
 	}
 
 	if err := customrequests.DeleteRequestByResourceId(ctx, r.client.GetAdapter(), config); err != nil {
