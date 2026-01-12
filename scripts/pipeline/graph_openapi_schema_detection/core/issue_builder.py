@@ -79,7 +79,7 @@ class IssueBuilder:
                 "",
             ])
             for schema in breaking_schemas:
-                body_parts.extend(self._format_schema_change(schema, show_all=True))
+                body_parts.extend(self._format_schema_change(schema))
         
         if non_breaking_schemas:
             body_parts.extend([
@@ -88,7 +88,7 @@ class IssueBuilder:
                 "",
             ])
             for schema in non_breaking_schemas:
-                body_parts.extend(self._format_schema_change(schema, show_all=True))
+                body_parts.extend(self._format_schema_change(schema))
         
         body_parts.extend([
             "",
@@ -115,12 +115,11 @@ class IssueBuilder:
         
         return "\n".join(body_parts)
     
-    def _format_schema_change(self, schema: 'SchemaChange', show_all: bool = True) -> List[str]:
+    def _format_schema_change(self, schema: 'SchemaChange') -> List[str]:
         """Format a single schema change.
         
         Args:
             schema: Schema change
-            show_all: Not used anymore, kept for compatibility
             
         Returns:
             List of markdown lines
@@ -130,8 +129,27 @@ class IssueBuilder:
             "",
             f"**Summary:** {schema.change_summary}",
             f"**File:** `{schema.file_path}` _(for reference)_",
-            "",
         ]
+        
+        # Show parent schemas (inheritance)
+        if schema.parent_schemas:
+            parent_list = ', '.join(f'`{p}`' for p in schema.parent_schemas)
+            lines.append(f"**Inherits From:** {parent_list}")
+        
+        # Show discriminator for polymorphic types
+        if schema.discriminator_value:
+            disc_prop = schema.discriminator_property or '@odata.type'
+            lines.append(f"**Polymorphic Type:** `{disc_prop}` = `{schema.discriminator_value}`")
+        
+        # Show schema-level description if available
+        if schema.description and schema.description.strip():
+            # Truncate long descriptions
+            desc = schema.description.strip()
+            if len(desc) > 200:
+                desc = desc[:197] + "..."
+            lines.append(f"**Description:** {desc}")
+        
+        lines.append("")
         
         # Added properties
         if schema.added_properties:
@@ -146,6 +164,10 @@ class IssueBuilder:
                 lines.append(f"- **Type:** `{prop.new_type}`{nullable_marker}")
                 if req_marker:
                     lines.append(f"- {req_marker}")
+                
+                # Navigation property indicator (appears right after type)
+                if prop.is_navigation_property:
+                    lines.append(f"- **Relationship:** 🔗 Navigation property (references related entity)")
                 
                 # Description (always show, even if empty)
                 if prop.description and prop.description.strip():
@@ -218,6 +240,18 @@ class IssueBuilder:
                 lines.append(f"- **Type:** `{prop.old_type}`")
                 if req_marker:
                     lines.append(f"- {req_marker}")
+                
+                # Navigation property indicator
+                if prop.is_navigation_property:
+                    lines.append(f"- **Was Relationship:** 🔗 Navigation property")
+                
+                # Show enum values if it was an enum
+                if prop.enum_values:
+                    enum_display = ', '.join(f'`{str(v)}`' for v in prop.enum_values[:10])
+                    if len(prop.enum_values) > 10:
+                        enum_display += f' _(+{len(prop.enum_values) - 10} more)_'
+                    lines.append(f"- **Had Allowed Values:** {enum_display}")
+                
                 lines.append(f"- **Action Required:** Remove from Terraform schema, add deprecation notice if recently removed")
                 lines.append("")
             lines.append("")
@@ -230,10 +264,23 @@ class IssueBuilder:
                 lines.append(f"#### 🔄 `{prop.property_name}`")
                 lines.append(f"- **Old Type:** `{prop.old_type}`")
                 lines.append(f"- **New Type:** `{prop.new_type}`")
+                
+                # Navigation property indicator
+                if prop.is_navigation_property:
+                    lines.append(f"- **Relationship:** 🔗 Navigation property")
+                
                 if prop.old_description and prop.old_description != prop.new_description:
                     lines.append(f"- **Old Description:** {prop.old_description}")
                 if prop.new_description:
                     lines.append(f"- **New Description:** {prop.new_description}")
+                
+                # Show enum values if it has them
+                if prop.enum_values:
+                    enum_display = ', '.join(f'`{str(v)}`' for v in prop.enum_values[:10])
+                    if len(prop.enum_values) > 10:
+                        enum_display += f' _(+{len(prop.enum_values) - 10} more)_'
+                    lines.append(f"- **Allowed Values:** {enum_display}")
+                
                 lines.append(f"- **Action Required:** Update Terraform schema type, may require provider version bump")
                 lines.append("")
             lines.append("")

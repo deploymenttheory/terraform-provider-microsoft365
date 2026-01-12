@@ -94,16 +94,25 @@ class SchemaParser:
             schema: Schema definition
             
         Returns:
-            Dictionary with property details
+            Dictionary with property details and schema metadata (parent references)
         """
         properties = schema.get('properties', {})
         required = schema.get('required', [])
         all_of = schema.get('allOf', [])
         
-        # Handle inheritance (allOf)
+        # Handle inheritance (allOf) and extract parent references
         inherited_props = {}
+        parent_schemas = []
         if all_of:
             for item in all_of:
+                # Extract parent reference
+                if '$ref' in item:
+                    parent_ref = item['$ref']
+                    # Extract schema name from #/components/schemas/microsoft.graph.entity
+                    parent_name = parent_ref.split('/')[-1] if '/' in parent_ref else parent_ref
+                    parent_schemas.append(parent_name)
+                
+                # Extract properties from parent
                 if 'properties' in item:
                     inherited_props.update(item['properties'])
         
@@ -143,6 +152,25 @@ class SchemaParser:
                 'deprecated': prop_def.get('deprecated', False),
                 'readOnly': prop_def.get('readOnly', False),
                 'writeOnly': prop_def.get('writeOnly', False),
+                'is_navigation_property': prop_def.get('x-ms-navigationProperty', False),
             }
         
-        return property_details
+        # Extract discriminator information (for polymorphic types)
+        discriminator_value = schema.get('x-ms-discriminator-value')
+        discriminator_property = None
+        
+        # Check if schema has a discriminator definition
+        if 'discriminator' in schema:
+            discriminator_def = schema['discriminator']
+            if isinstance(discriminator_def, dict):
+                discriminator_property = discriminator_def.get('propertyName', '@odata.type')
+            else:
+                discriminator_property = '@odata.type'  # Default for MS Graph
+        
+        return {
+            'properties': property_details,
+            'parent_schemas': parent_schemas,
+            'description': schema.get('description', ''),
+            'discriminator_value': discriminator_value,
+            'discriminator_property': discriminator_property
+        }
