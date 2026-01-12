@@ -138,25 +138,24 @@ jobs:
         uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
         with:
           script: |
-            const comment = `## 🔍 SDK Schema Change Detection Complete
+            const comment = `## ⚠️ Action Required: SDK Schema Changes Detected
 
-            The schema change detection analysis has completed successfully using our intelligent 3-step workflow:
+            This PR updates the Microsoft Graph SDK and includes schema changes that affect provider-managed resources.
 
-            **Workflow Steps:**
-            1. ✅ **Provider Analysis** - Identified SDK models used in the provider
-            2. ✅ **Schema Detection** - Detected changes in SDK models (structs, interfaces, embedded types)
-            3. ✅ **Smart Filtering** - Filtered changes to only relevant models
+            ### 🎯 What You Need to Do
 
-            **Results:**
-            - 📊 Analysis artifacts uploaded (check workflow artifacts)
-            - 🎫 Issues created only for schema changes affecting provider-managed resources
+            1. **Review the issues** - Check for new issues labeled [\`sdk-update\`](https://github.com/${{ github.repository }}/issues?q=is%3Aissue+is%3Aopen+label%3Asdk-update)
+            2. **Update resource schemas** - Modify Terraform resource/datasource schemas to match SDK changes
+            3. **Update CRUD operations** - Adjust field mappings in Create/Read/Update/Delete functions
+            4. **Test thoroughly** - Run acceptance tests for affected resources
+            5. **Update documentation** - Document any breaking changes or new fields
 
-            **Next Steps:**
-            - Check for any new issues created with the \`sdk-update\` label
-            - Review identified schema changes (only relevant models are reported)
-            - Update Terraform resource schemas as needed
+            ### 📊 Analysis Results
 
-            See [Schema Detection Workflow](https://github.com/${{ github.repository }}/blob/main/scripts/pipeline/sdk_schema_detection/detect_schema_changes.py) for more details.`;
+            - 📁 [View detailed analysis](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}) (download \`schema-detection-results\` artifact)
+            - 🎫 Issues created only for models actively used by this provider
+
+            ⚠️ **Do not merge** until all schema changes are addressed and tests pass.`;
 
             github.rest.issues.createComment({
               owner: context.repo.owner,
@@ -170,21 +169,29 @@ jobs:
         uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
         with:
           script: |
-            const comment = `## ❌ SDK Schema Change Detection Failed
+            const comment = `## ❌ Action Required: Schema Detection Failed
 
-            The schema change detection analysis encountered an error.
+            The automated schema change detection failed. **You must run the analysis manually before merging.**
 
-            Please check the [workflow logs](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}) for details.
+            ### 🔧 Run Analysis Locally
 
             \`\`\`bash
             cd scripts/pipeline/sdk_schema_detection
             
-            # Step 1: Analyze provider model usage
+            # Analyze and detect changes
             ./analyze_provider_model_usage.py --provider-path ../../../ --output provider_model_usage.json
-            
-            # Step 2: Detect schema changes with filtering
             ./detect_schema_changes.py --pr-number ${{ github.event.pull_request.number }} --filter-by-usage provider_model_usage.json
-            \`\`\``;
+            \`\`\`
+
+            ### 📊 Next Steps
+
+            1. Check [workflow logs](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}) for error details
+            2. Run the analysis locally (commands above)
+            3. Review any detected schema changes
+            4. Update affected resources/datasources
+            5. Re-run CI to verify
+
+            ⚠️ **Do not merge** without completing schema change analysis.`;
 
             github.rest.issues.createComment({
               owner: context.repo.owner,
