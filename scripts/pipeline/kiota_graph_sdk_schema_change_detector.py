@@ -58,8 +58,16 @@ class RegexPatterns:
     # File patterns
     MODEL_FILE_PATH = re.compile(r'models/[\w_]+\.go')
     
-    # Go code patterns
+    # Go code patterns - Structs
     GO_STRUCT_FIELD = re.compile(r'(\w+)\s+([\*\[\]]?[\w\.]+(?:\[[\w\.]+\])?)\s*(?:`.*`)?')
+    
+    # Go code patterns - Interfaces
+    GO_INTERFACE_METHOD = re.compile(r'(\w+)\s*\(([^)]*)\)\s*(\([^)]*\))?')
+    GO_EMBEDDED_TYPE = re.compile(r'^\s*(\w+[\w\.]*)\s*$')
+    
+    # Go declarations
+    GO_TYPE_STRUCT = re.compile(r'type\s+(\w+)\s+struct')
+    GO_TYPE_INTERFACE = re.compile(r'type\s+(\w+)\s+interface')
     
     # Changelog patterns
     CHANGELOG_VERSION_HEADER = r'##'
@@ -195,17 +203,51 @@ class FieldChange:
 
 
 @dataclass
+class MethodChange:
+    """Represents an interface method change."""
+    method_name: str
+    parameters: str
+    return_type: str
+    change_type: str  # 'added' or 'removed'
+    line_number: Optional[int] = None
+    
+    @property
+    def signature(self) -> str:
+        """Get the full method signature."""
+        params = f"({self.parameters})" if self.parameters else "()"
+        returns = f" {self.return_type}" if self.return_type else ""
+        return f"{self.method_name}{params}{returns}"
+
+
+@dataclass
+class EmbeddedTypeChange:
+    """Represents a change in embedded types (interfaces or structs)."""
+    type_name: str
+    change_type: str  # 'added' or 'removed'
+    context: str  # 'interface' or 'struct'
+    line_number: Optional[int] = None
+
+
+@dataclass
 class ModelChange:
     """Represents changes to a Go model file."""
     file_path: str
     model_name: str
     added_fields: List[FieldChange] = field(default_factory=list)
     removed_fields: List[FieldChange] = field(default_factory=list)
+    added_methods: List[MethodChange] = field(default_factory=list)
+    removed_methods: List[MethodChange] = field(default_factory=list)
+    added_embedded_types: List[EmbeddedTypeChange] = field(default_factory=list)
+    removed_embedded_types: List[EmbeddedTypeChange] = field(default_factory=list)
 
     @property
     def has_changes(self) -> bool:
         """Check if this model has any changes."""
-        return bool(self.added_fields or self.removed_fields)
+        return bool(
+            self.added_fields or self.removed_fields or
+            self.added_methods or self.removed_methods or
+            self.added_embedded_types or self.removed_embedded_types
+        )
 
     @property
     def change_summary(self) -> str:
@@ -215,6 +257,14 @@ class ModelChange:
             parts.append(f"+{len(self.added_fields)} fields")
         if self.removed_fields:
             parts.append(f"-{len(self.removed_fields)} fields")
+        if self.added_methods:
+            parts.append(f"+{len(self.added_methods)} methods")
+        if self.removed_methods:
+            parts.append(f"-{len(self.removed_methods)} methods")
+        if self.added_embedded_types:
+            parts.append(f"+{len(self.added_embedded_types)} embedded")
+        if self.removed_embedded_types:
+            parts.append(f"-{len(self.removed_embedded_types)} embedded")
         return ", ".join(parts)
 
 
@@ -222,14 +272,28 @@ class ModelChange:
 class ParseStatistics:
     """Statistics from parsing diff for diagnostic purposes."""
     total_files_in_diff: int = 0
-    files_with_field_changes: int = 0
-    files_without_field_changes: int = 0
+    files_with_changes: int = 0
+    files_without_changes: int = 0
     total_lines_processed: int = 0
     added_lines_processed: int = 0
     removed_lines_processed: int = 0
+    
+    # Struct tracking
+    struct_fields_added: int = 0
+    struct_fields_removed: int = 0
+    
+    # Interface tracking
+    interface_methods_added: int = 0
+    interface_methods_removed: int = 0
+    
+    # Embedded types tracking
+    embedded_types_added: int = 0
+    embedded_types_removed: int = 0
+    
+    # Filtering reasons
     lines_filtered_comments: int = 0
     lines_filtered_declarations: int = 0
-    lines_filtered_methods: int = 0
+    lines_filtered_func_impl: int = 0
     lines_filtered_no_match: int = 0
     lines_filtered_unexported: int = 0
     
@@ -238,18 +302,26 @@ class ParseStatistics:
         parts = [
             "  📊 Parsing Statistics:",
             f"     Files in diff: {self.total_files_in_diff}",
-            f"     Files with field changes: {self.files_with_field_changes}",
-            f"     Files without field changes: {self.files_without_field_changes}",
+            f"     Files with changes: {self.files_with_changes}",
+            f"     Files without changes: {self.files_without_changes}",
             "",
             "  📝 Lines Processed:",
             f"     Total change lines: {self.added_lines_processed + self.removed_lines_processed}",
             f"     Added lines (+): {self.added_lines_processed}",
             f"     Removed lines (-): {self.removed_lines_processed}",
             "",
+            "  🔧 Changes Detected:",
+            f"     Struct fields added: {self.struct_fields_added}",
+            f"     Struct fields removed: {self.struct_fields_removed}",
+            f"     Interface methods added: {self.interface_methods_added}",
+            f"     Interface methods removed: {self.interface_methods_removed}",
+            f"     Embedded types added: {self.embedded_types_added}",
+            f"     Embedded types removed: {self.embedded_types_removed}",
+            "",
             "  🔍 Filtering Breakdown:",
             f"     Comments (//): {self.lines_filtered_comments}",
             f"     Type/package/import declarations: {self.lines_filtered_declarations}",
-            f"     Methods (func): {self.lines_filtered_methods}",
+            f"     Function implementations (func): {self.lines_filtered_func_impl}",
             f"     Unexported fields (lowercase): {self.lines_filtered_unexported}",
             f"     No regex match: {self.lines_filtered_no_match}",
         ]
@@ -757,19 +829,20 @@ class DiffFetcher:
 
 
 class StructParser:
-    """Parses Go struct changes from diff text."""
+    """Parses Go model changes from diff text (structs, interfaces, embedded types)."""
 
     def __init__(self, reporter: ProgressReporter):
-        """Initialize struct parser.
+        """Initialize parser.
         
         Args:
             reporter: Progress reporter
         """
         self.reporter = reporter
         self.stats = ParseStatistics()
+        self.in_interface_context = False  # Track if we're parsing inside an interface
 
     def parse_diff(self, diff_text: str) -> List[ModelChange]:
-        """Parse Go struct changes from diff text.
+        """Parse Go model changes from diff text.
         
         Args:
             diff_text: Unified diff text
@@ -781,6 +854,7 @@ class StructParser:
         current_file = None
         current_model = None
         self.stats = ParseStatistics()  # Reset stats for new parse
+        self.in_interface_context = False
 
         lines = diff_text.split('\n')
         self.stats.total_lines_processed = len(lines)
@@ -793,6 +867,7 @@ class StructParser:
                                (line.startswith('+++') and current_file != filename)):
                     current_file = filename
                     current_model = self._filename_to_model_name(filename)
+                    self.in_interface_context = False  # Reset for new file
                     
                     if current_file not in model_changes:
                         model_changes[current_file] = ModelChange(
@@ -811,19 +886,166 @@ class StructParser:
             elif line.startswith('-') and not line.startswith('---'):
                 self.stats.removed_lines_processed += 1
 
-            # Parse field changes
-            self._parse_field_change(line, i, current_file, model_changes)
+            # Detect context switches (struct vs interface)
+            self._update_context(line)
+
+            # Parse changes based on context
+            self._parse_line_change(line, i, current_file, model_changes)
 
         # Calculate final statistics
         result = [change for change in model_changes.values() if change.has_changes]
         files_without_changes = [change for change in model_changes.values() if not change.has_changes]
         
-        self.stats.files_with_field_changes = len(result)
-        self.stats.files_without_field_changes = len(files_without_changes)
+        # Update statistics
+        self.stats.files_with_changes = len(result)
+        self.stats.files_without_changes = len(files_without_changes)
+        
+        for change in result:
+            self.stats.struct_fields_added += len(change.added_fields)
+            self.stats.struct_fields_removed += len(change.removed_fields)
+            self.stats.interface_methods_added += len(change.added_methods)
+            self.stats.interface_methods_removed += len(change.removed_methods)
+            self.stats.embedded_types_added += len(change.added_embedded_types)
+            self.stats.embedded_types_removed += len(change.removed_embedded_types)
         
         self.reporter.print_parse_summary(result, self.stats, files_without_changes)
         
         return result
+
+    def _update_context(self, line: str):
+        """Update parsing context based on type declarations.
+        
+        Args:
+            line: Current line being processed
+        """
+        cleaned = line.lstrip('+-').strip()
+        
+        # Check for interface declaration
+        if RegexPatterns.GO_TYPE_INTERFACE.search(cleaned):
+            self.in_interface_context = True
+        # Check for struct declaration
+        elif RegexPatterns.GO_TYPE_STRUCT.search(cleaned):
+            self.in_interface_context = False
+        # Closing brace resets context
+        elif cleaned == '}':
+            self.in_interface_context = False
+
+    def _parse_line_change(self, line: str, line_number: int, current_file: str,
+                          model_changes: Dict[str, ModelChange]):
+        """Parse a line for any type of change (field, method, embedded type).
+        
+        Args:
+            line: Line from diff
+            line_number: Line number in diff
+            current_file: Current file being processed
+            model_changes: Dictionary of model changes being built
+        """
+        if line.startswith('+') and not line.startswith('+++'):
+            self._parse_added_line(line[1:].strip(), line_number, current_file, model_changes)
+        elif line.startswith('-') and not line.startswith('---'):
+            self._parse_removed_line(line[1:].strip(), line_number, current_file, model_changes)
+
+    def _parse_added_line(self, line: str, line_number: int, current_file: str,
+                         model_changes: Dict[str, ModelChange]):
+        """Parse an added line (+).
+        
+        Args:
+            line: Cleaned line content
+            line_number: Line number in diff
+            current_file: Current file
+            model_changes: Model changes dictionary
+        """
+        # Try embedded type first (works for both interface and struct)
+        embedded_info = self._parse_embedded_type(line)
+        if embedded_info:
+            context = 'interface' if self.in_interface_context else 'struct'
+            embedded_change = EmbeddedTypeChange(
+                type_name=embedded_info,
+                change_type='added',
+                context=context,
+                line_number=line_number
+            )
+            model_changes[current_file].added_embedded_types.append(embedded_change)
+            self.stats.embedded_types_added += 1
+            return
+
+        # If in interface, try to parse as method
+        if self.in_interface_context:
+            method_info = self._parse_interface_method(line)
+            if method_info:
+                method_change = MethodChange(
+                    method_name=method_info[0],
+                    parameters=method_info[1],
+                    return_type=method_info[2],
+                    change_type='added',
+                    line_number=line_number
+                )
+                model_changes[current_file].added_methods.append(method_change)
+                self.stats.interface_methods_added += 1
+                return
+
+        # Otherwise, try to parse as struct field
+        field_info = self._parse_field_line(line)
+        if field_info:
+            field_change = FieldChange(
+                field_name=field_info[0],
+                field_type=field_info[1],
+                change_type='added',
+                line_number=line_number
+            )
+            model_changes[current_file].added_fields.append(field_change)
+            self.stats.struct_fields_added += 1
+
+    def _parse_removed_line(self, line: str, line_number: int, current_file: str,
+                           model_changes: Dict[str, ModelChange]):
+        """Parse a removed line (-).
+        
+        Args:
+            line: Cleaned line content
+            line_number: Line number in diff
+            current_file: Current file
+            model_changes: Model changes dictionary
+        """
+        # Try embedded type first
+        embedded_info = self._parse_embedded_type(line)
+        if embedded_info:
+            context = 'interface' if self.in_interface_context else 'struct'
+            embedded_change = EmbeddedTypeChange(
+                type_name=embedded_info,
+                change_type='removed',
+                context=context,
+                line_number=line_number
+            )
+            model_changes[current_file].removed_embedded_types.append(embedded_change)
+            self.stats.embedded_types_removed += 1
+            return
+
+        # If in interface, try to parse as method
+        if self.in_interface_context:
+            method_info = self._parse_interface_method(line)
+            if method_info:
+                method_change = MethodChange(
+                    method_name=method_info[0],
+                    parameters=method_info[1],
+                    return_type=method_info[2],
+                    change_type='removed',
+                    line_number=line_number
+                )
+                model_changes[current_file].removed_methods.append(method_change)
+                self.stats.interface_methods_removed += 1
+                return
+
+        # Otherwise, try to parse as struct field
+        field_info = self._parse_field_line(line)
+        if field_info:
+            field_change = FieldChange(
+                field_name=field_info[0],
+                field_type=field_info[1],
+                change_type='removed',
+                line_number=line_number
+            )
+            model_changes[current_file].removed_fields.append(field_change)
+            self.stats.struct_fields_removed += 1
 
     def _is_file_header(self, line: str) -> bool:
         """Check if line is a file header."""
@@ -839,30 +1061,62 @@ class StructParser:
         file_stem = Path(filename).stem
         return ''.join(word.capitalize() for word in file_stem.split('_'))
 
-    def _parse_field_change(self, line: str, line_number: int, current_file: str, 
-                           model_changes: Dict[str, ModelChange]):
-        """Parse a field change from a diff line."""
-        if line.startswith('+') and not line.startswith('+++'):
-            field_info = self._parse_field_line(line[1:].strip())
-            if field_info:
-                field_change = FieldChange(
-                    field_name=field_info[0],
-                    field_type=field_info[1],
-                    change_type='added',
-                    line_number=line_number
-                )
-                model_changes[current_file].added_fields.append(field_change)
-                
-        elif line.startswith('-') and not line.startswith('---'):
-            field_info = self._parse_field_line(line[1:].strip())
-            if field_info:
-                field_change = FieldChange(
-                    field_name=field_info[0],
-                    field_type=field_info[1],
-                    change_type='removed',
-                    line_number=line_number
-                )
-                model_changes[current_file].removed_fields.append(field_change)
+    def _parse_interface_method(self, line: str) -> Optional[Tuple[str, str, str]]:
+        """Parse an interface method declaration.
+        
+        Args:
+            line: Line of Go code
+            
+        Returns:
+            Tuple of (method_name, parameters, return_type) or None
+        """
+        if not line or line.startswith('//') or line.startswith('}') or line.startswith('{'):
+            return None
+        
+        # Skip function implementations (have body indicators)
+        if line.startswith('func (') and '{' in line:
+            self.stats.lines_filtered_func_impl += 1
+            return None
+
+        match = RegexPatterns.GO_INTERFACE_METHOD.match(line)
+        if match:
+            method_name = match.group(1)
+            parameters = match.group(2) if match.group(2) else ""
+            return_type = match.group(3) if match.group(3) else ""
+            
+            # Only track exported methods (uppercase first letter)
+            if method_name and method_name[0].isupper():
+                return (method_name, parameters.strip(), return_type.strip().strip('()'))
+            else:
+                self.stats.lines_filtered_unexported += 1
+        
+        return None
+
+    def _parse_embedded_type(self, line: str) -> Optional[str]:
+        """Parse an embedded type (interface or struct).
+        
+        Args:
+            line: Line of Go code
+            
+        Returns:
+            Type name or None
+        """
+        if not line or line.startswith('//') or line.startswith('}') or line.startswith('{'):
+            return None
+        
+        # Skip type declarations and function implementations
+        if line.startswith('type ') or line.startswith('func '):
+            return None
+
+        match = RegexPatterns.GO_EMBEDDED_TYPE.match(line)
+        if match:
+            type_name = match.group(1)
+            # Check if it looks like a type name (not a field with type)
+            # Embedded types are just the type name, no field name before it
+            if type_name and (type_name[0].isupper() or '.' in type_name):
+                return type_name
+        
+        return None
 
     def _parse_field_line(self, line: str) -> Optional[Tuple[str, str]]:
         """Parse a Go struct field line and track filtering reasons.
@@ -886,7 +1140,7 @@ class StructParser:
             return None
         
         if line.startswith('func '):
-            self.stats.lines_filtered_methods += 1
+            self.stats.lines_filtered_func_impl += 1
             return None
             
         if line.startswith('}') or line.startswith('{'):
