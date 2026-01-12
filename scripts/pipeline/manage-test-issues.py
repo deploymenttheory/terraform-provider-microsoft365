@@ -21,34 +21,56 @@ Args:
 import sys
 import json
 import subprocess
+import time
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Optional
 
 
-def run_gh_command(args: list[str]) -> str:
-    """Run a GitHub CLI command and return output.
+def run_gh_command(args: list[str], max_retries: int = 3) -> str:
+    """Run a GitHub CLI command and return output with retry logic.
 
     Args:
         args: List of arguments to pass to 'gh' command.
+        max_retries: Maximum number of retry attempts (default: 3).
 
     Returns:
         Command stdout as a string.
 
     Raises:
-        subprocess.CalledProcessError: If the command fails.
+        subprocess.CalledProcessError: If the command fails after all retries.
     """
-    try:
-        result = subprocess.run(
-            ["gh"] + args,
-            capture_output=True,
-            text=True,
-            check=True
-        )
-        return result.stdout.strip()
-    except subprocess.CalledProcessError as e:
-        print(f"Error running gh command: {e.stderr}", file=sys.stderr)
-        raise
+    for attempt in range(max_retries):
+        try:
+            result = subprocess.run(
+                ["gh"] + args,
+                capture_output=True,
+                text=True,
+                check=True
+            )
+            return result.stdout.strip()
+        except subprocess.CalledProcessError as e:
+            error_msg = e.stderr.lower()
+            
+            # Check if it's a rate limit or transient API error
+            is_retryable = any(phrase in error_msg for phrase in [
+                "graphql", "rate limit", "abuse", "timeout", 
+                "temporarily unavailable", "server error", "502", "503"
+            ])
+            
+            if is_retryable and attempt < max_retries - 1:
+                wait_time = (2 ** attempt) * 2  # Exponential backoff: 2, 4, 8 seconds
+                print(f"⚠️  API error (attempt {attempt + 1}/{max_retries}), retrying in {wait_time}s...", 
+                      file=sys.stderr)
+                print(f"   Error: {e.stderr[:200]}", file=sys.stderr)  # Show first 200 chars
+                time.sleep(wait_time)
+                continue
+            
+            # Not retryable or out of retries
+            print(f"Error running gh command: {e.stderr}", file=sys.stderr)
+            raise
+    
+    raise RuntimeError("Unexpected: exhausted retries without returning")
 
 
 def ensure_label_exists(owner: str, repo: str, label_name: str, color: str, description: str) -> None:
@@ -106,7 +128,7 @@ def find_existing_issue(owner: str, repo: str, test_name: str) -> Optional[str]:
             return str(issues[0]["number"])
         
         return None
-    except Exception:
+    except (subprocess.CalledProcessError, json.JSONDecodeError, KeyError):
         return None
 
 
@@ -134,12 +156,12 @@ def get_all_open_test_issues(owner: str, repo: str) -> list[dict]:
             return []
         
         return json.loads(result)
-    except Exception:
+    except (subprocess.CalledProcessError, json.JSONDecodeError):
         return []
 
 
 def update_existing_issue(owner: str, repo: str, issue_number: str, 
-                         test_name: str, service_path: str, context: str, 
+                         service_path: str, context: str, 
                          date: str, run_id: str, workflow_url: str) -> None:
     """Add a comment to existing issue with latest failure details.
 
@@ -147,7 +169,6 @@ def update_existing_issue(owner: str, repo: str, issue_number: str,
         owner: GitHub repository owner.
         repo: GitHub repository name.
         issue_number: Issue number to update.
-        test_name: Name of the failed test.
         service_path: Service path (e.g., 'resources/identity_and_access').
         context: Error context from test output.
         date: Date string for the failure.
@@ -156,6 +177,12 @@ def update_existing_issue(owner: str, repo: str, issue_number: str,
     """
     # Get current timestamp
     timestamp = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
+    
+    # Truncate context if too long (GitHub has limits on comment body size)
+    max_context_length = 5000
+    truncated_context = context
+    if len(context) > max_context_length:
+        truncated_context = context[:max_context_length] + "\n\n... (truncated, see workflow logs for full output)"
     
     comment_body = f"""## Still Failing
 
@@ -167,7 +194,7 @@ def update_existing_issue(owner: str, repo: str, issue_number: str,
 ### Latest Error Output
 
 ```
-{context}
+{truncated_context}
 ```
 
 ---
@@ -189,14 +216,13 @@ def update_existing_issue(owner: str, repo: str, issue_number: str,
 
 
 def close_resolved_issue(owner: str, repo: str, issue_number: str,
-                        test_name: str, date: str, run_id: str, workflow_url: str) -> None:
+                        date: str, run_id: str, workflow_url: str) -> None:
     """Close an issue when test is now passing.
 
     Args:
         owner: GitHub repository owner.
         repo: GitHub repository name.
         issue_number: Issue number to close.
-        test_name: Name of the test that is now passing.
         date: Date string for the resolution.
         run_id: GitHub Actions workflow run ID.
         workflow_url: URL to the workflow run.
@@ -240,6 +266,12 @@ def create_new_issue(owner: str, repo: str, test_name: str,
     """
     issue_title = f"Bug: {test_name} Failing"
     
+    # Truncate context if too long (GitHub has limits on issue body size)
+    max_context_length = 5000
+    truncated_context = context
+    if len(context) > max_context_length:
+        truncated_context = context[:max_context_length] + "\n\n... (truncated, see workflow logs for full output)"
+    
     issue_body = f"""## Test Failure
 
 **Test:** `{test_name}`  
@@ -250,7 +282,7 @@ def create_new_issue(owner: str, repo: str, test_name: str,
 ### Error Output
 
 ```
-{context}
+{truncated_context}
 ```
 
 ### Resources
@@ -299,14 +331,14 @@ def process_test_failures(owner: str, repo: str, run_id: str,
             file=sys.stderr)
         sys.exit(1)
     
-    with open(failures_path) as f:
+    with open(failures_path, encoding='utf-8') as f:
         failures = json.load(f)
     
     successes = []
     if successes_json_path:
         successes_path = Path(successes_json_path)
         if successes_path.exists():
-            with open(successes_path) as f:
+            with open(successes_path, encoding='utf-8') as f:
                 successes = json.load(f)
     
     failure_count = len(failures)
@@ -348,19 +380,29 @@ def process_test_failures(owner: str, repo: str, run_id: str,
         
         if existing_issue:
             print(f"  Action: Updated existing issue #{existing_issue}")
-            update_existing_issue(
-                owner, repo, existing_issue, test_name, 
-                service_path, context, date, run_id, workflow_url
-            )
-            updated_count += 1
+            try:
+                update_existing_issue(
+                    owner, repo, existing_issue, 
+                    service_path, context, date, run_id, workflow_url
+                )
+                updated_count += 1
+            except subprocess.CalledProcessError as e:
+                print(f"  ⚠️  Warning: Failed to update issue: {e}", file=sys.stderr)
         else:
-            issue_url = create_new_issue(
-                owner, repo, test_name, service_path, 
-                context, date, run_id, workflow_url
-            )
-            print(f"  Action: Created new issue → {issue_url}")
-            created_count += 1
+            try:
+                issue_url = create_new_issue(
+                    owner, repo, test_name, service_path, 
+                    context, date, run_id, workflow_url
+                )
+                print(f"  Action: Created new issue → {issue_url}")
+                created_count += 1
+            except subprocess.CalledProcessError as e:
+                print(f"  ⚠️  Warning: Failed to create issue: {e}", file=sys.stderr)
+        
         print()
+        
+        # Add delay to avoid rate limiting (1 second between operations)
+        time.sleep(1)
     
     print(f"{'='*60}")
     print(f"Issue updates: {created_count} created, {updated_count} updated")
@@ -389,12 +431,18 @@ def process_test_failures(owner: str, repo: str, run_id: str,
             if test_name not in failed_test_names and test_name in passed_test_names:
                 print(f"• {issue_title}")
                 print(f"  Action: Closing resolved issue #{issue_number}")
-                close_resolved_issue(
-                    owner, repo, issue_number, 
-                    test_name, date, run_id, workflow_url
-                )
-                closed_count += 1
+                try:
+                    close_resolved_issue(
+                        owner, repo, issue_number, 
+                        date, run_id, workflow_url
+                    )
+                    closed_count += 1
+                except subprocess.CalledProcessError as e:
+                    print(f"  ⚠️  Warning: Failed to close issue: {e}", file=sys.stderr)
                 print()
+                
+                # Add delay to avoid rate limiting
+                time.sleep(1)
         
         if closed_count > 0:
             print(f"{'='*60}")
