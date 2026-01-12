@@ -262,10 +262,10 @@ resource "microsoft365_graph_beta_device_management_settings_catalog_configurati
 resource "microsoft365_graph_beta_device_management_settings_catalog_configuration_policy" "licensing_policy" {
   assignments = [
     {
-      filter_id   = "00000000-0000-0000-0000-000000000000"  # <----- Same values as above, no shared definition
-      filter_type = "none"                                  # <----- Same values as above, no shared definition
+      filter_id   = "00000000-0000-0000-0000-000000000000"  # <----- Null values from API, can be safely removed
+      filter_type = "none"                                  # <----- Null values from API, can be safely removed
       group_id    = "1c4f3adf-ebe8-422c-97b1-f174632d7538"  # <----- Same group ID as above, should reference same resource
-      type        = "groupAssignmentTarget"                 # <----- Same values as above, no shared definition
+      type        = "groupAssignmentTarget"                 # <----- Null values from API, can be safely removed
     },
   ]
   # ... additional configuration

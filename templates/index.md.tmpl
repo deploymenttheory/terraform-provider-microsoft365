@@ -12,7 +12,7 @@ The community Microsoft 365 provider allows managing environments and other reso
 
 ## Requirements
 
-This provider requires a minimum of **Terraform >= 1.10**.  For more information on provider installation and constraining provider versions, see the [Provider Requirements documentation](https://developer.hashicorp.com/terraform/language/providers/requirements).
+This provider requires a minimum of **Terraform >= 1.14.x.  For more information on provider installation and constraining provider versions, see the [Provider Requirements documentation](https://developer.hashicorp.com/terraform/language/providers/requirements).
 
 ## Installation
 
@@ -23,7 +23,7 @@ terraform {
   required_providers {
     microsoft365 = {
       source  = "deploymenttheory/microsoft365"
-      version = "~> 1.10.4 # Replace with the latest version
+      version = "~> 0.40.0 # Replace with the latest version
     }
   }
 }
