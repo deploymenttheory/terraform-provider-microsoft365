@@ -214,12 +214,18 @@ class OpenAPIChangeDetector:
             used_models = {model['model_name'].lower() for model in usage_data.get('models', [])}
             self.reporter.info(f"   Loaded {len(used_models)} model(s) from provider usage data")
             
-            filtered = [
-                sc for sc in schema_changes
-                if sc.model_name.lower() in used_models
-            ]
+            # Debug: Show mapping for changed schemas
+            self.reporter.info(f"\n   🔍 Mapping changed schemas to provider models:")
+            filtered = []
+            for sc in schema_changes:
+                model_name_lower = sc.model_name.lower()
+                is_used = model_name_lower in used_models
+                status = "✓ MATCH" if is_used else "✗ not used"
+                self.reporter.info(f"      {sc.schema_name} → {sc.model_name} [{status}]")
+                if is_used:
+                    filtered.append(sc)
             
-            self.reporter.info(f"   ✓ Kept {len(filtered)} relevant model(s)")
+            self.reporter.info(f"\n   ✓ Kept {len(filtered)} relevant model(s)")
             self.reporter.info(f"   ✗ Filtered {len(schema_changes) - len(filtered)} unused model(s)")
             
             return filtered

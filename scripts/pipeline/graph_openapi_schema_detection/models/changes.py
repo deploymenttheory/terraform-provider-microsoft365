@@ -92,9 +92,24 @@ class SchemaChange:
     
     @property
     def model_name(self) -> str:
-        """Alias for schema_name for compatibility with provider filter."""
-        # Convert microsoft.graph.user → User
+        """Alias for schema_name for compatibility with provider filter.
+        
+        OpenAPI schema names are like: microsoft.graph.cloudPcDeviceImage
+        Provider usage has Go model names like: CloudPcDeviceImage
+        
+        We need to match them by just taking the last part and capitalizing first letter.
+        """
         parts = self.schema_name.split('.')
         if len(parts) >= 3:
-            return ''.join(word.capitalize() for word in parts[-1].split('_'))
+            # Take last part: cloudPcDeviceImage
+            name = parts[-1]
+            
+            # Handle underscore-separated names: cloud_pc_device_image → CloudPcDeviceImage
+            if '_' in name:
+                return ''.join(word.capitalize() for word in name.split('_'))
+            
+            # Handle camelCase names: cloudPcDeviceImage → CloudPcDeviceImage
+            # Just capitalize the first letter, preserve rest
+            return name[0].upper() + name[1:] if name else name
+        
         return self.schema_name
