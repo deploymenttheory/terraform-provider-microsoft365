@@ -94,8 +94,15 @@ class SchemaComparer:
         from models import SchemaChange  # type: ignore
         
         # Extract properties from both versions
-        old_props = self.parser.extract_model_properties(old_schema)
-        new_props = self.parser.extract_model_properties(new_schema)
+        old_data = self.parser.extract_model_properties(old_schema)
+        new_data = self.parser.extract_model_properties(new_schema)
+        
+        old_props = old_data['properties']
+        new_props = new_data['properties']
+        parent_schemas = new_data.get('parent_schemas', [])
+        schema_description = new_data.get('description', '')
+        discriminator_value = new_data.get('discriminator_value')
+        discriminator_property = new_data.get('discriminator_property')
         
         # Detect property changes
         added, removed, type_changed, required_changed, nullable_changed = self.detect_property_changes(
@@ -122,7 +129,11 @@ class SchemaComparer:
             removed_properties=removed,
             type_changed_properties=type_changed,
             required_changed_properties=required_changed,
-            nullable_changed_properties=nullable_changed
+            nullable_changed_properties=nullable_changed,
+            parent_schemas=parent_schemas,
+            description=schema_description,
+            discriminator_value=discriminator_value,
+            discriminator_property=discriminator_property
         )
     
     def detect_property_changes(
@@ -168,19 +179,22 @@ class SchemaComparer:
                 deprecated=prop.get('deprecated', False),
                 read_only=prop.get('readOnly', False),
                 write_only=prop.get('writeOnly', False),
+                is_navigation_property=prop.get('is_navigation_property', False),
             ))
         
         # Removed properties
-        removed = [
-            PropertyChange(
+        removed = []
+        for name in (old_names - new_names):
+            old_prop = old_props[name]
+            removed.append(PropertyChange(
                 property_name=name,
                 change_type='removed',
-                old_type=old_props[name]['type'],
-                old_required=old_props[name]['required'],
-                old_nullable=old_props[name].get('nullable')
-            )
-            for name in (old_names - new_names)
-        ]
+                old_type=old_prop['type'],
+                old_required=old_prop['required'],
+                old_nullable=old_prop.get('nullable'),
+                enum_values=old_prop.get('enum'),  # Show enum values that were removed
+                is_navigation_property=old_prop.get('is_navigation_property', False),
+            ))
         
         # Check common properties for changes
         type_changed = []
@@ -202,6 +216,8 @@ class SchemaComparer:
                     new_required=new_prop['required'],
                     old_description=old_prop.get('description'),
                     new_description=new_prop.get('description'),
+                    enum_values=new_prop.get('enum'),
+                    is_navigation_property=new_prop.get('is_navigation_property', False),
                 ))
             
             # Required changes

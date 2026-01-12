@@ -34,6 +34,7 @@ class PropertyChange:
     deprecated: bool = False
     read_only: bool = False
     write_only: bool = False
+    is_navigation_property: bool = False  # x-ms-navigationProperty (relationship to another entity)
     
     @property
     def is_breaking(self) -> bool:
@@ -53,6 +54,10 @@ class SchemaChange:
     type_changed_properties: List[PropertyChange] = field(default_factory=list)
     required_changed_properties: List[PropertyChange] = field(default_factory=list)
     nullable_changed_properties: List[PropertyChange] = field(default_factory=list)
+    parent_schemas: List[str] = field(default_factory=list)  # Parent schema inheritance
+    description: str = ""  # Schema-level description
+    discriminator_value: Optional[str] = None  # x-ms-discriminator-value (for polymorphic types)
+    discriminator_property: Optional[str] = None  # Discriminator field name (usually @odata.type)
 
     @property
     def has_changes(self) -> bool:
