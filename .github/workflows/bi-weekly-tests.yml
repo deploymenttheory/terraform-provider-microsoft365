@@ -64,7 +64,7 @@ jobs:
           M365_CLIENT_SECRET: ${{ secrets.M365_CLIENT_SECRET_DEVICE_AND_APP_MGMT }}
           M365_AUTH_METHOD: client_secret
           M365_CLOUD: public
-        run: ./scripts/pipeline/run-tests.py provider-core "" coverage-provider-core.txt test-output-provider-core.log --max-procs 1 --test-parallel 1 --pkg-parallel 1 --skip-enumeration
+        run: ./scripts/pipeline/bi_weekly_tests/run-tests.py provider-core "" coverage-provider-core.txt test-output-provider-core.log --max-procs 1 --test-parallel 1 --pkg-parallel 1 --skip-enumeration
         continue-on-error: true
 
       - name: Upload test results
@@ -174,7 +174,7 @@ jobs:
           M365_CLIENT_SECRET_USERS: ${{ secrets.M365_CLIENT_SECRET_USERS }}
           M365_CLIENT_ID_WINDOWS_365: ${{ secrets.M365_CLIENT_ID_WINDOWS_365 }}
           M365_CLIENT_SECRET_WINDOWS_365: ${{ secrets.M365_CLIENT_SECRET_WINDOWS_365 }}
-        run: ./scripts/pipeline/map-credentials.py ${{ matrix.service }}
+        run: ./scripts/pipeline/bi_weekly_tests/map-credentials.py ${{ matrix.service }}
 
       - name: Run resource tests
         if: env.SKIP_TESTS != 'true'
@@ -183,7 +183,7 @@ jobs:
           M365_TENANT_ID: ${{ secrets.M365_TENANT_ID }}
           M365_AUTH_METHOD: client_secret
           M365_CLOUD: public
-        run: ./scripts/pipeline/run-tests.py resources ${{ matrix.service }} coverage-resources-${{ matrix.service }}.txt test-output-resources-${{ matrix.service }}.log --max-procs 1 --test-parallel 1 --pkg-parallel 1 --skip-enumeration --no-race
+        run: ./scripts/pipeline/bi_weekly_tests/run-tests.py resources ${{ matrix.service }} coverage-resources-${{ matrix.service }}.txt test-output-resources-${{ matrix.service }}.log --max-procs 1 --test-parallel 1 --pkg-parallel 1 --skip-enumeration --no-race
         continue-on-error: true
 
       - name: Upload test results
@@ -292,7 +292,7 @@ jobs:
           M365_CLIENT_SECRET_UTILITY: ${{ secrets.M365_CLIENT_SECRET_UTILITY }}
           M365_CLIENT_ID_WINDOWS_365: ${{ secrets.M365_CLIENT_ID_WINDOWS_365 }}
           M365_CLIENT_SECRET_WINDOWS_365: ${{ secrets.M365_CLIENT_SECRET_WINDOWS_365 }}
-        run: ./scripts/pipeline/map-credentials.py ${{ matrix.service }}
+        run: ./scripts/pipeline/bi_weekly_tests/map-credentials.py ${{ matrix.service }}
 
       - name: Run datasource tests
         if: env.SKIP_TESTS != 'true'
@@ -301,7 +301,7 @@ jobs:
           M365_TENANT_ID: ${{ secrets.M365_TENANT_ID }}
           M365_AUTH_METHOD: client_secret
           M365_CLOUD: public
-        run: ./scripts/pipeline/run-tests.py datasources ${{ matrix.service }} coverage-datasources-${{ matrix.service }}.txt test-output-datasources-${{ matrix.service }}.log --max-procs 1 --test-parallel 1 --pkg-parallel 1 --skip-enumeration --no-race
+        run: ./scripts/pipeline/bi_weekly_tests/run-tests.py datasources ${{ matrix.service }} coverage-datasources-${{ matrix.service }}.txt test-output-datasources-${{ matrix.service }}.log --max-procs 1 --test-parallel 1 --pkg-parallel 1 --skip-enumeration --no-race
         continue-on-error: true
 
       - name: Upload test results
@@ -374,7 +374,7 @@ jobs:
         env:
           M365_CLIENT_ID_DEVICE_MGMT: ${{ secrets.M365_CLIENT_ID_DEVICE_MGMT }}
           M365_CLIENT_SECRET_DEVICE_MGMT: ${{ secrets.M365_CLIENT_SECRET_DEVICE_MGMT }}
-        run: ./scripts/pipeline/map-credentials.py ${{ matrix.service }}
+        run: ./scripts/pipeline/bi_weekly_tests/map-credentials.py ${{ matrix.service }}
 
       - name: Run actions tests
         if: env.SKIP_TESTS != 'true'
@@ -383,7 +383,7 @@ jobs:
           M365_TENANT_ID: ${{ secrets.M365_TENANT_ID }}
           M365_AUTH_METHOD: client_secret
           M365_CLOUD: public
-        run: ./scripts/pipeline/run-tests.py actions ${{ matrix.service }} coverage-actions-${{ matrix.service }}.txt test-output-actions-${{ matrix.service }}.log --max-procs 1 --test-parallel 1 --pkg-parallel 1 --skip-enumeration --no-race
+        run: ./scripts/pipeline/bi_weekly_tests/run-tests.py actions ${{ matrix.service }} coverage-actions-${{ matrix.service }}.txt test-output-actions-${{ matrix.service }}.log --max-procs 1 --test-parallel 1 --pkg-parallel 1 --skip-enumeration --no-race
         continue-on-error: true
 
       - name: Upload test results
@@ -452,15 +452,15 @@ jobs:
       - name: Merge test results
         if: always()
         run: |
-          ./scripts/pipeline/merge-test-results.py test-artifacts merged-failures.json test-failures.json
-          ./scripts/pipeline/merge-test-results.py test-artifacts merged-successes.json test-successes.json
+          ./scripts/pipeline/bi_weekly_tests/merge-test-results.py test-artifacts merged-failures.json test-failures.json
+          ./scripts/pipeline/bi_weekly_tests/merge-test-results.py test-artifacts merged-successes.json test-successes.json
 
       - name: Manage GitHub Issues for Test Failures
         if: always()
         env:
           GITHUB_TOKEN: ${{ github.token }}
         run: |
-          ./scripts/pipeline/manage-test-issues.py \
+          ./scripts/pipeline/bi_weekly_tests/manage-test-issues.py \
             ${{ github.repository_owner }} \
             ${{ github.event.repository.name }} \
             ${{ github.run_id }} \
@@ -472,7 +472,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}
         run: |
-          ./scripts/pipeline/detect-job-failures.py \
+          ./scripts/pipeline/bi_weekly_tests/detect-job-failures.py \
             ${{ github.repository_owner }} \
             ${{ github.event.repository.name }} \
             ${{ github.run_id }} \
@@ -484,7 +484,7 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
         run: |
           if [ -f job-failures.json ] && [ "$(cat job-failures.json)" != "[]" ]; then
-            ./scripts/pipeline/manage-job-failure-issues.py \
+            ./scripts/pipeline/bi_weekly_tests/manage-job-failure-issues.py \
               ${{ github.repository_owner }} \
               ${{ github.event.repository.name }} \
               ${{ github.run_id }} \
