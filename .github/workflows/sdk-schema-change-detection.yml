@@ -75,13 +75,25 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          cd scripts/pipeline
+          cd scripts/pipeline/sdk_schema_detection
+
+          # Step 1: Analyze provider model usage
+          SKIP_USAGE="${{ inputs.skip_usage_analysis || 'false' }}"
+          if [ "$SKIP_USAGE" != "true" ]; then
+            echo "🔍 Step 1: Analyzing provider model usage..."
+            ./analyze_provider_model_usage.py \
+              --provider-path ../../../ \
+              --output provider_model_usage.json
+            echo ""
+          fi
+
+          # Step 2: Detect schema changes
+          echo "🔍 Step 2: Detecting SDK schema changes..."
+          CMD="./detect_schema_changes.py"
 
           # Build command based on trigger type
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
             # Manual trigger - use workflow inputs
-            CMD="./orchestrate_schema_detection.py --verbose"
-
             if [ -n "${{ inputs.pr_number }}" ]; then
               CMD="$CMD --pr-number ${{ inputs.pr_number }}"
             elif [ -n "${{ inputs.current_version }}" ] && [ -n "${{ inputs.new_version }}" ]; then
@@ -94,14 +106,18 @@ jobs:
             if [ "${{ inputs.dry_run }}" = "true" ]; then
               CMD="$CMD --dry-run"
             fi
-
-            if [ "${{ inputs.skip_usage_analysis }}" = "true" ]; then
-              CMD="$CMD --skip-usage-analysis"
-            fi
           else
             # PR trigger - use PR number
-            CMD="./orchestrate_schema_detection.py --pr-number ${{ github.event.pull_request.number }} --verbose"
+            CMD="$CMD --pr-number ${{ github.event.pull_request.number }}"
           fi
+
+          # Add usage filtering if analysis was performed
+          if [ "$SKIP_USAGE" != "true" ] && [ -f provider_model_usage.json ]; then
+            CMD="$CMD --filter-by-usage provider_model_usage.json"
+          fi
+
+          # Always save results for artifacts
+          CMD="$CMD --save-results schema_changes.json"
 
           echo "Running: $CMD"
           eval $CMD
@@ -112,8 +128,8 @@ jobs:
         with:
           name: schema-detection-results
           path: |
-            scripts/pipeline/provider_model_usage.json
-            scripts/pipeline/schema_changes.json
+            scripts/pipeline/sdk_schema_detection/provider_model_usage.json
+            scripts/pipeline/sdk_schema_detection/schema_changes.json
           retention-days: 30
           if-no-files-found: ignore
 
@@ -140,7 +156,7 @@ jobs:
             - Review identified schema changes (only relevant models are reported)
             - Update Terraform resource schemas as needed
 
-            See [Schema Detection Workflow](https://github.com/${{ github.repository }}/blob/main/scripts/pipeline/orchestrate_schema_detection.py) for more details.`;
+            See [Schema Detection Workflow](https://github.com/${{ github.repository }}/blob/main/scripts/pipeline/sdk_schema_detection/detect_schema_changes.py) for more details.`;
 
             github.rest.issues.createComment({
               owner: context.repo.owner,
@@ -160,15 +176,14 @@ jobs:
 
             Please check the [workflow logs](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}) for details.
 
-            You may need to run the analysis manually:
             \`\`\`bash
-            cd scripts/pipeline
-            # Run complete workflow (recommended)
-            ./orchestrate_schema_detection.py --pr-number ${{ github.event.pull_request.number }} --verbose
-
-            # Or run individual steps
-            ./analyze_provider_model_usage.py --verbose
-            ./kiota_graph_sdk_schema_change_detector.py --pr-number ${{ github.event.pull_request.number }} --filter-by-usage provider_model_usage.json
+            cd scripts/pipeline/sdk_schema_detection
+            
+            # Step 1: Analyze provider model usage
+            ./analyze_provider_model_usage.py --provider-path ../../../ --output provider_model_usage.json
+            
+            # Step 2: Detect schema changes with filtering
+            ./detect_schema_changes.py --pr-number ${{ github.event.pull_request.number }} --filter-by-usage provider_model_usage.json
             \`\`\``;
 
             github.rest.issues.createComment({

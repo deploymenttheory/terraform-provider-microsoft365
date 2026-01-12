@@ -204,7 +204,7 @@ def main() -> None:
     parser.add_argument(
         "--provider-path",
         type=Path,
-        default=Path(__file__).parent.parent.parent,
+        default=Path(__file__).parent.parent.parent.parent,
         help="Path to provider repository"
     )
     
