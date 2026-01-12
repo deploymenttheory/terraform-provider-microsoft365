@@ -218,6 +218,44 @@ class ModelChange:
         return ", ".join(parts)
 
 
+@dataclass
+class ParseStatistics:
+    """Statistics from parsing diff for diagnostic purposes."""
+    total_files_in_diff: int = 0
+    files_with_field_changes: int = 0
+    files_without_field_changes: int = 0
+    total_lines_processed: int = 0
+    added_lines_processed: int = 0
+    removed_lines_processed: int = 0
+    lines_filtered_comments: int = 0
+    lines_filtered_declarations: int = 0
+    lines_filtered_methods: int = 0
+    lines_filtered_no_match: int = 0
+    lines_filtered_unexported: int = 0
+    
+    def get_summary(self) -> str:
+        """Get a human-readable summary."""
+        parts = [
+            "  📊 Parsing Statistics:",
+            f"     Files in diff: {self.total_files_in_diff}",
+            f"     Files with field changes: {self.files_with_field_changes}",
+            f"     Files without field changes: {self.files_without_field_changes}",
+            "",
+            "  📝 Lines Processed:",
+            f"     Total change lines: {self.added_lines_processed + self.removed_lines_processed}",
+            f"     Added lines (+): {self.added_lines_processed}",
+            f"     Removed lines (-): {self.removed_lines_processed}",
+            "",
+            "  🔍 Filtering Breakdown:",
+            f"     Comments (//): {self.lines_filtered_comments}",
+            f"     Type/package/import declarations: {self.lines_filtered_declarations}",
+            f"     Methods (func): {self.lines_filtered_methods}",
+            f"     Unexported fields (lowercase): {self.lines_filtered_unexported}",
+            f"     No regex match: {self.lines_filtered_no_match}",
+        ]
+        return "\n".join(parts)
+
+
 class ProgressReporter:
     """Handles all user-facing output and progress reporting."""
 
@@ -252,8 +290,15 @@ class ProgressReporter:
         """Print an error message."""
         print(f"❌ {message}", file=sys.stderr)
 
-    def print_parse_summary(self, model_changes: List[ModelChange]):
-        """Print summary of parsed model changes."""
+    def print_parse_summary(self, model_changes: List[ModelChange], stats: 'ParseStatistics' = None,
+                           files_without_changes: List['ModelChange'] = None):
+        """Print summary of parsed model changes with statistics.
+        
+        Args:
+            model_changes: List of model changes detected
+            stats: Optional parsing statistics for diagnostics
+            files_without_changes: Optional list of files that had no field changes
+        """
         self.info("\n📋 Parse Summary:", indent=1)
         
         if model_changes:
@@ -279,7 +324,31 @@ class ProgressReporter:
                 print()
         else:
             self.info("ℹ️  No struct field changes detected in diff", indent=1)
-            self.info("(This may mean only non-field code changed, or parsing needs adjustment)", indent=2)
+        
+        # Print detailed statistics if provided
+        if stats:
+            print()
+            print(stats.get_summary())
+            
+            # Explain why files were filtered
+            if stats.files_without_field_changes > 0:
+                print()
+                self.info(f"ℹ️  {stats.files_without_field_changes} file(s) had changes but no struct field modifications.", indent=1)
+                self.info("   Possible reasons:", indent=1)
+                self.info("   • Only comments, imports, or package declarations changed", indent=1)
+                self.info("   • Method implementations changed (func declarations)", indent=1)
+                self.info("   • Type aliases or constants changed", indent=1)
+                self.info("   • Only unexported (lowercase) fields changed", indent=1)
+                self.info("   • Changes didn't match Go struct field pattern", indent=1)
+                
+                # Show examples of files without field changes
+                if files_without_changes:
+                    print()
+                    self.info("📁 Examples of files without field changes (showing up to 10):", indent=1)
+                    for change in files_without_changes[:10]:
+                        self.info(f"   • {change.model_name} ({change.file_path})", indent=1)
+                    if len(files_without_changes) > 10:
+                        self.info(f"   ... and {len(files_without_changes) - 10} more", indent=1)
 
     def print_dry_run_issue(self, title: str, body: str):
         """Print issue content for dry run."""
@@ -697,6 +766,7 @@ class StructParser:
             reporter: Progress reporter
         """
         self.reporter = reporter
+        self.stats = ParseStatistics()
 
     def parse_diff(self, diff_text: str) -> List[ModelChange]:
         """Parse Go struct changes from diff text.
@@ -710,8 +780,10 @@ class StructParser:
         model_changes: Dict[str, ModelChange] = {}
         current_file = None
         current_model = None
+        self.stats = ParseStatistics()  # Reset stats for new parse
 
         lines = diff_text.split('\n')
+        self.stats.total_lines_processed = len(lines)
 
         for i, line in enumerate(lines):
             # Check for file header
@@ -727,16 +799,29 @@ class StructParser:
                             file_path=current_file,
                             model_name=current_model
                         )
+                        self.stats.total_files_in_diff += 1
                 continue
 
             if not current_file or not line.strip():
                 continue
 
+            # Track added/removed lines
+            if line.startswith('+') and not line.startswith('+++'):
+                self.stats.added_lines_processed += 1
+            elif line.startswith('-') and not line.startswith('---'):
+                self.stats.removed_lines_processed += 1
+
             # Parse field changes
             self._parse_field_change(line, i, current_file, model_changes)
 
+        # Calculate final statistics
         result = [change for change in model_changes.values() if change.has_changes]
-        self.reporter.print_parse_summary(result)
+        files_without_changes = [change for change in model_changes.values() if not change.has_changes]
+        
+        self.stats.files_with_field_changes = len(result)
+        self.stats.files_without_field_changes = len(files_without_changes)
+        
+        self.reporter.print_parse_summary(result, self.stats, files_without_changes)
         
         return result
 
@@ -780,7 +865,7 @@ class StructParser:
                 model_changes[current_file].removed_fields.append(field_change)
 
     def _parse_field_line(self, line: str) -> Optional[Tuple[str, str]]:
-        """Parse a Go struct field line.
+        """Parse a Go struct field line and track filtering reasons.
         
         Args:
             line: Line of Go code
@@ -788,9 +873,23 @@ class StructParser:
         Returns:
             Tuple of (field_name, field_type) or None
         """
-        if not line or line.startswith('//') or line.startswith('type ') or \
-           line.startswith('package ') or line.startswith('import ') or \
-           line.startswith('func ') or line.startswith('}') or line.startswith('{'):
+        if not line:
+            return None
+            
+        # Track why lines are filtered
+        if line.startswith('//'):
+            self.stats.lines_filtered_comments += 1
+            return None
+        
+        if line.startswith('type ') or line.startswith('package ') or line.startswith('import '):
+            self.stats.lines_filtered_declarations += 1
+            return None
+        
+        if line.startswith('func '):
+            self.stats.lines_filtered_methods += 1
+            return None
+            
+        if line.startswith('}') or line.startswith('{'):
             return None
 
         match = RegexPatterns.GO_STRUCT_FIELD.match(line)
@@ -800,6 +899,13 @@ class StructParser:
 
             if field_name[0].isupper():  # Go exported field
                 return (field_name, field_type)
+            else:
+                # Unexported field (starts with lowercase)
+                self.stats.lines_filtered_unexported += 1
+                return None
+        else:
+            # Line didn't match the field pattern
+            self.stats.lines_filtered_no_match += 1
 
         return None
 
