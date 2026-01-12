@@ -146,17 +146,29 @@ class SchemaComparer:
         new_names = set(new_props.keys())
         
         # Added properties
-        added = [
-            PropertyChange(
+        added = []
+        for name in (new_names - old_names):
+            prop = new_props[name]
+            added.append(PropertyChange(
                 property_name=name,
                 change_type='added',
-                new_type=new_props[name]['type'],
-                new_required=new_props[name]['required'],
-                new_nullable=new_props[name].get('nullable'),
-                description=new_props[name].get('description')
-            )
-            for name in (new_names - old_names)
-        ]
+                new_type=prop['type'],
+                new_required=prop['required'],
+                new_nullable=prop.get('nullable'),
+                description=prop.get('description'),
+                enum_values=prop.get('enum'),
+                format=prop.get('format'),
+                pattern=prop.get('pattern'),
+                min_length=prop.get('minLength'),
+                max_length=prop.get('maxLength'),
+                minimum=prop.get('minimum'),
+                maximum=prop.get('maximum'),
+                default=prop.get('default'),
+                example=prop.get('example'),
+                deprecated=prop.get('deprecated', False),
+                read_only=prop.get('readOnly', False),
+                write_only=prop.get('writeOnly', False),
+            ))
         
         # Removed properties
         removed = [
@@ -187,7 +199,9 @@ class SchemaComparer:
                     old_type=old_prop['type'],
                     new_type=new_prop['type'],
                     old_required=old_prop['required'],
-                    new_required=new_prop['required']
+                    new_required=new_prop['required'],
+                    old_description=old_prop.get('description'),
+                    new_description=new_prop.get('description'),
                 ))
             
             # Required changes
@@ -198,7 +212,8 @@ class SchemaComparer:
                     old_required=old_prop['required'],
                     new_required=new_prop['required'],
                     old_type=old_prop['type'],
-                    new_type=new_prop['type']
+                    new_type=new_prop['type'],
+                    description=new_prop.get('description'),
                 ))
             
             # Nullable changes
@@ -211,7 +226,16 @@ class SchemaComparer:
                     old_nullable=old_nullable,
                     new_nullable=new_nullable,
                     old_type=old_prop['type'],
-                    new_type=new_prop['type']
+                    new_type=new_prop['type'],
+                    description=new_prop.get('description'),
                 ))
+            
+            # Enum changes (useful for detecting new allowed values)
+            old_enum = old_prop.get('enum')
+            new_enum = new_prop.get('enum')
+            if old_enum != new_enum and (old_enum is not None or new_enum is not None):
+                # Consider enum changes as metadata changes (not breaking)
+                # But track them for schema validation updates
+                pass  # Could add enum_changed list if needed
         
         return added, removed, type_changed, required_changed, nullable_changed

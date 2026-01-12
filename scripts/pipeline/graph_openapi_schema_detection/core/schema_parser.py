@@ -110,7 +110,7 @@ class SchemaParser:
         # Merge inherited and direct properties
         all_props = {**inherited_props, **properties}
         
-        # Build detailed property info
+        # Build detailed property info with rich metadata
         property_details = {}
         for prop_name, prop_def in all_props.items():
             prop_type = prop_def.get('type')
@@ -122,10 +122,27 @@ class SchemaParser:
                     prop_type = 'unknown'
             
             property_details[prop_name] = {
+                # Core fields
                 'type': prop_type,
                 'required': prop_name in required,
                 'nullable': prop_def.get('nullable', False),
-                'description': prop_def.get('description', '')
+                'description': prop_def.get('description', ''),
+                
+                # Validation metadata
+                'enum': prop_def.get('enum'),
+                'format': prop_def.get('format'),
+                'pattern': prop_def.get('pattern'),
+                'minLength': prop_def.get('minLength'),
+                'maxLength': prop_def.get('maxLength'),
+                'minimum': prop_def.get('minimum'),
+                'maximum': prop_def.get('maximum'),
+                
+                # Other metadata
+                'default': prop_def.get('default'),
+                'example': prop_def.get('example'),
+                'deprecated': prop_def.get('deprecated', False),
+                'readOnly': prop_def.get('readOnly', False),
+                'writeOnly': prop_def.get('writeOnly', False),
             }
         
         return property_details

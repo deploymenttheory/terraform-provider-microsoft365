@@ -88,7 +88,7 @@ class IssueBuilder:
                 "",
             ])
             for schema in non_breaking_schemas:
-                body_parts.extend(self._format_schema_change(schema, show_all=False))
+                body_parts.extend(self._format_schema_change(schema, show_all=True))
         
         body_parts.extend([
             "",
@@ -120,51 +120,144 @@ class IssueBuilder:
         
         Args:
             schema: Schema change
-            show_all: If True, show all properties; if False, limit to first 5
+            show_all: Not used anymore, kept for compatibility
             
         Returns:
             List of markdown lines
         """
         lines = [
-            f"### `{schema.schema_name}`",
+            f"## `{schema.schema_name}`",
             "",
-            f"**Changes:** {schema.change_summary}",
+            f"**Summary:** {schema.change_summary}",
+            f"**File:** `{schema.file_path}` _(for reference)_",
             "",
         ]
         
         # Added properties
         if schema.added_properties:
             lines.append("**Added Properties:**")
-            props_to_show = schema.added_properties if show_all else schema.added_properties[:5]
-            for prop in props_to_show:
-                req_marker = "* " if prop.new_required else "  "
-                lines.append(f"- {req_marker}`{prop.property_name}`: `{prop.new_type}`")
-            if not show_all and len(schema.added_properties) > 5:
-                lines.append(f"- ... and {len(schema.added_properties) - 5} more")
+            lines.append("")
+            for prop in schema.added_properties:
+                req_marker = "**[Required]** " if prop.new_required else ""
+                nullable_marker = " _(nullable)_" if prop.new_nullable else ""
+                
+                # Property header
+                lines.append(f"#### ➕ `{prop.property_name}`")
+                lines.append(f"- **Type:** `{prop.new_type}`{nullable_marker}")
+                if req_marker:
+                    lines.append(f"- {req_marker}")
+                
+                # Description (always show, even if empty)
+                if prop.description and prop.description.strip():
+                    lines.append(f"- **Description:** {prop.description}")
+                else:
+                    lines.append("- **Description:** _(No description available in OpenAPI spec)_")
+                
+                # Enum values
+                if prop.enum_values:
+                    enum_display = ', '.join(f'`{str(v)}`' for v in prop.enum_values[:10])
+                    if len(prop.enum_values) > 10:
+                        enum_display += f' _(+{len(prop.enum_values) - 10} more)_'
+                    lines.append(f"- **Allowed Values:** {enum_display}")
+                
+                # Validation constraints
+                constraints = []
+                if prop.format:
+                    constraints.append(f"format: `{prop.format}`")
+                if prop.pattern:
+                    constraints.append(f"pattern: `{prop.pattern}`")
+                if prop.min_length is not None or prop.max_length is not None:
+                    if prop.min_length and prop.max_length:
+                        constraints.append(f"length: {prop.min_length}-{prop.max_length}")
+                    elif prop.min_length:
+                        constraints.append(f"min length: {prop.min_length}")
+                    elif prop.max_length:
+                        constraints.append(f"max length: {prop.max_length}")
+                if prop.minimum is not None or prop.maximum is not None:
+                    if prop.minimum and prop.maximum:
+                        constraints.append(f"range: {prop.minimum}-{prop.maximum}")
+                    elif prop.minimum:
+                        constraints.append(f"min: {prop.minimum}")
+                    elif prop.maximum:
+                        constraints.append(f"max: {prop.maximum}")
+                
+                if constraints:
+                    lines.append(f"- **Constraints:** {', '.join(constraints)}")
+                
+                # Default value
+                if prop.default is not None:
+                    lines.append(f"- **Default:** `{prop.default}`")
+                
+                # Example
+                if prop.example is not None:
+                    lines.append(f"- **Example:** `{prop.example}`")
+                
+                # Flags
+                flags = []
+                if prop.read_only:
+                    flags.append("read-only")
+                if prop.write_only:
+                    flags.append("write-only")
+                if prop.deprecated:
+                    flags.append("⚠️ **deprecated**")
+                
+                if flags:
+                    lines.append(f"- **Flags:** {', '.join(flags)}")
+                
+                lines.append("")
+            
             lines.append("")
         
         # Removed properties (always show all)
         if schema.removed_properties:
-            lines.append("**⚠️ Removed Properties:**")
+            lines.append("**⚠️ Removed Properties (Breaking Change):**")
+            lines.append("")
             for prop in schema.removed_properties:
-                lines.append(f"- `{prop.property_name}`: `{prop.old_type}`")
+                req_marker = "**[Was Required]** " if prop.old_required else ""
+                lines.append(f"#### ➖ `{prop.property_name}`")
+                lines.append(f"- **Type:** `{prop.old_type}`")
+                if req_marker:
+                    lines.append(f"- {req_marker}")
+                lines.append(f"- **Action Required:** Remove from Terraform schema, add deprecation notice if recently removed")
+                lines.append("")
             lines.append("")
         
         # Type changes (always show all)
         if schema.type_changed_properties:
-            lines.append("**⚠️ Type Changes:**")
+            lines.append("**⚠️ Type Changes (Breaking Change):**")
+            lines.append("")
             for prop in schema.type_changed_properties:
-                lines.append(f"- `{prop.property_name}`: `{prop.old_type}` → `{prop.new_type}`")
+                lines.append(f"#### 🔄 `{prop.property_name}`")
+                lines.append(f"- **Old Type:** `{prop.old_type}`")
+                lines.append(f"- **New Type:** `{prop.new_type}`")
+                if prop.old_description and prop.old_description != prop.new_description:
+                    lines.append(f"- **Old Description:** {prop.old_description}")
+                if prop.new_description:
+                    lines.append(f"- **New Description:** {prop.new_description}")
+                lines.append(f"- **Action Required:** Update Terraform schema type, may require provider version bump")
+                lines.append("")
             lines.append("")
         
         # Required changes (always show all)
         if schema.required_changed_properties:
             lines.append("**Required Status Changes:**")
+            lines.append("")
             for prop in schema.required_changed_properties:
                 old_status = "required" if prop.old_required else "optional"
                 new_status = "required" if prop.new_required else "optional"
-                marker = "⚠️ " if prop.new_required and not prop.old_required else ""
-                lines.append(f"- {marker}`{prop.property_name}`: {old_status} → {new_status}")
+                is_breaking = prop.new_required and not prop.old_required
+                marker = "⚠️ " if is_breaking else "✅ "
+                
+                lines.append(f"#### {marker}`{prop.property_name}`")
+                lines.append(f"- **Change:** {old_status} → {new_status}")
+                if prop.description:
+                    lines.append(f"- **Description:** {prop.description}")
+                if is_breaking:
+                    lines.append(f"- **⚠️ Breaking Change:** Field is now required")
+                    lines.append(f"- **Action Required:** Update validation, add default if possible, may require version bump")
+                else:
+                    lines.append(f"- **Action Required:** Update validation (field now optional)")
+                lines.append("")
             lines.append("")
         
         return lines

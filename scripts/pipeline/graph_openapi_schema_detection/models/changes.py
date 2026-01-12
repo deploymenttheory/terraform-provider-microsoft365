@@ -1,7 +1,7 @@
 """Change data models for OpenAPI schema detection."""
 
 from dataclasses import dataclass, field
-from typing import Optional, List
+from typing import Optional, List, Any
 
 
 @dataclass
@@ -15,7 +15,25 @@ class PropertyChange:
     new_required: bool = False
     old_nullable: Optional[bool] = None
     new_nullable: Optional[bool] = None
+    
+    # Rich metadata from OpenAPI
     description: Optional[str] = None
+    old_description: Optional[str] = None
+    new_description: Optional[str] = None
+    enum_values: Optional[List[Any]] = None
+    old_enum_values: Optional[List[Any]] = None
+    new_enum_values: Optional[List[Any]] = None
+    format: Optional[str] = None  # e.g., 'date-time', 'email', 'uuid'
+    pattern: Optional[str] = None  # regex pattern
+    min_length: Optional[int] = None
+    max_length: Optional[int] = None
+    minimum: Optional[float] = None
+    maximum: Optional[float] = None
+    default: Optional[Any] = None
+    example: Optional[Any] = None
+    deprecated: bool = False
+    read_only: bool = False
+    write_only: bool = False
     
     @property
     def is_breaking(self) -> bool:
