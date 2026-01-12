@@ -374,28 +374,60 @@ class ProgressReporter:
         self.info("\n📋 Parse Summary:", indent=1)
         
         if model_changes:
-            self.info(f"✓ Found {len(model_changes)} model(s) with field changes:\n", indent=1)
+            self.info(f"✓ Found {len(model_changes)} model(s) with changes:\n", indent=1)
             
             for change in model_changes:
                 self.info(f"📄 {change.model_name} ({change.file_path})", indent=2)
                 self.info(change.change_summary, indent=3)
 
+                # Show struct fields
                 if change.added_fields:
-                    self.info("Added fields:", indent=3)
+                    self.info("Added struct fields:", indent=3)
                     for fld in change.added_fields[:5]:
                         self.info(f"+ {fld.field_name}: {fld.field_type}", indent=4)
                     if len(change.added_fields) > 5:
                         self.info(f"... and {len(change.added_fields) - 5} more", indent=4)
 
                 if change.removed_fields:
-                    self.info("Removed fields:", indent=3)
+                    self.info("Removed struct fields:", indent=3)
                     for fld in change.removed_fields[:5]:
                         self.info(f"- {fld.field_name}: {fld.field_type}", indent=4)
                     if len(change.removed_fields) > 5:
                         self.info(f"... and {len(change.removed_fields) - 5} more", indent=4)
+
+                # Show interface methods
+                if change.added_methods:
+                    self.info("Added interface methods:", indent=3)
+                    for method in change.added_methods[:5]:
+                        self.info(f"+ {method.signature}", indent=4)
+                    if len(change.added_methods) > 5:
+                        self.info(f"... and {len(change.added_methods) - 5} more", indent=4)
+
+                if change.removed_methods:
+                    self.info("Removed interface methods:", indent=3)
+                    for method in change.removed_methods[:5]:
+                        self.info(f"- {method.signature}", indent=4)
+                    if len(change.removed_methods) > 5:
+                        self.info(f"... and {len(change.removed_methods) - 5} more", indent=4)
+
+                # Show embedded types
+                if change.added_embedded_types:
+                    self.info("Added embedded types:", indent=3)
+                    for emb in change.added_embedded_types[:5]:
+                        self.info(f"+ {emb.type_name} ({emb.context})", indent=4)
+                    if len(change.added_embedded_types) > 5:
+                        self.info(f"... and {len(change.added_embedded_types) - 5} more", indent=4)
+
+                if change.removed_embedded_types:
+                    self.info("Removed embedded types:", indent=3)
+                    for emb in change.removed_embedded_types[:5]:
+                        self.info(f"- {emb.type_name} ({emb.context})", indent=4)
+                    if len(change.removed_embedded_types) > 5:
+                        self.info(f"... and {len(change.removed_embedded_types) - 5} more", indent=4)
+
                 print()
         else:
-            self.info("ℹ️  No struct field changes detected in diff", indent=1)
+            self.info("ℹ️  No changes detected in diff", indent=1)
         
         # Print detailed statistics if provided
         if stats:
@@ -403,15 +435,15 @@ class ProgressReporter:
             print(stats.get_summary())
             
             # Explain why files were filtered
-            if stats.files_without_field_changes > 0:
+            if stats.files_without_changes > 0:
                 print()
-                self.info(f"ℹ️  {stats.files_without_field_changes} file(s) had changes but no struct field modifications.", indent=1)
+                self.info(f"ℹ️  {stats.files_without_changes} file(s) had changes but no detectable model modifications.", indent=1)
                 self.info("   Possible reasons:", indent=1)
                 self.info("   • Only comments, imports, or package declarations changed", indent=1)
-                self.info("   • Method implementations changed (func declarations)", indent=1)
+                self.info("   • Method implementations (func body) changed", indent=1)
                 self.info("   • Type aliases or constants changed", indent=1)
-                self.info("   • Only unexported (lowercase) fields changed", indent=1)
-                self.info("   • Changes didn't match Go struct field pattern", indent=1)
+                self.info("   • Only unexported (lowercase) fields/methods changed", indent=1)
+                self.info("   • Changes didn't match expected patterns", indent=1)
                 
                 # Show examples of files without field changes
                 if files_without_changes:
@@ -1228,16 +1260,43 @@ This update includes {len(model_changes)} model(s) with schema changes that requ
             parts.append(f"**Changes:** {change.change_summary}")
             parts.append("")
 
+            # Struct fields
             if change.added_fields:
-                parts.append("**Added Fields:**")
+                parts.append("**Added Struct Fields:**")
                 for fld in change.added_fields:
                     parts.append(f"- `{fld.field_name}` ({fld.field_type})")
                 parts.append("")
 
             if change.removed_fields:
-                parts.append("**Removed Fields:**")
+                parts.append("**Removed Struct Fields:**")
                 for fld in change.removed_fields:
                     parts.append(f"- `{fld.field_name}` ({fld.field_type})")
+                parts.append("")
+
+            # Interface methods
+            if change.added_methods:
+                parts.append("**Added Interface Methods:**")
+                for method in change.added_methods:
+                    parts.append(f"- `{method.signature}`")
+                parts.append("")
+
+            if change.removed_methods:
+                parts.append("**Removed Interface Methods:**")
+                for method in change.removed_methods:
+                    parts.append(f"- `{method.signature}`")
+                parts.append("")
+
+            # Embedded types
+            if change.added_embedded_types:
+                parts.append("**Added Embedded Types:**")
+                for emb in change.added_embedded_types:
+                    parts.append(f"- `{emb.type_name}` ({emb.context})")
+                parts.append("")
+
+            if change.removed_embedded_types:
+                parts.append("**Removed Embedded Types:**")
+                for emb in change.removed_embedded_types:
+                    parts.append(f"- `{emb.type_name}` ({emb.context})")
                 parts.append("")
 
         return '\n'.join(parts)
@@ -1247,10 +1306,20 @@ This update includes {len(model_changes)} model(s) with schema changes that requ
         return """## Action Required
 
 1. Review each changed model listed above
-2. Update corresponding Terraform resource schemas
-3. Update resource CRUD operations if needed
-4. Add/update tests for new fields
-5. Update documentation
+2. For struct field changes:
+   - Update corresponding Terraform resource schemas
+   - Add/update field mappings in CRUD operations
+3. For interface method changes:
+   - Review API contract changes
+   - Update method calls if signatures changed
+   - Verify compatibility with existing code
+4. For embedded type changes:
+   - Review inheritance/composition changes
+   - Check for breaking changes in type hierarchy
+5. Add/update tests for all changes
+6. Update documentation
+
+⚠️ **Interface method changes may indicate breaking API changes!**
 """
 
     def _build_references(self, old_version: str, new_version: str) -> str:
