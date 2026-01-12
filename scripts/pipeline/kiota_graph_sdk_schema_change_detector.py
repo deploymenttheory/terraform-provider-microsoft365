@@ -144,6 +144,55 @@ class VersionChangeResult:
 
 
 @dataclass
+class DetectionResult:
+    """Complete schema change detection result."""
+    current_version: str
+    new_version: str
+    timestamp: str
+    total_models_changed: int
+    models_with_changes: int
+    filtered_models: int
+    model_changes: List['ModelChange']
+    changelog_section: str
+    statistics: 'ParseStatistics'
+    
+    def to_dict(self) -> Dict:
+        """Convert to dictionary for JSON serialization."""
+        return {
+            "current_version": self.current_version,
+            "new_version": self.new_version,
+            "timestamp": self.timestamp,
+            "total_models_changed": self.total_models_changed,
+            "models_with_changes": self.models_with_changes,
+            "filtered_models": self.filtered_models,
+            "model_changes": [
+                {
+                    "file_path": mc.file_path,
+                    "model_name": mc.model_name,
+                    "added_fields": [{"name": f.name, "field_type": f.field_type} for f in mc.added_fields],
+                    "removed_fields": [{"name": f.name, "field_type": f.field_type} for f in mc.removed_fields],
+                    "added_methods": [{"signature": m.signature} for m in mc.added_methods],
+                    "removed_methods": [{"signature": m.signature} for m in mc.removed_methods],
+                    "added_embedded_types": [{"type_name": e.type_name} for e in mc.added_embedded_types],
+                    "removed_embedded_types": [{"type_name": e.type_name} for e in mc.removed_embedded_types],
+                }
+                for mc in self.model_changes
+            ],
+            "changelog_section": self.changelog_section,
+            "statistics": {
+                "total_files_in_diff": self.statistics.total_files_in_diff,
+                "files_with_field_changes": self.statistics.files_with_field_changes,
+                "struct_fields_added": self.statistics.struct_fields_added,
+                "struct_fields_removed": self.statistics.struct_fields_removed,
+                "interface_methods_added": self.statistics.interface_methods_added,
+                "interface_methods_removed": self.statistics.interface_methods_removed,
+                "embedded_types_added": self.statistics.embedded_types_added,
+                "embedded_types_removed": self.statistics.embedded_types_removed,
+            }
+        }
+
+
+@dataclass
 class IssueCreationResult:
     """Result of GitHub issue creation."""
     status: ResultStatus
@@ -872,6 +921,11 @@ class StructParser:
         self.reporter = reporter
         self.stats = ParseStatistics()
         self.in_interface_context = False  # Track if we're parsing inside an interface
+    
+    @property
+    def statistics(self) -> ParseStatistics:
+        """Get parsing statistics."""
+        return self.stats
 
     def parse_diff(self, diff_text: str) -> List[ModelChange]:
         """Parse Go model changes from diff text.
@@ -1444,11 +1498,14 @@ class KiotaGraphSdkSchemaChangeDetector:
             self.reporter.error(error_msg)
             return VersionChangeResult.error(error_msg)
 
-    def analyze_pr(self, pr_number: int) -> bool:
+    def analyze_pr(self, pr_number: int, save_results: Optional[Path] = None,
+                   filter_by_usage: Optional[Path] = None) -> bool:
         """Analyze a PR for SDK schema changes.
         
         Args:
             pr_number: PR number to analyze
+            save_results: Optional path to save detection results JSON
+            filter_by_usage: Optional path to model usage JSON for filtering
             
         Returns:
             True if analysis completed successfully
@@ -1460,14 +1517,19 @@ class KiotaGraphSdkSchemaChangeDetector:
             self.reporter.error(version_change.error_message or "Could not detect version change in PR")
             return False
 
-        return self.analyze_version_change(version_change.old_version, version_change.new_version)
+        return self.analyze_version_change(version_change.old_version, version_change.new_version,
+                                          save_results, filter_by_usage)
 
-    def analyze_version_change(self, old_version: str, new_version: str) -> bool:
+    def analyze_version_change(self, old_version: str, new_version: str, 
+                              save_results: Optional[Path] = None,
+                              filter_by_usage: Optional[Path] = None) -> bool:
         """Analyze a version change for schema updates.
         
         Args:
             old_version: Old SDK version
             new_version: New SDK version
+            save_results: Optional path to save detection results JSON
+            filter_by_usage: Optional path to model usage JSON for filtering
             
         Returns:
             True if analysis completed successfully
@@ -1501,6 +1563,23 @@ class KiotaGraphSdkSchemaChangeDetector:
 
         self.reporter.info(f"📝 Detected changes in {len(model_changes)} model(s)")
 
+        # Filter by usage if requested
+        original_count = len(model_changes)
+        filtered_count = 0
+        if filter_by_usage:
+            model_changes, filtered_count = self._filter_by_usage(model_changes, filter_by_usage)
+            self.reporter.info(f"🔍 Filtered to {len(model_changes)} relevant model(s) "
+                             f"({filtered_count} filtered out)")
+
+        # Save results if requested
+        if save_results:
+            self._save_results(old_version, new_version, model_changes, changelog, 
+                             original_count, filtered_count, save_results)
+
+        if not model_changes:
+            self.reporter.success("No relevant schema changes detected after filtering")
+            return True
+
         # Create issue
         self.reporter.section("🎫 Creating GitHub issue...")
         result = self._create_issue(old_version, new_version, model_changes, changelog)
@@ -1514,6 +1593,75 @@ class KiotaGraphSdkSchemaChangeDetector:
         else:
             self.reporter.error(result.error_message or "Failed to create issue")
             return False
+    
+    def _filter_by_usage(self, model_changes: List[ModelChange], 
+                        usage_file: Path) -> Tuple[List[ModelChange], int]:
+        """Filter model changes to only those used in the provider.
+        
+        Args:
+            model_changes: List of detected model changes
+            usage_file: Path to model usage JSON file
+            
+        Returns:
+            Tuple of (filtered_changes, filtered_count)
+        """
+        self.reporter.section("🔍 Filtering changes by provider usage...")
+        
+        try:
+            with open(usage_file, 'r', encoding='utf-8') as f:
+                usage_data = json.load(f)
+        except (OSError, json.JSONDecodeError) as e:
+            self.reporter.error(f"Failed to load usage data: {e}")
+            return model_changes, 0
+        
+        # Build set of used model files
+        used_models = {model['model_file'] for model in usage_data.get('models', [])}
+        
+        self.reporter.info(f"  Loaded {len(used_models)} model(s) from provider usage data")
+        
+        # Filter changes
+        filtered = [mc for mc in model_changes if mc.file_path in used_models]
+        filtered_out = len(model_changes) - len(filtered)
+        
+        if filtered_out > 0:
+            self.reporter.info(f"  ✓ Kept {len(filtered)} relevant model(s)")
+            self.reporter.info(f"  ✗ Filtered {filtered_out} unused model(s)")
+        
+        return filtered, filtered_out
+    
+    def _save_results(self, old_version: str, new_version: str, 
+                     model_changes: List[ModelChange], changelog: str,
+                     total_models: int, filtered_count: int, 
+                     output_file: Path) -> None:
+        """Save detection results to JSON file.
+        
+        Args:
+            old_version: Old SDK version
+            new_version: New SDK version
+            model_changes: List of detected model changes
+            changelog: Changelog section
+            total_models: Total models before filtering
+            filtered_count: Number of models filtered out
+            output_file: Path to save results
+        """
+        result = DetectionResult(
+            current_version=old_version,
+            new_version=new_version,
+            timestamp=datetime.now().isoformat(),
+            total_models_changed=total_models,
+            models_with_changes=len(model_changes),
+            filtered_models=filtered_count,
+            model_changes=model_changes,
+            changelog_section=changelog,
+            statistics=self.struct_parser.statistics
+        )
+        
+        try:
+            with open(output_file, 'w', encoding='utf-8') as f:
+                json.dump(result.to_dict(), f, indent=2)
+            self.reporter.success(f"💾 Results saved to: {output_file}")
+        except OSError as e:
+            self.reporter.error(f"Failed to save results: {e}")
 
     def _create_issue(self, old_version: str, new_version: str,
                      model_changes: List[ModelChange], changelog: str) -> IssueCreationResult:
@@ -1588,6 +1736,16 @@ def main():
         type=str,
         help="Repository in owner/repo format (auto-detected if not provided)"
     )
+    parser.add_argument(
+        "--save-results",
+        type=Path,
+        help="Save detection results to JSON file"
+    )
+    parser.add_argument(
+        "--filter-by-usage",
+        type=Path,
+        help="Filter changes by provider model usage (path to usage JSON)"
+    )
 
     args = parser.parse_args()
 
@@ -1605,13 +1763,21 @@ def main():
     # Run analysis
     try:
         if args.pr_number:
-            success = detector.analyze_pr(args.pr_number)
+            success = detector.analyze_pr(
+                args.pr_number, 
+                save_results=args.save_results,
+                filter_by_usage=args.filter_by_usage
+            )
         else:
             current = args.current or detector.parse_go_mod_version()
             if not current:
                 print("❌ Could not determine current version", file=sys.stderr)
                 sys.exit(1)
-            success = detector.analyze_version_change(current, args.new)
+            success = detector.analyze_version_change(
+                current, args.new,
+                save_results=args.save_results,
+                filter_by_usage=args.filter_by_usage
+            )
 
         sys.exit(0 if success else 1)
 

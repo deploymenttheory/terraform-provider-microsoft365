@@ -25,6 +25,11 @@ on:
         required: false
         type: boolean
         default: false
+      skip_usage_analysis:
+        description: 'Skip provider usage analysis (reuse existing results)'
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -65,7 +70,7 @@ jobs:
           which git || echo "git not found"
           which curl || echo "curl not found"
 
-      - name: Run SDK Schema Change Detection
+      - name: Run SDK Schema Change Detection (3-Step Workflow)
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -75,7 +80,7 @@ jobs:
           # Build command based on trigger type
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
             # Manual trigger - use workflow inputs
-            CMD="./kiota_graph_sdk_schema_change_detector.py --repo ${{ github.repository }}"
+            CMD="./orchestrate_schema_detection.py --verbose"
 
             if [ -n "${{ inputs.pr_number }}" ]; then
               CMD="$CMD --pr-number ${{ inputs.pr_number }}"
@@ -89,13 +94,28 @@ jobs:
             if [ "${{ inputs.dry_run }}" = "true" ]; then
               CMD="$CMD --dry-run"
             fi
+
+            if [ "${{ inputs.skip_usage_analysis }}" = "true" ]; then
+              CMD="$CMD --skip-usage-analysis"
+            fi
           else
             # PR trigger - use PR number
-            CMD="./kiota_graph_sdk_schema_change_detector.py --pr-number ${{ github.event.pull_request.number }} --repo ${{ github.repository }}"
+            CMD="./orchestrate_schema_detection.py --pr-number ${{ github.event.pull_request.number }} --verbose"
           fi
 
           echo "Running: $CMD"
           eval $CMD
+
+      - name: Upload Analysis Results
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.0
+        with:
+          name: schema-detection-results
+          path: |
+            scripts/pipeline/provider_model_usage.json
+            scripts/pipeline/schema_changes.json
+          retention-days: 30
+          if-no-files-found: ignore
 
       - name: Comment on PR
         if: success() && github.event_name == 'pull_request'
@@ -104,14 +124,23 @@ jobs:
           script: |
             const comment = `## 🔍 SDK Schema Change Detection Complete
 
-            The schema change detection analysis has completed successfully.
+            The schema change detection analysis has completed successfully using our intelligent 3-step workflow:
+
+            **Workflow Steps:**
+            1. ✅ **Provider Analysis** - Identified SDK models used in the provider
+            2. ✅ **Schema Detection** - Detected changes in SDK models (structs, interfaces, embedded types)
+            3. ✅ **Smart Filtering** - Filtered changes to only relevant models
+
+            **Results:**
+            - 📊 Analysis artifacts uploaded (check workflow artifacts)
+            - 🎫 Issues created only for schema changes affecting provider-managed resources
 
             **Next Steps:**
             - Check for any new issues created with the \`sdk-update\` label
-            - Review identified schema changes
+            - Review identified schema changes (only relevant models are reported)
             - Update Terraform resource schemas as needed
 
-            See [SDK Schema Change Detector](https://github.com/${{ github.repository }}/blob/main/scripts/pipeline/kiota_graph_sdk_schema_change_detector.py) for more details.`;
+            See [Schema Detection Workflow](https://github.com/${{ github.repository }}/blob/main/scripts/pipeline/orchestrate_schema_detection.py) for more details.`;
 
             github.rest.issues.createComment({
               owner: context.repo.owner,
@@ -134,7 +163,12 @@ jobs:
             You may need to run the analysis manually:
             \`\`\`bash
             cd scripts/pipeline
-            ./kiota_graph_sdk_schema_change_detector.py --pr-number ${{ github.event.pull_request.number }}
+            # Run complete workflow (recommended)
+            ./orchestrate_schema_detection.py --pr-number ${{ github.event.pull_request.number }} --verbose
+
+            # Or run individual steps
+            ./analyze_provider_model_usage.py --verbose
+            ./kiota_graph_sdk_schema_change_detector.py --pr-number ${{ github.event.pull_request.number }} --filter-by-usage provider_model_usage.json
             \`\`\``;
 
             github.rest.issues.createComment({
@@ -152,6 +186,13 @@ jobs:
           echo "**Trigger:** Manual workflow dispatch" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
 
+          echo "### Workflow Execution" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "✅ **Step 1:** Provider model usage analysis" >> $GITHUB_STEP_SUMMARY
+          echo "✅ **Step 2:** SDK schema change detection" >> $GITHUB_STEP_SUMMARY
+          echo "✅ **Step 3:** Intelligent filtering (only relevant models)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
           if [ -n "${{ inputs.pr_number }}" ]; then
             echo "**Analysis Mode:** PR Analysis" >> $GITHUB_STEP_SUMMARY
             echo "**PR Number:** #${{ inputs.pr_number }}" >> $GITHUB_STEP_SUMMARY
@@ -163,10 +204,17 @@ jobs:
 
           echo "**Dry Run:** ${{ inputs.dry_run }}" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "📊 **Artifacts:** Check the workflow artifacts for detailed JSON results" >> $GITHUB_STEP_SUMMARY
+          echo "- \`provider_model_usage.json\` - Models used by the provider" >> $GITHUB_STEP_SUMMARY
+          echo "- \`schema_changes.json\` - Detected schema changes (filtered)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
           echo "Check the job logs above for detailed analysis results." >> $GITHUB_STEP_SUMMARY
 
           if [ "${{ inputs.dry_run }}" != "true" ]; then
             echo "" >> $GITHUB_STEP_SUMMARY
             echo "🎫 **Next Steps:** Check for new issues with the \`sdk-update\` label" >> $GITHUB_STEP_SUMMARY
+            echo "Only issues for provider-managed resources will be created." >> $GITHUB_STEP_SUMMARY
           fi
 
