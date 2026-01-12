@@ -27,6 +27,7 @@ import traceback
 from pathlib import Path
 from datetime import datetime
 from typing import Optional, Tuple, List
+from urllib.parse import urlparse
 
 # Add current directory to path for imports
 sys.path.insert(0, str(Path(__file__).parent))
@@ -96,12 +97,25 @@ class SchemaChangeDetector:
                 check=True
             )
             remote_url = result.stdout.strip()
-            from regex_patterns import RegexPatterns  # type: ignore
-            match = RegexPatterns.GITHUB_REPO_URL.search(remote_url)
-            if match:
-                return match.group(1).rstrip('.git')
-        except subprocess.CalledProcessError:
+            
+            # Parse URL properly to avoid security issues
+            # Handle both HTTPS and SSH formats
+            if remote_url.startswith("git@"):
+                # SSH format: git@github.com:owner/repo.git
+                if remote_url.startswith("git@github.com:"):
+                    path = remote_url.replace("git@github.com:", "").replace(".git", "")
+                    return path
+            else:
+                # HTTPS format: https://github.com/owner/repo.git
+                parsed = urlparse(remote_url)
+                # Verify hostname is exactly github.com
+                if parsed.hostname == "github.com":
+                    # Remove leading slash and .git suffix
+                    path = parsed.path.lstrip("/").replace(".git", "")
+                    return path
+        except (subprocess.CalledProcessError, ValueError):
             pass
+        
         return "deploymenttheory/terraform-provider-microsoft365"
 
     def parse_go_mod_version(self) -> Optional[str]:
