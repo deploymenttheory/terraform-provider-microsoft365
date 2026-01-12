@@ -12,13 +12,13 @@ is updated by Dependabot. It:
 
 Usage:
     # Analyze a specific PR
-    ./sdkSchemaChangeDetector.py --pr-number 1686
+    ./kiota_graph_sdk_schema_change_detector.py --pr-number 1686
 
     # Analyze version change directly
-    ./sdkSchemaChangeDetector.py --current v0.156.0 --new v0.157.0
+    ./kiota_graph_sdk_schema_change_detector.py --current v0.156.0 --new v0.157.0
 
     # Dry run (don't create issues)
-    ./sdkSchemaChangeDetector.py --pr-number 1686 --dry-run
+    ./kiota_graph_sdk_schema_change_detector.py --pr-number 1686 --dry-run
 
 Args:
     --pr-number: Dependabot PR number to analyze
@@ -33,11 +33,157 @@ import json
 import subprocess
 import re
 import argparse
+import traceback
 from pathlib import Path
 from typing import Optional, Dict, List, Tuple
 from dataclasses import dataclass, field
 from datetime import datetime
+from enum import Enum
 
+
+# ============================================================================
+# REGEX PATTERNS - Named constants for all regular expressions
+# ============================================================================
+
+class RegexPatterns:
+    """Collection of compiled regex patterns used throughout the script."""
+    
+    # Version patterns
+    VERSION_FULL = re.compile(r'v(\d+)\.(\d+)\.(\d+)')
+    VERSION_IN_TEXT = re.compile(r'v\d+\.\d+\.\d+')
+    
+    # GitHub URL patterns
+    GITHUB_REPO_URL = re.compile(r'github\.com[:/](.+/.+?)(\.git)?$')
+    
+    # File patterns
+    MODEL_FILE_PATH = re.compile(r'models/[\w_]+\.go')
+    
+    # Go code patterns
+    GO_STRUCT_FIELD = re.compile(r'(\w+)\s+([\*\[\]]?[\w\.]+(?:\[[\w\.]+\])?)\s*(?:`.*`)?')
+    
+    # Changelog patterns
+    CHANGELOG_VERSION_HEADER = r'##'
+
+
+# ============================================================================
+# RESULT TYPES - Structured return values instead of Optional
+# ============================================================================
+
+class ResultStatus(Enum):
+    """Status of an operation result."""
+    SUCCESS = "success"
+    ERROR = "error"
+    NOT_FOUND = "not_found"
+    INVALID = "invalid"
+
+
+@dataclass
+class VersionResult:
+    """Result of version parsing or extraction."""
+    status: ResultStatus
+    version: Optional[str] = None
+    version_tuple: Optional[Tuple[int, int, int]] = None
+    error_message: Optional[str] = None
+    
+    @property
+    def is_success(self) -> bool:
+        """Check if operation was successful."""
+        return self.status == ResultStatus.SUCCESS
+    
+    @classmethod
+    def success(cls, version: str, version_tuple: Tuple[int, int, int]) -> 'VersionResult':
+        """Create a successful result."""
+        return cls(ResultStatus.SUCCESS, version, version_tuple)
+    
+    @classmethod
+    def error(cls, message: str) -> 'VersionResult':
+        """Create an error result."""
+        return cls(ResultStatus.ERROR, error_message=message)
+    
+    @classmethod
+    def not_found(cls, message: str = "Version not found") -> 'VersionResult':
+        """Create a not found result."""
+        return cls(ResultStatus.NOT_FOUND, error_message=message)
+
+
+@dataclass
+class VersionChangeResult:
+    """Result of PR version change detection."""
+    status: ResultStatus
+    old_version: Optional[str] = None
+    new_version: Optional[str] = None
+    error_message: Optional[str] = None
+    
+    @property
+    def is_success(self) -> bool:
+        """Check if operation was successful."""
+        return self.status == ResultStatus.SUCCESS
+    
+    @classmethod
+    def success(cls, old_version: str, new_version: str) -> 'VersionChangeResult':
+        """Create a successful result."""
+        return cls(ResultStatus.SUCCESS, old_version, new_version)
+    
+    @classmethod
+    def error(cls, message: str) -> 'VersionChangeResult':
+        """Create an error result."""
+        return cls(ResultStatus.ERROR, error_message=message)
+    
+    @classmethod
+    def not_found(cls) -> 'VersionChangeResult':
+        """Create a not found result."""
+        return cls(ResultStatus.NOT_FOUND, error_message="Version change not detected in PR")
+
+
+@dataclass
+class IssueCreationResult:
+    """Result of GitHub issue creation."""
+    status: ResultStatus
+    issue_number: Optional[str] = None
+    issue_url: Optional[str] = None
+    error_message: Optional[str] = None
+    
+    @property
+    def is_success(self) -> bool:
+        """Check if operation was successful."""
+        return self.status == ResultStatus.SUCCESS
+    
+    @classmethod
+    def success(cls, issue_number: str, issue_url: str) -> 'IssueCreationResult':
+        """Create a successful result."""
+        return cls(ResultStatus.SUCCESS, issue_number, issue_url)
+    
+    @classmethod
+    def error(cls, message: str) -> 'IssueCreationResult':
+        """Create an error result."""
+        return cls(ResultStatus.ERROR, error_message=message)
+    
+    @classmethod
+    def dry_run(cls) -> 'IssueCreationResult':
+        """Create a dry run result."""
+        return cls(ResultStatus.SUCCESS, issue_number="DRY_RUN")
+
+
+@dataclass
+class ValidationResult:
+    """Result of version validation."""
+    is_valid: bool
+    message: Optional[str] = None
+    
+    @classmethod
+    def valid(cls) -> 'ValidationResult':
+        """Create a valid result."""
+        return cls(True)
+    
+    @classmethod
+    def invalid(cls, message: str) -> 'ValidationResult':
+        """Create an invalid result."""
+        return cls(False, message)
+
+
+# ============================================================================
+# DATA MODELS
+# ============================================================================
 
 @dataclass
 class FieldChange:
@@ -72,48 +218,169 @@ class ModelChange:
         return ", ".join(parts)
 
 
-class SDKSchemaChangeDetector:
-    """Detects and reports schema changes in Microsoft Graph SDK updates."""
+class ProgressReporter:
+    """Handles all user-facing output and progress reporting."""
 
-    SDK_MODULE = "github.com/microsoftgraph/msgraph-beta-sdk-go"
-    SDK_REPO = "microsoftgraph/msgraph-beta-sdk-go"
-
-    def __init__(self, repo: Optional[str] = None, dry_run: bool = False):
-        """Initialize the detector.
-
+    def __init__(self, verbose: bool = True):
+        """Initialize the reporter.
+        
         Args:
-            repo: Target repository in owner/repo format
-            dry_run: If True, don't create actual GitHub issues
+            verbose: If True, show detailed progress messages
         """
-        self.dry_run = dry_run
-        self.repo = repo or self._get_current_repo()
-        self.go_mod_path = Path.cwd() / "go.mod"
+        self.verbose = verbose
 
-    def _get_current_repo(self) -> str:
-        """Get current repository from git remote."""
-        try:
-            result = subprocess.run(
-                ["git", "remote", "get-url", "origin"],
-                capture_output=True,
-                text=True,
-                check=True
-            )
-            remote_url = result.stdout.strip()
-            # Parse owner/repo from URL
-            match = re.search(r'github\.com[:/](.+/.+?)(\.git)?$', remote_url)
-            if match:
-                return match.group(1).rstrip('.git')
-        except subprocess.CalledProcessError:
-            pass
-        return "deploymenttheory/terraform-provider-microsoft365"
+    def section(self, message: str):
+        """Print a section header."""
+        if self.verbose:
+            print(f"\n{message}")
+
+    def info(self, message: str, indent: int = 0):
+        """Print an info message."""
+        if self.verbose:
+            prefix = "  " * indent
+            print(f"{prefix}{message}")
+
+    def success(self, message: str):
+        """Print a success message."""
+        print(f"✅ {message}")
+
+    def warning(self, message: str):
+        """Print a warning message."""
+        print(f"⚠️  {message}", file=sys.stderr)
+
+    def error(self, message: str):
+        """Print an error message."""
+        print(f"❌ {message}", file=sys.stderr)
+
+    def print_parse_summary(self, model_changes: List[ModelChange]):
+        """Print summary of parsed model changes."""
+        self.info("\n📋 Parse Summary:", indent=1)
+        
+        if model_changes:
+            self.info(f"✓ Found {len(model_changes)} model(s) with field changes:\n", indent=1)
+            
+            for change in model_changes:
+                self.info(f"📄 {change.model_name} ({change.file_path})", indent=2)
+                self.info(change.change_summary, indent=3)
+
+                if change.added_fields:
+                    self.info("Added fields:", indent=3)
+                    for fld in change.added_fields[:5]:
+                        self.info(f"+ {fld.field_name}: {fld.field_type}", indent=4)
+                    if len(change.added_fields) > 5:
+                        self.info(f"... and {len(change.added_fields) - 5} more", indent=4)
+
+                if change.removed_fields:
+                    self.info("Removed fields:", indent=3)
+                    for fld in change.removed_fields[:5]:
+                        self.info(f"- {fld.field_name}: {fld.field_type}", indent=4)
+                    if len(change.removed_fields) > 5:
+                        self.info(f"... and {len(change.removed_fields) - 5} more", indent=4)
+                print()
+        else:
+            self.info("ℹ️  No struct field changes detected in diff", indent=1)
+            self.info("(This may mean only non-field code changed, or parsing needs adjustment)", indent=2)
+
+    def print_dry_run_issue(self, title: str, body: str):
+        """Print issue content for dry run."""
+        print("\n🔍 DRY RUN: Would create issue with following content:")
+        print("=" * 80)
+        print(f"Title: {title}\n")
+        print(body)
+        print("=" * 80)
+
+
+class VersionParser:
+    """Handles version parsing and validation."""
+
+    def parse_version(self, version_str: str) -> VersionResult:
+        """Parse version string into structured result.
+        
+        Args:
+            version_str: Version string (e.g., 'v0.156.0')
+            
+        Returns:
+            VersionResult with parsed version data
+        """
+        match = RegexPatterns.VERSION_FULL.match(version_str)
+        if match:
+            version_tuple = tuple(map(int, match.groups()))
+            return VersionResult.success(version_str, version_tuple)
+        return VersionResult.error(f"Invalid version format: {version_str}")
+
+    def extract_version_from_line(self, line: str) -> Optional[str]:
+        """Extract version string from a line of text.
+        
+        Args:
+            line: Line of text that may contain a version
+            
+        Returns:
+            Version string or None if not found
+        """
+        match = RegexPatterns.VERSION_IN_TEXT.search(line)
+        return match.group(0) if match else None
+
+    def validate_increment(self, old_version: str, new_version: str, 
+                          reporter: ProgressReporter) -> ValidationResult:
+        """Validate that version increment is acceptable.
+        
+        Args:
+            old_version: Old version string
+            new_version: New version string
+            reporter: Reporter for warnings
+            
+        Returns:
+            ValidationResult with validation status
+        """
+        old_result = self.parse_version(old_version)
+        new_result = self.parse_version(new_version)
+
+        if not old_result.is_success or not new_result.is_success:
+            reporter.error("Invalid version format")
+            return ValidationResult.invalid("Invalid version format")
+
+        old_major, old_minor, old_patch = old_result.version_tuple
+        new_major, new_minor, new_patch = new_result.version_tuple
+
+        if new_major == old_major:
+            if new_minor == old_minor + 1 and new_patch == 0:
+                return ValidationResult.valid()  # Valid minor version bump
+            elif new_minor == old_minor and new_patch == old_patch + 1:
+                return ValidationResult.valid()  # Valid patch version bump
+            elif new_minor == old_minor and new_patch > old_patch:
+                reporter.warning("Multiple patch version increment detected")
+                return ValidationResult.valid()  # Multiple patch bump - acceptable
+            elif new_minor > old_minor + 1:
+                msg = f"Multiple minor version jump detected: {old_version} -> {new_version}"
+                reporter.warning(msg)
+                reporter.warning("This may indicate missing intermediate versions.")
+                return ValidationResult.invalid(msg)
+
+        msg = f"Unexpected version change: {old_version} -> {new_version}"
+        reporter.warning(msg)
+        return ValidationResult.invalid(msg)
+
+
+class GitHubClient:
+    """Handles all GitHub CLI operations."""
+
+    def __init__(self, repo: str, reporter: ProgressReporter):
+        """Initialize GitHub client.
+        
+        Args:
+            repo: Repository in owner/repo format
+            reporter: Progress reporter for output
+        """
+        self.repo = repo
+        self.reporter = reporter
 
     def run_command(self, args: List[str], check: bool = True) -> Tuple[str, str, int]:
         """Run a command and return output.
-
+        
         Args:
             args: Command and arguments to run
             check: Whether to raise exception on non-zero exit
-
+            
         Returns:
             Tuple of (stdout, stderr, returncode)
         """
@@ -127,213 +394,316 @@ class SDKSchemaChangeDetector:
             return result.stdout.strip(), result.stderr.strip(), result.returncode
         except subprocess.CalledProcessError as e:
             if check:
-                print(f"Error running command: {' '.join(args)}", file=sys.stderr)
-                print(f"Error: {e.stderr}", file=sys.stderr)
+                self.reporter.error(f"Command failed: {' '.join(args)}")
+                self.reporter.error(f"Error: {e.stderr}")
                 raise
             return e.stdout.strip(), e.stderr.strip(), e.returncode
 
     def run_gh_command(self, args: List[str]) -> str:
         """Run a GitHub CLI command and return output.
-
+        
         Args:
             args: Arguments to pass to 'gh' command
-
+            
         Returns:
             Command stdout as string
         """
         stdout, _, _ = self.run_command(["gh"] + args)
         return stdout
 
-    def parse_go_mod_version(self) -> Optional[str]:
-        """Parse current SDK version from go.mod.
-
-        Returns:
-            Current version string (e.g., 'v0.156.0') or None if not found
-        """
-        if not self.go_mod_path.exists():
-            print(f"Error: go.mod not found at {self.go_mod_path}", file=sys.stderr)
-            return None
-
-        with open(self.go_mod_path, 'r') as f:
-            for line in f:
-                if self.SDK_MODULE in line:
-                    # Extract version using regex
-                    match = re.search(r'v\d+\.\d+\.\d+', line)
-                    if match:
-                        return match.group(0)
-
-        print(f"Error: Could not find {self.SDK_MODULE} in go.mod", file=sys.stderr)
-        return None
-
-    def get_pr_version_change(self, pr_number: int) -> Optional[Tuple[str, str]]:
-        """Get version change from a PR.
-
+    def get_pr_diff(self, pr_number: int) -> str:
+        """Get diff from a pull request.
+        
         Args:
             pr_number: PR number
-
+            
         Returns:
-            Tuple of (old_version, new_version) or None if not found
+            Diff text
+        """
+        return self.run_gh_command([
+            "pr", "diff", str(pr_number),
+            "--repo", self.repo
+        ])
+
+    def get_compare_data(self, sdk_repo: str, old_version: str, new_version: str) -> dict:
+        """Get comparison data between two versions from GitHub API.
+        
+        Args:
+            sdk_repo: SDK repository (owner/repo)
+            old_version: Old version tag
+            new_version: New version tag
+            
+        Returns:
+            Parsed JSON response from GitHub API
+        """
+        json_result = self.run_gh_command([
+            "api",
+            f"/repos/{sdk_repo}/compare/{old_version}...{new_version}"
+        ])
+        
+        if not json_result:
+            raise ValueError("No response from GitHub API")
+        
+        return json.loads(json_result)
+
+    def create_issue(self, title: str, body: str, labels: List[str]) -> str:
+        """Create a GitHub issue.
+        
+        Args:
+            title: Issue title
+            body: Issue body
+            labels: List of label names
+            
+        Returns:
+            Issue URL
+        """
+        return self.run_gh_command([
+            "issue", "create",
+            "--repo", self.repo,
+            "--title", title,
+            "--body", body,
+            "--label", ",".join(labels)
+        ])
+
+    def ensure_labels(self, labels: List[Tuple[str, str, str]]):
+        """Ensure labels exist in the repository.
+        
+        Args:
+            labels: List of (name, color, description) tuples
+        """
+        for label_name, color, description in labels:
+            try:
+                self.run_gh_command([
+                    "label", "create", label_name,
+                    "--repo", self.repo,
+                    "--color", color,
+                    "--description", description,
+                    "--force"
+                ])
+            except subprocess.CalledProcessError:
+                pass  # Label might already exist
+
+    def fetch_changelog(self, url: str) -> str:
+        """Fetch changelog from URL.
+        
+        Args:
+            url: Changelog URL
+            
+        Returns:
+            Changelog content
+        """
+        stdout, _, _ = self.run_command(["curl", "-s", url])
+        return stdout
+
+    def get_current_repo(self) -> str:
+        """Get current repository from git remote.
+        
+        Returns:
+            Repository in owner/repo format
         """
         try:
-            # Get PR diff
-            diff = self.run_gh_command([
-                "pr", "diff", str(pr_number),
-                "--repo", self.repo
-            ])
+            result = subprocess.run(
+                ["git", "remote", "get-url", "origin"],
+                capture_output=True,
+                text=True,
+                check=True
+            )
+            remote_url = result.stdout.strip()
+            match = RegexPatterns.GITHUB_REPO_URL.search(remote_url)
+            if match:
+                return match.group(1).rstrip('.git')
+        except subprocess.CalledProcessError:
+            pass
+        return "deploymenttheory/terraform-provider-microsoft365"
 
-            # Look for go.mod changes
-            old_version = None
-            new_version = None
 
-            for line in diff.split('\n'):
-                if self.SDK_MODULE in line:
-                    if line.startswith('-') and not line.startswith('---'):
-                        # Removed line (old version)
-                        match = re.search(r'v\d+\.\d+\.\d+', line)
-                        if match:
-                            old_version = match.group(0)
-                    elif line.startswith('+') and not line.startswith('+++'):
-                        # Added line (new version)
-                        match = re.search(r'v\d+\.\d+\.\d+', line)
-                        if match:
-                            new_version = match.group(0)
+class DiffFetcher:
+    """Handles fetching and filtering diffs from SDK repository."""
 
-            if old_version and new_version:
-                return old_version, new_version
-
-        except Exception as e:
-            print(f"Error getting PR version change: {e}", file=sys.stderr)
-
-        return None
-
-    def validate_version_increment(self, old_version: str, new_version: str) -> bool:
-        """Validate that version increment is exactly one minor version.
-
+    def __init__(self, sdk_repo: str, github_client: GitHubClient, reporter: ProgressReporter, save_diff: bool = False):
+        """Initialize diff fetcher.
+        
         Args:
-            old_version: Old version string (e.g., 'v0.156.0')
-            new_version: New version string (e.g., 'v0.157.0')
-
-        Returns:
-            True if increment is valid (single minor version bump)
+            sdk_repo: SDK repository (owner/repo)
+            github_client: GitHub client for API calls
+            reporter: Progress reporter
+            save_diff: If True, save diffs to files
         """
-        # Parse versions
-        old_match = re.match(r'v(\d+)\.(\d+)\.(\d+)', old_version)
-        new_match = re.match(r'v(\d+)\.(\d+)\.(\d+)', new_version)
+        self.sdk_repo = sdk_repo
+        self.github_client = github_client
+        self.reporter = reporter
+        self.save_diff = save_diff
 
-        if not old_match or not new_match:
-            print(f"Error: Invalid version format", file=sys.stderr)
-            return False
+    def fetch_version_diff(self, old_version: str, new_version: str) -> str:
+        """Fetch diff between two versions.
+        
+        Args:
+            old_version: Old version tag
+            new_version: New version tag
+            
+        Returns:
+            Unified diff text for model files
+        """
+        try:
+            self.reporter.info("Fetching diff from GitHub API...", indent=1)
+            
+            compare_data = self.github_client.get_compare_data(
+                self.sdk_repo, old_version, new_version
+            )
+            
+            files = compare_data.get('files', [])
+            if not files:
+                self.reporter.info("No files changed in this version", indent=1)
+                return ""
 
-        old_major, old_minor, old_patch = map(int, old_match.groups())
-        new_major, new_minor, new_patch = map(int, new_match.groups())
+            model_files = self._filter_model_files(files)
+            if not model_files:
+                self.reporter.info("No model files with changes found", indent=1)
+                return ""
 
-        # Check if it's a single minor version increment (patch should reset to 0)
-        # Or a patch increment on the same minor version
-        if new_major == old_major:
-            if new_minor == old_minor + 1 and new_patch == 0:
-                # Valid minor version bump
-                return True
-            elif new_minor == old_minor and new_patch == old_patch + 1:
-                # Valid patch version bump
-                return True
-            elif new_minor == old_minor and new_patch > old_patch:
-                # Multiple patch version bump - still acceptable
-                print(f"⚠️  Warning: Multiple patch version increment detected", file=sys.stderr)
-                return True
-            elif new_minor > old_minor + 1:
-                print(f"⚠️  Warning: Multiple minor version jump detected: {old_version} -> {new_version}", file=sys.stderr)
-                print(f"   This may indicate missing intermediate versions.", file=sys.stderr)
-                return False
+            diff_text = self._build_unified_diff(model_files)
+            self.reporter.info(f"📦 Collected diffs from {len(model_files)} model file(s)", indent=1)
 
-        print(f"⚠️  Warning: Unexpected version change: {old_version} -> {new_version}", file=sys.stderr)
-        return False
+            if self.save_diff:
+                self._save_diff_to_file(diff_text, old_version, new_version)
+
+            return diff_text
+
+        except (subprocess.CalledProcessError, json.JSONDecodeError, OSError, KeyError) as e:
+            self.reporter.error(f"Error fetching diff: {e}")
+            traceback.print_exc()
+            return ""
+
+    def _filter_model_files(self, files: List[dict]) -> List[dict]:
+        """Filter for model files with patches.
+        
+        Args:
+            files: List of file info from GitHub API
+            
+        Returns:
+            Filtered list of model files
+        """
+        model_files = []
+        
+        for file_info in files:
+            filename = file_info.get('filename', '')
+            
+            if not filename.startswith('models/'):
+                continue
+
+            patch = file_info.get('patch')
+            status = file_info.get('status', 'unknown')
+
+            if not patch:
+                self.reporter.info(
+                    f"⚠️  Skipping {filename} (no patch content, status: {status})",
+                    indent=2
+                )
+                continue
+
+            model_files.append(file_info)
+            self.reporter.info(f"✓ Found changes in {filename} ({status})", indent=2)
+
+        return model_files
+
+    def _build_unified_diff(self, files: List[dict]) -> str:
+        """Build unified diff format from file patches.
+        
+        Args:
+            files: List of file info with patches
+            
+        Returns:
+            Unified diff text
+        """
+        diff_parts = []
+        
+        for file_info in files:
+            filename = file_info['filename']
+            patch = file_info['patch']
+            
+            diff_parts.append(f"diff --git a/{filename} b/{filename}")
+            diff_parts.append(f"--- a/{filename}")
+            diff_parts.append(f"+++ b/{filename}")
+            diff_parts.append(patch)
+            diff_parts.append("")
+
+        return '\n'.join(diff_parts)
+
+    def _save_diff_to_file(self, diff_text: str, old_version: str, new_version: str):
+        """Save diff to file for debugging.
+        
+        Args:
+            diff_text: Diff content
+            old_version: Old version
+            new_version: New version
+        """
+        diff_file = f"sdk_diff_{old_version}_to_{new_version}.patch"
+        with open(diff_file, 'w', encoding='utf-8') as f:
+            f.write(diff_text)
+        self.reporter.info(f"💾 Saved diff to {diff_file}", indent=1)
 
     def fetch_changelog_section(self, version: str) -> str:
         """Fetch changelog section for a specific version.
-
+        
         Args:
             version: Version to fetch changelog for
-
+            
         Returns:
             Changelog section text
         """
         try:
-            # Fetch changelog from GitHub
-            changelog_url = f"https://raw.githubusercontent.com/{self.SDK_REPO}/main/CHANGELOG.md"
-            stdout, _, _ = self.run_command([
-                "curl", "-s", changelog_url
-            ])
+            changelog_url = f"https://raw.githubusercontent.com/{self.sdk_repo}/main/CHANGELOG.md"
+            changelog_content = self.github_client.fetch_changelog(changelog_url)
+            
+            return self._extract_version_section(changelog_content, version)
 
-            # Extract section for this version
-            lines = stdout.split('\n')
-            section_lines = []
-            in_section = False
-
-            for line in lines:
-                if line.startswith('##') and version.lstrip('v') in line:
-                    in_section = True
-                    section_lines.append(line)
-                elif in_section:
-                    if line.startswith('##'):
-                        # Next version section, stop
-                        break
-                    section_lines.append(line)
-
-            return '\n'.join(section_lines) if section_lines else "Changelog section not found"
-
-        except Exception as e:
-            print(f"Error fetching changelog: {e}", file=sys.stderr)
+        except subprocess.CalledProcessError as e:
+            self.reporter.error(f"Error fetching changelog: {e}")
             return "Error fetching changelog"
 
-    def get_sdk_commit_for_version(self, version: str) -> Optional[str]:
-        """Get the commit SHA for a specific SDK version.
-
+    def _extract_version_section(self, changelog: str, version: str) -> str:
+        """Extract version section from changelog.
+        
         Args:
-            version: Version tag (e.g., 'v0.157.0')
-
+            changelog: Full changelog content
+            version: Version to extract
+            
         Returns:
-            Commit SHA or None if not found
+            Version section text
         """
-        try:
-            # Use GitHub API to get tag info
-            result = self.run_gh_command([
-                "api",
-                f"/repos/{self.SDK_REPO}/git/ref/tags/{version}",
-                "--jq", ".object.sha"
-            ])
-            return result.strip()
-        except Exception as e:
-            print(f"Error getting commit for version {version}: {e}", file=sys.stderr)
-            return None
+        lines = changelog.split('\n')
+        section_lines = []
+        in_section = False
 
-    def fetch_version_diff(self, old_version: str, new_version: str) -> str:
-        """Fetch diff between two versions from SDK repository.
+        for line in lines:
+            if line.startswith('##') and version.lstrip('v') in line:
+                in_section = True
+                section_lines.append(line)
+            elif in_section:
+                if line.startswith('##'):
+                    break
+                section_lines.append(line)
 
+        return '\n'.join(section_lines) if section_lines else "Changelog section not found"
+
+
+class StructParser:
+    """Parses Go struct changes from diff text."""
+
+    def __init__(self, reporter: ProgressReporter):
+        """Initialize struct parser.
+        
         Args:
-            old_version: Old version tag
-            new_version: New version tag
-
-        Returns:
-            Diff text
+            reporter: Progress reporter
         """
-        try:
-            # Use GitHub API to get compare diff
-            result = self.run_gh_command([
-                "api",
-                f"/repos/{self.SDK_REPO}/compare/{old_version}...{new_version}",
-                "--jq", ".files[] | select(.filename | startswith(\"models/\")) | .filename + \"\\n\" + .patch"
-            ])
-            return result
-        except Exception as e:
-            print(f"Error fetching diff: {e}", file=sys.stderr)
-            return ""
+        self.reporter = reporter
 
-    def parse_go_struct_changes(self, diff_text: str) -> List[ModelChange]:
+    def parse_diff(self, diff_text: str) -> List[ModelChange]:
         """Parse Go struct changes from diff text.
-
+        
         Args:
-            diff_text: Diff text containing model changes
-
+            diff_text: Unified diff text
+            
         Returns:
             List of ModelChange objects
         """
@@ -344,290 +714,411 @@ class SDKSchemaChangeDetector:
         lines = diff_text.split('\n')
 
         for i, line in enumerate(lines):
-            # Detect file path
-            if line.startswith('models/') and not line.startswith('+++') and not line.startswith('---'):
-                # This is a filename line
-                current_file = line.strip()
-                # Extract model name from filename
-                # e.g., models/agent_identity_blueprint.go -> AgentIdentityBlueprint
-                filename = Path(current_file).stem
-                # Convert snake_case to PascalCase
-                current_model = ''.join(word.capitalize() for word in filename.split('_'))
-
-                if current_file not in model_changes:
-                    model_changes[current_file] = ModelChange(
-                        file_path=current_file,
-                        model_name=current_model
-                    )
+            # Check for file header
+            if self._is_file_header(line):
+                filename = self._extract_filename(line)
+                if filename and (line.startswith('diff --git') or 
+                               (line.startswith('+++') and current_file != filename)):
+                    current_file = filename
+                    current_model = self._filename_to_model_name(filename)
+                    
+                    if current_file not in model_changes:
+                        model_changes[current_file] = ModelChange(
+                            file_path=current_file,
+                            model_name=current_model
+                        )
                 continue
 
             if not current_file or not line.strip():
                 continue
 
-            # Look for struct field changes
-            # Pattern: added/removed field in Go struct
-            if line.startswith('+') and not line.startswith('+++'):
-                # Added line
-                field_info = self._parse_go_field(line[1:].strip())
-                if field_info:
-                    model_changes[current_file].added_fields.append(
-                        FieldChange(
-                            field_name=field_info[0],
-                            field_type=field_info[1],
-                            change_type='added',
-                            line_number=i
-                        )
-                    )
-            elif line.startswith('-') and not line.startswith('---'):
-                # Removed line
-                field_info = self._parse_go_field(line[1:].strip())
-                if field_info:
-                    model_changes[current_file].removed_fields.append(
-                        FieldChange(
-                            field_name=field_info[0],
-                            field_type=field_info[1],
-                            change_type='removed',
-                            line_number=i
-                        )
-                    )
+            # Parse field changes
+            self._parse_field_change(line, i, current_file, model_changes)
 
-        # Filter out models with no changes
-        return [change for change in model_changes.values() if change.has_changes]
+        result = [change for change in model_changes.values() if change.has_changes]
+        self.reporter.print_parse_summary(result)
+        
+        return result
 
-    def _parse_go_field(self, line: str) -> Optional[Tuple[str, str]]:
+    def _is_file_header(self, line: str) -> bool:
+        """Check if line is a file header."""
+        return line.startswith('diff --git') or line.startswith('+++') or line.startswith('---')
+
+    def _extract_filename(self, line: str) -> Optional[str]:
+        """Extract filename from diff header line."""
+        match = RegexPatterns.MODEL_FILE_PATH.search(line)
+        return match.group(0) if match else None
+
+    def _filename_to_model_name(self, filename: str) -> str:
+        """Convert filename to model name (snake_case to PascalCase)."""
+        file_stem = Path(filename).stem
+        return ''.join(word.capitalize() for word in file_stem.split('_'))
+
+    def _parse_field_change(self, line: str, line_number: int, current_file: str, 
+                           model_changes: Dict[str, ModelChange]):
+        """Parse a field change from a diff line."""
+        if line.startswith('+') and not line.startswith('+++'):
+            field_info = self._parse_field_line(line[1:].strip())
+            if field_info:
+                field_change = FieldChange(
+                    field_name=field_info[0],
+                    field_type=field_info[1],
+                    change_type='added',
+                    line_number=line_number
+                )
+                model_changes[current_file].added_fields.append(field_change)
+                
+        elif line.startswith('-') and not line.startswith('---'):
+            field_info = self._parse_field_line(line[1:].strip())
+            if field_info:
+                field_change = FieldChange(
+                    field_name=field_info[0],
+                    field_type=field_info[1],
+                    change_type='removed',
+                    line_number=line_number
+                )
+                model_changes[current_file].removed_fields.append(field_change)
+
+    def _parse_field_line(self, line: str) -> Optional[Tuple[str, str]]:
         """Parse a Go struct field line.
-
+        
         Args:
             line: Line of Go code
-
+            
         Returns:
-            Tuple of (field_name, field_type) or None if not a field
+            Tuple of (field_name, field_type) or None
         """
-        # Skip non-field lines
         if not line or line.startswith('//') or line.startswith('type ') or \
            line.startswith('package ') or line.startswith('import ') or \
            line.startswith('func ') or line.startswith('}') or line.startswith('{'):
             return None
 
-        # Match Go struct field pattern: FieldName *type.Type `json:"fieldName"`
-        # Or: FieldName string `json:"fieldName"`
-        match = re.match(r'(\w+)\s+([\*\[\]]?[\w\.]+(?:\[[\w\.]+\])?)\s*(?:`.*`)?', line)
+        match = RegexPatterns.GO_STRUCT_FIELD.match(line)
         if match:
             field_name = match.group(1)
             field_type = match.group(2)
 
-            # Skip if it looks like a method or other non-field
             if field_name[0].isupper():  # Go exported field
                 return (field_name, field_type)
 
         return None
 
-    def create_schema_update_issue(
-        self,
-        old_version: str,
-        new_version: str,
-        model_changes: List[ModelChange],
-        changelog_section: str
-    ) -> Optional[str]:
-        """Create a GitHub issue for schema updates.
 
+class IssueBuilder:
+    """Builds GitHub issue content from analysis results."""
+
+    def __init__(self, sdk_repo: str):
+        """Initialize issue builder.
+        
+        Args:
+            sdk_repo: SDK repository (owner/repo)
+        """
+        self.sdk_repo = sdk_repo
+
+    def build_title(self, old_version: str, new_version: str) -> str:
+        """Build issue title.
+        
         Args:
             old_version: Old SDK version
             new_version: New SDK version
-            model_changes: List of detected model changes
-            changelog_section: Relevant changelog section
-
+            
         Returns:
-            Issue number if created, None otherwise
+            Issue title
         """
-        if self.dry_run:
-            print("\n🔍 DRY RUN: Would create issue with following content:")
-            print("=" * 80)
+        return f"Schema Update Required: Microsoft Graph SDK {old_version} → {new_version}"
 
-        # Build issue title
-        title = f"Schema Update Required: Microsoft Graph SDK {old_version} → {new_version}"
+    def build_body(self, old_version: str, new_version: str, 
+                  model_changes: List[ModelChange], changelog_section: str) -> str:
+        """Build complete issue body.
+        
+        Args:
+            old_version: Old SDK version
+            new_version: New SDK version
+            model_changes: List of model changes
+            changelog_section: Changelog text
+            
+        Returns:
+            Issue body markdown
+        """
+        sections = [
+            self._build_summary(old_version, new_version, model_changes),
+            self._build_changed_models(model_changes),
+            self._build_action_required(),
+            self._build_references(old_version, new_version),
+            self._build_changelog(changelog_section),
+            self._build_footer()
+        ]
+        
+        return '\n'.join(sections)
 
-        # Build issue body
-        body_parts = []
-        body_parts.append("## Summary")
-        body_parts.append(f"The Microsoft Graph Beta SDK has been updated from `{old_version}` to `{new_version}`.")
-        body_parts.append(f"This update includes {len(model_changes)} model(s) with schema changes that require review and potential Terraform schema updates.")
-        body_parts.append("")
+    def _build_summary(self, old_version: str, new_version: str, 
+                      model_changes: List[ModelChange]) -> str:
+        """Build summary section."""
+        return f"""## Summary
+The Microsoft Graph Beta SDK has been updated from `{old_version}` to `{new_version}`.
+This update includes {len(model_changes)} model(s) with schema changes that require review and potential Terraform schema updates.
+"""
 
-        body_parts.append("## Changed Models")
-        body_parts.append("")
-
+    def _build_changed_models(self, model_changes: List[ModelChange]) -> str:
+        """Build changed models section."""
+        parts = ["## Changed Models", ""]
+        
         for change in model_changes:
-            body_parts.append(f"### `{change.model_name}` ({change.file_path})")
-            body_parts.append(f"**Changes:** {change.change_summary}")
-            body_parts.append("")
+            parts.append(f"### `{change.model_name}` ({change.file_path})")
+            parts.append(f"**Changes:** {change.change_summary}")
+            parts.append("")
 
             if change.added_fields:
-                body_parts.append("**Added Fields:**")
-                for field in change.added_fields:
-                    body_parts.append(f"- `{field.field_name}` ({field.field_type})")
-                body_parts.append("")
+                parts.append("**Added Fields:**")
+                for fld in change.added_fields:
+                    parts.append(f"- `{fld.field_name}` ({fld.field_type})")
+                parts.append("")
 
             if change.removed_fields:
-                body_parts.append("**Removed Fields:**")
-                for field in change.removed_fields:
-                    body_parts.append(f"- `{field.field_name}` ({field.field_type})")
-                body_parts.append("")
+                parts.append("**Removed Fields:**")
+                for fld in change.removed_fields:
+                    parts.append(f"- `{fld.field_name}` ({fld.field_type})")
+                parts.append("")
 
-        body_parts.append("## Action Required")
-        body_parts.append("")
-        body_parts.append("1. Review each changed model listed above")
-        body_parts.append("2. Update corresponding Terraform resource schemas")
-        body_parts.append("3. Update resource CRUD operations if needed")
-        body_parts.append("4. Add/update tests for new fields")
-        body_parts.append("5. Update documentation")
-        body_parts.append("")
+        return '\n'.join(parts)
 
-        body_parts.append("## References")
-        body_parts.append("")
-        body_parts.append(f"- [SDK Changelog](https://github.com/{self.SDK_REPO}/blob/main/CHANGELOG.md)")
-        body_parts.append(f"- [Version Diff](https://github.com/{self.SDK_REPO}/compare/{old_version}...{new_version})")
-        body_parts.append(f"- [Models Diff](https://github.com/{self.SDK_REPO}/compare/{old_version}...{new_version}#files_bucket)")
-        body_parts.append("")
+    def _build_action_required(self) -> str:
+        """Build action required section."""
+        return """## Action Required
 
-        if changelog_section and "not found" not in changelog_section.lower():
-            body_parts.append("## Changelog Excerpt")
-            body_parts.append("")
-            body_parts.append("```")
-            body_parts.append(changelog_section[:1000])  # Limit length
-            if len(changelog_section) > 1000:
-                body_parts.append("... (truncated)")
-            body_parts.append("```")
-            body_parts.append("")
+1. Review each changed model listed above
+2. Update corresponding Terraform resource schemas
+3. Update resource CRUD operations if needed
+4. Add/update tests for new fields
+5. Update documentation
+"""
 
-        body_parts.append("---")
-        body_parts.append(f"🤖 Auto-generated by sdkSchemaChangeDetector.py on {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+    def _build_references(self, old_version: str, new_version: str) -> str:
+        """Build references section."""
+        return f"""## References
 
-        body = '\n'.join(body_parts)
+- [SDK Changelog](https://github.com/{self.sdk_repo}/blob/main/CHANGELOG.md)
+- [Version Diff](https://github.com/{self.sdk_repo}/compare/{old_version}...{new_version})
+- [Models Diff](https://github.com/{self.sdk_repo}/compare/{old_version}...{new_version}#files_bucket)
+"""
 
-        if self.dry_run:
-            print(f"Title: {title}\n")
-            print(body)
-            print("=" * 80)
+    def _build_changelog(self, changelog_section: str) -> str:
+        """Build changelog section."""
+        if not changelog_section or "not found" in changelog_section.lower():
+            return ""
+
+        parts = ["## Changelog Excerpt", "", "```"]
+        parts.append(changelog_section[:1000])
+        if len(changelog_section) > 1000:
+            parts.append("... (truncated)")
+        parts.append("```")
+        parts.append("")
+        
+        return '\n'.join(parts)
+
+    def _build_footer(self) -> str:
+        """Build footer."""
+        timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        return f"---\n🤖 Auto-generated by kiota_graph_sdk_schema_change_detector.py on {timestamp}"
+
+
+class KiotaGraphSdkSchemaChangeDetector:
+    """Main orchestrator for SDK schema change detection."""
+
+    SDK_MODULE = "github.com/microsoftgraph/msgraph-beta-sdk-go"
+    SDK_REPO = "microsoftgraph/msgraph-beta-sdk-go"
+    REQUIRED_LABELS = [
+        ("sdk-update", "0E8A16", "Microsoft Graph SDK update"),
+        ("schema-change", "D93F0B", "Schema changes detected"),
+        ("needs-review", "FBCA04", "Requires engineer review"),
+    ]
+
+    def __init__(self, repo: Optional[str] = None, dry_run: bool = False, 
+                 save_diff: bool = False, verbose: bool = True):
+        """Initialize the detector.
+        
+        Args:
+            repo: Target repository in owner/repo format
+            dry_run: If True, don't create actual GitHub issues
+            save_diff: If True, save fetched diff to file for debugging
+            verbose: If True, show detailed progress
+        """
+        self.dry_run = dry_run
+        self.go_mod_path = Path.cwd() / "go.mod"
+        
+        # Initialize components
+        self.reporter = ProgressReporter(verbose)
+        self.version_parser = VersionParser()
+        self.github_client = GitHubClient(
+            repo or self.github_client.get_current_repo() if hasattr(self, 'github_client') 
+            else GitHubClient.get_current_repo(None),
+            self.reporter
+        )
+        # Fix circular dependency
+        if not repo:
+            repo = self.github_client.get_current_repo()
+        self.github_client = GitHubClient(repo, self.reporter)
+        
+        self.diff_fetcher = DiffFetcher(self.SDK_REPO, self.github_client, self.reporter, save_diff)
+        self.struct_parser = StructParser(self.reporter)
+        self.issue_builder = IssueBuilder(self.SDK_REPO)
+
+    def parse_go_mod_version(self) -> Optional[str]:
+        """Parse current SDK version from go.mod.
+        
+        Returns:
+            Current version string or None
+        """
+        if not self.go_mod_path.exists():
+            self.reporter.error(f"go.mod not found at {self.go_mod_path}")
             return None
 
-        # Create issue using gh CLI
+        with open(self.go_mod_path, 'r', encoding='utf-8') as f:
+            for line in f:
+                if self.SDK_MODULE in line:
+                    version = self.version_parser.extract_version_from_line(line)
+                    if version:
+                        return version
+
+        self.reporter.error(f"Could not find {self.SDK_MODULE} in go.mod")
+        return None
+
+    def get_pr_version_change(self, pr_number: int) -> VersionChangeResult:
+        """Get version change from a PR.
+        
+        Args:
+            pr_number: PR number
+            
+        Returns:
+            VersionChangeResult with old and new versions
+        """
         try:
-            # Ensure labels exist
-            self._ensure_labels()
+            diff = self.github_client.get_pr_diff(pr_number)
+            
+            old_version = None
+            new_version = None
 
-            # Create issue
-            issue_url = self.run_gh_command([
-                "issue", "create",
-                "--repo", self.repo,
-                "--title", title,
-                "--body", body,
-                "--label", "sdk-update,schema-change,needs-review"
-            ])
+            for line in diff.split('\n'):
+                if self.SDK_MODULE in line:
+                    if line.startswith('-') and not line.startswith('---'):
+                        old_version = self.version_parser.extract_version_from_line(line)
+                    elif line.startswith('+') and not line.startswith('+++'):
+                        new_version = self.version_parser.extract_version_from_line(line)
 
-            # Extract issue number from URL
-            issue_number = issue_url.split('/')[-1]
-            print(f"✅ Created issue #{issue_number}: {issue_url}")
-            return issue_number
+            if old_version and new_version:
+                return VersionChangeResult.success(old_version, new_version)
+            
+            return VersionChangeResult.not_found()
 
-        except Exception as e:
-            print(f"Error creating issue: {e}", file=sys.stderr)
-            return None
-
-    def _ensure_labels(self):
-        """Ensure required labels exist in the repository."""
-        labels = [
-            ("sdk-update", "0E8A16", "Microsoft Graph SDK update"),
-            ("schema-change", "D93F0B", "Schema changes detected"),
-            ("needs-review", "FBCA04", "Requires engineer review"),
-        ]
-
-        for label_name, color, description in labels:
-            try:
-                self.run_gh_command([
-                    "label", "create", label_name,
-                    "--repo", self.repo,
-                    "--color", color,
-                    "--description", description,
-                    "--force"
-                ])
-            except Exception:
-                # Label might already exist, that's fine
-                pass
+        except subprocess.CalledProcessError as e:
+            error_msg = f"Error getting PR version change: {e}"
+            self.reporter.error(error_msg)
+            return VersionChangeResult.error(error_msg)
 
     def analyze_pr(self, pr_number: int) -> bool:
         """Analyze a PR for SDK schema changes.
-
+        
         Args:
             pr_number: PR number to analyze
-
+            
         Returns:
             True if analysis completed successfully
         """
-        print(f"🔍 Analyzing PR #{pr_number}...")
+        self.reporter.section(f"🔍 Analyzing PR #{pr_number}...")
 
-        # Get version change from PR
         version_change = self.get_pr_version_change(pr_number)
-        if not version_change:
-            print("❌ Could not detect version change in PR", file=sys.stderr)
+        if not version_change.is_success:
+            self.reporter.error(version_change.error_message or "Could not detect version change in PR")
             return False
 
-        old_version, new_version = version_change
-        return self.analyze_version_change(old_version, new_version)
+        return self.analyze_version_change(version_change.old_version, version_change.new_version)
 
     def analyze_version_change(self, old_version: str, new_version: str) -> bool:
         """Analyze a version change for schema updates.
-
+        
         Args:
             old_version: Old SDK version
             new_version: New SDK version
-
+            
         Returns:
             True if analysis completed successfully
         """
-        print(f"📊 Analyzing version change: {old_version} → {new_version}")
+        self.reporter.section(f"📊 Analyzing version change: {old_version} → {new_version}")
 
         # Validate version increment
-        if not self.validate_version_increment(old_version, new_version):
-            print("⚠️  Version increment validation failed, but continuing analysis...")
+        validation = self.version_parser.validate_increment(old_version, new_version, self.reporter)
+        if not validation.is_valid:
+            self.reporter.warning("Version increment validation failed, but continuing analysis...")
 
         # Fetch changelog
-        print("📖 Fetching changelog...")
-        changelog = self.fetch_changelog_section(new_version)
+        self.reporter.section("📖 Fetching changelog...")
+        changelog = self.diff_fetcher.fetch_changelog_section(new_version)
 
         # Fetch diff
-        print("🔄 Fetching version diff...")
-        diff_text = self.fetch_version_diff(old_version, new_version)
+        self.reporter.section("🔄 Fetching version diff...")
+        diff_text = self.diff_fetcher.fetch_version_diff(old_version, new_version)
 
         if not diff_text:
-            print("⚠️  No model changes detected in diff")
+            self.reporter.warning("No model changes detected in diff")
             return True
 
         # Parse model changes
-        print("🔬 Parsing model changes...")
-        model_changes = self.parse_go_struct_changes(diff_text)
+        self.reporter.section("🔬 Parsing model changes...")
+        model_changes = self.struct_parser.parse_diff(diff_text)
 
         if not model_changes:
-            print("✅ No struct field changes detected in models")
+            self.reporter.success("No struct field changes detected in models")
             return True
 
-        print(f"📝 Detected changes in {len(model_changes)} model(s)")
+        self.reporter.info(f"📝 Detected changes in {len(model_changes)} model(s)")
 
         # Create issue
-        print("🎫 Creating GitHub issue...")
-        issue_number = self.create_schema_update_issue(
-            old_version, new_version, model_changes, changelog
-        )
+        self.reporter.section("🎫 Creating GitHub issue...")
+        result = self._create_issue(old_version, new_version, model_changes, changelog)
 
-        if issue_number:
-            print(f"✅ Analysis complete! Issue #{issue_number} created")
+        if result.is_success and result.issue_number != "DRY_RUN":
+            self.reporter.success(f"Analysis complete! Issue #{result.issue_number} created")
             return True
-        elif self.dry_run:
-            print("✅ Dry run complete!")
+        elif result.is_success and result.issue_number == "DRY_RUN":
+            self.reporter.success("Dry run complete!")
             return True
         else:
-            print("❌ Failed to create issue", file=sys.stderr)
+            self.reporter.error(result.error_message or "Failed to create issue")
             return False
+
+    def _create_issue(self, old_version: str, new_version: str,
+                     model_changes: List[ModelChange], changelog: str) -> IssueCreationResult:
+        """Create GitHub issue for schema updates.
+        
+        Args:
+            old_version: Old SDK version
+            new_version: New SDK version
+            model_changes: List of model changes
+            changelog: Changelog section
+            
+        Returns:
+            IssueCreationResult with creation status
+        """
+        title = self.issue_builder.build_title(old_version, new_version)
+        body = self.issue_builder.build_body(old_version, new_version, model_changes, changelog)
+
+        if self.dry_run:
+            self.reporter.print_dry_run_issue(title, body)
+            return IssueCreationResult.dry_run()
+
+        try:
+            self.github_client.ensure_labels(self.REQUIRED_LABELS)
+            issue_url = self.github_client.create_issue(
+                title, body, 
+                [label[0] for label in self.REQUIRED_LABELS]
+            )
+            issue_number = issue_url.split('/')[-1]
+            return IssueCreationResult.success(issue_number, issue_url)
+
+        except (subprocess.CalledProcessError, IndexError) as e:
+            error_msg = f"Error creating issue: {e}"
+            self.reporter.error(error_msg)
+            return IssueCreationResult.error(error_msg)
 
 
 def main():
@@ -659,6 +1150,11 @@ def main():
         help="Analyze without creating GitHub issues"
     )
     parser.add_argument(
+        "--save-diff",
+        action="store_true",
+        help="Save fetched diff to file for debugging"
+    )
+    parser.add_argument(
         "--repo",
         type=str,
         help="Repository in owner/repo format (auto-detected if not provided)"
@@ -671,7 +1167,11 @@ def main():
         parser.error("Either --pr-number or both --current and --new must be provided")
 
     # Create detector
-    detector = SDKSchemaChangeDetector(repo=args.repo, dry_run=args.dry_run)
+    detector = KiotaGraphSdkSchemaChangeDetector(
+        repo=args.repo,
+        dry_run=args.dry_run,
+        save_diff=args.save_diff
+    )
 
     # Run analysis
     try:
@@ -689,9 +1189,8 @@ def main():
     except KeyboardInterrupt:
         print("\n❌ Interrupted by user", file=sys.stderr)
         sys.exit(130)
-    except Exception as e:
+    except (subprocess.CalledProcessError, OSError, ValueError, RuntimeError) as e:
         print(f"❌ Unexpected error: {e}", file=sys.stderr)
-        import traceback
         traceback.print_exc()
         sys.exit(1)
 
