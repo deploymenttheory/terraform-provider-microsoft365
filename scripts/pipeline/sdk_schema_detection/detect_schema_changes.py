@@ -71,13 +71,12 @@ class SchemaChangeDetector:
         self.dry_run = dry_run
         self.go_mod_path = Path.cwd() / "go.mod"
         
-        # Initialize components
         self.reporter = ProgressReporter(verbose)
         self.version_parser = VersionParser()
-        self.github_client = GitHubClient(
-            repo or self._get_current_repo(),
-            self.reporter
-        )
+        
+        target_repo = repo or self._get_current_repo_from_git()
+        
+        self.github_client = GitHubClient(target_repo, self.reporter)
         self.diff_fetcher = DiffFetcher(
             self.SDK_REPO,
             self.github_client,
@@ -87,9 +86,23 @@ class SchemaChangeDetector:
         self.struct_parser = StructParser(self.reporter)
         self.issue_builder = IssueBuilder(self.SDK_REPO)
 
-    def _get_current_repo(self) -> str:
-        """Get current repository from git."""
-        return self.github_client.get_current_repo()
+    def _get_current_repo_from_git(self) -> str:
+        """Get current repository from git remote."""
+        try:
+            result = subprocess.run(
+                ["git", "remote", "get-url", "origin"],
+                capture_output=True,
+                text=True,
+                check=True
+            )
+            remote_url = result.stdout.strip()
+            from regex_patterns import RegexPatterns  # type: ignore
+            match = RegexPatterns.GITHUB_REPO_URL.search(remote_url)
+            if match:
+                return match.group(1).rstrip('.git')
+        except subprocess.CalledProcessError:
+            pass
+        return "deploymenttheory/terraform-provider-microsoft365"
 
     def parse_go_mod_version(self) -> Optional[str]:
         """Parse SDK version from go.mod file."""
