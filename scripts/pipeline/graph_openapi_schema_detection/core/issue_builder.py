@@ -138,7 +138,45 @@ class IssueBuilder:
             props_to_show = schema.added_properties if show_all else schema.added_properties[:5]
             for prop in props_to_show:
                 req_marker = "* " if prop.new_required else "  "
-                lines.append(f"- {req_marker}`{prop.property_name}`: `{prop.new_type}`")
+                
+                # Build property line with metadata
+                prop_line = f"- {req_marker}`{prop.property_name}`: `{prop.new_type}`"
+                
+                # Add metadata hints
+                metadata_hints = []
+                if prop.read_only:
+                    metadata_hints.append("read-only")
+                if prop.write_only:
+                    metadata_hints.append("write-only")
+                if prop.deprecated:
+                    metadata_hints.append("⚠️ deprecated")
+                if prop.enum_values:
+                    enum_str = ', '.join(prop.enum_values[:3])
+                    if len(prop.enum_values) > 3:
+                        enum_str += f", +{len(prop.enum_values) - 3} more"
+                    metadata_hints.append(f"enum: [{enum_str}]")
+                if prop.format:
+                    metadata_hints.append(f"format: {prop.format}")
+                if prop.pattern:
+                    metadata_hints.append(f"pattern: `{prop.pattern}`")
+                if prop.min_length or prop.max_length:
+                    if prop.min_length and prop.max_length:
+                        metadata_hints.append(f"length: {prop.min_length}-{prop.max_length}")
+                    elif prop.min_length:
+                        metadata_hints.append(f"min: {prop.min_length}")
+                    elif prop.max_length:
+                        metadata_hints.append(f"max: {prop.max_length}")
+                
+                if metadata_hints:
+                    prop_line += f" _({', '.join(metadata_hints)})_"
+                
+                lines.append(prop_line)
+                
+                # Add description if available
+                if prop.description and len(prop.description) > 0:
+                    desc = prop.description[:100] + "..." if len(prop.description) > 100 else prop.description
+                    lines.append(f"  > {desc}")
+            
             if not show_all and len(schema.added_properties) > 5:
                 lines.append(f"- ... and {len(schema.added_properties) - 5} more")
             lines.append("")

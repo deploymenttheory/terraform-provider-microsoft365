@@ -76,7 +76,25 @@ class DetectionResult:
                     "has_breaking_changes": sc.has_breaking_changes,
                     "change_summary": sc.change_summary,
                     "added_properties": [
-                        {"name": p.property_name, "type": p.new_type, "required": p.new_required}
+                        {
+                            "name": p.property_name,
+                            "type": p.new_type,
+                            "required": p.new_required,
+                            "nullable": p.new_nullable,
+                            "description": p.description,
+                            "enum": p.enum_values,
+                            "format": p.format,
+                            "pattern": p.pattern,
+                            "minLength": p.min_length,
+                            "maxLength": p.max_length,
+                            "minimum": p.minimum,
+                            "maximum": p.maximum,
+                            "default": p.default,
+                            "example": p.example,
+                            "deprecated": p.deprecated,
+                            "readOnly": p.read_only,
+                            "writeOnly": p.write_only,
+                        }
                         for p in sc.added_properties
                     ],
                     "removed_properties": [
