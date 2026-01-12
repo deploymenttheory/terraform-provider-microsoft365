@@ -6,6 +6,25 @@ on:
     paths:
       - 'go.mod'
       - 'go.sum'
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: 'PR number to analyze (leave empty to use version inputs)'
+        required: false
+        type: number
+      current_version:
+        description: 'Current SDK version (e.g., v0.156.0)'
+        required: false
+        type: string
+      new_version:
+        description: 'New SDK version (e.g., v0.157.0)'
+        required: false
+        type: string
+      dry_run:
+        description: 'Dry run (analyze without creating issues)'
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -16,10 +35,10 @@ jobs:
   detect-schema-changes:
     name: 'Detect SDK Schema Changes'
     runs-on: ubuntu-24.04-arm
-    # Only run on Dependabot PRs that update the msgraph-beta-sdk-go
     if: |
-      github.actor == 'dependabot[bot]' &&
-      contains(github.event.pull_request.title, 'msgraph-beta-sdk-go')
+      github.event_name == 'workflow_dispatch' ||
+      (github.actor == 'dependabot[bot]' &&
+       contains(github.event.pull_request.title, 'msgraph-beta-sdk-go'))
     steps:
 
       - name: Harden Runner
@@ -33,7 +52,7 @@ jobs:
           fetch-depth: 0
 
       - name: Set up Python
-        uses: actions/setup-python@49ddb36d9f8f42677f820acbc5c3c218c8186f25 # v6.0.0
+        uses: actions/setup-python@83679a892e2d95755f2dac6acb0bfd1e9ac5d548 # v6.1.0
         with:
           python-version: '3.11'
 
@@ -52,12 +71,34 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           cd scripts/pipeline
-          ./kiota_graph_sdk_schema_change_detector.py \
-            --pr-number ${{ github.event.pull_request.number }} \
-            --repo ${{ github.repository }}
+
+          # Build command based on trigger type
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            # Manual trigger - use workflow inputs
+            CMD="./kiota_graph_sdk_schema_change_detector.py --repo ${{ github.repository }}"
+
+            if [ -n "${{ inputs.pr_number }}" ]; then
+              CMD="$CMD --pr-number ${{ inputs.pr_number }}"
+            elif [ -n "${{ inputs.current_version }}" ] && [ -n "${{ inputs.new_version }}" ]; then
+              CMD="$CMD --current ${{ inputs.current_version }} --new ${{ inputs.new_version }}"
+            else
+              echo "Error: Must provide either pr_number or both current_version and new_version"
+              exit 1
+            fi
+
+            if [ "${{ inputs.dry_run }}" = "true" ]; then
+              CMD="$CMD --dry-run"
+            fi
+          else
+            # PR trigger - use PR number
+            CMD="./kiota_graph_sdk_schema_change_detector.py --pr-number ${{ github.event.pull_request.number }} --repo ${{ github.repository }}"
+          fi
+
+          echo "Running: $CMD"
+          eval $CMD
 
       - name: Comment on PR
-        if: success()
+        if: success() && github.event_name == 'pull_request'
         uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
         with:
           script: |
@@ -80,8 +121,8 @@ jobs:
             });
 
       - name: Comment on PR (Failure)
-        if: failure()
-        uses: actions/github-script@v7
+        if: failure() && github.event_name == 'pull_request'
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
         with:
           script: |
             const comment = `## ❌ SDK Schema Change Detection Failed
@@ -102,3 +143,29 @@ jobs:
               issue_number: context.issue.number,
               body: comment
             });
+
+      - name: Summary (Manual Run)
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          echo "## 🔍 SDK Schema Change Detection Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Trigger:** Manual workflow dispatch" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          if [ -n "${{ inputs.pr_number }}" ]; then
+            echo "**Analysis Mode:** PR Analysis" >> $GITHUB_STEP_SUMMARY
+            echo "**PR Number:** #${{ inputs.pr_number }}" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "**Analysis Mode:** Version Comparison" >> $GITHUB_STEP_SUMMARY
+            echo "**Old Version:** ${{ inputs.current_version }}" >> $GITHUB_STEP_SUMMARY
+            echo "**New Version:** ${{ inputs.new_version }}" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          echo "**Dry Run:** ${{ inputs.dry_run }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Check the job logs above for detailed analysis results." >> $GITHUB_STEP_SUMMARY
+
+          if [ "${{ inputs.dry_run }}" != "true" ]; then
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "🎫 **Next Steps:** Check for new issues with the \`sdk-update\` label" >> $GITHUB_STEP_SUMMARY
+          fi
