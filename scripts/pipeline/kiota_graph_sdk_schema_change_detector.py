@@ -181,7 +181,11 @@ class DetectionResult:
             "changelog_section": self.changelog_section,
             "statistics": {
                 "total_files_in_diff": self.statistics.total_files_in_diff,
-                "files_with_field_changes": self.statistics.files_with_field_changes,
+                "files_with_changes": self.statistics.files_with_changes,
+                "files_without_changes": self.statistics.files_without_changes,
+                "total_lines_processed": self.statistics.total_lines_processed,
+                "added_lines_processed": self.statistics.added_lines_processed,
+                "removed_lines_processed": self.statistics.removed_lines_processed,
                 "struct_fields_added": self.statistics.struct_fields_added,
                 "struct_fields_removed": self.statistics.struct_fields_removed,
                 "interface_methods_added": self.statistics.interface_methods_added,
