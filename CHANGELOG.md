@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.40.2-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.40.1-alpha...v0.40.2-alpha) (2026-01-12)
+
+
+### Bug Fixes
+
+* description field removal of default value set to "" and standardisation of valid max string length ([#1644](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/1644)) ([042592e](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/042592e3cfecf587b50af7b15eff07ff9011b22c))
+* for sku id's in acc tests for resource UserLicenseAssignmentResource ([#1670](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/1670)) ([60fd5f3](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/60fd5f3d976e97ebebd8306180f866d83ca77a44))
+* for unit and acc tests for device_management_group_policy_uploaded_definition_files ([#1648](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/1648)) ([bdd1807](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/bdd18075597f3738200674fbb624786727b208dc))
+* multiple fixes for unit and acc test failures and updated TestHTTPClient to accept context in resource tests  ([#1669](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/1669)) ([2c8c00c](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/2c8c00cb75ff033bc92e28419c2b90405cb26ae3))
+* pr bodies ([870d26f](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/870d26f36b19aad597b98d955504d01d8164cb28))
+* pr bodies ([#1708](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/1708)) ([0ff9ede](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/0ff9edefe49413e9dc26c184027105b62739f0f2))
+* refactor of sdk_schema_change_detection ([cae2753](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/cae2753f20d35fcdf08c7898418e87a19f489b3b))
+* refactor of sdk_schema_change_detection ([#1704](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/1704)) ([185496e](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/185496ef8f34452c9ee2c93b909215bb1c5c4737))
+* refactored unit and acc tests for resource device_management_macos_platform_script ([#1667](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/1667)) ([5a7596e](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/5a7596ebd38777b5474cd5d4ab2d555d85e756d6))
+* updated various docs inc. batch import, tf ops best practice and tf workspaces ([#1694](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/1694)) ([430f8e4](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/430f8e451ae9345c0244bbe0a3e282be88aa228c))
+
 ## [0.40.1-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.40.0-alpha...v0.40.1-alpha) (2026-01-07)
 
 
