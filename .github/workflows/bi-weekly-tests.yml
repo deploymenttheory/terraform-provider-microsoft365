@@ -85,7 +85,7 @@ jobs:
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: ./coverage-provider-core.txt
-          flags: provider-core
+          flags: acceptancetests,provider-core
           name: provider-core
           fail_ci_if_error: false
 
@@ -204,7 +204,7 @@ jobs:
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: ./coverage-resources-${{ matrix.service }}.txt
-          flags: ${{ matrix.service }}
+          flags: acceptancetests,${{ matrix.service }}
           name: resources-${{ matrix.service }}
           fail_ci_if_error: false
 
@@ -322,7 +322,7 @@ jobs:
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: ./coverage-datasources-${{ matrix.service }}.txt
-          flags: ${{ matrix.service }}
+          flags: acceptancetests,${{ matrix.service }}
           name: datasources-${{ matrix.service }}
           fail_ci_if_error: false
 
@@ -404,7 +404,7 @@ jobs:
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: ./coverage-actions-${{ matrix.service }}.txt
-          flags: actions-${{ matrix.service }}
+          flags: acceptancetests,${{ matrix.service }}
           name: actions-${{ matrix.service }}
           fail_ci_if_error: false
 
