@@ -54,7 +54,7 @@ func validateRequest(ctx context.Context, client *msgraphbetasdk.GraphServiceCli
 			if !isFrontline {
 				result.InvalidProvisionType = true
 				tflog.Warn(ctx, "Policy is not Frontline type", map[string]any{
-					"policy_id":          policyID,
+					"policy_id":         policyID,
 					"provisioning_type": provisioningTypeStr,
 				})
 			}
@@ -64,4 +64,3 @@ func validateRequest(ctx context.Context, client *msgraphbetasdk.GraphServiceCli
 	tflog.Debug(ctx, "Provisioning policy validated successfully", map[string]any{"policy_id": policyID})
 	return result, nil
 }
-

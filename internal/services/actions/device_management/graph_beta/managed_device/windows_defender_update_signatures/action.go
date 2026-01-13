@@ -18,7 +18,7 @@ import (
 )
 
 const (
-	ActionName = "microsoft365_graph_beta_device_management_managed_device_windows_defender_update_signatures"
+	ActionName    = "microsoft365_graph_beta_device_management_managed_device_windows_defender_update_signatures"
 	InvokeTimeout = 60
 )
 

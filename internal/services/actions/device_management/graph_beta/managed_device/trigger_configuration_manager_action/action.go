@@ -16,7 +16,7 @@ import (
 )
 
 const (
-	ActionName = "microsoft365_graph_beta_device_management_managed_device_trigger_configuration_manager_action"
+	ActionName    = "microsoft365_graph_beta_device_management_managed_device_trigger_configuration_manager_action"
 	InvokeTimeout = 60
 )
 

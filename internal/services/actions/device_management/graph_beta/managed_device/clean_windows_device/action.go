@@ -16,7 +16,7 @@ import (
 )
 
 const (
-	ActionName = "microsoft365_graph_beta_device_management_managed_device_clean_windows_device"
+	ActionName    = "microsoft365_graph_beta_device_management_managed_device_clean_windows_device"
 	InvokeTimeout = 60
 )
 

@@ -16,7 +16,7 @@ import (
 )
 
 const (
-	ActionName = "microsoft365_graph_beta_device_management_windows_autopilot_device_identity_allow_next_enrollment"
+	ActionName    = "microsoft365_graph_beta_device_management_windows_autopilot_device_identity_allow_next_enrollment"
 	InvokeTimeout = 60
 )
 

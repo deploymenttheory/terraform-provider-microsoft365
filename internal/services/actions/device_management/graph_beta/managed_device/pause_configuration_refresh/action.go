@@ -17,7 +17,7 @@ import (
 )
 
 const (
-	ActionName = "microsoft365_graph_beta_device_management_managed_device_pause_configuration_refresh"
+	ActionName    = "microsoft365_graph_beta_device_management_managed_device_pause_configuration_refresh"
 	InvokeTimeout = 60
 )
 

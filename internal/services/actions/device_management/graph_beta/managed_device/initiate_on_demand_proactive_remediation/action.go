@@ -16,7 +16,7 @@ import (
 )
 
 const (
-	ActionName = "microsoft365_graph_beta_device_management_managed_device_initiate_on_demand_proactive_remediation"
+	ActionName    = "microsoft365_graph_beta_device_management_managed_device_initiate_on_demand_proactive_remediation"
 	InvokeTimeout = 60
 )
 

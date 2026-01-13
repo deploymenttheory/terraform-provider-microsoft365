@@ -11,27 +11,27 @@ import (
 
 // PlayLostModeSoundValidationResult contains the results of device validation
 type PlayLostModeSoundValidationResult struct {
-	NonExistentManagedDevices      []string
-	NonExistentComanagedDevices    []string
-	UnsupportedManagedDevices      []string
-	UnsupportedComanagedDevices    []string
-	UnsupervisedManagedDevices     []string
-	UnsupervisedComanagedDevices   []string
-	NotInLostModeManagedDevices    []string
-	NotInLostModeComanagedDevices  []string
+	NonExistentManagedDevices     []string
+	NonExistentComanagedDevices   []string
+	UnsupportedManagedDevices     []string
+	UnsupportedComanagedDevices   []string
+	UnsupervisedManagedDevices    []string
+	UnsupervisedComanagedDevices  []string
+	NotInLostModeManagedDevices   []string
+	NotInLostModeComanagedDevices []string
 }
 
 // validateRequest performs API validation of devices
 func validateRequest(ctx context.Context, client *msgraphbetasdk.GraphServiceClient, managedDevices []ManagedDevicePlaySound, comanagedDevices []ComanagedDevicePlaySound) (*PlayLostModeSoundValidationResult, error) {
 	result := &PlayLostModeSoundValidationResult{
-		NonExistentManagedDevices:      make([]string, 0),
-		NonExistentComanagedDevices:    make([]string, 0),
-		UnsupportedManagedDevices:      make([]string, 0),
-		UnsupportedComanagedDevices:    make([]string, 0),
-		UnsupervisedManagedDevices:     make([]string, 0),
-		UnsupervisedComanagedDevices:   make([]string, 0),
-		NotInLostModeManagedDevices:    make([]string, 0),
-		NotInLostModeComanagedDevices:  make([]string, 0),
+		NonExistentManagedDevices:     make([]string, 0),
+		NonExistentComanagedDevices:   make([]string, 0),
+		UnsupportedManagedDevices:     make([]string, 0),
+		UnsupportedComanagedDevices:   make([]string, 0),
+		UnsupervisedManagedDevices:    make([]string, 0),
+		UnsupervisedComanagedDevices:  make([]string, 0),
+		NotInLostModeManagedDevices:   make([]string, 0),
+		NotInLostModeComanagedDevices: make([]string, 0),
 	}
 
 	// Validate managed devices
@@ -134,4 +134,3 @@ func validateRequest(ctx context.Context, client *msgraphbetasdk.GraphServiceCli
 
 	return result, nil
 }
-

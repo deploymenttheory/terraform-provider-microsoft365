@@ -18,7 +18,7 @@ import (
 )
 
 const (
-	ActionName = "microsoft365_graph_beta_device_management_managed_device_revoke_apple_vpp_licenses"
+	ActionName    = "microsoft365_graph_beta_device_management_managed_device_revoke_apple_vpp_licenses"
 	InvokeTimeout = 60
 )
 

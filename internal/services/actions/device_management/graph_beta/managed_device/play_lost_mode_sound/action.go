@@ -16,7 +16,7 @@ import (
 )
 
 const (
-	ActionName = "microsoft365_graph_beta_device_management_managed_device_play_lost_mode_sound"
+	ActionName    = "microsoft365_graph_beta_device_management_managed_device_play_lost_mode_sound"
 	InvokeTimeout = 60
 )
 
