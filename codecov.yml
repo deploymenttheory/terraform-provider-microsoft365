@@ -1,6 +1,52 @@
 # Codecov configuration for terraform-provider-microsoft365
 # For more info: https://docs.codecov.io/docs/codecov-yaml
 
+#  Go Integration Test Coverage (Go 1.20+ Features)
+
+#   1. https://go.dev/blog/integration-test-coverage
+#     - Official Go blog explaining Go 1.20+ coverage for integration tests
+#     - How to use go build -cover and go tool covdata
+#   2. https://dustinspecker.com/posts/go-combined-unit-integration-code-coverage/
+#     - Practical examples of merging unit and integration test coverage
+#     - Step-by-step commands for combining coverage data
+#   3. https://go.dev/doc/build-cover
+#     - Official documentation on coverage profiling
+#     - Using GOCOVERDIR environment variable
+#   4. https://netdevops.me/2023/test-coverage-for-go-integration-tests/
+#     - Real-world implementation examples
+#     - How to convert binary coverage format to text format for Codecov
+
+#   Terraform Provider Testing
+
+#   5. https://developer.hashicorp.com/terraform/plugin/framework/acctests
+#     - Official Terraform acceptance testing guide
+#     - How the test framework executes CRUD operations
+#   6. https://developer.hashicorp.com/terraform/plugin/sdkv2/testing/acceptance-tests
+#     - How acceptance tests work with the Terraform framework
+#     - Test execution lifecycle
+#   7. https://hashicorp.github.io/terraform-provider-aws/running-and-writing-acceptance-tests/
+#     - Real-world examples from the AWS provider
+#     - How acceptance tests generate coverage
+#   8. https://www.hashicorp.com/en/blog/testing-hashicorp-terraform
+#     - Overview of Terraform testing approaches
+#     - Unit tests vs acceptance tests
+
+#   Coverage Challenges & Discussions
+
+#   9. https://github.com/hashicorp/terraform/issues/27725
+#     - Discussion about coverage gaps in Terraform testing
+#     - Community challenges with measuring test coverage
+#   10. https://spacelift.io/blog/terraform-test
+#     - Testing strategies for Terraform providers
+#     - Coverage reporting best practices
+
+#   Additional Context Sources
+
+#   11. https://medium.com/contino-engineering/terraform-infrastructure-as-code-testing-best-practice-unit-tests-bdd-end-to-end-scenario-c30d5a6921d
+#     - Unit vs end-to-end testing strategies
+#   12. https://developer.hashicorp.com/terraform/plugin/testing/testing-patterns
+#     - Common testing patterns for providers
+
 codecov:
   bot: "codecov-io"
   require_ci_to_pass: yes
