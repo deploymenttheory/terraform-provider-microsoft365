@@ -5,7 +5,7 @@
 resource "microsoft365_graph_beta_device_and_app_management_mobile_app_supersedence" "update_example" {
   source_id         = "00000000-0000-0000-0000-000000000001" # ID of the older app version
   target_id         = "00000000-0000-0000-0000-000000000002" # ID of the newer app version
-  supersedence_type = constants.TfOperationUpdate                               # Indicates this is an update to the existing app
+  supersedence_type = constants.TfOperationUpdate            # Indicates this is an update to the existing app
 
   # Optional timeouts
   timeouts = {

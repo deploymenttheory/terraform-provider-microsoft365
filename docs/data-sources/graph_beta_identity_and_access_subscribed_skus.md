@@ -1,6 +1,6 @@
 ---
 page_title: "microsoft365_graph_beta_identity_and_access_subscribed_skus Data Source - terraform-provider-microsoft365"
-subcategory: "Directory Management"
+subcategory: "Identity and Access"
 description: |-
   Retrieves information about Microsoft 365 license SKUs (Stock Keeping Units) that an organization has subscribed to. This data source provides details about available licenses, their consumption, and service plans.
 ---

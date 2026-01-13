@@ -1,8 +1,8 @@
 ---
 page_title: "microsoft365_graph_beta_identity_and_access_role_definitions Data Source - terraform-provider-microsoft365"
-subcategory: "Directory Management"
+subcategory: "Identity and Access"
 description: |-
-    Retrieves directory role definitions from Microsoft Entra ID using the /roleManagement/directory/roleDefinitions endpoint. This data source enables querying role definitions with advanced filtering capabilities.
+  Retrieves directory role definitions from Microsoft Entra ID using the /roleManagement/directory/roleDefinitions endpoint. This data source enables querying role definitions with advanced filtering capabilities.
 ---
 
 # microsoft365_graph_beta_identity_and_access_role_definitions (Data Source)

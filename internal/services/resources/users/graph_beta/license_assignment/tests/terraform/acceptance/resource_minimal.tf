@@ -21,7 +21,7 @@ resource "microsoft365_graph_beta_users_user" "minimal" {
 resource "microsoft365_graph_beta_users_user_license_assignment" "minimal" {
   user_id = microsoft365_graph_beta_users_user.minimal.id
   sku_id  = "a403ebcc-fae0-4ca2-8c8c-7a907fd6c235" # Microsoft Fabric (Free)
-  
+
   depends_on = [
     microsoft365_graph_beta_users_user.minimal
   ]
