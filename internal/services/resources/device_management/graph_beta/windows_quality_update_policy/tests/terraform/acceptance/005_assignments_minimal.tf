@@ -6,7 +6,7 @@ resource "random_string" "test_suffix" {
 }
 
 # ==============================================================================
-# Group Dependency
+# Group Dependencies
 # ==============================================================================
 
 resource "microsoft365_graph_beta_groups_group" "acc_test_group_005_1" {

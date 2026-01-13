@@ -5,6 +5,10 @@ resource "random_string" "test_suffix" {
   upper   = false
 }
 
+# ==============================================================================
+# Group Dependencies
+# ==============================================================================
+
 resource "microsoft365_graph_beta_groups_group" "acc_test_group_006_1" {
   display_name     = "acc-test-group-006-1-${random_string.test_suffix.result}"
   mail_nickname    = "acc-test-group-006-1-${random_string.test_suffix.result}"
@@ -32,6 +36,15 @@ resource "microsoft365_graph_beta_groups_group" "acc_test_group_006_3" {
   hard_delete      = true
 }
 
+resource "microsoft365_graph_beta_groups_group" "acc_test_group_006_4" {
+  display_name     = "acc-test-group-006-4-${random_string.test_suffix.result}"
+  mail_nickname    = "acc-test-group-006-4-${random_string.test_suffix.result}"
+  mail_enabled     = false
+  security_enabled = true
+  description      = "Test group 4 for windows quality update expedite policy exclusion assignments"
+  hard_delete      = true
+}
+
 resource "microsoft365_graph_beta_device_management_windows_quality_update_expedite_policy" "test_006" {
   display_name       = "acc-test-expedite-policy-006-${random_string.test_suffix.result}"
   description        = "Maximal configuration with multiple assignments"
@@ -54,6 +67,10 @@ resource "microsoft365_graph_beta_device_management_windows_quality_update_exped
     {
       type     = "exclusionGroupAssignmentTarget"
       group_id = microsoft365_graph_beta_groups_group.acc_test_group_006_3.id
+    },
+    {
+      type     = "exclusionGroupAssignmentTarget"
+      group_id = microsoft365_graph_beta_groups_group.acc_test_group_006_4.id
     }
   ]
 

@@ -1,6 +1,3 @@
-# Groups used for Role Scope Tag assignments testing
-# These groups serve as dependencies for role scope tag assignment tests
-
 resource "random_string" "suffix" {
   length  = 8
   special = false
@@ -16,6 +13,10 @@ resource "random_string" "group_suffix" {
   lower   = true
   numeric = true
 }
+
+# ==============================================================================
+# Group Dependencies
+# ==============================================================================
 
 # Test Group 1 - IT Support Team
 resource "microsoft365_graph_beta_groups_group" "acc_test_group_1" {

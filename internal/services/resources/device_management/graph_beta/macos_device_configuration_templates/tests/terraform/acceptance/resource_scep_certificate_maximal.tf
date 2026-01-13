@@ -4,6 +4,10 @@ resource "random_string" "scep_cert_suffix" {
   upper   = false
 }
 
+# ==============================================================================
+# Group Dependencies
+# ==============================================================================
+
 resource "microsoft365_graph_beta_groups_group" "scep_cert_group_1" {
   display_name     = "acc-test-macos-scep-cert-group-1-${random_string.scep_cert_suffix.result}"
   mail_nickname    = "acc-test-scep-cert-1-${random_string.scep_cert_suffix.result}"

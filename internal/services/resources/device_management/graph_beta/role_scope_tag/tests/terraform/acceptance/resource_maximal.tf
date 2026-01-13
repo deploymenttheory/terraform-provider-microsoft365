@@ -14,6 +14,10 @@ resource "random_string" "group_suffix" {
   numeric = true
 }
 
+# ==============================================================================
+# Group Dependencies
+# ==============================================================================
+
 resource "microsoft365_graph_beta_groups_group" "acc_test_group_3" {
   display_name     = "acc-test-rst-hd-${random_string.group_suffix.result}"
   description      = "Test group for helpdesk staff used in role scope tag assignments"

@@ -1,3 +1,66 @@
+resource "random_string" "test_suffix" {
+  length  = 8
+  upper   = false
+  special = false
+}
+
+# ==============================================================================
+# Role Scope Tag Dependencies
+# ==============================================================================
+
+resource "microsoft365_graph_beta_device_management_role_scope_tag" "acc_test_role_scope_tag_1" {
+  display_name = "acc-test-role-scope-tag-1-${random_string.test_suffix.result}"
+  description  = "Test role scope tag for acceptance testing"
+
+  timeouts = {
+    create = "60s"
+    read   = "60s"
+    update = "60s"
+    delete = "180s"
+  }
+}
+
+resource "microsoft365_graph_beta_device_management_role_scope_tag" "acc_test_role_scope_tag_2" {
+  depends_on = [
+    microsoft365_graph_beta_device_management_role_scope_tag.acc_test_role_scope_tag_1
+  ]
+  display_name = "acc-test-role-scope-tag-2-${random_string.test_suffix.result}"
+  description  = "Test role scope tag for acceptance testing"
+
+  timeouts = {
+    create = "60s"
+    read   = "60s"
+    update = "60s"
+    delete = "180s"
+  }
+}
+
+# ==============================================================================
+# Group Dependencies
+# ==============================================================================
+
+resource "microsoft365_graph_beta_groups_group" "acc_test_group_1" {
+  display_name     = "acc-test-group-1-${random_string.test_suffix.result}"
+  mail_nickname    = "acc-test-group-1-${random_string.test_suffix.result}"
+  mail_enabled     = false
+  security_enabled = true
+  description      = "Test group 1 for enrollment status page assignments"
+  hard_delete      = true
+}
+
+resource "microsoft365_graph_beta_groups_group" "acc_test_group_2" {
+  display_name     = "acc-test-group-2-${random_string.test_suffix.result}"
+  mail_nickname    = "acc-test-group-2-${random_string.test_suffix.result}"
+  mail_enabled     = false
+  security_enabled = true
+  description      = "Test group 2 for enrollment status page assignments"
+  hard_delete      = true
+}
+
+# ==============================================================================
+# Windows Enrollment Status Page Resource
+# ==============================================================================
+
 resource "microsoft365_graph_beta_device_management_windows_enrollment_status_page" "with_assignments" {
   display_name                                                        = "acc-test-windows-enrollment-status-page-with-assignments-${random_string.test_suffix.result}"
   description                                                         = "Test description for enrollment status page with assignments"
