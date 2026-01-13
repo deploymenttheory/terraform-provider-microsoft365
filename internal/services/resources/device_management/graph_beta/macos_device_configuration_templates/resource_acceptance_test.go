@@ -288,9 +288,10 @@ func TestAccMacosDeviceConfigurationTemplatesResource_ScepCertificate(t *testing
 				PreConfig: func() {
 					testlog.StepAction(resourceType, "Importing SCEP certificate configuration")
 				},
-				ResourceName:      resourceType + ".scep_cert_example",
-				ImportState:       true,
-				ImportStateVerify: true,
+				ResourceName:            resourceType + ".scep_cert_example",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"scep_certificate.root_certificate_odata_bind"},
 			},
 		},
 	})

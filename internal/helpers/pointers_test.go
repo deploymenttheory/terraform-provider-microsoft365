@@ -34,3 +34,39 @@ func TestStringPtr(t *testing.T) {
 		assert.Equal(t, "", *result, "Dereferenced value should be empty string")
 	})
 }
+
+func TestGetStringValue(t *testing.T) {
+	t.Run("non-nil pointer with non-empty string", func(t *testing.T) {
+		input := "test value"
+		ptr := &input
+		result := GetStringValue(ptr)
+		assert.Equal(t, input, result, "Should return the dereferenced value")
+	})
+
+	t.Run("non-nil pointer with empty string", func(t *testing.T) {
+		input := ""
+		ptr := &input
+		result := GetStringValue(ptr)
+		assert.Equal(t, "", result, "Should return empty string")
+	})
+
+	t.Run("nil pointer", func(t *testing.T) {
+		var ptr *string = nil
+		result := GetStringValue(ptr)
+		assert.Equal(t, "", result, "Should return empty string for nil pointer")
+	})
+
+	t.Run("pointer to string with special characters", func(t *testing.T) {
+		input := "test@#$%^&*()"
+		ptr := &input
+		result := GetStringValue(ptr)
+		assert.Equal(t, input, result, "Should handle special characters correctly")
+	})
+
+	t.Run("pointer to multiline string", func(t *testing.T) {
+		input := "line1\nline2\nline3"
+		ptr := &input
+		result := GetStringValue(ptr)
+		assert.Equal(t, input, result, "Should handle multiline strings correctly")
+	})
+}
