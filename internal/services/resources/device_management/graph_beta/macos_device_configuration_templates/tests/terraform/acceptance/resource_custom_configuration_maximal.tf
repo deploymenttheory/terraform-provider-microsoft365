@@ -1,6 +1,43 @@
+resource "random_string" "custom_config_suffix" {
+  length  = 8
+  special = false
+  upper   = false
+}
+
+resource "microsoft365_graph_beta_groups_group" "custom_config_group_1" {
+  display_name     = "acc-test-macos-custom-config-group-1-${random_string.custom_config_suffix.result}"
+  mail_nickname    = "acc-test-custom-config-1-${random_string.custom_config_suffix.result}"
+  mail_enabled     = false
+  security_enabled = true
+  hard_delete      = true
+}
+
+resource "microsoft365_graph_beta_groups_group" "custom_config_group_2" {
+  display_name     = "acc-test-macos-custom-config-group-2-${random_string.custom_config_suffix.result}"
+  mail_nickname    = "acc-test-custom-config-2-${random_string.custom_config_suffix.result}"
+  mail_enabled     = false
+  security_enabled = true
+  hard_delete      = true
+}
+
+resource "microsoft365_graph_beta_groups_group" "custom_config_group_3" {
+  display_name     = "acc-test-macos-custom-config-group-3-${random_string.custom_config_suffix.result}"
+  mail_nickname    = "acc-test-custom-config-3-${random_string.custom_config_suffix.result}"
+  mail_enabled     = false
+  security_enabled = true
+  hard_delete      = true
+}
+
+resource "microsoft365_graph_beta_groups_group" "custom_config_group_4" {
+  display_name     = "acc-test-macos-custom-config-group-4-${random_string.custom_config_suffix.result}"
+  mail_nickname    = "acc-test-custom-config-4-${random_string.custom_config_suffix.result}"
+  mail_enabled     = false
+  security_enabled = true
+  hard_delete      = true
+}
 
 resource "microsoft365_graph_beta_device_management_macos_device_configuration_templates" "custom_configuration_example" {
-  display_name = "acc-test-macOS-custom-configuration-example"
+  display_name = "acc-test-macOS-custom-config-${random_string.custom_config_suffix.result}"
   description  = "Example custom configuration template for macOS devices"
 
   custom_configuration = {
@@ -42,32 +79,32 @@ resource "microsoft365_graph_beta_device_management_macos_device_configuration_t
       </dict>
       </plist>
     EOT
-
   }
-
-  role_scope_tag_ids = [microsoft365_graph_beta_device_management_role_scope_tag.acc_test_role_scope_tag_1.id]
 
   assignments = [
     {
-      type        = "groupAssignmentTarget"
-      group_id    = microsoft365_graph_beta_groups_group.acc_test_group_1.id
-      filter_id   = microsoft365_graph_beta_device_management_assignment_filter.acc_test_assignment_filter_1.id
-      filter_type = "include"
+      type     = "groupAssignmentTarget"
+      group_id = microsoft365_graph_beta_groups_group.custom_config_group_1.id
     },
     {
-      type        = "groupAssignmentTarget"
-      group_id    = microsoft365_graph_beta_groups_group.acc_test_group_2.id
-      filter_id   = microsoft365_graph_beta_device_management_assignment_filter.acc_test_assignment_filter_2.id
-      filter_type = "exclude"
+      type     = "groupAssignmentTarget"
+      group_id = microsoft365_graph_beta_groups_group.custom_config_group_2.id
     },
     {
       type     = "exclusionGroupAssignmentTarget"
-      group_id = microsoft365_graph_beta_groups_group.acc_test_group_3.id
+      group_id = microsoft365_graph_beta_groups_group.custom_config_group_3.id
     },
     {
       type     = "exclusionGroupAssignmentTarget"
-      group_id = microsoft365_graph_beta_groups_group.acc_test_group_4.id
+      group_id = microsoft365_graph_beta_groups_group.custom_config_group_4.id
     }
+  ]
+
+  depends_on = [
+    microsoft365_graph_beta_groups_group.custom_config_group_1,
+    microsoft365_graph_beta_groups_group.custom_config_group_2,
+    microsoft365_graph_beta_groups_group.custom_config_group_3,
+    microsoft365_graph_beta_groups_group.custom_config_group_4
   ]
 
   timeouts = {
