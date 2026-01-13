@@ -3,7 +3,7 @@ page_title: "microsoft365_graph_beta_windows_365_cloud_pc_organization_settings 
 subcategory: "Windows 365"
 
 description: |-
-    Manages the singleton Cloud PC organization settings for a tenant.
+  Manages the singleton Cloud PC organization settings for a tenant.
 ---
 
 # microsoft365_graph_beta_windows_365_cloud_pc_organization_settings (Resource)

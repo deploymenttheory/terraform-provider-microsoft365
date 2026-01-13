@@ -1,7 +1,7 @@
 resource "microsoft365_graph_beta_device_management_app_control_for_business_built_in_controls" "assignments_downgrade" {
   name        = "unit-test-app-control-assignments-downgrade"
   description = "Assignments downgrade test - Step 1: Maximal assignments"
-  
+
   enable_app_control = "audit"
   role_scope_tag_ids = ["0"]
 

@@ -1,8 +1,8 @@
 ---
 page_title: "microsoft365_graph_beta_identity_and_access_directory_setting_templates Data Source - terraform-provider-microsoft365"
-subcategory: "Directory Management"
+subcategory: "Identity and Access"
 description: |-
-    Retrieves information about directory setting templates available in Microsoft 365. Directory setting templates represent system-defined settings available to the tenant. Directory settings can be created based on the available templates, and values changed from their preset defaults. These templates are read-only and define the allowed behaviors for specific Microsoft Entra objects like Microsoft 365 groups.
+  Retrieves information about directory setting templates available in Microsoft 365. Directory setting templates represent system-defined settings available to the tenant. Directory settings can be created based on the available templates, and values changed from their preset defaults. These templates are read-only and define the allowed behaviors for specific Microsoft Entra objects like Microsoft 365 groups.
 ---
 
 # microsoft365_graph_beta_identity_and_access_directory_setting_templates (Data Source)

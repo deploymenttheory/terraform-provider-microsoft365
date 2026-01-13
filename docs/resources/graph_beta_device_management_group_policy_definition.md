@@ -3,7 +3,7 @@ page_title: "microsoft365_graph_beta_device_management_group_policy_definition R
 subcategory: "Device Management"
 
 description: |-
-    Manages a group policy definition with all its presentation values in Microsoft Intune. This resource provides a unified interface for configuring any group policy regardless of presentation types (checkboxes, textboxes, dropdowns, etc.). Values are provided as label-value pairs, and the resource automatically handles type conversion based on the policy's catalog definition. Uses the deviceManagement/groupPolicyConfigurations('{groupPolicyConfigurationId}')/updateDefinitionValues endpoint.
+  Manages a group policy definition with all its presentation values in Microsoft Intune. This resource provides a unified interface for configuring any group policy regardless of presentation types (checkboxes, textboxes, dropdowns, etc.). Values are provided as label-value pairs, and the resource automatically handles type conversion based on the policy's catalog definition. Uses the deviceManagement/groupPolicyConfigurations('{groupPolicyConfigurationId}')/updateDefinitionValues endpoint.
 ---
 
 # microsoft365_graph_beta_device_management_group_policy_definition (Resource)

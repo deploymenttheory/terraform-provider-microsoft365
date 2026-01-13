@@ -23,7 +23,7 @@ resource "microsoft365_graph_beta_groups_license_assignment" "maximal" {
   sku_id   = "a403ebcc-fae0-4ca2-8c8c-7a907fd6c235" # Microsoft Fabric (Free) / POWER_BI_STANDARD
 
   disabled_plans = [
-    "c948ea65-2053-4a5a-8a62-9eaaaf11b522"  # PURVIEW_DISCOVERY
+    "c948ea65-2053-4a5a-8a62-9eaaaf11b522" # PURVIEW_DISCOVERY
   ]
 
   depends_on = [

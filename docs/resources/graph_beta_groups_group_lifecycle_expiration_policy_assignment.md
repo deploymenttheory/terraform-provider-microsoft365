@@ -2,7 +2,7 @@
 page_title: "microsoft365_graph_beta_groups_group_lifecycle_expiration_policy_assignment Resource - terraform-provider-microsoft365"
 subcategory: "Groups"
 description: |-
-    Manages the assignment of a Microsoft 365 group to the tenant's group lifecycle expiration policy. This resource adds a group to the lifecycle policy using the /groupLifecyclePolicies/{id}/addGroup endpoint. This resource is only applicable when the policy's managed_group_types is set to Selected. When managed_group_types is set to Selected, you can add up to 500 groups to the policy. If you need to manage more than 500 groups, set managed_group_types to All instead. Only one lifecycle policy exists per tenant, so this resource automatically finds and uses the tenant's policy.
+  Manages the assignment of a Microsoft 365 group to the tenant's group lifecycle expiration policy. This resource adds a group to the lifecycle policy using the /groupLifecyclePolicies/{id}/addGroup endpoint. This resource is only applicable when the policy's managed_group_types is set to Selected. When managed_group_types is set to Selected, you can add up to 500 groups to the policy. If you need to manage more than 500 groups, set managed_group_types to All instead. Only one lifecycle policy exists per tenant, so this resource automatically finds and uses the tenant's policy.
 ---
 
 # microsoft365_graph_beta_groups_group_lifecycle_expiration_policy_assignment (Resource)

@@ -3,7 +3,7 @@ page_title: "microsoft365_graph_beta_windows_365_cloud_pc_device_image Resource 
 subcategory: "Windows 365"
 
 description: |-
-    Manages a Windows 365 Cloud PC Device Image using the Microsoft Graph Beta API.
+  Manages a Windows 365 Cloud PC Device Image using the Microsoft Graph Beta API.
 ---
 
 # microsoft365_graph_beta_windows_365_cloud_pc_device_image (Resource)

@@ -2,7 +2,7 @@
 page_title: "microsoft365_graph_beta_identity_and_access_tenant_information Data Source - terraform-provider-microsoft365"
 subcategory: "Identity and Access"
 description: |-
-    Retrieves tenant information from Microsoft Entra ID using the tenant relationships API. This data source enables querying tenant information by tenant ID or domain name. You can use this API to validate tenant information and retrieve tenant details for configuring cross-tenant access settings.
+  Retrieves tenant information from Microsoft Entra ID using the tenant relationships API. This data source enables querying tenant information by tenant ID or domain name. You can use this API to validate tenant information and retrieve tenant details for configuring cross-tenant access settings.
 ---
 
 # microsoft365_graph_beta_identity_and_access_tenant_information (Data Source)

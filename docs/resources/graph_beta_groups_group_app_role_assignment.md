@@ -2,7 +2,7 @@
 page_title: "microsoft365_graph_beta_groups_group_app_role_assignment Resource - terraform-provider-microsoft365"
 subcategory: "Groups"
 description: |-
-    Manages Azure AD/Entra group app role assignments using the /groups/{group-id}/appRoleAssignments endpoint. This resource enables assigning app roles to security groups, allowing all direct members of the group to inherit the assigned permissions. Security groups with dynamic memberships are supported.
+  Manages Azure AD/Entra group app role assignments using the /groups/{group-id}/appRoleAssignments endpoint. This resource enables assigning app roles to security groups, allowing all direct members of the group to inherit the assigned permissions. Security groups with dynamic memberships are supported.
   Important Notes:
   All direct members of the assigned group will be considered as having the app roleAdditional licenses might be required to use a group to manage access to applicationsThe resource requires three key identifiers: principal ID (group), resource ID (service principal), and app role ID
   Required Permissions:

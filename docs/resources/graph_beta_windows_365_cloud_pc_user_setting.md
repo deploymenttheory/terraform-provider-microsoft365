@@ -3,7 +3,7 @@ page_title: "microsoft365_graph_beta_windows_365_cloud_pc_user_setting Resource 
 subcategory: "Windows 365"
 
 description: |-
-    
+  
 ---
 
 # microsoft365_graph_beta_windows_365_cloud_pc_user_setting (Resource)
