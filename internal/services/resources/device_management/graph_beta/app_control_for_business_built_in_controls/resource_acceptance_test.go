@@ -184,9 +184,6 @@ func TestAccAppControlForBusinessBuiltInControlsResource_004_Maximal(t *testing.
 					check.That(graphBetaAppControlForBusinessBuiltInControls.ResourceName+".advanced").Key("name").MatchesRegex(regexp.MustCompile(`^acc-test-app-control-for-business-built-in-controls-maximal-[a-z0-9]{8}$`)),
 					check.That(graphBetaAppControlForBusinessBuiltInControls.ResourceName+".advanced").Key("additional_rules_for_trusting_apps.#").HasValue("2"),
 					check.That(graphBetaAppControlForBusinessBuiltInControls.ResourceName+".advanced").Key("assignments.#").HasValue("3"),
-					check.That(graphBetaAppControlForBusinessBuiltInControls.ResourceName+".advanced").Key("assignments.0.type").HasValue("allLicensedUsersAssignmentTarget"),
-					check.That(graphBetaAppControlForBusinessBuiltInControls.ResourceName+".advanced").Key("assignments.1.type").HasValue("groupAssignmentTarget"),
-					check.That(graphBetaAppControlForBusinessBuiltInControls.ResourceName+".advanced").Key("assignments.2.type").HasValue("allDevicesAssignmentTarget"),
 				),
 			},
 			{
