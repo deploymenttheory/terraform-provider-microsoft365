@@ -4,6 +4,10 @@ resource "random_string" "test_suffix" {
   upper   = false
 }
 
+# ==============================================================================
+# Group Dependencies
+# ==============================================================================
+
 resource "microsoft365_graph_beta_groups_group" "acc_test_group_008_1" {
   display_name     = "acc-test-group-008-1-${random_string.test_suffix.result}"
   mail_nickname    = "acc-test-group-008-1-${random_string.test_suffix.result}"

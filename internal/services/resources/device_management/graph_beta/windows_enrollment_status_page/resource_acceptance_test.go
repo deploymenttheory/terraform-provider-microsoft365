@@ -1,25 +1,43 @@
 package graphBetaWindowsEnrollmentStatusPage_test
 
 import (
-	"context"
-	"fmt"
-	"log"
+	"regexp"
 	"testing"
+	"time"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/check"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/destroy"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/testlog"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
-	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
+	graphBetaWindowsEnrollmentStatusPage "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_management/graph_beta/windows_enrollment_status_page"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 )
 
-func TestAccWindowsEnrollmentStatusPageResource_Minimal(t *testing.T) {
+var testResource = graphBetaWindowsEnrollmentStatusPage.WindowsEnrollmentStatusPageTestResource{}
+
+// Helper function to load test configs from acceptance directory
+func loadAcceptanceTestTerraform(filename string) string {
+	config, err := helpers.ParseHCLFile("tests/terraform/acceptance/" + filename)
+	if err != nil {
+		panic("failed to load acceptance config " + filename + ": " + err.Error())
+	}
+	return acceptance.ConfiguredM365ProviderBlock(config)
+}
+
+// Test 001: Minimal Configuration
+func TestAccWindowsEnrollmentStatusPageResource_001_Minimal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
-		CheckDestroy:             testAccCheckWindowsEnrollmentStatusPageDestroy,
+		CheckDestroy: destroy.CheckDestroyedAllFunc(
+			testResource,
+			graphBetaWindowsEnrollmentStatusPage.ResourceName,
+			30*time.Second,
+		),
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
 				Source:            "hashicorp/random",
@@ -28,32 +46,48 @@ func TestAccWindowsEnrollmentStatusPageResource_Minimal(t *testing.T) {
 		},
 		Steps: []resource.TestStep{
 			{
-				Config: testAccWindowsEnrollmentStatusPageConfig_minimal(),
+				PreConfig: func() {
+					testlog.StepAction(graphBetaWindowsEnrollmentStatusPage.ResourceName, "Creating Minimal Configuration")
+				},
+				Config: loadAcceptanceTestTerraform("resource_minimal.tf"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("microsoft365_graph_beta_device_management_windows_enrollment_status_page.minimal", "id"),
-					resource.TestCheckResourceAttrWith("microsoft365_graph_beta_device_management_windows_enrollment_status_page.minimal", "display_name", func(value string) error {
-						if len(value) == 0 {
-							return fmt.Errorf("display_name should not be empty")
-						}
+					func(_ *terraform.State) error {
+						testlog.WaitForConsistency("Windows enrollment status page", 15*time.Second)
+						time.Sleep(15 * time.Second)
 						return nil
-					}),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_enrollment_status_page.minimal", "show_installation_progress", "true"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_enrollment_status_page.minimal", "block_device_setup_retry_by_user", "false"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_enrollment_status_page.minimal", "allow_device_reset_on_install_failure", "true"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_enrollment_status_page.minimal", "install_progress_timeout_in_minutes", "120"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_enrollment_status_page.minimal", "custom_error_message", "Contact IT support for assistance"),
+					},
+					check.That(graphBetaWindowsEnrollmentStatusPage.ResourceName+".minimal").ExistsInGraph(testResource),
+					check.That(graphBetaWindowsEnrollmentStatusPage.ResourceName+".minimal").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+_Windows10EnrollmentCompletionPageConfiguration$`)),
+					check.That(graphBetaWindowsEnrollmentStatusPage.ResourceName+".minimal").Key("display_name").IsNotEmpty(),
+					check.That(graphBetaWindowsEnrollmentStatusPage.ResourceName+".minimal").Key("show_installation_progress").HasValue("true"),
+					check.That(graphBetaWindowsEnrollmentStatusPage.ResourceName+".minimal").Key("allow_device_reset_on_install_failure").HasValue("false"),
+					check.That(graphBetaWindowsEnrollmentStatusPage.ResourceName+".minimal").Key("install_progress_timeout_in_minutes").HasValue("120"),
+					check.That(graphBetaWindowsEnrollmentStatusPage.ResourceName+".minimal").Key("custom_error_message").HasValue("Contact IT support for assistance"),
 				),
 			},
-			{ResourceName: "microsoft365_graph_beta_device_management_windows_enrollment_status_page.minimal", ImportState: true, ImportStateVerify: true},
+			{
+				PreConfig: func() {
+					testlog.StepAction(graphBetaWindowsEnrollmentStatusPage.ResourceName, "Importing Minimal Configuration")
+				},
+				ResourceName:            graphBetaWindowsEnrollmentStatusPage.ResourceName + ".minimal",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"timeouts"},
+			},
 		},
 	})
 }
 
-func TestAccWindowsEnrollmentStatusPageResource_Maximal(t *testing.T) {
+// Test 002: Maximal Configuration
+func TestAccWindowsEnrollmentStatusPageResource_002_Maximal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
-		CheckDestroy:             testAccCheckWindowsEnrollmentStatusPageDestroy,
+		CheckDestroy: destroy.CheckDestroyedAllFunc(
+			testResource,
+			graphBetaWindowsEnrollmentStatusPage.ResourceName,
+			30*time.Second,
+		),
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
 				Source:            "hashicorp/random",
@@ -62,32 +96,57 @@ func TestAccWindowsEnrollmentStatusPageResource_Maximal(t *testing.T) {
 		},
 		Steps: []resource.TestStep{
 			{
-				Config: testAccWindowsEnrollmentStatusPageConfig_maximal(),
+				PreConfig: func() {
+					testlog.StepAction(graphBetaWindowsEnrollmentStatusPage.ResourceName, "Creating Maximal Configuration")
+				},
+				Config: loadAcceptanceTestTerraform("resource_maximal.tf"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("microsoft365_graph_beta_device_management_windows_enrollment_status_page.maximal", "id"),
-					resource.TestCheckResourceAttrWith("microsoft365_graph_beta_device_management_windows_enrollment_status_page.maximal", "display_name", func(value string) error {
-						if len(value) == 0 {
-							return fmt.Errorf("display_name should not be empty")
-						}
+					func(_ *terraform.State) error {
+						testlog.WaitForConsistency("Windows enrollment status page", 15*time.Second)
+						time.Sleep(15 * time.Second)
 						return nil
-					}),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_enrollment_status_page.maximal", "show_installation_progress", "true"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_enrollment_status_page.maximal", "install_progress_timeout_in_minutes", "180"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_enrollment_status_page.maximal", "track_install_progress_for_autopilot_only", "true"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_enrollment_status_page.maximal", "allow_log_collection_on_install_failure", "true"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_enrollment_status_page.maximal", "role_scope_tag_ids.#", "2"),
+					},
+					check.That(graphBetaWindowsEnrollmentStatusPage.ResourceName+".maximal").ExistsInGraph(testResource),
+					check.That(graphBetaWindowsEnrollmentStatusPage.ResourceName+".maximal").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+_Windows10EnrollmentCompletionPageConfiguration$`)),
+					check.That(graphBetaWindowsEnrollmentStatusPage.ResourceName+".maximal").Key("display_name").IsNotEmpty(),
+					check.That(graphBetaWindowsEnrollmentStatusPage.ResourceName+".maximal").Key("description").HasValue("Test description for maximal enrollment status page"),
+					check.That(graphBetaWindowsEnrollmentStatusPage.ResourceName+".maximal").Key("show_installation_progress").HasValue("true"),
+					check.That(graphBetaWindowsEnrollmentStatusPage.ResourceName+".maximal").Key("custom_error_message").HasValue("Contact IT support for assistance"),
+					check.That(graphBetaWindowsEnrollmentStatusPage.ResourceName+".maximal").Key("install_quality_updates").HasValue("true"),
+					check.That(graphBetaWindowsEnrollmentStatusPage.ResourceName+".maximal").Key("install_progress_timeout_in_minutes").HasValue("120"),
+					check.That(graphBetaWindowsEnrollmentStatusPage.ResourceName+".maximal").Key("allow_log_collection_on_install_failure").HasValue("true"),
+					check.That(graphBetaWindowsEnrollmentStatusPage.ResourceName+".maximal").Key("only_show_page_to_devices_provisioned_by_out_of_box_experience_oobe").HasValue("true"),
+					check.That(graphBetaWindowsEnrollmentStatusPage.ResourceName+".maximal").Key("block_device_use_until_all_apps_and_profiles_are_installed").HasValue("false"),
+					check.That(graphBetaWindowsEnrollmentStatusPage.ResourceName+".maximal").Key("allow_device_reset_on_install_failure").HasValue("true"),
+					check.That(graphBetaWindowsEnrollmentStatusPage.ResourceName+".maximal").Key("allow_device_use_on_install_failure").HasValue("true"),
+					check.That(graphBetaWindowsEnrollmentStatusPage.ResourceName+".maximal").Key("selected_mobile_app_ids.#").HasValue("3"),
+					check.That(graphBetaWindowsEnrollmentStatusPage.ResourceName+".maximal").Key("only_fail_selected_blocking_apps_in_technician_phase").HasValue("true"),
+					check.That(graphBetaWindowsEnrollmentStatusPage.ResourceName+".maximal").Key("role_scope_tag_ids.#").HasValue("2"),
 				),
 			},
-			{ResourceName: "microsoft365_graph_beta_device_management_windows_enrollment_status_page.maximal", ImportState: true, ImportStateVerify: true},
+			{
+				PreConfig: func() {
+					testlog.StepAction(graphBetaWindowsEnrollmentStatusPage.ResourceName, "Importing Maximal Configuration")
+				},
+				ResourceName:            graphBetaWindowsEnrollmentStatusPage.ResourceName + ".maximal",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"timeouts"},
+			},
 		},
 	})
 }
 
-func TestAccWindowsEnrollmentStatusPageResource_WithAssignments(t *testing.T) {
+// Test 003: Configuration with Assignments
+func TestAccWindowsEnrollmentStatusPageResource_003_WithAssignments(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
-		CheckDestroy:             testAccCheckWindowsEnrollmentStatusPageDestroy,
+		CheckDestroy: destroy.CheckDestroyedAllFunc(
+			testResource,
+			graphBetaWindowsEnrollmentStatusPage.ResourceName,
+			30*time.Second,
+		),
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
 				Source:            "hashicorp/random",
@@ -96,34 +155,45 @@ func TestAccWindowsEnrollmentStatusPageResource_WithAssignments(t *testing.T) {
 		},
 		Steps: []resource.TestStep{
 			{
-				Config: testAccWindowsEnrollmentStatusPageConfig_withAssignments(),
+				PreConfig: func() {
+					testlog.StepAction(graphBetaWindowsEnrollmentStatusPage.ResourceName, "Creating Configuration with Assignments")
+				},
+				Config: loadAcceptanceTestTerraform("resource_with_assignments.tf"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("microsoft365_graph_beta_device_management_windows_enrollment_status_page.with_assignments", "id"),
-					resource.TestCheckResourceAttrWith("microsoft365_graph_beta_device_management_windows_enrollment_status_page.with_assignments", "display_name", func(value string) error {
-						if len(value) == 0 {
-							return fmt.Errorf("display_name should not be empty")
-						}
+					func(_ *terraform.State) error {
+						testlog.WaitForConsistency("Windows enrollment status page", 15*time.Second)
+						time.Sleep(15 * time.Second)
 						return nil
-					}),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_enrollment_status_page.with_assignments", "assignments.#", "2"),
-					resource.TestCheckTypeSetElemNestedAttrs("microsoft365_graph_beta_device_management_windows_enrollment_status_page.with_assignments", "assignments.*", map[string]string{
-						"type": "allDevicesAssignmentTarget",
-					}),
-					resource.TestCheckTypeSetElemNestedAttrs("microsoft365_graph_beta_device_management_windows_enrollment_status_page.with_assignments", "assignments.*", map[string]string{
-						"type": "allLicensedUsersAssignmentTarget",
-					}),
+					},
+					check.That(graphBetaWindowsEnrollmentStatusPage.ResourceName+".with_assignments").ExistsInGraph(testResource),
+					check.That(graphBetaWindowsEnrollmentStatusPage.ResourceName+".with_assignments").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+_Windows10EnrollmentCompletionPageConfiguration$`)),
+					check.That(graphBetaWindowsEnrollmentStatusPage.ResourceName+".with_assignments").Key("display_name").IsNotEmpty(),
+					check.That(graphBetaWindowsEnrollmentStatusPage.ResourceName+".with_assignments").Key("assignments.#").HasValue("4"),
 				),
 			},
-			{ResourceName: "microsoft365_graph_beta_device_management_windows_enrollment_status_page.with_assignments", ImportState: true, ImportStateVerify: true},
+			{
+				PreConfig: func() {
+					testlog.StepAction(graphBetaWindowsEnrollmentStatusPage.ResourceName, "Importing Configuration with Assignments")
+				},
+				ResourceName:            graphBetaWindowsEnrollmentStatusPage.ResourceName + ".with_assignments",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"timeouts"},
+			},
 		},
 	})
 }
 
-func TestAccWindowsEnrollmentStatusPageResource_Update(t *testing.T) {
+// Test 004: Update Lifecycle Test
+func TestAccWindowsEnrollmentStatusPageResource_004_Update(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
-		CheckDestroy:             testAccCheckWindowsEnrollmentStatusPageDestroy,
+		CheckDestroy: destroy.CheckDestroyedAllFunc(
+			testResource,
+			graphBetaWindowsEnrollmentStatusPage.ResourceName,
+			30*time.Second,
+		),
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
 				Source:            "hashicorp/random",
@@ -132,86 +202,186 @@ func TestAccWindowsEnrollmentStatusPageResource_Update(t *testing.T) {
 		},
 		Steps: []resource.TestStep{
 			{
-				Config: testAccWindowsEnrollmentStatusPageConfig_minimal(),
+				PreConfig: func() {
+					testlog.StepAction(graphBetaWindowsEnrollmentStatusPage.ResourceName, "Creating Initial Configuration (Step 1 - Minimal)")
+				},
+				Config: loadAcceptanceTestTerraform("resource_minimal.tf"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("microsoft365_graph_beta_device_management_windows_enrollment_status_page.minimal", "id"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_enrollment_status_page.minimal", "install_progress_timeout_in_minutes", "120"),
+					func(_ *terraform.State) error {
+						testlog.WaitForConsistency("Windows enrollment status page", 15*time.Second)
+						time.Sleep(15 * time.Second)
+						return nil
+					},
+					check.That(graphBetaWindowsEnrollmentStatusPage.ResourceName+".minimal").ExistsInGraph(testResource),
+					check.That(graphBetaWindowsEnrollmentStatusPage.ResourceName+".minimal").Key("install_progress_timeout_in_minutes").HasValue("120"),
 				),
 			},
 			{
-				Config: testAccWindowsEnrollmentStatusPageConfig_maximal(),
+				PreConfig: func() {
+					testlog.StepAction(graphBetaWindowsEnrollmentStatusPage.ResourceName, "Updating to Maximal Configuration (Step 2)")
+				},
+				Config: loadAcceptanceTestTerraform("resource_maximal.tf"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("microsoft365_graph_beta_device_management_windows_enrollment_status_page.maximal", "id"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_enrollment_status_page.maximal", "install_progress_timeout_in_minutes", "180"),
+					func(_ *terraform.State) error {
+						testlog.WaitForConsistency("Windows enrollment status page", 15*time.Second)
+						time.Sleep(15 * time.Second)
+						return nil
+					},
+					check.That(graphBetaWindowsEnrollmentStatusPage.ResourceName+".maximal").ExistsInGraph(testResource),
+					check.That(graphBetaWindowsEnrollmentStatusPage.ResourceName+".maximal").Key("install_progress_timeout_in_minutes").HasValue("120"),
 				),
 			},
-			{ResourceName: "microsoft365_graph_beta_device_management_windows_enrollment_status_page.maximal", ImportState: true, ImportStateVerify: true},
+			{
+				PreConfig: func() {
+					testlog.StepAction(graphBetaWindowsEnrollmentStatusPage.ResourceName, "Importing Updated Configuration")
+				},
+				ResourceName:            graphBetaWindowsEnrollmentStatusPage.ResourceName + ".maximal",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"timeouts"},
+			},
 		},
 	})
 }
 
-// Configuration Functions
-func testAccWindowsEnrollmentStatusPageConfig_minimal() string {
-	roleScopeTags, err := helpers.ParseHCLFile("../../../../../acceptance/terraform_dependancies/device_management/role_scope_tags.tf")
-	if err != nil {
-		log.Fatalf("Failed to load role scope tags config: %v", err)
-	}
-	accTestConfig, err := helpers.ParseHCLFile("tests/terraform/acceptance/resource_minimal.tf")
-	if err != nil {
-		log.Fatalf("Failed to load minimal acceptance test config: %v", err)
-	}
-	return acceptance.ConfiguredM365ProviderBlock(roleScopeTags + "\n" + accTestConfig)
+// Test 005: Lifecycle Minimal to Maximal
+func TestAccWindowsEnrollmentStatusPageResource_005_Lifecycle_MinimalToMaximal(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		CheckDestroy: destroy.CheckDestroyedAllFunc(
+			testResource,
+			graphBetaWindowsEnrollmentStatusPage.ResourceName,
+			30*time.Second,
+		),
+		ExternalProviders: map[string]resource.ExternalProvider{
+			"random": {
+				Source:            "hashicorp/random",
+				VersionConstraint: constants.ExternalProviderRandomVersion,
+			},
+		},
+		Steps: []resource.TestStep{
+			{
+				PreConfig: func() {
+					testlog.StepAction(graphBetaWindowsEnrollmentStatusPage.ResourceName, "Lifecycle: Creating minimal configuration")
+				},
+				Config: loadAcceptanceTestTerraform("resource_lifecycle_minimal_to_maximal_step_1.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					func(_ *terraform.State) error {
+						testlog.WaitForConsistency("Windows enrollment status page", 15*time.Second)
+						time.Sleep(15 * time.Second)
+						return nil
+					},
+					check.That(graphBetaWindowsEnrollmentStatusPage.ResourceName+".lifecycle").ExistsInGraph(testResource),
+					check.That(graphBetaWindowsEnrollmentStatusPage.ResourceName+".lifecycle").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+_Windows10EnrollmentCompletionPageConfiguration$`)),
+					check.That(graphBetaWindowsEnrollmentStatusPage.ResourceName+".lifecycle").Key("display_name").IsNotEmpty(),
+					check.That(graphBetaWindowsEnrollmentStatusPage.ResourceName+".lifecycle").Key("block_device_use_until_all_apps_and_profiles_are_installed").HasValue("true"),
+					check.That(graphBetaWindowsEnrollmentStatusPage.ResourceName+".lifecycle").Key("allow_device_reset_on_install_failure").HasValue("false"),
+					check.That(graphBetaWindowsEnrollmentStatusPage.ResourceName+".lifecycle").Key("role_scope_tag_ids.#").HasValue("1"),
+				),
+			},
+			{
+				PreConfig: func() {
+					testlog.WaitForConsistency("Windows enrollment status page", 15*time.Second)
+					time.Sleep(15 * time.Second)
+					testlog.StepAction(graphBetaWindowsEnrollmentStatusPage.ResourceName, "Lifecycle: Updating to maximal configuration")
+				},
+				Config: loadAcceptanceTestTerraform("resource_lifecycle_minimal_to_maximal_step_2.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					func(_ *terraform.State) error {
+						testlog.WaitForConsistency("Windows enrollment status page", 15*time.Second)
+						time.Sleep(15 * time.Second)
+						return nil
+					},
+					check.That(graphBetaWindowsEnrollmentStatusPage.ResourceName+".lifecycle").ExistsInGraph(testResource),
+					check.That(graphBetaWindowsEnrollmentStatusPage.ResourceName+".lifecycle").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+_Windows10EnrollmentCompletionPageConfiguration$`)),
+					check.That(graphBetaWindowsEnrollmentStatusPage.ResourceName+".lifecycle").Key("display_name").IsNotEmpty(),
+					check.That(graphBetaWindowsEnrollmentStatusPage.ResourceName+".lifecycle").Key("block_device_use_until_all_apps_and_profiles_are_installed").HasValue("false"),
+					check.That(graphBetaWindowsEnrollmentStatusPage.ResourceName+".lifecycle").Key("allow_device_reset_on_install_failure").HasValue("true"),
+					check.That(graphBetaWindowsEnrollmentStatusPage.ResourceName+".lifecycle").Key("selected_mobile_app_ids.#").HasValue("3"),
+					check.That(graphBetaWindowsEnrollmentStatusPage.ResourceName+".lifecycle").Key("role_scope_tag_ids.#").HasValue("2"),
+				),
+			},
+			{
+				PreConfig: func() {
+					testlog.StepAction(graphBetaWindowsEnrollmentStatusPage.ResourceName, "Lifecycle: Importing configuration")
+				},
+				ResourceName:            graphBetaWindowsEnrollmentStatusPage.ResourceName + ".lifecycle",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"timeouts"},
+			},
+		},
+	})
 }
 
-func testAccWindowsEnrollmentStatusPageConfig_maximal() string {
-	roleScopeTags, err := helpers.ParseHCLFile("../../../../../acceptance/terraform_dependancies/device_management/role_scope_tags.tf")
-	if err != nil {
-		log.Fatalf("Failed to load role scope tags config: %v", err)
-	}
-	accTestConfig, err := helpers.ParseHCLFile("tests/terraform/acceptance/resource_maximal.tf")
-	if err != nil {
-		log.Fatalf("Failed to load maximal acceptance test config: %v", err)
-	}
-	return acceptance.ConfiguredM365ProviderBlock(roleScopeTags + "\n" + accTestConfig)
-}
-
-func testAccWindowsEnrollmentStatusPageConfig_withAssignments() string {
-	roleScopeTags, err := helpers.ParseHCLFile("../../../../../acceptance/terraform_dependancies/device_management/role_scope_tags.tf")
-	if err != nil {
-		log.Fatalf("Failed to load role scope tags config: %v", err)
-	}
-	accTestConfig, err := helpers.ParseHCLFile("tests/terraform/acceptance/resource_with_assignments.tf")
-	if err != nil {
-		log.Fatalf("Failed to load assignments acceptance test config: %v", err)
-	}
-	return acceptance.ConfiguredM365ProviderBlock(roleScopeTags + "\n" + accTestConfig)
-}
-
-func testAccCheckWindowsEnrollmentStatusPageDestroy(s *terraform.State) error {
-	graphClient, err := acceptance.TestGraphClient()
-	if err != nil {
-		return fmt.Errorf("error creating Graph client for CheckDestroy: %v", err)
-	}
-	ctx := context.Background()
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "microsoft365_graph_beta_device_management_windows_enrollment_status_page" {
-			continue
-		}
-		_, err := graphClient.
-			DeviceManagement().
-			DeviceEnrollmentConfigurations().
-			ByDeviceEnrollmentConfigurationId(rs.Primary.ID).
-			Get(ctx, nil)
-
-		if err != nil {
-			errorInfo := errors.GraphError(ctx, err)
-			if errorInfo.StatusCode == 404 || errorInfo.ErrorCode == "ResourceNotFound" || errorInfo.ErrorCode == "ItemNotFound" {
-				fmt.Printf("DEBUG: Resource %s successfully destroyed (404/NotFound)\n", rs.Primary.ID)
-				continue
-			}
-			return fmt.Errorf("error checking if windows enrollment status page %s was destroyed: %v", rs.Primary.ID, err)
-		}
-		return fmt.Errorf("windows enrollment status page %s still exists", rs.Primary.ID)
-	}
-	return nil
+// Test 006: Lifecycle Maximal to Minimal
+func TestAccWindowsEnrollmentStatusPageResource_006_Lifecycle_MaximalToMinimal(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		CheckDestroy: destroy.CheckDestroyedAllFunc(
+			testResource,
+			graphBetaWindowsEnrollmentStatusPage.ResourceName,
+			30*time.Second,
+		),
+		ExternalProviders: map[string]resource.ExternalProvider{
+			"random": {
+				Source:            "hashicorp/random",
+				VersionConstraint: constants.ExternalProviderRandomVersion,
+			},
+		},
+		Steps: []resource.TestStep{
+			{
+				PreConfig: func() {
+					testlog.StepAction(graphBetaWindowsEnrollmentStatusPage.ResourceName, "Downgrade: Creating maximal configuration")
+				},
+				Config: loadAcceptanceTestTerraform("resource_lifecycle_maximal_to_minimal_step_1.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					func(_ *terraform.State) error {
+						testlog.WaitForConsistency("Windows enrollment status page", 15*time.Second)
+						time.Sleep(15 * time.Second)
+						return nil
+					},
+					check.That(graphBetaWindowsEnrollmentStatusPage.ResourceName+".lifecycle").ExistsInGraph(testResource),
+					check.That(graphBetaWindowsEnrollmentStatusPage.ResourceName+".lifecycle").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+_Windows10EnrollmentCompletionPageConfiguration$`)),
+					check.That(graphBetaWindowsEnrollmentStatusPage.ResourceName+".lifecycle").Key("display_name").IsNotEmpty(),
+					check.That(graphBetaWindowsEnrollmentStatusPage.ResourceName+".lifecycle").Key("block_device_use_until_all_apps_and_profiles_are_installed").HasValue("false"),
+					check.That(graphBetaWindowsEnrollmentStatusPage.ResourceName+".lifecycle").Key("allow_device_reset_on_install_failure").HasValue("true"),
+					check.That(graphBetaWindowsEnrollmentStatusPage.ResourceName+".lifecycle").Key("selected_mobile_app_ids.#").HasValue("3"),
+					check.That(graphBetaWindowsEnrollmentStatusPage.ResourceName+".lifecycle").Key("role_scope_tag_ids.#").HasValue("2"),
+				),
+			},
+			{
+				PreConfig: func() {
+					testlog.WaitForConsistency("Windows enrollment status page", 15*time.Second)
+					time.Sleep(15 * time.Second)
+					testlog.StepAction(graphBetaWindowsEnrollmentStatusPage.ResourceName, "Downgrade: Updating to minimal configuration")
+				},
+				Config: loadAcceptanceTestTerraform("resource_lifecycle_maximal_to_minimal_step_2.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					func(_ *terraform.State) error {
+						testlog.WaitForConsistency("Windows enrollment status page", 15*time.Second)
+						time.Sleep(15 * time.Second)
+						return nil
+					},
+					check.That(graphBetaWindowsEnrollmentStatusPage.ResourceName+".lifecycle").ExistsInGraph(testResource),
+					check.That(graphBetaWindowsEnrollmentStatusPage.ResourceName+".lifecycle").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+_Windows10EnrollmentCompletionPageConfiguration$`)),
+					check.That(graphBetaWindowsEnrollmentStatusPage.ResourceName+".lifecycle").Key("display_name").IsNotEmpty(),
+					check.That(graphBetaWindowsEnrollmentStatusPage.ResourceName+".lifecycle").Key("block_device_use_until_all_apps_and_profiles_are_installed").HasValue("true"),
+					check.That(graphBetaWindowsEnrollmentStatusPage.ResourceName+".lifecycle").Key("allow_device_reset_on_install_failure").HasValue("false"),
+					check.That(graphBetaWindowsEnrollmentStatusPage.ResourceName+".lifecycle").Key("role_scope_tag_ids.#").HasValue("1"),
+				),
+			},
+			{
+				PreConfig: func() {
+					testlog.StepAction(graphBetaWindowsEnrollmentStatusPage.ResourceName, "Downgrade: Importing configuration")
+				},
+				ResourceName:            graphBetaWindowsEnrollmentStatusPage.ResourceName + ".lifecycle",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"timeouts"},
+			},
+		},
+	})
 }

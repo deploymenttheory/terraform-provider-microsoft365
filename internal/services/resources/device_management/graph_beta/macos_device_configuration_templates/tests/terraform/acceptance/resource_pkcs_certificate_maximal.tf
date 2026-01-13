@@ -4,6 +4,10 @@ resource "random_string" "pkcs_cert_suffix" {
   upper   = false
 }
 
+# ==============================================================================
+# Group Dependencies
+# ==============================================================================
+
 resource "microsoft365_graph_beta_groups_group" "pkcs_cert_group_1" {
   display_name     = "acc-test-macos-pkcs-cert-group-1-${random_string.pkcs_cert_suffix.result}"
   mail_nickname    = "acc-test-pkcs-cert-1-${random_string.pkcs_cert_suffix.result}"

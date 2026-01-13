@@ -1,3 +1,7 @@
+# ==============================================================================
+# Group Dependencies
+# ==============================================================================
+
 resource "microsoft365_graph_beta_groups_group" "acc_test_group_1" {
   display_name     = "acc-test-tandc-it"
   description      = "Test group for IT support staff used in terms and conditions assignments"

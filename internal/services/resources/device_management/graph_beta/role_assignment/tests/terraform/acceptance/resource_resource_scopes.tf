@@ -1,3 +1,7 @@
+# ==============================================================================
+# Group Dependencies
+# ==============================================================================
+
 # Test Group 1 - Policy Managers
 resource "microsoft365_graph_beta_groups_group" "acc_test_group_1" {
   display_name     = "acc-test-role-assignment-policy-managers"

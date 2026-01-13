@@ -4,6 +4,10 @@ resource "random_string" "trusted_cert_suffix" {
   upper   = false
 }
 
+# ==============================================================================
+# Group Dependencies
+# ==============================================================================
+
 resource "microsoft365_graph_beta_groups_group" "trusted_cert_group_1" {
   display_name     = "acc-test-macos-trusted-cert-group-1-${random_string.trusted_cert_suffix.result}"
   mail_nickname    = "acc-test-trusted-cert-1-${random_string.trusted_cert_suffix.result}"

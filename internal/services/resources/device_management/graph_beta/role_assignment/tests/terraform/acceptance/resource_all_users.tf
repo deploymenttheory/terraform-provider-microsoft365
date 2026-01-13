@@ -1,3 +1,7 @@
+# ==============================================================================
+# Group Dependencies
+# ==============================================================================
+
 # Test Group 3 - Application Managers
 resource "microsoft365_graph_beta_groups_group" "acc_test_group_3" {
   display_name     = "acc-test-role-assignment-app-managers"

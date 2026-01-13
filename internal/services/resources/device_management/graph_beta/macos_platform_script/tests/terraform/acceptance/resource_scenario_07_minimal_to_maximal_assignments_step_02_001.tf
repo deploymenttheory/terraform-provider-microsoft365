@@ -1,10 +1,12 @@
-# Dependancies
-
 resource "random_string" "test_suffix" {
   length  = 8
   special = false
   upper   = false
 }
+
+# ==============================================================================
+# Group Dependencies
+# ==============================================================================
 
 resource "microsoft365_graph_beta_groups_group" "acc_test_group_007_1" {
   display_name     = "acc-test-group-007-1-${random_string.test_suffix.result}"

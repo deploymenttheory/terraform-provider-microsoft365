@@ -1,3 +1,7 @@
+# ==============================================================================
+# Group Dependencies
+# ==============================================================================
+
 # Test Group 2 - Device Administrators
 resource "microsoft365_graph_beta_groups_group" "acc_test_group_2" {
   display_name     = "acc-test-role-assignment-device-admins"

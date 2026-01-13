@@ -1,6 +1,3 @@
-# Groups used for Role Scope Tag maximal configuration testing
-# Only creates groups 3 and 4 which are assigned in resource_maximal.tf
-
 resource "random_string" "suffix" {
   length  = 8
   special = false
@@ -16,6 +13,10 @@ resource "random_string" "group_suffix" {
   lower   = true
   numeric = true
 }
+
+# ==============================================================================
+# Group Dependencies
+# ==============================================================================
 
 # Test Group 3 - Helpdesk Team
 resource "microsoft365_graph_beta_groups_group" "acc_test_group_3" {

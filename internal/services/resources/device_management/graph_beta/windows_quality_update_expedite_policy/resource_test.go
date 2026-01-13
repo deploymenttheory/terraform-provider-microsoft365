@@ -159,7 +159,7 @@ func TestWindowsQualityUpdateExpeditePolicyResource_004_Lifecycle_MaximalToMinim
 				Check: resource.ComposeTestCheckFunc(
 					check.That(graphBetaWindowsQualityUpdateExpeditePolicy.ResourceName+".test_004").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(graphBetaWindowsQualityUpdateExpeditePolicy.ResourceName+".test_004").Key("display_name").HasValue("unit-test-windows-quality-update-expedite-policy-004-lifecycle"),
-					check.That(graphBetaWindowsQualityUpdateExpeditePolicy.ResourceName+".test_004").Key("role_scope_tag_ids.#").HasValue("1"),
+					check.That(graphBetaWindowsQualityUpdateExpeditePolicy.ResourceName+".test_004").Key("role_scope_tag_ids.#").HasValue("2"),
 				),
 			},
 			{

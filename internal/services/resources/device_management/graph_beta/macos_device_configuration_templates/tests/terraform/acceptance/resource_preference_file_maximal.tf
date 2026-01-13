@@ -4,6 +4,10 @@ resource "random_string" "preference_file_suffix" {
   upper   = false
 }
 
+# ==============================================================================
+# Group Dependencies
+# ==============================================================================
+
 resource "microsoft365_graph_beta_groups_group" "preference_file_group_1" {
   display_name     = "acc-test-macos-preference-file-group-1-${random_string.preference_file_suffix.result}"
   mail_nickname    = "acc-test-preference-file-1-${random_string.preference_file_suffix.result}"

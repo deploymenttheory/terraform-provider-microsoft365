@@ -4,6 +4,10 @@ resource "random_string" "custom_config_suffix" {
   upper   = false
 }
 
+# ==============================================================================
+# Group Dependencies
+# ==============================================================================
+
 resource "microsoft365_graph_beta_groups_group" "custom_config_group_1" {
   display_name     = "acc-test-macos-custom-config-group-1-${random_string.custom_config_suffix.result}"
   mail_nickname    = "acc-test-custom-config-1-${random_string.custom_config_suffix.result}"

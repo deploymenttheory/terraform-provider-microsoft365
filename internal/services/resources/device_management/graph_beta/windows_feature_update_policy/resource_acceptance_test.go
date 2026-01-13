@@ -9,6 +9,7 @@ import (
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/check"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/destroy"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/testlog"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
 	graphBetaWindowsFeatureUpdatePolicy "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_management/graph_beta/windows_feature_update_policy"
@@ -36,7 +37,7 @@ func TestAccWindowsFeatureUpdatePolicyResource_001_Scenario_Minimal(t *testing.T
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
 				Source:            "hashicorp/random",
-				VersionConstraint: ">= 3.6.0",
+				VersionConstraint: constants.ExternalProviderRandomVersion,
 			},
 		},
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
@@ -69,7 +70,7 @@ func TestAccWindowsFeatureUpdatePolicyResource_002_Scenario_Maximal(t *testing.T
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
 				Source:            "hashicorp/random",
-				VersionConstraint: ">= 3.6.0",
+				VersionConstraint: constants.ExternalProviderRandomVersion,
 			},
 		},
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
@@ -104,7 +105,7 @@ func TestAccWindowsFeatureUpdatePolicyResource_003_Lifecycle_MinimalToMaximal(t 
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
 				Source:            "hashicorp/random",
-				VersionConstraint: ">= 3.6.0",
+				VersionConstraint: constants.ExternalProviderRandomVersion,
 			},
 		},
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
@@ -151,7 +152,7 @@ func TestAccWindowsFeatureUpdatePolicyResource_004_Lifecycle_MaximalToMinimal(t 
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
 				Source:            "hashicorp/random",
-				VersionConstraint: ">= 3.6.0",
+				VersionConstraint: constants.ExternalProviderRandomVersion,
 			},
 		},
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
@@ -197,7 +198,7 @@ func TestAccWindowsFeatureUpdatePolicyResource_005_AssignmentsMinimal(t *testing
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
 				Source:            "hashicorp/random",
-				VersionConstraint: ">= 3.6.0",
+				VersionConstraint: constants.ExternalProviderRandomVersion,
 			},
 		},
 		CheckDestroy: destroy.CheckDestroyedTypesFunc(
@@ -241,7 +242,7 @@ func TestAccWindowsFeatureUpdatePolicyResource_006_AssignmentsMaximal(t *testing
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
 				Source:            "hashicorp/random",
-				VersionConstraint: ">= 3.6.0",
+				VersionConstraint: constants.ExternalProviderRandomVersion,
 			},
 		},
 		CheckDestroy: destroy.CheckDestroyedTypesFunc(
@@ -285,7 +286,7 @@ func TestAccWindowsFeatureUpdatePolicyResource_007_AssignmentsLifecycle_MinimalT
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
 				Source:            "hashicorp/random",
-				VersionConstraint: ">= 3.6.0",
+				VersionConstraint: constants.ExternalProviderRandomVersion,
 			},
 		},
 		CheckDestroy: destroy.CheckDestroyedTypesFunc(
@@ -342,7 +343,7 @@ func TestAccWindowsFeatureUpdatePolicyResource_008_AssignmentsLifecycle_MaximalT
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
 				Source:            "hashicorp/random",
-				VersionConstraint: ">= 3.6.0",
+				VersionConstraint: constants.ExternalProviderRandomVersion,
 			},
 		},
 		CheckDestroy: destroy.CheckDestroyedTypesFunc(

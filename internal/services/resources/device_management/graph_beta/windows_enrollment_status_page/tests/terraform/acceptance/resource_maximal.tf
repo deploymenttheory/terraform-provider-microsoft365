@@ -5,6 +5,41 @@ resource "random_string" "test_suffix" {
   special = false
 }
 
+# ==============================================================================
+# Role Scope Tag Dependencies
+# ==============================================================================
+
+resource "microsoft365_graph_beta_device_management_role_scope_tag" "acc_test_role_scope_tag_1" {
+  display_name = "acc-test-role-scope-tag-1-${random_string.test_suffix.result}"
+  description  = "Test role scope tag for acceptance testing"
+
+  timeouts = {
+    create = "60s"
+    read   = "60s"
+    update = "60s"
+    delete = "180s"
+  }
+}
+
+resource "microsoft365_graph_beta_device_management_role_scope_tag" "acc_test_role_scope_tag_2" {
+  depends_on = [
+    microsoft365_graph_beta_device_management_role_scope_tag.acc_test_role_scope_tag_1
+  ]
+  display_name = "acc-test-role-scope-tag-2-${random_string.test_suffix.result}"
+  description  = "Test role scope tag for acceptance testing"
+
+  timeouts = {
+    create = "60s"
+    read   = "60s"
+    update = "60s"
+    delete = "180s"
+  }
+}
+
+# ==============================================================================
+# Windows Enrollment Status Page Resource
+# ==============================================================================
+
 resource "microsoft365_graph_beta_device_management_windows_enrollment_status_page" "maximal" {
   display_name                                                        = "acc-test-windows-enrollment-status-page-maximal-${random_string.test_suffix.result}"
   description                                                         = "Test description for maximal enrollment status page"
@@ -32,6 +67,7 @@ resource "microsoft365_graph_beta_device_management_windows_enrollment_status_pa
     microsoft365_graph_beta_device_management_role_scope_tag.acc_test_role_scope_tag_1.id,
     microsoft365_graph_beta_device_management_role_scope_tag.acc_test_role_scope_tag_2.id
   ]
+  
   timeouts = {
     create = "30s"
     read   = "30s"
