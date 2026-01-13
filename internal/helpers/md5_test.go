@@ -73,4 +73,15 @@ func TestCalculateMd5(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, expectedMD5String, result)
 	})
+
+	t.Run("Calculate MD5 for directory should fail", func(t *testing.T) {
+		dirPath := filepath.Join(tempDir, "testdir")
+		err := os.MkdirAll(dirPath, 0755)
+		require.NoError(t, err)
+
+		result, err := CalculateMd5(dirPath)
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "failed to hash file content")
+		assert.Empty(t, result)
+	})
 }
