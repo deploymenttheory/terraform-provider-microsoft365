@@ -224,7 +224,7 @@ func (m *RoleDefinitionMock) updateRoleDefinitionResponder() httpmock.Responder 
 		if err != nil {
 			return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to load mock response"}}`), nil
 		}
-		
+
 		var updatedRoleDefinition map[string]any
 		if err := json.Unmarshal([]byte(jsonContent), &updatedRoleDefinition); err != nil {
 			return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to parse mock response"}}`), nil
@@ -355,7 +355,7 @@ func (m *RoleDefinitionMock) GetMockRoleDefinitionData() map[string]any {
 			},
 		}
 	}
-	
+
 	var response map[string]any
 	if err := json.Unmarshal([]byte(jsonContent), &response); err != nil {
 		// Fallback to hardcoded response if parsing fails
@@ -592,7 +592,7 @@ func (m *RoleDefinitionMock) GetMockRoleDefinitionMinimalData() map[string]any {
 			},
 		}
 	}
-	
+
 	var response map[string]any
 	if err := json.Unmarshal([]byte(jsonContent), &response); err != nil {
 		// Fallback to hardcoded response if parsing fails

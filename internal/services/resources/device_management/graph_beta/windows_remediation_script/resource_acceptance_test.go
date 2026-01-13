@@ -9,6 +9,7 @@ import (
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/check"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/destroy"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/testlog"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
 	graphBetaAssignmentFilter "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_management/graph_beta/assignment_filter"
@@ -92,7 +93,7 @@ func TestAccWindowsRemediationScriptResource_001_Scenario_Minimal(t *testing.T) 
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
 				Source:            "hashicorp/random",
-				VersionConstraint: ">= 3.7.2",
+				VersionConstraint: constants.ExternalProviderRandomVersion,
 			},
 		},
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
@@ -128,7 +129,7 @@ func TestAccWindowsRemediationScriptResource_002_Scenario_Maximal(t *testing.T) 
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
 				Source:            "hashicorp/random",
-				VersionConstraint: ">= 3.7.2",
+				VersionConstraint: constants.ExternalProviderRandomVersion,
 			},
 		},
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
@@ -164,7 +165,7 @@ func TestAccWindowsRemediationScriptResource_003_Lifecycle_MinimalToMaximal(t *t
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
 				Source:            "hashicorp/random",
-				VersionConstraint: ">= 3.7.2",
+				VersionConstraint: constants.ExternalProviderRandomVersion,
 			},
 		},
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
@@ -205,7 +206,7 @@ func TestAccWindowsRemediationScriptResource_004_Lifecycle_MaximalToMinimal(t *t
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
 				Source:            "hashicorp/random",
-				VersionConstraint: ">= 3.7.2",
+				VersionConstraint: constants.ExternalProviderRandomVersion,
 			},
 		},
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
@@ -245,7 +246,7 @@ func TestAccWindowsRemediationScriptResource_005_AssignmentsMinimal(t *testing.T
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
 				Source:            "hashicorp/random",
-				VersionConstraint: ">= 3.7.2",
+				VersionConstraint: constants.ExternalProviderRandomVersion,
 			},
 		},
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
@@ -278,7 +279,7 @@ func TestAccWindowsRemediationScriptResource_006_AssignmentsMaximal(t *testing.T
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
 				Source:            "hashicorp/random",
-				VersionConstraint: ">= 3.7.2",
+				VersionConstraint: constants.ExternalProviderRandomVersion,
 			},
 		},
 		CheckDestroy: destroy.CheckDestroyedTypesFunc(
@@ -321,7 +322,7 @@ func TestAccWindowsRemediationScriptResource_007_AssignmentsLifecycle_MinimalToM
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
 				Source:            "hashicorp/random",
-				VersionConstraint: ">= 3.7.2",
+				VersionConstraint: constants.ExternalProviderRandomVersion,
 			},
 		},
 		CheckDestroy: destroy.CheckDestroyedTypesFunc(
@@ -376,7 +377,7 @@ func TestAccWindowsRemediationScriptResource_008_AssignmentsLifecycle_MaximalToM
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
 				Source:            "hashicorp/random",
-				VersionConstraint: ">= 3.7.2",
+				VersionConstraint: constants.ExternalProviderRandomVersion,
 			},
 		},
 		CheckDestroy: destroy.CheckDestroyedTypesFunc(

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	construct "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/constructors/graph_beta/device_and_app_management"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
 	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
@@ -47,7 +48,7 @@ func (r *OfficeSuiteAppResource) Create(ctx context.Context, req resource.Create
 		Post(context.Background(), requestBody, nil)
 
 	if err != nil {
-		errors.HandleKiotaGraphError(ctx, err, resp, "Create", r.WritePermissions)
+		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationCreate, r.WritePermissions)
 		return
 	}
 
@@ -65,7 +66,7 @@ func (r *OfficeSuiteAppResource) Create(ctx context.Context, req resource.Create
 		err = construct.AssignMobileAppCategories(ctx, r.client, object.ID.ValueString(), categoryValues, r.ReadPermissions)
 
 		if err != nil {
-			errors.HandleKiotaGraphError(ctx, err, resp, "Create", r.WritePermissions)
+			errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationCreate, r.WritePermissions)
 			return
 		}
 	}
@@ -79,7 +80,7 @@ func (r *OfficeSuiteAppResource) Create(ctx context.Context, req resource.Create
 	stateContainer := &crud.CreateResponseContainer{CreateResponse: resp}
 
 	opts := crud.DefaultReadWithRetryOptions()
-	opts.Operation = "Create"
+	opts.Operation = constants.TfOperationCreate
 	opts.ResourceTypeName = ResourceName
 
 	err = crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)
@@ -99,7 +100,7 @@ func (r *OfficeSuiteAppResource) Read(ctx context.Context, req resource.ReadRequ
 	var object OfficeSuiteAppResourceModel
 	tflog.Debug(ctx, fmt.Sprintf("Starting Read method for: %s", ResourceName))
 
-	operation := "Read"
+	operation := constants.TfOperationRead
 	if ctxOp := ctx.Value("retry_operation"); ctxOp != nil {
 		if opStr, ok := ctxOp.(string); ok {
 			operation = opStr
@@ -192,7 +193,7 @@ func (r *OfficeSuiteAppResource) Update(ctx context.Context, req resource.Update
 		Patch(ctx, requestBody, nil)
 
 	if err != nil {
-		errors.HandleKiotaGraphError(ctx, err, resp, "Update", r.WritePermissions)
+		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationUpdate, r.WritePermissions)
 		return
 	}
 
@@ -209,7 +210,7 @@ func (r *OfficeSuiteAppResource) Update(ctx context.Context, req resource.Update
 
 		err = construct.AssignMobileAppCategories(ctx, r.client, plan.ID.ValueString(), categoryValues, r.ReadPermissions)
 		if err != nil {
-			errors.HandleKiotaGraphError(ctx, err, resp, "Update", r.WritePermissions)
+			errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationUpdate, r.WritePermissions)
 			return
 		}
 	}
@@ -218,7 +219,7 @@ func (r *OfficeSuiteAppResource) Update(ctx context.Context, req resource.Update
 	stateContainer := &crud.UpdateResponseContainer{UpdateResponse: resp}
 
 	opts := crud.DefaultReadWithRetryOptions()
-	opts.Operation = "Update"
+	opts.Operation = constants.TfOperationUpdate
 	opts.ResourceTypeName = ResourceName
 
 	err = crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)
@@ -257,7 +258,7 @@ func (r *OfficeSuiteAppResource) Delete(ctx context.Context, req resource.Delete
 		Delete(ctx, nil)
 
 	if err != nil {
-		errors.HandleKiotaGraphError(ctx, err, resp, "Delete", r.WritePermissions)
+		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationDelete, r.WritePermissions)
 		return
 	}
 

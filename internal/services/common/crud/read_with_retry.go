@@ -21,7 +21,7 @@ type ReadWithRetryOptions struct {
 	MaxRetries int
 	// RetryInterval is the time to wait between retries (default: 2 seconds)
 	RetryInterval time.Duration
-	// Operation is the name of the operation for logging (e.g., "Create", "Update")
+	// Operation is the name of the operation for logging (e.g., constants.TfOperationCreate, constants.TfOperationUpdate)
 	Operation string
 	// ResourceTypeName is the optional resource type name for logging
 	ResourceTypeName string

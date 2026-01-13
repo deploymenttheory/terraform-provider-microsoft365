@@ -18,7 +18,7 @@ import (
 )
 
 const (
-	ActionName = "microsoft365_graph_beta_device_management_managed_device_sync_device"
+	ActionName    = "microsoft365_graph_beta_device_management_managed_device_sync_device"
 	InvokeTimeout = 60
 )
 

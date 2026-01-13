@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -98,7 +99,7 @@ func HandleKiotaGraphError(ctx context.Context, err error, resp any, operation s
 	// Handle special cases first
 	switch errorInfo.StatusCode {
 	case 400:
-		if operation == "Read" {
+		if operation == constants.TfOperationRead {
 			tflog.Warn(ctx, "Resource appears to no longer exist (400 Response), removing from state")
 			removeResourceFromState(ctx, resp)
 			return
@@ -112,12 +113,12 @@ func HandleKiotaGraphError(ctx context.Context, err error, resp any, operation s
 		return
 
 	case 404:
-		if operation == "Read" {
+		if operation == constants.TfOperationRead {
 			tflog.Warn(ctx, "Resource not found (404 Response), removing from state")
 			removeResourceFromState(ctx, resp)
 			return
 		}
-		if operation == "Delete" {
+		if operation == constants.TfOperationDelete {
 			tflog.Info(ctx, "Resource already deleted or does not exist (404 Response), treating as successful deletion")
 			return
 		}
@@ -125,7 +126,7 @@ func HandleKiotaGraphError(ctx context.Context, err error, resp any, operation s
 			constructDetailedErrorMessage(errorDesc.Detail, &errorInfo))
 
 	case 429:
-		if operation == "Read" {
+		if operation == constants.TfOperationRead {
 			tflog.Warn(ctx, "Rate limit exceeded on read operation")
 			handleRateLimitError(ctx, errorInfo, resp)
 			return
@@ -134,7 +135,7 @@ func HandleKiotaGraphError(ctx context.Context, err error, resp any, operation s
 			constructDetailedErrorMessage(errorDesc.Detail, &errorInfo))
 
 	case 503:
-		if operation == "Read" {
+		if operation == constants.TfOperationRead {
 			tflog.Warn(ctx, "Service Unavailable (503 Response), service is temporarily unavailable")
 			handleServiceUnavailableError(ctx, errorInfo, resp)
 			return
@@ -175,7 +176,6 @@ func HandleKiotaGraphErrorForAction(ctx context.Context, err error) string {
 		parts = append(parts, errorInfo.ErrorMessage)
 	}
 
-	// Add error code if different from message and available
 	if errorInfo.ErrorCode != "" && errorInfo.ErrorCode != "UnknownError" {
 		if description, exists := comprehensiveODataErrorCodes[errorInfo.ErrorCode]; exists {
 			parts = append(parts, fmt.Sprintf("Code: %s (%s)", errorInfo.ErrorCode, description))
@@ -192,7 +192,6 @@ func HandleKiotaGraphErrorForAction(ctx context.Context, err error) string {
 		return strings.Join(parts, ". ")
 	}
 
-	// Fallback to status-based error if nothing else is available
 	if errorInfo.StatusCode > 0 {
 		errorDesc := getErrorDescription(errorInfo.StatusCode)
 		return errorDesc.Summary
@@ -242,7 +241,6 @@ func GraphError(ctx context.Context, err error) GraphErrorInfo {
 		errorInfo.Category = CategoryUnknown
 	}
 
-	// Categorize the error
 	errorInfo.Category = categorizeError(&errorInfo)
 
 	logErrorDetails(ctx, &errorInfo)
@@ -257,7 +255,6 @@ func extractURLError(ctx context.Context, urlErr *url.Error, errorInfo *GraphErr
 		"err": urlErr.Err.Error(),
 	})
 
-	// Handle different URL error cases
 	switch {
 	case strings.Contains(urlErr.Error(), "context deadline exceeded"):
 		errorInfo.StatusCode = 504 // Gateway Timeout
@@ -285,12 +282,10 @@ func extractURLError(ctx context.Context, urlErr *url.Error, errorInfo *GraphErr
 		errorInfo.Category = CategoryNetwork
 	}
 
-	// Store the original error message for context
 	errorInfo.AdditionalData["original_error"] = urlErr.Error()
 	errorInfo.AdditionalData["url"] = urlErr.URL
 	errorInfo.AdditionalData["operation"] = urlErr.Op
 
-	// Set a consistent error message
 	errorInfo.ErrorMessage = urlErr.Error()
 }
 
@@ -299,7 +294,6 @@ func extractAPIError(ctx context.Context, apiErr abstractions.ApiErrorable, erro
 	errorInfo.StatusCode = apiErr.GetStatusCode()
 	errorInfo.Headers = apiErr.GetResponseHeaders()
 
-	// Extract headers with more comprehensive information
 	extractHeaders(apiErr, errorInfo)
 
 	switch typedApiErr := apiErr.(type) {
@@ -344,15 +338,11 @@ func extractHeaders(apiErr abstractions.ApiErrorable, errorInfo *GraphErrorInfo)
 func extractODataError(ctx context.Context, odataErr *odataerrors.ODataError, errorInfo *GraphErrorInfo) {
 	errorInfo.IsODataError = true
 
-	// Get the main error object (inside the "error" property in JSON)
 	if mainError := odataErr.GetErrorEscaped(); mainError != nil {
-		// Extract main error information
-		extractMainError(ctx, mainError, errorInfo)
 
-		// Process error details array
+		extractMainError(ctx, mainError, errorInfo)
 		extractErrorDetails(ctx, mainError, errorInfo)
 
-		// Process inner error (only one level in current SDK)
 		if innerError := mainError.GetInnerError(); innerError != nil {
 			extractInnerError(ctx, innerError, errorInfo)
 		}
@@ -367,7 +357,6 @@ func extractMainError(ctx context.Context, mainError odataerrors.MainErrorable, 
 			"code": *code,
 		})
 
-		// Add description for known error codes
 		if description, exists := comprehensiveODataErrorCodes[*code]; exists {
 			errorInfo.AdditionalData["error_description"] = description
 		}
@@ -432,7 +421,6 @@ func extractInnerError(ctx context.Context, innerError odataerrors.InnerErrorabl
 
 	innerInfo := InnerErrorInfo{}
 
-	// Extract request/client IDs and date
 	if reqID := innerError.GetRequestId(); reqID != nil && *reqID != "" {
 		innerInfo.RequestID = *reqID
 		if errorInfo.RequestID == "" {
@@ -490,7 +478,6 @@ func constructDetailedErrorMessage(standardDetail string, errorInfo *GraphErrorI
 		parts = append(parts, fmt.Sprintf("Target: %s", errorInfo.Target))
 	}
 
-	// Add error details if present
 	if len(errorInfo.ErrorDetails) > 0 {
 		var detailParts []string
 		for _, detail := range errorInfo.ErrorDetails {
@@ -519,7 +506,6 @@ func constructDetailedErrorMessage(standardDetail string, errorInfo *GraphErrorI
 		}
 	}
 
-	// Add inner error information
 	if len(errorInfo.InnerErrors) > 0 {
 		var innerParts []string
 		for i, inner := range errorInfo.InnerErrors {
@@ -540,7 +526,6 @@ func constructDetailedErrorMessage(standardDetail string, errorInfo *GraphErrorI
 		}
 	}
 
-	// Add tracking information
 	var trackingParts []string
 	if errorInfo.RequestID != "" {
 		trackingParts = append(trackingParts, fmt.Sprintf("Request ID: %s", errorInfo.RequestID))
@@ -558,7 +543,6 @@ func constructDetailedErrorMessage(standardDetail string, errorInfo *GraphErrorI
 		parts = append(parts, fmt.Sprintf("Tracking: %s", strings.Join(trackingParts, ", ")))
 	}
 
-	// Add category information
 	if errorInfo.Category != "" {
 		parts = append(parts, fmt.Sprintf("Category: %s", errorInfo.Category))
 	}

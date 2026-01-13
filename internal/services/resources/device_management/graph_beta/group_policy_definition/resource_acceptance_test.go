@@ -8,6 +8,7 @@ import (
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/check"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/destroy"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/testlog"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
 	graphBetaGroupPolicyDefinition "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_management/graph_beta/group_policy_definition"
@@ -81,7 +82,7 @@ func TestAccGroupPolicyDefinitionResource_001_Boolean_Minimal(t *testing.T) {
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
 				Source:            "hashicorp/random",
-				VersionConstraint: ">= 3.7.2",
+				VersionConstraint: constants.ExternalProviderRandomVersion,
 			},
 		},
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
@@ -128,7 +129,7 @@ func TestAccGroupPolicyDefinitionResource_002_Boolean_Maximal(t *testing.T) {
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
 				Source:            "hashicorp/random",
-				VersionConstraint: ">= 3.7.2",
+				VersionConstraint: constants.ExternalProviderRandomVersion,
 			},
 		},
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
@@ -172,7 +173,7 @@ func TestAccGroupPolicyDefinitionResource_003_TextBox(t *testing.T) {
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
 				Source:            "hashicorp/random",
-				VersionConstraint: ">= 3.7.2",
+				VersionConstraint: constants.ExternalProviderRandomVersion,
 			},
 		},
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
@@ -217,7 +218,7 @@ func TestAccGroupPolicyDefinitionResource_004_Decimal(t *testing.T) {
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
 				Source:            "hashicorp/random",
-				VersionConstraint: ">= 3.7.2",
+				VersionConstraint: constants.ExternalProviderRandomVersion,
 			},
 		},
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
@@ -260,7 +261,7 @@ func TestAccGroupPolicyDefinitionResource_005_MultiText(t *testing.T) {
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
 				Source:            "hashicorp/random",
-				VersionConstraint: ">= 3.7.2",
+				VersionConstraint: constants.ExternalProviderRandomVersion,
 			},
 		},
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
@@ -302,7 +303,7 @@ func TestAccGroupPolicyDefinitionResource_006_Dropdown(t *testing.T) {
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
 				Source:            "hashicorp/random",
-				VersionConstraint: ">= 3.7.2",
+				VersionConstraint: constants.ExternalProviderRandomVersion,
 			},
 		},
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
@@ -345,7 +346,7 @@ func TestAccGroupPolicyDefinitionResource_007_Lifecycle_TypeTransitions(t *testi
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
 				Source:            "hashicorp/random",
-				VersionConstraint: ">= 3.7.2",
+				VersionConstraint: constants.ExternalProviderRandomVersion,
 			},
 		},
 		CheckDestroy: destroy.CheckDestroyedAllFunc(

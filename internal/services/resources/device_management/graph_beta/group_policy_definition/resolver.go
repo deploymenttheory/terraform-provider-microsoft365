@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	groupPolicyResolver "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/resolvers/graph_beta/device_management/group_policy_configurations"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -38,7 +39,7 @@ func resolveGroupPolicyDefinition(ctx context.Context, client *msgraphbetasdk.Gr
 	tflog.Debug(ctx, fmt.Sprintf("[RESOLVER] Successfully resolved definition template ID: %s", result.DefinitionTemplateID))
 
 	// For CREATE operation
-	if operation == "create" {
+	if operation == constants.TfOperationCreate {
 		// Store the definition template ID (which is also used as the initial definition value ID)
 		data.ID = data.GroupPolicyConfigurationID // Composite ID: configID
 		data.AdditionalData["definitionTemplateID"] = result.DefinitionTemplateID
@@ -59,7 +60,7 @@ func resolveGroupPolicyDefinition(ctx context.Context, client *msgraphbetasdk.Gr
 	}
 
 	// For READ/UPDATE operations
-	if operation == "read" || operation == "update" {
+	if operation == constants.TfOperationRead || operation == constants.TfOperationUpdate {
 		// Store instance IDs from the result
 		data.AdditionalData["definitionTemplateID"] = result.DefinitionTemplateID
 		data.AdditionalData["definitionValueInstanceID"] = result.DefinitionValueInstanceID

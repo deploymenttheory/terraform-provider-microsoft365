@@ -16,7 +16,7 @@ import (
 )
 
 const (
-	ActionName = "microsoft365_graph_beta_device_management_windows_autopilot_device_identity_unassign_user_from_device"
+	ActionName    = "microsoft365_graph_beta_device_management_windows_autopilot_device_identity_unassign_user_from_device"
 	InvokeTimeout = 60
 )
 

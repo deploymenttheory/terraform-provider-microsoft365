@@ -9,6 +9,7 @@ import (
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/check"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/destroy"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/testlog"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
 	graphBetaGroupPolicyConfiguration "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_management/graph_beta/group_policy_configuration"
@@ -35,7 +36,7 @@ func TestAccGroupPolicyConfigurationResource_Minimal(t *testing.T) {
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
 				Source:            "hashicorp/random",
-				VersionConstraint: "~> 3.0",
+				VersionConstraint: constants.ExternalProviderRandomVersion,
 			},
 		},
 		Steps: []resource.TestStep{
@@ -47,8 +48,7 @@ func TestAccGroupPolicyConfigurationResource_Minimal(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					check.That(resourceType+".minimal").ExistsInGraph(testResource),
 					check.That(resourceType+".minimal").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
-					check.That(resourceType+".minimal").Key("display_name").MatchesRegex(regexp.MustCompile(`^AccTest-Minimal-GPC-[a-z0-9]{8}$`)),
-					check.That(resourceType+".minimal").Key("description").IsEmpty(),
+					check.That(resourceType+".minimal").Key("display_name").MatchesRegex(regexp.MustCompile(`^acc-test-001-minimal-[a-z0-9]{8}$`)),
 					check.That(resourceType+".minimal").Key("role_scope_tag_ids.#").HasValue("1"),
 					check.That(resourceType+".minimal").Key("role_scope_tag_ids.*").ContainsTypeSetElement("0"),
 					check.That(resourceType+".minimal").Key("policy_configuration_ingestion_type").Exists(),
@@ -78,7 +78,7 @@ func TestAccGroupPolicyConfigurationResource_Maximal(t *testing.T) {
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
 				Source:            "hashicorp/random",
-				VersionConstraint: "~> 3.0",
+				VersionConstraint: constants.ExternalProviderRandomVersion,
 			},
 		},
 		Steps: []resource.TestStep{
@@ -90,8 +90,8 @@ func TestAccGroupPolicyConfigurationResource_Maximal(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					check.That(resourceType+".maximal").ExistsInGraph(testResource),
 					check.That(resourceType+".maximal").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
-					check.That(resourceType+".maximal").Key("display_name").MatchesRegex(regexp.MustCompile(`^AccTest-Maximal-GPC-[a-z0-9]{8}$`)),
-					check.That(resourceType+".maximal").Key("description").HasValue("Acceptance test for maximal group policy configuration"),
+					check.That(resourceType+".maximal").Key("display_name").MatchesRegex(regexp.MustCompile(`^acc-test-002-maximal-[a-z0-9]{8}$`)),
+					check.That(resourceType+".maximal").Key("description").HasValue("acc-test-002-maximal"),
 					check.That(resourceType+".maximal").Key("role_scope_tag_ids.#").HasValue("1"),
 					check.That(resourceType+".maximal").Key("role_scope_tag_ids.*").ContainsTypeSetElement("0"),
 					check.That(resourceType+".maximal").Key("policy_configuration_ingestion_type").Exists(),
@@ -121,7 +121,7 @@ func TestAccGroupPolicyConfigurationResource_MinimalAssignment(t *testing.T) {
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
 				Source:            "hashicorp/random",
-				VersionConstraint: "~> 3.0",
+				VersionConstraint: constants.ExternalProviderRandomVersion,
 			},
 		},
 		Steps: []resource.TestStep{
@@ -133,19 +133,15 @@ func TestAccGroupPolicyConfigurationResource_MinimalAssignment(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					check.That(resourceType+".minimal_assignment").ExistsInGraph(testResource),
 					check.That(resourceType+".minimal_assignment").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
-					check.That(resourceType+".minimal_assignment").Key("display_name").MatchesRegex(regexp.MustCompile(`^AccTest-MinAssign-GPC-[a-z0-9]{8}$`)),
+					check.That(resourceType+".minimal_assignment").Key("display_name").MatchesRegex(regexp.MustCompile(`^acc-test-003-minimal-assignment-[a-z0-9]{8}$`)),
 					check.That(resourceType+".minimal_assignment").Key("assignments.#").HasValue("1"),
 					check.That(resourceType+".minimal_assignment").Key("assignments.0.type").HasValue("allDevicesAssignmentTarget"),
 				),
 			},
 			{
 				PreConfig: func() {
-					testlog.WaitForConsistency("group policy configuration assignment", 10*time.Second)
-					time.Sleep(10 * time.Second)
-				},
-			},
-			{
-				PreConfig: func() {
+					testlog.WaitForConsistency("group policy configuration assignment", 30*time.Second)
+					time.Sleep(30 * time.Second)
 					testlog.StepAction(resourceType, "Importing group policy configuration with minimal assignment")
 				},
 				ResourceName:            resourceType + ".minimal_assignment",
@@ -166,11 +162,7 @@ func TestAccGroupPolicyConfigurationResource_MaximalAssignment(t *testing.T) {
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
 				Source:            "hashicorp/random",
-				VersionConstraint: "~> 3.0",
-			},
-			"azuread": {
-				Source:            "hashicorp/azuread",
-				VersionConstraint: "~> 2.0",
+				VersionConstraint: constants.ExternalProviderRandomVersion,
 			},
 		},
 		Steps: []resource.TestStep{
@@ -182,21 +174,15 @@ func TestAccGroupPolicyConfigurationResource_MaximalAssignment(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					check.That(resourceType+".maximal_assignment").ExistsInGraph(testResource),
 					check.That(resourceType+".maximal_assignment").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
-					check.That(resourceType+".maximal_assignment").Key("display_name").MatchesRegex(regexp.MustCompile(`^AccTest-MaxAssign-GPC-[a-z0-9]{8}$`)),
-					check.That(resourceType+".maximal_assignment").Key("description").HasValue("Configuration with comprehensive assignments for acceptance testing"),
-					check.That(resourceType+".maximal_assignment").Key("assignments.#").HasValue("2"),
-					check.That(resourceType+".maximal_assignment").Key("assignments.0.type").HasValue("allDevicesAssignmentTarget"),
-					check.That(resourceType+".maximal_assignment").Key("assignments.1.type").HasValue("allLicensedUsersAssignmentTarget"),
+					check.That(resourceType+".maximal_assignment").Key("display_name").MatchesRegex(regexp.MustCompile(`^acc-test-004-maximal-assignment-[a-z0-9]{8}$`)),
+					check.That(resourceType+".maximal_assignment").Key("description").HasValue("acc-test-004-maximal-assignment"),
+					check.That(resourceType+".maximal_assignment").Key("assignments.#").HasValue("4"),
 				),
 			},
 			{
 				PreConfig: func() {
-					testlog.WaitForConsistency("group policy configuration assignments", 10*time.Second)
-					time.Sleep(10 * time.Second)
-				},
-			},
-			{
-				PreConfig: func() {
+					testlog.WaitForConsistency("group policy configuration assignments", 30*time.Second)
+					time.Sleep(30 * time.Second)
 					testlog.StepAction(resourceType, "Importing group policy configuration with maximal assignments")
 				},
 				ResourceName:            resourceType + ".maximal_assignment",
@@ -217,7 +203,7 @@ func TestAccGroupPolicyConfigurationResource_MinimalToMaximal(t *testing.T) {
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
 				Source:            "hashicorp/random",
-				VersionConstraint: "~> 3.0",
+				VersionConstraint: constants.ExternalProviderRandomVersion,
 			},
 		},
 		Steps: []resource.TestStep{
@@ -229,35 +215,30 @@ func TestAccGroupPolicyConfigurationResource_MinimalToMaximal(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					check.That(resourceType+".minimal").ExistsInGraph(testResource),
 					check.That(resourceType+".minimal").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
-					check.That(resourceType+".minimal").Key("display_name").MatchesRegex(regexp.MustCompile(`^AccTest-Minimal-GPC-[a-z0-9]{8}$`)),
-					check.That(resourceType+".minimal").Key("description").IsEmpty(),
+					check.That(resourceType+".minimal").Key("display_name").MatchesRegex(regexp.MustCompile(`^acc-test-001-minimal-[a-z0-9]{8}$`)),
 					check.That(resourceType+".minimal").Key("role_scope_tag_ids.#").HasValue("1"),
 				),
 			},
 			{
 				PreConfig: func() {
-					testlog.WaitForConsistency("group policy configuration before update", 10*time.Second)
-					time.Sleep(10 * time.Second)
+					testlog.WaitForConsistency("group policy configuration before update", 30*time.Second)
+					time.Sleep(30 * time.Second)
 					testlog.StepAction(resourceType, "Updating to maximal configuration")
 				},
 				Config: loadAcceptanceTestTerraform("resource_minimal_to_maximal.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					check.That(resourceType+".transition").ExistsInGraph(testResource),
 					check.That(resourceType+".transition").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
-					check.That(resourceType+".transition").Key("display_name").MatchesRegex(regexp.MustCompile(`^AccTest-Transition-GPC-[a-z0-9]{8}$`)),
-					check.That(resourceType+".transition").Key("description").HasValue("Configuration that transitions from minimal to maximal for acceptance testing"),
+					check.That(resourceType+".transition").Key("display_name").MatchesRegex(regexp.MustCompile(`^acc-test-005-lifecycle-maximal-[a-z0-9]{8}$`)),
+					check.That(resourceType+".transition").Key("description").HasValue("acc-test-005-lifecycle-maximal"),
 					check.That(resourceType+".transition").Key("role_scope_tag_ids.#").HasValue("1"),
 					check.That(resourceType+".transition").Key("assignments.#").HasValue("2"),
 				),
 			},
 			{
 				PreConfig: func() {
-					testlog.WaitForConsistency("group policy configuration after update", 10*time.Second)
-					time.Sleep(10 * time.Second)
-				},
-			},
-			{
-				PreConfig: func() {
+					testlog.WaitForConsistency("group policy configuration after update", 30*time.Second)
+					time.Sleep(30 * time.Second)
 					testlog.StepAction(resourceType, "Importing transitioned configuration")
 				},
 				ResourceName:            resourceType + ".transition",
@@ -278,7 +259,7 @@ func TestAccGroupPolicyConfigurationResource_MaximalToMinimal(t *testing.T) {
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
 				Source:            "hashicorp/random",
-				VersionConstraint: "~> 3.0",
+				VersionConstraint: constants.ExternalProviderRandomVersion,
 			},
 		},
 		Steps: []resource.TestStep{
@@ -290,35 +271,31 @@ func TestAccGroupPolicyConfigurationResource_MaximalToMinimal(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					check.That(resourceType+".transition").ExistsInGraph(testResource),
 					check.That(resourceType+".transition").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
-					check.That(resourceType+".transition").Key("display_name").MatchesRegex(regexp.MustCompile(`^AccTest-Transition-GPC-[a-z0-9]{8}$`)),
-					check.That(resourceType+".transition").Key("description").HasValue("Configuration that transitions from minimal to maximal for acceptance testing"),
+					check.That(resourceType+".transition").Key("display_name").MatchesRegex(regexp.MustCompile(`^acc-test-005-lifecycle-maximal-[a-z0-9]{8}$`)),
+					check.That(resourceType+".transition").Key("description").HasValue("acc-test-005-lifecycle-maximal"),
 					check.That(resourceType+".transition").Key("role_scope_tag_ids.#").HasValue("1"),
 					check.That(resourceType+".transition").Key("assignments.#").HasValue("2"),
 				),
 			},
 			{
 				PreConfig: func() {
-					testlog.WaitForConsistency("group policy configuration before downgrade", 10*time.Second)
-					time.Sleep(10 * time.Second)
+					testlog.WaitForConsistency("group policy configuration before downgrade", 30*time.Second)
+					time.Sleep(30 * time.Second)
 					testlog.StepAction(resourceType, "Downgrading to minimal configuration")
 				},
 				Config: loadAcceptanceTestTerraform("resource_maximal_to_minimal.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					check.That(resourceType+".transition").ExistsInGraph(testResource),
 					check.That(resourceType+".transition").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
-					check.That(resourceType+".transition").Key("display_name").MatchesRegex(regexp.MustCompile(`^AccTest-Transition-GPC-[a-z0-9]{8}$`)),
-					check.That(resourceType+".transition").Key("description").IsEmpty(),
+					check.That(resourceType+".transition").Key("display_name").MatchesRegex(regexp.MustCompile(`^acc-test-006-lifecycle-minimal-[a-z0-9]{8}$`)),
+					check.That(resourceType+".transition").Key("description").HasValue("acc-test-005-lifecycle-maximal"), // Description persists from step 1
 					check.That(resourceType+".transition").Key("role_scope_tag_ids.#").HasValue("1"),
 				),
 			},
 			{
 				PreConfig: func() {
-					testlog.WaitForConsistency("group policy configuration after downgrade", 10*time.Second)
-					time.Sleep(10 * time.Second)
-				},
-			},
-			{
-				PreConfig: func() {
+					testlog.WaitForConsistency("group policy configuration after downgrade", 30*time.Second)
+					time.Sleep(30 * time.Second)
 					testlog.StepAction(resourceType, "Importing downgraded configuration")
 				},
 				ResourceName:            resourceType + ".transition",

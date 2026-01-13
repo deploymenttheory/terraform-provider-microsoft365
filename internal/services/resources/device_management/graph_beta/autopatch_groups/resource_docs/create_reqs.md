@@ -194,7 +194,7 @@ GET
       1234
     ],
     "flowId": "7bc711b5-db2a-4cd2-9bde-efec61b8ea7f",
-    "flowType": "Create",
+    "flowType": constants.TfOperationCreate,
     "flowStatus": "InProgress",
     "userHasAllScopeTag": true
   }

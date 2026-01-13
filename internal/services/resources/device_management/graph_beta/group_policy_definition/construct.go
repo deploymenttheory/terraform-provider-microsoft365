@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/constructors"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -31,7 +32,7 @@ func constructResource(ctx context.Context, data *GroupPolicyDefinitionResourceM
 	var presentationValues []models.GroupPolicyPresentationValueable
 
 	// For delete operations, we don't need to construct presentation values
-	if operation != "delete" {
+	if operation != constants.TfOperationDelete {
 		// Get resolved presentations from AdditionalData
 		resolvedPresentations, ok := data.AdditionalData["resolvedPresentations"].([]ResolvedPresentation)
 		if !ok {
@@ -77,7 +78,7 @@ func constructResource(ctx context.Context, data *GroupPolicyDefinitionResourceM
 			})
 
 			// For update operations, set the instance ID
-			if operation == "update" && resolved.InstanceID != "" {
+			if operation == constants.TfOperationUpdate && resolved.InstanceID != "" {
 				presValue.SetId(&resolved.InstanceID)
 			}
 
@@ -90,13 +91,13 @@ func constructResource(ctx context.Context, data *GroupPolicyDefinitionResourceM
 	definitionValue.SetPresentationValues(presentationValues)
 
 	switch operation {
-	case "create":
+	case constants.TfOperationCreate:
 		addedValues := []models.GroupPolicyDefinitionValueable{definitionValue}
 		requestBody.SetAdded(addedValues)
 		requestBody.SetUpdated([]models.GroupPolicyDefinitionValueable{})
 		requestBody.SetDeletedIds([]string{})
 
-	case "update":
+	case constants.TfOperationUpdate:
 		// For update, use the instance ID
 		definitionValueInstanceID, ok := data.AdditionalData["definitionValueInstanceID"].(string)
 		if !ok {
@@ -110,7 +111,7 @@ func constructResource(ctx context.Context, data *GroupPolicyDefinitionResourceM
 		requestBody.SetUpdated(updatedValues)
 		requestBody.SetDeletedIds([]string{})
 
-	case "delete":
+	case constants.TfOperationDelete:
 		definitionValueInstanceID := data.AdditionalData["definitionValueInstanceID"].(string)
 		requestBody.SetAdded([]models.GroupPolicyDefinitionValueable{})
 		requestBody.SetUpdated([]models.GroupPolicyDefinitionValueable{})

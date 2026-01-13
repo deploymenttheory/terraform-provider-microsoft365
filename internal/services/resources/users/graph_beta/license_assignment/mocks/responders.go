@@ -8,6 +8,7 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	commonMocks "github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
 	"github.com/jarcoal/httpmock"
@@ -53,21 +54,21 @@ func getJSONFileForUserID(userID string, operation string) string {
 	case "00000000-0000-0000-0000-000000000002":
 		// Minimal config user
 		switch operation {
-		case "create":
+		case constants.TfOperationCreate:
 			return "validate_create/post_user_minimal_success.json"
-		case "update":
+		case constants.TfOperationUpdate:
 			return "validate_update/patch_user_success.json"
-		case "delete":
+		case constants.TfOperationDelete:
 			return "validate_delete/get_user_not_found.json"
 		}
 	case "00000000-0000-0000-0000-000000000003":
 		// Maximal config user
 		switch operation {
-		case "create":
+		case constants.TfOperationCreate:
 			return "validate_create/post_user_maximal_success.json"
-		case "update":
+		case constants.TfOperationUpdate:
 			return "validate_update/patch_user_success.json"
-		case "delete":
+		case constants.TfOperationDelete:
 			return "validate_delete/get_user_not_found.json"
 		}
 	case "invalid-user-id":
@@ -162,7 +163,7 @@ func (m *UserLicenseAssignmentMock) RegisterMocks() {
 
 			// Check for invalid user ID format
 			if userID == "invalid-user-id" {
-				jsonFile := getJSONFileForUserID(userID, "create")
+				jsonFile := getJSONFileForUserID(userID, constants.TfOperationCreate)
 				if jsonFile != "" {
 					errorResp, err := m.loadJSONResponse(jsonFile)
 					if err == nil {
@@ -186,7 +187,7 @@ func (m *UserLicenseAssignmentMock) RegisterMocks() {
 			userData, exists := mockState.userLicenses[userID]
 			if !exists {
 				// Load initial user data
-				jsonFile := getJSONFileForUserID(userID, "create")
+				jsonFile := getJSONFileForUserID(userID, constants.TfOperationCreate)
 				if jsonFile == "" {
 					return httpmock.NewStringResponse(404, `{"error":{"code":"ResourceNotFound","message":"User not found"}}`), nil
 				}

@@ -18,7 +18,7 @@ import (
 )
 
 const (
-	ActionName = "microsoft365_graph_beta_device_management_managed_device_get_file_vault_key"
+	ActionName    = "microsoft365_graph_beta_device_management_managed_device_get_file_vault_key"
 	InvokeTimeout = 60
 )
 

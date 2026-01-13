@@ -8,6 +8,7 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	commonMocks "github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
 	"github.com/jarcoal/httpmock"
@@ -55,21 +56,21 @@ func getJSONFileForGroupID(groupID string, operation string) string {
 	case "00000000-0000-0000-0000-000000000002":
 		// Minimal config group
 		switch operation {
-		case "create":
+		case constants.TfOperationCreate:
 			return "validate_create/post_group_minimal_success.json"
-		case "update":
+		case constants.TfOperationUpdate:
 			return "validate_update/patch_group_success.json"
-		case "delete":
+		case constants.TfOperationDelete:
 			return "validate_delete/get_group_not_found.json"
 		}
 	case "00000000-0000-0000-0000-000000000003":
 		// Maximal config group
 		switch operation {
-		case "create":
+		case constants.TfOperationCreate:
 			return "validate_create/post_group_maximal_success.json"
-		case "update":
+		case constants.TfOperationUpdate:
 			return "validate_update/patch_group_success.json"
-		case "delete":
+		case constants.TfOperationDelete:
 			return "validate_delete/get_group_not_found.json"
 		}
 	case "invalid-group-id":
@@ -109,7 +110,7 @@ func (m *GroupLicenseAssignmentMock) RegisterMocks() {
 
 			// Check for invalid group ID format
 			if groupID == "invalid-group-id" {
-				jsonFile := getJSONFileForGroupID(groupID, "create")
+				jsonFile := getJSONFileForGroupID(groupID, constants.TfOperationCreate)
 				if jsonFile != "" {
 					errorResp, err := m.loadJSONResponse(jsonFile)
 					if err == nil {
@@ -133,7 +134,7 @@ func (m *GroupLicenseAssignmentMock) RegisterMocks() {
 			groupData, exists := mockState.groupLicenses[groupID]
 			if !exists {
 				// Load initial group data
-				jsonFile := getJSONFileForGroupID(groupID, "create")
+				jsonFile := getJSONFileForGroupID(groupID, constants.TfOperationCreate)
 				if jsonFile == "" {
 					return httpmock.NewStringResponse(404, `{"error":{"code":"ResourceNotFound","message":"Group not found"}}`), nil
 				}

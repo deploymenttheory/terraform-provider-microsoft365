@@ -16,7 +16,7 @@ import (
 )
 
 const (
-	ActionName = "microsoft365_graph_beta_device_management_windows_autopilot_device_identity_update_device_properties"
+	ActionName    = "microsoft365_graph_beta_device_management_windows_autopilot_device_identity_update_device_properties"
 	InvokeTimeout = 60
 )
 

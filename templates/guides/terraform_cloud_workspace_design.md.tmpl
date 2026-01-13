@@ -1950,8 +1950,8 @@ resource "tfe_team_access" "intune_platform_write" {
   permissions {
     runs              = "apply"
     variables         = "write"
-    state_versions    = "read"
-    sentinel_mocks    = "read"
+    state_versions    = constants.TfOperationRead
+    sentinel_mocks    = constants.TfOperationRead
     workspace_locking = true
   }
 }
@@ -1963,9 +1963,9 @@ resource "tfe_team_access" "security_reviewers_plan" {
   
   permissions {
     runs           = "plan"
-    variables      = "read"
-    state_versions = "read"
-    sentinel_mocks = "read"
+    variables      = constants.TfOperationRead
+    state_versions = constants.TfOperationRead
+    sentinel_mocks = constants.TfOperationRead
   }
 }
 ```

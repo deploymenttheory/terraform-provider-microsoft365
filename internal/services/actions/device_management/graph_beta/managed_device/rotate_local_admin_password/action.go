@@ -18,7 +18,7 @@ import (
 )
 
 const (
-	ActionName = "microsoft365_graph_beta_device_management_managed_device_rotate_local_admin_password"
+	ActionName    = "microsoft365_graph_beta_device_management_managed_device_rotate_local_admin_password"
 	InvokeTimeout = 60
 )
 

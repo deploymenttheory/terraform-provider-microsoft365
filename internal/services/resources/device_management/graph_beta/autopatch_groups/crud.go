@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/client"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
 	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/generic_client"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -78,7 +79,7 @@ func (r *AutopatchGroupsResource) Create(ctx context.Context, req resource.Creat
 	tflog.Debug(ctx, fmt.Sprintf("POST request response status: %d %s", httpResp.StatusCode, httpResp.Status))
 
 	if httpResp.StatusCode != http.StatusOK && httpResp.StatusCode != http.StatusCreated {
-		errors.HandleHTTPGraphError(ctx, httpResp, resp, "Create", r.WritePermissions)
+		errors.HandleHTTPGraphError(ctx, httpResp, resp, constants.TfOperationCreate, r.WritePermissions)
 		return
 	}
 
@@ -120,7 +121,7 @@ func (r *AutopatchGroupsResource) Create(ctx context.Context, req resource.Creat
 	stateContainer := &crud.CreateResponseContainer{CreateResponse: resp}
 
 	opts := crud.DefaultReadWithRetryOptions()
-	opts.Operation = "Create"
+	opts.Operation = constants.TfOperationCreate
 	opts.ResourceTypeName = ResourceName
 
 	err = crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)
@@ -141,7 +142,7 @@ func (r *AutopatchGroupsResource) Read(ctx context.Context, req resource.ReadReq
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting Read method for: %s", ResourceName))
 
-	operation := "Read"
+	operation := constants.TfOperationRead
 	if ctxOp := ctx.Value("retry_operation"); ctxOp != nil {
 		if opStr, ok := ctxOp.(string); ok {
 			operation = opStr
@@ -363,7 +364,7 @@ func (r *AutopatchGroupsResource) Update(ctx context.Context, req resource.Updat
 	tflog.Debug(ctx, fmt.Sprintf("PUT request response status: %d %s", httpResp.StatusCode, httpResp.Status))
 
 	if httpResp.StatusCode != http.StatusNoContent && httpResp.StatusCode != http.StatusOK {
-		errors.HandleHTTPGraphError(ctx, httpResp, resp, "Update", r.WritePermissions)
+		errors.HandleHTTPGraphError(ctx, httpResp, resp, constants.TfOperationUpdate, r.WritePermissions)
 		return
 	}
 
@@ -376,7 +377,7 @@ func (r *AutopatchGroupsResource) Update(ctx context.Context, req resource.Updat
 	stateContainer := &crud.UpdateResponseContainer{UpdateResponse: resp}
 
 	opts := crud.DefaultReadWithRetryOptions()
-	opts.Operation = "Update"
+	opts.Operation = constants.TfOperationUpdate
 	opts.ResourceTypeName = ResourceName
 
 	err = crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)
@@ -409,7 +410,7 @@ func (r *AutopatchGroupsResource) Delete(ctx context.Context, req resource.Delet
 	defer cancel()
 
 	url := r.APIEndpoint + r.ResourcePath + "/" + object.ID.ValueString()
-	httpReq, err := http.NewRequestWithContext(ctx, "DELETE", url, nil)
+	httpReq, err := http.NewRequestWithContext(ctx, constants.TfOperationDelete, url, nil)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error creating HTTP request",
@@ -435,7 +436,7 @@ func (r *AutopatchGroupsResource) Delete(ctx context.Context, req resource.Delet
 	tflog.Debug(ctx, fmt.Sprintf("DELETE request response status: %d %s", httpResp.StatusCode, httpResp.Status))
 
 	if httpResp.StatusCode != http.StatusNoContent && httpResp.StatusCode != http.StatusNotFound {
-		errors.HandleHTTPGraphError(ctx, httpResp, resp, "Delete", r.WritePermissions)
+		errors.HandleHTTPGraphError(ctx, httpResp, resp, constants.TfOperationDelete, r.WritePermissions)
 		return
 	}
 

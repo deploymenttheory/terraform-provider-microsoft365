@@ -1,11 +1,11 @@
-resource "random_string" "suffix" {
+resource "random_string" "test_suffix" {
   length  = 8
   special = false
   upper   = false
 }
 
 resource "microsoft365_graph_beta_device_management_group_policy_configuration" "minimal_assignment" {
-  display_name = "AccTest-MinAssign-GPC-${random_string.suffix.result}"
+  display_name = "acc-test-003-minimal-assignment-${random_string.test_suffix.result}"
 
   assignments = [
     {
@@ -13,4 +13,3 @@ resource "microsoft365_graph_beta_device_management_group_policy_configuration" 
     }
   ]
 }
-

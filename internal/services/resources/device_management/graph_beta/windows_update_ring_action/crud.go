@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
 	custom_requests "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/custom_requests"
 	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
@@ -60,7 +61,7 @@ func (r *WindowsUpdateRingActionResource) Create(ctx context.Context, req resour
 
 		err := r.performAction(ctx, object.UpdateRingId.ValueString(), action.ActionType)
 		if err != nil {
-			errors.HandleKiotaGraphError(ctx, err, resp, "Create", r.WritePermissions)
+			errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationCreate, r.WritePermissions)
 			return
 		}
 
@@ -142,7 +143,7 @@ func (r *WindowsUpdateRingActionResource) Update(ctx context.Context, req resour
 
 		err := r.performAction(ctx, plan.UpdateRingId.ValueString(), action.ActionType)
 		if err != nil {
-			errors.HandleKiotaGraphError(ctx, err, resp, "Update", r.WritePermissions)
+			errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationUpdate, r.WritePermissions)
 			return
 		}
 

@@ -9,6 +9,7 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
 	"github.com/google/uuid"
@@ -53,7 +54,7 @@ func (m *GroupPolicyConfigurationMock) RegisterMocks() {
 	)
 
 	// DELETE - Delete Group Policy Configuration
-	httpmock.RegisterRegexpResponder("DELETE", regexp.MustCompile(`https://graph\.microsoft\.com/beta/deviceManagement/groupPolicyConfigurations/[0-9a-fA-F-]+$`),
+	httpmock.RegisterRegexpResponder(constants.TfOperationDelete, regexp.MustCompile(`https://graph\.microsoft\.com/beta/deviceManagement/groupPolicyConfigurations/[0-9a-fA-F-]+$`),
 		m.deleteGroupPolicyConfiguration,
 	)
 }
@@ -90,7 +91,10 @@ func (m *GroupPolicyConfigurationMock) createGroupPolicyConfiguration(req *http.
 	}
 
 	id := uuid.New().String()
-	jsonContent, err := helpers.ParseJSONFile(filepath.Join("..", "tests", "responses", "validate_create", "post_group_policy_configuration_success.json"))
+
+	// Determine which scenario file to load based on displayName
+	scenarioFile := determineCreateScenario(requestBody)
+	jsonContent, err := helpers.ParseJSONFile(filepath.Join("..", "tests", "responses", "validate_create", scenarioFile))
 	if err != nil {
 		return httpmock.NewJsonResponse(500, map[string]any{
 			"error": map[string]any{
@@ -111,15 +115,6 @@ func (m *GroupPolicyConfigurationMock) createGroupPolicyConfiguration(req *http.
 	}
 
 	response["id"] = id
-	if displayName, ok := requestBody["displayName"].(string); ok {
-		response["displayName"] = displayName
-	}
-	if description, ok := requestBody["description"].(string); ok {
-		response["description"] = description
-	}
-	if roleScopeTagIds, ok := requestBody["roleScopeTagIds"].([]any); ok {
-		response["roleScopeTagIds"] = roleScopeTagIds
-	}
 
 	m.stateMu.Lock()
 	m.state[id] = response
@@ -129,6 +124,25 @@ func (m *GroupPolicyConfigurationMock) createGroupPolicyConfiguration(req *http.
 	m.stateMu.Unlock()
 
 	return httpmock.NewJsonResponse(201, response)
+}
+
+func determineCreateScenario(body map[string]any) string {
+	displayName, _ := body["displayName"].(string)
+
+	switch {
+	case strings.Contains(displayName, "unit-test-003-minimal-assignment"):
+		return "post_test_003_minimal_assignment.json"
+	case strings.Contains(displayName, "unit-test-004-maximal-assignment"):
+		return "post_test_004_maximal_assignment.json"
+	case strings.Contains(displayName, "unit-test-005-lifecycle-maximal"):
+		return "post_test_006_lifecycle_maximal.json"
+	case strings.Contains(displayName, "unit-test-002-maximal"):
+		return "post_test_002_maximal.json"
+	case strings.Contains(displayName, "unit-test-001-minimal"):
+		return "post_test_001_minimal.json"
+	default:
+		return "post_group_policy_configuration_success.json"
+	}
 }
 
 func (m *GroupPolicyConfigurationMock) assignGroupPolicyConfiguration(req *http.Request) (*http.Response, error) {
@@ -226,16 +240,47 @@ func (m *GroupPolicyConfigurationMock) updateGroupPolicyConfiguration(req *http.
 		})
 	}
 
+	// Determine which scenario file to load based on displayName
+	scenarioFile := determineUpdateScenario(updateBody, config)
+	if scenarioFile != "" {
+		jsonContent, err := helpers.ParseJSONFile(filepath.Join("..", "tests", "responses", "validate_update", scenarioFile))
+		if err == nil {
+			var response map[string]any
+			if err := json.Unmarshal([]byte(jsonContent), &response); err == nil {
+				response["id"] = id
+				m.stateMu.Lock()
+				m.state[id] = response
+				m.stateMu.Unlock()
+				return httpmock.NewJsonResponse(200, response)
+			}
+		}
+	}
+
+	// Fallback to dynamic update
 	m.stateMu.Lock()
 	if configMap, ok := config.(map[string]any); ok {
 		for k, v := range updateBody {
 			configMap[k] = v
 		}
+		configMap["lastModifiedDateTime"] = "2024-01-02T00:00:00Z"
 		m.state[id] = configMap
 	}
 	m.stateMu.Unlock()
 
 	return httpmock.NewJsonResponse(200, config)
+}
+
+func determineUpdateScenario(body map[string]any, existing any) string {
+	displayName, _ := body["displayName"].(string)
+
+	switch {
+	case strings.Contains(displayName, "unit-test-005-lifecycle-maximal"):
+		return "patch_test_005_lifecycle_maximal.json"
+	case strings.Contains(displayName, "unit-test-006-lifecycle-minimal"):
+		return "patch_test_006_lifecycle_minimal.json"
+	default:
+		return ""
+	}
 }
 
 func (m *GroupPolicyConfigurationMock) deleteGroupPolicyConfiguration(req *http.Request) (*http.Response, error) {

@@ -87,7 +87,7 @@ def ensure_label_exists(owner: str, repo: str, label_name: str, color: str, desc
     # This is simpler than checking first - gh handles the logic
     try:
         run_gh_command([
-            "label", "create", label_name,
+            "label", constants.TfOperationCreate, label_name,
             "--repo", f"{owner}/{repo}",
             "--color", color,
             "--description", description,
@@ -294,7 +294,7 @@ def create_new_issue(owner: str, repo: str, test_name: str,
 *Automated report from nightly tests*"""
     
     issue_url = run_gh_command([
-        "issue", "create",
+        "issue", constants.TfOperationCreate,
         "--repo", f"{owner}/{repo}",
         "--title", issue_title,
         "--body", issue_body,

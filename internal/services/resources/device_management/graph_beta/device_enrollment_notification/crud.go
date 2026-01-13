@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
 	customrequests "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/custom_requests"
 	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
@@ -118,7 +119,7 @@ func (r *DeviceEnrollmentNotificationResource) Create(ctx context.Context, req r
 		DeviceEnrollmentConfigurations().
 		Post(ctx, requestBody, nil)
 	if err != nil {
-		errors.HandleKiotaGraphError(ctx, err, resp, "Create", r.WritePermissions)
+		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationCreate, r.WritePermissions)
 		return
 	}
 
@@ -241,7 +242,7 @@ func (r *DeviceEnrollmentNotificationResource) Create(ctx context.Context, req r
 				if err != nil {
 					// Log more details about the error
 					tflog.Error(ctx, fmt.Sprintf("Error creating localized message for template %s: %s", templateID, err.Error()))
-					errors.HandleKiotaGraphError(ctx, err, resp, "Create localized message", r.WritePermissions)
+					errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationCreate, r.WritePermissions)
 					return
 				}
 
@@ -292,7 +293,7 @@ func (r *DeviceEnrollmentNotificationResource) Create(ctx context.Context, req r
 				Patch(ctx, brandingTemplate, nil)
 
 			if err != nil {
-				errors.HandleKiotaGraphError(ctx, err, resp, "Update branding options", r.WritePermissions)
+				errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationCreate, r.WritePermissions)
 				return
 			}
 
@@ -319,7 +320,7 @@ func (r *DeviceEnrollmentNotificationResource) Create(ctx context.Context, req r
 			Post(ctx, assignmentRequestBody, nil)
 
 		if err != nil {
-			errors.HandleKiotaGraphError(ctx, err, resp, "Create assignments", r.WritePermissions)
+			errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationCreate, r.WritePermissions)
 			return
 		}
 
@@ -336,7 +337,7 @@ func (r *DeviceEnrollmentNotificationResource) Create(ctx context.Context, req r
 	stateContainer := &crud.CreateResponseContainer{CreateResponse: resp}
 
 	opts := crud.DefaultReadWithRetryOptions()
-	opts.Operation = "Create"
+	opts.Operation = constants.TfOperationCreate
 	opts.ResourceTypeName = ResourceName
 
 	err = crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)
@@ -376,7 +377,7 @@ func (r *DeviceEnrollmentNotificationResource) Read(ctx context.Context, req res
 		Get(ctx, nil)
 
 	if err != nil {
-		errors.HandleKiotaGraphError(ctx, err, resp, "Read", r.ReadPermissions)
+		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationRead, r.ReadPermissions)
 		return
 	}
 
@@ -512,7 +513,7 @@ func (r *DeviceEnrollmentNotificationResource) Update(ctx context.Context, req r
 		Get(ctx, nil)
 
 	if err != nil {
-		errors.HandleKiotaGraphError(ctx, err, resp, "Read current resource for update", r.ReadPermissions)
+		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationUpdate, r.ReadPermissions)
 		return
 	}
 
@@ -544,7 +545,7 @@ func (r *DeviceEnrollmentNotificationResource) Update(ctx context.Context, req r
 
 	if err != nil {
 		tflog.Error(ctx, fmt.Sprintf("Failed PATCH request to: %s - Error: %s", baseUrl, err.Error()))
-		errors.HandleKiotaGraphError(ctx, err, resp, "Update", r.WritePermissions)
+		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationUpdate, r.WritePermissions)
 		return
 	}
 
@@ -624,7 +625,7 @@ func (r *DeviceEnrollmentNotificationResource) Update(ctx context.Context, req r
 				err = customrequests.PatchRequestByResourceId(ctx, r.client.GetAdapter(), config)
 				if err != nil {
 					tflog.Error(ctx, fmt.Sprintf("Failed custom PATCH request to: %s - Error: %s", localizedMessageUrl, err.Error()))
-					errors.HandleKiotaGraphError(ctx, err, resp, "Update localized message", r.WritePermissions)
+					errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationUpdate, r.WritePermissions)
 					return
 				}
 
@@ -668,7 +669,7 @@ func (r *DeviceEnrollmentNotificationResource) Update(ctx context.Context, req r
 
 			if err != nil {
 				tflog.Error(ctx, fmt.Sprintf("Failed PATCH request to: %s - Error: %s", brandingUrl, err.Error()))
-				errors.HandleKiotaGraphError(ctx, err, resp, "Update branding options", r.WritePermissions)
+				errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationCreate, r.WritePermissions)
 				return
 			}
 
@@ -699,7 +700,7 @@ func (r *DeviceEnrollmentNotificationResource) Update(ctx context.Context, req r
 
 		if err != nil {
 			tflog.Error(ctx, fmt.Sprintf("Failed POST request to: %s - Error: %s", assignmentUrl, err.Error()))
-			errors.HandleKiotaGraphError(ctx, err, resp, "Update assignments", r.WritePermissions)
+			errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationUpdate, r.WritePermissions)
 			return
 		}
 
@@ -717,7 +718,7 @@ func (r *DeviceEnrollmentNotificationResource) Update(ctx context.Context, req r
 	stateContainer := &crud.UpdateResponseContainer{UpdateResponse: resp}
 
 	opts := crud.DefaultReadWithRetryOptions()
-	opts.Operation = "Update"
+	opts.Operation = constants.TfOperationUpdate
 	opts.ResourceTypeName = ResourceName
 
 	err = crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)
@@ -756,7 +757,7 @@ func (r *DeviceEnrollmentNotificationResource) Delete(ctx context.Context, req r
 		Delete(ctx, nil)
 
 	if err != nil {
-		errors.HandleKiotaGraphError(ctx, err, resp, "Delete", r.WritePermissions)
+		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationDelete, r.WritePermissions)
 		return
 	}
 

@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
 	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -66,7 +67,7 @@ func (d *ReuseablePolicySettingsDataSource) Read(ctx context.Context, req dataso
 			})
 
 		if err != nil {
-			errors.HandleKiotaGraphError(ctx, err, resp, "Read", d.ReadPermissions)
+			errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationRead, d.ReadPermissions)
 			return
 		}
 
@@ -84,7 +85,7 @@ func (d *ReuseablePolicySettingsDataSource) Read(ctx context.Context, req dataso
 			})
 
 		if err != nil {
-			errors.HandleKiotaGraphError(ctx, err, resp, "Read", d.ReadPermissions)
+			errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationRead, d.ReadPermissions)
 			return
 		}
 

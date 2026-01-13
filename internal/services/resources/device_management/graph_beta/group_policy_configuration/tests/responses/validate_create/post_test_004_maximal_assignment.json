@@ -1,0 +1,10 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/groupPolicyConfigurations/$entity",
+  "id": "00000000-0000-0000-0000-000000000004",
+  "displayName": "unit-test-004-maximal-assignment",
+  "description": "unit-test-004-maximal-assignment",
+  "roleScopeTagIds": ["0"],
+  "policyConfigurationIngestionType": "custom",
+  "createdDateTime": "2024-01-01T00:00:00Z",
+  "lastModifiedDateTime": "2024-01-01T00:00:00Z"
+}

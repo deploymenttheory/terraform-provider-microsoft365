@@ -8,6 +8,7 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
 	"github.com/google/uuid"
@@ -285,7 +286,7 @@ func (m *GroupPolicyDefinitionMock) RegisterMocks() {
 						if len(presValues) > 0 {
 							mockState.presentationValues[stateKey] = presValues
 						}
-						mockState.operationPhase[stateKey] = "update"
+						mockState.operationPhase[stateKey] = constants.TfOperationUpdate
 						mockState.Unlock()
 					}
 				}
@@ -386,7 +387,7 @@ func (m *GroupPolicyDefinitionMock) RegisterMocks() {
 						if len(presValues) > 0 {
 							mockState.presentationValues[stateKey] = presValues
 						}
-						mockState.operationPhase[stateKey] = "create"
+						mockState.operationPhase[stateKey] = constants.TfOperationCreate
 						mockState.Unlock()
 					}
 				}
@@ -469,7 +470,7 @@ func (m *GroupPolicyDefinitionMock) RegisterMocks() {
 			defValueData, exists := mockState.definitionValues[stateKey]
 			phase := mockState.operationPhase[stateKey]
 			if phase == "" {
-				phase = "read"
+				phase = constants.TfOperationRead
 			}
 			mockState.Unlock()
 
@@ -482,7 +483,7 @@ func (m *GroupPolicyDefinitionMock) RegisterMocks() {
 
 			scenario := determineScenarioFromDefValue(defValueData)
 			phaseFolder := "validate_" + phase
-			if phase == "create" {
+			if phase == constants.TfOperationCreate {
 				phaseFolder = "validate_create"
 			}
 
@@ -517,7 +518,7 @@ func (m *GroupPolicyDefinitionMock) RegisterMocks() {
 			storedPresValues, hasPresValues := mockState.presentationValues[stateKey]
 			phase := mockState.operationPhase[stateKey]
 			if phase == "" {
-				phase = "read"
+				phase = constants.TfOperationRead
 			}
 			mockState.Unlock()
 
@@ -539,7 +540,7 @@ func (m *GroupPolicyDefinitionMock) RegisterMocks() {
 			// Fallback to JSON files for initial test data
 			scenario := determineScenarioFromDefValue(defValueData)
 			phaseFolder := "validate_" + phase
-			if phase == "create" {
+			if phase == constants.TfOperationCreate {
 				phaseFolder = "validate_create"
 			}
 

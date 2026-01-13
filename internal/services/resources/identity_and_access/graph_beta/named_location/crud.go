@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
 	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -48,7 +49,7 @@ func (r *NamedLocationResource) Create(ctx context.Context, req resource.CreateR
 		Post(ctx, requestBody, nil)
 
 	if err != nil {
-		errors.HandleKiotaGraphError(ctx, err, resp, "Create", r.WritePermissions)
+		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationCreate, r.WritePermissions)
 		return
 	}
 
@@ -72,7 +73,7 @@ func (r *NamedLocationResource) Create(ctx context.Context, req resource.CreateR
 	stateContainer := &crud.CreateResponseContainer{CreateResponse: resp}
 
 	opts := crud.DefaultReadWithRetryOptions()
-	opts.Operation = "Create"
+	opts.Operation = constants.TfOperationCreate
 	opts.ResourceTypeName = ResourceName
 	opts.MaxRetries = 60                 // Up from default 30
 	opts.RetryInterval = 5 * time.Second // Up from default 2 seconds
@@ -95,7 +96,7 @@ func (r *NamedLocationResource) Read(ctx context.Context, req resource.ReadReque
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting Read method for: %s", ResourceName))
 
-	operation := "Read"
+	operation := constants.TfOperationRead
 	if ctxOp := ctx.Value("retry_operation"); ctxOp != nil {
 		if opStr, ok := ctxOp.(string); ok {
 			operation = opStr
@@ -177,7 +178,7 @@ func (r *NamedLocationResource) Update(ctx context.Context, req resource.UpdateR
 		Patch(ctx, requestBody, nil)
 
 	if err != nil {
-		errors.HandleKiotaGraphError(ctx, err, resp, "Update", r.WritePermissions)
+		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationUpdate, r.WritePermissions)
 		return
 	}
 
@@ -190,7 +191,7 @@ func (r *NamedLocationResource) Update(ctx context.Context, req resource.UpdateR
 	stateContainer := &crud.UpdateResponseContainer{UpdateResponse: resp}
 
 	opts := crud.DefaultReadWithRetryOptions()
-	opts.Operation = "Update"
+	opts.Operation = constants.TfOperationUpdate
 	opts.ResourceTypeName = ResourceName
 	opts.MaxRetries = 60                 // Up from default 30
 	opts.RetryInterval = 5 * time.Second // Up from default 2 seconds
@@ -273,7 +274,7 @@ func (r *NamedLocationResource) Delete(ctx context.Context, req resource.DeleteR
 			resp.State.RemoveResource(ctx)
 			return
 		}
-		errors.HandleKiotaGraphError(ctx, err, resp, "Delete", r.ReadPermissions)
+		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationDelete, r.ReadPermissions)
 		return
 	}
 
@@ -307,7 +308,7 @@ func (r *NamedLocationResource) Delete(ctx context.Context, req resource.DeleteR
 			Patch(ctx, patchBody, nil)
 
 		if err != nil {
-			errors.HandleKiotaGraphError(ctx, err, resp, "Delete", r.WritePermissions)
+			errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationDelete, r.WritePermissions)
 			return
 		}
 
@@ -336,7 +337,7 @@ func (r *NamedLocationResource) Delete(ctx context.Context, req resource.DeleteR
 					resp.State.RemoveResource(ctx)
 					return
 				}
-				errors.HandleKiotaGraphError(ctx, err, resp, "Delete", r.ReadPermissions)
+				errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationDelete, r.ReadPermissions)
 				return
 			}
 
@@ -396,7 +397,7 @@ func (r *NamedLocationResource) Delete(ctx context.Context, req resource.DeleteR
 			resp.State.RemoveResource(ctx)
 			return
 		}
-		errors.HandleKiotaGraphError(ctx, err, resp, "Delete", r.WritePermissions)
+		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationDelete, r.WritePermissions)
 		return
 	}
 

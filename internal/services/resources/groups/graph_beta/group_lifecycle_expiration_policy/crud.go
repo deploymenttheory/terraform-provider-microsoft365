@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
 	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -51,7 +52,7 @@ func (r *GroupLifecycleExpirationPolicyResource) Create(ctx context.Context, req
 			Get(ctx, nil)
 
 		if err != nil {
-			errors.HandleKiotaGraphError(ctx, err, resp, "Create - Get Existing Policy", r.ReadPermissions)
+			errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationCreate, r.ReadPermissions)
 			return
 		}
 
@@ -72,7 +73,7 @@ func (r *GroupLifecycleExpirationPolicyResource) Create(ctx context.Context, req
 				Patch(ctx, requestBody, nil)
 
 			if err != nil {
-				errors.HandleKiotaGraphError(ctx, err, resp, "Create - Overwrite Existing Policy", r.WritePermissions)
+				errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationCreate, r.WritePermissions)
 				return
 			}
 		} else {
@@ -90,7 +91,7 @@ func (r *GroupLifecycleExpirationPolicyResource) Create(ctx context.Context, req
 			Post(ctx, requestBody, nil)
 
 		if err != nil {
-			errors.HandleKiotaGraphError(ctx, err, resp, "Create", r.WritePermissions)
+			errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationCreate, r.WritePermissions)
 			return
 		}
 	}
@@ -106,7 +107,7 @@ func (r *GroupLifecycleExpirationPolicyResource) Create(ctx context.Context, req
 	stateContainer := &crud.CreateResponseContainer{CreateResponse: resp}
 
 	opts := crud.DefaultReadWithRetryOptions()
-	opts.Operation = "Create"
+	opts.Operation = constants.TfOperationCreate
 	opts.ResourceTypeName = ResourceName
 
 	err = crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)
@@ -127,7 +128,7 @@ func (r *GroupLifecycleExpirationPolicyResource) Read(ctx context.Context, req r
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting Read method for: %s", ResourceName))
 
-	operation := "Read"
+	operation := constants.TfOperationRead
 	if ctxOp := ctx.Value("retry_operation"); ctxOp != nil {
 		if opStr, ok := ctxOp.(string); ok {
 			operation = opStr
@@ -202,7 +203,7 @@ func (r *GroupLifecycleExpirationPolicyResource) Update(ctx context.Context, req
 		Patch(ctx, requestBody, nil)
 
 	if err != nil {
-		errors.HandleKiotaGraphError(ctx, err, resp, "Update", r.WritePermissions)
+		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationUpdate, r.WritePermissions)
 		return
 	}
 
@@ -210,7 +211,7 @@ func (r *GroupLifecycleExpirationPolicyResource) Update(ctx context.Context, req
 	stateContainer := &crud.UpdateResponseContainer{UpdateResponse: resp}
 
 	opts := crud.DefaultReadWithRetryOptions()
-	opts.Operation = "Update"
+	opts.Operation = constants.TfOperationUpdate
 	opts.ResourceTypeName = ResourceName
 
 	err = crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)
@@ -250,7 +251,7 @@ func (r *GroupLifecycleExpirationPolicyResource) Delete(ctx context.Context, req
 		Delete(ctx, nil)
 
 	if err != nil {
-		errors.HandleKiotaGraphError(ctx, err, resp, "Delete", r.WritePermissions)
+		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationDelete, r.WritePermissions)
 		return
 	}
 

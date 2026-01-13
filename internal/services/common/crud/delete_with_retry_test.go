@@ -7,13 +7,14 @@ import (
 	"testing"
 	"time"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/stretchr/testify/assert"
 )
 
 // Helper functions to create test errors
 func createRetryableError() error {
 	return &url.Error{
-		Op:  "DELETE",
+		Op:  constants.TfOperationDelete,
 		URL: "https://graph.microsoft.com/v1.0/resource",
 		Err: fmt.Errorf("context deadline exceeded"),
 	}
@@ -21,7 +22,7 @@ func createRetryableError() error {
 
 func createNonRetryableError() error {
 	return &url.Error{
-		Op:  "DELETE",
+		Op:  constants.TfOperationDelete,
 		URL: "https://graph.microsoft.com/v1.0/resource",
 		Err: fmt.Errorf("resource not found"),
 	}
@@ -32,7 +33,7 @@ func TestDefaultDeleteWithRetryOptions(t *testing.T) {
 
 	assert.Equal(t, 10, opts.MaxRetries)
 	assert.Equal(t, 30*time.Second, opts.RetryInterval)
-	assert.Equal(t, "Delete", opts.Operation)
+	assert.Equal(t, constants.TfOperationDelete, opts.Operation)
 	assert.Equal(t, "", opts.ResourceTypeName)
 	assert.Equal(t, "", opts.ResourceID)
 }
@@ -73,7 +74,7 @@ func TestDeleteWithRetry_SuccessAfterRetries(t *testing.T) {
 		if callCount < 3 {
 			// Return retryable timeout error for first 2 attempts
 			return &url.Error{
-				Op:  "DELETE",
+				Op:  constants.TfOperationDelete,
 				URL: "https://graph.microsoft.com/v1.0/resource",
 				Err: fmt.Errorf("context deadline exceeded"),
 			}
@@ -103,7 +104,7 @@ func TestDeleteWithRetry_NonRetryableError(t *testing.T) {
 		callCount++
 		// Return a standard URL error which will be treated as non-retryable
 		return &url.Error{
-			Op:  "DELETE",
+			Op:  constants.TfOperationDelete,
 			URL: "https://graph.microsoft.com/v1.0/resource",
 			Err: fmt.Errorf("resource not found"),
 		}
@@ -131,7 +132,7 @@ func TestDeleteWithRetry_MaxRetriesExceeded(t *testing.T) {
 		callCount++
 		// Always return retryable timeout error
 		return &url.Error{
-			Op:  "DELETE",
+			Op:  constants.TfOperationDelete,
 			URL: "https://graph.microsoft.com/v1.0/resource",
 			Err: fmt.Errorf("context deadline exceeded"),
 		}
@@ -251,7 +252,7 @@ func TestDeleteWithRetry_TimeConstrainedRetries(t *testing.T) {
 	deleteFunc := func(ctx context.Context) error {
 		callCount++
 		return &url.Error{
-			Op:  "DELETE",
+			Op:  constants.TfOperationDelete,
 			URL: "https://graph.microsoft.com/v1.0/resource",
 			Err: fmt.Errorf("context deadline exceeded"),
 		}
@@ -363,7 +364,7 @@ func TestDeleteWithRetry_ResourceLogging(t *testing.T) {
 	opts := DeleteWithRetryOptions{
 		MaxRetries:    1,
 		RetryInterval: 50 * time.Millisecond,
-		Operation:     "", // Should default to "Delete"
+		Operation:     "", // Should default to constants.TfOperationDelete
 		// ResourceTypeName and ResourceID left empty
 	}
 

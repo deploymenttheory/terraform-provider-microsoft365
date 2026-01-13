@@ -101,4 +101,3 @@ func validateRequest(ctx context.Context, client *msgraphbetasdk.GraphServiceCli
 
 	return result, nil
 }
-

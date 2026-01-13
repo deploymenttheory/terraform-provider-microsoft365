@@ -115,7 +115,7 @@ foreach ($command in $allCommands) {
 
     foreach ($permission in $command.Permissions) {
         Write-Verbose "Processing $method permission for $uri : $($permission.Name)"
-        $permissionType = if ($permission.Name -match "ReadWrite") { "ReadWrite" } else { "Read" }
+        $permissionType = if ($permission.Name -match "ReadWrite") { "ReadWrite" } else { constants.TfOperationRead }
         $permissionName = $permission.Name
 
         if ($permissionName -notin $topLevelGroups[$topLevelPath].APIResources[$uri][$method].Permissions[$permissionType]) {

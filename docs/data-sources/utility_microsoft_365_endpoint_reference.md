@@ -757,11 +757,11 @@ output "windows_update_urls" {
     coalesce(endpoint.urls, [])
     if(endpoint.notes != null && (
       strcontains(lower(endpoint.notes), "windows") ||
-      strcontains(lower(endpoint.notes), "update")
+      strcontains(lower(endpoint.notes), constants.TfOperationUpdate)
     )) ||
     length([
       for url in coalesce(endpoint.urls, []) :
-      url if strcontains(lower(url), "update") || strcontains(lower(url), "windowsupdate")
+      url if strcontains(lower(url), constants.TfOperationUpdate) || strcontains(lower(url), "windowsupdate")
     ]) > 0
   ])
 }

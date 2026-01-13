@@ -348,7 +348,7 @@ try {
     $createResponse = New-ConditionalAccessPolicy -PolicyJson $testPolicyPayload -PolicyName $PolicyNameSuffix
     
     # Display create response details
-    Show-ResponseDetails -Response $createResponse -ResponseType "CREATE"
+    Show-ResponseDetails -Response $createResponse -ResponseType constants.TfOperationCreate
     
     # Export create response if requested
     if ($ExportToJson) {
