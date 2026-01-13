@@ -6,7 +6,6 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks/factories"
 	"github.com/google/uuid"
 	"github.com/jarcoal/httpmock"
@@ -181,7 +180,7 @@ func (m *UserSettingMock) RegisterMocks() {
 		})
 
 	// Register DELETE for removing user setting
-	httpmock.RegisterResponder(constants.TfOperationDelete, `=~^https://graph.microsoft.com/beta/deviceManagement/virtualEndpoint/userSettings/[^/]+$`,
+	httpmock.RegisterResponder("DELETE", `=~^https://graph.microsoft.com/beta/deviceManagement/virtualEndpoint/userSettings/[^/]+$`,
 		func(req *http.Request) (*http.Response, error) {
 			urlParts := strings.Split(req.URL.Path, "/")
 			userSettingId := urlParts[len(urlParts)-1]

@@ -318,7 +318,7 @@ func (r *IntuneBrandingProfileResource) Delete(ctx context.Context, req resource
 		Delete(ctx, nil)
 
 	if err != nil {
-		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfTfOperationDelete, r.WritePermissions)
+		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationDelete, r.WritePermissions)
 		return
 	}
 

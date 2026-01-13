@@ -320,7 +320,7 @@ func (r *ConditionalAccessTermsOfUseResource) Delete(ctx context.Context, req re
 	defer cancel()
 
 	url := r.httpClient.GetBaseURL() + r.ResourcePath + "/" + object.ID.ValueString()
-	httpReq, err := http.NewRequestWithContext(ctx, constants.TfTfOperationDelete, url, nil)
+	httpReq, err := http.NewRequestWithContext(ctx, constants.TfOperationDelete, url, nil)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error creating HTTP request",
@@ -344,7 +344,7 @@ func (r *ConditionalAccessTermsOfUseResource) Delete(ctx context.Context, req re
 	tflog.Debug(ctx, fmt.Sprintf("DELETE request response status: %d %s", httpResp.StatusCode, httpResp.Status))
 
 	if httpResp.StatusCode != http.StatusNoContent && httpResp.StatusCode != http.StatusNotFound {
-		errors.HandleHTTPGraphError(ctx, httpResp, resp, constants.TfTfOperationDelete, r.WritePermissions)
+		errors.HandleHTTPGraphError(ctx, httpResp, resp, constants.TfOperationDelete, r.WritePermissions)
 		return
 	}
 

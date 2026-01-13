@@ -7,7 +7,6 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks/factories"
@@ -56,7 +55,7 @@ func (m *FilteringPolicyMock) RegisterMocks() {
 		m.updateFilteringPolicyResponder())
 
 	// DELETE /networkAccess/filteringPolicies/{id} - Delete
-	httpmock.RegisterResponder(constants.TfTfOperationDelete, `=~^https://graph\.microsoft\.com/beta/networkAccess/filteringPolicies/([^/]+)$`,
+	httpmock.RegisterResponder("DELETE", `=~^https://graph\.microsoft\.com/beta/networkAccess/filteringPolicies/([^/]+)$`,
 		m.deleteFilteringPolicyResponder())
 }
 
@@ -321,7 +320,7 @@ func (m *FilteringPolicyMock) RegisterErrorMocks() {
 		factories.ErrorResponse(500, "InternalServerError", "Internal server error"))
 
 	// DELETE - Delete error
-	httpmock.RegisterResponder(constants.TfTfOperationDelete, `=~^https://graph\.microsoft\.com/beta/networkAccess/filteringPolicies/error-id$`,
+	httpmock.RegisterResponder("DELETE", `=~^https://graph\.microsoft\.com/beta/networkAccess/filteringPolicies/error-id$`,
 		factories.ErrorResponse(409, "Conflict", "Filtering policy is in use"))
 }
 

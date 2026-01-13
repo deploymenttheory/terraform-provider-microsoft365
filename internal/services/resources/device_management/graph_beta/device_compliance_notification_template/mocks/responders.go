@@ -6,7 +6,6 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
 	"github.com/google/uuid"
@@ -263,7 +262,7 @@ func (m *WindowsDeviceComplianceNotificationsMock) RegisterMocks() {
 	})
 
 	// DELETE /deviceManagement/notificationMessageTemplates/{templateId}/localizedNotificationMessages/{messageId} - Delete localized message
-	httpmock.RegisterResponder(constants.TfTfOperationDelete, `=~^https://graph\.microsoft\.com/beta/deviceManagement/notificationMessageTemplates/[^/]+/localizedNotificationMessages/[^/]+$`, func(req *http.Request) (*http.Response, error) {
+	httpmock.RegisterResponder("DELETE", `=~^https://graph\.microsoft\.com/beta/deviceManagement/notificationMessageTemplates/[^/]+/localizedNotificationMessages/[^/]+$`, func(req *http.Request) (*http.Response, error) {
 		parts := strings.Split(req.URL.Path, "/")
 		messageId := parts[len(parts)-1]
 
@@ -275,7 +274,7 @@ func (m *WindowsDeviceComplianceNotificationsMock) RegisterMocks() {
 	})
 
 	// DELETE /deviceManagement/notificationMessageTemplates/{id} - Delete template
-	httpmock.RegisterResponder(constants.TfTfOperationDelete, `=~^https://graph\.microsoft\.com/beta/deviceManagement/notificationMessageTemplates/[^/]+$`, func(req *http.Request) (*http.Response, error) {
+	httpmock.RegisterResponder("DELETE", `=~^https://graph\.microsoft\.com/beta/deviceManagement/notificationMessageTemplates/[^/]+$`, func(req *http.Request) (*http.Response, error) {
 		parts := strings.Split(req.URL.Path, "/")
 		id := parts[len(parts)-1]
 

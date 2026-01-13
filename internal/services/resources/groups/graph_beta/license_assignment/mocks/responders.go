@@ -60,7 +60,7 @@ func getJSONFileForGroupID(groupID string, operation string) string {
 			return "validate_create/post_group_minimal_success.json"
 		case constants.TfOperationUpdate:
 			return "validate_update/patch_group_success.json"
-		case constants.TfTfOperationDelete:
+		case constants.TfOperationDelete:
 			return "validate_delete/get_group_not_found.json"
 		}
 	case "00000000-0000-0000-0000-000000000003":
@@ -70,7 +70,7 @@ func getJSONFileForGroupID(groupID string, operation string) string {
 			return "validate_create/post_group_maximal_success.json"
 		case constants.TfOperationUpdate:
 			return "validate_update/patch_group_success.json"
-		case constants.TfTfOperationDelete:
+		case constants.TfOperationDelete:
 			return "validate_delete/get_group_not_found.json"
 		}
 	case "invalid-group-id":

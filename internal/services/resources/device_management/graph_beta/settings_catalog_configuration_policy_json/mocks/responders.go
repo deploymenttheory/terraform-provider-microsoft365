@@ -92,7 +92,7 @@ func (m *SettingsCatalogConfigurationPolicyJsonMock) RegisterMocks() {
 		})
 
 	// Mock successful deletion of settings catalog configuration policy
-	httpmock.RegisterRegexpResponder(constants.TfTfOperationDelete, policyIDRegex,
+	httpmock.RegisterRegexpResponder(constants.TfOperationDelete, policyIDRegex,
 		func(req *http.Request) (*http.Response, error) {
 			return httpmock.NewStringResponse(204, ""), nil
 		})

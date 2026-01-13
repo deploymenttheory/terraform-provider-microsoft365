@@ -410,7 +410,7 @@ func (r *AutopatchGroupsResource) Delete(ctx context.Context, req resource.Delet
 	defer cancel()
 
 	url := r.APIEndpoint + r.ResourcePath + "/" + object.ID.ValueString()
-	httpReq, err := http.NewRequestWithContext(ctx, constants.TfTfOperationDelete, url, nil)
+	httpReq, err := http.NewRequestWithContext(ctx, constants.TfOperationDelete, url, nil)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error creating HTTP request",
@@ -436,7 +436,7 @@ func (r *AutopatchGroupsResource) Delete(ctx context.Context, req resource.Delet
 	tflog.Debug(ctx, fmt.Sprintf("DELETE request response status: %d %s", httpResp.StatusCode, httpResp.Status))
 
 	if httpResp.StatusCode != http.StatusNoContent && httpResp.StatusCode != http.StatusNotFound {
-		errors.HandleHTTPGraphError(ctx, httpResp, resp, constants.TfTfOperationDelete, r.WritePermissions)
+		errors.HandleHTTPGraphError(ctx, httpResp, resp, constants.TfOperationDelete, r.WritePermissions)
 		return
 	}
 

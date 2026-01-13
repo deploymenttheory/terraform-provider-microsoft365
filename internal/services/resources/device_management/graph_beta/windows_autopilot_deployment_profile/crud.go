@@ -319,7 +319,7 @@ func (r *WindowsAutopilotDeploymentProfileResource) Delete(ctx context.Context, 
 		Get(ctx, nil)
 
 	if err != nil {
-		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfTfOperationDelete, r.ReadPermissions)
+		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationDelete, r.ReadPermissions)
 		return
 	}
 
@@ -338,7 +338,7 @@ func (r *WindowsAutopilotDeploymentProfileResource) Delete(ctx context.Context, 
 					Delete(ctx, nil)
 
 				if err != nil {
-					errors.HandleKiotaGraphError(ctx, err, resp, constants.TfTfOperationDelete, r.WritePermissions)
+					errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationDelete, r.WritePermissions)
 					return
 				}
 			}
@@ -354,7 +354,7 @@ func (r *WindowsAutopilotDeploymentProfileResource) Delete(ctx context.Context, 
 		Delete(ctx, nil)
 
 	if err != nil {
-		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfTfOperationDelete, r.WritePermissions)
+		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationDelete, r.WritePermissions)
 		return
 	}
 

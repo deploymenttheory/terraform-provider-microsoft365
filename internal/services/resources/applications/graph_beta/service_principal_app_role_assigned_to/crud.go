@@ -240,7 +240,7 @@ func (r *ServicePrincipalAppRoleAssignedToResource) Delete(ctx context.Context, 
 		Delete(ctx, nil)
 
 	if err != nil {
-		errors.HandleKiotaGraphError(ctx, err, resp, constants.OperationDelete, r.WritePermissions)
+		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationDelete, r.WritePermissions)
 		return
 	}
 

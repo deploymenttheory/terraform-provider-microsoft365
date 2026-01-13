@@ -6,7 +6,6 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/google/uuid"
 	"github.com/jarcoal/httpmock"
 )
@@ -160,7 +159,7 @@ func (m *CloudPcAlertRuleMock) RegisterMocks() {
 		})
 
 	// Register DELETE for deleting Cloud PC alert rules
-	httpmock.RegisterResponder(constants.TfOperationDelete, `=~^https://graph\.microsoft\.com/beta/deviceManagement/monitoring/alertRules/([^/]+)$`,
+	httpmock.RegisterResponder("DELETE", `=~^https://graph\.microsoft\.com/beta/deviceManagement/monitoring/alertRules/([^/]+)$`,
 		func(req *http.Request) (*http.Response, error) {
 			parts := strings.Split(req.URL.Path, "/")
 			id := parts[len(parts)-1]
@@ -195,7 +194,7 @@ func (m *CloudPcAlertRuleMock) RegisterErrorMocks() {
 		httpmock.NewStringResponder(409, `{"error":{"code":"Conflict","message":"Alert rule configuration conflict"}}`))
 
 	// Register DELETE that returns an error
-	httpmock.RegisterResponder(constants.TfOperationDelete, `=~^https://graph\.microsoft\.com/beta/deviceManagement/monitoring/alertRules/([^/]+)$`,
+	httpmock.RegisterResponder("DELETE", `=~^https://graph\.microsoft\.com/beta/deviceManagement/monitoring/alertRules/([^/]+)$`,
 		httpmock.NewStringResponder(403, `{"error":{"code":"Forbidden","message":"Insufficient permissions to delete alert rule"}}`))
 }
 

@@ -8,7 +8,6 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
 	"github.com/google/uuid"
@@ -359,7 +358,7 @@ func (m *AppControlForBusinessBuiltInControlsMock) RegisterMocks() {
 		})
 
 	// Register DELETE for removing App Control policy
-	httpmock.RegisterResponder(constants.TfTfOperationDelete, `=~^https://graph.microsoft.com/beta/deviceManagement/configurationPolicies/[^/]+$`,
+	httpmock.RegisterResponder("DELETE", `=~^https://graph.microsoft.com/beta/deviceManagement/configurationPolicies/[^/]+$`,
 		func(req *http.Request) (*http.Response, error) {
 			urlParts := strings.Split(req.URL.Path, "/")
 			policyId := urlParts[len(urlParts)-1]

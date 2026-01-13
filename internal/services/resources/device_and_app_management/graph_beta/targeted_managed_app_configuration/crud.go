@@ -336,7 +336,7 @@ func (r *TargetedManagedAppConfigurationResource) Delete(ctx context.Context, re
 
 	err := r.client.DeviceAppManagement().TargetedManagedAppConfigurations().ByTargetedManagedAppConfigurationId(state.ID.ValueString()).Delete(ctx, nil)
 	if err != nil {
-		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfTfOperationDelete, r.WritePermissions)
+		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationDelete, r.WritePermissions)
 		return
 	}
 

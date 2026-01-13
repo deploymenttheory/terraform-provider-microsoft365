@@ -7,7 +7,6 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
 	"github.com/google/uuid"
@@ -291,7 +290,7 @@ func (m *MacosDeviceConfigurationTemplatesMock) RegisterMocks() {
 	})
 
 	// DELETE /deviceManagement/deviceConfigurations/{id} - Delete device configuration
-	httpmock.RegisterResponder(constants.TfTfOperationDelete, `=~^https://graph\.microsoft\.com/beta/deviceManagement/deviceConfigurations/([^/]+)$`, func(req *http.Request) (*http.Response, error) {
+	httpmock.RegisterResponder("DELETE", `=~^https://graph\.microsoft\.com/beta/deviceManagement/deviceConfigurations/([^/]+)$`, func(req *http.Request) (*http.Response, error) {
 		segments := strings.Split(req.URL.Path, "/")
 		if len(segments) < 4 {
 			return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"Invalid URL"}}`), nil
@@ -411,7 +410,7 @@ func (m *MacosDeviceConfigurationTemplatesMock) RegisterErrorMocks() {
 		return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"Error updating macOS device configuration template"}}`), nil
 	})
 
-	httpmock.RegisterResponder(constants.TfTfOperationDelete, `=~^https://graph\.microsoft\.com/beta/deviceManagement/deviceConfigurations/([^/]+)$`, func(req *http.Request) (*http.Response, error) {
+	httpmock.RegisterResponder("DELETE", `=~^https://graph\.microsoft\.com/beta/deviceManagement/deviceConfigurations/([^/]+)$`, func(req *http.Request) (*http.Response, error) {
 		return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"Error deleting macOS device configuration template"}}`), nil
 	})
 

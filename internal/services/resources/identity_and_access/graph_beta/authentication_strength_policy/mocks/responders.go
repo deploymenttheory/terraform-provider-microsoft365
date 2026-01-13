@@ -7,7 +7,6 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks/factories"
@@ -65,7 +64,7 @@ func (m *AuthenticationStrengthMock) RegisterMocks() {
 		m.updateCombinationConfigurationResponder())
 
 	// DELETE /identity/conditionalAccess/authenticationStrength/policies/{id} - Delete
-	httpmock.RegisterResponder(constants.TfTfOperationDelete, `=~^https://graph\.microsoft\.com/beta/identity/conditionalAccess/authenticationStrength/policies/[0-9a-fA-F-]+$`,
+	httpmock.RegisterResponder("DELETE", `=~^https://graph\.microsoft\.com/beta/identity/conditionalAccess/authenticationStrength/policies/[0-9a-fA-F-]+$`,
 		m.deleteAuthenticationStrengthPolicyResponder())
 }
 
@@ -381,7 +380,7 @@ func (m *AuthenticationStrengthMock) RegisterErrorMocks() {
 		factories.ErrorResponse(500, "InternalServerError", "Internal server error"))
 
 	// DELETE - Delete error
-	httpmock.RegisterResponder(constants.TfTfOperationDelete, `=~^https://graph\.microsoft\.com/beta/identity/conditionalAccess/authenticationStrength/policies/error-id$`,
+	httpmock.RegisterResponder("DELETE", `=~^https://graph\.microsoft\.com/beta/identity/conditionalAccess/authenticationStrength/policies/error-id$`,
 		factories.ErrorResponse(409, "Conflict", "Authentication strength policy is in use"))
 }
 

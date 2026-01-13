@@ -9,7 +9,6 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks/factories"
 	"github.com/google/uuid"
@@ -416,7 +415,7 @@ func (m *SettingsCatalogConfigurationPolicyMock) RegisterMocks() {
 		})
 
 	// Register DELETE for configuration policy
-	httpmock.RegisterResponder(constants.TfTfOperationDelete, `=~^https://graph\.microsoft\.com/beta/deviceManagement/configurationPolicies/[^/]+$`,
+	httpmock.RegisterResponder("DELETE", `=~^https://graph\.microsoft\.com/beta/deviceManagement/configurationPolicies/[^/]+$`,
 		func(req *http.Request) (*http.Response, error) {
 			// Extract ID from URL
 			urlParts := strings.Split(req.URL.Path, "/")

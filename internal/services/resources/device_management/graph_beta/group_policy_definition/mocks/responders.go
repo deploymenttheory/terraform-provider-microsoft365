@@ -558,7 +558,7 @@ func (m *GroupPolicyDefinitionMock) RegisterMocks() {
 		})
 
 	// Register DELETE for definition value
-	httpmock.RegisterResponder(constants.TfTfOperationDelete, `=~^https://graph\.microsoft\.com/beta/deviceManagement/groupPolicyConfigurations/[^/]+/definitionValues/[^/]+$`,
+	httpmock.RegisterResponder("DELETE", `=~^https://graph\.microsoft\.com/beta/deviceManagement/groupPolicyConfigurations/[^/]+/definitionValues/[^/]+$`,
 		func(req *http.Request) (*http.Response, error) {
 			urlParts := strings.Split(req.URL.Path, "/")
 			defValueID := urlParts[len(urlParts)-1]

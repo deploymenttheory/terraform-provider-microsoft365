@@ -7,7 +7,6 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks/factories"
@@ -59,7 +58,7 @@ func (m *AssignmentFilterMock) RegisterMocks() {
 		m.updateAssignmentFilterResponder())
 
 	// DELETE /deviceManagement/assignmentFilters/{id} - Delete
-	httpmock.RegisterResponder(constants.TfTfOperationDelete, `=~^https://graph\.microsoft\.com/beta/deviceManagement/assignmentFilters/([^/]+)$`,
+	httpmock.RegisterResponder("DELETE", `=~^https://graph\.microsoft\.com/beta/deviceManagement/assignmentFilters/([^/]+)$`,
 		m.deleteAssignmentFilterResponder())
 }
 
@@ -307,7 +306,7 @@ func (m *AssignmentFilterMock) RegisterErrorMocks() {
 		factories.ErrorResponse(500, "InternalServerError", "Internal server error"))
 
 	// DELETE - Delete error
-	httpmock.RegisterResponder(constants.TfTfOperationDelete, `=~^https://graph\.microsoft\.com/beta/deviceManagement/assignmentFilters/error-id$`,
+	httpmock.RegisterResponder("DELETE", `=~^https://graph\.microsoft\.com/beta/deviceManagement/assignmentFilters/error-id$`,
 		factories.ErrorResponse(409, "Conflict", "Assignment filter is in use"))
 }
 

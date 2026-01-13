@@ -8,7 +8,6 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks/factories"
 
@@ -59,7 +58,7 @@ func (m *AndroidManagedDeviceAppConfigurationMock) RegisterMocks() {
 		m.updateAndroidManagedDeviceAppConfigurationPolicyResponder())
 
 	// DELETE /deviceAppManagement/mobileAppConfigurations/{id} - Delete Android managed device app configuration policy
-	httpmock.RegisterResponder(constants.TfTfOperationDelete, `=~^https://graph\.microsoft\.com/beta/deviceAppManagement/mobileAppConfigurations/([^/]+)$`,
+	httpmock.RegisterResponder("DELETE", `=~^https://graph\.microsoft\.com/beta/deviceAppManagement/mobileAppConfigurations/([^/]+)$`,
 		m.deleteAndroidManagedDeviceAppConfigurationPolicyResponder())
 }
 

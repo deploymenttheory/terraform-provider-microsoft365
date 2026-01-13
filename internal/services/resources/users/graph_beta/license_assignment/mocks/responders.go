@@ -58,7 +58,7 @@ func getJSONFileForUserID(userID string, operation string) string {
 			return "validate_create/post_user_minimal_success.json"
 		case constants.TfOperationUpdate:
 			return "validate_update/patch_user_success.json"
-		case constants.TfTfOperationDelete:
+		case constants.TfOperationDelete:
 			return "validate_delete/get_user_not_found.json"
 		}
 	case "00000000-0000-0000-0000-000000000003":
@@ -68,7 +68,7 @@ func getJSONFileForUserID(userID string, operation string) string {
 			return "validate_create/post_user_maximal_success.json"
 		case constants.TfOperationUpdate:
 			return "validate_update/patch_user_success.json"
-		case constants.TfTfOperationDelete:
+		case constants.TfOperationDelete:
 			return "validate_delete/get_user_not_found.json"
 		}
 	case "invalid-user-id":

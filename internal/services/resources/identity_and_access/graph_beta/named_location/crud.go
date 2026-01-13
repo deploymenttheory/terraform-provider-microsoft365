@@ -274,7 +274,7 @@ func (r *NamedLocationResource) Delete(ctx context.Context, req resource.DeleteR
 			resp.State.RemoveResource(ctx)
 			return
 		}
-		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfTfOperationDelete, r.ReadPermissions)
+		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationDelete, r.ReadPermissions)
 		return
 	}
 
@@ -308,7 +308,7 @@ func (r *NamedLocationResource) Delete(ctx context.Context, req resource.DeleteR
 			Patch(ctx, patchBody, nil)
 
 		if err != nil {
-			errors.HandleKiotaGraphError(ctx, err, resp, constants.TfTfOperationDelete, r.WritePermissions)
+			errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationDelete, r.WritePermissions)
 			return
 		}
 
@@ -337,7 +337,7 @@ func (r *NamedLocationResource) Delete(ctx context.Context, req resource.DeleteR
 					resp.State.RemoveResource(ctx)
 					return
 				}
-				errors.HandleKiotaGraphError(ctx, err, resp, constants.TfTfOperationDelete, r.ReadPermissions)
+				errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationDelete, r.ReadPermissions)
 				return
 			}
 
@@ -397,7 +397,7 @@ func (r *NamedLocationResource) Delete(ctx context.Context, req resource.DeleteR
 			resp.State.RemoveResource(ctx)
 			return
 		}
-		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfTfOperationDelete, r.WritePermissions)
+		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationDelete, r.WritePermissions)
 		return
 	}
 

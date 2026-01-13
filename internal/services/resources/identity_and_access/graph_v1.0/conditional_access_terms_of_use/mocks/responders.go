@@ -6,7 +6,6 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks/factories"
@@ -215,8 +214,8 @@ func (m *ConditionalAccessTermsOfUseMock) RegisterMocks() {
 	}
 
 	// Register DELETE for agreements (v1.0 and beta)
-	httpmock.RegisterResponder(constants.TfTfOperationDelete, `=~^https://graph\.microsoft\.com/v1\.0/agreements/[a-fA-F0-9-]+$`, deleteAgreementResponder)
-	httpmock.RegisterResponder(constants.TfTfOperationDelete, `=~^https://graph\.microsoft\.com/beta/agreements/[a-fA-F0-9-]+$`, deleteAgreementResponder)
+	httpmock.RegisterResponder("DELETE", `=~^https://graph\.microsoft\.com/v1\.0/agreements/[a-fA-F0-9-]+$`, deleteAgreementResponder)
+	httpmock.RegisterResponder("DELETE", `=~^https://graph\.microsoft\.com/beta/agreements/[a-fA-F0-9-]+$`, deleteAgreementResponder)
 }
 
 // CleanupMockState clears the mock state for clean test runs

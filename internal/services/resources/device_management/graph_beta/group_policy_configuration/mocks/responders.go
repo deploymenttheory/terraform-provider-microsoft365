@@ -54,7 +54,7 @@ func (m *GroupPolicyConfigurationMock) RegisterMocks() {
 	)
 
 	// DELETE - Delete Group Policy Configuration
-	httpmock.RegisterRegexpResponder(constants.TfTfOperationDelete, regexp.MustCompile(`https://graph\.microsoft\.com/beta/deviceManagement/groupPolicyConfigurations/[0-9a-fA-F-]+$`),
+	httpmock.RegisterRegexpResponder(constants.TfOperationDelete, regexp.MustCompile(`https://graph\.microsoft\.com/beta/deviceManagement/groupPolicyConfigurations/[0-9a-fA-F-]+$`),
 		m.deleteGroupPolicyConfiguration,
 	)
 }

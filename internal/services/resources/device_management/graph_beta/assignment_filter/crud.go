@@ -238,7 +238,7 @@ func (r *AssignmentFilterResource) Delete(ctx context.Context, req resource.Dele
 	}, deleteOptions)
 
 	if err != nil {
-		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfTfOperationDelete, r.WritePermissions)
+		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationDelete, r.WritePermissions)
 		return
 	}
 

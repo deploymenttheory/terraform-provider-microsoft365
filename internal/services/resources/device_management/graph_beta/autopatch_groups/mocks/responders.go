@@ -143,7 +143,7 @@ func (m *AutopatchGroupsMock) RegisterMocks() {
 	})
 
 	// Delete autopatch group - DELETE /device/v2/autopatchGroups/{id}
-	httpmock.RegisterResponder(constants.TfTfOperationDelete, `=~^https://services\.autopatch\.microsoft\.com/device/v2/autopatchGroups/([0-9a-fA-F-]+)$`, func(req *http.Request) (*http.Response, error) {
+	httpmock.RegisterResponder("DELETE", `=~^https://services\.autopatch\.microsoft\.com/device/v2/autopatchGroups/([0-9a-fA-F-]+)$`, func(req *http.Request) (*http.Response, error) {
 		// Extract ID from URL
 		parts := req.URL.Path[len("/device/v2/autopatchGroups/"):]
 		id := parts
@@ -181,7 +181,7 @@ func (m *AutopatchGroupsMock) RegisterErrorMocks() {
 		httpmock.NewStringResponder(400, `{"error":{"code":"BadRequest","message":"Invalid request"}}`))
 
 	// Delete - return error
-	httpmock.RegisterResponder(constants.TfTfOperationDelete, `=~^https://services\.autopatch\.microsoft\.com/device/v2/autopatchGroups/([0-9a-fA-F-]+)$`,
+	httpmock.RegisterResponder("DELETE", `=~^https://services\.autopatch\.microsoft\.com/device/v2/autopatchGroups/([0-9a-fA-F-]+)$`,
 		httpmock.NewStringResponder(400, `{"error":{"code":"BadRequest","message":"Cannot delete autopatch group"}}`))
 }
 

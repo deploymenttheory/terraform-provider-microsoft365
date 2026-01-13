@@ -342,7 +342,7 @@ func (r *GroupPolicyDefinitionResource) Delete(ctx context.Context, req resource
 	}
 
 	// Construct the delete request
-	requestBody, err := constructResource(ctx, &object, constants.TfTfOperationDelete)
+	requestBody, err := constructResource(ctx, &object, constants.TfOperationDelete)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error constructing delete request",
@@ -362,7 +362,7 @@ func (r *GroupPolicyDefinitionResource) Delete(ctx context.Context, req resource
 		Post(ctx, requestBody, nil)
 
 	if err != nil {
-		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfTfOperationDelete, r.WritePermissions)
+		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationDelete, r.WritePermissions)
 		return
 	}
 

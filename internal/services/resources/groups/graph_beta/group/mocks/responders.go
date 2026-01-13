@@ -6,7 +6,6 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
 	"github.com/google/uuid"
@@ -186,7 +185,7 @@ func (m *GroupMock) RegisterMocks() {
 
 	// Register DELETE for deleting groups (soft delete)
 	// Moves item to deletedItems collection instead of permanently deleting
-	httpmock.RegisterResponder(constants.TfTfOperationDelete, `=~^https://graph\.microsoft\.com/beta/groups/([a-fA-F0-9\-]+)`,
+	httpmock.RegisterResponder("DELETE", `=~^https://graph\.microsoft\.com/beta/groups/([a-fA-F0-9\-]+)`,
 		func(req *http.Request) (*http.Response, error) {
 			groupID := httpmock.MustGetSubmatch(req, 1)
 
@@ -226,7 +225,7 @@ func (m *GroupMock) RegisterMocks() {
 
 	// Permanent delete from deleted items - DELETE /directory/deletedItems/{id}
 	// REF: https://learn.microsoft.com/en-us/graph/api/directory-deleteditems-delete?view=graph-rest-beta
-	httpmock.RegisterResponder(constants.TfTfOperationDelete, `=~^https://graph\.microsoft\.com/beta/directory/deletedItems/([a-fA-F0-9\-]+)`,
+	httpmock.RegisterResponder("DELETE", `=~^https://graph\.microsoft\.com/beta/directory/deletedItems/([a-fA-F0-9\-]+)`,
 		func(req *http.Request) (*http.Response, error) {
 			resourceID := httpmock.MustGetSubmatch(req, 1)
 
@@ -263,13 +262,13 @@ func (m *GroupMock) RegisterErrorMocks() {
 	httpmock.RegisterResponder("PATCH", `=~^https://graph\.microsoft\.com/beta/groups/([a-fA-F0-9\-]+)`,
 		httpmock.NewStringResponder(400, errorBadRequest))
 
-	httpmock.RegisterResponder(constants.TfTfOperationDelete, `=~^https://graph\.microsoft\.com/beta/groups/([a-fA-F0-9\-]+)`,
+	httpmock.RegisterResponder("DELETE", `=~^https://graph\.microsoft\.com/beta/groups/([a-fA-F0-9\-]+)`,
 		httpmock.NewStringResponder(400, errorBadRequest))
 
 	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/directory/deletedItems/([a-fA-F0-9\-]+)`,
 		httpmock.NewStringResponder(404, errorNotFound))
 
-	httpmock.RegisterResponder(constants.TfTfOperationDelete, `=~^https://graph\.microsoft\.com/beta/directory/deletedItems/([a-fA-F0-9\-]+)`,
+	httpmock.RegisterResponder("DELETE", `=~^https://graph\.microsoft\.com/beta/directory/deletedItems/([a-fA-F0-9\-]+)`,
 		httpmock.NewStringResponder(400, errorBadRequest))
 }
 

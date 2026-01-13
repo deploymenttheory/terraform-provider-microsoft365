@@ -238,7 +238,7 @@ func (r *AppleConfiguratorEnrollmentPolicyResource) Delete(ctx context.Context, 
 		var err error
 		depId, err = r.resolveDepOnboardingSettingsId(ctx, object.DepOnboardingSettingsId)
 		if err != nil {
-			errors.HandleKiotaGraphError(ctx, err, resp, constants.TfTfOperationDelete, r.WritePermissions)
+			errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationDelete, r.WritePermissions)
 			resp.Diagnostics.AddError("Failed to resolve dep_onboarding_settings_id", err.Error())
 			return
 		}
@@ -253,7 +253,7 @@ func (r *AppleConfiguratorEnrollmentPolicyResource) Delete(ctx context.Context, 
 		Delete(ctx, nil)
 
 	if err != nil {
-		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfTfOperationDelete, r.WritePermissions)
+		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationDelete, r.WritePermissions)
 		return
 	}
 

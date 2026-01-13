@@ -32,7 +32,7 @@ func constructResource(ctx context.Context, data *GroupPolicyDefinitionResourceM
 	var presentationValues []models.GroupPolicyPresentationValueable
 
 	// For delete operations, we don't need to construct presentation values
-	if operation != constants.TfTfOperationDelete {
+	if operation != constants.TfOperationDelete {
 		// Get resolved presentations from AdditionalData
 		resolvedPresentations, ok := data.AdditionalData["resolvedPresentations"].([]ResolvedPresentation)
 		if !ok {
@@ -111,7 +111,7 @@ func constructResource(ctx context.Context, data *GroupPolicyDefinitionResourceM
 		requestBody.SetUpdated(updatedValues)
 		requestBody.SetDeletedIds([]string{})
 
-	case constants.TfTfOperationDelete:
+	case constants.TfOperationDelete:
 		definitionValueInstanceID := data.AdditionalData["definitionValueInstanceID"].(string)
 		requestBody.SetAdded([]models.GroupPolicyDefinitionValueable{})
 		requestBody.SetUpdated([]models.GroupPolicyDefinitionValueable{})

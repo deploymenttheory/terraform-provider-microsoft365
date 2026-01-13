@@ -7,7 +7,6 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks/factories"
@@ -55,7 +54,7 @@ func (m *RoleDefinitionMock) RegisterMocks() {
 		m.updateRoleDefinitionResponder())
 
 	// DELETE /deviceManagement/roleDefinitions/{id} - Delete
-	httpmock.RegisterResponder(constants.TfTfOperationDelete, `=~^https://graph\.microsoft\.com/beta/deviceManagement/roleDefinitions/([^/]+)$`,
+	httpmock.RegisterResponder("DELETE", `=~^https://graph\.microsoft\.com/beta/deviceManagement/roleDefinitions/([^/]+)$`,
 		m.deleteRoleDefinitionResponder())
 
 	// GET /deviceManagement/roleDefinitions - List (for uniqueness validation)
@@ -312,7 +311,7 @@ func (m *RoleDefinitionMock) RegisterErrorMocks() {
 		factories.ErrorResponse(500, "InternalServerError", "Internal server error"))
 
 	// DELETE - Delete error
-	httpmock.RegisterResponder(constants.TfTfOperationDelete, `=~^https://graph\.microsoft\.com/beta/deviceManagement/roleDefinitions/error-id$`,
+	httpmock.RegisterResponder("DELETE", `=~^https://graph\.microsoft\.com/beta/deviceManagement/roleDefinitions/error-id$`,
 		factories.ErrorResponse(409, "Conflict", "Role definition is in use"))
 
 	// GET - Resource operations error (for role permission validation)
