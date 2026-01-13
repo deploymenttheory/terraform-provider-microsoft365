@@ -9,6 +9,7 @@ import (
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/check"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/destroy"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/testlog"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
 	graphBetaWindowsUpdateRing "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_management/graph_beta/windows_update_ring"
@@ -40,7 +41,7 @@ func TestAccWindowsUpdateRingResource_001_Scenario_NotifyDownload(t *testing.T) 
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
 				Source:            "hashicorp/random",
-				VersionConstraint: ">= 3.7.2",
+				VersionConstraint: constants.ExternalProviderRandomVersion,
 			},
 		},
 		Steps: []resource.TestStep{
@@ -88,7 +89,7 @@ func TestAccWindowsUpdateRingResource_002_Scenario_AutoInstallMaintenance(t *tes
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
 				Source:            "hashicorp/random",
-				VersionConstraint: ">= 3.7.2",
+				VersionConstraint: constants.ExternalProviderRandomVersion,
 			},
 		},
 		Steps: []resource.TestStep{
@@ -137,7 +138,7 @@ func TestAccWindowsUpdateRingResource_003_Scenario_AutoRebootMaintenance(t *test
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
 				Source:            "hashicorp/random",
-				VersionConstraint: ">= 3.7.2",
+				VersionConstraint: constants.ExternalProviderRandomVersion,
 			},
 		},
 		Steps: []resource.TestStep{
@@ -186,7 +187,7 @@ func TestAccWindowsUpdateRingResource_004_Scenario_ScheduledInstall(t *testing.T
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
 				Source:            "hashicorp/random",
-				VersionConstraint: ">= 3.7.2",
+				VersionConstraint: constants.ExternalProviderRandomVersion,
 			},
 		},
 		Steps: []resource.TestStep{
@@ -236,7 +237,7 @@ func TestAccWindowsUpdateRingResource_005_Scenario_NoEndUserControl(t *testing.T
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
 				Source:            "hashicorp/random",
-				VersionConstraint: ">= 3.7.2",
+				VersionConstraint: constants.ExternalProviderRandomVersion,
 			},
 		},
 		Steps: []resource.TestStep{
@@ -283,7 +284,7 @@ func TestAccWindowsUpdateRingResource_006_Scenario_WindowsDefault(t *testing.T) 
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
 				Source:            "hashicorp/random",
-				VersionConstraint: ">= 3.7.2",
+				VersionConstraint: constants.ExternalProviderRandomVersion,
 			},
 		},
 		Steps: []resource.TestStep{
@@ -331,7 +332,7 @@ func TestAccWindowsUpdateRingResource_007_FullLifecycle(t *testing.T) {
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
 				Source:            "hashicorp/random",
-				VersionConstraint: ">= 3.7.2",
+				VersionConstraint: constants.ExternalProviderRandomVersion,
 			},
 		},
 		Steps: []resource.TestStep{
@@ -454,7 +455,7 @@ func TestAccWindowsUpdateRingResource_008_AssignmentsMinimal(t *testing.T) {
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
 				Source:            "hashicorp/random",
-				VersionConstraint: ">= 3.7.2",
+				VersionConstraint: constants.ExternalProviderRandomVersion,
 			},
 		},
 		Steps: []resource.TestStep{
@@ -499,7 +500,7 @@ func TestAccWindowsUpdateRingResource_009_AssignmentsMaximal(t *testing.T) {
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
 				Source:            "hashicorp/random",
-				VersionConstraint: ">= 3.7.2",
+				VersionConstraint: constants.ExternalProviderRandomVersion,
 			},
 		},
 		Steps: []resource.TestStep{
@@ -544,7 +545,7 @@ func TestAccWindowsUpdateRingResource_010_AssignmentsLifecycle_MinimalToMaximal(
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
 				Source:            "hashicorp/random",
-				VersionConstraint: ">= 3.7.2",
+				VersionConstraint: constants.ExternalProviderRandomVersion,
 			},
 		},
 		Steps: []resource.TestStep{
@@ -604,7 +605,7 @@ func TestAccWindowsUpdateRingResource_011_AssignmentsLifecycle_MaximalToMinimal(
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
 				Source:            "hashicorp/random",
-				VersionConstraint: ">= 3.7.2",
+				VersionConstraint: constants.ExternalProviderRandomVersion,
 			},
 		},
 		Steps: []resource.TestStep{
@@ -659,7 +660,7 @@ func TestAccWindowsUpdateRingResource_012_ValidationErrors(t *testing.T) {
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
 				Source:            "hashicorp/random",
-				VersionConstraint: ">= 3.7.2",
+				VersionConstraint: constants.ExternalProviderRandomVersion,
 			},
 		},
 		Steps: []resource.TestStep{

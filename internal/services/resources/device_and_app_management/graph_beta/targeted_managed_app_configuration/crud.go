@@ -6,6 +6,7 @@ import (
 	"reflect"
 	"time"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
 	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -53,7 +54,7 @@ func (r *TargetedManagedAppConfigurationResource) Create(ctx context.Context, re
 		Post(ctx, requestBody, nil)
 
 	if err != nil {
-		errors.HandleKiotaGraphError(ctx, err, resp, "Create", r.WritePermissions)
+		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationCreate, r.WritePermissions)
 		return
 	}
 
@@ -68,7 +69,7 @@ func (r *TargetedManagedAppConfigurationResource) Create(ctx context.Context, re
 	stateContainer := &crud.CreateResponseContainer{CreateResponse: resp}
 
 	opts := crud.DefaultReadWithRetryOptions()
-	opts.Operation = "Create"
+	opts.Operation = constants.TfOperationCreate
 	opts.ResourceTypeName = ResourceName
 
 	err = crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)
@@ -89,7 +90,7 @@ func (r *TargetedManagedAppConfigurationResource) Read(ctx context.Context, req 
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting Read method for: %s", ResourceName))
 
-	operation := "Read"
+	operation := constants.TfOperationRead
 	if ctxOp := ctx.Value("retry_operation"); ctxOp != nil {
 		if opStr, ok := ctxOp.(string); ok {
 			operation = opStr
@@ -183,7 +184,7 @@ func (r *TargetedManagedAppConfigurationResource) Update(ctx context.Context, re
 			Patch(ctx, requestBody, nil)
 
 		if err != nil {
-			errors.HandleKiotaGraphError(ctx, err, resp, "Update Base Properties", r.WritePermissions)
+			errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationUpdate, r.WritePermissions)
 			return
 		}
 	} else {
@@ -211,7 +212,7 @@ func (r *TargetedManagedAppConfigurationResource) Update(ctx context.Context, re
 			Post(ctx, appsRequest, nil)
 
 		if err != nil {
-			errors.HandleKiotaGraphError(ctx, err, resp, "Update Apps", r.WritePermissions)
+			errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationUpdate, r.WritePermissions)
 			return
 		}
 	} else {
@@ -238,7 +239,7 @@ func (r *TargetedManagedAppConfigurationResource) Update(ctx context.Context, re
 			Patch(ctx, requestBody, nil)
 
 		if err != nil {
-			errors.HandleKiotaGraphError(ctx, err, resp, "Update Custom Settings", r.WritePermissions)
+			errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationUpdate, r.WritePermissions)
 			return
 		}
 	} else {
@@ -266,7 +267,7 @@ func (r *TargetedManagedAppConfigurationResource) Update(ctx context.Context, re
 			Post(ctx, settingsRequest, nil)
 
 		if err != nil {
-			errors.HandleKiotaGraphError(ctx, err, resp, "Update Settings", r.WritePermissions)
+			errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationUpdate, r.WritePermissions)
 			return
 		}
 	} else {
@@ -298,7 +299,7 @@ func (r *TargetedManagedAppConfigurationResource) Update(ctx context.Context, re
 			Post(ctx, assignRequest, nil)
 
 		if err != nil {
-			errors.HandleKiotaGraphError(ctx, err, resp, "Update Assignments", r.WritePermissions)
+			errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationUpdate, r.WritePermissions)
 			return
 		}
 	} else {
@@ -310,7 +311,7 @@ func (r *TargetedManagedAppConfigurationResource) Update(ctx context.Context, re
 	stateContainer := &crud.UpdateResponseContainer{UpdateResponse: resp}
 
 	opts := crud.DefaultReadWithRetryOptions()
-	opts.Operation = "Update"
+	opts.Operation = constants.TfOperationUpdate
 	opts.ResourceTypeName = ResourceName
 
 	err := crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)
@@ -335,7 +336,7 @@ func (r *TargetedManagedAppConfigurationResource) Delete(ctx context.Context, re
 
 	err := r.client.DeviceAppManagement().TargetedManagedAppConfigurations().ByTargetedManagedAppConfigurationId(state.ID.ValueString()).Delete(ctx, nil)
 	if err != nil {
-		errors.HandleKiotaGraphError(ctx, err, resp, "Delete", r.WritePermissions)
+		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfTfOperationDelete, r.WritePermissions)
 		return
 	}
 

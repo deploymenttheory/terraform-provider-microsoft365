@@ -6,6 +6,7 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
 	"github.com/google/uuid"
@@ -301,7 +302,7 @@ func (m *WindowsEnrollmentStatusPageMock) RegisterMocks() {
 		return httpmock.NewStringResponse(204, ""), nil
 	})
 
-	httpmock.RegisterResponder("DELETE", `=~^https://graph\.microsoft\.com/beta/deviceManagement/deviceEnrollmentConfigurations/[^/]+$`, func(req *http.Request) (*http.Response, error) {
+	httpmock.RegisterResponder(constants.TfTfOperationDelete, `=~^https://graph\.microsoft\.com/beta/deviceManagement/deviceEnrollmentConfigurations/[^/]+$`, func(req *http.Request) (*http.Response, error) {
 		parts := strings.Split(req.URL.Path, "/")
 		id := parts[len(parts)-1]
 		mockState.Lock()

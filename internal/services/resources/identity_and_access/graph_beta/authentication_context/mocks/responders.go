@@ -6,6 +6,7 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks/factories"
@@ -193,7 +194,7 @@ func (m *AuthenticationContextMock) RegisterMocks() {
 		})
 
 	// Register DELETE for Authentication Context
-	httpmock.RegisterResponder("DELETE", `=~^https://graph\.microsoft\.com/beta/identity/conditionalAccess/authenticationContextClassReferences/c[0-9]+$`,
+	httpmock.RegisterResponder(constants.TfTfOperationDelete, `=~^https://graph\.microsoft\.com/beta/identity/conditionalAccess/authenticationContextClassReferences/c[0-9]+$`,
 		func(req *http.Request) (*http.Response, error) {
 			// Extract ID from URL
 			urlParts := strings.Split(req.URL.Path, "/")

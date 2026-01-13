@@ -107,7 +107,7 @@ class GitHubClient:
             Issue URL
         """
         return self.run_gh_command([
-            "issue", "create",
+            "issue", constants.TfOperationCreate,
             "--repo", self.repo,
             "--title", title,
             "--body", body,
@@ -123,7 +123,7 @@ class GitHubClient:
         for label_name, color, description in labels:
             try:
                 self.run_gh_command([
-                    "label", "create", label_name,
+                    "label", constants.TfOperationCreate, label_name,
                     "--repo", self.repo,
                     "--color", color,
                     "--description", description,

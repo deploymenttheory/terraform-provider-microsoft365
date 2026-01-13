@@ -7,6 +7,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	commonMocks "github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
 	"github.com/google/uuid"
@@ -322,7 +323,7 @@ func (m *UserMock) RegisterMocks() {
 
 	// Register DELETE for removing users (soft delete)
 	// Moves item to deletedItems collection instead of permanently deleting
-	httpmock.RegisterResponder("DELETE", `=~^https://graph.microsoft.com/beta/users/[^/]+$`,
+	httpmock.RegisterResponder(constants.TfTfOperationDelete, `=~^https://graph.microsoft.com/beta/users/[^/]+$`,
 		func(req *http.Request) (*http.Response, error) {
 			urlParts := strings.Split(req.URL.Path, "/")
 			userId := urlParts[len(urlParts)-1]
@@ -380,7 +381,7 @@ func (m *UserMock) RegisterMocks() {
 
 	// Permanent delete from deleted items - DELETE /directory/deletedItems/{id}
 	// REF: https://learn.microsoft.com/en-us/graph/api/directory-deleteditems-delete?view=graph-rest-beta
-	httpmock.RegisterResponder("DELETE", `=~^https://graph\.microsoft\.com/beta/directory/deletedItems/[^/]+$`,
+	httpmock.RegisterResponder(constants.TfTfOperationDelete, `=~^https://graph\.microsoft\.com/beta/directory/deletedItems/[^/]+$`,
 		func(req *http.Request) (*http.Response, error) {
 			urlParts := strings.Split(req.URL.Path, "/")
 			resourceId := urlParts[len(urlParts)-1]
@@ -425,7 +426,7 @@ func (m *UserMock) RegisterErrorMocks() {
 		httpmock.NewStringResponder(400, errorBadRequest))
 
 	// Register error response for DELETE
-	httpmock.RegisterResponder("DELETE", `=~^https://graph.microsoft.com/beta/users/[^/]+$`,
+	httpmock.RegisterResponder(constants.TfTfOperationDelete, `=~^https://graph.microsoft.com/beta/users/[^/]+$`,
 		httpmock.NewStringResponder(400, errorBadRequest))
 
 	// Register error response for GET deleted items
@@ -433,7 +434,7 @@ func (m *UserMock) RegisterErrorMocks() {
 		httpmock.NewStringResponder(404, errorNotFound))
 
 	// Register error response for DELETE deleted items
-	httpmock.RegisterResponder("DELETE", `=~^https://graph\.microsoft\.com/beta/directory/deletedItems/[^/]+$`,
+	httpmock.RegisterResponder(constants.TfTfOperationDelete, `=~^https://graph\.microsoft\.com/beta/directory/deletedItems/[^/]+$`,
 		httpmock.NewStringResponder(400, errorBadRequest))
 }
 

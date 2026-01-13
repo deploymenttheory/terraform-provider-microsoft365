@@ -8,6 +8,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks/factories"
 	"github.com/jarcoal/httpmock"
 )
@@ -199,7 +200,7 @@ func (m *GroupAppRoleAssignmentMock) RegisterMocks() {
 		})
 
 	// Register DELETE for removing app role assignments
-	httpmock.RegisterResponder("DELETE", `=~^https://graph\.microsoft\.com/beta/groups/[^/]+/appRoleAssignments/[^/]+$`,
+	httpmock.RegisterResponder(constants.TfTfOperationDelete, `=~^https://graph\.microsoft\.com/beta/groups/[^/]+/appRoleAssignments/[^/]+$`,
 		func(req *http.Request) (*http.Response, error) {
 			urlParts := strings.Split(req.URL.Path, "/")
 			groupId := urlParts[len(urlParts)-3]

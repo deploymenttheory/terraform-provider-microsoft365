@@ -6,6 +6,7 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks/factories"
 	"github.com/google/uuid"
 	"github.com/jarcoal/httpmock"
@@ -167,7 +168,7 @@ func (m *CloudPcDeviceImageMock) RegisterMocks() {
 		})
 
 	// Register DELETE for Cloud PC device image
-	httpmock.RegisterResponder("DELETE", `=~^https://graph\.microsoft\.com/beta/deviceManagement/virtualEndpoint/deviceImages/[^/]+$`,
+	httpmock.RegisterResponder(constants.TfOperationDelete, `=~^https://graph\.microsoft\.com/beta/deviceManagement/virtualEndpoint/deviceImages/[^/]+$`,
 		func(req *http.Request) (*http.Response, error) {
 			// Extract ID from URL
 			urlParts := strings.Split(req.URL.Path, "/")

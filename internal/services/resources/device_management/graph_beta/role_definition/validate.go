@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
@@ -19,7 +20,7 @@ func validateRequest(ctx context.Context, client *msgraphbetasdk.GraphServiceCli
 		Get(ctx, nil)
 
 	if err != nil {
-		errors.HandleKiotaGraphError(ctx, err, resp, "Read", readPermissions)
+		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationRead, readPermissions)
 		return nil, err
 	}
 

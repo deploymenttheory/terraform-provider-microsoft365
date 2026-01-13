@@ -7,6 +7,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks/factories"
 	"github.com/google/uuid"
 	"github.com/jarcoal/httpmock"
@@ -158,7 +159,7 @@ func (m *IOSManagedMobileAppMock) RegisterMocks() {
 		})
 
 	// Register DELETE for removing apps
-	httpmock.RegisterResponder("DELETE", `=~^https://graph.microsoft.com/beta/deviceAppManagement/iosManagedAppProtections/[^/]+/apps/[^/]+$`,
+	httpmock.RegisterResponder(constants.TfTfOperationDelete, `=~^https://graph.microsoft.com/beta/deviceAppManagement/iosManagedAppProtections/[^/]+/apps/[^/]+$`,
 		func(req *http.Request) (*http.Response, error) {
 			urlParts := strings.Split(req.URL.Path, "/")
 			appId := urlParts[len(urlParts)-1]

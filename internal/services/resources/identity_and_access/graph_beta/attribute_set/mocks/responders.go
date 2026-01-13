@@ -6,6 +6,7 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks/factories"
@@ -194,7 +195,7 @@ func (m *AttributeSetMock) RegisterMocks() {
 		})
 
 	// Register DELETE for Attribute Set
-	httpmock.RegisterResponder("DELETE", `=~^https://graph\.microsoft\.com/beta/directory/attributeSets/[a-zA-Z0-9_-]+$`,
+	httpmock.RegisterResponder(constants.TfTfOperationDelete, `=~^https://graph\.microsoft\.com/beta/directory/attributeSets/[a-zA-Z0-9_-]+$`,
 		func(req *http.Request) (*http.Response, error) {
 			// Extract ID from URL
 			urlParts := strings.Split(req.URL.Path, "/")

@@ -8,6 +8,7 @@ import (
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/check"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/destroy"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/testlog"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
 	graphBetaMacOSPlatformScript "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_management/graph_beta/macos_platform_script"
@@ -269,7 +270,7 @@ func TestAccMacOSPlatformScriptResource_Scenario05_NoAssignmentsToMinimalAssignm
 
 			"random": {
 				Source:            "hashicorp/random",
-				VersionConstraint: ">= 3.7.2",
+				VersionConstraint: constants.ExternalProviderRandomVersion,
 			},
 		},
 		Steps: []resource.TestStep{
@@ -337,7 +338,7 @@ func TestAccMacOSPlatformScriptResource_Scenario06_NoAssignmentsToMaximalAssignm
 
 			"random": {
 				Source:            "hashicorp/random",
-				VersionConstraint: ">= 3.7.2",
+				VersionConstraint: constants.ExternalProviderRandomVersion,
 			},
 		},
 		Steps: []resource.TestStep{
@@ -414,7 +415,7 @@ func TestAccMacOSPlatformScriptResource_Scenario07_MinimalToMaximalAssignments(t
 
 			"random": {
 				Source:            "hashicorp/random",
-				VersionConstraint: ">= 3.7.2",
+				VersionConstraint: constants.ExternalProviderRandomVersion,
 			},
 		},
 		Steps: []resource.TestStep{
@@ -494,7 +495,7 @@ func TestAccMacOSPlatformScriptResource_Scenario08_MaximalToMinimalAssignments(t
 
 			"random": {
 				Source:            "hashicorp/random",
-				VersionConstraint: ">= 3.7.2",
+				VersionConstraint: constants.ExternalProviderRandomVersion,
 			},
 		},
 		Steps: []resource.TestStep{

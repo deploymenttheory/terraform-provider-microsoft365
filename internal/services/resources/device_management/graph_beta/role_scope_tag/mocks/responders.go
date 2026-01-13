@@ -8,6 +8,7 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks/factories"
@@ -57,7 +58,7 @@ func (m *RoleScopeTagMock) RegisterMocks() {
 		m.updateRoleScopeTagResponder())
 
 	// DELETE /deviceManagement/roleScopeTags/{id} - Delete
-	httpmock.RegisterResponder("DELETE", `=~^https://graph\.microsoft\.com/beta/deviceManagement/roleScopeTags/([^/]+)$`,
+	httpmock.RegisterResponder(constants.TfTfOperationDelete, `=~^https://graph\.microsoft\.com/beta/deviceManagement/roleScopeTags/([^/]+)$`,
 		m.deleteRoleScopeTagResponder())
 
 	// GET /deviceManagement/roleScopeTags - List (for validation)
@@ -462,7 +463,7 @@ func (m *RoleScopeTagMock) RegisterErrorMocks() {
 		factories.ErrorResponse(500, "InternalServerError", "Internal server error"))
 
 	// DELETE - Delete error
-	httpmock.RegisterResponder("DELETE", `=~^https://graph\.microsoft\.com/beta/deviceManagement/roleScopeTags/error-id$`,
+	httpmock.RegisterResponder(constants.TfTfOperationDelete, `=~^https://graph\.microsoft\.com/beta/deviceManagement/roleScopeTags/error-id$`,
 		factories.ErrorResponse(409, "Conflict", "Role scope tag is in use"))
 }
 

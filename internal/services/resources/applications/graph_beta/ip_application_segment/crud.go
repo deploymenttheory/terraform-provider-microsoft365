@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
 	customrequests "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/custom_requests"
 	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
@@ -57,7 +58,7 @@ func (r *IpApplicationSegmentResource) Create(ctx context.Context, req resource.
 	}
 	createdIpApplicationSegment, err := customrequests.PostRequest(ctx, r.client.GetAdapter(), config, graphmodels.CreateIpApplicationSegmentFromDiscriminatorValue, errorMapping)
 	if err != nil {
-		errors.HandleKiotaGraphError(ctx, err, resp, "Create", r.WritePermissions)
+		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationCreate, r.WritePermissions)
 		return
 	}
 
@@ -72,7 +73,7 @@ func (r *IpApplicationSegmentResource) Create(ctx context.Context, req resource.
 	stateContainer := &crud.CreateResponseContainer{CreateResponse: resp}
 
 	opts := crud.DefaultReadWithRetryOptions()
-	opts.Operation = "Create"
+	opts.Operation = constants.TfOperationCreate
 	opts.ResourceTypeName = ResourceName
 
 	err = crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)
@@ -92,7 +93,7 @@ func (r *IpApplicationSegmentResource) Read(ctx context.Context, req resource.Re
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting Read method for: %s", ResourceName))
 
-	operation := "Read"
+	operation := constants.TfOperationRead
 	if ctxOp := ctx.Value("retry_operation"); ctxOp != nil {
 		if opStr, ok := ctxOp.(string); ok {
 			operation = opStr
@@ -152,7 +153,7 @@ func (r *IpApplicationSegmentResource) Update(ctx context.Context, req resource.
 	var plan IpApplicationSegmentResourceModel
 	var state IpApplicationSegmentResourceModel
 
-	operation := "Update"
+	operation := constants.TfOperationUpdate
 	if ctxOp := ctx.Value("retry_operation"); ctxOp != nil {
 		if opStr, ok := ctxOp.(string); ok {
 			operation = opStr
@@ -207,7 +208,7 @@ func (r *IpApplicationSegmentResource) Update(ctx context.Context, req resource.
 	stateContainer := &crud.UpdateResponseContainer{UpdateResponse: resp}
 
 	opts := crud.DefaultReadWithRetryOptions()
-	opts.Operation = "Update"
+	opts.Operation = constants.TfOperationUpdate
 	opts.ResourceTypeName = ResourceName
 
 	err = crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)
@@ -251,7 +252,7 @@ func (r *IpApplicationSegmentResource) Delete(ctx context.Context, req resource.
 	}
 
 	if err := customrequests.DeleteRequestByResourceId(ctx, r.client.GetAdapter(), config); err != nil {
-		errors.HandleKiotaGraphError(ctx, err, resp, "Delete", r.WritePermissions)
+		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationDelete, r.WritePermissions)
 		return
 	}
 

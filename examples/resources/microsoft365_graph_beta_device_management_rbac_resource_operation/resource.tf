@@ -1,7 +1,7 @@
 # Basic resource operation for device management
 resource "microsoft365_graph_beta_device_management_rbac_resource_operation" "device_read" {
   resource_name = "Device"
-  action_name   = "Read"
+  action_name   = constants.TfOperationRead
   description   = "Allows reading device information"
 }
 
@@ -15,7 +15,7 @@ resource "microsoft365_graph_beta_device_management_rbac_resource_operation" "ap
 # Resource operation for compliance policy management
 resource "microsoft365_graph_beta_device_management_rbac_resource_operation" "compliance_create" {
   resource_name = "CompliancePolicy"
-  action_name   = "Create"
+  action_name   = constants.TfOperationCreate
   description   = "Allows creating new compliance policies"
 }
 
@@ -36,7 +36,7 @@ resource "microsoft365_graph_beta_device_management_rbac_resource_operation" "ro
 # Resource operation with custom timeouts
 resource "microsoft365_graph_beta_device_management_rbac_resource_operation" "policy_update" {
   resource_name = "DeviceConfigurationPolicy"
-  action_name   = "Update"
+  action_name   = constants.TfOperationUpdate
   description   = "Allows updating device configuration policies"
 
   timeouts = {

@@ -9,6 +9,7 @@ import (
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/check"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/destroy"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/testlog"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
 	graphBetaServicePrincipalAppRoleAssignedTo "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/applications/graph_beta/service_principal_app_role_assigned_to"
@@ -48,7 +49,7 @@ func TestAccServicePrincipalAppRoleAssignedToResource_ToServicePrincipal(t *test
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
 				Source:            "hashicorp/random",
-				VersionConstraint: ">= 3.7.2",
+				VersionConstraint: constants.ExternalProviderRandomVersion,
 			},
 		},
 		Steps: []resource.TestStep{

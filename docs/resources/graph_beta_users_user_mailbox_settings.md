@@ -289,7 +289,7 @@ Optional:
 
 - **Exchange Online Requirement**: Mailbox settings can only be configured for users with an active Exchange Online mailbox. Users must have a license that includes Exchange Online (e.g., Microsoft 365 E3/E5, Exchange Online Plan 1/2).
 - **Mailbox Provisioning**: After assigning an Exchange Online license to a user, allow 1-2 minutes for the mailbox to provision before configuring settings.
-- **Resource Behavior**: This resource uses PATCH operations for both create and update. The mailbox settings always exist for a user with an Exchange Online mailbox, so "create" effectively updates the existing settings.
+- **Resource Behavior**: This resource uses PATCH operations for both create and update. The mailbox settings always exist for a user with an Exchange Online mailbox, so constants.TfOperationCreate effectively updates the existing settings.
 - **Delete Behavior**: Deleting this resource only removes it from Terraform state without affecting the actual mailbox settings. Mailbox settings cannot be deleted, only reset to defaults manually.
 - **Time Zones**: Use IANA time zone identifiers or Windows time zone names. Common examples: `UTC`, `Pacific Standard Time`, `Eastern Standard Time`.
 - **Date/Time Formats**: Use standard format strings compatible with Outlook. Refer to [.NET standard date and time format strings](https://learn.microsoft.com/en-us/dotnet/standard/base-types/standard-date-and-time-format-strings) for valid formats.

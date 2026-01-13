@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
 	customrequests "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/custom_requests"
@@ -57,7 +58,7 @@ func (r *AgentIdentityBlueprintCertificateCredentialResource) Create(ctx context
 			Get(ctx, nil)
 
 		if err != nil {
-			errors.HandleKiotaGraphError(ctx, err, resp, "Create", r.ReadPermissions)
+			errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationCreate, r.ReadPermissions)
 			return
 		}
 
@@ -89,7 +90,7 @@ func (r *AgentIdentityBlueprintCertificateCredentialResource) Create(ctx context
 
 	err = customrequests.PatchRequestByResourceId(ctx, r.client.GetAdapter(), config)
 	if err != nil {
-		errors.HandleKiotaGraphError(ctx, err, resp, "Create", r.WritePermissions)
+		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationCreate, r.WritePermissions)
 		return
 	}
 
@@ -102,7 +103,7 @@ func (r *AgentIdentityBlueprintCertificateCredentialResource) Create(ctx context
 		Get(ctx, nil)
 
 	if err != nil {
-		errors.HandleKiotaGraphError(ctx, err, resp, "Create", r.ReadPermissions)
+		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationCreate, r.ReadPermissions)
 		return
 	}
 
@@ -129,7 +130,7 @@ func (r *AgentIdentityBlueprintCertificateCredentialResource) Create(ctx context
 	stateContainer := &crud.CreateResponseContainer{CreateResponse: resp}
 
 	opts := crud.DefaultReadWithRetryOptions()
-	opts.Operation = "Create"
+	opts.Operation = constants.TfOperationCreate
 	opts.ResourceTypeName = ResourceName
 
 	err = crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)
@@ -151,7 +152,7 @@ func (r *AgentIdentityBlueprintCertificateCredentialResource) Read(ctx context.C
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting Read method for: %s", ResourceName))
 
-	operation := "Read"
+	operation := constants.TfOperationRead
 	if ctxOp := ctx.Value("retry_operation"); ctxOp != nil {
 		if opStr, ok := ctxOp.(string); ok {
 			operation = opStr
@@ -195,7 +196,7 @@ func (r *AgentIdentityBlueprintCertificateCredentialResource) Read(ctx context.C
 	// Check if the credential still exists
 	credential := FindKeyCredentialByKeyID(application.GetKeyCredentials(), keyID)
 	if credential == nil {
-		if operation == "Read" {
+		if operation == constants.TfOperationRead {
 			tflog.Warn(ctx, fmt.Sprintf("Credential with keyId %s not found, removing from state", keyID))
 			resp.State.RemoveResource(ctx)
 			return
@@ -249,7 +250,7 @@ func (r *AgentIdentityBlueprintCertificateCredentialResource) Update(ctx context
 		Get(ctx, nil)
 
 	if err != nil {
-		errors.HandleKiotaGraphError(ctx, err, resp, "Update", r.ReadPermissions)
+		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationUpdate, r.ReadPermissions)
 		return
 	}
 
@@ -275,7 +276,7 @@ func (r *AgentIdentityBlueprintCertificateCredentialResource) Update(ctx context
 
 	err = customrequests.PatchRequestByResourceId(ctx, r.client.GetAdapter(), deleteConfig)
 	if err != nil {
-		errors.HandleKiotaGraphError(ctx, err, resp, "Update", r.WritePermissions)
+		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationUpdate, r.WritePermissions)
 		return
 	}
 
@@ -285,7 +286,7 @@ func (r *AgentIdentityBlueprintCertificateCredentialResource) Update(ctx context
 
 	existingApp, err = r.client.Applications().ByApplicationId(blueprintID).Get(ctx, nil)
 	if err != nil {
-		errors.HandleKiotaGraphError(ctx, err, resp, "Update", r.ReadPermissions)
+		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationUpdate, r.ReadPermissions)
 		return
 	}
 
@@ -311,7 +312,7 @@ func (r *AgentIdentityBlueprintCertificateCredentialResource) Update(ctx context
 
 	err = customrequests.PatchRequestByResourceId(ctx, r.client.GetAdapter(), addConfig)
 	if err != nil {
-		errors.HandleKiotaGraphError(ctx, err, resp, "Update", r.WritePermissions)
+		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationUpdate, r.WritePermissions)
 		return
 	}
 
@@ -325,7 +326,7 @@ func (r *AgentIdentityBlueprintCertificateCredentialResource) Update(ctx context
 		Get(ctx, nil)
 
 	if err != nil {
-		errors.HandleKiotaGraphError(ctx, err, resp, "Update", r.ReadPermissions)
+		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationUpdate, r.ReadPermissions)
 		return
 	}
 
@@ -352,7 +353,7 @@ func (r *AgentIdentityBlueprintCertificateCredentialResource) Update(ctx context
 	stateContainer := &crud.UpdateResponseContainer{UpdateResponse: resp}
 
 	opts := crud.DefaultReadWithRetryOptions()
-	opts.Operation = "Update"
+	opts.Operation = constants.TfOperationUpdate
 	opts.ResourceTypeName = ResourceName
 
 	err = crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)
@@ -398,7 +399,7 @@ func (r *AgentIdentityBlueprintCertificateCredentialResource) Delete(ctx context
 		Get(ctx, nil)
 
 	if err != nil {
-		errors.HandleKiotaGraphError(ctx, err, resp, "Delete", r.ReadPermissions)
+		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationDelete, r.ReadPermissions)
 		return
 	}
 
@@ -426,7 +427,7 @@ func (r *AgentIdentityBlueprintCertificateCredentialResource) Delete(ctx context
 	err = customrequests.PatchRequestByResourceId(ctx, r.client.GetAdapter(), config)
 
 	if err != nil {
-		errors.HandleKiotaGraphError(ctx, err, resp, "Delete", r.WritePermissions)
+		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationDelete, r.WritePermissions)
 		return
 	}
 

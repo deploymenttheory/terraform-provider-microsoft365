@@ -6,6 +6,7 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
 	"github.com/google/uuid"
@@ -137,7 +138,7 @@ func (m *GroupLifecyclePolicyMock) RegisterMocks() {
 		})
 
 	// Register DELETE for deleting policies
-	httpmock.RegisterResponder("DELETE", `=~^https://graph\.microsoft\.com/beta/groupLifecyclePolicies/([a-fA-F0-9\-]+)`,
+	httpmock.RegisterResponder(constants.TfTfOperationDelete, `=~^https://graph\.microsoft\.com/beta/groupLifecyclePolicies/([a-fA-F0-9\-]+)`,
 		func(req *http.Request) (*http.Response, error) {
 			policyID := httpmock.MustGetSubmatch(req, 1)
 

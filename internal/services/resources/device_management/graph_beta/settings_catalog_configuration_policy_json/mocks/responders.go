@@ -9,6 +9,7 @@ import (
 	"regexp"
 	"runtime"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/jarcoal/httpmock"
 )
 
@@ -91,7 +92,7 @@ func (m *SettingsCatalogConfigurationPolicyJsonMock) RegisterMocks() {
 		})
 
 	// Mock successful deletion of settings catalog configuration policy
-	httpmock.RegisterRegexpResponder("DELETE", policyIDRegex,
+	httpmock.RegisterRegexpResponder(constants.TfTfOperationDelete, policyIDRegex,
 		func(req *http.Request) (*http.Response, error) {
 			return httpmock.NewStringResponse(204, ""), nil
 		})

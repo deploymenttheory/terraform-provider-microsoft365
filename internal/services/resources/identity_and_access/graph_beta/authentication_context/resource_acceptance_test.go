@@ -9,6 +9,7 @@ import (
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/check"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/destroy"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/testlog"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
 	graphBetaAuthenticationContext "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/identity_and_access/graph_beta/authentication_context"
@@ -36,7 +37,7 @@ func TestAccAuthenticationContextResource_Basic(t *testing.T) {
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
 				Source:            "hashicorp/random",
-				VersionConstraint: ">= 3.7.2",
+				VersionConstraint: constants.ExternalProviderRandomVersion,
 			},
 		},
 		Steps: []resource.TestStep{
@@ -74,7 +75,7 @@ func TestAccAuthenticationContextResource_Update(t *testing.T) {
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
 				Source:            "hashicorp/random",
-				VersionConstraint: ">= 3.7.2",
+				VersionConstraint: constants.ExternalProviderRandomVersion,
 			},
 		},
 		Steps: []resource.TestStep{
@@ -127,7 +128,7 @@ func TestAccAuthenticationContextResource_Import(t *testing.T) {
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
 				Source:            "hashicorp/random",
-				VersionConstraint: ">= 3.7.2",
+				VersionConstraint: constants.ExternalProviderRandomVersion,
 			},
 		},
 		Steps: []resource.TestStep{
@@ -168,7 +169,7 @@ func TestAccAuthenticationContextResource_Minimal(t *testing.T) {
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
 				Source:            "hashicorp/random",
-				VersionConstraint: ">= 3.7.2",
+				VersionConstraint: constants.ExternalProviderRandomVersion,
 			},
 		},
 		Steps: []resource.TestStep{

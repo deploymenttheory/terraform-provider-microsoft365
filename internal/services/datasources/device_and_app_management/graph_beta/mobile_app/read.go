@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
 	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -52,7 +53,7 @@ func (d *MobileAppDataSource) Read(ctx context.Context, req datasource.ReadReque
 			Get(ctx, requestParameters)
 
 		if err != nil {
-			errors.HandleKiotaGraphError(ctx, err, resp, "Read", d.ReadPermissions)
+			errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationRead, d.ReadPermissions)
 			return
 		}
 
@@ -123,7 +124,7 @@ func (d *MobileAppDataSource) Read(ctx context.Context, req datasource.ReadReque
 		allMobileApps, err := d.getAllMobileAppsWithPageIterator(ctx, requestParameters)
 		if err != nil {
 			tflog.Error(ctx, fmt.Sprintf("Error in OData query with pagination: %v", err))
-			errors.HandleKiotaGraphError(ctx, err, resp, "Read", d.ReadPermissions)
+			errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationRead, d.ReadPermissions)
 			return
 		}
 
@@ -153,7 +154,7 @@ func (d *MobileAppDataSource) Read(ctx context.Context, req datasource.ReadReque
 
 		allMobileApps, err := d.getAllMobileAppsWithPageIterator(ctx, requestParameters)
 		if err != nil {
-			errors.HandleKiotaGraphError(ctx, err, resp, "Read", d.ReadPermissions)
+			errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationRead, d.ReadPermissions)
 			return
 		}
 

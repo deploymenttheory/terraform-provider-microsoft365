@@ -8,6 +8,7 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks/factories"
 
@@ -54,7 +55,7 @@ func (m *DeviceCategoryMock) RegisterMocks() {
 		m.updateDeviceCategoryResponder())
 
 	// DELETE /deviceManagement/deviceCategories/{id} - Delete
-	httpmock.RegisterResponder("DELETE", `=~^https://graph\.microsoft\.com/beta/deviceManagement/deviceCategories/([^/]+)$`,
+	httpmock.RegisterResponder(constants.TfTfOperationDelete, `=~^https://graph\.microsoft\.com/beta/deviceManagement/deviceCategories/([^/]+)$`,
 		m.deleteDeviceCategoryResponder())
 }
 

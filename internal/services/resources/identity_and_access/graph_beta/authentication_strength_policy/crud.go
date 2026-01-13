@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
 	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -54,7 +55,7 @@ func (r *AuthenticationStrengthPolicyResource) Create(ctx context.Context, req r
 		Post(ctx, requestBody, nil)
 
 	if err != nil {
-		errors.HandleKiotaGraphError(ctx, err, resp, "Create", r.WritePermissions)
+		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationCreate, r.WritePermissions)
 		return
 	}
 
@@ -71,7 +72,7 @@ func (r *AuthenticationStrengthPolicyResource) Create(ctx context.Context, req r
 	stateContainer := &crud.CreateResponseContainer{CreateResponse: resp}
 
 	opts := crud.DefaultReadWithRetryOptions()
-	opts.Operation = "Create"
+	opts.Operation = constants.TfOperationCreate
 	opts.ResourceTypeName = ResourceName
 	opts.MaxRetries = 60
 	opts.RetryInterval = 5 * time.Second
@@ -94,7 +95,7 @@ func (r *AuthenticationStrengthPolicyResource) Read(ctx context.Context, req res
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting Read method for: %s", ResourceName))
 
-	operation := "Read"
+	operation := constants.TfOperationRead
 	if ctxOp := ctx.Value("retry_operation"); ctxOp != nil {
 		if opStr, ok := ctxOp.(string); ok {
 			operation = opStr
@@ -192,7 +193,7 @@ func (r *AuthenticationStrengthPolicyResource) Update(ctx context.Context, req r
 			Post(ctx, requestBody, nil)
 
 		if err != nil {
-			errors.HandleKiotaGraphError(ctx, err, resp, "Update", r.WritePermissions)
+			errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationUpdate, r.WritePermissions)
 			return
 		}
 	}
@@ -257,7 +258,7 @@ func (r *AuthenticationStrengthPolicyResource) Update(ctx context.Context, req r
 				Patch(ctx, requestBody, nil)
 
 			if err != nil {
-				errors.HandleKiotaGraphError(ctx, err, resp, "Update", r.WritePermissions)
+				errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationUpdate, r.WritePermissions)
 				return
 			}
 		}
@@ -272,7 +273,7 @@ func (r *AuthenticationStrengthPolicyResource) Update(ctx context.Context, req r
 	stateContainer := &crud.UpdateResponseContainer{UpdateResponse: resp}
 
 	opts := crud.DefaultReadWithRetryOptions()
-	opts.Operation = "Update"
+	opts.Operation = constants.TfOperationUpdate
 	opts.ResourceTypeName = ResourceName
 	opts.MaxRetries = 60
 	opts.RetryInterval = 5 * time.Second
@@ -317,7 +318,7 @@ func (r *AuthenticationStrengthPolicyResource) Delete(ctx context.Context, req r
 		Delete(ctx, nil)
 
 	if err != nil {
-		errors.HandleKiotaGraphError(ctx, err, resp, "Delete", r.WritePermissions)
+		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfTfOperationDelete, r.WritePermissions)
 		return
 	}
 

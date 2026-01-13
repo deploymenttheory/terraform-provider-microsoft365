@@ -8,6 +8,7 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
 	"github.com/google/uuid"
@@ -201,7 +202,7 @@ func (m *AgentUserMock) RegisterMocks() {
 
 	// Delete agent user (soft delete) - DELETE /users/{id}
 	// Moves user to deletedItems collection instead of permanently deleting
-	httpmock.RegisterResponder("DELETE", `=~^https://graph\.microsoft\.com/beta/users/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`, func(req *http.Request) (*http.Response, error) {
+	httpmock.RegisterResponder(constants.TfOperationDelete, `=~^https://graph\.microsoft\.com/beta/users/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`, func(req *http.Request) (*http.Response, error) {
 		parts := strings.Split(req.URL.Path, "/")
 		agentUserId := parts[len(parts)-1]
 
@@ -247,7 +248,7 @@ func (m *AgentUserMock) RegisterMocks() {
 	})
 
 	// Remove sponsor - DELETE /users/{id}/sponsors/{sponsorId}/$ref
-	httpmock.RegisterResponder("DELETE", `=~^https://graph\.microsoft\.com/beta/users/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}/sponsors/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}/\$ref$`, func(req *http.Request) (*http.Response, error) {
+	httpmock.RegisterResponder(constants.TfOperationDelete, `=~^https://graph\.microsoft\.com/beta/users/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}/sponsors/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}/\$ref$`, func(req *http.Request) (*http.Response, error) {
 		parts := strings.Split(req.URL.Path, "/")
 		agentUserId := parts[3]
 		sponsorId := parts[5] // Changed from 6 to 5 since we removed microsoft.graph.agentUser
@@ -287,7 +288,7 @@ func (m *AgentUserMock) RegisterMocks() {
 	})
 
 	// Permanent delete from deleted items - DELETE /directory/deletedItems/{id}
-	httpmock.RegisterResponder("DELETE", `=~^https://graph\.microsoft\.com/beta/directory/deletedItems/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`, func(req *http.Request) (*http.Response, error) {
+	httpmock.RegisterResponder(constants.TfOperationDelete, `=~^https://graph\.microsoft\.com/beta/directory/deletedItems/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`, func(req *http.Request) (*http.Response, error) {
 		parts := strings.Split(req.URL.Path, "/")
 		resourceId := parts[len(parts)-1]
 
@@ -320,11 +321,11 @@ func (m *AgentUserMock) RegisterErrorMocks() {
 		httpmock.NewStringResponder(404, errorNotFound))
 	httpmock.RegisterResponder("PATCH", `=~^https://graph\.microsoft\.com/beta/users/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`,
 		httpmock.NewStringResponder(400, errorBadRequest))
-	httpmock.RegisterResponder("DELETE", `=~^https://graph\.microsoft\.com/beta/users/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`,
+	httpmock.RegisterResponder(constants.TfOperationDelete, `=~^https://graph\.microsoft\.com/beta/users/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`,
 		httpmock.NewStringResponder(400, errorBadRequest))
 	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/directory/deletedItems/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`,
 		httpmock.NewStringResponder(404, errorNotFound))
-	httpmock.RegisterResponder("DELETE", `=~^https://graph\.microsoft\.com/beta/directory/deletedItems/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`,
+	httpmock.RegisterResponder(constants.TfOperationDelete, `=~^https://graph\.microsoft\.com/beta/directory/deletedItems/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`,
 		httpmock.NewStringResponder(400, errorBadRequest))
 }
 

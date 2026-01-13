@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
 	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
@@ -55,7 +56,7 @@ func (r *GroupLicenseAssignmentResource) Create(ctx context.Context, req resourc
 		Post(ctx, requestBody, nil)
 
 	if err != nil {
-		errors.HandleKiotaGraphError(ctx, err, resp, "Create", r.WritePermissions)
+		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationCreate, r.WritePermissions)
 		return
 	}
 
@@ -70,7 +71,7 @@ func (r *GroupLicenseAssignmentResource) Create(ctx context.Context, req resourc
 	stateContainer := &crud.CreateResponseContainer{CreateResponse: resp}
 
 	opts := crud.DefaultReadWithRetryOptions()
-	opts.Operation = "Create"
+	opts.Operation = constants.TfOperationCreate
 	opts.ResourceTypeName = ResourceName
 
 	err = crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)
@@ -91,7 +92,7 @@ func (r *GroupLicenseAssignmentResource) Read(ctx context.Context, req resource.
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting Read method for: %s", ResourceName))
 
-	operation := "Read"
+	operation := constants.TfOperationRead
 	if ctxOp := ctx.Value("retry_operation"); ctxOp != nil {
 		if opStr, ok := ctxOp.(string); ok {
 			operation = opStr
@@ -166,7 +167,7 @@ func (r *GroupLicenseAssignmentResource) Update(ctx context.Context, req resourc
 		Post(ctx, requestBody, nil)
 
 	if err != nil {
-		errors.HandleKiotaGraphError(ctx, err, resp, "Update", r.WritePermissions)
+		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationUpdate, r.WritePermissions)
 		return
 	}
 
@@ -181,7 +182,7 @@ func (r *GroupLicenseAssignmentResource) Update(ctx context.Context, req resourc
 	stateContainer := &crud.UpdateResponseContainer{UpdateResponse: resp}
 
 	opts := crud.DefaultReadWithRetryOptions()
-	opts.Operation = "Update"
+	opts.Operation = constants.TfOperationUpdate
 	opts.ResourceTypeName = ResourceName
 
 	err = crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)
@@ -230,7 +231,7 @@ func (r *GroupLicenseAssignmentResource) Delete(ctx context.Context, req resourc
 		Post(ctx, requestBody, nil)
 
 	if err != nil {
-		errors.HandleKiotaGraphError(ctx, err, resp, "Delete", r.WritePermissions)
+		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfTfOperationDelete, r.WritePermissions)
 		return
 	}
 

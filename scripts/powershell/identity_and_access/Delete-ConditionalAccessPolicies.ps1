@@ -304,7 +304,7 @@ try {
         Write-Host ""
         
         $confirmation = Read-Host "Type 'DELETE' (case-sensitive) to confirm"
-        if ($confirmation -ne "DELETE") {
+        if ($confirmation -ne constants.TfOperationDelete) {
             Write-Host "❌ Operation cancelled. Confirmation text did not match." -ForegroundColor Red
             exit 0
         }

@@ -7,6 +7,7 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks/factories"
@@ -54,7 +55,7 @@ func (m *RoleAssignmentMock) RegisterMocks() {
 		m.updateRoleAssignmentResponder())
 
 	// DELETE /deviceManagement/roleAssignments/{id} - Delete
-	httpmock.RegisterResponder("DELETE", `=~^https://graph\.microsoft\.com/beta/deviceManagement/roleAssignments/([^/]+)$`,
+	httpmock.RegisterResponder(constants.TfTfOperationDelete, `=~^https://graph\.microsoft\.com/beta/deviceManagement/roleAssignments/([^/]+)$`,
 		m.deleteRoleAssignmentResponder())
 }
 

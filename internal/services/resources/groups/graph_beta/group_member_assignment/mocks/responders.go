@@ -7,6 +7,7 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks/factories"
 	"github.com/jarcoal/httpmock"
 )
@@ -245,7 +246,7 @@ func (m *GroupMemberAssignmentMock) RegisterMocks() {
 		})
 
 	// Register DELETE for removing members
-	httpmock.RegisterResponder("DELETE", `=~^https://graph.microsoft.com/beta/groups/[^/]+/members/[^/]+/\$ref$`,
+	httpmock.RegisterResponder(constants.TfTfOperationDelete, `=~^https://graph.microsoft.com/beta/groups/[^/]+/members/[^/]+/\$ref$`,
 		func(req *http.Request) (*http.Response, error) {
 			urlParts := strings.Split(req.URL.Path, "/")
 			groupId := urlParts[len(urlParts)-4]

@@ -64,7 +64,7 @@ This guide describes the recommended workflow and best practices for developing 
              ResourceTemplates().
              Post(ctx, requestBody, nil)
          if err != nil {
-             errors.HandleKiotaGraphError(ctx, err, resp, "Create", r.WritePermissions)
+             errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationCreate, r.WritePermissions)
              return
          }
          plan.ID = types.StringValue(*resource.GetId())
@@ -74,7 +74,7 @@ This guide describes the recommended workflow and best practices for developing 
          readReq := resource.ReadRequest{State: resp.State, ProviderMeta: req.ProviderMeta}
          stateContainer := &crud.CreateResponseContainer{CreateResponse: resp}
          opts := crud.DefaultReadWithRetryOptions()
-         opts.Operation = "Create"
+         opts.Operation = constants.TfOperationCreate
          opts.ResourceTypeName = ResourceName
          err = crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)
          if err != nil {
@@ -102,7 +102,7 @@ This guide describes the recommended workflow and best practices for developing 
              ByDeviceAndAppManagementResourceTemplateId(state.ID.ValueString()).
              Get(ctx, nil)
          if err != nil {
-             errors.HandleKiotaGraphError(ctx, err, resp, "Read", r.ReadPermissions)
+             errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationRead, r.ReadPermissions)
              return
          }
          mapRemoteStateToTerraform(ctx, &state, resource)
@@ -135,7 +135,7 @@ This guide describes the recommended workflow and best practices for developing 
              Patch(ctx, requestBody, nil)
 
          if err != nil {
-             errors.HandleKiotaGraphError(ctx, err, resp, "Update", r.WritePermissions)
+             errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationUpdate, r.WritePermissions)
              return
          }
 
@@ -143,7 +143,7 @@ This guide describes the recommended workflow and best practices for developing 
          readReq := resource.ReadRequest{State: resp.State, ProviderMeta: req.ProviderMeta}
          stateContainer := &crud.UpdateResponseContainer{UpdateResponse: resp}
          opts := crud.DefaultReadWithRetryOptions()
-         opts.Operation = "Update"
+         opts.Operation = constants.TfOperationUpdate
          opts.ResourceTypeName = ResourceName
          err = crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)
          if err != nil {
@@ -172,7 +172,7 @@ This guide describes the recommended workflow and best practices for developing 
              ByDeviceAndAppManagementResourceTemplateId(data.ID.ValueString()).
              Delete(ctx, nil)
          if err != nil {
-             errors.HandleKiotaGraphError(ctx, err, resp, "Delete", r.WritePermissions)
+             errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationDelete, r.WritePermissions)
              return
          }
          resp.State.RemoveResource(ctx)

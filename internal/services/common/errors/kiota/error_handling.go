@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -98,7 +99,7 @@ func HandleKiotaGraphError(ctx context.Context, err error, resp any, operation s
 	// Handle special cases first
 	switch errorInfo.StatusCode {
 	case 400:
-		if operation == "Read" {
+		if operation == constants.TfOperationRead {
 			tflog.Warn(ctx, "Resource appears to no longer exist (400 Response), removing from state")
 			removeResourceFromState(ctx, resp)
 			return
@@ -112,12 +113,12 @@ func HandleKiotaGraphError(ctx context.Context, err error, resp any, operation s
 		return
 
 	case 404:
-		if operation == "Read" {
+		if operation == constants.TfOperationRead {
 			tflog.Warn(ctx, "Resource not found (404 Response), removing from state")
 			removeResourceFromState(ctx, resp)
 			return
 		}
-		if operation == "Delete" {
+		if operation == constants.TfOperationDelete {
 			tflog.Info(ctx, "Resource already deleted or does not exist (404 Response), treating as successful deletion")
 			return
 		}
@@ -125,7 +126,7 @@ func HandleKiotaGraphError(ctx context.Context, err error, resp any, operation s
 			constructDetailedErrorMessage(errorDesc.Detail, &errorInfo))
 
 	case 429:
-		if operation == "Read" {
+		if operation == constants.TfOperationRead {
 			tflog.Warn(ctx, "Rate limit exceeded on read operation")
 			handleRateLimitError(ctx, errorInfo, resp)
 			return
@@ -134,7 +135,7 @@ func HandleKiotaGraphError(ctx context.Context, err error, resp any, operation s
 			constructDetailedErrorMessage(errorDesc.Detail, &errorInfo))
 
 	case 503:
-		if operation == "Read" {
+		if operation == constants.TfOperationRead {
 			tflog.Warn(ctx, "Service Unavailable (503 Response), service is temporarily unavailable")
 			handleServiceUnavailableError(ctx, errorInfo, resp)
 			return

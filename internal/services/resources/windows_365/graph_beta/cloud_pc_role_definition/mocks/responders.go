@@ -7,6 +7,7 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks/factories"
@@ -54,7 +55,7 @@ func (m *RoleDefinitionMock) RegisterMocks() {
 		m.updateRoleDefinitionResponder())
 
 	// DELETE /roleManagement/cloudPC/roleDefinitions/{id} - Delete
-	httpmock.RegisterResponder("DELETE", `=~^https://graph\.microsoft\.com/beta/roleManagement/cloudPC/roleDefinitions/([^/]+)$`,
+	httpmock.RegisterResponder(constants.TfOperationDelete, `=~^https://graph\.microsoft\.com/beta/roleManagement/cloudPC/roleDefinitions/([^/]+)$`,
 		m.deleteRoleDefinitionResponder())
 
 	// GET /roleManagement/cloudPC/roleDefinitions - List (for uniqueness validation)
@@ -311,7 +312,7 @@ func (m *RoleDefinitionMock) RegisterErrorMocks() {
 		factories.ErrorResponse(500, "InternalServerError", "Internal server error"))
 
 	// DELETE - Delete error
-	httpmock.RegisterResponder("DELETE", `=~^https://graph\.microsoft\.com/beta/roleManagement/cloudPC/roleDefinitions/error-id$`,
+	httpmock.RegisterResponder(constants.TfOperationDelete, `=~^https://graph\.microsoft\.com/beta/roleManagement/cloudPC/roleDefinitions/error-id$`,
 		factories.ErrorResponse(409, "Conflict", "Role definition is in use"))
 
 }

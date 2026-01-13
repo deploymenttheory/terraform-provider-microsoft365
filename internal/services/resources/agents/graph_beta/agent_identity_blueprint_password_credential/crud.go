@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
 	customrequests "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/custom_requests"
 	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
@@ -63,7 +64,7 @@ func (r *AgentIdentityBlueprintPasswordCredentialResource) Create(ctx context.Co
 	)
 
 	if err != nil {
-		errors.HandleKiotaGraphError(ctx, err, resp, "Create", r.WritePermissions)
+		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationCreate, r.WritePermissions)
 		return
 	}
 
@@ -168,7 +169,7 @@ func (r *AgentIdentityBlueprintPasswordCredentialResource) Update(ctx context.Co
 
 	err = customrequests.PostRequestNoContent(ctx, r.client.GetAdapter(), removeConfig)
 	if err != nil {
-		errors.HandleKiotaGraphError(ctx, err, resp, "Update (remove)", r.WritePermissions)
+		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationUpdate, r.WritePermissions)
 		return
 	}
 
@@ -201,7 +202,7 @@ func (r *AgentIdentityBlueprintPasswordCredentialResource) Update(ctx context.Co
 	)
 
 	if err != nil {
-		errors.HandleKiotaGraphError(ctx, err, resp, "Update (add)", r.WritePermissions)
+		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationUpdate, r.WritePermissions)
 		return
 	}
 
@@ -267,7 +268,7 @@ func (r *AgentIdentityBlueprintPasswordCredentialResource) Delete(ctx context.Co
 
 	err = customrequests.PostRequestNoContent(ctx, r.client.GetAdapter(), config)
 	if err != nil {
-		errors.HandleKiotaGraphError(ctx, err, resp, "Delete", r.WritePermissions)
+		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationDelete, r.WritePermissions)
 		return
 	}
 

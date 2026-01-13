@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
@@ -86,12 +87,12 @@ func GroupPolicyIDResolver(ctx context.Context, client *msgraphbetasdk.GraphServ
 	}
 
 	switch operation {
-	case "create":
+	case constants.TfOperationCreate:
 		// For creation, store template IDs only
 		result.DefinitionValueInstanceID = definitionTemplateID // Use template for create
 		tflog.Debug(ctx, "[RESOLVER] CREATE operation - using template IDs")
 
-	case "update", "read":
+	case constants.TfOperationUpdate, constants.TfOperationRead:
 		// For update/read, we need both template IDs (for bindings) and instance IDs (for the operation)
 		if configID == "" {
 			return nil, fmt.Errorf("configuration ID required for %s operation", operation)
@@ -114,7 +115,7 @@ func GroupPolicyIDResolver(ctx context.Context, client *msgraphbetasdk.GraphServ
 			})
 
 			// Handle 500 errors during read scenarios - resource likely deleted
-			if errorInfo.StatusCode == 500 && operation == "read" {
+			if errorInfo.StatusCode == 500 && operation == constants.TfOperationRead {
 				tflog.Warn(ctx, "[RESOLVER] 500 error during read operation - resource appears to have been deleted from policy configuration", map[string]any{
 					"operation":        operation,
 					"config_id":        configID,

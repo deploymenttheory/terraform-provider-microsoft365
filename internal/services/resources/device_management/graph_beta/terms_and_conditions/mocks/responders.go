@@ -7,6 +7,7 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks/factories"
@@ -56,7 +57,7 @@ func (m *TermsAndConditionsMock) RegisterMocks() {
 		m.updateTermsAndConditionsResponder())
 
 	// DELETE /deviceManagement/termsAndConditions/{id} - Delete
-	httpmock.RegisterResponder("DELETE", `=~^https://graph\.microsoft\.com/beta/deviceManagement/termsAndConditions/([^/]+)$`,
+	httpmock.RegisterResponder(constants.TfTfOperationDelete, `=~^https://graph\.microsoft\.com/beta/deviceManagement/termsAndConditions/([^/]+)$`,
 		m.deleteTermsAndConditionsResponder())
 
 	// GET /deviceManagement/termsAndConditions/{id}/assignments - Get assignments
@@ -68,7 +69,7 @@ func (m *TermsAndConditionsMock) RegisterMocks() {
 		m.createTermsAndConditionsAssignmentResponder())
 
 	// DELETE /deviceManagement/termsAndConditions/{id}/assignments/{assignmentId} - Delete assignment
-	httpmock.RegisterResponder("DELETE", `=~^https://graph\.microsoft\.com/beta/deviceManagement/termsAndConditions/([^/]+)/assignments/([^/]+)$`,
+	httpmock.RegisterResponder(constants.TfTfOperationDelete, `=~^https://graph\.microsoft\.com/beta/deviceManagement/termsAndConditions/([^/]+)/assignments/([^/]+)$`,
 		m.deleteTermsAndConditionsAssignmentResponder())
 }
 
@@ -300,7 +301,7 @@ func (m *TermsAndConditionsMock) RegisterErrorMocks() {
 		factories.ErrorResponse(500, "InternalServerError", "Internal server error"))
 
 	// DELETE - Delete error
-	httpmock.RegisterResponder("DELETE", `=~^https://graph\.microsoft\.com/beta/deviceManagement/termsAndConditions/error-id$`,
+	httpmock.RegisterResponder(constants.TfTfOperationDelete, `=~^https://graph\.microsoft\.com/beta/deviceManagement/termsAndConditions/error-id$`,
 		factories.ErrorResponse(409, "Conflict", "Terms and conditions is in use"))
 }
 

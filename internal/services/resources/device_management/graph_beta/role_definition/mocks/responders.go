@@ -7,6 +7,7 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks/factories"
@@ -54,7 +55,7 @@ func (m *RoleDefinitionMock) RegisterMocks() {
 		m.updateRoleDefinitionResponder())
 
 	// DELETE /deviceManagement/roleDefinitions/{id} - Delete
-	httpmock.RegisterResponder("DELETE", `=~^https://graph\.microsoft\.com/beta/deviceManagement/roleDefinitions/([^/]+)$`,
+	httpmock.RegisterResponder(constants.TfTfOperationDelete, `=~^https://graph\.microsoft\.com/beta/deviceManagement/roleDefinitions/([^/]+)$`,
 		m.deleteRoleDefinitionResponder())
 
 	// GET /deviceManagement/roleDefinitions - List (for uniqueness validation)
@@ -224,7 +225,7 @@ func (m *RoleDefinitionMock) updateRoleDefinitionResponder() httpmock.Responder 
 		if err != nil {
 			return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to load mock response"}}`), nil
 		}
-		
+
 		var updatedRoleDefinition map[string]any
 		if err := json.Unmarshal([]byte(jsonContent), &updatedRoleDefinition); err != nil {
 			return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to parse mock response"}}`), nil
@@ -311,7 +312,7 @@ func (m *RoleDefinitionMock) RegisterErrorMocks() {
 		factories.ErrorResponse(500, "InternalServerError", "Internal server error"))
 
 	// DELETE - Delete error
-	httpmock.RegisterResponder("DELETE", `=~^https://graph\.microsoft\.com/beta/deviceManagement/roleDefinitions/error-id$`,
+	httpmock.RegisterResponder(constants.TfTfOperationDelete, `=~^https://graph\.microsoft\.com/beta/deviceManagement/roleDefinitions/error-id$`,
 		factories.ErrorResponse(409, "Conflict", "Role definition is in use"))
 
 	// GET - Resource operations error (for role permission validation)
@@ -355,7 +356,7 @@ func (m *RoleDefinitionMock) GetMockRoleDefinitionData() map[string]any {
 			},
 		}
 	}
-	
+
 	var response map[string]any
 	if err := json.Unmarshal([]byte(jsonContent), &response); err != nil {
 		// Fallback to hardcoded response if parsing fails
@@ -592,7 +593,7 @@ func (m *RoleDefinitionMock) GetMockRoleDefinitionMinimalData() map[string]any {
 			},
 		}
 	}
-	
+
 	var response map[string]any
 	if err := json.Unmarshal([]byte(jsonContent), &response); err != nil {
 		// Fallback to hardcoded response if parsing fails

@@ -7,6 +7,7 @@ import (
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/check"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -19,7 +20,7 @@ func TestAccWindowsRemediationScriptRegistryKeyGeneratorDataSource_CurrentUserDw
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
 				Source:            "hashicorp/random",
-				VersionConstraint: ">= 3.7.2",
+				VersionConstraint: constants.ExternalProviderRandomVersion,
 			},
 		},
 		Steps: []resource.TestStep{
@@ -49,7 +50,7 @@ func TestAccWindowsRemediationScriptRegistryKeyGeneratorDataSource_AllUsersStrin
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
 				Source:            "hashicorp/random",
-				VersionConstraint: ">= 3.7.2",
+				VersionConstraint: constants.ExternalProviderRandomVersion,
 			},
 		},
 		Steps: []resource.TestStep{
@@ -73,7 +74,7 @@ func TestAccWindowsRemediationScriptRegistryKeyGeneratorDataSource_QWord(t *test
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
 				Source:            "hashicorp/random",
-				VersionConstraint: ">= 3.7.2",
+				VersionConstraint: constants.ExternalProviderRandomVersion,
 			},
 		},
 		Steps: []resource.TestStep{
@@ -97,7 +98,7 @@ func TestAccWindowsRemediationScriptRegistryKeyGeneratorDataSource_ExpandString(
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
 				Source:            "hashicorp/random",
-				VersionConstraint: ">= 3.7.2",
+				VersionConstraint: constants.ExternalProviderRandomVersion,
 			},
 		},
 		Steps: []resource.TestStep{

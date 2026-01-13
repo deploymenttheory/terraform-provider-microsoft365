@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -279,7 +280,7 @@ func HandleHTTPGraphError(ctx context.Context, httpResp *http.Response, resp any
 	// Handle special cases first (exact same logic as HandleKiotaGraphError)
 	switch errorInfo.StatusCode {
 	case 400:
-		if operation == "Read" {
+		if operation == constants.TfOperationRead {
 			tflog.Warn(ctx, "Resource appears to no longer exist (400 Response), removing from state")
 			removeHTTPResourceFromState(ctx, resp)
 			return
@@ -293,12 +294,12 @@ func HandleHTTPGraphError(ctx context.Context, httpResp *http.Response, resp any
 		return
 
 	case 404:
-		if operation == "Read" {
+		if operation == constants.TfOperationRead {
 			tflog.Warn(ctx, "Resource not found (404 Response), removing from state")
 			removeHTTPResourceFromState(ctx, resp)
 			return
 		}
-		if operation == "Delete" {
+		if operation == constants.TfOperationDelete {
 			tflog.Info(ctx, "Resource already deleted or does not exist (404 Response), treating as successful deletion")
 			return
 		}
@@ -306,7 +307,7 @@ func HandleHTTPGraphError(ctx context.Context, httpResp *http.Response, resp any
 			constructHTTPDetailedErrorMessage(errorDesc.Detail, errorInfo))
 
 	case 429:
-		if operation == "Read" {
+		if operation == constants.TfOperationRead {
 			tflog.Warn(ctx, "Rate limit exceeded on read operation")
 			handleHTTPRateLimitError(ctx, *errorInfo, resp)
 			return
@@ -315,7 +316,7 @@ func HandleHTTPGraphError(ctx context.Context, httpResp *http.Response, resp any
 			constructHTTPDetailedErrorMessage(errorDesc.Detail, errorInfo))
 
 	case 503:
-		if operation == "Read" {
+		if operation == constants.TfOperationRead {
 			tflog.Warn(ctx, "Service Unavailable (503 Response), service is temporarily unavailable")
 			handleHTTPServiceUnavailableError(ctx, *errorInfo, resp)
 			return

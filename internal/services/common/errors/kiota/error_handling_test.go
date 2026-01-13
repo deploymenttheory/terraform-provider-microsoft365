@@ -7,6 +7,7 @@ import (
 	"net/url"
 	"testing"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/jarcoal/httpmock"
@@ -269,19 +270,19 @@ func TestHandleKiotaGraphError_WithSimpleErrors(t *testing.T) {
 		{
 			name:              "Bad Request Error",
 			statusCode:        400,
-			operation:         "Create",
+			operation:         constants.TfOperationCreate,
 			expectDiagnostics: true,
 		},
 		{
 			name:              "Not Found Error",
 			statusCode:        404,
-			operation:         "Update",
+			operation:         constants.TfOperationUpdate,
 			expectDiagnostics: true,
 		},
 		{
 			name:              "Internal Server Error",
 			statusCode:        500,
-			operation:         "Delete",
+			operation:         constants.TfOperationDelete,
 			expectDiagnostics: true,
 		},
 	}
@@ -317,25 +318,25 @@ func TestAddErrorToDiagnostics(t *testing.T) {
 	}{
 		{
 			name:     "Create Response",
-			respType: "create",
+			respType: constants.TfOperationCreate,
 			summary:  "Test Summary",
 			detail:   "Test Detail",
 		},
 		{
 			name:     "Read Response",
-			respType: "read",
+			respType: constants.TfOperationRead,
 			summary:  "Read Error",
 			detail:   "Read Error Detail",
 		},
 		{
 			name:     "Update Response",
-			respType: "update",
+			respType: constants.TfOperationUpdate,
 			summary:  "Update Error",
 			detail:   "Update Error Detail",
 		},
 		{
 			name:     "Delete Response",
-			respType: "delete",
+			respType: constants.TfOperationDelete,
 			summary:  "Delete Error",
 			detail:   "Delete Error Detail",
 		},
@@ -353,19 +354,19 @@ func TestAddErrorToDiagnostics(t *testing.T) {
 
 			// Create the appropriate response type
 			switch tc.respType {
-			case "create":
+			case constants.TfOperationCreate:
 				resp = &resource.CreateResponse{
 					Diagnostics: diag.Diagnostics{},
 				}
-			case "read":
+			case constants.TfOperationRead:
 				resp = &resource.ReadResponse{
 					Diagnostics: diag.Diagnostics{},
 				}
-			case "update":
+			case constants.TfOperationUpdate:
 				resp = &resource.UpdateResponse{
 					Diagnostics: diag.Diagnostics{},
 				}
-			case "delete":
+			case constants.TfOperationDelete:
 				resp = &resource.DeleteResponse{
 					Diagnostics: diag.Diagnostics{},
 				}

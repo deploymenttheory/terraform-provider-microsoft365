@@ -6,6 +6,7 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
 	"github.com/google/uuid"
@@ -170,7 +171,7 @@ func (m *AgentCollectionMock) RegisterMocks() {
 	})
 
 	// Delete agent collection - DELETE /agentRegistry/agentCollections/{id}
-	httpmock.RegisterResponder("DELETE", `=~^https://graph\.microsoft\.com/beta/agentRegistry/agentCollections/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`, func(req *http.Request) (*http.Response, error) {
+	httpmock.RegisterResponder(constants.TfOperationDelete, `=~^https://graph\.microsoft\.com/beta/agentRegistry/agentCollections/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`, func(req *http.Request) (*http.Response, error) {
 		parts := strings.Split(req.URL.Path, "/")
 		agentCollectionId := parts[len(parts)-1]
 
@@ -202,7 +203,7 @@ func (m *AgentCollectionMock) RegisterErrorMocks() {
 		httpmock.NewStringResponder(404, errorNotFound))
 	httpmock.RegisterResponder("PATCH", `=~^https://graph\.microsoft\.com/beta/agentRegistry/agentCollections/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`,
 		httpmock.NewStringResponder(400, errorBadRequest))
-	httpmock.RegisterResponder("DELETE", `=~^https://graph\.microsoft\.com/beta/agentRegistry/agentCollections/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`,
+	httpmock.RegisterResponder(constants.TfOperationDelete, `=~^https://graph\.microsoft\.com/beta/agentRegistry/agentCollections/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`,
 		httpmock.NewStringResponder(400, errorBadRequest))
 }
 

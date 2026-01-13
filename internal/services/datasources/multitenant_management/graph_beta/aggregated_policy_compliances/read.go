@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
 	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -43,7 +44,7 @@ func (d *AggregatedPolicyCompliancesDataSource) Read(ctx context.Context, req da
 			Get(ctx, nil)
 
 		if err != nil {
-			errors.HandleKiotaGraphError(ctx, err, resp, "Read", d.ReadPermissions)
+			errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationRead, d.ReadPermissions)
 			return
 		}
 
@@ -104,7 +105,7 @@ func (d *AggregatedPolicyCompliancesDataSource) Read(ctx context.Context, req da
 
 		if err != nil {
 			tflog.Error(ctx, fmt.Sprintf("Error in OData query: %v", err))
-			errors.HandleKiotaGraphError(ctx, err, resp, "Read", d.ReadPermissions)
+			errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationRead, d.ReadPermissions)
 			return
 		}
 
@@ -123,7 +124,7 @@ func (d *AggregatedPolicyCompliancesDataSource) Read(ctx context.Context, req da
 			Get(ctx, nil)
 
 		if err != nil {
-			errors.HandleKiotaGraphError(ctx, err, resp, "Read", d.ReadPermissions)
+			errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationRead, d.ReadPermissions)
 			return
 		}
 

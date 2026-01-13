@@ -64,7 +64,7 @@ def ensure_label_exists(owner: str, repo: str, label_name: str, color: str, desc
     """
     try:
         run_gh_command([
-            "label", "create", label_name,
+            "label", constants.TfOperationCreate, label_name,
             "--repo", f"{owner}/{repo}",
             "--color", color,
             "--description", description,
@@ -203,7 +203,7 @@ def create_job_failure_issue(owner: str, repo: str, failure: dict,
 *Automated report from nightly test pipeline*"""
     
     issue_url = run_gh_command([
-        "issue", "create",
+        "issue", constants.TfOperationCreate,
         "--repo", f"{owner}/{repo}",
         "--title", issue_title,
         "--body", issue_body,

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
@@ -15,7 +16,7 @@ type DeleteWithRetryOptions struct {
 	MaxRetries int
 	// RetryInterval is the time to wait between retries (default: 30 seconds)
 	RetryInterval time.Duration
-	// Operation is the name of the operation for logging (e.g., "Delete")
+	// Operation is the name of the operation for logging (e.g., constants.TfOperationDelete)
 	Operation string
 	// ResourceTypeName is the optional resource type name for logging
 	ResourceTypeName string
@@ -28,7 +29,7 @@ func DefaultDeleteWithRetryOptions() DeleteWithRetryOptions {
 	return DeleteWithRetryOptions{
 		MaxRetries:    10,
 		RetryInterval: 30 * time.Second,
-		Operation:     "Delete",
+		Operation:     constants.TfOperationDelete,
 	}
 }
 
@@ -62,7 +63,7 @@ func DeleteWithRetry(
 		opts.RetryInterval = 30 * time.Second
 	}
 	if opts.Operation == "" {
-		opts.Operation = "Delete"
+		opts.Operation = constants.TfOperationDelete
 	}
 
 	deadline, hasDeadline := ctx.Deadline()

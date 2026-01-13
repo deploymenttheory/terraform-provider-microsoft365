@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"sync"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
 	"github.com/google/uuid"
 	"github.com/jarcoal/httpmock"
@@ -67,7 +68,7 @@ func (m *AutopatchGroupsMock) RegisterMocks() {
 		jsonFileName := getJSONFileForName(name)
 
 		// Load JSON response from file
-		responsesPath := filepath.Join("tests", "responses", "create", jsonFileName)
+		responsesPath := filepath.Join("tests", "responses", constants.TfOperationCreate, jsonFileName)
 		jsonData, err := os.ReadFile(responsesPath)
 		if err != nil {
 			return httpmock.NewStringResponse(500, fmt.Sprintf(`{"error":{"code":"InternalServerError","message":"Failed to load JSON response file: %s"}}`, err.Error())), nil
@@ -142,7 +143,7 @@ func (m *AutopatchGroupsMock) RegisterMocks() {
 	})
 
 	// Delete autopatch group - DELETE /device/v2/autopatchGroups/{id}
-	httpmock.RegisterResponder("DELETE", `=~^https://services\.autopatch\.microsoft\.com/device/v2/autopatchGroups/([0-9a-fA-F-]+)$`, func(req *http.Request) (*http.Response, error) {
+	httpmock.RegisterResponder(constants.TfTfOperationDelete, `=~^https://services\.autopatch\.microsoft\.com/device/v2/autopatchGroups/([0-9a-fA-F-]+)$`, func(req *http.Request) (*http.Response, error) {
 		// Extract ID from URL
 		parts := req.URL.Path[len("/device/v2/autopatchGroups/"):]
 		id := parts
@@ -180,7 +181,7 @@ func (m *AutopatchGroupsMock) RegisterErrorMocks() {
 		httpmock.NewStringResponder(400, `{"error":{"code":"BadRequest","message":"Invalid request"}}`))
 
 	// Delete - return error
-	httpmock.RegisterResponder("DELETE", `=~^https://services\.autopatch\.microsoft\.com/device/v2/autopatchGroups/([0-9a-fA-F-]+)$`,
+	httpmock.RegisterResponder(constants.TfTfOperationDelete, `=~^https://services\.autopatch\.microsoft\.com/device/v2/autopatchGroups/([0-9a-fA-F-]+)$`,
 		httpmock.NewStringResponder(400, `{"error":{"code":"BadRequest","message":"Cannot delete autopatch group"}}`))
 }
 

@@ -6,6 +6,7 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks/factories"
 	"github.com/google/uuid"
 	"github.com/jarcoal/httpmock"
@@ -160,7 +161,7 @@ func (m *AzureNetworkConnectionMock) RegisterMocks() {
 		})
 
 	// Register DELETE for removing connection
-	httpmock.RegisterResponder("DELETE", `=~^https://graph.microsoft.com/beta/deviceManagement/virtualEndpoint/onPremisesConnections/[^/]+$`,
+	httpmock.RegisterResponder(constants.TfOperationDelete, `=~^https://graph.microsoft.com/beta/deviceManagement/virtualEndpoint/onPremisesConnections/[^/]+$`,
 		func(req *http.Request) (*http.Response, error) {
 			urlParts := strings.Split(req.URL.Path, "/")
 			connectionId := urlParts[len(urlParts)-1]

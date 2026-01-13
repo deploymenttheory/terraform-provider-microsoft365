@@ -6,6 +6,7 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks/factories"
 	"github.com/google/uuid"
 	"github.com/jarcoal/httpmock"
@@ -287,7 +288,7 @@ func (m *CloudPcProvisioningPolicyMock) RegisterMocks() {
 		})
 
 	// Register DELETE for removing provisioning policy
-	httpmock.RegisterResponder("DELETE", `=~^https://graph.microsoft.com/beta/deviceManagement/virtualEndpoint/provisioningPolicies/[^/]+$`,
+	httpmock.RegisterResponder(constants.TfOperationDelete, `=~^https://graph.microsoft.com/beta/deviceManagement/virtualEndpoint/provisioningPolicies/[^/]+$`,
 		func(req *http.Request) (*http.Response, error) {
 			urlParts := strings.Split(req.URL.Path, "/")
 			policyId := urlParts[len(urlParts)-1]

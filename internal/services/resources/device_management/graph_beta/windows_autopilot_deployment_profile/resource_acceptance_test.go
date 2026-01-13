@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
 	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
@@ -22,7 +23,7 @@ func TestAccWindowsAutopilotDeploymentProfileResource_SelfDeployingOSDefaultLoca
 
 			"random": {
 				Source:            "hashicorp/random",
-				VersionConstraint: ">= 3.7.2",
+				VersionConstraint: constants.ExternalProviderRandomVersion,
 			},
 		},
 		Steps: []resource.TestStep{
@@ -69,7 +70,7 @@ func TestAccWindowsAutopilotDeploymentProfileResource_UserDrivenHybridDomainJoin
 
 			"random": {
 				Source:            "hashicorp/random",
-				VersionConstraint: ">= 3.7.2",
+				VersionConstraint: constants.ExternalProviderRandomVersion,
 			},
 		},
 		Steps: []resource.TestStep{
@@ -100,7 +101,7 @@ func TestAccWindowsAutopilotDeploymentProfileResource_UserDrivenWithGroupAssignm
 
 			"random": {
 				Source:            "hashicorp/random",
-				VersionConstraint: ">= 3.7.2",
+				VersionConstraint: constants.ExternalProviderRandomVersion,
 			},
 		},
 		Steps: []resource.TestStep{
@@ -130,7 +131,7 @@ func TestAccWindowsAutopilotDeploymentProfileResource_HololensWithAllDeviceAssig
 
 			"random": {
 				Source:            "hashicorp/random",
-				VersionConstraint: ">= 3.7.2",
+				VersionConstraint: constants.ExternalProviderRandomVersion,
 			},
 		},
 		Steps: []resource.TestStep{

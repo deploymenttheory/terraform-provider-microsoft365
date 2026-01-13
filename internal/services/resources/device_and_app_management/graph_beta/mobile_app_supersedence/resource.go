@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/client"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	planmodifiers "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/plan_modifiers"
 	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/schema"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
@@ -146,7 +147,7 @@ func (r *MobileAppSupersedenceResource) Schema(ctx context.Context, req resource
 				Required:            true,
 				MarkdownDescription: "The supersedence relationship type between the parent and child apps. Possible values are: update, replace.",
 				Validators: []validator.String{
-					stringvalidator.OneOf("update", "replace"),
+					stringvalidator.OneOf(constants.TfOperationUpdate, "replace"),
 				},
 			},
 			"superseded_app_count": schema.Int32Attribute{

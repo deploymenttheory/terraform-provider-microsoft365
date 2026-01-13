@@ -6,6 +6,7 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/jarcoal/httpmock"
 )
 
@@ -106,7 +107,7 @@ func (m *GroupOwnerAssignmentMock) RegisterMocks() {
 		})
 
 	// DELETE remove owner
-	httpmock.RegisterResponder("DELETE", `=~^https://graph.microsoft.com/beta/groups/([^/]+)/owners/([^/]+)/\$ref$`,
+	httpmock.RegisterResponder(constants.TfTfOperationDelete, `=~^https://graph.microsoft.com/beta/groups/([^/]+)/owners/([^/]+)/\$ref$`,
 		func(req *http.Request) (*http.Response, error) {
 			urlParts := strings.Split(req.URL.Path, "/")
 			groupId := urlParts[len(urlParts)-4]

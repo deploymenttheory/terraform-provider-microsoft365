@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
 	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -33,7 +34,7 @@ func (r *GroupPolicyDefinitionResource) Create(ctx context.Context, req resource
 	object.AdditionalData = make(map[string]any)
 
 	// Resolve policy definition and presentations
-	err := resolveGroupPolicyDefinition(ctx, r.client, &object, "create")
+	err := resolveGroupPolicyDefinition(ctx, r.client, &object, constants.TfOperationCreate)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error resolving policy definition",
@@ -52,7 +53,7 @@ func (r *GroupPolicyDefinitionResource) Create(ctx context.Context, req resource
 	}
 
 	// Construct the API request
-	requestBody, err := constructResource(ctx, &object, "create")
+	requestBody, err := constructResource(ctx, &object, constants.TfOperationCreate)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error constructing request",
@@ -72,13 +73,13 @@ func (r *GroupPolicyDefinitionResource) Create(ctx context.Context, req resource
 		Post(ctx, requestBody, nil)
 
 	if err != nil {
-		errors.HandleKiotaGraphError(ctx, err, resp, "Create", r.WritePermissions)
+		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationCreate, r.WritePermissions)
 		return
 	}
 
 	// Resolve instance IDs after creation
 	tflog.Debug(ctx, "[CREATE] About to resolve instance IDs after API creation")
-	err = resolveGroupPolicyDefinition(ctx, r.client, &object, "read")
+	err = resolveGroupPolicyDefinition(ctx, r.client, &object, constants.TfOperationRead)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error resolving instance IDs after creation",
@@ -101,7 +102,7 @@ func (r *GroupPolicyDefinitionResource) Create(ctx context.Context, req resource
 	stateContainer := &crud.CreateResponseContainer{CreateResponse: resp}
 
 	opts := crud.DefaultReadWithRetryOptions()
-	opts.Operation = "Create"
+	opts.Operation = constants.TfOperationCreate
 	opts.ResourceTypeName = ResourceName
 
 	err = crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)
@@ -122,7 +123,7 @@ func (r *GroupPolicyDefinitionResource) Read(ctx context.Context, req resource.R
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting Read method for: %s", ResourceName))
 
-	operation := "Read"
+	operation := constants.TfOperationRead
 	if ctxOp := ctx.Value("retry_operation"); ctxOp != nil {
 		if opStr, ok := ctxOp.(string); ok {
 			operation = opStr
@@ -146,7 +147,7 @@ func (r *GroupPolicyDefinitionResource) Read(ctx context.Context, req resource.R
 	}
 
 	// Resolve policy definition and presentations
-	err := resolveGroupPolicyDefinition(ctx, r.client, &object, "read")
+	err := resolveGroupPolicyDefinition(ctx, r.client, &object, constants.TfOperationRead)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error resolving policy definition",
@@ -241,7 +242,7 @@ func (r *GroupPolicyDefinitionResource) Update(ctx context.Context, req resource
 	}
 
 	// Resolve policy definition and presentations
-	err := resolveGroupPolicyDefinition(ctx, r.client, &object, "update")
+	err := resolveGroupPolicyDefinition(ctx, r.client, &object, constants.TfOperationUpdate)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error resolving policy definition",
@@ -260,7 +261,7 @@ func (r *GroupPolicyDefinitionResource) Update(ctx context.Context, req resource
 	}
 
 	// Construct the update request
-	requestBody, err := constructResource(ctx, &object, "update")
+	requestBody, err := constructResource(ctx, &object, constants.TfOperationUpdate)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error constructing update request",
@@ -280,7 +281,7 @@ func (r *GroupPolicyDefinitionResource) Update(ctx context.Context, req resource
 		Post(ctx, requestBody, nil)
 
 	if err != nil {
-		errors.HandleKiotaGraphError(ctx, err, resp, "Update", r.WritePermissions)
+		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationUpdate, r.WritePermissions)
 		return
 	}
 
@@ -293,7 +294,7 @@ func (r *GroupPolicyDefinitionResource) Update(ctx context.Context, req resource
 	stateContainer := &crud.UpdateResponseContainer{UpdateResponse: resp}
 
 	opts := crud.DefaultReadWithRetryOptions()
-	opts.Operation = "Update"
+	opts.Operation = constants.TfOperationUpdate
 	opts.ResourceTypeName = ResourceName
 
 	err = crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)
@@ -331,7 +332,7 @@ func (r *GroupPolicyDefinitionResource) Delete(ctx context.Context, req resource
 	}
 
 	// Resolve to get instance IDs
-	err := resolveGroupPolicyDefinition(ctx, r.client, &object, "read")
+	err := resolveGroupPolicyDefinition(ctx, r.client, &object, constants.TfOperationRead)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error resolving policy definition for deletion",
@@ -341,7 +342,7 @@ func (r *GroupPolicyDefinitionResource) Delete(ctx context.Context, req resource
 	}
 
 	// Construct the delete request
-	requestBody, err := constructResource(ctx, &object, "delete")
+	requestBody, err := constructResource(ctx, &object, constants.TfTfOperationDelete)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error constructing delete request",
@@ -361,7 +362,7 @@ func (r *GroupPolicyDefinitionResource) Delete(ctx context.Context, req resource
 		Post(ctx, requestBody, nil)
 
 	if err != nil {
-		errors.HandleKiotaGraphError(ctx, err, resp, "Delete", r.WritePermissions)
+		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfTfOperationDelete, r.WritePermissions)
 		return
 	}
 

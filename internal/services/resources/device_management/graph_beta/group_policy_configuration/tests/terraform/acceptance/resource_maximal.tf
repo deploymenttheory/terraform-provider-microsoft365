@@ -1,12 +1,11 @@
-resource "random_string" "suffix" {
+resource "random_string" "test_suffix" {
   length  = 8
   special = false
   upper   = false
 }
 
 resource "microsoft365_graph_beta_device_management_group_policy_configuration" "maximal" {
-  display_name       = "AccTest-Maximal-GPC-${random_string.suffix.result}"
-  description        = "Acceptance test for maximal group policy configuration"
+  display_name       = "acc-test-002-maximal-${random_string.test_suffix.result}"
+  description        = "acc-test-002-maximal"
   role_scope_tag_ids = ["0"]
 }
-

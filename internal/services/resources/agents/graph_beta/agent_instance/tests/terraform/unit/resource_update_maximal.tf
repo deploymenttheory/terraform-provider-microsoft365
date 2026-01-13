@@ -62,7 +62,7 @@ resource "microsoft365_graph_beta_agents_agent_instance" "test_update" {
 
         tags = [
           "test",
-          "update"
+          constants.TfOperationUpdate
         ]
 
         examples = [

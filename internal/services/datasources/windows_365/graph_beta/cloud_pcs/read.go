@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
 	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -42,7 +43,7 @@ func (d *CloudPcsDataSource) Read(ctx context.Context, req datasource.ReadReques
 	case "id":
 		singlePC, err := d.getCloudPcById(ctx, object.FilterValue.ValueString())
 		if err != nil {
-			errors.HandleKiotaGraphError(ctx, err, resp, "Read", d.ReadPermissions)
+			errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationRead, d.ReadPermissions)
 			return
 		}
 
@@ -53,14 +54,14 @@ func (d *CloudPcsDataSource) Read(ctx context.Context, req datasource.ReadReques
 	case "odata":
 		cloudPCs, err = d.getCloudPcsWithOData(ctx, object)
 		if err != nil {
-			errors.HandleKiotaGraphError(ctx, err, resp, "Read", d.ReadPermissions)
+			errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationRead, d.ReadPermissions)
 			return
 		}
 
 	default:
 		cloudPCs, err = d.listCloudPcs(ctx, filterType, object.FilterValue.ValueString())
 		if err != nil {
-			errors.HandleKiotaGraphError(ctx, err, resp, "Read", d.ReadPermissions)
+			errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationRead, d.ReadPermissions)
 			return
 		}
 	}

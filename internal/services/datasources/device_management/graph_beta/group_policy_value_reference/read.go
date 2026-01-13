@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
 	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -41,7 +42,7 @@ func (d *groupPolicyValueReferenceDataSource) Read(ctx context.Context, req data
 	// Query API and collect matching definitions
 	exactMatches, fuzzyMatches, err := d.queryAndCollectDefinitions(ctx, policyName)
 	if err != nil {
-		errors.HandleKiotaGraphError(ctx, err, resp, "Read", d.ReadPermissions)
+		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationRead, d.ReadPermissions)
 		return
 	}
 

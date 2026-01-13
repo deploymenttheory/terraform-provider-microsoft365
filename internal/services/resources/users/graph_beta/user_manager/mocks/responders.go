@@ -6,6 +6,7 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
 	"github.com/jarcoal/httpmock"
@@ -103,7 +104,7 @@ func (m *UserManagerMock) RegisterMocks() {
 
 	// Register DELETE for removing manager reference
 	// DELETE /users/{usersId}/manager/$ref
-	httpmock.RegisterResponder("DELETE", `=~^https://graph\.microsoft\.com/beta/users/([a-fA-F0-9\-]+)/manager/\$ref$`,
+	httpmock.RegisterResponder(constants.TfTfOperationDelete, `=~^https://graph\.microsoft\.com/beta/users/([a-fA-F0-9\-]+)/manager/\$ref$`,
 		func(req *http.Request) (*http.Response, error) {
 			userId := httpmock.MustGetSubmatch(req, 1)
 
@@ -137,7 +138,7 @@ func (m *UserManagerMock) RegisterErrorMocks() {
 		httpmock.NewStringResponder(400, errorBadRequest))
 
 	// Register error response for DELETE manager reference
-	httpmock.RegisterResponder("DELETE", `=~^https://graph\.microsoft\.com/beta/users/([a-fA-F0-9\-]+)/manager/\$ref$`,
+	httpmock.RegisterResponder(constants.TfTfOperationDelete, `=~^https://graph\.microsoft\.com/beta/users/([a-fA-F0-9\-]+)/manager/\$ref$`,
 		httpmock.NewStringResponder(400, errorBadRequest))
 }
 

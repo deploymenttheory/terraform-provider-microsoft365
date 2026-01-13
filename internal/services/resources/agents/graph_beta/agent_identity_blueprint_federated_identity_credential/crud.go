@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
 	customrequests "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/custom_requests"
 	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
@@ -63,7 +64,7 @@ func (r *AgentIdentityBlueprintFederatedIdentityCredentialResource) Create(ctx c
 	)
 
 	if err != nil {
-		errors.HandleKiotaGraphError(ctx, err, resp, "Create", r.WritePermissions)
+		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationCreate, r.WritePermissions)
 		return
 	}
 
@@ -90,7 +91,7 @@ func (r *AgentIdentityBlueprintFederatedIdentityCredentialResource) Create(ctx c
 	stateContainer := &crud.CreateResponseContainer{CreateResponse: resp}
 
 	opts := crud.DefaultReadWithRetryOptions()
-	opts.Operation = "Create"
+	opts.Operation = constants.TfOperationCreate
 	opts.ResourceTypeName = ResourceName
 
 	err = crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)
@@ -113,7 +114,7 @@ func (r *AgentIdentityBlueprintFederatedIdentityCredentialResource) Read(ctx con
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting Read method for: %s", ResourceName))
 
-	operation := "Read"
+	operation := constants.TfOperationRead
 	if ctxOp := ctx.Value("retry_operation"); ctxOp != nil {
 		if opStr, ok := ctxOp.(string); ok {
 			operation = opStr
@@ -215,7 +216,7 @@ func (r *AgentIdentityBlueprintFederatedIdentityCredentialResource) Update(ctx c
 	err = customrequests.PatchRequestByResourceId(ctx, r.client.GetAdapter(), config)
 
 	if err != nil {
-		errors.HandleKiotaGraphError(ctx, err, resp, "Update", r.WritePermissions)
+		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationUpdate, r.WritePermissions)
 		return
 	}
 
@@ -234,7 +235,7 @@ func (r *AgentIdentityBlueprintFederatedIdentityCredentialResource) Update(ctx c
 	stateContainer := &crud.UpdateResponseContainer{UpdateResponse: resp}
 
 	opts := crud.DefaultReadWithRetryOptions()
-	opts.Operation = "Update"
+	opts.Operation = constants.TfOperationUpdate
 	opts.ResourceTypeName = ResourceName
 
 	err = crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)
@@ -283,7 +284,7 @@ func (r *AgentIdentityBlueprintFederatedIdentityCredentialResource) Delete(ctx c
 	err := customrequests.DeleteRequestByResourceId(ctx, r.client.GetAdapter(), config)
 
 	if err != nil {
-		errors.HandleKiotaGraphError(ctx, err, resp, "Delete", r.WritePermissions)
+		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationDelete, r.WritePermissions)
 		return
 	}
 
