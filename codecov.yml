@@ -38,10 +38,144 @@ flags:
     paths:
       - "internal/"
     carryforward: false
-  
+
   acceptancetests:
     paths:
       - "internal/"
+    carryforward: false
+
+  # Service-specific flags for acceptance tests
+  provider-core:
+    paths:
+      - "internal/client/"
+      - "internal/helpers/"
+      - "internal/provider/"
+      - "internal/utilities/"
+    carryforward: false
+
+  agents:
+    paths:
+      - "internal/services/*/agents/"
+    carryforward: false
+
+  applications:
+    paths:
+      - "internal/services/*/applications/"
+    carryforward: false
+
+  backup_storage:
+    paths:
+      - "internal/services/*/backup_storage/"
+    carryforward: false
+
+  copilot:
+    paths:
+      - "internal/services/*/copilot/"
+    carryforward: false
+
+  device_and_app_management:
+    paths:
+      - "internal/services/*/device_and_app_management/"
+    carryforward: false
+
+  device_management:
+    paths:
+      - "internal/services/*/device_management/"
+    carryforward: false
+
+  education:
+    paths:
+      - "internal/services/*/education/"
+    carryforward: false
+
+  exchange_online:
+    paths:
+      - "internal/services/*/exchange_online/"
+    carryforward: false
+
+  extensions:
+    paths:
+      - "internal/services/*/extensions/"
+    carryforward: false
+
+  external_data_connections:
+    paths:
+      - "internal/services/*/external_data_connections/"
+    carryforward: false
+
+  files:
+    paths:
+      - "internal/services/*/files/"
+    carryforward: false
+
+  financials:
+    paths:
+      - "internal/services/*/financials/"
+    carryforward: false
+
+  groups:
+    paths:
+      - "internal/services/*/groups/"
+    carryforward: false
+
+  identity_and_access:
+    paths:
+      - "internal/services/*/identity_and_access/"
+    carryforward: false
+
+  industry_data_etl:
+    paths:
+      - "internal/services/*/industry_data_etl/"
+    carryforward: false
+
+  m365_admin:
+    paths:
+      - "internal/services/*/m365_admin/"
+    carryforward: false
+
+  microsoft_teams:
+    paths:
+      - "internal/services/*/microsoft_teams/"
+    carryforward: false
+
+  multitenant_management:
+    paths:
+      - "internal/services/*/multitenant_management/"
+    carryforward: false
+
+  people_and_workplace_intelligence:
+    paths:
+      - "internal/services/*/people_and_workplace_intelligence/"
+    carryforward: false
+
+  security:
+    paths:
+      - "internal/services/*/security/"
+    carryforward: false
+
+  sites_and_lists:
+    paths:
+      - "internal/services/*/sites_and_lists/"
+    carryforward: false
+
+  teamwork_and_communications:
+    paths:
+      - "internal/services/*/teamwork_and_communications/"
+    carryforward: false
+
+  users:
+    paths:
+      - "internal/services/*/users/"
+    carryforward: false
+
+  utility:
+    paths:
+      - "internal/services/*/utility/"
+    carryforward: false
+
+  windows_365:
+    paths:
+      - "internal/services/*/windows_365/"
     carryforward: false
 
 # Ignore paths that shouldn't count towards coverage
@@ -52,18 +186,18 @@ ignore:
   - "examples/"
   - "docs/"
   - "templates/"
-  
+
   # Test files and fixtures
   - "**/*_test.go"
   - "**/testdata/**"
   - "**/mocks/**"
   - "**/tests/**"                    # Test fixtures (TF files, JSON responses, etc.)
   - "**/acceptance/**"               # Acceptance test helpers and dependencies
-  
+
   # Template and placeholder files
   - "**/_resource_template/**"       # Resource boilerplate template
   - "**/*.stub"                      # Placeholder files for unimplemented features
-  
+
   # File types
   - "*.md"                           # Documentation files
   - "*.json"                         # Mock responses
@@ -72,16 +206,6 @@ ignore:
   - "go.mod"
   - "go.sum"
 
-  # Common
-  - "**/state.go"                    # State logic is covered implicitly via test framework
-  - "**/model.go"                    # Model files are covered implicitly via test framework
-  - "**/validate.go"                 # Request validation logic is covered implicitly via test framework
-
-  # Resource services
-  - "**/crud.go"                     # CRUD logic is covered implicitly via test framework
-  
-  # Data source services
-  - "**/read.go"                     # Read functions are covered implicitly via test framework
 # Parser settings for Go
 parsers:
   go:
