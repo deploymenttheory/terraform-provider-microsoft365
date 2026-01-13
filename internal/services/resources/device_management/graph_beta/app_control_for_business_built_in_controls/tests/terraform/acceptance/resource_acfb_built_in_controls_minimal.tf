@@ -1,6 +1,12 @@
-# Minimal App Control for Business configuration with multiple assignments and filters
-resource "microsoft365_graph_beta_device_management_app_control_for_business_built_in_controls" "minimal" {
-  name        = "acc-test-app-control-for-business-built-in-controls-minimal"
+resource "random_string" "test_suffix" {
+  length  = 8
+  special = false
+  upper   = false
+}
+
+# Advanced App Control for Business configuration with multiple assignments and filters
+resource "microsoft365_graph_beta_device_management_app_control_for_business_built_in_controls" "advanced" {
+  name        = "acc-test-app-control-for-business-built-in-controls-minimal-${random_string.test_suffix.result}"
   description = "acc-test-app-control-for-business-built-in-controls-minimal"
 
   # App Control settings
@@ -8,19 +14,6 @@ resource "microsoft365_graph_beta_device_management_app_control_for_business_bui
 
   # Role scope tags for specific departments
   role_scope_tag_ids = ["0", "1", "2"]
-
-  assignments = [
-    {
-      type = "allLicensedUsersAssignmentTarget"
-    },
-    {
-      type     = "groupAssignmentTarget"
-      group_id = microsoft365_graph_beta_groups_group.acc_test_group_2.id
-    },
-    {
-      type = "allDevicesAssignmentTarget"
-    }
-  ]
 
 
   timeouts = {

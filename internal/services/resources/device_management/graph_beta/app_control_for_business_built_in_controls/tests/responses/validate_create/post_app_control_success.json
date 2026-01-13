@@ -1,7 +1,0 @@
-{
-  "@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/configurationPolicies/$entity",
-  "@odata.type": "#microsoft.graph.deviceManagementConfigurationPolicy",
-  "creationSource": null,
-  "createdDateTime": "2024-01-01T00:00:00Z",
-  "lastModifiedDateTime": "2024-01-01T00:00:00Z"
-}
