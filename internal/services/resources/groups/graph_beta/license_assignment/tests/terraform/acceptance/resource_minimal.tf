@@ -9,6 +9,13 @@ resource "microsoft365_graph_beta_groups_group" "minimal" {
   mail_nickname    = "lictest${random_string.minimal_suffix.result}"
   mail_enabled     = false
   security_enabled = true
+  hard_delete      = true
+}
+
+// Wait for group creation to complete
+resource "time_sleep" "wait_for_group_creation_minimal" {
+  depends_on      = [microsoft365_graph_beta_groups_group.minimal]
+  create_duration = "30s"
 }
 
 resource "microsoft365_graph_beta_groups_license_assignment" "minimal" {
@@ -16,6 +23,6 @@ resource "microsoft365_graph_beta_groups_license_assignment" "minimal" {
   sku_id   = "a403ebcc-fae0-4ca2-8c8c-7a907fd6c235" # Microsoft Fabric (Free) / POWER_BI_STANDARD
 
   depends_on = [
-    microsoft365_graph_beta_groups_group.minimal
+    time_sleep.wait_for_group_creation_minimal
   ]
 }

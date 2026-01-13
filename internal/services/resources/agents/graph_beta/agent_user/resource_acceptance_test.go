@@ -42,7 +42,7 @@ func TestAccAgentUserResource_Minimal(t *testing.T) {
 			},
 			"time": {
 				Source:            "hashicorp/time",
-				VersionConstraint: ">= 0.9.0",
+				VersionConstraint: constants.ExternalProviderTimeVersion,
 			},
 		},
 		Steps: []resource.TestStep{
@@ -107,7 +107,7 @@ func TestAccAgentUserResource_Maximal(t *testing.T) {
 			},
 			"time": {
 				Source:            "hashicorp/time",
-				VersionConstraint: ">= 0.9.0",
+				VersionConstraint: constants.ExternalProviderTimeVersion,
 			},
 		},
 		Steps: []resource.TestStep{

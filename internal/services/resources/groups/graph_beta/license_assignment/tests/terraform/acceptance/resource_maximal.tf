@@ -9,6 +9,13 @@ resource "microsoft365_graph_beta_groups_group" "maximal" {
   mail_nickname    = "lictestmax${random_string.maximal_suffix.result}"
   mail_enabled     = false
   security_enabled = true
+  hard_delete      = true
+}
+
+// Wait for group creation to complete
+resource "time_sleep" "wait_for_group_creation_maximal" {
+  depends_on      = [microsoft365_graph_beta_groups_group.maximal]
+  create_duration = "30s"
 }
 
 resource "microsoft365_graph_beta_groups_license_assignment" "maximal" {
@@ -20,6 +27,6 @@ resource "microsoft365_graph_beta_groups_license_assignment" "maximal" {
   ]
 
   depends_on = [
-    microsoft365_graph_beta_groups_group.maximal
+    time_sleep.wait_for_group_creation_maximal
   ]
 }

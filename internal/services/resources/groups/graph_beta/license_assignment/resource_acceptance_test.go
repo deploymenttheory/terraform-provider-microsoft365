@@ -29,12 +29,16 @@ func TestAccGroupLicenseAssignmentResource_Lifecycle(t *testing.T) {
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			resourceType,
-			30*time.Second,
+			45*time.Second,
 		),
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
 				Source:            "hashicorp/random",
 				VersionConstraint: constants.ExternalProviderRandomVersion,
+			},
+			"time": {
+				Source:            "hashicorp/time",
+				VersionConstraint: constants.ExternalProviderTimeVersion,
 			},
 		},
 		Steps: []resource.TestStep{
@@ -45,8 +49,8 @@ func TestAccGroupLicenseAssignmentResource_Lifecycle(t *testing.T) {
 				Config: testAccLicenseAssignmentConfig_minimal(),
 				Check: resource.ComposeTestCheckFunc(
 					func(_ *terraform.State) error {
-						testlog.WaitForConsistency("group license assignment", 30*time.Second)
-						time.Sleep(30 * time.Second)
+						testlog.WaitForConsistency("group license assignment", 45*time.Second)
+						time.Sleep(45 * time.Second)
 						return nil
 					},
 					check.That(resourceType+".minimal").ExistsInGraph(testResource),
@@ -73,12 +77,16 @@ func TestAccGroupLicenseAssignmentResource_Maximal(t *testing.T) {
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			resourceType,
-			30*time.Second,
+			45*time.Second,
 		),
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
 				Source:            "hashicorp/random",
 				VersionConstraint: constants.ExternalProviderRandomVersion,
+			},
+			"time": {
+				Source:            "hashicorp/time",
+				VersionConstraint: constants.ExternalProviderTimeVersion,
 			},
 		},
 		Steps: []resource.TestStep{
@@ -89,8 +97,8 @@ func TestAccGroupLicenseAssignmentResource_Maximal(t *testing.T) {
 				Config: testAccLicenseAssignmentConfig_maximal(),
 				Check: resource.ComposeTestCheckFunc(
 					func(_ *terraform.State) error {
-						testlog.WaitForConsistency("group license assignment", 30*time.Second)
-						time.Sleep(30 * time.Second)
+						testlog.WaitForConsistency("group license assignment", 45*time.Second)
+						time.Sleep(45 * time.Second)
 						return nil
 					},
 					check.That(resourceType+".maximal").ExistsInGraph(testResource),
