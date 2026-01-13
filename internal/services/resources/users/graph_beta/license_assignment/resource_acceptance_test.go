@@ -4,7 +4,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/check"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/destroy"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/testlog"
@@ -17,12 +16,17 @@ import (
 )
 
 var (
-	// resourceType is declared here and shared across both unit and acceptance tests
-	// resourceType = graphBetaUserLicenseAssignment.ResourceName // Already declared in resource_test.go
-
 	// testResource is the test resource implementation for user license assignments
 	testResource = graphBetaUserLicenseAssignment.UserLicenseAssignmentTestResource{}
 )
+
+func loadAcceptanceTestTerraform(filename string) string {
+	config, err := helpers.ParseHCLFile("tests/terraform/acceptance/" + filename)
+	if err != nil {
+		panic("failed to load acceptance config " + filename + ": " + err.Error())
+	}
+	return config
+}
 
 func TestAccUserLicenseAssignmentResource_Lifecycle(t *testing.T) {
 	resource.Test(t, resource.TestCase{
@@ -31,7 +35,7 @@ func TestAccUserLicenseAssignmentResource_Lifecycle(t *testing.T) {
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			resourceType,
-			20*time.Second,
+			30*time.Second,
 		),
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
@@ -46,9 +50,9 @@ func TestAccUserLicenseAssignmentResource_Lifecycle(t *testing.T) {
 				},
 				Config: loadAcceptanceTestTerraform("resource_minimal.tf"),
 				Check: resource.ComposeTestCheckFunc(
-					func(_ *terraform.State) error {
-						testlog.WaitForConsistency("user license assignment", 20*time.Second)
-						time.Sleep(20 * time.Second)
+					func(s *terraform.State) error {
+						testlog.WaitForConsistency("user license assignment", 90*time.Second)
+						time.Sleep(30 * time.Second)
 						return nil
 					},
 					check.That(resourceType+".minimal").ExistsInGraph(testResource),
@@ -75,7 +79,7 @@ func TestAccUserLicenseAssignmentResource_Maximal(t *testing.T) {
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			resourceType,
-			20*time.Second,
+			30*time.Second,
 		),
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
@@ -91,31 +95,25 @@ func TestAccUserLicenseAssignmentResource_Maximal(t *testing.T) {
 				Config: loadAcceptanceTestTerraform("resource_maximal.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					func(_ *terraform.State) error {
-						testlog.WaitForConsistency("user license assignment", 20*time.Second)
-						time.Sleep(20 * time.Second)
+						testlog.WaitForConsistency("user license assignment", 90*time.Second)
+						time.Sleep(30 * time.Second)
 						return nil
 					},
-					check.That(resourceType+".dependancy").ExistsInGraph(testResource),
-					check.That(resourceType+".dependancy").Key("id").Exists(),
-					check.That(resourceType+".dependancy").Key("sku_id").HasValue("a403ebcc-fae0-4ca2-8c8c-7a907fd6c235"),
+					check.That(resourceType+".maximal").ExistsInGraph(testResource),
+					check.That(resourceType+".maximal").Key("id").Exists(),
+					check.That(resourceType+".maximal").Key("sku_id").HasValue("a403ebcc-fae0-4ca2-8c8c-7a907fd6c235"),
+					check.That(resourceType+".maximal").Key("disabled_plans.#").HasValue("1"),
+					check.That(resourceType+".maximal").Key("disabled_plans.*").ContainsTypeSetElement("c948ea65-2053-4a5a-8a62-9eaaaf11b522"),
 				),
 			},
 			{
 				PreConfig: func() {
 					testlog.StepAction(resourceType, "Importing")
 				},
-				ResourceName:      resourceType + ".dependancy",
+				ResourceName:      resourceType + ".maximal",
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
 		},
 	})
-}
-
-func loadAcceptanceTestTerraform(filename string) string {
-	config, err := helpers.ParseHCLFile("tests/terraform/acceptance/" + filename)
-	if err != nil {
-		panic("failed to load acceptance config " + filename + ": " + err.Error())
-	}
-	return acceptance.ConfiguredM365ProviderBlock(config)
 }
