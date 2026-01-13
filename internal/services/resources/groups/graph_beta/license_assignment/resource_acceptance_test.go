@@ -16,8 +16,7 @@ import (
 )
 
 var (
-	// resourceType is declared here and shared across both unit and acceptance tests
-	// resourceType = graphBetaGroupLicenseAssignment.ResourceName // Already declared in resource_test.go
+	resourceType = graphBetaGroupLicenseAssignment.ResourceName
 
 	// testResource is the test resource implementation for group license assignments
 	testResource = graphBetaGroupLicenseAssignment.GroupLicenseAssignmentTestResource{}
@@ -52,7 +51,7 @@ func TestAccGroupLicenseAssignmentResource_Lifecycle(t *testing.T) {
 					},
 					check.That(resourceType+".minimal").ExistsInGraph(testResource),
 					check.That(resourceType+".minimal").Key("id").Exists(),
-					check.That(resourceType+".minimal").Key("sku_id").HasValue("f30db892-07e9-47e9-837c-80727f46fd3d"),
+					check.That(resourceType+".minimal").Key("sku_id").HasValue("a403ebcc-fae0-4ca2-8c8c-7a907fd6c235"),
 				),
 			},
 			{
@@ -94,16 +93,18 @@ func TestAccGroupLicenseAssignmentResource_Maximal(t *testing.T) {
 						time.Sleep(30 * time.Second)
 						return nil
 					},
-					check.That(resourceType+".dependancy").ExistsInGraph(testResource),
-					check.That(resourceType+".dependancy").Key("id").Exists(),
-					check.That(resourceType+".dependancy").Key("sku_id").HasValue("f30db892-07e9-47e9-837c-80727f46fd3d"),
+					check.That(resourceType+".maximal").ExistsInGraph(testResource),
+					check.That(resourceType+".maximal").Key("id").Exists(),
+					check.That(resourceType+".maximal").Key("sku_id").HasValue("a403ebcc-fae0-4ca2-8c8c-7a907fd6c235"),
+					check.That(resourceType+".maximal").Key("disabled_plans.#").HasValue("1"),
+					check.That(resourceType+".maximal").Key("disabled_plans.*").ContainsTypeSetElement("c948ea65-2053-4a5a-8a62-9eaaaf11b522"),
 				),
 			},
 			{
 				PreConfig: func() {
 					testlog.StepAction(resourceType, "Importing")
 				},
-				ResourceName:      resourceType + ".dependancy",
+				ResourceName:      resourceType + ".maximal",
 				ImportState:       true,
 				ImportStateVerify: true,
 			},

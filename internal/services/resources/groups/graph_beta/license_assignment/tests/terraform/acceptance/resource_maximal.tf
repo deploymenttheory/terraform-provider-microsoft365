@@ -4,16 +4,22 @@ resource "random_string" "maximal_suffix" {
   upper   = false
 }
 
-resource "microsoft365_graph_beta_groups_group" "dependancy" {
+resource "microsoft365_graph_beta_groups_group" "maximal" {
   display_name     = "License Assignment Test Maximal Group ${random_string.maximal_suffix.result}"
   mail_nickname    = "lictestmax${random_string.maximal_suffix.result}"
   mail_enabled     = false
   security_enabled = true
 }
 
-resource "microsoft365_graph_beta_groups_license_assignment" "dependancy" {
-  group_id = microsoft365_graph_beta_groups_group.dependancy.id
-  sku_id   = "f30db892-07e9-47e9-837c-80727f46fd3d" # FLOW_FREE
+resource "microsoft365_graph_beta_groups_license_assignment" "maximal" {
+  group_id = microsoft365_graph_beta_groups_group.maximal.id
+  sku_id   = "a403ebcc-fae0-4ca2-8c8c-7a907fd6c235" # Microsoft Fabric (Free) / POWER_BI_STANDARD
 
-  depends_on = [microsoft365_graph_beta_groups_group.dependancy]
+  disabled_plans = [
+    "c948ea65-2053-4a5a-8a62-9eaaaf11b522"  # PURVIEW_DISCOVERY
+  ]
+
+  depends_on = [
+    microsoft365_graph_beta_groups_group.maximal
+  ]
 }
