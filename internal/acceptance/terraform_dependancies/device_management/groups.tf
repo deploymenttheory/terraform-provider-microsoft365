@@ -15,6 +15,7 @@ resource "microsoft365_graph_beta_groups_group" "acc_test_group_1" {
   mail_enabled     = false
   security_enabled = true
   visibility       = "Private"
+  hard_delete      = true
 
   timeouts = {
     create = "60s"
@@ -32,6 +33,7 @@ resource "microsoft365_graph_beta_groups_group" "acc_test_group_2" {
   mail_enabled     = false
   security_enabled = true
   visibility       = "Private"
+  hard_delete      = true
 
   timeouts = {
     create = "60s"
@@ -49,6 +51,7 @@ resource "microsoft365_graph_beta_groups_group" "acc_test_group_3" {
   mail_enabled     = false
   security_enabled = true
   visibility       = "Private"
+  hard_delete      = true
 
   timeouts = {
     create = "60s"
@@ -66,6 +69,7 @@ resource "microsoft365_graph_beta_groups_group" "acc_test_group_4" {
   mail_enabled     = false
   security_enabled = true
   visibility       = "Private"
+  hard_delete      = true
 
   timeouts = {
     create = "60s"
@@ -84,6 +88,7 @@ resource "microsoft365_graph_beta_groups_group" "acc_test_group_5_mail_enabled" 
   security_enabled = false
   group_types      = ["Unified"]
   visibility       = "Private"
+  hard_delete      = true
 
   timeouts = {
     create = "60s"
