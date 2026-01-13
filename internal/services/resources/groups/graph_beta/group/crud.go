@@ -223,6 +223,42 @@ func (r *GroupResource) Delete(ctx context.Context, req resource.DeleteRequest, 
 
 	groupId := object.ID.ValueString()
 
+	// Wait for all licenses to be removed before attempting deletion
+	// Groups with active license assignments cannot be deleted
+	tflog.Debug(ctx, "Checking for active license assignments before group deletion")
+	maxRetries := 30
+	retryDelay := 5 * time.Second
+
+	for i := range maxRetries {
+		group, err := r.client.Groups().ByGroupId(groupId).Get(ctx, &groups.GroupItemRequestBuilderGetRequestConfiguration{
+			QueryParameters: &groups.GroupItemRequestBuilderGetQueryParameters{
+				Select: []string{"id", "assignedLicenses"},
+			},
+		})
+
+		if err != nil {
+			tflog.Debug(ctx, "Group not found during license check, proceeding with cleanup")
+			break
+		}
+
+		assignedLicenses := group.GetAssignedLicenses()
+		if len(assignedLicenses) == 0 {
+			tflog.Debug(ctx, "No active licenses found, proceeding with group deletion")
+			break
+		}
+
+		if i == maxRetries-1 {
+			resp.Diagnostics.AddError(
+				"Delete Failed",
+				fmt.Sprintf("Cannot delete group %s: group still has %d active license(s) assigned. Please remove all licenses before deleting the group.", groupId, len(assignedLicenses)),
+			)
+			return
+		}
+
+		tflog.Debug(ctx, fmt.Sprintf("Group has %d active license(s), waiting %v before retry (attempt %d/%d)", len(assignedLicenses), retryDelay, i+1, maxRetries))
+		time.Sleep(retryDelay)
+	}
+
 	// Define soft delete function
 	softDeleteFunc := func(ctx context.Context) error {
 		return r.client.

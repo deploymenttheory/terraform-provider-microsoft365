@@ -1232,7 +1232,7 @@ func TestAccConditionalAccessPolicyResource_CAL001(t *testing.T) {
 			},
 			"time": {
 				Source:            "hashicorp/time",
-				VersionConstraint: ">= 0.12.0",
+				VersionConstraint: constants.ExternalProviderTimeVersion,
 			},
 		},
 		Steps: []resource.TestStep{
@@ -1474,7 +1474,7 @@ func TestAccConditionalAccessPolicyResource_CAL005(t *testing.T) {
 			},
 			"time": {
 				Source:            "hashicorp/time",
-				VersionConstraint: ">= 0.12.0",
+				VersionConstraint: constants.ExternalProviderTimeVersion,
 			},
 		},
 		Steps: []resource.TestStep{
@@ -1540,7 +1540,7 @@ func TestAccConditionalAccessPolicyResource_CAL006(t *testing.T) {
 			},
 			"time": {
 				Source:            "hashicorp/time",
-				VersionConstraint: ">= 0.12.0",
+				VersionConstraint: constants.ExternalProviderTimeVersion,
 			},
 		},
 		Steps: []resource.TestStep{
