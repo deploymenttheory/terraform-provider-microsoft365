@@ -57,6 +57,7 @@ func CheckResourceExistsByCompositeID(
 	if err != nil {
 		errorInfo := errors.GraphError(ctx, err)
 		if errorInfo.StatusCode == 404 ||
+			errorInfo.StatusCode == 400 || // Configuration policies return 400 for not found
 			errorInfo.ErrorCode == "ResourceNotFound" ||
 			errorInfo.ErrorCode == "Request_ResourceNotFound" ||
 			errorInfo.ErrorCode == "ItemNotFound" {

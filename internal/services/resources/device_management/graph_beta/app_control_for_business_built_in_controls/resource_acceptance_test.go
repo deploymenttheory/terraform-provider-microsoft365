@@ -1,25 +1,42 @@
 package graphBetaAppControlForBusinessBuiltInControls_test
 
 import (
-	"context"
-	"fmt"
-	"log"
+	"regexp"
 	"testing"
+	"time"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/check"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/destroy"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/testlog"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
-	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
+	graphBetaAppControlForBusinessBuiltInControls "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_management/graph_beta/app_control_for_business_built_in_controls"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 )
 
-func TestAccAppControlForBusinessBuiltInControlsResource_Lifecycle(t *testing.T) {
+var testResource = graphBetaAppControlForBusinessBuiltInControls.AppControlForBusinessBuiltInControlsTestResource{}
+
+// Helper function to load test configs from acceptance directory
+func loadAcceptanceTestTerraform(filename string) string {
+	config, err := helpers.ParseHCLFile("tests/terraform/acceptance/" + filename)
+	if err != nil {
+		panic("failed to load acceptance config " + filename + ": " + err.Error())
+	}
+	return acceptance.ConfiguredM365ProviderBlock(config)
+}
+
+// Test 001: Audit Mode
+func TestAccAppControlForBusinessBuiltInControlsResource_001_AuditMode(t *testing.T) {
 	resource.Test(t, resource.TestCase{
-		PreCheck:                  func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories:  mocks.TestAccProtoV6ProviderFactories,
-		CheckDestroy:              testAccCheckAppControlForBusinessBuiltInControlsDestroy,
-		PreventPostDestroyRefresh: true, // Prevents refresh after destroy to avoid dependency issues
+		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		CheckDestroy: destroy.CheckDestroyedAllFunc(
+			testResource,
+			graphBetaAppControlForBusinessBuiltInControls.ResourceName,
+			30*time.Second,
+		),
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
 				Source:            "hashicorp/random",
@@ -28,48 +45,36 @@ func TestAccAppControlForBusinessBuiltInControlsResource_Lifecycle(t *testing.T)
 		},
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAppControlForBusinessBuiltInControlsConfig_minimal(),
+				PreConfig: func() {
+					testlog.StepAction(graphBetaAppControlForBusinessBuiltInControls.ResourceName, "Creating app control policy in audit mode")
+				},
+				Config: loadAcceptanceTestTerraform("resource_acfb_built_in_controls_audit_mode.tf"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("microsoft365_graph_beta_device_management_app_control_for_business_built_in_controls.minimal", "id"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_app_control_for_business_built_in_controls.minimal", "name", "acc-test-app-control-for-business-built-in-controls-minimal"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_app_control_for_business_built_in_controls.minimal", "enable_app_control", "audit"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_app_control_for_business_built_in_controls.minimal", "role_scope_tag_ids.#", "3"),
-					resource.TestCheckTypeSetElemAttr("microsoft365_graph_beta_device_management_app_control_for_business_built_in_controls.minimal", "role_scope_tag_ids.*", "0"),
-					resource.TestCheckTypeSetElemAttr("microsoft365_graph_beta_device_management_app_control_for_business_built_in_controls.minimal", "role_scope_tag_ids.*", "1"),
-					resource.TestCheckTypeSetElemAttr("microsoft365_graph_beta_device_management_app_control_for_business_built_in_controls.minimal", "role_scope_tag_ids.*", "2"),
+					func(_ *terraform.State) error {
+						testlog.WaitForConsistency("App control policy", 15*time.Second)
+						time.Sleep(15 * time.Second)
+						return nil
+					},
+					check.That(graphBetaAppControlForBusinessBuiltInControls.ResourceName+".audit_mode").ExistsInGraph(testResource),
+					check.That(graphBetaAppControlForBusinessBuiltInControls.ResourceName+".audit_mode").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(graphBetaAppControlForBusinessBuiltInControls.ResourceName+".audit_mode").Key("name").MatchesRegex(regexp.MustCompile(`^acc-test-app-control-audit-mode-[a-z0-9]{8}$`)),
+					check.That(graphBetaAppControlForBusinessBuiltInControls.ResourceName+".audit_mode").Key("enable_app_control").HasValue("audit"),
 				),
-			},
-			{
-				ResourceName:      "microsoft365_graph_beta_device_management_app_control_for_business_built_in_controls.minimal",
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
-			{
-				Config: testAccAppControlForBusinessBuiltInControlsConfig_maximal(),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("microsoft365_graph_beta_device_management_app_control_for_business_built_in_controls.maximal", "id"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_app_control_for_business_built_in_controls.maximal", "name", "acc-test-app-control-for-business-built-in-controls-maximal"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_app_control_for_business_built_in_controls.maximal", "enable_app_control", "audit"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_app_control_for_business_built_in_controls.maximal", "additional_rules_for_trusting_apps.#", "2"),
-					resource.TestCheckTypeSetElemAttr("microsoft365_graph_beta_device_management_app_control_for_business_built_in_controls.maximal", "additional_rules_for_trusting_apps.*", "trust_apps_with_good_reputation"),
-					resource.TestCheckTypeSetElemAttr("microsoft365_graph_beta_device_management_app_control_for_business_built_in_controls.maximal", "additional_rules_for_trusting_apps.*", "trust_apps_from_managed_installers"),
-				),
-			},
-			{
-				// Use removed block to control destruction order - The removed block with destroy = true explicitly destroys the app control policy before the normal destroy phase, which should resolve the "assignment filter is associated with existing assignments" error by ensuring proper cleanup
-				//ordering.
-				Config: testAccAppControlForBusinessBuiltInControlsConfig_removedPolicy(),
 			},
 		},
 	})
 }
 
-func TestAccAppControlForBusinessBuiltInControlsResource_EnableAppControl(t *testing.T) {
+// Test 002: Enforce Mode
+func TestAccAppControlForBusinessBuiltInControlsResource_002_EnforceMode(t *testing.T) {
 	resource.Test(t, resource.TestCase{
-		PreCheck:                  func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories:  mocks.TestAccProtoV6ProviderFactories,
-		CheckDestroy:              testAccCheckAppControlForBusinessBuiltInControlsDestroy,
-		PreventPostDestroyRefresh: true, // Prevents refresh after destroy to avoid dependency issues
+		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		CheckDestroy: destroy.CheckDestroyedAllFunc(
+			testResource,
+			graphBetaAppControlForBusinessBuiltInControls.ResourceName,
+			30*time.Second,
+		),
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
 				Source:            "hashicorp/random",
@@ -78,31 +83,36 @@ func TestAccAppControlForBusinessBuiltInControlsResource_EnableAppControl(t *tes
 		},
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAppControlForBusinessBuiltInControlsConfig_auditMode(),
+				PreConfig: func() {
+					testlog.StepAction(graphBetaAppControlForBusinessBuiltInControls.ResourceName, "Creating app control policy in enforce mode")
+				},
+				Config: loadAcceptanceTestTerraform("resource_acfb_built_in_controls_enforce_mode.tf"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("microsoft365_graph_beta_device_management_app_control_for_business_built_in_controls.audit_mode", "id"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_app_control_for_business_built_in_controls.audit_mode", "name", "acc-test-app-control-audit-mode"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_app_control_for_business_built_in_controls.audit_mode", "enable_app_control", "audit"),
-				),
-			},
-			{
-				Config: testAccAppControlForBusinessBuiltInControlsConfig_enforceMode(),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("microsoft365_graph_beta_device_management_app_control_for_business_built_in_controls.enforce_mode", "id"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_app_control_for_business_built_in_controls.enforce_mode", "name", "acc-test-app-control-enforce-mode"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_app_control_for_business_built_in_controls.enforce_mode", "enable_app_control", "enforce"),
+					func(_ *terraform.State) error {
+						testlog.WaitForConsistency("App control policy", 15*time.Second)
+						time.Sleep(15 * time.Second)
+						return nil
+					},
+					check.That(graphBetaAppControlForBusinessBuiltInControls.ResourceName+".enforce_mode").ExistsInGraph(testResource),
+					check.That(graphBetaAppControlForBusinessBuiltInControls.ResourceName+".enforce_mode").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(graphBetaAppControlForBusinessBuiltInControls.ResourceName+".enforce_mode").Key("name").MatchesRegex(regexp.MustCompile(`^acc-test-app-control-enforce-mode-[a-z0-9]{8}$`)),
+					check.That(graphBetaAppControlForBusinessBuiltInControls.ResourceName+".enforce_mode").Key("enable_app_control").HasValue("enforce"),
 				),
 			},
 		},
 	})
 }
 
-func TestAccAppControlForBusinessBuiltInControlsResource_Assignments(t *testing.T) {
+// Test 003: Minimal Configuration
+func TestAccAppControlForBusinessBuiltInControlsResource_003_Minimal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
-		PreCheck:                  func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories:  mocks.TestAccProtoV6ProviderFactories,
-		CheckDestroy:              testAccCheckAppControlForBusinessBuiltInControlsDestroy,
-		PreventPostDestroyRefresh: true, // Prevents refresh after destroy to avoid dependency issues
+		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		CheckDestroy: destroy.CheckDestroyedAllFunc(
+			testResource,
+			graphBetaAppControlForBusinessBuiltInControls.ResourceName,
+			30*time.Second,
+		),
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
 				Source:            "hashicorp/random",
@@ -111,220 +121,297 @@ func TestAccAppControlForBusinessBuiltInControlsResource_Assignments(t *testing.
 		},
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAppControlForBusinessBuiltInControlsConfig_withAssignments(),
+				PreConfig: func() {
+					testlog.StepAction(graphBetaAppControlForBusinessBuiltInControls.ResourceName, "Creating minimal app control policy")
+				},
+				Config: loadAcceptanceTestTerraform("resource_acfb_built_in_controls_minimal.tf"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("microsoft365_graph_beta_device_management_app_control_for_business_built_in_controls.minimal", "id"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_app_control_for_business_built_in_controls.minimal", "name", "acc-test-app-control-for-business-built-in-controls-minimal"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_app_control_for_business_built_in_controls.minimal", "assignments.#", "3"),
-					resource.TestCheckTypeSetElemNestedAttrs("microsoft365_graph_beta_device_management_app_control_for_business_built_in_controls.minimal", "assignments.*", map[string]string{
-						"type":        "allLicensedUsersAssignmentTarget",
-						"filter_type": "none",
-					}),
-					resource.TestCheckTypeSetElemNestedAttrs("microsoft365_graph_beta_device_management_app_control_for_business_built_in_controls.minimal", "assignments.*", map[string]string{
-						"type":        "groupAssignmentTarget",
-						"filter_type": "none",
-					}),
-					resource.TestCheckTypeSetElemNestedAttrs("microsoft365_graph_beta_device_management_app_control_for_business_built_in_controls.minimal", "assignments.*", map[string]string{
-						"type":        "allDevicesAssignmentTarget",
-						"filter_type": "none",
-					}),
+					func(_ *terraform.State) error {
+						testlog.WaitForConsistency("App control policy", 15*time.Second)
+						time.Sleep(15 * time.Second)
+						return nil
+					},
+					check.That(graphBetaAppControlForBusinessBuiltInControls.ResourceName+".advanced").ExistsInGraph(testResource),
+					check.That(graphBetaAppControlForBusinessBuiltInControls.ResourceName+".advanced").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(graphBetaAppControlForBusinessBuiltInControls.ResourceName+".advanced").Key("name").MatchesRegex(regexp.MustCompile(`^acc-test-app-control-for-business-built-in-controls-minimal-[a-z0-9]{8}$`)),
+					check.That(graphBetaAppControlForBusinessBuiltInControls.ResourceName+".advanced").Key("enable_app_control").HasValue("audit"),
+					check.That(graphBetaAppControlForBusinessBuiltInControls.ResourceName+".advanced").Key("role_scope_tag_ids.#").HasValue("3"),
+				),
+			},
+			{
+				PreConfig: func() {
+					testlog.StepAction(graphBetaAppControlForBusinessBuiltInControls.ResourceName, "Importing minimal app control policy")
+				},
+				ResourceName:            graphBetaAppControlForBusinessBuiltInControls.ResourceName + ".advanced",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"timeouts"},
+			},
+		},
+	})
+}
+
+// Test 004: Maximal Configuration with Additional Rules
+func TestAccAppControlForBusinessBuiltInControlsResource_004_Maximal(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		CheckDestroy: destroy.CheckDestroyedAllFunc(
+			testResource,
+			graphBetaAppControlForBusinessBuiltInControls.ResourceName,
+			30*time.Second,
+		),
+		ExternalProviders: map[string]resource.ExternalProvider{
+			"random": {
+				Source:            "hashicorp/random",
+				VersionConstraint: ">= 3.7.2",
+			},
+		},
+		Steps: []resource.TestStep{
+			{
+				PreConfig: func() {
+					testlog.StepAction(graphBetaAppControlForBusinessBuiltInControls.ResourceName, "Creating maximal app control policy")
+				},
+				Config: loadAcceptanceTestTerraform("resource_acfb_built_in_controls_maximal.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					func(_ *terraform.State) error {
+						testlog.WaitForConsistency("App control policy", 15*time.Second)
+						time.Sleep(15 * time.Second)
+						return nil
+					},
+					check.That(graphBetaAppControlForBusinessBuiltInControls.ResourceName+".advanced").ExistsInGraph(testResource),
+					check.That(graphBetaAppControlForBusinessBuiltInControls.ResourceName+".advanced").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(graphBetaAppControlForBusinessBuiltInControls.ResourceName+".advanced").Key("name").MatchesRegex(regexp.MustCompile(`^acc-test-app-control-for-business-built-in-controls-maximal-[a-z0-9]{8}$`)),
+					check.That(graphBetaAppControlForBusinessBuiltInControls.ResourceName+".advanced").Key("additional_rules_for_trusting_apps.#").HasValue("2"),
+					check.That(graphBetaAppControlForBusinessBuiltInControls.ResourceName+".advanced").Key("assignments.#").HasValue("3"),
+				),
+			},
+			{
+				PreConfig: func() {
+					testlog.StepAction(graphBetaAppControlForBusinessBuiltInControls.ResourceName, "Importing maximal app control policy")
+				},
+				ResourceName:            graphBetaAppControlForBusinessBuiltInControls.ResourceName + ".advanced",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"timeouts"},
+			},
+		},
+	})
+}
+
+// Test 005: Lifecycle - Minimal to Maximal
+func TestAccAppControlForBusinessBuiltInControlsResource_005_Lifecycle_MinimalToMaximal(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		CheckDestroy: destroy.CheckDestroyedAllFunc(
+			testResource,
+			graphBetaAppControlForBusinessBuiltInControls.ResourceName,
+			30*time.Second,
+		),
+		ExternalProviders: map[string]resource.ExternalProvider{
+			"random": {
+				Source:            "hashicorp/random",
+				VersionConstraint: ">= 3.7.2",
+			},
+		},
+		Steps: []resource.TestStep{
+			{
+				PreConfig: func() {
+					testlog.StepAction(graphBetaAppControlForBusinessBuiltInControls.ResourceName, "Creating minimal lifecycle app control policy")
+				},
+				Config: loadAcceptanceTestTerraform("resource_acfb_built_in_controls_lifecycle_step_1_minimal.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					func(_ *terraform.State) error {
+						testlog.WaitForConsistency("App control policy", 15*time.Second)
+						time.Sleep(15 * time.Second)
+						return nil
+					},
+					check.That(graphBetaAppControlForBusinessBuiltInControls.ResourceName+".lifecycle").ExistsInGraph(testResource),
+					check.That(graphBetaAppControlForBusinessBuiltInControls.ResourceName+".lifecycle").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(graphBetaAppControlForBusinessBuiltInControls.ResourceName+".lifecycle").Key("enable_app_control").HasValue("audit"),
+					check.That(graphBetaAppControlForBusinessBuiltInControls.ResourceName+".lifecycle").Key("role_scope_tag_ids.#").HasValue("1"),
+				),
+			},
+			{
+				PreConfig: func() {
+					testlog.StepAction(graphBetaAppControlForBusinessBuiltInControls.ResourceName, "Updating to maximal lifecycle app control policy")
+				},
+				Config: loadAcceptanceTestTerraform("resource_acfb_built_in_controls_lifecycle_step_2_maximal.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					func(_ *terraform.State) error {
+						testlog.WaitForConsistency("App control policy", 15*time.Second)
+						time.Sleep(15 * time.Second)
+						return nil
+					},
+					check.That(graphBetaAppControlForBusinessBuiltInControls.ResourceName+".lifecycle").ExistsInGraph(testResource),
+					check.That(graphBetaAppControlForBusinessBuiltInControls.ResourceName+".lifecycle").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(graphBetaAppControlForBusinessBuiltInControls.ResourceName+".lifecycle").Key("role_scope_tag_ids.#").HasValue("3"),
+					check.That(graphBetaAppControlForBusinessBuiltInControls.ResourceName+".lifecycle").Key("additional_rules_for_trusting_apps.#").HasValue("2"),
 				),
 			},
 		},
 	})
 }
 
-func testAccAppControlForBusinessBuiltInControlsConfig_minimal() string {
-	groups, err := helpers.ParseHCLFile("../../../../../acceptance/terraform_dependancies/device_management/groups.tf")
-	if err != nil {
-		log.Fatalf("Failed to load groups config: %v", err)
-	}
-	roleScopeTags, err := helpers.ParseHCLFile("../../../../../acceptance/terraform_dependancies/device_management/role_scope_tags.tf")
-	if err != nil {
-		log.Fatalf("Failed to load role scope tags config: %v", err)
-	}
-	accTestConfig, err := helpers.ParseHCLFile("tests/terraform/acceptance/resource_acfb_built_in_controls_minimal.tf")
-	if err != nil {
-		log.Fatalf("Failed to load minimal test config: %v", err)
-	}
-	return acceptance.ConfiguredM365ProviderBlock(groups + "\n" + roleScopeTags + "\n" + "\n" + accTestConfig)
+// Test 006: Lifecycle - Maximal to Minimal (Downgrade)
+func TestAccAppControlForBusinessBuiltInControlsResource_006_Lifecycle_MaximalToMinimal(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		CheckDestroy: destroy.CheckDestroyedAllFunc(
+			testResource,
+			graphBetaAppControlForBusinessBuiltInControls.ResourceName,
+			30*time.Second,
+		),
+		ExternalProviders: map[string]resource.ExternalProvider{
+			"random": {
+				Source:            "hashicorp/random",
+				VersionConstraint: ">= 3.7.2",
+			},
+		},
+		Steps: []resource.TestStep{
+			{
+				PreConfig: func() {
+					testlog.StepAction(graphBetaAppControlForBusinessBuiltInControls.ResourceName, "Creating maximal downgrade app control policy")
+				},
+				Config: loadAcceptanceTestTerraform("resource_acfb_built_in_controls_downgrade_step_1_maximal.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					func(_ *terraform.State) error {
+						testlog.WaitForConsistency("App control policy", 15*time.Second)
+						time.Sleep(15 * time.Second)
+						return nil
+					},
+					check.That(graphBetaAppControlForBusinessBuiltInControls.ResourceName+".downgrade").ExistsInGraph(testResource),
+					check.That(graphBetaAppControlForBusinessBuiltInControls.ResourceName+".downgrade").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(graphBetaAppControlForBusinessBuiltInControls.ResourceName+".downgrade").Key("role_scope_tag_ids.#").HasValue("3"),
+					check.That(graphBetaAppControlForBusinessBuiltInControls.ResourceName+".downgrade").Key("additional_rules_for_trusting_apps.#").HasValue("2"),
+				),
+			},
+			{
+				PreConfig: func() {
+					testlog.StepAction(graphBetaAppControlForBusinessBuiltInControls.ResourceName, "Downgrading to minimal app control policy")
+				},
+				Config: loadAcceptanceTestTerraform("resource_acfb_built_in_controls_downgrade_step_2_minimal.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					func(_ *terraform.State) error {
+						testlog.WaitForConsistency("App control policy", 15*time.Second)
+						time.Sleep(15 * time.Second)
+						return nil
+					},
+					check.That(graphBetaAppControlForBusinessBuiltInControls.ResourceName+".downgrade").ExistsInGraph(testResource),
+					check.That(graphBetaAppControlForBusinessBuiltInControls.ResourceName+".downgrade").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(graphBetaAppControlForBusinessBuiltInControls.ResourceName+".downgrade").Key("role_scope_tag_ids.#").HasValue("1"),
+				),
+			},
+		},
+	})
 }
 
-func testAccAppControlForBusinessBuiltInControlsConfig_maximal() string {
-	groups, err := helpers.ParseHCLFile("../../../../../acceptance/terraform_dependancies/device_management/groups.tf")
-	if err != nil {
-		log.Fatalf("Failed to load groups config: %v", err)
-	}
-	roleScopeTags, err := helpers.ParseHCLFile("../../../../../acceptance/terraform_dependancies/device_management/role_scope_tags.tf")
-	if err != nil {
-		log.Fatalf("Failed to load role scope tags config: %v", err)
-	}
-	accTestConfig, err := helpers.ParseHCLFile("tests/terraform/acceptance/resource_acfb_built_in_controls_maximal.tf")
-	if err != nil {
-		log.Fatalf("Failed to load maximal test config: %v", err)
-	}
-	return acceptance.ConfiguredM365ProviderBlock(groups + "\n" + roleScopeTags + "\n" + "\n" + accTestConfig)
+// Test 007: Assignments Lifecycle - Minimal to Maximal
+func TestAccAppControlForBusinessBuiltInControlsResource_007_AssignmentsLifecycle_MinimalToMaximal(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		CheckDestroy: destroy.CheckDestroyedAllFunc(
+			testResource,
+			graphBetaAppControlForBusinessBuiltInControls.ResourceName,
+			30*time.Second,
+		),
+		ExternalProviders: map[string]resource.ExternalProvider{
+			"random": {
+				Source:            "hashicorp/random",
+				VersionConstraint: ">= 3.7.2",
+			},
+		},
+		Steps: []resource.TestStep{
+			{
+				PreConfig: func() {
+					testlog.StepAction(graphBetaAppControlForBusinessBuiltInControls.ResourceName, "Creating app control policy with minimal assignments")
+				},
+				Config: loadAcceptanceTestTerraform("resource_acfb_built_in_controls_assignments_lifecycle_step_1_minimal.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					func(_ *terraform.State) error {
+						testlog.WaitForConsistency("App control policy", 15*time.Second)
+						time.Sleep(15 * time.Second)
+						return nil
+					},
+					check.That(graphBetaAppControlForBusinessBuiltInControls.ResourceName+".assignments_lifecycle").ExistsInGraph(testResource),
+					check.That(graphBetaAppControlForBusinessBuiltInControls.ResourceName+".assignments_lifecycle").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(graphBetaAppControlForBusinessBuiltInControls.ResourceName+".assignments_lifecycle").Key("assignments.#").HasValue("1"),
+					check.That(graphBetaAppControlForBusinessBuiltInControls.ResourceName+".assignments_lifecycle").Key("assignments.0.type").HasValue("allLicensedUsersAssignmentTarget"),
+				),
+			},
+			{
+				PreConfig: func() {
+					testlog.StepAction(graphBetaAppControlForBusinessBuiltInControls.ResourceName, "Updating to maximal assignments")
+				},
+				Config: loadAcceptanceTestTerraform("resource_acfb_built_in_controls_assignments_lifecycle_step_2_maximal.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					func(_ *terraform.State) error {
+						testlog.WaitForConsistency("App control policy", 15*time.Second)
+						time.Sleep(15 * time.Second)
+						return nil
+					},
+					check.That(graphBetaAppControlForBusinessBuiltInControls.ResourceName+".assignments_lifecycle").ExistsInGraph(testResource),
+					check.That(graphBetaAppControlForBusinessBuiltInControls.ResourceName+".assignments_lifecycle").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(graphBetaAppControlForBusinessBuiltInControls.ResourceName+".assignments_lifecycle").Key("assignments.#").HasValue("3"),
+				),
+			},
+		},
+	})
 }
 
-func testAccAppControlForBusinessBuiltInControlsConfig_withAssignments() string {
-	return testAccAppControlForBusinessBuiltInControlsConfig_minimal()
-}
-
-func testAccAppControlForBusinessBuiltInControlsConfig_auditMode() string {
-	return acceptance.ConfiguredM365ProviderBlock(`
-resource "microsoft365_graph_beta_device_management_app_control_for_business_built_in_controls" "audit_mode" {
-  name        = "acc-test-app-control-audit-mode"
-  description = "acc-test-app-control-audit-mode"
-  
-  enable_app_control = "audit"
-  role_scope_tag_ids = ["0"]
-
-  timeouts = {
-    create = "15m"
-    read   = "5m"
-    update = "15m"
-    delete = "10m"
-  }
-}`)
-}
-
-func testAccAppControlForBusinessBuiltInControlsConfig_enforceMode() string {
-	return acceptance.ConfiguredM365ProviderBlock(`
-resource "microsoft365_graph_beta_device_management_app_control_for_business_built_in_controls" "enforce_mode" {
-  name        = "acc-test-app-control-enforce-mode"
-  description = "acc-test-app-control-enforce-mode"
-  
-  enable_app_control = "enforce"
-  role_scope_tag_ids = ["0"]
-
-  timeouts = {
-    create = "15m"
-    read   = "5m"
-    update = "15m"
-    delete = "10m"
-  }
-}`)
-}
-
-func testAccAppControlForBusinessBuiltInControlsConfig_removedPolicy() string {
-	groups, err := helpers.ParseHCLFile("../../../../../acceptance/terraform_dependancies/device_management/groups.tf")
-	if err != nil {
-		log.Fatalf("Failed to load groups config: %v", err)
-	}
-	roleScopeTags, err := helpers.ParseHCLFile("../../../../../acceptance/terraform_dependancies/device_management/role_scope_tags.tf")
-	if err != nil {
-		log.Fatalf("Failed to load role scope tags config: %v", err)
-	}
-	assignmentFilters, err := helpers.ParseHCLFile("../../../../../acceptance/terraform_dependancies/device_management/assignment_filter.tf")
-	if err != nil {
-		log.Fatalf("Failed to load assignment filters config: %v", err)
-	}
-
-	// Configuration with removed block for app control policy to control destroy order
-	removedConfig := `
-# App control policy removed first to release assignment filter dependencies
-removed {
-  from = microsoft365_graph_beta_device_management_app_control_for_business_built_in_controls.maximal
-  lifecycle {
-    destroy = true
-  }
-}
-`
-	return acceptance.ConfiguredM365ProviderBlock(groups + "\n" + roleScopeTags + "\n" + assignmentFilters + "\n" + removedConfig)
-}
-
-// testAccCheckAppControlForBusinessBuiltInControlsDestroy verifies that app control for business built-in controls policies have been destroyed
-func testAccCheckAppControlForBusinessBuiltInControlsDestroy(s *terraform.State) error {
-	fmt.Printf("=== DESTROY CHECK START ===\n")
-
-	graphClient, err := acceptance.TestGraphClient()
-	if err != nil {
-		fmt.Printf("ERROR: Failed to create Graph client for CheckDestroy: %v\n", err)
-		return fmt.Errorf("error creating Graph client for CheckDestroy: %v", err)
-	}
-
-	ctx := context.Background()
-	resourceCount := 0
-	destroyedCount := 0
-	orphanedResources := []string{}
-
-	// Count total resources to check
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type == "microsoft365_graph_beta_device_management_app_control_for_business_built_in_controls" {
-			resourceCount++
-		}
-	}
-	fmt.Printf("INFO: Found %d app control for business built-in controls policy resources to verify destruction\n", resourceCount)
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "microsoft365_graph_beta_device_management_app_control_for_business_built_in_controls" {
-			continue
-		}
-
-		fmt.Printf("--- Checking resource destruction: %s ---\n", rs.Primary.ID)
-
-		// Build the API URL for logging
-		apiUrl := fmt.Sprintf("https://graph.microsoft.com/beta/deviceManagement/configurationPolicies/%s", rs.Primary.ID)
-		fmt.Printf("INFO: API URL: %s\n", apiUrl)
-
-		// Attempt to get the app control policy by ID
-		resource, err := graphClient.
-			DeviceManagement().
-			ConfigurationPolicies().
-			ByDeviceManagementConfigurationPolicyId(rs.Primary.ID).
-			Get(ctx, nil)
-
-		if err != nil {
-			errorInfo := errors.GraphError(ctx, err)
-
-			// Accept multiple error conditions that indicate successful deletion
-			if errorInfo.StatusCode == 404 ||
-				errorInfo.StatusCode == 400 || // Bad Request - often indicates resource no longer exists
-				errorInfo.ErrorCode == "ResourceNotFound" ||
-				errorInfo.ErrorCode == "ItemNotFound" ||
-				errorInfo.ErrorCode == "Request_ResourceNotFound" ||
-				errorInfo.StatusCode == 0 { // Handle cases where status code is not set
-				fmt.Printf("SUCCESS: Resource %s successfully destroyed (verified by API error)\n", rs.Primary.ID)
-				destroyedCount++
-				continue // Resource successfully destroyed
-			}
-
-			// For other errors, this might indicate an orphaned resource or API issue
-			fmt.Printf("WARNING: Unexpected error checking resource %s destruction: %v\n", rs.Primary.ID, err)
-			fmt.Printf("WARNING: This could indicate an orphaned resource or API connectivity issue\n")
-			orphanedResources = append(orphanedResources, rs.Primary.ID)
-
-			// Still continue but mark as potentially problematic
-			continue
-		}
-
-		// If we can still get the resource, it wasn't destroyed - this is a real problem
-		if resource != nil {
-			fmt.Printf("ERROR: Resource %s still exists and was not properly destroyed!\n", rs.Primary.ID)
-			if resource.GetName() != nil {
-				fmt.Printf("ERROR: Resource name: %s\n", *resource.GetName())
-			}
-			if resource.GetId() != nil {
-				fmt.Printf("ERROR: Resource ID: %s\n", *resource.GetId())
-			}
-			orphanedResources = append(orphanedResources, rs.Primary.ID)
-			return fmt.Errorf("app control for business built-in controls policy %s still exists and was not destroyed", rs.Primary.ID)
-		}
-	}
-
-	fmt.Printf("=== DESTROY CHECK SUMMARY ===\n")
-	fmt.Printf("Total resources checked: %d\n", resourceCount)
-	fmt.Printf("Successfully destroyed: %d\n", destroyedCount)
-	fmt.Printf("Potentially orphaned: %d\n", len(orphanedResources))
-
-	if len(orphanedResources) > 0 {
-		fmt.Printf("WARNING: Potentially orphaned resource IDs:\n")
-		for _, id := range orphanedResources {
-			fmt.Printf("  - %s\n", id)
-		}
-		fmt.Printf("WARNING: Please manually verify these resources in the Microsoft Graph API\n")
-	}
-
-	fmt.Printf("=== DESTROY CHECK COMPLETE ===\n")
-	return nil
+// Test 008: Assignments Lifecycle - Maximal to Minimal (Downgrade)
+func TestAccAppControlForBusinessBuiltInControlsResource_008_AssignmentsLifecycle_MaximalToMinimal(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		CheckDestroy: destroy.CheckDestroyedAllFunc(
+			testResource,
+			graphBetaAppControlForBusinessBuiltInControls.ResourceName,
+			30*time.Second,
+		),
+		ExternalProviders: map[string]resource.ExternalProvider{
+			"random": {
+				Source:            "hashicorp/random",
+				VersionConstraint: ">= 3.7.2",
+			},
+		},
+		Steps: []resource.TestStep{
+			{
+				PreConfig: func() {
+					testlog.StepAction(graphBetaAppControlForBusinessBuiltInControls.ResourceName, "Creating app control policy with maximal assignments")
+				},
+				Config: loadAcceptanceTestTerraform("resource_acfb_built_in_controls_assignments_downgrade_step_1_maximal.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					func(_ *terraform.State) error {
+						testlog.WaitForConsistency("App control policy", 15*time.Second)
+						time.Sleep(15 * time.Second)
+						return nil
+					},
+					check.That(graphBetaAppControlForBusinessBuiltInControls.ResourceName+".assignments_downgrade").ExistsInGraph(testResource),
+					check.That(graphBetaAppControlForBusinessBuiltInControls.ResourceName+".assignments_downgrade").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(graphBetaAppControlForBusinessBuiltInControls.ResourceName+".assignments_downgrade").Key("assignments.#").HasValue("3"),
+				),
+			},
+			{
+				PreConfig: func() {
+					testlog.StepAction(graphBetaAppControlForBusinessBuiltInControls.ResourceName, "Downgrading to minimal assignments")
+				},
+				Config: loadAcceptanceTestTerraform("resource_acfb_built_in_controls_assignments_downgrade_step_2_minimal.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					func(_ *terraform.State) error {
+						testlog.WaitForConsistency("App control policy", 15*time.Second)
+						time.Sleep(15 * time.Second)
+						return nil
+					},
+					check.That(graphBetaAppControlForBusinessBuiltInControls.ResourceName+".assignments_downgrade").ExistsInGraph(testResource),
+					check.That(graphBetaAppControlForBusinessBuiltInControls.ResourceName+".assignments_downgrade").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(graphBetaAppControlForBusinessBuiltInControls.ResourceName+".assignments_downgrade").Key("assignments.#").HasValue("1"),
+					check.That(graphBetaAppControlForBusinessBuiltInControls.ResourceName+".assignments_downgrade").Key("assignments.0.type").HasValue("allLicensedUsersAssignmentTarget"),
+				),
+			},
+		},
+	})
 }

@@ -1,0 +1,49 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/configurationPolicies/$entity",
+  "@odata.type": "#microsoft.graph.deviceManagementConfigurationPolicy",
+  "platforms": "windows10",
+  "technologies": "mdm",
+  "creationSource": null,
+  "roleScopeTagIds": ["0"],
+  "lastModifiedDateTime": "2024-01-02T00:00:00Z",
+  "templateReference": {
+    "templateId": "4321b946-b76b-4450-8afd-769c08b16ffc_1",
+    "templateFamily": "endpointSecurityApplicationControl",
+    "templateDisplayName": "App Control for Business",
+    "templateDisplayVersion": "Version 1"
+  },
+  "settings": [
+    {
+      "@odata.type": "#microsoft.graph.deviceManagementConfigurationSetting",
+      "settingInstance": {
+        "@odata.type": "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance",
+        "settingDefinitionId": "device_vendor_msft_policy_config_applicationcontrol_policies_{policyguid}_policiesoptions",
+        "choiceSettingValue": {
+          "@odata.type": "#microsoft.graph.deviceManagementConfigurationChoiceSettingValue",
+          "value": "device_vendor_msft_policy_config_applicationcontrol_built_in_controls_selected",
+          "children": [
+            {
+              "@odata.type": "#microsoft.graph.deviceManagementConfigurationGroupSettingCollectionInstance",
+              "settingDefinitionId": "device_vendor_msft_policy_config_applicationcontrol_built_in_controls",
+              "groupSettingCollectionValue": [
+                {
+                  "children": [
+                    {
+                      "@odata.type": "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance",
+                      "settingDefinitionId": "device_vendor_msft_policy_config_applicationcontrol_built_in_controls_enable_app_control",
+                      "choiceSettingValue": {
+                        "@odata.type": "#microsoft.graph.deviceManagementConfigurationChoiceSettingValue",
+                        "value": "device_vendor_msft_policy_config_applicationcontrol_built_in_controls_enable_app_control_0",
+                        "children": []
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

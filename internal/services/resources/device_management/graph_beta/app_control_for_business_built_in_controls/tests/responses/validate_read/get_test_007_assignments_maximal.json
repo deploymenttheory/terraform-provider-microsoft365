@@ -1,9 +1,9 @@
 {
   "@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/configurationPolicies/$entity",
   "@odata.type": "#microsoft.graph.deviceManagementConfigurationPolicy",
-  "id": "00000000-0000-0000-0000-000000000003",
-  "name": "Test App Control for Business - With Assignments",
-  "description": "Test App Control for Business policy with assignments",
+  "id": "test-007-assignments-maximal-id",
+  "name": "unit-test-app-control-assignments-lifecycle",
+  "description": "Assignments lifecycle test - Step 2: Maximal assignments",
   "platforms": "windows10",
   "technologies": "mdm",
   "creationSource": null,
@@ -18,28 +18,26 @@
   },
   "assignments": [
     {
-      "id": "00000000-0000-0000-0000-000000000001_00000000-0000-0000-0000-000000000001",
-      "source": "direct",
-      "sourceId": "00000000-0000-0000-0000-000000000001_00000000-0000-0000-0000-000000000001",
+      "id": "assignment-001",
       "target": {
         "@odata.type": "#microsoft.graph.allLicensedUsersAssignmentTarget"
       }
     },
     {
-      "id": "00000000-0000-0000-0000-000000000002_00000000-0000-0000-0000-000000000002",
-      "source": "direct", 
-      "sourceId": "00000000-0000-0000-0000-000000000002_00000000-0000-0000-0000-000000000002",
+      "id": "assignment-002",
       "target": {
         "@odata.type": "#microsoft.graph.groupAssignmentTarget",
-        "groupId": "33333333-3333-3333-3333-333333333333"
+        "groupId": "33333333-3333-3333-3333-333333333333",
+        "deviceAndAppManagementAssignmentFilterId": "44444444-4444-4444-4444-444444444444",
+        "deviceAndAppManagementAssignmentFilterType": "include"
       }
     },
     {
-      "id": "00000000-0000-0000-0000-000000000003_00000000-0000-0000-0000-000000000003",
-      "source": "direct",
-      "sourceId": "00000000-0000-0000-0000-000000000003_00000000-0000-0000-0000-000000000003", 
+      "id": "assignment-003",
       "target": {
-        "@odata.type": "#microsoft.graph.allDevicesAssignmentTarget"
+        "@odata.type": "#microsoft.graph.allDevicesAssignmentTarget",
+        "deviceAndAppManagementAssignmentFilterId": "55555555-5555-5555-5555-555555555555",
+        "deviceAndAppManagementAssignmentFilterType": "exclude"
       }
     }
   ],
@@ -67,22 +65,6 @@
                         "value": "device_vendor_msft_policy_config_applicationcontrol_built_in_controls_enable_app_control_0",
                         "children": []
                       }
-                    },
-                    {
-                      "@odata.type": "#microsoft.graph.deviceManagementConfigurationChoiceSettingCollectionInstance",
-                      "settingDefinitionId": "device_vendor_msft_policy_config_applicationcontrol_built_in_controls_trust_apps",
-                      "choiceSettingCollectionValue": [
-                        {
-                          "@odata.type": "#microsoft.graph.deviceManagementConfigurationChoiceSettingValue",
-                          "value": "device_vendor_msft_policy_config_applicationcontrol_built_in_controls_trust_apps_0",
-                          "children": []
-                        },
-                        {
-                          "@odata.type": "#microsoft.graph.deviceManagementConfigurationChoiceSettingValue", 
-                          "value": "device_vendor_msft_policy_config_applicationcontrol_built_in_controls_trust_apps_1",
-                          "children": []
-                        }
-                      ]
                     }
                   ]
                 }
