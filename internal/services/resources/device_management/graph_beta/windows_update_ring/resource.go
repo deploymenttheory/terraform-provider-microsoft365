@@ -313,7 +313,8 @@ func (r *WindowsUpdateRingResource) Schema(ctx context.Context, req resource.Sch
 						},
 					},
 					"deadline_for_quality_updates_in_days": schema.Int32Attribute{
-						Required:            true,
+						Optional:            true,
+						Computed:            true,
 						MarkdownDescription: "Number of days before quality updates are installed automatically with valid range from 0 to 30 days. Returned by default. Query parameters are not supported.",
 						Validators: []validator.Int32{
 							int32validator.Between(0, 30),
@@ -328,7 +329,8 @@ func (r *WindowsUpdateRingResource) Schema(ctx context.Context, req resource.Sch
 						},
 					},
 					"postpone_reboot_until_after_deadline": schema.BoolAttribute{
-						Required:            true,
+						Optional:            true,
+						Computed:            true,
 						MarkdownDescription: "When TRUE the device should wait until deadline for rebooting outside of active hours. When FALSE the device should not wait until deadline for rebooting outside of active hours. Returned by default. Query parameters are not supported.",
 					},
 				},
