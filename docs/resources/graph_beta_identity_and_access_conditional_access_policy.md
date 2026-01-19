@@ -2688,12 +2688,12 @@ Required:
 
 - `applications` (Attributes) Applications and user actions included in and excluded from the policy. (see [below for nested schema](#nestedatt--conditions--applications))
 - `client_app_types` (Set of String) Client application types included in the policy. Possible values are: all, browser, mobileAppsAndDesktopClients, exchangeActiveSync, easSupported, other.
-- `sign_in_risk_levels` (Set of String) Sign-in risk levels included in the policy. Possible values are: low, medium, high, hidden, none.
+- `sign_in_risk_levels` (Set of String) Sign-in risk levels included in the policy. Possible values are: low, medium, high, hidden, none.Requires an Entra ID P2 license on the tenant.
 - `users` (Attributes) Users, groups, and roles included in and excluded from the policy. (see [below for nested schema](#nestedatt--conditions--users))
 
 Optional:
 
-- `agent_id_risk_levels` (Set of String) Agent ID risk levels included in the policy. Possible values are: low, medium, high.
+- `agent_id_risk_levels` (Set of String) Agent ID risk levels included in the policy. Possible values are: low, medium, high.Requires an Entra ID P2 license on the tenant.
 - `authentication_flows` (Attributes) Authentication flows included in the policy. Used to target specific authentication methods that can be vulnerable to phishing attacks. (see [below for nested schema](#nestedatt--conditions--authentication_flows))
 - `client_applications` (Attributes) Client applications configuration for the conditional access policy. (see [below for nested schema](#nestedatt--conditions--client_applications))
 - `device_states` (Attributes) Device states included in and excluded from the policy. (see [below for nested schema](#nestedatt--conditions--device_states))
@@ -2701,9 +2701,9 @@ Optional:
 - `insider_risk_levels` (Set of String) Insider risk levels included in the policy. Possible values are: minor, moderate, elevated.
 - `locations` (Attributes) Locations included in and excluded from the policy. (see [below for nested schema](#nestedatt--conditions--locations))
 - `platforms` (Attributes) Platforms included in and excluded from the policy. (see [below for nested schema](#nestedatt--conditions--platforms))
-- `service_principal_risk_levels` (Set of String) Service principal risk levels included in the policy. Possible values are: low, medium, high, hidden, none.
+- `service_principal_risk_levels` (Set of String) Service principal risk levels included in the policy. Possible values are: low, medium, high, hidden, none. Requires an Entra ID P2 license on the tenant.
 - `times` (Attributes) Times and days when the policy applies. (see [below for nested schema](#nestedatt--conditions--times))
-- `user_risk_levels` (Set of String) User risk levels included in the policy. Possible values are: low, medium, high, hidden, none.
+- `user_risk_levels` (Set of String) User risk levels included in the policy. Possible values are: low, medium, high, hidden, none.Requires an Entra ID P2 license on the tenant.
 
 <a id="nestedatt--conditions--applications"></a>
 ### Nested Schema for `conditions.applications`

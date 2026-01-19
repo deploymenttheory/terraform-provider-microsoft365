@@ -419,15 +419,12 @@ Optional:
 <a id="nestedatt--deadline_settings"></a>
 ### Nested Schema for `deadline_settings`
 
-Required:
-
-- `deadline_for_quality_updates_in_days` (Number) Number of days before quality updates are installed automatically with valid range from 0 to 30 days. Returned by default. Query parameters are not supported.
-- `postpone_reboot_until_after_deadline` (Boolean) When TRUE the device should wait until deadline for rebooting outside of active hours. When FALSE the device should not wait until deadline for rebooting outside of active hours. Returned by default. Query parameters are not supported.
-
 Optional:
 
 - `deadline_for_feature_updates_in_days` (Number) Number of days before feature updates are installed automatically with valid range from 0 to 30 days. Returned by default. Query parameters are not supported.
+- `deadline_for_quality_updates_in_days` (Number) Number of days before quality updates are installed automatically with valid range from 0 to 30 days. Returned by default. Query parameters are not supported.
 - `deadline_grace_period_in_days` (Number) Number of days after deadline until restarts occur automatically with valid range from 0 to 7 days. Returned by default. Query parameters are not supported.
+- `postpone_reboot_until_after_deadline` (Boolean) When TRUE the device should wait until deadline for rebooting outside of active hours. When FALSE the device should not wait until deadline for rebooting outside of active hours. Returned by default. Query parameters are not supported.
 
 
 <a id="nestedatt--timeouts"></a>

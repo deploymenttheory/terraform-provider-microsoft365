@@ -19,6 +19,7 @@ resource "microsoft365_graph_beta_groups_group" "breakglass" {
   mail_enabled     = false
   security_enabled = true
   description      = "Group containing Break Glass Accounts"
+  hard_delete      = true
 }
 
 resource "microsoft365_graph_beta_groups_group" "cau015_exclude" {
@@ -27,6 +28,7 @@ resource "microsoft365_graph_beta_groups_group" "cau015_exclude" {
   mail_enabled     = false
   security_enabled = true
   description      = "exclusion group for CA policy CAU015_EXCLUDE"
+  hard_delete      = true
 }
 
 resource "microsoft365_graph_beta_groups_group" "cau015_include" {
@@ -35,6 +37,7 @@ resource "microsoft365_graph_beta_groups_group" "cau015_include" {
   mail_enabled     = false
   security_enabled = true
   description      = "inclusion group for CA policy CAU015_INCLUDE"
+  hard_delete      = true
 }
 
 # ==============================================================================

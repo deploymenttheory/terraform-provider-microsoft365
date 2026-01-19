@@ -614,9 +614,6 @@ output "deployment_dashboard" {
 - `id` (String) The unique identifier of this deployment scheduler instance.
 - `released_scope_id` (String) The single scope ID released by this gate when conditions are met. Returns the value from `scope_id` when the gate opens, or null when conditions are not met. Use this in policy assignments when you provided `scope_id`.
 - `released_scope_ids` (List of String) List of scope IDs released by this gate when conditions are met. Returns the full `scope_ids` list when the gate opens, or null when conditions are not met. Use this in policy assignments when you provided `scope_ids`.
-- `status_message` (String) Human-readable status message describing the current state of all conditions. Visible in Terraform plan output. Examples:
-- `Conditions met: Time condition met (50h/48h required)`
-- `Waiting: Time condition not met (22h/48h required)`
 
 <a id="nestedatt--depends_on_scheduler"></a>
 ### Nested Schema for `depends_on_scheduler`
