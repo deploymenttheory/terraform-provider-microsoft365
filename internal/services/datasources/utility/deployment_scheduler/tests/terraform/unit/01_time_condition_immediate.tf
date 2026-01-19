@@ -1,0 +1,22 @@
+# Unit Test: Time condition with immediate release (delay_start_time_by = 0)
+data "microsoft365_utility_deployment_scheduler" "test" {
+  name                  = "Test - Immediate Release"
+  deployment_start_time = "2024-01-01T00:00:00Z"
+  scope_id              = "12345678-1234-1234-1234-123456789abc"
+
+  time_condition = {
+    delay_start_time_by = 0
+  }
+}
+
+# Output the released scope_id to test gate behavior
+output "released_scope_id" {
+  value       = data.microsoft365_utility_deployment_scheduler.test.released_scope_id
+  description = "Should be the GUID when condition_met is true"
+}
+
+output "condition_met" {
+  value       = data.microsoft365_utility_deployment_scheduler.test.condition_met
+  description = "Should be true - gate opens immediately (delay = 0, deployment_start_time in past)"
+}
+

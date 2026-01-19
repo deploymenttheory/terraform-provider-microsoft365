@@ -58,6 +58,7 @@ import (
 	graphBetaWindows365CloudPcs "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/windows_365/graph_beta/cloud_pcs"
 
 	// Utilities
+	utilityDeploymentScheduler "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/utility/deployment_scheduler"
 	utilityEntraIdSidConverter "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/utility/entra_id_sid_converter"
 	utilityItunesAppMetadata "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/utility/itunes_app_metadata"
 	utilityLicensingServicePlanReference "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/utility/licensing_service_plan_reference"
@@ -130,6 +131,7 @@ func (p *M365Provider) DataSources(ctx context.Context) []func() datasource.Data
 		graphBetaIdentityAndAccessSubscribedSkus.NewSubscribedSkusDataSource,
 
 		// Utilities
+		utilityDeploymentScheduler.NewDeploymentSchedulerDataSource,
 		utilityEntraIdSidConverter.NewEntraIdSidConverterDataSource,
 		utilityWindowsRemediationScriptRegistryKeyGenerator.NewWindowsRemediationScriptRegistryKeyGeneratorDataSource,
 		utilityMacOSPKGAppMetadata.NewMacOSPKGAppMetadataDataSource,

@@ -1,0 +1,128 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
+subcategory: "Utility"
+
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Name}}
+
+A conditional gate valve for phased deployments that returns scope ID(s) only when specified time-based conditions are met.
+
+This datasource enables controlled, time-based rollout of Microsoft 365 policies and configurations by acting as a deployment gate. 
+It evaluates multiple conditions (time delays, business hours, maintenance windows, dependencies) and releases scope IDs 
+(typically Entra ID Group GUIDs) only when all conditions are satisfied. When conditions are not met, it returns null, 
+preventing deployment to target groups.
+
+## Background
+
+The datasource is evaluated on every `terraform plan` and `terraform apply`. When conditions change and the gate opens,
+the next apply will automatically assign policies to the released groups. This allows you to define your entire deployment
+timeline upfront, and Terraform will progressively roll out changes as time passes.
+
+**Key Concept**: Think of it as a time-locked vault. You set the conditions for when the vault opens, and it automatically
+releases the contents (scope IDs) when those conditions are met.
+
+## Use Cases
+
+- **Phased Rollouts**: Deploy to Pilot → IT → Production with automatic timing and dependency chaining
+- **Business Hours Only**: Restrict deployments to support hours (e.g., Monday-Friday 9 AM - 5 PM UTC)
+- **Maintenance Windows**: Avoid deployments during weekends, nightly maintenance, or holiday freezes
+- **Dependency Chaining**: Wait for previous phase to stabilize before proceeding to next phase
+- **Emergency Releases**: Manual override for critical patches bypassing all scheduled conditions
+- **Time-Limited Pilots**: Automatically expire pilot deployments after a specified duration
+
+## Version History
+
+| Version | Status | Notes |
+|---------|--------|-------|
+| v0.41.0-alpha | Experimental | Initial release with time conditions, windows, and dependency gates |
+
+## Example Usage
+
+### Basic Time Delay
+
+{{ tffile "examples/data-sources/microsoft365_utility_deployment_scheduler/01_basic_time_delay.tf" }}
+
+### Business Hours Only
+
+{{ tffile "examples/data-sources/microsoft365_utility_deployment_scheduler/02_business_hours_only.tf" }}
+
+### Exclude Maintenance Windows
+
+{{ tffile "examples/data-sources/microsoft365_utility_deployment_scheduler/03_exclude_maintenance_windows.tf" }}
+
+### Phased Rollout with Dependencies
+
+{{ tffile "examples/data-sources/microsoft365_utility_deployment_scheduler/04_phased_rollout_dependency.tf" }}
+
+### Manual Override for Emergency Release
+
+{{ tffile "examples/data-sources/microsoft365_utility_deployment_scheduler/05_manual_override.tf" }}
+
+### Combined Conditions
+
+{{ tffile "examples/data-sources/microsoft365_utility_deployment_scheduler/06_combined_conditions.tf" }}
+
+### Multiple Scope IDs
+
+{{ tffile "examples/data-sources/microsoft365_utility_deployment_scheduler/07_multiple_scope_ids.tf" }}
+
+### Real-World Settings Catalog Deployment
+
+{{ tffile "examples/data-sources/microsoft365_utility_deployment_scheduler/08_real_world_settings_catalog.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}
+
+## Best Practices
+
+1. **Always Set deployment_start_time** - Provides consistent timing across terraform applies. Without it, the current time is used on each evaluation, causing unpredictable behavior.
+
+2. **Use UTC Times** - All times must be in UTC. Plan your windows accordingly if your organization spans multiple timezones.
+
+3. **Test with Pilot Groups** - Always start with a small pilot group before expanding to production.
+
+4. **Handle Null Values** - Gates return `null` when closed. Use conditional logic in resource blocks:
+   ```hcl
+   assignments = data.scheduler.released_scope_id != null ? [{
+     target = { group_id = data.scheduler.released_scope_id }
+   }] : []
+   ```
+
+5. **Monitor with Outputs** - Use outputs to track gate status without modifying state:
+   ```hcl
+   output "deployment_status" {
+     value = {
+       gate_open = data.scheduler.condition_met
+       status    = data.scheduler.status_message
+       scope     = data.scheduler.released_scope_id
+     }
+   }
+   ```
+
+6. **Use Lowercase Day Names** - Days of week must be lowercase: `"monday"`, `"tuesday"`, etc.
+
+## Important Notes
+
+### No Authentication Required
+
+This datasource performs local time-based calculations and doesn't make any API calls. Unlike other datasources in this provider, it doesn't require Microsoft Graph API credentials.
+
+### Evaluation Timing
+
+The datasource is evaluated during `terraform plan` and `terraform apply`. Gates automatically open when conditions are met, allowing progressive rollout without manual intervention.
+
+### Null Behavior
+
+When conditions are not met, `released_scope_id` and `released_scope_ids` return `null`. This is intentional behavior to prevent premature deployment. Always use conditional logic when referencing these values in resource configurations.
+
+### Time Calculations
+
+All time calculations are performed relative to `deployment_start_time`. For dependency gates, the datasource calculates when prerequisite schedulers would have opened based on their `delay_start_time_by` values.
+
+## Additional Resources
+
+- [Conditional Access Best Practices](https://learn.microsoft.com/en-us/entra/identity/conditional-access/plan-conditional-access)
+- [Microsoft Graph API - Groups](https://learn.microsoft.com/en-us/graph/api/resources/group)
+- [Intune Configuration Policies](https://learn.microsoft.com/en-us/mem/intune/configuration/device-profile-create)
