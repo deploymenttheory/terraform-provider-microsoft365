@@ -86,6 +86,7 @@ resource "microsoft365_graph_beta_groups_group" "breakglass" {
   mail_enabled     = false
   security_enabled = true
   description      = "Group containing Break Glass Accounts"
+  hard_delete      = true
 }
 
 resource "microsoft365_graph_beta_groups_group" "cal006_exclude" {
@@ -94,6 +95,7 @@ resource "microsoft365_graph_beta_groups_group" "cal006_exclude" {
   mail_enabled     = false
   security_enabled = true
   description      = "exclusion group for CA policy CAL006_EXCLUDE"
+  hard_delete      = true
 }
 
 resource "microsoft365_graph_beta_groups_group" "cal006_include" {
@@ -102,6 +104,7 @@ resource "microsoft365_graph_beta_groups_group" "cal006_include" {
   mail_enabled     = false
   security_enabled = true
   description      = "uincludeion group for CA policy CAL006_INCLUDE"
+  hard_delete      = true
 }
 
 # ==============================================================================

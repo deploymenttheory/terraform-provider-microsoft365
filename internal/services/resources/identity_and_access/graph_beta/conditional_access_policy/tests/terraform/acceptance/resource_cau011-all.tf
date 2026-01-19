@@ -19,6 +19,7 @@ resource "microsoft365_graph_beta_groups_group" "breakglass" {
   mail_enabled     = false
   security_enabled = true
   description      = "Group containing Break Glass Accounts"
+  hard_delete      = true
 }
 
 resource "microsoft365_graph_beta_groups_group" "cau011_exclude" {
@@ -27,6 +28,7 @@ resource "microsoft365_graph_beta_groups_group" "cau011_exclude" {
   mail_enabled     = false
   security_enabled = true
   description      = "Exclusion group for CA policy CAU011"
+  hard_delete      = true
 }
 
 resource "microsoft365_graph_beta_groups_group" "modern_workplace" {
@@ -35,6 +37,7 @@ resource "microsoft365_graph_beta_groups_group" "modern_workplace" {
   mail_enabled     = false
   security_enabled = true
   description      = "Members of this group get access to the Modern Workplace"
+  hard_delete      = true
 }
 
 # ==============================================================================

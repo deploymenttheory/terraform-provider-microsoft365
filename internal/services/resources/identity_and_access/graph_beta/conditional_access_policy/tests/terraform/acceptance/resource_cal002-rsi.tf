@@ -8,6 +8,7 @@ resource "random_string" "suffix" {
   upper   = false
 }
 
+# ==============================================================================
 # Group Dependencies
 # ==============================================================================
 
@@ -18,6 +19,7 @@ resource "microsoft365_graph_beta_groups_group" "breakglass" {
   mail_enabled     = false
   security_enabled = true
   description      = "Group containing Break Glass Accounts"
+  hard_delete      = true
 }
 
 resource "microsoft365_graph_beta_groups_group" "cal002_exclude" {
@@ -26,6 +28,7 @@ resource "microsoft365_graph_beta_groups_group" "cal002_exclude" {
   mail_enabled     = false
   security_enabled = true
   description      = "exclusion group for CA policy CAL002_EXCLUDE"
+  hard_delete      = true
 }
 
 # ==============================================================================

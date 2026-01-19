@@ -610,9 +610,10 @@ func (r *ConditionalAccessPolicyResource) Schema(ctx context.Context, req resour
 						},
 					},
 					"sign_in_risk_levels": schema.SetAttribute{
-						MarkdownDescription: "Sign-in risk levels included in the policy. Possible values are: low, medium, high, hidden, none.",
-						ElementType:         types.StringType,
-						Required:            true,
+						MarkdownDescription: "Sign-in risk levels included in the policy. Possible values are: low, medium, high, hidden, none." +
+							"Requires an Entra ID P2 license on the tenant.",
+						ElementType: types.StringType,
+						Required:    true,
 						Validators: []validator.Set{
 							setvalidator.ValueStringsAre(
 								stringvalidator.OneOf(
@@ -626,11 +627,12 @@ func (r *ConditionalAccessPolicyResource) Schema(ctx context.Context, req resour
 						},
 					},
 					"user_risk_levels": schema.SetAttribute{
-						MarkdownDescription: "User risk levels included in the policy. Possible values are: low, medium, high, hidden, none.",
-						ElementType:         types.StringType,
-						Optional:            true,
-						Computed:            true,
-						Default:             setdefault.StaticValue(types.SetValueMust(types.StringType, []attr.Value{})),
+						MarkdownDescription: "User risk levels included in the policy. Possible values are: low, medium, high, hidden, none." +
+							"Requires an Entra ID P2 license on the tenant.",
+						ElementType: types.StringType,
+						Optional:    true,
+						Computed:    true,
+						Default:     setdefault.StaticValue(types.SetValueMust(types.StringType, []attr.Value{})),
 						Validators: []validator.Set{
 							setvalidator.ValueStringsAre(
 								stringvalidator.OneOf(
@@ -644,11 +646,12 @@ func (r *ConditionalAccessPolicyResource) Schema(ctx context.Context, req resour
 						},
 					},
 					"service_principal_risk_levels": schema.SetAttribute{
-						MarkdownDescription: "Service principal risk levels included in the policy. Possible values are: low, medium, high, hidden, none.",
-						ElementType:         types.StringType,
-						Optional:            true,
-						Computed:            true,
-						Default:             setdefault.StaticValue(types.SetValueMust(types.StringType, []attr.Value{})),
+						MarkdownDescription: "Service principal risk levels included in the policy. " +
+							"Possible values are: low, medium, high, hidden, none. Requires an Entra ID P2 license on the tenant.",
+						ElementType: types.StringType,
+						Optional:    true,
+						Computed:    true,
+						Default:     setdefault.StaticValue(types.SetValueMust(types.StringType, []attr.Value{})),
 						Validators: []validator.Set{
 							setvalidator.ValueStringsAre(
 								stringvalidator.OneOf(
@@ -662,11 +665,12 @@ func (r *ConditionalAccessPolicyResource) Schema(ctx context.Context, req resour
 						},
 					},
 					"agent_id_risk_levels": schema.SetAttribute{
-						MarkdownDescription: "Agent ID risk levels included in the policy. Possible values are: low, medium, high.",
-						ElementType:         types.StringType,
-						Optional:            true,
-						Computed:            true,
-						Default:             setdefault.StaticValue(types.SetValueMust(types.StringType, []attr.Value{})),
+						MarkdownDescription: "Agent ID risk levels included in the policy. Possible values are: low, medium, high." +
+							"Requires an Entra ID P2 license on the tenant.",
+						ElementType: types.StringType,
+						Optional:    true,
+						Computed:    true,
+						Default:     setdefault.StaticValue(types.SetValueMust(types.StringType, []attr.Value{})),
 						Validators: []validator.Set{
 							setvalidator.ValueStringsAre(
 								stringvalidator.OneOf(

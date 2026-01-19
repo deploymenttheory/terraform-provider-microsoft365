@@ -1,0 +1,1325 @@
+{
+  "Timestamp": "2026-01-19T22:32:53.3726770+00:00",
+  "TenantId": "2fd6bb84-ad40-4ec5-9369-a215b25c9952",
+  "Summary": {
+    "Free": 1,
+    "Total": 11,
+    "Available": 5
+  },
+  "Licenses": [
+    {
+      "IsFree": false,
+      "Consumed": 1,
+      "SkuId": "71f21848-f89b-4aaa-a2dc-780c8e8aac5b",
+      "Enabled": 0,
+      "ServicePlans": [
+        {
+          "ServicePlanName": "Windows_10_ESU_Commercial",
+          "AppliesTo": "User",
+          "ServicePlanId": "6dc0e3c6-2e4e-463c-90a4-9989d8543841",
+          "ProvisioningStatus": "Disabled"
+        },
+        {
+          "ServicePlanName": "M365_LIGHTHOUSE_PARTNER_PLAN1",
+          "AppliesTo": "Company",
+          "ServicePlanId": "d55411c9-cfff-40a9-87c7-240f14df7da5",
+          "ProvisioningStatus": "Success"
+        },
+        {
+          "ServicePlanName": "M365_LIGHTHOUSE_CUSTOMER_PLAN1",
+          "AppliesTo": "Company",
+          "ServicePlanId": "6f23d6a9-adbf-481c-8538-b4c095654487",
+          "ProvisioningStatus": "Success"
+        },
+        {
+          "ServicePlanName": "EXCHANGE_S_FOUNDATION",
+          "AppliesTo": "Company",
+          "ServicePlanId": "113feb6c-3fe4-4440-bddc-54d774bf0318",
+          "ProvisioningStatus": "Success"
+        },
+        {
+          "ServicePlanName": "CPC_SS_2",
+          "AppliesTo": "User",
+          "ServicePlanId": "9d2eed2c-b0c0-4a89-940c-bc303444a41b",
+          "ProvisioningStatus": "Disabled"
+        }
+      ],
+      "Available": -1,
+      "SkuPartNumber": "CPC_B_2C_8RAM_128GB"
+    },
+    {
+      "IsFree": false,
+      "Consumed": 1,
+      "SkuId": "a929cd4d-8672-47c9-8664-159c1f322ba8",
+      "Enabled": 1,
+      "ServicePlans": [
+        {
+          "ServicePlanName": "CLOUD_PKI",
+          "AppliesTo": "User",
+          "ServicePlanId": "795aec3a-93a2-45be-92c4-47b9a76340ca",
+          "ProvisioningStatus": "Success"
+        },
+        {
+          "ServicePlanName": "3_PARTY_APP_PATCH",
+          "AppliesTo": "User",
+          "ServicePlanId": "3afa0b92-83ef-41c1-8d64-586ab882a951",
+          "ProvisioningStatus": "Success"
+        },
+        {
+          "ServicePlanName": "Intune_ServiceNow",
+          "AppliesTo": "User",
+          "ServicePlanId": "3eeb8536-fecf-41bf-a3f8-d6f17a9f3efc",
+          "ProvisioningStatus": "Success"
+        },
+        {
+          "ServicePlanName": "Intune-MAMTunnel",
+          "AppliesTo": "User",
+          "ServicePlanId": "a6e407da-7411-4397-8a2e-d9b52780849e",
+          "ProvisioningStatus": "Success"
+        },
+        {
+          "ServicePlanName": "INTUNE_P2",
+          "AppliesTo": "User",
+          "ServicePlanId": "d9923fe3-a2de-4d29-a5be-e3e83bb786be",
+          "ProvisioningStatus": "Success"
+        },
+        {
+          "ServicePlanName": "Intune-EPM",
+          "AppliesTo": "User",
+          "ServicePlanId": "bb73f429-78ef-4ff2-83c8-722b04c3e7d1",
+          "ProvisioningStatus": "Success"
+        },
+        {
+          "ServicePlanName": "REMOTE_HELP",
+          "AppliesTo": "User",
+          "ServicePlanId": "a4c6cf29-1168-4076-ba5c-e8fe0e62b17e",
+          "ProvisioningStatus": "Success"
+        },
+        {
+          "ServicePlanName": "Intune_AdvancedEA",
+          "AppliesTo": "User",
+          "ServicePlanId": "2a4baa0e-5e99-4c38-b1f2-6864960f1bd1",
+          "ProvisioningStatus": "Success"
+        }
+      ],
+      "Available": 0,
+      "SkuPartNumber": "Microsoft_Intune_Suite"
+    },
+    {
+      "IsFree": false,
+      "Consumed": 0,
+      "SkuId": "6470687e-a428-4b7a-bef2-8a291ad947c9",
+      "Enabled": 25,
+      "ServicePlans": [
+        {
+          "ServicePlanName": "EXCHANGE_S_FOUNDATION",
+          "AppliesTo": "Company",
+          "ServicePlanId": "113feb6c-3fe4-4440-bddc-54d774bf0318",
+          "ProvisioningStatus": "Success"
+        },
+        {
+          "ServicePlanName": "WINDOWS_STORE",
+          "AppliesTo": "Company",
+          "ServicePlanId": "a420f25f-a7b3-4ff5-a9d0-5d58f73b537d",
+          "ProvisioningStatus": "Success"
+        }
+      ],
+      "Available": 25,
+      "SkuPartNumber": "WINDOWS_STORE"
+    },
+    {
+      "IsFree": false,
+      "Consumed": 1,
+      "SkuId": "dcf0408c-aaec-446c-afd4-43e3683943ea",
+      "Enabled": 1,
+      "ServicePlans": [
+        {
+          "ServicePlanName": "INSIGHTS_BY_MYANALYTICS",
+          "AppliesTo": "Company",
+          "ServicePlanId": "b088306e-925b-44ab-baa0-63291c629a91",
+          "ProvisioningStatus": "Success"
+        },
+        {
+          "ServicePlanName": "MICROSOFT_MYANALYTICS_FULL",
+          "AppliesTo": "Company",
+          "ServicePlanId": "0403bb98-9d17-4f94-b53e-eca56a7698a6",
+          "ProvisioningStatus": "Success"
+        },
+        {
+          "ServicePlanName": "PEOPLE_SKILLS_FOUNDATION",
+          "AppliesTo": "User",
+          "ServicePlanId": "13b6da2c-0d84-450e-9f69-a33e221387ca",
+          "ProvisioningStatus": "Success"
+        },
+        {
+          "ServicePlanName": "PLACES_CORE",
+          "AppliesTo": "User",
+          "ServicePlanId": "1fe6227d-3e01-46d0-9510-0acad4ff6e94",
+          "ProvisioningStatus": "Success"
+        },
+        {
+          "ServicePlanName": "GRAPH_CONNECTORS_SEARCH_INDEX",
+          "AppliesTo": "User",
+          "ServicePlanId": "a6520331-d7d4-4276-95f5-15c0933bc757",
+          "ProvisioningStatus": "Success"
+        },
+        {
+          "ServicePlanName": "MESH_IMMERSIVE_FOR_TEAMS",
+          "AppliesTo": "User",
+          "ServicePlanId": "f0ff6ac6-297d-49cd-be34-6dfef97f0c28",
+          "ProvisioningStatus": "Success"
+        },
+        {
+          "ServicePlanName": "YAMMER_ENTERPRISE",
+          "AppliesTo": "User",
+          "ServicePlanId": "7547a3fe-08ee-4ccb-b430-5077c5041653",
+          "ProvisioningStatus": "Success"
+        },
+        {
+          "ServicePlanName": "WINDOWSUPDATEFORBUSINESS_DEPLOYMENTSERVICE",
+          "AppliesTo": "User",
+          "ServicePlanId": "7bf960f6-2cd9-443a-8046-5dbff9558365",
+          "ProvisioningStatus": "Success"
+        },
+        {
+          "ServicePlanName": "Windows_Autopatch",
+          "AppliesTo": "User",
+          "ServicePlanId": "9a6eeb79-0b4b-4bf0-9808-39d99a2cd5a3",
+          "ProvisioningStatus": "Success"
+        },
+        {
+          "ServicePlanName": "WIN10_PRO_ENT_SUB",
+          "AppliesTo": "User",
+          "ServicePlanId": "21b439ba-a0ca-424f-a6cc-52f954a5b111",
+          "ProvisioningStatus": "Success"
+        },
+        {
+          "ServicePlanName": "WHITEBOARD_PLAN2",
+          "AppliesTo": "User",
+          "ServicePlanId": "94a54592-cd8b-425e-87c6-97868b000b91",
+          "ProvisioningStatus": "Success"
+        },
+        {
+          "ServicePlanName": "VIVA_LEARNING_SEEDED",
+          "AppliesTo": "User",
+          "ServicePlanId": "b76fb638-6ba6-402a-b9f9-83d28acb3d86",
+          "ProvisioningStatus": "Success"
+        },
+        {
+          "ServicePlanName": "VIVAENGAGE_CORE",
+          "AppliesTo": "User",
+          "ServicePlanId": "a82fbf69-b4d7-49f4-83a6-915b2cf354f4",
+          "ProvisioningStatus": "Success"
+        },
+        {
+          "ServicePlanName": "UNIVERSAL_PRINT_01",
+          "AppliesTo": "User",
+          "ServicePlanId": "795f6fe0-cc4d-4773-b050-5dde4dc704c9",
+          "ProvisioningStatus": "Success"
+        },
+        {
+          "ServicePlanName": "BPOS_S_TODO_2",
+          "AppliesTo": "User",
+          "ServicePlanId": "c87f142c-d1e9-4363-8630-aaea9c4d9ae5",
+          "ProvisioningStatus": "Success"
+        },
+        {
+          "ServicePlanName": "SWAY",
+          "AppliesTo": "User",
+          "ServicePlanId": "a23b959c-7ce8-4e57-9140-b90eb88a9e97",
+          "ProvisioningStatus": "Success"
+        },
+        {
+          "ServicePlanName": "MCOSTANDARD",
+          "AppliesTo": "User",
+          "ServicePlanId": "0feaeb32-d00e-4d66-bd5a-43b5b83db82c",
+          "ProvisioningStatus": "Success"
+        },
+        {
+          "ServicePlanName": "SHAREPOINTENTERPRISE",
+          "AppliesTo": "User",
+          "ServicePlanId": "5dbe027f-2339-4123-9542-606e4d348a72",
+          "ProvisioningStatus": "Success"
+        },
+        {
+          "ServicePlanName": "PROJECT_O365_P2",
+          "AppliesTo": "User",
+          "ServicePlanId": "31b4e2fc-4cd6-4e7d-9c1b-41407303bd66",
+          "ProvisioningStatus": "Success"
+        },
+        {
+          "ServicePlanName": "POWER_VIRTUAL_AGENTS_O365_P2",
+          "AppliesTo": "User",
+          "ServicePlanId": "041fe683-03e4-45b6-b1af-c0cdc516daee",
+          "ProvisioningStatus": "Success"
+        },
+        {
+          "ServicePlanName": "FLOW_O365_P2",
+          "AppliesTo": "User",
+          "ServicePlanId": "76846ad7-7776-4c40-a281-a386362dd1b9",
+          "ProvisioningStatus": "Success"
+        },
+        {
+          "ServicePlanName": "POWERAPPS_O365_P2",
+          "AppliesTo": "User",
+          "ServicePlanId": "c68f8d98-5534-41c8-bf36-22fa496fa792",
+          "ProvisioningStatus": "Success"
+        },
+        {
+          "ServicePlanName": "SHAREPOINTWAC",
+          "AppliesTo": "User",
+          "ServicePlanId": "e95bec33-7c88-4a70-8e19-b10bd9d0c014",
+          "ProvisioningStatus": "Success"
+        },
+        {
+          "ServicePlanName": "Nucleus",
+          "AppliesTo": "Company",
+          "ServicePlanId": "db4d623d-b514-490b-b7ef-8885eee514de",
+          "ProvisioningStatus": "Success"
+        },
+        {
+          "ServicePlanName": "INTUNE_O365",
+          "AppliesTo": "Company",
+          "ServicePlanId": "882e1d05-acd1-4ccb-8708-6ee03664b117",
+          "ProvisioningStatus": "PendingActivation"
+        },
+        {
+          "ServicePlanName": "STREAM_O365_E3",
+          "AppliesTo": "User",
+          "ServicePlanId": "9e700747-8b1d-45e5-ab8d-ef187ceec156",
+          "ProvisioningStatus": "Success"
+        },
+        {
+          "ServicePlanName": "Deskless",
+          "AppliesTo": "User",
+          "ServicePlanId": "8c7d2df8-86f0-4902-b2ed-a0458298f3b3",
+          "ProvisioningStatus": "Success"
+        },
+        {
+          "ServicePlanName": "MICROSOFT_SEARCH",
+          "AppliesTo": "Company",
+          "ServicePlanId": "94065c59-bc8e-4e8b-89e5-5138d471eaff",
+          "ProvisioningStatus": "Success"
+        },
+        {
+          "ServicePlanName": "PROJECTWORKMANAGEMENT",
+          "AppliesTo": "User",
+          "ServicePlanId": "b737dad2-2f6c-4c65-90e3-ca563267e8b9",
+          "ProvisioningStatus": "Success"
+        },
+        {
+          "ServicePlanName": "MICROSOFT_LOOP",
+          "AppliesTo": "User",
+          "ServicePlanId": "c4b8c31a-fb44-4c65-9837-a21f55fcabda",
+          "ProvisioningStatus": "Success"
+        },
+        {
+          "ServicePlanName": "KAIZALA_O365_P3",
+          "AppliesTo": "User",
+          "ServicePlanId": "aebd3021-9f8f-4bf8-bbe3-0ed2f4f047a1",
+          "ProvisioningStatus": "Success"
+        },
+        {
+          "ServicePlanName": "INTUNE_A",
+          "AppliesTo": "User",
+          "ServicePlanId": "c1ec4a95-1f05-45b3-a911-aa3fa01094f5",
+          "ProvisioningStatus": "Success"
+        },
+        {
+          "ServicePlanName": "FORMS_PLAN_E3",
+          "AppliesTo": "User",
+          "ServicePlanId": "2789c901-c14e-48ab-a76a-be334d9d793a",
+          "ProvisioningStatus": "Success"
+        },
+        {
+          "ServicePlanName": "AAD_PREMIUM",
+          "AppliesTo": "User",
+          "ServicePlanId": "41781fb2-bc02-4b7c-bd55-b576c07bb09d",
+          "ProvisioningStatus": "Success"
+        },
+        {
+          "ServicePlanName": "MDE_LITE",
+          "AppliesTo": "User",
+          "ServicePlanId": "292cc034-7b7c-4950-aaf5-943befd3f1d4",
+          "ProvisioningStatus": "Success"
+        },
+        {
+          "ServicePlanName": "ADALLOM_S_DISCOVERY",
+          "AppliesTo": "User",
+          "ServicePlanId": "932ad362-64a8-4783-9106-97849a1a30b9",
+          "ProvisioningStatus": "Success"
+        },
+        {
+          "ServicePlanName": "CLIPCHAMP",
+          "AppliesTo": "User",
+          "ServicePlanId": "a1ace008-72f3-4ea0-8dac-33b3a23a2472",
+          "ProvisioningStatus": "Success"
+        },
+        {
+          "ServicePlanName": "MICROSOFTBOOKINGS",
+          "AppliesTo": "User",
+          "ServicePlanId": "199a5c09-e0ca-4e37-8f7c-b05d533e1ea2",
+          "ProvisioningStatus": "Success"
+        },
+        {
+          "ServicePlanName": "MFA_PREMIUM",
+          "AppliesTo": "User",
+          "ServicePlanId": "8a256a2b-b617-496d-b51b-e76466e88db0",
+          "ProvisioningStatus": "Success"
+        },
+        {
+          "ServicePlanName": "M365_LIGHTHOUSE_PARTNER_PLAN1",
+          "AppliesTo": "Company",
+          "ServicePlanId": "d55411c9-cfff-40a9-87c7-240f14df7da5",
+          "ProvisioningStatus": "Success"
+        },
+        {
+          "ServicePlanName": "M365_LIGHTHOUSE_CUSTOMER_PLAN1",
+          "AppliesTo": "Company",
+          "ServicePlanId": "6f23d6a9-adbf-481c-8538-b4c095654487",
+          "ProvisioningStatus": "Success"
+        },
+        {
+          "ServicePlanName": "OFFICESUBSCRIPTION",
+          "AppliesTo": "User",
+          "ServicePlanId": "43de0ff5-c92c-492b-9116-175376d08c38",
+          "ProvisioningStatus": "Success"
+        },
+        {
+          "ServicePlanName": "MYANALYTICS_P2",
+          "AppliesTo": "User",
+          "ServicePlanId": "33c4f319-9bdd-48d6-9c4d-410b750a4a5a",
+          "ProvisioningStatus": "Success"
+        },
+        {
+          "ServicePlanName": "MIP_S_CLP1",
+          "AppliesTo": "User",
+          "ServicePlanId": "5136a095-5cf0-4aff-bec3-e84448b38ea5",
+          "ProvisioningStatus": "Success"
+        },
+        {
+          "ServicePlanName": "ContentExplorer_Standard",
+          "AppliesTo": "Company",
+          "ServicePlanId": "2b815d45-56e4-4e3a-b65c-66cb9175b560",
+          "ProvisioningStatus": "Success"
+        },
+        {
+          "ServicePlanName": "EXCHANGE_S_ENTERPRISE",
+          "AppliesTo": "User",
+          "ServicePlanId": "efb87545-963c-4e0d-99df-69c6916d9eb0",
+          "ProvisioningStatus": "Success"
+        },
+        {
+          "ServicePlanName": "CDS_O365_P2",
+          "AppliesTo": "User",
+          "ServicePlanId": "95b76021-6a53-4741-ab8b-1d1f3d66a95a",
+          "ProvisioningStatus": "Success"
+        },
+        {
+          "ServicePlanName": "DYN365_CDS_O365_P2",
+          "AppliesTo": "User",
+          "ServicePlanId": "4ff01e01-1ba7-4d71-8cf8-ce96c3bbcf14",
+          "ProvisioningStatus": "Success"
+        },
+        {
+          "ServicePlanName": "Bing_Chat_Enterprise",
+          "AppliesTo": "User",
+          "ServicePlanId": "0d0c0d31-fae7-41f2-b909-eaf4d7f26dba",
+          "ProvisioningStatus": "Success"
+        },
+        {
+          "ServicePlanName": "RMS_S_ENTERPRISE",
+          "AppliesTo": "User",
+          "ServicePlanId": "bea4c11e-220a-4e6d-8eb8-8ea15d019f90",
+          "ProvisioningStatus": "Success"
+        },
+        {
+          "ServicePlanName": "RMS_S_PREMIUM",
+          "AppliesTo": "User",
+          "ServicePlanId": "6c57d4b6-3b23-47a5-9bc9-69f17b4947b3",
+          "ProvisioningStatus": "Success"
+        },
+        {
+          "ServicePlanName": "MESH_AVATARS_ADDITIONAL_FOR_TEAMS",
+          "AppliesTo": "User",
+          "ServicePlanId": "3efbd4ed-8958-4824-8389-1321f8730af8",
+          "ProvisioningStatus": "Success"
+        },
+        {
+          "ServicePlanName": "MESH_AVATARS_FOR_TEAMS",
+          "AppliesTo": "User",
+          "ServicePlanId": "dcf9d2f4-772e-4434-b757-77a453cfbc02",
+          "ProvisioningStatus": "Success"
+        }
+      ],
+      "Available": 0,
+      "SkuPartNumber": "Microsoft_365_E3_(no_Teams)"
+    },
+    {
+      "IsFree": true,
+      "Consumed": 2,
+      "SkuId": "f30db892-07e9-47e9-837c-80727f46fd3d",
+      "Enabled": 10000,
+      "ServicePlans": [
+        {
+          "ServicePlanName": "EXCHANGE_S_FOUNDATION",
+          "AppliesTo": "Company",
+          "ServicePlanId": "113feb6c-3fe4-4440-bddc-54d774bf0318",
+          "ProvisioningStatus": "Success"
+        },
+        {
+          "ServicePlanName": "DYN365_CDS_VIRAL",
+          "AppliesTo": "User",
+          "ServicePlanId": "17ab22cd-a0b3-4536-910a-cb6eb12696c0",
+          "ProvisioningStatus": "Success"
+        },
+        {
+          "ServicePlanName": "FLOW_P2_VIRAL",
+          "AppliesTo": "User",
+          "ServicePlanId": "50e68c76-46c6-4674-81f9-75456511b170",
+          "ProvisioningStatus": "Success"
+        }
+      ],
+      "Available": 9998,
+      "SkuPartNumber": "FLOW_FREE"
+    },
+    {
+      "IsFree": false,
+      "Consumed": 0,
+      "SkuId": "e0dfc8b9-9531-4ec8-94b4-9fec23b05fc8",
+      "Enabled": 0,
+      "ServicePlans": [
+        {
+          "ServicePlanName": "INSIGHTS_BY_MYANALYTICS",
+          "AppliesTo": "Company",
+          "ServicePlanId": "b088306e-925b-44ab-baa0-63291c629a91",
+          "ProvisioningStatus": "Success"
+        },
+        {
+          "ServicePlanName": "MICROSOFT_MYANALYTICS_FULL",
+          "AppliesTo": "Company",
+          "ServicePlanId": "0403bb98-9d17-4f94-b53e-eca56a7698a6",
+          "ProvisioningStatus": "Success"
+        },
+        {
+          "ServicePlanName": "PROJECT_O365_P1",
+          "AppliesTo": "User",
+          "ServicePlanId": "a55dfd10-0864-46d9-a3cd-da5991a3e0e2",
+          "ProvisioningStatus": "Disabled"
+        },
+        {
+          "ServicePlanName": "DYN365_CDS_O365_P1",
+          "AppliesTo": "User",
+          "ServicePlanId": "40b010bb-0b69-4654-ac5e-ba161433f4b4",
+          "ProvisioningStatus": "Disabled"
+        },
+        {
+          "ServicePlanName": "MESH_IMMERSIVE_FOR_TEAMS",
+          "AppliesTo": "User",
+          "ServicePlanId": "f0ff6ac6-297d-49cd-be34-6dfef97f0c28",
+          "ProvisioningStatus": "Success"
+        },
+        {
+          "ServicePlanName": "MESH_AVATARS_ADDITIONAL_FOR_TEAMS",
+          "AppliesTo": "User",
+          "ServicePlanId": "3efbd4ed-8958-4824-8389-1321f8730af8",
+          "ProvisioningStatus": "Success"
+        },
+        {
+          "ServicePlanName": "MESH_AVATARS_FOR_TEAMS",
+          "AppliesTo": "User",
+          "ServicePlanId": "dcf9d2f4-772e-4434-b757-77a453cfbc02",
+          "ProvisioningStatus": "Success"
+        },
+        {
+          "ServicePlanName": "YAMMER_ENTERPRISE",
+          "AppliesTo": "User",
+          "ServicePlanId": "7547a3fe-08ee-4ccb-b430-5077c5041653",
+          "ProvisioningStatus": "Success"
+        },
+        {
+          "ServicePlanName": "WHITEBOARD_PLAN1",
+          "AppliesTo": "User",
+          "ServicePlanId": "b8afc642-032e-4de5-8c0a-507a7bba7e5d",
+          "ProvisioningStatus": "Disabled"
+        },
+        {
+          "ServicePlanName": "BPOS_S_TODO_1",
+          "AppliesTo": "User",
+          "ServicePlanId": "5e62787c-c316-451f-b873-1d05acd4d12c",
+          "ProvisioningStatus": "Disabled"
+        },
+        {
+          "ServicePlanName": "SWAY",
+          "AppliesTo": "User",
+          "ServicePlanId": "a23b959c-7ce8-4e57-9140-b90eb88a9e97",
+          "ProvisioningStatus": "Success"
+        },
+        {
+          "ServicePlanName": "SHAREPOINTSTANDARD",
+          "AppliesTo": "User",
+          "ServicePlanId": "c7699d2e-19aa-44de-8edf-1736da088ca1",
+          "ProvisioningStatus": "Disabled"
+        },
+        {
+          "ServicePlanName": "POWER_VIRTUAL_AGENTS_O365_P1",
+          "AppliesTo": "User",
+          "ServicePlanId": "0683001c-0492-4d59-9515-d9a6426b5813",
+          "ProvisioningStatus": "Disabled"
+        },
+        {
+          "ServicePlanName": "FLOW_O365_P1",
+          "AppliesTo": "User",
+          "ServicePlanId": "0f9b09cb-62d1-4ff4-9129-43f4996f83f4",
+          "ProvisioningStatus": "Disabled"
+        },
+        {
+          "ServicePlanName": "POWERAPPS_O365_P1",
+          "AppliesTo": "User",
+          "ServicePlanId": "92f7a6f3-b89b-4bbd-8c30-809e6da5ad1c",
+          "ProvisioningStatus": "Disabled"
+        },
+        {
+          "ServicePlanName": "OFFICEMOBILE_SUBSCRIPTION",
+          "AppliesTo": "User",
+          "ServicePlanId": "c63d4d19-e8cb-460e-b37c-4d6c34603745",
+          "ProvisioningStatus": "Disabled"
+        },
+        {
+          "ServicePlanName": "SHAREPOINTWAC",
+          "AppliesTo": "User",
+          "ServicePlanId": "e95bec33-7c88-4a70-8e19-b10bd9d0c014",
+          "ProvisioningStatus": "Success"
+        },
+        {
+          "ServicePlanName": "INTUNE_O365",
+          "AppliesTo": "Company",
+          "ServicePlanId": "882e1d05-acd1-4ccb-8708-6ee03664b117",
+          "ProvisioningStatus": "PendingActivation"
+        },
+        {
+          "ServicePlanName": "TEAMS1",
+          "AppliesTo": "User",
+          "ServicePlanId": "57ff2da0-773e-42df-b2af-ffb7a2317929",
+          "ProvisioningStatus": "Disabled"
+        },
+        {
+          "ServicePlanName": "MCO_TEAMS_IW",
+          "AppliesTo": "User",
+          "ServicePlanId": "42a3ec34-28ba-46b6-992f-db53a675ac5b",
+          "ProvisioningStatus": "Disabled"
+        },
+        {
+          "ServicePlanName": "STREAM_O365_E1",
+          "AppliesTo": "User",
+          "ServicePlanId": "743dd19e-1ce3-4c62-a3ad-49ba8f63a2f6",
+          "ProvisioningStatus": "Disabled"
+        },
+        {
+          "ServicePlanName": "Deskless",
+          "AppliesTo": "User",
+          "ServicePlanId": "8c7d2df8-86f0-4902-b2ed-a0458298f3b3",
+          "ProvisioningStatus": "Success"
+        },
+        {
+          "ServicePlanName": "MICROSOFT_SEARCH",
+          "AppliesTo": "Company",
+          "ServicePlanId": "94065c59-bc8e-4e8b-89e5-5138d471eaff",
+          "ProvisioningStatus": "Success"
+        },
+        {
+          "ServicePlanName": "PROJECTWORKMANAGEMENT",
+          "AppliesTo": "User",
+          "ServicePlanId": "b737dad2-2f6c-4c65-90e3-ca563267e8b9",
+          "ProvisioningStatus": "Success"
+        },
+        {
+          "ServicePlanName": "FORMS_PLAN_E1",
+          "AppliesTo": "User",
+          "ServicePlanId": "159f4cd6-e380-449f-a816-af1a9ef76344",
+          "ProvisioningStatus": "Disabled"
+        },
+        {
+          "ServicePlanName": "MYANALYTICS_P2",
+          "AppliesTo": "User",
+          "ServicePlanId": "33c4f319-9bdd-48d6-9c4d-410b750a4a5a",
+          "ProvisioningStatus": "Success"
+        },
+        {
+          "ServicePlanName": "EXCHANGE_S_STANDARD",
+          "AppliesTo": "User",
+          "ServicePlanId": "9aaf7827-d63c-4b61-89c3-182f06f82e5c",
+          "ProvisioningStatus": "Disabled"
+        },
+        {
+          "ServicePlanName": "CDS_O365_P1",
+          "AppliesTo": "User",
+          "ServicePlanId": "bed136c6-b799-4462-824d-fc045d3a9d25",
+          "ProvisioningStatus": "Disabled"
+        }
+      ],
+      "Available": 0,
+      "SkuPartNumber": "Microsoft_Teams_Exploratory_Dept"
+    },
+    {
+      "IsFree": false,
+      "Consumed": 1,
+      "SkuId": "a403ebcc-fae0-4ca2-8c8c-7a907fd6c235",
+      "Enabled": 1000000,
+      "ServicePlans": [
+        {
+          "ServicePlanName": "PURVIEW_DISCOVERY",
+          "AppliesTo": "User",
+          "ServicePlanId": "c948ea65-2053-4a5a-8a62-9eaaaf11b522",
+          "ProvisioningStatus": "Success"
+        },
+        {
+          "ServicePlanName": "EXCHANGE_S_FOUNDATION",
+          "AppliesTo": "Company",
+          "ServicePlanId": "113feb6c-3fe4-4440-bddc-54d774bf0318",
+          "ProvisioningStatus": "Success"
+        },
+        {
+          "ServicePlanName": "BI_AZURE_P0",
+          "AppliesTo": "User",
+          "ServicePlanId": "2049e525-b859-401b-b2a0-e0a31c4b1fe4",
+          "ProvisioningStatus": "Success"
+        }
+      ],
+      "Available": 999999,
+      "SkuPartNumber": "POWER_BI_STANDARD"
+    },
+    {
+      "IsFree": false,
+      "Consumed": 0,
+      "SkuId": "47794cd0-f0e5-45c5-9033-2eb6b5fc84e0",
+      "Enabled": 10000000,
+      "ServicePlans": {
+        "ServicePlanName": "MCOPSTNC",
+        "AppliesTo": "User",
+        "ServicePlanId": "505e180f-f7e0-4b65-91d4-00d670bbd18c",
+        "ProvisioningStatus": "Success"
+      },
+      "Available": 10000000,
+      "SkuPartNumber": "MCOPSTNC"
+    },
+    {
+      "IsFree": false,
+      "Consumed": 0,
+      "SkuId": "06ebc4ee-1bb5-47dd-8120-11324bc54e06",
+      "Enabled": 0,
+      "ServicePlans": [
+        {
+          "ServicePlanName": "INSIGHTS_BY_MYANALYTICS",
+          "AppliesTo": "Company",
+          "ServicePlanId": "b088306e-925b-44ab-baa0-63291c629a91",
+          "ProvisioningStatus": "Success"
+        },
+        {
+          "ServicePlanName": "MICROSOFT_MYANALYTICS_FULL",
+          "AppliesTo": "Company",
+          "ServicePlanId": "0403bb98-9d17-4f94-b53e-eca56a7698a6",
+          "ProvisioningStatus": "Success"
+        },
+        {
+          "ServicePlanName": "PEOPLE_SKILLS_FOUNDATION",
+          "AppliesTo": "User",
+          "ServicePlanId": "13b6da2c-0d84-450e-9f69-a33e221387ca",
+          "ProvisioningStatus": "Success"
+        },
+        {
+          "ServicePlanName": "PLACES_CORE",
+          "AppliesTo": "User",
+          "ServicePlanId": "1fe6227d-3e01-46d0-9510-0acad4ff6e94",
+          "ProvisioningStatus": "Success"
+        },
+        {
+          "ServicePlanName": "COMMON_DEFENDER_PLATFORM_FOR_OFFICE",
+          "AppliesTo": "Company",
+          "ServicePlanId": "a312bdeb-1e21-40d0-84b1-0e73f128144f",
+          "ProvisioningStatus": "Disabled"
+        },
+        {
+          "ServicePlanName": "MESH_IMMERSIVE_FOR_TEAMS",
+          "AppliesTo": "User",
+          "ServicePlanId": "f0ff6ac6-297d-49cd-be34-6dfef97f0c28",
+          "ProvisioningStatus": "Success"
+        },
+        {
+          "ServicePlanName": "PURVIEW_DISCOVERY",
+          "AppliesTo": "User",
+          "ServicePlanId": "c948ea65-2053-4a5a-8a62-9eaaaf11b522",
+          "ProvisioningStatus": "Success"
+        },
+        {
+          "ServicePlanName": "Defender_for_Iot_Enterprise",
+          "AppliesTo": "User",
+          "ServicePlanId": "99cd49a9-0e54-4e07-aea1-d8d9f5f704f5",
+          "ProvisioningStatus": "Disabled"
+        },
+        {
+          "ServicePlanName": "CustomerLockboxA_Enterprise",
+          "AppliesTo": "User",
+          "ServicePlanId": "3ec18638-bd4c-4d3b-8905-479ed636b83e",
+          "ProvisioningStatus": "Disabled"
+        },
+        {
+          "ServicePlanName": "MESH_AVATARS_ADDITIONAL_FOR_TEAMS",
+          "AppliesTo": "User",
+          "ServicePlanId": "3efbd4ed-8958-4824-8389-1321f8730af8",
+          "ProvisioningStatus": "Success"
+        },
+        {
+          "ServicePlanName": "MESH_AVATARS_FOR_TEAMS",
+          "AppliesTo": "User",
+          "ServicePlanId": "dcf9d2f4-772e-4434-b757-77a453cfbc02",
+          "ProvisioningStatus": "Success"
+        },
+        {
+          "ServicePlanName": "MICROSOFT_LOOP",
+          "AppliesTo": "User",
+          "ServicePlanId": "c4b8c31a-fb44-4c65-9837-a21f55fcabda",
+          "ProvisioningStatus": "Success"
+        },
+        {
+          "ServicePlanName": "Bing_Chat_Enterprise",
+          "AppliesTo": "User",
+          "ServicePlanId": "0d0c0d31-fae7-41f2-b909-eaf4d7f26dba",
+          "ProvisioningStatus": "Success"
+        },
+        {
+          "ServicePlanName": "CLIPCHAMP",
+          "AppliesTo": "User",
+          "ServicePlanId": "a1ace008-72f3-4ea0-8dac-33b3a23a2472",
+          "ProvisioningStatus": "Success"
+        },
+        {
+          "ServicePlanName": "M365_AUDIT_PLATFORM",
+          "AppliesTo": "User",
+          "ServicePlanId": "f6de4823-28fa-440b-b886-4783fa86ddba",
+          "ProvisioningStatus": "Disabled"
+        },
+        {
+          "ServicePlanName": "VIVAENGAGE_CORE",
+          "AppliesTo": "User",
+          "ServicePlanId": "a82fbf69-b4d7-49f4-83a6-915b2cf354f4",
+          "ProvisioningStatus": "Success"
+        },
+        {
+          "ServicePlanName": "Windows_Autopatch",
+          "AppliesTo": "User",
+          "ServicePlanId": "9a6eeb79-0b4b-4bf0-9808-39d99a2cd5a3",
+          "ProvisioningStatus": "Success"
+        },
+        {
+          "ServicePlanName": "M365_LIGHTHOUSE_CUSTOMER_PLAN1",
+          "AppliesTo": "Company",
+          "ServicePlanId": "6f23d6a9-adbf-481c-8538-b4c095654487",
+          "ProvisioningStatus": "Success"
+        },
+        {
+          "ServicePlanName": "VIVA_LEARNING_SEEDED",
+          "AppliesTo": "User",
+          "ServicePlanId": "b76fb638-6ba6-402a-b9f9-83d28acb3d86",
+          "ProvisioningStatus": "Success"
+        },
+        {
+          "ServicePlanName": "Nucleus",
+          "AppliesTo": "Company",
+          "ServicePlanId": "db4d623d-b514-490b-b7ef-8885eee514de",
+          "ProvisioningStatus": "Success"
+        },
+        {
+          "ServicePlanName": "ContentExplorer_Standard",
+          "AppliesTo": "Company",
+          "ServicePlanId": "2b815d45-56e4-4e3a-b65c-66cb9175b560",
+          "ProvisioningStatus": "Success"
+        },
+        {
+          "ServicePlanName": "WINDOWSUPDATEFORBUSINESS_DEPLOYMENTSERVICE",
+          "AppliesTo": "User",
+          "ServicePlanId": "7bf960f6-2cd9-443a-8046-5dbff9558365",
+          "ProvisioningStatus": "Success"
+        },
+        {
+          "ServicePlanName": "UNIVERSAL_PRINT_01",
+          "AppliesTo": "User",
+          "ServicePlanId": "795f6fe0-cc4d-4773-b050-5dde4dc704c9",
+          "ProvisioningStatus": "Success"
+        },
+        {
+          "ServicePlanName": "MIP_S_Exchange",
+          "AppliesTo": "User",
+          "ServicePlanId": "cd31b152-6326-4d1b-ae1b-997b625182e6",
+          "ProvisioningStatus": "Disabled"
+        },
+        {
+          "ServicePlanName": "MICROSOFT_COMMUNICATION_COMPLIANCE",
+          "AppliesTo": "User",
+          "ServicePlanId": "a413a9ff-720c-4822-98ef-2f37c2a21f4c",
+          "ProvisioningStatus": "Disabled"
+        },
+        {
+          "ServicePlanName": "GRAPH_CONNECTORS_SEARCH_INDEX",
+          "AppliesTo": "User",
+          "ServicePlanId": "a6520331-d7d4-4276-95f5-15c0933bc757",
+          "ProvisioningStatus": "Success"
+        },
+        {
+          "ServicePlanName": "Content_Explorer",
+          "AppliesTo": "Company",
+          "ServicePlanId": "d9fa6af4-e046-4c89-9226-729a0786685d",
+          "ProvisioningStatus": "Disabled"
+        },
+        {
+          "ServicePlanName": "POWER_VIRTUAL_AGENTS_O365_P3",
+          "AppliesTo": "User",
+          "ServicePlanId": "ded3d325-1bdc-453e-8432-5bac26d7a014",
+          "ProvisioningStatus": "Disabled"
+        },
+        {
+          "ServicePlanName": "CDS_O365_P3",
+          "AppliesTo": "User",
+          "ServicePlanId": "afa73018-811e-46e9-988f-f75d2b1b8430",
+          "ProvisioningStatus": "Disabled"
+        },
+        {
+          "ServicePlanName": "PROJECT_O365_P3",
+          "AppliesTo": "User",
+          "ServicePlanId": "b21a6b06-1988-436e-a07b-51ec6d9f52ad",
+          "ProvisioningStatus": "Disabled"
+        },
+        {
+          "ServicePlanName": "MICROSOFTENDPOINTDLP",
+          "AppliesTo": "User",
+          "ServicePlanId": "64bfac92-2b17-4482-b5e5-a0304429de3e",
+          "ProvisioningStatus": "Disabled"
+        },
+        {
+          "ServicePlanName": "INSIDER_RISK",
+          "AppliesTo": "User",
+          "ServicePlanId": "d587c7a3-bda9-4f99-8776-9bcf59c84f75",
+          "ProvisioningStatus": "Disabled"
+        },
+        {
+          "ServicePlanName": "EXCEL_PREMIUM",
+          "AppliesTo": "User",
+          "ServicePlanId": "531ee2f8-b1cb-453b-9c21-d2180d014ca5",
+          "ProvisioningStatus": "Disabled"
+        },
+        {
+          "ServicePlanName": "MTP",
+          "AppliesTo": "User",
+          "ServicePlanId": "bf28f719-7844-4079-9c78-c1307898e192",
+          "ProvisioningStatus": "Disabled"
+        },
+        {
+          "ServicePlanName": "DYN365_CDS_O365_P3",
+          "AppliesTo": "User",
+          "ServicePlanId": "28b0fa46-c39a-4188-89e2-58e979a6b014",
+          "ProvisioningStatus": "Disabled"
+        },
+        {
+          "ServicePlanName": "MICROSOFTBOOKINGS",
+          "AppliesTo": "User",
+          "ServicePlanId": "199a5c09-e0ca-4e37-8f7c-b05d533e1ea2",
+          "ProvisioningStatus": "Success"
+        },
+        {
+          "ServicePlanName": "RECORDS_MANAGEMENT",
+          "AppliesTo": "User",
+          "ServicePlanId": "65cc641f-cccd-4643-97e0-a17e3045e541",
+          "ProvisioningStatus": "Disabled"
+        },
+        {
+          "ServicePlanName": "ML_CLASSIFICATION",
+          "AppliesTo": "User",
+          "ServicePlanId": "d2d51368-76c9-4317-ada2-a12c004c432f",
+          "ProvisioningStatus": "Disabled"
+        },
+        {
+          "ServicePlanName": "INSIDER_RISK_MANAGEMENT",
+          "AppliesTo": "User",
+          "ServicePlanId": "9d0c4ee5-e4a1-4625-ab39-d82b619b1a34",
+          "ProvisioningStatus": "Disabled"
+        },
+        {
+          "ServicePlanName": "INFO_GOVERNANCE",
+          "AppliesTo": "User",
+          "ServicePlanId": "e26c2fcc-ab91-4a61-b35c-03cdc8dddf66",
+          "ProvisioningStatus": "Disabled"
+        },
+        {
+          "ServicePlanName": "DATA_INVESTIGATIONS",
+          "AppliesTo": "User",
+          "ServicePlanId": "46129a58-a698-46f0-aa5b-17f6586297d9",
+          "ProvisioningStatus": "Disabled"
+        },
+        {
+          "ServicePlanName": "CUSTOMER_KEY",
+          "AppliesTo": "User",
+          "ServicePlanId": "6db1f1db-2b46-403f-be40-e39395f08dbb",
+          "ProvisioningStatus": "Disabled"
+        },
+        {
+          "ServicePlanName": "COMMUNICATIONS_DLP",
+          "AppliesTo": "User",
+          "ServicePlanId": "6dc145d6-95dd-4191-b9c3-185575ee6f6b",
+          "ProvisioningStatus": "Disabled"
+        },
+        {
+          "ServicePlanName": "COMMUNICATIONS_COMPLIANCE",
+          "AppliesTo": "User",
+          "ServicePlanId": "41fcdd7d-4733-4863-9cf4-c65b83ce2df4",
+          "ProvisioningStatus": "Disabled"
+        },
+        {
+          "ServicePlanName": "SAFEDOCS",
+          "AppliesTo": "User",
+          "ServicePlanId": "bf6f5520-59e3-4f82-974b-7dbbc4fd27c7",
+          "ProvisioningStatus": "Disabled"
+        },
+        {
+          "ServicePlanName": "M365_ADVANCED_AUDITING",
+          "AppliesTo": "User",
+          "ServicePlanId": "2f442157-a11c-46b9-ae5b-6e39ff4e5849",
+          "ProvisioningStatus": "Disabled"
+        },
+        {
+          "ServicePlanName": "INFORMATION_BARRIERS",
+          "AppliesTo": "User",
+          "ServicePlanId": "c4801e8a-cb58-4c35-aca6-f2dcc106f287",
+          "ProvisioningStatus": "Disabled"
+        },
+        {
+          "ServicePlanName": "KAIZALA_STANDALONE",
+          "AppliesTo": "User",
+          "ServicePlanId": "0898bdbb-73b0-471a-81e5-20f1fe4dd66e",
+          "ProvisioningStatus": "Disabled"
+        },
+        {
+          "ServicePlanName": "MICROSOFT_SEARCH",
+          "AppliesTo": "Company",
+          "ServicePlanId": "94065c59-bc8e-4e8b-89e5-5138d471eaff",
+          "ProvisioningStatus": "Success"
+        },
+        {
+          "ServicePlanName": "PREMIUM_ENCRYPTION",
+          "AppliesTo": "User",
+          "ServicePlanId": "617b097b-4b93-4ede-83de-5f075bb5fb2f",
+          "ProvisioningStatus": "Disabled"
+        },
+        {
+          "ServicePlanName": "WHITEBOARD_PLAN3",
+          "AppliesTo": "User",
+          "ServicePlanId": "4a51bca5-1eff-43f5-878c-177680f191af",
+          "ProvisioningStatus": "Disabled"
+        },
+        {
+          "ServicePlanName": "MIP_S_CLP2",
+          "AppliesTo": "User",
+          "ServicePlanId": "efb0351d-3b08-4503-993d-383af8de41e3",
+          "ProvisioningStatus": "Disabled"
+        },
+        {
+          "ServicePlanName": "MIP_S_CLP1",
+          "AppliesTo": "User",
+          "ServicePlanId": "5136a095-5cf0-4aff-bec3-e84448b38ea5",
+          "ProvisioningStatus": "Success"
+        },
+        {
+          "ServicePlanName": "MYANALYTICS_P2",
+          "AppliesTo": "User",
+          "ServicePlanId": "33c4f319-9bdd-48d6-9c4d-410b750a4a5a",
+          "ProvisioningStatus": "Success"
+        },
+        {
+          "ServicePlanName": "PAM_ENTERPRISE",
+          "AppliesTo": "User",
+          "ServicePlanId": "b1188c4c-1b36-4018-b48b-ee07604f6feb",
+          "ProvisioningStatus": "Disabled"
+        },
+        {
+          "ServicePlanName": "ATA",
+          "AppliesTo": "User",
+          "ServicePlanId": "14ab5db5-e6c4-4b20-b4bc-13e36fd2227f",
+          "ProvisioningStatus": "Disabled"
+        },
+        {
+          "ServicePlanName": "BPOS_S_TODO_3",
+          "AppliesTo": "User",
+          "ServicePlanId": "3fb82609-8c27-4f7b-bd51-30634711ee67",
+          "ProvisioningStatus": "Disabled"
+        },
+        {
+          "ServicePlanName": "FLOW_O365_P3",
+          "AppliesTo": "User",
+          "ServicePlanId": "07699545-9485-468e-95b6-2fca3738be01",
+          "ProvisioningStatus": "Disabled"
+        },
+        {
+          "ServicePlanName": "POWERAPPS_O365_P3",
+          "AppliesTo": "User",
+          "ServicePlanId": "9c0dab89-a30c-4117-86e7-97bda240acd2",
+          "ProvisioningStatus": "Disabled"
+        },
+        {
+          "ServicePlanName": "FORMS_PLAN_E5",
+          "AppliesTo": "User",
+          "ServicePlanId": "e212cbc7-0961-4c40-9825-01117710dcb1",
+          "ProvisioningStatus": "Disabled"
+        },
+        {
+          "ServicePlanName": "ADALLOM_S_STANDALONE",
+          "AppliesTo": "User",
+          "ServicePlanId": "2e2ddb96-6af9-4b1d-a3f0-d6ecfd22edb2",
+          "ProvisioningStatus": "Disabled"
+        },
+        {
+          "ServicePlanName": "STREAM_O365_E5",
+          "AppliesTo": "User",
+          "ServicePlanId": "6c6042f5-6f01-4d67-b8c1-eb99d36eed3e",
+          "ProvisioningStatus": "Disabled"
+        },
+        {
+          "ServicePlanName": "Deskless",
+          "AppliesTo": "User",
+          "ServicePlanId": "8c7d2df8-86f0-4902-b2ed-a0458298f3b3",
+          "ProvisioningStatus": "Success"
+        },
+        {
+          "ServicePlanName": "THREAT_INTELLIGENCE",
+          "AppliesTo": "User",
+          "ServicePlanId": "8e0c0a52-6a6c-4d40-8370-dd62790dcd70",
+          "ProvisioningStatus": "Disabled"
+        },
+        {
+          "ServicePlanName": "TEAMS1",
+          "AppliesTo": "User",
+          "ServicePlanId": "57ff2da0-773e-42df-b2af-ffb7a2317929",
+          "ProvisioningStatus": "Disabled"
+        },
+        {
+          "ServicePlanName": "WINDEFATP",
+          "AppliesTo": "User",
+          "ServicePlanId": "871d91ec-ec1a-452b-a83f-bd76c7d770ef",
+          "ProvisioningStatus": "Disabled"
+        },
+        {
+          "ServicePlanName": "WIN10_PRO_ENT_SUB",
+          "AppliesTo": "User",
+          "ServicePlanId": "21b439ba-a0ca-424f-a6cc-52f954a5b111",
+          "ProvisioningStatus": "Success"
+        },
+        {
+          "ServicePlanName": "RMS_S_PREMIUM2",
+          "AppliesTo": "User",
+          "ServicePlanId": "5689bec4-755d-4753-8b61-40975025187c",
+          "ProvisioningStatus": "Disabled"
+        },
+        {
+          "ServicePlanName": "AAD_PREMIUM_P2",
+          "AppliesTo": "User",
+          "ServicePlanId": "eec0eb4f-6444-4f95-aba0-50c24d67f998",
+          "ProvisioningStatus": "Disabled"
+        },
+        {
+          "ServicePlanName": "RMS_S_PREMIUM",
+          "AppliesTo": "User",
+          "ServicePlanId": "6c57d4b6-3b23-47a5-9bc9-69f17b4947b3",
+          "ProvisioningStatus": "Success"
+        },
+        {
+          "ServicePlanName": "RMS_S_ENTERPRISE",
+          "AppliesTo": "User",
+          "ServicePlanId": "bea4c11e-220a-4e6d-8eb8-8ea15d019f90",
+          "ProvisioningStatus": "Success"
+        },
+        {
+          "ServicePlanName": "MFA_PREMIUM",
+          "AppliesTo": "User",
+          "ServicePlanId": "8a256a2b-b617-496d-b51b-e76466e88db0",
+          "ProvisioningStatus": "Success"
+        },
+        {
+          "ServicePlanName": "INTUNE_A",
+          "AppliesTo": "User",
+          "ServicePlanId": "c1ec4a95-1f05-45b3-a911-aa3fa01094f5",
+          "ProvisioningStatus": "Success"
+        },
+        {
+          "ServicePlanName": "AAD_PREMIUM",
+          "AppliesTo": "User",
+          "ServicePlanId": "41781fb2-bc02-4b7c-bd55-b576c07bb09d",
+          "ProvisioningStatus": "Success"
+        },
+        {
+          "ServicePlanName": "YAMMER_ENTERPRISE",
+          "AppliesTo": "User",
+          "ServicePlanId": "7547a3fe-08ee-4ccb-b430-5077c5041653",
+          "ProvisioningStatus": "Success"
+        },
+        {
+          "ServicePlanName": "SWAY",
+          "AppliesTo": "User",
+          "ServicePlanId": "a23b959c-7ce8-4e57-9140-b90eb88a9e97",
+          "ProvisioningStatus": "Success"
+        },
+        {
+          "ServicePlanName": "SHAREPOINTWAC",
+          "AppliesTo": "User",
+          "ServicePlanId": "e95bec33-7c88-4a70-8e19-b10bd9d0c014",
+          "ProvisioningStatus": "Success"
+        },
+        {
+          "ServicePlanName": "SHAREPOINTENTERPRISE",
+          "AppliesTo": "User",
+          "ServicePlanId": "5dbe027f-2339-4123-9542-606e4d348a72",
+          "ProvisioningStatus": "Success"
+        },
+        {
+          "ServicePlanName": "PROJECTWORKMANAGEMENT",
+          "AppliesTo": "User",
+          "ServicePlanId": "b737dad2-2f6c-4c65-90e3-ca563267e8b9",
+          "ProvisioningStatus": "Success"
+        },
+        {
+          "ServicePlanName": "OFFICESUBSCRIPTION",
+          "AppliesTo": "User",
+          "ServicePlanId": "43de0ff5-c92c-492b-9116-175376d08c38",
+          "ProvisioningStatus": "Success"
+        },
+        {
+          "ServicePlanName": "MCOSTANDARD",
+          "AppliesTo": "User",
+          "ServicePlanId": "0feaeb32-d00e-4d66-bd5a-43b5b83db82c",
+          "ProvisioningStatus": "Success"
+        },
+        {
+          "ServicePlanName": "MCOMEETADV",
+          "AppliesTo": "User",
+          "ServicePlanId": "3e26ee1f-8a5f-4d52-aee2-b81ce45c8f40",
+          "ProvisioningStatus": "Disabled"
+        },
+        {
+          "ServicePlanName": "MCOEV",
+          "AppliesTo": "User",
+          "ServicePlanId": "4828c8ec-dc2e-4779-b502-87ac9ce28ab7",
+          "ProvisioningStatus": "Disabled"
+        },
+        {
+          "ServicePlanName": "LOCKBOX_ENTERPRISE",
+          "AppliesTo": "User",
+          "ServicePlanId": "9f431833-0334-42de-a7dc-70aa40db46db",
+          "ProvisioningStatus": "Disabled"
+        },
+        {
+          "ServicePlanName": "INTUNE_O365",
+          "AppliesTo": "Company",
+          "ServicePlanId": "882e1d05-acd1-4ccb-8708-6ee03664b117",
+          "ProvisioningStatus": "PendingActivation"
+        },
+        {
+          "ServicePlanName": "EXCHANGE_S_ENTERPRISE",
+          "AppliesTo": "User",
+          "ServicePlanId": "efb87545-963c-4e0d-99df-69c6916d9eb0",
+          "ProvisioningStatus": "Success"
+        },
+        {
+          "ServicePlanName": "EXCHANGE_ANALYTICS",
+          "AppliesTo": "User",
+          "ServicePlanId": "34c0d7a0-a70f-4668-9238-47f9fc208882",
+          "ProvisioningStatus": "Disabled"
+        },
+        {
+          "ServicePlanName": "EQUIVIO_ANALYTICS",
+          "AppliesTo": "User",
+          "ServicePlanId": "4de31727-a228-4ec3-a5bf-8e45b5ca48cc",
+          "ProvisioningStatus": "Disabled"
+        },
+        {
+          "ServicePlanName": "BI_AZURE_P2",
+          "AppliesTo": "User",
+          "ServicePlanId": "70d33638-9c74-4d01-bfd3-562de28bd4ba",
+          "ProvisioningStatus": "Disabled"
+        },
+        {
+          "ServicePlanName": "ATP_ENTERPRISE",
+          "AppliesTo": "Company",
+          "ServicePlanId": "f20fedf3-f3c3-43c3-8267-2bfdd51c0939",
+          "ProvisioningStatus": "Disabled"
+        },
+        {
+          "ServicePlanName": "ADALLOM_S_O365",
+          "AppliesTo": "User",
+          "ServicePlanId": "8c098270-9dd4-4350-9b30-ba4703f3b36b",
+          "ProvisioningStatus": "Disabled"
+        }
+      ],
+      "Available": 0,
+      "SkuPartNumber": "SPE_E5"
+    },
+    {
+      "IsFree": false,
+      "Consumed": 0,
+      "SkuId": "093e8d14-a334-43d9-93e3-30589a8b47d0",
+      "Enabled": 1,
+      "ServicePlans": [
+        {
+          "ServicePlanName": "EXCHANGE_S_FOUNDATION",
+          "AppliesTo": "Company",
+          "ServicePlanId": "113feb6c-3fe4-4440-bddc-54d774bf0318",
+          "ProvisioningStatus": "Success"
+        },
+        {
+          "ServicePlanName": "RMS_S_BASIC",
+          "AppliesTo": "Company",
+          "ServicePlanId": "31cf2cfc-6b0d-4adc-a336-88b724ed8122",
+          "ProvisioningStatus": "Success"
+        }
+      ],
+      "Available": 1,
+      "SkuPartNumber": "RMSBASIC"
+    },
+    {
+      "IsFree": false,
+      "Consumed": 1,
+      "SkuId": "f9602137-2203-447b-9fff-41b36e08ce5d",
+      "Enabled": 0,
+      "ServicePlans": [
+        {
+          "ServicePlanName": "Verifiable_Credentials_Service_Request",
+          "AppliesTo": "Company",
+          "ServicePlanId": "aae826b7-14cd-4691-8178-2b312f7072ea",
+          "ProvisioningStatus": "Disabled"
+        },
+        {
+          "ServicePlanName": "AAD_PREMIUM_P2",
+          "AppliesTo": "User",
+          "ServicePlanId": "eec0eb4f-6444-4f95-aba0-50c24d67f998",
+          "ProvisioningStatus": "Disabled"
+        },
+        {
+          "ServicePlanName": "Entra_Premium_Private_Access",
+          "AppliesTo": "User",
+          "ServicePlanId": "f057aab1-b184-49b2-85c0-881b02a405c5",
+          "ProvisioningStatus": "Disabled"
+        },
+        {
+          "ServicePlanName": "Entra_Premium_Internet_Access",
+          "AppliesTo": "User",
+          "ServicePlanId": "8d23cb83-ab07-418f-8517-d7aca77307dc",
+          "ProvisioningStatus": "Disabled"
+        },
+        {
+          "ServicePlanName": "Entra_Identity_Governance",
+          "AppliesTo": "User",
+          "ServicePlanId": "e866a266-3cff-43a3-acca-0c90a7e00c8b",
+          "ProvisioningStatus": "Disabled"
+        }
+      ],
+      "Available": -1,
+      "SkuPartNumber": "Microsoft_Entra_Suite"
+    }
+  ]
+}
