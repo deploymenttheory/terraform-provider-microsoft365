@@ -1,8 +1,11 @@
 package utilityDeploymentScheduler
 
 import (
+	"context"
 	"fmt"
 
+	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
@@ -40,4 +43,95 @@ func setReleasedScopeIDs(state *DeploymentSchedulerDataSourceModel, conditionsMe
 // setStateID sets the resource ID
 func setStateID(state *DeploymentSchedulerDataSourceModel) {
 	state.Id = types.StringValue(fmt.Sprintf("deployment-scheduler-%s", state.Name.ValueString()))
+}
+
+// buildConditionsDetail builds the conditions_detail object for state
+func buildConditionsDetail(
+	ctx context.Context,
+	resp *datasource.ReadResponse,
+	timeConditionExists bool,
+	delayStartTimeBy int64,
+	deploymentStartTimeStr string,
+	currentTimeStr string,
+	hoursElapsed float64,
+	timeConditionMet bool,
+) types.Object {
+	if !timeConditionExists {
+		// No time condition - return null detail
+		return types.ObjectNull(
+			map[string]attr.Type{
+				"time_condition_detail": types.ObjectType{
+					AttrTypes: map[string]attr.Type{
+						"required":              types.BoolType,
+						"delay_start_time_by":   types.Int64Type,
+						"deployment_start_time": types.StringType,
+						"current_time":          types.StringType,
+						"hours_elapsed":         types.Float64Type,
+						"condition_met":         types.BoolType,
+					},
+				},
+			},
+		)
+	}
+
+	timeDetailAttrs := map[string]attr.Value{
+		"required":              types.BoolValue(true),
+		"delay_start_time_by":   types.Int64Value(delayStartTimeBy),
+		"deployment_start_time": types.StringValue(deploymentStartTimeStr),
+		"current_time":          types.StringValue(currentTimeStr),
+		"hours_elapsed":         types.Float64Value(hoursElapsed),
+		"condition_met":         types.BoolValue(timeConditionMet),
+	}
+
+	timeDetailObj, diags := types.ObjectValue(
+		map[string]attr.Type{
+			"required":              types.BoolType,
+			"delay_start_time_by":   types.Int64Type,
+			"deployment_start_time": types.StringType,
+			"current_time":          types.StringType,
+			"hours_elapsed":         types.Float64Type,
+			"condition_met":         types.BoolType,
+		},
+		timeDetailAttrs,
+	)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return types.ObjectNull(
+			map[string]attr.Type{
+				"time_condition_detail": types.ObjectType{
+					AttrTypes: map[string]attr.Type{
+						"required":              types.BoolType,
+						"delay_start_time_by":   types.Int64Type,
+						"deployment_start_time": types.StringType,
+						"current_time":          types.StringType,
+						"hours_elapsed":         types.Float64Type,
+						"condition_met":         types.BoolType,
+					},
+				},
+			},
+		)
+	}
+
+	conditionsDetailAttrs := map[string]attr.Value{
+		"time_condition_detail": timeDetailObj,
+	}
+
+	conditionsDetailObj, diags := types.ObjectValue(
+		map[string]attr.Type{
+			"time_condition_detail": types.ObjectType{
+				AttrTypes: map[string]attr.Type{
+					"required":              types.BoolType,
+					"delay_start_time_by":   types.Int64Type,
+					"deployment_start_time": types.StringType,
+					"current_time":          types.StringType,
+					"hours_elapsed":         types.Float64Type,
+					"condition_met":         types.BoolType,
+				},
+			},
+		},
+		conditionsDetailAttrs,
+	)
+	resp.Diagnostics.Append(diags...)
+
+	return conditionsDetailObj
 }

@@ -67,7 +67,7 @@ resource "microsoft365_graph_beta_device_management_windows_enrollment_status_pa
     microsoft365_graph_beta_device_management_role_scope_tag.acc_test_role_scope_tag_1.id,
     microsoft365_graph_beta_device_management_role_scope_tag.acc_test_role_scope_tag_2.id
   ]
-  
+
   timeouts = {
     create = "30s"
     read   = "30s"

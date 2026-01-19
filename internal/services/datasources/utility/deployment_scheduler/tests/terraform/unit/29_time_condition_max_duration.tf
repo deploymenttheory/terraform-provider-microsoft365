@@ -5,8 +5,8 @@ data "microsoft365_utility_deployment_scheduler" "test" {
   scope_id              = "12345678-1234-1234-1234-123456789abc"
 
   time_condition = {
-    delay_start_time_by      = 0
-    max_open_duration_hours = 17520  # 2 years in hours
+    delay_start_time_by     = 0
+    max_open_duration_hours = 17520 # 2 years in hours
   }
 }
 

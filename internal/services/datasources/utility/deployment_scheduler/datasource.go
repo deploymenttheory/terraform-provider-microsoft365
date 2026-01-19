@@ -6,6 +6,8 @@ import (
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/schema"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/validate/attribute"
+	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -71,6 +73,12 @@ func (d *deploymentSchedulerDataSource) Schema(ctx context.Context, _ datasource
 					"All time-based conditions are calculated relative to this timestamp, similar to how Unix epoch time works as a reference point. " +
 					"If not provided, uses the current time on each evaluation (not recommended for time-based conditions). " +
 					"Explicitly setting this value allows coordinating multiple deployment phases to a single campaign start time.",
+				Validators: []validator.String{
+					attribute.RegexMatches(
+						regexp.MustCompile(constants.ISO8601DateTimeRegex),
+						"Must be a valid RFC3339 date/time in UTC (e.g., '2024-01-15T00:00:00Z')",
+					),
+				},
 			},
 			"scope_id": schema.StringAttribute{
 				Optional:            true,
@@ -103,21 +111,39 @@ func (d *deploymentSchedulerDataSource) Schema(ctx context.Context, _ datasource
 					"delay_start_time_by": schema.Int64Attribute{
 						Required:            true,
 						MarkdownDescription: "Number of hours to delay after `deployment_start_time` before allowing the gate to open. Must be >= 0. Set to 0 for immediate release at deployment start time.",
+						Validators: []validator.Int64{
+							int64validator.AtLeast(0),
+						},
 					},
 					"absolute_earliest": schema.StringAttribute{
 						Optional:            true,
 						Computed:            true,
 						MarkdownDescription: "Absolute earliest time (UTC RFC3339 format) when gate can open, regardless of `delay_start_time_by`. Use this to prevent deployment before a specific date/time (e.g., wait for Patch Tuesday). If specified, gate cannot open before this time even if delay_start_time_by has elapsed.",
+						Validators: []validator.String{
+							attribute.RegexMatches(
+								regexp.MustCompile(constants.ISO8601DateTimeRegex),
+								"Must be a valid RFC3339 date/time in UTC (e.g., '2024-01-15T00:00:00Z')",
+							),
+						},
 					},
 					"absolute_latest": schema.StringAttribute{
 						Optional:            true,
 						Computed:            true,
 						MarkdownDescription: "Absolute deadline (UTC RFC3339 format) when gate must close and will never open again. Use this for time-limited deployment campaigns or change freeze deadlines. If current time exceeds this, gate permanently closes.",
+						Validators: []validator.String{
+							attribute.RegexMatches(
+								regexp.MustCompile(constants.ISO8601DateTimeRegex),
+								"Must be a valid RFC3339 date/time in UTC (e.g., '2024-01-15T00:00:00Z')",
+							),
+						},
 					},
 					"max_open_duration_hours": schema.Int64Attribute{
 						Optional:            true,
 						Computed:            true,
 						MarkdownDescription: "Maximum number of hours the gate can remain open after it first opens. Must be >= 0. Use this for pilot/temporary deployments that should automatically expire (e.g., 2-week pilot = 336 hours). When duration expires, gate auto-closes and scope IDs are retracted. Set to 0 for unlimited duration (default behavior).",
+						Validators: []validator.Int64{
+							int64validator.AtLeast(0),
+						},
 					},
 				},
 			},
@@ -139,26 +165,58 @@ func (d *deploymentSchedulerDataSource) Schema(ctx context.Context, _ datasource
 									Optional:            true,
 									Computed:            true,
 									MarkdownDescription: "Days of the week when this window is active. Valid values: `monday`, `tuesday`, `wednesday`, `thursday`, `friday`, `saturday`, `sunday`. If not specified, all days are included.",
+									Validators: []validator.List{
+										listvalidator.ValueStringsAre(
+											attribute.RegexMatches(
+												regexp.MustCompile(constants.DayOfWeekRegex),
+												"Must be a lowercase day of week: monday, tuesday, wednesday, thursday, friday, saturday, or sunday",
+											),
+										),
+									},
 								},
 								"time_of_day_start": schema.StringAttribute{
 									Optional:            true,
 									Computed:            true,
 									MarkdownDescription: "Start time in UTC (HH:MM:SS format, e.g., '09:00:00'). If not specified, starts at 00:00:00.",
+									Validators: []validator.String{
+										attribute.RegexMatches(
+											regexp.MustCompile(constants.TimeFormatHHMMSSRegex),
+											"Must be a valid time in HH:MM:SS format (24-hour clock)",
+										),
+									},
 								},
 								"time_of_day_end": schema.StringAttribute{
 									Optional:            true,
 									Computed:            true,
 									MarkdownDescription: "End time in UTC (HH:MM:SS format, e.g., '17:00:00'). If not specified, ends at 23:59:59.",
+									Validators: []validator.String{
+										attribute.RegexMatches(
+											regexp.MustCompile(constants.TimeFormatHHMMSSRegex),
+											"Must be a valid time in HH:MM:SS format (24-hour clock)",
+										),
+									},
 								},
 								"date_start": schema.StringAttribute{
 									Optional:            true,
 									Computed:            true,
 									MarkdownDescription: "Absolute start date/time in UTC (RFC3339 format, e.g., '2024-01-15T00:00:00Z'). Use for specific date ranges. If not specified, no start date limit.",
+									Validators: []validator.String{
+										attribute.RegexMatches(
+											regexp.MustCompile(constants.ISO8601DateTimeRegex),
+											"Must be a valid RFC3339 date/time in UTC (e.g., '2024-01-15T00:00:00Z')",
+										),
+									},
 								},
 								"date_end": schema.StringAttribute{
 									Optional:            true,
 									Computed:            true,
 									MarkdownDescription: "Absolute end date/time in UTC (RFC3339 format, e.g., '2024-01-31T23:59:59Z'). Use for specific date ranges. If not specified, no end date limit.",
+									Validators: []validator.String{
+										attribute.RegexMatches(
+											regexp.MustCompile(constants.ISO8601DateTimeRegex),
+											"Must be a valid RFC3339 date/time in UTC (e.g., '2024-01-31T23:59:59Z')",
+										),
+									},
 								},
 							},
 						},
@@ -183,26 +241,58 @@ func (d *deploymentSchedulerDataSource) Schema(ctx context.Context, _ datasource
 									Optional:            true,
 									Computed:            true,
 									MarkdownDescription: "Days of the week when this window blocks deployment. Valid values: `monday`, `tuesday`, `wednesday`, `thursday`, `friday`, `saturday`, `sunday`. If not specified, all days are included.",
+									Validators: []validator.List{
+										listvalidator.ValueStringsAre(
+											attribute.RegexMatches(
+												regexp.MustCompile(constants.DayOfWeekRegex),
+												"Must be a lowercase day of week: monday, tuesday, wednesday, thursday, friday, saturday, or sunday",
+											),
+										),
+									},
 								},
 								"time_of_day_start": schema.StringAttribute{
 									Optional:            true,
 									Computed:            true,
 									MarkdownDescription: "Start time in UTC (HH:MM:SS format, e.g., '00:00:00'). If not specified, starts at 00:00:00.",
+									Validators: []validator.String{
+										attribute.RegexMatches(
+											regexp.MustCompile(constants.TimeFormatHHMMSSRegex),
+											"Must be a valid time in HH:MM:SS format (24-hour clock)",
+										),
+									},
 								},
 								"time_of_day_end": schema.StringAttribute{
 									Optional:            true,
 									Computed:            true,
 									MarkdownDescription: "End time in UTC (HH:MM:SS format, e.g., '23:59:59'). If not specified, ends at 23:59:59.",
+									Validators: []validator.String{
+										attribute.RegexMatches(
+											regexp.MustCompile(constants.TimeFormatHHMMSSRegex),
+											"Must be a valid time in HH:MM:SS format (24-hour clock)",
+										),
+									},
 								},
 								"date_start": schema.StringAttribute{
 									Optional:            true,
 									Computed:            true,
 									MarkdownDescription: "Absolute start date/time in UTC (RFC3339 format, e.g., '2024-12-20T00:00:00Z'). Use for specific date ranges like holiday freezes. If not specified, no start date limit.",
+									Validators: []validator.String{
+										attribute.RegexMatches(
+											regexp.MustCompile(constants.ISO8601DateTimeRegex),
+											"Must be a valid RFC3339 date/time in UTC (e.g., '2024-12-20T00:00:00Z')",
+										),
+									},
 								},
 								"date_end": schema.StringAttribute{
 									Optional:            true,
 									Computed:            true,
 									MarkdownDescription: "Absolute end date/time in UTC (RFC3339 format, e.g., '2025-01-05T23:59:59Z'). Use for specific date ranges. If not specified, no end date limit.",
+									Validators: []validator.String{
+										attribute.RegexMatches(
+											regexp.MustCompile(constants.ISO8601DateTimeRegex),
+											"Must be a valid RFC3339 date/time in UTC (e.g., '2025-01-05T23:59:59Z')",
+										),
+									},
 								},
 							},
 						},
@@ -229,12 +319,18 @@ func (d *deploymentSchedulerDataSource) Schema(ctx context.Context, _ datasource
 						MarkdownDescription: "The delay_start_time_by value of the prerequisite scheduler. " +
 							"This is when the prerequisite gate would have opened (hours after deployment_start_time). " +
 							"For example, if Phase 2 has `delay_start_time_by = 168`, set this to 168.",
+						Validators: []validator.Int64{
+							int64validator.AtLeast(0),
+						},
 					},
 					"minimum_open_hours": schema.Int64Attribute{
 						Required: true,
 						MarkdownDescription: "Minimum number of hours the prerequisite gate must have been open before this gate can open. " +
 							"For example, if set to 48, this gate won't open until 48 hours after the prerequisite gate opened. " +
 							"Must be >= 0.",
+						Validators: []validator.Int64{
+							int64validator.AtLeast(0),
+						},
 					},
 				},
 			},

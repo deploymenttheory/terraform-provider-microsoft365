@@ -79,7 +79,7 @@ func TestUnitDeploymentSchedulerDataSource_TimeCondition_InvalidNegativeOffset(t
 		Steps: []resource.TestStep{
 			{
 				Config:      loadUnitTestTerraform("03_time_condition_negative_offset.tf"),
-				ExpectError: regexp.MustCompile("delay_start_time_by must be >= 0"),
+				ExpectError: regexp.MustCompile("(?i)value must be at least 0"),
 			},
 		},
 	})
@@ -466,7 +466,7 @@ func TestUnitDeploymentSchedulerDataSource_Dependency_InvalidNegativeMinimumHour
 		Steps: []resource.TestStep{
 			{
 				Config:      loadUnitTestTerraform("15_dependency_negative_minimum.tf"),
-				ExpectError: regexp.MustCompile("minimum_open_hours must be >= 0"),
+				ExpectError: regexp.MustCompile("(?i)value must be at least 0"),
 			},
 		},
 	})
@@ -713,6 +713,23 @@ func TestUnitDeploymentSchedulerDataSource_Validation_InvalidScopeIdsFormat(t *t
 			{
 				Config:      loadUnitTestTerraform("26_invalid_scope_ids_format.tf"),
 				ExpectError: regexp.MustCompile("Each scope ID must be a valid GUID format"),
+			},
+		},
+	})
+}
+
+// PURPOSE: Verify day of week validation rejects capitalized day names
+// EXPECTED: Terraform plan fails with validation error
+// WHY: Days of week must be lowercase per schema validation, "Monday" should be "monday"
+func TestUnitDeploymentSchedulerDataSource_Validation_InvalidDayOfWeek(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
+
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config:      loadUnitTestTerraform("31_validation_invalid_day_of_week.tf"),
+				ExpectError: regexp.MustCompile("(?i)lowercase day of week.*monday.*tuesday.*wednesday"),
 			},
 		},
 	})

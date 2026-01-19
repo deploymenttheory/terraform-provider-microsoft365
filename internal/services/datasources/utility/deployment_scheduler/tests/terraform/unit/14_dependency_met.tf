@@ -10,7 +10,7 @@ data "microsoft365_utility_deployment_scheduler" "test" {
 
   depends_on_scheduler = {
     prerequisite_delay_start_time_by = 0
-    minimum_open_hours                = 0
+    minimum_open_hours               = 0
   }
 }
 

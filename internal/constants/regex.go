@@ -136,4 +136,8 @@ const (
 	// Common formats: "api://<guid>", "api://<domain>/<path>", "https://<domain>/<path>", "urn:<namespace>:<identifier>"
 	// Examples: "api://123e4567-e89b-12d3-a456-426614174000", "api://contoso.com/myapp", "https://contoso.com/api"
 	IdentifierUriRegex = `^(api://|https://|urn:)[^\s]+$`
+
+	// DayOfWeekRegex matches lowercase day of week names.
+	// Valid values: "monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"
+	DayOfWeekRegex = `^(monday|tuesday|wednesday|thursday|friday|saturday|sunday)$`
 )

@@ -5,9 +5,9 @@ data "microsoft365_utility_deployment_scheduler" "test" {
   scope_id              = "12345678-1234-1234-1234-123456789abc"
 
   time_condition = {
-    delay_start_time_by      = 0
-    absolute_earliest_time   = "2025-01-01T00:00:00Z"
-    absolute_latest_time     = "2027-12-31T23:59:59Z"
+    delay_start_time_by    = 0
+    absolute_earliest_time = "2025-01-01T00:00:00Z"
+    absolute_latest_time   = "2027-12-31T23:59:59Z"
   }
 }
 
