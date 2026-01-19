@@ -44,7 +44,7 @@ func (r *IpApplicationSegmentResource) Create(ctx context.Context, req resource.
 
 	endpoint := fmt.Sprintf(
 		"applications/%s/onPremisesPublishing/segmentsConfiguration/microsoft.graph.ipSegmentConfiguration/applicationSegments",
-		object.ApplicationID.ValueString(),
+		object.ApplicationObjectID.ValueString(),
 	)
 
 	config := customrequests.PostRequestConfig{
@@ -114,7 +114,7 @@ func (r *IpApplicationSegmentResource) Read(ctx context.Context, req resource.Re
 
 	endpoint := fmt.Sprintf(
 		"applications/%s/onPremisesPublishing/segmentsConfiguration/microsoft.graph.ipSegmentConfiguration/applicationSegments",
-		object.ApplicationID.ValueString(),
+		object.ApplicationObjectID.ValueString(),
 	)
 
 	config := customrequests.GetRequestConfig{
@@ -184,7 +184,7 @@ func (r *IpApplicationSegmentResource) Update(ctx context.Context, req resource.
 
 	endpoint := fmt.Sprintf(
 		"applications/%s/onPremisesPublishing/segmentsConfiguration/microsoft.graph.ipSegmentConfiguration/applicationSegments",
-		state.ApplicationID.ValueString(),
+		state.ApplicationObjectID.ValueString(),
 	)
 
 	config := customrequests.PatchRequestConfig{
@@ -241,7 +241,7 @@ func (r *IpApplicationSegmentResource) Delete(ctx context.Context, req resource.
 
 	endpoint := fmt.Sprintf(
 		"applications/%s/onPremisesPublishing/segmentsConfiguration/microsoft.graph.ipSegmentConfiguration/applicationSegments",
-		data.ApplicationID.ValueString(),
+		data.ApplicationObjectID.ValueString(),
 	)
 
 	config := customrequests.DeleteRequestConfig{

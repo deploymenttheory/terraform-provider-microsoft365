@@ -46,7 +46,7 @@ func TestIpApplicationSegmentResource_Minimal(t *testing.T) {
 				Config: testConfigIpSegmentMinimal(),
 				Check: resource.ComposeTestCheckFunc(
 					// Basic attributes
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_applications_ip_application_segment.ip_segment_minimal", "application_id", "12345678-1234-1234-1234-123456789012"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_applications_ip_application_segment.ip_segment_minimal", "application_object_id", "12345678-1234-1234-1234-123456789012"),
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_applications_ip_application_segment.ip_segment_minimal", "destination_host", "192.168.1.100"),
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_applications_ip_application_segment.ip_segment_minimal", "destination_type", "ipAddress"),
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_applications_ip_application_segment.ip_segment_minimal", "protocol", "tcp"),
@@ -75,7 +75,7 @@ func TestIpApplicationSegmentResource_Maximal(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					// Basic attributes
 					testCheckExists("microsoft365_graph_beta_applications_ip_application_segment.ip_segment_maximal"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_applications_ip_application_segment.ip_segment_maximal", "application_id", "12345678-1234-1234-1234-123456789012"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_applications_ip_application_segment.ip_segment_maximal", "application_object_id", "12345678-1234-1234-1234-123456789012"),
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_applications_ip_application_segment.ip_segment_maximal", "destination_host", "*.example.com"),
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_applications_ip_application_segment.ip_segment_maximal", "destination_type", "dnsSuffix"),
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_applications_ip_application_segment.ip_segment_maximal", "protocol", "tcp"),
