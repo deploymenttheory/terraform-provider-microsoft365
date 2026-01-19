@@ -11,7 +11,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
-	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
 // Create handles the Create operation for Named Location resources.
@@ -39,8 +38,6 @@ func (r *NamedLocationResource) Create(ctx context.Context, req resource.CreateR
 		)
 		return
 	}
-
-	tflog.Debug(ctx, "Making POST request to create named location")
 
 	createdResource, err := r.client.
 		Identity().
@@ -242,170 +239,67 @@ func (r *NamedLocationResource) Update(ctx context.Context, req resource.UpdateR
 // This approach ensures reliable deletion across all Named Location types while handling
 // the API's security constraints and eventual consistency behavior.
 func (r *NamedLocationResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var object NamedLocationResourceModel
+	var state NamedLocationResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting deletion of resource: %s", ResourceName))
 
-	resp.Diagnostics.Append(req.State.Get(ctx, &object)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Delete, DeleteTimeout*time.Second, &resp.Diagnostics)
+	ctx, cancel := crud.HandleTimeout(ctx, state.Timeouts.Delete, DeleteTimeout*time.Second, &resp.Diagnostics)
 	if cancel == nil {
 		return
 	}
 	defer cancel()
 
-	// Step 1: Get current resource to check if it's a trusted IP location
-	tflog.Debug(ctx, "Making initial GET request to check resource before deletion")
-
-	currentResource, err := r.client.
-		Identity().
-		ConditionalAccess().
-		NamedLocations().
-		ByNamedLocationId(object.ID.ValueString()).
-		Get(ctx, nil)
-
-	if err != nil {
-		errorInfo := errors.GraphError(ctx, err)
-		if errorInfo.StatusCode == 404 {
-			tflog.Debug(ctx, "Resource not found during pre-deletion check, considering it already deleted")
-			resp.State.RemoveResource(ctx)
-			return
-		}
-		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationDelete, r.ReadPermissions)
+	if !r.handleTrustedIPLocation(ctx, state.ID.ValueString(), resp) {
 		return
 	}
 
-	// Check if this is a trusted IP named location
-	var needsPatch bool
-	if ipLocation, ok := currentResource.(*graphmodels.IpNamedLocation); ok {
-		isTrusted := ipLocation.GetIsTrusted()
-		needsPatch = isTrusted != nil && *isTrusted
+	if !r.waitForConditionalAccessPolicyReferences(ctx, state.ID.ValueString(), resp) {
+		return
 	}
 
-	// Step 2: If it's a trusted IP location, patch it to set isTrusted=false
-	if needsPatch {
-		tflog.Debug(ctx, "Resource is a trusted IP location, patching to set isTrusted=false")
-
-		patchBody, err := constructResourceForDeletion(ctx)
-		if err != nil {
-			resp.Diagnostics.AddError(
-				"Error constructing deletion patch body",
-				fmt.Sprintf("Could not construct deletion patch body: %s: %s", ResourceName, err.Error()),
-			)
-			return
-		}
-
-		tflog.Debug(ctx, "Making PATCH request to set isTrusted=false")
-
-		_, err = r.client.
-			Identity().
-			ConditionalAccess().
-			NamedLocations().
-			ByNamedLocationId(object.ID.ValueString()).
-			Patch(ctx, patchBody, nil)
-
-		if err != nil {
-			errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationDelete, r.WritePermissions)
-			return
-		}
-
-		tflog.Debug(ctx, "Successfully patched isTrusted=false")
-
-		// Step 3: Poll until isTrusted=false is confirmed (eventual consistency)
-		maxRetries := 10
-		retryDelay := 2 * time.Second
-
-		for i := range maxRetries {
-			tflog.Debug(ctx, fmt.Sprintf("Verification attempt %d/%d: checking if isTrusted=false", i+1, maxRetries))
-
-			time.Sleep(retryDelay)
-
-			verifyResource, err := r.client.
-				Identity().
-				ConditionalAccess().
-				NamedLocations().
-				ByNamedLocationId(object.ID.ValueString()).
-				Get(ctx, nil)
-
-			if err != nil {
-				errorInfo := errors.GraphError(ctx, err)
-				if errorInfo.StatusCode == 404 {
-					tflog.Debug(ctx, "Resource not found during verification, considering it already deleted")
-					resp.State.RemoveResource(ctx)
-					return
-				}
-				errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationDelete, r.ReadPermissions)
-				return
-			}
-
-			if ipLocation, ok := verifyResource.(*graphmodels.IpNamedLocation); ok {
-				verifyIsTrusted := ipLocation.GetIsTrusted()
-				if verifyIsTrusted == nil || !*verifyIsTrusted {
-					tflog.Debug(ctx, "Confirmed isTrusted=false, proceeding to delete")
-					break
-				}
-			}
-
-			if i == maxRetries-1 {
-				resp.Diagnostics.AddError(
-					"Timeout waiting for isTrusted=false",
-					fmt.Sprintf("Timed out waiting for isTrusted to become false after %d attempts", maxRetries),
-				)
-				return
-			}
-
-			tflog.Debug(ctx, fmt.Sprintf("isTrusted still true, retrying in %v", retryDelay))
-		}
-
-		// Wait for eventual consistency of patch operation to complete
-		// before attempting deletion
-		consistencyDelay := 10 * time.Second
-		tflog.Debug(ctx, fmt.Sprintf("Waiting %v for eventual consistency before deletion", consistencyDelay))
-		time.Sleep(consistencyDelay)
-	}
-
-	// Step 4: Execute DELETE operation with retry logic
-	// Named locations may still be referenced by conditional access policies during destroy
-	// They cannot be deleted until the conditional access policy deletions have propagated.
-	tflog.Debug(ctx, "Waiting 10 seconds for conditional access policy deletions to propagate")
-	time.Sleep(10 * time.Second)
-
-	tflog.Debug(ctx, fmt.Sprintf("Making DELETE request for %s with ID: %s", ResourceName, object.ID.ValueString()))
+	tflog.Debug(ctx, fmt.Sprintf("Making DELETE request for %s with ID: %s", ResourceName, state.ID.ValueString()))
 
 	deleteOptions := crud.DefaultDeleteWithRetryOptions()
 	deleteOptions.ResourceTypeName = ResourceName
-	deleteOptions.ResourceID = object.ID.ValueString()
+	deleteOptions.ResourceID = state.ID.ValueString()
 	deleteOptions.RetryInterval = 10 * time.Second
-	deleteOptions.MaxRetries = 6 // 6 * 10s = 60s max retry duration
+	deleteOptions.MaxRetries = 6
 
-	err = crud.DeleteWithRetry(ctx, func(ctx context.Context) error {
-		return r.client.
+	err := crud.DeleteWithRetry(ctx, func(ctx context.Context) error {
+		tflog.Debug(ctx, fmt.Sprintf("Executing DELETE call for named location %s", state.ID.ValueString()))
+		deleteErr := r.client.
 			Identity().
 			ConditionalAccess().
 			NamedLocations().
-			ByNamedLocationId(object.ID.ValueString()).
+			ByNamedLocationId(state.ID.ValueString()).
 			Delete(ctx, nil)
+
+		if deleteErr != nil {
+			errorInfo := errors.GraphError(ctx, deleteErr)
+			tflog.Debug(ctx, fmt.Sprintf("DELETE call returned error: status=%d, category=%s, message=%s",
+				errorInfo.StatusCode, errorInfo.Category, errorInfo.ErrorMessage))
+		} else {
+			tflog.Debug(ctx, fmt.Sprintf("DELETE call succeeded for named location %s", state.ID.ValueString()))
+		}
+		return deleteErr
 	}, deleteOptions)
 
 	if err != nil {
 		errorInfo := errors.GraphError(ctx, err)
-		if errorInfo.StatusCode == 404 {
-			tflog.Debug(ctx, "Resource not found during deletion, considering it already deleted")
-			resp.State.RemoveResource(ctx)
-			return
-		}
+		tflog.Error(ctx, fmt.Sprintf("DeleteWithRetry failed: status=%d, category=%s, code=%s, message=%s",
+			errorInfo.StatusCode, errorInfo.Category, errorInfo.ErrorCode, errorInfo.ErrorMessage))
 		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationDelete, r.WritePermissions)
 		return
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Successfully deleted %s with ID: %s", ResourceName, object.ID.ValueString()))
+	tflog.Debug(ctx, fmt.Sprintf("Successfully deleted %s with ID: %s", ResourceName, state.ID.ValueString()))
 
-	// Step 5: Remove from Terraform state
 	tflog.Debug(ctx, fmt.Sprintf("Removing %s from Terraform state", ResourceName))
-
 	resp.State.RemoveResource(ctx)
 
 	tflog.Debug(ctx, fmt.Sprintf("Finished Delete Method: %s", ResourceName))
