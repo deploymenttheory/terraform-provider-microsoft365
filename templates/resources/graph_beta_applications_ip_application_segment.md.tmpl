@@ -30,10 +30,39 @@ The following API permissions are required in order to use this resource.
 | Version | Status | Notes |
 |---------|--------|-------|
 | v0.33.0 | Experimental | Initial release |
+| v0.42.0 | Experimental | Renamed `application_id` to `application_object_id` and added more examples|
 
 ## Example Usage
 
-{{ tffile "examples/resources/microsoft365_graph_beta_applications_ip_application_segment/resource.tf" }}
+### Basic Configuration - IP Address
+
+This example demonstrates a minimal configuration targeting a single IP address.
+
+{{ tffile "examples/resources/microsoft365_graph_beta_applications_ip_application_segment/resource_minimal_ip_address.tf" }}
+
+### IP Range (CIDR Notation)
+
+This example shows how to configure an application segment for an entire IP subnet using CIDR notation.
+
+{{ tffile "examples/resources/microsoft365_graph_beta_applications_ip_application_segment/resource_ip_range_cidr.tf" }}
+
+### Fully Qualified Domain Name (FQDN)
+
+This example demonstrates configuration using a specific hostname with multiple ports.
+
+{{ tffile "examples/resources/microsoft365_graph_beta_applications_ip_application_segment/resource_fqdn.tf" }}
+
+### DNS Suffix (Wildcard Domain)
+
+This example shows how to use a wildcard domain to match all subdomains.
+
+{{ tffile "examples/resources/microsoft365_graph_beta_applications_ip_application_segment/resource_dns_suffix_wildcard.tf" }}
+
+### UDP Protocol
+
+This example demonstrates configuration using UDP protocol, useful for applications like VoIP or video conferencing.
+
+{{ tffile "examples/resources/microsoft365_graph_beta_applications_ip_application_segment/resource_udp_protocol.tf" }}
 
 {{ .SchemaMarkdown | trimspace }}
 
