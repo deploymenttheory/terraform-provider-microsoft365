@@ -3,6 +3,7 @@ package graphBetaNamedLocation
 import (
 	"context"
 	"fmt"
+	"slices"
 	"time"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
@@ -39,8 +40,6 @@ func (r *NamedLocationResource) Create(ctx context.Context, req resource.CreateR
 		)
 		return
 	}
-
-	tflog.Debug(ctx, "Making POST request to create named location")
 
 	createdResource, err := r.client.
 		Identity().
@@ -268,12 +267,6 @@ func (r *NamedLocationResource) Delete(ctx context.Context, req resource.DeleteR
 		Get(ctx, nil)
 
 	if err != nil {
-		errorInfo := errors.GraphError(ctx, err)
-		if errorInfo.StatusCode == 404 {
-			tflog.Debug(ctx, "Resource not found during pre-deletion check, considering it already deleted")
-			resp.State.RemoveResource(ctx)
-			return
-		}
 		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationDelete, r.ReadPermissions)
 		return
 	}
@@ -321,7 +314,15 @@ func (r *NamedLocationResource) Delete(ctx context.Context, req resource.DeleteR
 		for i := range maxRetries {
 			tflog.Debug(ctx, fmt.Sprintf("Verification attempt %d/%d: checking if isTrusted=false", i+1, maxRetries))
 
-			time.Sleep(retryDelay)
+			select {
+			case <-time.After(retryDelay):
+			case <-ctx.Done():
+				resp.Diagnostics.AddError(
+					"Context cancelled during isTrusted verification",
+					fmt.Sprintf("Context was cancelled while waiting for isTrusted=false: %s", ctx.Err()),
+				)
+				return
+			}
 
 			verifyResource, err := r.client.
 				Identity().
@@ -331,12 +332,6 @@ func (r *NamedLocationResource) Delete(ctx context.Context, req resource.DeleteR
 				Get(ctx, nil)
 
 			if err != nil {
-				errorInfo := errors.GraphError(ctx, err)
-				if errorInfo.StatusCode == 404 {
-					tflog.Debug(ctx, "Resource not found during verification, considering it already deleted")
-					resp.State.RemoveResource(ctx)
-					return
-				}
 				errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationDelete, r.ReadPermissions)
 				return
 			}
@@ -364,16 +359,119 @@ func (r *NamedLocationResource) Delete(ctx context.Context, req resource.DeleteR
 		// before attempting deletion
 		consistencyDelay := 10 * time.Second
 		tflog.Debug(ctx, fmt.Sprintf("Waiting %v for eventual consistency before deletion", consistencyDelay))
-		time.Sleep(consistencyDelay)
+
+		select {
+		case <-time.After(consistencyDelay):
+		case <-ctx.Done():
+			resp.Diagnostics.AddError(
+				"Context cancelled during eventual consistency wait",
+				fmt.Sprintf("Context was cancelled while waiting for eventual consistency: %s", ctx.Err()),
+			)
+			return
+		}
 	}
 
-	// Step 4: Execute DELETE operation with retry logic
-	// Named locations may still be referenced by conditional access policies during destroy
-	// They cannot be deleted until the conditional access policy deletions have propagated.
-	tflog.Debug(ctx, "Waiting 10 seconds for conditional access policy deletions to propagate")
-	time.Sleep(10 * time.Second)
+	// Step 4: Wait for conditional access policies to stop referencing this named location
+	// Named locations cannot be deleted while still referenced by CA policies
+	maxChecks := 12
+	checkInterval := 5 * time.Second
+	namedLocationID := object.ID.ValueString()
+
+	for i := range maxChecks {
+		tflog.Debug(ctx, fmt.Sprintf("Check %d/%d: Verifying no conditional access policies reference named location %s", i+1, maxChecks, namedLocationID))
+
+		// Query all conditional access policies
+		policies, err := r.client.
+			Identity().
+			ConditionalAccess().
+			Policies().
+			Get(ctx, nil)
+
+		if err != nil {
+			// If we can't check, log but don't fail - attempt deletion anyway
+			tflog.Warn(ctx, fmt.Sprintf("Unable to verify CA policy references (check %d/%d), proceeding with deletion", i+1, maxChecks))
+			break
+		}
+
+		// Check if any policy references this named location
+		referencingPolicies := []string{}
+		if policies != nil && policies.GetValue() != nil {
+			for _, policy := range policies.GetValue() {
+				if policy.GetConditions() != nil && policy.GetConditions().GetLocations() != nil {
+					locations := policy.GetConditions().GetLocations()
+
+					// Check includeLocations
+					if includeLocations := locations.GetIncludeLocations(); includeLocations != nil {
+						if slices.Contains(includeLocations, namedLocationID) {
+							policyName := "unknown"
+							if policy.GetDisplayName() != nil {
+								policyName = *policy.GetDisplayName()
+							}
+							referencingPolicies = append(referencingPolicies, policyName)
+						}
+					}
+
+					// Check excludeLocations
+					if excludeLocations := locations.GetExcludeLocations(); excludeLocations != nil {
+						if slices.Contains(excludeLocations, namedLocationID) {
+							policyName := "unknown"
+							if policy.GetDisplayName() != nil {
+								policyName = *policy.GetDisplayName()
+							}
+							referencingPolicies = append(referencingPolicies, policyName)
+						}
+					}
+				}
+			}
+		}
+
+		if len(referencingPolicies) == 0 {
+			tflog.Debug(ctx, fmt.Sprintf("No conditional access policies reference named location %s, waiting before deletion", namedLocationID))
+
+			// Brief delay after list check passes to prevent executing DELETE too quickly
+			// Graph API needs time to settle after CA policy deletions before accepting named location deletion
+			validationSyncDelay := 2 * time.Second
+			tflog.Debug(ctx, fmt.Sprintf("Waiting %v before DELETE to allow Graph API to settle", validationSyncDelay))
+
+			select {
+			case <-time.After(validationSyncDelay):
+				tflog.Debug(ctx, "Validation sync delay complete, proceeding with deletion")
+			case <-ctx.Done():
+				resp.Diagnostics.AddError(
+					"Context cancelled during validation sync wait",
+					fmt.Sprintf("Context was cancelled while waiting for validation sync: %s", ctx.Err()),
+				)
+				return
+			}
+			break
+		}
+
+		if i == maxChecks-1 {
+			resp.Diagnostics.AddError(
+				"Named location still referenced by conditional access policies",
+				fmt.Sprintf("After %d checks over %v, the following conditional access policies still reference this named location: %v. "+
+					"This may indicate the policies were not properly deleted or eventual consistency is taking longer than expected.",
+					maxChecks, time.Duration(maxChecks)*checkInterval, referencingPolicies),
+			)
+			return
+		}
+
+		tflog.Debug(ctx, fmt.Sprintf("Named location still referenced by %d CA policies: %v. Waiting %v before retry (check %d/%d)",
+			len(referencingPolicies), referencingPolicies, checkInterval, i+1, maxChecks))
+
+		select {
+		case <-time.After(checkInterval):
+		case <-ctx.Done():
+			resp.Diagnostics.AddError(
+				"Context cancelled during named location deletion wait",
+				fmt.Sprintf("Context was cancelled while waiting for conditional access policies to stop referencing named location: %s", ctx.Err()),
+			)
+			return
+		}
+	}
 
 	tflog.Debug(ctx, fmt.Sprintf("Making DELETE request for %s with ID: %s", ResourceName, object.ID.ValueString()))
+	tflog.Debug(ctx, fmt.Sprintf("DELETE URL will be: /identity/conditionalAccess/namedLocations/%s", object.ID.ValueString()))
 
 	deleteOptions := crud.DefaultDeleteWithRetryOptions()
 	deleteOptions.ResourceTypeName = ResourceName
@@ -381,22 +479,31 @@ func (r *NamedLocationResource) Delete(ctx context.Context, req resource.DeleteR
 	deleteOptions.RetryInterval = 10 * time.Second
 	deleteOptions.MaxRetries = 6 // 6 * 10s = 60s max retry duration
 
+	tflog.Debug(ctx, fmt.Sprintf("Starting DeleteWithRetry: maxRetries=%d, interval=%v", deleteOptions.MaxRetries, deleteOptions.RetryInterval))
+
 	err = crud.DeleteWithRetry(ctx, func(ctx context.Context) error {
-		return r.client.
+		tflog.Debug(ctx, fmt.Sprintf("Executing DELETE call for named location %s", object.ID.ValueString()))
+		deleteErr := r.client.
 			Identity().
 			ConditionalAccess().
 			NamedLocations().
 			ByNamedLocationId(object.ID.ValueString()).
 			Delete(ctx, nil)
+
+		if deleteErr != nil {
+			errorInfo := errors.GraphError(ctx, deleteErr)
+			tflog.Debug(ctx, fmt.Sprintf("DELETE call returned error: status=%d, category=%s, message=%s",
+				errorInfo.StatusCode, errorInfo.Category, errorInfo.ErrorMessage))
+		} else {
+			tflog.Debug(ctx, fmt.Sprintf("DELETE call succeeded for named location %s", object.ID.ValueString()))
+		}
+		return deleteErr
 	}, deleteOptions)
 
 	if err != nil {
 		errorInfo := errors.GraphError(ctx, err)
-		if errorInfo.StatusCode == 404 {
-			tflog.Debug(ctx, "Resource not found during deletion, considering it already deleted")
-			resp.State.RemoveResource(ctx)
-			return
-		}
+		tflog.Error(ctx, fmt.Sprintf("DeleteWithRetry failed: status=%d, category=%s, code=%s, message=%s",
+			errorInfo.StatusCode, errorInfo.Category, errorInfo.ErrorCode, errorInfo.ErrorMessage))
 		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationDelete, r.WritePermissions)
 		return
 	}
