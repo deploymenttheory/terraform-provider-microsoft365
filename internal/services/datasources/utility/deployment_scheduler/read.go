@@ -52,7 +52,7 @@ func (d *deploymentSchedulerDataSource) Read(ctx context.Context, req datasource
 	}
 
 	// Evaluate all conditions
-	timeConditionMet, timeConditionExists, delayStartTimeBy, hoursElapsed, timeConditionDetail, err := evaluateTimeCondition(ctx, &state, currentTime, deploymentStartTime)
+	timeConditionMet, timeConditionExists, delayStartTimeBy, hoursElapsed, _, err := evaluateTimeCondition(ctx, &state, currentTime, deploymentStartTime)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Configuration Error",
@@ -61,7 +61,7 @@ func (d *deploymentSchedulerDataSource) Read(ctx context.Context, req datasource
 		return
 	}
 
-	inclusionWindowMet, inclusionMessage, err := evaluateInclusionWindows(ctx, currentTime, state.InclusionTimeWindows)
+	inclusionWindowMet, _, err := evaluateInclusionWindows(ctx, currentTime, state.InclusionTimeWindows)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Configuration Error",
@@ -70,7 +70,7 @@ func (d *deploymentSchedulerDataSource) Read(ctx context.Context, req datasource
 		return
 	}
 
-	exclusionWindowActive, exclusionMessage, err := evaluateExclusionWindows(ctx, currentTime, state.ExclusionTimeWindows)
+	exclusionWindowActive, _, err := evaluateExclusionWindows(ctx, currentTime, state.ExclusionTimeWindows)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Configuration Error",
@@ -79,7 +79,7 @@ func (d *deploymentSchedulerDataSource) Read(ctx context.Context, req datasource
 		return
 	}
 
-	dependencyGateMet, dependencyMessage, err := evaluateDependencyGate(ctx, &state, currentTime, deploymentStartTime)
+	dependencyGateMet, _, err := evaluateDependencyGate(ctx, &state, currentTime, deploymentStartTime)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Configuration Error",
@@ -91,22 +91,8 @@ func (d *deploymentSchedulerDataSource) Read(ctx context.Context, req datasource
 	// Determine overall condition status
 	allConditionsMet := timeConditionMet && inclusionWindowMet && !exclusionWindowActive && dependencyGateMet
 
-	msgBuilder := newStatusMessageBuilder(allConditionsMet)
-	if timeConditionExists {
-		msgBuilder.addTimeCondition(timeConditionMet, timeConditionDetail)
-	}
-	if inclusionMessage != "" {
-		msgBuilder.addInclusionWindow(inclusionWindowMet, inclusionMessage)
-	}
-	if exclusionMessage != "" {
-		msgBuilder.addExclusionWindow(exclusionWindowActive, exclusionMessage)
-	}
-	if dependencyMessage != "" {
-		msgBuilder.setDependency(dependencyGateMet, dependencyMessage)
-	}
-
+	// Update state
 	state.ConditionMet = types.BoolValue(allConditionsMet)
-	state.StatusMessage = types.StringValue(msgBuilder.build())
 	setReleasedScopeIDs(&state, allConditionsMet)
 	state.ConditionsDetail = buildConditionsDetail(
 		ctx, resp, timeConditionExists, delayStartTimeBy,

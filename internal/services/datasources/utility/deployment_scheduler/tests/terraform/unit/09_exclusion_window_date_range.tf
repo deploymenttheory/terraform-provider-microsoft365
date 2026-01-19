@@ -28,7 +28,3 @@ output "released_scope_id" {
   description = "Should be the GUID - not blocked by exclusion"
 }
 
-output "status_message" {
-  value       = data.microsoft365_utility_deployment_scheduler.test.status_message
-  description = "Should show gate open, no exclusion active"
-}

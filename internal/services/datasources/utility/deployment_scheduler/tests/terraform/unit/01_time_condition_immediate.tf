@@ -20,7 +20,3 @@ output "condition_met" {
   description = "Should be true - gate opens immediately (delay = 0, deployment_start_time in past)"
 }
 
-output "status_message" {
-  value       = data.microsoft365_utility_deployment_scheduler.test.status_message
-  description = "Human-readable explanation of gate status"
-}

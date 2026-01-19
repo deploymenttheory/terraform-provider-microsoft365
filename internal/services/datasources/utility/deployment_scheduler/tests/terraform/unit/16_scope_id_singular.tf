@@ -24,7 +24,3 @@ output "released_scope_ids" {
   description = "Should be null when using scope_id (singular)"
 }
 
-output "status_message" {
-  value       = data.microsoft365_utility_deployment_scheduler.test.status_message
-  description = "Should show gate open"
-}

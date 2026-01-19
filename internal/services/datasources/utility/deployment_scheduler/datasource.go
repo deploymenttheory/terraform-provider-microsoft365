@@ -352,13 +352,6 @@ func (d *deploymentSchedulerDataSource) Schema(ctx context.Context, _ datasource
 				Computed:            true,
 				MarkdownDescription: "Boolean indicating whether all required conditions are satisfied. True means the gate is open and scope IDs are released.",
 			},
-			"status_message": schema.StringAttribute{
-				Computed: true,
-				MarkdownDescription: "Human-readable status message describing the current state of all conditions. " +
-					"Visible in Terraform plan output. Examples:\n" +
-					"- `Conditions met: Time condition met (50h/48h required)`\n" +
-					"- `Waiting: Time condition not met (22h/48h required)`",
-			},
 			"conditions_detail": schema.SingleNestedAttribute{
 				Computed:            true,
 				MarkdownDescription: "Detailed breakdown of each condition's evaluation for debugging and monitoring.",

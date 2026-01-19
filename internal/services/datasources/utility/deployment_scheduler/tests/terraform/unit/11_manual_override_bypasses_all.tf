@@ -28,7 +28,3 @@ output "released_scope_id" {
   description = "Should be the GUID - all conditions bypassed"
 }
 
-output "status_message" {
-  value       = data.microsoft365_utility_deployment_scheduler.test.status_message
-  description = "Should show manual override enabled"
-}

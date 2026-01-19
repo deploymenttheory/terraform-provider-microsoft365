@@ -34,7 +34,3 @@ output "released_scope_id" {
   description = "GUID if within any window, null otherwise"
 }
 
-output "status_message" {
-  value       = data.microsoft365_utility_deployment_scheduler.test.status_message
-  description = "Shows which windows match or don't match"
-}

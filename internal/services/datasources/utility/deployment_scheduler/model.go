@@ -20,7 +20,6 @@ type DeploymentSchedulerDataSourceModel struct {
 	ReleasedScopeId      types.String   `tfsdk:"released_scope_id"`
 	ReleasedScopeIds     types.List     `tfsdk:"released_scope_ids"`
 	ConditionMet         types.Bool     `tfsdk:"condition_met"`
-	StatusMessage        types.String   `tfsdk:"status_message"`
 	ConditionsDetail     types.Object   `tfsdk:"conditions_detail"`
 	Timeouts             timeouts.Value `tfsdk:"timeouts"`
 }

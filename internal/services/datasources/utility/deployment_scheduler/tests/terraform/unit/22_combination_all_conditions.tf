@@ -43,7 +43,3 @@ output "released_scope_id" {
   description = "GUID when all conditions pass, null otherwise"
 }
 
-output "status_message" {
-  value       = data.microsoft365_utility_deployment_scheduler.test.status_message
-  description = "Shows status of all four condition types"
-}

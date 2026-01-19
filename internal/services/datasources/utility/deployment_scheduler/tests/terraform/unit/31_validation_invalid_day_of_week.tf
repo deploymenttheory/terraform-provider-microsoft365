@@ -25,6 +25,3 @@ output "released_scope_id" {
   value = data.microsoft365_utility_deployment_scheduler.test.released_scope_id
 }
 
-output "status_message" {
-  value = data.microsoft365_utility_deployment_scheduler.test.status_message
-}

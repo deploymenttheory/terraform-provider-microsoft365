@@ -27,7 +27,3 @@ output "released_scope_id" {
   description = "GUID on weekdays, null on weekends"
 }
 
-output "status_message" {
-  value       = data.microsoft365_utility_deployment_scheduler.test.status_message
-  description = "Shows gate status based on current day of week"
-}

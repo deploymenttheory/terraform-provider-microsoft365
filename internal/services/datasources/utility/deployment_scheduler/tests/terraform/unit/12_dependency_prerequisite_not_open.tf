@@ -24,7 +24,3 @@ output "released_scope_id" {
   description = "Should be null - dependency not satisfied"
 }
 
-output "status_message" {
-  value       = data.microsoft365_utility_deployment_scheduler.test.status_message
-  description = "Should show prerequisite hasn't opened yet"
-}

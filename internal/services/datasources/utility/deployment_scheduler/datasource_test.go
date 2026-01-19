@@ -32,7 +32,6 @@ func TestUnitDeploymentSchedulerDataSource_TimeCondition_ImmediateRelease(t *tes
 				Check: resource.ComposeTestCheckFunc(
 					check.That("data."+dataSourceType+".test").Key("condition_met").HasValue("true"),
 					check.That("data."+dataSourceType+".test").Key("released_scope_id").HasValue("12345678-1234-1234-1234-123456789abc"),
-					check.That("data."+dataSourceType+".test").Key("status_message").Exists(),
 					check.That("data."+dataSourceType+".test").Key("id").IsSet(),
 					resource.TestCheckOutput("condition_met", "true"),
 					resource.TestCheckOutput("released_scope_id", "12345678-1234-1234-1234-123456789abc"),
@@ -57,7 +56,6 @@ func TestUnitDeploymentSchedulerDataSource_TimeCondition_NotMetYet(t *testing.T)
 					// Datasource attributes
 					check.That("data."+dataSourceType+".test").Key("condition_met").HasValue("false"),
 					check.That("data."+dataSourceType+".test").Key("released_scope_id").DoesNotExist(),
-					check.That("data."+dataSourceType+".test").Key("status_message").MatchesRegex(regexp.MustCompile("(?i)\\[GATE CLOSED\\].*FAIL.*Time.*Delay not elapsed")),
 
 					// Output assertions - condition_met is the only output when gate is closed
 					resource.TestCheckOutput("condition_met", "false"),
@@ -99,7 +97,6 @@ func TestUnitDeploymentSchedulerDataSource_TimeCondition_AbsoluteEarliest(t *tes
 				Check: resource.ComposeTestCheckFunc(
 					check.That("data."+dataSourceType+".test").Key("condition_met").HasValue("true"),
 					check.That("data."+dataSourceType+".test").Key("released_scope_id").HasValue("12345678-1234-1234-1234-123456789abc"),
-					check.That("data."+dataSourceType+".test").Key("status_message").MatchesRegex(regexp.MustCompile(`(?i)\[GATE OPEN\].*Time`)),
 
 					resource.TestCheckOutput("condition_met", "true"),
 					resource.TestCheckOutput("released_scope_id", "12345678-1234-1234-1234-123456789abc"),
@@ -123,7 +120,6 @@ func TestUnitDeploymentSchedulerDataSource_TimeCondition_AbsoluteLatest(t *testi
 				Check: resource.ComposeTestCheckFunc(
 					check.That("data."+dataSourceType+".test").Key("condition_met").HasValue("true"),
 					check.That("data."+dataSourceType+".test").Key("released_scope_id").HasValue("12345678-1234-1234-1234-123456789abc"),
-					check.That("data."+dataSourceType+".test").Key("status_message").MatchesRegex(regexp.MustCompile(`(?i)\[GATE OPEN\].*Time`)),
 
 					resource.TestCheckOutput("condition_met", "true"),
 					resource.TestCheckOutput("released_scope_id", "12345678-1234-1234-1234-123456789abc"),
@@ -147,7 +143,6 @@ func TestUnitDeploymentSchedulerDataSource_TimeCondition_MaxDuration(t *testing.
 				Check: resource.ComposeTestCheckFunc(
 					check.That("data."+dataSourceType+".test").Key("condition_met").HasValue("false"),
 					check.That("data."+dataSourceType+".test").Key("released_scope_id").DoesNotExist(),
-					check.That("data."+dataSourceType+".test").Key("status_message").MatchesRegex(regexp.MustCompile(`(?i)\[GATE CLOSED\].*FAIL.*Time`)),
 
 					resource.TestCheckOutput("condition_met", "false"),
 					// released_scope_id output is null/absent when gate closed
@@ -171,7 +166,6 @@ func TestUnitDeploymentSchedulerDataSource_TimeCondition_CombinedAdvanced(t *tes
 				Check: resource.ComposeTestCheckFunc(
 					check.That("data."+dataSourceType+".test").Key("condition_met").HasValue("true"),
 					check.That("data."+dataSourceType+".test").Key("released_scope_id").HasValue("12345678-1234-1234-1234-123456789abc"),
-					check.That("data."+dataSourceType+".test").Key("status_message").MatchesRegex(regexp.MustCompile(`(?i)\[GATE OPEN\].*Time`)),
 
 					resource.TestCheckOutput("condition_met", "true"),
 					resource.TestCheckOutput("released_scope_id", "12345678-1234-1234-1234-123456789abc"),
@@ -198,7 +192,6 @@ func TestUnitDeploymentSchedulerDataSource_InclusionWindow_WithinDayOfWeek(t *te
 				Config: loadUnitTestTerraform("04_inclusion_window_day_of_week.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					check.That("data."+dataSourceType+".test").Key("condition_met").Exists(),
-					check.That("data."+dataSourceType+".test").Key("status_message").MatchesRegex(regexp.MustCompile(`(?i)\[(GATE OPEN|GATE CLOSED)\].*(PASS|FAIL).*Inclusion Window`)),
 
 					// Output values vary by day - verified via datasource key assertions above
 				),
@@ -221,7 +214,6 @@ func TestUnitDeploymentSchedulerDataSource_InclusionWindow_WithinTimeOfDay(t *te
 				Check: resource.ComposeTestCheckFunc(
 					check.That("data."+dataSourceType+".test").Key("condition_met").HasValue("true"),
 					check.That("data."+dataSourceType+".test").Key("released_scope_id").HasValue("12345678-1234-1234-1234-123456789abc"),
-					check.That("data."+dataSourceType+".test").Key("status_message").MatchesRegex(regexp.MustCompile(`(?i)\[GATE OPEN\].*Inclusion Window`)),
 
 					resource.TestCheckOutput("condition_met", "true"),
 					resource.TestCheckOutput("released_scope_id", "12345678-1234-1234-1234-123456789abc"),
@@ -245,7 +237,6 @@ func TestUnitDeploymentSchedulerDataSource_InclusionWindow_WithinDateRange(t *te
 				Check: resource.ComposeTestCheckFunc(
 					check.That("data."+dataSourceType+".test").Key("condition_met").HasValue("true"),
 					check.That("data."+dataSourceType+".test").Key("released_scope_id").HasValue("12345678-1234-1234-1234-123456789abc"),
-					check.That("data."+dataSourceType+".test").Key("status_message").MatchesRegex(regexp.MustCompile(`(?i)\[GATE OPEN\].*Inclusion Window`)),
 
 					resource.TestCheckOutput("condition_met", "true"),
 					resource.TestCheckOutput("released_scope_id", "12345678-1234-1234-1234-123456789abc"),
@@ -268,7 +259,6 @@ func TestUnitDeploymentSchedulerDataSource_InclusionWindow_MultipleWindows(t *te
 				Config: loadUnitTestTerraform("07_inclusion_window_multiple.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					check.That("data."+dataSourceType+".test").Key("condition_met").Exists(),
-					check.That("data."+dataSourceType+".test").Key("status_message").MatchesRegex(regexp.MustCompile(`(?i)\[(GATE OPEN|GATE CLOSED)\].*(PASS|FAIL).*Inclusion Window`)),
 
 					// Output values vary by day and time - verified via datasource key assertions above
 				),
@@ -294,7 +284,6 @@ func TestUnitDeploymentSchedulerDataSource_ExclusionWindow_BlockedByDayOfWeek(t 
 				Config: loadUnitTestTerraform("08_exclusion_window_day_of_week.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					check.That("data."+dataSourceType+".test").Key("condition_met").Exists(),
-					check.That("data."+dataSourceType+".test").Key("status_message").MatchesRegex(regexp.MustCompile(`(?i)\[(GATE OPEN|GATE CLOSED)\].*(PASS|FAIL).*Exclusion Window`)),
 
 					// Output values vary by day - verified via datasource key assertions above
 				),
@@ -317,7 +306,6 @@ func TestUnitDeploymentSchedulerDataSource_ExclusionWindow_BlockedByDateRange(t 
 				Check: resource.ComposeTestCheckFunc(
 					check.That("data."+dataSourceType+".test").Key("condition_met").HasValue("true"),
 					check.That("data."+dataSourceType+".test").Key("released_scope_id").HasValue("12345678-1234-1234-1234-123456789abc"),
-					check.That("data."+dataSourceType+".test").Key("status_message").MatchesRegex(regexp.MustCompile(`(?i)\[GATE OPEN\].*PASS.*Exclusion Window`)),
 
 					resource.TestCheckOutput("condition_met", "true"),
 					resource.TestCheckOutput("released_scope_id", "12345678-1234-1234-1234-123456789abc"),
@@ -345,7 +333,6 @@ func TestUnitDeploymentSchedulerDataSource_ManualOverride_Enabled(t *testing.T) 
 				Check: resource.ComposeTestCheckFunc(
 					check.That("data."+dataSourceType+".test").Key("condition_met").HasValue("true"),
 					check.That("data."+dataSourceType+".test").Key("released_scope_id").HasValue("12345678-1234-1234-1234-123456789abc"),
-					check.That("data."+dataSourceType+".test").Key("status_message").MatchesRegex(regexp.MustCompile("(?i)Manual override enabled")),
 
 					resource.TestCheckOutput("condition_met", "true"),
 					resource.TestCheckOutput("released_scope_id", "12345678-1234-1234-1234-123456789abc"),
@@ -369,7 +356,6 @@ func TestUnitDeploymentSchedulerDataSource_ManualOverride_BypassesAllConditions(
 				Check: resource.ComposeTestCheckFunc(
 					check.That("data."+dataSourceType+".test").Key("condition_met").HasValue("true"),
 					check.That("data."+dataSourceType+".test").Key("released_scope_id").HasValue("12345678-1234-1234-1234-123456789abc"),
-					check.That("data."+dataSourceType+".test").Key("status_message").MatchesRegex(regexp.MustCompile("(?i)Manual override enabled")),
 
 					resource.TestCheckOutput("condition_met", "true"),
 					resource.TestCheckOutput("released_scope_id", "12345678-1234-1234-1234-123456789abc"),
@@ -397,7 +383,6 @@ func TestUnitDeploymentSchedulerDataSource_Dependency_NotMetPrerequisiteNotOpen(
 				Check: resource.ComposeTestCheckFunc(
 					check.That("data."+dataSourceType+".test").Key("condition_met").HasValue("false"),
 					check.That("data."+dataSourceType+".test").Key("released_scope_id").DoesNotExist(),
-					check.That("data."+dataSourceType+".test").Key("status_message").MatchesRegex(regexp.MustCompile("(?i)\\[GATE CLOSED\\].*FAIL.*Time")),
 
 					resource.TestCheckOutput("condition_met", "false"),
 					// released_scope_id output is null/absent when gate closed
@@ -421,7 +406,6 @@ func TestUnitDeploymentSchedulerDataSource_Dependency_NotMetInsufficientTime(t *
 				Check: resource.ComposeTestCheckFunc(
 					check.That("data."+dataSourceType+".test").Key("condition_met").HasValue("false"),
 					check.That("data."+dataSourceType+".test").Key("released_scope_id").DoesNotExist(),
-					check.That("data."+dataSourceType+".test").Key("status_message").MatchesRegex(regexp.MustCompile("(?i)\\[GATE CLOSED\\].*FAIL.*Time")),
 
 					resource.TestCheckOutput("condition_met", "false"),
 					// released_scope_id output is null/absent when gate closed
@@ -445,7 +429,6 @@ func TestUnitDeploymentSchedulerDataSource_Dependency_Met(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					check.That("data."+dataSourceType+".test").Key("condition_met").HasValue("true"),
 					check.That("data."+dataSourceType+".test").Key("released_scope_id").HasValue("12345678-1234-1234-1234-123456789abc"),
-					check.That("data."+dataSourceType+".test").Key("status_message").MatchesRegex(regexp.MustCompile("(?i)(PASS.*Dependency|Prerequisite open)")),
 
 					resource.TestCheckOutput("condition_met", "true"),
 					resource.TestCheckOutput("released_scope_id", "12345678-1234-1234-1234-123456789abc"),
@@ -575,7 +558,6 @@ func TestUnitDeploymentSchedulerDataSource_Combination_TimeAndInclusionWindow(t 
 				Config: loadUnitTestTerraform("20_combination_time_and_inclusion.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					check.That("data."+dataSourceType+".test").Key("condition_met").Exists(),
-					check.That("data."+dataSourceType+".test").Key("status_message").MatchesRegex(regexp.MustCompile(`(?i)\[(GATE OPEN|GATE CLOSED)\].*Time.*Inclusion Window`)),
 
 					// Output values vary by day - verified via datasource key assertions above
 				),
@@ -597,7 +579,6 @@ func TestUnitDeploymentSchedulerDataSource_Combination_TimeAndExclusionWindow(t 
 				Config: loadUnitTestTerraform("21_combination_time_and_exclusion.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					check.That("data."+dataSourceType+".test").Key("condition_met").Exists(),
-					check.That("data."+dataSourceType+".test").Key("status_message").MatchesRegex(regexp.MustCompile(`(?i)\[(GATE OPEN|GATE CLOSED)\].*Time.*Exclusion Window`)),
 
 					// Output values vary by day - verified via datasource key assertions above
 				),
@@ -619,7 +600,6 @@ func TestUnitDeploymentSchedulerDataSource_Combination_AllConditions(t *testing.
 				Config: loadUnitTestTerraform("22_combination_all_conditions.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					check.That("data."+dataSourceType+".test").Key("condition_met").Exists(),
-					check.That("data."+dataSourceType+".test").Key("status_message").MatchesRegex(regexp.MustCompile(`(?i)\[(GATE OPEN|GATE CLOSED)\].*Time.*Inclusion.*Exclusion.*Dependency`)),
 
 					// Output values vary by day, time, and date - verified via datasource key assertions above
 				),

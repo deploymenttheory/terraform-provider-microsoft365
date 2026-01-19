@@ -31,11 +31,6 @@ func handleManualOverride(ctx context.Context, state *DeploymentSchedulerDataSou
 
 	state.ConditionMet = types.BoolValue(true)
 
-	// Build structured status message
-	msgBuilder := newStatusMessageBuilder(true)
-	msgBuilder.setManualOverride()
-	state.StatusMessage = types.StringValue(msgBuilder.build())
-
 	setStateID(state)
 
 	// Set null conditions_detail since we're bypassing evaluation

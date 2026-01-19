@@ -24,7 +24,3 @@ output "released_scope_id" {
   description = "Should be null - minimum open hours not met"
 }
 
-output "status_message" {
-  value       = data.microsoft365_utility_deployment_scheduler.test.status_message
-  description = "Should show dependency not satisfied"
-}

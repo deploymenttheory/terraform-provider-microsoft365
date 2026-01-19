@@ -19,7 +19,3 @@ output "released_scope_id" {
   description = "Should be null when gate is closed"
 }
 
-output "status_message" {
-  value       = data.microsoft365_utility_deployment_scheduler.test.status_message
-  description = "Should show gate closed with delay not elapsed"
-}
