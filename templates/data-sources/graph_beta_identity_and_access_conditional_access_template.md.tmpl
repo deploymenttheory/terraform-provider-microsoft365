@@ -1,0 +1,116 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
+subcategory: "Identity and Access"
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Name}} ({{.Type}})
+
+{{ .Description | trimspace }}
+
+## Microsoft Documentation
+
+- [Conditional access template resource type](https://learn.microsoft.com/en-us/graph/api/resources/conditionalaccesstemplate?view=graph-rest-beta)
+- [List conditional access templates](https://learn.microsoft.com/en-us/graph/api/conditionalaccessroot-list-templates?view=graph-rest-beta)
+
+## API Permissions
+
+The following API permissions are required in order to use this data source.
+
+### Microsoft Graph
+
+- **Application**: `Policy.Read.All`
+
+## Filtering
+
+This data source supports filtering using the following attributes:
+
+- `template_id` (Optional): The unique identifier (GUID) of the conditional access template. Exactly one of `template_id` or `name` must be specified.
+- `name` (Optional): The name of the conditional access template. Exactly one of `template_id` or `name` must be specified.
+
+## Version History
+
+| Version | Status | Notes |
+|---------|--------|-------|
+| v0.41.0-alpha | Experimental | Initial release |
+
+## Example Usage
+
+### Example 1: Get conditional access template by template ID
+
+{{ tffile "examples/data-sources/microsoft365_graph_beta_identity_and_access_conditional_access_template/01_by_template_id.tf" }}
+
+### Example 2: Get conditional access template by name
+
+{{ tffile "examples/data-sources/microsoft365_graph_beta_identity_and_access_conditional_access_template/02_by_name.tf" }}
+
+### Example 3: Get detailed template configuration
+
+{{ tffile "examples/data-sources/microsoft365_graph_beta_identity_and_access_conditional_access_template/03_detailed_template.tf" }}
+
+### Example 4: Create policy from template - Require MFA for admins
+
+{{ tffile "examples/data-sources/microsoft365_graph_beta_identity_and_access_conditional_access_template/04_require_mfa_for_admins.tf" }}
+
+### Example 5: Create policy from template - Block legacy authentication
+
+{{ tffile "examples/data-sources/microsoft365_graph_beta_identity_and_access_conditional_access_template/05_block_legacy_authentication.tf" }}
+
+### Example 6: Create policy from template - Securing security info registration
+
+{{ tffile "examples/data-sources/microsoft365_graph_beta_identity_and_access_conditional_access_template/06_securing_security_info_registration.tf" }}
+
+### Example 7: Create policy from template - Require MFA for all users
+
+{{ tffile "examples/data-sources/microsoft365_graph_beta_identity_and_access_conditional_access_template/07_require_mfa_for_all_users.tf" }}
+
+### Example 8: Create policy from template - Require MFA for guest access
+
+{{ tffile "examples/data-sources/microsoft365_graph_beta_identity_and_access_conditional_access_template/08_require_mfa_for_guest_access.tf" }}
+
+### Example 9: Create policy from template - Require MFA for Azure management
+
+{{ tffile "examples/data-sources/microsoft365_graph_beta_identity_and_access_conditional_access_template/09_require_mfa_for_azure_management.tf" }}
+
+### Example 10: Create policy from template - Require MFA for risky sign-ins
+
+{{ tffile "examples/data-sources/microsoft365_graph_beta_identity_and_access_conditional_access_template/10_require_mfa_for_risky_signins.tf" }}
+
+### Example 11: Create policy from template - Require password change for high-risk users
+
+{{ tffile "examples/data-sources/microsoft365_graph_beta_identity_and_access_conditional_access_template/11_require_password_change_high_risk_users.tf" }}
+
+### Example 12: Create policy from template - Require compliant or hybrid device for admins
+
+{{ tffile "examples/data-sources/microsoft365_graph_beta_identity_and_access_conditional_access_template/12_require_compliant_or_hybrid_device_for_admins.tf" }}
+
+### Example 14: Create policy from template - Require compliant device or MFA for all users
+
+{{ tffile "examples/data-sources/microsoft365_graph_beta_identity_and_access_conditional_access_template/14_require_compliant_device_or_mfa_all_users.tf" }}
+
+### Example 15: Create policy from template - Use application enforced restrictions for O365
+
+{{ tffile "examples/data-sources/microsoft365_graph_beta_identity_and_access_conditional_access_template/15_use_application_enforced_restrictions_o365.tf" }}
+
+### Example 16: Create policy from template - Require phishing-resistant MFA for admins
+
+{{ tffile "examples/data-sources/microsoft365_graph_beta_identity_and_access_conditional_access_template/16_require_phishing_resistant_mfa_for_admins.tf" }}
+
+### Example 17: Create policy from template - Require MFA for Microsoft admin portals
+
+{{ tffile "examples/data-sources/microsoft365_graph_beta_identity_and_access_conditional_access_template/17_require_mfa_for_admin_portals.tf" }}
+
+### Example 18: Create policy from template - Block access to Office365 apps for users with insider risk
+
+{{ tffile "examples/data-sources/microsoft365_graph_beta_identity_and_access_conditional_access_template/18_block_access_o365_insider_risk.tf" }}
+
+### Example 19: Create policy from template - Require MDM-enrolled and compliant device
+
+{{ tffile "examples/data-sources/microsoft365_graph_beta_identity_and_access_conditional_access_template/19_require_mdm_enrolled_compliant_device.tf" }}
+
+### Example 21: Create policy from template - Block high-risk agent identities
+
+{{ tffile "examples/data-sources/microsoft365_graph_beta_identity_and_access_conditional_access_template/21_block_high_risk_agent_identities.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}

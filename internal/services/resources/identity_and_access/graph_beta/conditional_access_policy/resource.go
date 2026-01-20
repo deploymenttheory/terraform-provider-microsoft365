@@ -208,7 +208,7 @@ func (r *ConditionalAccessPolicyResource) Schema(ctx context.Context, req resour
 								},
 							},
 							"include_user_actions": schema.SetAttribute{
-								MarkdownDescription: "User actions to include in the policy.",
+								MarkdownDescription: "User actions to include in the policy. Valid values are: urn:user:registersecurityinfo, urn:user:registerdevice, urn:user:accountrecovery.",
 								ElementType:         types.StringType,
 								Optional:            true,
 								Computed:            true,
@@ -218,6 +218,7 @@ func (r *ConditionalAccessPolicyResource) Schema(ctx context.Context, req resour
 										stringvalidator.OneOf(
 											"urn:user:registersecurityinfo",
 											"urn:user:registerdevice",
+											"urn:user:accountrecovery",
 										),
 									),
 								},
@@ -869,7 +870,7 @@ func (r *ConditionalAccessPolicyResource) Schema(ctx context.Context, req resour
 						},
 					},
 					"built_in_controls": schema.SetAttribute{
-						MarkdownDescription: "List of built-in controls required by the policy. Possible values are: block, mfa, compliantDevice, domainJoinedDevice, approvedApplication, compliantApplication, passwordChange, riskRemediation.",
+						MarkdownDescription: "List of built-in controls required by the policy. Possible values are: block, mfa, compliantDevice, domainJoinedDevice, approvedApplication, compliantApplication, passwordChange, riskRemediation, verifiedID.",
 						ElementType:         types.StringType,
 						Optional:            true,
 						Computed:            true,
@@ -885,6 +886,7 @@ func (r *ConditionalAccessPolicyResource) Schema(ctx context.Context, req resour
 									"compliantApplication",
 									"passwordChange",
 									"riskRemediation",
+									"verifiedID",
 								),
 							),
 						},
