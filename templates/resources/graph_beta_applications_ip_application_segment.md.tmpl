@@ -30,7 +30,7 @@ The following API permissions are required in order to use this resource.
 | Version | Status | Notes |
 |---------|--------|-------|
 | v0.33.0 | Experimental | Initial release |
-| v0.42.0 | Experimental | Renamed `application_id` to `application_object_id` and added more examples|
+| v0.41.0 | Experimental | Renamed `application_id` to `application_object_id` and added more examples|
 
 ## Example Usage
 

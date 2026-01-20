@@ -33,7 +33,7 @@ func testCheckExists(resourceName string) resource.TestCheckFunc {
 	return resource.TestCheckResourceAttrSet(resourceName, "id")
 }
 
-func TestIpApplicationSegmentResource_Minimal(t *testing.T) {
+func TestUnitIpApplicationSegmentResource_Minimal(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, ipSegmentMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -61,7 +61,7 @@ func TestIpApplicationSegmentResource_Minimal(t *testing.T) {
 	})
 }
 
-func TestIpApplicationSegmentResource_Maximal(t *testing.T) {
+func TestUnitIpApplicationSegmentResource_Maximal(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, ipSegmentMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -92,7 +92,7 @@ func TestIpApplicationSegmentResource_Maximal(t *testing.T) {
 	})
 }
 
-func TestIpApplicationSegmentResource_IpRange(t *testing.T) {
+func TestUnitIpApplicationSegmentResource_IpRange(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, ipSegmentMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -116,7 +116,7 @@ func TestIpApplicationSegmentResource_IpRange(t *testing.T) {
 	})
 }
 
-func TestIpApplicationSegmentResource_FQDN(t *testing.T) {
+func TestUnitIpApplicationSegmentResource_FQDN(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, ipSegmentMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -141,7 +141,7 @@ func TestIpApplicationSegmentResource_FQDN(t *testing.T) {
 	})
 }
 
-func TestIpApplicationSegmentResource_Update(t *testing.T) {
+func TestUnitIpApplicationSegmentResource_Update(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, ipSegmentMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
