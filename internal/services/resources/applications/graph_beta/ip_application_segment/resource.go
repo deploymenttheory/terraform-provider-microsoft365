@@ -85,7 +85,7 @@ func (r *IpApplicationSegmentResource) Schema(ctx context.Context, req resource.
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
-			"application_id": schema.StringAttribute{
+			"application_object_id": schema.StringAttribute{
 				MarkdownDescription: "The unique object identifier of the application.",
 				Required:            true,
 			},

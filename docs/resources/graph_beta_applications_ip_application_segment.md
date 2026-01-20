@@ -30,18 +30,125 @@ The following API permissions are required in order to use this resource.
 | Version | Status | Notes |
 |---------|--------|-------|
 | v0.33.0 | Experimental | Initial release |
+| v0.41.0 | Experimental | Renamed `application_id` to `application_object_id` and added more examples|
 
 ## Example Usage
 
-```terraform
-resource "microsoft365_graph_beta_applications_ip_application_segment" "example" {
-  application_id   = "00000000-0000-0000-0000-000000000000"
-  destination_host = "internal.contoso.com"
-  destination_type = "fqdn"
-  ports            = ["80-80", "443-443"]
-  protocol         = "tcp"
+### Basic Configuration - IP Address
 
-  timeouts {
+This example demonstrates a minimal configuration targeting a single IP address.
+
+```terraform
+# Basic IP Application Segment with single IP address
+# This example demonstrates the minimal configuration for an IP application segment
+# targeting a single IP address.
+
+resource "microsoft365_graph_beta_applications_ip_application_segment" "minimal_ip" {
+  application_object_id = "00000000-0000-0000-0000-000000000000"
+  destination_host      = "192.168.1.100"
+  destination_type      = "ipAddress"
+  ports                 = ["80-80"]
+  protocol              = "tcp"
+}
+```
+
+### IP Range (CIDR Notation)
+
+This example shows how to configure an application segment for an entire IP subnet using CIDR notation.
+
+```terraform
+# IP Application Segment with IP Range (CIDR notation)
+# This example demonstrates how to configure an application segment for an entire
+# IP subnet using CIDR notation.
+
+resource "microsoft365_graph_beta_applications_ip_application_segment" "ip_range" {
+  application_object_id = "00000000-0000-0000-0000-000000000000"
+  destination_host      = "192.168.1.0/24"
+  destination_type      = "ipRangeCidr"
+  ports                 = ["443-443"]
+  protocol              = "tcp"
+
+  timeouts = {
+    create = "5m"
+    read   = "5m"
+    update = "5m"
+    delete = "5m"
+  }
+}
+```
+
+### Fully Qualified Domain Name (FQDN)
+
+This example demonstrates configuration using a specific hostname with multiple ports.
+
+```terraform
+# IP Application Segment with Fully Qualified Domain Name (FQDN)
+# This example demonstrates how to configure an application segment using a specific
+# hostname with multiple ports.
+
+resource "microsoft365_graph_beta_applications_ip_application_segment" "fqdn" {
+  application_object_id = "00000000-0000-0000-0000-000000000000"
+  destination_host      = "app.contoso.com"
+  destination_type      = "fqdn"
+  ports                 = ["443-443", "8443-8443"]
+  protocol              = "tcp"
+
+  timeouts = {
+    create = "5m"
+    read   = "5m"
+    update = "5m"
+    delete = "5m"
+  }
+}
+```
+
+### DNS Suffix (Wildcard Domain)
+
+This example shows how to use a wildcard domain to match all subdomains.
+
+```terraform
+# IP Application Segment with DNS Suffix (Wildcard Domain)
+# This example demonstrates how to configure an application segment using a wildcard
+# domain to match all subdomains.
+
+resource "microsoft365_graph_beta_applications_ip_application_segment" "dns_suffix" {
+  application_object_id = "00000000-0000-0000-0000-000000000000"
+  destination_host      = "*.internal.contoso.com"
+  destination_type      = "dnsSuffix"
+  ports = [
+    "80-80",
+    "443-443",
+    "8080-8080",
+    "8443-8443"
+  ]
+  protocol = "tcp"
+
+  timeouts = {
+    create = "5m"
+    read   = "5m"
+    update = "5m"
+    delete = "5m"
+  }
+}
+```
+
+### UDP Protocol
+
+This example demonstrates configuration using UDP protocol, useful for applications like VoIP or video conferencing.
+
+```terraform
+# IP Application Segment with UDP Protocol
+# This example demonstrates how to configure an application segment using UDP protocol
+# instead of TCP, useful for applications like VoIP or video conferencing.
+
+resource "microsoft365_graph_beta_applications_ip_application_segment" "udp_app" {
+  application_object_id = "00000000-0000-0000-0000-000000000000"
+  destination_host      = "voip.contoso.com"
+  destination_type      = "fqdn"
+  ports                 = ["5060-5061", "10000-20000"]
+  protocol              = "udp"
+
+  timeouts = {
     create = "5m"
     read   = "5m"
     update = "5m"
@@ -55,7 +162,7 @@ resource "microsoft365_graph_beta_applications_ip_application_segment" "example"
 
 ### Required
 
-- `application_id` (String) The unique object identifier of the application.
+- `application_object_id` (String) The unique object identifier of the application.
 - `destination_host` (String) Either the IP address, IP range, or FQDN of the application segment, with or without wildcards.
 - `destination_type` (String) The type of destination for the application segment.The possible values are: `ipAddress`, `ipRange`, `ipRangeCidr`, `fqdn`, `dnsSuffix`, `unknownFutureValue`.
 - `ports` (Set of String) List of ports supported for the application segment.
