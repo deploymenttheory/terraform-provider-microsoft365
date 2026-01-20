@@ -5,6 +5,47 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.41.0-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.40.2-alpha...v0.41.0-alpha) (2026-01-20)
+
+
+### Features
+
+* added datasource microsoft365_utility_deployment_scheduler ([9ac25d2](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/9ac25d211acb26e0f75232f3c936a4a3cc4e124a))
+* added datasource microsoft365_utility_deployment_scheduler ([#1977](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/1977)) ([75f1f36](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/75f1f3633f18a3efd9addd7eda08e4941133a8cb))
+* Update msgraph-beta-sdk-go to v0.157.0 and add conditional access template datasource ([#2011](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/2011)) ([5a75ca0](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/5a75ca0a717f97a4abc42b6962fbc150a84ec634))
+
+
+### Bug Fixes
+
+* added group deletion handling when licenses are assigned. standardised version constraint for time provider ([c4c1f04](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/c4c1f04a5984532d7af075f36c0395816e64307e))
+* added group deletion handling when licenses are assigned. standardised version constraint for time provider ([#1792](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/1792)) ([3de4d69](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/3de4d69560af1ddaf5e2de5241e4986f3105efc4))
+* assertion assignment order ([633dbce](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/633dbce570ca3b5d18950a21c944d14ca124638a))
+* better field extraction ([566fff1](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/566fff1bead77702139ca24f301783f67f029415))
+* better field extraction ([#1786](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/1786)) ([120b647](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/120b64725fcb459f4cad4f8c601c24050fe85e37))
+* changed applications_ip_application_segment field application_id to application_object_id in prep for full fix ([0672f8a](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/0672f8af7ac2f39e99ada8aa50819b86bfe7e80d))
+* changed applications_ip_application_segment field application_id to application_object_id in prep for full fix and updated docs ([#2009](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/2009)) ([c1b6cdc](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/c1b6cdcfe6b921b4d23fb4a3738d97430fd0e8a8))
+* for resource macos_device_configuration_templates test harness ([8a9352c](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/8a9352c757722cdd622b3bfa695fd50218a577ef))
+* for resource macos_device_configuration_templates test harness ([#1793](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/1793)) ([41603d3](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/41603d3a3bf731805664f5b807776743489618d7))
+* for test harness for WindowsQualityUpdateExpeditePolicy, WindowsFeatureUpdatePolicy and WindowsEnrollmentStatusPage ([e7c2ca8](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/e7c2ca8e51e963255df49e43656e868f815148f7))
+* for test harness for WindowsQualityUpdateExpeditePolicy, WindowsFeatureUpdatePolicy and WindowsEnrollmentStatusPage ([#1796](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/1796)) ([1ce72e4](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/1ce72e48d2dd0821c3d76102bb6a6ed6a0b3b687))
+* named_location delete workflow logic refactor ([f125ed5](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/f125ed525a5c7f0fbf01efffc4e3c304c909544f))
+* named_location delete workflow logic refactor ([#2007](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/2007)) ([d86845a](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/d86845ac8d8223eb7775a8462777c94a6fa3f434))
+* refactor and added docs ([71664eb](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/71664ebe8507bfd368f5ee1b056812c111b2e725))
+* refactor of resource group_policy_configuration test harness , standardised ExternalProviders Random with const usage and changed operation strings for HandleKiotaGraphError to consts ([3039b56](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/3039b56377caedc66c26b8c0038a659670afa7aa))
+* refactor of resource group_policy_configuration test harness , standardised ExternalProviders Random with const usage and changed operation strings for HandleKiotaGraphError to consts ([#1788](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/1788)) ([d087094](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/d087094f1cb41d467e8d9592acf7ad0131807d97))
+* refactored resource device_management_app_control_for_business_built_in_controls test harness ([4d1bf5c](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/4d1bf5cec98ff01a4d2b62fff6f400fa3479f852))
+* refactored resource device_management_app_control_for_business_built_in_controls test harness ([#1787](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/1787)) ([867566a](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/867566ae50bc4a01e6c4f675c274b8785a273bdf))
+* refinements for overly broad codecov ignore pattens ([3042fa8](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/3042fa80ef70ef9e17278ea037b997faafbca37e))
+* refinements for overly broad codecov ignore pattens ([#1789](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/1789)) ([70d75a9](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/70d75a99dd16ab27c4d32994a00269db630802ae))
+* removed debugging ([13b72fb](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/13b72fb3fa7b2b8deac5e0ba22d69ef567e448af))
+* reverted license assignment test validation destruction helpers due to export field issues ([4797bc6](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/4797bc6c77c2ae525058a79c2e5423e52486d6f4))
+* reverted license assignment test validation destruction helpers due to export field issues ([#1791](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/1791)) ([0902ebb](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/0902ebbdfdd40d79d018698b2db3bcea3fabf55d))
+* sec ([ff2edbe](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/ff2edbe6098891235e7d5768b71eda4bc29f62fb))
+* sec ([#1712](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/1712)) ([342ebb5](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/342ebb5cf55bc790964bf0c69828a0a7ab31c3d6))
+* unit test naming convention and docs ver ([74c78bf](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/74c78bfe829f429bd919977e9563d72bb6c579d9))
+* **windows_update_ring:** set all deadline_settings attributes as computed and optional ([fa4e6c2](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/fa4e6c2fa637a3f48d98f4492a51eb8ac39aa5ac))
+* **windows_update_ring:** set all deadline_settings attributes as computed and optional ([#1976](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/1976)) ([1aa1cc3](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/1aa1cc301b46a2aec464b1cc44f9dbc3317b7dd6))
+
 ## [0.40.2-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.40.1-alpha...v0.40.2-alpha) (2026-01-12)
 
 
