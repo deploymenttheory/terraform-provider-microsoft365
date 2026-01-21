@@ -3,26 +3,28 @@ page_title: "microsoft365_graph_beta_device_and_app_management_windows_web_app R
 subcategory: "Device and App Management"
 
 description: |-
-  Manages Windows Web Clip apps in Microsoft Intune using the /deviceAppManagement/mobileApps endpoint. Windows Web Clips are shortcuts to web pages that appear as apps on Windows devices.
+  Manages Windows Web Clip apps using the /deviceAppManagement/mobileApps endpoint. This resource is used to windows Web Clips are shortcuts to web pages that appear as apps on Windows devices.
 ---
 
 # microsoft365_graph_beta_device_and_app_management_windows_web_app (Resource)
 
-Manages Windows Web Clip apps in Microsoft Intune using the `/deviceAppManagement/mobileApps` endpoint. Windows Web Clips are shortcuts to web pages that appear as apps on Windows devices.
+Manages Windows Web Clip apps using the `/deviceAppManagement/mobileApps` endpoint. This resource is used to windows Web Clips are shortcuts to web pages that appear as apps on Windows devices.
 
 ## Microsoft Documentation
 
 - [windowsWebClip resource type](https://learn.microsoft.com/en-us/graph/api/resources/intune-apps-windowswebapp?view=graph-rest-beta)
 - [Create windowsWebClip](https://learn.microsoft.com/en-us/graph/api/intune-apps-windowswebapp-create?view=graph-rest-beta)
 
-## API Permissions
+## Microsoft Graph API Permissions
 
-The following API permissions are required in order to use this resource.
+The following client `application` permissions are needed in order to use this resource:
 
-### Microsoft Graph
+**Required:**
+- `DeviceManagementApps.Read.All`
+- `DeviceManagementApps.ReadWrite.All`
 
-- **Read**: `DeviceManagementApps.Read.All`
-- **Write**: `DeviceManagementApps.ReadWrite.All`
+**Optional:**
+- `None` `[N/A]`
 
 ## Version History
 

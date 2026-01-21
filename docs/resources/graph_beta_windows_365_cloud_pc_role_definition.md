@@ -3,25 +3,27 @@ page_title: "microsoft365_graph_beta_windows_365_cloud_pc_role_definition Resour
 subcategory: "Windows 365"
 
 description: |-
-  Manages custom role definitions in Microsoft Cloud PC using the /roleManagement/cloudPC/roleDefinitions endpoint. Role definitions define sets of permissions that can be assigned to administrators, enabling granular access control for Cloud PC management, policy configuration, and administrative functions within Windows 365.
+  Manages custom role definitions for Windows 365 using the /roleManagement/cloudPC/roleDefinitions endpoint. This resource is used to define sets of permissions that can be assigned to administrators for Cloud PC management, policy configuration, and administrative functions.
 ---
 
 # microsoft365_graph_beta_windows_365_cloud_pc_role_definition (Resource)
 
-Manages custom role definitions in Microsoft Cloud PC using the `/roleManagement/cloudPC/roleDefinitions` endpoint. Role definitions define sets of permissions that can be assigned to administrators, enabling granular access control for Cloud PC management, policy configuration, and administrative functions within Windows 365.
+Manages custom role definitions for Windows 365 using the `/roleManagement/cloudPC/roleDefinitions` endpoint. This resource is used to define sets of permissions that can be assigned to administrators for Cloud PC management, policy configuration, and administrative functions.
 
 ## Microsoft Documentation
 
 - [unifiedRoleDefinition resource type (beta)](https://learn.microsoft.com/en-us/graph/api/resources/unifiedroledefinition?view=graph-rest-beta)
 - [Create roleDefinition (beta)](https://learn.microsoft.com/en-us/graph/api/rbacapplication-post-roledefinitions?view=graph-rest-beta)
 
-## API Permissions
+## Microsoft Graph API Permissions
 
-The following API permissions are required in order to use this resource.
+The following client `application` permissions are needed in order to use this resource:
 
-### Microsoft Graph
+**Required:**
+- `RoleManagement.ReadWrite.CloudPC`
 
-- **Application**: `RoleManagement.ReadWrite.CloudPC`
+**Optional:**
+- `None` `[N/A]`
 
 ## Version History
 

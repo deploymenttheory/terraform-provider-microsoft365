@@ -2,7 +2,7 @@
 page_title: "Microsoft 365_microsoft365_graph_beta_device_management_managed_device_pause_configuration_refresh Action - terraform-provider-microsoft365"
 subcategory: "Device Management"
 description: |-
-  Initiates a command to pause configuration refresh on managed Windows devices using the /deviceManagement/managedDevices/{managedDeviceId}/pauseConfigurationRefresh and /deviceManagement/comanagedDevices/{managedDeviceId}/pauseConfigurationRefresh endpoints. This action temporarily prevents devices from receiving and applying new configuration policies from Intune, which is useful during maintenance windows, troubleshooting, or when you need to prevent policy changes from being applied to specific devices for a defined period.
+  Pauses configuration refresh on managed Windows devices in Microsoft Intune using the /deviceManagement/managedDevices/{managedDeviceId}/pauseConfigurationRefresh and /deviceManagement/comanagedDevices/{managedDeviceId}/pauseConfigurationRefresh endpoints. This action is used to temporarily prevent devices from receiving and applying new configuration policies from Intune, which is useful during maintenance windows, troubleshooting, or when you need to prevent policy changes from being applied to specific devices for a defined period.
   Important Notes:
   Only works on Windows 10/11 devicesConfiguration refresh automatically resumes after the pause period expiresMaximum pause period is typically 24 hours (1440 minutes)Does not affect existing applied policies, only prevents new policy updatesDevice can still check in and report statusCritical security updates may still be appliedUser can still manually sync from Company Portal
   Use Cases:
@@ -14,7 +14,7 @@ description: |-
 
 # Microsoft 365_microsoft365_graph_beta_device_management_managed_device_pause_configuration_refresh (Action)
 
-Initiates a command to pause configuration refresh on managed Windows devices using the `/deviceManagement/managedDevices/{managedDeviceId}/pauseConfigurationRefresh` and `/deviceManagement/comanagedDevices/{managedDeviceId}/pauseConfigurationRefresh` endpoints. This action temporarily prevents devices from receiving and applying new configuration policies from Intune, which is useful during maintenance windows, troubleshooting, or when you need to prevent policy changes from being applied to specific devices for a defined period.
+Pauses configuration refresh on managed Windows devices in Microsoft Intune using the `/deviceManagement/managedDevices/{managedDeviceId}/pauseConfigurationRefresh` and `/deviceManagement/comanagedDevices/{managedDeviceId}/pauseConfigurationRefresh` endpoints. This action is used to temporarily prevent devices from receiving and applying new configuration policies from Intune, which is useful during maintenance windows, troubleshooting, or when you need to prevent policy changes from being applied to specific devices for a defined period.
 
 **Important Notes:**
 - Only works on Windows 10/11 devices
@@ -126,17 +126,16 @@ action "microsoft365_graph_beta_device_management_managed_device_pause_configura
 }
 ```
 
-## API Permissions
+## Microsoft Graph API Permissions
 
-The following [Microsoft Graph API permissions](https://learn.microsoft.com/en-us/graph/permissions-reference) are required to use this action:
+The following client `application` permissions are needed in order to use this action:
 
-### Read Permissions
+**Required:**
 - `DeviceManagementConfiguration.Read.All`
 - `DeviceManagementManagedDevices.Read.All`
 
-### Write Permissions
-- `DeviceManagementConfiguration.Read.All`
-- `DeviceManagementManagedDevices.Read.All`
+**Optional:**
+- `None` `[N/A]`
 
 ## Version History
 

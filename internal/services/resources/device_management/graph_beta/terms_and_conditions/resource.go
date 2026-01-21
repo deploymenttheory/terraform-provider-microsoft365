@@ -79,7 +79,7 @@ func (r *TermsAndConditionsResource) ImportState(ctx context.Context, req resour
 // Schema returns the schema for the resource.
 func (r *TermsAndConditionsResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Manages terms and conditions policies in Microsoft Intune using the `/deviceManagement/termsAndConditions` endpoint. Terms and conditions policies require device users to accept legal agreements before enrolling devices or accessing company resources, ensuring compliance with organizational policies and regulatory requirements.",
+		MarkdownDescription: "Manages terms and conditions policies using the `/deviceManagement/termsAndConditions` endpoint. This resource is used to terms and conditions policies require device users to accept legal agreements before enrolling devices or accessing company resources, ensuring compliance with organizational policies and regulatory requirements.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				MarkdownDescription: "The unique identifier of the terms and conditions policy.",

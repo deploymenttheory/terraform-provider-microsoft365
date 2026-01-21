@@ -55,9 +55,9 @@ func (a *RebootNowManagedDeviceAction) Configure(ctx context.Context, req action
 
 func (a *RebootNowManagedDeviceAction) Schema(ctx context.Context, req action.SchemaRequest, resp *action.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Remotely reboots managed devices using the " +
+		MarkdownDescription: "Reboots managed devices in Microsoft Intune using the " +
 			"`/deviceManagement/managedDevices/{managedDeviceId}/rebootNow` endpoint. " +
-			"This action immediately restarts devices, which is essential for applying updates, " +
+			"This action is used to immediately restart devices, which is essential for applying updates, " +
 			"troubleshooting system issues, or ensuring configuration changes take effect. " +
 			"The reboot command is sent to devices immediately if online, or queued for execution " +
 			"when the device next checks in with Intune.\n\n" +

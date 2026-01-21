@@ -2,12 +2,12 @@
 page_title: "microsoft365_graph_beta_groups_group Resource - terraform-provider-microsoft365"
 subcategory: "Groups"
 description: |-
-  Manages Azure AD/Entra groups using the /groups endpoint. This resource enables creation and management of security groups, Microsoft 365 groups, and distribution groups with support for dynamic membership, role assignment capabilities, and comprehensive group configuration options for organizational identity and access management.
+  Manages Azure AD/Entra groups using the /groups endpoint. This resource is used to enables creation and management of security groups, Microsoft 365 groups, and distribution groups with support for dynamic membership, role assignment capabilities, and comprehensive group configuration options for organizational identity and access management.
 ---
 
 # microsoft365_graph_beta_groups_group (Resource)
 
-Manages Azure AD/Entra groups using the `/groups` endpoint. This resource enables creation and management of security groups, Microsoft 365 groups, and distribution groups with support for dynamic membership, role assignment capabilities, and comprehensive group configuration options for organizational identity and access management.
+Manages Azure AD/Entra groups using the `/groups` endpoint. This resource is used to enables creation and management of security groups, Microsoft 365 groups, and distribution groups with support for dynamic membership, role assignment capabilities, and comprehensive group configuration options for organizational identity and access management.
 
 ## Microsoft Documentation
 
@@ -16,13 +16,16 @@ Manages Azure AD/Entra groups using the `/groups` endpoint. This resource enable
 - [Update group](https://learn.microsoft.com/en-us/graph/api/group-update?view=graph-rest-beta)
 - [Delete group](https://learn.microsoft.com/en-us/graph/api/group-delete?view=graph-rest-beta)
 
-## API Permissions
+## Microsoft Graph API Permissions
 
-The following API permissions are required in order to use this resource.
+The following client `application` permissions are needed in order to use this resource:
 
-### Microsoft Graph
+**Required:**
+- `Group.ReadWrite.All`
+- `Directory.ReadWrite.All`
 
-- **Application**: `Group.ReadWrite.All`, `Directory.ReadWrite.All`
+**Optional:**
+- `None` `[N/A]`
 
 ## Version History
 

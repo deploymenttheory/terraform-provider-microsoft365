@@ -54,10 +54,7 @@ func (d *DirectorySettingTemplatesDataSource) Configure(ctx context.Context, req
 // Schema returns the schema for the data source.
 func (d *DirectorySettingTemplatesDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Retrieves information about directory setting templates available in Microsoft 365. " +
-			"Directory setting templates represent system-defined settings available to the tenant. " +
-			"Directory settings can be created based on the available templates, and values changed from their preset defaults. " +
-			"These templates are read-only and define the allowed behaviors for specific Microsoft Entra objects like Microsoft 365 groups.",
+		MarkdownDescription: "Retrieves directory setting templates from Microsoft Entra ID using the `/directorySettingTemplates` endpoint. This data source is used to discover system-defined configuration templates for Microsoft 365 groups and other directory objects with their default values.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:            true,

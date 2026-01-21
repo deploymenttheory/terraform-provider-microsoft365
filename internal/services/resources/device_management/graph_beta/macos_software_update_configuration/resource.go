@@ -69,7 +69,7 @@ func (r *MacOSSoftwareUpdateConfigurationResource) ImportState(ctx context.Conte
 
 func (r *MacOSSoftwareUpdateConfigurationResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Manages macOS software update configurations using the `/deviceManagement/deviceConfigurations` endpoint. See [macOSSoftwareUpdateConfiguration resource type](https://learn.microsoft.com/en-us/graph/api/resources/intune-deviceconfig-macossoftwareupdateconfiguration?view=graph-rest-beta) for details.",
+		MarkdownDescription: "Manages macOS software update configurations using the `/deviceManagement/deviceConfigurations` endpoint. This resource is used to see [macOSSoftwareUpdateConfiguration resource type](https://learn.microsoft.com/en-us/graph/api/resources/intune-deviceconfig-macossoftwareupdateconfiguration?view=graph-rest-beta) for details.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed: true,

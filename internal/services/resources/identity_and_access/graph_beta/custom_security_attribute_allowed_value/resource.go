@@ -82,7 +82,7 @@ func (r *CustomSecurityAttributeAllowedValueResource) ImportState(ctx context.Co
 
 func (r *CustomSecurityAttributeAllowedValueResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Manages Microsoft Entra custom security attribute allowed values using the `/directory/customSecurityAttributeDefinitions/{customSecurityAttributeDefinitionId}/allowedValues` endpoint. Allowed values represent predefined values that can be assigned to custom security attributes.\n\n**Note:** You can define up to 100 allowed values per custom security attribute definition. Allowed values cannot be renamed or deleted, but they can be deactivated.",
+		MarkdownDescription: "Manages Microsoft Entra custom security attribute allowed values using the `/directory/customSecurityAttributeDefinitions/{customSecurityAttributeDefinitionId}/allowedValues` endpoint. This resource is used to allowed values represent predefined values that can be assigned to custom security attributes.\n\n**Note:** You can define up to 100 allowed values per custom security attribute definition. Allowed values cannot be renamed or deleted, but they can be deactivated..",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				MarkdownDescription: "Identifier for the predefined value. Can be up to 64 characters long and include Unicode characters. Can include spaces, but some special characters aren't allowed. Cannot be changed later. Case sensitive.",

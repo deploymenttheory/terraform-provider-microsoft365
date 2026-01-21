@@ -3,24 +3,26 @@ page_title: "microsoft365_graph_beta_device_management_terms_and_conditions Reso
 subcategory: "Device Management"
 
 description: |-
-  Manages terms and conditions policies in Microsoft Intune using the /deviceManagement/termsAndConditions endpoint. Terms and conditions policies require device users to accept legal agreements before enrolling devices or accessing company resources, ensuring compliance with organizational policies and regulatory requirements.
+  Manages terms and conditions policies using the /deviceManagement/termsAndConditions endpoint. This resource is used to terms and conditions policies require device users to accept legal agreements before enrolling devices or accessing company resources, ensuring compliance with organizational policies and regulatory requirements.
 ---
 
 # microsoft365_graph_beta_device_management_terms_and_conditions (Resource)
 
-Manages terms and conditions policies in Microsoft Intune using the `/deviceManagement/termsAndConditions` endpoint. Terms and conditions policies require device users to accept legal agreements before enrolling devices or accessing company resources, ensuring compliance with organizational policies and regulatory requirements.
+Manages terms and conditions policies using the `/deviceManagement/termsAndConditions` endpoint. This resource is used to terms and conditions policies require device users to accept legal agreements before enrolling devices or accessing company resources, ensuring compliance with organizational policies and regulatory requirements.
 
 ## Microsoft Documentation
 
 - [termsAndConditions resource type](https://learn.microsoft.com/en-us/graph/api/resources/intune-companyterms-termsandconditions?view=graph-rest-beta)
 
-## API Permissions
+## Microsoft Graph API Permissions
 
-The following API permissions are required in order to use this resource.
+The following client `application` permissions are needed in order to use this resource:
 
-### Microsoft Graph
+**Required:**
+- `DeviceManagementServiceConfig.ReadWrite.All`
 
-- **Application**: `DeviceManagementServiceConfig.ReadWrite.All`
+**Optional:**
+- `None` `[N/A]`
 
 ## Version History
 

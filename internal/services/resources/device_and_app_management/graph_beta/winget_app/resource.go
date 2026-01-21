@@ -83,7 +83,7 @@ func (r *WinGetAppResource) ImportState(ctx context.Context, req resource.Import
 // Schema returns the schema for the resource.
 func (r *WinGetAppResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Manages WinGet applications from the Microsoft Store using the `/deviceAppManagement/mobileApps` endpoint. WinGet apps enable deployment of Microsoft Store applications with automatic metadata population, streamlined package management, and integration with the Windows Package Manager for efficient app distribution to managed devices.",
+		MarkdownDescription: "Manages WinGet applications from the Microsoft Store using the `/deviceAppManagement/mobileApps` endpoint. This resource is used to winGet apps enable deployment of Microsoft Store applications with automatic metadata population, streamlined package management, and integration with the Windows Package Manager for efficient app distribution to managed devices.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed: true,

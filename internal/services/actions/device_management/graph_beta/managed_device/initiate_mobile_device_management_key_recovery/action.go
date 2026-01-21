@@ -57,10 +57,10 @@ func (a *InitiateMobileDeviceManagementKeyRecoveryManagedDeviceAction) Configure
 
 func (a *InitiateMobileDeviceManagementKeyRecoveryManagedDeviceAction) Schema(ctx context.Context, req action.SchemaRequest, resp *action.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Initiates Mobile Device Management (MDM) key recovery and TPM attestation on managed Windows devices using the " +
+		MarkdownDescription: "Initiates Mobile Device Management (MDM) key recovery and TPM attestation on managed Windows devices in Microsoft Intune using the " +
 			"`/deviceManagement/managedDevices/{managedDeviceId}/initiateMobileDeviceManagementKeyRecovery` and " +
 			"`/deviceManagement/comanagedDevices/{managedDeviceId}/initiateMobileDeviceManagementKeyRecovery` endpoints. " +
-			"This action performs BitLocker recovery key escrow and Trusted Platform Module (TPM) attestation to ensure recovery keys " +
+			"This action is used to perform BitLocker recovery key escrow and Trusted Platform Module (TPM) attestation to ensure recovery keys " +
 			"are properly stored in Azure AD and the device's TPM is healthy. This is critical for security compliance, data recovery " +
 			"scenarios, and ensuring encrypted devices can be recovered if users forget passwords or encounter hardware issues.\n\n" +
 			"**Important Notes:**\n" +

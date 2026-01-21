@@ -17,13 +17,16 @@ Manages a group policy definition with all its presentation values in Microsoft 
 - [Group policy definition resource type](https://learn.microsoft.com/en-us/graph/api/resources/intune-grouppolicy-grouppolicydefinition?view=graph-rest-beta)
 - [Group policy presentation value types](https://learn.microsoft.com/en-us/graph/api/resources/intune-grouppolicy-grouppolicypresentationvalue?view=graph-rest-beta)
 
-## API Permissions
+## Microsoft Graph API Permissions
 
-The following API permissions are required in order to use this resource.
+The following client `application` permissions are needed in order to use this resource:
 
-### Microsoft Graph
+**Required:**
+- `DeviceManagementConfiguration.Read.All`
+- `DeviceManagementConfiguration.ReadWrite.All`
 
-- **Application**: `DeviceManagementConfiguration.Read.All`, `DeviceManagementConfiguration.ReadWrite.All`
+**Optional:**
+- `None` `[N/A]`
 
 ## Version History
 

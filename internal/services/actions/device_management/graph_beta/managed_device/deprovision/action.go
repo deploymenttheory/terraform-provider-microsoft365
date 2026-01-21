@@ -55,10 +55,10 @@ func (a *DeprovisionManagedDeviceAction) Configure(ctx context.Context, req acti
 
 func (a *DeprovisionManagedDeviceAction) Schema(ctx context.Context, req action.SchemaRequest, resp *action.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Deprovisions Windows managed devices from Intune management using the " +
+		MarkdownDescription: "Deprovisions Windows managed devices in Microsoft Intune using the " +
 			"`/deviceManagement/managedDevices/{managedDeviceId}/deprovision` and " +
 			"`/deviceManagement/comanagedDevices/{managedDeviceId}/deprovision` endpoints. " +
-			"This action removes management capabilities from a device while allowing it to remain enrolled. " +
+			"This action is used to remove management capabilities from devices while allowing them to remain enrolled. " +
 			"Deprovisioning is less destructive than wiping or retiring a device, as it only removes management " +
 			"policies and profiles without deleting user data or removing the device entirely. This is useful when " +
 			"transitioning devices between management solutions or preparing devices for different management scenarios.\n\n" +

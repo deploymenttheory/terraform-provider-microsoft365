@@ -57,10 +57,10 @@ func (a *ReenableManagedDeviceAction) Configure(ctx context.Context, req action.
 
 func (a *ReenableManagedDeviceAction) Schema(ctx context.Context, req action.SchemaRequest, resp *action.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Re-enables previously disabled managed devices in Intune using the " +
+		MarkdownDescription: "Re-enables previously disabled managed devices in Microsoft Intune using the " +
 			"`/deviceManagement/managedDevices/{managedDeviceId}/reenable` and " +
 			"`/deviceManagement/comanagedDevices/{managedDeviceId}/reenable` endpoints. " +
-			"This action restores a disabled device's ability to interact with Intune services, allowing it to sync and " +
+			"This action is used to restore a disabled device's ability to interact with Intune services, allowing it to sync and " +
 			"receive policy updates again. Re-enabling is the counterpart to the disable action and restores full management " +
 			"capabilities to devices that were temporarily suspended. This is useful after resolving security incidents, " +
 			"compliance violations, or completing investigations that required temporary device suspension.\n\n" +

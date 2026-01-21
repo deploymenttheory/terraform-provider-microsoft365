@@ -52,7 +52,7 @@ func (d *MobileAppCatalogPackageDataSource) Configure(ctx context.Context, req d
 // Schema defines the schema for the data source
 func (d *MobileAppCatalogPackageDataSource) Schema(ctx context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Retrieves mobile app catalog packages from Microsoft Intune using the `/deviceAppManagement/MobileAppCatalogPackage` endpoint. This data source enables querying mobile app catalog packages with advanced filtering capabilities including OData queries for filtering by product name, publisher, and other properties.",
+		MarkdownDescription: "Retrieves mobile app catalog packages from Microsoft Intune using the `/deviceAppManagement/mobileAppCatalogPackages` endpoint. This data source is used to query Win32 catalog applications from the Microsoft Store for Business with installation details and requirements.",
 		Attributes: map[string]schema.Attribute{
 			"filter_type": schema.StringAttribute{
 				Required:            true,

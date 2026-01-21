@@ -3,25 +3,30 @@ page_title: "microsoft365_graph_beta_device_management_windows_remediation_scrip
 subcategory: "Device Management"
 
 description: |-
-  Manages Windows remediation scripts using the /deviceManagement/deviceHealthScripts endpoint. Remediation scripts enable proactive detection and automatic remediation of common issues on Windows devices through PowerShell detection scripts paired with remediation scripts that execute when problems are identified.
+  Manages Windows remediation scripts in Microsoft Intune using the /deviceManagement/deviceHealthScripts endpoint. This resource is used to enable proactive detection and automatic remediation of common issues on Windows devices through PowerShell scripts.
 ---
 
 # microsoft365_graph_beta_device_management_windows_remediation_script (Resource)
 
-Manages Windows remediation scripts using the `/deviceManagement/deviceHealthScripts` endpoint. Remediation scripts enable proactive detection and automatic remediation of common issues on Windows devices through PowerShell detection scripts paired with remediation scripts that execute when problems are identified.
+Manages Windows remediation scripts in Microsoft Intune using the `/deviceManagement/deviceHealthScripts` endpoint. This resource is used to enable proactive detection and automatic remediation of common issues on Windows devices through PowerShell scripts.
 
 ## Microsoft Documentation
 
 - [deviceHealthScript resource type](https://learn.microsoft.com/en-us/graph/api/resources/intune-devices-devicehealthscript?view=graph-rest-beta)
 - [Create deviceHealthScript](https://learn.microsoft.com/en-us/graph/api/intune-devices-devicehealthscript-create?view=graph-rest-beta)
+- [Read deviceHealthScript](https://learn.microsoft.com/en-us/graph/api/intune-devices-devicehealthscript-get?view=graph-rest-beta)
+- [Update deviceHealthScript](https://learn.microsoft.com/en-us/graph/api/intune-devices-devicehealthscript-update?view=graph-rest-beta)
+- [Delete deviceHealthScript](https://learn.microsoft.com/en-us/graph/api/intune-devices-devicehealthscript-delete?view=graph-rest-beta)
 
-## API Permissions
+## Microsoft Graph API Permissions
 
-The following API permissions are required in order to use this resource.
+The following client `application` permissions are needed in order to use this resource:
 
-### Microsoft Graph
+**Required:**
+- `DeviceManagementConfiguration.ReadWrite.All`
 
-- **Application**: `DeviceManagementConfiguration.ReadWrite.All`
+**Optional:**
+- `None` `[N/A]`
 
 ## Version History
 

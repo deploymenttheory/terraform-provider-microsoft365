@@ -3,25 +3,27 @@ page_title: "microsoft365_graph_beta_device_management_windows_autopilot_device_
 subcategory: "Device Management"
 
 description: |-
-  Assigns a user to an Autopilot device in Microsoft Intune using the /deviceManagement/windowsAutopilotDeviceIdentities/{windowsAutopilotDeviceIdentityId}/assignUserToDevice endpoint. This action assigns user to Autopilot devices for streamlined device setup and management.
+  Assigns a user to an Autopilot device in Microsoft Intune using the /deviceManagement/windowsAutopilotDeviceIdentities/{windowsAutopilotDeviceIdentityId}/assignUserToDevice endpoint. This action is used to assign users to Autopilot devices for streamlined device setup and management.
 ---
 
 # microsoft365_graph_beta_device_management_windows_autopilot_device_identity_assign_user_to_device (Action)
 
-Assigns a user to an Autopilot device in Microsoft Intune using the `/deviceManagement/windowsAutopilotDeviceIdentities/{windowsAutopilotDeviceIdentityId}/assignUserToDevice` endpoint. This action assigns user to Autopilot devices for streamlined device setup and management.
+Assigns a user to an Autopilot device in Microsoft Intune using the `/deviceManagement/windowsAutopilotDeviceIdentities/{windowsAutopilotDeviceIdentityId}/assignUserToDevice` endpoint. This action is used to assign users to Autopilot devices for streamlined device setup and management.
 
 ## Microsoft Documentation
 
 - [assignUserToDevice action](https://learn.microsoft.com/en-us/graph/api/intune-enrollment-windowsautopilotdeviceidentity-assignusertodevice?view=graph-rest-beta)
 - [windowsAutopilotDeviceIdentity resource type](https://learn.microsoft.com/en-us/graph/api/resources/intune-enrollment-windowsautopilotdeviceidentity?view=graph-rest-beta)
 
-## API Permissions
+## Microsoft Graph API Permissions
 
-The following API permissions are required in order to use this action.
+The following client `application` permissions are needed in order to use this action:
 
-### Microsoft Graph
+**Required:**
+- `DeviceManagementServiceConfig.ReadWrite.All`
 
-- **Application**: `DeviceManagementServiceConfig.ReadWrite.All`
+**Optional:**
+- `None` `[N/A]`
 
 ## Version History
 
@@ -61,7 +63,7 @@ action "microsoft365_graph_beta_device_management_windows_autopilot_device_ident
 ### Required
 
 - `addressable_user_name` (String) The addressable user name for the user being assigned to the device. This is the display name or friendly name of the user.
-- `user_principal_name` (String) The user principal name (UPN) of the user to assign to the device. This is typically the user's email address in the format user@domain.com.
+- `user_principal_name` (String) The user principal name (UPN) of the user to assign to the device. This is typically in the format user@domain.com.
 - `windows_autopilot_device_identity_id` (String) The unique identifier of the Windows Autopilot device identity to assign the user to. This is the ID of the Windows Autopilot device in Microsoft Intune.
 
 ### Optional

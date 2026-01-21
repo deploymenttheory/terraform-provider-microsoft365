@@ -57,12 +57,12 @@ func (a *RemoveDeviceFirmwareConfigurationInterfaceManagementManagedDeviceAction
 
 func (a *RemoveDeviceFirmwareConfigurationInterfaceManagementManagedDeviceAction) Schema(ctx context.Context, req action.SchemaRequest, resp *action.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Removes managed devices from Device Firmware Configuration Interface (DFCI) management using the " +
+		MarkdownDescription: "Removes managed devices from Device Firmware Configuration Interface (DFCI) management in Microsoft Intune using the " +
 			"`/deviceManagement/managedDevices/{managedDeviceId}/removeDeviceFirmwareConfigurationInterfaceManagement` and " +
 			"`/deviceManagement/comanagedDevices/{managedDeviceId}/removeDeviceFirmwareConfigurationInterfaceManagement` endpoints. " +
-			"DFCI enables Intune to manage UEFI (BIOS) settings on compatible Windows devices, providing low-level security controls. " +
-			"This action removes the DFCI management capability from devices, reverting them to standard Intune management without " +
-			"firmware-level control. After removal, the device's UEFI settings can no longer be managed remotely via Intune.\n\n" +
+			"This action is used to remove the DFCI management capability from devices, reverting them to standard Intune management without " +
+			"firmware-level control. DFCI enables Intune to manage UEFI (BIOS) settings on compatible Windows devices, providing low-level security controls. " +
+			"After removal, the device's UEFI settings can no longer be managed remotely via Intune.\n\n" +
 			"**Important Notes:**\n" +
 			"- Only works on Windows devices with DFCI-capable firmware\n" +
 			"- Requires devices enrolled with DFCI management enabled\n" +

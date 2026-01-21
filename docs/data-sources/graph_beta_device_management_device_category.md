@@ -3,24 +3,27 @@ page_title: "microsoft365_graph_beta_device_management_device_category Data Sour
 subcategory: "Device Management"
 
 description: |-
-  Retrieves device categories from Microsoft Intune using the /deviceManagement/deviceCategories endpoint. Device categories help organize devices into logical groups for policy targeting and reporting, enabling users to select categories during enrollment or allowing automatic assignment based on device properties.
+  Retrieves device categories from Microsoft Intune using the /deviceManagement/deviceCategories endpoint. This data source is used to query organizational device groupings for policy targeting and reporting.
 ---
 
 # microsoft365_graph_beta_device_management_device_category (Data Source)
 
-Retrieves device categories from Microsoft Intune using the `/deviceManagement/deviceCategories` endpoint. Device categories help organize devices into logical groups for policy targeting and reporting, enabling users to select categories during enrollment or allowing automatic assignment based on device properties.
+Retrieves device categories from Microsoft Intune using the `/deviceManagement/deviceCategories` endpoint. This data source is used to query organizational device groupings for policy targeting and reporting.
 
 ## Microsoft Documentation
 
 - [deviceCategory resource type](https://learn.microsoft.com/en-us/graph/api/resources/intune-shared-devicecategory?view=graph-rest-beta)
 
-## API Permissions
+## Microsoft Graph API Permissions
 
-The following API permissions are required in order to use this data source.
+The following client `application` permissions are needed in order to use this data source:
 
-### Microsoft Graph
+**Required:**
+- `DeviceManagementManagedDevices.Read.All`
+- `DeviceManagementManagedDevices.ReadWrite.All`
 
-- **Application**: `DeviceManagementManagedDevices.Read.All`, `DeviceManagementManagedDevices.ReadWrite.All`
+**Optional:**
+- `None` `[N/A]`
 
 ## Version History
 

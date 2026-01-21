@@ -85,9 +85,7 @@ func (r *DeviceHealthScriptResource) ModifyPlan(ctx context.Context, req resourc
 // Schema defines the schema for the resource.
 func (r *DeviceHealthScriptResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Manages Windows remediation scripts using the `/deviceManagement/deviceHealthScripts` endpoint. " +
-			"Remediation scripts enable proactive detection and automatic remediation of common issues on Windows devices through " +
-			"PowerShell detection scripts paired with remediation scripts that execute when problems are identified.",
+		MarkdownDescription: "Manages Windows remediation scripts in Microsoft Intune using the `/deviceManagement/deviceHealthScripts` endpoint. This resource is used to enable proactive detection and automatic remediation of common issues on Windows devices through PowerShell scripts.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed: true,

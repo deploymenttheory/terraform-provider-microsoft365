@@ -3,25 +3,30 @@ page_title: "microsoft365_graph_beta_device_and_app_management_macos_pkg_app Res
 subcategory: "Device and App Management"
 
 description: |-
-  Manages macOS PKG app deployments using the /deviceAppManagement/mobileApps endpoint. PKG files are installer packages that deploy applications, system components, or configuration files to managed macOS devices through the Intune management agent with support for pre/post-installation scripts.
+  Manages macOS PKG app deployments using the /deviceAppManagement/mobileApps endpoint. This resource is used to pKG files are installer packages that deploy applications, system components, or configuration files to managed macOS devices through the Intune management agent with support for pre/post-installation scripts.
 ---
 
 # microsoft365_graph_beta_device_and_app_management_macos_pkg_app (Resource)
 
-Manages macOS PKG app deployments using the `/deviceAppManagement/mobileApps` endpoint. PKG files are installer packages that deploy applications, system components, or configuration files to managed macOS devices through the Intune management agent with support for pre/post-installation scripts.
+Manages macOS PKG app deployments using the `/deviceAppManagement/mobileApps` endpoint. This resource is used to pKG files are installer packages that deploy applications, system components, or configuration files to managed macOS devices through the Intune management agent with support for pre/post-installation scripts.
 
 ## Microsoft Documentation
 
 - [macOSPkgApp resource type](https://learn.microsoft.com/en-us/graph/api/resources/intune-apps-macospkgapp?view=graph-rest-beta)
 - [Create macOSPkgApp](https://learn.microsoft.com/en-us/graph/api/intune-apps-macospkgapp-create?view=graph-rest-beta)
+- [Read macOSPkgApp](https://learn.microsoft.com/en-us/graph/api/intune-apps-macospkgapp-get?view=graph-rest-beta)
+- [Update macOSPkgApp](https://learn.microsoft.com/en-us/graph/api/intune-apps-macospkgapp-update?view=graph-rest-beta)
+- [Delete macOSPkgApp](https://learn.microsoft.com/en-us/graph/api/intune-apps-macospkgapp-delete?view=graph-rest-beta)
 
-## API Permissions
+## Microsoft Graph API Permissions
 
-The following API permissions are required in order to use this resource.
+The following client `application` permissions are needed in order to use this resource:
 
-### Microsoft Graph
+**Required:**
+- `DeviceManagementApps.ReadWrite.All`
 
-- **Application**: `DeviceManagementApps.ReadWrite.All`
+**Optional:**
+- `None` `[N/A]`
 
 ## Version History
 

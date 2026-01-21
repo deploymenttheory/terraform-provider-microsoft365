@@ -3,24 +3,27 @@ page_title: "microsoft365_graph_beta_device_management_reuseable_policy_setting 
 subcategory: "Device Management"
 
 description: |-
-  Retrieves Reusable Policy Settings from Microsoft Intune with explicit filtering options. Endpoint Privilege Management supports using reusable settings groups to manage the certificates in place of adding that certificate directly to an elevation rule. Like all reusable settings groups for Intune, configurations and changes made to a reusable settings group are automatically passed to the policies that reference the group.
+  Retrieves reusable policy settings from Microsoft Intune using the /deviceManagement/reusablePolicySettings endpoint. This data source is used to query shared configuration groups for Endpoint Privilege Management that can be referenced across multiple policies.
 ---
 
 # microsoft365_graph_beta_device_management_reuseable_policy_setting (Data Source)
 
-Retrieves Reusable Policy Settings from Microsoft Intune with explicit filtering options. Endpoint Privilege Management supports using reusable settings groups to manage the certificates in place of adding that certificate directly to an elevation rule. Like all reusable settings groups for Intune, configurations and changes made to a reusable settings group are automatically passed to the policies that reference the group.
+Retrieves reusable policy settings from Microsoft Intune using the `/deviceManagement/reusablePolicySettings` endpoint. This data source is used to query shared configuration groups for Endpoint Privilege Management that can be referenced across multiple policies.
 
 ## Microsoft Documentation
 
 - [deviceManagementReusablePolicySetting resource type](https://learn.microsoft.com/en-us/graph/api/resources/intune-deviceconfigv2-devicemanagementreusablepolicysetting?view=graph-rest-beta)
 
-## API Permissions
+## Microsoft Graph API Permissions
 
-The following API permissions are required in order to use this data source.
+The following client `application` permissions are needed in order to use this data source:
 
-### Microsoft Graph
+**Required:**
+- `DeviceManagementConfiguration.Read.All`
+- `DeviceManagementConfiguration.ReadWrite.All`
 
-- **Application**: `DeviceManagementConfiguration.Read.All`, `DeviceManagementConfiguration.ReadWrite.All`
+**Optional:**
+- `None` `[N/A]`
 
 ## Version History
 

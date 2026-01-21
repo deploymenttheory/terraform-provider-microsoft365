@@ -50,7 +50,7 @@ func (d *MacOSPKGAppMetadataDataSource) Configure(ctx context.Context, req datas
 // Schema defines the schema for the data source
 func (d *MacOSPKGAppMetadataDataSource) Schema(ctx context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Extracts metadata from a macOS PKG file specified by file path or URL.",
+		MarkdownDescription: "Extracts metadata from macOS PKG installer files locally or from URLs. This data source is used to retrieve bundle identifiers, versions, and package details for macOS app deployment.",
 		Attributes: map[string]schema.Attribute{
 			"installer_file_path_source": schema.StringAttribute{
 				Optional:            true,

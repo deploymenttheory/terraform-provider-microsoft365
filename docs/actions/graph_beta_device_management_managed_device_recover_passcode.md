@@ -3,7 +3,7 @@ page_title: "microsoft365_graph_beta_device_management_managed_device_recover_pa
 subcategory: "Device Management"
 
 description: |-
-  Recovers passcodes for managed devices using the /deviceManagement/managedDevices/{managedDeviceId}/recoverPasscode endpoint. This action retrieves existing passcodes that are escrowed in Intune, which is different from reset passcode that generates new temporary passcodes. Recover passcode is primarily used for iOS/iPadOS devices where passcodes may be escrowed during enrollment or management.
+  Recovers passcodes for managed devices in Microsoft Intune using the /deviceManagement/managedDevices/{managedDeviceId}/recoverPasscode endpoint. This action is used to retrieve existing passcodes that are escrowed in Intune, which is different from reset passcode that generates new temporary passcodes. Recover passcode is primarily used for iOS/iPadOS devices where passcodes may be escrowed during enrollment or management.
   Important Notes:
   Retrieves existing escrowed passcode from IntuneDifferent from reset passcode (which creates new passcode)Passcode must have been previously escrowedPrimarily for iOS/iPadOS supervised devicesRetrieved passcode displayed in Intune portalMay not be available for all device types
   Use Cases:
@@ -19,7 +19,7 @@ description: |-
 
 # microsoft365_graph_beta_device_management_managed_device_recover_passcode (Action)
 
-Recovers passcodes for managed devices using the `/deviceManagement/managedDevices/{managedDeviceId}/recoverPasscode` endpoint. This action retrieves existing passcodes that are escrowed in Intune, which is different from reset passcode that generates new temporary passcodes. Recover passcode is primarily used for iOS/iPadOS devices where passcodes may be escrowed during enrollment or management.
+Recovers passcodes for managed devices in Microsoft Intune using the `/deviceManagement/managedDevices/{managedDeviceId}/recoverPasscode` endpoint. This action is used to retrieve existing passcodes that are escrowed in Intune, which is different from reset passcode that generates new temporary passcodes. Recover passcode is primarily used for iOS/iPadOS devices where passcodes may be escrowed during enrollment or management.
 
 **Important Notes:**
 - Retrieves existing escrowed passcode from Intune
@@ -67,14 +67,15 @@ Recovers passcodes for managed devices using the `/deviceManagement/managedDevic
 ### Intune Remote Actions Guides
 - [Device remove passcode](https://learn.microsoft.com/en-us/intune/intune-service/remote-actions/device-remove-passcode)
 
-## API Permissions
+## Microsoft Graph API Permissions
 
-The following API permissions are required in order to use this action.
+The following client `application` permissions are needed in order to use this action:
 
-### Microsoft Graph
+**Required:**
+- `DeviceManagementManagedDevices.PrivilegedOperations.All`
 
-- **Application**: `DeviceManagementManagedDevices.PrivilegedOperations.All`
-- **Delegated**: `DeviceManagementManagedDevices.PrivilegedOperations.All`
+**Optional:**
+- `None` `[N/A]`
 
 ## Version History
 
@@ -83,113 +84,6 @@ The following API permissions are required in order to use this action.
 | v0.33.0-alpha | Experimental | Initial release |
 | v0.40.0-alpha | Experimental | Example fixes and refactored sync progress logic |
 
-
-## Notes
-
-### Platform Compatibility
-
-| Platform | Support | Escrow Requirements |
-|----------|---------|---------------------|
-| **iOS** | ✅ Full Support | Supervised, DEP/ABM enrolled, escrow enabled |
-| **iPadOS** | ✅ Full Support | Supervised, DEP/ABM enrolled, escrow enabled |
-| **macOS** | ⚠️ Limited | Specific configurations, rarely used |
-| **Windows** | ❌ Not Supported | Windows passcode recovery not available |
-| **Android** | ❌ Not Supported | Android passcode recovery not available |
-
-### Recover vs Reset Passcode
-
-| Action | What It Does | Best For | Requirements |
-|--------|--------------|----------|--------------|
-| **Recover** | Retrieves existing escrowed passcode | Supervised iOS/iPadOS with escrow | Passcode must be escrowed |
-| **Reset** | Generates new temporary passcode | Any supported device | Device must be online |
-
-### What is Passcode Escrow?
-
-Passcode escrow is a security feature that:
-- Stores encrypted copy of device passcode in Intune
-- Configured during device enrollment setup
-- Primarily available for supervised iOS/iPadOS devices
-- Requires specific enrollment profile settings
-- Enables IT to recover (not reset) user passcodes
-- Useful for emergency device access
-
-### Escrow Configuration Requirements
-
-For passcode recovery to work, devices must:
-1. Be supervised (iOS/iPadOS)
-2. Enrolled via DEP/ABM or Apple Configurator
-3. Have passcode escrow enabled in enrollment profile
-4. Have user-set passcode after escrow enabled
-5. Passcode must be actively escrowed (not expired)
-
-### When to Use Recover vs Reset
-
-**Use Recover Passcode When:**
-- Device is supervised iOS/iPadOS
-- Passcode escrow is confirmed enabled
-- You want the user's original passcode
-- No device configuration change desired
-- User forgot passcode but device enrolled correctly
-
-**Use Reset Passcode When:**
-- Passcode recovery fails (not escrowed)
-- Device is unsupervised
-- Platform doesn't support escrow (Windows, Android)
-- You need to force a passcode change
-- Passcode escrow wasn't configured
-
-### How to Verify Passcode Escrow
-
-Before attempting recovery:
-1. Check device enrollment profile settings
-2. Verify "Escrow passcode" is enabled
-3. Confirm device is supervised
-4. Check device was enrolled with correct profile
-5. Verify enrollment wasn't bypassed
-
-### Retrieving Recovered Passcode
-
-After successful recovery:
-1. Navigate to Microsoft Intune admin center
-2. Select Devices > All devices
-3. Choose the device
-4. View device properties or hardware information
-5. Look for "Passcode" or "Recovery" section
-6. Passcode displayed as plain text or retrievable
-7. Securely communicate to authorized user
-
-### Common Failure Reasons
-
-| Error | Cause | Solution |
-|-------|-------|----------|
-| Not escrowed | Passcode never saved to Intune | Use reset passcode instead |
-| Unsupervised | Device not in supervised mode | Re-enroll via DEP/ABM |
-| Wrong profile | Enrolled without escrow enabled | Check enrollment profile settings |
-| Expired escrow | Passcode changed after enrollment | May need to reset instead |
-| Wrong platform | Windows/Android attempted | Use reset for these platforms |
-
-### Security Considerations
-
-- **Sensitive Data**: Recovered passcodes are actual user passcodes
-- **Access Control**: Strictly limit who can recover passcodes
-- **Verification**: Verify user identity before providing passcode
-- **Communication**: Never send passcodes via email or unsecured chat
-- **Documentation**: Log all passcode recovery requests
-- **Compliance**: Ensure recovery aligns with privacy policies
-- **Audit Trail**: Maintain records of who recovered what/when
-
-### Best Practices
-
-- Try recover before reset (preserves user experience)
-- Verify escrow status before attempting recovery
-- Have reset passcode as fallback option
-- Implement approval workflow for recovery requests
-- Train help desk on when to use recover vs reset
-- Document business justification for recovery
-- Secure passcode communication channels
-- Monitor for patterns of repeated recovery
-- Review enrollment profiles regularly
-- Test escrow functionality with test devices
 
 ## Example Usage
 

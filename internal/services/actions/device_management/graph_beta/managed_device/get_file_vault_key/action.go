@@ -57,10 +57,10 @@ func (a *GetFileVaultKeyManagedDeviceAction) Configure(ctx context.Context, req 
 
 func (a *GetFileVaultKeyManagedDeviceAction) Schema(ctx context.Context, req action.SchemaRequest, resp *action.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Retrieves the FileVault recovery key for macOS managed devices using the " +
+		MarkdownDescription: "Retrieves the FileVault recovery key for macOS managed devices in Microsoft Intune using the " +
 			"`/deviceManagement/managedDevices/{managedDeviceId}/getFileVaultKey` and " +
 			"`/deviceManagement/comanagedDevices/{managedDeviceId}/getFileVaultKey` endpoints. " +
-			"This action allows administrators to retrieve escrowed FileVault recovery keys for device recovery purposes. " +
+			"This action is used to retrieve escrowed FileVault recovery keys for device recovery purposes. " +
 			"The recovery key is displayed in the action output and can be used to unlock an encrypted macOS device when " +
 			"a user has forgotten their password or is otherwise unable to access the device. This is a critical capability " +
 			"for IT support and device recovery scenarios.\n\n" +

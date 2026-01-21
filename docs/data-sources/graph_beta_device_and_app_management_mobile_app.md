@@ -14,13 +14,16 @@ Retrieves mobile applications from Microsoft Intune using the `/deviceAppManagem
 
 - [mobileApp resource type](https://learn.microsoft.com/en-us/graph/api/resources/intune-apps-mobileapp?view=graph-rest-beta)
 
-## API Permissions
+## Microsoft Graph API Permissions
 
-The following API permissions are required in order to use this data source.
+The following client `application` permissions are needed in order to use this data source:
 
-### Microsoft Graph
+**Required:**
+- `DeviceManagementApps.Read.All`
+- `DeviceManagementApps.ReadWrite.All`
 
-- **Application**: `DeviceManagementApps.Read.All`, `DeviceManagementApps.ReadWrite.All`
+**Optional:**
+- `None` `[N/A]`
 
 ## Version History
 

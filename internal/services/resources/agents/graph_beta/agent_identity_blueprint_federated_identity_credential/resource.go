@@ -88,10 +88,7 @@ func (r *AgentIdentityBlueprintFederatedIdentityCredentialResource) ImportState(
 // Schema returns the schema for the resource.
 func (r *AgentIdentityBlueprintFederatedIdentityCredentialResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Manages a Federated Identity Credential for an Agent Identity Blueprint in Microsoft Entra ID using the `/applications` endpoint. " +
-			"By configuring a trust relationship between your Microsoft Entra agent identity blueprint registration and the identity provider " +
-			"for your compute platform, you can use tokens issued by that platform to authenticate with Microsoft identity platform and call APIs " +
-			"in the Microsoft ecosystem. Maximum of 20 federated identity credentials can be added to an agentIdentityBlueprint.",
+		MarkdownDescription: "Manages a Federated Identity Credential for an Agent Identity Blueprint in Microsoft Entra ID using the `/applications` endpoint. This resource is used to configure a trust relationship between your agent identity blueprint and the identity provider for your compute platform, enabling token-based authentication with Microsoft identity platform. By configuring this trust relationship, you can use tokens issued by that platform to authenticate and call APIs in the Microsoft ecosystem. Maximum of 20 federated identity credentials can be added to an agentIdentityBlueprint.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				MarkdownDescription: "The unique identifier for the federated identity credential. Read-only.",

@@ -60,7 +60,7 @@ func (a *AssignUserToDeviceAction) Schema(ctx context.Context, req action.Schema
 	resp.Schema = schema.Schema{
 		MarkdownDescription: "Assigns a user to an Autopilot device in Microsoft Intune using the " +
 			"`/deviceManagement/windowsAutopilotDeviceIdentities/{windowsAutopilotDeviceIdentityId}/assignUserToDevice` endpoint. " +
-			"This action assigns user to Autopilot devices for streamlined device setup and management.",
+			"This action is used to assign users to Autopilot devices for streamlined device setup and management.",
 		Attributes: map[string]schema.Attribute{
 			"windows_autopilot_device_identity_id": schema.StringAttribute{
 				Required: true,
@@ -76,11 +76,11 @@ func (a *AssignUserToDeviceAction) Schema(ctx context.Context, req action.Schema
 			"user_principal_name": schema.StringAttribute{
 				Required: true,
 				MarkdownDescription: "The user principal name (UPN) of the user to assign to the device. " +
-					"This is typically the user's email address in the format user@domain.com.",
+					"This is typically in the format user@domain.com.",
 				Validators: []validator.String{
 					stringvalidator.RegexMatches(
-						regexp.MustCompile(constants.EmailRegex),
-						"must be a valid email address format (e.g., user@domain.com)",
+						regexp.MustCompile(constants.UserPrincipalNameRegex),
+						"must be a valid User Principal Name format (e.g., user@domain.com)",
 					),
 				},
 			},

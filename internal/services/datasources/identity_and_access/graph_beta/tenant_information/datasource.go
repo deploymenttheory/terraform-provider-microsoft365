@@ -45,9 +45,7 @@ func (d *TenantInformationDataSource) Configure(ctx context.Context, req datasou
 
 func (d *TenantInformationDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Retrieves tenant information from Microsoft Entra ID using the tenant relationships API. " +
-			"This data source enables querying tenant information by tenant ID or domain name. " +
-			"You can use this API to validate tenant information and retrieve tenant details for configuring cross-tenant access settings.",
+		MarkdownDescription: "Retrieves tenant information from Microsoft Entra ID using the `/tenantRelationships/findTenantInformationByTenantId` or `/tenantRelationships/findTenantInformationByDomainName` endpoint. This data source is used to query tenant details for cross-tenant access configuration and validation.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:            true,

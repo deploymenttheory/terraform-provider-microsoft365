@@ -3,12 +3,12 @@ page_title: "microsoft365_graph_beta_agents_agent_identity_blueprint_federated_i
 subcategory: "Agents"
 
 description: |-
-  Manages a Federated Identity Credential for an Agent Identity Blueprint in Microsoft Entra ID using the /applications endpoint. By configuring a trust relationship between your Microsoft Entra agent identity blueprint registration and the identity provider for your compute platform, you can use tokens issued by that platform to authenticate with Microsoft identity platform and call APIs in the Microsoft ecosystem. Maximum of 20 federated identity credentials can be added to an agentIdentityBlueprint.
+  Manages a Federated Identity Credential for an Agent Identity Blueprint in Microsoft Entra ID using the /applications endpoint. This resource is used to configure a trust relationship between your agent identity blueprint and the identity provider for your compute platform, enabling token-based authentication with Microsoft identity platform. By configuring this trust relationship, you can use tokens issued by that platform to authenticate and call APIs in the Microsoft ecosystem. Maximum of 20 federated identity credentials can be added to an agentIdentityBlueprint.
 ---
 
 # microsoft365_graph_beta_agents_agent_identity_blueprint_federated_identity_credential (Resource)
 
-Manages a Federated Identity Credential for an Agent Identity Blueprint in Microsoft Entra ID using the `/applications` endpoint. By configuring a trust relationship between your Microsoft Entra agent identity blueprint registration and the identity provider for your compute platform, you can use tokens issued by that platform to authenticate with Microsoft identity platform and call APIs in the Microsoft ecosystem. Maximum of 20 federated identity credentials can be added to an agentIdentityBlueprint.
+Manages a Federated Identity Credential for an Agent Identity Blueprint in Microsoft Entra ID using the `/applications` endpoint. This resource is used to configure a trust relationship between your agent identity blueprint and the identity provider for your compute platform, enabling token-based authentication with Microsoft identity platform. By configuring this trust relationship, you can use tokens issued by that platform to authenticate and call APIs in the Microsoft ecosystem. Maximum of 20 federated identity credentials can be added to an agentIdentityBlueprint.
 
 ## Microsoft Documentation
 
@@ -18,14 +18,17 @@ Manages a Federated Identity Credential for an Agent Identity Blueprint in Micro
 - [Delete federatedIdentityCredential](https://learn.microsoft.com/en-us/graph/api/federatedidentitycredential-delete?view=graph-rest-beta&tabs=http)
 - [Workload identity federation](https://learn.microsoft.com/en-us/entra/workload-id/workload-identity-federation)
 
-## API Permissions
+## Microsoft Graph API Permissions
 
-The following API permissions are required in order to use this resource.
+The following client `application` permissions are needed in order to use this resource:
 
-### Microsoft Graph
+**Required:**
+- `AgentIdentityBlueprint.AddRemoveCreds.All`
+- `Directory.Read.All`
+- `Directory.ReadWrite.All`
 
-- **Read Permissions**: `AgentIdentityBlueprint.AddRemoveCreds.All`, `Directory.Read.All`
-- **Write Permissions**: `AgentIdentityBlueprint.AddRemoveCreds.All`, `Directory.ReadWrite.All`
+**Optional:**
+- `None` `[N/A]`
 
 Find out more about the permissions required for managing agent identities at microsoft learn [here](https://learn.microsoft.com/en-us/graph/api/resources/agentid-platform-overview?view=graph-rest-beta#permissions-for-managing-agent-identities).
 

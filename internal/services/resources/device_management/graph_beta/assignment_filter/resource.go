@@ -79,10 +79,7 @@ func (r *AssignmentFilterResource) ImportState(ctx context.Context, req resource
 // Schema returns the schema for the resource.
 func (r *AssignmentFilterResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Manages assignment filters in Microsoft Intune using the `/deviceManagement/assignmentFilters` endpoint." +
-			" Assignment filters enable granular targeting of policies and applications based on device properties like OS version, manufacturer, " +
-			"device name, or custom attributes, allowing more precise deployment control beyond basic group membership. You can learn more about assignment filters " +
-			"[here](https://learn.microsoft.com/en-us/intune/intune-service/fundamentals/filters-device-properties).",
+		MarkdownDescription: "Manages assignment filters using the `/deviceManagement/assignmentFilters` endpoint. This resource is used to assignment filters enable granular targeting of policies and applications based on device properties like OS version, manufacturer, device name, or custom attributes, allowing more precise deployment control beyond basic group membership. You can learn more about assignment filters [here](https://learn.microsoft.com/en-us/intune/intune-service/fundamentals/filters-device-properties)..",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed: true,

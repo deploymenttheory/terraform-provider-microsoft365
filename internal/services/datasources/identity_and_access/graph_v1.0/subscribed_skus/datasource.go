@@ -58,8 +58,7 @@ func (d *SubscribedSkusDataSource) Configure(ctx context.Context, req datasource
 // Schema returns the schema for the data source.
 func (d *SubscribedSkusDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Retrieves information about Microsoft 365 license SKUs (Stock Keeping Units) that an organization has subscribed to. " +
-			"This data source provides details about available licenses, their consumption, and service plans.",
+		MarkdownDescription: "Retrieves Microsoft 365 license SKUs from Microsoft Entra ID using the `/subscribedSkus` endpoint. This data source is used to query subscribed license SKUs with consumption details and service plans.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:            true,

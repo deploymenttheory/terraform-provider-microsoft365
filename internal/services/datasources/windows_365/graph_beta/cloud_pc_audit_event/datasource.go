@@ -46,7 +46,7 @@ func (d *CloudPcAuditEventDataSource) Configure(ctx context.Context, req datasou
 
 func (d *CloudPcAuditEventDataSource) Schema(ctx context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Retrieves Cloud PC audit events from Microsoft Intune. Using the endpoint '/deviceManagement/virtualEndpoint/auditEvents'. Supports filtering by all, id, or display_name.",
+		MarkdownDescription: "Retrieves Cloud PC audit events from Microsoft Intune using the `/deviceManagement/virtualEndpoint/auditEvents` endpoint. This data source is used to query administrative actions and changes for compliance and troubleshooting.",
 		Attributes: map[string]schema.Attribute{
 			"filter_type": schema.StringAttribute{
 				Required:            true,

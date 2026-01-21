@@ -64,23 +64,6 @@ The following Microsoft Graph API permissions are required to use this action:
 | v0.40.0-alpha | Experimental | Example fixes and refactored sync progress logic |
 
 
-## Notes
-
-### Platform Compatibility
-
-This remote action is only available for iOS and iPadOS devices with VPP-purchased apps. The table below shows platform support:
-
-| Platform | Supported | Notes |
-|:---------|:----------|:------|
-| **Windows** | ❌ | Not supported - VPP is Apple-specific |
-| **macOS** | ❌ | Not supported - Uses different licensing model |
-| **iOS** | ✅ | Fully supported for VPP apps |
-| **iPadOS** | ✅ | Fully supported for VPP apps |
-| **Android** | ❌ | Not supported - Uses Google Play licensing |
-| **Android Enterprise** | ❌ | Not supported - Uses managed Google Play |
-| **ChromeOS** | ❌ | Not supported - Uses Chrome Web Store licensing |
-
-
 ## Example Usage
 
 {{ tffile (printf "examples/actions/%s/action.tf" .Name)}}

@@ -54,10 +54,10 @@ func (a *UpdateWindowsDeviceAccountAction) Configure(ctx context.Context, req ac
 
 func (a *UpdateWindowsDeviceAccountAction) Schema(ctx context.Context, req action.SchemaRequest, resp *action.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Updates the device account configuration on Windows devices using the " +
+		MarkdownDescription: "Updates the device account configuration on Windows devices in Microsoft Intune using the " +
 			"`/deviceManagement/managedDevices/{managedDeviceId}/updateWindowsDeviceAccount` and " +
 			"`/deviceManagement/comanagedDevices/{managedDeviceId}/updateWindowsDeviceAccount` endpoints. " +
-			"This action is specifically designed for shared Windows devices like Surface Hub and Microsoft Teams Rooms " +
+			"This action is used to configure device accounts for shared Windows devices like Surface Hub and Microsoft Teams Rooms " +
 			"that require device account configuration for Exchange and Skype for Business/Teams integration.\n\n" +
 			"**What This Action Does:**\n" +
 			"- Updates device account credentials\n" +
@@ -117,6 +117,12 @@ func (a *UpdateWindowsDeviceAccountAction) Schema(ctx context.Context, req actio
 								"- Must exist in Exchange/Microsoft 365\n" +
 								"- Should be a room or equipment mailbox\n" +
 								"- Requires appropriate licenses",
+							Validators: []validator.String{
+								stringvalidator.RegexMatches(
+									regexp.MustCompile(constants.EmailRegex),
+									"must be a valid email address format (e.g., conference-room@company.com)",
+								),
+							},
 						},
 						"password": schema.StringAttribute{
 							Required: true,
@@ -160,6 +166,12 @@ func (a *UpdateWindowsDeviceAccountAction) Schema(ctx context.Context, req actio
 								"- Autodiscover: Leave blank to use autodiscover\n\n" +
 								"**Note:** If not specified, the device will attempt to use Exchange autodiscover " +
 								"to locate the appropriate Exchange server automatically.",
+							Validators: []validator.String{
+								stringvalidator.RegexMatches(
+									regexp.MustCompile(constants.HostnameOrFQDNRegex),
+									"must be a valid hostname or fully qualified domain name (e.g., mail.company.com)",
+								),
+							},
 						},
 						"session_initiation_protocol_address": schema.StringAttribute{
 							Optional: true,
@@ -174,6 +186,12 @@ func (a *UpdateWindowsDeviceAccountAction) Schema(ctx context.Context, req actio
 								"- Must match the device account UPN or email\n" +
 								"- Account must be enabled for Teams/SfB\n" +
 								"- Requires appropriate licensing",
+							Validators: []validator.String{
+								stringvalidator.RegexMatches(
+									regexp.MustCompile(constants.SipAddressRegex),
+									"must be a valid SIP address format (e.g., sip:user@domain.com)",
+								),
+							},
 						},
 					},
 				},
@@ -201,8 +219,14 @@ func (a *UpdateWindowsDeviceAccountAction) Schema(ctx context.Context, req actio
 							},
 						},
 						"device_account_email": schema.StringAttribute{
-							Required:            true,
+							Required: true,
 							MarkdownDescription: "The email address of the device account. See managed_devices.device_account_email for details.",
+							Validators: []validator.String{
+								stringvalidator.RegexMatches(
+									regexp.MustCompile(constants.EmailRegex),
+									"must be a valid email address format (e.g., conference-room@company.com)",
+								),
+							},
 						},
 						"password": schema.StringAttribute{
 							Required:            true,
@@ -217,12 +241,24 @@ func (a *UpdateWindowsDeviceAccountAction) Schema(ctx context.Context, req actio
 							MarkdownDescription: "Whether calendar synchronization is enabled. See managed_devices.calendar_sync_enabled for details.",
 						},
 						"exchange_server": schema.StringAttribute{
-							Optional:            true,
+							Optional: true,
 							MarkdownDescription: "The Exchange server address. See managed_devices.exchange_server for details.",
+							Validators: []validator.String{
+								stringvalidator.RegexMatches(
+									regexp.MustCompile(constants.HostnameOrFQDNRegex),
+									"must be a valid hostname or fully qualified domain name (e.g., mail.company.com)",
+								),
+							},
 						},
 						"session_initiation_protocol_address": schema.StringAttribute{
-							Optional:            true,
+							Optional: true,
 							MarkdownDescription: "The SIP address for Teams/SfB. See managed_devices.session_initiation_protocol_address for details.",
+							Validators: []validator.String{
+								stringvalidator.RegexMatches(
+									regexp.MustCompile(constants.SipAddressRegex),
+									"must be a valid SIP address format (e.g., sip:user@domain.com)",
+								),
+							},
 						},
 					},
 				},

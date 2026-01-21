@@ -2,12 +2,12 @@
 page_title: "microsoft365_graph_m365_admin_m365_apps_installation_options Resource - terraform-provider-microsoft365"
 subcategory: "M365 Admin"
 description: |-
-  Manages Microsoft 365 Apps installation options using the /admin/microsoft365Apps/installationOptions endpoint. Installation options control tenant-wide settings for M365 Apps deployment including update channels, app availability for Windows and macOS platforms, and feature restrictions for organizational software distribution governance.
+  Manages Microsoft 365 Apps installation options using the /admin/microsoft365Apps/installationOptions endpoint. This resource is used to installation options control tenant-wide settings for M365 Apps deployment including update channels, app availability for Windows and macOS platforms, and feature restrictions for organizational software distribution governance.
 ---
 
 # microsoft365_graph_m365_admin_m365_apps_installation_options (Resource)
 
-Manages Microsoft 365 Apps installation options using the `/admin/microsoft365Apps/installationOptions` endpoint. Installation options control tenant-wide settings for M365 Apps deployment including update channels, app availability for Windows and macOS platforms, and feature restrictions for organizational software distribution governance.
+Manages Microsoft 365 Apps installation options using the `/admin/microsoft365Apps/installationOptions` endpoint. This resource is used to installation options control tenant-wide settings for M365 Apps deployment including update channels, app availability for Windows and macOS platforms, and feature restrictions for organizational software distribution governance.
 
 ## Microsoft Documentation
 
@@ -15,13 +15,15 @@ Manages Microsoft 365 Apps installation options using the `/admin/microsoft365Ap
 - [Get m365AppsInstallationOptions](https://learn.microsoft.com/en-us/graph/api/m365appsinstallationoptions-get?view=graph-rest-1.0)
 - [Update m365AppsInstallationOptions](https://learn.microsoft.com/en-us/graph/api/m365appsinstallationoptions-update?view=graph-rest-1.0)
 
-## API Permissions
+## Microsoft Graph API Permissions
 
-The following API permissions are required in order to use this resource.
+The following client `application` permissions are needed in order to use this resource:
 
-### Microsoft Graph
+**Required:**
+- `OrgSettings.ReadWrite.All`
 
-- **Application**: `OrgSettings.ReadWrite.All`
+**Optional:**
+- `None` `[N/A]`
 
 ## Version History
 

@@ -52,8 +52,7 @@ func (d *WindowsRemediationScriptDataSource) Configure(ctx context.Context, req 
 // Schema defines the schema for the data source
 func (d *WindowsRemediationScriptDataSource) Schema(ctx context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Retrieves Windows Remediation Scripts from Microsoft Intune with explicit filtering options. " +
-			"Windows Remediation Scripts are PowerShell scripts that can be deployed to devices to help remediate issues.",
+		MarkdownDescription: "Retrieves Windows remediation scripts from Microsoft Intune using the `/deviceManagement/deviceHealthScripts` endpoint. This data source is used to query proactive remediation scripts with detection and remediation PowerShell logic.",
 		Attributes: map[string]schema.Attribute{
 			"filter_type": schema.StringAttribute{
 				Required:            true,

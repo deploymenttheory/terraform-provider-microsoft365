@@ -53,10 +53,10 @@ func (a *EnableLostModeManagedDeviceAction) Configure(ctx context.Context, req a
 
 func (a *EnableLostModeManagedDeviceAction) Schema(ctx context.Context, req action.SchemaRequest, resp *action.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Enables lost mode on iOS/iPadOS managed devices using the " +
+		MarkdownDescription: "Enables lost mode on iOS/iPadOS managed devices in Microsoft Intune using the " +
 			"`/deviceManagement/managedDevices/{managedDeviceId}/enableLostMode` and " +
 			"`/deviceManagement/comanagedDevices/{managedDeviceId}/enableLostMode` endpoints. " +
-			"This action locks the device and displays a custom message with contact information on the lock screen. " +
+			"This action is used to lock devices and display custom messages with contact information on the lock screen for locating and securing lost devices. " +
 			"Lost mode is a feature that helps locate and secure lost iOS/iPadOS devices by locking them " +
 			"and enabling device location tracking. " +
 			"This action supports enabling lost mode on multiple devices in a single operation with per-device messages.\n\n" +
@@ -118,6 +118,10 @@ func (a *EnableLostModeManagedDeviceAction) Schema(ctx context.Context, req acti
 								"- Can include international dialing codes",
 							Validators: []validator.String{
 								stringvalidator.LengthAtLeast(1),
+								stringvalidator.RegexMatches(
+									regexp.MustCompile(constants.PhoneNumberRegex),
+									"must be a valid phone number format (e.g., +1-555-0123 or 555-0123)",
+								),
 							},
 						},
 						"footer": schema.StringAttribute{
@@ -161,6 +165,10 @@ func (a *EnableLostModeManagedDeviceAction) Schema(ctx context.Context, req acti
 								"Example: `\"555-0123\"`",
 							Validators: []validator.String{
 								stringvalidator.LengthAtLeast(1),
+								stringvalidator.RegexMatches(
+									regexp.MustCompile(constants.PhoneNumberRegex),
+									"must be a valid phone number format (e.g., +1-555-0123 or 555-0123)",
+								),
 							},
 						},
 						"footer": schema.StringAttribute{

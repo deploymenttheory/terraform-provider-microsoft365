@@ -79,23 +79,7 @@ func (r *GroupMemberAssignmentResource) ImportState(ctx context.Context, req res
 // Schema defines the schema for the resource.
 func (r *GroupMemberAssignmentResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Manages Azure AD/Entra group member assignments using the `/groups/{group-id}/members` endpoint. This resource enables adding and removing users, groups, service principals, devices, and organizational contacts as members of security groups and Microsoft 365 groups.\n\n" +
-			"**Member Type Support by Group Type:**\n" +
-			"- **Security Groups**: Users, other Security groups, Devices, Service principals, and Organizational contacts\n" +
-			"- **Microsoft 365 Groups**: Only Users are supported\n" +
-			"- **Mail-enabled Security Groups**: Read-only, cannot add members\n" +
-			"- **Distribution Groups**: Read-only, cannot add members\n\n" +
-			"**Important Notes:**\n" +
-			"- The resource automatically validates member compatibility with the target group type\n" +
-			"- When adding a Group as a member, both the target and member groups must be Security groups\n" +
-			"- Microsoft 365 groups cannot be members of any group type\n\n" +
-			"**Required Permissions by Member Type:**\n" +
-			"- **Users**: `GroupMember.ReadWrite.All`\n" +
-			"- **Groups**: `GroupMember.ReadWrite.All`\n" +
-			"- **Devices**: `GroupMember.ReadWrite.All` + `Device.ReadWrite.All`\n" +
-			"- **Service Principals**: `GroupMember.ReadWrite.All` + `Application.ReadWrite.All`\n" +
-			"- **Organizational Contacts**: `GroupMember.ReadWrite.All` + `OrgContact.Read.All`\n" +
-			"- **Role-assignable Groups**: Additional `RoleManagement.ReadWrite.Directory` permission required",
+		MarkdownDescription: "Manages Azure AD/Entra group member assignments using the `/groups/{group-id}/members` endpoint. This resource is used to enables adding and removing users, groups, service principals, devices, and organizational contacts as members of security groups and Microsoft 365 groups.\n\n**Member Type Support by Group Type:**\n- **Security Groups**: Users, other Security groups, Devices, Service principals, and Organizational contacts\n- **Microsoft 365 Groups**: Only Users are supported\n- **Mail-enabled Security Groups**: Read-only, cannot add members\n- **Distribution Groups**: Read-only, cannot add members\n\n**Important Notes:**\n- The resource automatically validates member compatibility with the target group type\n- When adding a Group as a member, both the target and member groups must be Security groups\n- Microsoft 365 groups cannot be members of any group type\n\n**Required Permissions by Member Type:**\n- **Users**: `GroupMember.ReadWrite.All`\n- **Groups**: `GroupMember.ReadWrite.All`\n- **Devices**: `GroupMember.ReadWrite.All` + `Device.ReadWrite.All`\n- **Service Principals**: `GroupMember.ReadWrite.All` + `Application.ReadWrite.All`\n- **Organizational Contacts**: `GroupMember.ReadWrite.All` + `OrgContact.Read.All`\n- **Role-assignable Groups**: Additional `RoleManagement.ReadWrite.Directory` permission required.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed: true,

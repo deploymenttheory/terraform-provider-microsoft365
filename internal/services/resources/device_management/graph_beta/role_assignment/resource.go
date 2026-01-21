@@ -128,7 +128,7 @@ func (r *RoleAssignmentResource) ImportState(ctx context.Context, req resource.I
 
 func (r *RoleAssignmentResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Manages role assignments in Microsoft Intune using the `/deviceManagement/roleAssignments` endpoint. Role assignments bind role definitions to users or groups with specific scope configurations, enabling granular access control for device management and administrative functions within Intune.",
+		MarkdownDescription: "Manages role assignments using the `/deviceManagement/roleAssignments` endpoint. This resource is used to role assignments bind role definitions to users or groups with specific scope configurations, enabling granular access control for device management and administrative functions within Intune.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed: true,

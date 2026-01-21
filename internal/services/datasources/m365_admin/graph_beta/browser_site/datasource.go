@@ -53,7 +53,7 @@ func (d *BrowserSiteDataSource) Configure(ctx context.Context, req datasource.Co
 // Schema defines the schema for the data source
 func (d *BrowserSiteDataSource) Schema(ctx context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Retrieves Browser Sites from Microsoft 365 Admin Centre with explicit filtering options.",
+		MarkdownDescription: "Retrieves browser sites from Microsoft 365 Admin Centre using the `/admin/edge/internetExplorerMode/siteLists/{siteListId}/sites` endpoint. This data source is used to query individual site entries within an IE mode site list.",
 		Attributes: map[string]schema.Attribute{
 			"filter_type": schema.StringAttribute{
 				Required:            true,

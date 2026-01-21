@@ -3,7 +3,7 @@ page_title: "microsoft365_graph_beta_device_management_managed_device_logout_sha
 subcategory: "Device Management"
 
 description: |-
-  Logs out the currently active user from Shared iPad devices using the /deviceManagement/managedDevices/{managedDeviceId}/logoutSharedAppleDeviceActiveUser endpoint. This action is specifically designed for iPads configured in Shared iPad mode, where multiple users can use the same device while maintaining separate user environments.
+  Logs out the currently active user from Shared iPad devices in Microsoft Intune using the /deviceManagement/managedDevices/{managedDeviceId}/logoutSharedAppleDeviceActiveUser endpoint. This action is used to manage user sessions on iPads configured in Shared iPad mode, where multiple users can use the same device while maintaining separate user environments.
   What is Shared iPad Mode?
   Educational/enterprise feature for iPadOSMultiple users share single physical deviceEach user has separate data and settingsUsers log in with their Apple ID or Managed Apple IDLocal caching of user data for offline accessRequires supervised iPads enrolled via DEP/ABM
   What This Action Does:
@@ -21,7 +21,7 @@ description: |-
 
 # microsoft365_graph_beta_device_management_managed_device_logout_shared_apple_device_active_user (Action)
 
-Logs out the currently active user from Shared iPad devices using the `/deviceManagement/managedDevices/{managedDeviceId}/logoutSharedAppleDeviceActiveUser` endpoint. This action is specifically designed for iPads configured in Shared iPad mode, where multiple users can use the same device while maintaining separate user environments.
+Logs out the currently active user from Shared iPad devices in Microsoft Intune using the `/deviceManagement/managedDevices/{managedDeviceId}/logoutSharedAppleDeviceActiveUser` endpoint. This action is used to manage user sessions on iPads configured in Shared iPad mode, where multiple users can use the same device while maintaining separate user environments.
 
 **What is Shared iPad Mode?**
 - Educational/enterprise feature for iPadOS
@@ -82,14 +82,15 @@ Logs out the currently active user from Shared iPad devices using the `/deviceMa
 ### Intune Remote Actions Guides
 - [Device logout user](https://learn.microsoft.com/en-us/intune/intune-service/remote-actions/device-logout-user)
 
-## API Permissions
+## Microsoft Graph API Permissions
 
-The following API permissions are required in order to use this action.
+The following client `application` permissions are needed in order to use this action:
 
-### Microsoft Graph
+**Required:**
+- `DeviceManagementManagedDevices.PrivilegedOperations.All`
 
-- **Application**: `DeviceManagementManagedDevices.PrivilegedOperations.All`
-- **Delegated**: `DeviceManagementManagedDevices.PrivilegedOperations.All`
+**Optional:**
+- `None` `[N/A]`
 
 ## Version History
 
@@ -98,195 +99,6 @@ The following API permissions are required in order to use this action.
 | v0.33.0-alpha | Experimental | Initial release |
 | v0.40.0-alpha | Experimental | Example fixes and refactored sync progress logic |
 
-
-## Notes
-
-### Platform Compatibility
-
-| Platform | Support | Requirements |
-|----------|---------|--------------|
-| **iPadOS** | ✅ Full Support | Shared iPad mode, supervised, DEP/ABM |
-| **iOS** | ❌ Not Supported | iPhones don't support Shared mode |
-| **macOS** | ❌ Not Supported | Shared mode is iPad-only |
-| **Windows** | ❌ Not Supported | Shared mode is iPad-only |
-| **Android** | ❌ Not Supported | Shared mode is iPad-only |
-
-### What is Shared iPad Mode?
-
-Shared iPad is an Apple educational and enterprise feature that enables:
-
-**Multi-User Support**
-- Multiple users can use the same physical iPad
-- Each user maintains separate data, apps, and settings
-- Users log in with Apple ID or Managed Apple ID
-- Seamless switching between user accounts
-
-**Local Data Caching**
-- User data cached locally on device
-- Offline access to user content
-- Configurable storage per user
-- Automatic cloud sync when online
-
-**Management Features**
-- Requires supervised iPads
-- Must be enrolled via DEP/ABM
-- Centralized configuration
-- IT control over user quotas
-- Session management capabilities
-
-### How This Action Works
-
-**Immediate Effect**
-1. Active user is logged out
-2. All user apps are closed
-3. Device returns to login screen
-4. Next user can immediately log in
-
-**Data Preservation**
-- User data remains cached on device
-- Documents and files preserved
-- App data saved
-- User settings retained
-- Photos and media kept
-- User can re-login anytime
-
-**What Doesn't Change**
-- Device configuration
-- Installed apps
-- MDM enrollment
-- Other cached users
-- Device settings
-- Network configuration
-
-### Common Use Cases
-
-| Scenario | Description | Benefit |
-|----------|-------------|---------|
-| **Classroom Rotation** | Switch students between periods | Efficient device sharing |
-| **Lab Management** | Reset devices between sessions | Clean slate for each user |
-| **Cart Devices** | Prepare devices for next day | Ready for morning distribution |
-| **Emergency Logout** | Remote user session termination | Security/troubleshooting |
-| **Scheduled Sessions** | Enforce time-limited access | Automated session management |
-| **Device Rotation** | Prepare for next user in queue | Streamlined user switching |
-
-### Requirements
-
-#### Device Requirements
-- iPad with Shared iPad mode enabled
-- Supervised via DEP/ABM or Apple Configurator
-- iPadOS 9.3 or later
-- Sufficient storage for cached users
-- Online (for remote command delivery)
-
-#### User Requirements
-- User must be actively logged in
-- Uses Apple ID or Managed Apple ID
-- Has active session on device
-
-#### Infrastructure Requirements
-- Apple School Manager or Apple Business Manager
-- MDM (Intune) enrollment
-- Managed Apple ID infrastructure (for education)
-- Federation setup (for enterprise, optional)
-
-### Action Behavior
-
-#### Success Scenarios
-- User logged out successfully
-- Device returns to login screen
-- User data preserved on device
-- Ready for next user
-
-#### No Effect Scenarios
-- Regular (non-shared) iPad
-- No user currently logged in
-- Device already at login screen
-- Device is iPhone (iOS)
-- Unsupervised device
-
-#### Failure Scenarios
-- Device offline
-- Device not in Shared iPad mode
-- API communication error
-- Insufficient permissions
-- Device not supervised
-
-### User Impact
-
-**Immediate**
-- Active user session terminated
-- All apps close immediately
-- Unsaved work is lost
-- Device locks to login screen
-
-**Data Impact**
-- **Preserved**: User documents, photos, app data, settings
-- **Lost**: Unsaved changes in open apps, clipboard content
-- **Unaffected**: Other cached users, device configuration
-
-**User Experience**
-- Abrupt logout (no warning)
-- Must log in again to access data
-- All data available upon re-login
-- No data loss (except unsaved work)
-
-### Best Practices
-
-**Scheduling**
-- Logout during non-instructional time
-- Coordinate with class schedules
-- Use during breaks/transitions
-- Avoid mid-session logouts
-
-**Communication**
-- Notify users before logout when possible
-- Establish logout policies
-- Train users to save work regularly
-- Document standard procedures
-
-**Implementation**
-- Test with single device first
-- Start with small groups
-- Monitor for issues
-- Have rollback plan
-- Provide help desk support
-
-**Automation**
-- Integrate with scheduling systems
-- Use time-based triggers
-- Combine with other MDM actions
-- Log all logout operations
-- Monitor success rates
-
-### Troubleshooting
-
-| Issue | Cause | Solution |
-|-------|-------|----------|
-| Action fails | Device not Shared iPad | Verify Shared iPad configuration |
-| No effect | No active user | Confirm user is logged in |
-| Timeout | Device offline | Check network connectivity |
-| Error | Not supervised | Enroll via DEP/ABM |
-| Wrong device | iPhone (iOS) | Only use with iPadOS devices |
-| User data lost | Unsaved work | Train users to save frequently |
-
-### Shared iPad Configuration
-
-**Setup Requirements**
-1. Apple School Manager or Business Manager account
-2. DEP/ABM enrollment for iPads
-3. Shared iPad configuration profile
-4. User accounts (Managed Apple IDs)
-5. Storage allocation per user
-6. Maximum cached users setting
-
-**Configuration Options**
-- Maximum resident users
-- Storage quota per user
-- Temporary session mode
-- Guest access settings
-- User authentication method
-- Data retention policies
-- Offline access limits
 
 ## Example Usage
 

@@ -3,25 +3,27 @@ page_title: "microsoft365_graph_beta_device_management_role_assignment Resource 
 subcategory: "Device Management"
 
 description: |-
-  Manages role assignments in Microsoft Intune using the /deviceManagement/roleAssignments endpoint. Role assignments bind role definitions to users or groups with specific scope configurations, enabling granular access control for device management and administrative functions within Intune.
+  Manages role assignments using the /deviceManagement/roleAssignments endpoint. This resource is used to role assignments bind role definitions to users or groups with specific scope configurations, enabling granular access control for device management and administrative functions within Intune.
 ---
 
 # microsoft365_graph_beta_device_management_role_assignment (Resource)
 
-Manages role assignments in Microsoft Intune using the `/deviceManagement/roleAssignments` endpoint. Role assignments bind role definitions to users or groups with specific scope configurations, enabling granular access control for device management and administrative functions within Intune.
+Manages role assignments using the `/deviceManagement/roleAssignments` endpoint. This resource is used to role assignments bind role definitions to users or groups with specific scope configurations, enabling granular access control for device management and administrative functions within Intune.
 
 ## Microsoft Documentation
 
 - [deviceAndAppManagementRoleAssignment resource type](https://learn.microsoft.com/en-us/graph/api/resources/intune-rbac-deviceandappmanagementroleassignment?view=graph-rest-beta)
 - [Create deviceAndAppManagementRoleAssignment](https://learn.microsoft.com/en-us/graph/api/intune-rbac-deviceandappmanagementroleassignment-create?view=graph-rest-beta)
 
-## API Permissions
+## Microsoft Graph API Permissions
 
-The following API permissions are required in order to use this resource.
+The following client `application` permissions are needed in order to use this resource:
 
-### Microsoft Graph
+**Required:**
+- `DeviceManagementRBAC.ReadWrite.All`
 
-- **Application**: `DeviceManagementRBAC.ReadWrite.All`
+**Optional:**
+- `None` `[N/A]`
 
 ## Version History
 

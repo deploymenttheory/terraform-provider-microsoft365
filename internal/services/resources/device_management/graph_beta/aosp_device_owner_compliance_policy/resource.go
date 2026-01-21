@@ -77,9 +77,7 @@ func (r *AospDeviceOwnerCompliancePolicyResource) ImportState(ctx context.Contex
 // Schema returns the schema for the resource.
 func (r *AospDeviceOwnerCompliancePolicyResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Manages AOSP (Android Open Source Project) device owner compliance policies in Microsoft Intune using the `/deviceManagement/deviceCompliancePolicies` " +
-			"endpoint. Device compliance policies define rules and settings that devices must meet to be considered compliant with organizational security " +
-			"requirements.",
+		MarkdownDescription: "Manages AOSP (Android Open Source Project) device owner compliance policies using the `/deviceManagement/deviceCompliancePolicies` endpoint. This resource is used to device compliance policies define rules and settings that devices must meet to be considered compliant with organizational security requirements.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed: true,

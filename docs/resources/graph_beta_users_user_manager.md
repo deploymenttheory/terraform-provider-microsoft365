@@ -15,13 +15,15 @@ Manages the manager relationship for a user in Microsoft Entra ID using the Micr
 - [Assign manager](https://learn.microsoft.com/en-us/graph/api/user-post-manager?view=graph-rest-beta)
 - [Remove manager](https://learn.microsoft.com/en-us/graph/api/user-delete-manager?view=graph-rest-beta)
 
-## API Permissions
+## Microsoft Graph API Permissions
 
-The following API permissions are required in order to use this resource.
+The following client `application` permissions are needed in order to use this resource:
 
-### Microsoft Graph
+**Required:**
+- `User.ReadWrite.All`
 
-- **Application**: `User.ReadWrite.All`
+**Optional:**
+- `None` `[N/A]`
 
 ## Version History
 

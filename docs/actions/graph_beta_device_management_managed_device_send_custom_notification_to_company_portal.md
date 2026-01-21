@@ -2,7 +2,7 @@
 page_title: "Microsoft 365_microsoft365_graph_beta_device_management_managed_device_send_custom_notification_to_company_portal Action"
 subcategory: "Device Management"
 description: |-
-  Sends custom notifications to the Company Portal app on managed devices using the /deviceManagement/managedDevices/{managedDeviceId}/sendCustomNotificationToCompanyPortal and /deviceManagement/comanagedDevices/{managedDeviceId}/sendCustomNotificationToCompanyPortal endpoints. This action enables IT administrators to send targeted messages to end users through the Company Portal app.
+  Sends custom notifications to the Company Portal app on managed devices in Microsoft Intune using the /deviceManagement/managedDevices/{managedDeviceId}/sendCustomNotificationToCompanyPortal and /deviceManagement/comanagedDevices/{managedDeviceId}/sendCustomNotificationToCompanyPortal endpoints. This action is used to enable IT administrators to send targeted messages to end users through the Company Portal app.
   What This Action Does:
   Sends push notification to Company Portal appDisplays custom message title and bodyTargets specific devices or usersSupports customized messages per deviceProvides in-app notification visibilityEnables two-way communication channel
   When to Use:
@@ -16,7 +16,7 @@ description: |-
 
 # Microsoft 365_microsoft365_graph_beta_device_management_managed_device_send_custom_notification_to_company_portal (Action)
 
-Sends custom notifications to the Company Portal app on managed devices using the `/deviceManagement/managedDevices/{managedDeviceId}/sendCustomNotificationToCompanyPortal` and `/deviceManagement/comanagedDevices/{managedDeviceId}/sendCustomNotificationToCompanyPortal` endpoints. This action enables IT administrators to send targeted messages to end users through the Company Portal app.
+Sends custom notifications to the Company Portal app on managed devices in Microsoft Intune using the `/deviceManagement/managedDevices/{managedDeviceId}/sendCustomNotificationToCompanyPortal` and `/deviceManagement/comanagedDevices/{managedDeviceId}/sendCustomNotificationToCompanyPortal` endpoints. This action is used to enable IT administrators to send targeted messages to end users through the Company Portal app.
 
 **What This Action Does:**
 - Sends push notification to Company Portal app
@@ -126,116 +126,6 @@ The following Microsoft Graph API permissions are required to use this action:
 
 - [Custom notifications - iOS](https://learn.microsoft.com/en-us/intune/intune-service/remote-actions/custom-notifications?pivots=ios)
 - [Custom notifications - Android](https://learn.microsoft.com/en-us/intune/intune-service/remote-actions/custom-notifications?pivots=android)
-
-## Notes
-
-### Platform Compatibility
-
-Custom notifications to Company Portal are only supported on mobile platforms:
-
-| Platform | Supported | Company Portal App Required |
-|:---------|:----------|:---------------------------|
-| **iOS** | ✅ | Company Portal from App Store |
-| **iPadOS** | ✅ | Company Portal from App Store |
-| **Android** | ✅ | Company Portal from Google Play |
-| **Android Enterprise** | ✅ | Company Portal from managed Google Play |
-| **Windows 10/11** | ❌ | Not supported for custom notifications |
-| **macOS** | ❌ | Not supported for custom notifications |
-| **ChromeOS** | ❌ | Not supported for custom notifications |
-
-### Important Considerations
-
-**Company Portal Requirements:**
-- **App Installation**: Company Portal app must be installed on the target device
-- **User Sign-In**: User must be signed into the Company Portal app to receive notifications
-- **App Version**: Company Portal app should be updated to latest version for best compatibility
-- **Notification Permissions**: Company Portal must have notification permissions enabled on the device
-- **Background App**: Company Portal may need to be running in background on some platforms
-- **Device Enrollment**: Device must be actively enrolled and managed by Intune
-
-**Notification Delivery:**
-- **Delivery Method**: Notifications are delivered through the Company Portal app, not as OS-level push notifications
-- **Timing**: Notifications appear when users open or check the Company Portal app
-- **Persistence**: Notifications persist in the Company Portal notifications section until dismissed by user
-- **No Guaranteed Delivery**: There is no delivery confirmation; notification may fail silently if requirements not met
-- **Network Dependency**: Device requires network connectivity to receive notifications
-- **Offline Devices**: Offline devices will receive notifications when they reconnect and sync with Intune
-
-**Per-Device Customization:**
-- **Individual Messages**: Each device can have a completely different notification title and body
-- **Personalization**: Enables personalized messaging based on device state, user, or other attributes
-- **Flexible Targeting**: Mix different message types in single action (e.g., different expiration dates)
-- **Dynamic Content**: Use Terraform's dynamic blocks to generate device-specific messages from data sources
-
-**Notification Content Guidelines:**
-- **Title Length**: Keep titles concise (50-60 characters recommended, 250 character maximum)
-- **Body Length**: Keep body messages clear and actionable (200-300 characters recommended, 1000 character maximum)
-- **Clear Language**: Use simple, direct language that users can understand
-- **Call to Action**: Include specific next steps or actions for users to take
-- **Contact Information**: Provide support contact details when appropriate
-- **Urgency Indication**: Clearly indicate if action is urgent or time-sensitive
-- **Professional Tone**: Maintain professional, respectful communication tone
-
-**User Experience:**
-- **In-App Display**: Notifications appear in the Company Portal app's notification section
-- **No OS Notification**: Typically does not trigger operating system push notifications
-- **User Dismissal**: Users can dismiss notifications; they won't reappear after dismissal
-- **No Response Tracking**: No way to track if users read or acted on notifications
-- **Multiple Notifications**: Sending multiple notifications to same device accumulates in notification list
-
-**Operational Considerations:**
-- **Bulk Notifications**: This action supports sending different messages to many devices simultaneously
-- **Concurrent Processing**: Notifications are sent concurrently for better performance
-- **Rate Limiting**: Be mindful of API rate limits when sending to thousands of devices
-- **Retry Logic**: Failed notification sends are not automatically retried; use Terraform retry mechanisms if needed
-- **Idempotency**: Re-running the action sends duplicate notifications; avoid frequent re-runs
-- **Testing**: Test notifications with small groups before large-scale deployments
-
-**Time Zone Considerations:**
-- **No Scheduling**: This action sends notifications immediately; no built-in scheduling capability
-- **User Time Zones**: Consider user time zones when sending time-sensitive notifications
-- **Business Hours**: Best practice to send during business hours in target user's region
-- **After-Hours**: Avoid sending non-urgent notifications during nights or weekends
-- **Global Deployments**: For global organizations, stage notifications by region/time zone
-
-**Best Practices:**
-- **Targeted Messaging**: Use filters and data sources to target specific device groups
-- **Message Clarity**: Ensure messages are clear, actionable, and provide necessary context
-- **Frequency Management**: Avoid notification fatigue by limiting frequency of messages
-- **User-Centric**: Write from user's perspective; focus on what they need to do
-- **Test First**: Always test with small group before organization-wide rollout
-- **Fallback Communication**: Have backup communication channels (email, Teams) for critical messages
-- **Accessibility**: Use clear language and avoid jargon for accessibility
-- **Localization**: Consider language localization for multinational organizations
-- **Documentation**: Maintain records of notifications sent for audit and reference
-
-**Technical Limitations:**
-- **No Read Receipts**: No way to confirm users have read the notification
-- **No Response Collection**: Cannot collect user responses or acknowledgments through this action
-- **No Notification History**: Limited ability to retrieve sent notification history through API
-- **Character Limits**: Titles (250 chars) and bodies (1000 chars) have strict limits enforced by API
-- **No Rich Media**: Cannot include images, links, or rich formatting in notifications
-- **No Actionable Buttons**: Cannot add buttons or interactive elements to notifications
-
-**Security Considerations:**
-- **Information Disclosure**: Avoid including sensitive information in notification content
-- **Authentication**: Notifications visible to anyone with access to Company Portal on device
-- **Phishing Prevention**: Use consistent, recognizable language to prevent phishing confusion
-- **Contact Verification**: Users should verify unexpected notifications through official channels
-- **Audit Logging**: All notification actions are logged in Intune audit logs
-
-**Troubleshooting:**
-- **Not Receiving Notifications**: Verify Company Portal is installed, user is signed in, and device is enrolled
-- **Delayed Notifications**: Check device network connectivity and Company Portal app sync status
-- **Permission Issues**: Ensure Company Portal has necessary notification permissions on device
-- **Silent Failures**: API may return success even if notification isn't delivered; verify delivery separately
-- **App Not Installed**: If Company Portal isn't installed, notification fails silently without error
-
-**Monitoring & Analytics:**
-- **Delivery Confirmation**: No built-in delivery confirmation or read receipts available
-- **Audit Logs**: Check Intune audit logs to see notification send attempts and any errors
-- **User Feedback**: Rely on user feedback or support tickets to gauge notification effectiveness
-- **Action Logs**: Check Terraform/provider logs for any errors during notification sending
 
 ## Example Usage
 

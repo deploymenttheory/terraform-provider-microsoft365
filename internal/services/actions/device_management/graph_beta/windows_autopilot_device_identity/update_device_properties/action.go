@@ -63,7 +63,7 @@ func (a *UpdateDevicePropertiesAction) Schema(ctx context.Context, req action.Sc
 	resp.Schema = schema.Schema{
 		MarkdownDescription: "Updates properties on an Autopilot device in Microsoft Intune using the " +
 			"`/deviceManagement/windowsAutopilotDeviceIdentities/{windowsAutopilotDeviceIdentityId}/updateDeviceProperties` endpoint. " +
-			"This action allows updating various properties of Autopilot devices including user assignment, group tag, and display name.",
+			"This action is used to update various properties of Autopilot devices including user assignment, group tag, and display name.",
 		Attributes: map[string]schema.Attribute{
 			"windows_autopilot_device_identity_id": schema.StringAttribute{
 				Required: true,
@@ -79,12 +79,12 @@ func (a *UpdateDevicePropertiesAction) Schema(ctx context.Context, req action.Sc
 			"user_principal_name": schema.StringAttribute{
 				Optional: true,
 				MarkdownDescription: "The user principal name (UPN) of the user to assign to the device. " +
-					"This is typically the user's email address in the format user@domain.com. " +
+					"This is typically in the format user@domain.com. " +
 					"If not provided, the user assignment will not be updated.",
 				Validators: []validator.String{
 					stringvalidator.RegexMatches(
-						regexp.MustCompile(constants.EmailRegex),
-						"must be a valid email address format (e.g., user@domain.com)",
+						regexp.MustCompile(constants.UserPrincipalNameRegex),
+						"must be a valid User Principal Name format (e.g., user@domain.com)",
 					),
 				},
 			},

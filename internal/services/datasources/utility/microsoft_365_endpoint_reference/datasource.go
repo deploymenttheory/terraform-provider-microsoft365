@@ -47,12 +47,7 @@ func (d *Microsoft365EndpointReferenceDataSource) Configure(_ context.Context, r
 
 func (d *Microsoft365EndpointReferenceDataSource) Schema(ctx context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Retrieves Microsoft 365 network endpoints from the official Microsoft 365 IP Address and URL Web Service. " +
-			"This datasource queries `https://endpoints.office.com` with all service areas (MEM, Exchange, Skype, SharePoint, Common) " +
-			"to get current IP addresses, URLs, and ports for Microsoft 365 services including Intune/Endpoint Manager. " +
-			"Useful for configuring firewalls, proxy servers, SD-WAN devices, and PAC files. " +
-			"Data is filtered by cloud instance (Worldwide, US Government, China) and can be narrowed by service area and category.\n\n" +
-			"See [Managing Microsoft 365 endpoints](https://learn.microsoft.com/en-us/microsoft-365/enterprise/managing-office-365-endpoints) for configuration guidance.",
+		MarkdownDescription: "Retrieves Microsoft 365 network endpoints from the official IP Address and URL Web Service using the `https://endpoints.office.com` API. This data source is used to query current IP addresses, URLs, and ports for firewall and proxy configuration.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:            true,

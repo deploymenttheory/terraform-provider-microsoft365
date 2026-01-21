@@ -3,7 +3,7 @@ page_title: "microsoft365_graph_beta_agents_agent_collection Resource - terrafor
 subcategory: "Agents"
 
 description: |-
-  Manages an Agent Collection in the Microsoft Entra Agent Registry using the /agentRegistry/agentCollections endpoint. An agent collection represents a grouping of agent instances for organizational and access control purposes.
+  Manages an Agent Collection in the Microsoft Entra Agent Registry using the /agentRegistry/agentCollections endpoint. This resource is used to group agent instances for organizational and access control purposes.
   Reserved Collections: Two system-reserved collections are always available per tenant:
   Global (ID: 00000000-0000-0000-0000-000000000001): Tenant-wide pool of generally available agentsQuarantined (ID: 00000000-0000-0000-0000-000000000002): Holding area for blocked/review-pending agents
   Reserved collections cannot be updated or deleted. Attempting to create a collection with a reserved name returns a 409 Conflict error.
@@ -12,7 +12,7 @@ description: |-
 
 # microsoft365_graph_beta_agents_agent_collection (Resource)
 
-Manages an Agent Collection in the Microsoft Entra Agent Registry using the `/agentRegistry/agentCollections` endpoint. An agent collection represents a grouping of agent instances for organizational and access control purposes.
+Manages an Agent Collection in the Microsoft Entra Agent Registry using the `/agentRegistry/agentCollections` endpoint. This resource is used to group agent instances for organizational and access control purposes.
 
 **Reserved Collections**: Two system-reserved collections are always available per tenant:
 - **Global** (ID: `00000000-0000-0000-0000-000000000001`): Tenant-wide pool of generally available agents
@@ -29,18 +29,20 @@ For more information, see the [agentCollection resource type](https://learn.micr
 - [Get agentCollection](https://learn.microsoft.com/en-us/graph/api/agentcollection-get?view=graph-rest-beta&tabs=http)
 - [Update agentCollection](https://learn.microsoft.com/en-us/graph/api/agentcollection-update?view=graph-rest-beta&tabs=http)
 
-## API Permissions
+## Microsoft Graph API Permissions
 
-The following API permissions are required in order to use this resource.
+The following client `application` permissions are needed in order to use this resource:
 
-### Microsoft Graph
+**Required:**
+- `AgentCollection.Read.All`
+- `AgentCollection.ReadWrite.All`
+- `AgentCollection.ReadWrite.ManagedBy`
 
-- **Read**: `AgentCollection.Read.All`
-- **Write**: `AgentCollection.ReadWrite.All`, `AgentCollection.ReadWrite.ManagedBy`
-
-Additional lesser-privileged permissions scoped to special collections:
-- `AgentCollection.Read.Global` and `AgentCollection.ReadWrite.Global` for the **Global** collection
-- `AgentCollection.Read.Quarantined` and `AgentCollection.ReadWrite.Quarantined` for the **Quarantined** collection
+**Optional:**
+- `AgentCollection.Read.Global` `[For Global collection]`
+- `AgentCollection.ReadWrite.Global` `[For Global collection]`
+- `AgentCollection.Read.Quarantined` `[For Quarantined collection]`
+- `AgentCollection.ReadWrite.Quarantined` `[For Quarantined collection]`
 
 ## Version History
 

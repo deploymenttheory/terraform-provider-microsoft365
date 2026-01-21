@@ -57,11 +57,11 @@ func (a *RotateLocalAdminPasswordManagedDeviceAction) Configure(ctx context.Cont
 
 func (a *RotateLocalAdminPasswordManagedDeviceAction) Schema(ctx context.Context, req action.SchemaRequest, resp *action.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Initiates manual rotation of the local administrator password on managed Windows devices using the " +
+		MarkdownDescription: "Rotates the local administrator password on managed Windows devices in Microsoft Intune using the " +
 			"`/deviceManagement/managedDevices/{managedDeviceId}/rotateLocalAdminPassword` and " +
 			"`/deviceManagement/comanagedDevices/{managedDeviceId}/rotateLocalAdminPassword` endpoints. " +
-			"This action works with Windows Local Administrator Password Solution (LAPS) to generate and rotate local admin " +
-			"passwords on Windows devices. The new password is automatically generated, stored securely in Azure AD or Intune, " +
+			"This action is used to generate and rotate local admin passwords on Windows devices using Windows Local Administrator Password Solution (LAPS). " +
+			"The new password is automatically generated, stored securely in Azure AD or Intune, " +
 			"and can be retrieved by authorized administrators. This enhances security by ensuring regular password rotation and " +
 			"centralized password management for local administrator accounts.\n\n" +
 			"**Important Notes:**\n" +

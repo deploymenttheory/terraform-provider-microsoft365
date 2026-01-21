@@ -3,7 +3,7 @@ page_title: "microsoft365_graph_beta_device_management_managed_device_get_file_v
 subcategory: "Device Management"
 
 description: |-
-  Retrieves the FileVault recovery key for macOS managed devices using the /deviceManagement/managedDevices/{managedDeviceId}/getFileVaultKey and /deviceManagement/comanagedDevices/{managedDeviceId}/getFileVaultKey endpoints. This action allows administrators to retrieve escrowed FileVault recovery keys for device recovery purposes. The recovery key is displayed in the action output and can be used to unlock an encrypted macOS device when a user has forgotten their password or is otherwise unable to access the device. This is a critical capability for IT support and device recovery scenarios.
+  Retrieves the FileVault recovery key for macOS managed devices in Microsoft Intune using the /deviceManagement/managedDevices/{managedDeviceId}/getFileVaultKey and /deviceManagement/comanagedDevices/{managedDeviceId}/getFileVaultKey endpoints. This action is used to retrieve escrowed FileVault recovery keys for device recovery purposes. The recovery key is displayed in the action output and can be used to unlock an encrypted macOS device when a user has forgotten their password or is otherwise unable to access the device. This is a critical capability for IT support and device recovery scenarios.
   Important Security Notes:
   Recovery keys are highly sensitive credentialsKeys grant full access to encrypted device dataAccess to keys should be audited and restrictedOnly retrieve keys when necessary for device recoveryKeys are displayed in plain text in action outputEnsure proper security controls on Terraform stateConsider security implications before using in automation
   Use Cases:
@@ -15,7 +15,7 @@ description: |-
 
 # microsoft365_graph_beta_device_management_managed_device_get_file_vault_key (Action)
 
-Retrieves the FileVault recovery key for macOS managed devices using the `/deviceManagement/managedDevices/{managedDeviceId}/getFileVaultKey` and `/deviceManagement/comanagedDevices/{managedDeviceId}/getFileVaultKey` endpoints. This action allows administrators to retrieve escrowed FileVault recovery keys for device recovery purposes. The recovery key is displayed in the action output and can be used to unlock an encrypted macOS device when a user has forgotten their password or is otherwise unable to access the device. This is a critical capability for IT support and device recovery scenarios.
+Retrieves the FileVault recovery key for macOS managed devices in Microsoft Intune using the `/deviceManagement/managedDevices/{managedDeviceId}/getFileVaultKey` and `/deviceManagement/comanagedDevices/{managedDeviceId}/getFileVaultKey` endpoints. This action is used to retrieve escrowed FileVault recovery keys for device recovery purposes. The recovery key is displayed in the action output and can be used to unlock an encrypted macOS device when a user has forgotten their password or is otherwise unable to access the device. This is a critical capability for IT support and device recovery scenarios.
 
 **Important Security Notes:**
 - Recovery keys are highly sensitive credentials
@@ -39,16 +39,6 @@ Retrieves the FileVault recovery key for macOS managed devices using the `/devic
 
 **Reference:** [Microsoft Graph API - Get FileVault Key](https://learn.microsoft.com/en-us/graph/api/intune-devices-manageddevice-getfilevaultkey?view=graph-rest-beta)
 
-## ⚠️ Security Warning
-
-**This action retrieves and displays FileVault recovery keys in plain text.** Recovery keys are highly sensitive credentials that grant full access to encrypted device data. 
-
-- Only use this action when necessary for legitimate device recovery purposes
-- Ensure proper security controls are in place for Terraform state files
-- Keys will be displayed in action output and may be stored in state
-- Access should be logged, audited, and restricted to authorized personnel
-- Follow your organization's security policies for handling sensitive credentials
-
 ## Microsoft Documentation
 
 ### Graph API References
@@ -59,14 +49,16 @@ Retrieves the FileVault recovery key for macOS managed devices using the `/devic
 - [Use disk encryption for macOS with Intune](https://learn.microsoft.com/en-us/mem/intune/protect/encrypt-devices-filevault)
 - [FileVault recovery key rotation](https://learn.microsoft.com/en-us/mem/intune/protect/encrypt-devices-filevault#rotate-recovery-keys)
 
-## API Permissions
+## Microsoft Graph API Permissions
 
-The following API permissions are required in order to use this action.
+The following client `application` permissions are needed in order to use this action:
 
-### Microsoft Graph
+**Required:**
+- `DeviceManagementConfiguration.Read.All`
+- `DeviceManagementManagedDevices.Read.All`
 
-- **Application**: `DeviceManagementConfiguration.Read.All`, `DeviceManagementManagedDevices.Read.All`
-- **Delegated**: `DeviceManagementConfiguration.Read.All`, `DeviceManagementManagedDevices.Read.All`
+**Optional:**
+- `None` `[N/A]`
 
 ## Version History
 
@@ -75,57 +67,6 @@ The following API permissions are required in order to use this action.
 | v0.33.0-alpha | Experimental | Initial release |
 | v0.40.0-alpha | Experimental | Example fixes and refactored sync progress logic |
 
-
-## Notes
-
-### Platform Compatibility
-
-| Platform | Support | Requirements |
-|----------|---------|--------------|
-| **macOS** | ✅ Full Support | FileVault enabled with key escrowed to Intune |
-| **Windows** | ❌ Not Supported | FileVault is macOS-only (use BitLocker recovery for Windows) |
-| **iOS/iPadOS** | ❌ Not Supported | FileVault is macOS-only |
-| **Android** | ❌ Not Supported | FileVault is macOS-only |
-
-### What is FileVault Key Retrieval?
-
-FileVault Key Retrieval is an action that:
-- Retrieves the personal recovery key for FileVault-encrypted macOS devices
-- Returns keys that have been escrowed with Intune during encryption setup
-- Allows administrators to unlock devices when users cannot access them
-- Displays keys in plain text in the action output
-- Does not modify the device or recovery key
-- Critical capability for device recovery and support scenarios
-
-### When to Retrieve FileVault Keys
-
-- User is locked out and cannot remember their password
-- Device needs to be accessed for emergency data recovery
-- Departing employee's device needs to be unlocked for data migration
-- Device is being repurposed or reassigned to a new user
-- Technical support requires access to diagnose hardware/software issues
-- Disaster recovery or business continuity scenario
-- Legal, compliance, or audit requirement to access device data
-- Device recovery after hardware repair or replacement
-
-### What Happens When Key is Retrieved
-
-- Intune returns the escrowed FileVault personal recovery key
-- Key is displayed in action output via progress messages
-- No changes are made to the device or the key itself
-- Device remains encrypted and in its current state
-- Retrieved key remains valid until manually rotated
-- User's password and device settings remain unchanged
-- Administrator can use the key to unlock the device as needed
-
-### How to Use Retrieved Recovery Keys
-
-1. Boot the macOS device to macOS Recovery (hold Command+R during startup)
-2. When prompted, select "Unlock with Recovery Key"
-3. Enter the retrieved recovery key exactly as displayed
-4. Device will unlock and boot normally
-5. User can then reset their password if needed
-6. Key can be used multiple times until rotated
 
 ## Example Usage
 

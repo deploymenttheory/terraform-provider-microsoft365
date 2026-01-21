@@ -78,11 +78,7 @@ func (r *AutopatchGroupsResource) ImportState(ctx context.Context, req resource.
 // Schema returns the schema for the resource.
 func (r *AutopatchGroupsResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Manages Windows Autopatch groups using the `https://services.autopatch.microsoft.com/device/v2/autopatchGroups` endpoint." +
-			" Autopatch groups help organize devices into logical groups for automated Windows Update deployment with customizable deployment rings and policy settings." +
-			"This resource is not documented in the Microsoft Graph API documentation. This resource is experimental and may change in the future." +
-			"There's currently 401 errors when trying using this resource. There appears to be a seperate unobservable authentication step between intune and " +
-			" autopatch micro service that cannot be replicated in the terraform provider. Entra ID client id / secret are not sufficient to authenticate.",
+		MarkdownDescription: "Manages Windows Autopatch groups using the `/https://services.autopatch.microsoft.com/device/v2/autopatchGroups` endpoint. This resource is used to autopatch groups help organize devices into logical groups for automated Windows Update deployment with customizable deployment rings and policy settings.This resource is not documented in the Microsoft Graph API documentation. This resource is experimental and may change in the future.There's currently 401 errors when trying using this resource.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed: true,

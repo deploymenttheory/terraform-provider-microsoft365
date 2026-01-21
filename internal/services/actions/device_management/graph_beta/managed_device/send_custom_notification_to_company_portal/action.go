@@ -55,10 +55,10 @@ func (a *SendCustomNotificationToCompanyPortalAction) Configure(ctx context.Cont
 
 func (a *SendCustomNotificationToCompanyPortalAction) Schema(ctx context.Context, req action.SchemaRequest, resp *action.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Sends custom notifications to the Company Portal app on managed devices using the " +
+		MarkdownDescription: "Sends custom notifications to the Company Portal app on managed devices in Microsoft Intune using the " +
 			"`/deviceManagement/managedDevices/{managedDeviceId}/sendCustomNotificationToCompanyPortal` and " +
 			"`/deviceManagement/comanagedDevices/{managedDeviceId}/sendCustomNotificationToCompanyPortal` endpoints. " +
-			"This action enables IT administrators to send targeted messages to end users through the Company Portal app.\n\n" +
+			"This action is used to enable IT administrators to send targeted messages to end users through the Company Portal app.\n\n" +
 			"**What This Action Does:**\n" +
 			"- Sends push notification to Company Portal app\n" +
 			"- Displays custom message title and body\n" +

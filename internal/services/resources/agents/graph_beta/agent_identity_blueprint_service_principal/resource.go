@@ -110,8 +110,7 @@ func (r *AgentIdentityBlueprintServicePrincipalResource) ImportState(ctx context
 // Schema returns the schema for the resource.
 func (r *AgentIdentityBlueprintServicePrincipalResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Manages a service principal for an Agent Identity Blueprint in Microsoft Entra ID using the `/servicePrincipals/{id}/microsoft.graph.agentIdentityBlueprintPrincipal` endpoint. " +
-			"This resource creates an agentIdentityBlueprintPrincipal service principal for an existing agent identity blueprint.",
+		MarkdownDescription: "Manages a service principal for an Agent Identity Blueprint using the `/servicePrincipals/{id}/microsoft.graph.agentIdentityBlueprintPrincipal` endpoint. This resource is used to creates an agentIdentityBlueprintPrincipal service principal for an existing agent identity blueprint.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				MarkdownDescription: "The unique identifier for the service principal. Read-only.",

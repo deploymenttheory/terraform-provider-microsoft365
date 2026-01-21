@@ -70,7 +70,7 @@ func (r *CloudPcDeviceImageResource) ImportState(ctx context.Context, req resour
 
 func (r *CloudPcDeviceImageResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		Description: "Manages a Windows 365 Cloud PC Device Image using the Microsoft Graph Beta API.",
+		MarkdownDescription: "Manages Windows 365 Cloud PC device images using the `/deviceManagement/virtualEndpoint/deviceImages` endpoint. This resource is used to upload and manage custom Windows images for Cloud PC provisioning.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:            true,

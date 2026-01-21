@@ -72,7 +72,7 @@ func (r *NetworkFilteringPolicyResource) ImportState(ctx context.Context, req re
 // Schema defines the schema for the resource.
 func (r *NetworkFilteringPolicyResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Manages Microsoft 365 Filtering Policies using the `/networkAccess/filteringPolicies` endpoint. Filtering policies control network access based on specific rules and conditions.",
+		MarkdownDescription: "Manages Microsoft 365 Filtering Policies using the `/networkAccess/filteringPolicies` endpoint. This resource is used to filtering policies control network access based on specific rules and conditions.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				MarkdownDescription: "The unique identifier for the filtering policy.",

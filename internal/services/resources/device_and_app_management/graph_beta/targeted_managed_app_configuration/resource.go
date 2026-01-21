@@ -78,7 +78,7 @@ func (r *TargetedManagedAppConfigurationResource) ImportState(ctx context.Contex
 // Schema returns the schema for the resource.
 func (r *TargetedManagedAppConfigurationResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Manages targeted managed app configurations in Microsoft Intune using the `/deviceAppManagement/targetedManagedAppConfigurations` endpoint. Configuration used to deliver a set of custom settings as-is to all users in the targeted security group.",
+		MarkdownDescription: "Manages targeted managed app configurations using the `/deviceAppManagement/targetedManagedAppConfigurations` endpoint. This resource is used to configuration used to deliver a set of custom settings as-is to all users in the targeted security group.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed: true,

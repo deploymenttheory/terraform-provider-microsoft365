@@ -3,12 +3,12 @@ page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
 subcategory: "Device Management"
 
 description: |-
-{{ if .Description }}{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}{{ else }}  Initiates Mobile Device Management (MDM) key recovery and TPM attestation on managed Windows devices.{{ end }}
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
 ---
 
 # {{.Name}} ({{.Type}})
 
-{{ if .Description }}{{ .Description | trimspace }}{{ else }}Initiates Mobile Device Management (MDM) key recovery and TPM attestation on managed Windows devices, ensuring BitLocker recovery keys are escrowed to Azure AD and device TPM health is verified.{{ end }}
+{{ .Description | trimspace }}
 
 ## Microsoft Documentation
 
@@ -21,14 +21,16 @@ description: |-
 - [Manage BitLocker policy for Windows devices with Intune](https://learn.microsoft.com/en-us/mem/intune/protect/encrypt-devices)
 - [Trusted Platform Module (TPM) technology overview](https://learn.microsoft.com/en-us/windows/security/hardware-security/tpm/trusted-platform-module-overview)
 
-## API Permissions
+## Microsoft Graph API Permissions
 
-The following API permissions are required in order to use this action.
+The following client `application` permissions are needed in order to use this {{.Type | lower}}:
 
-### Microsoft Graph
+**Required:**
+- `DeviceManagementConfiguration.Read.All`
+- `DeviceManagementManagedDevices.Read.All`
 
-- **Application**: `DeviceManagementConfiguration.Read.All`, `DeviceManagementManagedDevices.Read.All`
-- **Delegated**: `DeviceManagementConfiguration.Read.All`, `DeviceManagementManagedDevices.Read.All`
+**Optional:**
+- `None` `[N/A]`
 
 ## Version History
 
@@ -37,171 +39,6 @@ The following API permissions are required in order to use this action.
 | v0.33.0-alpha | Experimental | Initial release |
 | v0.40.0-alpha | Experimental | Example fixes and refactored sync progress logic |
 
-
-## Notes
-
-### Platform Compatibility
-
-| Platform | Support | Requirements |
-|----------|---------|--------------|
-| **Windows** | ✅ Full Support | BitLocker enabled, TPM 1.2 or 2.0 present |
-| **macOS** | ❌ Not Supported | FileVault keys managed separately |
-| **iOS/iPadOS** | ❌ Not Supported | No BitLocker equivalent |
-| **Android** | ❌ Not Supported | Encryption managed differently |
-
-### What is MDM Key Recovery?
-
-MDM (Mobile Device Management) key recovery is a process that:
-- Escrows BitLocker recovery keys to Azure Active Directory
-- Performs Trusted Platform Module (TPM) attestation
-- Verifies device encryption and security posture
-- Ensures recovery keys are accessible for disaster recovery
-- Does not encrypt or decrypt the device
-- Does not affect device operation or user access
-- Is critical for compliance and data protection
-
-### What Happens During Key Recovery
-
-1. **Key Escrow**: Device uploads BitLocker recovery keys to Azure AD
-2. **TPM Attestation**: Device firmware (TPM) validates its security state
-3. **Azure AD Storage**: Recovery keys are securely stored in Azure AD
-4. **Audit Logging**: Action is logged for compliance tracking
-5. **Completion**: Device reports success without user impact
-
-### BitLocker Recovery Keys
-
-**What are BitLocker Recovery Keys?**
-- 48-digit numerical passwords used to unlock encrypted drives
-- Generated when BitLocker is enabled on a Windows device
-- Required if user forgets password or BitLocker suspects tampering
-- Critical for data recovery in disaster scenarios
-
-**Where are Keys Stored?**
-- Azure Active Directory (via this action)
-- Local Active Directory (for domain-joined devices)
-- User's Microsoft account (for personal devices)
-- Printed or saved by user during setup
-
-**Accessing Recovery Keys:**
-- Azure AD Portal → Devices → Device Details → BitLocker Keys
-- Microsoft Graph API queries
-- PowerShell with Azure AD module
-- End-user self-service portal (if enabled)
-
-### TPM Attestation
-
-**What is TPM?**
-- **Trusted Platform Module**: Hardware security chip on motherboard
-- Stores cryptographic keys, passwords, and certificates
-- Provides hardware-based security functions
-- Required for modern Windows security features
-
-**TPM Versions:**
-| Version | Year | Features |
-|---------|------|----------|
-| **TPM 1.2** | 2005 | Basic cryptographic operations, BitLocker support |
-| **TPM 2.0** | 2014 | Enhanced algorithms, better performance, Windows 11 required |
-
-**Attestation Process:**
-- TPM provides cryptographic proof of device health
-- Validates boot integrity and security configuration
-- Confirms no tampering with device firmware
-- Reports measured boot process to cloud service
-
-### When to Initiate Key Recovery
-
-- **New Device Enrollment**: Ensure keys are escrowed immediately
-- **Compliance Audits**: Verify all encrypted devices have keys backed up
-- **Periodic Rotation**: Refresh keys quarterly or semi-annually
-- **Pre-Deployment**: Validate encryption before user assignment
-- **After BitLocker Changes**: Re-escrow keys after policy updates
-- **Troubleshooting**: Verify key escrow if recovery issues occur
-- **Security Incidents**: Confirm TPM attestation after suspected compromise
-
-### Security and Compliance
-
-**Compliance Requirements:**
-- Many regulations require recovery key escrow (GDPR, HIPAA, PCI-DSS)
-- Keys must be stored securely and access-controlled
-- Audit logs must track key access and recovery operations
-- Regular key rotation recommended for security
-
-**Security Benefits:**
-- **Data Recovery**: Access encrypted data if user locked out
-- **Device Wipe Assurance**: Verify encryption before device disposal
-- **Compliance Proof**: Demonstrate encryption key management
-- **Reduced Downtime**: Quick recovery from BitLocker lockout
-- **TPM Validation**: Confirm device hasn't been tampered with
-
-### Key Recovery vs Other Actions
-
-| Action | Purpose | Changes Device |
-|--------|---------|----------------|
-| **MDM Key Recovery** | Escrow keys + TPM check | ❌ No |
-| **Rotate BitLocker Keys** | Generate new encryption keys | ✅ Yes |
-| **Get FileVault Key** | Retrieve macOS recovery key | ❌ No |
-| **Wipe Device** | Factory reset with encryption | ✅ Yes |
-
-### Important Considerations
-
-✅ **Safe Operations:**
-- Does not affect device performance
-- No user downtime or interruption
-- No data encryption/decryption
-- Can be run anytime, on any device
-- Idempotent (safe to run multiple times)
-
-⚠️ **Requirements:**
-- Device must have BitLocker enabled
-- TPM must be present and functional
-- Device must be online and checking in
-- Adequate Azure AD storage for keys
-- Proper permissions configured
-
-### Troubleshooting
-
-**Common Issues:**
-
-1. **Device Not Encrypted**
-   - Solution: Enable BitLocker via Intune policy first
-   - Check: Device must show as encrypted in Intune
-
-2. **No TPM Present**
-   - Solution: Cannot proceed, device lacks hardware
-   - Alternative: Use software-only encryption (less secure)
-
-3. **Key Not Appearing in Azure AD**
-   - Solution: Wait 15-30 minutes for sync
-   - Check: Device last check-in time and connectivity
-
-4. **Action Fails Silently**
-   - Solution: Check Intune logs and device compliance
-   - Verify: Device has proper encryption policy applied
-
-### Best Practices
-
-**Operational:**
-- ✅ Escrow keys during device enrollment
-- ✅ Schedule periodic key refresh (quarterly)
-- ✅ Validate key escrow after BitLocker policy changes
-- ✅ Monitor key escrow success rates
-- ✅ Document key access procedures
-- ✅ Test key retrieval process regularly
-
-**Security:**
-- ✅ Restrict access to recovery keys (RBAC)
-- ✅ Audit all key access and retrieval
-- ✅ Rotate keys periodically for sensitive devices
-- ✅ Use MFA for key access
-- ✅ Monitor for TPM attestation failures
-- ✅ Investigate failed attestations promptly
-
-**Compliance:**
-- ✅ Document key management procedures
-- ✅ Maintain audit trail of all key operations
-- ✅ Regular compliance validation
-- ✅ Include in disaster recovery plans
-- ✅ Train helpdesk on key recovery procedures
 
 ## Example Usage
 

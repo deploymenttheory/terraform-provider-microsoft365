@@ -17,18 +17,19 @@ description: |-
 - [List agentCollection members](https://learn.microsoft.com/en-us/graph/api/agentcollection-list-members?view=graph-rest-beta)
 - [Remove agentInstance from agentCollection](https://learn.microsoft.com/en-us/graph/api/agentcollection-delete-members?view=graph-rest-beta)
 
-## API Permissions
+## Microsoft Graph API Permissions
 
-The following API permissions are required in order to use this resource.
+The following client `application` permissions are needed in order to use this {{.Type | lower}}:
 
-### Microsoft Graph
+**Required:**
+- `AgentCollection.Read.All`
+- `AgentInstance.Read.All`
+- `AgentCollection.ReadWrite.All`
+- `AgentCollection.ReadWrite.ManagedBy`
 
-- **Read**: `AgentCollection.Read.All`, `AgentInstance.Read.All`
-- **Write**: `AgentCollection.ReadWrite.All` and `AgentInstance.Read.All`, or `AgentCollection.ReadWrite.ManagedBy` and `AgentInstance.Read.All`
-
-Additional lesser-privileged permissions scoped to special collections:
-- For the **Global** collection: `AgentCollection.ReadWrite.Global` and `AgentInstance.Read.All`
-- For the **Quarantined** collection: `AgentCollection.ReadWrite.Quarantined` and `AgentInstance.Read.All`
+**Optional:**
+- `AgentCollection.ReadWrite.Global` `[For Global collection]`
+- `AgentCollection.ReadWrite.Quarantined` `[For Quarantined collection]`
 
 ## Version History
 

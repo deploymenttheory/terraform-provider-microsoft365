@@ -2,28 +2,32 @@
 page_title: "microsoft365_graph_beta_identity_and_access_conditional_access_policy Resource - terraform-provider-microsoft365"
 subcategory: "Identity and Access"
 description: |-
-  Manages Microsoft 365 Conditional Access Policies using the /identity/conditionalAccess/policies endpoint. Conditional Access policies define the conditions under which users can access cloud apps.
+  Manages Conditional Access policies in Microsoft Entra ID using the /identity/conditionalAccess/policies endpoint. This resource is used to define the conditions under which users can access cloud applications.
 ---
 
 # microsoft365_graph_beta_identity_and_access_conditional_access_policy (Resource)
 
-Manages Microsoft 365 Conditional Access Policies using the `/identity/conditionalAccess/policies` endpoint. Conditional Access policies define the conditions under which users can access cloud apps.
+Manages Conditional Access policies in Microsoft Entra ID using the `/identity/conditionalAccess/policies` endpoint. This resource is used to define the conditions under which users can access cloud applications.
 
 ## Microsoft Documentation
 
+- [Conditional Access documentation](https://learn.microsoft.com/en-us/azure/active-directory/conditional-access/)
 - [conditionalAccessPolicy resource type](https://learn.microsoft.com/en-us/graph/api/resources/conditionalaccesspolicy?view=graph-rest-beta)
 - [Create conditionalAccessPolicy](https://learn.microsoft.com/en-us/graph/api/conditionalaccessroot-post-policies?view=graph-rest-beta)
 - [Update conditionalAccessPolicy](https://learn.microsoft.com/en-us/graph/api/conditionalaccesspolicy-update?view=graph-rest-beta)
 - [Delete conditionalAccessPolicy](https://learn.microsoft.com/en-us/graph/api/conditionalaccesspolicy-delete?view=graph-rest-beta)
-- [Conditional Access documentation](https://learn.microsoft.com/en-us/azure/active-directory/conditional-access/)
 
-## API Permissions
 
-The following API permissions are required in order to use this resource.
+## Microsoft Graph API Permissions
 
-### Microsoft Graph
+The following client `application` permissions are needed in order to use this resource:
 
-- **Application**: `Policy.ReadWrite.ConditionalAccess`, `Policy.Read.All`
+**Required:**
+- `Policy.ReadWrite.ConditionalAccess`
+- `Policy.Read.All`
+
+**Optional:**
+- `None` `[N/A]`
 
 ## Version History
 

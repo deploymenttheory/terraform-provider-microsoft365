@@ -55,9 +55,9 @@ func (a *LogoutSharedAppleDeviceActiveUserAction) Configure(ctx context.Context,
 
 func (a *LogoutSharedAppleDeviceActiveUserAction) Schema(ctx context.Context, req action.SchemaRequest, resp *action.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Logs out the currently active user from Shared iPad devices using the " +
+		MarkdownDescription: "Logs out the currently active user from Shared iPad devices in Microsoft Intune using the " +
 			"`/deviceManagement/managedDevices/{managedDeviceId}/logoutSharedAppleDeviceActiveUser` endpoint. " +
-			"This action is specifically designed for iPads configured in Shared iPad mode, where multiple users " +
+			"This action is used to manage user sessions on iPads configured in Shared iPad mode, where multiple users " +
 			"can use the same device while maintaining separate user environments.\n\n" +
 			"**What is Shared iPad Mode?**\n" +
 			"- Educational/enterprise feature for iPadOS\n" +

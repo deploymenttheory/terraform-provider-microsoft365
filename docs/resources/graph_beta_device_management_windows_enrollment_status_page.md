@@ -11,13 +11,15 @@ description: |-
 Manages a Windows 10 Enrollment Status Page configuration in Microsoft Intune. Using the `/deviceManagement/deviceEnrollmentConfigurations/{deviceEnrollmentConfigurationId}` endpoint.The Enrollment Status Page (ESP) displays the progress of the device setup process during Windows Autopilot provisioning or when a device first enrolls in Microsoft Intune.
 
 
-## API Permissions
+## Microsoft Graph API Permissions
 
-The following API permissions are required in order to use this resource.
+The following client `application` permissions are needed in order to use this resource:
 
-### Microsoft Graph
+**Required:**
+- `DeviceManagementConfiguration.ReadWrite.All`
 
-- **Application**: `DeviceManagementConfiguration.ReadWrite.All`
+**Optional:**
+- `None` `[N/A]`
 
 ## Version History
 

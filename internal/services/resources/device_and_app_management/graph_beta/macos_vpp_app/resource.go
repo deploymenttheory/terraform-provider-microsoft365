@@ -82,7 +82,7 @@ func (r *MacOSVppAppResource) ImportState(ctx context.Context, req resource.Impo
 // Schema returns the schema for the resource.
 func (r *MacOSVppAppResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Manages macOS Volume-Purchased Program (VPP) apps in Microsoft Intune using the `/deviceAppManagement/mobileApps` endpoint. VPP apps are applications purchased through Apple's Volume Purchase Program that can be distributed to managed macOS devices through the Intune management agent.",
+		MarkdownDescription: "Manages macOS Volume-Purchased Program (VPP) apps using the `/deviceAppManagement/mobileApps` endpoint. This resource is used to vPP apps are applications purchased through Apple's Volume Purchase Program that can be distributed to managed macOS devices through the Intune management agent.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed: true,

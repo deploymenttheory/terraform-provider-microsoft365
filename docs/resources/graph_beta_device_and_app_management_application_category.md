@@ -3,25 +3,27 @@ page_title: "microsoft365_graph_beta_device_and_app_management_application_categ
 subcategory: "Device and App Management"
 
 description: |-
-  Manages application categories in Microsoft Intune using the /deviceAppManagement/mobileAppCategories endpoint. Application categories help organize mobile apps in the Company Portal, enabling users to browse and discover apps by category (Business, Productivity, etc.) and allowing administrators to logically group applications for easier management.
+  Manages application categories using the /deviceAppManagement/mobileAppCategories endpoint. This resource is used to application categories help organize mobile apps in the Company Portal, enabling users to browse and discover apps by category (Business, Productivity, etc.) and allowing administrators to logically group applications for easier management.
 ---
 
 # microsoft365_graph_beta_device_and_app_management_application_category (Resource)
 
-Manages application categories in Microsoft Intune using the `/deviceAppManagement/mobileAppCategories` endpoint. Application categories help organize mobile apps in the Company Portal, enabling users to browse and discover apps by category (Business, Productivity, etc.) and allowing administrators to logically group applications for easier management.
+Manages application categories using the `/deviceAppManagement/mobileAppCategories` endpoint. This resource is used to application categories help organize mobile apps in the Company Portal, enabling users to browse and discover apps by category (Business, Productivity, etc.) and allowing administrators to logically group applications for easier management.
 
 ## Microsoft Documentation
 
 - [mobileAppCategory resource type](https://learn.microsoft.com/en-us/graph/api/resources/intune-apps-mobileappcategory?view=graph-rest-beta)
 - [Create mobileAppCategory](https://learn.microsoft.com/en-us/graph/api/intune-apps-mobileappcategory-create?view=graph-rest-beta)
 
-## API Permissions
+## Microsoft Graph API Permissions
 
-The following API permissions are required in order to use this resource.
+The following client `application` permissions are needed in order to use this resource:
 
-### Microsoft Graph
+**Required:**
+- `DeviceManagementApps.ReadWrite.All`
 
-- **Application**: `DeviceManagementApps.ReadWrite.All`
+**Optional:**
+- `None` `[N/A]`
 
 ## Version History
 

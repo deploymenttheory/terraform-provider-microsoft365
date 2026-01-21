@@ -3,7 +3,7 @@ page_title: "microsoft365_graph_beta_device_management_managed_device_wipe Actio
 subcategory: "Device Management"
 
 description: |-
-  Wipes managed devices from Microsoft Intune using the /deviceManagement/managedDevices/{managedDeviceId}/wipe endpoint. This action performs a factory reset, removing all data (company and personal) from the device. The device is returned to its out-of-box state and removed from Intune management. This action supports wiping multiple devices in a single operation.
+  Wipes managed devices in Microsoft Intune using the /deviceManagement/managedDevices/{managedDeviceId}/wipe endpoint. This action is used to perform a factory reset, removing all data (company and personal) from the device. The device is returned to its out-of-box state and removed from Intune management. This action supports wiping multiple devices in a single operation.
   Important Notes:
   This action removes ALL data from the device unless keep_user_data is set to trueFor iOS/iPadOS devices, Activation Lock must be disabled or unlock code providedFor Windows devices, you can use protected wipe to maintain UEFI-embedded licensesFor Android devices, factory reset protection must be disabledThis action cannot be reversed - all data will be permanently deleted
   Reference: Microsoft Graph API - Wipe Managed Device https://learn.microsoft.com/en-us/graph/api/intune-devices-manageddevice-wipe?view=graph-rest-beta
@@ -11,7 +11,7 @@ description: |-
 
 # microsoft365_graph_beta_device_management_managed_device_wipe (Action)
 
-Wipes managed devices from Microsoft Intune using the `/deviceManagement/managedDevices/{managedDeviceId}/wipe` endpoint. This action performs a factory reset, removing all data (company and personal) from the device. The device is returned to its out-of-box state and removed from Intune management. This action supports wiping multiple devices in a single operation.
+Wipes managed devices in Microsoft Intune using the `/deviceManagement/managedDevices/{managedDeviceId}/wipe` endpoint. This action is used to perform a factory reset, removing all data (company and personal) from the device. The device is returned to its out-of-box state and removed from Intune management. This action supports wiping multiple devices in a single operation.
 
 **Important Notes:**
 - This action removes **ALL** data from the device unless `keep_user_data` is set to `true`
@@ -35,14 +35,17 @@ Wipes managed devices from Microsoft Intune using the `/deviceManagement/managed
 - [Wipe devices - Android](https://learn.microsoft.com/en-us/intune/intune-service/remote-actions/device-wipe?pivots=android)
 - [Wipe devices - ChromeOS](https://learn.microsoft.com/en-us/intune/intune-service/remote-actions/device-wipe?pivots=chromeos)
 
-## API Permissions
+## Microsoft Graph API Permissions
 
-The following API permissions are required in order to use this action.
+The following client `application` permissions are needed in order to use this action:
 
-### Microsoft Graph
+**Required:**
+- `DeviceManagementConfiguration.ReadWrite.All`
+- `DeviceManagementManagedDevices.ReadWrite.All`
+- `DeviceManagementManagedDevices.PrivilegedOperations.All`
 
-- **Application**: `DeviceManagementConfiguration.ReadWrite.All`, `DeviceManagementManagedDevices.ReadWrite.All`, `DeviceManagementManagedDevices.PrivilegedOperations.All`
-- **Delegated**: `DeviceManagementConfiguration.ReadWrite.All`, `DeviceManagementManagedDevices.ReadWrite.All`, `DeviceManagementManagedDevices.PrivilegedOperations.All`
+**Optional:**
+- `None` `[N/A]`
 
 ## Version History
 
@@ -50,129 +53,6 @@ The following API permissions are required in order to use this action.
 |---------|--------|-------|
 | v0.33.0-alpha | Experimental | Initial release |
 | v0.40.0-alpha | Experimental | Example fixes and refactored sync progress logic |
-
-
-## Notes
-
-### Platform Compatibility
-
-| Platform | Support | Options Available |
-|----------|---------|-------------------|
-| **Windows** | ✅ Full Support | Protected wipe, enrollment data retention |
-| **macOS** | ✅ Full Support | Unlock code, obliteration behavior |
-| **iOS** | ✅ Full Support | Enrollment data, user data, eSIM retention |
-| **iPadOS** | ✅ Full Support | Enrollment data, user data, eSIM retention |
-| **Android** | ✅ Full Support | Enrollment data retention |
-| **ChromeOS** | ❌ Not Supported | Not available for ChromeOS devices |
-
-### Wipe vs Retire
-
-| Action | Data Removed | Use Case |
-|--------|--------------|----------|
-| **Wipe** | All data (factory reset) | Company devices, security incidents, recycling |
-| **Retire** | Company data only | BYOD devices, selective removal |
-
-### Wipe Options
-
-#### `keep_enrollment_data`
-- Preserves enrollment data during wipe
-- Allows device to automatically re-enroll
-- Useful for device refresh scenarios
-- Supported: Windows, iOS, iPadOS, Android
-
-#### `keep_user_data`
-- Performs selective wipe
-- Only company data removed
-- Personal data preserved
-- Similar to retire action
-- Supported: iOS, iPadOS, Windows
-
-#### `macos_unlock_code`
-- 6-digit PIN for macOS Activation Lock bypass
-- Required for macOS with Activation Lock
-- Retrieved from Intune portal
-- Must be provided before wipe
-- macOS only
-
-#### `obliteration_behavior`
-- Controls fallback when Erase All Content and Settings (EACS) fails
-- Options: `default`, `doNotObliterate`, `obliterateWithWarning`, `always`
-- macOS 12+ with Apple M1/T2 chip only
-- Affects data erasure completeness
-
-#### `persist_esim_data_plan`
-- Preserves eSIM cellular data plan
-- Prevents need to reconfigure cellular
-- iOS/iPadOS with eSIM support
-
-#### `use_protected_wipe`
-- Attempts to preserve UEFI licenses
-- Windows-specific option
-- May help with Windows reactivation
-
-### What Gets Removed
-
-- **All user data** (unless `keep_user_data` specified)
-- **All apps** (system and installed)
-- **All settings and configurations**
-- **Management enrollment** (unless `keep_enrollment_data`)
-- **Accounts and profiles**
-- **Device returns to factory state**
-
-### Common Use Cases
-
-- Device recycling or disposal
-- Device repurposing for new user
-- Security incident response (compromised device)
-- Stolen device data protection
-- Device return to vendor
-- Complete device reset needed
-- Departing employee (company device)
-- Device compliance violation
-
-### Security Considerations
-
-- **Irreversible**: Data cannot be recovered
-- **Activation Lock**: Handle for iOS/macOS devices
-- **BitLocker**: Recovery keys may be needed
-- **Backup**: Ensure important data backed up
-- **Verification**: Confirm correct device before wiping
-- **Documentation**: Log reason for wipe
-- **Compliance**: Follow data retention policies
-
-### User Impact - CRITICAL
-
-- **ALL data lost permanently**
-- **Cannot be undone**
-- **Device unusable until reconfigured**
-- **Personal data lost** (unless `keep_user_data`)
-- **Photos, documents, apps removed**
-- **Accounts must be reconfigured**
-- **May take several minutes to complete**
-
-### Best Practices
-
-- **Verify device ID** before wiping
-- **Confirm with user** for BYOD
-- **Back up critical data** first
-- **Document business justification**
-- **Use retire for BYOD** instead
-- **Test selective wipe** options first
-- **Consider Activation Lock** for Apple devices
-- **Plan for device reprovisioning**
-- **Communicate with users**
-- **Follow change management** procedures
-
-### Wipe Process
-
-1. Wipe command issued via this action
-2. Command queued in Intune
-3. Device receives command (when online)
-4. Device begins factory reset
-5. All data erased
-6. Device returns to setup screen
-7. Device can be reconfigured
-8. Re-enrollment (if `keep_enrollment_data`)
 
 ## Example Usage
 

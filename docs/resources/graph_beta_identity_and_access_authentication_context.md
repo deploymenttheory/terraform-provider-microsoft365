@@ -2,12 +2,12 @@
 page_title: "microsoft365_graph_beta_identity_and_access_authentication_context Resource - terraform-provider-microsoft365"
 subcategory: "Identity and Access"
 description: |-
-  Manages Microsoft 365 Authentication Context Class References using the /identity/conditionalAccess/authenticationContextClassReferences endpoint. Authentication context is used to trigger step-up authentication in scenarios and applications. It allows you to require additional verification when users access sensitive resources or perform sensitive actions.
+  Manages Microsoft 365 Authentication Context Class References using the /identity/conditionalAccess/authenticationContextClassReferences endpoint. This resource is used to authentication context is used to trigger step-up authentication in scenarios and applications. It allows you to require additional verification when users access sensitive resources or perform sensitive actions..
 ---
 
 # microsoft365_graph_beta_identity_and_access_authentication_context (Resource)
 
-Manages Microsoft 365 Authentication Context Class References using the `/identity/conditionalAccess/authenticationContextClassReferences` endpoint. Authentication context is used to trigger step-up authentication in scenarios and applications. It allows you to require additional verification when users access sensitive resources or perform sensitive actions.
+Manages Microsoft 365 Authentication Context Class References using the `/identity/conditionalAccess/authenticationContextClassReferences` endpoint. This resource is used to authentication context is used to trigger step-up authentication in scenarios and applications. It allows you to require additional verification when users access sensitive resources or perform sensitive actions..
 
 ## Microsoft Documentation
 
@@ -16,13 +16,16 @@ Manages Microsoft 365 Authentication Context Class References using the `/identi
 - [Update authenticationContextClassReference](https://learn.microsoft.com/en-us/graph/api/authenticationcontextclassreference-update?view=graph-rest-beta&tabs=http)
 - [Delete authenticationContextClassReference](https://learn.microsoft.com/en-us/graph/api/authenticationcontextclassreference-delete?view=graph-rest-beta)
 
-## API Permissions
+## Microsoft Graph API Permissions
 
-The following API permissions are required in order to use this resource.
+The following client `application` permissions are needed in order to use this resource:
 
-### Microsoft Graph
+**Required:**
+- `AuthenticationContext.ReadWrite.All`
+- `Policy.ReadWrite.ConditionalAccess`
 
-- **Application**: `AuthenticationContext.ReadWrite.All`, `Policy.ReadWrite.ConditionalAccess`
+**Optional:**
+- `None` `[N/A]`
 
 ## Version History
 

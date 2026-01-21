@@ -15,13 +15,15 @@ Manages iOS managed mobile apps in Microsoft Intune iOS managed app protection p
 - [managedMobileApp resource type](https://learn.microsoft.com/en-us/graph/api/resources/intune-mam-managedmobileapp?view=graph-rest-beta)
 - [Create managedMobileApp for iOS](https://learn.microsoft.com/en-us/graph/api/intune-mam-iosmanagedappprotection-post-apps?view=graph-rest-beta)
 
-## API Permissions
+## Microsoft Graph API Permissions
 
-The following API permissions are required in order to use this resource.
+The following client `application` permissions are needed in order to use this resource:
 
-### Microsoft Graph
+**Required:**
+- `DeviceManagementApps.ReadWrite.All`
 
-- **Application**: `DeviceManagementApps.ReadWrite.All`
+**Optional:**
+- `None` `[N/A]`
 
 ## Version History
 

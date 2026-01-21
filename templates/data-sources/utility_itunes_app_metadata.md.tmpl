@@ -25,36 +25,3 @@ with the intunes vpp app resource, 'microsoft365_graph_beta_device_and_app_manag
 ## Example Usage
 
 {{ tffile "examples/data-sources/microsoft365_utility_itunes_app_metadata/datasource.tf" }}
-
-## Argument Reference
-
-* `search_term` - (Required) The search term to use when querying the iTunes App Store API.
-* `country_code` - (Required) The two-letter country code for the App Store to search (e.g., 'us', 'gb', 'jp').
-
-## Attributes Reference
-
-In addition to the arguments listed above, the following attributes are exported:
-
-* `id` - The ID of this resource.
-* `results` - A list of app results returned from the iTunes App Store API. Each result contains:
-  * `track_id` - The unique identifier for the app.
-  * `track_name` - The name of the app.
-  * `bundle_id` - The bundle identifier of the app.
-  * `artwork_url_60` - URL for the 60x60 app icon.
-  * `artwork_url_100` - URL for the 100x100 app icon.
-  * `artwork_url_512` - URL for the 512x512 app icon.
-  * `seller_name` - The name of the app's seller/developer.
-  * `primary_genre` - The primary genre of the app.
-  * `description` - The description of the app.
-  * `version` - The version of the app.
-  * `price` - The price of the app in the local currency.
-  * `formatted_price` - The formatted price of the app (e.g., 'Free', '$0.99').
-  * `release_date` - The release date of the app.
-  * `average_rating` - The average user rating of the app.
-  * `artist_name` - The name of the artist/developer.
-  * `minimum_os_version` - The minimum OS version required to run the app.
-  * `content_advisory_rating` - The content advisory rating (e.g., '4+', '12+', '17+').
-  * `is_vpp_device_based_licensed` - Whether the app supports VPP device-based licensing.
-  * `release_notes` - Notes about the latest release of the app.
-  * `currency` - The currency code for the price (e.g., 'USD', 'GBP', 'EUR').
-  * `user_rating_count` - The number of user ratings for the app. 

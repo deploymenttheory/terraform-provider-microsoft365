@@ -54,9 +54,9 @@ func (a *ApplyCloudPcProvisioningPolicyAction) Configure(ctx context.Context, re
 
 func (a *ApplyCloudPcProvisioningPolicyAction) Schema(ctx context.Context, req action.SchemaRequest, resp *action.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Applies configuration settings to a Cloud PC provisioning policy using the " +
+		MarkdownDescription: "Applies configuration settings to a Cloud PC provisioning policy in Microsoft Intune using the " +
 			"`/deviceManagement/virtualEndpoint/provisioningPolicies/{id}/apply` endpoint. " +
-			"This action allows applying region or single sign-on settings to existing Cloud PCs that were provisioned with this policy. " +
+			"This action is used to apply region or single sign-on settings to existing Cloud PCs that were provisioned with this policy. " +
 			"When you change the network, image, region, or single sign-on configuration in a provisioning policy, " +
 			"the changes only apply to newly provisioned or reprovisioned Cloud PCs. Use this action to apply " +
 			"region or single sign-on changes to previously provisioned Cloud PCs.",

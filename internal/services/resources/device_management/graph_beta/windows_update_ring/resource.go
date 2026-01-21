@@ -85,7 +85,7 @@ func (r *WindowsUpdateRingResource) ImportState(ctx context.Context, req resourc
 // Schema defines the schema for the resource.
 func (r *WindowsUpdateRingResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Manages Windows Update for Business configuration policies using the `/deviceManagement/deviceConfigurations` endpoint. This resource controls Windows Update settings including feature update deferrals, quality update schedules, driver management, and restart behaviors for managed Windows 10/11 devices.",
+		MarkdownDescription: "Manages Windows Update for Business configuration policies using the `/deviceManagement/deviceConfigurations` endpoint. This resource is used to controls Windows Update settings including feature update deferrals, quality update schedules, driver management, and restart behaviors for managed Windows 10/11 devices.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed: true,

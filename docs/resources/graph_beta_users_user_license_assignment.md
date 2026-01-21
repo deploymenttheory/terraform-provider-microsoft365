@@ -2,12 +2,12 @@
 page_title: "microsoft365_graph_beta_users_user_license_assignment Resource - terraform-provider-microsoft365"
 subcategory: "Users"
 description: |-
-  Manages a single Microsoft 365 license assignment for an individual user using the /users/{userId}/assignLicense endpoint. Each resource instance manages one license (SKU) for a user. To assign multiple licenses to a user, create multiple instances of this resource with different SKU IDs.
+  Manages a single Microsoft 365 license assignment for an individual user using the /users/{userId}/assignLicense endpoint. This resource is used to each resource instance manages one license (SKU) for a user. To assign multiple licenses to a user, create multiple instances of this resource with different SKU IDs..
 ---
 
 # microsoft365_graph_beta_users_user_license_assignment (Resource)
 
-Manages a single Microsoft 365 license assignment for an individual user using the `/users/{userId}/assignLicense` endpoint. Each resource instance manages one license (SKU) for a user. To assign multiple licenses to a user, create multiple instances of this resource with different SKU IDs.
+Manages a single Microsoft 365 license assignment for an individual user using the `/users/{userId}/assignLicense` endpoint. This resource is used to each resource instance manages one license (SKU) for a user. To assign multiple licenses to a user, create multiple instances of this resource with different SKU IDs..
 
 ## Microsoft Documentation
 
@@ -15,13 +15,16 @@ Manages a single Microsoft 365 license assignment for an individual user using t
 - [user resource type](https://learn.microsoft.com/en-us/graph/api/resources/user?view=graph-rest-beta)
 - [subscribedSku resource type](https://learn.microsoft.com/en-us/graph/api/resources/subscribedsku?view=graph-rest-beta)
 
-## API Permissions
+## Microsoft Graph API Permissions
 
-The following API permissions are required in order to use this resource.
+The following client `application` permissions are needed in order to use this resource:
 
-### Microsoft Graph
+**Required:**
+- `User.ReadWrite.All`
+- `Directory.ReadWrite.All`
 
-- **Application**: `User.ReadWrite.All`, `Directory.ReadWrite.All`
+**Optional:**
+- `None` `[N/A]`
 
 ## Version History
 

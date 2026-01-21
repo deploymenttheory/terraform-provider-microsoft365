@@ -83,10 +83,7 @@ func (r *AndroidManagedDeviceAppConfigurationPolicyResource) ImportState(ctx con
 // Schema returns the schema for the resource.
 func (r *AndroidManagedDeviceAppConfigurationPolicyResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Manages Android managed store app configurations in Microsoft Intune using the `/deviceAppManagement/mobileAppConfigurations` endpoint. " +
-			"Use app configuration policies in Microsoft Intune to provide custom configuration settings for Android apps from the managed Google Play store. " +
-			"These configuration settings allow an app to be customized based on the app supplier's direction using Android Enterprise managed configurations. " +
-			"Learn more here: https://learn.microsoft.com/en-us/mem/intune/apps/app-configuration-policies-use-android",
+		MarkdownDescription: "Manages Android managed store app configurations using the `/deviceAppManagement/mobileAppConfigurations` endpoint. This resource is used to use app configuration policies in Microsoft Intune to provide custom configuration settings for Android apps from the managed Google Play store. These configuration settings allow an app to be customized based on the app supplier's direction using Android Enterprise managed configurations. Learn more here: https://learn.microsoft.com/en-us/mem/intune/apps/app-configuration-policies-use-android.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed: true,

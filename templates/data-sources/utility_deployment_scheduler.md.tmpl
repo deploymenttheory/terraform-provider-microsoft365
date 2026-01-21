@@ -75,52 +75,6 @@ releases the contents (scope IDs) when those conditions are met.
 
 {{ .SchemaMarkdown | trimspace }}
 
-## Best Practices
-
-1. **Always Set deployment_start_time** - Provides consistent timing across terraform applies. Without it, the current time is used on each evaluation, causing unpredictable behavior.
-
-2. **Use UTC Times** - All times must be in UTC. Plan your windows accordingly if your organization spans multiple timezones.
-
-3. **Test with Pilot Groups** - Always start with a small pilot group before expanding to production.
-
-4. **Handle Null Values** - Gates return `null` when closed. Use conditional logic in resource blocks:
-   ```hcl
-   assignments = data.scheduler.released_scope_id != null ? [{
-     target = { group_id = data.scheduler.released_scope_id }
-   }] : []
-   ```
-
-5. **Monitor with Outputs** - Use outputs to track gate status without modifying state:
-   ```hcl
-   output "deployment_status" {
-     value = {
-       gate_open = data.scheduler.condition_met
-       status    = data.scheduler.status_message
-       scope     = data.scheduler.released_scope_id
-     }
-   }
-   ```
-
-6. **Use Lowercase Day Names** - Days of week must be lowercase: `"monday"`, `"tuesday"`, etc.
-
-## Important Notes
-
-### No Authentication Required
-
-This datasource performs local time-based calculations and doesn't make any API calls. Unlike other datasources in this provider, it doesn't require Microsoft Graph API credentials.
-
-### Evaluation Timing
-
-The datasource is evaluated during `terraform plan` and `terraform apply`. Gates automatically open when conditions are met, allowing progressive rollout without manual intervention.
-
-### Null Behavior
-
-When conditions are not met, `released_scope_id` and `released_scope_ids` return `null`. This is intentional behavior to prevent premature deployment. Always use conditional logic when referencing these values in resource configurations.
-
-### Time Calculations
-
-All time calculations are performed relative to `deployment_start_time`. For dependency gates, the datasource calculates when prerequisite schedulers would have opened based on their `delay_start_time_by` values.
-
 ## Additional Resources
 
 - [Conditional Access Best Practices](https://learn.microsoft.com/en-us/entra/identity/conditional-access/plan-conditional-access)

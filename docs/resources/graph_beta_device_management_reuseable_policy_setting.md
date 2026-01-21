@@ -3,25 +3,27 @@ page_title: "microsoft365_graph_beta_device_management_reuseable_policy_setting 
 subcategory: "Device Management"
 
 description: |-
-  Manages reusable policy settings using the /deviceManagement/reusablePolicySettings endpoint. Reusable settings enable centralized management of configuration templates that can be referenced across multiple policies, reducing duplication and ensuring consistent settings application across Endpoint Privilege Management and other device configuration policies.
+  Manages reusable policy settings using the /deviceManagement/reusablePolicySettings endpoint. This resource is used to reusable settings enable centralized management of configuration templates that can be referenced across multiple policies, reducing duplication and ensuring consistent settings application across Endpoint Privilege Management and other device configuration policies.
 ---
 
 # microsoft365_graph_beta_device_management_reuseable_policy_setting (Resource)
 
-Manages reusable policy settings using the `/deviceManagement/reusablePolicySettings` endpoint. Reusable settings enable centralized management of configuration templates that can be referenced across multiple policies, reducing duplication and ensuring consistent settings application across Endpoint Privilege Management and other device configuration policies.
+Manages reusable policy settings using the `/deviceManagement/reusablePolicySettings` endpoint. This resource is used to reusable settings enable centralized management of configuration templates that can be referenced across multiple policies, reducing duplication and ensuring consistent settings application across Endpoint Privilege Management and other device configuration policies.
 
 ## Microsoft Documentation
 
 - [deviceManagementReusablePolicySetting resource type](https://learn.microsoft.com/en-us/graph/api/resources/intune-deviceconfigv2-devicemanagementreusablepolicysetting?view=graph-rest-beta)
 - [Create deviceManagementReusablePolicySetting](https://learn.microsoft.com/en-us/graph/api/intune-deviceconfigv2-devicemanagementreusablepolicysetting-create?view=graph-rest-beta)
 
-## API Permissions
+## Microsoft Graph API Permissions
 
-The following API permissions are required in order to use this resource.
+The following client `application` permissions are needed in order to use this resource:
 
-### Microsoft Graph
+**Required:**
+- `DeviceManagementConfiguration.ReadWrite.All`
 
-- **Application**: `DeviceManagementConfiguration.ReadWrite.All`
+**Optional:**
+- `None` `[N/A]`
 
 ## Version History
 

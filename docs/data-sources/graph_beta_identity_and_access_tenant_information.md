@@ -2,12 +2,12 @@
 page_title: "microsoft365_graph_beta_identity_and_access_tenant_information Data Source - terraform-provider-microsoft365"
 subcategory: "Identity and Access"
 description: |-
-  Retrieves tenant information from Microsoft Entra ID using the tenant relationships API. This data source enables querying tenant information by tenant ID or domain name. You can use this API to validate tenant information and retrieve tenant details for configuring cross-tenant access settings.
+  Retrieves tenant information from Microsoft Entra ID using the /tenantRelationships/findTenantInformationByTenantId or /tenantRelationships/findTenantInformationByDomainName endpoint. This data source is used to query tenant details for cross-tenant access configuration and validation.
 ---
 
 # microsoft365_graph_beta_identity_and_access_tenant_information (Data Source)
 
-Retrieves tenant information from Microsoft Entra ID using the tenant relationships API. This data source enables querying tenant information by tenant ID or domain name. You can use this API to validate tenant information and retrieve tenant details for configuring cross-tenant access settings.
+Retrieves tenant information from Microsoft Entra ID using the `/tenantRelationships/findTenantInformationByTenantId` or `/tenantRelationships/findTenantInformationByDomainName` endpoint. This data source is used to query tenant details for cross-tenant access configuration and validation.
 
 ## Microsoft Documentation
 
@@ -15,13 +15,15 @@ Retrieves tenant information from Microsoft Entra ID using the tenant relationsh
 - [findTenantInformationByTenantId](https://learn.microsoft.com/en-us/graph/api/tenantrelationship-findtenantinformationbytenantid?view=graph-rest-beta)
 - [findTenantInformationByDomainName](https://learn.microsoft.com/en-us/graph/api/tenantrelationship-findtenantinformationbydomainname?view=graph-rest-beta)
 
-## API Permissions
+## Microsoft Graph API Permissions
 
-The following API permissions are required in order to use this data source.
+The following client `application` permissions are needed in order to use this data source:
 
-### Microsoft Graph
+**Required:**
+- `CrossTenantInformation.ReadBasic.All`
 
-- **Application**: `CrossTenantInformation.ReadBasic.All`
+**Optional:**
+- `None` `[N/A]`
 
 ## Filtering
 

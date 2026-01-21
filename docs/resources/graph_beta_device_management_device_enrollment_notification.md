@@ -3,12 +3,12 @@ page_title: "microsoft365_graph_beta_device_management_device_enrollment_notific
 subcategory: "Device Management"
 
 description: |-
-  Manages device enrollment notification configurations in Microsoft Intune using the /deviceManagement/deviceEnrollmentConfigurations endpoint. This resource creates device enrollment notification configurations for Android for Work platform.
+  Manages device enrollment notification configurations using the /deviceManagement/deviceEnrollmentConfigurations endpoint. This resource is used to creates device enrollment notification configurations for Android for Work platform.
 ---
 
 # microsoft365_graph_beta_device_management_device_enrollment_notification (Resource)
 
-Manages device enrollment notification configurations in Microsoft Intune using the `/deviceManagement/deviceEnrollmentConfigurations` endpoint. This resource creates device enrollment notification configurations for Android for Work platform.
+Manages device enrollment notification configurations using the `/deviceManagement/deviceEnrollmentConfigurations` endpoint. This resource is used to creates device enrollment notification configurations for Android for Work platform.
 
 ## Microsoft Documentation
 
@@ -17,13 +17,16 @@ Manages device enrollment notification configurations in Microsoft Intune using 
 - [Update deviceEnrollmentNotificationConfiguration](https://learn.microsoft.com/en-us/graph/api/intune-onboarding-deviceenrollmentnotificationconfiguration-update?view=graph-rest-beta&tabs=http)
 - [Delete deviceEnrollmentNotificationConfiguration](https://learn.microsoft.com/en-us/graph/api/intune-onboarding-deviceenrollmentnotificationconfiguration-delete?view=graph-rest-beta&tabs=http)
 
-## API Permissions
+## Microsoft Graph API Permissions
 
-The following API permissions are required in order to use this resource.
+The following client `application` permissions are needed in order to use this resource:
 
-### Microsoft Graph
+**Required:**
+- `DeviceManagementConfiguration.ReadWrite.All`
+- `DeviceManagementConfiguration.Read.All`
 
-- **Application**: `DeviceManagementConfiguration.ReadWrite.All` , `DeviceManagementConfiguration.Read.All`
+**Optional:**
+- `None` `[N/A]`
 
 ## Example Usage
 

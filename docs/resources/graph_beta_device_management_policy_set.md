@@ -3,12 +3,12 @@ page_title: "microsoft365_graph_beta_device_management_policy_set Resource - ter
 subcategory: "Device Management"
 
 description: |-
-  Manages policy sets in Microsoft Intune using the /deviceAppManagement/policySets endpoint. Policy sets allow you to group multiple device management policies and applications together for unified deployment and assignment.
+  Manages policy sets using the /deviceAppManagement/policySets endpoint. This resource is used to policy sets allow you to group multiple device management policies and applications together for unified deployment and assignment.
 ---
 
 # microsoft365_graph_beta_device_management_policy_set (Resource)
 
-Manages policy sets in Microsoft Intune using the `/deviceAppManagement/policySets` endpoint. Policy sets allow you to group multiple device management policies and applications together for unified deployment and assignment.
+Manages policy sets using the `/deviceAppManagement/policySets` endpoint. This resource is used to policy sets allow you to group multiple device management policies and applications together for unified deployment and assignment.
 
 ## Microsoft Documentation
 
@@ -17,13 +17,15 @@ Manages policy sets in Microsoft Intune using the `/deviceAppManagement/policySe
 - [Update policySet](https://learn.microsoft.com/en-us/graph/api/intune-policyset-policyset-update?view=graph-rest-beta)
 - [Delete policySet](https://learn.microsoft.com/en-us/graph/api/intune-policyset-policyset-delete?view=graph-rest-beta)
 
-## API Permissions
+## Microsoft Graph API Permissions
 
-The following API permissions are required in order to use this resource.
+The following client `application` permissions are needed in order to use this resource:
 
-### Microsoft Graph
+**Required:**
+- `DeviceManagementRBAC.ReadWrite.All`
 
-- **Application**: `DeviceManagementRBAC.ReadWrite.All`
+**Optional:**
+- `None` `[N/A]`
 
 ## Version History
 

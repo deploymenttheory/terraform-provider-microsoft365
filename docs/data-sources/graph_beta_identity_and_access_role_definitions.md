@@ -2,12 +2,12 @@
 page_title: "microsoft365_graph_beta_identity_and_access_role_definitions Data Source - terraform-provider-microsoft365"
 subcategory: "Identity and Access"
 description: |-
-  Retrieves directory role definitions from Microsoft Entra ID using the /roleManagement/directory/roleDefinitions endpoint. This data source enables querying role definitions with advanced filtering capabilities.
+  Retrieves directory role definitions from Microsoft Entra ID using the /roleManagement/directory/roleDefinitions endpoint. This data source is used to query built-in and custom role definitions with their permissions and scopes.
 ---
 
 # microsoft365_graph_beta_identity_and_access_role_definitions (Data Source)
 
-Retrieves directory role definitions from Microsoft Entra ID using the `/roleManagement/directory/roleDefinitions` endpoint. This data source enables querying role definitions with advanced filtering capabilities.
+Retrieves directory role definitions from Microsoft Entra ID using the `/roleManagement/directory/roleDefinitions` endpoint. This data source is used to query built-in and custom role definitions with their permissions and scopes.
 
 ## Microsoft Documentation
 
@@ -15,13 +15,15 @@ Retrieves directory role definitions from Microsoft Entra ID using the `/roleMan
 - [List directorySettingTemplates](https://learn.microsoft.com/en-us/graph/api/directorysettingtemplate-list?view=graph-rest-beta)
 - [Get directorySettingTemplate](https://learn.microsoft.com/en-us/graph/api/directorysettingtemplate-get?view=graph-rest-beta)
 
-## API Permissions
+## Microsoft Graph API Permissions
 
-The following API permissions are required in order to use this data source.
+The following client `application` permissions are needed in order to use this data source:
 
-### Microsoft Graph
+**Required:**
+- `RoleManagement.Read.All`
 
-- **Application**: `RoleManagement.Read.All`.
+**Optional:**
+- `None` `[N/A]`
 
 ## Filtering
 

@@ -3,12 +3,12 @@ page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
 subcategory: "Device Management"
 
 description: |-
-{{ if .Description }}{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}{{ else }}  Remotely locks managed devices immediately.{{ end }}
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
 ---
 
 # {{.Name}} ({{.Type}})
 
-{{ if .Description }}{{ .Description | trimspace }}{{ else }}Remotely locks managed devices, immediately locking the device screen and requiring the user to enter their passcode to unlock. Used for lost devices, security incidents, or compliance enforcement.{{ end }}
+{{ .Description | trimspace }}
 
 ## Microsoft Documentation
 
@@ -21,14 +21,15 @@ description: |-
 - [Device remote lock - macOS](https://learn.microsoft.com/en-us/intune/intune-service/remote-actions/device-remote-lock?pivots=macos)
 - [Device remote lock - Android](https://learn.microsoft.com/en-us/intune/intune-service/remote-actions/device-remote-lock?pivots=android)
 
-## API Permissions
+## Microsoft Graph API Permissions
 
-The following API permissions are required in order to use this action.
+The following client `application` permissions are needed in order to use this {{.Type | lower}}:
 
-### Microsoft Graph
+**Required:**
+- `DeviceManagementManagedDevices.PrivilegedOperations.All`
 
-- **Application**: `DeviceManagementManagedDevices.PrivilegedOperations.All`
-- **Delegated**: `DeviceManagementManagedDevices.PrivilegedOperations.All`
+**Optional:**
+- `None` `[N/A]`
 
 ## Version History
 
@@ -37,60 +38,6 @@ The following API permissions are required in order to use this action.
 | v0.33.0-alpha | Experimental | Initial release |
 | v0.40.0-alpha | Experimental | Example fixes and refactored sync progress logic |
 
-
-## Notes
-
-### Platform Compatibility
-
-| Platform | Support | Requirements |
-|----------|---------|--------------|
-| **Windows** | ✅ Full Support | Windows 10/11 |
-| **macOS** | ✅ Full Support | All supported versions |
-| **iOS** | ✅ Full Support | All supported versions |
-| **iPadOS** | ✅ Full Support | All supported versions |
-| **Android** | ✅ Full Support | Fully managed and work profile |
-
-### How Remote Lock Works
-
-- Command sent to device immediately if online
-- Device locks screen instantly upon receiving command
-- User must enter existing passcode to unlock
-- Lock is enforced by operating system
-- Command queued if device offline
-- Device locks when it next checks in
-- No data is erased, device remains functional once unlocked
-
-### Common Use Cases
-
-- Lost device scenarios
-- Stolen device immediate response
-- Security incident response
-- Unauthorized device access prevention
-- Compliance enforcement
-- Compromised credential response
-- Emergency device isolation
-- User-requested device locking
-
-### User Impact
-
-- Screen locks immediately
-- Existing passcode required to unlock
-- No data loss
-- Notifications may still appear on lock screen
-- Device remains connected to network
-- Background processes continue
-- No warning provided to user
-
-### Best Practices
-
-- Document reason for lock in incident log
-- Combine with locate device for lost devices
-- Follow up with user communication
-- Consider lost mode for iOS/iPadOS devices
-- Use as first step in security incident response
-- Monitor device status after lock command
-- Have unlock procedure documented
-- Consider follow-up actions (wipe, retire) if needed
 
 ## Example Usage
 

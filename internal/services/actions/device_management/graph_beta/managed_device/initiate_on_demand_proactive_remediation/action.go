@@ -55,12 +55,12 @@ func (a *InitiateOnDemandProactiveRemediationManagedDeviceAction) Configure(ctx 
 
 func (a *InitiateOnDemandProactiveRemediationManagedDeviceAction) Schema(ctx context.Context, req action.SchemaRequest, resp *action.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Initiates on-demand proactive remediation on managed Windows devices using the " +
+		MarkdownDescription: "Initiates on-demand proactive remediation on managed Windows devices in Microsoft Intune using the " +
 			"`/deviceManagement/managedDevices/{managedDeviceId}/initiateOnDemandProactiveRemediation` and " +
 			"`/deviceManagement/comanagedDevices/{managedDeviceId}/initiateOnDemandProactiveRemediation` endpoints. " +
+			"This action is used to trigger immediate execution of a specified remediation script on selected devices, rather than waiting for the scheduled run. " +
 			"Proactive remediations (also called remediations or health scripts) are PowerShell scripts that detect and " +
-			"automatically fix common support issues on Windows devices. This action triggers immediate execution of a " +
-			"specified remediation script on selected devices, rather than waiting for the scheduled run. This is useful " +
+			"automatically fix common support issues on Windows devices. This is useful " +
 			"for urgent fixes, troubleshooting, or validating remediation effectiveness.\n\n" +
 			"**Important Notes:**\n" +
 			"- Only works on Windows 10/11 devices\n" +

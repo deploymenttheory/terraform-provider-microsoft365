@@ -72,7 +72,7 @@ func (r *AttributeSetResource) ImportState(ctx context.Context, req resource.Imp
 
 func (r *AttributeSetResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Manages Microsoft Entra custom security attribute sets using the `/directory/attributeSets` endpoint. Attribute sets provide a way to organize and group custom security attributes within a tenant, allowing administrators to define collections of related attributes with configurable limits.\n\n**Note:** Attribute sets cannot be deleted once created. When removed from Terraform configuration, the resource will only be removed from Terraform state but will remain in Microsoft Entra.",
+		MarkdownDescription: "Manages Microsoft Entra custom security attribute sets using the `/directory/attributeSets` endpoint. This resource is used to attribute sets provide a way to organize and group custom security attributes within a tenant, allowing administrators to define collections of related attributes with configurable limits.\n\n**Note:** Attribute sets cannot be deleted once created. When removed from Terraform configuration, the resource will only be removed from Terraform state but will remain in Microsoft Entra..",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				MarkdownDescription: "Identifier for the attribute set that is unique within a tenant. Can be up to 32 characters long and include Unicode characters. Cannot contain spaces or special characters. Cannot be changed later. Case sensitive. Required.",

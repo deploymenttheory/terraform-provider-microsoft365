@@ -55,10 +55,10 @@ func (a *RotateFileVaultKeyManagedDeviceAction) Configure(ctx context.Context, r
 
 func (a *RotateFileVaultKeyManagedDeviceAction) Schema(ctx context.Context, req action.SchemaRequest, resp *action.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Rotates the FileVault recovery key for macOS managed devices using the " +
+		MarkdownDescription: "Rotates the FileVault recovery key for macOS managed devices in Microsoft Intune using the " +
 			"`/deviceManagement/managedDevices/{managedDeviceId}/rotateFileVaultKey` and " +
 			"`/deviceManagement/comanagedDevices/{managedDeviceId}/rotateFileVaultKey` endpoints. " +
-			"This action generates a new FileVault recovery key and escrows it with Intune, ensuring that administrators " +
+			"This action is used to generate a new FileVault recovery key and escrow it with Intune, ensuring that administrators " +
 			"can recover encrypted macOS devices if users forget their passwords or lose access. Regular key rotation is " +
 			"a security best practice that limits the window of exposure if a key is compromised. This action supports " +
 			"rotating keys on multiple devices in a single operation.\n\n" +

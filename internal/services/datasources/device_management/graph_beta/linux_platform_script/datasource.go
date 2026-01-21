@@ -51,7 +51,7 @@ func (d *LinuxPlatformScriptDataSource) Configure(ctx context.Context, req datas
 // Schema defines the schema for the data source
 func (d *LinuxPlatformScriptDataSource) Schema(ctx context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Retrieves Linux Platform Scripts from Microsoft Intune with explicit filtering options.",
+		MarkdownDescription: "Retrieves Linux platform scripts from Microsoft Intune using the `/deviceManagement/deviceShellScripts` endpoint. This data source is used to query shell scripts deployed to Linux devices.",
 		Attributes: map[string]schema.Attribute{
 			"filter_type": schema.StringAttribute{
 				Required:            true,

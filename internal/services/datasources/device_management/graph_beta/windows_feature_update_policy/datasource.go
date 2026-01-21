@@ -50,7 +50,7 @@ func (d *WindowsFeatureUpdateProfileDataSource) Configure(ctx context.Context, r
 // Schema defines the schema for the data source
 func (d *WindowsFeatureUpdateProfileDataSource) Schema(ctx context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Retrieves information about a Windows Feature Update Profile in Microsoft Intune.",
+		MarkdownDescription: "Retrieves Windows feature update policies from Microsoft Intune using the `/deviceManagement/windowsFeatureUpdateProfiles` endpoint. This data source is used to query policies that control Windows version upgrades and feature rollouts.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Optional:            true,

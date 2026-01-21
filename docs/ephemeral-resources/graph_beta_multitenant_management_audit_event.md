@@ -3,24 +3,27 @@ page_title: "microsoft365_graph_beta_multitenant_management_audit_event Ephemera
 subcategory: "Multitenant Management"
 
 description: |-
-  Retrieves audit events from Microsoft 365 managed tenants as an ephemeral resource. This does not persist in state and fetches fresh data on each execution.
+  Retrieves audit events from Microsoft 365 managed tenants using the /tenantRelationships/managedTenants/auditEvents endpoint as an ephemeral resource. This ephemeral resource is used to fetch fresh audit event data on each execution without persisting in state.
 ---
 
 # microsoft365_graph_beta_multitenant_management_audit_event (Ephemeral Resource)
 
-Retrieves audit events from Microsoft 365 managed tenants as an ephemeral resource. This does not persist in state and fetches fresh data on each execution.
+Retrieves audit events from Microsoft 365 managed tenants using the `/tenantRelationships/managedTenants/auditEvents` endpoint as an ephemeral resource. This ephemeral resource is used to fetch fresh audit event data on each execution without persisting in state.
 
 ## Microsoft Documentation
 
 - [auditEvent resource type](https://learn.microsoft.com/en-us/graph/api/resources/managedtenants-auditevent?view=graph-rest-beta)
 
-## API Permissions
+## Microsoft Graph API Permissions
 
-The following API permissions are required in order to use this data source.
+The following client `application` permissions are needed in order to use this ephemeral resource:
 
-### Microsoft Graph
+**Required:**
+- `ManagedTenants.Read.All`
+- `ManagedTenants.ReadWrite.All`
 
-- **Application**: `ManagedTenants.Read.All`, `ManagedTenants.ReadWrite.All`.
+**Optional:**
+- `None` `[N/A]`
 
 ## Version History
 

@@ -3,14 +3,7 @@ page_title: "microsoft365_graph_beta_device_management_group_policy_value_refere
 subcategory: "Device Management"
 
 description: |-
-  Queries Microsoft Graph API for group policy definition metadata. This utility data source retrieves detailed information about group policy definitions including class type, category path, and presentation (checkbox/setting) details based on a policy display name.
-  Use this data source to discover the exact metadata needed for configuring group policy boolean values, text values, list values, and other group policy settings in Microsoft Intune.
-  Search Behavior: Requires an exact match (case-insensitive, whitespace-normalized). If no exact match is found, returns a helpful error message listing similar policy names ranked by similarity.
-  Key Features:
-  Returns all definitions matching the policy nameProvides class_type (user or machine) for each definitionShows the full category_path for policy organizationLists all presentations (individual settings) available for the policyReturns presentation types (checkbox, text, list, etc.) and their template IDsProvides helpful suggestions when policy name doesn't match exactly
-  Common Use Cases:
-  Discovering the correct class_type for a policyFinding the exact category_path stringIdentifying which presentations are available for boolean configurationDistinguishing between multiple policies with similar names
-  Reference: Group Policy Definitions API https://learn.microsoft.com/en-us/graph/api/intune-grouppolicy-grouppolicydefinition-get?view=graph-rest-beta
+  Retrieves Group Policy definition metadata from Microsoft Intune using the /deviceManagement/groupPolicyDefinitions endpoint. This data source is used to discover ADMX policy details including class type, category path, and presentation configurations for policy authoring.
 ---
 
 # microsoft365_graph_beta_device_management_group_policy_value_reference

@@ -3,13 +3,13 @@ page_title: "microsoft365_graph_beta_agents_agent_identity Resource - terraform-
 subcategory: "Agents"
 
 description: |-
-  Manages an Agent Identity in Microsoft Entra ID using the /servicePrincipals/microsoft.graph.agentIdentity endpoint. An agent identity is a service principal that represents an AI agent instance, created from an agent identity blueprint. Agent identities inherit settings from their blueprint and can be assigned permissions and credentials.
+  Manages an Agent Identity in Microsoft Entra ID using the /servicePrincipals/microsoft.graph.agentIdentity endpoint. This resource is used to represent a service principal for an AI agent instance, created from an agent identity blueprint. Agent identities inherit settings from their blueprint and can be assigned permissions and credentials.
   For more information, see the Agent Identity documentation https://learn.microsoft.com/en-us/graph/api/resources/agentidentity?view=graph-rest-beta.
 ---
 
 # microsoft365_graph_beta_agents_agent_identity (Resource)
 
-Manages an Agent Identity in Microsoft Entra ID using the `/servicePrincipals/microsoft.graph.agentIdentity` endpoint. An agent identity is a service principal that represents an AI agent instance, created from an agent identity blueprint. Agent identities inherit settings from their blueprint and can be assigned permissions and credentials.
+Manages an Agent Identity in Microsoft Entra ID using the `/servicePrincipals/microsoft.graph.agentIdentity` endpoint. This resource is used to represent a service principal for an AI agent instance, created from an agent identity blueprint. Agent identities inherit settings from their blueprint and can be assigned permissions and credentials.
 
 For more information, see the [Agent Identity documentation](https://learn.microsoft.com/en-us/graph/api/resources/agentidentity?view=graph-rest-beta).
 
@@ -23,14 +23,19 @@ For more information, see the [Agent Identity documentation](https://learn.micro
 - [List sponsors](https://learn.microsoft.com/en-us/graph/api/agentidentity-list-sponsors?view=graph-rest-beta&tabs=http)
 - [Permanently delete item](https://learn.microsoft.com/en-us/graph/api/directory-deleteditems-delete?view=graph-rest-beta&tabs=http)
 
-## API Permissions
+## Microsoft Graph API Permissions
 
-The following API permissions are required in order to use this resource.
+The following client `application` permissions are needed in order to use this resource:
 
-### Microsoft Graph
+**Required:**
+- `AgentInstance.Read.All`
+- `Directory.Read.All`
+- `AgentInstance.ReadWrite.All`
+- `Directory.ReadWrite.All`
+- `AgentIdentity.DeleteRestore.All`
 
-- **Read Permissions**: `AgentInstance.Read.All`, `Directory.Read.All`
-- **Write Permissions**: `AgentInstance.ReadWrite.All`, `Directory.ReadWrite.All`, `AgentIdentity.DeleteRestore.All`
+**Optional:**
+- `None` `[N/A]`
 
 Find out more about the permissions required for managing agent identities at Microsoft Learn [here](https://learn.microsoft.com/en-us/graph/api/resources/agentid-platform-overview?view=graph-rest-beta#permissions-for-managing-agent-identities).
 

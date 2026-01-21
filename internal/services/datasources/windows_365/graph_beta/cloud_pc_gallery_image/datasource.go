@@ -45,7 +45,7 @@ func (d *CloudPcGalleryImageDataSource) Configure(ctx context.Context, req datas
 
 func (d *CloudPcGalleryImageDataSource) Schema(ctx context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Retrieves Cloud PC Gallery Images from Microsoft Intune. Using the endpoint '/deviceManagement/virtualEndpoint/galleryImages'. Supports filtering by all, id, or display_name.",
+		MarkdownDescription: "Retrieves Cloud PC gallery images from Microsoft Intune using the `/deviceManagement/virtualEndpoint/galleryImages` endpoint. This data source is used to discover Microsoft-provided OS images with their support status and version details.",
 		Attributes: map[string]schema.Attribute{
 			"filter_type": schema.StringAttribute{
 				Required:            true,

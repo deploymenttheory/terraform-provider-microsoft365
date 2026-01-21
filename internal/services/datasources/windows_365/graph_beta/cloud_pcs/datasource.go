@@ -46,7 +46,7 @@ func (d *CloudPcsDataSource) Configure(ctx context.Context, req datasource.Confi
 
 func (d *CloudPcsDataSource) Schema(ctx context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Retrieves Cloud PCs from Microsoft Intune. Using the endpoint '/deviceManagement/virtualEndpoint/cloudPCs'. Supports filtering by all, id, display_name, user_principal_name, status, product_type, or odata.",
+		MarkdownDescription: "Retrieves Cloud PCs from Microsoft Intune using the `/deviceManagement/virtualEndpoint/cloudPCs` endpoint. This data source is used to query Cloud PCs with advanced filtering capabilities.",
 		Attributes: map[string]schema.Attribute{
 			"filter_type": schema.StringAttribute{
 				Required:            true,

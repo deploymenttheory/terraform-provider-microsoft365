@@ -55,9 +55,9 @@ func (a *RetireManagedDeviceAction) Configure(ctx context.Context, req action.Co
 
 func (a *RetireManagedDeviceAction) Schema(ctx context.Context, req action.SchemaRequest, resp *action.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Retires managed devices from Microsoft Intune using the " +
+		MarkdownDescription: "Retires managed devices in Microsoft Intune using the " +
 			"`/deviceManagement/managedDevices/{managedDeviceId}/retire` endpoint. " +
-			"This action removes company data and managed apps from the device, while leaving personal data intact. " +
+			"This action is used to remove company data and managed apps from the device, while leaving personal data intact. " +
 			"The device is removed from Intune management and can no longer access company resources. " +
 			"This action supports retiring multiple devices in a single operation.\n\n" +
 			"**Important Notes:**\n" +

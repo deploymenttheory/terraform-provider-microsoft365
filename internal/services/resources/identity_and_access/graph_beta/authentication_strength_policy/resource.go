@@ -76,9 +76,7 @@ func (r *AuthenticationStrengthPolicyResource) ImportState(ctx context.Context, 
 // Schema defines the schema for the resource.
 func (r *AuthenticationStrengthPolicyResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Manages Microsoft 365 Authentication Strength Policies using the `/identity/conditionalAccess/authenticationStrength/policies` " +
-			"endpoint. Authentication Strength Policies define authentication method combinations that can be used in Conditional Access policies. Learn more here: " +
-			"https://learn.microsoft.com/en-us/entra/identity/authentication/concept-authentication-strength-advanced-options",
+		MarkdownDescription: "Manages authentication strength policies in Microsoft Entra ID using the `/identity/conditionalAccess/authenticationStrength/policies` endpoint. This resource is used to define authentication method combinations for use in Conditional Access policies.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				MarkdownDescription: "String (identifier)",

@@ -56,10 +56,10 @@ func (a *PauseConfigurationRefreshManagedDeviceAction) Configure(ctx context.Con
 
 func (a *PauseConfigurationRefreshManagedDeviceAction) Schema(ctx context.Context, req action.SchemaRequest, resp *action.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Initiates a command to pause configuration refresh on managed Windows devices using the " +
+		MarkdownDescription: "Pauses configuration refresh on managed Windows devices in Microsoft Intune using the " +
 			"`/deviceManagement/managedDevices/{managedDeviceId}/pauseConfigurationRefresh` and " +
 			"`/deviceManagement/comanagedDevices/{managedDeviceId}/pauseConfigurationRefresh` endpoints. " +
-			"This action temporarily prevents devices from receiving and applying new configuration policies from Intune, " +
+			"This action is used to temporarily prevent devices from receiving and applying new configuration policies from Intune, " +
 			"which is useful during maintenance windows, troubleshooting, or when you need to prevent policy changes from " +
 			"being applied to specific devices for a defined period.\n\n" +
 			"**Important Notes:**\n" +

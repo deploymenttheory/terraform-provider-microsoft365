@@ -2,12 +2,12 @@
 page_title: "microsoft365_graph_beta_identity_and_access_directory_setting_templates Data Source - terraform-provider-microsoft365"
 subcategory: "Identity and Access"
 description: |-
-  Retrieves information about directory setting templates available in Microsoft 365. Directory setting templates represent system-defined settings available to the tenant. Directory settings can be created based on the available templates, and values changed from their preset defaults. These templates are read-only and define the allowed behaviors for specific Microsoft Entra objects like Microsoft 365 groups.
+  Retrieves directory setting templates from Microsoft Entra ID using the /directorySettingTemplates endpoint. This data source is used to discover system-defined configuration templates for Microsoft 365 groups and other directory objects with their default values.
 ---
 
 # microsoft365_graph_beta_identity_and_access_directory_setting_templates (Data Source)
 
-Retrieves information about directory setting templates available in Microsoft 365. Directory setting templates represent system-defined settings available to the tenant. Directory settings can be created based on the available templates, and values changed from their preset defaults. These templates are read-only and define the allowed behaviors for specific Microsoft Entra objects like Microsoft 365 groups.
+Retrieves directory setting templates from Microsoft Entra ID using the `/directorySettingTemplates` endpoint. This data source is used to discover system-defined configuration templates for Microsoft 365 groups and other directory objects with their default values.
 
 ## Microsoft Documentation
 
@@ -15,13 +15,16 @@ Retrieves information about directory setting templates available in Microsoft 3
 - [List directorySettingTemplates](https://learn.microsoft.com/en-us/graph/api/directorysettingtemplate-list?view=graph-rest-beta)
 - [Get directorySettingTemplate](https://learn.microsoft.com/en-us/graph/api/directorysettingtemplate-get?view=graph-rest-beta)
 
-## API Permissions
+## Microsoft Graph API Permissions
 
-The following API permissions are required in order to use this data source.
+The following client `application` permissions are needed in order to use this data source:
 
-### Microsoft Graph
+**Required:**
+- `Directory.Read.All`
+- `Directory.ReadWrite.All`
 
-- **Application**: `Directory.Read.All`, `Directory.ReadWrite.All`
+**Optional:**
+- `None` `[N/A]`
 
 ## Filtering
 

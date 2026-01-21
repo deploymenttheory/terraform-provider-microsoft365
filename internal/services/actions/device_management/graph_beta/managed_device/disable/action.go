@@ -57,9 +57,10 @@ func (a *DisableManagedDeviceAction) Configure(ctx context.Context, req action.C
 
 func (a *DisableManagedDeviceAction) Schema(ctx context.Context, req action.SchemaRequest, resp *action.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Disables managed devices from Intune management using the " +
+		MarkdownDescription: "Disables managed devices in Microsoft Intune using the " +
 			"`/deviceManagement/managedDevices/{managedDeviceId}/disable` and " +
 			"`/deviceManagement/comanagedDevices/{managedDeviceId}/disable` endpoints. " +
+			"This action is used to disable devices from Intune management. " +
 			"This action disables a device's ability to interact with Intune services while maintaining its enrollment record. " +
 			"Disabled devices cannot receive policies, sync with Intune, or perform managed operations until re-enabled. " +
 			"This is useful for temporarily suspending device management without fully removing the device from Intune, " +

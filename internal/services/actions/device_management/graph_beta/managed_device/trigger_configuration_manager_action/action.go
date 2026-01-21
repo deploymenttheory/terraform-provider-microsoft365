@@ -53,10 +53,10 @@ func (a *TriggerConfigurationManagerActionManagedDeviceAction) Configure(ctx con
 
 func (a *TriggerConfigurationManagerActionManagedDeviceAction) Schema(ctx context.Context, req action.SchemaRequest, resp *action.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Triggers Configuration Manager client actions on Windows managed and co-managed devices using the " +
+		MarkdownDescription: "Triggers Configuration Manager client actions on Windows managed and co-managed devices in Microsoft Intune using the " +
 			"`/deviceManagement/managedDevices/{managedDeviceId}/triggerConfigurationManagerAction` and " +
 			"`/deviceManagement/comanagedDevices/{managedDeviceId}/triggerConfigurationManagerAction` endpoints. " +
-			"This action allows administrators to remotely invoke specific Configuration Manager (SCCM) operations on devices " +
+			"This action is used to remotely invoke specific Configuration Manager (SCCM) operations on devices " +
 			"that have the Configuration Manager client installed. This is particularly useful for co-managed devices where " +
 			"Intune and Configuration Manager work together to manage devices. Actions include policy refresh, application " +
 			"evaluation, antivirus scans, and more.\n\n" +

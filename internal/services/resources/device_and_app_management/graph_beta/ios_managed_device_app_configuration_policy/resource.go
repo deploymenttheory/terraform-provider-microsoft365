@@ -83,10 +83,7 @@ func (r *IOSManagedDeviceAppConfigurationPolicyResource) ImportState(ctx context
 // Schema returns the schema for the resource.
 func (r *IOSManagedDeviceAppConfigurationPolicyResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Manages iOS managed device mobile app configurations in Microsoft Intune using the `/deviceAppManagement/mobileAppConfigurations` endpoint." +
-			"Use app configuration policies in Microsoft Intune to provide custom configuration settings for an iOS/iPadOS app. These configuration settings allow an app  " +
-			"to be customized based on the app suppliers direction. You must get these configuration settings (keys and values) from the supplier of the app. " +
-			"To configure the app, you specify the settings as keys and values, or as XML containing the keys and values. Learn more here: https://learn.microsoft.com/en-us/intune/intune-service/apps/app-configuration-policies-use-ios",
+		MarkdownDescription: "Manages iOS managed device mobile app configurations using the `/deviceAppManagement/mobileAppConfigurations` endpoint. This resource is used to configuration settings allow an app  to be customized based on the app suppliers direction. You must get these configuration settings (keys and values) from the supplier of the app.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed: true,

@@ -3,26 +3,28 @@ page_title: "microsoft365_graph_beta_device_and_app_management_ios_store_app Res
 subcategory: "Device and App Management"
 
 description: |-
-  Manages iOS Store apps in Microsoft Intune using the /deviceAppManagement/mobileApps endpoint. iOS Store apps are applications from the Apple App Store that can be managed through Intune.
+  Manages iOS Store apps using the /deviceAppManagement/mobileApps endpoint. This resource is used to iOS Store apps are applications from the Apple App Store that can be managed through Intune.
 ---
 
 # microsoft365_graph_beta_device_and_app_management_ios_store_app (Resource)
 
-Manages iOS Store apps in Microsoft Intune using the `/deviceAppManagement/mobileApps` endpoint. iOS Store apps are applications from the Apple App Store that can be managed through Intune.
+Manages iOS Store apps using the `/deviceAppManagement/mobileApps` endpoint. This resource is used to iOS Store apps are applications from the Apple App Store that can be managed through Intune.
 
 ## Microsoft Documentation
 
 - [iosStoreApp resource type](https://learn.microsoft.com/en-us/graph/api/resources/intune-apps-iosstoreapp?view=graph-rest-beta)
 - [Create iosStoreApp](https://learn.microsoft.com/en-us/graph/api/intune-apps-iosstoreapp-create?view=graph-rest-beta)
 
-## API Permissions
+## Microsoft Graph API Permissions
 
-The following API permissions are required in order to use this resource.
+The following client `application` permissions are needed in order to use this resource:
 
-### Microsoft Graph
+**Required:**
+- `DeviceManagementApps.Read.All`
+- `DeviceManagementApps.ReadWrite.All`
 
-- **Read**: `DeviceManagementApps.Read.All`
-- **Write**: `DeviceManagementApps.ReadWrite.All`
+**Optional:**
+- `None` `[N/A]`
 
 ## Version History
 

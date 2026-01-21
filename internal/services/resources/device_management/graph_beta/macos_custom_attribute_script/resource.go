@@ -76,7 +76,7 @@ func (r *DeviceCustomAttributeShellScriptResource) ImportState(ctx context.Conte
 
 func (r *DeviceCustomAttributeShellScriptResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Manages a device custom attribute shell script using the `/deviceManagement/deviceCustomAttributeShellScripts` endpoint.",
+		MarkdownDescription: "Manages a device custom attribute shell script using the `/deviceManagement/deviceCustomAttributeShellScripts` endpoint. This resource is used to configure a device custom attribute shell script settings.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed: true,

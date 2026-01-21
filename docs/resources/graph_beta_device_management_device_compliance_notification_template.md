@@ -11,13 +11,15 @@ description: |-
 Manages an Intune notification message template for compliance notifications
 
 
-## API Permissions
+## Microsoft Graph API Permissions
 
-The following API permissions are required in order to use this resource.
+The following client `application` permissions are needed in order to use this resource:
 
-### Microsoft Graph
+**Required:**
+- `DeviceManagementConfiguration.ReadWrite.All`
 
-- **Application**: `DeviceManagementConfiguration.ReadWrite.All` , `DeviceManagementConfiguration.Read.All`
+**Optional:**
+- `None` `[N/A]` , `DeviceManagementConfiguration.Read.All`
 
 ## Example Usage    
 

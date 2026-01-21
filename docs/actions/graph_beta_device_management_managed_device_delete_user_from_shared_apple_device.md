@@ -3,7 +3,7 @@ page_title: "microsoft365_graph_beta_device_management_managed_device_delete_use
 subcategory: "Device Management"
 
 description: |-
-  Deletes a user and their cached data from Shared iPad devices using the /deviceManagement/managedDevices/{managedDeviceId}/deleteUserFromSharedAppleDevice and /deviceManagement/comanagedDevices/{managedDeviceId}/deleteUserFromSharedAppleDevice endpoints. This action permanently removes the specified user's account and all associated cached data from the Shared iPad, freeing up storage space for other users.
+  Deletes a user and their cached data from Shared iPad devices in Microsoft Intune using the /deviceManagement/managedDevices/{managedDeviceId}/deleteUserFromSharedAppleDevice and /deviceManagement/comanagedDevices/{managedDeviceId}/deleteUserFromSharedAppleDevice endpoints. This action is used to permanently remove specified user accounts and associated cached data from Shared iPads, freeing up storage space. The action permanently removes the specified user's account and all associated cached data from the Shared iPad.
   What This Action Does:
   Permanently deletes user from Shared iPad device rosterRemoves all cached user data (documents, photos, app data)Frees up device storage spacePrevents user from logging back into that specific deviceDoes not affect user's account or data in the cloudCannot be undone (user must be re-added if needed)
   Platform Support:
@@ -13,7 +13,7 @@ description: |-
 
 # microsoft365_graph_beta_device_management_managed_device_delete_user_from_shared_apple_device (Action)
 
-Deletes a user and their cached data from Shared iPad devices using the `/deviceManagement/managedDevices/{managedDeviceId}/deleteUserFromSharedAppleDevice` and `/deviceManagement/comanagedDevices/{managedDeviceId}/deleteUserFromSharedAppleDevice` endpoints. This action permanently removes the specified user's account and all associated cached data from the Shared iPad, freeing up storage space for other users.
+Deletes a user and their cached data from Shared iPad devices in Microsoft Intune using the `/deviceManagement/managedDevices/{managedDeviceId}/deleteUserFromSharedAppleDevice` and `/deviceManagement/comanagedDevices/{managedDeviceId}/deleteUserFromSharedAppleDevice` endpoints. This action is used to permanently remove specified user accounts and associated cached data from Shared iPads, freeing up storage space. The action permanently removes the specified user's account and all associated cached data from the Shared iPad.
 
 **What This Action Does:**
 - Permanently deletes user from Shared iPad device roster
@@ -39,14 +39,15 @@ Deletes a user and their cached data from Shared iPad devices using the `/device
 ### Intune Remote Actions Guides
 - [Device remove user](https://learn.microsoft.com/en-us/intune/intune-service/remote-actions/device-remove-user)
 
-## API Permissions
+## Microsoft Graph API Permissions
 
-The following API permissions are required in order to use this action.
+The following client `application` permissions are needed in order to use this action:
 
-### Microsoft Graph
+**Required:**
+- `DeviceManagementManagedDevices.PrivilegedOperations.All`
 
-- **Application**: `DeviceManagementManagedDevices.PrivilegedOperations.All`
-- **Delegated**: `DeviceManagementManagedDevices.PrivilegedOperations.All`
+**Optional:**
+- `None` `[N/A]`
 
 ## Version History
 
@@ -55,222 +56,6 @@ The following API permissions are required in order to use this action.
 | v0.33.0-alpha | Experimental | Initial release |
 | v0.40.0-alpha | Experimental | Example fixes and refactored sync progress logic |
 
-
-## Notes
-
-### Platform Compatibility
-
-| Platform | Support | Requirements |
-|----------|---------|--------------|
-| **iPadOS** | ✅ Full Support | Shared iPad mode, supervised, DEP/ABM |
-| **iOS** | ❌ Not Supported | iPhones don't support Shared mode |
-| **macOS** | ❌ Not Supported | Shared mode is iPad-only |
-| **Windows** | ❌ Not Supported | Shared mode is iPad-only |
-| **Android** | ❌ Not Supported | Shared mode is iPad-only |
-
-### Delete User vs Logout User
-
-| Action | Effect | Data Impact | User Can Return | Use Case |
-|--------|--------|-------------|-----------------|----------|
-| **Delete User** | Permanent removal | All cached data deleted | No (must be re-added) | User left organization, storage cleanup |
-| **Logout User** | Temporary logout | Data preserved | Yes (immediately) | Session management, device rotation |
-
-### What Gets Deleted
-
-**User Account**
-- User removed from device roster
-- Cannot log into this specific device
-- Must be re-added to regain access
-
-**Cached Data**
-- Documents and files
-- Photos and media
-- App data and settings
-- Downloaded content
-- Offline cached data
-- User preferences
-
-**Storage Impact**
-- Immediately frees allocated space
-- Available for other users
-- Helps manage device capacity
-- Reduces storage pressure
-
-### What is NOT Affected
-
-**Cloud Data**
-- User's Azure AD/Entra ID account
-- User's cloud-stored documents
-- User's OneDrive data
-- User's email
-- User's cloud app data
-- User's other devices
-
-**Device Configuration**
-- Device enrollment
-- MDM policies
-- Installed apps
-- Device settings
-- Other cached users
-- Network configuration
-
-### Common Use Cases
-
-| Scenario | Description | Benefit |
-|----------|-------------|---------|
-| **User Departure** | Employee/student left organization | Complete removal from devices |
-| **Storage Management** | Free space for active users | Improve device capacity |
-| **Roster Management** | Remove users no longer assigned | Keep user lists current |
-| **Max Users Reached** | Hit maximum cached users limit | Make room for new users |
-| **Account Cleanup** | Regular maintenance | Optimize device performance |
-| **Graduation/Termination** | End of tenure | Proper offboarding |
-
-### Requirements
-
-#### Device Requirements
-- iPad in Shared iPad mode
-- Supervised via DEP/ABM
-- iPadOS 9.3 or later
-- Online connectivity
-- Managed by Intune
-
-#### User Requirements
-- User exists in device's cached user list
-- Valid user principal name (UPN)
-- Managed Apple ID or federated account
-
-#### Action-Specific
-- Can delete currently logged-in users (forces logout)
-- Can delete multiple users from multiple devices
-- Per-device operation (doesn't affect user globally)
-
-### Data Deletion Process
-
-**Immediate Actions**
-1. User logged out if currently active
-2. User removed from device roster
-3. Cached data deletion begins
-4. Storage space freed up
-5. User cannot log back in
-
-**Data Removal**
-- User profile deleted
-- Documents removed
-- Photos deleted
-- App data cleared
-- Downloaded content removed
-- Preferences erased
-
-**Timeline**
-- Deletion begins immediately
-- Full removal takes 1-5 minutes
-- Storage space available instantly
-- No recovery possible
-
-### User Impact
-
-**For Deleted User**
-- **Access**: Cannot log into this specific device
-- **Data**: All cached data on device is lost
-- **Cloud**: Cloud data unaffected
-- **Other Devices**: Can still use other devices
-- **Re-Addition**: Can be re-added, but starts fresh
-
-**For Other Users**
-- No impact on their accounts
-- May see improved performance
-- More storage available
-- Uninterrupted access
-
-**For Device**
-- Frees storage space
-- One fewer cached user
-- Performance may improve
-- Ready for new user
-
-### Best Practices
-
-**Before Deletion**
-- Verify user has backed up important data
-- Confirm user identity and device
-- Document business justification
-- Check if user needs re-addition later
-- Consider logout instead if temporary
-
-**Communication**
-- Notify users before deletion
-- Explain data loss implications
-- Provide data backup instructions
-- Set expectations for re-addition
-- Follow organizational policies
-
-**Planning**
-- Delete during off-hours when possible
-- Batch related operations
-- Monitor storage impact
-- Track deleted users
-- Document deletion reasons
-
-**Storage Management**
-- Remove inactive users first
-- Monitor device capacity
-- Balance user count vs storage
-- Plan for new user additions
-- Regular maintenance schedule
-
-### Troubleshooting
-
-| Issue | Cause | Solution |
-|-------|-------|----------|
-| Action fails | User not on device | Verify user exists in device roster |
-| No effect | Wrong device type | Confirm device is Shared iPad |
-| Timeout | Device offline | Check network connectivity |
-| Error | Not supervised | Enroll via DEP/ABM |
-| User remains | Not Shared mode | Verify Shared iPad configuration |
-| Storage not freed | Deletion in progress | Wait 5 minutes for completion |
-
-### Recovery and Re-Addition
-
-**No Recovery**
-- Deleted data cannot be recovered
-- Operation is permanent
-- User must start fresh if re-added
-
-**Re-Adding Users**
-1. User can be re-added to device
-2. Will start with clean profile
-3. Must download all data again
-4. Settings must be reconfigured
-5. Treated as new user on device
-
-**Alternative Approaches**
-- Use logout for temporary removal
-- Use wipe for complete device reset
-- Consider user data backup before deletion
-- Plan for re-addition if needed
-
-### Shared iPad Mode Context
-
-**User Management**
-- Maximum users per device (typically 24-40)
-- Storage allocation per user
-- Quota management
-- Active vs cached users
-- User pruning strategies
-
-**Storage Allocation**
-- Each user gets allocated space
-- Deletion frees that allocation
-- Space available immediately
-- Helps manage device capacity
-- Prevents storage exhaustion
-
-**Multi-User Environment**
-- Multiple students/employees per device
-- Individual user experiences
-- Separate data and settings
-- Managed user switching
-- IT control over user roster
 
 ## Example Usage
 
@@ -374,7 +159,7 @@ action "microsoft365_graph_beta_device_management_managed_device_delete_user_fro
 Required:
 
 - `device_id` (String) The co-managed device ID (GUID) of the Shared iPad.
-- `user_principal_name` (String) The user principal name (UPN) to delete from the device.
+- `user_principal_name` (String) The user principal name (UPN) to delete from the device. Example: user@domain.com
 
 
 <a id="nestedatt--managed_devices"></a>
@@ -383,7 +168,7 @@ Required:
 Required:
 
 - `device_id` (String) The managed device ID (GUID) of the Shared iPad.
-- `user_principal_name` (String) The user principal name (UPN) to delete from the device.
+- `user_principal_name` (String) The user principal name (UPN) to delete from the device. Example: user@domain.com
 
 
 <a id="nestedatt--timeouts"></a>

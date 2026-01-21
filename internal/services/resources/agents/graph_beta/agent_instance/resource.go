@@ -76,10 +76,7 @@ func (r *AgentInstanceResource) ImportState(ctx context.Context, req resource.Im
 // Schema returns the schema for the resource.
 func (r *AgentInstanceResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Manages an Agent Instance in the Microsoft Entra Agent Registry using the `/agentRegistry/agentInstances` endpoint. " +
-			"An agent instance represents a specific deployed instance of an AI agent. Agent instances can be associated with an " +
-			"agentCardManifest that defines its capabilities, skills, and metadata.\n\n" +
-			"For more information, see the [agentInstance resource type](https://learn.microsoft.com/en-us/graph/api/resources/agentinstance?view=graph-rest-beta).",
+		MarkdownDescription: "Manages an Agent Instance in the Microsoft Entra Agent Registry using the `/agentRegistry/agentInstances` endpoint. This resource is used to represent a specific deployed instance of an AI agent. Agent instances can be associated with an agentCardManifest that defines its capabilities, skills, and metadata.\n\nFor more information, see the [agentInstance resource type](https://learn.microsoft.com/en-us/graph/api/resources/agentinstance?view=graph-rest-beta).",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				MarkdownDescription: "Unique identifier for the agent instance. Key. Inherited from entity.",

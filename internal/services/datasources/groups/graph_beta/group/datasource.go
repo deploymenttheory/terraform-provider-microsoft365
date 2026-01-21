@@ -51,12 +51,7 @@ func (d *GroupDataSource) Configure(ctx context.Context, req datasource.Configur
 
 func (d *GroupDataSource) Schema(ctx context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Gets information about a Microsoft Entra ID (Azure AD) group.\n\n" +
-			"See the [Microsoft Graph API documentation](https://learn.microsoft.com/en-us/graph/api/group-get?view=graph-rest-beta) for more details.\n\n" +
-			"## API Permissions\n\n" +
-			"The following API permissions are required:\n\n" +
-			"- `Group.Read.All` or `Directory.Read.All` when authenticated with a service principal.\n" +
-			"- No additional roles required when authenticated with a user principal.",
+		MarkdownDescription: "Retrieves information about a Microsoft Entra ID (Azure AD) group using the `/groups` endpoint. This data source is used to query group details by ID, display name, mail nickname, or advanced OData filtering.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:            true,

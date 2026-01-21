@@ -3,24 +3,26 @@ page_title: "microsoft365_graph_beta_device_management_assignment_filter Resourc
 subcategory: "Device Management"
 
 description: |-
-  Manages assignment filters in Microsoft Intune using the /deviceManagement/assignmentFilters endpoint. Assignment filters enable granular targeting of policies and applications based on device properties like OS version, manufacturer, device name, or custom attributes, allowing more precise deployment control beyond basic group membership. You can learn more about assignment filters here https://learn.microsoft.com/en-us/intune/intune-service/fundamentals/filters-device-properties.
+  Manages assignment filters using the /deviceManagement/assignmentFilters endpoint. This resource is used to assignment filters enable granular targeting of policies and applications based on device properties like OS version, manufacturer, device name, or custom attributes, allowing more precise deployment control beyond basic group membership. You can learn more about assignment filters here https://learn.microsoft.com/en-us/intune/intune-service/fundamentals/filters-device-properties..
 ---
 
 # microsoft365_graph_beta_device_management_assignment_filter (Resource)
 
-Manages assignment filters in Microsoft Intune using the `/deviceManagement/assignmentFilters` endpoint. Assignment filters enable granular targeting of policies and applications based on device properties like OS version, manufacturer, device name, or custom attributes, allowing more precise deployment control beyond basic group membership. You can learn more about assignment filters [here](https://learn.microsoft.com/en-us/intune/intune-service/fundamentals/filters-device-properties).
+Manages assignment filters using the `/deviceManagement/assignmentFilters` endpoint. This resource is used to assignment filters enable granular targeting of policies and applications based on device properties like OS version, manufacturer, device name, or custom attributes, allowing more precise deployment control beyond basic group membership. You can learn more about assignment filters [here](https://learn.microsoft.com/en-us/intune/intune-service/fundamentals/filters-device-properties)..
 
 ## Microsoft Documentation
 
 - [deviceAndAppManagementAssignmentFilter resource type](https://learn.microsoft.com/en-us/graph/api/resources/intune-policyset-deviceandappmanagementassignmentfilter?view=graph-rest-beta)
 
-## API Permissions
+## Microsoft Graph API Permissions
 
-The following API permissions are required in order to use this resource.
+The following client `application` permissions are needed in order to use this resource:
 
-### Microsoft Graph
+**Required:**
+- `DeviceManagementConfiguration.ReadWrite.All`
 
-- **Application**: `DeviceManagementConfiguration.ReadWrite.All`
+**Optional:**
+- `None` `[N/A]`
 
 ## Version History
 

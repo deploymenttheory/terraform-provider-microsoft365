@@ -77,7 +77,7 @@ func (r *WindowsFeatureUpdatePolicyResource) ImportState(ctx context.Context, re
 // Schema defines the schema for the resource.
 func (r *WindowsFeatureUpdatePolicyResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Manages Windows feature update profiles using the `/deviceManagement/windowsFeatureUpdateProfiles` endpoint. Feature update profiles control major Windows version deployments (like Windows 11 24H2) with rollout scheduling, device eligibility rules, and deployment timing to ensure controlled OS upgrades across managed devices.",
+		MarkdownDescription: "Manages Windows feature update profiles using the `/deviceManagement/windowsFeatureUpdateProfiles` endpoint. This resource is used to feature update profiles control major Windows version deployments (like Windows 11 24H2) with rollout scheduling, device eligibility rules, and deployment timing to ensure controlled OS upgrades across managed devices.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed: true,

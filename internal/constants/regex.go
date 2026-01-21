@@ -43,6 +43,21 @@ const (
 	// Example: "user.name@contoso.com" or "first-last@contoso.onmicrosoft.com"
 	UserPrincipalNameRegex = `^[A-Za-z0-9'.\-_!#^~]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$`
 
+	// SipAddressRegex matches a valid SIP address/URI.
+	// Format: sip:user@domain.com
+	// Example: "sip:conference-room-01@company.com"
+	SipAddressRegex = `^sip:[A-Za-z0-9'.\-_!#^~]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$`
+
+	// HostnameOrFQDNRegex matches a valid hostname or fully qualified domain name (FQDN).
+	// Allows alphanumeric characters, hyphens, and dots for FQDN.
+	// Examples: "mail.company.com", "outlook.office365.com", "exchange.local"
+	HostnameOrFQDNRegex = `^[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$`
+
+	// PhoneNumberRegex matches a flexible phone number format that supports international numbers.
+	// Allows optional + prefix, digits, spaces, hyphens, parentheses, and dots.
+	// Examples: "+1-555-0123", "555-0123", "+44 20 7123 4567", "(555) 123-4567"
+	PhoneNumberRegex = `^\+?[\d\s\-\(\)\.]+$`
+
 	// ApiIdRegex matches API IDs consisting of alphanumeric characters, slashes, dots, or underscores.
 	// Example: "api/v1/resource_1"
 	ApiIdRegex = "^[0-9a-zA-Z/._]*$"

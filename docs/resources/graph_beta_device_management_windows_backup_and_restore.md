@@ -3,24 +3,26 @@ page_title: "microsoft365_graph_beta_device_management_windows_backup_and_restor
 subcategory: "Device Management"
 
 description: |-
-  Manages Windows Backup and Restore device enrollment configuration in Microsoft Intune using the /deviceManagement/deviceEnrollmentConfigurations endpoint. This configuration controls the Windows Restore feature for device enrollment. Learn more here: 'https://learn.microsoft.com/en-us/windows/configuration/windows-backup/?tabs=intune'.
+  Manages Windows Backup and Restore device enrollment configuration using the /deviceManagement/deviceEnrollmentConfigurations endpoint. This resource is used to configuration controls the Windows Restore feature for device enrollment. Learn more here: 'https://learn.microsoft.com/en-us/windows/configuration/windows-backup/?tabs=intune'..
 ---
 
 # microsoft365_graph_beta_device_management_windows_backup_and_restore (Resource)
 
-Manages Windows Backup and Restore device enrollment configuration in Microsoft Intune using the `/deviceManagement/deviceEnrollmentConfigurations` endpoint. This configuration controls the Windows Restore feature for device enrollment. Learn more here: 'https://learn.microsoft.com/en-us/windows/configuration/windows-backup/?tabs=intune'.
+Manages Windows Backup and Restore device enrollment configuration using the `/deviceManagement/deviceEnrollmentConfigurations` endpoint. This resource is used to configuration controls the Windows Restore feature for device enrollment. Learn more here: 'https://learn.microsoft.com/en-us/windows/configuration/windows-backup/?tabs=intune'..
 
 ## Microsoft Documentation
 
 - [windowsBackupAndRestore resource type](https://learn.microsoft.com/en-us/windows/configuration/windows-backup/?tabs=intune)
 
-## API Permissions
+## Microsoft Graph API Permissions
 
-The following API permissions are required in order to use this resource.
+The following client `application` permissions are needed in order to use this resource:
 
-### Microsoft Graph
+**Required:**
+- `DeviceManagementServiceConfig.ReadWrite.All`
 
-- **Application**: `DeviceManagementServiceConfig.ReadWrite.All`
+**Optional:**
+- `None` `[N/A]`
 
 ## Version History
 

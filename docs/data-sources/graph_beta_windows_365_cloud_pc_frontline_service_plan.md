@@ -2,7 +2,7 @@
 page_title: "microsoft365_graph_beta_windows_365_cloud_pc_frontline_service_plan Data Source - terraform-provider-microsoft365"
 subcategory: "Windows 365"
 description: |-
-  Retrieves Cloud PC Frontline Service Plans from Microsoft Intune. Using the endpoint '/deviceManagement/virtualEndpoint/frontlineServicePlans'. Supports filtering by all, id, or display_name.
+  Retrieves Cloud PC frontline service plans from Microsoft Intune using the /deviceManagement/virtualEndpoint/frontlineServicePlans endpoint. This data source is used to query shared Cloud PC plans and their capacity utilization.
 ---
 
 # microsoft365_graph_beta_windows_365_cloud_pc_frontline_service_plan (Data Source)
@@ -15,13 +15,16 @@ Frontline service plans provide an allotment of three Cloud PCs for the admin to
 
 - [cloudPcFrontLineServicePlan resource type](https://learn.microsoft.com/en-us/graph/api/resources/cloudpcfrontlineserviceplan?view=graph-rest-beta)
 
-## API Permissions
+## Microsoft Graph API Permissions
 
-The following API permissions are required in order to use this data source.
+The following client `application` permissions are needed in order to use this data source:
 
-### Microsoft Graph
+**Required:**
+- `CloudPC.Read.All`
+- `CloudPC.ReadWrite.All`
 
-- **Application**: `CloudPC.Read.All`, `CloudPC.ReadWrite.All`
+**Optional:**
+- `None` `[N/A]`
 
 ## Version History
 

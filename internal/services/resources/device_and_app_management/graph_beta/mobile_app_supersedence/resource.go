@@ -78,7 +78,7 @@ func (r *MobileAppSupersedenceResource) ImportState(ctx context.Context, req res
 // Schema returns the schema for the resource.
 func (r *MobileAppSupersedenceResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Manages mobile app supersedence relationships in Microsoft Intune using the /deviceAppManagement/mobileApps/{mobileAppId}/relationships endpoint. Supersedence enables admins to upgrade or replace existing apps with newer versions in a controlled manner.",
+		MarkdownDescription: "Manages mobile app supersedence relationships using the `/deviceAppManagement/mobileApps/{mobileAppId}/relationships` endpoint. This resource is used to supersedence enables admins to upgrade or replace existing apps with newer versions in a controlled manner.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed: true,

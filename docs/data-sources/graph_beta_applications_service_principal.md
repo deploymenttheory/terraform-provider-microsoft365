@@ -3,24 +3,29 @@ page_title: "microsoft365_graph_beta_applications_service_principal Data Source 
 subcategory: "Applications"
 
 description: |-
-  Retrieves service principals from Microsoft Entra ID using the /servicePrincipals endpoint. This data source enables querying service principals with advanced filtering capabilities including OData queries for filtering by preferred single sign-on mode, account status, and other properties.
+  Retrieves service principals from Microsoft Entra ID using the /servicePrincipals endpoint. This data source is used to query enterprise applications and managed identities with advanced filtering capabilities.
 ---
 
 # microsoft365_graph_beta_applications_service_principal (Data Source)
 
-Retrieves service principals from Microsoft Entra ID using the `/servicePrincipals` endpoint. This data source enables querying service principals with advanced filtering capabilities including OData queries for filtering by preferred single sign-on mode, account status, and other properties.
+Retrieves service principals from Microsoft Entra ID using the `/servicePrincipals` endpoint. This data source is used to query enterprise applications and managed identities with advanced filtering capabilities.
 
 ## Microsoft Documentation
 
 - [servicePrincipal resource type](https://learn.microsoft.com/en-us/graph/api/resources/serviceprincipal?view=graph-rest-beta)
 
-## API Permissions
+## Microsoft Graph API Permissions
 
-The following API permissions are required in order to use this data source.
+The following client `application` permissions are needed in order to use this data source:
 
-### Microsoft Graph
+**Required:**
+- `Application.Read.All`
+- `Application.ReadWrite.All`
+- `Directory.Read.All`
+- `Directory.ReadWrite.All`
 
-- **Application**: `Application.Read.All`, `Application.ReadWrite.All`, `Directory.Read.All`, `Directory.ReadWrite.All`.
+**Optional:**
+- `None` `[N/A]`
 
 ## Version History
 

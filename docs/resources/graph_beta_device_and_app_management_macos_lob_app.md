@@ -3,25 +3,27 @@ page_title: "microsoft365_graph_beta_device_and_app_management_macos_lob_app Res
 subcategory: "Device and App Management"
 
 description: |-
-  Manages macOS Line of Business (LOB) app packages in Microsoft Intune using the /deviceAppManagement/mobileApps endpoint. LOB apps are custom .pkg applications that are uploaded to Intune and deployed to managed macOS devices through the Intune management agent, supporting both managed and unmanaged installation modes.
+  Manages macOS Line of Business (LOB) app packages using the /deviceAppManagement/mobileApps endpoint. This resource is used to lOB apps are custom .pkg applications that are uploaded to Intune and deployed to managed macOS devices through the Intune management agent, supporting both managed and unmanaged installation modes.
 ---
 
 # microsoft365_graph_beta_device_and_app_management_macos_lob_app (Resource)
 
-Manages macOS Line of Business (LOB) app packages in Microsoft Intune using the `/deviceAppManagement/mobileApps` endpoint. LOB apps are custom .pkg applications that are uploaded to Intune and deployed to managed macOS devices through the Intune management agent, supporting both managed and unmanaged installation modes.
+Manages macOS Line of Business (LOB) app packages using the `/deviceAppManagement/mobileApps` endpoint. This resource is used to lOB apps are custom .pkg applications that are uploaded to Intune and deployed to managed macOS devices through the Intune management agent, supporting both managed and unmanaged installation modes.
 
 ## Microsoft Documentation
 
 - [macOSLobApp resource type](https://learn.microsoft.com/en-us/graph/api/resources/intune-apps-macoslobapp?view=graph-rest-beta)
 - [Create macOSLobApp](https://learn.microsoft.com/en-us/graph/api/intune-apps-macoslobapp-create?view=graph-rest-beta)
 
-## API Permissions
+## Microsoft Graph API Permissions
 
-The following API permissions are required in order to use this resource.
+The following client `application` permissions are needed in order to use this resource:
 
-### Microsoft Graph
+**Required:**
+- `DeviceManagementApps.ReadWrite.All`
 
-- **Application**: `DeviceManagementApps.ReadWrite.All`
+**Optional:**
+- `None` `[N/A]`
 
 ## Version History
 

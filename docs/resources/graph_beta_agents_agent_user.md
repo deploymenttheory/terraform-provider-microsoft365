@@ -3,18 +3,12 @@ page_title: "microsoft365_graph_beta_agents_agent_user Resource - terraform-prov
 subcategory: "Agents"
 
 description: |-
-  Manages Microsoft 365 users using the /users/microsoft.graph.agentUser endpoint. Represents a specialized subtype of user identity in Microsoft Entra ID designed for AI-powered applications (agents) that need to function as digital workers. Agent users enable agents to access APIs and services that specifically require user identities, receiving tokens with idtyp=user claims. Agent users are distinct from human users and they only interlinked to users through relationships such as owner, sponsor, and manager.
-  Each agent user maintains a one-to-one relationship with a parent agent identity and is authenticated through that parent's credentials. Agent users have user-like capabilities such as being added to groups, assigned licenses, and accessing collaborative features like mailboxes and chat, while operating under security constraints including no password authentication, no privileged admin role assignments, and permissions similar to guest users.
-  For more information, see the agentUser resource type https://learn.microsoft.com/en-us/graph/api/resources/agentuser?view=graph-rest-beta.
+  Manages Microsoft 365 users using the /users/microsoft.graph.agentUser endpoint. This resource is used to represents a specialized subtype of user identity in Microsoft Entra ID designed for AI-powered applications (agents) that need to function as digital workers. Agent users enable agents to access APIs and services that specifically require user identities, receiving tokens with idtyp=user claims.
 ---
 
 # microsoft365_graph_beta_agents_agent_user (Resource)
 
-Manages Microsoft 365 users using the `/users/microsoft.graph.agentUser` endpoint. Represents a specialized subtype of user identity in Microsoft Entra ID designed for AI-powered applications (agents) that need to function as digital workers. Agent users enable agents to access APIs and services that specifically require user identities, receiving tokens with `idtyp=user` claims. Agent users are distinct from human users and they only interlinked to users through relationships such as owner, sponsor, and manager.
-
-Each agent user maintains a one-to-one relationship with a parent agent identity and is authenticated through that parent's credentials. Agent users have user-like capabilities such as being added to groups, assigned licenses, and accessing collaborative features like mailboxes and chat, while operating under security constraints including no password authentication, no privileged admin role assignments, and permissions similar to guest users.
-
-For more information, see the [agentUser resource type](https://learn.microsoft.com/en-us/graph/api/resources/agentuser?view=graph-rest-beta).
+Manages Microsoft 365 users using the `/users/microsoft.graph.agentUser` endpoint. This resource is used to represents a specialized subtype of user identity in Microsoft Entra ID designed for AI-powered applications (agents) that need to function as digital workers. Agent users enable agents to access APIs and services that specifically require user identities, receiving tokens with `idtyp=user` claims.
 
 ## Microsoft Documentation
 
@@ -26,14 +20,20 @@ For more information, see the [agentUser resource type](https://learn.microsoft.
 - [List sponsors](https://learn.microsoft.com/en-us/graph/api/agentuser-list-sponsors?view=graph-rest-beta&tabs=http)
 - [Permanently delete item](https://learn.microsoft.com/en-us/graph/api/directory-deleteditems-delete?view=graph-rest-beta&tabs=http)
 
-## API Permissions
+## Microsoft Graph API Permissions
 
-The following API permissions are required in order to use this resource.
+The following client `application` permissions are needed in order to use this resource:
 
-### Microsoft Graph
+**Required:**
+- `User.Read.All`
+- `AgentIdUser.ReadWrite.All`
+- `Directory.Read.All`
+- `AgentIdUser.ReadWrite.IdentityParentedBy`
+- `User.ReadWrite.All`
+- `User.DeleteRestore.All`
 
-- **Read Permissions**: `User.Read.All`, `AgentIdUser.ReadWrite.All`, `Directory.Read.All`
-- **Write Permissions**: `AgentIdUser.ReadWrite.IdentityParentedBy`, `User.ReadWrite.All`, `AgentIdUser.ReadWrite.All`, `User.DeleteRestore.All`
+**Optional:**
+- `None` `[N/A]`
 
 Find out more about the permissions required for managing agent identities at Microsoft Learn [here](https://learn.microsoft.com/en-us/graph/api/resources/agentid-platform-overview?view=graph-rest-beta#permissions-for-managing-agent-identities).
 

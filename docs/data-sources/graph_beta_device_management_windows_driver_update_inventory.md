@@ -3,24 +3,27 @@ page_title: "microsoft365_graph_beta_device_management_windows_driver_update_inv
 subcategory: "Device Management"
 
 description: |-
-  Retrieves information about a Windows Driver Update Inventory in Microsoft Intune.
+  Retrieves Windows driver update inventory from Microsoft Intune using the /deviceManagement/windowsDriverUpdateProfiles/{id}/driverInventories endpoint. This data source is used to query available driver updates within a specific update profile.
 ---
 
 # microsoft365_graph_beta_device_management_windows_driver_update_inventory (Data Source)
 
-Retrieves information about a Windows Driver Update Inventory in Microsoft Intune.
+Retrieves Windows driver update inventory from Microsoft Intune using the `/deviceManagement/windowsDriverUpdateProfiles/{id}/driverInventories` endpoint. This data source is used to query available driver updates within a specific update profile.
 
 ## Microsoft Documentation
 
 - [windowsDriverUpdateInventory resource type](https://learn.microsoft.com/en-us/graph/api/resources/intune-softwareupdate-windowsdriverupdateinventory?view=graph-rest-beta)
 
-## API Permissions  
+## Microsoft Graph API Permissions
 
-The following API permissions are required in order to use this data source.
+The following client `application` permissions are needed in order to use this data source:
 
-### Microsoft Graph
+**Required:**
+- `DeviceManagementConfiguration.Read.All`
+- `DeviceManagementConfiguration.ReadWrite.All`
 
-- **Application**: `DeviceManagementConfiguration.Read.All`, `DeviceManagementConfiguration.ReadWrite.All`
+**Optional:**
+- `None` `[N/A]`
 
 ## Version History
 

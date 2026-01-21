@@ -74,7 +74,7 @@ func (r *BrowserSiteListResource) ImportState(ctx context.Context, req resource.
 
 func (r *BrowserSiteListResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Manages Internet Explorer mode site lists in Microsoft Edge using the `/admin/edge/internetExplorerMode/siteLists` endpoint. Site lists are collections of websites that require Internet Explorer 11 compatibility mode, allowing organizations to maintain legacy web applications while transitioning to Microsoft Edge as the default browser.",
+		MarkdownDescription: "Manages Internet Explorer mode site lists using the `/admin/edge/internetExplorerMode/siteLists` endpoint. This resource is used to site lists are collections of websites that require Internet Explorer 11 compatibility mode, allowing organizations to maintain legacy web applications while transitioning to Microsoft Edge as the default browser.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Description: "The unique identifier for the site list.",

@@ -3,28 +3,32 @@ page_title: "microsoft365_graph_beta_device_and_app_management_ios_managed_devic
 subcategory: "Device and App Management"
 
 description: |-
-  Manages iOS managed device mobile app configurations in Microsoft Intune using the /deviceAppManagement/mobileAppConfigurations endpoint.Use app configuration policies in Microsoft Intune to provide custom configuration settings for an iOS/iPadOS app. These configuration settings allow an app  to be customized based on the app suppliers direction. You must get these configuration settings (keys and values) from the supplier of the app. To configure the app, you specify the settings as keys and values, or as XML containing the keys and values. Learn more here: https://learn.microsoft.com/en-us/intune/intune-service/apps/app-configuration-policies-use-ios
+  Manages iOS managed device mobile app configurations using the /deviceAppManagement/mobileAppConfigurations endpoint. This resource is used to configuration settings allow an app  to be customized based on the app suppliers direction. You must get these configuration settings (keys and values) from the supplier of the app.
 ---
 
 # microsoft365_graph_beta_device_and_app_management_ios_managed_device_app_configuration_policy (Resource)
 
-Manages iOS managed device mobile app configurations in Microsoft Intune using the `/deviceAppManagement/mobileAppConfigurations` endpoint.Use app configuration policies in Microsoft Intune to provide custom configuration settings for an iOS/iPadOS app. These configuration settings allow an app  to be customized based on the app suppliers direction. You must get these configuration settings (keys and values) from the supplier of the app. To configure the app, you specify the settings as keys and values, or as XML containing the keys and values. Learn more here: https://learn.microsoft.com/en-us/intune/intune-service/apps/app-configuration-policies-use-ios
+Manages iOS managed device mobile app configurations using the `/deviceAppManagement/mobileAppConfigurations` endpoint. This resource is used to configuration settings allow an app  to be customized based on the app suppliers direction. You must get these configuration settings (keys and values) from the supplier of the app.
 
 ## Microsoft Documentation
 
+- [App Configuration Policies for Managed iOS/iPadOS Devices](https://learn.microsoft.com/en-us/intune/intune-service/apps/app-configuration-policies-use-ios)
 - [iosMobileAppConfiguration resource type](https://learn.microsoft.com/en-us/graph/api/resources/intune-apps-iosmobileappconfiguration?view=graph-rest-beta)
 - [Create iosMobileAppConfiguration](https://learn.microsoft.com/en-us/graph/api/intune-apps-iosmobileappconfiguration-create?view=graph-rest-beta)
+- [Read iosMobileAppConfiguration](https://learn.microsoft.com/en-us/graph/api/intune-apps-iosmobileappconfiguration-get?view=graph-rest-beta)
 - [Update iosMobileAppConfiguration](https://learn.microsoft.com/en-us/graph/api/intune-apps-iosmobileappconfiguration-update?view=graph-rest-beta)
 - [Delete iosMobileAppConfiguration](https://learn.microsoft.com/en-us/graph/api/intune-apps-iosmobileappconfiguration-delete?view=graph-rest-beta)
-- [App Configuration Policies for Managed iOS/iPadOS Devices](https://learn.microsoft.com/en-us/intune/intune-service/apps/app-configuration-policies-use-ios)
 
-## API Permissions
+## Microsoft Graph API Permissions
 
-The following API permissions are required in order to use this resource.
+The following client `application` permissions are needed in order to use this resource:
 
-### Microsoft Graph
+**Required:**
+- `DeviceManagementConfiguration.ReadWrite.All`
+- `DeviceManagementApps.ReadWrite.All`
 
-- **Application**: `DeviceManagementConfiguration.ReadWrite.All`, `DeviceManagementApps.ReadWrite.All`
+**Optional:**
+- `None` `[N/A]`
 
 ## Version History
 

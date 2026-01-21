@@ -55,7 +55,7 @@ func (d *ServicePrincipalDataSource) Configure(ctx context.Context, req datasour
 // Schema defines the schema for the data source
 func (d *ServicePrincipalDataSource) Schema(ctx context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Retrieves service principals from Microsoft Entra ID using the `/servicePrincipals` endpoint. This data source enables querying service principals with advanced filtering capabilities including OData queries for filtering by preferred single sign-on mode, account status, and other properties.",
+		MarkdownDescription: "Retrieves service principals from Microsoft Entra ID using the `/servicePrincipals` endpoint. This data source is used to query enterprise applications and managed identities with advanced filtering capabilities.",
 		Attributes: map[string]schema.Attribute{
 			"filter_type": schema.StringAttribute{
 				Required:            true,

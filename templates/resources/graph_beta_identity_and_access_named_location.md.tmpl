@@ -12,14 +12,21 @@ description: |-
 ## Microsoft Documentation
 
 - [namedLocation resource type](https://learn.microsoft.com/en-us/graph/api/resources/namedlocation?view=graph-rest-beta)
+- [Create namedLocation](https://learn.microsoft.com/en-us/graph/api/conditionalaccessroot-post-namedlocations?view=graph-rest-beta&tabs=http)
+- [Read namedLocation](https://learn.microsoft.com/en-us/graph/api/namedlocation-get?view=graph-rest-beta)
+- [Update namedLocation](https://learn.microsoft.com/en-us/graph/api/namedlocation-update?view=graph-rest-beta)
+- [Delete namedLocation](https://learn.microsoft.com/en-us/graph/api/namedlocation-delete?view=graph-rest-beta)
 
-## API Permissions
+## Microsoft Graph API Permissions
 
-The following API permissions are required in order to use this resource.
+The following client `application` permissions are needed in order to use this {{.Type | lower}}:
 
-### Microsoft Graph
+**Required:**
+- `Policy.ReadWrite.ConditionalAccess`
+- `Policy.Read.All`
 
-- **Application**: `Policy.ReadWrite.ConditionalAccess`, `Policy.Read.All`
+**Optional:**
+- `None` `[N/A]`
 
 ## Version History
 

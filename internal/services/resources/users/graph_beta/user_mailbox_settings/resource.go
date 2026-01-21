@@ -80,12 +80,7 @@ func (r *UserMailboxSettingsResource) ImportState(ctx context.Context, req resou
 // Schema defines the schema for the resource.
 func (r *UserMailboxSettingsResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Manages Microsoft 365 user mailbox settings using the `/users/{id}/mailboxSettings` endpoint. " +
-			"This resource allows you to configure automatic replies, date/time formats, locale, time zone, working hours, " +
-			"and other mailbox preferences for a user. Note: This resource manages settings that may also be modified by " +
-			"users through Outlook clients. The mailbox settings always exist for a user, so 'create' and 'update' operations " +
-			"both use the PATCH method, and 'delete' only removes the resource from Terraform state without affecting the " +
-			"actual mailbox settings.",
+		MarkdownDescription: "Manages Microsoft 365 user mailbox settings using the `/users/{id}/mailboxSettings` endpoint. This resource is used to allows you to configure automatic replies, date/time formats, locale, time zone, working hours, and other mailbox preferences for a user. Note: This resource manages settings that may also be modified by users through Outlook clients.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				MarkdownDescription: "Computed identifier for this resource (format: users/{user_id}/mailboxSettings). Read-only.",

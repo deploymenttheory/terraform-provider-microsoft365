@@ -51,7 +51,7 @@ func (d *WindowsUpdateCatalogItemDataSource) Configure(ctx context.Context, req 
 // Schema defines the schema for the data source
 func (d *WindowsUpdateCatalogItemDataSource) Schema(ctx context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Retrieves Windows Update Catalog Items from Microsoft Intune with explicit filtering options.",
+		MarkdownDescription: "Retrieves Windows Update catalog items from Microsoft Intune using the `/deviceManagement/windowsUpdateCatalogItems` endpoint. This data source is used to query available Windows updates with release dates and support lifecycle information.",
 		Attributes: map[string]schema.Attribute{
 			"filter_type": schema.StringAttribute{
 				Required:            true,

@@ -2,7 +2,7 @@
 page_title: "Microsoft 365_microsoft365_graph_beta_device_management_managed_device_revoke_apple_vpp_licenses Action"
 subcategory: "Device Management"
 description: |-
-  Revokes all Apple Volume Purchase Program (VPP) licenses from devices using the /deviceManagement/managedDevices/{managedDeviceId}/revokeAppleVppLicenses and /deviceManagement/comanagedDevices/{managedDeviceId}/revokeAppleVppLicenses endpoints. This action reclaims all VPP-purchased app licenses assigned to iOS/iPadOS devices, making them available for reassignment to other devices or users.
+  Revokes all Apple Volume Purchase Program (VPP) licenses from devices in Microsoft Intune using the /deviceManagement/managedDevices/{managedDeviceId}/revokeAppleVppLicenses and /deviceManagement/comanagedDevices/{managedDeviceId}/revokeAppleVppLicenses endpoints. This action is used to reclaim all VPP-purchased app licenses assigned to iOS/iPadOS devices, making them available for reassignment to other devices or users.
   What This Action Does:
   Revokes all VPP app licenses from deviceReturns licenses to available poolMakes licenses available for reassignmentRemoves apps from device (if enforced)Updates license inventoryAudits license revocation
   When to Use:
@@ -16,7 +16,7 @@ description: |-
 
 # Microsoft 365_microsoft365_graph_beta_device_management_managed_device_revoke_apple_vpp_licenses (Action)
 
-Revokes all Apple Volume Purchase Program (VPP) licenses from devices using the `/deviceManagement/managedDevices/{managedDeviceId}/revokeAppleVppLicenses` and `/deviceManagement/comanagedDevices/{managedDeviceId}/revokeAppleVppLicenses` endpoints. This action reclaims all VPP-purchased app licenses assigned to iOS/iPadOS devices, making them available for reassignment to other devices or users.
+Revokes all Apple Volume Purchase Program (VPP) licenses from devices in Microsoft Intune using the `/deviceManagement/managedDevices/{managedDeviceId}/revokeAppleVppLicenses` and `/deviceManagement/comanagedDevices/{managedDeviceId}/revokeAppleVppLicenses` endpoints. This action is used to reclaim all VPP-purchased app licenses assigned to iOS/iPadOS devices, making them available for reassignment to other devices or users.
 
 **What This Action Does:**
 - Revokes all VPP app licenses from device
@@ -103,23 +103,6 @@ The following Microsoft Graph API permissions are required to use this action:
 |---------|--------|-------|
 | v0.33.0-alpha | Experimental | Initial release |
 | v0.40.0-alpha | Experimental | Example fixes and refactored sync progress logic |
-
-
-## Notes
-
-### Platform Compatibility
-
-This remote action is only available for iOS and iPadOS devices with VPP-purchased apps. The table below shows platform support:
-
-| Platform | Supported | Notes |
-|:---------|:----------|:------|
-| **Windows** | ❌ | Not supported - VPP is Apple-specific |
-| **macOS** | ❌ | Not supported - Uses different licensing model |
-| **iOS** | ✅ | Fully supported for VPP apps |
-| **iPadOS** | ✅ | Fully supported for VPP apps |
-| **Android** | ❌ | Not supported - Uses Google Play licensing |
-| **Android Enterprise** | ❌ | Not supported - Uses managed Google Play |
-| **ChromeOS** | ❌ | Not supported - Uses Chrome Web Store licensing |
 
 
 ## Example Usage

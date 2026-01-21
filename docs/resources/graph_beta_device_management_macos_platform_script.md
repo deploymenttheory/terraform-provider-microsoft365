@@ -3,25 +3,27 @@ page_title: "microsoft365_graph_beta_device_management_macos_platform_script Res
 subcategory: "Device Management"
 
 description: |-
-  Manages macOS shell scripts using the /deviceManagement/deviceShellScripts endpoint. macOS platform scripts enable automated deployment and execution of shell scripts on managed macOS devices with support for scheduled execution, retry logic, and execution context control for system maintenance and configuration tasks.
+  Manages macOS shell scripts using the /deviceManagement/deviceShellScripts endpoint. This resource is used to macOS platform scripts enable automated deployment and execution of shell scripts on managed macOS devices with support for scheduled execution, retry logic, and execution context control for system maintenance and configuration tasks.
 ---
 
 # microsoft365_graph_beta_device_management_macos_platform_script (Resource)
 
-Manages macOS shell scripts using the `/deviceManagement/deviceShellScripts` endpoint. macOS platform scripts enable automated deployment and execution of shell scripts on managed macOS devices with support for scheduled execution, retry logic, and execution context control for system maintenance and configuration tasks.
+Manages macOS shell scripts using the `/deviceManagement/deviceShellScripts` endpoint. This resource is used to macOS platform scripts enable automated deployment and execution of shell scripts on managed macOS devices with support for scheduled execution, retry logic, and execution context control for system maintenance and configuration tasks.
 
 ## Microsoft Documentation
 
 - [deviceShellScript resource type](https://learn.microsoft.com/en-us/graph/api/resources/intune-devices-deviceshellscript?view=graph-rest-beta)
 - [Create deviceShellScript](https://learn.microsoft.com/en-us/graph/api/intune-devices-deviceshellscript-create?view=graph-rest-beta)
 
-## API Permissions
+## Microsoft Graph API Permissions
 
-The following API permissions are required in order to use this resource.
+The following client `application` permissions are needed in order to use this resource:
 
-### Microsoft Graph
+**Required:**
+- `DeviceManagementConfiguration.ReadWrite.All`
 
-- **Application**: `DeviceManagementConfiguration.ReadWrite.All`
+**Optional:**
+- `None` `[N/A]`
 
 ## Version History
 

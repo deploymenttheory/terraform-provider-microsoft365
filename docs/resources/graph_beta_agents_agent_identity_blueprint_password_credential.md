@@ -3,18 +3,18 @@ page_title: "microsoft365_graph_beta_agents_agent_identity_blueprint_password_cr
 subcategory: "Agents"
 
 description: |-
-  Manages a password credential for an Agent Identity Blueprint in Microsoft Entra ID using the /applications endpoint. This resource adds a strong password to an agentIdentityBlueprint using the addPassword https://learn.microsoft.com/en-us/graph/api/agentidentityblueprint-addpassword?view=graph-rest-beta API.
+  Manages a password credential for an Agent Identity Blueprint using the /applications endpoint. This resource is used to adds a strong password to an agentIdentityBlueprint using the addPassword https://learn.microsoft.com/en-us/graph/api/agentidentityblueprint-addpassword?view=graph-rest-beta API.
   Important: The secret_text attribute contains the password and is only available at creation time. It cannot be retrieved after initial creation. Store this value securely.
-  Note: This resource does not support import because the password cannot be retrieved from the API after creation.
+  Note: This resource does not support import because the password cannot be retrieved from the API after creation..
 ---
 
 # microsoft365_graph_beta_agents_agent_identity_blueprint_password_credential (Resource)
 
-Manages a password credential for an Agent Identity Blueprint in Microsoft Entra ID using the `/applications` endpoint. This resource adds a strong password to an agentIdentityBlueprint using the [addPassword](https://learn.microsoft.com/en-us/graph/api/agentidentityblueprint-addpassword?view=graph-rest-beta) API.
+Manages a password credential for an Agent Identity Blueprint using the `/applications` endpoint. This resource is used to adds a strong password to an agentIdentityBlueprint using the [addPassword](https://learn.microsoft.com/en-us/graph/api/agentidentityblueprint-addpassword?view=graph-rest-beta) API.
 
 **Important:** The `secret_text` attribute contains the password and is only available at creation time. It cannot be retrieved after initial creation. Store this value securely.
 
-**Note:** This resource does not support import because the password cannot be retrieved from the API after creation.
+**Note:** This resource does not support import because the password cannot be retrieved from the API after creation..
 
 ## Microsoft Documentation
 
@@ -22,14 +22,20 @@ Manages a password credential for an Agent Identity Blueprint in Microsoft Entra
 - [addPassword](https://learn.microsoft.com/en-us/graph/api/agentidentityblueprint-addpassword?view=graph-rest-beta&tabs=http)
 - [removePassword](https://learn.microsoft.com/en-us/graph/api/agentidentityblueprint-removepassword?view=graph-rest-beta&tabs=http)
 
-## API Permissions
+## Microsoft Graph API Permissions
 
-The following API permissions are required in order to use this resource.
+The following client `application` permissions are needed in order to use this resource:
 
-### Microsoft Graph
+**Required:**
+- `AgentIdentityBlueprint.Read.All`
+- `Application.Read.All`
+- `Directory.Read.All`
+- `AgentIdentityBlueprint.AddRemoveCreds.All`
+- `AgentIdentityBlueprint.ReadWrite.All`
+- `Directory.ReadWrite.All`
 
-- **Read Permissions**: `AgentIdentityBlueprint.Read.All`, `Application.Read.All`, `Directory.Read.All`
-- **Write Permissions**: `AgentIdentityBlueprint.AddRemoveCreds.All`, `AgentIdentityBlueprint.ReadWrite.All`, `Directory.ReadWrite.All`
+**Optional:**
+- `None` `[N/A]`
 
 Find out more about the permissions required for managing agent identities at microsoft learn [here](https://learn.microsoft.com/en-us/graph/api/resources/agentid-platform-overview?view=graph-rest-beta#permissions-for-managing-agent-identities).
 

@@ -3,12 +3,12 @@ page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
 subcategory: "Device Management"
 
 description: |-
-{{ if .Description }}{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}{{ else }}  Deprovisions Windows managed devices from Intune management.{{ end }}
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
 ---
 
 # {{.Name}} ({{.Type}})
 
-{{ if .Description }}{{ .Description | trimspace }}{{ else }}Deprovisions Windows managed devices from Intune management, removing policies and profiles while preserving user data and enrollment status.{{ end }}
+{{ .Description | trimspace }}
 
 ## Microsoft Documentation
 
@@ -19,14 +19,16 @@ description: |-
 ### Intune Device Management Guides
 - [Deprovision devices](https://learn.microsoft.com/en-us/intune/intune-service/remote-actions/device-deprovision)
 
-## API Permissions
+## Microsoft Graph API Permissions
 
-The following API permissions are required in order to use this action.
+The following client `application` permissions are needed in order to use this {{.Type | lower}}:
 
-### Microsoft Graph
+**Required:**
+- `DeviceManagementConfiguration.Read.All`
+- `DeviceManagementManagedDevices.Read.All`
 
-- **Application**: `DeviceManagementConfiguration.Read.All`, `DeviceManagementManagedDevices.Read.All`
-- **Delegated**: `DeviceManagementConfiguration.Read.All`, `DeviceManagementManagedDevices.Read.All`
+**Optional:**
+- `None` `[N/A]`
 
 ## Version History
 
@@ -35,55 +37,6 @@ The following API permissions are required in order to use this action.
 | v0.33.0-alpha | Experimental | Initial release |
 | v0.40.0-alpha | Experimental | Example fixes and refactored sync progress logic |
 
-
-## Notes
-
-### Platform Compatibility
-
-| Platform | Support | Requirements |
-|----------|---------|--------------|
-| **Windows** | ✅ Primary Support | Windows 10/11 devices enrolled in Intune |
-| **macOS** | ⚠️ Limited Support | Check API compatibility |
-| **iOS/iPadOS** | ⚠️ Limited Support | Check API compatibility |
-| **Android** | ⚠️ Limited Support | Check API compatibility |
-
-### What is Device Deprovisioning?
-
-Device Deprovisioning is an action that:
-- Removes management policies and profiles from devices
-- Maintains the device's enrollment status in Intune
-- Preserves all user data on the device
-- Provides a less destructive alternative to wipe or retire
-- Requires a reason to be specified for auditing purposes
-- Allows devices to be re-managed after deprovisioning
-
-### Deprovision vs Retire vs Wipe
-
-| Action | Management Removed | Enrollment Removed | User Data Preserved | Use Case |
-|--------|-------------------|-------------------|---------------------|----------|
-| **Deprovision** | ✅ Yes | ❌ No | ✅ Yes | Management transition, troubleshooting |
-| **Retire** | ✅ Yes | ✅ Yes | ✅ Yes | Permanent device removal from management |
-| **Wipe** | ✅ Yes | ✅ Yes | ❌ No | Factory reset, security incident response |
-
-### When to Deprovision Devices
-
-- Transitioning devices between management solutions
-- Moving from Intune-only to co-management scenarios
-- Troubleshooting persistent management or policy issues
-- Preparing devices for repurposing or reassignment
-- Removing management overhead without losing data
-- Testing enrollment and management scenarios
-- Changing management authority for devices
-
-### What Happens When Device is Deprovisioned
-
-- Intune sends deprovision command to the device
-- Device removes management policies and profiles
-- Configuration settings applied by Intune are removed
-- Device enrollment status remains in Intune
-- User data, files, and applications are preserved
-- Device can be re-enrolled and managed again
-- Deprovision reason is logged for auditing
 
 ## Example Usage
 

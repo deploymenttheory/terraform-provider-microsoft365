@@ -111,15 +111,7 @@ func (r *AgentUserResource) ImportState(ctx context.Context, req resource.Import
 
 func (r *AgentUserResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Manages Microsoft 365 users using the `/users/microsoft.graph.agentUser` endpoint. " +
-			"Represents a specialized subtype of user identity in Microsoft Entra ID designed for AI-powered applications (agents) " +
-			"that need to function as digital workers. Agent users enable agents to access APIs and services that specifically require user identities, " +
-			"receiving tokens with `idtyp=user` claims. Agent users are distinct from human users and they only interlinked to users through relationships " +
-			"such as owner, sponsor, and manager.\n\n" +
-			"Each agent user maintains a one-to-one relationship with a parent agent identity and is authenticated through that parent's credentials. " +
-			"Agent users have user-like capabilities such as being added to groups, assigned licenses, and accessing collaborative features like mailboxes and chat, " +
-			"while operating under security constraints including no password authentication, no privileged admin role assignments, and permissions similar to guest users.\n\n" +
-			"For more information, see the [agentUser resource type](https://learn.microsoft.com/en-us/graph/api/resources/agentuser?view=graph-rest-beta).",
+		MarkdownDescription: "Manages Microsoft 365 users using the `/users/microsoft.graph.agentUser` endpoint. This resource is used to represents a specialized subtype of user identity in Microsoft Entra ID designed for AI-powered applications (agents) that need to function as digital workers. Agent users enable agents to access APIs and services that specifically require user identities, receiving tokens with `idtyp=user` claims.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				MarkdownDescription: "The unique identifier for the agent user. Read-only.",

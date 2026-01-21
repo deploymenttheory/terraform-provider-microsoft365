@@ -3,29 +3,31 @@ page_title: "microsoft365_graph_beta_device_management_windows_quality_update_po
 subcategory: "Device Management"
 
 description: |-
-  Manages Windows Quality Update Policies using the /deviceManagement/WindowsQualityUpdatePolicies endpoint. Quality Update Policies enable control over Windows quality updates deployment, including hotpatch enablement for non-security updates without requiring device reboots.
+  Manages Windows quality update policies in Microsoft Intune using the /deviceManagement/WindowsQualityUpdatePolicies endpoint. This resource is used to control Windows quality update deployment, including hotpatch enablement for non-security updates without device reboots.
 ---
 
 # microsoft365_graph_beta_device_management_windows_quality_update_policy (Resource)
 
-Manages Windows Quality Update Policies using the `/deviceManagement/WindowsQualityUpdatePolicies` endpoint. Quality Update Policies enable control over Windows quality updates deployment, including hotpatch enablement for non-security updates without requiring device reboots.
+Manages Windows quality update policies in Microsoft Intune using the `/deviceManagement/WindowsQualityUpdatePolicies` endpoint. This resource is used to control Windows quality update deployment, including hotpatch enablement for non-security updates without device reboots.
 
 ## Microsoft Documentation
 
 - [windowsQualityUpdatePolicy resource type](https://learn.microsoft.com/en-us/graph/api/resources/intune-softwareupdate-windowsqualityupdatepolicy?view=graph-rest-beta)
 - [Create windowsQualityUpdatePolicy](https://learn.microsoft.com/en-us/graph/api/intune-softwareupdate-windowsqualityupdatepolicy-create?view=graph-rest-beta)
+- [Read windowsQualityUpdatePolicy](https://learn.microsoft.com/en-us/graph/api/intune-softwareupdate-windowsqualityupdatepolicy-get?view=graph-rest-beta)
 - [Update windowsQualityUpdatePolicy](https://learn.microsoft.com/en-us/graph/api/intune-softwareupdate-windowsqualityupdatepolicy-update?view=graph-rest-beta)
 - [Delete windowsQualityUpdatePolicy](https://learn.microsoft.com/en-us/graph/api/intune-softwareupdate-windowsqualityupdatepolicy-delete?view=graph-rest-beta)
-- [Get windowsQualityUpdatePolicy](https://learn.microsoft.com/en-us/graph/api/intune-softwareupdate-windowsqualityupdatepolicy-get?view=graph-rest-beta)
 - [List windowsQualityUpdatePolicies](https://learn.microsoft.com/en-us/graph/api/intune-softwareupdate-windowsqualityupdatepolicy-list?view=graph-rest-beta)
 
-## API Permissions
+## Microsoft Graph API Permissions
 
-The following API permissions are required in order to use this resource.
+The following client `application` permissions are needed in order to use this resource:
 
-### Microsoft Graph
+**Required:**
+- `DeviceManagementConfiguration.ReadWrite.All`
 
-- **Application**: `DeviceManagementConfiguration.ReadWrite.All`
+**Optional:**
+- `None` `[N/A]`
 
 ## Version History
 

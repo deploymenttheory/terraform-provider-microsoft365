@@ -2,7 +2,7 @@
 page_title: "microsoft365_graph_beta_groups_group_owner_assignment Resource - terraform-provider-microsoft365"
 subcategory: "Groups"
 description: |-
-  Manages Azure AD/Entra group owner assignments using the /groups/{group-id}/owners endpoint. This resource enables adding and removing users or service principals as owners of security groups and Microsoft 365 groups.
+  Manages Azure AD/Entra group owner assignments using the /groups/{group-id}/owners endpoint. This resource is used to enables adding and removing users or service principals as owners of security groups and Microsoft 365 groups.
   Owner Type Support by Group Type:
   Security Groups: Users and Service principalsMicrosoft 365 Groups: Users and Service principalsMail-enabled Security Groups: Read-only, cannot add ownersDistribution Groups: Read-only, cannot add owners
   Important Notes:
@@ -10,12 +10,12 @@ description: |-
   Required Permissions by Owner Type:
   Users: Group.ReadWrite.All or Directory.ReadWrite.AllService Principals: Group.ReadWrite.All or Directory.ReadWrite.AllRole-assignable Groups: Additional RoleManagement.ReadWrite.Directory permission required
   Supported Microsoft Entra Roles:
-  Group owners (can modify all types of group owners)Groups Administrator (can modify all types of group owners)User Administrator (can modify user owners only)Directory Writers (can modify user owners only)Exchange Administrator (Microsoft 365 groups only)SharePoint Administrator (Microsoft 365 groups only)Teams Administrator (Microsoft 365 groups only)Yammer Administrator (Microsoft 365 groups only)Intune Administrator (security groups only)
+  Group owners (can modify all types of group owners)Groups Administrator (can modify all types of group owners)User Administrator (can modify user owners only)Directory Writers (can modify user owners only)Exchange Administrator (Microsoft 365 groups only)SharePoint Administrator (Microsoft 365 groups only)Teams Administrator (Microsoft 365 groups only)Yammer Administrator (Microsoft 365 groups only)Intune Administrator (security groups only).
 ---
 
 # microsoft365_graph_beta_groups_group_owner_assignment (Resource)
 
-Manages Azure AD/Entra group owner assignments using the `/groups/{group-id}/owners` endpoint. This resource enables adding and removing users or service principals as owners of security groups and Microsoft 365 groups.
+Manages Azure AD/Entra group owner assignments using the `/groups/{group-id}/owners` endpoint. This resource is used to enables adding and removing users or service principals as owners of security groups and Microsoft 365 groups.
 
 **Owner Type Support by Group Type:**
 - **Security Groups**: Users and Service principals
@@ -43,7 +43,7 @@ Manages Azure AD/Entra group owner assignments using the `/groups/{group-id}/own
 - SharePoint Administrator (Microsoft 365 groups only)
 - Teams Administrator (Microsoft 365 groups only)
 - Yammer Administrator (Microsoft 365 groups only)
-- Intune Administrator (security groups only)
+- Intune Administrator (security groups only).
 
 ## Microsoft Documentation
 
@@ -53,13 +53,16 @@ Manages Azure AD/Entra group owner assignments using the `/groups/{group-id}/own
 - [Groups overview](https://learn.microsoft.com/en-us/graph/api/resources/groups-overview?view=graph-rest-beta)
 - [group resource type](https://learn.microsoft.com/en-us/graph/api/resources/group?view=graph-rest-beta)
 
-## API Permissions
+## Microsoft Graph API Permissions
 
-The following API permissions are required in order to use this resource.
+The following client `application` permissions are needed in order to use this resource:
 
-### Microsoft Graph
+**Required:**
+- `Group.ReadWrite.All`
+- `Directory.ReadWrite.All`
 
-- **Application**: `Group.ReadWrite.All`, `Directory.ReadWrite.All`
+**Optional:**
+- `None` `[N/A]`
 
 ## Version History
 

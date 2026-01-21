@@ -77,9 +77,7 @@ func (r *LinuxDeviceCompliancePolicyResource) ImportState(ctx context.Context, r
 // Schema returns the schema for the resource.
 func (r *LinuxDeviceCompliancePolicyResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Manages Linux device compliance policies in Microsoft Intune using the `/deviceManagement/configurationPolicies` " +
-			"endpoint. Linux device compliance policies define rules and settings that Linux devices must meet to be considered compliant with organizational " +
-			"security requirements. These policies use the Settings Catalog configuration framework to provide granular control over Linux device compliance settings.",
+		MarkdownDescription: "Manages Linux device compliance policies using the `/deviceManagement/configurationPolicies` endpoint. This resource is used to linux device compliance policies define rules and settings that Linux devices must meet to be considered compliant with organizational security requirements. These policies use the Settings Catalog configuration framework to provide granular control over Linux device compliance settings..",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed: true,

@@ -48,59 +48,21 @@ func (a *ActivateDeviceEsimManagedDeviceAction) Configure(ctx context.Context, r
 // Schema defines the schema for the action.
 func (a *ActivateDeviceEsimManagedDeviceAction) Schema(ctx context.Context, req action.SchemaRequest, resp *action.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Activates eSIM on managed cellular devices using the " +
+		MarkdownDescription: "Activates eSIM cellular data plans on iOS and iPadOS devices in Microsoft Intune using the " +
 			"`/deviceManagement/managedDevices/{managedDeviceId}/activateDeviceEsim` and " +
 			"`/deviceManagement/comanagedDevices/{managedDeviceId}/activateDeviceEsim` endpoints. " +
-			"This action enables eSIM functionality on compatible devices by providing a carrier activation URL. " +
-			"eSIM (embedded SIM) technology allows devices to connect to cellular networks without a physical SIM card, " +
-			"providing greater flexibility for device deployment and carrier management. This action supports activating " +
-			"eSIM on multiple devices in a single operation with per-device carrier URL configuration.\n\n" +
-			"**Important Notes:**\n" +
-			"- Only applicable to devices with eSIM hardware capability\n" +
-			"- Requires carrier-specific activation URL\n" +
-			"- Device must support eSIM technology\n" +
-			"- Carrier must support eSIM activation\n" +
-			"- Device must be online to receive activation\n" +
-			"- Each device requires its own carrier activation URL\n\n" +
-			"**Use Cases:**\n" +
-			"- Initial eSIM activation on new devices\n" +
-			"- Switching carriers on eSIM-capable devices\n" +
-			"- Bulk eSIM deployment for corporate devices\n" +
-			"- Remote eSIM provisioning for field devices\n" +
-			"- International device deployment with local carriers\n\n" +
-			"**Platform Support:**\n" +
-			"- **iOS/iPadOS**: Supported on eSIM-capable devices (iPhone XS and later, cellular iPads)\n" +
-			"- **Windows**: Supported on eSIM-capable Windows devices with cellular modems\n" +
-			"- **Android**: Support varies by device manufacturer and Android version\n" +
-			"- **Other Platforms**: Not applicable\n\n" +
-			"**Reference:** [Microsoft Graph API - Activate Device eSIM](https://learn.microsoft.com/en-us/graph/api/intune-devices-manageddevice-activatedeviceesim?view=graph-rest-beta)",
+			"This action is used to remotely activate eSIM cellular plans without physical SIM cards, making it easier to manage connectivity for users.",
 		Attributes: map[string]schema.Attribute{
 			"managed_devices": schema.ListNestedAttribute{
 				Optional: true,
-				MarkdownDescription: "List of managed devices to activate eSIM on. These are devices fully managed by Intune only. " +
-					"Each entry specifies a device ID and the carrier-specific activation URL.\n\n" +
-					"**Examples:**\n" +
-					"```hcl\n" +
-					"managed_devices = [\n" +
-					"  {\n" +
-					"    device_id   = \"12345678-1234-1234-1234-123456789abc\"\n" +
-					"    carrier_url = \"https://carrier.example.com/esim/activate?token=abc123\"\n" +
-					"  },\n" +
-					"  {\n" +
-					"    device_id   = \"87654321-4321-4321-4321-987654321cba\"\n" +
-					"    carrier_url = \"https://carrier.example.com/esim/activate?token=def456\"\n" +
-					"  }\n" +
-					"]\n" +
-					"```\n\n" +
-					"**Platform Support:** iOS (iPhone XS+), Windows 10/11 with cellular, Android (varies by manufacturer)\n\n" +
-					"**Note:** At least one of `managed_devices` or `comanaged_devices` must be provided. " +
-					"Device must be online and support eSIM technology.",
+				MarkdownDescription: "List of iOS/iPadOS managed devices to activate eSIM on. These are devices fully managed by Intune only. " +
+					"Devices must have eSIM hardware capability (iPhone XS and later, cellular iPads with eSIM support).",
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"device_id": schema.StringAttribute{
 							Required: true,
-							MarkdownDescription: "The unique identifier (GUID) of the managed device to activate eSIM on. " +
-								"Device must have eSIM hardware capability. " +
+							MarkdownDescription: "The unique identifier (GUID) of the iOS/iPadOS device to activate eSIM on. " +
+								"Device must have eSIM hardware capability (iPhone XS+, cellular iPad with eSIM). " +
 								"Example: `\"12345678-1234-1234-1234-123456789abc\"`",
 							Validators: []validator.String{
 								stringvalidator.RegexMatches(
@@ -111,12 +73,14 @@ func (a *ActivateDeviceEsimManagedDeviceAction) Schema(ctx context.Context, req 
 						},
 						"carrier_url": schema.StringAttribute{
 							Required: true,
-							MarkdownDescription: "The carrier-specific activation URL for this device's eSIM. " +
-								"This URL is provided by the mobile carrier and contains the activation profile. " +
-								"Format varies by carrier. " +
+							MarkdownDescription: "The activation server URL provided by your mobile carrier for eSIM activation. " +
+								"This URL is carrier-specific and contains the activation profile. " +
 								"Example: `\"https://carrier.example.com/esim/activate?token=abc123\"`",
 							Validators: []validator.String{
-								stringvalidator.LengthAtLeast(1),
+								stringvalidator.RegexMatches(
+									regexp.MustCompile(constants.HttpOrHttpsUrlRegex),
+									"must be a valid HTTP or HTTPS URL (e.g., https://carrier.example.com/esim/activate)",
+								),
 							},
 						},
 					},
@@ -124,25 +88,14 @@ func (a *ActivateDeviceEsimManagedDeviceAction) Schema(ctx context.Context, req 
 			},
 			"comanaged_devices": schema.ListNestedAttribute{
 				Optional: true,
-				MarkdownDescription: "List of co-managed devices to activate eSIM on. These are devices managed by both Intune and " +
-					"Configuration Manager (SCCM). Each entry specifies a device ID and the carrier activation URL.\n\n" +
-					"**Examples:**\n" +
-					"```hcl\n" +
-					"comanaged_devices = [\n" +
-					"  {\n" +
-					"    device_id   = \"aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee\"\n" +
-					"    carrier_url = \"https://carrier.example.com/esim/activate?code=xyz789\"\n" +
-					"  }\n" +
-					"]\n" +
-					"```\n\n" +
-					"**Platform Support:** Windows 10/11 with cellular modems (primary), limited iOS/Android support\n\n" +
-					"**Note:** At least one of `managed_devices` or `comanaged_devices` must be provided. " +
-					"Device must be online and support eSIM technology.",
+				MarkdownDescription: "List of iOS/iPadOS co-managed devices to activate eSIM on. These are devices managed by both Intune and " +
+					"Configuration Manager (SCCM). Devices must have eSIM hardware capability (iPhone XS and later, cellular iPads with eSIM support).",
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"device_id": schema.StringAttribute{
 							Required: true,
-							MarkdownDescription: "The unique identifier (GUID) of the co-managed device to activate eSIM on. " +
+							MarkdownDescription: "The unique identifier (GUID) of the iOS/iPadOS co-managed device to activate eSIM on. " +
+								"Device must have eSIM hardware capability (iPhone XS+, cellular iPad with eSIM). " +
 								"Example: `\"12345678-1234-1234-1234-123456789abc\"`",
 							Validators: []validator.String{
 								stringvalidator.RegexMatches(
@@ -153,10 +106,14 @@ func (a *ActivateDeviceEsimManagedDeviceAction) Schema(ctx context.Context, req 
 						},
 						"carrier_url": schema.StringAttribute{
 							Required: true,
-							MarkdownDescription: "The carrier activation URL for this co-managed device. " +
+							MarkdownDescription: "The activation server URL provided by your mobile carrier for eSIM activation. " +
+								"This URL is carrier-specific and contains the activation profile. " +
 								"Example: `\"https://carrier.example.com/esim/activate?code=xyz789\"`",
 							Validators: []validator.String{
-								stringvalidator.LengthAtLeast(1),
+								stringvalidator.RegexMatches(
+									regexp.MustCompile(constants.HttpOrHttpsUrlRegex),
+									"must be a valid HTTP or HTTPS URL (e.g., https://carrier.example.com/esim/activate)",
+								),
 							},
 						},
 					},

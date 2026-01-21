@@ -73,12 +73,7 @@ func (r *GroupLifecycleExpirationPolicyResource) ImportState(ctx context.Context
 // Schema defines the schema for the resource.
 func (r *GroupLifecycleExpirationPolicyResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Manages group lifecycle policies for Microsoft 365 groups using the `/groupLifecyclePolicies` endpoint. " +
-			"This resource enables administrators to set expiration periods for groups, requiring owners to renew them within specified " +
-			"time intervals. When a group reaches its expiration, it can be renewed to extend the expiration date, or if not renewed, it " +
-			"expires and is deleted with a 30-day restoration window. Renewal notifications are emailed to group owners 30 days, 15 days, " +
-			"and one day prior to group expiration. Group owners must have Exchange licenses to receive notification emails. If a group is " +
-			"not renewed, it is deleted along with its associated content from sources such as Outlook, SharePoint, Teams, and Power BI.",
+		MarkdownDescription: "Manages group lifecycle policies for Microsoft 365 groups using the `/groupLifecyclePolicies` endpoint. This resource is used to enables administrators to set expiration periods for groups, requiring owners to renew them within specified time intervals. When a group reaches its expiration, it can be renewed to extend the expiration date, or if not renewed, it expires and is deleted with a 30-day restoration window.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:            true,

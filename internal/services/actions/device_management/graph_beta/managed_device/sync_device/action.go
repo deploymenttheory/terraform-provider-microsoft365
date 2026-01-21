@@ -55,10 +55,10 @@ func (a *SyncManagedDeviceAction) Configure(ctx context.Context, req action.Conf
 
 func (a *SyncManagedDeviceAction) Schema(ctx context.Context, req action.SchemaRequest, resp *action.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Forces managed and co-managed devices to immediately check in with Intune using the " +
+		MarkdownDescription: "Syncs managed and co-managed devices in Microsoft Intune using the " +
 			"`/deviceManagement/managedDevices/{managedDeviceId}/syncDevice` and " +
 			"`/deviceManagement/comanagedDevices/{managedDeviceId}/syncDevice` endpoints. " +
-			"This action triggers an immediate synchronization, causing devices to apply the latest policies, " +
+			"This action is used to force devices to immediately check in with Intune, triggering an immediate synchronization that causes devices to apply the latest policies, " +
 			"configurations, and updates from Intune without waiting for the standard check-in interval.\n\n" +
 			"**What This Action Does:**\n" +
 			"- Forces immediate check-in with Intune\n" +

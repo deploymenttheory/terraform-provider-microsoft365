@@ -80,7 +80,7 @@ func (r *MacOSPlatformScriptResource) ImportState(ctx context.Context, req resou
 
 func (r *MacOSPlatformScriptResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Manages macOS shell scripts using the `/deviceManagement/deviceShellScripts` endpoint. macOS platform scripts enable automated deployment and execution of shell scripts on managed macOS devices with support for scheduled execution, retry logic, and execution context control for system maintenance and configuration tasks.",
+		MarkdownDescription: "Manages macOS shell scripts using the `/deviceManagement/deviceShellScripts` endpoint. This resource is used to macOS platform scripts enable automated deployment and execution of shell scripts on managed macOS devices with support for scheduled execution, retry logic, and execution context control for system maintenance and configuration tasks.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed: true,

@@ -3,12 +3,12 @@ page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
 subcategory: "Device Management"
 
 description: |-
-{{ if .Description }}{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}{{ else }}  Disables lost mode on iOS and iPadOS managed devices.{{ end }}
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
 ---
 
 # {{.Name}} ({{.Type}})
 
-{{ if .Description }}{{ .Description | trimspace }}{{ else }}Disables lost mode on iOS and iPadOS managed devices, returning them to normal operation and removing the lock screen message.{{ end }}
+{{ .Description | trimspace }}
 
 ## Microsoft Documentation
 
@@ -20,14 +20,15 @@ description: |-
 - [Lost mode for iOS devices](https://learn.microsoft.com/en-us/intune/intune-service/remote-actions/device-lost-mode?pivots=ios)
 - [Lost mode for ChromeOS devices](https://learn.microsoft.com/en-us/intune/intune-service/remote-actions/device-lost-mode?pivots=chromeos)
 
-## API Permissions
+## Microsoft Graph API Permissions
 
-The following API permissions are required in order to use this action.
+The following client `application` permissions are needed in order to use this {{.Type | lower}}:
 
-### Microsoft Graph
+**Required:**
+- `DeviceManagementManagedDevices.PrivilegedOperations.All`
 
-- **Application**: `DeviceManagementManagedDevices.PrivilegedOperations.All`
-- **Delegated**: `DeviceManagementManagedDevices.PrivilegedOperations.All`
+**Optional:**
+- `None` `[N/A]`
 
 ## Version History
 
@@ -36,45 +37,6 @@ The following API permissions are required in order to use this action.
 | v0.33.0-alpha | Experimental | Initial release |
 | v0.40.0-alpha | Experimental | Example fixes and refactored sync progress logic |
 
-
-## Notes
-
-### Platform Compatibility
-
-| Platform | Support | Requirements |
-|----------|---------|--------------|
-| **iOS** | ✅ Full Support | iOS 9.3+, supervised devices only |
-| **iPadOS** | ✅ Full Support | Supervised devices only |
-| **macOS** | ❌ Not Supported | Lost mode iOS/iPadOS only |
-| **Windows** | ❌ Not Supported | Lost mode iOS/iPadOS only |
-| **Android** | ❌ Not Supported | Lost mode iOS/iPadOS only |
-
-### What is Lost Mode?
-
-Lost mode is an Apple security feature that:
-- Locks device and displays custom message with contact info
-- Enables device location tracking
-- Prevents unauthorized access to device data
-- Helps recover lost or stolen devices
-- Automatically enabled via Intune or Find My app
-
-### When to Disable Lost Mode
-
-- Device has been physically recovered
-- Device location confirmed and device is safe
-- User has regained possession of their device
-- Lost mode was enabled in error
-- Device is being returned to service
-- Device recovery operation completed
-
-### What Happens When Disabled
-
-- Device returns to normal operation
-- Custom lock screen message removed
-- Device can be unlocked with regular passcode
-- Location tracking associated with lost mode stops
-- Device becomes fully functional again
-- User can access all device features
 
 ## Example Usage
 

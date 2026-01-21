@@ -3,7 +3,7 @@ page_title: "microsoft365_graph_beta_device_management_managed_device_bypass_act
 subcategory: "Device Management"
 
 description: |-
-  Bypasses Activation Lock on iOS, iPadOS, and macOS devices using the /deviceManagement/managedDevices/{managedDeviceId}/bypassActivationLock endpoint. Activation Lock is an Apple security feature that prevents unauthorized use of a device after it has been erased. When Find My iPhone/iPad/Mac is enabled and a device is erased, Activation Lock requires the original Apple ID and password before the device can be reactivated. This action generates a bypass code that allows IT administrators to reactivate managed devices without the user's Apple ID credentials.
+  Bypasses Activation Lock on iOS, iPadOS, and macOS devices in Microsoft Intune using the /deviceManagement/managedDevices/{managedDeviceId}/bypassActivationLock endpoint. This action is used to generate a bypass code that allows IT administrators to reactivate managed devices without user Apple ID credentials. Activation Lock is an Apple security feature that prevents unauthorized use of a device after it has been erased. When Find My iPhone/iPad/Mac is enabled and a device is erased, Activation Lock requires the original Apple ID and password before the device can be reactivated.
   What is Activation Lock?
   Security feature built into iOS, iPadOS, and macOSAutomatically enabled when Find My iPhone/iPad/Mac is turned onPrevents device reactivation after factory reset without Apple ID credentialsHelps prevent theft and unauthorized device reuseLinks device to specific Apple ID
   Important Notes:
@@ -35,7 +35,7 @@ description: |-
 
 # microsoft365_graph_beta_device_management_managed_device_bypass_activation_lock (Action)
 
-Bypasses Activation Lock on iOS, iPadOS, and macOS devices using the `/deviceManagement/managedDevices/{managedDeviceId}/bypassActivationLock` endpoint. Activation Lock is an Apple security feature that prevents unauthorized use of a device after it has been erased. When Find My iPhone/iPad/Mac is enabled and a device is erased, Activation Lock requires the original Apple ID and password before the device can be reactivated. This action generates a bypass code that allows IT administrators to reactivate managed devices without the user's Apple ID credentials.
+Bypasses Activation Lock on iOS, iPadOS, and macOS devices in Microsoft Intune using the `/deviceManagement/managedDevices/{managedDeviceId}/bypassActivationLock` endpoint. This action is used to generate a bypass code that allows IT administrators to reactivate managed devices without user Apple ID credentials. Activation Lock is an Apple security feature that prevents unauthorized use of a device after it has been erased. When Find My iPhone/iPad/Mac is enabled and a device is erased, Activation Lock requires the original Apple ID and password before the device can be reactivated.
 
 **What is Activation Lock?**
 - Security feature built into iOS, iPadOS, and macOS
@@ -122,14 +122,15 @@ Bypasses Activation Lock on iOS, iPadOS, and macOS devices using the `/deviceMan
 - [Device activation lock disable - iOS](https://learn.microsoft.com/en-us/intune/intune-service/remote-actions/device-activation-lock-disable?pivots=ios)
 - [Device activation lock disable - macOS](https://learn.microsoft.com/en-us/intune/intune-service/remote-actions/device-activation-lock-disable?pivots=macos)
 
-## API Permissions
+## Microsoft Graph API Permissions
 
-The following API permissions are required in order to use this action.
+The following client `application` permissions are needed in order to use this action:
 
-### Microsoft Graph
+**Required:**
+- `DeviceManagementManagedDevices.PrivilegedOperations.All`
 
-- **Application**: `DeviceManagementManagedDevices.PrivilegedOperations.All`
-- **Delegated**: `DeviceManagementManagedDevices.PrivilegedOperations.All`
+**Optional:**
+- `None` `[N/A]`
 
 ## Version History
 
@@ -137,45 +138,6 @@ The following API permissions are required in order to use this action.
 |---------|--------|-------|
 | v0.33.0-alpha | Experimental | Initial release |
 | v0.40.0-alpha | Experimental | Example fixes and refactored sync progress logic |
-
-## Notes
-
-### Platform Compatibility
-
-| Platform | Support | Requirements |
-|----------|---------|--------------|
-| **iOS** | ✅ Full Support | iOS 7.1+, supervised devices only |
-| **iPadOS** | ✅ Full Support | Supervised devices only |
-| **macOS** | ✅ Full Support | macOS 10.11+, DEP/ABM enrolled |
-| **Windows** | ❌ Not Supported | Activation Lock is Apple-only |
-| **Android** | ❌ Not Supported | Activation Lock is Apple-only |
-
-### What is Activation Lock?
-
-Activation Lock is an Apple security feature that:
-- Prevents unauthorized device reactivation after factory reset
-- Automatically enabled when Find My iPhone/iPad/Mac is turned on
-- Requires original Apple ID and password to reactivate
-- Links device to specific Apple ID
-
-### How Bypass Works
-
-1. Issue bypass command via this action
-2. Intune generates unique bypass code for device
-3. Bypass code stored in Intune device properties
-4. Retrieve code from Intune admin portal
-5. Factory reset/wipe the device
-6. During setup, device shows Activation Lock screen
-7. Enter bypass code to unlock device
-8. Device completes setup without user's Apple ID
-
-### Important Considerations
-
-- **Supervised iOS/iPadOS**: Devices must be supervised (DEP/ABM or Apple Configurator)
-- **macOS DEP**: Best results with DEP/ABM enrolled macOS devices
-- **Code Security**: Bypass codes are sensitive credentials - treat like passwords
-- **Single Use**: Bypass code only works for specific device it was generated for
-- **Physical Access**: Code must be entered during device setup at Activation Lock screen
 
 ## Example Usage
 

@@ -53,10 +53,10 @@ func (a *PlayLostModeSoundManagedDeviceAction) Configure(ctx context.Context, re
 
 func (a *PlayLostModeSoundManagedDeviceAction) Schema(ctx context.Context, req action.SchemaRequest, resp *action.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Plays a sound on iOS/iPadOS managed devices in lost mode using the " +
+		MarkdownDescription: "Plays a sound on iOS/iPadOS managed devices in lost mode in Microsoft Intune using the " +
 			"`/deviceManagement/managedDevices/{managedDeviceId}/playLostModeSound` and " +
 			"`/deviceManagement/comanagedDevices/{managedDeviceId}/playLostModeSound` endpoints. " +
-			"This action helps locate lost devices by triggering an audible alert that plays even if the device is in silent mode. " +
+			"This action is used to help locate lost devices by triggering an audible alert that plays even if the device is in silent mode. " +
 			"The sound plays for a specified duration to assist in physically locating the device. " +
 			"This action supports playing sounds on multiple devices in a single operation with per-device duration settings.\n\n" +
 			"**Important Notes:**\n" +

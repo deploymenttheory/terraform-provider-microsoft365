@@ -46,12 +46,12 @@ func (a *BypassActivationLockManagedDeviceAction) Configure(ctx context.Context,
 
 func (a *BypassActivationLockManagedDeviceAction) Schema(ctx context.Context, req action.SchemaRequest, resp *action.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Bypasses Activation Lock on iOS, iPadOS, and macOS devices using the " +
+		MarkdownDescription: "Bypasses Activation Lock on iOS, iPadOS, and macOS devices in Microsoft Intune using the " +
 			"`/deviceManagement/managedDevices/{managedDeviceId}/bypassActivationLock` endpoint. " +
+			"This action is used to generate a bypass code that allows IT administrators to reactivate managed devices without user Apple ID credentials. " +
 			"Activation Lock is an Apple security feature that prevents unauthorized use of a device after it has been erased. " +
 			"When Find My iPhone/iPad/Mac is enabled and a device is erased, Activation Lock requires the original Apple ID " +
-			"and password before the device can be reactivated. This action generates a bypass code that allows IT administrators " +
-			"to reactivate managed devices without the user's Apple ID credentials.\n\n" +
+			"and password before the device can be reactivated.\n\n" +
 			"**What is Activation Lock?**\n" +
 			"- Security feature built into iOS, iPadOS, and macOS\n" +
 			"- Automatically enabled when Find My iPhone/iPad/Mac is turned on\n" +

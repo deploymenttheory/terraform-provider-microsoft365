@@ -3,7 +3,7 @@ page_title: "microsoft365_graph_beta_device_management_managed_device_sync_devic
 subcategory: "Device Management"
 
 description: |-
-  Forces managed and co-managed devices to immediately check in with Intune using the /deviceManagement/managedDevices/{managedDeviceId}/syncDevice and /deviceManagement/comanagedDevices/{managedDeviceId}/syncDevice endpoints. This action triggers an immediate synchronization, causing devices to apply the latest policies, configurations, and updates from Intune without waiting for the standard check-in interval.
+  Syncs managed and co-managed devices in Microsoft Intune using the /deviceManagement/managedDevices/{managedDeviceId}/syncDevice and /deviceManagement/comanagedDevices/{managedDeviceId}/syncDevice endpoints. This action is used to force devices to immediately check in with Intune, triggering an immediate synchronization that causes devices to apply the latest policies, configurations, and updates from Intune without waiting for the standard check-in interval.
   What This Action Does:
   Forces immediate check-in with IntuneApplies latest policies and configurationsDownloads pending applicationsReports updated device inventoryEnforces compliance evaluationProcesses queued remote actionsUpdates device status in console
   Managed vs Co-Managed Devices:
@@ -21,7 +21,7 @@ description: |-
 
 # microsoft365_graph_beta_device_management_managed_device_sync_device (Action)
 
-Forces managed and co-managed devices to immediately check in with Intune using the `/deviceManagement/managedDevices/{managedDeviceId}/syncDevice` and `/deviceManagement/comanagedDevices/{managedDeviceId}/syncDevice` endpoints. This action triggers an immediate synchronization, causing devices to apply the latest policies, configurations, and updates from Intune without waiting for the standard check-in interval.
+Syncs managed and co-managed devices in Microsoft Intune using the `/deviceManagement/managedDevices/{managedDeviceId}/syncDevice` and `/deviceManagement/comanagedDevices/{managedDeviceId}/syncDevice` endpoints. This action is used to force devices to immediately check in with Intune, triggering an immediate synchronization that causes devices to apply the latest policies, configurations, and updates from Intune without waiting for the standard check-in interval.
 
 **What This Action Does:**
 - Forces immediate check-in with Intune
@@ -81,14 +81,15 @@ Forces managed and co-managed devices to immediately check in with Intune using 
 - [Device sync - macOS](https://learn.microsoft.com/en-us/intune/intune-service/remote-actions/device-sync?pivots=macos)
 - [Device sync - Android](https://learn.microsoft.com/en-us/intune/intune-service/remote-actions/device-sync?pivots=android)
 
-## API Permissions
+## Microsoft Graph API Permissions
 
-The following API permissions are required in order to use this action.
+The following client `application` permissions are needed in order to use this action:
 
-### Microsoft Graph
+**Required:**
+- `DeviceManagementManagedDevices.PrivilegedOperations.All`
 
-- **Application**: `DeviceManagementManagedDevices.PrivilegedOperations.All`
-- **Delegated**: `DeviceManagementManagedDevices.PrivilegedOperations.All`
+**Optional:**
+- `None` `[N/A]`
 
 ## Version History
 
@@ -97,222 +98,6 @@ The following API permissions are required in order to use this action.
 | v0.33.0-alpha | Experimental | Initial release |
 | v0.40.0-alpha | Experimental | Example fixes and refactored sync progress logic |
 
-
-## Notes
-
-### Platform Compatibility
-
-| Platform | Managed Devices | Co-Managed Devices | Notes |
-|----------|----------------|-------------------|-------|
-| **Windows** | ✅ Full Support | ✅ Full Support | Fastest sync response |
-| **macOS** | ✅ Full Support | ❌ Not Applicable | Supervised devices recommended |
-| **iOS** | ✅ Full Support | ❌ Not Applicable | Supervised devices recommended |
-| **iPadOS** | ✅ Full Support | ❌ Not Applicable | Supervised devices recommended |
-| **Android** | ✅ Full Support | ❌ Not Applicable | Includes Android Enterprise |
-| **ChromeOS** | ❌ Not Supported | ❌ Not Applicable | Not available for ChromeOS devices |
-
-### Managed vs Co-Managed Devices
-
-| Device Type | Management | Sync Endpoint | Typical Use Case |
-|------------|------------|---------------|------------------|
-| **Managed** | Intune only | `/managedDevices/{id}/syncDevice` | BYOD, mobile devices, cloud-only management |
-| **Co-Managed** | Intune + ConfigMgr | `/comanagedDevices/{id}/syncDevice` | Enterprise Windows devices, hybrid management |
-
-### Co-Management Context
-
-**What is Co-Management?**
-- Windows devices managed by both Intune and Configuration Manager (SCCM)
-- Workloads split between the two management platforms
-- Provides gradual transition from ConfigMgr to Intune
-- Typically Windows 10/11 enterprise devices
-
-**How Sync Works with Co-Management**
-- Sync affects only Intune-managed workloads
-- ConfigMgr workloads use ConfigMgr sync mechanisms
-- Device must be enrolled in both systems
-- Sync status visible in both consoles
-
-**Co-Management Workloads**
-- Compliance policies → Intune or ConfigMgr
-- Device configuration → Intune or ConfigMgr
-- Endpoint Protection → Intune or ConfigMgr
-- Resource access → Intune or ConfigMgr
-- Windows Update policies → Intune or ConfigMgr
-- Office Click-to-Run apps → Intune or ConfigMgr
-
-### What Happens During Sync
-
-**Immediate Actions**
-1. Device receives sync command (if online)
-2. Initiates check-in with Intune
-3. Downloads latest policy assignments
-4. Evaluates compliance state
-5. Downloads assigned applications
-6. Reports updated inventory
-7. Processes queued remote actions
-8. Updates device status in console
-
-**Policy Application**
-- New policies downloaded and applied
-- Changed policies updated immediately
-- Removed policies uninstalled
-- Configuration profiles refreshed
-- Compliance evaluated
-- Conditional access re-checked
-
-**Application Management**
-- Required apps downloaded/installed
-- Available apps catalog updated
-- App assignments processed
-- App configuration applied
-- App protection policies refreshed
-
-**Device Inventory**
-- Hardware information updated
-- Software inventory refreshed
-- Installed apps reported
-- Disk space usage updated
-- Battery status (mobile devices)
-- Network information
-
-### Check-In Intervals
-
-| Scenario | Check-In Frequency | Notes |
-|----------|-------------------|-------|
-| **Normal** | Every 8 hours | Default for most platforms |
-| **iOS/iPadOS** | Every 6-8 hours | May vary by iOS version |
-| **Android** | Every 8 hours | Enterprise devices |
-| **Windows** | Every 8 hours | Can be customized via policy |
-| **macOS** | Every 8 hours | Supervised devices |
-| **Sync Action** | 1-5 minutes | Forces immediate check-in |
-
-### Sync Behavior
-
-**Online Devices**
-- Receive command immediately
-- Begin sync within 1-5 minutes
-- Complete sync within 5-15 minutes
-- Status updated in real-time
-
-**Offline Devices**
-- Sync command queued
-- Executed when device comes online
-- Queued for up to 7 days
-- Auto-removed if expired
-
-**Multiple Syncs**
-- Avoid syncing same device repeatedly
-- Wait 15+ minutes between syncs
-- Multiple syncs may queue
-- Can delay processing
-
-**Network Requirements**
-- Internet connectivity required
-- Access to Intune endpoints
-- Firewall rules must permit traffic
-- VPN may impact sync speed
-
-### Use Cases
-
-| Scenario | Description | Expected Outcome |
-|----------|-------------|------------------|
-| **Policy Deployment** | Force new policies to apply immediately | Policies active within minutes |
-| **App Installation** | Push required apps urgently | Apps install on next check-in |
-| **Compliance Evaluation** | Re-check device compliance | Updated compliance state |
-| **Troubleshooting** | Verify policy deployment | See real-time status |
-| **Emergency Updates** | Critical security updates | Immediate application |
-| **New Enrollments** | Ensure fresh devices get all policies | Complete configuration |
-| **User Account Changes** | Apply new user-specific policies | Updated user context |
-| **Inventory Update** | Refresh device information | Current device state |
-
-### Best Practices
-
-**When to Sync**
-- After creating new policies
-- After modifying existing policies
-- When troubleshooting deployment issues
-- For critical security updates
-- After device enrollment
-- When verifying policy application
-
-**When NOT to Sync**
-- Repeatedly within short periods (< 15 min)
-- For large numbers of offline devices
-- During normal operations (let auto-sync work)
-- For policies that can wait for normal sync
-- On metered/slow networks unnecessarily
-
-**Planning Considerations**
-- Sync during business hours for online devices
-- Schedule bulk syncs during off-hours
-- Consider network bandwidth impact
-- Allow time for completion (1-5 min per device)
-- Monitor sync status in Intune admin center
-- Document reason for manual sync
-
-**Performance Optimization**
-- Batch related devices together
-- Use datasources to target specific groups
-- Avoid duplicate device IDs
-- Set appropriate timeouts
-- Monitor for failed syncs
-- Re-sync failures individually
-
-### Troubleshooting
-
-| Issue | Cause | Solution |
-|-------|-------|----------|
-| Sync fails | Device offline | Wait for device to come online |
-| Timeout | Too many devices | Reduce batch size or increase timeout |
-| Device not found | Invalid device ID | Verify device exists in Intune |
-| Permission denied | Insufficient permissions | Check API permissions |
-| Sync queued | Device offline | Command will execute when online |
-| No effect | Wrong device type | Check managed vs co-managed |
-| Slow sync | Network issues | Check network connectivity |
-| Repeated failures | Device enrollment issue | Re-enroll device |
-
-### Monitoring Sync Status
-
-**Intune Admin Center**
-1. Navigate to Devices → All devices
-2. Select specific device
-3. View "Last check-in" timestamp
-4. Check "Device sync status"
-5. Review "Pending actions"
-
-**Terraform**
-- Action reports success/failure
-- Check diagnostics for errors
-- Review progress messages
-- Monitor timeout settings
-
-**Time to Complete**
-- Initial command: < 1 minute
-- Device check-in: 1-5 minutes
-- Policy application: 5-15 minutes
-- Complete refresh: 15-30 minutes
-
-### Limitations
-
-**Technical Limits**
-- Devices must be online
-- Requires network connectivity
-- Subject to API rate limits
-- Maximum concurrent syncs per tenant
-- Queued commands expire after 7 days
-
-**Platform Limits**
-- ChromeOS sync may be delayed
-- Some policies require reboot
-- App installation depends on size
-- Compliance evaluation takes time
-- Inventory update is not instant
-
-**Co-Management Limits**
-- Only affects Intune workloads
-- ConfigMgr workloads not triggered
-- Workload assignment matters
-- Both systems must be healthy
 
 ## Example Usage
 

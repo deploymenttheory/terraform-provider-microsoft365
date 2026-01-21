@@ -71,13 +71,7 @@ func (r *AgentCollectionResource) ImportState(ctx context.Context, req resource.
 // Schema returns the schema for the resource.
 func (r *AgentCollectionResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Manages an Agent Collection in the Microsoft Entra Agent Registry using the `/agentRegistry/agentCollections` endpoint. " +
-			"An agent collection represents a grouping of agent instances for organizational and access control purposes.\n\n" +
-			"**Reserved Collections**: Two system-reserved collections are always available per tenant:\n" +
-			"- **Global** (ID: `00000000-0000-0000-0000-000000000001`): Tenant-wide pool of generally available agents\n" +
-			"- **Quarantined** (ID: `00000000-0000-0000-0000-000000000002`): Holding area for blocked/review-pending agents\n\n" +
-			"Reserved collections cannot be updated or deleted. Attempting to create a collection with a reserved name returns a 409 Conflict error.\n\n" +
-			"For more information, see the [agentCollection resource type](https://learn.microsoft.com/en-us/graph/api/resources/agentcollection?view=graph-rest-beta).",
+		MarkdownDescription: "Manages an Agent Collection in the Microsoft Entra Agent Registry using the `/agentRegistry/agentCollections` endpoint. This resource is used to group agent instances for organizational and access control purposes.\n\n**Reserved Collections**: Two system-reserved collections are always available per tenant:\n- **Global** (ID: `00000000-0000-0000-0000-000000000001`): Tenant-wide pool of generally available agents\n- **Quarantined** (ID: `00000000-0000-0000-0000-000000000002`): Holding area for blocked/review-pending agents\n\nReserved collections cannot be updated or deleted. Attempting to create a collection with a reserved name returns a 409 Conflict error.\n\nFor more information, see the [agentCollection resource type](https://learn.microsoft.com/en-us/graph/api/resources/agentcollection?view=graph-rest-beta).",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				MarkdownDescription: "Unique identifier for the collection. Key. Inherited from entity.",

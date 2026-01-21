@@ -3,7 +3,7 @@ page_title: "microsoft365_graph_beta_device_management_managed_device_set_device
 subcategory: "Device Management"
 
 description: |-
-  Sets a custom device name for managed devices using the /deviceManagement/managedDevices/{managedDeviceId}/setDeviceName and /deviceManagement/comanagedDevices/{managedDeviceId}/setDeviceName endpoints. This action allows administrators to assign meaningful, custom names to devices for easier identification and management in the Intune console. Device names can be used to reflect location, user, function, or organizational naming conventions. This action supports setting names on multiple devices in a single operation with per-device name customization.
+  Sets a custom device name for managed devices in Microsoft Intune using the /deviceManagement/managedDevices/{managedDeviceId}/setDeviceName and /deviceManagement/comanagedDevices/{managedDeviceId}/setDeviceName endpoints. This action is used to assign meaningful, custom names to devices for easier identification and management in the Intune console. Device names can be used to reflect location, user, function, or organizational naming conventions. This action supports setting names on multiple devices in a single operation with per-device name customization.
   Important Notes:
   Device name length and character restrictions vary by platformSome platforms may have specific naming conventions or limitationsDevice must be online to receive the name change commandName changes may take time to reflect after device check-inEach device can have its own unique custom name
   Use Cases:
@@ -15,7 +15,7 @@ description: |-
 
 # microsoft365_graph_beta_device_management_managed_device_set_device_name (Action)
 
-Sets a custom device name for managed devices using the `/deviceManagement/managedDevices/{managedDeviceId}/setDeviceName` and `/deviceManagement/comanagedDevices/{managedDeviceId}/setDeviceName` endpoints. This action allows administrators to assign meaningful, custom names to devices for easier identification and management in the Intune console. Device names can be used to reflect location, user, function, or organizational naming conventions. This action supports setting names on multiple devices in a single operation with per-device name customization.
+Sets a custom device name for managed devices in Microsoft Intune using the `/deviceManagement/managedDevices/{managedDeviceId}/setDeviceName` and `/deviceManagement/comanagedDevices/{managedDeviceId}/setDeviceName` endpoints. This action is used to assign meaningful, custom names to devices for easier identification and management in the Intune console. Device names can be used to reflect location, user, function, or organizational naming conventions. This action supports setting names on multiple devices in a single operation with per-device name customization.
 
 **Important Notes:**
 - Device name length and character restrictions vary by platform
@@ -51,14 +51,15 @@ Sets a custom device name for managed devices using the `/deviceManagement/manag
 - [Device rename - macOS](https://learn.microsoft.com/en-us/intune/intune-service/remote-actions/device-rename?pivots=macos)
 - [Device rename - Android](https://learn.microsoft.com/en-us/intune/intune-service/remote-actions/device-rename?pivots=android)
 
-## API Permissions
+## Microsoft Graph API Permissions
 
-The following API permissions are required in order to use this action.
+The following client `application` permissions are needed in order to use this action:
 
-### Microsoft Graph
+**Required:**
+- `DeviceManagementManagedDevices.PrivilegedOperations.All`
 
-- **Application**: `DeviceManagementManagedDevices.PrivilegedOperations.All`
-- **Delegated**: `DeviceManagementManagedDevices.PrivilegedOperations.All`
+**Optional:**
+- `None` `[N/A]`
 
 ## Version History
 
@@ -67,47 +68,6 @@ The following API permissions are required in order to use this action.
 | v0.33.0-alpha | Experimental | Initial release |
 | v0.40.0-alpha | Experimental | Example fixes and refactored sync progress logic |
 
-
-## Notes
-
-### Platform Compatibility
-
-| Platform | Support | Notes |
-|----------|---------|-------|
-| **Windows** | ✅ Full Support | Computer name changes, may require restart. 15 char NetBIOS / 63 char DNS limit |
-| **iOS** | ✅ Full Support | Device name changes (supervised devices only) |
-| **iPadOS** | ✅ Full Support | Device name changes (supervised devices only) |
-| **macOS** | ✅ Full Support | Computer name changes for managed devices |
-| **Android** | ⚠️ Varies | Support depends on enrollment and management mode |
-
-### What is Set Device Name?
-
-Set Device Name is an action that:
-- Assigns custom names to managed devices
-- Implements organizational naming conventions
-- Improves device identification in Intune console
-- Supports individual or bulk device renaming
-- Applies changes after device check-in
-- Works across all major device platforms
-
-### When to Set Device Names
-
-- Implementing standardized naming conventions organization-wide
-- After reassigning devices to new users or departments
-- Relocating devices to different offices or locations
-- Replacing default or auto-generated device names
-- Organizing devices by function, location, or ownership
-- Making large device inventories easier to manage
-
-### What Happens When Device Name is Set
-
-- Intune sends rename command to the device
-- Device applies new name after next check-in
-- Name change appears in Intune admin console
-- Time to apply varies by platform and check-in schedule
-- Device must be online to receive command
-- Some platforms may require device restart
-- Original name is replaced with new custom name
 
 ## Example Usage
 

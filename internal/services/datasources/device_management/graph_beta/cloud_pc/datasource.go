@@ -51,7 +51,7 @@ func (d *CloudPCDataSource) Configure(ctx context.Context, req datasource.Config
 // Schema defines the schema for the data source
 func (d *CloudPCDataSource) Schema(ctx context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Retrieves Cloud PCs from Microsoft Intune with explicit filtering options.",
+		MarkdownDescription: "Retrieves Cloud PCs from Microsoft Intune using the `/deviceManagement/managedDevices` endpoint. This data source is used to query Windows 365 Cloud PC virtual desktops with advanced filtering capabilities.",
 		Attributes: map[string]schema.Attribute{
 			"filter_type": schema.StringAttribute{
 				Required:            true,

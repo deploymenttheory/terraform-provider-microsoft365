@@ -3,24 +3,26 @@ page_title: "microsoft365_graph_beta_device_management_windows_365_apply_cloud_p
 subcategory: "Device Management"
 
 description: |-
-  Applies configuration settings to a Cloud PC provisioning policy using the /deviceManagement/virtualEndpoint/provisioningPolicies/{id}/apply endpoint. This action allows applying region or single sign-on settings to existing Cloud PCs that were provisioned with this policy. When you change the network, image, region, or single sign-on configuration in a provisioning policy, the changes only apply to newly provisioned or reprovisioned Cloud PCs. Use this action to apply region or single sign-on changes to previously provisioned Cloud PCs.
+  Applies configuration settings to a Cloud PC provisioning policy in Microsoft Intune using the /deviceManagement/virtualEndpoint/provisioningPolicies/{id}/apply endpoint. This action is used to apply region or single sign-on settings to existing Cloud PCs that were provisioned with this policy. When you change the network, image, region, or single sign-on configuration in a provisioning policy, the changes only apply to newly provisioned or reprovisioned Cloud PCs. Use this action to apply region or single sign-on changes to previously provisioned Cloud PCs.
 ---
 
 # microsoft365_graph_beta_device_management_windows_365_apply_cloud_pc_provisioning_policy (Action)
 
-Applies configuration settings to a Cloud PC provisioning policy using the `/deviceManagement/virtualEndpoint/provisioningPolicies/{id}/apply` endpoint. This action allows applying region or single sign-on settings to existing Cloud PCs that were provisioned with this policy. When you change the network, image, region, or single sign-on configuration in a provisioning policy, the changes only apply to newly provisioned or reprovisioned Cloud PCs. Use this action to apply region or single sign-on changes to previously provisioned Cloud PCs.
+Applies configuration settings to a Cloud PC provisioning policy in Microsoft Intune using the `/deviceManagement/virtualEndpoint/provisioningPolicies/{id}/apply` endpoint. This action is used to apply region or single sign-on settings to existing Cloud PCs that were provisioned with this policy. When you change the network, image, region, or single sign-on configuration in a provisioning policy, the changes only apply to newly provisioned or reprovisioned Cloud PCs. Use this action to apply region or single sign-on changes to previously provisioned Cloud PCs.
 
 ## Microsoft Documentation
 
 - [applyCloudPcProvisioningPolicy action](https://learn.microsoft.com/en-us/graph/api/cloudpcprovisioningpolicy-apply?view=graph-rest-beta&tabs=http)
 
-## API Permissions
+## Microsoft Graph API Permissions
 
-The following API permissions are required in order to use this action.
+The following client `application` permissions are needed in order to use this action:
 
-### Microsoft Graph
+**Required:**
+- `CloudPC.ReadWrite.All`
 
-- **Application**: `CloudPC.ReadWrite.All`
+**Optional:**
+- `None` `[N/A]`
 
 ## Version History
 

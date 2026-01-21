@@ -57,9 +57,10 @@ func (a *InitiateDeviceAttestationManagedDeviceAction) Configure(ctx context.Con
 
 func (a *InitiateDeviceAttestationManagedDeviceAction) Schema(ctx context.Context, req action.SchemaRequest, resp *action.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Initiates device attestation on managed Windows devices using the " +
+		MarkdownDescription: "Initiates device attestation on managed Windows devices in Microsoft Intune using the " +
 			"`/deviceManagement/managedDevices/{managedDeviceId}/initiateDeviceAttestation` and " +
 			"`/deviceManagement/comanagedDevices/{managedDeviceId}/initiateDeviceAttestation` endpoints. " +
+			"This action is used to initiate device attestation on managed Windows devices. " +
 			"Device attestation is a security feature that uses the Trusted Platform Module (TPM) to cryptographically " +
 			"verify the device's boot integrity, security configuration, and overall health status. This attestation " +
 			"process creates a trusted baseline that can be used for conditional access, compliance policies, and zero-trust " +

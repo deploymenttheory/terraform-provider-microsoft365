@@ -78,7 +78,7 @@ func (r *RoleScopeTagResource) ImportState(ctx context.Context, req resource.Imp
 // Function to create the role scope tags schema
 func (r *RoleScopeTagResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Manages role scope tags in Microsoft Intune using the `/deviceManagement/roleScopeTags` endpoint. Role scope tags enable role-based access control by limiting administrator visibility and management capabilities to specific organizational units, devices, or resources, ensuring proper delegation of administrative responsibilities.",
+		MarkdownDescription: "Manages role scope tags using the `/deviceManagement/roleScopeTags` endpoint. This resource is used to role scope tags enable role-based access control by limiting administrator visibility and management capabilities to specific organizational units, devices, or resources, ensuring proper delegation of administrative responsibilities.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed: true,

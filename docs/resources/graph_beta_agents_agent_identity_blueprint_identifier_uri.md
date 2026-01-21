@@ -3,18 +3,18 @@ page_title: "microsoft365_graph_beta_agents_agent_identity_blueprint_identifier_
 subcategory: "Agents"
 
 description: |-
-  Manages an identifier URI and optional OAuth2 permission scope for an Agent Identity Blueprint in Microsoft Entra ID using the /applications endpoint. This resource configures the identifier URI and optional scope using a PATCH https://learn.microsoft.com/en-us/graph/api/application-update?view=graph-rest-beta to the application endpoint.
+  Manages an identifier URI and optional OAuth2 permission scope for an Agent Identity Blueprint using the /applications endpoint. This resource is used to configures the identifier URI and optional scope using a PATCH https://learn.microsoft.com/en-us/graph/api/application-update?view=graph-rest-beta to the application endpoint.
   The identifier URI is used to uniquely identify the agent identity blueprint and is required for receiving incoming requests from users and other agents.
-  Note: This resource manages a single identifier URI. To manage multiple URIs, create multiple resource instances.
+  Note: This resource manages a single identifier URI. To manage multiple URIs, create multiple resource instances..
 ---
 
 # microsoft365_graph_beta_agents_agent_identity_blueprint_identifier_uri (Resource)
 
-Manages an identifier URI and optional OAuth2 permission scope for an Agent Identity Blueprint in Microsoft Entra ID using the `/applications` endpoint. This resource configures the identifier URI and optional scope using a [PATCH](https://learn.microsoft.com/en-us/graph/api/application-update?view=graph-rest-beta) to the application endpoint.
+Manages an identifier URI and optional OAuth2 permission scope for an Agent Identity Blueprint using the `/applications` endpoint. This resource is used to configures the identifier URI and optional scope using a [PATCH](https://learn.microsoft.com/en-us/graph/api/application-update?view=graph-rest-beta) to the application endpoint.
 
 The identifier URI is used to uniquely identify the agent identity blueprint and is required for receiving incoming requests from users and other agents.
 
-**Note:** This resource manages a single identifier URI. To manage multiple URIs, create multiple resource instances.
+**Note:** This resource manages a single identifier URI. To manage multiple URIs, create multiple resource instances..
 
 ## Microsoft Documentation
 
@@ -23,14 +23,19 @@ The identifier URI is used to uniquely identify the agent identity blueprint and
 - [permissionScope resource type](https://learn.microsoft.com/en-us/graph/api/resources/permissionscope?view=graph-rest-beta)
 - [Configure identifier URI and scope](https://learn.microsoft.com/en-us/entra/agent-id/identity-platform/create-blueprint?tabs=microsoft-graph-api#configure-identifier-uri-and-scope)
 
-## API Permissions
+## Microsoft Graph API Permissions
 
-The following API permissions are required in order to use this resource.
+The following client `application` permissions are needed in order to use this resource:
 
-### Microsoft Graph
+**Required:**
+- `AgentIdentityBlueprint.Read.All`
+- `Application.Read.All`
+- `Directory.Read.All`
+- `AgentIdentityBlueprint.ReadWrite.All`
+- `Directory.ReadWrite.All`
 
-- **Read Permissions**: `AgentIdentityBlueprint.Read.All`, `Application.Read.All`, `Directory.Read.All`
-- **Write Permissions**: `AgentIdentityBlueprint.ReadWrite.All`, `Directory.ReadWrite.All`
+**Optional:**
+- `None` `[N/A]`
 
 Find out more about the permissions required for managing agent identities at microsoft learn [here](https://learn.microsoft.com/en-us/graph/api/resources/agentid-platform-overview?view=graph-rest-beta#permissions-for-managing-agent-identities).
 

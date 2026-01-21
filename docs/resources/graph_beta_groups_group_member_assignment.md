@@ -2,18 +2,18 @@
 page_title: "microsoft365_graph_beta_groups_group_member_assignment Resource - terraform-provider-microsoft365"
 subcategory: "Groups"
 description: |-
-  Manages Azure AD/Entra group member assignments using the /groups/{group-id}/members endpoint. This resource enables adding and removing users, groups, service principals, devices, and organizational contacts as members of security groups and Microsoft 365 groups.
+  Manages Azure AD/Entra group member assignments using the /groups/{group-id}/members endpoint. This resource is used to enables adding and removing users, groups, service principals, devices, and organizational contacts as members of security groups and Microsoft 365 groups.
   Member Type Support by Group Type:
   Security Groups: Users, other Security groups, Devices, Service principals, and Organizational contactsMicrosoft 365 Groups: Only Users are supportedMail-enabled Security Groups: Read-only, cannot add membersDistribution Groups: Read-only, cannot add members
   Important Notes:
   The resource automatically validates member compatibility with the target group typeWhen adding a Group as a member, both the target and member groups must be Security groupsMicrosoft 365 groups cannot be members of any group type
   Required Permissions by Member Type:
-  Users: GroupMember.ReadWrite.AllGroups: GroupMember.ReadWrite.AllDevices: GroupMember.ReadWrite.All + Device.ReadWrite.AllService Principals: GroupMember.ReadWrite.All + Application.ReadWrite.AllOrganizational Contacts: GroupMember.ReadWrite.All + OrgContact.Read.AllRole-assignable Groups: Additional RoleManagement.ReadWrite.Directory permission required
+  Users: GroupMember.ReadWrite.AllGroups: GroupMember.ReadWrite.AllDevices: GroupMember.ReadWrite.All + Device.ReadWrite.AllService Principals: GroupMember.ReadWrite.All + Application.ReadWrite.AllOrganizational Contacts: GroupMember.ReadWrite.All + OrgContact.Read.AllRole-assignable Groups: Additional RoleManagement.ReadWrite.Directory permission required.
 ---
 
 # microsoft365_graph_beta_groups_group_member_assignment (Resource)
 
-Manages Azure AD/Entra group member assignments using the `/groups/{group-id}/members` endpoint. This resource enables adding and removing users, groups, service principals, devices, and organizational contacts as members of security groups and Microsoft 365 groups.
+Manages Azure AD/Entra group member assignments using the `/groups/{group-id}/members` endpoint. This resource is used to enables adding and removing users, groups, service principals, devices, and organizational contacts as members of security groups and Microsoft 365 groups.
 
 **Member Type Support by Group Type:**
 - **Security Groups**: Users, other Security groups, Devices, Service principals, and Organizational contacts
@@ -32,7 +32,7 @@ Manages Azure AD/Entra group member assignments using the `/groups/{group-id}/me
 - **Devices**: `GroupMember.ReadWrite.All` + `Device.ReadWrite.All`
 - **Service Principals**: `GroupMember.ReadWrite.All` + `Application.ReadWrite.All`
 - **Organizational Contacts**: `GroupMember.ReadWrite.All` + `OrgContact.Read.All`
-- **Role-assignable Groups**: Additional `RoleManagement.ReadWrite.Directory` permission required
+- **Role-assignable Groups**: Additional `RoleManagement.ReadWrite.Directory` permission required.
 
 ## Microsoft Documentation
 
@@ -42,13 +42,20 @@ Manages Azure AD/Entra group member assignments using the `/groups/{group-id}/me
 - [Group membership overview](https://learn.microsoft.com/en-us/graph/api/resources/groups-overview?view=graph-rest-beta#group-membership)
 - [group resource type](https://learn.microsoft.com/en-us/graph/api/resources/group?view=graph-rest-beta)
 
-## API Permissions
+## Microsoft Graph API Permissions
 
-The following API permissions are required in order to use this resource.
+The following client `application` permissions are needed in order to use this resource:
 
-### Microsoft Graph
+**Required:**
+- `GroupMember.ReadWrite.All`
+- `Directory.ReadWrite.All`
+- `Device.ReadWrite.All`
+- `Application.ReadWrite.All`
+- `OrgContact.Read.All`
+- `RoleManagement.ReadWrite.Directory`
 
-- **Application**: `GroupMember.ReadWrite.All`, `Directory.ReadWrite.All`, `Device.ReadWrite.All`, `Application.ReadWrite.All`, `OrgContact.Read.All`, `RoleManagement.ReadWrite.Directory`
+**Optional:**
+- `None` `[N/A]`
 
 ## Version History
 

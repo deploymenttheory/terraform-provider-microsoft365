@@ -3,25 +3,27 @@ page_title: "microsoft365_graph_beta_device_management_windows_autopilot_device_
 subcategory: "Device Management"
 
 description: |-
-  Unassigns a user from an Autopilot device in Microsoft Intune using the /deviceManagement/windowsAutopilotDeviceIdentities/{windowsAutopilotDeviceIdentityId}/unassignUserFromDevice endpoint. This action removes the user assignment from Autopilot devices.
+  Unassigns a user from an Autopilot device in Microsoft Intune using the /deviceManagement/windowsAutopilotDeviceIdentities/{windowsAutopilotDeviceIdentityId}/unassignUserFromDevice endpoint. This action is used to remove the user assignment from Autopilot devices.
 ---
 
 # microsoft365_graph_beta_device_management_windows_autopilot_device_identity_unassign_user_from_device (Action)
 
-Unassigns a user from an Autopilot device in Microsoft Intune using the `/deviceManagement/windowsAutopilotDeviceIdentities/{windowsAutopilotDeviceIdentityId}/unassignUserFromDevice` endpoint. This action removes the user assignment from Autopilot devices.
+Unassigns a user from an Autopilot device in Microsoft Intune using the `/deviceManagement/windowsAutopilotDeviceIdentities/{windowsAutopilotDeviceIdentityId}/unassignUserFromDevice` endpoint. This action is used to remove the user assignment from Autopilot devices.
 
 ## Microsoft Documentation
 
 - [unassignUserFromDevice action](https://learn.microsoft.com/en-us/graph/api/intune-enrollment-windowsautopilotdeviceidentity-unassignuserfromdevice?view=graph-rest-beta)
 - [windowsAutopilotDeviceIdentity resource type](https://learn.microsoft.com/en-us/graph/api/resources/intune-enrollment-windowsautopilotdeviceidentity?view=graph-rest-beta)
 
-## API Permissions
+## Microsoft Graph API Permissions
 
-The following API permissions are required in order to use this action.
+The following client `application` permissions are needed in order to use this action:
 
-### Microsoft Graph
+**Required:**
+- `DeviceManagementServiceConfig.ReadWrite.All`
 
-- **Application**: `DeviceManagementServiceConfig.ReadWrite.All`
+**Optional:**
+- `None` `[N/A]`
 
 ## Version History
 

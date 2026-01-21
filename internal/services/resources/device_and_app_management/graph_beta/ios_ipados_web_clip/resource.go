@@ -82,7 +82,7 @@ func (r *IOSiPadOSWebClipResource) ImportState(ctx context.Context, req resource
 // Schema returns the schema for the resource.
 func (r *IOSiPadOSWebClipResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Manages iOS/iPadOS Web Clip apps in Microsoft Intune using the `/deviceAppManagement/mobileApps` endpoint. iOS/iPadOS Web Clips are shortcuts to web pages that appear as icons on the home screen of iOS devices.",
+		MarkdownDescription: "Manages iOS/iPadOS Web Clip apps using the `/deviceAppManagement/mobileApps` endpoint. This resource is used to iOS/iPadOS Web Clips are shortcuts to web pages that appear as icons on the home screen of iOS devices.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed: true,

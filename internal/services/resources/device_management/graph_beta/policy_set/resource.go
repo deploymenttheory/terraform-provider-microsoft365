@@ -69,7 +69,7 @@ func (r *PolicySetResource) ImportState(ctx context.Context, req resource.Import
 
 func (r *PolicySetResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Manages policy sets in Microsoft Intune using the `/deviceAppManagement/policySets` endpoint. Policy sets allow you to group multiple device management policies and applications together for unified deployment and assignment.",
+		MarkdownDescription: "Manages policy sets using the `/deviceAppManagement/policySets` endpoint. This resource is used to policy sets allow you to group multiple device management policies and applications together for unified deployment and assignment.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed: true,

@@ -3,12 +3,12 @@ page_title: "microsoft365_graph_beta_agents_agent_identity_blueprint Resource - 
 subcategory: "Agents"
 
 description: |-
-  Manages an Agent Identity Blueprint in Microsoft Entra ID using the /applications/microsoft.graph.agentIdentityBlueprint endpoint. An agent identity blueprint serves as a template for creating agent identities within the Microsoft Entra ID ecosystem. This resource inherits from the application resource type.
+  Manages an Agent Identity Blueprint in Microsoft Entra ID using the /applications/microsoft.graph.agentIdentityBlueprint endpoint. This resource is used to serve as a template for creating agent identities within the Microsoft Entra ID ecosystem. This resource inherits from the application resource type.
 ---
 
 # microsoft365_graph_beta_agents_agent_identity_blueprint (Resource)
 
-Manages an Agent Identity Blueprint in Microsoft Entra ID using the `/applications/microsoft.graph.agentIdentityBlueprint` endpoint. An agent identity blueprint serves as a template for creating agent identities within the Microsoft Entra ID ecosystem. This resource inherits from the application resource type.
+Manages an Agent Identity Blueprint in Microsoft Entra ID using the `/applications/microsoft.graph.agentIdentityBlueprint` endpoint. This resource is used to serve as a template for creating agent identities within the Microsoft Entra ID ecosystem. This resource inherits from the application resource type.
 
 ## Microsoft Documentation
 
@@ -17,13 +17,21 @@ Manages an Agent Identity Blueprint in Microsoft Entra ID using the `/applicatio
 - [Update agentIdentityBlueprint](https://learn.microsoft.com/en-us/graph/api/agentidentityblueprint-update?view=graph-rest-beta&tabs=http)
 - [Delete agentIdentityBlueprint](https://learn.microsoft.com/en-us/graph/api/agentidentityblueprint-delete?view=graph-rest-beta&tabs=http)
 
-## API Permissions
+## Microsoft Graph API Permissions
 
-The following API permissions are required in order to use this resource.
+The following client `application` permissions are needed in order to use this resource:
 
-### Microsoft Graph
+**Required:**
+- `AgentIdentityBlueprint.Read.All`
+- `AgentIdentityBlueprint.ReadWrite.All`
+- `AgentIdentityBlueprint.Create`
+- `AgentIdentityBlueprint.AddRemoveCreds.All`
+- `AgentIdentityBlueprint.UpdateBranding.All`
+- `Directory.Read.All`
+- `Directory.ReadWrite.All`
 
-- **Application**: `AgentIdentityBlueprint.Read.All`, `AgentIdentityBlueprint.ReadWrite.All`, `AgentIdentityBlueprint.Create`, `AgentIdentityBlueprint.AddRemoveCreds.All`, `AgentIdentityBlueprint.UpdateBranding.All`, `Directory.Read.All`, `Directory.ReadWrite.All`
+**Optional:**
+- `None` `[N/A]`
 
 Find out more about the permissions required for managing agent identities at microsoft learn [here](https://learn.microsoft.com/en-us/graph/api/resources/agentid-platform-overview?view=graph-rest-beta#permissions-for-managing-agent-identities).
 

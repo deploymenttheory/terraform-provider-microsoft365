@@ -2,7 +2,7 @@
 page_title: "Microsoft 365_microsoft365_graph_beta_device_management_managed_device_rotate_bitlocker_keys Action"
 subcategory: "Device Management"
 description: |-
-  Rotates BitLocker encryption recovery keys on Windows devices using the /deviceManagement/managedDevices/{managedDeviceId}/rotateBitLockerKeys and /deviceManagement/comanagedDevices/{managedDeviceId}/rotateBitLockerKeys endpoints. This action generates new BitLocker recovery keys and escrows them to Intune, invalidating the previous recovery keys.
+  Rotates BitLocker encryption recovery keys on Windows devices in Microsoft Intune using the /deviceManagement/managedDevices/{managedDeviceId}/rotateBitLockerKeys and /deviceManagement/comanagedDevices/{managedDeviceId}/rotateBitLockerKeys endpoints. This action is used to generate new BitLocker recovery keys and escrow them to Intune, invalidating the previous recovery keys.
   What This Action Does:
   Generates new BitLocker recovery passwordEscrows new recovery key to Intune/Azure ADInvalidates previous recovery keysUpdates key protector on deviceMaintains encryption state (no re-encryption)Audits key rotation event
   When to Use:
@@ -16,7 +16,7 @@ description: |-
 
 # Microsoft 365_microsoft365_graph_beta_device_management_managed_device_rotate_bitlocker_keys (Action)
 
-Rotates BitLocker encryption recovery keys on Windows devices using the `/deviceManagement/managedDevices/{managedDeviceId}/rotateBitLockerKeys` and `/deviceManagement/comanagedDevices/{managedDeviceId}/rotateBitLockerKeys` endpoints. This action generates new BitLocker recovery keys and escrows them to Intune, invalidating the previous recovery keys.
+Rotates BitLocker encryption recovery keys on Windows devices in Microsoft Intune using the `/deviceManagement/managedDevices/{managedDeviceId}/rotateBitLockerKeys` and `/deviceManagement/comanagedDevices/{managedDeviceId}/rotateBitLockerKeys` endpoints. This action is used to generate new BitLocker recovery keys and escrow them to Intune, invalidating the previous recovery keys.
 
 **What This Action Does:**
 - Generates new BitLocker recovery password
@@ -86,101 +86,6 @@ The following Microsoft Graph API permissions are required to use this action:
 - [Microsoft Intune Remote Actions - macOS](https://learn.microsoft.com/en-us/intune/intune-service/remote-actions/?tabs=macos)
 - [Microsoft Intune Remote Actions - Android](https://learn.microsoft.com/en-us/intune/intune-service/remote-actions/?tabs=android)
 - [Microsoft Intune Remote Actions - ChromeOS](https://learn.microsoft.com/en-us/intune/intune-service/remote-actions/?tabs=chromeos)
-
-## Notes
-
-### Platform Compatibility
-
-This remote action is only available for Windows devices with BitLocker encryption enabled. The table below shows platform support:
-
-| Platform | Supported | Notes |
-|:---------|:----------|:------|
-| **Windows 10** | ✅ | Pro, Enterprise, Education (Version 1703 or later) |
-| **Windows 11** | ✅ | All editions with BitLocker support |
-| **Windows Server** | ⚠️ | Limited support - depends on BitLocker availability |
-| **macOS** | ❌ | Not supported - uses FileVault, not BitLocker |
-| **iOS** | ❌ | Not supported - no BitLocker equivalent |
-| **iPadOS** | ❌ | Not supported - no BitLocker equivalent |
-| **Android** | ❌ | Not supported - uses device encryption, not BitLocker |
-| **Android Enterprise** | ❌ | Not supported - uses device encryption, not BitLocker |
-| **ChromeOS** | ❌ | Not supported - uses verified boot, not BitLocker |
-
-### Important Considerations
-
-**Key Rotation Fundamentals:**
-- **Recovery Keys Only**: This action rotates BitLocker **recovery passwords/keys**, NOT the full-volume encryption keys
-- **No Re-Encryption**: Data on the drive is NOT re-encrypted; the operation completes quickly (typically seconds to minutes)
-- **Previous Keys Invalid**: All previous recovery keys become immediately invalid and cannot be used for recovery
-- **New Key Escrow**: New recovery keys are automatically escrowed to both Intune and Azure AD
-- **Cannot Be Undone**: Key rotation is permanent; there is no way to restore previous recovery keys
-- **Multiple Drives**: Rotates keys for all BitLocker-protected drives on the device (OS, fixed data, removable drives if configured)
-
-**Device Requirements:**
-- **BitLocker Enabled**: Devices must have BitLocker encryption fully enabled and operational
-- **Online Status**: Devices must be online and connected to Intune to receive the rotation command
-- **Network Connectivity**: Devices need network access to communicate with Intune and Azure AD
-- **TPM Chip**: Devices typically require TPM 1.2 or 2.0 chip (depending on Windows version and policy)
-- **Windows Edition**: Must be Pro, Enterprise, or Education edition (Home edition does not support BitLocker)
-- **Management State**: Devices must be actively enrolled and managed by Intune (not stale or orphaned)
-
-**Operational Impact:**
-- **No User Impact**: Key rotation is transparent to end users; no notifications or prompts
-- **No Restart Required**: Devices do NOT need to be restarted for key rotation to complete
-- **No Performance Impact**: Minimal to no performance impact during rotation (no data re-encryption)
-- **Quick Operation**: Rotation typically completes in seconds to a few minutes per device
-- **Background Process**: Rotation runs as a background system process without user interaction
-- **Session Continuity**: User sessions remain active; no interruption to work
-
-**Key Retrieval & Access:**
-- **Intune Admin Center**: New keys viewable at Devices > All devices > [device name] > Recovery keys
-- **Azure AD Portal**: New keys viewable at Devices > All devices > [device name] > BitLocker keys
-- **Azure AD PowerShell**: Keys retrievable via `Get-AzureADDeviceBitLockerKey` cmdlet
-- **Microsoft Graph API**: Keys accessible via `/deviceManagement/managedDevices/{id}/recoveryKeys` endpoint
-- **RBAC Permissions**: Requires appropriate permissions to view recovery keys in portals
-- **Audit Logging**: Key access is logged in Azure AD and Intune audit logs
-
-**BitLocker Recovery Scenarios:**
-- **When Keys Needed**: Recovery keys required when BitLocker enters recovery mode (forgotten password, hardware changes, etc.)
-- **Key Format**: Recovery keys are 48-digit numerical passwords (8 groups of 6 digits)
-- **Key ID**: Each key has a unique Key ID (GUID) to identify which key protector it belongs to
-- **Multiple Protectors**: Devices may have multiple key protectors; rotation affects recovery password protector
-- **TPM Protector**: TPM-based protectors (primary unlock method) are NOT affected by this action
-
-**Co-Management Considerations:**
-- **Dual Escrow**: Co-managed devices can escrow keys to both Intune and Configuration Manager
-- **SCCM Integration**: Ensure Configuration Manager BitLocker management policies align with Intune
-- **Authority Conflicts**: Verify which system (Intune or SCCM) has authority for BitLocker management
-- **Key Synchronization**: Keys may take time to synchronize between Intune and Configuration Manager
-- **Policy Precedence**: Understand which policies take precedence in co-management scenarios
-
-**Security Best Practices:**
-- **Regular Rotation Schedule**: Implement quarterly or bi-annual key rotation for all managed Windows devices
-- **Document Procedures**: Maintain documented processes for key rotation and emergency key retrieval
-- **Test Key Retrieval**: Regularly test the process of retrieving and using recovery keys from Intune/Azure AD
-- **Access Controls**: Limit access to BitLocker recovery keys to authorized security and helpdesk personnel only
-- **Audit Reviews**: Regularly review audit logs for unauthorized key access attempts
-- **Incident Response**: Include key rotation in security incident response playbooks
-- **Key Backup**: Ensure key escrow is functioning before performing mass rotations
-- **Staged Approach**: For large-scale rotations (500+ devices), use a phased rollout approach
-- **Device Validation**: Verify device online status and BitLocker health before initiating rotation
-- **Post-Rotation Verification**: Confirm new keys are properly escrowed after rotation completes
-
-**Troubleshooting Common Issues:**
-- **Offline Devices**: Rotation fails if device is offline; device will receive command when it reconnects
-- **BitLocker Not Enabled**: Rotation fails if BitLocker is not enabled; check BitLocker status first
-- **TPM Issues**: Rotation may fail if TPM is locked, disabled, or in maintenance mode
-- **Policy Conflicts**: Conflicting BitLocker policies can prevent successful key rotation
-- **MBAM Conflicts**: Legacy MBAM (Microsoft BitLocker Administration and Monitoring) configurations may interfere
-- **Key Escrow Failures**: Network or connectivity issues can prevent new keys from being escrowed properly
-- **Permissions Issues**: Insufficient permissions can cause rotation to fail silently
-- **Timing**: Allow several minutes for rotation to complete on busy or slow devices
-
-**Compliance & Audit:**
-- **Audit Trail**: All key rotation operations are logged in Intune and Azure AD audit logs
-- **Compliance Reporting**: Use Intune compliance reports to track BitLocker encryption status
-- **Key Age Tracking**: Monitor when keys were last rotated to ensure compliance with rotation policies
-- **Evidence Collection**: Audit logs provide evidence of key rotation for compliance audits
-- **Retention**: Ensure audit log retention meets your compliance requirements (typically 90-180 days)
 
 ## Example Usage
 

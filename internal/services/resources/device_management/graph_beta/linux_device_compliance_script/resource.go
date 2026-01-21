@@ -74,7 +74,7 @@ func (r *LinuxDeviceComplianceScriptResource) ImportState(ctx context.Context, r
 // Schema defines the schema for the resource.
 func (r *LinuxDeviceComplianceScriptResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Manages Linux device compliance scripts using the `/deviceManagement/reusablePolicySettings` endpoint. Linux device compliance scripts enable running shell scripts on enrolled Linux devices to validate compliance requirements and provide custom compliance assessments.",
+		MarkdownDescription: "Manages Linux device compliance scripts using the `/deviceManagement/reusablePolicySettings` endpoint. This resource is used to linux device compliance scripts enable running shell scripts on enrolled Linux devices to validate compliance requirements and provide custom compliance assessments.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed: true,

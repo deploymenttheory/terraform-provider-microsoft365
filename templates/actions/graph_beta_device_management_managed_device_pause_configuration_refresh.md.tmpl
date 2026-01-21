@@ -15,17 +15,16 @@ description: |-
 
 {{ tffile "examples/actions/graph_beta_device_management_managed_device_pause_configuration_refresh/action.tf" }}
 
-## API Permissions
+## Microsoft Graph API Permissions
 
-The following [Microsoft Graph API permissions](https://learn.microsoft.com/en-us/graph/permissions-reference) are required to use this action:
+The following client `application` permissions are needed in order to use this {{.Type | lower}}:
 
-### Read Permissions
+**Required:**
 - `DeviceManagementConfiguration.Read.All`
 - `DeviceManagementManagedDevices.Read.All`
 
-### Write Permissions
-- `DeviceManagementConfiguration.Read.All`
-- `DeviceManagementManagedDevices.Read.All`
+**Optional:**
+- `None` `[N/A]`
 
 ## Version History
 

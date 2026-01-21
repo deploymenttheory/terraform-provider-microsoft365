@@ -48,7 +48,7 @@ func (d *WindowsMSIAppMetadataDataSource) Configure(ctx context.Context, req dat
 // Schema defines the schema for the data source
 func (d *WindowsMSIAppMetadataDataSource) Schema(ctx context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Extracts comprehensive metadata from Windows MSI installer files. Supports both local file paths and remote URLs.",
+		MarkdownDescription: "Extracts metadata from Windows MSI installer files locally or from URLs. This data source is used to retrieve product codes, versions, and installation commands for Win32 app deployment.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:            true,

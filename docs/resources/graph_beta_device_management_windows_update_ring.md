@@ -2,12 +2,12 @@
 page_title: "microsoft365_graph_beta_device_management_windows_update_ring Resource - terraform-provider-microsoft365"
 subcategory: "Device Management"
 description: |-
-  Manages Windows Update for Business configuration policies using the /deviceManagement/deviceConfigurations endpoint. This resource controls Windows Update settings including feature update deferrals, quality update schedules, driver management, and restart behaviors for managed Windows 10/11 devices.
+  Manages Windows Update for Business configuration policies using the /deviceManagement/deviceConfigurations endpoint. This resource is used to controls Windows Update settings including feature update deferrals, quality update schedules, driver management, and restart behaviors for managed Windows 10/11 devices.
 ---
 
 # microsoft365_graph_beta_device_management_windows_update_ring (Resource)
 
-Manages Windows Update for Business configuration policies using the `/deviceManagement/deviceConfigurations` endpoint. This resource controls Windows Update settings including feature update deferrals, quality update schedules, driver management, and restart behaviors for managed Windows 10/11 devices.
+Manages Windows Update for Business configuration policies using the `/deviceManagement/deviceConfigurations` endpoint. This resource is used to controls Windows Update settings including feature update deferrals, quality update schedules, driver management, and restart behaviors for managed Windows 10/11 devices.
 
 ## Microsoft Documentation
 
@@ -15,14 +15,16 @@ Manages Windows Update for Business configuration policies using the `/deviceMan
 - [Windows Update Settings](https://learn.microsoft.com/en-us/mem/intune/protect/windows-update-settings)
 - [Windows Update for Business Overview](https://learn.microsoft.com/en-us/windows/deployment/update/waas-manage-updates-wufb)
 
-## API Permissions
+## Microsoft Graph API Permissions
 
-The following API permissions are required in order to use this resource.
+The following client `application` permissions are needed in order to use this resource:
 
-### Microsoft Graph
+**Required:**
+- `DeviceManagementConfiguration.Read.All`
+- `DeviceManagementConfiguration.ReadWrite.All`
 
-- **Read**: `DeviceManagementConfiguration.Read.All`
-- **Write**: `DeviceManagementConfiguration.ReadWrite.All`
+**Optional:**
+- `None` `[N/A]`
 
 ## Version History
 

@@ -55,11 +55,10 @@ func (a *CreateDeviceLogCollectionRequestManagedDeviceAction) Configure(ctx cont
 
 func (a *CreateDeviceLogCollectionRequestManagedDeviceAction) Schema(ctx context.Context, req action.SchemaRequest, resp *action.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Creates a device log collection request for Windows managed devices using the " +
+		MarkdownDescription: "Creates a device log collection request for Windows managed devices in Microsoft Intune using the " +
 			"`/deviceManagement/managedDevices/{managedDeviceId}/createDeviceLogCollectionRequest` and " +
 			"`/deviceManagement/comanagedDevices/{managedDeviceId}/createDeviceLogCollectionRequest` endpoints. " +
-			"This action initiates the collection of diagnostic logs from Windows devices, which are essential for " +
-			"troubleshooting device issues, analyzing compliance problems, and supporting technical investigations. " +
+			"This action is used to initiate diagnostic log collection from Windows devices for troubleshooting device issues, analyzing compliance problems, and supporting technical investigations. " +
 			"The collected logs are uploaded to Intune and can be downloaded for analysis. This action is critical " +
 			"for IT support teams when diagnosing device-specific problems or investigating security incidents.\n\n" +
 			"**Important Notes:**\n" +

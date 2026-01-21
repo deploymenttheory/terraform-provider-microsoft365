@@ -3,23 +3,26 @@ page_title: "microsoft365_graph_beta_device_and_app_management_mobile_app_relati
 subcategory: "Device and App Management"
 
 description: |-
-  Retrieves mobile application relationships from Microsoft Intune using the /deviceAppManagement/mobileAppRelationships endpoint. This data source enables querying app relationships such as parent/child dependencies and app supersedence with advanced filtering capabilities for application relationship discovery.
+  Retrieves mobile app relationships from Microsoft Intune using the /deviceAppManagement/mobileApps/{id}/relationships endpoint. This data source is used to query app dependencies and supersedence relationships for deployment planning.
 ---
 # microsoft365_graph_beta_device_and_app_management_mobile_app_relationship (Data Source)
 
-Retrieves mobile application relationships from Microsoft Intune using the `/deviceAppManagement/mobileAppRelationships` endpoint. This data source enables querying app relationships such as parent/child dependencies and app supersedence with advanced filtering capabilities for application relationship discovery.
+Retrieves mobile app relationships from Microsoft Intune using the `/deviceAppManagement/mobileApps/{id}/relationships` endpoint. This data source is used to query app dependencies and supersedence relationships for deployment planning.
 
 ## Microsoft Documentation
 
 - [mobileAppRelationship resource type](https://learn.microsoft.com/en-us/graph/api/resources/intune-apps-mobileapprelationship?view=graph-rest-beta)
 
-## API Permissions
+## Microsoft Graph API Permissions
 
-The following API permissions are required in order to use this data source.
+The following client `application` permissions are needed in order to use this data source:
 
-### Microsoft Graph
+**Required:**
+- `DeviceManagementApps.Read.All`
+- `DeviceManagementApps.ReadWrite.All`
 
-- **Application**: `DeviceManagementApps.Read.All`, `DeviceManagementApps.ReadWrite.All`
+**Optional:**
+- `None` `[N/A]`
 
 ## Version History
 

@@ -53,7 +53,7 @@ func (r *AuditEventsEphemeralResource) Configure(ctx context.Context, req epheme
 // Schema defines the schema for the ephemeral resource
 func (r *AuditEventsEphemeralResource) Schema(_ context.Context, _ ephemeral.SchemaRequest, resp *ephemeral.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Retrieves audit events from Microsoft 365 managed tenants as an ephemeral resource. This does not persist in state and fetches fresh data on each execution.",
+		MarkdownDescription: "Retrieves audit events from Microsoft 365 managed tenants using the `/tenantRelationships/managedTenants/auditEvents` endpoint as an ephemeral resource. This ephemeral resource is used to fetch fresh audit event data on each execution without persisting in state.",
 		Attributes: map[string]schema.Attribute{
 			"filter_type": schema.StringAttribute{
 				Required:            true,

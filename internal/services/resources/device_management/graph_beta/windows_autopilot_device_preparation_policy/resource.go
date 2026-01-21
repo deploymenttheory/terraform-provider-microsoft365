@@ -86,7 +86,7 @@ func (r *WindowsAutopilotDevicePreparationPolicyResource) ImportState(ctx contex
 // Function to create the full Windows Autopilot Device Preparation Policy schema
 func (r *WindowsAutopilotDevicePreparationPolicyResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Manages Windows Autopilot Device Preparation Policy using the `/deviceManagement/configurationPolicies` endpoint. Windows Autopilot Device Preparation is used to set up and configure new devices, getting them ready for productive use by delivering consistent configurations and enhancing the setup experience.",
+		MarkdownDescription: "Manages Windows Autopilot Device Preparation Policy using the `/deviceManagement/configurationPolicies` endpoint. This resource is used to windows Autopilot Device Preparation is used to set up and configure new devices, getting them ready for productive use by delivering consistent configurations and enhancing the setup experience.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed: true,

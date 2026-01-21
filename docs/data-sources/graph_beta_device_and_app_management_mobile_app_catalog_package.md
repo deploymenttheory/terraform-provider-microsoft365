@@ -3,24 +3,27 @@ page_title: "microsoft365_graph_beta_device_and_app_management_mobile_app_catalo
 subcategory: "Device and App Management"
 
 description: |-
-  Retrieves mobile app catalog packages from Microsoft Intune using the /deviceAppManagement/MobileAppCatalogPackage endpoint. This data source enables querying mobile app catalog packages with advanced filtering capabilities including OData queries for filtering by product name, publisher, and other properties.
+  Retrieves mobile app catalog packages from Microsoft Intune using the /deviceAppManagement/mobileAppCatalogPackages endpoint. This data source is used to query Win32 catalog applications from the Microsoft Store for Business with installation details and requirements.
 ---
 
 # microsoft365_graph_beta_device_and_app_management_mobile_app_catalog_package (Data Source)
 
-Retrieves mobile app catalog packages from Microsoft Intune using the `/deviceAppManagement/MobileAppCatalogPackage` endpoint. This data source enables querying mobile app catalog packages with advanced filtering capabilities including OData queries for filtering by product name, publisher, and other properties.
+Retrieves mobile app catalog packages from Microsoft Intune using the `/deviceAppManagement/mobileAppCatalogPackages` endpoint. This data source is used to query Win32 catalog applications from the Microsoft Store for Business with installation details and requirements.
 
 ## Microsoft Documentation
 
 - [mobileAppCatalogPackage resource type](https://learn.microsoft.com/en-us/intune/intune-service/apps/apps-enterprise-app-management)
 
-## API Permissions
+## Microsoft Graph API Permissions
 
-The following API permissions are required in order to use this data source.
+The following client `application` permissions are needed in order to use this data source:
 
-### Microsoft Graph
+**Required:**
+- `DeviceManagementApps.Read.All`
+- `DeviceManagementApps.ReadWrite.All`
 
-- **Application**: `DeviceManagementApps.Read.All`, `DeviceManagementApps.ReadWrite.All`
+**Optional:**
+- `None` `[N/A]`
 
 ## Version History
 

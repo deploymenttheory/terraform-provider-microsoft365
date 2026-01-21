@@ -43,26 +43,7 @@ func (d *groupPolicyValueReferenceDataSource) Configure(ctx context.Context, req
 
 func (d *groupPolicyValueReferenceDataSource) Schema(ctx context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Queries Microsoft Graph API for group policy definition metadata. " +
-			"This utility data source retrieves detailed information about group policy definitions including " +
-			"class type, category path, and presentation (checkbox/setting) details based on a policy display name.\n\n" +
-			"Use this data source to discover the exact metadata needed for configuring group policy boolean values, " +
-			"text values, list values, and other group policy settings in Microsoft Intune.\n\n" +
-			"**Search Behavior:** Requires an exact match (case-insensitive, whitespace-normalized). " +
-			"If no exact match is found, returns a helpful error message listing similar policy names ranked by similarity.\n\n" +
-			"**Key Features:**\n\n" +
-			"- Returns all definitions matching the policy name\n" +
-			"- Provides class_type (`user` or `machine`) for each definition\n" +
-			"- Shows the full category_path for policy organization\n" +
-			"- Lists all presentations (individual settings) available for the policy\n" +
-			"- Returns presentation types (checkbox, text, list, etc.) and their template IDs\n" +
-			"- Provides helpful suggestions when policy name doesn't match exactly\n\n" +
-			"**Common Use Cases:**\n\n" +
-			"- Discovering the correct `class_type` for a policy\n" +
-			"- Finding the exact `category_path` string\n" +
-			"- Identifying which presentations are available for boolean configuration\n" +
-			"- Distinguishing between multiple policies with similar names\n\n" +
-			"**Reference:** [Group Policy Definitions API](https://learn.microsoft.com/en-us/graph/api/intune-grouppolicy-grouppolicydefinition-get?view=graph-rest-beta)",
+		MarkdownDescription: "Retrieves Group Policy definition metadata from Microsoft Intune using the `/deviceManagement/groupPolicyDefinitions` endpoint. This data source is used to discover ADMX policy details including class type, category path, and presentation configurations for policy authoring.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:            true,

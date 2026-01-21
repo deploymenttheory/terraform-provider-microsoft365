@@ -15,13 +15,15 @@ Manages a Windows 365 Cloud PC Alert Rule using the Microsoft Graph Beta API.
 - [cloudPcProvisioningPolicy resource type (beta)](https://learn.microsoft.com/en-us/graph/api/resources/cloudpcprovisioningpolicy?view=graph-rest-beta)
 - [Create cloudPcProvisioningPolicy (beta)](https://learn.microsoft.com/en-us/graph/api/virtualendpoint-post-provisioningpolicies?view=graph-rest-beta)
 
-## API Permissions
+## Microsoft Graph API Permissions
 
-The following API permissions are required in order to use this resource.
+The following client `application` permissions are needed in order to use this resource:
 
-### Microsoft Graph
+**Required:**
+- `CloudPC.ReadWrite.All`
 
-- **Application**: `CloudPC.ReadWrite.All`
+**Optional:**
+- `None` `[N/A]`
 
 ## Version History
 

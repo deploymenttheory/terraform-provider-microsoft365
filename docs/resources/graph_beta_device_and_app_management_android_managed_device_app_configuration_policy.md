@@ -3,12 +3,12 @@ page_title: "microsoft365_graph_beta_device_and_app_management_android_managed_d
 subcategory: "Device and App Management"
 
 description: |-
-  Manages Android managed store app configurations in Microsoft Intune using the /deviceAppManagement/mobileAppConfigurations endpoint. Use app configuration policies in Microsoft Intune to provide custom configuration settings for Android apps from the managed Google Play store. These configuration settings allow an app to be customized based on the app supplier's direction using Android Enterprise managed configurations. Learn more here: https://learn.microsoft.com/en-us/mem/intune/apps/app-configuration-policies-use-android
+  Manages Android managed store app configurations using the /deviceAppManagement/mobileAppConfigurations endpoint. This resource is used to use app configuration policies in Microsoft Intune to provide custom configuration settings for Android apps from the managed Google Play store. These configuration settings allow an app to be customized based on the app supplier's direction using Android Enterprise managed configurations. Learn more here: https://learn.microsoft.com/en-us/mem/intune/apps/app-configuration-policies-use-android.
 ---
 
 # microsoft365_graph_beta_device_and_app_management_android_managed_device_app_configuration_policy (Resource)
 
-Manages Android managed store app configurations in Microsoft Intune using the `/deviceAppManagement/mobileAppConfigurations` endpoint. Use app configuration policies in Microsoft Intune to provide custom configuration settings for Android apps from the managed Google Play store. These configuration settings allow an app to be customized based on the app supplier's direction using Android Enterprise managed configurations. Learn more here: https://learn.microsoft.com/en-us/mem/intune/apps/app-configuration-policies-use-android
+Manages Android managed store app configurations using the `/deviceAppManagement/mobileAppConfigurations` endpoint. This resource is used to use app configuration policies in Microsoft Intune to provide custom configuration settings for Android apps from the managed Google Play store. These configuration settings allow an app to be customized based on the app supplier's direction using Android Enterprise managed configurations. Learn more here: https://learn.microsoft.com/en-us/mem/intune/apps/app-configuration-policies-use-android.
 
 ## Microsoft Documentation
 
@@ -18,13 +18,16 @@ Manages Android managed store app configurations in Microsoft Intune using the `
 - [Delete AndroidManagedStoreAppConfiguration](https://learn.microsoft.com/en-us/graph/api/intune-apps-androidmanagedstoreappconfiguration-delete?view=graph-rest-beta)
 - [App Configuration Policies for Managed Android Devices](https://learn.microsoft.com/en-us/intune/intune-service/apps/app-configuration-policies-use-android)
 
-## API Permissions
+## Microsoft Graph API Permissions
 
-The following API permissions are required in order to use this resource.
+The following client `application` permissions are needed in order to use this resource:
 
-### Microsoft Graph
+**Required:**
+- `DeviceManagementConfiguration.ReadWrite.All`
+- `DeviceManagementApps.ReadWrite.All`
 
-- **Application**: `DeviceManagementConfiguration.ReadWrite.All`, `DeviceManagementApps.ReadWrite.All`
+**Optional:**
+- `None` `[N/A]`
 
 ## Version History
 

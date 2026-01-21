@@ -48,17 +48,7 @@ func (d *licensingServicePlanReferenceDataSource) Configure(_ context.Context, r
 
 func (d *licensingServicePlanReferenceDataSource) Schema(ctx context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Queries Microsoft 365 licensing service plan reference data. " +
-			"This utility data source allows you to search for license products (SKUs) and service plans using human-readable names, " +
-			"GUIDs, or string IDs. The data is sourced from Microsoft's official licensing service plan reference documentation.\n\n" +
-			"**Search Modes:**\n\n" +
-			"- **By Product Name**: Use `product_name` to search for license products (e.g., \"Microsoft 365 E3\")\n" +
-			"- **By Product Identifier**: Use `string_id` or `guid` to look up a specific product\n" +
-			"- **By Service Plan Name**: Use `service_plan_name` to find service plans (e.g., \"Exchange Online\")\n" +
-			"- **By Service Plan Identifier**: Use `service_plan_id` or `service_plan_guid` for specific service plans\n\n" +
-			"Only one search parameter should be specified at a time. Results include both the matching items and their relationships " +
-			"(e.g., which products include a specific service plan, or which service plans are included in a product).\n\n" +
-			"**Reference:** [Microsoft Licensing Service Plan Reference](https://learn.microsoft.com/en-us/entra/identity/users/licensing-service-plan-reference)",
+		MarkdownDescription: "Queries Microsoft 365 licensing service plan reference data from the embedded licensing database. This data source is used to look up license SKU and service plan GUIDs by human-readable names for assignment configuration.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:            true,

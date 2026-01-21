@@ -2,27 +2,31 @@
 page_title: "microsoft365_graph_beta_groups_group_lifecycle_expiration_policy Resource - terraform-provider-microsoft365"
 subcategory: "Groups"
 description: |-
-  Manages group lifecycle policies for Microsoft 365 groups using the /groupLifecyclePolicies endpoint. This resource enables administrators to set expiration periods for groups, requiring owners to renew them within specified time intervals. When a group reaches its expiration, it can be renewed to extend the expiration date, or if not renewed, it expires and is deleted with a 30-day restoration window. Renewal notifications are emailed to group owners 30 days, 15 days, and one day prior to group expiration. Group owners must have Exchange licenses to receive notification emails. If a group is not renewed, it is deleted along with its associated content from sources such as Outlook, SharePoint, Teams, and Power BI.
+  Manages group lifecycle policies for Microsoft 365 groups using the /groupLifecyclePolicies endpoint. This resource is used to enables administrators to set expiration periods for groups, requiring owners to renew them within specified time intervals. When a group reaches its expiration, it can be renewed to extend the expiration date, or if not renewed, it expires and is deleted with a 30-day restoration window.
 ---
 
 # microsoft365_graph_beta_groups_group_lifecycle_expiration_policy (Resource)
 
-Manages group lifecycle policies for Microsoft 365 groups using the `/groupLifecyclePolicies` endpoint. This resource enables administrators to set expiration periods for groups, requiring owners to renew them within specified time intervals. When a group reaches its expiration, it can be renewed to extend the expiration date, or if not renewed, it expires and is deleted with a 30-day restoration window. Renewal notifications are emailed to group owners 30 days, 15 days, and one day prior to group expiration. Group owners must have Exchange licenses to receive notification emails. If a group is not renewed, it is deleted along with its associated content from sources such as Outlook, SharePoint, Teams, and Power BI.
+Manages group lifecycle policies for Microsoft 365 groups using the `/groupLifecyclePolicies` endpoint. This resource is used to enables administrators to set expiration periods for groups, requiring owners to renew them within specified time intervals. When a group reaches its expiration, it can be renewed to extend the expiration date, or if not renewed, it expires and is deleted with a 30-day restoration window.
 
 ## Microsoft Documentation
 
 - [Group lifecycle policy resource type](https://learn.microsoft.com/en-us/graph/api/resources/grouplifecyclepolicy?view=graph-rest-beta)
 - [Create groupLifecyclePolicy](https://learn.microsoft.com/en-us/graph/api/group-post-grouplifecyclepolicies?view=graph-rest-beta)
+- [Read groupLifecyclePolicy](https://learn.microsoft.com/en-us/graph/api/grouplifecyclepolicy-get?view=graph-rest-beta)
 - [Update groupLifecyclePolicy](https://learn.microsoft.com/en-us/graph/api/group-update-grouplifecyclepolicy?view=graph-rest-beta)
 - [Delete groupLifecyclePolicy](https://learn.microsoft.com/en-us/graph/api/group-delete-grouplifecyclepolicy?view=graph-rest-beta)
 
-## API Permissions
+## Microsoft Graph API Permissions
 
-The following API permissions are required in order to use this resource.
+The following client `application` permissions are needed in order to use this resource:
 
-### Microsoft Graph
+**Required:**
+- `Group.ReadWrite.All`
+- `Directory.ReadWrite.All`
 
-- **Application**: `Group.ReadWrite.All`, `Directory.ReadWrite.All`
+**Optional:**
+- `None` `[N/A]`
 
 ## Version History
 

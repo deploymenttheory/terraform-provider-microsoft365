@@ -42,10 +42,7 @@ func (d *WindowsRemediationScriptRegistryKeyGeneratorDataSource) Configure(_ con
 
 func (d *WindowsRemediationScriptRegistryKeyGeneratorDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Generates PowerShell detection and remediation scripts for Intune Proactive Remediations to manage Windows registry keys and values. " +
-			"This utility helps create standardized scripts for setting registry values in either the current user's context (HKEY_CURRENT_USER) " +
-			"or for all users on a device (HKEY_USERS). The generated scripts follow Microsoft's recommended patterns for Proactive Remediations, " +
-			"including proper error handling, exit codes, and user context management.",
+		MarkdownDescription: "Generates PowerShell detection and remediation scripts locally for Intune Proactive Remediations. This data source is used to create standardized registry key management scripts with proper error handling and exit codes.",
 
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{

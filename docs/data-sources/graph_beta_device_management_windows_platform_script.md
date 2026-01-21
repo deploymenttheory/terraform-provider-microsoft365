@@ -3,24 +3,27 @@ page_title: "microsoft365_graph_beta_device_management_windows_platform_script D
 subcategory: "Device Management"
 
 description: |-
-  Retrieves information about a windows platform script.
+  Retrieves Windows platform scripts from Microsoft Intune using the /deviceManagement/deviceManagementScripts endpoint. This data source is used to query PowerShell scripts deployed to Windows devices.
 ---
 
 # microsoft365_graph_beta_device_management_windows_platform_script (Data Source)
 
-Retrieves information about a windows platform script.
+Retrieves Windows platform scripts from Microsoft Intune using the `/deviceManagement/deviceManagementScripts` endpoint. This data source is used to query PowerShell scripts deployed to Windows devices.
 
 ## Microsoft Documentation
 
 - [deviceManagementScript resource type](https://learn.microsoft.com/en-us/graph/api/resources/intune-devices-devicemanagementscript?view=graph-rest-beta)
 
-## API Permissions
+## Microsoft Graph API Permissions
 
-The following API permissions are required in order to use this data source.
+The following client `application` permissions are needed in order to use this data source:
 
-### Microsoft Graph
+**Required:**
+- `DeviceManagementManagedDevices.Read.All`
+- `DeviceManagementManagedDevices.ReadWrite.All`
 
-- **Application**: `DeviceManagementManagedDevices.Read.All`, `DeviceManagementManagedDevices.ReadWrite.All`
+**Optional:**
+- `None` `[N/A]`
 
 ## Version History
 

@@ -16,14 +16,17 @@ description: |-
 - [Create service principal for blueprint](https://learn.microsoft.com/en-us/entra/agent-id/identity-platform/create-blueprint?tabs=microsoft-graph-api#create-a-service-principal-for-the-blueprint)
 - [Delete service principal](https://learn.microsoft.com/en-us/graph/api/serviceprincipal-delete?view=graph-rest-beta&tabs=http)
 
-## API Permissions
+## Microsoft Graph API Permissions
 
-The following API permissions are required in order to use this resource.
+The following client `application` permissions are needed in order to use this {{.Type | lower}}:
 
-### Microsoft Graph
+**Required:**
+- `AgentIdentityBlueprintPrincipal.Read.All`
+- `AgentIdentityBlueprintPrincipal.ReadWrite.All`
+- `Directory.ReadWrite.All`
 
-- **Read Permissions**: `AgentIdentityBlueprintPrincipal.Read.All`
-- **Write Permissions**: `AgentIdentityBlueprintPrincipal.ReadWrite.All`, `Directory.ReadWrite.All`
+**Optional:**
+- `None` `[N/A]`
 
 Find out more about the permissions required for managing agent identities at microsoft learn [here](https://learn.microsoft.com/en-us/graph/api/resources/agentid-platform-overview?view=graph-rest-beta#permissions-for-managing-agent-identities).
 

@@ -3,12 +3,12 @@
 page_title: "microsoft365_graph_beta_multitenant_management_audit_events Data Source - Microsoft 365"
 subcategory: ""
 description: |-
-  Retrieves audit events from Microsoft 365 managed tenants using the /tenantRelationships/managedTenants/auditEvents endpoint. This data source enables querying audit events for managed tenant activities with advanced filtering capabilities for security monitoring and compliance reporting.
+  Retrieves audit events from Microsoft 365 managed tenants using the /tenantRelationships/managedTenants/auditEvents endpoint. This data source is used to query administrative activities and changes across managed tenants for security monitoring and compliance reporting.
 ---
 
 # microsoft365_graph_beta_multitenant_management_audit_events (Data Source)
 
-Retrieves audit events from Microsoft 365 managed tenants using the `/tenantRelationships/managedTenants/auditEvents` endpoint. This data source enables querying audit events for managed tenant activities with advanced filtering capabilities for security monitoring and compliance reporting.
+Retrieves audit events from Microsoft 365 managed tenants using the `/tenantRelationships/managedTenants/auditEvents` endpoint. This data source is used to query administrative activities and changes across managed tenants for security monitoring and compliance reporting.
 
 
 

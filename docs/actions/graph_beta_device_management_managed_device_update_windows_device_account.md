@@ -3,7 +3,7 @@ page_title: "microsoft365_graph_beta_device_management_managed_device_update_win
 subcategory: "Device Management"
 
 description: |-
-  Updates the device account configuration on Windows devices using the /deviceManagement/managedDevices/{managedDeviceId}/updateWindowsDeviceAccount and /deviceManagement/comanagedDevices/{managedDeviceId}/updateWindowsDeviceAccount endpoints. This action is specifically designed for shared Windows devices like Surface Hub and Microsoft Teams Rooms that require device account configuration for Exchange and Skype for Business/Teams integration.
+  Updates the device account configuration on Windows devices in Microsoft Intune using the /deviceManagement/managedDevices/{managedDeviceId}/updateWindowsDeviceAccount and /deviceManagement/comanagedDevices/{managedDeviceId}/updateWindowsDeviceAccount endpoints. This action is used to configure device accounts for shared Windows devices like Surface Hub and Microsoft Teams Rooms that require device account configuration for Exchange and Skype for Business/Teams integration.
   What This Action Does:
   Updates device account credentialsConfigures Exchange server settingsSets up calendar syncConfigures Teams/SfB settingsManages password rotationUpdates SIP address configuration
   Target Devices:
@@ -19,7 +19,7 @@ description: |-
 
 # microsoft365_graph_beta_device_management_managed_device_update_windows_device_account (Action)
 
-Updates the device account configuration on Windows devices using the `/deviceManagement/managedDevices/{managedDeviceId}/updateWindowsDeviceAccount` and `/deviceManagement/comanagedDevices/{managedDeviceId}/updateWindowsDeviceAccount` endpoints. This action is specifically designed for shared Windows devices like Surface Hub and Microsoft Teams Rooms that require device account configuration for Exchange and Skype for Business/Teams integration.
+Updates the device account configuration on Windows devices in Microsoft Intune using the `/deviceManagement/managedDevices/{managedDeviceId}/updateWindowsDeviceAccount` and `/deviceManagement/comanagedDevices/{managedDeviceId}/updateWindowsDeviceAccount` endpoints. This action is used to configure device accounts for shared Windows devices like Surface Hub and Microsoft Teams Rooms that require device account configuration for Exchange and Skype for Business/Teams integration.
 
 **What This Action Does:**
 - Updates device account credentials
@@ -61,14 +61,15 @@ Updates the device account configuration on Windows devices using the `/deviceMa
 - [updateWindowsDeviceAccount action](https://learn.microsoft.com/en-us/graph/api/intune-devices-manageddevice-updatewindowsdeviceaccount?view=graph-rest-beta)
 - [managedDevice resource type](https://learn.microsoft.com/en-us/graph/api/resources/intune-devices-manageddevice?view=graph-rest-beta)
 
-## API Permissions
+## Microsoft Graph API Permissions
 
-The following API permissions are required in order to use this action.
+The following client `application` permissions are needed in order to use this action:
 
-### Microsoft Graph
+**Required:**
+- `DeviceManagementManagedDevices.PrivilegedOperations.All`
 
-- **Application**: `DeviceManagementManagedDevices.PrivilegedOperations.All`
-- **Delegated**: `DeviceManagementManagedDevices.PrivilegedOperations.All`
+**Optional:**
+- `None` `[N/A]`
 
 ## Version History
 
@@ -77,17 +78,6 @@ The following API permissions are required in order to use this action.
 | v0.33.0-alpha | Experimental | Initial release |
 | v0.40.0-alpha | Experimental | Example fixes and refactored sync progress logic |
 
-
-## Notes
-
-### Platform Compatibility
-
-| Platform | Support | Requirements |
-|----------|---------|--------------|
-| **Windows** | ✅ Full Support | Windows devices |
-| **macOS** | ❌ Not Supported | Not supported |
-| **iOS/iPadOS** | ❌ Not Supported | Not supported |
-| **Android** | ❌ Not Supported | Not supported |
 
 ## Example Usage
 

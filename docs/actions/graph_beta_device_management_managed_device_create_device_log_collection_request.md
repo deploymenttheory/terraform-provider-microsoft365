@@ -3,7 +3,7 @@ page_title: "microsoft365_graph_beta_device_management_managed_device_create_dev
 subcategory: "Device Management"
 
 description: |-
-  Creates a device log collection request for Windows managed devices using the /deviceManagement/managedDevices/{managedDeviceId}/createDeviceLogCollectionRequest and /deviceManagement/comanagedDevices/{managedDeviceId}/createDeviceLogCollectionRequest endpoints. This action initiates the collection of diagnostic logs from Windows devices, which are essential for troubleshooting device issues, analyzing compliance problems, and supporting technical investigations. The collected logs are uploaded to Intune and can be downloaded for analysis. This action is critical for IT support teams when diagnosing device-specific problems or investigating security incidents.
+  Creates a device log collection request for Windows managed devices in Microsoft Intune using the /deviceManagement/managedDevices/{managedDeviceId}/createDeviceLogCollectionRequest and /deviceManagement/comanagedDevices/{managedDeviceId}/createDeviceLogCollectionRequest endpoints. This action is used to initiate diagnostic log collection from Windows devices for troubleshooting device issues, analyzing compliance problems, and supporting technical investigations. The collected logs are uploaded to Intune and can be downloaded for analysis. This action is critical for IT support teams when diagnosing device-specific problems or investigating security incidents.
   Important Notes:
   Only applicable to Windows devices (Windows 10/11)Device must be online to receive collection requestLog collection runs on the device and uploads resultsLogs are available in Intune portal after collection completesCollection includes system logs, event logs, and diagnostic dataLog files have expiration dates for security
   Use Cases:
@@ -15,7 +15,7 @@ description: |-
 
 # microsoft365_graph_beta_device_management_managed_device_create_device_log_collection_request (Action)
 
-Creates a device log collection request for Windows managed devices using the `/deviceManagement/managedDevices/{managedDeviceId}/createDeviceLogCollectionRequest` and `/deviceManagement/comanagedDevices/{managedDeviceId}/createDeviceLogCollectionRequest` endpoints. This action initiates the collection of diagnostic logs from Windows devices, which are essential for troubleshooting device issues, analyzing compliance problems, and supporting technical investigations. The collected logs are uploaded to Intune and can be downloaded for analysis. This action is critical for IT support teams when diagnosing device-specific problems or investigating security incidents.
+Creates a device log collection request for Windows managed devices in Microsoft Intune using the `/deviceManagement/managedDevices/{managedDeviceId}/createDeviceLogCollectionRequest` and `/deviceManagement/comanagedDevices/{managedDeviceId}/createDeviceLogCollectionRequest` endpoints. This action is used to initiate diagnostic log collection from Windows devices for troubleshooting device issues, analyzing compliance problems, and supporting technical investigations. The collected logs are uploaded to Intune and can be downloaded for analysis. This action is critical for IT support teams when diagnosing device-specific problems or investigating security incidents.
 
 **Important Notes:**
 - Only applicable to Windows devices (Windows 10/11)
@@ -50,14 +50,16 @@ Creates a device log collection request for Windows managed devices using the `/
 - [Collect diagnostics from a Windows device](https://learn.microsoft.com/en-us/mem/intune/remote-actions/collect-diagnostics)
 - [Windows device diagnostics](https://learn.microsoft.com/en-us/mem/intune/fundamentals/collect-diagnostics)
 
-## API Permissions
+## Microsoft Graph API Permissions
 
-The following API permissions are required in order to use this action.
+The following client `application` permissions are needed in order to use this action:
 
-### Microsoft Graph
+**Required:**
+- `DeviceManagementConfiguration.ReadWrite.All`
+- `DeviceManagementManagedDevices.ReadWrite.All`
 
-- **Application**: `DeviceManagementConfiguration.ReadWrite.All`, `DeviceManagementManagedDevices.ReadWrite.All`
-- **Delegated**: `DeviceManagementConfiguration.ReadWrite.All`, `DeviceManagementManagedDevices.ReadWrite.All`
+**Optional:**
+- `None` `[N/A]`
 
 ## Version History
 
@@ -65,68 +67,6 @@ The following API permissions are required in order to use this action.
 |---------|--------|-------|
 | v0.33.0-alpha | Experimental | Initial release |
 | v0.40.0-alpha | Experimental | Example fixes and refactored sync progress logic |
-
-
-## Notes
-
-### Platform Compatibility
-
-| Platform | Support | Requirements |
-|----------|---------|--------------|
-| **Windows** | ✅ Full Support | Windows 10 version 1709 or later, Windows 11 |
-| **macOS** | ❌ Not Supported | Different logging mechanism (use MDM logs) |
-| **iOS/iPadOS** | ❌ Not Supported | Different logging mechanism (use iOS logs) |
-| **Android** | ❌ Not Supported | Different logging mechanism (use Android logs) |
-
-### What is Device Log Collection?
-
-Device Log Collection is an action that:
-- Initiates diagnostic log gathering from Windows devices
-- Collects system logs, event logs, and diagnostic data
-- Uploads collected logs to Intune for analysis
-- Provides a response with collection status and details
-- Makes logs available for download in the Intune portal
-- Supports troubleshooting and investigation workflows
-
-### When to Collect Device Logs
-
-- Troubleshooting device configuration or policy issues
-- Investigating compliance violations or policy failures
-- Diagnosing application deployment problems
-- Security incident investigation and forensic analysis
-- Proactive monitoring of device health
-- Support ticket escalation requiring detailed diagnostics
-- Analyzing Windows update or patch deployment failures
-
-### What Happens When Log Collection is Requested
-
-- Intune sends log collection request to the Windows device
-- Device gathers specified diagnostic logs based on template
-- Logs are compressed into a ZIP file
-- Device uploads logs to Intune storage
-- Collection status is tracked and made available
-- Logs become available for download in Intune portal
-- Collection request has an expiration date
-- Response includes collection ID, status, timestamps, and other details
-
-### Log Collection Response
-
-The action returns a response for each device with:
-- **Collection ID**: Unique identifier for tracking the collection
-- **Status**: Current state (pending, completed, failed)
-- **Requested/Received Times**: Timestamps for tracking progress
-- **Expiration Date**: When the collected logs will be deleted
-- **Initiator**: User who initiated the collection
-- **Size Information**: Size of collected logs (when available)
-- **Error Code**: If collection fails, error code for troubleshooting
-
-### Accessing Collected Logs
-
-1. Navigate to the device in Microsoft Intune admin center
-2. Select "Device diagnostics" or "Collect logs" from device actions
-3. View collection status and download links
-4. Download collected log files (typically ZIP format)
-5. Extract and analyze using appropriate tools (Event Viewer, text editors, etc.)
 
 ## Example Usage
 

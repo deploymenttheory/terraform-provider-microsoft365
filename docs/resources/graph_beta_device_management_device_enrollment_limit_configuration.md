@@ -3,12 +3,12 @@ page_title: "microsoft365_graph_beta_device_management_device_enrollment_limit_c
 subcategory: "Device Management"
 
 description: |-
-  Resource is currently broken as per this issue: https://github.com/microsoft/Microsoft365DSC/issues/5127. Manages device enrollment limit configurations using the /deviceManagement/deviceEnrollmentConfigurations endpoint. Device enrollment limit configurations restrict the number of devices a user can enroll in the organization.
+  Manages device enrollment limit configurations using the /deviceManagement/deviceEnrollmentConfigurations endpoint. This resource is used to device enrollment limit configurations restrict the number of devices a user can enroll in the organization.
 ---
 
 # microsoft365_graph_beta_device_management_device_enrollment_limit_configuration (Resource)
 
-Resource is currently broken as per this issue: `https://github.com/microsoft/Microsoft365DSC/issues/5127`. Manages device enrollment limit configurations using the `/deviceManagement/deviceEnrollmentConfigurations` endpoint. Device enrollment limit configurations restrict the number of devices a user can enroll in the organization.
+Manages device enrollment limit configurations using the `/deviceManagement/deviceEnrollmentConfigurations` endpoint. This resource is used to device enrollment limit configurations restrict the number of devices a user can enroll in the organization.
 
 ## Microsoft Documentation
 
@@ -19,13 +19,15 @@ Resource is currently broken as per this issue: `https://github.com/microsoft/Mi
 - [Update deviceEnrollmentLimitConfiguration](https://learn.microsoft.com/en-us/graph/api/intune-onboarding-deviceenrollmentlimitconfiguration-update?view=graph-rest-beta)
 - [Delete deviceEnrollmentLimitConfiguration](https://learn.microsoft.com/en-us/graph/api/intune-onboarding-deviceenrollmentlimitconfiguration-delete?view=graph-rest-beta)
 
-## API Permissions
+## Microsoft Graph API Permissions
 
-The following API permissions are required in order to use this resource.
+The following client `application` permissions are needed in order to use this resource:
 
-### Microsoft Graph
+**Required:**
+- `DeviceManagementServiceConfig.ReadWrite.All`
 
-- **Application**: `DeviceManagementServiceConfig.ReadWrite.All` or `DeviceManagementConfiguration.ReadWrite.All`
+**Optional:**
+- `None` `[N/A]` or `DeviceManagementConfiguration.ReadWrite.All`
 
 ## Version History
 

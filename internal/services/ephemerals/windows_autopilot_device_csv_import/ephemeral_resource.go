@@ -39,7 +39,7 @@ func (r *WindowsAutopilotDeviceCSVImportEphemeralResource) Metadata(_ context.Co
 // Schema defines the schema for the ephemeral resource
 func (r *WindowsAutopilotDeviceCSVImportEphemeralResource) Schema(_ context.Context, _ ephemeral.SchemaRequest, resp *ephemeral.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Imports Windows Autopilot devices from a CSV file. This is an ephemeral resource that does not persist in state.",
+		MarkdownDescription: "Imports Windows Autopilot devices from a CSV file as an ephemeral resource. This ephemeral resource is used to parse and validate device information from CSV files without persisting in state.",
 		Attributes: map[string]schema.Attribute{
 			"file_path": schema.StringAttribute{
 				MarkdownDescription: "Path to the CSV file containing Windows Autopilot device information. The CSV file must be in ANSI format with no quotation marks and include the required headers: `Device Serial Number`, `Windows Product ID`, `Hardware Hash`, `Group Tag`, and `Assigned User`.",
