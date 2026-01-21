@@ -1,544 +1,606 @@
 package graphBetaSettingsCatalogConfigurationPolicyJson_test
 
 import (
-	"context"
 	"regexp"
 	"testing"
-	"time"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/check"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
-	settingsCatalogJson "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_management/graph_beta/settings_catalog_configuration_policy_json"
-	settingsCatalogJsonMocks "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_management/graph_beta/settings_catalog_configuration_policy_json/mocks"
-	"github.com/hashicorp/terraform-plugin-framework/resource"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
-	terraformResource "github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	graphBetaSettingsCatalogConfigurationPolicyJson "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_management/graph_beta/settings_catalog_configuration_policy_json"
+	settingsCatalogPolicyMocks "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_management/graph_beta/settings_catalog_configuration_policy_json/mocks"
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/jarcoal/httpmock"
 )
 
-// setupMockEnvironment sets up the mock environment using centralized mocks
-func setupMockEnvironment() (*mocks.Mocks, *settingsCatalogJsonMocks.SettingsCatalogConfigurationPolicyJsonMock) {
-	// Activate httpmock
+// Setup functions for mocks
+func setupMockEnvironment() (*mocks.Mocks, *settingsCatalogPolicyMocks.SettingsCatalogPolicyMock) {
 	httpmock.Activate()
-
-	// Create a new Mocks instance and register authentication mocks
 	mockClient := mocks.NewMocks()
 	mockClient.AuthMocks.RegisterMocks()
-
-	// Register local mocks directly
-	settingsCatalogJsonMock := &settingsCatalogJsonMocks.SettingsCatalogConfigurationPolicyJsonMock{}
-	settingsCatalogJsonMock.RegisterMocks()
-
-	return mockClient, settingsCatalogJsonMock
+	policyMock := &settingsCatalogPolicyMocks.SettingsCatalogPolicyMock{}
+	policyMock.RegisterMocks()
+	return mockClient, policyMock
 }
 
-// setupErrorMockEnvironment sets up the mock environment for error testing
-func setupErrorMockEnvironment() (*mocks.Mocks, *settingsCatalogJsonMocks.SettingsCatalogConfigurationPolicyJsonMock) {
-	// Activate httpmock
+func setupErrorMockEnvironment() (*mocks.Mocks, *settingsCatalogPolicyMocks.SettingsCatalogPolicyMock) {
 	httpmock.Activate()
-
-	// Create a new Mocks instance and register authentication mocks
 	mockClient := mocks.NewMocks()
 	mockClient.AuthMocks.RegisterMocks()
-
-	// Register error mocks
-	settingsCatalogJsonMock := &settingsCatalogJsonMocks.SettingsCatalogConfigurationPolicyJsonMock{}
-	settingsCatalogJsonMock.RegisterErrorMocks()
-
-	return mockClient, settingsCatalogJsonMock
+	policyMock := &settingsCatalogPolicyMocks.SettingsCatalogPolicyMock{}
+	policyMock.RegisterErrorMocks()
+	return mockClient, policyMock
 }
 
-func TestUnitSettingsCatalogConfigurationPolicyJsonResource(t *testing.T) {
-	t.Run("resource schema validation", func(t *testing.T) {
-		// Test resource schema construction without full provider initialization
-		// This avoids the deep recursion issue while still validating schema structure
-
-		startTime := time.Now()
-
-		// Create resource instance
-		resourceInstance := settingsCatalogJson.NewSettingsCatalogJsonResource()
-
-		// Create schema request/response
-		req := resource.SchemaRequest{}
-		resp := &resource.SchemaResponse{}
-
-		// Test that schema construction completes within reasonable time
-		resourceInstance.Schema(context.Background(), req, resp)
-
-		elapsed := time.Since(startTime)
-		if elapsed > time.Second*30 { // Allow reasonable time but avoid timeout
-			t.Fatalf("Schema construction took too long: %v", elapsed)
-		}
-
-		// Validate that the schema was constructed successfully
-		if resp.Schema.Attributes == nil {
-			t.Fatal("Schema attributes should not be nil")
-		}
-
-		// Test that main resource attributes exist
-		expectedAttrs := []string{"id", "name", "description", "platforms", "settings", "assignments"}
-		for _, attr := range expectedAttrs {
-			if _, exists := resp.Schema.Attributes[attr]; !exists {
-				t.Fatalf("Resource attribute %s should exist", attr)
-			}
-		}
-
-		// Test that settings attribute is correctly structured as StringAttribute
-		settingsAttr, exists := resp.Schema.Attributes["settings"]
-		if !exists {
-			t.Fatal("settings attribute should exist")
-		}
-
-		stringAttr, ok := settingsAttr.(schema.StringAttribute)
-		if !ok {
-			t.Fatal("settings should be a StringAttribute")
-		}
-
-		if !stringAttr.Required {
-			t.Fatal("settings attribute should be required")
-		}
-
-		t.Logf("Resource schema validation passed in %v - JSON settings properly configured", elapsed)
-	})
-
-	t.Run("assignment schema validation", func(t *testing.T) {
-		// Test assignment-related attributes in schema
-
-		resourceInstance := settingsCatalogJson.NewSettingsCatalogJsonResource()
-		req := resource.SchemaRequest{}
-		resp := &resource.SchemaResponse{}
-
-		resourceInstance.Schema(context.Background(), req, resp)
-
-		// Validate assignments attribute exists
-		if assignmentAttr, exists := resp.Schema.Attributes["assignments"]; exists {
-			// This is a complex nested attribute - just verify it exists and is structured properly
-			if assignmentAttr == nil {
-				t.Fatal("assignments attribute should not be nil")
-			}
-		} else {
-			t.Fatal("assignments attribute should exist")
-		}
-
-		// Validate role_scope_tag_ids attribute
-		if roleScopeAttr, exists := resp.Schema.Attributes["role_scope_tag_ids"]; exists {
-			if roleScopeAttr == nil {
-				t.Fatal("role_scope_tag_ids attribute should not be nil")
-			}
-		} else {
-			t.Fatal("role_scope_tag_ids attribute should exist")
-		}
-
-		t.Log("Assignment schema validation passed")
-	})
-
-	t.Run("platform and technology validation", func(t *testing.T) {
-		// Test platform and technology attributes validation
-
-		resourceInstance := settingsCatalogJson.NewSettingsCatalogJsonResource()
-		req := resource.SchemaRequest{}
-		resp := &resource.SchemaResponse{}
-
-		resourceInstance.Schema(context.Background(), req, resp)
-
-		// Validate platforms attribute
-		if platformAttr, exists := resp.Schema.Attributes["platforms"]; exists {
-			stringAttr, ok := platformAttr.(schema.StringAttribute)
-			if !ok {
-				t.Fatal("platforms should be a StringAttribute")
-			}
-			if !stringAttr.Optional {
-				t.Fatal("platforms should be optional")
-			}
-			if !stringAttr.Computed {
-				t.Fatal("platforms should be computed")
-			}
-		} else {
-			t.Fatal("platforms attribute should exist")
-		}
-
-		// Validate technologies attribute
-		if techAttr, exists := resp.Schema.Attributes["technologies"]; exists {
-			listAttr, ok := techAttr.(schema.ListAttribute)
-			if !ok {
-				t.Fatal("technologies should be a ListAttribute")
-			}
-			if !listAttr.Optional {
-				t.Fatal("technologies should be optional")
-			}
-			if !listAttr.Computed {
-				t.Fatal("technologies should be computed")
-			}
-		} else {
-			t.Fatal("technologies attribute should exist")
-		}
-
-		t.Log("Platform and technology validation passed")
-	})
+// loadUnitTestTerraform loads terraform test files from tests/terraform/unit
+func loadUnitTestTerraform(filename string) string {
+	config, err := helpers.ParseHCLFile("tests/terraform/unit/" + filename)
+	if err != nil {
+		panic("failed to load unit test config " + filename + ": " + err.Error())
+	}
+	return config
 }
 
-// Unit tests for JSON settings validation
-func TestUnitConstructSettingsCatalogJsonSettings(t *testing.T) {
-	t.Run("resource schema validation", func(t *testing.T) {
-		// Test resource schema construction without full provider initialization
-		// This avoids the deep recursion issue while still validating schema structure
-
-		startTime := time.Now()
-
-		// Create resource instance
-		resourceInstance := settingsCatalogJson.NewSettingsCatalogJsonResource()
-
-		// Create schema request/response
-		req := resource.SchemaRequest{}
-		resp := &resource.SchemaResponse{}
-
-		// Test that schema construction completes within reasonable time
-		resourceInstance.Schema(context.Background(), req, resp)
-
-		elapsed := time.Since(startTime)
-		if elapsed > time.Second*30 { // Allow more time but still reasonable
-			t.Fatalf("Schema construction took too long: %v", elapsed)
-		}
-
-		// Validate that the schema was constructed successfully
-		if resp.Schema.Attributes == nil {
-			t.Fatal("Schema attributes should not be nil")
-		}
-
-		// Test that main resource attributes exist
-		expectedAttrs := []string{"id", "name", "description", "platforms", "settings", "assignments"}
-		for _, attr := range expectedAttrs {
-			if _, exists := resp.Schema.Attributes[attr]; !exists {
-				t.Fatalf("Resource attribute %s should exist", attr)
-			}
-		}
-
-		// Test that settings attribute is correctly structured as JSON string
-		settingsAttr, exists := resp.Schema.Attributes["settings"]
-		if !exists {
-			t.Fatal("settings attribute should exist")
-		}
-
-		stringAttr, ok := settingsAttr.(schema.StringAttribute)
-		if !ok {
-			t.Fatal("settings should be a StringAttribute for JSON input")
-		}
-
-		if !stringAttr.Required {
-			t.Fatal("settings attribute should be required")
-		}
-
-		t.Logf("Resource schema validation passed in %v - JSON settings properly configured", elapsed)
-	})
-
-	t.Run("schema performance validation", func(t *testing.T) {
-		// Test that multiple schema constructions don't cause performance issues
-
-		startTime := time.Now()
-
-		for i := 0; i < 3; i++ { // Test multiple constructions
-			resourceInstance := settingsCatalogJson.NewSettingsCatalogJsonResource()
-			req := resource.SchemaRequest{}
-			resp := &resource.SchemaResponse{}
-
-			resourceInstance.Schema(context.Background(), req, resp)
-
-			if resp.Schema.Attributes == nil {
-				t.Fatalf("Schema attributes should not be nil on iteration %d", i)
-			}
-		}
-
-		elapsed := time.Since(startTime)
-		if elapsed > time.Minute*2 { // Allow reasonable time for multiple constructions
-			t.Fatalf("Multiple schema constructions took too long: %v", elapsed)
-		}
-
-		t.Logf("Multiple schema constructions completed in %v", elapsed)
-	})
-
-	t.Run("basic attribute validation", func(t *testing.T) {
-		// Test basic attribute structure without deep recursion
-
-		resourceInstance := settingsCatalogJson.NewSettingsCatalogJsonResource()
-		req := resource.SchemaRequest{}
-		resp := &resource.SchemaResponse{}
-
-		resourceInstance.Schema(context.Background(), req, resp)
-
-		// Test basic required attributes
-		if idAttr, exists := resp.Schema.Attributes["id"]; exists {
-			stringAttr, ok := idAttr.(schema.StringAttribute)
-			if !ok {
-				t.Fatal("id should be a StringAttribute")
-			}
-			if !stringAttr.Computed {
-				t.Fatal("id should be computed")
-			}
-		} else {
-			t.Fatal("id attribute should exist")
-		}
-
-		if nameAttr, exists := resp.Schema.Attributes["name"]; exists {
-			stringAttr, ok := nameAttr.(schema.StringAttribute)
-			if !ok {
-				t.Fatal("name should be a StringAttribute")
-			}
-			if !stringAttr.Required {
-				t.Fatal("name should be required")
-			}
-		} else {
-			t.Fatal("name attribute should exist")
-		}
-
-		t.Log("Basic attribute validation passed")
-	})
-}
-
-// TestSettingsCatalogConfigurationPolicyJsonResource_ErrorHandling tests error scenarios
-func TestSettingsCatalogConfigurationPolicyJsonResource_ErrorHandling(t *testing.T) {
+// Test 01: Camera - Simple choice setting
+func TestSettingsCatalogPolicyResource_01_Camera(t *testing.T) {
+	resourceType := graphBetaSettingsCatalogConfigurationPolicyJson.ResourceName
 	mocks.SetupUnitTestEnvironment(t)
-	_, settingsCatalogJsonMock := setupErrorMockEnvironment()
+	_, policyMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
-	defer settingsCatalogJsonMock.CleanupMockState()
+	defer policyMock.CleanupMockState()
 
-	terraformResource.UnitTest(t, terraformResource.TestCase{
+	resource.UnitTest(t, resource.TestCase{
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
-		Steps: []terraformResource.TestStep{
-			// Test invalid configuration - missing required name field
+		Steps: []resource.TestStep{
 			{
-				Config: `
-resource "microsoft365_graph_beta_device_management_settings_catalog_configuration_policy_json" "test" {
-  platforms = "macOS"
-  technologies = ["mdm"]
-  settings = jsonencode({
-    "settings": []
-  })
-}
-`,
-				ExpectError: regexp.MustCompile(`Missing required argument|name`),
+				Config: loadUnitTestTerraform("resource_01_camera.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(resourceType+".camera").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(resourceType+".camera").Key("name").HasValue("Test Camera Policy"),
+					check.That(resourceType+".camera").Key("settings_count").HasValue("1"),
+				),
 			},
-			// Test invalid platforms value
 			{
-				Config: `
-resource "microsoft365_graph_beta_device_management_settings_catalog_configuration_policy_json" "test" {
-  name = "Test Policy"
-  platforms = "invalid_platform"
-  technologies = ["mdm"]
-  settings = jsonencode({
-    "settings": []
-  })
-}
-`,
-				ExpectError: regexp.MustCompile(`Attribute platforms value must be one of|invalid_platform`),
-			},
-			// Test invalid technologies value
-			{
-				Config: `
-resource "microsoft365_graph_beta_device_management_settings_catalog_configuration_policy_json" "test" {
-  name = "Test Policy"
-  platforms = "macOS"
-  technologies = ["invalid_technology"]
-  settings = jsonencode({
-    "settings": []
-  })
-}
-`,
-				ExpectError: regexp.MustCompile(`invalid value for technologies|invalid_technology`),
-			},
-			// Test invalid JSON settings
-			{
-				Config: `
-resource "microsoft365_graph_beta_device_management_settings_catalog_configuration_policy_json" "test" {
-  name = "Test Policy"
-  platforms = "macOS"
-  technologies = ["mdm"]
-  settings = "invalid json string"
-}
-`,
-				ExpectError: regexp.MustCompile(`Invalid JSON|invalid character`),
+				ResourceName:      resourceType + ".camera",
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
 }
 
-// TestSettingsCatalogConfigurationPolicyJsonResource_JSONValidation tests JSON-specific scenarios
-func TestSettingsCatalogConfigurationPolicyJsonResource_JSONValidation(t *testing.T) {
+// Test 02: Task Manager - Simple choice setting
+func TestSettingsCatalogPolicyResource_02_TaskManager(t *testing.T) {
+	resourceType := graphBetaSettingsCatalogConfigurationPolicyJson.ResourceName
 	mocks.SetupUnitTestEnvironment(t)
-	_, settingsCatalogJsonMock := setupErrorMockEnvironment()
+	_, policyMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
-	defer settingsCatalogJsonMock.CleanupMockState()
+	defer policyMock.CleanupMockState()
 
-	terraformResource.UnitTest(t, terraformResource.TestCase{
+	resource.UnitTest(t, resource.TestCase{
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
-		Steps: []terraformResource.TestStep{
-			// Test valid JSON structure - plan validation only
+		Steps: []resource.TestStep{
 			{
-				Config: `
-resource "microsoft365_graph_beta_device_management_settings_catalog_configuration_policy_json" "test" {
-  name = "Test JSON Policy"
-  platforms = "macOS"
-  technologies = ["mdm"]
-  settings = jsonencode({
-    "settings": [
-      {
-        "id": "0",
-        "settingInstance": {
-          "@odata.type": "#microsoft.graph.deviceManagementConfigurationSimpleSettingInstance",
-          "settingDefinitionId": "test.setting",
-          "simpleSettingValue": {
-            "@odata.type": "#microsoft.graph.deviceManagementConfigurationStringSettingValue",
-            "value": "test_value"
-          }
-        }
-      }
-    ]
-  })
-}
-`,
-				PlanOnly:           true,
-				ExpectNonEmptyPlan: true,
+				Config: loadUnitTestTerraform("resource_02_task_manager.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(resourceType+".task_manager").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(resourceType+".task_manager").Key("name").HasValue("Test Task Manager Policy"),
+					check.That(resourceType+".task_manager").Key("settings_count").HasValue("1"),
+				),
 			},
-			// Test secret setting with proper valueState
 			{
-				Config: `
-resource "microsoft365_graph_beta_device_management_settings_catalog_configuration_policy_json" "test" {
-  name = "Test Secret JSON Policy"
-  platforms = "macOS"
-  technologies = ["mdm"]
-  settings = jsonencode({
-    "settings": [
-      {
-        "id": "0",
-        "settingInstance": {
-          "@odata.type": "#microsoft.graph.deviceManagementConfigurationSimpleSettingInstance",
-          "settingDefinitionId": "test.secret.setting",
-          "simpleSettingValue": {
-            "@odata.type": "#microsoft.graph.deviceManagementConfigurationSecretSettingValue",
-            "value": "secret_value",
-            "valueState": "notEncrypted"
-          }
-        }
-      }
-    ]
-  })
-}
-`,
-				PlanOnly:           true,
-				ExpectNonEmptyPlan: true,
+				ResourceName:            resourceType + ".task_manager",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"settings"},
 			},
 		},
 	})
 }
 
-// TestSettingsCatalogConfigurationPolicyJsonResource_Schema validates the resource schema
-func TestSettingsCatalogConfigurationPolicyJsonResource_Schema(t *testing.T) {
+// Test 03: App Privacy - Simple choice setting
+func TestSettingsCatalogPolicyResource_03_AppPrivacy(t *testing.T) {
+	resourceType := graphBetaSettingsCatalogConfigurationPolicyJson.ResourceName
 	mocks.SetupUnitTestEnvironment(t)
-	_, settingsCatalogJsonMock := setupMockEnvironment()
+	_, policyMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
-	defer settingsCatalogJsonMock.CleanupMockState()
+	defer policyMock.CleanupMockState()
 
-	terraformResource.UnitTest(t, terraformResource.TestCase{
+	resource.UnitTest(t, resource.TestCase{
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
-		Steps: []terraformResource.TestStep{
-			// Test JSON Simple String Setting Schema - Plan Only
+		Steps: []resource.TestStep{
 			{
-				Config:             testUnitSettingsCatalogJsonSimpleString(),
-				PlanOnly:           true,
-				ExpectNonEmptyPlan: true,
+				Config: loadUnitTestTerraform("resource_03_app_privacy.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(resourceType+".app_privacy").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(resourceType+".app_privacy").Key("name").HasValue("Test App Privacy Policy"),
+					check.That(resourceType+".app_privacy").Key("settings_count").HasValue("1"),
+				),
 			},
-			// Test JSON Simple Secret Setting Schema - Plan Only
 			{
-				Config:             testUnitSettingsCatalogJsonSimpleSecret(),
-				PlanOnly:           true,
-				ExpectNonEmptyPlan: true,
-			},
-			// Test JSON Choice Setting Schema - Plan Only
-			{
-				Config:             testUnitSettingsCatalogJsonChoice(),
-				PlanOnly:           true,
-				ExpectNonEmptyPlan: true,
-			},
-			// Test JSON Simple Collection Setting Schema - Plan Only
-			{
-				Config:             testUnitSettingsCatalogJsonSimpleCollection(),
-				PlanOnly:           true,
-				ExpectNonEmptyPlan: true,
-			},
-			// Test JSON Choice Collection Setting Schema - Plan Only
-			{
-				Config:             testUnitSettingsCatalogJsonChoiceCollection(),
-				PlanOnly:           true,
-				ExpectNonEmptyPlan: true,
-			},
-			// Test JSON Group Collection Setting Schema - Plan Only
-			{
-				Config:             testUnitSettingsCatalogJsonGroupCollection(),
-				PlanOnly:           true,
-				ExpectNonEmptyPlan: true,
-			},
-			// Test JSON Complex Group Collection Setting Schema - Plan Only
-			{
-				Config:             testUnitSettingsCatalogJsonComplexGroupCollection(),
-				PlanOnly:           true,
-				ExpectNonEmptyPlan: true,
+				ResourceName:            resourceType + ".app_privacy",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"settings"},
 			},
 		},
 	})
 }
 
-// Test configuration functions for different setting types (JSON variants)
-func testUnitSettingsCatalogJsonSimpleString() string {
-	unitTestConfig, err := helpers.ParseHCLFile("tests/terraform/unit/resource_simple_string.tf")
-	if err != nil {
-		panic("failed to load simple string config: " + err.Error())
-	}
-	return unitTestConfig
+// Test 04: Cryptography - Simple choice setting
+func TestSettingsCatalogPolicyResource_04_Cryptography(t *testing.T) {
+	resourceType := graphBetaSettingsCatalogConfigurationPolicyJson.ResourceName
+	mocks.SetupUnitTestEnvironment(t)
+	_, policyMock := setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+	defer policyMock.CleanupMockState()
+
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: loadUnitTestTerraform("resource_04_cryptography.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(resourceType+".cryptography").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(resourceType+".cryptography").Key("name").HasValue("Test Cryptography Policy"),
+					check.That(resourceType+".cryptography").Key("settings_count").HasValue("1"),
+				),
+			},
+			{
+				ResourceName:            resourceType + ".cryptography",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"settings"},
+			},
+		},
+	})
 }
 
-func testUnitSettingsCatalogJsonSimpleSecret() string {
-	unitTestConfig, err := helpers.ParseHCLFile("tests/terraform/unit/resource_simple_secret.tf")
-	if err != nil {
-		panic("failed to load simple secret config: " + err.Error())
-	}
-	return unitTestConfig
+// Test 05: Notifications - Simple choice setting
+func TestSettingsCatalogPolicyResource_05_Notifications(t *testing.T) {
+	resourceType := graphBetaSettingsCatalogConfigurationPolicyJson.ResourceName
+	mocks.SetupUnitTestEnvironment(t)
+	_, policyMock := setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+	defer policyMock.CleanupMockState()
+
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: loadUnitTestTerraform("resource_05_notifications.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(resourceType+".notifications").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(resourceType+".notifications").Key("name").HasValue("Test Notifications Policy"),
+					check.That(resourceType+".notifications").Key("settings_count").HasValue("1"),
+				),
+			},
+			{
+				ResourceName:            resourceType + ".notifications",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"settings"},
+			},
+		},
+	})
 }
 
-func testUnitSettingsCatalogJsonChoice() string {
-	unitTestConfig, err := helpers.ParseHCLFile("tests/terraform/unit/resource_choice.tf")
-	if err != nil {
-		panic("failed to load choice config: " + err.Error())
-	}
-	return unitTestConfig
+// Test 06: Attachment Manager - Multiple choice settings
+func TestSettingsCatalogPolicyResource_06_AttachmentManager(t *testing.T) {
+	resourceType := graphBetaSettingsCatalogConfigurationPolicyJson.ResourceName
+	mocks.SetupUnitTestEnvironment(t)
+	_, policyMock := setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+	defer policyMock.CleanupMockState()
+
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: loadUnitTestTerraform("resource_06_attachment_manager.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(resourceType+".attachment_manager").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(resourceType+".attachment_manager").Key("name").HasValue("Test Attachment Manager Policy"),
+					check.That(resourceType+".attachment_manager").Key("settings_count").HasValue("2"),
+				),
+			},
+			{
+				ResourceName:            resourceType + ".attachment_manager",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"settings"},
+			},
+		},
+	})
 }
 
-func testUnitSettingsCatalogJsonSimpleCollection() string {
-	unitTestConfig, err := helpers.ParseHCLFile("tests/terraform/unit/resource_simple_collection.tf")
-	if err != nil {
-		panic("failed to load simple collection config: " + err.Error())
-	}
-	return unitTestConfig
+// Test 07: Credential User Interface - Multiple choice settings
+func TestSettingsCatalogPolicyResource_07_CredentialUserInterface(t *testing.T) {
+	resourceType := graphBetaSettingsCatalogConfigurationPolicyJson.ResourceName
+	mocks.SetupUnitTestEnvironment(t)
+	_, policyMock := setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+	defer policyMock.CleanupMockState()
+
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: loadUnitTestTerraform("resource_07_credential_user_interface.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(resourceType+".credential_user_interface").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(resourceType+".credential_user_interface").Key("name").HasValue("Test Credential User Interface Policy"),
+					check.That(resourceType+".credential_user_interface").Key("settings_count").HasValue("2"),
+				),
+			},
+			{
+				ResourceName:            resourceType + ".credential_user_interface",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"settings"},
+			},
+		},
+	})
 }
 
-func testUnitSettingsCatalogJsonChoiceCollection() string {
-	unitTestConfig, err := helpers.ParseHCLFile("tests/terraform/unit/resource_choice_collection.tf")
-	if err != nil {
-		panic("failed to load choice collection config: " + err.Error())
-	}
-	return unitTestConfig
+// Test 08: Remote Desktop AVD URL - Simple collection settings
+func TestSettingsCatalogPolicyResource_08_RemoteDesktopAVDURL(t *testing.T) {
+	resourceType := graphBetaSettingsCatalogConfigurationPolicyJson.ResourceName
+	mocks.SetupUnitTestEnvironment(t)
+	_, policyMock := setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+	defer policyMock.CleanupMockState()
+
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: loadUnitTestTerraform("resource_08_remote_desktop_avd_url.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(resourceType+".remote_desktop_avd_url").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(resourceType+".remote_desktop_avd_url").Key("name").HasValue("Test Remote Desktop AVD URL Policy"),
+					check.That(resourceType+".remote_desktop_avd_url").Key("settings_count").HasValue("1"),
+				),
+			},
+			{
+				ResourceName:            resourceType + ".remote_desktop_avd_url",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"settings"},
+			},
+		},
+	})
 }
 
-func testUnitSettingsCatalogJsonGroupCollection() string {
-	unitTestConfig, err := helpers.ParseHCLFile("tests/terraform/unit/resource_group_collection.tf")
-	if err != nil {
-		panic("failed to load group collection config: " + err.Error())
-	}
-	return unitTestConfig
+// Test 09: Storage Sense - Integer settings and multiple choices
+func TestSettingsCatalogPolicyResource_09_StorageSense(t *testing.T) {
+	resourceType := graphBetaSettingsCatalogConfigurationPolicyJson.ResourceName
+	mocks.SetupUnitTestEnvironment(t)
+	_, policyMock := setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+	defer policyMock.CleanupMockState()
+
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: loadUnitTestTerraform("resource_09_storage_sense.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(resourceType+".storage_sense").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(resourceType+".storage_sense").Key("name").HasValue("Test Storage Sense Policy"),
+					check.That(resourceType+".storage_sense").Key("settings_count").HasValue("8"),
+				),
+			},
+			{
+				ResourceName:            resourceType + ".storage_sense",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"settings"},
+			},
+		},
+	})
 }
 
-func testUnitSettingsCatalogJsonComplexGroupCollection() string {
-	unitTestConfig, err := helpers.ParseHCLFile("tests/terraform/unit/resource_complex_group_collection.tf")
-	if err != nil {
-		panic("failed to load complex group collection config: " + err.Error())
-	}
-	return unitTestConfig
+// Test 10: Windows Connection Manager - Choice with children
+func TestSettingsCatalogPolicyResource_10_WindowsConnectionManager(t *testing.T) {
+	resourceType := graphBetaSettingsCatalogConfigurationPolicyJson.ResourceName
+	mocks.SetupUnitTestEnvironment(t)
+	_, policyMock := setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+	defer policyMock.CleanupMockState()
+
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: loadUnitTestTerraform("resource_10_windows_connection_manager.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(resourceType+".windows_connection_manager").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(resourceType+".windows_connection_manager").Key("name").HasValue("Test Windows Connection Manager Policy"),
+					check.That(resourceType+".windows_connection_manager").Key("settings_count").HasValue("4"),
+				),
+			},
+			{
+				ResourceName:            resourceType + ".windows_connection_manager",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"settings"},
+			},
+		},
+	})
+}
+
+// Test 11: AutoPlay Policies - Nested choice settings
+func TestSettingsCatalogPolicyResource_11_AutoPlayPolicies(t *testing.T) {
+	resourceType := graphBetaSettingsCatalogConfigurationPolicyJson.ResourceName
+	mocks.SetupUnitTestEnvironment(t)
+	_, policyMock := setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+	defer policyMock.CleanupMockState()
+
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: loadUnitTestTerraform("resource_11_autoplay_policies.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(resourceType+".autoplay").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(resourceType+".autoplay").Key("name").HasValue("Test AutoPlay Policies Policy"),
+					check.That(resourceType+".autoplay").Key("settings_count").HasValue("3"),
+				),
+			},
+			{
+				ResourceName:            resourceType + ".autoplay",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"settings"},
+			},
+		},
+	})
+}
+
+// Test 12: Defender Smartscreen - Choice with collection child
+func TestSettingsCatalogPolicyResource_12_DefenderSmartscreen(t *testing.T) {
+	resourceType := graphBetaSettingsCatalogConfigurationPolicyJson.ResourceName
+	mocks.SetupUnitTestEnvironment(t)
+	_, policyMock := setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+	defer policyMock.CleanupMockState()
+
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: loadUnitTestTerraform("resource_12_defender_smartscreen.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(resourceType+".defender_smartscreen").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(resourceType+".defender_smartscreen").Key("name").HasValue("Test Defender Smartscreen Policy"),
+					check.That(resourceType+".defender_smartscreen").Key("settings_count").HasValue("11"),
+				),
+			},
+			{
+				ResourceName:            resourceType + ".defender_smartscreen",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"settings"},
+			},
+		},
+	})
+}
+
+// Test 13: Edge Extensions macOS - Multiple collections
+func TestSettingsCatalogPolicyResource_13_EdgeExtensionsMacOS(t *testing.T) {
+	resourceType := graphBetaSettingsCatalogConfigurationPolicyJson.ResourceName
+	mocks.SetupUnitTestEnvironment(t)
+	_, policyMock := setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+	defer policyMock.CleanupMockState()
+
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: loadUnitTestTerraform("resource_13_edge_extensions_macos.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(resourceType+".edge_extensions_macos").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(resourceType+".edge_extensions_macos").Key("name").HasValue("Test Edge Extensions macOS Policy"),
+					check.That(resourceType+".edge_extensions_macos").Key("platforms").HasValue("macOS"),
+					check.That(resourceType+".edge_extensions_macos").Key("settings_count").HasValue("4"),
+				),
+			},
+			{
+				ResourceName:            resourceType + ".edge_extensions_macos",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"settings"},
+			},
+		},
+	})
+}
+
+// Test 14: Office Configuration macOS - Nested group collections
+func TestSettingsCatalogPolicyResource_14_OfficeConfigurationMacOS(t *testing.T) {
+	resourceType := graphBetaSettingsCatalogConfigurationPolicyJson.ResourceName
+	mocks.SetupUnitTestEnvironment(t)
+	_, policyMock := setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+	defer policyMock.CleanupMockState()
+
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: loadUnitTestTerraform("resource_14_office_configuration_macos.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(resourceType+".office_configuration_macos").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(resourceType+".office_configuration_macos").Key("name").HasValue("Test Office Configuration macOS Policy"),
+					check.That(resourceType+".office_configuration_macos").Key("platforms").HasValue("macOS"),
+					check.That(resourceType+".office_configuration_macos").Key("settings_count").HasValue("3"),
+				),
+			},
+			{
+				ResourceName:            resourceType + ".office_configuration_macos",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"settings"},
+			},
+		},
+	})
+}
+
+// Test 15: Defender Antivirus Baseline - Complex nested group collections
+func TestSettingsCatalogPolicyResource_15_DefenderAntivirusBaseline(t *testing.T) {
+	resourceType := graphBetaSettingsCatalogConfigurationPolicyJson.ResourceName
+	mocks.SetupUnitTestEnvironment(t)
+	_, policyMock := setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+	defer policyMock.CleanupMockState()
+
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: loadUnitTestTerraform("resource_15_defender_antivirus_baseline.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(resourceType+".defender_antivirus_baseline").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(resourceType+".defender_antivirus_baseline").Key("name").HasValue("Test Defender Antivirus Security Baseline Policy"),
+					check.That(resourceType+".defender_antivirus_baseline").Key("settings_count").HasValue("9"),
+				),
+			},
+			{
+				ResourceName:            resourceType + ".defender_antivirus_baseline",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"settings"},
+			},
+		},
+	})
+}
+
+// Test 16: File Explorer with minimal assignments
+func TestSettingsCatalogPolicyResource_16_FileExplorerMinimalAssignments(t *testing.T) {
+	resourceType := graphBetaSettingsCatalogConfigurationPolicyJson.ResourceName
+	mocks.SetupUnitTestEnvironment(t)
+	_, policyMock := setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+	defer policyMock.CleanupMockState()
+
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: loadUnitTestTerraform("resource_16_file_explorer_minimal_assignments.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(resourceType+".file_explorer_minimal").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(resourceType+".file_explorer_minimal").Key("name").HasValue("Test File Explorer Policy"),
+					check.That(resourceType+".file_explorer_minimal").Key("settings_count").HasValue("2"),
+					check.That(resourceType+".file_explorer_minimal").Key("assignments.#").HasValue("1"),
+					check.That(resourceType+".file_explorer_minimal").Key("is_assigned").HasValue("true"),
+				),
+			},
+			{
+				ResourceName:            resourceType + ".file_explorer_minimal",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"settings"},
+			},
+		},
+	})
+}
+
+// Test 17: Local Policies Security Options with maximal assignments
+func TestSettingsCatalogPolicyResource_17_LocalPoliciesMaximalAssignments(t *testing.T) {
+	resourceType := graphBetaSettingsCatalogConfigurationPolicyJson.ResourceName
+	mocks.SetupUnitTestEnvironment(t)
+	_, policyMock := setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+	defer policyMock.CleanupMockState()
+
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: loadUnitTestTerraform("resource_17_local_policies_maximal_assignments.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(resourceType+".local_policies_maximal").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(resourceType+".local_policies_maximal").Key("name").HasValue("Test Local Policies Security Options Policy"),
+					check.That(resourceType+".local_policies_maximal").Key("settings_count").HasValue("6"),
+					check.That(resourceType+".local_policies_maximal").Key("assignments.#").HasValue("4"),
+					check.That(resourceType+".local_policies_maximal").Key("is_assigned").HasValue("true"),
+				),
+			},
+			{
+				ResourceName:            resourceType + ".local_policies_maximal",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"settings"},
+			},
+		},
+	})
+}
+
+// Test 18: Update from minimal to maximal
+func TestSettingsCatalogPolicyResource_18_UpdateMinimalToMaximal(t *testing.T) {
+	resourceType := graphBetaSettingsCatalogConfigurationPolicyJson.ResourceName
+	mocks.SetupUnitTestEnvironment(t)
+	_, policyMock := setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+	defer policyMock.CleanupMockState()
+
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: loadUnitTestTerraform("resource_18_update_minimal_to_maximal.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(resourceType+".update_test").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(resourceType+".update_test").Key("name").HasValue("Test Update Policy"),
+					check.That(resourceType+".update_test").Key("settings_count").HasValue("2"),
+					check.That(resourceType+".update_test").Key("assignments.#").HasValue("1"),
+				),
+			},
+			{
+				Config: loadUnitTestTerraform("resource_18_update_minimal_to_maximal_updated.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(resourceType+".update_test").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(resourceType+".update_test").Key("name").HasValue("Test Update Policy - Updated"),
+					check.That(resourceType+".update_test").Key("settings_count").HasValue("6"),
+					check.That(resourceType+".update_test").Key("assignments.#").HasValue("4"),
+				),
+			},
+		},
+	})
+}
+
+// Test 19: Update from maximal to minimal
+func TestSettingsCatalogPolicyResource_19_UpdateMaximalToMinimal(t *testing.T) {
+	resourceType := graphBetaSettingsCatalogConfigurationPolicyJson.ResourceName
+	mocks.SetupUnitTestEnvironment(t)
+	_, policyMock := setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+	defer policyMock.CleanupMockState()
+
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: loadUnitTestTerraform("resource_19_update_maximal_to_minimal.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(resourceType+".update_reverse_test").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(resourceType+".update_reverse_test").Key("name").HasValue("Test Update Reverse Policy"),
+					check.That(resourceType+".update_reverse_test").Key("settings_count").HasValue("6"),
+					check.That(resourceType+".update_reverse_test").Key("assignments.#").HasValue("4"),
+				),
+			},
+			{
+				Config: loadUnitTestTerraform("resource_19_update_maximal_to_minimal_updated.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(resourceType+".update_reverse_test").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(resourceType+".update_reverse_test").Key("name").HasValue("Test Update Reverse Policy - Updated"),
+					check.That(resourceType+".update_reverse_test").Key("settings_count").HasValue("2"),
+					check.That(resourceType+".update_reverse_test").Key("assignments.#").HasValue("1"),
+				),
+			},
+		},
+	})
 }

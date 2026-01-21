@@ -1,0 +1,87 @@
+{
+  "templateReference": {
+    "templateDisplayVersion": null,
+    "templateId": "",
+    "templateFamily": "none",
+    "templateDisplayName": null
+  },
+  "lastModifiedDateTime": "2024-01-01T00:00:00Z",
+  "technologies": "mdm",
+  "settingCount": 4,
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/configurationPolicies/$entity",
+  "id": "00000000-0000-0000-0000-000000000000",
+  "priorityMetaData": null,
+  "creationSource": null,
+  "createdDateTime": "2024-01-01T00:00:00Z",
+  "platforms": "windows10",
+  "roleScopeTagIds": [
+    "0"
+  ],
+  "description": "Test policy for Windows Connection Manager with choice children",
+  "name": "Test Windows Connection Manager Policy",
+  "settings": [
+    {
+      "settingInstance": {
+        "choiceSettingValue": {
+          "value": "device_vendor_msft_policy_config_admx_wcm_wcm_disablepowermanagement_0",
+          "settingValueTemplateReference": null,
+          "children": []
+        },
+        "@odata.type": "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance",
+        "settingInstanceTemplateReference": null,
+        "settingDefinitionId": "device_vendor_msft_policy_config_admx_wcm_wcm_disablepowermanagement"
+      },
+      "id": "0"
+    },
+    {
+      "settingInstance": {
+        "choiceSettingValue": {
+          "value": "device_vendor_msft_policy_config_admx_wcm_wcm_enablesoftdisconnect_1",
+          "settingValueTemplateReference": null,
+          "children": []
+        },
+        "@odata.type": "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance",
+        "settingInstanceTemplateReference": null,
+        "settingDefinitionId": "device_vendor_msft_policy_config_admx_wcm_wcm_enablesoftdisconnect"
+      },
+      "id": "1"
+    },
+    {
+      "settingInstance": {
+        "choiceSettingValue": {
+          "value": "device_vendor_msft_policy_config_admx_wcm_wcm_minimizeconnections_1",
+          "settingValueTemplateReference": null,
+          "children": [
+            {
+              "choiceSettingValue": {
+                "value": "device_vendor_msft_policy_config_admx_wcm_wcm_minimizeconnections_wcm_minimizeconnections_options_3",
+                "settingValueTemplateReference": null,
+                "children": []
+              },
+              "@odata.type": "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance",
+              "settingInstanceTemplateReference": null,
+              "settingDefinitionId": "device_vendor_msft_policy_config_admx_wcm_wcm_minimizeconnections_wcm_minimizeconnections_options"
+            }
+          ]
+        },
+        "@odata.type": "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance",
+        "settingInstanceTemplateReference": null,
+        "settingDefinitionId": "device_vendor_msft_policy_config_admx_wcm_wcm_minimizeconnections"
+      },
+      "id": "2"
+    },
+    {
+      "settingInstance": {
+        "choiceSettingValue": {
+          "value": "device_vendor_msft_policy_config_windowsconnectionmanager_prohitconnectiontonondomainnetworkswhenconnectedtodomainauthenticatednetwork_1",
+          "settingValueTemplateReference": null,
+          "children": []
+        },
+        "@odata.type": "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance",
+        "settingInstanceTemplateReference": null,
+        "settingDefinitionId": "device_vendor_msft_policy_config_windowsconnectionmanager_prohitconnectiontonondomainnetworkswhenconnectedtodomainauthenticatednetwork"
+      },
+      "id": "3"
+    }
+  ]
+}

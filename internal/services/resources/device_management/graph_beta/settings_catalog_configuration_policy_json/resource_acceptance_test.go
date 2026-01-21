@@ -1,406 +1,905 @@
 package graphBetaSettingsCatalogConfigurationPolicyJson_test
 
 import (
-	"context"
-	"fmt"
-	"log"
 	"regexp"
 	"testing"
+	"time"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/check"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/destroy"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/testlog"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
-	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
+	graphBetaSettingsCatalogConfigurationPolicyJson "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_management/graph_beta/settings_catalog_configuration_policy_json"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 )
 
-func TestAccSettingsCatalogConfigurationPolicyJsonResource_Lifecycle(t *testing.T) {
+var (
+	resourceType = graphBetaSettingsCatalogConfigurationPolicyJson.ResourceName
+	testResource = graphBetaSettingsCatalogConfigurationPolicyJson.SettingsCatalogJsonTestResource{}
+)
+
+// loadAcceptanceTestTerraform loads terraform test files from tests/terraform/acceptance
+func loadAcceptanceTestTerraform(filename string) string {
+	config, err := helpers.ParseHCLFile("tests/terraform/acceptance/" + filename)
+	if err != nil {
+		panic("failed to load acceptance config " + filename + ": " + err.Error())
+	}
+	return config
+}
+
+// TestAccSettingsCatalogPolicyResource_01_Camera tests a simple choice setting
+func TestAccSettingsCatalogPolicyResource_01_Camera(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		CheckDestroy: destroy.CheckDestroyedAllFunc(
+			testResource,
+			resourceType,
+			30*time.Second,
+		),
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
 				Source:            "hashicorp/random",
 				VersionConstraint: constants.ExternalProviderRandomVersion,
 			},
-		},
-		CheckDestroy: testAccCheckSettingsCatalogConfigurationPolicyJsonDestroy,
-		Steps: []resource.TestStep{
-			// Create with minimal configuration
-			{
-				Config: testAccSettingsCatalogConfigurationPolicyJsonConfig_minimal(),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("microsoft365_graph_beta_device_management_settings_catalog_configuration_policy_json.macos_mdm_filevault2_settings", "id"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_settings_catalog_configuration_policy_json.macos_mdm_filevault2_settings", "name", "macos mdm filevault2 settings - JSON"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_settings_catalog_configuration_policy_json.macos_mdm_filevault2_settings", "platforms", "macOS"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_settings_catalog_configuration_policy_json.macos_mdm_filevault2_settings", "role_scope_tag_ids.#", "1"),
-					resource.TestCheckTypeSetElemAttr("microsoft365_graph_beta_device_management_settings_catalog_configuration_policy_json.macos_mdm_filevault2_settings", "role_scope_tag_ids.*", "0"),
-				),
+			"time": {
+				Source:            "hashicorp/time",
+				VersionConstraint: constants.ExternalProviderTimeVersion,
 			},
-			// ImportState testing
-			{
-				ResourceName:      "microsoft365_graph_beta_device_management_settings_catalog_configuration_policy_json.macos_mdm_filevault2_settings",
-				ImportState:       true,
-				ImportStateVerify: true,
-				// Ignore secret password field as Microsoft Graph returns different UUIDs for security
-				ImportStateVerifyIgnore: []string{
-					"settings",
-				},
-			},
-		},
-	})
-}
-
-func TestAccSettingsCatalogConfigurationPolicyJsonResource_Maximal(t *testing.T) {
-	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
-		ExternalProviders: map[string]resource.ExternalProvider{
-			"random": {
-				Source:            "hashicorp/random",
-				VersionConstraint: constants.ExternalProviderRandomVersion,
-			},
-		},
-		CheckDestroy: testAccCheckSettingsCatalogConfigurationPolicyJsonDestroy,
-		Steps: []resource.TestStep{
-			// Create with maximal configuration
-			{
-				Config: testAccSettingsCatalogConfigurationPolicyJsonConfig_maximal(),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("microsoft365_graph_beta_device_management_settings_catalog_configuration_policy_json.test", "id"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_settings_catalog_configuration_policy_json.test", "name", "Test Acceptance Settings Catalog Policy JSON - Updated"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_settings_catalog_configuration_policy_json.test", "description", "Updated description for acceptance testing - JSON"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_settings_catalog_configuration_policy_json.test", "platforms", "macOS"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_settings_catalog_configuration_policy_json.test", "role_scope_tag_ids.#", "2"),
-				),
-			},
-		},
-	})
-}
-
-func TestAccSettingsCatalogConfigurationPolicyJsonResource_Assignments(t *testing.T) {
-	t.Log("=== JSON ASSIGNMENTS TEST START ===")
-	t.Log("Starting JSON assignments acceptance test with comprehensive logging")
-
-	resource.Test(t, resource.TestCase{
-		PreCheck: func() {
-			t.Log("=== PRE-CHECK START ===")
-			mocks.TestAccPreCheck(t)
-			t.Log("=== PRE-CHECK COMPLETE ===")
-		},
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
-		ExternalProviders: map[string]resource.ExternalProvider{
-			"random": {
-				Source:            "hashicorp/random",
-				VersionConstraint: constants.ExternalProviderRandomVersion,
-			},
-		},
-		CheckDestroy: func(s *terraform.State) error {
-			t.Log("=== DESTROY CHECK TRIGGERED ===")
-			t.Log("Starting comprehensive destroy verification")
-			err := testAccCheckSettingsCatalogConfigurationPolicyJsonDestroy(s)
-			if err != nil {
-				t.Logf("ERROR: Destroy check failed: %v", err)
-			} else {
-				t.Log("SUCCESS: Destroy check completed successfully")
-			}
-			t.Log("=== DESTROY CHECK COMPLETE ===")
-			return err
 		},
 		Steps: []resource.TestStep{
-			// Create with all assignment types
 			{
 				PreConfig: func() {
-					t.Log("=== STEP PRE-CONFIG ===")
-					t.Log("About to apply configuration with assignments, groups, and role scope tags")
-					t.Log("Expected dependencies: 3 groups, 2 role scope tags")
+					testlog.StepAction(resourceType, "Creating camera policy")
 				},
-				Config: testAccSettingsCatalogConfigurationPolicyJsonConfig_assignments(),
+				Config: loadAcceptanceTestTerraform("resource_01_camera.tf"),
 				Check: resource.ComposeTestCheckFunc(
-					func(s *terraform.State) error {
-						t.Log("=== STEP CHECK START ===")
-						t.Log("Verifying resource creation and attributes")
+					func(_ *terraform.State) error {
+						testlog.WaitForConsistency("settings catalog policy", 30*time.Second)
+						time.Sleep(30 * time.Second)
 						return nil
 					},
-					resource.TestCheckResourceAttrSet("microsoft365_graph_beta_device_management_settings_catalog_configuration_policy_json.assignments", "id"),
-					func(s *terraform.State) error {
-						t.Log("SUCCESS: Resource ID is set")
-						return nil
-					},
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_settings_catalog_configuration_policy_json.assignments", "name", "Test All Assignment Types Settings Catalog Policy JSON"),
-					func(s *terraform.State) error {
-						t.Log("SUCCESS: Resource name verified")
-						return nil
-					},
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_settings_catalog_configuration_policy_json.assignments", "assignments.#", "5"),
-					func(s *terraform.State) error {
-						t.Log("SUCCESS: 5 assignments verified")
-						return nil
-					},
-					// Verify all assignment types are present
-					resource.TestCheckTypeSetElemNestedAttrs("microsoft365_graph_beta_device_management_settings_catalog_configuration_policy_json.assignments", "assignments.*", map[string]string{"type": "groupAssignmentTarget"}),
-					func(s *terraform.State) error {
-						t.Log("SUCCESS: groupAssignmentTarget verified")
-						return nil
-					},
-					resource.TestCheckTypeSetElemNestedAttrs("microsoft365_graph_beta_device_management_settings_catalog_configuration_policy_json.assignments", "assignments.*", map[string]string{"type": "allLicensedUsersAssignmentTarget"}),
-					func(s *terraform.State) error {
-						t.Log("SUCCESS: allLicensedUsersAssignmentTarget verified")
-						return nil
-					},
-					resource.TestCheckTypeSetElemNestedAttrs("microsoft365_graph_beta_device_management_settings_catalog_configuration_policy_json.assignments", "assignments.*", map[string]string{"type": "allDevicesAssignmentTarget"}),
-					func(s *terraform.State) error {
-						t.Log("SUCCESS: allDevicesAssignmentTarget verified")
-						return nil
-					},
-					resource.TestCheckTypeSetElemNestedAttrs("microsoft365_graph_beta_device_management_settings_catalog_configuration_policy_json.assignments", "assignments.*", map[string]string{"type": "exclusionGroupAssignmentTarget"}),
-					func(s *terraform.State) error {
-						t.Log("SUCCESS: exclusionGroupAssignmentTarget verified")
-						return nil
-					},
-					// Verify role scope tags
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_settings_catalog_configuration_policy_json.assignments", "role_scope_tag_ids.#", "2"),
-					func(s *terraform.State) error {
-						t.Log("SUCCESS: Role scope tags verified")
-						t.Log("=== STEP CHECK COMPLETE ===")
-						return nil
-					},
+					check.That(resourceType+".camera").ExistsInGraph(testResource),
+					check.That(resourceType+".camera").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(resourceType+".camera").Key("name").MatchesRegex(regexp.MustCompile(`^acc-test-01-camera-`)),
+					check.That(resourceType+".camera").Key("description").HasValue("Acceptance test policy for camera settings"),
+					check.That(resourceType+".camera").Key("platforms").HasValue("windows10"),
+					check.That(resourceType+".camera").Key("technologies.#").HasValue("1"),
+					check.That(resourceType+".camera").Key("settings_count").HasValue("1"),
+					check.That(resourceType+".camera").Key("settings").Exists(),
 				),
 			},
+			{
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Importing camera policy")
+				},
+				ResourceName:            resourceType + ".camera",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"timeouts"},
+			},
 		},
 	})
-	t.Log("=== JSON ASSIGNMENTS TEST COMPLETE ===")
 }
 
-func TestAccSettingsCatalogConfigurationPolicyJsonResource_RequiredFields(t *testing.T) {
+// TestAccSettingsCatalogPolicyResource_02_TaskManager tests a simple choice setting
+func TestAccSettingsCatalogPolicyResource_02_TaskManager(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		CheckDestroy: destroy.CheckDestroyedAllFunc(
+			testResource,
+			resourceType,
+			30*time.Second,
+		),
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
 				Source:            "hashicorp/random",
 				VersionConstraint: constants.ExternalProviderRandomVersion,
 			},
+			"time": {
+				Source:            "hashicorp/time",
+				VersionConstraint: constants.ExternalProviderTimeVersion,
+			},
 		},
-		CheckDestroy: testAccCheckSettingsCatalogConfigurationPolicyJsonDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config:      testAccSettingsCatalogConfigurationPolicyJsonConfig_missingName(),
-				ExpectError: regexp.MustCompile("Missing required argument"),
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Creating task manager policy")
+				},
+				Config: loadAcceptanceTestTerraform("resource_02_task_manager.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					func(_ *terraform.State) error {
+						testlog.WaitForConsistency("settings catalog policy", 30*time.Second)
+						time.Sleep(30 * time.Second)
+						return nil
+					},
+					check.That(resourceType+".task_manager").ExistsInGraph(testResource),
+					check.That(resourceType+".task_manager").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(resourceType+".task_manager").Key("name").MatchesRegex(regexp.MustCompile(`^acc-test-02-task-manager-`)),
+					check.That(resourceType+".task_manager").Key("settings_count").HasValue("1"),
+				),
 			},
 			{
-				Config:      testAccSettingsCatalogConfigurationPolicyJsonConfig_missingSettings(),
-				ExpectError: regexp.MustCompile("Missing required argument"),
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Importing task manager policy")
+				},
+				ResourceName:            resourceType + ".task_manager",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"timeouts"},
 			},
 		},
 	})
 }
 
-func TestAccSettingsCatalogConfigurationPolicyJsonResource_InvalidValues(t *testing.T) {
+// TestAccSettingsCatalogPolicyResource_03_AppPrivacy tests a simple choice setting
+func TestAccSettingsCatalogPolicyResource_03_AppPrivacy(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		CheckDestroy: destroy.CheckDestroyedAllFunc(
+			testResource,
+			resourceType,
+			30*time.Second,
+		),
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
 				Source:            "hashicorp/random",
 				VersionConstraint: constants.ExternalProviderRandomVersion,
 			},
+			"time": {
+				Source:            "hashicorp/time",
+				VersionConstraint: constants.ExternalProviderTimeVersion,
+			},
 		},
-		CheckDestroy: testAccCheckSettingsCatalogConfigurationPolicyJsonDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config:      testAccSettingsCatalogConfigurationPolicyJsonConfig_invalidPlatform(),
-				ExpectError: regexp.MustCompile("Attribute platforms value must be one of"),
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Creating app privacy policy")
+				},
+				Config: loadAcceptanceTestTerraform("resource_03_app_privacy.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					func(_ *terraform.State) error {
+						testlog.WaitForConsistency("settings catalog policy", 30*time.Second)
+						time.Sleep(30 * time.Second)
+						return nil
+					},
+					check.That(resourceType+".app_privacy").ExistsInGraph(testResource),
+					check.That(resourceType+".app_privacy").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(resourceType+".app_privacy").Key("name").MatchesRegex(regexp.MustCompile(`^acc-test-03-app-privacy-`)),
+					check.That(resourceType+".app_privacy").Key("settings_count").HasValue("1"),
+				),
 			},
 			{
-				Config:      testAccSettingsCatalogConfigurationPolicyJsonConfig_invalidJSON(),
-				ExpectError: regexp.MustCompile("Invalid JSON|invalid character"),
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Importing app privacy policy")
+				},
+				ResourceName:            resourceType + ".app_privacy",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"timeouts"},
 			},
 		},
 	})
 }
 
-// testAccCheckSettingsCatalogConfigurationPolicyJsonDestroy verifies that settings catalog configuration policies have been destroyed
-func testAccCheckSettingsCatalogConfigurationPolicyJsonDestroy(s *terraform.State) error {
-	fmt.Printf("=== JSON DESTROY CHECK START ===\n")
-
-	graphClient, err := acceptance.TestGraphClient()
-	if err != nil {
-		fmt.Printf("ERROR: Failed to create Graph client for CheckDestroy: %v\n", err)
-		return fmt.Errorf("error creating Graph client for CheckDestroy: %v", err)
-	}
-
-	ctx := context.Background()
-	resourceCount := 0
-	destroyedCount := 0
-	orphanedResources := []string{}
-
-	// Count total resources to check
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type == "microsoft365_graph_beta_device_management_settings_catalog_configuration_policy_json" {
-			resourceCount++
-		}
-	}
-	fmt.Printf("INFO: Found %d settings catalog configuration policy JSON resources to verify destruction\n", resourceCount)
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "microsoft365_graph_beta_device_management_settings_catalog_configuration_policy_json" {
-			continue
-		}
-
-		fmt.Printf("--- Checking resource destruction: %s ---\n", rs.Primary.ID)
-
-		// Build the API URL for logging
-		apiUrl := fmt.Sprintf("https://graph.microsoft.com/beta/deviceManagement/configurationPolicies/%s", rs.Primary.ID)
-		fmt.Printf("INFO: API URL: %s\n", apiUrl)
-
-		// Attempt to get the settings catalog configuration policy by ID
-		resource, err := graphClient.
-			DeviceManagement().
-			ConfigurationPolicies().
-			ByDeviceManagementConfigurationPolicyId(rs.Primary.ID).
-			Get(ctx, nil)
-
-		if err != nil {
-			errorInfo := errors.GraphError(ctx, err)
-
-			// Accept multiple error conditions that indicate successful deletion
-			if errorInfo.StatusCode == 404 ||
-				errorInfo.StatusCode == 400 || // Bad Request - often indicates resource no longer exists
-				errorInfo.ErrorCode == "ResourceNotFound" ||
-				errorInfo.ErrorCode == "ItemNotFound" ||
-				errorInfo.ErrorCode == "Request_ResourceNotFound" ||
-				errorInfo.StatusCode == 0 { // Handle cases where status code is not set
-				fmt.Printf("SUCCESS: Resource %s successfully destroyed (verified by API error)\n", rs.Primary.ID)
-				destroyedCount++
-				continue // Resource successfully destroyed
-			}
-
-			// For other errors, this might indicate an orphaned resource or API issue
-			fmt.Printf("WARNING: Unexpected error checking resource %s destruction: %v\n", rs.Primary.ID, err)
-			fmt.Printf("WARNING: This could indicate an orphaned resource or API connectivity issue\n")
-			orphanedResources = append(orphanedResources, rs.Primary.ID)
-
-			// Still continue but mark as potentially problematic
-			continue
-		}
-
-		// If we can still get the resource, it wasn't destroyed - this is a real problem
-		if resource != nil {
-			fmt.Printf("ERROR: Resource %s still exists and was not properly destroyed!\n", rs.Primary.ID)
-			if resource.GetName() != nil {
-				fmt.Printf("ERROR: Resource name: %s\n", *resource.GetName())
-			}
-			if resource.GetId() != nil {
-				fmt.Printf("ERROR: Resource ID: %s\n", *resource.GetId())
-			}
-			orphanedResources = append(orphanedResources, rs.Primary.ID)
-			return fmt.Errorf("settings catalog configuration policy JSON %s still exists and was not destroyed", rs.Primary.ID)
-		}
-	}
-
-	fmt.Printf("=== JSON DESTROY CHECK SUMMARY ===\n")
-	fmt.Printf("Total resources checked: %d\n", resourceCount)
-	fmt.Printf("Successfully destroyed: %d\n", destroyedCount)
-	fmt.Printf("Potentially orphaned: %d\n", len(orphanedResources))
-
-	if len(orphanedResources) > 0 {
-		fmt.Printf("WARNING: Potentially orphaned resource IDs:\n")
-		for _, id := range orphanedResources {
-			fmt.Printf("  - %s\n", id)
-		}
-		fmt.Printf("WARNING: Please manually verify these resources in the Microsoft Graph API\n")
-	}
-
-	fmt.Printf("=== JSON DESTROY CHECK COMPLETE ===\n")
-	return nil
+// TestAccSettingsCatalogPolicyResource_04_Cryptography tests a simple choice setting
+func TestAccSettingsCatalogPolicyResource_04_Cryptography(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		CheckDestroy: destroy.CheckDestroyedAllFunc(
+			testResource,
+			resourceType,
+			30*time.Second,
+		),
+		ExternalProviders: map[string]resource.ExternalProvider{
+			"random": {
+				Source:            "hashicorp/random",
+				VersionConstraint: constants.ExternalProviderRandomVersion,
+			},
+			"time": {
+				Source:            "hashicorp/time",
+				VersionConstraint: constants.ExternalProviderTimeVersion,
+			},
+		},
+		Steps: []resource.TestStep{
+			{
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Creating cryptography policy")
+				},
+				Config: loadAcceptanceTestTerraform("resource_04_cryptography.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					func(_ *terraform.State) error {
+						testlog.WaitForConsistency("settings catalog policy", 30*time.Second)
+						time.Sleep(30 * time.Second)
+						return nil
+					},
+					check.That(resourceType+".cryptography").ExistsInGraph(testResource),
+					check.That(resourceType+".cryptography").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(resourceType+".cryptography").Key("name").MatchesRegex(regexp.MustCompile(`^acc-test-04-cryptography-`)),
+					check.That(resourceType+".cryptography").Key("settings_count").HasValue("1"),
+				),
+			},
+			{
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Importing cryptography policy")
+				},
+				ResourceName:            resourceType + ".cryptography",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"timeouts"},
+			},
+		},
+	})
 }
 
-func testAccSettingsCatalogConfigurationPolicyJsonConfig_minimal() string {
-	accTestConfig, err := helpers.ParseHCLFile("tests/terraform/acceptance/resource_minimal.tf")
-	if err != nil {
-		log.Fatalf("Failed to load minimal test config: %v", err)
-	}
-	return acceptance.ConfiguredM365ProviderBlock(accTestConfig)
+// TestAccSettingsCatalogPolicyResource_05_Notifications tests a simple choice setting
+func TestAccSettingsCatalogPolicyResource_05_Notifications(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		CheckDestroy: destroy.CheckDestroyedAllFunc(
+			testResource,
+			resourceType,
+			30*time.Second,
+		),
+		ExternalProviders: map[string]resource.ExternalProvider{
+			"random": {
+				Source:            "hashicorp/random",
+				VersionConstraint: constants.ExternalProviderRandomVersion,
+			},
+			"time": {
+				Source:            "hashicorp/time",
+				VersionConstraint: constants.ExternalProviderTimeVersion,
+			},
+		},
+		Steps: []resource.TestStep{
+			{
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Creating notifications policy")
+				},
+				Config: loadAcceptanceTestTerraform("resource_05_notifications.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					func(_ *terraform.State) error {
+						testlog.WaitForConsistency("settings catalog policy", 30*time.Second)
+						time.Sleep(30 * time.Second)
+						return nil
+					},
+					check.That(resourceType+".notifications").ExistsInGraph(testResource),
+					check.That(resourceType+".notifications").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(resourceType+".notifications").Key("name").MatchesRegex(regexp.MustCompile(`^acc-test-05-notifications-`)),
+					check.That(resourceType+".notifications").Key("settings_count").HasValue("1"),
+				),
+			},
+			{
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Importing notifications policy")
+				},
+				ResourceName:            resourceType + ".notifications",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"timeouts"},
+			},
+		},
+	})
 }
 
-func testAccSettingsCatalogConfigurationPolicyJsonConfig_maximal() string {
-	roleScopeTags, err := helpers.ParseHCLFile("../../../../../acceptance/terraform_dependancies/device_management/role_scope_tags.tf")
-	if err != nil {
-		log.Fatalf("Failed to load role scope tags config: %v", err)
-	}
-
-	accTestConfig, err := helpers.ParseHCLFile("tests/terraform/acceptance/resource_maximal.tf")
-	if err != nil {
-		log.Fatalf("Failed to load maximal test config: %v", err)
-	}
-
-	return acceptance.ConfiguredM365ProviderBlock(roleScopeTags + "\n" + accTestConfig)
+// TestAccSettingsCatalogPolicyResource_06_AttachmentManager tests multiple choice settings
+func TestAccSettingsCatalogPolicyResource_06_AttachmentManager(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		CheckDestroy: destroy.CheckDestroyedAllFunc(
+			testResource,
+			resourceType,
+			30*time.Second,
+		),
+		ExternalProviders: map[string]resource.ExternalProvider{
+			"random": {
+				Source:            "hashicorp/random",
+				VersionConstraint: constants.ExternalProviderRandomVersion,
+			},
+			"time": {
+				Source:            "hashicorp/time",
+				VersionConstraint: constants.ExternalProviderTimeVersion,
+			},
+		},
+		Steps: []resource.TestStep{
+			{
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Creating attachment manager policy")
+				},
+				Config: loadAcceptanceTestTerraform("resource_06_attachment_manager.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					func(_ *terraform.State) error {
+						testlog.WaitForConsistency("settings catalog policy", 30*time.Second)
+						time.Sleep(30 * time.Second)
+						return nil
+					},
+					check.That(resourceType+".attachment_manager").ExistsInGraph(testResource),
+					check.That(resourceType+".attachment_manager").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(resourceType+".attachment_manager").Key("name").MatchesRegex(regexp.MustCompile(`^acc-test-06-attachment-manager-`)),
+					check.That(resourceType+".attachment_manager").Key("settings_count").HasValue("2"),
+				),
+			},
+			{
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Importing attachment manager policy")
+				},
+				ResourceName:            resourceType + ".attachment_manager",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"timeouts"},
+			},
+		},
+	})
 }
 
-func testAccSettingsCatalogConfigurationPolicyJsonConfig_assignments() string {
-	groups, err := helpers.ParseHCLFile("../../../../../acceptance/terraform_dependancies/device_management/groups.tf")
-	if err != nil {
-		log.Fatalf("Failed to load groups config: %v", err)
-	}
-
-	roleScopeTags, err := helpers.ParseHCLFile("../../../../../acceptance/terraform_dependancies/device_management/role_scope_tags.tf")
-	if err != nil {
-		log.Fatalf("Failed to load role scope tags config: %v", err)
-	}
-
-	accTestConfig, err := helpers.ParseHCLFile("tests/terraform/acceptance/resource_assignments.tf")
-	if err != nil {
-		log.Fatalf("Failed to load test config: %v", err)
-	}
-
-	return acceptance.ConfiguredM365ProviderBlock(groups + "\n" + roleScopeTags + "\n" + accTestConfig)
+// TestAccSettingsCatalogPolicyResource_07_CredentialUserInterface tests multiple choice settings
+func TestAccSettingsCatalogPolicyResource_07_CredentialUserInterface(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		CheckDestroy: destroy.CheckDestroyedAllFunc(
+			testResource,
+			resourceType,
+			30*time.Second,
+		),
+		ExternalProviders: map[string]resource.ExternalProvider{
+			"random": {
+				Source:            "hashicorp/random",
+				VersionConstraint: constants.ExternalProviderRandomVersion,
+			},
+			"time": {
+				Source:            "hashicorp/time",
+				VersionConstraint: constants.ExternalProviderTimeVersion,
+			},
+		},
+		Steps: []resource.TestStep{
+			{
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Creating credential user interface policy")
+				},
+				Config: loadAcceptanceTestTerraform("resource_07_credential_user_interface.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					func(_ *terraform.State) error {
+						testlog.WaitForConsistency("settings catalog policy", 30*time.Second)
+						time.Sleep(30 * time.Second)
+						return nil
+					},
+					check.That(resourceType+".credential_user_interface").ExistsInGraph(testResource),
+					check.That(resourceType+".credential_user_interface").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(resourceType+".credential_user_interface").Key("name").MatchesRegex(regexp.MustCompile(`^acc-test-07-credential-ui-`)),
+					check.That(resourceType+".credential_user_interface").Key("settings_count").HasValue("2"),
+				),
+			},
+			{
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Importing credential user interface policy")
+				},
+				ResourceName:            resourceType + ".credential_user_interface",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"timeouts"},
+			},
+		},
+	})
 }
 
-func testAccSettingsCatalogConfigurationPolicyJsonConfig_missingName() string {
-	config := `
-resource "microsoft365_graph_beta_device_management_settings_catalog_configuration_policy_json" "test" {
-  platforms = "windows10"
-  settings = jsonencode({
-    "settings": []
-  })
-}
-`
-	return acceptance.ConfiguredM365ProviderBlock(config)
+// TestAccSettingsCatalogPolicyResource_08_RemoteDesktopAVDURL tests simple collection
+func TestAccSettingsCatalogPolicyResource_08_RemoteDesktopAVDURL(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		CheckDestroy: destroy.CheckDestroyedAllFunc(
+			testResource,
+			resourceType,
+			30*time.Second,
+		),
+		ExternalProviders: map[string]resource.ExternalProvider{
+			"random": {
+				Source:            "hashicorp/random",
+				VersionConstraint: constants.ExternalProviderRandomVersion,
+			},
+			"time": {
+				Source:            "hashicorp/time",
+				VersionConstraint: constants.ExternalProviderTimeVersion,
+			},
+		},
+		Steps: []resource.TestStep{
+			{
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Creating remote desktop AVD URL policy")
+				},
+				Config: loadAcceptanceTestTerraform("resource_08_remote_desktop_avd_url.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					func(_ *terraform.State) error {
+						testlog.WaitForConsistency("settings catalog policy", 30*time.Second)
+						time.Sleep(30 * time.Second)
+						return nil
+					},
+					check.That(resourceType+".remote_desktop_avd_url").ExistsInGraph(testResource),
+					check.That(resourceType+".remote_desktop_avd_url").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(resourceType+".remote_desktop_avd_url").Key("name").MatchesRegex(regexp.MustCompile(`^acc-test-08-avd-url-`)),
+					check.That(resourceType+".remote_desktop_avd_url").Key("settings_count").HasValue("1"),
+				),
+			},
+			{
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Importing remote desktop AVD URL policy")
+				},
+				ResourceName:            resourceType + ".remote_desktop_avd_url",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"timeouts"},
+			},
+		},
+	})
 }
 
-func testAccSettingsCatalogConfigurationPolicyJsonConfig_missingSettings() string {
-	config := `
-resource "microsoft365_graph_beta_device_management_settings_catalog_configuration_policy_json" "test" {
-  name = "Test Policy"
-  platforms = "windows10"
-}
-`
-	return acceptance.ConfiguredM365ProviderBlock(config)
+// TestAccSettingsCatalogPolicyResource_09_StorageSense tests integer settings
+func TestAccSettingsCatalogPolicyResource_09_StorageSense(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		CheckDestroy: destroy.CheckDestroyedAllFunc(
+			testResource,
+			resourceType,
+			30*time.Second,
+		),
+		ExternalProviders: map[string]resource.ExternalProvider{
+			"random": {
+				Source:            "hashicorp/random",
+				VersionConstraint: constants.ExternalProviderRandomVersion,
+			},
+			"time": {
+				Source:            "hashicorp/time",
+				VersionConstraint: constants.ExternalProviderTimeVersion,
+			},
+		},
+		Steps: []resource.TestStep{
+			{
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Creating storage sense policy")
+				},
+				Config: loadAcceptanceTestTerraform("resource_09_storage_sense.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					func(_ *terraform.State) error {
+						testlog.WaitForConsistency("settings catalog policy", 30*time.Second)
+						time.Sleep(30 * time.Second)
+						return nil
+					},
+					check.That(resourceType+".storage_sense").ExistsInGraph(testResource),
+					check.That(resourceType+".storage_sense").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(resourceType+".storage_sense").Key("name").MatchesRegex(regexp.MustCompile(`^acc-test-09-storage-sense-`)),
+					check.That(resourceType+".storage_sense").Key("settings_count").Exists(),
+				),
+			},
+			{
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Importing storage sense policy")
+				},
+				ResourceName:            resourceType + ".storage_sense",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"timeouts"},
+			},
+		},
+	})
 }
 
-func testAccSettingsCatalogConfigurationPolicyJsonConfig_invalidPlatform() string {
-	config := `
-resource "microsoft365_graph_beta_device_management_settings_catalog_configuration_policy_json" "test" {
-  name      = "Test Policy"
-  platforms = "invalid"
-  settings = jsonencode({
-    "settings": []
-  })
-}
-`
-	return acceptance.ConfiguredM365ProviderBlock(config)
+// TestAccSettingsCatalogPolicyResource_11_AutoPlayPolicies tests nested choice settings
+func TestAccSettingsCatalogPolicyResource_11_AutoPlayPolicies(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		CheckDestroy: destroy.CheckDestroyedAllFunc(
+			testResource,
+			resourceType,
+			30*time.Second,
+		),
+		ExternalProviders: map[string]resource.ExternalProvider{
+			"random": {
+				Source:            "hashicorp/random",
+				VersionConstraint: constants.ExternalProviderRandomVersion,
+			},
+			"time": {
+				Source:            "hashicorp/time",
+				VersionConstraint: constants.ExternalProviderTimeVersion,
+			},
+		},
+		Steps: []resource.TestStep{
+			{
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Creating AutoPlay policies policy")
+				},
+				Config: loadAcceptanceTestTerraform("resource_11_autoplay_policies.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					func(_ *terraform.State) error {
+						testlog.WaitForConsistency("settings catalog policy", 30*time.Second)
+						time.Sleep(30 * time.Second)
+						return nil
+					},
+					check.That(resourceType+".autoplay").ExistsInGraph(testResource),
+					check.That(resourceType+".autoplay").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(resourceType+".autoplay").Key("name").MatchesRegex(regexp.MustCompile(`^acc-test-11-autoplay-`)),
+					check.That(resourceType+".autoplay").Key("settings_count").HasValue("3"),
+				),
+			},
+			{
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Importing AutoPlay policies policy")
+				},
+				ResourceName:            resourceType + ".autoplay",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"timeouts"},
+			},
+		},
+	})
 }
 
-func testAccSettingsCatalogConfigurationPolicyJsonConfig_invalidJSON() string {
-	config := `
-resource "microsoft365_graph_beta_device_management_settings_catalog_configuration_policy_json" "test" {
-  name      = "Test Policy"
-  platforms = "macOS"
-  settings = "invalid json string"
+// TestAccSettingsCatalogPolicyResource_12_DefenderSmartscreen tests choice with collection child
+func TestAccSettingsCatalogPolicyResource_12_DefenderSmartscreen(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		CheckDestroy: destroy.CheckDestroyedAllFunc(
+			testResource,
+			resourceType,
+			30*time.Second,
+		),
+		ExternalProviders: map[string]resource.ExternalProvider{
+			"random": {
+				Source:            "hashicorp/random",
+				VersionConstraint: constants.ExternalProviderRandomVersion,
+			},
+			"time": {
+				Source:            "hashicorp/time",
+				VersionConstraint: constants.ExternalProviderTimeVersion,
+			},
+		},
+		Steps: []resource.TestStep{
+			{
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Creating Defender Smartscreen policy")
+				},
+				Config: loadAcceptanceTestTerraform("resource_12_defender_smartscreen.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					func(_ *terraform.State) error {
+						testlog.WaitForConsistency("settings catalog policy", 30*time.Second)
+						time.Sleep(30 * time.Second)
+						return nil
+					},
+					check.That(resourceType+".defender_smartscreen").ExistsInGraph(testResource),
+					check.That(resourceType+".defender_smartscreen").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(resourceType+".defender_smartscreen").Key("name").MatchesRegex(regexp.MustCompile(`^acc-test-12-smartscreen-`)),
+					check.That(resourceType+".defender_smartscreen").Key("settings_count").HasValue("3"),
+				),
+			},
+			{
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Importing Defender Smartscreen policy")
+				},
+				ResourceName:            resourceType + ".defender_smartscreen",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"timeouts"},
+			},
+		},
+	})
 }
-`
-	return acceptance.ConfiguredM365ProviderBlock(config)
+
+// TestAccSettingsCatalogPolicyResource_13_EdgeExtensionsMacOS tests multiple collections on macOS
+func TestAccSettingsCatalogPolicyResource_13_EdgeExtensionsMacOS(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		CheckDestroy: destroy.CheckDestroyedAllFunc(
+			testResource,
+			resourceType,
+			30*time.Second,
+		),
+		ExternalProviders: map[string]resource.ExternalProvider{
+			"random": {
+				Source:            "hashicorp/random",
+				VersionConstraint: constants.ExternalProviderRandomVersion,
+			},
+			"time": {
+				Source:            "hashicorp/time",
+				VersionConstraint: constants.ExternalProviderTimeVersion,
+			},
+		},
+		Steps: []resource.TestStep{
+			{
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Creating Edge Extensions macOS policy")
+				},
+				Config: loadAcceptanceTestTerraform("resource_13_edge_extensions_macos.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					func(_ *terraform.State) error {
+						testlog.WaitForConsistency("settings catalog policy", 30*time.Second)
+						time.Sleep(30 * time.Second)
+						return nil
+					},
+					check.That(resourceType+".edge_extensions_macos").ExistsInGraph(testResource),
+					check.That(resourceType+".edge_extensions_macos").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(resourceType+".edge_extensions_macos").Key("name").MatchesRegex(regexp.MustCompile(`^acc-test-13-edge-extensions-`)),
+					check.That(resourceType+".edge_extensions_macos").Key("settings_count").HasValue("4"),
+				),
+			},
+			{
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Importing Edge Extensions macOS policy")
+				},
+				ResourceName:            resourceType + ".edge_extensions_macos",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"timeouts"},
+			},
+		},
+	})
+}
+
+// TestAccSettingsCatalogPolicyResource_14_OfficeConfigurationMacOS tests nested group collections on macOS
+func TestAccSettingsCatalogPolicyResource_14_OfficeConfigurationMacOS(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		CheckDestroy: destroy.CheckDestroyedAllFunc(
+			testResource,
+			resourceType,
+			30*time.Second,
+		),
+		ExternalProviders: map[string]resource.ExternalProvider{
+			"random": {
+				Source:            "hashicorp/random",
+				VersionConstraint: constants.ExternalProviderRandomVersion,
+			},
+			"time": {
+				Source:            "hashicorp/time",
+				VersionConstraint: constants.ExternalProviderTimeVersion,
+			},
+		},
+		Steps: []resource.TestStep{
+			{
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Creating Office Configuration macOS policy")
+				},
+				Config: loadAcceptanceTestTerraform("resource_14_office_configuration_macos.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					func(_ *terraform.State) error {
+						testlog.WaitForConsistency("settings catalog policy", 30*time.Second)
+						time.Sleep(30 * time.Second)
+						return nil
+					},
+					check.That(resourceType+".office_configuration_macos").ExistsInGraph(testResource),
+					check.That(resourceType+".office_configuration_macos").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(resourceType+".office_configuration_macos").Key("name").MatchesRegex(regexp.MustCompile(`^acc-test-14-office-macos-`)),
+					check.That(resourceType+".office_configuration_macos").Key("settings_count").HasValue("3"),
+				),
+			},
+			{
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Importing Office Configuration macOS policy")
+				},
+				ResourceName:            resourceType + ".office_configuration_macos",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"timeouts"},
+			},
+		},
+	})
+}
+
+// TestAccSettingsCatalogPolicyResource_10_WindowsConnectionManager tests choice with children
+func TestAccSettingsCatalogPolicyResource_10_WindowsConnectionManager(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		CheckDestroy: destroy.CheckDestroyedAllFunc(
+			testResource,
+			resourceType,
+			30*time.Second,
+		),
+		ExternalProviders: map[string]resource.ExternalProvider{
+			"random": {
+				Source:            "hashicorp/random",
+				VersionConstraint: constants.ExternalProviderRandomVersion,
+			},
+			"time": {
+				Source:            "hashicorp/time",
+				VersionConstraint: constants.ExternalProviderTimeVersion,
+			},
+		},
+		Steps: []resource.TestStep{
+			{
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Creating Windows Connection Manager policy")
+				},
+				Config: loadAcceptanceTestTerraform("resource_10_windows_connection_manager.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					func(_ *terraform.State) error {
+						testlog.WaitForConsistency("settings catalog policy", 30*time.Second)
+						time.Sleep(30 * time.Second)
+						return nil
+					},
+					check.That(resourceType+".windows_connection_manager").ExistsInGraph(testResource),
+					check.That(resourceType+".windows_connection_manager").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(resourceType+".windows_connection_manager").Key("name").MatchesRegex(regexp.MustCompile(`^acc-test-10-wcm-`)),
+					check.That(resourceType+".windows_connection_manager").Key("settings_count").HasValue("4"),
+				),
+			},
+			{
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Importing Windows Connection Manager policy")
+				},
+				ResourceName:            resourceType + ".windows_connection_manager",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"timeouts"},
+			},
+		},
+	})
+}
+
+// TestAccSettingsCatalogPolicyResource_15_DefenderAntivirusBaseline tests complex nested structures
+func TestAccSettingsCatalogPolicyResource_15_DefenderAntivirusBaseline(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		CheckDestroy: destroy.CheckDestroyedAllFunc(
+			testResource,
+			resourceType,
+			30*time.Second,
+		),
+		ExternalProviders: map[string]resource.ExternalProvider{
+			"random": {
+				Source:            "hashicorp/random",
+				VersionConstraint: constants.ExternalProviderRandomVersion,
+			},
+			"time": {
+				Source:            "hashicorp/time",
+				VersionConstraint: constants.ExternalProviderTimeVersion,
+			},
+		},
+		Steps: []resource.TestStep{
+			{
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Creating Defender Antivirus baseline policy")
+				},
+				Config: loadAcceptanceTestTerraform("resource_15_defender_antivirus_baseline.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					func(_ *terraform.State) error {
+						testlog.WaitForConsistency("settings catalog policy", 30*time.Second)
+						time.Sleep(30 * time.Second)
+						return nil
+					},
+					check.That(resourceType+".defender_antivirus_baseline").ExistsInGraph(testResource),
+					check.That(resourceType+".defender_antivirus_baseline").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(resourceType+".defender_antivirus_baseline").Key("name").MatchesRegex(regexp.MustCompile(`^acc-test-15-defender-baseline-`)),
+					check.That(resourceType+".defender_antivirus_baseline").Key("settings_count").HasValue("9"),
+				),
+			},
+			{
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Importing Defender Antivirus baseline policy")
+				},
+				ResourceName:            resourceType + ".defender_antivirus_baseline",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"timeouts"},
+			},
+		},
+	})
+}
+
+// TestAccSettingsCatalogPolicyResource_16_FileExplorerMinimalAssignments tests minimal group assignments
+func TestAccSettingsCatalogPolicyResource_16_FileExplorerMinimalAssignments(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		CheckDestroy: destroy.CheckDestroyedAllFunc(
+			testResource,
+			resourceType,
+			30*time.Second,
+		),
+		ExternalProviders: map[string]resource.ExternalProvider{
+			"random": {
+				Source:            "hashicorp/random",
+				VersionConstraint: constants.ExternalProviderRandomVersion,
+			},
+			"time": {
+				Source:            "hashicorp/time",
+				VersionConstraint: constants.ExternalProviderTimeVersion,
+			},
+		},
+		Steps: []resource.TestStep{
+			{
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Creating File Explorer policy with minimal assignments")
+				},
+				Config: loadAcceptanceTestTerraform("resource_16_file_explorer_minimal_assignments.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					func(_ *terraform.State) error {
+						testlog.WaitForConsistency("settings catalog policy with assignments", 30*time.Second)
+						time.Sleep(30 * time.Second)
+						return nil
+					},
+					check.That(resourceType+".file_explorer_minimal_assignments").ExistsInGraph(testResource),
+					check.That(resourceType+".file_explorer_minimal_assignments").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(resourceType+".file_explorer_minimal_assignments").Key("name").MatchesRegex(regexp.MustCompile(`^acc-test-16-file-explorer-`)),
+					check.That(resourceType+".file_explorer_minimal_assignments").Key("assignments.#").HasValue("1"),
+					check.That(resourceType+".file_explorer_minimal_assignments").Key("is_assigned").HasValue("true"),
+				),
+			},
+			{
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Importing File Explorer policy")
+				},
+				ResourceName:            resourceType + ".file_explorer_minimal_assignments",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"timeouts"},
+			},
+		},
+	})
+}
+
+// TestAccSettingsCatalogPolicyResource_17_LocalPoliciesMaximalAssignments tests policy with maximal group assignments
+func TestAccSettingsCatalogPolicyResource_17_LocalPoliciesMaximalAssignments(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		CheckDestroy: destroy.CheckDestroyedAllFunc(
+			testResource,
+			resourceType,
+			30*time.Second,
+		),
+		ExternalProviders: map[string]resource.ExternalProvider{
+			"random": {
+				Source:            "hashicorp/random",
+				VersionConstraint: constants.ExternalProviderRandomVersion,
+			},
+			"time": {
+				Source:            "hashicorp/time",
+				VersionConstraint: constants.ExternalProviderTimeVersion,
+			},
+		},
+		Steps: []resource.TestStep{
+			{
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Creating Local Policies with maximal assignments")
+				},
+				Config: loadAcceptanceTestTerraform("resource_17_local_policies_maximal_assignments.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					func(_ *terraform.State) error {
+						testlog.WaitForConsistency("settings catalog policy with assignments", 30*time.Second)
+						time.Sleep(30 * time.Second)
+						return nil
+					},
+					check.That(resourceType+".local_policies_maximal").ExistsInGraph(testResource),
+					check.That(resourceType+".local_policies_maximal").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(resourceType+".local_policies_maximal").Key("name").MatchesRegex(regexp.MustCompile(`^acc-test-17-local-policies-`)),
+					check.That(resourceType+".local_policies_maximal").Key("assignments.#").HasValue("4"),
+					check.That(resourceType+".local_policies_maximal").Key("is_assigned").HasValue("true"),
+					check.That(resourceType+".local_policies_maximal").Key("settings_count").HasValue("6"),
+				),
+			},
+			{
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Importing Local Policies with maximal assignments")
+				},
+				ResourceName:            resourceType + ".local_policies_maximal",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"timeouts"},
+			},
+		},
+	})
 }

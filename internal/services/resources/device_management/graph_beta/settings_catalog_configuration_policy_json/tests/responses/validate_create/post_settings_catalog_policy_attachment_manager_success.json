@@ -1,0 +1,50 @@
+{
+  "templateReference": {
+    "templateDisplayVersion": null,
+    "templateId": "",
+    "templateFamily": "none",
+    "templateDisplayName": null
+  },
+  "lastModifiedDateTime": "2024-01-01T00:00:00Z",
+  "technologies": "mdm",
+  "settingCount": 2,
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/configurationPolicies/$entity",
+  "id": "00000000-0000-0000-0000-000000000000",
+  "priorityMetaData": null,
+  "creationSource": null,
+  "createdDateTime": "2024-01-01T00:00:00Z",
+  "platforms": "windows10",
+  "roleScopeTagIds": [
+    "0"
+  ],
+  "description": "Test policy for attachment manager settings",
+  "name": "Test Attachment Manager Policy",
+  "settings": [
+    {
+      "settingInstance": {
+        "choiceSettingValue": {
+          "value": "user_vendor_msft_policy_config_attachmentmanager_notifyantivirus_0",
+          "settingValueTemplateReference": null,
+          "children": []
+        },
+        "@odata.type": "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance",
+        "settingInstanceTemplateReference": null,
+        "settingDefinitionId": "user_vendor_msft_policy_config_attachmentmanager_notifyantivirus"
+      },
+      "id": "0"
+    },
+    {
+      "settingInstance": {
+        "choiceSettingValue": {
+          "value": "user_vendor_msft_policy_config_attachmentmanager_hidezoneinfoonproperties_1",
+          "settingValueTemplateReference": null,
+          "children": []
+        },
+        "@odata.type": "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance",
+        "settingInstanceTemplateReference": null,
+        "settingDefinitionId": "user_vendor_msft_policy_config_attachmentmanager_hidezoneinfoonproperties"
+      },
+      "id": "1"
+    }
+  ]
+}

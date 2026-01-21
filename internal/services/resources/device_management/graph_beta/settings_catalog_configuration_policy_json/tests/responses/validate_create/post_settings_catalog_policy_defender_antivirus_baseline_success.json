@@ -1,0 +1,235 @@
+{
+  "templateReference": {
+    "templateDisplayVersion": null,
+    "templateId": "",
+    "templateFamily": "none",
+    "templateDisplayName": null
+  },
+  "lastModifiedDateTime": "2024-01-01T00:00:00Z",
+  "technologies": "mdm",
+  "settingCount": 9,
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/configurationPolicies/$entity",
+  "id": "00000000-0000-0000-0000-000000000000",
+  "priorityMetaData": null,
+  "creationSource": null,
+  "createdDateTime": "2024-01-01T00:00:00Z",
+  "platforms": "windows10",
+  "roleScopeTagIds": [
+    "0"
+  ],
+  "description": "Test policy for Defender Antivirus Security Baseline with complex nesting",
+  "name": "Test Defender Antivirus Security Baseline Policy",
+  "settings": [
+    {
+      "id": "0",
+      "settingInstance": {
+        "@odata.type": "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance",
+        "settingInstanceTemplateReference": null,
+        "settingDefinitionId": "device_vendor_msft_policy_config_admx_microsoftdefenderantivirus_disableblockatfirstseen",
+        "choiceSettingValue": {
+          "value": "device_vendor_msft_policy_config_admx_microsoftdefenderantivirus_disableblockatfirstseen_1",
+          "settingValueTemplateReference": null,
+          "children": []
+        }
+      }
+    },
+    {
+      "id": "1",
+      "settingInstance": {
+        "@odata.type": "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance",
+        "settingInstanceTemplateReference": null,
+        "settingDefinitionId": "device_vendor_msft_policy_config_admx_microsoftdefenderantivirus_realtimeprotection_disableioavprotection",
+        "choiceSettingValue": {
+          "value": "device_vendor_msft_policy_config_admx_microsoftdefenderantivirus_realtimeprotection_disableioavprotection_1",
+          "settingValueTemplateReference": null,
+          "children": []
+        }
+      }
+    },
+    {
+      "id": "2",
+      "settingInstance": {
+        "@odata.type": "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance",
+        "settingInstanceTemplateReference": null,
+        "settingDefinitionId": "device_vendor_msft_policy_config_admx_microsoftdefenderantivirus_disablerealtimemonitoring",
+        "choiceSettingValue": {
+          "value": "device_vendor_msft_policy_config_admx_microsoftdefenderantivirus_disablerealtimemonitoring_0",
+          "settingValueTemplateReference": null,
+          "children": []
+        }
+      }
+    },
+    {
+      "id": "3",
+      "settingInstance": {
+        "@odata.type": "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance",
+        "settingInstanceTemplateReference": null,
+        "settingDefinitionId": "device_vendor_msft_policy_config_admx_microsoftdefenderantivirus_realtimeprotection_disablebehaviormonitoring",
+        "choiceSettingValue": {
+          "value": "device_vendor_msft_policy_config_admx_microsoftdefenderantivirus_realtimeprotection_disablebehaviormonitoring_1",
+          "settingValueTemplateReference": null,
+          "children": []
+        }
+      }
+    },
+    {
+      "id": "4",
+      "settingInstance": {
+        "@odata.type": "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance",
+        "settingInstanceTemplateReference": null,
+        "settingDefinitionId": "device_vendor_msft_policy_config_admx_microsoftdefenderantivirus_scan_disableremovabledrivescanning",
+        "choiceSettingValue": {
+          "value": "device_vendor_msft_policy_config_admx_microsoftdefenderantivirus_scan_disableremovabledrivescanning_1",
+          "settingValueTemplateReference": null,
+          "children": []
+        }
+      }
+    },
+    {
+      "id": "5",
+      "settingInstance": {
+        "@odata.type": "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance",
+        "settingInstanceTemplateReference": null,
+        "settingDefinitionId": "device_vendor_msft_policy_config_defender_cloudblocklevel",
+        "choiceSettingValue": {
+          "value": "device_vendor_msft_policy_config_defender_cloudblocklevel_2",
+          "settingValueTemplateReference": null,
+          "children": []
+        }
+      }
+    },
+    {
+      "id": "6",
+      "settingInstance": {
+        "@odata.type": "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance",
+        "settingInstanceTemplateReference": null,
+        "settingDefinitionId": "device_vendor_msft_policy_config_defender_submitsamplesconsent",
+        "choiceSettingValue": {
+          "value": "device_vendor_msft_policy_config_defender_submitsamplesconsent_1",
+          "settingValueTemplateReference": null,
+          "children": []
+        }
+      }
+    },
+    {
+      "id": "7",
+      "settingInstance": {
+        "@odata.type": "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance",
+        "settingInstanceTemplateReference": null,
+        "settingDefinitionId": "device_vendor_msft_policy_config_admx_microsoftdefenderantivirus_spynetreporting",
+        "choiceSettingValue": {
+          "value": "device_vendor_msft_policy_config_admx_microsoftdefenderantivirus_spynetreporting_1",
+          "settingValueTemplateReference": null,
+          "children": [
+            {
+              "@odata.type": "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance",
+              "settingInstanceTemplateReference": null,
+              "settingDefinitionId": "device_vendor_msft_policy_config_admx_microsoftdefenderantivirus_spynetreporting_spynetreporting",
+              "choiceSettingValue": {
+                "value": "device_vendor_msft_policy_config_admx_microsoftdefenderantivirus_spynetreporting_spynetreporting_2",
+                "settingValueTemplateReference": null,
+                "children": []
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "8",
+      "settingInstance": {
+        "@odata.type": "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance",
+        "settingInstanceTemplateReference": null,
+        "settingDefinitionId": "device_vendor_msft_policy_config_admx_microsoftdefenderantivirus_exploitguard_asr_rules",
+        "choiceSettingValue": {
+          "value": "device_vendor_msft_policy_config_admx_microsoftdefenderantivirus_exploitguard_asr_rules_1",
+          "settingValueTemplateReference": null,
+          "children": [
+            {
+              "@odata.type": "#microsoft.graph.deviceManagementConfigurationGroupSettingCollectionInstance",
+              "settingInstanceTemplateReference": null,
+              "settingDefinitionId": "device_vendor_msft_policy_config_admx_microsoftdefenderantivirus_exploitguard_asr_rules_exploitguard_asr_rules",
+              "groupSettingCollectionValue": [
+                {
+                  "settingValueTemplateReference": null,
+                  "children": [
+                    {
+                      "@odata.type": "#microsoft.graph.deviceManagementConfigurationSimpleSettingInstance",
+                      "settingInstanceTemplateReference": null,
+                      "settingDefinitionId": "device_vendor_msft_policy_config_admx_microsoftdefenderantivirus_exploitguard_asr_rules_exploitguard_asr_rules_key",
+                      "simpleSettingValue": {
+                        "@odata.type": "#microsoft.graph.deviceManagementConfigurationStringSettingValue",
+                        "value": "75668c1f-73b5-4cf0-bb93-3ecf5cb7cc84",
+                        "settingValueTemplateReference": null
+                      }
+                    },
+                    {
+                      "@odata.type": "#microsoft.graph.deviceManagementConfigurationSimpleSettingInstance",
+                      "settingInstanceTemplateReference": null,
+                      "settingDefinitionId": "device_vendor_msft_policy_config_admx_microsoftdefenderantivirus_exploitguard_asr_rules_exploitguard_asr_rules_value",
+                      "simpleSettingValue": {
+                        "@odata.type": "#microsoft.graph.deviceManagementConfigurationStringSettingValue",
+                        "value": "1",
+                        "settingValueTemplateReference": null
+                      }
+                    }
+                  ]
+                },
+                {
+                  "settingValueTemplateReference": null,
+                  "children": [
+                    {
+                      "@odata.type": "#microsoft.graph.deviceManagementConfigurationSimpleSettingInstance",
+                      "settingInstanceTemplateReference": null,
+                      "settingDefinitionId": "device_vendor_msft_policy_config_admx_microsoftdefenderantivirus_exploitguard_asr_rules_exploitguard_asr_rules_key",
+                      "simpleSettingValue": {
+                        "@odata.type": "#microsoft.graph.deviceManagementConfigurationStringSettingValue",
+                        "value": "3b576869-a4ec-4529-8536-b80a7769e899",
+                        "settingValueTemplateReference": null
+                      }
+                    },
+                    {
+                      "@odata.type": "#microsoft.graph.deviceManagementConfigurationSimpleSettingInstance",
+                      "settingInstanceTemplateReference": null,
+                      "settingDefinitionId": "device_vendor_msft_policy_config_admx_microsoftdefenderantivirus_exploitguard_asr_rules_exploitguard_asr_rules_value",
+                      "simpleSettingValue": {
+                        "@odata.type": "#microsoft.graph.deviceManagementConfigurationStringSettingValue",
+                        "value": "1",
+                        "settingValueTemplateReference": null
+                      }
+                    }
+                  ]
+                },
+                {
+                  "settingValueTemplateReference": null,
+                  "children": [
+                    {
+                      "@odata.type": "#microsoft.graph.deviceManagementConfigurationSimpleSettingInstance",
+                      "settingInstanceTemplateReference": null,
+                      "settingDefinitionId": "device_vendor_msft_policy_config_admx_microsoftdefenderantivirus_exploitguard_asr_rules_exploitguard_asr_rules_key",
+                      "simpleSettingValue": {
+                        "@odata.type": "#microsoft.graph.deviceManagementConfigurationStringSettingValue",
+                        "value": "d4f940ab-401b-4efc-aadc-ad5f3c50688a",
+                        "settingValueTemplateReference": null
+                      }
+                    },
+                    {
+                      "@odata.type": "#microsoft.graph.deviceManagementConfigurationSimpleSettingInstance",
+                      "settingInstanceTemplateReference": null,
+                      "settingDefinitionId": "device_vendor_msft_policy_config_admx_microsoftdefenderantivirus_exploitguard_asr_rules_exploitguard_asr_rules_value",
+                      "simpleSettingValue": {
+                        "@odata.type": "#microsoft.graph.deviceManagementConfigurationStringSettingValue",
+                        "value": "1",
+                        "settingValueTemplateReference": null
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

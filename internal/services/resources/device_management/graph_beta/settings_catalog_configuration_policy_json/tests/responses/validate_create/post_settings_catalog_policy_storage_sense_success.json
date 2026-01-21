@@ -1,0 +1,128 @@
+{
+  "templateReference": {
+    "templateDisplayVersion": null,
+    "templateId": "",
+    "templateFamily": "none",
+    "templateDisplayName": null
+  },
+  "lastModifiedDateTime": "2024-01-01T00:00:00Z",
+  "technologies": "mdm",
+  "settingCount": 8,
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/configurationPolicies/$entity",
+  "id": "00000000-0000-0000-0000-000000000000",
+  "priorityMetaData": null,
+  "creationSource": null,
+  "createdDateTime": "2024-01-01T00:00:00Z",
+  "platforms": "windows10",
+  "roleScopeTagIds": [
+    "0"
+  ],
+  "description": "Test policy for storage sense configuration",
+  "name": "Test Storage Sense Policy",
+  "settings": [
+    {
+      "settingInstance": {
+        "choiceSettingValue": {
+          "value": "device_vendor_msft_policy_config_storage_allowdiskhealthmodelupdates_1",
+          "settingValueTemplateReference": null,
+          "children": []
+        },
+        "@odata.type": "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance",
+        "settingInstanceTemplateReference": null,
+        "settingDefinitionId": "device_vendor_msft_policy_config_storage_allowdiskhealthmodelupdates"
+      },
+      "id": "0"
+    },
+    {
+      "settingInstance": {
+        "choiceSettingValue": {
+          "value": "device_vendor_msft_policy_config_storage_allowstoragesenseglobal_1",
+          "settingValueTemplateReference": null,
+          "children": []
+        },
+        "@odata.type": "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance",
+        "settingInstanceTemplateReference": null,
+        "settingDefinitionId": "device_vendor_msft_policy_config_storage_allowstoragesenseglobal"
+      },
+      "id": "1"
+    },
+    {
+      "settingInstance": {
+        "choiceSettingValue": {
+          "value": "device_vendor_msft_policy_config_storage_allowstoragesensetemporaryfilescleanup_1",
+          "settingValueTemplateReference": null,
+          "children": []
+        },
+        "@odata.type": "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance",
+        "settingInstanceTemplateReference": null,
+        "settingDefinitionId": "device_vendor_msft_policy_config_storage_allowstoragesensetemporaryfilescleanup"
+      },
+      "id": "2"
+    },
+    {
+      "settingInstance": {
+        "simpleSettingValue": {
+          "value": 30,
+          "settingValueTemplateReference": null,
+          "@odata.type": "#microsoft.graph.deviceManagementConfigurationIntegerSettingValue"
+        },
+        "@odata.type": "#microsoft.graph.deviceManagementConfigurationSimpleSettingInstance",
+        "settingInstanceTemplateReference": null,
+        "settingDefinitionId": "device_vendor_msft_policy_config_storage_configstoragesensecloudcontentdehydrationthreshold"
+      },
+      "id": "3"
+    },
+    {
+      "settingInstance": {
+        "simpleSettingValue": {
+          "value": 90,
+          "settingValueTemplateReference": null,
+          "@odata.type": "#microsoft.graph.deviceManagementConfigurationIntegerSettingValue"
+        },
+        "@odata.type": "#microsoft.graph.deviceManagementConfigurationSimpleSettingInstance",
+        "settingInstanceTemplateReference": null,
+        "settingDefinitionId": "device_vendor_msft_policy_config_storage_configstoragesensedownloadscleanupthreshold"
+      },
+      "id": "4"
+    },
+    {
+      "settingInstance": {
+        "simpleSettingValue": {
+          "value": 0,
+          "settingValueTemplateReference": null,
+          "@odata.type": "#microsoft.graph.deviceManagementConfigurationIntegerSettingValue"
+        },
+        "@odata.type": "#microsoft.graph.deviceManagementConfigurationSimpleSettingInstance",
+        "settingInstanceTemplateReference": null,
+        "settingDefinitionId": "device_vendor_msft_policy_config_storage_configstoragesenseglobalcadence"
+      },
+      "id": "5"
+    },
+    {
+      "settingInstance": {
+        "simpleSettingValue": {
+          "value": 30,
+          "settingValueTemplateReference": null,
+          "@odata.type": "#microsoft.graph.deviceManagementConfigurationIntegerSettingValue"
+        },
+        "@odata.type": "#microsoft.graph.deviceManagementConfigurationSimpleSettingInstance",
+        "settingInstanceTemplateReference": null,
+        "settingDefinitionId": "device_vendor_msft_policy_config_storage_configstoragesenserecyclebincleanupthreshold"
+      },
+      "id": "6"
+    },
+    {
+      "settingInstance": {
+        "choiceSettingValue": {
+          "value": "device_vendor_msft_policy_config_storage_removablediskdenywriteaccess_0",
+          "settingValueTemplateReference": null,
+          "children": []
+        },
+        "@odata.type": "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance",
+        "settingInstanceTemplateReference": null,
+        "settingDefinitionId": "device_vendor_msft_policy_config_storage_removablediskdenywriteaccess"
+      },
+      "id": "7"
+    }
+  ]
+}

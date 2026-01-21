@@ -1,0 +1,107 @@
+{
+  "templateReference": {
+    "templateDisplayVersion": null,
+    "templateId": "",
+    "templateFamily": "none",
+    "templateDisplayName": null
+  },
+  "lastModifiedDateTime": "2024-01-01T00:00:00Z",
+  "technologies": "mdm,appleRemoteManagement",
+  "settingCount": 3,
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/configurationPolicies/$entity",
+  "id": "00000000-0000-0000-0000-000000000000",
+  "priorityMetaData": null,
+  "creationSource": null,
+  "createdDateTime": "2024-01-01T00:00:00Z",
+  "platforms": "macOS",
+  "roleScopeTagIds": [
+    "0"
+  ],
+  "description": "Test policy for Office Configuration on macOS with nested group collections",
+  "name": "Test Office Configuration macOS Policy",
+  "settings": [
+    {
+      "settingInstance": {
+        "groupSettingCollectionValue": [
+          {
+            "settingValueTemplateReference": null,
+            "children": [
+              {
+                "groupSettingCollectionValue": [
+                  {
+                    "settingValueTemplateReference": null,
+                    "children": [
+                      {
+                        "simpleSettingValue": {
+                          "value": "Office Licensing Helper",
+                          "settingValueTemplateReference": null,
+                          "@odata.type": "#microsoft.graph.deviceManagementConfigurationStringSettingValue"
+                        },
+                        "@odata.type": "#microsoft.graph.deviceManagementConfigurationSimpleSettingInstance",
+                        "settingInstanceTemplateReference": null,
+                        "settingDefinitionId": "com.apple.servicemanagement_rules_item_comment"
+                      },
+                      {
+                        "choiceSettingValue": {
+                          "value": "com.apple.servicemanagement_rules_item_ruletype_0",
+                          "settingValueTemplateReference": null,
+                          "children": []
+                        },
+                        "@odata.type": "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance",
+                        "settingInstanceTemplateReference": null,
+                        "settingDefinitionId": "com.apple.servicemanagement_rules_item_ruletype"
+                      },
+                      {
+                        "simpleSettingValue": {
+                          "value": "com.microsoft.office.licensingV2.helper",
+                          "settingValueTemplateReference": null,
+                          "@odata.type": "#microsoft.graph.deviceManagementConfigurationStringSettingValue"
+                        },
+                        "@odata.type": "#microsoft.graph.deviceManagementConfigurationSimpleSettingInstance",
+                        "settingInstanceTemplateReference": null,
+                        "settingDefinitionId": "com.apple.servicemanagement_rules_item_rulevalue"
+                      }
+                    ]
+                  }
+                ],
+                "@odata.type": "#microsoft.graph.deviceManagementConfigurationGroupSettingCollectionInstance",
+                "settingInstanceTemplateReference": null,
+                "settingDefinitionId": "com.apple.servicemanagement_rules"
+              }
+            ]
+          }
+        ],
+        "@odata.type": "#microsoft.graph.deviceManagementConfigurationGroupSettingCollectionInstance",
+        "settingInstanceTemplateReference": null,
+        "settingDefinitionId": "com.apple.servicemanagement_com.apple.servicemanagement"
+      },
+      "id": "0"
+    },
+    {
+      "settingInstance": {
+        "choiceSettingValue": {
+          "value": "com.apple.managedclient.preferences_officeautosignin_true",
+          "settingValueTemplateReference": null,
+          "children": []
+        },
+        "@odata.type": "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance",
+        "settingInstanceTemplateReference": null,
+        "settingDefinitionId": "com.apple.managedclient.preferences_officeautosignin"
+      },
+      "id": "1"
+    },
+    {
+      "settingInstance": {
+        "simpleSettingValue": {
+          "value": "{{userprincipalname}}",
+          "settingValueTemplateReference": null,
+          "@odata.type": "#microsoft.graph.deviceManagementConfigurationStringSettingValue"
+        },
+        "@odata.type": "#microsoft.graph.deviceManagementConfigurationSimpleSettingInstance",
+        "settingInstanceTemplateReference": null,
+        "settingDefinitionId": "com.apple.managedclient.preferences_officeactivationemailaddress"
+      },
+      "id": "2"
+    }
+  ]
+}
