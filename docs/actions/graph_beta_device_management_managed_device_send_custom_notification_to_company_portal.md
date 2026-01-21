@@ -116,6 +116,12 @@ The following Microsoft Graph API permissions are required to use this action:
 
 ~> **Note:** This action requires both device configuration and device management write permissions as it sends notifications to managed devices.
 
+## Version History
+
+| Version | Status | Notes |
+|---------|--------|-------|
+| v0.42.0-alpha | Experimental | Added missing version history |
+
 ## Related Documentation
 
 - [Custom notifications - iOS](https://learn.microsoft.com/en-us/intune/intune-service/remote-actions/custom-notifications?pivots=ios)

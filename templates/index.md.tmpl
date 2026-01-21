@@ -8,7 +8,7 @@ description: |-
 
 The community Microsoft 365 provider allows managing environments and other resources within [Microsoft 365](https://www.microsoft.com/en-gb/microsoft-365/products-apps-services).
 
-!> This code is made available as a experimental purposes only. Features are being actively developed and may have restricted or limited functionality. Future updates may introduce breaking changes, but we follow [Semantic Versioning](https://semver.org/) to help mitigate this. The software may contain bugs, errors, or other issues that could cause service interruption or data loss. We recommend backing up your data and testing in non-production environments. Your feedback is valuable to us, so please share any issues or suggestions you encounter via GitHub issues or join our community Discord [server](https://discord.gg/Uq8zG6g7WE).
+!> This code is made available for experimental purposes only. Features are being actively developed and may have restricted or limited functionality. Future updates may introduce breaking changes, but we follow [Semantic Versioning](https://semver.org/) to help mitigate this. The software may contain bugs, errors, or other issues that could cause service interruption or data loss. We recommend backing up your data and testing in non-production environments. Your feedback is valuable to us, so please share any issues or suggestions you encounter via GitHub issues or join our community Discord [server](https://discord.gg/Uq8zG6g7WE).
 
 ## Requirements
 

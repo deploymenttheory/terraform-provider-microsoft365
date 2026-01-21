@@ -12,6 +12,12 @@ Use this data source to retrieve Microsoft Store package manifests by package id
 
 This data source is particularly useful when creating winget app resources in Intune, as it automatically extracts critical information such as bundle identifier, version, package IDs, and other metadata required for proper app configuration and management.
 
+## Version History
+
+| Version | Status | Notes |
+|---------|--------|-------|
+| v0.42.0-alpha | Experimental | Added missing version history |
+
 ## Example Usage
 
 {{ tffile "examples/data-sources/microsoft365_utility_microsoft_store_package_manifest_metadata/datasource.tf" }}

@@ -34,6 +34,9 @@ import (
 	// Graph Beta - Directory Management datasources
 	graphBetaIdentityAndAccessDirectorySettingTemplates "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/identity_and_access/graph_beta/directory_setting_templates"
 
+	// Graph Beta - Groups datasources
+	graphBetaGroupsGroup "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/groups/graph_beta/group"
+
 	// Graph Beta - Identity and Access datasources
 	graphBetaIdentityAndAccessConditionalAccessTemplate "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/identity_and_access/graph_beta/conditional_access_template"
 	graphBetaIdentityAndAccessRoleDefinitions "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/identity_and_access/graph_beta/role_definitions"
@@ -109,6 +112,9 @@ func (p *M365Provider) DataSources(ctx context.Context) []func() datasource.Data
 		graphBetaDeviceManagementWindowsUpdateCatalogItem.NewWindowsUpdateCatalogItemDataSource,
 		graphBetaDeviceManagementWindowsQualityUpdateExpeditePolicy.NewWindowsQualityUpdateExpeditePolicyDataSource,
 		graphBetaDeviceManagementWindowsUpdateRing.NewWindowsUpdateRingDataSource,
+
+		// Graph Beta - Groups datasources
+		graphBetaGroupsGroup.NewGroupDataSource,
 
 		// Graph Beta - Identity and Access datasources
 		graphBetaIdentityAndAccessConditionalAccessTemplate.NewConditionalAccessTemplateDataSource,

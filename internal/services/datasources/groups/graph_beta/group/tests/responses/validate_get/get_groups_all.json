@@ -1,0 +1,48 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#groups",
+  "value": [
+    {
+      "id": "00000000-0000-0000-0000-000000000001",
+      "displayName": "IT Security Team",
+      "description": "Security group for IT department members",
+      "mailNickname": "it-security",
+      "mailEnabled": false,
+      "securityEnabled": true,
+      "groupTypes": [],
+      "visibility": "Private",
+      "isAssignableToRole": false,
+      "createdDateTime": "2024-01-10T09:00:00Z",
+      "onPremisesSyncEnabled": null
+    },
+    {
+      "id": "00000000-0000-0000-0000-000000000002",
+      "displayName": "Finance Team",
+      "description": "Finance Department Group",
+      "mailNickname": "finance",
+      "mailEnabled": true,
+      "securityEnabled": false,
+      "groupTypes": ["Unified"],
+      "visibility": "Public",
+      "isAssignableToRole": false,
+      "mail": "finance@contoso.com",
+      "proxyAddresses": ["SMTP:finance@contoso.com"],
+      "createdDateTime": "2024-01-15T10:30:00Z",
+      "onPremisesSyncEnabled": false
+    },
+    {
+      "id": "00000000-0000-0000-0000-000000000003",
+      "displayName": "All Windows Devices",
+      "description": "Dynamic group for all Windows devices",
+      "mailNickname": "all-windows-devices",
+      "mailEnabled": false,
+      "securityEnabled": true,
+      "groupTypes": ["DynamicMembership"],
+      "visibility": "Private",
+      "isAssignableToRole": false,
+      "membershipRule": "(device.deviceOSType -eq \"Windows\")",
+      "membershipRuleProcessingState": "On",
+      "createdDateTime": "2024-02-01T14:00:00Z",
+      "onPremisesSyncEnabled": false
+    }
+  ]
+}

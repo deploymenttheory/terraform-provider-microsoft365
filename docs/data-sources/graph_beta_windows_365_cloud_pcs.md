@@ -2,7 +2,7 @@
 page_title: "microsoft365_graph_beta_windows_365_cloud_pcs Data Source - terraform-provider-microsoft365"
 subcategory: "Windows 365"
 description: |-
-  Retrieves Cloud PC devices from Microsoft Intune using the /deviceManagement/virtualEndpoint/cloudPCs endpoint. Supports filtering by all, id, display_name, user_principal_name, status, or product_type for comprehensive Cloud PC management.
+  Retrieves Cloud PCs from Microsoft Intune. Using the endpoint '/deviceManagement/virtualEndpoint/cloudPCs'. Supports filtering by all, id, display_name, user_principal_name, status, product_type, or odata.
 ---
 
 # microsoft365_graph_beta_windows_365_cloud_pcs (Data Source)

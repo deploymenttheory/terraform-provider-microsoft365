@@ -12,6 +12,12 @@ Use this data source to extract metadata from macOS PKG installer files (.pkg), 
 
 This data source is particularly useful when creating macOS PKG app resources in Intune, as it automatically extracts critical information such as bundle identifier, version, package IDs, and other metadata required for proper app configuration and management.
 
+## Version History
+
+| Version | Status | Notes |
+|---------|--------|-------|
+| v0.42.0-alpha | Experimental | Added missing version history |
+
 ## Example Usage
 
 ```terraform

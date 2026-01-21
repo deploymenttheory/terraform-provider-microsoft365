@@ -1,6 +1,6 @@
 ---
 page_title: "microsoft365_graph_beta_device_management_group_policy_value_reference Data Source - terraform-provider-microsoft365"
-subcategory: "Utility"
+subcategory: "Device Management"
 
 description: |-
   Queries Microsoft Graph API for group policy definition metadata. This utility data source retrieves detailed information about group policy definitions including class type, category path, and presentation (checkbox/setting) details based on a policy display name.
