@@ -55,9 +55,9 @@ func (a *RemoteLockManagedDeviceAction) Configure(ctx context.Context, req actio
 
 func (a *RemoteLockManagedDeviceAction) Schema(ctx context.Context, req action.SchemaRequest, resp *action.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Remotely locks managed devices using the " +
+		MarkdownDescription: "Remotely locks managed devices in Microsoft Intune using the " +
 			"`/deviceManagement/managedDevices/{managedDeviceId}/remoteLock` endpoint. " +
-			"This action immediately locks the device screen, requiring the user to enter their passcode to unlock it. " +
+			"This action is used to immediately lock the device screen, requiring the user to enter their passcode to unlock it. " +
 			"This is useful for securing lost or stolen devices, or for security compliance scenarios. " +
 			"This action supports remotely locking multiple devices in a single operation.\n\n" +
 			"**Important Notes:**\n" +

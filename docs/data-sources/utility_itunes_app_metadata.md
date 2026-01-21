@@ -3,7 +3,7 @@ page_title: "microsoft365_utility_itunes_app_metadata Data Source - terraform-pr
 subcategory: "Utility"
 
 description: |-
-  Use this data source to query the iTunes App Store API for app metadata. This data source allows you to search for apps by name and country code, returning details like bundle ID and artwork URLs.
+  Queries iOS and iPadOS app metadata from the iTunes App Store API using the https://itunes.apple.com/search endpoint. This data source is used to retrieve bundle IDs, versions, and artwork URLs for VPP app deployment.
 ---
 
 # microsoft365_utility_itunes_app_metadata
@@ -71,36 +71,3 @@ output "office_app_release_notes" {
   value = data.microsoft365_utility_itunes_app_metadata.office_us.results[0].release_notes
 }
 ```
-
-## Argument Reference
-
-* `search_term` - (Required) The search term to use when querying the iTunes App Store API.
-* `country_code` - (Required) The two-letter country code for the App Store to search (e.g., 'us', 'gb', 'jp').
-
-## Attributes Reference
-
-In addition to the arguments listed above, the following attributes are exported:
-
-* `id` - The ID of this resource.
-* `results` - A list of app results returned from the iTunes App Store API. Each result contains:
-  * `track_id` - The unique identifier for the app.
-  * `track_name` - The name of the app.
-  * `bundle_id` - The bundle identifier of the app.
-  * `artwork_url_60` - URL for the 60x60 app icon.
-  * `artwork_url_100` - URL for the 100x100 app icon.
-  * `artwork_url_512` - URL for the 512x512 app icon.
-  * `seller_name` - The name of the app's seller/developer.
-  * `primary_genre` - The primary genre of the app.
-  * `description` - The description of the app.
-  * `version` - The version of the app.
-  * `price` - The price of the app in the local currency.
-  * `formatted_price` - The formatted price of the app (e.g., 'Free', '$0.99').
-  * `release_date` - The release date of the app.
-  * `average_rating` - The average user rating of the app.
-  * `artist_name` - The name of the artist/developer.
-  * `minimum_os_version` - The minimum OS version required to run the app.
-  * `content_advisory_rating` - The content advisory rating (e.g., '4+', '12+', '17+').
-  * `is_vpp_device_based_licensed` - Whether the app supports VPP device-based licensing.
-  * `release_notes` - Notes about the latest release of the app.
-  * `currency` - The currency code for the price (e.g., 'USD', 'GBP', 'EUR').
-  * `user_rating_count` - The number of user ratings for the app. 

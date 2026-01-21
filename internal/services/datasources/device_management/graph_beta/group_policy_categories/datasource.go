@@ -43,25 +43,7 @@ func (d *GroupPolicyCategoryDataSource) Configure(ctx context.Context, req datas
 
 func (d *GroupPolicyCategoryDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: `
-This data source retrieves comprehensive information about a specific Group Policy setting by performing three sequential Microsoft Graph API calls:
-
-1. ` + "`GET /deviceManagement/groupPolicyCategories?$expand=parent,definitions&$select=id,displayName,isRoot,ingestionSource`" + ` - Retrieves all categories with their definitions
-2. ` + "`GET /deviceManagement/groupPolicyDefinitions('{id}')`" + ` - Gets detailed information about the specific policy definition  
-3. ` + "`GET /deviceManagement/groupPolicyDefinitions('{id}')/presentations`" + ` - Retrieves all presentation configurations for the policy
-
-The data source consolidates information from all three API calls into a single Terraform resource, making it easy to access category details, policy definitions, and presentation configurations (including dropdown options, text boxes, checkboxes, etc.) for a given Group Policy setting.
-
-## Permissions
-
-One of the following permissions is required to call this API. To learn more, including how to choose permissions, see [Permissions](https://docs.microsoft.com/en-us/graph/permissions-reference).
-
-|Permission type|Permissions (from least to most privileged)|
-|:---|:---|
-|Delegated (work or school account)|DeviceManagementConfiguration.Read.All, DeviceManagementConfiguration.ReadWrite.All|
-|Delegated (personal Microsoft account)|Not supported.|
-|Application|DeviceManagementConfiguration.Read.All, DeviceManagementConfiguration.ReadWrite.All|
-`,
+		MarkdownDescription: "Retrieves Group Policy categories and settings from Microsoft Intune using the `/deviceManagement/groupPolicyCategories` endpoint. This data source is used to query Group Policy definitions with their categories, presentations, and configuration details for ADMX-backed policies.",
 
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{

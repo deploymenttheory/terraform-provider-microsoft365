@@ -3,21 +3,24 @@ page_title: "microsoft365_graph_beta_device_management_linux_device_compliance_s
 subcategory: "Device Management"
 
 description: |-
-  Manages Linux device compliance scripts using the /deviceManagement/reusablePolicySettings endpoint. Linux device compliance scripts enable running shell scripts on enrolled Linux devices to validate compliance requirements and provide custom compliance assessments.
+  Manages Linux device compliance scripts using the /deviceManagement/reusablePolicySettings endpoint. This resource is used to linux device compliance scripts enable running shell scripts on enrolled Linux devices to validate compliance requirements and provide custom compliance assessments.
 ---
 
 # microsoft365_graph_beta_device_management_linux_device_compliance_script (Resource)
 
-Manages Linux device compliance scripts using the `/deviceManagement/reusablePolicySettings` endpoint. Linux device compliance scripts enable running shell scripts on enrolled Linux devices to validate compliance requirements and provide custom compliance assessments.
+Manages Linux device compliance scripts using the `/deviceManagement/reusablePolicySettings` endpoint. This resource is used to linux device compliance scripts enable running shell scripts on enrolled Linux devices to validate compliance requirements and provide custom compliance assessments.
 
 
-## API Permissions
+## Microsoft Graph API Permissions
 
-The following API permissions are required in order to use this resource.
+The following client `application` permissions are needed in order to use this resource:
 
-### Microsoft Graph
+**Required:**
+- `DeviceManagementConfiguration.ReadWrite.All`
+- `DeviceManagementConfiguration.Read.All`
 
-- **Application**: `DeviceManagementConfiguration.ReadWrite.All` , `DeviceManagementConfiguration.Read.All`
+**Optional:**
+- `None` `[N/A]`
 
 ## Example Usage
 

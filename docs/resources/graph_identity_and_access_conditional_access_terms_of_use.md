@@ -2,12 +2,12 @@
 page_title: "microsoft365_graph_identity_and_access_conditional_access_terms_of_use Resource - terraform-provider-microsoft365"
 subcategory: "Identity and Access"
 description: |-
-  Manages Microsoft 365 Terms of Use Agreements using the /agreements endpoint. Terms of use agreements allow organizations to present information that users must accept before accessing data or applications. These agreements can be used to ensure compliance with legal or regulatory requirements.
+  Manages Microsoft 365 Terms of Use Agreements using the /agreements endpoint. This resource is used to terms of use agreements allow organizations to present information that users must accept before accessing data or applications. These agreements can be used to ensure compliance with legal or regulatory requirements..
 ---
 
 # microsoft365_graph_identity_and_access_conditional_access_terms_of_use (Resource)
 
-Manages Microsoft 365 Terms of Use Agreements using the `/agreements` endpoint. Terms of use agreements allow organizations to present information that users must accept before accessing data or applications. These agreements can be used to ensure compliance with legal or regulatory requirements.
+Manages Microsoft 365 Terms of Use Agreements using the `/agreements` endpoint. This resource is used to terms of use agreements allow organizations to present information that users must accept before accessing data or applications. These agreements can be used to ensure compliance with legal or regulatory requirements..
 
 ## Microsoft Documentation
 
@@ -16,14 +16,16 @@ Manages Microsoft 365 Terms of Use Agreements using the `/agreements` endpoint. 
 - [Update conditionalAccessTermsOfUse](https://learn.microsoft.com/en-us/graph/api/agreement-update?view=graph-rest-1.0&tabs=http)
 - [Delete conditionalAccessTermsOfUse](https://learn.microsoft.com/en-us/graph/api/agreement-delete?view=graph-rest-1.0&tabs=http)
 
-## API Permissions
+## Microsoft Graph API Permissions
 
-The following API permissions are required in order to use this resource.
+The following client `application` permissions are needed in order to use this resource:
 
-### Microsoft Graph
+**Required:**
+- `DeviceManagementConfiguration.Read.All`
+- `DeviceManagementConfiguration.ReadWrite.All`
 
-- **Read**: `DeviceManagementConfiguration.Read.All`
-- **Write**: `DeviceManagementConfiguration.ReadWrite.All`
+**Optional:**
+- `None` `[N/A]`
 
 ## Version History
 

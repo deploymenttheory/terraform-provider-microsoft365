@@ -3,7 +3,7 @@ page_title: "microsoft365_graph_beta_device_management_managed_device_disable Ac
 subcategory: "Device Management"
 
 description: |-
-  Disables managed devices from Intune management using the /deviceManagement/managedDevices/{managedDeviceId}/disable and /deviceManagement/comanagedDevices/{managedDeviceId}/disable endpoints. This action disables a device's ability to interact with Intune services while maintaining its enrollment record. Disabled devices cannot receive policies, sync with Intune, or perform managed operations until re-enabled. This is useful for temporarily suspending device management without fully removing the device from Intune, such as during investigations, compliance violations, or security incidents.
+  Disables managed devices in Microsoft Intune using the /deviceManagement/managedDevices/{managedDeviceId}/disable and /deviceManagement/comanagedDevices/{managedDeviceId}/disable endpoints. This action is used to disable devices from Intune management. This action disables a device's ability to interact with Intune services while maintaining its enrollment record. Disabled devices cannot receive policies, sync with Intune, or perform managed operations until re-enabled. This is useful for temporarily suspending device management without fully removing the device from Intune, such as during investigations, compliance violations, or security incidents.
   Important Notes:
   Device remains enrolled but cannot sync or receive policiesManagement operations are suspendedDevice can be re-enabled laterLess permanent than retire or wipeUseful for temporary suspensionsSecurity and compliance enforcement
   Use Cases:
@@ -15,7 +15,7 @@ description: |-
 
 # microsoft365_graph_beta_device_management_managed_device_disable (Action)
 
-Disables managed devices from Intune management using the `/deviceManagement/managedDevices/{managedDeviceId}/disable` and `/deviceManagement/comanagedDevices/{managedDeviceId}/disable` endpoints. This action disables a device's ability to interact with Intune services while maintaining its enrollment record. Disabled devices cannot receive policies, sync with Intune, or perform managed operations until re-enabled. This is useful for temporarily suspending device management without fully removing the device from Intune, such as during investigations, compliance violations, or security incidents.
+Disables managed devices in Microsoft Intune using the `/deviceManagement/managedDevices/{managedDeviceId}/disable` and `/deviceManagement/comanagedDevices/{managedDeviceId}/disable` endpoints. This action is used to disable devices from Intune management. This action disables a device's ability to interact with Intune services while maintaining its enrollment record. Disabled devices cannot receive policies, sync with Intune, or perform managed operations until re-enabled. This is useful for temporarily suspending device management without fully removing the device from Intune, such as during investigations, compliance violations, or security incidents.
 
 **Important Notes:**
 - Device remains enrolled but cannot sync or receive policies
@@ -48,14 +48,16 @@ Disables managed devices from Intune management using the `/deviceManagement/man
 - [Remote actions in Microsoft Intune](https://learn.microsoft.com/en-us/mem/intune/remote-actions/device-management)
 - [Device compliance in Intune](https://learn.microsoft.com/en-us/mem/intune/protect/device-compliance-get-started)
 
-## API Permissions
+## Microsoft Graph API Permissions
 
-The following API permissions are required in order to use this action.
+The following client `application` permissions are needed in order to use this action:
 
-### Microsoft Graph
+**Required:**
+- `DeviceManagementConfiguration.Read.All`
+- `DeviceManagementManagedDevices.Read.All`
 
-- **Application**: `DeviceManagementConfiguration.Read.All`, `DeviceManagementManagedDevices.Read.All`
-- **Delegated**: `DeviceManagementConfiguration.Read.All`, `DeviceManagementManagedDevices.Read.All`
+**Optional:**
+- `None` `[N/A]`
 
 ## Version History
 
@@ -64,57 +66,6 @@ The following API permissions are required in order to use this action.
 | v0.33.0-alpha | Experimental | Initial release |
 | v0.40.0-alpha | Experimental | Example fixes and refactored sync progress logic |
 
-
-## Notes
-
-### Platform Compatibility
-
-| Platform | Support | Requirements |
-|----------|---------|--------------|
-| **Windows** | ✅ Full Support | Enrolled in Intune |
-| **macOS** | ✅ Full Support | Enrolled in Intune |
-| **iOS/iPadOS** | ✅ Full Support | Enrolled in Intune |
-| **Android** | ✅ Full Support | Enrolled in Intune |
-
-### What is Device Disable?
-
-Device Disable is an action that:
-- Temporarily suspends a device's ability to interact with Intune
-- Prevents the device from syncing with Intune services
-- Blocks policy application and updates
-- Maintains the device's enrollment record in Intune
-- Preserves all user data on the device
-- Can be reversed by re-enabling the device
-- Less permanent than retire or wipe actions
-
-### Disable vs Other Management Actions
-
-| Action | Sync Blocked | Policy Blocked | Enrollment Maintained | Data Preserved | Reversible |
-|--------|--------------|----------------|----------------------|----------------|------------|
-| **Disable** | ✅ Yes | ✅ Yes | ✅ Yes | ✅ Yes | ✅ Yes (re-enable) |
-| **Deprovision** | ❌ No | ✅ Yes | ✅ Yes | ✅ Yes | ⚠️ Partial (re-enroll) |
-| **Retire** | ✅ Yes | ✅ Yes | ❌ No | ✅ Yes | ❌ No (new enrollment) |
-| **Wipe** | ✅ Yes | ✅ Yes | ❌ No | ❌ No | ❌ No (factory reset) |
-
-### When to Disable Devices
-
-- **Security Incidents**: Suspected device compromise requiring immediate isolation
-- **Compliance Violations**: Devices failing to meet compliance requirements
-- **Temporary Quarantine**: Investigation of device or user issues
-- **Policy Troubleshooting**: Preventing policy application during investigation
-- **Management Suspension**: Temporary suspension of management operations
-- **Compliance Enforcement**: Enforcing security policies through device suspension
-
-### What Happens When Device is Disabled
-
-- Device is marked as disabled in Intune
-- Device cannot sync with Intune services
-- New policies and updates are not applied
-- Existing policies on device remain in effect
-- Device enrollment record is maintained
-- User can continue to use the device locally
-- All user data and applications remain intact
-- Device can be re-enabled to restore management
 
 ## Example Usage
 

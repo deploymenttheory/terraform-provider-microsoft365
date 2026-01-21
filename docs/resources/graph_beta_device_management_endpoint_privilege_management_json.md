@@ -3,25 +3,27 @@ page_title: "microsoft365_graph_beta_device_management_endpoint_privilege_manage
 subcategory: "Device Management"
 
 description: |-
-  Manages Endpoint Privilege Management policies using the /deviceManagement/configurationPolicies endpoint. EPM policies control elevation settings and rules for Windows devices, allowing administrators to grant temporary administrative privileges to standard users for specific applications or processes without compromising overall security posture.
+  Manages Endpoint Privilege Management policies using the /deviceManagement/configurationPolicies endpoint. This resource is used to ePM policies control elevation settings and rules for Windows devices, allowing administrators to grant temporary administrative privileges to standard users for specific applications or processes without compromising overall security posture.
 ---
 
 # microsoft365_graph_beta_device_management_endpoint_privilege_management_json (Resource)
 
-Manages Endpoint Privilege Management policies using the `/deviceManagement/configurationPolicies` endpoint. EPM policies control elevation settings and rules for Windows devices, allowing administrators to grant temporary administrative privileges to standard users for specific applications or processes without compromising overall security posture.
+Manages Endpoint Privilege Management policies using the `/deviceManagement/configurationPolicies` endpoint. This resource is used to ePM policies control elevation settings and rules for Windows devices, allowing administrators to grant temporary administrative privileges to standard users for specific applications or processes without compromising overall security posture.
 
 ## Microsoft Documentation
 
 - [deviceManagementConfigurationPolicy resource type](https://learn.microsoft.com/en-us/graph/api/resources/intune-deviceconfigv2-devicemanagementconfigurationpolicy?view=graph-rest-beta)
 - [Create deviceManagementConfigurationPolicy](https://learn.microsoft.com/en-us/graph/api/intune-deviceconfigv2-devicemanagementconfigurationpolicy-create?view=graph-rest-beta)
 
-## API Permissions
+## Microsoft Graph API Permissions
 
-The following API permissions are required in order to use this resource.
+The following client `application` permissions are needed in order to use this resource:
 
-### Microsoft Graph
+**Required:**
+- `DeviceManagementConfiguration.ReadWrite.All`
 
-- **Application**: `DeviceManagementConfiguration.ReadWrite.All`
+**Optional:**
+- `None` `[N/A]`
 
 ## Version History
 

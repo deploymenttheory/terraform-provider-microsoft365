@@ -51,8 +51,7 @@ func (d *MobileAppRelationshipDataSource) Configure(ctx context.Context, req dat
 // Schema defines the schema for the data source
 func (d *MobileAppRelationshipDataSource) Schema(ctx context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Retrieves mobile application relationships from Microsoft Intune using the `/deviceAppManagement/mobileAppRelationships` endpoint. " +
-			"This data source enables querying app relationships such as parent/child dependencies and app supersedence with advanced filtering capabilities for application relationship discovery.",
+		MarkdownDescription: "Retrieves mobile app relationships from Microsoft Intune using the `/deviceAppManagement/mobileApps/{id}/relationships` endpoint. This data source is used to query app dependencies and supersedence relationships for deployment planning.",
 		Attributes: map[string]schema.Attribute{
 			"filter_type": schema.StringAttribute{
 				Required:            true,

@@ -3,26 +3,31 @@ page_title: "microsoft365_graph_beta_device_and_app_management_office_suite_app 
 subcategory: "Device and App Management"
 
 description: |-
-  Manages Microsoft 365 Apps (Office Suite) applications using the /deviceAppManagement/mobileApps endpoint.Office Suite Apps enable deployment of Microsoft 365 office applications with configuration options including app exclusions, update channels, localization settings, and shared computer activation for enterprise environments. Learn more here 'https://learn.microsoft.com/en-us/intune/intune-service/apps/apps-add-office365'
+  Manages Microsoft 365 Apps (Office Suite) applications using the /deviceAppManagement/mobileApps endpoint. This resource is used to learn more here 'https://learn.microsoft.com/en-us/intune/intune-service/apps/apps-add-office365'.
 ---
 
 # microsoft365_graph_beta_device_and_app_management_office_suite_app (Resource)
 
-Manages Microsoft 365 Apps (Office Suite) applications using the `/deviceAppManagement/mobileApps` endpoint.Office Suite Apps enable deployment of Microsoft 365 office applications with configuration options including app exclusions, update channels, localization settings, and shared computer activation for enterprise environments. Learn more here 'https://learn.microsoft.com/en-us/intune/intune-service/apps/apps-add-office365'
+Manages Microsoft 365 Apps (Office Suite) applications using the `/deviceAppManagement/mobileApps` endpoint. This resource is used to learn more here 'https://learn.microsoft.com/en-us/intune/intune-service/apps/apps-add-office365'.
 
 ## Microsoft Documentation
 
 - [office suite app resource type](https://learn.microsoft.com/en-us/graph/api/resources/intune-apps-officesuiteapp?view=graph-rest-beta)
-- [Create office suite app](https://learn.microsoft.com/en-us/graph/api/intune-apps-officesuiteapp-create?view=graph-rest-beta)
 - [Office Deployment Tool Configuration Options](https://learn.microsoft.com/en-us/microsoft-365-apps/deploy/office-deployment-tool-configuration-options)
+- [Create office suite app](https://learn.microsoft.com/en-us/graph/api/intune-apps-officesuiteapp-create?view=graph-rest-beta)
+- [Read office suite app](https://learn.microsoft.com/en-us/graph/api/intune-apps-officesuiteapp-get?view=graph-rest-beta)
+- [Update office suite app](https://learn.microsoft.com/en-us/graph/api/intune-apps-officesuiteapp-update?view=graph-rest-beta)
+- [Delete office suite app](https://learn.microsoft.com/en-us/graph/api/intune-apps-officesuiteapp-delete?view=graph-rest-beta)
 
-## API Permissions
+## Microsoft Graph API Permissions
 
-The following API permissions are required in order to use this resource.
+The following client `application` permissions are needed in order to use this resource:
 
-### Microsoft Graph
+**Required:**
+- `DeviceManagementApps.ReadWrite.All`
 
-- **Application**: `DeviceManagementApps.ReadWrite.All`
+**Optional:**
+- `None` `[N/A]`
 
 ## Version History
 

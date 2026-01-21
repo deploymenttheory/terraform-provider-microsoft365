@@ -2,15 +2,15 @@
 page_title: "microsoft365_graph_beta_identity_and_access_custom_security_attribute_definition Resource - terraform-provider-microsoft365"
 subcategory: "Identity and Access"
 description: |-
-  Manages Microsoft Entra custom security attribute definitions using the /directory/customSecurityAttributeDefinitions endpoint. Custom security attribute definitions define the structure and behavior of custom security attributes that can be assigned to users, groups, and other directory objects.
-  Note: Custom security attribute definitions cannot be deleted once created. When removed from Terraform configuration, the resource will be deactivated by setting its status to 'Deprecated' and then removed from Terraform state. The attribute definition will remain in Microsoft Entra in a deprecated state.
+  Manages Microsoft Entra custom security attribute definitions using the /directory/customSecurityAttributeDefinitions endpoint. This resource is used to custom security attribute definitions define the structure and behavior of custom security attributes that can be assigned to users, groups, and other directory objects.
+  Note: Custom security attribute definitions cannot be deleted once created. When removed from Terraform configuration, the resource will be deactivated by setting its status to 'Deprecated' and then removed from Terraform state. The attribute definition will remain in Microsoft Entra in a deprecated state..
 ---
 
 # microsoft365_graph_beta_identity_and_access_custom_security_attribute_definition (Resource)
 
-Manages Microsoft Entra custom security attribute definitions using the `/directory/customSecurityAttributeDefinitions` endpoint. Custom security attribute definitions define the structure and behavior of custom security attributes that can be assigned to users, groups, and other directory objects.
+Manages Microsoft Entra custom security attribute definitions using the `/directory/customSecurityAttributeDefinitions` endpoint. This resource is used to custom security attribute definitions define the structure and behavior of custom security attributes that can be assigned to users, groups, and other directory objects.
 
-**Note:** Custom security attribute definitions cannot be deleted once created. When removed from Terraform configuration, the resource will be deactivated by setting its status to 'Deprecated' and then removed from Terraform state. The attribute definition will remain in Microsoft Entra in a deprecated state.
+**Note:** Custom security attribute definitions cannot be deleted once created. When removed from Terraform configuration, the resource will be deactivated by setting its status to 'Deprecated' and then removed from Terraform state. The attribute definition will remain in Microsoft Entra in a deprecated state..
 
 ## Microsoft Documentation
 
@@ -18,13 +18,16 @@ Manages Microsoft Entra custom security attribute definitions using the `/direct
 - [Create customSecurityAttributeDefinition](https://learn.microsoft.com/en-us/graph/api/directory-post-customsecurityattributedefinitions?view=graph-rest-beta&tabs=http)
 - [Update customSecurityAttributeDefinition](https://learn.microsoft.com/en-us/graph/api/customsecurityattributedefinition-update?view=graph-rest-beta&tabs=http)
 
-## API Permissions
+## Microsoft Graph API Permissions
 
-The following API permissions are required in order to use this resource.
+The following client `application` permissions are needed in order to use this resource:
 
-### Microsoft Graph
+**Required:**
+- `CustomSecAttributeDefinition.Read.All`
+- `CustomSecAttributeDefinition.ReadWrite.All`
 
-- **Application**: `CustomSecAttributeDefinition.Read.All`, `CustomSecAttributeDefinition.ReadWrite.All`
+**Optional:**
+- `None` `[N/A]`
 
 ## Version History
 

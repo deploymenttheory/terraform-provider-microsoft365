@@ -71,9 +71,7 @@ func (r *WindowsBackupAndRestoreResource) ImportState(ctx context.Context, req r
 // Schema returns the schema for the resource.
 func (r *WindowsBackupAndRestoreResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Manages Windows Backup and Restore device enrollment configuration in Microsoft Intune using the `/deviceManagement/deviceEnrollmentConfigurations` " +
-			"endpoint. This configuration controls the Windows Restore feature for device enrollment. " +
-			"Learn more here: 'https://learn.microsoft.com/en-us/windows/configuration/windows-backup/?tabs=intune'.",
+		MarkdownDescription: "Manages Windows Backup and Restore device enrollment configuration using the `/deviceManagement/deviceEnrollmentConfigurations` endpoint. This resource is used to configuration controls the Windows Restore feature for device enrollment. Learn more here: 'https://learn.microsoft.com/en-us/windows/configuration/windows-backup/?tabs=intune'..",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed: true,

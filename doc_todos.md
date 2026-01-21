@@ -10,12 +10,12 @@
 - ✅ **Issue 1.1**: Inconsistent Section Presence (Version History) - 31 templates updated
 - ✅ **Issue 1.3**: Frontmatter Formatting Inconsistency - 9 templates fixed
 - ✅ **Issue 1.4**: Duplicate Description Content - 5 templates fixed
+- ✅ **Issue 1.5**: API Permissions Formatting Variations - 207 templates standardized
 
-**Total Templates Updated:** 45
+**Total Templates Updated:** 252
 
 **Remaining Issues:**
 - ⏳ Issue 1.2: "Important Notes" Section Inconsistency
-- ⏳ Issue 1.5: API Permissions Formatting Variations
 - ⏳ Issue 1.6: Schema Markdown Fallback Logic
 - ⏳ Issue 1.7: Warning Banner Inconsistency
 - ⏳ Issue 1.8: Example Usage Section Structure
@@ -168,32 +168,49 @@ description: |-
 
 ---
 
-### 1.5 API Permissions Formatting Variations
+### 1.5 API Permissions Formatting Variations ✅ COMPLETED
 
 **Issue**: API permissions section has minor inconsistencies in wording.
 
-**Evidence**:
+**STATUS: COMPLETED - 2026-01-21**
 
-**Resources**:
+**Templates Updated**: 207 total
+- ✅ 117 resource templates
+- ✅ 32 data source templates (13 utility/graph data sources without API permissions sections)
+- ✅ 40 action templates (3 actions without API permissions sections)
+- ✅ 1 list resource template
+- ✅ 1 ephemeral resource template
+
+**Approved Standard Format**:
 ```markdown
-The following API permissions are required in order to use this resource.
+## Microsoft Graph API Permissions
+
+The following client `application` permissions are needed in order to use this {{.Type | lower}}:
+
+**Required:**
+- `Permission.ReadWrite.All`
+
+**Optional:**
+- `Permission.Read.All` `[Description of use case]`
+- `None` `[N/A]`
 ```
 
-**Data Sources** (mixed):
-```markdown
-The following API permissions are required in order to use this data source.
-The following API permissions are required for data source access.
-```
+**Key Changes Implemented**:
+- ✅ Header: Changed `## API Permissions` → `## Microsoft Graph API Permissions`
+- ✅ Removed redundant `### Microsoft Graph` subheading (100% removal)
+- ✅ Updated intro: "The following client `application` permissions are needed in order to use this {{.Type | lower}}:"
+- ✅ Structure: Added **Required:** and **Optional:** sections
+- ✅ Format: Use inline code style for use case descriptions: `` `[Description]` ``
+- ✅ Variable: Use `{{.Type | lower}}` for dynamic type names (works for all template types)
+- ✅ Application-only: Removed ALL delegated permissions (provider only supports machine identity)
+- ✅ Multi-line permissions: Converted comma-separated permissions to individual bullet points
+- ✅ Fixed ephemeral resource bug: Changed "data source" → "ephemeral resource"
 
-**Actions**:
-```markdown
-The following API permissions are required in order to use this action.
-The following API permissions are required for action execution.
-```
-
-**Impact**: Minor inconsistency affects professional appearance.
-
-**Recommendation**: Standardize intro text per documentation type.
+**Impact**:
+- Complete standardization across all template types
+- Eliminated confusion about delegated permissions (no longer supported)
+- Consistent, scannable format for all API permission documentation
+- Dynamic type name handling future-proofs against new template types
 
 ---
 

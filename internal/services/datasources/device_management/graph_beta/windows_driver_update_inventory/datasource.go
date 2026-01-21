@@ -48,7 +48,7 @@ func (d *WindowsDriverUpdateInventoryDataSource) Configure(ctx context.Context, 
 // Schema defines the schema for the data source
 func (d *WindowsDriverUpdateInventoryDataSource) Schema(ctx context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Retrieves information about a Windows Driver Update Inventory in Microsoft Intune.",
+		MarkdownDescription: "Retrieves Windows driver update inventory from Microsoft Intune using the `/deviceManagement/windowsDriverUpdateProfiles/{id}/driverInventories` endpoint. This data source is used to query available driver updates within a specific update profile.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Optional:            true,

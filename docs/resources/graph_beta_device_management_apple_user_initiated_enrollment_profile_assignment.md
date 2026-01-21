@@ -15,13 +15,15 @@ Manages Apple User Initiated Enrollment Profile Assignments in Microsoft Intune.
 - [appleUserInitiatedEnrollmentProfileAssignment resource type](https://learn.microsoft.com/en-us/graph/api/resources/intune-enrollment-appleuserinitiatedenrollmentprofileassignment?view=graph-rest-beta)
 - [Create appleUserInitiatedEnrollmentProfileAssignment](https://learn.microsoft.com/en-us/graph/api/intune-enrollment-appleuserinitiatedenrollmentprofile-post-assignments?view=graph-rest-beta)
 
-## API Permissions
+## Microsoft Graph API Permissions
 
-The following API permissions are required in order to use this resource.
+The following client `application` permissions are needed in order to use this resource:
 
-### Microsoft Graph
+**Required:**
+- `DeviceManagementServiceConfig.ReadWrite.All`
 
-- **Application**: `DeviceManagementServiceConfig.ReadWrite.All`
+**Optional:**
+- `None` `[N/A]`
 
 ## Version History
 

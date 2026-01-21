@@ -2,15 +2,15 @@
 page_title: "microsoft365_graph_beta_identity_and_access_attribute_set Resource - terraform-provider-microsoft365"
 subcategory: "Identity and Access"
 description: |-
-  Manages Microsoft Entra custom security attribute sets using the /directory/attributeSets endpoint. Attribute sets provide a way to organize and group custom security attributes within a tenant, allowing administrators to define collections of related attributes with configurable limits.
-  Note: Attribute sets cannot be deleted once created. When removed from Terraform configuration, the resource will only be removed from Terraform state but will remain in Microsoft Entra.
+  Manages Microsoft Entra custom security attribute sets using the /directory/attributeSets endpoint. This resource is used to attribute sets provide a way to organize and group custom security attributes within a tenant, allowing administrators to define collections of related attributes with configurable limits.
+  Note: Attribute sets cannot be deleted once created. When removed from Terraform configuration, the resource will only be removed from Terraform state but will remain in Microsoft Entra..
 ---
 
 # microsoft365_graph_beta_identity_and_access_attribute_set (Resource)
 
-Manages Microsoft Entra custom security attribute sets using the `/directory/attributeSets` endpoint. Attribute sets provide a way to organize and group custom security attributes within a tenant, allowing administrators to define collections of related attributes with configurable limits.
+Manages Microsoft Entra custom security attribute sets using the `/directory/attributeSets` endpoint. This resource is used to attribute sets provide a way to organize and group custom security attributes within a tenant, allowing administrators to define collections of related attributes with configurable limits.
 
-**Note:** Attribute sets cannot be deleted once created. When removed from Terraform configuration, the resource will only be removed from Terraform state but will remain in Microsoft Entra.
+**Note:** Attribute sets cannot be deleted once created. When removed from Terraform configuration, the resource will only be removed from Terraform state but will remain in Microsoft Entra..
 
 ## Microsoft Documentation
 
@@ -18,13 +18,16 @@ Manages Microsoft Entra custom security attribute sets using the `/directory/att
 - [Create attributeSet](https://learn.microsoft.com/en-us/graph/api/directory-post-attributesets?view=graph-rest-beta&tabs=http)
 - [Update attributeSet](https://learn.microsoft.com/en-us/graph/api/attributeset-update?view=graph-rest-beta&tabs=http)
 
-## API Permissions
+## Microsoft Graph API Permissions
 
-The following API permissions are required in order to use this resource.
+The following client `application` permissions are needed in order to use this resource:
 
-### Microsoft Graph
+**Required:**
+- `CustomSecAttributeDefinition.Read.All`
+- `CustomSecAttributeDefinition.ReadWrite.All`
 
-- **Application**: `CustomSecAttributeDefinition.Read.All`, `CustomSecAttributeDefinition.ReadWrite.All`
+**Optional:**
+- `None` `[N/A]`
 
 ## Version History
 

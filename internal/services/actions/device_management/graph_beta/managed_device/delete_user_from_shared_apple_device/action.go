@@ -53,11 +53,12 @@ func (a *DeleteUserFromSharedAppleDeviceAction) Configure(ctx context.Context, r
 
 func (a *DeleteUserFromSharedAppleDeviceAction) Schema(ctx context.Context, req action.SchemaRequest, resp *action.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Deletes a user and their cached data from Shared iPad devices using the " +
+		MarkdownDescription: "Deletes a user and their cached data from Shared iPad devices in Microsoft Intune using the " +
 			"`/deviceManagement/managedDevices/{managedDeviceId}/deleteUserFromSharedAppleDevice` and " +
 			"`/deviceManagement/comanagedDevices/{managedDeviceId}/deleteUserFromSharedAppleDevice` endpoints. " +
-			"This action permanently removes the specified user's account and all associated cached data from " +
-			"the Shared iPad, freeing up storage space for other users.\n\n" +
+			"This action is used to permanently remove specified user accounts and associated cached data from Shared iPads, freeing up storage space. " +
+			"The action permanently removes the specified user's account and all associated cached data from " +
+			"the Shared iPad.\n\n" +
 			"**What This Action Does:**\n" +
 			"- Permanently deletes user from Shared iPad device roster\n" +
 			"- Removes all cached user data (documents, photos, app data)\n" +
@@ -87,8 +88,15 @@ func (a *DeleteUserFromSharedAppleDeviceAction) Schema(ctx context.Context, req 
 							},
 						},
 						"user_principal_name": schema.StringAttribute{
-							Required:            true,
-							MarkdownDescription: "The user principal name (UPN) to delete from the device.",
+							Required: true,
+							MarkdownDescription: "The user principal name (UPN) to delete from the device. " +
+								"Example: user@domain.com",
+							Validators: []validator.String{
+								stringvalidator.RegexMatches(
+									regexp.MustCompile(constants.UserPrincipalNameRegex),
+									"must be a valid User Principal Name format (e.g., user@domain.com)",
+								),
+							},
 						},
 					},
 				},
@@ -109,8 +117,15 @@ func (a *DeleteUserFromSharedAppleDeviceAction) Schema(ctx context.Context, req 
 							},
 						},
 						"user_principal_name": schema.StringAttribute{
-							Required:            true,
-							MarkdownDescription: "The user principal name (UPN) to delete from the device.",
+							Required: true,
+							MarkdownDescription: "The user principal name (UPN) to delete from the device. " +
+								"Example: user@domain.com",
+							Validators: []validator.String{
+								stringvalidator.RegexMatches(
+									regexp.MustCompile(constants.UserPrincipalNameRegex),
+									"must be a valid User Principal Name format (e.g., user@domain.com)",
+								),
+							},
 						},
 					},
 				},

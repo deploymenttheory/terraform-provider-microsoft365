@@ -51,8 +51,7 @@ func (d *WindowsQualityUpdateExpeditePolicyDataSource) Configure(ctx context.Con
 // Schema defines the schema for the data source
 func (d *WindowsQualityUpdateExpeditePolicyDataSource) Schema(ctx context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Retrieves Windows Quality Update Expedite Policies from Microsoft Intune with explicit filtering options. " +
-			"These policies control the expedited deployment of quality updates to Windows devices.",
+		MarkdownDescription: "Retrieves Windows quality update expedite policies from Microsoft Intune using the `/deviceManagement/windowsQualityUpdatePolicies` endpoint. This data source is used to query policies for accelerated deployment of critical security updates.",
 		Attributes: map[string]schema.Attribute{
 			"filter_type": schema.StringAttribute{
 				Required:            true,

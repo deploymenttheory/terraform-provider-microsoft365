@@ -15,13 +15,15 @@ Manages a Microsoft Teams Meeting Policy using PowerShell cmdlets. The CsTeamsMe
 - [Set CsTeamsMeetingPolicy](https://learn.microsoft.com/en-us/powershell/module/teams/set-csteamsmeetingpolicy?view=teams-ps)
 - [New CsTeamsMeetingPolicy](https://learn.microsoft.com/en-us/powershell/module/teams/new-csteamsmeetingpolicy?view=teams-ps)
 
-## API Permissions
+## Microsoft Graph API Permissions
 
-The following API permissions are required in order to use this resource.
+The following client `application` permissions are needed in order to use this resource:
 
-### Microsoft Teams
+**Required:**
+- `TeamsAdministration.ReadWrite.All`
 
-- **Application**: `TeamsAdministration.ReadWrite.All`
+**Optional:**
+- `None` `[N/A]`
 
 ## Version History
 

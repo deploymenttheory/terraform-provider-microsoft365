@@ -59,9 +59,9 @@ func (a *WipeManagedDeviceAction) Configure(ctx context.Context, req action.Conf
 
 func (a *WipeManagedDeviceAction) Schema(ctx context.Context, req action.SchemaRequest, resp *action.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Wipes managed devices from Microsoft Intune using the " +
+		MarkdownDescription: "Wipes managed devices in Microsoft Intune using the " +
 			"`/deviceManagement/managedDevices/{managedDeviceId}/wipe` endpoint. " +
-			"This action performs a factory reset, removing all data (company and personal) from the device. " +
+			"This action is used to perform a factory reset, removing all data (company and personal) from the device. " +
 			"The device is returned to its out-of-box state and removed from Intune management. " +
 			"This action supports wiping multiple devices in a single operation.\n\n" +
 			"**Important Notes:**\n" +

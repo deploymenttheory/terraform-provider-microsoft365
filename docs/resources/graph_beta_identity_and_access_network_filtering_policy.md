@@ -2,27 +2,31 @@
 page_title: "microsoft365_graph_beta_identity_and_access_network_filtering_policy Resource - terraform-provider-microsoft365"
 subcategory: "Identity and Access"
 description: |-
-  Manages Microsoft 365 Filtering Policies using the /networkAccess/filteringPolicies endpoint. Filtering policies control network access based on specific rules and conditions.
+  Manages Microsoft 365 Filtering Policies using the /networkAccess/filteringPolicies endpoint. This resource is used to filtering policies control network access based on specific rules and conditions.
 ---
 
 # microsoft365_graph_beta_identity_and_access_network_filtering_policy (Resource)
 
-Manages Microsoft 365 Filtering Policies using the `/networkAccess/filteringPolicies` endpoint. Filtering policies control network access based on specific rules and conditions.
+Manages Microsoft 365 Filtering Policies using the `/networkAccess/filteringPolicies` endpoint. This resource is used to filtering policies control network access based on specific rules and conditions.
 
 ## Microsoft Documentation
 
 - [filteringPolicy resource type](https://learn.microsoft.com/en-us/graph/api/resources/networkaccess-filteringpolicy?view=graph-rest-beta)
 - [Create filteringPolicy](https://learn.microsoft.com/en-us/graph/api/networkaccess-filteringpolicy-post-policyrules?view=graph-rest-beta&tabs=http)
+- [Read filteringPolicy](https://learn.microsoft.com/en-us/graph/api/networkaccess-filteringpolicy-get?view=graph-rest-beta)
 - [Update filteringPolicy](https://learn.microsoft.com/en-us/graph/api/networkaccess-filteringprofile-update?view=graph-rest-beta)
 - [Delete filteringPolicy](https://learn.microsoft.com/en-us/graph/api/networkaccess-filteringpolicylink-delete-policy?view=graph-rest-beta&tabs=http)
 
-## API Permissions
+## Microsoft Graph API Permissions
 
-The following API permissions are required in order to use this resource.
+The following client `application` permissions are needed in order to use this resource:
 
-### Microsoft Graph
+**Required:**
+- `Policy.ReadWrite.ConditionalAccess`
+- `Policy.Read.All`
 
-- **Application**: `Policy.ReadWrite.ConditionalAccess`, `Policy.Read.All`
+**Optional:**
+- `None` `[N/A]`
 
 ## Version History
 

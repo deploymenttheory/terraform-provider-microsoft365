@@ -3,26 +3,28 @@ page_title: "microsoft365_graph_device_management_device_configuration_assignmen
 subcategory: "Device Management"
 
 description: |-
-  Manages device configuration assignments using the /deviceManagement/deviceConfigurations/{deviceConfigurationId}/assignments endpoint. This resource controls assignments for device configurations.
+  Manages device configuration assignments using the /deviceManagement/deviceConfigurations/{deviceConfigurationId}/assignments endpoint. This resource is used to controls assignments for device configurations.
 ---
 
 # microsoft365_graph_device_management_device_configuration_assignment (Resource)
 
-Manages device configuration assignments using the `/deviceManagement/deviceConfigurations/{deviceConfigurationId}/assignments` endpoint. This resource controls assignments for device configurations.
+Manages device configuration assignments using the `/deviceManagement/deviceConfigurations/{deviceConfigurationId}/assignments` endpoint. This resource is used to controls assignments for device configurations.
 
 ## Microsoft Documentation
 
 - [deviceConfigurationAssignment resource type](https://learn.microsoft.com/en-us/graph/api/resources/intune-deviceconfig-deviceconfigurationassignment?view=graph-rest-1.0)
 - [Create deviceConfigurationAssignment](https://learn.microsoft.com/en-us/graph/api/intune-deviceconfig-deviceconfigurationassignment-create?view=graph-rest-1.0)
 
-## API Permissions
+## Microsoft Graph API Permissions
 
-The following API permissions are required in order to use this resource.
+The following client `application` permissions are needed in order to use this resource:
 
-### Microsoft Graph
+**Required:**
+- `DeviceManagementConfiguration.Read.All`
+- `DeviceManagementConfiguration.ReadWrite.All`
 
-- **Read**: `DeviceManagementConfiguration.Read.All`
-- **Write**: `DeviceManagementConfiguration.ReadWrite.All`
+**Optional:**
+- `None` `[N/A]`
 
 ## Version History
 

@@ -3,12 +3,12 @@ page_title: "microsoft365_graph_beta_device_management_aosp_device_owner_complia
 subcategory: "Device Management"
 
 description: |-
-  Manages AOSP (Android Open Source Project) device owner compliance policies in Microsoft Intune using the /deviceManagement/deviceCompliancePolicies endpoint. Device compliance policies define rules and settings that devices must meet to be considered compliant with organizational security requirements.
+  Manages AOSP (Android Open Source Project) device owner compliance policies using the /deviceManagement/deviceCompliancePolicies endpoint. This resource is used to device compliance policies define rules and settings that devices must meet to be considered compliant with organizational security requirements.
 ---
 
 # microsoft365_graph_beta_device_management_aosp_device_owner_compliance_policy (Resource)
 
-Manages AOSP (Android Open Source Project) device owner compliance policies in Microsoft Intune using the `/deviceManagement/deviceCompliancePolicies` endpoint. Device compliance policies define rules and settings that devices must meet to be considered compliant with organizational security requirements.
+Manages AOSP (Android Open Source Project) device owner compliance policies using the `/deviceManagement/deviceCompliancePolicies` endpoint. This resource is used to device compliance policies define rules and settings that devices must meet to be considered compliant with organizational security requirements.
 
 ## Microsoft Documentation
 
@@ -17,13 +17,15 @@ Manages AOSP (Android Open Source Project) device owner compliance policies in M
 - [Update aospDeviceOwnerCompliancePolicy](https://learn.microsoft.com/en-us/graph/api/intune-deviceconfig-aospdeviceownercompliancepolicy-update?view=graph-rest-beta&tabs=http)
 - [Delete aospDeviceOwnerCompliancePolicy](https://learn.microsoft.com/en-us/graph/api/intune-deviceconfig-aospdeviceownercompliancepolicy-delete?view=graph-rest-beta&tabs=http)
 
-## API Permissions
+## Microsoft Graph API Permissions
 
-The following API permissions are required in order to use this resource.
+The following client `application` permissions are needed in order to use this resource:
 
-### Microsoft Graph
+**Required:**
+- `DeviceManagementConfiguration.ReadWrite.All`
 
-- **Application**: `DeviceManagementConfiguration.ReadWrite.All` , `DeviceManagementConfiguration.Read.All`
+**Optional:**
+- `None` `[N/A]` , `DeviceManagementConfiguration.Read.All`
 
 ## Example Usage
 

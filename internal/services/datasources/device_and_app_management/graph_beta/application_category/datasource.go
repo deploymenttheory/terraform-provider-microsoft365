@@ -52,7 +52,7 @@ func (d *ApplicationCategoryDataSource) Configure(ctx context.Context, req datas
 // Schema defines the schema for the data source
 func (d *ApplicationCategoryDataSource) Schema(ctx context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Retrieves application categories from Microsoft Intune using the `/deviceAppManagement/mobileAppCategories` endpoint. This data source enables querying application categories with advanced filtering capabilities including OData queries.",
+		MarkdownDescription: "Retrieves application categories from Microsoft Intune using the `/deviceAppManagement/mobileAppCategories` endpoint. This data source is used to query organizational app categories for classifying and organizing mobile applications.",
 		Attributes: map[string]schema.Attribute{
 			"filter_type": schema.StringAttribute{
 				Required:            true,

@@ -80,9 +80,7 @@ func (r *WindowsQualityUpdateExpeditePolicyResource) ImportState(ctx context.Con
 // Schema defines the schema for the resource.
 func (r *WindowsQualityUpdateExpeditePolicyResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Manages Windows quality update expedite policies using the `/deviceManagement/windowsQualityUpdateProfiles` endpoint. " +
-			"Expedite policies enable accelerated deployment of critical Windows quality updates with forced reboot enforcement, " +
-			"ensuring rapid security patch distribution across managed Windows 10/11 devices when urgent updates are required.",
+		MarkdownDescription: "Manages Windows quality update expedite policies in Microsoft Intune using the `/deviceManagement/windowsQualityUpdateProfiles` endpoint. This resource is used to enable accelerated deployment of critical Windows quality updates with forced reboot enforcement for urgent security patches.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:            true,

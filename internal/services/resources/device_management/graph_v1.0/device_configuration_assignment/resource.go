@@ -95,7 +95,7 @@ func (r *DeviceConfigurationAssignmentResource) ImportState(ctx context.Context,
 // Schema returns the schema for the resource.
 func (r *DeviceConfigurationAssignmentResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Manages device configuration assignments using the `/deviceManagement/deviceConfigurations/{deviceConfigurationId}/assignments` endpoint. This resource controls assignments for device configurations.",
+		MarkdownDescription: "Manages device configuration assignments using the `/deviceManagement/deviceConfigurations/{deviceConfigurationId}/assignments` endpoint. This resource is used to controls assignments for device configurations.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:    true,

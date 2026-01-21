@@ -3,25 +3,27 @@ page_title: "microsoft365_graph_beta_device_and_app_management_mobile_app_supers
 subcategory: "Device and App Management"
 
 description: |-
-  Manages mobile app supersedence relationships in Microsoft Intune using the /deviceAppManagement/mobileApps/{mobileAppId}/relationships endpoint. Supersedence enables admins to upgrade or replace existing apps with newer versions in a controlled manner.
+  Manages mobile app supersedence relationships using the /deviceAppManagement/mobileApps/{mobileAppId}/relationships endpoint. This resource is used to supersedence enables admins to upgrade or replace existing apps with newer versions in a controlled manner.
 ---
 
 # microsoft365_graph_beta_device_and_app_management_mobile_app_supersedence (Resource)
 
-Manages mobile app supersedence relationships in Microsoft Intune using the /deviceAppManagement/mobileApps/{mobileAppId}/relationships endpoint. Supersedence enables admins to upgrade or replace existing apps with newer versions in a controlled manner.
+Manages mobile app supersedence relationships using the `/deviceAppManagement/mobileApps/{mobileAppId}/relationships` endpoint. This resource is used to supersedence enables admins to upgrade or replace existing apps with newer versions in a controlled manner.
 
 ## Microsoft Documentation
 
 - [mobileAppSupersedence resource type](https://learn.microsoft.com/en-us/graph/api/resources/intune-apps-mobileappsupersedence?view=graph-rest-beta)
 - [Create mobileAppSupersedence](https://learn.microsoft.com/en-us/graph/api/intune-apps-mobileapp-post-supersedence?view=graph-rest-beta)
 
-## API Permissions
+## Microsoft Graph API Permissions
 
-The following API permissions are required in order to use this resource.
+The following client `application` permissions are needed in order to use this resource:
 
-### Microsoft Graph
+**Required:**
+- `DeviceManagementApps.ReadWrite.All`
 
-- **Application**: `DeviceManagementApps.ReadWrite.All`
+**Optional:**
+- `None` `[N/A]`
 
 ## Version History
 

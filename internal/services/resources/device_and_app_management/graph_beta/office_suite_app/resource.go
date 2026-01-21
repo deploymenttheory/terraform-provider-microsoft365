@@ -86,9 +86,7 @@ func (r *OfficeSuiteAppResource) ImportState(ctx context.Context, req resource.I
 // Schema returns the schema for the resource.
 func (r *OfficeSuiteAppResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Manages Microsoft 365 Apps (Office Suite) applications using the `/deviceAppManagement/mobileApps` endpoint." +
-			"Office Suite Apps enable deployment of Microsoft 365 office applications with configuration options including app exclusions, update channels, " +
-			"localization settings, and shared computer activation for enterprise environments. Learn more here 'https://learn.microsoft.com/en-us/intune/intune-service/apps/apps-add-office365'",
+		MarkdownDescription: "Manages Microsoft 365 Apps (Office Suite) applications using the `/deviceAppManagement/mobileApps` endpoint. This resource is used to learn more here 'https://learn.microsoft.com/en-us/intune/intune-service/apps/apps-add-office365'.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed: true,

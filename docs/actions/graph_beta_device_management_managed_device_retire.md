@@ -3,7 +3,7 @@ page_title: "microsoft365_graph_beta_device_management_managed_device_retire Act
 subcategory: "Device Management"
 
 description: |-
-  Retires managed devices from Microsoft Intune using the /deviceManagement/managedDevices/{managedDeviceId}/retire endpoint. This action removes company data and managed apps from the device, while leaving personal data intact. The device is removed from Intune management and can no longer access company resources. This action supports retiring multiple devices in a single operation.
+  Retires managed devices in Microsoft Intune using the /deviceManagement/managedDevices/{managedDeviceId}/retire endpoint. This action is used to remove company data and managed apps from the device, while leaving personal data intact. The device is removed from Intune management and can no longer access company resources. This action supports retiring multiple devices in a single operation.
   Important Notes:
   For iOS/iPadOS devices, all data is removed except when enrolled via Device Enrollment Program (DEP) with User AffinityFor Windows devices, company data under %PROGRAMDATA%\Microsoft\MDM is removedFor Android devices, company data is removed and managed apps are uninstalledThis action cannot be reversed - devices must be re-enrolled to be managed again
   Reference: Microsoft Graph API - Retire Managed Device https://learn.microsoft.com/en-us/graph/api/intune-devices-manageddevice-retire?view=graph-rest-beta
@@ -11,7 +11,7 @@ description: |-
 
 # microsoft365_graph_beta_device_management_managed_device_retire (Action)
 
-Retires managed devices from Microsoft Intune using the `/deviceManagement/managedDevices/{managedDeviceId}/retire` endpoint. This action removes company data and managed apps from the device, while leaving personal data intact. The device is removed from Intune management and can no longer access company resources. This action supports retiring multiple devices in a single operation.
+Retires managed devices in Microsoft Intune using the `/deviceManagement/managedDevices/{managedDeviceId}/retire` endpoint. This action is used to remove company data and managed apps from the device, while leaving personal data intact. The device is removed from Intune management and can no longer access company resources. This action supports retiring multiple devices in a single operation.
 
 **Important Notes:**
 - For iOS/iPadOS devices, all data is removed except when enrolled via Device Enrollment Program (DEP) with User Affinity
@@ -33,14 +33,15 @@ Retires managed devices from Microsoft Intune using the `/deviceManagement/manag
 - [Device retire - macOS](https://learn.microsoft.com/en-us/intune/intune-service/remote-actions/device-retire?pivots=macos)
 - [Device retire - Android](https://learn.microsoft.com/en-us/intune/intune-service/remote-actions/device-retire?pivots=android)
 
-## API Permissions
+## Microsoft Graph API Permissions
 
-The following API permissions are required in order to use this action.
+The following client `application` permissions are needed in order to use this action:
 
-### Microsoft Graph
+**Required:**
+- `DeviceManagementManagedDevices.PrivilegedOperations.All`
 
-- **Application**: `DeviceManagementManagedDevices.PrivilegedOperations.All`
-- **Delegated**: `DeviceManagementManagedDevices.PrivilegedOperations.All`
+**Optional:**
+- `None` `[N/A]`
 
 ## Version History
 
@@ -49,101 +50,6 @@ The following API permissions are required in order to use this action.
 | v0.33.0-alpha | Experimental | Initial release |
 | v0.40.0-alpha | Experimental | Example fixes and refactored sync progress logic |
 
-
-## Notes
-
-### Platform Compatibility
-
-| Platform | Support | Data Removed | Personal Data Kept |
-|----------|---------|--------------|-------------------|
-| **Windows** | ✅ Full Support | Company apps, profiles, settings | User files, personal apps |
-| **macOS** | ✅ Full Support | Management profiles, company apps | User data, personal apps |
-| **iOS** | ✅ Full Support | Company apps, email profiles | Personal apps, photos |
-| **iPadOS** | ✅ Full Support | Company apps, email profiles | Personal apps, photos |
-| **Android** | ✅ Full Support | Work profile removed | Personal profile intact |
-| **ChromeOS** | ✅ Full Support | Enterprise policies, user profiles | User files (optional) |
-
-### Retire vs Wipe
-
-| Action | Data Removed | Use Case |
-|--------|--------------|----------|
-| **Retire** | Company data only | BYOD devices, employee departures |
-| **Wipe** | All data (factory reset) | Company-owned devices, security incidents |
-
-### What Gets Removed
-
-#### All Platforms
-- Intune management enrollment
-- Company email accounts
-- Company apps and data
-- VPN profiles
-- Wi-Fi profiles
-- Certificate profiles
-- Configuration policies
-- Compliance policies
-
-#### Windows
-- Company Portal app
-- Microsoft 365 apps (if deployed)
-- Company OneDrive data
-- Windows Information Protection (WIP) data
-
-#### iOS/iPadOS/macOS
-- Managed apps and their data
-- Email accounts configured by MDM
-- Configuration profiles
-
-#### Android
-- Entire work profile (on BYOD)
-- Company apps within work profile
-- Work profile data
-
-#### ChromeOS
-- Google Admin policies
-- Enterprise user profiles
-- Managed apps and extensions
-- Organization unit settings
-
-### What is Preserved
-
-- Personal files and photos
-- Personal apps
-- Personal email accounts
-- Device settings (wallpaper, etc.)
-- Personal browsing history
-- Personal contacts and calendar (non-corporate)
-
-### Common Use Cases
-
-- Employee leaving organization (BYOD)
-- BYOD device unenrollment
-- Transitioning device to personal use
-- Removing corporate access gracefully
-- Employee termination (selective wipe)
-- Lost BYOD device (remove company data)
-- Device ownership change
-- End of MDM management
-
-### Best Practices
-
-- Preferred for BYOD devices
-- Communicate with user before retiring
-- Back up important company data first
-- Document business justification
-- Consider user data privacy
-- Use wipe for company-owned devices instead
-- Verify device ownership type
-- Allow time for data sync/backup
-
-### User Experience
-
-- Device remains functional
-- Personal data intact
-- Company Portal removed/disabled
-- Company apps removed
-- Work profile deleted (Android)
-- Device can be used personally
-- Email/calendar may require reconfiguration
 
 ## Example Usage
 

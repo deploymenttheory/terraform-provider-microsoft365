@@ -2,24 +2,26 @@
 page_title: "microsoft365_graph_beta_m365_admin_browser_site_list Resource - terraform-provider-microsoft365"
 subcategory: "M365 Admin"
 description: |-
-  Manages Internet Explorer mode site lists in Microsoft Edge using the /admin/edge/internetExplorerMode/siteLists endpoint. Site lists are collections of websites that require Internet Explorer 11 compatibility mode, allowing organizations to maintain legacy web applications while transitioning to Microsoft Edge as the default browser.
+  Manages Internet Explorer mode site lists using the /admin/edge/internetExplorerMode/siteLists endpoint. This resource is used to site lists are collections of websites that require Internet Explorer 11 compatibility mode, allowing organizations to maintain legacy web applications while transitioning to Microsoft Edge as the default browser.
 ---
 
 # microsoft365_graph_beta_m365_admin_browser_site_list (Resource)
 
-Manages Internet Explorer mode site lists in Microsoft Edge using the `/admin/edge/internetExplorerMode/siteLists` endpoint. Site lists are collections of websites that require Internet Explorer 11 compatibility mode, allowing organizations to maintain legacy web applications while transitioning to Microsoft Edge as the default browser.
+Manages Internet Explorer mode site lists using the `/admin/edge/internetExplorerMode/siteLists` endpoint. This resource is used to site lists are collections of websites that require Internet Explorer 11 compatibility mode, allowing organizations to maintain legacy web applications while transitioning to Microsoft Edge as the default browser.
 
 ## Microsoft Documentation
 
 - [browserSiteList resource type](https://learn.microsoft.com/en-us/graph/api/resources/browsersitelist?view=graph-rest-beta)
 
-## API Permissions
+## Microsoft Graph API Permissions
 
-The following API permissions are required in order to use this resource.
+The following client `application` permissions are needed in order to use this resource:
 
-### Microsoft Graph
+**Required:**
+- `BrowserSiteLists.ReadWrite.All`
 
-- **Application**: `BrowserSiteLists.ReadWrite.All`
+**Optional:**
+- `None` `[N/A]`
 
 ## Version History
 

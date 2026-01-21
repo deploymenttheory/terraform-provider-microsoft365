@@ -3,7 +3,7 @@ page_title: "microsoft365_graph_beta_device_management_managed_device_enable_los
 subcategory: "Device Management"
 
 description: |-
-  Enables lost mode on iOS/iPadOS managed devices using the /deviceManagement/managedDevices/{managedDeviceId}/enableLostMode and /deviceManagement/comanagedDevices/{managedDeviceId}/enableLostMode endpoints. This action locks the device and displays a custom message with contact information on the lock screen. Lost mode is a feature that helps locate and secure lost iOS/iPadOS devices by locking them and enabling device location tracking. This action supports enabling lost mode on multiple devices in a single operation with per-device messages.
+  Enables lost mode on iOS/iPadOS managed devices in Microsoft Intune using the /deviceManagement/managedDevices/{managedDeviceId}/enableLostMode and /deviceManagement/comanagedDevices/{managedDeviceId}/enableLostMode endpoints. This action is used to lock devices and display custom messages with contact information on the lock screen for locating and securing lost devices. Lost mode is a feature that helps locate and secure lost iOS/iPadOS devices by locking them and enabling device location tracking. This action supports enabling lost mode on multiple devices in a single operation with per-device messages.
   Important Notes:
   Only applicable to iOS and iPadOS devices (iOS 9.3+)Device must be supervisedRequires device to be online to receive commandLocks device and displays custom message with contact informationEnables device location trackingEach device can have its own custom message, phone number, and footer
   Use Cases:
@@ -15,7 +15,7 @@ description: |-
 
 # microsoft365_graph_beta_device_management_managed_device_enable_lost_mode (Action)
 
-Enables lost mode on iOS/iPadOS managed devices using the `/deviceManagement/managedDevices/{managedDeviceId}/enableLostMode` and `/deviceManagement/comanagedDevices/{managedDeviceId}/enableLostMode` endpoints. This action locks the device and displays a custom message with contact information on the lock screen. Lost mode is a feature that helps locate and secure lost iOS/iPadOS devices by locking them and enabling device location tracking. This action supports enabling lost mode on multiple devices in a single operation with per-device messages.
+Enables lost mode on iOS/iPadOS managed devices in Microsoft Intune using the `/deviceManagement/managedDevices/{managedDeviceId}/enableLostMode` and `/deviceManagement/comanagedDevices/{managedDeviceId}/enableLostMode` endpoints. This action is used to lock devices and display custom messages with contact information on the lock screen for locating and securing lost devices. Lost mode is a feature that helps locate and secure lost iOS/iPadOS devices by locking them and enabling device location tracking. This action supports enabling lost mode on multiple devices in a single operation with per-device messages.
 
 **Important Notes:**
 - Only applicable to iOS and iPadOS devices (iOS 9.3+)
@@ -47,14 +47,15 @@ Enables lost mode on iOS/iPadOS managed devices using the `/deviceManagement/man
 - [Lost mode for iOS devices](https://learn.microsoft.com/en-us/intune/intune-service/remote-actions/device-lost-mode?pivots=ios)
 - [Lost mode for ChromeOS devices](https://learn.microsoft.com/en-us/intune/intune-service/remote-actions/device-lost-mode?pivots=chromeos)
 
-## API Permissions
+## Microsoft Graph API Permissions
 
-The following API permissions are required in order to use this action.
+The following client `application` permissions are needed in order to use this action:
 
-### Microsoft Graph
+**Required:**
+- `DeviceManagementManagedDevices.PrivilegedOperations.All`
 
-- **Application**: `DeviceManagementManagedDevices.PrivilegedOperations.All`
-- **Delegated**: `DeviceManagementManagedDevices.PrivilegedOperations.All`
+**Optional:**
+- `None` `[N/A]`
 
 ## Version History
 
@@ -63,54 +64,6 @@ The following API permissions are required in order to use this action.
 | v0.33.0-alpha | Experimental | Initial release |
 | v0.40.0-alpha | Experimental | Example fixes and refactored sync progress logic |
 
-
-## Notes
-
-### Platform Compatibility
-
-| Platform | Support | Requirements |
-|----------|---------|--------------|
-| **iOS** | ✅ Full Support | iOS 9.3+, supervised devices only |
-| **iPadOS** | ✅ Full Support | Supervised devices only |
-| **macOS** | ❌ Not Supported | Lost mode iOS/iPadOS only |
-| **Windows** | ❌ Not Supported | Lost mode iOS/iPadOS only |
-| **Android** | ❌ Not Supported | Lost mode iOS/iPadOS only |
-
-### What is Lost Mode?
-
-Lost mode is an Apple security feature that:
-- Locks device and displays custom message with contact info
-- Enables device location tracking
-- Prevents unauthorized access to device data
-- Helps recover lost or stolen devices
-- Can be enabled via Intune or Find My app
-
-### When to Enable Lost Mode
-
-- Device has been reported lost or stolen
-- Need to remotely lock and secure device
-- Need to display recovery contact information
-- Need to track device location for recovery
-- Prevent unauthorized access to corporate data
-- User cannot be reached to secure device manually
-
-### What Happens When Enabled
-
-- Device is immediately locked
-- Custom message displayed on lock screen with contact info
-- Location tracking is enabled
-- Device cannot be unlocked without proper credentials
-- Device data remains encrypted and protected
-- User must contact provided phone number to recover device
-
-### Message Best Practices
-
-- Include clear instructions for returning the device
-- Provide a contact phone number that will be monitored
-- Keep message concise and professional
-- Include organization name or identification
-- Avoid including sensitive information
-- Consider including reward information if applicable
 
 ## Example Usage
 

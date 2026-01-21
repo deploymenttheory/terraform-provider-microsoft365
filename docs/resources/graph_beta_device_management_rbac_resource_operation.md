@@ -3,25 +3,27 @@ page_title: "microsoft365_graph_beta_device_management_rbac_resource_operation R
 subcategory: "Device Management"
 
 description: |-
-  Manages resource operations in Microsoft Intune RBAC using the /deviceManagement/RBACResourceOperations endpoint. Resource operations define granular permissions that can be included in custom role definitions, enabling precise control over what actions administrators can perform on specific Intune resources and configurations.
+  Manages resource operations using the /deviceManagement/RBACResourceOperations endpoint. This resource is used to resource operations define granular permissions that can be included in custom role definitions, enabling precise control over what actions administrators can perform on specific Intune resources and configurations.
 ---
 
 # microsoft365_graph_beta_device_management_rbac_resource_operation (Resource)
 
-Manages resource operations in Microsoft Intune RBAC using the `/deviceManagement/RBACResourceOperations` endpoint. Resource operations define granular permissions that can be included in custom role definitions, enabling precise control over what actions administrators can perform on specific Intune resources and configurations.
+Manages resource operations using the `/deviceManagement/RBACResourceOperations` endpoint. This resource is used to resource operations define granular permissions that can be included in custom role definitions, enabling precise control over what actions administrators can perform on specific Intune resources and configurations.
 
 ## Microsoft Documentation
 
 - [resourceOperation resource type](https://learn.microsoft.com/en-us/graph/api/resources/intune-rbac-resourceoperation?view=graph-rest-beta)
 - [Create resourceOperation](https://learn.microsoft.com/en-us/graph/api/intune-rbac-resourceoperation-create?view=graph-rest-beta)
 
-## API Permissions
+## Microsoft Graph API Permissions
 
-The following API permissions are required in order to use this resource.
+The following client `application` permissions are needed in order to use this resource:
 
-### Microsoft Graph
+**Required:**
+- `DeviceManagementRBAC.ReadWrite.All`
 
-- **Application**: `DeviceManagementRBAC.ReadWrite.All`
+**Optional:**
+- `None` `[N/A]`
 
 ## Version History
 

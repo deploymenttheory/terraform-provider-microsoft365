@@ -3,25 +3,27 @@ page_title: "microsoft365_graph_beta_device_and_app_management_win_get_app Resou
 subcategory: "Device and App Management"
 
 description: |-
-  Manages WinGet applications from the Microsoft Store using the /deviceAppManagement/mobileApps endpoint. WinGet apps enable deployment of Microsoft Store applications with automatic metadata population, streamlined package management, and integration with the Windows Package Manager for efficient app distribution to managed devices.
+  Manages WinGet applications from the Microsoft Store using the /deviceAppManagement/mobileApps endpoint. This resource is used to winGet apps enable deployment of Microsoft Store applications with automatic metadata population, streamlined package management, and integration with the Windows Package Manager for efficient app distribution to managed devices.
 ---
 
 # microsoft365_graph_beta_device_and_app_management_win_get_app (Resource)
 
-Manages WinGet applications from the Microsoft Store using the `/deviceAppManagement/mobileApps` endpoint. WinGet apps enable deployment of Microsoft Store applications with automatic metadata population, streamlined package management, and integration with the Windows Package Manager for efficient app distribution to managed devices.
+Manages WinGet applications from the Microsoft Store using the `/deviceAppManagement/mobileApps` endpoint. This resource is used to winGet apps enable deployment of Microsoft Store applications with automatic metadata population, streamlined package management, and integration with the Windows Package Manager for efficient app distribution to managed devices.
 
 ## Microsoft Documentation
 
 - [winGetApp resource type](https://learn.microsoft.com/en-us/graph/api/resources/intune-apps-wingetapp?view=graph-rest-beta)
 - [Create winGetApp](https://learn.microsoft.com/en-us/graph/api/intune-apps-wingetapp-create?view=graph-rest-beta)
 
-## API Permissions
+## Microsoft Graph API Permissions
 
-The following API permissions are required in order to use this resource.
+The following client `application` permissions are needed in order to use this resource:
 
-### Microsoft Graph
+**Required:**
+- `DeviceManagementApps.ReadWrite.All`
 
-- **Application**: `DeviceManagementApps.ReadWrite.All`
+**Optional:**
+- `None` `[N/A]`
 
 ## Version History
 

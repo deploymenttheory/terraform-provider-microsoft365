@@ -3,25 +3,33 @@ page_title: "microsoft365_graph_beta_device_management_role_scope_tag Resource -
 subcategory: "Device Management"
 
 description: |-
-  Manages role scope tags in Microsoft Intune using the /deviceManagement/roleScopeTags endpoint. Role scope tags enable role-based access control by limiting administrator visibility and management capabilities to specific organizational units, devices, or resources, ensuring proper delegation of administrative responsibilities.
+  Manages role scope tags using the /deviceManagement/roleScopeTags endpoint. This resource is used to role scope tags enable role-based access control by limiting administrator visibility and management capabilities to specific organizational units, devices, or resources, ensuring proper delegation of administrative responsibilities.
 ---
 
 # microsoft365_graph_beta_device_management_role_scope_tag (Resource)
 
-Manages role scope tags in Microsoft Intune using the `/deviceManagement/roleScopeTags` endpoint. Role scope tags enable role-based access control by limiting administrator visibility and management capabilities to specific organizational units, devices, or resources, ensuring proper delegation of administrative responsibilities.
+Manages role scope tags using the `/deviceManagement/roleScopeTags` endpoint. This resource is used to role scope tags enable role-based access control by limiting administrator visibility and management capabilities to specific organizational units, devices, or resources, ensuring proper delegation of administrative responsibilities.
 
 ## Microsoft Documentation
 
 - [roleScopeTag resource type](https://learn.microsoft.com/en-us/graph/api/resources/intune-rbac-rolescopetag?view=graph-rest-beta)
 - [Create roleScopeTag](https://learn.microsoft.com/en-us/graph/api/intune-rbac-rolescopetag-create?view=graph-rest-beta)
+- [Read roleScopeTag](https://learn.microsoft.com/en-us/graph/api/intune-rbac-rolescopetag-get?view=graph-rest-beta)
+- [Update roleScopeTag](https://learn.microsoft.com/en-us/graph/api/intune-rbac-rolescopetag-update?view=graph-rest-beta)
+- [Delete roleScopeTag](https://learn.microsoft.com/en-us/graph/api/intune-rbac-rolescopetag-delete?view=graph-rest-beta)
 
-## API Permissions
+## Microsoft Graph API Permissions
 
-The following API permissions are required in order to use this resource.
+The following client `application` permissions are needed in order to use this resource:
 
-### Microsoft Graph
+**Required:**
+- `DeviceManagementConfiguration.Read.All`
+- `DeviceManagementConfiguration.ReadWrite.All`
+- `DeviceManagementRBAC.Read.All`
+- `DeviceManagementRBAC.ReadWrite.All`
 
-- **Application**: `DeviceManagementConfiguration.Read.All`, `DeviceManagementConfiguration.ReadWrite.All`, `DeviceManagementRBAC.Read.All`, `DeviceManagementRBAC.ReadWrite.All`
+**Optional:**
+- `None` `[N/A]`
 
 ## Version History
 

@@ -3,25 +3,27 @@ page_title: "microsoft365_graph_beta_device_management_windows_autopilot_device_
 subcategory: "Device Management"
 
 description: |-
-  Allows the next enrollment for an Autopilot device in Microsoft Intune using the /deviceManagement/windowsAutopilotDeviceIdentities/{windowsAutopilotDeviceIdentityId}/allowNextEnrollment endpoint. This action enables the device to be enrolled again.
+  Allows the next enrollment for an Autopilot device in Microsoft Intune using the /deviceManagement/windowsAutopilotDeviceIdentities/{windowsAutopilotDeviceIdentityId}/allowNextEnrollment endpoint. This action is used to enable the device to be enrolled again.
 ---
 
 # microsoft365_graph_beta_device_management_windows_autopilot_device_identity_allow_next_enrollment (Action)
 
-Allows the next enrollment for an Autopilot device in Microsoft Intune using the `/deviceManagement/windowsAutopilotDeviceIdentities/{windowsAutopilotDeviceIdentityId}/allowNextEnrollment` endpoint. This action enables the device to be enrolled again.
+Allows the next enrollment for an Autopilot device in Microsoft Intune using the `/deviceManagement/windowsAutopilotDeviceIdentities/{windowsAutopilotDeviceIdentityId}/allowNextEnrollment` endpoint. This action is used to enable the device to be enrolled again.
 
 ## Microsoft Documentation
 
 - [allowNextEnrollment action](https://learn.microsoft.com/en-us/graph/api/intune-enrollment-windowsautopilotdeviceidentity-allownextenrollment?view=graph-rest-beta)
 - [windowsAutopilotDeviceIdentity resource type](https://learn.microsoft.com/en-us/graph/api/resources/intune-enrollment-windowsautopilotdeviceidentity?view=graph-rest-beta)
 
-## API Permissions
+## Microsoft Graph API Permissions
 
-The following API permissions are required in order to use this action.
+The following client `application` permissions are needed in order to use this action:
 
-### Microsoft Graph
+**Required:**
+- `DeviceManagementServiceConfig.ReadWrite.All`
 
-- **Application**: `DeviceManagementServiceConfig.ReadWrite.All`
+**Optional:**
+- `None` `[N/A]`
 
 ## Version History
 

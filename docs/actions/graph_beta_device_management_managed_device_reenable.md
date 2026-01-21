@@ -3,7 +3,7 @@ page_title: "microsoft365_graph_beta_device_management_managed_device_reenable A
 subcategory: "Device Management"
 
 description: |-
-  Re-enables previously disabled managed devices in Intune using the /deviceManagement/managedDevices/{managedDeviceId}/reenable and /deviceManagement/comanagedDevices/{managedDeviceId}/reenable endpoints. This action restores a disabled device's ability to interact with Intune services, allowing it to sync and receive policy updates again. Re-enabling is the counterpart to the disable action and restores full management capabilities to devices that were temporarily suspended. This is useful after resolving security incidents, compliance violations, or completing investigations that required temporary device suspension.
+  Re-enables previously disabled managed devices in Microsoft Intune using the /deviceManagement/managedDevices/{managedDeviceId}/reenable and /deviceManagement/comanagedDevices/{managedDeviceId}/reenable endpoints. This action is used to restore a disabled device's ability to interact with Intune services, allowing it to sync and receive policy updates again. Re-enabling is the counterpart to the disable action and restores full management capabilities to devices that were temporarily suspended. This is useful after resolving security incidents, compliance violations, or completing investigations that required temporary device suspension.
   Important Notes:
   Only works on previously disabled devicesRestores sync capability with IntuneRe-enables policy applicationMaintains existing enrollmentReverses the disable actionAll platforms supported
   Use Cases:
@@ -15,7 +15,7 @@ description: |-
 
 # microsoft365_graph_beta_device_management_managed_device_reenable (Action)
 
-Re-enables previously disabled managed devices in Intune using the `/deviceManagement/managedDevices/{managedDeviceId}/reenable` and `/deviceManagement/comanagedDevices/{managedDeviceId}/reenable` endpoints. This action restores a disabled device's ability to interact with Intune services, allowing it to sync and receive policy updates again. Re-enabling is the counterpart to the disable action and restores full management capabilities to devices that were temporarily suspended. This is useful after resolving security incidents, compliance violations, or completing investigations that required temporary device suspension.
+Re-enables previously disabled managed devices in Microsoft Intune using the `/deviceManagement/managedDevices/{managedDeviceId}/reenable` and `/deviceManagement/comanagedDevices/{managedDeviceId}/reenable` endpoints. This action is used to restore a disabled device's ability to interact with Intune services, allowing it to sync and receive policy updates again. Re-enabling is the counterpart to the disable action and restores full management capabilities to devices that were temporarily suspended. This is useful after resolving security incidents, compliance violations, or completing investigations that required temporary device suspension.
 
 **Important Notes:**
 - Only works on previously disabled devices
@@ -48,14 +48,16 @@ Re-enables previously disabled managed devices in Intune using the `/deviceManag
 - [Remote actions in Microsoft Intune](https://learn.microsoft.com/en-us/mem/intune/remote-actions/device-management)
 - [Device compliance in Intune](https://learn.microsoft.com/en-us/mem/intune/protect/device-compliance-get-started)
 
-## API Permissions
+## Microsoft Graph API Permissions
 
-The following API permissions are required in order to use this action.
+The following client `application` permissions are needed in order to use this action:
 
-### Microsoft Graph
+**Required:**
+- `DeviceManagementConfiguration.Read.All`
+- `DeviceManagementManagedDevices.Read.All`
 
-- **Application**: `DeviceManagementConfiguration.Read.All`, `DeviceManagementManagedDevices.Read.All`
-- **Delegated**: `DeviceManagementConfiguration.Read.All`, `DeviceManagementManagedDevices.Read.All`
+**Optional:**
+- `None` `[N/A]`
 
 ## Version History
 
@@ -64,58 +66,6 @@ The following API permissions are required in order to use this action.
 | v0.33.0-alpha | Experimental | Initial release |
 | v0.40.0-alpha | Experimental | Example fixes and refactored sync progress logic |
 
-
-## Notes
-
-### Platform Compatibility
-
-| Platform | Support | Requirements |
-|----------|---------|--------------|
-| **Windows** | ✅ Full Support | Previously disabled device enrolled in Intune |
-| **macOS** | ✅ Full Support | Previously disabled device enrolled in Intune |
-| **iOS/iPadOS** | ✅ Full Support | Previously disabled device enrolled in Intune |
-| **Android** | ✅ Full Support | Previously disabled device enrolled in Intune |
-
-### What is Device Re-enable?
-
-Device Re-enable is an action that:
-- Restores a disabled device's ability to interact with Intune
-- Re-enables device syncing with Intune services
-- Allows policy application and updates to resume
-- Maintains the device's enrollment record
-- Preserves all user data on the device
-- Reverses the effects of the disable action
-- Completes the disable-investigate-re-enable workflow
-
-### Disable/Re-enable Workflow
-
-| Step | Action | Device State | Management Active |
-|------|--------|--------------|-------------------|
-| 1 | Device operating normally | Active | ✅ Yes |
-| 2 | Disable action triggered | Disabled | ❌ No |
-| 3 | Investigation/resolution occurs | Disabled | ❌ No |
-| 4 | **Re-enable action triggered** | **Active** | **✅ Yes** |
-
-### When to Re-enable Devices
-
-- Security investigation has been completed successfully
-- Device compliance violations have been resolved
-- Temporary quarantine period has ended
-- Policy issues have been fixed and tested
-- Troubleshooting has been completed
-- Incident response procedures are finished
-- Device has been cleared to resume normal operations
-
-### What Happens When Device is Re-enabled
-
-- Device is marked as enabled in Intune
-- Device can sync with Intune services again
-- New policies and updates are applied
-- Existing management operations resume
-- Device enrollment record remains active
-- User can continue using the device normally
-- All user data and applications remain intact
-- Full management capabilities are restored
 
 ## Example Usage
 

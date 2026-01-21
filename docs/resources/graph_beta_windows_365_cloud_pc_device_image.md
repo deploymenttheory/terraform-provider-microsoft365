@@ -3,27 +3,30 @@ page_title: "microsoft365_graph_beta_windows_365_cloud_pc_device_image Resource 
 subcategory: "Windows 365"
 
 description: |-
-  Manages a Windows 365 Cloud PC Device Image using the Microsoft Graph Beta API.
+  Manages Windows 365 Cloud PC device images using the /deviceManagement/virtualEndpoint/deviceImages endpoint. This resource is used to upload and manage custom Windows images for Cloud PC provisioning.
 ---
 
 # microsoft365_graph_beta_windows_365_cloud_pc_device_image (Resource)
 
-Manages a Windows 365 Cloud PC Device Image using the Microsoft Graph Beta API.
+Manages Windows 365 Cloud PC device images using the `/deviceManagement/virtualEndpoint/deviceImages` endpoint. This resource is used to upload and manage custom Windows images for Cloud PC provisioning.
 
 ## Microsoft Documentation
 
 - [cloudPcDeviceImage resource type](https://learn.microsoft.com/en-us/graph/api/resources/cloudpcdeviceimage?view=graph-rest-beta)
 - [Create cloudPcDeviceImage](https://learn.microsoft.com/en-us/graph/api/virtualendpoint-post-deviceimages?view=graph-rest-beta)
+- [Read cloudPcDeviceImage](https://learn.microsoft.com/en-us/graph/api/cloudpcdeviceimage-get?view=graph-rest-beta)
 - [Update cloudPcDeviceImage](https://learn.microsoft.com/en-us/graph/api/virtualendpoint-update-deviceimages?view=graph-rest-beta)
 - [Delete cloudPcDeviceImage](https://learn.microsoft.com/en-us/graph/api/virtualendpoint-delete-deviceimages?view=graph-rest-beta)
 
-## API Permissions
+## Microsoft Graph API Permissions
 
-The following API permissions are required in order to use this resource.
+The following client `application` permissions are needed in order to use this resource:
 
-### Microsoft Graph
+**Required:**
+- `CloudPC.ReadWrite.All`
 
-- **Application**: `CloudPC.ReadWrite.All`
+**Optional:**
+- `None` `[N/A]`
 
 ## Version History
 

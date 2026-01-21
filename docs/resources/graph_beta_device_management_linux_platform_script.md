@@ -3,25 +3,27 @@ page_title: "microsoft365_graph_beta_device_management_linux_platform_script Res
 subcategory: "Device Management"
 
 description: |-
-  Manages Linux platform scripts using the /deviceManagement/configurationPolicies endpoint. Linux platform scripts enable automated deployment and execution of shell scripts on managed Linux devices with configurable execution contexts, retry logic, and scheduled execution frequencies for system administration and maintenance tasks.
+  Manages Linux platform scripts using the /deviceManagement/configurationPolicies endpoint. This resource is used to linux platform scripts enable automated deployment and execution of shell scripts on managed Linux devices with configurable execution contexts, retry logic, and scheduled execution frequencies for system administration and maintenance tasks.
 ---
 
 # microsoft365_graph_beta_device_management_linux_platform_script (Resource)
 
-Manages Linux platform scripts using the `/deviceManagement/configurationPolicies` endpoint. Linux platform scripts enable automated deployment and execution of shell scripts on managed Linux devices with configurable execution contexts, retry logic, and scheduled execution frequencies for system administration and maintenance tasks.
+Manages Linux platform scripts using the `/deviceManagement/configurationPolicies` endpoint. This resource is used to linux platform scripts enable automated deployment and execution of shell scripts on managed Linux devices with configurable execution contexts, retry logic, and scheduled execution frequencies for system administration and maintenance tasks.
 
 ## Microsoft Documentation
 
 - [deviceManagementConfigurationPolicy resource type](https://learn.microsoft.com/en-us/graph/api/resources/intune-deviceconfigv2-devicemanagementconfigurationpolicy?view=graph-rest-beta)
 - [Create deviceManagementConfigurationPolicy](https://learn.microsoft.com/en-us/graph/api/intune-deviceconfigv2-devicemanagementconfigurationpolicy-create?view=graph-rest-beta)
 
-## API Permissions
+## Microsoft Graph API Permissions
 
-The following API permissions are required in order to use this resource.
+The following client `application` permissions are needed in order to use this resource:
 
-### Microsoft Graph
+**Required:**
+- `DeviceManagementConfiguration.ReadWrite.All`
 
-- **Application**: `DeviceManagementConfiguration.ReadWrite.All`
+**Optional:**
+- `None` `[N/A]`
 
 ## Version History
 

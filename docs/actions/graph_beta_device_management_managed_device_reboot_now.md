@@ -3,7 +3,7 @@ page_title: "microsoft365_graph_beta_device_management_managed_device_reboot_now
 subcategory: "Device Management"
 
 description: |-
-  Remotely reboots managed devices using the /deviceManagement/managedDevices/{managedDeviceId}/rebootNow endpoint. This action immediately restarts devices, which is essential for applying updates, troubleshooting system issues, or ensuring configuration changes take effect. The reboot command is sent to devices immediately if online, or queued for execution when the device next checks in with Intune.
+  Reboots managed devices in Microsoft Intune using the /deviceManagement/managedDevices/{managedDeviceId}/rebootNow endpoint. This action is used to immediately restart devices, which is essential for applying updates, troubleshooting system issues, or ensuring configuration changes take effect. The reboot command is sent to devices immediately if online, or queued for execution when the device next checks in with Intune.
   Important Notes:
   Device reboots immediately upon receiving command (if online)Any unsaved work on the device will be lostUsers receive minimal or no warning before rebootReboot is forceful and does not wait for user interactionCommand is queued if device is offlineUse with caution during business hours
   Use Cases:
@@ -19,7 +19,7 @@ description: |-
 
 # microsoft365_graph_beta_device_management_managed_device_reboot_now (Action)
 
-Remotely reboots managed devices using the `/deviceManagement/managedDevices/{managedDeviceId}/rebootNow` endpoint. This action immediately restarts devices, which is essential for applying updates, troubleshooting system issues, or ensuring configuration changes take effect. The reboot command is sent to devices immediately if online, or queued for execution when the device next checks in with Intune.
+Reboots managed devices in Microsoft Intune using the `/deviceManagement/managedDevices/{managedDeviceId}/rebootNow` endpoint. This action is used to immediately restart devices, which is essential for applying updates, troubleshooting system issues, or ensuring configuration changes take effect. The reboot command is sent to devices immediately if online, or queued for execution when the device next checks in with Intune.
 
 **Important Notes:**
 - Device reboots immediately upon receiving command (if online)
@@ -77,14 +77,15 @@ Remotely reboots managed devices using the `/deviceManagement/managedDevices/{ma
 - [Restart devices - Android](https://learn.microsoft.com/en-us/intune/intune-service/remote-actions/device-restart?pivots=android)
 - [Restart devices - ChromeOS](https://learn.microsoft.com/en-us/intune/intune-service/remote-actions/device-restart?pivots=chromeos)
 
-## API Permissions
+## Microsoft Graph API Permissions
 
-The following API permissions are required in order to use this action.
+The following client `application` permissions are needed in order to use this action:
 
-### Microsoft Graph
+**Required:**
+- `DeviceManagementManagedDevices.PrivilegedOperations.All`
 
-- **Application**: `DeviceManagementManagedDevices.PrivilegedOperations.All`
-- **Delegated**: `DeviceManagementManagedDevices.PrivilegedOperations.All`
+**Optional:**
+- `None` `[N/A]`
 
 ## Version History
 
@@ -93,56 +94,6 @@ The following API permissions are required in order to use this action.
 | v0.33.0-alpha | Experimental | Initial release |
 | v0.40.0-alpha | Experimental | Example fixes and refactored sync progress logic |
 
-
-## Notes
-
-### Platform Compatibility
-
-| Platform | Support | Requirements |
-|----------|---------|--------------|
-| **Windows** | ✅ Full Support | All versions including Home |
-| **macOS** | ✅ Supported | User-approved MDM or supervised |
-| **iOS** | ⚠️ Limited | Supervised devices only |
-| **iPadOS** | ⚠️ Limited | Supervised devices only |
-| **Android** | ❌ Not Supported | Remote reboot not available |
-
-### Reboot vs Shutdown
-
-| Action | Result | Use Case |
-|--------|--------|----------|
-| **Reboot** | Device restarts automatically | Updates, troubleshooting, config changes |
-| **Shutdown** | Device powers off completely | Long-term offline, energy conservation |
-
-### User Impact
-
-- **Unsaved Work**: Lost immediately
-- **Active Sessions**: Terminated (calls, presentations, etc.)
-- **Downtime**: Typically 2-5 minutes
-- **Warning**: Minimal or no advance notification
-- **File Transfers**: Interrupted
-- **Network Sessions**: Disconnected
-
-### Common Use Cases
-
-- Applying Windows updates requiring restart
-- Installing software that requires system reboot
-- Troubleshooting performance issues
-- Forcing application of configuration profiles
-- Clearing temporary system issues
-- Maintenance windows for device refresh
-- Completing BitLocker encryption setup
-- Resolving frozen or unresponsive devices
-
-### Best Practices
-
-- Schedule during maintenance windows or off-hours
-- Notify users in advance when possible
-- Use for unattended devices (kiosks, shared devices, labs)
-- Test with small device groups before bulk operations
-- Document reason for reboot in change management
-- Consider user time zones for global deployments
-- Avoid during peak business hours
-- Monitor device recovery after reboot
 
 ## Example Usage
 

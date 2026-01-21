@@ -3,7 +3,7 @@ page_title: "microsoft365_utility_macos_pkg_app_metadata Data Source - terraform
 subcategory: "Utility"
 
 description: |-
-  Extracts metadata from a macOS PKG file specified by file path or URL.
+  Extracts metadata from macOS PKG installer files locally or from URLs. This data source is used to retrieve bundle identifiers, versions, and package details for macOS app deployment.
 ---
 
 # microsoft365_utility_macos_pkg_app_metadata (Data Source)

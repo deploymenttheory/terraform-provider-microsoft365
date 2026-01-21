@@ -3,12 +3,12 @@ page_title: "microsoft365_graph_beta_device_management_macos_software_update_con
 subcategory: "Device Management"
 
 description: |-
-  Manages macOS software update configurations using the /deviceManagement/deviceConfigurations endpoint. See macOSSoftwareUpdateConfiguration resource type https://learn.microsoft.com/en-us/graph/api/resources/intune-deviceconfig-macossoftwareupdateconfiguration?view=graph-rest-beta for details.
+  Manages macOS software update configurations using the /deviceManagement/deviceConfigurations endpoint. This resource is used to see macOSSoftwareUpdateConfiguration resource type https://learn.microsoft.com/en-us/graph/api/resources/intune-deviceconfig-macossoftwareupdateconfiguration?view=graph-rest-beta for details.
 ---
 
 # microsoft365_graph_beta_device_management_macos_software_update_configuration (Resource)
 
-Manages macOS software update configurations using the `/deviceManagement/deviceConfigurations` endpoint. See [macOSSoftwareUpdateConfiguration resource type](https://learn.microsoft.com/en-us/graph/api/resources/intune-deviceconfig-macossoftwareupdateconfiguration?view=graph-rest-beta) for details.
+Manages macOS software update configurations using the `/deviceManagement/deviceConfigurations` endpoint. This resource is used to see [macOSSoftwareUpdateConfiguration resource type](https://learn.microsoft.com/en-us/graph/api/resources/intune-deviceconfig-macossoftwareupdateconfiguration?view=graph-rest-beta) for details.
 
 ## Microsoft Documentation
 
@@ -17,13 +17,15 @@ Manages macOS software update configurations using the `/deviceManagement/device
 - [Create macOSSoftwareUpdateConfiguration](https://learn.microsoft.com/en-us/graph/api/intune-deviceconfig-macossoftwareupdateconfiguration-create?view=graph-rest-beta)
 - [Update macOSSoftwareUpdateConfiguration](https://learn.microsoft.com/en-us/graph/api/intune-deviceconfig-macossoftwareupdateconfiguration-update?view=graph-rest-beta)
 - [Delete macOSSoftwareUpdateConfiguration](https://learn.microsoft.com/en-us/graph/api/intune-deviceconfig-macossoftwareupdateconfiguration-delete?view=graph-rest-beta)
-## API Permissions
+## Microsoft Graph API Permissions
 
-The following API permissions are required in order to use this resource.
+The following client `application` permissions are needed in order to use this resource:
 
-### Microsoft Graph
+**Required:**
+- `DeviceManagementConfiguration.ReadWrite.All`
 
-- **Application**: `DeviceManagementConfiguration.ReadWrite.All`
+**Optional:**
+- `None` `[N/A]`
 
 ## Version History
 

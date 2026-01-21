@@ -13,15 +13,18 @@ Manages the singleton Cloud PC organization settings for a tenant.
 ## Microsoft Documentation
 
 - [cloudPcOrganizationSettings resource type](https://learn.microsoft.com/en-us/graph/api/resources/cloudpcorganizationsettings?view=graph-rest-beta)
+- [Read cloudPcOrganizationSettings](https://learn.microsoft.com/en-us/graph/api/cloudpcorganizationsettings-get?view=graph-rest-beta)
+- [Update cloudPcOrganizationSettings](https://learn.microsoft.com/en-us/graph/api/cloudpcorganizationsettings-update?view=graph-rest-beta)
 
-## API Permissions
+## Microsoft Graph API Permissions
 
-The following API permissions are required in order to use this resource.
+The following client `application` permissions are needed in order to use this resource:
 
-### Microsoft Graph
+**Required:**
+- `CloudPC.ReadWrite.All`
 
-- **Application**: `CloudPC.ReadWrite.All`
-- **Delegated**: `CloudPC.Read.All`
+**Optional:**
+- `None` `[N/A]`
 
 ## Version History
 

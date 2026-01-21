@@ -78,7 +78,7 @@ func (r *LinuxPlatformScriptResource) ImportState(ctx context.Context, req resou
 // Schema defines the resource schema.
 func (r *LinuxPlatformScriptResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Manages Linux platform scripts using the `/deviceManagement/configurationPolicies` endpoint. Linux platform scripts enable automated deployment and execution of shell scripts on managed Linux devices with configurable execution contexts, retry logic, and scheduled execution frequencies for system administration and maintenance tasks.",
+		MarkdownDescription: "Manages Linux platform scripts using the `/deviceManagement/configurationPolicies` endpoint. This resource is used to linux platform scripts enable automated deployment and execution of shell scripts on managed Linux devices with configurable execution contexts, retry logic, and scheduled execution frequencies for system administration and maintenance tasks.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed: true,

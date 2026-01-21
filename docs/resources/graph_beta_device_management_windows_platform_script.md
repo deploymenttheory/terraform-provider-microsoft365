@@ -3,25 +3,27 @@ page_title: "microsoft365_graph_beta_device_management_windows_platform_script R
 subcategory: "Device Management"
 
 description: |-
-  Manages Windows PowerShell scripts using the /deviceManagement/deviceManagementScripts endpoint. Windows platform scripts enable automated deployment and execution of PowerShell scripts on managed Windows devices, supporting both system and user contexts with configurable signature checking and 32-bit execution options.
+  Manages Windows PowerShell scripts in Microsoft Intune using the /deviceManagement/deviceManagementScripts endpoint. This resource is used to enable automated deployment and execution of PowerShell scripts on managed Windows devices with support for system and user contexts.
 ---
 
 # microsoft365_graph_beta_device_management_windows_platform_script (Resource)
 
-Manages Windows PowerShell scripts using the `/deviceManagement/deviceManagementScripts` endpoint. Windows platform scripts enable automated deployment and execution of PowerShell scripts on managed Windows devices, supporting both system and user contexts with configurable signature checking and 32-bit execution options.
+Manages Windows PowerShell scripts in Microsoft Intune using the `/deviceManagement/deviceManagementScripts` endpoint. This resource is used to enable automated deployment and execution of PowerShell scripts on managed Windows devices with support for system and user contexts.
 
 ## Microsoft Documentation
 
 - [deviceManagementScript resource type](https://learn.microsoft.com/en-us/graph/api/resources/intune-shared-devicemanagementscript?view=graph-rest-beta)
 - [Create deviceManagementScript](https://learn.microsoft.com/en-us/graph/api/intune-shared-devicemanagementscript-create?view=graph-rest-beta)
 
-## API Permissions
+## Microsoft Graph API Permissions
 
-The following API permissions are required in order to use this resource.
+The following client `application` permissions are needed in order to use this resource:
 
-### Microsoft Graph
+**Required:**
+- `DeviceManagementConfiguration.ReadWrite.All`
 
-- **Application**: `DeviceManagementConfiguration.ReadWrite.All`
+**Optional:**
+- `None` `[N/A]`
 
 ## Version History
 

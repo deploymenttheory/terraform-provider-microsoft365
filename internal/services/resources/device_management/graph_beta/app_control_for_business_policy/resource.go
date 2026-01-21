@@ -77,7 +77,7 @@ func (r *AppControlForBusinessPolicyResource) ImportState(ctx context.Context, r
 // Schema defines the resource schema.
 func (r *AppControlForBusinessPolicyResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Manages App Control for Business configuration policies with custom XML content using the `/deviceManagement/configurationPolicies` endpoint. This resource allows you to deploy custom App Control for Business policies by providing XML policy content directly.",
+		MarkdownDescription: "Manages App Control for Business configuration policies with custom XML content using the `/deviceManagement/configurationPolicies` endpoint. This resource is used to allows you to deploy custom App Control for Business policies by providing XML policy content directly.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed: true,

@@ -55,9 +55,9 @@ func (a *ResetManagedDevicePasscodeAction) Configure(ctx context.Context, req ac
 
 func (a *ResetManagedDevicePasscodeAction) Schema(ctx context.Context, req action.SchemaRequest, resp *action.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Resets the passcode on managed devices using the " +
+		MarkdownDescription: "Resets the passcode on managed devices in Microsoft Intune using the " +
 			"`/deviceManagement/managedDevices/{managedDeviceId}/resetPasscode` endpoint. " +
-			"This action removes the current device passcode/password and generates a new temporary passcode. " +
+			"This action is used to remove the current device passcode/password and generate a new temporary passcode. " +
 			"The new passcode is displayed to the administrator and must be communicated to the device user. " +
 			"This action supports resetting passcodes on multiple devices in a single operation.\n\n" +
 			"**Important Notes:**\n" +

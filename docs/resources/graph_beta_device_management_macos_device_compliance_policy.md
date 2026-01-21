@@ -3,12 +3,12 @@ page_title: "microsoft365_graph_beta_device_management_macos_device_compliance_p
 subcategory: "Device Management"
 
 description: |-
-  Manages macOS device compliance policies in Microsoft Intune using the /deviceManagement/deviceCompliancePolicies endpoint. Device compliance policies define rules and settings that devices must meet to be considered compliant with organizational security requirements.
+  Manages macOS device compliance policies using the /deviceManagement/deviceCompliancePolicies endpoint. This resource is used to device compliance policies define rules and settings that devices must meet to be considered compliant with organizational security requirements.
 ---
 
 # microsoft365_graph_beta_device_management_macos_device_compliance_policy (Resource)
 
-Manages macOS device compliance policies in Microsoft Intune using the `/deviceManagement/deviceCompliancePolicies` endpoint. Device compliance policies define rules and settings that devices must meet to be considered compliant with organizational security requirements.
+Manages macOS device compliance policies using the `/deviceManagement/deviceCompliancePolicies` endpoint. This resource is used to device compliance policies define rules and settings that devices must meet to be considered compliant with organizational security requirements.
 
 ## Microsoft Documentation
 
@@ -17,13 +17,16 @@ Manages macOS device compliance policies in Microsoft Intune using the `/deviceM
 - [Update macosDeviceCompliancePolicy](https://learn.microsoft.com/en-us/graph/api/intune-deviceconfig-macoscompliancepolicy-update?view=graph-rest-beta&tabs=http)
 - [Delete macosDeviceCompliancePolicy](https://learn.microsoft.com/en-us/graph/api/intune-devicecon fig-macoscompliancepolicy-delete?view=graph-rest-beta&tabs=http)
 
-## API Permissions
+## Microsoft Graph API Permissions
 
-The following API permissions are required in order to use this resource.
+The following client `application` permissions are needed in order to use this resource:
 
-### Microsoft Graph
+**Required:**
+- `DeviceManagementConfiguration.ReadWrite.All`
+- `DeviceManagementConfiguration.Read.All`
 
-- **Application**: `DeviceManagementConfiguration.ReadWrite.All` , `DeviceManagementConfiguration.Read.All`
+**Optional:**
+- `None` `[N/A]`
 
 ## Example Usage
 

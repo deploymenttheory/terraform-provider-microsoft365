@@ -3,7 +3,7 @@ page_title: "microsoft365_graph_beta_device_management_managed_device_deprovisio
 subcategory: "Device Management"
 
 description: |-
-  Deprovisions Windows managed devices from Intune management using the /deviceManagement/managedDevices/{managedDeviceId}/deprovision and /deviceManagement/comanagedDevices/{managedDeviceId}/deprovision endpoints. This action removes management capabilities from a device while allowing it to remain enrolled. Deprovisioning is less destructive than wiping or retiring a device, as it only removes management policies and profiles without deleting user data or removing the device entirely. This is useful when transitioning devices between management solutions or preparing devices for different management scenarios.
+  Deprovisions Windows managed devices in Microsoft Intune using the /deviceManagement/managedDevices/{managedDeviceId}/deprovision and /deviceManagement/comanagedDevices/{managedDeviceId}/deprovision endpoints. This action is used to remove management capabilities from devices while allowing them to remain enrolled. Deprovisioning is less destructive than wiping or retiring a device, as it only removes management policies and profiles without deleting user data or removing the device entirely. This is useful when transitioning devices between management solutions or preparing devices for different management scenarios.
   Important Notes:
   Device remains enrolled in Intune after deprovisioningManagement policies and profiles are removedUser data is preserved on the deviceLess disruptive than wipe or retire actionsRequires a reason to be specified for auditingPrimarily used for Windows devices
   Use Cases:
@@ -15,7 +15,7 @@ description: |-
 
 # microsoft365_graph_beta_device_management_managed_device_deprovision (Action)
 
-Deprovisions Windows managed devices from Intune management using the `/deviceManagement/managedDevices/{managedDeviceId}/deprovision` and `/deviceManagement/comanagedDevices/{managedDeviceId}/deprovision` endpoints. This action removes management capabilities from a device while allowing it to remain enrolled. Deprovisioning is less destructive than wiping or retiring a device, as it only removes management policies and profiles without deleting user data or removing the device entirely. This is useful when transitioning devices between management solutions or preparing devices for different management scenarios.
+Deprovisions Windows managed devices in Microsoft Intune using the `/deviceManagement/managedDevices/{managedDeviceId}/deprovision` and `/deviceManagement/comanagedDevices/{managedDeviceId}/deprovision` endpoints. This action is used to remove management capabilities from devices while allowing them to remain enrolled. Deprovisioning is less destructive than wiping or retiring a device, as it only removes management policies and profiles without deleting user data or removing the device entirely. This is useful when transitioning devices between management solutions or preparing devices for different management scenarios.
 
 **Important Notes:**
 - Device remains enrolled in Intune after deprovisioning
@@ -47,14 +47,16 @@ Deprovisions Windows managed devices from Intune management using the `/deviceMa
 ### Intune Device Management Guides
 - [Deprovision devices](https://learn.microsoft.com/en-us/intune/intune-service/remote-actions/device-deprovision)
 
-## API Permissions
+## Microsoft Graph API Permissions
 
-The following API permissions are required in order to use this action.
+The following client `application` permissions are needed in order to use this action:
 
-### Microsoft Graph
+**Required:**
+- `DeviceManagementConfiguration.Read.All`
+- `DeviceManagementManagedDevices.Read.All`
 
-- **Application**: `DeviceManagementConfiguration.Read.All`, `DeviceManagementManagedDevices.Read.All`
-- **Delegated**: `DeviceManagementConfiguration.Read.All`, `DeviceManagementManagedDevices.Read.All`
+**Optional:**
+- `None` `[N/A]`
 
 ## Version History
 
@@ -63,55 +65,6 @@ The following API permissions are required in order to use this action.
 | v0.33.0-alpha | Experimental | Initial release |
 | v0.40.0-alpha | Experimental | Example fixes and refactored sync progress logic |
 
-
-## Notes
-
-### Platform Compatibility
-
-| Platform | Support | Requirements |
-|----------|---------|--------------|
-| **Windows** | ✅ Primary Support | Windows 10/11 devices enrolled in Intune |
-| **macOS** | ⚠️ Limited Support | Check API compatibility |
-| **iOS/iPadOS** | ⚠️ Limited Support | Check API compatibility |
-| **Android** | ⚠️ Limited Support | Check API compatibility |
-
-### What is Device Deprovisioning?
-
-Device Deprovisioning is an action that:
-- Removes management policies and profiles from devices
-- Maintains the device's enrollment status in Intune
-- Preserves all user data on the device
-- Provides a less destructive alternative to wipe or retire
-- Requires a reason to be specified for auditing purposes
-- Allows devices to be re-managed after deprovisioning
-
-### Deprovision vs Retire vs Wipe
-
-| Action | Management Removed | Enrollment Removed | User Data Preserved | Use Case |
-|--------|-------------------|-------------------|---------------------|----------|
-| **Deprovision** | ✅ Yes | ❌ No | ✅ Yes | Management transition, troubleshooting |
-| **Retire** | ✅ Yes | ✅ Yes | ✅ Yes | Permanent device removal from management |
-| **Wipe** | ✅ Yes | ✅ Yes | ❌ No | Factory reset, security incident response |
-
-### When to Deprovision Devices
-
-- Transitioning devices between management solutions
-- Moving from Intune-only to co-management scenarios
-- Troubleshooting persistent management or policy issues
-- Preparing devices for repurposing or reassignment
-- Removing management overhead without losing data
-- Testing enrollment and management scenarios
-- Changing management authority for devices
-
-### What Happens When Device is Deprovisioned
-
-- Intune sends deprovision command to the device
-- Device removes management policies and profiles
-- Configuration settings applied by Intune are removed
-- Device enrollment status remains in Intune
-- User data, files, and applications are preserved
-- Device can be re-enrolled and managed again
-- Deprovision reason is logged for auditing
 
 ## Example Usage
 

@@ -79,16 +79,7 @@ func (r *GroupAppRoleAssignmentResource) ImportState(ctx context.Context, req re
 
 func (r *GroupAppRoleAssignmentResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Manages Azure AD/Entra group app role assignments using the `/groups/{group-id}/appRoleAssignments` endpoint. " +
-			"This resource enables assigning app roles to security groups, allowing all direct members of the group to inherit the assigned permissions. " +
-			"Security groups with dynamic memberships are supported.\n\n" +
-			"**Important Notes:**\n" +
-			"- All direct members of the assigned group will be considered as having the app role\n" +
-			"- Additional licenses might be required to use a group to manage access to applications\n" +
-			"- The resource requires three key identifiers: principal ID (group), resource ID (service principal), and app role ID\n\n" +
-			"**Required Permissions:**\n" +
-			"- `AppRoleAssignment.ReadWrite.All` + `Group.Read.All` (least privileged)\n" +
-			"- Delegated scenarios: The signed-in user must be assigned one of the supported Microsoft Entra roles (Directory Readers, Directory Writers, Application Administrator, Cloud Application Administrator, etc.)",
+		MarkdownDescription: "Manages Azure AD/Entra group app role assignments using the `/groups/{group-id}/appRoleAssignments` endpoint. This resource is used to enables assigning app roles to security groups, allowing all direct members of the group to inherit the assigned permissions. Security groups with dynamic memberships are supported.\n\n**Important Notes:**\n- All direct members of the assigned group will be considered as having the app role\n- Additional licenses might be required to use a group to manage access to applications\n- The resource requires three key identifiers: principal ID (group), resource ID (service principal), and app role ID\n\n**Required Permissions:**\n- `AppRoleAssignment.ReadWrite.All` + `Group.Read.All` (least privileged)\n- Delegated scenarios: The signed-in user must be assigned one of the supported Microsoft Entra roles (Directory Readers, Directory Writers, Application Administrator, Cloud Application Administrator, etc.).",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed: true,

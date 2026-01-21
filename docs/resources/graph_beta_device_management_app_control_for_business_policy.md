@@ -3,12 +3,12 @@ page_title: "microsoft365_graph_beta_device_management_app_control_for_business_
 subcategory: "Device Management"
 
 description: |-
-  Manages App Control for Business configuration policies with custom XML content using the /deviceManagement/configurationPolicies endpoint. This resource allows you to deploy custom App Control for Business policies by providing XML policy content directly.
+  Manages App Control for Business configuration policies with custom XML content using the /deviceManagement/configurationPolicies endpoint. This resource is used to allows you to deploy custom App Control for Business policies by providing XML policy content directly.
 ---
 
 # microsoft365_graph_beta_device_management_app_control_for_business_policy (Resource)
 
-Manages App Control for Business configuration policies with custom XML content using the `/deviceManagement/configurationPolicies` endpoint. This resource allows you to deploy custom App Control for Business policies by providing XML policy content directly.
+Manages App Control for Business configuration policies with custom XML content using the `/deviceManagement/configurationPolicies` endpoint. This resource is used to allows you to deploy custom App Control for Business policies by providing XML policy content directly.
 
 ## Microsoft Documentation
 
@@ -17,13 +17,15 @@ Manages App Control for Business configuration policies with custom XML content 
 - [Create deviceManagementConfigurationPolicy](https://learn.microsoft.com/en-us/graph/api/intune-deviceconfigv2-devicemanagementconfigurationpolicy-create?view=graph-rest-beta)
 - [Update deviceManagementConfigurationPolicy](https://learn.microsoft.com/en-us/graph/api/intune-deviceconfigv2-devicemanagementconfigurationpolicy-update?view=graph-rest-beta)
 
-## API Permissions
+## Microsoft Graph API Permissions
 
-The following API permissions are required in order to use this resource.
+The following client `application` permissions are needed in order to use this resource:
 
-### Microsoft Graph
+**Required:**
+- `DeviceManagementConfiguration.ReadWrite.All`
 
-- **Application**: `DeviceManagementConfiguration.ReadWrite.All`
+**Optional:**
+- `None` `[N/A]`
 
 ## Version History
 

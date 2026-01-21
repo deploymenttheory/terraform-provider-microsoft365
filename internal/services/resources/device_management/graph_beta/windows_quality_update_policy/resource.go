@@ -76,9 +76,7 @@ func (r *WindowsQualityUpdatePolicyResource) ImportState(ctx context.Context, re
 // Schema defines the schema for the resource.
 func (r *WindowsQualityUpdatePolicyResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Manages Windows Quality Update Policies using the `/deviceManagement/WindowsQualityUpdatePolicies` endpoint. " +
-			"Quality Update Policies enable control over Windows quality updates deployment, including hotpatch enablement for " +
-			"non-security updates without requiring device reboots.",
+		MarkdownDescription: "Manages Windows quality update policies in Microsoft Intune using the `/deviceManagement/WindowsQualityUpdatePolicies` endpoint. This resource is used to control Windows quality update deployment, including hotpatch enablement for non-security updates without device reboots.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed: true,

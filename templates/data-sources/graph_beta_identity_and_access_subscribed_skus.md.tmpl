@@ -9,13 +9,17 @@ description: |-
 
 {{ .Description | trimspace }}
 
-## API Permissions
+## Microsoft Graph API Permissions
 
-The following API permissions are required in order to use this data source.
+The following client `application` permissions are needed in order to use this {{.Type | lower}}:
 
-### Microsoft Graph
+**Required:**
+- `LicenseAssignment.Read.All`
+- `Directory.Read.All`
+- `Organization.Read.All`
 
-- **Application**: `LicenseAssignment.Read.All`, `Directory.Read.All`, `Organization.Read.All`
+**Optional:**
+- `None` `[N/A]`
 
 ## Version History
 

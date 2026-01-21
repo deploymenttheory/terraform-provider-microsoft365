@@ -3,24 +3,26 @@ page_title: "microsoft365_graph_beta_device_management_windows_autopilot_device_
 subcategory: "Device Management"
 
 description: |-
-  Manages Windows Autopilot device identities using the /deviceManagement/windowsAutopilotDeviceIdentities endpoint. Windows Autopilot device identities represent devices registered with the Windows Autopilot service for automated device provisioning.
+  Manages Windows Autopilot device identities using the /deviceManagement/windowsAutopilotDeviceIdentities endpoint. This resource is used to windows Autopilot device identities represent devices registered with the Windows Autopilot service for automated device provisioning.
 ---
 
 # microsoft365_graph_beta_device_management_windows_autopilot_device_identity (Resource)
 
-Manages Windows Autopilot device identities using the `/deviceManagement/windowsAutopilotDeviceIdentities` endpoint. Windows Autopilot device identities represent devices registered with the Windows Autopilot service for automated device provisioning.
+Manages Windows Autopilot device identities using the `/deviceManagement/windowsAutopilotDeviceIdentities` endpoint. This resource is used to windows Autopilot device identities represent devices registered with the Windows Autopilot service for automated device provisioning.
 
 ## Microsoft Documentation
 
 - [windowsAutopilotDeviceIdentity resource type](https://learn.microsoft.com/en-us/graph/api/resources/intune-enrollment-windowsautopilotdeviceidentity?view=graph-rest-beta)
 
-## API Permissions
+## Microsoft Graph API Permissions
 
-The following API permissions are required in order to use this resource.
+The following client `application` permissions are needed in order to use this resource:
 
-### Microsoft Graph
+**Required:**
+- `DeviceManagementServiceConfig.ReadWrite.All`
 
-- **Application**: `DeviceManagementServiceConfig.ReadWrite.All`
+**Optional:**
+- `None` `[N/A]`
 
 ## Version History
 

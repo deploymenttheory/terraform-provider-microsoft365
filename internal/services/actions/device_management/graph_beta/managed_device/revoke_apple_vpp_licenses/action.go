@@ -55,10 +55,10 @@ func (a *RevokeAppleVppLicensesAction) Configure(ctx context.Context, req action
 
 func (a *RevokeAppleVppLicensesAction) Schema(ctx context.Context, req action.SchemaRequest, resp *action.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Revokes all Apple Volume Purchase Program (VPP) licenses from devices using the " +
+		MarkdownDescription: "Revokes all Apple Volume Purchase Program (VPP) licenses from devices in Microsoft Intune using the " +
 			"`/deviceManagement/managedDevices/{managedDeviceId}/revokeAppleVppLicenses` and " +
 			"`/deviceManagement/comanagedDevices/{managedDeviceId}/revokeAppleVppLicenses` endpoints. " +
-			"This action reclaims all VPP-purchased app licenses assigned to iOS/iPadOS devices, making them available " +
+			"This action is used to reclaim all VPP-purchased app licenses assigned to iOS/iPadOS devices, making them available " +
 			"for reassignment to other devices or users.\n\n" +
 			"**What This Action Does:**\n" +
 			"- Revokes all VPP app licenses from device\n" +

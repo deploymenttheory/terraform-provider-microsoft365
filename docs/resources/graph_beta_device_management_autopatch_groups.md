@@ -3,12 +3,12 @@ page_title: "microsoft365_graph_beta_device_management_autopatch_groups Resource
 subcategory: "Device Management"
 
 description: |-
-  Manages Windows Autopatch groups using the https://services.autopatch.microsoft.com/device/v2/autopatchGroups endpoint. Autopatch groups help organize devices into logical groups for automated Windows Update deployment with customizable deployment rings and policy settings.This resource is not documented in the Microsoft Graph API documentation. This resource is experimental and may change in the future.There's currently 401 errors when trying using this resource. There appears to be a seperate unobservable authentication step between intune and  autopatch micro service that cannot be replicated in the terraform provider. Entra ID client id / secret are not sufficient to authenticate.
+  Manages Windows Autopatch groups using the /https://services.autopatch.microsoft.com/device/v2/autopatchGroups endpoint. This resource is used to autopatch groups help organize devices into logical groups for automated Windows Update deployment with customizable deployment rings and policy settings.This resource is not documented in the Microsoft Graph API documentation. This resource is experimental and may change in the future.There's currently 401 errors when trying using this resource.
 ---
 
 # microsoft365_graph_beta_device_management_autopatch_groups (Resource)
 
-Manages Windows Autopatch groups using the `https://services.autopatch.microsoft.com/device/v2/autopatchGroups` endpoint. Autopatch groups help organize devices into logical groups for automated Windows Update deployment with customizable deployment rings and policy settings.This resource is not documented in the Microsoft Graph API documentation. This resource is experimental and may change in the future.There's currently 401 errors when trying using this resource. There appears to be a seperate unobservable authentication step between intune and  autopatch micro service that cannot be replicated in the terraform provider. Entra ID client id / secret are not sufficient to authenticate.
+Manages Windows Autopatch groups using the `/https://services.autopatch.microsoft.com/device/v2/autopatchGroups` endpoint. This resource is used to autopatch groups help organize devices into logical groups for automated Windows Update deployment with customizable deployment rings and policy settings.This resource is not documented in the Microsoft Graph API documentation. This resource is experimental and may change in the future.There's currently 401 errors when trying using this resource.
 
 ## Undocumented
 
@@ -18,13 +18,15 @@ This occurs for both client id and client secret authentication.
 APIEndpoint:  "https://services.autopatch.microsoft.com"
 ResourcePath: "/device/v2/autopatchGroups"
 
-## API Permissions
+## Microsoft Graph API Permissions
 
-The following API permissions are required in order to use this resource.
+The following client `application` permissions are needed in order to use this resource:
 
-### Microsoft Graph
+**Required:**
+- `TBC`
 
-- **Application**: `TBC`
+**Optional:**
+- `None` `[N/A]`
 
 ## Version History
 

@@ -55,10 +55,10 @@ func (a *WindowsDefenderUpdateSignaturesAction) Configure(ctx context.Context, r
 
 func (a *WindowsDefenderUpdateSignaturesAction) Schema(ctx context.Context, req action.SchemaRequest, resp *action.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Forces Windows devices to immediately update Windows Defender (Microsoft Defender Antivirus) signatures using the " +
+		MarkdownDescription: "Updates Windows Defender (Microsoft Defender Antivirus) signatures on Windows devices in Microsoft Intune using the " +
 			"`/deviceManagement/managedDevices/{managedDeviceId}/windowsDefenderUpdateSignatures` and " +
 			"`/deviceManagement/comanagedDevices/{managedDeviceId}/windowsDefenderUpdateSignatures` endpoints. " +
-			"This action triggers an immediate update of antivirus definitions without waiting for the standard update schedule.\n\n" +
+			"This action is used to force devices to immediately update antivirus definitions without waiting for the standard update schedule.\n\n" +
 			"**What This Action Does:**\n" +
 			"- Forces immediate signature update\n" +
 			"- Downloads latest threat definitions\n" +

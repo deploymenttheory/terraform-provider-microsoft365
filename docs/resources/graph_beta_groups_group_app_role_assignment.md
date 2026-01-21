@@ -2,16 +2,16 @@
 page_title: "microsoft365_graph_beta_groups_group_app_role_assignment Resource - terraform-provider-microsoft365"
 subcategory: "Groups"
 description: |-
-  Manages Azure AD/Entra group app role assignments using the /groups/{group-id}/appRoleAssignments endpoint. This resource enables assigning app roles to security groups, allowing all direct members of the group to inherit the assigned permissions. Security groups with dynamic memberships are supported.
+  Manages Azure AD/Entra group app role assignments using the /groups/{group-id}/appRoleAssignments endpoint. This resource is used to enables assigning app roles to security groups, allowing all direct members of the group to inherit the assigned permissions. Security groups with dynamic memberships are supported.
   Important Notes:
   All direct members of the assigned group will be considered as having the app roleAdditional licenses might be required to use a group to manage access to applicationsThe resource requires three key identifiers: principal ID (group), resource ID (service principal), and app role ID
   Required Permissions:
-  AppRoleAssignment.ReadWrite.All + Group.Read.All (least privileged)Delegated scenarios: The signed-in user must be assigned one of the supported Microsoft Entra roles (Directory Readers, Directory Writers, Application Administrator, Cloud Application Administrator, etc.)
+  AppRoleAssignment.ReadWrite.All + Group.Read.All (least privileged)Delegated scenarios: The signed-in user must be assigned one of the supported Microsoft Entra roles (Directory Readers, Directory Writers, Application Administrator, Cloud Application Administrator, etc.).
 ---
 
 # microsoft365_graph_beta_groups_group_app_role_assignment (Resource)
 
-Manages Azure AD/Entra group app role assignments using the `/groups/{group-id}/appRoleAssignments` endpoint. This resource enables assigning app roles to security groups, allowing all direct members of the group to inherit the assigned permissions. Security groups with dynamic memberships are supported.
+Manages Azure AD/Entra group app role assignments using the `/groups/{group-id}/appRoleAssignments` endpoint. This resource is used to enables assigning app roles to security groups, allowing all direct members of the group to inherit the assigned permissions. Security groups with dynamic memberships are supported.
 
 **Important Notes:**
 - All direct members of the assigned group will be considered as having the app role
@@ -20,7 +20,7 @@ Manages Azure AD/Entra group app role assignments using the `/groups/{group-id}/
 
 **Required Permissions:**
 - `AppRoleAssignment.ReadWrite.All` + `Group.Read.All` (least privileged)
-- Delegated scenarios: The signed-in user must be assigned one of the supported Microsoft Entra roles (Directory Readers, Directory Writers, Application Administrator, Cloud Application Administrator, etc.)
+- Delegated scenarios: The signed-in user must be assigned one of the supported Microsoft Entra roles (Directory Readers, Directory Writers, Application Administrator, Cloud Application Administrator, etc.).
 
 ## Microsoft Documentation
 
@@ -29,13 +29,16 @@ Manages Azure AD/Entra group app role assignments using the `/groups/{group-id}/
 - [Grant an appRoleAssignment to a group](https://learn.microsoft.com/en-us/graph/api/group-post-approleassignments?view=graph-rest-beta)
 - [Delete an appRoleAssignment from a group](https://learn.microsoft.com/en-us/graph/api/group-delete-approleassignments?view=graph-rest-beta)
 
-## API Permissions
+## Microsoft Graph API Permissions
 
-The following API permissions are required in order to use this resource.
+The following client `application` permissions are needed in order to use this resource:
 
-### Microsoft Graph
+**Required:**
+- `AppRoleAssignment.ReadWrite.All`
+- `Directory.ReadWrite.All`
 
-- **Application**: `AppRoleAssignment.ReadWrite.All`, `Directory.ReadWrite.All`
+**Optional:**
+- `None` `[N/A]`
 
 ## Version History
 

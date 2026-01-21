@@ -3,27 +3,31 @@ page_title: "microsoft365_graph_beta_device_management_group_policy_configuratio
 subcategory: "Device Management"
 
 description: |-
-  Manages group policy configurations in Microsoft Intune using the /deviceManagement/groupPolicyConfigurations endpoint. The group policy configuration entity contains the configured values for one or more group policy definitions.
+  Manages group policy configurations using the /deviceManagement/groupPolicyConfigurations endpoint. This resource is used to the group policy configuration entity contains the configured values for one or more group policy definitions.
 ---
 
 # microsoft365_graph_beta_device_management_group_policy_configuration (Resource)
 
-Manages group policy configurations in Microsoft Intune using the `/deviceManagement/groupPolicyConfigurations` endpoint. The group policy configuration entity contains the configured values for one or more group policy definitions.
+Manages group policy configurations using the `/deviceManagement/groupPolicyConfigurations` endpoint. This resource is used to the group policy configuration entity contains the configured values for one or more group policy definitions.
 
 ## Microsoft Documentation
 
 - [Group policy configuration resource type](https://learn.microsoft.com/en-us/graph/api/resources/intune-grouppolicy-grouppolicyconfiguration?view=graph-rest-beta)
 - [Create groupPolicyConfiguration](https://learn.microsoft.com/en-us/graph/api/intune-grouppolicy-grouppolicyconfiguration-create?view=graph-rest-beta)
+- [Read groupPolicyConfiguration](https://learn.microsoft.com/en-us/graph/api/intune-grouppolicy-grouppolicyconfiguration-get?view=graph-rest-beta)
 - [Update groupPolicyConfiguration](https://learn.microsoft.com/en-us/graph/api/intune-grouppolicy-grouppolicyconfiguration-update?view=graph-rest-beta)
 - [Delete groupPolicyConfiguration](https://learn.microsoft.com/en-us/graph/api/intune-grouppolicy-grouppolicyconfiguration-delete?view=graph-rest-beta)
 
-## API Permissions
+## Microsoft Graph API Permissions
 
-The following API permissions are required in order to use this resource.
+The following client `application` permissions are needed in order to use this resource:
 
-### Microsoft Graph
+**Required:**
+- `DeviceManagementConfiguration.Read.All`
+- `DeviceManagementConfiguration.ReadWrite.All`
 
-- **Application**: `DeviceManagementConfiguration.Read.All`, `DeviceManagementConfiguration.ReadWrite.All`
+**Optional:**
+- `None` `[N/A]`
 
 ## Version History
 

@@ -2,24 +2,31 @@
 page_title: "microsoft365_graph_beta_identity_and_access_named_location Resource - terraform-provider-microsoft365"
 subcategory: "Identity and Access"
 description: |-
-  Manages Microsoft 365 Named Locations using the /identity/conditionalAccess/namedLocations endpoint. Named Locations define network locations that can be used in Conditional Access policies. Supports both IP-based and country-based named locations.
+  Manages named locations in Microsoft Entra ID using the /identity/conditionalAccess/namedLocations endpoint. This resource is used to define network locations for use in Conditional Access policies. Supports both IP-based and country-based named locations.
 ---
 
 # microsoft365_graph_beta_identity_and_access_named_location (Resource)
 
-Manages Microsoft 365 Named Locations using the `/identity/conditionalAccess/namedLocations` endpoint. Named Locations define network locations that can be used in Conditional Access policies. Supports both IP-based and country-based named locations.
+Manages named locations in Microsoft Entra ID using the `/identity/conditionalAccess/namedLocations` endpoint. This resource is used to define network locations for use in Conditional Access policies. Supports both IP-based and country-based named locations.
 
 ## Microsoft Documentation
 
 - [namedLocation resource type](https://learn.microsoft.com/en-us/graph/api/resources/namedlocation?view=graph-rest-beta)
+- [Create namedLocation](https://learn.microsoft.com/en-us/graph/api/conditionalaccessroot-post-namedlocations?view=graph-rest-beta&tabs=http)
+- [Read namedLocation](https://learn.microsoft.com/en-us/graph/api/namedlocation-get?view=graph-rest-beta)
+- [Update namedLocation](https://learn.microsoft.com/en-us/graph/api/namedlocation-update?view=graph-rest-beta)
+- [Delete namedLocation](https://learn.microsoft.com/en-us/graph/api/namedlocation-delete?view=graph-rest-beta)
 
-## API Permissions
+## Microsoft Graph API Permissions
 
-The following API permissions are required in order to use this resource.
+The following client `application` permissions are needed in order to use this resource:
 
-### Microsoft Graph
+**Required:**
+- `Policy.ReadWrite.ConditionalAccess`
+- `Policy.Read.All`
 
-- **Application**: `Policy.ReadWrite.ConditionalAccess`, `Policy.Read.All`
+**Optional:**
+- `None` `[N/A]`
 
 ## Version History
 

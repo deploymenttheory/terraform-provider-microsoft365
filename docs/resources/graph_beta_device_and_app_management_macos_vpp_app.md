@@ -3,26 +3,28 @@ page_title: "microsoft365_graph_beta_device_and_app_management_macos_vpp_app Res
 subcategory: "Device and App Management"
 
 description: |-
-  Manages macOS Volume-Purchased Program (VPP) apps in Microsoft Intune using the /deviceAppManagement/mobileApps endpoint. VPP apps are applications purchased through Apple's Volume Purchase Program that can be distributed to managed macOS devices through the Intune management agent.
+  Manages macOS Volume-Purchased Program (VPP) apps using the /deviceAppManagement/mobileApps endpoint. This resource is used to vPP apps are applications purchased through Apple's Volume Purchase Program that can be distributed to managed macOS devices through the Intune management agent.
 ---
 
 # microsoft365_graph_beta_device_and_app_management_macos_vpp_app (Resource)
 
-Manages macOS Volume-Purchased Program (VPP) apps in Microsoft Intune using the `/deviceAppManagement/mobileApps` endpoint. VPP apps are applications purchased through Apple's Volume Purchase Program that can be distributed to managed macOS devices through the Intune management agent.
+Manages macOS Volume-Purchased Program (VPP) apps using the `/deviceAppManagement/mobileApps` endpoint. This resource is used to vPP apps are applications purchased through Apple's Volume Purchase Program that can be distributed to managed macOS devices through the Intune management agent.
 
 ## Microsoft Documentation
 
 - [macOsVppApp resource type](https://learn.microsoft.com/en-us/graph/api/resources/intune-apps-macosvppapp?view=graph-rest-beta)
 - [Create macOsVppApp](https://learn.microsoft.com/en-us/graph/api/intune-apps-macosvppapp-create?view=graph-rest-beta)
 
-## API Permissions
+## Microsoft Graph API Permissions
 
-The following API permissions are required in order to use this resource.
+The following client `application` permissions are needed in order to use this resource:
 
-### Microsoft Graph
+**Required:**
+- `DeviceManagementApps.Read.All`
+- `DeviceManagementApps.ReadWrite.All`
 
-- **Read**: `DeviceManagementApps.Read.All`
-- **Write**: `DeviceManagementApps.ReadWrite.All`
+**Optional:**
+- `None` `[N/A]`
 
 ## Version History
 

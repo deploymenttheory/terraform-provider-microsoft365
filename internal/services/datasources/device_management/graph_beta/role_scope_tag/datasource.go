@@ -52,7 +52,7 @@ func (d *RoleScopeTagDataSource) Configure(ctx context.Context, req datasource.C
 // Schema defines the schema for the data source
 func (d *RoleScopeTagDataSource) Schema(ctx context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Retrieves role scope tags from Microsoft Intune using the `/deviceManagement/roleScopeTags` endpoint. Role scope tags enable role-based access control by limiting administrator visibility and management capabilities to specific organizational units, devices, or resources, ensuring proper delegation of administrative responsibilities.",
+		MarkdownDescription: "Retrieves role scope tags from Microsoft Intune using the `/deviceManagement/roleScopeTags` endpoint. This data source is used to query RBAC scope tags that limit administrator visibility to specific organizational units or resources.",
 		Attributes: map[string]schema.Attribute{
 			"filter_type": schema.StringAttribute{
 				Required:            true,

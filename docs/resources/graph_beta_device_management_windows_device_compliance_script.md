@@ -3,12 +3,12 @@ page_title: "microsoft365_graph_beta_device_management_windows_device_compliance
 subcategory: "Device Management"
 
 description: |-
-  Manages Windows device compliance scripts using the /deviceManagement/deviceComplianceScripts endpoint. Device compliance scripts enable running PowerShell detection scripts on enrolled Windows 10/11 Azure Active Directory joined devices to validate compliance requirements and provide custom compliance assessments.
+  Manages Windows device compliance scripts in Microsoft Intune using the /deviceManagement/deviceComplianceScripts endpoint. This resource is used to run PowerShell detection scripts on enrolled Windows 10/11 devices to validate compliance requirements and provide custom compliance assessments.
 ---
 
 # microsoft365_graph_beta_device_management_windows_device_compliance_script (Resource)
 
-Manages Windows device compliance scripts using the `/deviceManagement/deviceComplianceScripts` endpoint. Device compliance scripts enable running PowerShell detection scripts on enrolled Windows 10/11 Azure Active Directory joined devices to validate compliance requirements and provide custom compliance assessments.
+Manages Windows device compliance scripts in Microsoft Intune using the `/deviceManagement/deviceComplianceScripts` endpoint. This resource is used to run PowerShell detection scripts on enrolled Windows 10/11 devices to validate compliance requirements and provide custom compliance assessments.
 
 ## Microsoft Documentation
 
@@ -17,13 +17,16 @@ Manages Windows device compliance scripts using the `/deviceManagement/deviceCom
 - [Update deviceComplianceScript](https://learn.microsoft.com/en-us/graph/api/intune-devices-devicehealthscript-update?view=graph-rest-beta)
 - [Delete deviceComplianceScript](https://learn.microsoft.com/en-us/graph/api/intune-devices-devicehealthscript-delete?view=graph-rest-beta)
 
-## API Permissions
+## Microsoft Graph API Permissions
 
-The following API permissions are required in order to use this resource.
+The following client `application` permissions are needed in order to use this resource:
 
-### Microsoft Graph
+**Required:**
+- `DeviceManagementConfiguration.ReadWrite.All`
+- `DeviceManagementConfiguration.Read.All`
 
-- **Application**: `DeviceManagementConfiguration.ReadWrite.All` , `DeviceManagementConfiguration.Read.All`
+**Optional:**
+- `None` `[N/A]`
 
 ## Example Usage
 

@@ -2,15 +2,15 @@
 page_title: "microsoft365_graph_beta_identity_and_access_custom_security_attribute_allowed_value Resource - terraform-provider-microsoft365"
 subcategory: "Identity and Access"
 description: |-
-  Manages Microsoft Entra custom security attribute allowed values using the /directory/customSecurityAttributeDefinitions/{customSecurityAttributeDefinitionId}/allowedValues endpoint. Allowed values represent predefined values that can be assigned to custom security attributes.
-  Note: You can define up to 100 allowed values per custom security attribute definition. Allowed values cannot be renamed or deleted, but they can be deactivated.
+  Manages Microsoft Entra custom security attribute allowed values using the /directory/customSecurityAttributeDefinitions/{customSecurityAttributeDefinitionId}/allowedValues endpoint. This resource is used to allowed values represent predefined values that can be assigned to custom security attributes.
+  Note: You can define up to 100 allowed values per custom security attribute definition. Allowed values cannot be renamed or deleted, but they can be deactivated..
 ---
 
 # microsoft365_graph_beta_identity_and_access_custom_security_attribute_allowed_value (Resource)
 
-Manages Microsoft Entra custom security attribute allowed values using the `/directory/customSecurityAttributeDefinitions/{customSecurityAttributeDefinitionId}/allowedValues` endpoint. Allowed values represent predefined values that can be assigned to custom security attributes.
+Manages Microsoft Entra custom security attribute allowed values using the `/directory/customSecurityAttributeDefinitions/{customSecurityAttributeDefinitionId}/allowedValues` endpoint. This resource is used to allowed values represent predefined values that can be assigned to custom security attributes.
 
-**Note:** You can define up to 100 allowed values per custom security attribute definition. Allowed values cannot be renamed or deleted, but they can be deactivated.
+**Note:** You can define up to 100 allowed values per custom security attribute definition. Allowed values cannot be renamed or deleted, but they can be deactivated..
 
 ## Microsoft Documentation
 
@@ -18,13 +18,16 @@ Manages Microsoft Entra custom security attribute allowed values using the `/dir
 - [Create customSecurityAttributeAllowedValue](https://learn.microsoft.com/en-us/graph/api/customsecurityattributedefinition-post-allowedvalues?view=graph-rest-beta&tabs=http)
 - [Update customSecurityAttributeAllowedValue](https://learn.microsoft.com/en-us/graph/api/allowedvalue-update?view=graph-rest-beta&tabs=http)
 
-## API Permissions
+## Microsoft Graph API Permissions
 
-The following API permissions are required in order to use this resource.
+The following client `application` permissions are needed in order to use this resource:
 
-### Microsoft Graph
+**Required:**
+- `CustomSecAttributeDefinition.Read.All`
+- `CustomSecAttributeDefinition.ReadWrite.All`
 
-- **Application**: `CustomSecAttributeDefinition.Read.All`, `CustomSecAttributeDefinition.ReadWrite.All`
+**Optional:**
+- `None` `[N/A]`
 
 ## Version History
 

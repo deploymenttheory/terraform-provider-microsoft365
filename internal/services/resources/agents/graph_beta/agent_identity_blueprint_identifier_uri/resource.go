@@ -92,12 +92,7 @@ func (r *AgentIdentityBlueprintIdentifierUriResource) ImportState(ctx context.Co
 // Schema returns the schema for the resource.
 func (r *AgentIdentityBlueprintIdentifierUriResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Manages an identifier URI and optional OAuth2 permission scope for an Agent Identity Blueprint in Microsoft Entra ID using the `/applications` endpoint. " +
-			"This resource configures the identifier URI and optional scope using a " +
-			"[PATCH](https://learn.microsoft.com/en-us/graph/api/application-update?view=graph-rest-beta) to the application endpoint.\n\n" +
-			"The identifier URI is used to uniquely identify the agent identity blueprint and is required for " +
-			"receiving incoming requests from users and other agents.\n\n" +
-			"**Note:** This resource manages a single identifier URI. To manage multiple URIs, create multiple resource instances.",
+		MarkdownDescription: "Manages an identifier URI and optional OAuth2 permission scope for an Agent Identity Blueprint using the `/applications` endpoint. This resource is used to configures the identifier URI and optional scope using a [PATCH](https://learn.microsoft.com/en-us/graph/api/application-update?view=graph-rest-beta) to the application endpoint.\n\nThe identifier URI is used to uniquely identify the agent identity blueprint and is required for receiving incoming requests from users and other agents.\n\n**Note:** This resource manages a single identifier URI. To manage multiple URIs, create multiple resource instances..",
 		Attributes: map[string]schema.Attribute{
 			"blueprint_id": schema.StringAttribute{
 				MarkdownDescription: "The unique identifier (Object ID) of the agent identity blueprint to configure. Required.",

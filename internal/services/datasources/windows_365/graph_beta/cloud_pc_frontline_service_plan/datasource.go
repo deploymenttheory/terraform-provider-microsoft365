@@ -43,7 +43,7 @@ func (d *CloudPcFrontlineServicePlanDataSource) Configure(ctx context.Context, r
 
 func (d *CloudPcFrontlineServicePlanDataSource) Schema(ctx context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Retrieves Cloud PC Frontline Service Plans from Microsoft Intune. Using the endpoint '/deviceManagement/virtualEndpoint/frontlineServicePlans'. Supports filtering by all, id, or display_name.",
+		MarkdownDescription: "Retrieves Cloud PC frontline service plans from Microsoft Intune using the `/deviceManagement/virtualEndpoint/frontlineServicePlans` endpoint. This data source is used to query shared Cloud PC plans and their capacity utilization.",
 		Attributes: map[string]schema.Attribute{
 			"filter_type": schema.StringAttribute{
 				Required:            true,

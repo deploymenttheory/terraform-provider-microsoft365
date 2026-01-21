@@ -3,7 +3,7 @@ page_title: "microsoft365_graph_beta_device_management_managed_device_remote_loc
 subcategory: "Device Management"
 
 description: |-
-  Remotely locks managed devices using the /deviceManagement/managedDevices/{managedDeviceId}/remoteLock endpoint. This action immediately locks the device screen, requiring the user to enter their passcode to unlock it. This is useful for securing lost or stolen devices, or for security compliance scenarios. This action supports remotely locking multiple devices in a single operation.
+  Remotely locks managed devices in Microsoft Intune using the /deviceManagement/managedDevices/{managedDeviceId}/remoteLock endpoint. This action is used to immediately lock the device screen, requiring the user to enter their passcode to unlock it. This is useful for securing lost or stolen devices, or for security compliance scenarios. This action supports remotely locking multiple devices in a single operation.
   Important Notes:
   The device must be online and able to receive the commandThe device will lock immediately when it receives the commandThe user's existing passcode remains unchangedThe user will need to enter their passcode to unlock the deviceFor lost/stolen devices, consider using remote lock before more drastic measuresThis action does not remove any data from the device
   Use Cases:
@@ -15,7 +15,7 @@ description: |-
 
 # microsoft365_graph_beta_device_management_managed_device_remote_lock (Action)
 
-Remotely locks managed devices using the `/deviceManagement/managedDevices/{managedDeviceId}/remoteLock` endpoint. This action immediately locks the device screen, requiring the user to enter their passcode to unlock it. This is useful for securing lost or stolen devices, or for security compliance scenarios. This action supports remotely locking multiple devices in a single operation.
+Remotely locks managed devices in Microsoft Intune using the `/deviceManagement/managedDevices/{managedDeviceId}/remoteLock` endpoint. This action is used to immediately lock the device screen, requiring the user to enter their passcode to unlock it. This is useful for securing lost or stolen devices, or for security compliance scenarios. This action supports remotely locking multiple devices in a single operation.
 
 **Important Notes:**
 - The device must be online and able to receive the command
@@ -51,14 +51,15 @@ Remotely locks managed devices using the `/deviceManagement/managedDevices/{mana
 - [Device remote lock - macOS](https://learn.microsoft.com/en-us/intune/intune-service/remote-actions/device-remote-lock?pivots=macos)
 - [Device remote lock - Android](https://learn.microsoft.com/en-us/intune/intune-service/remote-actions/device-remote-lock?pivots=android)
 
-## API Permissions
+## Microsoft Graph API Permissions
 
-The following API permissions are required in order to use this action.
+The following client `application` permissions are needed in order to use this action:
 
-### Microsoft Graph
+**Required:**
+- `DeviceManagementManagedDevices.PrivilegedOperations.All`
 
-- **Application**: `DeviceManagementManagedDevices.PrivilegedOperations.All`
-- **Delegated**: `DeviceManagementManagedDevices.PrivilegedOperations.All`
+**Optional:**
+- `None` `[N/A]`
 
 ## Version History
 
@@ -67,60 +68,6 @@ The following API permissions are required in order to use this action.
 | v0.33.0-alpha | Experimental | Initial release |
 | v0.40.0-alpha | Experimental | Example fixes and refactored sync progress logic |
 
-
-## Notes
-
-### Platform Compatibility
-
-| Platform | Support | Requirements |
-|----------|---------|--------------|
-| **Windows** | ✅ Full Support | Windows 10/11 |
-| **macOS** | ✅ Full Support | All supported versions |
-| **iOS** | ✅ Full Support | All supported versions |
-| **iPadOS** | ✅ Full Support | All supported versions |
-| **Android** | ✅ Full Support | Fully managed and work profile |
-
-### How Remote Lock Works
-
-- Command sent to device immediately if online
-- Device locks screen instantly upon receiving command
-- User must enter existing passcode to unlock
-- Lock is enforced by operating system
-- Command queued if device offline
-- Device locks when it next checks in
-- No data is erased, device remains functional once unlocked
-
-### Common Use Cases
-
-- Lost device scenarios
-- Stolen device immediate response
-- Security incident response
-- Unauthorized device access prevention
-- Compliance enforcement
-- Compromised credential response
-- Emergency device isolation
-- User-requested device locking
-
-### User Impact
-
-- Screen locks immediately
-- Existing passcode required to unlock
-- No data loss
-- Notifications may still appear on lock screen
-- Device remains connected to network
-- Background processes continue
-- No warning provided to user
-
-### Best Practices
-
-- Document reason for lock in incident log
-- Combine with locate device for lost devices
-- Follow up with user communication
-- Consider lost mode for iOS/iPadOS devices
-- Use as first step in security incident response
-- Monitor device status after lock command
-- Have unlock procedure documented
-- Consider follow-up actions (wipe, retire) if needed
 
 ## Example Usage
 

@@ -82,7 +82,7 @@ func (r *IOSStoreAppResource) ImportState(ctx context.Context, req resource.Impo
 // Schema returns the schema for the resource.
 func (r *IOSStoreAppResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Manages iOS Store apps in Microsoft Intune using the `/deviceAppManagement/mobileApps` endpoint. iOS Store apps are applications from the Apple App Store that can be managed through Intune.",
+		MarkdownDescription: "Manages iOS Store apps using the `/deviceAppManagement/mobileApps` endpoint. This resource is used to iOS Store apps are applications from the Apple App Store that can be managed through Intune.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed: true,

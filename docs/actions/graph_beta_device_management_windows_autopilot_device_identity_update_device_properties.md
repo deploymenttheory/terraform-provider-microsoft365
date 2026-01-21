@@ -3,25 +3,27 @@ page_title: "microsoft365_graph_beta_device_management_windows_autopilot_device_
 subcategory: "Device Management"
 
 description: |-
-  Updates properties on an Autopilot device in Microsoft Intune using the /deviceManagement/windowsAutopilotDeviceIdentities/{windowsAutopilotDeviceIdentityId}/updateDeviceProperties endpoint. This action allows updating various properties of Autopilot devices including user assignment, group tag, and display name.
+  Updates properties on an Autopilot device in Microsoft Intune using the /deviceManagement/windowsAutopilotDeviceIdentities/{windowsAutopilotDeviceIdentityId}/updateDeviceProperties endpoint. This action is used to update various properties of Autopilot devices including user assignment, group tag, and display name.
 ---
 
 # microsoft365_graph_beta_device_management_windows_autopilot_device_identity_update_device_properties (Action)
 
-Updates properties on an Autopilot device in Microsoft Intune using the `/deviceManagement/windowsAutopilotDeviceIdentities/{windowsAutopilotDeviceIdentityId}/updateDeviceProperties` endpoint. This action allows updating various properties of Autopilot devices including user assignment, group tag, and display name.
+Updates properties on an Autopilot device in Microsoft Intune using the `/deviceManagement/windowsAutopilotDeviceIdentities/{windowsAutopilotDeviceIdentityId}/updateDeviceProperties` endpoint. This action is used to update various properties of Autopilot devices including user assignment, group tag, and display name.
 
 ## Microsoft Documentation
 
 - [updateDeviceProperties action](https://learn.microsoft.com/en-us/graph/api/intune-enrollment-windowsautopilotdeviceidentity-updatedeviceproperties?view=graph-rest-beta)
 - [windowsAutopilotDeviceIdentity resource type](https://learn.microsoft.com/en-us/graph/api/resources/intune-enrollment-windowsautopilotdeviceidentity?view=graph-rest-beta)
 
-## API Permissions
+## Microsoft Graph API Permissions
 
-The following API permissions are required in order to use this action.
+The following client `application` permissions are needed in order to use this action:
 
-### Microsoft Graph
+**Required:**
+- `DeviceManagementServiceConfig.ReadWrite.All`
 
-- **Application**: `DeviceManagementServiceConfig.ReadWrite.All`
+**Optional:**
+- `None` `[N/A]`
 
 ## Version History
 
@@ -88,7 +90,7 @@ action "microsoft365_graph_beta_device_management_windows_autopilot_device_ident
 - `display_name` (String) The display name for the device. This is a human-readable name for the device. If not provided, the display name will not be updated.
 - `group_tag` (String) The group tag to assign to the device. Group tags are used for organizing and categorizing devices. If not provided, the group tag will not be updated.
 - `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))
-- `user_principal_name` (String) The user principal name (UPN) of the user to assign to the device. This is typically the user's email address in the format user@domain.com. If not provided, the user assignment will not be updated.
+- `user_principal_name` (String) The user principal name (UPN) of the user to assign to the device. This is typically in the format user@domain.com. If not provided, the user assignment will not be updated.
 
 <a id="nestedatt--timeouts"></a>
 ### Nested Schema for `timeouts`

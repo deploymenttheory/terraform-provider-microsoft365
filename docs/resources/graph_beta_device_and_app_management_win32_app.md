@@ -3,25 +3,30 @@ page_title: "microsoft365_graph_beta_device_and_app_management_win32_app Resourc
 subcategory: "Device and App Management"
 
 description: |-
-  Manages Win32 applications using the /deviceAppManagement/mobileApps endpoint. Win apps enable deployment of custom Windows applications (.exe, .msi) with advanced installation logic, detection rules, and dependency management for enterprise software distribution. They must be wrapped in the .intunewin file type.'https://learn.microsoft.com/en-us/intune/intune-service/apps/apps-win32-app-management'
+  Manages Win32 applications in Microsoft Intune using the /deviceAppManagement/mobileApps endpoint. This resource is used to deploy custom Windows applications (.exe, .msi) with advanced installation logic, detection rules, and dependency management. Applications must be wrapped in the .intunewin file format.
 ---
 
 # microsoft365_graph_beta_device_and_app_management_win32_app (Resource)
 
-Manages Win32 applications using the `/deviceAppManagement/mobileApps` endpoint. Win apps enable deployment of custom Windows applications (.exe, .msi) with advanced installation logic, detection rules, and dependency management for enterprise software distribution. They must be wrapped in the .intunewin file type.'https://learn.microsoft.com/en-us/intune/intune-service/apps/apps-win32-app-management'
+Manages Win32 applications in Microsoft Intune using the `/deviceAppManagement/mobileApps` endpoint. This resource is used to deploy custom Windows applications (.exe, .msi) with advanced installation logic, detection rules, and dependency management. Applications must be wrapped in the .intunewin file format.
 
 ## Microsoft Documentation
 
 - [win32LobApp resource type](https://learn.microsoft.com/en-us/graph/api/resources/intune-apps-win32lobapp?view=graph-rest-beta)
 - [Create win32LobApp](https://learn.microsoft.com/en-us/graph/api/intune-apps-win32lobapp-create?view=graph-rest-beta)
+- [Read win32LobApp](https://learn.microsoft.com/en-us/graph/api/intune-apps-win32lobapp-get?view=graph-rest-beta)
+- [Update win32LobApp](https://learn.microsoft.com/en-us/graph/api/intune-apps-win32lobapp-update?view=graph-rest-beta)
+- [Delete win32LobApp](https://learn.microsoft.com/en-us/graph/api/intune-apps-win32lobapp-delete?view=graph-rest-beta)
 
-## API Permissions
+## Microsoft Graph API Permissions
 
-The following API permissions are required in order to use this resource.
+The following client `application` permissions are needed in order to use this resource:
 
-### Microsoft Graph
+**Required:**
+- `DeviceManagementApps.ReadWrite.All`
 
-- **Application**: `DeviceManagementApps.ReadWrite.All`
+**Optional:**
+- `None` `[N/A]`
 
 ## Version History
 

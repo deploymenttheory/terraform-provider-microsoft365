@@ -2,20 +2,24 @@
 page_title: "microsoft365_graph_beta_identity_and_access_subscribed_skus Data Source - terraform-provider-microsoft365"
 subcategory: "Identity and Access"
 description: |-
-  Retrieves information about Microsoft 365 license SKUs (Stock Keeping Units) that an organization has subscribed to. This data source provides details about available licenses, their consumption, and service plans.
+  Retrieves Microsoft 365 license SKUs from Microsoft Entra ID using the /subscribedSkus endpoint. This data source is used to query subscribed license SKUs with consumption details and service plans.
 ---
 
 # microsoft365_graph_beta_identity_and_access_subscribed_skus (Data Source)
 
-Retrieves information about Microsoft 365 license SKUs (Stock Keeping Units) that an organization has subscribed to. This data source provides details about available licenses, their consumption, and service plans.
+Retrieves Microsoft 365 license SKUs from Microsoft Entra ID using the `/subscribedSkus` endpoint. This data source is used to query subscribed license SKUs with consumption details and service plans.
 
-## API Permissions
+## Microsoft Graph API Permissions
 
-The following API permissions are required in order to use this data source.
+The following client `application` permissions are needed in order to use this data source:
 
-### Microsoft Graph
+**Required:**
+- `LicenseAssignment.Read.All`
+- `Directory.Read.All`
+- `Organization.Read.All`
 
-- **Application**: `LicenseAssignment.Read.All`, `Directory.Read.All`, `Organization.Read.All`
+**Optional:**
+- `None` `[N/A]`
 
 ## Version History
 

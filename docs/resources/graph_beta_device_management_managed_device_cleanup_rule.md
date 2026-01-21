@@ -15,13 +15,15 @@ Manages Managed Device Cleanup Rules in Microsoft Intune. Device cleanup rules d
 - [managedDeviceCleanupRule resource type](https://learn.microsoft.com/en-us/graph/api/resources/intune-devices-manageddevicecleanuprule?view=graph-rest-beta)
 - [Create managedDeviceCleanupRule](https://learn.microsoft.com/en-us/graph/api/intune-devices-manageddevicecleanuprule-create?view=graph-rest-beta)
 
-## API Permissions
+## Microsoft Graph API Permissions
 
-The following API permissions are required in order to use this resource.
+The following client `application` permissions are needed in order to use this resource:
 
-### Microsoft Graph
+**Required:**
+- `DeviceManagementManagedDevices.ReadWrite.All`
 
-- **Application**: `DeviceManagementManagedDevices.ReadWrite.All`
+**Optional:**
+- `None` `[N/A]`
 
 ## Version History
 

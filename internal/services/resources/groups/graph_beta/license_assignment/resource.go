@@ -120,7 +120,7 @@ func (r *GroupLicenseAssignmentResource) ImportState(ctx context.Context, req re
 // Schema returns the schema for the resource.
 func (r *GroupLicenseAssignmentResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Manages a single Microsoft 365 license assignment for a group using the `/groups/{groupId}/assignLicense` endpoint. Each resource instance manages one license (SKU) for a group. To assign multiple licenses to a group, create multiple instances of this resource with different SKU IDs. License assignments automatically apply to all current and future group members.",
+		MarkdownDescription: "Manages a single Microsoft 365 license assignment for a group using the `/groups/{groupId}/assignLicense` endpoint. This resource is used to each resource instance manages one license (SKU) for a group. To assign multiple licenses to a group, create multiple instances of this resource with different SKU IDs. License assignments automatically apply to all current and future group members..",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed: true,

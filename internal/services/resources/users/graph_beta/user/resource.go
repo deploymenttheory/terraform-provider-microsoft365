@@ -124,10 +124,7 @@ func (r *UserResource) ImportState(ctx context.Context, req resource.ImportState
 // Schema defines the schema for the resource.
 func (r *UserResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Manages Microsoft 365 users using the `/users` endpoint. The user resource lets admins " +
-			"specify user preferences for languages and date/time formats for the user's primary Exchange mailboxes and " +
-			"Microsoft Entra profile. Permissions for this resource are complex and depend on the specific fields you wish to" +
-			"manage. For more information, see the Microsoft Documentation. https://learn.microsoft.com/en-us/graph/api/user-update?view=graph-rest-beta&tabs=http#permissions-for-specific-scenarios",
+		MarkdownDescription: "Manages Microsoft 365 users using the `/users` endpoint. This resource is used to the user resource lets admins specify user preferences for languages and date/time formats for the user's primary Exchange mailboxes and Microsoft Entra profile. Permissions for this resource are complex and depend on the specific fields you wish tomanage. For more information, see the Microsoft Documentation. https://learn.microsoft.com/en-us/graph/api/user-update?view=graph-rest-beta&tabs=http#permissions-for-specific-scenarios.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				MarkdownDescription: "The unique identifier for the user. Read-only.",

@@ -55,9 +55,9 @@ func (a *LocateManagedDeviceAction) Configure(ctx context.Context, req action.Co
 
 func (a *LocateManagedDeviceAction) Schema(ctx context.Context, req action.SchemaRequest, resp *action.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Triggers device location for one or more managed devices using the " +
+		MarkdownDescription: "Locates managed devices in Microsoft Intune using the " +
 			"`/deviceManagement/managedDevices/{managedDeviceId}/locateDevice` endpoint. " +
-			"This action requests the device to report its current geographic location, which is then viewable " +
+			"This action is used to request devices to report their current geographic location, which is then viewable " +
 			"in the Microsoft Intune admin center. The locate device feature is essential for finding lost or " +
 			"stolen devices and is commonly used in conjunction with lost mode.\n\n" +
 			"**Important Notes:**\n" +

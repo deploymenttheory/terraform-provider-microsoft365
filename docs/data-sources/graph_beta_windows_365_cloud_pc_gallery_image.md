@@ -2,7 +2,7 @@
 page_title: "microsoft365_graph_beta_windows_365_cloud_pc_gallery_image Data Source - terraform-provider-microsoft365"
 subcategory: "Windows 365"
 description: |-
-  Retrieves Cloud PC Gallery Images from Microsoft Intune. Using the endpoint '/deviceManagement/virtualEndpoint/galleryImages'. Supports filtering by all, id, or display_name.
+  Retrieves Cloud PC gallery images from Microsoft Intune using the /deviceManagement/virtualEndpoint/galleryImages endpoint. This data source is used to discover Microsoft-provided OS images with their support status and version details.
 ---
 
 # microsoft365_graph_beta_windows_365_cloud_pc_gallery_image (Data Source)
@@ -15,13 +15,16 @@ Gallery images represent the available OS images that can be used to provision C
 
 - [cloudPcGalleryImage resource type](https://learn.microsoft.com/en-us/graph/api/resources/cloudpcgalleryimage?view=graph-rest-beta)
 
-## API Permissions
+## Microsoft Graph API Permissions
 
-The following API permissions are required in order to use this data source.
+The following client `application` permissions are needed in order to use this data source:
 
-### Microsoft Graph
+**Required:**
+- `CloudPC.Read.All`
+- `CloudPC.ReadWrite.All`
 
-- **Application**: `CloudPC.Read.All`, `CloudPC.ReadWrite.All`
+**Optional:**
+- `None` `[N/A]`
 
 ## Version History
 

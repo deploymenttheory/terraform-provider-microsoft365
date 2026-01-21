@@ -51,8 +51,7 @@ func (d *WindowsUpdateRingDataSource) Configure(ctx context.Context, req datasou
 // Schema defines the schema for the data source
 func (d *WindowsUpdateRingDataSource) Schema(ctx context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Retrieves Windows Update Rings from Microsoft Intune with explicit filtering options. " +
-			"Windows Update Rings allow you to define how and when Windows devices receive updates.",
+		MarkdownDescription: "Retrieves Windows Update Rings from Microsoft Intune using the `/deviceManagement/deviceConfigurations` endpoint. This data source is used to query Windows 10/11 update ring policies that control update deployment timing and behavior.",
 		Attributes: map[string]schema.Attribute{
 			"filter_type": schema.StringAttribute{
 				Required:            true,

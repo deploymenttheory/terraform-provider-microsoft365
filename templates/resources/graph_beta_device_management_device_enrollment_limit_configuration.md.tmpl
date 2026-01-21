@@ -19,13 +19,15 @@ description: |-
 - [Update deviceEnrollmentLimitConfiguration](https://learn.microsoft.com/en-us/graph/api/intune-onboarding-deviceenrollmentlimitconfiguration-update?view=graph-rest-beta)
 - [Delete deviceEnrollmentLimitConfiguration](https://learn.microsoft.com/en-us/graph/api/intune-onboarding-deviceenrollmentlimitconfiguration-delete?view=graph-rest-beta)
 
-## API Permissions
+## Microsoft Graph API Permissions
 
-The following API permissions are required in order to use this resource.
+The following client `application` permissions are needed in order to use this {{.Type | lower}}:
 
-### Microsoft Graph
+**Required:**
+- `DeviceManagementServiceConfig.ReadWrite.All`
 
-- **Application**: `DeviceManagementServiceConfig.ReadWrite.All` or `DeviceManagementConfiguration.ReadWrite.All`
+**Optional:**
+- `None` `[N/A]` or `DeviceManagementConfiguration.ReadWrite.All`
 
 ## Version History
 

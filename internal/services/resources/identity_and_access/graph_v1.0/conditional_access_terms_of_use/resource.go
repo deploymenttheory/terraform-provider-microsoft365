@@ -73,9 +73,7 @@ func (r *ConditionalAccessTermsOfUseResource) ImportState(ctx context.Context, r
 // Schema defines the schema for the resource.
 func (r *ConditionalAccessTermsOfUseResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Manages Microsoft 365 Terms of Use Agreements using the `/agreements` endpoint. " +
-			"Terms of use agreements allow organizations to present information that users must accept before accessing data or applications. " +
-			"These agreements can be used to ensure compliance with legal or regulatory requirements.",
+		MarkdownDescription: "Manages Microsoft 365 Terms of Use Agreements using the `/agreements` endpoint. This resource is used to terms of use agreements allow organizations to present information that users must accept before accessing data or applications. These agreements can be used to ensure compliance with legal or regulatory requirements..",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				MarkdownDescription: "The unique identifier for the agreement. This is automatically generated when the agreement is created.",

@@ -3,21 +3,24 @@ page_title: "microsoft365_graph_beta_device_management_linux_device_compliance_p
 subcategory: "Device Management"
 
 description: |-
-  Manages Linux device compliance policies in Microsoft Intune using the /deviceManagement/configurationPolicies endpoint. Linux device compliance policies define rules and settings that Linux devices must meet to be considered compliant with organizational security requirements. These policies use the Settings Catalog configuration framework to provide granular control over Linux device compliance settings.
+  Manages Linux device compliance policies using the /deviceManagement/configurationPolicies endpoint. This resource is used to linux device compliance policies define rules and settings that Linux devices must meet to be considered compliant with organizational security requirements. These policies use the Settings Catalog configuration framework to provide granular control over Linux device compliance settings..
 ---
 
 # microsoft365_graph_beta_device_management_linux_device_compliance_policy (Resource)
 
-Manages Linux device compliance policies in Microsoft Intune using the `/deviceManagement/configurationPolicies` endpoint. Linux device compliance policies define rules and settings that Linux devices must meet to be considered compliant with organizational security requirements. These policies use the Settings Catalog configuration framework to provide granular control over Linux device compliance settings.
+Manages Linux device compliance policies using the `/deviceManagement/configurationPolicies` endpoint. This resource is used to linux device compliance policies define rules and settings that Linux devices must meet to be considered compliant with organizational security requirements. These policies use the Settings Catalog configuration framework to provide granular control over Linux device compliance settings..
 
 
-## API Permissions
+## Microsoft Graph API Permissions
 
-The following API permissions are required in order to use this resource.
+The following client `application` permissions are needed in order to use this resource:
 
-### Microsoft Graph
+**Required:**
+- `DeviceManagementConfiguration.ReadWrite.All`
+- `DeviceManagementConfiguration.Read.All`
 
-- **Application**: `DeviceManagementConfiguration.ReadWrite.All` , `DeviceManagementConfiguration.Read.All`
+**Optional:**
+- `None` `[N/A]`
 
 ## Example Usage
 

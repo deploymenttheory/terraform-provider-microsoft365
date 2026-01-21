@@ -2,25 +2,27 @@
 page_title: "microsoft365_graph_beta_identity_and_access_conditional_access_template Data Source - terraform-provider-microsoft365"
 subcategory: "Identity and Access"
 description: |-
-  Retrieves conditional access policy templates from Microsoft Entra ID. Templates provide pre-configured conditional access policies for common security scenarios. You can query templates by ID or name to retrieve template details including conditions, grant controls, and session controls.
+  Retrieves conditional access policy templates from Microsoft Entra ID using the /identity/conditionalAccess/templates endpoint. This data source is used to discover pre-configured security policy templates with conditions, grant controls, and session controls for common scenarios.
 ---
 
 # microsoft365_graph_beta_identity_and_access_conditional_access_template (Data Source)
 
-Retrieves conditional access policy templates from Microsoft Entra ID. Templates provide pre-configured conditional access policies for common security scenarios. You can query templates by ID or name to retrieve template details including conditions, grant controls, and session controls.
+Retrieves conditional access policy templates from Microsoft Entra ID using the `/identity/conditionalAccess/templates` endpoint. This data source is used to discover pre-configured security policy templates with conditions, grant controls, and session controls for common scenarios.
 
 ## Microsoft Documentation
 
 - [Conditional access template resource type](https://learn.microsoft.com/en-us/graph/api/resources/conditionalaccesstemplate?view=graph-rest-beta)
 - [List conditional access templates](https://learn.microsoft.com/en-us/graph/api/conditionalaccessroot-list-templates?view=graph-rest-beta)
 
-## API Permissions
+## Microsoft Graph API Permissions
 
-The following API permissions are required in order to use this data source.
+The following client `application` permissions are needed in order to use this data source:
 
-### Microsoft Graph
+**Required:**
+- `Policy.Read.All`
 
-- **Application**: `Policy.Read.All`
+**Optional:**
+- `None` `[N/A]`
 
 ## Filtering
 

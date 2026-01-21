@@ -3,16 +3,7 @@ page_title: "microsoft365_graph_beta_device_management_group_policy_category Dat
 subcategory: "Device Management"
 
 description: |-
-  This data source retrieves comprehensive information about a specific Group Policy setting by performing three sequential Microsoft Graph API calls:
-  GET /deviceManagement/groupPolicyCategories?$expand=parent,definitions&$select=id,displayName,isRoot,ingestionSource - Retrieves all categories with their definitionsGET /deviceManagement/groupPolicyDefinitions('{id}') - Gets detailed information about the specific policy definitionGET /deviceManagement/groupPolicyDefinitions('{id}')/presentations - Retrieves all presentation configurations for the policy
-  The data source consolidates information from all three API calls into a single Terraform resource, making it easy to access category details, policy definitions, and presentation configurations (including dropdown options, text boxes, checkboxes, etc.) for a given Group Policy setting.
-  Permissions
-  One of the following permissions is required to call this API. To learn more, including how to choose permissions, see Permissions https://docs.microsoft.com/en-us/graph/permissions-reference.
-  |Permission type|Permissions (from least to most privileged)|
-  |:---|:---|
-  |Delegated (work or school account)|DeviceManagementConfiguration.Read.All, DeviceManagementConfiguration.ReadWrite.All|
-  |Delegated (personal Microsoft account)|Not supported.|
-  |Application|DeviceManagementConfiguration.Read.All, DeviceManagementConfiguration.ReadWrite.All|
+  Retrieves Group Policy categories and settings from Microsoft Intune using the /deviceManagement/groupPolicyCategories endpoint. This data source is used to query Group Policy definitions with their categories, presentations, and configuration details for ADMX-backed policies.
 ---
 
 # microsoft365_graph_beta_device_management_group_policy_category (Data Source)
@@ -26,13 +17,15 @@ that are support for a given group policy setting.
 
 - [groupPolicyCategory resource type](https://learn.microsoft.com/en-us/graph/api/resources/intune-grouppolicy-grouppolicycategory?view=graph-rest-beta)
 
-## API Permissions
+## Microsoft Graph API Permissions
 
-The following API permissions are required in order to use this data source.
+The following client `application` permissions are needed in order to use this data source:
 
-### Microsoft Graph
+**Required:**
+- `DeviceManagementConfiguration.Read.All`
 
-- **Application**: `DeviceManagementConfiguration.Read.All`
+**Optional:**
+- `None` `[N/A]`
 
 ## Version History
 

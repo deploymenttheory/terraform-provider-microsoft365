@@ -50,7 +50,7 @@ func (d *WindowsQualityUpdateProfileDataSource) Configure(ctx context.Context, r
 // Schema defines the schema for the data source
 func (d *WindowsQualityUpdateProfileDataSource) Schema(ctx context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Retrieves information about a Windows Driver Update Profile in Microsoft Intune.",
+		MarkdownDescription: "Retrieves Windows quality update policies from Microsoft Intune using the `/deviceManagement/windowsQualityUpdateProfiles` endpoint. This data source is used to query policies that control monthly security and quality update deployment.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Optional:            true,

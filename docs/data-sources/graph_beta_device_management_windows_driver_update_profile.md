@@ -3,24 +3,27 @@ page_title: "microsoft365_graph_beta_device_management_windows_driver_update_pro
 subcategory: "Device Management"
 
 description: |-
-  Retrieves information about a Windows Driver Update Profile in Microsoft Intune.
+  Retrieves Windows driver update profiles from Microsoft Intune using the /deviceManagement/windowsDriverUpdateProfiles endpoint. This data source is used to query policies for automated driver updates from Windows Update.
 ---
 
 # microsoft365_graph_beta_device_management_windows_driver_update_profile (Data Source)
 
-Retrieves information about a Windows Driver Update Profile in Microsoft Intune.
+Retrieves Windows driver update profiles from Microsoft Intune using the `/deviceManagement/windowsDriverUpdateProfiles` endpoint. This data source is used to query policies for automated driver updates from Windows Update.
 
 ## Microsoft Documentation
 
 - [windowsDriverUpdateProfile resource type](https://learn.microsoft.com/en-us/graph/api/resources/intune-softwareupdate-windowsdriverupdateprofile?view=graph-rest-beta)
 
-## API Permissions  
+## Microsoft Graph API Permissions
 
-The following API permissions are required in order to use this data source.
+The following client `application` permissions are needed in order to use this data source:
 
-### Microsoft Graph
+**Required:**
+- `DeviceManagementConfiguration.Read.All`
+- `DeviceManagementConfiguration.ReadWrite.All`
 
-- **Application**: `DeviceManagementConfiguration.Read.All`, `DeviceManagementConfiguration.ReadWrite.All`
+**Optional:**
+- `None` `[N/A]`
 
 ## Version History
 

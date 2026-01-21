@@ -68,7 +68,7 @@ func (a *UnassignUserFromDeviceAction) Schema(ctx context.Context, req action.Sc
 	resp.Schema = schema.Schema{
 		MarkdownDescription: "Unassigns a user from an Autopilot device in Microsoft Intune using the " +
 			"`/deviceManagement/windowsAutopilotDeviceIdentities/{windowsAutopilotDeviceIdentityId}/unassignUserFromDevice` endpoint. " +
-			"This action removes the user assignment from Autopilot devices.",
+			"This action is used to remove the user assignment from Autopilot devices.",
 		Attributes: map[string]schema.Attribute{
 			"windows_autopilot_device_identity_id": schema.StringAttribute{
 				Required: true,

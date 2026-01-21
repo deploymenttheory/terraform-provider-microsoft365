@@ -2,12 +2,12 @@
 page_title: "microsoft365_graph_beta_groups_license_assignment Resource - terraform-provider-microsoft365"
 subcategory: "Groups"
 description: |-
-  Manages a single Microsoft 365 license assignment for a group using the /groups/{groupId}/assignLicense endpoint. Each resource instance manages one license (SKU) for a group. To assign multiple licenses to a group, create multiple instances of this resource with different SKU IDs. License assignments automatically apply to all current and future group members.
+  Manages a single Microsoft 365 license assignment for a group using the /groups/{groupId}/assignLicense endpoint. This resource is used to each resource instance manages one license (SKU) for a group. To assign multiple licenses to a group, create multiple instances of this resource with different SKU IDs. License assignments automatically apply to all current and future group members..
 ---
 
 # microsoft365_graph_beta_groups_license_assignment (Resource)
 
-Manages a single Microsoft 365 license assignment for a group using the `/groups/{groupId}/assignLicense` endpoint. Each resource instance manages one license (SKU) for a group. To assign multiple licenses to a group, create multiple instances of this resource with different SKU IDs. License assignments automatically apply to all current and future group members.
+Manages a single Microsoft 365 license assignment for a group using the `/groups/{groupId}/assignLicense` endpoint. This resource is used to each resource instance manages one license (SKU) for a group. To assign multiple licenses to a group, create multiple instances of this resource with different SKU IDs. License assignments automatically apply to all current and future group members..
 
 ## Microsoft Documentation
 
@@ -15,13 +15,17 @@ Manages a single Microsoft 365 license assignment for a group using the `/groups
 - [group resource type](https://learn.microsoft.com/en-us/graph/api/resources/group?view=graph-rest-beta)
 - [subscribedSku resource type](https://learn.microsoft.com/en-us/graph/api/resources/subscribedsku?view=graph-rest-beta)
 
-## API Permissions
+## Microsoft Graph API Permissions
 
-The following API permissions are required in order to use this resource.
+The following client `application` permissions are needed in order to use this resource:
 
-### Microsoft Graph
+**Required:**
+- `LicenseAssignment.ReadWrite.All`
+- `Group.ReadWrite.All`
+- `Directory.ReadWrite.All`
 
-- **Application**: `LicenseAssignment.ReadWrite.All`, `Group.ReadWrite.All`, `Directory.ReadWrite.All`
+**Optional:**
+- `None` `[N/A]`
 
 ## Version History
 

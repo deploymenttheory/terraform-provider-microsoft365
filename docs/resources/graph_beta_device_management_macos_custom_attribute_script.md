@@ -3,12 +3,12 @@ page_title: "microsoft365_graph_beta_device_management_macos_custom_attribute_sc
 subcategory: "Device Management"
 
 description: |-
-  Manages a device custom attribute shell script using the /deviceManagement/deviceCustomAttributeShellScripts endpoint.
+  Manages a device custom attribute shell script using the /deviceManagement/deviceCustomAttributeShellScripts endpoint. This resource is used to configure a device custom attribute shell script settings.
 ---
 
 # microsoft365_graph_beta_device_management_macos_custom_attribute_script (Resource)
 
-Manages a device custom attribute shell script using the `/deviceManagement/deviceCustomAttributeShellScripts` endpoint.
+Manages a device custom attribute shell script using the `/deviceManagement/deviceCustomAttributeShellScripts` endpoint. This resource is used to configure a device custom attribute shell script settings.
 
 ## Microsoft Documentation
 
@@ -17,13 +17,15 @@ Manages a device custom attribute shell script using the `/deviceManagement/devi
 - [Update deviceCustomAttributeShellScript](https://learn.microsoft.com/en-us/graph/api/intune-devices-devicecustomattributeshellscript-update?view=graph-rest-beta)
 - [Delete deviceCustomAttributeShellScript](https://learn.microsoft.com/en-us/graph/api/intune-devices-devicecustomattributeshellscript-delete?view=graph-rest-beta)
 
-## API Permissions
+## Microsoft Graph API Permissions
 
-The following API permissions are required in order to use this resource.
+The following client `application` permissions are needed in order to use this resource:
 
-### Microsoft Graph
+**Required:**
+- `DeviceManagementConfiguration.ReadWrite.All`
 
-- **Application**: `DeviceManagementConfiguration.ReadWrite.All`
+**Optional:**
+- `None` `[N/A]`
 
 ## Version History
 

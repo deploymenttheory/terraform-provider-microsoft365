@@ -57,10 +57,10 @@ func (a *MoveDevicesToOUManagedDeviceAction) Configure(ctx context.Context, req 
 
 func (a *MoveDevicesToOUManagedDeviceAction) Schema(ctx context.Context, req action.SchemaRequest, resp *action.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Moves hybrid Azure AD joined Windows devices to a specified Active Directory Organizational Unit (OU) using the " +
+		MarkdownDescription: "Moves hybrid Azure AD joined Windows devices to a specified Active Directory Organizational Unit (OU) in Microsoft Intune using the " +
 			"`/deviceManagement/managedDevices/moveDevicesToOU` and " +
 			"`/deviceManagement/comanagedDevices/moveDevicesToOU` endpoints. " +
-			"This action updates the organizational unit placement of devices in on-premises Active Directory for hybrid-joined devices. " +
+			"This action is used to update the organizational unit placement of devices in on-premises Active Directory for hybrid-joined devices. " +
 			"The move operation is performed at the collection level, allowing multiple devices to be moved to the same OU in a single operation.\n\n" +
 			"**Important Notes:**\n" +
 			"- Only works on **Hybrid Azure AD joined** Windows devices\n" +
@@ -86,11 +86,6 @@ func (a *MoveDevicesToOUManagedDeviceAction) Schema(ctx context.Context, req act
 				Required: true,
 				MarkdownDescription: "The full distinguished name path of the target Organizational Unit in Active Directory. " +
 					"All specified devices will be moved to this OU.\n\n" +
-					"**Format**: Must be a valid Active Directory OU distinguished name.\n\n" +
-					"**Examples**:\n" +
-					"- `\"OU=Workstations,OU=Computers,DC=contoso,DC=com\"`\n" +
-					"- `\"OU=Marketing,OU=Departments,DC=example,DC=local\"`\n" +
-					"- `\"OU=Laptops,OU=Mobile,OU=Devices,DC=corp,DC=acme,DC=com\"`\n\n" +
 					"**Important**: The OU must exist in your on-premises Active Directory, and the Azure AD Connect sync account " +
 					"must have permissions to move computer objects to this OU.",
 				Validators: []validator.String{

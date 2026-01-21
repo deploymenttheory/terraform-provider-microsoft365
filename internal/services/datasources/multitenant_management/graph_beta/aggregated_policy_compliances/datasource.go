@@ -51,7 +51,7 @@ func (d *AggregatedPolicyCompliancesDataSource) Configure(ctx context.Context, r
 // Schema defines the schema for the data source
 func (d *AggregatedPolicyCompliancesDataSource) Schema(ctx context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Retrieves aggregated policy compliances from Microsoft 365 managed tenants using the `/tenantRelationships/managedTenants/aggregatedPolicyCompliances` endpoint. This data source provides an aggregate view of device compliance for managed tenants with advanced filtering capabilities.",
+		MarkdownDescription: "Retrieves aggregated policy compliances from Microsoft 365 managed tenants using the `/tenantRelationships/managedTenants/aggregatedPolicyCompliances` endpoint. This data source is used to query compliance status across managed tenants with device counts by compliance state.",
 		Attributes: map[string]schema.Attribute{
 			"filter_type": schema.StringAttribute{
 				Required:            true,

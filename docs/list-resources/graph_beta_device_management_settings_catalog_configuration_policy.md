@@ -3,12 +3,12 @@ page_title: "microsoft365_graph_beta_device_management_settings_catalog_configur
 subcategory: "Device Management"
 
 description: |-
-  Configuration for listing Settings Catalog configuration policies in Microsoft Intune. The list resource automatically retrieves ALL policies (across all pages) and returns the complete dataset. Filter parameters narrow down which policies are returned from Microsoft Graph, optimizing the discovery process. For full resource details including assignments and settings, use Terraform's import functionality with terraform plan -generate-config-out.
+  Lists Settings Catalog configuration policies from Microsoft Intune using the /deviceManagement/configurationPolicies endpoint. This list resource is used to automatically retrieve all policies across multiple pages with advanced filtering capabilities for policy discovery and import. For full resource details including assignments and settings, use Terraform's import functionality with terraform plan -generate-config-out.
 ---
 
 # microsoft365_graph_beta_device_management_settings_catalog_configuration_policy (List Resource)
 
-Configuration for listing Settings Catalog configuration policies in Microsoft Intune. The list resource automatically retrieves ALL policies (across all pages) and returns the complete dataset. Filter parameters narrow down which policies are returned from Microsoft Graph, optimizing the discovery process. For full resource details including assignments and settings, use Terraform's import functionality with `terraform plan -generate-config-out`.
+Lists Settings Catalog configuration policies from Microsoft Intune using the `/deviceManagement/configurationPolicies` endpoint. This list resource is used to automatically retrieve all policies across multiple pages with advanced filtering capabilities for policy discovery and import. For full resource details including assignments and settings, use Terraform's import functionality with `terraform plan -generate-config-out`.
 
 Lists Settings Catalog configuration policies from Microsoft Intune using the `/deviceManagement/configurationPolicies` endpoint. Supports filtering by name, platform, template family, assignment status, and custom OData queries.
 
@@ -23,13 +23,15 @@ List resources allow you to query and discover existing infrastructure without m
 - [List configurationPolicies](https://learn.microsoft.com/en-us/graph/api/intune-deviceconfigv2-devicemanagementconfigurationpolicy-list?view=graph-rest-beta)
 - [deviceManagementConfigurationPolicy resource type](https://learn.microsoft.com/en-us/graph/api/resources/intune-deviceconfigv2-devicemanagementconfigurationpolicy?view=graph-rest-beta)
 
-## API Permissions
+## Microsoft Graph API Permissions
 
-The following API permissions are required in order to use this list resource.
+The following client `application` permissions are needed in order to use this list resource:
 
-### Microsoft Graph
+**Required:**
+- `DeviceManagementConfiguration.Read.All`
 
-- **Application**: `DeviceManagementConfiguration.Read.All`.
+**Optional:**
+- `None` `[N/A]`
 
 ## Version History
 

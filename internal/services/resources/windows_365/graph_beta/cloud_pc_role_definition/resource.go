@@ -76,7 +76,7 @@ func (r *RoleDefinitionResource) ImportState(ctx context.Context, req resource.I
 
 func (r *RoleDefinitionResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Manages custom role definitions in Microsoft Cloud PC using the `/roleManagement/cloudPC/roleDefinitions` endpoint. Role definitions define sets of permissions that can be assigned to administrators, enabling granular access control for Cloud PC management, policy configuration, and administrative functions within Windows 365.",
+		MarkdownDescription: "Manages custom role definitions for Windows 365 using the `/roleManagement/cloudPC/roleDefinitions` endpoint. This resource is used to define sets of permissions that can be assigned to administrators for Cloud PC management, policy configuration, and administrative functions.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed: true,

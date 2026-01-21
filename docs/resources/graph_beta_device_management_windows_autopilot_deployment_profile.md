@@ -3,24 +3,26 @@ page_title: "microsoft365_graph_beta_device_management_windows_autopilot_deploym
 subcategory: "Device Management"
 
 description: |-
-  Manages Windows Autopilot deployment profiles using the /deviceManagement/windowsAutopilotDeploymentProfiles endpoint. Autopilot deployment profiles define the out-of-box experience (OOBE) settings, device naming templates, and enrollment configurations for automated Windows device provisioning and domain joining.
+  Manages Windows Autopilot deployment profiles using the /deviceManagement/windowsAutopilotDeploymentProfiles endpoint. This resource is used to autopilot deployment profiles define the out-of-box experience (OOBE) settings, device naming templates, and enrollment configurations for automated Windows device provisioning and domain joining.
 ---
 
 # microsoft365_graph_beta_device_management_windows_autopilot_deployment_profile (Resource)
 
-Manages Windows Autopilot deployment profiles using the `/deviceManagement/windowsAutopilotDeploymentProfiles` endpoint. Autopilot deployment profiles define the out-of-box experience (OOBE) settings, device naming templates, and enrollment configurations for automated Windows device provisioning and domain joining.
+Manages Windows Autopilot deployment profiles using the `/deviceManagement/windowsAutopilotDeploymentProfiles` endpoint. This resource is used to autopilot deployment profiles define the out-of-box experience (OOBE) settings, device naming templates, and enrollment configurations for automated Windows device provisioning and domain joining.
 
 ## Microsoft Documentation
 
 - [windowsAutopilotDeploymentProfile resource type](https://learn.microsoft.com/en-us/graph/api/resources/intune-enrollment-windowsautopilotdeploymentprofile?view=graph-rest-beta)
 
-## API Permissions
+## Microsoft Graph API Permissions
 
-The following API permissions are required in order to use this resource.
+The following client `application` permissions are needed in order to use this resource:
 
-### Microsoft Graph
+**Required:**
+- `DeviceManagementServiceConfig.ReadWrite.All`
 
-- **Application**: `DeviceManagementServiceConfig.ReadWrite.All`
+**Optional:**
+- `None` `[N/A]`
 
 ## Version History
 

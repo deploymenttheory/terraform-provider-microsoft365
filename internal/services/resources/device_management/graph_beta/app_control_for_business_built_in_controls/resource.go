@@ -78,7 +78,7 @@ func (r *AppControlForBusinessResourceBuiltInControls) ImportState(ctx context.C
 // Schema defines the resource schema.
 func (r *AppControlForBusinessResourceBuiltInControls) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Manages App Control for Business configuration policies using the `/deviceManagement/configurationPolicies` endpoint. App Control for Business policies enable application control and trust settings on Windows devices with configurable enforcement modes and trusted application sources.",
+		MarkdownDescription: "Manages App Control for Business configuration policies using the `/deviceManagement/configurationPolicies` endpoint. This resource is used to app Control for Business policies enable application control and trust settings on Windows devices with configurable enforcement modes and trusted application sources.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed: true,

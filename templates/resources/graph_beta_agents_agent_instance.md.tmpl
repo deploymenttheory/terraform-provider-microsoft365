@@ -19,14 +19,20 @@ description: |-
 - [Delete agentInstance](https://learn.microsoft.com/en-us/graph/api/agentregistry-delete-agentinstances?view=graph-rest-beta&tabs=http)
 - [agentCardManifest resource type](https://learn.microsoft.com/en-us/graph/api/resources/agentcardmanifest?view=graph-rest-beta)
 
-## API Permissions
+## Microsoft Graph API Permissions
 
-The following API permissions are required in order to use this resource.
+The following client `application` permissions are needed in order to use this {{.Type | lower}}:
 
-### Microsoft Graph
+**Required:**
+- `AgentInstance.Read.All`
+- `AgentCardManifest.Read.All`
+- `AgentInstance.ReadWrite.All`
+- `AgentInstance.ReadWrite.ManagedBy`
+- `AgentCardManifest.ReadWrite.All`
+- `AgentCardManifest.ReadWrite.ManagedBy`
 
-- **Read**: `AgentInstance.Read.All`, `AgentCardManifest.Read.All`
-- **Write**: `AgentInstance.ReadWrite.All`, `AgentInstance.ReadWrite.ManagedBy`, `AgentCardManifest.ReadWrite.All`, `AgentCardManifest.ReadWrite.ManagedBy`
+**Optional:**
+- `None` `[N/A]`
 
 Find out more about the permissions required for managing agent instances at microsoft learn [here](https://learn.microsoft.com/en-us/graph/api/resources/agentid-platform-overview?view=graph-rest-beta#permissions-for-managing-agent-identities).
 

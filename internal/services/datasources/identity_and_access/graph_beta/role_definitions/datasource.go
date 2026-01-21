@@ -46,7 +46,7 @@ func (d *RoleDefinitionsDataSource) Configure(ctx context.Context, req datasourc
 
 func (d *RoleDefinitionsDataSource) Schema(ctx context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Retrieves directory role definitions from Microsoft Entra ID using the `/roleManagement/directory/roleDefinitions` endpoint. This data source enables querying role definitions with advanced filtering capabilities.",
+		MarkdownDescription: "Retrieves directory role definitions from Microsoft Entra ID using the `/roleManagement/directory/roleDefinitions` endpoint. This data source is used to query built-in and custom role definitions with their permissions and scopes.",
 		Attributes: map[string]schema.Attribute{
 			"filter_type": schema.StringAttribute{
 				Required:            true,

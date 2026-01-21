@@ -55,9 +55,9 @@ func (a *ShutdownManagedDeviceAction) Configure(ctx context.Context, req action.
 
 func (a *ShutdownManagedDeviceAction) Schema(ctx context.Context, req action.SchemaRequest, resp *action.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Remotely shuts down managed devices using the " +
+		MarkdownDescription: "Shuts down managed devices in Microsoft Intune using the " +
 			"`/deviceManagement/managedDevices/{managedDeviceId}/shutDown` endpoint. " +
-			"This action powers off devices completely, which is useful for energy conservation, " +
+			"This action is used to power off devices completely, which is useful for energy conservation, " +
 			"maintenance operations, or security scenarios. Unlike reboot, shutdown powers the device " +
 			"off completely and requires manual intervention to power it back on.\n\n" +
 			"**Important Notes:**\n" +

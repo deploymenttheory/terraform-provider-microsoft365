@@ -3,24 +3,27 @@ page_title: "microsoft365_graph_beta_device_management_role_scope_tag Data Sourc
 subcategory: "Device Management"
 
 description: |-
-  Retrieves role scope tags from Microsoft Intune using the /deviceManagement/roleScopeTags endpoint. Role scope tags enable role-based access control by limiting administrator visibility and management capabilities to specific organizational units, devices, or resources, ensuring proper delegation of administrative responsibilities.
+  Retrieves role scope tags from Microsoft Intune using the /deviceManagement/roleScopeTags endpoint. This data source is used to query RBAC scope tags that limit administrator visibility to specific organizational units or resources.
 ---
 
 # microsoft365_graph_beta_device_management_role_scope_tag (Data Source)
 
-Retrieves role scope tags from Microsoft Intune using the `/deviceManagement/roleScopeTags` endpoint. Role scope tags enable role-based access control by limiting administrator visibility and management capabilities to specific organizational units, devices, or resources, ensuring proper delegation of administrative responsibilities.
+Retrieves role scope tags from Microsoft Intune using the `/deviceManagement/roleScopeTags` endpoint. This data source is used to query RBAC scope tags that limit administrator visibility to specific organizational units or resources.
 
 ## Microsoft Documentation
 
 - [roleScopeTag resource type](https://learn.microsoft.com/en-us/graph/api/resources/intune-rbac-rolescopetag?view=graph-rest-beta)
 
-## API Permissions
+## Microsoft Graph API Permissions
 
-The following API permissions are required in order to use this data source.
+The following client `application` permissions are needed in order to use this data source:
 
-### Microsoft Graph
+**Required:**
+- `DeviceManagementRBAC.Read.All`
+- `DeviceManagementRBAC.ReadWrite.All`
 
-- **Application**: `DeviceManagementRBAC.Read.All`, `DeviceManagementRBAC.ReadWrite.All`
+**Optional:**
+- `None` `[N/A]`
 
 ## Version History
 

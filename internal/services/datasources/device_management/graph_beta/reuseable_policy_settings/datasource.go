@@ -51,10 +51,7 @@ func (d *ReuseablePolicySettingsDataSource) Configure(ctx context.Context, req d
 // Schema defines the schema for the data source
 func (d *ReuseablePolicySettingsDataSource) Schema(ctx context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Retrieves Reusable Policy Settings from Microsoft Intune with explicit filtering options. " +
-			"Endpoint Privilege Management supports using reusable settings groups to manage the certificates in place of adding that certificate " +
-			"directly to an elevation rule. Like all reusable settings groups for Intune, configurations and changes made to a reusable settings " +
-			"group are automatically passed to the policies that reference the group.",
+		MarkdownDescription: "Retrieves reusable policy settings from Microsoft Intune using the `/deviceManagement/reusablePolicySettings` endpoint. This data source is used to query shared configuration groups for Endpoint Privilege Management that can be referenced across multiple policies.",
 		Attributes: map[string]schema.Attribute{
 			"filter_type": schema.StringAttribute{
 				Required:            true,

@@ -2,26 +2,31 @@
 page_title: "microsoft365_graph_beta_identity_and_access_authentication_strength_policy Resource - terraform-provider-microsoft365"
 subcategory: "Identity and Access"
 description: |-
-  Manages Microsoft 365 Authentication Strength Policies using the /identity/conditionalAccess/authenticationStrength/policies endpoint. Authentication Strength Policies define authentication method combinations that can be used in Conditional Access policies. Learn more here: https://learn.microsoft.com/en-us/entra/identity/authentication/concept-authentication-strength-advanced-options
+  Manages authentication strength policies in Microsoft Entra ID using the /identity/conditionalAccess/authenticationStrength/policies endpoint. This resource is used to define authentication method combinations for use in Conditional Access policies.
 ---
 
 # microsoft365_graph_beta_identity_and_access_authentication_strength_policy (Resource)
 
-Manages Microsoft 365 Authentication Strength Policies using the `/identity/conditionalAccess/authenticationStrength/policies` endpoint. Authentication Strength Policies define authentication method combinations that can be used in Conditional Access policies. Learn more here: https://learn.microsoft.com/en-us/entra/identity/authentication/concept-authentication-strength-advanced-options
+Manages authentication strength policies in Microsoft Entra ID using the `/identity/conditionalAccess/authenticationStrength/policies` endpoint. This resource is used to define authentication method combinations for use in Conditional Access policies.
 
 ## Microsoft Documentation
 
 - [authenticationcombinationconfiguration resource type](https://learn.microsoft.com/en-us/graph/api/resources/authenticationcombinationconfiguration?view=graph-rest-beta)
 - [create authenticationstrengthpolicy](https://learn.microsoft.com/en-us/graph/api/authenticationstrengthroot-post-policies?view=graph-rest-beta&tabs=http)
+- [read authenticationstrengthpolicy](https://learn.microsoft.com/en-us/graph/api/authenticationstrengthpolicy-get?view=graph-rest-beta)
 - [update authenticationstrengthpolicy](https://learn.microsoft.com/en-us/graph/api/authenticationstrengthpolicy-update?view=graph-rest-beta&tabs=http)
+- [delete authenticationstrengthpolicy](https://learn.microsoft.com/en-us/graph/api/authenticationstrengthpolicy-delete?view=graph-rest-beta)
 
-## API Permissions
+## Microsoft Graph API Permissions
 
-The following API permissions are required in order to use this resource.
+The following client `application` permissions are needed in order to use this resource:
 
-### Microsoft Graph
+**Required:**
+- `Policy.ReadWrite.ConditionalAccess`
+- `Policy.Read.All`
 
-- **Application**: `Policy.ReadWrite.ConditionalAccess`, `Policy.Read.All`
+**Optional:**
+- `None` `[N/A]`
 
 ## Version History
 

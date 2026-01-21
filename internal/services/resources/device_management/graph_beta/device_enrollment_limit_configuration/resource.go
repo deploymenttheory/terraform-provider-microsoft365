@@ -80,7 +80,7 @@ func (r *DeviceEnrollmentLimitConfigurationResource) ImportState(ctx context.Con
 
 func (r *DeviceEnrollmentLimitConfigurationResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Resource is currently broken as per this issue: `https://github.com/microsoft/Microsoft365DSC/issues/5127`. Manages device enrollment limit configurations using the `/deviceManagement/deviceEnrollmentConfigurations` endpoint. Device enrollment limit configurations restrict the number of devices a user can enroll in the organization.",
+		MarkdownDescription: "Manages device enrollment limit configurations using the `/deviceManagement/deviceEnrollmentConfigurations` endpoint. This resource is used to device enrollment limit configurations restrict the number of devices a user can enroll in the organization.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed: true,

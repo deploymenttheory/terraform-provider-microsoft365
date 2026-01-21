@@ -2,7 +2,7 @@
 page_title: "microsoft365_graph_beta_windows_365_cloud_pc_source_device_image Data Source - terraform-provider-microsoft365"
 subcategory: "Windows 365"
 description: |-
-  Retrieves Cloud PC source device images available for upload and use on Cloud PCs. Uses the endpoint '/deviceManagement/virtualEndpoint/deviceImages/getSourceImages'. Supports filtering by all, id, or display_name.
+  Retrieves Cloud PC source device images from Microsoft Intune using the /deviceManagement/virtualEndpoint/deviceImages/getSourceImages endpoint. This data source is used to discover available Azure images for uploading and provisioning Cloud PCs with filtering options.
 ---
 
 # microsoft365_graph_beta_windows_365_cloud_pc_source_device_image (Data Source)
@@ -13,13 +13,16 @@ Retrieves Cloud PC source device images available for upload and use on Cloud PC
 
 - [cloudPcDeviceImage: getSourceImages](https://learn.microsoft.com/en-us/graph/api/cloudpcdeviceimage-getsourceimages?view=graph-rest-beta)
 
-## API Permissions
+## Microsoft Graph API Permissions
 
-The following API permissions are required in order to use this data source.
+The following client `application` permissions are needed in order to use this data source:
 
-### Microsoft Graph
+**Required:**
+- `CloudPC.Read.All`
+- `CloudPC.ReadWrite.All`
 
-- **Application**: `CloudPC.Read.All`, `CloudPC.ReadWrite.All`
+**Optional:**
+- `None` `[N/A]`
 
 ## Version History
 

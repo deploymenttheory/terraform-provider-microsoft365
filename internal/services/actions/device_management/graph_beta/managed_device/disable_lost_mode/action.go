@@ -55,10 +55,10 @@ func (a *DisableLostModeManagedDeviceAction) Configure(ctx context.Context, req 
 
 func (a *DisableLostModeManagedDeviceAction) Schema(ctx context.Context, req action.SchemaRequest, resp *action.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Disables lost mode on iOS/iPadOS managed devices using the " +
+		MarkdownDescription: "Disables lost mode on iOS/iPadOS managed devices in Microsoft Intune using the " +
 			"`/deviceManagement/managedDevices/{managedDeviceId}/disableLostMode` and " +
 			"`/deviceManagement/comanagedDevices/{managedDeviceId}/disableLostMode` endpoints. " +
-			"This action removes the device from lost mode, allowing normal device operation to resume. " +
+			"This action is used to remove devices from lost mode, allowing normal device operation to resume. " +
 			"Lost mode is a feature that helps locate and secure lost iOS/iPadOS devices by locking them " +
 			"and displaying a custom message with contact information on the lock screen. " +
 			"This action supports disabling lost mode on multiple devices in a single operation.\n\n" +

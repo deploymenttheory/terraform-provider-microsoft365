@@ -61,7 +61,7 @@ func (a *AllowNextEnrollmentAction) Schema(ctx context.Context, req action.Schem
 	resp.Schema = schema.Schema{
 		MarkdownDescription: "Allows the next enrollment for an Autopilot device in Microsoft Intune using the " +
 			"`/deviceManagement/windowsAutopilotDeviceIdentities/{windowsAutopilotDeviceIdentityId}/allowNextEnrollment` endpoint. " +
-			"This action enables the device to be enrolled again.",
+			"This action is used to enable the device to be enrolled again.",
 		Attributes: map[string]schema.Attribute{
 			"windows_autopilot_device_identity_id": schema.StringAttribute{
 				Required: true,

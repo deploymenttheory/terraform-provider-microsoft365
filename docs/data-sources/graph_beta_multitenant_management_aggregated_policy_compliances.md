@@ -3,12 +3,12 @@
 page_title: "microsoft365_graph_beta_multitenant_management_aggregated_policy_compliances Data Source - Microsoft 365"
 subcategory: ""
 description: |-
-  Retrieves aggregated policy compliances from Microsoft 365 managed tenants using the /tenantRelationships/managedTenants/aggregatedPolicyCompliances endpoint. This data source provides an aggregate view of device compliance for managed tenants with advanced filtering capabilities.
+  Retrieves aggregated policy compliances from Microsoft 365 managed tenants using the /tenantRelationships/managedTenants/aggregatedPolicyCompliances endpoint. This data source is used to query compliance status across managed tenants with device counts by compliance state.
 ---
 
 # microsoft365_graph_beta_multitenant_management_aggregated_policy_compliances (Data Source)
 
-Retrieves aggregated policy compliances from Microsoft 365 managed tenants using the `/tenantRelationships/managedTenants/aggregatedPolicyCompliances` endpoint. This data source provides an aggregate view of device compliance for managed tenants with advanced filtering capabilities.
+Retrieves aggregated policy compliances from Microsoft 365 managed tenants using the `/tenantRelationships/managedTenants/aggregatedPolicyCompliances` endpoint. This data source is used to query compliance status across managed tenants with device counts by compliance state.
 
 
 

@@ -2,24 +2,27 @@
 page_title: "microsoft365_graph_beta_m365_admin_browser_site Data Source - terraform-provider-microsoft365"
 subcategory: "M365 Admin"
 description: |-
-  Retrieves Browser Sites from Microsoft 365 Admin Centre with explicit filtering options.
+  Retrieves browser sites from Microsoft 365 Admin Centre using the /admin/edge/internetExplorerMode/siteLists/{siteListId}/sites endpoint. This data source is used to query individual site entries within an IE mode site list.
 ---
 
 # microsoft365_graph_beta_m365_admin_browser_site (Data Source)
 
-Retrieves Browser Sites from Microsoft 365 Admin Centre with explicit filtering options.
+Retrieves browser sites from Microsoft 365 Admin Centre using the `/admin/edge/internetExplorerMode/siteLists/{siteListId}/sites` endpoint. This data source is used to query individual site entries within an IE mode site list.
 
 ## Microsoft Documentation
 
 - [browserSite resource type](https://learn.microsoft.com/en-us/graph/api/resources/browsersite?view=graph-rest-beta)
 
-## API Permissions
+## Microsoft Graph API Permissions
 
-The following API permissions are required in order to use this data source.
+The following client `application` permissions are needed in order to use this data source:
 
-### Microsoft Graph
+**Required:**
+- `BrowserSiteLists.Read.All`
+- `BrowserSiteLists.ReadWrite.All`
 
-- **Application**: `BrowserSiteLists.Read.All`, `BrowserSiteLists.ReadWrite.All`
+**Optional:**
+- `None` `[N/A]`
 
 ## Version History
 

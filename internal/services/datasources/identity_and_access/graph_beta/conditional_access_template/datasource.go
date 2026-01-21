@@ -47,9 +47,7 @@ func (d *ConditionalAccessTemplateDataSource) Configure(ctx context.Context, req
 
 func (d *ConditionalAccessTemplateDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Retrieves conditional access policy templates from Microsoft Entra ID. " +
-			"Templates provide pre-configured conditional access policies for common security scenarios. " +
-			"You can query templates by ID or name to retrieve template details including conditions, grant controls, and session controls.",
+		MarkdownDescription: "Retrieves conditional access policy templates from Microsoft Entra ID using the `/identity/conditionalAccess/templates` endpoint. This data source is used to discover pre-configured security policy templates with conditions, grant controls, and session controls for common scenarios.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:            true,

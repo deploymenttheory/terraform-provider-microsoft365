@@ -2,25 +2,27 @@
 page_title: "microsoft365_graph_beta_m365_admin_browser_site Resource - terraform-provider-microsoft365"
 subcategory: "M365 Admin"
 description: |-
-  Manages browser sites for Internet Explorer mode in Microsoft Edge using the /admin/edge/internetExplorerMode/siteLists/{siteListId}/sites endpoint. This resource configures specific websites to load in Internet Explorer 11 compatibility mode within Microsoft Edge, enabling legacy web application support through controlled compatibility settings.
+  Manages browser sites for Internet Explorer mode using the /admin/edge/internetExplorerMode/siteLists/{siteListId}/sites endpoint. This resource is used to configures specific websites to load in Internet Explorer 11 compatibility mode within Microsoft Edge, enabling legacy web application support through controlled compatibility settings.
 ---
 
 # microsoft365_graph_beta_m365_admin_browser_site (Resource)
 
-Manages browser sites for Internet Explorer mode in Microsoft Edge using the `/admin/edge/internetExplorerMode/siteLists/{siteListId}/sites` endpoint. This resource configures specific websites to load in Internet Explorer 11 compatibility mode within Microsoft Edge, enabling legacy web application support through controlled compatibility settings.
+Manages browser sites for Internet Explorer mode using the `/admin/edge/internetExplorerMode/siteLists/{siteListId}/sites` endpoint. This resource is used to configures specific websites to load in Internet Explorer 11 compatibility mode within Microsoft Edge, enabling legacy web application support through controlled compatibility settings.
 
 ## Microsoft Documentation
 
 - [browserSite resource type](https://learn.microsoft.com/en-us/graph/api/resources/browsersite?view=graph-rest-beta)
 - [Create browserSite](https://learn.microsoft.com/en-us/graph/api/browsersitelist-post-sites?view=graph-rest-beta)
 
-## API Permissions
+## Microsoft Graph API Permissions
 
-The following API permissions are required in order to use this resource.
+The following client `application` permissions are needed in order to use this resource:
 
-### Microsoft Graph
+**Required:**
+- `BrowserSiteLists.ReadWrite.All`
 
-- **Application**: `BrowserSiteLists.ReadWrite.All`
+**Optional:**
+- `None` `[N/A]`
 
 ## Version History
 

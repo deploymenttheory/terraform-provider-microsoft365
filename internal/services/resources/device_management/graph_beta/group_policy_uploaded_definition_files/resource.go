@@ -84,8 +84,7 @@ func (r *GroupPolicyUploadedDefinitionFileResource) ImportState(ctx context.Cont
 // Schema returns the schema for the resource.
 func (r *GroupPolicyUploadedDefinitionFileResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Manages group policy uploaded definition files in Microsoft Intune using the `/deviceManagement/groupPolicyUploadedDefinitionFiles` " +
-			"endpoint. Group policy uploaded definition files are ADMX files that define group policies that can be deployed to devices.",
+		MarkdownDescription: "Manages group policy uploaded definition files using the `/deviceManagement/groupPolicyUploadedDefinitionFiles` endpoint. This resource is used to group policy uploaded definition files are ADMX files that define group policies that can be deployed to devices.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed: true,

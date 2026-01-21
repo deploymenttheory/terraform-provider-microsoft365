@@ -3,25 +3,27 @@ page_title: "microsoft365_graph_beta_device_management_device_category Resource 
 subcategory: "Device Management"
 
 description: |-
-  Manages device categories in Microsoft Intune using the /deviceManagement/deviceCategories endpoint. Device categories help organize devices into logical groups for policy targeting and reporting, enabling users to select categories during enrollment or allowing automatic assignment based on device properties.
+  Manages device categories in Microsoft Intune using the /deviceManagement/deviceCategories endpoint. This resource is used to organize devices into logical groups for policy targeting and reporting. Device categories can be selected during enrollment or automatically assigned based on device properties.
 ---
 
 # microsoft365_graph_beta_device_management_device_category (Resource)
 
-Manages device categories in Microsoft Intune using the `/deviceManagement/deviceCategories` endpoint. Device categories help organize devices into logical groups for policy targeting and reporting, enabling users to select categories during enrollment or allowing automatic assignment based on device properties.
+Manages device categories in Microsoft Intune using the `/deviceManagement/deviceCategories` endpoint. This resource is used to organize devices into logical groups for policy targeting and reporting. Device categories can be selected during enrollment or automatically assigned based on device properties.
 
 ## Microsoft Documentation
 
 - [deviceCategory resource type](https://learn.microsoft.com/en-us/graph/api/resources/intune-shared-devicecategory?view=graph-rest-beta)
 - [Create deviceCategory](https://learn.microsoft.com/en-us/graph/api/intune-shared-devicecategory-create?view=graph-rest-beta)
 
-## API Permissions
+## Microsoft Graph API Permissions
 
-The following API permissions are required in order to use this resource.
+The following client `application` permissions are needed in order to use this resource:
 
-### Microsoft Graph
+**Required:**
+- `DeviceManagementManagedDevices.ReadWrite.All`
 
-- **Application**: `DeviceManagementManagedDevices.ReadWrite.All`
+**Optional:**
+- `None` `[N/A]`
 
 ## Version History
 

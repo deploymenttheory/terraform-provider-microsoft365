@@ -3,12 +3,12 @@ page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
 subcategory: "Device Management"
 
 description: |-
-{{ if .Description }}{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}{{ else }}  Initiates device attestation on managed Windows devices to verify security posture and integrity.{{ end }}
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
 ---
 
 # {{.Name}} ({{.Type}})
 
-{{ if .Description }}{{ .Description | trimspace }}{{ else }}Initiates device attestation on managed Windows devices, using TPM to cryptographically verify device health, security configuration, and boot integrity for Zero Trust security and compliance enforcement.{{ end }}
+{{ .Description | trimspace }}
 
 ## Microsoft Documentation
 
@@ -21,14 +21,16 @@ description: |-
 - [Trusted Platform Module (TPM) overview](https://learn.microsoft.com/en-us/windows/security/hardware-security/tpm/trusted-platform-module-overview)
 - [Conditional access device platform condition](https://learn.microsoft.com/en-us/azure/active-directory/conditional-access/concept-conditional-access-conditions#device-platforms)
 
-## API Permissions
+## Microsoft Graph API Permissions
 
-The following API permissions are required in order to use this action.
+The following client `application` permissions are needed in order to use this {{.Type | lower}}:
 
-### Microsoft Graph
+**Required:**
+- `DeviceManagementConfiguration.Read.All`
+- `DeviceManagementManagedDevices.Read.All`
 
-- **Application**: `DeviceManagementConfiguration.Read.All`, `DeviceManagementManagedDevices.Read.All`
-- **Delegated**: `DeviceManagementConfiguration.Read.All`, `DeviceManagementManagedDevices.Read.All`
+**Optional:**
+- `None` `[N/A]`
 
 ## Version History
 
@@ -36,176 +38,6 @@ The following API permissions are required in order to use this action.
 |---------|--------|-------|
 | v0.33.0-alpha | Experimental | Initial release |
 | v0.40.0-alpha | Experimental | Example fixes and refactored sync progress logic |
-
-
-## Notes
-
-### Platform Compatibility
-
-| Platform | Support | Requirements |
-|----------|---------|--------------|
-| **Windows** | ✅ Full Support | TPM 1.2 or 2.0, Secure Boot enabled, UEFI firmware |
-| **macOS** | ❌ Not Supported | Device attestation is Windows-specific |
-| **iOS/iPadOS** | ❌ Not Supported | Device attestation is Windows-specific |
-| **Android** | ❌ Not Supported | Device attestation is Windows-specific |
-
-### What is Device Attestation?
-
-Device attestation is a security process that:
-- Uses the Trusted Platform Module (TPM) to cryptographically verify device state
-- Validates boot integrity and firmware configuration
-- Confirms device has not been tampered with or compromised
-- Creates attestation report with cryptographic proof of device health
-- Enables hardware-rooted chain of trust from boot to runtime
-- Provides foundation for Zero Trust security architecture
-- Does not affect device operation or user experience
-
-### How Device Attestation Works
-
-1. **TPM Measurement**: During boot, TPM measures and records each component
-2. **Attestation Request**: Intune requests attestation from the device
-3. **TPM Response**: Device TPM creates cryptographic proof of measurements
-4. **Cloud Verification**: Azure attestation service validates TPM response
-5. **Health Report**: Attestation result stored in device record
-6. **Policy Enforcement**: Conditional access uses attestation for decisions
-
-### TPM (Trusted Platform Module)
-
-**What is TPM?**
-- Hardware security chip integrated on motherboard
-- Provides cryptographic operations and secure storage
-- Stores keys, passwords, and digital certificates
-- Creates and uses encryption keys in hardware
-- Measures boot process and system state
-
-**TPM Versions:**
-| Version | Released | Capabilities | Windows Support |
-|---------|----------|--------------|-----------------|
-| **TPM 1.2** | 2005 | SHA-1, 2048-bit RSA | Windows 7+ |
-| **TPM 2.0** | 2014 | SHA-256, ECC, enhanced algorithms | Windows 8.1+, required for Windows 11 |
-
-**TPM Functions:**
-- Platform integrity measurement
-- Cryptographic key generation and storage
-- Secure boot validation
-- BitLocker disk encryption
-- Credential Guard protection
-- Device attestation
-
-### Attestation vs Other Security Features
-
-| Feature | Purpose | TPM Required | Scope |
-|---------|---------|--------------|-------|
-| **Device Attestation** | Verify device health | ✅ Yes | Boot + firmware |
-| **BitLocker** | Disk encryption | ✅ Yes | Data protection |
-| **Secure Boot** | Boot integrity | ✅ Yes | Boot process |
-| **Credential Guard** | Credential isolation | ✅ Yes | Authentication |
-| **Device Guard** | Code integrity | ✅ Yes | Application execution |
-
-### When to Initiate Device Attestation
-
-- **Conditional Access Enforcement**: Verify device health before granting access
-- **Zero Trust Implementation**: Validate "never trust, always verify" principle
-- **Compliance Validation**: Ensure devices meet security baselines
-- **Post-Incident Recovery**: Verify device integrity after security event
-- **Periodic Validation**: Regular health checks (monthly/quarterly)
-- **Pre-Deployment**: Validate new devices before user assignment
-- **Policy Changes**: Re-verify after security policy updates
-
-### Attestation Results and Usage
-
-**What Gets Validated:**
-- Boot integrity (measured boot)
-- Code integrity (secure boot)
-- BitLocker encryption status
-- Anti-malware status (early-launch)
-- TPM health and presence
-- Firmware configuration
-- Security boot configuration
-
-**How Results Are Used:**
-- **Conditional Access**: Block/allow access based on device health
-- **Compliance Policies**: Mark devices as compliant/non-compliant
-- **Risk Scoring**: Calculate device risk level
-- **Reporting**: Security posture dashboards
-- **Automation**: Trigger remediation workflows
-- **Auditing**: Compliance evidence and audit trails
-
-### Zero Trust and Device Attestation
-
-**Zero Trust Principles:**
-1. **Verify explicitly**: Attestation provides cryptographic proof
-2. **Least privilege access**: Grant based on attested device health
-3. **Assume breach**: Continuous validation, not one-time trust
-
-**Device Attestation in Zero Trust:**
-- Validates device identity and integrity
-- Provides continuous trust verification
-- Enables risk-based access decisions
-- Supports "never trust, always verify" model
-- Creates hardware-rooted chain of trust
-
-### Important Considerations
-
-✅ **Safe Operations:**
-- Does not affect device performance
-- No user downtime or interruption
-- No data collection or transmission
-- Can be run anytime on any device
-- Idempotent (safe to run repeatedly)
-
-⚠️ **Requirements:**
-- TPM 1.2 or 2.0 must be present and enabled
-- Secure Boot must be enabled
-- UEFI firmware (not legacy BIOS)
-- Device must be online and checking in
-- Windows 8.1 or later for full support
-
-### Troubleshooting
-
-**Common Issues:**
-
-1. **No TPM Present/Disabled**
-   - Solution: Enable TPM in UEFI/BIOS settings
-   - Check: Device Manager → Security devices
-
-2. **Secure Boot Not Enabled**
-   - Solution: Enable in UEFI firmware settings
-   - Verify: `msinfo32` → Secure Boot State
-
-3. **Attestation Fails**
-   - Solution: Check TPM health, clear TPM if needed
-   - Command: `Get-Tpm` in PowerShell
-
-4. **Legacy BIOS Mode**
-   - Solution: Convert to UEFI (may require Windows reinstall)
-   - Check: `msinfo32` → BIOS Mode
-
-### Best Practices
-
-**Operational:**
-- ✅ Initiate attestation during device enrollment
-- ✅ Schedule periodic attestation (monthly recommended)
-- ✅ Re-attest after firmware/BIOS updates
-- ✅ Monitor attestation success rates
-- ✅ Document attestation requirements
-- ✅ Test conditional access policies with attestation
-
-**Security:**
-- ✅ Use attestation for conditional access decisions
-- ✅ Implement risk-based access policies
-- ✅ Monitor for attestation failures (potential tampering)
-- ✅ Combine with other security signals
-- ✅ Regular TPM health validation
-- ✅ Investigate repeated attestation failures
-
-**Compliance:**
-- ✅ Document attestation as security control
-- ✅ Include in audit evidence
-- ✅ Regular compliance validation
-- ✅ Track attestation coverage across fleet
-- ✅ Report on attestation status
-- ✅ Maintain attestation audit logs
 
 ## Example Usage
 

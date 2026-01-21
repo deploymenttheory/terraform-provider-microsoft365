@@ -24,13 +24,15 @@ Manages an Intune branding profile resource in Intune.
 - [Delete intuneBrandingProfile](https://learn.microsoft.com/en-us/graph/api/intune-wip-intunebrandingprofile-delete?view=graph-rest-beta)
 - [Assign intuneBrandingProfile](https://learn.microsoft.com/en-us/graph/api/intune-wip-intunebrandingprofile-assign?view=graph-rest-beta)
 
-## API Permissions
+## Microsoft Graph API Permissions
 
-The following API permissions are required in order to use this resource.
+The following client `application` permissions are needed in order to use this resource:
 
-### Microsoft Graph
+**Required:**
+- `DeviceManagementConfiguration.ReadWrite.All`
 
-- **Application**: `DeviceManagementConfiguration.ReadWrite.All`
+**Optional:**
+- `None` `[N/A]`
 
 ## Version History
 

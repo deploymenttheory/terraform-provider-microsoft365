@@ -75,7 +75,7 @@ func (r *GroupPolicyConfigurationResource) ImportState(ctx context.Context, req 
 // Schema returns the schema for the resource.
 func (r *GroupPolicyConfigurationResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Manages group policy configurations in Microsoft Intune using the `/deviceManagement/groupPolicyConfigurations` endpoint. The group policy configuration entity contains the configured values for one or more group policy definitions.",
+		MarkdownDescription: "Manages group policy configurations using the `/deviceManagement/groupPolicyConfigurations` endpoint. This resource is used to the group policy configuration entity contains the configured values for one or more group policy definitions.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed: true,

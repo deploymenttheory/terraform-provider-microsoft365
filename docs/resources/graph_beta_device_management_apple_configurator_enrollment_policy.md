@@ -3,24 +3,26 @@ page_title: "microsoft365_graph_beta_device_management_apple_configurator_enroll
 subcategory: "Device Management"
 
 description: |-
-  Manages apple configurator enrollment policies in Microsoft Intune using the /deviceManagement/depOnboardingSettings/{depOnboardingSettingsId}/enrollmentProfiles endpoint.Apple configurator enrollment policy defines the enrollment policy for Apple devices when using the Apple Configurator enrollment type.
+  Manages apple configurator enrollment policies using the /deviceManagement/depOnboardingSettings/{depOnboardingSettingsId}/enrollmentProfiles endpoint. This resource is used to configure apple configurator enrollment policies settings.
 ---
 
 # microsoft365_graph_beta_device_management_apple_configurator_enrollment_policy (Resource)
 
-Manages apple configurator enrollment policies in Microsoft Intune using the `/deviceManagement/depOnboardingSettings/{depOnboardingSettingsId}/enrollmentProfiles` endpoint.Apple configurator enrollment policy defines the enrollment policy for Apple devices when using the Apple Configurator enrollment type.
+Manages apple configurator enrollment policies using the `/deviceManagement/depOnboardingSettings/{depOnboardingSettingsId}/enrollmentProfiles` endpoint. This resource is used to configure apple configurator enrollment policies settings.
 
 ## Microsoft Documentation
 
 - [appleConfiguratorEnrollmentPolicy resource type](https://learn.microsoft.com/en-us/intune/intune-service/enrollment/apple-configurator-enroll-ios)
 
-## API Permissions
+## Microsoft Graph API Permissions
 
-The following API permissions are required in order to use this resource.
+The following client `application` permissions are needed in order to use this resource:
 
-### Microsoft Graph
+**Required:**
+- `DeviceManagementServiceConfig.ReadWrite.All`
 
-- **Application**: `DeviceManagementServiceConfig.ReadWrite.All`
+**Optional:**
+- `None` `[N/A]`
 
 ## Version History
 

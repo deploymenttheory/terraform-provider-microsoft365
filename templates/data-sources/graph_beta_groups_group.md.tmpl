@@ -15,14 +15,16 @@ description: |-
 - [group resource type](https://learn.microsoft.com/en-us/graph/api/resources/group?view=graph-rest-beta)
 - [Get group](https://learn.microsoft.com/en-us/graph/api/group-get?view=graph-rest-beta)
 
-## API Permissions
+## Microsoft Graph API Permissions
 
-The following API permissions are required in order to use this data source.
+The following client `application` permissions are needed in order to use this {{.Type | lower}}:
 
-### Microsoft Graph
+**Required:**
+- `Group.Read.All`
+- `Directory.Read.All`
 
-- **Application**: `Group.Read.All`, `Directory.Read.All`
-- **Delegated**: No additional roles required when authenticated with a user principal
+**Optional:**
+- `None` `[N/A]`
 
 ## Version History
 

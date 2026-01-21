@@ -2,7 +2,7 @@
 page_title: "microsoft365_graph_beta_windows_365_cloud_pcs Data Source - terraform-provider-microsoft365"
 subcategory: "Windows 365"
 description: |-
-  Retrieves Cloud PCs from Microsoft Intune. Using the endpoint '/deviceManagement/virtualEndpoint/cloudPCs'. Supports filtering by all, id, display_name, user_principal_name, status, product_type, or odata.
+  Retrieves Cloud PCs from Microsoft Intune using the /deviceManagement/virtualEndpoint/cloudPCs endpoint. This data source is used to query Cloud PCs with advanced filtering capabilities.
 ---
 
 # microsoft365_graph_beta_windows_365_cloud_pcs (Data Source)
@@ -15,13 +15,16 @@ This data source allows you to list and filter Cloud PCs in your tenant, providi
 
 - [List cloudPCs](https://learn.microsoft.com/en-us/graph/api/virtualendpoint-list-cloudpcs?view=graph-rest-beta)
 
-## API Permissions
+## Microsoft Graph API Permissions
 
-The following API permissions are required in order to use this data source.
+The following client `application` permissions are needed in order to use this data source:
 
-### Microsoft Graph
+**Required:**
+- `CloudPC.Read.All`
+- `CloudPC.ReadWrite.All`
 
-- **Application**: `CloudPC.Read.All`, `CloudPC.ReadWrite.All`
+**Optional:**
+- `None` `[N/A]`
 
 ## Version History
 

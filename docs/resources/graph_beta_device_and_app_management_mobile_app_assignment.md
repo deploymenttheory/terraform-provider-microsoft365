@@ -3,25 +3,27 @@ page_title: "microsoft365_graph_beta_device_and_app_management_mobile_app_assign
 subcategory: "Device and App Management"
 
 description: |-
-  Manages mobile app assignments in Microsoft Intune using the /deviceAppManagement/mobileApps/{mobileAppId}/assignments endpoint. This resource controls how apps are deployed to users and devices, including installation intent (required, available, uninstall), target groups, and platform-specific assignment settings.
+  Manages mobile app assignments using the /deviceAppManagement/mobileApps/{mobileAppId}/assignments endpoint. This resource is used to controls how apps are deployed to users and devices, including installation intent (required, available, uninstall), target groups, and platform-specific assignment settings.
 ---
 
 # microsoft365_graph_beta_device_and_app_management_mobile_app_assignment (Resource)
 
-Manages mobile app assignments in Microsoft Intune using the `/deviceAppManagement/mobileApps/{mobileAppId}/assignments` endpoint. This resource controls how apps are deployed to users and devices, including installation intent (required, available, uninstall), target groups, and platform-specific assignment settings.
+Manages mobile app assignments using the `/deviceAppManagement/mobileApps/{mobileAppId}/assignments` endpoint. This resource is used to controls how apps are deployed to users and devices, including installation intent (required, available, uninstall), target groups, and platform-specific assignment settings.
 
 ## Microsoft Documentation
 
 - [mobileAppAssignment resource type](https://learn.microsoft.com/en-us/graph/api/resources/intune-apps-mobileappassignment?view=graph-rest-beta)
 - [Create mobileAppAssignment](https://learn.microsoft.com/en-us/graph/api/intune-apps-mobileapp-post-assignments?view=graph-rest-beta)
 
-## API Permissions
+## Microsoft Graph API Permissions
 
-The following API permissions are required in order to use this resource.
+The following client `application` permissions are needed in order to use this resource:
 
-### Microsoft Graph
+**Required:**
+- `DeviceManagementApps.ReadWrite.All`
 
-- **Application**: `DeviceManagementApps.ReadWrite.All`
+**Optional:**
+- `None` `[N/A]`
 
 ## Version History
 

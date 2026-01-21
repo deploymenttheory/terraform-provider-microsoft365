@@ -3,7 +3,7 @@ page_title: "microsoft365_utility_microsoft_store_package_manifest_metadata Data
 subcategory: "Utility"
 
 description: |-
-  Retrieves Microsoft Store package manifests by package identifier or search term. Used for winget packages.
+  Queries winget package manifests from the Microsoft Store API using package identifiers or search terms. This data source is used to discover installation metadata for Windows Package Manager applications.
 ---
 
 # microsoft365_utility_microsoft_store_package_manifest_metadata (Data Source)

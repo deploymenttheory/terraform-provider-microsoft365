@@ -3,12 +3,12 @@ page_title: "microsoft365_graph_beta_device_management_group_policy_uploaded_def
 subcategory: "Device Management"
 
 description: |-
-  Manages group policy uploaded definition files in Microsoft Intune using the /deviceManagement/groupPolicyUploadedDefinitionFiles endpoint. Group policy uploaded definition files are ADMX files that define group policies that can be deployed to devices.
+  Manages group policy uploaded definition files using the /deviceManagement/groupPolicyUploadedDefinitionFiles endpoint. This resource is used to group policy uploaded definition files are ADMX files that define group policies that can be deployed to devices.
 ---
 
 # microsoft365_graph_beta_device_management_group_policy_uploaded_definition_files (Resource)
 
-Manages group policy uploaded definition files in Microsoft Intune using the `/deviceManagement/groupPolicyUploadedDefinitionFiles` endpoint. Group policy uploaded definition files are ADMX files that define group policies that can be deployed to devices.
+Manages group policy uploaded definition files using the `/deviceManagement/groupPolicyUploadedDefinitionFiles` endpoint. This resource is used to group policy uploaded definition files are ADMX files that define group policies that can be deployed to devices.
 
 ## Microsoft Documentation
 
@@ -17,13 +17,15 @@ Manages group policy uploaded definition files in Microsoft Intune using the `/d
 - [Update groupPolicyUploadedDefinitionFiles](https://learn.microsoft.com/en-us/graph/api/intune-grouppolicy-grouppolicyuploadeddefinitionfile-update?view=graph-rest-beta)
 - [Delete groupPolicyUploadedDefinitionFiles](https://learn.microsoft.com/en-us/graph/api/intune-grouppolicy-grouppolicyuploadeddefinitionfile-delete?view=graph-rest-beta)
 
-## API Permissions
+## Microsoft Graph API Permissions
 
-The following API permissions are required in order to use this resource.
+The following client `application` permissions are needed in order to use this resource:
 
-### Microsoft Graph
+**Required:**
+- `DeviceManagementConfiguration.ReadWrite.All`
 
-- **Application**: `DeviceManagementConfiguration.ReadWrite.All`
+**Optional:**
+- `None` `[N/A]`
 
 ## Version History
 

@@ -53,10 +53,10 @@ func (a *SetDeviceNameManagedDeviceAction) Configure(ctx context.Context, req ac
 
 func (a *SetDeviceNameManagedDeviceAction) Schema(ctx context.Context, req action.SchemaRequest, resp *action.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Sets a custom device name for managed devices using the " +
+		MarkdownDescription: "Sets a custom device name for managed devices in Microsoft Intune using the " +
 			"`/deviceManagement/managedDevices/{managedDeviceId}/setDeviceName` and " +
 			"`/deviceManagement/comanagedDevices/{managedDeviceId}/setDeviceName` endpoints. " +
-			"This action allows administrators to assign meaningful, custom names to devices for easier identification " +
+			"This action is used to assign meaningful, custom names to devices for easier identification " +
 			"and management in the Intune console. Device names can be used to reflect location, user, function, or " +
 			"organizational naming conventions. This action supports setting names on multiple devices in a single operation " +
 			"with per-device name customization.\n\n" +

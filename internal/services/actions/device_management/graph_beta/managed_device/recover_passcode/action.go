@@ -55,9 +55,9 @@ func (a *RecoverManagedDevicePasscodeAction) Configure(ctx context.Context, req 
 
 func (a *RecoverManagedDevicePasscodeAction) Schema(ctx context.Context, req action.SchemaRequest, resp *action.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Recovers passcodes for managed devices using the " +
+		MarkdownDescription: "Recovers passcodes for managed devices in Microsoft Intune using the " +
 			"`/deviceManagement/managedDevices/{managedDeviceId}/recoverPasscode` endpoint. " +
-			"This action retrieves existing passcodes that are escrowed in Intune, which is different from " +
+			"This action is used to retrieve existing passcodes that are escrowed in Intune, which is different from " +
 			"reset passcode that generates new temporary passcodes. Recover passcode is primarily used for " +
 			"iOS/iPadOS devices where passcodes may be escrowed during enrollment or management.\n\n" +
 			"**Important Notes:**\n" +

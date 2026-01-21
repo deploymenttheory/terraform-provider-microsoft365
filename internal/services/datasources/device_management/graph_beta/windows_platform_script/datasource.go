@@ -51,7 +51,7 @@ func (d *WindowsPlatformScriptDataSource) Configure(ctx context.Context, req dat
 // Schema defines the schema for the data source
 func (d *WindowsPlatformScriptDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Retrieves information about a windows platform script.",
+		MarkdownDescription: "Retrieves Windows platform scripts from Microsoft Intune using the `/deviceManagement/deviceManagementScripts` endpoint. This data source is used to query PowerShell scripts deployed to Windows devices.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				MarkdownDescription: "Unique identifier for the windows platform script.",

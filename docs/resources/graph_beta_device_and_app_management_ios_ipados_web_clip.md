@@ -3,26 +3,28 @@ page_title: "microsoft365_graph_beta_device_and_app_management_ios_ipados_web_cl
 subcategory: "Device and App Management"
 
 description: |-
-  Manages iOS/iPadOS Web Clip apps in Microsoft Intune using the /deviceAppManagement/mobileApps endpoint. iOS/iPadOS Web Clips are shortcuts to web pages that appear as icons on the home screen of iOS devices.
+  Manages iOS/iPadOS Web Clip apps using the /deviceAppManagement/mobileApps endpoint. This resource is used to iOS/iPadOS Web Clips are shortcuts to web pages that appear as icons on the home screen of iOS devices.
 ---
 
 # microsoft365_graph_beta_device_and_app_management_ios_ipados_web_clip (Resource)
 
-Manages iOS/iPadOS Web Clip apps in Microsoft Intune using the `/deviceAppManagement/mobileApps` endpoint. iOS/iPadOS Web Clips are shortcuts to web pages that appear as icons on the home screen of iOS devices.
+Manages iOS/iPadOS Web Clip apps using the `/deviceAppManagement/mobileApps` endpoint. This resource is used to iOS/iPadOS Web Clips are shortcuts to web pages that appear as icons on the home screen of iOS devices.
 
 ## Microsoft Documentation
 
 - [iosiPadOSWebClip resource type](https://learn.microsoft.com/en-us/graph/api/resources/intune-apps-iosipadoswebclip?view=graph-rest-beta)
 - [Create iosiPadOSWebClip](https://learn.microsoft.com/en-us/graph/api/intune-apps-iosipadoswebclip-create?view=graph-rest-beta)
 
-## API Permissions
+## Microsoft Graph API Permissions
 
-The following API permissions are required in order to use this resource.
+The following client `application` permissions are needed in order to use this resource:
 
-### Microsoft Graph
+**Required:**
+- `DeviceManagementApps.Read.All`
+- `DeviceManagementApps.ReadWrite.All`
 
-- **Read**: `DeviceManagementApps.Read.All`
-- **Write**: `DeviceManagementApps.ReadWrite.All`
+**Optional:**
+- `None` `[N/A]`
 
 ## Version History
 

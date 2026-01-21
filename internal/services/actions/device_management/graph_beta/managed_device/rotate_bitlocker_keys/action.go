@@ -57,10 +57,10 @@ func (a *RotateBitLockerKeysAction) Configure(ctx context.Context, req action.Co
 
 func (a *RotateBitLockerKeysAction) Schema(ctx context.Context, req action.SchemaRequest, resp *action.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Rotates BitLocker encryption recovery keys on Windows devices using the " +
+		MarkdownDescription: "Rotates BitLocker encryption recovery keys on Windows devices in Microsoft Intune using the " +
 			"`/deviceManagement/managedDevices/{managedDeviceId}/rotateBitLockerKeys` and " +
 			"`/deviceManagement/comanagedDevices/{managedDeviceId}/rotateBitLockerKeys` endpoints. " +
-			"This action generates new BitLocker recovery keys and escrows them to Intune, invalidating the previous recovery keys.\n\n" +
+			"This action is used to generate new BitLocker recovery keys and escrow them to Intune, invalidating the previous recovery keys.\n\n" +
 			"**What This Action Does:**\n" +
 			"- Generates new BitLocker recovery password\n" +
 			"- Escrows new recovery key to Intune/Azure AD\n" +

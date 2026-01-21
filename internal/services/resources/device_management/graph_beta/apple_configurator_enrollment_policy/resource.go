@@ -71,8 +71,7 @@ func (r *AppleConfiguratorEnrollmentPolicyResource) ImportState(ctx context.Cont
 
 func (r *AppleConfiguratorEnrollmentPolicyResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Manages apple configurator enrollment policies in Microsoft Intune using the `/deviceManagement/depOnboardingSettings/{depOnboardingSettingsId}/enrollmentProfiles` endpoint." +
-			"Apple configurator enrollment policy defines the enrollment policy for Apple devices when using the Apple Configurator enrollment type.",
+		MarkdownDescription: "Manages apple configurator enrollment policies using the `/deviceManagement/depOnboardingSettings/{depOnboardingSettingsId}/enrollmentProfiles` endpoint. This resource is used to configure apple configurator enrollment policies settings.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed: true,

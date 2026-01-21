@@ -83,9 +83,7 @@ func (r *WindowsDeviceCompliancePolicyResource) ImportState(ctx context.Context,
 // Schema returns the schema for the resource.
 func (r *WindowsDeviceCompliancePolicyResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Manages Windows device compliance policies in Microsoft Intune using the `/deviceManagement/deviceCompliancePolicies` " +
-			"endpoint. Device compliance policies define rules and settings that devices must meet to be considered compliant with organizational security " +
-			"requirements. you can find out more here: 'https://learn.microsoft.com/en-us/intune/intune-service/protect/compliance-policy-create-windows'.",
+		MarkdownDescription: "Manages Windows device compliance policies using the `/deviceManagement/deviceCompliancePolicies` endpoint. This resource is used to device compliance policies define rules and settings that devices must meet to be considered compliant with organizational security requirements. you can find out more here: 'https://learn.microsoft.com/en-us/intune/intune-service/protect/compliance-policy-create-windows'..",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed: true,

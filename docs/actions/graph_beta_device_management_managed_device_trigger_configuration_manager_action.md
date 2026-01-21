@@ -3,7 +3,7 @@ page_title: "microsoft365_graph_beta_device_management_managed_device_trigger_co
 subcategory: "Device Management"
 
 description: |-
-  Triggers Configuration Manager client actions on Windows managed and co-managed devices using the /deviceManagement/managedDevices/{managedDeviceId}/triggerConfigurationManagerAction and /deviceManagement/comanagedDevices/{managedDeviceId}/triggerConfigurationManagerAction endpoints. This action allows administrators to remotely invoke specific Configuration Manager (SCCM) operations on devices that have the Configuration Manager client installed. This is particularly useful for co-managed devices where Intune and Configuration Manager work together to manage devices. Actions include policy refresh, application evaluation, antivirus scans, and more.
+  Triggers Configuration Manager client actions on Windows managed and co-managed devices in Microsoft Intune using the /deviceManagement/managedDevices/{managedDeviceId}/triggerConfigurationManagerAction and /deviceManagement/comanagedDevices/{managedDeviceId}/triggerConfigurationManagerAction endpoints. This action is used to remotely invoke specific Configuration Manager (SCCM) operations on devices that have the Configuration Manager client installed. This is particularly useful for co-managed devices where Intune and Configuration Manager work together to manage devices. Actions include policy refresh, application evaluation, antivirus scans, and more.
   Important Notes:
   Requires Configuration Manager client installed on devicePrimarily used for co-managed devices (Intune + Configuration Manager)Device must be online to receive the action triggerDifferent actions available for different management scenariosActions execute on the Configuration Manager client side
   Use Cases:
@@ -15,7 +15,7 @@ description: |-
 
 # microsoft365_graph_beta_device_management_managed_device_trigger_configuration_manager_action (Action)
 
-Triggers Configuration Manager client actions on Windows managed and co-managed devices using the `/deviceManagement/managedDevices/{managedDeviceId}/triggerConfigurationManagerAction` and `/deviceManagement/comanagedDevices/{managedDeviceId}/triggerConfigurationManagerAction` endpoints. This action allows administrators to remotely invoke specific Configuration Manager (SCCM) operations on devices that have the Configuration Manager client installed. This is particularly useful for co-managed devices where Intune and Configuration Manager work together to manage devices. Actions include policy refresh, application evaluation, antivirus scans, and more.
+Triggers Configuration Manager client actions on Windows managed and co-managed devices in Microsoft Intune using the `/deviceManagement/managedDevices/{managedDeviceId}/triggerConfigurationManagerAction` and `/deviceManagement/comanagedDevices/{managedDeviceId}/triggerConfigurationManagerAction` endpoints. This action is used to remotely invoke specific Configuration Manager (SCCM) operations on devices that have the Configuration Manager client installed. This is particularly useful for co-managed devices where Intune and Configuration Manager work together to manage devices. Actions include policy refresh, application evaluation, antivirus scans, and more.
 
 **Important Notes:**
 - Requires Configuration Manager client installed on device
@@ -50,14 +50,15 @@ Triggers Configuration Manager client actions on Windows managed and co-managed 
 - [How to enable co-management](https://learn.microsoft.com/en-us/mem/configmgr/comanage/how-to-enable)
 - [Co-management workloads](https://learn.microsoft.com/en-us/mem/configmgr/comanage/workloads)
 
-## API Permissions
+## Microsoft Graph API Permissions
 
-The following API permissions are required in order to use this action.
+The following client `application` permissions are needed in order to use this action:
 
-### Microsoft Graph
+**Required:**
+- `DeviceManagementManagedDevices.PrivilegedOperations.All`
 
-- **Application**: `DeviceManagementManagedDevices.PrivilegedOperations.All`
-- **Delegated**: `DeviceManagementManagedDevices.PrivilegedOperations.All`
+**Optional:**
+- `None` `[N/A]`
 
 ## Version History
 
@@ -65,59 +66,6 @@ The following API permissions are required in order to use this action.
 |---------|--------|-------|
 | v0.33.0-alpha | Experimental | Initial release |
 | v0.40.0-alpha | Experimental | Example fixes and refactored sync progress logic |
-
-
-## Notes
-
-### Platform Compatibility
-
-| Platform | Support | Requirements |
-|----------|---------|--------------|
-| **Windows** | ✅ Full Support | Configuration Manager client installed, co-management enabled (recommended) |
-| **macOS** | ❌ Not Supported | Configuration Manager is Windows-only |
-| **iOS/iPadOS** | ❌ Not Supported | Configuration Manager is Windows-only |
-| **Android** | ❌ Not Supported | Configuration Manager is Windows-only |
-
-### What is Configuration Manager Action Triggering?
-
-Configuration Manager Action Triggering is an action that:
-- Sends commands to the Configuration Manager client on Windows devices
-- Triggers specific Configuration Manager operations remotely
-- Works with co-managed devices (Intune + Configuration Manager)
-- Enables immediate execution of Configuration Manager actions
-- Supports policy refresh, app evaluation, antivirus scans, and more
-- Provides bridge between Intune and Configuration Manager management
-
-### Available Configuration Manager Actions
-
-| Action | Description | Use Case |
-|--------|-------------|----------|
-| **refreshMachinePolicy** | Refresh device machine-level policies | After policy changes in Configuration Manager |
-| **refreshUserPolicy** | Refresh current user's policies | After user-specific policy updates |
-| **wakeUpClient** | Wake up Configuration Manager client | Before scheduled operations or maintenance |
-| **appEvaluation** | Trigger application deployment evaluation | After deploying new applications |
-| **quickScan** | Windows Defender quick antivirus scan | Routine security checks |
-| **fullScan** | Windows Defender full antivirus scan | Comprehensive security scanning |
-| **windowsDefenderUpdateSignatures** | Update Windows Defender signatures | Before performing antivirus scans |
-
-### When to Trigger Configuration Manager Actions
-
-- After making policy or configuration changes in Configuration Manager
-- To force immediate application deployment evaluation
-- Before scheduled maintenance windows to ensure devices are ready
-- During security incident response for immediate scans
-- To update antivirus definitions across devices
-- When troubleshooting device configuration issues
-- To synchronize device state with Configuration Manager immediately
-
-### What Happens When Action is Triggered
-
-- Intune sends the trigger command to the device
-- Configuration Manager client on the device receives the trigger
-- Client queues or executes the requested action
-- Action runs according to client schedule and configuration
-- No response data is returned (204 No Content)
-- Monitor results in Configuration Manager console or device logs
 
 ## Example Usage
 

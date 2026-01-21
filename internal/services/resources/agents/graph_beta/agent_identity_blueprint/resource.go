@@ -118,9 +118,7 @@ func (r *AgentIdentityBlueprintResource) ImportState(ctx context.Context, req re
 // Schema returns the schema for the resource.
 func (r *AgentIdentityBlueprintResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Manages an Agent Identity Blueprint in Microsoft Entra ID using the `/applications/microsoft.graph.agentIdentityBlueprint` endpoint. " +
-			"An agent identity blueprint serves as a template for creating agent identities within the Microsoft Entra ID ecosystem. " +
-			"This resource inherits from the application resource type.",
+		MarkdownDescription: "Manages an Agent Identity Blueprint in Microsoft Entra ID using the `/applications/microsoft.graph.agentIdentityBlueprint` endpoint. This resource is used to serve as a template for creating agent identities within the Microsoft Entra ID ecosystem. This resource inherits from the application resource type.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				MarkdownDescription: "The unique identifier for the agent identity blueprint. This property is referred to as Object ID in the Microsoft Entra admin center. Read-only.",

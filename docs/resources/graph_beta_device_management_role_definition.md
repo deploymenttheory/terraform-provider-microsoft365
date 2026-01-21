@@ -3,25 +3,33 @@ page_title: "microsoft365_graph_beta_device_management_role_definition Resource 
 subcategory: "Device Management"
 
 description: |-
-  Manages custom role definitions in Microsoft Intune using the /deviceManagement/roleDefinitions endpoint. Role definitions define sets of permissions that can be assigned to administrators, enabling granular access control for device management, policy configuration, and administrative functions within Intune.
+  Manages custom role definitions using the /deviceManagement/roleDefinitions endpoint. This resource is used to role definitions define sets of permissions that can be assigned to administrators, enabling granular access control for device management, policy configuration, and administrative functions within Intune.
 ---
 
 # microsoft365_graph_beta_device_management_role_definition (Resource)
 
-Manages custom role definitions in Microsoft Intune using the `/deviceManagement/roleDefinitions` endpoint. Role definitions define sets of permissions that can be assigned to administrators, enabling granular access control for device management, policy configuration, and administrative functions within Intune.
+Manages custom role definitions using the `/deviceManagement/roleDefinitions` endpoint. This resource is used to role definitions define sets of permissions that can be assigned to administrators, enabling granular access control for device management, policy configuration, and administrative functions within Intune.
 
 ## Microsoft Documentation
 
 - [roleDefinition resource type](https://learn.microsoft.com/en-us/graph/api/resources/intune-rbac-roledefinition?view=graph-rest-beta)
 - [Create roleDefinition](https://learn.microsoft.com/en-us/graph/api/intune-rbac-roledefinition-create?view=graph-rest-beta)
+- [Read roleDefinition](https://learn.microsoft.com/en-us/graph/api/intune-rbac-roledefinition-get?view=graph-rest-beta)
+- [Update roleDefinition](https://learn.microsoft.com/en-us/graph/api/intune-rbac-roledefinition-update?view=graph-rest-beta)
+- [Delete roleDefinition](https://learn.microsoft.com/en-us/graph/api/intune-rbac-roledefinition-delete?view=graph-rest-beta)
 
-## API Permissions
+## Microsoft Graph API Permissions
 
-The following API permissions are required in order to use this resource.
+The following client `application` permissions are needed in order to use this resource:
 
-### Microsoft Graph
+**Required:**
+- `DeviceManagementConfiguration.Read.All`
+- `DeviceManagementConfiguration.ReadWrite.All`
+- `DeviceManagementRBAC.Read.All`
+- `DeviceManagementRBAC.ReadWrite.All`
 
-- **Application**: `DeviceManagementConfiguration.Read.All`, `DeviceManagementConfiguration.ReadWrite.All`, `DeviceManagementRBAC.Read.All`, `DeviceManagementRBAC.ReadWrite.All`
+**Optional:**
+- `None` `[N/A]`
 
 ## Version History
 

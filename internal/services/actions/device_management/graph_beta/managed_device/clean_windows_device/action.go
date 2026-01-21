@@ -53,11 +53,11 @@ func (a *CleanWindowsManagedDeviceAction) Configure(ctx context.Context, req act
 
 func (a *CleanWindowsManagedDeviceAction) Schema(ctx context.Context, req action.SchemaRequest, resp *action.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Performs a clean operation on Windows managed and co-managed devices using the " +
+		MarkdownDescription: "Performs a clean operation on Windows managed and co-managed devices in Microsoft Intune using the " +
 			"`/deviceManagement/managedDevices/{managedDeviceId}/cleanWindowsDevice` and " +
 			"`/deviceManagement/comanagedDevices/{managedDeviceId}/cleanWindowsDevice` endpoints. " +
-			"This action provides a lighter-weight alternative to full device wipe, allowing IT administrators " +
-			"to remove applications and settings while optionally preserving user data on each device independently.\n\n" +
+			"This action is used to remove applications and settings while optionally preserving user data, providing a lighter-weight alternative to full device wipe. " +
+			"IT administrators can remove applications and settings while optionally preserving user data on each device independently.\n\n" +
 			"**What Clean Windows Device Does:**\n" +
 			"- Removes installed applications (except inbox Windows apps)\n" +
 			"- Removes user profiles (unless `keep_user_data` is true for that device)\n" +

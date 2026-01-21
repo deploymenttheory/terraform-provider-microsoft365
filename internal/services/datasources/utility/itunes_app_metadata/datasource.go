@@ -52,8 +52,7 @@ func (d *itunesAppMetadataDataSource) Configure(_ context.Context, req datasourc
 // Schema defines the schema for the data source
 func (d *itunesAppMetadataDataSource) Schema(ctx context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Use this data source to query the iTunes App Store API for app metadata. " +
-			"This data source allows you to search for apps by name and country code, returning details like bundle ID and artwork URLs.",
+		MarkdownDescription: "Queries iOS and iPadOS app metadata from the iTunes App Store API using the `https://itunes.apple.com/search` endpoint. This data source is used to retrieve bundle IDs, versions, and artwork URLs for VPP app deployment.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:            true,

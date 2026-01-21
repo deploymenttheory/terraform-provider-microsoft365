@@ -82,7 +82,7 @@ func (r *WindowsWebAppResource) ImportState(ctx context.Context, req resource.Im
 // Schema returns the schema for the resource.
 func (r *WindowsWebAppResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Manages Windows Web Clip apps in Microsoft Intune using the `/deviceAppManagement/mobileApps` endpoint. Windows Web Clips are shortcuts to web pages that appear as apps on Windows devices.",
+		MarkdownDescription: "Manages Windows Web Clip apps using the `/deviceAppManagement/mobileApps` endpoint. This resource is used to windows Web Clips are shortcuts to web pages that appear as apps on Windows devices.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed: true,

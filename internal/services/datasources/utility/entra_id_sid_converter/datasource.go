@@ -49,9 +49,7 @@ func (d *entraIdSidConverterDataSource) Configure(_ context.Context, req datasou
 
 func (d *entraIdSidConverterDataSource) Schema(ctx context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Converts between Microsoft Entra ID (formerly Azure AD) Security Identifiers (SIDs) and Object IDs. " +
-			"This utility performs bidirectional conversion - provide either a SID to get an Object ID, or an Object ID to get a SID. " +
-			"Useful for hybrid environments where on-premises AD identities are synced to Entra ID.",
+		MarkdownDescription: "Converts between Microsoft Entra ID Security Identifiers (SIDs) and Object IDs locally using deterministic conversion algorithms. This data source is used for bidirectional SID/GUID conversion in hybrid identity scenarios.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:            true,

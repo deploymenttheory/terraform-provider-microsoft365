@@ -72,9 +72,7 @@ func (r *AuthenticationContextResource) ImportState(ctx context.Context, req res
 // Schema defines the schema for the resource.
 func (r *AuthenticationContextResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Manages Microsoft 365 Authentication Context Class References using the `/identity/conditionalAccess/authenticationContextClassReferences` endpoint. " +
-			"Authentication context is used to trigger step-up authentication in scenarios and applications. " +
-			"It allows you to require additional verification when users access sensitive resources or perform sensitive actions.",
+		MarkdownDescription: "Manages Microsoft 365 Authentication Context Class References using the `/identity/conditionalAccess/authenticationContextClassReferences` endpoint. This resource is used to authentication context is used to trigger step-up authentication in scenarios and applications. It allows you to require additional verification when users access sensitive resources or perform sensitive actions..",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				MarkdownDescription: "Identifier used to reference authentication context class. Supported values are `c8` through `c99`. " +

@@ -58,9 +58,8 @@ func (r *SettingsCatalogListResource) Configure(ctx context.Context, req resourc
 // ListResourceConfigSchema defines the schema for the list resource configuration.
 func (r *SettingsCatalogListResource) ListResourceConfigSchema(ctx context.Context, req list.ListResourceSchemaRequest, resp *list.ListResourceSchemaResponse) {
 	resp.Schema = listschema.Schema{
-		MarkdownDescription: "Configuration for listing Settings Catalog configuration policies in Microsoft Intune. " +
-			"The list resource automatically retrieves ALL policies (across all pages) and returns the complete dataset. " +
-			"Filter parameters narrow down which policies are returned from Microsoft Graph, optimizing the discovery process. " +
+		MarkdownDescription: "Lists Settings Catalog configuration policies from Microsoft Intune using the `/deviceManagement/configurationPolicies` endpoint. " +
+			"This list resource is used to automatically retrieve all policies across multiple pages with advanced filtering capabilities for policy discovery and import. " +
 			"For full resource details including assignments and settings, use Terraform's import functionality with `terraform plan -generate-config-out`.",
 		Attributes: map[string]listschema.Attribute{
 			"name_filter": listschema.StringAttribute{

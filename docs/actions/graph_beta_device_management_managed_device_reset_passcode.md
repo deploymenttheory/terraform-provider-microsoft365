@@ -3,7 +3,7 @@ page_title: "microsoft365_graph_beta_device_management_managed_device_reset_pass
 subcategory: "Device Management"
 
 description: |-
-  Resets the passcode on managed devices using the /deviceManagement/managedDevices/{managedDeviceId}/resetPasscode endpoint. This action removes the current device passcode/password and generates a new temporary passcode. The new passcode is displayed to the administrator and must be communicated to the device user. This action supports resetting passcodes on multiple devices in a single operation.
+  Resets the passcode on managed devices in Microsoft Intune using the /deviceManagement/managedDevices/{managedDeviceId}/resetPasscode endpoint. This action is used to remove the current device passcode/password and generate a new temporary passcode. The new passcode is displayed to the administrator and must be communicated to the device user. This action supports resetting passcodes on multiple devices in a single operation.
   Important Notes:
   The device must be online and able to receive the commandOn iOS/iPadOS devices, the device must be supervisedOn Android devices, this removes the passcode requirement temporarilyOn Windows devices, the functionality varies by Windows versionThe new passcode is a temporary system-generated code that should be changed by the userThis action requires the device to be enrolled and actively managed by Intune
   Use Cases:
@@ -13,7 +13,7 @@ description: |-
 
 # microsoft365_graph_beta_device_management_managed_device_reset_passcode (Action)
 
-Resets the passcode on managed devices using the `/deviceManagement/managedDevices/{managedDeviceId}/resetPasscode` endpoint. This action removes the current device passcode/password and generates a new temporary passcode. The new passcode is displayed to the administrator and must be communicated to the device user. This action supports resetting passcodes on multiple devices in a single operation.
+Resets the passcode on managed devices in Microsoft Intune using the `/deviceManagement/managedDevices/{managedDeviceId}/resetPasscode` endpoint. This action is used to remove the current device passcode/password and generate a new temporary passcode. The new passcode is displayed to the administrator and must be communicated to the device user. This action supports resetting passcodes on multiple devices in a single operation.
 
 **Important Notes:**
 - The device must be online and able to receive the command
@@ -40,14 +40,15 @@ Resets the passcode on managed devices using the `/deviceManagement/managedDevic
 ### Intune Remote Actions Guides
 - [Device passcode reset](https://learn.microsoft.com/en-us/intune/intune-service/remote-actions/device-passcode-reset)
 
-## API Permissions
+## Microsoft Graph API Permissions
 
-The following API permissions are required in order to use this action.
+The following client `application` permissions are needed in order to use this action:
 
-### Microsoft Graph
+**Required:**
+- `DeviceManagementManagedDevices.PrivilegedOperations.All`
 
-- **Application**: `DeviceManagementManagedDevices.PrivilegedOperations.All`
-- **Delegated**: `DeviceManagementManagedDevices.PrivilegedOperations.All`
+**Optional:**
+- `None` `[N/A]`
 
 ## Version History
 
@@ -56,68 +57,6 @@ The following API permissions are required in order to use this action.
 | v0.33.0-alpha | Experimental | Initial release |
 | v0.40.0-alpha | Experimental | Example fixes and refactored sync progress logic |
 
-
-## Notes
-
-### Platform Compatibility
-
-| Platform | Support | Requirements |
-|----------|---------|--------------|
-| **Android** | ✅ Full Support | Work profile or fully managed devices |
-| **iOS** | ❌ Not Supported | Not available for iOS devices |
-| **iPadOS** | ❌ Not Supported | Not available for iPadOS devices |
-| **macOS** | ❌ Not Supported | Not available for macOS devices |
-| **Windows** | ❌ Not Supported | Not available for Windows devices |
-| **ChromeOS** | ❌ Not Supported | Not available for ChromeOS devices |
-
-### Platform-Specific Requirements
-
-#### Android
-- Device must be fully managed or have work profile
-- May only reset work profile passcode on BYOD devices
-- Device needs to be online to receive the command
-- Applies to screen lock PIN, password, or pattern
-- User will be prompted to set new passcode after reset
-
-### How Passcode Reset Works
-
-1. Reset command issued via this action
-2. Intune generates temporary passcode
-3. Passcode displayed in Intune admin portal
-4. User enters temporary passcode to unlock device
-5. User prompted to create new permanent passcode
-6. Temporary passcode expires after first use
-
-### Retrieving New Passcode
-
-- Navigate to Intune admin center
-- Go to Devices > All devices
-- Select the device
-- New passcode displayed in device details
-- Passcode typically 6-8 digits/characters
-- Securely communicate passcode to user
-
-### Common Use Cases
-
-- User forgot device passcode
-- Locked out device recovery
-- Security incident response
-- Departing employee device recovery
-- Compliance enforcement
-- Lost device preparation for return
-- Device provisioning for new user
-- Emergency access requirements
-
-### Best Practices
-
-- Verify user identity before providing new passcode
-- Communicate passcode securely (not via email)
-- Document reason for passcode reset
-- Follow up to ensure user sets permanent passcode
-- Consider privacy and compliance requirements
-- Use in conjunction with other security measures
-- Monitor for repeated reset requests
-- Train help desk on passcode retrieval
 
 ## Example Usage
 

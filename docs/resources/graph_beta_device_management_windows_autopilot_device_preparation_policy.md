@@ -3,12 +3,12 @@ page_title: "microsoft365_graph_beta_device_management_windows_autopilot_device_
 subcategory: "Device Management"
 
 description: |-
-  Manages Windows Autopilot Device Preparation Policy using the /deviceManagement/configurationPolicies endpoint. Windows Autopilot Device Preparation is used to set up and configure new devices, getting them ready for productive use by delivering consistent configurations and enhancing the setup experience.
+  Manages Windows Autopilot Device Preparation Policy using the /deviceManagement/configurationPolicies endpoint. This resource is used to windows Autopilot Device Preparation is used to set up and configure new devices, getting them ready for productive use by delivering consistent configurations and enhancing the setup experience.
 ---
 
 # microsoft365_graph_beta_device_management_windows_autopilot_device_preparation_policy (Resource)
 
-Manages Windows Autopilot Device Preparation Policy using the `/deviceManagement/configurationPolicies` endpoint. Windows Autopilot Device Preparation is used to set up and configure new devices, getting them ready for productive use by delivering consistent configurations and enhancing the setup experience.
+Manages Windows Autopilot Device Preparation Policy using the `/deviceManagement/configurationPolicies` endpoint. This resource is used to windows Autopilot Device Preparation is used to set up and configure new devices, getting them ready for productive use by delivering consistent configurations and enhancing the setup experience.
 
 ## Known Bugs 09/06/2025
 
@@ -20,13 +20,15 @@ Manages Windows Autopilot Device Preparation Policy using the `/deviceManagement
 - [Windows Autopilot Device Preparation](https://learn.microsoft.com/en-us/autopilot/device-preparation/overview)
 - [deviceManagementConfigurationPolicy resource type](https://learn.microsoft.com/en-us/graph/api/resources/intune-deviceconfigv2-devicemanagementconfigurationpolicy?view=graph-rest-beta)
 
-## API Permissions
+## Microsoft Graph API Permissions
 
-The following API permissions are required in order to use this resource.
+The following client `application` permissions are needed in order to use this resource:
 
-### Microsoft Graph
+**Required:**
+- `DeviceManagementConfiguration.ReadWrite.All`
 
-- **Application**: `DeviceManagementConfiguration.ReadWrite.All`
+**Optional:**
+- `None` `[N/A]`
 
 ## Version History
 

@@ -76,31 +76,7 @@ func (r *GroupOwnerAssignmentResource) ImportState(ctx context.Context, req reso
 // Schema defines the schema for the resource.
 func (r *GroupOwnerAssignmentResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Manages Azure AD/Entra group owner assignments using the `/groups/{group-id}/owners` endpoint. This resource enables adding and removing users or service principals as owners of security groups and Microsoft 365 groups.\n\n" +
-			"**Owner Type Support by Group Type:**\n" +
-			"- **Security Groups**: Users and Service principals\n" +
-			"- **Microsoft 365 Groups**: Users and Service principals\n" +
-			"- **Mail-enabled Security Groups**: Read-only, cannot add owners\n" +
-			"- **Distribution Groups**: Read-only, cannot add owners\n\n" +
-			"**Important Notes:**\n" +
-			"- Owners are allowed to modify the group object\n" +
-			"- The last owner (user object) of a group cannot be removed\n" +
-			"- If you update group owners and created a team for the group, it can take up to 2 hours for owners to sync with Microsoft Teams\n" +
-			"- If you want the owner to make changes in a team (e.g., creating a Planner plan), the owner also needs to be added as a group/team member\n\n" +
-			"**Required Permissions by Owner Type:**\n" +
-			"- **Users**: `Group.ReadWrite.All` or `Directory.ReadWrite.All`\n" +
-			"- **Service Principals**: `Group.ReadWrite.All` or `Directory.ReadWrite.All`\n" +
-			"- **Role-assignable Groups**: Additional `RoleManagement.ReadWrite.Directory` permission required\n\n" +
-			"**Supported Microsoft Entra Roles:**\n" +
-			"- Group owners (can modify all types of group owners)\n" +
-			"- Groups Administrator (can modify all types of group owners)\n" +
-			"- User Administrator (can modify user owners only)\n" +
-			"- Directory Writers (can modify user owners only)\n" +
-			"- Exchange Administrator (Microsoft 365 groups only)\n" +
-			"- SharePoint Administrator (Microsoft 365 groups only)\n" +
-			"- Teams Administrator (Microsoft 365 groups only)\n" +
-			"- Yammer Administrator (Microsoft 365 groups only)\n" +
-			"- Intune Administrator (security groups only)",
+		MarkdownDescription: "Manages Azure AD/Entra group owner assignments using the `/groups/{group-id}/owners` endpoint. This resource is used to enables adding and removing users or service principals as owners of security groups and Microsoft 365 groups.\n\n**Owner Type Support by Group Type:**\n- **Security Groups**: Users and Service principals\n- **Microsoft 365 Groups**: Users and Service principals\n- **Mail-enabled Security Groups**: Read-only, cannot add owners\n- **Distribution Groups**: Read-only, cannot add owners\n\n**Important Notes:**\n- Owners are allowed to modify the group object\n- The last owner (user object) of a group cannot be removed\n- If you update group owners and created a team for the group, it can take up to 2 hours for owners to sync with Microsoft Teams\n- If you want the owner to make changes in a team (e.g., creating a Planner plan), the owner also needs to be added as a group/team member\n\n**Required Permissions by Owner Type:**\n- **Users**: `Group.ReadWrite.All` or `Directory.ReadWrite.All`\n- **Service Principals**: `Group.ReadWrite.All` or `Directory.ReadWrite.All`\n- **Role-assignable Groups**: Additional `RoleManagement.ReadWrite.Directory` permission required\n\n**Supported Microsoft Entra Roles:**\n- Group owners (can modify all types of group owners)\n- Groups Administrator (can modify all types of group owners)\n- User Administrator (can modify user owners only)\n- Directory Writers (can modify user owners only)\n- Exchange Administrator (Microsoft 365 groups only)\n- SharePoint Administrator (Microsoft 365 groups only)\n- Teams Administrator (Microsoft 365 groups only)\n- Yammer Administrator (Microsoft 365 groups only)\n- Intune Administrator (security groups only).",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed: true,

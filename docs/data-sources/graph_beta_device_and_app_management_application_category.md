@@ -3,24 +3,27 @@ page_title: "microsoft365_graph_beta_device_and_app_management_application_categ
 subcategory: "Device and App Management"
 
 description: |-
-  Retrieves application categories from Microsoft Intune using the /deviceAppManagement/mobileAppCategories endpoint. This data source enables querying application categories with advanced filtering capabilities including OData queries.
+  Retrieves application categories from Microsoft Intune using the /deviceAppManagement/mobileAppCategories endpoint. This data source is used to query organizational app categories for classifying and organizing mobile applications.
 ---
 
 # microsoft365_graph_beta_device_and_app_management_application_category (Data Source)
 
-Retrieves application categories from Microsoft Intune using the `/deviceAppManagement/mobileAppCategories` endpoint. This data source enables querying application categories with advanced filtering capabilities including OData queries.
+Retrieves application categories from Microsoft Intune using the `/deviceAppManagement/mobileAppCategories` endpoint. This data source is used to query organizational app categories for classifying and organizing mobile applications.
 
 ## Microsoft Documentation
 
 - [mobileAppCategory resource type](https://learn.microsoft.com/en-us/graph/api/resources/intune-apps-mobileappcategory?view=graph-rest-beta)
 
-## API Permissions
+## Microsoft Graph API Permissions
 
-The following API permissions are required in order to use this data source.
+The following client `application` permissions are needed in order to use this data source:
 
-### Microsoft Graph
+**Required:**
+- `DeviceManagementApps.Read.All`
+- `DeviceManagementApps.ReadWrite.All`
 
-- **Application**: `DeviceManagementApps.Read.All`, `DeviceManagementApps.ReadWrite.All`
+**Optional:**
+- `None` `[N/A]`
 
 ## Version History
 

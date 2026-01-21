@@ -3,24 +3,27 @@ page_title: "microsoft365_graph_beta_device_management_windows_feature_update_po
 subcategory: "Device Management"
 
 description: |-
-  Retrieves information about a Windows Feature Update Profile in Microsoft Intune.
+  Retrieves Windows feature update policies from Microsoft Intune using the /deviceManagement/windowsFeatureUpdateProfiles endpoint. This data source is used to query policies that control Windows version upgrades and feature rollouts.
 ---
 
 # microsoft365_graph_beta_device_management_windows_feature_update_policy (Data Source)
 
-Retrieves information about a Windows Feature Update Profile in Microsoft Intune.
+Retrieves Windows feature update policies from Microsoft Intune using the `/deviceManagement/windowsFeatureUpdateProfiles` endpoint. This data source is used to query policies that control Windows version upgrades and feature rollouts.
 
 ## Microsoft Documentation
 
 - [windowsFeatureUpdateProfile resource type](https://learn.microsoft.com/en-us/graph/api/resources/intune-softwareupdate-windowsfeatureupdateprofile?view=graph-rest-beta)
 
-## API Permissions
+## Microsoft Graph API Permissions
 
-The following API permissions are required in order to use this data source.
+The following client `application` permissions are needed in order to use this data source:
 
-### Microsoft Graph
+**Required:**
+- `DeviceManagementConfiguration.Read.All`
+- `DeviceManagementConfiguration.ReadWrite.All`
 
-- **Application**: `DeviceManagementConfiguration.Read.All`, `DeviceManagementConfiguration.ReadWrite.All`
+**Optional:**
+- `None` `[N/A]`
 
 ## Version History
 

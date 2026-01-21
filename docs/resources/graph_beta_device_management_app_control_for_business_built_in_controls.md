@@ -3,12 +3,12 @@ page_title: "microsoft365_graph_beta_device_management_app_control_for_business_
 subcategory: "Device Management"
 
 description: |-
-  Manages App Control for Business configuration policies using the /deviceManagement/configurationPolicies endpoint. App Control for Business policies enable application control and trust settings on Windows devices with configurable enforcement modes and trusted application sources.
+  Manages App Control for Business configuration policies using the /deviceManagement/configurationPolicies endpoint. This resource is used to app Control for Business policies enable application control and trust settings on Windows devices with configurable enforcement modes and trusted application sources.
 ---
 
 # microsoft365_graph_beta_device_management_app_control_for_business_built_in_controls (Resource)
 
-Manages App Control for Business configuration policies using the `/deviceManagement/configurationPolicies` endpoint. App Control for Business policies enable application control and trust settings on Windows devices with configurable enforcement modes and trusted application sources.
+Manages App Control for Business configuration policies using the `/deviceManagement/configurationPolicies` endpoint. This resource is used to app Control for Business policies enable application control and trust settings on Windows devices with configurable enforcement modes and trusted application sources.
 
 ## Microsoft Documentation
 
@@ -17,13 +17,15 @@ Manages App Control for Business configuration policies using the `/deviceManage
 - [Create deviceManagementConfigurationPolicy](https://learn.microsoft.com/en-us/graph/api/intune-deviceconfigv2-devicemanagementconfigurationpolicy-create?view=graph-rest-beta)
 - [Update deviceManagementConfigurationPolicy](https://learn.microsoft.com/en-us/graph/api/intune-deviceconfigv2-devicemanagementconfigurationpolicy-update?view=graph-rest-beta)
 
-## API Permissions
+## Microsoft Graph API Permissions
 
-The following API permissions are required in order to use this resource.
+The following client `application` permissions are needed in order to use this resource:
 
-### Microsoft Graph
+**Required:**
+- `DeviceManagementConfiguration.ReadWrite.All`
 
-- **Application**: `DeviceManagementConfiguration.ReadWrite.All`
+**Optional:**
+- `None` `[N/A]`
 
 ## Version History
 

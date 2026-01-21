@@ -3,25 +3,30 @@ page_title: "microsoft365_graph_beta_device_management_windows_feature_update_po
 subcategory: "Device Management"
 
 description: |-
-  Manages Windows feature update profiles using the /deviceManagement/windowsFeatureUpdateProfiles endpoint. Feature update profiles control major Windows version deployments (like Windows 11 24H2) with rollout scheduling, device eligibility rules, and deployment timing to ensure controlled OS upgrades across managed devices.
+  Manages Windows feature update profiles using the /deviceManagement/windowsFeatureUpdateProfiles endpoint. This resource is used to feature update profiles control major Windows version deployments (like Windows 11 24H2) with rollout scheduling, device eligibility rules, and deployment timing to ensure controlled OS upgrades across managed devices.
 ---
 
 # microsoft365_graph_beta_device_management_windows_feature_update_policy (Resource)
 
-Manages Windows feature update profiles using the `/deviceManagement/windowsFeatureUpdateProfiles` endpoint. Feature update profiles control major Windows version deployments (like Windows 11 24H2) with rollout scheduling, device eligibility rules, and deployment timing to ensure controlled OS upgrades across managed devices.
+Manages Windows feature update profiles using the `/deviceManagement/windowsFeatureUpdateProfiles` endpoint. This resource is used to feature update profiles control major Windows version deployments (like Windows 11 24H2) with rollout scheduling, device eligibility rules, and deployment timing to ensure controlled OS upgrades across managed devices.
 
 ## Microsoft Documentation
 
 - [windowsFeatureUpdateProfile resource type](https://learn.microsoft.com/en-us/graph/api/resources/intune-softwareupdate-windowsfeatureupdateprofile?view=graph-rest-beta)
 - [Create windowsFeatureUpdateProfile](https://learn.microsoft.com/en-us/graph/api/intune-softwareupdate-windowsfeatureupdateprofile-create?view=graph-rest-beta)
+- [Read windowsFeatureUpdateProfile](https://learn.microsoft.com/en-us/graph/api/intune-softwareupdate-windowsfeatureupdateprofile-get?view=graph-rest-beta)
+- [Update windowsFeatureUpdateProfile](https://learn.microsoft.com/en-us/graph/api/intune-softwareupdate-windowsfeatureupdateprofile-update?view=graph-rest-beta)
+- [Delete windowsFeatureUpdateProfile](https://learn.microsoft.com/en-us/graph/api/intune-softwareupdate-windowsfeatureupdateprofile-delete?view=graph-rest-beta)
 
-## API Permissions
+## Microsoft Graph API Permissions
 
-The following API permissions are required in order to use this resource.
+The following client `application` permissions are needed in order to use this resource:
 
-### Microsoft Graph
+**Required:**
+- `DeviceManagementConfiguration.ReadWrite.All`
 
-- **Application**: `DeviceManagementConfiguration.ReadWrite.All`
+**Optional:**
+- `None` `[N/A]`
 
 ## Version History
 

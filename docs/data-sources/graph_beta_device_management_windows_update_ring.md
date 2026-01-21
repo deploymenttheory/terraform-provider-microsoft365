@@ -3,24 +3,27 @@ page_title: "microsoft365_graph_beta_device_management_windows_update_ring Data 
 subcategory: "Device Management"
 
 description: |-
-  Retrieves Windows Update Rings from Microsoft Intune with explicit filtering options. Windows Update Rings allow you to define how and when Windows devices receive updates.
+  Retrieves Windows Update Rings from Microsoft Intune using the /deviceManagement/deviceConfigurations endpoint. This data source is used to query Windows 10/11 update ring policies that control update deployment timing and behavior.
 ---
 
 # microsoft365_graph_beta_device_management_windows_update_ring (Data Source)
 
-Retrieves Windows Update Rings from Microsoft Intune with explicit filtering options. Windows Update Rings allow you to define how and when Windows devices receive updates.
+Retrieves Windows Update Rings from Microsoft Intune using the `/deviceManagement/deviceConfigurations` endpoint. This data source is used to query Windows 10/11 update ring policies that control update deployment timing and behavior.
 
 ## Microsoft Documentation
 
 - [windowsUpdateForBusinessConfiguration resource type](https://learn.microsoft.com/en-us/graph/api/resources/intune-deviceconfig-windowsupdateforbusinessconfiguration?view=graph-rest-beta)
 
-## API Permissions
+## Microsoft Graph API Permissions
 
-The following API permissions are required in order to use this data source.
+The following client `application` permissions are needed in order to use this data source:
 
-### Microsoft Graph
+**Required:**
+- `DeviceManagementConfiguration.Read.All`
+- `DeviceManagementConfiguration.ReadWrite.All`
 
-- **Application**: `DeviceManagementConfiguration.Read.All`, `DeviceManagementConfiguration.ReadWrite.All`
+**Optional:**
+- `None` `[N/A]`
 
 ## Version History
 

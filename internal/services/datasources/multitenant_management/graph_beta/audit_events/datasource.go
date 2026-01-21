@@ -51,7 +51,7 @@ func (d *AuditEventsDataSource) Configure(ctx context.Context, req datasource.Co
 // Schema defines the schema for the data source
 func (d *AuditEventsDataSource) Schema(ctx context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Retrieves audit events from Microsoft 365 managed tenants using the `/tenantRelationships/managedTenants/auditEvents` endpoint. This data source enables querying audit events for managed tenant activities with advanced filtering capabilities for security monitoring and compliance reporting.",
+		MarkdownDescription: "Retrieves audit events from Microsoft 365 managed tenants using the `/tenantRelationships/managedTenants/auditEvents` endpoint. This data source is used to query administrative activities and changes across managed tenants for security monitoring and compliance reporting.",
 		Attributes: map[string]schema.Attribute{
 			"filter_type": schema.StringAttribute{
 				Required:            true,

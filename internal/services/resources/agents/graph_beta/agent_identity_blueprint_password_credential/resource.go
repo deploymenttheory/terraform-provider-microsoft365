@@ -69,12 +69,7 @@ func (r *AgentIdentityBlueprintPasswordCredentialResource) Configure(ctx context
 // Schema returns the schema for the resource.
 func (r *AgentIdentityBlueprintPasswordCredentialResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Manages a password credential for an Agent Identity Blueprint in Microsoft Entra ID using the `/applications` endpoint. " +
-			"This resource adds a strong password to an agentIdentityBlueprint using the " +
-			"[addPassword](https://learn.microsoft.com/en-us/graph/api/agentidentityblueprint-addpassword?view=graph-rest-beta) API.\n\n" +
-			"**Important:** The `secret_text` attribute contains the password and is only available at creation time. " +
-			"It cannot be retrieved after initial creation. Store this value securely.\n\n" +
-			"**Note:** This resource does not support import because the password cannot be retrieved from the API after creation.",
+		MarkdownDescription: "Manages a password credential for an Agent Identity Blueprint using the `/applications` endpoint. This resource is used to adds a strong password to an agentIdentityBlueprint using the [addPassword](https://learn.microsoft.com/en-us/graph/api/agentidentityblueprint-addpassword?view=graph-rest-beta) API.\n\n**Important:** The `secret_text` attribute contains the password and is only available at creation time. It cannot be retrieved after initial creation. Store this value securely.\n\n**Note:** This resource does not support import because the password cannot be retrieved from the API after creation..",
 		Attributes: map[string]schema.Attribute{
 			"blueprint_id": schema.StringAttribute{
 				MarkdownDescription: "The unique identifier (Object ID) of the agent identity blueprint to add the password credential to. Required.",

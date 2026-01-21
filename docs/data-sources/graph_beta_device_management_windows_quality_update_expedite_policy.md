@@ -3,7 +3,7 @@ page_title: "microsoft365_graph_beta_device_management_windows_quality_update_ex
 subcategory: "Device Management"
 
 description: |-
-  Retrieves Windows Quality Update Expedite Policies from Microsoft Intune with explicit filtering options. These policies control the expedited deployment of quality updates to Windows devices.
+  Retrieves Windows quality update expedite policies from Microsoft Intune using the /deviceManagement/windowsQualityUpdatePolicies endpoint. This data source is used to query policies for accelerated deployment of critical security updates.
 ---
 
 # microsoft365_graph_beta_device_management_windows_quality_update_expedite_policy (Data Source)

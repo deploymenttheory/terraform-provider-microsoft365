@@ -14,16 +14,20 @@ Manages an IP application segment for on-premises publishing. IP application seg
 
 - [ipApplicationSegment resource type](https://learn.microsoft.com/en-us/graph/api/resources/ipapplicationsegment?view=graph-rest-beta)
 - [Create ipApplicationSegment](https://learn.microsoft.com/en-us/graph/api/onpremisespublishingprofile-post-applicationsegments?view=graph-rest-beta&tabs=http)
+- [Read ipApplicationSegment](https://learn.microsoft.com/en-us/graph/api/ipapplicationsegment-get?view=graph-rest-beta&tabs=http)
 - [Update ipApplicationSegment](https://learn.microsoft.com/en-us/graph/api/ipapplicationsegment-update?view=graph-rest-beta&tabs=http)
 - [Delete ipApplicationSegment](https://learn.microsoft.com/en-us/graph/api/ipapplicationsegment-delete?view=graph-rest-beta&tabs=http)
 
-## API Permissions
+## Microsoft Graph API Permissions
 
-The following API permissions are required in order to use this resource.
+The following client `application` permissions are needed in order to use this resource:
 
-### Microsoft Graph
+**Required:**
+- `Application.Read.All`
+- `Application.ReadWrite.All`
 
-- **Application**: `Application.Read.All` and `Application.ReadWrite.All`
+**Optional:**
+- `None` `[N/A]`
 
 ## Version History
 

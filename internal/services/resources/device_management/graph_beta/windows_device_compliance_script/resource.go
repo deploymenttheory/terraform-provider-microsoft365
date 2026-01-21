@@ -77,7 +77,7 @@ func (r *DeviceComplianceScriptResource) ImportState(ctx context.Context, req re
 // Schema defines the schema for the resource.
 func (r *DeviceComplianceScriptResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Manages Windows device compliance scripts using the `/deviceManagement/deviceComplianceScripts` endpoint. Device compliance scripts enable running PowerShell detection scripts on enrolled Windows 10/11 Azure Active Directory joined devices to validate compliance requirements and provide custom compliance assessments.",
+		MarkdownDescription: "Manages Windows device compliance scripts in Microsoft Intune using the `/deviceManagement/deviceComplianceScripts` endpoint. This resource is used to run PowerShell detection scripts on enrolled Windows 10/11 devices to validate compliance requirements and provide custom compliance assessments.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed: true,

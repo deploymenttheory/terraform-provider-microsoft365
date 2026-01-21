@@ -3,7 +3,7 @@ page_title: "microsoft365_graph_beta_device_management_managed_device_locate_dev
 subcategory: "Device Management"
 
 description: |-
-  Triggers device location for one or more managed devices using the /deviceManagement/managedDevices/{managedDeviceId}/locateDevice endpoint. This action requests the device to report its current geographic location, which is then viewable in the Microsoft Intune admin center. The locate device feature is essential for finding lost or stolen devices and is commonly used in conjunction with lost mode.
+  Locates managed devices in Microsoft Intune using the /deviceManagement/managedDevices/{managedDeviceId}/locateDevice endpoint. This action is used to request devices to report their current geographic location, which is then viewable in the Microsoft Intune admin center. The locate device feature is essential for finding lost or stolen devices and is commonly used in conjunction with lost mode.
   Important Notes:
   Device must be online to receive and respond to the locate commandLocation services must be enabled on the deviceDevice must have GPS/location hardware capabilityLocation data is displayed in the Intune portal, not returned via APIMultiple location requests can be sent over time to track device movementLocation accuracy depends on device capabilities (GPS, WiFi, cellular triangulation)
   Use Cases:
@@ -19,7 +19,7 @@ description: |-
 
 # microsoft365_graph_beta_device_management_managed_device_locate_device (Action)
 
-Triggers device location for one or more managed devices using the `/deviceManagement/managedDevices/{managedDeviceId}/locateDevice` endpoint. This action requests the device to report its current geographic location, which is then viewable in the Microsoft Intune admin center. The locate device feature is essential for finding lost or stolen devices and is commonly used in conjunction with lost mode.
+Locates managed devices in Microsoft Intune using the `/deviceManagement/managedDevices/{managedDeviceId}/locateDevice` endpoint. This action is used to request devices to report their current geographic location, which is then viewable in the Microsoft Intune admin center. The locate device feature is essential for finding lost or stolen devices and is commonly used in conjunction with lost mode.
 
 **Important Notes:**
 - Device must be online to receive and respond to the locate command
@@ -69,14 +69,15 @@ Triggers device location for one or more managed devices using the `/deviceManag
 - [Device locate - iOS](https://learn.microsoft.com/en-us/intune/intune-service/remote-actions/device-locate?pivots=ios)
 - [Device locate - Android](https://learn.microsoft.com/en-us/intune/intune-service/remote-actions/device-locate?pivots=android)
 
-## API Permissions
+## Microsoft Graph API Permissions
 
-The following API permissions are required in order to use this action.
+The following client `application` permissions are needed in order to use this action:
 
-### Microsoft Graph
+**Required:**
+- `DeviceManagementManagedDevices.PrivilegedOperations.All`
 
-- **Application**: `DeviceManagementManagedDevices.PrivilegedOperations.All`
-- **Delegated**: `DeviceManagementManagedDevices.PrivilegedOperations.All`
+**Optional:**
+- `None` `[N/A]`
 
 ## Version History
 
@@ -85,58 +86,6 @@ The following API permissions are required in order to use this action.
 | v0.33.0-alpha | Experimental | Initial release |
 | v0.40.0-alpha | Experimental | Example fixes and refactored sync progress logic |
 
-
-## Notes
-
-### Platform Compatibility
-
-| Platform | Support | Requirements |
-|----------|---------|--------------|
-| **Windows** | ⚠️ Limited | Location services must be enabled |
-| **iOS** | ✅ Full Support | iOS 9.3+, supervised devices |
-| **iPadOS** | ✅ Full Support | Supervised devices |
-| **Android** | ✅ Supported | Fully managed, dedicated, or work profile |
-| **macOS** | ❌ Not Supported | Not available on macOS devices |
-| **ChromeOS** | ❌ Not Supported | Not available on ChromeOS devices |
-
-### How Location Works
-
-- Device must be online to receive command
-- Location services must be enabled
-- Device queries GPS, WiFi, or cellular location
-- Location data reported back to Intune
-- Data displayed in Intune admin center
-- Includes latitude, longitude, accuracy radius
-- Timestamp of when location was captured
-- Multiple requests can track device movement
-
-### Location Data Access
-
-Location information is displayed in:
-- Microsoft Intune admin center
-- Device properties > Hardware section
-- Shows coordinates, accuracy, and timestamp
-- May include altitude if available
-- Location history (platform dependent)
-
-### Privacy Considerations
-
-- Users may receive notification of location request
-- Follow organizational privacy policies
-- Document business justification
-- Consider legal requirements in your jurisdiction
-- Ensure device ownership agreements cover tracking
-- Comply with employee privacy laws
-
-### Common Use Cases
-
-- Lost device recovery
-- Theft investigation
-- Asset tracking and inventory
-- Security incident response
-- Compliance verification
-- Lost mode tracking over time
-- Coordinate device recovery with users
 
 ## Example Usage
 

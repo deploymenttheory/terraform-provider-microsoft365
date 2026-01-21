@@ -2,12 +2,12 @@
 page_title: "microsoft365_graph_beta_users_user Resource - terraform-provider-microsoft365"
 subcategory: "Users"
 description: |-
-  Manages Microsoft 365 users using the /users endpoint. The user resource lets admins specify user preferences for languages and date/time formats for the user's primary Exchange mailboxes and Microsoft Entra profile. Permissions for this resource are complex and depend on the specific fields you wish tomanage. For more information, see the Microsoft Documentation. https://learn.microsoft.com/en-us/graph/api/user-update?view=graph-rest-beta&tabs=http#permissions-for-specific-scenarios
+  Manages Microsoft 365 users using the /users endpoint. This resource is used to the user resource lets admins specify user preferences for languages and date/time formats for the user's primary Exchange mailboxes and Microsoft Entra profile. Permissions for this resource are complex and depend on the specific fields you wish tomanage. For more information, see the Microsoft Documentation. https://learn.microsoft.com/en-us/graph/api/user-update?view=graph-rest-beta&tabs=http#permissions-for-specific-scenarios.
 ---
 
 # microsoft365_graph_beta_users_user (Resource)
 
-Manages Microsoft 365 users using the `/users` endpoint. The user resource lets admins specify user preferences for languages and date/time formats for the user's primary Exchange mailboxes and Microsoft Entra profile. Permissions for this resource are complex and depend on the specific fields you wish tomanage. For more information, see the Microsoft Documentation. https://learn.microsoft.com/en-us/graph/api/user-update?view=graph-rest-beta&tabs=http#permissions-for-specific-scenarios
+Manages Microsoft 365 users using the `/users` endpoint. This resource is used to the user resource lets admins specify user preferences for languages and date/time formats for the user's primary Exchange mailboxes and Microsoft Entra profile. Permissions for this resource are complex and depend on the specific fields you wish tomanage. For more information, see the Microsoft Documentation. https://learn.microsoft.com/en-us/graph/api/user-update?view=graph-rest-beta&tabs=http#permissions-for-specific-scenarios.
 
 ## Microsoft Documentation
 
@@ -16,13 +16,17 @@ Manages Microsoft 365 users using the `/users` endpoint. The user resource lets 
 - [Update user](https://learn.microsoft.com/en-us/graph/api/user-update?view=graph-rest-beta)
 - [Delete user](https://learn.microsoft.com/en-us/graph/api/user-delete?view=graph-rest-beta)
 
-## API Permissions
+## Microsoft Graph API Permissions
 
-The following API permissions are required in order to use this resource.
+The following client `application` permissions are needed in order to use this resource:
 
-### Microsoft Graph
+**Required:**
+- `User.EnableDisableAccount.All`
+- `User.ReadWrite.All`
+- `Directory.ReadWrite.All`
 
-- **Application**: `User.EnableDisableAccount.All`, `User.ReadWrite.All`, `Directory.ReadWrite.All`
+**Optional:**
+- `None` `[N/A]`
 
 ## Version History
 

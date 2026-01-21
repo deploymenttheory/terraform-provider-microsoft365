@@ -82,7 +82,7 @@ func (r *WindowsAutopilotDeploymentProfileResource) ImportState(ctx context.Cont
 // Schema defines the schema for the resource.
 func (r *WindowsAutopilotDeploymentProfileResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Manages Windows Autopilot deployment profiles using the `/deviceManagement/windowsAutopilotDeploymentProfiles` endpoint. Autopilot deployment profiles define the out-of-box experience (OOBE) settings, device naming templates, and enrollment configurations for automated Windows device provisioning and domain joining.",
+		MarkdownDescription: "Manages Windows Autopilot deployment profiles using the `/deviceManagement/windowsAutopilotDeploymentProfiles` endpoint. This resource is used to autopilot deployment profiles define the out-of-box experience (OOBE) settings, device naming templates, and enrollment configurations for automated Windows device provisioning and domain joining.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed: true,

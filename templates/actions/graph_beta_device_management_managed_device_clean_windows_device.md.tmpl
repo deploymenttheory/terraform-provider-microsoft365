@@ -3,12 +3,12 @@ page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
 subcategory: "Device Management"
 
 description: |-
-{{ if .Description }}{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}{{ else }}  Performs clean operation on Windows managed devices.{{ end }}
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
 ---
 
 # {{.Name}} ({{.Type}})
 
-{{ if .Description }}{{ .Description | trimspace }}{{ else }}Performs a clean operation on Windows managed devices, providing a lighter-weight alternative to full device wipe. This action removes applications and settings while optionally preserving user data, allowing IT administrators to refresh devices without requiring re-enrollment.{{ end }}
+{{ .Description | trimspace }}
 
 ## Microsoft Documentation
 
@@ -23,14 +23,15 @@ description: |-
 - [Android Remote Actions](https://learn.microsoft.com/en-us/intune/intune-service/remote-actions/?tabs=android)
 - [ChromeOS Remote Actions](https://learn.microsoft.com/en-us/intune/intune-service/remote-actions/?tabs=chromeos)
 
-## API Permissions
+## Microsoft Graph API Permissions
 
-The following API permissions are required in order to use this action.
+The following client `application` permissions are needed in order to use this {{.Type | lower}}:
 
-### Microsoft Graph
+**Required:**
+- `DeviceManagementManagedDevices.PrivilegedOperations.All`
 
-- **Application**: `DeviceManagementManagedDevices.PrivilegedOperations.All`
-- **Delegated**: `DeviceManagementManagedDevices.PrivilegedOperations.All`
+**Optional:**
+- `None` `[N/A]`
 
 ## Version History
 
@@ -38,127 +39,6 @@ The following API permissions are required in order to use this action.
 |---------|--------|-------|
 | v0.33.0-alpha | Experimental | Initial release |
 | v0.40.0-alpha | Experimental | Example fixes and refactored sync progress logic |
-
-
-## Notes
-
-### Platform Compatibility
-
-| Platform | Support | Versions |
-|----------|---------|----------|
-| **Windows** | ✅ Full Support | Windows 10, Windows 11 |
-| **macOS** | ❌ Not Supported | Windows-only action |
-| **iOS/iPadOS** | ❌ Not Supported | Windows-only action |
-| **Android** | ❌ Not Supported | Windows-only action |
-| **ChromeOS** | ❌ Not Supported | Windows-only action |
-
-### Clean vs Wipe vs Retire
-
-| Action | What's Removed | User Data | Enrollment | Use Case |
-|--------|----------------|-----------|------------|----------|
-| **Clean** | Apps, settings | Optional | Preserved | Device refresh, app removal |
-| **Wipe** | Everything | Removed | Lost (must re-enroll) | Full reset, security incidents |
-| **Retire** | Company data only | Personal kept | Removed | BYOD unenrollment |
-
-### What Gets Removed
-
-#### When `keep_user_data = false` (Full Clean)
-- Installed applications (except inbox Windows apps)
-- User profiles
-- User data (documents, desktop, downloads, etc.)
-- Device configuration settings
-- Company policies and profiles
-- Personal customizations
-
-#### When `keep_user_data = true` (App Clean)
-- Installed applications (except inbox Windows apps)
-- Device configuration settings
-- Company policies and profiles
-
-### What is Preserved
-
-Regardless of `keep_user_data` setting:
-- Windows OS installation
-- Intune enrollment
-- Device object in Intune
-- Inbox Windows applications
-- Device hardware configuration
-- BitLocker encryption (if configured)
-
-When `keep_user_data = true`:
-- User profiles
-- User documents and files
-- Desktop, downloads, pictures, etc.
-- User registry settings
-
-### Common Use Cases
-
-#### Full Clean (`keep_user_data = false`)
-- Device reassignment to new user
-- Malware removal requiring complete cleanup
-- Compliance remediation
-- Device refresh before new deployment
-- Preparing device for return or disposal
-- Removing previous user's data and settings
-
-#### Preserve Data Clean (`keep_user_data = true`)
-- Application troubleshooting
-- Software bloat removal
-- Performance optimization
-- Configuration reset
-- Maintaining user environment
-- Fixing application conflicts
-- Removing unwanted installed software
-
-### Operation Details
-
-#### Process Duration
-- Typically 10-20 minutes
-- Varies based on number of installed applications
-- Device remains online during process
-- Progress visible in Intune admin center
-
-#### Network Requirements
-- Device must be online
-- Internet connectivity required
-- Cannot be performed offline
-
-#### User Experience
-- Device becomes unavailable during clean
-- User is automatically logged out
-- Unsaved work is lost
-- Device may restart
-- Login prompt appears after completion
-
-### Best Practices
-
-- **Test First**: Always test with small device groups
-- **Schedule Wisely**: Run during maintenance windows or off-hours
-- **User Communication**: Notify users in advance of clean operations
-- **Data Backup**: Ensure important data is backed up before cleaning
-- **Choose Correctly**: Use `keep_user_data = true` for user devices when possible
-- **Monitor Progress**: Check device status in Intune after cleaning
-- **Sufficient Timeout**: Allow 15-20 minutes timeout for larger operations
-- **Document Actions**: Log reason for clean in change management system
-
-### Security Considerations
-
-- **Full Clean**: Use for security incidents or device reassignment
-- **Data Sanitization**: Full clean removes user data from device
-- **Enrollment Persists**: Device remains in management (not like wipe)
-- **BitLocker**: Encryption settings are maintained
-- **Compliance**: Device will recheck compliance after clean
-- **Policies Reapply**: All policies automatically reapply after clean
-
-### Troubleshooting
-
-| Issue | Possible Cause | Solution |
-|-------|---------------|----------|
-| Clean fails | Device offline | Ensure device is connected and online |
-| Timeout | Large number of apps | Increase timeout value |
-| User data remains | Wrong parameter | Verify `keep_user_data = false` |
-| Apps remain | System apps | Inbox Windows apps cannot be removed |
-| Device offline | Clean in progress | Wait for process to complete |
 
 ## Example Usage
 

@@ -17,14 +17,19 @@ description: |-
 - [permissionScope resource type](https://learn.microsoft.com/en-us/graph/api/resources/permissionscope?view=graph-rest-beta)
 - [Configure identifier URI and scope](https://learn.microsoft.com/en-us/entra/agent-id/identity-platform/create-blueprint?tabs=microsoft-graph-api#configure-identifier-uri-and-scope)
 
-## API Permissions
+## Microsoft Graph API Permissions
 
-The following API permissions are required in order to use this resource.
+The following client `application` permissions are needed in order to use this {{.Type | lower}}:
 
-### Microsoft Graph
+**Required:**
+- `AgentIdentityBlueprint.Read.All`
+- `Application.Read.All`
+- `Directory.Read.All`
+- `AgentIdentityBlueprint.ReadWrite.All`
+- `Directory.ReadWrite.All`
 
-- **Read Permissions**: `AgentIdentityBlueprint.Read.All`, `Application.Read.All`, `Directory.Read.All`
-- **Write Permissions**: `AgentIdentityBlueprint.ReadWrite.All`, `Directory.ReadWrite.All`
+**Optional:**
+- `None` `[N/A]`
 
 Find out more about the permissions required for managing agent identities at microsoft learn [here](https://learn.microsoft.com/en-us/graph/api/resources/agentid-platform-overview?view=graph-rest-beta#permissions-for-managing-agent-identities).
 

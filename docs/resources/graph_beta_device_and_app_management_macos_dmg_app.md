@@ -3,24 +3,26 @@ page_title: "microsoft365_graph_beta_device_and_app_management_macos_dmg_app Res
 subcategory: "Device and App Management"
 
 description: |-
-  Manages a macOS DMG (Apple Disk Image) app deployment in Microsoft Intune using the /deviceAppManagement/mobileApps endpoint. DMG files contain one or more .app files that are automatically extracted and installed to the /Applications folder on managed macOS devices via the Intune management agent.
+  Manages a macOS DMG (Apple Disk Image) app deployment in Microsoft Intune using the /deviceAppManagement/mobileApps endpoint. This resource is used to deploy macOS applications contained in DMG files to managed devices. DMG files contain one or more .app files that are automatically extracted and installed to the /Applications folder on managed macOS devices via the Intune management agent.
 ---
 
 # microsoft365_graph_beta_device_and_app_management_macos_dmg_app (Resource)
 
-Manages a macOS DMG (Apple Disk Image) app deployment in Microsoft Intune using the `/deviceAppManagement/mobileApps` endpoint. DMG files contain one or more .app files that are automatically extracted and installed to the /Applications folder on managed macOS devices via the Intune management agent.
+Manages a macOS DMG (Apple Disk Image) app deployment in Microsoft Intune using the `/deviceAppManagement/mobileApps` endpoint. This resource is used to deploy macOS applications contained in DMG files to managed devices. DMG files contain one or more .app files that are automatically extracted and installed to the /Applications folder on managed macOS devices via the Intune management agent.
 
 ## Microsoft Documentation
 
 - [macOSDmgApp resource type](https://learn.microsoft.com/en-us/graph/api/resources/intune-apps-macosdmgapp?view=graph-rest-beta)
 
-## API Permissions
+## Microsoft Graph API Permissions
 
-The following API permissions are required in order to use this resource.
+The following client `application` permissions are needed in order to use this resource:
 
-### Microsoft Graph
+**Required:**
+- `DeviceManagementApps.ReadWrite.All`
 
-- **Application**: `DeviceManagementApps.ReadWrite.All`
+**Optional:**
+- `None` `[N/A]`
 
 ## Version History
 

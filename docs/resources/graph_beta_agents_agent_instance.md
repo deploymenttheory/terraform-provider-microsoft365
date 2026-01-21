@@ -3,13 +3,13 @@ page_title: "microsoft365_graph_beta_agents_agent_instance Resource - terraform-
 subcategory: "Agents"
 
 description: |-
-  Manages an Agent Instance in the Microsoft Entra Agent Registry using the /agentRegistry/agentInstances endpoint. An agent instance represents a specific deployed instance of an AI agent. Agent instances can be associated with an agentCardManifest that defines its capabilities, skills, and metadata.
+  Manages an Agent Instance in the Microsoft Entra Agent Registry using the /agentRegistry/agentInstances endpoint. This resource is used to represent a specific deployed instance of an AI agent. Agent instances can be associated with an agentCardManifest that defines its capabilities, skills, and metadata.
   For more information, see the agentInstance resource type https://learn.microsoft.com/en-us/graph/api/resources/agentinstance?view=graph-rest-beta.
 ---
 
 # microsoft365_graph_beta_agents_agent_instance (Resource)
 
-Manages an Agent Instance in the Microsoft Entra Agent Registry using the `/agentRegistry/agentInstances` endpoint. An agent instance represents a specific deployed instance of an AI agent. Agent instances can be associated with an agentCardManifest that defines its capabilities, skills, and metadata.
+Manages an Agent Instance in the Microsoft Entra Agent Registry using the `/agentRegistry/agentInstances` endpoint. This resource is used to represent a specific deployed instance of an AI agent. Agent instances can be associated with an agentCardManifest that defines its capabilities, skills, and metadata.
 
 For more information, see the [agentInstance resource type](https://learn.microsoft.com/en-us/graph/api/resources/agentinstance?view=graph-rest-beta).
 
@@ -22,14 +22,20 @@ For more information, see the [agentInstance resource type](https://learn.micros
 - [Delete agentInstance](https://learn.microsoft.com/en-us/graph/api/agentregistry-delete-agentinstances?view=graph-rest-beta&tabs=http)
 - [agentCardManifest resource type](https://learn.microsoft.com/en-us/graph/api/resources/agentcardmanifest?view=graph-rest-beta)
 
-## API Permissions
+## Microsoft Graph API Permissions
 
-The following API permissions are required in order to use this resource.
+The following client `application` permissions are needed in order to use this resource:
 
-### Microsoft Graph
+**Required:**
+- `AgentInstance.Read.All`
+- `AgentCardManifest.Read.All`
+- `AgentInstance.ReadWrite.All`
+- `AgentInstance.ReadWrite.ManagedBy`
+- `AgentCardManifest.ReadWrite.All`
+- `AgentCardManifest.ReadWrite.ManagedBy`
 
-- **Read**: `AgentInstance.Read.All`, `AgentCardManifest.Read.All`
-- **Write**: `AgentInstance.ReadWrite.All`, `AgentInstance.ReadWrite.ManagedBy`, `AgentCardManifest.ReadWrite.All`, `AgentCardManifest.ReadWrite.ManagedBy`
+**Optional:**
+- `None` `[N/A]`
 
 Find out more about the permissions required for managing agent instances at microsoft learn [here](https://learn.microsoft.com/en-us/graph/api/resources/agentid-platform-overview?view=graph-rest-beta#permissions-for-managing-agent-identities).
 

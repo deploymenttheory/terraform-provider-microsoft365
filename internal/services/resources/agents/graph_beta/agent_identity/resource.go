@@ -132,10 +132,7 @@ func (r *AgentIdentityResource) ImportState(ctx context.Context, req resource.Im
 // Schema returns the schema for the resource.
 func (r *AgentIdentityResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Manages an Agent Identity in Microsoft Entra ID using the `/servicePrincipals/microsoft.graph.agentIdentity` endpoint. " +
-			"An agent identity is a service principal that represents an AI agent instance, created from an agent identity blueprint. " +
-			"Agent identities inherit settings from their blueprint and can be assigned permissions and credentials.\n\n" +
-			"For more information, see the [Agent Identity documentation](https://learn.microsoft.com/en-us/graph/api/resources/agentidentity?view=graph-rest-beta).",
+		MarkdownDescription: "Manages an Agent Identity in Microsoft Entra ID using the `/servicePrincipals/microsoft.graph.agentIdentity` endpoint. This resource is used to represent a service principal for an AI agent instance, created from an agent identity blueprint. Agent identities inherit settings from their blueprint and can be assigned permissions and credentials.\n\nFor more information, see the [Agent Identity documentation](https://learn.microsoft.com/en-us/graph/api/resources/agentidentity?view=graph-rest-beta).",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				MarkdownDescription: "The unique identifier for the agent identity service principal. Read-only.",

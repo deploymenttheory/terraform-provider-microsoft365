@@ -74,7 +74,7 @@ func (r *NamedLocationResource) ImportState(ctx context.Context, req resource.Im
 // Schema defines the schema for the resource.
 func (r *NamedLocationResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Manages Microsoft 365 Named Locations using the `/identity/conditionalAccess/namedLocations` endpoint. Named Locations define network locations that can be used in Conditional Access policies. Supports both IP-based and country-based named locations.",
+		MarkdownDescription: "Manages named locations in Microsoft Entra ID using the `/identity/conditionalAccess/namedLocations` endpoint. This resource is used to define network locations for use in Conditional Access policies. Supports both IP-based and country-based named locations.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				MarkdownDescription: "String (identifier)",

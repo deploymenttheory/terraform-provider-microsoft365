@@ -3,39 +3,28 @@ page_title: "microsoft365_graph_beta_groups_group Data Source - terraform-provid
 subcategory: "Groups"
 
 description: |-
-  Gets information about a Microsoft Entra ID (Azure AD) group.
-  See the Microsoft Graph API documentation https://learn.microsoft.com/en-us/graph/api/group-get?view=graph-rest-beta for more details.
-  API Permissions
-  The following API permissions are required:
-  Group.Read.All or Directory.Read.All when authenticated with a service principal.No additional roles required when authenticated with a user principal.
+  Retrieves information about a Microsoft Entra ID (Azure AD) group using the /groups endpoint. This data source is used to query group details by ID, display name, mail nickname, or advanced OData filtering.
 ---
 
 # microsoft365_graph_beta_groups_group (Data Source)
 
-Gets information about a Microsoft Entra ID (Azure AD) group.
-
-See the [Microsoft Graph API documentation](https://learn.microsoft.com/en-us/graph/api/group-get?view=graph-rest-beta) for more details.
-
-## API Permissions
-
-The following API permissions are required:
-
-- `Group.Read.All` or `Directory.Read.All` when authenticated with a service principal.
-- No additional roles required when authenticated with a user principal.
+Retrieves information about a Microsoft Entra ID (Azure AD) group using the `/groups` endpoint. This data source is used to query group details by ID, display name, mail nickname, or advanced OData filtering.
 
 ## Microsoft Documentation
 
 - [group resource type](https://learn.microsoft.com/en-us/graph/api/resources/group?view=graph-rest-beta)
 - [Get group](https://learn.microsoft.com/en-us/graph/api/group-get?view=graph-rest-beta)
 
-## API Permissions
+## Microsoft Graph API Permissions
 
-The following API permissions are required in order to use this data source.
+The following client `application` permissions are needed in order to use this data source:
 
-### Microsoft Graph
+**Required:**
+- `Group.Read.All`
+- `Directory.Read.All`
 
-- **Application**: `Group.Read.All`, `Directory.Read.All`
-- **Delegated**: No additional roles required when authenticated with a user principal
+**Optional:**
+- `None` `[N/A]`
 
 ## Version History
 

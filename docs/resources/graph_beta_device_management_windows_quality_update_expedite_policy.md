@@ -3,25 +3,30 @@ page_title: "microsoft365_graph_beta_device_management_windows_quality_update_ex
 subcategory: "Device Management"
 
 description: |-
-  Manages Windows quality update expedite policies using the /deviceManagement/windowsQualityUpdateProfiles endpoint. Expedite policies enable accelerated deployment of critical Windows quality updates with forced reboot enforcement, ensuring rapid security patch distribution across managed Windows 10/11 devices when urgent updates are required.
+  Manages Windows quality update expedite policies in Microsoft Intune using the /deviceManagement/windowsQualityUpdateProfiles endpoint. This resource is used to enable accelerated deployment of critical Windows quality updates with forced reboot enforcement for urgent security patches.
 ---
 
 # microsoft365_graph_beta_device_management_windows_quality_update_expedite_policy (Resource)
 
-Manages Windows quality update expedite policies using the `/deviceManagement/windowsQualityUpdateProfiles` endpoint. Expedite policies enable accelerated deployment of critical Windows quality updates with forced reboot enforcement, ensuring rapid security patch distribution across managed Windows 10/11 devices when urgent updates are required.
+Manages Windows quality update expedite policies in Microsoft Intune using the `/deviceManagement/windowsQualityUpdateProfiles` endpoint. This resource is used to enable accelerated deployment of critical Windows quality updates with forced reboot enforcement for urgent security patches.
 
 ## Microsoft Documentation
 
 - [expediteWindowsQualityUpdateSettings resource type](https://learn.microsoft.com/en-us/graph/api/resources/intune-softwareupdate-expeditewindowsqualityupdatesettings?view=graph-rest-beta)
 - [Create expediteWindowsQualityUpdateSettings](https://learn.microsoft.com/en-us/graph/api/intune-softwareupdate-expeditewindowsqualityupdatesettings-create?view=graph-rest-beta)
+- [Read expediteWindowsQualityUpdateSettings](https://learn.microsoft.com/en-us/graph/api/intune-softwareupdate-expeditewindowsqualityupdatesettings-get?view=graph-rest-beta)
+- [Update expediteWindowsQualityUpdateSettings](https://learn.microsoft.com/en-us/graph/api/intune-softwareupdate-expeditewindowsqualityupdatesettings-update?view=graph-rest-beta)
+- [Delete expediteWindowsQualityUpdateSettings](https://learn.microsoft.com/en-us/graph/api/intune-softwareupdate-expeditewindowsqualityupdatesettings-delete?view=graph-rest-beta)
 
-## API Permissions
+## Microsoft Graph API Permissions
 
-The following API permissions are required in order to use this resource.
+The following client `application` permissions are needed in order to use this resource:
 
-### Microsoft Graph
+**Required:**
+- `DeviceManagementConfiguration.ReadWrite.All`
 
-- **Application**: `DeviceManagementConfiguration.ReadWrite.All`
+**Optional:**
+- `None` `[N/A]`
 
 ## Version History
 

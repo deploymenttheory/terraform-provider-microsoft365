@@ -76,7 +76,7 @@ func (r *WindowsAutopilotDeviceIdentityResource) ImportState(ctx context.Context
 // Schema defines the schema for the resource.
 func (r *WindowsAutopilotDeviceIdentityResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Manages Windows Autopilot device identities using the `/deviceManagement/windowsAutopilotDeviceIdentities` endpoint. Windows Autopilot device identities represent devices registered with the Windows Autopilot service for automated device provisioning.",
+		MarkdownDescription: "Manages Windows Autopilot device identities using the `/deviceManagement/windowsAutopilotDeviceIdentities` endpoint. This resource is used to windows Autopilot device identities represent devices registered with the Windows Autopilot service for automated device provisioning.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed: true,

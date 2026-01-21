@@ -72,7 +72,7 @@ func (r *WindowsUpdateRingActionResource) ImportState(ctx context.Context, req r
 // Schema defines the schema for the resource.
 func (r *WindowsUpdateRingActionResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Manages Windows Update for Business configuration policy actions using the `/deviceManagement/deviceConfigurations` endpoint. This resource allows performing actions on Windows Update Rings such as pausing, resuming, extending pause periods, and rolling back updates for managed Windows 10/11 devices.",
+		MarkdownDescription: "Manages Windows Update for Business configuration policy actions using the `/deviceManagement/deviceConfigurations` endpoint. This resource is used to allows performing actions on Windows Update Rings such as pausing, resuming, extending pause periods, and rolling back updates for managed Windows 10/11 devices.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed: true,

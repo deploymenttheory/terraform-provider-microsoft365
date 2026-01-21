@@ -3,42 +3,12 @@ page_title: "microsoft365_graph_beta_device_management_managed_device_activate_d
 subcategory: "Device Management"
 
 description: |-
-  Activates eSIM on managed cellular devices using the /deviceManagement/managedDevices/{managedDeviceId}/activateDeviceEsim and /deviceManagement/comanagedDevices/{managedDeviceId}/activateDeviceEsim endpoints. This action enables eSIM functionality on compatible devices by providing a carrier activation URL. eSIM (embedded SIM) technology allows devices to connect to cellular networks without a physical SIM card, providing greater flexibility for device deployment and carrier management. This action supports activating eSIM on multiple devices in a single operation with per-device carrier URL configuration.
-  Important Notes:
-  Only applicable to devices with eSIM hardware capabilityRequires carrier-specific activation URLDevice must support eSIM technologyCarrier must support eSIM activationDevice must be online to receive activationEach device requires its own carrier activation URL
-  Use Cases:
-  Initial eSIM activation on new devicesSwitching carriers on eSIM-capable devicesBulk eSIM deployment for corporate devicesRemote eSIM provisioning for field devicesInternational device deployment with local carriers
-  Platform Support:
-  iOS/iPadOS: Supported on eSIM-capable devices (iPhone XS and later, cellular iPads)Windows: Supported on eSIM-capable Windows devices with cellular modemsAndroid: Support varies by device manufacturer and Android versionOther Platforms: Not applicable
-  Reference: Microsoft Graph API - Activate Device eSIM https://learn.microsoft.com/en-us/graph/api/intune-devices-manageddevice-activatedeviceesim?view=graph-rest-beta
+  Activates eSIM cellular data plans on iOS and iPadOS devices in Microsoft Intune using the /deviceManagement/managedDevices/{managedDeviceId}/activateDeviceEsim and /deviceManagement/comanagedDevices/{managedDeviceId}/activateDeviceEsim endpoints. This action is used to remotely activate eSIM cellular plans without physical SIM cards, making it easier to manage connectivity for users.
 ---
 
 # microsoft365_graph_beta_device_management_managed_device_activate_device_esim (Action)
 
-Activates eSIM on managed cellular devices using the `/deviceManagement/managedDevices/{managedDeviceId}/activateDeviceEsim` and `/deviceManagement/comanagedDevices/{managedDeviceId}/activateDeviceEsim` endpoints. This action enables eSIM functionality on compatible devices by providing a carrier activation URL. eSIM (embedded SIM) technology allows devices to connect to cellular networks without a physical SIM card, providing greater flexibility for device deployment and carrier management. This action supports activating eSIM on multiple devices in a single operation with per-device carrier URL configuration.
-
-**Important Notes:**
-- Only applicable to devices with eSIM hardware capability
-- Requires carrier-specific activation URL
-- Device must support eSIM technology
-- Carrier must support eSIM activation
-- Device must be online to receive activation
-- Each device requires its own carrier activation URL
-
-**Use Cases:**
-- Initial eSIM activation on new devices
-- Switching carriers on eSIM-capable devices
-- Bulk eSIM deployment for corporate devices
-- Remote eSIM provisioning for field devices
-- International device deployment with local carriers
-
-**Platform Support:**
-- **iOS/iPadOS**: Supported on eSIM-capable devices (iPhone XS and later, cellular iPads)
-- **Windows**: Supported on eSIM-capable Windows devices with cellular modems
-- **Android**: Support varies by device manufacturer and Android version
-- **Other Platforms**: Not applicable
-
-**Reference:** [Microsoft Graph API - Activate Device eSIM](https://learn.microsoft.com/en-us/graph/api/intune-devices-manageddevice-activatedeviceesim?view=graph-rest-beta)
+Activates eSIM cellular data plans on iOS and iPadOS devices in Microsoft Intune using the `/deviceManagement/managedDevices/{managedDeviceId}/activateDeviceEsim` and `/deviceManagement/comanagedDevices/{managedDeviceId}/activateDeviceEsim` endpoints. This action is used to remotely activate eSIM cellular plans without physical SIM cards, making it easier to manage connectivity for users.
 
 ## Microsoft Documentation
 
@@ -46,17 +16,18 @@ Activates eSIM on managed cellular devices using the `/deviceManagement/managedD
 - [activateDeviceEsim action](https://learn.microsoft.com/en-us/graph/api/intune-devices-manageddevice-activatedeviceesim?view=graph-rest-beta)
 - [managedDevice resource type](https://learn.microsoft.com/en-us/graph/api/resources/intune-devices-manageddevice?view=graph-rest-beta)
 
-### Intune eSIM and Cellular Management
-- [Activate device eSim action - iOS](https://learn.microsoft.com/en-us/intune/intune-service/remote-actions/update-cellular-data-plan
+### Intune Remote Actions
+- [Update cellular data plan (eSIM activation)](https://learn.microsoft.com/en-us/intune/intune-service/remote-actions/update-cellular-data-plan)
 
-## API Permissions
+## Microsoft Graph API Permissions
 
-The following API permissions are required in order to use this action.
+The following client `application` permissions are needed in order to use this action:
 
-### Microsoft Graph
+**Required:**
+- `DeviceManagementManagedDevices.PrivilegedOperations.All`
 
-- **Application**: `DeviceManagementManagedDevices.PrivilegedOperations.All`
-- **Delegated**: `DeviceManagementManagedDevices.PrivilegedOperations.All`
+**Optional:**
+- `None` `[N/A]`
 
 ## Version History
 
@@ -64,60 +35,6 @@ The following API permissions are required in order to use this action.
 |---------|--------|-------|
 | v0.33.0-alpha | Experimental | Initial release |
 | v0.40.0-alpha | Experimental | Example fixes and refactored sync progress logic |
-
-## Notes
-
-### Platform Compatibility
-
-| Platform | Support | Requirements |
-|----------|---------|--------------|
-| **iPad** | ✅ Full Support | iPadOS 12.1+ |
-| **iPhone** | ✅ Full Support | iOS 12.1+ |
-| **Android** | ❌ Not Supported | eSIM activation not supported |
-| **Windows** | ❌ Not Supported | eSIM activation not supported |
-| **macOS** | ❌ Not Supported | eSIM activation not supported |
-
-### What is eSIM?
-
-eSIM is an embedded SIM that:
-- Enables cellular connectivity without physical SIM cards
-- Allows remote activation of carrier profiles
-- Supports profile switching without device restart
-- Reduces physical SIM inventory management
-- Provides more secure device management options
-- Works through Intune management policies
-
-### How eSIM Activation Works
-
-1. IT configures eSIM cellular plans in carrier systems
-2. Intune receives eSIM activation server URLs from carriers
-3. Intune pushes eSIM activation details to iOS/iPadOS devices
-4. This action triggers device to activate eSIM profile
-5. Device contacts activation server and downloads eSIM profile
-6. eSIM profile is installed on device's embedded SIM
-7. Cellular connectivity becomes active automatically
-8. Device appears in Settings app's cellular section
-
-### Prerequisites
-
-- Device must be iOS/iPadOS device with eSIM hardware capability
-- Device must be enrolled in Intune
-- Device must have WiFi or existing cellular connectivity
-- eSIM activation server URL must be configured in Intune
-- eSIM plan must be provisioned by carrier
-- Device must be in line of sight with internet connectivity
-
-### Important Considerations
-
-- **iOS/iPadOS Only**: This action only works on iOS 12.1+ and iPadOS 12.1+ devices
-- **eSIM Hardware Required**: Device must have embedded SIM capability (not all iOS devices do)
-- **Connectivity Required**: Device needs WiFi or existing cellular to download eSIM profile
-- **Activation Server**: Requires activation server URL from carrier
-- **One Profile at a Time**: Action activates a single eSIM profile per invocation
-- **Dual SIM Support**: Some devices support multiple eSIM profiles or eSIM + physical SIM
-- **Permanent Activation**: Once activated, eSIM profile remains on device until manually removed
-- **No User Interaction**: Activation happens automatically without requiring user action
-
 
 ## Example Usage
 
@@ -297,41 +214,9 @@ output "activation_summary" {
 
 ### Optional
 
-- `comanaged_devices` (Attributes List) List of co-managed devices to activate eSIM on. These are devices managed by both Intune and Configuration Manager (SCCM). Each entry specifies a device ID and the carrier activation URL.
-
-**Examples:**
-```hcl
-comanaged_devices = [
-  {
-    device_id   = "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"
-    carrier_url = "https://carrier.example.com/esim/activate?code=xyz789"
-  }
-]
-```
-
-**Platform Support:** Windows 10/11 with cellular modems (primary), limited iOS/Android support
-
-**Note:** At least one of `managed_devices` or `comanaged_devices` must be provided. Device must be online and support eSIM technology. (see [below for nested schema](#nestedatt--comanaged_devices))
+- `comanaged_devices` (Attributes List) List of iOS/iPadOS co-managed devices to activate eSIM on. These are devices managed by both Intune and Configuration Manager (SCCM). Devices must have eSIM hardware capability (iPhone XS and later, cellular iPads with eSIM support). (see [below for nested schema](#nestedatt--comanaged_devices))
 - `ignore_partial_failures` (Boolean) If set to `true`, the action will succeed even if some devices fail eSIM activation. Failed devices will be reported as warnings instead of errors. Default: `false` (action fails if any device fails).
-- `managed_devices` (Attributes List) List of managed devices to activate eSIM on. These are devices fully managed by Intune only. Each entry specifies a device ID and the carrier-specific activation URL.
-
-**Examples:**
-```hcl
-managed_devices = [
-  {
-    device_id   = "12345678-1234-1234-1234-123456789abc"
-    carrier_url = "https://carrier.example.com/esim/activate?token=abc123"
-  },
-  {
-    device_id   = "87654321-4321-4321-4321-987654321cba"
-    carrier_url = "https://carrier.example.com/esim/activate?token=def456"
-  }
-]
-```
-
-**Platform Support:** iOS (iPhone XS+), Windows 10/11 with cellular, Android (varies by manufacturer)
-
-**Note:** At least one of `managed_devices` or `comanaged_devices` must be provided. Device must be online and support eSIM technology. (see [below for nested schema](#nestedatt--managed_devices))
+- `managed_devices` (Attributes List) List of iOS/iPadOS managed devices to activate eSIM on. These are devices fully managed by Intune only. Devices must have eSIM hardware capability (iPhone XS and later, cellular iPads with eSIM support). (see [below for nested schema](#nestedatt--managed_devices))
 - `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))
 - `validate_device_exists` (Boolean) Whether to validate that devices exist before attempting activation. Disabling this can speed up planning but may result in runtime errors for non-existent devices. Default: `true`.
 
@@ -340,8 +225,8 @@ managed_devices = [
 
 Required:
 
-- `carrier_url` (String) The carrier activation URL for this co-managed device. Example: `"https://carrier.example.com/esim/activate?code=xyz789"`
-- `device_id` (String) The unique identifier (GUID) of the co-managed device to activate eSIM on. Example: `"12345678-1234-1234-1234-123456789abc"`
+- `carrier_url` (String) The activation server URL provided by your mobile carrier for eSIM activation. This URL is carrier-specific and contains the activation profile. Example: `"https://carrier.example.com/esim/activate?code=xyz789"`
+- `device_id` (String) The unique identifier (GUID) of the iOS/iPadOS co-managed device to activate eSIM on. Device must have eSIM hardware capability (iPhone XS+, cellular iPad with eSIM). Example: `"12345678-1234-1234-1234-123456789abc"`
 
 
 <a id="nestedatt--managed_devices"></a>
@@ -349,8 +234,8 @@ Required:
 
 Required:
 
-- `carrier_url` (String) The carrier-specific activation URL for this device's eSIM. This URL is provided by the mobile carrier and contains the activation profile. Format varies by carrier. Example: `"https://carrier.example.com/esim/activate?token=abc123"`
-- `device_id` (String) The unique identifier (GUID) of the managed device to activate eSIM on. Device must have eSIM hardware capability. Example: `"12345678-1234-1234-1234-123456789abc"`
+- `carrier_url` (String) The activation server URL provided by your mobile carrier for eSIM activation. This URL is carrier-specific and contains the activation profile. Example: `"https://carrier.example.com/esim/activate?token=abc123"`
+- `device_id` (String) The unique identifier (GUID) of the iOS/iPadOS device to activate eSIM on. Device must have eSIM hardware capability (iPhone XS+, cellular iPad with eSIM). Example: `"12345678-1234-1234-1234-123456789abc"`
 
 
 <a id="nestedatt--timeouts"></a>

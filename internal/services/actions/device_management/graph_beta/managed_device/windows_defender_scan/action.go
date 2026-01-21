@@ -54,10 +54,10 @@ func (a *WindowsDefenderScanAction) Configure(ctx context.Context, req action.Co
 
 func (a *WindowsDefenderScanAction) Schema(ctx context.Context, req action.SchemaRequest, resp *action.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Triggers an antivirus scan on Windows devices using Windows Defender (Microsoft Defender Antivirus) via the " +
+		MarkdownDescription: "Triggers an antivirus scan on Windows devices using Windows Defender (Microsoft Defender Antivirus) in Microsoft Intune using the " +
 			"`/deviceManagement/managedDevices/{managedDeviceId}/windowsDefenderScan` and " +
 			"`/deviceManagement/comanagedDevices/{managedDeviceId}/windowsDefenderScan` endpoints. " +
-			"This action initiates either a quick scan or full scan remotely on Windows devices managed by Intune.\n\n" +
+			"This action is used to initiate either a quick scan or full scan remotely on Windows devices managed by Intune.\n\n" +
 			"**What This Action Does:**\n" +
 			"- Triggers immediate Windows Defender scan\n" +
 			"- Supports both quick and full scan types\n" +

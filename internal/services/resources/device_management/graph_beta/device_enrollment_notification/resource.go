@@ -92,8 +92,7 @@ func (r *DeviceEnrollmentNotificationResource) ImportState(ctx context.Context, 
 // Schema defines the schema for the resource.
 func (r *DeviceEnrollmentNotificationResource) Schema(ctx context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Manages device enrollment notification configurations in Microsoft Intune using the `/deviceManagement/deviceEnrollmentConfigurations` endpoint. " +
-			"This resource creates device enrollment notification configurations for Android for Work platform.",
+		MarkdownDescription: "Manages device enrollment notification configurations using the `/deviceManagement/deviceEnrollmentConfigurations` endpoint. This resource is used to creates device enrollment notification configurations for Android for Work platform.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:            true,

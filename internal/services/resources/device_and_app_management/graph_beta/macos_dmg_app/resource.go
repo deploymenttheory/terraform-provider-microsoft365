@@ -84,7 +84,7 @@ func (r *MacOSDmgAppResource) ImportState(ctx context.Context, req resource.Impo
 // Schema returns the schema for the resource.
 func (r *MacOSDmgAppResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Manages a macOS DMG (Apple Disk Image) app deployment in Microsoft Intune using the `/deviceAppManagement/mobileApps` endpoint. DMG files contain one or more .app files that are automatically extracted and installed to the /Applications folder on managed macOS devices via the Intune management agent.",
+		MarkdownDescription: "Manages a macOS DMG (Apple Disk Image) app deployment in Microsoft Intune using the `/deviceAppManagement/mobileApps` endpoint. This resource is used to deploy macOS applications contained in DMG files to managed devices. DMG files contain one or more .app files that are automatically extracted and installed to the /Applications folder on managed macOS devices via the Intune management agent.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed: true,

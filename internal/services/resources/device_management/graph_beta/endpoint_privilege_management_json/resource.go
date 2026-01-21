@@ -80,9 +80,7 @@ func (r *EndpointPrivilegeManagementResource) ImportState(ctx context.Context, r
 // Function to create the full device management win32 lob app schema
 func (r *EndpointPrivilegeManagementResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Manages Endpoint Privilege Management policies using the `/deviceManagement/configurationPolicies` endpoint. " +
-			"EPM policies control elevation settings and rules for Windows devices, allowing administrators to grant temporary administrative " +
-			"privileges to standard users for specific applications or processes without compromising overall security posture.",
+		MarkdownDescription: "Manages Endpoint Privilege Management policies using the `/deviceManagement/configurationPolicies` endpoint. This resource is used to ePM policies control elevation settings and rules for Windows devices, allowing administrators to grant temporary administrative privileges to standard users for specific applications or processes without compromising overall security posture.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed: true,

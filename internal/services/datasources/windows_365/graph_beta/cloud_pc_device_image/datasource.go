@@ -45,7 +45,7 @@ func (d *CloudPcDeviceImageDataSource) Configure(ctx context.Context, req dataso
 
 func (d *CloudPcDeviceImageDataSource) Schema(ctx context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Retrieves Cloud PC Device Images from Microsoft Intune. Using the endpoint '/deviceManagement/virtualEndpoint/deviceImages'. Supports filtering by all, id, or display_name.",
+		MarkdownDescription: "Retrieves Cloud PC device images from Microsoft Intune using the `/deviceManagement/virtualEndpoint/deviceImages` endpoint. This data source is used to query custom uploaded images for Cloud PC provisioning with status and version information.",
 		Attributes: map[string]schema.Attribute{
 			"filter_type": schema.StringAttribute{
 				Required:            true,

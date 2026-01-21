@@ -3,7 +3,7 @@ page_title: "microsoft365_graph_beta_device_management_managed_device_shutdown A
 subcategory: "Device Management"
 
 description: |-
-  Remotely shuts down managed devices using the /deviceManagement/managedDevices/{managedDeviceId}/shutDown endpoint. This action powers off devices completely, which is useful for energy conservation, maintenance operations, or security scenarios. Unlike reboot, shutdown powers the device off completely and requires manual intervention to power it back on.
+  Shuts down managed devices in Microsoft Intune using the /deviceManagement/managedDevices/{managedDeviceId}/shutDown endpoint. This action is used to power off devices completely, which is useful for energy conservation, maintenance operations, or security scenarios. Unlike reboot, shutdown powers the device off completely and requires manual intervention to power it back on.
   Important Notes:
   Device shuts down completely (powers off)Device requires manual power-on to restartAny unsaved work on the device will be lostUsers receive minimal or no warning before shutdownShutdown is forceful and does not wait for user interactionCommand is queued if device is offlineUse with extreme caution - device will be completely offline
   Use Cases:
@@ -21,7 +21,7 @@ description: |-
 
 # microsoft365_graph_beta_device_management_managed_device_shutdown (Action)
 
-Remotely shuts down managed devices using the `/deviceManagement/managedDevices/{managedDeviceId}/shutDown` endpoint. This action powers off devices completely, which is useful for energy conservation, maintenance operations, or security scenarios. Unlike reboot, shutdown powers the device off completely and requires manual intervention to power it back on.
+Shuts down managed devices in Microsoft Intune using the `/deviceManagement/managedDevices/{managedDeviceId}/shutDown` endpoint. This action is used to power off devices completely, which is useful for energy conservation, maintenance operations, or security scenarios. Unlike reboot, shutdown powers the device off completely and requires manual intervention to power it back on.
 
 **Important Notes:**
 - Device shuts down completely (powers off)
@@ -87,14 +87,15 @@ Remotely shuts down managed devices using the `/deviceManagement/managedDevices/
 - [Android Remote Actions](https://learn.microsoft.com/en-us/intune/intune-service/remote-actions/?tabs=android)
 - [ChromeOS Remote Actions](https://learn.microsoft.com/en-us/intune/intune-service/remote-actions/?tabs=chromeos)
 
-## API Permissions
+## Microsoft Graph API Permissions
 
-The following API permissions are required in order to use this action.
+The following client `application` permissions are needed in order to use this action:
 
-### Microsoft Graph
+**Required:**
+- `DeviceManagementManagedDevices.PrivilegedOperations.All`
 
-- **Application**: `DeviceManagementManagedDevices.PrivilegedOperations.All`
-- **Delegated**: `DeviceManagementManagedDevices.PrivilegedOperations.All`
+**Optional:**
+- `None` `[N/A]`
 
 ## Version History
 
@@ -103,86 +104,6 @@ The following API permissions are required in order to use this action.
 | v0.33.0-alpha | Experimental | Initial release |
 | v0.40.0-alpha | Experimental | Example fixes and refactored sync progress logic |
 
-
-## Notes
-
-### Platform Compatibility
-
-| Platform | Support | Requirements |
-|----------|---------|--------------|
-| **Windows** | ✅ Full Support | All versions including Home |
-| **macOS** | ✅ Supported | User-approved MDM or supervised |
-| **iOS** | ⚠️ Note | Supervised devices only |
-| **iPadOS** | ⚠️ Note | Supervised devices only |
-| **Android** | ❌ Not Supported | Shutdown not available |
-
-### ⚠️ Note
-
-**SHUTDOWN POWERS DEVICES OFF COMPLETELY**
-- Devices will NOT restart automatically
-- Physical access required to power devices back on
-- More disruptive than reboot
-- Use with extreme caution
-- Consider reboot action if devices need to come back online
-
-### Shutdown vs Reboot
-
-| Action | Result | Recovery | Use Case |
-|--------|--------|----------|----------|
-| **Shutdown** | Powers off | Manual restart required | Long-term offline, energy conservation |
-| **Reboot** | Restarts | Automatic (2-5 min) | Updates, troubleshooting, config changes |
-
-### Common Use Cases
-
-- Energy conservation (weekends, holidays)
-- Security incident response (device isolation)
-- Hardware maintenance requiring full power-off
-- Decommissioning devices before storage/shipment
-- Emergency response to prevent data exfiltration
-- Scheduled shutdowns for lab/classroom devices
-- Extended maintenance periods
-- Device preparation for physical relocation
-
-### User Impact - CRITICAL
-
-- Users lose ALL unsaved work
-- Device becomes COMPLETELY unavailable
-- Physical access required to restart
-- Significant productivity loss possible
-- Users cannot access device remotely
-- Active sessions terminated immediately
-- No automatic recovery
-- Device remains offline indefinitely
-
-### Best Practices
-
-- ONLY use when devices must remain offline
-- Ensure physical access available for restart
-- Notify users well in advance
-- Schedule for end of day or weekends
-- Document reason in change management
-- Verify device location (ensure accessible)
-- **Consider reboot instead whenever possible**
-- Test with small groups first
-- Have rollback plan (manual power-on procedure)
-
-### Prerequisites Before Shutdown
-
-- Confirm physical access for power-on
-- User notification completed
-- Business justification documented
-- Management approval (if required)
-- Backup power-on procedure ready
-- Contact information for on-site staff
-- Emergency access plan
-
-### Alternatives to Consider
-
-- **Reboot**: If device needs to come back online
-- **Sleep/Hibernate**: For temporary offline
-- **Network isolation**: For security without full shutdown
-- **Remote lock**: To prevent use without power-off
-- **Lost mode**: For iOS/iPadOS devices
 
 ## Example Usage
 
