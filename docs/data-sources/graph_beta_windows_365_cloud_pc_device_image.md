@@ -1,11 +1,11 @@
 ---
-page_title: "microsoft365_graph_beta_cloud_pc_device_images Data Source - terraform-provider-microsoft365"
+page_title: "microsoft365_graph_beta_windows_365_cloud_pc_device_image Data Source - terraform-provider-microsoft365"
 subcategory: "Windows 365"
 description: |-
-  Retrieves Cloud PC Device Images from Microsoft Intune using the /deviceManagement/virtualEndpoint/deviceImages endpoint. Supports filtering by all, id, or display_name for advanced device image discovery and management.
+  Retrieves Cloud PC Device Images from Microsoft Intune. Using the endpoint '/deviceManagement/virtualEndpoint/deviceImages'. Supports filtering by all, id, or display_name.
 ---
 
-# microsoft365_graph_beta_cloud_pc_device_images (Data Source)
+# microsoft365_graph_beta_windows_365_cloud_pc_device_image (Data Source)
 
 Retrieves Cloud PC Device Images from Microsoft Intune using the `/deviceManagement/virtualEndpoint/deviceImages` endpoint. Supports filtering by all, id, or display_name for advanced device image discovery and management.
 

@@ -10,6 +10,12 @@ description: |-
 
 The Microsoft 365 Intune device category data source provides information about a specific device category.
 
+## Version History
+
+| Version | Status | Notes |
+|---------|--------|-------|
+| v0.42.0-alpha | Experimental | Added missing version history |
+
 ## Example Usage
 
 ```terraform

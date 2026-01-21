@@ -1,8 +1,8 @@
 ---
-page_title: "microsoft365_graph_beta_windows_365_azure_network_connection Resource - Microsoft365 Provider"
+page_title: "microsoft365_graph_beta_windows_365_azure_network_connection Resource - terraform-provider-microsoft365"
 subcategory: "Windows 365"
 description: |-
-  Manages a Windows 365 Azure Network Connection (Cloud PC On-Premises Connection) in Microsoft 365 via the Microsoft Graph Beta API.
+  
 ---
 
 # microsoft365_graph_beta_windows_365_azure_network_connection (Resource)

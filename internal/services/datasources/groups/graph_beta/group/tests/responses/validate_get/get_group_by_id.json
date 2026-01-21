@@ -1,0 +1,14 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#groups/$entity",
+  "id": "00000000-0000-0000-0000-000000000001",
+  "displayName": "IT Security Team",
+  "description": "Security group for IT department members",
+  "mailNickname": "it-security",
+  "mailEnabled": false,
+  "securityEnabled": true,
+  "groupTypes": [],
+  "visibility": "Private",
+  "isAssignableToRole": false,
+  "createdDateTime": "2024-01-10T09:00:00Z",
+  "onPremisesSyncEnabled": null
+}

@@ -22,6 +22,12 @@ The following API permissions are required in order to use this data source.
 
 - **Application**: `DeviceManagementApps.Read.All`, `DeviceManagementApps.ReadWrite.All`
 
+## Version History
+
+| Version | Status | Notes |
+|---------|--------|-------|
+| v0.42.0-alpha | Experimental | Added missing version history |
+
 ## Example Usage
 
 ```terraform

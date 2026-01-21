@@ -2,7 +2,7 @@
 page_title: "microsoft365_graph_beta_windows_365_cloud_pc_source_device_image Data Source - terraform-provider-microsoft365"
 subcategory: "Windows 365"
 description: |-
-  Retrieves Cloud PC source device images available for upload and use on Cloud PCs using the /deviceManagement/virtualEndpoint/deviceImages/getSourceImages endpoint. Supports filtering by all, id, or display_name for image discovery and automation.
+  Retrieves Cloud PC source device images available for upload and use on Cloud PCs. Uses the endpoint '/deviceManagement/virtualEndpoint/deviceImages/getSourceImages'. Supports filtering by all, id, or display_name.
 ---
 
 # microsoft365_graph_beta_windows_365_cloud_pc_source_device_image (Data Source)
