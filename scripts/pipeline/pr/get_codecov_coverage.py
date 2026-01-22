@@ -271,7 +271,15 @@ def _retry_with_backoff(
             print(f"⏳ [{elapsed}s] Attempt {attempt}/{len(delays)}: "
                   f"PR found but coverage not processed yet")
             
-        except Exception as e:
+        except urllib.error.HTTPError as e:
+            if not _handle_error(e, elapsed, attempt, len(delays)):
+                return None
+        
+        except urllib.error.URLError as e:
+            if not _handle_error(e, elapsed, attempt, len(delays)):
+                return None
+        
+        except (json.JSONDecodeError, OSError, ValueError) as e:
             if not _handle_error(e, elapsed, attempt, len(delays)):
                 return None
         
@@ -333,15 +341,15 @@ def fetch_codecov_coverage(
     api_url = _build_api_url(service, owner, repo, pr_number)
     delays = _build_backoff_schedule(max_wait_seconds)
     
-    print(f"\n⏳ Fetching coverage from Codecov API v2")
+    print("\n⏳ Fetching coverage from Codecov API v2")
     print(f"   Endpoint: {api_url}")
     print(f"   Max wait: {max_wait_seconds}s ({len(delays)} attempts with exponential backoff)\n")
     
     start_time = time.time()
-    result = _retry_with_backoff(api_url, codecov_token, delays, start_time)
+    coverage_data = _retry_with_backoff(api_url, codecov_token, delays, start_time)
     
-    if result:
-        return result
+    if coverage_data:
+        return coverage_data
     
     elapsed = int(time.time() - start_time)
     print(f"\n❌ Timeout after {elapsed}s: Coverage not available within {max_wait_seconds}s")
