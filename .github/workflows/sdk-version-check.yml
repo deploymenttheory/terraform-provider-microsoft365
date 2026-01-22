@@ -1,0 +1,212 @@
+name: SDK Version Check
+
+on:
+  schedule:
+    # Run weekly on Monday at 9:00 UTC
+    - cron: '0 9 * * 1'
+  workflow_dispatch:
+    inputs:
+      sdk:
+        description: 'Which SDK to check (all, msgraph, msgraph-beta)'
+        required: false
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - msgraph
+          - msgraph-beta
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write
+
+jobs:
+  detect-versions:
+    name: Detect SDK Versions
+    runs-on: ubuntu-latest
+    outputs:
+      current-msgraph-sdk: ${{ steps.detect.outputs.current-msgraph-sdk }}
+      current-msgraph-beta-sdk: ${{ steps.detect.outputs.current-msgraph-beta-sdk }}
+      latest-msgraph-sdk: ${{ steps.detect.outputs.latest-msgraph-sdk }}
+      latest-msgraph-beta-sdk: ${{ steps.detect.outputs.latest-msgraph-beta-sdk }}
+      has-updates: ${{ steps.detect.outputs.has-updates }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: 'go.mod'
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      
+      - name: Detect versions
+        id: detect
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python3 scripts/pipeline/sdk_diff/steps/detect_versions.py \
+            --repo-path . \
+            --output-file $GITHUB_OUTPUT
+
+  analyze-msgraph-sdk:
+    name: Analyze msgraph-sdk-go
+    needs: detect-versions
+    if: |
+      needs.detect-versions.outputs.has-updates == 'true' &&
+      (github.event.inputs.sdk == 'all' || github.event.inputs.sdk == 'msgraph')
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: 'go.mod'
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      
+      - name: Map SDK usage
+        id: usage
+        run: |
+          python3 scripts/pipeline/sdk_diff/steps/map_usage.py \
+            --repo-path . \
+            --output-file $GITHUB_OUTPUT \
+            --usage-output sdk_usage_msgraph.json
+      
+      - name: Analyze changes
+        id: analyze
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python3 scripts/pipeline/sdk_diff/steps/analyze_changes.py \
+            --usage-file sdk_usage_msgraph.json \
+            --sdk msgraph-sdk-go \
+            --current-version ${{ needs.detect-versions.outputs.current-msgraph-sdk }} \
+            --latest-version ${{ needs.detect-versions.outputs.latest-msgraph-sdk }} \
+            --output-file $GITHUB_OUTPUT \
+            --changes-output sdk_changes_msgraph.json
+      
+      - name: Generate report
+        run: |
+          python3 scripts/pipeline/sdk_diff/steps/generate_report.py \
+            --changes-file sdk_changes_msgraph.json \
+            --current-versions '{"msgraph-sdk-go": "${{ needs.detect-versions.outputs.current-msgraph-sdk }}"}' \
+            --latest-versions '{"msgraph-sdk-go": "${{ needs.detect-versions.outputs.latest-msgraph-sdk }}"}' \
+            --output-markdown SDK_DIFF_MSGRAPH.md
+      
+      - name: Upload report as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: sdk-diff-msgraph
+          path: |
+            SDK_DIFF_MSGRAPH.md
+            sdk_usage_msgraph.json
+            sdk_changes_msgraph.json
+      
+      - name: Create issue if breaking changes found
+        if: steps.analyze.outputs.has-breaking-changes == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const report = fs.readFileSync('SDK_DIFF_MSGRAPH.md', 'utf8');
+            
+            const issue = await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: '🚨 Breaking Changes in msgraph-sdk-go ${{ needs.detect-versions.outputs.latest-msgraph-sdk }}',
+              body: report,
+              labels: ['dependencies', 'breaking-change', 'sdk-upgrade']
+            });
+            
+            console.log(`Created issue #${issue.data.number}`);
+
+  analyze-msgraph-beta-sdk:
+    name: Analyze msgraph-beta-sdk-go
+    needs: detect-versions
+    if: |
+      needs.detect-versions.outputs.has-updates == 'true' &&
+      (github.event.inputs.sdk == 'all' || github.event.inputs.sdk == 'msgraph-beta')
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: 'go.mod'
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      
+      - name: Map SDK usage
+        id: usage
+        run: |
+          python3 scripts/pipeline/sdk_diff/steps/map_usage.py \
+            --repo-path . \
+            --output-file $GITHUB_OUTPUT \
+            --usage-output sdk_usage_msgraph_beta.json
+      
+      - name: Analyze changes
+        id: analyze
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python3 scripts/pipeline/sdk_diff/steps/analyze_changes.py \
+            --usage-file sdk_usage_msgraph_beta.json \
+            --sdk msgraph-beta-sdk-go \
+            --current-version ${{ needs.detect-versions.outputs.current-msgraph-beta-sdk }} \
+            --latest-version ${{ needs.detect-versions.outputs.latest-msgraph-beta-sdk }} \
+            --output-file $GITHUB_OUTPUT \
+            --changes-output sdk_changes_msgraph_beta.json
+      
+      - name: Generate report
+        run: |
+          python3 scripts/pipeline/sdk_diff/steps/generate_report.py \
+            --changes-file sdk_changes_msgraph_beta.json \
+            --current-versions '{"msgraph-beta-sdk-go": "${{ needs.detect-versions.outputs.current-msgraph-beta-sdk }}"}' \
+            --latest-versions '{"msgraph-beta-sdk-go": "${{ needs.detect-versions.outputs.latest-msgraph-beta-sdk }}"}' \
+            --output-markdown SDK_DIFF_MSGRAPH_BETA.md
+      
+      - name: Upload report as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: sdk-diff-msgraph-beta
+          path: |
+            SDK_DIFF_MSGRAPH_BETA.md
+            sdk_usage_msgraph_beta.json
+            sdk_changes_msgraph_beta.json
+      
+      - name: Create issue if breaking changes found
+        if: steps.analyze.outputs.has-breaking-changes == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const report = fs.readFileSync('SDK_DIFF_MSGRAPH_BETA.md', 'utf8');
+            
+            const issue = await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: '🚨 Breaking Changes in msgraph-beta-sdk-go ${{ needs.detect-versions.outputs.latest-msgraph-beta-sdk }}',
+              body: report,
+              labels: ['dependencies', 'breaking-change', 'sdk-upgrade']
+            });
+            
+            console.log(`Created issue #${issue.data.number}`);
