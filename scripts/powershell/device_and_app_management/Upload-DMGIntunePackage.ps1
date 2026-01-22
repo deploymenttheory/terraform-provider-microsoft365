@@ -300,7 +300,7 @@ function Encrypt-FileForIntune {
         $sourceStream = [System.IO.File]::OpenRead($SourceFile)
         $sourceSha256 = $sha256.ComputeHash($sourceStream)
         $sourceStream.Seek(0, "Begin") | Out-Null
-        $targetStream = [System.IO.File]::Open($targetFile, constants.TfOperationCreate)
+        $targetStream = [System.IO.File]::Open($targetFile, "CREATE")
         
         $targetStream.Write((New-Object byte[] $hashLength), 0, $hashLength)
         $targetStream.Write($aes.IV, 0, $aes.IV.Length)
