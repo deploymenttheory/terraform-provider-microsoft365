@@ -18,13 +18,12 @@ import os
 import re
 import subprocess
 import sys
-import time
-import json
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 # Import local utilities
 from common import load_pr_checks_config, write_github_output
+from get_codecov_coverage import fetch_codecov_coverage
 
 
 def get_changed_go_packages(base_ref: str) -> List[str]:
@@ -282,71 +281,6 @@ def run_tests_with_coverage(packages: List[str], output_dir: str = "coverage") -
     
     print(f"✅ Merged coverage: {merged_file}")
     return merged_file
-
-
-def fetch_codecov_coverage(repo_slug: str, pr_number: str, codecov_token: str,
-                           max_retries: int = 30, retry_delay: int = 10) -> Optional[Dict[str, Any]]:
-    """Fetch coverage results from Codecov API.
-    
-    Args:
-        repo_slug: Repository in format 'owner/repo'.
-        pr_number: Pull request number.
-        codecov_token: Codecov API token.
-        max_retries: Maximum number of retry attempts.
-        retry_delay: Delay between retries in seconds.
-    
-    Returns:
-        Dict with coverage statistics or None if fetch fails.
-    """
-    import urllib.request
-    import urllib.error
-    
-    api_url = f"https://api.codecov.io/api/v2/github/{repo_slug}/pulls/{pr_number}"
-    
-    print(f"\n⏳ Waiting for Codecov to process coverage (max {max_retries * retry_delay}s)...")
-    
-    for attempt in range(1, max_retries + 1):
-        try:
-            req = urllib.request.Request(api_url)
-            req.add_header('Authorization', f'Bearer {codecov_token}')
-            
-            with urllib.request.urlopen(req, timeout=30) as response:
-                data = json.loads(response.read().decode())
-                
-                # Check if we have patch coverage data
-                if 'totals' in data and 'patch' in data['totals']:
-                    patch_coverage = data['totals']['patch']
-                    
-                    if patch_coverage and 'coverage' in patch_coverage:
-                        coverage_pct = patch_coverage['coverage']
-                        
-                        print(f"✅ Codecov coverage fetched: {coverage_pct}%")
-                        
-                        return {
-                            "coverage_pct": round(float(coverage_pct), 2),
-                            "total_lines": patch_coverage.get('lines', 0),
-                            "covered_lines": patch_coverage.get('covered', 0)
-                        }
-                
-                print(f"⏳ Attempt {attempt}/{max_retries}: Coverage not ready yet, retrying in {retry_delay}s...")
-                time.sleep(retry_delay)
-                
-        except urllib.error.HTTPError as e:
-            if e.code == 404 and attempt < max_retries:
-                print(f"⏳ Attempt {attempt}/{max_retries}: PR not found in Codecov yet, retrying in {retry_delay}s...")
-                time.sleep(retry_delay)
-            else:
-                print(f"❌ HTTP Error {e.code}: {e.reason}")
-                return None
-        except Exception as e:
-            print(f"⚠️  Error fetching from Codecov: {e}")
-            if attempt < max_retries:
-                time.sleep(retry_delay)
-            else:
-                return None
-    
-    print("❌ Timeout: Codecov did not process coverage within timeout period")
-    return None
 
 
 def run_unit_tests_mode(packages: List[str], config: Dict[str, Any], 
