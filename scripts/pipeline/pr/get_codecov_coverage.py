@@ -392,15 +392,15 @@ Examples:
         """
     )
     parser.add_argument('--repo-slug', required=True, 
-                       help='Repository slug (owner/repo)')
+                        help='Repository slug (owner/repo)')
     parser.add_argument('--pr-number', required=True, 
-                       help='Pull request number')
+                        help='Pull request number')
     parser.add_argument('--codecov-token', required=True, 
-                       help='Codecov API authentication token')
+                        help='Codecov API authentication token')
     parser.add_argument('--max-wait', type=int, default=180, 
-                       help='Maximum wait time in seconds (default: 180)')
+                        help='Maximum wait time in seconds (default: 180)')
     parser.add_argument('--service', default='github', 
-                       help='Git service provider (default: github)')
+                        help='Git service provider (default: github)')
 
     args = parser.parse_args()
 

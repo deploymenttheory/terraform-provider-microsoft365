@@ -1,30 +1,12 @@
 #!/usr/bin/env python3
-"""Common utilities for PR pipeline scripts.
+"""Configuration management for PR pipeline scripts.
 
-Shared functions for GitHub Actions integration and configuration management.
+Provides functions for loading and managing PR checks configuration.
 """
 
-import os
 import yaml
 from pathlib import Path
 from typing import Dict, Any, Optional
-
-
-def write_github_output(outputs: Dict[str, Any], github_output_path: str = None) -> None:
-    """Write outputs to GitHub Actions output file.
-    
-    Args:
-        outputs: Dictionary of key-value pairs to write.
-        github_output_path: Path to GITHUB_OUTPUT file (defaults to env var).
-    """
-    output_file = github_output_path or os.environ.get('GITHUB_OUTPUT')
-    
-    if not output_file:
-        return
-    
-    with open(output_file, 'a', encoding='utf-8') as f:
-        for key, value in outputs.items():
-            f.write(f"{key}={value}\n")
 
 
 def load_pr_checks_config(config_path: Optional[str] = None) -> Dict[str, Any]:

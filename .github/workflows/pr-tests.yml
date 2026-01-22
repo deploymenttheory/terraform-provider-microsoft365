@@ -58,8 +58,8 @@ jobs:
             echo "✅ PR is ready for review - enforcing coverage threshold"
           fi
 
-      - name: Run unit tests with coverage (generate files)
-        id: run-tests-generate
+      - name: Run unit tests and calculate coverage
+        id: run-tests
         run: |
           python3 scripts/pipeline/pr/run_pr_tests.py \
             --mode unit-tests \
@@ -68,7 +68,9 @@ jobs:
             ${{ steps.pr-state.outputs.is-draft == 'true' && '--is-draft' || '' }}
 
       - name: Upload coverage to Codecov
-        if: steps.run-tests-generate.outputs.has-changes == 'true'
+        if: |
+          steps.run-tests.outputs.has-changes == 'true' &&
+          steps.pr-state.outputs.is-draft == 'false'
         uses: codecov/codecov-action@671740ac38dd9b0130fbe1cec585b89eea48d3de # v5.5.2
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
@@ -78,18 +80,16 @@ jobs:
           fail_ci_if_error: false
       
       - name: Fetch coverage from Codecov and enforce threshold
-        id: run-tests
-        if: steps.run-tests-generate.outputs.has-changes == 'true'
+        if: |
+          steps.run-tests.outputs.has-changes == 'true' &&
+          steps.pr-state.outputs.is-draft == 'false'
         run: |
           python3 scripts/pipeline/pr/run_pr_tests.py \
-            --mode unit-tests \
+            --mode enforce-coverage \
             --base-ref "origin/${{ github.event.pull_request.base.ref }}" \
-            --output-dir coverage \
             --codecov-token "${{ secrets.CODECOV_TOKEN }}" \
             --repo-slug "${{ github.repository }}" \
-            --pr-number "${{ github.event.pull_request.number }}" \
-            --skip-tests \
-            ${{ steps.pr-state.outputs.is-draft == 'true' && '--is-draft' || '' }}
+            --pr-number "${{ github.event.pull_request.number }}"
 
       - name: Comment coverage summary on PR
         if: steps.run-tests.outputs.has-changes == 'true' && steps.run-tests.outputs.coverage-pct != ''
