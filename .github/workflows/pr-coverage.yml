@@ -113,8 +113,13 @@ jobs:
           echo "Running unit tests with coverage for changed packages..."
           mkdir -p coverage
 
-          # Run tests and generate coverage
-          echo "$PACKAGES_WITH_TESTS" | xargs -I {} sh -c 'echo "Testing package: {}" && TF_ACC=0 go test -v -coverprofile=coverage/{}.out -covermode=atomic {} || true'
+          # Run tests and generate coverage with sanitized filenames
+          for pkg in $PACKAGES_WITH_TESTS; do
+            # Sanitize package path for filename (replace / with _)
+            safe_name=$(echo "$pkg" | sed 's/\//_/g')
+            echo "Testing package: $pkg (output: coverage/$safe_name.out)"
+            TF_ACC=0 go test -v -coverprofile="coverage/$safe_name.out" -covermode=atomic "./$pkg" || true
+          done
 
           # Merge all coverage files
           echo "mode: atomic" > coverage/unit-coverage.txt
