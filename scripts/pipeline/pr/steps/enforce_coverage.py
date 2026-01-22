@@ -44,7 +44,8 @@ def main():
     args = parser.parse_args()
     
     if not args.codecov_token:
-        print("❌ ERROR: CODECOV_TOKEN is required")
+        print("❌ ERROR: Codecov API token is required")
+        print("   Set CODECOV_API_TOKEN secret in repository settings")
         return 1
     
     config = load_pr_checks_config(args.config)
