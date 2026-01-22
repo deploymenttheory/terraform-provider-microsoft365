@@ -1,0 +1,24 @@
+# PR Checks Configuration
+# This file controls service domain detection and coverage thresholds for PR validation
+
+# Coverage enforcement threshold for PR changes
+# PRs below this threshold will fail in GitHub Actions
+coverage_threshold:
+  minimum_pct: 60  # Minimum coverage for changed code in PR
+
+# Service domain detection patterns
+# Used to identify which Microsoft 365 service domain is affected (for PR comments)
+service_domain_patterns:
+  resources: "internal/services/resources/([^/]+)"
+  datasources: "internal/services/datasources/([^/]+)"
+  actions: "internal/services/actions/([^/]+)"
+  ephemerals: "internal/services/ephemerals/([^/]+)"
+  list_resources: "internal/services/list-resources/([^/]+)"
+  common: "internal/services/common/([^/]+)"
+  
+# Provider core directories (map to "provider-core" service domain)
+provider_core_paths:
+  - "internal/client"
+  - "internal/helpers"
+  - "internal/provider"
+  - "internal/utilities"

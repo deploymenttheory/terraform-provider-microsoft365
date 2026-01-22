@@ -1,4 +1,4 @@
-package sharedStater
+package devicemanagement
 
 import (
 	"context"
@@ -65,12 +65,7 @@ func StateReusablePolicySettings(ctx context.Context, data *sharedmodels.Reuseab
 // In case of errors during processing, returns the original settings string
 // to maintain the existing state rather than potentially corrupting it.
 func normalizeSettingsCatalogJSONArray(ctx context.Context, settingsStr string, resp []byte) string {
-	var configSettings map[string]any
-	if err := json.Unmarshal([]byte(settingsStr), &configSettings); err != nil {
-		tflog.Error(ctx, "Failed to unmarshal config settings", map[string]any{"error": err.Error()})
-		return settingsStr
-	}
-
+	// Parse the API response
 	var rawResponse map[string]any
 	if err := json.Unmarshal(resp, &rawResponse); err != nil {
 		var arrayResponse []any
@@ -94,9 +89,21 @@ func normalizeSettingsCatalogJSONArray(ctx context.Context, settingsStr string, 
 		"settings": settingsContent,
 	}
 
+	// Preserve secrets if they exist else continue without secret preservation
+	// rather than failing. User will need to manually update the settings to include the secrets.
+	// they arent returned by the API.
+	var configSettings map[string]any
+
+	if settingsStr != "" {
+		if err := json.Unmarshal([]byte(settingsStr), &configSettings); err != nil {
+			tflog.Warn(ctx, "Failed to unmarshal config settings, skipping secret preservation", map[string]any{"error": err.Error()})
+			configSettings = nil
+		}
+	}
+
 	if err := normalize.PreserveSecretSettings(configSettings, structuredContent); err != nil {
-		tflog.Error(ctx, "Error stating settings catalog secret settings from HCL", map[string]any{"error": err.Error()})
-		return settingsStr
+		tflog.Error(ctx, "Error preserving secret settings", map[string]any{"error": err.Error()})
+
 	}
 
 	jsonBytes, err := json.Marshal(structuredContent)

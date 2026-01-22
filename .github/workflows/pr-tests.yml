@@ -1,0 +1,214 @@
+name: PR Tests
+
+permissions:
+  contents: read
+  pull-requests: write
+
+on:
+  pull_request:
+    paths:
+      - '**/*.go'
+      - 'go.mod'
+      - 'go.sum'
+      - 'pr-checks-config.yml'
+      - 'scripts/pipeline/pr/**'
+
+jobs:
+  unit-tests:
+    name: '🧪 Unit Tests & Coverage'
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 60
+    outputs:
+      has-changes: ${{ steps.detect-changes.outputs.has-changes }}
+      has-goroutines: ${{ steps.analyze-code.outputs.has-goroutines }}
+      goroutine-packages: ${{ steps.analyze-code.outputs.goroutine-packages }}
+      coverage-pct: ${{ steps.calculate-coverage.outputs.coverage-pct || steps.enforce-coverage.outputs.coverage-pct }}
+      total-lines: ${{ steps.calculate-coverage.outputs.total-lines || steps.enforce-coverage.outputs.total-lines }}
+      covered-lines: ${{ steps.calculate-coverage.outputs.covered-lines || steps.enforce-coverage.outputs.covered-lines }}
+      service-domains: ${{ steps.analyze-code.outputs.service-domains }}
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@20cf305ff2072d973412fa9b1e3a4f227bda3c76 # v2.14.0
+        with:
+          egress-policy: audit
+          
+      - name: Check Out  
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+        with:
+          fetch-depth: 0
+
+      - name: Set up Go
+        uses: actions/setup-go@7a3fe6cf4cb3a834922a1244abfce67bcef6a0c5 # v6.2.0
+        with:
+          go-version-file: 'go.mod'
+          cache-dependency-path: 'go.sum'
+          cache: true
+
+      - name: Install dependencies
+        run: go mod download
+
+      - name: Check if PR is draft
+        id: pr-state
+        run: |
+          if [ "${{ github.event.pull_request.draft }}" == "true" ]; then
+            echo "is-draft=true" >> $GITHUB_OUTPUT
+            echo "📝 PR is in draft state - tests are informational only"
+          else
+            echo "is-draft=false" >> $GITHUB_OUTPUT
+            echo "✅ PR is ready for review - enforcing coverage threshold"
+          fi
+
+      - name: 📦 Detect changed packages
+        id: detect-changes
+        run: |
+          python3 scripts/pipeline/pr/steps/detect_changes.py \
+            --base-ref "origin/${{ github.event.pull_request.base.ref }}"
+
+      - name: 📊 Analyze code patterns
+        id: analyze-code
+        if: steps.detect-changes.outputs.has-changes == 'true'
+        run: |
+          python3 scripts/pipeline/pr/steps/analyze_code.py \
+            --packages "${{ steps.detect-changes.outputs.packages }}"
+
+      - name: 🧪 Run unit tests
+        if: steps.detect-changes.outputs.has-changes == 'true'
+        run: |
+          python3 scripts/pipeline/pr/steps/run_tests.py \
+            --packages "${{ steps.detect-changes.outputs.packages }}" \
+            --output-dir coverage
+
+      - name: 📊 Calculate local coverage
+        id: calculate-coverage
+        if: steps.detect-changes.outputs.has-changes == 'true'
+        run: |
+          python3 scripts/pipeline/pr/steps/calculate_coverage.py \
+            --coverage-file coverage/unit-coverage.txt
+
+      - name: ⬆️ Upload coverage to Codecov
+        if: |
+          steps.detect-changes.outputs.has-changes == 'true' &&
+          steps.pr-state.outputs.is-draft == 'false'
+        uses: codecov/codecov-action@671740ac38dd9b0130fbe1cec585b89eea48d3de # v5.5.2
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./coverage/unit-coverage.txt
+          flags: unittests,pr-changes
+          name: pr-unit-coverage
+          fail_ci_if_error: false
+      
+      - name: ✅ Enforce coverage threshold
+        id: enforce-coverage
+        if: |
+          steps.detect-changes.outputs.has-changes == 'true' &&
+          steps.pr-state.outputs.is-draft == 'false'
+        run: |
+          python3 scripts/pipeline/pr/steps/enforce_coverage.py \
+            --repo-slug "${{ github.repository }}" \
+            --pr-number "${{ github.event.pull_request.number }}" \
+            --codecov-token "${{ secrets.CODECOV_API_TOKEN }}"
+
+      - name: 💬 Comment coverage summary on PR
+        if: steps.detect-changes.outputs.has-changes == 'true'
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const coveragePct = '${{ steps.calculate-coverage.outputs.coverage-pct || steps.enforce-coverage.outputs.coverage-pct }}';
+            const totalLines = '${{ steps.calculate-coverage.outputs.total-lines || steps.enforce-coverage.outputs.total-lines }}';
+            const coveredLines = '${{ steps.calculate-coverage.outputs.covered-lines || steps.enforce-coverage.outputs.covered-lines }}';
+            const serviceDomains = '${{ steps.analyze-code.outputs.service-domains }}';
+            const isDraft = '${{ steps.pr-state.outputs.is-draft }}' === 'true';
+            const minThreshold = 60;
+            
+            const passEmoji = parseFloat(coveragePct) >= minThreshold ? '✅' : '❌';
+            const statusText = isDraft 
+              ? '📝 **Draft PR** - Coverage is informational only'
+              : parseFloat(coveragePct) >= minThreshold
+                ? `${passEmoji} **Coverage Passed** - Meets ${minThreshold}% threshold`
+                : `${passEmoji} **Coverage Failed** - Below ${minThreshold}% threshold`;
+
+            const body = `## 📊 Unit Test Coverage Report
+
+            ${statusText}
+
+            **Coverage for Changed Packages:** ${coveragePct}%
+
+            - **Total Statements:** ${totalLines}
+            - **Covered Statements:** ${coveredLines}
+            - **Service Domains:** ${serviceDomains || 'N/A'}
+
+            ${isDraft ? '> 💡 Mark PR as ready for review to enforce coverage threshold' : ''}
+            ${parseFloat(coveragePct) < minThreshold && !isDraft ? `> ⚠️  Please add tests to reach ${minThreshold}% coverage` : ''}
+
+            > Note: This is unit test coverage only. Full acceptance test coverage is run bi-weekly and includes integration with Microsoft Graph API.
+
+            [View detailed coverage report on Codecov](https://codecov.io/gh/${{ github.repository }}/pull/${{ github.event.pull_request.number }})
+            `;
+
+            // Find existing comment
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+
+            const botComment = comments.find(comment =>
+              comment.user.type === 'Bot' &&
+              comment.body.includes('Unit Test Coverage Report')
+            );
+
+            if (botComment) {
+              // Update existing comment
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body: body
+              });
+            } else {
+              // Create new comment
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: body
+              });
+            }
+
+  race-detection:
+    name: '🔍 Race Detection'
+    runs-on: ubuntu-24.04-arm
+    needs: unit-tests
+    if: |
+      needs.unit-tests.outputs.has-goroutines == 'true' &&
+      github.event.pull_request.draft == false
+    timeout-minutes: 60
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@20cf305ff2072d973412fa9b1e3a4f227bda3c76 # v2.14.0
+        with:
+          egress-policy: audit
+          
+      - name: Check Out  
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+        with:
+          fetch-depth: 0
+
+      - name: Set up Go
+        uses: actions/setup-go@7a3fe6cf4cb3a834922a1244abfce67bcef6a0c5 # v6.2.0
+        with:
+          go-version-file: 'go.mod'
+          cache-dependency-path: 'go.sum'
+          cache: true
+
+      - name: Install dependencies
+        run: go mod download
+
+      - name: 🔍 Run race detection
+        run: |
+          echo "Running race detection on packages with goroutines:"
+          echo "${{ needs.unit-tests.outputs.goroutine-packages }}"
+          
+          python3 scripts/pipeline/pr/steps/run_race_detection.py \
+            --packages "${{ needs.unit-tests.outputs.goroutine-packages }}"

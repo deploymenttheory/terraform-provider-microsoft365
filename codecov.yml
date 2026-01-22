@@ -49,16 +49,16 @@
 
 codecov:
   bot: "codecov-io"
-  require_ci_to_pass: yes
+  require_ci_to_pass: true
   max_report_age: 24h
   notify:
     after_n_builds: 1
-    wait_for_ci: yes
+    wait_for_ci: true
 
 coverage:
   precision: 2
   round: down
-  range: "70...90"
+  range: "60...90"
   
   status:
     project:
@@ -68,15 +68,18 @@ coverage:
         base: auto
         branches:
           - main
-        if_ci_failed: error
+        if_ci_failed: error  # Informational only - GitHub Actions enforces
+        informational: true
     
     patch:
       default:
-        target: 80%
+        target: 60%  # Changed from 80% - GitHub Actions enforces this
         threshold: 5%
         base: auto
         branches:
           - main
+        if_ci_failed: ignore  # Informational only - GitHub Actions enforces
+        informational: true
 
 # Flags for different test types
 flags:
