@@ -13,7 +13,7 @@ on:
 
 jobs:
   coverage:
-    name: '📊 Generate Coverage Report'
+    name: '📊 Unit Test Coverage & Codecov'
     runs-on: ubuntu-24.04-arm
     timeout-minutes: 60
     steps:
@@ -37,101 +37,17 @@ jobs:
       - name: Install dependencies
         run: go mod download
 
-      # Step 1: Identify all changed packages
-      - name: Identify changed packages
-        id: changed-packages
+      - name: Run PR tests with coverage
+        id: run-tests
         run: |
-          # Get list of changed .go files
-          CHANGED_FILES=$(git diff --name-only origin/${{ github.event.pull_request.base.ref }}...HEAD | grep -E '\.(go)$' || true)
+          python3 scripts/pipeline/pr/run_pr_tests.py \
+            --mode coverage \
+            --base-ref "origin/${{ github.event.pull_request.base.ref }}" \
+            --output-dir coverage
 
-          if [ -z "$CHANGED_FILES" ]; then
-            echo "No Go files changed"
-            echo "packages=" >> $GITHUB_OUTPUT
-            echo "has-changes=false" >> $GITHUB_OUTPUT
-            exit 0
-          fi
-
-          echo "Changed Go files:"
-          echo "$CHANGED_FILES"
-
-          # Extract unique package directories from changed files
-          ALL_PACKAGES=$(echo "$CHANGED_FILES" | xargs -I {} dirname {} | sort -u)
-
-          echo "All changed packages:"
-          echo "$ALL_PACKAGES"
-
-          # Convert to space-separated list for output
-          PACKAGES_LIST=$(echo "$ALL_PACKAGES" | tr '\n' ' ' | sed 's/ $//')
-
-          echo "packages<<EOF" >> $GITHUB_OUTPUT
-          echo "$PACKAGES_LIST" >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
-          echo "has-changes=true" >> $GITHUB_OUTPUT
-
-      # Step 2: Determine service area for changed files
-      - name: Determine service area
-        id: service-area
-        if: steps.changed-packages.outputs.has-changes == 'true'
-        run: |
-          PACKAGES="${{ steps.changed-packages.outputs.packages }}"
-          SERVICE_AREAS=""
-
-          for pkg in $PACKAGES; do
-            # Check if package is in a service directory
-            if [[ "$pkg" =~ internal/services/resources/([^/]+) ]]; then
-              SERVICE="${BASH_REMATCH[1]}"
-              if [[ ! "$SERVICE_AREAS" =~ "$SERVICE" ]]; then
-                SERVICE_AREAS="$SERVICE_AREAS $SERVICE"
-              fi
-            elif [[ "$pkg" =~ internal/services/datasources/([^/]+) ]]; then
-              SERVICE="${BASH_REMATCH[1]}"
-              if [[ ! "$SERVICE_AREAS" =~ "$SERVICE" ]]; then
-                SERVICE_AREAS="$SERVICE_AREAS $SERVICE"
-              fi
-            elif [[ "$pkg" =~ internal/(client|helpers|provider|utilities) ]]; then
-              if [[ ! "$SERVICE_AREAS" =~ "provider-core" ]]; then
-                SERVICE_AREAS="$SERVICE_AREAS provider-core"
-              fi
-            fi
-          done
-
-          SERVICE_AREAS=$(echo "$SERVICE_AREAS" | xargs)
-          echo "Service areas affected: $SERVICE_AREAS"
-          echo "service-areas=$SERVICE_AREAS" >> $GITHUB_OUTPUT
-
-      # Step 3: Run unit tests with coverage for changed packages
-      - name: Run unit tests with coverage
-        if: steps.changed-packages.outputs.has-changes == 'true'
-        run: |
-          PACKAGES_WITH_TESTS="${{ steps.changed-packages.outputs.packages }}"
-
-          if [ -z "$PACKAGES_WITH_TESTS" ]; then
-            echo "No packages with tests to run"
-            exit 0
-          fi
-
-          echo "Running unit tests with coverage for changed packages..."
-          mkdir -p coverage
-
-          # Run tests and generate coverage with sanitized filenames
-          for pkg in $PACKAGES_WITH_TESTS; do
-            # Sanitize package path for filename (replace / with _)
-            safe_name=$(echo "$pkg" | sed 's/\//_/g')
-            echo "Testing package: $pkg (output: coverage/$safe_name.out)"
-            TF_ACC=0 go test -v -coverprofile="coverage/$safe_name.out" -covermode=atomic "./$pkg" || true
-          done
-
-          # Merge all coverage files
-          echo "mode: atomic" > coverage/unit-coverage.txt
-          find coverage -name "*.out" -type f | while read file; do
-            tail -n +2 "$file" >> coverage/unit-coverage.txt
-          done
-
-          echo "✅ Unit test coverage generated"
-
-      # Step 4: Upload unit test coverage to Codecov
+      # Upload coverage to Codecov
       - name: Upload unit test coverage
-        if: steps.changed-packages.outputs.has-changes == 'true'
+        if: steps.run-tests.outputs.has-changes == 'true'
         uses: codecov/codecov-action@671740ac38dd9b0130fbe1cec585b89eea48d3de # v5.5.2
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
@@ -140,41 +56,17 @@ jobs:
           name: pr-unit-coverage
           fail_ci_if_error: false
 
-      # Step 5: Generate coverage summary for PR comment
-      - name: Generate coverage summary
-        if: steps.changed-packages.outputs.has-changes == 'true'
-        id: coverage-summary
-        run: |
-          if [ ! -f coverage/unit-coverage.txt ]; then
-            echo "No coverage file found"
-            exit 0
-          fi
-
-          # Calculate coverage percentage
-          TOTAL_LINES=$(grep -v "^mode:" coverage/unit-coverage.txt | awk '{s+=$3}END{print s}' || echo "0")
-          COVERED_LINES=$(grep -v "^mode:" coverage/unit-coverage.txt | awk '{s+=$2}END{print s}' || echo "0")
-
-          if [ "$TOTAL_LINES" -gt 0 ]; then
-            COVERAGE_PCT=$(awk "BEGIN {printf \"%.2f\", ($COVERED_LINES/$TOTAL_LINES)*100}")
-          else
-            COVERAGE_PCT="0.00"
-          fi
-
-          echo "coverage-pct=$COVERAGE_PCT" >> $GITHUB_OUTPUT
-          echo "total-lines=$TOTAL_LINES" >> $GITHUB_OUTPUT
-          echo "covered-lines=$COVERED_LINES" >> $GITHUB_OUTPUT
-
-      # Step 6: Comment on PR with coverage summary
+      # Comment on PR with coverage summary
       - name: Comment coverage summary on PR
-        if: steps.changed-packages.outputs.has-changes == 'true' && steps.coverage-summary.outputs.coverage-pct != ''
+        if: steps.run-tests.outputs.has-changes == 'true' && steps.run-tests.outputs.coverage-pct != ''
         uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            const coveragePct = '${{ steps.coverage-summary.outputs.coverage-pct }}';
-            const totalLines = '${{ steps.coverage-summary.outputs.total-lines }}';
-            const coveredLines = '${{ steps.coverage-summary.outputs.covered-lines }}';
-            const serviceAreas = '${{ steps.service-area.outputs.service-areas }}';
+            const coveragePct = '${{ steps.run-tests.outputs.coverage-pct }}';
+            const totalLines = '${{ steps.run-tests.outputs.total-lines }}';
+            const coveredLines = '${{ steps.run-tests.outputs.covered-lines }}';
+            const serviceAreas = '${{ steps.run-tests.outputs.service-areas }}';
 
             const body = `## 📊 Unit Test Coverage Report
 
@@ -218,8 +110,3 @@ jobs:
                 body: body
               });
             }
-
-      - name: Skip - No Go changes
-        if: steps.changed-packages.outputs.has-changes == 'false'
-        run: |
-          echo "No Go files changed, skipping coverage report"
