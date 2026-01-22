@@ -110,17 +110,24 @@ def _parse_coverage_response(data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
             "covered_lines": int
         }
     """
-    if 'totals' not in data or 'patch' not in data['totals']:
+    # Check if patch data exists at root level
+    if 'patch' not in data:
         return None
     
-    patch = data['totals']['patch']
+    patch = data['patch']
     if not patch or 'coverage' not in patch:
         return None
     
+    # Calculate total lines from hits + misses + partials
+    hits = patch.get('hits', 0)
+    misses = patch.get('misses', 0)
+    partials = patch.get('partials', 0)
+    total_lines = hits + misses + partials
+    
     return {
         "coverage_pct": round(float(patch['coverage']), 2),
-        "total_lines": patch.get('lines', 0),
-        "covered_lines": patch.get('covered', 0)
+        "total_lines": total_lines,
+        "covered_lines": hits
     }
 
 
