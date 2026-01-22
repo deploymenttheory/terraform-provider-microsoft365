@@ -105,13 +105,11 @@ func MapCommittedContentVersionStateToTerraform(
 		fileElements = append(fileElements, fileObj)
 	}
 
-	// Create files set
 	filesSet, diags := types.SetValue(fileObjectType, fileElements)
 	if diags.HasError() {
 		filesSet = types.SetValueMust(fileObjectType, []attr.Value{})
 	}
 
-	// Create version object
 	versionValues := map[string]attr.Value{
 		"id":    types.StringValue(committedVersionId),
 		"files": filesSet,
@@ -122,7 +120,6 @@ func MapCommittedContentVersionStateToTerraform(
 		return types.ListNull(contentVersionObjectType)
 	}
 
-	// Create list with single element
 	contentVersionsList, diags := types.ListValue(contentVersionObjectType, []attr.Value{versionObj})
 	if diags.HasError() {
 		return types.ListNull(contentVersionObjectType)

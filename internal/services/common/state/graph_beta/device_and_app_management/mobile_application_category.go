@@ -27,7 +27,6 @@ func MapMobileAppCategoriesStateToTerraform(ctx context.Context, categories []gr
 		categoryID := *category.GetId()
 		mapped := false
 
-		// Match ID to built-in name
 		for name, builtInID := range construct.BuiltInCategoryMapping {
 			if categoryID == builtInID {
 				categoryValues = append(categoryValues, types.StringValue(name))
@@ -37,7 +36,6 @@ func MapMobileAppCategoriesStateToTerraform(ctx context.Context, categories []gr
 		}
 
 		if !mapped {
-			// Fallback to ID for custom category
 			categoryValues = append(categoryValues, types.StringValue(categoryID))
 		}
 	}

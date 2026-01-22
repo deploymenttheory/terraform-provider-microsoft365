@@ -1,4 +1,4 @@
-package sharedStater
+package devicemanagement
 
 import (
 	"context"
