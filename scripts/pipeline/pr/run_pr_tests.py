@@ -1,16 +1,16 @@
 #!/usr/bin/env python3
-"""Unified PR test orchestrator for both unit tests and coverage workflows.
+"""Unified PR test orchestrator for the pr-tests workflow.
 
-This script consolidates the logic from pr-unit-tests.yml and pr-coverage.yml
-into a single executable with different modes.
+This script handles test execution, coverage analysis, and goroutine detection
+for pull request validation.
 
 Usage:
-    ./run_pr_tests.py --mode unit-tests --base-ref origin/main
-    ./run_pr_tests.py --mode coverage --base-ref origin/main
+    ./run_pr_tests.py --mode unit-tests --base-ref origin/main [--is-draft]
+    ./run_pr_tests.py --mode race-detection --base-ref origin/main
 
 Modes:
-    unit-tests: Run tests with race detection, block on missing tests
-    coverage: Run tests with coverage, upload to Codecov, comment on PR
+    unit-tests: Run tests with coverage profiling, enforce threshold
+    race-detection: Run race detector on packages with goroutines
 """
 
 import sys
@@ -22,7 +22,7 @@ from pathlib import Path
 from typing import List, Dict, Optional, Any
 
 # Import local utilities
-from common import get_packages_from_input, write_github_output
+from common import get_packages_from_input, write_github_output, load_test_config
 
 
 def get_changed_packages(base_ref: str) -> List[str]:
@@ -81,16 +81,16 @@ def should_skip_package(package: str, skip_patterns: List[str]) -> tuple:
     return False, ""
 
 
-def check_packages_have_tests(packages: List[str]) -> Dict[str, Any]:
+def check_packages_have_tests(packages: List[str], skip_patterns: List[str]) -> Dict[str, Any]:
     """Check if packages have test files.
     
     Args:
         packages: List of package paths.
+        skip_patterns: List of directory patterns to skip from test requirements.
     
     Returns:
         Dict with test coverage status.
     """
-    skip_patterns = ["/mocks", "/schema", "/shared_models/", "internal/acceptance", "internal/constants"]
     
     packages_with_tests = []
     missing_tests = []
@@ -119,11 +119,12 @@ def check_packages_have_tests(packages: List[str]) -> Dict[str, Any]:
     }
 
 
-def determine_service_areas(packages: List[str]) -> List[str]:
+def determine_service_areas(packages: List[str], config: Dict[str, Any]) -> List[str]:
     """Determine M365 service areas from package paths.
     
     Args:
         packages: List of package paths.
+        config: Test configuration dictionary.
     
     Returns:
         List of unique service area names.
@@ -131,25 +132,68 @@ def determine_service_areas(packages: List[str]) -> List[str]:
     import re
     
     service_areas = set()
+    service_patterns = config.get('service_area_patterns', {})
+    core_paths = config.get('provider_core_paths', [])
     
     for package in packages:
-        # Check for service directories
-        for category in ['resources', 'datasources', 'actions']:
-            match = re.search(rf'internal/services/{category}/([^/]+)', package)
+        # Check for service directories using patterns from config
+        for category, pattern in service_patterns.items():
+            match = re.search(pattern, package)
             if match:
                 service_areas.add(match.group(1))
                 break
         
         # Check for provider core
-        core_patterns = ['internal/client', 'internal/helpers', 'internal/provider', 'internal/utilities']
-        if any(pattern in package for pattern in core_patterns):
+        if any(pattern in package for pattern in core_paths):
             service_areas.add('provider-core')
     
     return sorted(list(service_areas))
 
 
-def run_unit_tests_with_race(packages: List[str]) -> int:
-    """Run unit tests with race detection.
+def detect_goroutines_in_packages(packages: List[str]) -> List[str]:
+    """Detect packages that use goroutines (go func() patterns).
+    
+    Args:
+        packages: List of package paths to scan.
+    
+    Returns:
+        List of packages that contain goroutine usage.
+    """
+    import re
+    
+    goroutine_pattern = re.compile(r'\bgo\s+func\s*\(')
+    packages_with_goroutines = []
+    
+    for package in packages:
+        package_path = Path(package)
+        if not package_path.exists():
+            continue
+        
+        go_files = list(package_path.glob("*.go"))
+        # Exclude test files from goroutine detection
+        go_files = [f for f in go_files if not f.name.endswith('_test.go')]
+        
+        has_goroutines = False
+        for go_file in go_files:
+            try:
+                with open(go_file, 'r', encoding='utf-8') as f:
+                    content = f.read()
+                    if goroutine_pattern.search(content):
+                        has_goroutines = True
+                        print(f"🔍 Found goroutine in {go_file}")
+                        break
+            except Exception as e:
+                print(f"⚠️  Error reading {go_file}: {e}")
+                continue
+        
+        if has_goroutines:
+            packages_with_goroutines.append(package)
+    
+    return packages_with_goroutines
+
+
+def run_race_detection(packages: List[str]) -> int:
+    """Run tests with race detection on packages with goroutines.
     
     Args:
         packages: List of package paths to test.
@@ -158,7 +202,7 @@ def run_unit_tests_with_race(packages: List[str]) -> int:
         Exit code: 0 if all pass, 1 if any fail.
     """
     print("\n" + "="*60)
-    print("🧪 Running Unit Tests with Race Detection")
+    print("🔍 Running Race Detection Tests")
     print("="*60)
     
     has_failures = False
@@ -176,9 +220,9 @@ def run_unit_tests_with_race(packages: List[str]) -> int:
         
         if result.returncode != 0:
             has_failures = True
-            print(f"❌ Tests failed in {package}")
+            print(f"❌ Race detection failed in {package}")
         else:
-            print(f"✅ Tests passed in {package}")
+            print(f"✅ Race detection passed in {package}")
     
     return 1 if has_failures else 0
 
@@ -285,7 +329,7 @@ def calculate_coverage(coverage_file: Path) -> Dict[str, Any]:
 def main():
     """Main entry point for PR test orchestrator.
     
-    Handles both unit-tests and coverage modes with consolidated logic.
+    Handles unit-tests mode (with coverage) and race-detection mode.
     
     Returns:
         Exit code: 0 on success, 1 on failure.
@@ -295,19 +339,28 @@ def main():
         formatter_class=argparse.RawDescriptionHelpFormatter
     )
     
-    parser.add_argument('--mode', required=True, choices=['unit-tests', 'coverage'],
-                        help='Test mode: unit-tests (with race) or coverage (with profiling)')
+    parser.add_argument('--mode', required=True, choices=['unit-tests', 'race-detection'],
+                        help='Test mode: unit-tests (with coverage) or race-detection')
     parser.add_argument('--base-ref', required=True,
                         help='Base branch reference (e.g., origin/main)')
+    parser.add_argument('--config', default=None,
+                        help='Path to test config file (defaults to .github/test-config.yml)')
     parser.add_argument('--github-output', default=os.environ.get('GITHUB_OUTPUT'),
                         help='Path to GITHUB_OUTPUT file')
     parser.add_argument('--output-dir', default='coverage',
-                        help='Directory for coverage files (coverage mode only)')
+                        help='Directory for coverage files (unit-tests mode only)')
+    parser.add_argument('--is-draft', action='store_true',
+                        help='PR is in draft state (informational mode)')
     
     args = parser.parse_args()
     
+    # Load test configuration
+    config = load_test_config(args.config)
+    
     print("="*60)
     print(f"🚀 PR Test Orchestrator - Mode: {args.mode}")
+    if args.is_draft:
+        print("📝 Draft PR Mode: Tests are informational only")
     print("="*60)
     
     # Step 1: Identify changed packages
@@ -318,7 +371,8 @@ def main():
         print("✅ No Go files changed")
         write_github_output({
             "packages": "",
-            "has-changes": "false"
+            "has-changes": "false",
+            "has-goroutines": "false"
         }, args.github_output)
         return 0
     
@@ -331,47 +385,41 @@ def main():
         "has-changes": "true"
     }, args.github_output)
     
-    # Step 2: Mode-specific validation
+    # Mode-specific execution
     if args.mode == 'unit-tests':
-        print("\n🧪 Step 2: Checking for test files...")
-        test_status = check_packages_have_tests(packages)
-        
-        if test_status["has_missing"]:
-            print("\n❌ ERROR: Some packages are missing tests")
-            for pkg in test_status["missing_tests"]:
-                print(f"   - {pkg}")
-            return 1
-        
-        packages_to_test = test_status["packages_with_tests"]
-        write_github_output({
-            "packages-with-tests": ' '.join([f"./{pkg}" for pkg in packages_to_test])
-        }, args.github_output)
-        
-        # Step 3: Run unit tests with race detection
-        print("\n🧪 Step 3: Running unit tests...")
-        return run_unit_tests_with_race(packages_to_test)
-    
-    else:  # coverage mode
         # Step 2: Determine service areas
         print("\n📊 Step 2: Determining service areas...")
-        service_areas = determine_service_areas(packages)
-        print(f"Service areas: {' '.join(service_areas)}")
+        service_areas = determine_service_areas(packages, config)
+        print(f"Service areas: {' '.join(service_areas) if service_areas else 'N/A'}")
+        
+        # Step 3: Detect goroutines for race detection job
+        print("\n🔍 Step 3: Scanning for goroutines...")
+        packages_with_goroutines = detect_goroutines_in_packages(packages)
+        has_goroutines = len(packages_with_goroutines) > 0
+        
+        print(f"\n{'✅' if has_goroutines else 'ℹ️ '} Found {len(packages_with_goroutines)} package(s) with goroutines")
+        for pkg in packages_with_goroutines:
+            print(f"   - {pkg}")
         
         write_github_output({
-            "service-areas": ' '.join(service_areas)
+            "service-areas": ' '.join(service_areas),
+            "has-goroutines": "true" if has_goroutines else "false",
+            "goroutine-packages": ' '.join(packages_with_goroutines)
         }, args.github_output)
         
-        # Step 3: Run tests with coverage
-        print("\n📊 Step 3: Running tests with coverage...")
+        # Step 4: Run tests with coverage
+        print("\n📊 Step 4: Running tests with coverage...")
         merged_coverage = run_tests_with_coverage(packages, args.output_dir)
         
-        # Step 4: Calculate coverage summary
-        print("\n📊 Step 4: Calculating coverage...")
+        # Step 5: Calculate coverage summary
+        print("\n📊 Step 5: Calculating coverage...")
         stats = calculate_coverage(merged_coverage)
         
+        print(f"\n{'='*60}")
         print(f"Coverage: {stats['coverage_pct']}%")
         print(f"Total: {stats['total_lines']} statements")
         print(f"Covered: {stats['covered_lines']} statements")
+        print(f"{'='*60}")
         
         write_github_output({
             "coverage-pct": str(stats['coverage_pct']),
@@ -379,7 +427,37 @@ def main():
             "covered-lines": str(stats['covered_lines'])
         }, args.github_output)
         
+        # Step 6: Enforce coverage threshold (only for ready PRs)
+        if not args.is_draft:
+            min_coverage = config.get('coverage_threshold', {}).get('minimum_pct', 60)
+            
+            if stats['coverage_pct'] < min_coverage:
+                print(f"\n❌ ERROR: Coverage {stats['coverage_pct']}% is below minimum threshold {min_coverage}%")
+                print(f"   Please add tests to increase coverage for changed code.")
+                return 1
+            else:
+                print(f"\n✅ Coverage {stats['coverage_pct']}% meets minimum threshold {min_coverage}%")
+        else:
+            print(f"\n📝 Draft PR: Coverage check skipped (informational only)")
+        
         return 0
+    
+    else:  # race-detection mode
+        # Step 2: Detect packages with goroutines
+        print("\n🔍 Step 2: Detecting packages with goroutines...")
+        packages_with_goroutines = detect_goroutines_in_packages(packages)
+        
+        if not packages_with_goroutines:
+            print("✅ No packages with goroutines found, skipping race detection")
+            return 0
+        
+        print(f"\n🔍 Found {len(packages_with_goroutines)} package(s) with goroutines")
+        for pkg in packages_with_goroutines:
+            print(f"   - {pkg}")
+        
+        # Step 3: Run race detection
+        print("\n🔍 Step 3: Running race detection tests...")
+        return run_race_detection(packages_with_goroutines)
 
 
 if __name__ == "__main__":
