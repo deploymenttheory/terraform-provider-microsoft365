@@ -68,7 +68,7 @@ def _build_request(api_url: str, token: str) -> urllib.request.Request:
         Configured Request object with auth headers.
     """
     req = urllib.request.Request(api_url)
-    req.add_header('Authorization', f'Bearer {token}')
+    req.add_header('Authorization', f'bearer {token}')
     req.add_header('Accept', 'application/json')
     return req
 

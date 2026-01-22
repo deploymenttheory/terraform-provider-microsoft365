@@ -106,7 +106,7 @@ jobs:
           python3 scripts/pipeline/pr/steps/enforce_coverage.py \
             --repo-slug "${{ github.repository }}" \
             --pr-number "${{ github.event.pull_request.number }}" \
-            --codecov-token "${{ secrets.CODECOV_TOKEN }}"
+            --codecov-token "${{ secrets.CODECOV_API_TOKEN }}"
 
       - name: 💬 Comment coverage summary on PR
         if: steps.detect-changes.outputs.has-changes == 'true'

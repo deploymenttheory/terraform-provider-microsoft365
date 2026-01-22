@@ -34,8 +34,8 @@ def main():
                         help='Repository slug (owner/repo)')
     parser.add_argument('--pr-number', required=True,
                         help='Pull request number')
-    parser.add_argument('--codecov-token', default=os.environ.get('CODECOV_TOKEN'),
-                        help='Codecov API token')
+    parser.add_argument('--codecov-token', default=os.environ.get('CODECOV_API_TOKEN'),
+                        help='Codecov API access token (personal token, not upload token)')
     parser.add_argument('--config', default=None,
                         help='Path to PR checks config file')
     parser.add_argument('--github-output', default=os.environ.get('GITHUB_OUTPUT'),
