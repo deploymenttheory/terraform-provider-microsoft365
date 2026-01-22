@@ -10,7 +10,7 @@ on:
       - '**/*.go'
       - 'go.mod'
       - 'go.sum'
-      - '.github/test-config.yml'
+      - 'pr-checks-config.yml'
       - 'scripts/pipeline/pr/**'
 
 jobs:
@@ -25,7 +25,7 @@ jobs:
       coverage-pct: ${{ steps.run-tests.outputs.coverage-pct }}
       total-lines: ${{ steps.run-tests.outputs.total-lines }}
       covered-lines: ${{ steps.run-tests.outputs.covered-lines }}
-      service-areas: ${{ steps.run-tests.outputs.service-areas }}
+      service-domains: ${{ steps.run-tests.outputs.service-domains }}
     steps:
       - name: Harden Runner
         uses: step-security/harden-runner@20cf305ff2072d973412fa9b1e3a4f227bda3c76 # v2.14.0
@@ -58,8 +58,8 @@ jobs:
             echo "✅ PR is ready for review - enforcing coverage threshold"
           fi
 
-      - name: Run unit tests with coverage
-        id: run-tests
+      - name: Run unit tests with coverage (generate files)
+        id: run-tests-generate
         run: |
           python3 scripts/pipeline/pr/run_pr_tests.py \
             --mode unit-tests \
@@ -68,7 +68,7 @@ jobs:
             ${{ steps.pr-state.outputs.is-draft == 'true' && '--is-draft' || '' }}
 
       - name: Upload coverage to Codecov
-        if: steps.run-tests.outputs.has-changes == 'true'
+        if: steps.run-tests-generate.outputs.has-changes == 'true'
         uses: codecov/codecov-action@671740ac38dd9b0130fbe1cec585b89eea48d3de # v5.5.2
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
@@ -76,6 +76,20 @@ jobs:
           flags: unittests,pr-changes
           name: pr-unit-coverage
           fail_ci_if_error: false
+      
+      - name: Fetch coverage from Codecov and enforce threshold
+        id: run-tests
+        if: steps.run-tests-generate.outputs.has-changes == 'true'
+        run: |
+          python3 scripts/pipeline/pr/run_pr_tests.py \
+            --mode unit-tests \
+            --base-ref "origin/${{ github.event.pull_request.base.ref }}" \
+            --output-dir coverage \
+            --codecov-token "${{ secrets.CODECOV_TOKEN }}" \
+            --repo-slug "${{ github.repository }}" \
+            --pr-number "${{ github.event.pull_request.number }}" \
+            --skip-tests \
+            ${{ steps.pr-state.outputs.is-draft == 'true' && '--is-draft' || '' }}
 
       - name: Comment coverage summary on PR
         if: steps.run-tests.outputs.has-changes == 'true' && steps.run-tests.outputs.coverage-pct != ''
@@ -86,7 +100,7 @@ jobs:
             const coveragePct = '${{ steps.run-tests.outputs.coverage-pct }}';
             const totalLines = '${{ steps.run-tests.outputs.total-lines }}';
             const coveredLines = '${{ steps.run-tests.outputs.covered-lines }}';
-            const serviceAreas = '${{ steps.run-tests.outputs.service-areas }}';
+            const serviceDomains = '${{ steps.run-tests.outputs.service-domains }}';
             const isDraft = '${{ steps.pr-state.outputs.is-draft }}' === 'true';
             const minThreshold = 60;
             
@@ -105,7 +119,7 @@ jobs:
 
             - **Total Statements:** ${totalLines}
             - **Covered Statements:** ${coveredLines}
-            - **Service Areas:** ${serviceAreas || 'N/A'}
+            - **Service Domains:** ${serviceDomains || 'N/A'}
 
             ${isDraft ? '> 💡 Mark PR as ready for review to enforce coverage threshold' : ''}
             ${parseFloat(coveragePct) < minThreshold && !isDraft ? `> ⚠️  Please add tests to reach ${minThreshold}% coverage` : ''}
