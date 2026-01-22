@@ -1,4 +1,4 @@
-name: SDK Version Check
+name: provider | Microsoft Graph Go SDK Version Check
 
 on:
   schedule:
