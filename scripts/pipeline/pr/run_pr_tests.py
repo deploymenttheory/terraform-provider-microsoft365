@@ -13,19 +13,19 @@ Modes:
     race-detection: Run race detector on packages with goroutines
 """
 
-import sys
-import os
-import subprocess
 import argparse
-import json
+import os
+import re
+import subprocess
+import sys
 from pathlib import Path
-from typing import List, Dict, Optional, Any
+from typing import Any, Dict, List
 
 # Import local utilities
-from common import get_packages_from_input, write_github_output, load_test_config
+from common import load_test_config, write_github_output
 
 
-def get_changed_packages(base_ref: str) -> List[str]:
+def get_changed_go_packages(base_ref: str) -> List[str]:
     """Get list of changed Go packages using git diff.
     
     Args:
@@ -129,15 +129,13 @@ def determine_service_areas(packages: List[str], config: Dict[str, Any]) -> List
     Returns:
         List of unique service area names.
     """
-    import re
-    
     service_areas = set()
     service_patterns = config.get('service_area_patterns', {})
     core_paths = config.get('provider_core_paths', [])
     
     for package in packages:
         # Check for service directories using patterns from config
-        for category, pattern in service_patterns.items():
+        for pattern in service_patterns.values():
             match = re.search(pattern, package)
             if match:
                 service_areas.add(match.group(1))
@@ -159,8 +157,6 @@ def detect_goroutines_in_packages(packages: List[str]) -> List[str]:
     Returns:
         List of packages that contain goroutine usage.
     """
-    import re
-    
     goroutine_pattern = re.compile(r'\bgo\s+func\s*\(')
     packages_with_goroutines = []
     
@@ -182,7 +178,7 @@ def detect_goroutines_in_packages(packages: List[str]) -> List[str]:
                         has_goroutines = True
                         print(f"🔍 Found goroutine in {go_file}")
                         break
-            except Exception as e:
+            except (IOError, OSError) as e:
                 print(f"⚠️  Error reading {go_file}: {e}")
                 continue
         
@@ -260,7 +256,7 @@ def run_tests_with_coverage(packages: List[str], output_dir: str = "coverage") -
             f"./{package}"
         ]
         
-        result = subprocess.run(
+        subprocess.run(
             cmd,
             env={"TF_ACC": "0", **os.environ},
             check=False
@@ -326,6 +322,100 @@ def calculate_coverage(coverage_file: Path) -> Dict[str, Any]:
     }
 
 
+def run_unit_tests_mode(packages: List[str], config: Dict[str, Any], 
+                        args: argparse.Namespace) -> int:
+    """Execute unit tests mode with coverage analysis.
+    
+    Args:
+        packages: List of changed packages.
+        config: Test configuration.
+        args: Parsed command-line arguments.
+    
+    Returns:
+        Exit code: 0 on success, 1 on failure.
+    """
+    # Step 2: Determine service areas
+    print("\n📊 Step 2: Determining service areas...")
+    service_areas = determine_service_areas(packages, config)
+    print(f"Service areas: {' '.join(service_areas) if service_areas else 'N/A'}")
+    
+    # Step 3: Detect goroutines for race detection job
+    print("\n🔍 Step 3: Scanning for goroutines...")
+    packages_with_goroutines = detect_goroutines_in_packages(packages)
+    has_goroutines = len(packages_with_goroutines) > 0
+    
+    print(f"\n{'✅' if has_goroutines else 'ℹ️ '} Found {len(packages_with_goroutines)} package(s) with goroutines")
+    for pkg in packages_with_goroutines:
+        print(f"   - {pkg}")
+    
+    write_github_output({
+        "service-areas": ' '.join(service_areas),
+        "has-goroutines": "true" if has_goroutines else "false",
+        "goroutine-packages": ' '.join(packages_with_goroutines)
+    }, args.github_output)
+    
+    # Step 4: Run tests with coverage
+    print("\n📊 Step 4: Running tests with coverage...")
+    merged_coverage = run_tests_with_coverage(packages, args.output_dir)
+    
+    # Step 5: Calculate coverage summary
+    print("\n📊 Step 5: Calculating coverage...")
+    stats = calculate_coverage(merged_coverage)
+    
+    print(f"\n{'='*60}")
+    print(f"Coverage: {stats['coverage_pct']}%")
+    print(f"Total: {stats['total_lines']} statements")
+    print(f"Covered: {stats['covered_lines']} statements")
+    print(f"{'='*60}")
+    
+    write_github_output({
+        "coverage-pct": str(stats['coverage_pct']),
+        "total-lines": str(stats['total_lines']),
+        "covered-lines": str(stats['covered_lines'])
+    }, args.github_output)
+    
+    # Step 6: Enforce coverage threshold (only for ready PRs)
+    if not args.is_draft:
+        min_coverage = config.get('coverage_threshold', {}).get('minimum_pct', 60)
+        
+        if stats['coverage_pct'] < min_coverage:
+            print(f"\n❌ ERROR: Coverage {stats['coverage_pct']}% is below minimum threshold {min_coverage}%")
+            print("   Please add tests to increase coverage for changed code.")
+            return 1
+        
+        print(f"\n✅ Coverage {stats['coverage_pct']}% meets minimum threshold {min_coverage}%")
+        return 0
+    
+    print("\n📝 Draft PR: Coverage check skipped (informational only)")
+    return 0
+
+
+def run_race_detection_mode(packages: List[str]) -> int:
+    """Execute race detection mode on packages with goroutines.
+    
+    Args:
+        packages: List of changed packages.
+    
+    Returns:
+        Exit code: 0 on success, 1 on failure.
+    """
+    # Step 2: Detect packages with goroutines
+    print("\n🔍 Step 2: Detecting packages with goroutines...")
+    packages_with_goroutines = detect_goroutines_in_packages(packages)
+    
+    if not packages_with_goroutines:
+        print("✅ No packages with goroutines found, skipping race detection")
+        return 0
+    
+    print(f"\n🔍 Found {len(packages_with_goroutines)} package(s) with goroutines")
+    for pkg in packages_with_goroutines:
+        print(f"   - {pkg}")
+    
+    # Step 3: Run race detection
+    print("\n🔍 Step 3: Running race detection tests...")
+    return run_race_detection(packages_with_goroutines)
+
+
 def main():
     """Main entry point for PR test orchestrator.
     
@@ -365,7 +455,7 @@ def main():
     
     # Step 1: Identify changed packages
     print("\n📦 Step 1: Identifying changed packages...")
-    packages = get_changed_packages(args.base_ref)
+    packages = get_changed_go_packages(args.base_ref)
     
     if not packages:
         print("✅ No Go files changed")
@@ -387,77 +477,10 @@ def main():
     
     # Mode-specific execution
     if args.mode == 'unit-tests':
-        # Step 2: Determine service areas
-        print("\n📊 Step 2: Determining service areas...")
-        service_areas = determine_service_areas(packages, config)
-        print(f"Service areas: {' '.join(service_areas) if service_areas else 'N/A'}")
-        
-        # Step 3: Detect goroutines for race detection job
-        print("\n🔍 Step 3: Scanning for goroutines...")
-        packages_with_goroutines = detect_goroutines_in_packages(packages)
-        has_goroutines = len(packages_with_goroutines) > 0
-        
-        print(f"\n{'✅' if has_goroutines else 'ℹ️ '} Found {len(packages_with_goroutines)} package(s) with goroutines")
-        for pkg in packages_with_goroutines:
-            print(f"   - {pkg}")
-        
-        write_github_output({
-            "service-areas": ' '.join(service_areas),
-            "has-goroutines": "true" if has_goroutines else "false",
-            "goroutine-packages": ' '.join(packages_with_goroutines)
-        }, args.github_output)
-        
-        # Step 4: Run tests with coverage
-        print("\n📊 Step 4: Running tests with coverage...")
-        merged_coverage = run_tests_with_coverage(packages, args.output_dir)
-        
-        # Step 5: Calculate coverage summary
-        print("\n📊 Step 5: Calculating coverage...")
-        stats = calculate_coverage(merged_coverage)
-        
-        print(f"\n{'='*60}")
-        print(f"Coverage: {stats['coverage_pct']}%")
-        print(f"Total: {stats['total_lines']} statements")
-        print(f"Covered: {stats['covered_lines']} statements")
-        print(f"{'='*60}")
-        
-        write_github_output({
-            "coverage-pct": str(stats['coverage_pct']),
-            "total-lines": str(stats['total_lines']),
-            "covered-lines": str(stats['covered_lines'])
-        }, args.github_output)
-        
-        # Step 6: Enforce coverage threshold (only for ready PRs)
-        if not args.is_draft:
-            min_coverage = config.get('coverage_threshold', {}).get('minimum_pct', 60)
-            
-            if stats['coverage_pct'] < min_coverage:
-                print(f"\n❌ ERROR: Coverage {stats['coverage_pct']}% is below minimum threshold {min_coverage}%")
-                print(f"   Please add tests to increase coverage for changed code.")
-                return 1
-            else:
-                print(f"\n✅ Coverage {stats['coverage_pct']}% meets minimum threshold {min_coverage}%")
-        else:
-            print(f"\n📝 Draft PR: Coverage check skipped (informational only)")
-        
-        return 0
+        return run_unit_tests_mode(packages, config, args)
     
-    else:  # race-detection mode
-        # Step 2: Detect packages with goroutines
-        print("\n🔍 Step 2: Detecting packages with goroutines...")
-        packages_with_goroutines = detect_goroutines_in_packages(packages)
-        
-        if not packages_with_goroutines:
-            print("✅ No packages with goroutines found, skipping race detection")
-            return 0
-        
-        print(f"\n🔍 Found {len(packages_with_goroutines)} package(s) with goroutines")
-        for pkg in packages_with_goroutines:
-            print(f"   - {pkg}")
-        
-        # Step 3: Run race detection
-        print("\n🔍 Step 3: Running race detection tests...")
-        return run_race_detection(packages_with_goroutines)
+    # race-detection mode
+    return run_race_detection_mode(packages)
 
 
 if __name__ == "__main__":
