@@ -546,3 +546,475 @@ func TestTrackPackageMethod(t *testing.T) {
 		assert.Contains(t, usage.Enums, expectedEnum)
 	})
 }
+
+func TestOutputResults(t *testing.T) {
+	t.Run("Valid usage map produces JSON", func(t *testing.T) {
+		usage := initializeUsageMap()
+		usage.Packages["test.pkg"] = 1
+		
+		err := outputResults(usage)
+		assert.NoError(t, err)
+	})
+
+	t.Run("Empty usage map", func(t *testing.T) {
+		usage := initializeUsageMap()
+		
+		err := outputResults(usage)
+		assert.NoError(t, err)
+	})
+}
+
+func TestProcessSelectorExpr(t *testing.T) {
+	fileImports := map[string]string{
+		"models": "github.com/microsoftgraph/msgraph-beta-sdk-go/models",
+	}
+	varTypes := map[string]string{
+		"user": "github.com/microsoftgraph/msgraph-beta-sdk-go/models.User",
+	}
+	usage := initializeUsageMap()
+
+	t.Run("Package-level reference", func(t *testing.T) {
+		// models.User
+		sel := &ast.SelectorExpr{
+			X:   &ast.Ident{Name: "models"},
+			Sel: &ast.Ident{Name: "User"},
+		}
+
+		processSelectorExpr(sel, fileImports, varTypes, usage)
+		
+		expectedMethod := "github.com/microsoftgraph/msgraph-beta-sdk-go/models.User"
+		assert.Equal(t, 1, usage.Methods[expectedMethod])
+	})
+
+	t.Run("Field access on typed variable", func(t *testing.T) {
+		// user.DisplayName
+		sel := &ast.SelectorExpr{
+			X:   &ast.Ident{Name: "user"},
+			Sel: &ast.Ident{Name: "DisplayName"},
+		}
+
+		processSelectorExpr(sel, fileImports, varTypes, usage)
+		
+		typeName := "github.com/microsoftgraph/msgraph-beta-sdk-go/models.User"
+		assert.Equal(t, 1, usage.Fields[typeName]["DisplayName"])
+	})
+
+	t.Run("Non-SDK selector ignored", func(t *testing.T) {
+		initialMethodCount := len(usage.Methods)
+		initialFieldCount := len(usage.Fields)
+
+		sel := &ast.SelectorExpr{
+			X:   &ast.Ident{Name: "unknown"},
+			Sel: &ast.Ident{Name: "Field"},
+		}
+
+		processSelectorExpr(sel, fileImports, varTypes, usage)
+		
+		assert.Equal(t, initialMethodCount, len(usage.Methods))
+		assert.Equal(t, initialFieldCount, len(usage.Fields))
+	})
+
+	t.Run("Non-identifier selector expression", func(t *testing.T) {
+		sel := &ast.SelectorExpr{
+			X:   &ast.BasicLit{Value: "123"},
+			Sel: &ast.Ident{Name: "Field"},
+		}
+
+		processSelectorExpr(sel, fileImports, varTypes, usage)
+		// Should not panic, just do nothing
+	})
+}
+
+func TestProcessCallExpr(t *testing.T) {
+	fileImports := map[string]string{
+		"models": "github.com/microsoftgraph/msgraph-beta-sdk-go/models",
+	}
+	varTypes := map[string]string{
+		"user": "github.com/microsoftgraph/msgraph-beta-sdk-go/models.User",
+	}
+	usage := initializeUsageMap()
+
+	t.Run("Package method call", func(t *testing.T) {
+		// models.NewUser()
+		call := &ast.CallExpr{
+			Fun: &ast.SelectorExpr{
+				X:   &ast.Ident{Name: "models"},
+				Sel: &ast.Ident{Name: "NewUser"},
+			},
+		}
+
+		processCallExpr(call, "/test.go", fileImports, varTypes, usage)
+		
+		expectedMethod := "github.com/microsoftgraph/msgraph-beta-sdk-go/models.NewUser"
+		assert.Equal(t, 1, usage.Methods[expectedMethod])
+	})
+
+	t.Run("Object method call", func(t *testing.T) {
+		// user.SetDisplayName()
+		call := &ast.CallExpr{
+			Fun: &ast.SelectorExpr{
+				X:   &ast.Ident{Name: "user"},
+				Sel: &ast.Ident{Name: "SetDisplayName"},
+			},
+		}
+
+		processCallExpr(call, "/test.go", fileImports, varTypes, usage)
+		
+		expectedMethod := "github.com/microsoftgraph/msgraph-beta-sdk-go/models.User.SetDisplayName"
+		assert.Equal(t, 1, usage.Methods[expectedMethod])
+	})
+
+	t.Run("Non-selector function call ignored", func(t *testing.T) {
+		call := &ast.CallExpr{
+			Fun: &ast.Ident{Name: "someFunc"},
+		}
+
+		processCallExpr(call, "/test.go", fileImports, varTypes, usage)
+		// Should not panic
+	})
+
+	t.Run("Non-identifier in selector", func(t *testing.T) {
+		call := &ast.CallExpr{
+			Fun: &ast.SelectorExpr{
+				X:   &ast.BasicLit{Value: "123"},
+				Sel: &ast.Ident{Name: "Method"},
+			},
+		}
+
+		processCallExpr(call, "/test.go", fileImports, varTypes, usage)
+		// Should not panic
+	})
+}
+
+func TestProcessCompositeLit(t *testing.T) {
+	fileImports := map[string]string{
+		"models": "github.com/microsoftgraph/msgraph-beta-sdk-go/models",
+	}
+	usage := initializeUsageMap()
+
+	t.Run("Valid struct literal with fields", func(t *testing.T) {
+		comp := &ast.CompositeLit{
+			Type: &ast.SelectorExpr{
+				X:   &ast.Ident{Name: "models"},
+				Sel: &ast.Ident{Name: "User"},
+			},
+			Elts: []ast.Expr{
+				&ast.KeyValueExpr{
+					Key:   &ast.Ident{Name: "DisplayName"},
+					Value: &ast.BasicLit{Value: `"John"`},
+				},
+				&ast.KeyValueExpr{
+					Key:   &ast.Ident{Name: "Email"},
+					Value: &ast.BasicLit{Value: `"john@example.com"`},
+				},
+			},
+		}
+
+		processCompositeLit(comp, fileImports, usage)
+		
+		typeName := "github.com/microsoftgraph/msgraph-beta-sdk-go/models.User"
+		assert.Equal(t, 1, usage.Types[typeName]["_instantiated"])
+		assert.Equal(t, 1, usage.Fields[typeName]["DisplayName"])
+		assert.Equal(t, 1, usage.Fields[typeName]["Email"])
+	})
+
+	t.Run("Non-selector type ignored", func(t *testing.T) {
+		comp := &ast.CompositeLit{
+			Type: &ast.Ident{Name: "SomeType"},
+		}
+
+		processCompositeLit(comp, fileImports, usage)
+		// Should not panic
+	})
+
+	t.Run("Non-identifier package", func(t *testing.T) {
+		comp := &ast.CompositeLit{
+			Type: &ast.SelectorExpr{
+				X:   &ast.BasicLit{Value: "123"},
+				Sel: &ast.Ident{Name: "Type"},
+			},
+		}
+
+		processCompositeLit(comp, fileImports, usage)
+		// Should not panic
+	})
+
+	t.Run("Unknown package", func(t *testing.T) {
+		comp := &ast.CompositeLit{
+			Type: &ast.SelectorExpr{
+				X:   &ast.Ident{Name: "unknown"},
+				Sel: &ast.Ident{Name: "Type"},
+			},
+		}
+
+		processCompositeLit(comp, fileImports, usage)
+		// Should not panic, nothing tracked
+	})
+}
+
+func TestAnalyzeASTIntegration(t *testing.T) {
+	source := `package test
+
+import (
+	models "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
+)
+
+func example() {
+	// Assignment
+	user := models.NewUser()
+	
+	// Field access
+	name := user.GetDisplayName()
+	
+	// Method call
+	user.SetEmail("test@example.com")
+	
+	// Struct literal
+	config := models.Config{
+		Name: "test",
+		Value: "123",
+	}
+	
+	// Enum parser
+	accountType := models.ParseRunAsAccountType("system")
+}
+`
+	fset := token.NewFileSet()
+	node, err := parser.ParseFile(fset, "test.go", source, parser.ParseComments)
+	require.NoError(t, err)
+
+	usage := initializeUsageMap()
+	fileImports := collectImports(node, "/test.go", usage)
+	varTypes := make(map[string]string)
+
+	analyzeAST(node, "/test.go", fileImports, varTypes, usage)
+
+	t.Run("Tracks assignments", func(t *testing.T) {
+		assert.Equal(t, "github.com/microsoftgraph/msgraph-beta-sdk-go/models.NewUser", varTypes["user"])
+	})
+
+	t.Run("Tracks field access", func(t *testing.T) {
+		typeName := "github.com/microsoftgraph/msgraph-beta-sdk-go/models.NewUser"
+		assert.Contains(t, usage.Fields[typeName], "GetDisplayName")
+	})
+
+	t.Run("Tracks method calls", func(t *testing.T) {
+		expectedMethod := "github.com/microsoftgraph/msgraph-beta-sdk-go/models.ParseRunAsAccountType"
+		assert.Contains(t, usage.Methods, expectedMethod)
+	})
+
+	t.Run("Tracks struct literals", func(t *testing.T) {
+		typeName := "github.com/microsoftgraph/msgraph-beta-sdk-go/models.Config"
+		assert.Equal(t, 1, usage.Types[typeName]["_instantiated"])
+		assert.Equal(t, 1, usage.Fields[typeName]["Name"])
+		assert.Equal(t, 1, usage.Fields[typeName]["Value"])
+	})
+
+	t.Run("Tracks enums", func(t *testing.T) {
+		expectedEnum := "github.com/microsoftgraph/msgraph-beta-sdk-go/models.RunAsAccountType"
+		assert.Contains(t, usage.Enums, expectedEnum)
+	})
+}
+
+func TestComplexAssignments(t *testing.T) {
+	fileImports := map[string]string{
+		"models": "github.com/microsoftgraph/msgraph-beta-sdk-go/models",
+	}
+	varTypes := make(map[string]string)
+
+	t.Run("Multiple assignments", func(t *testing.T) {
+		// user, err := models.NewUser(), nil
+		stmt := &ast.AssignStmt{
+			Lhs: []ast.Expr{
+				&ast.Ident{Name: "user"},
+				&ast.Ident{Name: "err"},
+			},
+			Rhs: []ast.Expr{
+				&ast.CallExpr{
+					Fun: &ast.SelectorExpr{
+						X:   &ast.Ident{Name: "models"},
+						Sel: &ast.Ident{Name: "NewUser"},
+					},
+				},
+				&ast.Ident{Name: "nil"},
+			},
+		}
+
+		processAssignments(stmt, fileImports, varTypes)
+		
+		assert.Equal(t, "github.com/microsoftgraph/msgraph-beta-sdk-go/models.NewUser", varTypes["user"])
+		assert.NotContains(t, varTypes, "err")
+	})
+
+	t.Run("Pointer assignment", func(t *testing.T) {
+		// user := &models.User{}
+		stmt := &ast.AssignStmt{
+			Lhs: []ast.Expr{
+				&ast.Ident{Name: "user"},
+			},
+			Rhs: []ast.Expr{
+				&ast.UnaryExpr{
+					Op: token.AND,
+					X: &ast.CompositeLit{
+						Type: &ast.SelectorExpr{
+							X:   &ast.Ident{Name: "models"},
+							Sel: &ast.Ident{Name: "User"},
+						},
+					},
+				},
+			},
+		}
+
+		processAssignments(stmt, fileImports, varTypes)
+		
+		assert.Equal(t, "github.com/microsoftgraph/msgraph-beta-sdk-go/models.User", varTypes["user"])
+	})
+
+	t.Run("Mismatched assignment count", func(t *testing.T) {
+		// More RHS than LHS
+		stmt := &ast.AssignStmt{
+			Lhs: []ast.Expr{
+				&ast.Ident{Name: "x"},
+			},
+			Rhs: []ast.Expr{
+				&ast.Ident{Name: "a"},
+				&ast.Ident{Name: "b"},
+			},
+		}
+
+		processAssignments(stmt, fileImports, varTypes)
+		// Should not panic
+	})
+
+	t.Run("Non-identifier LHS", func(t *testing.T) {
+		stmt := &ast.AssignStmt{
+			Lhs: []ast.Expr{
+				&ast.BasicLit{Value: "123"},
+			},
+			Rhs: []ast.Expr{
+				&ast.Ident{Name: "value"},
+			},
+		}
+
+		processAssignments(stmt, fileImports, varTypes)
+		// Should not panic
+	})
+}
+
+func TestTrackStructFieldsEdgeCases(t *testing.T) {
+	usage := initializeUsageMap()
+	typeName := "github.com/microsoftgraph/msgraph-beta-sdk-go/models.User"
+
+	t.Run("Non-KeyValueExpr elements ignored", func(t *testing.T) {
+		elts := []ast.Expr{
+			&ast.BasicLit{Value: `"value"`},
+			&ast.Ident{Name: "field"},
+		}
+
+		trackStructFields(typeName, elts, usage)
+		// Should not panic, no fields tracked
+	})
+
+	t.Run("Non-identifier keys ignored", func(t *testing.T) {
+		elts := []ast.Expr{
+			&ast.KeyValueExpr{
+				Key:   &ast.BasicLit{Value: `"key"`},
+				Value: &ast.BasicLit{Value: `"value"`},
+			},
+		}
+
+		trackStructFields(typeName, elts, usage)
+		// Should not panic, no fields tracked
+	})
+
+	t.Run("Empty elements list", func(t *testing.T) {
+		elts := []ast.Expr{}
+
+		trackStructFields(typeName, elts, usage)
+		// Should not panic
+	})
+}
+
+func TestComplexCodeAnalysis(t *testing.T) {
+	source := `package test
+
+import (
+	models "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
+	"github.com/microsoft/kiota-abstractions-go/serialization"
+)
+
+func complexExample() {
+	// Nested assignments
+	user := models.NewUser()
+	displayName := user.GetDisplayName()
+	
+	// Multiple enum parsers
+	accountType1 := models.ParseRunAsAccountType("system")
+	accountType2 := models.ParseRunAsAccountType("user")
+	intent := models.ParseInstallIntent("available")
+	
+	// Complex struct
+	assignment := models.TargetedManagedAppPolicyAssignment{
+		Id: "test-id",
+		Target: models.DeviceAndAppManagementAssignmentTarget{
+			DeviceAndAppManagementAssignmentFilterId: "filter-id",
+		},
+	}
+	
+	// Method chaining scenario
+	config := models.NewConfiguration()
+	config.SetName("test")
+	config.SetValue("123")
+	
+	// Pointer operations
+	ptr := &models.Resource{
+		DisplayName: "resource",
+	}
+	
+	// Parse calls on non-models package (should not track enum)
+	serialization.ParseAdditionalData("data")
+}
+`
+	fset := token.NewFileSet()
+	node, err := parser.ParseFile(fset, "complex.go", source, parser.ParseComments)
+	require.NoError(t, err)
+
+	usage := initializeUsageMap()
+	fileImports := collectImports(node, "/complex.go", usage)
+	varTypes := make(map[string]string)
+
+	analyzeAST(node, "/complex.go", fileImports, varTypes, usage)
+
+	t.Run("Tracks multiple enum usages", func(t *testing.T) {
+		runAsEnum := "github.com/microsoftgraph/msgraph-beta-sdk-go/models.RunAsAccountType"
+		installEnum := "github.com/microsoftgraph/msgraph-beta-sdk-go/models.InstallIntent"
+		
+		assert.Contains(t, usage.Enums, runAsEnum)
+		assert.Contains(t, usage.Enums, installEnum)
+	})
+
+	t.Run("Tracks nested struct fields", func(t *testing.T) {
+		assignmentType := "github.com/microsoftgraph/msgraph-beta-sdk-go/models.TargetedManagedAppPolicyAssignment"
+		targetType := "github.com/microsoftgraph/msgraph-beta-sdk-go/models.DeviceAndAppManagementAssignmentTarget"
+		
+		assert.Equal(t, 1, usage.Fields[assignmentType]["Id"])
+		assert.Equal(t, 1, usage.Fields[assignmentType]["Target"])
+		assert.Equal(t, 1, usage.Fields[targetType]["DeviceAndAppManagementAssignmentFilterId"])
+	})
+
+	t.Run("Only tracks models package enums", func(t *testing.T) {
+		// serialization.ParseAdditionalData should NOT create an enum entry
+		serializationEnum := "github.com/microsoft/kiota-abstractions-go/serialization.AdditionalData"
+		assert.NotContains(t, usage.Enums, serializationEnum)
+	})
+
+	t.Run("Tracks pointer struct fields", func(t *testing.T) {
+		resourceType := "github.com/microsoftgraph/msgraph-beta-sdk-go/models.Resource"
+		assert.Equal(t, 1, usage.Fields[resourceType]["DisplayName"])
+	})
+
+	t.Run("Tracks both packages", func(t *testing.T) {
+		assert.Contains(t, usage.Packages, "github.com/microsoftgraph/msgraph-beta-sdk-go/models")
+		assert.Contains(t, usage.Packages, "github.com/microsoft/kiota-abstractions-go/serialization")
+	})
+}
