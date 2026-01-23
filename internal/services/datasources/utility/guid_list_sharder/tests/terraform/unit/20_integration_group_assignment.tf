@@ -18,7 +18,7 @@ data "microsoft365_utility_guid_list_sharder" "split_department" {
 }
 
 # Example: Create pilot groups from shards
-# resource "microsoft365_graph_beta_group" "sales_pilot_a" {
+# resource "microsoft365_graph_beta_groups_group" "sales_pilot_a" {
 #   display_name     = "Sales Pilot Group A"
 #   mail_nickname    = "sales-pilot-a"
 #   security_enabled = true
@@ -27,7 +27,7 @@ data "microsoft365_utility_guid_list_sharder" "split_department" {
 #   group_members = data.microsoft365_utility_guid_list_sharder.split_department.shards["shard_0"]
 # }
 
-# resource "microsoft365_graph_beta_group" "sales_pilot_b" {
+# resource "microsoft365_graph_beta_groups_group" "sales_pilot_b" {
 #   display_name     = "Sales Pilot Group B"
 #   mail_nickname    = "sales-pilot-b"
 #   security_enabled = true
@@ -35,7 +35,7 @@ data "microsoft365_utility_guid_list_sharder" "split_department" {
 #   group_members = data.microsoft365_utility_guid_list_sharder.split_department.shards["shard_1"]
 # }
 
-# resource "microsoft365_graph_beta_group" "sales_pilot_c" {
+# resource "microsoft365_graph_beta_groups_group" "sales_pilot_c" {
 #   display_name     = "Sales Pilot Group C"
 #   mail_nickname    = "sales-pilot-c"
 #   security_enabled = true

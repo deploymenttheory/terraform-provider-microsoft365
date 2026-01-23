@@ -7,10 +7,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-// setComputedState sets all computed attributes on the state model
-// This is the single point where state values are assigned
-func setComputedState(ctx context.Context, state *GuidListSharderDataSourceModel, shards [][]string, resourceType string, shardCount int, strategy string) error {
-	// Convert shards to Terraform Map of Sets format
+// setStateToTerraform sets all values in the state object
+func setStateToTerraform(ctx context.Context, state *GuidListSharderDataSourceModel, shards [][]string, resourceType string, shardCount int, strategy string) error {
+
 	shardsMap := make(map[string]types.Set, len(shards))
 	for i, shard := range shards {
 		shardSet, diags := types.SetValueFrom(ctx, types.StringType, shard)
