@@ -15,7 +15,7 @@ on:
 
 jobs:
   unit-tests:
-    name: '🧪 Unit Tests & Coverage'
+    name: '🧪 Go Unit Tests & Coverage'
     runs-on: ubuntu-24.04-arm
     timeout-minutes: 60
     outputs:
