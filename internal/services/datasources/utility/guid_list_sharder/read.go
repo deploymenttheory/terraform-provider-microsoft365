@@ -89,8 +89,6 @@ func (d *guidListSharderDataSource) Read(ctx context.Context, req datasource.Rea
 	var shards [][]string
 
 	switch strategy {
-	case "hash":
-		shards = shardByHash(guids, shardCount, seed)
 	case "round-robin":
 		shards = shardByRoundRobin(guids, shardCount, seed)
 	case "percentage":

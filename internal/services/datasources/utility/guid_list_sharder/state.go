@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/google/uuid"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
@@ -24,8 +25,7 @@ func setStateToTerraform(ctx context.Context, state *GuidListSharderDataSourceMo
 		return fmt.Errorf("failed to convert shards map to state: %v", diags.Errors())
 	}
 
-	// Set all computed attributes
-	state.Id = types.StringValue(fmt.Sprintf("%s-%d-%s", resourceType, shardCount, strategy))
+	state.Id = types.StringValue(uuid.New().String())
 	state.Shards = shardsMapValue
 
 	return nil

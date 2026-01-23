@@ -101,7 +101,7 @@ func (d *guidListSharderDataSource) Schema(ctx context.Context, _ datasource.Sch
 			"shard_count": schema.Int64Attribute{
 				Optional: true,
 				MarkdownDescription: "Number of equally-sized shards to create (minimum 1). " +
-					"Use with `hash` or `round-robin` strategies. Conflicts with `shard_percentages`. " +
+					"Use with `round-robin` strategy. Conflicts with `shard_percentages`. " +
 					"Creates shards named `shard_0`, `shard_1`, ..., `shard_N-1`. " +
 					"For custom-sized shards (e.g., 10% pilot, 30% broader, 60% full), use `shard_percentages` with `percentage` strategy instead.",
 				Validators: []validator.Int64{
@@ -127,18 +127,16 @@ func (d *guidListSharderDataSource) Schema(ctx context.Context, _ datasource.Sch
 			"strategy": schema.StringAttribute{
 				Required: true,
 				MarkdownDescription: "The distribution strategy for sharding GUIDs. " +
-					"`hash` uses SHA-256 hash-based distribution (without seed: same everywhere, with seed: different per rollout). " +
 					"`round-robin` distributes in circular order (guarantees equal sizes, optional seed for reproducibility). " +
 					"`percentage` distributes by specified percentages (requires `shard_percentages`, optional seed for reproducibility). " +
 					"See the [guide](https://registry.terraform.io/providers/deploymenttheory/microsoft365/latest/docs/guides/progressive_rollout_with_guid_list_sharder) for detailed comparison.",
 				Validators: []validator.String{
-					stringvalidator.OneOf("hash", "round-robin", "percentage"),
+					stringvalidator.OneOf("round-robin", "percentage"),
 				},
 			},
 			"seed": schema.StringAttribute{
 				Optional: true,
 				MarkdownDescription: "Optional seed value for deterministic distribution. When provided, makes results reproducible across Terraform runs. " +
-					"**`hash` strategy**: No seed = same distribution everywhere. With seed = different distribution per rollout (use unique seeds like \"mfa-2024\" vs \"windows-2024\" to vary which users are in pilot groups). " +
 					"**`round-robin` strategy**: No seed = uses API order (may change). With seed = shuffles deterministically first, then applies round-robin (reproducible). " +
 					"**`percentage` strategy**: No seed = uses API order (may change). With seed = shuffles deterministically first, then applies percentage split (reproducible). " +
 					"Use different seeds for different rollouts to distribute pilot burden: User X might be in shard_0 for MFA but shard_2 for Windows Updates.",
