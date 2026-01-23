@@ -12,26 +12,48 @@ import (
 	"strings"
 )
 
-// UsageMap tracks SDK usage across the codebase
-type UsageMap struct {
-	Packages map[string]int            `json:"packages"`
-	Imports  map[string][]string       `json:"imports"`
-	Types    map[string]map[string]int `json:"types"`
-	Methods  map[string]int            `json:"methods"`
-	Fields   map[string]map[string]int `json:"fields"`
-	Enums    map[string][]string       `json:"enums"`
+// ResourceInfo tracks SDK usage for a single Terraform entity
+type ResourceInfo struct {
+	ResourcePath    string          `json:"resource_path"`
+	SDKDependencies SDKDependencies `json:"sdk_dependencies"`
+	Files           []string        `json:"files"`
 }
 
-// initializeUsageMap creates a new UsageMap with initialized maps.
-func initializeUsageMap() *UsageMap {
-	return &UsageMap{
-		Packages: make(map[string]int),
-		Imports:  make(map[string][]string),
-		Types:    make(map[string]map[string]int),
-		Methods:  make(map[string]int),
-		Fields:   make(map[string]map[string]int),
-		Enums:    make(map[string][]string),
-	}
+// SDKDependencies tracks what SDK components an entity uses
+type SDKDependencies struct {
+	Types         []string            `json:"types"`
+	FieldsUsed    map[string][]string `json:"fields_used"`
+	MethodsCalled []string            `json:"methods_called"`
+	EnumsUsed     []EnumUsage         `json:"enums_used"`
+}
+
+// EnumUsage tracks enum usage
+type EnumUsage struct {
+	Enum         string   `json:"enum"`
+	ValuesInUse  []string `json:"values_in_use,omitempty"`
+}
+
+// Statistics provides summary statistics
+type Statistics struct {
+	TotalResources      int `json:"total_resources"`
+	TotalActions        int `json:"total_actions"`
+	TotalListActions    int `json:"total_list_actions"`
+	TotalEphemerals     int `json:"total_ephemerals"`
+	TotalDataSources    int `json:"total_data_sources"`
+	TotalSDKTypesUsed   int `json:"total_sdk_types_used"`
+	TotalSDKMethodsUsed int `json:"total_sdk_methods_used"`
+	TotalEnumsTracked   int `json:"total_enums_tracked"`
+}
+
+// UsageMapV2 is the new resource-centric structure
+type UsageMapV2 struct {
+	TerraformResources   map[string]*ResourceInfo `json:"terraform_resources"`
+	TerraformActions     map[string]*ResourceInfo `json:"terraform_actions"`
+	TerraformListActions map[string]*ResourceInfo `json:"terraform_list_actions"`
+	TerraformEphemerals  map[string]*ResourceInfo `json:"terraform_ephemerals"`
+	TerraformDataSources map[string]*ResourceInfo `json:"terraform_data_sources"`
+	SDKToResourceIndex   map[string][]string      `json:"sdk_to_resource_index"`
+	Statistics           Statistics               `json:"statistics"`
 }
 
 // main orchestrates SDK usage extraction from repository.
@@ -41,7 +63,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	usage := initializeUsageMap()
+	usage := initializeUsageMapV2()
 
 	if err := analyzeRepository(os.Args[1], usage); err != nil {
 		fmt.Fprintf(os.Stderr, "Error analyzing files: %v\n", err)
@@ -54,8 +76,21 @@ func main() {
 	}
 }
 
+// initializeUsageMapV2 creates a new UsageMapV2 with initialized maps.
+func initializeUsageMapV2() *UsageMapV2 {
+	return &UsageMapV2{
+		TerraformResources:   make(map[string]*ResourceInfo),
+		TerraformActions:     make(map[string]*ResourceInfo),
+		TerraformListActions: make(map[string]*ResourceInfo),
+		TerraformEphemerals:  make(map[string]*ResourceInfo),
+		TerraformDataSources: make(map[string]*ResourceInfo),
+		SDKToResourceIndex:   make(map[string][]string),
+		Statistics:           Statistics{},
+	}
+}
+
 // analyzeRepository walks the repository directory tree and analyzes all Go files.
-func analyzeRepository(repoPath string, usage *UsageMap) error {
+func analyzeRepository(repoPath string, usage *UsageMapV2) error {
 	servicesPath := filepath.Join(repoPath, "internal", "services")
 	return filepath.Walk(servicesPath, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
@@ -66,7 +101,7 @@ func analyzeRepository(repoPath string, usage *UsageMap) error {
 			return nil
 		}
 
-		return analyzeFile(path, usage)
+		return analyzeFile(path, repoPath, usage)
 	})
 }
 
@@ -76,7 +111,10 @@ func shouldSkipFile(path string) bool {
 }
 
 // outputResults serializes usage data to JSON and writes to stdout.
-func outputResults(usage *UsageMap) error {
+func outputResults(usage *UsageMapV2) error {
+	// Finalize statistics
+	usage.Statistics = calculateStatistics(usage)
+
 	output, err := json.MarshalIndent(usage, "", "  ")
 	if err != nil {
 		return err
@@ -86,17 +124,129 @@ func outputResults(usage *UsageMap) error {
 }
 
 // analyzeFile parses a Go file and extracts SDK usage patterns.
-func analyzeFile(path string, usage *UsageMap) error {
+func analyzeFile(path, repoPath string, usage *UsageMapV2) error {
 	node, err := parseGoFile(path)
 	if err != nil {
 		return nil // Skip files with parse errors
 	}
 
-	fileImports := collectImports(node, path, usage)
-	varTypes := make(map[string]string)
+	// Determine entity type and name from file path
+	entity := parseEntityFromPath(path, repoPath)
+	if entity == nil {
+		return nil // Not in a tracked directory
+	}
 
-	analyzeAST(node, path, fileImports, varTypes, usage)
+	// Get or create ResourceInfo for this entity
+	resourceInfo := getOrCreateResourceInfo(usage, entity)
+
+	// Track this file
+	fileName := filepath.Base(path)
+	if !slices.Contains(resourceInfo.Files, fileName) {
+		resourceInfo.Files = append(resourceInfo.Files, fileName)
+	}
+
+	// Collect imports
+	fileImports := collectImports(node)
+	if len(fileImports) == 0 {
+		return nil // No SDK imports
+	}
+
+	// Analyze AST and track SDK usage
+	analyzeASTForEntity(node, path, fileImports, resourceInfo, usage)
+
 	return nil
+}
+
+// Entity represents a Terraform entity (resource, action, data source, etc.)
+type Entity struct {
+	Type string // "resource", "action", "list-action", "ephemeral", "data-source"
+	Name string // e.g., "microsoft365_user"
+	Path string // relative path from repo root
+}
+
+// parseEntityFromPath extracts entity information from file path
+func parseEntityFromPath(path, repoPath string) *Entity {
+	relPath := strings.TrimPrefix(path, repoPath+"/")
+
+	// Check each entity type
+	if strings.HasPrefix(relPath, "internal/services/resources/") {
+		return extractEntityInfo(relPath, "internal/services/resources/", "resource")
+	}
+	if strings.HasPrefix(relPath, "internal/services/actions/") {
+		return extractEntityInfo(relPath, "internal/services/actions/", "action")
+	}
+	if strings.HasPrefix(relPath, "internal/services/list-resources/") {
+		return extractEntityInfo(relPath, "internal/services/list-resources/", "list-action")
+	}
+	if strings.HasPrefix(relPath, "internal/services/ephemerals/") {
+		return extractEntityInfo(relPath, "internal/services/ephemerals/", "ephemeral")
+	}
+	if strings.HasPrefix(relPath, "internal/services/data-sources/") {
+		return extractEntityInfo(relPath, "internal/services/data-sources/", "data-source")
+	}
+
+	return nil
+}
+
+// extractEntityInfo extracts entity name from path
+func extractEntityInfo(relPath, prefix, entityType string) *Entity {
+	// Remove prefix
+	remainder := strings.TrimPrefix(relPath, prefix)
+	
+	// Split into parts: domain/graph_version/resource_name/file.go
+	parts := strings.Split(remainder, "/")
+	if len(parts) < 3 {
+		return nil
+	}
+
+	// parts[0] = service domain (e.g., "device_management", "users")
+	// parts[1] = graph version (e.g., "graph_beta", "graph_v1")
+	// parts[2] = resource/action name
+	resourceName := parts[2]
+
+	// Convert to Terraform naming: microsoft365_{resource_name}
+	tfName := "microsoft365_" + strings.ReplaceAll(resourceName, "_", "_")
+
+	return &Entity{
+		Type: entityType,
+		Name: tfName,
+		Path: prefix + strings.Join(parts[:3], "/"),
+	}
+}
+
+// getOrCreateResourceInfo gets or creates a ResourceInfo for an entity
+func getOrCreateResourceInfo(usage *UsageMapV2, entity *Entity) *ResourceInfo {
+	var targetMap map[string]*ResourceInfo
+
+	switch entity.Type {
+	case "resource":
+		targetMap = usage.TerraformResources
+	case "action":
+		targetMap = usage.TerraformActions
+	case "list-action":
+		targetMap = usage.TerraformListActions
+	case "ephemeral":
+		targetMap = usage.TerraformEphemerals
+	case "data-source":
+		targetMap = usage.TerraformDataSources
+	default:
+		return nil
+	}
+
+	if targetMap[entity.Name] == nil {
+		targetMap[entity.Name] = &ResourceInfo{
+			ResourcePath: entity.Path,
+			SDKDependencies: SDKDependencies{
+				Types:         []string{},
+				FieldsUsed:    make(map[string][]string),
+				MethodsCalled: []string{},
+				EnumsUsed:     []EnumUsage{},
+			},
+			Files: []string{},
+		}
+	}
+
+	return targetMap[entity.Name]
 }
 
 // parseGoFile parses a Go source file and returns its AST.
@@ -105,9 +255,9 @@ func parseGoFile(path string) (*ast.File, error) {
 	return parser.ParseFile(fset, path, nil, parser.ParseComments)
 }
 
-// collectImports extracts SDK imports from an AST and tracks them in usage map.
+// collectImports extracts SDK imports from an AST.
 // Returns a map of import aliases to full import paths for the file.
-func collectImports(node *ast.File, path string, usage *UsageMap) map[string]string {
+func collectImports(node *ast.File) map[string]string {
 	fileImports := make(map[string]string)
 
 	for _, imp := range node.Imports {
@@ -119,8 +269,6 @@ func collectImports(node *ast.File, path string, usage *UsageMap) map[string]str
 
 		alias := getImportAlias(imp, importPath)
 		fileImports[alias] = importPath
-
-		trackImport(importPath, path, usage)
 	}
 
 	return fileImports
@@ -140,28 +288,20 @@ func getImportAlias(imp *ast.ImportSpec, importPath string) string {
 	return parts[len(parts)-1]
 }
 
-// trackImport records an SDK import and the file that imports it.
-func trackImport(importPath, filePath string, usage *UsageMap) {
-	usage.Packages[importPath]++
+// analyzeASTForEntity walks the AST and extracts SDK usage for an entity
+func analyzeASTForEntity(node *ast.File, path string, fileImports map[string]string, resourceInfo *ResourceInfo, usage *UsageMapV2) {
+	varTypes := make(map[string]string)
 
-	if usage.Imports[importPath] == nil {
-		usage.Imports[importPath] = []string{}
-	}
-	usage.Imports[importPath] = append(usage.Imports[importPath], filePath)
-}
-
-// analyzeAST walks the AST and processes different node types to extract SDK usage.
-func analyzeAST(node *ast.File, path string, fileImports map[string]string, varTypes map[string]string, usage *UsageMap) {
 	ast.Inspect(node, func(n ast.Node) bool {
 		switch x := n.(type) {
 		case *ast.AssignStmt:
 			processAssignments(x, fileImports, varTypes)
 		case *ast.SelectorExpr:
-			processSelectorExpr(x, fileImports, varTypes, usage)
+			processSelectorExpr(x, fileImports, varTypes, resourceInfo)
 		case *ast.CallExpr:
-			processCallExpr(x, path, fileImports, varTypes, usage)
+			processCallExpr(x, path, fileImports, varTypes, resourceInfo, usage)
 		case *ast.CompositeLit:
-			processCompositeLit(x, fileImports, usage)
+			processCompositeLit(x, fileImports, resourceInfo)
 		}
 		return true
 	})
@@ -180,7 +320,8 @@ func processAssignments(stmt *ast.AssignStmt, fileImports map[string]string, var
 			continue
 		}
 
-		if sdkType := extractSDKType(rhs, fileImports); sdkType != "" {
+		sdkType := extractSDKType(rhs, fileImports)
+		if sdkType != "" {
 			varTypes[varName] = sdkType
 		}
 	}
@@ -196,13 +337,13 @@ func extractVarName(expr ast.Expr) string {
 
 // extractSDKType determines if an expression is an SDK type and returns its full name.
 func extractSDKType(rhs ast.Expr, fileImports map[string]string) string {
-	switch rhsType := rhs.(type) {
+	switch expr := rhs.(type) {
 	case *ast.CallExpr:
-		return extractTypeFromCallExpr(rhsType, fileImports)
-	case *ast.UnaryExpr:
-		return extractTypeFromUnaryExpr(rhsType, fileImports)
+		return extractTypeFromCallExpr(expr, fileImports)
 	case *ast.CompositeLit:
-		return extractTypeFromCompositeLit(rhsType, fileImports)
+		return extractTypeFromCompositeLit(expr, fileImports)
+	case *ast.UnaryExpr:
+		return extractTypeFromUnaryExpr(expr, fileImports)
 	}
 	return ""
 }
@@ -245,29 +386,32 @@ func extractTypeFromCompositeLit(comp *ast.CompositeLit, fileImports map[string]
 }
 
 // processSelectorExpr handles selector expressions (package.Type or object.Field).
-func processSelectorExpr(sel *ast.SelectorExpr, fileImports map[string]string, varTypes map[string]string, usage *UsageMap) {
+func processSelectorExpr(sel *ast.SelectorExpr, fileImports map[string]string, varTypes map[string]string, resourceInfo *ResourceInfo) {
 	if ident, ok := sel.X.(*ast.Ident); ok {
-		if importPath, exists := fileImports[ident.Name]; exists {
-			// Package-level reference
-			fullName := fmt.Sprintf("%s.%s", importPath, sel.Sel.Name)
-			usage.Methods[fullName]++
+		if _, exists := fileImports[ident.Name]; exists {
+			// Package-level reference - don't track here, tracked in calls
 		} else if typeName, exists := varTypes[ident.Name]; exists {
 			// Field access on typed object
-			trackFieldAccess(typeName, sel.Sel.Name, usage)
+			trackFieldAccess(typeName, sel.Sel.Name, resourceInfo)
 		}
 	}
 }
 
 // trackFieldAccess records a field access on an SDK type.
-func trackFieldAccess(typeName, fieldName string, usage *UsageMap) {
-	if usage.Fields[typeName] == nil {
-		usage.Fields[typeName] = make(map[string]int)
+func trackFieldAccess(typeName, fieldName string, resourceInfo *ResourceInfo) {
+	// Simplify type name for display
+	shortType := simplifyTypeName(typeName)
+	
+	if resourceInfo.SDKDependencies.FieldsUsed[shortType] == nil {
+		resourceInfo.SDKDependencies.FieldsUsed[shortType] = []string{}
 	}
-	usage.Fields[typeName][fieldName]++
+	if !slices.Contains(resourceInfo.SDKDependencies.FieldsUsed[shortType], fieldName) {
+		resourceInfo.SDKDependencies.FieldsUsed[shortType] = append(resourceInfo.SDKDependencies.FieldsUsed[shortType], fieldName)
+	}
 }
 
 // processCallExpr handles function/method calls and tracks enum parser usage.
-func processCallExpr(call *ast.CallExpr, path string, fileImports map[string]string, varTypes map[string]string, usage *UsageMap) {
+func processCallExpr(call *ast.CallExpr, path string, fileImports map[string]string, varTypes map[string]string, resourceInfo *ResourceInfo, usage *UsageMapV2) {
 	sel, ok := call.Fun.(*ast.SelectorExpr)
 	if !ok {
 		return
@@ -279,46 +423,63 @@ func processCallExpr(call *ast.CallExpr, path string, fileImports map[string]str
 	}
 
 	if importPath, exists := fileImports[ident.Name]; exists {
-		trackPackageMethod(importPath, sel.Sel.Name, path, usage)
+		trackPackageMethod(importPath, sel.Sel.Name, path, resourceInfo, usage)
 	} else if typeName, exists := varTypes[ident.Name]; exists {
-		trackObjectMethod(typeName, sel.Sel.Name, usage)
+		trackObjectMethod(typeName, sel.Sel.Name, resourceInfo)
 	}
 }
 
 // trackPackageMethod records a package-level method call and checks for enum parsers.
-func trackPackageMethod(importPath, methodName, path string, usage *UsageMap) {
-	fullMethodName := fmt.Sprintf("%s.%s", importPath, methodName)
-	usage.Methods[fullMethodName]++
+func trackPackageMethod(importPath, methodName, path string, resourceInfo *ResourceInfo, usage *UsageMapV2) {
+	fullMethodName := fmt.Sprintf("%s.%s", simplifyTypeName(importPath), methodName)
+	
+	if !slices.Contains(resourceInfo.SDKDependencies.MethodsCalled, fullMethodName) {
+		resourceInfo.SDKDependencies.MethodsCalled = append(resourceInfo.SDKDependencies.MethodsCalled, fullMethodName)
+	}
 
 	// Track enum parser usage
 	if strings.HasPrefix(methodName, "Parse") && strings.Contains(importPath, "models") {
-		trackEnumUsage(importPath, methodName, path, usage)
+		trackEnumUsage(importPath, methodName, resourceInfo, usage)
 	}
 }
 
 // trackObjectMethod records a method call on a typed object.
-func trackObjectMethod(typeName, methodName string, usage *UsageMap) {
-	fullMethodName := fmt.Sprintf("%s.%s", typeName, methodName)
-	usage.Methods[fullMethodName]++
+func trackObjectMethod(typeName, methodName string, resourceInfo *ResourceInfo) {
+	fullMethodName := fmt.Sprintf("%s.%s", simplifyTypeName(typeName), methodName)
+	
+	if !slices.Contains(resourceInfo.SDKDependencies.MethodsCalled, fullMethodName) {
+		resourceInfo.SDKDependencies.MethodsCalled = append(resourceInfo.SDKDependencies.MethodsCalled, fullMethodName)
+	}
 }
 
 // trackEnumUsage detects and records enum parser calls.
 // Example: ParseRunAsAccountType -> tracks RunAsAccountType enum
-func trackEnumUsage(importPath, methodName, path string, usage *UsageMap) {
+func trackEnumUsage(importPath, methodName string, resourceInfo *ResourceInfo, usage *UsageMapV2) {
 	enumType := strings.TrimPrefix(methodName, "Parse")
 	if enumType == "" {
 		return
 	}
 
-	fullEnumName := fmt.Sprintf("%s.%s", importPath, enumType)
-	if !slices.Contains(usage.Enums[fullEnumName], path) {
-		usage.Enums[fullEnumName] = append(usage.Enums[fullEnumName], path)
+	fullEnumName := fmt.Sprintf("%s.%s", simplifyTypeName(importPath), enumType)
+	
+	// Add to resource's enum list
+	found := false
+	for _, existing := range resourceInfo.SDKDependencies.EnumsUsed {
+		if existing.Enum == fullEnumName {
+			found = true
+			break
+		}
+	}
+	if !found {
+		resourceInfo.SDKDependencies.EnumsUsed = append(resourceInfo.SDKDependencies.EnumsUsed, EnumUsage{
+			Enum: fullEnumName,
+		})
 	}
 }
 
 // processCompositeLit handles struct literal instantiation and field usage.
 // Example: models.User{DisplayName: "foo"}
-func processCompositeLit(comp *ast.CompositeLit, fileImports map[string]string, usage *UsageMap) {
+func processCompositeLit(comp *ast.CompositeLit, fileImports map[string]string, resourceInfo *ResourceInfo) {
 	sel, ok := comp.Type.(*ast.SelectorExpr)
 	if !ok {
 		return
@@ -335,29 +496,112 @@ func processCompositeLit(comp *ast.CompositeLit, fileImports map[string]string, 
 	}
 
 	typeName := fmt.Sprintf("%s.%s", importPath, sel.Sel.Name)
-	trackTypeInstantiation(typeName, usage)
-	trackStructFields(typeName, comp.Elts, usage)
+	trackTypeInstantiation(typeName, resourceInfo)
+	trackStructFields(typeName, comp.Elts, resourceInfo)
 }
 
 // trackTypeInstantiation records that an SDK type was instantiated.
-func trackTypeInstantiation(typeName string, usage *UsageMap) {
-	if usage.Types[typeName] == nil {
-		usage.Types[typeName] = make(map[string]int)
+func trackTypeInstantiation(typeName string, resourceInfo *ResourceInfo) {
+	shortType := simplifyTypeName(typeName)
+	
+	if !slices.Contains(resourceInfo.SDKDependencies.Types, shortType) {
+		resourceInfo.SDKDependencies.Types = append(resourceInfo.SDKDependencies.Types, shortType)
 	}
-	usage.Types[typeName]["_instantiated"]++
 }
 
 // trackStructFields extracts and records fields used in struct literals.
-func trackStructFields(typeName string, elts []ast.Expr, usage *UsageMap) {
-	if usage.Fields[typeName] == nil {
-		usage.Fields[typeName] = make(map[string]int)
+func trackStructFields(typeName string, elts []ast.Expr, resourceInfo *ResourceInfo) {
+	shortType := simplifyTypeName(typeName)
+	
+	for _, elt := range elts {
+		kv, ok := elt.(*ast.KeyValueExpr)
+		if !ok {
+			continue
+		}
+
+		fieldIdent, ok := kv.Key.(*ast.Ident)
+		if !ok {
+			continue
+		}
+
+		if resourceInfo.SDKDependencies.FieldsUsed[shortType] == nil {
+			resourceInfo.SDKDependencies.FieldsUsed[shortType] = []string{}
+		}
+		if !slices.Contains(resourceInfo.SDKDependencies.FieldsUsed[shortType], fieldIdent.Name) {
+			resourceInfo.SDKDependencies.FieldsUsed[shortType] = append(resourceInfo.SDKDependencies.FieldsUsed[shortType], fieldIdent.Name)
+		}
+	}
+}
+
+// simplifyTypeName converts full SDK type names to short versions
+func simplifyTypeName(fullName string) string {
+	// Remove the base path, keep only models.TypeName or package.TypeName
+	if strings.Contains(fullName, "/models.") {
+		parts := strings.Split(fullName, "/models.")
+		return "models." + parts[len(parts)-1]
+	}
+	if strings.Contains(fullName, "/") {
+		parts := strings.Split(fullName, "/")
+		return parts[len(parts)-1]
+	}
+	return fullName
+}
+
+// calculateStatistics generates final statistics and SDK-to-resource index
+func calculateStatistics(usage *UsageMapV2) Statistics {
+	// Build SDK-to-resource index
+	allTypesUsed := make(map[string]bool)
+	allMethodsUsed := make(map[string]bool)
+	allEnumsUsed := make(map[string]bool)
+
+	for entityName, info := range usage.TerraformResources {
+		indexSDKUsage(entityName, info, usage.SDKToResourceIndex, allTypesUsed, allMethodsUsed, allEnumsUsed)
+	}
+	for entityName, info := range usage.TerraformActions {
+		indexSDKUsage(entityName, info, usage.SDKToResourceIndex, allTypesUsed, allMethodsUsed, allEnumsUsed)
+	}
+	for entityName, info := range usage.TerraformListActions {
+		indexSDKUsage(entityName, info, usage.SDKToResourceIndex, allTypesUsed, allMethodsUsed, allEnumsUsed)
+	}
+	for entityName, info := range usage.TerraformEphemerals {
+		indexSDKUsage(entityName, info, usage.SDKToResourceIndex, allTypesUsed, allMethodsUsed, allEnumsUsed)
+	}
+	for entityName, info := range usage.TerraformDataSources {
+		indexSDKUsage(entityName, info, usage.SDKToResourceIndex, allTypesUsed, allMethodsUsed, allEnumsUsed)
 	}
 
-	for _, elt := range elts {
-		if kv, ok := elt.(*ast.KeyValueExpr); ok {
-			if fieldIdent, ok := kv.Key.(*ast.Ident); ok {
-				usage.Fields[typeName][fieldIdent.Name]++
-			}
+	return Statistics{
+		TotalResources:      len(usage.TerraformResources),
+		TotalActions:        len(usage.TerraformActions),
+		TotalListActions:    len(usage.TerraformListActions),
+		TotalEphemerals:     len(usage.TerraformEphemerals),
+		TotalDataSources:    len(usage.TerraformDataSources),
+		TotalSDKTypesUsed:   len(allTypesUsed),
+		TotalSDKMethodsUsed: len(allMethodsUsed),
+		TotalEnumsTracked:   len(allEnumsUsed),
+	}
+}
+
+// indexSDKUsage builds the reverse index from SDK components to entities
+func indexSDKUsage(entityName string, info *ResourceInfo, index map[string][]string, typesSet, methodsSet, enumsSet map[string]bool) {
+	// Index types
+	for _, sdkType := range info.SDKDependencies.Types {
+		if !slices.Contains(index[sdkType], entityName) {
+			index[sdkType] = append(index[sdkType], entityName)
 		}
+		typesSet[sdkType] = true
+	}
+
+	// Index methods
+	for _, method := range info.SDKDependencies.MethodsCalled {
+		methodsSet[method] = true
+	}
+
+	// Index enums
+	for _, enumUsage := range info.SDKDependencies.EnumsUsed {
+		if !slices.Contains(index[enumUsage.Enum], entityName) {
+			index[enumUsage.Enum] = append(index[enumUsage.Enum], entityName)
+		}
+		enumsSet[enumUsage.Enum] = true
 	}
 }

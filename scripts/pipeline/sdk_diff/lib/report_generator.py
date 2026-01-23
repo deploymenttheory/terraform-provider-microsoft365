@@ -668,10 +668,9 @@ def _generate_actionable_changes_json(
 ) -> Dict[str, Any]:
     """Generate resource-grouped actionable changes for PR automation.
     
-    This is the key file for future PR generation.
+    This maps SDK changes to specific Terraform resources using the usage baseline.
     """
-    # TODO: Implement resource mapping logic
-    # For now, create a basic structure
+    sdk_to_resource = usage_data.get("sdk_to_resource_index", {})
     
     actionable = {
         "metadata": metadata,
@@ -681,40 +680,110 @@ def _generate_actionable_changes_json(
             "type_modifications": len([w for w in categorized.get("warning", []) if '/models/' in w.get('file', '')]),
             "total_actionable": len(categorized.get("critical", [])) + len(categorized.get("warning", [])) + len(categorized.get("opportunity", []))
         },
-        "resource_impacts": {},  # Will be populated by resource mapping
+        "resource_impacts": {},
         "critical_actions": [],
         "enhancement_opportunities": [],
         "pr_templates_suggested": []
     }
     
-    # Add critical actions
+    # Build resource impacts map
+    resource_impacts = {}
+    
+    # Critical actions - enum values removed
     for enum_change in categorized.get("enum_removed", []):
+        enum_name = enum_change.get("enum", "")
+        removed_values = enum_change.get("removed_values", [])
+        affected_resources = sdk_to_resource.get(enum_name, [])
+        
+        # Add to critical actions
         actionable["critical_actions"].append({
             "type": "enum_value_removed",
             "priority": "critical",
-            "enum": enum_change.get("enum", ""),
-            "removed_values": enum_change.get("removed_values", []),
-            "affected_files": enum_change.get("used_in_files", []),
+            "enum": enum_name,
+            "removed_values": removed_values,
+            "affected_resources": affected_resources,
             "action_required": "Update resource schema validation to remove deprecated values"
         })
+        
+        # Add to resource impacts
+        for resource in affected_resources:
+            if resource not in resource_impacts:
+                resource_impacts[resource] = {
+                    "breaking_changes": [],
+                    "schema_updates": [],
+                    "validation_updates": []
+                }
+            resource_impacts[resource]["breaking_changes"].append({
+                "type": "enum_value_removed",
+                "enum": enum_name,
+                "removed_values": removed_values
+            })
     
-    # Add enhancement opportunities
+    # Enhancement opportunities - field additions
     for field_add in categorized.get("opportunity", []):
+        sdk_type = field_add.get("type", "")
+        field_name = field_add.get("field", "")
+        affected_resources = sdk_to_resource.get(sdk_type, [])
+        
         actionable["enhancement_opportunities"].append({
             "type": "field_added",
             "priority": "optional",
-            "entity": field_add.get("type", ""),
-            "field": field_add.get("field", ""),
+            "sdk_type": sdk_type,
+            "field": field_name,
+            "affected_resources": affected_resources,
             "action_suggested": "Consider adding to resource schema if relevant"
         })
+        
+        # Add to resource impacts
+        for resource in affected_resources:
+            if resource not in resource_impacts:
+                resource_impacts[resource] = {
+                    "breaking_changes": [],
+                    "schema_updates": [],
+                    "validation_updates": []
+                }
+            resource_impacts[resource]["schema_updates"].append({
+                "type": "field_added",
+                "sdk_type": sdk_type,
+                "field": field_name,
+                "optional": True
+            })
     
+    # Enhancement opportunities - enum values added
     for enum_add in categorized.get("enum_added", []):
+        enum_name = enum_add.get("enum", "")
+        added_values = enum_add.get("added_values", [])
+        affected_resources = sdk_to_resource.get(enum_name, [])
+        
         actionable["enhancement_opportunities"].append({
             "type": "enum_value_added",
             "priority": "optional",
-            "enum": enum_add.get("enum", ""),
-            "added_values": enum_add.get("added_values", []),
+            "enum": enum_name,
+            "added_values": added_values,
+            "affected_resources": affected_resources,
             "action_suggested": "Update schema validation to accept new values"
         })
+        
+        # Add to resource impacts
+        for resource in affected_resources:
+            if resource not in resource_impacts:
+                resource_impacts[resource] = {
+                    "breaking_changes": [],
+                    "schema_updates": [],
+                    "validation_updates": []
+                }
+            resource_impacts[resource]["validation_updates"].append({
+                "type": "enum_value_added",
+                "enum": enum_name,
+                "added_values": added_values
+            })
+    
+    actionable["resource_impacts"] = resource_impacts
+    
+    # Suggest PR templates based on impact
+    if actionable["critical_actions"]:
+        actionable["pr_templates_suggested"].append("breaking_change_fix")
+    if actionable["enhancement_opportunities"]:
+        actionable["pr_templates_suggested"].append("schema_enhancement")
     
     return actionable

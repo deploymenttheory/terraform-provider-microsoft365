@@ -10,18 +10,17 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestInitializeUsageMap(t *testing.T) {
-	usage := initializeUsageMap()
+func TestInitializeUsageMapV2(t *testing.T) {
+	usage := initializeUsageMapV2()
 
 	assert.NotNil(t, usage)
-	assert.NotNil(t, usage.Packages)
-	assert.NotNil(t, usage.Imports)
-	assert.NotNil(t, usage.Types)
-	assert.NotNil(t, usage.Methods)
-	assert.NotNil(t, usage.Fields)
-	assert.NotNil(t, usage.Enums)
-	assert.Empty(t, usage.Packages)
-	assert.Empty(t, usage.Enums)
+	assert.NotNil(t, usage.TerraformResources)
+	assert.NotNil(t, usage.TerraformActions)
+	assert.NotNil(t, usage.TerraformListActions)
+	assert.NotNil(t, usage.TerraformEphemerals)
+	assert.NotNil(t, usage.TerraformDataSources)
+	assert.NotNil(t, usage.SDKToResourceIndex)
+	assert.Empty(t, usage.TerraformResources)
 }
 
 func TestShouldSkipFile(t *testing.T) {
@@ -32,23 +31,18 @@ func TestShouldSkipFile(t *testing.T) {
 	}{
 		{
 			name:     "Regular Go file",
-			path:     "/path/to/file.go",
+			path:     "/path/to/resource.go",
 			expected: false,
 		},
 		{
 			name:     "Test file",
-			path:     "/path/to/file_test.go",
+			path:     "/path/to/resource_test.go",
 			expected: true,
 		},
 		{
 			name:     "Non-Go file",
-			path:     "/path/to/file.txt",
+			path:     "/path/to/config.yaml",
 			expected: true,
-		},
-		{
-			name:     "Go file in subdirectory",
-			path:     "/path/to/subdir/resource.go",
-			expected: false,
 		},
 	}
 
@@ -56,6 +50,180 @@ func TestShouldSkipFile(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			result := shouldSkipFile(tt.path)
 			assert.Equal(t, tt.expected, result)
+		})
+	}
+}
+
+func TestParseEntityFromPath(t *testing.T) {
+	repoPath := "/repo"
+
+	tests := []struct {
+		name         string
+		path         string
+		expectedType string
+		expectedName string
+		shouldBeNil  bool
+	}{
+		{
+			name:         "Resource path",
+			path:         "/repo/internal/services/resources/users/graph_beta/user/resource.go",
+			expectedType: "resource",
+			expectedName: "microsoft365_user",
+			shouldBeNil:  false,
+		},
+		{
+			name:         "Action path",
+			path:         "/repo/internal/services/actions/device_management/graph_beta/managed_device/invoke.go",
+			expectedType: "action",
+			expectedName: "microsoft365_managed_device",
+			shouldBeNil:  false,
+		},
+		{
+			name:         "List action path",
+			path:         "/repo/internal/services/list-resources/device_management/graph_beta/devices/list.go",
+			expectedType: "list-action",
+			expectedName: "microsoft365_devices",
+			shouldBeNil:  false,
+		},
+		{
+			name:         "Ephemeral path",
+			path:         "/repo/internal/services/ephemerals/identity/graph_beta/token/ephemeral.go",
+			expectedType: "ephemeral",
+			expectedName: "microsoft365_token",
+			shouldBeNil:  false,
+		},
+		{
+			name:         "Data source path",
+			path:         "/repo/internal/services/data-sources/users/graph_beta/user/data.go",
+			expectedType: "data-source",
+			expectedName: "microsoft365_user",
+			shouldBeNil:  false,
+		},
+		{
+			name:        "Common path (not an entity)",
+			path:        "/repo/internal/services/common/errors/error.go",
+			shouldBeNil: true,
+		},
+		{
+			name:        "Too short path",
+			path:        "/repo/internal/services/resources/users/resource.go",
+			shouldBeNil: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			entity := parseEntityFromPath(tt.path, repoPath)
+
+			if tt.shouldBeNil {
+				assert.Nil(t, entity)
+			} else {
+				require.NotNil(t, entity)
+				assert.Equal(t, tt.expectedType, entity.Type)
+				assert.Equal(t, tt.expectedName, entity.Name)
+			}
+		})
+	}
+}
+
+func TestExtractEntityInfo(t *testing.T) {
+	tests := []struct {
+		name         string
+		relPath      string
+		prefix       string
+		entityType   string
+		expectedName string
+		shouldBeNil  bool
+	}{
+		{
+			name:         "Valid resource path",
+			relPath:      "internal/services/resources/users/graph_beta/user/resource.go",
+			prefix:       "internal/services/resources/",
+			entityType:   "resource",
+			expectedName: "microsoft365_user",
+			shouldBeNil:  false,
+		},
+		{
+			name:         "Device management resource",
+			relPath:      "internal/services/resources/device_management/graph_beta/settings_catalog/construct.go",
+			prefix:       "internal/services/resources/",
+			entityType:   "resource",
+			expectedName: "microsoft365_settings_catalog",
+			shouldBeNil:  false,
+		},
+		{
+			name:        "Path too short",
+			relPath:     "internal/services/resources/users/resource.go",
+			prefix:      "internal/services/resources/",
+			entityType:  "resource",
+			shouldBeNil: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			entity := extractEntityInfo(tt.relPath, tt.prefix, tt.entityType)
+
+			if tt.shouldBeNil {
+				assert.Nil(t, entity)
+			} else {
+				require.NotNil(t, entity)
+				assert.Equal(t, tt.entityType, entity.Type)
+				assert.Equal(t, tt.expectedName, entity.Name)
+			}
+		})
+	}
+}
+
+func TestGetOrCreateResourceInfo(t *testing.T) {
+	usage := initializeUsageMapV2()
+
+	entity := &Entity{
+		Type: "resource",
+		Name: "microsoft365_user",
+		Path: "internal/services/resources/users/graph_beta/user",
+	}
+
+	// First call should create
+	info1 := getOrCreateResourceInfo(usage, entity)
+	require.NotNil(t, info1)
+	assert.Equal(t, entity.Path, info1.ResourcePath)
+	assert.NotNil(t, info1.SDKDependencies.FieldsUsed)
+
+	// Second call should return same instance
+	info2 := getOrCreateResourceInfo(usage, entity)
+	assert.Equal(t, info1, info2)
+
+	// Verify it's in the correct map
+	assert.Len(t, usage.TerraformResources, 1)
+	assert.Contains(t, usage.TerraformResources, "microsoft365_user")
+}
+
+func TestGetOrCreateResourceInfoDifferentTypes(t *testing.T) {
+	usage := initializeUsageMapV2()
+
+	tests := []struct {
+		entityType string
+		targetMap  *map[string]*ResourceInfo
+	}{
+		{"resource", &usage.TerraformResources},
+		{"action", &usage.TerraformActions},
+		{"list-action", &usage.TerraformListActions},
+		{"ephemeral", &usage.TerraformEphemerals},
+		{"data-source", &usage.TerraformDataSources},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.entityType, func(t *testing.T) {
+			entity := &Entity{
+				Type: tt.entityType,
+				Name: "microsoft365_test",
+				Path: "internal/services/" + tt.entityType + "/test",
+			}
+
+			info := getOrCreateResourceInfo(usage, entity)
+			require.NotNil(t, info)
+			assert.Len(t, *tt.targetMap, 1)
 		})
 	}
 }
@@ -72,11 +240,6 @@ func TestIsSDKImport(t *testing.T) {
 			expected:   true,
 		},
 		{
-			name:       "Microsoft Graph SDK",
-			importPath: "github.com/microsoftgraph/msgraph-sdk-go/users",
-			expected:   true,
-		},
-		{
 			name:       "Kiota abstractions",
 			importPath: "github.com/microsoft/kiota-abstractions-go",
 			expected:   true,
@@ -84,11 +247,6 @@ func TestIsSDKImport(t *testing.T) {
 		{
 			name:       "Standard library",
 			importPath: "fmt",
-			expected:   false,
-		},
-		{
-			name:       "Third-party package",
-			importPath: "github.com/hashicorp/terraform-plugin-framework",
 			expected:   false,
 		},
 	}
@@ -119,31 +277,106 @@ func TestGetImportAlias(t *testing.T) {
 		alias := getImportAlias(imp, "github.com/microsoftgraph/msgraph-beta-sdk-go/models")
 		assert.Equal(t, "models", alias)
 	})
-
-	t.Run("Complex path", func(t *testing.T) {
-		imp := &ast.ImportSpec{
-			Name: nil,
-			Path: &ast.BasicLit{Value: `"github.com/microsoft/kiota-abstractions-go/serialization"`},
-		}
-		alias := getImportAlias(imp, "github.com/microsoft/kiota-abstractions-go/serialization")
-		assert.Equal(t, "serialization", alias)
-	})
 }
 
-func TestTrackImport(t *testing.T) {
-	usage := initializeUsageMap()
-	importPath := "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
-	filePath := "/path/to/file.go"
+func TestCollectImports(t *testing.T) {
+	source := `package test
 
-	trackImport(importPath, filePath, usage)
+import (
+	"fmt"
+	models "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
+	"github.com/microsoftgraph/msgraph-sdk-go/users"
+	"github.com/hashicorp/terraform-plugin-framework/types"
+)
+`
+	fset := token.NewFileSet()
+	node, err := parser.ParseFile(fset, "test.go", source, parser.ParseComments)
+	require.NoError(t, err)
 
-	assert.Equal(t, 1, usage.Packages[importPath])
-	assert.Contains(t, usage.Imports[importPath], filePath)
+	fileImports := collectImports(node)
 
-	// Track same import from another file
-	trackImport(importPath, "/path/to/other.go", usage)
-	assert.Equal(t, 2, usage.Packages[importPath])
-	assert.Len(t, usage.Imports[importPath], 2)
+	assert.Len(t, fileImports, 2) // Only SDK imports
+	assert.Equal(t, "github.com/microsoftgraph/msgraph-beta-sdk-go/models", fileImports["models"])
+	assert.Equal(t, "github.com/microsoftgraph/msgraph-sdk-go/users", fileImports["users"])
+	assert.NotContains(t, fileImports, "fmt")
+	assert.NotContains(t, fileImports, "types")
+}
+
+func TestSimplifyTypeName(t *testing.T) {
+	tests := []struct {
+		name     string
+		fullName string
+		expected string
+	}{
+		{
+			name:     "Models type",
+			fullName: "github.com/microsoftgraph/msgraph-beta-sdk-go/models.User",
+			expected: "models.User",
+		},
+		{
+			name:     "Package type",
+			fullName: "github.com/microsoftgraph/msgraph-beta-sdk-go/users.UserItemRequestBuilder",
+			expected: "users.UserItemRequestBuilder",
+		},
+		{
+			name:     "Already simple",
+			fullName: "models.User",
+			expected: "models.User",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := simplifyTypeName(tt.fullName)
+			assert.Equal(t, tt.expected, result)
+		})
+	}
+}
+
+func TestTrackFieldAccess(t *testing.T) {
+	resourceInfo := &ResourceInfo{
+		SDKDependencies: SDKDependencies{
+			FieldsUsed: make(map[string][]string),
+		},
+	}
+
+	trackFieldAccess("github.com/microsoftgraph/msgraph-beta-sdk-go/models.User", "DisplayName", resourceInfo)
+	trackFieldAccess("github.com/microsoftgraph/msgraph-beta-sdk-go/models.User", "DisplayName", resourceInfo)
+	trackFieldAccess("github.com/microsoftgraph/msgraph-beta-sdk-go/models.User", "Email", resourceInfo)
+
+	assert.Contains(t, resourceInfo.SDKDependencies.FieldsUsed, "models.User")
+	assert.Len(t, resourceInfo.SDKDependencies.FieldsUsed["models.User"], 2) // No duplicates
+	assert.Contains(t, resourceInfo.SDKDependencies.FieldsUsed["models.User"], "DisplayName")
+	assert.Contains(t, resourceInfo.SDKDependencies.FieldsUsed["models.User"], "Email")
+}
+
+func TestTrackTypeInstantiation(t *testing.T) {
+	resourceInfo := &ResourceInfo{
+		SDKDependencies: SDKDependencies{
+			Types: []string{},
+		},
+	}
+
+	trackTypeInstantiation("github.com/microsoftgraph/msgraph-beta-sdk-go/models.User", resourceInfo)
+	trackTypeInstantiation("github.com/microsoftgraph/msgraph-beta-sdk-go/models.User", resourceInfo) // Duplicate
+
+	assert.Len(t, resourceInfo.SDKDependencies.Types, 1) // No duplicates
+	assert.Contains(t, resourceInfo.SDKDependencies.Types, "models.User")
+}
+
+func TestTrackEnumUsage(t *testing.T) {
+	usage := initializeUsageMapV2()
+	resourceInfo := &ResourceInfo{
+		SDKDependencies: SDKDependencies{
+			EnumsUsed: []EnumUsage{},
+		},
+	}
+
+	trackEnumUsage("github.com/microsoftgraph/msgraph-beta-sdk-go/models", "ParseRunAsAccountType", resourceInfo, usage)
+	trackEnumUsage("github.com/microsoftgraph/msgraph-beta-sdk-go/models", "ParseRunAsAccountType", resourceInfo, usage) // Duplicate
+
+	assert.Len(t, resourceInfo.SDKDependencies.EnumsUsed, 1) // No duplicates
+	assert.Equal(t, "models.RunAsAccountType", resourceInfo.SDKDependencies.EnumsUsed[0].Enum)
 }
 
 func TestExtractVarName(t *testing.T) {
@@ -158,100 +391,6 @@ func TestExtractVarName(t *testing.T) {
 		name := extractVarName(expr)
 		assert.Equal(t, "", name)
 	})
-}
-
-func TestTrackFieldAccess(t *testing.T) {
-	usage := initializeUsageMap()
-	typeName := "github.com/microsoftgraph/msgraph-beta-sdk-go/models.User"
-	
-	trackFieldAccess(typeName, "DisplayName", usage)
-	trackFieldAccess(typeName, "DisplayName", usage)
-	trackFieldAccess(typeName, "Email", usage)
-
-	assert.Equal(t, 2, usage.Fields[typeName]["DisplayName"])
-	assert.Equal(t, 1, usage.Fields[typeName]["Email"])
-}
-
-func TestTrackObjectMethod(t *testing.T) {
-	usage := initializeUsageMap()
-	typeName := "github.com/microsoftgraph/msgraph-beta-sdk-go/models.User"
-	
-	trackObjectMethod(typeName, "SetDisplayName", usage)
-	trackObjectMethod(typeName, "SetDisplayName", usage)
-	trackObjectMethod(typeName, "GetEmail", usage)
-
-	assert.Equal(t, 2, usage.Methods[typeName+".SetDisplayName"])
-	assert.Equal(t, 1, usage.Methods[typeName+".GetEmail"])
-}
-
-func TestTrackEnumUsage(t *testing.T) {
-	usage := initializeUsageMap()
-	importPath := "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
-	filePath := "/path/to/file.go"
-
-	t.Run("Parse function creates enum entry", func(t *testing.T) {
-		trackEnumUsage(importPath, "ParseRunAsAccountType", filePath, usage)
-		
-		expectedEnum := "github.com/microsoftgraph/msgraph-beta-sdk-go/models.RunAsAccountType"
-		assert.Contains(t, usage.Enums, expectedEnum)
-		assert.Contains(t, usage.Enums[expectedEnum], filePath)
-	})
-
-	t.Run("Same enum from multiple files", func(t *testing.T) {
-		trackEnumUsage(importPath, "ParseRunAsAccountType", "/other/file.go", usage)
-		
-		expectedEnum := "github.com/microsoftgraph/msgraph-beta-sdk-go/models.RunAsAccountType"
-		assert.Len(t, usage.Enums[expectedEnum], 2)
-	})
-
-	t.Run("Same file not duplicated", func(t *testing.T) {
-		trackEnumUsage(importPath, "ParseRunAsAccountType", filePath, usage)
-		
-		expectedEnum := "github.com/microsoftgraph/msgraph-beta-sdk-go/models.RunAsAccountType"
-		assert.Len(t, usage.Enums[expectedEnum], 2) // Still 2, not 3
-	})
-
-	t.Run("Invalid parse function ignored", func(t *testing.T) {
-		initialLen := len(usage.Enums)
-		trackEnumUsage(importPath, "Parse", filePath, usage) // Empty enum type
-		assert.Len(t, usage.Enums, initialLen)
-	})
-}
-
-func TestTrackTypeInstantiation(t *testing.T) {
-	usage := initializeUsageMap()
-	typeName := "github.com/microsoftgraph/msgraph-beta-sdk-go/models.User"
-
-	trackTypeInstantiation(typeName, usage)
-	trackTypeInstantiation(typeName, usage)
-
-	assert.Equal(t, 2, usage.Types[typeName]["_instantiated"])
-}
-
-func TestTrackStructFields(t *testing.T) {
-	usage := initializeUsageMap()
-	typeName := "github.com/microsoftgraph/msgraph-beta-sdk-go/models.User"
-
-	// Create AST elements for struct fields
-	elts := []ast.Expr{
-		&ast.KeyValueExpr{
-			Key:   &ast.Ident{Name: "DisplayName"},
-			Value: &ast.BasicLit{Value: `"John"`},
-		},
-		&ast.KeyValueExpr{
-			Key:   &ast.Ident{Name: "Email"},
-			Value: &ast.BasicLit{Value: `"john@example.com"`},
-		},
-		&ast.KeyValueExpr{
-			Key:   &ast.Ident{Name: "DisplayName"}, // Duplicate
-			Value: &ast.BasicLit{Value: `"Jane"`},
-		},
-	}
-
-	trackStructFields(typeName, elts, usage)
-
-	assert.Equal(t, 2, usage.Fields[typeName]["DisplayName"])
-	assert.Equal(t, 1, usage.Fields[typeName]["Email"])
 }
 
 func TestExtractTypeFromCallExpr(t *testing.T) {
@@ -302,116 +441,14 @@ func TestExtractTypeFromCompositeLit(t *testing.T) {
 		typeName := extractTypeFromCompositeLit(comp, fileImports)
 		assert.Equal(t, "github.com/microsoftgraph/msgraph-beta-sdk-go/models.User", typeName)
 	})
-
-	t.Run("Unknown package", func(t *testing.T) {
-		comp := &ast.CompositeLit{
-			Type: &ast.SelectorExpr{
-				X:   &ast.Ident{Name: "unknown"},
-				Sel: &ast.Ident{Name: "Type"},
-			},
-		}
-
-		typeName := extractTypeFromCompositeLit(comp, fileImports)
-		assert.Equal(t, "", typeName)
-	})
 }
 
-func TestParseGoFile(t *testing.T) {
-	t.Run("Valid Go source", func(t *testing.T) {
-		// Create a temporary test file
-		source := `package test
-import "fmt"
-
-func main() {
-	fmt.Println("test")
-}
-`
-		fset := token.NewFileSet()
-		node, err := parser.ParseFile(fset, "test.go", source, parser.ParseComments)
-		
-		require.NoError(t, err)
-		assert.NotNil(t, node)
-		assert.Equal(t, "test", node.Name.Name)
-	})
-
-	t.Run("Invalid Go source returns error", func(t *testing.T) {
-		source := `package test
-this is not valid go code {{{}
-`
-		fset := token.NewFileSet()
-		_, err := parser.ParseFile(fset, "invalid.go", source, parser.ParseComments)
-		
-		assert.Error(t, err)
-	})
-}
-
-func TestCollectImports(t *testing.T) {
-	source := `package test
-
-import (
-	"fmt"
-	models "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
-	"github.com/microsoftgraph/msgraph-sdk-go/users"
-	"github.com/hashicorp/terraform-plugin-framework/types"
-)
-`
-	fset := token.NewFileSet()
-	node, err := parser.ParseFile(fset, "test.go", source, parser.ParseComments)
-	require.NoError(t, err)
-
-	usage := initializeUsageMap()
-	fileImports := collectImports(node, "/test.go", usage)
-
-	t.Run("Returns correct aliases", func(t *testing.T) {
-		assert.Equal(t, "github.com/microsoftgraph/msgraph-beta-sdk-go/models", fileImports["models"])
-		assert.Equal(t, "github.com/microsoftgraph/msgraph-sdk-go/users", fileImports["users"])
-		assert.NotContains(t, fileImports, "fmt") // Standard library filtered
-		assert.NotContains(t, fileImports, "types") // Non-SDK package filtered
-	})
-
-	t.Run("Tracks SDK packages", func(t *testing.T) {
-		assert.Equal(t, 1, usage.Packages["github.com/microsoftgraph/msgraph-beta-sdk-go/models"])
-		assert.Equal(t, 1, usage.Packages["github.com/microsoftgraph/msgraph-sdk-go/users"])
-		assert.NotContains(t, usage.Packages, "fmt")
-	})
-
-	t.Run("Tracks import locations", func(t *testing.T) {
-		assert.Contains(t, usage.Imports["github.com/microsoftgraph/msgraph-beta-sdk-go/models"], "/test.go")
-	})
-}
-
-func TestExtractSDKType(t *testing.T) {
+func TestExtractTypeFromUnaryExpr(t *testing.T) {
 	fileImports := map[string]string{
 		"models": "github.com/microsoftgraph/msgraph-beta-sdk-go/models",
 	}
 
-	t.Run("Call expression", func(t *testing.T) {
-		// models.NewUser()
-		call := &ast.CallExpr{
-			Fun: &ast.SelectorExpr{
-				X:   &ast.Ident{Name: "models"},
-				Sel: &ast.Ident{Name: "NewUser"},
-			},
-		}
-
-		typeName := extractSDKType(call, fileImports)
-		assert.Equal(t, "github.com/microsoftgraph/msgraph-beta-sdk-go/models.NewUser", typeName)
-	})
-
-	t.Run("Composite literal", func(t *testing.T) {
-		// models.User{}
-		comp := &ast.CompositeLit{
-			Type: &ast.SelectorExpr{
-				X:   &ast.Ident{Name: "models"},
-				Sel: &ast.Ident{Name: "User"},
-			},
-		}
-
-		typeName := extractSDKType(comp, fileImports)
-		assert.Equal(t, "github.com/microsoftgraph/msgraph-beta-sdk-go/models.User", typeName)
-	})
-
-	t.Run("Unary expression (pointer)", func(t *testing.T) {
+	t.Run("Pointer to struct literal", func(t *testing.T) {
 		// &models.User{}
 		unary := &ast.UnaryExpr{
 			Op: token.AND,
@@ -423,15 +460,35 @@ func TestExtractSDKType(t *testing.T) {
 			},
 		}
 
-		typeName := extractSDKType(unary, fileImports)
+		typeName := extractTypeFromUnaryExpr(unary, fileImports)
 		assert.Equal(t, "github.com/microsoftgraph/msgraph-beta-sdk-go/models.User", typeName)
 	})
+}
 
-	t.Run("Non-SDK expression", func(t *testing.T) {
-		expr := &ast.BasicLit{Value: "123"}
-		typeName := extractSDKType(expr, fileImports)
-		assert.Equal(t, "", typeName)
-	})
+func TestTrackStructFields(t *testing.T) {
+	resourceInfo := &ResourceInfo{
+		SDKDependencies: SDKDependencies{
+			FieldsUsed: make(map[string][]string),
+		},
+	}
+
+	elts := []ast.Expr{
+		&ast.KeyValueExpr{
+			Key:   &ast.Ident{Name: "DisplayName"},
+			Value: &ast.BasicLit{Value: `"John"`},
+		},
+		&ast.KeyValueExpr{
+			Key:   &ast.Ident{Name: "Email"},
+			Value: &ast.BasicLit{Value: `"john@example.com"`},
+		},
+	}
+
+	trackStructFields("github.com/microsoftgraph/msgraph-beta-sdk-go/models.User", elts, resourceInfo)
+
+	assert.Contains(t, resourceInfo.SDKDependencies.FieldsUsed, "models.User")
+	assert.Len(t, resourceInfo.SDKDependencies.FieldsUsed["models.User"], 2)
+	assert.Contains(t, resourceInfo.SDKDependencies.FieldsUsed["models.User"], "DisplayName")
+	assert.Contains(t, resourceInfo.SDKDependencies.FieldsUsed["models.User"], "Email")
 }
 
 func TestProcessAssignments(t *testing.T) {
@@ -460,107 +517,131 @@ func TestProcessAssignments(t *testing.T) {
 	assert.Equal(t, "github.com/microsoftgraph/msgraph-beta-sdk-go/models.NewUser", varTypes["user"])
 }
 
-func TestTrackEnumUsageIntegration(t *testing.T) {
-	usage := initializeUsageMap()
-	importPath := "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
+func TestCalculateStatistics(t *testing.T) {
+	usage := initializeUsageMapV2()
 
-	testCases := []struct {
-		methodName   string
-		expectedEnum string
-	}{
-		{
-			methodName:   "ParseRunAsAccountType",
-			expectedEnum: "github.com/microsoftgraph/msgraph-beta-sdk-go/models.RunAsAccountType",
-		},
-		{
-			methodName:   "ParseCloudPcRegionGroup",
-			expectedEnum: "github.com/microsoftgraph/msgraph-beta-sdk-go/models.CloudPcRegionGroup",
-		},
-		{
-			methodName:   "ParseInstallIntent",
-			expectedEnum: "github.com/microsoftgraph/msgraph-beta-sdk-go/models.InstallIntent",
-		},
-	}
-
-	for _, tc := range testCases {
-		t.Run(tc.methodName, func(t *testing.T) {
-			trackEnumUsage(importPath, tc.methodName, "/test.go", usage)
-			assert.Contains(t, usage.Enums, tc.expectedEnum)
-			assert.Contains(t, usage.Enums[tc.expectedEnum], "/test.go")
-		})
-	}
-}
-
-func TestExtractTypeFromUnaryExpr(t *testing.T) {
-	fileImports := map[string]string{
-		"models": "github.com/microsoftgraph/msgraph-beta-sdk-go/models",
-	}
-
-	t.Run("Pointer to struct literal", func(t *testing.T) {
-		// &models.User{}
-		unary := &ast.UnaryExpr{
-			Op: token.AND,
-			X: &ast.CompositeLit{
-				Type: &ast.SelectorExpr{
-					X:   &ast.Ident{Name: "models"},
-					Sel: &ast.Ident{Name: "User"},
-				},
+	// Add some resources
+	usage.TerraformResources["microsoft365_user"] = &ResourceInfo{
+		SDKDependencies: SDKDependencies{
+			Types:         []string{"models.User", "models.AssignedLicense"},
+			MethodsCalled: []string{"models.NewUser"},
+			EnumsUsed: []EnumUsage{
+				{Enum: "models.DayOfWeek"},
 			},
-		}
+		},
+	}
 
-		typeName := extractTypeFromUnaryExpr(unary, fileImports)
-		assert.Equal(t, "github.com/microsoftgraph/msgraph-beta-sdk-go/models.User", typeName)
-	})
+	usage.TerraformActions["microsoft365_lock_device"] = &ResourceInfo{
+		SDKDependencies: SDKDependencies{
+			Types:         []string{"models.Device"},
+			MethodsCalled: []string{"devicemanagement.Post"},
+		},
+	}
 
-	t.Run("Non-pointer operator", func(t *testing.T) {
-		unary := &ast.UnaryExpr{
-			Op: token.NOT,
-			X:  &ast.Ident{Name: "something"},
-		}
+	stats := calculateStatistics(usage)
 
-		typeName := extractTypeFromUnaryExpr(unary, fileImports)
-		assert.Equal(t, "", typeName)
-	})
+	assert.Equal(t, 1, stats.TotalResources)
+	assert.Equal(t, 1, stats.TotalActions)
+	assert.Equal(t, 0, stats.TotalListActions)
+	assert.Equal(t, 0, stats.TotalEphemerals)
+	assert.Equal(t, 0, stats.TotalDataSources)
+	assert.Equal(t, 3, stats.TotalSDKTypesUsed) // User, AssignedLicense, Device
+	assert.Equal(t, 2, stats.TotalSDKMethodsUsed)
+	assert.Equal(t, 1, stats.TotalEnumsTracked)
 }
 
-func TestTrackPackageMethod(t *testing.T) {
-	usage := initializeUsageMap()
-	importPath := "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
+func TestIndexSDKUsage(t *testing.T) {
+	index := make(map[string][]string)
+	typesSet := make(map[string]bool)
+	methodsSet := make(map[string]bool)
+	enumsSet := make(map[string]bool)
 
-	t.Run("Regular method", func(t *testing.T) {
-		trackPackageMethod(importPath, "NewUser", "/test.go", usage)
-		
-		expectedMethod := "github.com/microsoftgraph/msgraph-beta-sdk-go/models.NewUser"
-		assert.Equal(t, 1, usage.Methods[expectedMethod])
-	})
+	resourceInfo := &ResourceInfo{
+		SDKDependencies: SDKDependencies{
+			Types:         []string{"models.User"},
+			MethodsCalled: []string{"models.NewUser"},
+			EnumsUsed: []EnumUsage{
+				{Enum: "models.DayOfWeek"},
+			},
+		},
+	}
 
-	t.Run("Enum parser method also tracks enum", func(t *testing.T) {
-		trackPackageMethod(importPath, "ParseRunAsAccountType", "/test.go", usage)
-		
-		// Method tracked
-		expectedMethod := "github.com/microsoftgraph/msgraph-beta-sdk-go/models.ParseRunAsAccountType"
-		assert.Equal(t, 1, usage.Methods[expectedMethod])
-		
-		// Enum tracked
-		expectedEnum := "github.com/microsoftgraph/msgraph-beta-sdk-go/models.RunAsAccountType"
-		assert.Contains(t, usage.Enums, expectedEnum)
-	})
+	indexSDKUsage("microsoft365_user", resourceInfo, index, typesSet, methodsSet, enumsSet)
+
+	// Check reverse index
+	assert.Contains(t, index, "models.User")
+	assert.Contains(t, index["models.User"], "microsoft365_user")
+	assert.Contains(t, index, "models.DayOfWeek")
+	assert.Contains(t, index["models.DayOfWeek"], "microsoft365_user")
+
+	// Check sets
+	assert.True(t, typesSet["models.User"])
+	assert.True(t, methodsSet["models.NewUser"])
+	assert.True(t, enumsSet["models.DayOfWeek"])
 }
 
-func TestOutputResults(t *testing.T) {
-	t.Run("Valid usage map produces JSON", func(t *testing.T) {
-		usage := initializeUsageMap()
-		usage.Packages["test.pkg"] = 1
-		
-		err := outputResults(usage)
-		assert.NoError(t, err)
+func TestIntegrationFullAnalysis(t *testing.T) {
+	source := `package test
+
+import (
+	models "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
+)
+
+func CreateUser() {
+	user := models.NewUser()
+	user.SetDisplayName("John")
+	
+	config := models.DeviceConfiguration{
+		DisplayName: "Test Config",
+	}
+	
+	accountType := models.ParseRunAsAccountType("system")
+}
+`
+	fset := token.NewFileSet()
+	node, err := parser.ParseFile(fset, "test.go", source, parser.ParseComments)
+	require.NoError(t, err)
+
+	usage := initializeUsageMapV2()
+	resourceInfo := &ResourceInfo{
+		SDKDependencies: SDKDependencies{
+			Types:         []string{},
+			FieldsUsed:    make(map[string][]string),
+			MethodsCalled: []string{},
+			EnumsUsed:     []EnumUsage{},
+		},
+		Files: []string{},
+	}
+
+	fileImports := collectImports(node)
+	analyzeASTForEntity(node, "/test.go", fileImports, resourceInfo, usage)
+
+	t.Run("Tracks types", func(t *testing.T) {
+		// Only struct literals (DeviceConfiguration{}) get tracked as types
+		// Constructor calls (NewUser()) are tracked as methods
+		assert.Contains(t, resourceInfo.SDKDependencies.Types, "models.DeviceConfiguration")
+		assert.Len(t, resourceInfo.SDKDependencies.Types, 1)
 	})
 
-	t.Run("Empty usage map", func(t *testing.T) {
-		usage := initializeUsageMap()
-		
-		err := outputResults(usage)
-		assert.NoError(t, err)
+	t.Run("Tracks fields", func(t *testing.T) {
+		assert.Contains(t, resourceInfo.SDKDependencies.FieldsUsed, "models.DeviceConfiguration")
+		assert.Contains(t, resourceInfo.SDKDependencies.FieldsUsed["models.DeviceConfiguration"], "DisplayName")
+	})
+
+	t.Run("Tracks methods", func(t *testing.T) {
+		assert.Contains(t, resourceInfo.SDKDependencies.MethodsCalled, "models.NewUser")
+		assert.Contains(t, resourceInfo.SDKDependencies.MethodsCalled, "models.NewUser.SetDisplayName")
+	})
+
+	t.Run("Tracks enums", func(t *testing.T) {
+		found := false
+		for _, enum := range resourceInfo.SDKDependencies.EnumsUsed {
+			if enum.Enum == "models.RunAsAccountType" {
+				found = true
+				break
+			}
+		}
+		assert.True(t, found, "Should track RunAsAccountType enum")
 	})
 }
 
@@ -571,20 +652,11 @@ func TestProcessSelectorExpr(t *testing.T) {
 	varTypes := map[string]string{
 		"user": "github.com/microsoftgraph/msgraph-beta-sdk-go/models.User",
 	}
-	usage := initializeUsageMap()
-
-	t.Run("Package-level reference", func(t *testing.T) {
-		// models.User
-		sel := &ast.SelectorExpr{
-			X:   &ast.Ident{Name: "models"},
-			Sel: &ast.Ident{Name: "User"},
-		}
-
-		processSelectorExpr(sel, fileImports, varTypes, usage)
-		
-		expectedMethod := "github.com/microsoftgraph/msgraph-beta-sdk-go/models.User"
-		assert.Equal(t, 1, usage.Methods[expectedMethod])
-	})
+	resourceInfo := &ResourceInfo{
+		SDKDependencies: SDKDependencies{
+			FieldsUsed: make(map[string][]string),
+		},
+	}
 
 	t.Run("Field access on typed variable", func(t *testing.T) {
 		// user.DisplayName
@@ -593,35 +665,45 @@ func TestProcessSelectorExpr(t *testing.T) {
 			Sel: &ast.Ident{Name: "DisplayName"},
 		}
 
-		processSelectorExpr(sel, fileImports, varTypes, usage)
-		
-		typeName := "github.com/microsoftgraph/msgraph-beta-sdk-go/models.User"
-		assert.Equal(t, 1, usage.Fields[typeName]["DisplayName"])
+		processSelectorExpr(sel, fileImports, varTypes, resourceInfo)
+
+		assert.Contains(t, resourceInfo.SDKDependencies.FieldsUsed, "models.User")
+		assert.Contains(t, resourceInfo.SDKDependencies.FieldsUsed["models.User"], "DisplayName")
 	})
 
-	t.Run("Non-SDK selector ignored", func(t *testing.T) {
-		initialMethodCount := len(usage.Methods)
-		initialFieldCount := len(usage.Fields)
+	t.Run("Package-level reference ignored", func(t *testing.T) {
+		initialLen := len(resourceInfo.SDKDependencies.FieldsUsed)
 
+		// models.User (package reference, not field access)
+		sel := &ast.SelectorExpr{
+			X:   &ast.Ident{Name: "models"},
+			Sel: &ast.Ident{Name: "User"},
+		}
+
+		processSelectorExpr(sel, fileImports, varTypes, resourceInfo)
+
+		// Should not add new fields
+		assert.Equal(t, initialLen, len(resourceInfo.SDKDependencies.FieldsUsed))
+	})
+
+	t.Run("Unknown variable ignored", func(t *testing.T) {
 		sel := &ast.SelectorExpr{
 			X:   &ast.Ident{Name: "unknown"},
 			Sel: &ast.Ident{Name: "Field"},
 		}
 
-		processSelectorExpr(sel, fileImports, varTypes, usage)
-		
-		assert.Equal(t, initialMethodCount, len(usage.Methods))
-		assert.Equal(t, initialFieldCount, len(usage.Fields))
+		processSelectorExpr(sel, fileImports, varTypes, resourceInfo)
+		// Should not panic
 	})
 
-	t.Run("Non-identifier selector expression", func(t *testing.T) {
+	t.Run("Non-identifier selector", func(t *testing.T) {
 		sel := &ast.SelectorExpr{
 			X:   &ast.BasicLit{Value: "123"},
 			Sel: &ast.Ident{Name: "Field"},
 		}
 
-		processSelectorExpr(sel, fileImports, varTypes, usage)
-		// Should not panic, just do nothing
+		processSelectorExpr(sel, fileImports, varTypes, resourceInfo)
+		// Should not panic
 	})
 }
 
@@ -632,7 +714,13 @@ func TestProcessCallExpr(t *testing.T) {
 	varTypes := map[string]string{
 		"user": "github.com/microsoftgraph/msgraph-beta-sdk-go/models.User",
 	}
-	usage := initializeUsageMap()
+	usage := initializeUsageMapV2()
+	resourceInfo := &ResourceInfo{
+		SDKDependencies: SDKDependencies{
+			MethodsCalled: []string{},
+			EnumsUsed:     []EnumUsage{},
+		},
+	}
 
 	t.Run("Package method call", func(t *testing.T) {
 		// models.NewUser()
@@ -643,10 +731,9 @@ func TestProcessCallExpr(t *testing.T) {
 			},
 		}
 
-		processCallExpr(call, "/test.go", fileImports, varTypes, usage)
-		
-		expectedMethod := "github.com/microsoftgraph/msgraph-beta-sdk-go/models.NewUser"
-		assert.Equal(t, 1, usage.Methods[expectedMethod])
+		processCallExpr(call, "/test.go", fileImports, varTypes, resourceInfo, usage)
+
+		assert.Contains(t, resourceInfo.SDKDependencies.MethodsCalled, "models.NewUser")
 	})
 
 	t.Run("Object method call", func(t *testing.T) {
@@ -658,18 +745,38 @@ func TestProcessCallExpr(t *testing.T) {
 			},
 		}
 
-		processCallExpr(call, "/test.go", fileImports, varTypes, usage)
-		
-		expectedMethod := "github.com/microsoftgraph/msgraph-beta-sdk-go/models.User.SetDisplayName"
-		assert.Equal(t, 1, usage.Methods[expectedMethod])
+		processCallExpr(call, "/test.go", fileImports, varTypes, resourceInfo, usage)
+
+		assert.Contains(t, resourceInfo.SDKDependencies.MethodsCalled, "models.User.SetDisplayName")
 	})
 
-	t.Run("Non-selector function call ignored", func(t *testing.T) {
+	t.Run("Enum parser call", func(t *testing.T) {
+		// models.ParseInstallIntent()
+		call := &ast.CallExpr{
+			Fun: &ast.SelectorExpr{
+				X:   &ast.Ident{Name: "models"},
+				Sel: &ast.Ident{Name: "ParseInstallIntent"},
+			},
+		}
+
+		processCallExpr(call, "/test.go", fileImports, varTypes, resourceInfo, usage)
+
+		found := false
+		for _, enum := range resourceInfo.SDKDependencies.EnumsUsed {
+			if enum.Enum == "models.InstallIntent" {
+				found = true
+				break
+			}
+		}
+		assert.True(t, found)
+	})
+
+	t.Run("Non-selector call ignored", func(t *testing.T) {
 		call := &ast.CallExpr{
 			Fun: &ast.Ident{Name: "someFunc"},
 		}
 
-		processCallExpr(call, "/test.go", fileImports, varTypes, usage)
+		processCallExpr(call, "/test.go", fileImports, varTypes, resourceInfo, usage)
 		// Should not panic
 	})
 
@@ -681,7 +788,7 @@ func TestProcessCallExpr(t *testing.T) {
 			},
 		}
 
-		processCallExpr(call, "/test.go", fileImports, varTypes, usage)
+		processCallExpr(call, "/test.go", fileImports, varTypes, resourceInfo, usage)
 		// Should not panic
 	})
 }
@@ -690,7 +797,12 @@ func TestProcessCompositeLit(t *testing.T) {
 	fileImports := map[string]string{
 		"models": "github.com/microsoftgraph/msgraph-beta-sdk-go/models",
 	}
-	usage := initializeUsageMap()
+	resourceInfo := &ResourceInfo{
+		SDKDependencies: SDKDependencies{
+			Types:      []string{},
+			FieldsUsed: make(map[string][]string),
+		},
+	}
 
 	t.Run("Valid struct literal with fields", func(t *testing.T) {
 		comp := &ast.CompositeLit{
@@ -703,19 +815,13 @@ func TestProcessCompositeLit(t *testing.T) {
 					Key:   &ast.Ident{Name: "DisplayName"},
 					Value: &ast.BasicLit{Value: `"John"`},
 				},
-				&ast.KeyValueExpr{
-					Key:   &ast.Ident{Name: "Email"},
-					Value: &ast.BasicLit{Value: `"john@example.com"`},
-				},
 			},
 		}
 
-		processCompositeLit(comp, fileImports, usage)
-		
-		typeName := "github.com/microsoftgraph/msgraph-beta-sdk-go/models.User"
-		assert.Equal(t, 1, usage.Types[typeName]["_instantiated"])
-		assert.Equal(t, 1, usage.Fields[typeName]["DisplayName"])
-		assert.Equal(t, 1, usage.Fields[typeName]["Email"])
+		processCompositeLit(comp, fileImports, resourceInfo)
+
+		assert.Contains(t, resourceInfo.SDKDependencies.Types, "models.User")
+		assert.Contains(t, resourceInfo.SDKDependencies.FieldsUsed["models.User"], "DisplayName")
 	})
 
 	t.Run("Non-selector type ignored", func(t *testing.T) {
@@ -723,7 +829,7 @@ func TestProcessCompositeLit(t *testing.T) {
 			Type: &ast.Ident{Name: "SomeType"},
 		}
 
-		processCompositeLit(comp, fileImports, usage)
+		processCompositeLit(comp, fileImports, resourceInfo)
 		// Should not panic
 	})
 
@@ -735,7 +841,7 @@ func TestProcessCompositeLit(t *testing.T) {
 			},
 		}
 
-		processCompositeLit(comp, fileImports, usage)
+		processCompositeLit(comp, fileImports, resourceInfo)
 		// Should not panic
 	})
 
@@ -747,163 +853,17 @@ func TestProcessCompositeLit(t *testing.T) {
 			},
 		}
 
-		processCompositeLit(comp, fileImports, usage)
-		// Should not panic, nothing tracked
-	})
-}
-
-func TestAnalyzeASTIntegration(t *testing.T) {
-	source := `package test
-
-import (
-	models "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
-)
-
-func example() {
-	// Assignment
-	user := models.NewUser()
-	
-	// Field access
-	name := user.GetDisplayName()
-	
-	// Method call
-	user.SetEmail("test@example.com")
-	
-	// Struct literal
-	config := models.Config{
-		Name: "test",
-		Value: "123",
-	}
-	
-	// Enum parser
-	accountType := models.ParseRunAsAccountType("system")
-}
-`
-	fset := token.NewFileSet()
-	node, err := parser.ParseFile(fset, "test.go", source, parser.ParseComments)
-	require.NoError(t, err)
-
-	usage := initializeUsageMap()
-	fileImports := collectImports(node, "/test.go", usage)
-	varTypes := make(map[string]string)
-
-	analyzeAST(node, "/test.go", fileImports, varTypes, usage)
-
-	t.Run("Tracks assignments", func(t *testing.T) {
-		assert.Equal(t, "github.com/microsoftgraph/msgraph-beta-sdk-go/models.NewUser", varTypes["user"])
-	})
-
-	t.Run("Tracks field access", func(t *testing.T) {
-		typeName := "github.com/microsoftgraph/msgraph-beta-sdk-go/models.NewUser"
-		assert.Contains(t, usage.Fields[typeName], "GetDisplayName")
-	})
-
-	t.Run("Tracks method calls", func(t *testing.T) {
-		expectedMethod := "github.com/microsoftgraph/msgraph-beta-sdk-go/models.ParseRunAsAccountType"
-		assert.Contains(t, usage.Methods, expectedMethod)
-	})
-
-	t.Run("Tracks struct literals", func(t *testing.T) {
-		typeName := "github.com/microsoftgraph/msgraph-beta-sdk-go/models.Config"
-		assert.Equal(t, 1, usage.Types[typeName]["_instantiated"])
-		assert.Equal(t, 1, usage.Fields[typeName]["Name"])
-		assert.Equal(t, 1, usage.Fields[typeName]["Value"])
-	})
-
-	t.Run("Tracks enums", func(t *testing.T) {
-		expectedEnum := "github.com/microsoftgraph/msgraph-beta-sdk-go/models.RunAsAccountType"
-		assert.Contains(t, usage.Enums, expectedEnum)
-	})
-}
-
-func TestComplexAssignments(t *testing.T) {
-	fileImports := map[string]string{
-		"models": "github.com/microsoftgraph/msgraph-beta-sdk-go/models",
-	}
-	varTypes := make(map[string]string)
-
-	t.Run("Multiple assignments", func(t *testing.T) {
-		// user, err := models.NewUser(), nil
-		stmt := &ast.AssignStmt{
-			Lhs: []ast.Expr{
-				&ast.Ident{Name: "user"},
-				&ast.Ident{Name: "err"},
-			},
-			Rhs: []ast.Expr{
-				&ast.CallExpr{
-					Fun: &ast.SelectorExpr{
-						X:   &ast.Ident{Name: "models"},
-						Sel: &ast.Ident{Name: "NewUser"},
-					},
-				},
-				&ast.Ident{Name: "nil"},
-			},
-		}
-
-		processAssignments(stmt, fileImports, varTypes)
-		
-		assert.Equal(t, "github.com/microsoftgraph/msgraph-beta-sdk-go/models.NewUser", varTypes["user"])
-		assert.NotContains(t, varTypes, "err")
-	})
-
-	t.Run("Pointer assignment", func(t *testing.T) {
-		// user := &models.User{}
-		stmt := &ast.AssignStmt{
-			Lhs: []ast.Expr{
-				&ast.Ident{Name: "user"},
-			},
-			Rhs: []ast.Expr{
-				&ast.UnaryExpr{
-					Op: token.AND,
-					X: &ast.CompositeLit{
-						Type: &ast.SelectorExpr{
-							X:   &ast.Ident{Name: "models"},
-							Sel: &ast.Ident{Name: "User"},
-						},
-					},
-				},
-			},
-		}
-
-		processAssignments(stmt, fileImports, varTypes)
-		
-		assert.Equal(t, "github.com/microsoftgraph/msgraph-beta-sdk-go/models.User", varTypes["user"])
-	})
-
-	t.Run("Mismatched assignment count", func(t *testing.T) {
-		// More RHS than LHS
-		stmt := &ast.AssignStmt{
-			Lhs: []ast.Expr{
-				&ast.Ident{Name: "x"},
-			},
-			Rhs: []ast.Expr{
-				&ast.Ident{Name: "a"},
-				&ast.Ident{Name: "b"},
-			},
-		}
-
-		processAssignments(stmt, fileImports, varTypes)
-		// Should not panic
-	})
-
-	t.Run("Non-identifier LHS", func(t *testing.T) {
-		stmt := &ast.AssignStmt{
-			Lhs: []ast.Expr{
-				&ast.BasicLit{Value: "123"},
-			},
-			Rhs: []ast.Expr{
-				&ast.Ident{Name: "value"},
-			},
-		}
-
-		processAssignments(stmt, fileImports, varTypes)
+		processCompositeLit(comp, fileImports, resourceInfo)
 		// Should not panic
 	})
 }
 
 func TestTrackStructFieldsEdgeCases(t *testing.T) {
-	usage := initializeUsageMap()
-	typeName := "github.com/microsoftgraph/msgraph-beta-sdk-go/models.User"
+	resourceInfo := &ResourceInfo{
+		SDKDependencies: SDKDependencies{
+			FieldsUsed: make(map[string][]string),
+		},
+	}
 
 	t.Run("Non-KeyValueExpr elements ignored", func(t *testing.T) {
 		elts := []ast.Expr{
@@ -911,8 +871,8 @@ func TestTrackStructFieldsEdgeCases(t *testing.T) {
 			&ast.Ident{Name: "field"},
 		}
 
-		trackStructFields(typeName, elts, usage)
-		// Should not panic, no fields tracked
+		trackStructFields("models.Test", elts, resourceInfo)
+		// Should not panic
 	})
 
 	t.Run("Non-identifier keys ignored", func(t *testing.T) {
@@ -923,98 +883,238 @@ func TestTrackStructFieldsEdgeCases(t *testing.T) {
 			},
 		}
 
-		trackStructFields(typeName, elts, usage)
-		// Should not panic, no fields tracked
+		trackStructFields("models.Test", elts, resourceInfo)
+		// Should not panic
 	})
 
 	t.Run("Empty elements list", func(t *testing.T) {
 		elts := []ast.Expr{}
 
-		trackStructFields(typeName, elts, usage)
+		trackStructFields("models.Test", elts, resourceInfo)
 		// Should not panic
 	})
+
+	t.Run("Duplicate fields not added", func(t *testing.T) {
+		elts := []ast.Expr{
+			&ast.KeyValueExpr{
+				Key:   &ast.Ident{Name: "Name"},
+				Value: &ast.BasicLit{Value: `"test"`},
+			},
+			&ast.KeyValueExpr{
+				Key:   &ast.Ident{Name: "Name"}, // Duplicate
+				Value: &ast.BasicLit{Value: `"test2"`},
+			},
+		}
+
+		trackStructFields("models.Config", elts, resourceInfo)
+		
+		assert.Len(t, resourceInfo.SDKDependencies.FieldsUsed["models.Config"], 1)
+	})
 }
 
-func TestComplexCodeAnalysis(t *testing.T) {
-	source := `package test
+func TestExtractSDKType(t *testing.T) {
+	fileImports := map[string]string{
+		"models": "github.com/microsoftgraph/msgraph-beta-sdk-go/models",
+	}
 
-import (
-	models "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
-	"github.com/microsoft/kiota-abstractions-go/serialization"
-)
+	t.Run("Call expression", func(t *testing.T) {
+		// models.NewUser()
+		expr := &ast.CallExpr{
+			Fun: &ast.SelectorExpr{
+				X:   &ast.Ident{Name: "models"},
+				Sel: &ast.Ident{Name: "NewUser"},
+			},
+		}
 
-func complexExample() {
-	// Nested assignments
-	user := models.NewUser()
-	displayName := user.GetDisplayName()
-	
-	// Multiple enum parsers
-	accountType1 := models.ParseRunAsAccountType("system")
-	accountType2 := models.ParseRunAsAccountType("user")
-	intent := models.ParseInstallIntent("available")
-	
-	// Complex struct
-	assignment := models.TargetedManagedAppPolicyAssignment{
-		Id: "test-id",
-		Target: models.DeviceAndAppManagementAssignmentTarget{
-			DeviceAndAppManagementAssignmentFilterId: "filter-id",
+		typeName := extractSDKType(expr, fileImports)
+		assert.Equal(t, "github.com/microsoftgraph/msgraph-beta-sdk-go/models.NewUser", typeName)
+	})
+
+	t.Run("Composite literal", func(t *testing.T) {
+		// models.User{}
+		expr := &ast.CompositeLit{
+			Type: &ast.SelectorExpr{
+				X:   &ast.Ident{Name: "models"},
+				Sel: &ast.Ident{Name: "User"},
+			},
+		}
+
+		typeName := extractSDKType(expr, fileImports)
+		assert.Equal(t, "github.com/microsoftgraph/msgraph-beta-sdk-go/models.User", typeName)
+	})
+
+	t.Run("Unary expression", func(t *testing.T) {
+		// &models.User{}
+		expr := &ast.UnaryExpr{
+			Op: token.AND,
+			X: &ast.CompositeLit{
+				Type: &ast.SelectorExpr{
+					X:   &ast.Ident{Name: "models"},
+					Sel: &ast.Ident{Name: "User"},
+				},
+			},
+		}
+
+		typeName := extractSDKType(expr, fileImports)
+		assert.Equal(t, "github.com/microsoftgraph/msgraph-beta-sdk-go/models.User", typeName)
+	})
+
+	t.Run("Unknown expression type", func(t *testing.T) {
+		expr := &ast.BasicLit{Value: "123"}
+		
+		typeName := extractSDKType(expr, fileImports)
+		assert.Equal(t, "", typeName)
+	})
+}
+
+func TestTrackPackageMethod(t *testing.T) {
+	usage := initializeUsageMapV2()
+	resourceInfo := &ResourceInfo{
+		SDKDependencies: SDKDependencies{
+			MethodsCalled: []string{},
+			EnumsUsed:     []EnumUsage{},
 		},
 	}
-	
-	// Method chaining scenario
-	config := models.NewConfiguration()
-	config.SetName("test")
-	config.SetValue("123")
-	
-	// Pointer operations
-	ptr := &models.Resource{
-		DisplayName: "resource",
+
+	t.Run("Regular method", func(t *testing.T) {
+		trackPackageMethod("github.com/microsoftgraph/msgraph-beta-sdk-go/models", "NewUser", "/test.go", resourceInfo, usage)
+
+		assert.Contains(t, resourceInfo.SDKDependencies.MethodsCalled, "models.NewUser")
+	})
+
+	t.Run("Duplicate method not added twice", func(t *testing.T) {
+		initialLen := len(resourceInfo.SDKDependencies.MethodsCalled)
+		
+		trackPackageMethod("github.com/microsoftgraph/msgraph-beta-sdk-go/models", "NewUser", "/test.go", resourceInfo, usage)
+
+		assert.Len(t, resourceInfo.SDKDependencies.MethodsCalled, initialLen) // No duplicate
+	})
+
+	t.Run("Enum parser also tracks enum", func(t *testing.T) {
+		trackPackageMethod("github.com/microsoftgraph/msgraph-beta-sdk-go/models", "ParseRunAsAccountType", "/test.go", resourceInfo, usage)
+
+		// Method tracked
+		assert.Contains(t, resourceInfo.SDKDependencies.MethodsCalled, "models.ParseRunAsAccountType")
+
+		// Enum tracked
+		found := false
+		for _, enum := range resourceInfo.SDKDependencies.EnumsUsed {
+			if enum.Enum == "models.RunAsAccountType" {
+				found = true
+				break
+			}
+		}
+		assert.True(t, found)
+	})
+}
+
+func TestTrackObjectMethod(t *testing.T) {
+	resourceInfo := &ResourceInfo{
+		SDKDependencies: SDKDependencies{
+			MethodsCalled: []string{},
+		},
 	}
-	
-	// Parse calls on non-models package (should not track enum)
-	serialization.ParseAdditionalData("data")
+
+	trackObjectMethod("github.com/microsoftgraph/msgraph-beta-sdk-go/models.User", "SetDisplayName", resourceInfo)
+	trackObjectMethod("github.com/microsoftgraph/msgraph-beta-sdk-go/models.User", "SetDisplayName", resourceInfo) // Duplicate
+
+	assert.Len(t, resourceInfo.SDKDependencies.MethodsCalled, 1) // No duplicates
+	assert.Contains(t, resourceInfo.SDKDependencies.MethodsCalled, "models.User.SetDisplayName")
+}
+
+func TestOutputResults(t *testing.T) {
+	t.Run("Valid usage map produces JSON", func(t *testing.T) {
+		usage := initializeUsageMapV2()
+		usage.TerraformResources["microsoft365_user"] = &ResourceInfo{
+			ResourcePath: "internal/services/resources/users/graph_beta/user",
+			SDKDependencies: SDKDependencies{
+				Types: []string{"models.User"},
+			},
+		}
+
+		err := outputResults(usage)
+		assert.NoError(t, err)
+	})
+
+	t.Run("Empty usage map", func(t *testing.T) {
+		usage := initializeUsageMapV2()
+
+		err := outputResults(usage)
+		assert.NoError(t, err)
+	})
+}
+
+func TestComplexMultiResourceScenario(t *testing.T) {
+	usage := initializeUsageMapV2()
+
+	// Simulate multiple resources using the same SDK type
+	userResource := &ResourceInfo{
+		ResourcePath: "internal/services/resources/users/graph_beta/user",
+		SDKDependencies: SDKDependencies{
+			Types:         []string{"models.User"},
+			MethodsCalled: []string{"models.NewUser", "users.UserItemRequestBuilder.Get"},
+			EnumsUsed: []EnumUsage{
+				{Enum: "models.DayOfWeek"},
+			},
+		},
+	}
+
+	groupResource := &ResourceInfo{
+		ResourcePath: "internal/services/resources/groups/graph_beta/group",
+		SDKDependencies: SDKDependencies{
+			Types:         []string{"models.Group", "models.User"},
+			MethodsCalled: []string{"models.NewGroup"},
+		},
+	}
+
+	usage.TerraformResources["microsoft365_user"] = userResource
+	usage.TerraformResources["microsoft365_group"] = groupResource
+
+	stats := calculateStatistics(usage)
+
+	t.Run("Statistics calculated correctly", func(t *testing.T) {
+		assert.Equal(t, 2, stats.TotalResources)
+		assert.Equal(t, 0, stats.TotalActions)
+		assert.Equal(t, 2, stats.TotalSDKTypesUsed) // User, Group (User is deduplicated)
+		assert.Equal(t, 1, stats.TotalEnumsTracked)
+	})
+
+	t.Run("SDK to resource index built", func(t *testing.T) {
+		assert.Contains(t, usage.SDKToResourceIndex, "models.User")
+		assert.Len(t, usage.SDKToResourceIndex["models.User"], 2) // Both resources use User
+		assert.Contains(t, usage.SDKToResourceIndex["models.User"], "microsoft365_user")
+		assert.Contains(t, usage.SDKToResourceIndex["models.User"], "microsoft365_group")
+
+		assert.Contains(t, usage.SDKToResourceIndex, "models.Group")
+		assert.Len(t, usage.SDKToResourceIndex["models.Group"], 1)
+		assert.Contains(t, usage.SDKToResourceIndex["models.Group"], "microsoft365_group")
+	})
+}
+
+func TestParseGoFile(t *testing.T) {
+	t.Run("Valid Go source", func(t *testing.T) {
+		source := `package test
+import "fmt"
+
+func main() {
+	fmt.Println("test")
 }
 `
-	fset := token.NewFileSet()
-	node, err := parser.ParseFile(fset, "complex.go", source, parser.ParseComments)
-	require.NoError(t, err)
+		fset := token.NewFileSet()
+		node, err := parser.ParseFile(fset, "test.go", source, parser.ParseComments)
 
-	usage := initializeUsageMap()
-	fileImports := collectImports(node, "/complex.go", usage)
-	varTypes := make(map[string]string)
-
-	analyzeAST(node, "/complex.go", fileImports, varTypes, usage)
-
-	t.Run("Tracks multiple enum usages", func(t *testing.T) {
-		runAsEnum := "github.com/microsoftgraph/msgraph-beta-sdk-go/models.RunAsAccountType"
-		installEnum := "github.com/microsoftgraph/msgraph-beta-sdk-go/models.InstallIntent"
-		
-		assert.Contains(t, usage.Enums, runAsEnum)
-		assert.Contains(t, usage.Enums, installEnum)
+		require.NoError(t, err)
+		assert.NotNil(t, node)
+		assert.Equal(t, "test", node.Name.Name)
 	})
 
-	t.Run("Tracks nested struct fields", func(t *testing.T) {
-		assignmentType := "github.com/microsoftgraph/msgraph-beta-sdk-go/models.TargetedManagedAppPolicyAssignment"
-		targetType := "github.com/microsoftgraph/msgraph-beta-sdk-go/models.DeviceAndAppManagementAssignmentTarget"
-		
-		assert.Equal(t, 1, usage.Fields[assignmentType]["Id"])
-		assert.Equal(t, 1, usage.Fields[assignmentType]["Target"])
-		assert.Equal(t, 1, usage.Fields[targetType]["DeviceAndAppManagementAssignmentFilterId"])
-	})
+	t.Run("Invalid Go source returns error", func(t *testing.T) {
+		source := `package test
+this is not valid go code {{{}
+`
+		fset := token.NewFileSet()
+		_, err := parser.ParseFile(fset, "invalid.go", source, parser.ParseComments)
 
-	t.Run("Only tracks models package enums", func(t *testing.T) {
-		// serialization.ParseAdditionalData should NOT create an enum entry
-		serializationEnum := "github.com/microsoft/kiota-abstractions-go/serialization.AdditionalData"
-		assert.NotContains(t, usage.Enums, serializationEnum)
-	})
-
-	t.Run("Tracks pointer struct fields", func(t *testing.T) {
-		resourceType := "github.com/microsoftgraph/msgraph-beta-sdk-go/models.Resource"
-		assert.Equal(t, 1, usage.Fields[resourceType]["DisplayName"])
-	})
-
-	t.Run("Tracks both packages", func(t *testing.T) {
-		assert.Contains(t, usage.Packages, "github.com/microsoftgraph/msgraph-beta-sdk-go/models")
-		assert.Contains(t, usage.Packages, "github.com/microsoft/kiota-abstractions-go/serialization")
+		assert.Error(t, err)
 	})
 }

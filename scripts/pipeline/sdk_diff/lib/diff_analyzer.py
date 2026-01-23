@@ -29,13 +29,42 @@ class ChangeAnalyzer:
         """Initialize analyzer with provider's SDK usage.
         
         Args:
-            usage_data: Usage data from go_parser.extract_sdk_usage()
+            usage_data: Resource-centric usage data from go_parser.extract_sdk_usage()
         """
         self.usage_data = usage_data
-        self.used_packages = set(usage_data.get("packages", {}).keys())
-        self.used_types = set(usage_data.get("types", {}).keys())
-        self.used_methods = set(usage_data.get("methods", {}).keys())
-        self.used_enums = set(usage_data.get("enums", {}).keys())
+        self.sdk_to_resource_index = usage_data.get("sdk_to_resource_index", {})
+        
+        # Extract all used SDK components from all entities
+        self.used_packages = set()
+        self.used_types = set(self.sdk_to_resource_index.keys())  # All types in the index
+        self.used_methods = set()
+        self.used_enums = set()
+        
+        # Iterate through all entity types
+        for entity_type in ["terraform_resources", "terraform_actions", "terraform_list_actions",
+                           "terraform_ephemerals", "terraform_data_sources"]:
+            entities = usage_data.get(entity_type, {})
+            for entity_info in entities.values():
+                deps = entity_info.get("sdk_dependencies", {})
+                
+                # Collect types
+                for sdk_type in deps.get("types", []):
+                    self.used_types.add(sdk_type)
+                
+                # Collect methods
+                for method in deps.get("methods_called", []):
+                    self.used_methods.add(method)
+                
+                # Collect enums
+                for enum_usage in deps.get("enums_used", []):
+                    self.used_enums.add(enum_usage.get("enum", ""))
+        
+        # Infer packages from types and methods
+        for item in list(self.used_types) + list(self.used_methods) + list(self.used_enums):
+            if "/" in item:
+                # Extract package path from full type name
+                pkg = item.rsplit(".", 1)[0] if "." in item else item
+                self.used_packages.add(pkg)
     
     def analyze_file_changes(self, files: List[Dict[str, Any]]) -> Dict[str, List[Dict]]:
         """Analyze changed files and categorize by impact.
@@ -267,17 +296,11 @@ class ChangeAnalyzer:
         # Get file changes
         comparison = compare_versions(repo, base_version, head_version)
         
-        # Track which types we use
+        # Track which types we use (extract simple names)
         used_types_simple = set()
         for full_type in self.used_types:
             # Extract simple type name from full path
-            # e.g., "github.com/.../models.User" -> "User"
-            if '.' in full_type:
-                simple_name = full_type.split('.')[-1]
-                used_types_simple.add(simple_name)
-        
-        # Also check fields dict for types
-        for full_type in self.usage_data.get('fields', {}).keys():
+            # e.g., "models.User" -> "User"
             if '.' in full_type:
                 simple_name = full_type.split('.')[-1]
                 used_types_simple.add(simple_name)
