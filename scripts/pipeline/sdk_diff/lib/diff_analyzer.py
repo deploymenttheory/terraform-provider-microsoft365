@@ -16,6 +16,8 @@ class ImpactLevel:
     WARNING = "warning"        # Deprecations, signature changes
     SAFE = "safe"             # New features, unused changes
     OPPORTUNITY = "opportunity"  # New fields in types we use - potential additions
+    ENUM_ADDED = "enum_added"    # New values added to enums we use
+    ENUM_REMOVED = "enum_removed"  # Values removed from enums we use (CRITICAL)
     NOISE = "noise"           # Filtered out (tests, docs, unused packages)
 
 
@@ -32,6 +34,7 @@ class ChangeAnalyzer:
         self.used_packages = set(usage_data.get("packages", {}).keys())
         self.used_types = set(usage_data.get("types", {}).keys())
         self.used_methods = set(usage_data.get("methods", {}).keys())
+        self.used_enums = set(usage_data.get("enums", {}).keys())
     
     def analyze_file_changes(self, files: List[Dict[str, Any]]) -> Dict[str, List[Dict]]:
         """Analyze changed files and categorize by impact.
@@ -53,6 +56,8 @@ class ChangeAnalyzer:
             ImpactLevel.WARNING: [],
             ImpactLevel.SAFE: [],
             ImpactLevel.OPPORTUNITY: [],
+            ImpactLevel.ENUM_ADDED: [],
+            ImpactLevel.ENUM_REMOVED: [],
             ImpactLevel.NOISE: []
         }
         
@@ -356,6 +361,136 @@ class ChangeAnalyzer:
         }
 
 
+    def analyze_enum_changes(self, repo: str, base_version: str, head_version: str) -> List[Dict[str, Any]]:
+        """Analyze enum value changes in enums we use.
+        
+        Args:
+            repo: Repository name (e.g., "microsoftgraph/msgraph-beta-sdk-go")
+            base_version: Base version tag (e.g., "v0.157.0")
+            head_version: Head version tag (e.g., "v0.158.0")
+            
+        Returns:
+            List of enum changes:
+            [
+                {
+                    "enum_type": "models.RunAsAccountType",
+                    "added_values": ["administrator"],
+                    "removed_values": [],
+                    "file": "models/run_as_account_type.go",
+                    "impact": "opportunity" or "critical"
+                }
+            ]
+        """
+        changes = []
+        
+        # Get file changes
+        comparison = compare_versions(repo, base_version, head_version)
+        
+        # Track which enums we use - extract simple names
+        used_enums_simple = set()
+        for full_enum in self.used_enums:
+            # Extract simple name from full path
+            # e.g., "github.com/.../models.RunAsAccountType" -> "RunAsAccountType"
+            if '.' in full_enum:
+                simple_name = full_enum.split('.')[-1]
+                used_enums_simple.add(simple_name)
+        
+        # Analyze each changed file in models directory
+        for file_change in comparison['files']:
+            filename = file_change.get('filename', '')
+            
+            # Only look at enum type files (typically *_type.go in models)
+            if 'models/' not in filename or not filename.endswith('_type.go'):
+                continue
+            
+            # Extract enum type name from filename
+            # e.g., "models/run_as_account_type.go" -> "RunAsAccountType"
+            base_name = filename.split('/')[-1].replace('.go', '')
+            # Convert snake_case to PascalCase
+            enum_type_name = ''.join(word.capitalize() for word in base_name.split('_'))
+            
+            # Check if we use this enum
+            if enum_type_name not in used_enums_simple:
+                continue
+            
+            # Get the patch content
+            patch = file_change.get('patch', '')
+            if not patch:
+                continue
+            
+            # Parse enum values from patch
+            added_values, removed_values = self._parse_enum_values_from_patch(patch)
+            
+            if added_values or removed_values:
+                impact = "critical" if removed_values else "opportunity"
+                changes.append({
+                    'enum_type': f"models.{enum_type_name}",
+                    'added_values': added_values,
+                    'removed_values': removed_values,
+                    'file': filename,
+                    'impact': impact
+                })
+        
+        return changes
+    
+    def _parse_enum_values_from_patch(self, patch: str) -> tuple:
+        """Parse added/removed enum values from a git patch.
+        
+        Args:
+            patch: Git diff patch content
+            
+        Returns:
+            Tuple of (added_values, removed_values)
+        """
+        added_values = []
+        removed_values = []
+        
+        in_parse_function = False
+        in_switch_block = False
+        
+        for line in patch.split('\n'):
+            # Detect Parse* function
+            if 'func Parse' in line and '(v string)' in line:
+                in_parse_function = True
+                continue
+            
+            if not in_parse_function:
+                continue
+            
+            # Detect switch block start
+            if 'switch v {' in line or 'switch v{' in line:
+                in_switch_block = True
+                continue
+            
+            # End of function
+            if in_parse_function and line.strip().startswith('}') and '{' not in line:
+                in_parse_function = False
+                in_switch_block = False
+                continue
+            
+            if not in_switch_block:
+                continue
+            
+            # Parse case statements
+            # Added line: case "newvalue":
+            if line.startswith('+') and 'case "' in line:
+                match = re.search(r'case "([^"]+)":', line)
+                if match:
+                    value = match.group(1)
+                    if value not in added_values:
+                        added_values.append(value)
+            
+            # Removed line: case "oldvalue":
+            elif line.startswith('-') and 'case "' in line:
+                match = re.search(r'case "([^"]+)":', line)
+                if match:
+                    value = match.group(1)
+                    if value not in removed_values:
+                        removed_values.append(value)
+        
+        return added_values, removed_values
+
+
 def generate_summary_stats(categorized: Dict[str, List[Dict]]) -> Dict[str, int]:
     """Generate summary statistics from categorized changes.
     
@@ -382,5 +517,7 @@ def generate_summary_stats(categorized: Dict[str, List[Dict]]) -> Dict[str, int]
         "warning": len(categorized[ImpactLevel.WARNING]),
         "safe": len(categorized[ImpactLevel.SAFE]),
         "opportunity": len(categorized.get(ImpactLevel.OPPORTUNITY, [])),
+        "enum_added": len(categorized.get(ImpactLevel.ENUM_ADDED, [])),
+        "enum_removed": len(categorized.get(ImpactLevel.ENUM_REMOVED, [])),
         "noise": len(categorized[ImpactLevel.NOISE]),
     }

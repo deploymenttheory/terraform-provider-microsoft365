@@ -117,6 +117,48 @@ def analyze_field_additions(analyzer, repo, current_version, latest_version, cat
         print(f"⚠️  Could not analyze field additions: {e}")
 
 
+def analyze_enum_changes(analyzer, repo, current_version, latest_version, categorized):
+    """Analyze enum value changes in used enums."""
+    print("\n🔍 Analyzing enum value changes...")
+    try:
+        enum_changes = analyzer.analyze_enum_changes(
+            repo,
+            current_version,
+            latest_version
+        )
+        if enum_changes:
+            added_count = sum(1 for e in enum_changes if e['added_values'])
+            removed_count = sum(1 for e in enum_changes if e['removed_values'])
+            
+            if added_count:
+                print(f"✨ Found {added_count} enum(s) with new values")
+            if removed_count:
+                print(f"🚨 Found {removed_count} enum(s) with removed values (breaking!)")
+            
+            for enum_change in enum_changes:
+                if enum_change['removed_values']:
+                    # Removed values are CRITICAL
+                    categorized[ImpactLevel.ENUM_REMOVED].append({
+                        'enum_type': enum_change['enum_type'],
+                        'removed_values': enum_change['removed_values'],
+                        'added_values': enum_change['added_values'],
+                        'file': enum_change['file'],
+                        'reason': f"Enum values removed: {', '.join(enum_change['removed_values'])}"
+                    })
+                elif enum_change['added_values']:
+                    # Added values are opportunities
+                    categorized[ImpactLevel.ENUM_ADDED].append({
+                        'enum_type': enum_change['enum_type'],
+                        'added_values': enum_change['added_values'],
+                        'file': enum_change['file'],
+                        'reason': f"New enum values: {', '.join(enum_change['added_values'])}"
+                    })
+        else:
+            print("ℹ️  No enum value changes in enums you use")
+    except (RuntimeError, urllib.error.URLError, json.JSONDecodeError, KeyError, TypeError) as e:
+        print(f"⚠️  Could not analyze enum changes: {e}")
+
+
 def print_analysis_results(stats):
     """Print analysis results to console."""
     print("\n📊 Analysis Results:")
@@ -127,6 +169,8 @@ def print_analysis_results(stats):
     print(f"    ⚠️  Warning:  {stats['warning']}")
     print(f"    ✅ Safe:     {stats['safe']}")
     print(f"    ✨ Opportunities: {stats['opportunity']}")
+    print(f"    🎯 Enum values added: {stats.get('enum_added', 0)}")
+    print(f"    🔥 Enum values removed: {stats.get('enum_removed', 0)}")
     print(f"  Noise:         {stats['noise']:,}")
 
 
@@ -186,6 +230,7 @@ def main():
     categorized = analyzer.analyze_file_changes(comparison["files"])
     
     analyze_field_additions(analyzer, repo, args.current_version, args.latest_version, categorized)
+    analyze_enum_changes(analyzer, repo, args.current_version, args.latest_version, categorized)
     
     stats = generate_summary_stats(categorized)
     print_analysis_results(stats)
