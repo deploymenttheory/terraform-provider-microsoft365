@@ -128,7 +128,7 @@ jobs:
         with:
           script: |
             const fs = require('fs');
-            const report = fs.readFileSync('sdk-diff-msgraph/02_critical_breaking_changes.md', 'utf8');
+            const report = fs.readFileSync('sdk-diff-msgraph/02_breaking_changes.md', 'utf8');
             
             const issue = await github.rest.issues.create({
               owner: context.repo.owner,
@@ -208,7 +208,7 @@ jobs:
         with:
           script: |
             const fs = require('fs');
-            const report = fs.readFileSync('sdk-diff-msgraph-beta/02_critical_breaking_changes.md', 'utf8');
+            const report = fs.readFileSync('sdk-diff-msgraph-beta/02_breaking_changes.md', 'utf8');
             
             const issue = await github.rest.issues.create({
               owner: context.repo.owner,
