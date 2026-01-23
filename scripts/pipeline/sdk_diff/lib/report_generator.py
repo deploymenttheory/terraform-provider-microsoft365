@@ -36,9 +36,11 @@ def generate_markdown_report(
     sections.append(_generate_summary_stats(stats))
     sections.append(_generate_breaking_changes_section(breaking_changes))
     sections.append(_generate_critical_section(categorized_changes))
+    sections.append(_generate_enum_removed_section(categorized_changes))
     sections.append(_generate_warnings_section(categorized_changes))
     sections.append(_generate_safe_changes_section(categorized_changes))
     sections.append(_generate_opportunities_section(categorized_changes))
+    sections.append(_generate_enum_added_section(categorized_changes))
     sections.append(_generate_actions_section(stats))
     sections.append(_generate_footer())
     
@@ -93,6 +95,8 @@ def _generate_summary_stats(stats: Dict[str, int]) -> str:
     lines.append(f"  - ⚠️  **Warnings:** {stats['warning']} changes")
     lines.append(f"  - ✅ **Safe:** {stats['safe']} changes")
     lines.append(f"  - ✨ **Opportunities:** {stats.get('opportunity', 0)} new fields in used types")
+    lines.append(f"  - 🎯 **Enum values added:** {stats.get('enum_added', 0)} enums")
+    lines.append(f"  - 🔥 **Enum values removed:** {stats.get('enum_removed', 0)} enums (breaking!)")
     lines.append(f"- **Filtered as noise:** {stats['noise']:,} files")
     lines.append("")
     return '\n'.join(lines)
@@ -222,25 +226,93 @@ def _generate_opportunities_section(categorized_changes: Dict[str, List[Dict]]) 
     return '\n'.join(lines)
 
 
+def _generate_enum_removed_section(categorized_changes: Dict[str, List[Dict]]) -> str:
+    """Generate enum removed values section (breaking changes)."""
+    enum_removed = categorized_changes.get("enum_removed", [])
+    if not enum_removed:
+        return ""
+    
+    lines = []
+    lines.append(f"## 🔥 Enum Values Removed ({len(enum_removed)}) - BREAKING")
+    lines.append("")
+    lines.append("⚠️ **These are breaking changes!** Enum values you may be using have been removed:")
+    lines.append("")
+    
+    for enum_change in enum_removed:
+        enum_type = enum_change.get('enum_type', 'Unknown')
+        removed_values = enum_change.get('removed_values', [])
+        added_values = enum_change.get('added_values', [])
+        file = enum_change.get('file', '')
+        
+        lines.append(f"### `{enum_type}`")
+        lines.append(f"- **File:** `{file}`")
+        if removed_values:
+            lines.append(f"- **Removed values:** `{', '.join(removed_values)}`")
+        if added_values:
+            lines.append(f"- **Added values:** `{', '.join(added_values)}`")
+        lines.append("")
+    
+    return '\n'.join(lines)
+
+
+def _generate_enum_added_section(categorized_changes: Dict[str, List[Dict]]) -> str:
+    """Generate enum added values section (opportunities)."""
+    enum_added = categorized_changes.get("enum_added", [])
+    if not enum_added:
+        return ""
+    
+    lines = []
+    lines.append(f"## 🎯 Enum Values Added ({len(enum_added)})")
+    lines.append("")
+    lines.append("New values added to enums you're already using. You may want to support these:")
+    lines.append("")
+    
+    for enum_change in enum_added:
+        enum_type = enum_change.get('enum_type', 'Unknown')
+        added_values = enum_change.get('added_values', [])
+        file = enum_change.get('file', '')
+        
+        lines.append(f"### `{enum_type}`")
+        lines.append(f"- **File:** `{file}`")
+        lines.append(f"- **New values:** `{', '.join(added_values)}`")
+        lines.append("")
+    
+    return '\n'.join(lines)
+
+
 def _generate_actions_section(stats: Dict[str, int]) -> str:
     """Generate recommended actions section."""
     lines = []
     lines.append("## 🎯 Recommended Actions")
     lines.append("")
     
+    action_num = 1
+    
+    if stats.get('enum_removed', 0) > 0:
+        lines.append(f"{action_num}. 🔥 **CRITICAL: Review {stats['enum_removed']} enum(s) with removed values** - may break existing code")
+        action_num += 1
+    
     if stats['critical'] > 0:
-        lines.append(f"1. ❗ **Address {stats['critical']} critical changes** before upgrading")
+        lines.append(f"{action_num}. ❗ **Address {stats['critical']} critical changes** before upgrading")
+        action_num += 1
     
     if stats['warning'] > 0:
-        lines.append(f"2. ⚠️  Review {stats['warning']} warnings for potential issues")
+        lines.append(f"{action_num}. ⚠️  Review {stats['warning']} warnings for potential issues")
+        action_num += 1
     
     if stats['safe'] > 0:
-        lines.append(f"3. ✅ Consider using {stats['safe']} new features")
+        lines.append(f"{action_num}. ✅ Consider using {stats['safe']} new features")
+        action_num += 1
     
     if stats.get('opportunity', 0) > 0:
-        lines.append(f"4. ✨ Review {stats['opportunity']} new field(s) in types you use")
+        lines.append(f"{action_num}. ✨ Review {stats['opportunity']} new field(s) in types you use")
+        action_num += 1
     
-    if stats['critical'] == 0 and stats['warning'] == 0:
+    if stats.get('enum_added', 0) > 0:
+        lines.append(f"{action_num}. 🎯 Consider supporting {stats['enum_added']} new enum value(s)")
+        action_num += 1
+    
+    if stats['critical'] == 0 and stats['warning'] == 0 and stats.get('enum_removed', 0) == 0:
         lines.append("✅ **No breaking changes detected!** Safe to upgrade.")
     
     lines.append("")

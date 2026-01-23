@@ -46,6 +46,14 @@ coverage.html
 # Python virtual environments
 scripts/python/venv/
 
+# Python cache and compiled files
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyo
+.pytest_cache/
+*.egg-info/
+
 # AI instructions
 .claude
 .cursor
