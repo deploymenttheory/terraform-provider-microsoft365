@@ -18,6 +18,7 @@ class ImpactLevel:
     OPPORTUNITY = "opportunity"  # New fields in types we use - potential additions
     ENUM_ADDED = "enum_added"    # New values added to enums we use
     ENUM_REMOVED = "enum_removed"  # Values removed from enums we use (CRITICAL)
+    METADATA = "metadata"      # Build/config files (informational, not actionable)
     NOISE = "noise"           # Filtered out (tests, docs, unused packages)
 
 
@@ -58,6 +59,7 @@ class ChangeAnalyzer:
             ImpactLevel.OPPORTUNITY: [],
             ImpactLevel.ENUM_ADDED: [],
             ImpactLevel.ENUM_REMOVED: [],
+            ImpactLevel.METADATA: [],
             ImpactLevel.NOISE: []
         }
         
@@ -85,8 +87,12 @@ class ChangeAnalyzer:
             status: Change type (added, modified, removed)
             
         Returns:
-            Impact level (critical, warning, safe, noise)
+            Impact level (critical, warning, safe, metadata, noise)
         """
+        # Check for metadata files (build/config)
+        if self._is_metadata_file(filename):
+            return ImpactLevel.METADATA
+        
         # Filter noise
         if self._is_noise_file(filename):
             return ImpactLevel.NOISE
@@ -112,6 +118,29 @@ class ChangeAnalyzer:
         
         # Default: modifications to used packages = warning
         return ImpactLevel.WARNING
+    
+    def _is_metadata_file(self, filename: str) -> bool:
+        """Check if file is a metadata/build/config file.
+        
+        Args:
+            filename: Path to file
+            
+        Returns:
+            True if file is metadata (informational, not actionable)
+        """
+        metadata_patterns = [
+            "go.mod",                          # Go modules
+            "go.sum",                          # Go dependencies
+            ".release-please-manifest.json",   # Release automation
+            "kiota-lock.json",                 # Kiota generator lock
+            "kiota-dom-export.txt",           # Kiota metadata
+            ".gitignore",                      # Git config
+            ".gitattributes",                  # Git config
+            "LICENSE",                         # Legal
+            "NOTICE",                          # Legal
+        ]
+        
+        return any(filename.endswith(pattern) or pattern in filename for pattern in metadata_patterns)
     
     def _is_noise_file(self, filename: str) -> bool:
         """Check if file should be filtered as noise.
@@ -509,15 +538,18 @@ def generate_summary_stats(categorized: Dict[str, List[Dict]]) -> Dict[str, int]
         }
     """
     total = sum(len(changes) for changes in categorized.values())
+    metadata_count = len(categorized.get(ImpactLevel.METADATA, []))
+    noise_count = len(categorized[ImpactLevel.NOISE])
     
     return {
         "total_changes": total,
-        "relevant_changes": total - len(categorized[ImpactLevel.NOISE]),
+        "relevant_changes": total - metadata_count - noise_count,
         "critical": len(categorized[ImpactLevel.CRITICAL]),
         "warning": len(categorized[ImpactLevel.WARNING]),
         "safe": len(categorized[ImpactLevel.SAFE]),
         "opportunity": len(categorized.get(ImpactLevel.OPPORTUNITY, [])),
         "enum_added": len(categorized.get(ImpactLevel.ENUM_ADDED, [])),
         "enum_removed": len(categorized.get(ImpactLevel.ENUM_REMOVED, [])),
-        "noise": len(categorized[ImpactLevel.NOISE]),
+        "metadata": metadata_count,
+        "noise": noise_count,
     }

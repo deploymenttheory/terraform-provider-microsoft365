@@ -108,22 +108,19 @@ jobs:
             --output-file $GITHUB_OUTPUT \
             --changes-output sdk_changes_msgraph.json
       
-      - name: Generate report
+      - name: Generate reports
         run: |
+          mkdir -p sdk-diff-msgraph
           python3 scripts/pipeline/sdk_diff/steps/generate_report.py \
             --changes-file sdk_changes_msgraph.json \
-            --current-versions '{"msgraph-sdk-go": "${{ needs.detect-versions.outputs.current-msgraph-sdk }}"}' \
-            --latest-versions '{"msgraph-sdk-go": "${{ needs.detect-versions.outputs.latest-msgraph-sdk }}"}' \
-            --output-markdown SDK_DIFF_MSGRAPH.md
+            --usage-file sdk_usage_msgraph.json \
+            --output-dir sdk-diff-msgraph
       
-      - name: Upload report as artifact
+      - name: Upload reports as artifact
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
         with:
           name: sdk-diff-msgraph
-          path: |
-            SDK_DIFF_MSGRAPH.md
-            sdk_usage_msgraph.json
-            sdk_changes_msgraph.json
+          path: sdk-diff-msgraph/
       
       - name: Create issue if breaking changes found
         if: steps.analyze.outputs.has-breaking-changes == 'true'
@@ -131,7 +128,7 @@ jobs:
         with:
           script: |
             const fs = require('fs');
-            const report = fs.readFileSync('SDK_DIFF_MSGRAPH.md', 'utf8');
+            const report = fs.readFileSync('sdk-diff-msgraph/02_critical_breaking_changes.md', 'utf8');
             
             const issue = await github.rest.issues.create({
               owner: context.repo.owner,
@@ -191,22 +188,19 @@ jobs:
             --output-file $GITHUB_OUTPUT \
             --changes-output sdk_changes_msgraph_beta.json
       
-      - name: Generate report
+      - name: Generate reports
         run: |
+          mkdir -p sdk-diff-msgraph-beta
           python3 scripts/pipeline/sdk_diff/steps/generate_report.py \
             --changes-file sdk_changes_msgraph_beta.json \
-            --current-versions '{"msgraph-beta-sdk-go": "${{ needs.detect-versions.outputs.current-msgraph-beta-sdk }}"}' \
-            --latest-versions '{"msgraph-beta-sdk-go": "${{ needs.detect-versions.outputs.latest-msgraph-beta-sdk }}"}' \
-            --output-markdown SDK_DIFF_MSGRAPH_BETA.md
+            --usage-file sdk_usage_msgraph_beta.json \
+            --output-dir sdk-diff-msgraph-beta
       
-      - name: Upload report as artifact
+      - name: Upload reports as artifact
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
         with:
           name: sdk-diff-msgraph-beta
-          path: |
-            SDK_DIFF_MSGRAPH_BETA.md
-            sdk_usage_msgraph_beta.json
-            sdk_changes_msgraph_beta.json
+          path: sdk-diff-msgraph-beta/
       
       - name: Create issue if breaking changes found
         if: steps.analyze.outputs.has-breaking-changes == 'true'
@@ -214,7 +208,7 @@ jobs:
         with:
           script: |
             const fs = require('fs');
-            const report = fs.readFileSync('SDK_DIFF_MSGRAPH_BETA.md', 'utf8');
+            const report = fs.readFileSync('sdk-diff-msgraph-beta/02_critical_breaking_changes.md', 'utf8');
             
             const issue = await github.rest.issues.create({
               owner: context.repo.owner,
