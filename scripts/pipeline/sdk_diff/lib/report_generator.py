@@ -49,17 +49,17 @@ def generate_all_reports(
         "generated_at": datetime.utcnow().isoformat() + "Z"
     }
     
-    # 01 - Executive Summary
+    # 01 - Summary
     exec_summary = _generate_executive_summary(metadata, stats, breaking_changes)
-    path = output_dir / "01_executive_summary.md"
+    path = output_dir / "01_summary.md"
     path.write_text(exec_summary)
     generated_files.append(str(path))
     
-    # 02 - Critical Breaking Changes
+    # 02 - Breaking Changes
     critical_report = _generate_critical_breaking_changes(
         metadata, categorized_changes, breaking_changes
     )
-    path = output_dir / "02_critical_breaking_changes.md"
+    path = output_dir / "02_breaking_changes.md"
     path.write_text(critical_report)
     generated_files.append(str(path))
     
@@ -87,11 +87,11 @@ def generate_all_reports(
     path.write_text(opportunities)
     generated_files.append(str(path))
     
-    # 06 - Metadata Changes
+    # 06 - Repo Metadata Changes
     metadata_report = _generate_metadata_changes(
         metadata, categorized_changes
     )
-    path = output_dir / "06_metadata_changes.md"
+    path = output_dir / "06_repo_metadata_changes.md"
     path.write_text(metadata_report)
     generated_files.append(str(path))
     
@@ -151,7 +151,7 @@ def _generate_executive_summary(
             f"- **{critical_count}** critical breaking changes",
             f"- **{enum_removed}** enum values removed (breaking)",
             "",
-            "**Decision:** Review `02_critical_breaking_changes.md` before upgrading.",
+            "**Decision:** Review `02_breaking_changes.md` before upgrading.",
             ""
         ])
     elif warning_count > 0:
@@ -192,11 +192,11 @@ def _generate_executive_summary(
         "",
         "## 📂 Detailed Reports",
         "",
-        "1. `02_critical_breaking_changes.md` - Must address before upgrade",
+        "1. `02_breaking_changes.md` - Must address before upgrade",
         "2. `03_provider_updates_required.md` - Fields/methods needing review",
         "3. `04_type_structure_changes.md` - Type modifications in use",
         "4. `05_new_opportunities.md` - New features to consider",
-        "5. `06_metadata_changes.md` - Build/config file changes (informational)",
+        "5. `06_repo_metadata_changes.md` - Build/config file changes (informational)",
         "6. `08_actionable_changes.json` - Structured data for PR automation",
         "",
         "---",

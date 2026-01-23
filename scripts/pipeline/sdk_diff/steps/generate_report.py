@@ -98,7 +98,7 @@ def main():
     critical_count = stats.get('critical', 0) + stats.get('enum_removed', 0)
     
     if critical_count > 0:
-        print("\n⚠️  CRITICAL: Breaking changes detected! Review 02_critical_breaking_changes.md")
+        print("\n⚠️  CRITICAL: Breaking changes detected! Review 02_breaking_changes.md")
         sys.exit(1)
     elif stats.get('warning', 0) > 0:
         print("\n⚠️  Warnings detected. Review 03_provider_updates_required.md")
