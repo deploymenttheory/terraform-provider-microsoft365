@@ -21,16 +21,12 @@ from pathlib import Path
 # Add lib directory to path
 sys.path.insert(0, str(Path(__file__).parent.parent / "lib"))
 # noqa: E402
-from diff_analyzer import ChangeAnalyzer, generate_summary_stats, ImpactLevel
-from github_api import compare_versions, get_sdk_repo_name, parse_breaking_changes, get_latest_release
+from diff_analyzer import ChangeAnalyzer, generate_summary_stats, ImpactLevel # pylint: disable=import-error
+from github_api import compare_versions, get_sdk_repo_name, parse_breaking_changes, get_latest_release # pylint: disable=import-error
 
 
-def main():
-    """Analyze SDK changes between versions and categorize by impact.
-    
-    Loads usage data, compares SDK versions via GitHub API, analyzes file
-    changes and field additions, then outputs categorized results for reporting.
-    """
+def parse_arguments():
+    """Parse command line arguments."""
     parser = argparse.ArgumentParser(description="Analyze SDK changes")
     parser.add_argument(
         "--usage-file",
@@ -64,33 +60,23 @@ def main():
         default=Path.cwd() / "sdk_changes.json",
         help="Path to save changes data JSON"
     )
-    
-    args = parser.parse_args()
-    
-    print("=" * 60)
-    print(f"🔬 Analyzing {args.sdk} Changes")
-    print("=" * 60)
-    print(f"Version: {args.current_version} → {args.latest_version}")
-    print()
-    
-    # Load usage data
-    print(f"📂 Loading usage data from {args.usage_file}...")
-    with open(args.usage_file, 'r', encoding='utf-8') as f:
-        usage_data = json.load(f)
-    
-    # Get SDK repo name
-    repo = get_sdk_repo_name(args.sdk)
-    
-    # Compare versions
-    print(f"📊 Fetching changes from GitHub ({repo})...")
+    return parser.parse_args()
+
+
+def get_version_comparison(repo, current_version, latest_version):
+    """Get version comparison from GitHub API."""
+    print(f"📊 Getting changes from GitHub ({repo})...")
     try:
-        comparison = compare_versions(repo, args.current_version, args.latest_version)
+        comparison = compare_versions(repo, current_version, latest_version)
         print(f"✅ Found {comparison['commits']} commits, {comparison['files_changed']} files changed")
+        return comparison
     except (RuntimeError, urllib.error.URLError, json.JSONDecodeError, KeyError) as e:
         print(f"❌ Failed to compare versions: {e}")
         sys.exit(1)
-    
-    # Get breaking changes from release notes
+
+
+def get_breaking_changes(repo):
+    """Get breaking changes from release notes."""
     print("\n📝 Checking release notes for breaking changes...")
     try:
         release = get_latest_release(repo)
@@ -99,26 +85,23 @@ def main():
             print(f"⚠️  Found {len(breaking_changes)} breaking changes in release notes")
         else:
             print("✅ No breaking changes mentioned in release notes")
+        return breaking_changes
     except (RuntimeError, urllib.error.URLError, json.JSONDecodeError, KeyError) as e:
-        print(f"⚠️  Could not fetch release notes: {e}")
-        breaking_changes = []
-    
-    # Analyze changes
-    print("\n🔍 Analyzing impact of file changes...")
-    analyzer = ChangeAnalyzer(usage_data)
-    categorized = analyzer.analyze_file_changes(comparison["files"])
-    
-    # Analyze field additions in types we use
+        print(f"⚠️  Could not get release notes: {e}")
+        return []
+
+
+def analyze_field_additions(analyzer, repo, current_version, latest_version, categorized):
+    """Analyze field additions in used types."""
     print("\n🔍 Analyzing field additions in used types...")
     try:
         field_opportunities = analyzer.analyze_field_additions(
-            repo, 
-            args.current_version, 
-            args.latest_version
+            repo,
+            current_version,
+            latest_version
         )
         if field_opportunities:
             print(f"✨ Found {len(field_opportunities)} new field(s) in types you use")
-            # Add to categorized as opportunities
             for opp in field_opportunities:
                 categorized[ImpactLevel.OPPORTUNITY].append({
                     'type': opp['type'],
@@ -132,20 +115,23 @@ def main():
             print("ℹ️  No new fields in types you currently use")
     except (RuntimeError, urllib.error.URLError, json.JSONDecodeError, KeyError, TypeError) as e:
         print(f"⚠️  Could not analyze field additions: {e}")
-    
-    # Generate statistics
-    stats = generate_summary_stats(categorized)
-    
+
+
+def print_analysis_results(stats):
+    """Print analysis results to console."""
     print("\n📊 Analysis Results:")
     print(f"  Total changes: {stats['total_changes']:,}")
-    print(f"  Relevant:      {stats['relevant_changes']} ({stats['relevant_changes'] / max(stats['total_changes'], 1) * 100:.1f}%)")
+    relevant_pct = stats['relevant_changes'] / max(stats['total_changes'], 1) * 100
+    print(f"  Relevant:      {stats['relevant_changes']} ({relevant_pct:.1f}%)")
     print(f"    🚨 Critical: {stats['critical']}")
     print(f"    ⚠️  Warning:  {stats['warning']}")
     print(f"    ✅ Safe:     {stats['safe']}")
     print(f"    ✨ Opportunities: {stats['opportunity']}")
     print(f"  Noise:         {stats['noise']:,}")
-    
-    # Save results
+
+
+def save_results(args, comparison, breaking_changes, categorized, stats):
+    """Save analysis results to files."""
     output_data = {
         "sdk": args.sdk,
         "versions": {
@@ -169,7 +155,41 @@ def main():
             f.write(f"critical-count={stats['critical']}\n")
             f.write(f"warning-count={stats['warning']}\n")
             f.write(f"safe-count={stats['safe']}\n")
-            f.write(f"has-breaking-changes={'true' if stats['critical'] > 0 else 'false'}\n")
+            has_breaking = 'true' if stats['critical'] > 0 else 'false'
+            f.write(f"has-breaking-changes={has_breaking}\n")
+
+
+def main():
+    """Analyze SDK changes between versions and categorize by impact.
+    
+    Loads usage data, compares SDK versions via GitHub API, analyzes file
+    changes and field additions, then outputs categorized results for reporting.
+    """
+    args = parse_arguments()
+    
+    print("=" * 60)
+    print(f"🔬 Analyzing {args.sdk} Changes")
+    print("=" * 60)
+    print(f"Version: {args.current_version} → {args.latest_version}")
+    print()
+    
+    print(f"📂 Loading usage data from {args.usage_file}...")
+    with open(args.usage_file, 'r', encoding='utf-8') as f:
+        usage_data = json.load(f)
+    
+    repo = get_sdk_repo_name(args.sdk)
+    comparison = get_version_comparison(repo, args.current_version, args.latest_version)
+    breaking_changes = get_breaking_changes(repo)
+    
+    print("\n🔍 Analyzing impact of file changes...")
+    analyzer = ChangeAnalyzer(usage_data)
+    categorized = analyzer.analyze_file_changes(comparison["files"])
+    
+    analyze_field_additions(analyzer, repo, args.current_version, args.latest_version, categorized)
+    
+    stats = generate_summary_stats(categorized)
+    print_analysis_results(stats)
+    save_results(args, comparison, breaking_changes, categorized, stats)
     
     print("\n✅ Change analysis complete")
 

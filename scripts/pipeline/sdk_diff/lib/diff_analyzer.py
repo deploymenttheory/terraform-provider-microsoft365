@@ -7,7 +7,7 @@ Analyzes SDK changes and determines their impact on the Terraform provider.
 from typing import Dict, List, Any
 import re
 
-from .github_api import compare_versions
+from github_api import compare_versions
 
 
 class ImpactLevel:
@@ -152,7 +152,6 @@ class ChangeAnalyzer:
         Returns:
             True if package is imported anywhere
         """
-        # Check if any used package contains this path
         for used_pkg in self.used_packages:
             if package_path in used_pkg:
                 return True

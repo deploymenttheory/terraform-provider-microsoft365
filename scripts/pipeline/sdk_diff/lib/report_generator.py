@@ -17,7 +17,7 @@ def generate_markdown_report(
     stats: Dict[str, int],
     breaking_changes: List[str]
 ) -> str:
-    """Generate comprehensive Markdown report.
+    """Generate markdown report.
     
     Args:
         current_versions: Current SDK versions in provider
@@ -54,7 +54,10 @@ def _generate_header() -> str:
     return '\n'.join(lines)
 
 
-def _generate_version_table(current_versions: Dict[str, str], latest_versions: Dict[str, str]) -> str:
+def _generate_version_table(
+    current_versions: Dict[str, str],
+    latest_versions: Dict[str, str]
+) -> str:
     """Generate version comparison table."""
     lines = []
     lines.append("## 📦 Version Comparison")

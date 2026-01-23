@@ -9,18 +9,20 @@ Outputs:
 """
 
 import argparse
+import json
 import sys
-import os
+import urllib.error
 from pathlib import Path
 
 # Add lib directory to path
 sys.path.insert(0, str(Path(__file__).parent.parent / "lib"))
 # noqa: E402
-from version_detector import get_msgraph_versions, format_version_display
-from github_api import get_latest_release, get_sdk_repo_name
+from version_detector import get_msgraph_versions, format_version_display # pylint: disable=import-error
+from github_api import get_latest_release, get_sdk_repo_name # pylint: disable=import-error
 
 
 def main():
+    """Detect current and latest SDK versions and output comparison."""
     parser = argparse.ArgumentParser(description="Detect SDK versions")
     parser.add_argument(
         "--repo-path",
@@ -35,7 +37,6 @@ def main():
     
     args = parser.parse_args()
     
-    # Detect current versions
     print("📦 Detecting current SDK versions...")
     go_mod_path = args.repo_path / "go.mod"
     current_versions = get_msgraph_versions(go_mod_path)
@@ -43,8 +44,7 @@ def main():
     print("\n✅ Current versions:")
     print(format_version_display(current_versions))
     
-    # Detect latest versions
-    print("\n🔍 Fetching latest SDK versions from GitHub...")
+    print("\n🔍 Getting latest SDK versions from GitHub...")
     latest_versions = {}
     
     for sdk_name, current_version in current_versions.items():
@@ -60,11 +60,10 @@ def main():
             
             print(f"  - {sdk_name}: {release['tag']} {status}")
             
-        except Exception as e:
-            print(f"  ❌ Failed to fetch latest for {sdk_name}: {e}")
+        except (RuntimeError, urllib.error.URLError, json.JSONDecodeError, KeyError, ValueError) as e:
+            print(f"  ❌ Failed to get latest for {sdk_name}: {e}")
             latest_versions[sdk_name] = current_version
     
-    # Write outputs
     if args.output_file:
         with open(args.output_file, 'a', encoding='utf-8') as f:
             f.write(f"current-msgraph-sdk={current_versions.get('msgraph-sdk-go', '')}\n")
@@ -72,7 +71,6 @@ def main():
             f.write(f"latest-msgraph-sdk={latest_versions.get('msgraph-sdk-go', '')}\n")
             f.write(f"latest-msgraph-beta-sdk={latest_versions.get('msgraph-beta-sdk-go', '')}\n")
             
-            # Flag if updates are available
             has_updates = any(
                 latest_versions.get(sdk) != current_versions.get(sdk)
                 for sdk in current_versions.keys()
