@@ -2,7 +2,7 @@
 """GitHub API client for SDK version and change detection.
 
 Provides functions to:
-- Fetch latest SDK releases from GitHub
+- Get latest SDK releases from GitHub
 - Compare versions between tags
 - Extract changelog information
 """
@@ -193,7 +193,9 @@ def get_sdk_repo_name(sdk_package: str) -> str:
     """
     if "msgraph-beta-sdk-go" in sdk_package:
         return "microsoftgraph/msgraph-beta-sdk-go"
-    elif "msgraph-sdk-go" in sdk_package:
+    if "msgraph-sdk-go-core" in sdk_package:
+        return "microsoftgraph/msgraph-sdk-go-core"
+    if "msgraph-sdk-go" in sdk_package:
         return "microsoftgraph/msgraph-sdk-go"
-    else:
-        raise ValueError(f"Unknown SDK package: {sdk_package}")
+
+    raise ValueError(f"Unknown SDK package: {sdk_package}")

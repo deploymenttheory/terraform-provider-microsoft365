@@ -13,10 +13,11 @@ from pathlib import Path
 # Add lib directory to path
 sys.path.insert(0, str(Path(__file__).parent.parent / "lib"))
 # noqa: E402
-from go_parser import extract_sdk_usage, get_most_used_packages
+from go_parser import extract_sdk_usage, get_most_used_packages  # pylint: disable=import-error
 
 
 def main():
+    """Map SDK usage across provider codebase and output statistics."""
     parser = argparse.ArgumentParser(description="Map SDK usage in provider")
     parser.add_argument(
         "--repo-path",

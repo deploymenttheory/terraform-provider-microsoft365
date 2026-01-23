@@ -14,10 +14,11 @@ from pathlib import Path
 # Add lib directory to path
 sys.path.insert(0, str(Path(__file__).parent.parent / "lib"))
 # noqa: E402
-from report_generator import generate_markdown_report, save_json_report
+from report_generator import generate_markdown_report, save_json_report  # pylint: disable=import-error
 
 
 def main():
+    """Generate Markdown and optional JSON reports from SDK change analysis data."""
     parser = argparse.ArgumentParser(description="Generate SDK diff report")
     parser.add_argument(
         "--changes-file",
@@ -78,7 +79,7 @@ def main():
     
     # Save JSON if requested
     if args.output_json:
-        print(f"\n💾 Saving JSON report...")
+        print("\n💾 Saving JSON report...")
         save_json_report(changes_data, args.output_json)
     
     # Display summary
