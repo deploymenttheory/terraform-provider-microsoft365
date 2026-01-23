@@ -13,7 +13,7 @@ from pathlib import Path
 # Add lib directory to path
 sys.path.insert(0, str(Path(__file__).parent.parent / "lib"))
 # noqa: E402
-from go_parser import extract_sdk_usage, get_most_used_packages  # pylint: disable=import-error
+from go_parser import extract_sdk_usage  # pylint: disable=import-error
 
 
 def main():
@@ -51,28 +51,34 @@ def main():
     
     print(f"\n💾 Usage data saved: {args.usage_output}")
     
-    # Display most used packages
-    print("\n📦 Top 10 Most Used SDK Packages:")
-    top_packages = get_most_used_packages(usage_data, top_n=10)
-    
-    for i, (pkg, count) in enumerate(top_packages, 1):
-        # Shorten package names for display
-        short_name = pkg.split('/')[-1] if '/' in pkg else pkg
-        print(f"{i:2d}. {short_name:40s} ({count:3d} uses)")
-    
     # Statistics
-    print("\n📈 Usage Statistics:")
-    print(f"  - Total packages: {len(usage_data['packages'])}")
-    print(f"  - Total types: {len(usage_data['types'])}")
-    print(f"  - Total methods: {len(usage_data['methods'])}")
-    print(f"  - Total files analyzed: {len(set(f for files in usage_data['imports'].values() for f in files))}")
+    stats = usage_data.get('statistics', {})
+    print("\n📊 Terraform Entities:")
+    print(f"  - Resources:     {stats.get('total_resources', 0)}")
+    print(f"  - Actions:       {stats.get('total_actions', 0)}")
+    print(f"  - List Actions:  {stats.get('total_list_actions', 0)}")
+    print(f"  - Ephemerals:    {stats.get('total_ephemerals', 0)}")
+    print(f"  - Data Sources:  {stats.get('total_data_sources', 0)}")
+    
+    print("\n📈 SDK Usage:")
+    print(f"  - SDK types used:    {stats.get('total_sdk_types_used', 0)}")
+    print(f"  - SDK methods used:  {stats.get('total_sdk_methods_used', 0)}")
+    print(f"  - Enums tracked:     {stats.get('total_enums_tracked', 0)}")
+    
+    # Show sample resources
+    resources = usage_data.get('terraform_resources', {})
+    if resources:
+        print("\n🔍 Sample Resources:")
+        for i, (name, info) in enumerate(list(resources.items())[:5], 1):
+            type_count = len(info.get('sdk_dependencies', {}).get('types', []))
+            print(f"  {i}. {name} ({type_count} SDK types)")
     
     # Write outputs
     if args.output_file:
         with open(args.output_file, 'a', encoding='utf-8') as f:
             f.write(f"usage-file={args.usage_output.absolute()}\n")
-            f.write(f"packages-count={len(usage_data['packages'])}\n")
-            f.write(f"types-count={len(usage_data['types'])}\n")
+            f.write(f"resources-count={stats.get('total_resources', 0)}\n")
+            f.write(f"types-count={stats.get('total_sdk_types_used', 0)}\n")
     
     print("\n✅ Usage mapping complete")
 
