@@ -234,18 +234,3 @@ output "all_guids_valid" {
     can(regex("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$", guid))
   ])
 }
-
-output "shard_group_0_member_count" {
-  description = "Number of members assigned to shard_group_0"
-  value       = length(microsoft365_graph_beta_groups_group_member_assignment.shard_0_assignments)
-}
-
-output "shard_group_1_member_count" {
-  description = "Number of members assigned to shard_group_1"
-  value       = length(microsoft365_graph_beta_groups_group_member_assignment.shard_1_assignments)
-}
-
-output "shard_group_2_member_count" {
-  description = "Number of members assigned to shard_group_2"
-  value       = length(microsoft365_graph_beta_groups_group_member_assignment.shard_2_assignments)
-}
