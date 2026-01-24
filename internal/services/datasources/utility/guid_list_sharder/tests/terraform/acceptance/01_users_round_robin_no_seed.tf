@@ -1,15 +1,14 @@
-# Test 01: Users - Hash Strategy (No Seed)
+# Test 01: Users - Round-Robin Strategy (No Seed)
 #
-# Purpose: Verify hash-based distribution without seed produces consistent
-# distribution across all instances (same GUID always goes to same shard)
+# Purpose: Verify round-robin distribution without seed uses API order
+# and distributes evenly
 #
-# Use Case: Creating standard user tiers that should be identical across
-# all policies and all Terraform runs
+# Use Case: Quick one-time equal split where reproducibility isn't needed
 #
 # Expected Behavior:
-# - Approximately equal shard sizes
-# - Same distribution in all instances with same shard_count
-# - Deterministic and reproducible
+# - Exactly equal shard sizes (within ±1)
+# - Uses API order (may change between Terraform runs)
+# - Fast processing (no shuffle overhead)
 
 ################################################################################
 # Test Data Setup - Create 100 Test Users
@@ -62,10 +61,10 @@ data "microsoft365_utility_guid_list_sharder" "test" {
   depends_on = [time_sleep.wait_for_users]
 
   resource_type = "users"
-  odata_query   = "accountEnabled eq true"
+  odata_query   = "$filter=accountEnabled eq true"
   shard_count   = 3
-  strategy      = "hash"
-  # No seed - ensures identical distribution everywhere
+  strategy      = "round-robin"
+  # No seed - uses API order (non-deterministic)
 }
 
 output "shard_0_count" {

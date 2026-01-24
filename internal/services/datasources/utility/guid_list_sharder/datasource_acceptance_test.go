@@ -22,7 +22,7 @@ func loadAcceptanceTestTerraform(filename string) string {
 	return acceptance.ConfiguredM365ProviderBlock(config)
 }
 
-func TestAccGuidListSharderDataSource_01_UsersHashNoSeed(t *testing.T) {
+func TestAccGuidListSharderDataSource_01_UsersRoundRobinNoSeed(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -38,9 +38,9 @@ func TestAccGuidListSharderDataSource_01_UsersHashNoSeed(t *testing.T) {
 		},
 		Steps: []resource.TestStep{
 			{
-				Config: loadAcceptanceTestTerraform("01_users_hash_no_seed.tf"),
+				Config: loadAcceptanceTestTerraform("01_users_round_robin_no_seed.tf"),
 				Check: resource.ComposeTestCheckFunc(
-					check.That("data."+utilityGuidListSharder.DataSourceName+".test").Key("id").MatchesRegex(regexp.MustCompile(`^users-3-hash$`)),
+					check.That("data."+utilityGuidListSharder.DataSourceName+".test").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`)),
 					check.That("data."+utilityGuidListSharder.DataSourceName+".test").Key("shards.%").HasValue("3"),
 					check.That("data."+utilityGuidListSharder.DataSourceName+".test").Key("shards.shard_0.#").Exists(),
 					check.That("data."+utilityGuidListSharder.DataSourceName+".test").Key("shards.shard_1.#").Exists(),
