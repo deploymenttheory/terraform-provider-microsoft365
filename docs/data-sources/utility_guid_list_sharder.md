@@ -14,6 +14,17 @@ description: |-
 Queries Microsoft Graph API to retrieve collections of object IDs (GUIDs) for users, devices, or group members, then intelligently distributes them into configurable "shards" (subsets) for progressive deployment strategies.
 
 This datasource enables phased rollouts, pilot programs, and deployment rings for Microsoft 365 policies by algorithmically distributing populations into controlled subsets. Unlike static Entra ID dynamic groups that take hours to populate and require complex membership rules, the GUID List Sharder provides immediate, deterministic distribution with multiple strategies optimized for different scenarios.
+## Microsoft Graph API Permissions
+
+The following client `application` permissions are needed in order to use this data source:
+
+**Required:**
+- `Users.Read.All`
+- `Devices.Read.All`
+- `Groups.Read.All`
+
+**Optional:**
+- `None` `[N/A]`
 
 ## Version History
 
@@ -92,719 +103,501 @@ This prevents "pilot fatigue" where certain users consistently experience issues
 
 ## Example Usage
 
-### Round-Robin Distribution (Equal Shards)
+### Basic Examples
+
+#### Round-Robin (Equal Distribution)
 
 ```terraform
-# Round-Robin Distribution: Perfect equal distribution across 4 deployment rings
-# Use case: Equal-sized pilot, validation, pre-production, and production rings
+# Basic Round-Robin: Equal distribution across shards
+# Perfect ±1 balance guaranteed
 
-data "microsoft365_utility_guid_list_sharder" "mfa_rings" {
+# Without seed (non-deterministic, uses API order)
+data "microsoft365_utility_guid_list_sharder" "users_no_seed" {
   resource_type = "users"
   odata_query   = "accountEnabled eq true"
   shard_count   = 4
   strategy      = "round-robin"
-  seed          = "mfa-rollout-2026" # Optional: ensures reproducible distribution
 }
 
-# Ring 0: Pilot (exactly 25% of users)
-resource "microsoft365_graph_beta_conditional_access_policy" "mfa_ring_0" {
-  display_name = "MFA Required - Ring 0 (Pilot)"
-  state        = "enabled"
-
-  conditions {
-    users {
-      include_users = data.microsoft365_utility_guid_list_sharder.mfa_rings.shards["shard_0"]
-    }
-    applications {
-      include_applications = ["All"]
-    }
-  }
-
-  grant_controls {
-    operator          = "OR"
-    built_in_controls = ["mfa"]
-  }
-}
-
-# Ring 1: Validation (exactly 25% of users)
-resource "microsoft365_graph_beta_conditional_access_policy" "mfa_ring_1" {
-  display_name = "MFA Required - Ring 1 (Validation)"
-  state        = "enabled"
-
-  conditions {
-    users {
-      include_users = data.microsoft365_utility_guid_list_sharder.mfa_rings.shards["shard_1"]
-    }
-    applications {
-      include_applications = ["All"]
-    }
-  }
-
-  grant_controls {
-    operator          = "OR"
-    built_in_controls = ["mfa"]
-  }
-}
-
-# Ring 2: Pre-Production (exactly 25% of users)
-resource "microsoft365_graph_beta_conditional_access_policy" "mfa_ring_2" {
-  display_name = "MFA Required - Ring 2 (Pre-Production)"
-  state        = "enabled"
-
-  conditions {
-    users {
-      include_users = data.microsoft365_utility_guid_list_sharder.mfa_rings.shards["shard_2"]
-    }
-    applications {
-      include_applications = ["All"]
-    }
-  }
-
-  grant_controls {
-    operator          = "OR"
-    built_in_controls = ["mfa"]
-  }
-}
-
-# Ring 3: Production (exactly 25% of users)
-resource "microsoft365_graph_beta_conditional_access_policy" "mfa_ring_3" {
-  display_name = "MFA Required - Ring 3 (Production)"
-  state        = "enabled"
-
-  conditions {
-    users {
-      include_users = data.microsoft365_utility_guid_list_sharder.mfa_rings.shards["shard_3"]
-    }
-    applications {
-      include_applications = ["All"]
-    }
-  }
-
-  grant_controls {
-    operator          = "OR"
-    built_in_controls = ["mfa"]
-  }
-}
-
-# Verify perfect distribution
-output "ring_distribution" {
-  value = {
-    ring_0_count = length(data.microsoft365_utility_guid_list_sharder.mfa_rings.shards["shard_0"])
-    ring_1_count = length(data.microsoft365_utility_guid_list_sharder.mfa_rings.shards["shard_1"])
-    ring_2_count = length(data.microsoft365_utility_guid_list_sharder.mfa_rings.shards["shard_2"])
-    ring_3_count = length(data.microsoft365_utility_guid_list_sharder.mfa_rings.shards["shard_3"])
-    total_users  = length(data.microsoft365_utility_guid_list_sharder.mfa_rings.shards["shard_0"]) + length(data.microsoft365_utility_guid_list_sharder.mfa_rings.shards["shard_1"]) + length(data.microsoft365_utility_guid_list_sharder.mfa_rings.shards["shard_2"]) + length(data.microsoft365_utility_guid_list_sharder.mfa_rings.shards["shard_3"])
-  }
-  description = "Round-robin guarantees perfect ±1 GUID balance across all rings"
-}
-```
-
-### Percentage-Based Phased Rollout
-
-```terraform
-# Percentage-Based Distribution: Standard phased rollout pattern
-# Use case: 10% pilot, 30% broader rollout, 60% full deployment
-
-data "microsoft365_utility_guid_list_sharder" "ca_phases" {
-  resource_type     = "users"
-  odata_query       = "accountEnabled eq true"
-  shard_percentages = [10, 30, 60]
-  strategy          = "percentage"
-  seed              = "ca-policies-2026" # Optional: ensures same users in same phases
-}
-
-# Phase 1: Pilot (10% of users)
-resource "microsoft365_graph_beta_conditional_access_policy" "block_legacy_auth_pilot" {
-  display_name = "Block Legacy Auth - Phase 1 (10% Pilot)"
-  state        = "enabled"
-
-  conditions {
-    users {
-      include_users = data.microsoft365_utility_guid_list_sharder.ca_phases.shards["shard_0"]
-    }
-    applications {
-      include_applications = ["All"]
-    }
-    client_app_types = ["exchangeActiveSync", "other"]
-  }
-
-  grant_controls {
-    operator          = "OR"
-    built_in_controls = ["block"]
-  }
-}
-
-# Phase 2: Broader Rollout (30% of users)
-resource "microsoft365_graph_beta_conditional_access_policy" "block_legacy_auth_broader" {
-  display_name = "Block Legacy Auth - Phase 2 (30% Broader)"
-  state        = "enabled"
-
-  conditions {
-    users {
-      include_users = data.microsoft365_utility_guid_list_sharder.ca_phases.shards["shard_1"]
-    }
-    applications {
-      include_applications = ["All"]
-    }
-    client_app_types = ["exchangeActiveSync", "other"]
-  }
-
-  grant_controls {
-    operator          = "OR"
-    built_in_controls = ["block"]
-  }
-}
-
-# Phase 3: Full Deployment (60% of users)
-resource "microsoft365_graph_beta_conditional_access_policy" "block_legacy_auth_full" {
-  display_name = "Block Legacy Auth - Phase 3 (60% Full)"
-  state        = "enabled"
-
-  conditions {
-    users {
-      include_users = data.microsoft365_utility_guid_list_sharder.ca_phases.shards["shard_2"]
-    }
-    applications {
-      include_applications = ["All"]
-    }
-    client_app_types = ["exchangeActiveSync", "other"]
-  }
-
-  grant_controls {
-    operator          = "OR"
-    built_in_controls = ["block"]
-  }
-}
-
-# Monitor phase distribution
-output "phase_distribution" {
-  value = {
-    pilot_count   = length(data.microsoft365_utility_guid_list_sharder.ca_phases.shards["shard_0"])
-    broader_count = length(data.microsoft365_utility_guid_list_sharder.ca_phases.shards["shard_1"])
-    full_count    = length(data.microsoft365_utility_guid_list_sharder.ca_phases.shards["shard_2"])
-    total_users   = length(data.microsoft365_utility_guid_list_sharder.ca_phases.shards["shard_0"]) + length(data.microsoft365_utility_guid_list_sharder.ca_phases.shards["shard_1"]) + length(data.microsoft365_utility_guid_list_sharder.ca_phases.shards["shard_2"])
-  }
-  description = "Phase counts (should be approximately 10%, 30%, 60% of total)"
-}
-```
-
-### Fixed-Size Pilot Groups
-
-```terraform
-# Size-Based Distribution: Fixed pilot group sizes
-# Use case: Compliance requires exactly 50 pilot users, 100 validation users
-
-data "microsoft365_utility_guid_list_sharder" "compliance_pilot" {
-  resource_type = "users"
-  odata_query   = "accountEnabled eq true and department eq 'IT'"
-  shard_sizes   = [50, 100, -1] # 50 pilot, 100 validation, remainder for broad
-  strategy      = "size"
-  seed          = "compliance-pilot-2026"
-}
-
-# Pilot Group: Exactly 50 users
-resource "microsoft365_graph_beta_group" "compliance_pilot" {
-  display_name     = "Compliance Policy - Pilot (50 users)"
-  security_enabled = true
-
-  members = data.microsoft365_utility_guid_list_sharder.compliance_pilot.shards["shard_0"]
-}
-
-# Validation Group: Exactly 100 users
-resource "microsoft365_graph_beta_group" "compliance_validation" {
-  display_name     = "Compliance Policy - Validation (100 users)"
-  security_enabled = true
-
-  members = data.microsoft365_utility_guid_list_sharder.compliance_pilot.shards["shard_1"]
-}
-
-# Broad Deployment: All remaining IT users
-resource "microsoft365_graph_beta_group" "compliance_broad" {
-  display_name     = "Compliance Policy - Broad (All Remaining)"
-  security_enabled = true
-
-  members = data.microsoft365_utility_guid_list_sharder.compliance_pilot.shards["shard_2"]
-}
-
-# Conditional Access Policy targeting pilot group
-resource "microsoft365_graph_beta_conditional_access_policy" "compliance_policy_pilot" {
-  display_name = "Device Compliance Required - Pilot"
-  state        = "enabled"
-
-  conditions {
-    users {
-      include_groups = [microsoft365_graph_beta_group.compliance_pilot.id]
-    }
-    applications {
-      include_applications = ["All"]
-    }
-  }
-
-  grant_controls {
-    operator          = "OR"
-    built_in_controls = ["compliantDevice"]
-  }
-}
-
-# Verify exact counts
-output "pilot_group_sizes" {
-  value = {
-    pilot_count      = length(data.microsoft365_utility_guid_list_sharder.compliance_pilot.shards["shard_0"])
-    validation_count = length(data.microsoft365_utility_guid_list_sharder.compliance_pilot.shards["shard_1"])
-    broad_count      = length(data.microsoft365_utility_guid_list_sharder.compliance_pilot.shards["shard_2"])
-    total_it_users   = length(data.microsoft365_utility_guid_list_sharder.compliance_pilot.shards["shard_0"]) + length(data.microsoft365_utility_guid_list_sharder.compliance_pilot.shards["shard_1"]) + length(data.microsoft365_utility_guid_list_sharder.compliance_pilot.shards["shard_2"])
-  }
-  description = "Pilot should be exactly 50, Validation exactly 100, Broad gets remainder"
-}
-```
-
-### Rendezvous (Stable When Ring Count Changes)
-
-```terraform
-# Rendezvous Hashing: Stable when ring count changes
-# Use case: Start with 3 rings, later expand to 4 without massive user disruption
-
-# Initial deployment: 3 rings
-data "microsoft365_utility_guid_list_sharder" "stable_deployment" {
+# With seed (deterministic, reproducible)
+data "microsoft365_utility_guid_list_sharder" "users_with_seed" {
   resource_type = "users"
   odata_query   = "accountEnabled eq true"
-  shard_count   = 3 # Change to 4 later - only ~25% of users will move
-  strategy      = "rendezvous"
-  seed          = "stable-deployment-2026" # Required for rendezvous
+  shard_count   = 4
+  strategy      = "round-robin"
+  seed          = "mfa-rollout-2024"
 }
 
-# Ring 0: Early Adopters
-resource "microsoft365_graph_beta_group" "ring_0_early" {
-  display_name     = "Windows Updates - Ring 0 (Early Adopters)"
-  security_enabled = true
-
-  members = data.microsoft365_utility_guid_list_sharder.stable_deployment.shards["shard_0"]
-}
-
-resource "microsoft365_graph_beta_device_management_windows_update_ring" "ring_0" {
-  display_name = "Windows Updates - Ring 0 (Early Adopters)"
-
-  automatic_update_mode               = "autoInstallAtMaintenanceTime"
-  automatic_restart_notification      = "before"
-  quality_update_deferral_period_days = 0
-  feature_update_deferral_period_days = 0
-
-  assignments {
-    target {
-      group_id = microsoft365_graph_beta_group.ring_0_early.id
-    }
-  }
-}
-
-# Ring 1: Broad Deployment
-resource "microsoft365_graph_beta_group" "ring_1_broad" {
-  display_name     = "Windows Updates - Ring 1 (Broad)"
-  security_enabled = true
-
-  members = data.microsoft365_utility_guid_list_sharder.stable_deployment.shards["shard_1"]
-}
-
-resource "microsoft365_graph_beta_device_management_windows_update_ring" "ring_1" {
-  display_name = "Windows Updates - Ring 1 (Broad)"
-
-  automatic_update_mode               = "autoInstallAtMaintenanceTime"
-  automatic_restart_notification      = "before"
-  quality_update_deferral_period_days = 7
-  feature_update_deferral_period_days = 14
-
-  assignments {
-    target {
-      group_id = microsoft365_graph_beta_group.ring_1_broad.id
-    }
-  }
-}
-
-# Ring 2: Production (Conservative)
-resource "microsoft365_graph_beta_group" "ring_2_production" {
-  display_name     = "Windows Updates - Ring 2 (Production)"
-  security_enabled = true
-
-  members = data.microsoft365_utility_guid_list_sharder.stable_deployment.shards["shard_2"]
-}
-
-resource "microsoft365_graph_beta_device_management_windows_update_ring" "ring_2" {
-  display_name = "Windows Updates - Ring 2 (Production)"
-
-  automatic_update_mode               = "autoInstallAtMaintenanceTime"
-  automatic_restart_notification      = "before"
-  quality_update_deferral_period_days = 14
-  feature_update_deferral_period_days = 30
-
-  assignments {
-    target {
-      group_id = microsoft365_graph_beta_group.ring_2_production.id
-    }
-  }
-}
-
-# Monitor ring distribution
-output "ring_distribution" {
+# Output shard counts
+output "distribution" {
   value = {
-    ring_0_count = length(data.microsoft365_utility_guid_list_sharder.stable_deployment.shards["shard_0"])
-    ring_1_count = length(data.microsoft365_utility_guid_list_sharder.stable_deployment.shards["shard_1"])
-    ring_2_count = length(data.microsoft365_utility_guid_list_sharder.stable_deployment.shards["shard_2"])
-    total_users  = length(data.microsoft365_utility_guid_list_sharder.stable_deployment.shards["shard_0"]) + length(data.microsoft365_utility_guid_list_sharder.stable_deployment.shards["shard_1"]) + length(data.microsoft365_utility_guid_list_sharder.stable_deployment.shards["shard_2"])
+    shard_0 = length(data.microsoft365_utility_guid_list_sharder.users_with_seed.shards["shard_0"])
+    shard_1 = length(data.microsoft365_utility_guid_list_sharder.users_with_seed.shards["shard_1"])
+    shard_2 = length(data.microsoft365_utility_guid_list_sharder.users_with_seed.shards["shard_2"])
+    shard_3 = length(data.microsoft365_utility_guid_list_sharder.users_with_seed.shards["shard_3"])
   }
-  description = "When changing shard_count from 3 to 4, only ~25% of users move (vs ~75% with other strategies)"
 }
 ```
 
-### Real-World Conditional Access Rollout
+#### Percentage (Custom Ratios)
 
 ```terraform
-# Real-World Example: Conditional Access MFA Rollout with distributed pilot burden
-# Demonstrates using different seeds for different initiatives
+# Basic Percentage: Custom ratio distribution
+# Common pattern: 10% pilot, 30% broader, 60% full
 
-# MFA Rollout: User A ends up in 10% pilot
-data "microsoft365_utility_guid_list_sharder" "mfa_rollout" {
+# Without seed (non-deterministic, uses API order)
+data "microsoft365_utility_guid_list_sharder" "users_no_seed" {
   resource_type     = "users"
   odata_query       = "accountEnabled eq true"
   shard_percentages = [10, 30, 60]
   strategy          = "percentage"
-  seed              = "mfa-rollout-2026" # Unique seed per initiative
 }
 
-# Windows Updates Rollout: Same User A ends up in 80% final wave
-data "microsoft365_utility_guid_list_sharder" "windows_rollout" {
-  resource_type     = "devices"
-  shard_percentages = [5, 15, 80]
+# With seed (deterministic, reproducible)
+data "microsoft365_utility_guid_list_sharder" "users_with_seed" {
+  resource_type     = "users"
+  odata_query       = "accountEnabled eq true"
+  shard_percentages = [10, 30, 60]
   strategy          = "percentage"
-  seed              = "windows-updates-2026" # Different seed = different distribution
+  seed              = "ca-rollout-2024"
 }
 
-# MFA Phase 1: Pilot (10%)
-resource "microsoft365_graph_beta_conditional_access_policy" "mfa_phase_1" {
-  display_name = "Require MFA - Phase 1 (10% Pilot)"
-  state        = "enabled"
-
-  conditions {
-    users {
-      include_users = data.microsoft365_utility_guid_list_sharder.mfa_rollout.shards["shard_0"]
-    }
-    applications {
-      include_applications = ["All"]
-    }
-  }
-
-  grant_controls {
-    operator          = "OR"
-    built_in_controls = ["mfa"]
-  }
-}
-
-# MFA Phase 2: Broader (30%)
-resource "microsoft365_graph_beta_conditional_access_policy" "mfa_phase_2" {
-  display_name = "Require MFA - Phase 2 (30% Broader)"
-  state        = "enabled"
-
-  conditions {
-    users {
-      include_users = data.microsoft365_utility_guid_list_sharder.mfa_rollout.shards["shard_1"]
-    }
-    applications {
-      include_applications = ["All"]
-    }
-  }
-
-  grant_controls {
-    operator          = "OR"
-    built_in_controls = ["mfa"]
-  }
-}
-
-# MFA Phase 3: Full (60%)
-resource "microsoft365_graph_beta_conditional_access_policy" "mfa_phase_3" {
-  display_name = "Require MFA - Phase 3 (60% Full)"
-  state        = "enabled"
-
-  conditions {
-    users {
-      include_users = data.microsoft365_utility_guid_list_sharder.mfa_rollout.shards["shard_2"]
-    }
-    applications {
-      include_applications = ["All"]
-    }
-  }
-
-  grant_controls {
-    operator          = "OR"
-    built_in_controls = ["mfa"]
-  }
-}
-
-# Windows Updates Ring 0 (5% pilot devices)
-resource "microsoft365_graph_beta_device_management_windows_update_ring" "windows_ring_0" {
-  display_name = "Windows Updates - Ring 0 (5% Pilot)"
-
-  automatic_update_mode               = "autoInstallAtMaintenanceTime"
-  quality_update_deferral_period_days = 0
-  feature_update_deferral_period_days = 0
-
-  assignments {
-    target {
-      device_ids = data.microsoft365_utility_guid_list_sharder.windows_rollout.shards["shard_0"]
-    }
-  }
-}
-
-# Windows Updates Ring 1 (15% validation devices)
-resource "microsoft365_graph_beta_device_management_windows_update_ring" "windows_ring_1" {
-  display_name = "Windows Updates - Ring 1 (15% Validation)"
-
-  automatic_update_mode               = "autoInstallAtMaintenanceTime"
-  quality_update_deferral_period_days = 7
-  feature_update_deferral_period_days = 14
-
-  assignments {
-    target {
-      device_ids = data.microsoft365_utility_guid_list_sharder.windows_rollout.shards["shard_1"]
-    }
-  }
-}
-
-# Windows Updates Ring 2 (80% broad devices)
-resource "microsoft365_graph_beta_device_management_windows_update_ring" "windows_ring_2" {
-  display_name = "Windows Updates - Ring 2 (80% Broad)"
-
-  automatic_update_mode               = "autoInstallAtMaintenanceTime"
-  quality_update_deferral_period_days = 14
-  feature_update_deferral_period_days = 30
-
-  assignments {
-    target {
-      device_ids = data.microsoft365_utility_guid_list_sharder.windows_rollout.shards["shard_2"]
-    }
-  }
-}
-
-# Demonstrate distributed pilot burden
-output "pilot_burden_distribution" {
+# Output shard counts
+output "distribution" {
   value = {
-    mfa_pilot_users       = length(data.microsoft365_utility_guid_list_sharder.mfa_rollout.shards["shard_0"])
-    mfa_broader_users     = length(data.microsoft365_utility_guid_list_sharder.mfa_rollout.shards["shard_1"])
-    mfa_full_users        = length(data.microsoft365_utility_guid_list_sharder.mfa_rollout.shards["shard_2"])
-    windows_pilot_devices = length(data.microsoft365_utility_guid_list_sharder.windows_rollout.shards["shard_0"])
-    windows_broad_devices = length(data.microsoft365_utility_guid_list_sharder.windows_rollout.shards["shard_2"])
+    pilot_10pct   = length(data.microsoft365_utility_guid_list_sharder.users_with_seed.shards["shard_0"])
+    broader_30pct = length(data.microsoft365_utility_guid_list_sharder.users_with_seed.shards["shard_1"])
+    full_60pct    = length(data.microsoft365_utility_guid_list_sharder.users_with_seed.shards["shard_2"])
   }
-  description = "Different seeds ensure User A isn't always in pilot groups across all initiatives"
 }
 ```
 
-### Group Members Distribution
+#### Size (Absolute Counts)
 
 ```terraform
-# Group Members Distribution: Shard members of an existing Entra ID group
-# Use case: Deploy policy to IT department in phases without creating additional nested groups
+# Basic Size: Absolute count distribution
+# Use -1 for "all remaining" in last position
 
-data "microsoft365_utility_guid_list_sharder" "it_dept_phases" {
-  resource_type = "group_members"
-  group_id      = "12345678-1234-1234-1234-123456789abc" # IT Department Group ID
+# Without seed (non-deterministic, uses API order)
+data "microsoft365_utility_guid_list_sharder" "users_no_seed" {
+  resource_type = "users"
+  odata_query   = "accountEnabled eq true and department eq 'IT'"
+  shard_sizes   = [50, 100, -1]
+  strategy      = "size"
+}
+
+# With seed (deterministic, reproducible)
+data "microsoft365_utility_guid_list_sharder" "users_with_seed" {
+  resource_type = "users"
+  odata_query   = "accountEnabled eq true and department eq 'IT'"
+  shard_sizes   = [50, 100, -1]
+  strategy      = "size"
+  seed          = "it-pilot-2024"
+}
+
+# Output shard counts
+output "distribution" {
+  value = {
+    pilot_exact_50      = length(data.microsoft365_utility_guid_list_sharder.users_with_seed.shards["shard_0"])
+    validation_exact_100 = length(data.microsoft365_utility_guid_list_sharder.users_with_seed.shards["shard_1"])
+    broad_all_remaining = length(data.microsoft365_utility_guid_list_sharder.users_with_seed.shards["shard_2"])
+  }
+}
+```
+
+#### Rendezvous (Stable Distribution)
+
+```terraform
+# Basic Rendezvous: Stable distribution when shard count changes
+# Seed is REQUIRED for rendezvous strategy
+# Only ~1/n GUIDs move when adding shards
+
+data "microsoft365_utility_guid_list_sharder" "users_stable" {
+  resource_type = "users"
+  odata_query   = "accountEnabled eq true"
   shard_count   = 3
-  strategy      = "round-robin"
-  seed          = "it-dept-pilot-2026"
+  strategy      = "rendezvous"
+  seed          = "stable-deployment-2024"
 }
 
-# Phase 1: IT Pilot (1/3 of IT department)
-resource "microsoft365_graph_beta_conditional_access_policy" "it_new_policy_phase_1" {
-  display_name = "New IT Policy - Phase 1 (IT Pilot)"
-  state        = "enabled"
-
-  conditions {
-    users {
-      include_users = data.microsoft365_utility_guid_list_sharder.it_dept_phases.shards["shard_0"]
-    }
-    applications {
-      include_applications = ["All"]
-    }
-  }
-
-  grant_controls {
-    operator          = "OR"
-    built_in_controls = ["mfa", "compliantDevice"]
-  }
-}
-
-# Phase 2: IT Validation (1/3 of IT department)
-resource "microsoft365_graph_beta_conditional_access_policy" "it_new_policy_phase_2" {
-  display_name = "New IT Policy - Phase 2 (IT Validation)"
-  state        = "enabled"
-
-  conditions {
-    users {
-      include_users = data.microsoft365_utility_guid_list_sharder.it_dept_phases.shards["shard_1"]
-    }
-    applications {
-      include_applications = ["All"]
-    }
-  }
-
-  grant_controls {
-    operator          = "OR"
-    built_in_controls = ["mfa", "compliantDevice"]
-  }
-}
-
-# Phase 3: IT Full (1/3 of IT department)
-resource "microsoft365_graph_beta_conditional_access_policy" "it_new_policy_phase_3" {
-  display_name = "New IT Policy - Phase 3 (IT Full)"
-  state        = "enabled"
-
-  conditions {
-    users {
-      include_users = data.microsoft365_utility_guid_list_sharder.it_dept_phases.shards["shard_2"]
-    }
-    applications {
-      include_applications = ["All"]
-    }
-  }
-
-  grant_controls {
-    operator          = "OR"
-    built_in_controls = ["mfa", "compliantDevice"]
-  }
-}
-
-# Monitor IT department phase distribution
-output "it_dept_phase_distribution" {
+# Output shard counts
+output "distribution" {
   value = {
-    phase_1_count    = length(data.microsoft365_utility_guid_list_sharder.it_dept_phases.shards["shard_0"])
-    phase_2_count    = length(data.microsoft365_utility_guid_list_sharder.it_dept_phases.shards["shard_1"])
-    phase_3_count    = length(data.microsoft365_utility_guid_list_sharder.it_dept_phases.shards["shard_2"])
-    total_it_members = length(data.microsoft365_utility_guid_list_sharder.it_dept_phases.shards["shard_0"]) + length(data.microsoft365_utility_guid_list_sharder.it_dept_phases.shards["shard_1"]) + length(data.microsoft365_utility_guid_list_sharder.it_dept_phases.shards["shard_2"])
+    ring_0 = length(data.microsoft365_utility_guid_list_sharder.users_stable.shards["shard_0"])
+    ring_1 = length(data.microsoft365_utility_guid_list_sharder.users_stable.shards["shard_1"])
+    ring_2 = length(data.microsoft365_utility_guid_list_sharder.users_stable.shards["shard_2"])
   }
-  description = "Equal distribution across 3 phases (perfect ±1 balance with round-robin)"
 }
+
+# When you change shard_count from 3 to 4:
+# - Only ~25% of users will move to new ring_3
+# - ~75% stay in their original ring
+# - Compare with round-robin/percentage: ~75% would move
 ```
 
-### Device Distribution for Windows Updates
+### Scenario-Based Examples
+
+#### Scenario 1: Devices → Settings Catalog Deployment Rings
 
 ```terraform
-# Device Distribution: Distribute managed devices for Windows Updates rollout
-# Use case: Controlled Windows Update deployment across device population
+# Scenario 1: Devices → Groups → Settings Catalog Deployment Rings
+# Use case: Roll out Windows Update policies in phases across managed devices
 
-data "microsoft365_utility_guid_list_sharder" "windows_update_rings" {
+# Distribute Windows devices into 4 deployment rings (5%, 15%, 30%, 50%)
+data "microsoft365_utility_guid_list_sharder" "windows_devices" {
   resource_type     = "devices"
   odata_query       = "operatingSystem eq 'Windows' and trustType eq 'AzureAd'"
   shard_percentages = [5, 15, 30, 50]
   strategy          = "percentage"
-  seed              = "windows-updates-2026"
+  seed              = "windows-updates-2024"
 }
 
-# Ring 0: Validation (5% of devices)
-resource "microsoft365_graph_beta_group" "update_ring_0" {
+# Create groups for each deployment ring
+resource "microsoft365_graph_beta_group" "ring_0_validation" {
   display_name     = "Windows Updates - Ring 0 (5% Validation)"
+  mail_nickname    = "win-updates-ring-0"
   security_enabled = true
-
-  members = data.microsoft365_utility_guid_list_sharder.windows_update_rings.shards["shard_0"]
+  mail_enabled     = false
+  
+  members = data.microsoft365_utility_guid_list_sharder.windows_devices.shards["shard_0"]
 }
 
-resource "microsoft365_graph_beta_device_management_windows_update_ring" "ring_0_validation" {
-  display_name = "Windows Updates - Ring 0 (5% Validation)"
-
-  automatic_update_mode               = "autoInstallAtMaintenanceTime"
-  automatic_restart_notification      = "before"
-  quality_update_deferral_period_days = 0
-  feature_update_deferral_period_days = 0
-  deadline_for_quality_updates_days   = 7
-  deadline_for_feature_updates_days   = 14
-
-  assignments {
-    target {
-      group_id = microsoft365_graph_beta_group.update_ring_0.id
-    }
-  }
-}
-
-# Ring 1: Pilot (15% of devices)
-resource "microsoft365_graph_beta_group" "update_ring_1" {
+resource "microsoft365_graph_beta_group" "ring_1_pilot" {
   display_name     = "Windows Updates - Ring 1 (15% Pilot)"
+  mail_nickname    = "win-updates-ring-1"
   security_enabled = true
-
-  members = data.microsoft365_utility_guid_list_sharder.windows_update_rings.shards["shard_1"]
+  mail_enabled     = false
+  
+  members = data.microsoft365_utility_guid_list_sharder.windows_devices.shards["shard_1"]
 }
 
-resource "microsoft365_graph_beta_device_management_windows_update_ring" "ring_1_pilot" {
-  display_name = "Windows Updates - Ring 1 (15% Pilot)"
-
-  automatic_update_mode               = "autoInstallAtMaintenanceTime"
-  automatic_restart_notification      = "before"
-  quality_update_deferral_period_days = 3
-  feature_update_deferral_period_days = 7
-  deadline_for_quality_updates_days   = 10
-  deadline_for_feature_updates_days   = 21
-
-  assignments {
-    target {
-      group_id = microsoft365_graph_beta_group.update_ring_1.id
-    }
-  }
-}
-
-# Ring 2: Broad (30% of devices)
-resource "microsoft365_graph_beta_group" "update_ring_2" {
+resource "microsoft365_graph_beta_group" "ring_2_broad" {
   display_name     = "Windows Updates - Ring 2 (30% Broad)"
+  mail_nickname    = "win-updates-ring-2"
   security_enabled = true
-
-  members = data.microsoft365_utility_guid_list_sharder.windows_update_rings.shards["shard_2"]
+  mail_enabled     = false
+  
+  members = data.microsoft365_utility_guid_list_sharder.windows_devices.shards["shard_2"]
 }
 
-resource "microsoft365_graph_beta_device_management_windows_update_ring" "ring_2_broad" {
-  display_name = "Windows Updates - Ring 2 (30% Broad)"
-
-  automatic_update_mode               = "autoInstallAtMaintenanceTime"
-  automatic_restart_notification      = "before"
-  quality_update_deferral_period_days = 7
-  feature_update_deferral_period_days = 14
-  deadline_for_quality_updates_days   = 14
-  deadline_for_feature_updates_days   = 28
-
-  assignments {
-    target {
-      group_id = microsoft365_graph_beta_group.update_ring_2.id
-    }
-  }
-}
-
-# Ring 3: Production (50% of devices)
-resource "microsoft365_graph_beta_group" "update_ring_3" {
+resource "microsoft365_graph_beta_group" "ring_3_production" {
   display_name     = "Windows Updates - Ring 3 (50% Production)"
+  mail_nickname    = "win-updates-ring-3"
   security_enabled = true
-
-  members = data.microsoft365_utility_guid_list_sharder.windows_update_rings.shards["shard_3"]
+  mail_enabled     = false
+  
+  members = data.microsoft365_utility_guid_list_sharder.windows_devices.shards["shard_3"]
 }
 
-resource "microsoft365_graph_beta_device_management_windows_update_ring" "ring_3_production" {
-  display_name = "Windows Updates - Ring 3 (50% Production)"
+# Settings Catalog Policy for Ring 0 (immediate deployment)
+resource "microsoft365_graph_beta_device_management_settings_catalog_configuration_policy_json" "ring_0_validation" {
+  name               = "Windows Updates - Ring 0 (5% Validation)"
+  description        = "Immediate deployment for validation devices"
+  platforms          = "windows10"
+  technologies       = ["mdm"]
+  role_scope_tag_ids = ["0"]
+  
+  settings = jsonencode({
+    settings = [
+      {
+        id = "0"
+        settingInstance = {
+          "@odata.type"           = "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance"
+          settingDefinitionId     = "device_vendor_msft_policy_config_update_deferqualityupdatesperiodindays"
+          choiceSettingValue = {
+            value    = "device_vendor_msft_policy_config_update_deferqualityupdatesperiodindays_0"
+            children = []
+          }
+        }
+      }
+    ]
+  })
+  
+  assignments = [
+    {
+      type        = "groupAssignmentTarget"
+      group_id    = microsoft365_graph_beta_group.ring_0_validation.id
+      filter_type = "none"
+    },
+    {
+      type        = "groupAssignmentTarget"
+      group_id    = microsoft365_graph_beta_group.ring_1_pilot.id
+      filter_type = "none"
+    },
+    {
+      type        = "groupAssignmentTarget"
+      group_id    = microsoft365_graph_beta_group.ring_2_broad.id
+      filter_type = "none"
+    },
+    {
+      type        = "groupAssignmentTarget"
+      group_id    = microsoft365_graph_beta_group.ring_3_production.id
+      filter_type = "none"
+    }
+  ]
+}
+```
 
-  automatic_update_mode               = "autoInstallAtMaintenanceTime"
-  automatic_restart_notification      = "before"
-  quality_update_deferral_period_days = 14
-  feature_update_deferral_period_days = 30
-  deadline_for_quality_updates_days   = 21
-  deadline_for_feature_updates_days   = 45
+#### Scenario 2: Group Members → Conditional Access Policy
 
-  assignments {
-    target {
-      group_id = microsoft365_graph_beta_group.update_ring_3.id
+```terraform
+# Scenario 2: Group Members → Groups → Conditional Access Policy
+# Use case: Roll out new CA policy to IT department in phases without nested groups
+
+# Distribute existing IT department group members into 3 deployment rings
+data "microsoft365_utility_guid_list_sharder" "it_dept_members" {
+  resource_type = "group_members"
+  group_id      = "12345678-1234-1234-1234-123456789abc" # IT Department Group ID
+  shard_count   = 3
+  strategy      = "round-robin"
+  seed          = "it-mfa-policy-2024"
+}
+
+# Create deployment ring groups from IT department members
+resource "microsoft365_graph_beta_group" "it_ring_0_pilot" {
+  display_name     = "IT MFA Rollout - Ring 0 (Pilot)"
+  mail_nickname    = "it-mfa-ring-0"
+  security_enabled = true
+  mail_enabled     = false
+  
+  members = data.microsoft365_utility_guid_list_sharder.it_dept_members.shards["shard_0"]
+}
+
+resource "microsoft365_graph_beta_group" "it_ring_1_validation" {
+  display_name     = "IT MFA Rollout - Ring 1 (Validation)"
+  mail_nickname    = "it-mfa-ring-1"
+  security_enabled = true
+  mail_enabled     = false
+  
+  members = data.microsoft365_utility_guid_list_sharder.it_dept_members.shards["shard_1"]
+}
+
+resource "microsoft365_graph_beta_group" "it_ring_2_full" {
+  display_name     = "IT MFA Rollout - Ring 2 (Full)"
+  mail_nickname    = "it-mfa-ring-2"
+  security_enabled = true
+  mail_enabled     = false
+  
+  members = data.microsoft365_utility_guid_list_sharder.it_dept_members.shards["shard_2"]
+}
+
+# Single CA policy targeting all IT deployment rings
+resource "microsoft365_graph_beta_conditional_access_policy" "it_mfa_policy" {
+  display_name = "Require MFA - IT Department (Phased Rollout)"
+  state        = "enabled"
+
+  conditions {
+    users {
+      include_groups = [
+        microsoft365_graph_beta_group.it_ring_0_pilot.id,
+        microsoft365_graph_beta_group.it_ring_1_validation.id,
+        microsoft365_graph_beta_group.it_ring_2_full.id
+      ]
+    }
+    applications {
+      include_applications = ["All"]
     }
   }
+
+  grant_controls {
+    operator          = "OR"
+    built_in_controls = ["mfa"]
+  }
+}
+```
+
+#### Scenario 3: Devices → Deployment Scheduler → Windows Quality Updates
+
+```terraform
+# Scenario 3: Devices → Groups → Deployment Scheduler → Windows Quality Update Policy
+# Use case: Phased rollout of Windows quality updates with automated timing gates
+
+# Step 1: Shard Windows devices into 3 deployment rings (10%, 30%, 60%)
+data "microsoft365_utility_guid_list_sharder" "quality_update_rings" {
+  resource_type     = "devices"
+  odata_query       = "operatingSystem eq 'Windows' and trustType eq 'AzureAd'"
+  shard_percentages = [10, 30, 60]
+  strategy          = "percentage"
+  seed              = "quality-updates-2024"
 }
 
-# Monitor device ring distribution
-output "device_ring_distribution" {
-  value = {
-    ring_0_validation_count = length(data.microsoft365_utility_guid_list_sharder.windows_update_rings.shards["shard_0"])
-    ring_1_pilot_count      = length(data.microsoft365_utility_guid_list_sharder.windows_update_rings.shards["shard_1"])
-    ring_2_broad_count      = length(data.microsoft365_utility_guid_list_sharder.windows_update_rings.shards["shard_2"])
-    ring_3_production_count = length(data.microsoft365_utility_guid_list_sharder.windows_update_rings.shards["shard_3"])
-    total_windows_devices   = length(data.microsoft365_utility_guid_list_sharder.windows_update_rings.shards["shard_0"]) + length(data.microsoft365_utility_guid_list_sharder.windows_update_rings.shards["shard_1"]) + length(data.microsoft365_utility_guid_list_sharder.windows_update_rings.shards["shard_2"]) + length(data.microsoft365_utility_guid_list_sharder.windows_update_rings.shards["shard_3"])
+# Step 2: Create Entra ID groups for each deployment ring
+resource "microsoft365_graph_beta_group" "ring_0_pilot" {
+  display_name     = "Quality Updates - Ring 0 (10% Pilot)"
+  mail_nickname    = "quality-updates-ring-0"
+  security_enabled = true
+  mail_enabled     = false
+
+  members = data.microsoft365_utility_guid_list_sharder.quality_update_rings.shards["shard_0"]
+}
+
+resource "microsoft365_graph_beta_group" "ring_1_broad" {
+  display_name     = "Quality Updates - Ring 1 (30% Broad)"
+  mail_nickname    = "quality-updates-ring-1"
+  security_enabled = true
+  mail_enabled     = false
+
+  members = data.microsoft365_utility_guid_list_sharder.quality_update_rings.shards["shard_1"]
+}
+
+resource "microsoft365_graph_beta_group" "ring_2_production" {
+  display_name     = "Quality Updates - Ring 2 (60% Production)"
+  mail_nickname    = "quality-updates-ring-2"
+  security_enabled = true
+  mail_enabled     = false
+
+  members = data.microsoft365_utility_guid_list_sharder.quality_update_rings.shards["shard_2"]
+}
+
+# Step 3: Define deployment timing gates for phased rollout
+locals {
+  deployment_start = "2026-01-20T00:00:00Z"
+}
+
+# Phase 1: Pilot ring opens after 24h
+data "microsoft365_utility_deployment_scheduler" "ring_0_gate" {
+  name                  = "quality-updates-ring-0-pilot"
+  deployment_start_time = local.deployment_start
+  scope_id              = microsoft365_graph_beta_group.ring_0_pilot.id
+
+  time_condition = {
+    delay_start_time_by = 24 # Open after 24 hours
   }
-  description = "Device counts per ring (5%, 15%, 30%, 50% distribution)"
+
+  # Only deploy during business hours
+  inclusion_time_windows = {
+    window = [
+      {
+        days_of_week      = ["monday", "tuesday", "wednesday", "thursday", "friday"]
+        time_of_day_start = "09:00:00"
+        time_of_day_end   = "17:00:00"
+      }
+    ]
+  }
+}
+
+# Phase 2: Broad ring opens 72h after pilot opens
+data "microsoft365_utility_deployment_scheduler" "ring_1_gate" {
+  name                  = "quality-updates-ring-1-broad"
+  deployment_start_time = local.deployment_start
+  scope_id              = microsoft365_graph_beta_group.ring_1_broad.id
+
+  time_condition = {
+    delay_start_time_by = 24
+  }
+
+  # Wait for pilot to be open for 72 hours
+  depends_on_scheduler = {
+    prerequisite_delay_start_time_by = 24
+    minimum_open_hours               = 72
+  }
+
+  inclusion_time_windows = {
+    window = [
+      {
+        days_of_week      = ["monday", "tuesday", "wednesday", "thursday", "friday"]
+        time_of_day_start = "08:00:00"
+        time_of_day_end   = "18:00:00"
+      }
+    ]
+  }
+}
+
+# Phase 3: Production ring opens 1 week after broad opens
+data "microsoft365_utility_deployment_scheduler" "ring_2_gate" {
+  name                  = "quality-updates-ring-2-production"
+  deployment_start_time = local.deployment_start
+  scope_id              = microsoft365_graph_beta_group.ring_2_production.id
+
+  time_condition = {
+    delay_start_time_by = 192 # 24 + 72 + 96 = 192 hours total
+  }
+
+  # Wait for broad ring to be open for 1 week
+  depends_on_scheduler = {
+    prerequisite_delay_start_time_by = 96  # 24 + 72
+    minimum_open_hours               = 168 # 1 week
+  }
+
+  inclusion_time_windows = {
+    window = [
+      {
+        days_of_week      = ["monday", "tuesday", "wednesday", "thursday"]
+        time_of_day_start = "08:00:00"
+        time_of_day_end   = "18:00:00"
+      }
+    ]
+  }
+
+  # Avoid Friday deployments to production
+  exclusion_time_windows = {
+    window = [
+      {
+        days_of_week = ["friday"]
+      }
+    ]
+  }
+}
+
+# Step 4: Create Windows Quality Update Policy with conditional assignments
+resource "microsoft365_graph_beta_device_management_windows_quality_update_policy" "phased_quality_updates" {
+  display_name     = "Windows Quality Updates - Phased Rollout"
+  description      = "Monthly quality updates deployed in phases with automated timing"
+  hotpatch_enabled = true
+
+  # Conditional assignments based on deployment scheduler gates
+  # Only assign groups when their gates are open (released_scope_id != null)
+  assignments = compact([
+    data.microsoft365_utility_deployment_scheduler.ring_0_gate.released_scope_id != null ? {
+      type     = "groupAssignmentTarget"
+      group_id = data.microsoft365_utility_deployment_scheduler.ring_0_gate.released_scope_id
+    } : null,
+    data.microsoft365_utility_deployment_scheduler.ring_1_gate.released_scope_id != null ? {
+      type     = "groupAssignmentTarget"
+      group_id = data.microsoft365_utility_deployment_scheduler.ring_1_gate.released_scope_id
+    } : null,
+    data.microsoft365_utility_deployment_scheduler.ring_2_gate.released_scope_id != null ? {
+      type     = "groupAssignmentTarget"
+      group_id = data.microsoft365_utility_deployment_scheduler.ring_2_gate.released_scope_id
+    } : null,
+  ])
+}
+
+# Monitoring outputs
+output "deployment_dashboard" {
+  value = {
+    device_distribution = {
+      ring_0_pilot      = length(data.microsoft365_utility_guid_list_sharder.quality_update_rings.shards["shard_0"])
+      ring_1_broad      = length(data.microsoft365_utility_guid_list_sharder.quality_update_rings.shards["shard_1"])
+      ring_2_production = length(data.microsoft365_utility_guid_list_sharder.quality_update_rings.shards["shard_2"])
+      total_devices     = length(data.microsoft365_utility_guid_list_sharder.quality_update_rings.shards["shard_0"]) + length(data.microsoft365_utility_guid_list_sharder.quality_update_rings.shards["shard_1"]) + length(data.microsoft365_utility_guid_list_sharder.quality_update_rings.shards["shard_2"])
+    }
+
+    deployment_gates = {
+      ring_0_pilot = {
+        status     = data.microsoft365_utility_deployment_scheduler.ring_0_gate.condition_met ? "OPEN" : "CLOSED"
+        message    = data.microsoft365_utility_deployment_scheduler.ring_0_gate.status_message
+        group_id   = data.microsoft365_utility_deployment_scheduler.ring_0_gate.released_scope_id
+      }
+      ring_1_broad = {
+        status     = data.microsoft365_utility_deployment_scheduler.ring_1_gate.condition_met ? "OPEN" : "CLOSED"
+        message    = data.microsoft365_utility_deployment_scheduler.ring_1_gate.status_message
+        group_id   = data.microsoft365_utility_deployment_scheduler.ring_1_gate.released_scope_id
+      }
+      ring_2_production = {
+        status     = data.microsoft365_utility_deployment_scheduler.ring_2_gate.condition_met ? "OPEN" : "CLOSED"
+        message    = data.microsoft365_utility_deployment_scheduler.ring_2_gate.status_message
+        group_id   = data.microsoft365_utility_deployment_scheduler.ring_2_gate.released_scope_id
+      }
+    }
+
+    active_assignments = length(compact([
+      data.microsoft365_utility_deployment_scheduler.ring_0_gate.released_scope_id,
+      data.microsoft365_utility_deployment_scheduler.ring_1_gate.released_scope_id,
+      data.microsoft365_utility_deployment_scheduler.ring_2_gate.released_scope_id,
+    ]))
+  }
+  description = "Comprehensive view of device distribution, gate status, and active policy assignments"
 }
 ```
 

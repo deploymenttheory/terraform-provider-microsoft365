@@ -11,6 +11,17 @@ description: |-
 Queries Microsoft Graph API to retrieve collections of object IDs (GUIDs) for users, devices, or group members, then intelligently distributes them into configurable "shards" (subsets) for progressive deployment strategies.
 
 This datasource enables phased rollouts, pilot programs, and deployment rings for Microsoft 365 policies by algorithmically distributing populations into controlled subsets. Unlike static Entra ID dynamic groups that take hours to populate and require complex membership rules, the GUID List Sharder provides immediate, deterministic distribution with multiple strategies optimized for different scenarios.
+## Microsoft Graph API Permissions
+
+The following client `application` permissions are needed in order to use this data source:
+
+**Required:**
+- `Users.Read.All`
+- `Devices.Read.All`
+- `Groups.Read.All`
+
+**Optional:**
+- `None` `[N/A]`
 
 ## Version History
 
@@ -89,33 +100,37 @@ This prevents "pilot fatigue" where certain users consistently experience issues
 
 ## Example Usage
 
-### Round-Robin Distribution (Equal Shards)
+### Basic Examples
 
-{{ tffile "examples/data-sources/microsoft365_utility_guid_list_sharder/01_round_robin_equal_shards.tf" }}
+#### Round-Robin (Equal Distribution)
 
-### Percentage-Based Phased Rollout
+{{ tffile "examples/data-sources/microsoft365_utility_guid_list_sharder/01_basic_round_robin.tf" }}
 
-{{ tffile "examples/data-sources/microsoft365_utility_guid_list_sharder/02_percentage_phased_rollout.tf" }}
+#### Percentage (Custom Ratios)
 
-### Fixed-Size Pilot Groups
+{{ tffile "examples/data-sources/microsoft365_utility_guid_list_sharder/02_basic_percentage.tf" }}
 
-{{ tffile "examples/data-sources/microsoft365_utility_guid_list_sharder/03_fixed_size_pilot.tf" }}
+#### Size (Absolute Counts)
 
-### Rendezvous (Stable When Ring Count Changes)
+{{ tffile "examples/data-sources/microsoft365_utility_guid_list_sharder/03_basic_size.tf" }}
 
-{{ tffile "examples/data-sources/microsoft365_utility_guid_list_sharder/04_rendezvous_stable.tf" }}
+#### Rendezvous (Stable Distribution)
 
-### Real-World Conditional Access Rollout
+{{ tffile "examples/data-sources/microsoft365_utility_guid_list_sharder/04_basic_rendezvous.tf" }}
 
-{{ tffile "examples/data-sources/microsoft365_utility_guid_list_sharder/05_conditional_access_rollout.tf" }}
+### Scenario-Based Examples
 
-### Group Members Distribution
+#### Scenario 1: Devices → Settings Catalog Deployment Rings
 
-{{ tffile "examples/data-sources/microsoft365_utility_guid_list_sharder/06_group_members.tf" }}
+{{ tffile "examples/data-sources/microsoft365_utility_guid_list_sharder/05_scenario_devices_to_settings_catalog.tf" }}
 
-### Device Distribution for Windows Updates
+#### Scenario 2: Group Members → Conditional Access Policy
 
-{{ tffile "examples/data-sources/microsoft365_utility_guid_list_sharder/07_device_distribution.tf" }}
+{{ tffile "examples/data-sources/microsoft365_utility_guid_list_sharder/06_scenario_group_members_to_ca_policy.tf" }}
+
+#### Scenario 3: Devices → Deployment Scheduler → Windows Quality Updates
+
+{{ tffile "examples/data-sources/microsoft365_utility_guid_list_sharder/07_scenario_devices_quality_updates_phased.tf" }}
 
 {{ .SchemaMarkdown | trimspace }}
 
