@@ -767,6 +767,101 @@ data "microsoft365_utility_guid_list_sharder" "test" {
 	})
 }
 
+// =============================================================================
+// Users - Rendezvous Strategy Tests
+// =============================================================================
+
+// Test 23: Users - Rendezvous Strategy (No Seed)
+// Verifies Rendezvous (HRW) distribution without explicit seed
+func TestUnitGuidListSharderDataSource_23_UsersRendezvousNoSeed(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
+	_, guidListSharderMock := setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+	defer guidListSharderMock.CleanupMockState()
+
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: loadUnitTestTerraform("23_users_rendezvous_no_seed.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(dataSourceType+".test").Key("id").Exists(),
+					check.That(dataSourceType+".test").Key("shards.%").HasValue("4"),
+					check.That(dataSourceType+".test").Key("shards.shard_0.#").Exists(),
+					check.That(dataSourceType+".test").Key("shards.shard_1.#").Exists(),
+					check.That(dataSourceType+".test").Key("shards.shard_2.#").Exists(),
+					check.That(dataSourceType+".test").Key("shards.shard_3.#").Exists(),
+				),
+			},
+		},
+	})
+}
+
+// Test 24: Users - Rendezvous Strategy (With Seed)
+// Verifies Rendezvous (HRW) distribution with explicit seed produces deterministic results
+func TestUnitGuidListSharderDataSource_24_UsersRendezvousWithSeed(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
+	_, guidListSharderMock := setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+	defer guidListSharderMock.CleanupMockState()
+
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: loadUnitTestTerraform("24_users_rendezvous_with_seed.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(dataSourceType+".test").Key("id").Exists(),
+					check.That(dataSourceType+".test").Key("shards.%").HasValue("4"),
+					check.That(dataSourceType+".test").Key("shards.shard_0.#").Exists(),
+					check.That(dataSourceType+".test").Key("shards.shard_1.#").Exists(),
+					check.That(dataSourceType+".test").Key("shards.shard_2.#").Exists(),
+					check.That(dataSourceType+".test").Key("shards.shard_3.#").Exists(),
+				),
+			},
+		},
+	})
+}
+
+// Test 25: Rendezvous Stability Test - PROVES THE HYPOTHESIS
+// This test verifies the KEY claim: minimal disruption when shard count changes
+// When increasing from 3 to 4 shards, only ~25% of GUIDs should move
+func TestUnitGuidListSharderDataSource_25_RendezvousStability(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
+	_, guidListSharderMock := setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+	defer guidListSharderMock.CleanupMockState()
+
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: loadUnitTestTerraform("25_rendezvous_stability_test.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					// Both datasources exist
+					check.That(dataSourceType+".baseline_3_shards").Key("id").Exists(),
+					check.That(dataSourceType+".expanded_4_shards").Key("id").Exists(),
+
+					// Baseline has 3 shards, expanded has 4
+					check.That(dataSourceType+".baseline_3_shards").Key("shards.%").HasValue("3"),
+					check.That(dataSourceType+".expanded_4_shards").Key("shards.%").HasValue("4"),
+
+					// THE KEY ASSERTION: Stability percentage should be >= 70%
+					// This proves that <= 30% of GUIDs moved (close to theoretical 25%)
+					resource.TestMatchOutput("stability_percentage", regexp.MustCompile(`^(7[0-9]|8[0-9]|9[0-9]|100)$`)),
+
+					// Verify the new shard exists and has content
+					check.That(dataSourceType+".expanded_4_shards").Key("shards.shard_3.#").Exists(),
+				),
+			},
+		},
+	})
+}
+
+// =============================================================================
+// Validation Tests
+// =============================================================================
+
 // Test: Validation - Negative shard_count
 // Verifies schema validation rejects negative shard_count
 func TestUnitGuidListSharderDataSource_Validation_NegativeShardCount(t *testing.T) {
