@@ -10,14 +10,14 @@ resource "microsoft365_graph_beta_device_management_settings_catalog_configurati
       {
         id = "0"
         settingInstance = {
-          "@odata.type"                        = "#microsoft.graph.deviceManagementConfigurationSimpleSettingCollectionInstance"
-          settingDefinitionId                  = "user_vendor_msft_policy_config_remotedesktop_autosubscription"
-          settingInstanceTemplateReference     = null
+          "@odata.type"                    = "#microsoft.graph.deviceManagementConfigurationSimpleSettingCollectionInstance"
+          settingDefinitionId              = "user_vendor_msft_policy_config_remotedesktop_autosubscription"
+          settingInstanceTemplateReference = null
           simpleSettingCollectionValue = [
             {
-              "@odata.type"                     = "#microsoft.graph.deviceManagementConfigurationStringSettingValue"
-              value                             = "https://rdweb.wvd.microsoft.com/api/arm/feeddiscovery"
-              settingValueTemplateReference     = null
+              "@odata.type"                 = "#microsoft.graph.deviceManagementConfigurationStringSettingValue"
+              value                         = "https://rdweb.wvd.microsoft.com/api/arm/feeddiscovery"
+              settingValueTemplateReference = null
             }
           ]
         }

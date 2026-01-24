@@ -14,7 +14,7 @@
 data "microsoft365_utility_guid_list_sharder" "test" {
   resource_type = "group_members"
   group_id      = "12345678-1234-1234-1234-123456789abc"
-  shard_sizes   = [5, 15, -1]  # 5 pilot, 15 broader, rest for full
+  shard_sizes   = [5, 15, -1] # 5 pilot, 15 broader, rest for full
   strategy      = "size"
   # No seed - uses API order
 }

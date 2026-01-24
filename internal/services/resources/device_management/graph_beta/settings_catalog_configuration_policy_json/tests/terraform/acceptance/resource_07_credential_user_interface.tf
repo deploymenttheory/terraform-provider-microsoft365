@@ -16,28 +16,28 @@ resource "microsoft365_graph_beta_device_management_settings_catalog_configurati
       {
         id = "0"
         settingInstance = {
-          "@odata.type"                        = "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance"
-          settingDefinitionId                  = "device_vendor_msft_policy_config_credentialui_enumerateadministrators"
-          settingInstanceTemplateReference     = null
-          auditRuleInformation                 = null
+          "@odata.type"                    = "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance"
+          settingDefinitionId              = "device_vendor_msft_policy_config_credentialui_enumerateadministrators"
+          settingInstanceTemplateReference = null
+          auditRuleInformation             = null
           choiceSettingValue = {
-            value                            = "device_vendor_msft_policy_config_credentialui_enumerateadministrators_0"
-            settingValueTemplateReference    = null
-            children                         = []
+            value                         = "device_vendor_msft_policy_config_credentialui_enumerateadministrators_0"
+            settingValueTemplateReference = null
+            children                      = []
           }
         }
       },
       {
         id = "1"
         settingInstance = {
-          "@odata.type"                        = "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance"
-          settingDefinitionId                  = "user_vendor_msft_policy_config_credentialsui_disablepasswordreveal"
-          settingInstanceTemplateReference     = null
-          auditRuleInformation                 = null
+          "@odata.type"                    = "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance"
+          settingDefinitionId              = "user_vendor_msft_policy_config_credentialsui_disablepasswordreveal"
+          settingInstanceTemplateReference = null
+          auditRuleInformation             = null
           choiceSettingValue = {
-            value                            = "user_vendor_msft_policy_config_credentialsui_disablepasswordreveal_1"
-            settingValueTemplateReference    = null
-            children                         = []
+            value                         = "user_vendor_msft_policy_config_credentialsui_disablepasswordreveal_1"
+            settingValueTemplateReference = null
+            children                      = []
           }
         }
       }

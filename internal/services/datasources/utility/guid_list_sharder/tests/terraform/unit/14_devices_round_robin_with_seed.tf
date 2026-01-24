@@ -18,7 +18,7 @@ data "microsoft365_utility_guid_list_sharder" "test" {
   odata_query   = "$filter=operatingSystem eq 'Windows' and accountEnabled eq true"
   shard_count   = 2
   strategy      = "round-robin"
-  seed          = "device-load-balancing-2024"  # Makes distribution reproducible
+  seed          = "device-load-balancing-2024" # Makes distribution reproducible
 }
 
 output "pool_a_devices" {

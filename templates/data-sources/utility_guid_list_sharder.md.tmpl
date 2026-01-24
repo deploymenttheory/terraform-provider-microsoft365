@@ -1,0 +1,129 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
+subcategory: "Utility"
+
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Name}}
+
+Queries Microsoft Graph API to retrieve collections of object IDs (GUIDs) for users, devices, or group members, then intelligently distributes them into configurable "shards" (subsets) for progressive deployment strategies.
+
+This datasource enables phased rollouts, pilot programs, and deployment rings for Microsoft 365 policies by algorithmically distributing populations into controlled subsets. Unlike static Entra ID dynamic groups that take hours to populate and require complex membership rules, the GUID List Sharder provides immediate, deterministic distribution with multiple strategies optimized for different scenarios.
+
+## Version History
+
+| Version | Status | Notes |
+|---------|--------|-------|
+| v0.42.0-alpha | Experimental | Initial release with round-robin, percentage, size, and rendezvous strategies |
+
+## Background
+
+When deploying policies, configurations, or security controls across large Microsoft 365 environments, immediate organization-wide rollouts carry significant risk. If a policy misconfiguration or unexpected behavior occurs, it can impact thousands of users or devices simultaneously.
+
+Consequently, it's common for organizations to define deployment rings or waves to manage the rollout of changes. However, this approach presents its own challenges:
+
+- **Entra ID dynamic group membership** can take hours to fully populate
+- **Creating deployment groups** that adequately represent hardware and software diversity across the organization is complex
+- **Created groups become stale** as people join, leave, or change roles
+- **Willing pilot users experience pilot fatigue** when they're consistently the first to encounter issues
+
+The GUID List Sharder solves these challenges by:
+
+1. **Enabling Progressive Rollouts**: Deploy changes to small pilot groups first (e.g., 10% of users), validate functionality, then gradually expand to broader populations
+2. **Reducing Blast Radius**: Limit the impact of potential issues by controlling which users/devices receive changes at each phase
+3. **Facilitating Validation**: Allow time to monitor, test, and validate each phase before proceeding to the next
+4. **Distributing Pilot Burden**: By using unique seed values across different rollouts, the same users won't always be early adopters. User X might be in the 10% pilot for MFA rollout but in the 60% final wave for Windows Updates, preventing "pilot fatigue"
+5. **Supports Multiple Deployment Strategies**: Choose between `round-robin` (perfect equal distribution), `percentage` (custom ratios), `size` (absolute counts), or `rendezvous` (minimal disruption when ring counts change)
+
+## Distribution Strategies
+
+### Round-Robin Strategy
+- **Distribution**: Circular assignment (0→shard_0, 1→shard_1, 2→shard_2, 3→shard_0, cycling)
+- **Balance**: Perfect ±1 GUID across all shards
+- **Seed Behavior**: No seed = API order (non-deterministic). With seed = shuffles first, then applies round-robin (reproducible)
+- **Use When**: Need equal-sized rings or capacity testing with perfect balance
+
+### Percentage Strategy
+- **Distribution**: Allocates by percentage ratios (e.g., 10% pilot, 30% broader, 60% full)
+- **Balance**: Within rounding error of specified percentages
+- **Seed Behavior**: No seed = API order (non-deterministic). With seed = shuffles first, then applies percentages (reproducible)
+- **Use When**: Standard phased rollouts with percentage-based waves (e.g., 10%/30%/60%)
+
+### Size Strategy
+- **Distribution**: Allocates by absolute counts (e.g., exactly 50, 100, 200 users per shard)
+- **Balance**: Exact counts as specified
+- **Seed Behavior**: No seed = API order (non-deterministic). With seed = shuffles first, then applies size split (reproducible)
+- **Special Feature**: Supports `-1` as last value meaning "all remaining GUIDs" (e.g., `[50, 200, -1]`)
+- **Use When**: Precise shard sizes required regardless of total population
+
+### Rendezvous Strategy
+- **Distribution**: Each GUID independently computes hash scores for all shards using `SHA256(guid:shard_N:seed)`, then picks highest score
+- **Balance**: Probabilistic ~equal distribution (typically within 3% for 1000+ GUIDs)
+- **Seed Behavior**: Always deterministic. Seed affects which shard wins for each GUID
+- **Stability**: When shard count changes, only ~1/n GUIDs move (theoretical minimum). Adding 4th shard to 3-shard setup: only ~25% reassign vs ~75% with position-based strategies
+- **Use When**: Ring count will change during rollout lifecycle (e.g., start with 3 rings, later add 4th for extended validation)
+
+## Key Concept: Distributing Pilot Burden
+
+One of the most valuable features is the ability to use different seeds for different rollouts. This ensures the same users aren't always in pilot groups across all initiatives:
+
+- **MFA rollout** (seed: `"mfa-2026"`): User A in 10% pilot
+- **Windows Updates** (seed: `"windows-2026"`): Same User A in 80% broad deployment
+- **Conditional Access** (seed: `"ca-2026"`): Same User A in 35% broader wave
+
+This prevents "pilot fatigue" where certain users consistently experience issues first.
+
+## Decision Matrix
+
+| Requirement | Strategy | Seed Required | Notes |
+|-------------|----------|---------------|-------|
+| **Equal-sized rings** (e.g., 4 rings, ~250 users each) | `round-robin` | 🟡 Optional | Perfect ±1 GUID balance. Add seed for reproducibility |
+| **Percentage-based** (e.g., 10% pilot, 30% broader, 60% full) | `percentage` | 🟡 Optional | Clean percentage splits. Add seed for reproducibility |
+| **Absolute counts** (e.g., exactly 50, 100, 200 users) | `size` | 🟡 Optional | Precise shard sizes. Add seed for deterministic assignment. Supports `-1` for "all remaining" |
+| **Ring count will change** (e.g., start with 3 rings, later expand to 4) | `rendezvous` | ✅ Required | Only ~25% of users move when adding rings (vs ~75% with other strategies) |
+| **Distribute pilot burden** (different users in pilot for different rollouts) | Any strategy | ✅ Yes | Different seeds (e.g., `"mfa-2026"` vs `"windows-2026"`) = different distributions |
+| **Capacity testing / A/B testing** | `round-robin` | ✅ Yes | Perfect balance + reproducible results |
+| **One-time split, don't care about reproducibility** | `round-robin` or `percentage` | ❌ None | Fastest - no seed overhead |
+
+## Example Usage
+
+### Round-Robin Distribution (Equal Shards)
+
+{{ tffile "examples/data-sources/microsoft365_utility_guid_list_sharder/01_round_robin_equal_shards.tf" }}
+
+### Percentage-Based Phased Rollout
+
+{{ tffile "examples/data-sources/microsoft365_utility_guid_list_sharder/02_percentage_phased_rollout.tf" }}
+
+### Fixed-Size Pilot Groups
+
+{{ tffile "examples/data-sources/microsoft365_utility_guid_list_sharder/03_fixed_size_pilot.tf" }}
+
+### Rendezvous (Stable When Ring Count Changes)
+
+{{ tffile "examples/data-sources/microsoft365_utility_guid_list_sharder/04_rendezvous_stable.tf" }}
+
+### Real-World Conditional Access Rollout
+
+{{ tffile "examples/data-sources/microsoft365_utility_guid_list_sharder/05_conditional_access_rollout.tf" }}
+
+### Group Members Distribution
+
+{{ tffile "examples/data-sources/microsoft365_utility_guid_list_sharder/06_group_members.tf" }}
+
+### Device Distribution for Windows Updates
+
+{{ tffile "examples/data-sources/microsoft365_utility_guid_list_sharder/07_device_distribution.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}
+
+## Additional Resources
+
+- [GUID List Sharder Guide](https://registry.terraform.io/providers/deploymenttheory/microsoft365/latest/docs/guides/guid_list_sharder)
+- [Microsoft Graph API - Users](https://learn.microsoft.com/en-us/graph/api/user-list)
+- [Microsoft Graph API - Devices](https://learn.microsoft.com/en-us/graph/api/device-list)
+- [Microsoft Graph API - Group Members](https://learn.microsoft.com/en-us/graph/api/group-list-members)
+- [Conditional Access Best Practices](https://learn.microsoft.com/en-us/entra/identity/conditional-access/plan-conditional-access)
+- [Phased Deployment Strategies](https://learn.microsoft.com/en-us/mem/intune/fundamentals/deployment-guide-intune-setup)

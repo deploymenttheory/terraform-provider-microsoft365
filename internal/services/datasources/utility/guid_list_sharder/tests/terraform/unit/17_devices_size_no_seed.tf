@@ -14,7 +14,7 @@
 data "microsoft365_utility_guid_list_sharder" "test" {
   resource_type = "devices"
   odata_query   = "$filter=operatingSystem eq 'Windows'"
-  shard_sizes   = [6, 18, -1]  # 6 test ring, 18 pilot ring, rest for broad
+  shard_sizes   = [6, 18, -1] # 6 test ring, 18 pilot ring, rest for broad
   strategy      = "size"
   # No seed - uses API order
 }

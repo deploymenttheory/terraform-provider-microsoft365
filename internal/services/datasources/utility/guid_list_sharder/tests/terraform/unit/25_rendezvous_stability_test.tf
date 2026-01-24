@@ -40,7 +40,7 @@ data "microsoft365_utility_guid_list_sharder" "expanded_4_shards" {
 # Count how many GUIDs remained in shard_0
 output "shard_0_stable_count" {
   description = "GUIDs that stayed in shard_0 (3-shard → 4-shard)"
-  value       = length(setintersection(
+  value = length(setintersection(
     data.microsoft365_utility_guid_list_sharder.baseline_3_shards.shards["shard_0"],
     data.microsoft365_utility_guid_list_sharder.expanded_4_shards.shards["shard_0"]
   ))
@@ -49,7 +49,7 @@ output "shard_0_stable_count" {
 # Count how many GUIDs remained in shard_1
 output "shard_1_stable_count" {
   description = "GUIDs that stayed in shard_1 (3-shard → 4-shard)"
-  value       = length(setintersection(
+  value = length(setintersection(
     data.microsoft365_utility_guid_list_sharder.baseline_3_shards.shards["shard_1"],
     data.microsoft365_utility_guid_list_sharder.expanded_4_shards.shards["shard_1"]
   ))
@@ -58,7 +58,7 @@ output "shard_1_stable_count" {
 # Count how many GUIDs remained in shard_2
 output "shard_2_stable_count" {
   description = "GUIDs that stayed in shard_2 (3-shard → 4-shard)"
-  value       = length(setintersection(
+  value = length(setintersection(
     data.microsoft365_utility_guid_list_sharder.baseline_3_shards.shards["shard_2"],
     data.microsoft365_utility_guid_list_sharder.expanded_4_shards.shards["shard_2"]
   ))
@@ -67,19 +67,19 @@ output "shard_2_stable_count" {
 # Total GUIDs that didn't move
 output "total_stable_guids" {
   description = "Total GUIDs that stayed in same shard number"
-  value = length(setintersection(data.microsoft365_utility_guid_list_sharder.baseline_3_shards.shards["shard_0"], data.microsoft365_utility_guid_list_sharder.expanded_4_shards.shards["shard_0"])) + length(setintersection(data.microsoft365_utility_guid_list_sharder.baseline_3_shards.shards["shard_1"], data.microsoft365_utility_guid_list_sharder.expanded_4_shards.shards["shard_1"])) + length(setintersection(data.microsoft365_utility_guid_list_sharder.baseline_3_shards.shards["shard_2"], data.microsoft365_utility_guid_list_sharder.expanded_4_shards.shards["shard_2"]))
+  value       = length(setintersection(data.microsoft365_utility_guid_list_sharder.baseline_3_shards.shards["shard_0"], data.microsoft365_utility_guid_list_sharder.expanded_4_shards.shards["shard_0"])) + length(setintersection(data.microsoft365_utility_guid_list_sharder.baseline_3_shards.shards["shard_1"], data.microsoft365_utility_guid_list_sharder.expanded_4_shards.shards["shard_1"])) + length(setintersection(data.microsoft365_utility_guid_list_sharder.baseline_3_shards.shards["shard_2"], data.microsoft365_utility_guid_list_sharder.expanded_4_shards.shards["shard_2"]))
 }
 
 # Total GUIDs being distributed
 output "total_guids" {
   description = "Total GUIDs in the dataset"
-  value = length(data.microsoft365_utility_guid_list_sharder.baseline_3_shards.shards["shard_0"]) + length(data.microsoft365_utility_guid_list_sharder.baseline_3_shards.shards["shard_1"]) + length(data.microsoft365_utility_guid_list_sharder.baseline_3_shards.shards["shard_2"])
+  value       = length(data.microsoft365_utility_guid_list_sharder.baseline_3_shards.shards["shard_0"]) + length(data.microsoft365_utility_guid_list_sharder.baseline_3_shards.shards["shard_1"]) + length(data.microsoft365_utility_guid_list_sharder.baseline_3_shards.shards["shard_2"])
 }
 
 # Stability percentage (what we're proving!)
 output "stability_percentage" {
   description = "% of GUIDs that stayed in same shard (target: >=70%, proves <30% moved)"
-  value = floor(((length(setintersection(data.microsoft365_utility_guid_list_sharder.baseline_3_shards.shards["shard_0"], data.microsoft365_utility_guid_list_sharder.expanded_4_shards.shards["shard_0"])) + length(setintersection(data.microsoft365_utility_guid_list_sharder.baseline_3_shards.shards["shard_1"], data.microsoft365_utility_guid_list_sharder.expanded_4_shards.shards["shard_1"])) + length(setintersection(data.microsoft365_utility_guid_list_sharder.baseline_3_shards.shards["shard_2"], data.microsoft365_utility_guid_list_sharder.expanded_4_shards.shards["shard_2"]))) / (length(data.microsoft365_utility_guid_list_sharder.baseline_3_shards.shards["shard_0"]) + length(data.microsoft365_utility_guid_list_sharder.baseline_3_shards.shards["shard_1"]) + length(data.microsoft365_utility_guid_list_sharder.baseline_3_shards.shards["shard_2"]))) * 100)
+  value       = floor(((length(setintersection(data.microsoft365_utility_guid_list_sharder.baseline_3_shards.shards["shard_0"], data.microsoft365_utility_guid_list_sharder.expanded_4_shards.shards["shard_0"])) + length(setintersection(data.microsoft365_utility_guid_list_sharder.baseline_3_shards.shards["shard_1"], data.microsoft365_utility_guid_list_sharder.expanded_4_shards.shards["shard_1"])) + length(setintersection(data.microsoft365_utility_guid_list_sharder.baseline_3_shards.shards["shard_2"], data.microsoft365_utility_guid_list_sharder.expanded_4_shards.shards["shard_2"]))) / (length(data.microsoft365_utility_guid_list_sharder.baseline_3_shards.shards["shard_0"]) + length(data.microsoft365_utility_guid_list_sharder.baseline_3_shards.shards["shard_1"]) + length(data.microsoft365_utility_guid_list_sharder.baseline_3_shards.shards["shard_2"]))) * 100)
 }
 
 # New shard_3 size (should be ~25% of total)

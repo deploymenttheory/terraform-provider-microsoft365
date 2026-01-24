@@ -14,8 +14,8 @@
 data "microsoft365_utility_guid_list_sharder" "test" {
   resource_type = "users"
   # No odata_query - gets ALL users
-  shard_count   = 5
-  strategy      = "round-robin"
+  shard_count = 5
+  strategy    = "round-robin"
 }
 
 output "shard_0_count" {

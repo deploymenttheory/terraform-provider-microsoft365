@@ -21,7 +21,7 @@ resource "microsoft365_graph_beta_users_user" "owner" {
   mail_nickname       = "acctestowner${random_string.test.result}"
   account_enabled     = true
   hard_delete         = true
-  
+
   password_profile = {
     password                           = "P@ssw0rd${random_string.test.result}!"
     force_change_password_next_sign_in = false
