@@ -103,6 +103,8 @@ func (d *guidListSharderDataSource) Read(ctx context.Context, req datasource.Rea
 		shards = shardByPercentage(guids, percentages, seed)
 	case "size":
 		shards = shardBySize(guids, sizes, seed)
+	case "rendezvous":
+		shards = shardByRendezvous(guids, shardCount, seed)
 	}
 
 	if err := setStateToTerraform(ctx, &state, shards, resourceType, shardCount, strategy); err != nil {

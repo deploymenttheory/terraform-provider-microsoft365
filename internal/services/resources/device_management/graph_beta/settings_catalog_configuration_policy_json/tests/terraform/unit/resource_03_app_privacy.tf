@@ -10,13 +10,13 @@ resource "microsoft365_graph_beta_device_management_settings_catalog_configurati
       {
         id = "0"
         settingInstance = {
-          "@odata.type"                        = "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance"
-          settingDefinitionId                  = "user_vendor_msft_policy_config_privacy_letappsaccesslocation_forcedenytheseapps"
-          settingInstanceTemplateReference     = null
+          "@odata.type"                    = "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance"
+          settingDefinitionId              = "user_vendor_msft_policy_config_privacy_letappsaccesslocation_forcedenytheseapps"
+          settingInstanceTemplateReference = null
           choiceSettingValue = {
-            value                            = "user_vendor_msft_policy_config_privacy_letappsaccesslocation_forcedenytheseapps_1"
-            settingValueTemplateReference    = null
-            children                         = []
+            value                         = "user_vendor_msft_policy_config_privacy_letappsaccesslocation_forcedenytheseapps_1"
+            settingValueTemplateReference = null
+            children                      = []
           }
         }
       }

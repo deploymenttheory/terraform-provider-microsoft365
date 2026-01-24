@@ -19,7 +19,7 @@ data "microsoft365_utility_guid_list_sharder" "test" {
   odata_query   = "accountEnabled eq true"
   shard_count   = 2
   strategy      = "round-robin"
-  seed          = "ab-test-2024"  # Makes distribution reproducible
+  seed          = "ab-test-2024" # Makes distribution reproducible
 }
 
 output "group_a_count" {

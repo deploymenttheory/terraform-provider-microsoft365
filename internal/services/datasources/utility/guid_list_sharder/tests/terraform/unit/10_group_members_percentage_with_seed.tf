@@ -19,7 +19,7 @@ data "microsoft365_utility_guid_list_sharder" "test" {
   odata_query       = "accountEnabled eq true"
   shard_percentages = [20, 30, 50]
   strategy          = "percentage"
-  seed              = "resource-access-tiers-2024"  # Makes tiers reproducible
+  seed              = "resource-access-tiers-2024" # Makes tiers reproducible
 }
 
 output "tier_1_members" {

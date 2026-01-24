@@ -10,79 +10,79 @@ resource "microsoft365_graph_beta_device_management_settings_catalog_configurati
       {
         id = "0"
         settingInstance = {
-          "@odata.type"                        = "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance"
-          settingDefinitionId                  = "device_vendor_msft_policy_config_localpoliciessecurityoptions_accounts_blockmicrosoftaccounts"
-          settingInstanceTemplateReference     = null
+          "@odata.type"                    = "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance"
+          settingDefinitionId              = "device_vendor_msft_policy_config_localpoliciessecurityoptions_accounts_blockmicrosoftaccounts"
+          settingInstanceTemplateReference = null
           choiceSettingValue = {
-            value                            = "device_vendor_msft_policy_config_localpoliciessecurityoptions_accounts_blockmicrosoftaccounts_3"
-            settingValueTemplateReference    = null
-            children                         = []
+            value                         = "device_vendor_msft_policy_config_localpoliciessecurityoptions_accounts_blockmicrosoftaccounts_3"
+            settingValueTemplateReference = null
+            children                      = []
           }
         }
       },
       {
         id = "1"
         settingInstance = {
-          "@odata.type"                        = "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance"
-          settingDefinitionId                  = "device_vendor_msft_policy_config_localpoliciessecurityoptions_accounts_enableadministratoraccountstatus"
-          settingInstanceTemplateReference     = null
+          "@odata.type"                    = "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance"
+          settingDefinitionId              = "device_vendor_msft_policy_config_localpoliciessecurityoptions_accounts_enableadministratoraccountstatus"
+          settingInstanceTemplateReference = null
           choiceSettingValue = {
-            value                            = "device_vendor_msft_policy_config_localpoliciessecurityoptions_accounts_enableadministratoraccountstatus_1"
-            settingValueTemplateReference    = null
-            children                         = []
+            value                         = "device_vendor_msft_policy_config_localpoliciessecurityoptions_accounts_enableadministratoraccountstatus_1"
+            settingValueTemplateReference = null
+            children                      = []
           }
         }
       },
       {
         id = "2"
         settingInstance = {
-          "@odata.type"                        = "#microsoft.graph.deviceManagementConfigurationSimpleSettingInstance"
-          settingDefinitionId                  = "device_vendor_msft_policy_config_localpoliciessecurityoptions_accounts_renameadministratoraccount"
-          settingInstanceTemplateReference     = null
+          "@odata.type"                    = "#microsoft.graph.deviceManagementConfigurationSimpleSettingInstance"
+          settingDefinitionId              = "device_vendor_msft_policy_config_localpoliciessecurityoptions_accounts_renameadministratoraccount"
+          settingInstanceTemplateReference = null
           simpleSettingValue = {
-            "@odata.type"                     = "#microsoft.graph.deviceManagementConfigurationStringSettingValue"
-            value                             = "DTAdmin"
-            settingValueTemplateReference     = null
+            "@odata.type"                 = "#microsoft.graph.deviceManagementConfigurationStringSettingValue"
+            value                         = "DTAdmin"
+            settingValueTemplateReference = null
           }
         }
       },
       {
         id = "3"
         settingInstance = {
-          "@odata.type"                        = "#microsoft.graph.deviceManagementConfigurationSimpleSettingInstance"
-          settingDefinitionId                  = "device_vendor_msft_policy_config_localpoliciessecurityoptions_accounts_renameguestaccount"
-          settingInstanceTemplateReference     = null
+          "@odata.type"                    = "#microsoft.graph.deviceManagementConfigurationSimpleSettingInstance"
+          settingDefinitionId              = "device_vendor_msft_policy_config_localpoliciessecurityoptions_accounts_renameguestaccount"
+          settingInstanceTemplateReference = null
           simpleSettingValue = {
-            "@odata.type"                     = "#microsoft.graph.deviceManagementConfigurationStringSettingValue"
-            value                             = "DTGuest"
-            settingValueTemplateReference     = null
+            "@odata.type"                 = "#microsoft.graph.deviceManagementConfigurationStringSettingValue"
+            value                         = "DTGuest"
+            settingValueTemplateReference = null
           }
         }
       },
       {
         id = "4"
         settingInstance = {
-          "@odata.type"                        = "#microsoft.graph.deviceManagementConfigurationSimpleSettingInstance"
-          settingDefinitionId                  = "device_vendor_msft_policy_config_localpoliciessecurityoptions_interactivelogon_machineinactivitylimit"
-          settingInstanceTemplateReference     = null
+          "@odata.type"                    = "#microsoft.graph.deviceManagementConfigurationSimpleSettingInstance"
+          settingDefinitionId              = "device_vendor_msft_policy_config_localpoliciessecurityoptions_interactivelogon_machineinactivitylimit"
+          settingInstanceTemplateReference = null
           simpleSettingValue = {
-            "@odata.type"                     = "#microsoft.graph.deviceManagementConfigurationIntegerSettingValue"
-            value                             = 900
-            settingValueTemplateReference     = null
+            "@odata.type"                 = "#microsoft.graph.deviceManagementConfigurationIntegerSettingValue"
+            value                         = 900
+            settingValueTemplateReference = null
           }
         }
       },
       {
         id = "5"
         settingInstance = {
-          "@odata.type"                        = "#microsoft.graph.deviceManagementConfigurationSimpleSettingCollectionInstance"
-          settingDefinitionId                  = "device_vendor_msft_policy_config_localpoliciessecurityoptions_interactivelogon_messagetextforusersattemptingtologon"
-          settingInstanceTemplateReference     = null
+          "@odata.type"                    = "#microsoft.graph.deviceManagementConfigurationSimpleSettingCollectionInstance"
+          settingDefinitionId              = "device_vendor_msft_policy_config_localpoliciessecurityoptions_interactivelogon_messagetextforusersattemptingtologon"
+          settingInstanceTemplateReference = null
           simpleSettingCollectionValue = [
             {
-              "@odata.type"                     = "#microsoft.graph.deviceManagementConfigurationStringSettingValue"
-              value                             = "Unauthorized access is prohibited"
-              settingValueTemplateReference     = null
+              "@odata.type"                 = "#microsoft.graph.deviceManagementConfigurationStringSettingValue"
+              value                         = "Unauthorized access is prohibited"
+              settingValueTemplateReference = null
             }
           ]
         }

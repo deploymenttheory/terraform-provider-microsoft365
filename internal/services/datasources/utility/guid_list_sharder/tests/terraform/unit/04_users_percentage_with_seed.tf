@@ -18,7 +18,7 @@ data "microsoft365_utility_guid_list_sharder" "test" {
   odata_query       = "accountEnabled eq true and userType eq 'Member'"
   shard_percentages = [10, 30, 60]
   strategy          = "percentage"
-  seed              = "mfa-phased-2024"  # Makes distribution reproducible
+  seed              = "mfa-phased-2024" # Makes distribution reproducible
 }
 
 output "pilot_users" {

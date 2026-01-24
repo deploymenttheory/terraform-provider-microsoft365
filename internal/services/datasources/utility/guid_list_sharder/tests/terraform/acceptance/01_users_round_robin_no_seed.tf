@@ -226,10 +226,10 @@ output "all_guids_valid" {
   value = alltrue([
     for guid in tolist(data.microsoft365_utility_guid_list_sharder.test.shards["shard_0"]) :
     can(regex("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$", guid))
-  ]) && alltrue([
+    ]) && alltrue([
     for guid in tolist(data.microsoft365_utility_guid_list_sharder.test.shards["shard_1"]) :
     can(regex("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$", guid))
-  ]) && alltrue([
+    ]) && alltrue([
     for guid in tolist(data.microsoft365_utility_guid_list_sharder.test.shards["shard_2"]) :
     can(regex("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$", guid))
   ])

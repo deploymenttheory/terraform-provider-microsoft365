@@ -3,6 +3,7 @@ package utilityGuidListSharder
 import (
 	"crypto/sha256"
 	"encoding/binary"
+	"fmt"
 	"math/rand"
 )
 
@@ -159,4 +160,50 @@ func shuffle(guids []string, rng *rand.Rand) []string {
 func shuffleWithSeed(guids []string, seed string) []string {
 	rng := createSeededRNG(seed)
 	return shuffle(guids, rng)
+}
+
+// shardByRendezvous distributes GUIDs using Highest Random Weight (HRW) algorithm
+// Each GUID computes a score for every shard and is assigned to the shard with the highest score
+// This provides superior stability when shard counts change - only ~1/n GUIDs move when adding a shard
+// Always deterministic (reproducible across runs) - seed affects which shard wins for each GUID
+func shardByRendezvous(guids []string, shardCount int, seed string) [][]string {
+	if shardCount <= 0 {
+		shardCount = 1
+	}
+
+	shards := make([][]string, shardCount)
+	
+	// Initialize all shards as empty slices to prevent nil
+	// Why: nil slices become null in Terraform state, breaking HCL expressions like length()
+	// Empty slices []string{} become empty sets (length 0) which work correctly in HCL
+	for i := 0; i < shardCount; i++ {
+		shards[i] = []string{}
+	}
+
+	// For each GUID, compute weight for every shard and assign to highest
+	for _, guid := range guids {
+		highestWeight := uint64(0)
+		selectedShard := 0
+
+		// Evaluate this GUID against all shards
+		for shardIdx := 0; shardIdx < shardCount; shardIdx++ {
+			// Combine GUID + shard identifier + seed for deterministic weight
+			// Format: "guid:shard_N:seed" ensures each GUID-shard pair gets unique hash
+			input := fmt.Sprintf("%s:shard_%d:%s", guid, shardIdx, seed)
+			hash := sha256.Sum256([]byte(input))
+			
+			// Use first 8 bytes of hash as weight (uint64 for large range)
+			weight := binary.BigEndian.Uint64(hash[:8])
+
+			// Track shard with highest weight for this GUID
+			if weight > highestWeight {
+				highestWeight = weight
+				selectedShard = shardIdx
+			}
+		}
+
+		shards[selectedShard] = append(shards[selectedShard], guid)
+	}
+
+	return shards
 }

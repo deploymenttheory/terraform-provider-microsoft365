@@ -147,9 +147,10 @@ func (d *guidListSharderDataSource) Schema(ctx context.Context, _ datasource.Sch
 					"`round-robin` distributes in circular order (guarantees equal sizes, optional seed for reproducibility). " +
 					"`percentage` distributes by specified percentages (requires `shard_percentages`, optional seed for reproducibility). " +
 					"`size` distributes by absolute sizes (requires `shard_sizes`, optional seed for reproducibility). " +
+					"`rendezvous` uses Highest Random Weight algorithm (always deterministic, minimal disruption when shard count changes, requires seed). " +
 					"See the [guide](https://registry.terraform.io/providers/deploymenttheory/microsoft365/latest/docs/guides/progressive_rollout_with_guid_list_sharder) for detailed comparison.",
 				Validators: []validator.String{
-					stringvalidator.OneOf("round-robin", "percentage", "size"),
+					stringvalidator.OneOf("round-robin", "percentage", "size", "rendezvous"),
 				},
 			},
 			"seed": schema.StringAttribute{
@@ -157,6 +158,8 @@ func (d *guidListSharderDataSource) Schema(ctx context.Context, _ datasource.Sch
 				MarkdownDescription: "Optional seed value for deterministic distribution. When provided, makes results reproducible across Terraform runs. " +
 					"**`round-robin` strategy**: No seed = uses API order (may change). With seed = shuffles deterministically first, then applies round-robin (reproducible). " +
 					"**`percentage` strategy**: No seed = uses API order (may change). With seed = shuffles deterministically first, then applies percentage split (reproducible). " +
+					"**`size` strategy**: No seed = uses API order (may change). With seed = shuffles deterministically first, then applies size-based split (reproducible). " +
+					"**`rendezvous` strategy**: Always deterministic. Seed affects which shard wins for each GUID via Highest Random Weight algorithm. " +
 					"Use different seeds for different rollouts to distribute pilot burden: User X might be in shard_0 for MFA but shard_2 for Windows Updates.",
 			},
 			"shards": schema.MapAttribute{

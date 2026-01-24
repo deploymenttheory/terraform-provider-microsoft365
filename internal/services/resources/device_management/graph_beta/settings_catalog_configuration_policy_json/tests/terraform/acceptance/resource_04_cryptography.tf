@@ -16,14 +16,14 @@ resource "microsoft365_graph_beta_device_management_settings_catalog_configurati
       {
         id = "0"
         settingInstance = {
-          "@odata.type"                        = "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance"
-          settingDefinitionId                  = "device_vendor_msft_policy_config_cryptography_allowfipsalgorithmpolicy"
-          settingInstanceTemplateReference     = null
-          auditRuleInformation                 = null
+          "@odata.type"                    = "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance"
+          settingDefinitionId              = "device_vendor_msft_policy_config_cryptography_allowfipsalgorithmpolicy"
+          settingInstanceTemplateReference = null
+          auditRuleInformation             = null
           choiceSettingValue = {
-            value                            = "device_vendor_msft_policy_config_cryptography_allowfipsalgorithmpolicy_1"
-            settingValueTemplateReference    = null
-            children                         = []
+            value                         = "device_vendor_msft_policy_config_cryptography_allowfipsalgorithmpolicy_1"
+            settingValueTemplateReference = null
+            children                      = []
           }
         }
       }
