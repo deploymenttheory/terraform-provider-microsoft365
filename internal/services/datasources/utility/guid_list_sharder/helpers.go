@@ -76,6 +76,56 @@ func shardByPercentage(guids []string, percentages []int64, seed string) [][]str
 	return shards
 }
 
+// shardBySize distributes GUIDs according to specified absolute sizes
+// Without seed: uses API order (non-deterministic, may change between runs)
+// With seed: shuffles using Fisher-Yates first, then applies size-based split (deterministic, reproducible)
+// Supports -1 in the last position to mean "all remaining GUIDs"
+func shardBySize(guids []string, sizes []int64, seed string) [][]string {
+	totalGuids := len(guids)
+	shardCount := len(sizes)
+	shards := make([][]string, shardCount)
+
+	if totalGuids == 0 {
+		return shards
+	}
+
+	// Use deterministic shuffle if seed provided
+	workingGuids := guids
+	if seed != "" {
+		workingGuids = shuffleWithSeed(guids, seed)
+	}
+
+	// Distribute by sizes
+	currentIndex := 0
+	for i, size := range sizes {
+		var shardSize int
+		
+		if size == -1 {
+			// -1 means "all remaining GUIDs"
+			shardSize = totalGuids - currentIndex
+		} else {
+			shardSize = int(size)
+			
+			// If we don't have enough GUIDs left, take what's available
+			if currentIndex+shardSize > totalGuids {
+				shardSize = totalGuids - currentIndex
+			}
+		}
+
+		// Always initialize shard, even if empty
+		// Why: nil slices become null in Terraform state, breaking HCL expressions like length()
+		// Empty slices []string{} become empty sets (length 0) which work correctly in HCL
+		if shardSize > 0 && currentIndex < totalGuids {
+			shards[i] = workingGuids[currentIndex : currentIndex+shardSize]
+			currentIndex += shardSize
+		} else {
+			shards[i] = []string{}
+		}
+	}
+
+	return shards
+}
+
 // =============================================================================
 // Seeding and Shuffle Helpers
 // =============================================================================

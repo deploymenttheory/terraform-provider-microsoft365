@@ -231,7 +231,7 @@ func TestShardByRoundRobin_SingleShard(t *testing.T) {
 	assert.Len(t, shards[0], len(guids), "All GUIDs should be in single shard")
 }
 
-// CRITICAL: Test perfect distribution (no variance)
+// Test perfect distribution (no variance)
 func TestShardByRoundRobin_PerfectDistribution(t *testing.T) {
 	// Test with exactly divisible count
 	guids := generateTestGUIDs(30)
@@ -245,7 +245,7 @@ func TestShardByRoundRobin_PerfectDistribution(t *testing.T) {
 	}
 }
 
-// CRITICAL: Test perfect distribution with remainder
+// Test perfect distribution with remainder
 func TestShardByRoundRobin_PerfectDistribution_WithRemainder(t *testing.T) {
 	// 31 GUIDs / 3 shards = 10, 10, 11
 	guids := generateTestGUIDs(31)
@@ -266,7 +266,7 @@ func TestShardByRoundRobin_PerfectDistribution_WithRemainder(t *testing.T) {
 	assert.Equal(t, 31, total, "Total should be 31")
 }
 
-// CRITICAL: Test realistic perfect distribution (512 users, 3 shards)
+// Test realistic perfect distribution (512 users, 3 shards)
 func TestShardByRoundRobin_RealisticDistribution_512Users(t *testing.T) {
 	guids := generateTestGUIDs(512)
 	shards := shardByRoundRobin(guids, 3, "")
@@ -284,12 +284,11 @@ func TestShardByRoundRobin_RealisticDistribution_512Users(t *testing.T) {
 		assert.LessOrEqual(t, abs(diff), 1, "Shards should differ by at most 1")
 	}
 
-	// Verify total
 	total := countTotalGUIDs(shards)
 	assert.Equal(t, 512, total, "Total should be 512")
 }
 
-// CRITICAL: Test that WITHOUT seed, order is based on input (API order)
+// Test that WITHOUT seed, order is based on input (API order)
 func TestShardByRoundRobin_NoSeed_UsesInputOrder(t *testing.T) {
 	guids := generateTestGUIDs(9)
 	shards := shardByRoundRobin(guids, 3, "")
@@ -303,7 +302,7 @@ func TestShardByRoundRobin_NoSeed_UsesInputOrder(t *testing.T) {
 	assert.Equal(t, guids[3], shards[0][1], "Fourth GUID should be in shard 0, position 1")
 }
 
-// CRITICAL: Test that WITH seed, order is shuffled first, then round-robin
+// Test that WITH seed, order is shuffled first, then round-robin
 func TestShardByRoundRobin_WithSeed_Deterministic(t *testing.T) {
 	guids := generateTestGUIDs(100)
 	seed := "test-seed"
@@ -317,7 +316,7 @@ func TestShardByRoundRobin_WithSeed_Deterministic(t *testing.T) {
 	}
 }
 
-// CRITICAL: Test that different seeds produce different distributions
+// Test that different seeds produce different distributions
 func TestShardByRoundRobin_DifferentSeeds_DifferentDistributions(t *testing.T) {
 	guids := generateTestGUIDs(100)
 
@@ -346,6 +345,27 @@ func TestShardByRoundRobin_DifferentSeeds_DifferentDistributions(t *testing.T) {
 	assert.Greater(t, differentBetweenSeeds, 50, "At least 50%% of GUIDs should be in different shards (seed1 vs seed2)")
 }
 
+// Test round-robin with 10 shards to verify scalability
+func TestShardByRoundRobin_10Shards(t *testing.T) {
+	guids := generateTestGUIDs(100)
+	shards := shardByRoundRobin(guids, 10, "")
+
+	require.Len(t, shards, 10, "Expected 10 shards")
+
+	// 100 / 10 = 10 exactly, so each shard should have exactly 10 GUIDs
+	for i, shard := range shards {
+		assert.Len(t, shard, 10, "Shard %d should have 10 GUIDs", i)
+	}
+
+	total := countTotalGUIDs(shards)
+	assert.Equal(t, 100, total, "All 100 GUIDs should be distributed")
+
+	// Verify each GUID appears exactly once
+	for _, guid := range guids {
+		assert.True(t, containsGUID(shards, guid), "GUID %s should be in a shard", guid)
+	}
+}
+
 // =============================================================================
 // shardByPercentage Tests - Precise Percentage Verification
 // =============================================================================
@@ -361,7 +381,7 @@ func TestShardByPercentage_EmptyList(t *testing.T) {
 	}
 }
 
-// CRITICAL: Test that percentages are accurately applied
+// Test that percentages are accurately applied
 func TestShardByPercentage_AccuratePercentages_100Users(t *testing.T) {
 	guids := generateTestGUIDs(100)
 	percentages := []int64{10, 30, 60}
@@ -374,12 +394,11 @@ func TestShardByPercentage_AccuratePercentages_100Users(t *testing.T) {
 	assert.Len(t, shards[1], 30, "Shard 1 should have 30 GUIDs (30%%)")
 	assert.Len(t, shards[2], 60, "Shard 2 should have 60 GUIDs (60%%)")
 
-	// Verify total
 	total := countTotalGUIDs(shards)
 	assert.Equal(t, 100, total, "Total should be 100")
 }
 
-// CRITICAL: Test realistic percentages (512 users, 10/30/60 split)
+// Test realistic percentages (512 users, 10/30/60 split)
 func TestShardByPercentage_RealisticPercentages_512Users(t *testing.T) {
 	guids := generateTestGUIDs(512)
 	percentages := []int64{10, 30, 60}
@@ -403,12 +422,11 @@ func TestShardByPercentage_RealisticPercentages_512Users(t *testing.T) {
 	expectedRemainder := 512 - counts[0] - counts[1]
 	assert.Equal(t, expectedRemainder, counts[2], "Shard 2 should get all remaining GUIDs")
 
-	// Verify total
 	total := countTotalGUIDs(shards)
 	assert.Equal(t, 512, total, "Total should be 512")
 }
 
-// CRITICAL: Test that last shard gets all remaining GUIDs (no loss)
+// Test that last shard gets all remaining GUIDs (no loss)
 func TestShardByPercentage_LastShardGetsRemainder(t *testing.T) {
 	guids := generateTestGUIDs(103) // Odd number to ensure remainder
 	percentages := []int64{10, 20, 70}
@@ -424,7 +442,7 @@ func TestShardByPercentage_LastShardGetsRemainder(t *testing.T) {
 	}
 }
 
-// CRITICAL: Test that WITHOUT seed, order is based on input
+// Test that WITHOUT seed, order is based on input
 func TestShardByPercentage_NoSeed_UsesInputOrder(t *testing.T) {
 	guids := generateTestGUIDs(10)
 	percentages := []int64{20, 30, 50}
@@ -445,7 +463,7 @@ func TestShardByPercentage_NoSeed_UsesInputOrder(t *testing.T) {
 	assert.Len(t, shards[2], 5, "Shard 2 should have 5 GUIDs")
 }
 
-// CRITICAL: Test that WITH seed is deterministic
+// Test that WITH seed is deterministic
 func TestShardByPercentage_WithSeed_Deterministic(t *testing.T) {
 	guids := generateTestGUIDs(100)
 	percentages := []int64{10, 30, 60}
@@ -460,7 +478,7 @@ func TestShardByPercentage_WithSeed_Deterministic(t *testing.T) {
 	}
 }
 
-// CRITICAL: Test that different seeds produce different distributions
+// Test that different seeds produce different distributions
 func TestShardByPercentage_DifferentSeeds_DifferentDistributions(t *testing.T) {
 	guids := generateTestGUIDs(100)
 	percentages := []int64{10, 30, 60}
@@ -488,6 +506,200 @@ func TestShardByPercentage_DifferentSeeds_DifferentDistributions(t *testing.T) {
 
 	assert.Greater(t, differentFromNoSeed, 30, "At least 30%% of GUIDs should be in different shards (no seed vs seed)")
 	assert.Greater(t, differentBetweenSeeds, 30, "At least 30%% of GUIDs should be in different shards (seed1 vs seed2)")
+}
+
+// Test percentage with 10 shards to verify scalability
+func TestShardByPercentage_10Shards(t *testing.T) {
+	guids := generateTestGUIDs(100)
+	percentages := []int64{10, 10, 10, 10, 10, 10, 10, 10, 10, 10}
+	shards := shardByPercentage(guids, percentages, "")
+
+	require.Len(t, shards, 10, "Expected 10 shards")
+
+	// Each shard should have 10 GUIDs (10% of 100)
+	for i, shard := range shards {
+		assert.Len(t, shard, 10, "Shard %d should have 10 GUIDs (10%%)", i)
+	}
+
+	total := countTotalGUIDs(shards)
+	assert.Equal(t, 100, total, "All 100 GUIDs should be distributed")
+
+	// Verify each GUID appears exactly once
+	for _, guid := range guids {
+		assert.True(t, containsGUID(shards, guid), "GUID %s should be in a shard", guid)
+	}
+}
+
+// =============================================================================
+// shardBySize Tests
+// =============================================================================
+
+func TestShardBySize_EmptyList(t *testing.T) {
+	guids := []string{}
+	sizes := []int64{10, 20, -1}
+	shards := shardBySize(guids, sizes, "")
+
+	require.Len(t, shards, 3, "Expected 3 shards")
+	for i, shard := range shards {
+		assert.Empty(t, shard, "Shard %d should be empty", i)
+	}
+}
+
+func TestShardBySize_ExactSizes(t *testing.T) {
+	guids := generateTestGUIDs(100)
+	sizes := []int64{50, 30, 20}
+	shards := shardBySize(guids, sizes, "")
+
+	require.Len(t, shards, 3, "Expected 3 shards")
+	assert.Len(t, shards[0], 50, "Shard 0 should have 50 GUIDs")
+	assert.Len(t, shards[1], 30, "Shard 1 should have 30 GUIDs")
+	assert.Len(t, shards[2], 20, "Shard 2 should have 20 GUIDs")
+
+	total := countTotalGUIDs(shards)
+	assert.Equal(t, 100, total, "All 100 GUIDs should be distributed")
+}
+
+func TestShardBySize_WithRemainder(t *testing.T) {
+	guids := generateTestGUIDs(1000)
+	sizes := []int64{50, 200, -1}
+	shards := shardBySize(guids, sizes, "")
+
+	require.Len(t, shards, 3, "Expected 3 shards")
+	assert.Len(t, shards[0], 50, "Shard 0 should have 50 GUIDs")
+	assert.Len(t, shards[1], 200, "Shard 1 should have 200 GUIDs")
+	assert.Len(t, shards[2], 750, "Shard 2 should have 750 GUIDs (remainder)")
+
+	total := countTotalGUIDs(shards)
+	assert.Equal(t, 1000, total, "All 1000 GUIDs should be distributed")
+}
+
+func TestShardBySize_ZeroRemainder(t *testing.T) {
+	// Edge case: sizes sum to exactly total GUIDs, leaving 0 for -1 shard
+	guids := generateTestGUIDs(30)
+	sizes := []int64{10, 20, -1} // 10+20=30, so 0 remaining
+	shards := shardBySize(guids, sizes, "")
+
+	require.Len(t, shards, 3, "Expected 3 shards")
+	assert.Len(t, shards[0], 10, "Shard 0 should have 10 GUIDs")
+	assert.Len(t, shards[1], 20, "Shard 1 should have 20 GUIDs")
+
+	// Critical: must be empty slice []string{}, NOT nil
+	// nil becomes null in Terraform state, breaking HCL expressions like length()
+	assert.NotNil(t, shards[2], "Shard 2 must not be nil (would become null in Terraform)")
+	assert.Len(t, shards[2], 0, "Shard 2 should have 0 GUIDs (exact match, no remainder)")
+
+	total := countTotalGUIDs(shards)
+	assert.Equal(t, 30, total, "All 30 GUIDs should be distributed")
+}
+
+func TestShardBySize_NotEnoughGUIDs(t *testing.T) {
+	guids := generateTestGUIDs(100)
+	sizes := []int64{50, 200, -1} // Request 250+ but only have 100
+	shards := shardBySize(guids, sizes, "")
+
+	require.Len(t, shards, 3, "Expected 3 shards")
+	assert.Len(t, shards[0], 50, "Shard 0 should have 50 GUIDs")
+	assert.Len(t, shards[1], 50, "Shard 1 should have 50 GUIDs (only 50 left)")
+
+	// Must be empty slice, not nil
+	assert.NotNil(t, shards[2], "Shard 2 must not be nil")
+	assert.Len(t, shards[2], 0, "Shard 2 should be empty (no GUIDs left)")
+
+	total := countTotalGUIDs(shards)
+	assert.Equal(t, 100, total, "All 100 GUIDs should be distributed")
+}
+
+func TestShardBySize_NoSeed_UsesInputOrder(t *testing.T) {
+	guids := generateTestGUIDs(10)
+	sizes := []int64{3, 4, 3}
+	shards := shardBySize(guids, sizes, "")
+
+	// Without seed: first 3 GUIDs go to shard 0, next 4 to shard 1, last 3 to shard 2
+	assert.Contains(t, shards[0], guids[0], "Shard 0 should contain first GUID")
+	assert.Contains(t, shards[0], guids[1], "Shard 0 should contain second GUID")
+	assert.Contains(t, shards[0], guids[2], "Shard 0 should contain third GUID")
+	assert.Len(t, shards[0], 3, "Shard 0 should have 3 GUIDs")
+
+	assert.Contains(t, shards[1], guids[3], "Shard 1 should contain fourth GUID")
+	assert.Len(t, shards[1], 4, "Shard 1 should have 4 GUIDs")
+
+	assert.Len(t, shards[2], 3, "Shard 2 should have 3 GUIDs")
+}
+
+func TestShardBySize_WithSeed_Deterministic(t *testing.T) {
+	guids := generateTestGUIDs(100)
+	sizes := []int64{25, 50, -1}
+	seed := "test-seed"
+
+	shards1 := shardBySize(guids, sizes, seed)
+	shards2 := shardBySize(guids, sizes, seed)
+
+	// Verify each shard has identical contents with same seed
+	for i := 0; i < 3; i++ {
+		assert.ElementsMatch(t, shards1[i], shards2[i], "Shard %d should be identical with same seed", i)
+	}
+}
+
+func TestShardBySize_DifferentSeeds_DifferentDistributions(t *testing.T) {
+	guids := generateTestGUIDs(100)
+	sizes := []int64{20, 30, -1}
+
+	shardsNoSeed := shardBySize(guids, sizes, "")
+	shardsSeed1 := shardBySize(guids, sizes, "seed1")
+	shardsSeed2 := shardBySize(guids, sizes, "seed2")
+
+	// Count how many GUIDs are in different shards
+	differentFromNoSeed := 0
+	differentBetweenSeeds := 0
+
+	for _, guid := range guids {
+		noSeedShard := findGUIDShard(shardsNoSeed, guid)
+		seed1Shard := findGUIDShard(shardsSeed1, guid)
+		seed2Shard := findGUIDShard(shardsSeed2, guid)
+
+		if noSeedShard != seed1Shard {
+			differentFromNoSeed++
+		}
+		if seed1Shard != seed2Shard {
+			differentBetweenSeeds++
+		}
+	}
+
+	assert.Greater(t, differentFromNoSeed, 30, "At least 30%% of GUIDs should be in different shards (no seed vs seed)")
+	assert.Greater(t, differentBetweenSeeds, 30, "At least 30%% of GUIDs should be in different shards (seed1 vs seed2)")
+}
+
+func TestShardBySize_RealisticScenario_512Users(t *testing.T) {
+	guids := generateTestGUIDs(512)
+	sizes := []int64{50, 200, -1} // pilot, broader, full
+	shards := shardBySize(guids, sizes, "")
+
+	require.Len(t, shards, 3, "Expected 3 shards")
+
+	counts := []int{len(shards[0]), len(shards[1]), len(shards[2])}
+	t.Logf("Shard counts: %v", counts)
+
+	assert.Equal(t, 50, counts[0], "Pilot shard should have exactly 50 GUIDs")
+	assert.Equal(t, 200, counts[1], "Broader shard should have exactly 200 GUIDs")
+	assert.Equal(t, 262, counts[2], "Full shard should have 262 GUIDs (remainder)")
+
+	total := countTotalGUIDs(shards)
+	assert.Equal(t, 512, total, "All 512 GUIDs should be distributed")
+}
+
+func TestShardBySize_AllRemainderInMiddle_ShouldFail(t *testing.T) {
+	// This test documents expected behavior if -1 is NOT in last position
+	// Implementation should handle gracefully or validation should prevent
+	guids := generateTestGUIDs(100)
+	sizes := []int64{20, -1, 30} // -1 not in last position
+
+	shards := shardBySize(guids, sizes, "")
+
+	// Current implementation: -1 takes all remaining, leaving 0 for last shard
+	require.Len(t, shards, 3, "Expected 3 shards")
+	assert.Len(t, shards[0], 20, "Shard 0 should have 20 GUIDs")
+	assert.Len(t, shards[1], 80, "Shard 1 should have 80 GUIDs (all remaining)")
+	assert.Len(t, shards[2], 0, "Shard 2 should be empty (no GUIDs left)")
 }
 
 // Helper function for absolute value

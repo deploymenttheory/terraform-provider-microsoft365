@@ -14,7 +14,7 @@
 data "microsoft365_utility_guid_list_sharder" "test" {
   resource_type     = "group_members"
   group_id          = "12345678-1234-1234-1234-123456789abc"
-  odata_query       = "$filter=accountEnabled eq true"
+  odata_query       = "accountEnabled eq true"
   shard_percentages = [20, 30, 50]
   strategy          = "percentage"
   seed              = "resource-access-tiers-2024"  # Makes tiers reproducible

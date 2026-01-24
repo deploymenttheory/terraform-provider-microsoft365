@@ -215,7 +215,7 @@ Uses SHA-256 hashing to assign each GUID to a shard deterministically. Supports 
 ```hcl
 data "microsoft365_utility_guid_list_sharder" "consistent_groups" {
   resource_type = "users"
-  odata_query   = "$filter=accountEnabled eq true"
+  odata_query   = "accountEnabled eq true"
   shard_count   = 3
   strategy      = "hash"
   # No seed - same distribution everywhere
@@ -228,7 +228,7 @@ data "microsoft365_utility_guid_list_sharder" "consistent_groups" {
 # MFA Rollout - User X might be in shard_0 (10% pilot)
 data "microsoft365_utility_guid_list_sharder" "mfa_rollout" {
   resource_type = "users"
-  odata_query   = "$filter=accountEnabled eq true"
+  odata_query   = "accountEnabled eq true"
   shard_count   = 3
   strategy      = "hash"
   seed          = "mfa-rollout-2024"  # Unique seed for this rollout
@@ -328,7 +328,7 @@ data "microsoft365_utility_guid_list_sharder" "phased_rollout" {
 # MFA Rollout - deterministic percentage split
 data "microsoft365_utility_guid_list_sharder" "mfa_phases" {
   resource_type     = "users"
-  odata_query       = "$filter=accountEnabled eq true"
+  odata_query       = "accountEnabled eq true"
   shard_percentages = [10, 30, 60]
   strategy          = "percentage"
   seed              = "mfa-2024"  # Reproducible results
@@ -672,7 +672,7 @@ Split an existing large group into multiple smaller groups for more granular pol
 data "microsoft365_utility_guid_list_sharder" "split_group" {
   resource_type = "group_members"
   group_id      = "12345678-1234-1234-1234-123456789abc"  # Original group ID
-  odata_query   = "$filter=accountEnabled eq true"
+  odata_query   = "accountEnabled eq true"
   shard_count   = 3
   strategy      = "hash"
   seed          = "sales-team-split-2024"  # Unique seed for this group split

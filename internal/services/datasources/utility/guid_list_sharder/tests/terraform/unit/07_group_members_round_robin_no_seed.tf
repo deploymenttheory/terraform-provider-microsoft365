@@ -13,7 +13,7 @@
 data "microsoft365_utility_guid_list_sharder" "test" {
   resource_type = "group_members"
   group_id      = "12345678-1234-1234-1234-123456789abc"
-  odata_query   = "$filter=accountEnabled eq true"
+  odata_query   = "accountEnabled eq true"
   shard_count   = 4
   strategy      = "round-robin"
   # No seed - uses API order
