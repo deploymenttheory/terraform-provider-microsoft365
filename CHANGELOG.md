@@ -5,6 +5,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.42.0-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.41.0-alpha...v0.42.0-alpha) (2026-01-24)
+
+
+### Features
+
+* add comprehensive AST analysis tests for SDK usage tracking ([c7b67dd](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/c7b67dd78797bcac7c90d7c9ad222ba71efe7d64))
+* add enum change analysis and reporting ([d75351c](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/d75351cea988793a136c6768714f700c1104d763))
+* add enum change analysis and reporting ([#2028](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/2028)) ([d53d820](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/d53d820c01d613473f0cc3b08de53e890e2905ee))
+* added datasource microsoft365_graph_beta_groups_group ([a62fad5](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/a62fad51b6e1f81245ecb34e4ec0eecff932a01e))
+* added datasource microsoft365_graph_beta_groups_group ([#2012](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/2012)) ([197db2c](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/197db2cfe114738b394b38fcf3c17a3f27b32573))
+* added datasource microsoft365_utility_guid_list_sharder ([#2032](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/2032)) ([cd7b2e9](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/cd7b2e9bf167207b8a2e9e88b8cee0be643eb7f0))
+
+
+### Bug Fixes
+
+* enhance test coverage reporting by sanitizing package filenames in CI workflow ([48b42bf](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/48b42bf8200af134383a10071f7a283a741e835d))
+* improved test coverage ([6fa7600](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/6fa76001cf896940bdfba3a1b1d140a111aa4a4a))
+* unit and acc tests for resource microsoft365_graph_beta_device_management_settings_catalog_configuration_policy_json ([ef6b30c](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/ef6b30c04e3c7e7660060b0213b7eb3cedefde72))
+* unit and acc tests for resource microsoft365_graph_beta_device_management_settings_catalog_configuration_policy_json ([#2024](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/2024)) ([818a01c](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/818a01c427ade4ac56faa55ad46ac15a06d0f574))
+
 ## [0.41.0-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.40.2-alpha...v0.41.0-alpha) (2026-01-20)
 
 
