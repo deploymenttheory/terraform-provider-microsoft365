@@ -101,18 +101,18 @@ func (d *guidListSharderDataSource) Schema(ctx context.Context, _ datasource.Sch
 			"shard_count": schema.Int64Attribute{
 				Optional: true,
 				MarkdownDescription: "Number of equally-sized shards to create (minimum 1). " +
-					"Use with `round-robin` strategy. Conflicts with `shard_percentages`. " +
+					"Use with `round-robin` strategy. Conflicts with `shard_percentages` and `shard_sizes`. " +
 					"Creates shards named `shard_0`, `shard_1`, ..., `shard_N-1`. " +
 					"For custom-sized shards (e.g., 10% pilot, 30% broader, 60% full), use `shard_percentages` with `percentage` strategy instead.",
 				Validators: []validator.Int64{
 					int64validator.AtLeast(1),
-					int64validator.ExactlyOneOf(path.MatchRoot("shard_percentages")),
+					int64validator.ExactlyOneOf(path.MatchRoot("shard_percentages"), path.MatchRoot("shard_sizes")),
 				},
 			},
 			"shard_percentages": schema.ListAttribute{
 				ElementType: types.Int64Type,
 				Optional:    true,
-				MarkdownDescription: "List of percentages for custom-sized shards. Use with `percentage` strategy. Conflicts with `shard_count`. " +
+				MarkdownDescription: "List of percentages for custom-sized shards. Use with `percentage` strategy. Conflicts with `shard_count` and `shard_sizes`. " +
 					"Values must be non-negative integers that sum to exactly 100. " +
 					"Example: `[10, 30, 60]` creates 10% pilot, 30% broader pilot, 60% full rollout. " +
 					"Common patterns: `[5, 15, 80]` (Windows Update rings), `[33, 33, 34]` (A/B/C testing). " +
@@ -120,8 +120,25 @@ func (d *guidListSharderDataSource) Schema(ctx context.Context, _ datasource.Sch
 				Validators: []validator.List{
 					listvalidator.SizeAtLeast(1),
 					listvalidator.ValueInt64sAre(int64validator.AtLeast(0)),
-					listvalidator.ExactlyOneOf(path.MatchRoot("shard_count")),
+					listvalidator.ExactlyOneOf(path.MatchRoot("shard_count"), path.MatchRoot("shard_sizes")),
 					attribute.Int64ListSumEquals(100),
+				},
+			},
+			"shard_sizes": schema.ListAttribute{
+				ElementType: types.Int64Type,
+				Optional:    true,
+				MarkdownDescription: "List of absolute shard sizes (exact number of GUIDs per shard). Use with `size` strategy. Conflicts with `shard_count` and `shard_percentages`. " +
+					"Values must be positive integers or -1 (which means 'all remaining'). Only the last element can be -1. " +
+					"Example: `[50, 200, -1]` creates 50 pilot users, 200 broader rollout, remainder for full deployment. " +
+					"Common patterns: `[10, 30, -1]` (controlled pilot expansion), `[100, 100, 100, -1]` (fixed-size rings). " +
+					"Use this when you need exact capacity constraints (e.g., support team handles exactly 50 pilot users).",
+				Validators: []validator.List{
+					listvalidator.SizeAtLeast(1),
+					listvalidator.ValueInt64sAre(int64validator.Any(
+						int64validator.AtLeast(1),
+						int64validator.OneOf(-1),
+					)),
+					listvalidator.ExactlyOneOf(path.MatchRoot("shard_count"), path.MatchRoot("shard_percentages")),
 				},
 			},
 			"strategy": schema.StringAttribute{
@@ -129,9 +146,10 @@ func (d *guidListSharderDataSource) Schema(ctx context.Context, _ datasource.Sch
 				MarkdownDescription: "The distribution strategy for sharding GUIDs. " +
 					"`round-robin` distributes in circular order (guarantees equal sizes, optional seed for reproducibility). " +
 					"`percentage` distributes by specified percentages (requires `shard_percentages`, optional seed for reproducibility). " +
+					"`size` distributes by absolute sizes (requires `shard_sizes`, optional seed for reproducibility). " +
 					"See the [guide](https://registry.terraform.io/providers/deploymenttheory/microsoft365/latest/docs/guides/progressive_rollout_with_guid_list_sharder) for detailed comparison.",
 				Validators: []validator.String{
-					stringvalidator.OneOf("round-robin", "percentage"),
+					stringvalidator.OneOf("round-robin", "percentage", "size"),
 				},
 			},
 			"seed": schema.StringAttribute{

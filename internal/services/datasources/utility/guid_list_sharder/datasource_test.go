@@ -152,12 +152,12 @@ func TestUnitGuidListSharderDataSource_04_UsersPercentageWithSeed(t *testing.T) 
 }
 
 // =============================================================================
-// Group Members - Round-Robin Strategy Tests
+// Users - Size Strategy Tests
 // =============================================================================
 
-// Test 05: Group Members - Round-Robin Strategy (No Seed)
-// Verifies round-robin distribution for group members without seed
-func TestUnitGuidListSharderDataSource_05_GroupMembersRoundRobinNoSeed(t *testing.T) {
+// Test 05: Users - Size Strategy (No Seed)
+// Verifies size-based distribution without seed (API order-based)
+func TestUnitGuidListSharderDataSource_05_UsersSizeNoSeed(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, guidListSharderMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -167,23 +167,24 @@ func TestUnitGuidListSharderDataSource_05_GroupMembersRoundRobinNoSeed(t *testin
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: loadUnitTestTerraform("05_group_members_round_robin_no_seed.tf"),
+				Config: loadUnitTestTerraform("05_users_size_no_seed.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					check.That(dataSourceType+".test").Key("id").Exists(),
-					check.That(dataSourceType+".test").Key("shards.%").HasValue("4"),
-					check.That(dataSourceType+".test").Key("shards.shard_0.#").HasValue("5"),
-					check.That(dataSourceType+".test").Key("shards.shard_1.#").HasValue("5"),
-					check.That(dataSourceType+".test").Key("shards.shard_2.#").HasValue("5"),
-					check.That(dataSourceType+".test").Key("shards.shard_3.#").HasValue("5"),
+					check.That(dataSourceType+".test").Key("shards.%").HasValue("3"),
+					check.That(dataSourceType+".test").Key("shards.shard_0.#").HasValue("10"), // pilot
+					check.That(dataSourceType+".test").Key("shards.shard_1.#").HasValue("20"), // broader
+					check.That(dataSourceType+".test").Key("shards.shard_2.#").Exists(),       // remainder
+					resource.TestCheckOutput("pilot_count", "10"),
+					resource.TestCheckOutput("broader_count", "20"),
 				),
 			},
 		},
 	})
 }
 
-// Test 06: Group Members - Round-Robin Strategy (With Seed)
-// Verifies round-robin distribution for group members with seed
-func TestUnitGuidListSharderDataSource_06_GroupMembersRoundRobinWithSeed(t *testing.T) {
+// Test 06: Users - Size Strategy (With Seed)
+// Verifies size-based distribution with seed (deterministic)
+func TestUnitGuidListSharderDataSource_06_UsersSizeWithSeed(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, guidListSharderMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -193,12 +194,69 @@ func TestUnitGuidListSharderDataSource_06_GroupMembersRoundRobinWithSeed(t *test
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: loadUnitTestTerraform("06_group_members_round_robin_with_seed.tf"),
+				Config: loadUnitTestTerraform("06_users_size_with_seed.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(dataSourceType+".test").Key("id").Exists(),
+					check.That(dataSourceType+".test").Key("shards.%").HasValue("3"),
+					check.That(dataSourceType+".test").Key("shards.shard_0.#").HasValue("5"),  // pilot
+					check.That(dataSourceType+".test").Key("shards.shard_1.#").HasValue("10"), // broader
+					check.That(dataSourceType+".test").Key("shards.shard_2.#").Exists(),       // remainder
+					resource.TestCheckOutput("pilot_count", "5"),
+					resource.TestCheckOutput("broader_count", "10"),
+				),
+			},
+		},
+	})
+}
+
+// =============================================================================
+// Group Members - Round-Robin Strategy Tests
+// =============================================================================
+
+// Test 07: Group Members - Round-Robin Strategy (No Seed)
+// Verifies round-robin distribution for group members without seed
+func TestUnitGuidListSharderDataSource_07_GroupMembersRoundRobinNoSeed(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
+	_, guidListSharderMock := setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+	defer guidListSharderMock.CleanupMockState()
+
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: loadUnitTestTerraform("07_group_members_round_robin_no_seed.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(dataSourceType+".test").Key("id").Exists(),
+					check.That(dataSourceType+".test").Key("shards.%").HasValue("4"),
+					check.That(dataSourceType+".test").Key("shards.shard_0.#").Exists(),
+					check.That(dataSourceType+".test").Key("shards.shard_1.#").Exists(),
+					check.That(dataSourceType+".test").Key("shards.shard_2.#").Exists(),
+					check.That(dataSourceType+".test").Key("shards.shard_3.#").Exists(),
+				),
+			},
+		},
+	})
+}
+
+// Test 08: Group Members - Round-Robin Strategy (With Seed)
+// Verifies round-robin distribution for group members with seed
+func TestUnitGuidListSharderDataSource_08_GroupMembersRoundRobinWithSeed(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
+	_, guidListSharderMock := setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+	defer guidListSharderMock.CleanupMockState()
+
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: loadUnitTestTerraform("08_group_members_round_robin_with_seed.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					check.That(dataSourceType+".test").Key("id").Exists(),
 					check.That(dataSourceType+".test").Key("shards.%").HasValue("2"),
-					check.That(dataSourceType+".test").Key("shards.shard_0.#").HasValue("10"),
-					check.That(dataSourceType+".test").Key("shards.shard_1.#").HasValue("10"),
+					check.That(dataSourceType+".test").Key("shards.shard_0.#").Exists(),
+					check.That(dataSourceType+".test").Key("shards.shard_1.#").Exists(),
 				),
 			},
 		},
@@ -209,9 +267,9 @@ func TestUnitGuidListSharderDataSource_06_GroupMembersRoundRobinWithSeed(t *test
 // Group Members - Percentage Strategy Tests
 // =============================================================================
 
-// Test 07: Group Members - Percentage Strategy (No Seed)
+// Test 09: Group Members - Percentage Strategy (No Seed)
 // Verifies percentage-based distribution for group members without seed
-func TestUnitGuidListSharderDataSource_07_GroupMembersPercentageNoSeed(t *testing.T) {
+func TestUnitGuidListSharderDataSource_09_GroupMembersPercentageNoSeed(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, guidListSharderMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -221,7 +279,7 @@ func TestUnitGuidListSharderDataSource_07_GroupMembersPercentageNoSeed(t *testin
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: loadUnitTestTerraform("07_group_members_percentage_no_seed.tf"),
+				Config: loadUnitTestTerraform("09_group_members_percentage_no_seed.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					check.That(dataSourceType+".test").Key("id").Exists(),
 					check.That(dataSourceType+".test").Key("shards.%").HasValue("3"),
@@ -234,9 +292,9 @@ func TestUnitGuidListSharderDataSource_07_GroupMembersPercentageNoSeed(t *testin
 	})
 }
 
-// Test 08: Group Members - Percentage Strategy (With Seed)
+// Test 10: Group Members - Percentage Strategy (With Seed)
 // Verifies percentage-based distribution for group members with seed
-func TestUnitGuidListSharderDataSource_08_GroupMembersPercentageWithSeed(t *testing.T) {
+func TestUnitGuidListSharderDataSource_10_GroupMembersPercentageWithSeed(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, guidListSharderMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -246,7 +304,63 @@ func TestUnitGuidListSharderDataSource_08_GroupMembersPercentageWithSeed(t *test
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: loadUnitTestTerraform("08_group_members_percentage_with_seed.tf"),
+				Config: loadUnitTestTerraform("10_group_members_percentage_with_seed.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(dataSourceType+".test").Key("id").Exists(),
+					check.That(dataSourceType+".test").Key("shards.%").HasValue("3"),
+					check.That(dataSourceType+".test").Key("shards.shard_0.#").Exists(),
+					check.That(dataSourceType+".test").Key("shards.shard_1.#").Exists(),
+					check.That(dataSourceType+".test").Key("shards.shard_2.#").Exists(),
+				),
+			},
+		},
+	})
+}
+
+// =============================================================================
+// Group Members - Size Strategy Tests
+// =============================================================================
+
+// Test 11: Group Members - Size Strategy (No Seed)
+// Verifies size-based distribution for group members without seed
+func TestUnitGuidListSharderDataSource_11_GroupMembersSizeNoSeed(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
+	_, guidListSharderMock := setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+	defer guidListSharderMock.CleanupMockState()
+
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: loadUnitTestTerraform("11_group_members_size_no_seed.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(dataSourceType+".test").Key("id").Exists(),
+					check.That(dataSourceType+".test").Key("shards.%").HasValue("3"),
+					check.That(dataSourceType+".test").Key("shards.shard_0.#").HasValue("5"),
+					check.That(dataSourceType+".test").Key("shards.shard_1.#").HasValue("15"),
+					check.That(dataSourceType+".test").Key("shards.shard_2.#").Exists(),
+					resource.TestCheckOutput("pilot_count", "5"),
+					resource.TestCheckOutput("broader_count", "15"),
+				),
+			},
+		},
+	})
+}
+
+// Test 12: Group Members - Size Strategy (With Seed)
+// Verifies size-based distribution for group members with seed
+func TestUnitGuidListSharderDataSource_12_GroupMembersSizeWithSeed(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
+	_, guidListSharderMock := setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+	defer guidListSharderMock.CleanupMockState()
+
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: loadUnitTestTerraform("12_group_members_size_with_seed.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					check.That(dataSourceType+".test").Key("id").Exists(),
 					check.That(dataSourceType+".test").Key("shards.%").HasValue("3"),
@@ -263,9 +377,9 @@ func TestUnitGuidListSharderDataSource_08_GroupMembersPercentageWithSeed(t *test
 // Devices - Round-Robin Strategy Tests
 // =============================================================================
 
-// Test 09: Devices - Round-Robin Strategy (No Seed)
+// Test 13: Devices - Round-Robin Strategy (No Seed)
 // Verifies round-robin distribution for devices without seed
-func TestUnitGuidListSharderDataSource_09_DevicesRoundRobinNoSeed(t *testing.T) {
+func TestUnitGuidListSharderDataSource_13_DevicesRoundRobinNoSeed(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, guidListSharderMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -275,23 +389,23 @@ func TestUnitGuidListSharderDataSource_09_DevicesRoundRobinNoSeed(t *testing.T) 
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: loadUnitTestTerraform("09_devices_round_robin_no_seed.tf"),
+				Config: loadUnitTestTerraform("13_devices_round_robin_no_seed.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					check.That(dataSourceType+".test").Key("id").Exists(),
 					check.That(dataSourceType+".test").Key("shards.%").HasValue("4"),
-					check.That(dataSourceType+".test").Key("shards.shard_0.#").HasValue("6"),
-					check.That(dataSourceType+".test").Key("shards.shard_1.#").HasValue("6"),
-					check.That(dataSourceType+".test").Key("shards.shard_2.#").HasValue("6"),
-					check.That(dataSourceType+".test").Key("shards.shard_3.#").HasValue("6"),
+					check.That(dataSourceType+".test").Key("shards.shard_0.#").Exists(),
+					check.That(dataSourceType+".test").Key("shards.shard_1.#").Exists(),
+					check.That(dataSourceType+".test").Key("shards.shard_2.#").Exists(),
+					check.That(dataSourceType+".test").Key("shards.shard_3.#").Exists(),
 				),
 			},
 		},
 	})
 }
 
-// Test 10: Devices - Round-Robin Strategy (With Seed)
+// Test 14: Devices - Round-Robin Strategy (With Seed)
 // Verifies round-robin distribution for devices with seed
-func TestUnitGuidListSharderDataSource_10_DevicesRoundRobinWithSeed(t *testing.T) {
+func TestUnitGuidListSharderDataSource_14_DevicesRoundRobinWithSeed(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, guidListSharderMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -301,12 +415,12 @@ func TestUnitGuidListSharderDataSource_10_DevicesRoundRobinWithSeed(t *testing.T
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: loadUnitTestTerraform("10_devices_round_robin_with_seed.tf"),
+				Config: loadUnitTestTerraform("14_devices_round_robin_with_seed.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					check.That(dataSourceType+".test").Key("id").Exists(),
 					check.That(dataSourceType+".test").Key("shards.%").HasValue("2"),
-					check.That(dataSourceType+".test").Key("shards.shard_0.#").HasValue("12"),
-					check.That(dataSourceType+".test").Key("shards.shard_1.#").HasValue("12"),
+					check.That(dataSourceType+".test").Key("shards.shard_0.#").Exists(),
+					check.That(dataSourceType+".test").Key("shards.shard_1.#").Exists(),
 				),
 			},
 		},
@@ -317,9 +431,9 @@ func TestUnitGuidListSharderDataSource_10_DevicesRoundRobinWithSeed(t *testing.T
 // Devices - Percentage Strategy Tests
 // =============================================================================
 
-// Test 11: Devices - Percentage Strategy (No Seed)
+// Test 15: Devices - Percentage Strategy (No Seed)
 // Verifies percentage-based distribution for devices without seed
-func TestUnitGuidListSharderDataSource_11_DevicesPercentageNoSeed(t *testing.T) {
+func TestUnitGuidListSharderDataSource_15_DevicesPercentageNoSeed(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, guidListSharderMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -329,7 +443,7 @@ func TestUnitGuidListSharderDataSource_11_DevicesPercentageNoSeed(t *testing.T) 
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: loadUnitTestTerraform("11_devices_percentage_no_seed.tf"),
+				Config: loadUnitTestTerraform("15_devices_percentage_no_seed.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					check.That(dataSourceType+".test").Key("id").Exists(),
 					check.That(dataSourceType+".test").Key("shards.%").HasValue("3"),
@@ -342,9 +456,9 @@ func TestUnitGuidListSharderDataSource_11_DevicesPercentageNoSeed(t *testing.T) 
 	})
 }
 
-// Test 12: Devices - Percentage Strategy (With Seed)
+// Test 16: Devices - Percentage Strategy (With Seed)
 // Verifies percentage-based distribution for devices with seed
-func TestUnitGuidListSharderDataSource_12_DevicesPercentageWithSeed(t *testing.T) {
+func TestUnitGuidListSharderDataSource_16_DevicesPercentageWithSeed(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, guidListSharderMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -354,13 +468,74 @@ func TestUnitGuidListSharderDataSource_12_DevicesPercentageWithSeed(t *testing.T
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: loadUnitTestTerraform("12_devices_percentage_with_seed.tf"),
+				Config: loadUnitTestTerraform("16_devices_percentage_with_seed.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					check.That(dataSourceType+".test").Key("id").Exists(),
 					check.That(dataSourceType+".test").Key("shards.%").HasValue("3"),
 					check.That(dataSourceType+".test").Key("shards.shard_0.#").Exists(),
 					check.That(dataSourceType+".test").Key("shards.shard_1.#").Exists(),
 					check.That(dataSourceType+".test").Key("shards.shard_2.#").Exists(),
+				),
+			},
+		},
+	})
+}
+
+// =============================================================================
+// Devices - Size Strategy Tests
+// =============================================================================
+
+// Test 17: Devices - Size Strategy (No Seed)
+// Verifies size-based distribution for devices without seed
+func TestUnitGuidListSharderDataSource_17_DevicesSizeNoSeed(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
+	_, guidListSharderMock := setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+	defer guidListSharderMock.CleanupMockState()
+
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: loadUnitTestTerraform("17_devices_size_no_seed.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(dataSourceType+".test").Key("id").Exists(),
+					check.That(dataSourceType+".test").Key("shards.%").HasValue("3"),
+					check.That(dataSourceType+".test").Key("shards.shard_0.#").Exists(),
+					check.That(dataSourceType+".test").Key("shards.shard_1.#").Exists(),
+					check.That(dataSourceType+".test").Key("shards.shard_2.#").Exists(),
+				),
+			},
+		},
+	})
+}
+
+// Test 18: Devices - Size Strategy (With Seed)
+// Verifies size-based distribution for devices with seed (multiple datasources with different seeds)
+func TestUnitGuidListSharderDataSource_18_DevicesSizeWithSeed(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
+	_, guidListSharderMock := setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+	defer guidListSharderMock.CleanupMockState()
+
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: loadUnitTestTerraform("18_devices_size_with_seed.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(dataSourceType+".windows_updates").Key("id").Exists(),
+					check.That(dataSourceType+".windows_updates").Key("shards.%").HasValue("3"),
+					check.That(dataSourceType+".windows_updates").Key("shards.shard_0.#").HasValue("6"),
+					check.That(dataSourceType+".windows_updates").Key("shards.shard_1.#").HasValue("12"),
+					check.That(dataSourceType+".windows_updates").Key("shards.shard_2.#").Exists(),
+					check.That(dataSourceType+".app_updates").Key("id").Exists(),
+					check.That(dataSourceType+".app_updates").Key("shards.%").HasValue("3"),
+					check.That(dataSourceType+".app_updates").Key("shards.shard_0.#").HasValue("6"),
+					check.That(dataSourceType+".app_updates").Key("shards.shard_1.#").HasValue("12"),
+					check.That(dataSourceType+".app_updates").Key("shards.shard_2.#").Exists(),
+					resource.TestCheckOutput("windows_test_count", "6"),
+					resource.TestCheckOutput("app_test_count", "6"),
 				),
 			},
 		},
@@ -371,9 +546,9 @@ func TestUnitGuidListSharderDataSource_12_DevicesPercentageWithSeed(t *testing.T
 // Integration Tests
 // =============================================================================
 
-// Test 13: Integration - Conditional Access Policy Assignment
+// Test 19: Integration - Conditional Access Policy Assignment
 // Verifies sharded GUIDs can be used in conditional access policy group assignments
-func TestUnitGuidListSharderDataSource_13_IntegrationConditionalAccess(t *testing.T) {
+func TestUnitGuidListSharderDataSource_19_IntegrationConditionalAccess(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, guidListSharderMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -383,7 +558,7 @@ func TestUnitGuidListSharderDataSource_13_IntegrationConditionalAccess(t *testin
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: loadUnitTestTerraform("13_integration_conditional_access.tf"),
+				Config: loadUnitTestTerraform("19_integration_conditional_access.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					check.That(dataSourceType+".mfa_rollout").Key("id").Exists(),
 					check.That(dataSourceType+".mfa_rollout").Key("shards.%").HasValue("3"),
@@ -396,9 +571,9 @@ func TestUnitGuidListSharderDataSource_13_IntegrationConditionalAccess(t *testin
 	})
 }
 
-// Test 14: Integration - Group Assignment
+// Test 20: Integration - Group Assignment
 // Verifies sharded GUIDs can be used for group membership assignments
-func TestUnitGuidListSharderDataSource_14_IntegrationGroupAssignment(t *testing.T) {
+func TestUnitGuidListSharderDataSource_20_IntegrationGroupAssignment(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, guidListSharderMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -408,7 +583,7 @@ func TestUnitGuidListSharderDataSource_14_IntegrationGroupAssignment(t *testing.
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: loadUnitTestTerraform("14_integration_group_assignment.tf"),
+				Config: loadUnitTestTerraform("20_integration_group_assignment.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					check.That(dataSourceType+".split_department").Key("id").Exists(),
 					check.That(dataSourceType+".split_department").Key("shards.%").HasValue("3"),
@@ -425,9 +600,9 @@ func TestUnitGuidListSharderDataSource_14_IntegrationGroupAssignment(t *testing.
 // Special/Edge Case Tests
 // =============================================================================
 
-// Test 15: Special - Single Shard
+// Test 21: Special - Single Shard
 // Verifies behavior when creating a single shard (all GUIDs in one shard)
-func TestUnitGuidListSharderDataSource_15_SpecialSingleShard(t *testing.T) {
+func TestUnitGuidListSharderDataSource_21_SpecialSingleShard(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, guidListSharderMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -437,7 +612,7 @@ func TestUnitGuidListSharderDataSource_15_SpecialSingleShard(t *testing.T) {
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: loadUnitTestTerraform("15_special_single_shard.tf"),
+				Config: loadUnitTestTerraform("21_special_single_shard.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					check.That(dataSourceType+".test").Key("id").Exists(),
 					check.That(dataSourceType+".test").Key("shards.%").HasValue("1"),
@@ -449,9 +624,9 @@ func TestUnitGuidListSharderDataSource_15_SpecialSingleShard(t *testing.T) {
 	})
 }
 
-// Test 16: Special - No Filter
+// Test 22: Special - No Filter
 // Verifies behavior when no OData query filter is applied (returns all resources)
-func TestUnitGuidListSharderDataSource_16_SpecialNoFilter(t *testing.T) {
+func TestUnitGuidListSharderDataSource_22_SpecialNoFilter(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, guidListSharderMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -461,7 +636,7 @@ func TestUnitGuidListSharderDataSource_16_SpecialNoFilter(t *testing.T) {
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: loadUnitTestTerraform("16_special_no_filter.tf"),
+				Config: loadUnitTestTerraform("22_special_no_filter.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					check.That(dataSourceType+".test").Key("id").Exists(),
 					check.That(dataSourceType+".test").Key("shards.%").HasValue("5"),

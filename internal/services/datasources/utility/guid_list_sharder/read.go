@@ -55,6 +55,7 @@ func (d *guidListSharderDataSource) Read(ctx context.Context, req datasource.Rea
 
 	var shardCount int
 	var percentages []int64
+	var sizes []int64
 
 	if !state.ShardPercentages.IsNull() {
 		diags = state.ShardPercentages.ElementsAs(ctx, &percentages, false)
@@ -63,6 +64,13 @@ func (d *guidListSharderDataSource) Read(ctx context.Context, req datasource.Rea
 			return
 		}
 		shardCount = len(percentages)
+	} else if !state.ShardSizes.IsNull() {
+		diags = state.ShardSizes.ElementsAs(ctx, &sizes, false)
+		resp.Diagnostics.Append(diags...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+		shardCount = len(sizes)
 	} else {
 		shardCount = int(state.ShardCount.ValueInt64())
 	}
@@ -93,6 +101,8 @@ func (d *guidListSharderDataSource) Read(ctx context.Context, req datasource.Rea
 		shards = shardByRoundRobin(guids, shardCount, seed)
 	case "percentage":
 		shards = shardByPercentage(guids, percentages, seed)
+	case "size":
+		shards = shardBySize(guids, sizes, seed)
 	}
 
 	if err := setStateToTerraform(ctx, &state, shards, resourceType, shardCount, strategy); err != nil {
