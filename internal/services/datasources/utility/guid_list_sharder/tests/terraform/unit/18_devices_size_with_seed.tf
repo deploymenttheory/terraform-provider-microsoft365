@@ -1,3 +1,4 @@
+# ==============================================================================
 # Test 18: Devices - Size Strategy (With Seed)
 #
 # Purpose: Verify deterministic size-based distribution for devices with different seeds
@@ -8,6 +9,7 @@
 # - Exact device counts per ring
 # - Fisher-Yates shuffle with seed
 # - Different seeds distribute update burden across devices
+# ==============================================================================
 
 data "microsoft365_utility_guid_list_sharder" "windows_updates" {
   resource_type = "devices"

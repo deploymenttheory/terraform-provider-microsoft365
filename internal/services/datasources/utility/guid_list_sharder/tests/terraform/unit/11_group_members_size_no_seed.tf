@@ -1,3 +1,4 @@
+# ==============================================================================
 # Test 11: Group Members - Size Strategy (No Seed)
 #
 # Purpose: Verify absolute size-based distribution for group members
@@ -8,6 +9,7 @@
 # - Exact shard sizes from group membership
 # - Uses API order
 # - Last shard gets all remaining members
+# ==============================================================================
 
 data "microsoft365_utility_guid_list_sharder" "test" {
   resource_type = "group_members"

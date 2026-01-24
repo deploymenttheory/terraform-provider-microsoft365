@@ -1,4 +1,5 @@
-# Test 03: Users - Round-Robin Strategy (No Seed)
+# ==============================================================================
+# Test 01: Users - Round-Robin Strategy (No Seed)
 #
 # Purpose: Verify round-robin distribution produces exactly equal shard sizes
 # using API order (non-deterministic between runs)
@@ -9,6 +10,7 @@
 # - Exactly equal shard sizes (within ±1)
 # - Uses API order (may change between Terraform runs)
 # - Fast processing (no shuffle overhead)
+# ==============================================================================
 
 data "microsoft365_utility_guid_list_sharder" "test" {
   resource_type = "users"

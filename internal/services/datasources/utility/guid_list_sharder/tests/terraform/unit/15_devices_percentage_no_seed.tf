@@ -1,4 +1,5 @@
-# Test 17: Devices - Percentage Strategy (No Seed)
+# ==============================================================================
+# Test 15: Devices - Percentage Strategy (No Seed)
 #
 # Purpose: Verify percentage-based distribution produces industry-standard
 # Windows Update rings using API order
@@ -9,6 +10,7 @@
 # - Ring sizes match specified percentages
 # - Uses API order (may change between runs)
 # - Last ring gets all remaining devices
+# ==============================================================================
 
 data "microsoft365_utility_guid_list_sharder" "test" {
   resource_type     = "devices"

@@ -1,3 +1,4 @@
+# ==============================================================================
 # Test 19: Integration - Conditional Access Policy Usage
 #
 # Purpose: Demonstrate how shards integrate directly with Conditional Access
@@ -7,6 +8,7 @@
 #
 # Note: This is a demonstration. Actual resource creation would happen in
 # acceptance tests, not unit tests
+# ==============================================================================
 
 data "microsoft365_utility_guid_list_sharder" "mfa_rollout" {
   resource_type     = "users"

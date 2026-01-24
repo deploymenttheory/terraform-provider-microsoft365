@@ -1,4 +1,5 @@
-# Test 10: Group Members - Round-Robin Strategy (With Seed)
+# ==============================================================================
+# Test 08: Group Members - Round-Robin Strategy (With Seed)
 #
 # Purpose: Verify round-robin splitting with seed produces exactly equal
 # subgroup sizes AND reproducible results
@@ -9,6 +10,7 @@
 # - Exactly equal subgroup sizes (within ±1)
 # - Deterministic shuffle before round-robin
 # - Same seed = same member assignments every time
+# ==============================================================================
 
 data "microsoft365_utility_guid_list_sharder" "test" {
   resource_type = "group_members"

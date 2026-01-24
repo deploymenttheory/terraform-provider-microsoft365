@@ -1,4 +1,5 @@
-# Test 15: Devices - Round-Robin Strategy (No Seed)
+# ==============================================================================
+# Test 13: Devices - Round-Robin Strategy (No Seed)
 #
 # Purpose: Verify round-robin distribution produces exactly equal ring sizes
 # using API order
@@ -9,6 +10,7 @@
 # - Exactly equal ring sizes (within ±1)
 # - Uses API order (may change between runs)
 # - Fast processing
+# ==============================================================================
 
 data "microsoft365_utility_guid_list_sharder" "test" {
   resource_type = "devices"

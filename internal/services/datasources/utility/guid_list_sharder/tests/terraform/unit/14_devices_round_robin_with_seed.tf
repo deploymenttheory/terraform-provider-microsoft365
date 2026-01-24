@@ -1,4 +1,5 @@
-# Test 16: Devices - Round-Robin Strategy (With Seed)
+# ==============================================================================
+# Test 14: Devices - Round-Robin Strategy (With Seed)
 #
 # Purpose: Verify round-robin distribution with seed produces exactly equal
 # ring sizes AND reproducible results
@@ -10,6 +11,7 @@
 # - Exactly equal ring sizes (within ±1)
 # - Deterministic shuffle before round-robin
 # - Same seed = same device assignments every time
+# ==============================================================================
 
 data "microsoft365_utility_guid_list_sharder" "test" {
   resource_type = "devices"

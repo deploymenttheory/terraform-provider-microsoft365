@@ -40,12 +40,30 @@ func TestAccGuidListSharderDataSource_01_UsersRoundRobinNoSeed(t *testing.T) {
 			{
 				Config: loadAcceptanceTestTerraform("01_users_round_robin_no_seed.tf"),
 				Check: resource.ComposeTestCheckFunc(
-					check.That("data."+utilityGuidListSharder.DataSourceName+".test").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`)),
+					// Verify datasource ID exists (deterministic hash)
+					check.That("data."+utilityGuidListSharder.DataSourceName+".test").Key("id").Exists(),
+
+					// Verify exactly 3 shards exist
 					check.That("data."+utilityGuidListSharder.DataSourceName+".test").Key("shards.%").HasValue("3"),
 					check.That("data."+utilityGuidListSharder.DataSourceName+".test").Key("shards.shard_0.#").Exists(),
 					check.That("data."+utilityGuidListSharder.DataSourceName+".test").Key("shards.shard_1.#").Exists(),
 					check.That("data."+utilityGuidListSharder.DataSourceName+".test").Key("shards.shard_2.#").Exists(),
-					resource.TestCheckOutput("total_users", "100"),
+
+					// Verify total distributed = 9 test users
+					resource.TestCheckOutput("total_users_distributed", "9"),
+					
+					// Verify each shard has at least 1 member
+					resource.TestMatchOutput("shard_0_count", regexp.MustCompile(`^[1-9]\d*$`)),
+					resource.TestMatchOutput("shard_1_count", regexp.MustCompile(`^[1-9]\d*$`)),
+					resource.TestMatchOutput("shard_2_count", regexp.MustCompile(`^[1-9]\d*$`)),
+
+					// Verify first GUID in each shard is valid GUID format
+					resource.TestMatchOutput("shard_0_first_guid", regexp.MustCompile(`^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`)),
+					resource.TestMatchOutput("shard_1_first_guid", regexp.MustCompile(`^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`)),
+					resource.TestMatchOutput("shard_2_first_guid", regexp.MustCompile(`^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`)),
+
+					// Verify ALL GUIDs in ALL shards are valid GUID format (comprehensive validation)
+					resource.TestCheckOutput("all_guids_valid", "true"),
 				),
 			},
 		},

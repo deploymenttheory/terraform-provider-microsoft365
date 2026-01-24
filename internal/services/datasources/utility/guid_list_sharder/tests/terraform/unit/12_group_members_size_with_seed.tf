@@ -1,3 +1,4 @@
+# ==============================================================================
 # Test 12: Group Members - Size Strategy (With Seed)
 #
 # Purpose: Verify deterministic size-based distribution for group members
@@ -8,6 +9,7 @@
 # - Exact shard sizes with Fisher-Yates shuffle
 # - Reproducible distribution
 # - Different seeds produce different member selections
+# ==============================================================================  
 
 data "microsoft365_utility_guid_list_sharder" "test" {
   resource_type = "group_members"

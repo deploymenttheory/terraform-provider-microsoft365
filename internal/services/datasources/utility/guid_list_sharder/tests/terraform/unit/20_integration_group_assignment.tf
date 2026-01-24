@@ -1,3 +1,4 @@
+# ==============================================================================
 # Test 20: Integration - Group Member Assignment
 #
 # Purpose: Demonstrate how shards integrate directly with group resources
@@ -7,6 +8,7 @@
 #
 # Note: This is a demonstration. Actual resource creation would happen in
 # acceptance tests, not unit tests
+# ==============================================================================
 
 data "microsoft365_utility_guid_list_sharder" "split_department" {
   resource_type = "group_members"

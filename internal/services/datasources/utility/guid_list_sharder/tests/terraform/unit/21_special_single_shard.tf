@@ -1,5 +1,6 @@
+# ==============================================================================
 # Test 21: Special Case - Single Shard (All Users in One Set)
-#
+# 
 # Purpose: Verify edge case where shard_count = 1 produces a single set
 # containing all users
 #
@@ -9,6 +10,7 @@
 # Expected Behavior:
 # - All GUIDs in shard_0
 # - Useful for filtering + converting to set format
+# ==============================================================================
 
 data "microsoft365_utility_guid_list_sharder" "test" {
   resource_type = "users"

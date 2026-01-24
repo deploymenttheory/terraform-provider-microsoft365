@@ -1,4 +1,5 @@
-# Test 12: Group Members - Percentage Strategy (With Seed)
+# ==============================================================================
+# Test 10: Group Members - Percentage Strategy (With Seed)
 #
 # Purpose: Verify percentage-based splitting with seed produces custom-sized
 # subgroups AND reproducible results
@@ -10,6 +11,7 @@
 # - Subgroup sizes match specified percentages
 # - Deterministic shuffle before percentage split
 # - Same seed = same tier membership every time
+# ==============================================================================
 
 data "microsoft365_utility_guid_list_sharder" "test" {
   resource_type     = "group_members"

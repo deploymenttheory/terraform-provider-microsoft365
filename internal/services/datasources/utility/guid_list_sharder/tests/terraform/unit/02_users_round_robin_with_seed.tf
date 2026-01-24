@@ -1,4 +1,5 @@
-# Test 04: Users - Round-Robin Strategy (With Seed)
+# ==============================================================================
+# Test 02: Users - Round-Robin Strategy (With Seed)
 #
 # Purpose: Verify round-robin distribution with seed produces exactly equal
 # shard sizes AND reproducible results
@@ -10,6 +11,8 @@
 # - Exactly equal shard sizes (within ±1)
 # - Deterministic shuffle before round-robin
 # - Same seed = same distribution every time
+# ==============================================================================
+
 
 data "microsoft365_utility_guid_list_sharder" "test" {
   resource_type = "users"

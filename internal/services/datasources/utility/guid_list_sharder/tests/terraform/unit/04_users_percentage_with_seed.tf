@@ -1,4 +1,5 @@
-# Test 06: Users - Percentage Strategy (With Seed)
+# ==============================================================================
+# Test 04: Users - Percentage Strategy (With Seed)
 #
 # Purpose: Verify percentage-based distribution with seed produces custom-sized
 # shards AND reproducible results
@@ -10,6 +11,7 @@
 # - Shard sizes match specified percentages
 # - Deterministic shuffle before percentage split
 # - Same seed = same phase membership every time
+# ==============================================================================
 
 data "microsoft365_utility_guid_list_sharder" "test" {
   resource_type     = "users"

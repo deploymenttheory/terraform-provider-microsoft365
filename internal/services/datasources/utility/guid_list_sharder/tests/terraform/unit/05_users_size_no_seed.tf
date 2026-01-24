@@ -1,3 +1,4 @@
+# ==============================================================================
 # Test 05: Users - Size Strategy (No Seed)
 #
 # Purpose: Verify absolute size-based distribution using API order
@@ -8,6 +9,7 @@
 # - Exact shard sizes (50, 200, remainder)
 # - Uses API order (may change between Terraform runs)
 # - Last shard gets all remaining GUIDs
+# ==============================================================================
 
 data "microsoft365_utility_guid_list_sharder" "test" {
   resource_type = "users"

@@ -1,3 +1,4 @@
+# ==============================================================================
 # Test 06: Users - Size Strategy (With Seed)
 #
 # Purpose: Verify deterministic size-based distribution with reproducibility
@@ -8,6 +9,7 @@
 # - Exact shard sizes (25, 50, remainder)
 # - Fisher-Yates shuffle with seed, then size-based split
 # - Reproducible across Terraform runs
+# ==============================================================================
 
 data "microsoft365_utility_guid_list_sharder" "test" {
   resource_type = "users"

@@ -1,3 +1,4 @@
+# ==============================================================================
 # Test 17: Devices - Size Strategy (No Seed)
 #
 # Purpose: Verify absolute size-based distribution for devices
@@ -8,6 +9,7 @@
 # - Exact device counts per ring
 # - Uses API order
 # - Last ring gets all remaining devices
+# ==============================================================================
 
 data "microsoft365_utility_guid_list_sharder" "test" {
   resource_type = "devices"

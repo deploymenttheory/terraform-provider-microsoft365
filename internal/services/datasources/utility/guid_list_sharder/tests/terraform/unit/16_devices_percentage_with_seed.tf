@@ -1,4 +1,5 @@
-# Test 18: Devices - Percentage Strategy (With Seed)
+# ==============================================================================
+# Test 16: Devices - Percentage Strategy (With Seed)
 #
 # Purpose: Verify percentage-based distribution with seed produces
 # industry-standard Windows Update rings with reproducible membership
@@ -10,6 +11,7 @@
 # - Ring sizes match specified percentages
 # - Deterministic shuffle before percentage split
 # - Same seed = same ring membership every time
+# ==============================================================================
 
 data "microsoft365_utility_guid_list_sharder" "test" {
   resource_type     = "devices"

@@ -1,4 +1,5 @@
-# Test 05: Users - Percentage Strategy (No Seed)
+# ==============================================================================
+# Test 03: Users - Percentage Strategy (No Seed)
 #
 # Purpose: Verify percentage-based distribution produces custom-sized shards
 # using API order (non-deterministic between runs)
@@ -10,6 +11,7 @@
 # - Shard sizes match specified percentages
 # - Uses API order (may change between Terraform runs)
 # - Last shard gets all remaining users
+# ==============================================================================
 
 data "microsoft365_utility_guid_list_sharder" "test" {
   resource_type     = "users"

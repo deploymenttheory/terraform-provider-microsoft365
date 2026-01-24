@@ -1,3 +1,4 @@
+# ==============================================================================
 # Test 22: Special Case - No OData Filter (All Resources)
 #
 # Purpose: Verify behavior when no odata_query is provided (gets ALL resources)
@@ -8,6 +9,7 @@
 # - Retrieves all resources of specified type
 # - Distributes entire population according to strategy
 # - Warning: May be slow for large tenants
+# ==============================================================================
 
 data "microsoft365_utility_guid_list_sharder" "test" {
   resource_type = "users"

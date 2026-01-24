@@ -1,4 +1,5 @@
-# Test 09: Group Members - Round-Robin Strategy (No Seed)
+# ==============================================================================
+# Test 07: Group Members - Round-Robin Strategy (No Seed)
 #
 # Purpose: Verify round-robin splitting of group members produces exactly
 # equal subgroup sizes using API order
@@ -9,6 +10,7 @@
 # - Exactly equal subgroup sizes (within ±1)
 # - Uses API order (may change between runs)
 # - Fast processing
+# ==============================================================================
 
 data "microsoft365_utility_guid_list_sharder" "test" {
   resource_type = "group_members"

@@ -1,4 +1,5 @@
-# Test 11: Group Members - Percentage Strategy (No Seed)
+# ==============================================================================
+# Test 09: Group Members - Percentage Strategy (No Seed)
 #
 # Purpose: Verify percentage-based splitting of group members produces
 # custom-sized subgroups using API order
@@ -9,6 +10,7 @@
 # - Subgroup sizes match specified percentages
 # - Uses API order (may change between runs)
 # - Last subgroup gets all remaining members
+# ==============================================================================
 
 data "microsoft365_utility_guid_list_sharder" "test" {
   resource_type     = "group_members"

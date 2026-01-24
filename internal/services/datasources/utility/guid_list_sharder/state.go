@@ -2,9 +2,10 @@ package utilityGuidListSharder
 
 import (
 	"context"
+	"crypto/sha256"
+	"encoding/hex"
 	"fmt"
 
-	"github.com/google/uuid"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
@@ -25,7 +26,18 @@ func setStateToTerraform(ctx context.Context, state *GuidListSharderDataSourceMo
 		return fmt.Errorf("failed to convert shards map to state: %v", diags.Errors())
 	}
 
-	state.Id = types.StringValue(uuid.New().String())
+	// Generate deterministic ID based on configuration
+	// This ensures the datasource ID remains stable across refreshes
+	idString := fmt.Sprintf("%s-%s-%d-%s-%s-%s",
+		state.ResourceType.ValueString(),
+		state.ODataQuery.ValueString(),
+		shardCount,
+		strategy,
+		state.Seed.ValueString(),
+		state.GroupId.ValueString(),
+	)
+	hash := sha256.Sum256([]byte(idString))
+	state.Id = types.StringValue(hex.EncodeToString(hash[:]))
 	state.Shards = shardsMapValue
 
 	return nil
