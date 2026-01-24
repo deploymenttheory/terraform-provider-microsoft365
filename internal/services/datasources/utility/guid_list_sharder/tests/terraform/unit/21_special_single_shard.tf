@@ -12,7 +12,7 @@
 
 data "microsoft365_utility_guid_list_sharder" "test" {
   resource_type = "users"
-  odata_query   = "$filter=accountEnabled eq true and userType eq 'Member'"
+  odata_query   = "accountEnabled eq true and userType eq 'Member'"
   shard_count   = 1
   strategy      = "round-robin"
   # No split - all users in one shard

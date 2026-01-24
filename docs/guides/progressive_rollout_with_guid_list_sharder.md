@@ -521,7 +521,7 @@ Roll out MFA requirements in three phases: pilot, broader pilot, and full deploy
 # Shard users into three groups with unique seed
 data "microsoft365_utility_guid_list_sharder" "mfa_rollout" {
   resource_type     = "users"
-  odata_query       = "$filter=accountEnabled eq true and userType eq 'Member'"
+  odata_query       = "accountEnabled eq true and userType eq 'Member'"
   shard_percentages = [10, 30, 60]
   strategy          = "percentage"
   # Note: seed is optional for percentage - add for reproducible results
@@ -771,7 +771,7 @@ Exclude disabled accounts and filter by relevant attributes to ensure clean popu
 
 ```hcl
 # Good practice
-odata_query = "$filter=accountEnabled eq true and userType eq 'Member'"
+odata_query = "accountEnabled eq true and userType eq 'Member'"
 
 # For devices
 odata_query = "$filter=operatingSystem eq 'Windows' and accountEnabled eq true"
