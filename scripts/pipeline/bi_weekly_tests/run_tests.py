@@ -9,8 +9,8 @@ Usage:
     ./run_tests.py <type> [service] [coverage-file] [test-output-file] [options]
 
 Positional Arguments:
-    type              Test type: provider-core, resources, datasources, or actions
-    service           Service name (required for resources/datasources/actions)
+    type              Test type: provider-core, resources, datasources, actions, list-resources, or ephemerals
+    service           Service name (required for resources/datasources/actions/list-resources/ephemerals)
     coverage-file     Coverage output file (default: coverage.txt)
     test-output-file  Test log output file (default: test-output.log)
 
@@ -175,7 +175,7 @@ def parse_test_results(output_file: str, configuration_block_type: str, service:
 
     Args:
         output_file: Path to the test output log file.
-        configuration_block_type: Test configuration_block_type (e.g., 'provider-core', 'resources', 'datasources').
+        configuration_block_type: Test configuration_block_type (e.g., 'provider-core', 'resources', 'datasources', 'actions', 'list-resources', 'ephemerals').
         service: Service name (e.g., 'identity_and_access'), empty string for provider-core.
     """
     failures_file = "test-failures.json"
@@ -453,7 +453,7 @@ def run_service_tests(configuration_block_type: str, service: str,
     and collects coverage data.
 
     Args:
-        configuration_block_type: Test configuration_block_type ('resources' or 'datasources').
+        configuration_block_type: Test configuration_block_type ('resources', 'datasources', 'actions', 'list-resources', or 'ephemerals').
         service: Service name (e.g., 'identity_and_access', 'device_management').
         coverage_file: Path where merged coverage data will be written.
         test_output_file: Path where test output logs will be written.
@@ -769,7 +769,7 @@ Examples:
             args.skip_enumeration,
             args.force_gc
         )
-    elif args.type in ["resources", "datasources", "actions"]:
+    elif args.type in ["resources", "datasources", "actions", "list-resources", "ephemerals"]:
         if not args.service:
             print(f"Error: service name required for {args.type} tests", 
                   file=sys.stderr)
@@ -789,7 +789,7 @@ Examples:
         )
     else:
         print(f"Error: unknown test type: {args.type}", file=sys.stderr)
-        print("Valid types: provider-core, resources, datasources, actions", file=sys.stderr)
+        print("Valid types: provider-core, resources, datasources, actions, list-resources, ephemerals", file=sys.stderr)
         sys.exit(1)
     
     print("Tests completed")

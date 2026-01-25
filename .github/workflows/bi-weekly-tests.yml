@@ -127,9 +127,134 @@ jobs:
 
           echo "Generated $TEST_COUNT test job(s)"
 
+  # Generate dynamic matrix for datasources
+  generate-datasources-matrix:
+    name: 'Generate Datasources Matrix'
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 5
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+      has_tests: ${{ steps.set-matrix.outputs.has_tests }}
+    steps:
+      - name: Check Out
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+
+      - name: Generate matrix
+        id: set-matrix
+        run: |
+          MATRIX=$(./scripts/pipeline/bi_weekly_tests/generate_test_matrix.py datasources \
+            agents \
+            applications \
+            device_and_app_management \
+            device_management \
+            groups \
+            identity_and_access \
+            m365_admin \
+            multitenant_management \
+            utility \
+            windows_365)
+
+          echo "matrix=$MATRIX" >> $GITHUB_OUTPUT
+
+          TEST_COUNT=$(echo "$MATRIX" | jq '.include | length')
+          if [ "$TEST_COUNT" -gt 0 ]; then
+            echo "has_tests=true" >> $GITHUB_OUTPUT
+          else
+            echo "has_tests=false" >> $GITHUB_OUTPUT
+          fi
+
+          echo "Generated $TEST_COUNT test job(s)"
+
+  # Generate dynamic matrix for actions
+  generate-actions-matrix:
+    name: 'Generate Actions Matrix'
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 5
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+      has_tests: ${{ steps.set-matrix.outputs.has_tests }}
+    steps:
+      - name: Check Out
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+
+      - name: Generate matrix
+        id: set-matrix
+        run: |
+          MATRIX=$(./scripts/pipeline/bi_weekly_tests/generate_test_matrix.py actions \
+            device_management)
+
+          echo "matrix=$MATRIX" >> $GITHUB_OUTPUT
+
+          TEST_COUNT=$(echo "$MATRIX" | jq '.include | length')
+          if [ "$TEST_COUNT" -gt 0 ]; then
+            echo "has_tests=true" >> $GITHUB_OUTPUT
+          else
+            echo "has_tests=false" >> $GITHUB_OUTPUT
+          fi
+
+          echo "Generated $TEST_COUNT test job(s)"
+
+  # Generate dynamic matrix for list-resources
+  generate-list-resources-matrix:
+    name: 'Generate List-Resources Matrix'
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 5
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+      has_tests: ${{ steps.set-matrix.outputs.has_tests }}
+    steps:
+      - name: Check Out
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+
+      - name: Generate matrix
+        id: set-matrix
+        run: |
+          MATRIX=$(./scripts/pipeline/bi_weekly_tests/generate_test_matrix.py list-resources \
+            device_management)
+
+          echo "matrix=$MATRIX" >> $GITHUB_OUTPUT
+
+          TEST_COUNT=$(echo "$MATRIX" | jq '.include | length')
+          if [ "$TEST_COUNT" -gt 0 ]; then
+            echo "has_tests=true" >> $GITHUB_OUTPUT
+          else
+            echo "has_tests=false" >> $GITHUB_OUTPUT
+          fi
+
+          echo "Generated $TEST_COUNT test job(s)"
+
+  # Generate dynamic matrix for ephemerals
+  generate-ephemerals-matrix:
+    name: 'Generate Ephemerals Matrix'
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 5
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+      has_tests: ${{ steps.set-matrix.outputs.has_tests }}
+    steps:
+      - name: Check Out
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+
+      - name: Generate matrix
+        id: set-matrix
+        run: |
+          MATRIX=$(./scripts/pipeline/bi_weekly_tests/generate_test_matrix.py ephemerals \
+            multitenant_management)
+
+          echo "matrix=$MATRIX" >> $GITHUB_OUTPUT
+
+          TEST_COUNT=$(echo "$MATRIX" | jq '.include | length')
+          if [ "$TEST_COUNT" -gt 0 ]; then
+            echo "has_tests=true" >> $GITHUB_OUTPUT
+          else
+            echo "has_tests=false" >> $GITHUB_OUTPUT
+          fi
+
+          echo "Generated $TEST_COUNT test job(s)"
+
   # Resources Tests - Dynamic matrix with automatic sharding
   test-resources:
-    name: '📦 ${{ matrix.service }}${{ matrix.shard_label }}'
+    name: '📦 Resources: ${{ matrix.service }}${{ matrix.shard_label }}'
     needs: generate-resources-matrix
     if: needs.generate-resources-matrix.outputs.has_tests == 'true'
     runs-on: ${{ matrix.runner }}
@@ -240,9 +365,11 @@ jobs:
           name: resources-${{ matrix.service }}${{ matrix.total_shards > 1 && format('-shard-{0}', matrix.shard_index) || '' }}
           fail_ci_if_error: false
 
-  # Datasources Tests - Matrix for each service area with service-specific credentials
+  # Datasources Tests - Dynamic matrix with automatic sharding
   test-datasources:
-    name: '📊 Datasources: ${{ matrix.service }}'
+    name: '📊 Datasources: ${{ matrix.service }}${{ matrix.shard_label }}'
+    needs: generate-datasources-matrix
+    if: needs.generate-datasources-matrix.outputs.has_tests == 'true'
     runs-on: ${{ matrix.runner }}
     timeout-minutes: 120
     env:
@@ -250,28 +377,7 @@ jobs:
       ACTIONS_RUNNER_DEBUG: ${{ github.event.inputs.enable_debug == 'true' && 'true' || '' }}
     strategy:
       fail-fast: false
-      matrix:
-        include: # testing both ubuntu-24.04-arm and ubuntu-24.04-arm
-          - service: agents
-            runner: ubuntu-24.04-arm
-          - service: applications
-            runner: ubuntu-24.04-arm
-          - service: device_and_app_management
-            runner: ubuntu-24.04-arm
-          - service: device_management
-            runner: ubuntu-24.04-arm
-          - service: groups
-            runner: ubuntu-24.04-arm
-          - service: identity_and_access
-            runner: ubuntu-24.04-arm
-          - service: m365_admin
-            runner: ubuntu-24.04-arm
-          - service: multitenant_management
-            runner: ubuntu-24.04-arm
-          - service: utility
-            runner: ubuntu-24.04-arm
-          - service: windows_365
-            runner: ubuntu-24.04-arm
+      matrix: ${{ fromJSON(needs.generate-datasources-matrix.outputs.matrix) }}
     steps:
       - name: Harden Runner
         uses: step-security/harden-runner@20cf305ff2072d973412fa9b1e3a4f227bda3c76 # v2.14.0
@@ -333,18 +439,31 @@ jobs:
           M365_TENANT_ID: ${{ secrets.M365_TENANT_ID }}
           M365_AUTH_METHOD: client_secret
           M365_CLOUD: public
-        run: ./scripts/pipeline/bi_weekly_tests/run_tests.py datasources ${{ matrix.service }} coverage-datasources-${{ matrix.service }}.txt test-output-datasources-${{ matrix.service }}.log --max-procs 1 --test-parallel 1 --pkg-parallel 1 --skip-enumeration --no-race
+        run: |
+          # Determine output file suffix based on sharding
+          if [ "${{ matrix.total_shards }}" -eq 1 ]; then
+            SUFFIX=""
+          else
+            SUFFIX="-shard-${{ matrix.shard_index }}"
+          fi
+
+          # Run tests with resource filter for this shard
+          ./scripts/pipeline/bi_weekly_tests/run_tests.py datasources ${{ matrix.service }} \
+            coverage-datasources-${{ matrix.service }}${SUFFIX}.txt \
+            test-output-datasources-${{ matrix.service }}${SUFFIX}.log \
+            --max-procs 1 --test-parallel 1 --pkg-parallel 1 --skip-enumeration --no-race \
+            --resource-filter "${{ matrix.resources }}"
         continue-on-error: true
 
       - name: Upload test results
         if: always()
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
         with:
-          name: test-results-datasources-${{ matrix.service }}
+          name: test-results-datasources-${{ matrix.service }}${{ matrix.total_shards > 1 && format('-shard-{0}', matrix.shard_index) || '' }}
           path: |
             test-failures.json
             test-successes.json
-            test-output-datasources-${{ matrix.service }}.log
+            test-output-datasources-${{ matrix.service }}*.log
           if-no-files-found: ignore
           retention-days: 7
 
@@ -353,14 +472,16 @@ jobs:
         uses: codecov/codecov-action@671740ac38dd9b0130fbe1cec585b89eea48d3de # v5.5.2
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-          files: ./coverage-datasources-${{ matrix.service }}.txt
+          files: ./coverage-datasources-${{ matrix.service }}*.txt
           flags: acceptancetests,${{ matrix.service }}
-          name: datasources-${{ matrix.service }}
+          name: datasources-${{ matrix.service }}${{ matrix.total_shards > 1 && format('-shard-{0}', matrix.shard_index) || '' }}
           fail_ci_if_error: false
 
-  # Actions Tests
+  # Actions Tests - Dynamic matrix with automatic sharding
   test-actions:
-    name: '⚡ Actions: ${{ matrix.service }}'
+    name: '⚡ Actions: ${{ matrix.service }}${{ matrix.shard_label }}'
+    needs: generate-actions-matrix
+    if: needs.generate-actions-matrix.outputs.has_tests == 'true'
     runs-on: ${{ matrix.runner }}
     timeout-minutes: 120
     env:
@@ -368,10 +489,7 @@ jobs:
       ACTIONS_RUNNER_DEBUG: ${{ github.event.inputs.enable_debug == 'true' && 'true' || '' }}
     strategy:
       fail-fast: false
-      matrix:
-        include:
-          - service: device_management
-            runner: ubuntu-24.04-arm
+      matrix: ${{ fromJSON(needs.generate-actions-matrix.outputs.matrix) }}
     steps:
       - name: Harden Runner
         uses: step-security/harden-runner@20cf305ff2072d973412fa9b1e3a4f227bda3c76 # v2.14.0
@@ -404,8 +522,26 @@ jobs:
 
       - name: Set service credentials
         env:
+          M365_CLIENT_ID_AGENTS: ${{ secrets.M365_CLIENT_ID_AGENTS }}
+          M365_CLIENT_SECRET_AGENTS: ${{ secrets.M365_CLIENT_SECRET_AGENTS }}
+          M365_CLIENT_ID_APPLICATIONS: ${{ secrets.M365_CLIENT_ID_APPLICATIONS }}
+          M365_CLIENT_SECRET_APPLICATIONS: ${{ secrets.M365_CLIENT_SECRET_APPLICATIONS }}
+          M365_CLIENT_ID_DEVICE_AND_APP_MGMT: ${{ secrets.M365_CLIENT_ID_DEVICE_AND_APP_MGMT }}
+          M365_CLIENT_SECRET_DEVICE_AND_APP_MGMT: ${{ secrets.M365_CLIENT_SECRET_DEVICE_AND_APP_MGMT }}
           M365_CLIENT_ID_DEVICE_MGMT: ${{ secrets.M365_CLIENT_ID_DEVICE_MGMT }}
           M365_CLIENT_SECRET_DEVICE_MGMT: ${{ secrets.M365_CLIENT_SECRET_DEVICE_MGMT }}
+          M365_CLIENT_ID_GROUPS: ${{ secrets.M365_CLIENT_ID_GROUPS }}
+          M365_CLIENT_SECRET_GROUPS: ${{ secrets.M365_CLIENT_SECRET_GROUPS }}
+          M365_CLIENT_ID_IDENTITY_ACCESS: ${{ secrets.M365_CLIENT_ID_IDENTITY_ACCESS }}
+          M365_CLIENT_SECRET_IDENTITY_ACCESS: ${{ secrets.M365_CLIENT_SECRET_IDENTITY_ACCESS }}
+          M365_CLIENT_ID_M365_ADMIN: ${{ secrets.M365_CLIENT_ID_M365_ADMIN }}
+          M365_CLIENT_SECRET_M365_ADMIN: ${{ secrets.M365_CLIENT_SECRET_M365_ADMIN }}
+          M365_CLIENT_ID_MULTITENANT_MGMT: ${{ secrets.M365_CLIENT_ID_MULTITENANT_MGMT }}
+          M365_CLIENT_SECRET_MULTITENANT_MGMT: ${{ secrets.M365_CLIENT_SECRET_MULTITENANT_MGMT }}
+          M365_CLIENT_ID_UTILITY: ${{ secrets.M365_CLIENT_ID_UTILITY }}
+          M365_CLIENT_SECRET_UTILITY: ${{ secrets.M365_CLIENT_SECRET_UTILITY }}
+          M365_CLIENT_ID_WINDOWS_365: ${{ secrets.M365_CLIENT_ID_WINDOWS_365 }}
+          M365_CLIENT_SECRET_WINDOWS_365: ${{ secrets.M365_CLIENT_SECRET_WINDOWS_365 }}
         run: ./scripts/pipeline/bi_weekly_tests/map_credentials.py ${{ matrix.service }}
 
       - name: Run actions tests
@@ -415,18 +551,31 @@ jobs:
           M365_TENANT_ID: ${{ secrets.M365_TENANT_ID }}
           M365_AUTH_METHOD: client_secret
           M365_CLOUD: public
-        run: ./scripts/pipeline/bi_weekly_tests/run_tests.py actions ${{ matrix.service }} coverage-actions-${{ matrix.service }}.txt test-output-actions-${{ matrix.service }}.log --max-procs 1 --test-parallel 1 --pkg-parallel 1 --skip-enumeration --no-race
+        run: |
+          # Determine output file suffix based on sharding
+          if [ "${{ matrix.total_shards }}" -eq 1 ]; then
+            SUFFIX=""
+          else
+            SUFFIX="-shard-${{ matrix.shard_index }}"
+          fi
+
+          # Run tests with resource filter for this shard
+          ./scripts/pipeline/bi_weekly_tests/run_tests.py actions ${{ matrix.service }} \
+            coverage-actions-${{ matrix.service }}${SUFFIX}.txt \
+            test-output-actions-${{ matrix.service }}${SUFFIX}.log \
+            --max-procs 1 --test-parallel 1 --pkg-parallel 1 --skip-enumeration --no-race \
+            --resource-filter "${{ matrix.resources }}"
         continue-on-error: true
 
       - name: Upload test results
         if: always()
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
         with:
-          name: test-results-actions-${{ matrix.service }}
+          name: test-results-actions-${{ matrix.service }}${{ matrix.total_shards > 1 && format('-shard-{0}', matrix.shard_index) || '' }}
           path: |
             test-failures.json
             test-successes.json
-            test-output-actions-${{ matrix.service }}.log
+            test-output-actions-${{ matrix.service }}*.log
           if-no-files-found: ignore
           retention-days: 7
 
@@ -435,15 +584,239 @@ jobs:
         uses: codecov/codecov-action@671740ac38dd9b0130fbe1cec585b89eea48d3de # v5.5.2
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-          files: ./coverage-actions-${{ matrix.service }}.txt
+          files: ./coverage-actions-${{ matrix.service }}*.txt
           flags: acceptancetests,${{ matrix.service }}
-          name: actions-${{ matrix.service }}
+          name: actions-${{ matrix.service }}${{ matrix.total_shards > 1 && format('-shard-{0}', matrix.shard_index) || '' }}
+          fail_ci_if_error: false
+
+  # List-Resources Tests - Dynamic matrix with automatic sharding
+  test-list-resources:
+    name: '📋 List-Resources: ${{ matrix.service }}${{ matrix.shard_label }}'
+    needs: generate-list-resources-matrix
+    if: needs.generate-list-resources-matrix.outputs.has_tests == 'true'
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 120
+    env:
+      ACTIONS_STEP_DEBUG: ${{ github.event.inputs.enable_debug == 'true' && 'true' || '' }}
+      ACTIONS_RUNNER_DEBUG: ${{ github.event.inputs.enable_debug == 'true' && 'true' || '' }}
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.generate-list-resources-matrix.outputs.matrix) }}
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@20cf305ff2072d973412fa9b1e3a4f227bda3c76 # v2.14.0
+        with:
+          egress-policy: audit
+
+      - name: Free up Ubuntu runner disk space
+        uses: jlumbroso/free-disk-space@54081f138730dfa15788a46383842cd2f914a1be # v1.3.1
+        with:
+          tool-cache: true
+          android: true
+          dotnet: true
+          haskell: true
+          large-packages: true
+          docker-images: false
+          swap-storage: true
+
+      - name: Check Out
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+
+      - name: Set up Go
+        uses: actions/setup-go@7a3fe6cf4cb3a834922a1244abfce67bcef6a0c5 # v6.2.0
+        with:
+          go-version-file: 'go.mod'
+          cache-dependency-path: 'go.sum'
+          cache: true
+
+      - name: Install dependencies
+        run: go mod download
+
+      - name: Set service credentials
+        env:
+          M365_CLIENT_ID_AGENTS: ${{ secrets.M365_CLIENT_ID_AGENTS }}
+          M365_CLIENT_SECRET_AGENTS: ${{ secrets.M365_CLIENT_SECRET_AGENTS }}
+          M365_CLIENT_ID_APPLICATIONS: ${{ secrets.M365_CLIENT_ID_APPLICATIONS }}
+          M365_CLIENT_SECRET_APPLICATIONS: ${{ secrets.M365_CLIENT_SECRET_APPLICATIONS }}
+          M365_CLIENT_ID_DEVICE_AND_APP_MGMT: ${{ secrets.M365_CLIENT_ID_DEVICE_AND_APP_MGMT }}
+          M365_CLIENT_SECRET_DEVICE_AND_APP_MGMT: ${{ secrets.M365_CLIENT_SECRET_DEVICE_AND_APP_MGMT }}
+          M365_CLIENT_ID_DEVICE_MGMT: ${{ secrets.M365_CLIENT_ID_DEVICE_MGMT }}
+          M365_CLIENT_SECRET_DEVICE_MGMT: ${{ secrets.M365_CLIENT_SECRET_DEVICE_MGMT }}
+          M365_CLIENT_ID_GROUPS: ${{ secrets.M365_CLIENT_ID_GROUPS }}
+          M365_CLIENT_SECRET_GROUPS: ${{ secrets.M365_CLIENT_SECRET_GROUPS }}
+          M365_CLIENT_ID_IDENTITY_ACCESS: ${{ secrets.M365_CLIENT_ID_IDENTITY_ACCESS }}
+          M365_CLIENT_SECRET_IDENTITY_ACCESS: ${{ secrets.M365_CLIENT_SECRET_IDENTITY_ACCESS }}
+          M365_CLIENT_ID_M365_ADMIN: ${{ secrets.M365_CLIENT_ID_M365_ADMIN }}
+          M365_CLIENT_SECRET_M365_ADMIN: ${{ secrets.M365_CLIENT_SECRET_M365_ADMIN }}
+          M365_CLIENT_ID_MULTITENANT_MGMT: ${{ secrets.M365_CLIENT_ID_MULTITENANT_MGMT }}
+          M365_CLIENT_SECRET_MULTITENANT_MGMT: ${{ secrets.M365_CLIENT_SECRET_MULTITENANT_MGMT }}
+          M365_CLIENT_ID_UTILITY: ${{ secrets.M365_CLIENT_ID_UTILITY }}
+          M365_CLIENT_SECRET_UTILITY: ${{ secrets.M365_CLIENT_SECRET_UTILITY }}
+          M365_CLIENT_ID_WINDOWS_365: ${{ secrets.M365_CLIENT_ID_WINDOWS_365 }}
+          M365_CLIENT_SECRET_WINDOWS_365: ${{ secrets.M365_CLIENT_SECRET_WINDOWS_365 }}
+        run: ./scripts/pipeline/bi_weekly_tests/map_credentials.py ${{ matrix.service }}
+
+      - name: Run list-resources tests
+        if: env.SKIP_TESTS != 'true'
+        env:
+          TF_ACC: 1
+          M365_TENANT_ID: ${{ secrets.M365_TENANT_ID }}
+          M365_AUTH_METHOD: client_secret
+          M365_CLOUD: public
+        run: |
+          # Determine output file suffix based on sharding
+          if [ "${{ matrix.total_shards }}" -eq 1 ]; then
+            SUFFIX=""
+          else
+            SUFFIX="-shard-${{ matrix.shard_index }}"
+          fi
+
+          # Run tests with resource filter for this shard
+          ./scripts/pipeline/bi_weekly_tests/run_tests.py list-resources ${{ matrix.service }} \
+            coverage-list-resources-${{ matrix.service }}${SUFFIX}.txt \
+            test-output-list-resources-${{ matrix.service }}${SUFFIX}.log \
+            --max-procs 1 --test-parallel 1 --pkg-parallel 1 --skip-enumeration --no-race \
+            --resource-filter "${{ matrix.resources }}"
+        continue-on-error: true
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        with:
+          name: test-results-list-resources-${{ matrix.service }}${{ matrix.total_shards > 1 && format('-shard-{0}', matrix.shard_index) || '' }}
+          path: |
+            test-failures.json
+            test-successes.json
+            test-output-list-resources-${{ matrix.service }}*.log
+          if-no-files-found: ignore
+          retention-days: 7
+
+      - name: Upload coverage to Codecov
+        if: always()
+        uses: codecov/codecov-action@671740ac38dd9b0130fbe1cec585b89eea48d3de # v5.5.2
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./coverage-list-resources-${{ matrix.service }}*.txt
+          flags: acceptancetests,${{ matrix.service }}
+          name: list-resources-${{ matrix.service }}${{ matrix.total_shards > 1 && format('-shard-{0}', matrix.shard_index) || '' }}
+          fail_ci_if_error: false
+
+  # Ephemerals Tests - Dynamic matrix with automatic sharding
+  test-ephemerals:
+    name: '⚡️ Ephemerals: ${{ matrix.service }}${{ matrix.shard_label }}'
+    needs: generate-ephemerals-matrix
+    if: needs.generate-ephemerals-matrix.outputs.has_tests == 'true'
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 120
+    env:
+      ACTIONS_STEP_DEBUG: ${{ github.event.inputs.enable_debug == 'true' && 'true' || '' }}
+      ACTIONS_RUNNER_DEBUG: ${{ github.event.inputs.enable_debug == 'true' && 'true' || '' }}
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.generate-ephemerals-matrix.outputs.matrix) }}
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@20cf305ff2072d973412fa9b1e3a4f227bda3c76 # v2.14.0
+        with:
+          egress-policy: audit
+
+      - name: Free up Ubuntu runner disk space
+        uses: jlumbroso/free-disk-space@54081f138730dfa15788a46383842cd2f914a1be # v1.3.1
+        with:
+          tool-cache: true
+          android: true
+          dotnet: true
+          haskell: true
+          large-packages: true
+          docker-images: false
+          swap-storage: true
+
+      - name: Check Out
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+
+      - name: Set up Go
+        uses: actions/setup-go@7a3fe6cf4cb3a834922a1244abfce67bcef6a0c5 # v6.2.0
+        with:
+          go-version-file: 'go.mod'
+          cache-dependency-path: 'go.sum'
+          cache: true
+
+      - name: Install dependencies
+        run: go mod download
+
+      - name: Set service credentials
+        env:
+          M365_CLIENT_ID_AGENTS: ${{ secrets.M365_CLIENT_ID_AGENTS }}
+          M365_CLIENT_SECRET_AGENTS: ${{ secrets.M365_CLIENT_SECRET_AGENTS }}
+          M365_CLIENT_ID_APPLICATIONS: ${{ secrets.M365_CLIENT_ID_APPLICATIONS }}
+          M365_CLIENT_SECRET_APPLICATIONS: ${{ secrets.M365_CLIENT_SECRET_APPLICATIONS }}
+          M365_CLIENT_ID_DEVICE_AND_APP_MGMT: ${{ secrets.M365_CLIENT_ID_DEVICE_AND_APP_MGMT }}
+          M365_CLIENT_SECRET_DEVICE_AND_APP_MGMT: ${{ secrets.M365_CLIENT_SECRET_DEVICE_AND_APP_MGMT }}
+          M365_CLIENT_ID_DEVICE_MGMT: ${{ secrets.M365_CLIENT_ID_DEVICE_MGMT }}
+          M365_CLIENT_SECRET_DEVICE_MGMT: ${{ secrets.M365_CLIENT_SECRET_DEVICE_MGMT }}
+          M365_CLIENT_ID_GROUPS: ${{ secrets.M365_CLIENT_ID_GROUPS }}
+          M365_CLIENT_SECRET_GROUPS: ${{ secrets.M365_CLIENT_SECRET_GROUPS }}
+          M365_CLIENT_ID_IDENTITY_ACCESS: ${{ secrets.M365_CLIENT_ID_IDENTITY_ACCESS }}
+          M365_CLIENT_SECRET_IDENTITY_ACCESS: ${{ secrets.M365_CLIENT_SECRET_IDENTITY_ACCESS }}
+          M365_CLIENT_ID_M365_ADMIN: ${{ secrets.M365_CLIENT_ID_M365_ADMIN }}
+          M365_CLIENT_SECRET_M365_ADMIN: ${{ secrets.M365_CLIENT_SECRET_M365_ADMIN }}
+          M365_CLIENT_ID_MULTITENANT_MGMT: ${{ secrets.M365_CLIENT_ID_MULTITENANT_MGMT }}
+          M365_CLIENT_SECRET_MULTITENANT_MGMT: ${{ secrets.M365_CLIENT_SECRET_MULTITENANT_MGMT }}
+          M365_CLIENT_ID_UTILITY: ${{ secrets.M365_CLIENT_ID_UTILITY }}
+          M365_CLIENT_SECRET_UTILITY: ${{ secrets.M365_CLIENT_SECRET_UTILITY }}
+          M365_CLIENT_ID_WINDOWS_365: ${{ secrets.M365_CLIENT_ID_WINDOWS_365 }}
+          M365_CLIENT_SECRET_WINDOWS_365: ${{ secrets.M365_CLIENT_SECRET_WINDOWS_365 }}
+        run: ./scripts/pipeline/bi_weekly_tests/map_credentials.py ${{ matrix.service }}
+
+      - name: Run ephemerals tests
+        if: env.SKIP_TESTS != 'true'
+        env:
+          TF_ACC: 1
+          M365_TENANT_ID: ${{ secrets.M365_TENANT_ID }}
+          M365_AUTH_METHOD: client_secret
+          M365_CLOUD: public
+        run: |
+          # Determine output file suffix based on sharding
+          if [ "${{ matrix.total_shards }}" -eq 1 ]; then
+            SUFFIX=""
+          else
+            SUFFIX="-shard-${{ matrix.shard_index }}"
+          fi
+
+          # Run tests with resource filter for this shard
+          ./scripts/pipeline/bi_weekly_tests/run_tests.py ephemerals ${{ matrix.service }} \
+            coverage-ephemerals-${{ matrix.service }}${SUFFIX}.txt \
+            test-output-ephemerals-${{ matrix.service }}${SUFFIX}.log \
+            --max-procs 1 --test-parallel 1 --pkg-parallel 1 --skip-enumeration --no-race \
+            --resource-filter "${{ matrix.resources }}"
+        continue-on-error: true
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        with:
+          name: test-results-ephemerals-${{ matrix.service }}${{ matrix.total_shards > 1 && format('-shard-{0}', matrix.shard_index) || '' }}
+          path: |
+            test-failures.json
+            test-successes.json
+            test-output-ephemerals-${{ matrix.service }}*.log
+          if-no-files-found: ignore
+          retention-days: 7
+
+      - name: Upload coverage to Codecov
+        if: always()
+        uses: codecov/codecov-action@671740ac38dd9b0130fbe1cec585b89eea48d3de # v5.5.2
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./coverage-ephemerals-${{ matrix.service }}*.txt
+          flags: acceptancetests,${{ matrix.service }}
+          name: ephemerals-${{ matrix.service }}${{ matrix.total_shards > 1 && format('-shard-{0}', matrix.shard_index) || '' }}
           fail_ci_if_error: false
 
   # Final aggregation job
   test-summary:
     name: '📊 Test Summary'
-    needs: [test-provider-core, test-resources, test-datasources, test-actions]
+    needs: [test-provider-core, test-resources, test-datasources, test-actions, test-list-resources, test-ephemerals]
     runs-on: ubuntu-24.04-arm
     if: always()
     env:
@@ -474,6 +847,8 @@ jobs:
           echo "- **Resources:** ${{ needs.test-resources.result }}" >> summary.md
           echo "- **Datasources:** ${{ needs.test-datasources.result }}" >> summary.md
           echo "- **Actions:** ${{ needs.test-actions.result }}" >> summary.md
+          echo "- **List-Resources:** ${{ needs.test-list-resources.result }}" >> summary.md
+          echo "- **Ephemerals:** ${{ needs.test-ephemerals.result }}" >> summary.md
           echo "" >> summary.md
 
           echo "### Coverage Reports" >> summary.md
