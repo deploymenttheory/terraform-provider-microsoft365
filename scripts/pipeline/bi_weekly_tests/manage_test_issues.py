@@ -8,7 +8,7 @@ This script automates GitHub issue management for test failures by:
 - Auto-closing issues when tests pass
 
 Usage:
-    ./manage-test-issues.py <owner> <repo> <run-id> <failures-json> [successes-json]
+    ./manage_test_issues.py <owner> <repo> <run-id> <failures-json> [successes-json]
 
 Args:
     owner: GitHub repository owner.
@@ -321,7 +321,7 @@ def process_test_failures(owner: str, repo: str, run_id: str,
         successes_json_path: Optional path to JSON file containing test successes.
     """
     if not all([owner, repo, run_id]):
-        print("Usage: manage-test-issues.py <owner> <repo> <run-id> <failures-json> [successes-json]", 
+        print("Usage: manage_test_issues.py <owner> <repo> <run-id> <failures-json> [successes-json]", 
             file=sys.stderr)
         sys.exit(1)
     
@@ -454,7 +454,7 @@ def process_test_failures(owner: str, repo: str, run_id: str,
 
 def main():
     if len(sys.argv) < 4:
-        print("Usage: manage-test-issues.py <owner> <repo> <run-id> [failures-json] [successes-json]", 
+        print("Usage: manage_test_issues.py <owner> <repo> <run-id> [failures-json] [successes-json]", 
             file=sys.stderr)
         sys.exit(1)
     

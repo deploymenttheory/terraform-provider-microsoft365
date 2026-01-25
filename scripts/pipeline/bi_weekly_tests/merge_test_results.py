@@ -5,7 +5,7 @@ This script recursively searches an artifacts directory for test result JSON fil
 (test-failures.json or test-successes.json) and merges them into a single file.
 
 Usage:
-    ./merge-test-results.py <artifacts-dir> <output-file> [filename-to-merge]
+    ./merge_test_results.py <artifacts-dir> <output-file> [filename-to-merge]
 
 Args:
     artifacts-dir: Directory containing downloaded test artifacts.
@@ -45,7 +45,7 @@ def merge_results(result_files: list[Path], show_details: bool = False) -> list[
     
     for result_file in result_files:
         try:
-            with open(result_file) as f:
+            with open(result_file, encoding='utf-8') as f:
                 results = json.load(f)
                 if isinstance(results, list):
                     if show_details:
@@ -66,7 +66,7 @@ def merge_results(result_files: list[Path], show_details: bool = False) -> list[
 
 def main():
     if len(sys.argv) < 3:
-        print("Usage: merge-test-results.py <artifacts-dir> <output-file> [filename-to-merge]", file=sys.stderr)
+        print("Usage: merge_test_results.py <artifacts-dir> <output-file> [filename-to-merge]", file=sys.stderr)
         sys.exit(1)
     
     artifacts_dir = Path(sys.argv[1])
@@ -85,14 +85,14 @@ def main():
     
     if not result_files:
         print(f"✅ No {filename} files found")
-        with open(output_file, 'w') as f:
+        with open(output_file, 'w', encoding='utf-8') as f:
             json.dump([], f)
         return
     
     print(f"\nProcessing {len(result_files)} {filename} file(s):\n")
     merged = merge_results(result_files, show_details=is_failures)
     
-    with open(output_file, 'w') as f:
+    with open(output_file, 'w', encoding='utf-8') as f:
         json.dump(merged, f, indent=2)
     
     if merged:

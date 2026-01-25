@@ -6,7 +6,7 @@ to conserve memory on resource-constrained runners. Supports configurable parall
 and memory management options.
 
 Usage:
-    ./run-tests.py <type> [service] [coverage-file] [test-output-file] [options]
+    ./run_tests.py <type> [service] [coverage-file] [test-output-file] [options]
 
 Positional Arguments:
     type              Test type: provider-core, resources, datasources, or actions
@@ -25,18 +25,18 @@ Memory & Parallelism Options:
 
 Examples:
     # Low memory mode (8GB runners) - default settings
-    ./run-tests.py resources identity_and_access coverage.txt output.log
+    ./run_tests.py resources identity_and_access coverage.txt output.log
 
     # Ultra-conservative mode (minimize memory)
-    ./run-tests.py resources identity_and_access coverage.txt output.log \
+    ./run_tests.py resources identity_and_access coverage.txt output.log \
         --max-procs 1 --test-parallel 1 --pkg-parallel 1 --skip-enumeration --no-race
 
     # Higher performance mode (16GB+ runners)
-    ./run-tests.py resources identity_and_access coverage.txt output.log \
+    ./run_tests.py resources identity_and_access coverage.txt output.log \
         --max-procs 4 --test-parallel 2 --pkg-parallel 1
 
     # Show help
-    ./run-tests.py --help
+    ./run_tests.py --help
 """
 
 import os
@@ -64,7 +64,7 @@ def run_command(cmd: List[str], output_file: str, append: bool = False) -> int:
         The exit code of the command.
     """
     mode = 'a' if append else 'w'
-    with open(output_file, mode, buffering=8192) as f:  # Use small buffer
+    with open(output_file, mode, encoding='utf-8', buffering=8192) as f:  # Use small buffer
         process = subprocess.Popen(
             cmd,
             stdout=subprocess.PIPE,
@@ -102,7 +102,7 @@ def discover_test_packages(base_path: Path) -> List[str]:
     print(f"🔍 [DISCOVERY] Resolved base_path: {base_path}")
     print(f"🔍 [DISCOVERY] Current working directory: {cwd}")
     
-    print(f"🔍 [DISCOVERY] Searching for *_test.go files...")
+    print("🔍 [DISCOVERY] Searching for *_test.go files...")
     packages = set()
     test_files = list(base_path.rglob("*_test.go"))
     print(f"🔍 [DISCOVERY] Found {len(test_files)} test files")
@@ -110,9 +110,7 @@ def discover_test_packages(base_path: Path) -> List[str]:
     for idx, test_file in enumerate(test_files, 1):
         if idx % 10 == 0:
             print(f"🔍 [DISCOVERY] Processing test file {idx}/{len(test_files)}...")
-        # Get the package directory (parent of the test file)
         package_dir = test_file.parent.resolve()
-        # Convert to relative path from workspace root
         rel_path = f"./{package_dir.relative_to(cwd)}"
         packages.add(rel_path)
     
@@ -132,12 +130,12 @@ def count_tests_in_package(package_path: str) -> int:
     """
     print(f"  🔢 [COUNT] Enumerating tests in: {package_path}")
     try:
-        # Use -list=. (with equals sign) to list all tests
         result = subprocess.run(
             ["go", "test", "-list=.", package_path],
             capture_output=True,
             text=True,
-            timeout=30
+            timeout=30,
+            check=False
         )
         
         # Count lines that start with "Test" (test function names)
@@ -154,7 +152,7 @@ def count_tests_in_package(package_path: str) -> int:
     except subprocess.TimeoutExpired:
         print(f"  ⚠️  [COUNT] Timeout counting tests in {package_path}")
         return 0
-    except Exception as e:
+    except (OSError, ValueError) as e:
         print(f"  ⚠️  [COUNT] Error counting tests in {package_path}: {e}")
         return 0
 
@@ -169,7 +167,7 @@ def print_separator(char: str = "=", length: int = 70) -> None:
     print(char * length)
 
 
-def parse_test_results(output_file: str, category: str, service: str) -> None:
+def parse_test_results(output_file: str, configuration_block_type: str, service: str) -> None:
     """Parse test output and create JSON reports of failures and successes.
 
     Reads the Go test output file and extracts failed and passed tests,
@@ -177,7 +175,7 @@ def parse_test_results(output_file: str, category: str, service: str) -> None:
 
     Args:
         output_file: Path to the test output log file.
-        category: Test category (e.g., 'provider-core', 'resources', 'datasources').
+        configuration_block_type: Test configuration_block_type (e.g., 'provider-core', 'resources', 'datasources').
         service: Service name (e.g., 'identity_and_access'), empty string for provider-core.
     """
     failures_file = "test-failures.json"
@@ -185,7 +183,7 @@ def parse_test_results(output_file: str, category: str, service: str) -> None:
     failures = []
     successes = []
     
-    with open(output_file, 'r') as f:
+    with open(output_file, 'r', encoding='utf-8') as f:
         content = f.read()
     
     fail_pattern = re.compile(r'^--- FAIL: (\S+)', re.MULTILINE)
@@ -231,7 +229,7 @@ def parse_test_results(output_file: str, category: str, service: str) -> None:
         
         failures.append({
             "test_name": test_name,
-            "category": category,
+            "configuration_block_type": configuration_block_type,
             "service": service,
             "context": context
         })
@@ -242,14 +240,14 @@ def parse_test_results(output_file: str, category: str, service: str) -> None:
         
         successes.append({
             "test_name": test_name,
-            "category": category,
+            "configuration_block_type": configuration_block_type,
             "service": service
         })
     
-    with open(failures_file, 'w') as f:
+    with open(failures_file, 'w', encoding='utf-8') as f:
         json.dump(failures, f, indent=2)
     
-    with open(successes_file, 'w') as f:
+    with open(successes_file, 'w', encoding='utf-8') as f:
         json.dump(successes, f, indent=2)
     
     print(f"✅ Test results: {len(failures)} failures, {len(successes)} successes")
@@ -288,8 +286,12 @@ def run_provider_core_tests(coverage_file: str, test_output_file: str,
     ]
     
     print(f"📂 [CONFIG] Core directories to test: {len(core_dirs)}")
-    for dir in core_dirs:
-        print(f"   - {dir}")
+    for core_dir in core_dirs:
+        print(f"   - {core_dir}")
+    print(f"⚙️  [CONFIG] GOMAXPROCS: {max_procs}")
+    print(f"⚙️  [CONFIG] Test parallel: {test_parallel}")
+    print(f"⚙️  [CONFIG] Package parallel: {pkg_parallel}")
+    print(f"⚙️  [CONFIG] Race detection: {use_race}")
     print()
     
     # Discover all test packages across core directories
@@ -302,7 +304,7 @@ def run_provider_core_tests(coverage_file: str, test_output_file: str,
     
     if not all_packages:
         print("⚠️  No test packages found in provider core, creating empty coverage file")
-        with open(coverage_file, 'w') as f:
+        with open(coverage_file, 'w', encoding='utf-8') as f:
             f.write("mode: atomic\n")
         return 0
     
@@ -328,11 +330,9 @@ def run_provider_core_tests(coverage_file: str, test_output_file: str,
         print(f"⏱️  [TIMING] Total enumeration time: {enumerate_elapsed:.2f}s\n")
     else:
         print("⏭️  [ENUMERATE] Skipping test enumeration (--skip-enumeration flag)\n")
-        # Initialize with zero counts
         for pkg in all_packages:
             package_test_counts[pkg] = 0
     
-    # Display summary
     print_separator("=")
     print("📋 Test Discovery Summary for provider-core")
     print_separator("=")
@@ -360,7 +360,7 @@ def run_provider_core_tests(coverage_file: str, test_output_file: str,
     
     # Initialize coverage file with mode line
     print(f"📝 [SETUP] Initializing coverage file: {coverage_file}")
-    with open(coverage_file, 'w') as f:
+    with open(coverage_file, 'w', encoding='utf-8') as f:
         f.write("mode: atomic\n")
     print()
     
@@ -402,21 +402,21 @@ def run_provider_core_tests(coverage_file: str, test_output_file: str,
         pkg_exec_elapsed = time.time() - pkg_exec_start
         print(f"⏱️  [TIMING] Package execution took {pkg_exec_elapsed:.2f}s")
         
-        print(f"\n🔍 [COVERAGE] Processing coverage for package...")
+        print("\n🔍 [COVERAGE] Processing coverage for package...")
         # Append coverage data (skip mode line)
         if Path(temp_coverage).exists():
             print(f"✅ [COVERAGE] Found coverage file: {temp_coverage}")
-            with open(temp_coverage, 'r') as tmp_f:
+            with open(temp_coverage, 'r', encoding='utf-8') as tmp_f:
                 lines = tmp_f.readlines()
                 print(f"📊 [COVERAGE] Coverage file has {len(lines)} lines")
-                with open(coverage_file, 'a') as cov_f:
+                with open(coverage_file, 'a', encoding='utf-8') as cov_f:
                     for line in lines:
                         if not line.startswith('mode:'):
                             cov_f.write(line)
             Path(temp_coverage).unlink()
-            print(f"🗑️  [COVERAGE] Deleted temporary coverage file")
+            print("🗑️  [COVERAGE] Deleted temporary coverage file")
         else:
-            print(f"⚠️  [COVERAGE] No coverage file generated")
+            print("⚠️  [COVERAGE] No coverage file generated")
         
         if exit_code != 0:
             has_failures = True
@@ -426,7 +426,7 @@ def run_provider_core_tests(coverage_file: str, test_output_file: str,
         
         # Force garbage collection to free memory
         if force_gc:
-            print(f"🗑️  [MEMORY] Running garbage collection...")
+            print("🗑️  [MEMORY] Running garbage collection...")
             gc.collect()
         print()
     
@@ -441,7 +441,7 @@ def run_provider_core_tests(coverage_file: str, test_output_file: str,
     return 1 if has_failures else 0
 
 
-def run_service_tests(category: str, service: str,
+def run_service_tests(configuration_block_type: str, service: str,
                     coverage_file: str, test_output_file: str,
                     max_procs: int = 2, test_parallel: int = 1,
                     pkg_parallel: int = 1, use_race: bool = False,
@@ -453,7 +453,7 @@ def run_service_tests(category: str, service: str,
     and collects coverage data.
 
     Args:
-        category: Test category ('resources' or 'datasources').
+        configuration_block_type: Test configuration_block_type ('resources' or 'datasources').
         service: Service name (e.g., 'identity_and_access', 'device_management').
         coverage_file: Path where merged coverage data will be written.
         test_output_file: Path where test output logs will be written.
@@ -469,36 +469,41 @@ def run_service_tests(category: str, service: str,
         0 if all tests passed, 1 if any test failed.
     """
     print("\n" + "="*70)
-    print(f"🔍 [START] Running {category}/{service} tests")
+    print(f"🔍 [START] Running {configuration_block_type}/{service} tests")
     print("="*70 + "\n")
     
-    test_dir_str = f"./internal/services/{category}/{service}"
+    test_dir_str = f"./internal/services/{configuration_block_type}/{service}"
     test_dir = Path(test_dir_str)
     print(f"📂 [CONFIG] Test directory: {test_dir_str}")
+    print(f"⚙️  [CONFIG] GOMAXPROCS: {max_procs}")
+    print(f"⚙️  [CONFIG] Test parallel: {test_parallel}")
+    print(f"⚙️  [CONFIG] Package parallel: {pkg_parallel}")
+    print(f"⚙️  [CONFIG] Race detection: {use_race}")
     
     if not test_dir.exists():
         print(f"⚠️  Directory not found: {test_dir_str}, creating empty coverage file")
-        with open(coverage_file, 'w') as f:
+        with open(coverage_file, 'w', encoding='utf-8') as f:
             f.write("mode: atomic\n")
         return 0
     
     # Discover all test packages
-    print(f"\n🔍 [DISCOVERY] Starting package discovery...")
+    print("\n🔍 [DISCOVERY] Starting package discovery...")
     test_packages = discover_test_packages(test_dir)
 
-    # Apply resource filter if specified
+    # Why filter? Enables sharding by testing only subset of resources
     if resource_filter:
         print(f"🔍 [FILTER] Applying resource filter: {resource_filter}")
-        # Parse comma-separated resource paths
-        filter_resources = [r.strip() for r in resource_filter.split(',') if r.strip()]
+        filter_resources = [
+            r.strip()
+            for r in resource_filter.split(',')
+            if r.strip()
+        ]
         print(f"🔍 [FILTER] Filtering for {len(filter_resources)} resource(s)")
 
-        # Convert resource paths to expected package format
-        # Resource path format: "graph_beta/resource_name"
-        # Package path format: "./internal/services/resources/service_name/graph_beta/resource_name"
         filtered_packages = []
         for resource_path in filter_resources:
-            # Build expected package path (same format as discover_test_packages returns)
+            # Why append test_dir_str? discover_test_packages returns
+            # full paths like ./internal/services/resources/service/graph_beta/name
             expected_pkg = f"{test_dir_str}/{resource_path}"
 
             if expected_pkg in test_packages:
@@ -513,8 +518,8 @@ def run_service_tests(category: str, service: str,
 
     if not test_packages:
         print(f"⚠️  [DISCOVERY] No test packages found in {test_dir_str}")
-        print(f"✅ [COMPLETE] Creating empty coverage file and exiting")
-        with open(coverage_file, 'w') as f:
+        print("✅ [COMPLETE] Creating empty coverage file and exiting")
+        with open(coverage_file, 'w', encoding='utf-8') as f:
             f.write("mode: atomic\n")
         return 0
     
@@ -546,7 +551,7 @@ def run_service_tests(category: str, service: str,
     
     # Display summary
     print_separator("=")
-    print(f"📋 Test Discovery Summary for {category}/{service}")
+    print(f"📋 Test Discovery Summary for {configuration_block_type}/{service}")
     print_separator("=")
     print(f"Total Packages: {len(test_packages)}")
     if not skip_enumeration:
@@ -574,7 +579,7 @@ def run_service_tests(category: str, service: str,
     
     # Initialize coverage file with mode line
     print(f"📝 [SETUP] Initializing coverage file: {coverage_file}")
-    with open(coverage_file, 'w') as f:
+    with open(coverage_file, 'w', encoding='utf-8') as f:
         f.write("mode: atomic\n")
     print()
     
@@ -617,21 +622,21 @@ def run_service_tests(category: str, service: str,
         pkg_exec_elapsed = time.time() - pkg_exec_start
         print(f"⏱️  [TIMING] Package execution took {pkg_exec_elapsed:.2f}s")
         
-        print(f"\n🔍 [COVERAGE] Processing coverage for package...")
+        print("\n🔍 [COVERAGE] Processing coverage for package...")
         # Append coverage data (skip mode line)
         if Path(temp_coverage).exists():
             print(f"✅ [COVERAGE] Found coverage file: {temp_coverage}")
-            with open(temp_coverage, 'r') as tmp_f:
+            with open(temp_coverage, 'r', encoding='utf-8') as tmp_f:
                 lines = tmp_f.readlines()
                 print(f"📊 [COVERAGE] Coverage file has {len(lines)} lines")
-                with open(coverage_file, 'a') as cov_f:
+                with open(coverage_file, 'a', encoding='utf-8') as cov_f:
                     for line in lines:
                         if not line.startswith('mode:'):
                             cov_f.write(line)
             Path(temp_coverage).unlink()
-            print(f"🗑️  [COVERAGE] Deleted temporary coverage file")
+            print("🗑️  [COVERAGE] Deleted temporary coverage file")
         else:
-            print(f"⚠️  [COVERAGE] No coverage file generated")
+            print("⚠️  [COVERAGE] No coverage file generated")
         
         if exit_code != 0:
             has_failures = True
@@ -641,16 +646,16 @@ def run_service_tests(category: str, service: str,
         
         # Force garbage collection to free memory
         if force_gc:
-            print(f"🗑️  [MEMORY] Running garbage collection...")
+            print("🗑️  [MEMORY] Running garbage collection...")
             gc.collect()
         print()
     
     # Parse all test results from the combined output
     print("📝 Parsing test results...")
-    parse_test_results(test_output_file, category, service)
+    parse_test_results(test_output_file, configuration_block_type, service)
     
     print_separator("=")
-    print(f"🏁 Sequential execution complete for {category}/{service}")
+    print(f"🏁 Sequential execution complete for {configuration_block_type}/{service}")
     print_separator("=")
     
     return 1 if has_failures else 0
@@ -663,13 +668,13 @@ def main():
         epilog="""
 Examples:
   # Run with default settings (low memory mode)
-  ./run-tests.py resources identity_and_access coverage.txt output.log
+  ./run_tests.py resources identity_and_access coverage.txt output.log
   
   # Run with more parallelism (requires more memory)
-  ./run-tests.py resources identity_and_access coverage.txt output.log --max-procs 4 --test-parallel 4
+  ./run_tests.py resources identity_and_access coverage.txt output.log --max-procs 4 --test-parallel 4
   
   # Disable race detection for faster execution
-  ./run-tests.py resources identity_and_access coverage.txt output.log --no-race
+  ./run_tests.py resources identity_and_access coverage.txt output.log --no-race
         """
     )
     
@@ -725,7 +730,7 @@ Examples:
     
     # Set GODEBUG to reduce memory usage
     os.environ["GODEBUG"] = "gctrace=0"
-    print(f"⚙️  [MEMORY] Set GODEBUG to optimize garbage collection\n")
+    print("⚙️  [MEMORY] Set GODEBUG to optimize garbage collection\n")
     
     print(f"⚙️  [CONFIG] Test type: {args.type}")
     print(f"⚙️  [CONFIG] Service: {args.service if args.service else 'N/A'}")
@@ -744,12 +749,12 @@ Examples:
     
     print(f"⚙️  [CONFIG] Estimated memory usage: ~{estimated_memory}MB")
     if estimated_memory > 7000:
-        print(f"⚠️  [WARNING] Estimated memory usage exceeds 7GB - may cause OOM on 8GB runners!")
+        print("⚠️  [WARNING] Estimated memory usage exceeds 7GB - may cause OOM on 8GB runners!")
     print()
     
     if os.environ.get("SKIP_TESTS", "false") == "true":
         print("⏭️  Skipping tests - no credentials configured")
-        with open(args.coverage_file, 'w') as f:
+        with open(args.coverage_file, 'w', encoding='utf-8') as f:
             f.write("mode: atomic\n")
         sys.exit(0)
     
