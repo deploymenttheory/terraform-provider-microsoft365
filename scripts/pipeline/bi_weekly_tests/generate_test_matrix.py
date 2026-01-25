@@ -7,12 +7,22 @@ Rendezvous (Highest Random Weight) distribution for stable, deterministic
 assignment.
 
 Usage:
-    ./generate_test_matrix.py <configuration_block_type> <service1> [service2 ...]
+    ./generate_test_matrix.py <configuration_block_type> [service1] [service2 ...]
 
 Configuration Block Types:
     resources, datasources, actions, list-resources, ephemerals
 
+Service Discovery:
+    - If no services are specified, all services will be auto-discovered
+    - Services with no tests are automatically skipped
+    - Explicit service names can be provided to limit scope
+
 Examples:
+    # Auto-discover all services
+    ./generate_test_matrix.py resources
+    ./generate_test_matrix.py datasources
+
+    # Explicit service list
     ./generate_test_matrix.py resources device_management groups users
     ./generate_test_matrix.py datasources device_management utility
     ./generate_test_matrix.py list-resources device_management
@@ -38,6 +48,30 @@ RENDEZVOUS_SEED = os.environ.get(
     'RENDEZVOUS_SEED',
     'terraform-provider-microsoft365'
 )
+
+
+def discover_services(configuration_block_type: str) -> List[str]:
+    """Auto-discover all services that have tests for the given configuration_block_type.
+
+    Args:
+        configuration_block_type: Category type (resources, datasources, actions, etc.)
+
+    Returns:
+        List of service names (e.g., ['device_management', 'identity_and_access'])
+    """
+    base_path = Path(f"./internal/services/{configuration_block_type}")
+
+    if not base_path.exists():
+        return []
+
+    services = []
+    for service_dir in base_path.iterdir():
+        if service_dir.is_dir() and not service_dir.name.startswith('.'):
+            # Check if this service actually has any resources
+            if discover_resources(service_dir.name, configuration_block_type):
+                services.append(service_dir.name)
+
+    return sorted(services)
 
 
 def discover_resources(service: str, configuration_block_type: str) -> List[str]:
@@ -259,15 +293,20 @@ def generate_matrix(configuration_block_type: str, services: List[str]) -> Dict:
 
 def main():
     """Main entry point."""
-    if len(sys.argv) < 3:
+    if len(sys.argv) < 2:
         print(
-            "Usage: generate_test_matrix.py <configuration_block_type> <service1> "
-            "[service2 ...]",
+            "Usage: generate_test_matrix.py <configuration_block_type> "
+            "[service1] [service2 ...]",
             file=sys.stderr
         )
         print(
             "\nConfiguration Block Types: resources, datasources, actions, "
             "list-resources, ephemerals",
+            file=sys.stderr
+        )
+        print(
+            "\nService Discovery: If no services specified, "
+            "all services will be auto-discovered",
             file=sys.stderr
         )
         print("\nEnvironment variables:", file=sys.stderr)
@@ -310,6 +349,29 @@ def main():
             file=sys.stderr
         )
         sys.exit(1)
+
+    # Auto-discover services if none specified
+    if not services:
+        print(
+            f"[generate_test_matrix] No services specified, "
+            f"auto-discovering services for {configuration_block_type}...",
+            file=sys.stderr
+        )
+        services = discover_services(configuration_block_type)
+        if not services:
+            print(
+                f"[generate_test_matrix] No services found for "
+                f"{configuration_block_type}",
+                file=sys.stderr
+            )
+            # Return empty matrix
+            print(json.dumps({"include": []}))
+            sys.exit(0)
+        print(
+            f"[generate_test_matrix] Discovered {len(services)} "
+            f"service(s): {', '.join(services)}",
+            file=sys.stderr
+        )
 
     # Why stderr? Keeps diagnostic output separate from JSON stdout
     print(

@@ -446,7 +446,7 @@ def run_service_tests(configuration_block_type: str, service: str,
                     max_procs: int = 2, test_parallel: int = 1,
                     pkg_parallel: int = 1, use_race: bool = False,
                     skip_enumeration: bool = False, force_gc: bool = True,
-                    resource_filter: str = "") -> int:
+                    shard_resources: str = "") -> int:
     """Run tests for a specific service sequentially, one package at a time to conserve memory.
 
     Discovers all test packages in the service directory, runs tests package-by-package,
@@ -463,7 +463,7 @@ def run_service_tests(configuration_block_type: str, service: str,
         use_race: Whether to enable race detection (-race flag).
         skip_enumeration: Whether to skip test enumeration phase.
         force_gc: Whether to force garbage collection between packages.
-        resource_filter: Comma-separated list of resource paths to test (for sharding).
+        shard_resources: Comma-separated list of resource paths in this shard.
 
     Returns:
         0 if all tests passed, 1 if any test failed.
@@ -490,31 +490,31 @@ def run_service_tests(configuration_block_type: str, service: str,
     print("\n🔍 [DISCOVERY] Starting package discovery...")
     test_packages = discover_test_packages(test_dir)
 
-    # Why filter? Enables sharding by testing only subset of resources
-    if resource_filter:
-        print(f"🔍 [FILTER] Applying resource filter: {resource_filter}")
-        filter_resources = [
+    # Why shard? Parallel test execution by distributing resources across jobs
+    if shard_resources:
+        print(f"🔍 [SHARD] Testing resources in this shard: {shard_resources}")
+        shard_resource_list = [
             r.strip()
-            for r in resource_filter.split(',')
+            for r in shard_resources.split(',')
             if r.strip()
         ]
-        print(f"🔍 [FILTER] Filtering for {len(filter_resources)} resource(s)")
+        print(f"🔍 [SHARD] This shard contains {len(shard_resource_list)} resource(s)")
 
-        filtered_packages = []
-        for resource_path in filter_resources:
+        shard_packages = []
+        for resource_path in shard_resource_list:
             # Why append test_dir_str? discover_test_packages returns
             # full paths like ./internal/services/resources/service/graph_beta/name
             expected_pkg = f"{test_dir_str}/{resource_path}"
 
             if expected_pkg in test_packages:
-                filtered_packages.append(expected_pkg)
-                print(f"✅ [FILTER] Matched resource: {resource_path}")
+                shard_packages.append(expected_pkg)
+                print(f"✅ [SHARD] Matched resource: {resource_path}")
             else:
-                print(f"⚠️  [FILTER] Resource not found: {resource_path}")
+                print(f"⚠️  [SHARD] Resource not found: {resource_path}")
                 print(f"   Looking for: {expected_pkg}")
 
-        test_packages = filtered_packages
-        print(f"✅ [FILTER] Filtered to {len(test_packages)} package(s)")
+        test_packages = shard_packages
+        print(f"✅ [SHARD] Testing {len(test_packages)} package(s) in this shard")
 
     if not test_packages:
         print(f"⚠️  [DISCOVERY] No test packages found in {test_dir_str}")
@@ -705,8 +705,8 @@ Examples:
                        help='Force garbage collection between packages (default: enabled)')
     parser.add_argument('--no-force-gc', dest='force_gc', action='store_false',
                        help='Disable forced garbage collection')
-    parser.add_argument('--resource-filter', type=str, default='',
-                       help='Comma-separated list of resource paths to test (e.g., "graph_beta/resource1,graph_v1.0/resource2")')
+    parser.add_argument('--shard-resources', type=str, default='',
+                       help='Comma-separated list of resource paths in this shard (e.g., "graph_beta/resource1,graph_v1.0/resource2")')
 
     args = parser.parse_args()
     
@@ -785,7 +785,7 @@ Examples:
             args.use_race,
             args.skip_enumeration,
             args.force_gc,
-            args.resource_filter
+            args.shard_resources
         )
     else:
         print(f"Error: unknown test type: {args.type}", file=sys.stderr)

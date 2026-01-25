@@ -104,17 +104,8 @@ jobs:
       - name: Generate matrix
         id: set-matrix
         run: |
-          MATRIX=$(./scripts/pipeline/bi_weekly_tests/generate_test_matrix.py resources \
-            agents \
-            applications \
-            backup_storage \
-            device_and_app_management \
-            device_management \
-            groups \
-            identity_and_access \
-            m365_admin \
-            users \
-            windows_365)
+          # Auto-discover all services 
+          MATRIX=$(./scripts/pipeline/bi_weekly_tests/generate_test_matrix.py resources)
 
           echo "matrix=$MATRIX" >> $GITHUB_OUTPUT
 
@@ -142,17 +133,8 @@ jobs:
       - name: Generate matrix
         id: set-matrix
         run: |
-          MATRIX=$(./scripts/pipeline/bi_weekly_tests/generate_test_matrix.py datasources \
-            agents \
-            applications \
-            device_and_app_management \
-            device_management \
-            groups \
-            identity_and_access \
-            m365_admin \
-            multitenant_management \
-            utility \
-            windows_365)
+          # Auto-discover all services 
+          MATRIX=$(./scripts/pipeline/bi_weekly_tests/generate_test_matrix.py datasources)
 
           echo "matrix=$MATRIX" >> $GITHUB_OUTPUT
 
@@ -180,8 +162,8 @@ jobs:
       - name: Generate matrix
         id: set-matrix
         run: |
-          MATRIX=$(./scripts/pipeline/bi_weekly_tests/generate_test_matrix.py actions \
-            device_management)
+          # Auto-discover all services 
+          MATRIX=$(./scripts/pipeline/bi_weekly_tests/generate_test_matrix.py actions)
 
           echo "matrix=$MATRIX" >> $GITHUB_OUTPUT
 
@@ -209,8 +191,8 @@ jobs:
       - name: Generate matrix
         id: set-matrix
         run: |
-          MATRIX=$(./scripts/pipeline/bi_weekly_tests/generate_test_matrix.py list-resources \
-            device_management)
+          # Auto-discover all services 
+          MATRIX=$(./scripts/pipeline/bi_weekly_tests/generate_test_matrix.py list-resources)
 
           echo "matrix=$MATRIX" >> $GITHUB_OUTPUT
 
@@ -238,8 +220,8 @@ jobs:
       - name: Generate matrix
         id: set-matrix
         run: |
-          MATRIX=$(./scripts/pipeline/bi_weekly_tests/generate_test_matrix.py ephemerals \
-            multitenant_management)
+          # Auto-discover all services 
+          MATRIX=$(./scripts/pipeline/bi_weekly_tests/generate_test_matrix.py ephemerals)
 
           echo "matrix=$MATRIX" >> $GITHUB_OUTPUT
 
@@ -335,12 +317,12 @@ jobs:
             SUFFIX="-shard-${{ matrix.shard_index }}"
           fi
 
-          # Run tests with resource filter for this shard
+          # Run tests with shard resources for this shard
           ./scripts/pipeline/bi_weekly_tests/run_tests.py resources ${{ matrix.service }} \
             coverage-resources-${{ matrix.service }}${SUFFIX}.txt \
             test-output-resources-${{ matrix.service }}${SUFFIX}.log \
             --max-procs 1 --test-parallel 1 --pkg-parallel 1 --skip-enumeration --no-race \
-            --resource-filter "${{ matrix.resources }}"
+            --shard-resources "${{ matrix.resources }}"
         continue-on-error: true
 
       - name: Upload test results
@@ -447,12 +429,12 @@ jobs:
             SUFFIX="-shard-${{ matrix.shard_index }}"
           fi
 
-          # Run tests with resource filter for this shard
+          # Run tests with shard resources for this shard
           ./scripts/pipeline/bi_weekly_tests/run_tests.py datasources ${{ matrix.service }} \
             coverage-datasources-${{ matrix.service }}${SUFFIX}.txt \
             test-output-datasources-${{ matrix.service }}${SUFFIX}.log \
             --max-procs 1 --test-parallel 1 --pkg-parallel 1 --skip-enumeration --no-race \
-            --resource-filter "${{ matrix.resources }}"
+            --shard-resources "${{ matrix.resources }}"
         continue-on-error: true
 
       - name: Upload test results
@@ -559,12 +541,12 @@ jobs:
             SUFFIX="-shard-${{ matrix.shard_index }}"
           fi
 
-          # Run tests with resource filter for this shard
+          # Run tests with shard resources for this shard
           ./scripts/pipeline/bi_weekly_tests/run_tests.py actions ${{ matrix.service }} \
             coverage-actions-${{ matrix.service }}${SUFFIX}.txt \
             test-output-actions-${{ matrix.service }}${SUFFIX}.log \
             --max-procs 1 --test-parallel 1 --pkg-parallel 1 --skip-enumeration --no-race \
-            --resource-filter "${{ matrix.resources }}"
+            --shard-resources "${{ matrix.resources }}"
         continue-on-error: true
 
       - name: Upload test results
@@ -671,12 +653,12 @@ jobs:
             SUFFIX="-shard-${{ matrix.shard_index }}"
           fi
 
-          # Run tests with resource filter for this shard
+          # Run tests with shard resources for this shard
           ./scripts/pipeline/bi_weekly_tests/run_tests.py list-resources ${{ matrix.service }} \
             coverage-list-resources-${{ matrix.service }}${SUFFIX}.txt \
             test-output-list-resources-${{ matrix.service }}${SUFFIX}.log \
             --max-procs 1 --test-parallel 1 --pkg-parallel 1 --skip-enumeration --no-race \
-            --resource-filter "${{ matrix.resources }}"
+            --shard-resources "${{ matrix.resources }}"
         continue-on-error: true
 
       - name: Upload test results
@@ -783,12 +765,12 @@ jobs:
             SUFFIX="-shard-${{ matrix.shard_index }}"
           fi
 
-          # Run tests with resource filter for this shard
+          # Run tests with shard resources for this shard
           ./scripts/pipeline/bi_weekly_tests/run_tests.py ephemerals ${{ matrix.service }} \
             coverage-ephemerals-${{ matrix.service }}${SUFFIX}.txt \
             test-output-ephemerals-${{ matrix.service }}${SUFFIX}.log \
             --max-procs 1 --test-parallel 1 --pkg-parallel 1 --skip-enumeration --no-race \
-            --resource-filter "${{ matrix.resources }}"
+            --shard-resources "${{ matrix.resources }}"
         continue-on-error: true
 
       - name: Upload test results
