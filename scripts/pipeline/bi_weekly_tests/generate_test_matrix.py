@@ -40,10 +40,7 @@ import struct
 from pathlib import Path
 from typing import Dict, List
 
-RESOURCES_PER_SHARD = int(os.environ.get('RESOURCES_PER_SHARD', '5'))
-MIN_RESOURCES_FOR_SHARDING = int(
-    os.environ.get('MIN_RESOURCES_FOR_SHARDING', '10')
-)
+ITEMS_PER_SHARD = int(os.environ.get('ITEMS_PER_SHARD', '5'))
 RENDEZVOUS_SEED = os.environ.get(
     'RENDEZVOUS_SEED',
     'terraform-provider-microsoft365'
@@ -108,7 +105,7 @@ def discover_resources(service: str, configuration_block_type: str) -> List[str]
         if not graph_version_dir.is_dir():
             continue
 
-        # Why check for graph_? Ephemerals can exist at service/name
+        # checking for graph_? as Ephemerals can exist at service/name
         # or service/graph_beta/name unlike other types
         is_graph_version = graph_version_dir.name.startswith('graph_')
 
@@ -218,25 +215,29 @@ def distribute_rendezvous(
     return shards
 
 
-def calculate_shard_count(resource_count: int) -> int:
-    """Calculate optimal shard count.
+def calculate_shard_count(item_count: int) -> int:
+    """Calculate shard count based on items per shard.
 
-    Why threshold? Small services don't benefit from sharding overhead.
-    Only shard when we have enough resources to justify parallel runners.
+    Always shard consistently - every ITEMS_PER_SHARD items = 1 shard.
+    The final shard may contain fewer items, which is expected and acceptable.
 
     Args:
-        resource_count: Number of resources in the service
+        item_count: Number of test packages/items in the service
+                   (resources, datasources, actions, list-resources, or ephemerals)
 
     Returns:
-        Optimal number of shards (minimum 1)
-    """
-    if resource_count < MIN_RESOURCES_FOR_SHARDING:
-        return 1
+        Number of shards (minimum 1)
 
-    # Why ceiling division? Ensures we don't exceed target per shard
-    shard_count = (
-        (resource_count + RESOURCES_PER_SHARD - 1) // RESOURCES_PER_SHARD
-    )
+    Examples:
+        - 1 item with 5/shard = 1 shard (1 item)
+        - 5 items with 5/shard = 1 shard (5 items)
+        - 6 items with 5/shard = 2 shards (5+1 items)
+        - 9 items with 5/shard = 2 shards (5+4 items)
+        - 11 items with 5/shard = 3 shards (5+5+1 items)
+    """
+    # Why ceiling division? Ensures all items are included
+    # and last shard can have fewer items
+    shard_count = (item_count + ITEMS_PER_SHARD - 1) // ITEMS_PER_SHARD
     return max(1, shard_count)
 
 
@@ -255,31 +256,31 @@ def generate_matrix_for_service(
     Returns:
         List of matrix entry dictionaries
     """
-    resources = discover_resources(service, configuration_block_type)
-    resource_count = len(resources)
+    items = discover_resources(service, configuration_block_type)
+    item_count = len(items)
 
-    if resource_count == 0:
-        # Why skip? Avoids creating empty jobs in GitHub Actions
+    if item_count == 0:
+        # Avoids creating empty jobs in GitHub Actions
         return []
 
-    shard_count = calculate_shard_count(resource_count)
-    shards = distribute_rendezvous(resources, shard_count, RENDEZVOUS_SEED)
+    shard_count = calculate_shard_count(item_count)
+    shards = distribute_rendezvous(items, shard_count, RENDEZVOUS_SEED)
 
     matrix_entries = []
     for shard_idx in range(shard_count):
-        shard_resources = shards[shard_idx]
+        shard_items = shards[shard_idx]
 
         entry = {
             "service": service,
             "runner": runner,
             "shard_index": shard_idx,
             "total_shards": shard_count,
-            "resource_count": len(shard_resources),
-            # Why comma-separated? Easy to parse in bash
-            "resources": ",".join(shard_resources)
+            "item_count": len(shard_items),
+            # comma-separating allows easy parsing in bash
+            "resources": ",".join(shard_items)
         }
 
-        # Why shard_label? GitHub Actions UI shows job names clearly
+        # shard_label for GitHub Actions UI to show job names clearly
         if shard_count == 1:
             entry["shard_label"] = ""
         else:
@@ -329,13 +330,8 @@ def main():
         )
         print("\nEnvironment variables:", file=sys.stderr)
         print(
-            f"  RESOURCES_PER_SHARD         "
-            f"Target per shard (default: {RESOURCES_PER_SHARD})",
-            file=sys.stderr
-        )
-        print(
-            f"  MIN_RESOURCES_FOR_SHARDING  "
-            f"Min before sharding (default: {MIN_RESOURCES_FOR_SHARDING})",
+            f"  ITEMS_PER_SHARD             "
+            f"Items per shard (default: {ITEMS_PER_SHARD})",
             file=sys.stderr
         )
         print(
@@ -391,7 +387,7 @@ def main():
             file=sys.stderr
         )
 
-    # Why stderr? Keeps diagnostic output separate from JSON stdout
+    # Keeps diagnostic output separate from JSON stdout
     print(
         f"[generate_test_matrix] Configuration block type: "
         f"{configuration_block_type}",
@@ -402,13 +398,8 @@ def main():
         file=sys.stderr
     )
     print(
-        f"[generate_test_matrix] Resources per shard: "
-        f"{RESOURCES_PER_SHARD}",
-        file=sys.stderr
-    )
-    print(
-        f"[generate_test_matrix] Min resources for sharding: "
-        f"{MIN_RESOURCES_FOR_SHARDING}",
+        f"[generate_test_matrix] Items per shard: "
+        f"{ITEMS_PER_SHARD}",
         file=sys.stderr
     )
     print(
@@ -432,12 +423,12 @@ def main():
             shard_info = "no sharding"
 
         print(
-            f"  - {entry['service']}: {entry['resource_count']} "
-            f"resources ({shard_info})",
+            f"  - {entry['service']}: {entry['item_count']} "
+            f"items ({shard_info})",
             file=sys.stderr
         )
 
-    # Why stdout? GitHub Actions reads matrix from stdout
+    # GitHub Actions reads matrix from stdout
     print(json.dumps(matrix))
 
 
