@@ -367,11 +367,11 @@ def process_test_failures(owner: str, repo: str, run_id: str,
     
     for failure in failures:
         test_name = failure["test_name"]
-        category = failure["category"]
+        configuration_block_type = failure["configuration_block_type"]
         service = failure["service"]
         context = failure["context"]
         
-        service_path = f"{category}/{service}" if service and service != "null" else category
+        service_path = f"{configuration_block_type}/{service}" if service and service != "null" else configuration_block_type
         
         print(f"• {test_name}")
         print(f"  Service: {service_path}")
