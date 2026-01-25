@@ -117,14 +117,32 @@ def discover_resources(service: str, configuration_block_type: str) -> List[str]
                 if not resource_dir.is_dir():
                     continue
 
-                has_marker = any(
-                    (resource_dir / marker).exists()
-                    for marker in markers
-                )
+                # Actions can selectively have category grouping:
+                # actions/{service}/{graph_version}/{category}/{action_name}/
+                # Example: actions/device_management/graph_beta/managed_device/wipe/
+                if configuration_block_type == 'actions':
+                    # Iterate through category directories
+                    for action_dir in resource_dir.iterdir():
+                        if not action_dir.is_dir():
+                            continue
 
-                if has_marker:
-                    rel_path = str(resource_dir.relative_to(base_path))
-                    packages.append(rel_path)
+                        has_marker = any(
+                            (action_dir / marker).exists()
+                            for marker in markers
+                        )
+
+                        if has_marker:
+                            rel_path = str(action_dir.relative_to(base_path))
+                            packages.append(rel_path)
+                else:
+                    has_marker = any(
+                        (resource_dir / marker).exists()
+                        for marker in markers
+                    )
+
+                    if has_marker:
+                        rel_path = str(resource_dir.relative_to(base_path))
+                        packages.append(rel_path)
         else:
             has_marker = any(
                 (graph_version_dir / marker).exists()
