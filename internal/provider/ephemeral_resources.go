@@ -4,7 +4,7 @@ import (
 	"context"
 
 	graphBetaAuditEvents "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/ephemerals/multitenant_management/graph_beta/audit_events"
-	//windowsAutopilotDeviceCSVImport "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/ephemeral/windows_autopilot_device_csv_import"
+	//windowsAutopilotDeviceCSVImport "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/ephemeral/utility/graph_beta/windows_autopilot_device_csv_import"
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 )
