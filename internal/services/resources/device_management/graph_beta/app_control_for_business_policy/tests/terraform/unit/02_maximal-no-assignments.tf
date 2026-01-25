@@ -1,8 +1,11 @@
-resource "microsoft365_graph_beta_device_management_app_control_for_business_policy" "with_assignments" {
-  name        = "acc-test-app-control-policy-with-assignments"
-  description = "acc-test-app-control-policy-with-assignments"
+# Test 02: Maximal Configuration - No Assignments
+# Purpose: Deploy maximal app control policy without assignments
 
-  # Basic XML policy content for testing - AllowAll_EnableHVCI.xml
+# Maximal App Control Policy - No Assignments
+resource "microsoft365_graph_beta_device_management_app_control_for_business_policy" "maximal" {
+  name        = "unit-test-app-control-policy-maximal"
+  description = "Maximal app control policy for testing with enhanced description - no assignments"
+
   policy_xml = <<-EOT
 <?xml version="1.0" encoding="utf-8"?>
 <SiPolicy xmlns="urn:schemas-microsoft-com:sipolicy" PolicyType="Base Policy">
@@ -33,16 +36,12 @@ resource "microsoft365_graph_beta_device_management_app_control_for_business_pol
       <Option>Disabled:Script Enforcement</Option>
     </Rule>
   </Rules>
-  <!--EKUS-->
   <EKUs />
-  <!--File Rules-->
   <FileRules>
     <Allow ID="ID_ALLOW_A_1" FileName="*" />
     <Allow ID="ID_ALLOW_A_2" FileName="*" />
   </FileRules>
-  <!--Signers-->
   <Signers />
-  <!--Driver Signing Scenarios-->
   <SigningScenarios>
     <SigningScenario Value="131" ID="ID_SIGNINGSCENARIO_DRIVERS_1" FriendlyName="Auto generated policy on 08-17-2015">
       <ProductSigners>
@@ -82,22 +81,7 @@ resource "microsoft365_graph_beta_device_management_app_control_for_business_pol
 </SiPolicy>
   EOT
 
-  # Role scope tags for testing
   role_scope_tag_ids = ["0"]
-
-  # Assignments for testing
-  assignments = [
-    {
-      type = "allLicensedUsersAssignmentTarget"
-    },
-    {
-      type     = "groupAssignmentTarget"
-      group_id = microsoft365_graph_beta_groups_group.acc_test_group_1.id
-    },
-    {
-      type = "allDevicesAssignmentTarget"
-    }
-  ]
 
   timeouts = {
     create = "15m"

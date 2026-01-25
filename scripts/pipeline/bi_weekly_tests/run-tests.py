@@ -441,11 +441,12 @@ def run_provider_core_tests(coverage_file: str, test_output_file: str,
     return 1 if has_failures else 0
 
 
-def run_service_tests(category: str, service: str, 
+def run_service_tests(category: str, service: str,
                     coverage_file: str, test_output_file: str,
                     max_procs: int = 2, test_parallel: int = 1,
                     pkg_parallel: int = 1, use_race: bool = False,
-                    skip_enumeration: bool = False, force_gc: bool = True) -> int:
+                    skip_enumeration: bool = False, force_gc: bool = True,
+                    resource_filter: str = "") -> int:
     """Run tests for a specific service sequentially, one package at a time to conserve memory.
 
     Discovers all test packages in the service directory, runs tests package-by-package,
@@ -460,6 +461,9 @@ def run_service_tests(category: str, service: str,
         test_parallel: Number of tests to run in parallel within a package.
         pkg_parallel: Number of packages to build/test in parallel.
         use_race: Whether to enable race detection (-race flag).
+        skip_enumeration: Whether to skip test enumeration phase.
+        force_gc: Whether to force garbage collection between packages.
+        resource_filter: Comma-separated list of resource paths to test (for sharding).
 
     Returns:
         0 if all tests passed, 1 if any test failed.
@@ -481,7 +485,32 @@ def run_service_tests(category: str, service: str,
     # Discover all test packages
     print(f"\n🔍 [DISCOVERY] Starting package discovery...")
     test_packages = discover_test_packages(test_dir)
-    
+
+    # Apply resource filter if specified
+    if resource_filter:
+        print(f"🔍 [FILTER] Applying resource filter: {resource_filter}")
+        # Parse comma-separated resource paths
+        filter_resources = [r.strip() for r in resource_filter.split(',') if r.strip()]
+        print(f"🔍 [FILTER] Filtering for {len(filter_resources)} resource(s)")
+
+        # Convert resource paths to expected package format
+        # Resource path format: "graph_beta/resource_name"
+        # Package path format: "./internal/services/resources/service_name/graph_beta/resource_name"
+        filtered_packages = []
+        for resource_path in filter_resources:
+            # Build expected package path (same format as discover_test_packages returns)
+            expected_pkg = f"{test_dir_str}/{resource_path}"
+
+            if expected_pkg in test_packages:
+                filtered_packages.append(expected_pkg)
+                print(f"✅ [FILTER] Matched resource: {resource_path}")
+            else:
+                print(f"⚠️  [FILTER] Resource not found: {resource_path}")
+                print(f"   Looking for: {expected_pkg}")
+
+        test_packages = filtered_packages
+        print(f"✅ [FILTER] Filtered to {len(test_packages)} package(s)")
+
     if not test_packages:
         print(f"⚠️  [DISCOVERY] No test packages found in {test_dir_str}")
         print(f"✅ [COMPLETE] Creating empty coverage file and exiting")
@@ -671,7 +700,9 @@ Examples:
                        help='Force garbage collection between packages (default: enabled)')
     parser.add_argument('--no-force-gc', dest='force_gc', action='store_false',
                        help='Disable forced garbage collection')
-    
+    parser.add_argument('--resource-filter', type=str, default='',
+                       help='Comma-separated list of resource paths to test (e.g., "graph_beta/resource1,graph_v1.0/resource2")')
+
     args = parser.parse_args()
     
     # Set default for use_race if not specified
@@ -739,16 +770,17 @@ Examples:
                   file=sys.stderr)
             sys.exit(1)
         exit_code = run_service_tests(
-            args.type, 
-            args.service, 
-            args.coverage_file, 
+            args.type,
+            args.service,
+            args.coverage_file,
             args.output_file,
             args.max_procs,
             args.test_parallel,
             args.pkg_parallel,
             args.use_race,
             args.skip_enumeration,
-            args.force_gc
+            args.force_gc,
+            args.resource_filter
         )
     else:
         print(f"Error: unknown test type: {args.type}", file=sys.stderr)

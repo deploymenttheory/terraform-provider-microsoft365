@@ -32,6 +32,18 @@ func (m *AppControlForBusinessPolicyMock) RegisterMocks() {
 	mockState.appControlPolicies = make(map[string]map[string]any)
 	mockState.Unlock()
 
+	m.registerGetPolicyListMock()
+	m.registerGetPolicyMock()
+	m.registerGetSettingsMock()
+	m.registerGetAssignmentsMock()
+	m.registerCreatePolicyMock()
+	m.registerUpdatePolicyMocks()
+	m.registerAssignmentMock()
+	m.registerDeletePolicyMock()
+}
+
+// registerGetPolicyListMock registers the GET responder for listing configuration policies
+func (m *AppControlForBusinessPolicyMock) registerGetPolicyListMock() {
 	httpmock.RegisterResponder("GET", "https://graph.microsoft.com/beta/deviceManagement/configurationPolicies", func(req *http.Request) (*http.Response, error) {
 		mockState.Lock()
 		defer mockState.Unlock()
@@ -66,7 +78,10 @@ func (m *AppControlForBusinessPolicyMock) RegisterMocks() {
 		responseObj["value"] = list
 		return httpmock.NewJsonResponse(200, responseObj)
 	})
+}
 
+// registerGetPolicyMock registers the GET responder for retrieving a single configuration policy
+func (m *AppControlForBusinessPolicyMock) registerGetPolicyMock() {
 	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/deviceManagement/configurationPolicies/[^/]+$`, func(req *http.Request) (*http.Response, error) {
 		parts := strings.Split(req.URL.Path, "/")
 		id := parts[len(parts)-1]
@@ -92,7 +107,10 @@ func (m *AppControlForBusinessPolicyMock) RegisterMocks() {
 
 		return httpmock.NewJsonResponse(200, responseObj)
 	})
+}
 
+// registerGetSettingsMock registers the GET responder for retrieving policy settings
+func (m *AppControlForBusinessPolicyMock) registerGetSettingsMock() {
 	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/deviceManagement/configurationPolicies/[^/]+/settings$`, func(req *http.Request) (*http.Response, error) {
 		// Extract policy ID from URL path
 		parts := strings.Split(req.URL.Path, "/")
@@ -124,7 +142,10 @@ func (m *AppControlForBusinessPolicyMock) RegisterMocks() {
 		_ = json.Unmarshal([]byte(jsonStr), &responseObj)
 		return httpmock.NewJsonResponse(200, responseObj)
 	})
+}
 
+// registerGetAssignmentsMock registers the GET responder for retrieving policy assignments
+func (m *AppControlForBusinessPolicyMock) registerGetAssignmentsMock() {
 	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/deviceManagement/configurationPolicies/[^/]+/assignments$`, func(req *http.Request) (*http.Response, error) {
 		// Extract policy ID from URL path
 		parts := strings.Split(req.URL.Path, "/")
@@ -154,7 +175,10 @@ func (m *AppControlForBusinessPolicyMock) RegisterMocks() {
 			"value":          []any{},
 		})
 	})
+}
 
+// registerCreatePolicyMock registers the POST responder for creating configuration policies
+func (m *AppControlForBusinessPolicyMock) registerCreatePolicyMock() {
 	httpmock.RegisterResponder("POST", "https://graph.microsoft.com/beta/deviceManagement/configurationPolicies", func(req *http.Request) (*http.Response, error) {
 		var body map[string]any
 		if err := json.NewDecoder(req.Body).Decode(&body); err != nil {
@@ -208,7 +232,11 @@ func (m *AppControlForBusinessPolicyMock) RegisterMocks() {
 
 		return httpmock.NewJsonResponse(201, responseObj)
 	})
+}
 
+// registerUpdatePolicyMocks registers the PATCH and PUT responders for updating configuration policies
+func (m *AppControlForBusinessPolicyMock) registerUpdatePolicyMocks() {
+	// PATCH responder for slash-style URLs
 	httpmock.RegisterResponder("PATCH", `=~^https://graph\.microsoft\.com/beta/deviceManagement/configurationPolicies/[^/]+$`, func(req *http.Request) (*http.Response, error) {
 		parts := strings.Split(req.URL.Path, "/")
 		id := parts[len(parts)-1]
@@ -253,6 +281,84 @@ func (m *AppControlForBusinessPolicyMock) RegisterMocks() {
 		return httpmock.NewJsonResponse(200, responseObj)
 	})
 
+	// PUT responder for OData-style URLs: /deviceManagement/configurationPolicies('id')
+	httpmock.RegisterResponder("PUT", `=~^https://graph\.microsoft\.com/beta/deviceManagement/configurationPolicies\('[^']+'\)$`, func(req *http.Request) (*http.Response, error) {
+		path := req.URL.Path
+		var id string
+		if strings.Contains(path, "('") && strings.Contains(path, "')") {
+			start := strings.Index(path, "('") + 2
+			end := strings.Index(path, "')")
+			id = path[start:end]
+		}
+
+		var body map[string]any
+		if err := json.NewDecoder(req.Body).Decode(&body); err != nil {
+			return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"Invalid request body"}}`), nil
+		}
+
+		mockState.Lock()
+		existing, ok := mockState.appControlPolicies[id]
+		if !ok {
+			mockState.Unlock()
+			jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_delete/get_policy_not_found.json")
+			var errObj map[string]any
+			_ = json.Unmarshal([]byte(jsonStr), &errObj)
+			return httpmock.NewJsonResponse(404, errObj)
+		}
+
+		// Apply updates from body to existing policy
+		for k, v := range body {
+			existing[k] = v
+		}
+
+		// Update last modified time
+		existing["lastModifiedDateTime"] = "2024-01-02T00:00:00Z"
+
+		mockState.appControlPolicies[id] = existing
+		mockState.Unlock()
+
+		// PUT returns 204 No Content on success
+		return httpmock.NewStringResponse(204, ""), nil
+	})
+
+	// PUT responder for slash-style URLs: /deviceManagement/configurationPolicies/{id}
+	httpmock.RegisterResponder("PUT", `=~^https://graph\.microsoft\.com/beta/deviceManagement/configurationPolicies/[^/]+$`, func(req *http.Request) (*http.Response, error) {
+		parts := strings.Split(req.URL.Path, "/")
+		id := parts[len(parts)-1]
+
+		var body map[string]any
+		if err := json.NewDecoder(req.Body).Decode(&body); err != nil {
+			return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"Invalid request body"}}`), nil
+		}
+
+		mockState.Lock()
+		existing, ok := mockState.appControlPolicies[id]
+		if !ok {
+			mockState.Unlock()
+			jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_delete/get_policy_not_found.json")
+			var errObj map[string]any
+			_ = json.Unmarshal([]byte(jsonStr), &errObj)
+			return httpmock.NewJsonResponse(404, errObj)
+		}
+
+		// Apply updates from body to existing policy
+		for k, v := range body {
+			existing[k] = v
+		}
+
+		// Update last modified time
+		existing["lastModifiedDateTime"] = "2024-01-02T00:00:00Z"
+
+		mockState.appControlPolicies[id] = existing
+		mockState.Unlock()
+
+		// PUT returns 204 No Content on success
+		return httpmock.NewStringResponse(204, ""), nil
+	})
+}
+
+// registerAssignmentMock registers the POST responder for assigning policies
+func (m *AppControlForBusinessPolicyMock) registerAssignmentMock() {
 	httpmock.RegisterResponder("POST", `=~^https://graph\.microsoft\.com/beta/deviceManagement/configurationPolicies/[^/]+/assign$`, func(req *http.Request) (*http.Response, error) {
 		parts := strings.Split(req.URL.Path, "/")
 		id := parts[len(parts)-2]
@@ -275,7 +381,10 @@ func (m *AppControlForBusinessPolicyMock) RegisterMocks() {
 		// Return empty success response
 		return httpmock.NewStringResponse(204, ""), nil
 	})
+}
 
+// registerDeletePolicyMock registers the DELETE responder for removing configuration policies
+func (m *AppControlForBusinessPolicyMock) registerDeletePolicyMock() {
 	httpmock.RegisterResponder("DELETE", `=~^https://graph\.microsoft\.com/beta/deviceManagement/configurationPolicies/[^/]+$`, func(req *http.Request) (*http.Response, error) {
 		parts := strings.Split(req.URL.Path, "/")
 		id := parts[len(parts)-1]
@@ -288,6 +397,7 @@ func (m *AppControlForBusinessPolicyMock) RegisterMocks() {
 	})
 }
 
+// RegisterErrorMocks registers mock responders that return errors for testing error handling
 func (m *AppControlForBusinessPolicyMock) RegisterErrorMocks() {
 	mockState.Lock()
 	mockState.appControlPolicies = make(map[string]map[string]any)
@@ -315,6 +425,7 @@ func (m *AppControlForBusinessPolicyMock) RegisterErrorMocks() {
 	})
 }
 
+// CleanupMockState clears all mock state data
 func (m *AppControlForBusinessPolicyMock) CleanupMockState() {
 	mockState.Lock()
 	defer mockState.Unlock()
