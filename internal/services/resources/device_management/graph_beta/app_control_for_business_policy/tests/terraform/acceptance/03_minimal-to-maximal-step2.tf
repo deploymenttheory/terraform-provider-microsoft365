@@ -1,9 +1,18 @@
-# Minimal App Control for Business XML Policy configuration
-resource "microsoft365_graph_beta_device_management_app_control_for_business_policy" "minimal" {
-  name        = "unit-test-app-control-policy-minimal"
-  description = "unit-test-app-control-policy-minimal"
+# Test 03 Step 2: Minimal to Maximal - Updated State (Maximal)
+# Purpose: Update the policy from minimal to maximal configuration
 
-  # Basic XML policy content for testing - AllowAll_EnableHVCI.xml
+# Dependencies (same as step 1)
+resource "random_string" "suffix" {
+  length  = 8
+  special = false
+  upper   = false
+}
+
+# Update to Maximal Configuration
+resource "microsoft365_graph_beta_device_management_app_control_for_business_policy" "step_test" {
+  name        = "acc-test-app-control-policy-step-test"
+  description = "Step test policy - updated to maximal with enhanced description"
+
   policy_xml = <<-EOT
 <?xml version="1.0" encoding="utf-8"?>
 <SiPolicy xmlns="urn:schemas-microsoft-com:sipolicy" PolicyType="Base Policy">
@@ -34,16 +43,12 @@ resource "microsoft365_graph_beta_device_management_app_control_for_business_pol
       <Option>Disabled:Script Enforcement</Option>
     </Rule>
   </Rules>
-  <!--EKUS-->
   <EKUs />
-  <!--File Rules-->
   <FileRules>
     <Allow ID="ID_ALLOW_A_1" FileName="*" />
     <Allow ID="ID_ALLOW_A_2" FileName="*" />
   </FileRules>
-  <!--Signers-->
   <Signers />
-  <!--Driver Signing Scenarios-->
   <SigningScenarios>
     <SigningScenario Value="131" ID="ID_SIGNINGSCENARIO_DRIVERS_1" FriendlyName="Auto generated policy on 08-17-2015">
       <ProductSigners>
@@ -83,25 +88,7 @@ resource "microsoft365_graph_beta_device_management_app_control_for_business_pol
 </SiPolicy>
   EOT
 
-  # Role scope tags for testing
-  role_scope_tag_ids = ["0", "1", "2"]
-
-  assignments = [
-    {
-      type = "allLicensedUsersAssignmentTarget"
-    },
-    {
-      type        = "groupAssignmentTarget"
-      group_id    = "33333333-3333-3333-3333-333333333333"
-      filter_id   = "44444444-4444-4444-4444-444444444444"
-      filter_type = "include"
-    },
-    {
-      type        = "allDevicesAssignmentTarget"
-      filter_id   = "55555555-5555-5555-5555-555555555555"
-      filter_type = "exclude"
-    }
-  ]
+  role_scope_tag_ids = ["0"]
 
   timeouts = {
     create = "15m"

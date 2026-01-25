@@ -1,8 +1,11 @@
-resource "microsoft365_graph_beta_device_management_app_control_for_business_policy" "maximal" {
-  name        = "acc-test-app-control-policy-maximal"
-  description = "acc-test-app-control-policy-maximal"
+# Test 07 Step 2: Minimal Assignments to Maximal Assignments - Updated State (Maximal Assignments)
+# Purpose: Expand assignments from minimal (1 group) to maximal (3 assignments)
 
-  # Basic XML policy content for testing - AllowAll_EnableHVCI.xml
+# Update to Maximal Assignments
+resource "microsoft365_graph_beta_device_management_app_control_for_business_policy" "assignment_step_test" {
+  name        = "unit-test-app-control-policy-assignment-step-test"
+  description = "Assignment step test policy - expanded to maximal assignments"
+
   policy_xml = <<-EOT
 <?xml version="1.0" encoding="utf-8"?>
 <SiPolicy xmlns="urn:schemas-microsoft-com:sipolicy" PolicyType="Base Policy">
@@ -33,16 +36,12 @@ resource "microsoft365_graph_beta_device_management_app_control_for_business_pol
       <Option>Disabled:Script Enforcement</Option>
     </Rule>
   </Rules>
-  <!--EKUS-->
   <EKUs />
-  <!--File Rules-->
   <FileRules>
     <Allow ID="ID_ALLOW_A_1" FileName="*" />
     <Allow ID="ID_ALLOW_A_2" FileName="*" />
   </FileRules>
-  <!--Signers-->
   <Signers />
-  <!--Driver Signing Scenarios-->
   <SigningScenarios>
     <SigningScenario Value="131" ID="ID_SIGNINGSCENARIO_DRIVERS_1" FriendlyName="Auto generated policy on 08-17-2015">
       <ProductSigners>
@@ -82,20 +81,22 @@ resource "microsoft365_graph_beta_device_management_app_control_for_business_pol
 </SiPolicy>
   EOT
 
-  # Role scope tags for testing
-  role_scope_tag_ids = ["0", "1", "2"]
+  role_scope_tag_ids = ["0"]
 
-  # Assignments for testing
+  # Maximal Assignments - 3 targets (hardcoded GUID for group)
   assignments = [
     {
-      type = "allLicensedUsersAssignmentTarget"
+      type        = "allLicensedUsersAssignmentTarget"
+      filter_type = "none"
     },
     {
-      type     = "groupAssignmentTarget"
-      group_id = microsoft365_graph_beta_groups_group.acc_test_group_1.id
+      type        = "groupAssignmentTarget"
+      group_id    = "33333333-3333-3333-3333-333333333333"
+      filter_type = "none"
     },
     {
-      type = "allDevicesAssignmentTarget"
+      type        = "allDevicesAssignmentTarget"
+      filter_type = "none"
     }
   ]
 

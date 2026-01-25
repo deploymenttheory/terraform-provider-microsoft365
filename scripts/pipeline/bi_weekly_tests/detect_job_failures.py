@@ -9,7 +9,7 @@ failures that are not test failures, including:
 - Setup/dependency step failures that prevented test execution
 
 Usage:
-    ./detect-job-failures.py <owner> <repo> <run-id> <output-file>
+    ./detect_job_failures.py <owner> <repo> <run-id> <output-file>
 
 Args:
     owner: GitHub repository owner.
@@ -72,10 +72,9 @@ def get_workflow_jobs(owner: str, repo: str, run_id: str) -> list[dict]:
         if not result:
             return []
         
-        # Parse JSON response directly in Python
         response = json.loads(result)
         return response.get("jobs", [])
-    except Exception as e:
+    except (subprocess.CalledProcessError, json.JSONDecodeError) as e:
         print(f"Error getting workflow jobs: {e}", file=sys.stderr)
         return []
 
@@ -93,28 +92,33 @@ def analyze_job_failure(job: dict) -> Optional[dict]:
         Dictionary with failure details if this is an infrastructure failure,
         None if it's a test failure or the job didn't fail.
     """
-    # Skip jobs that didn't fail at job level
     if job.get("conclusion") not in ["failure", "cancelled", "timed_out"]:
         return None
-    
-    # Skip jobs that failed due to test failures (they have continue-on-error)
-    # We only want infrastructure/job-level failures
+
+    # Test failures use continue-on-error and are
+    # tracked separately. We only report infrastructure/setup failures here.
     job_name = job.get("name", "Unknown")
-    
-    # Check if this is a test job that's expected to have continue-on-error
-    if any(keyword in job_name.lower() for keyword in ["test", "provider", "resource", "datasource"]):
-        # For test jobs, only report if it's a non-test step that failed
-        # (like setup, checkout, dependency install, etc.)
+
+    # Test jobs have continue-on-error, so we only
+    # want to report their infrastructure step failures, not test failures
+    test_keywords = ["test", "provider", "resource", "datasource"]
+    if any(keyword in job_name.lower() for keyword in test_keywords):
+        # Test step failures are handled by
+        # test result tracking. We only care about setup/infra failures.
         steps = job.get("steps", [])
         for step in steps:
             step_name = step.get("name", "").lower()
             step_conclusion = step.get("conclusion")
-            
-            # If a setup/infrastructure step failed, report it
-            if step_conclusion == "failure" and not any(
-                test_keyword in step_name 
-                for test_keyword in ["run test", "run provider", "run resource", "run datasource"]
-            ):
+
+            test_step_keywords = [
+                "run test",
+                "run provider",
+                "run resource",
+                "run datasource"
+            ]
+            is_test_step = any(kw in step_name for kw in test_step_keywords)
+
+            if step_conclusion == "failure" and not is_test_step:
                 return {
                     "job_name": job_name,
                     "job_id": job.get("id"),
@@ -128,21 +132,22 @@ def analyze_job_failure(job: dict) -> Optional[dict]:
                     "runner_name": job.get("runner_name"),
                 }
     
-    # Non-test jobs that failed - always report
+    # Non-test jobs don't use continue-on-error,
+    # so any failure is a real infrastructure issue
     failed_step = None
     if job.get("conclusion") == "timed_out":
         failure_type = "timeout"
     elif job.get("conclusion") == "cancelled":
         failure_type = "cancelled"
     else:
-        # Determine failure type from steps
         steps = job.get("steps", [])
         for step in steps:
             if step.get("conclusion") == "failure":
                 failed_step = step
                 break
-        
-        # Check for OOM or runner issues in step name/conclusion
+
+        # Helps categorize infrastructure issues
+        # for better debugging and metrics
         if failed_step:
             step_name = failed_step.get("name", "").lower()
             if "memory" in step_name or "oom" in step_name:
@@ -184,31 +189,28 @@ def detect_job_failures(owner: str, repo: str, run_id: str, output_file: str) ->
     print(f"Detecting job-level failures for run {run_id}")
     print(f"{'='*60}\n")
     
-    # Get all jobs for this workflow run
     print("Querying GitHub API for job statuses...")
     jobs = get_workflow_jobs(owner, repo, run_id)
     
     if not jobs:
         print("⚠️  No jobs found or API query failed")
-        with open(output_file, 'w') as f:
+        with open(output_file, 'w', encoding='utf-8') as f:
             json.dump([], f, indent=2)
         return
     
     print(f"Found {len(jobs)} total jobs in workflow run")
     
-    # Analyze each job for failures
     job_failures = []
     for job in jobs:
         failure = analyze_job_failure(job)
         if failure:
             job_failures.append(failure)
-            print(f"\n❌ Job Failure Detected:")
+            print("\n❌ Job Failure Detected:")
             print(f"   Job: {failure['job_name']}")
             print(f"   Type: {failure['failure_type']}")
             print(f"   Failed Step: {failure['failed_step']}")
     
-    # Write results to file
-    with open(output_file, 'w') as f:
+    with open(output_file, 'w', encoding='utf-8') as f:
         json.dump(job_failures, f, indent=2)
     
     if job_failures:
@@ -222,9 +224,16 @@ def detect_job_failures(owner: str, repo: str, run_id: str, output_file: str) ->
 
 
 def main():
+    """Main entry point for the script.
+
+    Parses command-line arguments and invokes job failure detection.
+    """
     if len(sys.argv) < 4:
-        print("Usage: detect-job-failures.py <owner> <repo> <run-id> [output-file]", 
-            file=sys.stderr)
+        print(
+            "Usage: detect_job_failures.py <owner> <repo> <run-id> "
+            "[output-file]",
+            file=sys.stderr
+        )
         sys.exit(1)
     
     owner = sys.argv[1]

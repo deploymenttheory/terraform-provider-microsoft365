@@ -1,26 +1,39 @@
 package graphBetaAppControlForBusinessPolicy_test
 
 import (
-	"context"
-	"fmt"
-	"log"
+	"regexp"
 	"testing"
+	"time"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/check"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/destroy"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/testlog"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
-	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 )
 
-func TestAccAppControlForBusinessPolicyResource_Lifecycle(t *testing.T) {
+// loadAcceptanceTestTerraform loads acceptance test terraform configuration files
+func loadAcceptanceTestTerraform(filename string) string {
+	config, err := helpers.ParseHCLFile("tests/terraform/acceptance/" + filename)
+	if err != nil {
+		panic("failed to load acceptance config " + filename + ": " + err.Error())
+	}
+	return config
+}
+
+// Test 01: Minimal Configuration - No Assignments
+func TestAccAppControlForBusinessPolicyResource_01_MinimalNoAssignments(t *testing.T) {
 	resource.Test(t, resource.TestCase{
-		PreCheck:                  func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories:  mocks.TestAccProtoV6ProviderFactories,
-		CheckDestroy:              testAccCheckAppControlForBusinessPolicyDestroy,
-		PreventPostDestroyRefresh: true, // Prevents refresh after destroy to avoid dependency issues
+		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		CheckDestroy: destroy.CheckDestroyedAllFunc(
+			testResource,
+			resourceType,
+			30*time.Second,
+		),
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
 				Source:            "hashicorp/random",
@@ -29,43 +42,48 @@ func TestAccAppControlForBusinessPolicyResource_Lifecycle(t *testing.T) {
 		},
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAppControlForBusinessPolicyConfig_minimal(),
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "01: Creating minimal app control policy - no assignments")
+				},
+				Config: loadAcceptanceTestTerraform("01_minimal-no-assignments.tf"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("microsoft365_graph_beta_device_management_app_control_for_business_policy.minimal", "id"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_app_control_for_business_policy.minimal", "name", "acc-test-app-control-policy-minimal"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_app_control_for_business_policy.minimal", "role_scope_tag_ids.#", "3"),
-					resource.TestCheckTypeSetElemAttr("microsoft365_graph_beta_device_management_app_control_for_business_policy.minimal", "role_scope_tag_ids.*", "0"),
-					resource.TestCheckTypeSetElemAttr("microsoft365_graph_beta_device_management_app_control_for_business_policy.minimal", "role_scope_tag_ids.*", "1"),
-					resource.TestCheckTypeSetElemAttr("microsoft365_graph_beta_device_management_app_control_for_business_policy.minimal", "role_scope_tag_ids.*", "2"),
+					func(_ *terraform.State) error {
+						testlog.WaitForConsistency("app control policy", 30*time.Second)
+						time.Sleep(30 * time.Second)
+						return nil
+					},
+					check.That(resourceType+".minimal").ExistsInGraph(testResource),
+					check.That(resourceType+".minimal").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(resourceType+".minimal").Key("name").HasValue("acc-test-app-control-policy-minimal"),
+					check.That(resourceType+".minimal").Key("description").HasValue("Minimal app control policy for testing - no assignments"),
+					check.That(resourceType+".minimal").Key("policy_xml").IsSet(),
+					check.That(resourceType+".minimal").Key("role_scope_tag_ids.#").HasValue("1"),
+					check.That(resourceType+".minimal").Key("assignments.#").HasValue("0"),
 				),
 			},
 			{
-				ResourceName:      "microsoft365_graph_beta_device_management_app_control_for_business_policy.minimal",
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
-			{
-				Config: testAccAppControlForBusinessPolicyConfig_maximal(),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("microsoft365_graph_beta_device_management_app_control_for_business_policy.maximal", "id"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_app_control_for_business_policy.maximal", "name", "acc-test-app-control-policy-maximal"),
-					resource.TestCheckResourceAttrSet("microsoft365_graph_beta_device_management_app_control_for_business_policy.maximal", "policy_xml"),
-				),
-			},
-			{
-				// Use removed block to control destruction order
-				Config: testAccAppControlForBusinessPolicyConfig_removedPolicy(),
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "01: Importing minimal policy")
+				},
+				ResourceName:            resourceType + ".minimal",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"timeouts"},
 			},
 		},
 	})
 }
 
-func TestAccAppControlForBusinessPolicyResource_Assignments(t *testing.T) {
+// Test 02: Maximal Configuration - No Assignments
+func TestAccAppControlForBusinessPolicyResource_02_MaximalNoAssignments(t *testing.T) {
 	resource.Test(t, resource.TestCase{
-		PreCheck:                  func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories:  mocks.TestAccProtoV6ProviderFactories,
-		CheckDestroy:              testAccCheckAppControlForBusinessPolicyDestroy,
-		PreventPostDestroyRefresh: true, // Prevents refresh after destroy to avoid dependency issues
+		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		CheckDestroy: destroy.CheckDestroyedAllFunc(
+			testResource,
+			resourceType,
+			30*time.Second,
+		),
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
 				Source:            "hashicorp/random",
@@ -74,196 +92,519 @@ func TestAccAppControlForBusinessPolicyResource_Assignments(t *testing.T) {
 		},
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAppControlForBusinessPolicyConfig_withAssignments(),
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "02: Creating maximal app control policy - no assignments")
+				},
+				Config: loadAcceptanceTestTerraform("02_maximal-no-assignments.tf"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("microsoft365_graph_beta_device_management_app_control_for_business_policy.with_assignments", "id"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_app_control_for_business_policy.with_assignments", "name", "acc-test-app-control-policy-with-assignments"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_app_control_for_business_policy.with_assignments", "assignments.#", "3"),
-					resource.TestCheckTypeSetElemNestedAttrs("microsoft365_graph_beta_device_management_app_control_for_business_policy.with_assignments", "assignments.*", map[string]string{
-						"type":        "allLicensedUsersAssignmentTarget",
-						"filter_type": "none",
-					}),
-					resource.TestCheckTypeSetElemNestedAttrs("microsoft365_graph_beta_device_management_app_control_for_business_policy.with_assignments", "assignments.*", map[string]string{
+					func(_ *terraform.State) error {
+						testlog.WaitForConsistency("app control policy", 30*time.Second)
+						time.Sleep(30 * time.Second)
+						return nil
+					},
+					check.That(resourceType+".maximal").ExistsInGraph(testResource),
+					check.That(resourceType+".maximal").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(resourceType+".maximal").Key("name").HasValue("acc-test-app-control-policy-maximal"),
+					check.That(resourceType+".maximal").Key("description").HasValue("Maximal app control policy for testing with enhanced description - no assignments"),
+					check.That(resourceType+".maximal").Key("policy_xml").IsSet(),
+					check.That(resourceType+".maximal").Key("role_scope_tag_ids.#").HasValue("1"),
+					check.That(resourceType+".maximal").Key("assignments.#").HasValue("0"),
+				),
+			},
+			{
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "02: Importing maximal policy")
+				},
+				ResourceName:            resourceType + ".maximal",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"timeouts"},
+			},
+		},
+	})
+}
+
+// Test 03: Minimal to Maximal Configuration Update
+func TestAccAppControlForBusinessPolicyResource_03_MinimalToMaximal(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		CheckDestroy: destroy.CheckDestroyedAllFunc(
+			testResource,
+			resourceType,
+			30*time.Second,
+		),
+		ExternalProviders: map[string]resource.ExternalProvider{
+			"random": {
+				Source:            "hashicorp/random",
+				VersionConstraint: constants.ExternalProviderRandomVersion,
+			},
+		},
+		Steps: []resource.TestStep{
+			{
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "03: Step 1 - Creating minimal configuration")
+				},
+				Config: loadAcceptanceTestTerraform("03_minimal-to-maximal-step1.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					func(_ *terraform.State) error {
+						testlog.WaitForConsistency("app control policy", 30*time.Second)
+						time.Sleep(30 * time.Second)
+						return nil
+					},
+					check.That(resourceType+".step_test").ExistsInGraph(testResource),
+					check.That(resourceType+".step_test").Key("name").HasValue("acc-test-app-control-policy-step-test"),
+					check.That(resourceType+".step_test").Key("description").HasValue("Step test policy - starts minimal"),
+					check.That(resourceType+".step_test").Key("policy_xml").IsSet(),
+					check.That(resourceType+".step_test").Key("role_scope_tag_ids.#").HasValue("1"),
+				),
+			},
+			{
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "03: Step 2 - Updating to maximal configuration")
+				},
+				Config: loadAcceptanceTestTerraform("03_minimal-to-maximal-step2.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					func(_ *terraform.State) error {
+						testlog.WaitForConsistency("app control policy", 30*time.Second)
+						time.Sleep(30 * time.Second)
+						return nil
+					},
+					check.That(resourceType+".step_test").ExistsInGraph(testResource),
+					check.That(resourceType+".step_test").Key("description").HasValue("Step test policy - updated to maximal with enhanced description"),
+					check.That(resourceType+".step_test").Key("policy_xml").IsSet(),
+					check.That(resourceType+".step_test").Key("role_scope_tag_ids.#").HasValue("1"),
+				),
+			},
+			{
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "03: Importing step test policy")
+				},
+				ResourceName:            resourceType + ".step_test",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"timeouts"},
+			},
+		},
+	})
+}
+
+// Test 05: Minimal Configuration - Minimal Assignments (1 group)
+func TestAccAppControlForBusinessPolicyResource_05_MinimalMinimalAssignments(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		CheckDestroy: destroy.CheckDestroyedAllFunc(
+			testResource,
+			resourceType,
+			30*time.Second,
+		),
+		ExternalProviders: map[string]resource.ExternalProvider{
+			"random": {
+				Source:            "hashicorp/random",
+				VersionConstraint: constants.ExternalProviderRandomVersion,
+			},
+			"time": {
+				Source:            "hashicorp/time",
+				VersionConstraint: constants.ExternalProviderTimeVersion,
+			},
+		},
+		Steps: []resource.TestStep{
+			{
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "05: Creating minimal policy with minimal assignments (1 group)")
+				},
+				Config: loadAcceptanceTestTerraform("05_minimal-minimal-assignments.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					func(_ *terraform.State) error {
+						testlog.WaitForConsistency("app control policy", 30*time.Second)
+						time.Sleep(30 * time.Second)
+						return nil
+					},
+					check.That(resourceType+".minimal_minimal_assignments").ExistsInGraph(testResource),
+					check.That(resourceType+".minimal_minimal_assignments").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(resourceType+".minimal_minimal_assignments").Key("name").HasValue("acc-test-app-control-policy-minimal-minimal-assignments"),
+					check.That(resourceType+".minimal_minimal_assignments").Key("description").HasValue("Minimal app control policy with minimal assignments (1 group)"),
+					check.That(resourceType+".minimal_minimal_assignments").Key("policy_xml").IsSet(),
+					check.That(resourceType+".minimal_minimal_assignments").Key("role_scope_tag_ids.#").HasValue("1"),
+					check.That(resourceType+".minimal_minimal_assignments").Key("assignments.#").HasValue("1"),
+					resource.TestCheckTypeSetElemNestedAttrs(resourceType+".minimal_minimal_assignments", "assignments.*", map[string]string{
 						"type":        "groupAssignmentTarget",
 						"filter_type": "none",
 					}),
-					resource.TestCheckTypeSetElemNestedAttrs("microsoft365_graph_beta_device_management_app_control_for_business_policy.with_assignments", "assignments.*", map[string]string{
+				),
+			},
+			{
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "05: Importing minimal minimal assignments policy")
+				},
+				ResourceName:            resourceType + ".minimal_minimal_assignments",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"timeouts"},
+			},
+		},
+	})
+}
+
+// Test 06: Minimal Configuration - Maximal Assignments (allLicensedUsers, group, allDevices)
+func TestAccAppControlForBusinessPolicyResource_06_MinimalMaximalAssignments(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		CheckDestroy: destroy.CheckDestroyedAllFunc(
+			testResource,
+			resourceType,
+			30*time.Second,
+		),
+		ExternalProviders: map[string]resource.ExternalProvider{
+			"random": {
+				Source:            "hashicorp/random",
+				VersionConstraint: constants.ExternalProviderRandomVersion,
+			},
+			"time": {
+				Source:            "hashicorp/time",
+				VersionConstraint: constants.ExternalProviderTimeVersion,
+			},
+		},
+		Steps: []resource.TestStep{
+			{
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "06: Creating minimal policy with maximal assignments (3 targets)")
+				},
+				Config: loadAcceptanceTestTerraform("06_minimal-maximal-assignments.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					func(_ *terraform.State) error {
+						testlog.WaitForConsistency("app control policy", 30*time.Second)
+						time.Sleep(30 * time.Second)
+						return nil
+					},
+					check.That(resourceType+".minimal_maximal_assignments").ExistsInGraph(testResource),
+					check.That(resourceType+".minimal_maximal_assignments").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(resourceType+".minimal_maximal_assignments").Key("name").HasValue("acc-test-app-control-policy-minimal-maximal-assignments"),
+					check.That(resourceType+".minimal_maximal_assignments").Key("description").HasValue("Minimal app control policy with maximal assignments (allLicensedUsers, group, allDevices)"),
+					check.That(resourceType+".minimal_maximal_assignments").Key("policy_xml").IsSet(),
+					check.That(resourceType+".minimal_maximal_assignments").Key("role_scope_tag_ids.#").HasValue("1"),
+					check.That(resourceType+".minimal_maximal_assignments").Key("assignments.#").HasValue("3"),
+					resource.TestCheckTypeSetElemNestedAttrs(resourceType+".minimal_maximal_assignments", "assignments.*", map[string]string{
+						"type":        "allLicensedUsersAssignmentTarget",
+						"filter_type": "none",
+					}),
+					resource.TestCheckTypeSetElemNestedAttrs(resourceType+".minimal_maximal_assignments", "assignments.*", map[string]string{
+						"type":        "groupAssignmentTarget",
+						"filter_type": "none",
+					}),
+					resource.TestCheckTypeSetElemNestedAttrs(resourceType+".minimal_maximal_assignments", "assignments.*", map[string]string{
 						"type":        "allDevicesAssignmentTarget",
 						"filter_type": "none",
 					}),
 				),
 			},
+			{
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "06: Importing minimal maximal assignments policy")
+				},
+				ResourceName:            resourceType + ".minimal_maximal_assignments",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"timeouts"},
+			},
 		},
 	})
 }
 
-func testAccAppControlForBusinessPolicyConfig_minimal() string {
-	groups, err := helpers.ParseHCLFile("../../../../../acceptance/terraform_dependancies/device_management/groups.tf")
-	if err != nil {
-		log.Fatalf("Failed to load groups config: %v", err)
-	}
-	roleScopeTags, err := helpers.ParseHCLFile("../../../../../acceptance/terraform_dependancies/device_management/role_scope_tags.tf")
-	if err != nil {
-		log.Fatalf("Failed to load role scope tags config: %v", err)
-	}
-	accTestConfig, err := helpers.ParseHCLFile("tests/terraform/acceptance/resource_acfb_policy_minimal.tf")
-	if err != nil {
-		log.Fatalf("Failed to load minimal test config: %v", err)
-	}
-	return acceptance.ConfiguredM365ProviderBlock(groups + "\n" + roleScopeTags + "\n" + accTestConfig)
+// Test 04: Maximal to Minimal Configuration Update
+func TestAccAppControlForBusinessPolicyResource_04_MaximalToMinimal(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		CheckDestroy: destroy.CheckDestroyedAllFunc(
+			testResource,
+			resourceType,
+			30*time.Second,
+		),
+		ExternalProviders: map[string]resource.ExternalProvider{
+			"random": {
+				Source:            "hashicorp/random",
+				VersionConstraint: constants.ExternalProviderRandomVersion,
+			},
+		},
+		Steps: []resource.TestStep{
+			{
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "04: Step 1 - Creating maximal configuration")
+				},
+				Config: loadAcceptanceTestTerraform("04_maximal-to-minimal-step1.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					func(_ *terraform.State) error {
+						testlog.WaitForConsistency("app control policy", 30*time.Second)
+						time.Sleep(30 * time.Second)
+						return nil
+					},
+					check.That(resourceType+".step_test").ExistsInGraph(testResource),
+					check.That(resourceType+".step_test").Key("name").HasValue("acc-test-app-control-policy-step-test"),
+					check.That(resourceType+".step_test").Key("description").HasValue("Step test policy - starts maximal with enhanced description"),
+					check.That(resourceType+".step_test").Key("policy_xml").IsSet(),
+					check.That(resourceType+".step_test").Key("role_scope_tag_ids.#").HasValue("1"),
+				),
+			},
+			{
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "04: Step 2 - Downgrading to minimal configuration")
+				},
+				Config: loadAcceptanceTestTerraform("04_maximal-to-minimal-step2.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					func(_ *terraform.State) error {
+						testlog.WaitForConsistency("app control policy", 30*time.Second)
+						time.Sleep(30 * time.Second)
+						return nil
+					},
+					check.That(resourceType+".step_test").ExistsInGraph(testResource),
+					check.That(resourceType+".step_test").Key("description").HasValue("Step test policy - downgraded to minimal"),
+					check.That(resourceType+".step_test").Key("policy_xml").IsSet(),
+					check.That(resourceType+".step_test").Key("role_scope_tag_ids.#").HasValue("1"),
+				),
+			},
+			{
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "04: Importing step test policy")
+				},
+				ResourceName:            resourceType + ".step_test",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"timeouts"},
+			},
+		},
+	})
 }
 
-func testAccAppControlForBusinessPolicyConfig_maximal() string {
-	groups, err := helpers.ParseHCLFile("../../../../../acceptance/terraform_dependancies/device_management/groups.tf")
-	if err != nil {
-		log.Fatalf("Failed to load groups config: %v", err)
-	}
-	roleScopeTags, err := helpers.ParseHCLFile("../../../../../acceptance/terraform_dependancies/device_management/role_scope_tags.tf")
-	if err != nil {
-		log.Fatalf("Failed to load role scope tags config: %v", err)
-	}
-	accTestConfig, err := helpers.ParseHCLFile("tests/terraform/acceptance/resource_acfb_policy_maximal.tf")
-	if err != nil {
-		log.Fatalf("Failed to load maximal test config: %v", err)
-	}
-	return acceptance.ConfiguredM365ProviderBlock(groups + "\n" + roleScopeTags + "\n" + accTestConfig)
+// Test 07: Minimal Assignments to Maximal Assignments Update
+func TestAccAppControlForBusinessPolicyResource_07_MinimalAssignmentsToMaximalAssignments(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		CheckDestroy: destroy.CheckDestroyedAllFunc(
+			testResource,
+			resourceType,
+			30*time.Second,
+		),
+		ExternalProviders: map[string]resource.ExternalProvider{
+			"random": {
+				Source:            "hashicorp/random",
+				VersionConstraint: constants.ExternalProviderRandomVersion,
+			},
+			"time": {
+				Source:            "hashicorp/time",
+				VersionConstraint: constants.ExternalProviderTimeVersion,
+			},
+		},
+		Steps: []resource.TestStep{
+			{
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "07: Step 1 - Creating policy with minimal assignments (1 group)")
+				},
+				Config: loadAcceptanceTestTerraform("07_minimal-assignments-to-maximal-assignments-step1.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					func(_ *terraform.State) error {
+						testlog.WaitForConsistency("app control policy", 30*time.Second)
+						time.Sleep(30 * time.Second)
+						return nil
+					},
+					check.That(resourceType+".assignment_step_test").ExistsInGraph(testResource),
+					check.That(resourceType+".assignment_step_test").Key("name").HasValue("acc-test-app-control-policy-assignment-step-test"),
+					check.That(resourceType+".assignment_step_test").Key("description").HasValue("Assignment step test policy - starts with minimal assignments"),
+					check.That(resourceType+".assignment_step_test").Key("policy_xml").IsSet(),
+					check.That(resourceType+".assignment_step_test").Key("role_scope_tag_ids.#").HasValue("1"),
+					check.That(resourceType+".assignment_step_test").Key("assignments.#").HasValue("1"),
+					resource.TestCheckTypeSetElemNestedAttrs(resourceType+".assignment_step_test", "assignments.*", map[string]string{
+						"type":        "groupAssignmentTarget",
+						"filter_type": "none",
+					}),
+				),
+			},
+			{
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "07: Step 2 - Expanding to maximal assignments (3 targets)")
+				},
+				Config: loadAcceptanceTestTerraform("07_minimal-assignments-to-maximal-assignments-step2.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					func(_ *terraform.State) error {
+						testlog.WaitForConsistency("app control policy", 30*time.Second)
+						time.Sleep(30 * time.Second)
+						return nil
+					},
+					check.That(resourceType+".assignment_step_test").ExistsInGraph(testResource),
+					check.That(resourceType+".assignment_step_test").Key("description").HasValue("Assignment step test policy - expanded to maximal assignments"),
+					check.That(resourceType+".assignment_step_test").Key("policy_xml").IsSet(),
+					check.That(resourceType+".assignment_step_test").Key("role_scope_tag_ids.#").HasValue("1"),
+					check.That(resourceType+".assignment_step_test").Key("assignments.#").HasValue("3"),
+					resource.TestCheckTypeSetElemNestedAttrs(resourceType+".assignment_step_test", "assignments.*", map[string]string{
+						"type":        "allLicensedUsersAssignmentTarget",
+						"filter_type": "none",
+					}),
+					resource.TestCheckTypeSetElemNestedAttrs(resourceType+".assignment_step_test", "assignments.*", map[string]string{
+						"type":        "groupAssignmentTarget",
+						"filter_type": "none",
+					}),
+					resource.TestCheckTypeSetElemNestedAttrs(resourceType+".assignment_step_test", "assignments.*", map[string]string{
+						"type":        "allDevicesAssignmentTarget",
+						"filter_type": "none",
+					}),
+				),
+			},
+			{
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "07: Importing assignment step test policy")
+				},
+				ResourceName:            resourceType + ".assignment_step_test",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"timeouts"},
+			},
+		},
+	})
 }
 
-func testAccAppControlForBusinessPolicyConfig_withAssignments() string {
-	groups, err := helpers.ParseHCLFile("../../../../../acceptance/terraform_dependancies/device_management/groups.tf")
-	if err != nil {
-		log.Fatalf("Failed to load groups config: %v", err)
-	}
-	roleScopeTags, err := helpers.ParseHCLFile("../../../../../acceptance/terraform_dependancies/device_management/role_scope_tags.tf")
-	if err != nil {
-		log.Fatalf("Failed to load role scope tags config: %v", err)
-	}
-	accTestConfig, err := helpers.ParseHCLFile("tests/terraform/acceptance/resource_acfb_policy_with_assignments.tf")
-	if err != nil {
-		log.Fatalf("Failed to load assignments test config: %v", err)
-	}
-	return acceptance.ConfiguredM365ProviderBlock(groups + "\n" + roleScopeTags + "\n" + accTestConfig)
+// Test 08: Maximal Assignments to Minimal Assignments Update
+func TestAccAppControlForBusinessPolicyResource_08_MaximalAssignmentsToMinimalAssignments(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		CheckDestroy: destroy.CheckDestroyedAllFunc(
+			testResource,
+			resourceType,
+			30*time.Second,
+		),
+		ExternalProviders: map[string]resource.ExternalProvider{
+			"random": {
+				Source:            "hashicorp/random",
+				VersionConstraint: constants.ExternalProviderRandomVersion,
+			},
+			"time": {
+				Source:            "hashicorp/time",
+				VersionConstraint: constants.ExternalProviderTimeVersion,
+			},
+		},
+		Steps: []resource.TestStep{
+			{
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "08: Step 1 - Creating policy with maximal assignments (3 targets)")
+				},
+				Config: loadAcceptanceTestTerraform("08_maximal-assignments-to-minimal-assignments-step1.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					func(_ *terraform.State) error {
+						testlog.WaitForConsistency("app control policy", 30*time.Second)
+						time.Sleep(30 * time.Second)
+						return nil
+					},
+					check.That(resourceType+".assignment_step_test").ExistsInGraph(testResource),
+					check.That(resourceType+".assignment_step_test").Key("name").HasValue("acc-test-app-control-policy-assignment-step-test"),
+					check.That(resourceType+".assignment_step_test").Key("description").HasValue("Assignment step test policy - starts with maximal assignments"),
+					check.That(resourceType+".assignment_step_test").Key("policy_xml").IsSet(),
+					check.That(resourceType+".assignment_step_test").Key("role_scope_tag_ids.#").HasValue("1"),
+					check.That(resourceType+".assignment_step_test").Key("assignments.#").HasValue("3"),
+					resource.TestCheckTypeSetElemNestedAttrs(resourceType+".assignment_step_test", "assignments.*", map[string]string{
+						"type":        "allLicensedUsersAssignmentTarget",
+						"filter_type": "none",
+					}),
+					resource.TestCheckTypeSetElemNestedAttrs(resourceType+".assignment_step_test", "assignments.*", map[string]string{
+						"type":        "groupAssignmentTarget",
+						"filter_type": "none",
+					}),
+					resource.TestCheckTypeSetElemNestedAttrs(resourceType+".assignment_step_test", "assignments.*", map[string]string{
+						"type":        "allDevicesAssignmentTarget",
+						"filter_type": "none",
+					}),
+				),
+			},
+			{
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "08: Step 2 - Reducing to minimal assignments (1 group)")
+				},
+				Config: loadAcceptanceTestTerraform("08_maximal-assignments-to-minimal-assignments-step2.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					func(_ *terraform.State) error {
+						testlog.WaitForConsistency("app control policy", 30*time.Second)
+						time.Sleep(30 * time.Second)
+						return nil
+					},
+					check.That(resourceType+".assignment_step_test").ExistsInGraph(testResource),
+					check.That(resourceType+".assignment_step_test").Key("description").HasValue("Assignment step test policy - reduced to minimal assignments"),
+					check.That(resourceType+".assignment_step_test").Key("policy_xml").IsSet(),
+					check.That(resourceType+".assignment_step_test").Key("role_scope_tag_ids.#").HasValue("1"),
+					check.That(resourceType+".assignment_step_test").Key("assignments.#").HasValue("1"),
+					resource.TestCheckTypeSetElemNestedAttrs(resourceType+".assignment_step_test", "assignments.*", map[string]string{
+						"type":        "groupAssignmentTarget",
+						"filter_type": "none",
+					}),
+				),
+			},
+			{
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "08: Importing assignment step test policy")
+				},
+				ResourceName:            resourceType + ".assignment_step_test",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"timeouts"},
+			},
+		},
+	})
 }
 
-func testAccAppControlForBusinessPolicyConfig_removedPolicy() string {
-	groups, err := helpers.ParseHCLFile("../../../../../acceptance/terraform_dependancies/device_management/groups.tf")
-	if err != nil {
-		log.Fatalf("Failed to load groups config: %v", err)
-	}
-	roleScopeTags, err := helpers.ParseHCLFile("../../../../../acceptance/terraform_dependancies/device_management/role_scope_tags.tf")
-	if err != nil {
-		log.Fatalf("Failed to load role scope tags config: %v", err)
-	}
-	assignmentFilters, err := helpers.ParseHCLFile("../../../../../acceptance/terraform_dependancies/device_management/assignment_filter.tf")
-	if err != nil {
-		log.Fatalf("Failed to load assignment filters config: %v", err)
-	}
-
-	// Configuration with removed block for app control policy to control destroy order
-	removedConfig := `
-# App control policy removed first to release assignment filter dependencies
-removed {
-  from = microsoft365_graph_beta_device_management_app_control_for_business_policy.maximal
-  lifecycle {
-    destroy = true
-  }
-}
-`
-	return acceptance.ConfiguredM365ProviderBlock(groups + "\n" + roleScopeTags + "\n" + assignmentFilters + "\n" + removedConfig)
+// Test 09: Error Handling - Invalid Policy XML
+func TestAccAppControlForBusinessPolicyResource_09_ErrorInvalidPolicyXML(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ExternalProviders: map[string]resource.ExternalProvider{
+			"random": {
+				Source:            "hashicorp/random",
+				VersionConstraint: constants.ExternalProviderRandomVersion,
+			},
+		},
+		Steps: []resource.TestStep{
+			{
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "09: Testing error handling with invalid XML")
+				},
+				Config:      loadAcceptanceTestTerraform("09_error-invalid-policy-xml.tf"),
+				ExpectError: regexp.MustCompile("(?i)(invalid|error|failed|xml)"),
+			},
+		},
+	})
 }
 
-// testAccCheckAppControlForBusinessPolicyDestroy verifies that app control for business policies have been destroyed
-func testAccCheckAppControlForBusinessPolicyDestroy(s *terraform.State) error {
-	fmt.Printf("=== DESTROY CHECK START ===\n")
-
-	graphClient, err := acceptance.TestGraphClient()
-	if err != nil {
-		fmt.Printf("ERROR: Failed to create Graph client for CheckDestroy: %v\n", err)
-		return fmt.Errorf("error creating Graph client for CheckDestroy: %v", err)
-	}
-
-	ctx := context.Background()
-	resourceCount := 0
-	destroyedCount := 0
-	orphanedResources := []string{}
-
-	// Count total resources to check
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type == "microsoft365_graph_beta_device_management_app_control_for_business_policy" {
-			resourceCount++
-		}
-	}
-	fmt.Printf("INFO: Found %d app control for business policy resources to verify destruction\n", resourceCount)
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "microsoft365_graph_beta_device_management_app_control_for_business_policy" {
-			continue
-		}
-
-		fmt.Printf("--- Checking resource destruction: %s ---\n", rs.Primary.ID)
-
-		// Build the API URL for logging
-		apiUrl := fmt.Sprintf("https://graph.microsoft.com/beta/deviceManagement/configurationPolicies/%s", rs.Primary.ID)
-		fmt.Printf("INFO: API URL: %s\n", apiUrl)
-
-		// Attempt to get the app control policy by ID
-		resource, err := graphClient.
-			DeviceManagement().
-			ConfigurationPolicies().
-			ByDeviceManagementConfigurationPolicyId(rs.Primary.ID).
-			Get(ctx, nil)
-
-		if err != nil {
-			errorInfo := errors.GraphError(ctx, err)
-
-			// Accept multiple error conditions that indicate successful deletion
-			if errorInfo.StatusCode == 404 ||
-				errorInfo.StatusCode == 400 || // Bad Request - often indicates resource no longer exists
-				errorInfo.ErrorCode == "ResourceNotFound" ||
-				errorInfo.ErrorCode == "ItemNotFound" ||
-				errorInfo.ErrorCode == "Request_ResourceNotFound" ||
-				errorInfo.StatusCode == 0 { // Handle cases where status code is not set
-				fmt.Printf("SUCCESS: Resource %s successfully destroyed (verified by API error)\n", rs.Primary.ID)
-				destroyedCount++
-				continue // Resource successfully destroyed
-			}
-
-			// For other errors, this might indicate an orphaned resource or API issue
-			fmt.Printf("WARNING: Unexpected error checking resource %s destruction: %v\n", rs.Primary.ID, err)
-			fmt.Printf("WARNING: This could indicate an orphaned resource or API connectivity issue\n")
-			orphanedResources = append(orphanedResources, rs.Primary.ID)
-
-			// Still continue but mark as potentially problematic
-			continue
-		}
-
-		// If we can still get the resource, it wasn't destroyed - this is a real problem
-		if resource != nil {
-			fmt.Printf("ERROR: Resource %s still exists and was not properly destroyed!\n", rs.Primary.ID)
-			if resource.GetName() != nil {
-				fmt.Printf("ERROR: Resource name: %s\n", *resource.GetName())
-			}
-			if resource.GetId() != nil {
-				fmt.Printf("ERROR: Resource ID: %s\n", *resource.GetId())
-			}
-			orphanedResources = append(orphanedResources, rs.Primary.ID)
-			return fmt.Errorf("app control for business policy %s still exists and was not destroyed", rs.Primary.ID)
-		}
-	}
-
-	fmt.Printf("=== DESTROY CHECK SUMMARY ===\n")
-	fmt.Printf("Total resources checked: %d\n", resourceCount)
-	fmt.Printf("Successfully destroyed: %d\n", destroyedCount)
-	fmt.Printf("Potentially orphaned: %d\n", len(orphanedResources))
-
-	if len(orphanedResources) > 0 {
-		fmt.Printf("WARNING: Potentially orphaned resource IDs:\n")
-		for _, id := range orphanedResources {
-			fmt.Printf("  - %s\n", id)
-		}
-		fmt.Printf("WARNING: Please manually verify these resources in the Microsoft Graph API\n")
-	}
-
-	fmt.Printf("=== DESTROY CHECK COMPLETE ===\n")
-	return nil
+// Test 10: Removed Policy Configuration
+func TestAccAppControlForBusinessPolicyResource_10_RemovedPolicy(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		CheckDestroy: destroy.CheckDestroyedAllFunc(
+			testResource,
+			resourceType,
+			30*time.Second,
+		),
+		ExternalProviders: map[string]resource.ExternalProvider{
+			"random": {
+				Source:            "hashicorp/random",
+				VersionConstraint: constants.ExternalProviderRandomVersion,
+			},
+		},
+		Steps: []resource.TestStep{
+			{
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "10: Testing removed block for controlled destruction")
+				},
+				Config: loadAcceptanceTestTerraform("10_removed-policy.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					func(_ *terraform.State) error {
+						testlog.WaitForConsistency("app control policy", 30*time.Second)
+						time.Sleep(30 * time.Second)
+						return nil
+					},
+				),
+			},
+		},
+	})
 }

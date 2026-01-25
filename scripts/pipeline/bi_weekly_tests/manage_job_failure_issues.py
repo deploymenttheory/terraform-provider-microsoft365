@@ -10,13 +10,13 @@ in GitHub Actions workflows, including:
 - Setup/dependency step failures that prevented tests from running
 
 Usage:
-    ./manage-job-failure-issues.py <owner> <repo> <run-id> <job-failures-json>
+    ./manage_job_failure_issues.py <owner> <repo> <run-id> <job-failures-json>
 
 Args:
     owner: GitHub repository owner.
     repo: GitHub repository name.
     run-id: GitHub Actions workflow run ID.
-    job-failures-json: Path to job failures JSON file from detect-job-failures.py.
+    job-failures-json: Path to job failures JSON file from detect_job_failures.py.
 """
 
 import sys
@@ -268,7 +268,7 @@ def process_job_failures(owner: str, repo: str, run_id: str, failures_json_path:
         failures_json_path: Path to JSON file containing job failures.
     """
     if not all([owner, repo, run_id]):
-        print("Usage: manage-job-failure-issues.py <owner> <repo> <run-id> <job-failures-json>", 
+        print("Usage: manage_job_failure_issues.py <owner> <repo> <run-id> <job-failures-json>", 
             file=sys.stderr)
         sys.exit(1)
     
@@ -334,7 +334,7 @@ def process_job_failures(owner: str, repo: str, run_id: str, failures_json_path:
 
 def main():
     if len(sys.argv) < 4:
-        print("Usage: manage-job-failure-issues.py <owner> <repo> <run-id> [job-failures-json]", 
+        print("Usage: manage_job_failure_issues.py <owner> <repo> <run-id> [job-failures-json]", 
             file=sys.stderr)
         sys.exit(1)
     
