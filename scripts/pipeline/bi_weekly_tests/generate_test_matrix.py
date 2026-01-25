@@ -45,6 +45,7 @@ RENDEZVOUS_SEED = os.environ.get(
     'RENDEZVOUS_SEED',
     'terraform-provider-microsoft365'
 )
+VERBOSE = os.environ.get('VERBOSE', '').lower() in ('true', '1', 'yes')
 
 
 def discover_services(configuration_block_type: str) -> List[str]:
@@ -71,12 +72,17 @@ def discover_services(configuration_block_type: str) -> List[str]:
     return sorted(services)
 
 
-def discover_resources(service: str, configuration_block_type: str) -> List[str]:
+def discover_resources(
+    service: str,
+    configuration_block_type: str,
+    verbose: bool = False
+) -> List[str]:
     """Discover all packages in a service for the given configuration_block_type.
 
     Args:
         service: Service name (e.g., 'device_management')
         configuration_block_type: Category type (resources, datasources, actions, etc.)
+        verbose: If True, log packages skipped due to missing tests
 
     Returns:
         List of package paths relative to the service directory
@@ -87,8 +93,10 @@ def discover_resources(service: str, configuration_block_type: str) -> List[str]
         return []
 
     packages = []
+    skipped_packages = []
 
-    marker_files = {
+    # Implementation file markers (to detect what exists)
+    impl_file_markers = {
         'resources': ['resource.go'],
         'datasources': ['datasource.go'],
         'actions': ['action.go'],
@@ -96,9 +104,24 @@ def discover_resources(service: str, configuration_block_type: str) -> List[str]
         'ephemerals': ['ephemeral_resource.go']
     }
 
-    markers = marker_files.get(
+    # Only discover packages that have test files
+    # This ensures we don't include incomplete implementations
+    test_file_markers = {
+        'resources': ['resource_test.go'],
+        'datasources': ['datasource_test.go'],
+        'actions': ['action_test.go'],
+        'list-resources': ['list_resource_test.go'],
+        'ephemerals': ['ephemeral_resource_test.go']
+    }
+
+    impl_markers = impl_file_markers.get(
         configuration_block_type,
         ['resource.go', 'datasource.go', 'action.go']
+    )
+
+    test_markers = test_file_markers.get(
+        configuration_block_type,
+        ['resource_test.go', 'datasource_test.go', 'action_test.go']
     )
 
     for graph_version_dir in base_path.iterdir():
@@ -123,32 +146,65 @@ def discover_resources(service: str, configuration_block_type: str) -> List[str]
                         if not action_dir.is_dir():
                             continue
 
-                        has_marker = any(
+                        has_impl = any(
                             (action_dir / marker).exists()
-                            for marker in markers
+                            for marker in impl_markers
                         )
 
-                        if has_marker:
-                            rel_path = str(action_dir.relative_to(base_path))
+                        has_test = any(
+                            (action_dir / marker).exists()
+                            for marker in test_markers
+                        )
+
+                        rel_path = str(action_dir.relative_to(base_path))
+
+                        if has_test:
                             packages.append(rel_path)
+                        elif has_impl and verbose:
+                            skipped_packages.append(rel_path)
                 else:
-                    has_marker = any(
+                    has_impl = any(
                         (resource_dir / marker).exists()
-                        for marker in markers
+                        for marker in impl_markers
                     )
 
-                    if has_marker:
-                        rel_path = str(resource_dir.relative_to(base_path))
+                    has_test = any(
+                        (resource_dir / marker).exists()
+                        for marker in test_markers
+                    )
+
+                    rel_path = str(resource_dir.relative_to(base_path))
+
+                    if has_test:
                         packages.append(rel_path)
+                    elif has_impl and verbose:
+                        skipped_packages.append(rel_path)
         else:
-            has_marker = any(
+            has_impl = any(
                 (graph_version_dir / marker).exists()
-                for marker in markers
+                for marker in impl_markers
             )
 
-            if has_marker:
-                rel_path = str(graph_version_dir.relative_to(base_path))
+            has_test = any(
+                (graph_version_dir / marker).exists()
+                for marker in test_markers
+            )
+
+            rel_path = str(graph_version_dir.relative_to(base_path))
+
+            if has_test:
                 packages.append(rel_path)
+            elif has_impl and verbose:
+                skipped_packages.append(rel_path)
+
+    if verbose and skipped_packages:
+        print(
+            f"⚠️  [DISCOVERY] Skipped {len(skipped_packages)} "
+            f"package(s) in {service} (no tests):",
+            file=sys.stderr
+        )
+        for pkg in sorted(skipped_packages):
+            print(f"    - {pkg}", file=sys.stderr)
 
     return sorted(packages)
 
@@ -256,7 +312,7 @@ def generate_matrix_for_service(
     Returns:
         List of matrix entry dictionaries
     """
-    items = discover_resources(service, configuration_block_type)
+    items = discover_resources(service, configuration_block_type, verbose=VERBOSE)
     item_count = len(items)
 
     if item_count == 0:
@@ -337,6 +393,11 @@ def main():
         print(
             f"  RENDEZVOUS_SEED             "
             f"Seed for distribution (default: {RENDEZVOUS_SEED})",
+            file=sys.stderr
+        )
+        print(
+            f"  VERBOSE                     "
+            f"Show packages skipped (no tests) (default: false)",
             file=sys.stderr
         )
         sys.exit(1)
