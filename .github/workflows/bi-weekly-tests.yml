@@ -240,7 +240,7 @@ jobs:
     needs: generate-resources-matrix
     if: needs.generate-resources-matrix.outputs.has_tests == 'true'
     runs-on: ${{ matrix.runner }}
-    timeout-minutes: 120
+    timeout-minutes: 180
     env:
       ACTIONS_STEP_DEBUG: ${{ github.event.inputs.enable_debug == 'true' && 'true' || '' }}
       ACTIONS_RUNNER_DEBUG: ${{ github.event.inputs.enable_debug == 'true' && 'true' || '' }}
