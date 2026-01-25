@@ -679,10 +679,10 @@ Examples:
     )
     
     # Positional arguments
-    parser.add_argument('type', choices=['provider-core', 'resources', 'datasources', 'actions'],
+    parser.add_argument('type', choices=['provider-core', 'resources', 'datasources', 'actions', 'list-resources', 'ephemerals'],
                        help='Type of tests to run')
     parser.add_argument('service', nargs='?', default='',
-                       help='Service name (required for resources/datasources/actions)')
+                       help='Service name (required for resources/datasources/actions/list-resources/ephemerals)')
     parser.add_argument('coverage_file', nargs='?', default='coverage.txt',
                        help='Output file for coverage data (default: coverage.txt)')
     parser.add_argument('output_file', nargs='?', default='test-output.log',
