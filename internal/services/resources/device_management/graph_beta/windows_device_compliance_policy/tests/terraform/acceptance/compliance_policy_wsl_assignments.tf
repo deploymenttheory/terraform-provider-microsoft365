@@ -152,10 +152,10 @@ resource "time_sleep" "wait_for_dependencies" {
 # ==============================================================================
 
 resource "microsoft365_graph_beta_device_management_windows_device_compliance_policy" "wsl_assignments" {
-  display_name       = "acc-test-wdcp-wsl-assignments-${random_string.suffix.result}"
-  description        = "acc-test-wdcp-wsl-assignments-${random_string.suffix.result}"
-  
-  depends_on = [time_sleep.wait_for_dependencies]
+  display_name = "acc-test-wdcp-wsl-assignments-${random_string.suffix.result}"
+  description  = "acc-test-wdcp-wsl-assignments-${random_string.suffix.result}"
+
+  depends_on         = [time_sleep.wait_for_dependencies]
   role_scope_tag_ids = ["0"]
 
   wsl_distributions = [

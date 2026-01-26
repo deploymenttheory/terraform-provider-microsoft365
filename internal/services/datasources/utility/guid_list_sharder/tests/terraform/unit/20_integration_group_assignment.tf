@@ -13,7 +13,7 @@
 data "microsoft365_utility_guid_list_sharder" "split_department" {
   resource_type = "group_members"
   group_id      = "12345678-1234-1234-1234-123456789abc" # Sales Department
-  odata_query   = "accountEnabled eq true"
+  odata_filter  = "accountEnabled eq true"
   shard_count   = 3
   strategy      = "round-robin"
   seed          = "sales-pilot-groups-2024"

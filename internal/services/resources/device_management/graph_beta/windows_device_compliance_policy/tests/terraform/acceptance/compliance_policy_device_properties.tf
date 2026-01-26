@@ -76,9 +76,9 @@ resource "time_sleep" "wait_for_dependencies" {
 # ==============================================================================
 
 resource "microsoft365_graph_beta_device_management_windows_device_compliance_policy" "device_properties" {
-  display_name       = "acc-test-dcnt-device-properties-${random_string.suffix.result}"
-  
-  depends_on = [time_sleep.wait_for_dependencies]
+  display_name = "acc-test-dcnt-device-properties-${random_string.suffix.result}"
+
+  depends_on         = [time_sleep.wait_for_dependencies]
   description        = "acc-test-dcnt-device-properties-${random_string.suffix.result}"
   role_scope_tag_ids = ["0"]
 

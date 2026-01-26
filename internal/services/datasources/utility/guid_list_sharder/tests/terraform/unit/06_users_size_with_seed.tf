@@ -13,7 +13,7 @@
 
 data "microsoft365_utility_guid_list_sharder" "test" {
   resource_type = "users"
-  odata_query   = "accountEnabled eq true"
+  odata_filter  = "accountEnabled eq true"
   shard_sizes   = [5, 10, -1] # 5 pilot, 10 broader, rest for full
   strategy      = "size"
   seed          = "mfa-rollout-2024"

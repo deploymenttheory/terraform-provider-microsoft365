@@ -76,9 +76,9 @@ resource "time_sleep" "wait_for_dependencies" {
 # ==============================================================================
 
 resource "microsoft365_graph_beta_device_management_windows_device_compliance_policy" "microsoft_defender_for_endpoint" {
-  display_name       = "acc-test-windows-device-compliance-policy-microsoft-defender-for-endpoint"
-  
-  depends_on = [time_sleep.wait_for_dependencies]
+  display_name = "acc-test-windows-device-compliance-policy-microsoft-defender-for-endpoint"
+
+  depends_on         = [time_sleep.wait_for_dependencies]
   description        = "acc-test-windows-device-compliance-policy-microsoft-defender-for-endpoint"
   role_scope_tag_ids = ["0"]
 

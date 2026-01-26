@@ -1,7 +1,7 @@
 # ==============================================================================
 # Test 22: Special Case - No OData Filter (All Resources)
 #
-# Purpose: Verify behavior when no odata_query is provided (gets ALL resources)
+# Purpose: Verify behavior when no odata_filter is provided (gets ALL resources)
 #
 # Use Case: Splitting entire user/device/member population without filtering
 #
@@ -13,7 +13,7 @@
 
 data "microsoft365_utility_guid_list_sharder" "test" {
   resource_type = "users"
-  # No odata_query - gets ALL users
+  # No odata_filter - gets ALL users
   shard_count = 5
   strategy    = "round-robin"
 }

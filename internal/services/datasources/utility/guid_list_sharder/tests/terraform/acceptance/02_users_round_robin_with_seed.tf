@@ -116,7 +116,7 @@ resource "time_sleep" "wait_for_users" {
 data "microsoft365_utility_guid_list_sharder" "test" {
   depends_on    = [time_sleep.wait_for_users]
   resource_type = "users"
-  odata_query   = "startswith(displayName,'acc-test-sharder-user-') and endswith(displayName,'${random_string.test_id.result}')"
+  odata_filter  = "startswith(displayName,'acc-test-sharder-user-') and endswith(displayName,'${random_string.test_id.result}')"
   shard_count   = 2
   strategy      = "round-robin"
   seed          = "ab-test-2024" # Makes distribution reproducible

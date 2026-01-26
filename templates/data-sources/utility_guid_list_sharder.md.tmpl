@@ -8,7 +8,7 @@ description: |-
 
 # {{.Name}}
 
-Queries Microsoft Graph API to retrieve collections of object IDs (GUIDs) for users, devices, or group members, then intelligently distributes them into configurable "shards" (subsets) for progressive deployment strategies.
+Queries Microsoft Graph API to retrieve collections of object IDs (GUIDs) for users, devices, service principals (enterprise apps), or group members, then intelligently distributes them into configurable "shards" (subsets) for progressive deployment strategies.
 
 This datasource enables phased rollouts, pilot programs, and deployment rings for Microsoft 365 policies by algorithmically distributing populations into controlled subsets. Unlike static Entra ID dynamic groups that take hours to populate and require complex membership rules, the GUID List Sharder provides immediate, deterministic distribution with multiple strategies optimized for different scenarios.
 ## Microsoft Graph API Permissions
@@ -18,6 +18,7 @@ The following client `application` permissions are needed in order to use this d
 **Required:**
 - `Users.Read.All`
 - `Devices.Read.All`
+- `Application.Read.All`
 - `Groups.Read.All`
 
 **Optional:**
@@ -28,6 +29,7 @@ The following client `application` permissions are needed in order to use this d
 | Version | Status | Notes |
 |---------|--------|-------|
 | v0.42.0-alpha | Experimental | Initial release with round-robin, percentage, size, and rendezvous strategies |
+| v0.43.0-alpha | Experimental | Added service principal support |
 
 ## Background
 
@@ -118,6 +120,10 @@ This prevents "pilot fatigue" where certain users consistently experience issues
 
 {{ tffile "examples/data-sources/microsoft365_utility_guid_list_sharder/04_basic_rendezvous.tf" }}
 
+#### Service Principals (Query and Shard Enterprise Apps)
+
+{{ tffile "examples/data-sources/microsoft365_utility_guid_list_sharder/09_basic_service_principals.tf" }}
+
 ### Scenario-Based Examples
 
 #### Scenario 1: Devices → Settings Catalog Deployment Rings
@@ -132,6 +138,10 @@ This prevents "pilot fatigue" where certain users consistently experience issues
 
 {{ tffile "examples/data-sources/microsoft365_utility_guid_list_sharder/07_scenario_devices_quality_updates_phased.tf" }}
 
+#### Scenario 4: Service Principals (Enterprise Apps) → Conditional Access Policy
+
+{{ tffile "examples/data-sources/microsoft365_utility_guid_list_sharder/08_scenario_service_principals_to_ca_policy.tf" }}
+
 {{ .SchemaMarkdown | trimspace }}
 
 ## Additional Resources
@@ -139,6 +149,7 @@ This prevents "pilot fatigue" where certain users consistently experience issues
 - [GUID List Sharder Guide](https://registry.terraform.io/providers/deploymenttheory/microsoft365/latest/docs/guides/guid_list_sharder)
 - [Microsoft Graph API - Users](https://learn.microsoft.com/en-us/graph/api/user-list)
 - [Microsoft Graph API - Devices](https://learn.microsoft.com/en-us/graph/api/device-list)
+- [Microsoft Graph API - Service Principals](https://learn.microsoft.com/en-us/graph/api/serviceprincipal-list)
 - [Microsoft Graph API - Group Members](https://learn.microsoft.com/en-us/graph/api/group-list-members)
 - [Conditional Access Best Practices](https://learn.microsoft.com/en-us/entra/identity/conditional-access/plan-conditional-access)
 - [Phased Deployment Strategies](https://learn.microsoft.com/en-us/mem/intune/fundamentals/deployment-guide-intune-setup)

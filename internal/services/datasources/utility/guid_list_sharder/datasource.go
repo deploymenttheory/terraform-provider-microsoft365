@@ -35,6 +35,7 @@ func NewGuidListSharderDataSource() datasource.DataSource {
 			"User.Read.All",
 			"Group.Read.All",
 			"Device.Read.All",
+			"Application.Read.All",
 			"Directory.Read.All",
 		},
 	}
@@ -57,10 +58,10 @@ func (d *guidListSharderDataSource) Configure(ctx context.Context, req datasourc
 func (d *guidListSharderDataSource) Schema(ctx context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		MarkdownDescription: "Retrieves object IDs (GUIDs) from Microsoft Graph API and distributes them into configurable shards for progressive rollouts and phased deployments. " +
-			"Queries `/users`, `/devices`, or `/groups/{id}/members` endpoints with optional OData filtering, then applies sharding strategies (random, sequential, or percentage-based) " +
+			"Queries `/users`, `/devices`, `/applications`, or `/groups/{id}/members` endpoints with optional OData filtering, then applies sharding strategies (random, sequential, or percentage-based) " +
 			"to distribute results. Output shards are sets that can be directly used in conditional access policies, groups, and other resources requiring object ID collections.\n\n" +
-			"**API Endpoints:** `GET /users`, `GET /devices`, `GET /groups/{id}/members` (with pagination and `ConsistencyLevel: eventual` header)\n\n" +
-			"**Common Use Cases:** MFA rollouts, Windows Update rings, conditional access pilots, group splitting, A/B testing\n\n" +
+			"**API Endpoints:** `GET /users`, `GET /devices`, `GET /applications`, `GET /groups/{id}/members` (with pagination and `ConsistencyLevel: eventual` header)\n\n" +
+			"**Common Use Cases:** MFA rollouts, Windows Update rings, conditional access pilots, application-based policies, group splitting, A/B testing\n\n" +
 			"For detailed examples and best practices, see the [Progressive Rollout with GUID List Sharder](https://registry.terraform.io/providers/deploymenttheory/microsoft365/latest/docs/guides/progressive_rollout_with_guid_list_sharder) guide.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
@@ -72,9 +73,10 @@ func (d *guidListSharderDataSource) Schema(ctx context.Context, _ datasource.Sch
 				MarkdownDescription: "The type of Microsoft Graph resource to query and shard. " +
 					"`users` queries `/users` for user-based policies (MFA, conditional access). " +
 					"`devices` queries `/devices` for device policies (Windows Updates, compliance). " +
+					"`service_principals` queries `/servicePrincipals` (enterprise apps) for application-based conditional access policies. " +
 					"`group_members` queries `/groups/{id}/members` to split existing group membership (requires `group_id`).",
 				Validators: []validator.String{
-					stringvalidator.OneOf("users", "devices", "group_members"),
+					stringvalidator.OneOf("users", "devices", "service_principals", "group_members"),
 				},
 			},
 			"group_id": schema.StringAttribute{
@@ -90,12 +92,12 @@ func (d *guidListSharderDataSource) Schema(ctx context.Context, _ datasource.Sch
 					attribute.RequiredWhenEquals("resource_type", types.StringValue("group_members")),
 				},
 			},
-			"odata_query": schema.StringAttribute{
+			"odata_filter": schema.StringAttribute{
 				Optional: true,
-				MarkdownDescription: "Optional OData filter applied at the API level before sharding. " +
-					"Common examples: `$filter=accountEnabled eq true` (active accounts only), " +
-					"`$filter=operatingSystem eq 'Windows'` (Windows devices), " +
-					"`$filter=userType eq 'Member'` (exclude guests). " +
+				MarkdownDescription: "Optional OData filter expression applied at the API level before sharding. " +
+					"**Users:** `accountEnabled eq true` (active accounts only), `userType eq 'Member'` (exclude guests). " +
+					"**Devices:** `operatingSystem eq 'Windows'` (Windows devices only). " +
+					"**Service Principals:** `startswith(displayName, 'Microsoft')` (Microsoft apps), `appId eq 'guid'` (specific app), `isof('microsoft.graph.agentIdentityBlueprintPrincipal')` (AI/Copilot agents). " +
 					"Leave empty to query all resources without filtering.",
 			},
 			"shard_count": schema.Int64Attribute{

@@ -4,7 +4,7 @@
 # Step 1: Shard Windows devices into 3 deployment rings (10%, 30%, 60%)
 data "microsoft365_utility_guid_list_sharder" "quality_update_rings" {
   resource_type     = "devices"
-  odata_query       = "operatingSystem eq 'Windows' and trustType eq 'AzureAd'"
+  odata_filter      = "operatingSystem eq 'Windows' and trustType eq 'AzureAd'"
   shard_percentages = [10, 30, 60]
   strategy          = "percentage"
   seed              = "quality-updates-2024"
