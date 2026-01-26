@@ -320,7 +320,7 @@ func (r *ConditionalAccessTermsOfUseResource) Delete(ctx context.Context, req re
 	defer cancel()
 
 	url := r.httpClient.GetBaseURL() + r.ResourcePath + "/" + object.ID.ValueString()
-	httpReq, err := http.NewRequestWithContext(ctx, constants.TfOperationDelete, url, nil)
+	httpReq, err := http.NewRequestWithContext(ctx, "DELETE", url, nil)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error creating HTTP request",
