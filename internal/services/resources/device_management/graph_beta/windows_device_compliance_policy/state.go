@@ -82,7 +82,15 @@ func mapWindows10CompliancePolicyToState(ctx context.Context, data *DeviceCompli
 	// data.VirtualizationBasedSecurityEnabled = convert.GraphToFrameworkBool(policy.GetVirtualizationBasedSecurityEnabled())
 	// data.FirmwareProtectionEnabled = convert.GraphToFrameworkBool(policy.GetFirmwareProtectionEnabled())
 
-	if hasDeviceHealthValues(policy) {
+	// Block-level existence check for device_health (Optional+Computed)
+	// The API returns flat fields (GetBitLockerEnabled, etc.) not a DeviceHealth object.
+	// We created device_health as a Terraform block abstraction for better UX.
+	// Decision: Create the block if ANY field has a value, otherwise set block to null.
+	// Note: Individual field nil→null conversion is handled by convert helpers.
+	// This pattern matches conditional_access_policy and other resources in the provider.
+	if policy.GetBitLockerEnabled() != nil ||
+		policy.GetSecureBootEnabled() != nil ||
+		policy.GetCodeIntegrityEnabled() != nil {
 		mapDeviceHealthToState(ctx, data, policy)
 	} else {
 		data.DeviceHealth = types.ObjectNull(map[string]attr.Type{
@@ -92,7 +100,24 @@ func mapWindows10CompliancePolicyToState(ctx context.Context, data *DeviceCompli
 		})
 	}
 
-	if hasSystemSecurityValues(policy) {
+	// Block-level existence check for system_security (Optional+Computed)
+	// Same pattern as device_health: API has flat fields, we created block abstraction.
+	// Check all security-related fields to determine if block should exist.
+	if policy.GetActiveFirewallRequired() != nil ||
+		policy.GetAntiSpywareRequired() != nil ||
+		policy.GetAntivirusRequired() != nil ||
+		policy.GetConfigurationManagerComplianceRequired() != nil ||
+		policy.GetDefenderEnabled() != nil ||
+		policy.GetDefenderVersion() != nil ||
+		policy.GetPasswordBlockSimple() != nil ||
+		policy.GetPasswordMinimumCharacterSetCount() != nil ||
+		policy.GetPasswordRequired() != nil ||
+		policy.GetPasswordRequiredToUnlockFromIdle() != nil ||
+		policy.GetPasswordRequiredType() != nil ||
+		policy.GetRtpEnabled() != nil ||
+		policy.GetSignatureOutOfDate() != nil ||
+		policy.GetStorageRequireEncryption() != nil ||
+		policy.GetTpmRequired() != nil {
 		mapSystemSecurityToState(ctx, data, policy)
 	} else {
 		data.SystemSecurity = types.ObjectNull(map[string]attr.Type{
@@ -114,7 +139,10 @@ func mapWindows10CompliancePolicyToState(ctx context.Context, data *DeviceCompli
 		})
 	}
 
-	if hasMicrosoftDefenderValues(policy) {
+	// Block-level existence check for microsoft_defender_for_endpoint (Optional+Computed)
+	// Check Defender-related fields to determine if block should exist.
+	if policy.GetDeviceThreatProtectionEnabled() != nil ||
+		policy.GetDeviceThreatProtectionRequiredSecurityLevel() != nil {
 		mapMicrosoftDefenderForEndpointToState(ctx, data, policy)
 	} else {
 		data.MicrosoftDefenderForEndpoint = types.ObjectNull(map[string]attr.Type{
@@ -123,7 +151,14 @@ func mapWindows10CompliancePolicyToState(ctx context.Context, data *DeviceCompli
 		})
 	}
 
-	if hasDevicePropertiesValues(policy) {
+	// Block-level existence check for device_properties (Optional+Computed)
+	// Check OS version and build range fields to determine if block should exist.
+	// Note: len() check for build ranges since it's a slice, not a pointer.
+	if policy.GetOsMinimumVersion() != nil ||
+		policy.GetOsMaximumVersion() != nil ||
+		policy.GetMobileOsMinimumVersion() != nil ||
+		policy.GetMobileOsMaximumVersion() != nil ||
+		len(policy.GetValidOperatingSystemBuildRanges()) > 0 {
 		mapDevicePropertiesToState(ctx, data, policy)
 	} else {
 		data.DeviceProperties = types.ObjectNull(map[string]attr.Type{
@@ -433,43 +468,3 @@ func mapMicrosoftDefenderForEndpointToState(ctx context.Context, data *DeviceCom
 	})
 }
 
-// hasDeviceHealthValues checks if the API has any non-nil device health values
-func hasDeviceHealthValues(policy *graphmodels.Windows10CompliancePolicy) bool {
-	return policy.GetBitLockerEnabled() != nil ||
-		policy.GetSecureBootEnabled() != nil ||
-		policy.GetCodeIntegrityEnabled() != nil
-}
-
-// hasSystemSecurityValues checks if the API has any non-nil system security values
-func hasSystemSecurityValues(policy *graphmodels.Windows10CompliancePolicy) bool {
-	return policy.GetActiveFirewallRequired() != nil ||
-		policy.GetAntiSpywareRequired() != nil ||
-		policy.GetAntivirusRequired() != nil ||
-		policy.GetConfigurationManagerComplianceRequired() != nil ||
-		policy.GetDefenderEnabled() != nil ||
-		policy.GetDefenderVersion() != nil ||
-		policy.GetPasswordBlockSimple() != nil ||
-		policy.GetPasswordMinimumCharacterSetCount() != nil ||
-		policy.GetPasswordRequired() != nil ||
-		policy.GetPasswordRequiredToUnlockFromIdle() != nil ||
-		policy.GetPasswordRequiredType() != nil ||
-		policy.GetRtpEnabled() != nil ||
-		policy.GetSignatureOutOfDate() != nil ||
-		policy.GetStorageRequireEncryption() != nil ||
-		policy.GetTpmRequired() != nil
-}
-
-// hasMicrosoftDefenderValues checks if the API has any non-nil Microsoft Defender values
-func hasMicrosoftDefenderValues(policy *graphmodels.Windows10CompliancePolicy) bool {
-	return policy.GetDeviceThreatProtectionEnabled() != nil ||
-		policy.GetDeviceThreatProtectionRequiredSecurityLevel() != nil
-}
-
-// hasDevicePropertiesValues checks if the API has any non-nil device properties values
-func hasDevicePropertiesValues(policy *graphmodels.Windows10CompliancePolicy) bool {
-	return policy.GetOsMinimumVersion() != nil ||
-		policy.GetOsMaximumVersion() != nil ||
-		policy.GetMobileOsMinimumVersion() != nil ||
-		policy.GetMobileOsMaximumVersion() != nil ||
-		len(policy.GetValidOperatingSystemBuildRanges()) > 0
-}
