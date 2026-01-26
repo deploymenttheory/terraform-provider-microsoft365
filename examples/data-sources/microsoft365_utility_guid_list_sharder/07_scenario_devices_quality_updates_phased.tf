@@ -164,19 +164,19 @@ output "deployment_dashboard" {
 
     deployment_gates = {
       ring_0_pilot = {
-        status     = data.microsoft365_utility_deployment_scheduler.ring_0_gate.condition_met ? "OPEN" : "CLOSED"
-        message    = data.microsoft365_utility_deployment_scheduler.ring_0_gate.status_message
-        group_id   = data.microsoft365_utility_deployment_scheduler.ring_0_gate.released_scope_id
+        status   = data.microsoft365_utility_deployment_scheduler.ring_0_gate.condition_met ? "OPEN" : "CLOSED"
+        message  = data.microsoft365_utility_deployment_scheduler.ring_0_gate.status_message
+        group_id = data.microsoft365_utility_deployment_scheduler.ring_0_gate.released_scope_id
       }
       ring_1_broad = {
-        status     = data.microsoft365_utility_deployment_scheduler.ring_1_gate.condition_met ? "OPEN" : "CLOSED"
-        message    = data.microsoft365_utility_deployment_scheduler.ring_1_gate.status_message
-        group_id   = data.microsoft365_utility_deployment_scheduler.ring_1_gate.released_scope_id
+        status   = data.microsoft365_utility_deployment_scheduler.ring_1_gate.condition_met ? "OPEN" : "CLOSED"
+        message  = data.microsoft365_utility_deployment_scheduler.ring_1_gate.status_message
+        group_id = data.microsoft365_utility_deployment_scheduler.ring_1_gate.released_scope_id
       }
       ring_2_production = {
-        status     = data.microsoft365_utility_deployment_scheduler.ring_2_gate.condition_met ? "OPEN" : "CLOSED"
-        message    = data.microsoft365_utility_deployment_scheduler.ring_2_gate.status_message
-        group_id   = data.microsoft365_utility_deployment_scheduler.ring_2_gate.released_scope_id
+        status   = data.microsoft365_utility_deployment_scheduler.ring_2_gate.condition_met ? "OPEN" : "CLOSED"
+        message  = data.microsoft365_utility_deployment_scheduler.ring_2_gate.status_message
+        group_id = data.microsoft365_utility_deployment_scheduler.ring_2_gate.released_scope_id
       }
     }
 

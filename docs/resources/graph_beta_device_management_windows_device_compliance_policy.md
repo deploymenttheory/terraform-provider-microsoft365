@@ -30,8 +30,10 @@ The following client `application` permissions are needed in order to use this r
 
 ## Example Usage
 
+### Custom Compliance Policy
+
 ```terraform
-// Example 1: Custom Compliance Policy
+# Example: Custom Compliance Policy
 resource "microsoft365_graph_beta_device_management_windows_device_compliance_policy" "custom_compliance" {
   display_name       = "tf-reg-example-windows-device-compliance-policy-custom-compliance"
   description        = "tf-reg-example-windows-device-compliance-policy-custom-compliance"
@@ -127,8 +129,12 @@ resource "microsoft365_graph_beta_device_management_windows_device_compliance_po
   ]
 
 }
+```
 
-// Example 2: Device Health Policy
+### Device Health Policy
+
+```terraform
+# Example: Device Health Policy
 resource "microsoft365_graph_beta_device_management_windows_device_compliance_policy" "device_health" {
   display_name       = "tf-reg-windows-device-compliance-policy-device-health"
   description        = "tf-reg-windows-device-compliance-policy-device-health"
@@ -163,8 +169,12 @@ resource "microsoft365_graph_beta_device_management_windows_device_compliance_po
   ]
 
 }
+```
 
-// Example 3: Device Properties Policy
+### Device Properties Policy
+
+```terraform
+# Example: Device Properties Policy
 resource "microsoft365_graph_beta_device_management_windows_device_compliance_policy" "device_properties" {
   display_name       = "tf-reg-windows-device-compliance-policy-device-properties"
   description        = "tf-reg-windows-device-compliance-policy-device-properties"
@@ -212,8 +222,12 @@ resource "microsoft365_graph_beta_device_management_windows_device_compliance_po
   ]
 
 }
+```
 
-// Example 4: Microsoft Defender for Endpoint Policy
+### Microsoft Defender for Endpoint Policy
+
+```terraform
+# Example: Microsoft Defender for Endpoint Policy
 resource "microsoft365_graph_beta_device_management_windows_device_compliance_policy" "microsoft_defender_for_endpoint" {
   display_name       = "tf-reg-windows-device-compliance-policy-microsoft-defender-for-endpoint"
   description        = "tf-reg-windows-device-compliance-policy-microsoft-defender-for-endpoint"
@@ -248,8 +262,12 @@ resource "microsoft365_graph_beta_device_management_windows_device_compliance_po
   ]
 
 }
+```
 
-// Example 5: System Security Policy
+### System Security Policy
+
+```terraform
+# Example: System Security Policy
 resource "microsoft365_graph_beta_device_management_windows_device_compliance_policy" "system_security" {
   display_name       = "tf-reg-windows-device-compliance-policy-system-security"
   description        = "tf-reg-windows-device-compliance-policy-system-security"
@@ -298,8 +316,12 @@ resource "microsoft365_graph_beta_device_management_windows_device_compliance_po
   ]
 
 }
+```
 
-// Example 6: WSL Policy with assignments
+### WSL Policy with Assignments
+
+```terraform
+# Example: WSL Policy with Assignments
 resource "microsoft365_graph_beta_device_management_windows_device_compliance_policy" "wsl_assignments" {
   display_name       = "tf-reg-windows-device-compliance-policy-wsl-assignments"
   description        = "tf-reg-windows-device-compliance-policy-wsl-assignments"

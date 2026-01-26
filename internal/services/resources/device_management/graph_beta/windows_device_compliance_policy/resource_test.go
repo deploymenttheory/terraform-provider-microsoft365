@@ -4,6 +4,7 @@ import (
 	"regexp"
 	"testing"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/check"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
 	policyMocks "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_management/graph_beta/windows_device_compliance_policy/mocks"
@@ -29,11 +30,16 @@ func setupErrorMockEnvironment() (*mocks.Mocks, *policyMocks.WindowsDeviceCompli
 	return mockClient, policyMock
 }
 
-func testCheckExists(resourceName string) resource.TestCheckFunc {
-	return resource.TestCheckResourceAttrSet(resourceName, "id")
+func loadUnitTestTerraform(filename string) string {
+	config, err := helpers.ParseHCLFile("tests/terraform/unit/" + filename)
+	if err != nil {
+		panic("failed to load unit test config " + filename + ": " + err.Error())
+	}
+	return config
 }
 
-func TestWindowsDeviceCompliancePolicyResource_Schema(t *testing.T) {
+// Test 01: Scenario 1 - Minimal configuration without assignments
+func TestWindowsDeviceCompliancePolicyResource_01_Minimal(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, policyMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -43,46 +49,47 @@ func TestWindowsDeviceCompliancePolicyResource_Schema(t *testing.T) {
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testConfigMinimal(),
+				Config: loadUnitTestTerraform("resource_windows_minimal.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					// Basic attributes
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_device_compliance_policy.minimal", "display_name", "unit-test-windows-device-compliance-policy-minimal"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_device_compliance_policy.minimal", "description", "unit-test-windows-device-compliance-policy-minimal"),
-					resource.TestMatchResourceAttr("microsoft365_graph_beta_device_management_windows_device_compliance_policy.minimal", "id", regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_device_compliance_policy.minimal", "role_scope_tag_ids.#", "1"),
-					resource.TestCheckTypeSetElemAttr("microsoft365_graph_beta_device_management_windows_device_compliance_policy.minimal", "role_scope_tag_ids.*", "0"),
+					check.That(resourceType+".minimal").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(resourceType+".minimal").Key("display_name").HasValue("unit-test-wdcp-minimal"),
+					check.That(resourceType+".minimal").Key("description").HasValue("unit-test-wdcp-minimal"),
+					check.That(resourceType+".minimal").Key("role_scope_tag_ids.#").HasValue("1"),
+					check.That(resourceType+".minimal").Key("role_scope_tag_ids.*").ContainsTypeSetElement("0"),
 
 					// Microsoft Defender for Endpoint settings
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_device_compliance_policy.minimal", "microsoft_defender_for_endpoint.device_threat_protection_enabled", "true"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_device_compliance_policy.minimal", "microsoft_defender_for_endpoint.device_threat_protection_required_security_level", "medium"),
+					check.That(resourceType+".minimal").Key("microsoft_defender_for_endpoint.device_threat_protection_enabled").HasValue("true"),
+					check.That(resourceType+".minimal").Key("microsoft_defender_for_endpoint.device_threat_protection_required_security_level").HasValue("medium"),
 
 					// Scheduled actions for rule
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_device_compliance_policy.minimal", "scheduled_actions_for_rule.#", "1"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_device_compliance_policy.minimal", "scheduled_actions_for_rule.0.scheduled_action_configurations.#", "3"),
+					check.That(resourceType+".minimal").Key("scheduled_actions_for_rule.#").HasValue("1"),
+					check.That(resourceType+".minimal").Key("scheduled_actions_for_rule.0.scheduled_action_configurations.#").HasValue("3"),
 
 					// Block action
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_device_compliance_policy.minimal", "scheduled_actions_for_rule.0.scheduled_action_configurations.0.action_type", "block"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_device_compliance_policy.minimal", "scheduled_actions_for_rule.0.scheduled_action_configurations.0.grace_period_hours", "12"),
+					check.That(resourceType+".minimal").Key("scheduled_actions_for_rule.0.scheduled_action_configurations.0.action_type").HasValue("block"),
+					check.That(resourceType+".minimal").Key("scheduled_actions_for_rule.0.scheduled_action_configurations.0.grace_period_hours").HasValue("12"),
 
 					// Notification action
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_device_compliance_policy.minimal", "scheduled_actions_for_rule.0.scheduled_action_configurations.1.action_type", "notification"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_device_compliance_policy.minimal", "scheduled_actions_for_rule.0.scheduled_action_configurations.1.grace_period_hours", "24"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_device_compliance_policy.minimal", "scheduled_actions_for_rule.0.scheduled_action_configurations.1.notification_template_id", "00000000-0000-0000-0000-000000000001"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_device_compliance_policy.minimal", "scheduled_actions_for_rule.0.scheduled_action_configurations.1.notification_message_cc_list.#", "2"),
+					check.That(resourceType+".minimal").Key("scheduled_actions_for_rule.0.scheduled_action_configurations.1.action_type").HasValue("notification"),
+					check.That(resourceType+".minimal").Key("scheduled_actions_for_rule.0.scheduled_action_configurations.1.grace_period_hours").HasValue("24"),
+					check.That(resourceType+".minimal").Key("scheduled_actions_for_rule.0.scheduled_action_configurations.1.notification_template_id").HasValue("00000000-0000-0000-0000-000000000001"),
+					check.That(resourceType+".minimal").Key("scheduled_actions_for_rule.0.scheduled_action_configurations.1.notification_message_cc_list.#").HasValue("2"),
 
 					// Retire action
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_device_compliance_policy.minimal", "scheduled_actions_for_rule.0.scheduled_action_configurations.2.action_type", "retire"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_device_compliance_policy.minimal", "scheduled_actions_for_rule.0.scheduled_action_configurations.2.grace_period_hours", "48"),
+					check.That(resourceType+".minimal").Key("scheduled_actions_for_rule.0.scheduled_action_configurations.2.action_type").HasValue("retire"),
+					check.That(resourceType+".minimal").Key("scheduled_actions_for_rule.0.scheduled_action_configurations.2.grace_period_hours").HasValue("48"),
 
 					// Assignments
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_device_compliance_policy.minimal", "assignments.#", "6"),
+					check.That(resourceType+".minimal").Key("assignments.#").HasValue("6"),
 				),
 			},
 		},
 	})
 }
 
-func TestWindowsDeviceCompliancePolicyResource_MaximalSettings(t *testing.T) {
+// Test 02: Scenario 2 - Maximal configuration with assignments
+func TestWindowsDeviceCompliancePolicyResource_02_Maximal(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, policyMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -92,49 +99,50 @@ func TestWindowsDeviceCompliancePolicyResource_MaximalSettings(t *testing.T) {
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testConfigMaximal(),
+				Config: loadUnitTestTerraform("resource_windows_maximal.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					// Basic attributes
-					testCheckExists("microsoft365_graph_beta_device_management_windows_device_compliance_policy.maximal"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_device_compliance_policy.maximal", "display_name", "unit-test-windows-device-compliance-policy-maximal"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_device_compliance_policy.maximal", "description", "unit-test-windows-device-compliance-policy-maximal"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_device_compliance_policy.maximal", "role_scope_tag_ids.#", "1"),
-					resource.TestCheckTypeSetElemAttr("microsoft365_graph_beta_device_management_windows_device_compliance_policy.maximal", "role_scope_tag_ids.*", "0"),
+					check.That(resourceType+".maximal").Key("id").Exists(),
+					check.That(resourceType+".maximal").Key("display_name").HasValue("unit-test-wdcp-maximal"),
+					check.That(resourceType+".maximal").Key("description").HasValue("unit-test-wdcp-maximal"),
+					check.That(resourceType+".maximal").Key("role_scope_tag_ids.#").HasValue("1"),
+					check.That(resourceType+".maximal").Key("role_scope_tag_ids.*").ContainsTypeSetElement("0"),
 
 					// Device health settings
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_device_compliance_policy.maximal", "device_health.bit_locker_enabled", "true"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_device_compliance_policy.maximal", "device_health.secure_boot_enabled", "true"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_device_compliance_policy.maximal", "device_health.code_integrity_enabled", "true"),
+					check.That(resourceType+".maximal").Key("device_health.bit_locker_enabled").HasValue("true"),
+					check.That(resourceType+".maximal").Key("device_health.secure_boot_enabled").HasValue("true"),
+					check.That(resourceType+".maximal").Key("device_health.code_integrity_enabled").HasValue("true"),
 
 					// Microsoft Defender for Endpoint settings
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_device_compliance_policy.maximal", "microsoft_defender_for_endpoint.device_threat_protection_enabled", "true"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_device_compliance_policy.maximal", "microsoft_defender_for_endpoint.device_threat_protection_required_security_level", "medium"),
+					check.That(resourceType+".maximal").Key("microsoft_defender_for_endpoint.device_threat_protection_enabled").HasValue("true"),
+					check.That(resourceType+".maximal").Key("microsoft_defender_for_endpoint.device_threat_protection_required_security_level").HasValue("medium"),
 
 					// Device properties
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_device_compliance_policy.maximal", "device_properties.os_minimum_version", "10.0.22631.5768"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_device_compliance_policy.maximal", "device_properties.os_maximum_version", "10.0.26100.9999"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_device_compliance_policy.maximal", "device_properties.mobile_os_minimum_version", "10.0.22631.5768"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_device_compliance_policy.maximal", "device_properties.mobile_os_maximum_version", "10.0.26100.9999"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_device_compliance_policy.maximal", "device_properties.valid_operating_system_build_ranges.#", "2"),
+					check.That(resourceType+".maximal").Key("device_properties.os_minimum_version").HasValue("10.0.22631.5768"),
+					check.That(resourceType+".maximal").Key("device_properties.os_maximum_version").HasValue("10.0.26100.9999"),
+					check.That(resourceType+".maximal").Key("device_properties.mobile_os_minimum_version").HasValue("10.0.22631.5768"),
+					check.That(resourceType+".maximal").Key("device_properties.mobile_os_maximum_version").HasValue("10.0.26100.9999"),
+					check.That(resourceType+".maximal").Key("device_properties.valid_operating_system_build_ranges.#").HasValue("2"),
 
 					// Custom compliance
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_device_compliance_policy.maximal", "custom_compliance_required", "true"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_device_compliance_policy.maximal", "device_compliance_policy_script.device_compliance_script_id", "00000000-0000-0000-0000-000000000001"),
-					resource.TestCheckResourceAttrSet("microsoft365_graph_beta_device_management_windows_device_compliance_policy.maximal", "device_compliance_policy_script.rules_content"),
+					check.That(resourceType+".maximal").Key("custom_compliance_required").HasValue("true"),
+					check.That(resourceType+".maximal").Key("device_compliance_policy_script.device_compliance_script_id").HasValue("00000000-0000-0000-0000-000000000001"),
+					check.That(resourceType+".maximal").Key("device_compliance_policy_script.rules_content").Exists(),
 
 					// Scheduled actions for rule
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_device_compliance_policy.maximal", "scheduled_actions_for_rule.#", "1"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_device_compliance_policy.maximal", "scheduled_actions_for_rule.0.scheduled_action_configurations.#", "3"),
+					check.That(resourceType+".maximal").Key("scheduled_actions_for_rule.#").HasValue("1"),
+					check.That(resourceType+".maximal").Key("scheduled_actions_for_rule.0.scheduled_action_configurations.#").HasValue("3"),
 
 					// Assignments
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_device_compliance_policy.maximal", "assignments.#", "6"),
+					check.That(resourceType+".maximal").Key("assignments.#").HasValue("6"),
 				),
 			},
 		},
 	})
 }
 
-func TestWindowsDeviceCompliancePolicyResource_ErrorHandling(t *testing.T) {
+// Test 03: Scenario 3 - Error handling
+func TestWindowsDeviceCompliancePolicyResource_03_ErrorHandling(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, policyMock := setupErrorMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -144,25 +152,9 @@ func TestWindowsDeviceCompliancePolicyResource_ErrorHandling(t *testing.T) {
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config:      testConfigMinimal(),
+				Config:      loadUnitTestTerraform("resource_windows_minimal.tf"),
 				ExpectError: regexp.MustCompile("Invalid Group ID in notification_message_cc_list"),
 			},
 		},
 	})
-}
-
-func testConfigMinimal() string {
-	unitTestConfig, err := helpers.ParseHCLFile("tests/terraform/unit/resource_windows_minimal.tf")
-	if err != nil {
-		panic("failed to load minimal config: " + err.Error())
-	}
-	return unitTestConfig
-}
-
-func testConfigMaximal() string {
-	unitTestConfig, err := helpers.ParseHCLFile("tests/terraform/unit/resource_windows_maximal.tf")
-	if err != nil {
-		panic("failed to load maximal config: " + err.Error())
-	}
-	return unitTestConfig
 }

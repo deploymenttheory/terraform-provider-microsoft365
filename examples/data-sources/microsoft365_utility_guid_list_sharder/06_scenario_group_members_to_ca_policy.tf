@@ -16,7 +16,7 @@ resource "microsoft365_graph_beta_group" "it_ring_0_pilot" {
   mail_nickname    = "it-mfa-ring-0"
   security_enabled = true
   mail_enabled     = false
-  
+
   members = data.microsoft365_utility_guid_list_sharder.it_dept_members.shards["shard_0"]
 }
 
@@ -25,7 +25,7 @@ resource "microsoft365_graph_beta_group" "it_ring_1_validation" {
   mail_nickname    = "it-mfa-ring-1"
   security_enabled = true
   mail_enabled     = false
-  
+
   members = data.microsoft365_utility_guid_list_sharder.it_dept_members.shards["shard_1"]
 }
 
@@ -34,7 +34,7 @@ resource "microsoft365_graph_beta_group" "it_ring_2_full" {
   mail_nickname    = "it-mfa-ring-2"
   security_enabled = true
   mail_enabled     = false
-  
+
   members = data.microsoft365_utility_guid_list_sharder.it_dept_members.shards["shard_2"]
 }
 

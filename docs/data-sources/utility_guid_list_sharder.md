@@ -198,9 +198,9 @@ data "microsoft365_utility_guid_list_sharder" "users_with_seed" {
 # Output shard counts
 output "distribution" {
   value = {
-    pilot_exact_50      = length(data.microsoft365_utility_guid_list_sharder.users_with_seed.shards["shard_0"])
+    pilot_exact_50       = length(data.microsoft365_utility_guid_list_sharder.users_with_seed.shards["shard_0"])
     validation_exact_100 = length(data.microsoft365_utility_guid_list_sharder.users_with_seed.shards["shard_1"])
-    broad_all_remaining = length(data.microsoft365_utility_guid_list_sharder.users_with_seed.shards["shard_2"])
+    broad_all_remaining  = length(data.microsoft365_utility_guid_list_sharder.users_with_seed.shards["shard_2"])
   }
 }
 ```
@@ -258,7 +258,7 @@ resource "microsoft365_graph_beta_group" "ring_0_validation" {
   mail_nickname    = "win-updates-ring-0"
   security_enabled = true
   mail_enabled     = false
-  
+
   members = data.microsoft365_utility_guid_list_sharder.windows_devices.shards["shard_0"]
 }
 
@@ -267,7 +267,7 @@ resource "microsoft365_graph_beta_group" "ring_1_pilot" {
   mail_nickname    = "win-updates-ring-1"
   security_enabled = true
   mail_enabled     = false
-  
+
   members = data.microsoft365_utility_guid_list_sharder.windows_devices.shards["shard_1"]
 }
 
@@ -276,7 +276,7 @@ resource "microsoft365_graph_beta_group" "ring_2_broad" {
   mail_nickname    = "win-updates-ring-2"
   security_enabled = true
   mail_enabled     = false
-  
+
   members = data.microsoft365_utility_guid_list_sharder.windows_devices.shards["shard_2"]
 }
 
@@ -285,7 +285,7 @@ resource "microsoft365_graph_beta_group" "ring_3_production" {
   mail_nickname    = "win-updates-ring-3"
   security_enabled = true
   mail_enabled     = false
-  
+
   members = data.microsoft365_utility_guid_list_sharder.windows_devices.shards["shard_3"]
 }
 
@@ -296,14 +296,14 @@ resource "microsoft365_graph_beta_device_management_settings_catalog_configurati
   platforms          = "windows10"
   technologies       = ["mdm"]
   role_scope_tag_ids = ["0"]
-  
+
   settings = jsonencode({
     settings = [
       {
         id = "0"
         settingInstance = {
-          "@odata.type"           = "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance"
-          settingDefinitionId     = "device_vendor_msft_policy_config_update_deferqualityupdatesperiodindays"
+          "@odata.type"       = "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance"
+          settingDefinitionId = "device_vendor_msft_policy_config_update_deferqualityupdatesperiodindays"
           choiceSettingValue = {
             value    = "device_vendor_msft_policy_config_update_deferqualityupdatesperiodindays_0"
             children = []
@@ -312,7 +312,7 @@ resource "microsoft365_graph_beta_device_management_settings_catalog_configurati
       }
     ]
   })
-  
+
   assignments = [
     {
       type        = "groupAssignmentTarget"
@@ -359,7 +359,7 @@ resource "microsoft365_graph_beta_group" "it_ring_0_pilot" {
   mail_nickname    = "it-mfa-ring-0"
   security_enabled = true
   mail_enabled     = false
-  
+
   members = data.microsoft365_utility_guid_list_sharder.it_dept_members.shards["shard_0"]
 }
 
@@ -368,7 +368,7 @@ resource "microsoft365_graph_beta_group" "it_ring_1_validation" {
   mail_nickname    = "it-mfa-ring-1"
   security_enabled = true
   mail_enabled     = false
-  
+
   members = data.microsoft365_utility_guid_list_sharder.it_dept_members.shards["shard_1"]
 }
 
@@ -377,7 +377,7 @@ resource "microsoft365_graph_beta_group" "it_ring_2_full" {
   mail_nickname    = "it-mfa-ring-2"
   security_enabled = true
   mail_enabled     = false
-  
+
   members = data.microsoft365_utility_guid_list_sharder.it_dept_members.shards["shard_2"]
 }
 
@@ -575,19 +575,19 @@ output "deployment_dashboard" {
 
     deployment_gates = {
       ring_0_pilot = {
-        status     = data.microsoft365_utility_deployment_scheduler.ring_0_gate.condition_met ? "OPEN" : "CLOSED"
-        message    = data.microsoft365_utility_deployment_scheduler.ring_0_gate.status_message
-        group_id   = data.microsoft365_utility_deployment_scheduler.ring_0_gate.released_scope_id
+        status   = data.microsoft365_utility_deployment_scheduler.ring_0_gate.condition_met ? "OPEN" : "CLOSED"
+        message  = data.microsoft365_utility_deployment_scheduler.ring_0_gate.status_message
+        group_id = data.microsoft365_utility_deployment_scheduler.ring_0_gate.released_scope_id
       }
       ring_1_broad = {
-        status     = data.microsoft365_utility_deployment_scheduler.ring_1_gate.condition_met ? "OPEN" : "CLOSED"
-        message    = data.microsoft365_utility_deployment_scheduler.ring_1_gate.status_message
-        group_id   = data.microsoft365_utility_deployment_scheduler.ring_1_gate.released_scope_id
+        status   = data.microsoft365_utility_deployment_scheduler.ring_1_gate.condition_met ? "OPEN" : "CLOSED"
+        message  = data.microsoft365_utility_deployment_scheduler.ring_1_gate.status_message
+        group_id = data.microsoft365_utility_deployment_scheduler.ring_1_gate.released_scope_id
       }
       ring_2_production = {
-        status     = data.microsoft365_utility_deployment_scheduler.ring_2_gate.condition_met ? "OPEN" : "CLOSED"
-        message    = data.microsoft365_utility_deployment_scheduler.ring_2_gate.status_message
-        group_id   = data.microsoft365_utility_deployment_scheduler.ring_2_gate.released_scope_id
+        status   = data.microsoft365_utility_deployment_scheduler.ring_2_gate.condition_met ? "OPEN" : "CLOSED"
+        message  = data.microsoft365_utility_deployment_scheduler.ring_2_gate.status_message
+        group_id = data.microsoft365_utility_deployment_scheduler.ring_2_gate.released_scope_id
       }
     }
 

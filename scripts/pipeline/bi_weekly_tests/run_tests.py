@@ -549,7 +549,6 @@ def run_service_tests(configuration_block_type: str, service: str,
         for pkg in test_packages:
             package_test_counts[pkg] = 0
     
-    # Display summary
     print_separator("=")
     print(f"📋 Test Discovery Summary for {configuration_block_type}/{service}")
     print_separator("=")
