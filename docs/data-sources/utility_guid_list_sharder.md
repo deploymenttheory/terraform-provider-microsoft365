@@ -3,15 +3,15 @@ page_title: "microsoft365_utility_guid_list_sharder Data Source - terraform-prov
 subcategory: "Utility"
 
 description: |-
-  Retrieves object IDs (GUIDs) from Microsoft Graph API and distributes them into configurable shards for progressive rollouts and phased deployments. Queries /users, /devices, or /groups/{id}/members endpoints with optional OData filtering, then applies sharding strategies (random, sequential, or percentage-based) to distribute results. Output shards are sets that can be directly used in conditional access policies, groups, and other resources requiring object ID collections.
-  API Endpoints: GET /users, GET /devices, GET /groups/{id}/members (with pagination and ConsistencyLevel: eventual header)
-  Common Use Cases: MFA rollouts, Windows Update rings, conditional access pilots, group splitting, A/B testing
+  Retrieves object IDs (GUIDs) from Microsoft Graph API and distributes them into configurable shards for progressive rollouts and phased deployments. Queries /users, /devices, /applications, or /groups/{id}/members endpoints with optional OData filtering, then applies sharding strategies (random, sequential, or percentage-based) to distribute results. Output shards are sets that can be directly used in conditional access policies, groups, and other resources requiring object ID collections.
+  API Endpoints: GET /users, GET /devices, GET /applications, GET /groups/{id}/members (with pagination and ConsistencyLevel: eventual header)
+  Common Use Cases: MFA rollouts, Windows Update rings, conditional access pilots, application-based policies, group splitting, A/B testing
   For detailed examples and best practices, see the Progressive Rollout with GUID List Sharder https://registry.terraform.io/providers/deploymenttheory/microsoft365/latest/docs/guides/progressive_rollout_with_guid_list_sharder guide.
 ---
 
 # microsoft365_utility_guid_list_sharder
 
-Queries Microsoft Graph API to retrieve collections of object IDs (GUIDs) for users, devices, or group members, then intelligently distributes them into configurable "shards" (subsets) for progressive deployment strategies.
+Queries Microsoft Graph API to retrieve collections of object IDs (GUIDs) for users, devices, service principals (enterprise apps), or group members, then intelligently distributes them into configurable "shards" (subsets) for progressive deployment strategies.
 
 This datasource enables phased rollouts, pilot programs, and deployment rings for Microsoft 365 policies by algorithmically distributing populations into controlled subsets. Unlike static Entra ID dynamic groups that take hours to populate and require complex membership rules, the GUID List Sharder provides immediate, deterministic distribution with multiple strategies optimized for different scenarios.
 ## Microsoft Graph API Permissions
@@ -21,6 +21,7 @@ The following client `application` permissions are needed in order to use this d
 **Required:**
 - `Users.Read.All`
 - `Devices.Read.All`
+- `Application.Read.All`
 - `Groups.Read.All`
 
 **Optional:**
@@ -31,6 +32,7 @@ The following client `application` permissions are needed in order to use this d
 | Version | Status | Notes |
 |---------|--------|-------|
 | v0.42.0-alpha | Experimental | Initial release with round-robin, percentage, size, and rendezvous strategies |
+| v0.43.0-alpha | Experimental | Added service principal support |
 
 ## Background
 
@@ -114,7 +116,7 @@ This prevents "pilot fatigue" where certain users consistently experience issues
 # Without seed (non-deterministic, uses API order)
 data "microsoft365_utility_guid_list_sharder" "users_no_seed" {
   resource_type = "users"
-  odata_query   = "accountEnabled eq true"
+  odata_filter  = "accountEnabled eq true"
   shard_count   = 4
   strategy      = "round-robin"
 }
@@ -122,7 +124,7 @@ data "microsoft365_utility_guid_list_sharder" "users_no_seed" {
 # With seed (deterministic, reproducible)
 data "microsoft365_utility_guid_list_sharder" "users_with_seed" {
   resource_type = "users"
-  odata_query   = "accountEnabled eq true"
+  odata_filter  = "accountEnabled eq true"
   shard_count   = 4
   strategy      = "round-robin"
   seed          = "mfa-rollout-2024"
@@ -148,7 +150,7 @@ output "distribution" {
 # Without seed (non-deterministic, uses API order)
 data "microsoft365_utility_guid_list_sharder" "users_no_seed" {
   resource_type     = "users"
-  odata_query       = "accountEnabled eq true"
+  odata_filter      = "accountEnabled eq true"
   shard_percentages = [10, 30, 60]
   strategy          = "percentage"
 }
@@ -156,7 +158,7 @@ data "microsoft365_utility_guid_list_sharder" "users_no_seed" {
 # With seed (deterministic, reproducible)
 data "microsoft365_utility_guid_list_sharder" "users_with_seed" {
   resource_type     = "users"
-  odata_query       = "accountEnabled eq true"
+  odata_filter      = "accountEnabled eq true"
   shard_percentages = [10, 30, 60]
   strategy          = "percentage"
   seed              = "ca-rollout-2024"
@@ -181,7 +183,7 @@ output "distribution" {
 # Without seed (non-deterministic, uses API order)
 data "microsoft365_utility_guid_list_sharder" "users_no_seed" {
   resource_type = "users"
-  odata_query   = "accountEnabled eq true and department eq 'IT'"
+  odata_filter  = "accountEnabled eq true and department eq 'IT'"
   shard_sizes   = [50, 100, -1]
   strategy      = "size"
 }
@@ -189,7 +191,7 @@ data "microsoft365_utility_guid_list_sharder" "users_no_seed" {
 # With seed (deterministic, reproducible)
 data "microsoft365_utility_guid_list_sharder" "users_with_seed" {
   resource_type = "users"
-  odata_query   = "accountEnabled eq true and department eq 'IT'"
+  odata_filter  = "accountEnabled eq true and department eq 'IT'"
   shard_sizes   = [50, 100, -1]
   strategy      = "size"
   seed          = "it-pilot-2024"
@@ -214,7 +216,7 @@ output "distribution" {
 
 data "microsoft365_utility_guid_list_sharder" "users_stable" {
   resource_type = "users"
-  odata_query   = "accountEnabled eq true"
+  odata_filter  = "accountEnabled eq true"
   shard_count   = 3
   strategy      = "rendezvous"
   seed          = "stable-deployment-2024"
@@ -235,6 +237,73 @@ output "distribution" {
 # - Compare with round-robin/percentage: ~75% would move
 ```
 
+#### Service Principals (Query and Shard Enterprise Apps)
+
+```terraform
+# Basic Service Principals: Query and shard enterprise applications
+# Use for phased rollout of app-based conditional access policies
+
+# All service principals with percentage-based sharding
+data "microsoft365_utility_guid_list_sharder" "all_apps" {
+  resource_type     = "service_principals"
+  shard_percentages = [10, 30, 60]
+  strategy          = "percentage"
+  seed              = "app-rollout-2026"
+}
+
+# Filter to Microsoft applications (common for targeting Microsoft 365 apps)
+data "microsoft365_utility_guid_list_sharder" "microsoft_apps" {
+  resource_type     = "service_principals"
+  odata_filter      = "startswith(displayName, 'Microsoft')"
+  shard_percentages = [20, 80]
+  strategy          = "percentage"
+  seed              = "microsoft-apps-2026"
+}
+
+# Filter to specific apps by AppId (useful for targeting known applications)
+data "microsoft365_utility_guid_list_sharder" "office_apps" {
+  resource_type = "service_principals"
+  odata_filter  = "appId eq '00000003-0000-0000-c000-000000000000'"
+  shard_count   = 3
+  strategy      = "round-robin"
+  seed          = "office-apps-2026"
+}
+
+# Filter to agentic service principals (AI Copilot agents)
+# Use advanced OData type filter to target Microsoft Graph agentIdentityBlueprintPrincipal
+data "microsoft365_utility_guid_list_sharder" "agentic_principals" {
+  resource_type = "service_principals"
+  odata_filter  = "isof('microsoft.graph.agentIdentityBlueprintPrincipal')"
+  shard_count   = 2
+  strategy      = "round-robin"
+  seed          = "agentic-apps-2026"
+}
+
+# Output application distribution
+output "all_apps_distribution" {
+  value = {
+    pilot_10pct   = length(data.microsoft365_utility_guid_list_sharder.all_apps.shards["shard_0"])
+    broader_30pct = length(data.microsoft365_utility_guid_list_sharder.all_apps.shards["shard_1"])
+    full_60pct    = length(data.microsoft365_utility_guid_list_sharder.all_apps.shards["shard_2"])
+  }
+}
+
+output "microsoft_apps_distribution" {
+  value = {
+    pilot_20pct = length(data.microsoft365_utility_guid_list_sharder.microsoft_apps.shards["shard_0"])
+    prod_80pct  = length(data.microsoft365_utility_guid_list_sharder.microsoft_apps.shards["shard_1"])
+  }
+}
+
+output "agentic_principals_distribution" {
+  value = {
+    shard_0 = length(data.microsoft365_utility_guid_list_sharder.agentic_principals.shards["shard_0"])
+    shard_1 = length(data.microsoft365_utility_guid_list_sharder.agentic_principals.shards["shard_1"])
+    total   = length(data.microsoft365_utility_guid_list_sharder.agentic_principals.shards["shard_0"]) + length(data.microsoft365_utility_guid_list_sharder.agentic_principals.shards["shard_1"])
+  }
+}
+```
+
 ### Scenario-Based Examples
 
 #### Scenario 1: Devices → Settings Catalog Deployment Rings
@@ -246,7 +315,7 @@ output "distribution" {
 # Distribute Windows devices into 4 deployment rings (5%, 15%, 30%, 50%)
 data "microsoft365_utility_guid_list_sharder" "windows_devices" {
   resource_type     = "devices"
-  odata_query       = "operatingSystem eq 'Windows' and trustType eq 'AzureAd'"
+  odata_filter      = "operatingSystem eq 'Windows' and trustType eq 'AzureAd'"
   shard_percentages = [5, 15, 30, 50]
   strategy          = "percentage"
   seed              = "windows-updates-2024"
@@ -415,7 +484,7 @@ resource "microsoft365_graph_beta_conditional_access_policy" "it_mfa_policy" {
 # Step 1: Shard Windows devices into 3 deployment rings (10%, 30%, 60%)
 data "microsoft365_utility_guid_list_sharder" "quality_update_rings" {
   resource_type     = "devices"
-  odata_query       = "operatingSystem eq 'Windows' and trustType eq 'AzureAd'"
+  odata_filter      = "operatingSystem eq 'Windows' and trustType eq 'AzureAd'"
   shard_percentages = [10, 30, 60]
   strategy          = "percentage"
   seed              = "quality-updates-2024"
@@ -601,18 +670,135 @@ output "deployment_dashboard" {
 }
 ```
 
+#### Scenario 4: Service Principals (Enterprise Apps) → Conditional Access Policy
+
+```terraform
+# Scenario 4: Service Principals (Enterprise Apps) → Conditional Access Policy
+# Use case: Roll out stricter authentication requirements to enterprise applications in phases
+
+# Distribute all service principals (enterprise apps) into 3 deployment rings
+# Note: This queries service principals (/servicePrincipals), which are the app instances in your tenant
+# These are the IDs used in Conditional Access policies
+data "microsoft365_utility_guid_list_sharder" "app_rollout" {
+  resource_type     = "service_principals"
+  shard_percentages = [10, 30, 60]
+  strategy          = "percentage"
+  seed              = "app-auth-policy-2026"
+}
+
+# Alternative: Filter to Microsoft apps only
+data "microsoft365_utility_guid_list_sharder" "microsoft_apps" {
+  resource_type     = "service_principals"
+  odata_filter      = "startswith(displayName, 'Microsoft')"
+  shard_percentages = [10, 30, 60]
+  strategy          = "percentage"
+  seed              = "microsoft-app-policy-2026"
+}
+
+# Create CA policy targeting Ring 0 (10% pilot) applications
+resource "microsoft365_graph_beta_conditional_access_policy" "app_auth_ring_0" {
+  display_name = "Enhanced Auth Requirements - App Ring 0 (Pilot 10%)"
+  state        = "enabledForReportingButNotEnforced" # Start in report-only mode
+
+  conditions {
+    users {
+      include_users = ["All"]
+    }
+    applications {
+      # Target the 10% pilot shard of applications
+      include_applications = data.microsoft365_utility_guid_list_sharder.app_rollout.shards["shard_0"]
+    }
+    client_app_types = ["browser", "mobileAppsAndDesktopClients"]
+  }
+
+  grant_controls {
+    operator = "AND"
+    built_in_controls = [
+      "mfa",
+      "compliantDevice"
+    ]
+  }
+}
+
+# Create CA policy targeting Ring 1 (30% broader rollout)
+resource "microsoft365_graph_beta_conditional_access_policy" "app_auth_ring_1" {
+  display_name = "Enhanced Auth Requirements - App Ring 1 (Broader 30%)"
+  state        = "disabled" # Enable after Ring 0 validation
+
+  conditions {
+    users {
+      include_users = ["All"]
+    }
+    applications {
+      # Target the 30% broader shard of applications
+      include_applications = data.microsoft365_utility_guid_list_sharder.app_rollout.shards["shard_1"]
+    }
+    client_app_types = ["browser", "mobileAppsAndDesktopClients"]
+  }
+
+  grant_controls {
+    operator = "AND"
+    built_in_controls = [
+      "mfa",
+      "compliantDevice"
+    ]
+  }
+}
+
+# Create CA policy targeting Ring 2 (60% full rollout)
+resource "microsoft365_graph_beta_conditional_access_policy" "app_auth_ring_2" {
+  display_name = "Enhanced Auth Requirements - App Ring 2 (Full 60%)"
+  state        = "disabled" # Enable after Ring 1 validation
+
+  conditions {
+    users {
+      include_users = ["All"]
+    }
+    applications {
+      # Target the 60% final shard of applications
+      include_applications = data.microsoft365_utility_guid_list_sharder.app_rollout.shards["shard_2"]
+    }
+    client_app_types = ["browser", "mobileAppsAndDesktopClients"]
+  }
+
+  grant_controls {
+    operator = "AND"
+    built_in_controls = [
+      "mfa",
+      "compliantDevice"
+    ]
+  }
+}
+
+# Output application distribution for verification
+output "app_distribution" {
+  value = {
+    ring_0_pilot_count   = length(data.microsoft365_utility_guid_list_sharder.app_rollout.shards["shard_0"])
+    ring_1_broader_count = length(data.microsoft365_utility_guid_list_sharder.app_rollout.shards["shard_1"])
+    ring_2_full_count    = length(data.microsoft365_utility_guid_list_sharder.app_rollout.shards["shard_2"])
+    total_apps           = length(data.microsoft365_utility_guid_list_sharder.app_rollout.shards["shard_0"]) + length(data.microsoft365_utility_guid_list_sharder.app_rollout.shards["shard_1"]) + length(data.microsoft365_utility_guid_list_sharder.app_rollout.shards["shard_2"])
+  }
+}
+
+# Output first few application IDs from pilot ring for manual verification
+output "pilot_app_sample" {
+  value       = slice(data.microsoft365_utility_guid_list_sharder.app_rollout.shards["shard_0"], 0, min(5, length(data.microsoft365_utility_guid_list_sharder.app_rollout.shards["shard_0"])))
+  description = "Sample of application IDs in pilot ring (first 5)"
+}
+```
+
 <!-- schema generated by tfplugindocs -->
 ## Schema
 
 ### Required
 
-- `resource_type` (String) The type of Microsoft Graph resource to query and shard. `users` queries `/users` for user-based policies (MFA, conditional access). `devices` queries `/devices` for device policies (Windows Updates, compliance). `group_members` queries `/groups/{id}/members` to split existing group membership (requires `group_id`).
+- `resource_type` (String) The type of Microsoft Graph resource to query and shard. `users` queries `/users` for user-based policies (MFA, conditional access). `devices` queries `/devices` for device policies (Windows Updates, compliance). `service_principals` queries `/servicePrincipals` (enterprise apps) for application-based conditional access policies. `group_members` queries `/groups/{id}/members` to split existing group membership (requires `group_id`).
 - `strategy` (String) The distribution strategy for sharding GUIDs. `round-robin` distributes in circular order (guarantees equal sizes, optional seed for reproducibility). `percentage` distributes by specified percentages (requires `shard_percentages`, optional seed for reproducibility). `size` distributes by absolute sizes (requires `shard_sizes`, optional seed for reproducibility). `rendezvous` uses Highest Random Weight algorithm (always deterministic, minimal disruption when shard count changes, requires seed). See the [guide](https://registry.terraform.io/providers/deploymenttheory/microsoft365/latest/docs/guides/progressive_rollout_with_guid_list_sharder) for detailed comparison.
 
 ### Optional
 
 - `group_id` (String) The object ID of the group to query members from. Required when `resource_type = "group_members"`, ignored otherwise. Use this to split an existing group's membership into multiple new groups for targeted policy application.
-- `odata_query` (String) Optional OData filter applied at the API level before sharding. Common examples: `$filter=accountEnabled eq true` (active accounts only), `$filter=operatingSystem eq 'Windows'` (Windows devices), `$filter=userType eq 'Member'` (exclude guests). Leave empty to query all resources without filtering.
+- `odata_filter` (String) Optional OData filter expression applied at the API level before sharding. **Users:** `accountEnabled eq true` (active accounts only), `userType eq 'Member'` (exclude guests). **Devices:** `operatingSystem eq 'Windows'` (Windows devices only). **Service Principals:** `startswith(displayName, 'Microsoft')` (Microsoft apps), `appId eq 'guid'` (specific app), `isof('microsoft.graph.agentIdentityBlueprintPrincipal')` (AI/Copilot agents). Leave empty to query all resources without filtering.
 - `seed` (String) Optional seed value for deterministic distribution. When provided, makes results reproducible across Terraform runs. **`round-robin` strategy**: No seed = uses API order (may change). With seed = shuffles deterministically first, then applies round-robin (reproducible). **`percentage` strategy**: No seed = uses API order (may change). With seed = shuffles deterministically first, then applies percentage split (reproducible). **`size` strategy**: No seed = uses API order (may change). With seed = shuffles deterministically first, then applies size-based split (reproducible). **`rendezvous` strategy**: Always deterministic. Seed affects which shard wins for each GUID via Highest Random Weight algorithm. Use different seeds for different rollouts to distribute pilot burden: User X might be in shard_0 for MFA but shard_2 for Windows Updates.
 - `shard_count` (Number) Number of equally-sized shards to create (minimum 1). Use with `round-robin` strategy. Conflicts with `shard_percentages` and `shard_sizes`. Creates shards named `shard_0`, `shard_1`, ..., `shard_N-1`. For custom-sized shards (e.g., 10% pilot, 30% broader, 60% full), use `shard_percentages` with `percentage` strategy instead.
 - `shard_percentages` (List of Number) List of percentages for custom-sized shards. Use with `percentage` strategy. Conflicts with `shard_count` and `shard_sizes`. Values must be non-negative integers that sum to exactly 100. Example: `[10, 30, 60]` creates 10% pilot, 30% broader pilot, 60% full rollout. Common patterns: `[5, 15, 80]` (Windows Update rings), `[33, 33, 34]` (A/B/C testing). Last shard receives all remaining GUIDs to prevent loss.
@@ -636,6 +822,7 @@ Optional:
 - [GUID List Sharder Guide](https://registry.terraform.io/providers/deploymenttheory/microsoft365/latest/docs/guides/guid_list_sharder)
 - [Microsoft Graph API - Users](https://learn.microsoft.com/en-us/graph/api/user-list)
 - [Microsoft Graph API - Devices](https://learn.microsoft.com/en-us/graph/api/device-list)
+- [Microsoft Graph API - Service Principals](https://learn.microsoft.com/en-us/graph/api/serviceprincipal-list)
 - [Microsoft Graph API - Group Members](https://learn.microsoft.com/en-us/graph/api/group-list-members)
 - [Conditional Access Best Practices](https://learn.microsoft.com/en-us/entra/identity/conditional-access/plan-conditional-access)
 - [Phased Deployment Strategies](https://learn.microsoft.com/en-us/mem/intune/fundamentals/deployment-guide-intune-setup)

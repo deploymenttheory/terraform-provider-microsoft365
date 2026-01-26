@@ -4,7 +4,7 @@
 # Without seed (non-deterministic, uses API order)
 data "microsoft365_utility_guid_list_sharder" "users_no_seed" {
   resource_type = "users"
-  odata_query   = "accountEnabled eq true"
+  odata_filter  = "accountEnabled eq true"
   shard_count   = 4
   strategy      = "round-robin"
 }
@@ -12,7 +12,7 @@ data "microsoft365_utility_guid_list_sharder" "users_no_seed" {
 # With seed (deterministic, reproducible)
 data "microsoft365_utility_guid_list_sharder" "users_with_seed" {
   resource_type = "users"
-  odata_query   = "accountEnabled eq true"
+  odata_filter  = "accountEnabled eq true"
   shard_count   = 4
   strategy      = "round-robin"
   seed          = "mfa-rollout-2024"

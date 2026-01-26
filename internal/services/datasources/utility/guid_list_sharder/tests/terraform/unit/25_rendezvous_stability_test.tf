@@ -18,7 +18,7 @@
 # Baseline: 3-shard distribution
 data "microsoft365_utility_guid_list_sharder" "baseline_3_shards" {
   resource_type = "users"
-  odata_query   = "accountEnabled eq true"
+  odata_filter  = "accountEnabled eq true"
   shard_count   = 3
   strategy      = "rendezvous"
   seed          = "stability-test-2024"
@@ -27,7 +27,7 @@ data "microsoft365_utility_guid_list_sharder" "baseline_3_shards" {
 # Expanded: 4-shard distribution (same users, same seed, +1 shard)
 data "microsoft365_utility_guid_list_sharder" "expanded_4_shards" {
   resource_type = "users"
-  odata_query   = "accountEnabled eq true"
+  odata_filter  = "accountEnabled eq true"
   shard_count   = 4
   strategy      = "rendezvous"
   seed          = "stability-test-2024"

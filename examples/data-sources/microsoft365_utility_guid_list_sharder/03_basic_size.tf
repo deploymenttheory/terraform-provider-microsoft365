@@ -4,7 +4,7 @@
 # Without seed (non-deterministic, uses API order)
 data "microsoft365_utility_guid_list_sharder" "users_no_seed" {
   resource_type = "users"
-  odata_query   = "accountEnabled eq true and department eq 'IT'"
+  odata_filter  = "accountEnabled eq true and department eq 'IT'"
   shard_sizes   = [50, 100, -1]
   strategy      = "size"
 }
@@ -12,7 +12,7 @@ data "microsoft365_utility_guid_list_sharder" "users_no_seed" {
 # With seed (deterministic, reproducible)
 data "microsoft365_utility_guid_list_sharder" "users_with_seed" {
   resource_type = "users"
-  odata_query   = "accountEnabled eq true and department eq 'IT'"
+  odata_filter  = "accountEnabled eq true and department eq 'IT'"
   shard_sizes   = [50, 100, -1]
   strategy      = "size"
   seed          = "it-pilot-2024"

@@ -15,7 +15,7 @@
 data "microsoft365_utility_guid_list_sharder" "test" {
   resource_type = "group_members"
   group_id      = "12345678-1234-1234-1234-123456789abc"
-  odata_query   = "accountEnabled eq true"
+  odata_filter  = "accountEnabled eq true"
   shard_count   = 2
   strategy      = "round-robin"
   seed          = "group-split-2024" # Makes split reproducible

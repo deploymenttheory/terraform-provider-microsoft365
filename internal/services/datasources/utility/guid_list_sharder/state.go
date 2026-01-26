@@ -30,7 +30,7 @@ func setStateToTerraform(ctx context.Context, state *GuidListSharderDataSourceMo
 	// This ensures the datasource ID remains stable across refreshes
 	idString := fmt.Sprintf("%s-%s-%d-%s-%s-%s",
 		state.ResourceType.ValueString(),
-		state.ODataQuery.ValueString(),
+		state.ODataFilter.ValueString(),
 		shardCount,
 		strategy,
 		state.Seed.ValueString(),

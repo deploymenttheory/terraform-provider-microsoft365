@@ -13,7 +13,7 @@
 
 data "microsoft365_utility_guid_list_sharder" "test" {
   resource_type = "users"
-  odata_query   = "accountEnabled eq true"
+  odata_filter  = "accountEnabled eq true"
   shard_sizes   = [10, 20, -1] # 10 pilot, 20 broader, rest for full
   strategy      = "size"
   # No seed - uses API order (non-deterministic)

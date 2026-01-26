@@ -17,7 +17,7 @@
 
 data "microsoft365_utility_guid_list_sharder" "test" {
   resource_type = "users"
-  odata_query   = "accountEnabled eq true"
+  odata_filter  = "accountEnabled eq true"
   shard_count   = 4
   strategy      = "rendezvous"
   seed          = "deployment-ring-2024" # Different seeds = different distributions

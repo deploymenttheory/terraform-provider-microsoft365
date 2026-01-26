@@ -4,7 +4,7 @@
 # Without seed (non-deterministic, uses API order)
 data "microsoft365_utility_guid_list_sharder" "users_no_seed" {
   resource_type     = "users"
-  odata_query       = "accountEnabled eq true"
+  odata_filter      = "accountEnabled eq true"
   shard_percentages = [10, 30, 60]
   strategy          = "percentage"
 }
@@ -12,7 +12,7 @@ data "microsoft365_utility_guid_list_sharder" "users_no_seed" {
 # With seed (deterministic, reproducible)
 data "microsoft365_utility_guid_list_sharder" "users_with_seed" {
   resource_type     = "users"
-  odata_query       = "accountEnabled eq true"
+  odata_filter      = "accountEnabled eq true"
   shard_percentages = [10, 30, 60]
   strategy          = "percentage"
   seed              = "ca-rollout-2024"

@@ -15,7 +15,7 @@
 
 data "microsoft365_utility_guid_list_sharder" "test" {
   resource_type     = "devices"
-  odata_query       = "$filter=operatingSystem eq 'Windows' and accountEnabled eq true"
+  odata_filter      = "$filter=operatingSystem eq 'Windows' and accountEnabled eq true"
   shard_percentages = [5, 15, 80]
   strategy          = "percentage"
   seed              = "windows-update-rings-2024" # Makes rings reproducible

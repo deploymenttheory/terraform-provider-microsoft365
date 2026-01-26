@@ -4,7 +4,7 @@
 
 data "microsoft365_utility_guid_list_sharder" "users_stable" {
   resource_type = "users"
-  odata_query   = "accountEnabled eq true"
+  odata_filter  = "accountEnabled eq true"
   shard_count   = 3
   strategy      = "rendezvous"
   seed          = "stable-deployment-2024"

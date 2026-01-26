@@ -13,7 +13,7 @@
 
 data "microsoft365_utility_guid_list_sharder" "windows_updates" {
   resource_type = "devices"
-  odata_query   = "$filter=operatingSystem eq 'Windows'"
+  odata_filter  = "operatingSystem eq 'Windows'"
   shard_sizes   = [6, 12, -1] # 6 test, 12 pilot, rest for broad
   strategy      = "size"
   seed          = "windows-updates-2024"
@@ -21,7 +21,7 @@ data "microsoft365_utility_guid_list_sharder" "windows_updates" {
 
 data "microsoft365_utility_guid_list_sharder" "app_updates" {
   resource_type = "devices"
-  odata_query   = "$filter=operatingSystem eq 'Windows'"
+  odata_filter  = "operatingSystem eq 'Windows'"
   shard_sizes   = [6, 12, -1] # Same sizes, different seed
   strategy      = "size"
   seed          = "app-updates-2024"

@@ -14,6 +14,7 @@ import (
 	"github.com/microsoftgraph/msgraph-beta-sdk-go/devices"
 	"github.com/microsoftgraph/msgraph-beta-sdk-go/groups"
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
+	"github.com/microsoftgraph/msgraph-beta-sdk-go/serviceprincipals"
 	"github.com/microsoftgraph/msgraph-beta-sdk-go/users"
 	graphcore "github.com/microsoftgraph/msgraph-sdk-go-core"
 )
@@ -44,8 +45,8 @@ func (d *guidListSharderDataSource) Read(ctx context.Context, req datasource.Rea
 	}
 
 	var odataQuery string
-	if !state.ODataQuery.IsNull() {
-		odataQuery = state.ODataQuery.ValueString()
+	if !state.ODataFilter.IsNull() {
+		odataQuery = state.ODataFilter.ValueString()
 	}
 
 	var seed string
@@ -83,6 +84,8 @@ func (d *guidListSharderDataSource) Read(ctx context.Context, req datasource.Rea
 		guids = d.listAllUsers(ctx, resp, odataQuery)
 	case "devices":
 		guids = d.listAllDevices(ctx, resp, odataQuery)
+	case "service_principals":
+		guids = d.listAllServicePrincipals(ctx, resp, odataQuery)
 	case "group_members":
 		guids = d.listAllGroupMembers(ctx, resp, groupId, odataQuery)
 	}
@@ -220,6 +223,63 @@ func (d *guidListSharderDataSource) listAllDevices(ctx context.Context, resp *da
 	}
 
 	err = pageIterator.Iterate(ctx, func(item graphmodels.Deviceable) bool {
+		if item != nil && item.GetId() != nil {
+			guids = append(guids, *item.GetId())
+		}
+		return true
+	})
+
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error Iterating Pages",
+			fmt.Sprintf("Failed to iterate pages: %s", err.Error()),
+		)
+		return nil
+	}
+
+	return guids
+}
+
+// listAllServicePrincipals retrieves all service principal (enterprise app) GUIDs from Microsoft Graph API
+func (d *guidListSharderDataSource) listAllServicePrincipals(ctx context.Context, resp *datasource.ReadResponse, filter string) []string {
+	var guids []string
+
+	var requestConfig *serviceprincipals.ServicePrincipalsRequestBuilderGetRequestConfiguration
+	if filter != "" {
+		headers := abstractions.NewRequestHeaders()
+		headers.Add("ConsistencyLevel", "eventual")
+		requestConfig = &serviceprincipals.ServicePrincipalsRequestBuilderGetRequestConfiguration{
+			Headers: headers,
+			QueryParameters: &serviceprincipals.ServicePrincipalsRequestBuilderGetQueryParameters{
+				Filter: &filter,
+			},
+		}
+	}
+
+	servicePrincipalsResponse, err := d.client.
+		ServicePrincipals().
+		Get(ctx, requestConfig)
+
+	if err != nil {
+		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationRead, d.ReadPermissions)
+		return nil
+	}
+
+	pageIterator, err := graphcore.NewPageIterator[graphmodels.ServicePrincipalable](
+		servicePrincipalsResponse,
+		d.client.GetAdapter(),
+		graphmodels.CreateServicePrincipalCollectionResponseFromDiscriminatorValue,
+	)
+
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error Creating Page Iterator",
+			fmt.Sprintf("Failed to create page iterator: %s", err.Error()),
+		)
+		return nil
+	}
+
+	err = pageIterator.Iterate(ctx, func(item graphmodels.ServicePrincipalable) bool {
 		if item != nil && item.GetId() != nil {
 			guids = append(guids, *item.GetId())
 		}
