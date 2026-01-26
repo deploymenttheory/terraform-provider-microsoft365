@@ -1,44 +1,13 @@
-resource "microsoft365_graph_beta_device_management_windows_device_compliance_policy" "maximal" {
-  display_name       = "unit-test-wdcp-maximal"
-  description        = "unit-test-wdcp-maximal"
+# Example: Custom Compliance Policy
+resource "microsoft365_graph_beta_device_management_windows_device_compliance_policy" "custom_compliance" {
+  display_name       = "tf-reg-example-windows-device-compliance-policy-custom-compliance"
+  description        = "tf-reg-example-windows-device-compliance-policy-custom-compliance"
   role_scope_tag_ids = ["0"]
-
-  device_health = {
-    bit_locker_enabled     = true
-    secure_boot_enabled    = true
-    code_integrity_enabled = true
-  }
-
-  microsoft_defender_for_endpoint = {
-    device_threat_protection_enabled                 = true
-    device_threat_protection_required_security_level = "medium"
-  }
-
-
-  device_properties = {
-    os_minimum_version        = "10.0.22631.5768"
-    os_maximum_version        = "10.0.26100.9999"
-    mobile_os_minimum_version = "10.0.22631.5768"
-    mobile_os_maximum_version = "10.0.26100.9999"
-    valid_operating_system_build_ranges = [
-      {
-        description     = "Windows 11 24H2"
-        low_os_version  = "10.0.26100.4946"
-        high_os_version = "10.0.26100.9999"
-      },
-      {
-        description     = "Windows 11 23H2"
-        low_os_version  = "10.0.22631.5768"
-        high_os_version = "10.0.22631.9999"
-      },
-
-    ]
-  }
 
   # Custom compliance script
   custom_compliance_required = true
   device_compliance_policy_script = {
-    device_compliance_script_id = "00000000-0000-0000-0000-000000000001"
+    device_compliance_script_id = microsoft365_graph_beta_device_management_windows_device_compliance_script.example.id
     rules_content = jsonencode({
       "Rules" : [
         {
@@ -113,8 +82,8 @@ resource "microsoft365_graph_beta_device_management_windows_device_compliance_po
         {
           action_type                  = "notification"
           grace_period_hours           = 24
-          notification_template_id     = "00000000-0000-0000-0000-000000000001"
-          notification_message_cc_list = ["00000000-0000-0000-0000-000000000002", "00000000-0000-0000-0000-000000000003"]
+          notification_template_id     = microsoft365_graph_beta_device_management_device_compliance_notification_template.basic.id
+          notification_message_cc_list = [microsoft365_graph_beta_groups_group.acc_test_group_1.id]
         },
         {
           action_type        = "retire"
@@ -122,41 +91,6 @@ resource "microsoft365_graph_beta_device_management_windows_device_compliance_po
         },
       ]
     }
-  ]
-
-  # Assignments
-  assignments = [
-    # Optional: Assignment targeting all devices without filter
-    {
-      type        = "allDevicesAssignmentTarget"
-      filter_type = "none"
-    },
-    # Optional: Assignment targeting all licensed users without filter
-    {
-      type        = "allLicensedUsersAssignmentTarget"
-      filter_type = "none"
-    },
-    # Optional: Assignment targeting a specific group without filter
-    {
-      type        = "groupAssignmentTarget"
-      group_id    = "00000000-0000-0000-0000-000000000006"
-      filter_type = "none"
-    },
-    # Optional: Assignment targeting a specific group without filter
-    {
-      type        = "groupAssignmentTarget"
-      group_id    = "00000000-0000-0000-0000-000000000008"
-      filter_type = "none"
-    },
-    # Optional: Exclusion group assignments
-    {
-      type     = "exclusionGroupAssignmentTarget"
-      group_id = "00000000-0000-0000-0000-000000000010"
-    },
-    {
-      type     = "exclusionGroupAssignmentTarget"
-      group_id = "00000000-0000-0000-0000-000000000011"
-    },
   ]
 
 }

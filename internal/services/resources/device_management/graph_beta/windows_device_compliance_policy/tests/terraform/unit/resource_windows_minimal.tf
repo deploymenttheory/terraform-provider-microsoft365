@@ -1,6 +1,6 @@
 resource "microsoft365_graph_beta_device_management_windows_device_compliance_policy" "minimal" {
-  display_name       = "unit-test-windows-device-compliance-policy-minimal"
-  description        = "unit-test-windows-device-compliance-policy-minimal"
+  display_name       = "unit-test-wdcp-minimal"
+  description        = "unit-test-wdcp-minimal"
   role_scope_tag_ids = ["0"]
 
   microsoft_defender_for_endpoint = {
@@ -31,32 +31,27 @@ resource "microsoft365_graph_beta_device_management_windows_device_compliance_po
 
   # Assignments
   assignments = [
-    # Optional: Assignment targeting all devices with a daily schedule
+    # Optional: Assignment targeting all devices without filter
     {
       type        = "allDevicesAssignmentTarget"
-      filter_id   = "00000000-0000-0000-0000-000000000004"
-      filter_type = "include"
+      filter_type = "none"
     },
-    # Optional: Assignment targeting all licensed users with an hourly schedule
+    # Optional: Assignment targeting all licensed users without filter
     {
       type        = "allLicensedUsersAssignmentTarget"
-      filter_id   = "00000000-0000-0000-0000-000000000005"
-      filter_type = "exclude"
+      filter_type = "none"
     },
-    # Optional: Assignment targeting a specific group with include filter
+    # Optional: Assignment targeting a specific group without filter
     {
       type        = "groupAssignmentTarget"
       group_id    = "00000000-0000-0000-0000-000000000006"
-      filter_id   = "00000000-0000-0000-0000-000000000007"
-      filter_type = "include"
-
+      filter_type = "none"
     },
-    # Optional: Assignment targeting a specific group with exclude filter
+    # Optional: Assignment targeting a specific group without filter
     {
       type        = "groupAssignmentTarget"
       group_id    = "00000000-0000-0000-0000-000000000008"
-      filter_id   = "00000000-0000-0000-0000-000000000009"
-      filter_type = "exclude"
+      filter_type = "none"
     },
     # Optional: Exclusion group assignments
     {

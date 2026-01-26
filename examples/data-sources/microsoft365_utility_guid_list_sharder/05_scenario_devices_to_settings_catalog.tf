@@ -16,7 +16,7 @@ resource "microsoft365_graph_beta_group" "ring_0_validation" {
   mail_nickname    = "win-updates-ring-0"
   security_enabled = true
   mail_enabled     = false
-  
+
   members = data.microsoft365_utility_guid_list_sharder.windows_devices.shards["shard_0"]
 }
 
@@ -25,7 +25,7 @@ resource "microsoft365_graph_beta_group" "ring_1_pilot" {
   mail_nickname    = "win-updates-ring-1"
   security_enabled = true
   mail_enabled     = false
-  
+
   members = data.microsoft365_utility_guid_list_sharder.windows_devices.shards["shard_1"]
 }
 
@@ -34,7 +34,7 @@ resource "microsoft365_graph_beta_group" "ring_2_broad" {
   mail_nickname    = "win-updates-ring-2"
   security_enabled = true
   mail_enabled     = false
-  
+
   members = data.microsoft365_utility_guid_list_sharder.windows_devices.shards["shard_2"]
 }
 
@@ -43,7 +43,7 @@ resource "microsoft365_graph_beta_group" "ring_3_production" {
   mail_nickname    = "win-updates-ring-3"
   security_enabled = true
   mail_enabled     = false
-  
+
   members = data.microsoft365_utility_guid_list_sharder.windows_devices.shards["shard_3"]
 }
 
@@ -54,14 +54,14 @@ resource "microsoft365_graph_beta_device_management_settings_catalog_configurati
   platforms          = "windows10"
   technologies       = ["mdm"]
   role_scope_tag_ids = ["0"]
-  
+
   settings = jsonencode({
     settings = [
       {
         id = "0"
         settingInstance = {
-          "@odata.type"           = "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance"
-          settingDefinitionId     = "device_vendor_msft_policy_config_update_deferqualityupdatesperiodindays"
+          "@odata.type"       = "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance"
+          settingDefinitionId = "device_vendor_msft_policy_config_update_deferqualityupdatesperiodindays"
           choiceSettingValue = {
             value    = "device_vendor_msft_policy_config_update_deferqualityupdatesperiodindays_0"
             children = []
@@ -70,7 +70,7 @@ resource "microsoft365_graph_beta_device_management_settings_catalog_configurati
       }
     ]
   })
-  
+
   assignments = [
     {
       type        = "groupAssignmentTarget"

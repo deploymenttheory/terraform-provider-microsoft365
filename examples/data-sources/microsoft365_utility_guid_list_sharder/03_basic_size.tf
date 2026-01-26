@@ -21,8 +21,8 @@ data "microsoft365_utility_guid_list_sharder" "users_with_seed" {
 # Output shard counts
 output "distribution" {
   value = {
-    pilot_exact_50      = length(data.microsoft365_utility_guid_list_sharder.users_with_seed.shards["shard_0"])
+    pilot_exact_50       = length(data.microsoft365_utility_guid_list_sharder.users_with_seed.shards["shard_0"])
     validation_exact_100 = length(data.microsoft365_utility_guid_list_sharder.users_with_seed.shards["shard_1"])
-    broad_all_remaining = length(data.microsoft365_utility_guid_list_sharder.users_with_seed.shards["shard_2"])
+    broad_all_remaining  = length(data.microsoft365_utility_guid_list_sharder.users_with_seed.shards["shard_2"])
   }
 }

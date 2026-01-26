@@ -30,7 +30,29 @@ The following client `application` permissions are needed in order to use this {
 
 ## Example Usage
 
-{{ tffile "examples/resources/microsoft365_graph_beta_device_management_windows_device_compliance_policy/resource.tf" }}
+### Custom Compliance Policy
+
+{{ tffile "examples/resources/microsoft365_graph_beta_device_management_windows_device_compliance_policy/custom_compliance.tf" }}
+
+### Device Health Policy
+
+{{ tffile "examples/resources/microsoft365_graph_beta_device_management_windows_device_compliance_policy/device_health.tf" }}
+
+### Device Properties Policy
+
+{{ tffile "examples/resources/microsoft365_graph_beta_device_management_windows_device_compliance_policy/device_properties.tf" }}
+
+### Microsoft Defender for Endpoint Policy
+
+{{ tffile "examples/resources/microsoft365_graph_beta_device_management_windows_device_compliance_policy/microsoft_defender_for_endpoint.tf" }}
+
+### System Security Policy
+
+{{ tffile "examples/resources/microsoft365_graph_beta_device_management_windows_device_compliance_policy/system_security.tf" }}
+
+### WSL Policy with Assignments
+
+{{ tffile "examples/resources/microsoft365_graph_beta_device_management_windows_device_compliance_policy/wsl_assignments.tf" }}
 
 {{ .SchemaMarkdown | trimspace }}
 

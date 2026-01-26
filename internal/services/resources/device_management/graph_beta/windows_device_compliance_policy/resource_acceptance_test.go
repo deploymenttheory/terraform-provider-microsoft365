@@ -1,354 +1,349 @@
 package graphBetaWindowsDeviceCompliancePolicy_test
 
 import (
-	"context"
-	"fmt"
+	"regexp"
 	"testing"
+	"time"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/check"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/destroy"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/testlog"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
-	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
+	graphBetaWindowsDeviceCompliancePolicy "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_management/graph_beta/windows_device_compliance_policy"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 )
 
-func TestAccWindowsDeviceCompliancePolicyResource_CustomCompliance(t *testing.T) {
+var (
+	// Resource type name from the resource package
+	resourceType = graphBetaWindowsDeviceCompliancePolicy.ResourceName
+
+	// testResource is the test resource implementation for windows device compliance policies
+	testResource = graphBetaWindowsDeviceCompliancePolicy.WindowsDeviceCompliancePolicyTestResource{}
+)
+
+// Helper function to load test configs from acceptance directory
+func loadAcceptanceTestTerraform(filename string) string {
+	config, err := helpers.ParseHCLFile("tests/terraform/acceptance/" + filename)
+	if err != nil {
+		panic("failed to load acceptance config " + filename + ": " + err.Error())
+	}
+	return config
+}
+
+// Test 01: Scenario 1 - custom compliance
+func TestAccWindowsDeviceCompliancePolicyResource_01_CustomCompliance(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
-		CheckDestroy:             testAccCheckWindowsDeviceCompliancePolicyDestroy,
+		CheckDestroy: destroy.CheckDestroyedAllFunc(
+			testResource,
+			resourceType,
+			30*time.Second,
+		),
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
 				Source:            "hashicorp/random",
 				VersionConstraint: constants.ExternalProviderRandomVersion,
 			},
+			"time": {
+				Source:            "hashicorp/time",
+				VersionConstraint: constants.ExternalProviderTimeVersion,
+			},
 		},
 		Steps: []resource.TestStep{
 			{
-				Config: testAccConfigCustomCompliance(),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_device_compliance_policy.custom_compliance", "display_name", "acc-test-windows-device-compliance-policy-custom-compliance"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_device_compliance_policy.custom_compliance", "description", "acc-test-windows-device-compliance-policy-custom-compliance"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_device_compliance_policy.custom_compliance", "custom_compliance_required", "true"),
-					resource.TestCheckResourceAttrSet("microsoft365_graph_beta_device_management_windows_device_compliance_policy.custom_compliance", "device_compliance_policy_script.device_compliance_script_id"),
-					resource.TestCheckResourceAttrSet("microsoft365_graph_beta_device_management_windows_device_compliance_policy.custom_compliance", "device_compliance_policy_script.rules_content"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_device_compliance_policy.custom_compliance", "scheduled_actions_for_rule.#", "1"),
-					resource.TestCheckResourceAttrSet("microsoft365_graph_beta_device_management_windows_device_compliance_policy.custom_compliance", "id"),
-				),
-			},
-			{
-				ResourceName:                         "microsoft365_graph_beta_device_management_windows_device_compliance_policy.custom_compliance",
-				ImportState:                          true,
-				ImportStateVerify:                    true,
-				ImportStateVerifyIdentifierAttribute: "id",
-				ImportStateVerifyIgnore: []string{
-					"timeouts",
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Creating custom compliance policy")
 				},
+				Config: loadAcceptanceTestTerraform("compliance_policy_custom_compliance.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					func(_ *terraform.State) error {
+						testlog.WaitForConsistency("windows device compliance policy", 30*time.Second)
+						time.Sleep(30 * time.Second)
+						return nil
+					},
+					check.That(resourceType+".custom_compliance").ExistsInGraph(testResource),
+					check.That(resourceType+".custom_compliance").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(resourceType+".custom_compliance").Key("display_name").MatchesRegex(regexp.MustCompile(`^acc-test-wdcp-custom-compliance-[a-z0-9]{8}$`)),
+					check.That(resourceType+".custom_compliance").Key("description").MatchesRegex(regexp.MustCompile(`^acc-test-wdcp-custom-compliance-[a-z0-9]{8}$`)),
+					check.That(resourceType+".custom_compliance").Key("custom_compliance_required").HasValue("true"),
+					check.That(resourceType+".custom_compliance").Key("device_compliance_policy_script.device_compliance_script_id").Exists(),
+					check.That(resourceType+".custom_compliance").Key("device_compliance_policy_script.rules_content").Exists(),
+					check.That(resourceType+".custom_compliance").Key("scheduled_actions_for_rule.#").HasValue("1"),
+				),
+			},
+			{
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Importing custom compliance policy")
+				},
+				ResourceName:            resourceType + ".custom_compliance",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"timeouts"},
 			},
 		},
 	})
 }
 
-func TestAccWindowsDeviceCompliancePolicyResource_DeviceHealth(t *testing.T) {
+// Test 02: Scenario 2 - device health
+func TestAccWindowsDeviceCompliancePolicyResource_02_DeviceHealth(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
-		CheckDestroy:             testAccCheckWindowsDeviceCompliancePolicyDestroy,
+		CheckDestroy: destroy.CheckDestroyedAllFunc(
+			testResource,
+			resourceType,
+			30*time.Second,
+		),
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
 				Source:            "hashicorp/random",
 				VersionConstraint: constants.ExternalProviderRandomVersion,
 			},
+			"time": {
+				Source:            "hashicorp/time",
+				VersionConstraint: constants.ExternalProviderTimeVersion,
+			},
 		},
 		Steps: []resource.TestStep{
 			{
-				Config: testAccConfigDeviceHealth(),
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Creating device health policy")
+				},
+				Config: loadAcceptanceTestTerraform("compliance_policy_device_health.tf"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_device_compliance_policy.device_health", "display_name", "acc-test-windows-device-compliance-policy-device-health"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_device_compliance_policy.device_health", "device_health.bit_locker_enabled", "true"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_device_compliance_policy.device_health", "device_health.secure_boot_enabled", "true"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_device_compliance_policy.device_health", "device_health.code_integrity_enabled", "true"),
-					resource.TestCheckResourceAttrSet("microsoft365_graph_beta_device_management_windows_device_compliance_policy.device_health", "id"),
+					func(_ *terraform.State) error {
+						testlog.WaitForConsistency("windows device compliance policy", 30*time.Second)
+						time.Sleep(30 * time.Second)
+						return nil
+					},
+					check.That(resourceType+".device_health").ExistsInGraph(testResource),
+					check.That(resourceType+".device_health").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(resourceType+".device_health").Key("display_name").MatchesRegex(regexp.MustCompile(`^acc-test-wdcp-device-health-[a-z0-9]{8}$`)),
+					check.That(resourceType+".device_health").Key("device_health.bit_locker_enabled").HasValue("true"),
+					check.That(resourceType+".device_health").Key("device_health.secure_boot_enabled").HasValue("true"),
+					check.That(resourceType+".device_health").Key("device_health.code_integrity_enabled").HasValue("true"),
 				),
+			},
+			{
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Importing device health policy")
+				},
+				ResourceName:            resourceType + ".device_health",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"timeouts"},
 			},
 		},
 	})
 }
 
-func TestAccWindowsDeviceCompliancePolicyResource_DeviceProperties(t *testing.T) {
+// Test 03: Scenario 3 - device properties
+func TestAccWindowsDeviceCompliancePolicyResource_03_DeviceProperties(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
-		CheckDestroy:             testAccCheckWindowsDeviceCompliancePolicyDestroy,
+		CheckDestroy: destroy.CheckDestroyedAllFunc(
+			testResource,
+			resourceType,
+			30*time.Second,
+		),
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
 				Source:            "hashicorp/random",
 				VersionConstraint: constants.ExternalProviderRandomVersion,
 			},
+			"time": {
+				Source:            "hashicorp/time",
+				VersionConstraint: constants.ExternalProviderTimeVersion,
+			},
 		},
 		Steps: []resource.TestStep{
 			{
-				Config: testAccConfigDeviceProperties(),
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Creating device properties policy")
+				},
+				Config: loadAcceptanceTestTerraform("compliance_policy_device_properties.tf"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_device_compliance_policy.device_properties", "display_name", "acc-test-windows-device-compliance-policy-device-properties"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_device_compliance_policy.device_properties", "device_properties.os_minimum_version", "10.0.22631.5768"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_device_compliance_policy.device_properties", "device_properties.os_maximum_version", "10.0.26100.9999"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_device_compliance_policy.device_properties", "device_properties.valid_operating_system_build_ranges.#", "2"),
-					resource.TestCheckResourceAttrSet("microsoft365_graph_beta_device_management_windows_device_compliance_policy.device_properties", "id"),
+					func(_ *terraform.State) error {
+						testlog.WaitForConsistency("windows device compliance policy", 30*time.Second)
+						time.Sleep(30 * time.Second)
+						return nil
+					},
+					check.That(resourceType+".device_properties").ExistsInGraph(testResource),
+					check.That(resourceType+".device_properties").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(resourceType+".device_properties").Key("display_name").MatchesRegex(regexp.MustCompile(`^acc-test-dcnt-device-properties-[a-z0-9]{8}$`)),
+					check.That(resourceType+".device_properties").Key("device_properties.os_minimum_version").HasValue("10.0.22631.5768"),
+					check.That(resourceType+".device_properties").Key("device_properties.os_maximum_version").HasValue("10.0.26100.9999"),
+					check.That(resourceType+".device_properties").Key("device_properties.valid_operating_system_build_ranges.#").HasValue("2"),
 				),
+			},
+			{
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Importing device properties policy")
+				},
+				ResourceName:            resourceType + ".device_properties",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"timeouts"},
 			},
 		},
 	})
 }
 
-func TestAccWindowsDeviceCompliancePolicyResource_MicrosoftDefenderForEndpoint(t *testing.T) {
+// Test 04: Scenario 4 - Microsoft Defender for Endpoint
+func TestAccWindowsDeviceCompliancePolicyResource_04_MicrosoftDefenderForEndpoint(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
-		CheckDestroy:             testAccCheckWindowsDeviceCompliancePolicyDestroy,
+		CheckDestroy: destroy.CheckDestroyedAllFunc(
+			testResource,
+			resourceType,
+			30*time.Second,
+		),
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
 				Source:            "hashicorp/random",
 				VersionConstraint: constants.ExternalProviderRandomVersion,
 			},
+			"time": {
+				Source:            "hashicorp/time",
+				VersionConstraint: constants.ExternalProviderTimeVersion,
+			},
 		},
 		Steps: []resource.TestStep{
 			{
-				Config: testAccConfigMicrosoftDefenderForEndpoint(),
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Creating Microsoft Defender for Endpoint policy")
+				},
+				Config: loadAcceptanceTestTerraform("compliance_policy_microsoft_defender_for_endpoint.tf"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_device_compliance_policy.microsoft_defender_for_endpoint", "display_name", "acc-test-windows-device-compliance-policy-microsoft-defender-for-endpoint"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_device_compliance_policy.microsoft_defender_for_endpoint", "microsoft_defender_for_endpoint.device_threat_protection_enabled", "true"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_device_compliance_policy.microsoft_defender_for_endpoint", "microsoft_defender_for_endpoint.device_threat_protection_required_security_level", "medium"),
-					resource.TestCheckResourceAttrSet("microsoft365_graph_beta_device_management_windows_device_compliance_policy.microsoft_defender_for_endpoint", "id"),
+					func(_ *terraform.State) error {
+						testlog.WaitForConsistency("windows device compliance policy", 30*time.Second)
+						time.Sleep(30 * time.Second)
+						return nil
+					},
+					check.That(resourceType+".microsoft_defender_for_endpoint").ExistsInGraph(testResource),
+					check.That(resourceType+".microsoft_defender_for_endpoint").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(resourceType+".microsoft_defender_for_endpoint").Key("display_name").HasValue("acc-test-windows-device-compliance-policy-microsoft-defender-for-endpoint"),
+					check.That(resourceType+".microsoft_defender_for_endpoint").Key("microsoft_defender_for_endpoint.device_threat_protection_enabled").HasValue("true"),
+					check.That(resourceType+".microsoft_defender_for_endpoint").Key("microsoft_defender_for_endpoint.device_threat_protection_required_security_level").HasValue("medium"),
 				),
+			},
+			{
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Importing Microsoft Defender for Endpoint policy")
+				},
+				ResourceName:            resourceType + ".microsoft_defender_for_endpoint",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"timeouts"},
 			},
 		},
 	})
 }
 
-func TestAccWindowsDeviceCompliancePolicyResource_WSL(t *testing.T) {
+// Test 05: Scenario 5 - WSL
+func TestAccWindowsDeviceCompliancePolicyResource_05_WSL(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
-		CheckDestroy:             testAccCheckWindowsDeviceCompliancePolicyDestroy,
+		CheckDestroy: destroy.CheckDestroyedAllFunc(
+			testResource,
+			resourceType,
+			30*time.Second,
+		),
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
 				Source:            "hashicorp/random",
 				VersionConstraint: constants.ExternalProviderRandomVersion,
 			},
+			"time": {
+				Source:            "hashicorp/time",
+				VersionConstraint: constants.ExternalProviderTimeVersion,
+			},
 		},
 		Steps: []resource.TestStep{
 			{
-				Config: testAccConfigWSL(),
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Creating WSL policy")
+				},
+				Config: loadAcceptanceTestTerraform("compliance_policy_wsl.tf"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_device_compliance_policy.wsl", "display_name", "acc-test-windows-device-compliance-policy-wsl"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_device_compliance_policy.wsl", "wsl_distributions.#", "2"),
-					resource.TestCheckResourceAttrSet("microsoft365_graph_beta_device_management_windows_device_compliance_policy.wsl", "id"),
+					func(_ *terraform.State) error {
+						testlog.WaitForConsistency("windows device compliance policy", 30*time.Second)
+						time.Sleep(30 * time.Second)
+						return nil
+					},
+					check.That(resourceType+".wsl").ExistsInGraph(testResource),
+					check.That(resourceType+".wsl").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(resourceType+".wsl").Key("display_name").MatchesRegex(regexp.MustCompile(`^acc-test-wdcp-wsl-[a-z0-9]{8}$`)),
+					check.That(resourceType+".wsl").Key("wsl_distributions.#").HasValue("2"),
 				),
+			},
+			{
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Importing WSL policy")
+				},
+				ResourceName:            resourceType + ".wsl",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"timeouts"},
 			},
 		},
 	})
 }
 
-func TestAccWindowsDeviceCompliancePolicyResource_WSLAssignments(t *testing.T) {
+// Test 06: Scenario 6 - WSL assignments
+func TestAccWindowsDeviceCompliancePolicyResource_06_WSL_Assignments(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
-		CheckDestroy:             testAccCheckWindowsDeviceCompliancePolicyDestroy,
+		CheckDestroy: destroy.CheckDestroyedAllFunc(
+			testResource,
+			resourceType,
+			30*time.Second,
+		),
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
 				Source:            "hashicorp/random",
 				VersionConstraint: constants.ExternalProviderRandomVersion,
 			},
+			"time": {
+				Source:            "hashicorp/time",
+				VersionConstraint: constants.ExternalProviderTimeVersion,
+			},
 		},
 		Steps: []resource.TestStep{
 			{
-				Config: testAccConfigWSLAssignments(),
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Creating WSL policy with assignments")
+				},
+				Config: loadAcceptanceTestTerraform("compliance_policy_wsl_assignments.tf"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_device_compliance_policy.wsl_assignments", "display_name", "acc-test-windows-device-compliance-policy-wsl-assignments"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_windows_device_compliance_policy.wsl_assignments", "assignments.#", "6"),
-					resource.TestCheckResourceAttrSet("microsoft365_graph_beta_device_management_windows_device_compliance_policy.wsl_assignments", "id"),
+					func(_ *terraform.State) error {
+						testlog.WaitForConsistency("windows device compliance policy", 30*time.Second)
+						time.Sleep(30 * time.Second)
+						return nil
+					},
+					check.That(resourceType+".wsl_assignments").ExistsInGraph(testResource),
+					check.That(resourceType+".wsl_assignments").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(resourceType+".wsl_assignments").Key("display_name").MatchesRegex(regexp.MustCompile(`^acc-test-wdcp-wsl-assignments-[a-z0-9]{8}$`)),
+					check.That(resourceType+".wsl_assignments").Key("assignments.#").HasValue("6"),
 				),
+			},
+			{
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Importing WSL policy with assignments")
+				},
+				ResourceName:            resourceType + ".wsl_assignments",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"timeouts"},
 			},
 		},
 	})
-}
-
-func testAccConfigCustomCompliance() string {
-	// Load dependencies
-	groupsConfig, err := helpers.ParseHCLFile("../../../../../acceptance/terraform_dependancies/device_management/groups.tf")
-	if err != nil {
-		panic(fmt.Sprintf("failed to load groups dependency: %s", err.Error()))
-	}
-
-	scriptConfig, err := helpers.ParseHCLFile("../../../../../acceptance/terraform_dependancies/device_management/windows_device_compliance_script.tf")
-	if err != nil {
-		panic(fmt.Sprintf("failed to load script dependency: %s", err.Error()))
-	}
-
-	notificationConfig, err := helpers.ParseHCLFile("../../../../../acceptance/terraform_dependancies/device_management/device_compliance_notification_template.tf")
-	if err != nil {
-		panic(fmt.Sprintf("failed to load notification template dependency: %s", err.Error()))
-	}
-
-	// Load test configuration
-	accTestConfig, err := helpers.ParseHCLFile("tests/terraform/acceptance/compliance_policy_custom_compliance.tf")
-	if err != nil {
-		panic(fmt.Sprintf("failed to load acceptance test config: %s", err.Error()))
-	}
-
-	// Combine configurations
-	combinedConfig := groupsConfig + "\n\n" + scriptConfig + "\n\n" + notificationConfig + "\n\n" + accTestConfig
-	return acceptance.ConfiguredM365ProviderBlock(combinedConfig)
-}
-
-func testAccConfigDeviceHealth() string {
-	// Load dependencies
-	groupsConfig, err := helpers.ParseHCLFile("../../../../../acceptance/terraform_dependancies/device_management/groups.tf")
-	if err != nil {
-		panic(fmt.Sprintf("failed to load groups dependency: %s", err.Error()))
-	}
-
-	notificationConfig, err := helpers.ParseHCLFile("../../../../../acceptance/terraform_dependancies/device_management/device_compliance_notification_template.tf")
-	if err != nil {
-		panic(fmt.Sprintf("failed to load notification template dependency: %s", err.Error()))
-	}
-
-	// Load test configuration
-	accTestConfig, err := helpers.ParseHCLFile("tests/terraform/acceptance/compliance_policy_device_health.tf")
-	if err != nil {
-		panic(fmt.Sprintf("failed to load acceptance test config: %s", err.Error()))
-	}
-
-	// Combine configurations
-	combinedConfig := groupsConfig + "\n\n" + notificationConfig + "\n\n" + accTestConfig
-	return acceptance.ConfiguredM365ProviderBlock(combinedConfig)
-}
-
-func testAccConfigDeviceProperties() string {
-	// Load dependencies
-	groupsConfig, err := helpers.ParseHCLFile("../../../../../acceptance/terraform_dependancies/device_management/groups.tf")
-	if err != nil {
-		panic(fmt.Sprintf("failed to load groups dependency: %s", err.Error()))
-	}
-
-	notificationConfig, err := helpers.ParseHCLFile("../../../../../acceptance/terraform_dependancies/device_management/device_compliance_notification_template.tf")
-	if err != nil {
-		panic(fmt.Sprintf("failed to load notification template dependency: %s", err.Error()))
-	}
-
-	// Load test configuration
-	accTestConfig, err := helpers.ParseHCLFile("tests/terraform/acceptance/compliance_policy_device_properties.tf")
-	if err != nil {
-		panic(fmt.Sprintf("failed to load acceptance test config: %s", err.Error()))
-	}
-
-	// Combine configurations
-	combinedConfig := groupsConfig + "\n\n" + notificationConfig + "\n\n" + accTestConfig
-	return acceptance.ConfiguredM365ProviderBlock(combinedConfig)
-}
-
-func testAccConfigMicrosoftDefenderForEndpoint() string {
-	// Load dependencies
-	groupsConfig, err := helpers.ParseHCLFile("../../../../../acceptance/terraform_dependancies/device_management/groups.tf")
-	if err != nil {
-		panic(fmt.Sprintf("failed to load groups dependency: %s", err.Error()))
-	}
-
-	notificationConfig, err := helpers.ParseHCLFile("../../../../../acceptance/terraform_dependancies/device_management/device_compliance_notification_template.tf")
-	if err != nil {
-		panic(fmt.Sprintf("failed to load notification template dependency: %s", err.Error()))
-	}
-
-	// Load test configuration
-	accTestConfig, err := helpers.ParseHCLFile("tests/terraform/acceptance/compliance_policy_microsoft_defender_for_endpoint.tf")
-	if err != nil {
-		panic(fmt.Sprintf("failed to load acceptance test config: %s", err.Error()))
-	}
-
-	// Combine configurations
-	combinedConfig := groupsConfig + "\n\n" + notificationConfig + "\n\n" + accTestConfig
-	return acceptance.ConfiguredM365ProviderBlock(combinedConfig)
-}
-
-func testAccConfigWSL() string {
-	// Load dependencies
-	groupsConfig, err := helpers.ParseHCLFile("../../../../../acceptance/terraform_dependancies/device_management/groups.tf")
-	if err != nil {
-		panic(fmt.Sprintf("failed to load groups dependency: %s", err.Error()))
-	}
-
-	notificationConfig, err := helpers.ParseHCLFile("../../../../../acceptance/terraform_dependancies/device_management/device_compliance_notification_template.tf")
-	if err != nil {
-		panic(fmt.Sprintf("failed to load notification template dependency: %s", err.Error()))
-	}
-
-	// Load test configuration
-	accTestConfig, err := helpers.ParseHCLFile("tests/terraform/acceptance/compliance_policy_wsl.tf")
-	if err != nil {
-		panic(fmt.Sprintf("failed to load acceptance test config: %s", err.Error()))
-	}
-
-	// Combine configurations
-	combinedConfig := groupsConfig + "\n\n" + notificationConfig + "\n\n" + accTestConfig
-	return acceptance.ConfiguredM365ProviderBlock(combinedConfig)
-}
-
-func testAccConfigWSLAssignments() string {
-	// Load dependencies
-	groupsConfig, err := helpers.ParseHCLFile("../../../../../acceptance/terraform_dependancies/device_management/groups.tf")
-	if err != nil {
-		panic(fmt.Sprintf("failed to load groups dependency: %s", err.Error()))
-	}
-
-	assignmentFilterConfig, err := helpers.ParseHCLFile("../../../../../acceptance/terraform_dependancies/device_management/assignment_filter.tf")
-	if err != nil {
-		panic(fmt.Sprintf("failed to load assignment filter dependency: %s", err.Error()))
-	}
-
-	notificationConfig, err := helpers.ParseHCLFile("../../../../../acceptance/terraform_dependancies/device_management/device_compliance_notification_template.tf")
-	if err != nil {
-		panic(fmt.Sprintf("failed to load notification template dependency: %s", err.Error()))
-	}
-
-	// Load test configuration
-	accTestConfig, err := helpers.ParseHCLFile("tests/terraform/acceptance/compliance_policy_wsl_assignments.tf")
-	if err != nil {
-		panic(fmt.Sprintf("failed to load acceptance test config: %s", err.Error()))
-	}
-
-	// Combine configurations
-	combinedConfig := groupsConfig + "\n\n" + assignmentFilterConfig + "\n\n" + notificationConfig + "\n\n" + accTestConfig
-	return acceptance.ConfiguredM365ProviderBlock(combinedConfig)
-}
-
-func testAccCheckWindowsDeviceCompliancePolicyDestroy(s *terraform.State) error {
-	graphClient, err := acceptance.TestGraphClient()
-	if err != nil {
-		return fmt.Errorf("error creating Graph client for CheckDestroy: %v", err)
-	}
-	ctx := context.Background()
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "microsoft365_graph_beta_device_management_windows_device_compliance_policy" {
-			continue
-		}
-		_, err := graphClient.
-			DeviceManagement().
-			DeviceCompliancePolicies().
-			ByDeviceCompliancePolicyId(rs.Primary.ID).
-			Get(ctx, nil)
-
-		if err != nil {
-			errorInfo := errors.GraphError(ctx, err)
-			if errorInfo.StatusCode == 404 || errorInfo.ErrorCode == "ResourceNotFound" || errorInfo.ErrorCode == "ItemNotFound" {
-				fmt.Printf("DEBUG: Resource %s successfully destroyed (404/NotFound)\n", rs.Primary.ID)
-				continue
-			}
-			return fmt.Errorf("error checking if windows device compliance policy %s was destroyed: %v", rs.Primary.ID, err)
-		}
-		return fmt.Errorf("windows device compliance policy %s still exists", rs.Primary.ID)
-	}
-	return nil
 }

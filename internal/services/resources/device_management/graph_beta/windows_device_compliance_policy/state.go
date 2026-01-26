@@ -82,24 +82,92 @@ func mapWindows10CompliancePolicyToState(ctx context.Context, data *DeviceCompli
 	// data.VirtualizationBasedSecurityEnabled = convert.GraphToFrameworkBool(policy.GetVirtualizationBasedSecurityEnabled())
 	// data.FirmwareProtectionEnabled = convert.GraphToFrameworkBool(policy.GetFirmwareProtectionEnabled())
 
-	// Map device_health object only if it was configured by the user
-	if !data.DeviceHealth.IsNull() && !data.DeviceHealth.IsUnknown() {
+	// Block-level existence check for device_health (Optional+Computed)
+	// The API returns flat fields (GetBitLockerEnabled, etc.) not a DeviceHealth object.
+	// We created device_health as a Terraform block abstraction for better UX.
+	// Decision: Create the block if ANY field has a value, otherwise set block to null.
+	// Note: Individual field nil→null conversion is handled by convert helpers.
+	// This pattern matches conditional_access_policy and other resources in the provider.
+	if policy.GetBitLockerEnabled() != nil ||
+		policy.GetSecureBootEnabled() != nil ||
+		policy.GetCodeIntegrityEnabled() != nil {
 		mapDeviceHealthToState(ctx, data, policy)
+	} else {
+		data.DeviceHealth = types.ObjectNull(map[string]attr.Type{
+			"bit_locker_enabled":     types.BoolType,
+			"secure_boot_enabled":    types.BoolType,
+			"code_integrity_enabled": types.BoolType,
+		})
 	}
 
-	// Map system_security object only if it was configured by the user
-	if !data.SystemSecurity.IsNull() && !data.SystemSecurity.IsUnknown() {
+	// Block-level existence check for system_security (Optional+Computed)
+	// Same pattern as device_health: API has flat fields, we created block abstraction.
+	// Check all security-related fields to determine if block should exist.
+	if policy.GetActiveFirewallRequired() != nil ||
+		policy.GetAntiSpywareRequired() != nil ||
+		policy.GetAntivirusRequired() != nil ||
+		policy.GetConfigurationManagerComplianceRequired() != nil ||
+		policy.GetDefenderEnabled() != nil ||
+		policy.GetDefenderVersion() != nil ||
+		policy.GetPasswordBlockSimple() != nil ||
+		policy.GetPasswordMinimumCharacterSetCount() != nil ||
+		policy.GetPasswordRequired() != nil ||
+		policy.GetPasswordRequiredToUnlockFromIdle() != nil ||
+		policy.GetPasswordRequiredType() != nil ||
+		policy.GetRtpEnabled() != nil ||
+		policy.GetSignatureOutOfDate() != nil ||
+		policy.GetStorageRequireEncryption() != nil ||
+		policy.GetTpmRequired() != nil {
 		mapSystemSecurityToState(ctx, data, policy)
+	} else {
+		data.SystemSecurity = types.ObjectNull(map[string]attr.Type{
+			"active_firewall_required":                  types.BoolType,
+			"anti_spyware_required":                     types.BoolType,
+			"antivirus_required":                        types.BoolType,
+			"configuration_manager_compliance_required": types.BoolType,
+			"defender_enabled":                          types.BoolType,
+			"defender_version":                          types.StringType,
+			"password_block_simple":                     types.BoolType,
+			"password_minimum_character_set_count":      types.Int32Type,
+			"password_required":                         types.BoolType,
+			"password_required_to_unlock_from_idle":     types.BoolType,
+			"password_required_type":                    types.StringType,
+			"rtp_enabled":                               types.BoolType,
+			"signature_out_of_date":                     types.BoolType,
+			"storage_require_encryption":                types.BoolType,
+			"tpm_required":                              types.BoolType,
+		})
 	}
 
-	// Map microsoft_defender_for_endpoint object only if it was configured by the user
-	if !data.MicrosoftDefenderForEndpoint.IsNull() && !data.MicrosoftDefenderForEndpoint.IsUnknown() {
+	// Block-level existence check for microsoft_defender_for_endpoint (Optional+Computed)
+	// Check Defender-related fields to determine if block should exist.
+	if policy.GetDeviceThreatProtectionEnabled() != nil ||
+		policy.GetDeviceThreatProtectionRequiredSecurityLevel() != nil {
 		mapMicrosoftDefenderForEndpointToState(ctx, data, policy)
+	} else {
+		data.MicrosoftDefenderForEndpoint = types.ObjectNull(map[string]attr.Type{
+			"device_threat_protection_enabled":                 types.BoolType,
+			"device_threat_protection_required_security_level": types.StringType,
+		})
 	}
 
-	// Map device_properties object only if it was configured by the user
-	if !data.DeviceProperties.IsNull() && !data.DeviceProperties.IsUnknown() {
+	// Block-level existence check for device_properties (Optional+Computed)
+	// Check OS version and build range fields to determine if block should exist.
+	// Note: len() check for build ranges since it's a slice, not a pointer.
+	if policy.GetOsMinimumVersion() != nil ||
+		policy.GetOsMaximumVersion() != nil ||
+		policy.GetMobileOsMinimumVersion() != nil ||
+		policy.GetMobileOsMaximumVersion() != nil ||
+		len(policy.GetValidOperatingSystemBuildRanges()) > 0 {
 		mapDevicePropertiesToState(ctx, data, policy)
+	} else {
+		data.DeviceProperties = types.ObjectNull(map[string]attr.Type{
+			"os_minimum_version":                  types.StringType,
+			"os_maximum_version":                  types.StringType,
+			"mobile_os_minimum_version":           types.StringType,
+			"mobile_os_maximum_version":           types.StringType,
+			"valid_operating_system_build_ranges": types.SetType{ElemType: types.ObjectType{AttrTypes: map[string]attr.Type{"description": types.StringType, "low_os_version": types.StringType, "high_os_version": types.StringType}}},
+		})
 	}
 
 	data.WslDistributions = mapWslDistribution(ctx, policy.GetWslDistributions())
@@ -108,7 +176,6 @@ func mapWindows10CompliancePolicyToState(ctx context.Context, data *DeviceCompli
 	if policy.GetDeviceCompliancePolicyScript() != nil {
 		data.CustomComplianceRequired = types.BoolValue(true)
 
-		// Create the device compliance policy script object
 		scriptType := types.ObjectType{
 			AttrTypes: map[string]attr.Type{
 				"device_compliance_script_id": types.StringType,
@@ -138,7 +205,6 @@ func mapWindows10CompliancePolicyToState(ctx context.Context, data *DeviceCompli
 			data.DeviceCompliancePolicyScript = scriptObj
 		}
 	} else {
-		// Set to null when no script is present
 		scriptType := types.ObjectType{
 			AttrTypes: map[string]attr.Type{
 				"device_compliance_script_id": types.StringType,
@@ -401,3 +467,4 @@ func mapMicrosoftDefenderForEndpointToState(ctx context.Context, data *DeviceCom
 		"device_threat_protection_required_security_level": convert.GraphToFrameworkEnum(policy.GetDeviceThreatProtectionRequiredSecurityLevel()),
 	})
 }
+

@@ -86,6 +86,9 @@ func (r *DeviceComplianceNotificationTemplateResource) Schema(ctx context.Contex
 			"display_name": schema.StringAttribute{
 				Required:            true,
 				MarkdownDescription: "Display name for the notification message template",
+				Validators: []validator.String{
+					stringvalidator.LengthAtMost(50), // 26/01/2026 - Max length is 50 characters
+				},
 			},
 			"default_locale": schema.StringAttribute{
 				Computed:            true,
