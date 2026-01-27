@@ -14,6 +14,13 @@ import (
 )
 
 // Create handles the Create operation for Custom Security Attribute Definition resources.
+//
+// Operation: Creates a new custom security attribute definition
+// API Calls:
+//   - POST /directory/customSecurityAttributeDefinitions
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/directory-post-customsecurityattributedefinitions?view=graph-rest-beta
+// Note: Tenant can have a maximum of 500 custom security attribute definitions
 func (r *CustomSecurityAttributeDefinitionResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var object CustomSecurityAttributeDefinitionResourceModel
 
@@ -88,6 +95,12 @@ func (r *CustomSecurityAttributeDefinitionResource) Create(ctx context.Context, 
 }
 
 // Read handles the Read operation for Custom Security Attribute Definition resources.
+//
+// Operation: Retrieves a custom security attribute definition by ID
+// API Calls:
+//   - GET /directory/customSecurityAttributeDefinitions/{customSecurityAttributeDefinitionId}
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/customsecurityattributedefinition-get?view=graph-rest-beta
 func (r *CustomSecurityAttributeDefinitionResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var object CustomSecurityAttributeDefinitionResourceModel
 
@@ -135,6 +148,12 @@ func (r *CustomSecurityAttributeDefinitionResource) Read(ctx context.Context, re
 }
 
 // Update handles the Update operation for Custom Security Attribute Definition resources.
+//
+// Operation: Updates an existing custom security attribute definition
+// API Calls:
+//   - PATCH /directory/customSecurityAttributeDefinitions/{customSecurityAttributeDefinitionId}
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/customsecurityattributedefinition-update?view=graph-rest-beta
 func (r *CustomSecurityAttributeDefinitionResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var plan CustomSecurityAttributeDefinitionResourceModel
 	var state CustomSecurityAttributeDefinitionResourceModel
@@ -198,9 +217,13 @@ func (r *CustomSecurityAttributeDefinitionResource) Update(ctx context.Context, 
 }
 
 // Delete handles the Delete operation for Custom Security Attribute Definition resources.
-// Note: According to Microsoft Graph API documentation, custom security attribute definitions cannot be deleted.
-// Instead, this function deactivates the attribute by setting its status to "Deprecated" and then removes it from Terraform state.
-// https://learn.microsoft.com/en-us/graph/api/resources/customsecurityattributedefinition?view=graph-rest-beta
+//
+// Operation: Deactivates a custom security attribute definition (cannot be deleted, only deprecated)
+// API Calls:
+//   - PATCH /directory/customSecurityAttributeDefinitions/{customSecurityAttributeDefinitionId} (to set status="Deprecated")
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/resources/customsecurityattributedefinition?view=graph-rest-beta
+// Note: Custom security attribute definitions cannot be deleted; this operation sets status to "Deprecated", then removes from Terraform state
 func (r *CustomSecurityAttributeDefinitionResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var object CustomSecurityAttributeDefinitionResourceModel
 

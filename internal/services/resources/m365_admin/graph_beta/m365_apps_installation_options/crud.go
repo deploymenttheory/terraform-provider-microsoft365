@@ -20,7 +20,7 @@ import (
 // API Calls:
 //   - PATCH /admin/microsoft365Apps/installationOptions
 //
-// Reference: https://learn.microsoft.com/en-us/graph/api/adminmicrosoft365apps-update-installationoptions?view=graph-rest-beta
+// Reference: https://learn.microsoft.com/en-us/graph/api/m365appsinstallationoptions-update?view=graph-rest-beta
 // Note: This is a singleton resource; settings always exist and are configured rather than created
 func (r *M365AppsInstallationOptionsResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var object M365AppsInstallationOptionsResourceModel
@@ -92,7 +92,7 @@ func (r *M365AppsInstallationOptionsResource) Create(ctx context.Context, req re
 // API Calls:
 //   - GET /admin/microsoft365Apps/installationOptions
 //
-// Reference: https://learn.microsoft.com/en-us/graph/api/adminmicrosoft365apps-get-installationoptions?view=graph-rest-beta
+// Reference: https://learn.microsoft.com/en-us/graph/api/m365appsinstallationoptions-get?view=graph-rest-beta
 func (r *M365AppsInstallationOptionsResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var object M365AppsInstallationOptionsResourceModel
 
@@ -145,7 +145,7 @@ func (r *M365AppsInstallationOptionsResource) Read(ctx context.Context, req reso
 // API Calls:
 //   - PATCH /admin/microsoft365Apps/installationOptions
 //
-// Reference: https://learn.microsoft.com/en-us/graph/api/adminmicrosoft365apps-update-installationoptions?view=graph-rest-beta
+// Reference: https://learn.microsoft.com/en-us/graph/api/m365appsinstallationoptions-update?view=graph-rest-beta
 func (r *M365AppsInstallationOptionsResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var plan M365AppsInstallationOptionsResourceModel
 	var state M365AppsInstallationOptionsResourceModel

@@ -13,18 +13,13 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
-// Create handles the Create operation for Conditional Access Policy resources.
+// Create handles the Create operation for conditional access policy resources.
 //
-//   - Retrieves the planned configuration from the create request
-//   - Constructs the resource request body from the plan
-//   - Sends POST request to create the conditional access policy
-//   - Captures the new resource ID from the response
-//   - Sets initial state with planned values
-//   - Calls Read operation to fetch the latest state from the API
-//   - Updates the final state with the fresh data from the API
+// Operation: Creates a new conditional access policy
+// API Calls:
+//   - POST /identity/conditionalAccess/policies
 //
-// The function ensures the conditional access policy is created with all specified
-// conditions, grant controls, and session controls properly configured.
+// Reference: https://learn.microsoft.com/en-us/graph/api/conditionalaccessroot-post-policies?view=graph-rest-beta
 func (r *ConditionalAccessPolicyResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var object ConditionalAccessPolicyResourceModel
 
@@ -96,15 +91,13 @@ func (r *ConditionalAccessPolicyResource) Create(ctx context.Context, req resour
 	tflog.Debug(ctx, fmt.Sprintf("Finished Create Method: %s", ResourceName))
 }
 
-// Read handles the Read operation for Conditional Access Policy resources.
+// Read handles the Read operation for conditional access policy resources.
 //
-//   - Retrieves the current state from the read request
-//   - Gets the conditional access policy details from the API
-//   - Maps the policy details to Terraform state
+// Operation: Retrieves a conditional access policy by ID
+// API Calls:
+//   - GET /identity/conditionalAccess/policies/{id}
 //
-// The function ensures that all components (conditions, grant controls, session controls)
-// are properly read and mapped into the Terraform state, providing a complete view
-// of the resource's current configuration on the server.
+// Reference: https://learn.microsoft.com/en-us/graph/api/conditionalaccesspolicy-get?view=graph-rest-beta
 func (r *ConditionalAccessPolicyResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var object ConditionalAccessPolicyResourceModel
 
@@ -152,17 +145,14 @@ func (r *ConditionalAccessPolicyResource) Read(ctx context.Context, req resource
 	tflog.Debug(ctx, fmt.Sprintf("Finished Read Method: %s", ResourceName))
 }
 
-// Update handles the Update operation for Conditional Access Policy resources.
+// Update handles the Update operation for conditional access policy resources.
 //
-//   - Retrieves the planned changes from the update request
-//   - Constructs the resource request body from the plan
-//   - Sends PATCH request to update the conditional access policy
-//   - Sets initial state with planned values
-//   - Calls Read operation to fetch the latest state from the API
-//   - Updates the final state with the fresh data from the API
+// Operation: Updates an existing conditional access policy
+// API Calls:
+//   - PATCH /identity/conditionalAccess/policies/{id}
 //
-// The function ensures that the policy is updated with the new configuration
-// and the final state reflects the actual state of the resource on the server.
+// Reference: https://learn.microsoft.com/en-us/graph/api/conditionalaccesspolicy-update?view=graph-rest-beta
+// Note: 10-second delay after update to allow for eventual consistency
 func (r *ConditionalAccessPolicyResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var plan ConditionalAccessPolicyResourceModel
 	var state ConditionalAccessPolicyResourceModel
@@ -229,14 +219,14 @@ func (r *ConditionalAccessPolicyResource) Update(ctx context.Context, req resour
 	tflog.Debug(ctx, fmt.Sprintf("Finished updating %s with ID: %s", ResourceName, state.ID.ValueString()))
 }
 
-// Delete handles the Delete operation for Conditional Access Policy resources.
+// Delete handles the Delete operation for conditional access policy resources.
 //
-// Performs a soft delete which moves the policy to the deleted items container
-// where it can be recovered within 30 days.
+// Operation: Deletes a conditional access policy
+// API Calls:
+//   - DELETE /identity/conditionalAccess/policies/{id}
 //
-// Endpoint: DELETE /identity/conditionalAccess/policies/{id}
-//
-// REF: https://learn.microsoft.com/en-us/graph/api/conditionalaccesspolicy-delete?view=graph-rest-beta
+// Reference: https://learn.microsoft.com/en-us/graph/api/conditionalaccesspolicy-delete?view=graph-rest-beta
+// Note: Performs a soft delete; policy moves to deleted items container for 30-day recovery period
 func (r *ConditionalAccessPolicyResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var object ConditionalAccessPolicyResourceModel
 

@@ -14,7 +14,13 @@ import (
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
-// Create handles the Create operation.
+// Create handles the Create operation for Group Owner Assignment resources.
+//
+// Operation: Adds an owner to a group
+// API Calls:
+//   - POST /groups/{groupId}/owners/$ref
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/group-post-owners?view=graph-rest-beta
 func (r *GroupOwnerAssignmentResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var object GroupOwnerAssignmentResourceModel
 
@@ -91,7 +97,13 @@ func (r *GroupOwnerAssignmentResource) Create(ctx context.Context, req resource.
 	tflog.Debug(ctx, fmt.Sprintf("Finished Create Method: %s", ResourceName))
 }
 
-// Read handles the Read operation.
+// Read handles the Read operation for Group Owner Assignment resources.
+//
+// Operation: Retrieves group owners to verify ownership exists
+// API Calls:
+//   - GET /groups/{groupId}/owners
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/group-list-owners?view=graph-rest-beta
 func (r *GroupOwnerAssignmentResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var object GroupOwnerAssignmentResourceModel
 
@@ -146,7 +158,15 @@ func (r *GroupOwnerAssignmentResource) Read(ctx context.Context, req resource.Re
 	tflog.Debug(ctx, fmt.Sprintf("Finished Read Method: %s", ResourceName))
 }
 
-// Update handles the Update operation.
+// Update handles the Update operation for Group Owner Assignment resources.
+//
+// Operation: Updates group ownership (removes old and creates new if group or owner changes)
+// API Calls:
+//   - DELETE /groups/{groupId}/owners/{directoryObjectId}/$ref (if group_id or owner_id changes)
+//   - POST /groups/{groupId}/owners/$ref (if group_id or owner_id changes)
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/group-delete-owners?view=graph-rest-beta
+// Note: Group owner assignments are relationships without their own IDs; changes require deletion and recreation
 func (r *GroupOwnerAssignmentResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var plan, state GroupOwnerAssignmentResourceModel
 
@@ -226,7 +246,13 @@ func (r *GroupOwnerAssignmentResource) Update(ctx context.Context, req resource.
 	tflog.Debug(ctx, fmt.Sprintf("Finished updating %s with ID: %s", ResourceName, state.ID.ValueString()))
 }
 
-// Delete handles the Delete operation.
+// Delete handles the Delete operation for Group Owner Assignment resources.
+//
+// Operation: Removes an owner from a group
+// API Calls:
+//   - DELETE /groups/{groupId}/owners/{directoryObjectId}/$ref
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/group-delete-owners?view=graph-rest-beta
 func (r *GroupOwnerAssignmentResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var object GroupOwnerAssignmentResourceModel
 

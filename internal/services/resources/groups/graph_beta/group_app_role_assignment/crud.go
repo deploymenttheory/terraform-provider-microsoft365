@@ -12,7 +12,13 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
-// Create handles the Create operation.
+// Create handles the Create operation for Group App Role Assignment resources.
+//
+// Operation: Assigns an app role to a group
+// API Calls:
+//   - POST /groups/{groupId}/appRoleAssignments
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/group-post-approleassignments?view=graph-rest-beta
 func (r *GroupAppRoleAssignmentResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var object GroupAppRoleAssignmentResourceModel
 
@@ -63,7 +69,13 @@ func (r *GroupAppRoleAssignmentResource) Create(ctx context.Context, req resourc
 	tflog.Debug(ctx, fmt.Sprintf("Finished Create Method: %s", ResourceName))
 }
 
-// Read handles the Read operation.
+// Read handles the Read operation for Group App Role Assignment resources.
+//
+// Operation: Retrieves an app role assignment for a group by ID
+// API Calls:
+//   - GET /groups/{groupId}/appRoleAssignments/{appRoleAssignmentId}
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/approleassignment-get?view=graph-rest-beta
 func (r *GroupAppRoleAssignmentResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var object GroupAppRoleAssignmentResourceModel
 
@@ -109,7 +121,15 @@ func (r *GroupAppRoleAssignmentResource) Read(ctx context.Context, req resource.
 	tflog.Debug(ctx, fmt.Sprintf("Finished Read Method: %s", ResourceName))
 }
 
-// Update handles the Update operation.
+// Update handles the Update operation for Group App Role Assignment resources.
+//
+// Operation: Updates an app role assignment (removes old and creates new if key fields change)
+// API Calls:
+//   - DELETE /groups/{groupId}/appRoleAssignments/{appRoleAssignmentId} (if key fields change)
+//   - POST /groups/{groupId}/appRoleAssignments (if key fields change)
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/group-delete-approleassignments?view=graph-rest-beta
+// Note: App role assignments cannot be directly updated; changes require deletion and recreation
 func (r *GroupAppRoleAssignmentResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var plan, state GroupAppRoleAssignmentResourceModel
 
@@ -193,7 +213,13 @@ func (r *GroupAppRoleAssignmentResource) Update(ctx context.Context, req resourc
 	tflog.Debug(ctx, fmt.Sprintf("Finished updating %s with ID: %s", ResourceName, state.ID.ValueString()))
 }
 
-// Delete handles the Delete operation.
+// Delete handles the Delete operation for Group App Role Assignment resources.
+//
+// Operation: Removes an app role assignment from a group
+// API Calls:
+//   - DELETE /groups/{groupId}/appRoleAssignments/{appRoleAssignmentId}
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/group-delete-approleassignments?view=graph-rest-beta
 func (r *GroupAppRoleAssignmentResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var object GroupAppRoleAssignmentResourceModel
 

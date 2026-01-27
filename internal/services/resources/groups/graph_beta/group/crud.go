@@ -14,7 +14,13 @@ import (
 	"github.com/microsoftgraph/msgraph-beta-sdk-go/groups"
 )
 
-// Create handles the Create operation.
+// Create handles the Create operation for Group resources.
+//
+// Operation: Creates a new Microsoft 365 group or security group
+// API Calls:
+//   - POST /groups
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/group-post-groups?view=graph-rest-beta
 func (r *GroupResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var object GroupResourceModel
 
@@ -75,7 +81,13 @@ func (r *GroupResource) Create(ctx context.Context, req resource.CreateRequest, 
 	tflog.Debug(ctx, fmt.Sprintf("Finished Create Method: %s", ResourceName))
 }
 
-// Read handles the Read operation.
+// Read handles the Read operation for Group resources.
+//
+// Operation: Retrieves a group by ID
+// API Calls:
+//   - GET /groups/{groupId}
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/group-get?view=graph-rest-beta
 func (r *GroupResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var object GroupResourceModel
 
@@ -138,7 +150,13 @@ func (r *GroupResource) Read(ctx context.Context, req resource.ReadRequest, resp
 	tflog.Debug(ctx, fmt.Sprintf("Finished Read Method: %s", ResourceName))
 }
 
-// Update handles the Update operation.
+// Update handles the Update operation for Group resources.
+//
+// Operation: Updates an existing group
+// API Calls:
+//   - PATCH /groups/{groupId}
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/group-update?view=graph-rest-beta
 func (r *GroupResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var plan GroupResourceModel
 	var state GroupResourceModel
@@ -204,7 +222,16 @@ func (r *GroupResource) Update(ctx context.Context, req resource.UpdateRequest, 
 	tflog.Debug(ctx, fmt.Sprintf("Finished updating %s with ID: %s", ResourceName, state.ID.ValueString()))
 }
 
-// Delete handles the Delete operation.
+// Delete handles the Delete operation for Group resources.
+//
+// Operation: Deletes a group (soft delete by default, optional hard delete)
+// API Calls:
+//   - GET /groups/{groupId} (to check for active license assignments before deletion)
+//   - DELETE /groups/{groupId} (soft delete)
+//   - DELETE /directory/deletedItems/{groupId} (if hard_delete is true)
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/group-delete?view=graph-rest-beta
+// Note: Groups with active license assignments cannot be deleted; waits up to 2.5 minutes for licenses to be removed. Optional hard delete permanently removes the group from deleted items.
 func (r *GroupResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var object GroupResourceModel
 

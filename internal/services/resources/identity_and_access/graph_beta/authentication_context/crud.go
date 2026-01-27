@@ -15,16 +15,11 @@ import (
 
 // Create handles the Create operation for Authentication Context resources.
 //
-//   - Retrieves the planned configuration from the create request
-//   - Constructs the resource request body from the plan
-//   - Sends POST request to create the authentication context
-//   - Captures the new resource ID from the response
-//   - Sets initial state with planned values
-//   - Calls Read operation to fetch the latest state from the API
-//   - Updates the final state with the fresh data from the API
+// Operation: Creates a new authentication context class reference for conditional access
+// API Calls:
+//   - POST /identity/conditionalAccess/authenticationContextClassReferences
 //
-// The function ensures the authentication context is created with all specified
-// properties properly configured.
+// Reference: https://learn.microsoft.com/en-us/graph/api/conditionalaccessroot-post-authenticationcontextclassreferences?view=graph-rest-beta
 func (r *AuthenticationContextResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var object AuthenticationContextResourceModel
 
@@ -88,6 +83,12 @@ func (r *AuthenticationContextResource) Create(ctx context.Context, req resource
 }
 
 // Read handles the Read operation for Authentication Context resources.
+//
+// Operation: Retrieves an authentication context class reference by ID
+// API Calls:
+//   - GET /identity/conditionalAccess/authenticationContextClassReferences/{authenticationContextClassReferenceId}
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/authenticationcontextclassreference-get?view=graph-rest-beta
 func (r *AuthenticationContextResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var object AuthenticationContextResourceModel
 
@@ -136,6 +137,12 @@ func (r *AuthenticationContextResource) Read(ctx context.Context, req resource.R
 }
 
 // Update handles the Update operation for Authentication Context resources.
+//
+// Operation: Updates an existing authentication context class reference
+// API Calls:
+//   - PATCH /identity/conditionalAccess/authenticationContextClassReferences/{authenticationContextClassReferenceId}
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/authenticationcontextclassreference-update?view=graph-rest-beta
 func (r *AuthenticationContextResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var plan AuthenticationContextResourceModel
 	var state AuthenticationContextResourceModel
@@ -200,6 +207,14 @@ func (r *AuthenticationContextResource) Update(ctx context.Context, req resource
 }
 
 // Delete handles the Delete operation for Authentication Context resources.
+//
+// Operation: Deletes an authentication context class reference
+// API Calls:
+//   - PATCH /identity/conditionalAccess/authenticationContextClassReferences/{authenticationContextClassReferenceId} (to set isAvailable=false)
+//   - DELETE /identity/conditionalAccess/authenticationContextClassReferences/{authenticationContextClassReferenceId}
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/authenticationcontextclassreference-delete?view=graph-rest-beta
+// Note: Two-step deletion required: first PATCH to set isAvailable=false if context is published to apps, then DELETE
 func (r *AuthenticationContextResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var object AuthenticationContextResourceModel
 

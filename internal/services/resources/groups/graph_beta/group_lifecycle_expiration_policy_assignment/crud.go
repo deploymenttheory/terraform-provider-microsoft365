@@ -12,7 +12,14 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
-// Create handles the Create operation for assigning a group to the lifecycle expiration policy.
+// Create handles the Create operation for Group Lifecycle Expiration Policy Assignment resources.
+//
+// Operation: Assigns a group to the lifecycle expiration policy
+// API Calls:
+//   - POST /groupLifecyclePolicies/{groupLifecyclePolicyId}/addGroup
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/grouplifecyclepolicy-addgroup?view=graph-rest-beta
+// Note: Only applies when policy's managedGroupTypes is set to "Selected"
 func (r *GroupLifecycleExpirationPolicyAssignmentResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var object GroupLifecycleExpirationPolicyAssignmentResourceModel
 
@@ -89,26 +96,14 @@ func (r *GroupLifecycleExpirationPolicyAssignmentResource) Create(ctx context.Co
 	tflog.Debug(ctx, fmt.Sprintf("Finished Create Method: %s", ResourceName))
 }
 
-// Read handles the Read operation.
+// Read handles the Read operation for Group Lifecycle Expiration Policy Assignment resources.
 //
-// Note: There is no direct GET method in the Microsoft Graph API to retrieve individual
-// group lifecycle policy assignments. The only available endpoints are:
-//   - POST /groupLifecyclePolicies/{id}/addGroup (to add a group)
-//   - POST /groupLifecyclePolicies/{id}/removeGroup (to remove a group)
+// Operation: Verifies lifecycle policy exists and validates configuration
+// API Calls:
+//   - GET /groupLifecyclePolicies
 //
-// Attempts were made to retrieve assignment information by querying the group object with
-// $expand=groupLifecyclePolicies, but this navigation property consistently returned nil
-// even when the assignment existed, making it unreliable for state verification.
-//
-// As a result, this Read implementation:
-// 1. Verifies the lifecycle policy exists and is configured with managed_group_types = "Selected"
-// 2. Uses the group_id from the HCL state to maintain the resource state
-// 3. Removes the resource from state if the policy is deleted or misconfigured
-//
-// This approach is acceptable because:
-//   - The assignment is idempotent (adding an already-assigned group succeeds)
-//   - The Create operation validates the assignment succeeds via API response
-//   - Any drift (manual removal via API/Portal) will be corrected on next apply
+// Reference: https://learn.microsoft.com/en-us/graph/api/resources-grouplifecyclepolicy?view=graph-rest-beta
+// Note: No direct API to read individual assignments; verifies policy exists with managedGroupTypes="Selected". Assignment state maintained from terraform configuration; drift corrected on next apply.
 func (r *GroupLifecycleExpirationPolicyAssignmentResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var object GroupLifecycleExpirationPolicyAssignmentResourceModel
 
@@ -174,7 +169,15 @@ func (r *GroupLifecycleExpirationPolicyAssignmentResource) Read(ctx context.Cont
 	tflog.Debug(ctx, fmt.Sprintf("Finished Read Method: %s", ResourceName))
 }
 
-// Update handles the Update operation by removing the old group and adding the new group.
+// Update handles the Update operation for Group Lifecycle Expiration Policy Assignment resources.
+//
+// Operation: Updates group assignment (removes old group and adds new if group_id changes)
+// API Calls:
+//   - POST /groupLifecyclePolicies/{groupLifecyclePolicyId}/removeGroup (if group_id changes)
+//   - POST /groupLifecyclePolicies/{groupLifecyclePolicyId}/addGroup (if group_id changes)
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/grouplifecyclepolicy-removegroup?view=graph-rest-beta
+// Note: Changes to group_id require removing the old assignment and creating a new one
 func (r *GroupLifecycleExpirationPolicyAssignmentResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var plan, state GroupLifecycleExpirationPolicyAssignmentResourceModel
 
@@ -279,7 +282,13 @@ func (r *GroupLifecycleExpirationPolicyAssignmentResource) Update(ctx context.Co
 	tflog.Debug(ctx, fmt.Sprintf("Finished Update Method: %s", ResourceName))
 }
 
-// Delete handles the Delete operation.
+// Delete handles the Delete operation for Group Lifecycle Expiration Policy Assignment resources.
+//
+// Operation: Removes a group from the lifecycle expiration policy
+// API Calls:
+//   - POST /groupLifecyclePolicies/{groupLifecyclePolicyId}/removeGroup
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/grouplifecyclepolicy-removegroup?view=graph-rest-beta
 func (r *GroupLifecycleExpirationPolicyAssignmentResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var object GroupLifecycleExpirationPolicyAssignmentResourceModel
 

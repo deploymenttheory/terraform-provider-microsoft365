@@ -14,6 +14,12 @@ import (
 )
 
 // Create handles the Create operation for Android Managed Mobile App resources.
+//
+// Operation: Adds a managed mobile app to an Android app protection policy
+// API Calls:
+//   - POST /deviceAppManagement/androidManagedAppProtections/{androidManagedAppProtectionId}/apps
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/intune-mam-androidmanagedappprotection-post-apps?view=graph-rest-beta
 func (r *AndroidManagedMobileAppResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var object AndroidManagedMobileAppResourceModel
 
@@ -78,6 +84,12 @@ func (r *AndroidManagedMobileAppResource) Create(ctx context.Context, req resour
 }
 
 // Read handles the Read operation for Android Managed Mobile App resources.
+//
+// Operation: Retrieves a managed mobile app from an Android app protection policy by ID
+// API Calls:
+//   - GET /deviceAppManagement/androidManagedAppProtections/{androidManagedAppProtectionId}/apps/{managedMobileAppId}
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/intune-mam-managedmobileapp-get?view=graph-rest-beta
 func (r *AndroidManagedMobileAppResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var object AndroidManagedMobileAppResourceModel
 
@@ -127,6 +139,12 @@ func (r *AndroidManagedMobileAppResource) Read(ctx context.Context, req resource
 }
 
 // Update handles the Update operation for Android Managed Mobile App resources.
+//
+// Operation: Updates a managed mobile app in an Android app protection policy
+// API Calls:
+//   - PATCH /deviceAppManagement/androidManagedAppProtections/{androidManagedAppProtectionId}/apps/{managedMobileAppId}
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/intune-mam-managedmobileapp-update?view=graph-rest-beta
 func (r *AndroidManagedMobileAppResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var plan AndroidManagedMobileAppResourceModel
 	var state AndroidManagedMobileAppResourceModel
@@ -192,6 +210,12 @@ func (r *AndroidManagedMobileAppResource) Update(ctx context.Context, req resour
 }
 
 // Delete handles the Delete operation for Android Managed Mobile App resources.
+//
+// Operation: Removes a managed mobile app from an Android app protection policy
+// API Calls:
+//   - DELETE /deviceAppManagement/androidManagedAppProtections/{androidManagedAppProtectionId}/apps/{managedMobileAppId}
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/intune-mam-androidmanagedappprotection-delete-apps?view=graph-rest-beta
 func (r *AndroidManagedMobileAppResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var object AndroidManagedMobileAppResourceModel
 

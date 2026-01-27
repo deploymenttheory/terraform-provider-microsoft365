@@ -15,7 +15,13 @@ import (
 	"github.com/microsoftgraph/msgraph-beta-sdk-go/groups"
 )
 
-// Create handles the creation of a single group license assignment.
+// Create handles the Create operation for Group License Assignment resources.
+//
+// Operation: Assigns a license to a group (group-based licensing)
+// API Calls:
+//   - POST /groups/{groupId}/assignLicense
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/group-assignlicense?view=graph-rest-beta
 func (r *GroupLicenseAssignmentResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var object GroupLicenseAssignmentResourceModel
 
@@ -86,7 +92,13 @@ func (r *GroupLicenseAssignmentResource) Create(ctx context.Context, req resourc
 	tflog.Debug(ctx, fmt.Sprintf("Finished Create Method: %s", ResourceName))
 }
 
-// Read retrieves the current state of a group's license assignments.
+// Read handles the Read operation for Group License Assignment resources.
+//
+// Operation: Retrieves group license assignments
+// API Calls:
+//   - GET /groups/{groupId}?$select=id,displayName,assignedLicenses
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/group-get?view=graph-rest-beta
 func (r *GroupLicenseAssignmentResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var object GroupLicenseAssignmentResourceModel
 
@@ -133,7 +145,14 @@ func (r *GroupLicenseAssignmentResource) Read(ctx context.Context, req resource.
 	tflog.Debug(ctx, fmt.Sprintf("Finished Read Method: %s", ResourceName))
 }
 
-// Update handles updates to a group's license assignment (disabled plans only, since sku_id requires replace).
+// Update handles the Update operation for Group License Assignment resources.
+//
+// Operation: Updates license assignment (primarily disabled plans, since sku_id changes require replacement)
+// API Calls:
+//   - POST /groups/{groupId}/assignLicense
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/group-assignlicense?view=graph-rest-beta
+// Note: Same API endpoint as Create; sku_id is marked as RequiresReplace, so updates mainly modify disabled_plans
 func (r *GroupLicenseAssignmentResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var plan GroupLicenseAssignmentResourceModel
 
@@ -197,7 +216,14 @@ func (r *GroupLicenseAssignmentResource) Update(ctx context.Context, req resourc
 	tflog.Debug(ctx, fmt.Sprintf("Finished updating %s with ID: %s", ResourceName, plan.ID.ValueString()))
 }
 
-// Delete handles the deletion of a single group license assignment.
+// Delete handles the Delete operation for Group License Assignment resources.
+//
+// Operation: Removes a license from a group
+// API Calls:
+//   - POST /groups/{groupId}/assignLicense (with removeLicenses parameter)
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/group-assignlicense?view=graph-rest-beta
+// Note: Uses same assignLicense endpoint with removeLicenses to remove the license
 func (r *GroupLicenseAssignmentResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var object GroupLicenseAssignmentResourceModel
 
