@@ -20,7 +20,7 @@ import (
 // API Calls:
 //   - POST /deviceAppManagement/mobileApps/{mobileAppId}/relationships
 //
-// Reference: https://learn.microsoft.com/en-us/graph/api/intune-apps-mobileapprelationship-create?view=graph-rest-beta
+// Reference: https://learn.microsoft.com/en-us/graph/api/intune-apps-mobileappsupersedence-create?view=graph-rest-beta
 func (r *MobileAppSupersedenceResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var object MobileAppSupersedenceResourceModel
 
@@ -93,7 +93,7 @@ func (r *MobileAppSupersedenceResource) Create(ctx context.Context, req resource
 // API Calls:
 //   - GET /deviceAppManagement/mobileApps/{mobileAppId}/relationships/{relationshipId}
 //
-// Reference: https://learn.microsoft.com/en-us/graph/api/intune-apps-mobileapprelationship-get?view=graph-rest-beta
+// Reference: https://learn.microsoft.com/en-us/graph/api/intune-apps-mobileappsupersedence-get?view=graph-rest-beta
 func (r *MobileAppSupersedenceResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var object MobileAppSupersedenceResourceModel
 
@@ -161,7 +161,7 @@ func (r *MobileAppSupersedenceResource) Read(ctx context.Context, req resource.R
 // API Calls:
 //   - PATCH /deviceAppManagement/mobileApps/{mobileAppId}/relationships/{relationshipId}
 //
-// Reference: https://learn.microsoft.com/en-us/graph/api/intune-apps-mobileapprelationship-update?view=graph-rest-beta
+// Reference: https://learn.microsoft.com/en-us/graph/api/intune-apps-mobileappsupersedence-update?view=graph-rest-beta
 func (r *MobileAppSupersedenceResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var plan, state MobileAppSupersedenceResourceModel
 
@@ -230,7 +230,7 @@ func (r *MobileAppSupersedenceResource) Update(ctx context.Context, req resource
 // API Calls:
 //   - DELETE /deviceAppManagement/mobileApps/{mobileAppId}/relationships/{relationshipId}
 //
-// Reference: https://learn.microsoft.com/en-us/graph/api/intune-apps-mobileapprelationship-delete?view=graph-rest-beta
+// Reference: https://learn.microsoft.com/en-us/graph/api/intune-apps-mobileappsupersedence-delete?view=graph-rest-beta
 func (r *MobileAppSupersedenceResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var object MobileAppSupersedenceResourceModel
 

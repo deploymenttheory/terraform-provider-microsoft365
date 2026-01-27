@@ -22,7 +22,7 @@ import (
 // API Calls:
 //   - POST /deviceAppManagement/mobileApps
 //
-// Reference: https://learn.microsoft.com/en-us/graph/api/intune-apps-mobileapp-create?view=graph-rest-beta
+// Reference: https://learn.microsoft.com/en-us/graph/api/intune-apps-officesuiteapp-create?view=graph-rest-beta
 func (r *OfficeSuiteAppResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var object OfficeSuiteAppResourceModel
 
@@ -107,7 +107,7 @@ func (r *OfficeSuiteAppResource) Create(ctx context.Context, req resource.Create
 // API Calls:
 //   - GET /deviceAppManagement/mobileApps/{mobileAppId}
 //
-// Reference: https://learn.microsoft.com/en-us/graph/api/intune-apps-mobileapp-get?view=graph-rest-beta
+// Reference: https://learn.microsoft.com/en-us/graph/api/intune-apps-officesuiteapp-get?view=graph-rest-beta
 func (r *OfficeSuiteAppResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var object OfficeSuiteAppResourceModel
 	tflog.Debug(ctx, fmt.Sprintf("Starting Read method for: %s", ResourceName))
@@ -176,7 +176,7 @@ func (r *OfficeSuiteAppResource) Read(ctx context.Context, req resource.ReadRequ
 // API Calls:
 //   - PATCH /deviceAppManagement/mobileApps/{mobileAppId}
 //
-// Reference: https://learn.microsoft.com/en-us/graph/api/intune-apps-mobileapp-update?view=graph-rest-beta
+// Reference: https://learn.microsoft.com/en-us/graph/api/intune-apps-officesuiteapp-update?view=graph-rest-beta
 func (r *OfficeSuiteAppResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var plan, state OfficeSuiteAppResourceModel
 
@@ -258,7 +258,7 @@ func (r *OfficeSuiteAppResource) Update(ctx context.Context, req resource.Update
 // API Calls:
 //   - DELETE /deviceAppManagement/mobileApps/{mobileAppId}
 //
-// Reference: https://learn.microsoft.com/en-us/graph/api/intune-apps-mobileapp-delete?view=graph-rest-beta
+// Reference: https://learn.microsoft.com/en-us/graph/api/intune-apps-officesuiteapp-delete?view=graph-rest-beta
 func (r *OfficeSuiteAppResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var object OfficeSuiteAppResourceModel
 
