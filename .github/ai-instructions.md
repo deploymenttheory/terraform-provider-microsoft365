@@ -67,13 +67,25 @@ Each resource directory MUST contain:
 
 ### Data Source Files
 
-Each resource directory MUST contain:
+Each datasource directory MUST contain:
 
 - **Models File**: Create a single `model.go` file containing all data models for the datasource. The main struct should be named `{DataSourceName}DataSourceModel` (e.g., `MobileAppDataSourceModel`).
 - **Data Source Files**: Name the main file as `datasource.go` containing the datasource struct definition, metadata, schema, and configuration.
 - **Read File**: Create a `read.go` file containing the Read method implementation for the datasource.
 - **State File**: Create a `state.go` file containing functions for mapping API responses to datasource models.
 - **Helper Files**: Create additional helper files (e.g., `helpers.go`) as needed for utility functions specific to the datasource.
+- **Test Files**: Place unit tests in `datasource_test.go` with `TestUnitDatasource<Name_Of_Package>_<test_number>_<Test_case>` naming pattern and acceptance tests in `datasource_acceptance_test.go` with `TestAccDatasource<Name_Of_Package>_<test_number>_<Test_case>` naming pattern.
+- **Mock Data Files**: Organize test data/fixtures in a `tests/` subdirectory within the datasource directory following the same structure as resources.
+
+### List Resource Organization
+
+List resources are specialized resources for managing list-type data within the `internal/services/list-resources` directory:
+
+- **File Organization:** Follow the same structure as standard resources but use `list_` prefix for files (e.g., `list.go`, `list_test.go`, `list_acceptance_test.go`).
+- **Test Naming:**
+  - **Unit Tests:** `TestUnitListResource<Name_Of_Package>_<test_number>_<Test_case>` (e.g., `TestUnitListResourceSettingsCatalogConfigurationPolicy_01_All`)
+  - **Acceptance Tests:** `TestAccListResource<Name_Of_Package>_<test_number>_<Test_case>` (e.g., `TestAccListResourceSettingsCatalogConfigurationPolicy_01_All`)
+- **Purpose:** List resources provide specialized functionality for managing collections or list-type operations in Microsoft 365.
 
 ### Example Files
 
@@ -102,7 +114,11 @@ Each resource directory MUST contain:
   - Use a type of `<SubResourceName>ResourceModel` (e.g., `DeviceManagementScriptAssignmentResourceModel`).
   - Set the Terraform schema tag to the lower_snake_case version of the field (e.g., `tfsdk:"last_modified_date_time"`).
   - The sub-resource struct should be named `<SubResourceName>ResourceModel`.
-- **Test Function Naming:** Name test functions with a prefix indicating their type. **Acceptance test** functions should start with `TestAcc` and **unit test** functions with `TestUnit` (this allows filtering tests by type). Also, name test files' package with a `_test` suffix (e.g. `package environment_test`) to ensure tests access the provider only via its public interface.
+- **Test Function Naming:** Name test functions with a prefix indicating their type and block type. **Acceptance test** functions should start with `TestAcc` and **unit test** functions with `TestUnit` (this allows filtering tests by type). Also, name test files' package with a `_test` suffix (e.g. `package environment_test`) to ensure tests access the provider only via its public interface.
+  - **Resources:** `TestUnitResource<Name_Of_Package>_<test_number>_<Test_case>` (unit) or `TestAccResource<Name_Of_Package>_<test_number>_<Test_case>` (acceptance)
+  - **List Resources:** `TestUnitListResource<Name_Of_Package>_<test_number>_<Test_case>` (unit) or `TestAccListResource<Name_Of_Package>_<test_number>_<Test_case>` (acceptance)
+  - **Data Sources:** `TestUnitDatasource<Name_Of_Package>_<test_number>_<Test_case>` (unit) or `TestAccDatasource<Name_Of_Package>_<test_number>_<Test_case>` (acceptance)
+  - Use sequential two-digit numbering (`_01_`, `_02_`, etc.) for test numbers to maintain logical ordering
 - **Resource/Data Source Factory:** For each resource and data source, create a new function named `New<ResourceName>Resource` or `New<DataSourceName>DataSource` that returns the appropriate type.
 - **Client Factory:** When implementing a client factory, name it `New<Service>Client` (e.g., `NewSolutionClient`).
 
@@ -345,8 +361,8 @@ Use the Terraform plugin logger (`tflog`) for logging within resource implementa
 
 Each resource directory should contain the following test-related files:
 
-- **Unit Tests:** Place in `resource_test.go` with `TestUnit*` or `Test*` naming pattern.
-- **Acceptance Tests:** Place in `resource_acceptance_test.go` with `TestAcc*` naming pattern.
+- **Unit Tests:** Place in `resource_test.go` with `TestUnitResource<Name_Of_Package>_<test_number>_<Test_case>` naming pattern.
+- **Acceptance Tests:** Place in `resource_acceptance_test.go` with `TestAccResource<Name_Of_Package>_<test_number>_<Test_case>` naming pattern.
 - **Test Resource Helper:** Create `resource_test_helper.go` in the resource package (not the `_test` package) implementing the `types.TestResource` interface for Graph API existence checks.
 - **Mock Responders:** Store in `mocks/responders.go` file within the resource directory.
 - **Terraform Configs:** Organize in `tests/terraform/unit/` for unit tests and `tests/terraform/acceptance/` for acceptance tests.
@@ -435,7 +451,10 @@ Whenever a new resource or data source is added, provide an example configuratio
 ### Test Types
 
 - **Unit Tests:**
-  - **Naming Pattern:** `TestUnit[ResourceName]_[Operation]_[Scenario]` (e.g., `TestUnitUserResource_Create_Minimal`)
+  - **Naming Patterns:**
+    - Resources: `TestUnitResource<Name_Of_Package>_<test_number>_<Test_case>` (e.g., `TestUnitResourceUser_01_Create_Minimal`)
+    - List Resources: `TestUnitListResource<Name_Of_Package>_<test_number>_<Test_case>` (e.g., `TestUnitListResourceSettingsCatalogConfigurationPolicy_01_All`)
+    - Data Sources: `TestUnitDatasource<Name_Of_Package>_<test_number>_<Test_case>` (e.g., `TestUnitDatasourceMobileApp_01_FilterById`)
   - **Characteristics:** Mock all API calls using `httpmock`, no real Microsoft 365 API interactions
   - **Timeout:** 10 minutes per test
   - **Parallelism:** Run with `-p 16` for fast execution
@@ -443,7 +462,10 @@ Whenever a new resource or data source is added, provide an example configuratio
   - **Purpose:** Test resource CRUD logic, state management, and schema validation
 
 - **Acceptance Tests:**
-  - **Naming Pattern:** `TestAcc[ResourceName]_[Operation]_[Scenario]` (e.g., `TestAccUserResource_Create_Minimal`)
+  - **Naming Patterns:**
+    - Resources: `TestAccResource<Name_Of_Package>_<test_number>_<Test_case>` (e.g., `TestAccResourceUser_01_Create_Minimal`)
+    - List Resources: `TestAccListResource<Name_Of_Package>_<test_number>_<Test_case>` (e.g., `TestAccListResourceSettingsCatalogConfigurationPolicy_01_All`)
+    - Data Sources: `TestAccDatasource<Name_Of_Package>_<test_number>_<Test_case>` (e.g., `TestAccDatasourceMobileApp_01_FilterById`)
   - **Characteristics:** Make real API calls to Microsoft 365 services
   - **Timeout:** 300 minutes (5 hours) to accommodate complex operations
   - **Parallelism:** Run with `-p 10` to avoid API rate limits
@@ -456,14 +478,14 @@ Whenever a new resource or data source is added, provide an example configuratio
   ```bash
   make unittest                    # Run all unit tests
   make unittest TEST=MyTest        # Run specific unit test by prefix
-  go test -v -run TestUnitUserResource_Create ./path/to/package
+  go test -v -run TestUnitResourceUser_01_Create ./path/to/package
   ```
 
 - **Acceptance Tests:**
   ```bash
   make acctest                     # Run all acceptance tests
   make acctest TEST=MyTest         # Run specific acceptance test by prefix
-  TF_ACC=1 go test -v -timeout 30m -run TestAccUserResource_Create ./path/to/package
+  TF_ACC=1 go test -v -timeout 30m -run TestAccResourceUser_01_Create ./path/to/package
   ```
 
 - **Coverage and Full Suite:**
