@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
-func TestAccItunesAppMetadataDataSource_Firefox(t *testing.T) {
+func TestAccDatasourceItunesAppMetadata_01_Firefox(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -42,7 +42,7 @@ func TestAccItunesAppMetadataDataSource_Firefox(t *testing.T) {
 	})
 }
 
-func TestAccItunesAppMetadataDataSource_Office(t *testing.T) {
+func TestAccDatasourceItunesAppMetadata_02_Office(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -71,7 +71,7 @@ func TestAccItunesAppMetadataDataSource_Office(t *testing.T) {
 	})
 }
 
-func TestAccItunesAppMetadataDataSource_Teams(t *testing.T) {
+func TestAccDatasourceItunesAppMetadata_03_Teams(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,

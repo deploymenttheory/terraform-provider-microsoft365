@@ -41,7 +41,7 @@ func loadUnitTestTerraform(filename string) string {
 	return config
 }
 
-func TestWindowsQualityUpdateExpeditePolicyResource_001_Scenario_Minimal(t *testing.T) {
+func TestUnitResourceWindowsQualityUpdateExpeditePolicy_01_Scenario_Minimal(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, expediteMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -68,7 +68,7 @@ func TestWindowsQualityUpdateExpeditePolicyResource_001_Scenario_Minimal(t *test
 	})
 }
 
-func TestWindowsQualityUpdateExpeditePolicyResource_002_Scenario_Maximal(t *testing.T) {
+func TestUnitResourceWindowsQualityUpdateExpeditePolicy_02_Scenario_Maximal(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, expediteMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -97,7 +97,7 @@ func TestWindowsQualityUpdateExpeditePolicyResource_002_Scenario_Maximal(t *test
 	})
 }
 
-func TestWindowsQualityUpdateExpeditePolicyResource_003_Lifecycle_MinimalToMaximal(t *testing.T) {
+func TestUnitResourceWindowsQualityUpdateExpeditePolicy_03_Lifecycle_MinimalToMaximal(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, expediteMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -134,7 +134,7 @@ func TestWindowsQualityUpdateExpeditePolicyResource_003_Lifecycle_MinimalToMaxim
 	})
 }
 
-func TestWindowsQualityUpdateExpeditePolicyResource_004_Lifecycle_MaximalToMinimal(t *testing.T) {
+func TestUnitResourceWindowsQualityUpdateExpeditePolicy_04_Lifecycle_MaximalToMinimal(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, expediteMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -171,7 +171,7 @@ func TestWindowsQualityUpdateExpeditePolicyResource_004_Lifecycle_MaximalToMinim
 	})
 }
 
-func TestWindowsQualityUpdateExpeditePolicyResource_005_AssignmentsMinimal(t *testing.T) {
+func TestUnitResourceWindowsQualityUpdateExpeditePolicy_05_AssignmentsMinimal(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, expediteMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -201,7 +201,7 @@ func TestWindowsQualityUpdateExpeditePolicyResource_005_AssignmentsMinimal(t *te
 	})
 }
 
-func TestWindowsQualityUpdateExpeditePolicyResource_006_AssignmentsMaximal(t *testing.T) {
+func TestUnitResourceWindowsQualityUpdateExpeditePolicy_06_AssignmentsMaximal(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, expediteMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -239,7 +239,7 @@ func TestWindowsQualityUpdateExpeditePolicyResource_006_AssignmentsMaximal(t *te
 	})
 }
 
-func TestWindowsQualityUpdateExpeditePolicyResource_007_AssignmentsLifecycle_MinimalToMaximal(t *testing.T) {
+func TestUnitResourceWindowsQualityUpdateExpeditePolicy_07_AssignmentsLifecycle_MinimalToMaximal(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, expediteMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -289,7 +289,7 @@ func TestWindowsQualityUpdateExpeditePolicyResource_007_AssignmentsLifecycle_Min
 	})
 }
 
-func TestWindowsQualityUpdateExpeditePolicyResource_008_AssignmentsLifecycle_MaximalToMinimal(t *testing.T) {
+func TestUnitResourceWindowsQualityUpdateExpeditePolicy_08_AssignmentsLifecycle_MaximalToMinimal(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, expediteMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -339,7 +339,7 @@ func TestWindowsQualityUpdateExpeditePolicyResource_008_AssignmentsLifecycle_Max
 	})
 }
 
-func TestWindowsQualityUpdateExpeditePolicyResource_009_IntentionalErrors(t *testing.T) {
+func TestUnitResourceWindowsQualityUpdateExpeditePolicy_09_IntentionalErrors(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, expediteMock := setupErrorMockEnvironment()
 	defer httpmock.DeactivateAndReset()

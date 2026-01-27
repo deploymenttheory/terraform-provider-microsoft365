@@ -35,7 +35,7 @@ func setupErrorMockEnvironment() (*mocks.Mocks, *tenantInformationMocks.TenantIn
 	return mockClient, tiMock
 }
 
-func TestTenantInformationDataSource_ByTenantId(t *testing.T) {
+func TestUnitDatasourceTenantInformation_01_ByTenantId(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, tiMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -59,7 +59,7 @@ func TestTenantInformationDataSource_ByTenantId(t *testing.T) {
 	})
 }
 
-func TestTenantInformationDataSource_ByDomainName(t *testing.T) {
+func TestUnitDatasourceTenantInformation_02_ByDomainName(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, tiMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -83,7 +83,7 @@ func TestTenantInformationDataSource_ByDomainName(t *testing.T) {
 	})
 }
 
-func TestTenantInformationDataSource_ValidationError(t *testing.T) {
+func TestUnitDatasourceTenantInformation_03_ValidationError(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, tiMock := setupErrorMockEnvironment()
 	defer httpmock.DeactivateAndReset()

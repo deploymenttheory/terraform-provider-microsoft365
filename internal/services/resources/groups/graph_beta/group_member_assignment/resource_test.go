@@ -125,7 +125,7 @@ func testConfigMinimalWithResourceName(resourceName string) string {
 }
 
 // TestUnitGroupMemberAssignmentResource_Create_Minimal tests the creation of a group member assignment with minimal configuration
-func TestUnitGroupMemberAssignmentResource_Create_Minimal(t *testing.T) {
+func TestUnitResourceGroupMemberAssignment_01_CreateMinimal(t *testing.T) {
 	// Set up mock environment
 	_, _ = setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -153,7 +153,7 @@ func TestUnitGroupMemberAssignmentResource_Create_Minimal(t *testing.T) {
 }
 
 // TestUnitGroupMemberAssignmentResource_Create_Maximal tests the creation of a group member assignment with maximal configuration
-func TestUnitGroupMemberAssignmentResource_Create_Maximal(t *testing.T) {
+func TestUnitResourceGroupMemberAssignment_02_CreateMaximal(t *testing.T) {
 	// Set up mock environment
 	_, _ = setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -181,7 +181,7 @@ func TestUnitGroupMemberAssignmentResource_Create_Maximal(t *testing.T) {
 }
 
 // TestUnitGroupMemberAssignmentResource_Update_MinimalToMaximal tests updating from minimal to maximal configuration
-func TestUnitGroupMemberAssignmentResource_Update_MinimalToMaximal(t *testing.T) {
+func TestUnitResourceGroupMemberAssignment_03_UpdateMinimalToMaximal(t *testing.T) {
 	// For group member assignments, we can't actually update the member_id without recreating the resource
 	// So we'll just test that the minimal configuration works
 
@@ -211,7 +211,7 @@ func TestUnitGroupMemberAssignmentResource_Update_MinimalToMaximal(t *testing.T)
 }
 
 // TestUnitGroupMemberAssignmentResource_Update_MaximalToMinimal tests updating from maximal to minimal configuration
-func TestUnitGroupMemberAssignmentResource_Update_MaximalToMinimal(t *testing.T) {
+func TestUnitResourceGroupMemberAssignment_04_UpdateMaximalToMinimal(t *testing.T) {
 	// For group member assignments, we can't actually update the member_id without recreating the resource
 	// So we'll just test that the maximal configuration works
 
@@ -241,7 +241,7 @@ func TestUnitGroupMemberAssignmentResource_Update_MaximalToMinimal(t *testing.T)
 }
 
 // TestUnitGroupMemberAssignmentResource_Delete_Minimal tests deleting a group member assignment with minimal configuration
-func TestUnitGroupMemberAssignmentResource_Delete_Minimal(t *testing.T) {
+func TestUnitResourceGroupMemberAssignment_05_DeleteMinimal(t *testing.T) {
 	// Set up mock environment
 	_, _ = setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -277,7 +277,7 @@ func TestUnitGroupMemberAssignmentResource_Delete_Minimal(t *testing.T) {
 }
 
 // TestUnitGroupMemberAssignmentResource_Delete_Maximal tests deleting a group member assignment with maximal configuration
-func TestUnitGroupMemberAssignmentResource_Delete_Maximal(t *testing.T) {
+func TestUnitResourceGroupMemberAssignment_06_DeleteMaximal(t *testing.T) {
 	// Set up mock environment
 	_, _ = setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -313,7 +313,7 @@ func TestUnitGroupMemberAssignmentResource_Delete_Maximal(t *testing.T) {
 }
 
 // TestUnitGroupMemberAssignmentResource_Import tests importing a resource
-func TestUnitGroupMemberAssignmentResource_Import(t *testing.T) {
+func TestUnitResourceGroupMemberAssignment_07_Import(t *testing.T) {
 	// Set up mock environment
 	_, mockObj := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -348,7 +348,7 @@ func TestUnitGroupMemberAssignmentResource_Import(t *testing.T) {
 }
 
 // TestUnitGroupMemberAssignmentResource_Error tests error handling
-func TestUnitGroupMemberAssignmentResource_Error(t *testing.T) {
+func TestUnitResourceGroupMemberAssignment_08_Error(t *testing.T) {
 	// Set up mock environment
 	_, groupMemberAssignmentMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()

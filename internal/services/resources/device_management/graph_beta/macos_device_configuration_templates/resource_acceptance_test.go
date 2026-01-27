@@ -30,7 +30,7 @@ func loadAcceptanceTestTerraform(filename string) string {
 }
 
 // Custom Configuration Tests
-func TestAccMacosDeviceConfigurationTemplatesResource_CustomConfiguration(t *testing.T) {
+func TestAccResourceMacosDeviceConfigurationTemplates_01_CustomConfiguration(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -81,7 +81,7 @@ func TestAccMacosDeviceConfigurationTemplatesResource_CustomConfiguration(t *tes
 }
 
 // Preference File Tests
-func TestAccMacosDeviceConfigurationTemplatesResource_PreferenceFile(t *testing.T) {
+func TestAccResourceMacosDeviceConfigurationTemplates_02_PreferenceFile(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -131,7 +131,7 @@ func TestAccMacosDeviceConfigurationTemplatesResource_PreferenceFile(t *testing.
 }
 
 // Trusted Root Certificate Tests
-func TestAccMacosDeviceConfigurationTemplatesResource_TrustedRootCertificate(t *testing.T) {
+func TestAccResourceMacosDeviceConfigurationTemplates_03_TrustedRootCertificate(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -181,7 +181,7 @@ func TestAccMacosDeviceConfigurationTemplatesResource_TrustedRootCertificate(t *
 }
 
 // PKCS Certificate Tests
-func TestAccMacosDeviceConfigurationTemplatesResource_PkcsCertificate(t *testing.T) {
+func TestAccResourceMacosDeviceConfigurationTemplates_04_PkcsCertificate(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -237,7 +237,7 @@ func TestAccMacosDeviceConfigurationTemplatesResource_PkcsCertificate(t *testing
 }
 
 // SCEP Certificate Tests
-func TestAccMacosDeviceConfigurationTemplatesResource_ScepCertificate(t *testing.T) {
+func TestAccResourceMacosDeviceConfigurationTemplates_05_ScepCertificate(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,

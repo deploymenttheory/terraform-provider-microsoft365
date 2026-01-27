@@ -41,7 +41,7 @@ func setupErrorMockEnvironment() (*mocks.Mocks, *agentIdentityMocks.AgentIdentit
 	return mockClient, agentIdentityMock
 }
 
-func TestUnitAgentIdentityResource_Minimal(t *testing.T) {
+func TestUnitResourceAgentIdentity_01_Minimal(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, agentIdentityMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -81,7 +81,7 @@ func TestUnitAgentIdentityResource_Minimal(t *testing.T) {
 	})
 }
 
-func TestUnitAgentIdentityResource_WithTags(t *testing.T) {
+func TestUnitResourceAgentIdentity_02_WithTags(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, agentIdentityMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()

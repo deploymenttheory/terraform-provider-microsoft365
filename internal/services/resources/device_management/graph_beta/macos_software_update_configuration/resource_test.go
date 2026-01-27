@@ -86,7 +86,7 @@ func testConfigMinimalWithResourceName(resourceName string) string {
 }
 
 // TestUnitMacOSSoftwareUpdateConfigurationResource_Create_Minimal tests the creation of a software update configuration with minimal configuration
-func TestUnitMacOSSoftwareUpdateConfigurationResource_Create_Minimal(t *testing.T) {
+func TestUnitResourceMacOSSoftwareUpdateConfiguration_01_CreateMinimal(t *testing.T) {
 	// Set up mock environment
 	_, _ = setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -121,7 +121,7 @@ func TestUnitMacOSSoftwareUpdateConfigurationResource_Create_Minimal(t *testing.
 }
 
 // TestUnitMacOSSoftwareUpdateConfigurationResource_Create_Maximal tests the creation of a software update configuration with maximal configuration
-func TestUnitMacOSSoftwareUpdateConfigurationResource_Create_Maximal(t *testing.T) {
+func TestUnitResourceMacOSSoftwareUpdateConfiguration_02_CreateMaximal(t *testing.T) {
 	// Set up mock environment
 	_, _ = setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -161,7 +161,7 @@ func TestUnitMacOSSoftwareUpdateConfigurationResource_Create_Maximal(t *testing.
 }
 
 // TestUnitMacOSSoftwareUpdateConfigurationResource_Update_MinimalToMaximal tests updating from minimal to maximal configuration
-func TestUnitMacOSSoftwareUpdateConfigurationResource_Update_MinimalToMaximal(t *testing.T) {
+func TestUnitResourceMacOSSoftwareUpdateConfiguration_03_UpdateMinimalToMaximal(t *testing.T) {
 	// Set up mock environment
 	_, _ = setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -204,7 +204,7 @@ func TestUnitMacOSSoftwareUpdateConfigurationResource_Update_MinimalToMaximal(t 
 }
 
 // TestUnitMacOSSoftwareUpdateConfigurationResource_Update_MaximalToMinimal tests updating from maximal to minimal configuration
-func TestUnitMacOSSoftwareUpdateConfigurationResource_Update_MaximalToMinimal(t *testing.T) {
+func TestUnitResourceMacOSSoftwareUpdateConfiguration_04_UpdateMaximalToMinimal(t *testing.T) {
 	// Set up mock environment
 	_, _ = setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -245,7 +245,7 @@ func TestUnitMacOSSoftwareUpdateConfigurationResource_Update_MaximalToMinimal(t 
 }
 
 // TestUnitMacOSSoftwareUpdateConfigurationResource_Delete_Minimal tests deleting a software update configuration with minimal configuration
-func TestUnitMacOSSoftwareUpdateConfigurationResource_Delete_Minimal(t *testing.T) {
+func TestUnitResourceMacOSSoftwareUpdateConfiguration_05_DeleteMinimal(t *testing.T) {
 	// Set up mock environment
 	_, _ = setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -272,7 +272,7 @@ func TestUnitMacOSSoftwareUpdateConfigurationResource_Delete_Minimal(t *testing.
 }
 
 // TestUnitMacOSSoftwareUpdateConfigurationResource_Delete_Maximal tests deleting a software update configuration with maximal configuration
-func TestUnitMacOSSoftwareUpdateConfigurationResource_Delete_Maximal(t *testing.T) {
+func TestUnitResourceMacOSSoftwareUpdateConfiguration_06_DeleteMaximal(t *testing.T) {
 	// Set up mock environment
 	_, _ = setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -299,7 +299,7 @@ func TestUnitMacOSSoftwareUpdateConfigurationResource_Delete_Maximal(t *testing.
 }
 
 // TestUnitMacOSSoftwareUpdateConfigurationResource_Import tests importing a software update configuration
-func TestUnitMacOSSoftwareUpdateConfigurationResource_Import(t *testing.T) {
+func TestUnitResourceMacOSSoftwareUpdateConfiguration_07_Import(t *testing.T) {
 	// Set up mock environment
 	_, _ = setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -331,7 +331,7 @@ func TestUnitMacOSSoftwareUpdateConfigurationResource_Import(t *testing.T) {
 }
 
 // TestUnitMacOSSoftwareUpdateConfigurationResource_Error tests error handling
-func TestUnitMacOSSoftwareUpdateConfigurationResource_Error(t *testing.T) {
+func TestUnitResourceMacOSSoftwareUpdateConfiguration_08_Error(t *testing.T) {
 	// Set up mock environment
 	_, errorMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()

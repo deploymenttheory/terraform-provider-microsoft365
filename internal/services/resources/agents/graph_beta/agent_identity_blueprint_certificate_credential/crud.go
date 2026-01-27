@@ -15,21 +15,16 @@ import (
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
-// Create handles the Create operation for certificate credentials.
+// Create handles the Create operation for agent identity blueprint certificate credential resources.
 //
-// Key credentials don't have a dedicated POST endpoint - they're managed as a property
-// of the application object via PATCH. This means we must:
+// Operation: Adds a certificate credential to an agent identity blueprint
+// API Calls:
+//   - GET /applications/{id} (to fetch existing keyCredentials if not replacing)
+//   - PATCH /applications/{id}/microsoft.graph.agentIdentityBlueprint (to add certificate to keyCredentials array)
+//   - GET /applications/{id} (to retrieve API-generated keyId)
 //
-//  1. Fetch existing keyCredentials first (unless replacing all), because PATCH replaces
-//     the entire keyCredentials array, not just append to it.
-//
-//  2. PATCH the application with the combined credentials using the agentIdentityBlueprint
-//     cast endpoint (required for agent blueprints, standard endpoint returns 400).
-//
-//  3. Fetch the application again to discover the API-generated keyId, since the API
-//     generates the keyId - we cannot set it ourselves. We match by displayName.
-//
-// 4. Call Read with retry to handle eventual consistency and populate full state.
+// Reference: https://learn.microsoft.com/en-us/graph/api/agentidentityblueprint-addkey?view=graph-rest-beta
+// Note: Certificates are managed via PATCH to the keyCredentials array property; API generates the keyId which is matched by displayName
 func (r *AgentIdentityBlueprintCertificateCredentialResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var object AgentIdentityBlueprintCertificateCredentialResourceModel
 
@@ -145,8 +140,13 @@ func (r *AgentIdentityBlueprintCertificateCredentialResource) Create(ctx context
 	tflog.Debug(ctx, fmt.Sprintf("Finished Create Method: %s", ResourceName))
 }
 
-// Read handles the Read operation.
-// Uses GET /applications/{id} to retrieve the key credentials.
+// Read handles the Read operation for agent identity blueprint certificate credential resources.
+//
+// Operation: Retrieves certificate credential by reading application keyCredentials array
+// API Calls:
+//   - GET /applications/{id}
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/application-get?view=graph-rest-beta
 func (r *AgentIdentityBlueprintCertificateCredentialResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var object AgentIdentityBlueprintCertificateCredentialResourceModel
 
@@ -219,8 +219,18 @@ func (r *AgentIdentityBlueprintCertificateCredentialResource) Read(ctx context.C
 	tflog.Debug(ctx, fmt.Sprintf("Finished Read Method: %s", ResourceName))
 }
 
-// Update handles the Update operation.
-// Certificate credentials cannot be updated in-place. This performs a delete and recreate.
+// Update handles the Update operation for agent identity blueprint certificate credential resources.
+//
+// Operation: Updates certificate by removing old credential and adding new one
+// API Calls:
+//   - GET /applications/{id} (to fetch existing keyCredentials)
+//   - PATCH /applications/{id}/microsoft.graph.agentIdentityBlueprint (to remove old certificate)
+//   - GET /applications/{id} (to fetch current keyCredentials after removal)
+//   - PATCH /applications/{id}/microsoft.graph.agentIdentityBlueprint (to add new certificate)
+//   - GET /applications/{id} (to retrieve API-generated keyId)
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/agentidentityblueprint-addkey?view=graph-rest-beta
+// Note: Certificate credentials cannot be updated directly; changes require delete and recreate
 func (r *AgentIdentityBlueprintCertificateCredentialResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var plan AgentIdentityBlueprintCertificateCredentialResourceModel
 	var state AgentIdentityBlueprintCertificateCredentialResourceModel
@@ -368,9 +378,14 @@ func (r *AgentIdentityBlueprintCertificateCredentialResource) Update(ctx context
 	tflog.Debug(ctx, fmt.Sprintf("Finished Update Method: %s", ResourceName))
 }
 
-// Delete handles the Delete operation.
-// Uses PATCH /applications/{id}/microsoft.graph.agentIdentityBlueprint to remove the certificate
-// from the keyCredentials property while preserving other credentials.
+// Delete handles the Delete operation for agent identity blueprint certificate credential resources.
+//
+// Operation: Removes certificate credential from application keyCredentials array
+// API Calls:
+//   - GET /applications/{id} (to fetch existing keyCredentials)
+//   - PATCH /applications/{id}/microsoft.graph.agentIdentityBlueprint (to remove certificate while preserving others)
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/agentidentityblueprint-removekey?view=graph-rest-beta
 func (r *AgentIdentityBlueprintCertificateCredentialResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var data AgentIdentityBlueprintCertificateCredentialResourceModel
 

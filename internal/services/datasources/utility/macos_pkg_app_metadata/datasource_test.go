@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
-func TestMacOSPKGAppMetadataDataSource_InvalidFileExtension(t *testing.T) {
+func TestUnitDatasourceMacOSPkgAppMetadata_01_InvalidFileExtension(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 
 	resource.UnitTest(t, resource.TestCase{
@@ -23,7 +23,7 @@ func TestMacOSPKGAppMetadataDataSource_InvalidFileExtension(t *testing.T) {
 	})
 }
 
-func TestMacOSPKGAppMetadataDataSource_InvalidURL(t *testing.T) {
+func TestUnitDatasourceMacOSPkgAppMetadata_02_InvalidURL(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 
 	resource.UnitTest(t, resource.TestCase{
@@ -37,7 +37,7 @@ func TestMacOSPKGAppMetadataDataSource_InvalidURL(t *testing.T) {
 	})
 }
 
-func TestMacOSPKGAppMetadataDataSource_BothParametersProvided(t *testing.T) {
+func TestUnitDatasourceMacOSPkgAppMetadata_03_BothParametersProvided(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 
 	resource.UnitTest(t, resource.TestCase{
@@ -51,7 +51,7 @@ func TestMacOSPKGAppMetadataDataSource_BothParametersProvided(t *testing.T) {
 	})
 }
 
-func TestMacOSPKGAppMetadataDataSource_NeitherParameterProvided(t *testing.T) {
+func TestUnitDatasourceMacOSPkgAppMetadata_04_NeitherParameterProvided(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 
 	resource.UnitTest(t, resource.TestCase{
@@ -65,7 +65,7 @@ func TestMacOSPKGAppMetadataDataSource_NeitherParameterProvided(t *testing.T) {
 	})
 }
 
-func TestMacOSPKGAppMetadataDataSource_ValidFilePathFormat(t *testing.T) {
+func TestUnitDatasourceMacOSPkgAppMetadata_05_ValidFilePathFormat(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 
 	resource.UnitTest(t, resource.TestCase{
@@ -80,7 +80,7 @@ func TestMacOSPKGAppMetadataDataSource_ValidFilePathFormat(t *testing.T) {
 	})
 }
 
-func TestMacOSPKGAppMetadataDataSource_ValidURLFormat(t *testing.T) {
+func TestUnitDatasourceMacOSPkgAppMetadata_06_ValidURLFormat(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 
 	resource.UnitTest(t, resource.TestCase{

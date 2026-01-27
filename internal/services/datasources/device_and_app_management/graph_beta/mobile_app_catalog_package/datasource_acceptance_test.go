@@ -22,7 +22,7 @@ func loadAcceptanceTestTerraform(filename string) string {
 }
 
 // Test 01: Get all mobile app catalog packages
-func TestAccMobileAppCatalogPackageDataSource_All(t *testing.T) {
+func TestAccDatasourceMobileAppCatalogPackage_01_All(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -67,7 +67,7 @@ func TestAccMobileAppCatalogPackageDataSource_All(t *testing.T) {
 }
 
 // Test 02: Get by product ID (using 7-Zip as a known stable package)
-func TestAccMobileAppCatalogPackageDataSource_ById(t *testing.T) {
+func TestAccDatasourceMobileAppCatalogPackage_02_ById(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -113,7 +113,7 @@ func TestAccMobileAppCatalogPackageDataSource_ById(t *testing.T) {
 }
 
 // Test 03: Get by product name
-func TestAccMobileAppCatalogPackageDataSource_ByProductName(t *testing.T) {
+func TestAccDatasourceMobileAppCatalogPackage_03_ByProductName(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -139,7 +139,7 @@ func TestAccMobileAppCatalogPackageDataSource_ByProductName(t *testing.T) {
 }
 
 // Test 04: Get by publisher name
-func TestAccMobileAppCatalogPackageDataSource_ByPublisherName(t *testing.T) {
+func TestAccDatasourceMobileAppCatalogPackage_04_ByPublisherName(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,

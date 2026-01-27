@@ -34,7 +34,7 @@ func loadAcceptanceTestTerraform(filename string) string {
 }
 
 // TestAccTermsAndConditionsResource_Minimal tests creating a minimal terms and conditions
-func TestAccTermsAndConditionsResource_Minimal(t *testing.T) {
+func TestAccResourceTermsAndConditions_01_Minimal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -73,7 +73,7 @@ func TestAccTermsAndConditionsResource_Minimal(t *testing.T) {
 }
 
 // TestAccTermsAndConditionsResource_Maximal tests creating a maximal terms and conditions
-func TestAccTermsAndConditionsResource_Maximal(t *testing.T) {
+func TestAccResourceTermsAndConditions_02_Maximal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -134,7 +134,7 @@ func TestAccTermsAndConditionsResource_Maximal(t *testing.T) {
 }
 
 // TestAccTermsAndConditionsResource_MinimalAssignment tests creating terms and conditions with minimal assignment
-func TestAccTermsAndConditionsResource_MinimalAssignment(t *testing.T) {
+func TestAccResourceTermsAndConditions_03_MinimalAssignment(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -179,7 +179,7 @@ func TestAccTermsAndConditionsResource_MinimalAssignment(t *testing.T) {
 }
 
 // TestAccTermsAndConditionsResource_MaximalAssignment tests creating terms and conditions with maximal assignments
-func TestAccTermsAndConditionsResource_MaximalAssignment(t *testing.T) {
+func TestAccResourceTermsAndConditions_05_MaximalAssignment(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -237,7 +237,7 @@ func TestAccTermsAndConditionsResource_MaximalAssignment(t *testing.T) {
 }
 
 // TestAccTermsAndConditionsResource_MinimalToMaximal tests transitioning from minimal to maximal configuration
-func TestAccTermsAndConditionsResource_MinimalToMaximal(t *testing.T) {
+func TestAccResourceTermsAndConditions_05_MinimalToMaximal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -314,7 +314,7 @@ func TestAccTermsAndConditionsResource_MinimalToMaximal(t *testing.T) {
 }
 
 // TestAccTermsAndConditionsResource_MaximalToMinimal tests transitioning from maximal to minimal configuration
-func TestAccTermsAndConditionsResource_MaximalToMinimal(t *testing.T) {
+func TestAccResourceTermsAndConditions_06_MaximalToMinimal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -390,7 +390,7 @@ func TestAccTermsAndConditionsResource_MaximalToMinimal(t *testing.T) {
 }
 
 // TestAccTermsAndConditionsResource_Description tests creating terms and conditions with description attribute
-func TestAccTermsAndConditionsResource_Description(t *testing.T) {
+func TestAccResourceTermsAndConditions_07_Description(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,

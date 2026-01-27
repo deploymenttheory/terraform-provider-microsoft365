@@ -15,7 +15,14 @@ import (
 	"github.com/microsoftgraph/msgraph-beta-sdk-go/users"
 )
 
-// Create handles the creation of a single user license assignment.
+// Create handles the Create operation for user license assignment resources.
+//
+// Operation: Assigns a license to a user
+// API Calls:
+//   - POST /users/{id}/assignLicense
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/user-assignlicense?view=graph-rest-beta
+// Note: Composite ID (userId_skuId) is constructed as Graph API does not return unique assignment IDs
 func (r *UserLicenseAssignmentResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var object UserLicenseAssignmentResourceModel
 
@@ -86,7 +93,13 @@ func (r *UserLicenseAssignmentResource) Create(ctx context.Context, req resource
 	tflog.Debug(ctx, fmt.Sprintf("Finished Create Method: %s", ResourceName))
 }
 
-// Read retrieves the current state of a user's license assignments.
+// Read handles the Read operation for user license assignment resources.
+//
+// Operation: Retrieves user's assigned licenses to verify assignment exists
+// API Calls:
+//   - GET /users/{id}?$select=id,userPrincipalName,assignedLicenses
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/user-get?view=graph-rest-beta
 func (r *UserLicenseAssignmentResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var object UserLicenseAssignmentResourceModel
 
@@ -133,7 +146,14 @@ func (r *UserLicenseAssignmentResource) Read(ctx context.Context, req resource.R
 	tflog.Debug(ctx, fmt.Sprintf("Finished Read Method: %s", ResourceName))
 }
 
-// Update handles updates to a user's license assignment (disabled plans only, since sku_id requires replace).
+// Update handles the Update operation for user license assignment resources.
+//
+// Operation: Updates disabled plans for an existing license assignment
+// API Calls:
+//   - POST /users/{id}/assignLicense
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/user-assignlicense?view=graph-rest-beta
+// Note: Only disabled_plans can be updated; sku_id changes trigger resource replacement
 func (r *UserLicenseAssignmentResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var plan UserLicenseAssignmentResourceModel
 
@@ -197,7 +217,14 @@ func (r *UserLicenseAssignmentResource) Update(ctx context.Context, req resource
 	tflog.Debug(ctx, fmt.Sprintf("Finished updating %s with ID: %s", ResourceName, plan.ID.ValueString()))
 }
 
-// Delete handles the deletion of a single user license assignment.
+// Delete handles the Delete operation for user license assignment resources.
+//
+// Operation: Removes a license from a user
+// API Calls:
+//   - POST /users/{id}/assignLicense
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/user-assignlicense?view=graph-rest-beta
+// Note: License removal is performed by passing the skuId in removeLicenses array
 func (r *UserLicenseAssignmentResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var object UserLicenseAssignmentResourceModel
 

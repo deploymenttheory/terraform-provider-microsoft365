@@ -15,13 +15,14 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
-// Create handles the Create operation.
+// Create handles the Create operation for agent identity blueprint resources.
 //
-//   - Retrieves the current state from the create request
-//   - Validates the state data and timeout configuration
-//   - Sends POST request to create the resource
-//   - Reads the created resource state
-//   - Cleans up by removing the resource from Terraform state
+// Operation: Creates a new agent identity blueprint application
+// API Calls:
+//   - POST /applications/microsoft.graph.agentIdentityBlueprint
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/agentidentityblueprint-post?view=graph-rest-beta
+// Note: Cast endpoint is invoked via @odata.type property in request body
 func (r *AgentIdentityBlueprintResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var object AgentIdentityBlueprintResourceModel
 
@@ -93,13 +94,15 @@ func (r *AgentIdentityBlueprintResource) Create(ctx context.Context, req resourc
 	tflog.Debug(ctx, fmt.Sprintf("Finished Create Method: %s", ResourceName))
 }
 
-// Read handles the Read operation.
+// Read handles the Read operation for agent identity blueprint resources.
 //
-//   - Retrieves the current state from the read request
-//   - Validates the state data and timeout configuration
-//   - Sends GET request to retrieve the resource
-//   - Maps the remote resource state to the Terraform state
-//   - Cleans up by removing the resource from Terraform state
+// Operation: Retrieves agent identity blueprint details including sponsors and owners
+// API Calls:
+//   - GET /applications/{id}
+//   - GET /applications/{id}/microsoft.graph.agentIdentityBlueprint/sponsors
+//   - GET /applications/{id}/owners
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/agentidentityblueprint-get?view=graph-rest-beta
 func (r *AgentIdentityBlueprintResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var object AgentIdentityBlueprintResourceModel
 
@@ -176,13 +179,18 @@ func (r *AgentIdentityBlueprintResource) Read(ctx context.Context, req resource.
 	tflog.Debug(ctx, fmt.Sprintf("Finished Read Method: %s", ResourceName))
 }
 
-// Update handles the Update operation.
+// Update handles the Update operation for agent identity blueprint resources.
 //
-//   - Retrieves the current state from the update request
-//   - Validates the state data and timeout configuration
-//   - Sends PATCH request to update the resource
-//   - Reads the updated resource state
-//   - Cleans up by removing the resource from Terraform state
+// Operation: Updates agent identity blueprint properties and manages sponsors and owners
+// API Calls:
+//   - PATCH /applications/{id}/microsoft.graph.agentIdentityBlueprint
+//   - DELETE /applications/{id}/microsoft.graph.agentIdentityBlueprint/sponsors/{sponsorId}/$ref (for removed sponsors)
+//   - POST /applications/{id}/microsoft.graph.agentIdentityBlueprint/sponsors/$ref (for new sponsors)
+//   - DELETE /applications/{id}/owners/{ownerId}/$ref (for removed owners)
+//   - POST /applications/{id}/owners/$ref (for new owners)
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/agentidentityblueprint-update?view=graph-rest-beta
+// Note: Cast endpoint is invoked via @odata.type property in request body
 func (r *AgentIdentityBlueprintResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var plan AgentIdentityBlueprintResourceModel
 	var state AgentIdentityBlueprintResourceModel
@@ -300,15 +308,16 @@ func (r *AgentIdentityBlueprintResource) Update(ctx context.Context, req resourc
 	tflog.Debug(ctx, fmt.Sprintf("Finished updating %s with ID: %s", ResourceName, state.ID.ValueString()))
 }
 
-// Delete handles the Delete operation for resource Agent Identity Blueprint.
-// When hard_delete is true, the blueprint is deleted in two steps:
-// 1. Delete the application (soft delete - moves to deleted items)
-// 2. Wait for the resource to appear in deleted items (handles eventual consistency)
-// 3. Permanently delete from /directory/deleteditems/{id}
-// 4. Verify deletion by confirming resource is gone
-// When hard_delete is false (default), only the soft delete is performed.
-// REF: https://learn.microsoft.com/en-us/graph/api/directory-deleteditems-list?view=graph-rest-beta
-// REF: https://learn.microsoft.com/en-us/graph/api/directory-deleteditems-delete?view=graph-rest-beta
+// Delete handles the Delete operation for agent identity blueprint resources.
+//
+// Operation: Deletes agent identity blueprint application with optional hard delete
+// API Calls:
+//   - DELETE /applications/{id}
+//   - GET /directory/deletedItems/microsoft.graph.application (if hard_delete is true)
+//   - DELETE /directory/deletedItems/{id} (if hard_delete is true)
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/agentidentityblueprint-delete?view=graph-rest-beta
+// Note: When hard_delete is true, performs soft delete then permanent deletion from directory deleted items after eventual consistency delay
 func (r *AgentIdentityBlueprintResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var data AgentIdentityBlueprintResourceModel
 

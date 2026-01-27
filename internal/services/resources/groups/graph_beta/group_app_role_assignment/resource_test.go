@@ -47,7 +47,7 @@ func testConfigMaximal() string {
 }
 
 // TestUnitGroupAppRoleAssignmentResource_Minimal tests minimal configuration
-func TestUnitGroupAppRoleAssignmentResource_Minimal(t *testing.T) {
+func TestUnitResourceGroupAppRoleAssignment_01_Minimal(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, assignmentMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -87,7 +87,7 @@ func TestUnitGroupAppRoleAssignmentResource_Minimal(t *testing.T) {
 }
 
 // TestUnitGroupAppRoleAssignmentResource_Maximal tests maximal configuration
-func TestUnitGroupAppRoleAssignmentResource_Maximal(t *testing.T) {
+func TestUnitResourceGroupAppRoleAssignment_02_Maximal(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, assignmentMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -127,7 +127,7 @@ func TestUnitGroupAppRoleAssignmentResource_Maximal(t *testing.T) {
 }
 
 // TestUnitGroupAppRoleAssignmentResource_Delete tests resource deletion
-func TestUnitGroupAppRoleAssignmentResource_Delete(t *testing.T) {
+func TestUnitResourceGroupAppRoleAssignment_03_Delete(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, assignmentMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -157,7 +157,7 @@ func TestUnitGroupAppRoleAssignmentResource_Delete(t *testing.T) {
 }
 
 // TestUnitGroupAppRoleAssignmentResource_RequiredFields tests required field validation
-func TestUnitGroupAppRoleAssignmentResource_RequiredFields(t *testing.T) {
+func TestUnitResourceGroupAppRoleAssignment_04_RequiredFields(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, assignmentMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -198,7 +198,7 @@ resource "microsoft365_graph_beta_groups_group_app_role_assignment" "test" {
 }
 
 // TestUnitGroupAppRoleAssignmentResource_InvalidValues tests invalid value validation
-func TestUnitGroupAppRoleAssignmentResource_InvalidValues(t *testing.T) {
+func TestUnitResourceGroupAppRoleAssignment_05_InvalidValues(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, assignmentMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -242,7 +242,7 @@ resource "microsoft365_graph_beta_groups_group_app_role_assignment" "test" {
 }
 
 // TestUnitGroupAppRoleAssignmentResource_ErrorHandling tests API error handling
-func TestUnitGroupAppRoleAssignmentResource_ErrorHandling(t *testing.T) {
+func TestUnitResourceGroupAppRoleAssignment_06_ErrorHandling(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, assignmentMock := setupErrorMockEnvironment()
 	defer httpmock.DeactivateAndReset()

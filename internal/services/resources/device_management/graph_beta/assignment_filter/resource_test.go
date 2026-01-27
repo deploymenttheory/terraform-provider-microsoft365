@@ -74,8 +74,8 @@ func testConfigMaximal() string {
 	return string(content)
 }
 
-// TestAssignmentFilterResource_Schema validates the resource schema
-func TestAssignmentFilterResource_Schema(t *testing.T) {
+// TestAssignmentFilterResource_01_Schema validates the resource schema
+func TestUnitResourceAssignmentFilter_01_Schema(t *testing.T) {
 	setupUnitTestEnvironment(t)
 	_, assignmentFilterMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -103,8 +103,8 @@ func TestAssignmentFilterResource_Schema(t *testing.T) {
 	})
 }
 
-// TestAssignmentFilterResource_Minimal tests basic CRUD operations
-func TestAssignmentFilterResource_Minimal(t *testing.T) {
+// TestAssignmentFilterResource_02_Minimal tests basic CRUD operations
+func TestUnitResourceAssignmentFilter_02_Minimal(t *testing.T) {
 	setupUnitTestEnvironment(t)
 	_, assignmentFilterMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -145,8 +145,8 @@ func TestAssignmentFilterResource_Minimal(t *testing.T) {
 	})
 }
 
-// TestAssignmentFilterResource_UpdateInPlace tests in-place updates
-func TestAssignmentFilterResource_UpdateInPlace(t *testing.T) {
+// TestAssignmentFilterResource_03_UpdateInPlace tests in-place updates
+func TestUnitResourceAssignmentFilter_03_UpdateInPlace(t *testing.T) {
 	setupUnitTestEnvironment(t)
 	_, assignmentFilterMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -176,8 +176,8 @@ func TestAssignmentFilterResource_UpdateInPlace(t *testing.T) {
 	})
 }
 
-// TestAssignmentFilterResource_PlatformValidation tests platform validation
-func TestAssignmentFilterResource_PlatformValidation(t *testing.T) {
+// TestAssignmentFilterResource_04_PlatformValidation tests platform validation
+func TestUnitResourceAssignmentFilter_04_PlatformValidation(t *testing.T) {
 	setupUnitTestEnvironment(t)
 	_, assignmentFilterMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -200,8 +200,8 @@ resource "microsoft365_graph_beta_device_management_assignment_filter" "test" {
 	})
 }
 
-// TestAssignmentFilterResource_RequiredFields tests required field validation
-func TestAssignmentFilterResource_RequiredFields(t *testing.T) {
+// TestAssignmentFilterResource_05_RequiredFields tests required field validation
+func TestUnitResourceAssignmentFilter_05_RequiredFields(t *testing.T) {
 	setupUnitTestEnvironment(t)
 	_, assignmentFilterMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -259,8 +259,8 @@ resource "microsoft365_graph_beta_device_management_assignment_filter" "test" {
 	}
 }
 
-// TestAssignmentFilterResource_ErrorHandling tests error scenarios
-func TestAssignmentFilterResource_ErrorHandling(t *testing.T) {
+// TestAssignmentFilterResource_06_ErrorHandling tests error scenarios
+func TestUnitResourceAssignmentFilter_06_ErrorHandling(t *testing.T) {
 	setupUnitTestEnvironment(t)
 	_, assignmentFilterMock := setupErrorMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -283,8 +283,8 @@ resource "microsoft365_graph_beta_device_management_assignment_filter" "test" {
 	})
 }
 
-// TestAssignmentFilterResource_RoleScopeTags tests role scope tags handling
-func TestAssignmentFilterResource_RoleScopeTags(t *testing.T) {
+// TestAssignmentFilterResource_07_RoleScopeTags tests role scope tags handling
+func TestUnitResourceAssignmentFilter_07_RoleScopeTags(t *testing.T) {
 	setupUnitTestEnvironment(t)
 	_, assignmentFilterMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -313,8 +313,8 @@ resource "microsoft365_graph_beta_device_management_assignment_filter" "test" {
 	})
 }
 
-// TestAssignmentFilterResource_ComplexRule tests complex assignment filter rules
-func TestAssignmentFilterResource_ComplexRule(t *testing.T) {
+// TestAssignmentFilterResource_08_ComplexRule tests complex assignment filter rules
+func TestUnitResourceAssignmentFilter_08_ComplexRule(t *testing.T) {
 	setupUnitTestEnvironment(t)
 	_, assignmentFilterMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()

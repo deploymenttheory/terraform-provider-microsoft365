@@ -37,8 +37,8 @@ func setupErrorMockEnvironment() (*mocks.Mocks, *userManagerMocks.UserManagerMoc
 	return mockClient, userManagerMock
 }
 
-// TestUserManagerResource_Lifecycle tests the full lifecycle of user manager relationship
-func TestUserManagerResource_Lifecycle(t *testing.T) {
+// TestUnitResourceUserManager_01_Lifecycle tests the full lifecycle of user manager relationship
+func TestUnitResourceUserManager_01_Lifecycle(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, userManagerMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -64,8 +64,8 @@ func TestUserManagerResource_Lifecycle(t *testing.T) {
 	})
 }
 
-// TestUserManagerResource_RequiredFields tests required field validation
-func TestUserManagerResource_RequiredFields(t *testing.T) {
+// TestUnitResourceUserManager_02_RequiredFields tests required field validation
+func TestUnitResourceUserManager_02_RequiredFields(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, userManagerMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -96,8 +96,8 @@ resource "microsoft365_graph_beta_users_user_manager" "test" {
 	})
 }
 
-// TestUserManagerResource_InvalidGUID tests GUID validation
-func TestUserManagerResource_InvalidGUID(t *testing.T) {
+// TestUnitResourceUserManager_03_InvalidGUID tests GUID validation
+func TestUnitResourceUserManager_03_InvalidGUID(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, userManagerMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -128,8 +128,8 @@ resource "microsoft365_graph_beta_users_user_manager" "test" {
 	})
 }
 
-// TestUserManagerResource_ErrorHandling tests error scenarios
-func TestUserManagerResource_ErrorHandling(t *testing.T) {
+// TestUnitResourceUserManager_04_ErrorHandling tests error scenarios
+func TestUnitResourceUserManager_04_ErrorHandling(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, userManagerMock := setupErrorMockEnvironment()
 	defer httpmock.DeactivateAndReset()

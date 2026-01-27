@@ -38,7 +38,7 @@ func setupErrorMockEnvironment() (*mocks.Mocks, *assignmentMocks.GroupLifecycleE
 	return mockClient, assignmentMock
 }
 
-func TestUnitGroupLifecyclePolicyAssignmentResource_Create(t *testing.T) {
+func TestUnitResourceGroupLifecyclePolicyAssignment_01_Create(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, assignmentMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -58,7 +58,7 @@ func TestUnitGroupLifecyclePolicyAssignmentResource_Create(t *testing.T) {
 	})
 }
 
-func TestUnitGroupLifecyclePolicyAssignmentResource_Import(t *testing.T) {
+func TestUnitResourceGroupLifecyclePolicyAssignment_02_Import(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, assignmentMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -82,7 +82,7 @@ func TestUnitGroupLifecyclePolicyAssignmentResource_Import(t *testing.T) {
 	})
 }
 
-func TestUnitGroupLifecyclePolicyAssignmentResource_Delete(t *testing.T) {
+func TestUnitResourceGroupLifecyclePolicyAssignment_03_Delete(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, assignmentMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -111,7 +111,7 @@ func TestUnitGroupLifecyclePolicyAssignmentResource_Delete(t *testing.T) {
 	})
 }
 
-func TestUnitGroupLifecyclePolicyAssignmentResource_RequiredFields(t *testing.T) {
+func TestUnitResourceGroupLifecyclePolicyAssignment_04_RequiredFields(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, assignmentMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -128,7 +128,7 @@ func TestUnitGroupLifecyclePolicyAssignmentResource_RequiredFields(t *testing.T)
 	})
 }
 
-func TestUnitGroupLifecyclePolicyAssignmentResource_InvalidGroupID(t *testing.T) {
+func TestUnitResourceGroupLifecyclePolicyAssignment_05_InvalidGroupID(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, assignmentMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -149,7 +149,7 @@ resource "microsoft365_graph_beta_groups_group_lifecycle_expiration_policy_assig
 	})
 }
 
-func TestUnitGroupLifecyclePolicyAssignmentResource_ErrorHandling_NoPolicyExists(t *testing.T) {
+func TestUnitResourceGroupLifecyclePolicyAssignment_06_ErrorHandling_NoPolicyExists(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	mockClient := mocks.NewMocks()
@@ -170,7 +170,7 @@ func TestUnitGroupLifecyclePolicyAssignmentResource_ErrorHandling_NoPolicyExists
 	})
 }
 
-func TestUnitGroupLifecyclePolicyAssignmentResource_ErrorHandling_BadRequest(t *testing.T) {
+func TestUnitResourceGroupLifecyclePolicyAssignment_07_ErrorHandling_BadRequest(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, assignmentMock := setupErrorMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -187,7 +187,7 @@ func TestUnitGroupLifecyclePolicyAssignmentResource_ErrorHandling_BadRequest(t *
 	})
 }
 
-func TestUnitGroupLifecyclePolicyAssignmentResource_UpdateNotSupported(t *testing.T) {
+func TestUnitResourceGroupLifecyclePolicyAssignment_08_UpdateNotSupported(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, assignmentMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()

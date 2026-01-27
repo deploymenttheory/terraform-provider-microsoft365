@@ -137,8 +137,8 @@ func testConfigMinimalWithResourceName(resourceName string) string {
 }`, resourceName)
 }
 
-// TestUnitM365AppsInstallationOptionsResource_Create_Minimal tests the creation of M365 Apps Installation Options with minimal configuration
-func TestUnitM365AppsInstallationOptionsResource_Create_Minimal(t *testing.T) {
+// TestUnitResourceM365AppsInstallationOptions_01_CreateMinimal tests the creation of M365 Apps Installation Options with minimal configuration
+func TestUnitResourceM365AppsInstallationOptions_01_CreateMinimal(t *testing.T) {
 	// Set up mock environment
 	_, _ = setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -165,8 +165,8 @@ func TestUnitM365AppsInstallationOptionsResource_Create_Minimal(t *testing.T) {
 	})
 }
 
-// TestUnitM365AppsInstallationOptionsResource_Create_Maximal tests the creation of M365 Apps Installation Options with maximal configuration
-func TestUnitM365AppsInstallationOptionsResource_Create_Maximal(t *testing.T) {
+// TestUnitResourceM365AppsInstallationOptions_02_CreateMaximal tests the creation of M365 Apps Installation Options with maximal configuration
+func TestUnitResourceM365AppsInstallationOptions_02_CreateMaximal(t *testing.T) {
 	// Set up mock environment
 	_, _ = setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -193,8 +193,8 @@ func TestUnitM365AppsInstallationOptionsResource_Create_Maximal(t *testing.T) {
 	})
 }
 
-// TestUnitM365AppsInstallationOptionsResource_Update_MinimalToMaximal tests updating from minimal to maximal configuration
-func TestUnitM365AppsInstallationOptionsResource_Update_MinimalToMaximal(t *testing.T) {
+// TestUnitResourceM365AppsInstallationOptions_03_UpdateMinimalToMaximal tests updating from minimal to maximal configuration
+func TestUnitResourceM365AppsInstallationOptions_03_UpdateMinimalToMaximal(t *testing.T) {
 	// Set up mock environment
 	_, _ = setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -229,8 +229,8 @@ func TestUnitM365AppsInstallationOptionsResource_Update_MinimalToMaximal(t *test
 	})
 }
 
-// TestUnitM365AppsInstallationOptionsResource_Update_MaximalToMinimal tests updating from maximal to minimal configuration
-func TestUnitM365AppsInstallationOptionsResource_Update_MaximalToMinimal(t *testing.T) {
+// TestUnitResourceM365AppsInstallationOptions_04_UpdateMaximalToMinimal tests updating from maximal to minimal configuration
+func TestUnitResourceM365AppsInstallationOptions_04_UpdateMaximalToMinimal(t *testing.T) {
 	// Set up mock environment
 	_, _ = setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -264,8 +264,8 @@ func TestUnitM365AppsInstallationOptionsResource_Update_MaximalToMinimal(t *test
 	})
 }
 
-// TestUnitM365AppsInstallationOptionsResource_Delete_Minimal tests deleting M365 Apps Installation Options with minimal configuration
-func TestUnitM365AppsInstallationOptionsResource_Delete_Minimal(t *testing.T) {
+// TestUnitResourceM365AppsInstallationOptions_05_DeleteMinimal tests deleting M365 Apps Installation Options with minimal configuration
+func TestUnitResourceM365AppsInstallationOptions_05_DeleteMinimal(t *testing.T) {
 	// Set up mock environment
 	_, _ = setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -300,8 +300,8 @@ func TestUnitM365AppsInstallationOptionsResource_Delete_Minimal(t *testing.T) {
 	})
 }
 
-// TestUnitM365AppsInstallationOptionsResource_Delete_Maximal tests deleting M365 Apps Installation Options with maximal configuration
-func TestUnitM365AppsInstallationOptionsResource_Delete_Maximal(t *testing.T) {
+// TestUnitResourceM365AppsInstallationOptions_06_DeleteMaximal tests deleting M365 Apps Installation Options with maximal configuration
+func TestUnitResourceM365AppsInstallationOptions_06_DeleteMaximal(t *testing.T) {
 	// Set up mock environment
 	_, _ = setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -336,8 +336,8 @@ func TestUnitM365AppsInstallationOptionsResource_Delete_Maximal(t *testing.T) {
 	})
 }
 
-// TestUnitM365AppsInstallationOptionsResource_Import tests importing a resource
-func TestUnitM365AppsInstallationOptionsResource_Import(t *testing.T) {
+// TestUnitResourceM365AppsInstallationOptions_07_Import tests importing a resource
+func TestUnitResourceM365AppsInstallationOptions_07_Import(t *testing.T) {
 	// Set up mock environment
 	_, _ = setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -367,8 +367,8 @@ func TestUnitM365AppsInstallationOptionsResource_Import(t *testing.T) {
 	})
 }
 
-// TestUnitM365AppsInstallationOptionsResource_Error tests error handling
-func TestUnitM365AppsInstallationOptionsResource_Error(t *testing.T) {
+// TestUnitResourceM365AppsInstallationOptions_08_Error tests error handling
+func TestUnitResourceM365AppsInstallationOptions_08_Error(t *testing.T) {
 	// Set up mock environment
 	_, m365AppsMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()

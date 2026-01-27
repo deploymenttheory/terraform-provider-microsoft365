@@ -33,7 +33,7 @@ func testCheckExists(resourceName string) resource.TestCheckFunc {
 	return resource.TestCheckResourceAttrSet(resourceName, "id")
 }
 
-func TestDeviceEnrollmentNotificationResource_Schema(t *testing.T) {
+func TestUnitResourceDeviceEnrollmentNotification_01_Schema(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, enrollmentMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -57,7 +57,7 @@ func TestDeviceEnrollmentNotificationResource_Schema(t *testing.T) {
 	})
 }
 
-func TestDeviceEnrollmentNotificationResource_PlatformTypes(t *testing.T) {
+func TestUnitResourceDeviceEnrollmentNotification_02_PlatformTypes(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, enrollmentMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -90,7 +90,7 @@ func TestDeviceEnrollmentNotificationResource_PlatformTypes(t *testing.T) {
 	})
 }
 
-func TestDeviceEnrollmentNotificationResource_AllTerraformConfigurations(t *testing.T) {
+func TestUnitResourceDeviceEnrollmentNotification_03_AllTerraformConfigurations(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, enrollmentMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -179,7 +179,7 @@ func TestDeviceEnrollmentNotificationResource_AllTerraformConfigurations(t *test
 	})
 }
 
-func TestDeviceEnrollmentNotificationResource_BrandingOptions(t *testing.T) {
+func TestUnitResourceDeviceEnrollmentNotification_04_BrandingOptions(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, enrollmentMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -212,7 +212,7 @@ func TestDeviceEnrollmentNotificationResource_BrandingOptions(t *testing.T) {
 	})
 }
 
-func TestDeviceEnrollmentNotificationResource_LocalizedMessages(t *testing.T) {
+func TestUnitResourceDeviceEnrollmentNotification_05_LocalizedMessages(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, enrollmentMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -238,7 +238,7 @@ func TestDeviceEnrollmentNotificationResource_LocalizedMessages(t *testing.T) {
 	})
 }
 
-func TestDeviceEnrollmentNotificationResource_Assignments(t *testing.T) {
+func TestUnitResourceDeviceEnrollmentNotification_06_Assignments(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, enrollmentMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -261,7 +261,7 @@ func TestDeviceEnrollmentNotificationResource_Assignments(t *testing.T) {
 	})
 }
 
-func TestDeviceEnrollmentNotificationResource_ErrorHandling(t *testing.T) {
+func TestUnitResourceDeviceEnrollmentNotification_07_ErrorHandling(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, enrollmentMock := setupErrorMockEnvironment()
 	defer httpmock.DeactivateAndReset()

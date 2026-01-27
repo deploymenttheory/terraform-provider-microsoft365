@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
-func TestAccWindowsMSIAppMetadataDataSource_FirefoxMSI(t *testing.T) {
+func TestAccDatasourceWindowsMsiAppMetadata_01_FirefoxMSI(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,

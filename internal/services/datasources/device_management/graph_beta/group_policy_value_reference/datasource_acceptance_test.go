@@ -22,7 +22,7 @@ func loadAcceptanceTestTerraform(filename string) string {
 }
 
 // Test 01: Single Machine Policy
-func TestAccGroupPolicyValueReferenceDataSource_01_SingleMachinePolicy(t *testing.T) {
+func TestAccDatasourceGroupPolicyValueReference_01_SingleMachinePolicy(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -51,7 +51,7 @@ func TestAccGroupPolicyValueReferenceDataSource_01_SingleMachinePolicy(t *testin
 }
 
 // Test 02: Multiple Definitions - Policy with multiple variants (user variants)
-func TestAccGroupPolicyValueReferenceDataSource_02_MultipleDefinitions(t *testing.T) {
+func TestAccDatasourceGroupPolicyValueReference_02_MultipleDefinitions(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -84,7 +84,7 @@ func TestAccGroupPolicyValueReferenceDataSource_02_MultipleDefinitions(t *testin
 }
 
 // Test 03: No Results - Policy that doesn't exist returns empty definitions
-func TestAccGroupPolicyValueReferenceDataSource_03_NoResults(t *testing.T) {
+func TestAccDatasourceGroupPolicyValueReference_03_NoResults(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -108,7 +108,7 @@ func TestAccGroupPolicyValueReferenceDataSource_03_NoResults(t *testing.T) {
 }
 
 // Test 04: Boolean/CheckBox Presentation Type
-func TestAccGroupPolicyValueReferenceDataSource_04_BooleanPresentation(t *testing.T) {
+func TestAccDatasourceGroupPolicyValueReference_04_BooleanPresentation(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -137,7 +137,7 @@ func TestAccGroupPolicyValueReferenceDataSource_04_BooleanPresentation(t *testin
 }
 
 // Test 05: Text/TextBox Presentation Type
-func TestAccGroupPolicyValueReferenceDataSource_05_TextPresentation(t *testing.T) {
+func TestAccDatasourceGroupPolicyValueReference_05_TextPresentation(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -167,7 +167,7 @@ func TestAccGroupPolicyValueReferenceDataSource_05_TextPresentation(t *testing.T
 }
 
 // Test 06: ListBox Presentation Type (Array of Strings)
-func TestAccGroupPolicyValueReferenceDataSource_06_ListBoxPresentation(t *testing.T) {
+func TestAccDatasourceGroupPolicyValueReference_06_ListBoxPresentation(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,

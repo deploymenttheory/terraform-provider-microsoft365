@@ -17,7 +17,7 @@ var (
 	dataSourceType = utilityWindowsMSIAppMetadata.DataSourceName
 )
 
-func TestWindowsMSIAppMetadataDataSource_LocalFile(t *testing.T) {
+func TestUnitDatasourceWindowsMsiAppMetadata_01_LocalFile(t *testing.T) {
 	// Check if test MSI file exists
 	if _, err := os.Stat("testdata/sample.msi"); os.IsNotExist(err) {
 		t.Skip("Skipping test: testdata/sample.msi not found. This test requires a valid MSI file for testing.")
@@ -45,7 +45,7 @@ func TestWindowsMSIAppMetadataDataSource_LocalFile(t *testing.T) {
 	})
 }
 
-func TestWindowsMSIAppMetadataDataSource_MissingInput(t *testing.T) {
+func TestUnitDatasourceWindowsMsiAppMetadata_02_MissingInput(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 
 	resource.UnitTest(t, resource.TestCase{
@@ -59,7 +59,7 @@ func TestWindowsMSIAppMetadataDataSource_MissingInput(t *testing.T) {
 	})
 }
 
-func TestWindowsMSIAppMetadataDataSource_BothInputsProvided(t *testing.T) {
+func TestUnitDatasourceWindowsMsiAppMetadata_03_BothInputsProvided(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 
 	resource.UnitTest(t, resource.TestCase{
@@ -73,7 +73,7 @@ func TestWindowsMSIAppMetadataDataSource_BothInputsProvided(t *testing.T) {
 	})
 }
 
-func TestWindowsMSIAppMetadataDataSource_InvalidFilePath(t *testing.T) {
+func TestUnitDatasourceWindowsMsiAppMetadata_04_InvalidFilePath(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 
 	resource.UnitTest(t, resource.TestCase{
@@ -87,7 +87,7 @@ func TestWindowsMSIAppMetadataDataSource_InvalidFilePath(t *testing.T) {
 	})
 }
 
-func TestWindowsMSIAppMetadataDataSource_InvalidMSIFormat(t *testing.T) {
+func TestUnitDatasourceWindowsMsiAppMetadata_05_InvalidMSIFormat(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 
 	resource.UnitTest(t, resource.TestCase{

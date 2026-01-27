@@ -127,7 +127,7 @@ func testConfigMinimalWithResourceName(resourceName string) string {
 }
 
 // TestUnitAndroidManagedMobileAppResource_Create_Minimal tests the creation of an Android managed mobile app with minimal configuration
-func TestUnitAndroidManagedMobileAppResource_Create_Minimal(t *testing.T) {
+func TestUnitResourceAndroidManagedMobileApp_01_Create_Minimal(t *testing.T) {
 	// Set up mock environment
 	_, _ = setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -152,7 +152,7 @@ func TestUnitAndroidManagedMobileAppResource_Create_Minimal(t *testing.T) {
 }
 
 // TestUnitAndroidManagedMobileAppResource_Create_Maximal tests the creation of an Android managed mobile app with maximal configuration
-func TestUnitAndroidManagedMobileAppResource_Create_Maximal(t *testing.T) {
+func TestUnitResourceAndroidManagedMobileApp_02_Create_Maximal(t *testing.T) {
 	// Set up mock environment
 	_, _ = setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -178,7 +178,7 @@ func TestUnitAndroidManagedMobileAppResource_Create_Maximal(t *testing.T) {
 }
 
 // TestUnitAndroidManagedMobileAppResource_Update_MinimalToMaximal tests updating from minimal to maximal configuration
-func TestUnitAndroidManagedMobileAppResource_Update_MinimalToMaximal(t *testing.T) {
+func TestUnitResourceAndroidManagedMobileApp_03_Update_MinimalToMaximal(t *testing.T) {
 	// Set up mock environment
 	_, _ = setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -214,7 +214,7 @@ func TestUnitAndroidManagedMobileAppResource_Update_MinimalToMaximal(t *testing.
 }
 
 // TestUnitAndroidManagedMobileAppResource_Update_MaximalToMinimal tests updating from maximal to minimal configuration
-func TestUnitAndroidManagedMobileAppResource_Update_MaximalToMinimal(t *testing.T) {
+func TestUnitResourceAndroidManagedMobileApp_04_Update_MaximalToMinimal(t *testing.T) {
 	// Set up mock environment
 	_, _ = setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -247,7 +247,7 @@ func TestUnitAndroidManagedMobileAppResource_Update_MaximalToMinimal(t *testing.
 }
 
 // TestUnitAndroidManagedMobileAppResource_Delete_Minimal tests deleting an Android managed mobile app with minimal configuration
-func TestUnitAndroidManagedMobileAppResource_Delete_Minimal(t *testing.T) {
+func TestUnitResourceAndroidManagedMobileApp_05_Delete_Minimal(t *testing.T) {
 	// Set up mock environment
 	_, _ = setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -283,7 +283,7 @@ func TestUnitAndroidManagedMobileAppResource_Delete_Minimal(t *testing.T) {
 }
 
 // TestUnitAndroidManagedMobileAppResource_Delete_Maximal tests deleting an Android managed mobile app with maximal configuration
-func TestUnitAndroidManagedMobileAppResource_Delete_Maximal(t *testing.T) {
+func TestUnitResourceAndroidManagedMobileApp_06_Delete_Maximal(t *testing.T) {
 	// Set up mock environment
 	_, _ = setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -319,7 +319,7 @@ func TestUnitAndroidManagedMobileAppResource_Delete_Maximal(t *testing.T) {
 }
 
 // TestUnitAndroidManagedMobileAppResource_Import tests importing a resource
-func TestUnitAndroidManagedMobileAppResource_Import(t *testing.T) {
+func TestUnitResourceAndroidManagedMobileApp_07_Import(t *testing.T) {
 	// Set up mock environment
 	_, _ = setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -365,7 +365,7 @@ resource "microsoft365_graph_beta_device_and_app_management_android_managed_mobi
 }
 
 // TestUnitAndroidManagedMobileAppResource_Error tests error handling
-func TestUnitAndroidManagedMobileAppResource_Error(t *testing.T) {
+func TestUnitResourceAndroidManagedMobileApp_08_Error(t *testing.T) {
 	// Set up mock environment
 	_, managedAppMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()

@@ -16,7 +16,7 @@ var (
 	dataSourceType = utilityWindowsRemediationScriptRegistryKeyGenerator.DataSourceName
 )
 
-func TestWindowsRemediationScriptRegistryKeyGeneratorDataSource_CurrentUserDword(t *testing.T) {
+func TestUnitDatasourceWindowsRemediationScriptRegistryKeyGenerator_01_CurrentUserDword(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 
 	resource.UnitTest(t, resource.TestCase{
@@ -41,7 +41,7 @@ func TestWindowsRemediationScriptRegistryKeyGeneratorDataSource_CurrentUserDword
 	})
 }
 
-func TestWindowsRemediationScriptRegistryKeyGeneratorDataSource_AllUsersString(t *testing.T) {
+func TestUnitDatasourceWindowsRemediationScriptRegistryKeyGenerator_02_AllUsersString(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 
 	resource.UnitTest(t, resource.TestCase{
@@ -62,7 +62,7 @@ func TestWindowsRemediationScriptRegistryKeyGeneratorDataSource_AllUsersString(t
 	})
 }
 
-func TestWindowsRemediationScriptRegistryKeyGeneratorDataSource_MultiString(t *testing.T) {
+func TestUnitDatasourceWindowsRemediationScriptRegistryKeyGenerator_03_MultiString(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 
 	resource.UnitTest(t, resource.TestCase{
@@ -80,7 +80,7 @@ func TestWindowsRemediationScriptRegistryKeyGeneratorDataSource_MultiString(t *t
 	})
 }
 
-func TestWindowsRemediationScriptRegistryKeyGeneratorDataSource_Binary(t *testing.T) {
+func TestUnitDatasourceWindowsRemediationScriptRegistryKeyGenerator_04_Binary(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 
 	resource.UnitTest(t, resource.TestCase{
@@ -98,7 +98,7 @@ func TestWindowsRemediationScriptRegistryKeyGeneratorDataSource_Binary(t *testin
 	})
 }
 
-func TestWindowsRemediationScriptRegistryKeyGeneratorDataSource_InvalidContext(t *testing.T) {
+func TestUnitDatasourceWindowsRemediationScriptRegistryKeyGenerator_05_InvalidContext(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 
 	resource.UnitTest(t, resource.TestCase{
@@ -112,7 +112,7 @@ func TestWindowsRemediationScriptRegistryKeyGeneratorDataSource_InvalidContext(t
 	})
 }
 
-func TestWindowsRemediationScriptRegistryKeyGeneratorDataSource_InvalidValueType(t *testing.T) {
+func TestUnitDatasourceWindowsRemediationScriptRegistryKeyGenerator_06_InvalidValueType(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 
 	resource.UnitTest(t, resource.TestCase{
@@ -126,7 +126,7 @@ func TestWindowsRemediationScriptRegistryKeyGeneratorDataSource_InvalidValueType
 	})
 }
 
-func TestWindowsRemediationScriptRegistryKeyGeneratorDataSource_InvalidDwordValue(t *testing.T) {
+func TestUnitDatasourceWindowsRemediationScriptRegistryKeyGenerator_07_InvalidDwordValue(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 
 	resource.UnitTest(t, resource.TestCase{

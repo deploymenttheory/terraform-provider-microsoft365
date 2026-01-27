@@ -24,7 +24,7 @@ func loadAcceptanceTestTerraform(filename string) string {
 	return acceptance.ConfiguredM365ProviderBlock(config)
 }
 
-func TestAccIOSManagedDeviceAppConfigurationPolicyResource_Lifecycle(t *testing.T) {
+func TestAccResourceIOSManagedDeviceAppConfigurationPolicy_01_Lifecycle(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -70,7 +70,7 @@ func TestAccIOSManagedDeviceAppConfigurationPolicyResource_Lifecycle(t *testing.
 	})
 }
 
-func TestAccIOSManagedDeviceAppConfigurationPolicyResource_CustomSettings(t *testing.T) {
+func TestAccResourceIOSManagedDeviceAppConfigurationPolicy_02_CustomSettings(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -95,7 +95,7 @@ func TestAccIOSManagedDeviceAppConfigurationPolicyResource_CustomSettings(t *tes
 	})
 }
 
-func TestAccIOSManagedDeviceAppConfigurationPolicyResource_XMLEncoded(t *testing.T) {
+func TestAccResourceIOSManagedDeviceAppConfigurationPolicy_03_XMLEncoded(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,

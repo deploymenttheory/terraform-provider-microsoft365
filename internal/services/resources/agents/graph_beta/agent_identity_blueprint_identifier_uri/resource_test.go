@@ -34,7 +34,7 @@ func setupMockEnvironment() (*mocks.Mocks, *identifierUriMocks.AgentIdentityBlue
 	return mockClient, identifierUriMock
 }
 
-func TestAgentIdentityBlueprintIdentifierUriResource_Minimal(t *testing.T) {
+func TestUnitResourceAgentIdentityBlueprintIdentifierUri_01_Minimal(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, identifierUriMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()

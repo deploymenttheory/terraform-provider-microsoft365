@@ -33,7 +33,7 @@ func testCheckExists(resourceName string) resource.TestCheckFunc {
 	return resource.TestCheckResourceAttrSet(resourceName, "id")
 }
 
-func TestWindowsDeviceComplianceScriptResource_Schema(t *testing.T) {
+func TestUnitResourceWindowsDeviceComplianceScript_01_Schema(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, scriptMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -55,7 +55,7 @@ func TestWindowsDeviceComplianceScriptResource_Schema(t *testing.T) {
 	})
 }
 
-func TestWindowsDeviceComplianceScriptResource_RunAsAccount(t *testing.T) {
+func TestUnitResourceWindowsDeviceComplianceScript_02_RunAsAccount(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, scriptMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -84,7 +84,7 @@ func TestWindowsDeviceComplianceScriptResource_RunAsAccount(t *testing.T) {
 	})
 }
 
-func TestWindowsDeviceComplianceScriptResource_ErrorHandling(t *testing.T) {
+func TestUnitResourceWindowsDeviceComplianceScript_03_ErrorHandling(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, scriptMock := setupErrorMockEnvironment()
 	defer httpmock.DeactivateAndReset()

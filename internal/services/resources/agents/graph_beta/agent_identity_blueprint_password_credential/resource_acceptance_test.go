@@ -15,7 +15,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 )
 
-func TestAccAgentIdentityBlueprintPasswordCredentialResource_Minimal(t *testing.T) {
+func TestAccResourceAgentIdentityBlueprintPasswordCredential_01_Minimal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,

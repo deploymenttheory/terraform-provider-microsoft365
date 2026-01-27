@@ -38,7 +38,7 @@ func setupErrorMockEnvironment() (*mocks.Mocks, *agentUserMocks.AgentUserMock) {
 	return mockClient, agentUserMock
 }
 
-func TestUnitAgentUserResource_Minimal(t *testing.T) {
+func TestUnitResourceAgentUser_01_Minimal(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, agentUserMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -76,7 +76,7 @@ func TestUnitAgentUserResource_Minimal(t *testing.T) {
 	})
 }
 
-func TestUnitAgentUserResource_Maximal(t *testing.T) {
+func TestUnitResourceAgentUser_02_Maximal(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, agentUserMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()

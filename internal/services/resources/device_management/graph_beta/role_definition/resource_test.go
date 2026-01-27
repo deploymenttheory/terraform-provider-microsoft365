@@ -31,7 +31,7 @@ func testConfigHelper(filename string) string {
 }
 
 // TestRoleDefinitionResource_Schema validates the resource schema
-func TestRoleDefinitionResource_Schema(t *testing.T) {
+func TestUnitResourceRoleDefinition_01_Schema(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, roleDefinitionMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -59,7 +59,7 @@ func TestRoleDefinitionResource_Schema(t *testing.T) {
 }
 
 // TestRoleDefinitionResource_Minimal tests basic CRUD operations
-func TestRoleDefinitionResource_Minimal(t *testing.T) {
+func TestUnitResourceRoleDefinition_02_Minimal(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, roleDefinitionMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -108,7 +108,7 @@ func TestRoleDefinitionResource_Minimal(t *testing.T) {
 }
 
 // TestRoleDefinitionResource_UpdateInPlace tests in-place updates
-func TestRoleDefinitionResource_UpdateInPlace(t *testing.T) {
+func TestUnitResourceRoleDefinition_03_UpdateInPlace(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, roleDefinitionMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -142,7 +142,7 @@ func TestRoleDefinitionResource_UpdateInPlace(t *testing.T) {
 }
 
 // TestRoleDefinitionResource_RequiredFields tests required field validation
-func TestRoleDefinitionResource_RequiredFields(t *testing.T) {
+func TestUnitResourceRoleDefinition_04_RequiredFields(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, roleDefinitionMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -188,7 +188,7 @@ resource "microsoft365_graph_beta_device_management_role_definition" "test" {
 }
 
 // TestRoleDefinitionResource_ErrorHandling tests error scenarios
-func TestRoleDefinitionResource_ErrorHandling(t *testing.T) {
+func TestUnitResourceRoleDefinition_05_ErrorHandling(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, roleDefinitionMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -218,7 +218,7 @@ resource "microsoft365_graph_beta_device_management_role_definition" "test" {
 }
 
 // TestRoleDefinitionResource_RoleScopeTagIds tests role scope tag IDs handling
-func TestRoleDefinitionResource_RoleScopeTagIds(t *testing.T) {
+func TestUnitResourceRoleDefinition_06_RoleScopeTagIds(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, roleDefinitionMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -247,7 +247,7 @@ resource "microsoft365_graph_beta_device_management_role_definition" "test" {
 }
 
 // TestRoleDefinitionResource_RolePermissions tests role permissions handling
-func TestRoleDefinitionResource_RolePermissions(t *testing.T) {
+func TestUnitResourceRoleDefinition_07_RolePermissions(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, roleDefinitionMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()

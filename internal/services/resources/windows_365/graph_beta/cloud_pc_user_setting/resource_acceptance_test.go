@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
-func TestAccUserSettingResource_Create_Minimal(t *testing.T) {
+func TestAccResourceCloudPcUserSetting_01_Create_Minimal(t *testing.T) {
 	if os.Getenv("TF_ACC") == "" {
 		t.Skip("Acceptance tests skipped unless TF_ACC=1")
 	}
@@ -30,7 +30,7 @@ func TestAccUserSettingResource_Create_Minimal(t *testing.T) {
 	})
 }
 
-func TestAccUserSettingResource_Create_Maximal(t *testing.T) {
+func TestAccResourceCloudPcUserSetting_02_Create_Maximal(t *testing.T) {
 	if os.Getenv("TF_ACC") == "" {
 		t.Skip("Acceptance tests skipped unless TF_ACC=1")
 	}
@@ -55,7 +55,7 @@ func TestAccUserSettingResource_Create_Maximal(t *testing.T) {
 	})
 }
 
-func TestAccUserSettingResource_Update_MinimalToMaximal(t *testing.T) {
+func TestAccResourceCloudPcUserSetting_03_Update_MinimalToMaximal(t *testing.T) {
 	if os.Getenv("TF_ACC") == "" {
 		t.Skip("Acceptance tests skipped unless TF_ACC=1")
 	}
@@ -87,7 +87,7 @@ func TestAccUserSettingResource_Update_MinimalToMaximal(t *testing.T) {
 	})
 }
 
-func TestAccUserSettingResource_Delete_Minimal(t *testing.T) {
+func TestAccResourceCloudPcUserSetting_04_Delete_Minimal(t *testing.T) {
 	if os.Getenv("TF_ACC") == "" {
 		t.Skip("Acceptance tests skipped unless TF_ACC=1")
 	}
@@ -105,7 +105,7 @@ func TestAccUserSettingResource_Delete_Minimal(t *testing.T) {
 	})
 }
 
-func TestAccUserSettingResource_Import(t *testing.T) {
+func TestAccResourceCloudPcUserSetting_05_Import(t *testing.T) {
 	if os.Getenv("TF_ACC") == "" {
 		t.Skip("Acceptance tests skipped unless TF_ACC=1")
 	}

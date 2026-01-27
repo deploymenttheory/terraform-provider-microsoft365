@@ -13,7 +13,13 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
-// Create handles the Create operation.
+// Create handles the Create operation for Cloud PC device image resources.
+//
+// Operation: Creates a new Cloud PC device image
+// API Calls:
+//   - POST /deviceManagement/virtualEndpoint/deviceImages
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/virtualendpoint-post-deviceimages?view=graph-rest-1.0
 func (r *CloudPcDeviceImageResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var object CloudPcDeviceImageResourceModel
 
@@ -76,7 +82,13 @@ func (r *CloudPcDeviceImageResource) Create(ctx context.Context, req resource.Cr
 	tflog.Debug(ctx, fmt.Sprintf("Finished Create Method: %s", ResourceName))
 }
 
-// Read handles the Read operation.
+// Read handles the Read operation for Cloud PC device image resources.
+//
+// Operation: Retrieves a Cloud PC device image by ID
+// API Calls:
+//   - GET /deviceManagement/virtualEndpoint/deviceImages/{id}
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/cloudpcdeviceimage-get?view=graph-rest-1.0
 func (r *CloudPcDeviceImageResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var object CloudPcDeviceImageResourceModel
 
@@ -124,7 +136,14 @@ func (r *CloudPcDeviceImageResource) Read(ctx context.Context, req resource.Read
 	tflog.Debug(ctx, fmt.Sprintf("Finished Read Method: %s", ResourceName))
 }
 
-// Update handles the Update operation.
+// Update handles the Update operation for Cloud PC device image resources.
+//
+// Operation: Updates an existing Cloud PC device image
+// API Calls:
+//   - PATCH /deviceManagement/virtualEndpoint/deviceImages/{id}
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/resources/cloudpcdeviceimage?view=graph-rest-1.0
+// Note: PATCH operation is not officially documented but supported by the API
 func (r *CloudPcDeviceImageResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var plan CloudPcDeviceImageResourceModel
 	var state CloudPcDeviceImageResourceModel
@@ -188,7 +207,13 @@ func (r *CloudPcDeviceImageResource) Update(ctx context.Context, req resource.Up
 	tflog.Debug(ctx, fmt.Sprintf("Finished updating %s with ID: %s", ResourceName, state.ID.ValueString()))
 }
 
-// Delete handles the Delete operation.
+// Delete handles the Delete operation for Cloud PC device image resources.
+//
+// Operation: Deletes a Cloud PC device image
+// API Calls:
+//   - DELETE /deviceManagement/virtualEndpoint/deviceImages/{id}
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/cloudpcdeviceimage-delete?view=graph-rest-1.0
 func (r *CloudPcDeviceImageResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var object CloudPcDeviceImageResourceModel
 

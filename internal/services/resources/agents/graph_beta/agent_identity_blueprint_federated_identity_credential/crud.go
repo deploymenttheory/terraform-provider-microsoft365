@@ -15,10 +15,14 @@ import (
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
-// Create handles the Create operation.
-// Requires a custom request to be used due to the use of the agentIdentityBlueprint cast endpoint
-// which is not in the kiota sdk.
-// Uses /applications/{blueprintId}/microsoft.graph.agentIdentityBlueprint/federatedIdentityCredentials (with cast)
+// Create handles the Create operation for agent identity blueprint federated identity credential resources.
+//
+// Operation: Creates a new federated identity credential for an agent identity blueprint
+// API Calls:
+//   - POST /applications/{blueprintId}/microsoft.graph.agentIdentityBlueprint/federatedIdentityCredentials
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/federatedidentitycredential-post?view=graph-rest-beta
+// Note: Uses custom request as SDK doesn't support the agentIdentityBlueprint cast endpoint
 func (r *AgentIdentityBlueprintFederatedIdentityCredentialResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var object AgentIdentityBlueprintFederatedIdentityCredentialResourceModel
 
@@ -106,9 +110,14 @@ func (r *AgentIdentityBlueprintFederatedIdentityCredentialResource) Create(ctx c
 	tflog.Debug(ctx, fmt.Sprintf("Finished Create Method: %s", ResourceName))
 }
 
-// Read handles the Read operation.
-// Uses standard Kiota SDK endpoint /applications/{blueprintId}/federatedIdentityCredentials/{credentialId}
-// Both the standard endpoint and the cast endpoint work for reading federated identity credentials.
+// Read handles the Read operation for agent identity blueprint federated identity credential resources.
+//
+// Operation: Retrieves a federated identity credential by ID
+// API Calls:
+//   - GET /applications/{blueprintId}/federatedIdentityCredentials/{credentialId}
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/federatedidentitycredential-get?view=graph-rest-beta
+// Note: Standard SDK endpoint works without cast for read operations
 func (r *AgentIdentityBlueprintFederatedIdentityCredentialResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var object AgentIdentityBlueprintFederatedIdentityCredentialResourceModel
 
@@ -170,10 +179,14 @@ func (r *AgentIdentityBlueprintFederatedIdentityCredentialResource) Read(ctx con
 	tflog.Debug(ctx, fmt.Sprintf("Finished Read Method: %s", ResourceName))
 }
 
-// Update handles the Update operation.
-// Requires a custom request to be used due to the use of the agentIdentityBlueprint cast endpoint
-// which is not in the kiota sdk.
-// Uses /applications/{blueprintId}/microsoft.graph.agentIdentityBlueprint/federatedIdentityCredentials/{credentialId} (with cast)
+// Update handles the Update operation for agent identity blueprint federated identity credential resources.
+//
+// Operation: Updates an existing federated identity credential
+// API Calls:
+//   - PATCH /applications/{blueprintId}/microsoft.graph.agentIdentityBlueprint/federatedIdentityCredentials/{credentialId}
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/federatedidentitycredential-update?view=graph-rest-beta
+// Note: Uses custom request as SDK doesn't support the agentIdentityBlueprint cast endpoint
 func (r *AgentIdentityBlueprintFederatedIdentityCredentialResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var plan AgentIdentityBlueprintFederatedIdentityCredentialResourceModel
 	var state AgentIdentityBlueprintFederatedIdentityCredentialResourceModel
@@ -250,10 +263,14 @@ func (r *AgentIdentityBlueprintFederatedIdentityCredentialResource) Update(ctx c
 	tflog.Debug(ctx, fmt.Sprintf("Finished Update Method: %s", ResourceName))
 }
 
-// Delete handles the Delete operation.
-// Requires a custom request to be used due to the use of the agentIdentityBlueprint cast endpoint
-// which is not in the kiota sdk.
-// Uses /applications/{id}/microsoft.graph.agentIdentityBlueprint/federatedIdentityCredentials/{credentialId} (with cast)
+// Delete handles the Delete operation for agent identity blueprint federated identity credential resources.
+//
+// Operation: Deletes a federated identity credential
+// API Calls:
+//   - DELETE /applications/{blueprintId}/microsoft.graph.agentIdentityBlueprint/federatedIdentityCredentials/{credentialId}
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/federatedidentitycredential-delete?view=graph-rest-beta
+// Note: Uses custom request as SDK doesn't support the agentIdentityBlueprint cast endpoint
 func (r *AgentIdentityBlueprintFederatedIdentityCredentialResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var data AgentIdentityBlueprintFederatedIdentityCredentialResourceModel
 

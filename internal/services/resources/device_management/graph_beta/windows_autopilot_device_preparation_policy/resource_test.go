@@ -33,7 +33,7 @@ func testCheckExists(resourceName string) resource.TestCheckFunc {
 	return resource.TestCheckResourceAttrSet(resourceName, "id")
 }
 
-func TestWindowsAutopilotDevicePreparationPolicyResource_Schema(t *testing.T) {
+func TestUnitResourceWindowsAutopilotDevicePreparationPolicy_01_Schema(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, policyMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -77,7 +77,7 @@ func TestWindowsAutopilotDevicePreparationPolicyResource_Schema(t *testing.T) {
 	})
 }
 
-func TestWindowsAutopilotDevicePreparationPolicyResource_MaximalSettings(t *testing.T) {
+func TestUnitResourceWindowsAutopilotDevicePreparationPolicy_02_MaximalSettings(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, policyMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -136,7 +136,7 @@ func TestWindowsAutopilotDevicePreparationPolicyResource_MaximalSettings(t *test
 	})
 }
 
-func TestWindowsAutopilotDevicePreparationPolicyResource_ErrorHandling(t *testing.T) {
+func TestUnitResourceWindowsAutopilotDevicePreparationPolicy_03_ErrorHandling(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, policyMock := setupErrorMockEnvironment()
 	defer httpmock.DeactivateAndReset()

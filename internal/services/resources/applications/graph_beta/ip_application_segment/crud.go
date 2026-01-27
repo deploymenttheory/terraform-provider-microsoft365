@@ -17,6 +17,13 @@ import (
 	"github.com/microsoftgraph/msgraph-beta-sdk-go/models/odataerrors"
 )
 
+// Create handles the Create operation for IP application segment resources.
+//
+// Operation: Creates a new IP application segment for application proxy
+// API Calls:
+//   - POST /applications/{id}/onPremisesPublishing/segmentsConfiguration/microsoft.graph.ipSegmentConfiguration/applicationSegments
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/onpremisespublishingprofile-post-applicationsegments?view=graph-rest-beta
 func (r *IpApplicationSegmentResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var object IpApplicationSegmentResourceModel
 
@@ -88,6 +95,13 @@ func (r *IpApplicationSegmentResource) Create(ctx context.Context, req resource.
 	tflog.Debug(ctx, fmt.Sprintf("Finished Create Method: %s", ResourceName))
 }
 
+// Read handles the Read operation for IP application segment resources.
+//
+// Operation: Retrieves an IP application segment by ID
+// API Calls:
+//   - GET /applications/{id}/onPremisesPublishing/segmentsConfiguration/microsoft.graph.ipSegmentConfiguration/applicationSegments/{segmentId}
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/ipapplicationsegment-get?view=graph-rest-beta
 func (r *IpApplicationSegmentResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var object IpApplicationSegmentResourceModel
 
@@ -149,6 +163,13 @@ func (r *IpApplicationSegmentResource) Read(ctx context.Context, req resource.Re
 	tflog.Debug(ctx, fmt.Sprintf("Finished Read Method: %s", ResourceName))
 }
 
+// Update handles the Update operation for IP application segment resources.
+//
+// Operation: Updates an existing IP application segment
+// API Calls:
+//   - PATCH /applications/{id}/onPremisesPublishing/segmentsConfiguration/microsoft.graph.ipSegmentConfiguration/applicationSegments/{segmentId}
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/ipapplicationsegment-update?view=graph-rest-beta
 func (r *IpApplicationSegmentResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var plan IpApplicationSegmentResourceModel
 	var state IpApplicationSegmentResourceModel
@@ -223,6 +244,13 @@ func (r *IpApplicationSegmentResource) Update(ctx context.Context, req resource.
 	tflog.Debug(ctx, fmt.Sprintf("Finished updating %s with ID: %s", ResourceName, state.ID.ValueString()))
 }
 
+// Delete handles the Delete operation for IP application segment resources.
+//
+// Operation: Deletes an IP application segment
+// API Calls:
+//   - DELETE /applications/{id}/onPremisesPublishing/segmentsConfiguration/microsoft.graph.ipSegmentConfiguration/applicationSegments/{segmentId}
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/onpremisespublishingprofile-delete-applicationsegments?view=graph-rest-beta
 func (r *IpApplicationSegmentResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var data IpApplicationSegmentResourceModel
 

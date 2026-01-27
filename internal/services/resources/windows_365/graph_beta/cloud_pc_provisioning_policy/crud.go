@@ -14,7 +14,14 @@ import (
 	"github.com/microsoftgraph/msgraph-beta-sdk-go/devicemanagement"
 )
 
-// Create handles the Create operation.
+// Create handles the Create operation for Cloud PC provisioning policy resources.
+//
+// Operation: Creates a new Cloud PC provisioning policy with optional assignments
+// API Calls:
+//   - POST /deviceManagement/virtualEndpoint/provisioningPolicies
+//   - POST /deviceManagement/virtualEndpoint/provisioningPolicies/{id}/assign (if assignments are configured)
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/virtualendpoint-post-provisioningpolicies?view=graph-rest-beta
 func (r *CloudPcProvisioningPolicyResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var plan CloudPcProvisioningPolicyResourceModel
 
@@ -113,7 +120,13 @@ func (r *CloudPcProvisioningPolicyResource) Create(ctx context.Context, req reso
 	tflog.Debug(ctx, fmt.Sprintf("Finished Create Method: %s", ResourceName))
 }
 
-// Read handles the Read operation.
+// Read handles the Read operation for Cloud PC provisioning policy resources.
+//
+// Operation: Retrieves a Cloud PC provisioning policy including assignments
+// API Calls:
+//   - GET /deviceManagement/virtualEndpoint/provisioningPolicies/{id}?$expand=assignments
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/cloudpcprovisioningpolicy-get?view=graph-rest-beta
 func (r *CloudPcProvisioningPolicyResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var object CloudPcProvisioningPolicyResourceModel
 
@@ -166,7 +179,15 @@ func (r *CloudPcProvisioningPolicyResource) Read(ctx context.Context, req resour
 	tflog.Debug(ctx, fmt.Sprintf("Finished Read Method: %s", ResourceName))
 }
 
-// Update handles the Update operation.
+// Update handles the Update operation for Cloud PC provisioning policy resources.
+//
+// Operation: Updates a Cloud PC provisioning policy with assignments and optional apply actions
+// API Calls:
+//   - PATCH /deviceManagement/virtualEndpoint/provisioningPolicies/{id}
+//   - POST /deviceManagement/virtualEndpoint/provisioningPolicies/{id}/assign
+//   - POST /deviceManagement/virtualEndpoint/provisioningPolicies/{id}/apply (if apply_to_existing_cloud_pcs is configured)
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/cloudpcprovisioningpolicy-update?view=graph-rest-beta
 func (r *CloudPcProvisioningPolicyResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var plan CloudPcProvisioningPolicyResourceModel
 	var state CloudPcProvisioningPolicyResourceModel
@@ -339,7 +360,15 @@ func (r *CloudPcProvisioningPolicyResource) Update(ctx context.Context, req reso
 	tflog.Debug(ctx, fmt.Sprintf("Finished updating %s with ID: %s", ResourceName, state.ID.ValueString()))
 }
 
-// Delete handles the Delete operation.
+// Delete handles the Delete operation for Cloud PC provisioning policy resources.
+//
+// Operation: Deletes a Cloud PC provisioning policy after removing assignments
+// API Calls:
+//   - POST /deviceManagement/virtualEndpoint/provisioningPolicies/{id}/assign (removes assignments)
+//   - DELETE /deviceManagement/virtualEndpoint/provisioningPolicies/{id}
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/cloudpcprovisioningpolicy-delete?view=graph-rest-beta
+// Note: All assignments must be removed before policy deletion
 func (r *CloudPcProvisioningPolicyResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var object CloudPcProvisioningPolicyResourceModel
 

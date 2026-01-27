@@ -43,7 +43,7 @@ func loadUnitTestTerraform(filename string) string {
 }
 
 // Test 001: Audit Mode
-func TestAppControlForBusinessBuiltInControlsResource_001_AuditMode(t *testing.T) {
+func TestUnitResourceAppControlForBusinessBuiltInControls_01_AuditMode(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, appControlMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -65,7 +65,7 @@ func TestAppControlForBusinessBuiltInControlsResource_001_AuditMode(t *testing.T
 }
 
 // Test 002: Enforce Mode
-func TestAppControlForBusinessBuiltInControlsResource_002_EnforceMode(t *testing.T) {
+func TestUnitResourceAppControlForBusinessBuiltInControls_02_EnforceMode(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, appControlMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -87,7 +87,7 @@ func TestAppControlForBusinessBuiltInControlsResource_002_EnforceMode(t *testing
 }
 
 // Test 003: Minimal Configuration
-func TestAppControlForBusinessBuiltInControlsResource_003_Minimal(t *testing.T) {
+func TestUnitResourceAppControlForBusinessBuiltInControls_03_Minimal(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, appControlMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -110,7 +110,7 @@ func TestAppControlForBusinessBuiltInControlsResource_003_Minimal(t *testing.T) 
 }
 
 // Test 004: Maximal Configuration with Additional Rules
-func TestAppControlForBusinessBuiltInControlsResource_004_Maximal(t *testing.T) {
+func TestUnitResourceAppControlForBusinessBuiltInControls_04_Maximal(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, appControlMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -132,7 +132,7 @@ func TestAppControlForBusinessBuiltInControlsResource_004_Maximal(t *testing.T) 
 }
 
 // Test 005: Lifecycle - Minimal to Maximal
-func TestAppControlForBusinessBuiltInControlsResource_005_Lifecycle_MinimalToMaximal(t *testing.T) {
+func TestUnitResourceAppControlForBusinessBuiltInControls_05_Lifecycle_MinimalToMaximal(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, appControlMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -162,7 +162,7 @@ func TestAppControlForBusinessBuiltInControlsResource_005_Lifecycle_MinimalToMax
 }
 
 // Test 006: Lifecycle - Maximal to Minimal (Downgrade)
-func TestAppControlForBusinessBuiltInControlsResource_006_Lifecycle_MaximalToMinimal(t *testing.T) {
+func TestUnitResourceAppControlForBusinessBuiltInControls_06_Lifecycle_MaximalToMinimal(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, appControlMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -191,7 +191,7 @@ func TestAppControlForBusinessBuiltInControlsResource_006_Lifecycle_MaximalToMin
 }
 
 // Test 007: Assignments Lifecycle - Minimal to Maximal
-func TestAppControlForBusinessBuiltInControlsResource_007_AssignmentsLifecycle_MinimalToMaximal(t *testing.T) {
+func TestUnitResourceAppControlForBusinessBuiltInControls_07_AssignmentsLifecycle_MinimalToMaximal(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, appControlMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -219,7 +219,7 @@ func TestAppControlForBusinessBuiltInControlsResource_007_AssignmentsLifecycle_M
 }
 
 // Test 008: Assignments Lifecycle - Maximal to Minimal (Downgrade)
-func TestAppControlForBusinessBuiltInControlsResource_008_AssignmentsLifecycle_MaximalToMinimal(t *testing.T) {
+func TestUnitResourceAppControlForBusinessBuiltInControls_08_AssignmentsLifecycle_MaximalToMinimal(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, appControlMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -247,7 +247,7 @@ func TestAppControlForBusinessBuiltInControlsResource_008_AssignmentsLifecycle_M
 }
 
 // Test 009: Error Handling
-func TestAppControlForBusinessBuiltInControlsResource_009_ErrorHandling(t *testing.T) {
+func TestUnitResourceAppControlForBusinessBuiltInControls_09_ErrorHandling(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, appControlMock := setupErrorMockEnvironment()
 	defer httpmock.DeactivateAndReset()

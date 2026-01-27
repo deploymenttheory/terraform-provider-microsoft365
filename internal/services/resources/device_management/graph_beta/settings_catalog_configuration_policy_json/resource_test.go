@@ -42,7 +42,7 @@ func loadUnitTestTerraform(filename string) string {
 }
 
 // Test 01: Camera - Simple choice setting
-func TestSettingsCatalogPolicyResource_01_Camera(t *testing.T) {
+func TestUnitResourceSettingsCatalogConfigurationPolicyJson_01_Camera(t *testing.T) {
 	resourceType := graphBetaSettingsCatalogConfigurationPolicyJson.ResourceName
 	mocks.SetupUnitTestEnvironment(t)
 	_, policyMock := setupMockEnvironment()
@@ -70,7 +70,7 @@ func TestSettingsCatalogPolicyResource_01_Camera(t *testing.T) {
 }
 
 // Test 02: Task Manager - Simple choice setting
-func TestSettingsCatalogPolicyResource_02_TaskManager(t *testing.T) {
+func TestUnitResourceSettingsCatalogConfigurationPolicyJson_02_TaskManager(t *testing.T) {
 	resourceType := graphBetaSettingsCatalogConfigurationPolicyJson.ResourceName
 	mocks.SetupUnitTestEnvironment(t)
 	_, policyMock := setupMockEnvironment()
@@ -99,7 +99,7 @@ func TestSettingsCatalogPolicyResource_02_TaskManager(t *testing.T) {
 }
 
 // Test 03: App Privacy - Simple choice setting
-func TestSettingsCatalogPolicyResource_03_AppPrivacy(t *testing.T) {
+func TestUnitResourceSettingsCatalogConfigurationPolicyJson_03_AppPrivacy(t *testing.T) {
 	resourceType := graphBetaSettingsCatalogConfigurationPolicyJson.ResourceName
 	mocks.SetupUnitTestEnvironment(t)
 	_, policyMock := setupMockEnvironment()
@@ -128,7 +128,7 @@ func TestSettingsCatalogPolicyResource_03_AppPrivacy(t *testing.T) {
 }
 
 // Test 04: Cryptography - Simple choice setting
-func TestSettingsCatalogPolicyResource_04_Cryptography(t *testing.T) {
+func TestUnitResourceSettingsCatalogConfigurationPolicyJson_04_Cryptography(t *testing.T) {
 	resourceType := graphBetaSettingsCatalogConfigurationPolicyJson.ResourceName
 	mocks.SetupUnitTestEnvironment(t)
 	_, policyMock := setupMockEnvironment()
@@ -157,7 +157,7 @@ func TestSettingsCatalogPolicyResource_04_Cryptography(t *testing.T) {
 }
 
 // Test 05: Notifications - Simple choice setting
-func TestSettingsCatalogPolicyResource_05_Notifications(t *testing.T) {
+func TestUnitResourceSettingsCatalogConfigurationPolicyJson_05_Notifications(t *testing.T) {
 	resourceType := graphBetaSettingsCatalogConfigurationPolicyJson.ResourceName
 	mocks.SetupUnitTestEnvironment(t)
 	_, policyMock := setupMockEnvironment()
@@ -186,7 +186,7 @@ func TestSettingsCatalogPolicyResource_05_Notifications(t *testing.T) {
 }
 
 // Test 06: Attachment Manager - Multiple choice settings
-func TestSettingsCatalogPolicyResource_06_AttachmentManager(t *testing.T) {
+func TestUnitResourceSettingsCatalogConfigurationPolicyJson_06_AttachmentManager(t *testing.T) {
 	resourceType := graphBetaSettingsCatalogConfigurationPolicyJson.ResourceName
 	mocks.SetupUnitTestEnvironment(t)
 	_, policyMock := setupMockEnvironment()
@@ -215,7 +215,7 @@ func TestSettingsCatalogPolicyResource_06_AttachmentManager(t *testing.T) {
 }
 
 // Test 07: Credential User Interface - Multiple choice settings
-func TestSettingsCatalogPolicyResource_07_CredentialUserInterface(t *testing.T) {
+func TestUnitResourceSettingsCatalogConfigurationPolicyJson_07_CredentialUserInterface(t *testing.T) {
 	resourceType := graphBetaSettingsCatalogConfigurationPolicyJson.ResourceName
 	mocks.SetupUnitTestEnvironment(t)
 	_, policyMock := setupMockEnvironment()
@@ -244,7 +244,7 @@ func TestSettingsCatalogPolicyResource_07_CredentialUserInterface(t *testing.T) 
 }
 
 // Test 08: Remote Desktop AVD URL - Simple collection settings
-func TestSettingsCatalogPolicyResource_08_RemoteDesktopAVDURL(t *testing.T) {
+func TestUnitResourceSettingsCatalogConfigurationPolicyJson_08_RemoteDesktopAVDURL(t *testing.T) {
 	resourceType := graphBetaSettingsCatalogConfigurationPolicyJson.ResourceName
 	mocks.SetupUnitTestEnvironment(t)
 	_, policyMock := setupMockEnvironment()
@@ -273,7 +273,7 @@ func TestSettingsCatalogPolicyResource_08_RemoteDesktopAVDURL(t *testing.T) {
 }
 
 // Test 09: Storage Sense - Integer settings and multiple choices
-func TestSettingsCatalogPolicyResource_09_StorageSense(t *testing.T) {
+func TestUnitResourceSettingsCatalogConfigurationPolicyJson_09_StorageSense(t *testing.T) {
 	resourceType := graphBetaSettingsCatalogConfigurationPolicyJson.ResourceName
 	mocks.SetupUnitTestEnvironment(t)
 	_, policyMock := setupMockEnvironment()
@@ -302,7 +302,7 @@ func TestSettingsCatalogPolicyResource_09_StorageSense(t *testing.T) {
 }
 
 // Test 10: Windows Connection Manager - Choice with children
-func TestSettingsCatalogPolicyResource_10_WindowsConnectionManager(t *testing.T) {
+func TestUnitResourceSettingsCatalogConfigurationPolicyJson_10_WindowsConnectionManager(t *testing.T) {
 	resourceType := graphBetaSettingsCatalogConfigurationPolicyJson.ResourceName
 	mocks.SetupUnitTestEnvironment(t)
 	_, policyMock := setupMockEnvironment()
@@ -331,7 +331,7 @@ func TestSettingsCatalogPolicyResource_10_WindowsConnectionManager(t *testing.T)
 }
 
 // Test 11: AutoPlay Policies - Nested choice settings
-func TestSettingsCatalogPolicyResource_11_AutoPlayPolicies(t *testing.T) {
+func TestUnitResourceSettingsCatalogConfigurationPolicyJson_11_AutoPlayPolicies(t *testing.T) {
 	resourceType := graphBetaSettingsCatalogConfigurationPolicyJson.ResourceName
 	mocks.SetupUnitTestEnvironment(t)
 	_, policyMock := setupMockEnvironment()
@@ -360,7 +360,7 @@ func TestSettingsCatalogPolicyResource_11_AutoPlayPolicies(t *testing.T) {
 }
 
 // Test 12: Defender Smartscreen - Choice with collection child
-func TestSettingsCatalogPolicyResource_12_DefenderSmartscreen(t *testing.T) {
+func TestUnitResourceSettingsCatalogConfigurationPolicyJson_12_DefenderSmartscreen(t *testing.T) {
 	resourceType := graphBetaSettingsCatalogConfigurationPolicyJson.ResourceName
 	mocks.SetupUnitTestEnvironment(t)
 	_, policyMock := setupMockEnvironment()
@@ -389,7 +389,7 @@ func TestSettingsCatalogPolicyResource_12_DefenderSmartscreen(t *testing.T) {
 }
 
 // Test 13: Edge Extensions macOS - Multiple collections
-func TestSettingsCatalogPolicyResource_13_EdgeExtensionsMacOS(t *testing.T) {
+func TestUnitResourceSettingsCatalogConfigurationPolicyJson_13_EdgeExtensionsMacOS(t *testing.T) {
 	resourceType := graphBetaSettingsCatalogConfigurationPolicyJson.ResourceName
 	mocks.SetupUnitTestEnvironment(t)
 	_, policyMock := setupMockEnvironment()
@@ -419,7 +419,7 @@ func TestSettingsCatalogPolicyResource_13_EdgeExtensionsMacOS(t *testing.T) {
 }
 
 // Test 14: Office Configuration macOS - Nested group collections
-func TestSettingsCatalogPolicyResource_14_OfficeConfigurationMacOS(t *testing.T) {
+func TestUnitResourceSettingsCatalogConfigurationPolicyJson_14_OfficeConfigurationMacOS(t *testing.T) {
 	resourceType := graphBetaSettingsCatalogConfigurationPolicyJson.ResourceName
 	mocks.SetupUnitTestEnvironment(t)
 	_, policyMock := setupMockEnvironment()
@@ -449,7 +449,7 @@ func TestSettingsCatalogPolicyResource_14_OfficeConfigurationMacOS(t *testing.T)
 }
 
 // Test 15: Defender Antivirus Baseline - Complex nested group collections
-func TestSettingsCatalogPolicyResource_15_DefenderAntivirusBaseline(t *testing.T) {
+func TestUnitResourceSettingsCatalogConfigurationPolicyJson_15_DefenderAntivirusBaseline(t *testing.T) {
 	resourceType := graphBetaSettingsCatalogConfigurationPolicyJson.ResourceName
 	mocks.SetupUnitTestEnvironment(t)
 	_, policyMock := setupMockEnvironment()
@@ -478,7 +478,7 @@ func TestSettingsCatalogPolicyResource_15_DefenderAntivirusBaseline(t *testing.T
 }
 
 // Test 16: File Explorer with minimal assignments
-func TestSettingsCatalogPolicyResource_16_FileExplorerMinimalAssignments(t *testing.T) {
+func TestUnitResourceSettingsCatalogConfigurationPolicyJson_16_FileExplorerMinimalAssignments(t *testing.T) {
 	resourceType := graphBetaSettingsCatalogConfigurationPolicyJson.ResourceName
 	mocks.SetupUnitTestEnvironment(t)
 	_, policyMock := setupMockEnvironment()
@@ -509,7 +509,7 @@ func TestSettingsCatalogPolicyResource_16_FileExplorerMinimalAssignments(t *test
 }
 
 // Test 17: Local Policies Security Options with maximal assignments
-func TestSettingsCatalogPolicyResource_17_LocalPoliciesMaximalAssignments(t *testing.T) {
+func TestUnitResourceSettingsCatalogConfigurationPolicyJson_17_LocalPoliciesMaximalAssignments(t *testing.T) {
 	resourceType := graphBetaSettingsCatalogConfigurationPolicyJson.ResourceName
 	mocks.SetupUnitTestEnvironment(t)
 	_, policyMock := setupMockEnvironment()
@@ -540,7 +540,7 @@ func TestSettingsCatalogPolicyResource_17_LocalPoliciesMaximalAssignments(t *tes
 }
 
 // Test 18: Update from minimal to maximal
-func TestSettingsCatalogPolicyResource_18_UpdateMinimalToMaximal(t *testing.T) {
+func TestUnitResourceSettingsCatalogConfigurationPolicyJson_18_UpdateMinimalToMaximal(t *testing.T) {
 	resourceType := graphBetaSettingsCatalogConfigurationPolicyJson.ResourceName
 	mocks.SetupUnitTestEnvironment(t)
 	_, policyMock := setupMockEnvironment()
@@ -573,7 +573,7 @@ func TestSettingsCatalogPolicyResource_18_UpdateMinimalToMaximal(t *testing.T) {
 }
 
 // Test 19: Update from maximal to minimal
-func TestSettingsCatalogPolicyResource_19_UpdateMaximalToMinimal(t *testing.T) {
+func TestUnitResourceSettingsCatalogConfigurationPolicyJson_19_UpdateMaximalToMinimal(t *testing.T) {
 	resourceType := graphBetaSettingsCatalogConfigurationPolicyJson.ResourceName
 	mocks.SetupUnitTestEnvironment(t)
 	_, policyMock := setupMockEnvironment()

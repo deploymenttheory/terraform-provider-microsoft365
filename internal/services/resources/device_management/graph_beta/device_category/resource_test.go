@@ -74,7 +74,7 @@ func testConfigMaximal() string {
 }
 
 // TestDeviceCategoryResource_Schema validates the resource schema
-func TestDeviceCategoryResource_Schema(t *testing.T) {
+func TestUnitResourceDeviceCategory_01_Schema(t *testing.T) {
 	setupUnitTestEnvironment(t)
 	_, deviceCategoryMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -100,7 +100,7 @@ func TestDeviceCategoryResource_Schema(t *testing.T) {
 }
 
 // TestDeviceCategoryResource_Minimal tests basic CRUD operations
-func TestDeviceCategoryResource_Minimal(t *testing.T) {
+func TestUnitResourceDeviceCategory_02_Minimal(t *testing.T) {
 	setupUnitTestEnvironment(t)
 	_, deviceCategoryMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -138,7 +138,7 @@ func TestDeviceCategoryResource_Minimal(t *testing.T) {
 }
 
 // TestDeviceCategoryResource_UpdateInPlace tests in-place updates
-func TestDeviceCategoryResource_UpdateInPlace(t *testing.T) {
+func TestUnitResourceDeviceCategory_03_UpdateInPlace(t *testing.T) {
 	setupUnitTestEnvironment(t)
 	_, deviceCategoryMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -168,7 +168,7 @@ func TestDeviceCategoryResource_UpdateInPlace(t *testing.T) {
 }
 
 // TestDeviceCategoryResource_RequiredFields tests required field validation
-func TestDeviceCategoryResource_RequiredFields(t *testing.T) {
+func TestUnitResourceDeviceCategory_04_RequiredFields(t *testing.T) {
 	setupUnitTestEnvironment(t)
 	_, deviceCategoryMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -190,7 +190,7 @@ resource "microsoft365_graph_beta_device_management_device_category" "test" {
 }
 
 // TestDeviceCategoryResource_ErrorHandling tests error scenarios
-func TestDeviceCategoryResource_ErrorHandling(t *testing.T) {
+func TestUnitResourceDeviceCategory_05_ErrorHandling(t *testing.T) {
 	setupUnitTestEnvironment(t)
 	_, deviceCategoryMock := setupErrorMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -212,7 +212,7 @@ resource "microsoft365_graph_beta_device_management_device_category" "test" {
 }
 
 // TestDeviceCategoryResource_RoleScopeTags tests role scope tags handling
-func TestDeviceCategoryResource_RoleScopeTags(t *testing.T) {
+func TestUnitResourceDeviceCategory_06_RoleScopeTags(t *testing.T) {
 	setupUnitTestEnvironment(t)
 	_, deviceCategoryMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -240,7 +240,7 @@ resource "microsoft365_graph_beta_device_management_device_category" "test" {
 }
 
 // TestDeviceCategoryResource_Description tests optional description field
-func TestDeviceCategoryResource_Description(t *testing.T) {
+func TestUnitResourceDeviceCategory_07_Description(t *testing.T) {
 	setupUnitTestEnvironment(t)
 	_, deviceCategoryMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()

@@ -14,16 +14,11 @@ import (
 
 // Create handles the Create operation for Attribute Set resources.
 //
-//   - Retrieves the planned configuration from the create request
-//   - Constructs the resource request body from the plan
-//   - Sends POST request to create the attribute set
-//   - Captures the new resource ID from the response
-//   - Sets initial state with planned values
-//   - Calls Read operation to fetch the latest state from the API
-//   - Updates the final state with the fresh data from the API
+// Operation: Creates a new attribute set in the directory
+// API Calls:
+//   - POST /directory/attributeSets
 //
-// The function ensures the attribute set is created with all specified
-// properties properly configured.
+// Reference: https://learn.microsoft.com/en-us/graph/api/directory-post-attributesets?view=graph-rest-beta
 func (r *AttributeSetResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var object AttributeSetResourceModel
 

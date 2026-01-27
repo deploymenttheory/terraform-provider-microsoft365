@@ -35,7 +35,7 @@ func loadAcceptanceTestTerraform(filename string) string {
 	return acceptance.ConfiguredM365ProviderBlock(config)
 }
 
-func TestAccRoleAssignmentResource_Lifecycle(t *testing.T) {
+func TestAccResourceRoleAssignment_01_Lifecycle(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -115,7 +115,7 @@ func TestAccRoleAssignmentResource_Lifecycle(t *testing.T) {
 	})
 }
 
-func TestAccRoleAssignmentResource_ResourceScopes(t *testing.T) {
+func TestAccResourceRoleAssignment_02_ResourceScopes(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -153,7 +153,7 @@ func TestAccRoleAssignmentResource_ResourceScopes(t *testing.T) {
 	})
 }
 
-func TestAccRoleAssignmentResource_AllDevicesScope(t *testing.T) {
+func TestAccResourceRoleAssignment_03_AllDevicesScope(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -190,7 +190,7 @@ func TestAccRoleAssignmentResource_AllDevicesScope(t *testing.T) {
 	})
 }
 
-func TestAccRoleAssignmentResource_AllUsersScope(t *testing.T) {
+func TestAccResourceRoleAssignment_04_AllUsersScope(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,

@@ -13,7 +13,13 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
-// Create handles the Create operation.
+// Create handles the Create operation for Cloud PC alert rule resources.
+//
+// Operation: Creates a new Cloud PC alert rule
+// API Calls:
+//   - POST /deviceManagement/monitoring/alertRules
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/devicemanagement-alertrule-post?view=graph-rest-beta
 func (r *CloudPcAlertRuleResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var plan CloudPcAlertRuleResourceModel
 
@@ -76,7 +82,13 @@ func (r *CloudPcAlertRuleResource) Create(ctx context.Context, req resource.Crea
 	tflog.Debug(ctx, fmt.Sprintf("Finished Create Method: %s", ResourceName))
 }
 
-// Read handles the Read operation.
+// Read handles the Read operation for Cloud PC alert rule resources.
+//
+// Operation: Retrieves a Cloud PC alert rule by ID
+// API Calls:
+//   - GET /deviceManagement/monitoring/alertRules/{id}
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/devicemanagement-alertrule-get?view=graph-rest-beta
 func (r *CloudPcAlertRuleResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var object CloudPcAlertRuleResourceModel
 
@@ -122,7 +134,13 @@ func (r *CloudPcAlertRuleResource) Read(ctx context.Context, req resource.ReadRe
 	tflog.Debug(ctx, fmt.Sprintf("Finished Read Method: %s", ResourceName))
 }
 
-// Update handles the Update operation.
+// Update handles the Update operation for Cloud PC alert rule resources.
+//
+// Operation: Updates an existing Cloud PC alert rule
+// API Calls:
+//   - PATCH /deviceManagement/monitoring/alertRules/{id}
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/devicemanagement-alertrule-update?view=graph-rest-beta
 func (r *CloudPcAlertRuleResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var plan CloudPcAlertRuleResourceModel
 	var state CloudPcAlertRuleResourceModel
@@ -150,7 +168,8 @@ func (r *CloudPcAlertRuleResource) Update(ctx context.Context, req resource.Upda
 		return
 	}
 
-	_, err = r.client.DeviceManagement().
+	_, err = r.client.
+		DeviceManagement().
 		Monitoring().
 		AlertRules().
 		ByAlertRuleId(state.ID.ValueString()).
@@ -185,7 +204,14 @@ func (r *CloudPcAlertRuleResource) Update(ctx context.Context, req resource.Upda
 	tflog.Debug(ctx, fmt.Sprintf("Finished updating %s with ID: %s", ResourceName, state.ID.ValueString()))
 }
 
-// Delete handles the Delete operation.
+// Delete handles the Delete operation for Cloud PC alert rule resources.
+//
+// Operation: Deletes a Cloud PC alert rule
+// API Calls:
+//   - DELETE /deviceManagement/monitoring/alertRules/{id}
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/resources/devicemanagement-alertrule?view=graph-rest-beta
+// Note: DELETE operation is not officially documented but supported by the API
 func (r *CloudPcAlertRuleResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var object CloudPcAlertRuleResourceModel
 
@@ -202,7 +228,8 @@ func (r *CloudPcAlertRuleResource) Delete(ctx context.Context, req resource.Dele
 	}
 	defer cancel()
 
-	err := r.client.DeviceManagement().
+	err := r.client.
+		DeviceManagement().
 		Monitoring().
 		AlertRules().
 		ByAlertRuleId(object.ID.ValueString()).

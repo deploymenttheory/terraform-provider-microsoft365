@@ -37,7 +37,7 @@ func setupErrorMockEnvironment() (*mocks.Mocks, *autopatchGroupsMocks.AutopatchG
 }
 
 // Test Autopatch Group with Mixed Distribution
-func TestAutopatchGroupsResource_MixedDistribution(t *testing.T) {
+func TestUnitResourceAutopatchGroups_01_MixedDistribution(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, autopatchGroupsMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -149,7 +149,7 @@ func TestAutopatchGroupsResource_MixedDistribution(t *testing.T) {
 }
 
 // Test Autopatch Group Create Error
-func TestAutopatchGroupsResource_CreateError(t *testing.T) {
+func TestUnitResourceAutopatchGroups_02_CreateError(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, autopatchGroupsMock := setupErrorMockEnvironment()
 	defer httpmock.DeactivateAndReset()

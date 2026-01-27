@@ -31,7 +31,7 @@ func loadAcceptanceTestTerraform(filename string) string {
 	return acceptance.ConfiguredM365ProviderBlock(config)
 }
 
-func TestAccNetworkFilteringPolicyResource_Lifecycle(t *testing.T) {
+func TestAccResourceNetworkFilteringPolicy_01_Lifecycle(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -83,7 +83,7 @@ func TestAccNetworkFilteringPolicyResource_Lifecycle(t *testing.T) {
 	})
 }
 
-func TestAccNetworkFilteringPolicyResource_BlockAction(t *testing.T) {
+func TestAccResourceNetworkFilteringPolicy_02_BlockAction(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -117,7 +117,7 @@ func TestAccNetworkFilteringPolicyResource_BlockAction(t *testing.T) {
 	})
 }
 
-func TestAccNetworkFilteringPolicyResource_AllowAction(t *testing.T) {
+func TestAccResourceNetworkFilteringPolicy_03_AllowAction(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -151,7 +151,7 @@ func TestAccNetworkFilteringPolicyResource_AllowAction(t *testing.T) {
 	})
 }
 
-func TestAccNetworkFilteringPolicyResource_MinimalConfiguration(t *testing.T) {
+func TestAccResourceNetworkFilteringPolicy_04_MinimalConfiguration(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,

@@ -33,7 +33,7 @@ func testCheckExists(resourceName string) resource.TestCheckFunc {
 	return resource.TestCheckResourceAttrSet(resourceName, "id")
 }
 
-func TestWindowsAutopilotDeploymentProfileResource_SelfDeployingOsDefaultLocale(t *testing.T) {
+func TestUnitResourceWindowsAutopilotDeploymentProfile_01_SelfDeployingOsDefaultLocale(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, profileMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -87,7 +87,7 @@ func TestWindowsAutopilotDeploymentProfileResource_SelfDeployingOsDefaultLocale(
 	})
 }
 
-func TestWindowsAutopilotDeploymentProfileResource_UserDrivenHybridDomainJoin(t *testing.T) {
+func TestUnitResourceWindowsAutopilotDeploymentProfile_02_UserDrivenHybridDomainJoin(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, profileMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -131,7 +131,7 @@ func TestWindowsAutopilotDeploymentProfileResource_UserDrivenHybridDomainJoin(t 
 	})
 }
 
-func TestWindowsAutopilotDeploymentProfileResource_UserDrivenWithGroupAssignments(t *testing.T) {
+func TestUnitResourceWindowsAutopilotDeploymentProfile_03_UserDrivenWithGroupAssignments(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, profileMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -179,7 +179,7 @@ func TestWindowsAutopilotDeploymentProfileResource_UserDrivenWithGroupAssignment
 	})
 }
 
-func TestWindowsAutopilotDeploymentProfileResource_HoloLensWithAllDeviceAssignment(t *testing.T) {
+func TestUnitResourceWindowsAutopilotDeploymentProfile_04_HoloLensWithAllDeviceAssignment(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, profileMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -219,7 +219,7 @@ func TestWindowsAutopilotDeploymentProfileResource_HoloLensWithAllDeviceAssignme
 	})
 }
 
-func TestWindowsAutopilotDeploymentProfileResource_ValidationError(t *testing.T) {
+func TestUnitResourceWindowsAutopilotDeploymentProfile_05_ValidationError(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, profileMock := setupErrorMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -236,7 +236,7 @@ func TestWindowsAutopilotDeploymentProfileResource_ValidationError(t *testing.T)
 	})
 }
 
-func TestWindowsAutopilotDeploymentProfileResource_Import(t *testing.T) {
+func TestUnitResourceWindowsAutopilotDeploymentProfile_06_Import(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, profileMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -261,7 +261,7 @@ func TestWindowsAutopilotDeploymentProfileResource_Import(t *testing.T) {
 	})
 }
 
-func TestWindowsAutopilotDeploymentProfileResource_Update(t *testing.T) {
+func TestUnitResourceWindowsAutopilotDeploymentProfile_07_Update(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, profileMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()

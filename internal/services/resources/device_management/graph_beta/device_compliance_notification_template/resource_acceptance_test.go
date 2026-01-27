@@ -15,7 +15,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 )
 
-func TestAccWindowsDeviceComplianceNotificationsResource_Minimal(t *testing.T) {
+func TestAccResourceDeviceComplianceNotificationTemplate_01_Minimal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -52,7 +52,7 @@ func TestAccWindowsDeviceComplianceNotificationsResource_Minimal(t *testing.T) {
 	})
 }
 
-func TestAccWindowsDeviceComplianceNotificationsResource_Maximal(t *testing.T) {
+func TestAccResourceDeviceComplianceNotificationTemplate_02_Maximal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -101,7 +101,7 @@ func TestAccWindowsDeviceComplianceNotificationsResource_Maximal(t *testing.T) {
 	})
 }
 
-func TestAccWindowsDeviceComplianceNotificationsResource_BrandingOptions(t *testing.T) {
+func TestAccResourceDeviceComplianceNotificationTemplate_05_BrandingOptions(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -134,7 +134,7 @@ func TestAccWindowsDeviceComplianceNotificationsResource_BrandingOptions(t *test
 	})
 }
 
-func TestAccWindowsDeviceComplianceNotificationsResource_Update(t *testing.T) {
+func TestAccResourceDeviceComplianceNotificationTemplate_04_Update(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,

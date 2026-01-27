@@ -37,7 +37,7 @@ func loadAcceptanceTestTerraform(filename string) string {
 // TestAccServicePrincipalAppRoleAssignedToResource_ToServicePrincipal tests assigning an app role
 // to a regular service principal created via the azuread provider (fallback when this provider
 // doesn't have the required resource type)
-func TestAccServicePrincipalAppRoleAssignedToResource_ToServicePrincipal(t *testing.T) {
+func TestAccResourceServicePrincipalAppRoleAssignedTo_01_ToServicePrincipal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,

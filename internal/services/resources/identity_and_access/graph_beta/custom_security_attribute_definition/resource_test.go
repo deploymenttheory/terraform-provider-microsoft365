@@ -33,7 +33,7 @@ func setupErrorMockEnvironment() (*mocks.Mocks, *definitionMocks.CustomSecurityA
 	return mockClient, definitionMock
 }
 
-func TestCustomSecurityAttributeDefinitionResource_Basic(t *testing.T) {
+func TestUnitResourceCustomSecurityAttributeDefinition_01_Basic(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, definitionMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -65,7 +65,7 @@ func TestCustomSecurityAttributeDefinitionResource_Basic(t *testing.T) {
 	})
 }
 
-func TestCustomSecurityAttributeDefinitionResource_Minimal(t *testing.T) {
+func TestUnitResourceCustomSecurityAttributeDefinition_02_Minimal(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, definitionMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -93,7 +93,7 @@ func TestCustomSecurityAttributeDefinitionResource_Minimal(t *testing.T) {
 	})
 }
 
-func TestCustomSecurityAttributeDefinitionResource_Update(t *testing.T) {
+func TestUnitResourceCustomSecurityAttributeDefinition_03_Update(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, definitionMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -126,7 +126,7 @@ func TestCustomSecurityAttributeDefinitionResource_Update(t *testing.T) {
 	})
 }
 
-func TestCustomSecurityAttributeDefinitionResource_BooleanType(t *testing.T) {
+func TestUnitResourceCustomSecurityAttributeDefinition_04_BooleanType(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, definitionMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -153,7 +153,7 @@ func TestCustomSecurityAttributeDefinitionResource_BooleanType(t *testing.T) {
 	})
 }
 
-func TestCustomSecurityAttributeDefinitionResource_Collection(t *testing.T) {
+func TestUnitResourceCustomSecurityAttributeDefinition_05_Collection(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, definitionMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -179,7 +179,7 @@ func TestCustomSecurityAttributeDefinitionResource_Collection(t *testing.T) {
 	})
 }
 
-func TestCustomSecurityAttributeDefinitionResource_InvalidAttributeSetName(t *testing.T) {
+func TestUnitResourceCustomSecurityAttributeDefinition_06_InvalidAttributeSetName(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, definitionMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -196,7 +196,7 @@ func TestCustomSecurityAttributeDefinitionResource_InvalidAttributeSetName(t *te
 	})
 }
 
-func TestCustomSecurityAttributeDefinitionResource_InvalidName(t *testing.T) {
+func TestUnitResourceCustomSecurityAttributeDefinition_07_InvalidName(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, definitionMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -213,7 +213,7 @@ func TestCustomSecurityAttributeDefinitionResource_InvalidName(t *testing.T) {
 	})
 }
 
-func TestCustomSecurityAttributeDefinitionResource_InvalidBooleanWithCollection(t *testing.T) {
+func TestUnitResourceCustomSecurityAttributeDefinition_08_InvalidBooleanWithCollection(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, definitionMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -230,7 +230,7 @@ func TestCustomSecurityAttributeDefinitionResource_InvalidBooleanWithCollection(
 	})
 }
 
-func TestCustomSecurityAttributeDefinitionResource_InvalidBooleanWithPredefinedValues(t *testing.T) {
+func TestUnitResourceCustomSecurityAttributeDefinition_09_InvalidBooleanWithPredefinedValues(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, definitionMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -247,7 +247,7 @@ func TestCustomSecurityAttributeDefinitionResource_InvalidBooleanWithPredefinedV
 	})
 }
 
-func TestCustomSecurityAttributeDefinitionResource_CreateError(t *testing.T) {
+func TestUnitResourceCustomSecurityAttributeDefinition_10_CreateError(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, definitionMock := setupErrorMockEnvironment()
 	defer httpmock.DeactivateAndReset()

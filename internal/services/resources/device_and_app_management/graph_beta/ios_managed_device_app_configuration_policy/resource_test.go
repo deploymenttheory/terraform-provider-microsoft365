@@ -74,7 +74,7 @@ func testConfigMaximal() string {
 }
 
 // TestIOSManagedDeviceAppConfigurationPolicyResource_Schema validates the resource schema
-func TestIOSManagedDeviceAppConfigurationPolicyResource_Schema(t *testing.T) {
+func TestUnitResourceIOSManagedDeviceAppConfigurationPolicy_01_Schema(t *testing.T) {
 	setupUnitTestEnvironment(t)
 	_, iosMobileAppConfigurationMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -101,7 +101,7 @@ func TestIOSManagedDeviceAppConfigurationPolicyResource_Schema(t *testing.T) {
 }
 
 // TestIOSManagedDeviceAppConfigurationPolicyResource_Minimal tests basic CRUD operations
-func TestIOSManagedDeviceAppConfigurationPolicyResource_Minimal(t *testing.T) {
+func TestUnitResourceIOSManagedDeviceAppConfigurationPolicy_02_Minimal(t *testing.T) {
 	setupUnitTestEnvironment(t)
 	_, iosMobileAppConfigurationMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -142,7 +142,7 @@ func TestIOSManagedDeviceAppConfigurationPolicyResource_Minimal(t *testing.T) {
 }
 
 // TestIOSManagedDeviceAppConfigurationPolicyResource_UpdateInPlace tests in-place updates
-func TestIOSManagedDeviceAppConfigurationPolicyResource_UpdateInPlace(t *testing.T) {
+func TestUnitResourceIOSManagedDeviceAppConfigurationPolicy_03_UpdateInPlace(t *testing.T) {
 	setupUnitTestEnvironment(t)
 	_, iosMobileAppConfigurationMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -172,7 +172,7 @@ func TestIOSManagedDeviceAppConfigurationPolicyResource_UpdateInPlace(t *testing
 }
 
 // TestIOSManagedDeviceAppConfigurationPolicyResource_RequiredFields tests required field validation
-func TestIOSManagedDeviceAppConfigurationPolicyResource_RequiredFields(t *testing.T) {
+func TestUnitResourceIOSManagedDeviceAppConfigurationPolicy_04_RequiredFields(t *testing.T) {
 	setupUnitTestEnvironment(t)
 	_, iosMobileAppConfigurationMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -194,7 +194,7 @@ resource "microsoft365_graph_beta_device_and_app_management_ios_managed_device_a
 }
 
 // TestIOSManagedDeviceAppConfigurationPolicyResource_ErrorHandling tests error scenarios
-func TestIOSManagedDeviceAppConfigurationPolicyResource_ErrorHandling(t *testing.T) {
+func TestUnitResourceIOSManagedDeviceAppConfigurationPolicy_05_ErrorHandling(t *testing.T) {
 	setupUnitTestEnvironment(t)
 	_, iosMobileAppConfigurationMock := setupErrorMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -216,7 +216,7 @@ resource "microsoft365_graph_beta_device_and_app_management_ios_managed_device_a
 }
 
 // TestIOSManagedDeviceAppConfigurationPolicyResource_Settings tests settings handling
-func TestIOSManagedDeviceAppConfigurationPolicyResource_Settings(t *testing.T) {
+func TestUnitResourceIOSManagedDeviceAppConfigurationPolicy_06_Settings(t *testing.T) {
 	setupUnitTestEnvironment(t)
 	_, iosMobileAppConfigurationMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -252,7 +252,7 @@ resource "microsoft365_graph_beta_device_and_app_management_ios_managed_device_a
 }
 
 // TestIOSManagedDeviceAppConfigurationPolicyResource_TargetedMobileAppsValidation tests GUID validation for targeted mobile apps
-func TestIOSManagedDeviceAppConfigurationPolicyResource_TargetedMobileAppsValidation(t *testing.T) {
+func TestUnitResourceIOSManagedDeviceAppConfigurationPolicy_07_TargetedMobileAppsValidation(t *testing.T) {
 	setupUnitTestEnvironment(t)
 	_, iosMobileAppConfigurationMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()

@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
-func TestAccWindowsRemediationScriptRegistryKeyGeneratorDataSource_CurrentUserDword(t *testing.T) {
+func TestAccDatasourceWindowsRemediationScriptRegistryKeyGenerator_01_CurrentUserDword(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -43,7 +43,7 @@ func TestAccWindowsRemediationScriptRegistryKeyGeneratorDataSource_CurrentUserDw
 	})
 }
 
-func TestAccWindowsRemediationScriptRegistryKeyGeneratorDataSource_AllUsersString(t *testing.T) {
+func TestAccDatasourceWindowsRemediationScriptRegistryKeyGenerator_02_AllUsersString(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -67,7 +67,7 @@ func TestAccWindowsRemediationScriptRegistryKeyGeneratorDataSource_AllUsersStrin
 	})
 }
 
-func TestAccWindowsRemediationScriptRegistryKeyGeneratorDataSource_QWord(t *testing.T) {
+func TestAccDatasourceWindowsRemediationScriptRegistryKeyGenerator_03_QWord(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -91,7 +91,7 @@ func TestAccWindowsRemediationScriptRegistryKeyGeneratorDataSource_QWord(t *test
 	})
 }
 
-func TestAccWindowsRemediationScriptRegistryKeyGeneratorDataSource_ExpandString(t *testing.T) {
+func TestAccDatasourceWindowsRemediationScriptRegistryKeyGenerator_04_ExpandString(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,

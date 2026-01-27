@@ -13,7 +13,13 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
-// Create handles the Create operation.
+// Create handles the Create operation for service principal app role assignment resources.
+//
+// Operation: Assigns an app role to a service principal
+// API Calls:
+//   - POST /servicePrincipals/{id}/appRoleAssignedTo
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/serviceprincipal-post-approleassignedto?view=graph-rest-beta
 func (r *ServicePrincipalAppRoleAssignedToResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var object ServicePrincipalAppRoleAssignedToResourceModel
 
@@ -78,7 +84,13 @@ func (r *ServicePrincipalAppRoleAssignedToResource) Create(ctx context.Context, 
 	tflog.Debug(ctx, fmt.Sprintf("Finished Create Method: %s", ResourceName))
 }
 
-// Read handles the Read operation.
+// Read handles the Read operation for service principal app role assignment resources.
+//
+// Operation: Retrieves an app role assignment for a service principal
+// API Calls:
+//   - GET /servicePrincipals/{id}/appRoleAssignedTo/{assignmentId}
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/serviceprincipal-list-approleassignedto?view=graph-rest-beta
 func (r *ServicePrincipalAppRoleAssignedToResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var object ServicePrincipalAppRoleAssignedToResourceModel
 
@@ -127,8 +139,15 @@ func (r *ServicePrincipalAppRoleAssignedToResource) Read(ctx context.Context, re
 	tflog.Debug(ctx, fmt.Sprintf("Finished Read Method: %s", ResourceName))
 }
 
-// Update handles the Update operation.
-// App role assignments cannot be updated - they must be deleted and recreated.
+// Update handles the Update operation for service principal app role assignment resources.
+//
+// Operation: Updates assignment by deleting old one and creating new one
+// API Calls:
+//   - DELETE /servicePrincipals/{id}/appRoleAssignedTo/{assignmentId} (for old assignment)
+//   - POST /servicePrincipals/{id}/appRoleAssignedTo (for new assignment)
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/serviceprincipal-post-approleassignedto?view=graph-rest-beta
+// Note: App role assignments cannot be updated directly; changes require delete and recreate
 func (r *ServicePrincipalAppRoleAssignedToResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var plan, state ServicePrincipalAppRoleAssignedToResourceModel
 
@@ -212,7 +231,13 @@ func (r *ServicePrincipalAppRoleAssignedToResource) Update(ctx context.Context, 
 	tflog.Debug(ctx, fmt.Sprintf("Finished Update Method: %s", ResourceName))
 }
 
-// Delete handles the Delete operation.
+// Delete handles the Delete operation for service principal app role assignment resources.
+//
+// Operation: Removes an app role assignment from a service principal
+// API Calls:
+//   - DELETE /servicePrincipals/{id}/appRoleAssignedTo/{assignmentId}
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/serviceprincipal-delete-approleassignedto?view=graph-rest-beta
 func (r *ServicePrincipalAppRoleAssignedToResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var object ServicePrincipalAppRoleAssignedToResourceModel
 

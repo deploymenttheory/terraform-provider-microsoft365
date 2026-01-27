@@ -75,7 +75,7 @@ const resourceType = graphBetaGroupPolicyDefinition.ResourceName
 var testResource = graphBetaGroupPolicyDefinition.GroupPolicyDefinitionTestResource{}
 
 // Test 001: Boolean (CheckBox) - Minimal configuration
-func TestAccGroupPolicyDefinitionResource_001_Boolean_Minimal(t *testing.T) {
+func TestAccResourceGroupPolicyDefinition_01_Boolean_Minimal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -122,7 +122,7 @@ func TestAccGroupPolicyDefinitionResource_001_Boolean_Minimal(t *testing.T) {
 }
 
 // Test 002: Boolean (CheckBox) - Maximal configuration (25 values)
-func TestAccGroupPolicyDefinitionResource_002_Boolean_Maximal(t *testing.T) {
+func TestAccResourceGroupPolicyDefinition_02_Boolean_Maximal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -166,7 +166,7 @@ func TestAccGroupPolicyDefinitionResource_002_Boolean_Maximal(t *testing.T) {
 }
 
 // Test 003: TextBox - Single value
-func TestAccGroupPolicyDefinitionResource_003_TextBox(t *testing.T) {
+func TestAccResourceGroupPolicyDefinition_03_TextBox(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -211,7 +211,7 @@ func TestAccGroupPolicyDefinitionResource_003_TextBox(t *testing.T) {
 }
 
 // Test 004: DecimalTextBox - Numeric value
-func TestAccGroupPolicyDefinitionResource_004_Decimal(t *testing.T) {
+func TestAccResourceGroupPolicyDefinition_04_Decimal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -254,7 +254,7 @@ func TestAccGroupPolicyDefinitionResource_004_Decimal(t *testing.T) {
 }
 
 // Test 005: MultiTextBox - Multi-line value
-func TestAccGroupPolicyDefinitionResource_005_MultiText(t *testing.T) {
+func TestAccResourceGroupPolicyDefinition_05_MultiText(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -296,7 +296,7 @@ func TestAccGroupPolicyDefinitionResource_005_MultiText(t *testing.T) {
 }
 
 // Test 006: DropdownList - Select option
-func TestAccGroupPolicyDefinitionResource_006_Dropdown(t *testing.T) {
+func TestAccResourceGroupPolicyDefinition_06_Dropdown(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -339,7 +339,7 @@ func TestAccGroupPolicyDefinitionResource_006_Dropdown(t *testing.T) {
 }
 
 // Test 007: Lifecycle - Type transitions through all presentation types
-func TestAccGroupPolicyDefinitionResource_007_Lifecycle_TypeTransitions(t *testing.T) {
+func TestAccResourceGroupPolicyDefinition_07_Lifecycle_TypeTransitions(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -436,6 +436,6 @@ func TestAccGroupPolicyDefinitionResource_007_Lifecycle_TypeTransitions(t *testi
 
 // Test 008: Error Scenarios - placeholder for error validation tests
 // TODO: Implement error scenario tests
-func TestAccGroupPolicyDefinitionResource_008_ErrorScenarios(t *testing.T) {
+func TestAccResourceGroupPolicyDefinition_08_ErrorScenarios(t *testing.T) {
 	t.Skip("Error scenario tests not yet implemented")
 }

@@ -13,9 +13,14 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
-// Create handles the Create operation.
-// POST /agentRegistry/agentCollections/{agentCollectionId}/members/$ref
-// REF: https://learn.microsoft.com/en-us/graph/api/agentcollection-post-members?view=graph-rest-beta
+// Create handles the Create operation for agent collection assignment resources.
+//
+// Operation: Assigns an agent instance to an agent collection
+// API Calls:
+//   - POST /agentRegistry/agentCollections/{agentCollectionId}/members/$ref
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/agentcollection-post-members?view=graph-rest-beta
+// Note: Composite ID (agentCollectionId/agentInstanceId) is constructed as Graph API does not return unique assignment IDs for member relationships
 func (r *AgentCollectionAssignmentResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var object AgentCollectionAssignmentResourceModel
 
@@ -81,9 +86,13 @@ func (r *AgentCollectionAssignmentResource) Create(ctx context.Context, req reso
 	tflog.Debug(ctx, fmt.Sprintf("Finished Create Method: %s", ResourceName))
 }
 
-// Read handles the Read operation.
-// GET /agentRegistry/agentCollections/{agentCollectionId}/members
-// REF: https://learn.microsoft.com/en-us/graph/api/agentcollection-list-members?view=graph-rest-beta
+// Read handles the Read operation for agent collection assignment resources.
+//
+// Operation: Retrieves agent collection membership to verify assignment exists
+// API Calls:
+//   - GET /agentRegistry/agentCollections/{agentCollectionId}/members
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/agentcollection-list-members?view=graph-rest-beta
 func (r *AgentCollectionAssignmentResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var object AgentCollectionAssignmentResourceModel
 
@@ -135,8 +144,15 @@ func (r *AgentCollectionAssignmentResource) Read(ctx context.Context, req resour
 	tflog.Debug(ctx, fmt.Sprintf("Finished Read Method: %s", ResourceName))
 }
 
-// Update handles the Update operation.
-// Performs delete + create since this is a reference relationship
+// Update handles the Update operation for agent collection assignment resources.
+//
+// Operation: Updates assignment by removing old member and adding new member
+// API Calls:
+//   - DELETE /agentRegistry/agentCollections/{agentCollectionId}/members/{agentInstanceId}
+//   - POST /agentRegistry/agentCollections/{agentCollectionId}/members/$ref
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/agentcollection-post-members?view=graph-rest-beta
+// Note: Member assignments cannot be updated directly; changes require delete and recreate
 func (r *AgentCollectionAssignmentResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var plan, state AgentCollectionAssignmentResourceModel
 
@@ -219,9 +235,13 @@ func (r *AgentCollectionAssignmentResource) Update(ctx context.Context, req reso
 	tflog.Debug(ctx, fmt.Sprintf("Finished Update Method: %s", ResourceName))
 }
 
-// Delete handles the Delete operation.
-// DELETE /agentRegistry/agentCollections/{agentCollectionId}/members/{agentInstanceId}
-// REF: https://learn.microsoft.com/en-us/graph/api/agentcollection-delete-members?view=graph-rest-beta
+// Delete handles the Delete operation for agent collection assignment resources.
+//
+// Operation: Removes an agent instance from an agent collection
+// API Calls:
+//   - DELETE /agentRegistry/agentCollections/{agentCollectionId}/members/{agentInstanceId}
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/agentcollection-delete-members?view=graph-rest-beta
 func (r *AgentCollectionAssignmentResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var object AgentCollectionAssignmentResourceModel
 

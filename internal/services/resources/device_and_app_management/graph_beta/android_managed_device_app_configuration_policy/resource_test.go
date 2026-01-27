@@ -162,7 +162,7 @@ func testConfigMicrosoftWord() string {
 }
 
 // TestAndroidManagedDeviceAppConfigurationPolicyResource_Schema validates the resource schema
-func TestAndroidManagedDeviceAppConfigurationPolicyResource_Schema(t *testing.T) {
+func TestUnitResourceAndroidManagedDeviceAppConfigurationPolicy_01_Schema(t *testing.T) {
 	setupUnitTestEnvironment(t)
 	_, androidManagedDeviceAppConfigurationMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -196,7 +196,7 @@ func TestAndroidManagedDeviceAppConfigurationPolicyResource_Schema(t *testing.T)
 }
 
 // TestAndroidManagedDeviceAppConfigurationPolicyResource_Minimal tests basic CRUD operations
-func TestAndroidManagedDeviceAppConfigurationPolicyResource_Minimal(t *testing.T) {
+func TestUnitResourceAndroidManagedDeviceAppConfigurationPolicy_02_Minimal(t *testing.T) {
 	setupUnitTestEnvironment(t)
 	_, androidManagedDeviceAppConfigurationMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -229,7 +229,7 @@ func TestAndroidManagedDeviceAppConfigurationPolicyResource_Minimal(t *testing.T
 }
 
 // TestAndroidManagedDeviceAppConfigurationPolicyResource_MicrosoftAuthenticator tests Microsoft Authenticator configuration
-func TestAndroidManagedDeviceAppConfigurationPolicyResource_MicrosoftAuthenticator(t *testing.T) {
+func TestUnitResourceAndroidManagedDeviceAppConfigurationPolicy_03_MicrosoftAuthenticator(t *testing.T) {
 	setupUnitTestEnvironment(t)
 	_, androidManagedDeviceAppConfigurationMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -260,7 +260,7 @@ func TestAndroidManagedDeviceAppConfigurationPolicyResource_MicrosoftAuthenticat
 }
 
 // TestAndroidManagedDeviceAppConfigurationPolicyResource_Microsoft365Copilot tests Microsoft 365 Copilot configuration
-func TestAndroidManagedDeviceAppConfigurationPolicyResource_Microsoft365Copilot(t *testing.T) {
+func TestUnitResourceAndroidManagedDeviceAppConfigurationPolicy_04_Microsoft365Copilot(t *testing.T) {
 	setupUnitTestEnvironment(t)
 	_, androidManagedDeviceAppConfigurationMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -289,7 +289,7 @@ func TestAndroidManagedDeviceAppConfigurationPolicyResource_Microsoft365Copilot(
 }
 
 // TestAndroidManagedDeviceAppConfigurationPolicyResource_ManagedHomeScreen tests Managed Home Screen kiosk configuration
-func TestAndroidManagedDeviceAppConfigurationPolicyResource_ManagedHomeScreen(t *testing.T) {
+func TestUnitResourceAndroidManagedDeviceAppConfigurationPolicy_05_ManagedHomeScreen(t *testing.T) {
 	setupUnitTestEnvironment(t)
 	_, androidManagedDeviceAppConfigurationMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -318,7 +318,7 @@ func TestAndroidManagedDeviceAppConfigurationPolicyResource_ManagedHomeScreen(t 
 }
 
 // TestAndroidManagedDeviceAppConfigurationPolicyResource_MicrosoftDefender tests Microsoft Defender configuration
-func TestAndroidManagedDeviceAppConfigurationPolicyResource_MicrosoftDefender(t *testing.T) {
+func TestUnitResourceAndroidManagedDeviceAppConfigurationPolicy_06_MicrosoftDefender(t *testing.T) {
 	setupUnitTestEnvironment(t)
 	_, androidManagedDeviceAppConfigurationMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -347,7 +347,7 @@ func TestAndroidManagedDeviceAppConfigurationPolicyResource_MicrosoftDefender(t 
 }
 
 // TestAndroidManagedDeviceAppConfigurationPolicyResource_MicrosoftEdge tests Microsoft Edge browser configuration
-func TestAndroidManagedDeviceAppConfigurationPolicyResource_MicrosoftEdge(t *testing.T) {
+func TestUnitResourceAndroidManagedDeviceAppConfigurationPolicy_07_MicrosoftEdge(t *testing.T) {
 	setupUnitTestEnvironment(t)
 	_, androidManagedDeviceAppConfigurationMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -379,7 +379,7 @@ func TestAndroidManagedDeviceAppConfigurationPolicyResource_MicrosoftEdge(t *tes
 // in their own test functions below for better isolation and failure reporting.
 
 // TestAndroidManagedDeviceAppConfigurationPolicyResource_MicrosoftExcel tests Microsoft Excel configuration
-func TestAndroidManagedDeviceAppConfigurationPolicyResource_MicrosoftExcel(t *testing.T) {
+func TestUnitResourceAndroidManagedDeviceAppConfigurationPolicy_08_MicrosoftExcel(t *testing.T) {
 	setupUnitTestEnvironment(t)
 	_, androidManagedDeviceAppConfigurationMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -404,7 +404,7 @@ func TestAndroidManagedDeviceAppConfigurationPolicyResource_MicrosoftExcel(t *te
 }
 
 // TestAndroidManagedDeviceAppConfigurationPolicyResource_MicrosoftPowerPoint tests Microsoft PowerPoint configuration
-func TestAndroidManagedDeviceAppConfigurationPolicyResource_MicrosoftPowerPoint(t *testing.T) {
+func TestUnitResourceAndroidManagedDeviceAppConfigurationPolicy_09_MicrosoftPowerPoint(t *testing.T) {
 	setupUnitTestEnvironment(t)
 	_, androidManagedDeviceAppConfigurationMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -429,7 +429,7 @@ func TestAndroidManagedDeviceAppConfigurationPolicyResource_MicrosoftPowerPoint(
 }
 
 // TestAndroidManagedDeviceAppConfigurationPolicyResource_MicrosoftWord tests Microsoft Word configuration
-func TestAndroidManagedDeviceAppConfigurationPolicyResource_MicrosoftWord(t *testing.T) {
+func TestUnitResourceAndroidManagedDeviceAppConfigurationPolicy_10_MicrosoftWord(t *testing.T) {
 	setupUnitTestEnvironment(t)
 	_, androidManagedDeviceAppConfigurationMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -454,7 +454,7 @@ func TestAndroidManagedDeviceAppConfigurationPolicyResource_MicrosoftWord(t *tes
 }
 
 // TestAndroidManagedDeviceAppConfigurationPolicyResource_MicrosoftOneNote tests Microsoft OneNote configuration
-func TestAndroidManagedDeviceAppConfigurationPolicyResource_MicrosoftOneNote(t *testing.T) {
+func TestUnitResourceAndroidManagedDeviceAppConfigurationPolicy_11_MicrosoftOneNote(t *testing.T) {
 	setupUnitTestEnvironment(t)
 	_, androidManagedDeviceAppConfigurationMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -479,7 +479,7 @@ func TestAndroidManagedDeviceAppConfigurationPolicyResource_MicrosoftOneNote(t *
 }
 
 // TestAndroidManagedDeviceAppConfigurationPolicyResource_MicrosoftOneDrive tests Microsoft OneDrive configuration
-func TestAndroidManagedDeviceAppConfigurationPolicyResource_MicrosoftOneDrive(t *testing.T) {
+func TestUnitResourceAndroidManagedDeviceAppConfigurationPolicy_12_MicrosoftOneDrive(t *testing.T) {
 	setupUnitTestEnvironment(t)
 	_, androidManagedDeviceAppConfigurationMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -504,7 +504,7 @@ func TestAndroidManagedDeviceAppConfigurationPolicyResource_MicrosoftOneDrive(t 
 }
 
 // TestAndroidManagedDeviceAppConfigurationPolicyResource_MicrosoftOutlook tests Outlook email configuration
-func TestAndroidManagedDeviceAppConfigurationPolicyResource_MicrosoftOutlook(t *testing.T) {
+func TestUnitResourceAndroidManagedDeviceAppConfigurationPolicy_13_MicrosoftOutlook(t *testing.T) {
 	setupUnitTestEnvironment(t)
 	_, androidManagedDeviceAppConfigurationMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -533,7 +533,7 @@ func TestAndroidManagedDeviceAppConfigurationPolicyResource_MicrosoftOutlook(t *
 }
 
 // TestAndroidManagedDeviceAppConfigurationPolicyResource_MicrosoftTeams tests Teams collaboration configuration
-func TestAndroidManagedDeviceAppConfigurationPolicyResource_MicrosoftTeams(t *testing.T) {
+func TestUnitResourceAndroidManagedDeviceAppConfigurationPolicy_14_MicrosoftTeams(t *testing.T) {
 	setupUnitTestEnvironment(t)
 	_, androidManagedDeviceAppConfigurationMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -562,7 +562,7 @@ func TestAndroidManagedDeviceAppConfigurationPolicyResource_MicrosoftTeams(t *te
 }
 
 // TestAndroidManagedDeviceAppConfigurationPolicyResource_RequiredFields tests required field validation
-func TestAndroidManagedDeviceAppConfigurationPolicyResource_RequiredFields(t *testing.T) {
+func TestUnitResourceAndroidManagedDeviceAppConfigurationPolicy_15_RequiredFields(t *testing.T) {
 	setupUnitTestEnvironment(t)
 	_, androidManagedDeviceAppConfigurationMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -586,7 +586,7 @@ resource "microsoft365_graph_beta_device_and_app_management_android_managed_devi
 }
 
 // TestAndroidManagedDeviceAppConfigurationPolicyResource_ErrorHandling tests error scenarios
-func TestAndroidManagedDeviceAppConfigurationPolicyResource_ErrorHandling(t *testing.T) {
+func TestUnitResourceAndroidManagedDeviceAppConfigurationPolicy_16_ErrorHandling(t *testing.T) {
 	setupUnitTestEnvironment(t)
 	_, androidManagedDeviceAppConfigurationMock := setupErrorMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -611,7 +611,7 @@ resource "microsoft365_graph_beta_device_and_app_management_android_managed_devi
 }
 
 // TestAndroidManagedDeviceAppConfigurationPolicyResource_TargetedMobileAppsValidation tests GUID validation for targeted mobile apps
-func TestAndroidManagedDeviceAppConfigurationPolicyResource_TargetedMobileAppsValidation(t *testing.T) {
+func TestUnitResourceAndroidManagedDeviceAppConfigurationPolicy_17_TargetedMobileAppsValidation(t *testing.T) {
 	setupUnitTestEnvironment(t)
 	_, androidManagedDeviceAppConfigurationMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()

@@ -24,7 +24,7 @@ func loadAcceptanceTestTerraform(filename string) string {
 }
 
 // TestAccAndroidManagedDeviceAppConfigurationPolicyResource_Lifecycle tests full lifecycle of the resource
-func TestAccAndroidManagedDeviceAppConfigurationPolicyResource_Lifecycle(t *testing.T) {
+func TestAccResourceAndroidManagedDeviceAppConfigurationPolicy_01_Lifecycle(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -65,7 +65,7 @@ func TestAccAndroidManagedDeviceAppConfigurationPolicyResource_Lifecycle(t *test
 }
 
 // TestAccAndroidManagedDeviceAppConfigurationPolicyResource_MicrosoftAuthenticator tests Microsoft Authenticator configuration
-func TestAccAndroidManagedDeviceAppConfigurationPolicyResource_MicrosoftAuthenticator(t *testing.T) {
+func TestAccResourceAndroidManagedDeviceAppConfigurationPolicy_02_MicrosoftAuthenticator(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -95,7 +95,7 @@ func TestAccAndroidManagedDeviceAppConfigurationPolicyResource_MicrosoftAuthenti
 }
 
 // TestAccAndroidManagedDeviceAppConfigurationPolicyResource_Microsoft365Copilot tests Microsoft 365 Copilot configuration
-func TestAccAndroidManagedDeviceAppConfigurationPolicyResource_Microsoft365Copilot(t *testing.T) {
+func TestAccResourceAndroidManagedDeviceAppConfigurationPolicy_03_Microsoft365Copilot(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -124,7 +124,7 @@ func TestAccAndroidManagedDeviceAppConfigurationPolicyResource_Microsoft365Copil
 }
 
 // TestAccAndroidManagedDeviceAppConfigurationPolicyResource_ManagedHomeScreen tests Managed Home Screen kiosk configuration
-func TestAccAndroidManagedDeviceAppConfigurationPolicyResource_ManagedHomeScreen(t *testing.T) {
+func TestAccResourceAndroidManagedDeviceAppConfigurationPolicy_04_ManagedHomeScreen(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -153,7 +153,7 @@ func TestAccAndroidManagedDeviceAppConfigurationPolicyResource_ManagedHomeScreen
 }
 
 // TestAccAndroidManagedDeviceAppConfigurationPolicyResource_MicrosoftDefender tests Microsoft Defender configuration
-func TestAccAndroidManagedDeviceAppConfigurationPolicyResource_MicrosoftDefender(t *testing.T) {
+func TestAccResourceAndroidManagedDeviceAppConfigurationPolicy_05_MicrosoftDefender(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -182,7 +182,7 @@ func TestAccAndroidManagedDeviceAppConfigurationPolicyResource_MicrosoftDefender
 }
 
 // TestAccAndroidManagedDeviceAppConfigurationPolicyResource_MicrosoftEdge tests Microsoft Edge browser configuration
-func TestAccAndroidManagedDeviceAppConfigurationPolicyResource_MicrosoftEdge(t *testing.T) {
+func TestAccResourceAndroidManagedDeviceAppConfigurationPolicy_06_MicrosoftEdge(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -211,7 +211,7 @@ func TestAccAndroidManagedDeviceAppConfigurationPolicyResource_MicrosoftEdge(t *
 }
 
 // TestAccAndroidManagedDeviceAppConfigurationPolicyResource_MicrosoftExcel tests Microsoft Excel configuration
-func TestAccAndroidManagedDeviceAppConfigurationPolicyResource_MicrosoftExcel(t *testing.T) {
+func TestAccResourceAndroidManagedDeviceAppConfigurationPolicy_07_MicrosoftExcel(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -240,7 +240,7 @@ func TestAccAndroidManagedDeviceAppConfigurationPolicyResource_MicrosoftExcel(t 
 }
 
 // TestAccAndroidManagedDeviceAppConfigurationPolicyResource_MicrosoftPowerPoint tests Microsoft PowerPoint configuration
-func TestAccAndroidManagedDeviceAppConfigurationPolicyResource_MicrosoftPowerPoint(t *testing.T) {
+func TestAccResourceAndroidManagedDeviceAppConfigurationPolicy_08_MicrosoftPowerPoint(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -269,7 +269,7 @@ func TestAccAndroidManagedDeviceAppConfigurationPolicyResource_MicrosoftPowerPoi
 }
 
 // TestAccAndroidManagedDeviceAppConfigurationPolicyResource_MicrosoftWord tests Microsoft Word configuration
-func TestAccAndroidManagedDeviceAppConfigurationPolicyResource_MicrosoftWord(t *testing.T) {
+func TestAccResourceAndroidManagedDeviceAppConfigurationPolicy_09_MicrosoftWord(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -298,7 +298,7 @@ func TestAccAndroidManagedDeviceAppConfigurationPolicyResource_MicrosoftWord(t *
 }
 
 // TestAccAndroidManagedDeviceAppConfigurationPolicyResource_MicrosoftOneNote tests Microsoft OneNote configuration
-func TestAccAndroidManagedDeviceAppConfigurationPolicyResource_MicrosoftOneNote(t *testing.T) {
+func TestAccResourceAndroidManagedDeviceAppConfigurationPolicy_10_MicrosoftOneNote(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -327,7 +327,7 @@ func TestAccAndroidManagedDeviceAppConfigurationPolicyResource_MicrosoftOneNote(
 }
 
 // TestAccAndroidManagedDeviceAppConfigurationPolicyResource_MicrosoftOneDrive tests Microsoft OneDrive configuration
-func TestAccAndroidManagedDeviceAppConfigurationPolicyResource_MicrosoftOneDrive(t *testing.T) {
+func TestAccResourceAndroidManagedDeviceAppConfigurationPolicy_11_MicrosoftOneDrive(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -356,7 +356,7 @@ func TestAccAndroidManagedDeviceAppConfigurationPolicyResource_MicrosoftOneDrive
 }
 
 // TestAccAndroidManagedDeviceAppConfigurationPolicyResource_MicrosoftOutlook tests Outlook email configuration
-func TestAccAndroidManagedDeviceAppConfigurationPolicyResource_MicrosoftOutlook(t *testing.T) {
+func TestAccResourceAndroidManagedDeviceAppConfigurationPolicy_12_MicrosoftOutlook(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -385,7 +385,7 @@ func TestAccAndroidManagedDeviceAppConfigurationPolicyResource_MicrosoftOutlook(
 }
 
 // TestAccAndroidManagedDeviceAppConfigurationPolicyResource_MicrosoftTeams tests Teams collaboration configuration
-func TestAccAndroidManagedDeviceAppConfigurationPolicyResource_MicrosoftTeams(t *testing.T) {
+func TestAccResourceAndroidManagedDeviceAppConfigurationPolicy_13_MicrosoftTeams(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,

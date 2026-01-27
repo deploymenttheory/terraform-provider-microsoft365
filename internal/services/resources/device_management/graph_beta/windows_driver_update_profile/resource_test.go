@@ -33,7 +33,7 @@ func testCheckExists(resourceName string) resource.TestCheckFunc {
 	return resource.TestCheckResourceAttrSet(resourceName, "id")
 }
 
-func TestWindowsDriverUpdateProfileResource_Schema(t *testing.T) {
+func TestUnitResourceWindowsDriverUpdateProfile_01_Schema(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, driverMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -55,7 +55,7 @@ func TestWindowsDriverUpdateProfileResource_Schema(t *testing.T) {
 	})
 }
 
-func TestWindowsDriverUpdateProfileResource_ApprovalTypes(t *testing.T) {
+func TestUnitResourceWindowsDriverUpdateProfile_02_ApprovalTypes(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, driverMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -85,7 +85,7 @@ func TestWindowsDriverUpdateProfileResource_ApprovalTypes(t *testing.T) {
 	})
 }
 
-func TestWindowsDriverUpdateProfileResource_GroupAssignments(t *testing.T) {
+func TestUnitResourceWindowsDriverUpdateProfile_03_GroupAssignments(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, driverMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -108,7 +108,7 @@ func TestWindowsDriverUpdateProfileResource_GroupAssignments(t *testing.T) {
 	})
 }
 
-func TestWindowsDriverUpdateProfileResource_ExclusionAssignment(t *testing.T) {
+func TestUnitResourceWindowsDriverUpdateProfile_04_ExclusionAssignment(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, driverMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -130,7 +130,7 @@ func TestWindowsDriverUpdateProfileResource_ExclusionAssignment(t *testing.T) {
 	})
 }
 
-func TestWindowsDriverUpdateProfileResource_ErrorHandling(t *testing.T) {
+func TestUnitResourceWindowsDriverUpdateProfile_05_ErrorHandling(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, driverMock := setupErrorMockEnvironment()
 	defer httpmock.DeactivateAndReset()

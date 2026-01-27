@@ -45,7 +45,7 @@ func loadUnitTestTerraform(filename string) string {
 }
 
 // Test 001: Scenario 1 - Minimal configuration without assignments
-func TestWindowsQualityUpdatePolicyResource_001_Scenario_Minimal(t *testing.T) {
+func TestUnitResourceWindowsQualityUpdatePolicy_01_Scenario_Minimal(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, qualityUpdateMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -73,7 +73,7 @@ func TestWindowsQualityUpdatePolicyResource_001_Scenario_Minimal(t *testing.T) {
 }
 
 // Test 002: Scenario 2 - Maximal configuration without assignments
-func TestWindowsQualityUpdatePolicyResource_002_Scenario_Maximal(t *testing.T) {
+func TestUnitResourceWindowsQualityUpdatePolicy_02_Scenario_Maximal(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, qualityUpdateMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -102,7 +102,7 @@ func TestWindowsQualityUpdatePolicyResource_002_Scenario_Maximal(t *testing.T) {
 }
 
 // Test 003: Scenario 3 - Lifecycle from minimal to maximal
-func TestWindowsQualityUpdatePolicyResource_003_Lifecycle_MinimalToMaximal(t *testing.T) {
+func TestUnitResourceWindowsQualityUpdatePolicy_03_Lifecycle_MinimalToMaximal(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, qualityUpdateMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -139,7 +139,7 @@ func TestWindowsQualityUpdatePolicyResource_003_Lifecycle_MinimalToMaximal(t *te
 }
 
 // Test 004: Scenario 4 - Lifecycle from maximal to minimal
-func TestWindowsQualityUpdatePolicyResource_004_Lifecycle_MaximalToMinimal(t *testing.T) {
+func TestUnitResourceWindowsQualityUpdatePolicy_04_Lifecycle_MaximalToMinimal(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, qualityUpdateMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -176,7 +176,7 @@ func TestWindowsQualityUpdatePolicyResource_004_Lifecycle_MaximalToMinimal(t *te
 }
 
 // Test 005: Scenario 5 - Minimal assignments
-func TestWindowsQualityUpdatePolicyResource_005_AssignmentsMinimal(t *testing.T) {
+func TestUnitResourceWindowsQualityUpdatePolicy_05_AssignmentsMinimal(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, qualityUpdateMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -207,7 +207,7 @@ func TestWindowsQualityUpdatePolicyResource_005_AssignmentsMinimal(t *testing.T)
 }
 
 // Test 006: Scenario 6 - Maximal assignments
-func TestWindowsQualityUpdatePolicyResource_006_AssignmentsMaximal(t *testing.T) {
+func TestUnitResourceWindowsQualityUpdatePolicy_06_AssignmentsMaximal(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, qualityUpdateMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -246,7 +246,7 @@ func TestWindowsQualityUpdatePolicyResource_006_AssignmentsMaximal(t *testing.T)
 }
 
 // Test 007: Scenario 7 - Assignments lifecycle minimal to maximal
-func TestWindowsQualityUpdatePolicyResource_007_AssignmentsLifecycle_MinimalToMaximal(t *testing.T) {
+func TestUnitResourceWindowsQualityUpdatePolicy_07_AssignmentsLifecycle_MinimalToMaximal(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, qualityUpdateMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -297,7 +297,7 @@ func TestWindowsQualityUpdatePolicyResource_007_AssignmentsLifecycle_MinimalToMa
 }
 
 // Test 008: Scenario 8 - Assignments lifecycle maximal to minimal
-func TestWindowsQualityUpdatePolicyResource_008_AssignmentsLifecycle_MaximalToMinimal(t *testing.T) {
+func TestUnitResourceWindowsQualityUpdatePolicy_08_AssignmentsLifecycle_MaximalToMinimal(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, qualityUpdateMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()

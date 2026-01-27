@@ -40,7 +40,7 @@ func testConfigHelper(filename string) string {
 }
 
 // TestRoleScopeTagResource_Schema validates the resource schema
-func TestRoleScopeTagResource_Schema(t *testing.T) {
+func TestUnitResourceRoleScopeTag_01_Schema(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, roleScopeTagMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -69,7 +69,7 @@ func TestRoleScopeTagResource_Schema(t *testing.T) {
 }
 
 // TestRoleScopeTagResource_Minimal tests basic CRUD operations
-func TestRoleScopeTagResource_Minimal(t *testing.T) {
+func TestUnitResourceRoleScopeTag_02_Minimal(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, roleScopeTagMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -112,7 +112,7 @@ func TestRoleScopeTagResource_Minimal(t *testing.T) {
 }
 
 // TestRoleScopeTagResource_UpdateInPlace tests in-place updates
-func TestRoleScopeTagResource_UpdateInPlace(t *testing.T) {
+func TestUnitResourceRoleScopeTag_03_UpdateInPlace(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, roleScopeTagMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -148,7 +148,7 @@ func TestRoleScopeTagResource_UpdateInPlace(t *testing.T) {
 }
 
 // TestRoleScopeTagResource_RequiredFields tests required field validation
-func TestRoleScopeTagResource_RequiredFields(t *testing.T) {
+func TestUnitResourceRoleScopeTag_04_RequiredFields(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, roleScopeTagMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -170,7 +170,7 @@ resource "microsoft365_graph_beta_device_management_role_scope_tag" "test" {
 }
 
 // TestRoleScopeTagResource_DisplayNameUniqueness tests display name uniqueness validation
-func TestRoleScopeTagResource_DisplayNameUniqueness(t *testing.T) {
+func TestUnitResourceRoleScopeTag_05_DisplayNameUniqueness(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, roleScopeTagMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -209,7 +209,7 @@ resource "microsoft365_graph_beta_device_management_role_scope_tag" "second" {
 }
 
 // TestRoleScopeTagResource_ErrorHandling tests error scenarios
-func TestRoleScopeTagResource_ErrorHandling(t *testing.T) {
+func TestUnitResourceRoleScopeTag_06_ErrorHandling(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, roleScopeTagMock := setupErrorMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -232,7 +232,7 @@ resource "microsoft365_graph_beta_device_management_role_scope_tag" "test" {
 }
 
 // TestRoleScopeTagResource_Assignments tests assignments handling
-func TestRoleScopeTagResource_Assignments(t *testing.T) {
+func TestUnitResourceRoleScopeTag_07_Assignments(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, roleScopeTagMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -282,7 +282,7 @@ resource "microsoft365_graph_beta_device_management_role_scope_tag" "test" {
 }
 
 // TestRoleScopeTagResource_EmptyDescription tests handling of empty description
-func TestRoleScopeTagResource_EmptyDescription(t *testing.T) {
+func TestUnitResourceRoleScopeTag_08_EmptyDescription(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, roleScopeTagMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -308,7 +308,7 @@ resource "microsoft365_graph_beta_device_management_role_scope_tag" "test" {
 }
 
 // TestRoleScopeTagResource_NoDescription tests handling when description is not provided
-func TestRoleScopeTagResource_NoDescription(t *testing.T) {
+func TestUnitResourceRoleScopeTag_09_NoDescription(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, roleScopeTagMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()

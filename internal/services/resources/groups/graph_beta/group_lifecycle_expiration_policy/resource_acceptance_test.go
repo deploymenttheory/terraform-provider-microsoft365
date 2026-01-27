@@ -39,7 +39,7 @@ func testAccGroupLifecyclePolicyConfig_None() string {
 }
 
 // TestAccGroupLifecycleExpirationPolicyResource_ManagedGroupTypes_All tests managed_group_types = "All"
-func TestAccGroupLifecycleExpirationPolicyResource_ManagedGroupTypes_All(t *testing.T) {
+func TestAccResourceGroupLifecycleExpirationPolicy_01_ManagedGroupTypes_All(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -87,7 +87,7 @@ func TestAccGroupLifecycleExpirationPolicyResource_ManagedGroupTypes_All(t *test
 }
 
 // TestAccGroupLifecycleExpirationPolicyResource_ManagedGroupTypes_Selected tests managed_group_types = "Selected"
-func TestAccGroupLifecycleExpirationPolicyResource_ManagedGroupTypes_Selected(t *testing.T) {
+func TestAccResourceGroupLifecycleExpirationPolicy_02_ManagedGroupTypes_Selected(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -135,7 +135,7 @@ func TestAccGroupLifecycleExpirationPolicyResource_ManagedGroupTypes_Selected(t 
 }
 
 // TestAccGroupLifecycleExpirationPolicyResource_ManagedGroupTypes_None tests managed_group_types = "None"
-func TestAccGroupLifecycleExpirationPolicyResource_ManagedGroupTypes_None(t *testing.T) {
+func TestAccResourceGroupLifecycleExpirationPolicy_03_ManagedGroupTypes_None(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,

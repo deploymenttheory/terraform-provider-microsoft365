@@ -12,7 +12,13 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
-// Create handles the Create operation.
+// Create handles the Create operation for Azure network connection resources.
+//
+// Operation: Creates a new Cloud PC on-premises connection
+// API Calls:
+//   - POST /deviceManagement/virtualEndpoint/onPremisesConnections
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/virtualendpoint-post-onpremisesconnections?view=graph-rest-beta
 func (r *CloudPcOnPremisesConnectionResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var plan CloudPcOnPremisesConnectionResourceModel
 
@@ -72,7 +78,13 @@ func (r *CloudPcOnPremisesConnectionResource) Create(ctx context.Context, req re
 	tflog.Debug(ctx, fmt.Sprintf("Finished Create Method: %s", ResourceName))
 }
 
-// Read handles the Read operation.
+// Read handles the Read operation for Azure network connection resources.
+//
+// Operation: Retrieves a Cloud PC on-premises connection by ID
+// API Calls:
+//   - GET /deviceManagement/virtualEndpoint/onPremisesConnections/{id}
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/cloudpconpremisesconnection-get?view=graph-rest-beta
 func (r *CloudPcOnPremisesConnectionResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var object CloudPcOnPremisesConnectionResourceModel
 
@@ -117,7 +129,13 @@ func (r *CloudPcOnPremisesConnectionResource) Read(ctx context.Context, req reso
 	tflog.Debug(ctx, fmt.Sprintf("Finished Read Method: %s", ResourceName))
 }
 
-// Update handles the Update operation.
+// Update handles the Update operation for Azure network connection resources.
+//
+// Operation: Updates an existing Cloud PC on-premises connection
+// API Calls:
+//   - PATCH /deviceManagement/virtualEndpoint/onPremisesConnections/{id}
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/cloudpconpremisesconnection-update?view=graph-rest-beta
 func (r *CloudPcOnPremisesConnectionResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var plan CloudPcOnPremisesConnectionResourceModel
 	var state CloudPcOnPremisesConnectionResourceModel
@@ -180,7 +198,13 @@ func (r *CloudPcOnPremisesConnectionResource) Update(ctx context.Context, req re
 	tflog.Debug(ctx, fmt.Sprintf("Finished updating %s with ID: %s", ResourceName, state.ID.ValueString()))
 }
 
-// Delete handles the Delete operation.
+// Delete handles the Delete operation for Azure network connection resources.
+//
+// Operation: Deletes a Cloud PC on-premises connection
+// API Calls:
+//   - DELETE /deviceManagement/virtualEndpoint/onPremisesConnections/{id}
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/cloudpconpremisesconnection-delete?view=graph-rest-beta
 func (r *CloudPcOnPremisesConnectionResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var object CloudPcOnPremisesConnectionResourceModel
 

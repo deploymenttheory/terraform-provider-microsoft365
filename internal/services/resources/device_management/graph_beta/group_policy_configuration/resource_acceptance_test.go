@@ -28,7 +28,7 @@ func loadAcceptanceTestTerraform(filename string) string {
 }
 
 // TestAccGroupPolicyConfigurationResource_Minimal tests creating a minimal group policy configuration
-func TestAccGroupPolicyConfigurationResource_Minimal(t *testing.T) {
+func TestAccResourceGroupPolicyConfiguration_01_Minimal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -70,7 +70,7 @@ func TestAccGroupPolicyConfigurationResource_Minimal(t *testing.T) {
 }
 
 // TestAccGroupPolicyConfigurationResource_Maximal tests creating a maximal group policy configuration
-func TestAccGroupPolicyConfigurationResource_Maximal(t *testing.T) {
+func TestAccResourceGroupPolicyConfiguration_02_Maximal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -113,7 +113,7 @@ func TestAccGroupPolicyConfigurationResource_Maximal(t *testing.T) {
 }
 
 // TestAccGroupPolicyConfigurationResource_MinimalAssignment tests creating a configuration with minimal assignment
-func TestAccGroupPolicyConfigurationResource_MinimalAssignment(t *testing.T) {
+func TestAccResourceGroupPolicyConfiguration_03_MinimalAssignment(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -154,7 +154,7 @@ func TestAccGroupPolicyConfigurationResource_MinimalAssignment(t *testing.T) {
 }
 
 // TestAccGroupPolicyConfigurationResource_MaximalAssignment tests creating a configuration with maximal assignments
-func TestAccGroupPolicyConfigurationResource_MaximalAssignment(t *testing.T) {
+func TestAccResourceGroupPolicyConfiguration_04_MaximalAssignment(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -195,7 +195,7 @@ func TestAccGroupPolicyConfigurationResource_MaximalAssignment(t *testing.T) {
 }
 
 // TestAccGroupPolicyConfigurationResource_MinimalToMaximal tests transitioning from minimal to maximal configuration
-func TestAccGroupPolicyConfigurationResource_MinimalToMaximal(t *testing.T) {
+func TestAccResourceGroupPolicyConfiguration_03_MinimalToMaximal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -251,7 +251,7 @@ func TestAccGroupPolicyConfigurationResource_MinimalToMaximal(t *testing.T) {
 }
 
 // TestAccGroupPolicyConfigurationResource_MaximalToMinimal tests transitioning from maximal to minimal configuration
-func TestAccGroupPolicyConfigurationResource_MaximalToMinimal(t *testing.T) {
+func TestAccResourceGroupPolicyConfiguration_06_MaximalToMinimal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,

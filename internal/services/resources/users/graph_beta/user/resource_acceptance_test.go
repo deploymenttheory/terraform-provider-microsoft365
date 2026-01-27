@@ -26,7 +26,7 @@ var (
 	testResource = graphBetaUsersUser.UserTestResource{}
 )
 
-func TestAccUserResource_Lifecycle(t *testing.T) {
+func TestAccResourceUser_01_Lifecycle(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -153,7 +153,7 @@ func TestAccUserResource_Lifecycle(t *testing.T) {
 	})
 }
 
-func TestAccUserResource_CustomSecurityAttributes(t *testing.T) {
+func TestAccResourceUser_02_CustomSecurityAttributes(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,

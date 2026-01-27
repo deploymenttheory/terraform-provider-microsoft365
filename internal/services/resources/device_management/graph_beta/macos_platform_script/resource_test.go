@@ -35,7 +35,7 @@ func loadUnitTestTerraform(filename string) string {
 // Scenario 01: Minimal Resource
 // ====================================================================================
 
-func TestMacOSPlatformScriptResource_Scenario01_Minimal(t *testing.T) {
+func TestUnitResourceMacOSPlatformScript_01_Minimal(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, macOSPlatformScriptMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -70,7 +70,7 @@ func TestMacOSPlatformScriptResource_Scenario01_Minimal(t *testing.T) {
 // Scenario 02: Maximal Resource
 // ====================================================================================
 
-func TestMacOSPlatformScriptResource_Scenario02_Maximal(t *testing.T) {
+func TestUnitResourceMacOSPlatformScript_02_Maximal(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, macOSPlatformScriptMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -109,7 +109,7 @@ func TestMacOSPlatformScriptResource_Scenario02_Maximal(t *testing.T) {
 // Scenario 03: Minimal to Maximal Update
 // ====================================================================================
 
-func TestMacOSPlatformScriptResource_Scenario03_MinimalToMaximal(t *testing.T) {
+func TestUnitResourceMacOSPlatformScript_03_MinimalToMaximal(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, macOSPlatformScriptMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -154,7 +154,7 @@ func TestMacOSPlatformScriptResource_Scenario03_MinimalToMaximal(t *testing.T) {
 // Scenario 04: Maximal to Minimal Update
 // ====================================================================================
 
-func TestMacOSPlatformScriptResource_Scenario04_MaximalToMinimal(t *testing.T) {
+func TestUnitResourceMacOSPlatformScript_04_MaximalToMinimal(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, macOSPlatformScriptMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -197,7 +197,7 @@ func TestMacOSPlatformScriptResource_Scenario04_MaximalToMinimal(t *testing.T) {
 // Scenario 05: No Assignments to Minimal Assignment
 // ====================================================================================
 
-func TestMacOSPlatformScriptResource_Scenario05_NoAssignmentsToMinimalAssignment(t *testing.T) {
+func TestUnitResourceMacOSPlatformScript_05_NoAssignmentsToMinimalAssignment(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, macOSPlatformScriptMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -234,7 +234,7 @@ func TestMacOSPlatformScriptResource_Scenario05_NoAssignmentsToMinimalAssignment
 // Scenario 06: No Assignments to Maximal Assignments
 // ====================================================================================
 
-func TestMacOSPlatformScriptResource_Scenario06_NoAssignmentsToMaximalAssignments(t *testing.T) {
+func TestUnitResourceMacOSPlatformScript_06_NoAssignmentsToMaximalAssignments(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, macOSPlatformScriptMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -283,7 +283,7 @@ func TestMacOSPlatformScriptResource_Scenario06_NoAssignmentsToMaximalAssignment
 // Scenario 07: Minimal to Maximal Assignments
 // ====================================================================================
 
-func TestMacOSPlatformScriptResource_Scenario07_MinimalToMaximalAssignments(t *testing.T) {
+func TestUnitResourceMacOSPlatformScript_07_MinimalToMaximalAssignments(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, macOSPlatformScriptMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -334,7 +334,7 @@ func TestMacOSPlatformScriptResource_Scenario07_MinimalToMaximalAssignments(t *t
 // Scenario 08: Maximal to Minimal Assignments
 // ====================================================================================
 
-func TestMacOSPlatformScriptResource_Scenario08_MaximalToMinimalAssignments(t *testing.T) {
+func TestUnitResourceMacOSPlatformScript_08_MaximalToMinimalAssignments(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, macOSPlatformScriptMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -385,7 +385,7 @@ func TestMacOSPlatformScriptResource_Scenario08_MaximalToMinimalAssignments(t *t
 // Scenario 09: Error Cases
 // ====================================================================================
 
-func TestMacOSPlatformScriptResource_Scenario09_Error_InvalidRunAs(t *testing.T) {
+func TestUnitResourceMacOSPlatformScript_09_Error_InvalidRunAs(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, macOSPlatformScriptMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -402,7 +402,7 @@ func TestMacOSPlatformScriptResource_Scenario09_Error_InvalidRunAs(t *testing.T)
 	})
 }
 
-func TestMacOSPlatformScriptResource_Scenario09_Error_InvalidDuration(t *testing.T) {
+func TestUnitResourceMacOSPlatformScript_10_Error_InvalidDuration(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, macOSPlatformScriptMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -419,7 +419,7 @@ func TestMacOSPlatformScriptResource_Scenario09_Error_InvalidDuration(t *testing
 	})
 }
 
-func TestMacOSPlatformScriptResource_Scenario09_Error_DescriptionLength(t *testing.T) {
+func TestUnitResourceMacOSPlatformScript_11_Error_DescriptionLength(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, macOSPlatformScriptMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()

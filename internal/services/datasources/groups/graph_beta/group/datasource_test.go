@@ -43,7 +43,7 @@ func setupErrorMockEnvironment() (*mocks.Mocks, *groupMocks.GroupMock) {
 	return mockClient, groupMock
 }
 
-func TestUnitGroupDataSource_01_ByObjectId(t *testing.T) {
+func TestUnitDatasourceGroup_01_ByObjectId(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, groupMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -66,7 +66,7 @@ func TestUnitGroupDataSource_01_ByObjectId(t *testing.T) {
 	})
 }
 
-func TestUnitGroupDataSource_02_ByDisplayName(t *testing.T) {
+func TestUnitDatasourceGroup_02_ByDisplayName(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, groupMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -87,7 +87,7 @@ func TestUnitGroupDataSource_02_ByDisplayName(t *testing.T) {
 	})
 }
 
-func TestUnitGroupDataSource_03_ByDisplayNameWithSecurityFilter(t *testing.T) {
+func TestUnitDatasourceGroup_03_ByDisplayNameWithSecurityFilter(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, groupMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -108,7 +108,7 @@ func TestUnitGroupDataSource_03_ByDisplayNameWithSecurityFilter(t *testing.T) {
 	})
 }
 
-func TestUnitGroupDataSource_04_ByMailNickname(t *testing.T) {
+func TestUnitDatasourceGroup_04_ByMailNickname(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, groupMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -129,7 +129,7 @@ func TestUnitGroupDataSource_04_ByMailNickname(t *testing.T) {
 	})
 }
 
-func TestUnitGroupDataSource_05_ByODataQuery(t *testing.T) {
+func TestUnitDatasourceGroup_05_ByODataQuery(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, groupMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -150,7 +150,7 @@ func TestUnitGroupDataSource_05_ByODataQuery(t *testing.T) {
 	})
 }
 
-func TestUnitGroupDataSource_Error(t *testing.T) {
+func TestUnitDatasourceGroup_06_Error(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, groupMock := setupErrorMockEnvironment()
 	defer httpmock.DeactivateAndReset()

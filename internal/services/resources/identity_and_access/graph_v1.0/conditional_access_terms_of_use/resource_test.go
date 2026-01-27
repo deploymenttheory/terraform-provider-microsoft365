@@ -23,7 +23,7 @@ func setupMockEnvironment() (*mocks.Mocks, *termsOfUseMocks.ConditionalAccessTer
 	return mockClient, termsOfUseMock
 }
 
-func TestConditionalAccessTermsOfUseResource_Basic(t *testing.T) {
+func TestUnitResourceConditionalAccessTermsOfUse_01_Basic(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, termsOfUseMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -70,7 +70,7 @@ func TestConditionalAccessTermsOfUseResource_Basic(t *testing.T) {
 	})
 }
 
-func TestConditionalAccessTermsOfUseResource_Maximal(t *testing.T) {
+func TestUnitResourceConditionalAccessTermsOfUse_02_Maximal(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, termsOfUseMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -106,7 +106,7 @@ func TestConditionalAccessTermsOfUseResource_Maximal(t *testing.T) {
 	})
 }
 
-func TestConditionalAccessTermsOfUseResource_Update(t *testing.T) {
+func TestUnitResourceConditionalAccessTermsOfUse_03_Update(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, termsOfUseMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -147,7 +147,7 @@ func TestConditionalAccessTermsOfUseResource_Update(t *testing.T) {
 	})
 }
 
-func TestConditionalAccessTermsOfUseResource_FileValidation(t *testing.T) {
+func TestUnitResourceConditionalAccessTermsOfUse_04_FileValidation(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, termsOfUseMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -201,7 +201,7 @@ resource "microsoft365_graph_identity_and_access_conditional_access_terms_of_use
 	}
 }
 
-func TestConditionalAccessTermsOfUseResource_TermsExpiration(t *testing.T) {
+func TestUnitResourceConditionalAccessTermsOfUse_05_TermsExpiration(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, termsOfUseMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()

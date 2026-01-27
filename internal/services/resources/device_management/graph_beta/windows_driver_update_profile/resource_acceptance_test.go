@@ -15,7 +15,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 )
 
-func TestAccWindowsDriverUpdateProfileResource_Lifecycle(t *testing.T) {
+func TestAccResourceWindowsDriverUpdateProfile_01_Lifecycle(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -49,7 +49,7 @@ func TestAccWindowsDriverUpdateProfileResource_Lifecycle(t *testing.T) {
 	})
 }
 
-func TestAccWindowsDriverUpdateProfileResource_Assignments(t *testing.T) {
+func TestAccResourceWindowsDriverUpdateProfile_02_Assignments(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,

@@ -49,7 +49,7 @@ func loadUnitTestTerraform(filename string) string {
 
 // Test 01: Users - Round-Robin Strategy (No Seed)
 // Verifies round-robin distribution without seed (API order-based)
-func TestUnitGuidListSharderDataSource_01_UsersRoundRobinNoSeed(t *testing.T) {
+func TestUnitDatasourceGuidListSharder_01_UsersRoundRobinNoSeed(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, guidListSharderMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -75,7 +75,7 @@ func TestUnitGuidListSharderDataSource_01_UsersRoundRobinNoSeed(t *testing.T) {
 
 // Test 02: Users - Round-Robin Strategy (With Seed)
 // Verifies round-robin distribution with seed (deterministic shuffling)
-func TestUnitGuidListSharderDataSource_02_UsersRoundRobinWithSeed(t *testing.T) {
+func TestUnitDatasourceGuidListSharder_02_UsersRoundRobinWithSeed(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, guidListSharderMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -103,7 +103,7 @@ func TestUnitGuidListSharderDataSource_02_UsersRoundRobinWithSeed(t *testing.T) 
 
 // Test 03: Users - Percentage Strategy (No Seed)
 // Verifies percentage-based distribution without seed (API order-based)
-func TestUnitGuidListSharderDataSource_03_UsersPercentageNoSeed(t *testing.T) {
+func TestUnitDatasourceGuidListSharder_03_UsersPercentageNoSeed(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, guidListSharderMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -128,7 +128,7 @@ func TestUnitGuidListSharderDataSource_03_UsersPercentageNoSeed(t *testing.T) {
 
 // Test 04: Users - Percentage Strategy (With Seed)
 // Verifies percentage-based distribution with seed (deterministic)
-func TestUnitGuidListSharderDataSource_04_UsersPercentageWithSeed(t *testing.T) {
+func TestUnitDatasourceGuidListSharder_04_UsersPercentageWithSeed(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, guidListSharderMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -157,7 +157,7 @@ func TestUnitGuidListSharderDataSource_04_UsersPercentageWithSeed(t *testing.T) 
 
 // Test 05: Users - Size Strategy (No Seed)
 // Verifies size-based distribution without seed (API order-based)
-func TestUnitGuidListSharderDataSource_05_UsersSizeNoSeed(t *testing.T) {
+func TestUnitDatasourceGuidListSharder_05_UsersSizeNoSeed(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, guidListSharderMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -184,7 +184,7 @@ func TestUnitGuidListSharderDataSource_05_UsersSizeNoSeed(t *testing.T) {
 
 // Test 06: Users - Size Strategy (With Seed)
 // Verifies size-based distribution with seed (deterministic)
-func TestUnitGuidListSharderDataSource_06_UsersSizeWithSeed(t *testing.T) {
+func TestUnitDatasourceGuidListSharder_06_UsersSizeWithSeed(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, guidListSharderMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -215,7 +215,7 @@ func TestUnitGuidListSharderDataSource_06_UsersSizeWithSeed(t *testing.T) {
 
 // Test 07: Group Members - Round-Robin Strategy (No Seed)
 // Verifies round-robin distribution for group members without seed
-func TestUnitGuidListSharderDataSource_07_GroupMembersRoundRobinNoSeed(t *testing.T) {
+func TestUnitDatasourceGuidListSharder_07_GroupMembersRoundRobinNoSeed(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, guidListSharderMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -241,7 +241,7 @@ func TestUnitGuidListSharderDataSource_07_GroupMembersRoundRobinNoSeed(t *testin
 
 // Test 08: Group Members - Round-Robin Strategy (With Seed)
 // Verifies round-robin distribution for group members with seed
-func TestUnitGuidListSharderDataSource_08_GroupMembersRoundRobinWithSeed(t *testing.T) {
+func TestUnitDatasourceGuidListSharder_08_GroupMembersRoundRobinWithSeed(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, guidListSharderMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -269,7 +269,7 @@ func TestUnitGuidListSharderDataSource_08_GroupMembersRoundRobinWithSeed(t *test
 
 // Test 09: Group Members - Percentage Strategy (No Seed)
 // Verifies percentage-based distribution for group members without seed
-func TestUnitGuidListSharderDataSource_09_GroupMembersPercentageNoSeed(t *testing.T) {
+func TestUnitDatasourceGuidListSharder_09_GroupMembersPercentageNoSeed(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, guidListSharderMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -294,7 +294,7 @@ func TestUnitGuidListSharderDataSource_09_GroupMembersPercentageNoSeed(t *testin
 
 // Test 10: Group Members - Percentage Strategy (With Seed)
 // Verifies percentage-based distribution for group members with seed
-func TestUnitGuidListSharderDataSource_10_GroupMembersPercentageWithSeed(t *testing.T) {
+func TestUnitDatasourceGuidListSharder_10_GroupMembersPercentageWithSeed(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, guidListSharderMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -323,7 +323,7 @@ func TestUnitGuidListSharderDataSource_10_GroupMembersPercentageWithSeed(t *test
 
 // Test 11: Group Members - Size Strategy (No Seed)
 // Verifies size-based distribution for group members without seed
-func TestUnitGuidListSharderDataSource_11_GroupMembersSizeNoSeed(t *testing.T) {
+func TestUnitDatasourceGuidListSharder_11_GroupMembersSizeNoSeed(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, guidListSharderMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -350,7 +350,7 @@ func TestUnitGuidListSharderDataSource_11_GroupMembersSizeNoSeed(t *testing.T) {
 
 // Test 12: Group Members - Size Strategy (With Seed)
 // Verifies size-based distribution for group members with seed
-func TestUnitGuidListSharderDataSource_12_GroupMembersSizeWithSeed(t *testing.T) {
+func TestUnitDatasourceGuidListSharder_12_GroupMembersSizeWithSeed(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, guidListSharderMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -379,7 +379,7 @@ func TestUnitGuidListSharderDataSource_12_GroupMembersSizeWithSeed(t *testing.T)
 
 // Test 13: Devices - Round-Robin Strategy (No Seed)
 // Verifies round-robin distribution for devices without seed
-func TestUnitGuidListSharderDataSource_13_DevicesRoundRobinNoSeed(t *testing.T) {
+func TestUnitDatasourceGuidListSharder_13_DevicesRoundRobinNoSeed(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, guidListSharderMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -405,7 +405,7 @@ func TestUnitGuidListSharderDataSource_13_DevicesRoundRobinNoSeed(t *testing.T) 
 
 // Test 14: Devices - Round-Robin Strategy (With Seed)
 // Verifies round-robin distribution for devices with seed
-func TestUnitGuidListSharderDataSource_14_DevicesRoundRobinWithSeed(t *testing.T) {
+func TestUnitDatasourceGuidListSharder_14_DevicesRoundRobinWithSeed(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, guidListSharderMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -433,7 +433,7 @@ func TestUnitGuidListSharderDataSource_14_DevicesRoundRobinWithSeed(t *testing.T
 
 // Test 15: Devices - Percentage Strategy (No Seed)
 // Verifies percentage-based distribution for devices without seed
-func TestUnitGuidListSharderDataSource_15_DevicesPercentageNoSeed(t *testing.T) {
+func TestUnitDatasourceGuidListSharder_15_DevicesPercentageNoSeed(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, guidListSharderMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -458,7 +458,7 @@ func TestUnitGuidListSharderDataSource_15_DevicesPercentageNoSeed(t *testing.T) 
 
 // Test 16: Devices - Percentage Strategy (With Seed)
 // Verifies percentage-based distribution for devices with seed
-func TestUnitGuidListSharderDataSource_16_DevicesPercentageWithSeed(t *testing.T) {
+func TestUnitDatasourceGuidListSharder_16_DevicesPercentageWithSeed(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, guidListSharderMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -487,7 +487,7 @@ func TestUnitGuidListSharderDataSource_16_DevicesPercentageWithSeed(t *testing.T
 
 // Test 17: Devices - Size Strategy (No Seed)
 // Verifies size-based distribution for devices without seed
-func TestUnitGuidListSharderDataSource_17_DevicesSizeNoSeed(t *testing.T) {
+func TestUnitDatasourceGuidListSharder_17_DevicesSizeNoSeed(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, guidListSharderMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -512,7 +512,7 @@ func TestUnitGuidListSharderDataSource_17_DevicesSizeNoSeed(t *testing.T) {
 
 // Test 18: Devices - Size Strategy (With Seed)
 // Verifies size-based distribution for devices with seed (multiple datasources with different seeds)
-func TestUnitGuidListSharderDataSource_18_DevicesSizeWithSeed(t *testing.T) {
+func TestUnitDatasourceGuidListSharder_18_DevicesSizeWithSeed(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, guidListSharderMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -548,7 +548,7 @@ func TestUnitGuidListSharderDataSource_18_DevicesSizeWithSeed(t *testing.T) {
 
 // Test 19: Integration - Conditional Access Policy Assignment
 // Verifies sharded GUIDs can be used in conditional access policy group assignments
-func TestUnitGuidListSharderDataSource_19_IntegrationConditionalAccess(t *testing.T) {
+func TestUnitDatasourceGuidListSharder_19_IntegrationConditionalAccess(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, guidListSharderMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -573,7 +573,7 @@ func TestUnitGuidListSharderDataSource_19_IntegrationConditionalAccess(t *testin
 
 // Test 20: Integration - Group Assignment
 // Verifies sharded GUIDs can be used for group membership assignments
-func TestUnitGuidListSharderDataSource_20_IntegrationGroupAssignment(t *testing.T) {
+func TestUnitDatasourceGuidListSharder_20_IntegrationGroupAssignment(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, guidListSharderMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -602,7 +602,7 @@ func TestUnitGuidListSharderDataSource_20_IntegrationGroupAssignment(t *testing.
 
 // Test 21: Special - Single Shard
 // Verifies behavior when creating a single shard (all GUIDs in one shard)
-func TestUnitGuidListSharderDataSource_21_SpecialSingleShard(t *testing.T) {
+func TestUnitDatasourceGuidListSharder_21_SpecialSingleShard(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, guidListSharderMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -626,7 +626,7 @@ func TestUnitGuidListSharderDataSource_21_SpecialSingleShard(t *testing.T) {
 
 // Test 22: Special - No Filter
 // Verifies behavior when no OData query filter is applied (returns all resources)
-func TestUnitGuidListSharderDataSource_22_SpecialNoFilter(t *testing.T) {
+func TestUnitDatasourceGuidListSharder_22_SpecialNoFilter(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, guidListSharderMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -658,7 +658,7 @@ func TestUnitGuidListSharderDataSource_22_SpecialNoFilter(t *testing.T) {
 
 // Test: Validation - Missing group_id when resource_type is group_members
 // Verifies schema validation rejects configuration when group_id is missing for group_members
-func TestUnitGuidListSharderDataSource_Validation_MissingGroupId(t *testing.T) {
+func TestUnitDatasourceGuidListSharder_Validation_MissingGroupId(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 
 	resource.UnitTest(t, resource.TestCase{
@@ -680,7 +680,7 @@ data "microsoft365_utility_guid_list_sharder" "test" {
 
 // Test: Validation - Invalid strategy value
 // Verifies schema validation rejects invalid strategy values
-func TestUnitGuidListSharderDataSource_Validation_InvalidStrategy(t *testing.T) {
+func TestUnitDatasourceGuidListSharder_Validation_InvalidStrategy(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 
 	resource.UnitTest(t, resource.TestCase{
@@ -702,7 +702,7 @@ data "microsoft365_utility_guid_list_sharder" "test" {
 
 // Test: Validation - Invalid resource_type value
 // Verifies schema validation rejects invalid resource_type values
-func TestUnitGuidListSharderDataSource_Validation_InvalidResourceType(t *testing.T) {
+func TestUnitDatasourceGuidListSharder_Validation_InvalidResourceType(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 
 	resource.UnitTest(t, resource.TestCase{
@@ -724,7 +724,7 @@ data "microsoft365_utility_guid_list_sharder" "test" {
 
 // Test: Validation - Both shard_count and shard_percentages provided
 // Verifies schema validation rejects configuration with both shard_count and shard_percentages
-func TestUnitGuidListSharderDataSource_Validation_BothShardingMethods(t *testing.T) {
+func TestUnitDatasourceGuidListSharder_Validation_BothShardingMethods(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 
 	resource.UnitTest(t, resource.TestCase{
@@ -747,7 +747,7 @@ data "microsoft365_utility_guid_list_sharder" "test" {
 
 // Test: Validation - Percentages don't sum to 100
 // Verifies schema validation rejects shard_percentages that don't sum to 100
-func TestUnitGuidListSharderDataSource_Validation_InvalidPercentageSum(t *testing.T) {
+func TestUnitDatasourceGuidListSharder_Validation_InvalidPercentageSum(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 
 	resource.UnitTest(t, resource.TestCase{
@@ -773,7 +773,7 @@ data "microsoft365_utility_guid_list_sharder" "test" {
 
 // Test 23: Users - Rendezvous Strategy (No Seed)
 // Verifies Rendezvous (HRW) distribution without explicit seed
-func TestUnitGuidListSharderDataSource_23_UsersRendezvousNoSeed(t *testing.T) {
+func TestUnitDatasourceGuidListSharder_23_UsersRendezvousNoSeed(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, guidListSharderMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -799,7 +799,7 @@ func TestUnitGuidListSharderDataSource_23_UsersRendezvousNoSeed(t *testing.T) {
 
 // Test 24: Users - Rendezvous Strategy (With Seed)
 // Verifies Rendezvous (HRW) distribution with explicit seed produces deterministic results
-func TestUnitGuidListSharderDataSource_24_UsersRendezvousWithSeed(t *testing.T) {
+func TestUnitDatasourceGuidListSharder_24_UsersRendezvousWithSeed(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, guidListSharderMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -826,7 +826,7 @@ func TestUnitGuidListSharderDataSource_24_UsersRendezvousWithSeed(t *testing.T) 
 // Test 25: Rendezvous Stability Test - PROVES THE HYPOTHESIS
 // This test verifies the KEY claim: minimal disruption when shard count changes
 // When increasing from 3 to 4 shards, only ~25% of GUIDs should move
-func TestUnitGuidListSharderDataSource_25_RendezvousStability(t *testing.T) {
+func TestUnitDatasourceGuidListSharder_25_RendezvousStability(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, guidListSharderMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -864,7 +864,7 @@ func TestUnitGuidListSharderDataSource_25_RendezvousStability(t *testing.T) {
 
 // Test: Validation - Negative shard_count
 // Verifies schema validation rejects negative shard_count
-func TestUnitGuidListSharderDataSource_Validation_NegativeShardCount(t *testing.T) {
+func TestUnitDatasourceGuidListSharder_Validation_NegativeShardCount(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 
 	resource.UnitTest(t, resource.TestCase{

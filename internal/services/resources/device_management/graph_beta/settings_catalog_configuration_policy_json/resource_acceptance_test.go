@@ -31,7 +31,7 @@ func loadAcceptanceTestTerraform(filename string) string {
 }
 
 // TestAccSettingsCatalogPolicyResource_01_Camera tests a simple choice setting
-func TestAccSettingsCatalogPolicyResource_01_Camera(t *testing.T) {
+func TestAccResourceSettingsCatalogConfigurationPolicyJson_01_Camera(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -86,7 +86,7 @@ func TestAccSettingsCatalogPolicyResource_01_Camera(t *testing.T) {
 }
 
 // TestAccSettingsCatalogPolicyResource_02_TaskManager tests a simple choice setting
-func TestAccSettingsCatalogPolicyResource_02_TaskManager(t *testing.T) {
+func TestAccResourceSettingsCatalogConfigurationPolicyJson_02_TaskManager(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -137,7 +137,7 @@ func TestAccSettingsCatalogPolicyResource_02_TaskManager(t *testing.T) {
 }
 
 // TestAccSettingsCatalogPolicyResource_03_AppPrivacy tests a simple choice setting
-func TestAccSettingsCatalogPolicyResource_03_AppPrivacy(t *testing.T) {
+func TestAccResourceSettingsCatalogConfigurationPolicyJson_03_AppPrivacy(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -188,7 +188,7 @@ func TestAccSettingsCatalogPolicyResource_03_AppPrivacy(t *testing.T) {
 }
 
 // TestAccSettingsCatalogPolicyResource_04_Cryptography tests a simple choice setting
-func TestAccSettingsCatalogPolicyResource_04_Cryptography(t *testing.T) {
+func TestAccResourceSettingsCatalogConfigurationPolicyJson_04_Cryptography(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -239,7 +239,7 @@ func TestAccSettingsCatalogPolicyResource_04_Cryptography(t *testing.T) {
 }
 
 // TestAccSettingsCatalogPolicyResource_05_Notifications tests a simple choice setting
-func TestAccSettingsCatalogPolicyResource_05_Notifications(t *testing.T) {
+func TestAccResourceSettingsCatalogConfigurationPolicyJson_05_Notifications(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -290,7 +290,7 @@ func TestAccSettingsCatalogPolicyResource_05_Notifications(t *testing.T) {
 }
 
 // TestAccSettingsCatalogPolicyResource_06_AttachmentManager tests multiple choice settings
-func TestAccSettingsCatalogPolicyResource_06_AttachmentManager(t *testing.T) {
+func TestAccResourceSettingsCatalogConfigurationPolicyJson_06_AttachmentManager(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -341,7 +341,7 @@ func TestAccSettingsCatalogPolicyResource_06_AttachmentManager(t *testing.T) {
 }
 
 // TestAccSettingsCatalogPolicyResource_07_CredentialUserInterface tests multiple choice settings
-func TestAccSettingsCatalogPolicyResource_07_CredentialUserInterface(t *testing.T) {
+func TestAccResourceSettingsCatalogConfigurationPolicyJson_07_CredentialUserInterface(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -392,7 +392,7 @@ func TestAccSettingsCatalogPolicyResource_07_CredentialUserInterface(t *testing.
 }
 
 // TestAccSettingsCatalogPolicyResource_08_RemoteDesktopAVDURL tests simple collection
-func TestAccSettingsCatalogPolicyResource_08_RemoteDesktopAVDURL(t *testing.T) {
+func TestAccResourceSettingsCatalogConfigurationPolicyJson_08_RemoteDesktopAVDURL(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -443,7 +443,7 @@ func TestAccSettingsCatalogPolicyResource_08_RemoteDesktopAVDURL(t *testing.T) {
 }
 
 // TestAccSettingsCatalogPolicyResource_09_StorageSense tests integer settings
-func TestAccSettingsCatalogPolicyResource_09_StorageSense(t *testing.T) {
+func TestAccResourceSettingsCatalogConfigurationPolicyJson_09_StorageSense(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -494,7 +494,7 @@ func TestAccSettingsCatalogPolicyResource_09_StorageSense(t *testing.T) {
 }
 
 // TestAccSettingsCatalogPolicyResource_11_AutoPlayPolicies tests nested choice settings
-func TestAccSettingsCatalogPolicyResource_11_AutoPlayPolicies(t *testing.T) {
+func TestAccResourceSettingsCatalogConfigurationPolicyJson_11_AutoPlayPolicies(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -545,7 +545,7 @@ func TestAccSettingsCatalogPolicyResource_11_AutoPlayPolicies(t *testing.T) {
 }
 
 // TestAccSettingsCatalogPolicyResource_12_DefenderSmartscreen tests choice with collection child
-func TestAccSettingsCatalogPolicyResource_12_DefenderSmartscreen(t *testing.T) {
+func TestAccResourceSettingsCatalogConfigurationPolicyJson_12_DefenderSmartscreen(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -596,7 +596,7 @@ func TestAccSettingsCatalogPolicyResource_12_DefenderSmartscreen(t *testing.T) {
 }
 
 // TestAccSettingsCatalogPolicyResource_13_EdgeExtensionsMacOS tests multiple collections on macOS
-func TestAccSettingsCatalogPolicyResource_13_EdgeExtensionsMacOS(t *testing.T) {
+func TestAccResourceSettingsCatalogConfigurationPolicyJson_13_EdgeExtensionsMacOS(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -647,7 +647,7 @@ func TestAccSettingsCatalogPolicyResource_13_EdgeExtensionsMacOS(t *testing.T) {
 }
 
 // TestAccSettingsCatalogPolicyResource_14_OfficeConfigurationMacOS tests nested group collections on macOS
-func TestAccSettingsCatalogPolicyResource_14_OfficeConfigurationMacOS(t *testing.T) {
+func TestAccResourceSettingsCatalogConfigurationPolicyJson_14_OfficeConfigurationMacOS(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -698,7 +698,7 @@ func TestAccSettingsCatalogPolicyResource_14_OfficeConfigurationMacOS(t *testing
 }
 
 // TestAccSettingsCatalogPolicyResource_10_WindowsConnectionManager tests choice with children
-func TestAccSettingsCatalogPolicyResource_10_WindowsConnectionManager(t *testing.T) {
+func TestAccResourceSettingsCatalogConfigurationPolicyJson_10_WindowsConnectionManager(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -749,7 +749,7 @@ func TestAccSettingsCatalogPolicyResource_10_WindowsConnectionManager(t *testing
 }
 
 // TestAccSettingsCatalogPolicyResource_15_DefenderAntivirusBaseline tests complex nested structures
-func TestAccSettingsCatalogPolicyResource_15_DefenderAntivirusBaseline(t *testing.T) {
+func TestAccResourceSettingsCatalogConfigurationPolicyJson_15_DefenderAntivirusBaseline(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -800,7 +800,7 @@ func TestAccSettingsCatalogPolicyResource_15_DefenderAntivirusBaseline(t *testin
 }
 
 // TestAccSettingsCatalogPolicyResource_16_FileExplorerMinimalAssignments tests minimal group assignments
-func TestAccSettingsCatalogPolicyResource_16_FileExplorerMinimalAssignments(t *testing.T) {
+func TestAccResourceSettingsCatalogConfigurationPolicyJson_16_FileExplorerMinimalAssignments(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -852,7 +852,7 @@ func TestAccSettingsCatalogPolicyResource_16_FileExplorerMinimalAssignments(t *t
 }
 
 // TestAccSettingsCatalogPolicyResource_17_LocalPoliciesMaximalAssignments tests policy with maximal group assignments
-func TestAccSettingsCatalogPolicyResource_17_LocalPoliciesMaximalAssignments(t *testing.T) {
+func TestAccResourceSettingsCatalogConfigurationPolicyJson_17_LocalPoliciesMaximalAssignments(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,

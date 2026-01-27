@@ -16,7 +16,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 )
 
-func TestAccMacOSCustomAttributeScriptResource_Lifecycle(t *testing.T) {
+func TestAccResourceMacOSCustomAttributeScript_01_Lifecycle(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -63,7 +63,7 @@ func TestAccMacOSCustomAttributeScriptResource_Lifecycle(t *testing.T) {
 	})
 }
 
-func TestAccMacOSCustomAttributeScriptResource_WithAssignments(t *testing.T) {
+func TestAccResourceMacOSCustomAttributeScript_02_WithAssignments(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -88,7 +88,7 @@ func TestAccMacOSCustomAttributeScriptResource_WithAssignments(t *testing.T) {
 	})
 }
 
-func TestAccMacOSCustomAttributeScriptResource_RequiredFields(t *testing.T) {
+func TestAccResourceMacOSCustomAttributeScript_02_RequiredFields(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -123,7 +123,7 @@ func TestAccMacOSCustomAttributeScriptResource_RequiredFields(t *testing.T) {
 	})
 }
 
-func TestAccMacOSCustomAttributeScriptResource_InvalidValues(t *testing.T) {
+func TestAccResourceMacOSCustomAttributeScript_04_InvalidValues(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,

@@ -13,9 +13,13 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
-// Create handles the Create operation.
-// POST /agentRegistry/agentCollections
-// REF: https://learn.microsoft.com/en-us/graph/api/agentregistry-post-agentcollections?view=graph-rest-beta
+// Create handles the Create operation for agent collection resources.
+//
+// Operation: Creates a new agent collection
+// API Calls:
+//   - POST /agentRegistry/agentCollections
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/agentregistry-post-agentcollections?view=graph-rest-beta
 func (r *AgentCollectionResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var object AgentCollectionResourceModel
 
@@ -85,9 +89,13 @@ func (r *AgentCollectionResource) Create(ctx context.Context, req resource.Creat
 	tflog.Debug(ctx, fmt.Sprintf("Finished Create Method: %s", ResourceName))
 }
 
-// Read handles the Read operation.
-// GET /agentRegistry/agentCollections/{agentCollectionId}
-// REF: https://learn.microsoft.com/en-us/graph/api/agentcollection-get?view=graph-rest-beta
+// Read handles the Read operation for agent collection resources.
+//
+// Operation: Retrieves an agent collection by ID
+// API Calls:
+//   - GET /agentRegistry/agentCollections/{agentCollectionId}
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/agentcollection-get?view=graph-rest-beta
 func (r *AgentCollectionResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var object AgentCollectionResourceModel
 
@@ -134,9 +142,13 @@ func (r *AgentCollectionResource) Read(ctx context.Context, req resource.ReadReq
 	tflog.Debug(ctx, fmt.Sprintf("Finished Read Method: %s", ResourceName))
 }
 
-// Update handles the Update operation.
-// PATCH /agentRegistry/agentCollections/{agentCollectionId}
-// REF: https://learn.microsoft.com/en-us/graph/api/agentcollection-update?view=graph-rest-beta
+// Update handles the Update operation for agent collection resources.
+//
+// Operation: Updates an existing agent collection
+// API Calls:
+//   - PATCH /agentRegistry/agentCollections/{agentCollectionId}
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/agentcollection-update?view=graph-rest-beta
 func (r *AgentCollectionResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var plan AgentCollectionResourceModel
 	var state AgentCollectionResourceModel
@@ -200,8 +212,14 @@ func (r *AgentCollectionResource) Update(ctx context.Context, req resource.Updat
 	tflog.Debug(ctx, fmt.Sprintf("Finished Update Method: %s", ResourceName))
 }
 
-// Delete handles the Delete operation.
-// DELETE /agentRegistry/agentCollections/{agentCollectionId}
+// Delete handles the Delete operation for agent collection resources.
+//
+// Operation: Deletes an agent collection
+// API Calls:
+//   - DELETE /agentRegistry/agentCollections/{agentCollectionId}
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/agentcollection-delete?view=graph-rest-beta
+// NOTE: Despite the SDK, the DELETE endpoint doesn't exist in the docs.
 func (r *AgentCollectionResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var object AgentCollectionResourceModel
 

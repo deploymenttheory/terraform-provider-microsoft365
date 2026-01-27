@@ -21,7 +21,7 @@ func loadAcceptanceTestTerraform(filename string) string {
 }
 
 // TestAccSettingsCatalogList_All tests fetching all policies from live API
-func TestAccSettingsCatalogList_All(t *testing.T) {
+func TestAccListResourceSettingsCatalogConfigurationPolicy_01_All(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -43,7 +43,7 @@ func TestAccSettingsCatalogList_All(t *testing.T) {
 }
 
 // TestAccSettingsCatalogList_ByPlatform tests filtering by platform from live API
-func TestAccSettingsCatalogList_ByPlatform(t *testing.T) {
+func TestAccListResourceSettingsCatalogConfigurationPolicy_02_ByPlatform(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -64,7 +64,7 @@ func TestAccSettingsCatalogList_ByPlatform(t *testing.T) {
 }
 
 // TestAccSettingsCatalogList_AssignedOnly tests filtering by assignment status from live API
-func TestAccSettingsCatalogList_AssignedOnly(t *testing.T) {
+func TestAccListResourceSettingsCatalogConfigurationPolicy_03_AssignedOnly(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,

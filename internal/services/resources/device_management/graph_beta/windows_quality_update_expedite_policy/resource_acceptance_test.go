@@ -29,7 +29,7 @@ func loadAcceptanceTestTerraform(filename string) string {
 	return config
 }
 
-func TestAccWindowsQualityUpdateExpeditePolicyResource_001_Scenario_Minimal(t *testing.T) {
+func TestAccResourceWindowsQualityUpdateExpeditePolicy_01_Scenario_Minimal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -68,7 +68,7 @@ func TestAccWindowsQualityUpdateExpeditePolicyResource_001_Scenario_Minimal(t *t
 	})
 }
 
-func TestAccWindowsQualityUpdateExpeditePolicyResource_002_Scenario_Maximal(t *testing.T) {
+func TestAccResourceWindowsQualityUpdateExpeditePolicy_02_Scenario_Maximal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -110,7 +110,7 @@ func TestAccWindowsQualityUpdateExpeditePolicyResource_002_Scenario_Maximal(t *t
 	})
 }
 
-func TestAccWindowsQualityUpdateExpeditePolicyResource_003_Lifecycle_MinimalToMaximal(t *testing.T) {
+func TestAccResourceWindowsQualityUpdateExpeditePolicy_03_Lifecycle_MinimalToMaximal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -164,7 +164,7 @@ func TestAccWindowsQualityUpdateExpeditePolicyResource_003_Lifecycle_MinimalToMa
 	})
 }
 
-func TestAccWindowsQualityUpdateExpeditePolicyResource_004_Lifecycle_MaximalToMinimal(t *testing.T) {
+func TestAccResourceWindowsQualityUpdateExpeditePolicy_04_Lifecycle_MaximalToMinimal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -218,7 +218,7 @@ func TestAccWindowsQualityUpdateExpeditePolicyResource_004_Lifecycle_MaximalToMi
 	})
 }
 
-func TestAccWindowsQualityUpdateExpeditePolicyResource_005_AssignmentsMinimal(t *testing.T) {
+func TestAccResourceWindowsQualityUpdateExpeditePolicy_05_AssignmentsMinimal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -268,7 +268,7 @@ func TestAccWindowsQualityUpdateExpeditePolicyResource_005_AssignmentsMinimal(t 
 	})
 }
 
-func TestAccWindowsQualityUpdateExpeditePolicyResource_006_AssignmentsMaximal(t *testing.T) {
+func TestAccResourceWindowsQualityUpdateExpeditePolicy_06_AssignmentsMaximal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -318,7 +318,7 @@ func TestAccWindowsQualityUpdateExpeditePolicyResource_006_AssignmentsMaximal(t 
 	})
 }
 
-func TestAccWindowsQualityUpdateExpeditePolicyResource_007_AssignmentsLifecycle_MinimalToMaximal(t *testing.T) {
+func TestAccResourceWindowsQualityUpdateExpeditePolicy_07_AssignmentsLifecycle_MinimalToMaximal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -386,7 +386,7 @@ func TestAccWindowsQualityUpdateExpeditePolicyResource_007_AssignmentsLifecycle_
 	})
 }
 
-func TestAccWindowsQualityUpdateExpeditePolicyResource_008_AssignmentsLifecycle_MaximalToMinimal(t *testing.T) {
+func TestAccResourceWindowsQualityUpdateExpeditePolicy_08_AssignmentsLifecycle_MaximalToMinimal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,

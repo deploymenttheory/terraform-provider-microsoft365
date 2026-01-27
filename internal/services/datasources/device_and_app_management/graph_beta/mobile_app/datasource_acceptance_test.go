@@ -22,7 +22,7 @@ func loadAcceptanceTestTerraform(filename string) string {
 }
 
 // Test 01: Get all mobile apps
-func TestAccMobileAppDataSource_All(t *testing.T) {
+func TestAccDatasourceMobileApp_01_All(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -70,7 +70,7 @@ func TestAccMobileAppDataSource_All(t *testing.T) {
 }
 
 // Test 02: Get by display name
-func TestAccMobileAppDataSource_ByDisplayName(t *testing.T) {
+func TestAccDatasourceMobileApp_02_ByDisplayName(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -109,7 +109,7 @@ func TestAccMobileAppDataSource_ByDisplayName(t *testing.T) {
 }
 
 // Test 03: Get by publisher name
-func TestAccMobileAppDataSource_ByPublisherName(t *testing.T) {
+func TestAccDatasourceMobileApp_03_ByPublisherName(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,

@@ -127,7 +127,7 @@ func testConfigMinimalWithResourceName(resourceName string) string {
 }
 
 // TestUnitIOSManagedMobileAppResource_Create_Minimal tests the creation of an iOS managed mobile app with minimal configuration
-func TestUnitIOSManagedMobileAppResource_Create_Minimal(t *testing.T) {
+func TestUnitResourceIOSManagedMobileApp_01_Create_Minimal(t *testing.T) {
 	// Set up mock environment
 	_, _ = setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -152,7 +152,7 @@ func TestUnitIOSManagedMobileAppResource_Create_Minimal(t *testing.T) {
 }
 
 // TestUnitIOSManagedMobileAppResource_Create_Maximal tests the creation of an iOS managed mobile app with maximal configuration
-func TestUnitIOSManagedMobileAppResource_Create_Maximal(t *testing.T) {
+func TestUnitResourceIOSManagedMobileApp_02_Create_Maximal(t *testing.T) {
 	// Set up mock environment
 	_, _ = setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -178,7 +178,7 @@ func TestUnitIOSManagedMobileAppResource_Create_Maximal(t *testing.T) {
 }
 
 // TestUnitIOSManagedMobileAppResource_Update_MinimalToMaximal tests updating from minimal to maximal configuration
-func TestUnitIOSManagedMobileAppResource_Update_MinimalToMaximal(t *testing.T) {
+func TestUnitResourceIOSManagedMobileApp_03_Update_MinimalToMaximal(t *testing.T) {
 	// Set up mock environment
 	_, _ = setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -214,7 +214,7 @@ func TestUnitIOSManagedMobileAppResource_Update_MinimalToMaximal(t *testing.T) {
 }
 
 // TestUnitIOSManagedMobileAppResource_Update_MaximalToMinimal tests updating from maximal to minimal configuration
-func TestUnitIOSManagedMobileAppResource_Update_MaximalToMinimal(t *testing.T) {
+func TestUnitResourceIOSManagedMobileApp_04_Update_MaximalToMinimal(t *testing.T) {
 	// Set up mock environment
 	_, _ = setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -247,7 +247,7 @@ func TestUnitIOSManagedMobileAppResource_Update_MaximalToMinimal(t *testing.T) {
 }
 
 // TestUnitIOSManagedMobileAppResource_Delete_Minimal tests deleting an iOS managed mobile app with minimal configuration
-func TestUnitIOSManagedMobileAppResource_Delete_Minimal(t *testing.T) {
+func TestUnitResourceIOSManagedMobileApp_05_Delete_Minimal(t *testing.T) {
 	// Set up mock environment
 	_, _ = setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -283,7 +283,7 @@ func TestUnitIOSManagedMobileAppResource_Delete_Minimal(t *testing.T) {
 }
 
 // TestUnitIOSManagedMobileAppResource_Delete_Maximal tests deleting an iOS managed mobile app with maximal configuration
-func TestUnitIOSManagedMobileAppResource_Delete_Maximal(t *testing.T) {
+func TestUnitResourceIOSManagedMobileApp_06_Delete_Maximal(t *testing.T) {
 	// Set up mock environment
 	_, _ = setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -319,7 +319,7 @@ func TestUnitIOSManagedMobileAppResource_Delete_Maximal(t *testing.T) {
 }
 
 // TestUnitIOSManagedMobileAppResource_Import tests importing a resource
-func TestUnitIOSManagedMobileAppResource_Import(t *testing.T) {
+func TestUnitResourceIOSManagedMobileApp_07_Import(t *testing.T) {
 	// Set up mock environment
 	_, _ = setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -365,7 +365,7 @@ resource "microsoft365_graph_beta_device_and_app_management_ios_managed_mobile_a
 }
 
 // TestUnitIOSManagedMobileAppResource_Error tests error handling
-func TestUnitIOSManagedMobileAppResource_Error(t *testing.T) {
+func TestUnitResourceIOSManagedMobileApp_08_Error(t *testing.T) {
 	// Set up mock environment
 	_, managedAppMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()

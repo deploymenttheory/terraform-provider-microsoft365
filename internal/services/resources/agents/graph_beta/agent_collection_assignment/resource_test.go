@@ -26,8 +26,8 @@ func setupMockEnvironment() (*mocks.Mocks, *agentCollectionAssignmentMocks.Agent
 	return mockClient, agentCollectionAssignmentMock
 }
 
-// TestUnitAgentCollectionAssignmentResource_Minimal tests creating an agent collection assignment with minimal configuration
-func TestUnitAgentCollectionAssignmentResource_Minimal(t *testing.T) {
+// TestUnitResourceAgentCollectionAssignment_01_Minimal tests creating an agent collection assignment with minimal configuration
+func TestUnitResourceAgentCollectionAssignment_01_Minimal(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, agentCollectionAssignmentMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()

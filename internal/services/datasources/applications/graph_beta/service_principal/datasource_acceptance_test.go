@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
-func TestAccServicePrincipalDataSource_All(t *testing.T) {
+func TestAccDatasourceServicePrincipal_01_All(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -37,7 +37,7 @@ func TestAccServicePrincipalDataSource_All(t *testing.T) {
 	})
 }
 
-func TestAccServicePrincipalDataSource_ByDisplayName(t *testing.T) {
+func TestAccDatasourceServicePrincipal_02_ByDisplayName(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -64,7 +64,7 @@ func TestAccServicePrincipalDataSource_ByDisplayName(t *testing.T) {
 	})
 }
 
-func TestAccServicePrincipalDataSource_ByAppId(t *testing.T) {
+func TestAccDatasourceServicePrincipal_03_ByAppId(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -91,7 +91,7 @@ func TestAccServicePrincipalDataSource_ByAppId(t *testing.T) {
 	})
 }
 
-func TestAccServicePrincipalDataSource_ODataFilter(t *testing.T) {
+func TestAccDatasourceServicePrincipal_04_ODataFilter(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -119,7 +119,7 @@ func TestAccServicePrincipalDataSource_ODataFilter(t *testing.T) {
 	})
 }
 
-func TestAccServicePrincipalDataSource_ODataAdvanced(t *testing.T) {
+func TestAccDatasourceServicePrincipal_05_ODataAdvanced(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -145,7 +145,7 @@ func TestAccServicePrincipalDataSource_ODataAdvanced(t *testing.T) {
 	})
 }
 
-func TestAccServicePrincipalDataSource_ODataComprehensive(t *testing.T) {
+func TestAccDatasourceServicePrincipal_06_ODataComprehensive(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -174,7 +174,7 @@ func TestAccServicePrincipalDataSource_ODataComprehensive(t *testing.T) {
 	})
 }
 
-func TestAccServicePrincipalDataSource_ODataSearchOnly(t *testing.T) {
+func TestAccDatasourceServicePrincipal_07_ODataSearchOnly(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,

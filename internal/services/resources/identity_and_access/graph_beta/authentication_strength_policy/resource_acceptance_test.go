@@ -26,7 +26,7 @@ var (
 	testResource = graphBetaAuthenticationStrength.AuthenticationStrengthTestResource{}
 )
 
-func TestAccAuthenticationStrengthResource_Minimal(t *testing.T) {
+func TestAccResourceAuthenticationStrengthPolicy_01_Minimal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -78,7 +78,7 @@ func TestAccAuthenticationStrengthResource_Minimal(t *testing.T) {
 	})
 }
 
-func TestAccAuthenticationStrengthResource_Maximal(t *testing.T) {
+func TestAccResourceAuthenticationStrengthPolicy_02_Maximal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,

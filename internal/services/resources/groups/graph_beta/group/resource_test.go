@@ -41,7 +41,7 @@ func setupErrorMockEnvironment() (*mocks.Mocks, *groupMocks.GroupMock) {
 }
 
 // TestGroupResource_RequiredFields tests required field validation
-func TestGroupResource_RequiredFields(t *testing.T) {
+func TestUnitResourceGroup_01_RequiredFields(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, groupMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -99,7 +99,7 @@ resource "microsoft365_graph_beta_groups_group" "test" {
 }
 
 // TestGroupResource_ErrorHandling tests error scenarios
-func TestGroupResource_ErrorHandling(t *testing.T) {
+func TestUnitResourceGroup_02_ErrorHandling(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, groupMock := setupErrorMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -124,7 +124,7 @@ resource "microsoft365_graph_beta_groups_group" "test" {
 }
 
 // TestGroupResource_InvalidValues tests invalid value validation
-func TestGroupResource_InvalidValues(t *testing.T) {
+func TestUnitResourceGroup_03_InvalidValues(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, groupMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -150,7 +150,7 @@ resource "microsoft365_graph_beta_groups_group" "test" {
 }
 
 // TestGroupResource_MailNicknameValidation tests mail_nickname validation
-func TestGroupResource_MailNicknameValidation(t *testing.T) {
+func TestUnitResourceGroup_04_MailNicknameValidation(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, groupMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -175,7 +175,7 @@ resource "microsoft365_graph_beta_groups_group" "test" {
 }
 
 // TestGroupResource_Scenario1_SecurityGroupAssigned tests security group with assigned membership
-func TestGroupResource_Scenario1_SecurityGroupAssigned(t *testing.T) {
+func TestUnitResourceGroup_05_Scenario1_SecurityGroupAssigned(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, groupMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -213,7 +213,7 @@ func TestGroupResource_Scenario1_SecurityGroupAssigned(t *testing.T) {
 }
 
 // TestGroupResource_Scenario2_SecurityGroupDynamicUser tests security group with dynamic user membership
-func TestGroupResource_Scenario2_SecurityGroupDynamicUser(t *testing.T) {
+func TestUnitResourceGroup_06_Scenario2_SecurityGroupDynamicUser(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, groupMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -253,7 +253,7 @@ func TestGroupResource_Scenario2_SecurityGroupDynamicUser(t *testing.T) {
 }
 
 // TestGroupResource_Scenario3_SecurityGroupDynamicDevice tests security group with dynamic device membership
-func TestGroupResource_Scenario3_SecurityGroupDynamicDevice(t *testing.T) {
+func TestUnitResourceGroup_07_Scenario3_SecurityGroupDynamicDevice(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, groupMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -293,7 +293,7 @@ func TestGroupResource_Scenario3_SecurityGroupDynamicDevice(t *testing.T) {
 }
 
 // TestGroupResource_Scenario4_SecurityGroupRoleAssignable tests security group with Entra role assignment capability
-func TestGroupResource_Scenario4_SecurityGroupRoleAssignable(t *testing.T) {
+func TestUnitResourceGroup_08_Scenario4_SecurityGroupRoleAssignable(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, groupMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -332,7 +332,7 @@ func TestGroupResource_Scenario4_SecurityGroupRoleAssignable(t *testing.T) {
 }
 
 // TestGroupResource_Scenario5_M365GroupDynamicUser tests M365 group with dynamic user membership
-func TestGroupResource_Scenario5_M365GroupDynamicUser(t *testing.T) {
+func TestUnitResourceGroup_09_Scenario5_M365GroupDynamicUser(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, groupMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -373,7 +373,7 @@ func TestGroupResource_Scenario5_M365GroupDynamicUser(t *testing.T) {
 }
 
 // TestGroupResource_Scenario6_M365GroupAssigned tests M365 group with assigned membership
-func TestGroupResource_Scenario6_M365GroupAssigned(t *testing.T) {
+func TestUnitResourceGroup_10_Scenario6_M365GroupAssigned(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, groupMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()

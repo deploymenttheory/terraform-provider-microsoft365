@@ -16,7 +16,7 @@ var (
 	dataSourceType = utilityMicrosoft365ServicePlan.DataSourceName
 )
 
-func TestUnitLicensingServicePlanReferenceDataSource_SearchByProductName(t *testing.T) {
+func TestUnitDatasourceLicensingServicePlanReference_01_SearchByProductName(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 
 	resource.UnitTest(t, resource.TestCase{
@@ -36,7 +36,7 @@ func TestUnitLicensingServicePlanReferenceDataSource_SearchByProductName(t *test
 	})
 }
 
-func TestUnitLicensingServicePlanReferenceDataSource_SearchByStringId(t *testing.T) {
+func TestUnitDatasourceLicensingServicePlanReference_02_SearchByStringId(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 
 	resource.UnitTest(t, resource.TestCase{
@@ -56,7 +56,7 @@ func TestUnitLicensingServicePlanReferenceDataSource_SearchByStringId(t *testing
 	})
 }
 
-func TestUnitLicensingServicePlanReferenceDataSource_SearchByGuid(t *testing.T) {
+func TestUnitDatasourceLicensingServicePlanReference_03_SearchByGuid(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 
 	resource.UnitTest(t, resource.TestCase{
@@ -75,7 +75,7 @@ func TestUnitLicensingServicePlanReferenceDataSource_SearchByGuid(t *testing.T) 
 	})
 }
 
-func TestUnitLicensingServicePlanReferenceDataSource_SearchByServicePlanName(t *testing.T) {
+func TestUnitDatasourceLicensingServicePlanReference_04_SearchByServicePlanName(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 
 	resource.UnitTest(t, resource.TestCase{
@@ -96,7 +96,7 @@ func TestUnitLicensingServicePlanReferenceDataSource_SearchByServicePlanName(t *
 	})
 }
 
-func TestUnitLicensingServicePlanReferenceDataSource_SearchByServicePlanId(t *testing.T) {
+func TestUnitDatasourceLicensingServicePlanReference_05_SearchByServicePlanId(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 
 	resource.UnitTest(t, resource.TestCase{
@@ -115,7 +115,7 @@ func TestUnitLicensingServicePlanReferenceDataSource_SearchByServicePlanId(t *te
 	})
 }
 
-func TestUnitLicensingServicePlanReferenceDataSource_SearchByServicePlanGuid(t *testing.T) {
+func TestUnitDatasourceLicensingServicePlanReference_06_SearchByServicePlanGuid(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 
 	resource.UnitTest(t, resource.TestCase{
@@ -134,7 +134,7 @@ func TestUnitLicensingServicePlanReferenceDataSource_SearchByServicePlanGuid(t *
 	})
 }
 
-func TestUnitLicensingServicePlanReferenceDataSource_MultipleParametersProvided(t *testing.T) {
+func TestUnitDatasourceLicensingServicePlanReference_07_MultipleParametersProvided(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 
 	resource.UnitTest(t, resource.TestCase{
@@ -148,7 +148,7 @@ func TestUnitLicensingServicePlanReferenceDataSource_MultipleParametersProvided(
 	})
 }
 
-func TestUnitLicensingServicePlanReferenceDataSource_NoParametersProvided(t *testing.T) {
+func TestUnitDatasourceLicensingServicePlanReference_08_NoParametersProvided(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 
 	resource.UnitTest(t, resource.TestCase{
@@ -162,7 +162,7 @@ func TestUnitLicensingServicePlanReferenceDataSource_NoParametersProvided(t *tes
 	})
 }
 
-func TestUnitLicensingServicePlanReferenceDataSource_InvalidGuidFormat(t *testing.T) {
+func TestUnitDatasourceLicensingServicePlanReference_09_InvalidGuidFormat(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 
 	resource.UnitTest(t, resource.TestCase{

@@ -86,7 +86,7 @@ const resourceType = graphBetaWindowsRemediationScript.ResourceName
 var testResource = graphBetaWindowsRemediationScript.WindowsRemediationScriptTestResource{}
 
 // Test 001: Scenario 1 - Minimal configuration without assignments
-func TestAccWindowsRemediationScriptResource_001_Scenario_Minimal(t *testing.T) {
+func TestAccResourceWindowsRemediationScript_01_Scenario_Minimal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -122,7 +122,7 @@ func TestAccWindowsRemediationScriptResource_001_Scenario_Minimal(t *testing.T) 
 }
 
 // Test 002: Scenario 2 - Maximal configuration without assignments
-func TestAccWindowsRemediationScriptResource_002_Scenario_Maximal(t *testing.T) {
+func TestAccResourceWindowsRemediationScript_02_Scenario_Maximal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -158,7 +158,7 @@ func TestAccWindowsRemediationScriptResource_002_Scenario_Maximal(t *testing.T) 
 }
 
 // Test 003: Scenario 3 - Lifecycle from minimal to maximal
-func TestAccWindowsRemediationScriptResource_003_Lifecycle_MinimalToMaximal(t *testing.T) {
+func TestAccResourceWindowsRemediationScript_03_Lifecycle_MinimalToMaximal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -199,7 +199,7 @@ func TestAccWindowsRemediationScriptResource_003_Lifecycle_MinimalToMaximal(t *t
 }
 
 // Test 004: Scenario 4 - Lifecycle from maximal to minimal
-func TestAccWindowsRemediationScriptResource_004_Lifecycle_MaximalToMinimal(t *testing.T) {
+func TestAccResourceWindowsRemediationScript_04_Lifecycle_MaximalToMinimal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -239,7 +239,7 @@ func TestAccWindowsRemediationScriptResource_004_Lifecycle_MaximalToMinimal(t *t
 }
 
 // Test 005: Scenario 5 - Minimal assignments
-func TestAccWindowsRemediationScriptResource_005_AssignmentsMinimal(t *testing.T) {
+func TestAccResourceWindowsRemediationScript_05_AssignmentsMinimal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -272,7 +272,7 @@ func TestAccWindowsRemediationScriptResource_005_AssignmentsMinimal(t *testing.T
 }
 
 // Test 006: Scenario 6 - Maximal assignments
-func TestAccWindowsRemediationScriptResource_006_AssignmentsMaximal(t *testing.T) {
+func TestAccResourceWindowsRemediationScript_06_AssignmentsMaximal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -315,7 +315,7 @@ func TestAccWindowsRemediationScriptResource_006_AssignmentsMaximal(t *testing.T
 }
 
 // Test 007: Scenario 7 - Assignments lifecycle minimal to maximal
-func TestAccWindowsRemediationScriptResource_007_AssignmentsLifecycle_MinimalToMaximal(t *testing.T) {
+func TestAccResourceWindowsRemediationScript_07_AssignmentsLifecycle_MinimalToMaximal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -370,7 +370,7 @@ func TestAccWindowsRemediationScriptResource_007_AssignmentsLifecycle_MinimalToM
 }
 
 // Test 008: Scenario 8 - Assignments lifecycle maximal to minimal
-func TestAccWindowsRemediationScriptResource_008_AssignmentsLifecycle_MaximalToMinimal(t *testing.T) {
+func TestAccResourceWindowsRemediationScript_08_AssignmentsLifecycle_MaximalToMinimal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
