@@ -48,7 +48,7 @@ func testConfigNone() string {
 }
 
 // TestUnitGroupLifecycleExpirationPolicyResource_ManagedGroupTypes_All tests managed_group_types = "All"
-func TestUnitGroupLifecycleExpirationPolicyResource_ManagedGroupTypes_All(t *testing.T) {
+func TestUnitResourceGroupLifecycleExpirationPolicy_01_ManagedGroupTypes_All(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, policyMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -77,7 +77,7 @@ func TestUnitGroupLifecycleExpirationPolicyResource_ManagedGroupTypes_All(t *tes
 }
 
 // TestUnitGroupLifecycleExpirationPolicyResource_ManagedGroupTypes_Selected tests managed_group_types = "Selected"
-func TestUnitGroupLifecycleExpirationPolicyResource_ManagedGroupTypes_Selected(t *testing.T) {
+func TestUnitResourceGroupLifecycleExpirationPolicy_02_ManagedGroupTypes_Selected(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, policyMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -106,7 +106,7 @@ func TestUnitGroupLifecycleExpirationPolicyResource_ManagedGroupTypes_Selected(t
 }
 
 // TestUnitGroupLifecycleExpirationPolicyResource_ManagedGroupTypes_None tests managed_group_types = "None"
-func TestUnitGroupLifecycleExpirationPolicyResource_ManagedGroupTypes_None(t *testing.T) {
+func TestUnitResourceGroupLifecycleExpirationPolicy_03_ManagedGroupTypes_None(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, policyMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -135,7 +135,7 @@ func TestUnitGroupLifecycleExpirationPolicyResource_ManagedGroupTypes_None(t *te
 }
 
 // TestUnitGroupLifecycleExpirationPolicyResource_Delete tests resource deletion
-func TestUnitGroupLifecycleExpirationPolicyResource_Delete(t *testing.T) {
+func TestUnitResourceGroupLifecycleExpirationPolicy_04_Delete(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, policyMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -165,7 +165,7 @@ func TestUnitGroupLifecycleExpirationPolicyResource_Delete(t *testing.T) {
 }
 
 // TestUnitGroupLifecycleExpirationPolicyResource_RequiredFields tests required field validation
-func TestUnitGroupLifecycleExpirationPolicyResource_RequiredFields(t *testing.T) {
+func TestUnitResourceGroupLifecycleExpirationPolicy_05_RequiredFields(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, policyMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -206,7 +206,7 @@ resource "microsoft365_graph_beta_groups_group_lifecycle_expiration_policy" "tes
 }
 
 // TestUnitGroupLifecycleExpirationPolicyResource_InvalidValues tests invalid value validation
-func TestUnitGroupLifecycleExpirationPolicyResource_InvalidValues(t *testing.T) {
+func TestUnitResourceGroupLifecycleExpirationPolicy_06_InvalidValues(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, policyMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -240,7 +240,7 @@ resource "microsoft365_graph_beta_groups_group_lifecycle_expiration_policy" "tes
 }
 
 // TestUnitGroupLifecycleExpirationPolicyResource_ErrorHandling tests API error handling
-func TestUnitGroupLifecycleExpirationPolicyResource_ErrorHandling(t *testing.T) {
+func TestUnitResourceGroupLifecycleExpirationPolicy_07_ErrorHandling(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, policyMock := setupErrorMockEnvironment()
 	defer httpmock.DeactivateAndReset()

@@ -13,7 +13,13 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
-// Create handles the Create operation for the RoleDefinition resource.
+// Create handles the Create operation for Cloud PC role definition resources.
+//
+// Operation: Creates a new Cloud PC role definition
+// API Calls:
+//   - POST /roleManagement/cloudPC/roleDefinitions
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/rbacapplicationmultiple-post-roledefinitions?view=graph-rest-beta
 func (r *RoleDefinitionResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var object RoleDefinitionResourceModel
 
@@ -76,7 +82,13 @@ func (r *RoleDefinitionResource) Create(ctx context.Context, req resource.Create
 	tflog.Debug(ctx, fmt.Sprintf("Finished Create Method: %s", ResourceName))
 }
 
-// Read handles the Read operation for the RoleDefinition resource.
+// Read handles the Read operation for Cloud PC role definition resources.
+//
+// Operation: Retrieves a Cloud PC role definition by ID
+// API Calls:
+//   - GET /roleManagement/cloudPC/roleDefinitions/{id}
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/unifiedroledefinition-get?view=graph-rest-beta
 func (r *RoleDefinitionResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var object RoleDefinitionResourceModel
 
@@ -119,8 +131,13 @@ func (r *RoleDefinitionResource) Read(ctx context.Context, req resource.ReadRequ
 	tflog.Debug(ctx, fmt.Sprintf("Finished Read method for: %s", ResourceName))
 }
 
-// Update handles the Update operation for role definitions and assignments,
-// tracking assignments strictly by ID
+// Update handles the Update operation for Cloud PC role definition resources.
+//
+// Operation: Updates an existing Cloud PC role definition
+// API Calls:
+//   - PATCH /roleManagement/cloudPC/roleDefinitions/{id}
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/unifiedroledefinition-update?view=graph-rest-beta
 func (r *RoleDefinitionResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var plan RoleDefinitionResourceModel
 	var state RoleDefinitionResourceModel
@@ -178,7 +195,13 @@ func (r *RoleDefinitionResource) Update(ctx context.Context, req resource.Update
 	tflog.Debug(ctx, fmt.Sprintf("Finished updating %s with ID: %s", ResourceName, state.ID.ValueString()))
 }
 
-// Delete handles the Delete operation for the RoleDefinition resource.
+// Delete handles the Delete operation for Cloud PC role definition resources.
+//
+// Operation: Deletes a Cloud PC role definition
+// API Calls:
+//   - DELETE /roleManagement/cloudPC/roleDefinitions/{id}
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/unifiedroledefinition-delete?view=graph-rest-beta
 func (r *RoleDefinitionResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var data RoleDefinitionResourceModel
 

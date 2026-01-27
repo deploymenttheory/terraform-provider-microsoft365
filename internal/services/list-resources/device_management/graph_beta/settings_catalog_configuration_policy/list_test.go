@@ -44,7 +44,7 @@ func setupErrorMockEnvironment() (*mocks.Mocks, *listMocks.SettingsCatalogListMo
 	return mockClient, listMock
 }
 
-func TestSettingsCatalogList_All(t *testing.T) {
+func TestUnitListResourceSettingsCatalogConfigurationPolicy_01_All(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, listMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -68,7 +68,7 @@ func TestSettingsCatalogList_All(t *testing.T) {
 	})
 }
 
-func TestSettingsCatalogList_ByName(t *testing.T) {
+func TestUnitListResourceSettingsCatalogConfigurationPolicy_02_ByName(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, listMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -92,7 +92,7 @@ func TestSettingsCatalogList_ByName(t *testing.T) {
 	})
 }
 
-func TestSettingsCatalogList_ByPlatform(t *testing.T) {
+func TestUnitListResourceSettingsCatalogConfigurationPolicy_03_ByPlatform(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, listMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -116,7 +116,7 @@ func TestSettingsCatalogList_ByPlatform(t *testing.T) {
 	})
 }
 
-func TestSettingsCatalogList_ByTemplateFamily(t *testing.T) {
+func TestUnitListResourceSettingsCatalogConfigurationPolicy_04_ByTemplateFamily(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, listMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -140,7 +140,7 @@ func TestSettingsCatalogList_ByTemplateFamily(t *testing.T) {
 	})
 }
 
-func TestSettingsCatalogList_AssignedOnly(t *testing.T) {
+func TestUnitListResourceSettingsCatalogConfigurationPolicy_05_AssignedOnly(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, listMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -164,7 +164,7 @@ func TestSettingsCatalogList_AssignedOnly(t *testing.T) {
 	})
 }
 
-func TestSettingsCatalogList_CombinedFilters(t *testing.T) {
+func TestUnitListResourceSettingsCatalogConfigurationPolicy_06_CombinedFilters(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, listMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -188,7 +188,7 @@ func TestSettingsCatalogList_CombinedFilters(t *testing.T) {
 	})
 }
 
-func TestSettingsCatalogList_Error(t *testing.T) {
+func TestUnitListResourceSettingsCatalogConfigurationPolicy_07_Error(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, listMock := setupErrorMockEnvironment()
 	defer httpmock.DeactivateAndReset()

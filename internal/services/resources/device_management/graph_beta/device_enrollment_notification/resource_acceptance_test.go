@@ -16,7 +16,7 @@ import (
 )
 
 // Android Platform Tests
-func TestAccDeviceEnrollmentNotificationResource_AndroidEmailMinimal(t *testing.T) {
+func TestAccResourceDeviceEnrollmentNotification_01_AndroidEmailMinimal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -45,7 +45,7 @@ func TestAccDeviceEnrollmentNotificationResource_AndroidEmailMinimal(t *testing.
 	})
 }
 
-func TestAccDeviceEnrollmentNotificationResource_AndroidEmailMaximal(t *testing.T) {
+func TestAccResourceDeviceEnrollmentNotification_02_AndroidEmailMaximal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -74,7 +74,7 @@ func TestAccDeviceEnrollmentNotificationResource_AndroidEmailMaximal(t *testing.
 	})
 }
 
-func TestAccDeviceEnrollmentNotificationResource_AndroidPushMaximal(t *testing.T) {
+func TestAccResourceDeviceEnrollmentNotification_03_AndroidPushMaximal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -101,7 +101,7 @@ func TestAccDeviceEnrollmentNotificationResource_AndroidPushMaximal(t *testing.T
 	})
 }
 
-func TestAccDeviceEnrollmentNotificationResource_AndroidAllMaximal(t *testing.T) {
+func TestAccResourceDeviceEnrollmentNotification_04_AndroidAllMaximal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -130,7 +130,7 @@ func TestAccDeviceEnrollmentNotificationResource_AndroidAllMaximal(t *testing.T)
 }
 
 // AndroidForWork Platform Tests
-func TestAccDeviceEnrollmentNotificationResource_AndroidForWorkEmailMinimal(t *testing.T) {
+func TestAccResourceDeviceEnrollmentNotification_05_AndroidForWorkEmailMinimal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -157,7 +157,7 @@ func TestAccDeviceEnrollmentNotificationResource_AndroidForWorkEmailMinimal(t *t
 	})
 }
 
-func TestAccDeviceEnrollmentNotificationResource_AndroidForWorkEmailMaximal(t *testing.T) {
+func TestAccResourceDeviceEnrollmentNotification_06_AndroidForWorkEmailMaximal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -185,7 +185,7 @@ func TestAccDeviceEnrollmentNotificationResource_AndroidForWorkEmailMaximal(t *t
 	})
 }
 
-func TestAccDeviceEnrollmentNotificationResource_AndroidForWorkPushMaximal(t *testing.T) {
+func TestAccResourceDeviceEnrollmentNotification_05_AndroidForWorkPushMaximal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -212,7 +212,7 @@ func TestAccDeviceEnrollmentNotificationResource_AndroidForWorkPushMaximal(t *te
 	})
 }
 
-func TestAccDeviceEnrollmentNotificationResource_AndroidForWorkAllMaximal(t *testing.T) {
+func TestAccResourceDeviceEnrollmentNotification_08_AndroidForWorkAllMaximal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,

@@ -150,8 +150,8 @@ func testConfigMinimalWithResourceName(resourceName string) string {
 }`, resourceName)
 }
 
-// TestUnitAzureNetworkConnectionResource_Create_Minimal tests the creation of an azure network connection with minimal configuration
-func TestUnitAzureNetworkConnectionResource_Create_Minimal(t *testing.T) {
+// TestUnitResourceAzureNetworkConnection_01_CreateMinimal tests the creation of an azure network connection with minimal configuration
+func TestUnitResourceAzureNetworkConnection_01_CreateMinimal(t *testing.T) {
 	// Set up mock environment
 	_, _ = setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -185,8 +185,8 @@ func TestUnitAzureNetworkConnectionResource_Create_Minimal(t *testing.T) {
 	})
 }
 
-// TestUnitAzureNetworkConnectionResource_Create_Maximal tests the creation of an azure network connection with maximal configuration
-func TestUnitAzureNetworkConnectionResource_Create_Maximal(t *testing.T) {
+// TestUnitResourceAzureNetworkConnection_02_CreateMaximal tests the creation of an azure network connection with maximal configuration
+func TestUnitResourceAzureNetworkConnection_02_CreateMaximal(t *testing.T) {
 	// Set up mock environment
 	_, _ = setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -221,8 +221,8 @@ func TestUnitAzureNetworkConnectionResource_Create_Maximal(t *testing.T) {
 	})
 }
 
-// TestUnitAzureNetworkConnectionResource_Update_MinimalToMaximal tests updating from minimal to maximal configuration
-func TestUnitAzureNetworkConnectionResource_Update_MinimalToMaximal(t *testing.T) {
+// TestUnitResourceAzureNetworkConnection_03_UpdateMinimalToMaximal tests updating from minimal to maximal configuration
+func TestUnitResourceAzureNetworkConnection_03_UpdateMinimalToMaximal(t *testing.T) {
 	// Set up mock environment
 	_, _ = setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -259,8 +259,8 @@ func TestUnitAzureNetworkConnectionResource_Update_MinimalToMaximal(t *testing.T
 	})
 }
 
-// TestUnitAzureNetworkConnectionResource_Update_MaximalToMinimal tests updating from maximal to minimal configuration
-func TestUnitAzureNetworkConnectionResource_Update_MaximalToMinimal(t *testing.T) {
+// TestUnitResourceAzureNetworkConnection_04_UpdateMaximalToMinimal tests updating from maximal to minimal configuration
+func TestUnitResourceAzureNetworkConnection_04_UpdateMaximalToMinimal(t *testing.T) {
 	// Set up mock environment
 	_, _ = setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -295,8 +295,8 @@ func TestUnitAzureNetworkConnectionResource_Update_MaximalToMinimal(t *testing.T
 	})
 }
 
-// TestUnitAzureNetworkConnectionResource_Delete_Minimal tests deleting an azure network connection with minimal configuration
-func TestUnitAzureNetworkConnectionResource_Delete_Minimal(t *testing.T) {
+// TestUnitResourceAzureNetworkConnection_05_DeleteMinimal tests deleting an azure network connection with minimal configuration
+func TestUnitResourceAzureNetworkConnection_05_DeleteMinimal(t *testing.T) {
 	// Set up mock environment
 	_, _ = setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -331,8 +331,8 @@ func TestUnitAzureNetworkConnectionResource_Delete_Minimal(t *testing.T) {
 	})
 }
 
-// TestUnitAzureNetworkConnectionResource_Delete_Maximal tests deleting an azure network connection with maximal configuration
-func TestUnitAzureNetworkConnectionResource_Delete_Maximal(t *testing.T) {
+// TestUnitResourceAzureNetworkConnection_06_DeleteMaximal tests deleting an azure network connection with maximal configuration
+func TestUnitResourceAzureNetworkConnection_06_DeleteMaximal(t *testing.T) {
 	// Set up mock environment
 	_, _ = setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -367,8 +367,8 @@ func TestUnitAzureNetworkConnectionResource_Delete_Maximal(t *testing.T) {
 	})
 }
 
-// TestUnitAzureNetworkConnectionResource_Import tests importing a resource
-func TestUnitAzureNetworkConnectionResource_Import(t *testing.T) {
+// TestUnitResourceAzureNetworkConnection_07_Import tests importing a resource
+func TestUnitResourceAzureNetworkConnection_07_Import(t *testing.T) {
 	// Set up mock environment
 	_, _ = setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -400,8 +400,8 @@ func TestUnitAzureNetworkConnectionResource_Import(t *testing.T) {
 	})
 }
 
-// TestUnitAzureNetworkConnectionResource_Error tests error handling
-func TestUnitAzureNetworkConnectionResource_Error(t *testing.T) {
+// TestUnitResourceAzureNetworkConnection_08_Error tests error handling
+func TestUnitResourceAzureNetworkConnection_08_Error(t *testing.T) {
 	// Set up mock environment
 	_, connectionMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()

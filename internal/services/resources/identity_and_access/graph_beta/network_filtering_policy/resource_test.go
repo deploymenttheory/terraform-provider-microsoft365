@@ -32,7 +32,7 @@ func setupErrorMockEnvironment() (*mocks.Mocks, *networkFilteringPolicyMocks.Fil
 	return mockClient, filteringPolicyMock
 }
 
-func TestNetworkFilteringPolicyResource_Basic(t *testing.T) {
+func TestUnitResourceNetworkFilteringPolicy_01_Basic(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, filteringPolicyMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -59,7 +59,7 @@ func TestNetworkFilteringPolicyResource_Basic(t *testing.T) {
 	})
 }
 
-func TestNetworkFilteringPolicyResource_Update(t *testing.T) {
+func TestUnitResourceNetworkFilteringPolicy_02_Update(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, filteringPolicyMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -92,7 +92,7 @@ func TestNetworkFilteringPolicyResource_Update(t *testing.T) {
 	})
 }
 
-func TestNetworkFilteringPolicyResource_InvalidAction(t *testing.T) {
+func TestUnitResourceNetworkFilteringPolicy_03_InvalidAction(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, filteringPolicyMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -109,7 +109,7 @@ func TestNetworkFilteringPolicyResource_InvalidAction(t *testing.T) {
 	})
 }
 
-func TestNetworkFilteringPolicyResource_CreateError(t *testing.T) {
+func TestUnitResourceNetworkFilteringPolicy_04_CreateError(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, filteringPolicyMock := setupErrorMockEnvironment()
 	defer httpmock.DeactivateAndReset()

@@ -48,7 +48,7 @@ func setupErrorMockEnvironment() (*mocks.Mocks, *gpudfMocks.GroupPolicyUploadedD
 	return mockClient, gpudfMock
 }
 
-func TestGroupPolicyUploadedDefinitionFilesResource_Schema(t *testing.T) {
+func TestUnitResourceGroupPolicyUploadedDefinitionFiles_01_Schema(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, gpudfMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -70,7 +70,7 @@ func TestGroupPolicyUploadedDefinitionFilesResource_Schema(t *testing.T) {
 	})
 }
 
-func TestGroupPolicyUploadedDefinitionFilesResource_LanguageFiles(t *testing.T) {
+func TestUnitResourceGroupPolicyUploadedDefinitionFiles_02_LanguageFiles(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, gpudfMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -92,7 +92,7 @@ func TestGroupPolicyUploadedDefinitionFilesResource_LanguageFiles(t *testing.T) 
 	})
 }
 
-func TestGroupPolicyUploadedDefinitionFilesResource_ErrorHandling(t *testing.T) {
+func TestUnitResourceGroupPolicyUploadedDefinitionFiles_03_ErrorHandling(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, gpudfMock := setupErrorMockEnvironment()
 	defer httpmock.DeactivateAndReset()

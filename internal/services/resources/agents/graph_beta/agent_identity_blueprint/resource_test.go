@@ -41,7 +41,7 @@ func setupErrorMockEnvironment() (*mocks.Mocks, *agentIdentityBlueprintMocks.Age
 	return mockClient, agentIdentityBlueprintMock
 }
 
-func TestAgentIdentityBlueprintResource_Minimal(t *testing.T) {
+func TestUnitResourceAgentIdentityBlueprint_01_Minimal(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, agentIdentityBlueprintMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -76,7 +76,7 @@ func TestAgentIdentityBlueprintResource_Minimal(t *testing.T) {
 	})
 }
 
-func TestAgentIdentityBlueprintResource_Maximal(t *testing.T) {
+func TestUnitResourceAgentIdentityBlueprint_02_Maximal(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, agentIdentityBlueprintMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -124,7 +124,7 @@ func TestAgentIdentityBlueprintResource_Maximal(t *testing.T) {
 	})
 }
 
-func TestAgentIdentityBlueprintResource_Update(t *testing.T) {
+func TestUnitResourceAgentIdentityBlueprint_03_Update(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, agentIdentityBlueprintMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()

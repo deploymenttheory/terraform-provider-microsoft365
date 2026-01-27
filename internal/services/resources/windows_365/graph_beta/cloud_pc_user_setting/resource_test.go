@@ -85,8 +85,8 @@ func testConfigMinimalWithResourceName(resourceName string) string {
 }`, resourceName)
 }
 
-// TestUnitUserSettingResource_Create_Minimal tests the creation of a user setting with minimal configuration
-func TestUnitUserSettingResource_Create_Minimal(t *testing.T) {
+// TestUnitResourceCloudPcUserSetting_01_CreateMinimal tests the creation of a user setting with minimal configuration
+func TestUnitResourceCloudPcUserSetting_01_CreateMinimal(t *testing.T) {
 	// Set up mock environment
 	_, _ = setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -116,8 +116,8 @@ func TestUnitUserSettingResource_Create_Minimal(t *testing.T) {
 	})
 }
 
-// TestUnitUserSettingResource_Create_Maximal tests the creation of a user setting with maximal configuration
-func TestUnitUserSettingResource_Create_Maximal(t *testing.T) {
+// TestUnitResourceCloudPcUserSetting_02_CreateMaximal tests the creation of a user setting with maximal configuration
+func TestUnitResourceCloudPcUserSetting_02_CreateMaximal(t *testing.T) {
 	// Set up mock environment
 	_, _ = setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -154,8 +154,8 @@ func TestUnitUserSettingResource_Create_Maximal(t *testing.T) {
 	})
 }
 
-// TestUnitUserSettingResource_Update_MinimalToMaximal tests updating from minimal to maximal configuration
-func TestUnitUserSettingResource_Update_MinimalToMaximal(t *testing.T) {
+// TestUnitResourceCloudPcUserSetting_03_UpdateMinimalToMaximal tests updating from minimal to maximal configuration
+func TestUnitResourceCloudPcUserSetting_03_UpdateMinimalToMaximal(t *testing.T) {
 	// Set up mock environment
 	_, _ = setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -195,8 +195,8 @@ func TestUnitUserSettingResource_Update_MinimalToMaximal(t *testing.T) {
 	})
 }
 
-// TestUnitUserSettingResource_Update_MaximalToMinimal tests updating from maximal to minimal configuration
-func TestUnitUserSettingResource_Update_MaximalToMinimal(t *testing.T) {
+// TestUnitResourceCloudPcUserSetting_04_UpdateMaximalToMinimal tests updating from maximal to minimal configuration
+func TestUnitResourceCloudPcUserSetting_04_UpdateMaximalToMinimal(t *testing.T) {
 	// Set up mock environment
 	_, _ = setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -236,8 +236,8 @@ func TestUnitUserSettingResource_Update_MaximalToMinimal(t *testing.T) {
 	})
 }
 
-// TestUnitUserSettingResource_Delete_Minimal tests deleting a user setting with minimal configuration
-func TestUnitUserSettingResource_Delete_Minimal(t *testing.T) {
+// TestUnitResourceCloudPcUserSetting_05_DeleteMinimal tests deleting a user setting with minimal configuration
+func TestUnitResourceCloudPcUserSetting_05_DeleteMinimal(t *testing.T) {
 	// Set up mock environment
 	_, _ = setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -263,8 +263,8 @@ func TestUnitUserSettingResource_Delete_Minimal(t *testing.T) {
 	})
 }
 
-// TestUnitUserSettingResource_Delete_Maximal tests deleting a user setting with maximal configuration
-func TestUnitUserSettingResource_Delete_Maximal(t *testing.T) {
+// TestUnitResourceCloudPcUserSetting_06_DeleteMaximal tests deleting a user setting with maximal configuration
+func TestUnitResourceCloudPcUserSetting_06_DeleteMaximal(t *testing.T) {
 	// Set up mock environment
 	_, _ = setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -290,8 +290,8 @@ func TestUnitUserSettingResource_Delete_Maximal(t *testing.T) {
 	})
 }
 
-// TestUnitUserSettingResource_Import tests importing a user setting
-func TestUnitUserSettingResource_Import(t *testing.T) {
+// TestUnitResourceCloudPcUserSetting_07_Import tests importing a user setting
+func TestUnitResourceCloudPcUserSetting_07_Import(t *testing.T) {
 	// Set up mock environment
 	_, _ = setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -322,8 +322,8 @@ func TestUnitUserSettingResource_Import(t *testing.T) {
 	})
 }
 
-// TestUnitUserSettingResource_Error tests error handling
-func TestUnitUserSettingResource_Error(t *testing.T) {
+// TestUnitResourceCloudPcUserSetting_08_Error tests error handling
+func TestUnitResourceCloudPcUserSetting_08_Error(t *testing.T) {
 	// Set up mock environment
 	_, errorMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()

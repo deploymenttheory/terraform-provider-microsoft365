@@ -16,7 +16,7 @@ var (
 	dataSourceType = utilityMicrosoftStorePackageManifest.DataSourceName
 )
 
-func TestMicrosoftStorePackageManifestDataSource_PackageIdentifier(t *testing.T) {
+func TestUnitDatasourceMicrosoftStorePackageManifestMetadata_01_PackageIdentifier(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 
 	resource.UnitTest(t, resource.TestCase{
@@ -36,7 +36,7 @@ func TestMicrosoftStorePackageManifestDataSource_PackageIdentifier(t *testing.T)
 	})
 }
 
-func TestMicrosoftStorePackageManifestDataSource_SearchTerm(t *testing.T) {
+func TestUnitDatasourceMicrosoftStorePackageManifestMetadata_02_SearchTerm(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 
 	resource.UnitTest(t, resource.TestCase{
@@ -54,7 +54,7 @@ func TestMicrosoftStorePackageManifestDataSource_SearchTerm(t *testing.T) {
 	})
 }
 
-func TestMicrosoftStorePackageManifestDataSource_BothParametersProvided(t *testing.T) {
+func TestUnitDatasourceMicrosoftStorePackageManifestMetadata_03_BothParametersProvided(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 
 	resource.UnitTest(t, resource.TestCase{
@@ -68,7 +68,7 @@ func TestMicrosoftStorePackageManifestDataSource_BothParametersProvided(t *testi
 	})
 }
 
-func TestMicrosoftStorePackageManifestDataSource_NeitherParameterProvided(t *testing.T) {
+func TestUnitDatasourceMicrosoftStorePackageManifestMetadata_04_NeitherParameterProvided(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 
 	resource.UnitTest(t, resource.TestCase{

@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
-func TestAccTenantInformationDataSource_ByTenantId(t *testing.T) {
+func TestAccDatasourceTenantInformation_01_ByTenantId(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -38,7 +38,7 @@ func TestAccTenantInformationDataSource_ByTenantId(t *testing.T) {
 	})
 }
 
-func TestAccTenantInformationDataSource_ByDomainName(t *testing.T) {
+func TestAccDatasourceTenantInformation_02_ByDomainName(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,

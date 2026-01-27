@@ -23,7 +23,7 @@ func loadAcceptanceTestTerraform(filename string) string {
 	return acceptance.ConfiguredM365ProviderBlock(config)
 }
 
-func TestAccManagedDeviceDataSource_All(t *testing.T) {
+func TestAccDatasourceManagedDevice_01_All(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -47,7 +47,7 @@ func TestAccManagedDeviceDataSource_All(t *testing.T) {
 	})
 }
 
-func TestAccManagedDeviceDataSource_ByDeviceName(t *testing.T) {
+func TestAccDatasourceManagedDevice_02_ByDeviceName(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -72,7 +72,7 @@ func TestAccManagedDeviceDataSource_ByDeviceName(t *testing.T) {
 	})
 }
 
-func TestAccManagedDeviceDataSource_ODataFilter(t *testing.T) {
+func TestAccDatasourceManagedDevice_03_ODataFilter(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -97,7 +97,7 @@ func TestAccManagedDeviceDataSource_ODataFilter(t *testing.T) {
 	})
 }
 
-func TestAccManagedDeviceDataSource_ODataAdvanced(t *testing.T) {
+func TestAccDatasourceManagedDevice_04_ODataAdvanced(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -123,7 +123,7 @@ func TestAccManagedDeviceDataSource_ODataAdvanced(t *testing.T) {
 	})
 }
 
-func TestAccManagedDeviceDataSource_ODataComprehensive(t *testing.T) {
+func TestAccDatasourceManagedDevice_05_ODataComprehensive(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,

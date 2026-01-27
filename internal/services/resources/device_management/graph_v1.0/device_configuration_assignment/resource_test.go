@@ -115,7 +115,7 @@ func setupTestEnvironment(t *testing.T) {
 	})
 }
 
-func TestUnitDeviceConfigurationAssignmentResource_GroupAssignment(t *testing.T) {
+func TestUnitResourceDeviceConfigurationAssignment_01_GroupAssignment(t *testing.T) {
 	// Activate httpmock
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -144,7 +144,7 @@ func TestUnitDeviceConfigurationAssignmentResource_GroupAssignment(t *testing.T)
 	})
 }
 
-func TestUnitDeviceConfigurationAssignmentResource_AllDevices(t *testing.T) {
+func TestUnitResourceDeviceConfigurationAssignment_02_AllDevices(t *testing.T) {
 	// Activate httpmock
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -172,7 +172,7 @@ func TestUnitDeviceConfigurationAssignmentResource_AllDevices(t *testing.T) {
 	})
 }
 
-func TestUnitDeviceConfigurationAssignmentResource_AllLicensedUsers(t *testing.T) {
+func TestUnitResourceDeviceConfigurationAssignment_03_AllLicensedUsers(t *testing.T) {
 	// Activate httpmock
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -200,7 +200,7 @@ func TestUnitDeviceConfigurationAssignmentResource_AllLicensedUsers(t *testing.T
 	})
 }
 
-func TestUnitDeviceConfigurationAssignmentResource_ExclusionGroup(t *testing.T) {
+func TestUnitResourceDeviceConfigurationAssignment_04_ExclusionGroup(t *testing.T) {
 	// Activate httpmock
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -234,7 +234,7 @@ func TestUnitDeviceConfigurationAssignmentResource_ExclusionGroup(t *testing.T) 
 //     // REMOVED - Device configuration assignments don't support filters
 // }
 
-func TestUnitDeviceConfigurationAssignmentResource_Update(t *testing.T) {
+func TestUnitResourceDeviceConfigurationAssignment_05_Update(t *testing.T) {
 	// Activate httpmock
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -268,7 +268,7 @@ func TestUnitDeviceConfigurationAssignmentResource_Update(t *testing.T) {
 	})
 }
 
-func TestUnitDeviceConfigurationAssignmentResource_Error(t *testing.T) {
+func TestUnitResourceDeviceConfigurationAssignment_06_Error(t *testing.T) {
 	// Activate httpmock
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -292,7 +292,7 @@ func TestUnitDeviceConfigurationAssignmentResource_Error(t *testing.T) {
 	})
 }
 
-func TestUnitDeviceConfigurationAssignmentResource_Import(t *testing.T) {
+func TestUnitResourceDeviceConfigurationAssignment_07_Import(t *testing.T) {
 	// Activate httpmock
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()

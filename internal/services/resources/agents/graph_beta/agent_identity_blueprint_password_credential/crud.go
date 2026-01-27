@@ -14,9 +14,14 @@ import (
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
-// Create handles the Create operation.
-// Uses POST /applications/{id}/microsoft.graph.agentIdentityBlueprint/addPassword
-// Maps the response directly to state since there is no GET endpoint for password credentials.
+// Create handles the Create operation for agent identity blueprint password credential resources.
+//
+// Operation: Adds a password credential to an agent identity blueprint
+// API Calls:
+//   - POST /applications/{id}/microsoft.graph.agentIdentityBlueprint/addPassword
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/agentidentityblueprint-addpassword?view=graph-rest-beta
+// Note: Password secret is only returned during creation and cannot be retrieved later
 func (r *AgentIdentityBlueprintPasswordCredentialResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var object AgentIdentityBlueprintPasswordCredentialResourceModel
 
@@ -89,9 +94,14 @@ func (r *AgentIdentityBlueprintPasswordCredentialResource) Create(ctx context.Co
 	tflog.Debug(ctx, fmt.Sprintf("Finished Create Method: %s", ResourceName))
 }
 
-// Read handles the Read operation.
-// Since there is no GET endpoint for individual password credentials, this function
-// simply returns the current state. The state is preserved from Create/Update operations.
+// Read handles the Read operation for agent identity blueprint password credential resources.
+//
+// Operation: Returns current state without API call
+// API Calls:
+//   - None (password credentials cannot be retrieved after creation)
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/resources/passwordcredential?view=graph-rest-beta
+// Note: No GET endpoint exists for individual password credentials; secret_text cannot be retrieved after creation
 func (r *AgentIdentityBlueprintPasswordCredentialResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var object AgentIdentityBlueprintPasswordCredentialResourceModel
 
@@ -122,10 +132,15 @@ func (r *AgentIdentityBlueprintPasswordCredentialResource) Read(ctx context.Cont
 	tflog.Debug(ctx, fmt.Sprintf("Finished Read Method: %s", ResourceName))
 }
 
-// Update handles the Update operation.
-// Since password credentials cannot be updated in-place, this performs:
-// 1. POST /applications/{id}/microsoft.graph.agentIdentityBlueprint/removePassword (delete old)
-// 2. POST /applications/{id}/microsoft.graph.agentIdentityBlueprint/addPassword (create new)
+// Update handles the Update operation for agent identity blueprint password credential resources.
+//
+// Operation: Updates password by removing old credential and adding new one
+// API Calls:
+//   - POST /applications/{id}/microsoft.graph.agentIdentityBlueprint/removePassword
+//   - POST /applications/{id}/microsoft.graph.agentIdentityBlueprint/addPassword
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/agentidentityblueprint-removepassword?view=graph-rest-beta
+// Note: Password credentials cannot be updated directly; changes require delete and recreate
 func (r *AgentIdentityBlueprintPasswordCredentialResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var plan AgentIdentityBlueprintPasswordCredentialResourceModel
 	var state AgentIdentityBlueprintPasswordCredentialResourceModel
@@ -226,8 +241,13 @@ func (r *AgentIdentityBlueprintPasswordCredentialResource) Update(ctx context.Co
 	tflog.Debug(ctx, fmt.Sprintf("Finished Update Method: %s", ResourceName))
 }
 
-// Delete handles the Delete operation.
-// Uses POST /applications/{id}/microsoft.graph.agentIdentityBlueprint/removePassword
+// Delete handles the Delete operation for agent identity blueprint password credential resources.
+//
+// Operation: Removes a password credential from an agent identity blueprint
+// API Calls:
+//   - POST /applications/{id}/microsoft.graph.agentIdentityBlueprint/removePassword
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/agentidentityblueprint-removepassword?view=graph-rest-beta
 func (r *AgentIdentityBlueprintPasswordCredentialResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var data AgentIdentityBlueprintPasswordCredentialResourceModel
 

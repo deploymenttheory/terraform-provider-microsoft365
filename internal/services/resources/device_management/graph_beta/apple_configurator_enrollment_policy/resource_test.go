@@ -33,7 +33,7 @@ func testCheckExists(resourceName string) resource.TestCheckFunc {
 	return resource.TestCheckResourceAttrSet(resourceName, "id")
 }
 
-func TestAppleConfiguratorEnrollmentPolicyResource_Schema(t *testing.T) {
+func TestUnitResourceAppleConfiguratorEnrollmentPolicy_01_Schema(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, appleMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -58,7 +58,7 @@ func TestAppleConfiguratorEnrollmentPolicyResource_Schema(t *testing.T) {
 	})
 }
 
-func TestAppleConfiguratorEnrollmentPolicyResource_AuthenticationScenarios(t *testing.T) {
+func TestUnitResourceAppleConfiguratorEnrollmentPolicy_02_AuthenticationScenarios(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, appleMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -89,7 +89,7 @@ func TestAppleConfiguratorEnrollmentPolicyResource_AuthenticationScenarios(t *te
 	})
 }
 
-func TestAppleConfiguratorEnrollmentPolicyResource_ValidationErrors(t *testing.T) {
+func TestUnitResourceAppleConfiguratorEnrollmentPolicy_03_ValidationErrors(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, appleMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -106,7 +106,7 @@ func TestAppleConfiguratorEnrollmentPolicyResource_ValidationErrors(t *testing.T
 	})
 }
 
-func TestAppleConfiguratorEnrollmentPolicyResource_ErrorHandling(t *testing.T) {
+func TestUnitResourceAppleConfiguratorEnrollmentPolicy_04_ErrorHandling(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, appleMock := setupErrorMockEnvironment()
 	defer httpmock.DeactivateAndReset()

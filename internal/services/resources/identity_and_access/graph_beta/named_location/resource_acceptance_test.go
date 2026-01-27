@@ -34,7 +34,7 @@ func loadAcceptanceTestTerraform(filename string) string {
 	return acceptance.ConfiguredM365ProviderBlock(config)
 }
 
-func TestAccNamedLocationResource_IPMinimal(t *testing.T) {
+func TestAccResourceNamedLocation_01_IPMinimal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -86,7 +86,7 @@ func TestAccNamedLocationResource_IPMinimal(t *testing.T) {
 	})
 }
 
-func TestAccNamedLocationResource_IPMaximal(t *testing.T) {
+func TestAccResourceNamedLocation_02_IPMaximal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -130,7 +130,7 @@ func TestAccNamedLocationResource_IPMaximal(t *testing.T) {
 	})
 }
 
-func TestAccNamedLocationResource_IPv6Only(t *testing.T) {
+func TestAccResourceNamedLocation_03_IPv6Only(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -170,7 +170,7 @@ func TestAccNamedLocationResource_IPv6Only(t *testing.T) {
 	})
 }
 
-func TestAccNamedLocationResource_CountryClientIP(t *testing.T) {
+func TestAccResourceNamedLocation_04_CountryClientIP(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -223,7 +223,7 @@ func TestAccNamedLocationResource_CountryClientIP(t *testing.T) {
 	})
 }
 
-func TestAccNamedLocationResource_CountryAuthenticatorGPS(t *testing.T) {
+func TestAccResourceNamedLocation_05_CountryAuthenticatorGPS(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,

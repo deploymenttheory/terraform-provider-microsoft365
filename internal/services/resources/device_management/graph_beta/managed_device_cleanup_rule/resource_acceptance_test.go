@@ -16,7 +16,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 )
 
-func TestAccManagedDeviceCleanupRuleResource_Platforms(t *testing.T) {
+func TestAccResourceManagedDeviceCleanupRule_01_Platforms(t *testing.T) {
 	platforms := []struct {
 		name   string
 		path   string
@@ -64,7 +64,7 @@ func TestAccManagedDeviceCleanupRuleResource_Platforms(t *testing.T) {
 	}
 }
 
-func TestAccManagedDeviceCleanupRuleResource_RequiredAndInvalid(t *testing.T) {
+func TestAccResourceManagedDeviceCleanupRule_02_RequiredAndInvalid(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,

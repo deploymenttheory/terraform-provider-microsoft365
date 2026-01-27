@@ -14,9 +14,13 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
-// Create handles the Create operation.
-// POST /users/microsoft.graph.agentUser
-// REF: https://learn.microsoft.com/en-us/graph/api/agentuser-post?view=graph-rest-beta
+// Create handles the Create operation for agent user resources.
+//
+// Operation: Creates a new agent user
+// API Calls:
+//   - POST /users/microsoft.graph.agentUser
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/agentuser-post?view=graph-rest-beta
 func (r *AgentUserResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var object AgentUserResourceModel
 
@@ -88,9 +92,14 @@ func (r *AgentUserResource) Create(ctx context.Context, req resource.CreateReque
 	tflog.Debug(ctx, fmt.Sprintf("Finished Create Method: %s", ResourceName))
 }
 
-// Read handles the Read operation.
-// GET /users/microsoft.graph.agentUser/{userId}
-// REF: https://learn.microsoft.com/en-us/graph/api/agentuser-get?view=graph-rest-beta
+// Read handles the Read operation for agent user resources.
+//
+// Operation: Retrieves agent user details including sponsors
+// API Calls:
+//   - GET /users/microsoft.graph.agentUser/{userId}
+//   - GET /users/{userId}/sponsors
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/agentuser-get?view=graph-rest-beta
 func (r *AgentUserResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var object AgentUserResourceModel
 
@@ -149,9 +158,15 @@ func (r *AgentUserResource) Read(ctx context.Context, req resource.ReadRequest, 
 	tflog.Debug(ctx, fmt.Sprintf("Finished Read Method: %s", ResourceName))
 }
 
-// Update handles the Update operation.
-// PATCH /users/microsoft.graph.agentUser/{userId}
-// REF: https://learn.microsoft.com/en-us/graph/api/agentuser-update?view=graph-rest-beta
+// Update handles the Update operation for agent user resources.
+//
+// Operation: Updates agent user properties and manages sponsors
+// API Calls:
+//   - PATCH /users/microsoft.graph.agentUser/{userId}
+//   - DELETE /users/{userId}/sponsors/{sponsorId}/$ref (for removed sponsors)
+//   - POST /users/{userId}/sponsors/$ref (for new sponsors)
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/agentuser-update?view=graph-rest-beta
 func (r *AgentUserResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var plan AgentUserResourceModel
 	var state AgentUserResourceModel
@@ -242,16 +257,17 @@ func (r *AgentUserResource) Update(ctx context.Context, req resource.UpdateReque
 	tflog.Debug(ctx, fmt.Sprintf("Finished Update Method: %s", ResourceName))
 }
 
-// Delete handles the Delete operation for resource Agent User.
-// When hard_delete is true, the user is deleted in two steps:
-// 1. Delete the user (soft delete - moves to deleted items)
-// 2. Wait for the resource to appear in deleted items (handles eventual consistency)
-// 3. Permanently delete from /directory/deleteditems/{id}
-// 4. Verify deletion by confirming resource is gone
-// When hard_delete is false (default), only the soft delete is performed.
-// REF: https://learn.microsoft.com/en-us/graph/api/agentuser-delete?view=graph-rest-beta
-// REF: https://learn.microsoft.com/en-us/graph/api/directory-deleteditems-list?view=graph-rest-beta
-// REF: https://learn.microsoft.com/en-us/graph/api/directory-deleteditems-delete?view=graph-rest-beta
+// Delete handles the Delete operation for agent user resources.
+//
+// Operation: Deletes agent user with optional hard delete
+// API Calls:
+//   - DELETE /users/{userId}
+//   - GET /directory/deletedItems/{id} (verification after soft delete)
+//   - DELETE /directory/deletedItems/{id} (if hard_delete is true)
+//   - GET /directory/deletedItems/{id} (verification after hard delete)
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/agentuser-delete?view=graph-rest-beta
+// Note: When hard_delete is true, performs soft delete then permanent deletion from directory deleted items after eventual consistency delay
 func (r *AgentUserResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var object AgentUserResourceModel
 

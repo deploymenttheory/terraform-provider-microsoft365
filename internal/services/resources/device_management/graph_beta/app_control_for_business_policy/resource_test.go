@@ -49,7 +49,7 @@ func loadUnitTestTerraform(filename string) string {
 }
 
 // Test 01: Minimal Configuration Schema Validation
-func TestAppControlForBusinessPolicyResource_01_MinimalSchema(t *testing.T) {
+func TestUnitResourceAppControlForBusinessPolicy_01_MinimalSchema(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, policyMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -75,7 +75,7 @@ func TestAppControlForBusinessPolicyResource_01_MinimalSchema(t *testing.T) {
 }
 
 // Test 02: XML Policy Validation
-func TestAppControlForBusinessPolicyResource_02_XMLPolicy(t *testing.T) {
+func TestUnitResourceAppControlForBusinessPolicy_02_XMLPolicy(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, policyMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -105,7 +105,7 @@ func TestAppControlForBusinessPolicyResource_02_XMLPolicy(t *testing.T) {
 }
 
 // Test 03: Assignments Validation
-func TestAppControlForBusinessPolicyResource_03_Assignments(t *testing.T) {
+func TestUnitResourceAppControlForBusinessPolicy_03_Assignments(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, policyMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -159,7 +159,7 @@ func TestAppControlForBusinessPolicyResource_03_Assignments(t *testing.T) {
 }
 
 // Test 04: Import Validation
-func TestAppControlForBusinessPolicyResource_04_Import(t *testing.T) {
+func TestUnitResourceAppControlForBusinessPolicy_04_Import(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, policyMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -184,7 +184,7 @@ func TestAppControlForBusinessPolicyResource_04_Import(t *testing.T) {
 }
 
 // Test 05: Error Handling
-func TestAppControlForBusinessPolicyResource_05_ErrorHandling(t *testing.T) {
+func TestUnitResourceAppControlForBusinessPolicy_05_ErrorHandling(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, policyMock := setupErrorMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -202,7 +202,7 @@ func TestAppControlForBusinessPolicyResource_05_ErrorHandling(t *testing.T) {
 }
 
 // Test 06: Minimal Configuration with Maximal Assignments
-func TestAppControlForBusinessPolicyResource_06_MinimalMaximalAssignments(t *testing.T) {
+func TestUnitResourceAppControlForBusinessPolicy_06_MinimalMaximalAssignments(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, policyMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -240,7 +240,7 @@ func TestAppControlForBusinessPolicyResource_06_MinimalMaximalAssignments(t *tes
 }
 
 // Test 07: Step Test - Minimal Assignments to Maximal Assignments
-func TestAppControlForBusinessPolicyResource_07_MinimalAssignmentsToMaximalAssignments(t *testing.T) {
+func TestUnitResourceAppControlForBusinessPolicy_07_MinimalAssignmentsToMaximalAssignments(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, policyMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -294,7 +294,7 @@ func TestAppControlForBusinessPolicyResource_07_MinimalAssignmentsToMaximalAssig
 }
 
 // Test 08: Step Test - Maximal Assignments to Minimal Assignments
-func TestAppControlForBusinessPolicyResource_08_MaximalAssignmentsToMinimalAssignments(t *testing.T) {
+func TestUnitResourceAppControlForBusinessPolicy_08_MaximalAssignmentsToMinimalAssignments(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, policyMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -348,7 +348,7 @@ func TestAppControlForBusinessPolicyResource_08_MaximalAssignmentsToMinimalAssig
 }
 
 // Test 09: Step Test - Minimal to Maximal Configuration
-func TestAppControlForBusinessPolicyResource_09_MinimalToMaximal(t *testing.T) {
+func TestUnitResourceAppControlForBusinessPolicy_09_MinimalToMaximal(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, policyMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -384,7 +384,7 @@ func TestAppControlForBusinessPolicyResource_09_MinimalToMaximal(t *testing.T) {
 }
 
 // Test 10: Step Test - Maximal to Minimal Configuration
-func TestAppControlForBusinessPolicyResource_10_MaximalToMinimal(t *testing.T) {
+func TestUnitResourceAppControlForBusinessPolicy_10_MaximalToMinimal(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, policyMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()

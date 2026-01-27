@@ -127,7 +127,7 @@ func testConfigMinimalWithResourceName(resourceName string) string {
 }
 
 // TestUnitWindowsManagedMobileAppResource_Create_Minimal tests the creation of a Windows managed mobile app with minimal configuration
-func TestUnitWindowsManagedMobileAppResource_Create_Minimal(t *testing.T) {
+func TestUnitResourceWindowsManagedMobileApp_01_Create_Minimal(t *testing.T) {
 	// Set up mock environment
 	_, _ = setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -152,7 +152,7 @@ func TestUnitWindowsManagedMobileAppResource_Create_Minimal(t *testing.T) {
 }
 
 // TestUnitWindowsManagedMobileAppResource_Create_Maximal tests the creation of a Windows managed mobile app with maximal configuration
-func TestUnitWindowsManagedMobileAppResource_Create_Maximal(t *testing.T) {
+func TestUnitResourceWindowsManagedMobileApp_02_Create_Maximal(t *testing.T) {
 	// Set up mock environment
 	_, _ = setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -178,7 +178,7 @@ func TestUnitWindowsManagedMobileAppResource_Create_Maximal(t *testing.T) {
 }
 
 // TestUnitWindowsManagedMobileAppResource_Update_MinimalToMaximal tests updating from minimal to maximal configuration
-func TestUnitWindowsManagedMobileAppResource_Update_MinimalToMaximal(t *testing.T) {
+func TestUnitResourceWindowsManagedMobileApp_03_Update_MinimalToMaximal(t *testing.T) {
 	// Set up mock environment
 	_, _ = setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -214,7 +214,7 @@ func TestUnitWindowsManagedMobileAppResource_Update_MinimalToMaximal(t *testing.
 }
 
 // TestUnitWindowsManagedMobileAppResource_Update_MaximalToMinimal tests updating from maximal to minimal configuration
-func TestUnitWindowsManagedMobileAppResource_Update_MaximalToMinimal(t *testing.T) {
+func TestUnitResourceWindowsManagedMobileApp_04_Update_MaximalToMinimal(t *testing.T) {
 	// Set up mock environment
 	_, _ = setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -247,7 +247,7 @@ func TestUnitWindowsManagedMobileAppResource_Update_MaximalToMinimal(t *testing.
 }
 
 // TestUnitWindowsManagedMobileAppResource_Delete_Minimal tests deleting a Windows managed mobile app with minimal configuration
-func TestUnitWindowsManagedMobileAppResource_Delete_Minimal(t *testing.T) {
+func TestUnitResourceWindowsManagedMobileApp_05_Delete_Minimal(t *testing.T) {
 	// Set up mock environment
 	_, _ = setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -283,7 +283,7 @@ func TestUnitWindowsManagedMobileAppResource_Delete_Minimal(t *testing.T) {
 }
 
 // TestUnitWindowsManagedMobileAppResource_Delete_Maximal tests deleting a Windows managed mobile app with maximal configuration
-func TestUnitWindowsManagedMobileAppResource_Delete_Maximal(t *testing.T) {
+func TestUnitResourceWindowsManagedMobileApp_06_Delete_Maximal(t *testing.T) {
 	// Set up mock environment
 	_, _ = setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -319,7 +319,7 @@ func TestUnitWindowsManagedMobileAppResource_Delete_Maximal(t *testing.T) {
 }
 
 // TestUnitWindowsManagedMobileAppResource_Import tests importing a resource
-func TestUnitWindowsManagedMobileAppResource_Import(t *testing.T) {
+func TestUnitResourceWindowsManagedMobileApp_07_Import(t *testing.T) {
 	// Set up mock environment
 	_, _ = setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -365,7 +365,7 @@ resource "microsoft365_graph_beta_device_and_app_management_windows_managed_mobi
 }
 
 // TestUnitWindowsManagedMobileAppResource_Error tests error handling
-func TestUnitWindowsManagedMobileAppResource_Error(t *testing.T) {
+func TestUnitResourceWindowsManagedMobileApp_08_Error(t *testing.T) {
 	// Set up mock environment
 	_, managedAppMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()

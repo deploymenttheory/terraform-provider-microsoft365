@@ -39,7 +39,7 @@ func loadUnitTestTerraform(filename string) string {
 }
 
 // CAD001: macOS Device Compliance
-func TestConditionalAccessPolicyResource_CAD001(t *testing.T) {
+func TestUnitResourceConditionalAccessPolicy_01_CAD001(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, conditionalAccessPolicyMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -100,7 +100,7 @@ func TestConditionalAccessPolicyResource_CAD001(t *testing.T) {
 }
 
 // CAD002: Windows Device Compliance
-func TestConditionalAccessPolicyResource_CAD002(t *testing.T) {
+func TestUnitResourceConditionalAccessPolicy_02_CAD002(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, conditionalAccessPolicyMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -162,7 +162,7 @@ func TestConditionalAccessPolicyResource_CAD002(t *testing.T) {
 }
 
 // CAD003: iOS and Android Device Compliance or App Protection
-func TestConditionalAccessPolicyResource_CAD003(t *testing.T) {
+func TestUnitResourceConditionalAccessPolicy_03_CAD003(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, conditionalAccessPolicyMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -225,7 +225,7 @@ func TestConditionalAccessPolicyResource_CAD003(t *testing.T) {
 }
 
 // CAD004: Require MFA on Non-Compliant Devices via Browser
-func TestConditionalAccessPolicyResource_CAD004(t *testing.T) {
+func TestUnitResourceConditionalAccessPolicy_04_CAD004(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, conditionalAccessPolicyMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -275,7 +275,7 @@ func TestConditionalAccessPolicyResource_CAD004(t *testing.T) {
 }
 
 // CAD005: Block Unsupported Device Platforms
-func TestConditionalAccessPolicyResource_CAD005(t *testing.T) {
+func TestUnitResourceConditionalAccessPolicy_05_CAD005(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, conditionalAccessPolicyMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -332,7 +332,7 @@ func TestConditionalAccessPolicyResource_CAD005(t *testing.T) {
 }
 
 // CAD006: Block Downloads on Unmanaged Devices
-func TestConditionalAccessPolicyResource_CAD006(t *testing.T) {
+func TestUnitResourceConditionalAccessPolicy_06_CAD006(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, conditionalAccessPolicyMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -385,7 +385,7 @@ func TestConditionalAccessPolicyResource_CAD006(t *testing.T) {
 }
 
 // CAD007: Sign-in Frequency for Mobile Apps on Non-Compliant Devices
-func TestConditionalAccessPolicyResource_CAD007(t *testing.T) {
+func TestUnitResourceConditionalAccessPolicy_07_CAD007(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, conditionalAccessPolicyMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -446,7 +446,7 @@ func TestConditionalAccessPolicyResource_CAD007(t *testing.T) {
 }
 
 // CAD008: Sign-in Frequency for Browser on Non-Compliant Devices
-func TestConditionalAccessPolicyResource_CAD008(t *testing.T) {
+func TestUnitResourceConditionalAccessPolicy_08_CAD008(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, conditionalAccessPolicyMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -502,7 +502,7 @@ func TestConditionalAccessPolicyResource_CAD008(t *testing.T) {
 }
 
 // CAD009: Disable Browser Persistence on Non-Compliant Devices
-func TestConditionalAccessPolicyResource_CAD009(t *testing.T) {
+func TestUnitResourceConditionalAccessPolicy_09_CAD009(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, conditionalAccessPolicyMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -555,7 +555,7 @@ func TestConditionalAccessPolicyResource_CAD009(t *testing.T) {
 }
 
 // CAD010: Require MFA for Device Registration/Join
-func TestConditionalAccessPolicyResource_CAD010(t *testing.T) {
+func TestUnitResourceConditionalAccessPolicy_10_CAD010(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, conditionalAccessPolicyMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -602,7 +602,7 @@ func TestConditionalAccessPolicyResource_CAD010(t *testing.T) {
 }
 
 // CAD011: Linux Device Compliance
-func TestConditionalAccessPolicyResource_CAD011(t *testing.T) {
+func TestUnitResourceConditionalAccessPolicy_11_CAD011(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, conditionalAccessPolicyMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -655,7 +655,7 @@ func TestConditionalAccessPolicyResource_CAD011(t *testing.T) {
 }
 
 // CAD012: Admin Access on Compliant Devices
-func TestConditionalAccessPolicyResource_CAD012(t *testing.T) {
+func TestUnitResourceConditionalAccessPolicy_12_CAD012(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, conditionalAccessPolicyMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -703,7 +703,7 @@ func TestConditionalAccessPolicyResource_CAD012(t *testing.T) {
 }
 
 // CAD013: Selected Apps - Compliant Device Requirement
-func TestConditionalAccessPolicyResource_CAD013(t *testing.T) {
+func TestUnitResourceConditionalAccessPolicy_13_CAD013(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, conditionalAccessPolicyMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -757,7 +757,7 @@ func TestConditionalAccessPolicyResource_CAD013(t *testing.T) {
 }
 
 // CAD014: Edge App Protection on Windows
-func TestConditionalAccessPolicyResource_CAD014(t *testing.T) {
+func TestUnitResourceConditionalAccessPolicy_14_CAD014(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, conditionalAccessPolicyMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -812,7 +812,7 @@ func TestConditionalAccessPolicyResource_CAD014(t *testing.T) {
 }
 
 // CAD015: Compliant Device for Windows and macOS Browser Access
-func TestConditionalAccessPolicyResource_CAD015(t *testing.T) {
+func TestUnitResourceConditionalAccessPolicy_15_CAD015(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, conditionalAccessPolicyMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -866,7 +866,7 @@ func TestConditionalAccessPolicyResource_CAD015(t *testing.T) {
 }
 
 // CAD016: Token Protection for EXO/SPO/CloudPC on Windows
-func TestConditionalAccessPolicyResource_CAD016(t *testing.T) {
+func TestUnitResourceConditionalAccessPolicy_16_CAD016(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, conditionalAccessPolicyMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -926,7 +926,7 @@ func TestConditionalAccessPolicyResource_CAD016(t *testing.T) {
 }
 
 // CAD017: Selected Apps - Mobile App Protection or Compliance
-func TestConditionalAccessPolicyResource_CAD017(t *testing.T) {
+func TestUnitResourceConditionalAccessPolicy_17_CAD017(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, conditionalAccessPolicyMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -989,7 +989,7 @@ func TestConditionalAccessPolicyResource_CAD017(t *testing.T) {
 }
 
 // CAD018: Cloud PC - Mobile App Protection or Compliance
-func TestConditionalAccessPolicyResource_CAD018(t *testing.T) {
+func TestUnitResourceConditionalAccessPolicy_18_CAD018(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, conditionalAccessPolicyMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -1041,7 +1041,7 @@ func TestConditionalAccessPolicyResource_CAD018(t *testing.T) {
 }
 
 // CAD019: Intune Enrollment - MFA and Sign-in Frequency
-func TestConditionalAccessPolicyResource_CAD019(t *testing.T) {
+func TestUnitResourceConditionalAccessPolicy_19_CAD019(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, conditionalAccessPolicyMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -1092,7 +1092,7 @@ func TestConditionalAccessPolicyResource_CAD019(t *testing.T) {
 }
 
 // CAL001: Block Specified Locations
-func TestConditionalAccessPolicyResource_CAL001(t *testing.T) {
+func TestUnitResourceConditionalAccessPolicy_20_CAL001(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, conditionalAccessPolicyMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -1141,7 +1141,7 @@ func TestConditionalAccessPolicyResource_CAL001(t *testing.T) {
 }
 
 // CAL002: MFA Registration from Trusted Locations Only
-func TestConditionalAccessPolicyResource_CAL002(t *testing.T) {
+func TestUnitResourceConditionalAccessPolicy_21_CAL002(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, conditionalAccessPolicyMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -1191,7 +1191,7 @@ func TestConditionalAccessPolicyResource_CAL002(t *testing.T) {
 }
 
 // CAL003: Block Service Accounts from Non-Trusted Locations
-func TestConditionalAccessPolicyResource_CAL003(t *testing.T) {
+func TestUnitResourceConditionalAccessPolicy_22_CAL003(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, conditionalAccessPolicyMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -1242,7 +1242,7 @@ func TestConditionalAccessPolicyResource_CAL003(t *testing.T) {
 }
 
 // CAL004: Block Admin Access from Non-Trusted Locations
-func TestConditionalAccessPolicyResource_CAL004(t *testing.T) {
+func TestUnitResourceConditionalAccessPolicy_23_CAL004(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, conditionalAccessPolicyMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -1292,7 +1292,7 @@ func TestConditionalAccessPolicyResource_CAL004(t *testing.T) {
 }
 
 // CAL005: Less-Trusted Locations Require Compliance
-func TestConditionalAccessPolicyResource_CAL005(t *testing.T) {
+func TestUnitResourceConditionalAccessPolicy_24_CAL005(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, conditionalAccessPolicyMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -1343,7 +1343,7 @@ func TestConditionalAccessPolicyResource_CAL005(t *testing.T) {
 }
 
 // CAL006: Allow Access Only from Specified Locations
-func TestConditionalAccessPolicyResource_CAL006(t *testing.T) {
+func TestUnitResourceConditionalAccessPolicy_25_CAL006(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, conditionalAccessPolicyMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -1394,7 +1394,7 @@ func TestConditionalAccessPolicyResource_CAL006(t *testing.T) {
 }
 
 // CAP001: Block Legacy Authentication
-func TestConditionalAccessPolicyResource_CAP001(t *testing.T) {
+func TestUnitResourceConditionalAccessPolicy_26_CAP001(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, conditionalAccessPolicyMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -1438,7 +1438,7 @@ func TestConditionalAccessPolicyResource_CAP001(t *testing.T) {
 }
 
 // CAP002: Block Exchange ActiveSync
-func TestConditionalAccessPolicyResource_CAP002(t *testing.T) {
+func TestUnitResourceConditionalAccessPolicy_27_CAP002(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, conditionalAccessPolicyMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -1482,7 +1482,7 @@ func TestConditionalAccessPolicyResource_CAP002(t *testing.T) {
 }
 
 // CAP003: Block Device Code Flow
-func TestConditionalAccessPolicyResource_CAP003(t *testing.T) {
+func TestUnitResourceConditionalAccessPolicy_28_CAP003(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, conditionalAccessPolicyMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -1529,7 +1529,7 @@ func TestConditionalAccessPolicyResource_CAP003(t *testing.T) {
 }
 
 // CAP004: Block Authentication Transfer
-func TestConditionalAccessPolicyResource_CAP004(t *testing.T) {
+func TestUnitResourceConditionalAccessPolicy_29_CAP004(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, conditionalAccessPolicyMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -1576,7 +1576,7 @@ func TestConditionalAccessPolicyResource_CAP004(t *testing.T) {
 }
 
 // CAU001: Require MFA for Guest Users
-func TestConditionalAccessPolicyResource_CAU001(t *testing.T) {
+func TestUnitResourceConditionalAccessPolicy_30_CAU001(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, conditionalAccessPolicyMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -1620,7 +1620,7 @@ func TestConditionalAccessPolicyResource_CAU001(t *testing.T) {
 }
 
 // CAU001A: Require MFA for Guests - Windows Azure AD
-func TestConditionalAccessPolicyResource_CAU001A(t *testing.T) {
+func TestUnitResourceConditionalAccessPolicy_31_CAU001A(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, conditionalAccessPolicyMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -1663,7 +1663,7 @@ func TestConditionalAccessPolicyResource_CAU001A(t *testing.T) {
 }
 
 // CAU002: Require MFA for All Users
-func TestConditionalAccessPolicyResource_CAU002(t *testing.T) {
+func TestUnitResourceConditionalAccessPolicy_32_CAU002(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, conditionalAccessPolicyMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -1708,7 +1708,7 @@ func TestConditionalAccessPolicyResource_CAU002(t *testing.T) {
 }
 
 // CAU003: Block Unapproved Apps for Guests
-func TestConditionalAccessPolicyResource_CAU003(t *testing.T) {
+func TestUnitResourceConditionalAccessPolicy_33_CAU003(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, conditionalAccessPolicyMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -1751,7 +1751,7 @@ func TestConditionalAccessPolicyResource_CAU003(t *testing.T) {
 }
 
 // CAU004: Route Through Microsoft Defender for Cloud Apps
-func TestConditionalAccessPolicyResource_CAU004(t *testing.T) {
+func TestUnitResourceConditionalAccessPolicy_34_CAU004(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, conditionalAccessPolicyMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -1798,7 +1798,7 @@ func TestConditionalAccessPolicyResource_CAU004(t *testing.T) {
 }
 
 // CAU006: MFA for Medium/High Sign-in Risk
-func TestConditionalAccessPolicyResource_CAU006(t *testing.T) {
+func TestUnitResourceConditionalAccessPolicy_35_CAU006(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, conditionalAccessPolicyMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -1853,7 +1853,7 @@ func TestConditionalAccessPolicyResource_CAU006(t *testing.T) {
 }
 
 // CAU007: Password Change for Medium/High User Risk
-func TestConditionalAccessPolicyResource_CAU007(t *testing.T) {
+func TestUnitResourceConditionalAccessPolicy_36_CAU007(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, conditionalAccessPolicyMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -1908,7 +1908,7 @@ func TestConditionalAccessPolicyResource_CAU007(t *testing.T) {
 }
 
 // CAU008: Phishing-Resistant MFA for Admins
-func TestConditionalAccessPolicyResource_CAU008(t *testing.T) {
+func TestUnitResourceConditionalAccessPolicy_37_CAU008(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, conditionalAccessPolicyMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -1951,7 +1951,7 @@ func TestConditionalAccessPolicyResource_CAU008(t *testing.T) {
 }
 
 // CAU009: Require MFA for Admin Portals
-func TestConditionalAccessPolicyResource_CAU009(t *testing.T) {
+func TestUnitResourceConditionalAccessPolicy_38_CAU009(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, conditionalAccessPolicyMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -1996,7 +1996,7 @@ func TestConditionalAccessPolicyResource_CAU009(t *testing.T) {
 }
 
 // CAU010: Require Terms of Use
-func TestConditionalAccessPolicyResource_CAU010(t *testing.T) {
+func TestUnitResourceConditionalAccessPolicy_39_CAU010(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, conditionalAccessPolicyMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -2040,7 +2040,7 @@ func TestConditionalAccessPolicyResource_CAU010(t *testing.T) {
 }
 
 // CAU011: Block Unlicensed Users
-func TestConditionalAccessPolicyResource_CAU011(t *testing.T) {
+func TestUnitResourceConditionalAccessPolicy_40_CAU011(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, conditionalAccessPolicyMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -2087,7 +2087,7 @@ func TestConditionalAccessPolicyResource_CAU011(t *testing.T) {
 }
 
 // CAU012: Security Info Registration with TAP
-func TestConditionalAccessPolicyResource_CAU012(t *testing.T) {
+func TestUnitResourceConditionalAccessPolicy_41_CAU012(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, conditionalAccessPolicyMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -2142,7 +2142,7 @@ func TestConditionalAccessPolicyResource_CAU012(t *testing.T) {
 }
 
 // CAU013: Phishing-Resistant MFA for All Users
-func TestConditionalAccessPolicyResource_CAU013(t *testing.T) {
+func TestUnitResourceConditionalAccessPolicy_42_CAU013(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, conditionalAccessPolicyMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -2185,7 +2185,7 @@ func TestConditionalAccessPolicyResource_CAU013(t *testing.T) {
 }
 
 // CAU014: Block Managed Identity with Medium/High Sign-in Risk
-func TestConditionalAccessPolicyResource_CAU014(t *testing.T) {
+func TestUnitResourceConditionalAccessPolicy_43_CAU014(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, conditionalAccessPolicyMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -2238,7 +2238,7 @@ func TestConditionalAccessPolicyResource_CAU014(t *testing.T) {
 }
 
 // CAU015: Block High Sign-in Risk
-func TestConditionalAccessPolicyResource_CAU015(t *testing.T) {
+func TestUnitResourceConditionalAccessPolicy_44_CAU015(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, conditionalAccessPolicyMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -2286,7 +2286,7 @@ func TestConditionalAccessPolicyResource_CAU015(t *testing.T) {
 }
 
 // CAU016: Block High User Risk
-func TestConditionalAccessPolicyResource_CAU016(t *testing.T) {
+func TestUnitResourceConditionalAccessPolicy_45_CAU016(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, conditionalAccessPolicyMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -2334,7 +2334,7 @@ func TestConditionalAccessPolicyResource_CAU016(t *testing.T) {
 }
 
 // CAU017: Admin Sign-in Frequency
-func TestConditionalAccessPolicyResource_CAU017(t *testing.T) {
+func TestUnitResourceConditionalAccessPolicy_46_CAU017(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, conditionalAccessPolicyMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -2382,7 +2382,7 @@ func TestConditionalAccessPolicyResource_CAU017(t *testing.T) {
 }
 
 // CAU018: Disable Browser Persistence for Admins
-func TestConditionalAccessPolicyResource_CAU018(t *testing.T) {
+func TestUnitResourceConditionalAccessPolicy_47_CAU018(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, conditionalAccessPolicyMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -2427,7 +2427,7 @@ func TestConditionalAccessPolicyResource_CAU018(t *testing.T) {
 }
 
 // CAU019: Allow Only Approved Apps for Guests
-func TestConditionalAccessPolicyResource_CAU019(t *testing.T) {
+func TestUnitResourceConditionalAccessPolicy_48_CAU019(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, conditionalAccessPolicyMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()

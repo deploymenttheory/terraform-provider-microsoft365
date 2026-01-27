@@ -34,7 +34,7 @@ func loadAcceptanceTestTerraform(filename string) string {
 }
 
 // CAD001: macOS Device Compliance
-func TestAccConditionalAccessPolicyResource_CAD001(t *testing.T) {
+func TestAccResourceConditionalAccessPolicy_01_CAD001(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -113,7 +113,7 @@ func TestAccConditionalAccessPolicyResource_CAD001(t *testing.T) {
 }
 
 // CAD002: Windows Device Compliance
-func TestAccConditionalAccessPolicyResource_CAD002(t *testing.T) {
+func TestAccResourceConditionalAccessPolicy_02_CAD002(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -193,7 +193,7 @@ func TestAccConditionalAccessPolicyResource_CAD002(t *testing.T) {
 }
 
 // CAD003: CAD003-O365
-func TestAccConditionalAccessPolicyResource_CAD003(t *testing.T) {
+func TestAccResourceConditionalAccessPolicy_03_CAD003(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -256,7 +256,7 @@ func TestAccConditionalAccessPolicyResource_CAD003(t *testing.T) {
 }
 
 // CAD004: CAD004-O365
-func TestAccConditionalAccessPolicyResource_CAD004(t *testing.T) {
+func TestAccResourceConditionalAccessPolicy_04_CAD004(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -313,7 +313,7 @@ func TestAccConditionalAccessPolicyResource_CAD004(t *testing.T) {
 }
 
 // CAD005: CAD005-O365
-func TestAccConditionalAccessPolicyResource_CAD005(t *testing.T) {
+func TestAccResourceConditionalAccessPolicy_05_CAD005(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -376,7 +376,7 @@ func TestAccConditionalAccessPolicyResource_CAD005(t *testing.T) {
 }
 
 // CAD006: CAD006-O365
-func TestAccConditionalAccessPolicyResource_CAD006(t *testing.T) {
+func TestAccResourceConditionalAccessPolicy_06_CAD006(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -434,7 +434,7 @@ func TestAccConditionalAccessPolicyResource_CAD006(t *testing.T) {
 }
 
 // CAD007: CAD007-O365
-func TestAccConditionalAccessPolicyResource_CAD007(t *testing.T) {
+func TestAccResourceConditionalAccessPolicy_07_CAD007(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -497,7 +497,7 @@ func TestAccConditionalAccessPolicyResource_CAD007(t *testing.T) {
 }
 
 // CAD008: CAD008-All
-func TestAccConditionalAccessPolicyResource_CAD008(t *testing.T) {
+func TestAccResourceConditionalAccessPolicy_08_CAD008(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -558,7 +558,7 @@ func TestAccConditionalAccessPolicyResource_CAD008(t *testing.T) {
 }
 
 // CAD009: CAD009-All
-func TestAccConditionalAccessPolicyResource_CAD009(t *testing.T) {
+func TestAccResourceConditionalAccessPolicy_09_CAD009(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -616,7 +616,7 @@ func TestAccConditionalAccessPolicyResource_CAD009(t *testing.T) {
 }
 
 // CAD010: CAD010-RJD
-func TestAccConditionalAccessPolicyResource_CAD010(t *testing.T) {
+func TestAccResourceConditionalAccessPolicy_10_CAD010(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -672,7 +672,7 @@ func TestAccConditionalAccessPolicyResource_CAD010(t *testing.T) {
 }
 
 // CAD011: CAD011-O365
-func TestAccConditionalAccessPolicyResource_CAD011(t *testing.T) {
+func TestAccResourceConditionalAccessPolicy_11_CAD011(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -732,7 +732,7 @@ func TestAccConditionalAccessPolicyResource_CAD011(t *testing.T) {
 }
 
 // CAD012: CAD012-All
-func TestAccConditionalAccessPolicyResource_CAD012(t *testing.T) {
+func TestAccResourceConditionalAccessPolicy_12_CAD012(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -789,7 +789,7 @@ func TestAccConditionalAccessPolicyResource_CAD012(t *testing.T) {
 }
 
 // CAD013: CAD013-Selected
-func TestAccConditionalAccessPolicyResource_CAD013(t *testing.T) {
+func TestAccResourceConditionalAccessPolicy_13_CAD013(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -852,7 +852,7 @@ func TestAccConditionalAccessPolicyResource_CAD013(t *testing.T) {
 }
 
 // CAD014: CAD014-O365
-func TestAccConditionalAccessPolicyResource_CAD014(t *testing.T) {
+func TestAccResourceConditionalAccessPolicy_14_CAD014(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -912,7 +912,7 @@ func TestAccConditionalAccessPolicyResource_CAD014(t *testing.T) {
 }
 
 // CAD015: CAD015-All
-func TestAccConditionalAccessPolicyResource_CAD015(t *testing.T) {
+func TestAccResourceConditionalAccessPolicy_15_CAD015(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -973,7 +973,7 @@ func TestAccConditionalAccessPolicyResource_CAD015(t *testing.T) {
 }
 
 // CAD016: CAD016-EXO_SPO_CloudPC
-func TestAccConditionalAccessPolicyResource_CAD016(t *testing.T) {
+func TestAccResourceConditionalAccessPolicy_16_CAD016(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -1036,7 +1036,7 @@ func TestAccConditionalAccessPolicyResource_CAD016(t *testing.T) {
 }
 
 // CAD017: CAD017-Selected
-func TestAccConditionalAccessPolicyResource_CAD017(t *testing.T) {
+func TestAccResourceConditionalAccessPolicy_17_CAD017(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -1099,7 +1099,7 @@ func TestAccConditionalAccessPolicyResource_CAD017(t *testing.T) {
 }
 
 // CAD018: CAD018-CloudPC
-func TestAccConditionalAccessPolicyResource_CAD018(t *testing.T) {
+func TestAccResourceConditionalAccessPolicy_18_CAD018(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -1158,7 +1158,7 @@ func TestAccConditionalAccessPolicyResource_CAD018(t *testing.T) {
 }
 
 // CAD019: CAD019-Intune
-func TestAccConditionalAccessPolicyResource_CAD019(t *testing.T) {
+func TestAccResourceConditionalAccessPolicy_19_CAD019(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -1216,7 +1216,7 @@ func TestAccConditionalAccessPolicyResource_CAD019(t *testing.T) {
 }
 
 // CAL001: CAL001-All
-func TestAccConditionalAccessPolicyResource_CAL001(t *testing.T) {
+func TestAccResourceConditionalAccessPolicy_20_CAL001(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -1280,7 +1280,7 @@ func TestAccConditionalAccessPolicyResource_CAL001(t *testing.T) {
 }
 
 // CAL002: CAL002-RSI
-func TestAccConditionalAccessPolicyResource_CAL002(t *testing.T) {
+func TestAccResourceConditionalAccessPolicy_21_CAL002(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -1339,7 +1339,7 @@ func TestAccConditionalAccessPolicyResource_CAL002(t *testing.T) {
 }
 
 // CAL003: CAL003-All
-func TestAccConditionalAccessPolicyResource_CAL003(t *testing.T) {
+func TestAccResourceConditionalAccessPolicy_22_CAL003(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -1399,7 +1399,7 @@ func TestAccConditionalAccessPolicyResource_CAL003(t *testing.T) {
 }
 
 // CAL004: CAL004-All
-func TestAccConditionalAccessPolicyResource_CAL004(t *testing.T) {
+func TestAccResourceConditionalAccessPolicy_23_CAL004(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -1458,7 +1458,7 @@ func TestAccConditionalAccessPolicyResource_CAL004(t *testing.T) {
 }
 
 // CAL005: CAL005-Selected
-func TestAccConditionalAccessPolicyResource_CAL005(t *testing.T) {
+func TestAccResourceConditionalAccessPolicy_24_CAL005(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -1524,7 +1524,7 @@ func TestAccConditionalAccessPolicyResource_CAL005(t *testing.T) {
 }
 
 // CAL006: CAL006-All
-func TestAccConditionalAccessPolicyResource_CAL006(t *testing.T) {
+func TestAccResourceConditionalAccessPolicy_25_CAL006(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -1589,7 +1589,7 @@ func TestAccConditionalAccessPolicyResource_CAL006(t *testing.T) {
 }
 
 // CAP001: CAP001-All
-func TestAccConditionalAccessPolicyResource_CAP001(t *testing.T) {
+func TestAccResourceConditionalAccessPolicy_26_CAP001(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -1644,7 +1644,7 @@ func TestAccConditionalAccessPolicyResource_CAP001(t *testing.T) {
 }
 
 // CAP002: CAP002-All
-func TestAccConditionalAccessPolicyResource_CAP002(t *testing.T) {
+func TestAccResourceConditionalAccessPolicy_27_CAP002(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -1699,7 +1699,7 @@ func TestAccConditionalAccessPolicyResource_CAP002(t *testing.T) {
 }
 
 // CAP003: CAP003-All
-func TestAccConditionalAccessPolicyResource_CAP003(t *testing.T) {
+func TestAccResourceConditionalAccessPolicy_28_CAP003(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -1755,7 +1755,7 @@ func TestAccConditionalAccessPolicyResource_CAP003(t *testing.T) {
 }
 
 // CAP004: CAP004-All
-func TestAccConditionalAccessPolicyResource_CAP004(t *testing.T) {
+func TestAccResourceConditionalAccessPolicy_29_CAP004(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -1811,7 +1811,7 @@ func TestAccConditionalAccessPolicyResource_CAP004(t *testing.T) {
 }
 
 // CAU001: CAU001-All
-func TestAccConditionalAccessPolicyResource_CAU001(t *testing.T) {
+func TestAccResourceConditionalAccessPolicy_30_CAU001(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -1866,7 +1866,7 @@ func TestAccConditionalAccessPolicyResource_CAU001(t *testing.T) {
 }
 
 // CAU001A: CAU001A-Windows Azure Active Directory
-func TestAccConditionalAccessPolicyResource_CAU001A(t *testing.T) {
+func TestAccResourceConditionalAccessPolicy_31_CAU001A(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -1920,7 +1920,7 @@ func TestAccConditionalAccessPolicyResource_CAU001A(t *testing.T) {
 }
 
 // CAU002: CAU002-All
-func TestAccConditionalAccessPolicyResource_CAU002(t *testing.T) {
+func TestAccResourceConditionalAccessPolicy_32_CAU002(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -1976,7 +1976,7 @@ func TestAccConditionalAccessPolicyResource_CAU002(t *testing.T) {
 }
 
 // CAU003: CAU003-Selected
-func TestAccConditionalAccessPolicyResource_CAU003(t *testing.T) {
+func TestAccResourceConditionalAccessPolicy_33_CAU003(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -2030,7 +2030,7 @@ func TestAccConditionalAccessPolicyResource_CAU003(t *testing.T) {
 }
 
 // CAU004: CAU004-Selected
-func TestAccConditionalAccessPolicyResource_CAU004(t *testing.T) {
+func TestAccResourceConditionalAccessPolicy_34_CAU004(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -2086,7 +2086,7 @@ func TestAccConditionalAccessPolicyResource_CAU004(t *testing.T) {
 }
 
 // CAU006: CAU006-All
-func TestAccConditionalAccessPolicyResource_CAU006(t *testing.T) {
+func TestAccResourceConditionalAccessPolicy_35_CAU006(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -2148,7 +2148,7 @@ func TestAccConditionalAccessPolicyResource_CAU006(t *testing.T) {
 }
 
 // CAU007: CAU007-All
-func TestAccConditionalAccessPolicyResource_CAU007(t *testing.T) {
+func TestAccResourceConditionalAccessPolicy_36_CAU007(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -2210,7 +2210,7 @@ func TestAccConditionalAccessPolicyResource_CAU007(t *testing.T) {
 }
 
 // CAU008: CAU008-All
-func TestAccConditionalAccessPolicyResource_CAU008(t *testing.T) {
+func TestAccResourceConditionalAccessPolicy_37_CAU008(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -2264,7 +2264,7 @@ func TestAccConditionalAccessPolicyResource_CAU008(t *testing.T) {
 }
 
 // CAU009: CAU009-Management
-func TestAccConditionalAccessPolicyResource_CAU009(t *testing.T) {
+func TestAccResourceConditionalAccessPolicy_38_CAU009(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -2320,7 +2320,7 @@ func TestAccConditionalAccessPolicyResource_CAU009(t *testing.T) {
 }
 
 // CAU010: CAU010-All
-func TestAccConditionalAccessPolicyResource_CAU010(t *testing.T) {
+func TestAccResourceConditionalAccessPolicy_39_CAU010(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -2379,7 +2379,7 @@ func TestAccConditionalAccessPolicyResource_CAU010(t *testing.T) {
 }
 
 // CAU011: CAU011-All
-func TestAccConditionalAccessPolicyResource_CAU011(t *testing.T) {
+func TestAccResourceConditionalAccessPolicy_40_CAU011(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -2437,7 +2437,7 @@ func TestAccConditionalAccessPolicyResource_CAU011(t *testing.T) {
 }
 
 // CAU012: CAU012-RSI
-func TestAccConditionalAccessPolicyResource_CAU012(t *testing.T) {
+func TestAccResourceConditionalAccessPolicy_41_CAU012(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -2499,7 +2499,7 @@ func TestAccConditionalAccessPolicyResource_CAU012(t *testing.T) {
 }
 
 // CAU013: CAU013-All
-func TestAccConditionalAccessPolicyResource_CAU013(t *testing.T) {
+func TestAccResourceConditionalAccessPolicy_42_CAU013(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -2553,7 +2553,7 @@ func TestAccConditionalAccessPolicyResource_CAU013(t *testing.T) {
 }
 
 // CAU014: CAU014-All
-func TestAccConditionalAccessPolicyResource_CAU014(t *testing.T) {
+func TestAccResourceConditionalAccessPolicy_43_CAU014(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -2617,7 +2617,7 @@ func TestAccConditionalAccessPolicyResource_CAU014(t *testing.T) {
 }
 
 // CAU015: CAU015-All
-func TestAccConditionalAccessPolicyResource_CAU015(t *testing.T) {
+func TestAccResourceConditionalAccessPolicy_44_CAU015(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -2674,7 +2674,7 @@ func TestAccConditionalAccessPolicyResource_CAU015(t *testing.T) {
 }
 
 // CAU016: CAU016-All
-func TestAccConditionalAccessPolicyResource_CAU016(t *testing.T) {
+func TestAccResourceConditionalAccessPolicy_45_CAU016(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -2731,7 +2731,7 @@ func TestAccConditionalAccessPolicyResource_CAU016(t *testing.T) {
 }
 
 // CAU017: CAU017-All
-func TestAccConditionalAccessPolicyResource_CAU017(t *testing.T) {
+func TestAccResourceConditionalAccessPolicy_46_CAU017(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -2788,7 +2788,7 @@ func TestAccConditionalAccessPolicyResource_CAU017(t *testing.T) {
 }
 
 // CAU018: CAU018-All
-func TestAccConditionalAccessPolicyResource_CAU018(t *testing.T) {
+func TestAccResourceConditionalAccessPolicy_47_CAU018(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -2842,7 +2842,7 @@ func TestAccConditionalAccessPolicyResource_CAU018(t *testing.T) {
 }
 
 // CAU019: CAU019-Selected
-func TestAccConditionalAccessPolicyResource_CAU019(t *testing.T) {
+func TestAccResourceConditionalAccessPolicy_48_CAU019(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -2903,7 +2903,7 @@ func TestAccConditionalAccessPolicyResource_CAU019(t *testing.T) {
 }
 
 // CAAU001: Agent ID Resources - Block All
-func TestAccConditionalAccessPolicyResource_CAAU001(t *testing.T) {
+func TestAccResourceConditionalAccessPolicy_50_CAAU001(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -2990,7 +2990,7 @@ func TestAccConditionalAccessPolicyResource_CAAU001(t *testing.T) {
 }
 
 // CAAU002: Agent ID Resources - All Applications
-func TestAccConditionalAccessPolicyResource_CAAU002(t *testing.T) {
+func TestAccResourceConditionalAccessPolicy_51_CAAU002(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -3078,7 +3078,7 @@ func TestAccConditionalAccessPolicyResource_CAAU002(t *testing.T) {
 
 // TestAccConditionalAccessPolicyResource_CAU020 tests the conditional access policy resource
 // with insider risk levels for all users.
-func TestAccConditionalAccessPolicyResource_CAU020(t *testing.T) {
+func TestAccResourceConditionalAccessPolicy_49_CAU020(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,

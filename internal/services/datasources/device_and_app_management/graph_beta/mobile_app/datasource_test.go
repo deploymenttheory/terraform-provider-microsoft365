@@ -34,7 +34,7 @@ func setupErrorMockEnvironment() (*mocks.Mocks, *MobileAppMocks.MobileAppsMock) 
 }
 
 // Test 01: Get all mobile apps - comprehensive field validation
-func TestMobileAppDataSource_All(t *testing.T) {
+func TestUnitDatasourceMobileApp_01_All(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, appsMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -107,7 +107,7 @@ func TestMobileAppDataSource_All(t *testing.T) {
 }
 
 // Test 02: Get mobile app by ID
-func TestMobileAppDataSource_ById(t *testing.T) {
+func TestUnitDatasourceMobileApp_02_ById(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, appsMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -144,7 +144,7 @@ func TestMobileAppDataSource_ById(t *testing.T) {
 }
 
 // Test 03: Get by display name
-func TestMobileAppDataSource_ByDisplayName(t *testing.T) {
+func TestUnitDatasourceMobileApp_03_ByDisplayName(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, appsMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -168,7 +168,7 @@ func TestMobileAppDataSource_ByDisplayName(t *testing.T) {
 }
 
 // Test 04: Get by publisher name
-func TestMobileAppDataSource_ByPublisherName(t *testing.T) {
+func TestUnitDatasourceMobileApp_04_ByPublisherName(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, appsMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -193,7 +193,7 @@ func TestMobileAppDataSource_ByPublisherName(t *testing.T) {
 }
 
 // Test 05: OData filter
-func TestMobileAppDataSource_ODataFilter(t *testing.T) {
+func TestUnitDatasourceMobileApp_05_ODataFilter(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, appsMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -216,7 +216,7 @@ func TestMobileAppDataSource_ODataFilter(t *testing.T) {
 }
 
 // Test 06: With app type filter
-func TestMobileAppDataSource_WithAppTypeFilter(t *testing.T) {
+func TestUnitDatasourceMobileApp_06_WithAppTypeFilter(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, appsMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()

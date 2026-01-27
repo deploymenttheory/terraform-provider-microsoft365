@@ -14,7 +14,14 @@ import (
 	"github.com/microsoftgraph/msgraph-beta-sdk-go/devicemanagement"
 )
 
-// Create handles the Create operation.
+// Create handles the Create operation for Cloud PC user setting resources.
+//
+// Operation: Creates a new Cloud PC user setting with optional assignments
+// API Calls:
+//   - POST /deviceManagement/virtualEndpoint/userSettings
+//   - POST /deviceManagement/virtualEndpoint/userSettings/{id}/assign (if assignments are configured)
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/virtualendpoint-post-usersettings?view=graph-rest-beta
 func (r *CloudPcUserSettingResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var object CloudPcUserSettingResourceModel
 
@@ -102,7 +109,13 @@ func (r *CloudPcUserSettingResource) Create(ctx context.Context, req resource.Cr
 	tflog.Debug(ctx, fmt.Sprintf("Finished Create Method: %s", ResourceName))
 }
 
-// Read handles the Read operation.
+// Read handles the Read operation for Cloud PC user setting resources.
+//
+// Operation: Retrieves a Cloud PC user setting including assignments
+// API Calls:
+//   - GET /deviceManagement/virtualEndpoint/userSettings/{id}?$expand=assignments
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/cloudpcusersetting-get?view=graph-rest-beta
 func (r *CloudPcUserSettingResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var object CloudPcUserSettingResourceModel
 	tflog.Debug(ctx, fmt.Sprintf("Starting Read method for: %s", ResourceName))
@@ -153,7 +166,14 @@ func (r *CloudPcUserSettingResource) Read(ctx context.Context, req resource.Read
 	tflog.Debug(ctx, fmt.Sprintf("Finished Read Method: %s", ResourceName))
 }
 
-// Update handles the Update operation.
+// Update handles the Update operation for Cloud PC user setting resources.
+//
+// Operation: Updates a Cloud PC user setting with optional assignment updates
+// API Calls:
+//   - PATCH /deviceManagement/virtualEndpoint/userSettings/{id}
+//   - POST /deviceManagement/virtualEndpoint/userSettings/{id}/assign (if assignments are configured)
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/cloudpcusersetting-update?view=graph-rest-beta
 func (r *CloudPcUserSettingResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var plan CloudPcUserSettingResourceModel
 	var state CloudPcUserSettingResourceModel
@@ -244,7 +264,13 @@ func (r *CloudPcUserSettingResource) Update(ctx context.Context, req resource.Up
 	tflog.Debug(ctx, fmt.Sprintf("Finished updating %s with ID: %s", ResourceName, state.ID.ValueString()))
 }
 
-// Delete handles the Delete operation.
+// Delete handles the Delete operation for Cloud PC user setting resources.
+//
+// Operation: Deletes a Cloud PC user setting
+// API Calls:
+//   - DELETE /deviceManagement/virtualEndpoint/userSettings/{id}
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/cloudpcusersetting-delete?view=graph-rest-beta
 func (r *CloudPcUserSettingResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var object CloudPcUserSettingResourceModel
 

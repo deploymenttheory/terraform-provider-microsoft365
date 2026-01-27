@@ -75,8 +75,8 @@ func setupMockEnvironment() (*mocks.Mocks, *localMocks.ItunesAppMetadataMock) {
 	return mockClient, itunesMock
 }
 
-// TestUnitItunesAppMetadataDataSource_Firefox tests fetching Firefox app metadata
-func TestUnitItunesAppMetadataDataSource_Firefox(t *testing.T) {
+// TestUnitDatasourceItunesAppMetadata_Firefox tests fetching Firefox app metadata
+func TestUnitDatasourceItunesAppMetadata_01_Firefox(t *testing.T) {
 	// Set up mock environment
 	_, _ = setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -106,8 +106,8 @@ func TestUnitItunesAppMetadataDataSource_Firefox(t *testing.T) {
 	})
 }
 
-// TestUnitItunesAppMetadataDataSource_Office tests fetching Office app metadata
-func TestUnitItunesAppMetadataDataSource_Office(t *testing.T) {
+// TestUnitDatasourceItunesAppMetadata_Office tests fetching Office app metadata
+func TestUnitDatasourceItunesAppMetadata_02_Office(t *testing.T) {
 	// Set up mock environment
 	_, _ = setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -137,8 +137,8 @@ func TestUnitItunesAppMetadataDataSource_Office(t *testing.T) {
 	})
 }
 
-// TestUnitItunesAppMetadataDataSource_Empty tests fetching empty app metadata results
-func TestUnitItunesAppMetadataDataSource_Empty(t *testing.T) {
+// TestUnitDatasourceItunesAppMetadata_Empty tests fetching empty app metadata results
+func TestUnitDatasourceItunesAppMetadata_03_Empty(t *testing.T) {
 	// Set up mock environment
 	_, _ = setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -163,8 +163,8 @@ func TestUnitItunesAppMetadataDataSource_Empty(t *testing.T) {
 	})
 }
 
-// TestUnitItunesAppMetadataDataSource_Error tests error handling
-func TestUnitItunesAppMetadataDataSource_Error(t *testing.T) {
+// TestUnitDatasourceItunesAppMetadata_Error tests error handling
+func TestUnitDatasourceItunesAppMetadata_04_Error(t *testing.T) {
 	// Set up mock environment
 	_, itunesMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()

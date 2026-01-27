@@ -34,7 +34,7 @@ func testAccGroupAppRoleAssignmentConfig_Maximal() string {
 }
 
 // TestAccGroupAppRoleAssignmentResource_Minimal tests minimal configuration
-func TestAccGroupAppRoleAssignmentResource_Minimal(t *testing.T) {
+func TestAccResourceGroupAppRoleAssignment_01_Minimal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -84,7 +84,7 @@ func TestAccGroupAppRoleAssignmentResource_Minimal(t *testing.T) {
 }
 
 // TestAccGroupAppRoleAssignmentResource_Maximal tests maximal configuration
-func TestAccGroupAppRoleAssignmentResource_Maximal(t *testing.T) {
+func TestAccResourceGroupAppRoleAssignment_02_Maximal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,

@@ -35,8 +35,8 @@ func setupErrorMockEnvironment() (*mocks.Mocks, *agentInstanceMocks.AgentInstanc
 	return mockClient, agentInstanceMock
 }
 
-// TestUnitAgentInstanceResource_Minimal tests creating an agent instance with minimal configuration
-func TestUnitAgentInstanceResource_Minimal(t *testing.T) {
+// TestUnitResourceAgentInstance_01_Minimal tests creating an agent instance with minimal configuration
+func TestUnitResourceAgentInstance_01_Minimal(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, agentInstanceMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -71,8 +71,8 @@ func TestUnitAgentInstanceResource_Minimal(t *testing.T) {
 	})
 }
 
-// TestUnitAgentInstanceResource_Maximal tests creating an agent instance with maximal configuration
-func TestUnitAgentInstanceResource_Maximal(t *testing.T) {
+// TestUnitResourceAgentInstance_02_Maximal tests creating an agent instance with maximal configuration
+func TestUnitResourceAgentInstance_02_Maximal(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, agentInstanceMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -118,8 +118,8 @@ func TestUnitAgentInstanceResource_Maximal(t *testing.T) {
 	})
 }
 
-// TestUnitAgentInstanceResource_UpdateMinimalToMaximal tests updating from minimal to maximal configuration
-func TestUnitAgentInstanceResource_UpdateMinimalToMaximal(t *testing.T) {
+// TestUnitResourceAgentInstance_03_UpdateMinimalToMaximal tests updating from minimal to maximal configuration
+func TestUnitResourceAgentInstance_03_UpdateMinimalToMaximal(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, agentInstanceMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -162,8 +162,8 @@ func TestUnitAgentInstanceResource_UpdateMinimalToMaximal(t *testing.T) {
 	})
 }
 
-// TestUnitAgentInstanceResource_UpdateMaximalToMinimal tests updating from maximal to minimal configuration
-func TestUnitAgentInstanceResource_UpdateMaximalToMinimal(t *testing.T) {
+// TestUnitResourceAgentInstance_04_UpdateMaximalToMinimal tests updating from maximal to minimal configuration
+func TestUnitResourceAgentInstance_04_UpdateMaximalToMinimal(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, agentInstanceMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()

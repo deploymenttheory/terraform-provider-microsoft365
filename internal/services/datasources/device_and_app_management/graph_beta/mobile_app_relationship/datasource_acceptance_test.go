@@ -21,7 +21,7 @@ func loadAcceptanceTestTerraform(filename string) string {
 }
 
 // TestAccMobileAppRelationshipDataSource_All tests fetching all mobile app relationships from live API
-func TestAccMobileAppRelationshipDataSource_All(t *testing.T) {
+func TestAccDatasourceMobileAppRelationship_01_All(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -44,7 +44,7 @@ func TestAccMobileAppRelationshipDataSource_All(t *testing.T) {
 }
 
 // TestAccMobileAppRelationshipDataSource_BySourceId tests filtering relationships by source app ID from live API
-func TestAccMobileAppRelationshipDataSource_BySourceId(t *testing.T) {
+func TestAccDatasourceMobileAppRelationship_02_BySourceId(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -68,7 +68,7 @@ func TestAccMobileAppRelationshipDataSource_BySourceId(t *testing.T) {
 }
 
 // TestAccMobileAppRelationshipDataSource_ODataFilter tests using OData filter queries from live API
-func TestAccMobileAppRelationshipDataSource_ODataFilter(t *testing.T) {
+func TestAccDatasourceMobileAppRelationship_03_ODataFilter(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,

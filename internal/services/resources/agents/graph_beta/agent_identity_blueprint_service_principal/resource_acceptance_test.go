@@ -16,7 +16,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 )
 
-func TestAccAgentIdentityBlueprintServicePrincipalResource_Minimal(t *testing.T) {
+func TestAccResourceAgentIdentityBlueprintServicePrincipal_01_Minimal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(

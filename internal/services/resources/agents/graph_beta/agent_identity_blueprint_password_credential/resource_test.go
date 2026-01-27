@@ -37,7 +37,7 @@ func setupMockEnvironment() (*mocks.Mocks, *agentIdentityBlueprintMocks.AgentIde
 	return mockClient, blueprintMock, passwordCredMock
 }
 
-func TestAgentIdentityBlueprintPasswordCredentialResource_Minimal(t *testing.T) {
+func TestUnitResourceAgentIdentityBlueprintPasswordCredential_01_Minimal(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, blueprintMock, passwordCredMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()

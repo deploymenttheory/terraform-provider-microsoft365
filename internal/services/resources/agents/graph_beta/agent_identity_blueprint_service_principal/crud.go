@@ -14,7 +14,14 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
-// Create creates a new agent identity blueprint service principal.
+// Create handles the Create operation for agent identity blueprint service principal resources.
+//
+// Operation: Creates a service principal for an agent identity blueprint
+// API Calls:
+//   - POST /servicePrincipals/microsoft.graph.agentIdentityBlueprintPrincipal
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/agentidentityblueprintprincipal-post?view=graph-rest-beta
+// Note: Cast endpoint is invoked via @odata.type property in request body
 func (r *AgentIdentityBlueprintServicePrincipalResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var object AgentIdentityBlueprintServicePrincipalResourceModel
 
@@ -78,7 +85,13 @@ func (r *AgentIdentityBlueprintServicePrincipalResource) Create(ctx context.Cont
 	tflog.Debug(ctx, fmt.Sprintf("Finished Create Method: %s", ResourceName))
 }
 
-// Read reads the agent identity blueprint service principal.
+// Read handles the Read operation for agent identity blueprint service principal resources.
+//
+// Operation: Retrieves service principal details
+// API Calls:
+//   - GET /servicePrincipals/{id}
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/serviceprincipal-get?view=graph-rest-beta
 func (r *AgentIdentityBlueprintServicePrincipalResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var object AgentIdentityBlueprintServicePrincipalResourceModel
 
@@ -124,8 +137,14 @@ func (r *AgentIdentityBlueprintServicePrincipalResource) Read(ctx context.Contex
 	tflog.Debug(ctx, fmt.Sprintf("Finished Read Method: %s", ResourceName))
 }
 
-// Update updates the agent identity blueprint service principal.
-// REF: https://learn.microsoft.com/en-us/graph/api/agentidentityblueprintprincipal-update?view=graph-rest-beta
+// Update handles the Update operation for agent identity blueprint service principal resources.
+//
+// Operation: Updates service principal properties
+// API Calls:
+//   - PATCH /servicePrincipals/{id}/microsoft.graph.agentIdentityBlueprintPrincipal
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/agentidentityblueprintprincipal-update?view=graph-rest-beta
+// Note: Cast endpoint is invoked via @odata.type property in request body
 func (r *AgentIdentityBlueprintServicePrincipalResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var plan AgentIdentityBlueprintServicePrincipalResourceModel
 	var state AgentIdentityBlueprintServicePrincipalResourceModel
@@ -191,15 +210,17 @@ func (r *AgentIdentityBlueprintServicePrincipalResource) Update(ctx context.Cont
 	tflog.Debug(ctx, fmt.Sprintf("Finished Update Method: %s", ResourceName))
 }
 
-// Delete deletes the agent identity blueprint service principal.
-// When hard_delete is true, the service principal is deleted in two steps:
-// 1. Delete the service principal (soft delete - moves to deleted items)
-// 2. Wait for the resource to appear in deleted items (handles eventual consistency)
-// 3. Permanently delete from /directory/deleteditems/{id}
-// 4. Verify deletion by confirming resource is gone
-// When hard_delete is false (default), only the soft delete is performed.
-// REF: https://learn.microsoft.com/en-us/graph/api/directory-deleteditems-list?view=graph-rest-beta
-// REF: https://learn.microsoft.com/en-us/graph/api/directory-deleteditems-delete?view=graph-rest-beta
+// Delete handles the Delete operation for agent identity blueprint service principal resources.
+//
+// Operation: Deletes service principal with optional hard delete
+// API Calls:
+//   - DELETE /servicePrincipals/{id}
+//   - GET /directory/deletedItems/{id} (verification after soft delete)
+//   - DELETE /directory/deletedItems/{id} (if hard_delete is true)
+//   - GET /directory/deletedItems/{id} (verification after hard delete)
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/serviceprincipal-delete?view=graph-rest-beta
+// Note: When hard_delete is true, performs soft delete then permanent deletion from directory deleted items after eventual consistency delay
 func (r *AgentIdentityBlueprintServicePrincipalResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var object AgentIdentityBlueprintServicePrincipalResourceModel
 

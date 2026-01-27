@@ -41,7 +41,7 @@ func loadUnitTestTerraform(filename string) string {
 	return config
 }
 
-func TestWindowsPlatformScriptResource_001_Scenario_Minimal(t *testing.T) {
+func TestUnitResourceWindowsPlatformScript_01_Scenario_Minimal(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, scriptMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -69,7 +69,7 @@ func TestWindowsPlatformScriptResource_001_Scenario_Minimal(t *testing.T) {
 	})
 }
 
-func TestWindowsPlatformScriptResource_002_Scenario_Maximal(t *testing.T) {
+func TestUnitResourceWindowsPlatformScript_02_Scenario_Maximal(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, scriptMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -99,7 +99,7 @@ func TestWindowsPlatformScriptResource_002_Scenario_Maximal(t *testing.T) {
 	})
 }
 
-func TestWindowsPlatformScriptResource_003_Lifecycle_MinimalToMaximal(t *testing.T) {
+func TestUnitResourceWindowsPlatformScript_03_Lifecycle_MinimalToMaximal(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, scriptMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -132,7 +132,7 @@ func TestWindowsPlatformScriptResource_003_Lifecycle_MinimalToMaximal(t *testing
 	})
 }
 
-func TestWindowsPlatformScriptResource_004_Lifecycle_MaximalToMinimal(t *testing.T) {
+func TestUnitResourceWindowsPlatformScript_04_Lifecycle_MaximalToMinimal(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, scriptMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -165,7 +165,7 @@ func TestWindowsPlatformScriptResource_004_Lifecycle_MaximalToMinimal(t *testing
 	})
 }
 
-func TestWindowsPlatformScriptResource_005_AssignmentsMinimal(t *testing.T) {
+func TestUnitResourceWindowsPlatformScript_05_AssignmentsMinimal(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, scriptMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -191,7 +191,7 @@ func TestWindowsPlatformScriptResource_005_AssignmentsMinimal(t *testing.T) {
 	})
 }
 
-func TestWindowsPlatformScriptResource_006_AssignmentsMaximal(t *testing.T) {
+func TestUnitResourceWindowsPlatformScript_06_AssignmentsMaximal(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, scriptMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -218,7 +218,7 @@ func TestWindowsPlatformScriptResource_006_AssignmentsMaximal(t *testing.T) {
 	})
 }
 
-func TestWindowsPlatformScriptResource_007_AssignmentsLifecycle_MinimalToMaximal(t *testing.T) {
+func TestUnitResourceWindowsPlatformScript_07_AssignmentsLifecycle_MinimalToMaximal(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, scriptMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -247,7 +247,7 @@ func TestWindowsPlatformScriptResource_007_AssignmentsLifecycle_MinimalToMaximal
 	})
 }
 
-func TestWindowsPlatformScriptResource_008_AssignmentsLifecycle_MaximalToMinimal(t *testing.T) {
+func TestUnitResourceWindowsPlatformScript_08_AssignmentsLifecycle_MaximalToMinimal(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, scriptMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -278,7 +278,7 @@ func TestWindowsPlatformScriptResource_008_AssignmentsLifecycle_MaximalToMinimal
 	})
 }
 
-func TestWindowsPlatformScriptResource_009_ErrorHandling(t *testing.T) {
+func TestUnitResourceWindowsPlatformScript_09_ErrorHandling(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, scriptMock := setupErrorMockEnvironment()
 	defer httpmock.DeactivateAndReset()

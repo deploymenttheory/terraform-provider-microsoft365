@@ -16,7 +16,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 )
 
-func TestAccSettingsCatalogConfigurationPolicyResource_Lifecycle(t *testing.T) {
+func TestAccResourceSettingsCatalogConfigurationPolicy_01_Lifecycle(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -53,7 +53,7 @@ func TestAccSettingsCatalogConfigurationPolicyResource_Lifecycle(t *testing.T) {
 	})
 }
 
-func TestAccSettingsCatalogConfigurationPolicyResource_Maximal(t *testing.T) {
+func TestAccResourceSettingsCatalogConfigurationPolicy_02_Maximal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -80,7 +80,7 @@ func TestAccSettingsCatalogConfigurationPolicyResource_Maximal(t *testing.T) {
 	})
 }
 
-func TestAccSettingsCatalogConfigurationPolicyResource_Assignments(t *testing.T) {
+func TestAccResourceSettingsCatalogConfigurationPolicy_03_Assignments(t *testing.T) {
 	t.Log("=== ASSIGNMENTS TEST START ===")
 	t.Log("Starting assignments acceptance test with comprehensive logging")
 
@@ -174,7 +174,7 @@ func TestAccSettingsCatalogConfigurationPolicyResource_Assignments(t *testing.T)
 	t.Log("=== ASSIGNMENTS TEST COMPLETE ===")
 }
 
-func TestAccSettingsCatalogConfigurationPolicyResource_RequiredFields(t *testing.T) {
+func TestAccResourceSettingsCatalogConfigurationPolicy_03_RequiredFields(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -198,7 +198,7 @@ func TestAccSettingsCatalogConfigurationPolicyResource_RequiredFields(t *testing
 	})
 }
 
-func TestAccSettingsCatalogConfigurationPolicyResource_InvalidValues(t *testing.T) {
+func TestAccResourceSettingsCatalogConfigurationPolicy_05_InvalidValues(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,

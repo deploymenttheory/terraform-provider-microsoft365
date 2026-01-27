@@ -29,7 +29,7 @@ func loadAcceptanceTestTerraform(filename string) string {
 }
 
 // Test 001: Audit Mode
-func TestAccAppControlForBusinessBuiltInControlsResource_001_AuditMode(t *testing.T) {
+func TestAccResourceAppControlForBusinessBuiltInControls_01_AuditMode(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -67,7 +67,7 @@ func TestAccAppControlForBusinessBuiltInControlsResource_001_AuditMode(t *testin
 }
 
 // Test 002: Enforce Mode
-func TestAccAppControlForBusinessBuiltInControlsResource_002_EnforceMode(t *testing.T) {
+func TestAccResourceAppControlForBusinessBuiltInControls_02_EnforceMode(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -105,7 +105,7 @@ func TestAccAppControlForBusinessBuiltInControlsResource_002_EnforceMode(t *test
 }
 
 // Test 003: Minimal Configuration
-func TestAccAppControlForBusinessBuiltInControlsResource_003_Minimal(t *testing.T) {
+func TestAccResourceAppControlForBusinessBuiltInControls_03_Minimal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -153,7 +153,7 @@ func TestAccAppControlForBusinessBuiltInControlsResource_003_Minimal(t *testing.
 }
 
 // Test 004: Maximal Configuration with Additional Rules
-func TestAccAppControlForBusinessBuiltInControlsResource_004_Maximal(t *testing.T) {
+func TestAccResourceAppControlForBusinessBuiltInControls_04_Maximal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -201,7 +201,7 @@ func TestAccAppControlForBusinessBuiltInControlsResource_004_Maximal(t *testing.
 }
 
 // Test 005: Lifecycle - Minimal to Maximal
-func TestAccAppControlForBusinessBuiltInControlsResource_005_Lifecycle_MinimalToMaximal(t *testing.T) {
+func TestAccResourceAppControlForBusinessBuiltInControls_05_Lifecycle_MinimalToMaximal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -256,7 +256,7 @@ func TestAccAppControlForBusinessBuiltInControlsResource_005_Lifecycle_MinimalTo
 }
 
 // Test 006: Lifecycle - Maximal to Minimal (Downgrade)
-func TestAccAppControlForBusinessBuiltInControlsResource_006_Lifecycle_MaximalToMinimal(t *testing.T) {
+func TestAccResourceAppControlForBusinessBuiltInControls_06_Lifecycle_MaximalToMinimal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -310,7 +310,7 @@ func TestAccAppControlForBusinessBuiltInControlsResource_006_Lifecycle_MaximalTo
 }
 
 // Test 007: Assignments Lifecycle - Minimal to Maximal
-func TestAccAppControlForBusinessBuiltInControlsResource_007_AssignmentsLifecycle_MinimalToMaximal(t *testing.T) {
+func TestAccResourceAppControlForBusinessBuiltInControls_07_AssignmentsLifecycle_MinimalToMaximal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -364,7 +364,7 @@ func TestAccAppControlForBusinessBuiltInControlsResource_007_AssignmentsLifecycl
 }
 
 // Test 008: Assignments Lifecycle - Maximal to Minimal (Downgrade)
-func TestAccAppControlForBusinessBuiltInControlsResource_008_AssignmentsLifecycle_MaximalToMinimal(t *testing.T) {
+func TestAccResourceAppControlForBusinessBuiltInControls_08_AssignmentsLifecycle_MaximalToMinimal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,

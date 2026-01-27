@@ -49,7 +49,7 @@ func testCheckExists(resourceName string) resource.TestCheckFunc {
 }
 
 // TestMacOSCustomAttributeScriptResource_Schema validates the resource schema
-func TestMacOSCustomAttributeScriptResource_Schema(t *testing.T) {
+func TestUnitResourceMacOSCustomAttributeScript_01_Schema(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, macosCustomAttributeScriptMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -75,7 +75,7 @@ func TestMacOSCustomAttributeScriptResource_Schema(t *testing.T) {
 }
 
 // TestMacOSCustomAttributeScriptResource_Minimal tests basic CRUD operations
-func TestMacOSCustomAttributeScriptResource_Minimal(t *testing.T) {
+func TestUnitResourceMacOSCustomAttributeScript_02_Minimal(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, macosCustomAttributeScriptMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -103,7 +103,7 @@ func TestMacOSCustomAttributeScriptResource_Minimal(t *testing.T) {
 }
 
 // TestMacOSCustomAttributeScriptResource_Maximal tests maximal configuration
-func TestMacOSCustomAttributeScriptResource_Maximal(t *testing.T) {
+func TestUnitResourceMacOSCustomAttributeScript_03_Maximal(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, macosCustomAttributeScriptMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -125,7 +125,7 @@ func TestMacOSCustomAttributeScriptResource_Maximal(t *testing.T) {
 }
 
 // TestMacOSCustomAttributeScriptResource_Update tests update operations
-func TestMacOSCustomAttributeScriptResource_Update(t *testing.T) {
+func TestUnitResourceMacOSCustomAttributeScript_04_Update(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, macosCustomAttributeScriptMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -153,7 +153,7 @@ func TestMacOSCustomAttributeScriptResource_Update(t *testing.T) {
 }
 
 // TestMacOSCustomAttributeScriptResource_ErrorHandling tests error scenarios
-func TestMacOSCustomAttributeScriptResource_ErrorHandling(t *testing.T) {
+func TestUnitResourceMacOSCustomAttributeScript_05_ErrorHandling(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, macosCustomAttributeScriptMock := setupErrorMockEnvironment()
 	defer httpmock.DeactivateAndReset()

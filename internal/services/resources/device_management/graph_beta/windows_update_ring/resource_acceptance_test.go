@@ -29,7 +29,7 @@ func loadAcceptanceTestTerraform(filename string) string {
 }
 
 // Test 001: Scenario 1 - Notify Download
-func TestAccWindowsUpdateRingResource_001_Scenario_NotifyDownload(t *testing.T) {
+func TestAccResourceWindowsUpdateRing_01_Scenario_NotifyDownload(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -77,7 +77,7 @@ func TestAccWindowsUpdateRingResource_001_Scenario_NotifyDownload(t *testing.T) 
 }
 
 // Test 002: Scenario 2 - Auto Install at Maintenance Time
-func TestAccWindowsUpdateRingResource_002_Scenario_AutoInstallMaintenance(t *testing.T) {
+func TestAccResourceWindowsUpdateRing_02_Scenario_AutoInstallMaintenance(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -126,7 +126,7 @@ func TestAccWindowsUpdateRingResource_002_Scenario_AutoInstallMaintenance(t *tes
 }
 
 // Test 003: Scenario 3 - Auto Install and Reboot at Maintenance Time
-func TestAccWindowsUpdateRingResource_003_Scenario_AutoRebootMaintenance(t *testing.T) {
+func TestAccResourceWindowsUpdateRing_03_Scenario_AutoRebootMaintenance(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -175,7 +175,7 @@ func TestAccWindowsUpdateRingResource_003_Scenario_AutoRebootMaintenance(t *test
 }
 
 // Test 004: Scenario 4 - Auto Install and Restart at Scheduled Time
-func TestAccWindowsUpdateRingResource_004_Scenario_ScheduledInstall(t *testing.T) {
+func TestAccResourceWindowsUpdateRing_04_Scenario_ScheduledInstall(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -225,7 +225,7 @@ func TestAccWindowsUpdateRingResource_004_Scenario_ScheduledInstall(t *testing.T
 }
 
 // Test 005: Scenario 5 - Auto Install and Reboot Without End User Control
-func TestAccWindowsUpdateRingResource_005_Scenario_NoEndUserControl(t *testing.T) {
+func TestAccResourceWindowsUpdateRing_05_Scenario_NoEndUserControl(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -272,7 +272,7 @@ func TestAccWindowsUpdateRingResource_005_Scenario_NoEndUserControl(t *testing.T
 }
 
 // Test 006: Scenario 6 - Windows Default (Reset)
-func TestAccWindowsUpdateRingResource_006_Scenario_WindowsDefault(t *testing.T) {
+func TestAccResourceWindowsUpdateRing_06_Scenario_WindowsDefault(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -320,7 +320,7 @@ func TestAccWindowsUpdateRingResource_006_Scenario_WindowsDefault(t *testing.T) 
 }
 
 // Test 007: Full Lifecycle Through All Scenarios
-func TestAccWindowsUpdateRingResource_007_FullLifecycle(t *testing.T) {
+func TestAccResourceWindowsUpdateRing_07_FullLifecycle(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -443,7 +443,7 @@ func TestAccWindowsUpdateRingResource_007_FullLifecycle(t *testing.T) {
 }
 
 // Test 008: Minimal Assignments
-func TestAccWindowsUpdateRingResource_008_AssignmentsMinimal(t *testing.T) {
+func TestAccResourceWindowsUpdateRing_08_AssignmentsMinimal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -488,7 +488,7 @@ func TestAccWindowsUpdateRingResource_008_AssignmentsMinimal(t *testing.T) {
 }
 
 // Test 009: Maximal Assignments
-func TestAccWindowsUpdateRingResource_009_AssignmentsMaximal(t *testing.T) {
+func TestAccResourceWindowsUpdateRing_09_AssignmentsMaximal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -533,7 +533,7 @@ func TestAccWindowsUpdateRingResource_009_AssignmentsMaximal(t *testing.T) {
 }
 
 // Test 010: Assignments Lifecycle - Minimal to Maximal
-func TestAccWindowsUpdateRingResource_010_AssignmentsLifecycle_MinimalToMaximal(t *testing.T) {
+func TestAccResourceWindowsUpdateRing_10_AssignmentsLifecycle_MinimalToMaximal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -593,7 +593,7 @@ func TestAccWindowsUpdateRingResource_010_AssignmentsLifecycle_MinimalToMaximal(
 }
 
 // Test 011: Assignments Lifecycle - Maximal to Minimal
-func TestAccWindowsUpdateRingResource_011_AssignmentsLifecycle_MaximalToMinimal(t *testing.T) {
+func TestAccResourceWindowsUpdateRing_11_AssignmentsLifecycle_MaximalToMinimal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -653,7 +653,7 @@ func TestAccWindowsUpdateRingResource_011_AssignmentsLifecycle_MaximalToMinimal(
 }
 
 // Test 012: Error and Validation Testing
-func TestAccWindowsUpdateRingResource_012_ValidationErrors(t *testing.T) {
+func TestAccResourceWindowsUpdateRing_12_ValidationErrors(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,

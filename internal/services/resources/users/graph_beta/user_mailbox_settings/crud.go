@@ -13,8 +13,14 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
-// Create handles the Create operation for User Mailbox Settings.
-// Note: Mailbox settings always exist for a user, so this uses PATCH like Update.
+// Create handles the Create operation for user mailbox settings resources.
+//
+// Operation: Configures mailbox settings for a user
+// API Calls:
+//   - PATCH /users/{id}/mailboxSettings
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/user-update-mailboxsettings?view=graph-rest-beta
+// Note: Mailbox settings always exist for a user; this operation configures rather than creates
 func (r *UserMailboxSettingsResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var plan UserMailboxSettingsResourceModel
 
@@ -78,7 +84,13 @@ func (r *UserMailboxSettingsResource) Create(ctx context.Context, req resource.C
 	tflog.Debug(ctx, fmt.Sprintf("Finished Create Method: %s", ResourceName))
 }
 
-// Read handles the Read operation for User Mailbox Settings.
+// Read handles the Read operation for user mailbox settings resources.
+//
+// Operation: Retrieves mailbox settings for a user
+// API Calls:
+//   - GET /users/{id}/mailboxSettings
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/user-get-mailboxsettings?view=graph-rest-beta
 func (r *UserMailboxSettingsResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var state UserMailboxSettingsResourceModel
 
@@ -137,7 +149,13 @@ func (r *UserMailboxSettingsResource) Read(ctx context.Context, req resource.Rea
 	tflog.Debug(ctx, fmt.Sprintf("Finished Read Method: %s", ResourceName))
 }
 
-// Update handles the Update operation for User Mailbox Settings.
+// Update handles the Update operation for user mailbox settings resources.
+//
+// Operation: Updates mailbox settings for a user
+// API Calls:
+//   - PATCH /users/{id}/mailboxSettings
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/user-update-mailboxsettings?view=graph-rest-beta
 func (r *UserMailboxSettingsResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var plan UserMailboxSettingsResourceModel
 	var state UserMailboxSettingsResourceModel
@@ -200,8 +218,14 @@ func (r *UserMailboxSettingsResource) Update(ctx context.Context, req resource.U
 	tflog.Debug(ctx, fmt.Sprintf("Finished Update Method: %s", ResourceName))
 }
 
-// Delete handles the Delete operation for User Mailbox Settings.
-// Note: Mailbox settings cannot be deleted, so this only removes the resource from Terraform state.
+// Delete handles the Delete operation for user mailbox settings resources.
+//
+// Operation: Removes from Terraform state only (mailbox settings cannot be deleted)
+// API Calls:
+//   - None (mailbox settings always exist for a user)
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/resources/mailboxsettings?view=graph-rest-beta
+// Note: Mailbox settings cannot be deleted; this operation only removes from Terraform state
 func (r *UserMailboxSettingsResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var state UserMailboxSettingsResourceModel
 

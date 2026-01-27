@@ -35,8 +35,8 @@ func setupErrorMockEnvironment() (*mocks.Mocks, *agentCollectionMocks.AgentColle
 	return mockClient, agentCollectionMock
 }
 
-// TestUnitAgentCollectionResource_Minimal tests creating an agent collection with minimal configuration
-func TestUnitAgentCollectionResource_Minimal(t *testing.T) {
+// TestUnitResourceAgentCollection_01_Minimal tests creating an agent collection with minimal configuration
+func TestUnitResourceAgentCollection_01_Minimal(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, agentCollectionMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -65,8 +65,8 @@ func TestUnitAgentCollectionResource_Minimal(t *testing.T) {
 	})
 }
 
-// TestUnitAgentCollectionResource_Maximal tests creating an agent collection with maximal configuration
-func TestUnitAgentCollectionResource_Maximal(t *testing.T) {
+// TestUnitResourceAgentCollection_02_Maximal tests creating an agent collection with maximal configuration
+func TestUnitResourceAgentCollection_02_Maximal(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, agentCollectionMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -98,8 +98,8 @@ func TestUnitAgentCollectionResource_Maximal(t *testing.T) {
 	})
 }
 
-// TestUnitAgentCollectionResource_UpdateMinimalToMaximal tests updating from minimal to maximal configuration
-func TestUnitAgentCollectionResource_UpdateMinimalToMaximal(t *testing.T) {
+// TestUnitResourceAgentCollection_03_UpdateMinimalToMaximal tests updating from minimal to maximal configuration
+func TestUnitResourceAgentCollection_03_UpdateMinimalToMaximal(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, agentCollectionMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -130,8 +130,8 @@ func TestUnitAgentCollectionResource_UpdateMinimalToMaximal(t *testing.T) {
 	})
 }
 
-// TestUnitAgentCollectionResource_UpdateMaximalToMinimal tests updating from maximal to minimal configuration
-func TestUnitAgentCollectionResource_UpdateMaximalToMinimal(t *testing.T) {
+// TestUnitResourceAgentCollection_04_UpdateMaximalToMinimal tests updating from maximal to minimal configuration
+func TestUnitResourceAgentCollection_04_UpdateMaximalToMinimal(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, agentCollectionMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()

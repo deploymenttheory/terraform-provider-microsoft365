@@ -42,7 +42,7 @@ func testCheckExists(resourceName string) resource.TestCheckFunc {
 }
 
 // Schema validation
-func TestManagedDeviceCleanupRuleResource_Schema(t *testing.T) {
+func TestUnitResourceManagedDeviceCleanupRule_01_Schema(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, cleanupMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -63,7 +63,7 @@ func TestManagedDeviceCleanupRuleResource_Schema(t *testing.T) {
 }
 
 // Platform-specific creation tests (each value once)
-func TestManagedDeviceCleanupRuleResource_Platforms_Create(t *testing.T) {
+func TestUnitResourceManagedDeviceCleanupRule_02_Platforms_Create(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, cleanupMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -94,7 +94,7 @@ func TestManagedDeviceCleanupRuleResource_Platforms_Create(t *testing.T) {
 }
 
 // Duplicate platform should fail (server returns 500)
-func TestManagedDeviceCleanupRuleResource_DuplicatePlatform_Error(t *testing.T) {
+func TestUnitResourceManagedDeviceCleanupRule_03_DuplicatePlatform_Error(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, cleanupMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()

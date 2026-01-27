@@ -26,7 +26,7 @@ func loadAcceptanceTestTerraform(filename string) string {
 }
 
 // TestAccAgentUserResource_Minimal tests creating an agent user with minimal configuration
-func TestAccAgentUserResource_Minimal(t *testing.T) {
+func TestAccResourceAgentUser_01_Minimal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -91,7 +91,7 @@ func TestAccAgentUserResource_Minimal(t *testing.T) {
 }
 
 // TestAccAgentUserResource_Maximal tests creating an agent user with all optional fields
-func TestAccAgentUserResource_Maximal(t *testing.T) {
+func TestAccResourceAgentUser_02_Maximal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,

@@ -33,7 +33,7 @@ func testCheckExists(resourceName string) resource.TestCheckFunc {
 	return resource.TestCheckResourceAttrSet(resourceName, "id")
 }
 
-func TestWindowsDeviceComplianceNotificationsResource_Schema(t *testing.T) {
+func TestUnitResourceDeviceComplianceNotificationTemplate_01_Schema(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, complianceMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -56,7 +56,7 @@ func TestWindowsDeviceComplianceNotificationsResource_Schema(t *testing.T) {
 	})
 }
 
-func TestWindowsDeviceComplianceNotificationsResource_BrandingOptions(t *testing.T) {
+func TestUnitResourceDeviceComplianceNotificationTemplate_02_BrandingOptions(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, complianceMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -79,7 +79,7 @@ func TestWindowsDeviceComplianceNotificationsResource_BrandingOptions(t *testing
 	})
 }
 
-func TestWindowsDeviceComplianceNotificationsResource_LocalizedMessages(t *testing.T) {
+func TestUnitResourceDeviceComplianceNotificationTemplate_03_LocalizedMessages(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, complianceMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -104,7 +104,7 @@ func TestWindowsDeviceComplianceNotificationsResource_LocalizedMessages(t *testi
 	})
 }
 
-func TestWindowsDeviceComplianceNotificationsResource_MultilingualMessages(t *testing.T) {
+func TestUnitResourceDeviceComplianceNotificationTemplate_04_MultilingualMessages(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, complianceMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -140,7 +140,7 @@ func TestWindowsDeviceComplianceNotificationsResource_MultilingualMessages(t *te
 	})
 }
 
-func TestWindowsDeviceComplianceNotificationsResource_AllTerraformConfigurations(t *testing.T) {
+func TestUnitResourceDeviceComplianceNotificationTemplate_05_AllTerraformConfigurations(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, complianceMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -171,7 +171,7 @@ func TestWindowsDeviceComplianceNotificationsResource_AllTerraformConfigurations
 	})
 }
 
-func TestWindowsDeviceComplianceNotificationsResource_RoleScopeTags(t *testing.T) {
+func TestUnitResourceDeviceComplianceNotificationTemplate_06_RoleScopeTags(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, complianceMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -201,7 +201,7 @@ func TestWindowsDeviceComplianceNotificationsResource_RoleScopeTags(t *testing.T
 	})
 }
 
-func TestWindowsDeviceComplianceNotificationsResource_ErrorHandling(t *testing.T) {
+func TestUnitResourceDeviceComplianceNotificationTemplate_07_ErrorHandling(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, complianceMock := setupErrorMockEnvironment()
 	defer httpmock.DeactivateAndReset()

@@ -14,7 +14,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 )
 
-func TestAccWindowsAutopilotDeploymentProfileResource_SelfDeployingOSDefaultLocale(t *testing.T) {
+func TestAccResourceWindowsAutopilotDeploymentProfile_01_SelfDeployingOSDefaultLocale(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -61,7 +61,7 @@ func TestAccWindowsAutopilotDeploymentProfileResource_SelfDeployingOSDefaultLoca
 	})
 }
 
-func TestAccWindowsAutopilotDeploymentProfileResource_UserDrivenHybridDomainJoin(t *testing.T) {
+func TestAccResourceWindowsAutopilotDeploymentProfile_02_UserDrivenHybridDomainJoin(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -92,7 +92,7 @@ func TestAccWindowsAutopilotDeploymentProfileResource_UserDrivenHybridDomainJoin
 	})
 }
 
-func TestAccWindowsAutopilotDeploymentProfileResource_UserDrivenWithGroupAssignments(t *testing.T) {
+func TestAccResourceWindowsAutopilotDeploymentProfile_02_UserDrivenWithGroupAssignments(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -122,7 +122,7 @@ func TestAccWindowsAutopilotDeploymentProfileResource_UserDrivenWithGroupAssignm
 	})
 }
 
-func TestAccWindowsAutopilotDeploymentProfileResource_HololensWithAllDeviceAssignment(t *testing.T) {
+func TestAccResourceWindowsAutopilotDeploymentProfile_04_HololensWithAllDeviceAssignment(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,

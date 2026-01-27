@@ -41,7 +41,7 @@ func setupErrorMockEnvironment() (*mocks.Mocks, *agentIdentityBlueprintServicePr
 	return mockClient, agentIdentityBlueprintServicePrincipalMock
 }
 
-func TestAgentIdentityBlueprintServicePrincipalResource_Minimal(t *testing.T) {
+func TestUnitResourceAgentIdentityBlueprintServicePrincipal_01_Minimal(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, agentIdentityBlueprintServicePrincipalMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()

@@ -39,7 +39,7 @@ func loadUnitTestTerraform(filename string) string {
 }
 
 // Test 01: Scenario 1 - Minimal configuration without assignments
-func TestWindowsDeviceCompliancePolicyResource_01_Minimal(t *testing.T) {
+func TestUnitResourceWindowsDeviceCompliancePolicy_01_Minimal(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, policyMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -89,7 +89,7 @@ func TestWindowsDeviceCompliancePolicyResource_01_Minimal(t *testing.T) {
 }
 
 // Test 02: Scenario 2 - Maximal configuration with assignments
-func TestWindowsDeviceCompliancePolicyResource_02_Maximal(t *testing.T) {
+func TestUnitResourceWindowsDeviceCompliancePolicy_02_Maximal(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, policyMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -142,7 +142,7 @@ func TestWindowsDeviceCompliancePolicyResource_02_Maximal(t *testing.T) {
 }
 
 // Test 03: Scenario 3 - Error handling
-func TestWindowsDeviceCompliancePolicyResource_03_ErrorHandling(t *testing.T) {
+func TestUnitResourceWindowsDeviceCompliancePolicy_03_ErrorHandling(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, policyMock := setupErrorMockEnvironment()
 	defer httpmock.DeactivateAndReset()

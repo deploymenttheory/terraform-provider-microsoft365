@@ -11,7 +11,7 @@ import (
 )
 
 // TestAccM365AppsInstallationOptionsResource_Create_Minimal tests creating M365 Apps Installation Options with minimal configuration
-func TestAccM365AppsInstallationOptionsResource_Create_Minimal(t *testing.T) {
+func TestAccResourceM365AppsInstallationOptions_01_Create_Minimal(t *testing.T) {
 	// Skip if not running acceptance tests
 	if os.Getenv("TF_ACC") == "" {
 		t.Skip("Acceptance tests skipped unless TF_ACC=1")
@@ -40,7 +40,7 @@ func TestAccM365AppsInstallationOptionsResource_Create_Minimal(t *testing.T) {
 }
 
 // TestAccM365AppsInstallationOptionsResource_Create_Maximal tests creating M365 Apps Installation Options with maximal configuration
-func TestAccM365AppsInstallationOptionsResource_Create_Maximal(t *testing.T) {
+func TestAccResourceM365AppsInstallationOptions_02_Create_Maximal(t *testing.T) {
 	// Skip if not running acceptance tests
 	if os.Getenv("TF_ACC") == "" {
 		t.Skip("Acceptance tests skipped unless TF_ACC=1")
@@ -69,7 +69,7 @@ func TestAccM365AppsInstallationOptionsResource_Create_Maximal(t *testing.T) {
 }
 
 // TestAccM365AppsInstallationOptionsResource_Update_MinimalToMaximal tests updating from minimal to maximal configuration
-func TestAccM365AppsInstallationOptionsResource_Update_MinimalToMaximal(t *testing.T) {
+func TestAccResourceM365AppsInstallationOptions_03_Update_MinimalToMaximal(t *testing.T) {
 	// Skip if not running acceptance tests
 	if os.Getenv("TF_ACC") == "" {
 		t.Skip("Acceptance tests skipped unless TF_ACC=1")
@@ -106,7 +106,7 @@ func TestAccM365AppsInstallationOptionsResource_Update_MinimalToMaximal(t *testi
 }
 
 // TestAccM365AppsInstallationOptionsResource_Update_MaximalToMinimal tests updating from maximal to minimal configuration
-func TestAccM365AppsInstallationOptionsResource_Update_MaximalToMinimal(t *testing.T) {
+func TestAccResourceM365AppsInstallationOptions_04_Update_MaximalToMinimal(t *testing.T) {
 	// Skip if not running acceptance tests
 	if os.Getenv("TF_ACC") == "" {
 		t.Skip("Acceptance tests skipped unless TF_ACC=1")
@@ -141,7 +141,7 @@ func TestAccM365AppsInstallationOptionsResource_Update_MaximalToMinimal(t *testi
 }
 
 // TestAccM365AppsInstallationOptionsResource_Delete_Minimal tests deleting M365 Apps Installation Options with minimal configuration
-func TestAccM365AppsInstallationOptionsResource_Delete_Minimal(t *testing.T) {
+func TestAccResourceM365AppsInstallationOptions_05_Delete_Minimal(t *testing.T) {
 	// Skip if not running acceptance tests
 	if os.Getenv("TF_ACC") == "" {
 		t.Skip("Acceptance tests skipped unless TF_ACC=1")
@@ -177,7 +177,7 @@ func TestAccM365AppsInstallationOptionsResource_Delete_Minimal(t *testing.T) {
 }
 
 // TestAccM365AppsInstallationOptionsResource_Delete_Maximal tests deleting M365 Apps Installation Options with maximal configuration
-func TestAccM365AppsInstallationOptionsResource_Delete_Maximal(t *testing.T) {
+func TestAccResourceM365AppsInstallationOptions_06_Delete_Maximal(t *testing.T) {
 	// Skip if not running acceptance tests
 	if os.Getenv("TF_ACC") == "" {
 		t.Skip("Acceptance tests skipped unless TF_ACC=1")
@@ -213,7 +213,7 @@ func TestAccM365AppsInstallationOptionsResource_Delete_Maximal(t *testing.T) {
 }
 
 // TestAccM365AppsInstallationOptionsResource_Import tests importing a resource
-func TestAccM365AppsInstallationOptionsResource_Import(t *testing.T) {
+func TestAccResourceM365AppsInstallationOptions_07_Import(t *testing.T) {
 	// Skip if not running acceptance tests
 	if os.Getenv("TF_ACC") == "" {
 		t.Skip("Acceptance tests skipped unless TF_ACC=1")

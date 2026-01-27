@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
-func TestAccMicrosoftStorePackageManifestDataSource_PackageIdentifier(t *testing.T) {
+func TestAccDatasourceMicrosoftStorePackageManifestMetadata_01_PackageIdentifier(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -38,7 +38,7 @@ func TestAccMicrosoftStorePackageManifestDataSource_PackageIdentifier(t *testing
 	})
 }
 
-func TestAccMicrosoftStorePackageManifestDataSource_SearchTerm(t *testing.T) {
+func TestAccDatasourceMicrosoftStorePackageManifestMetadata_02_SearchTerm(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -61,7 +61,7 @@ func TestAccMicrosoftStorePackageManifestDataSource_SearchTerm(t *testing.T) {
 	})
 }
 
-func TestAccMicrosoftStorePackageManifestDataSource_ValidateVersionStructure(t *testing.T) {
+func TestAccDatasourceMicrosoftStorePackageManifestMetadata_03_ValidateVersionStructure(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -90,7 +90,7 @@ func TestAccMicrosoftStorePackageManifestDataSource_ValidateVersionStructure(t *
 	})
 }
 
-func TestAccMicrosoftStorePackageManifestDataSource_MultipleResults(t *testing.T) {
+func TestAccDatasourceMicrosoftStorePackageManifestMetadata_04_MultipleResults(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,

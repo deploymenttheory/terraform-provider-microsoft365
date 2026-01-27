@@ -40,7 +40,7 @@ func testConfigHelper(filename string) string {
 }
 
 // TestTermsAndConditionsResource_Schema validates the resource schema
-func TestTermsAndConditionsResource_Schema(t *testing.T) {
+func TestUnitResourceTermsAndConditions_01_Schema(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, termsAndConditionsMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -65,7 +65,7 @@ func TestTermsAndConditionsResource_Schema(t *testing.T) {
 }
 
 // TestTermsAndConditionsResource_Minimal tests basic CRUD operations
-func TestTermsAndConditionsResource_Minimal(t *testing.T) {
+func TestUnitResourceTermsAndConditions_02_Minimal(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, termsAndConditionsMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -105,7 +105,7 @@ func TestTermsAndConditionsResource_Minimal(t *testing.T) {
 }
 
 // TestTermsAndConditionsResource_UpdateInPlace tests in-place updates
-func TestTermsAndConditionsResource_UpdateInPlace(t *testing.T) {
+func TestUnitResourceTermsAndConditions_03_UpdateInPlace(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, termsAndConditionsMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -135,7 +135,7 @@ func TestTermsAndConditionsResource_UpdateInPlace(t *testing.T) {
 }
 
 // TestTermsAndConditionsResource_RequiredFields tests required field validation
-func TestTermsAndConditionsResource_RequiredFields(t *testing.T) {
+func TestUnitResourceTermsAndConditions_04_RequiredFields(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, termsAndConditionsMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -208,7 +208,7 @@ resource "microsoft365_graph_beta_device_management_terms_and_conditions" "test"
 }
 
 // TestTermsAndConditionsResource_ErrorHandling tests error scenarios
-func TestTermsAndConditionsResource_ErrorHandling(t *testing.T) {
+func TestUnitResourceTermsAndConditions_05_ErrorHandling(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, termsAndConditionsMock := setupErrorMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -233,7 +233,7 @@ resource "microsoft365_graph_beta_device_management_terms_and_conditions" "test"
 }
 
 // TestTermsAndConditionsResource_DescriptionValidation tests description length validation
-func TestTermsAndConditionsResource_DescriptionValidation(t *testing.T) {
+func TestUnitResourceTermsAndConditions_06_DescriptionValidation(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, termsAndConditionsMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -265,7 +265,7 @@ resource "microsoft365_graph_beta_device_management_terms_and_conditions" "test"
 }
 
 // TestTermsAndConditionsResource_BodyTextValidation tests body text length validation
-func TestTermsAndConditionsResource_BodyTextValidation(t *testing.T) {
+func TestUnitResourceTermsAndConditions_07_BodyTextValidation(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, termsAndConditionsMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -296,7 +296,7 @@ resource "microsoft365_graph_beta_device_management_terms_and_conditions" "test"
 }
 
 // TestTermsAndConditionsResource_AcceptanceStatementValidation tests acceptance statement length validation
-func TestTermsAndConditionsResource_AcceptanceStatementValidation(t *testing.T) {
+func TestUnitResourceTermsAndConditions_08_AcceptanceStatementValidation(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, termsAndConditionsMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -327,7 +327,7 @@ resource "microsoft365_graph_beta_device_management_terms_and_conditions" "test"
 }
 
 // TestTermsAndConditionsResource_RoleScopeTagIds tests role scope tag IDs handling
-func TestTermsAndConditionsResource_RoleScopeTagIds(t *testing.T) {
+func TestUnitResourceTermsAndConditions_09_RoleScopeTagIds(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, termsAndConditionsMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()

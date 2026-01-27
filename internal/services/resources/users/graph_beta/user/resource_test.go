@@ -32,7 +32,7 @@ func setupErrorMockEnvironment() (*mocks.Mocks, *userMocks.UserMock) {
 	return mockClient, userMock
 }
 
-func TestUserResource_Basic(t *testing.T) {
+func TestUnitResourceUser_01_Basic(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, userMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -74,7 +74,7 @@ func TestUserResource_Basic(t *testing.T) {
 	})
 }
 
-func TestUserResource_Update(t *testing.T) {
+func TestUnitResourceUser_02_Update(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, userMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -130,7 +130,7 @@ func TestUserResource_Update(t *testing.T) {
 	})
 }
 
-func TestUserResource_CustomSecurityAttributes(t *testing.T) {
+func TestUnitResourceUser_03_CustomSecurityAttributes(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, userMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -174,7 +174,7 @@ func TestUserResource_CustomSecurityAttributes(t *testing.T) {
 	})
 }
 
-func TestUserResource_RequiredAttributes(t *testing.T) {
+func TestUnitResourceUser_04_RequiredAttributes(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, userMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -191,7 +191,7 @@ func TestUserResource_RequiredAttributes(t *testing.T) {
 	})
 }
 
-func TestUserResource_CreateError(t *testing.T) {
+func TestUnitResourceUser_05_CreateError(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, userMock := setupErrorMockEnvironment()
 	defer httpmock.DeactivateAndReset()

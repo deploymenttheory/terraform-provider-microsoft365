@@ -15,7 +15,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 )
 
-func TestAccDeviceCategoryResource_Lifecycle(t *testing.T) {
+func TestAccResourceDeviceCategory_01_Lifecycle(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -57,7 +57,7 @@ func TestAccDeviceCategoryResource_Lifecycle(t *testing.T) {
 	})
 }
 
-func TestAccDeviceCategoryResource_RoleScopeTags(t *testing.T) {
+func TestAccResourceDeviceCategory_02_RoleScopeTags(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -83,7 +83,7 @@ func TestAccDeviceCategoryResource_RoleScopeTags(t *testing.T) {
 	})
 }
 
-func TestAccDeviceCategoryResource_Description(t *testing.T) {
+func TestAccResourceDeviceCategory_03_Description(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,

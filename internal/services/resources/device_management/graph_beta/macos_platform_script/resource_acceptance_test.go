@@ -34,7 +34,7 @@ func loadAcceptanceTestTerraform(filename string) string {
 }
 
 // Scenario 01: Minimal macOS Platform Script
-func TestAccMacOSPlatformScriptResource_Scenario01_Minimal(t *testing.T) {
+func TestAccResourceMacOSPlatformScript_01_Minimal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -78,7 +78,7 @@ func TestAccMacOSPlatformScriptResource_Scenario01_Minimal(t *testing.T) {
 }
 
 // Scenario 02: Maximal macOS Platform Script
-func TestAccMacOSPlatformScriptResource_Scenario02_Maximal(t *testing.T) {
+func TestAccResourceMacOSPlatformScript_02_Maximal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -128,7 +128,7 @@ func TestAccMacOSPlatformScriptResource_Scenario02_Maximal(t *testing.T) {
 }
 
 // Scenario 03: Minimal to Maximal Update
-func TestAccMacOSPlatformScriptResource_Scenario03_MinimalToMaximal(t *testing.T) {
+func TestAccResourceMacOSPlatformScript_03_MinimalToMaximal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -193,7 +193,7 @@ func TestAccMacOSPlatformScriptResource_Scenario03_MinimalToMaximal(t *testing.T
 }
 
 // Scenario 04: Maximal to Minimal Update
-func TestAccMacOSPlatformScriptResource_Scenario04_MaximalToMinimal(t *testing.T) {
+func TestAccResourceMacOSPlatformScript_04_MaximalToMinimal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -257,7 +257,7 @@ func TestAccMacOSPlatformScriptResource_Scenario04_MaximalToMinimal(t *testing.T
 }
 
 // Scenario 05: No Assignments to Minimal Assignment
-func TestAccMacOSPlatformScriptResource_Scenario05_NoAssignmentsToMinimalAssignment(t *testing.T) {
+func TestAccResourceMacOSPlatformScript_05_NoAssignmentsToMinimalAssignment(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -325,7 +325,7 @@ func TestAccMacOSPlatformScriptResource_Scenario05_NoAssignmentsToMinimalAssignm
 }
 
 // Scenario 06: No Assignments to Maximal Assignments
-func TestAccMacOSPlatformScriptResource_Scenario06_NoAssignmentsToMaximalAssignments(t *testing.T) {
+func TestAccResourceMacOSPlatformScript_06_NoAssignmentsToMaximalAssignments(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -402,7 +402,7 @@ func TestAccMacOSPlatformScriptResource_Scenario06_NoAssignmentsToMaximalAssignm
 }
 
 // Scenario 07: Minimal to Maximal Assignments
-func TestAccMacOSPlatformScriptResource_Scenario07_MinimalToMaximalAssignments(t *testing.T) {
+func TestAccResourceMacOSPlatformScript_07_MinimalToMaximalAssignments(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -482,7 +482,7 @@ func TestAccMacOSPlatformScriptResource_Scenario07_MinimalToMaximalAssignments(t
 }
 
 // Scenario 08: Maximal to Minimal Assignments
-func TestAccMacOSPlatformScriptResource_Scenario08_MaximalToMinimalAssignments(t *testing.T) {
+func TestAccResourceMacOSPlatformScript_08_MaximalToMinimalAssignments(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,

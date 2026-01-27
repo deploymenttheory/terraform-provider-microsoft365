@@ -31,8 +31,8 @@ func testConfigHelper(filename string) string {
 
 const resourceType = "microsoft365_graph_beta_windows_365_cloud_pc_role_definition"
 
-// TestRoleDefinitionResource_Schema validates the resource schema
-func TestRoleDefinitionResource_Schema(t *testing.T) {
+// TestUnitResourceCloudPcRoleDefinition_01_Schema validates the resource schema
+func TestUnitResourceCloudPcRoleDefinition_01_Schema(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, roleDefinitionMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -56,8 +56,8 @@ func TestRoleDefinitionResource_Schema(t *testing.T) {
 	})
 }
 
-// TestRoleDefinitionResource_Minimal tests basic CRUD operations
-func TestRoleDefinitionResource_Minimal(t *testing.T) {
+// TestUnitResourceCloudPcRoleDefinition_02_Minimal tests basic CRUD operations
+func TestUnitResourceCloudPcRoleDefinition_02_Minimal(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, roleDefinitionMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -93,8 +93,8 @@ func TestRoleDefinitionResource_Minimal(t *testing.T) {
 	})
 }
 
-// TestRoleDefinitionResource_UpdateInPlace tests in-place updates
-func TestRoleDefinitionResource_UpdateInPlace(t *testing.T) {
+// TestUnitResourceCloudPcRoleDefinition_03_UpdateInPlace tests in-place updates
+func TestUnitResourceCloudPcRoleDefinition_03_UpdateInPlace(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, roleDefinitionMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -123,8 +123,8 @@ func TestRoleDefinitionResource_UpdateInPlace(t *testing.T) {
 	})
 }
 
-// TestRoleDefinitionResource_RequiredFields tests required field validation
-func TestRoleDefinitionResource_RequiredFields(t *testing.T) {
+// TestUnitResourceCloudPcRoleDefinition_04_RequiredFields tests required field validation
+func TestUnitResourceCloudPcRoleDefinition_04_RequiredFields(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, roleDefinitionMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -157,8 +157,8 @@ func TestRoleDefinitionResource_RequiredFields(t *testing.T) {
 	}
 }
 
-// TestRoleDefinitionResource_ErrorHandling tests error scenarios
-func TestRoleDefinitionResource_ErrorHandling(t *testing.T) {
+// TestUnitResourceCloudPcRoleDefinition_05_ErrorHandling tests error scenarios
+func TestUnitResourceCloudPcRoleDefinition_05_ErrorHandling(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, roleDefinitionMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -175,8 +175,8 @@ func TestRoleDefinitionResource_ErrorHandling(t *testing.T) {
 	})
 }
 
-// TestRoleDefinitionResource_RolePermissions tests role permissions handling
-func TestRoleDefinitionResource_RolePermissions(t *testing.T) {
+// TestUnitResourceCloudPcRoleDefinition_06_RolePermissions tests role permissions handling
+func TestUnitResourceCloudPcRoleDefinition_06_RolePermissions(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, roleDefinitionMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()

@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
-func TestAccLicensingServicePlanReferenceDataSource_SearchByProductName(t *testing.T) {
+func TestAccDatasourceLicensingServicePlanReference_01_SearchByProductName(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -38,7 +38,7 @@ func TestAccLicensingServicePlanReferenceDataSource_SearchByProductName(t *testi
 	})
 }
 
-func TestAccLicensingServicePlanReferenceDataSource_SearchByStringId(t *testing.T) {
+func TestAccDatasourceLicensingServicePlanReference_02_SearchByStringId(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -64,7 +64,7 @@ func TestAccLicensingServicePlanReferenceDataSource_SearchByStringId(t *testing.
 	})
 }
 
-func TestAccLicensingServicePlanReferenceDataSource_SearchByServicePlan(t *testing.T) {
+func TestAccDatasourceLicensingServicePlanReference_03_SearchByServicePlan(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,

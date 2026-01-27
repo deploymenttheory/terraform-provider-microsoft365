@@ -32,7 +32,7 @@ resource "microsoft365_graph_beta_groups_license_assignment" "error" {
 `
 }
 
-func TestUnitGroupLicenseAssignmentResource_Create_Minimal(t *testing.T) {
+func TestUnitResourceGroupLicenseAssignment_01_CreateMinimal(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, _ = setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -57,7 +57,7 @@ func TestUnitGroupLicenseAssignmentResource_Create_Minimal(t *testing.T) {
 	})
 }
 
-func TestUnitGroupLicenseAssignmentResource_Create_Maximal(t *testing.T) {
+func TestUnitResourceGroupLicenseAssignment_02_CreateMaximal(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, _ = setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -83,7 +83,7 @@ func TestUnitGroupLicenseAssignmentResource_Create_Maximal(t *testing.T) {
 	})
 }
 
-func TestUnitGroupLicenseAssignmentResource_Update(t *testing.T) {
+func TestUnitResourceGroupLicenseAssignment_03_Update(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, _ = setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -112,7 +112,7 @@ func TestUnitGroupLicenseAssignmentResource_Update(t *testing.T) {
 	})
 }
 
-func TestUnitGroupLicenseAssignmentResource_Delete_Minimal(t *testing.T) {
+func TestUnitResourceGroupLicenseAssignment_04_DeleteMinimal(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, _ = setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -140,7 +140,7 @@ func TestUnitGroupLicenseAssignmentResource_Delete_Minimal(t *testing.T) {
 	})
 }
 
-func TestUnitGroupLicenseAssignmentResource_Delete_Maximal(t *testing.T) {
+func TestUnitResourceGroupLicenseAssignment_05_DeleteMaximal(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, _ = setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -168,7 +168,7 @@ func TestUnitGroupLicenseAssignmentResource_Delete_Maximal(t *testing.T) {
 	})
 }
 
-func TestUnitGroupLicenseAssignmentResource_Error(t *testing.T) {
+func TestUnitResourceGroupLicenseAssignment_06_Error(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, licenseAssignmentMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()

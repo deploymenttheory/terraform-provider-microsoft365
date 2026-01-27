@@ -16,7 +16,7 @@ var (
 	dataSourceType = utilityEntraIdSidConverter.DataSourceName
 )
 
-func TestEntraIdSidConverterDataSource_SidToObjectId(t *testing.T) {
+func TestUnitDatasourceEntraIdSidConverter_01_SidToObjectId(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 
 	resource.UnitTest(t, resource.TestCase{
@@ -34,7 +34,7 @@ func TestEntraIdSidConverterDataSource_SidToObjectId(t *testing.T) {
 	})
 }
 
-func TestEntraIdSidConverterDataSource_ObjectIdToSid(t *testing.T) {
+func TestUnitDatasourceEntraIdSidConverter_02_ObjectIdToSid(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 
 	resource.UnitTest(t, resource.TestCase{
@@ -52,7 +52,7 @@ func TestEntraIdSidConverterDataSource_ObjectIdToSid(t *testing.T) {
 	})
 }
 
-func TestEntraIdSidConverterDataSource_InvalidRidExceedsMax(t *testing.T) {
+func TestUnitDatasourceEntraIdSidConverter_03_InvalidRidExceedsMax(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 
 	resource.UnitTest(t, resource.TestCase{
@@ -66,7 +66,7 @@ func TestEntraIdSidConverterDataSource_InvalidRidExceedsMax(t *testing.T) {
 	})
 }
 
-func TestEntraIdSidConverterDataSource_InvalidSidFormat(t *testing.T) {
+func TestUnitDatasourceEntraIdSidConverter_04_InvalidSidFormat(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 
 	resource.UnitTest(t, resource.TestCase{
@@ -80,7 +80,7 @@ func TestEntraIdSidConverterDataSource_InvalidSidFormat(t *testing.T) {
 	})
 }
 
-func TestEntraIdSidConverterDataSource_InvalidGuidFormat(t *testing.T) {
+func TestUnitDatasourceEntraIdSidConverter_05_InvalidGuidFormat(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 
 	resource.UnitTest(t, resource.TestCase{
@@ -94,7 +94,7 @@ func TestEntraIdSidConverterDataSource_InvalidGuidFormat(t *testing.T) {
 	})
 }
 
-func TestEntraIdSidConverterDataSource_BothParametersProvided(t *testing.T) {
+func TestUnitDatasourceEntraIdSidConverter_06_BothParametersProvided(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 
 	resource.UnitTest(t, resource.TestCase{
@@ -108,7 +108,7 @@ func TestEntraIdSidConverterDataSource_BothParametersProvided(t *testing.T) {
 	})
 }
 
-func TestEntraIdSidConverterDataSource_NeitherParameterProvided(t *testing.T) {
+func TestUnitDatasourceEntraIdSidConverter_07_NeitherParameterProvided(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 
 	resource.UnitTest(t, resource.TestCase{

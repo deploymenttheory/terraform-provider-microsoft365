@@ -29,7 +29,7 @@ func setupErrorMockEnvironment() (*mocks.Mocks, *roleDefinitionsMocks.RoleDefini
 	return mockClient, rdMock
 }
 
-func TestRoleDefinitionsDataSource_All(t *testing.T) {
+func TestUnitDatasourceRoleDefinitions_01_All(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, rdMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -57,7 +57,7 @@ func TestRoleDefinitionsDataSource_All(t *testing.T) {
 	})
 }
 
-func TestRoleDefinitionsDataSource_ById(t *testing.T) {
+func TestUnitDatasourceRoleDefinitions_02_ById(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, rdMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -83,7 +83,7 @@ func TestRoleDefinitionsDataSource_ById(t *testing.T) {
 	})
 }
 
-func TestRoleDefinitionsDataSource_ByDisplayName(t *testing.T) {
+func TestUnitDatasourceRoleDefinitions_03_ByDisplayName(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, rdMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -106,7 +106,7 @@ func TestRoleDefinitionsDataSource_ByDisplayName(t *testing.T) {
 	})
 }
 
-func TestRoleDefinitionsDataSource_ODataFilter(t *testing.T) {
+func TestUnitDatasourceRoleDefinitions_04_ODataFilter(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, rdMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -129,7 +129,7 @@ func TestRoleDefinitionsDataSource_ODataFilter(t *testing.T) {
 	})
 }
 
-func TestRoleDefinitionsDataSource_ODataAdvanced(t *testing.T) {
+func TestUnitDatasourceRoleDefinitions_05_ODataAdvanced(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, rdMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -152,7 +152,7 @@ func TestRoleDefinitionsDataSource_ODataAdvanced(t *testing.T) {
 	})
 }
 
-func TestRoleDefinitionsDataSource_ODataComprehensive(t *testing.T) {
+func TestUnitDatasourceRoleDefinitions_06_ODataComprehensive(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, rdMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -175,7 +175,7 @@ func TestRoleDefinitionsDataSource_ODataComprehensive(t *testing.T) {
 	})
 }
 
-func TestRoleDefinitionsDataSource_ValidationError(t *testing.T) {
+func TestUnitDatasourceRoleDefinitions_07_ValidationError(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, rdMock := setupErrorMockEnvironment()
 	defer httpmock.DeactivateAndReset()

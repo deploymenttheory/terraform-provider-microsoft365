@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
-func TestAccCloudPcProvisioningPolicyResource_Complete(t *testing.T) {
+func TestAccResourceCloudPcProvisioningPolicy_01_Complete(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -58,7 +58,7 @@ func TestAccCloudPcProvisioningPolicyResource_Complete(t *testing.T) {
 	})
 }
 
-func TestAccCloudPcProvisioningPolicyResource_WithAssignments(t *testing.T) {
+func TestAccResourceCloudPcProvisioningPolicy_02_WithAssignments(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -77,7 +77,7 @@ func TestAccCloudPcProvisioningPolicyResource_WithAssignments(t *testing.T) {
 	})
 }
 
-func TestAccCloudPcProvisioningPolicyResource_RequiredFields(t *testing.T) {
+func TestAccResourceCloudPcProvisioningPolicy_03_RequiredFields(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,

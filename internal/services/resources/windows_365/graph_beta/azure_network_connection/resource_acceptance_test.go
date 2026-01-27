@@ -11,7 +11,7 @@ import (
 )
 
 // TestAccAzureNetworkConnectionResource_Create_Minimal tests creating an azure network connection with minimal configuration
-func TestAccAzureNetworkConnectionResource_Create_Minimal(t *testing.T) {
+func TestAccResourceAzureNetworkConnection_01_Create_Minimal(t *testing.T) {
 	// Skip if not running acceptance tests
 	if os.Getenv("TF_ACC") == "" {
 		t.Skip("Acceptance tests skipped unless TF_ACC=1")
@@ -87,7 +87,7 @@ func TestAccAzureNetworkConnectionResource_Create_Minimal(t *testing.T) {
 }
 
 // TestAccAzureNetworkConnectionResource_Create_Maximal tests creating an azure network connection with maximal configuration
-func TestAccAzureNetworkConnectionResource_Create_Maximal(t *testing.T) {
+func TestAccResourceAzureNetworkConnection_02_Create_Maximal(t *testing.T) {
 	// Skip if not running acceptance tests
 	if os.Getenv("TF_ACC") == "" {
 		t.Skip("Acceptance tests skipped unless TF_ACC=1")
@@ -162,7 +162,7 @@ func TestAccAzureNetworkConnectionResource_Create_Maximal(t *testing.T) {
 }
 
 // TestAccAzureNetworkConnectionResource_Update_MinimalToMaximal tests updating from minimal to maximal config
-func TestAccAzureNetworkConnectionResource_Update_MinimalToMaximal(t *testing.T) {
+func TestAccResourceAzureNetworkConnection_03_Update_MinimalToMaximal(t *testing.T) {
 	// Skip if not running acceptance tests
 	if os.Getenv("TF_ACC") == "" {
 		t.Skip("Acceptance tests skipped unless TF_ACC=1")
@@ -236,7 +236,7 @@ func TestAccAzureNetworkConnectionResource_Update_MinimalToMaximal(t *testing.T)
 }
 
 // TestAccAzureNetworkConnectionResource_Delete_Minimal tests deleting an azure network connection with minimal configuration
-func TestAccAzureNetworkConnectionResource_Delete_Minimal(t *testing.T) {
+func TestAccResourceAzureNetworkConnection_04_Delete_Minimal(t *testing.T) {
 	// Skip if not running acceptance tests
 	if os.Getenv("TF_ACC") == "" {
 		t.Skip("Acceptance tests skipped unless TF_ACC=1")
@@ -309,7 +309,7 @@ func TestAccAzureNetworkConnectionResource_Delete_Minimal(t *testing.T) {
 }
 
 // TestAccAzureNetworkConnectionResource_Import tests importing a resource
-func TestAccAzureNetworkConnectionResource_Import(t *testing.T) {
+func TestAccResourceAzureNetworkConnection_05_Import(t *testing.T) {
 	// Skip if not running acceptance tests
 	if os.Getenv("TF_ACC") == "" {
 		t.Skip("Acceptance tests skipped unless TF_ACC=1")

@@ -21,7 +21,7 @@ func setupMockEnvironment() (*mocks.Mocks, *authStrengthMocks.AuthenticationStre
 	return mockClient, authStrengthMock
 }
 
-func TestAuthenticationStrengthResource_Minimal(t *testing.T) {
+func TestUnitResourceAuthenticationStrengthPolicy_01_Minimal(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, authStrengthMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -58,7 +58,7 @@ func TestAuthenticationStrengthResource_Minimal(t *testing.T) {
 	})
 }
 
-func TestAuthenticationStrengthResource_Maximal(t *testing.T) {
+func TestUnitResourceAuthenticationStrengthPolicy_02_Maximal(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, authStrengthMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()

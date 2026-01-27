@@ -34,7 +34,7 @@ func loadAcceptanceTestTerraform(filename string) string {
 }
 
 // Test 01: Scenario 1 - custom compliance
-func TestAccWindowsDeviceCompliancePolicyResource_01_CustomCompliance(t *testing.T) {
+func TestAccResourceWindowsDeviceCompliancePolicy_01_CustomCompliance(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -89,7 +89,7 @@ func TestAccWindowsDeviceCompliancePolicyResource_01_CustomCompliance(t *testing
 }
 
 // Test 02: Scenario 2 - device health
-func TestAccWindowsDeviceCompliancePolicyResource_02_DeviceHealth(t *testing.T) {
+func TestAccResourceWindowsDeviceCompliancePolicy_02_DeviceHealth(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -142,7 +142,7 @@ func TestAccWindowsDeviceCompliancePolicyResource_02_DeviceHealth(t *testing.T) 
 }
 
 // Test 03: Scenario 3 - device properties
-func TestAccWindowsDeviceCompliancePolicyResource_03_DeviceProperties(t *testing.T) {
+func TestAccResourceWindowsDeviceCompliancePolicy_03_DeviceProperties(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -195,7 +195,7 @@ func TestAccWindowsDeviceCompliancePolicyResource_03_DeviceProperties(t *testing
 }
 
 // Test 04: Scenario 4 - Microsoft Defender for Endpoint
-func TestAccWindowsDeviceCompliancePolicyResource_04_MicrosoftDefenderForEndpoint(t *testing.T) {
+func TestAccResourceWindowsDeviceCompliancePolicy_04_MicrosoftDefenderForEndpoint(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -247,7 +247,7 @@ func TestAccWindowsDeviceCompliancePolicyResource_04_MicrosoftDefenderForEndpoin
 }
 
 // Test 05: Scenario 5 - WSL
-func TestAccWindowsDeviceCompliancePolicyResource_05_WSL(t *testing.T) {
+func TestAccResourceWindowsDeviceCompliancePolicy_05_WSL(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -298,7 +298,7 @@ func TestAccWindowsDeviceCompliancePolicyResource_05_WSL(t *testing.T) {
 }
 
 // Test 06: Scenario 6 - WSL assignments
-func TestAccWindowsDeviceCompliancePolicyResource_06_WSL_Assignments(t *testing.T) {
+func TestAccResourceWindowsDeviceCompliancePolicy_06_WSL_Assignments(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,

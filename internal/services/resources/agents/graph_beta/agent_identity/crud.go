@@ -15,7 +15,14 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
-// Create handles the Create operation.
+// Create handles the Create operation for agent identity resources.
+//
+// Operation: Creates a new agent identity service principal
+// API Calls:
+//   - POST /servicePrincipals/microsoft.graph.agentIdentity
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/agentidentity-post?view=graph-rest-beta
+// Note: Uses custom request as SDK doesn't support the agentIdentity cast endpoint
 func (r *AgentIdentityResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var object AgentIdentityResourceModel
 
@@ -102,7 +109,15 @@ func (r *AgentIdentityResource) Create(ctx context.Context, req resource.CreateR
 	tflog.Debug(ctx, fmt.Sprintf("Finished Create Method: %s", ResourceName))
 }
 
-// Read handles the Read operation.
+// Read handles the Read operation for agent identity resources.
+//
+// Operation: Retrieves agent identity details including sponsors and owners
+// API Calls:
+//   - GET /servicePrincipals/{id}
+//   - GET /servicePrincipals/{id}/microsoft.graph.agentIdentity/sponsors
+//   - GET /servicePrincipals/{id}/owners
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/agentidentity-get?view=graph-rest-beta
 func (r *AgentIdentityResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var object AgentIdentityResourceModel
 
@@ -184,7 +199,17 @@ func (r *AgentIdentityResource) Read(ctx context.Context, req resource.ReadReque
 	tflog.Debug(ctx, fmt.Sprintf("Finished Read Method: %s", ResourceName))
 }
 
-// Update handles the Update operation.
+// Update handles the Update operation for agent identity resources.
+//
+// Operation: Updates agent identity properties and manages sponsors and owners
+// API Calls:
+//   - PATCH /servicePrincipals/{id}
+//   - DELETE /servicePrincipals/{id}/microsoft.graph.agentIdentity/sponsors/{sponsorId}/$ref (for removed sponsors)
+//   - POST /servicePrincipals/{id}/microsoft.graph.agentIdentity/sponsors/$ref (for new sponsors)
+//   - DELETE /servicePrincipals/{id}/owners/{ownerId}/$ref (for removed owners)
+//   - POST /servicePrincipals/{id}/owners/$ref (for new owners)
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/agentidentity-update?view=graph-rest-beta
 func (r *AgentIdentityResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var plan AgentIdentityResourceModel
 	var state AgentIdentityResourceModel
@@ -294,15 +319,16 @@ func (r *AgentIdentityResource) Update(ctx context.Context, req resource.UpdateR
 	tflog.Debug(ctx, fmt.Sprintf("Finished Update Method: %s", ResourceName))
 }
 
-// Delete handles the Delete operation.
-// When hard_delete is true, agent identities are deleted in two steps:
-// 1. Delete the service principal (soft delete - moves to deleted items)
-// 2. Wait for the resource to appear in deleted items (handles eventual consistency)
-// 3. Permanently delete from /directory/deleteditems/{id}
-// 4. Verify deletion by confirming resource is gone
-// When hard_delete is false (default), only the soft delete is performed.
-// REF: https://learn.microsoft.com/en-us/graph/api/directory-deleteditems-list?view=graph-rest-beta
-// REF: https://learn.microsoft.com/en-us/graph/api/directory-deleteditems-delete?view=graph-rest-beta
+// Delete handles the Delete operation for agent identity resources.
+//
+// Operation: Deletes agent identity service principal with optional hard delete
+// API Calls:
+//   - DELETE /servicePrincipals/{id}
+//   - GET /directory/deletedItems/microsoft.graph.servicePrincipal (if hard_delete is true)
+//   - DELETE /directory/deletedItems/{id} (if hard_delete is true)
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/agentidentity-delete?view=graph-rest-beta
+// Note: When hard_delete is true, performs soft delete then permanent deletion from directory deleted items after eventual consistency delay
 func (r *AgentIdentityResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var object AgentIdentityResourceModel
 

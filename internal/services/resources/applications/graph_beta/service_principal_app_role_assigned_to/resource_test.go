@@ -32,8 +32,8 @@ func setupErrorMockEnvironment() (*mocks.Mocks, *appRoleAssignedToMocks.ServiceP
 	return mockClient, appRoleAssignedToMock
 }
 
-// TestUnitServicePrincipalAppRoleAssignedToResource_Minimal tests creating an app role assignment with minimal configuration
-func TestUnitServicePrincipalAppRoleAssignedToResource_Minimal(t *testing.T) {
+// TestUnitResourceServicePrincipalAppRoleAssignedTo_01_Minimal tests creating an app role assignment with minimal configuration
+func TestUnitResourceServicePrincipalAppRoleAssignedTo_01_Minimal(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, appRoleAssignedToMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -73,8 +73,8 @@ func TestUnitServicePrincipalAppRoleAssignedToResource_Minimal(t *testing.T) {
 	})
 }
 
-// TestUnitServicePrincipalAppRoleAssignedToResource_DefaultRole tests creating an app role assignment with default role ID
-func TestUnitServicePrincipalAppRoleAssignedToResource_DefaultRole(t *testing.T) {
+// TestUnitResourceServicePrincipalAppRoleAssignedTo_02_DefaultRole tests creating an app role assignment with default role ID
+func TestUnitResourceServicePrincipalAppRoleAssignedTo_02_DefaultRole(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, appRoleAssignedToMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()

@@ -22,7 +22,7 @@ var (
 	testResource = graphBetaGroupLicenseAssignment.GroupLicenseAssignmentTestResource{}
 )
 
-func TestAccGroupLicenseAssignmentResource_Lifecycle(t *testing.T) {
+func TestAccResourceGroupLicenseAssignment_01_Lifecycle(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -70,7 +70,7 @@ func TestAccGroupLicenseAssignmentResource_Lifecycle(t *testing.T) {
 	})
 }
 
-func TestAccGroupLicenseAssignmentResource_Maximal(t *testing.T) {
+func TestAccResourceGroupLicenseAssignment_02_Maximal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,

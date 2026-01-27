@@ -15,7 +15,7 @@ import (
 const dataSourceType = "data.microsoft365_graph_beta_device_and_app_management_mobile_app_relationship"
 
 // TestMobileAppRelationshipDataSource_All tests fetching all mobile app relationships
-func TestMobileAppRelationshipDataSource_All(t *testing.T) {
+func TestUnitDatasourceMobileAppRelationship_01_All(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -53,7 +53,7 @@ func TestMobileAppRelationshipDataSource_All(t *testing.T) {
 }
 
 // TestMobileAppRelationshipDataSource_ById tests fetching a specific mobile app relationship by ID
-func TestMobileAppRelationshipDataSource_ById(t *testing.T) {
+func TestUnitDatasourceMobileAppRelationship_02_ById(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -91,7 +91,7 @@ func TestMobileAppRelationshipDataSource_ById(t *testing.T) {
 }
 
 // TestMobileAppRelationshipDataSource_BySourceId tests filtering relationships by source app ID
-func TestMobileAppRelationshipDataSource_BySourceId(t *testing.T) {
+func TestUnitDatasourceMobileAppRelationship_03_BySourceId(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -122,7 +122,7 @@ func TestMobileAppRelationshipDataSource_BySourceId(t *testing.T) {
 }
 
 // TestMobileAppRelationshipDataSource_ByTargetId tests filtering relationships by target app ID
-func TestMobileAppRelationshipDataSource_ByTargetId(t *testing.T) {
+func TestUnitDatasourceMobileAppRelationship_04_ByTargetId(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -152,7 +152,7 @@ func TestMobileAppRelationshipDataSource_ByTargetId(t *testing.T) {
 }
 
 // TestMobileAppRelationshipDataSource_ODataFilter tests using OData filter queries
-func TestMobileAppRelationshipDataSource_ODataFilter(t *testing.T) {
+func TestUnitDatasourceMobileAppRelationship_05_ODataFilter(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()

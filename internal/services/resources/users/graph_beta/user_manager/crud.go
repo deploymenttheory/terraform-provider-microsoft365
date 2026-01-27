@@ -13,17 +13,13 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
-// Create handles the Create operation for the user manager relationship.
+// Create handles the Create operation for user manager resources.
 //
-//   - Retrieves the planned configuration from the create request
-//   - Constructs the manager reference from the plan
-//   - Sends PUT request to assign the manager
-//   - Captures the resource ID (user_id)
-//   - Sets initial state with planned values
-//   - Calls Read operation to fetch the latest state from the API
-//   - Updates the final state with the fresh data from the API
+// Operation: Assigns a manager to a user
+// API Calls:
+//   - PUT /users/{id}/manager/$ref
 //
-// REF: https://learn.microsoft.com/en-us/graph/api/agentuser-post-manager?view=graph-rest-beta
+// Reference: https://learn.microsoft.com/en-us/graph/api/user-post-manager?view=graph-rest-beta
 func (r *UserManagerResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var plan UserManagerResourceModel
 
@@ -86,13 +82,13 @@ func (r *UserManagerResource) Create(ctx context.Context, req resource.CreateReq
 	tflog.Debug(ctx, fmt.Sprintf("Finished Create Method: %s", ResourceName))
 }
 
-// Read handles the Read operation for the user manager relationship.
+// Read handles the Read operation for user manager resources.
 //
-//   - Retrieves the current state from the read request
-//   - Gets the manager details from the API
-//   - Maps the manager details to Terraform state
+// Operation: Retrieves the manager assigned to a user
+// API Calls:
+//   - GET /users/{id}/manager
 //
-// REF: https://learn.microsoft.com/en-us/graph/api/agentuser-list-manager?view=graph-rest-beta
+// Reference: https://learn.microsoft.com/en-us/graph/api/user-list-manager?view=graph-rest-beta
 func (r *UserManagerResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var state UserManagerResourceModel
 
@@ -141,19 +137,15 @@ func (r *UserManagerResource) Read(ctx context.Context, req resource.ReadRequest
 	tflog.Debug(ctx, fmt.Sprintf("Finished Read Method: %s", ResourceName))
 }
 
-// Update handles the Update operation for the user manager relationship.
+// Update handles the Update operation for user manager resources.
 //
-// To update the manager, we must first remove the existing manager and then add the new one.
+// Operation: Updates manager assignment by removing old and assigning new one
+// API Calls:
+//   - DELETE /users/{id}/manager/$ref
+//   - PUT /users/{id}/manager/$ref
 //
-//   - Retrieves the planned changes from the update request
-//   - Removes the existing manager reference
-//   - Adds the new manager reference
-//   - Sets initial state with planned values
-//   - Calls Read operation to fetch the latest state from the API
-//   - Updates the final state with the fresh data from the API
-//
-// REF: https://learn.microsoft.com/en-us/graph/api/agentuser-delete-manager?view=graph-rest-beta
-// REF: https://learn.microsoft.com/en-us/graph/api/agentuser-post-manager?view=graph-rest-beta
+// Reference: https://learn.microsoft.com/en-us/graph/api/user-post-manager?view=graph-rest-beta
+// Note: Manager assignment cannot be updated directly; changes require delete and recreate
 func (r *UserManagerResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var plan UserManagerResourceModel
 	var state UserManagerResourceModel
@@ -239,13 +231,13 @@ func (r *UserManagerResource) Update(ctx context.Context, req resource.UpdateReq
 	tflog.Debug(ctx, fmt.Sprintf("Finished Update Method: %s", ResourceName))
 }
 
-// Delete handles the Delete operation for the user manager relationship.
+// Delete handles the Delete operation for user manager resources.
 //
-//   - Retrieves the current state from the delete request
-//   - Sends DELETE request to remove the manager reference
-//   - Cleans up by removing the resource from Terraform state
+// Operation: Removes manager assignment from a user
+// API Calls:
+//   - DELETE /users/{id}/manager/$ref
 //
-// REF: https://learn.microsoft.com/en-us/graph/api/agentuser-delete-manager?view=graph-rest-beta
+// Reference: https://learn.microsoft.com/en-us/graph/api/user-delete-manager?view=graph-rest-beta
 func (r *UserManagerResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var state UserManagerResourceModel
 

@@ -36,7 +36,7 @@ func loadUnitTestTerraform(filename string) string {
 }
 
 // Test 01: Single Definition - RDP Policy
-func TestGroupPolicyValueReferenceDataSource_01_SingleDefinition(t *testing.T) {
+func TestUnitDatasourceGroupPolicyValueReference_01_SingleDefinition(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, _ = setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -64,7 +64,7 @@ func TestGroupPolicyValueReferenceDataSource_01_SingleDefinition(t *testing.T) {
 }
 
 // Test 02: Multiple Definitions - Show Home button (8 variants across browsers)
-func TestGroupPolicyValueReferenceDataSource_02_MultipleDefinitions(t *testing.T) {
+func TestUnitDatasourceGroupPolicyValueReference_02_MultipleDefinitions(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, _ = setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -95,7 +95,7 @@ func TestGroupPolicyValueReferenceDataSource_02_MultipleDefinitions(t *testing.T
 }
 
 // Test 03: No Results (with warning)
-func TestGroupPolicyValueReferenceDataSource_03_NoResults(t *testing.T) {
+func TestUnitDatasourceGroupPolicyValueReference_03_NoResults(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, _ = setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -116,7 +116,7 @@ func TestGroupPolicyValueReferenceDataSource_03_NoResults(t *testing.T) {
 }
 
 // Test 04: Fuzzy Match with Suggestions - Should return error with ranked suggestions
-func TestGroupPolicyValueReferenceDataSource_04_FuzzyMatchSuggestions(t *testing.T) {
+func TestUnitDatasourceGroupPolicyValueReference_04_FuzzyMatchSuggestions(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, _ = setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -133,7 +133,7 @@ func TestGroupPolicyValueReferenceDataSource_04_FuzzyMatchSuggestions(t *testing
 }
 
 // Test 05: Exact Match with Case Insensitivity (normalized matching)
-func TestGroupPolicyValueReferenceDataSource_05_CaseInsensitiveMatch(t *testing.T) {
+func TestUnitDatasourceGroupPolicyValueReference_05_CaseInsensitiveMatch(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, _ = setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()

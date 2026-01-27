@@ -46,7 +46,7 @@ func setupErrorMockEnvironment() (*mocks.Mocks, *windowsUpdateRingMocks.WindowsU
 }
 
 // Test 001: Scenario 1 - Notify Download
-func TestWindowsUpdateRingResource_001_Scenario_NotifyDownload(t *testing.T) {
+func TestUnitResourceWindowsUpdateRing_01_Scenario_NotifyDownload(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, windowsUpdateRingMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -75,7 +75,7 @@ func TestWindowsUpdateRingResource_001_Scenario_NotifyDownload(t *testing.T) {
 }
 
 // Test 002: Scenario 2 - Auto Install at Maintenance Time
-func TestWindowsUpdateRingResource_002_Scenario_AutoInstallMaintenance(t *testing.T) {
+func TestUnitResourceWindowsUpdateRing_02_Scenario_AutoInstallMaintenance(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, windowsUpdateRingMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -105,7 +105,7 @@ func TestWindowsUpdateRingResource_002_Scenario_AutoInstallMaintenance(t *testin
 }
 
 // Test 003: Scenario 3 - Auto Install and Reboot at Maintenance Time
-func TestWindowsUpdateRingResource_003_Scenario_AutoRebootMaintenance(t *testing.T) {
+func TestUnitResourceWindowsUpdateRing_03_Scenario_AutoRebootMaintenance(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, windowsUpdateRingMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -135,7 +135,7 @@ func TestWindowsUpdateRingResource_003_Scenario_AutoRebootMaintenance(t *testing
 }
 
 // Test 004: Scenario 4 - Auto Install and Restart at Scheduled Time
-func TestWindowsUpdateRingResource_004_Scenario_ScheduledInstall(t *testing.T) {
+func TestUnitResourceWindowsUpdateRing_04_Scenario_ScheduledInstall(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, windowsUpdateRingMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -166,7 +166,7 @@ func TestWindowsUpdateRingResource_004_Scenario_ScheduledInstall(t *testing.T) {
 }
 
 // Test 005: Scenario 5 - Auto Install and Reboot Without End User Control
-func TestWindowsUpdateRingResource_005_Scenario_NoEndUserControl(t *testing.T) {
+func TestUnitResourceWindowsUpdateRing_05_Scenario_NoEndUserControl(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, windowsUpdateRingMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -194,7 +194,7 @@ func TestWindowsUpdateRingResource_005_Scenario_NoEndUserControl(t *testing.T) {
 }
 
 // Test 006: Scenario 6 - Windows Default (Reset)
-func TestWindowsUpdateRingResource_006_Scenario_WindowsDefault(t *testing.T) {
+func TestUnitResourceWindowsUpdateRing_06_Scenario_WindowsDefault(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, windowsUpdateRingMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -223,7 +223,7 @@ func TestWindowsUpdateRingResource_006_Scenario_WindowsDefault(t *testing.T) {
 }
 
 // Test 007: Full Lifecycle Through All Scenarios
-func TestWindowsUpdateRingResource_007_FullLifecycle(t *testing.T) {
+func TestUnitResourceWindowsUpdateRing_07_FullLifecycle(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, windowsUpdateRingMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -282,7 +282,7 @@ func TestWindowsUpdateRingResource_007_FullLifecycle(t *testing.T) {
 }
 
 // Test 008: Minimal Assignments
-func TestWindowsUpdateRingResource_008_AssignmentsMinimal(t *testing.T) {
+func TestUnitResourceWindowsUpdateRing_08_AssignmentsMinimal(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, windowsUpdateRingMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -309,7 +309,7 @@ func TestWindowsUpdateRingResource_008_AssignmentsMinimal(t *testing.T) {
 }
 
 // Test 009: Maximal Assignments
-func TestWindowsUpdateRingResource_009_AssignmentsMaximal(t *testing.T) {
+func TestUnitResourceWindowsUpdateRing_09_AssignmentsMaximal(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, windowsUpdateRingMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -336,7 +336,7 @@ func TestWindowsUpdateRingResource_009_AssignmentsMaximal(t *testing.T) {
 }
 
 // Test 010: Assignments Lifecycle - Minimal to Maximal
-func TestWindowsUpdateRingResource_010_AssignmentsLifecycle_MinimalToMaximal(t *testing.T) {
+func TestUnitResourceWindowsUpdateRing_10_AssignmentsLifecycle_MinimalToMaximal(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, windowsUpdateRingMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -368,7 +368,7 @@ func TestWindowsUpdateRingResource_010_AssignmentsLifecycle_MinimalToMaximal(t *
 }
 
 // Test 011: Assignments Lifecycle - Maximal to Minimal
-func TestWindowsUpdateRingResource_011_AssignmentsLifecycle_MaximalToMinimal(t *testing.T) {
+func TestUnitResourceWindowsUpdateRing_11_AssignmentsLifecycle_MaximalToMinimal(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, windowsUpdateRingMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -400,7 +400,7 @@ func TestWindowsUpdateRingResource_011_AssignmentsLifecycle_MaximalToMinimal(t *
 }
 
 // Test 012: Error and Validation Testing
-func TestWindowsUpdateRingResource_012_ValidationErrors(t *testing.T) {
+func TestUnitResourceWindowsUpdateRing_12_ValidationErrors(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, windowsUpdateRingMock := setupErrorMockEnvironment()
 	defer httpmock.DeactivateAndReset()

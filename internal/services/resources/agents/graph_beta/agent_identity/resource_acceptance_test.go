@@ -26,7 +26,7 @@ func loadAcceptanceTestTerraform(filename string) string {
 }
 
 // TestAccAgentIdentityResource_Minimal tests creating an agent identity with minimal configuration
-func TestAccAgentIdentityResource_Minimal(t *testing.T) {
+func TestAccResourceAgentIdentity_01_Minimal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -89,7 +89,7 @@ func TestAccAgentIdentityResource_Minimal(t *testing.T) {
 }
 
 // TestAccAgentIdentityResource_WithTags tests creating an agent identity with tags
-func TestAccAgentIdentityResource_WithTags(t *testing.T) {
+func TestAccResourceAgentIdentity_02_WithTags(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,

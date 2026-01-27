@@ -81,8 +81,8 @@ func testConfigMinimalWithResourceName(resourceName string) string {
 }`, resourceName)
 }
 
-// TestUnitCloudPcDeviceImageResource_Create_Minimal tests the creation of a Cloud PC device image with minimal configuration
-func TestUnitCloudPcDeviceImageResource_Create_Minimal(t *testing.T) {
+// TestUnitResourceCloudPcDeviceImage_01_CreateMinimal tests the creation of a Cloud PC device image with minimal configuration
+func TestUnitResourceCloudPcDeviceImage_01_CreateMinimal(t *testing.T) {
 	// Set up mock environment
 	_, _ = setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -117,8 +117,8 @@ func TestUnitCloudPcDeviceImageResource_Create_Minimal(t *testing.T) {
 	})
 }
 
-// TestUnitCloudPcDeviceImageResource_Create_Maximal tests the creation of a Cloud PC device image with maximal configuration
-func TestUnitCloudPcDeviceImageResource_Create_Maximal(t *testing.T) {
+// TestUnitResourceCloudPcDeviceImage_02_CreateMaximal tests the creation of a Cloud PC device image with maximal configuration
+func TestUnitResourceCloudPcDeviceImage_02_CreateMaximal(t *testing.T) {
 	// Set up mock environment
 	_, _ = setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -153,8 +153,8 @@ func TestUnitCloudPcDeviceImageResource_Create_Maximal(t *testing.T) {
 	})
 }
 
-// TestUnitCloudPcDeviceImageResource_Update_MinimalToMaximal tests updating from minimal to maximal configuration
-func TestUnitCloudPcDeviceImageResource_Update_MinimalToMaximal(t *testing.T) {
+// TestUnitResourceCloudPcDeviceImage_03_UpdateMinimalToMaximal tests updating from minimal to maximal configuration
+func TestUnitResourceCloudPcDeviceImage_03_UpdateMinimalToMaximal(t *testing.T) {
 	// Set up mock environment
 	_, _ = setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -192,8 +192,8 @@ func TestUnitCloudPcDeviceImageResource_Update_MinimalToMaximal(t *testing.T) {
 	})
 }
 
-// TestUnitCloudPcDeviceImageResource_Update_MaximalToMinimal tests updating from maximal to minimal configuration
-func TestUnitCloudPcDeviceImageResource_Update_MaximalToMinimal(t *testing.T) {
+// TestUnitResourceCloudPcDeviceImage_04_UpdateMaximalToMinimal tests updating from maximal to minimal configuration
+func TestUnitResourceCloudPcDeviceImage_04_UpdateMaximalToMinimal(t *testing.T) {
 	// Set up mock environment
 	_, _ = setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -231,8 +231,8 @@ func TestUnitCloudPcDeviceImageResource_Update_MaximalToMinimal(t *testing.T) {
 	})
 }
 
-// TestUnitCloudPcDeviceImageResource_Delete_Minimal tests deleting a Cloud PC device image with minimal configuration
-func TestUnitCloudPcDeviceImageResource_Delete_Minimal(t *testing.T) {
+// TestUnitResourceCloudPcDeviceImage_05_DeleteMinimal tests deleting a Cloud PC device image with minimal configuration
+func TestUnitResourceCloudPcDeviceImage_05_DeleteMinimal(t *testing.T) {
 	// Set up mock environment
 	_, _ = setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -258,8 +258,8 @@ func TestUnitCloudPcDeviceImageResource_Delete_Minimal(t *testing.T) {
 	})
 }
 
-// TestUnitCloudPcDeviceImageResource_Delete_Maximal tests deleting a Cloud PC device image with maximal configuration
-func TestUnitCloudPcDeviceImageResource_Delete_Maximal(t *testing.T) {
+// TestUnitResourceCloudPcDeviceImage_06_DeleteMaximal tests deleting a Cloud PC device image with maximal configuration
+func TestUnitResourceCloudPcDeviceImage_06_DeleteMaximal(t *testing.T) {
 	// Set up mock environment
 	_, _ = setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -285,8 +285,8 @@ func TestUnitCloudPcDeviceImageResource_Delete_Maximal(t *testing.T) {
 	})
 }
 
-// TestUnitCloudPcDeviceImageResource_Import tests importing a Cloud PC device image
-func TestUnitCloudPcDeviceImageResource_Import(t *testing.T) {
+// TestUnitResourceCloudPcDeviceImage_07_Import tests importing a Cloud PC device image
+func TestUnitResourceCloudPcDeviceImage_07_Import(t *testing.T) {
 	// Set up mock environment
 	_, _ = setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -317,8 +317,8 @@ func TestUnitCloudPcDeviceImageResource_Import(t *testing.T) {
 	})
 }
 
-// TestUnitCloudPcDeviceImageResource_Error tests error handling
-func TestUnitCloudPcDeviceImageResource_Error(t *testing.T) {
+// TestUnitResourceCloudPcDeviceImage_08_Error tests error handling
+func TestUnitResourceCloudPcDeviceImage_08_Error(t *testing.T) {
 	// Set up mock environment
 	_, errorMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()

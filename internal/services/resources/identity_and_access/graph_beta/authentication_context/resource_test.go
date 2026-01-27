@@ -30,7 +30,7 @@ func setupErrorMockEnvironment() (*mocks.Mocks, *authContextMocks.Authentication
 	return mockClient, authContextMock
 }
 
-func TestAuthenticationContextResource_Basic(t *testing.T) {
+func TestUnitResourceAuthenticationContext_01_Basic(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, authContextMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -58,7 +58,7 @@ func TestAuthenticationContextResource_Basic(t *testing.T) {
 	})
 }
 
-func TestAuthenticationContextResource_Update(t *testing.T) {
+func TestUnitResourceAuthenticationContext_02_Update(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, authContextMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -92,7 +92,7 @@ func TestAuthenticationContextResource_Update(t *testing.T) {
 	})
 }
 
-func TestAuthenticationContextResource_InvalidID(t *testing.T) {
+func TestUnitResourceAuthenticationContext_03_InvalidID(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, authContextMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -109,7 +109,7 @@ func TestAuthenticationContextResource_InvalidID(t *testing.T) {
 	})
 }
 
-func TestAuthenticationContextResource_CreateError(t *testing.T) {
+func TestUnitResourceAuthenticationContext_04_CreateError(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, authContextMock := setupErrorMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -129,7 +129,7 @@ func TestAuthenticationContextResource_CreateError(t *testing.T) {
 // TestAuthenticationContextResource_DuplicateID tests duplicate ID validation
 // NOTE: This test has isolation issues when run with other tests due to mock state persistence
 // but passes when run individually, proving the validation logic works correctly
-func TestAuthenticationContextResource_DuplicateID(t *testing.T) {
+func TestUnitResourceAuthenticationContext_05_DuplicateID(t *testing.T) {
 	t.Skip("Skipping due to test isolation issues - validation logic works correctly when run individually")
 	mocks.SetupUnitTestEnvironment(t)
 	_, authContextMock := setupMockEnvironment()

@@ -25,7 +25,7 @@ func loadAcceptanceTestTerraform(filename string) string {
 }
 
 // Test 01: Minimal Configuration - No Assignments
-func TestAccAppControlForBusinessPolicyResource_01_MinimalNoAssignments(t *testing.T) {
+func TestAccResourceAppControlForBusinessPolicy_01_MinimalNoAssignments(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -75,7 +75,7 @@ func TestAccAppControlForBusinessPolicyResource_01_MinimalNoAssignments(t *testi
 }
 
 // Test 02: Maximal Configuration - No Assignments
-func TestAccAppControlForBusinessPolicyResource_02_MaximalNoAssignments(t *testing.T) {
+func TestAccResourceAppControlForBusinessPolicy_02_MaximalNoAssignments(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -125,7 +125,7 @@ func TestAccAppControlForBusinessPolicyResource_02_MaximalNoAssignments(t *testi
 }
 
 // Test 03: Minimal to Maximal Configuration Update
-func TestAccAppControlForBusinessPolicyResource_03_MinimalToMaximal(t *testing.T) {
+func TestAccResourceAppControlForBusinessPolicy_03_MinimalToMaximal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -190,7 +190,7 @@ func TestAccAppControlForBusinessPolicyResource_03_MinimalToMaximal(t *testing.T
 }
 
 // Test 05: Minimal Configuration - Minimal Assignments (1 group)
-func TestAccAppControlForBusinessPolicyResource_05_MinimalMinimalAssignments(t *testing.T) {
+func TestAccResourceAppControlForBusinessPolicy_05_MinimalMinimalAssignments(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -248,7 +248,7 @@ func TestAccAppControlForBusinessPolicyResource_05_MinimalMinimalAssignments(t *
 }
 
 // Test 06: Minimal Configuration - Maximal Assignments (allLicensedUsers, group, allDevices)
-func TestAccAppControlForBusinessPolicyResource_06_MinimalMaximalAssignments(t *testing.T) {
+func TestAccResourceAppControlForBusinessPolicy_06_MinimalMaximalAssignments(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -314,7 +314,7 @@ func TestAccAppControlForBusinessPolicyResource_06_MinimalMaximalAssignments(t *
 }
 
 // Test 04: Maximal to Minimal Configuration Update
-func TestAccAppControlForBusinessPolicyResource_04_MaximalToMinimal(t *testing.T) {
+func TestAccResourceAppControlForBusinessPolicy_04_MaximalToMinimal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -379,7 +379,7 @@ func TestAccAppControlForBusinessPolicyResource_04_MaximalToMinimal(t *testing.T
 }
 
 // Test 07: Minimal Assignments to Maximal Assignments Update
-func TestAccAppControlForBusinessPolicyResource_07_MinimalAssignmentsToMaximalAssignments(t *testing.T) {
+func TestAccResourceAppControlForBusinessPolicy_07_MinimalAssignmentsToMaximalAssignments(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -466,7 +466,7 @@ func TestAccAppControlForBusinessPolicyResource_07_MinimalAssignmentsToMaximalAs
 }
 
 // Test 08: Maximal Assignments to Minimal Assignments Update
-func TestAccAppControlForBusinessPolicyResource_08_MaximalAssignmentsToMinimalAssignments(t *testing.T) {
+func TestAccResourceAppControlForBusinessPolicy_08_MaximalAssignmentsToMinimalAssignments(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -553,7 +553,7 @@ func TestAccAppControlForBusinessPolicyResource_08_MaximalAssignmentsToMinimalAs
 }
 
 // Test 09: Error Handling - Invalid Policy XML
-func TestAccAppControlForBusinessPolicyResource_09_ErrorInvalidPolicyXML(t *testing.T) {
+func TestAccResourceAppControlForBusinessPolicy_09_ErrorInvalidPolicyXML(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -576,7 +576,7 @@ func TestAccAppControlForBusinessPolicyResource_09_ErrorInvalidPolicyXML(t *test
 }
 
 // Test 10: Removed Policy Configuration
-func TestAccAppControlForBusinessPolicyResource_10_RemovedPolicy(t *testing.T) {
+func TestAccResourceAppControlForBusinessPolicy_10_RemovedPolicy(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,

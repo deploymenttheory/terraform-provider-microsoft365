@@ -13,7 +13,13 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
-// Create handles the Create operation.
+// Create handles the Create operation for agent instance resources.
+//
+// Operation: Creates a new agent instance with optional agent card manifest
+// API Calls:
+//   - POST /agentRegistry/agentInstances
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/agentregistry-post-agentinstances?view=graph-rest-beta
 func (r *AgentInstanceResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var object AgentInstanceResourceModel
 
@@ -97,7 +103,14 @@ func (r *AgentInstanceResource) Create(ctx context.Context, req resource.CreateR
 	tflog.Debug(ctx, fmt.Sprintf("Finished Create Method: %s", ResourceName))
 }
 
-// Read handles the Read operation.
+// Read handles the Read operation for agent instance resources.
+//
+// Operation: Retrieves agent instance details including agent card manifest
+// API Calls:
+//   - GET /agentRegistry/agentInstances/{agentInstanceId}
+//   - GET /agentRegistry/agentInstances/{agentInstanceId}/agentCardManifest
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/agentinstance-get?view=graph-rest-beta
 func (r *AgentInstanceResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var object AgentInstanceResourceModel
 
@@ -162,7 +175,14 @@ func (r *AgentInstanceResource) Read(ctx context.Context, req resource.ReadReque
 	tflog.Debug(ctx, fmt.Sprintf("Finished Read Method: %s", ResourceName))
 }
 
-// Update handles the Update operation.
+// Update handles the Update operation for agent instance resources.
+//
+// Operation: Updates agent instance properties and agent card manifest
+// API Calls:
+//   - PATCH /agentRegistry/agentInstances/{agentInstanceId}
+//   - PATCH /agentRegistry/agentCardManifests/{agentCardManifestId} (if manifest exists)
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/agentinstance-update?view=graph-rest-beta
 func (r *AgentInstanceResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var plan AgentInstanceResourceModel
 	var state AgentInstanceResourceModel
@@ -254,7 +274,13 @@ func (r *AgentInstanceResource) Update(ctx context.Context, req resource.UpdateR
 	tflog.Debug(ctx, fmt.Sprintf("Finished Update Method: %s", ResourceName))
 }
 
-// Delete handles the Delete operation.
+// Delete handles the Delete operation for agent instance resources.
+//
+// Operation: Deletes an agent instance
+// API Calls:
+//   - DELETE /agentRegistry/agentInstances/{agentInstanceId}
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/agentregistry-delete-agentinstances?view=graph-rest-beta
 func (r *AgentInstanceResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var object AgentInstanceResourceModel
 

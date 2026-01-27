@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
-func TestAccCloudPcDeviceImageResource_Complete(t *testing.T) {
+func TestAccResourceCloudPcDeviceImage_01_Complete(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -58,7 +58,7 @@ func TestAccCloudPcDeviceImageResource_Complete(t *testing.T) {
 	})
 }
 
-func TestAccCloudPcDeviceImageResource_RequiredFields(t *testing.T) {
+func TestAccResourceCloudPcDeviceImage_02_RequiredFields(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -79,7 +79,7 @@ func TestAccCloudPcDeviceImageResource_RequiredFields(t *testing.T) {
 	})
 }
 
-func TestAccCloudPcDeviceImageResource_InvalidValues(t *testing.T) {
+func TestAccResourceCloudPcDeviceImage_03_InvalidValues(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,

@@ -29,7 +29,7 @@ func loadAcceptanceTestTerraform(filename string) string {
 }
 
 // Test 001: Minimal Configuration
-func TestAccWindowsEnrollmentStatusPageResource_001_Minimal(t *testing.T) {
+func TestAccResourceWindowsEnrollmentStatusPage_01_Minimal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -79,7 +79,7 @@ func TestAccWindowsEnrollmentStatusPageResource_001_Minimal(t *testing.T) {
 }
 
 // Test 002: Maximal Configuration
-func TestAccWindowsEnrollmentStatusPageResource_002_Maximal(t *testing.T) {
+func TestAccResourceWindowsEnrollmentStatusPage_02_Maximal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -138,7 +138,7 @@ func TestAccWindowsEnrollmentStatusPageResource_002_Maximal(t *testing.T) {
 }
 
 // Test 003: Configuration with Assignments
-func TestAccWindowsEnrollmentStatusPageResource_003_WithAssignments(t *testing.T) {
+func TestAccResourceWindowsEnrollmentStatusPage_03_WithAssignments(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -185,7 +185,7 @@ func TestAccWindowsEnrollmentStatusPageResource_003_WithAssignments(t *testing.T
 }
 
 // Test 004: Update Lifecycle Test
-func TestAccWindowsEnrollmentStatusPageResource_004_Update(t *testing.T) {
+func TestAccResourceWindowsEnrollmentStatusPage_04_Update(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -245,7 +245,7 @@ func TestAccWindowsEnrollmentStatusPageResource_004_Update(t *testing.T) {
 }
 
 // Test 005: Lifecycle Minimal to Maximal
-func TestAccWindowsEnrollmentStatusPageResource_005_Lifecycle_MinimalToMaximal(t *testing.T) {
+func TestAccResourceWindowsEnrollmentStatusPage_05_Lifecycle_MinimalToMaximal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -316,7 +316,7 @@ func TestAccWindowsEnrollmentStatusPageResource_005_Lifecycle_MinimalToMaximal(t
 }
 
 // Test 006: Lifecycle Maximal to Minimal
-func TestAccWindowsEnrollmentStatusPageResource_006_Lifecycle_MaximalToMinimal(t *testing.T) {
+func TestAccResourceWindowsEnrollmentStatusPage_06_Lifecycle_MaximalToMinimal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,

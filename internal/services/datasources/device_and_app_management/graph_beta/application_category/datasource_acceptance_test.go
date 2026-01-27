@@ -22,7 +22,7 @@ func loadAcceptanceTestTerraform(filename string) string {
 }
 
 // TestAccApplicationCategoryDataSource_All tests fetching all application categories from live API
-func TestAccApplicationCategoryDataSource_All(t *testing.T) {
+func TestAccDatasourceApplicationCategory_01_All(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -50,7 +50,7 @@ func TestAccApplicationCategoryDataSource_All(t *testing.T) {
 }
 
 // TestAccApplicationCategoryDataSource_ByDisplayName tests filtering categories by display name from live API
-func TestAccApplicationCategoryDataSource_ByDisplayName(t *testing.T) {
+func TestAccDatasourceApplicationCategory_02_ByDisplayName(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -78,7 +78,7 @@ func TestAccApplicationCategoryDataSource_ByDisplayName(t *testing.T) {
 }
 
 // TestAccApplicationCategoryDataSource_ODataFilter tests using OData filter queries from live API
-func TestAccApplicationCategoryDataSource_ODataFilter(t *testing.T) {
+func TestAccDatasourceApplicationCategory_03_ODataFilter(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,

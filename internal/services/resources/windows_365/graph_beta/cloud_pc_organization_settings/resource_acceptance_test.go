@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
-func TestAccCloudPcOrganizationSettingsResource_Complete(t *testing.T) {
+func TestAccResourceCloudPcOrganizationSettings_01_Complete(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -35,7 +35,7 @@ func TestAccCloudPcOrganizationSettingsResource_Complete(t *testing.T) {
 	})
 }
 
-func TestAccCloudPcOrganizationSettingsResource_RequiredFields(t *testing.T) {
+func TestAccResourceCloudPcOrganizationSettings_02_RequiredFields(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,

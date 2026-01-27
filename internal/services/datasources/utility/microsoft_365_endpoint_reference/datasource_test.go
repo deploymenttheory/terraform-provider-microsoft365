@@ -115,7 +115,7 @@ func testConfigMultipleFilters() string {
 }
 
 // Test cases
-func TestMicrosoft365EndpointReferenceDataSource_Worldwide(t *testing.T) {
+func TestUnitDatasourceMicrosoft365EndpointReference_01_Worldwide(t *testing.T) {
 	setupUnitTestEnvironment(t)
 	_, microsoft365EndpointsMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -138,7 +138,7 @@ func TestMicrosoft365EndpointReferenceDataSource_Worldwide(t *testing.T) {
 	})
 }
 
-func TestMicrosoft365EndpointReferenceDataSource_FilterByServiceArea(t *testing.T) {
+func TestUnitDatasourceMicrosoft365EndpointReference_02_FilterByServiceArea(t *testing.T) {
 	setupUnitTestEnvironment(t)
 	_, microsoft365EndpointsMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -160,7 +160,7 @@ func TestMicrosoft365EndpointReferenceDataSource_FilterByServiceArea(t *testing.
 	})
 }
 
-func TestMicrosoft365EndpointReferenceDataSource_FilterByCategory(t *testing.T) {
+func TestUnitDatasourceMicrosoft365EndpointReference_03_FilterByCategory(t *testing.T) {
 	setupUnitTestEnvironment(t)
 	_, microsoft365EndpointsMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -182,7 +182,7 @@ func TestMicrosoft365EndpointReferenceDataSource_FilterByCategory(t *testing.T) 
 	})
 }
 
-func TestMicrosoft365EndpointReferenceDataSource_RequiredOnly(t *testing.T) {
+func TestUnitDatasourceMicrosoft365EndpointReference_04_RequiredOnly(t *testing.T) {
 	setupUnitTestEnvironment(t)
 	_, microsoft365EndpointsMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -203,7 +203,7 @@ func TestMicrosoft365EndpointReferenceDataSource_RequiredOnly(t *testing.T) {
 	})
 }
 
-func TestMicrosoft365EndpointReferenceDataSource_ExpressRoute(t *testing.T) {
+func TestUnitDatasourceMicrosoft365EndpointReference_05_ExpressRoute(t *testing.T) {
 	setupUnitTestEnvironment(t)
 	_, microsoft365EndpointsMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -224,7 +224,7 @@ func TestMicrosoft365EndpointReferenceDataSource_ExpressRoute(t *testing.T) {
 	})
 }
 
-func TestMicrosoft365EndpointReferenceDataSource_USGovDoD(t *testing.T) {
+func TestUnitDatasourceMicrosoft365EndpointReference_06_USGovDoD(t *testing.T) {
 	setupUnitTestEnvironment(t)
 	_, microsoft365EndpointsMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -245,7 +245,7 @@ func TestMicrosoft365EndpointReferenceDataSource_USGovDoD(t *testing.T) {
 	})
 }
 
-func TestMicrosoft365EndpointReferenceDataSource_USGovGCCHigh(t *testing.T) {
+func TestUnitDatasourceMicrosoft365EndpointReference_07_USGovGCCHigh(t *testing.T) {
 	setupUnitTestEnvironment(t)
 	_, microsoft365EndpointsMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -266,7 +266,7 @@ func TestMicrosoft365EndpointReferenceDataSource_USGovGCCHigh(t *testing.T) {
 	})
 }
 
-func TestMicrosoft365EndpointReferenceDataSource_China(t *testing.T) {
+func TestUnitDatasourceMicrosoft365EndpointReference_08_China(t *testing.T) {
 	setupUnitTestEnvironment(t)
 	_, microsoft365EndpointsMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -287,7 +287,7 @@ func TestMicrosoft365EndpointReferenceDataSource_China(t *testing.T) {
 	})
 }
 
-func TestMicrosoft365EndpointReferenceDataSource_MultipleFilters(t *testing.T) {
+func TestUnitDatasourceMicrosoft365EndpointReference_09_MultipleFilters(t *testing.T) {
 	setupUnitTestEnvironment(t)
 	_, microsoft365EndpointsMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -314,7 +314,7 @@ func TestMicrosoft365EndpointReferenceDataSource_MultipleFilters(t *testing.T) {
 	})
 }
 
-func TestMicrosoft365EndpointReferenceDataSource_InvalidInstance(t *testing.T) {
+func TestUnitDatasourceMicrosoft365EndpointReference_10_InvalidInstance(t *testing.T) {
 	setupUnitTestEnvironment(t)
 	_, microsoft365EndpointsMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -335,7 +335,7 @@ data "microsoft365_utility_microsoft_365_endpoint_reference" "test" {
 	})
 }
 
-func TestMicrosoft365EndpointReferenceDataSource_InvalidServiceArea(t *testing.T) {
+func TestUnitDatasourceMicrosoft365EndpointReference_11_InvalidServiceArea(t *testing.T) {
 	setupUnitTestEnvironment(t)
 	_, microsoft365EndpointsMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -357,7 +357,7 @@ data "microsoft365_utility_microsoft_365_endpoint_reference" "test" {
 	})
 }
 
-func TestMicrosoft365EndpointReferenceDataSource_InvalidCategory(t *testing.T) {
+func TestUnitDatasourceMicrosoft365EndpointReference_12_InvalidCategory(t *testing.T) {
 	setupUnitTestEnvironment(t)
 	_, microsoft365EndpointsMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()

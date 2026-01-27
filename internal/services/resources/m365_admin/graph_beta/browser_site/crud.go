@@ -13,7 +13,13 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
-// Create handles the Create operation.
+// Create handles the Create operation for browser site resources.
+//
+// Operation: Creates a new browser site in a site list for Internet Explorer mode
+// API Calls:
+//   - POST /admin/edge/internetExplorerMode/siteLists/{browserSiteListId}/sites
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/browsersitelist-post-sites?view=graph-rest-beta
 func (r *BrowserSiteResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var object BrowserSiteResourceModel
 
@@ -82,7 +88,13 @@ func (r *BrowserSiteResource) Create(ctx context.Context, req resource.CreateReq
 	tflog.Debug(ctx, fmt.Sprintf("Finished Create Method: %s", ResourceName))
 }
 
-// Read handles the Read operation.
+// Read handles the Read operation for browser site resources.
+//
+// Operation: Retrieves a browser site from a site list by ID
+// API Calls:
+//   - GET /admin/edge/internetExplorerMode/siteLists/{browserSiteListId}/sites/{browserSiteId}
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/browsersite-get?view=graph-rest-beta
 func (r *BrowserSiteResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var object BrowserSiteResourceModel
 
@@ -135,7 +147,13 @@ func (r *BrowserSiteResource) Read(ctx context.Context, req resource.ReadRequest
 	tflog.Debug(ctx, fmt.Sprintf("Finished Read Method: %s", ResourceName))
 }
 
-// Update handles the Update operation.
+// Update handles the Update operation for browser site resources.
+//
+// Operation: Updates an existing browser site in a site list
+// API Calls:
+//   - PATCH /admin/edge/internetExplorerMode/siteLists/{browserSiteListId}/sites/{browserSiteId}
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/browsersite-update?view=graph-rest-beta
 func (r *BrowserSiteResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var plan BrowserSiteResourceModel
 	var state BrowserSiteResourceModel
@@ -223,7 +241,13 @@ func (r *BrowserSiteResource) Update(ctx context.Context, req resource.UpdateReq
 	tflog.Debug(ctx, fmt.Sprintf("Finished updating %s with ID: %s", ResourceName, state.ID.ValueString()))
 }
 
-// Delete handles the Delete operation.
+// Delete handles the Delete operation for browser site resources.
+//
+// Operation: Deletes a browser site from a site list
+// API Calls:
+//   - DELETE /admin/edge/internetExplorerMode/siteLists/{browserSiteListId}/sites/{browserSiteId}
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/browsersitelist-delete-sites?view=graph-rest-beta
 func (r *BrowserSiteResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var object BrowserSiteResourceModel
 

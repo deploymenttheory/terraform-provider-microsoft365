@@ -33,7 +33,7 @@ func setupErrorMockEnvironment() (*mocks.Mocks, *MobileAppCatalogPackageMocks.Mo
 }
 
 // Test 01: Get all packages - comprehensive field validation
-func TestMobileAppCatalogPackageDataSource_All(t *testing.T) {
+func TestUnitDatasourceMobileAppCatalogPackage_01_All(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, packagesMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -222,7 +222,7 @@ func TestMobileAppCatalogPackageDataSource_All(t *testing.T) {
 }
 
 // Test 02: Get by product ID - comprehensive single item validation
-func TestMobileAppCatalogPackageDataSource_ById(t *testing.T) {
+func TestUnitDatasourceMobileAppCatalogPackage_02_ById(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, packagesMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -290,7 +290,7 @@ func TestMobileAppCatalogPackageDataSource_ById(t *testing.T) {
 }
 
 // Test 03: Get by product name
-func TestMobileAppCatalogPackageDataSource_ByProductName(t *testing.T) {
+func TestUnitDatasourceMobileAppCatalogPackage_03_ByProductName(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, packagesMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -320,7 +320,7 @@ func TestMobileAppCatalogPackageDataSource_ByProductName(t *testing.T) {
 }
 
 // Test 04: Get by publisher name
-func TestMobileAppCatalogPackageDataSource_ByPublisherName(t *testing.T) {
+func TestUnitDatasourceMobileAppCatalogPackage_04_ByPublisherName(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, packagesMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()

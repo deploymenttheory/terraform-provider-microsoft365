@@ -6,7 +6,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/list"
 )
 
-func TestNewSettingsCatalogListResource(t *testing.T) {
+func TestUnitListResourceSettingsCatalogConfigurationPolicy_01_NewResource(t *testing.T) {
 	resource := NewSettingsCatalogListResource()
 	if resource == nil {
 		t.Fatal("Expected resource to be created, got nil")
@@ -16,7 +16,7 @@ func TestNewSettingsCatalogListResource(t *testing.T) {
 	var _ list.ListResource = resource
 }
 
-func TestSettingsCatalogListResource_Metadata(t *testing.T) {
+func TestUnitListResourceSettingsCatalogConfigurationPolicy_02_Metadata(t *testing.T) {
 	resource := NewSettingsCatalogListResource()
 	listResource, ok := resource.(*SettingsCatalogListResource)
 	if !ok {

@@ -43,7 +43,7 @@ func setupErrorMockEnvironment() (*mocks.Mocks, *certificateCredentialMocks.Agen
 	return mockClient, certificateMock
 }
 
-func TestAgentIdentityBlueprintCertificateCredentialResource_PEM(t *testing.T) {
+func TestUnitResourceAgentIdentityBlueprintCertificateCredential_01_PEM(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, certificateMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -68,7 +68,7 @@ func TestAgentIdentityBlueprintCertificateCredentialResource_PEM(t *testing.T) {
 	})
 }
 
-func TestAgentIdentityBlueprintCertificateCredentialResource_DER(t *testing.T) {
+func TestUnitResourceAgentIdentityBlueprintCertificateCredential_02_DER(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, certificateMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -92,7 +92,7 @@ func TestAgentIdentityBlueprintCertificateCredentialResource_DER(t *testing.T) {
 	})
 }
 
-func TestAgentIdentityBlueprintCertificateCredentialResource_HEX(t *testing.T) {
+func TestUnitResourceAgentIdentityBlueprintCertificateCredential_03_HEX(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, certificateMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()

@@ -14,7 +14,14 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
-// Create handles the Create operation.
+// Create handles the Create operation for M365 apps installation options resources.
+//
+// Operation: Configures Microsoft 365 apps installation options for the organization
+// API Calls:
+//   - PATCH /admin/microsoft365Apps/installationOptions
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/adminmicrosoft365apps-update-installationoptions?view=graph-rest-beta
+// Note: This is a singleton resource; settings always exist and are configured rather than created
 func (r *M365AppsInstallationOptionsResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var object M365AppsInstallationOptionsResourceModel
 
@@ -79,7 +86,13 @@ func (r *M365AppsInstallationOptionsResource) Create(ctx context.Context, req re
 	tflog.Debug(ctx, fmt.Sprintf("Finished Create Method: %s", ResourceName))
 }
 
-// Read handles the Read operation.
+// Read handles the Read operation for M365 apps installation options resources.
+//
+// Operation: Retrieves Microsoft 365 apps installation options for the organization
+// API Calls:
+//   - GET /admin/microsoft365Apps/installationOptions
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/adminmicrosoft365apps-get-installationoptions?view=graph-rest-beta
 func (r *M365AppsInstallationOptionsResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var object M365AppsInstallationOptionsResourceModel
 
@@ -126,7 +139,13 @@ func (r *M365AppsInstallationOptionsResource) Read(ctx context.Context, req reso
 	tflog.Debug(ctx, fmt.Sprintf("Finished Read Method: %s", ResourceName))
 }
 
-// Update handles the Update operation.
+// Update handles the Update operation for M365 apps installation options resources.
+//
+// Operation: Updates Microsoft 365 apps installation options for the organization
+// API Calls:
+//   - PATCH /admin/microsoft365Apps/installationOptions
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/adminmicrosoft365apps-update-installationoptions?view=graph-rest-beta
 func (r *M365AppsInstallationOptionsResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var plan M365AppsInstallationOptionsResourceModel
 	var state M365AppsInstallationOptionsResourceModel
@@ -194,7 +213,14 @@ func (r *M365AppsInstallationOptionsResource) Update(ctx context.Context, req re
 	tflog.Debug(ctx, fmt.Sprintf("Finished updating %s with ID: %s", ResourceName, state.ID.ValueString()))
 }
 
-// Delete handles the Delete operation.
+// Delete handles the Delete operation for M365 apps installation options resources.
+//
+// Operation: Removes from Terraform state only (installation options cannot be deleted)
+// API Calls:
+//   - None (singleton resource always exists)
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/resources/adminmicrosoft365apps?view=graph-rest-beta
+// Note: Installation options cannot be deleted; this operation only removes from Terraform state
 func (r *M365AppsInstallationOptionsResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var object M365AppsInstallationOptionsResourceModel
 

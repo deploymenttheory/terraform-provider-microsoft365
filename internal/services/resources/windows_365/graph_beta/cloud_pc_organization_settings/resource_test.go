@@ -59,8 +59,8 @@ resource "microsoft365_graph_beta_windows_365_cloud_pc_organization_settings" "`
 `
 }
 
-// TestUnitCloudPcOrganizationSettingsResource_Create_Maximal tests the creation of Cloud PC organization settings with maximal configuration
-func TestUnitCloudPcOrganizationSettingsResource_Create_Maximal(t *testing.T) {
+// TestUnitResourceCloudPcOrganizationSettings_01_CreateMaximal tests the creation of Cloud PC organization settings with maximal configuration
+func TestUnitResourceCloudPcOrganizationSettings_01_CreateMaximal(t *testing.T) {
 	// Set up mock environment
 	_, _ = setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -91,8 +91,8 @@ func TestUnitCloudPcOrganizationSettingsResource_Create_Maximal(t *testing.T) {
 	})
 }
 
-// TestUnitCloudPcOrganizationSettingsResource_Update tests updating the Cloud PC organization settings
-func TestUnitCloudPcOrganizationSettingsResource_Update(t *testing.T) {
+// TestUnitResourceCloudPcOrganizationSettings_02_Update tests updating the Cloud PC organization settings
+func TestUnitResourceCloudPcOrganizationSettings_02_Update(t *testing.T) {
 	// Set up mock environment
 	_, _ = setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -150,8 +150,8 @@ resource "microsoft365_graph_beta_windows_365_cloud_pc_organization_settings" "t
 	})
 }
 
-// TestUnitCloudPcOrganizationSettingsResource_Delete tests deleting the Cloud PC organization settings
-func TestUnitCloudPcOrganizationSettingsResource_Delete(t *testing.T) {
+// TestUnitResourceCloudPcOrganizationSettings_03_Delete tests deleting the Cloud PC organization settings
+func TestUnitResourceCloudPcOrganizationSettings_03_Delete(t *testing.T) {
 	// Set up mock environment
 	_, _ = setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -177,8 +177,8 @@ func TestUnitCloudPcOrganizationSettingsResource_Delete(t *testing.T) {
 	})
 }
 
-// TestUnitCloudPcOrganizationSettingsResource_Import tests importing the Cloud PC organization settings
-func TestUnitCloudPcOrganizationSettingsResource_Import(t *testing.T) {
+// TestUnitResourceCloudPcOrganizationSettings_04_Import tests importing the Cloud PC organization settings
+func TestUnitResourceCloudPcOrganizationSettings_04_Import(t *testing.T) {
 	// Set up mock environment
 	_, _ = setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -209,8 +209,8 @@ func TestUnitCloudPcOrganizationSettingsResource_Import(t *testing.T) {
 	})
 }
 
-// TestUnitCloudPcOrganizationSettingsResource_Error tests error handling
-func TestUnitCloudPcOrganizationSettingsResource_Error(t *testing.T) {
+// TestUnitResourceCloudPcOrganizationSettings_05_Error tests error handling
+func TestUnitResourceCloudPcOrganizationSettings_05_Error(t *testing.T) {
 	// Set up mock environment
 	_, errorMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()

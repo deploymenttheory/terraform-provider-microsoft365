@@ -35,7 +35,7 @@ func setupErrorMockEnvironment() (*mocks.Mocks, *conditionalAccessTemplateMocks.
 	return mockClient, catMock
 }
 
-func TestConditionalAccessTemplateDataSource_ByTemplateId(t *testing.T) {
+func TestUnitDatasourceConditionalAccessTemplate_01_ByTemplateId(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, catMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -86,7 +86,7 @@ func TestConditionalAccessTemplateDataSource_ByTemplateId(t *testing.T) {
 	})
 }
 
-func TestConditionalAccessTemplateDataSource_ByName(t *testing.T) {
+func TestUnitDatasourceConditionalAccessTemplate_02_ByName(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, catMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -137,7 +137,7 @@ func TestConditionalAccessTemplateDataSource_ByName(t *testing.T) {
 	})
 }
 
-func TestConditionalAccessTemplateDataSource_ValidationError(t *testing.T) {
+func TestUnitDatasourceConditionalAccessTemplate_03_ValidationError(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, catMock := setupErrorMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -154,7 +154,7 @@ func TestConditionalAccessTemplateDataSource_ValidationError(t *testing.T) {
 	})
 }
 
-func TestConditionalAccessTemplateDataSource_FuzzyMatchSuggestion(t *testing.T) {
+func TestUnitDatasourceConditionalAccessTemplate_04_FuzzyMatchSuggestion(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, catMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()

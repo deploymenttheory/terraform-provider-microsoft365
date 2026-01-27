@@ -41,7 +41,7 @@ func loadUnitTestTerraform(filename string) string {
 	return config
 }
 
-func TestWindowsFeatureUpdatePolicyResource_001_Scenario_Minimal(t *testing.T) {
+func TestUnitResourceWindowsFeatureUpdatePolicy_01_Scenario_Minimal(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, featureMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -71,7 +71,7 @@ func TestWindowsFeatureUpdatePolicyResource_001_Scenario_Minimal(t *testing.T) {
 	})
 }
 
-func TestWindowsFeatureUpdatePolicyResource_002_Scenario_Maximal(t *testing.T) {
+func TestUnitResourceWindowsFeatureUpdatePolicy_02_Scenario_Maximal(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, featureMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -102,7 +102,7 @@ func TestWindowsFeatureUpdatePolicyResource_002_Scenario_Maximal(t *testing.T) {
 	})
 }
 
-func TestWindowsFeatureUpdatePolicyResource_003_Lifecycle_MinimalToMaximal(t *testing.T) {
+func TestUnitResourceWindowsFeatureUpdatePolicy_03_Lifecycle_MinimalToMaximal(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, featureMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -135,7 +135,7 @@ func TestWindowsFeatureUpdatePolicyResource_003_Lifecycle_MinimalToMaximal(t *te
 	})
 }
 
-func TestWindowsFeatureUpdatePolicyResource_004_Lifecycle_MaximalToMinimal(t *testing.T) {
+func TestUnitResourceWindowsFeatureUpdatePolicy_04_Lifecycle_MaximalToMinimal(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, featureMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -168,7 +168,7 @@ func TestWindowsFeatureUpdatePolicyResource_004_Lifecycle_MaximalToMinimal(t *te
 	})
 }
 
-func TestWindowsFeatureUpdatePolicyResource_005_AssignmentsMinimal(t *testing.T) {
+func TestUnitResourceWindowsFeatureUpdatePolicy_05_AssignmentsMinimal(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, featureMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -194,7 +194,7 @@ func TestWindowsFeatureUpdatePolicyResource_005_AssignmentsMinimal(t *testing.T)
 	})
 }
 
-func TestWindowsFeatureUpdatePolicyResource_006_AssignmentsMaximal(t *testing.T) {
+func TestUnitResourceWindowsFeatureUpdatePolicy_06_AssignmentsMaximal(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, featureMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -221,7 +221,7 @@ func TestWindowsFeatureUpdatePolicyResource_006_AssignmentsMaximal(t *testing.T)
 	})
 }
 
-func TestWindowsFeatureUpdatePolicyResource_007_AssignmentsLifecycle_MinimalToMaximal(t *testing.T) {
+func TestUnitResourceWindowsFeatureUpdatePolicy_07_AssignmentsLifecycle_MinimalToMaximal(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, featureMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -250,7 +250,7 @@ func TestWindowsFeatureUpdatePolicyResource_007_AssignmentsLifecycle_MinimalToMa
 	})
 }
 
-func TestWindowsFeatureUpdatePolicyResource_008_AssignmentsLifecycle_MaximalToMinimal(t *testing.T) {
+func TestUnitResourceWindowsFeatureUpdatePolicy_08_AssignmentsLifecycle_MaximalToMinimal(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, featureMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -281,7 +281,7 @@ func TestWindowsFeatureUpdatePolicyResource_008_AssignmentsLifecycle_MaximalToMi
 	})
 }
 
-func TestWindowsFeatureUpdatePolicyResource_009_ErrorHandling(t *testing.T) {
+func TestUnitResourceWindowsFeatureUpdatePolicy_09_ErrorHandling(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, featureMock := setupErrorMockEnvironment()
 	defer httpmock.DeactivateAndReset()

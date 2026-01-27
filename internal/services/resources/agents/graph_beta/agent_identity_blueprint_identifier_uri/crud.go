@@ -13,8 +13,14 @@ import (
 	"github.com/microsoftgraph/msgraph-beta-sdk-go/applications"
 )
 
-// Create handles the Create operation.
-// Uses PATCH /applications/{id} to add an identifier URI and optional scope.
+// Create handles the Create operation for agent identity blueprint identifier URI resources.
+//
+// Operation: Adds an identifier URI and optional scope to an agent identity blueprint
+// API Calls:
+//   - GET /applications/{id} (to fetch existing identifierUris)
+//   - PATCH /applications/{id} (to add identifier URI to array)
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/application-update?view=graph-rest-beta
 func (r *AgentIdentityBlueprintIdentifierUriResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var object AgentIdentityBlueprintIdentifierUriResourceModel
 
@@ -110,8 +116,13 @@ func (r *AgentIdentityBlueprintIdentifierUriResource) Create(ctx context.Context
 	tflog.Debug(ctx, fmt.Sprintf("Finished Create Method: %s", ResourceName))
 }
 
-// Read handles the Read operation.
-// Uses GET /applications/{id} to read the application and verify the identifier URI exists.
+// Read handles the Read operation for agent identity blueprint identifier URI resources.
+//
+// Operation: Retrieves application to verify identifier URI and scope exist
+// API Calls:
+//   - GET /applications/{id}
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/application-get?view=graph-rest-beta
 func (r *AgentIdentityBlueprintIdentifierUriResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var object AgentIdentityBlueprintIdentifierUriResourceModel
 
@@ -165,8 +176,15 @@ func (r *AgentIdentityBlueprintIdentifierUriResource) Read(ctx context.Context, 
 	tflog.Debug(ctx, fmt.Sprintf("Finished Read Method: %s", ResourceName))
 }
 
-// Update handles the Update operation.
-// Since identifier_uri requires replacement, updates only apply to the scope configuration.
+// Update handles the Update operation for agent identity blueprint identifier URI resources.
+//
+// Operation: Updates scope configuration (identifier_uri changes trigger replacement)
+// API Calls:
+//   - GET /applications/{id} (to fetch existing identifierUris)
+//   - PATCH /applications/{id} (to update scope configuration)
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/application-update?view=graph-rest-beta
+// Note: Changes to identifier_uri attribute trigger resource replacement
 func (r *AgentIdentityBlueprintIdentifierUriResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var plan AgentIdentityBlueprintIdentifierUriResourceModel
 	var state AgentIdentityBlueprintIdentifierUriResourceModel
@@ -248,8 +266,14 @@ func (r *AgentIdentityBlueprintIdentifierUriResource) Update(ctx context.Context
 	tflog.Debug(ctx, fmt.Sprintf("Finished Update Method: %s", ResourceName))
 }
 
-// Delete handles the Delete operation.
-// Uses PATCH /applications/{id} to remove the identifier URI.
+// Delete handles the Delete operation for agent identity blueprint identifier URI resources.
+//
+// Operation: Removes identifier URI from application identifierUris array
+// API Calls:
+//   - GET /applications/{id} (to fetch existing identifierUris)
+//   - PATCH /applications/{id} (to remove identifier URI from array)
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/application-update?view=graph-rest-beta
 func (r *AgentIdentityBlueprintIdentifierUriResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var data AgentIdentityBlueprintIdentifierUriResourceModel
 

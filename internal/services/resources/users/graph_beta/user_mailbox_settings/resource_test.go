@@ -34,7 +34,7 @@ func setupErrorMockEnvironment() (*mocks.Mocks, *mailboxSettingsMocks.UserMailbo
 	return mockClient, mailboxSettingsMock
 }
 
-func TestUserMailboxSettingsResource_Basic(t *testing.T) {
+func TestUnitResourceUserMailboxSettings_01_Basic(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, mailboxSettingsMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -66,7 +66,7 @@ func TestUserMailboxSettingsResource_Basic(t *testing.T) {
 	})
 }
 
-func TestUserMailboxSettingsResource_Update(t *testing.T) {
+func TestUnitResourceUserMailboxSettings_02_Update(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, mailboxSettingsMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -116,7 +116,7 @@ func TestUserMailboxSettingsResource_Update(t *testing.T) {
 	})
 }
 
-func TestUserMailboxSettingsResource_AutomaticReplies(t *testing.T) {
+func TestUnitResourceUserMailboxSettings_03_AutomaticReplies(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, mailboxSettingsMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -138,7 +138,7 @@ func TestUserMailboxSettingsResource_AutomaticReplies(t *testing.T) {
 	})
 }
 
-func TestUserMailboxSettingsResource_WorkingHours(t *testing.T) {
+func TestUnitResourceUserMailboxSettings_04_WorkingHours(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, mailboxSettingsMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -160,7 +160,7 @@ func TestUserMailboxSettingsResource_WorkingHours(t *testing.T) {
 	})
 }
 
-func TestUserMailboxSettingsResource_RequiresImport(t *testing.T) {
+func TestUnitResourceUserMailboxSettings_05_RequiresImport(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, mailboxSettingsMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()

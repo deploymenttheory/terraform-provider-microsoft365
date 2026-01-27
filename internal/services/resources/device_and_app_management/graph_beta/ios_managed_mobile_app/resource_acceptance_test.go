@@ -11,7 +11,7 @@ import (
 )
 
 // TestAccIOSManagedMobileAppResource_Create_Minimal tests creating an iOS managed mobile app with minimal configuration
-func TestAccIOSManagedMobileAppResource_Create_Minimal(t *testing.T) {
+func TestAccResourceIOSManagedMobileApp_01_Create_Minimal(t *testing.T) {
 	// Skip if not running acceptance tests
 	if os.Getenv("TF_ACC") == "" {
 		t.Skip("Acceptance tests skipped unless TF_ACC=1")
@@ -45,7 +45,7 @@ func TestAccIOSManagedMobileAppResource_Create_Minimal(t *testing.T) {
 }
 
 // TestAccIOSManagedMobileAppResource_Create_Maximal tests creating an iOS managed mobile app with maximal configuration
-func TestAccIOSManagedMobileAppResource_Create_Maximal(t *testing.T) {
+func TestAccResourceIOSManagedMobileApp_02_Create_Maximal(t *testing.T) {
 	// Skip if not running acceptance tests
 	if os.Getenv("TF_ACC") == "" {
 		t.Skip("Acceptance tests skipped unless TF_ACC=1")
@@ -80,7 +80,7 @@ func TestAccIOSManagedMobileAppResource_Create_Maximal(t *testing.T) {
 }
 
 // TestAccIOSManagedMobileAppResource_Update_MinimalToMaximal tests updating from minimal to maximal config
-func TestAccIOSManagedMobileAppResource_Update_MinimalToMaximal(t *testing.T) {
+func TestAccResourceIOSManagedMobileApp_03_Update_MinimalToMaximal(t *testing.T) {
 	// Skip if not running acceptance tests
 	if os.Getenv("TF_ACC") == "" {
 		t.Skip("Acceptance tests skipped unless TF_ACC=1")
@@ -123,7 +123,7 @@ func TestAccIOSManagedMobileAppResource_Update_MinimalToMaximal(t *testing.T) {
 }
 
 // TestAccIOSManagedMobileAppResource_Update_MaximalToMinimal tests updating from maximal to minimal config
-func TestAccIOSManagedMobileAppResource_Update_MaximalToMinimal(t *testing.T) {
+func TestAccResourceIOSManagedMobileApp_04_Update_MaximalToMinimal(t *testing.T) {
 	// Skip if not running acceptance tests
 	if os.Getenv("TF_ACC") == "" {
 		t.Skip("Acceptance tests skipped unless TF_ACC=1")
@@ -165,7 +165,7 @@ func TestAccIOSManagedMobileAppResource_Update_MaximalToMinimal(t *testing.T) {
 }
 
 // TestAccIOSManagedMobileAppResource_Delete_Minimal tests deleting an iOS managed mobile app with minimal configuration
-func TestAccIOSManagedMobileAppResource_Delete_Minimal(t *testing.T) {
+func TestAccResourceIOSManagedMobileApp_05_Delete_Minimal(t *testing.T) {
 	// Skip if not running acceptance tests
 	if os.Getenv("TF_ACC") == "" {
 		t.Skip("Acceptance tests skipped unless TF_ACC=1")
@@ -208,7 +208,7 @@ func TestAccIOSManagedMobileAppResource_Delete_Minimal(t *testing.T) {
 }
 
 // TestAccIOSManagedMobileAppResource_Delete_Maximal tests deleting an iOS managed mobile app with maximal configuration
-func TestAccIOSManagedMobileAppResource_Delete_Maximal(t *testing.T) {
+func TestAccResourceIOSManagedMobileApp_06_Delete_Maximal(t *testing.T) {
 	// Skip if not running acceptance tests
 	if os.Getenv("TF_ACC") == "" {
 		t.Skip("Acceptance tests skipped unless TF_ACC=1")
@@ -251,7 +251,7 @@ func TestAccIOSManagedMobileAppResource_Delete_Maximal(t *testing.T) {
 }
 
 // TestAccIOSManagedMobileAppResource_Import tests importing a resource
-func TestAccIOSManagedMobileAppResource_Import(t *testing.T) {
+func TestAccResourceIOSManagedMobileApp_07_Import(t *testing.T) {
 	// Skip if not running acceptance tests
 	if os.Getenv("TF_ACC") == "" {
 		t.Skip("Acceptance tests skipped unless TF_ACC=1")

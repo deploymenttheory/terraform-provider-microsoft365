@@ -34,7 +34,7 @@ func loadAcceptanceTestTerraform(filename string) string {
 }
 
 // TestAccIpApplicationSegmentResource_Minimal tests the minimal IP application segment configuration
-func TestAccIpApplicationSegmentResource_Minimal(t *testing.T) {
+func TestAccResourceIpApplicationSegment_01_Minimal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -87,7 +87,7 @@ func TestAccIpApplicationSegmentResource_Minimal(t *testing.T) {
 }
 
 // TestAccIpApplicationSegmentResource_Maximal tests the maximal IP application segment configuration
-func TestAccIpApplicationSegmentResource_Maximal(t *testing.T) {
+func TestAccResourceIpApplicationSegment_02_Maximal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -143,7 +143,7 @@ func TestAccIpApplicationSegmentResource_Maximal(t *testing.T) {
 }
 
 // TestAccIpApplicationSegmentResource_IpRange tests IP range configuration
-func TestAccIpApplicationSegmentResource_IpRange(t *testing.T) {
+func TestAccResourceIpApplicationSegment_03_IpRange(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -193,7 +193,7 @@ func TestAccIpApplicationSegmentResource_IpRange(t *testing.T) {
 }
 
 // TestAccIpApplicationSegmentResource_FQDN tests FQDN configuration
-func TestAccIpApplicationSegmentResource_FQDN(t *testing.T) {
+func TestAccResourceIpApplicationSegment_04_FQDN(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,

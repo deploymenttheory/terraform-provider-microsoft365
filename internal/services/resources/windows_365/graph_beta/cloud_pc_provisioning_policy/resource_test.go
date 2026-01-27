@@ -92,8 +92,8 @@ func testConfigMinimalWithResourceName(resourceName string) string {
 }`, resourceName)
 }
 
-// TestUnitCloudPcProvisioningPolicyResource_Create_Minimal tests the creation of a provisioning policy with minimal configuration
-func TestUnitCloudPcProvisioningPolicyResource_Create_Minimal(t *testing.T) {
+// TestUnitResourceCloudPcProvisioningPolicy_01_CreateMinimal tests the creation of a provisioning policy with minimal configuration
+func TestUnitResourceCloudPcProvisioningPolicy_01_CreateMinimal(t *testing.T) {
 	// Set up mock environment
 	_, _ = setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -124,8 +124,8 @@ func TestUnitCloudPcProvisioningPolicyResource_Create_Minimal(t *testing.T) {
 	})
 }
 
-// TestUnitCloudPcProvisioningPolicyResource_Create_Maximal tests the creation of a provisioning policy with maximal configuration
-func TestUnitCloudPcProvisioningPolicyResource_Create_Maximal(t *testing.T) {
+// TestUnitResourceCloudPcProvisioningPolicy_02_CreateMaximal tests the creation of a provisioning policy with maximal configuration
+func TestUnitResourceCloudPcProvisioningPolicy_02_CreateMaximal(t *testing.T) {
 	// Set up mock environment
 	_, _ = setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -174,8 +174,8 @@ func TestUnitCloudPcProvisioningPolicyResource_Create_Maximal(t *testing.T) {
 	})
 }
 
-// TestUnitCloudPcProvisioningPolicyResource_Update_MinimalToMaximal tests updating from minimal to maximal configuration
-func TestUnitCloudPcProvisioningPolicyResource_Update_MinimalToMaximal(t *testing.T) {
+// TestUnitResourceCloudPcProvisioningPolicy_03_UpdateMinimalToMaximal tests updating from minimal to maximal configuration
+func TestUnitResourceCloudPcProvisioningPolicy_03_UpdateMinimalToMaximal(t *testing.T) {
 	// Set up mock environment
 	_, _ = setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -222,8 +222,8 @@ func TestUnitCloudPcProvisioningPolicyResource_Update_MinimalToMaximal(t *testin
 	})
 }
 
-// TestUnitCloudPcProvisioningPolicyResource_Update_MaximalToMinimal tests updating from maximal to minimal configuration
-func TestUnitCloudPcProvisioningPolicyResource_Update_MaximalToMinimal(t *testing.T) {
+// TestUnitResourceCloudPcProvisioningPolicy_04_UpdateMaximalToMinimal tests updating from maximal to minimal configuration
+func TestUnitResourceCloudPcProvisioningPolicy_04_UpdateMaximalToMinimal(t *testing.T) {
 	// Set up mock environment
 	_, _ = setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -267,8 +267,8 @@ func TestUnitCloudPcProvisioningPolicyResource_Update_MaximalToMinimal(t *testin
 	})
 }
 
-// TestUnitCloudPcProvisioningPolicyResource_Delete_Minimal tests deleting a provisioning policy with minimal configuration
-func TestUnitCloudPcProvisioningPolicyResource_Delete_Minimal(t *testing.T) {
+// TestUnitResourceCloudPcProvisioningPolicy_05_DeleteMinimal tests deleting a provisioning policy with minimal configuration
+func TestUnitResourceCloudPcProvisioningPolicy_05_DeleteMinimal(t *testing.T) {
 	// Set up mock environment
 	_, _ = setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -294,8 +294,8 @@ func TestUnitCloudPcProvisioningPolicyResource_Delete_Minimal(t *testing.T) {
 	})
 }
 
-// TestUnitCloudPcProvisioningPolicyResource_Delete_Maximal tests deleting a provisioning policy with maximal configuration
-func TestUnitCloudPcProvisioningPolicyResource_Delete_Maximal(t *testing.T) {
+// TestUnitResourceCloudPcProvisioningPolicy_06_DeleteMaximal tests deleting a provisioning policy with maximal configuration
+func TestUnitResourceCloudPcProvisioningPolicy_06_DeleteMaximal(t *testing.T) {
 	// Set up mock environment
 	_, _ = setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -321,8 +321,8 @@ func TestUnitCloudPcProvisioningPolicyResource_Delete_Maximal(t *testing.T) {
 	})
 }
 
-// TestUnitCloudPcProvisioningPolicyResource_Import tests importing a provisioning policy
-func TestUnitCloudPcProvisioningPolicyResource_Import(t *testing.T) {
+// TestUnitResourceCloudPcProvisioningPolicy_07_Import tests importing a provisioning policy
+func TestUnitResourceCloudPcProvisioningPolicy_07_Import(t *testing.T) {
 	// Set up mock environment
 	_, _ = setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -353,8 +353,8 @@ func TestUnitCloudPcProvisioningPolicyResource_Import(t *testing.T) {
 	})
 }
 
-// TestUnitCloudPcProvisioningPolicyResource_WithAssignments tests the policy with assignment configurations
-func TestUnitCloudPcProvisioningPolicyResource_WithAssignments(t *testing.T) {
+// TestUnitResourceCloudPcProvisioningPolicy_08_WithAssignments tests the policy with assignment configurations
+func TestUnitResourceCloudPcProvisioningPolicy_08_WithAssignments(t *testing.T) {
 	// Set up mock environment
 	_, _ = setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -386,8 +386,8 @@ func TestUnitCloudPcProvisioningPolicyResource_WithAssignments(t *testing.T) {
 	})
 }
 
-// TestUnitCloudPcProvisioningPolicyResource_Error tests error handling
-func TestUnitCloudPcProvisioningPolicyResource_Error(t *testing.T) {
+// TestUnitResourceCloudPcProvisioningPolicy_09_Error tests error handling
+func TestUnitResourceCloudPcProvisioningPolicy_09_Error(t *testing.T) {
 	// Set up mock environment
 	_, errorMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()

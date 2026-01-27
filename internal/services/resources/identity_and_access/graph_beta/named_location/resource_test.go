@@ -30,7 +30,7 @@ func setupErrorMockEnvironment() (*mocks.Mocks, *namedLocationMocks.NamedLocatio
 	return mockClient, namedLocationMock
 }
 
-func TestNamedLocationResource_IPMinimal(t *testing.T) {
+func TestUnitResourceNamedLocation_01_IPMinimal(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, namedLocationMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -66,7 +66,7 @@ func TestNamedLocationResource_IPMinimal(t *testing.T) {
 	})
 }
 
-func TestNamedLocationResource_IPMaximal(t *testing.T) {
+func TestUnitResourceNamedLocation_02_IPMaximal(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, namedLocationMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -103,7 +103,7 @@ func TestNamedLocationResource_IPMaximal(t *testing.T) {
 	})
 }
 
-func TestNamedLocationResource_IPv6Only(t *testing.T) {
+func TestUnitResourceNamedLocation_03_IPv6Only(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, namedLocationMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -134,7 +134,7 @@ func TestNamedLocationResource_IPv6Only(t *testing.T) {
 	})
 }
 
-func TestNamedLocationResource_CountryMinimal(t *testing.T) {
+func TestUnitResourceNamedLocation_04_CountryMinimal(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, namedLocationMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -170,7 +170,7 @@ func TestNamedLocationResource_CountryMinimal(t *testing.T) {
 	})
 }
 
-func TestNamedLocationResource_CountryAuthenticatorGPS(t *testing.T) {
+func TestUnitResourceNamedLocation_05_CountryAuthenticatorGPS(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, namedLocationMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -246,7 +246,7 @@ func testConfigCountryAuthenticatorGPS() string {
 }
 
 // TestNamedLocationResource_TrustedIPDeletion tests that trusted IP locations are properly handled during deletion
-func TestNamedLocationResource_TrustedIPDeletion(t *testing.T) {
+func TestUnitResourceNamedLocation_06_TrustedIPDeletion(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, namedLocationMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()

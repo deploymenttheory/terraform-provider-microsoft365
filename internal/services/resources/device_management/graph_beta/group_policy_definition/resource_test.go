@@ -45,7 +45,7 @@ func loadUnitTestTerraform(filename string) string {
 }
 
 // Test 001: Boolean - Minimal configuration (2 checkboxes)
-func TestGroupPolicyDefinitionResource_001_Boolean_Minimal(t *testing.T) {
+func TestUnitResourceGroupPolicyDefinition_01_Boolean_Minimal(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, groupPolicyDefinitionMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -81,7 +81,7 @@ func TestGroupPolicyDefinitionResource_001_Boolean_Minimal(t *testing.T) {
 }
 
 // Test 002: Boolean - Maximal configuration (25 checkboxes)
-func TestGroupPolicyDefinitionResource_002_Boolean_Maximal(t *testing.T) {
+func TestUnitResourceGroupPolicyDefinition_02_Boolean_Maximal(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, groupPolicyDefinitionMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -112,7 +112,7 @@ func TestGroupPolicyDefinitionResource_002_Boolean_Maximal(t *testing.T) {
 }
 
 // Test 003: TextBox - Single string value
-func TestGroupPolicyDefinitionResource_003_TextBox(t *testing.T) {
+func TestUnitResourceGroupPolicyDefinition_03_TextBox(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, groupPolicyDefinitionMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -143,7 +143,7 @@ func TestGroupPolicyDefinitionResource_003_TextBox(t *testing.T) {
 }
 
 // Test 004: Decimal - Numeric value
-func TestGroupPolicyDefinitionResource_004_Decimal(t *testing.T) {
+func TestUnitResourceGroupPolicyDefinition_04_Decimal(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, groupPolicyDefinitionMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -173,7 +173,7 @@ func TestGroupPolicyDefinitionResource_004_Decimal(t *testing.T) {
 }
 
 // Test 005: MultiText - Multi-line value
-func TestGroupPolicyDefinitionResource_005_MultiText(t *testing.T) {
+func TestUnitResourceGroupPolicyDefinition_05_MultiText(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, groupPolicyDefinitionMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -202,7 +202,7 @@ func TestGroupPolicyDefinitionResource_005_MultiText(t *testing.T) {
 }
 
 // Test 006: Dropdown - Select option value
-func TestGroupPolicyDefinitionResource_006_Dropdown(t *testing.T) {
+func TestUnitResourceGroupPolicyDefinition_06_Dropdown(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, groupPolicyDefinitionMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -232,7 +232,7 @@ func TestGroupPolicyDefinitionResource_006_Dropdown(t *testing.T) {
 }
 
 // Test 007: Lifecycle - Type transitions through all presentation types
-func TestGroupPolicyDefinitionResource_007_Lifecycle_TypeTransitions(t *testing.T) {
+func TestUnitResourceGroupPolicyDefinition_07_Lifecycle_TypeTransitions(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, groupPolicyDefinitionMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -292,7 +292,7 @@ func TestGroupPolicyDefinitionResource_007_Lifecycle_TypeTransitions(t *testing.
 }
 
 // Test 008: Validation - Invalid label
-func TestGroupPolicyDefinitionResource_008_Validation_InvalidLabel(t *testing.T) {
+func TestUnitResourceGroupPolicyDefinition_08_Validation_InvalidLabel(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, groupPolicyDefinitionMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -310,7 +310,7 @@ func TestGroupPolicyDefinitionResource_008_Validation_InvalidLabel(t *testing.T)
 }
 
 // Test 009: Validation - Invalid boolean value
-func TestGroupPolicyDefinitionResource_009_Validation_InvalidBooleanValue(t *testing.T) {
+func TestUnitResourceGroupPolicyDefinition_09_Validation_InvalidBooleanValue(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, groupPolicyDefinitionMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -328,7 +328,7 @@ func TestGroupPolicyDefinitionResource_009_Validation_InvalidBooleanValue(t *tes
 }
 
 // Test 010: Validation - Invalid decimal value
-func TestGroupPolicyDefinitionResource_010_Validation_InvalidDecimal(t *testing.T) {
+func TestUnitResourceGroupPolicyDefinition_10_Validation_InvalidDecimal(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, groupPolicyDefinitionMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -346,7 +346,7 @@ func TestGroupPolicyDefinitionResource_010_Validation_InvalidDecimal(t *testing.
 }
 
 // Test 011: Validation - Read-only presentation (Text/Label)
-func TestGroupPolicyDefinitionResource_011_Validation_ReadOnlyPresentation(t *testing.T) {
+func TestUnitResourceGroupPolicyDefinition_11_Validation_ReadOnlyPresentation(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, groupPolicyDefinitionMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -364,7 +364,7 @@ func TestGroupPolicyDefinitionResource_011_Validation_ReadOnlyPresentation(t *te
 }
 
 // Test 012: Validation - Missing required fields
-func TestGroupPolicyDefinitionResource_012_Validation_MissingFields(t *testing.T) {
+func TestUnitResourceGroupPolicyDefinition_12_Validation_MissingFields(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, groupPolicyDefinitionMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -390,7 +390,7 @@ func TestGroupPolicyDefinitionResource_012_Validation_MissingFields(t *testing.T
 }
 
 // Test 013: Validation - Invalid class_type
-func TestGroupPolicyDefinitionResource_013_Validation_InvalidClassType(t *testing.T) {
+func TestUnitResourceGroupPolicyDefinition_13_Validation_InvalidClassType(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, groupPolicyDefinitionMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()

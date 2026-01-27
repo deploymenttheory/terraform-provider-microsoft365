@@ -29,7 +29,7 @@ func setupErrorMockEnvironment() (*mocks.Mocks, *servicePrincipalMocks.ServicePr
 	return mockClient, spMock
 }
 
-func TestServicePrincipalDataSource_All(t *testing.T) {
+func TestUnitDatasourceServicePrincipal_01_All(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, spMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -55,7 +55,7 @@ func TestServicePrincipalDataSource_All(t *testing.T) {
 	})
 }
 
-func TestServicePrincipalDataSource_ById(t *testing.T) {
+func TestUnitDatasourceServicePrincipal_02_ById(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, spMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -80,7 +80,7 @@ func TestServicePrincipalDataSource_ById(t *testing.T) {
 	})
 }
 
-func TestServicePrincipalDataSource_ByAppId(t *testing.T) {
+func TestUnitDatasourceServicePrincipal_03_ByAppId(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, spMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -103,7 +103,7 @@ func TestServicePrincipalDataSource_ByAppId(t *testing.T) {
 	})
 }
 
-func TestServicePrincipalDataSource_ByDisplayName(t *testing.T) {
+func TestUnitDatasourceServicePrincipal_04_ByDisplayName(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, spMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -125,7 +125,7 @@ func TestServicePrincipalDataSource_ByDisplayName(t *testing.T) {
 	})
 }
 
-func TestServicePrincipalDataSource_ODataFilter(t *testing.T) {
+func TestUnitDatasourceServicePrincipal_05_ODataFilter(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, spMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -151,7 +151,7 @@ func TestServicePrincipalDataSource_ODataFilter(t *testing.T) {
 	})
 }
 
-func TestServicePrincipalDataSource_ODataAdvanced(t *testing.T) {
+func TestUnitDatasourceServicePrincipal_06_ODataAdvanced(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, spMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -174,7 +174,7 @@ func TestServicePrincipalDataSource_ODataAdvanced(t *testing.T) {
 	})
 }
 
-func TestServicePrincipalDataSource_ODataComprehensive(t *testing.T) {
+func TestUnitDatasourceServicePrincipal_07_ODataComprehensive(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, spMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -201,7 +201,7 @@ func TestServicePrincipalDataSource_ODataComprehensive(t *testing.T) {
 	})
 }
 
-func TestServicePrincipalDataSource_ValidationError(t *testing.T) {
+func TestUnitDatasourceServicePrincipal_08_ValidationError(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, spMock := setupErrorMockEnvironment()
 	defer httpmock.DeactivateAndReset()

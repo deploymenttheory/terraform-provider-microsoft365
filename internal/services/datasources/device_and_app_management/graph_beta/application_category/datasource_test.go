@@ -15,7 +15,7 @@ import (
 const dataSourceType = "data.microsoft365_graph_beta_device_and_app_management_application_category"
 
 // TestApplicationCategoryDataSource_All tests fetching all application categories
-func TestApplicationCategoryDataSource_All(t *testing.T) {
+func TestUnitDatasourceApplicationCategory_01_All(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -51,7 +51,7 @@ func TestApplicationCategoryDataSource_All(t *testing.T) {
 }
 
 // TestApplicationCategoryDataSource_ById tests fetching a specific application category by ID
-func TestApplicationCategoryDataSource_ById(t *testing.T) {
+func TestUnitDatasourceApplicationCategory_02_ById(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -81,7 +81,7 @@ func TestApplicationCategoryDataSource_ById(t *testing.T) {
 }
 
 // TestApplicationCategoryDataSource_ByDisplayName tests filtering categories by display name
-func TestApplicationCategoryDataSource_ByDisplayName(t *testing.T) {
+func TestUnitDatasourceApplicationCategory_03_ByDisplayName(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -112,7 +112,7 @@ func TestApplicationCategoryDataSource_ByDisplayName(t *testing.T) {
 }
 
 // TestApplicationCategoryDataSource_ODataFilter tests using OData filter queries
-func TestApplicationCategoryDataSource_ODataFilter(t *testing.T) {
+func TestUnitDatasourceApplicationCategory_04_ODataFilter(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()

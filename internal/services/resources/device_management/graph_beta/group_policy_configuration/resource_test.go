@@ -43,7 +43,7 @@ func setupErrorMockEnvironment() (*mocks.Mocks, *groupPolicyConfigurationMocks.G
 }
 
 // TestUnitGroupPolicyConfigurationResource_Minimal tests creating a minimal group policy configuration
-func TestUnitGroupPolicyConfigurationResource_Minimal(t *testing.T) {
+func TestUnitResourceGroupPolicyConfiguration_01_Minimal(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, groupPolicyConfigurationMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -74,7 +74,7 @@ func TestUnitGroupPolicyConfigurationResource_Minimal(t *testing.T) {
 }
 
 // TestUnitGroupPolicyConfigurationResource_Maximal tests creating a maximal group policy configuration
-func TestUnitGroupPolicyConfigurationResource_Maximal(t *testing.T) {
+func TestUnitResourceGroupPolicyConfiguration_02_Maximal(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, groupPolicyConfigurationMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -106,7 +106,7 @@ func TestUnitGroupPolicyConfigurationResource_Maximal(t *testing.T) {
 }
 
 // TestUnitGroupPolicyConfigurationResource_MinimalAssignment tests creating a configuration with minimal assignment
-func TestUnitGroupPolicyConfigurationResource_MinimalAssignment(t *testing.T) {
+func TestUnitResourceGroupPolicyConfiguration_03_MinimalAssignment(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, groupPolicyConfigurationMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -134,7 +134,7 @@ func TestUnitGroupPolicyConfigurationResource_MinimalAssignment(t *testing.T) {
 }
 
 // TestUnitGroupPolicyConfigurationResource_MaximalAssignment tests creating a configuration with maximal assignments
-func TestUnitGroupPolicyConfigurationResource_MaximalAssignment(t *testing.T) {
+func TestUnitResourceGroupPolicyConfiguration_04_MaximalAssignment(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, groupPolicyConfigurationMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -163,7 +163,7 @@ func TestUnitGroupPolicyConfigurationResource_MaximalAssignment(t *testing.T) {
 }
 
 // TestUnitGroupPolicyConfigurationResource_MinimalToMaximal tests transitioning from minimal to maximal configuration
-func TestUnitGroupPolicyConfigurationResource_MinimalToMaximal(t *testing.T) {
+func TestUnitResourceGroupPolicyConfiguration_05_MinimalToMaximal(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, groupPolicyConfigurationMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -200,7 +200,7 @@ func TestUnitGroupPolicyConfigurationResource_MinimalToMaximal(t *testing.T) {
 }
 
 // TestUnitGroupPolicyConfigurationResource_MaximalToMinimal tests transitioning from maximal to minimal configuration
-func TestUnitGroupPolicyConfigurationResource_MaximalToMinimal(t *testing.T) {
+func TestUnitResourceGroupPolicyConfiguration_06_MaximalToMinimal(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, groupPolicyConfigurationMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -239,7 +239,7 @@ func TestUnitGroupPolicyConfigurationResource_MaximalToMinimal(t *testing.T) {
 }
 
 // TestUnitGroupPolicyConfigurationResource_ErrorHandling tests error scenarios
-func TestUnitGroupPolicyConfigurationResource_ErrorHandling(t *testing.T) {
+func TestUnitResourceGroupPolicyConfiguration_07_ErrorHandling(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, groupPolicyConfigurationMock := setupErrorMockEnvironment()
 	defer httpmock.DeactivateAndReset()

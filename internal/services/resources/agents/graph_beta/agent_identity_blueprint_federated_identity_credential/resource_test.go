@@ -39,7 +39,7 @@ func setupErrorMockEnvironment() (*mocks.Mocks, *agentIdentityBlueprintFederated
 	return mockClient, agentIdentityBlueprintFederatedIdentityCredentialMock
 }
 
-func TestAgentIdentityBlueprintFederatedIdentityCredentialResource_Minimal(t *testing.T) {
+func TestUnitResourceAgentIdentityBlueprintFederatedIdentityCredential_01_Minimal(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, agentIdentityBlueprintFederatedIdentityCredentialMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -69,7 +69,7 @@ func TestAgentIdentityBlueprintFederatedIdentityCredentialResource_Minimal(t *te
 	})
 }
 
-func TestAgentIdentityBlueprintFederatedIdentityCredentialResource_Maximal(t *testing.T) {
+func TestUnitResourceAgentIdentityBlueprintFederatedIdentityCredential_02_Maximal(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, agentIdentityBlueprintFederatedIdentityCredentialMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -100,7 +100,7 @@ func TestAgentIdentityBlueprintFederatedIdentityCredentialResource_Maximal(t *te
 	})
 }
 
-func TestAgentIdentityBlueprintFederatedIdentityCredentialResource_Update(t *testing.T) {
+func TestUnitResourceAgentIdentityBlueprintFederatedIdentityCredential_03_Update(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, agentIdentityBlueprintFederatedIdentityCredentialMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()

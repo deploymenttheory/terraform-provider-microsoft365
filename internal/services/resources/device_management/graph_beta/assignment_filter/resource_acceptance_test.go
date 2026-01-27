@@ -35,7 +35,7 @@ func loadAcceptanceTestTerraform(filename string) string {
 	return acceptance.ConfiguredM365ProviderBlock(config)
 }
 
-func TestAccAssignmentFilterResource_Lifecycle(t *testing.T) {
+func TestAccResourceAssignmentFilter_01_Lifecycle(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -93,7 +93,7 @@ func TestAccAssignmentFilterResource_Lifecycle(t *testing.T) {
 	})
 }
 
-func TestAccAssignmentFilterResource_MultiPlatform(t *testing.T) {
+func TestAccResourceAssignmentFilter_02_MultiPlatform(t *testing.T) {
 	platforms := []string{
 		"android",
 		"androidForWork",
@@ -177,7 +177,7 @@ func TestAccAssignmentFilterResource_MultiPlatform(t *testing.T) {
 	}
 }
 
-func TestAccAssignmentFilterResource_ComplexRule(t *testing.T) {
+func TestAccResourceAssignmentFilter_03_ComplexRule(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -210,7 +210,7 @@ func TestAccAssignmentFilterResource_ComplexRule(t *testing.T) {
 	})
 }
 
-func TestAccAssignmentFilterResource_RoleScopeTags(t *testing.T) {
+func TestAccResourceAssignmentFilter_03_RoleScopeTags(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -246,7 +246,7 @@ func TestAccAssignmentFilterResource_RoleScopeTags(t *testing.T) {
 	})
 }
 
-func TestAccAssignmentFilterResource_ManagementTypes(t *testing.T) {
+func TestAccResourceAssignmentFilter_05_ManagementTypes(t *testing.T) {
 	managementTypes := []string{"devices", "apps"}
 
 	for _, mgmtType := range managementTypes {

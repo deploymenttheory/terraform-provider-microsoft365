@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
-func TestAccEntraIdSidConverterDataSource_SidToObjectId(t *testing.T) {
+func TestAccDatasourceEntraIdSidConverter_01_SidToObjectId(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -35,7 +35,7 @@ func TestAccEntraIdSidConverterDataSource_SidToObjectId(t *testing.T) {
 	})
 }
 
-func TestAccEntraIdSidConverterDataSource_ObjectIdToSid(t *testing.T) {
+func TestAccDatasourceEntraIdSidConverter_02_ObjectIdToSid(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -58,7 +58,7 @@ func TestAccEntraIdSidConverterDataSource_ObjectIdToSid(t *testing.T) {
 	})
 }
 
-func TestAccEntraIdSidConverterDataSource_MaxUint32Values(t *testing.T) {
+func TestAccDatasourceEntraIdSidConverter_03_MaxUint32Values(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -81,7 +81,7 @@ func TestAccEntraIdSidConverterDataSource_MaxUint32Values(t *testing.T) {
 	})
 }
 
-func TestAccEntraIdSidConverterDataSource_BidirectionalConversion(t *testing.T) {
+func TestAccDatasourceEntraIdSidConverter_04_BidirectionalConversion(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,

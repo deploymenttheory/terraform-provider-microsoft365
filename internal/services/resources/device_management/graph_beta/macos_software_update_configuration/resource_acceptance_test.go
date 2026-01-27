@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
-func TestAccMacOSSoftwareUpdateConfigurationResource_Complete(t *testing.T) {
+func TestAccResourceMacOSSoftwareUpdateConfiguration_01_Complete(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -58,7 +58,7 @@ func TestAccMacOSSoftwareUpdateConfigurationResource_Complete(t *testing.T) {
 	})
 }
 
-func TestAccMacOSSoftwareUpdateConfigurationResource_WithAssignments(t *testing.T) {
+func TestAccResourceMacOSSoftwareUpdateConfiguration_02_WithAssignments(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -77,7 +77,7 @@ func TestAccMacOSSoftwareUpdateConfigurationResource_WithAssignments(t *testing.
 	})
 }
 
-func TestAccMacOSSoftwareUpdateConfigurationResource_RequiredFields(t *testing.T) {
+func TestAccResourceMacOSSoftwareUpdateConfiguration_02_RequiredFields(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -110,7 +110,7 @@ func TestAccMacOSSoftwareUpdateConfigurationResource_RequiredFields(t *testing.T
 	})
 }
 
-func TestAccMacOSSoftwareUpdateConfigurationResource_InvalidValues(t *testing.T) {
+func TestAccResourceMacOSSoftwareUpdateConfiguration_04_InvalidValues(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,

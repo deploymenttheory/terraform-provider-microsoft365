@@ -14,7 +14,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 )
 
-func TestAccWindowsAutopilotDevicePreparationPolicyResource_Minimal(t *testing.T) {
+func TestAccResourceWindowsAutopilotDevicePreparationPolicy_01_Minimal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -57,7 +57,7 @@ func TestAccWindowsAutopilotDevicePreparationPolicyResource_Minimal(t *testing.T
 	})
 }
 
-func TestAccWindowsAutopilotDevicePreparationPolicyResource_Enhanced(t *testing.T) {
+func TestAccResourceWindowsAutopilotDevicePreparationPolicy_02_Enhanced(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -90,7 +90,7 @@ func TestAccWindowsAutopilotDevicePreparationPolicyResource_Enhanced(t *testing.
 	})
 }
 
-func TestAccWindowsAutopilotDevicePreparationPolicyResource_SelfDeploying(t *testing.T) {
+func TestAccResourceWindowsAutopilotDevicePreparationPolicy_02_SelfDeploying(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -117,7 +117,7 @@ func TestAccWindowsAutopilotDevicePreparationPolicyResource_SelfDeploying(t *tes
 	})
 }
 
-func TestAccWindowsAutopilotDevicePreparationPolicyResource_HybridJoined(t *testing.T) {
+func TestAccResourceWindowsAutopilotDevicePreparationPolicy_04_HybridJoined(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,

@@ -48,7 +48,7 @@ func setupErrorMockEnvironment() (*mocks.Mocks, *settingsCatalogMocks.SettingsCa
 	return mockClient, settingsCatalogMock
 }
 
-func TestUnitSettingsCatalogConfigurationPolicyResource(t *testing.T) {
+func TestUnitResourceSettingsCatalogConfigurationPolicy_01_SchemaValidation(t *testing.T) {
 	t.Run("resource schema validation", func(t *testing.T) {
 		// Test resource schema construction without full provider initialization
 		// This avoids the deep recursion issue while still validating schema structure
@@ -179,7 +179,7 @@ func TestUnitSettingsCatalogConfigurationPolicyResource(t *testing.T) {
 }
 
 // Unit tests for all setting types covering construct_configuration_policy_settings.go functionality
-func TestUnitConstructSettingsCatalogSettings(t *testing.T) {
+func TestUnitResourceSettingsCatalogConfigurationPolicy_02_ConstructSettings(t *testing.T) {
 	t.Run("resource schema validation", func(t *testing.T) {
 		// Test resource schema construction without full provider initialization
 		// This avoids the deep recursion issue while still validating schema structure
@@ -297,7 +297,7 @@ func TestUnitConstructSettingsCatalogSettings(t *testing.T) {
 }
 
 // TestSettingsCatalogConfigurationPolicyResource_ErrorHandling tests error scenarios
-func TestSettingsCatalogConfigurationPolicyResource_ErrorHandling(t *testing.T) {
+func TestUnitResourceSettingsCatalogConfigurationPolicy_01_ErrorHandling(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, settingsCatalogMock := setupErrorMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -390,7 +390,7 @@ resource "microsoft365_graph_beta_device_management_settings_catalog_configurati
 }
 
 // TestSettingsCatalogConfigurationPolicyResource_SettingTypeErrors tests specific setting type error scenarios
-func TestSettingsCatalogConfigurationPolicyResource_SettingTypeErrors(t *testing.T) {
+func TestUnitResourceSettingsCatalogConfigurationPolicy_02_SettingTypeErrors(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, settingsCatalogMock := setupErrorMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -464,7 +464,7 @@ resource "microsoft365_graph_beta_device_management_settings_catalog_configurati
 }
 
 // TestSettingsCatalogConfigurationPolicyResource_Schema validates the resource schema
-func TestSettingsCatalogConfigurationPolicyResource_Schema(t *testing.T) {
+func TestUnitResourceSettingsCatalogConfigurationPolicy_03_Schema(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, settingsCatalogMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()

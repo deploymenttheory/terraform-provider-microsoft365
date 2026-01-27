@@ -15,7 +15,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 )
 
-func TestAccAgentIdentityBlueprintCertificateCredentialResource_PEM(t *testing.T) {
+func TestAccResourceAgentIdentityBlueprintCertificateCredential_01_PEM(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -58,7 +58,7 @@ func TestAccAgentIdentityBlueprintCertificateCredentialResource_PEM(t *testing.T
 	})
 }
 
-func TestAccAgentIdentityBlueprintCertificateCredentialResource_DER(t *testing.T) {
+func TestAccResourceAgentIdentityBlueprintCertificateCredential_02_DER(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -100,7 +100,7 @@ func TestAccAgentIdentityBlueprintCertificateCredentialResource_DER(t *testing.T
 	})
 }
 
-func TestAccAgentIdentityBlueprintCertificateCredentialResource_HEX(t *testing.T) {
+func TestAccResourceAgentIdentityBlueprintCertificateCredential_03_HEX(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,

@@ -33,7 +33,7 @@ func testConfigHelper(filename string) string {
 }
 
 // TestRoleAssignmentResource_Schema validates the resource schema
-func TestRoleAssignmentResource_Schema(t *testing.T) {
+func TestUnitResourceRoleAssignment_01_Schema(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, roleAssignmentMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -59,7 +59,7 @@ func TestRoleAssignmentResource_Schema(t *testing.T) {
 }
 
 // TestRoleAssignmentResource_Minimal tests basic CRUD operations
-func TestRoleAssignmentResource_Minimal(t *testing.T) {
+func TestUnitResourceRoleAssignment_02_Minimal(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, roleAssignmentMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -100,7 +100,7 @@ func TestRoleAssignmentResource_Minimal(t *testing.T) {
 }
 
 // TestRoleAssignmentResource_Maximal tests maximal configuration
-func TestRoleAssignmentResource_Maximal(t *testing.T) {
+func TestUnitResourceRoleAssignment_03_Maximal(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, roleAssignmentMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -126,7 +126,7 @@ func TestRoleAssignmentResource_Maximal(t *testing.T) {
 }
 
 // TestRoleAssignmentResource_UpdateInPlace tests in-place updates
-func TestRoleAssignmentResource_UpdateInPlace(t *testing.T) {
+func TestUnitResourceRoleAssignment_04_UpdateInPlace(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, roleAssignmentMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -156,7 +156,7 @@ func TestRoleAssignmentResource_UpdateInPlace(t *testing.T) {
 }
 
 // TestRoleAssignmentResource_ScopeValidation tests scope configuration validation
-func TestRoleAssignmentResource_ScopeValidation(t *testing.T) {
+func TestUnitResourceRoleAssignment_05_ScopeValidation(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, roleAssignmentMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -227,7 +227,7 @@ resource "microsoft365_graph_beta_device_management_role_assignment" "test" {
 }
 
 // TestRoleAssignmentResource_AllDevicesScope tests AllDevices scope type
-func TestRoleAssignmentResource_AllDevicesScope(t *testing.T) {
+func TestUnitResourceRoleAssignment_06_AllDevicesScope(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, roleAssignmentMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -264,7 +264,7 @@ resource "microsoft365_graph_beta_device_management_role_assignment" "test" {
 }
 
 // TestRoleAssignmentResource_Members tests members handling
-func TestRoleAssignmentResource_Members(t *testing.T) {
+func TestUnitResourceRoleAssignment_07_Members(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, roleAssignmentMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()

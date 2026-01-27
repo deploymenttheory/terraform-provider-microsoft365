@@ -16,7 +16,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 )
 
-func TestAccAgentIdentityBlueprintResource_Minimal(t *testing.T) {
+func TestAccResourceAgentIdentityBlueprint_01_Minimal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
@@ -68,7 +68,7 @@ func TestAccAgentIdentityBlueprintResource_Minimal(t *testing.T) {
 	})
 }
 
-func TestAccAgentIdentityBlueprintResource_Maximal(t *testing.T) {
+func TestAccResourceAgentIdentityBlueprint_02_Maximal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -126,7 +126,7 @@ func TestAccAgentIdentityBlueprintResource_Maximal(t *testing.T) {
 	})
 }
 
-func TestAccAgentIdentityBlueprintResource_Update(t *testing.T) {
+func TestAccResourceAgentIdentityBlueprint_03_Update(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,

@@ -11,7 +11,7 @@ import (
 )
 
 // TestAccAndroidManagedMobileAppResource_Create_Minimal tests creating an Android managed mobile app with minimal configuration
-func TestAccAndroidManagedMobileAppResource_Create_Minimal(t *testing.T) {
+func TestAccResourceAndroidManagedMobileApp_01_Create_Minimal(t *testing.T) {
 	// Skip if not running acceptance tests
 	if os.Getenv("TF_ACC") == "" {
 		t.Skip("Acceptance tests skipped unless TF_ACC=1")
@@ -45,7 +45,7 @@ func TestAccAndroidManagedMobileAppResource_Create_Minimal(t *testing.T) {
 }
 
 // TestAccAndroidManagedMobileAppResource_Create_Maximal tests creating an Android managed mobile app with maximal configuration
-func TestAccAndroidManagedMobileAppResource_Create_Maximal(t *testing.T) {
+func TestAccResourceAndroidManagedMobileApp_02_Create_Maximal(t *testing.T) {
 	// Skip if not running acceptance tests
 	if os.Getenv("TF_ACC") == "" {
 		t.Skip("Acceptance tests skipped unless TF_ACC=1")
@@ -80,7 +80,7 @@ func TestAccAndroidManagedMobileAppResource_Create_Maximal(t *testing.T) {
 }
 
 // TestAccAndroidManagedMobileAppResource_Update_MinimalToMaximal tests updating from minimal to maximal config
-func TestAccAndroidManagedMobileAppResource_Update_MinimalToMaximal(t *testing.T) {
+func TestAccResourceAndroidManagedMobileApp_03_Update_MinimalToMaximal(t *testing.T) {
 	// Skip if not running acceptance tests
 	if os.Getenv("TF_ACC") == "" {
 		t.Skip("Acceptance tests skipped unless TF_ACC=1")
@@ -123,7 +123,7 @@ func TestAccAndroidManagedMobileAppResource_Update_MinimalToMaximal(t *testing.T
 }
 
 // TestAccAndroidManagedMobileAppResource_Update_MaximalToMinimal tests updating from maximal to minimal config
-func TestAccAndroidManagedMobileAppResource_Update_MaximalToMinimal(t *testing.T) {
+func TestAccResourceAndroidManagedMobileApp_04_Update_MaximalToMinimal(t *testing.T) {
 	// Skip if not running acceptance tests
 	if os.Getenv("TF_ACC") == "" {
 		t.Skip("Acceptance tests skipped unless TF_ACC=1")
@@ -165,7 +165,7 @@ func TestAccAndroidManagedMobileAppResource_Update_MaximalToMinimal(t *testing.T
 }
 
 // TestAccAndroidManagedMobileAppResource_Delete_Minimal tests deleting an Android managed mobile app with minimal configuration
-func TestAccAndroidManagedMobileAppResource_Delete_Minimal(t *testing.T) {
+func TestAccResourceAndroidManagedMobileApp_05_Delete_Minimal(t *testing.T) {
 	// Skip if not running acceptance tests
 	if os.Getenv("TF_ACC") == "" {
 		t.Skip("Acceptance tests skipped unless TF_ACC=1")
@@ -208,7 +208,7 @@ func TestAccAndroidManagedMobileAppResource_Delete_Minimal(t *testing.T) {
 }
 
 // TestAccAndroidManagedMobileAppResource_Delete_Maximal tests deleting an Android managed mobile app with maximal configuration
-func TestAccAndroidManagedMobileAppResource_Delete_Maximal(t *testing.T) {
+func TestAccResourceAndroidManagedMobileApp_06_Delete_Maximal(t *testing.T) {
 	// Skip if not running acceptance tests
 	if os.Getenv("TF_ACC") == "" {
 		t.Skip("Acceptance tests skipped unless TF_ACC=1")
@@ -251,7 +251,7 @@ func TestAccAndroidManagedMobileAppResource_Delete_Maximal(t *testing.T) {
 }
 
 // TestAccAndroidManagedMobileAppResource_Import tests importing a resource
-func TestAccAndroidManagedMobileAppResource_Import(t *testing.T) {
+func TestAccResourceAndroidManagedMobileApp_07_Import(t *testing.T) {
 	// Skip if not running acceptance tests
 	if os.Getenv("TF_ACC") == "" {
 		t.Skip("Acceptance tests skipped unless TF_ACC=1")

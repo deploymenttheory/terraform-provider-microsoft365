@@ -30,7 +30,7 @@ func loadAcceptanceTestTerraform(filename string) string {
 }
 
 // TestAccAgentInstanceResource_Minimal tests creating an agent instance with minimal configuration
-func TestAccAgentInstanceResource_Minimal(t *testing.T) {
+func TestAccResourceAgentInstance_01_Minimal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -87,7 +87,7 @@ func TestAccAgentInstanceResource_Minimal(t *testing.T) {
 }
 
 // TestAccAgentInstanceResource_Maximal tests creating an agent instance with maximal configuration
-func TestAccAgentInstanceResource_Maximal(t *testing.T) {
+func TestAccResourceAgentInstance_02_Maximal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -155,7 +155,7 @@ func TestAccAgentInstanceResource_Maximal(t *testing.T) {
 }
 
 // TestAccAgentInstanceResource_UpdateMinimalToMaximal tests updating from minimal to maximal configuration
-func TestAccAgentInstanceResource_UpdateMinimalToMaximal(t *testing.T) {
+func TestAccResourceAgentInstance_03_UpdateMinimalToMaximal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -221,7 +221,7 @@ func TestAccAgentInstanceResource_UpdateMinimalToMaximal(t *testing.T) {
 }
 
 // TestAccAgentInstanceResource_UpdateMaximalToMinimal tests updating from maximal to minimal configuration
-func TestAccAgentInstanceResource_UpdateMaximalToMinimal(t *testing.T) {
+func TestAccResourceAgentInstance_04_UpdateMaximalToMinimal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,

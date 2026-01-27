@@ -33,7 +33,7 @@ func setupErrorMockEnvironment() (*mocks.Mocks, *allowedValueMocks.CustomSecurit
 	return mockClient, allowedValueMock
 }
 
-func TestAllowedValueResource_Basic(t *testing.T) {
+func TestUnitResourceCustomSecurityAttributeAllowedValue_01_Basic(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, allowedValueMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -60,7 +60,7 @@ func TestAllowedValueResource_Basic(t *testing.T) {
 	})
 }
 
-func TestAllowedValueResource_Minimal(t *testing.T) {
+func TestUnitResourceCustomSecurityAttributeAllowedValue_02_Minimal(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, allowedValueMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -87,7 +87,7 @@ func TestAllowedValueResource_Minimal(t *testing.T) {
 	})
 }
 
-func TestAllowedValueResource_Update(t *testing.T) {
+func TestUnitResourceCustomSecurityAttributeAllowedValue_03_Update(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, allowedValueMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -120,7 +120,7 @@ func TestAllowedValueResource_Update(t *testing.T) {
 	})
 }
 
-func TestAllowedValueResource_Inactive(t *testing.T) {
+func TestUnitResourceCustomSecurityAttributeAllowedValue_04_Inactive(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, allowedValueMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -147,7 +147,7 @@ func TestAllowedValueResource_Inactive(t *testing.T) {
 	})
 }
 
-func TestAllowedValueResource_WithSpaces(t *testing.T) {
+func TestUnitResourceCustomSecurityAttributeAllowedValue_05_WithSpaces(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, allowedValueMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -174,7 +174,7 @@ func TestAllowedValueResource_WithSpaces(t *testing.T) {
 	})
 }
 
-func TestAllowedValueResource_CreateError(t *testing.T) {
+func TestUnitResourceCustomSecurityAttributeAllowedValue_06_CreateError(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, allowedValueMock := setupErrorMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -191,7 +191,7 @@ func TestAllowedValueResource_CreateError(t *testing.T) {
 	})
 }
 
-func TestAllowedValueResource_NotFound(t *testing.T) {
+func TestUnitResourceCustomSecurityAttributeAllowedValue_07_NotFound(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, allowedValueMock := setupErrorMockEnvironment()
 	defer httpmock.DeactivateAndReset()

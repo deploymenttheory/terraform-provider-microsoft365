@@ -33,7 +33,7 @@ func setupErrorMockEnvironment() (*mocks.Mocks, *attributeSetMocks.AttributeSetM
 	return mockClient, attributeSetMock
 }
 
-func TestAttributeSetResource_Basic(t *testing.T) {
+func TestUnitResourceAttributeSet_01_Basic(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, attributeSetMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -60,7 +60,7 @@ func TestAttributeSetResource_Basic(t *testing.T) {
 	})
 }
 
-func TestAttributeSetResource_Minimal(t *testing.T) {
+func TestUnitResourceAttributeSet_02_Minimal(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, attributeSetMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -86,7 +86,7 @@ func TestAttributeSetResource_Minimal(t *testing.T) {
 	})
 }
 
-func TestAttributeSetResource_Update(t *testing.T) {
+func TestUnitResourceAttributeSet_03_Update(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, attributeSetMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -120,7 +120,7 @@ func TestAttributeSetResource_Update(t *testing.T) {
 	})
 }
 
-func TestAttributeSetResource_InvalidID(t *testing.T) {
+func TestUnitResourceAttributeSet_04_InvalidID(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, attributeSetMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -137,7 +137,7 @@ func TestAttributeSetResource_InvalidID(t *testing.T) {
 	})
 }
 
-func TestAttributeSetResource_InvalidMaxAttributes(t *testing.T) {
+func TestUnitResourceAttributeSet_05_InvalidMaxAttributes(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, attributeSetMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -154,7 +154,7 @@ func TestAttributeSetResource_InvalidMaxAttributes(t *testing.T) {
 	})
 }
 
-func TestAttributeSetResource_CreateError(t *testing.T) {
+func TestUnitResourceAttributeSet_06_CreateError(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, attributeSetMock := setupErrorMockEnvironment()
 	defer httpmock.DeactivateAndReset()

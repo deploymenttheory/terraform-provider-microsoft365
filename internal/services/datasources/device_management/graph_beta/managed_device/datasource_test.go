@@ -44,7 +44,7 @@ func setupErrorMockEnvironment() (*mocks.Mocks, *managedDeviceMocks.ManagedDevic
 	return mockClient, mdMock
 }
 
-func TestManagedDeviceDataSource_All(t *testing.T) {
+func TestUnitDatasourceManagedDevice_01_All(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, mdMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -69,7 +69,7 @@ func TestManagedDeviceDataSource_All(t *testing.T) {
 	})
 }
 
-func TestManagedDeviceDataSource_ById(t *testing.T) {
+func TestUnitDatasourceManagedDevice_02_ById(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, mdMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -94,7 +94,7 @@ func TestManagedDeviceDataSource_ById(t *testing.T) {
 	})
 }
 
-func TestManagedDeviceDataSource_ByDeviceName(t *testing.T) {
+func TestUnitDatasourceManagedDevice_03_ByDeviceName(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, mdMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -116,7 +116,7 @@ func TestManagedDeviceDataSource_ByDeviceName(t *testing.T) {
 	})
 }
 
-func TestManagedDeviceDataSource_BySerialNumber(t *testing.T) {
+func TestUnitDatasourceManagedDevice_04_BySerialNumber(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, mdMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -138,7 +138,7 @@ func TestManagedDeviceDataSource_BySerialNumber(t *testing.T) {
 	})
 }
 
-func TestManagedDeviceDataSource_ODataFilter(t *testing.T) {
+func TestUnitDatasourceManagedDevice_05_ODataFilter(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, mdMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -161,7 +161,7 @@ func TestManagedDeviceDataSource_ODataFilter(t *testing.T) {
 	})
 }
 
-func TestManagedDeviceDataSource_ODataAdvanced(t *testing.T) {
+func TestUnitDatasourceManagedDevice_06_ODataAdvanced(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, mdMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -184,7 +184,7 @@ func TestManagedDeviceDataSource_ODataAdvanced(t *testing.T) {
 	})
 }
 
-func TestManagedDeviceDataSource_ODataComprehensive(t *testing.T) {
+func TestUnitDatasourceManagedDevice_07_ODataComprehensive(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, mdMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -207,7 +207,7 @@ func TestManagedDeviceDataSource_ODataComprehensive(t *testing.T) {
 	})
 }
 
-func TestManagedDeviceDataSource_ValidationError(t *testing.T) {
+func TestUnitDatasourceManagedDevice_08_ValidationError(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, mdMock := setupErrorMockEnvironment()
 	defer httpmock.DeactivateAndReset()

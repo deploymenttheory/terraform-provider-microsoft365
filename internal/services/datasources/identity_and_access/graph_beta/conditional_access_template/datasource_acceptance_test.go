@@ -25,7 +25,7 @@ var (
 	testResource = graphBetaConditionalAccessPolicy.ConditionalAccessPolicyTestResource{}
 )
 
-func TestAccConditionalAccessTemplateDataSource_01_ByTemplateId(t *testing.T) {
+func TestAccDatasourceConditionalAccessTemplate_01_ByTemplateId(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -76,7 +76,7 @@ func TestAccConditionalAccessTemplateDataSource_01_ByTemplateId(t *testing.T) {
 	})
 }
 
-func TestAccConditionalAccessTemplateDataSource_02_ByName(t *testing.T) {
+func TestAccDatasourceConditionalAccessTemplate_02_ByName(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -127,7 +127,7 @@ func TestAccConditionalAccessTemplateDataSource_02_ByName(t *testing.T) {
 	})
 }
 
-func TestAccConditionalAccessTemplateDataSource_03_FuzzyMatchSuggestion(t *testing.T) {
+func TestAccDatasourceConditionalAccessTemplate_03_FuzzyMatchSuggestion(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -146,7 +146,7 @@ func TestAccConditionalAccessTemplateDataSource_03_FuzzyMatchSuggestion(t *testi
 	})
 }
 
-func TestAccConditionalAccessTemplateDataSource_CreatePolicyFromTemplate_04_MFAAdmins(t *testing.T) {
+func TestAccDatasourceConditionalAccessTemplate_04_MFAAdmins(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -184,7 +184,7 @@ func TestAccConditionalAccessTemplateDataSource_CreatePolicyFromTemplate_04_MFAA
 	})
 }
 
-func TestAccConditionalAccessTemplateDataSource_CreatePolicyFromTemplate_05_BlockLegacyAuth(t *testing.T) {
+func TestAccDatasourceConditionalAccessTemplate_05_BlockLegacyAuth(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -222,7 +222,7 @@ func TestAccConditionalAccessTemplateDataSource_CreatePolicyFromTemplate_05_Bloc
 	})
 }
 
-func TestAccConditionalAccessTemplateDataSource_CreatePolicyFromTemplate_06_SecuringSecurityInfo(t *testing.T) {
+func TestAccDatasourceConditionalAccessTemplate_06_SecuringSecurityInfo(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -260,7 +260,7 @@ func TestAccConditionalAccessTemplateDataSource_CreatePolicyFromTemplate_06_Secu
 	})
 }
 
-func TestAccConditionalAccessTemplateDataSource_CreatePolicyFromTemplate_07_MFAAllUsers(t *testing.T) {
+func TestAccDatasourceConditionalAccessTemplate_07_MFAAllUsers(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -298,7 +298,7 @@ func TestAccConditionalAccessTemplateDataSource_CreatePolicyFromTemplate_07_MFAA
 	})
 }
 
-func TestAccConditionalAccessTemplateDataSource_CreatePolicyFromTemplate_08_MFAGuestAccess(t *testing.T) {
+func TestAccDatasourceConditionalAccessTemplate_08_MFAGuestAccess(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -336,7 +336,7 @@ func TestAccConditionalAccessTemplateDataSource_CreatePolicyFromTemplate_08_MFAG
 	})
 }
 
-func TestAccConditionalAccessTemplateDataSource_CreatePolicyFromTemplate_09_MFAAzureManagement(t *testing.T) {
+func TestAccDatasourceConditionalAccessTemplate_09_MFAAzureManagement(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -374,7 +374,7 @@ func TestAccConditionalAccessTemplateDataSource_CreatePolicyFromTemplate_09_MFAA
 	})
 }
 
-func TestAccConditionalAccessTemplateDataSource_CreatePolicyFromTemplate_10_MFARiskySignins(t *testing.T) {
+func TestAccDatasourceConditionalAccessTemplate_10_MFARiskySignins(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -412,7 +412,7 @@ func TestAccConditionalAccessTemplateDataSource_CreatePolicyFromTemplate_10_MFAR
 	})
 }
 
-func TestAccConditionalAccessTemplateDataSource_CreatePolicyFromTemplate_11_PasswordChangeHighRisk(t *testing.T) {
+func TestAccDatasourceConditionalAccessTemplate_11_PasswordChangeHighRisk(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -450,7 +450,7 @@ func TestAccConditionalAccessTemplateDataSource_CreatePolicyFromTemplate_11_Pass
 	})
 }
 
-func TestAccConditionalAccessTemplateDataSource_CreatePolicyFromTemplate_12_CompliantDeviceAdmins(t *testing.T) {
+func TestAccDatasourceConditionalAccessTemplate_12_CompliantDeviceAdmins(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -491,7 +491,7 @@ func TestAccConditionalAccessTemplateDataSource_CreatePolicyFromTemplate_12_Comp
 // Test 13 skipped: "Block access for unknown or unsupported device platform" template has errors
 // (contradictory platform conditions and incompatible grant controls)
 
-func TestAccConditionalAccessTemplateDataSource_CreatePolicyFromTemplate_14_CompliantDeviceOrMFAAllUsers(t *testing.T) {
+func TestAccDatasourceConditionalAccessTemplate_14_CompliantDeviceOrMFAAllUsers(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -529,7 +529,7 @@ func TestAccConditionalAccessTemplateDataSource_CreatePolicyFromTemplate_14_Comp
 	})
 }
 
-func TestAccConditionalAccessTemplateDataSource_CreatePolicyFromTemplate_15_AppEnforcedRestrictionsO365(t *testing.T) {
+func TestAccDatasourceConditionalAccessTemplate_15_AppEnforcedRestrictionsO365(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -567,7 +567,7 @@ func TestAccConditionalAccessTemplateDataSource_CreatePolicyFromTemplate_15_AppE
 	})
 }
 
-func TestAccConditionalAccessTemplateDataSource_CreatePolicyFromTemplate_16_PhishingResistantMFAAdmins(t *testing.T) {
+func TestAccDatasourceConditionalAccessTemplate_16_PhishingResistantMFAAdmins(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -605,7 +605,7 @@ func TestAccConditionalAccessTemplateDataSource_CreatePolicyFromTemplate_16_Phis
 	})
 }
 
-func TestAccConditionalAccessTemplateDataSource_CreatePolicyFromTemplate_17_MFAAdminPortals(t *testing.T) {
+func TestAccDatasourceConditionalAccessTemplate_17_MFAAdminPortals(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -643,7 +643,7 @@ func TestAccConditionalAccessTemplateDataSource_CreatePolicyFromTemplate_17_MFAA
 	})
 }
 
-func TestAccConditionalAccessTemplateDataSource_CreatePolicyFromTemplate_18_BlockO365InsiderRisk(t *testing.T) {
+func TestAccDatasourceConditionalAccessTemplate_18_BlockO365InsiderRisk(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -681,7 +681,7 @@ func TestAccConditionalAccessTemplateDataSource_CreatePolicyFromTemplate_18_Bloc
 	})
 }
 
-func TestAccConditionalAccessTemplateDataSource_CreatePolicyFromTemplate_19_RequireMDMCompliantDevice(t *testing.T) {
+func TestAccDatasourceConditionalAccessTemplate_19_RequireMDMCompliantDevice(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -719,7 +719,7 @@ func TestAccConditionalAccessTemplateDataSource_CreatePolicyFromTemplate_19_Requ
 	})
 }
 
-func TestAccConditionalAccessTemplateDataSource_CreatePolicyFromTemplate_20_SecureAccountRecoveryIdentityVerification(t *testing.T) {
+func TestAccDatasourceConditionalAccessTemplate_20_SecureAccountRecoveryIdentityVerification(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -757,7 +757,7 @@ func TestAccConditionalAccessTemplateDataSource_CreatePolicyFromTemplate_20_Secu
 	})
 }
 
-func TestAccConditionalAccessTemplateDataSource_CreatePolicyFromTemplate_21_BlockHighRiskAgentIdentities(t *testing.T) {
+func TestAccDatasourceConditionalAccessTemplate_21_BlockHighRiskAgentIdentities(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,

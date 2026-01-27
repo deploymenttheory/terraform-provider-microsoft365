@@ -11,7 +11,7 @@ import (
 )
 
 // TestAccGroupMemberAssignmentResource_Create_Minimal tests creating a group member assignment with minimal configuration
-func TestAccGroupMemberAssignmentResource_Create_Minimal(t *testing.T) {
+func TestAccResourceGroupMemberAssignment_01_Create_Minimal(t *testing.T) {
 	// Skip if not running acceptance tests
 	if os.Getenv("TF_ACC") == "" {
 		t.Skip("Acceptance tests skipped unless TF_ACC=1")
@@ -53,7 +53,7 @@ func TestAccGroupMemberAssignmentResource_Create_Minimal(t *testing.T) {
 }
 
 // TestAccGroupMemberAssignmentResource_Create_Maximal tests creating a group member assignment with maximal configuration
-func TestAccGroupMemberAssignmentResource_Create_Maximal(t *testing.T) {
+func TestAccResourceGroupMemberAssignment_02_Create_Maximal(t *testing.T) {
 	// Skip if not running acceptance tests
 	if os.Getenv("TF_ACC") == "" {
 		t.Skip("Acceptance tests skipped unless TF_ACC=1")
@@ -95,7 +95,7 @@ func TestAccGroupMemberAssignmentResource_Create_Maximal(t *testing.T) {
 }
 
 // TestAccGroupMemberAssignmentResource_Delete_Minimal tests deleting a group member assignment with minimal configuration
-func TestAccGroupMemberAssignmentResource_Delete_Minimal(t *testing.T) {
+func TestAccResourceGroupMemberAssignment_03_Delete_Minimal(t *testing.T) {
 	// Skip if not running acceptance tests
 	if os.Getenv("TF_ACC") == "" {
 		t.Skip("Acceptance tests skipped unless TF_ACC=1")
@@ -144,7 +144,7 @@ func TestAccGroupMemberAssignmentResource_Delete_Minimal(t *testing.T) {
 }
 
 // TestAccGroupMemberAssignmentResource_Delete_Maximal tests deleting a group member assignment with maximal configuration
-func TestAccGroupMemberAssignmentResource_Delete_Maximal(t *testing.T) {
+func TestAccResourceGroupMemberAssignment_04_Delete_Maximal(t *testing.T) {
 	// Skip if not running acceptance tests
 	if os.Getenv("TF_ACC") == "" {
 		t.Skip("Acceptance tests skipped unless TF_ACC=1")
@@ -193,7 +193,7 @@ func TestAccGroupMemberAssignmentResource_Delete_Maximal(t *testing.T) {
 }
 
 // TestAccGroupMemberAssignmentResource_Import tests importing a resource
-func TestAccGroupMemberAssignmentResource_Import(t *testing.T) {
+func TestAccResourceGroupMemberAssignment_05_Import(t *testing.T) {
 	// Skip if not running acceptance tests
 	if os.Getenv("TF_ACC") == "" {
 		t.Skip("Acceptance tests skipped unless TF_ACC=1")

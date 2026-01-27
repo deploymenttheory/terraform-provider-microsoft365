@@ -19,7 +19,7 @@ func loadAcceptanceTestTerraform(filename string) string {
 	return acceptance.ConfiguredM365ProviderBlock(config)
 }
 
-func TestAccGroupDataSource_01_ByObjectId(t *testing.T) {
+func TestAccDatasourceGroup_01_ByObjectId(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -49,7 +49,7 @@ func TestAccGroupDataSource_01_ByObjectId(t *testing.T) {
 	})
 }
 
-func TestAccGroupDataSource_02_ByDisplayName(t *testing.T) {
+func TestAccDatasourceGroup_02_ByDisplayName(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -76,7 +76,7 @@ func TestAccGroupDataSource_02_ByDisplayName(t *testing.T) {
 	})
 }
 
-func TestAccGroupDataSource_03_ByMailNickname(t *testing.T) {
+func TestAccDatasourceGroup_03_ByMailNickname(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -103,7 +103,7 @@ func TestAccGroupDataSource_03_ByMailNickname(t *testing.T) {
 	})
 }
 
-func TestAccGroupDataSource_04_ByDisplayNameWithSecurityFilter(t *testing.T) {
+func TestAccDatasourceGroup_04_ByDisplayNameWithSecurityFilter(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -130,7 +130,7 @@ func TestAccGroupDataSource_04_ByDisplayNameWithSecurityFilter(t *testing.T) {
 	})
 }
 
-func TestAccGroupDataSource_05_ByODataQuery(t *testing.T) {
+func TestAccDatasourceGroup_05_ByODataQuery(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -157,7 +157,7 @@ func TestAccGroupDataSource_05_ByODataQuery(t *testing.T) {
 	})
 }
 
-func TestAccGroupDataSource_06_ByDisplayNameWithMembers(t *testing.T) {
+func TestAccDatasourceGroup_06_ByDisplayNameWithMembers(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -185,7 +185,7 @@ func TestAccGroupDataSource_06_ByDisplayNameWithMembers(t *testing.T) {
 	})
 }
 
-func TestAccGroupDataSource_07_ByDisplayNameWithOwners(t *testing.T) {
+func TestAccDatasourceGroup_07_ByDisplayNameWithOwners(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,

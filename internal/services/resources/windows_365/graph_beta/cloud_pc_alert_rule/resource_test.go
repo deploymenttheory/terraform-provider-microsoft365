@@ -111,8 +111,8 @@ func testConfigMinimalWithResourceName(resourceName string) string {
 }`, resourceName)
 }
 
-// TestUnitCloudPcAlertRuleResource_Create_Minimal tests the creation of a Cloud PC alert rule with minimal configuration
-func TestUnitCloudPcAlertRuleResource_Create_Minimal(t *testing.T) {
+// TestUnitResourceCloudPcAlertRule_01_CreateMinimal tests the creation of a Cloud PC alert rule with minimal configuration
+func TestUnitResourceCloudPcAlertRule_01_CreateMinimal(t *testing.T) {
 	// Set up mock environment
 	_, _ = setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -149,8 +149,8 @@ func TestUnitCloudPcAlertRuleResource_Create_Minimal(t *testing.T) {
 	})
 }
 
-// TestUnitCloudPcAlertRuleResource_Create_Maximal tests the creation of a Cloud PC alert rule with maximal configuration
-func TestUnitCloudPcAlertRuleResource_Create_Maximal(t *testing.T) {
+// TestUnitResourceCloudPcAlertRule_02_CreateMaximal tests the creation of a Cloud PC alert rule with maximal configuration
+func TestUnitResourceCloudPcAlertRule_02_CreateMaximal(t *testing.T) {
 	// Set up mock environment
 	_, _ = setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -193,8 +193,8 @@ func TestUnitCloudPcAlertRuleResource_Create_Maximal(t *testing.T) {
 	})
 }
 
-// TestUnitCloudPcAlertRuleResource_Update_MinimalToMaximal tests updating from minimal to maximal configuration
-func TestUnitCloudPcAlertRuleResource_Update_MinimalToMaximal(t *testing.T) {
+// TestUnitResourceCloudPcAlertRule_03_UpdateMinimalToMaximal tests updating from minimal to maximal configuration
+func TestUnitResourceCloudPcAlertRule_03_UpdateMinimalToMaximal(t *testing.T) {
 	// Set up mock environment
 	_, _ = setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -235,8 +235,8 @@ func TestUnitCloudPcAlertRuleResource_Update_MinimalToMaximal(t *testing.T) {
 	})
 }
 
-// TestUnitCloudPcAlertRuleResource_Update_MaximalToMinimal tests updating from maximal to minimal configuration
-func TestUnitCloudPcAlertRuleResource_Update_MaximalToMinimal(t *testing.T) {
+// TestUnitResourceCloudPcAlertRule_04_UpdateMaximalToMinimal tests updating from maximal to minimal configuration
+func TestUnitResourceCloudPcAlertRule_04_UpdateMaximalToMinimal(t *testing.T) {
 	// Set up mock environment
 	_, _ = setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -277,8 +277,8 @@ func TestUnitCloudPcAlertRuleResource_Update_MaximalToMinimal(t *testing.T) {
 	})
 }
 
-// TestUnitCloudPcAlertRuleResource_Delete_Minimal tests deleting a Cloud PC alert rule with minimal configuration
-func TestUnitCloudPcAlertRuleResource_Delete_Minimal(t *testing.T) {
+// TestUnitResourceCloudPcAlertRule_05_DeleteMinimal tests deleting a Cloud PC alert rule with minimal configuration
+func TestUnitResourceCloudPcAlertRule_05_DeleteMinimal(t *testing.T) {
 	// Set up mock environment
 	_, _ = setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -304,8 +304,8 @@ func TestUnitCloudPcAlertRuleResource_Delete_Minimal(t *testing.T) {
 	})
 }
 
-// TestUnitCloudPcAlertRuleResource_Delete_Maximal tests deleting a Cloud PC alert rule with maximal configuration
-func TestUnitCloudPcAlertRuleResource_Delete_Maximal(t *testing.T) {
+// TestUnitResourceCloudPcAlertRule_06_DeleteMaximal tests deleting a Cloud PC alert rule with maximal configuration
+func TestUnitResourceCloudPcAlertRule_06_DeleteMaximal(t *testing.T) {
 	// Set up mock environment
 	_, _ = setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -331,8 +331,8 @@ func TestUnitCloudPcAlertRuleResource_Delete_Maximal(t *testing.T) {
 	})
 }
 
-// TestUnitCloudPcAlertRuleResource_Import tests importing a Cloud PC alert rule
-func TestUnitCloudPcAlertRuleResource_Import(t *testing.T) {
+// TestUnitResourceCloudPcAlertRule_07_Import tests importing a Cloud PC alert rule
+func TestUnitResourceCloudPcAlertRule_07_Import(t *testing.T) {
 	// Set up mock environment
 	_, _ = setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -363,8 +363,8 @@ func TestUnitCloudPcAlertRuleResource_Import(t *testing.T) {
 	})
 }
 
-// TestUnitCloudPcAlertRuleResource_ErrorHandling tests error handling scenarios
-func TestUnitCloudPcAlertRuleResource_ErrorHandling(t *testing.T) {
+// TestUnitResourceCloudPcAlertRule_08_ErrorHandling tests error handling scenarios
+func TestUnitResourceCloudPcAlertRule_08_ErrorHandling(t *testing.T) {
 	// Set up mock environment
 	_, errorMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()

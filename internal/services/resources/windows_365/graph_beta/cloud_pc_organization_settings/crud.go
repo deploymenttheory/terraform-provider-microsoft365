@@ -13,7 +13,14 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
-// Create handles the Create operation (PATCH for singleton)
+// Create handles the Create operation for Cloud PC organization settings resources.
+//
+// Operation: Configures organization-wide Cloud PC settings
+// API Calls:
+//   - PATCH /deviceManagement/virtualEndpoint/organizationSettings
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/cloudpcorganizationsettings-update?view=graph-rest-beta
+// Note: This is a singleton resource; settings always exist and are configured rather than created
 func (r *CloudPcOrganizationSettingsResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var plan CloudPcOrganizationSettingsResourceModel
 
@@ -73,7 +80,13 @@ func (r *CloudPcOrganizationSettingsResource) Create(ctx context.Context, req re
 	tflog.Debug(ctx, fmt.Sprintf("Finished Create Method: %s", ResourceName))
 }
 
-// Read handles the Read operation.
+// Read handles the Read operation for Cloud PC organization settings resources.
+//
+// Operation: Retrieves organization-wide Cloud PC settings
+// API Calls:
+//   - GET /deviceManagement/virtualEndpoint/organizationSettings
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/cloudpcorganizationsettings-get?view=graph-rest-beta
 func (r *CloudPcOrganizationSettingsResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var state CloudPcOrganizationSettingsResourceModel
 
@@ -117,7 +130,13 @@ func (r *CloudPcOrganizationSettingsResource) Read(ctx context.Context, req reso
 	tflog.Debug(ctx, fmt.Sprintf("Finished Read Method: %s", ResourceName))
 }
 
-// Update handles the Update operation (PATCH for singleton)
+// Update handles the Update operation for Cloud PC organization settings resources.
+//
+// Operation: Updates organization-wide Cloud PC settings
+// API Calls:
+//   - PATCH /deviceManagement/virtualEndpoint/organizationSettings
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/cloudpcorganizationsettings-update?view=graph-rest-beta
 func (r *CloudPcOrganizationSettingsResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var plan CloudPcOrganizationSettingsResourceModel
 	var state CloudPcOrganizationSettingsResourceModel
@@ -179,7 +198,14 @@ func (r *CloudPcOrganizationSettingsResource) Update(ctx context.Context, req re
 	tflog.Debug(ctx, fmt.Sprintf("Finished Update Method: %s", ResourceName))
 }
 
-// Delete resets the singleton to default values and removes from state
+// Delete handles the Delete operation for Cloud PC organization settings resources.
+//
+// Operation: Resets organization settings to default values
+// API Calls:
+//   - PATCH /deviceManagement/virtualEndpoint/organizationSettings
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/cloudpcorganizationsettings-update?view=graph-rest-beta
+// Note: Singleton resource cannot be deleted; this operation resets settings to defaults and removes from Terraform state
 func (r *CloudPcOrganizationSettingsResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var state CloudPcOrganizationSettingsResourceModel
 

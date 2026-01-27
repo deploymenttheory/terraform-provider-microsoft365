@@ -22,7 +22,7 @@ func loadAcceptanceTestTerraform(filename string) string {
 	return acceptance.ConfiguredM365ProviderBlock(config)
 }
 
-func TestAccGuidListSharderDataSource_01_UsersRoundRobinNoSeed(t *testing.T) {
+func TestAccDatasourceGuidListSharder_01_UsersRoundRobinNoSeed(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -70,7 +70,7 @@ func TestAccGuidListSharderDataSource_01_UsersRoundRobinNoSeed(t *testing.T) {
 	})
 }
 
-func TestAccGuidListSharderDataSource_02_UsersRoundRobinWithSeed(t *testing.T) {
+func TestAccDatasourceGuidListSharder_02_UsersRoundRobinWithSeed(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,

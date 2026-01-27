@@ -16,7 +16,13 @@ import (
 	"github.com/microsoftgraph/msgraph-beta-sdk-go/users"
 )
 
-// Create handles the Create operation.
+// Create handles the Create operation for user resources.
+//
+// Operation: Creates a new user
+// API Calls:
+//   - POST /users
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/user-post-users?view=graph-rest-beta
 func (r *UserResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var plan UserResourceModel
 	var hcl UserResourceModel
@@ -88,7 +94,15 @@ func (r *UserResource) Create(ctx context.Context, req resource.CreateRequest, r
 	tflog.Debug(ctx, fmt.Sprintf("Finished Create Method: %s", ResourceName))
 }
 
-// Read handles the Read operation.
+// Read handles the Read operation for user resources.
+//
+// Operation: Retrieves user details including custom security attributes and manager
+// API Calls:
+//   - GET /users/{id}
+//   - GET /users/{id}?$select=customSecurityAttributes
+//   - GET /users/{id}/manager
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/user-get?view=graph-rest-beta
 func (r *UserResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var state UserResourceModel
 	tflog.Debug(ctx, fmt.Sprintf("Starting Read method for: %s", ResourceName))
@@ -170,7 +184,14 @@ func (r *UserResource) Read(ctx context.Context, req resource.ReadRequest, resp 
 	tflog.Debug(ctx, fmt.Sprintf("Finished Read Method: %s", ResourceName))
 }
 
-// Update handles the Update operation.
+// Update handles the Update operation for user resources.
+//
+// Operation: Updates user properties
+// API Calls:
+//   - PATCH /users/{id}
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/user-update?view=graph-rest-beta
+// Note: password_profile is write-only and excluded from update requests
 func (r *UserResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var plan UserResourceModel
 	var state UserResourceModel
@@ -237,7 +258,17 @@ func (r *UserResource) Update(ctx context.Context, req resource.UpdateRequest, r
 	tflog.Debug(ctx, fmt.Sprintf("Finished updating %s with ID: %s", ResourceName, state.ID.ValueString()))
 }
 
-// Delete handles the Delete operation.
+// Delete handles the Delete operation for user resources.
+//
+// Operation: Deletes user with optional hard delete
+// API Calls:
+//   - DELETE /users/{id}
+//   - GET /directory/deletedItems/{id} (verification after soft delete)
+//   - DELETE /directory/deletedItems/{id} (if hard_delete is true)
+//   - GET /directory/deletedItems/{id} (verification after hard delete)
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/user-delete?view=graph-rest-beta
+// Note: When hard_delete is true, performs soft delete then permanent deletion from directory deleted items after eventual consistency delay
 func (r *UserResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var data UserResourceModel
 

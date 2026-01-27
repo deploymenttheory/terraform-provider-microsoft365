@@ -38,7 +38,7 @@ func loadUnitTestTerraform(filename string) string {
 	return config
 }
 
-func TestMacosDeviceConfigurationTemplatesResource_CustomConfiguration(t *testing.T) {
+func TestUnitResourceMacosDeviceConfigurationTemplates_01_CustomConfiguration(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, configMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -65,7 +65,7 @@ func TestMacosDeviceConfigurationTemplatesResource_CustomConfiguration(t *testin
 	})
 }
 
-func TestMacosDeviceConfigurationTemplatesResource_PreferenceFile(t *testing.T) {
+func TestUnitResourceMacosDeviceConfigurationTemplates_02_PreferenceFile(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, configMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -90,7 +90,7 @@ func TestMacosDeviceConfigurationTemplatesResource_PreferenceFile(t *testing.T) 
 	})
 }
 
-func TestMacosDeviceConfigurationTemplatesResource_TrustedRootCertificate(t *testing.T) {
+func TestUnitResourceMacosDeviceConfigurationTemplates_03_TrustedRootCertificate(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, configMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -115,7 +115,7 @@ func TestMacosDeviceConfigurationTemplatesResource_TrustedRootCertificate(t *tes
 	})
 }
 
-func TestMacosDeviceConfigurationTemplatesResource_ScepCertificate(t *testing.T) {
+func TestUnitResourceMacosDeviceConfigurationTemplates_04_ScepCertificate(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, configMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -153,7 +153,7 @@ func TestMacosDeviceConfigurationTemplatesResource_ScepCertificate(t *testing.T)
 	})
 }
 
-func TestMacosDeviceConfigurationTemplatesResource_PkcsCertificate(t *testing.T) {
+func TestUnitResourceMacosDeviceConfigurationTemplates_05_PkcsCertificate(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, configMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -187,7 +187,7 @@ func TestMacosDeviceConfigurationTemplatesResource_PkcsCertificate(t *testing.T)
 	})
 }
 
-func TestMacosDeviceConfigurationTemplatesResource_CreateWithError(t *testing.T) {
+func TestUnitResourceMacosDeviceConfigurationTemplates_06_CreateWithError(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, configMock := setupErrorMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -204,7 +204,7 @@ func TestMacosDeviceConfigurationTemplatesResource_CreateWithError(t *testing.T)
 	})
 }
 
-func TestMacosDeviceConfigurationTemplatesResource_Update(t *testing.T) {
+func TestUnitResourceMacosDeviceConfigurationTemplates_07_Update(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, configMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -231,7 +231,7 @@ func TestMacosDeviceConfigurationTemplatesResource_Update(t *testing.T) {
 	})
 }
 
-func TestMacosDeviceConfigurationTemplatesResource_ImportState(t *testing.T) {
+func TestUnitResourceMacosDeviceConfigurationTemplates_08_ImportState(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, configMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()

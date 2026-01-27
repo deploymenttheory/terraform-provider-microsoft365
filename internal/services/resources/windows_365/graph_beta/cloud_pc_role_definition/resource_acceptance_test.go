@@ -23,7 +23,7 @@ func loadAcceptanceTestTerraform(filename string) string {
 	return acceptance.ConfiguredM365ProviderBlock(config)
 }
 
-func TestAccRoleDefinitionResource_Lifecycle(t *testing.T) {
+func TestAccResourceCloudPcRoleDefinition_01_Lifecycle(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -86,7 +86,7 @@ func TestAccRoleDefinitionResource_Lifecycle(t *testing.T) {
 	})
 }
 
-func TestAccRoleDefinitionResource_Description(t *testing.T) {
+func TestAccResourceCloudPcRoleDefinition_02_Description(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,

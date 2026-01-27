@@ -23,7 +23,7 @@ func loadAcceptanceTestTerraform(filename string) string {
 	return acceptance.ConfiguredM365ProviderBlock(config)
 }
 
-func TestAccGroupPolicyUploadedDefinitionFilesResource_Mozilla(t *testing.T) {
+func TestAccResourceGroupPolicyUploadedDefinitionFiles_01_Mozilla(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -53,7 +53,7 @@ func TestAccGroupPolicyUploadedDefinitionFilesResource_Mozilla(t *testing.T) {
 	})
 }
 
-func TestAccGroupPolicyUploadedDefinitionFilesResource_Google(t *testing.T) {
+func TestAccResourceGroupPolicyUploadedDefinitionFiles_02_Google(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -83,7 +83,7 @@ func TestAccGroupPolicyUploadedDefinitionFilesResource_Google(t *testing.T) {
 	})
 }
 
-func TestAccGroupPolicyUploadedDefinitionFilesResource_Update(t *testing.T) {
+func TestAccResourceGroupPolicyUploadedDefinitionFiles_03_Update(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,

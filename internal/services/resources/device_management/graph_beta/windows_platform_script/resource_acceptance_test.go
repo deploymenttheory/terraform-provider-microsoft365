@@ -30,7 +30,7 @@ func loadAcceptanceTestTerraform(filename string) string {
 	return acceptance.ConfiguredM365ProviderBlock(config)
 }
 
-func TestAccWindowsPlatformScriptResource_001_Scenario_Minimal(t *testing.T) {
+func TestAccResourceWindowsPlatformScript_01_Scenario_Minimal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -63,7 +63,7 @@ func TestAccWindowsPlatformScriptResource_001_Scenario_Minimal(t *testing.T) {
 	})
 }
 
-func TestAccWindowsPlatformScriptResource_002_Scenario_Maximal(t *testing.T) {
+func TestAccResourceWindowsPlatformScript_02_Scenario_Maximal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -99,7 +99,7 @@ func TestAccWindowsPlatformScriptResource_002_Scenario_Maximal(t *testing.T) {
 	})
 }
 
-func TestAccWindowsPlatformScriptResource_003_Lifecycle_MinimalToMaximal(t *testing.T) {
+func TestAccResourceWindowsPlatformScript_03_Lifecycle_MinimalToMaximal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -148,7 +148,7 @@ func TestAccWindowsPlatformScriptResource_003_Lifecycle_MinimalToMaximal(t *test
 	})
 }
 
-func TestAccWindowsPlatformScriptResource_004_Lifecycle_MaximalToMinimal(t *testing.T) {
+func TestAccResourceWindowsPlatformScript_04_Lifecycle_MaximalToMinimal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -195,7 +195,7 @@ func TestAccWindowsPlatformScriptResource_004_Lifecycle_MaximalToMinimal(t *test
 	})
 }
 
-func TestAccWindowsPlatformScriptResource_005_AssignmentsMinimal(t *testing.T) {
+func TestAccResourceWindowsPlatformScript_05_AssignmentsMinimal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -239,7 +239,7 @@ func TestAccWindowsPlatformScriptResource_005_AssignmentsMinimal(t *testing.T) {
 	})
 }
 
-func TestAccWindowsPlatformScriptResource_006_AssignmentsMaximal(t *testing.T) {
+func TestAccResourceWindowsPlatformScript_06_AssignmentsMaximal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -283,7 +283,7 @@ func TestAccWindowsPlatformScriptResource_006_AssignmentsMaximal(t *testing.T) {
 	})
 }
 
-func TestAccWindowsPlatformScriptResource_007_AssignmentsLifecycle_MinimalToMaximal(t *testing.T) {
+func TestAccResourceWindowsPlatformScript_07_AssignmentsLifecycle_MinimalToMaximal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -340,7 +340,7 @@ func TestAccWindowsPlatformScriptResource_007_AssignmentsLifecycle_MinimalToMaxi
 	})
 }
 
-func TestAccWindowsPlatformScriptResource_008_AssignmentsLifecycle_MaximalToMinimal(t *testing.T) {
+func TestAccResourceWindowsPlatformScript_08_AssignmentsLifecycle_MaximalToMinimal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,

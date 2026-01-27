@@ -55,7 +55,7 @@ func setupErrorMockEnvironment() (*mocks.Mocks, *espMocks.WindowsEnrollmentStatu
 }
 
 // Test 001: Minimal Configuration
-func TestWindowsEnrollmentStatusPageResource_001_Minimal(t *testing.T) {
+func TestUnitResourceWindowsEnrollmentStatusPage_01_Minimal(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, espMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -96,7 +96,7 @@ func TestWindowsEnrollmentStatusPageResource_001_Minimal(t *testing.T) {
 }
 
 // Test 002: Maximal Configuration
-func TestWindowsEnrollmentStatusPageResource_002_Maximal(t *testing.T) {
+func TestUnitResourceWindowsEnrollmentStatusPage_02_Maximal(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, espMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -136,7 +136,7 @@ func TestWindowsEnrollmentStatusPageResource_002_Maximal(t *testing.T) {
 }
 
 // Test 003: Configuration with Group Assignments
-func TestWindowsEnrollmentStatusPageResource_003_WithAssignments(t *testing.T) {
+func TestUnitResourceWindowsEnrollmentStatusPage_03_WithAssignments(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, espMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -177,7 +177,7 @@ func TestWindowsEnrollmentStatusPageResource_003_WithAssignments(t *testing.T) {
 }
 
 // Test 004: Error and Validation Testing
-func TestWindowsEnrollmentStatusPageResource_004_ErrorHandling(t *testing.T) {
+func TestUnitResourceWindowsEnrollmentStatusPage_04_ErrorHandling(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, espMock := setupErrorMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -201,7 +201,7 @@ func TestWindowsEnrollmentStatusPageResource_004_ErrorHandling(t *testing.T) {
 }
 
 // Test 005: Lifecycle Minimal to Maximal
-func TestWindowsEnrollmentStatusPageResource_005_Lifecycle_MinimalToMaximal(t *testing.T) {
+func TestUnitResourceWindowsEnrollmentStatusPage_05_Lifecycle_MinimalToMaximal(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, espMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -242,7 +242,7 @@ func TestWindowsEnrollmentStatusPageResource_005_Lifecycle_MinimalToMaximal(t *t
 }
 
 // Test 006: Lifecycle Maximal to Minimal
-func TestWindowsEnrollmentStatusPageResource_006_Lifecycle_MaximalToMinimal(t *testing.T) {
+func TestUnitResourceWindowsEnrollmentStatusPage_06_Lifecycle_MaximalToMinimal(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, espMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
