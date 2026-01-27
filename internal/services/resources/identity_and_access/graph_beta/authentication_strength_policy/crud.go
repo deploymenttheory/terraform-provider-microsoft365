@@ -14,6 +14,12 @@ import (
 )
 
 // Create handles the Create operation for Authentication Strength Policy resources.
+//
+// Operation: Creates a new authentication strength policy for conditional access
+// API Calls:
+//   - POST /identity/conditionalAccess/authenticationStrength/policies
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/authenticationstrengthroot-post-policies?view=graph-rest-beta
 func (r *AuthenticationStrengthPolicyResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var object AuthenticationStrengthPolicyResourceModel
 
@@ -90,6 +96,12 @@ func (r *AuthenticationStrengthPolicyResource) Create(ctx context.Context, req r
 }
 
 // Read handles the Read operation for Authentication Strength Policy resources.
+//
+// Operation: Retrieves an authentication strength policy by ID
+// API Calls:
+//   - GET /identity/conditionalAccess/authenticationStrength/policies/{authenticationStrengthPolicyId}
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/authenticationstrengthpolicy-get?view=graph-rest-beta
 func (r *AuthenticationStrengthPolicyResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var object AuthenticationStrengthPolicyResourceModel
 
@@ -141,9 +153,14 @@ func (r *AuthenticationStrengthPolicyResource) Read(ctx context.Context, req res
 }
 
 // Update handles the Update operation for Authentication Strength Policy resources.
-// The Graph API requires two separate operations for updating different parts of the resource:
-// 1. POST /policies/authenticationStrengthPolicies/{id}/updateAllowedCombinations - for allowedCombinations
-// 2. PATCH /identity/conditionalAccess/authenticationStrength/policies/{id}/combinationConfigurations/{configId} - for each configuration
+//
+// Operation: Updates an existing authentication strength policy
+// API Calls:
+//   - POST /identity/conditionalAccess/authenticationStrength/policies/{authenticationStrengthPolicyId}/updateAllowedCombinations (if allowedCombinations changed)
+//   - PATCH /identity/conditionalAccess/authenticationStrength/policies/{authenticationStrengthPolicyId}/combinationConfigurations/{authenticationCombinationConfigurationId} (for each changed configuration)
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/authenticationstrengthpolicy-updateallowedcombinations?view=graph-rest-beta
+// Note: Requires two separate operations for different parts of the resource: updateAllowedCombinations for allowed combinations, PATCH for each combination configuration
 func (r *AuthenticationStrengthPolicyResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var plan AuthenticationStrengthPolicyResourceModel
 	var state AuthenticationStrengthPolicyResourceModel
@@ -291,6 +308,12 @@ func (r *AuthenticationStrengthPolicyResource) Update(ctx context.Context, req r
 }
 
 // Delete handles the Delete operation for Authentication Strength Policy resources.
+//
+// Operation: Deletes an authentication strength policy
+// API Calls:
+//   - DELETE /identity/conditionalAccess/authenticationStrength/policies/{authenticationStrengthPolicyId}
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/authenticationstrengthroot-delete-policies?view=graph-rest-beta
 func (r *AuthenticationStrengthPolicyResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var object AuthenticationStrengthPolicyResourceModel
 

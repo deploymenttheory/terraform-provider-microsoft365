@@ -14,6 +14,12 @@ import (
 )
 
 // Create handles the Create operation for Application Category resources.
+//
+// Operation: Creates a new mobile app category for Intune
+// API Calls:
+//   - POST /deviceAppManagement/mobileAppCategories
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/intune-apps-mobileappcategory-create?view=graph-rest-beta
 func (r *ApplicationCategoryResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var object ApplicationCategoryResourceModel
 
@@ -76,6 +82,12 @@ func (r *ApplicationCategoryResource) Create(ctx context.Context, req resource.C
 }
 
 // Read handles the Read operation for Application Category resources.
+//
+// Operation: Retrieves a mobile app category by ID
+// API Calls:
+//   - GET /deviceAppManagement/mobileAppCategories/{mobileAppCategoryId}
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/intune-apps-mobileappcategory-get?view=graph-rest-beta
 func (r *ApplicationCategoryResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var object ApplicationCategoryResourceModel
 
@@ -123,6 +135,12 @@ func (r *ApplicationCategoryResource) Read(ctx context.Context, req resource.Rea
 }
 
 // Update handles the Update operation for Application Category resources.
+//
+// Operation: Updates an existing mobile app category
+// API Calls:
+//   - PATCH /deviceAppManagement/mobileAppCategories/{mobileAppCategoryId}
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/intune-apps-mobileappcategory-update?view=graph-rest-beta
 func (r *ApplicationCategoryResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var plan ApplicationCategoryResourceModel
 	var state ApplicationCategoryResourceModel
@@ -186,6 +204,12 @@ func (r *ApplicationCategoryResource) Update(ctx context.Context, req resource.U
 }
 
 // Delete handles the Delete operation for Application Category resources.
+//
+// Operation: Deletes a mobile app category
+// API Calls:
+//   - DELETE /deviceAppManagement/mobileAppCategories/{mobileAppCategoryId}
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/intune-apps-mobileappcategory-delete?view=graph-rest-beta
 func (r *ApplicationCategoryResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var object ApplicationCategoryResourceModel
 

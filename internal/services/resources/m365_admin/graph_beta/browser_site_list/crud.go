@@ -213,7 +213,7 @@ func (r *BrowserSiteListResource) Update(ctx context.Context, req resource.Updat
 // API Calls:
 //   - DELETE /admin/edge/internetExplorerMode/siteLists/{browserSiteListId}
 //
-// Reference: https://learn.microsoft.com/en-us/graph/api/browsersitelist-delete?view=graph-rest-beta
+// Reference: https://learn.microsoft.com/en-us/graph/api/internetexplorermode-delete-sitelists?view=graph-rest-beta
 func (r *BrowserSiteListResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var object BrowserSiteListResourceModel
 

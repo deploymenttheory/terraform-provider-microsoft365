@@ -14,10 +14,16 @@ import (
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
-// Create handles the Create operation.
-// Only 1 of this resource type can exist per tenant. The behavior depends on the overwrite_existing_policy flag:
-// - If overwrite_existing_policy = true: Finds the existing tenant policy and overwrites it (PATCH)
-// - If overwrite_existing_policy = false (default): Attempts to create a new policy (POST)
+// Create handles the Create operation for Group Lifecycle Expiration Policy resources.
+//
+// Operation: Creates or overwrites a group lifecycle policy
+// API Calls:
+//   - POST /groupLifecyclePolicies (if overwrite_existing_policy is false or not set)
+//   - GET /groupLifecyclePolicies (if overwrite_existing_policy is true, to find existing policy)
+//   - PATCH /groupLifecyclePolicies/{groupLifecyclePolicyId} (if overwrite_existing_policy is true)
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/grouplifecyclepolicy-post-grouplifecyclepolicies?view=graph-rest-beta
+// Note: Only one lifecycle policy can exist per tenant; overwrite_existing_policy flag determines whether to create new (POST) or overwrite existing (GET + PATCH)
 func (r *GroupLifecycleExpirationPolicyResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var object GroupLifecycleExpirationPolicyResourceModel
 	var policyObject graphmodels.GroupLifecyclePolicyable
@@ -122,7 +128,13 @@ func (r *GroupLifecycleExpirationPolicyResource) Create(ctx context.Context, req
 	tflog.Debug(ctx, fmt.Sprintf("Finished Create Method: %s", ResourceName))
 }
 
-// Read handles the Read operation.
+// Read handles the Read operation for Group Lifecycle Expiration Policy resources.
+//
+// Operation: Retrieves a group lifecycle policy by ID
+// API Calls:
+//   - GET /groupLifecyclePolicies/{groupLifecyclePolicyId}
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/grouplifecyclepolicy-get?view=graph-rest-beta
 func (r *GroupLifecycleExpirationPolicyResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var object GroupLifecycleExpirationPolicyResourceModel
 
@@ -165,7 +177,13 @@ func (r *GroupLifecycleExpirationPolicyResource) Read(ctx context.Context, req r
 	tflog.Debug(ctx, fmt.Sprintf("Finished Read Method: %s", ResourceName))
 }
 
-// Update handles the Update operation.
+// Update handles the Update operation for Group Lifecycle Expiration Policy resources.
+//
+// Operation: Updates an existing group lifecycle policy
+// API Calls:
+//   - PATCH /groupLifecyclePolicies/{groupLifecyclePolicyId}
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/grouplifecyclepolicy-update?view=graph-rest-beta
 func (r *GroupLifecycleExpirationPolicyResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var plan GroupLifecycleExpirationPolicyResourceModel
 	var state GroupLifecycleExpirationPolicyResourceModel
@@ -226,7 +244,13 @@ func (r *GroupLifecycleExpirationPolicyResource) Update(ctx context.Context, req
 	tflog.Debug(ctx, fmt.Sprintf("Finished updating %s with ID: %s", ResourceName, state.ID.ValueString()))
 }
 
-// Delete handles the Delete operation.
+// Delete handles the Delete operation for Group Lifecycle Expiration Policy resources.
+//
+// Operation: Deletes a group lifecycle policy
+// API Calls:
+//   - DELETE /groupLifecyclePolicies/{groupLifecyclePolicyId}
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/grouplifecyclepolicy-delete?view=graph-rest-beta
 func (r *GroupLifecycleExpirationPolicyResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var object GroupLifecycleExpirationPolicyResourceModel
 

@@ -14,7 +14,13 @@ import (
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
-// Create handles the Create operation.
+// Create handles the Create operation for Group Member Assignment resources.
+//
+// Operation: Adds a member to a group
+// API Calls:
+//   - POST /groups/{groupId}/members/$ref
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/group-post-members?view=graph-rest-beta
 func (r *GroupMemberAssignmentResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var object GroupMemberAssignmentResourceModel
 
@@ -93,7 +99,13 @@ func (r *GroupMemberAssignmentResource) Create(ctx context.Context, req resource
 	tflog.Debug(ctx, fmt.Sprintf("Finished Create Method: %s", ResourceName))
 }
 
-// Read handles the Read operation.
+// Read handles the Read operation for Group Member Assignment resources.
+//
+// Operation: Retrieves group members to verify membership exists
+// API Calls:
+//   - GET /groups/{groupId}/members
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/group-list-members?view=graph-rest-beta
 func (r *GroupMemberAssignmentResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var object GroupMemberAssignmentResourceModel
 
@@ -148,7 +160,15 @@ func (r *GroupMemberAssignmentResource) Read(ctx context.Context, req resource.R
 	tflog.Debug(ctx, fmt.Sprintf("Finished Read Method: %s", ResourceName))
 }
 
-// Update handles the Update operation.
+// Update handles the Update operation for Group Member Assignment resources.
+//
+// Operation: Updates group membership (removes old and creates new if group or member changes)
+// API Calls:
+//   - DELETE /groups/{groupId}/members/{directoryObjectId}/$ref (if group_id or member_id changes)
+//   - POST /groups/{groupId}/members/$ref (if group_id or member_id changes)
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/group-delete-members?view=graph-rest-beta
+// Note: Group member assignments are relationships without their own IDs; changes require deletion and recreation
 func (r *GroupMemberAssignmentResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var plan, state GroupMemberAssignmentResourceModel
 
@@ -235,7 +255,13 @@ func (r *GroupMemberAssignmentResource) Update(ctx context.Context, req resource
 	tflog.Debug(ctx, fmt.Sprintf("Finished updating %s with ID: %s", ResourceName, state.ID.ValueString()))
 }
 
-// Delete handles the Delete operation.
+// Delete handles the Delete operation for Group Member Assignment resources.
+//
+// Operation: Removes a member from a group
+// API Calls:
+//   - DELETE /groups/{groupId}/members/{directoryObjectId}/$ref
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/group-delete-members?view=graph-rest-beta
 func (r *GroupMemberAssignmentResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var object GroupMemberAssignmentResourceModel
 

@@ -13,7 +13,13 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
-// Create handles the Create operation for Named Location resources.
+// Create handles the Create operation for country/ip basednamed location resources.
+//
+// Operation: Creates a new named location (IP or country-based)
+// API Calls:
+//   - POST /identity/conditionalAccess/namedLocations
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/conditionalaccessroot-post-namedlocations?view=graph-rest-beta
 func (r *NamedLocationResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var object NamedLocationResourceModel
 
@@ -87,7 +93,13 @@ func (r *NamedLocationResource) Create(ctx context.Context, req resource.CreateR
 	tflog.Debug(ctx, fmt.Sprintf("Finished Create Method: %s", ResourceName))
 }
 
-// Read handles the Read operation for Named Location resources.
+// Read handles the Read operation for country/ip based named location resources.
+//
+// Operation: Retrieves a named location by ID
+// API Calls:
+//   - GET /identity/conditionalAccess/namedLocations/{id}
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/namedlocation-get?view=graph-rest-beta
 func (r *NamedLocationResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var object NamedLocationResourceModel
 
@@ -137,7 +149,13 @@ func (r *NamedLocationResource) Read(ctx context.Context, req resource.ReadReque
 	tflog.Debug(ctx, fmt.Sprintf("Finished Read Method: %s", ResourceName))
 }
 
-// Update handles the Update operation for Named Location resources.
+// Update handles the Update operation for country/ip based named location resources.
+//
+// Operation: Updates an existing named location
+// API Calls:
+//   - PATCH /identity/conditionalAccess/namedLocations/{id}
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/namedlocation-update?view=graph-rest-beta
 func (r *NamedLocationResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var plan NamedLocationResourceModel
 	var state NamedLocationResourceModel
@@ -205,39 +223,16 @@ func (r *NamedLocationResource) Update(ctx context.Context, req resource.UpdateR
 	tflog.Debug(ctx, fmt.Sprintf("Finished updating %s with ID: %s", ResourceName, state.ID.ValueString()))
 }
 
-// Delete handles the Delete operation for Named Location resources.
+// Delete handles the Delete operation for country/ip based named location resources.
 //
-// This function implements a specialized deletion workflow required by Microsoft Graph's
-// Named Location API constraints. The complexity exists because:
+// Operation: Deletes a named location (IP or country-based)
+// API Calls:
+//   - GET /identity/conditionalAccess/namedLocations/{id} (for trusted IP locations)
+//   - PATCH /identity/conditionalAccess/namedLocations/{id} (for trusted IP locations to set isTrusted=false)
+//   - DELETE /identity/conditionalAccess/namedLocations/{id}
 //
-// 1. TRUSTED IP NAMED LOCATIONS CANNOT BE DELETED DIRECTLY
-//   - Microsoft Graph API will reject DELETE requests for IP Named Locations with isTrusted=true
-//   - This is a security feature to prevent accidental deletion of trusted network locations
-//   - The API requires isTrusted to be explicitly set to false before deletion is allowed
-//
-// 2. EVENTUAL CONSISTENCY CHALLENGES
-//
-//   - Microsoft Graph API exhibits eventual consistency behavior
-//
-//   - A PATCH request to set isTrusted=false may not immediately take effect
-//
-//   - Subsequent GET requests may still show isTrusted=true for a period of time
-//
-//   - Attempting DELETE before the change propagates will fail
-//
-//     3. DELETION WORKFLOW FOR TRUSTED IP LOCATIONS:
-//     Step 1: GET resource and check if it's an ipNamedLocation with isTrusted=true
-//     Step 2: If conditions met, PATCH to set isTrusted=false
-//     Step 3: Poll with GET requests until isTrusted=false is confirmed (eventual consistency)
-//     Step 4: Execute DELETE operation
-//     Step 5: Remove from Terraform state
-//
-// 4. DELETION WORKFLOW FOR OTHER NAMED LOCATIONS:
-//   - Country Named Locations and non-trusted IP locations can be deleted directly
-//   - Skip steps 2-3 and proceed directly to DELETE operation
-//
-// This approach ensures reliable deletion across all Named Location types while handling
-// the API's security constraints and eventual consistency behavior.
+// Reference: https://learn.microsoft.com/en-us/graph/api/namedlocation-delete?view=graph-rest-beta
+// Note: Trusted IP locations require a two-step deletion: first PATCH to set isTrusted=false with eventual consistency polling, then DELETE
 func (r *NamedLocationResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var state NamedLocationResourceModel
 

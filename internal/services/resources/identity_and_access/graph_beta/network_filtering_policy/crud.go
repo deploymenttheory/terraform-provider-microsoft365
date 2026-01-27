@@ -16,16 +16,12 @@ import (
 
 // Create handles the Create operation for Filtering Policy resources.
 //
-//   - Retrieves the planned configuration from the create request
-//   - Constructs the resource request body from the plan
-//   - Sends POST request to create the filtering policy
-//   - Captures the new resource ID from the response
-//   - Sets initial state with planned values
-//   - Calls Read operation to fetch the latest state from the API
-//   - Updates the final state with the fresh data from the API
+// Operation: Creates a new network filtering policy for Global Secure Access
+// API Calls:
+//   - POST /networkAccess/filteringPolicies
 //
-// The function ensures the filtering policy is created with all specified
-// properties properly configured.
+// Reference: https://learn.microsoft.com/en-us/graph/api/networkaccess-filteringprofile-post-policies?view=graph-rest-beta
+// Note: Requires specific Microsoft Entra licensing for Global Secure Access
 func (r *NetworkFilteringPolicyResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var object NetworkFilteringPolicyResourceModel
 
@@ -102,13 +98,11 @@ func (r *NetworkFilteringPolicyResource) Create(ctx context.Context, req resourc
 
 // Read handles the Read operation for Filtering Policy resources.
 //
-//   - Retrieves the current state from the read request
-//   - Gets the filtering policy details from the API
-//   - Maps the policy details to Terraform state
+// Operation: Retrieves a network filtering policy by ID
+// API Calls:
+//   - GET /networkAccess/filteringPolicies/{filteringPolicyId}
 //
-// The function ensures that all properties are properly read and mapped
-// into the Terraform state, providing a complete view of the resource's
-// current configuration on the server.
+// Reference: https://learn.microsoft.com/en-us/graph/api/networkaccess-filteringpolicy-get?view=graph-rest-beta
 func (r *NetworkFilteringPolicyResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var object NetworkFilteringPolicyResourceModel
 
@@ -157,15 +151,11 @@ func (r *NetworkFilteringPolicyResource) Read(ctx context.Context, req resource.
 
 // Update handles the Update operation for Filtering Policy resources.
 //
-//   - Retrieves the planned changes from the update request
-//   - Constructs the resource request body from the plan
-//   - Sends PATCH request to update the filtering policy
-//   - Sets initial state with planned values
-//   - Calls Read operation to fetch the latest state from the API
-//   - Updates the final state with the fresh data from the API
+// Operation: Updates an existing network filtering policy
+// API Calls:
+//   - PATCH /networkAccess/filteringPolicies/{filteringPolicyId}
 //
-// The function ensures that the policy is updated with the new configuration
-// and the final state reflects the actual state of the resource on the server.
+// Reference: https://learn.microsoft.com/en-us/graph/api/networkaccess-filteringpolicy-update?view=graph-rest-beta
 func (r *NetworkFilteringPolicyResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var plan NetworkFilteringPolicyResourceModel
 	var state NetworkFilteringPolicyResourceModel
@@ -242,13 +232,11 @@ func (r *NetworkFilteringPolicyResource) Update(ctx context.Context, req resourc
 
 // Delete handles the Delete operation for Filtering Policy resources.
 //
-//   - Retrieves the current state from the delete request
-//   - Validates the state data and timeout configuration
-//   - Sends DELETE request to remove the filtering policy from the API
-//   - Cleans up by removing the resource from Terraform state
+// Operation: Deletes a network filtering policy
+// API Calls:
+//   - DELETE /networkAccess/filteringPolicies/{filteringPolicyId}
 //
-// The function ensures that the policy is completely removed from the
-// Microsoft Graph API and cleans up the Terraform state accordingly.
+// Reference: https://learn.microsoft.com/en-us/graph/api/networkaccess-filteringprofile-delete-policies?view=graph-rest-beta
 func (r *NetworkFilteringPolicyResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var object NetworkFilteringPolicyResourceModel
 

@@ -14,6 +14,13 @@ import (
 )
 
 // Create handles the Create operation for Custom Security Attribute Allowed Value resources.
+//
+// Operation: Creates a new allowed value for a custom security attribute definition
+// API Calls:
+//   - POST /directory/customSecurityAttributeDefinitions/{customSecurityAttributeDefinitionId}/allowedValues
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/customsecurityattributedefinition-post-allowedvalues?view=graph-rest-beta
+// Note: Each custom security attribute definition has a limit of 100 allowed values
 func (r *CustomSecurityAttributeAllowedValueResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var object CustomSecurityAttributeAllowedValueResourceModel
 
@@ -87,6 +94,12 @@ func (r *CustomSecurityAttributeAllowedValueResource) Create(ctx context.Context
 }
 
 // Read handles the Read operation for Custom Security Attribute Allowed Value resources.
+//
+// Operation: Retrieves an allowed value for a custom security attribute definition by ID
+// API Calls:
+//   - GET /directory/customSecurityAttributeDefinitions/{customSecurityAttributeDefinitionId}/allowedValues/{allowedValueId}
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/allowedvalue-get?view=graph-rest-beta
 func (r *CustomSecurityAttributeAllowedValueResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var object CustomSecurityAttributeAllowedValueResourceModel
 
@@ -136,6 +149,12 @@ func (r *CustomSecurityAttributeAllowedValueResource) Read(ctx context.Context, 
 }
 
 // Update handles the Update operation for Custom Security Attribute Allowed Value resources.
+//
+// Operation: Updates an existing allowed value for a custom security attribute definition
+// API Calls:
+//   - PATCH /directory/customSecurityAttributeDefinitions/{customSecurityAttributeDefinitionId}/allowedValues/{allowedValueId}
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/allowedvalue-update?view=graph-rest-beta
 func (r *CustomSecurityAttributeAllowedValueResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var plan CustomSecurityAttributeAllowedValueResourceModel
 	var state CustomSecurityAttributeAllowedValueResourceModel
@@ -201,9 +220,13 @@ func (r *CustomSecurityAttributeAllowedValueResource) Update(ctx context.Context
 }
 
 // Delete handles the Delete operation for Custom Security Attribute Allowed Value resources.
-// Note: According to Microsoft Graph API documentation, allowed values cannot be deleted.
-// Instead, this function deactivates the allowed value by setting its status to false and then removes it from Terraform state.
-// https://learn.microsoft.com/en-us/graph/api/resources/allowedvalue?view=graph-rest-beta
+//
+// Operation: Deactivates an allowed value (cannot be deleted, only deactivated)
+// API Calls:
+//   - PATCH /directory/customSecurityAttributeDefinitions/{customSecurityAttributeDefinitionId}/allowedValues/{allowedValueId} (to set isActive=false)
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/resources/allowedvalue?view=graph-rest-beta
+// Note: Allowed values cannot be deleted; this operation deactivates by setting isActive=false, then removes from Terraform state
 func (r *CustomSecurityAttributeAllowedValueResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var object CustomSecurityAttributeAllowedValueResourceModel
 

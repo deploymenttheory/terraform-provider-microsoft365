@@ -13,7 +13,13 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
-// Create handles the Create operation for iOS Mobile App Configuration resources.
+// Create handles the Create operation for Android Managed Device App Configuration Policy resources.
+//
+// Operation: Creates a new managed device app configuration policy for Android
+// API Calls:
+//   - POST /deviceAppManagement/mobileAppConfigurations
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/intune-apps-manageddevicemobileappconfiguration-create?view=graph-rest-beta
 func (r *AndroidManagedDeviceAppConfigurationPolicyResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var object AndroidManagedDeviceAppConfigurationPolicyResourceModel
 
@@ -75,7 +81,13 @@ func (r *AndroidManagedDeviceAppConfigurationPolicyResource) Create(ctx context.
 	tflog.Debug(ctx, fmt.Sprintf("Finished Create Method: %s", ResourceName))
 }
 
-// Read handles the Read operation for iOS Mobile App Configuration resources.
+// Read handles the Read operation for Android Managed Device App Configuration Policy resources.
+//
+// Operation: Retrieves a managed device app configuration policy for Android by ID
+// API Calls:
+//   - GET /deviceAppManagement/mobileAppConfigurations/{managedDeviceMobileAppConfigurationId}
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/intune-apps-manageddevicemobileappconfiguration-get?view=graph-rest-beta
 func (r *AndroidManagedDeviceAppConfigurationPolicyResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var object AndroidManagedDeviceAppConfigurationPolicyResourceModel
 
@@ -122,7 +134,13 @@ func (r *AndroidManagedDeviceAppConfigurationPolicyResource) Read(ctx context.Co
 	tflog.Debug(ctx, fmt.Sprintf("Finished Read Method: %s", ResourceName))
 }
 
-// Update handles the Update operation for iOS Mobile App Configuration resources.
+// Update handles the Update operation for Android Managed Device App Configuration Policy resources.
+//
+// Operation: Updates an existing managed device app configuration policy for Android
+// API Calls:
+//   - PATCH /deviceAppManagement/mobileAppConfigurations/{managedDeviceMobileAppConfigurationId}
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/intune-apps-manageddevicemobileappconfiguration-update?view=graph-rest-beta
 func (r *AndroidManagedDeviceAppConfigurationPolicyResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var plan AndroidManagedDeviceAppConfigurationPolicyResourceModel
 	var state AndroidManagedDeviceAppConfigurationPolicyResourceModel
@@ -180,7 +198,13 @@ func (r *AndroidManagedDeviceAppConfigurationPolicyResource) Update(ctx context.
 	tflog.Debug(ctx, fmt.Sprintf("Finished updating %s with ID: %s", ResourceName, state.ID.ValueString()))
 }
 
-// Delete handles the Delete operation for iOS Mobile App Configuration resources.
+// Delete handles the Delete operation for Android Managed Device App Configuration Policy resources.
+//
+// Operation: Deletes a managed device app configuration policy for Android
+// API Calls:
+//   - DELETE /deviceAppManagement/mobileAppConfigurations/{managedDeviceMobileAppConfigurationId}
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/intune-apps-manageddevicemobileappconfiguration-delete?view=graph-rest-beta
 func (r *AndroidManagedDeviceAppConfigurationPolicyResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var object AndroidManagedDeviceAppConfigurationPolicyResourceModel
 
