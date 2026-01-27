@@ -146,16 +146,6 @@ output "is_balanced" {
   value       = abs(length(data.microsoft365_utility_guid_list_sharder.test.shards["shard_0"]) - length(data.microsoft365_utility_guid_list_sharder.test.shards["shard_1"]))
 }
 
-output "shard_0_first_guid" {
-  description = "First GUID from shard_0 (for validation)"
-  value       = length(data.microsoft365_utility_guid_list_sharder.test.shards["shard_0"]) > 0 ? data.microsoft365_utility_guid_list_sharder.test.shards["shard_0"][0] : ""
-}
-
-output "shard_1_first_guid" {
-  description = "First GUID from shard_1 (for validation)"
-  value       = length(data.microsoft365_utility_guid_list_sharder.test.shards["shard_1"]) > 0 ? data.microsoft365_utility_guid_list_sharder.test.shards["shard_1"][0] : ""
-}
-
 # Comprehensive GUID validation for all shards
 output "shard_0_all_guids" {
   description = "All GUIDs in shard_0 are valid"

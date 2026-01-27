@@ -93,7 +93,7 @@ func TestUnitResourceManagedDeviceCleanupRule_02_Platforms_Create(t *testing.T) 
 	}
 }
 
-// Duplicate platform should fail (server returns 500)
+// Duplicate platform should fail (validator prevents duplicate platforms)
 func TestUnitResourceManagedDeviceCleanupRule_03_DuplicatePlatform_Error(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, cleanupMock := setupMockEnvironment()
@@ -101,13 +101,14 @@ func TestUnitResourceManagedDeviceCleanupRule_03_DuplicatePlatform_Error(t *test
 	defer cleanupMock.CleanupMockState()
 
 	configFirst := testConfigFromFile("tests/terraform/unit/platform_all.tf")
-	configDuplicate := testConfigFromFile("tests/terraform/unit/platform_all.tf")
+	configSecond := testConfigFromFile("tests/terraform/unit/platform_all_duplicate.tf")
+	configBoth := configFirst + "\n" + configSecond
 
 	resource.UnitTest(t, resource.TestCase{
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{Config: configFirst},
-			{Config: configDuplicate, ExpectError: regexp.MustCompile("A cleanup rule already exists for the specified platform type")},
+			{Config: configBoth, ExpectError: regexp.MustCompile(`only\s+one of this resource can exist at once in this tenant`)},
 		},
 	})
 }

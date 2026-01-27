@@ -4,9 +4,7 @@
     {
       "id": "assignment-1",
       "target": {
-        "@odata.type": "#microsoft.graph.allDevicesAssignmentTarget",
-        "deviceAndAppManagementAssignmentFilterId": "00000000-0000-0000-0000-000000000004",
-        "deviceAndAppManagementAssignmentFilterType": "include"
+        "@odata.type": "#microsoft.graph.allDevicesAssignmentTarget"
       },
       "source": "direct",
       "sourceId": "11111111-1111-1111-1111-111111111111"
@@ -14,9 +12,7 @@
     {
       "id": "assignment-2", 
       "target": {
-        "@odata.type": "#microsoft.graph.allLicensedUsersAssignmentTarget",
-        "deviceAndAppManagementAssignmentFilterId": "00000000-0000-0000-0000-000000000005",
-        "deviceAndAppManagementAssignmentFilterType": "exclude"
+        "@odata.type": "#microsoft.graph.allLicensedUsersAssignmentTarget"
       },
       "source": "direct",
       "sourceId": "11111111-1111-1111-1111-111111111111"
@@ -25,9 +21,7 @@
       "id": "assignment-3",
       "target": {
         "@odata.type": "#microsoft.graph.groupAssignmentTarget",
-        "groupId": "00000000-0000-0000-0000-000000000006",
-        "deviceAndAppManagementAssignmentFilterId": "00000000-0000-0000-0000-000000000007",
-        "deviceAndAppManagementAssignmentFilterType": "include"
+        "groupId": "00000000-0000-0000-0000-000000000006"
       },
       "source": "direct",
       "sourceId": "11111111-1111-1111-1111-111111111111"
@@ -36,9 +30,7 @@
       "id": "assignment-4",
       "target": {
         "@odata.type": "#microsoft.graph.groupAssignmentTarget",
-        "groupId": "00000000-0000-0000-0000-000000000008",
-        "deviceAndAppManagementAssignmentFilterId": "00000000-0000-0000-0000-000000000009",
-        "deviceAndAppManagementAssignmentFilterType": "exclude"
+        "groupId": "00000000-0000-0000-0000-000000000008"
       },
       "source": "direct",
       "sourceId": "11111111-1111-1111-1111-111111111111"

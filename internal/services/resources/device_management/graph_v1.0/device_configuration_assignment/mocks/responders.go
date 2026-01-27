@@ -7,7 +7,6 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks/factories"
 	"github.com/jarcoal/httpmock"
 )
@@ -162,7 +161,7 @@ func (m *DeviceConfigurationAssignmentMock) RegisterMocks() {
 		})
 
 	// DELETE Assignment
-	httpmock.RegisterRegexpResponder(constants.TfOperationDelete,
+	httpmock.RegisterRegexpResponder("DELETE",
 		regexp.MustCompile(`https://graph\.microsoft\.com/v1\.0/deviceManagement/deviceConfigurations/([^/]+)/assignments/([^/]+)`),
 		func(req *http.Request) (*http.Response, error) {
 			// Extract IDs from URL
@@ -208,7 +207,7 @@ func (m *DeviceConfigurationAssignmentMock) RegisterErrorMocks() {
 		factories.ErrorResponse(403, "Forbidden", "Access denied"))
 
 	// DELETE Assignment - error
-	httpmock.RegisterRegexpResponder(constants.TfOperationDelete,
+	httpmock.RegisterRegexpResponder("DELETE",
 		regexp.MustCompile(`https://graph\.microsoft\.com/v1\.0/deviceManagement/deviceConfigurations/([^/]+)/assignments/([^/]+)`),
 		factories.ErrorResponse(403, "Forbidden", "Access denied"))
 }
