@@ -16,7 +16,13 @@ import (
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
-// Create handles the creation workflow for a macOS VPP app resource in Intune.
+// Create handles the Create operation for macOS VPP App resources.
+//
+// Operation: Creates a new macOS Volume Purchase Program (VPP) application
+// API Calls:
+//   - POST /deviceAppManagement/mobileApps
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/intune-apps-macosvppapp-create?view=graph-rest-beta
 func (r *MacOSVppAppResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var object MacOSVppAppResourceModel
 
@@ -94,7 +100,13 @@ func (r *MacOSVppAppResource) Create(ctx context.Context, req resource.CreateReq
 	tflog.Debug(ctx, fmt.Sprintf("Finished Create Method: %s", ResourceName))
 }
 
-// Read retrieves the current state of a macOS VPP app resource from Intune.
+// Read handles the Read operation for macOS VPP App resources.
+//
+// Operation: Retrieves a macOS Volume Purchase Program (VPP) application by ID
+// API Calls:
+//   - GET /deviceAppManagement/mobileApps/{mobileAppId}
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/intune-apps-macosvppapp-get?view=graph-rest-beta
 func (r *MacOSVppAppResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var object MacOSVppAppResourceModel
 
@@ -153,7 +165,13 @@ func (r *MacOSVppAppResource) Read(ctx context.Context, req resource.ReadRequest
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 }
 
-// Update modifies an existing macOS VPP app resource in Intune.
+// Update handles the Update operation for macOS VPP App resources.
+//
+// Operation: Updates an existing macOS Volume Purchase Program (VPP) application
+// API Calls:
+//   - PATCH /deviceAppManagement/mobileApps/{mobileAppId}
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/intune-apps-macosvppapp-update?view=graph-rest-beta
 func (r *MacOSVppAppResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var plan, state MacOSVppAppResourceModel
 
@@ -225,7 +243,13 @@ func (r *MacOSVppAppResource) Update(ctx context.Context, req resource.UpdateReq
 	tflog.Debug(ctx, fmt.Sprintf("Finished updating %s with ID: %s", ResourceName, state.ID.ValueString()))
 }
 
-// Delete removes a macOS VPP app resource from Intune.
+// Delete handles the Delete operation for macOS VPP App resources.
+//
+// Operation: Deletes a macOS Volume Purchase Program (VPP) application
+// API Calls:
+//   - DELETE /deviceAppManagement/mobileApps/{mobileAppId}
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/intune-apps-macosvppapp-delete?view=graph-rest-beta
 func (r *MacOSVppAppResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var object MacOSVppAppResourceModel
 

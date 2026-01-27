@@ -16,7 +16,13 @@ import (
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
-// Create handles the Create operation.
+// Create handles the Create operation for Office Suite App resources.
+//
+// Operation: Creates a new Microsoft 365 (Office Suite) application
+// API Calls:
+//   - POST /deviceAppManagement/mobileApps
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/intune-apps-mobileapp-create?view=graph-rest-beta
 func (r *OfficeSuiteAppResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var object OfficeSuiteAppResourceModel
 
@@ -95,7 +101,13 @@ func (r *OfficeSuiteAppResource) Create(ctx context.Context, req resource.Create
 	tflog.Debug(ctx, fmt.Sprintf("Finished Create method for %s with ID: %s", ResourceName, object.ID.ValueString()))
 }
 
-// Read handles the Read operation.
+// Read handles the Read operation for Office Suite App resources.
+//
+// Operation: Retrieves a Microsoft 365 (Office Suite) application by ID
+// API Calls:
+//   - GET /deviceAppManagement/mobileApps/{mobileAppId}
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/intune-apps-mobileapp-get?view=graph-rest-beta
 func (r *OfficeSuiteAppResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var object OfficeSuiteAppResourceModel
 	tflog.Debug(ctx, fmt.Sprintf("Starting Read method for: %s", ResourceName))
@@ -158,7 +170,13 @@ func (r *OfficeSuiteAppResource) Read(ctx context.Context, req resource.ReadRequ
 	tflog.Debug(ctx, fmt.Sprintf("Finished Read Method: %s", ResourceName))
 }
 
-// Update handles the Update operation.
+// Update handles the Update operation for Office Suite App resources.
+//
+// Operation: Updates an existing Microsoft 365 (Office Suite) application
+// API Calls:
+//   - PATCH /deviceAppManagement/mobileApps/{mobileAppId}
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/intune-apps-mobileapp-update?view=graph-rest-beta
 func (r *OfficeSuiteAppResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var plan, state OfficeSuiteAppResourceModel
 
@@ -234,7 +252,13 @@ func (r *OfficeSuiteAppResource) Update(ctx context.Context, req resource.Update
 	tflog.Debug(ctx, fmt.Sprintf("Finished Update method for %s with ID: %s", ResourceName, plan.ID.ValueString()))
 }
 
-// Delete handles the Delete operation.
+// Delete handles the Delete operation for Office Suite App resources.
+//
+// Operation: Deletes a Microsoft 365 (Office Suite) application
+// API Calls:
+//   - DELETE /deviceAppManagement/mobileApps/{mobileAppId}
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/intune-apps-mobileapp-delete?view=graph-rest-beta
 func (r *OfficeSuiteAppResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var object OfficeSuiteAppResourceModel
 

@@ -20,7 +20,7 @@ func loadUnitTestTerraform(filename string) string {
 	return config
 }
 
-func TestPauseConfigurationRefreshAction_Basic(t *testing.T) {
+func TestUnitActionPauseConfigurationRefreshManagedDevice_01_Basic(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -44,7 +44,7 @@ func TestPauseConfigurationRefreshAction_Basic(t *testing.T) {
 	})
 }
 
-func TestPauseConfigurationRefreshAction_Maximal(t *testing.T) {
+func TestUnitActionPauseConfigurationRefreshManagedDevice_02_Maximal(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -68,7 +68,7 @@ func TestPauseConfigurationRefreshAction_Maximal(t *testing.T) {
 	})
 }
 
-func TestPauseConfigurationRefreshAction_ComanagedOnly(t *testing.T) {
+func TestUnitActionPauseConfigurationRefreshManagedDevice_03_ComanagedOnly(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -103,7 +103,7 @@ action "microsoft365_graph_beta_device_management_managed_device_pause_configura
 	})
 }
 
-func TestPauseConfigurationRefreshAction_PartialFailures(t *testing.T) {
+func TestUnitActionPauseConfigurationRefreshManagedDevice_04_PartialFailures(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -139,7 +139,7 @@ action "microsoft365_graph_beta_device_management_managed_device_pause_configura
 	})
 }
 
-func TestPauseConfigurationRefreshAction_ValidationDisabled(t *testing.T) {
+func TestUnitActionPauseConfigurationRefreshManagedDevice_05_ValidationDisabled(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -175,7 +175,7 @@ action "microsoft365_graph_beta_device_management_managed_device_pause_configura
 	})
 }
 
-func TestPauseConfigurationRefreshAction_ValidationEnabled(t *testing.T) {
+func TestUnitActionPauseConfigurationRefreshManagedDevice_06_ValidationEnabled(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -211,7 +211,7 @@ action "microsoft365_graph_beta_device_management_managed_device_pause_configura
 	})
 }
 
-func TestPauseConfigurationRefreshAction_InvalidDeviceID(t *testing.T) {
+func TestUnitActionPauseConfigurationRefreshManagedDevice_07_InvalidDeviceID(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -247,7 +247,7 @@ action "microsoft365_graph_beta_device_management_managed_device_pause_configura
 	})
 }
 
-func TestPauseConfigurationRefreshAction_InvalidPauseTime(t *testing.T) {
+func TestUnitActionPauseConfigurationRefreshManagedDevice_08_InvalidPauseTime(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -283,7 +283,7 @@ action "microsoft365_graph_beta_device_management_managed_device_pause_configura
 	})
 }
 
-func TestPauseConfigurationRefreshAction_NoDevices(t *testing.T) {
+func TestUnitActionPauseConfigurationRefreshManagedDevice_09_NoDevices(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -312,7 +312,7 @@ action "microsoft365_graph_beta_device_management_managed_device_pause_configura
 	})
 }
 
-func TestPauseConfigurationRefreshAction_MultiplePauseTimes(t *testing.T) {
+func TestUnitActionPauseConfigurationRefreshManagedDevice_10_MultiplePauseTimes(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()

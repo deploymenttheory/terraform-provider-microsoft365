@@ -19,7 +19,7 @@ import (
 // API Calls:
 //   - POST /deviceAppManagement/androidManagedAppProtections/{androidManagedAppProtectionId}/apps
 //
-// Reference: https://learn.microsoft.com/en-us/graph/api/intune-mam-androidmanagedappprotection-post-apps?view=graph-rest-beta
+// Reference: https://learn.microsoft.com/en-us/graph/api/intune-mam-managedmobileapp-create?view=graph-rest-beta
 func (r *AndroidManagedMobileAppResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var object AndroidManagedMobileAppResourceModel
 
@@ -215,7 +215,7 @@ func (r *AndroidManagedMobileAppResource) Update(ctx context.Context, req resour
 // API Calls:
 //   - DELETE /deviceAppManagement/androidManagedAppProtections/{androidManagedAppProtectionId}/apps/{managedMobileAppId}
 //
-// Reference: https://learn.microsoft.com/en-us/graph/api/intune-mam-androidmanagedappprotection-delete-apps?view=graph-rest-beta
+// Reference: https://learn.microsoft.com/en-us/graph/api/intune-mam-managedmobileapp-delete?view=graph-rest-beta
 func (r *AndroidManagedMobileAppResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var object AndroidManagedMobileAppResourceModel
 

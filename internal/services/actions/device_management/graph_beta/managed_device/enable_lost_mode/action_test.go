@@ -20,7 +20,7 @@ func loadUnitTestTerraform(filename string) string {
 	return config
 }
 
-func TestEnableLostModeManagedDeviceAction_Basic(t *testing.T) {
+func TestUnitActionEnableLostModeManagedDevice_01_Basic(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -44,7 +44,7 @@ func TestEnableLostModeManagedDeviceAction_Basic(t *testing.T) {
 	})
 }
 
-func TestEnableLostModeManagedDeviceAction_Maximal(t *testing.T) {
+func TestUnitActionEnableLostModeManagedDevice_02_Maximal(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -68,7 +68,7 @@ func TestEnableLostModeManagedDeviceAction_Maximal(t *testing.T) {
 	})
 }
 
-func TestEnableLostModeManagedDeviceAction_PartialFailures(t *testing.T) {
+func TestUnitActionEnableLostModeManagedDevice_03_PartialFailures(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -105,7 +105,7 @@ action "microsoft365_graph_beta_device_management_managed_device_enable_lost_mod
 	})
 }
 
-func TestEnableLostModeManagedDeviceAction_ValidationDisabled(t *testing.T) {
+func TestUnitActionEnableLostModeManagedDevice_04_ValidationDisabled(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -142,7 +142,7 @@ action "microsoft365_graph_beta_device_management_managed_device_enable_lost_mod
 	})
 }
 
-func TestEnableLostModeManagedDeviceAction_CustomTimeout(t *testing.T) {
+func TestUnitActionEnableLostModeManagedDevice_05_CustomTimeout(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -206,7 +206,7 @@ action "microsoft365_graph_beta_device_management_managed_device_enable_lost_mod
 	})
 }
 
-func TestEnableLostModeManagedDeviceAction_MissingMessage(t *testing.T) {
+func TestUnitActionEnableLostModeManagedDevice_07_MissingMessage(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 
 	resource.UnitTest(t, resource.TestCase{
@@ -234,7 +234,7 @@ action "microsoft365_graph_beta_device_management_managed_device_enable_lost_mod
 	})
 }
 
-func TestEnableLostModeManagedDeviceAction_MissingPhoneNumber(t *testing.T) {
+func TestUnitActionEnableLostModeManagedDevice_08_MissingPhoneNumber(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 
 	resource.UnitTest(t, resource.TestCase{
@@ -262,7 +262,7 @@ action "microsoft365_graph_beta_device_management_managed_device_enable_lost_mod
 	})
 }
 
-func TestEnableLostModeManagedDeviceAction_InvalidDeviceID(t *testing.T) {
+func TestUnitActionEnableLostModeManagedDevice_09_InvalidDeviceID(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 
 	resource.UnitTest(t, resource.TestCase{
@@ -291,7 +291,7 @@ action "microsoft365_graph_beta_device_management_managed_device_enable_lost_mod
 	})
 }
 
-func TestEnableLostModeManagedDeviceAction_BothManagedAndComanaged(t *testing.T) {
+func TestUnitActionEnableLostModeManagedDevice_10_BothManagedAndComanaged(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()

@@ -20,7 +20,7 @@ func loadUnitTestTerraform(filename string) string {
 	return config
 }
 
-func TestRebootNowAction_Basic(t *testing.T) {
+func TestUnitActionRebootNowManagedDevice_01_Basic(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -44,7 +44,7 @@ func TestRebootNowAction_Basic(t *testing.T) {
 	})
 }
 
-func TestRebootNowAction_Maximal(t *testing.T) {
+func TestUnitActionRebootNowManagedDevice_02_Maximal(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -68,7 +68,7 @@ func TestRebootNowAction_Maximal(t *testing.T) {
 	})
 }
 
-func TestRebootNowAction_PartialFailures(t *testing.T) {
+func TestUnitActionRebootNowManagedDevice_03_PartialFailures(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -101,7 +101,7 @@ action "microsoft365_graph_beta_device_management_managed_device_reboot_now" "pa
 	})
 }
 
-func TestRebootNowAction_ValidationDisabled(t *testing.T) {
+func TestUnitActionRebootNowManagedDevice_04_ValidationDisabled(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -134,7 +134,7 @@ action "microsoft365_graph_beta_device_management_managed_device_reboot_now" "va
 	})
 }
 
-func TestRebootNowAction_ValidationEnabled(t *testing.T) {
+func TestUnitActionRebootNowManagedDevice_05_ValidationEnabled(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -167,7 +167,7 @@ action "microsoft365_graph_beta_device_management_managed_device_reboot_now" "va
 	})
 }
 
-func TestRebootNowAction_InvalidDeviceID(t *testing.T) {
+func TestUnitActionRebootNowManagedDevice_06_InvalidDeviceID(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -200,7 +200,7 @@ action "microsoft365_graph_beta_device_management_managed_device_reboot_now" "in
 	})
 }
 
-func TestRebootNowAction_NoDevices(t *testing.T) {
+func TestUnitActionRebootNowManagedDevice_07_NoDevices(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -231,7 +231,7 @@ action "microsoft365_graph_beta_device_management_managed_device_reboot_now" "no
 	})
 }
 
-func TestRebootNowAction_DuplicateDeviceIDs(t *testing.T) {
+func TestUnitActionRebootNowManagedDevice_08_DuplicateDeviceIDs(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -264,7 +264,7 @@ action "microsoft365_graph_beta_device_management_managed_device_reboot_now" "du
 	})
 }
 
-func TestRebootNowAction_MultipleDevices(t *testing.T) {
+func TestUnitActionRebootNowManagedDevice_09_MultipleDevices(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -300,7 +300,7 @@ action "microsoft365_graph_beta_device_management_managed_device_reboot_now" "mu
 	})
 }
 
-func TestRebootNowAction_CustomTimeout(t *testing.T) {
+func TestUnitActionRebootNowManagedDevice_10_CustomTimeout(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()

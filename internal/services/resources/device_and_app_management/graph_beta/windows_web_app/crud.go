@@ -16,7 +16,13 @@ import (
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
-// Create handles the creation workflow for a Windows Web Clip resource in Intune.
+// Create handles the Create operation for Windows Web App resources.
+//
+// Operation: Creates a new Windows web application
+// API Calls:
+//   - POST /deviceAppManagement/mobileApps
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/intune-apps-windowswebapp-create?view=graph-rest-beta
 func (r *WindowsWebAppResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var object WindowsWebAppResourceModel
 
@@ -95,7 +101,13 @@ func (r *WindowsWebAppResource) Create(ctx context.Context, req resource.CreateR
 	tflog.Debug(ctx, fmt.Sprintf("Finished Create Method: %s", ResourceName))
 }
 
-// Read retrieves the current state of a Windows Web Clip resource from Intune.
+// Read handles the Read operation for Windows Web App resources.
+//
+// Operation: Retrieves a Windows web application by ID
+// API Calls:
+//   - GET /deviceAppManagement/mobileApps/{mobileAppId}
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/intune-apps-windowswebapp-get?view=graph-rest-beta
 func (r *WindowsWebAppResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var object WindowsWebAppResourceModel
 
@@ -158,7 +170,13 @@ func (r *WindowsWebAppResource) Read(ctx context.Context, req resource.ReadReque
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 }
 
-// Update modifies an existing Windows Web Clip resource in Intune.
+// Update handles the Update operation for Windows Web App resources.
+//
+// Operation: Updates an existing Windows web application
+// API Calls:
+//   - PATCH /deviceAppManagement/mobileApps/{mobileAppId}
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/intune-apps-windowswebapp-update?view=graph-rest-beta
 func (r *WindowsWebAppResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var plan, state WindowsWebAppResourceModel
 
@@ -228,7 +246,13 @@ func (r *WindowsWebAppResource) Update(ctx context.Context, req resource.UpdateR
 	tflog.Debug(ctx, fmt.Sprintf("Finished Update Method: %s", ResourceName))
 }
 
-// Delete removes a Windows Web Clip resource from Intune.
+// Delete handles the Delete operation for Windows Web App resources.
+//
+// Operation: Deletes a Windows web application
+// API Calls:
+//   - DELETE /deviceAppManagement/mobileApps/{mobileAppId}
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/intune-apps-windowswebapp-delete?view=graph-rest-beta
 func (r *WindowsWebAppResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var object WindowsWebAppResourceModel
 

@@ -20,7 +20,7 @@ func loadUnitTestTerraform(filename string) string {
 	return config
 }
 
-func TestRotateLocalAdminPasswordAction_Basic(t *testing.T) {
+func TestUnitActionRotateLocalAdminPasswordManagedDevice_01_Basic(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -44,7 +44,7 @@ func TestRotateLocalAdminPasswordAction_Basic(t *testing.T) {
 	})
 }
 
-func TestRotateLocalAdminPasswordAction_Maximal(t *testing.T) {
+func TestUnitActionRotateLocalAdminPasswordManagedDevice_02_Maximal(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -68,7 +68,7 @@ func TestRotateLocalAdminPasswordAction_Maximal(t *testing.T) {
 	})
 }
 
-func TestRotateLocalAdminPasswordAction_ComanagedOnly(t *testing.T) {
+func TestUnitActionRotateLocalAdminPasswordManagedDevice_03_ComanagedOnly(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -100,7 +100,7 @@ action "microsoft365_graph_beta_device_management_managed_device_rotate_local_ad
 	})
 }
 
-func TestRotateLocalAdminPasswordAction_PartialFailures(t *testing.T) {
+func TestUnitActionRotateLocalAdminPasswordManagedDevice_04_PartialFailures(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -133,7 +133,7 @@ action "microsoft365_graph_beta_device_management_managed_device_rotate_local_ad
 	})
 }
 
-func TestRotateLocalAdminPasswordAction_ValidationDisabled(t *testing.T) {
+func TestUnitActionRotateLocalAdminPasswordManagedDevice_05_ValidationDisabled(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -166,7 +166,7 @@ action "microsoft365_graph_beta_device_management_managed_device_rotate_local_ad
 	})
 }
 
-func TestRotateLocalAdminPasswordAction_ValidationEnabled(t *testing.T) {
+func TestUnitActionRotateLocalAdminPasswordManagedDevice_06_ValidationEnabled(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -199,7 +199,7 @@ action "microsoft365_graph_beta_device_management_managed_device_rotate_local_ad
 	})
 }
 
-func TestRotateLocalAdminPasswordAction_InvalidDeviceID(t *testing.T) {
+func TestUnitActionRotateLocalAdminPasswordManagedDevice_07_InvalidDeviceID(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -232,7 +232,7 @@ action "microsoft365_graph_beta_device_management_managed_device_rotate_local_ad
 	})
 }
 
-func TestRotateLocalAdminPasswordAction_NoDevices(t *testing.T) {
+func TestUnitActionRotateLocalAdminPasswordManagedDevice_08_NoDevices(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -261,7 +261,7 @@ action "microsoft365_graph_beta_device_management_managed_device_rotate_local_ad
 	})
 }
 
-func TestRotateLocalAdminPasswordAction_DuplicateDeviceIDs(t *testing.T) {
+func TestUnitActionRotateLocalAdminPasswordManagedDevice_09_DuplicateDeviceIDs(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -294,7 +294,7 @@ action "microsoft365_graph_beta_device_management_managed_device_rotate_local_ad
 	})
 }
 
-func TestRotateLocalAdminPasswordAction_MultipleDevices(t *testing.T) {
+func TestUnitActionRotateLocalAdminPasswordManagedDevice_10_MultipleDevices(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()

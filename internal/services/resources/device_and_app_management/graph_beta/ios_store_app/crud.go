@@ -16,7 +16,13 @@ import (
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
-// Create handles the creation workflow for an iOS Store app resource in Intune.
+// Create handles the Create operation for iOS Store App resources.
+//
+// Operation: Creates a new iOS store application
+// API Calls:
+//   - POST /deviceAppManagement/mobileApps
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/intune-apps-iosstoreapp-create?view=graph-rest-beta
 func (r *IOSStoreAppResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var object IOSStoreAppResourceModel
 
@@ -95,7 +101,13 @@ func (r *IOSStoreAppResource) Create(ctx context.Context, req resource.CreateReq
 	tflog.Debug(ctx, fmt.Sprintf("Finished Create Method: %s", ResourceName))
 }
 
-// Read retrieves the current state of an iOS Store app resource from Intune.
+// Read handles the Read operation for iOS Store App resources.
+//
+// Operation: Retrieves an iOS store application by ID
+// API Calls:
+//   - GET /deviceAppManagement/mobileApps/{mobileAppId}
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/intune-apps-iosstoreapp-get?view=graph-rest-beta
 func (r *IOSStoreAppResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var object IOSStoreAppResourceModel
 
@@ -161,7 +173,13 @@ func (r *IOSStoreAppResource) Read(ctx context.Context, req resource.ReadRequest
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 }
 
-// Update modifies an existing iOS Store app resource in Intune.
+// Update handles the Update operation for iOS Store App resources.
+//
+// Operation: Updates an existing iOS store application
+// API Calls:
+//   - PATCH /deviceAppManagement/mobileApps/{mobileAppId}
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/intune-apps-iosstoreapp-update?view=graph-rest-beta
 func (r *IOSStoreAppResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var plan, state IOSStoreAppResourceModel
 
@@ -233,7 +251,13 @@ func (r *IOSStoreAppResource) Update(ctx context.Context, req resource.UpdateReq
 	tflog.Debug(ctx, fmt.Sprintf("Finished updating %s with ID: %s", ResourceName, state.ID.ValueString()))
 }
 
-// Delete removes an iOS Store app resource from Intune.
+// Delete handles the Delete operation for iOS Store App resources.
+//
+// Operation: Deletes an iOS store application
+// API Calls:
+//   - DELETE /deviceAppManagement/mobileApps/{mobileAppId}
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/intune-apps-iosstoreapp-delete?view=graph-rest-beta
 func (r *IOSStoreAppResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var object IOSStoreAppResourceModel
 

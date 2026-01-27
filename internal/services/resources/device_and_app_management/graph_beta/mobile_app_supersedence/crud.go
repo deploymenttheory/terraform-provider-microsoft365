@@ -14,7 +14,13 @@ import (
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
-// Create handles the creation workflow for a Mobile App Supersedence resource in Intune.
+// Create handles the Create operation for Mobile App Supersedence resources.
+//
+// Operation: Creates a new mobile app supersedence relationship between applications
+// API Calls:
+//   - POST /deviceAppManagement/mobileApps/{mobileAppId}/relationships
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/intune-apps-mobileapprelationship-create?view=graph-rest-beta
 func (r *MobileAppSupersedenceResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var object MobileAppSupersedenceResourceModel
 
@@ -81,7 +87,13 @@ func (r *MobileAppSupersedenceResource) Create(ctx context.Context, req resource
 	tflog.Debug(ctx, fmt.Sprintf("Finished Create Method: %s", ResourceName))
 }
 
-// Read retrieves the current state of a Mobile App Supersedence resource from Intune.
+// Read handles the Read operation for Mobile App Supersedence resources.
+//
+// Operation: Retrieves a mobile app supersedence relationship by ID
+// API Calls:
+//   - GET /deviceAppManagement/mobileApps/{mobileAppId}/relationships/{relationshipId}
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/intune-apps-mobileapprelationship-get?view=graph-rest-beta
 func (r *MobileAppSupersedenceResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var object MobileAppSupersedenceResourceModel
 
@@ -143,7 +155,13 @@ func (r *MobileAppSupersedenceResource) Read(ctx context.Context, req resource.R
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 }
 
-// Update modifies an existing Mobile App Supersedence resource in Intune.
+// Update handles the Update operation for Mobile App Supersedence resources.
+//
+// Operation: Updates an existing mobile app supersedence relationship
+// API Calls:
+//   - PATCH /deviceAppManagement/mobileApps/{mobileAppId}/relationships/{relationshipId}
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/intune-apps-mobileapprelationship-update?view=graph-rest-beta
 func (r *MobileAppSupersedenceResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var plan, state MobileAppSupersedenceResourceModel
 
@@ -206,7 +224,13 @@ func (r *MobileAppSupersedenceResource) Update(ctx context.Context, req resource
 	tflog.Debug(ctx, fmt.Sprintf("Finished Update Method: %s", ResourceName))
 }
 
-// Delete removes a Mobile App Supersedence resource from Intune.
+// Delete handles the Delete operation for Mobile App Supersedence resources.
+//
+// Operation: Deletes a mobile app supersedence relationship
+// API Calls:
+//   - DELETE /deviceAppManagement/mobileApps/{mobileAppId}/relationships/{relationshipId}
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/intune-apps-mobileapprelationship-delete?view=graph-rest-beta
 func (r *MobileAppSupersedenceResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var object MobileAppSupersedenceResourceModel
 

@@ -20,7 +20,7 @@ func loadUnitTestTerraform(filename string) string {
 	return config
 }
 
-func TestReenableAction_Basic(t *testing.T) {
+func TestUnitActionReenableManagedDevice_01_Basic(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -44,7 +44,7 @@ func TestReenableAction_Basic(t *testing.T) {
 	})
 }
 
-func TestReenableAction_Maximal(t *testing.T) {
+func TestUnitActionReenableManagedDevice_02_Maximal(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -68,7 +68,7 @@ func TestReenableAction_Maximal(t *testing.T) {
 	})
 }
 
-func TestReenableAction_ComanagedOnly(t *testing.T) {
+func TestUnitActionReenableManagedDevice_03_ComanagedOnly(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -100,7 +100,7 @@ action "microsoft365_graph_beta_device_management_managed_device_reenable" "coma
 	})
 }
 
-func TestReenableAction_PartialFailures(t *testing.T) {
+func TestUnitActionReenableManagedDevice_04_PartialFailures(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -133,7 +133,7 @@ action "microsoft365_graph_beta_device_management_managed_device_reenable" "part
 	})
 }
 
-func TestReenableAction_ValidationDisabled(t *testing.T) {
+func TestUnitActionReenableManagedDevice_05_ValidationDisabled(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -166,7 +166,7 @@ action "microsoft365_graph_beta_device_management_managed_device_reenable" "vali
 	})
 }
 
-func TestReenableAction_ValidationEnabled(t *testing.T) {
+func TestUnitActionReenableManagedDevice_06_ValidationEnabled(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -199,7 +199,7 @@ action "microsoft365_graph_beta_device_management_managed_device_reenable" "vali
 	})
 }
 
-func TestReenableAction_InvalidDeviceID(t *testing.T) {
+func TestUnitActionReenableManagedDevice_07_InvalidDeviceID(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -232,7 +232,7 @@ action "microsoft365_graph_beta_device_management_managed_device_reenable" "inva
 	})
 }
 
-func TestReenableAction_NoDevices(t *testing.T) {
+func TestUnitActionReenableManagedDevice_08_NoDevices(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -261,7 +261,7 @@ action "microsoft365_graph_beta_device_management_managed_device_reenable" "no_d
 	})
 }
 
-func TestReenableAction_DuplicateDeviceIDs(t *testing.T) {
+func TestUnitActionReenableManagedDevice_09_DuplicateDeviceIDs(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -294,7 +294,7 @@ action "microsoft365_graph_beta_device_management_managed_device_reenable" "dupl
 	})
 }
 
-func TestReenableAction_MultipleDevices(t *testing.T) {
+func TestUnitActionReenableManagedDevice_10_MultipleDevices(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()

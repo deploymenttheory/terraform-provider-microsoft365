@@ -20,7 +20,7 @@ func loadUnitTestTerraform(filename string) string {
 	return config
 }
 
-func TestRetireAction_Basic(t *testing.T) {
+func TestUnitActionRetireManagedDevice_01_Basic(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -44,7 +44,7 @@ func TestRetireAction_Basic(t *testing.T) {
 	})
 }
 
-func TestRetireAction_Maximal(t *testing.T) {
+func TestUnitActionRetireManagedDevice_02_Maximal(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -68,7 +68,7 @@ func TestRetireAction_Maximal(t *testing.T) {
 	})
 }
 
-func TestRetireAction_PartialFailures(t *testing.T) {
+func TestUnitActionRetireManagedDevice_03_PartialFailures(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -101,7 +101,7 @@ action "microsoft365_graph_beta_device_management_managed_device_retire" "partia
 	})
 }
 
-func TestRetireAction_ValidationDisabled(t *testing.T) {
+func TestUnitActionRetireManagedDevice_04_ValidationDisabled(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -134,7 +134,7 @@ action "microsoft365_graph_beta_device_management_managed_device_retire" "valida
 	})
 }
 
-func TestRetireAction_ValidationEnabled(t *testing.T) {
+func TestUnitActionRetireManagedDevice_05_ValidationEnabled(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -167,7 +167,7 @@ action "microsoft365_graph_beta_device_management_managed_device_retire" "valida
 	})
 }
 
-func TestRetireAction_InvalidDeviceID(t *testing.T) {
+func TestUnitActionRetireManagedDevice_06_InvalidDeviceID(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -200,7 +200,7 @@ action "microsoft365_graph_beta_device_management_managed_device_retire" "invali
 	})
 }
 
-func TestRetireAction_NoDevices(t *testing.T) {
+func TestUnitActionRetireManagedDevice_07_NoDevices(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -231,7 +231,7 @@ action "microsoft365_graph_beta_device_management_managed_device_retire" "no_dev
 	})
 }
 
-func TestRetireAction_DuplicateDeviceIDs(t *testing.T) {
+func TestUnitActionRetireManagedDevice_08_DuplicateDeviceIDs(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -264,7 +264,7 @@ action "microsoft365_graph_beta_device_management_managed_device_retire" "duplic
 	})
 }
 
-func TestRetireAction_MultipleDevices(t *testing.T) {
+func TestUnitActionRetireManagedDevice_09_MultipleDevices(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()

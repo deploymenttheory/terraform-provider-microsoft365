@@ -20,7 +20,7 @@ func loadUnitTestTerraform(filename string) string {
 	return config
 }
 
-func TestRemoteLockAction_Basic(t *testing.T) {
+func TestUnitActionRemoteLockManagedDevice_01_Basic(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -44,7 +44,7 @@ func TestRemoteLockAction_Basic(t *testing.T) {
 	})
 }
 
-func TestRemoteLockAction_Maximal(t *testing.T) {
+func TestUnitActionRemoteLockManagedDevice_02_Maximal(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -68,7 +68,7 @@ func TestRemoteLockAction_Maximal(t *testing.T) {
 	})
 }
 
-func TestRemoteLockAction_PartialFailures(t *testing.T) {
+func TestUnitActionRemoteLockManagedDevice_03_PartialFailures(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -101,7 +101,7 @@ action "microsoft365_graph_beta_device_management_managed_device_remote_lock" "p
 	})
 }
 
-func TestRemoteLockAction_ValidationDisabled(t *testing.T) {
+func TestUnitActionRemoteLockManagedDevice_04_ValidationDisabled(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -134,7 +134,7 @@ action "microsoft365_graph_beta_device_management_managed_device_remote_lock" "v
 	})
 }
 
-func TestRemoteLockAction_ValidationEnabled(t *testing.T) {
+func TestUnitActionRemoteLockManagedDevice_05_ValidationEnabled(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -167,7 +167,7 @@ action "microsoft365_graph_beta_device_management_managed_device_remote_lock" "v
 	})
 }
 
-func TestRemoteLockAction_InvalidDeviceID(t *testing.T) {
+func TestUnitActionRemoteLockManagedDevice_06_InvalidDeviceID(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -200,7 +200,7 @@ action "microsoft365_graph_beta_device_management_managed_device_remote_lock" "i
 	})
 }
 
-func TestRemoteLockAction_NoDevices(t *testing.T) {
+func TestUnitActionRemoteLockManagedDevice_07_NoDevices(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -231,7 +231,7 @@ action "microsoft365_graph_beta_device_management_managed_device_remote_lock" "n
 	})
 }
 
-func TestRemoteLockAction_DuplicateDeviceIDs(t *testing.T) {
+func TestUnitActionRemoteLockManagedDevice_08_DuplicateDeviceIDs(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -264,7 +264,7 @@ action "microsoft365_graph_beta_device_management_managed_device_remote_lock" "d
 	})
 }
 
-func TestRemoteLockAction_MultipleDevices(t *testing.T) {
+func TestUnitActionRemoteLockManagedDevice_09_MultipleDevices(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()

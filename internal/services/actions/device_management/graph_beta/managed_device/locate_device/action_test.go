@@ -20,7 +20,7 @@ func loadUnitTestTerraform(filename string) string {
 	return config
 }
 
-func TestLocateDeviceAction_Basic(t *testing.T) {
+func TestUnitActionLocateManagedDevice_01_Basic(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -44,7 +44,7 @@ func TestLocateDeviceAction_Basic(t *testing.T) {
 	})
 }
 
-func TestLocateDeviceAction_Maximal(t *testing.T) {
+func TestUnitActionLocateManagedDevice_02_Maximal(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -68,7 +68,7 @@ func TestLocateDeviceAction_Maximal(t *testing.T) {
 	})
 }
 
-func TestLocateDeviceAction_PartialFailures(t *testing.T) {
+func TestUnitActionLocateManagedDevice_03_PartialFailures(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -102,7 +102,7 @@ action "microsoft365_graph_beta_device_management_managed_device_locate_device" 
 	})
 }
 
-func TestLocateDeviceAction_ValidationDisabled(t *testing.T) {
+func TestUnitActionLocateManagedDevice_04_ValidationDisabled(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -133,7 +133,7 @@ action "microsoft365_graph_beta_device_management_managed_device_locate_device" 
 	})
 }
 
-func TestLocateDeviceAction_ValidationEnabled(t *testing.T) {
+func TestUnitActionLocateManagedDevice_05_ValidationEnabled(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -164,7 +164,7 @@ action "microsoft365_graph_beta_device_management_managed_device_locate_device" 
 	})
 }
 
-func TestLocateDeviceAction_InvalidDeviceID(t *testing.T) {
+func TestUnitActionLocateManagedDevice_06_InvalidDeviceID(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -195,7 +195,7 @@ action "microsoft365_graph_beta_device_management_managed_device_locate_device" 
 	})
 }
 
-func TestLocateDeviceAction_EmptyDeviceList(t *testing.T) {
+func TestUnitActionLocateManagedDevice_07_EmptyDeviceList(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -226,7 +226,7 @@ action "microsoft365_graph_beta_device_management_managed_device_locate_device" 
 	})
 }
 
-func TestLocateDeviceAction_DuplicateDeviceIDs(t *testing.T) {
+func TestUnitActionLocateManagedDevice_08_DuplicateDeviceIDs(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -259,7 +259,7 @@ action "microsoft365_graph_beta_device_management_managed_device_locate_device" 
 	})
 }
 
-func TestLocateDeviceAction_MissingDeviceIDs(t *testing.T) {
+func TestUnitActionLocateManagedDevice_09_MissingDeviceIDs(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()

@@ -20,7 +20,7 @@ func loadUnitTestTerraform(filename string) string {
 	return config
 }
 
-func TestApplyCloudPcProvisioningPolicyAction_Basic(t *testing.T) {
+func TestUnitActionApplyCloudPcProvisioningPolicy_01_Basic(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -44,7 +44,7 @@ func TestApplyCloudPcProvisioningPolicyAction_Basic(t *testing.T) {
 	})
 }
 
-func TestApplyCloudPcProvisioningPolicyAction_Maximal(t *testing.T) {
+func TestUnitActionApplyCloudPcProvisioningPolicy_02_Maximal(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -68,7 +68,7 @@ func TestApplyCloudPcProvisioningPolicyAction_Maximal(t *testing.T) {
 	})
 }
 
-func TestApplyCloudPcProvisioningPolicyAction_InvalidPolicyID(t *testing.T) {
+func TestUnitActionApplyCloudPcProvisioningPolicy_03_InvalidPolicyID(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -99,7 +99,7 @@ action "microsoft365_graph_beta_device_management_windows_365_apply_cloud_pc_pro
 	})
 }
 
-func TestApplyCloudPcProvisioningPolicyAction_InvalidPolicySettings(t *testing.T) {
+func TestUnitActionApplyCloudPcProvisioningPolicy_04_InvalidPolicySettings(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -131,7 +131,7 @@ action "microsoft365_graph_beta_device_management_windows_365_apply_cloud_pc_pro
 	})
 }
 
-func TestApplyCloudPcProvisioningPolicyAction_InvalidReservePercentage(t *testing.T) {
+func TestUnitActionApplyCloudPcProvisioningPolicy_05_InvalidReservePercentage(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()

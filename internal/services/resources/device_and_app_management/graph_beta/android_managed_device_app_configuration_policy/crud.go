@@ -19,7 +19,7 @@ import (
 // API Calls:
 //   - POST /deviceAppManagement/mobileAppConfigurations
 //
-// Reference: https://learn.microsoft.com/en-us/graph/api/intune-apps-manageddevicemobileappconfiguration-create?view=graph-rest-beta
+// Reference: https://learn.microsoft.com/en-us/graph/api/intune-apps-androidmanagedstoreappconfiguration-create?view=graph-rest-beta
 func (r *AndroidManagedDeviceAppConfigurationPolicyResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var object AndroidManagedDeviceAppConfigurationPolicyResourceModel
 
@@ -140,7 +140,7 @@ func (r *AndroidManagedDeviceAppConfigurationPolicyResource) Read(ctx context.Co
 // API Calls:
 //   - PATCH /deviceAppManagement/mobileAppConfigurations/{managedDeviceMobileAppConfigurationId}
 //
-// Reference: https://learn.microsoft.com/en-us/graph/api/intune-apps-manageddevicemobileappconfiguration-update?view=graph-rest-beta
+// Reference: https://learn.microsoft.com/en-us/graph/api/intune-apps-androidmanagedstoreappconfiguration-update?view=graph-rest-beta
 func (r *AndroidManagedDeviceAppConfigurationPolicyResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var plan AndroidManagedDeviceAppConfigurationPolicyResourceModel
 	var state AndroidManagedDeviceAppConfigurationPolicyResourceModel
@@ -204,7 +204,7 @@ func (r *AndroidManagedDeviceAppConfigurationPolicyResource) Update(ctx context.
 // API Calls:
 //   - DELETE /deviceAppManagement/mobileAppConfigurations/{managedDeviceMobileAppConfigurationId}
 //
-// Reference: https://learn.microsoft.com/en-us/graph/api/intune-apps-manageddevicemobileappconfiguration-delete?view=graph-rest-beta
+// Reference: https://learn.microsoft.com/en-us/graph/api/intune-apps-androidmanagedstoreappconfiguration-delete?view=graph-rest-beta
 func (r *AndroidManagedDeviceAppConfigurationPolicyResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var object AndroidManagedDeviceAppConfigurationPolicyResourceModel
 

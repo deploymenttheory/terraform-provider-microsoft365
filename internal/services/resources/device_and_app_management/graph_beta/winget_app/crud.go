@@ -16,7 +16,13 @@ import (
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
-// Create handles the Create operation.
+// Create handles the Create operation for WinGet App resources.
+//
+// Operation: Creates a new Windows Package Manager (WinGet) application
+// API Calls:
+//   - POST /deviceAppManagement/mobileApps
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/intune-apps-wingetapp-create?view=graph-rest-beta
 func (r *WinGetAppResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var object WinGetAppResourceModel
 
@@ -105,7 +111,13 @@ func (r *WinGetAppResource) Create(ctx context.Context, req resource.CreateReque
 	tflog.Debug(ctx, fmt.Sprintf("Finished Create method for %s with ID: %s", ResourceName, object.ID.ValueString()))
 }
 
-// Read handles the Read operation.
+// Read handles the Read operation for WinGet App resources.
+//
+// Operation: Retrieves a Windows Package Manager (WinGet) application by ID
+// API Calls:
+//   - GET /deviceAppManagement/mobileApps/{mobileAppId}
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/intune-apps-wingetapp-get?view=graph-rest-beta
 func (r *WinGetAppResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var object WinGetAppResourceModel
 	tflog.Debug(ctx, fmt.Sprintf("Starting Read method for: %s", ResourceName))
@@ -187,7 +199,13 @@ func (r *WinGetAppResource) Read(ctx context.Context, req resource.ReadRequest, 
 	tflog.Debug(ctx, fmt.Sprintf("Finished Read Method: %s", ResourceName))
 }
 
-// Update handles the Update operation.
+// Update handles the Update operation for WinGet App resources.
+//
+// Operation: Updates an existing Windows Package Manager (WinGet) application
+// API Calls:
+//   - PATCH /deviceAppManagement/mobileApps/{mobileAppId}
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/intune-apps-wingetapp-update?view=graph-rest-beta
 func (r *WinGetAppResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var plan, state WinGetAppResourceModel
 
@@ -273,7 +291,13 @@ func (r *WinGetAppResource) Update(ctx context.Context, req resource.UpdateReque
 	tflog.Debug(ctx, fmt.Sprintf("Finished Update method for %s with ID: %s", ResourceName, plan.ID.ValueString()))
 }
 
-// Delete handles the Delete operation.
+// Delete handles the Delete operation for WinGet App resources.
+//
+// Operation: Deletes a Windows Package Manager (WinGet) application
+// API Calls:
+//   - DELETE /deviceAppManagement/mobileApps/{mobileAppId}
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/intune-apps-wingetapp-delete?view=graph-rest-beta
 func (r *WinGetAppResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var object WinGetAppResourceModel
 

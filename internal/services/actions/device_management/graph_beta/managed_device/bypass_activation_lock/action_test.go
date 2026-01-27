@@ -22,7 +22,7 @@ func loadUnitTestTerraform(filename string) string {
 }
 
 // TestBypassActivationLockAction_Basic tests basic Activation Lock bypass
-func TestBypassActivationLockAction_Basic(t *testing.T) {
+func TestUnitActionBypassActivationLockManagedDevice_01_Basic(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -51,7 +51,7 @@ func TestBypassActivationLockAction_Basic(t *testing.T) {
 }
 
 // TestBypassActivationLockAction_ConfigValidation tests configuration validation
-func TestBypassActivationLockAction_ConfigValidation(t *testing.T) {
+func TestUnitActionBypassActivationLockManagedDevice_02_ConfigValidation(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 
 	resource.UnitTest(t, resource.TestCase{
@@ -77,7 +77,7 @@ action "microsoft365_graph_beta_device_management_managed_device_bypass_activati
 }
 
 // TestBypassActivationLockAction_Maximal tests action with all features enabled
-func TestBypassActivationLockAction_Maximal(t *testing.T) {
+func TestUnitActionBypassActivationLockManagedDevice_03_Maximal(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -102,7 +102,7 @@ func TestBypassActivationLockAction_Maximal(t *testing.T) {
 }
 
 // TestBypassActivationLockAction_MultipleDevices tests multiple device bypass
-func TestBypassActivationLockAction_MultipleDevices(t *testing.T) {
+func TestUnitActionBypassActivationLockManagedDevice_04_MultipleDevices(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -127,7 +127,7 @@ func TestBypassActivationLockAction_MultipleDevices(t *testing.T) {
 }
 
 // TestBypassActivationLockAction_IgnorePartialFailures tests ignore_partial_failures flag
-func TestBypassActivationLockAction_IgnorePartialFailures(t *testing.T) {
+func TestUnitActionBypassActivationLockManagedDevice_05_IgnorePartialFailures(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -161,7 +161,7 @@ action "microsoft365_graph_beta_device_management_managed_device_bypass_activati
 }
 
 // TestBypassActivationLockAction_DisableValidation tests validate_device_exists = false
-func TestBypassActivationLockAction_DisableValidation(t *testing.T) {
+func TestUnitActionBypassActivationLockManagedDevice_06_DisableValidation(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -195,7 +195,7 @@ action "microsoft365_graph_beta_device_management_managed_device_bypass_activati
 }
 
 // TestBypassActivationLockAction_CustomTimeout tests custom timeout configuration
-func TestBypassActivationLockAction_CustomTimeout(t *testing.T) {
+func TestUnitActionBypassActivationLockManagedDevice_07_CustomTimeout(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -231,7 +231,7 @@ action "microsoft365_graph_beta_device_management_managed_device_bypass_activati
 }
 
 // TestBypassActivationLockAction_InvalidGUID tests validation for invalid GUID format
-func TestBypassActivationLockAction_InvalidGUID(t *testing.T) {
+func TestUnitActionBypassActivationLockManagedDevice_08_InvalidGUID(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 
 	resource.UnitTest(t, resource.TestCase{
@@ -279,7 +279,7 @@ action "microsoft365_graph_beta_device_management_managed_device_bypass_activati
 }
 
 // TestBypassActivationLockAction_MissingDeviceIDs tests validation requiring device_ids
-func TestBypassActivationLockAction_MissingDeviceIDs(t *testing.T) {
+func TestUnitActionBypassActivationLockManagedDevice_10_MissingDeviceIDs(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 
 	resource.UnitTest(t, resource.TestCase{

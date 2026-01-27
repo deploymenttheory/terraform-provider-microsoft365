@@ -16,7 +16,13 @@ import (
 	deviceappmanagement "github.com/microsoftgraph/msgraph-beta-sdk-go/deviceappmanagement"
 )
 
-// Create creates a new mobile app configuration.
+// Create handles the Create operation for Targeted Managed App Configuration resources.
+//
+// Operation: Creates a new targeted managed app configuration policy
+// API Calls:
+//   - POST /deviceAppManagement/targetedManagedAppConfigurations
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/intune-mam-targetedmanagedappconfiguration-create?view=graph-rest-beta
 func (r *TargetedManagedAppConfigurationResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var state TargetedManagedAppConfigurationResourceModel
 
@@ -84,7 +90,13 @@ func (r *TargetedManagedAppConfigurationResource) Create(ctx context.Context, re
 	tflog.Debug(ctx, fmt.Sprintf("Finished Create Method: %s", ResourceName))
 }
 
-// Read reads the mobile app configuration state.
+// Read handles the Read operation for Targeted Managed App Configuration resources.
+//
+// Operation: Retrieves a targeted managed app configuration policy by ID
+// API Calls:
+//   - GET /deviceAppManagement/targetedManagedAppConfigurations/{targetedManagedAppConfigurationId}
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/intune-mam-targetedmanagedappconfiguration-get?view=graph-rest-beta
 func (r *TargetedManagedAppConfigurationResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var state TargetedManagedAppConfigurationResourceModel
 
@@ -135,7 +147,16 @@ func (r *TargetedManagedAppConfigurationResource) Read(ctx context.Context, req 
 	tflog.Debug(ctx, fmt.Sprintf("Finished Read Method: %s", ResourceName))
 }
 
-// Update updates the mobile app configuration.
+// Update handles the Update operation for Targeted Managed App Configuration resources.
+//
+// Operation: Updates an existing targeted managed app configuration policy with multiple update paths
+// API Calls:
+//   - PATCH /deviceAppManagement/targetedManagedAppConfigurations/{targetedManagedAppConfigurationId}
+//   - POST /deviceAppManagement/targetedManagedAppConfigurations/{targetedManagedAppConfigurationId}/targetApps
+//   - POST /deviceAppManagement/targetedManagedAppConfigurations/{targetedManagedAppConfigurationId}/changeSettings
+//   - POST /deviceAppManagement/targetedManagedAppConfigurations/{targetedManagedAppConfigurationId}/assign
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/intune-mam-targetedmanagedappconfiguration-update?view=graph-rest-beta
 func (r *TargetedManagedAppConfigurationResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var plan TargetedManagedAppConfigurationResourceModel
 	var state TargetedManagedAppConfigurationResourceModel
@@ -326,7 +347,13 @@ func (r *TargetedManagedAppConfigurationResource) Update(ctx context.Context, re
 	tflog.Debug(ctx, fmt.Sprintf("Finished updating %s with ID: %s", ResourceName, state.ID.ValueString()))
 }
 
-// Delete deletes the mobile app configuration.
+// Delete handles the Delete operation for Targeted Managed App Configuration resources.
+//
+// Operation: Deletes a targeted managed app configuration policy
+// API Calls:
+//   - DELETE /deviceAppManagement/targetedManagedAppConfigurations/{targetedManagedAppConfigurationId}
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/intune-mam-targetedmanagedappconfiguration-delete?view=graph-rest-beta
 func (r *TargetedManagedAppConfigurationResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var state TargetedManagedAppConfigurationResourceModel
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)

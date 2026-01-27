@@ -13,7 +13,13 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
-// Create handles the Create operation for iOS Mobile App Configuration resources.
+// Create handles the Create operation for iOS Managed Device App Configuration Policy resources.
+//
+// Operation: Creates a new managed device app configuration policy for iOS
+// API Calls:
+//   - POST /deviceAppManagement/mobileAppConfigurations
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/intune-apps-iosmobileappconfiguration-create?view=graph-rest-beta
 func (r *IOSManagedDeviceAppConfigurationPolicyResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var object IOSManagedDeviceAppConfigurationPolicyResourceModel
 
@@ -75,7 +81,13 @@ func (r *IOSManagedDeviceAppConfigurationPolicyResource) Create(ctx context.Cont
 	tflog.Debug(ctx, fmt.Sprintf("Finished Create Method: %s", ResourceName))
 }
 
-// Read handles the Read operation for iOS Mobile App Configuration resources.
+// Read handles the Read operation for iOS Managed Device App Configuration Policy resources.
+//
+// Operation: Retrieves a managed device app configuration policy for iOS by ID
+// API Calls:
+//   - GET /deviceAppManagement/mobileAppConfigurations/{managedDeviceMobileAppConfigurationId}
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/intune-apps-iosmobileappconfiguration-get?view=graph-rest-beta
 func (r *IOSManagedDeviceAppConfigurationPolicyResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var object IOSManagedDeviceAppConfigurationPolicyResourceModel
 
@@ -122,7 +134,13 @@ func (r *IOSManagedDeviceAppConfigurationPolicyResource) Read(ctx context.Contex
 	tflog.Debug(ctx, fmt.Sprintf("Finished Read Method: %s", ResourceName))
 }
 
-// Update handles the Update operation for iOS Mobile App Configuration resources.
+// Update handles the Update operation for iOS Managed Device App Configuration Policy resources.
+//
+// Operation: Updates an existing managed device app configuration policy for iOS
+// API Calls:
+//   - PATCH /deviceAppManagement/mobileAppConfigurations/{managedDeviceMobileAppConfigurationId}
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/intune-apps-iosmobileappconfiguration-update?view=graph-rest-beta
 func (r *IOSManagedDeviceAppConfigurationPolicyResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var plan IOSManagedDeviceAppConfigurationPolicyResourceModel
 	var state IOSManagedDeviceAppConfigurationPolicyResourceModel
@@ -180,7 +198,13 @@ func (r *IOSManagedDeviceAppConfigurationPolicyResource) Update(ctx context.Cont
 	tflog.Debug(ctx, fmt.Sprintf("Finished updating %s with ID: %s", ResourceName, state.ID.ValueString()))
 }
 
-// Delete handles the Delete operation for iOS Mobile App Configuration resources.
+// Delete handles the Delete operation for iOS Managed Device App Configuration Policy resources.
+//
+// Operation: Deletes a managed device app configuration policy for iOS
+// API Calls:
+//   - DELETE /deviceAppManagement/mobileAppConfigurations/{managedDeviceMobileAppConfigurationId}
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/intune-apps-iosmobileappconfiguration-delete?view=graph-rest-beta
 func (r *IOSManagedDeviceAppConfigurationPolicyResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var object IOSManagedDeviceAppConfigurationPolicyResourceModel
 

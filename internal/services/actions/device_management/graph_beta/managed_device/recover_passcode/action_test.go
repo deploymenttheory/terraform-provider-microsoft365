@@ -20,7 +20,7 @@ func loadUnitTestTerraform(filename string) string {
 	return config
 }
 
-func TestRecoverPasscodeAction_Basic(t *testing.T) {
+func TestUnitActionRecoverManagedDevicePasscode_01_Basic(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -44,7 +44,7 @@ func TestRecoverPasscodeAction_Basic(t *testing.T) {
 	})
 }
 
-func TestRecoverPasscodeAction_Maximal(t *testing.T) {
+func TestUnitActionRecoverManagedDevicePasscode_02_Maximal(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -68,7 +68,7 @@ func TestRecoverPasscodeAction_Maximal(t *testing.T) {
 	})
 }
 
-func TestRecoverPasscodeAction_PartialFailures(t *testing.T) {
+func TestUnitActionRecoverManagedDevicePasscode_03_PartialFailures(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -101,7 +101,7 @@ action "microsoft365_graph_beta_device_management_managed_device_recover_passcod
 	})
 }
 
-func TestRecoverPasscodeAction_ValidationDisabled(t *testing.T) {
+func TestUnitActionRecoverManagedDevicePasscode_04_ValidationDisabled(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -134,7 +134,7 @@ action "microsoft365_graph_beta_device_management_managed_device_recover_passcod
 	})
 }
 
-func TestRecoverPasscodeAction_ValidationEnabled(t *testing.T) {
+func TestUnitActionRecoverManagedDevicePasscode_05_ValidationEnabled(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -167,7 +167,7 @@ action "microsoft365_graph_beta_device_management_managed_device_recover_passcod
 	})
 }
 
-func TestRecoverPasscodeAction_InvalidDeviceID(t *testing.T) {
+func TestUnitActionRecoverManagedDevicePasscode_06_InvalidDeviceID(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -200,7 +200,7 @@ action "microsoft365_graph_beta_device_management_managed_device_recover_passcod
 	})
 }
 
-func TestRecoverPasscodeAction_NoDevices(t *testing.T) {
+func TestUnitActionRecoverManagedDevicePasscode_07_NoDevices(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -231,7 +231,7 @@ action "microsoft365_graph_beta_device_management_managed_device_recover_passcod
 	})
 }
 
-func TestRecoverPasscodeAction_DuplicateDeviceIDs(t *testing.T) {
+func TestUnitActionRecoverManagedDevicePasscode_08_DuplicateDeviceIDs(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -264,7 +264,7 @@ action "microsoft365_graph_beta_device_management_managed_device_recover_passcod
 	})
 }
 
-func TestRecoverPasscodeAction_MultipleDevices(t *testing.T) {
+func TestUnitActionRecoverManagedDevicePasscode_09_MultipleDevices(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -300,7 +300,7 @@ action "microsoft365_graph_beta_device_management_managed_device_recover_passcod
 	})
 }
 
-func TestRecoverPasscodeAction_CustomTimeout(t *testing.T) {
+func TestUnitActionRecoverManagedDevicePasscode_10_CustomTimeout(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()

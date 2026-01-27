@@ -20,7 +20,7 @@ func loadUnitTestTerraform(filename string) string {
 	return config
 }
 
-func TestInitiateOnDemandProactiveRemediationManagedDeviceAction_Basic(t *testing.T) {
+func TestUnitActionInitiateOnDemandProactiveRemediationManagedDevice_01_Basic(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -44,7 +44,7 @@ func TestInitiateOnDemandProactiveRemediationManagedDeviceAction_Basic(t *testin
 	})
 }
 
-func TestInitiateOnDemandProactiveRemediationManagedDeviceAction_Maximal(t *testing.T) {
+func TestUnitActionInitiateOnDemandProactiveRemediationManagedDevice_02_Maximal(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -68,7 +68,7 @@ func TestInitiateOnDemandProactiveRemediationManagedDeviceAction_Maximal(t *test
 	})
 }
 
-func TestInitiateOnDemandProactiveRemediationManagedDeviceAction_PartialFailures(t *testing.T) {
+func TestUnitActionInitiateOnDemandProactiveRemediationManagedDevice_03_PartialFailures(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -104,7 +104,7 @@ action "microsoft365_graph_beta_device_management_managed_device_initiate_on_dem
 	})
 }
 
-func TestInitiateOnDemandProactiveRemediationManagedDeviceAction_ValidationDisabled(t *testing.T) {
+func TestUnitActionInitiateOnDemandProactiveRemediationManagedDevice_04_ValidationDisabled(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -140,7 +140,7 @@ action "microsoft365_graph_beta_device_management_managed_device_initiate_on_dem
 	})
 }
 
-func TestInitiateOnDemandProactiveRemediationManagedDeviceAction_CustomTimeout(t *testing.T) {
+func TestUnitActionInitiateOnDemandProactiveRemediationManagedDevice_05_CustomTimeout(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -178,7 +178,7 @@ action "microsoft365_graph_beta_device_management_managed_device_initiate_on_dem
 	})
 }
 
-func TestInitiateOnDemandProactiveRemediationManagedDeviceAction_NoDevices(t *testing.T) {
+func TestUnitActionInitiateOnDemandProactiveRemediationManagedDevice_06_NoDevices(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 
 	resource.UnitTest(t, resource.TestCase{
@@ -203,7 +203,7 @@ action "microsoft365_graph_beta_device_management_managed_device_initiate_on_dem
 	})
 }
 
-func TestInitiateOnDemandProactiveRemediationManagedDeviceAction_InvalidDeviceID(t *testing.T) {
+func TestUnitActionInitiateOnDemandProactiveRemediationManagedDevice_07_InvalidDeviceID(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 
 	resource.UnitTest(t, resource.TestCase{
@@ -231,7 +231,7 @@ action "microsoft365_graph_beta_device_management_managed_device_initiate_on_dem
 	})
 }
 
-func TestInitiateOnDemandProactiveRemediationManagedDeviceAction_BothManagedAndComanaged(t *testing.T) {
+func TestUnitActionInitiateOnDemandProactiveRemediationManagedDevice_08_BothManagedAndComanaged(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
