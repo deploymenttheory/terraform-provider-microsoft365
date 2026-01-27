@@ -15,12 +15,11 @@ import (
 
 // Create handles the Create operation for Mobile App Assignment resources.
 //
-//   - Retrieves the planned configuration from the create request
-//   - Constructs the resource request body from the plan
-//   - Sends POST request to create the base resource and settings
-//   - Sets initial state with planned values
-//   - Calls Read operation to fetch the latest state from the API with retry
-//   - Updates the final state with the fresh data from the API
+// Operation: Creates a new mobile app assignment for an application
+// API Calls:
+//   - POST /deviceAppManagement/mobileApps/{mobileAppId}/assignments
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/intune-apps-mobileappassignment-create?view=graph-rest-beta
 func (r *MobileAppAssignmentResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var object MobileAppAssignmentResourceModel
 
@@ -87,9 +86,12 @@ func (r *MobileAppAssignmentResource) Create(ctx context.Context, req resource.C
 
 // Read handles the Read operation for Mobile App Assignment resources.
 //
-//   - Retrieves the current state from the read request
-//   - Gets the base resource details from the API
-//   - Maps the base resource details to Terraform state
+// Operation: Retrieves a mobile app assignment by ID
+// API Calls:
+//   - GET /deviceAppManagement/mobileApps/{mobileAppId}/assignments
+//   - GET /deviceAppManagement/mobileApps/{mobileAppId}/assignments/{assignmentId}
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/intune-apps-mobileappassignment-get?view=graph-rest-beta
 func (r *MobileAppAssignmentResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var object MobileAppAssignmentResourceModel
 
@@ -177,6 +179,12 @@ func (r *MobileAppAssignmentResource) Read(ctx context.Context, req resource.Rea
 }
 
 // Update handles the Update operation for Mobile App Assignment resources.
+//
+// Operation: Updates an existing mobile app assignment
+// API Calls:
+//   - PATCH /deviceAppManagement/mobileApps/{mobileAppId}/assignments/{assignmentId}
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/intune-apps-mobileappassignment-update?view=graph-rest-beta
 func (r *MobileAppAssignmentResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var plan MobileAppAssignmentResourceModel
 	var state MobileAppAssignmentResourceModel
@@ -244,10 +252,11 @@ func (r *MobileAppAssignmentResource) Update(ctx context.Context, req resource.U
 
 // Delete handles the Delete operation for Mobile App Assignment resources.
 //
-//   - Retrieves the current state from the delete request
-//   - Validates the state data and timeout configuration
-//   - Sends DELETE request to remove the resource from the API
-//   - Cleans up by removing the resource from Terraform state
+// Operation: Deletes a mobile app assignment
+// API Calls:
+//   - DELETE /deviceAppManagement/mobileApps/{mobileAppId}/assignments/{assignmentId}
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/intune-apps-mobileappassignment-delete?view=graph-rest-beta
 func (r *MobileAppAssignmentResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var object MobileAppAssignmentResourceModel
 

@@ -20,7 +20,7 @@ func loadUnitTestTerraform(filename string) string {
 	return config
 }
 
-func TestUpdateWindowsDeviceAccountAction_Basic(t *testing.T) {
+func TestUnitActionUpdateWindowsDeviceAccount_01_Basic(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -44,7 +44,7 @@ func TestUpdateWindowsDeviceAccountAction_Basic(t *testing.T) {
 	})
 }
 
-func TestUpdateWindowsDeviceAccountAction_Maximal(t *testing.T) {
+func TestUnitActionUpdateWindowsDeviceAccount_02_Maximal(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -68,7 +68,7 @@ func TestUpdateWindowsDeviceAccountAction_Maximal(t *testing.T) {
 	})
 }
 
-func TestUpdateWindowsDeviceAccountAction_ComanagedOnly(t *testing.T) {
+func TestUnitActionUpdateWindowsDeviceAccount_03_ComanagedOnly(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -106,7 +106,7 @@ action "microsoft365_graph_beta_device_management_managed_device_update_windows_
 	})
 }
 
-func TestUpdateWindowsDeviceAccountAction_PartialFailures(t *testing.T) {
+func TestUnitActionUpdateWindowsDeviceAccount_04_PartialFailures(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -145,7 +145,7 @@ action "microsoft365_graph_beta_device_management_managed_device_update_windows_
 	})
 }
 
-func TestUpdateWindowsDeviceAccountAction_ValidationDisabled(t *testing.T) {
+func TestUnitActionUpdateWindowsDeviceAccount_05_ValidationDisabled(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -184,7 +184,7 @@ action "microsoft365_graph_beta_device_management_managed_device_update_windows_
 	})
 }
 
-func TestUpdateWindowsDeviceAccountAction_ValidationEnabled(t *testing.T) {
+func TestUnitActionUpdateWindowsDeviceAccount_06_ValidationEnabled(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -223,7 +223,7 @@ action "microsoft365_graph_beta_device_management_managed_device_update_windows_
 	})
 }
 
-func TestUpdateWindowsDeviceAccountAction_InvalidDeviceID(t *testing.T) {
+func TestUnitActionUpdateWindowsDeviceAccount_07_InvalidDeviceID(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -262,7 +262,7 @@ action "microsoft365_graph_beta_device_management_managed_device_update_windows_
 	})
 }
 
-func TestUpdateWindowsDeviceAccountAction_NoDevices(t *testing.T) {
+func TestUnitActionUpdateWindowsDeviceAccount_08_NoDevices(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -291,7 +291,7 @@ action "microsoft365_graph_beta_device_management_managed_device_update_windows_
 	})
 }
 
-func TestUpdateWindowsDeviceAccountAction_MissingPassword(t *testing.T) {
+func TestUnitActionUpdateWindowsDeviceAccount_09_MissingPassword(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -329,7 +329,7 @@ action "microsoft365_graph_beta_device_management_managed_device_update_windows_
 	})
 }
 
-func TestUpdateWindowsDeviceAccountAction_DuplicateDeviceIDs(t *testing.T) {
+func TestUnitActionUpdateWindowsDeviceAccount_10_DuplicateDeviceIDs(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()

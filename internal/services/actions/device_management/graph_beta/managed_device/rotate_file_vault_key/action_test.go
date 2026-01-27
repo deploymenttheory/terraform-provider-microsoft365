@@ -20,7 +20,7 @@ func loadUnitTestTerraform(filename string) string {
 	return config
 }
 
-func TestRotateFileVaultKeyAction_Basic(t *testing.T) {
+func TestUnitActionRotateFileVaultKeyManagedDevice_01_Basic(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -44,7 +44,7 @@ func TestRotateFileVaultKeyAction_Basic(t *testing.T) {
 	})
 }
 
-func TestRotateFileVaultKeyAction_Maximal(t *testing.T) {
+func TestUnitActionRotateFileVaultKeyManagedDevice_02_Maximal(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -68,7 +68,7 @@ func TestRotateFileVaultKeyAction_Maximal(t *testing.T) {
 	})
 }
 
-func TestRotateFileVaultKeyAction_ComanagedOnly(t *testing.T) {
+func TestUnitActionRotateFileVaultKeyManagedDevice_03_ComanagedOnly(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -100,7 +100,7 @@ action "microsoft365_graph_beta_device_management_managed_device_rotate_file_vau
 	})
 }
 
-func TestRotateFileVaultKeyAction_PartialFailures(t *testing.T) {
+func TestUnitActionRotateFileVaultKeyManagedDevice_04_PartialFailures(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -133,7 +133,7 @@ action "microsoft365_graph_beta_device_management_managed_device_rotate_file_vau
 	})
 }
 
-func TestRotateFileVaultKeyAction_ValidationDisabled(t *testing.T) {
+func TestUnitActionRotateFileVaultKeyManagedDevice_05_ValidationDisabled(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -166,7 +166,7 @@ action "microsoft365_graph_beta_device_management_managed_device_rotate_file_vau
 	})
 }
 
-func TestRotateFileVaultKeyAction_ValidationEnabled(t *testing.T) {
+func TestUnitActionRotateFileVaultKeyManagedDevice_06_ValidationEnabled(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -199,7 +199,7 @@ action "microsoft365_graph_beta_device_management_managed_device_rotate_file_vau
 	})
 }
 
-func TestRotateFileVaultKeyAction_InvalidDeviceID(t *testing.T) {
+func TestUnitActionRotateFileVaultKeyManagedDevice_07_InvalidDeviceID(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -232,7 +232,7 @@ action "microsoft365_graph_beta_device_management_managed_device_rotate_file_vau
 	})
 }
 
-func TestRotateFileVaultKeyAction_NoDevices(t *testing.T) {
+func TestUnitActionRotateFileVaultKeyManagedDevice_08_NoDevices(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -261,7 +261,7 @@ action "microsoft365_graph_beta_device_management_managed_device_rotate_file_vau
 	})
 }
 
-func TestRotateFileVaultKeyAction_DuplicateDeviceIDs(t *testing.T) {
+func TestUnitActionRotateFileVaultKeyManagedDevice_09_DuplicateDeviceIDs(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -294,7 +294,7 @@ action "microsoft365_graph_beta_device_management_managed_device_rotate_file_vau
 	})
 }
 
-func TestRotateFileVaultKeyAction_MultipleDevices(t *testing.T) {
+func TestUnitActionRotateFileVaultKeyManagedDevice_10_MultipleDevices(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()

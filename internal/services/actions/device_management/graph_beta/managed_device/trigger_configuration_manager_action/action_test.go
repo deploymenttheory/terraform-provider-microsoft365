@@ -20,7 +20,7 @@ func loadUnitTestTerraform(filename string) string {
 	return config
 }
 
-func TestTriggerConfigurationManagerAction_Basic(t *testing.T) {
+func TestUnitActionTriggerConfigurationManagerActionManagedDevice_01_Basic(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -44,7 +44,7 @@ func TestTriggerConfigurationManagerAction_Basic(t *testing.T) {
 	})
 }
 
-func TestTriggerConfigurationManagerAction_Maximal(t *testing.T) {
+func TestUnitActionTriggerConfigurationManagerActionManagedDevice_02_Maximal(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -68,7 +68,7 @@ func TestTriggerConfigurationManagerAction_Maximal(t *testing.T) {
 	})
 }
 
-func TestTriggerConfigurationManagerAction_ComanagedOnly(t *testing.T) {
+func TestUnitActionTriggerConfigurationManagerActionManagedDevice_03_ComanagedOnly(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -103,7 +103,7 @@ action "microsoft365_graph_beta_device_management_managed_device_trigger_configu
 	})
 }
 
-func TestTriggerConfigurationManagerAction_AllActions(t *testing.T) {
+func TestUnitActionTriggerConfigurationManagerActionManagedDevice_04_AllActions(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -162,7 +162,7 @@ action "microsoft365_graph_beta_device_management_managed_device_trigger_configu
 	})
 }
 
-func TestTriggerConfigurationManagerAction_PartialFailures(t *testing.T) {
+func TestUnitActionTriggerConfigurationManagerActionManagedDevice_05_PartialFailures(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -198,7 +198,7 @@ action "microsoft365_graph_beta_device_management_managed_device_trigger_configu
 	})
 }
 
-func TestTriggerConfigurationManagerAction_ValidationDisabled(t *testing.T) {
+func TestUnitActionTriggerConfigurationManagerActionManagedDevice_06_ValidationDisabled(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -234,7 +234,7 @@ action "microsoft365_graph_beta_device_management_managed_device_trigger_configu
 	})
 }
 
-func TestTriggerConfigurationManagerAction_ValidationEnabled(t *testing.T) {
+func TestUnitActionTriggerConfigurationManagerActionManagedDevice_07_ValidationEnabled(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -270,7 +270,7 @@ action "microsoft365_graph_beta_device_management_managed_device_trigger_configu
 	})
 }
 
-func TestTriggerConfigurationManagerAction_InvalidDeviceID(t *testing.T) {
+func TestUnitActionTriggerConfigurationManagerActionManagedDevice_08_InvalidDeviceID(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -306,7 +306,7 @@ action "microsoft365_graph_beta_device_management_managed_device_trigger_configu
 	})
 }
 
-func TestTriggerConfigurationManagerAction_InvalidAction(t *testing.T) {
+func TestUnitActionTriggerConfigurationManagerActionManagedDevice_09_InvalidAction(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -342,7 +342,7 @@ action "microsoft365_graph_beta_device_management_managed_device_trigger_configu
 	})
 }
 
-func TestTriggerConfigurationManagerAction_NoDevices(t *testing.T) {
+func TestUnitActionTriggerConfigurationManagerActionManagedDevice_10_NoDevices(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -371,7 +371,7 @@ action "microsoft365_graph_beta_device_management_managed_device_trigger_configu
 	})
 }
 
-func TestTriggerConfigurationManagerAction_DuplicateDeviceIDs(t *testing.T) {
+func TestUnitActionTriggerConfigurationManagerActionManagedDevice_11_DuplicateDeviceIDs(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()

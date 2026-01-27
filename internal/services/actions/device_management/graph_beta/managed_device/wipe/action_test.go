@@ -20,7 +20,7 @@ func loadUnitTestTerraform(filename string) string {
 	return config
 }
 
-func TestWipeManagedDeviceAction_Basic(t *testing.T) {
+func TestUnitActionWipeManagedDevice_01_Basic(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -44,7 +44,7 @@ func TestWipeManagedDeviceAction_Basic(t *testing.T) {
 	})
 }
 
-func TestWipeManagedDeviceAction_Maximal(t *testing.T) {
+func TestUnitActionWipeManagedDevice_02_Maximal(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -68,7 +68,7 @@ func TestWipeManagedDeviceAction_Maximal(t *testing.T) {
 	})
 }
 
-func TestWipeManagedDeviceAction_NoDevices(t *testing.T) {
+func TestUnitActionWipeManagedDevice_03_NoDevices(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -99,7 +99,7 @@ action "microsoft365_graph_beta_device_management_managed_device_wipe" "no_devic
 	})
 }
 
-func TestWipeManagedDeviceAction_InvalidDeviceID(t *testing.T) {
+func TestUnitActionWipeManagedDevice_04_InvalidDeviceID(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -130,7 +130,7 @@ action "microsoft365_graph_beta_device_management_managed_device_wipe" "invalid_
 	})
 }
 
-func TestWipeManagedDeviceAction_InvalidMacOSUnlockCode(t *testing.T) {
+func TestUnitActionWipeManagedDevice_05_InvalidMacOSUnlockCode(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()

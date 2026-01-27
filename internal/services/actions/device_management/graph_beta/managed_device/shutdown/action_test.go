@@ -20,7 +20,7 @@ func loadUnitTestTerraform(filename string) string {
 	return config
 }
 
-func TestShutdownAction_Basic(t *testing.T) {
+func TestUnitActionShutdownManagedDevice_01_Basic(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -44,7 +44,7 @@ func TestShutdownAction_Basic(t *testing.T) {
 	})
 }
 
-func TestShutdownAction_Maximal(t *testing.T) {
+func TestUnitActionShutdownManagedDevice_02_Maximal(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -68,7 +68,7 @@ func TestShutdownAction_Maximal(t *testing.T) {
 	})
 }
 
-func TestShutdownAction_PartialFailures(t *testing.T) {
+func TestUnitActionShutdownManagedDevice_03_PartialFailures(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -101,7 +101,7 @@ action "microsoft365_graph_beta_device_management_managed_device_shutdown" "part
 	})
 }
 
-func TestShutdownAction_ValidationDisabled(t *testing.T) {
+func TestUnitActionShutdownManagedDevice_04_ValidationDisabled(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -134,7 +134,7 @@ action "microsoft365_graph_beta_device_management_managed_device_shutdown" "vali
 	})
 }
 
-func TestShutdownAction_ValidationEnabled(t *testing.T) {
+func TestUnitActionShutdownManagedDevice_05_ValidationEnabled(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -167,7 +167,7 @@ action "microsoft365_graph_beta_device_management_managed_device_shutdown" "vali
 	})
 }
 
-func TestShutdownAction_InvalidDeviceID(t *testing.T) {
+func TestUnitActionShutdownManagedDevice_06_InvalidDeviceID(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -200,7 +200,7 @@ action "microsoft365_graph_beta_device_management_managed_device_shutdown" "inva
 	})
 }
 
-func TestShutdownAction_EmptyDeviceList(t *testing.T) {
+func TestUnitActionShutdownManagedDevice_07_EmptyDeviceList(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -231,7 +231,7 @@ action "microsoft365_graph_beta_device_management_managed_device_shutdown" "empt
 	})
 }
 
-func TestShutdownAction_DuplicateDeviceIDs(t *testing.T) {
+func TestUnitActionShutdownManagedDevice_08_DuplicateDeviceIDs(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -264,7 +264,7 @@ action "microsoft365_graph_beta_device_management_managed_device_shutdown" "dupl
 	})
 }
 
-func TestShutdownAction_MultipleDevices(t *testing.T) {
+func TestUnitActionShutdownManagedDevice_09_MultipleDevices(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()

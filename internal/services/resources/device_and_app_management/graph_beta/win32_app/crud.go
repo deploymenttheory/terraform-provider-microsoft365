@@ -23,29 +23,19 @@ import (
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
-// Create handles the complete creation workflow for a macOS PKG app resource in Intune.
+// Create handles the Create operation for Win32 App resources.
 //
-// The function performs the following steps:
+// Operation: Creates a new Win32 application with content file upload workflow
+// API Calls:
+//   - POST /deviceAppManagement/mobileApps
+//   - POST /deviceAppManagement/mobileApps/{mobileAppId}/microsoft.graph.win32LobApp/contentVersions
+//   - POST /deviceAppManagement/mobileApps/{mobileAppId}/microsoft.graph.win32LobApp/contentVersions/{contentVersionId}/files
+//   - GET /deviceAppManagement/mobileApps/{mobileAppId}/microsoft.graph.win32LobApp/contentVersions/{contentVersionId}/files/{fileId}
+//   - POST /deviceAppManagement/mobileApps/{mobileAppId}/microsoft.graph.win32LobApp/contentVersions/{contentVersionId}/files/{fileId}/commit
+//   - PATCH /deviceAppManagement/mobileApps/{mobileAppId}
 //
-// 1. Reads the planned resource state from Terraform.
-// 2. Constructs and creates the base resource from the Terraform model.
-//
-// If a package installer file is provided, the workflow continues as follows:
-//
-//  3. Initializes a new content version.
-//  4. Encrypts the installer file locally (producing a .bin file) and constructs the file metadata,
-//     including file size, encrypted file size, and encryption metadata (keys, digest, IV, MAC, etc.).
-//  5. Creates a content file resource (with the metadata) in Graph API under the new content version.
-//  6. Waits (via a retry loop using GET) for the Graph API to generate a valid Azure Storage SAS URI for the content file.
-//  7. Retrieves the SAS URI and uploads the encrypted file (.bin) directly to Azure Blob Storage in chunks.
-//  8. Commits the file by sending a commit request (including the encryption metadata) to Graph API,
-//     and waits until the commit is confirmed.
-//  9. Updates the mobile app resource (via a PATCH call) to set its committedContentVersion, so that
-//     Intune uses the newly committed content file.
-//  10. Assigns any mobile app assignments to the mobile app
-//
-// Finally, if app assignments are provided, the function creates the assignments, and then
-// performs a final read of the resource state to verify successful creation.
+// Reference: https://learn.microsoft.com/en-us/graph/api/intune-apps-win32lobapp-create?view=graph-rest-beta
+// Note: Includes encrypted file upload to Azure Storage and content version management
 func (r *Win32LobAppResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var object Win32LobAppResourceModel
 
@@ -338,7 +328,13 @@ func (r *Win32LobAppResource) Create(ctx context.Context, req resource.CreateReq
 	tflog.Debug(ctx, fmt.Sprintf("Finished Create Method: %s", ResourceName))
 }
 
-// Read handles the Read operation.
+// Read handles the Read operation for Win32 App resources.
+//
+// Operation: Retrieves a Win32 application by ID
+// API Calls:
+//   - GET /deviceAppManagement/mobileApps/{mobileAppId}
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/intune-apps-win32lobapp-get?view=graph-rest-beta
 func (r *Win32LobAppResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var object Win32LobAppResourceModel
 
@@ -453,7 +449,13 @@ func (r *Win32LobAppResource) Read(ctx context.Context, req resource.ReadRequest
 	tflog.Debug(ctx, fmt.Sprintf("Finished Read Method: %s", ResourceName))
 }
 
-// Update handles the Update operation.
+// Update handles the Update operation for Win32 App resources.
+//
+// Operation: Updates an existing Win32 application
+// API Calls:
+//   - PATCH /deviceAppManagement/mobileApps/{mobileAppId}
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/intune-apps-win32lobapp-update?view=graph-rest-beta
 func (r *Win32LobAppResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var plan, state Win32LobAppResourceModel
 	var installerSourcePath string
@@ -573,7 +575,13 @@ func (r *Win32LobAppResource) Update(ctx context.Context, req resource.UpdateReq
 	tflog.Debug(ctx, fmt.Sprintf("Finished updating %s with ID: %s", ResourceName, state.ID.ValueString()))
 }
 
-// Delete handles the Delete operation.
+// Delete handles the Delete operation for Win32 App resources.
+//
+// Operation: Deletes a Win32 application
+// API Calls:
+//   - DELETE /deviceAppManagement/mobileApps/{mobileAppId}
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/intune-apps-win32lobapp-delete?view=graph-rest-beta
 func (r *Win32LobAppResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var object Win32LobAppResourceModel
 

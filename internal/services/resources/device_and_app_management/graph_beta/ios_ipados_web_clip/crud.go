@@ -16,7 +16,13 @@ import (
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
-// Create handles the creation workflow for an iOS Web Clip resource in Intune.
+// Create handles the Create operation for iOS/iPadOS Web Clip resources.
+//
+// Operation: Creates a new iOS/iPadOS web clip application
+// API Calls:
+//   - POST /deviceAppManagement/mobileApps
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/intune-apps-iosipadoswebclip-create?view=graph-rest-beta
 func (r *IOSiPadOSWebClipResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var object IOSiPadOSWebClipResourceModel
 
@@ -95,7 +101,13 @@ func (r *IOSiPadOSWebClipResource) Create(ctx context.Context, req resource.Crea
 	tflog.Debug(ctx, fmt.Sprintf("Finished Create Method: %s", ResourceName))
 }
 
-// Read retrieves the current state of an iOS Web Clip resource from Intune.
+// Read handles the Read operation for iOS/iPadOS Web Clip resources.
+//
+// Operation: Retrieves an iOS/iPadOS web clip application by ID
+// API Calls:
+//   - GET /deviceAppManagement/mobileApps/{mobileAppId}
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/intune-apps-iosipadoswebclip-get?view=graph-rest-beta
 func (r *IOSiPadOSWebClipResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var object IOSiPadOSWebClipResourceModel
 
@@ -161,7 +173,13 @@ func (r *IOSiPadOSWebClipResource) Read(ctx context.Context, req resource.ReadRe
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 }
 
-// Update modifies an existing iOS Web Clip resource in Intune.
+// Update handles the Update operation for iOS/iPadOS Web Clip resources.
+//
+// Operation: Updates an existing iOS/iPadOS web clip application
+// API Calls:
+//   - PATCH /deviceAppManagement/mobileApps/{mobileAppId}
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/intune-apps-iosipadoswebclip-update?view=graph-rest-beta
 func (r *IOSiPadOSWebClipResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var plan, state IOSiPadOSWebClipResourceModel
 
@@ -231,7 +249,13 @@ func (r *IOSiPadOSWebClipResource) Update(ctx context.Context, req resource.Upda
 	tflog.Debug(ctx, fmt.Sprintf("Finished Update Method: %s", ResourceName))
 }
 
-// Delete removes an iOS Web Clip resource from Intune.
+// Delete handles the Delete operation for iOS/iPadOS Web Clip resources.
+//
+// Operation: Deletes an iOS/iPadOS web clip application
+// API Calls:
+//   - DELETE /deviceAppManagement/mobileApps/{mobileAppId}
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/intune-apps-iosipadoswebclip-delete?view=graph-rest-beta
 func (r *IOSiPadOSWebClipResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var object IOSiPadOSWebClipResourceModel
 

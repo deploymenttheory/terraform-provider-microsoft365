@@ -20,7 +20,7 @@ func loadUnitTestTerraform(filename string) string {
 	return config
 }
 
-func TestRevokeAppleVppLicensesAction_Basic(t *testing.T) {
+func TestUnitActionRevokeAppleVppLicenses_01_Basic(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -44,7 +44,7 @@ func TestRevokeAppleVppLicensesAction_Basic(t *testing.T) {
 	})
 }
 
-func TestRevokeAppleVppLicensesAction_Maximal(t *testing.T) {
+func TestUnitActionRevokeAppleVppLicenses_02_Maximal(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -68,7 +68,7 @@ func TestRevokeAppleVppLicensesAction_Maximal(t *testing.T) {
 	})
 }
 
-func TestRevokeAppleVppLicensesAction_ComanagedOnly(t *testing.T) {
+func TestUnitActionRevokeAppleVppLicenses_03_ComanagedOnly(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -100,7 +100,7 @@ action "microsoft365_graph_beta_device_management_managed_device_revoke_apple_vp
 	})
 }
 
-func TestRevokeAppleVppLicensesAction_PartialFailures(t *testing.T) {
+func TestUnitActionRevokeAppleVppLicenses_04_PartialFailures(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -133,7 +133,7 @@ action "microsoft365_graph_beta_device_management_managed_device_revoke_apple_vp
 	})
 }
 
-func TestRevokeAppleVppLicensesAction_ValidationDisabled(t *testing.T) {
+func TestUnitActionRevokeAppleVppLicenses_05_ValidationDisabled(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -166,7 +166,7 @@ action "microsoft365_graph_beta_device_management_managed_device_revoke_apple_vp
 	})
 }
 
-func TestRevokeAppleVppLicensesAction_ValidationEnabled(t *testing.T) {
+func TestUnitActionRevokeAppleVppLicenses_06_ValidationEnabled(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -199,7 +199,7 @@ action "microsoft365_graph_beta_device_management_managed_device_revoke_apple_vp
 	})
 }
 
-func TestRevokeAppleVppLicensesAction_InvalidDeviceID(t *testing.T) {
+func TestUnitActionRevokeAppleVppLicenses_07_InvalidDeviceID(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -232,7 +232,7 @@ action "microsoft365_graph_beta_device_management_managed_device_revoke_apple_vp
 	})
 }
 
-func TestRevokeAppleVppLicensesAction_NoDevices(t *testing.T) {
+func TestUnitActionRevokeAppleVppLicenses_08_NoDevices(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -261,7 +261,7 @@ action "microsoft365_graph_beta_device_management_managed_device_revoke_apple_vp
 	})
 }
 
-func TestRevokeAppleVppLicensesAction_DuplicateDeviceIDs(t *testing.T) {
+func TestUnitActionRevokeAppleVppLicenses_09_DuplicateDeviceIDs(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -294,7 +294,7 @@ action "microsoft365_graph_beta_device_management_managed_device_revoke_apple_vp
 	})
 }
 
-func TestRevokeAppleVppLicensesAction_MultipleDevices(t *testing.T) {
+func TestUnitActionRevokeAppleVppLicenses_10_MultipleDevices(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()

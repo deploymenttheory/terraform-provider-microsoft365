@@ -22,7 +22,7 @@ func loadUnitTestTerraform(filename string) string {
 }
 
 // TestCleanWindowsDeviceAction_Basic tests basic Windows device clean
-func TestCleanWindowsDeviceAction_Basic(t *testing.T) {
+func TestUnitActionCleanWindowsManagedDevice_01_Basic(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -51,7 +51,7 @@ func TestCleanWindowsDeviceAction_Basic(t *testing.T) {
 }
 
 // TestCleanWindowsDeviceAction_ConfigValidation tests configuration validation
-func TestCleanWindowsDeviceAction_ConfigValidation(t *testing.T) {
+func TestUnitActionCleanWindowsManagedDevice_02_ConfigValidation(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 
 	resource.UnitTest(t, resource.TestCase{
@@ -80,7 +80,7 @@ action "microsoft365_graph_beta_device_management_managed_device_clean_windows_d
 }
 
 // TestCleanWindowsDeviceAction_Maximal tests action with all features enabled
-func TestCleanWindowsDeviceAction_Maximal(t *testing.T) {
+func TestUnitActionCleanWindowsManagedDevice_03_Maximal(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -105,7 +105,7 @@ func TestCleanWindowsDeviceAction_Maximal(t *testing.T) {
 }
 
 // TestCleanWindowsDeviceAction_ComanagedOnly tests co-managed devices only
-func TestCleanWindowsDeviceAction_ComanagedOnly(t *testing.T) {
+func TestUnitActionCleanWindowsManagedDevice_04_ComanagedOnly(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -141,7 +141,7 @@ action "microsoft365_graph_beta_device_management_managed_device_clean_windows_d
 }
 
 // TestCleanWindowsDeviceAction_KeepUserData tests keep_user_data flag
-func TestCleanWindowsDeviceAction_KeepUserData(t *testing.T) {
+func TestUnitActionCleanWindowsManagedDevice_05_KeepUserData(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -177,7 +177,7 @@ action "microsoft365_graph_beta_device_management_managed_device_clean_windows_d
 }
 
 // TestCleanWindowsDeviceAction_IgnorePartialFailures tests ignore_partial_failures flag
-func TestCleanWindowsDeviceAction_IgnorePartialFailures(t *testing.T) {
+func TestUnitActionCleanWindowsManagedDevice_06_IgnorePartialFailures(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -214,7 +214,7 @@ action "microsoft365_graph_beta_device_management_managed_device_clean_windows_d
 }
 
 // TestCleanWindowsDeviceAction_DisableValidation tests validate_device_exists = false
-func TestCleanWindowsDeviceAction_DisableValidation(t *testing.T) {
+func TestUnitActionCleanWindowsManagedDevice_07_DisableValidation(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -251,7 +251,7 @@ action "microsoft365_graph_beta_device_management_managed_device_clean_windows_d
 }
 
 // TestCleanWindowsDeviceAction_CustomTimeout tests custom timeout configuration
-func TestCleanWindowsDeviceAction_CustomTimeout(t *testing.T) {
+func TestUnitActionCleanWindowsManagedDevice_08_CustomTimeout(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -290,7 +290,7 @@ action "microsoft365_graph_beta_device_management_managed_device_clean_windows_d
 }
 
 // TestCleanWindowsDeviceAction_InvalidGUID tests validation for invalid GUID format
-func TestCleanWindowsDeviceAction_InvalidGUID(t *testing.T) {
+func TestUnitActionCleanWindowsManagedDevice_09_InvalidGUID(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 
 	resource.UnitTest(t, resource.TestCase{
@@ -319,7 +319,7 @@ action "microsoft365_graph_beta_device_management_managed_device_clean_windows_d
 }
 
 // TestCleanWindowsDeviceAction_NoDevices tests validation requiring at least one device
-func TestCleanWindowsDeviceAction_NoDevices(t *testing.T) {
+func TestUnitActionCleanWindowsManagedDevice_10_NoDevices(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 
 	resource.UnitTest(t, resource.TestCase{
@@ -345,7 +345,7 @@ action "microsoft365_graph_beta_device_management_managed_device_clean_windows_d
 }
 
 // TestCleanWindowsDeviceAction_EmptyDeviceLists tests validation for empty device lists
-func TestCleanWindowsDeviceAction_EmptyDeviceLists(t *testing.T) {
+func TestUnitActionCleanWindowsManagedDevice_11_EmptyDeviceLists(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 
 	resource.UnitTest(t, resource.TestCase{
@@ -370,7 +370,7 @@ action "microsoft365_graph_beta_device_management_managed_device_clean_windows_d
 }
 
 // TestCleanWindowsDeviceAction_MissingKeepUserData tests validation requiring keep_user_data
-func TestCleanWindowsDeviceAction_MissingKeepUserData(t *testing.T) {
+func TestUnitActionCleanWindowsManagedDevice_12_MissingKeepUserData(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 
 	resource.UnitTest(t, resource.TestCase{

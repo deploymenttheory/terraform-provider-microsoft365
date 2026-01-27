@@ -22,7 +22,7 @@ func loadUnitTestTerraform(filename string) string {
 }
 
 // TestDisableLostModeManagedDeviceAction_Basic tests basic lost mode disable
-func TestDisableLostModeManagedDeviceAction_Basic(t *testing.T) {
+func TestUnitActionDisableLostModeManagedDevice_01_Basic(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -47,7 +47,7 @@ func TestDisableLostModeManagedDeviceAction_Basic(t *testing.T) {
 }
 
 // TestDisableLostModeManagedDeviceAction_ConfigValidation tests configuration validation
-func TestDisableLostModeManagedDeviceAction_ConfigValidation(t *testing.T) {
+func TestUnitActionDisableLostModeManagedDevice_02_ConfigValidation(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 
 	resource.UnitTest(t, resource.TestCase{
@@ -70,7 +70,7 @@ action "microsoft365_graph_beta_device_management_managed_device_disable_lost_mo
 }
 
 // TestDisableLostModeManagedDeviceAction_Maximal tests action with all features enabled
-func TestDisableLostModeManagedDeviceAction_Maximal(t *testing.T) {
+func TestUnitActionDisableLostModeManagedDevice_03_Maximal(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -95,7 +95,7 @@ func TestDisableLostModeManagedDeviceAction_Maximal(t *testing.T) {
 }
 
 // TestDisableLostModeManagedDeviceAction_ComanagedOnly tests co-managed devices only
-func TestDisableLostModeManagedDeviceAction_ComanagedOnly(t *testing.T) {
+func TestUnitActionDisableLostModeManagedDevice_04_ComanagedOnly(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -126,7 +126,7 @@ action "microsoft365_graph_beta_device_management_managed_device_disable_lost_mo
 }
 
 // TestDisableLostModeManagedDeviceAction_IgnorePartialFailures tests ignore_partial_failures flag
-func TestDisableLostModeManagedDeviceAction_IgnorePartialFailures(t *testing.T) {
+func TestUnitActionDisableLostModeManagedDevice_05_IgnorePartialFailures(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -158,7 +158,7 @@ action "microsoft365_graph_beta_device_management_managed_device_disable_lost_mo
 }
 
 // TestDisableLostModeManagedDeviceAction_DisableValidation tests validate_device_exists = false
-func TestDisableLostModeManagedDeviceAction_DisableValidation(t *testing.T) {
+func TestUnitActionDisableLostModeManagedDevice_06_DisableValidation(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -190,7 +190,7 @@ action "microsoft365_graph_beta_device_management_managed_device_disable_lost_mo
 }
 
 // TestDisableLostModeManagedDeviceAction_CustomTimeout tests custom timeout configuration
-func TestDisableLostModeManagedDeviceAction_CustomTimeout(t *testing.T) {
+func TestUnitActionDisableLostModeManagedDevice_07_CustomTimeout(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -224,7 +224,7 @@ action "microsoft365_graph_beta_device_management_managed_device_disable_lost_mo
 }
 
 // TestDisableLostModeManagedDeviceAction_InvalidGUID tests validation for invalid GUID format
-func TestDisableLostModeManagedDeviceAction_InvalidGUID(t *testing.T) {
+func TestUnitActionDisableLostModeManagedDevice_08_InvalidGUID(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 
 	resource.UnitTest(t, resource.TestCase{
@@ -248,7 +248,7 @@ action "microsoft365_graph_beta_device_management_managed_device_disable_lost_mo
 }
 
 // TestDisableLostModeManagedDeviceAction_NoDevices tests validation requiring at least one device
-func TestDisableLostModeManagedDeviceAction_NoDevices(t *testing.T) {
+func TestUnitActionDisableLostModeManagedDevice_09_NoDevices(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 
 	resource.UnitTest(t, resource.TestCase{
@@ -274,7 +274,7 @@ action "microsoft365_graph_beta_device_management_managed_device_disable_lost_mo
 }
 
 // TestDisableLostModeManagedDeviceAction_EmptyDeviceLists tests validation for empty device lists
-func TestDisableLostModeManagedDeviceAction_EmptyDeviceLists(t *testing.T) {
+func TestUnitActionDisableLostModeManagedDevice_10_EmptyDeviceLists(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 
 	resource.UnitTest(t, resource.TestCase{

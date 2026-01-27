@@ -22,7 +22,7 @@ func loadUnitTestTerraform(filename string) string {
 }
 
 // TestDeprovisionManagedDeviceAction_Basic tests basic device deprovision
-func TestDeprovisionManagedDeviceAction_Basic(t *testing.T) {
+func TestUnitActionDeprovisionManagedDevice_01_Basic(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -47,7 +47,7 @@ func TestDeprovisionManagedDeviceAction_Basic(t *testing.T) {
 }
 
 // TestDeprovisionManagedDeviceAction_ConfigValidation tests configuration validation
-func TestDeprovisionManagedDeviceAction_ConfigValidation(t *testing.T) {
+func TestUnitActionDeprovisionManagedDevice_02_ConfigValidation(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 
 	resource.UnitTest(t, resource.TestCase{
@@ -75,7 +75,7 @@ action "microsoft365_graph_beta_device_management_managed_device_deprovision" "t
 }
 
 // TestDeprovisionManagedDeviceAction_Maximal tests action with all features enabled
-func TestDeprovisionManagedDeviceAction_Maximal(t *testing.T) {
+func TestUnitActionDeprovisionManagedDevice_03_Maximal(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -100,7 +100,7 @@ func TestDeprovisionManagedDeviceAction_Maximal(t *testing.T) {
 }
 
 // TestDeprovisionManagedDeviceAction_ComanagedOnly tests co-managed devices only
-func TestDeprovisionManagedDeviceAction_ComanagedOnly(t *testing.T) {
+func TestUnitActionDeprovisionManagedDevice_04_ComanagedOnly(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -136,7 +136,7 @@ action "microsoft365_graph_beta_device_management_managed_device_deprovision" "t
 }
 
 // TestDeprovisionManagedDeviceAction_IgnorePartialFailures tests ignore_partial_failures flag
-func TestDeprovisionManagedDeviceAction_IgnorePartialFailures(t *testing.T) {
+func TestUnitActionDeprovisionManagedDevice_05_IgnorePartialFailures(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -173,7 +173,7 @@ action "microsoft365_graph_beta_device_management_managed_device_deprovision" "t
 }
 
 // TestDeprovisionManagedDeviceAction_DisableValidation tests validate_device_exists = false
-func TestDeprovisionManagedDeviceAction_DisableValidation(t *testing.T) {
+func TestUnitActionDeprovisionManagedDevice_06_DisableValidation(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -210,7 +210,7 @@ action "microsoft365_graph_beta_device_management_managed_device_deprovision" "t
 }
 
 // TestDeprovisionManagedDeviceAction_CustomTimeout tests custom timeout configuration
-func TestDeprovisionManagedDeviceAction_CustomTimeout(t *testing.T) {
+func TestUnitActionDeprovisionManagedDevice_07_CustomTimeout(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -249,7 +249,7 @@ action "microsoft365_graph_beta_device_management_managed_device_deprovision" "t
 }
 
 // TestDeprovisionManagedDeviceAction_InvalidGUID tests validation for invalid GUID format
-func TestDeprovisionManagedDeviceAction_InvalidGUID(t *testing.T) {
+func TestUnitActionDeprovisionManagedDevice_08_InvalidGUID(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 
 	resource.UnitTest(t, resource.TestCase{
@@ -278,7 +278,7 @@ action "microsoft365_graph_beta_device_management_managed_device_deprovision" "t
 }
 
 // TestDeprovisionManagedDeviceAction_NoDevices tests validation requiring at least one device
-func TestDeprovisionManagedDeviceAction_NoDevices(t *testing.T) {
+func TestUnitActionDeprovisionManagedDevice_09_NoDevices(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 
 	resource.UnitTest(t, resource.TestCase{
@@ -304,7 +304,7 @@ action "microsoft365_graph_beta_device_management_managed_device_deprovision" "t
 }
 
 // TestDeprovisionManagedDeviceAction_EmptyDeviceLists tests validation for empty device lists
-func TestDeprovisionManagedDeviceAction_EmptyDeviceLists(t *testing.T) {
+func TestUnitActionDeprovisionManagedDevice_10_EmptyDeviceLists(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 
 	resource.UnitTest(t, resource.TestCase{
@@ -329,7 +329,7 @@ action "microsoft365_graph_beta_device_management_managed_device_deprovision" "t
 }
 
 // TestDeprovisionManagedDeviceAction_MissingDeprovisionReason tests validation for missing deprovision reason
-func TestDeprovisionManagedDeviceAction_MissingDeprovisionReason(t *testing.T) {
+func TestUnitActionDeprovisionManagedDevice_11_MissingDeprovisionReason(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 
 	resource.UnitTest(t, resource.TestCase{

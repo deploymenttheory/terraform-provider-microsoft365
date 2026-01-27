@@ -22,7 +22,7 @@ func loadUnitTestTerraform(filename string) string {
 }
 
 // TestDeleteUserFromSharedAppleDeviceAction_Basic tests basic user deletion
-func TestDeleteUserFromSharedAppleDeviceAction_Basic(t *testing.T) {
+func TestUnitActionDeleteUserFromSharedAppleDevice_01_Basic(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -47,7 +47,7 @@ func TestDeleteUserFromSharedAppleDeviceAction_Basic(t *testing.T) {
 }
 
 // TestDeleteUserFromSharedAppleDeviceAction_ConfigValidation tests configuration validation
-func TestDeleteUserFromSharedAppleDeviceAction_ConfigValidation(t *testing.T) {
+func TestUnitActionDeleteUserFromSharedAppleDevice_02_ConfigValidation(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 
 	resource.UnitTest(t, resource.TestCase{
@@ -75,7 +75,7 @@ action "microsoft365_graph_beta_device_management_managed_device_delete_user_fro
 }
 
 // TestDeleteUserFromSharedAppleDeviceAction_Maximal tests action with all features enabled
-func TestDeleteUserFromSharedAppleDeviceAction_Maximal(t *testing.T) {
+func TestUnitActionDeleteUserFromSharedAppleDevice_03_Maximal(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -100,7 +100,7 @@ func TestDeleteUserFromSharedAppleDeviceAction_Maximal(t *testing.T) {
 }
 
 // TestDeleteUserFromSharedAppleDeviceAction_ComanagedOnly tests co-managed devices only
-func TestDeleteUserFromSharedAppleDeviceAction_ComanagedOnly(t *testing.T) {
+func TestUnitActionDeleteUserFromSharedAppleDevice_04_ComanagedOnly(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -136,7 +136,7 @@ action "microsoft365_graph_beta_device_management_managed_device_delete_user_fro
 }
 
 // TestDeleteUserFromSharedAppleDeviceAction_IgnorePartialFailures tests ignore_partial_failures flag
-func TestDeleteUserFromSharedAppleDeviceAction_IgnorePartialFailures(t *testing.T) {
+func TestUnitActionDeleteUserFromSharedAppleDevice_05_IgnorePartialFailures(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -173,7 +173,7 @@ action "microsoft365_graph_beta_device_management_managed_device_delete_user_fro
 }
 
 // TestDeleteUserFromSharedAppleDeviceAction_DisableValidation tests validate_device_exists = false
-func TestDeleteUserFromSharedAppleDeviceAction_DisableValidation(t *testing.T) {
+func TestUnitActionDeleteUserFromSharedAppleDevice_06_DisableValidation(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -210,7 +210,7 @@ action "microsoft365_graph_beta_device_management_managed_device_delete_user_fro
 }
 
 // TestDeleteUserFromSharedAppleDeviceAction_CustomTimeout tests custom timeout configuration
-func TestDeleteUserFromSharedAppleDeviceAction_CustomTimeout(t *testing.T) {
+func TestUnitActionDeleteUserFromSharedAppleDevice_07_CustomTimeout(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -249,7 +249,7 @@ action "microsoft365_graph_beta_device_management_managed_device_delete_user_fro
 }
 
 // TestDeleteUserFromSharedAppleDeviceAction_InvalidGUID tests validation for invalid GUID format
-func TestDeleteUserFromSharedAppleDeviceAction_InvalidGUID(t *testing.T) {
+func TestUnitActionDeleteUserFromSharedAppleDevice_08_InvalidGUID(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 
 	resource.UnitTest(t, resource.TestCase{
@@ -278,7 +278,7 @@ action "microsoft365_graph_beta_device_management_managed_device_delete_user_fro
 }
 
 // TestDeleteUserFromSharedAppleDeviceAction_NoDevices tests validation requiring at least one device
-func TestDeleteUserFromSharedAppleDeviceAction_NoDevices(t *testing.T) {
+func TestUnitActionDeleteUserFromSharedAppleDevice_09_NoDevices(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 
 	resource.UnitTest(t, resource.TestCase{
@@ -304,7 +304,7 @@ action "microsoft365_graph_beta_device_management_managed_device_delete_user_fro
 }
 
 // TestDeleteUserFromSharedAppleDeviceAction_EmptyDeviceLists tests validation for empty device lists
-func TestDeleteUserFromSharedAppleDeviceAction_EmptyDeviceLists(t *testing.T) {
+func TestUnitActionDeleteUserFromSharedAppleDevice_10_EmptyDeviceLists(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 
 	resource.UnitTest(t, resource.TestCase{

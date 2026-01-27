@@ -20,7 +20,7 @@ func loadUnitTestTerraform(filename string) string {
 	return config
 }
 
-func TestSyncDeviceAction_Basic(t *testing.T) {
+func TestUnitActionSyncManagedDevice_01_Basic(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -44,7 +44,7 @@ func TestSyncDeviceAction_Basic(t *testing.T) {
 	})
 }
 
-func TestSyncDeviceAction_Maximal(t *testing.T) {
+func TestUnitActionSyncManagedDevice_02_Maximal(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -68,7 +68,7 @@ func TestSyncDeviceAction_Maximal(t *testing.T) {
 	})
 }
 
-func TestSyncDeviceAction_ComanagedOnly(t *testing.T) {
+func TestUnitActionSyncManagedDevice_03_ComanagedOnly(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -100,7 +100,7 @@ action "microsoft365_graph_beta_device_management_managed_device_sync_device" "c
 	})
 }
 
-func TestSyncDeviceAction_PartialFailures(t *testing.T) {
+func TestUnitActionSyncManagedDevice_04_PartialFailures(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -133,7 +133,7 @@ action "microsoft365_graph_beta_device_management_managed_device_sync_device" "p
 	})
 }
 
-func TestSyncDeviceAction_ValidationDisabled(t *testing.T) {
+func TestUnitActionSyncManagedDevice_05_ValidationDisabled(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -166,7 +166,7 @@ action "microsoft365_graph_beta_device_management_managed_device_sync_device" "v
 	})
 }
 
-func TestSyncDeviceAction_ValidationEnabled(t *testing.T) {
+func TestUnitActionSyncManagedDevice_06_ValidationEnabled(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -199,7 +199,7 @@ action "microsoft365_graph_beta_device_management_managed_device_sync_device" "v
 	})
 }
 
-func TestSyncDeviceAction_InvalidDeviceID(t *testing.T) {
+func TestUnitActionSyncManagedDevice_07_InvalidDeviceID(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -232,7 +232,7 @@ action "microsoft365_graph_beta_device_management_managed_device_sync_device" "i
 	})
 }
 
-func TestSyncDeviceAction_NoDevices(t *testing.T) {
+func TestUnitActionSyncManagedDevice_08_NoDevices(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -261,7 +261,7 @@ action "microsoft365_graph_beta_device_management_managed_device_sync_device" "n
 	})
 }
 
-func TestSyncDeviceAction_DuplicateDeviceIDs(t *testing.T) {
+func TestUnitActionSyncManagedDevice_09_DuplicateDeviceIDs(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -294,7 +294,7 @@ action "microsoft365_graph_beta_device_management_managed_device_sync_device" "d
 	})
 }
 
-func TestSyncDeviceAction_MultipleDevices(t *testing.T) {
+func TestUnitActionSyncDevice_10_MultipleDevices(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()

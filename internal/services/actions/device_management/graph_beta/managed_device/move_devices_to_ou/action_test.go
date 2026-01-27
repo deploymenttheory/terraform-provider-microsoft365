@@ -20,7 +20,7 @@ func loadUnitTestTerraform(filename string) string {
 	return config
 }
 
-func TestMoveDevicesToOUAction_Basic(t *testing.T) {
+func TestUnitActionMoveDevicesToOUManagedDevice_01_Basic(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -44,7 +44,7 @@ func TestMoveDevicesToOUAction_Basic(t *testing.T) {
 	})
 }
 
-func TestMoveDevicesToOUAction_Maximal(t *testing.T) {
+func TestUnitActionMoveDevicesToOUManagedDevice_02_Maximal(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -68,7 +68,7 @@ func TestMoveDevicesToOUAction_Maximal(t *testing.T) {
 	})
 }
 
-func TestMoveDevicesToOUAction_ComanagedOnly(t *testing.T) {
+func TestUnitActionMoveDevicesToOUManagedDevice_03_ComanagedOnly(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -99,7 +99,7 @@ action "microsoft365_graph_beta_device_management_managed_device_move_devices_to
 	})
 }
 
-func TestMoveDevicesToOUAction_PartialFailures(t *testing.T) {
+func TestUnitActionMoveDevicesToOUManagedDevice_04_PartialFailures(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -134,7 +134,7 @@ action "microsoft365_graph_beta_device_management_managed_device_move_devices_to
 	})
 }
 
-func TestMoveDevicesToOUAction_ValidationDisabled(t *testing.T) {
+func TestUnitActionMoveDevicesToOUManagedDevice_05_ValidationDisabled(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -166,7 +166,7 @@ action "microsoft365_graph_beta_device_management_managed_device_move_devices_to
 	})
 }
 
-func TestMoveDevicesToOUAction_ValidationEnabled(t *testing.T) {
+func TestUnitActionMoveDevicesToOUManagedDevice_06_ValidationEnabled(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -198,7 +198,7 @@ action "microsoft365_graph_beta_device_management_managed_device_move_devices_to
 	})
 }
 
-func TestMoveDevicesToOUAction_InvalidDeviceID(t *testing.T) {
+func TestUnitActionMoveDevicesToOUManagedDevice_07_InvalidDeviceID(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -230,7 +230,7 @@ action "microsoft365_graph_beta_device_management_managed_device_move_devices_to
 	})
 }
 
-func TestMoveDevicesToOUAction_InvalidOUPath(t *testing.T) {
+func TestUnitActionMoveDevicesToOUManagedDevice_08_InvalidOUPath(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -262,7 +262,7 @@ action "microsoft365_graph_beta_device_management_managed_device_move_devices_to
 	})
 }
 
-func TestMoveDevicesToOUAction_NoDevices(t *testing.T) {
+func TestUnitActionMoveDevicesToOUManagedDevice_09_NoDevices(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -293,7 +293,7 @@ action "microsoft365_graph_beta_device_management_managed_device_move_devices_to
 	})
 }
 
-func TestMoveDevicesToOUAction_DuplicateManagedDeviceIDs(t *testing.T) {
+func TestUnitActionMoveDevicesToOUManagedDevice_10_DuplicateManagedDeviceIDs(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -327,7 +327,7 @@ action "microsoft365_graph_beta_device_management_managed_device_move_devices_to
 	})
 }
 
-func TestMoveDevicesToOUAction_DuplicateComanagedDeviceIDs(t *testing.T) {
+func TestUnitActionMoveDevicesToOUManagedDevice_11_DuplicateComanagedDeviceIDs(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -361,7 +361,7 @@ action "microsoft365_graph_beta_device_management_managed_device_move_devices_to
 	})
 }
 
-func TestMoveDevicesToOUAction_MissingOUPath(t *testing.T) {
+func TestUnitActionMoveDevicesToOUManagedDevice_12_MissingOUPath(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()

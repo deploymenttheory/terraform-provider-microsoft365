@@ -20,7 +20,7 @@ func loadUnitTestTerraform(filename string) string {
 	return config
 }
 
-func TestPlayLostModeSoundAction_Basic(t *testing.T) {
+func TestUnitActionPlayLostModeSoundManagedDevice_01_Basic(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -68,7 +68,7 @@ func TestPlayLostModeSoundAction_Maximal(t *testing.T) {
 	})
 }
 
-func TestPlayLostModeSoundAction_ComanagedOnly(t *testing.T) {
+func TestUnitActionPlayLostModeSoundManagedDevice_03_ComanagedOnly(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -103,7 +103,7 @@ action "microsoft365_graph_beta_device_management_managed_device_play_lost_mode_
 	})
 }
 
-func TestPlayLostModeSoundAction_PartialFailures(t *testing.T) {
+func TestUnitActionPlayLostModeSoundManagedDevice_04_PartialFailures(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -138,7 +138,7 @@ action "microsoft365_graph_beta_device_management_managed_device_play_lost_mode_
 	})
 }
 
-func TestPlayLostModeSoundAction_ValidationDisabled(t *testing.T) {
+func TestUnitActionPlayLostModeSoundManagedDevice_05_ValidationDisabled(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -173,7 +173,7 @@ action "microsoft365_graph_beta_device_management_managed_device_play_lost_mode_
 	})
 }
 
-func TestPlayLostModeSoundAction_ValidationEnabled(t *testing.T) {
+func TestUnitActionPlayLostModeSoundManagedDevice_06_ValidationEnabled(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -208,7 +208,7 @@ action "microsoft365_graph_beta_device_management_managed_device_play_lost_mode_
 	})
 }
 
-func TestPlayLostModeSoundAction_InvalidDeviceID(t *testing.T) {
+func TestUnitActionPlayLostModeSoundManagedDevice_07_InvalidDeviceID(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -243,7 +243,7 @@ action "microsoft365_graph_beta_device_management_managed_device_play_lost_mode_
 	})
 }
 
-func TestPlayLostModeSoundAction_NoDevices(t *testing.T) {
+func TestUnitActionPlayLostModeSoundManagedDevice_08_NoDevices(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -272,7 +272,7 @@ action "microsoft365_graph_beta_device_management_managed_device_play_lost_mode_
 	})
 }
 
-func TestPlayLostModeSoundAction_DuplicateDeviceIDs(t *testing.T) {
+func TestUnitActionPlayLostModeSoundManagedDevice_09_DuplicateDeviceIDs(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -309,7 +309,7 @@ action "microsoft365_graph_beta_device_management_managed_device_play_lost_mode_
 	})
 }
 
-func TestPlayLostModeSoundAction_MultipleDevices(t *testing.T) {
+func TestUnitActionPlayLostModeSoundManagedDevice_10_MultipleDevices(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -352,7 +352,7 @@ action "microsoft365_graph_beta_device_management_managed_device_play_lost_mode_
 	})
 }
 
-func TestPlayLostModeSoundAction_WithDuration(t *testing.T) {
+func TestUnitActionPlayLostModeSoundManagedDevice_11_WithDuration(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()

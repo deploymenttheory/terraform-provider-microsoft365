@@ -20,7 +20,7 @@ func loadUnitTestTerraform(filename string) string {
 	return config
 }
 
-func TestWindowsDefenderUpdateSignaturesAction_Basic(t *testing.T) {
+func TestUnitActionWindowsDefenderUpdateSignatures_01_Basic(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -44,7 +44,7 @@ func TestWindowsDefenderUpdateSignaturesAction_Basic(t *testing.T) {
 	})
 }
 
-func TestWindowsDefenderUpdateSignaturesAction_Maximal(t *testing.T) {
+func TestUnitActionWindowsDefenderUpdateSignatures_02_Maximal(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -68,7 +68,7 @@ func TestWindowsDefenderUpdateSignaturesAction_Maximal(t *testing.T) {
 	})
 }
 
-func TestWindowsDefenderUpdateSignaturesAction_NoDevices(t *testing.T) {
+func TestUnitActionWindowsDefenderUpdateSignatures_03_NoDevices(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -97,7 +97,7 @@ action "microsoft365_graph_beta_device_management_managed_device_windows_defende
 	})
 }
 
-func TestWindowsDefenderUpdateSignaturesAction_InvalidDeviceID(t *testing.T) {
+func TestUnitActionWindowsDefenderUpdateSignatures_04_InvalidDeviceID(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()

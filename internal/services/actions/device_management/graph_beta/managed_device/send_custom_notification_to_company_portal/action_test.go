@@ -20,7 +20,7 @@ func loadUnitTestTerraform(filename string) string {
 	return config
 }
 
-func TestSendCustomNotificationAction_Basic(t *testing.T) {
+func TestUnitActionSendCustomNotificationToCompanyPortal_01_Basic(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -44,7 +44,7 @@ func TestSendCustomNotificationAction_Basic(t *testing.T) {
 	})
 }
 
-func TestSendCustomNotificationAction_Maximal(t *testing.T) {
+func TestUnitActionSendCustomNotificationToCompanyPortal_02_Maximal(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -68,7 +68,7 @@ func TestSendCustomNotificationAction_Maximal(t *testing.T) {
 	})
 }
 
-func TestSendCustomNotificationAction_ComanagedOnly(t *testing.T) {
+func TestUnitActionSendCustomNotificationToCompanyPortal_03_ComanagedOnly(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -104,7 +104,7 @@ action "microsoft365_graph_beta_device_management_managed_device_send_custom_not
 	})
 }
 
-func TestSendCustomNotificationAction_PartialFailures(t *testing.T) {
+func TestUnitActionSendCustomNotificationToCompanyPortal_04_PartialFailures(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -141,7 +141,7 @@ action "microsoft365_graph_beta_device_management_managed_device_send_custom_not
 	})
 }
 
-func TestSendCustomNotificationAction_ValidationDisabled(t *testing.T) {
+func TestUnitActionSendCustomNotificationToCompanyPortal_05_ValidationDisabled(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -178,7 +178,7 @@ action "microsoft365_graph_beta_device_management_managed_device_send_custom_not
 	})
 }
 
-func TestSendCustomNotificationAction_ValidationEnabled(t *testing.T) {
+func TestUnitActionSendCustomNotificationToCompanyPortal_06_ValidationEnabled(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -215,7 +215,7 @@ action "microsoft365_graph_beta_device_management_managed_device_send_custom_not
 	})
 }
 
-func TestSendCustomNotificationAction_InvalidDeviceID(t *testing.T) {
+func TestUnitActionSendCustomNotificationToCompanyPortal_07_InvalidDeviceID(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -252,7 +252,7 @@ action "microsoft365_graph_beta_device_management_managed_device_send_custom_not
 	})
 }
 
-func TestSendCustomNotificationAction_NoDevices(t *testing.T) {
+func TestUnitActionSendCustomNotificationToCompanyPortal_08_NoDevices(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -281,7 +281,7 @@ action "microsoft365_graph_beta_device_management_managed_device_send_custom_not
 	})
 }
 
-func TestSendCustomNotificationAction_MissingTitle(t *testing.T) {
+func TestUnitActionSendCustomNotificationToCompanyPortal_09_MissingTitle(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -317,7 +317,7 @@ action "microsoft365_graph_beta_device_management_managed_device_send_custom_not
 	})
 }
 
-func TestSendCustomNotificationAction_MissingBody(t *testing.T) {
+func TestUnitActionSendCustomNotificationToCompanyPortal_10_MissingBody(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -353,7 +353,7 @@ action "microsoft365_graph_beta_device_management_managed_device_send_custom_not
 	})
 }
 
-func TestSendCustomNotificationAction_MultipleDevices(t *testing.T) {
+func TestUnitActionSendCustomNotificationToCompanyPortal_11_MultipleDevices(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()

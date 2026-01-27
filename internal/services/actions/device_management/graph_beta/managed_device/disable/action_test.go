@@ -22,7 +22,7 @@ func loadUnitTestTerraform(filename string) string {
 }
 
 // TestDisableManagedDeviceAction_Basic tests basic device disable
-func TestDisableManagedDeviceAction_Basic(t *testing.T) {
+func TestUnitActionDisableManagedDevice_01_Basic(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -47,7 +47,7 @@ func TestDisableManagedDeviceAction_Basic(t *testing.T) {
 }
 
 // TestDisableManagedDeviceAction_ConfigValidation tests configuration validation
-func TestDisableManagedDeviceAction_ConfigValidation(t *testing.T) {
+func TestUnitActionDisableManagedDevice_02_ConfigValidation(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 
 	resource.UnitTest(t, resource.TestCase{
@@ -70,7 +70,7 @@ action "microsoft365_graph_beta_device_management_managed_device_disable" "test"
 }
 
 // TestDisableManagedDeviceAction_Maximal tests action with all features enabled
-func TestDisableManagedDeviceAction_Maximal(t *testing.T) {
+func TestUnitActionDisableManagedDevice_03_Maximal(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -95,7 +95,7 @@ func TestDisableManagedDeviceAction_Maximal(t *testing.T) {
 }
 
 // TestDisableManagedDeviceAction_ComanagedOnly tests co-managed devices only
-func TestDisableManagedDeviceAction_ComanagedOnly(t *testing.T) {
+func TestUnitActionDisableManagedDevice_04_ComanagedOnly(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -126,7 +126,7 @@ action "microsoft365_graph_beta_device_management_managed_device_disable" "test"
 }
 
 // TestDisableManagedDeviceAction_IgnorePartialFailures tests ignore_partial_failures flag
-func TestDisableManagedDeviceAction_IgnorePartialFailures(t *testing.T) {
+func TestUnitActionDisableManagedDevice_05_IgnorePartialFailures(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -158,7 +158,7 @@ action "microsoft365_graph_beta_device_management_managed_device_disable" "test"
 }
 
 // TestDisableManagedDeviceAction_DisableValidation tests validate_device_exists = false
-func TestDisableManagedDeviceAction_DisableValidation(t *testing.T) {
+func TestUnitActionDisableManagedDevice_06_DisableValidation(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -190,7 +190,7 @@ action "microsoft365_graph_beta_device_management_managed_device_disable" "test"
 }
 
 // TestDisableManagedDeviceAction_CustomTimeout tests custom timeout configuration
-func TestDisableManagedDeviceAction_CustomTimeout(t *testing.T) {
+func TestUnitActionDisableManagedDevice_07_CustomTimeout(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -224,7 +224,7 @@ action "microsoft365_graph_beta_device_management_managed_device_disable" "test"
 }
 
 // TestDisableManagedDeviceAction_InvalidGUID tests validation for invalid GUID format
-func TestDisableManagedDeviceAction_InvalidGUID(t *testing.T) {
+func TestUnitActionDisableManagedDevice_08_InvalidGUID(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 
 	resource.UnitTest(t, resource.TestCase{
@@ -248,7 +248,7 @@ action "microsoft365_graph_beta_device_management_managed_device_disable" "test"
 }
 
 // TestDisableManagedDeviceAction_NoDevices tests validation requiring at least one device
-func TestDisableManagedDeviceAction_NoDevices(t *testing.T) {
+func TestUnitActionDisableManagedDevice_09_NoDevices(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 
 	resource.UnitTest(t, resource.TestCase{
@@ -274,7 +274,7 @@ action "microsoft365_graph_beta_device_management_managed_device_disable" "test"
 }
 
 // TestDisableManagedDeviceAction_EmptyDeviceLists tests validation for empty device lists
-func TestDisableManagedDeviceAction_EmptyDeviceLists(t *testing.T) {
+func TestUnitActionDisableManagedDevice_10_EmptyDeviceLists(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 
 	resource.UnitTest(t, resource.TestCase{

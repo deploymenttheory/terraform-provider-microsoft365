@@ -22,7 +22,7 @@ func loadUnitTestTerraform(filename string) string {
 }
 
 // TestCreateDeviceLogCollectionRequestAction_Basic tests basic log collection
-func TestCreateDeviceLogCollectionRequestAction_Basic(t *testing.T) {
+func TestUnitActionCreateDeviceLogCollectionRequestManagedDevice_01_Basic(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -47,7 +47,7 @@ func TestCreateDeviceLogCollectionRequestAction_Basic(t *testing.T) {
 }
 
 // TestCreateDeviceLogCollectionRequestAction_ConfigValidation tests configuration validation
-func TestCreateDeviceLogCollectionRequestAction_ConfigValidation(t *testing.T) {
+func TestUnitActionCreateDeviceLogCollectionRequestManagedDevice_02_ConfigValidation(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 
 	resource.UnitTest(t, resource.TestCase{
@@ -75,7 +75,7 @@ action "microsoft365_graph_beta_device_management_managed_device_create_device_l
 }
 
 // TestCreateDeviceLogCollectionRequestAction_Maximal tests action with all features enabled
-func TestCreateDeviceLogCollectionRequestAction_Maximal(t *testing.T) {
+func TestUnitActionCreateDeviceLogCollectionRequestManagedDevice_03_Maximal(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -100,7 +100,7 @@ func TestCreateDeviceLogCollectionRequestAction_Maximal(t *testing.T) {
 }
 
 // TestCreateDeviceLogCollectionRequestAction_ComanagedOnly tests co-managed devices only
-func TestCreateDeviceLogCollectionRequestAction_ComanagedOnly(t *testing.T) {
+func TestUnitActionCreateDeviceLogCollectionRequestManagedDevice_04_ComanagedOnly(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -136,7 +136,7 @@ action "microsoft365_graph_beta_device_management_managed_device_create_device_l
 }
 
 // TestCreateDeviceLogCollectionRequestAction_IgnorePartialFailures tests ignore_partial_failures flag
-func TestCreateDeviceLogCollectionRequestAction_IgnorePartialFailures(t *testing.T) {
+func TestUnitActionCreateDeviceLogCollectionRequestManagedDevice_05_IgnorePartialFailures(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -173,7 +173,7 @@ action "microsoft365_graph_beta_device_management_managed_device_create_device_l
 }
 
 // TestCreateDeviceLogCollectionRequestAction_DisableValidation tests validate_device_exists = false
-func TestCreateDeviceLogCollectionRequestAction_DisableValidation(t *testing.T) {
+func TestUnitActionCreateDeviceLogCollectionRequestManagedDevice_06_DisableValidation(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -210,7 +210,7 @@ action "microsoft365_graph_beta_device_management_managed_device_create_device_l
 }
 
 // TestCreateDeviceLogCollectionRequestAction_CustomTimeout tests custom timeout configuration
-func TestCreateDeviceLogCollectionRequestAction_CustomTimeout(t *testing.T) {
+func TestUnitActionCreateDeviceLogCollectionRequestManagedDevice_07_CustomTimeout(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -249,7 +249,7 @@ action "microsoft365_graph_beta_device_management_managed_device_create_device_l
 }
 
 // TestCreateDeviceLogCollectionRequestAction_InvalidGUID tests validation for invalid GUID format
-func TestCreateDeviceLogCollectionRequestAction_InvalidGUID(t *testing.T) {
+func TestUnitActionCreateDeviceLogCollectionRequestManagedDevice_08_InvalidGUID(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 
 	resource.UnitTest(t, resource.TestCase{
@@ -278,7 +278,7 @@ action "microsoft365_graph_beta_device_management_managed_device_create_device_l
 }
 
 // TestCreateDeviceLogCollectionRequestAction_InvalidTemplateType tests validation for invalid template type
-func TestCreateDeviceLogCollectionRequestAction_InvalidTemplateType(t *testing.T) {
+func TestUnitActionCreateDeviceLogCollectionRequestManagedDevice_09_InvalidTemplateType(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 
 	resource.UnitTest(t, resource.TestCase{
@@ -307,7 +307,7 @@ action "microsoft365_graph_beta_device_management_managed_device_create_device_l
 }
 
 // TestCreateDeviceLogCollectionRequestAction_NoDevices tests validation requiring at least one device
-func TestCreateDeviceLogCollectionRequestAction_NoDevices(t *testing.T) {
+func TestUnitActionCreateDeviceLogCollectionRequestManagedDevice_10_NoDevices(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 
 	resource.UnitTest(t, resource.TestCase{
@@ -333,7 +333,7 @@ action "microsoft365_graph_beta_device_management_managed_device_create_device_l
 }
 
 // TestCreateDeviceLogCollectionRequestAction_EmptyDeviceLists tests validation for empty device lists
-func TestCreateDeviceLogCollectionRequestAction_EmptyDeviceLists(t *testing.T) {
+func TestUnitActionCreateDeviceLogCollectionRequestManagedDevice_11_EmptyDeviceLists(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 
 	resource.UnitTest(t, resource.TestCase{

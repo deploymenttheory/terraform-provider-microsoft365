@@ -20,7 +20,7 @@ func loadUnitTestTerraform(filename string) string {
 	return config
 }
 
-func TestGetFileVaultKeyManagedDeviceAction_Basic(t *testing.T) {
+func TestUnitActionGetFileVaultKeyManagedDevice_01_Basic(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -44,7 +44,7 @@ func TestGetFileVaultKeyManagedDeviceAction_Basic(t *testing.T) {
 	})
 }
 
-func TestGetFileVaultKeyManagedDeviceAction_Maximal(t *testing.T) {
+func TestUnitActionGetFileVaultKeyManagedDevice_02_Maximal(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -68,7 +68,7 @@ func TestGetFileVaultKeyManagedDeviceAction_Maximal(t *testing.T) {
 	})
 }
 
-func TestGetFileVaultKeyManagedDeviceAction_PartialFailures(t *testing.T) {
+func TestUnitActionGetFileVaultKeyManagedDevice_03_PartialFailures(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -99,7 +99,7 @@ action "microsoft365_graph_beta_device_management_managed_device_get_file_vault_
 	})
 }
 
-func TestGetFileVaultKeyManagedDeviceAction_ValidationDisabled(t *testing.T) {
+func TestUnitActionGetFileVaultKeyManagedDevice_04_ValidationDisabled(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -130,7 +130,7 @@ action "microsoft365_graph_beta_device_management_managed_device_get_file_vault_
 	})
 }
 
-func TestGetFileVaultKeyManagedDeviceAction_CustomTimeout(t *testing.T) {
+func TestUnitActionGetFileVaultKeyManagedDevice_05_CustomTimeout(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -163,7 +163,7 @@ action "microsoft365_graph_beta_device_management_managed_device_get_file_vault_
 	})
 }
 
-func TestGetFileVaultKeyManagedDeviceAction_NoDevices(t *testing.T) {
+func TestUnitActionGetFileVaultKeyManagedDevice_06_NoDevices(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 
 	resource.UnitTest(t, resource.TestCase{
@@ -188,7 +188,7 @@ action "microsoft365_graph_beta_device_management_managed_device_get_file_vault_
 	})
 }
 
-func TestGetFileVaultKeyManagedDeviceAction_InvalidDeviceID(t *testing.T) {
+func TestUnitActionGetFileVaultKeyManagedDevice_07_InvalidDeviceID(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 
 	resource.UnitTest(t, resource.TestCase{
@@ -211,7 +211,7 @@ action "microsoft365_graph_beta_device_management_managed_device_get_file_vault_
 	})
 }
 
-func TestGetFileVaultKeyManagedDeviceAction_DuplicateDeviceIDs(t *testing.T) {
+func TestUnitActionGetFileVaultKeyManagedDevice_08_DuplicateDeviceIDs(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -244,7 +244,7 @@ action "microsoft365_graph_beta_device_management_managed_device_get_file_vault_
 	})
 }
 
-func TestGetFileVaultKeyManagedDeviceAction_BothManagedAndComanaged(t *testing.T) {
+func TestUnitActionGetFileVaultKeyManagedDevice_09_BothManagedAndComanaged(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()

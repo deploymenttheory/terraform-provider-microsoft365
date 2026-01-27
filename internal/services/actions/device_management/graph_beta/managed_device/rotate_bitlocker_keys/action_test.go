@@ -20,7 +20,7 @@ func loadUnitTestTerraform(filename string) string {
 	return config
 }
 
-func TestRotateBitLockerKeysAction_Basic(t *testing.T) {
+func TestUnitActionRotateBitLockerKeys_01_Basic(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -68,7 +68,7 @@ func TestRotateBitLockerKeysAction_Maximal(t *testing.T) {
 	})
 }
 
-func TestRotateBitLockerKeysAction_ComanagedOnly(t *testing.T) {
+func TestUnitActionRotateBitLockerKeys_03_ComanagedOnly(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -100,7 +100,7 @@ action "microsoft365_graph_beta_device_management_managed_device_rotate_bitlocke
 	})
 }
 
-func TestRotateBitLockerKeysAction_PartialFailures(t *testing.T) {
+func TestUnitActionRotateBitLockerKeys_04_PartialFailures(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -133,7 +133,7 @@ action "microsoft365_graph_beta_device_management_managed_device_rotate_bitlocke
 	})
 }
 
-func TestRotateBitLockerKeysAction_ValidationDisabled(t *testing.T) {
+func TestUnitActionRotateBitLockerKeys_05_ValidationDisabled(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -166,7 +166,7 @@ action "microsoft365_graph_beta_device_management_managed_device_rotate_bitlocke
 	})
 }
 
-func TestRotateBitLockerKeysAction_ValidationEnabled(t *testing.T) {
+func TestUnitActionRotateBitLockerKeys_06_ValidationEnabled(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -199,7 +199,7 @@ action "microsoft365_graph_beta_device_management_managed_device_rotate_bitlocke
 	})
 }
 
-func TestRotateBitLockerKeysAction_InvalidDeviceID(t *testing.T) {
+func TestUnitActionRotateBitLockerKeys_07_InvalidDeviceID(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -232,7 +232,7 @@ action "microsoft365_graph_beta_device_management_managed_device_rotate_bitlocke
 	})
 }
 
-func TestRotateBitLockerKeysAction_NoDevices(t *testing.T) {
+func TestUnitActionRotateBitLockerKeys_08_NoDevices(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -261,7 +261,7 @@ action "microsoft365_graph_beta_device_management_managed_device_rotate_bitlocke
 	})
 }
 
-func TestRotateBitLockerKeysAction_DuplicateDeviceIDs(t *testing.T) {
+func TestUnitActionRotateBitLockerKeys_09_DuplicateDeviceIDs(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -294,7 +294,7 @@ action "microsoft365_graph_beta_device_management_managed_device_rotate_bitlocke
 	})
 }
 
-func TestRotateBitLockerKeysAction_MultipleDevices(t *testing.T) {
+func TestUnitActionRotateBitLockerKeys_10_MultipleDevices(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()

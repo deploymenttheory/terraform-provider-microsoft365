@@ -20,7 +20,7 @@ func loadUnitTestTerraform(filename string) string {
 	return config
 }
 
-func TestInitiateDeviceAttestationManagedDeviceAction_Basic(t *testing.T) {
+func TestUnitActionInitiateDeviceAttestationManagedDevice_01_Basic(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -44,7 +44,7 @@ func TestInitiateDeviceAttestationManagedDeviceAction_Basic(t *testing.T) {
 	})
 }
 
-func TestInitiateDeviceAttestationManagedDeviceAction_Maximal(t *testing.T) {
+func TestUnitActionInitiateDeviceAttestationManagedDevice_02_Maximal(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -68,7 +68,7 @@ func TestInitiateDeviceAttestationManagedDeviceAction_Maximal(t *testing.T) {
 	})
 }
 
-func TestInitiateDeviceAttestationManagedDeviceAction_PartialFailures(t *testing.T) {
+func TestUnitActionInitiateDeviceAttestationManagedDevice_03_PartialFailures(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -99,7 +99,7 @@ action "microsoft365_graph_beta_device_management_managed_device_initiate_device
 	})
 }
 
-func TestInitiateDeviceAttestationManagedDeviceAction_ValidationDisabled(t *testing.T) {
+func TestUnitActionInitiateDeviceAttestationManagedDevice_04_ValidationDisabled(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -130,7 +130,7 @@ action "microsoft365_graph_beta_device_management_managed_device_initiate_device
 	})
 }
 
-func TestInitiateDeviceAttestationManagedDeviceAction_CustomTimeout(t *testing.T) {
+func TestUnitActionInitiateDeviceAttestationManagedDevice_05_CustomTimeout(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -163,7 +163,7 @@ action "microsoft365_graph_beta_device_management_managed_device_initiate_device
 	})
 }
 
-func TestInitiateDeviceAttestationManagedDeviceAction_NoDevices(t *testing.T) {
+func TestUnitActionInitiateDeviceAttestationManagedDevice_06_NoDevices(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 
 	resource.UnitTest(t, resource.TestCase{
@@ -188,7 +188,7 @@ action "microsoft365_graph_beta_device_management_managed_device_initiate_device
 	})
 }
 
-func TestInitiateDeviceAttestationManagedDeviceAction_InvalidDeviceID(t *testing.T) {
+func TestUnitActionInitiateDeviceAttestationManagedDevice_07_InvalidDeviceID(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 
 	resource.UnitTest(t, resource.TestCase{
@@ -211,7 +211,7 @@ action "microsoft365_graph_beta_device_management_managed_device_initiate_device
 	})
 }
 
-func TestInitiateDeviceAttestationManagedDeviceAction_DuplicateDeviceIDs(t *testing.T) {
+func TestUnitActionInitiateDeviceAttestationManagedDevice_08_DuplicateDeviceIDs(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -244,7 +244,7 @@ action "microsoft365_graph_beta_device_management_managed_device_initiate_device
 	})
 }
 
-func TestInitiateDeviceAttestationManagedDeviceAction_BothManagedAndComanaged(t *testing.T) {
+func TestUnitActionInitiateDeviceAttestationManagedDevice_09_BothManagedAndComanaged(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()

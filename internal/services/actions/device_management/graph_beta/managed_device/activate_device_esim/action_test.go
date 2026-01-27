@@ -22,7 +22,7 @@ func loadUnitTestTerraform(filename string) string {
 }
 
 // TestActivateDeviceEsimActionV2_Basic tests basic eSIM activation
-func TestActivateDeviceEsimActionV2_Basic(t *testing.T) {
+func TestUnitActionActivateDeviceEsimManagedDevice_01_Basic(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -51,7 +51,7 @@ func TestActivateDeviceEsimActionV2_Basic(t *testing.T) {
 }
 
 // TestActivateDeviceEsimActionV2_ConfigValidation tests configuration validation
-func TestActivateDeviceEsimActionV2_ConfigValidation(t *testing.T) {
+func TestUnitActionActivateDeviceEsimManagedDevice_02_ConfigValidation(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 
 	resource.UnitTest(t, resource.TestCase{
@@ -80,7 +80,7 @@ action "microsoft365_graph_beta_device_management_managed_device_activate_device
 }
 
 // TestActivateDeviceEsimActionV2_Maximal tests action with all features enabled
-func TestActivateDeviceEsimActionV2_Maximal(t *testing.T) {
+func TestUnitActionActivateDeviceEsimManagedDevice_03_Maximal(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -105,7 +105,7 @@ func TestActivateDeviceEsimActionV2_Maximal(t *testing.T) {
 }
 
 // TestActivateDeviceEsimActionV2_MultipleDevices tests multiple managed devices
-func TestActivateDeviceEsimActionV2_MultipleDevices(t *testing.T) {
+func TestUnitActionActivateDeviceEsimManagedDevice_04_MultipleDevices(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -155,7 +155,7 @@ func TestActivateDeviceEsimActionV2_ComanagedOnly(t *testing.T) {
 }
 
 // TestActivateDeviceEsimActionV2_IgnorePartialFailures tests ignore_partial_failures flag
-func TestActivateDeviceEsimActionV2_IgnorePartialFailures(t *testing.T) {
+func TestUnitActionActivateDeviceEsimManagedDevice_06_IgnorePartialFailures(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -205,7 +205,7 @@ func TestActivateDeviceEsimActionV2_DisableValidation(t *testing.T) {
 }
 
 // TestActivateDeviceEsimActionV2_CustomTimeout tests custom timeout configuration
-func TestActivateDeviceEsimActionV2_CustomTimeout(t *testing.T) {
+func TestUnitActionActivateDeviceEsimManagedDevice_08_CustomTimeout(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -230,7 +230,7 @@ func TestActivateDeviceEsimActionV2_CustomTimeout(t *testing.T) {
 }
 
 // TestActivateDeviceEsimActionV2_InvalidGUID tests validation for invalid GUID format
-func TestActivateDeviceEsimActionV2_InvalidGUID(t *testing.T) {
+func TestUnitActionActivateDeviceEsimManagedDevice_09_InvalidGUID(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 
 	resource.UnitTest(t, resource.TestCase{
@@ -288,7 +288,7 @@ action "microsoft365_graph_beta_device_management_managed_device_activate_device
 }
 
 // TestActivateDeviceEsimActionV2_NoDevices tests validation requiring at least one device
-func TestActivateDeviceEsimActionV2_NoDevices(t *testing.T) {
+func TestUnitActionActivateDeviceEsimManagedDevice_11_NoDevices(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 
 	resource.UnitTest(t, resource.TestCase{
