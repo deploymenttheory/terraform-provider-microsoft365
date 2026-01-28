@@ -257,18 +257,36 @@ func constructOwners(ctx context.Context, data *ApplicationResourceModel, reques
 	return nil
 }
 
-// constructSignInAudienceRestrictions builds the sign-in audience restrictions
+// constructSignInAudienceRestrictions builds the sign-in audience restrictions (polymorphic type)
 func constructSignInAudienceRestrictions(ctx context.Context, data *SignInAudienceRestrictions) (graphmodels.SignInAudienceRestrictionsBaseable, error) {
-	restrictions := graphmodels.NewAllowedTenantsAudience()
-
-	convert.FrameworkToGraphString(data.ODataType, restrictions.SetOdataType)
-	convert.FrameworkToGraphBool(data.IsHomeTenantAllowed, restrictions.SetIsHomeTenantAllowed)
-
-	if err := convert.FrameworkToGraphStringSet(ctx, data.AllowedTenantIds, restrictions.SetAllowedTenantIds); err != nil {
-		return nil, fmt.Errorf("failed to set allowed_tenant_ids: %w", err)
+	if data == nil {
+		return nil, nil
 	}
 
-	return restrictions, nil
+	odataType := data.ODataType.ValueString()
+
+	switch odataType {
+	case "#microsoft.graph.allowedTenantsAudience":
+		// Create AllowedTenantsAudience with specific fields
+		restrictions := graphmodels.NewAllowedTenantsAudience()
+		convert.FrameworkToGraphString(data.ODataType, restrictions.SetOdataType)
+		convert.FrameworkToGraphBool(data.IsHomeTenantAllowed, restrictions.SetIsHomeTenantAllowed)
+
+		if err := convert.FrameworkToGraphStringSet(ctx, data.AllowedTenantIds, restrictions.SetAllowedTenantIds); err != nil {
+			return nil, fmt.Errorf("failed to set allowed_tenant_ids: %w", err)
+		}
+
+		return restrictions, nil
+
+	case "#microsoft.graph.unrestrictedAudience":
+		// Create UnrestrictedAudience (no additional fields beyond base)
+		restrictions := graphmodels.NewUnrestrictedAudience()
+		convert.FrameworkToGraphString(data.ODataType, restrictions.SetOdataType)
+		return restrictions, nil
+
+	default:
+		return nil, fmt.Errorf("unsupported sign_in_audience_restrictions odata_type: %s (must be '#microsoft.graph.allowedTenantsAudience' or '#microsoft.graph.unrestrictedAudience')", odataType)
+	}
 }
 
 // constructApi builds the API configuration

@@ -34,16 +34,16 @@ var OAuth2PermissionScopeAttrTypes = map[string]attr.Type{
 }
 
 var PreAuthorizedApplicationAttrTypes = map[string]attr.Type{
-	"app_id":                       types.StringType,
-	"delegated_permission_ids":     types.SetType{ElemType: types.StringType},
+	"app_id":                   types.StringType,
+	"delegated_permission_ids": types.SetType{ElemType: types.StringType},
 }
 
 var ApplicationInformationalUrlAttrTypes = map[string]attr.Type{
-	"logo_url":               types.StringType,
-	"marketing_url":          types.StringType,
-	"privacy_statement_url":  types.StringType,
-	"support_url":            types.StringType,
-	"terms_of_service_url":   types.StringType,
+	"logo_url":              types.StringType,
+	"marketing_url":         types.StringType,
+	"privacy_statement_url": types.StringType,
+	"support_url":           types.StringType,
+	"terms_of_service_url":  types.StringType,
 }
 
 var ApplicationOptionalClaimsAttrTypes = map[string]attr.Type{
@@ -73,10 +73,11 @@ var ApplicationSpaAttrTypes = map[string]attr.Type{
 }
 
 var ApplicationWebAttrTypes = map[string]attr.Type{
-	"home_page_url":    types.StringType,
-	"logout_url":       types.StringType,
-	"redirect_uris":    types.SetType{ElemType: types.StringType},
+	"home_page_url":           types.StringType,
+	"logout_url":              types.StringType,
+	"redirect_uris":           types.SetType{ElemType: types.StringType},
 	"implicit_grant_settings": types.ObjectType{AttrTypes: ImplicitGrantSettingsAttrTypes},
+	"redirect_uri_settings":   types.SetType{ElemType: types.ObjectType{AttrTypes: RedirectUriSettingsAttrTypes}},
 }
 
 var ImplicitGrantSettingsAttrTypes = map[string]attr.Type{

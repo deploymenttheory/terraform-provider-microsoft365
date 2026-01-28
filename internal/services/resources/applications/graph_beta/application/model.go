@@ -20,7 +20,7 @@ type ApplicationResourceModel struct {
 	Notes                          types.String   `tfsdk:"notes"`
 	IsDeviceOnlyAuthSupported      types.Bool     `tfsdk:"is_device_only_auth_supported"`
 	IsFallbackPublicClient         types.Bool     `tfsdk:"is_fallback_public_client"`
-	OAuth2RequirePostResponse      types.Bool     `tfsdk:"oauth2_require_post_response"`
+	// OAuth2RequirePostResponse      types.Bool     `tfsdk:"oauth2_require_post_response"` // Field doesn't exist in SDK
 	ServiceManagementReference     types.String   `tfsdk:"service_management_reference"`
 	Tags                           types.Set      `tfsdk:"tags"`
 	DisabledByMicrosoftStatus      types.String   `tfsdk:"disabled_by_microsoft_status"`
@@ -53,12 +53,11 @@ type SignInAudienceRestrictions struct {
 
 // ApplicationApi represents the API configuration for the application
 type ApplicationApi struct {
-	AcceptMappedClaims          types.Bool   `tfsdk:"accept_mapped_claims"`
-	KnownClientApplications     types.Set    `tfsdk:"known_client_applications"`
-	OAuth2PermissionScopes      types.Set    `tfsdk:"oauth2_permission_scopes"`
-	PreAuthorizedApplications   types.Set    `tfsdk:"pre_authorized_applications"`
-	RequestedAccessTokenVersion types.Int32  `tfsdk:"requested_access_token_version"`
-	ResourceSpecificPermissions types.String `tfsdk:"resource_specific_permissions"`
+	AcceptMappedClaims          types.Bool  `tfsdk:"accept_mapped_claims"`
+	KnownClientApplications     types.Set   `tfsdk:"known_client_applications"`
+	OAuth2PermissionScopes      types.Set   `tfsdk:"oauth2_permission_scopes"`
+	PreAuthorizedApplications   types.Set   `tfsdk:"pre_authorized_applications"`
+	RequestedAccessTokenVersion types.Int32 `tfsdk:"requested_access_token_version"`
 }
 
 // ApplicationApiPermissionScope represents an OAuth2 permission scope exposed by the application

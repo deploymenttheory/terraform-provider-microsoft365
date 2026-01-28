@@ -24,10 +24,14 @@ func MapRemoteStateToTerraform(ctx context.Context, data *ApplicationResourceMod
 	data.DisplayName = convert.GraphToFrameworkString(remoteResource.GetDisplayName())
 	data.Description = convert.GraphToFrameworkString(remoteResource.GetDescription())
 	data.SignInAudience = convert.GraphToFrameworkString(remoteResource.GetSignInAudience())
-	
-	// Map SignInAudienceRestrictions - complex polymorphic type, return null for now
-	data.SignInAudienceRestrictions = types.ObjectNull(SignInAudienceRestrictionsAttrTypes)
-	
+
+	// Map SignInAudienceRestrictions - polymorphic type (allowedTenantsAudience or unrestrictedAudience)
+	if restrictions := remoteResource.GetSignInAudienceRestrictions(); restrictions != nil {
+		data.SignInAudienceRestrictions = mapSignInAudienceRestrictionsToTerraform(ctx, restrictions)
+	} else {
+		data.SignInAudienceRestrictions = types.ObjectNull(SignInAudienceRestrictionsAttrTypes)
+	}
+
 	data.IdentifierUris = convert.GraphToFrameworkStringSet(ctx, remoteResource.GetIdentifierUris())
 	data.Notes = convert.GraphToFrameworkString(remoteResource.GetNotes())
 	data.IsDeviceOnlyAuthSupported = convert.GraphToFrameworkBool(remoteResource.GetIsDeviceOnlyAuthSupported())
@@ -175,7 +179,7 @@ func MapRemoteOwnersToTerraform(ctx context.Context, data *ApplicationResourceMo
 	}
 }
 
-// Helper functions for mapping nested structures
+// mapApiToTerraform maps the Api configuration to Terraform state.
 func mapApiToTerraform(ctx context.Context, api graphmodels.ApiApplicationable) types.Object {
 	if api == nil {
 		return types.ObjectNull(ApplicationApiAttrTypes)
@@ -269,6 +273,7 @@ func mapOAuth2PermissionScopesToTerraform(ctx context.Context, scopes []graphmod
 	return setVal
 }
 
+// mapPreAuthorizedApplicationsToTerraform maps the pre-authorized applications to Terraform state.
 func mapPreAuthorizedApplicationsToTerraform(ctx context.Context, preAuthApps []graphmodels.PreAuthorizedApplicationable) types.Set {
 	if len(preAuthApps) == 0 {
 		return types.SetNull(types.ObjectType{AttrTypes: PreAuthorizedApplicationAttrTypes})
@@ -315,6 +320,7 @@ func mapPreAuthorizedApplicationsToTerraform(ctx context.Context, preAuthApps []
 	return setVal
 }
 
+// mapAppRolesToTerraform maps the app roles to Terraform state.
 func mapAppRolesToTerraform(ctx context.Context, appRoles []graphmodels.AppRoleable) types.Set {
 	if len(appRoles) == 0 {
 		return types.SetNull(types.ObjectType{AttrTypes: AppRoleAttrTypes})
@@ -366,6 +372,7 @@ func mapAppRolesToTerraform(ctx context.Context, appRoles []graphmodels.AppRolea
 	return setVal
 }
 
+// mapInfoToTerraform maps the info to Terraform state.
 func mapInfoToTerraform(ctx context.Context, info graphmodels.InformationalUrlable) types.Object {
 	if info == nil {
 		return types.ObjectNull(ApplicationInformationalUrlAttrTypes)
@@ -390,6 +397,7 @@ func mapInfoToTerraform(ctx context.Context, info graphmodels.InformationalUrlab
 	return obj
 }
 
+// mapKeyCredentialsToTerraform maps the key credentials to Terraform state.
 func mapKeyCredentialsToTerraform(ctx context.Context, keyCredentials []graphmodels.KeyCredentialable) types.Set {
 	if len(keyCredentials) == 0 {
 		return types.SetNull(types.ObjectType{AttrTypes: KeyCredentialAttrTypes})
@@ -509,6 +517,21 @@ func mapOptionalClaimsToTerraform(ctx context.Context, optionalClaims graphmodel
 		Saml2Token:  types.SetNull(types.ObjectType{AttrTypes: OptionalClaimAttrTypes}),
 	}
 
+	// Map AccessToken claims
+	if accessToken := optionalClaims.GetAccessToken(); accessToken != nil {
+		result.AccessToken = mapOptionalClaimArrayToTerraform(ctx, accessToken)
+	}
+
+	// Map IdToken claims
+	if idToken := optionalClaims.GetIdToken(); idToken != nil {
+		result.IdToken = mapOptionalClaimArrayToTerraform(ctx, idToken)
+	}
+
+	// Map Saml2Token claims
+	if saml2Token := optionalClaims.GetSaml2Token(); saml2Token != nil {
+		result.Saml2Token = mapOptionalClaimArrayToTerraform(ctx, saml2Token)
+	}
+
 	obj, diags := types.ObjectValueFrom(ctx, ApplicationOptionalClaimsAttrTypes, result)
 	if diags.HasError() {
 		tflog.Error(ctx, "Failed to convert OptionalClaims to types.Object", map[string]any{
@@ -518,6 +541,50 @@ func mapOptionalClaimsToTerraform(ctx context.Context, optionalClaims graphmodel
 	}
 
 	return obj
+}
+
+// mapOptionalClaimArrayToTerraform converts an array of OptionalClaims to Terraform Set
+func mapOptionalClaimArrayToTerraform(ctx context.Context, claims []graphmodels.OptionalClaimable) types.Set {
+	if len(claims) == 0 {
+		return types.SetNull(types.ObjectType{AttrTypes: OptionalClaimAttrTypes})
+	}
+
+	elements := make([]attr.Value, 0, len(claims))
+	for _, claim := range claims {
+		if claim == nil {
+			continue
+		}
+
+		claimMap := map[string]attr.Value{
+			"additional_properties": convert.GraphToFrameworkStringSet(ctx, claim.GetAdditionalProperties()),
+			"essential":             convert.GraphToFrameworkBool(claim.GetEssential()),
+			"name":                  convert.GraphToFrameworkString(claim.GetName()),
+			"source":                convert.GraphToFrameworkString(claim.GetSource()),
+		}
+
+		objVal, diags := types.ObjectValue(OptionalClaimAttrTypes, claimMap)
+		if diags.HasError() {
+			tflog.Error(ctx, "Failed to create OptionalClaim object", map[string]any{
+				"error": diags.Errors()[0].Detail(),
+			})
+			continue
+		}
+		elements = append(elements, objVal)
+	}
+
+	if len(elements) == 0 {
+		return types.SetNull(types.ObjectType{AttrTypes: OptionalClaimAttrTypes})
+	}
+
+	setVal, diags := types.SetValue(types.ObjectType{AttrTypes: OptionalClaimAttrTypes}, elements)
+	if diags.HasError() {
+		tflog.Error(ctx, "Failed to create OptionalClaims set", map[string]any{
+			"error": diags.Errors()[0].Detail(),
+		})
+		return types.SetNull(types.ObjectType{AttrTypes: OptionalClaimAttrTypes})
+	}
+
+	return setVal
 }
 
 func mapParentalControlSettingsToTerraform(ctx context.Context, parentalControl graphmodels.ParentalControlSettingsable) types.Object {
@@ -563,7 +630,9 @@ func mapPublicClientToTerraform(ctx context.Context, publicClient graphmodels.Pu
 
 func mapRequiredResourceAccessToTerraform(ctx context.Context, requiredResourceAccess []graphmodels.RequiredResourceAccessable) types.Set {
 	if len(requiredResourceAccess) == 0 {
-		return types.SetNull(types.ObjectType{AttrTypes: RequiredResourceAccessAttrTypes})
+		// Return empty set instead of null to maintain consistency with planned empty sets
+		emptySet, _ := types.SetValue(types.ObjectType{AttrTypes: RequiredResourceAccessAttrTypes}, []attr.Value{})
+		return emptySet
 	}
 
 	elements := make([]attr.Value, 0, len(requiredResourceAccess))
@@ -678,12 +747,18 @@ func mapWebToTerraform(ctx context.Context, web graphmodels.WebApplicationable) 
 		}
 	}
 
+	// Map RedirectUriSettings
+	redirectUriSettingsSet := types.SetNull(types.ObjectType{AttrTypes: RedirectUriSettingsAttrTypes})
+	if redirectUriSettings := web.GetRedirectUriSettings(); redirectUriSettings != nil {
+		redirectUriSettingsSet = mapRedirectUriSettingsToTerraform(ctx, redirectUriSettings)
+	}
+
 	result := ApplicationWeb{
 		HomePageUrl:           convert.GraphToFrameworkString(web.GetHomePageUrl()),
 		LogoutUrl:             convert.GraphToFrameworkString(web.GetLogoutUrl()),
 		RedirectUris:          convert.GraphToFrameworkStringSet(ctx, web.GetRedirectUris()),
 		ImplicitGrantSettings: implicitGrantObj,
-		RedirectUriSettings:   types.SetNull(types.ObjectType{AttrTypes: RedirectUriSettingsAttrTypes}),
+		RedirectUriSettings:   redirectUriSettingsSet,
 	}
 
 	obj, diags := types.ObjectValueFrom(ctx, ApplicationWebAttrTypes, result)
@@ -695,4 +770,90 @@ func mapWebToTerraform(ctx context.Context, web graphmodels.WebApplicationable) 
 	}
 
 	return obj
+}
+
+// mapSignInAudienceRestrictionsToTerraform converts Graph API polymorphic SignInAudienceRestrictions to Terraform types.Object
+func mapSignInAudienceRestrictionsToTerraform(ctx context.Context, restrictions graphmodels.SignInAudienceRestrictionsBaseable) types.Object {
+	if restrictions == nil {
+		return types.ObjectNull(SignInAudienceRestrictionsAttrTypes)
+	}
+
+	result := SignInAudienceRestrictions{
+		ODataType:           types.StringNull(),
+		IsHomeTenantAllowed: types.BoolNull(),
+		AllowedTenantIds:    types.SetNull(types.StringType),
+	}
+
+	// Get the OData type to determine which concrete type this is
+	odataType := restrictions.GetOdataType()
+	if odataType != nil {
+		result.ODataType = types.StringValue(*odataType)
+
+		// Type assertion based on @odata.type discriminator
+		switch *odataType {
+		case "#microsoft.graph.allowedTenantsAudience":
+			// Cast to the specific type
+			if allowedTenants, ok := restrictions.(graphmodels.AllowedTenantsAudienceable); ok {
+				result.IsHomeTenantAllowed = convert.GraphToFrameworkBool(allowedTenants.GetIsHomeTenantAllowed())
+				result.AllowedTenantIds = convert.GraphToFrameworkStringSet(ctx, allowedTenants.GetAllowedTenantIds())
+			}
+
+		case "#microsoft.graph.unrestrictedAudience":
+			// unrestrictedAudience has no additional fields beyond the base
+			// Just the odata_type is sufficient
+			tflog.Debug(ctx, "Mapped unrestrictedAudience type")
+		}
+	}
+
+	obj, diags := types.ObjectValueFrom(ctx, SignInAudienceRestrictionsAttrTypes, result)
+	if diags.HasError() {
+		tflog.Error(ctx, "Failed to convert SignInAudienceRestrictions to types.Object", map[string]any{
+			"error": diags.Errors()[0].Detail(),
+		})
+		return types.ObjectNull(SignInAudienceRestrictionsAttrTypes)
+	}
+
+	return obj
+}
+
+// mapRedirectUriSettingsToTerraform converts Graph API RedirectUriSettings array to Terraform Set
+func mapRedirectUriSettingsToTerraform(ctx context.Context, settings []graphmodels.RedirectUriSettingsable) types.Set {
+	if len(settings) == 0 {
+		return types.SetNull(types.ObjectType{AttrTypes: RedirectUriSettingsAttrTypes})
+	}
+
+	elements := make([]attr.Value, 0, len(settings))
+	for _, setting := range settings {
+		if setting == nil {
+			continue
+		}
+
+		settingMap := map[string]attr.Value{
+			"uri":   convert.GraphToFrameworkString(setting.GetUri()),
+			"index": convert.GraphToFrameworkInt32(setting.GetIndex()),
+		}
+
+		objVal, diags := types.ObjectValue(RedirectUriSettingsAttrTypes, settingMap)
+		if diags.HasError() {
+			tflog.Error(ctx, "Failed to create RedirectUriSettings object", map[string]any{
+				"error": diags.Errors()[0].Detail(),
+			})
+			continue
+		}
+		elements = append(elements, objVal)
+	}
+
+	if len(elements) == 0 {
+		return types.SetNull(types.ObjectType{AttrTypes: RedirectUriSettingsAttrTypes})
+	}
+
+	setVal, diags := types.SetValue(types.ObjectType{AttrTypes: RedirectUriSettingsAttrTypes}, elements)
+	if diags.HasError() {
+		tflog.Error(ctx, "Failed to create RedirectUriSettings set", map[string]any{
+			"error": diags.Errors()[0].Detail(),
+		})
+		return types.SetNull(types.ObjectType{AttrTypes: RedirectUriSettingsAttrTypes})
+	}
+
+	return setVal
 }

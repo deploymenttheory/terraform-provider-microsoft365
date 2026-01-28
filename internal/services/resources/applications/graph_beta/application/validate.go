@@ -9,7 +9,7 @@ import (
 	"github.com/microsoftgraph/msgraph-beta-sdk-go/applications"
 )
 
-// validateRequest validates the application request
+// validateRequest validates the request body during creation or update operations.
 func validateRequest(ctx context.Context, client *msgraphbetasdk.GraphServiceClient, data *ApplicationResourceModel, currentID string) error {
 	tflog.Debug(ctx, "Starting validation of application request")
 
@@ -30,7 +30,6 @@ func validateRequest(ctx context.Context, client *msgraphbetasdk.GraphServiceCli
 func checkForDuplicateApplicationName(ctx context.Context, client *msgraphbetasdk.GraphServiceClient, displayName string, currentID string) error {
 	tflog.Debug(ctx, fmt.Sprintf("Checking for duplicate application name: %s", displayName))
 
-	// Build the filter query: $filter=displayName eq 'name'
 	filter := fmt.Sprintf("displayName eq '%s'", escapeODataString(displayName))
 
 	requestConfig := &applications.ApplicationsRequestBuilderGetRequestConfiguration{

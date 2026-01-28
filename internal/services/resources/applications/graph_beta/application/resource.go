@@ -222,12 +222,12 @@ func (r *ApplicationResource) Schema(ctx context.Context, req resource.SchemaReq
 				Computed:            true,
 				Default:             booldefault.StaticBool(false),
 			},
-			"oauth2_require_post_response": schema.BoolAttribute{
-				MarkdownDescription: "Specifies whether, as part of OAuth 2.0 token requests, Microsoft Entra ID allows POST requests, as opposed to GET requests. The default is false, which specifies that only GET requests are allowed.",
-				Optional:            true,
-				Computed:            true,
-				Default:             booldefault.StaticBool(false),
-			},
+			// "oauth2_require_post_response": schema.BoolAttribute{
+			// 	MarkdownDescription: "Specifies whether, as part of OAuth 2.0 token requests, Microsoft Entra ID allows POST requests, as opposed to GET requests. The default is false, which specifies that only GET requests are allowed.",
+			// 	Optional:            true,
+			// 	Computed:            true,
+			// 	Default:             booldefault.StaticBool(false),
+			// }, // Field doesn't exist in SDK v0.158.0.
 			"service_management_reference": schema.StringAttribute{
 				MarkdownDescription: "References application or service contact information from a Service or Asset Management database. Nullable.",
 				Optional:            true,
@@ -794,6 +794,31 @@ func (r *ApplicationResource) Schema(ctx context.Context, req resource.SchemaReq
 								MarkdownDescription: "Specifies whether this web application can request an ID token using the OAuth 2.0 implicit flow.",
 								Optional:            true,
 								Computed:            true,
+							},
+						},
+					},
+					"redirect_uri_settings": schema.SetNestedAttribute{
+						MarkdownDescription: "Specifies the index of the URLs where user tokens are sent for sign-in. This is only valid for applications using SAML.",
+						Optional:            true,
+						Computed:            true,
+						NestedObject: schema.NestedAttributeObject{
+							Attributes: map[string]schema.Attribute{
+								"uri": schema.StringAttribute{
+									MarkdownDescription: "Specifies the URI that tokens are sent to.",
+									Optional:            true,
+									Computed:            true,
+									Validators: []validator.String{
+										stringvalidator.RegexMatches(
+											regexp.MustCompile(constants.HttpOrHttpsUrlRegex),
+											"must be a valid HTTP or HTTPS URL",
+										),
+									},
+								},
+								"index": schema.Int32Attribute{
+									MarkdownDescription: "Identifies the specific URI within the redirectURIs collection in SAML SSO flows. Defaults to null. The index is unique across all the redirectUris for the application.",
+									Optional:            true,
+									Computed:            true,
+								},
 							},
 						},
 					},
