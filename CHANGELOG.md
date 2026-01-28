@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.42.1-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.42.0-alpha...v0.42.1-alpha) (2026-01-27)
+
+
+### Bug Fixes
+
+* update HTTP method in Delete request for Conditional Access Terms of Use ([#2238](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/2238)) ([82caa60](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/82caa60370243cab63ca1809bcc9f331276e1c27))
+
 ## [0.42.0-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.41.0-alpha...v0.42.0-alpha) (2026-01-24)
 
 
