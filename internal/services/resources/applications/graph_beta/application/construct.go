@@ -7,6 +7,7 @@ import (
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
 	"github.com/google/uuid"
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
@@ -46,16 +47,28 @@ func constructResource(ctx context.Context, client *msgraphbetasdk.GraphServiceC
 		return nil, fmt.Errorf("failed to set tags: %w", err)
 	}
 
-	if data.SignInAudienceRestrictions != nil {
-		restrictions, err := constructSignInAudienceRestrictions(ctx, data.SignInAudienceRestrictions)
+	if !data.SignInAudienceRestrictions.IsNull() && !data.SignInAudienceRestrictions.IsUnknown() {
+		var restrictionsData SignInAudienceRestrictions
+		diags := data.SignInAudienceRestrictions.As(ctx, &restrictionsData, basetypes.ObjectAsOptions{})
+		if diags.HasError() {
+			return nil, fmt.Errorf("failed to extract sign_in_audience_restrictions data: %s", diags.Errors()[0].Detail())
+		}
+
+		restrictions, err := constructSignInAudienceRestrictions(ctx, &restrictionsData)
 		if err != nil {
 			return nil, err
 		}
 		requestBody.SetSignInAudienceRestrictions(restrictions)
 	}
 
-	if data.Api != nil {
-		api, err := constructApi(ctx, data.Api)
+	if !data.Api.IsNull() && !data.Api.IsUnknown() {
+		var apiData ApplicationApi
+		diags := data.Api.As(ctx, &apiData, basetypes.ObjectAsOptions{})
+		if diags.HasError() {
+			return nil, fmt.Errorf("failed to extract api data: %s", diags.Errors()[0].Detail())
+		}
+
+		api, err := constructApi(ctx, &apiData)
 		if err != nil {
 			return nil, err
 		}
@@ -70,8 +83,14 @@ func constructResource(ctx context.Context, client *msgraphbetasdk.GraphServiceC
 		requestBody.SetAppRoles(appRoles)
 	}
 
-	if data.Info != nil {
-		info := constructInformationalUrl(data.Info)
+	if !data.Info.IsNull() && !data.Info.IsUnknown() {
+		var infoData ApplicationInformationalUrl
+		diags := data.Info.As(ctx, &infoData, basetypes.ObjectAsOptions{})
+		if diags.HasError() {
+			return nil, fmt.Errorf("failed to extract info data: %s", diags.Errors()[0].Detail())
+		}
+
+		info := constructInformationalUrl(&infoData)
 		requestBody.SetInfo(info)
 	}
 
@@ -91,24 +110,42 @@ func constructResource(ctx context.Context, client *msgraphbetasdk.GraphServiceC
 		requestBody.SetPasswordCredentials(passwordCredentials)
 	}
 
-	if data.OptionalClaims != nil {
-		optionalClaims, err := constructOptionalClaims(ctx, data.OptionalClaims)
+	if !data.OptionalClaims.IsNull() && !data.OptionalClaims.IsUnknown() {
+		var optionalClaimsData ApplicationOptionalClaims
+		diags := data.OptionalClaims.As(ctx, &optionalClaimsData, basetypes.ObjectAsOptions{})
+		if diags.HasError() {
+			return nil, fmt.Errorf("failed to extract optional_claims data: %s", diags.Errors()[0].Detail())
+		}
+
+		optionalClaims, err := constructOptionalClaims(ctx, &optionalClaimsData)
 		if err != nil {
 			return nil, err
 		}
 		requestBody.SetOptionalClaims(optionalClaims)
 	}
 
-	if data.ParentalControlSettings != nil {
-		parentalControl, err := constructParentalControlSettings(ctx, data.ParentalControlSettings)
+	if !data.ParentalControlSettings.IsNull() && !data.ParentalControlSettings.IsUnknown() {
+		var parentalControlData ApplicationParentalControlSettings
+		diags := data.ParentalControlSettings.As(ctx, &parentalControlData, basetypes.ObjectAsOptions{})
+		if diags.HasError() {
+			return nil, fmt.Errorf("failed to extract parental_control_settings data: %s", diags.Errors()[0].Detail())
+		}
+
+		parentalControl, err := constructParentalControlSettings(ctx, &parentalControlData)
 		if err != nil {
 			return nil, err
 		}
 		requestBody.SetParentalControlSettings(parentalControl)
 	}
 
-	if data.PublicClient != nil {
-		publicClient, err := constructPublicClient(ctx, data.PublicClient)
+	if !data.PublicClient.IsNull() && !data.PublicClient.IsUnknown() {
+		var publicClientData ApplicationPublicClient
+		diags := data.PublicClient.As(ctx, &publicClientData, basetypes.ObjectAsOptions{})
+		if diags.HasError() {
+			return nil, fmt.Errorf("failed to extract public_client data: %s", diags.Errors()[0].Detail())
+		}
+
+		publicClient, err := constructPublicClient(ctx, &publicClientData)
 		if err != nil {
 			return nil, err
 		}
@@ -123,16 +160,28 @@ func constructResource(ctx context.Context, client *msgraphbetasdk.GraphServiceC
 		requestBody.SetRequiredResourceAccess(requiredResourceAccess)
 	}
 
-	if data.Spa != nil {
-		spa, err := constructSpa(ctx, data.Spa)
+	if !data.Spa.IsNull() && !data.Spa.IsUnknown() {
+		var spaData ApplicationSpa
+		diags := data.Spa.As(ctx, &spaData, basetypes.ObjectAsOptions{})
+		if diags.HasError() {
+			return nil, fmt.Errorf("failed to extract spa data: %s", diags.Errors()[0].Detail())
+		}
+
+		spa, err := constructSpa(ctx, &spaData)
 		if err != nil {
 			return nil, err
 		}
 		requestBody.SetSpa(spa)
 	}
 
-	if data.Web != nil {
-		web, err := constructWeb(ctx, data.Web)
+	if !data.Web.IsNull() && !data.Web.IsUnknown() {
+		var webData ApplicationWeb
+		diags := data.Web.As(ctx, &webData, basetypes.ObjectAsOptions{})
+		if diags.HasError() {
+			return nil, fmt.Errorf("failed to extract web data: %s", diags.Errors()[0].Detail())
+		}
+
+		web, err := constructWeb(ctx, &webData)
 		if err != nil {
 			return nil, err
 		}
@@ -595,10 +644,16 @@ func constructWeb(ctx context.Context, data *ApplicationWeb) (graphmodels.WebApp
 		return nil, fmt.Errorf("failed to set redirect_uris: %w", err)
 	}
 
-	if data.ImplicitGrantSettings != nil {
+	if !data.ImplicitGrantSettings.IsNull() && !data.ImplicitGrantSettings.IsUnknown() {
+		var implicitGrantData ApplicationWebImplicitGrantSettings
+		diags := data.ImplicitGrantSettings.As(ctx, &implicitGrantData, basetypes.ObjectAsOptions{})
+		if diags.HasError() {
+			return nil, fmt.Errorf("failed to extract implicit_grant_settings data: %s", diags.Errors()[0].Detail())
+		}
+
 		implicitGrant := graphmodels.NewImplicitGrantSettings()
-		convert.FrameworkToGraphBool(data.ImplicitGrantSettings.EnableAccessTokenIssuance, implicitGrant.SetEnableAccessTokenIssuance)
-		convert.FrameworkToGraphBool(data.ImplicitGrantSettings.EnableIdTokenIssuance, implicitGrant.SetEnableIdTokenIssuance)
+		convert.FrameworkToGraphBool(implicitGrantData.EnableAccessTokenIssuance, implicitGrant.SetEnableAccessTokenIssuance)
+		convert.FrameworkToGraphBool(implicitGrantData.EnableIdTokenIssuance, implicitGrant.SetEnableIdTokenIssuance)
 		web.SetImplicitGrantSettings(implicitGrant)
 	}
 
