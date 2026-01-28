@@ -37,7 +37,7 @@ func (r *ApplicationResource) Create(ctx context.Context, req resource.CreateReq
 	}
 	defer cancel()
 
-	requestBody, err := constructResource(ctx, &object, true)
+	requestBody, err := constructResource(ctx, r.client, &object, "", true)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error constructing application",
@@ -177,7 +177,7 @@ func (r *ApplicationResource) Update(ctx context.Context, req resource.UpdateReq
 	}
 	defer cancel()
 
-	requestBody, err := constructResource(ctx, &plan, false)
+	requestBody, err := constructResource(ctx, r.client, &plan, state.ID.ValueString(), false)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error constructing application",

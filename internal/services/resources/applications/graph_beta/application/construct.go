@@ -9,36 +9,35 @@ import (
 	"github.com/google/uuid"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
+	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
 // constructResource maps the Terraform schema to the SDK model
 // isCreate indicates whether this is a create operation (POST) or update operation (PATCH)
-func constructResource(ctx context.Context, data *ApplicationResourceModel, isCreate bool) (graphmodels.Applicationable, error) {
+// currentID is the resource ID for update operations, empty string for create operations
+func constructResource(ctx context.Context, client *msgraphbetasdk.GraphServiceClient, data *ApplicationResourceModel, currentID string, isCreate bool) (graphmodels.Applicationable, error) {
 	tflog.Debug(ctx, fmt.Sprintf("Constructing %s resource from model (isCreate: %t)", ResourceName, isCreate))
+
+	if err := validateRequest(ctx, client, data, currentID); err != nil {
+		return nil, fmt.Errorf("validation failed: %w", err)
+	}
 
 	requestBody := graphmodels.NewApplication()
 
-	// Required fields
 	convert.FrameworkToGraphString(data.DisplayName, requestBody.SetDisplayName)
-
-	// Optional string fields
 	convert.FrameworkToGraphString(data.Description, requestBody.SetDescription)
 	convert.FrameworkToGraphString(data.SignInAudience, requestBody.SetSignInAudience)
 	convert.FrameworkToGraphString(data.Notes, requestBody.SetNotes)
 	convert.FrameworkToGraphString(data.ServiceManagementReference, requestBody.SetServiceManagementReference)
 	convert.FrameworkToGraphString(data.DisabledByMicrosoftStatus, requestBody.SetDisabledByMicrosoftStatus)
-
-	// Boolean fields
 	convert.FrameworkToGraphBool(data.IsDeviceOnlyAuthSupported, requestBody.SetIsDeviceOnlyAuthSupported)
 	convert.FrameworkToGraphBool(data.IsFallbackPublicClient, requestBody.SetIsFallbackPublicClient)
 
-	// Group membership claims
 	if err := constructGroupMembershipClaims(ctx, data, requestBody); err != nil {
 		return nil, err
 	}
 
-	// String sets
 	if err := convert.FrameworkToGraphStringSet(ctx, data.IdentifierUris, requestBody.SetIdentifierUris); err != nil {
 		return nil, fmt.Errorf("failed to set identifier_uris: %w", err)
 	}
@@ -47,7 +46,6 @@ func constructResource(ctx context.Context, data *ApplicationResourceModel, isCr
 		return nil, fmt.Errorf("failed to set tags: %w", err)
 	}
 
-	// Sign-in audience restrictions
 	if data.SignInAudienceRestrictions != nil {
 		restrictions, err := constructSignInAudienceRestrictions(ctx, data.SignInAudienceRestrictions)
 		if err != nil {
@@ -56,7 +54,6 @@ func constructResource(ctx context.Context, data *ApplicationResourceModel, isCr
 		requestBody.SetSignInAudienceRestrictions(restrictions)
 	}
 
-	// API configuration
 	if data.Api != nil {
 		api, err := constructApi(ctx, data.Api)
 		if err != nil {
@@ -65,7 +62,6 @@ func constructResource(ctx context.Context, data *ApplicationResourceModel, isCr
 		requestBody.SetApi(api)
 	}
 
-	// App roles
 	if !data.AppRoles.IsNull() && !data.AppRoles.IsUnknown() {
 		appRoles, err := constructAppRoles(ctx, data.AppRoles)
 		if err != nil {
@@ -74,13 +70,11 @@ func constructResource(ctx context.Context, data *ApplicationResourceModel, isCr
 		requestBody.SetAppRoles(appRoles)
 	}
 
-	// Informational URLs
 	if data.Info != nil {
 		info := constructInformationalUrl(data.Info)
 		requestBody.SetInfo(info)
 	}
 
-	// Key credentials
 	if !data.KeyCredentials.IsNull() && !data.KeyCredentials.IsUnknown() {
 		keyCredentials, err := constructKeyCredentials(ctx, data.KeyCredentials)
 		if err != nil {
@@ -89,7 +83,6 @@ func constructResource(ctx context.Context, data *ApplicationResourceModel, isCr
 		requestBody.SetKeyCredentials(keyCredentials)
 	}
 
-	// Password credentials
 	if !data.PasswordCredentials.IsNull() && !data.PasswordCredentials.IsUnknown() {
 		passwordCredentials, err := constructPasswordCredentials(ctx, data.PasswordCredentials)
 		if err != nil {
@@ -98,7 +91,6 @@ func constructResource(ctx context.Context, data *ApplicationResourceModel, isCr
 		requestBody.SetPasswordCredentials(passwordCredentials)
 	}
 
-	// Optional claims
 	if data.OptionalClaims != nil {
 		optionalClaims, err := constructOptionalClaims(ctx, data.OptionalClaims)
 		if err != nil {
@@ -107,7 +99,6 @@ func constructResource(ctx context.Context, data *ApplicationResourceModel, isCr
 		requestBody.SetOptionalClaims(optionalClaims)
 	}
 
-	// Parental control settings
 	if data.ParentalControlSettings != nil {
 		parentalControl, err := constructParentalControlSettings(ctx, data.ParentalControlSettings)
 		if err != nil {
@@ -116,7 +107,6 @@ func constructResource(ctx context.Context, data *ApplicationResourceModel, isCr
 		requestBody.SetParentalControlSettings(parentalControl)
 	}
 
-	// Public client
 	if data.PublicClient != nil {
 		publicClient, err := constructPublicClient(ctx, data.PublicClient)
 		if err != nil {
@@ -125,7 +115,6 @@ func constructResource(ctx context.Context, data *ApplicationResourceModel, isCr
 		requestBody.SetPublicClient(publicClient)
 	}
 
-	// Required resource access
 	if !data.RequiredResourceAccess.IsNull() && !data.RequiredResourceAccess.IsUnknown() {
 		requiredResourceAccess, err := constructRequiredResourceAccess(ctx, data.RequiredResourceAccess)
 		if err != nil {
@@ -134,7 +123,6 @@ func constructResource(ctx context.Context, data *ApplicationResourceModel, isCr
 		requestBody.SetRequiredResourceAccess(requiredResourceAccess)
 	}
 
-	// SPA
 	if data.Spa != nil {
 		spa, err := constructSpa(ctx, data.Spa)
 		if err != nil {
@@ -143,7 +131,6 @@ func constructResource(ctx context.Context, data *ApplicationResourceModel, isCr
 		requestBody.SetSpa(spa)
 	}
 
-	// Web
 	if data.Web != nil {
 		web, err := constructWeb(ctx, data.Web)
 		if err != nil {
