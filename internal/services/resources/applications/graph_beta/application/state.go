@@ -191,14 +191,16 @@ func mapApiToTerraform(ctx context.Context, api graphmodels.ApiApplicationable) 
 	}
 
 	// Map KnownClientApplications
-	if knownClients := api.GetKnownClientApplications(); knownClients != nil {
+	if knownClients := api.GetKnownClientApplications(); len(knownClients) > 0 {
 		clientIds := make([]string, 0, len(knownClients))
 		for _, uuid := range knownClients {
 			clientIds = append(clientIds, uuid.String())
 		}
 		result.KnownClientApplications = convert.GraphToFrameworkStringSet(ctx, clientIds)
 	} else {
-		result.KnownClientApplications = types.SetNull(types.StringType)
+		// Return empty set instead of null for consistency with planned empty sets
+		emptySet, _ := types.SetValue(types.StringType, []attr.Value{})
+		result.KnownClientApplications = emptySet
 	}
 
 	// Map OAuth2PermissionScopes
@@ -228,7 +230,8 @@ func mapApiToTerraform(ctx context.Context, api graphmodels.ApiApplicationable) 
 
 func mapOAuth2PermissionScopesToTerraform(ctx context.Context, scopes []graphmodels.PermissionScopeable) types.Set {
 	if len(scopes) == 0 {
-		return types.SetNull(types.ObjectType{AttrTypes: OAuth2PermissionScopeAttrTypes})
+		emptySet, _ := types.SetValue(types.ObjectType{AttrTypes: OAuth2PermissionScopeAttrTypes}, []attr.Value{})
+		return emptySet
 	}
 
 	elements := make([]attr.Value, 0, len(scopes))
@@ -258,10 +261,6 @@ func mapOAuth2PermissionScopesToTerraform(ctx context.Context, scopes []graphmod
 		elements = append(elements, objVal)
 	}
 
-	if len(elements) == 0 {
-		return types.SetNull(types.ObjectType{AttrTypes: OAuth2PermissionScopeAttrTypes})
-	}
-
 	setVal, diags := types.SetValue(types.ObjectType{AttrTypes: OAuth2PermissionScopeAttrTypes}, elements)
 	if diags.HasError() {
 		tflog.Error(ctx, "Failed to create OAuth2PermissionScopes set", map[string]any{
@@ -276,7 +275,8 @@ func mapOAuth2PermissionScopesToTerraform(ctx context.Context, scopes []graphmod
 // mapPreAuthorizedApplicationsToTerraform maps the pre-authorized applications to Terraform state.
 func mapPreAuthorizedApplicationsToTerraform(ctx context.Context, preAuthApps []graphmodels.PreAuthorizedApplicationable) types.Set {
 	if len(preAuthApps) == 0 {
-		return types.SetNull(types.ObjectType{AttrTypes: PreAuthorizedApplicationAttrTypes})
+		emptySet, _ := types.SetValue(types.ObjectType{AttrTypes: PreAuthorizedApplicationAttrTypes}, []attr.Value{})
+		return emptySet
 	}
 
 	elements := make([]attr.Value, 0, len(preAuthApps))
@@ -305,10 +305,6 @@ func mapPreAuthorizedApplicationsToTerraform(ctx context.Context, preAuthApps []
 		elements = append(elements, objVal)
 	}
 
-	if len(elements) == 0 {
-		return types.SetNull(types.ObjectType{AttrTypes: PreAuthorizedApplicationAttrTypes})
-	}
-
 	setVal, diags := types.SetValue(types.ObjectType{AttrTypes: PreAuthorizedApplicationAttrTypes}, elements)
 	if diags.HasError() {
 		tflog.Error(ctx, "Failed to create PreAuthorizedApplications set", map[string]any{
@@ -323,7 +319,8 @@ func mapPreAuthorizedApplicationsToTerraform(ctx context.Context, preAuthApps []
 // mapAppRolesToTerraform maps the app roles to Terraform state.
 func mapAppRolesToTerraform(ctx context.Context, appRoles []graphmodels.AppRoleable) types.Set {
 	if len(appRoles) == 0 {
-		return types.SetNull(types.ObjectType{AttrTypes: AppRoleAttrTypes})
+		emptySet, _ := types.SetValue(types.ObjectType{AttrTypes: AppRoleAttrTypes}, []attr.Value{})
+		return emptySet
 	}
 
 	elements := make([]attr.Value, 0, len(appRoles))
@@ -355,10 +352,6 @@ func mapAppRolesToTerraform(ctx context.Context, appRoles []graphmodels.AppRolea
 			continue
 		}
 		elements = append(elements, objVal)
-	}
-
-	if len(elements) == 0 {
-		return types.SetNull(types.ObjectType{AttrTypes: AppRoleAttrTypes})
 	}
 
 	setVal, diags := types.SetValue(types.ObjectType{AttrTypes: AppRoleAttrTypes}, elements)
@@ -400,7 +393,8 @@ func mapInfoToTerraform(ctx context.Context, info graphmodels.InformationalUrlab
 // mapKeyCredentialsToTerraform maps the key credentials to Terraform state.
 func mapKeyCredentialsToTerraform(ctx context.Context, keyCredentials []graphmodels.KeyCredentialable) types.Set {
 	if len(keyCredentials) == 0 {
-		return types.SetNull(types.ObjectType{AttrTypes: KeyCredentialAttrTypes})
+		emptySet, _ := types.SetValue(types.ObjectType{AttrTypes: KeyCredentialAttrTypes}, []attr.Value{})
+		return emptySet
 	}
 
 	elements := make([]attr.Value, 0, len(keyCredentials))
@@ -440,10 +434,6 @@ func mapKeyCredentialsToTerraform(ctx context.Context, keyCredentials []graphmod
 		elements = append(elements, objVal)
 	}
 
-	if len(elements) == 0 {
-		return types.SetNull(types.ObjectType{AttrTypes: KeyCredentialAttrTypes})
-	}
-
 	setVal, diags := types.SetValue(types.ObjectType{AttrTypes: KeyCredentialAttrTypes}, elements)
 	if diags.HasError() {
 		tflog.Error(ctx, "Failed to create KeyCredentials set", map[string]any{
@@ -457,7 +447,8 @@ func mapKeyCredentialsToTerraform(ctx context.Context, keyCredentials []graphmod
 
 func mapPasswordCredentialsToTerraform(ctx context.Context, passwordCredentials []graphmodels.PasswordCredentialable) types.Set {
 	if len(passwordCredentials) == 0 {
-		return types.SetNull(types.ObjectType{AttrTypes: PasswordCredentialAttrTypes})
+		emptySet, _ := types.SetValue(types.ObjectType{AttrTypes: PasswordCredentialAttrTypes}, []attr.Value{})
+		return emptySet
 	}
 
 	elements := make([]attr.Value, 0, len(passwordCredentials))
@@ -489,10 +480,6 @@ func mapPasswordCredentialsToTerraform(ctx context.Context, passwordCredentials 
 			continue
 		}
 		elements = append(elements, objVal)
-	}
-
-	if len(elements) == 0 {
-		return types.SetNull(types.ObjectType{AttrTypes: PasswordCredentialAttrTypes})
 	}
 
 	setVal, diags := types.SetValue(types.ObjectType{AttrTypes: PasswordCredentialAttrTypes}, elements)
@@ -546,7 +533,8 @@ func mapOptionalClaimsToTerraform(ctx context.Context, optionalClaims graphmodel
 // mapOptionalClaimArrayToTerraform converts an array of OptionalClaims to Terraform Set
 func mapOptionalClaimArrayToTerraform(ctx context.Context, claims []graphmodels.OptionalClaimable) types.Set {
 	if len(claims) == 0 {
-		return types.SetNull(types.ObjectType{AttrTypes: OptionalClaimAttrTypes})
+		emptySet, _ := types.SetValue(types.ObjectType{AttrTypes: OptionalClaimAttrTypes}, []attr.Value{})
+		return emptySet
 	}
 
 	elements := make([]attr.Value, 0, len(claims))
@@ -570,10 +558,6 @@ func mapOptionalClaimArrayToTerraform(ctx context.Context, claims []graphmodels.
 			continue
 		}
 		elements = append(elements, objVal)
-	}
-
-	if len(elements) == 0 {
-		return types.SetNull(types.ObjectType{AttrTypes: OptionalClaimAttrTypes})
 	}
 
 	setVal, diags := types.SetValue(types.ObjectType{AttrTypes: OptionalClaimAttrTypes}, elements)
@@ -689,10 +673,6 @@ func mapRequiredResourceAccessToTerraform(ctx context.Context, requiredResourceA
 			continue
 		}
 		elements = append(elements, objVal)
-	}
-
-	if len(elements) == 0 {
-		return types.SetNull(types.ObjectType{AttrTypes: RequiredResourceAccessAttrTypes})
 	}
 
 	setVal, diags := types.SetValue(types.ObjectType{AttrTypes: RequiredResourceAccessAttrTypes}, elements)
@@ -819,7 +799,8 @@ func mapSignInAudienceRestrictionsToTerraform(ctx context.Context, restrictions 
 // mapRedirectUriSettingsToTerraform converts Graph API RedirectUriSettings array to Terraform Set
 func mapRedirectUriSettingsToTerraform(ctx context.Context, settings []graphmodels.RedirectUriSettingsable) types.Set {
 	if len(settings) == 0 {
-		return types.SetNull(types.ObjectType{AttrTypes: RedirectUriSettingsAttrTypes})
+		emptySet, _ := types.SetValue(types.ObjectType{AttrTypes: RedirectUriSettingsAttrTypes}, []attr.Value{})
+		return emptySet
 	}
 
 	elements := make([]attr.Value, 0, len(settings))
@@ -841,10 +822,6 @@ func mapRedirectUriSettingsToTerraform(ctx context.Context, settings []graphmode
 			continue
 		}
 		elements = append(elements, objVal)
-	}
-
-	if len(elements) == 0 {
-		return types.SetNull(types.ObjectType{AttrTypes: RedirectUriSettingsAttrTypes})
 	}
 
 	setVal, diags := types.SetValue(types.ObjectType{AttrTypes: RedirectUriSettingsAttrTypes}, elements)

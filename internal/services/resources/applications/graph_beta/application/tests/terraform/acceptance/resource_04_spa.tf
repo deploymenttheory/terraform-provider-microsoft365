@@ -38,7 +38,7 @@ resource "microsoft365_graph_beta_applications_application" "test_spa" {
   sign_in_audience = "AzureADMultipleOrgs"
 
   identifier_uris = [
-    "api://acc-test-spa-${random_string.app_suffix.result}"
+    "https://deploymenttheory.com/acc-test-spa-${random_string.app_suffix.result}"
   ]
 
   spa = {

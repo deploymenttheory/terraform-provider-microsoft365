@@ -12,7 +12,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
-	"github.com/microsoftgraph/msgraph-beta-sdk-go/applications"
 )
 
 // Create handles the Create operation for application resources.
@@ -118,18 +117,10 @@ func (r *ApplicationResource) Read(ctx context.Context, req resource.ReadRequest
 	}
 	defer cancel()
 
-	// Use $expand to include all related entities/complex types in the response
-	// This ensures nested objects like api, web, spa, etc. are fully populated
-	requestConfig := &applications.ApplicationItemRequestBuilderGetRequestConfiguration{
-		QueryParameters: &applications.ApplicationItemRequestBuilderGetQueryParameters{
-			Expand: []string{"*"},
-		},
-	}
-
 	application, err := r.client.
 		Applications().
 		ByApplicationId(object.ID.ValueString()).
-		Get(ctx, requestConfig)
+		Get(ctx, nil)
 
 	if err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, operation, r.ReadPermissions)

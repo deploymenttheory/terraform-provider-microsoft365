@@ -38,7 +38,7 @@ resource "microsoft365_graph_beta_applications_application" "test_web_app" {
   sign_in_audience = "AzureADMyOrg"
 
   identifier_uris = [
-    "https://acc-test-web-${random_string.app_suffix.result}.azurewebsites.net"
+    "https://deploymenttheory.com/acc-test-web-${random_string.app_suffix.result}"
   ]
 
   web = {
@@ -51,7 +51,6 @@ resource "microsoft365_graph_beta_applications_application" "test_web_app" {
       enable_access_token_issuance = false
       enable_id_token_issuance     = true
     }
-    redirect_uri_settings = []
   }
 
   required_resource_access = []

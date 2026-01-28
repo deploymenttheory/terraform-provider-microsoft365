@@ -18,7 +18,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int32default"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/objectplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/setplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
@@ -187,12 +189,18 @@ func (r *ApplicationResource) Schema(ctx context.Context, req resource.SchemaReq
 				Optional:            true,
 				Computed:            true,
 				ElementType:         types.StringType,
+				PlanModifiers: []planmodifier.Set{
+					setplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"group_membership_claims": schema.SetAttribute{
 				MarkdownDescription: "Configures the groups claim issued in a user or OAuth 2.0 access token that the application expects. To set this attribute, use one of the following string values: `None`, `SecurityGroup` (for security groups and Microsoft Entra roles), `All` (this gets all security groups, distribution groups, and Microsoft Entra directory roles that the signed-in user is a member of).",
 				Optional:            true,
 				Computed:            true,
 				ElementType:         types.StringType,
+				PlanModifiers: []planmodifier.Set{
+					setplanmodifier.UseStateForUnknown(),
+				},
 				Validators: []validator.Set{
 					setvalidator.ValueStringsAre(
 						stringvalidator.OneOf(
@@ -209,6 +217,9 @@ func (r *ApplicationResource) Schema(ctx context.Context, req resource.SchemaReq
 				MarkdownDescription: "Notes relevant for the management of the application.",
 				Optional:            true,
 				Computed:            true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"is_device_only_auth_supported": schema.BoolAttribute{
 				MarkdownDescription: "Specifies whether this application supports device authentication without a user. The default is false.",
@@ -232,33 +243,54 @@ func (r *ApplicationResource) Schema(ctx context.Context, req resource.SchemaReq
 				MarkdownDescription: "References application or service contact information from a Service or Asset Management database. Nullable.",
 				Optional:            true,
 				Computed:            true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"tags": schema.SetAttribute{
 				MarkdownDescription: "Custom strings that can be used to categorize and identify the application. Not nullable. Strings added here also appear in the tags property of any associated service principals. Supports `$filter` (`eq`, `not`, `ge`, `le`, `startsWith`) and `$search`.",
 				Optional:            true,
 				Computed:            true,
 				ElementType:         types.StringType,
+				PlanModifiers: []planmodifier.Set{
+					setplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"disabled_by_microsoft_status": schema.StringAttribute{
 				MarkdownDescription: "Specifies whether Microsoft has disabled the registered application. The possible values are: null (default value), `NotDisabled`, and `DisabledDueToViolationOfServicesAgreement` (reasons may include suspicious, abusive, or malicious activity, or a violation of the Microsoft Services Agreement). Supports `$filter` (`eq`, `ne`, `not`). Read-only.",
 				Computed:            true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"publisher_domain": schema.StringAttribute{
 				MarkdownDescription: "The verified publisher domain for the application. Read-only. Supports `$filter` (`eq`, `ne`, `ge`, `le`, `startsWith`).",
 				Computed:            true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"created_date_time": schema.StringAttribute{
 				MarkdownDescription: "The date and time the application was registered. The DateTimeOffset type represents date and time information using ISO 8601 format and is always in UTC time. For example, midnight UTC on Jan 1, 2014 is 2014-01-01T00:00:00Z. Read-only. Supports `$filter` (`eq`, `ne`, `not`, `ge`, `le`, `in`, and `eq` on null values) and `$orderby`.",
 				Computed:            true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"deleted_date_time": schema.StringAttribute{
 				MarkdownDescription: "The date and time the application was deleted. The DateTimeOffset type represents date and time information using ISO 8601 format and is always in UTC time. For example, midnight UTC on Jan 1, 2014 is 2014-01-01T00:00:00Z. Read-only.",
 				Computed:            true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"api": schema.SingleNestedAttribute{
 				MarkdownDescription: "Specifies settings for an application that implements a web API.",
 				Optional:            true,
 				Computed:            true,
+				PlanModifiers: []planmodifier.Object{
+					objectplanmodifier.UseStateForUnknown(),
+				},
 				Attributes: map[string]schema.Attribute{
 					"accept_mapped_claims": schema.BoolAttribute{
 						MarkdownDescription: "Allows an application to use claims mapping without specifying a custom signing key.",
@@ -388,6 +420,9 @@ func (r *ApplicationResource) Schema(ctx context.Context, req resource.SchemaReq
 				MarkdownDescription: "The collection of roles defined for the application. With app role assignments, these roles can be assigned to users, groups, or service principals associated with other applications. Not nullable.",
 				Optional:            true,
 				Computed:            true,
+				PlanModifiers: []planmodifier.Set{
+					setplanmodifier.UseStateForUnknown(),
+				},
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"id": schema.StringAttribute{
@@ -443,6 +478,9 @@ func (r *ApplicationResource) Schema(ctx context.Context, req resource.SchemaReq
 				MarkdownDescription: "Basic profile information of the application, such as it's marketing, support, terms of service, and privacy statement URLs. The terms of service and privacy statement are surfaced to users through the user consent experience. For more information, see How to: Add Terms of service and privacy statement for registered Microsoft Entra apps. Supports `$filter` (`eq`, `ne`, `not`, `ge`, `le`, and `eq` on null values).",
 				Optional:            true,
 				Computed:            true,
+				PlanModifiers: []planmodifier.Object{
+					objectplanmodifier.UseStateForUnknown(),
+				},
 				Attributes: map[string]schema.Attribute{
 					"logo_url": schema.StringAttribute{
 						MarkdownDescription: "CDN URL to the application's logo. Read-only.",
@@ -498,6 +536,9 @@ func (r *ApplicationResource) Schema(ctx context.Context, req resource.SchemaReq
 				MarkdownDescription: "The collection of key credentials associated with the application. Not nullable. Supports `$filter` (`eq`, `not`, `ge`, `le`).",
 				Optional:            true,
 				Computed:            true,
+				PlanModifiers: []planmodifier.Set{
+					setplanmodifier.UseStateForUnknown(),
+				},
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"custom_key_identifier": schema.StringAttribute{
@@ -554,6 +595,9 @@ func (r *ApplicationResource) Schema(ctx context.Context, req resource.SchemaReq
 				MarkdownDescription: "The collection of password credentials associated with the application. Not nullable.",
 				Optional:            true,
 				Computed:            true,
+				PlanModifiers: []planmodifier.Set{
+					setplanmodifier.UseStateForUnknown(),
+				},
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"custom_key_identifier": schema.StringAttribute{
@@ -603,6 +647,9 @@ func (r *ApplicationResource) Schema(ctx context.Context, req resource.SchemaReq
 				MarkdownDescription: "Application developers can configure optional claims in their Microsoft Entra applications to specify the claims that are sent to their application by the Microsoft security token service. For more information, see How to: Provide optional claims to your app.",
 				Optional:            true,
 				Computed:            true,
+				PlanModifiers: []planmodifier.Object{
+					objectplanmodifier.UseStateForUnknown(),
+				},
 				Attributes: map[string]schema.Attribute{
 					"access_token": schema.SetNestedAttribute{
 						MarkdownDescription: "The optional claims returned in the JWT access token.",
@@ -634,6 +681,9 @@ func (r *ApplicationResource) Schema(ctx context.Context, req resource.SchemaReq
 				MarkdownDescription: "Specifies parental control settings for an application.",
 				Optional:            true,
 				Computed:            true,
+				PlanModifiers: []planmodifier.Object{
+					objectplanmodifier.UseStateForUnknown(),
+				},
 				Attributes: map[string]schema.Attribute{
 					"countries_blocked_for_minors": schema.SetAttribute{
 						MarkdownDescription: "Specifies the two-letter ISO country codes. Access to the application will be blocked for minors from the countries specified in this list.",
@@ -669,6 +719,9 @@ func (r *ApplicationResource) Schema(ctx context.Context, req resource.SchemaReq
 				MarkdownDescription: "Specifies settings for installed clients such as desktop or mobile devices.",
 				Optional:            true,
 				Computed:            true,
+				PlanModifiers: []planmodifier.Object{
+					objectplanmodifier.UseStateForUnknown(),
+				},
 				Attributes: map[string]schema.Attribute{
 					"redirect_uris": schema.SetAttribute{
 						MarkdownDescription: "Specifies the URLs where user tokens are sent for sign-in, or the redirect URIs where OAuth 2.0 authorization codes and access tokens are sent.",
@@ -685,6 +738,9 @@ func (r *ApplicationResource) Schema(ctx context.Context, req resource.SchemaReq
 				MarkdownDescription: "Specifies the resources that the application needs to access. This property also specifies the set of delegated permissions and application roles that it needs for each of those resources. This configuration of access to the required resources drives the consent experience. No more than 50 resource services (APIs) can be configured. Beginning mid-October 2021, the total number of required permissions must not exceed 400. For more information, see Limits on requested permissions per app. Not nullable. Supports `$filter` (`eq`, `not`, `ge`, `le`).",
 				Optional:            true,
 				Computed:            true,
+				PlanModifiers: []planmodifier.Set{
+					setplanmodifier.UseStateForUnknown(),
+				},
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"resource_app_id": schema.StringAttribute{
@@ -732,6 +788,9 @@ func (r *ApplicationResource) Schema(ctx context.Context, req resource.SchemaReq
 				MarkdownDescription: "Specifies settings for a single-page application, including sign out URLs and redirect URIs for authorization codes and access tokens.",
 				Optional:            true,
 				Computed:            true,
+				PlanModifiers: []planmodifier.Object{
+					objectplanmodifier.UseStateForUnknown(),
+				},
 				Attributes: map[string]schema.Attribute{
 					"redirect_uris": schema.SetAttribute{
 						MarkdownDescription: "Specifies the URLs where user tokens are sent for sign-in, or the redirect URIs where OAuth 2.0 authorization codes and access tokens are sent.",
@@ -748,6 +807,9 @@ func (r *ApplicationResource) Schema(ctx context.Context, req resource.SchemaReq
 				MarkdownDescription: "Specifies settings for a web application.",
 				Optional:            true,
 				Computed:            true,
+				PlanModifiers: []planmodifier.Object{
+					objectplanmodifier.UseStateForUnknown(),
+				},
 				Attributes: map[string]schema.Attribute{
 					"home_page_url": schema.StringAttribute{
 						MarkdownDescription: "Home page or landing page of the application.",
@@ -798,9 +860,15 @@ func (r *ApplicationResource) Schema(ctx context.Context, req resource.SchemaReq
 						},
 					},
 					"redirect_uri_settings": schema.SetNestedAttribute{
-						MarkdownDescription: "Specifies the index of the URLs where user tokens are sent for sign-in. This is only valid for applications using SAML.",
+						MarkdownDescription: "Specifies the index of the URLs where user tokens are sent for sign-in. This is only valid for applications using SAML. Note: If not specified, the API may auto-generate settings based on redirect_uris. To manage this field, you must provide at least one entry; empty arrays are not supported as the API auto-generates values.",
 						Optional:            true,
 						Computed:            true,
+						PlanModifiers: []planmodifier.Set{
+							setplanmodifier.UseStateForUnknown(),
+						},
+						Validators: []validator.Set{
+							setvalidator.SizeAtLeast(1),
+						},
 						NestedObject: schema.NestedAttributeObject{
 							Attributes: map[string]schema.Attribute{
 								"uri": schema.StringAttribute{
@@ -828,6 +896,9 @@ func (r *ApplicationResource) Schema(ctx context.Context, req resource.SchemaReq
 				MarkdownDescription: "Specifies restrictions on the supported account types specified in signInAudience. The value type determines the restrictions that can be applied: unrestrictedAudience (There are no additional restrictions on the supported account types allowed by signInAudience) or allowedTenantsAudience (The application can only be used in the specified Entra tenants. Only supported when signInAudience is AzureADMultipleOrgs). Default is a value of type unrestrictedAudience. Returned only on `$select`.",
 				Optional:            true,
 				Computed:            true,
+				PlanModifiers: []planmodifier.Object{
+					objectplanmodifier.UseStateForUnknown(),
+				},
 				Attributes: map[string]schema.Attribute{
 					"odata_type": schema.StringAttribute{
 						MarkdownDescription: "The OData type. Must be `#microsoft.graph.allowedTenantsAudience` or `#microsoft.graph.unrestrictedAudience`.",

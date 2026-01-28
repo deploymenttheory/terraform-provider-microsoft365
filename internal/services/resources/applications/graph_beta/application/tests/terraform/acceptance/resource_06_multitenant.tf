@@ -38,7 +38,7 @@ resource "microsoft365_graph_beta_applications_application" "test_multitenant" {
   sign_in_audience = "AzureADandPersonalMicrosoftAccount"
 
   identifier_uris = [
-    "api://acc-test-mt-${random_string.app_suffix.result}"
+    "https://deploymenttheory.com/acc-test-mt-${random_string.app_suffix.result}"
   ]
 
   web = {
@@ -50,7 +50,6 @@ resource "microsoft365_graph_beta_applications_application" "test_multitenant" {
       enable_access_token_issuance = false
       enable_id_token_issuance     = true
     }
-    redirect_uri_settings = []
   }
 
   spa = {

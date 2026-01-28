@@ -50,7 +50,7 @@ resource "microsoft365_graph_beta_applications_application" "test_maximal" {
   sign_in_audience = "AzureADMyOrg"
   
   identifier_uris = [
-    "api://acc-test-maximal-${random_string.app_suffix.result}"
+    "https://deploymenttheory.com/acc-test-maximal-${random_string.app_suffix.result}"
   ]
 
   group_membership_claims = ["SecurityGroup"]
@@ -132,7 +132,6 @@ resource "microsoft365_graph_beta_applications_application" "test_maximal" {
       enable_access_token_issuance = false
       enable_id_token_issuance     = true
     }
-    redirect_uri_settings = []
   }
 
   owner_user_ids = [
