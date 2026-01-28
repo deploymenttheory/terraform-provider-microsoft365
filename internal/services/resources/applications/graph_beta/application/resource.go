@@ -80,16 +80,17 @@ func (r *ApplicationResource) Configure(ctx context.Context, req resource.Config
 // ImportState handles importing the resource with an extended ID format.
 //
 // Supported formats:
-//   - Simple:   "resource_id" (prevent_duplicate_names defaults to false)
-//   - Extended: "resource_id:prevent_duplicate_names=true" or "resource_id:prevent_duplicate_names=false"
+//   - Simple:   "resource_id" (prevent_duplicate_names and hard_delete default to false)
+//   - Extended: "resource_id:prevent_duplicate_names=true:hard_delete=true"
 //
 // Example:
 //
-//	terraform import microsoft365_graph_beta_applications_application.example "12345678-1234-1234-1234-123456789012:prevent_duplicate_names=true"
+//	terraform import microsoft365_graph_beta_applications_application.example "12345678-1234-1234-1234-123456789012:prevent_duplicate_names=true:hard_delete=true"
 func (r *ApplicationResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	idParts := strings.Split(req.ID, ":")
 	resourceID := idParts[0]
 	preventDuplicateNames := false // Default
+	hardDelete := false            // Default
 
 	if len(idParts) > 1 {
 		for _, part := range idParts[1:] {
@@ -108,19 +109,35 @@ func (r *ApplicationResource) ImportState(ctx context.Context, req resource.Impo
 					return
 				}
 			}
+			if strings.HasPrefix(part, "hard_delete=") {
+				value := strings.TrimPrefix(part, "hard_delete=")
+				switch strings.ToLower(value) {
+				case "true":
+					hardDelete = true
+				case "false":
+					hardDelete = false
+				default:
+					resp.Diagnostics.AddError(
+						"Invalid Import ID",
+						fmt.Sprintf("Invalid hard_delete value '%s'. Must be 'true' or 'false'.", value),
+					)
+					return
+				}
+			}
 		}
 	}
 
-	tflog.Info(ctx, fmt.Sprintf("Importing %s with ID: %s, prevent_duplicate_names: %t", ResourceName, resourceID, preventDuplicateNames))
+	tflog.Info(ctx, fmt.Sprintf("Importing %s with ID: %s, prevent_duplicate_names: %t, hard_delete: %t", ResourceName, resourceID, preventDuplicateNames, hardDelete))
 
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("id"), resourceID)...)
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("prevent_duplicate_names"), preventDuplicateNames)...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("hard_delete"), hardDelete)...)
 }
 
 // Schema returns the schema for the resource.
 func (r *ApplicationResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Manages an application in Microsoft Entra ID. Any application that outsources authentication to Microsoft Entra ID must be registered in the Microsoft identity platform. Application registration involves telling Microsoft Entra ID about your application, including the URL where it's located, the URL to send replies after authentication, the URI to identify your application, and more.",
+		MarkdownDescription: "Manages an application in Microsoft Entra ID using the `/applications` endpoint. Any application that outsources authentication to Microsoft Entra ID must be registered in the Microsoft identity platform. Application registration involves telling Microsoft Entra ID about your application, including the URL where it's located, the URL to send replies after authentication, the URI to identify your application, and more.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				MarkdownDescription: "Unique identifier for the application object. This property is referred to as **Object ID** in the Microsoft Entra admin center. Key. Not nullable. Read-only. Supports `$filter` (`eq`, `ne`, `not`, `in`).",
@@ -170,17 +187,6 @@ func (r *ApplicationResource) Schema(ctx context.Context, req resource.SchemaReq
 				Optional:            true,
 				Computed:            true,
 				ElementType:         types.StringType,
-			},
-			"application_template_id": schema.StringAttribute{
-				MarkdownDescription: "Unique identifier of the applicationTemplate. Supports `$filter` (`eq`, `not`, `ne`). Read-only. null if the app wasn't created from an application template.",
-				Optional:            true,
-				Computed:            true,
-				Validators: []validator.String{
-					stringvalidator.RegexMatches(
-						regexp.MustCompile(constants.GuidRegex),
-						"must be a valid GUID in the format 00000000-0000-0000-0000-000000000000",
-					),
-				},
 			},
 			"group_membership_claims": schema.SetAttribute{
 				MarkdownDescription: "Configures the groups claim issued in a user or OAuth 2.0 access token that the application expects. To set this attribute, use one of the following string values: `None`, `SecurityGroup` (for security groups and Microsoft Entra roles), `All` (this gets all security groups, distribution groups, and Microsoft Entra directory roles that the signed-in user is a member of).",
@@ -846,10 +852,21 @@ func (r *ApplicationResource) Schema(ctx context.Context, req resource.SchemaReq
 				},
 			},
 			"prevent_duplicate_names": schema.BoolAttribute{
-				MarkdownDescription: "If set to `true`, the provider will check for existing applications with the same display name and return an error if one is found. This helps prevent accidentally creating duplicate applications. Note: This field defaults to `false` on import since the API does not return this value.",
-				Optional:            true,
-				Computed:            true,
-				Default:             booldefault.StaticBool(false),
+				MarkdownDescription: "If set to `true`, the provider will check for existing applications with the same display " +
+					"name and return an error if one is found. This helps prevent accidentally creating duplicate applications. Note: " +
+					"This field defaults to `false` on import since the API does not return this value.",
+				Optional: true,
+				Computed: true,
+				Default:  booldefault.StaticBool(false),
+			},
+			"hard_delete": schema.BoolAttribute{
+				Optional: true,
+				Computed: true,
+				Default:  booldefault.StaticBool(false),
+				MarkdownDescription: "When `true`, the application will be permanently deleted (hard delete) during destroy. " +
+					"When `false` (default), the application will only be soft deleted and moved to the deleted items container " +
+					"where it can be restored within 30 days. " +
+					"Note: This field defaults to `false` on import since the API does not return this value.",
 			},
 			"timeouts": commonschema.ResourceTimeouts(ctx),
 		},

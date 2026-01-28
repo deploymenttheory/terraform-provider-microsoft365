@@ -16,7 +16,6 @@ type ApplicationResourceModel struct {
 	SignInAudience                 types.String                        `tfsdk:"sign_in_audience"`
 	SignInAudienceRestrictions     *SignInAudienceRestrictions         `tfsdk:"sign_in_audience_restrictions"`
 	IdentifierUris                 types.Set                           `tfsdk:"identifier_uris"`
-	ApplicationTemplateId          types.String                        `tfsdk:"application_template_id"`
 	GroupMembershipClaims          types.Set                           `tfsdk:"group_membership_claims"`
 	Notes                          types.String                        `tfsdk:"notes"`
 	IsDeviceOnlyAuthSupported      types.Bool                          `tfsdk:"is_device_only_auth_supported"`
@@ -41,6 +40,7 @@ type ApplicationResourceModel struct {
 	Web                            *ApplicationWeb                     `tfsdk:"web"`
 	OwnerUserIds                   types.Set                           `tfsdk:"owner_user_ids"`
 	PreventDuplicateNames          types.Bool                          `tfsdk:"prevent_duplicate_names"`
+	HardDelete                     types.Bool                          `tfsdk:"hard_delete"`
 	Timeouts                       timeouts.Value                      `tfsdk:"timeouts"`
 }
 

@@ -25,7 +25,6 @@ func constructResource(ctx context.Context, data *ApplicationResourceModel, isCr
 	// Optional string fields
 	convert.FrameworkToGraphString(data.Description, requestBody.SetDescription)
 	convert.FrameworkToGraphString(data.SignInAudience, requestBody.SetSignInAudience)
-	convert.FrameworkToGraphString(data.ApplicationTemplateId, requestBody.SetApplicationTemplateId)
 	convert.FrameworkToGraphString(data.Notes, requestBody.SetNotes)
 	convert.FrameworkToGraphString(data.ServiceManagementReference, requestBody.SetServiceManagementReference)
 	convert.FrameworkToGraphString(data.DisabledByMicrosoftStatus, requestBody.SetDisabledByMicrosoftStatus)
