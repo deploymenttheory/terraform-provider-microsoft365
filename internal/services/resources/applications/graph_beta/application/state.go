@@ -19,7 +19,7 @@ func MapRemoteStateToTerraform(ctx context.Context, data *ApplicationResourceMod
 		"resourceId": convert.GraphToFrameworkString(remoteResource.GetId()).ValueString(),
 	})
 
-	data.ID = convert.GraphToFrameworkString(remoteResource.GetId())
+	data.Id = convert.GraphToFrameworkString(remoteResource.GetId())
 	data.AppId = convert.GraphToFrameworkString(remoteResource.GetAppId())
 	data.DisplayName = convert.GraphToFrameworkString(remoteResource.GetDisplayName())
 	data.Description = convert.GraphToFrameworkString(remoteResource.GetDescription())
@@ -71,9 +71,9 @@ func MapRemoteStateToTerraform(ctx context.Context, data *ApplicationResourceMod
 		data.Info = types.ObjectNull(ApplicationInformationalUrlAttrTypes)
 	}
 
-	// Map KeyCredentials
+	// Map KeyCredentials (read-only, managed by separate certificate_credential resource)
 	if keyCredentials := remoteResource.GetKeyCredentials(); keyCredentials != nil {
-		data.KeyCredentials = mapKeyCredentialsToTerraform(ctx, keyCredentials)
+		data.KeyCredentials = mapKeyCredentialsToTerraformReadOnly(ctx, keyCredentials)
 	} else {
 		data.KeyCredentials = types.SetNull(types.ObjectType{AttrTypes: KeyCredentialAttrTypes})
 	}
@@ -127,7 +127,7 @@ func MapRemoteStateToTerraform(ctx context.Context, data *ApplicationResourceMod
 		data.Web = types.ObjectNull(ApplicationWebAttrTypes)
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Finished mapping resource %s with id %s", ResourceName, data.ID.ValueString()))
+	tflog.Debug(ctx, fmt.Sprintf("Finished mapping resource %s with id %s", ResourceName, data.Id.ValueString()))
 }
 
 // MapRemoteOwnersToTerraform maps the fetched owners to Terraform state.
@@ -390,8 +390,10 @@ func mapInfoToTerraform(ctx context.Context, info graphmodels.InformationalUrlab
 	return obj
 }
 
-// mapKeyCredentialsToTerraform maps the key credentials to Terraform state.
-func mapKeyCredentialsToTerraform(ctx context.Context, keyCredentials []graphmodels.KeyCredentialable) types.Set {
+// mapKeyCredentialsToTerraformReadOnly maps the key credentials to Terraform state (read-only).
+// Key credentials are now managed by the separate application_certificate_credential resource.
+// The key field is always null since the API never returns it.
+func mapKeyCredentialsToTerraformReadOnly(ctx context.Context, keyCredentials []graphmodels.KeyCredentialable) types.Set {
 	if len(keyCredentials) == 0 {
 		emptySet, _ := types.SetValue(types.ObjectType{AttrTypes: KeyCredentialAttrTypes}, []attr.Value{})
 		return emptySet
@@ -403,11 +405,7 @@ func mapKeyCredentialsToTerraform(ctx context.Context, keyCredentials []graphmod
 			continue
 		}
 
-		keyValue := types.StringNull()
-		if key := keyCred.GetKey(); key != nil {
-			keyValue = types.StringValue(base64.StdEncoding.EncodeToString(key))
-		}
-
+		// The key field is always null in read operations
 		customKeyId := types.StringNull()
 		if customKey := keyCred.GetCustomKeyIdentifier(); customKey != nil {
 			customKeyId = types.StringValue(base64.StdEncoding.EncodeToString(customKey))
@@ -417,7 +415,7 @@ func mapKeyCredentialsToTerraform(ctx context.Context, keyCredentials []graphmod
 			"custom_key_identifier": customKeyId,
 			"display_name":          convert.GraphToFrameworkString(keyCred.GetDisplayName()),
 			"end_date_time":         convert.GraphToFrameworkTime(keyCred.GetEndDateTime()),
-			"key":                   keyValue,
+			"key":                   types.StringNull(), // Key is managed by separate resource
 			"key_id":                convert.GraphToFrameworkUUID(keyCred.GetKeyId()),
 			"start_date_time":       convert.GraphToFrameworkTime(keyCred.GetStartDateTime()),
 			"type":                  convert.GraphToFrameworkString(keyCred.GetTypeEscaped()),

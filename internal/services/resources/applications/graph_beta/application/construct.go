@@ -20,7 +20,7 @@ import (
 func constructResource(ctx context.Context, client *msgraphbetasdk.GraphServiceClient, data *ApplicationResourceModel, currentID string, isCreate bool) (graphmodels.Applicationable, error) {
 	tflog.Debug(ctx, fmt.Sprintf("Constructing %s resource from model (isCreate: %t)", ResourceName, isCreate))
 
-	if err := validateRequest(ctx, client, data, currentID); err != nil {
+	if err := validateRequest(ctx, client, data, currentID, isCreate); err != nil {
 		return nil, fmt.Errorf("validation failed: %w", err)
 	}
 
@@ -75,12 +75,17 @@ func constructResource(ctx context.Context, client *msgraphbetasdk.GraphServiceC
 		requestBody.SetApi(api)
 	}
 
-	if !data.AppRoles.IsNull() && !data.AppRoles.IsUnknown() {
-		appRoles, err := constructAppRoles(ctx, data.AppRoles)
-		if err != nil {
-			return nil, err
+	// App roles are handled separately during update operations and require
+	//  a seperate api PATCH call. Therefore, we only include them during
+	// create operations
+	if isCreate {
+		if !data.AppRoles.IsNull() && !data.AppRoles.IsUnknown() {
+			appRoles, err := constructAppRoles(ctx, data.AppRoles)
+			if err != nil {
+				return nil, err
+			}
+			requestBody.SetAppRoles(appRoles)
 		}
-		requestBody.SetAppRoles(appRoles)
 	}
 
 	if !data.Info.IsNull() && !data.Info.IsUnknown() {
@@ -94,13 +99,9 @@ func constructResource(ctx context.Context, client *msgraphbetasdk.GraphServiceC
 		requestBody.SetInfo(info)
 	}
 
-	if !data.KeyCredentials.IsNull() && !data.KeyCredentials.IsUnknown() {
-		keyCredentials, err := constructKeyCredentials(ctx, data.KeyCredentials)
-		if err != nil {
-			return nil, err
-		}
-		requestBody.SetKeyCredentials(keyCredentials)
-	}
+	// Key credentials are managed by the separate application_certificate_credential resource
+	// and is intentionally not managed here. it's possible to post, but not patch
+	// with this endpoint.
 
 	if !data.PasswordCredentials.IsNull() && !data.PasswordCredentials.IsUnknown() {
 		passwordCredentials, err := constructPasswordCredentials(ctx, data.PasswordCredentials)
@@ -344,7 +345,7 @@ func constructOAuth2PermissionScopes(ctx context.Context, data types.Set) ([]gra
 	for _, scope := range scopes {
 		permScope := graphmodels.NewPermissionScope()
 
-		if err := convert.FrameworkToGraphUUID(scope.ID, permScope.SetId); err != nil {
+		if err := convert.FrameworkToGraphUUID(scope.Id, permScope.SetId); err != nil {
 			return nil, fmt.Errorf("failed to parse oauth2 permission scope id: %w", err)
 		}
 		convert.FrameworkToGraphString(scope.AdminConsentDescription, permScope.SetAdminConsentDescription)
@@ -402,7 +403,7 @@ func constructAppRoles(ctx context.Context, data types.Set) ([]graphmodels.AppRo
 	for _, role := range appRoles {
 		appRole := graphmodels.NewAppRole()
 
-		if err := convert.FrameworkToGraphUUID(role.ID, appRole.SetId); err != nil {
+		if err := convert.FrameworkToGraphUUID(role.Id, appRole.SetId); err != nil {
 			return nil, fmt.Errorf("failed to parse app role id: %w", err)
 		}
 		convert.FrameworkToGraphString(role.Description, appRole.SetDescription)
@@ -624,7 +625,7 @@ func constructRequiredResourceAccess(ctx context.Context, data types.Set) ([]gra
 			for _, access := range resourceAccessList {
 				resourceAccess := graphmodels.NewResourceAccess()
 
-				if err := convert.FrameworkToGraphUUID(access.ID, resourceAccess.SetId); err != nil {
+				if err := convert.FrameworkToGraphUUID(access.Id, resourceAccess.SetId); err != nil {
 					return nil, fmt.Errorf("failed to parse resource access id: %w", err)
 				}
 				convert.FrameworkToGraphString(access.Type, resourceAccess.SetTypeEscaped)

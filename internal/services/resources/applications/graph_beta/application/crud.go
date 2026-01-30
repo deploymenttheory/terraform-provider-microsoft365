@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
+	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
 // Create handles the Create operation for application resources.
@@ -55,7 +56,7 @@ func (r *ApplicationResource) Create(ctx context.Context, req resource.CreateReq
 		return
 	}
 
-	object.ID = types.StringValue(*createdApplication.GetId())
+	object.Id = types.StringValue(*createdApplication.GetId())
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
@@ -109,7 +110,7 @@ func (r *ApplicationResource) Read(ctx context.Context, req resource.ReadRequest
 		return
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Reading %s with ID: %s", ResourceName, object.ID.ValueString()))
+	tflog.Debug(ctx, fmt.Sprintf("Reading %s with Id: %s", ResourceName, object.Id.ValueString()))
 
 	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Read, ReadTimeout*time.Second, &resp.Diagnostics)
 	if cancel == nil {
@@ -119,7 +120,7 @@ func (r *ApplicationResource) Read(ctx context.Context, req resource.ReadRequest
 
 	application, err := r.client.
 		Applications().
-		ByApplicationId(object.ID.ValueString()).
+		ByApplicationId(object.Id.ValueString()).
 		Get(ctx, nil)
 
 	if err != nil {
@@ -131,7 +132,7 @@ func (r *ApplicationResource) Read(ctx context.Context, req resource.ReadRequest
 
 	owners, err := r.client.
 		Applications().
-		ByApplicationId(object.ID.ValueString()).
+		ByApplicationId(object.Id.ValueString()).
 		Owners().
 		Get(ctx, nil)
 
@@ -154,7 +155,8 @@ func (r *ApplicationResource) Read(ctx context.Context, req resource.ReadRequest
 //
 // Operation: Updates application properties and manages owners
 // API Calls:
-//   - PATCH /applications/{id}
+//   - PATCH /applications/{id} (for general properties)
+//   - PATCH /applications/{id} (separate call for app_roles if changed)
 //   - DELETE /applications/{id}/owners/{ownerId}/$ref (for removed owners)
 //   - POST /applications/{id}/owners/$ref (for new owners)
 //
@@ -169,7 +171,7 @@ func (r *ApplicationResource) Update(ctx context.Context, req resource.UpdateReq
 		return
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Starting update of resource: %s with ID: %s", ResourceName, state.ID.ValueString()))
+	tflog.Debug(ctx, fmt.Sprintf("Starting update of resource: %s with Id: %s", ResourceName, state.Id.ValueString()))
 
 	ctx, cancel := crud.HandleTimeout(ctx, state.Timeouts.Update, UpdateTimeout*time.Second, &resp.Diagnostics)
 	if cancel == nil {
@@ -177,7 +179,7 @@ func (r *ApplicationResource) Update(ctx context.Context, req resource.UpdateReq
 	}
 	defer cancel()
 
-	requestBody, err := constructResource(ctx, r.client, &plan, state.ID.ValueString(), false)
+	requestBody, err := constructResource(ctx, r.client, &plan, state.Id.ValueString(), false)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error constructing application",
@@ -188,7 +190,7 @@ func (r *ApplicationResource) Update(ctx context.Context, req resource.UpdateReq
 
 	_, err = r.client.
 		Applications().
-		ByApplicationId(state.ID.ValueString()).
+		ByApplicationId(state.Id.ValueString()).
 		Patch(ctx, requestBody, nil)
 
 	if err != nil {
@@ -196,25 +198,102 @@ func (r *ApplicationResource) Update(ctx context.Context, req resource.UpdateReq
 		return
 	}
 
+	// App roles require special handling for update operations: roles being removed must first be disabled
+	if !plan.AppRoles.Equal(state.AppRoles) {
+		tflog.Debug(ctx, fmt.Sprintf("App roles have changed for %s with ID: %s, performing app role update", ResourceName, state.Id.ValueString()))
+
+		var stateRoles, planRoles []ApplicationAppRole
+
+		state.AppRoles.ElementsAs(ctx, &stateRoles, false)
+		plan.AppRoles.ElementsAs(ctx, &planRoles, false)
+
+		planRoleIds := make(map[string]bool)
+		for _, role := range planRoles {
+			planRoleIds[role.Id.ValueString()] = true
+		}
+
+		var removedRoleIds []string
+		for _, stateRole := range stateRoles {
+			if !planRoleIds[stateRole.Id.ValueString()] {
+				removedRoleIds = append(removedRoleIds, stateRole.Id.ValueString())
+			}
+		}
+
+		// If roles are being removed, first disable them
+		if len(removedRoleIds) > 0 {
+			disableRoles, err := ConstructAppRoleIsEnabledToFalse(ctx, state.AppRoles, removedRoleIds)
+			if err != nil {
+				resp.Diagnostics.AddError(
+					"Error constructing app roles for disable",
+					fmt.Sprintf("Could not construct app roles with disabled state: %s", err.Error()),
+				)
+				return
+			}
+
+			disablePatch := graphmodels.NewApplication()
+			disablePatch.SetAppRoles(disableRoles)
+
+			_, err = r.client.
+				Applications().
+				ByApplicationId(state.Id.ValueString()).
+				Patch(ctx, disablePatch, nil)
+
+			if err != nil {
+				errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationUpdate, r.WritePermissions)
+				return
+			}
+
+			tflog.Debug(ctx, fmt.Sprintf("Disabled %d app roles for %s with ID: %s, waiting before removal", len(removedRoleIds), ResourceName, state.Id.ValueString()))
+			time.Sleep(5 * time.Second)
+		}
+
+		// Step 2: Apply updated app roles configuration
+		appRoles, err := ConstructAppRolesForUpdate(ctx, plan.AppRoles)
+		if err != nil {
+			resp.Diagnostics.AddError(
+				"Error constructing app roles",
+				fmt.Sprintf("Could not construct app roles: %s", err.Error()),
+			)
+			return
+		}
+
+		appRolePatch := graphmodels.NewApplication()
+		appRolePatch.SetAppRoles(appRoles)
+
+		_, err = r.client.
+			Applications().
+			ByApplicationId(state.Id.ValueString()).
+			Patch(ctx, appRolePatch, nil)
+
+		if err != nil {
+			errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationUpdate, r.WritePermissions)
+			return
+		}
+
+		tflog.Debug(ctx, fmt.Sprintf("Successfully updated app roles for %s with ID: %s", ResourceName, state.Id.ValueString()))
+	}
+
+	// Key credentials are managed by the separate application_certificate_credential resource
+
 	ownersToAdd, ownersToRemove := ResolveOwnerChanges(ctx, &state, &plan)
 
 	adapter := r.client.GetAdapter()
 
-	for _, ownerID := range ownersToRemove {
-		if err := RemoveOwner(ctx, adapter, state.ID.ValueString(), ownerID); err != nil {
+	for _, ownerId := range ownersToRemove {
+		if err := RemoveOwner(ctx, adapter, state.Id.ValueString(), ownerId); err != nil {
 			resp.Diagnostics.AddError(
 				"Error removing owner",
-				fmt.Sprintf("Could not remove owner %s from %s: %s", ownerID, ResourceName, err.Error()),
+				fmt.Sprintf("Could not remove owner %s from %s: %s", ownerId, ResourceName, err.Error()),
 			)
 			return
 		}
 	}
 
-	for _, ownerID := range ownersToAdd {
-		if err := AddOwner(ctx, adapter, state.ID.ValueString(), ownerID); err != nil {
+	for _, ownerId := range ownersToAdd {
+		if err := AddOwner(ctx, adapter, state.Id.ValueString(), ownerId); err != nil {
 			resp.Diagnostics.AddError(
 				"Error adding owner",
-				fmt.Sprintf("Could not add owner %s to %s: %s", ownerID, ResourceName, err.Error()),
+				fmt.Sprintf("Could not add owner %s to %s: %s", ownerId, ResourceName, err.Error()),
 			)
 			return
 		}
@@ -223,7 +302,7 @@ func (r *ApplicationResource) Update(ctx context.Context, req resource.UpdateReq
 	tflog.Debug(ctx, "Waiting 15 seconds for eventual consistency")
 	time.Sleep(15 * time.Second)
 
-	plan.ID = state.ID
+	plan.Id = state.Id
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -245,7 +324,7 @@ func (r *ApplicationResource) Update(ctx context.Context, req resource.UpdateReq
 		return
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Finished updating %s with ID: %s", ResourceName, state.ID.ValueString()))
+	tflog.Debug(ctx, fmt.Sprintf("Finished updating %s with Id: %s", ResourceName, state.Id.ValueString()))
 }
 
 // Delete handles the Delete operation for application resources.
@@ -274,7 +353,7 @@ func (r *ApplicationResource) Delete(ctx context.Context, req resource.DeleteReq
 	}
 	defer cancel()
 
-	applicationId := data.ID.ValueString()
+	applicationId := data.Id.ValueString()
 
 	// Define the soft delete function for applications
 	softDeleteFunc := func(ctx context.Context) error {

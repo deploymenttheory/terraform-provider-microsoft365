@@ -17,6 +17,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/boolplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int32default"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/objectplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
@@ -341,7 +342,7 @@ func (r *ApplicationResource) Schema(ctx context.Context, req resource.SchemaReq
 									MarkdownDescription: "When you create or update a permission, this property must be set to true (which is the default). To delete a permission, this property must first be set to false. At that point, in a subsequent call, the permission may be removed.",
 									Optional:            true,
 									Computed:            true,
-									Default:             booldefault.StaticBool(true),
+									//Default:             booldefault.StaticBool(true),
 								},
 								"type": schema.StringAttribute{
 									MarkdownDescription: "The possible values are: `User` and `Admin`. Specifies whether this delegated permission should be considered safe for non-admin users to consent to on behalf of themselves, or whether an administrator consent should be required for the permissions. While Microsoft Graph defines the default consent requirement for each permission, the tenant administrator may override the behavior in their organization (by allowing, restricting, or limiting user consent to this delegated permission). For more information, see Configure how users consent to applications.",
@@ -454,19 +455,26 @@ func (r *ApplicationResource) Schema(ctx context.Context, req resource.SchemaReq
 							Required:            true,
 						},
 						"is_enabled": schema.BoolAttribute{
-							MarkdownDescription: "When creating or updating an app role, this must be set to true (which is the default). To delete a role, this must first be set to false. At that point, in a subsequent call, this role may be removed. Required.",
-							Optional:            true,
-							Computed:            true,
-							Default:             booldefault.StaticBool(true),
+							MarkdownDescription: "Defines whether the application's app role is enabled or disabled. Required.",
+							Required:            true,
+							PlanModifiers: []planmodifier.Bool{
+								boolplanmodifier.UseStateForUnknown(),
+							},
 						},
 						"origin": schema.StringAttribute{
 							MarkdownDescription: "Specifies if the app role is defined on the application object or on the servicePrincipal entity. Must not be included in any POST or PATCH requests. Read-only.",
 							Computed:            true,
+							PlanModifiers: []planmodifier.String{
+								stringplanmodifier.UseStateForUnknown(),
+							},
 						},
 						"value": schema.StringAttribute{
 							MarkdownDescription: "Specifies the value to include in the roles claim in ID tokens and access tokens authenticating an assigned user or service principal. Must not exceed 120 characters in length. Allowed characters are : ! # $ % & ' ( ) * + , - . / : ;  =  ? @ [ ] ^ + _  {  } ~, and characters in the ranges 0-9, A-Z and a-z. Any other character, including the space character, aren't allowed. May not begin with `.`. Nullable.",
 							Optional:            true,
 							Computed:            true,
+							PlanModifiers: []planmodifier.String{
+								stringplanmodifier.UseStateForUnknown(),
+							},
 							Validators: []validator.String{
 								validate.StringLengthAtMost(120),
 							},
@@ -533,39 +541,50 @@ func (r *ApplicationResource) Schema(ctx context.Context, req resource.SchemaReq
 				},
 			},
 			"key_credentials": schema.SetNestedAttribute{
-				MarkdownDescription: "The collection of key credentials associated with the application. Not nullable. Supports `$filter` (`eq`, `not`, `ge`, `le`).",
-				Optional:            true,
+				MarkdownDescription: "The collection of key credentials associated with the application. This is a read-only attribute. To manage certificate credentials, use the `microsoft365_graph_beta_applications_application_certificate_credential` resource instead.",
 				Computed:            true,
-				PlanModifiers: []planmodifier.Set{
-					setplanmodifier.UseStateForUnknown(),
-				},
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"custom_key_identifier": schema.StringAttribute{
 							MarkdownDescription: "A 40-character binary type that can be used to identify the credential. Optional. When not provided in the payload, defaults to the thumbprint of the certificate.",
 							Optional:            true,
 							Computed:            true,
+							PlanModifiers: []planmodifier.String{
+								stringplanmodifier.UseStateForUnknown(),
+							},
 						},
 						"display_name": schema.StringAttribute{
 							MarkdownDescription: "Friendly name for the key. Optional.",
 							Optional:            true,
 							Computed:            true,
+							PlanModifiers: []planmodifier.String{
+								stringplanmodifier.UseStateForUnknown(),
+							},
 						},
 						"end_date_time": schema.StringAttribute{
 							MarkdownDescription: "The date and time at which the credential expires. The DateTimeOffset type represents date and time information using ISO 8601 format and is always in UTC time. For example, midnight UTC on Jan 1, 2014 is 2014-01-01T00:00:00Z.",
 							Optional:            true,
 							Computed:            true,
+							PlanModifiers: []planmodifier.String{
+								stringplanmodifier.UseStateForUnknown(),
+							},
 						},
 						"key": schema.StringAttribute{
 							MarkdownDescription: "Value for the key credential. Should be a Base64 encoded value. Returned only on $select for a single object, that is, GET applications/{applicationId}?$select=keyCredentials or GET servicePrincipals/{servicePrincipalId}?$select=keyCredentials; otherwise, it's always null. From a .cer certificate, you can read the key using the Convert.ToBase64String() method. For more information, see Get the certificate key.",
 							Optional:            true,
 							Computed:            true,
 							Sensitive:           true,
+							PlanModifiers: []planmodifier.String{
+								stringplanmodifier.UseStateForUnknown(),
+							},
 						},
 						"key_id": schema.StringAttribute{
 							MarkdownDescription: "The unique identifier (GUID) for the key.",
 							Optional:            true,
 							Computed:            true,
+							PlanModifiers: []planmodifier.String{
+								stringplanmodifier.UseStateForUnknown(),
+							},
 							Validators: []validator.String{
 								stringvalidator.RegexMatches(
 									regexp.MustCompile(constants.GuidRegex),
@@ -577,16 +596,25 @@ func (r *ApplicationResource) Schema(ctx context.Context, req resource.SchemaReq
 							MarkdownDescription: "The date and time at which the credential becomes valid. The DateTimeOffset type represents date and time information using ISO 8601 format and is always in UTC time. For example, midnight UTC on Jan 1, 2014 is 2014-01-01T00:00:00Z.",
 							Optional:            true,
 							Computed:            true,
+							PlanModifiers: []planmodifier.String{
+								stringplanmodifier.UseStateForUnknown(),
+							},
 						},
 						"type": schema.StringAttribute{
 							MarkdownDescription: "The type of key credential; for example, `Symmetric`, `AsymmetricX509Cert`, or `X509CertAndPassword`.",
 							Optional:            true,
 							Computed:            true,
+							PlanModifiers: []planmodifier.String{
+								stringplanmodifier.UseStateForUnknown(),
+							},
 						},
 						"usage": schema.StringAttribute{
 							MarkdownDescription: "A string that describes the purpose for which the key can be used; for example, `None​`, `Verify`, `PairwiseIdentifier`, `Sign`.",
 							Optional:            true,
 							Computed:            true,
+							PlanModifiers: []planmodifier.String{
+								stringplanmodifier.UseStateForUnknown(),
+							},
 						},
 					},
 				},

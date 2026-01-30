@@ -96,6 +96,7 @@ import (
 
 	// Graph Beta - Applications resources
 	graphBetaApplication "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/applications/graph_beta/application"
+	graphBetaApplicationCertificateCredential "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/applications/graph_beta/application_certificate_credential"
 	graphBetaApplicationsIpApplicationSegment "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/applications/graph_beta/ip_application_segment"
 	graphBetaApplicationsServicePrincipalAppRoleAssignedTo "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/applications/graph_beta/service_principal_app_role_assigned_to"
 
@@ -173,6 +174,7 @@ func (p *M365Provider) Resources(ctx context.Context) []func() resource.Resource
 	return []func() resource.Resource{
 		// Graph Beta - Applications resources
 		graphBetaApplication.NewApplicationResource,
+		graphBetaApplicationCertificateCredential.NewApplicationCertificateCredentialResource,
 		graphBetaApplicationsIpApplicationSegment.NewIpApplicationSegmentResource,
 		graphBetaApplicationsServicePrincipalAppRoleAssignedTo.NewServicePrincipalAppRoleAssignedToResource,
 

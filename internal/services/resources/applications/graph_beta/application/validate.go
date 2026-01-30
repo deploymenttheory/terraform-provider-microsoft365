@@ -10,7 +10,7 @@ import (
 )
 
 // validateRequest validates the request body during creation or update operations.
-func validateRequest(ctx context.Context, client *msgraphbetasdk.GraphServiceClient, data *ApplicationResourceModel, currentID string) error {
+func validateRequest(ctx context.Context, client *msgraphbetasdk.GraphServiceClient, data *ApplicationResourceModel, currentID string, isCreate bool) error {
 	tflog.Debug(ctx, "Starting validation of application request")
 
 	// Only check for duplicate names if prevent_duplicate_names is true
@@ -20,7 +20,40 @@ func validateRequest(ctx context.Context, client *msgraphbetasdk.GraphServiceCli
 		}
 	}
 
+	// Validate app roles configuration for create operations
+	// if isCreate {
+	// 	if err := validateAppRolesIsEnabledIsTrue(ctx, data); err != nil {
+	// 		return err
+	// 	}
+	// }
+
 	tflog.Debug(ctx, "Successfully validated application request")
+	return nil
+}
+
+// validateAppRolesIsEnabledIsTrue validates that all app roles have is_enabled set to true during create operations.
+// The is_enabled=false value is only valid during update operations when disabling a role before deletion.
+func validateAppRolesIsEnabledIsTrue(ctx context.Context, data *ApplicationResourceModel) error {
+	if data.AppRoles.IsNull() || data.AppRoles.IsUnknown() {
+		return nil
+	}
+
+	tflog.Debug(ctx, "Validating app roles for create operation")
+
+	var appRoles []ApplicationAppRole
+	data.AppRoles.ElementsAs(ctx, &appRoles, false)
+
+	for _, role := range appRoles {
+		if !role.IsEnabled.IsNull() && !role.IsEnabled.IsUnknown() && !role.IsEnabled.ValueBool() {
+			displayName := "unknown"
+			if !role.DisplayName.IsNull() && !role.DisplayName.IsUnknown() {
+				displayName = role.DisplayName.ValueString()
+			}
+			return fmt.Errorf("app role '%s' has is_enabled set to false. During resource creation, all app roles must have is_enabled set to true (or omitted to use the default). The is_enabled=false value is only valid during update operations when disabling a role before deletion", displayName)
+		}
+	}
+
+	tflog.Debug(ctx, "App roles validation passed for create operation")
 	return nil
 }
 

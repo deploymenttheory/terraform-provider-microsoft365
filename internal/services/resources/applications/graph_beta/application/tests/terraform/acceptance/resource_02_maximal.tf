@@ -8,6 +8,13 @@ resource "random_string" "app_suffix" {
   upper   = false
 }
 
+# ==============================================================================
+# Random UUIDs for App Roles
+# ==============================================================================
+
+resource "random_uuid" "app_role_id_1" {}
+resource "random_uuid" "app_role_id_2" {}
+resource "random_uuid" "app_role_id_3" {}
 
 # ==============================================================================
 # Dependencies - Users for owners
@@ -74,8 +81,33 @@ resource "microsoft365_graph_beta_applications_application" "test_maximal" {
     known_client_applications = []
   }
 
-  # App Roles
-  app_roles = []
+  # App Roles - Testing all allowed_member_types combinations
+  app_roles = [
+    {
+      id                   = random_uuid.app_role_id_1.result
+      allowed_member_types = ["User"]
+      description          = "App role assignable to users and groups"
+      display_name         = "User Role"
+      is_enabled           = true
+      value                = "User.Role"
+    },
+    {
+      id                   = random_uuid.app_role_id_2.result
+      allowed_member_types = ["Application"]
+      description          = "App role assignable to other applications (application permission)"
+      display_name         = "Application Role"
+      is_enabled           = false
+      value                = "Application.Role"
+    },
+    {
+      id                   = random_uuid.app_role_id_3.result
+      allowed_member_types = ["User", "Application"]
+      description          = "App role assignable to both users and applications"
+      display_name         = "Combined Role"
+      is_enabled           = false
+      value                = "Combined.Role"
+    }
+  ]
 
   # Informational URLs
   info = {
@@ -85,8 +117,8 @@ resource "microsoft365_graph_beta_applications_application" "test_maximal" {
     terms_of_service_url = "https://contoso.com/terms"
   }
 
-  # Key Credentials
-  key_credentials = []
+  # Key credentials are managed by the separate
+  # microsoft365_graph_beta_applications_application_certificate_credential resource
 
   # Password Credentials
   password_credentials = []
