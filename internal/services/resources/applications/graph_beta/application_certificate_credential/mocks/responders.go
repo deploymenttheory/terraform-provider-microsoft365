@@ -20,10 +20,7 @@ var mockState struct {
 
 func init() {
 	mockState.applications = make(map[string]map[string]any)
-	httpmock.RegisterNoResponder(func(req *http.Request) (*http.Response, error) {
-		fmt.Printf("[MOCK DEBUG] No responder found for: %s %s\n", req.Method, req.URL.String())
-		return httpmock.NewStringResponse(404, `{"error":{"code":"ResourceNotFound","message":"Resource not found"}}`), nil
-	})
+	httpmock.RegisterNoResponder(httpmock.NewStringResponder(404, `{"error":{"code":"ResourceNotFound","message":"Resource not found"}}`))
 	mocks.GlobalRegistry.Register("application_certificate_credential", &ApplicationCertificateCredentialMock{})
 }
 
@@ -41,19 +38,16 @@ func (m *ApplicationCertificateCredentialMock) RegisterMocks() {
 
 	// GET application - used to fetch existing keyCredentials before PATCH
 	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/applications/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`, func(req *http.Request) (*http.Response, error) {
-		fmt.Printf("[MOCK DEBUG] GET request: %s\n", req.URL.String())
 		parts := strings.Split(req.URL.Path, "/")
 		applicationId := parts[len(parts)-1]
-		fmt.Printf("[MOCK DEBUG] Application ID: %s\n", applicationId)
 
 		mockState.Lock()
 		application, exists := mockState.applications[applicationId]
-		fmt.Printf("[MOCK DEBUG] Application exists in mock state: %v\n", exists)
 		mockState.Unlock()
 
 		if !exists {
 			// Load from validate_read JSON for known test IDs
-			jsonContent, err := helpers.ParseJSONFile("tests/responses/validate_read/get_application_success.json")
+			jsonContent, err := helpers.ParseJSONFile("../tests/responses/validate_read/get_application_success.json")
 			if err != nil {
 				return httpmock.NewStringResponse(404, `{"error":{"code":"ResourceNotFound","message":"Resource not found"}}`), nil
 			}
@@ -126,7 +120,6 @@ func (m *ApplicationCertificateCredentialMock) RegisterMocks() {
 }
 
 func initializeTestApplications() {
-	fmt.Printf("[MOCK DEBUG] initializeTestApplications called\n")
 	// Initialize test applications for different encoding types
 	testApplicationIds := map[string]string{
 		"11111111-1111-1111-1111-111111111111": "unit-test-application-pem",
@@ -136,12 +129,10 @@ func initializeTestApplications() {
 	}
 
 	// Load initial application state from JSON
-	jsonContent, err := helpers.ParseJSONFile("tests/responses/validate_create/get_application_before_create_success.json")
+	jsonContent, err := helpers.ParseJSONFile("../tests/responses/validate_create/get_application_before_create_success.json")
 	if err != nil {
-		fmt.Printf("[MOCK DEBUG] Failed to load JSON: %v\n", err)
 		return
 	}
-	fmt.Printf("[MOCK DEBUG] Successfully loaded JSON\n")
 
 	var baseApplication map[string]any
 	if err := json.Unmarshal([]byte(jsonContent), &baseApplication); err != nil {
@@ -158,9 +149,7 @@ func initializeTestApplications() {
 		application["displayName"] = displayName
 		application["keyCredentials"] = []any{} // Start with empty keyCredentials
 		mockState.applications[applicationId] = application
-		fmt.Printf("[MOCK DEBUG] Initialized application: %s (%s)\n", applicationId, displayName)
 	}
-	fmt.Printf("[MOCK DEBUG] Total applications in mock state: %d\n", len(mockState.applications))
 	mockState.Unlock()
 }
 

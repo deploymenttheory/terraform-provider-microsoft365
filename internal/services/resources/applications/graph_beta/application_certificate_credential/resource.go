@@ -44,6 +44,19 @@ type ApplicationCertificateCredentialResource struct {
 	WritePermissions []string
 }
 
+func NewApplicationCertificateCredentialResource() resource.Resource {
+	return &ApplicationCertificateCredentialResource{
+		ProviderTypeName: "microsoft365",
+		TypeName:         ResourceName,
+		ReadPermissions: []string{
+			"Application.Read.All",
+		},
+		WritePermissions: []string{
+			"Application.ReadWrite.All",
+		},
+	}
+}
+
 // Metadata returns the resource type name.
 func (r *ApplicationCertificateCredentialResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = ResourceName
@@ -154,10 +167,11 @@ func (r *ApplicationCertificateCredentialResource) Schema(ctx context.Context, r
 				},
 			},
 			"replace_existing_certificates": schema.BoolAttribute{
-				Optional:            true,
-				Computed:            true,
-				Default:             booldefault.StaticBool(false),
-				MarkdownDescription: "When `true`, replaces all existing certificates on the application. When `false` (default), preserves existing certificates and adds the new one. Use with caution as replacing all certificates may break existing authentication.",
+				Optional: true,
+				Computed: true,
+				Default:  booldefault.StaticBool(false),
+				MarkdownDescription: "When `true`, replaces all existing certificates on the application. When `false` (default), preserves existing " +
+					"certificates and adds the new one. Use with caution as replacing all certificates may break existing authentication.",
 			},
 			"key_id": schema.StringAttribute{
 				Computed:            true,
@@ -175,19 +189,6 @@ func (r *ApplicationCertificateCredentialResource) Schema(ctx context.Context, r
 				MarkdownDescription: "The thumbprint (SHA-1 hash) of the certificate in hex format.",
 			},
 			"timeouts": commonschema.ResourceTimeouts(ctx),
-		},
-	}
-}
-
-func NewApplicationCertificateCredentialResource() resource.Resource {
-	return &ApplicationCertificateCredentialResource{
-		ProviderTypeName: "microsoft365",
-		TypeName:         ResourceName,
-		ReadPermissions: []string{
-			"Application.Read.All",
-		},
-		WritePermissions: []string{
-			"Application.ReadWrite.All",
 		},
 	}
 }
