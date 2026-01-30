@@ -94,7 +94,7 @@ func (r *ApplicationCertificateCredentialResource) Create(ctx context.Context, r
 
 	// Read back to get the API-generated key_id with retry logic
 	var keyID *uuid.UUID
-	maxRetries := 3
+	maxRetries := 6
 	displayName := object.DisplayName.ValueString()
 
 	for attempt := 1; attempt <= maxRetries; attempt++ {
@@ -111,6 +111,17 @@ func (r *ApplicationCertificateCredentialResource) Create(ctx context.Context, r
 		}
 
 		newCredentials := updatedApp.GetKeyCredentials()
+		tflog.Debug(ctx, fmt.Sprintf("Found %d total key credentials in application", len(newCredentials)))
+
+		// Log all certificate display names for debugging
+		for i, cred := range newCredentials {
+			credDisplayName := ""
+			if cred.GetDisplayName() != nil {
+				credDisplayName = *cred.GetDisplayName()
+			}
+			tflog.Debug(ctx, fmt.Sprintf("Certificate %d: display_name='%s'", i+1, credDisplayName))
+		}
+
 		keyID = FindKeyCredentialByDisplayName(newCredentials, displayName)
 
 		if keyID != nil {
@@ -119,7 +130,7 @@ func (r *ApplicationCertificateCredentialResource) Create(ctx context.Context, r
 		}
 
 		if attempt < maxRetries {
-			tflog.Debug(ctx, fmt.Sprintf("Certificate credential not found, waiting 10 seconds before retry %d", attempt+1))
+			tflog.Debug(ctx, fmt.Sprintf("Certificate credential with display_name='%s' not found, waiting 10 seconds before retry %d", displayName, attempt+1))
 			time.Sleep(10 * time.Second)
 		}
 	}
