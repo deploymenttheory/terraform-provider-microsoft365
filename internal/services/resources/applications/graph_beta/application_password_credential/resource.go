@@ -1,4 +1,4 @@
-package graphBetaAgentIdentityBlueprintPasswordCredential
+package graphBetaApplicationPasswordCredential
 
 import (
 	"context"
@@ -17,7 +17,7 @@ import (
 )
 
 const (
-	ResourceName  = "microsoft365_graph_beta_agents_agent_identity_blueprint_password_credential"
+	ResourceName  = "microsoft365_graph_beta_applications_application_password_credential"
 	CreateTimeout = 180
 	UpdateTimeout = 180
 	ReadTimeout   = 180
@@ -26,55 +26,49 @@ const (
 
 var (
 	// Basic resource interface (CRUD operations)
-	_ resource.Resource = &AgentIdentityBlueprintPasswordCredentialResource{}
+	_ resource.Resource = &ApplicationPasswordCredentialResource{}
 
 	// Allows the resource to be configured with the provider client
-	_ resource.ResourceWithConfigure = &AgentIdentityBlueprintPasswordCredentialResource{}
+	_ resource.ResourceWithConfigure = &ApplicationPasswordCredentialResource{}
 
 	// Note: ImportState is NOT supported for this resource because the secret_text
 	// is only available at creation time and cannot be retrieved from the API.
 )
 
-func NewAgentIdentityBlueprintPasswordCredentialResource() resource.Resource {
-	return &AgentIdentityBlueprintPasswordCredentialResource{
+func NewApplicationPasswordCredentialResource() resource.Resource {
+	return &ApplicationPasswordCredentialResource{
 		ReadPermissions: []string{
-			"AgentIdentityBlueprint.Read.All",
 			"Application.Read.All",
-			"Directory.Read.All",
 		},
 		WritePermissions: []string{
-			"AgentIdentityBlueprint.AddRemoveCreds.All",
-			"AgentIdentityBlueprint.ReadWrite.All",
-			"Directory.ReadWrite.All",
+			"Application.ReadWrite.All",
 		},
-		ResourcePath: "/applications",
 	}
 }
 
-type AgentIdentityBlueprintPasswordCredentialResource struct {
+type ApplicationPasswordCredentialResource struct {
 	client           *msgraphbetasdk.GraphServiceClient
 	ReadPermissions  []string
 	WritePermissions []string
-	ResourcePath     string
 }
 
 // Metadata returns the resource type name.
-func (r *AgentIdentityBlueprintPasswordCredentialResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+func (r *ApplicationPasswordCredentialResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = ResourceName
 }
 
 // Configure sets the client for the resource.
-func (r *AgentIdentityBlueprintPasswordCredentialResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *ApplicationPasswordCredentialResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	r.client = client.SetGraphBetaClientForResource(ctx, req, resp, ResourceName)
 }
 
 // Schema returns the schema for the resource.
-func (r *AgentIdentityBlueprintPasswordCredentialResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+func (r *ApplicationPasswordCredentialResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Manages a password credential for an Agent Identity Blueprint using the `/applications` endpoint. This resource is used to adds a strong password to an agentIdentityBlueprint using the [addPassword](https://learn.microsoft.com/en-us/graph/api/agentidentityblueprint-addpassword?view=graph-rest-beta) API.\n\n**Important:** The `secret_text` attribute contains the password and is only available at creation time. It cannot be retrieved after initial creation. Store this value securely.\n\n**Note:** This resource does not support import because the password cannot be retrieved from the API after creation..",
+		MarkdownDescription: "Manages a password credential for a Microsoft Entra Application. This resource uses the [addPassword](https://learn.microsoft.com/en-us/graph/api/application-addpassword?view=graph-rest-beta) API to add a strong password to an application.\n\n**Important:** The `secret_text` attribute contains the password and is only available at creation time. It cannot be retrieved after initial creation. Store this value securely.\n\n**Note:** This resource does not support import because the password cannot be retrieved from the API after creation.",
 		Attributes: map[string]schema.Attribute{
-			"blueprint_id": schema.StringAttribute{
-				MarkdownDescription: "The unique identifier (Object ID) of the agent identity blueprint to add the password credential to. Required.",
+			"application_id": schema.StringAttribute{
+				MarkdownDescription: "The unique identifier (Object ID) of the application to add the password credential to. Required.",
 				Required:            true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
@@ -134,7 +128,6 @@ func (r *AgentIdentityBlueprintPasswordCredentialResource) Schema(ctx context.Co
 				Computed:  true,
 				Sensitive: true,
 				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.RequiresReplace(),
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},

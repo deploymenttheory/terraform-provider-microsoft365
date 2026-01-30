@@ -550,7 +550,6 @@ func (r *ApplicationResource) Schema(ctx context.Context, req resource.SchemaReq
 					Attributes: map[string]schema.Attribute{
 						"custom_key_identifier": schema.StringAttribute{
 							MarkdownDescription: "A 40-character binary type that can be used to identify the credential. Optional. When not provided in the payload, defaults to the thumbprint of the certificate.",
-							Optional:            true,
 							Computed:            true,
 							PlanModifiers: []planmodifier.String{
 								stringplanmodifier.UseStateForUnknown(),
@@ -558,7 +557,6 @@ func (r *ApplicationResource) Schema(ctx context.Context, req resource.SchemaReq
 						},
 						"display_name": schema.StringAttribute{
 							MarkdownDescription: "Friendly name for the key. Optional.",
-							Optional:            true,
 							Computed:            true,
 							PlanModifiers: []planmodifier.String{
 								stringplanmodifier.UseStateForUnknown(),
@@ -566,7 +564,6 @@ func (r *ApplicationResource) Schema(ctx context.Context, req resource.SchemaReq
 						},
 						"end_date_time": schema.StringAttribute{
 							MarkdownDescription: "The date and time at which the credential expires. The DateTimeOffset type represents date and time information using ISO 8601 format and is always in UTC time. For example, midnight UTC on Jan 1, 2014 is 2014-01-01T00:00:00Z.",
-							Optional:            true,
 							Computed:            true,
 							PlanModifiers: []planmodifier.String{
 								stringplanmodifier.UseStateForUnknown(),
@@ -574,7 +571,6 @@ func (r *ApplicationResource) Schema(ctx context.Context, req resource.SchemaReq
 						},
 						"key": schema.StringAttribute{
 							MarkdownDescription: "Value for the key credential. Should be a Base64 encoded value. Returned only on $select for a single object, that is, GET applications/{applicationId}?$select=keyCredentials or GET servicePrincipals/{servicePrincipalId}?$select=keyCredentials; otherwise, it's always null. From a .cer certificate, you can read the key using the Convert.ToBase64String() method. For more information, see Get the certificate key.",
-							Optional:            true,
 							Computed:            true,
 							Sensitive:           true,
 							PlanModifiers: []planmodifier.String{
@@ -583,7 +579,6 @@ func (r *ApplicationResource) Schema(ctx context.Context, req resource.SchemaReq
 						},
 						"key_id": schema.StringAttribute{
 							MarkdownDescription: "The unique identifier (GUID) for the key.",
-							Optional:            true,
 							Computed:            true,
 							PlanModifiers: []planmodifier.String{
 								stringplanmodifier.UseStateForUnknown(),
@@ -597,7 +592,6 @@ func (r *ApplicationResource) Schema(ctx context.Context, req resource.SchemaReq
 						},
 						"start_date_time": schema.StringAttribute{
 							MarkdownDescription: "The date and time at which the credential becomes valid. The DateTimeOffset type represents date and time information using ISO 8601 format and is always in UTC time. For example, midnight UTC on Jan 1, 2014 is 2014-01-01T00:00:00Z.",
-							Optional:            true,
 							Computed:            true,
 							PlanModifiers: []planmodifier.String{
 								stringplanmodifier.UseStateForUnknown(),
@@ -605,7 +599,6 @@ func (r *ApplicationResource) Schema(ctx context.Context, req resource.SchemaReq
 						},
 						"type": schema.StringAttribute{
 							MarkdownDescription: "The type of key credential; for example, `Symmetric`, `AsymmetricX509Cert`, or `X509CertAndPassword`.",
-							Optional:            true,
 							Computed:            true,
 							PlanModifiers: []planmodifier.String{
 								stringplanmodifier.UseStateForUnknown(),
@@ -613,7 +606,6 @@ func (r *ApplicationResource) Schema(ctx context.Context, req resource.SchemaReq
 						},
 						"usage": schema.StringAttribute{
 							MarkdownDescription: "A string that describes the purpose for which the key can be used; for example, `None​`, `Verify`, `PairwiseIdentifier`, `Sign`.",
-							Optional:            true,
 							Computed:            true,
 							PlanModifiers: []planmodifier.String{
 								stringplanmodifier.UseStateForUnknown(),
@@ -623,37 +615,44 @@ func (r *ApplicationResource) Schema(ctx context.Context, req resource.SchemaReq
 				},
 			},
 			"password_credentials": schema.SetNestedAttribute{
-				MarkdownDescription: "The collection of password credentials associated with the application. Not nullable.",
-				Optional:            true,
+				MarkdownDescription: "The collection of password credentials associated with the application. This is a read-only attribute. To manage password credentials, use the `microsoft365_graph_beta_applications_application_password_credential` resource instead.",
 				Computed:            true,
-				PlanModifiers: []planmodifier.Set{
-					setplanmodifier.UseStateForUnknown(),
-				},
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"custom_key_identifier": schema.StringAttribute{
-							MarkdownDescription: "Do not use.",
-							Optional:            true,
+							MarkdownDescription: "A custom key identifier.",
 							Computed:            true,
+							PlanModifiers: []planmodifier.String{
+								stringplanmodifier.UseStateForUnknown(),
+							},
 						},
 						"display_name": schema.StringAttribute{
-							MarkdownDescription: "Friendly name for the password. Optional.",
-							Optional:            true,
+							MarkdownDescription: "Friendly name for the password.",
 							Computed:            true,
+							PlanModifiers: []planmodifier.String{
+								stringplanmodifier.UseStateForUnknown(),
+							},
 						},
 						"end_date_time": schema.StringAttribute{
-							MarkdownDescription: "The date and time at which the password expires represented using ISO 8601 format and is always in UTC time. For example, midnight UTC on Jan 1, 2014 is 2014-01-01T00:00:00Z. Optional.",
-							Optional:            true,
+							MarkdownDescription: "The date and time at which the password expires represented using ISO 8601 format and is always in UTC time. For example, midnight UTC on Jan 1, 2014 is 2014-01-01T00:00:00Z.",
 							Computed:            true,
+							PlanModifiers: []planmodifier.String{
+								stringplanmodifier.UseStateForUnknown(),
+							},
 						},
 						"hint": schema.StringAttribute{
-							MarkdownDescription: "Contains the first three characters of the password. Read-only.",
+							MarkdownDescription: "Contains the first three characters of the password.",
 							Computed:            true,
+							PlanModifiers: []planmodifier.String{
+								stringplanmodifier.UseStateForUnknown(),
+							},
 						},
 						"key_id": schema.StringAttribute{
-							MarkdownDescription: "The unique identifier for the password. Required.",
-							Optional:            true,
+							MarkdownDescription: "The unique identifier (GUID) for the password.",
 							Computed:            true,
+							PlanModifiers: []planmodifier.String{
+								stringplanmodifier.UseStateForUnknown(),
+							},
 							Validators: []validator.String{
 								stringvalidator.RegexMatches(
 									regexp.MustCompile(constants.GuidRegex),
@@ -662,14 +661,19 @@ func (r *ApplicationResource) Schema(ctx context.Context, req resource.SchemaReq
 							},
 						},
 						"secret_text": schema.StringAttribute{
-							MarkdownDescription: "Read-only; Contains the strong passwords generated by Microsoft Entra ID that are 16-64 characters in length. The generated password value is only returned during the initial POST request to addPassword. There is no way to retrieve this password in the future.",
+							MarkdownDescription: "Contains the strong passwords generated by Microsoft Entra ID that are 16-64 characters in length. The generated password value is only returned during the initial POST request to addPassword. There is no way to retrieve this password in the future.",
 							Computed:            true,
 							Sensitive:           true,
+							PlanModifiers: []planmodifier.String{
+								stringplanmodifier.UseStateForUnknown(),
+							},
 						},
 						"start_date_time": schema.StringAttribute{
-							MarkdownDescription: "The date and time at which the password becomes valid. The Timestamp type represents date and time information using ISO 8601 format and is always in UTC time. For example, midnight UTC on Jan 1, 2014 is 2014-01-01T00:00:00Z. Optional.",
-							Optional:            true,
+							MarkdownDescription: "The date and time at which the password becomes valid. The Timestamp type represents date and time information using ISO 8601 format and is always in UTC time. For example, midnight UTC on Jan 1, 2014 is 2014-01-01T00:00:00Z.",
 							Computed:            true,
+							PlanModifiers: []planmodifier.String{
+								stringplanmodifier.UseStateForUnknown(),
+							},
 						},
 					},
 				},

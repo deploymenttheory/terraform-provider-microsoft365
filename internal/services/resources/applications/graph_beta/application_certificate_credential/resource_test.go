@@ -1,7 +1,6 @@
 package graphBetaApplicationCertificateCredential_test
 
 import (
-	"fmt"
 	"regexp"
 	"testing"
 
@@ -11,7 +10,6 @@ import (
 	graphBetaApplicationCertificateCredential "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/applications/graph_beta/application_certificate_credential"
 	certificateCredentialMocks "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/applications/graph_beta/application_certificate_credential/mocks"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/jarcoal/httpmock"
 )
 
@@ -146,73 +144,6 @@ func TestUnitResourceApplicationCertificateCredential_04_PEM(t *testing.T) {
 				),
 			},
 			// Note: Import is not supported for certificate credentials
-		},
-	})
-}
-
-func TestUnitResourceApplicationCertificateCredential_05_ReplaceExisting(t *testing.T) {
-	mocks.SetupUnitTestEnvironment(t)
-	_, certificateMock := setupMockEnvironment()
-	defer httpmock.DeactivateAndReset()
-	defer certificateMock.CleanupMockState()
-
-	// Pre-populate the application with 2 existing certificates to simulate pre-existing state
-	applicationID := "55555555-5555-5555-5555-555555555555"
-	certificateMock.AddPreExistingCertificates(applicationID, []map[string]any{
-		{
-			"keyId":               "pre-existing-cert-1",
-			"displayName":         "pre-existing-certificate-1",
-			"type":                "AsymmetricX509Cert",
-			"usage":               "Verify",
-			"customKeyIdentifier": "VGVzdFRodW1icHJpbnQx",
-			"key":                 "cHJlLWV4aXN0aW5nLWtleS0x",
-		},
-		{
-			"keyId":               "pre-existing-cert-2",
-			"displayName":         "pre-existing-certificate-2",
-			"type":                "AsymmetricX509Cert",
-			"usage":               "Verify",
-			"customKeyIdentifier": "VGVzdFRodW1icHJpbnQy",
-			"key":                 "cHJlLWV4aXN0aW5nLWtleS0y",
-		},
-	})
-
-	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
-		Steps: []resource.TestStep{
-			{
-				Config: loadUnitTestTerraform("resource_05_replace.tf"),
-				Check: resource.ComposeTestCheckFunc(
-					check.That(resourceType+".test_replace").Key("application_id").HasValue("55555555-5555-5555-5555-555555555555"),
-					check.That(resourceType+".test_replace").Key("display_name").HasValue("unit-test-certificate-replace"),
-					check.That(resourceType+".test_replace").Key("encoding").HasValue("pem"),
-					check.That(resourceType+".test_replace").Key("type").HasValue("AsymmetricX509Cert"),
-					check.That(resourceType+".test_replace").Key("usage").HasValue("Verify"),
-					// Verify that replace_existing_certificates=true is properly set
-					check.That(resourceType+".test_replace").Key("replace_existing_certificates").HasValue("true"),
-					check.That(resourceType+".test_replace").Key("key_id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
-					// CRITICAL: Verify that only 1 certificate exists on the application after replacement
-					func(s *terraform.State) error {
-						certCount := certificateMock.GetCertificateCount(applicationID)
-						if certCount != 1 {
-							return fmt.Errorf("expected 1 certificate after replace=true, got %d", certCount)
-						}
-
-						// Verify the remaining certificate is the new one (not the pre-existing ones)
-						certs := certificateMock.GetCertificates(applicationID)
-						if len(certs) != 1 {
-							return fmt.Errorf("expected 1 certificate in state, got %d", len(certs))
-						}
-
-						displayName, ok := certs[0]["displayName"].(string)
-						if !ok || displayName != "unit-test-certificate-replace" {
-							return fmt.Errorf("expected remaining certificate to be 'unit-test-certificate-replace', got %v", displayName)
-						}
-
-						return nil
-					},
-				),
-			},
 		},
 	})
 }
