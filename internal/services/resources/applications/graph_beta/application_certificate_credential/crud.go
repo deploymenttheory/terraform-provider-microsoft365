@@ -9,6 +9,7 @@ import (
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
 	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
+	"github.com/google/uuid"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
@@ -88,27 +89,45 @@ func (r *ApplicationCertificateCredentialResource) Create(ctx context.Context, r
 		return
 	}
 
-	tflog.Debug(ctx, "Waiting 15 seconds for eventual consistency after create")
-	time.Sleep(15 * time.Second)
+	tflog.Debug(ctx, "Waiting 30 seconds for eventual consistency after create")
+	time.Sleep(30 * time.Second)
 
-	// Read back to get the API-generated key_id
-	updatedApp, err := r.client.
-		Applications().
-		ByApplicationId(applicationID).
-		Get(ctx, nil)
+	// Read back to get the API-generated key_id with retry logic
+	var keyID *uuid.UUID
+	maxRetries := 3
+	displayName := object.DisplayName.ValueString()
 
-	if err != nil {
-		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationCreate, r.ReadPermissions)
-		return
+	for attempt := 1; attempt <= maxRetries; attempt++ {
+		tflog.Debug(ctx, fmt.Sprintf("Attempt %d/%d to find certificate credential", attempt, maxRetries))
+
+		updatedApp, err := r.client.
+			Applications().
+			ByApplicationId(applicationID).
+			Get(ctx, nil)
+
+		if err != nil {
+			errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationCreate, r.ReadPermissions)
+			return
+		}
+
+		newCredentials := updatedApp.GetKeyCredentials()
+		keyID = FindKeyCredentialByDisplayName(newCredentials, displayName)
+
+		if keyID != nil {
+			tflog.Debug(ctx, fmt.Sprintf("Found certificate credential with key_id: %s on attempt %d", keyID.String(), attempt))
+			break
+		}
+
+		if attempt < maxRetries {
+			tflog.Debug(ctx, fmt.Sprintf("Certificate credential not found, waiting 10 seconds before retry %d", attempt+1))
+			time.Sleep(10 * time.Second)
+		}
 	}
-
-	newCredentials := updatedApp.GetKeyCredentials()
-	keyID := FindKeyCredentialByDisplayName(newCredentials, object.DisplayName.ValueString())
 
 	if keyID == nil {
 		resp.Diagnostics.AddError(
 			"Error finding new certificate credential",
-			"Could not find the newly created certificate credential in the application. This may indicate the certificate was not added successfully.",
+			fmt.Sprintf("Could not find the newly created certificate credential with display_name '%s' in the application after %d attempts. This may indicate the certificate was not added successfully or eventual consistency is taking longer than expected.", displayName, maxRetries),
 		)
 		return
 	}

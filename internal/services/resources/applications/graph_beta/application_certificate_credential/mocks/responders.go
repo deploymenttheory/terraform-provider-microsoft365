@@ -126,6 +126,7 @@ func initializeTestApplications() {
 		"22222222-2222-2222-2222-222222222222": "unit-test-application-base64",
 		"33333333-3333-3333-3333-333333333333": "unit-test-application-der",
 		"44444444-4444-4444-4444-444444444444": "unit-test-application-hex",
+		"55555555-5555-5555-5555-555555555555": "unit-test-application-replace",
 	}
 
 	// Load initial application state from JSON
@@ -162,4 +163,56 @@ func (m *ApplicationCertificateCredentialMock) CleanupMockState() {
 	mockState.Lock()
 	mockState.applications = make(map[string]map[string]any)
 	mockState.Unlock()
+}
+
+// AddPreExistingCertificates adds pre-existing certificates to an application for testing
+func (m *ApplicationCertificateCredentialMock) AddPreExistingCertificates(applicationID string, certificates []map[string]any) {
+	mockState.Lock()
+	defer mockState.Unlock()
+
+	if app, exists := mockState.applications[applicationID]; exists {
+		existingCreds := []any{}
+		if creds, ok := app["keyCredentials"].([]any); ok {
+			existingCreds = creds
+		}
+		
+		// Add new pre-existing certificates
+		for _, cert := range certificates {
+			existingCreds = append(existingCreds, cert)
+		}
+		
+		app["keyCredentials"] = existingCreds
+		mockState.applications[applicationID] = app
+	}
+}
+
+// GetCertificateCount returns the number of certificates on an application
+func (m *ApplicationCertificateCredentialMock) GetCertificateCount(applicationID string) int {
+	mockState.Lock()
+	defer mockState.Unlock()
+
+	if app, exists := mockState.applications[applicationID]; exists {
+		if creds, ok := app["keyCredentials"].([]any); ok {
+			return len(creds)
+		}
+	}
+	return 0
+}
+
+// GetCertificates returns all certificates on an application
+func (m *ApplicationCertificateCredentialMock) GetCertificates(applicationID string) []map[string]any {
+	mockState.Lock()
+	defer mockState.Unlock()
+
+	var result []map[string]any
+	if app, exists := mockState.applications[applicationID]; exists {
+		if creds, ok := app["keyCredentials"].([]any); ok {
+			for _, cred := range creds {
+				if credMap, ok := cred.(map[string]any); ok {
+					result = append(result, credMap)
+				}
+			}
+		}
+	}
+	return result
 }

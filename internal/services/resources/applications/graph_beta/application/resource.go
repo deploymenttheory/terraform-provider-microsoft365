@@ -167,6 +167,9 @@ func (r *ApplicationResource) Schema(ctx context.Context, req resource.SchemaReq
 				MarkdownDescription: "Free text field to provide a description of the application object to end users. The maximum allowed size is 1,024 characters. Returned by default. Supports `$filter` (`eq`, `ne`, `not`, `ge`, `le`, `startsWith`) and `$search`.",
 				Optional:            true,
 				Computed:            true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 				Validators: []validator.String{
 					validate.StringLengthAtMost(1024),
 				},
@@ -965,6 +968,9 @@ func (r *ApplicationResource) Schema(ctx context.Context, req resource.SchemaReq
 				Optional:            true,
 				Computed:            true,
 				ElementType:         types.StringType,
+				PlanModifiers: []planmodifier.Set{
+					setplanmodifier.UseStateForUnknown(),
+				},
 				Validators: []validator.Set{
 					setvalidator.SizeAtMost(100),
 					setvalidator.ValueStringsAre(

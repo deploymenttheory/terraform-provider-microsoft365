@@ -11,6 +11,10 @@ resource "random_string" "test_id_hex" {
 resource "microsoft365_graph_beta_applications_application" "test_app_hex" {
   display_name = "acc-test-app-cert-hex-${random_string.test_id_hex.result}"
   hard_delete  = true
+
+  lifecycle {
+    ignore_changes = [key_credentials]
+  }
 }
 
 # Wait for eventual consistency after application creation

@@ -11,6 +11,10 @@ resource "random_string" "test_id_pem" {
 resource "microsoft365_graph_beta_applications_application" "test_app_pem" {
   display_name = "acc-test-app-cert-pem-${random_string.test_id_pem.result}"
   hard_delete  = true
+
+  lifecycle {
+    ignore_changes = [key_credentials]
+  }
 }
 
 # Wait for eventual consistency after application creation

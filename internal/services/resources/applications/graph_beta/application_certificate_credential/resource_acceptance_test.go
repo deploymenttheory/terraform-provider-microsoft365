@@ -203,3 +203,70 @@ func TestAccResourceApplicationCertificateCredential_04_HEX(t *testing.T) {
 		},
 	})
 }
+
+func TestAccResourceApplicationCertificateCredential_05_ReplaceExisting(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		CheckDestroy: destroy.CheckDestroyedAllFunc(
+			testResource,
+			resourceType,
+			30*time.Second,
+		),
+		ExternalProviders: map[string]resource.ExternalProvider{
+			"random": {
+				Source:            "hashicorp/random",
+				VersionConstraint: constants.ExternalProviderRandomVersion,
+			},
+			"time": {
+				Source:            "hashicorp/time",
+				VersionConstraint: constants.ExternalProviderTimeVersion,
+			},
+			"tls": {
+				Source:            "hashicorp/tls",
+				VersionConstraint: ">= 4.0.0",
+			},
+		},
+		Steps: []resource.TestStep{
+			{
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Step 1: Creating 2 pre-existing certificates")
+				},
+				Config: loadAccTestTerraform("resource_05_replace_step1.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					func(s *terraform.State) error {
+						testlog.WaitForConsistency("certificate credentials", 10*time.Second)
+						time.Sleep(10 * time.Second)
+						return nil
+					},
+					// Verify both pre-existing certificates were created
+					check.That(resourceType+".test_replace_1").Key("key_id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(resourceType+".test_replace_1").Key("display_name").MatchesRegex(regexp.MustCompile(`^acc-test-certificate-replace-1-`)),
+					check.That(resourceType+".test_replace_2").Key("key_id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(resourceType+".test_replace_2").Key("display_name").MatchesRegex(regexp.MustCompile(`^acc-test-certificate-replace-2-`)),
+				),
+			},
+			{
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Step 2: Deploying 3rd certificate with replace=true (should remove certs 1 & 2)")
+				},
+				Config: loadAccTestTerraform("resource_05_replace_step2.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					func(s *terraform.State) error {
+						testlog.WaitForConsistency("certificate credentials", 10*time.Second)
+						time.Sleep(10 * time.Second)
+						return nil
+					},
+					// Verify the 3rd certificate was created with replace=true
+					check.That(resourceType+".test_replace_3").Key("key_id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(resourceType+".test_replace_3").Key("display_name").MatchesRegex(regexp.MustCompile(`^acc-test-certificate-replace-3-`)),
+					check.That(resourceType+".test_replace_3").Key("replace_existing_certificates").HasValue("true"),
+					// Verify the data source shows only 1 certificate
+					check.That("data.microsoft365_graph_beta_applications_application.verify_replace").Key("key_credentials.#").HasValue("1"),
+					// Verify that the remaining certificate is cert 3 (by checking display_name)
+					check.That("data.microsoft365_graph_beta_applications_application.verify_replace").Key("key_credentials.0.display_name").MatchesRegex(regexp.MustCompile(`^acc-test-certificate-replace-3-`)),
+				),
+			},
+		},
+	})
+}
