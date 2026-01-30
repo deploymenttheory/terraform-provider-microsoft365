@@ -113,15 +113,6 @@ func (r *ApplicationCertificateCredentialResource) Create(ctx context.Context, r
 		newCredentials := updatedApp.GetKeyCredentials()
 		tflog.Debug(ctx, fmt.Sprintf("Found %d total key credentials in application", len(newCredentials)))
 
-		// Log all certificate display names for debugging
-		for i, cred := range newCredentials {
-			credDisplayName := ""
-			if cred.GetDisplayName() != nil {
-				credDisplayName = *cred.GetDisplayName()
-			}
-			tflog.Debug(ctx, fmt.Sprintf("Certificate %d: display_name='%s'", i+1, credDisplayName))
-		}
-
 		keyID = FindKeyCredentialByDisplayName(newCredentials, displayName)
 
 		if keyID != nil {
