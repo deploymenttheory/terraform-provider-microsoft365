@@ -67,7 +67,7 @@ resource "microsoft365_graph_beta_applications_application_certificate_credentia
 
 # Data source to read the application and validate certificate count
 data "microsoft365_graph_beta_applications_application" "verify_replace" {
-  application_id = microsoft365_graph_beta_applications_application.test_app_replace.id
+  object_id = microsoft365_graph_beta_applications_application.test_app_replace.id
 
   depends_on = [microsoft365_graph_beta_applications_application_certificate_credential.test_replace_3]
 }
