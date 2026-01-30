@@ -13,7 +13,7 @@ import (
 // constructResource constructs the application PATCH request body with keyCredentials.
 // If replaceExisting is false, existing credentials are preserved and the new one is added.
 // If replaceExisting is true, all existing credentials are replaced with just the new one.
-func constructResource(ctx context.Context, data *ApplicationCertificateCredentialResourceModel, existingCredentials []interface{}) (graphmodels.Applicationable, error) {
+func constructResource(ctx context.Context, data *ApplicationCertificateCredentialResourceModel, existingCredentials []any) (graphmodels.Applicationable, error) {
 	tflog.Debug(ctx, fmt.Sprintf("Constructing %s resource from model", ResourceName))
 
 	application := graphmodels.NewApplication()

@@ -1,4 +1,4 @@
-package graphBetaAgentIdentityBlueprintCertificateCredential_test
+package graphBetaApplicationCertificateCredential_test
 
 import (
 	"regexp"
@@ -23,7 +23,7 @@ func loadAccTestTerraform(filename string) string {
 	return config
 }
 
-func TestAccResourceAgentIdentityBlueprintCertificateCredential_01_PEM(t *testing.T) {
+func TestAccResourceApplicationCertificateCredential_01_PEM(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -37,9 +37,13 @@ func TestAccResourceAgentIdentityBlueprintCertificateCredential_01_PEM(t *testin
 				Source:            "hashicorp/random",
 				VersionConstraint: constants.ExternalProviderRandomVersion,
 			},
+			"time": {
+				Source:            "hashicorp/time",
+				VersionConstraint: ">= 0.9.0",
+			},
 			"tls": {
 				Source:            "hashicorp/tls",
-				VersionConstraint: constants.ExternalProviderTLSVersion,
+				VersionConstraint: ">= 4.0.0",
 			},
 		},
 		Steps: []resource.TestStep{
@@ -47,7 +51,7 @@ func TestAccResourceAgentIdentityBlueprintCertificateCredential_01_PEM(t *testin
 				PreConfig: func() {
 					testlog.StepAction(resourceType, "Step 1: Creating certificate credential with PEM encoding")
 				},
-				Config: loadAccTestTerraform("resource_pem.tf"),
+				Config: loadAccTestTerraform("resource_01_pem.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					func(s *terraform.State) error {
 						testlog.WaitForConsistency("certificate credential", 10*time.Second)
@@ -66,7 +70,7 @@ func TestAccResourceAgentIdentityBlueprintCertificateCredential_01_PEM(t *testin
 	})
 }
 
-func TestAccResourceAgentIdentityBlueprintCertificateCredential_02_DER(t *testing.T) {
+func TestAccResourceApplicationCertificateCredential_02_Base64(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -80,6 +84,56 @@ func TestAccResourceAgentIdentityBlueprintCertificateCredential_02_DER(t *testin
 				Source:            "hashicorp/random",
 				VersionConstraint: constants.ExternalProviderRandomVersion,
 			},
+			"time": {
+				Source:            "hashicorp/time",
+				VersionConstraint: constants.ExternalProviderTimeVersion,
+			},
+			"tls": {
+				Source:            "hashicorp/tls",
+				VersionConstraint: constants.ExternalProviderTLSVersion,
+			},
+		},
+		Steps: []resource.TestStep{
+			{
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Step 1: Creating certificate credential with base64 encoding")
+				},
+				Config: loadAccTestTerraform("resource_02_base64.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					func(s *terraform.State) error {
+						testlog.WaitForConsistency("certificate credential", 10*time.Second)
+						time.Sleep(10 * time.Second)
+						return nil
+					},
+					check.That(resourceType+".test_base64").Key("key_id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(resourceType+".test_base64").Key("display_name").MatchesRegex(regexp.MustCompile(`^acc-test-certificate-base64-`)),
+					check.That(resourceType+".test_base64").Key("encoding").HasValue("base64"),
+					check.That(resourceType+".test_base64").Key("type").HasValue("AsymmetricX509Cert"),
+					check.That(resourceType+".test_base64").Key("usage").HasValue("Verify"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccResourceApplicationCertificateCredential_03_DER(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		CheckDestroy: destroy.CheckDestroyedAllFunc(
+			testResource,
+			resourceType,
+			30*time.Second,
+		),
+		ExternalProviders: map[string]resource.ExternalProvider{
+			"random": {
+				Source:            "hashicorp/random",
+				VersionConstraint: constants.ExternalProviderRandomVersion,
+			},
+			"time": {
+				Source:            "hashicorp/time",
+				VersionConstraint: constants.ExternalProviderTimeVersion,
+			},
 			"tls": {
 				Source:            "hashicorp/tls",
 				VersionConstraint: constants.ExternalProviderTLSVersion,
@@ -90,7 +144,7 @@ func TestAccResourceAgentIdentityBlueprintCertificateCredential_02_DER(t *testin
 				PreConfig: func() {
 					testlog.StepAction(resourceType, "Step 1: Creating certificate credential with DER encoding (base64)")
 				},
-				Config: loadAccTestTerraform("resource_der.tf"),
+				Config: loadAccTestTerraform("resource_03_der.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					func(s *terraform.State) error {
 						testlog.WaitForConsistency("certificate credential", 10*time.Second)
@@ -108,7 +162,7 @@ func TestAccResourceAgentIdentityBlueprintCertificateCredential_02_DER(t *testin
 	})
 }
 
-func TestAccResourceAgentIdentityBlueprintCertificateCredential_03_HEX(t *testing.T) {
+func TestAccResourceApplicationCertificateCredential_04_HEX(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -122,9 +176,9 @@ func TestAccResourceAgentIdentityBlueprintCertificateCredential_03_HEX(t *testin
 				Source:            "hashicorp/random",
 				VersionConstraint: constants.ExternalProviderRandomVersion,
 			},
-			"tls": {
-				Source:            "hashicorp/tls",
-				VersionConstraint: constants.ExternalProviderTLSVersion,
+			"time": {
+				Source:            "hashicorp/time",
+				VersionConstraint: constants.ExternalProviderTimeVersion,
 			},
 		},
 		Steps: []resource.TestStep{
@@ -132,7 +186,7 @@ func TestAccResourceAgentIdentityBlueprintCertificateCredential_03_HEX(t *testin
 				PreConfig: func() {
 					testlog.StepAction(resourceType, "Step 1: Creating certificate credential with HEX encoding")
 				},
-				Config: loadAccTestTerraform("resource_hex.tf"),
+				Config: loadAccTestTerraform("resource_04_hex.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					func(s *terraform.State) error {
 						testlog.WaitForConsistency("certificate credential", 10*time.Second)

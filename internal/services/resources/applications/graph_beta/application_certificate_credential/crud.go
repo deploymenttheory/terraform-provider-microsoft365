@@ -43,7 +43,7 @@ func (r *ApplicationCertificateCredentialResource) Create(ctx context.Context, r
 	applicationID := object.ApplicationID.ValueString()
 
 	// Fetch existing credentials if not replacing all
-	var existingCredentials []interface{}
+	var existingCredentials []any
 	if !object.ReplaceExistingCertificates.ValueBool() {
 		tflog.Debug(ctx, "Fetching existing key credentials to preserve them")
 
@@ -121,7 +121,6 @@ func (r *ApplicationCertificateCredentialResource) Create(ctx context.Context, r
 		return
 	}
 
-	// Read with retry for eventual consistency
 	readReq := resource.ReadRequest{State: resp.State, ProviderMeta: req.ProviderMeta}
 	stateContainer := &crud.CreateResponseContainer{CreateResponse: resp}
 
@@ -255,7 +254,6 @@ func (r *ApplicationCertificateCredentialResource) Update(ctx context.Context, r
 
 	tflog.Debug(ctx, fmt.Sprintf("Updating certificate credential - removing old key_id: %s", oldKeyID))
 
-	// Get existing credentials
 	existingApp, err := r.client.
 		Applications().
 		ByApplicationId(applicationID).
@@ -269,7 +267,7 @@ func (r *ApplicationCertificateCredentialResource) Update(ctx context.Context, r
 	existingCredentials := existingApp.GetKeyCredentials()
 
 	// Step 1: Remove old credential
-	var credsToKeep []interface{}
+	var credsToKeep []any
 	for _, cred := range existingCredentials {
 		if cred.GetKeyId() != nil && cred.GetKeyId().String() != oldKeyID {
 			credsToKeep = append(credsToKeep, cred)
