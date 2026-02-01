@@ -142,6 +142,7 @@ func (r *ApplicationCertificateCredentialResource) Schema(ctx context.Context, r
 			},
 			"display_name": schema.StringAttribute{
 				Optional:            true,
+				Computed:            true,
 				MarkdownDescription: "Friendly name for the certificate. Optional but recommended for identifying credentials.",
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),

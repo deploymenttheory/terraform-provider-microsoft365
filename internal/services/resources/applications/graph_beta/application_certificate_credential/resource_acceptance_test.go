@@ -203,3 +203,52 @@ func TestAccResourceApplicationCertificateCredential_04_HEX(t *testing.T) {
 		},
 	})
 }
+
+func TestAccResourceApplicationCertificateCredential_05_Maximal(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		CheckDestroy: destroy.CheckDestroyedAllFunc(
+			testResource,
+			resourceType,
+			30*time.Second,
+		),
+		ExternalProviders: map[string]resource.ExternalProvider{
+			"random": {
+				Source:            "hashicorp/random",
+				VersionConstraint: constants.ExternalProviderRandomVersion,
+			},
+			"time": {
+				Source:            "hashicorp/time",
+				VersionConstraint: constants.ExternalProviderTimeVersion,
+			},
+			"tls": {
+				Source:            "hashicorp/tls",
+				VersionConstraint: constants.ExternalProviderTLSVersion,
+			},
+		},
+		Steps: []resource.TestStep{
+			{
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Step 1: Creating certificate credential with all optional attributes")
+				},
+				Config: loadAccTestTerraform("resource_05_maximal.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					func(s *terraform.State) error {
+						testlog.WaitForConsistency("certificate credential", 10*time.Second)
+						time.Sleep(10 * time.Second)
+						return nil
+					},
+					check.That(resourceType+".test_maximal").Key("key_id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(resourceType+".test_maximal").Key("display_name").MatchesRegex(regexp.MustCompile(`^acc-test-certificate-maximal-`)),
+					check.That(resourceType+".test_maximal").Key("encoding").HasValue("pem"),
+					check.That(resourceType+".test_maximal").Key("type").HasValue("AsymmetricX509Cert"),
+					check.That(resourceType+".test_maximal").Key("usage").HasValue("Verify"),
+					check.That(resourceType+".test_maximal").Key("start_date_time").HasValue("2027-01-01T00:00:00Z"),
+					check.That(resourceType+".test_maximal").Key("end_date_time").HasValue("2029-01-01T00:00:00Z"),
+					check.That(resourceType+".test_maximal").Key("thumbprint").Exists(),
+				),
+			},
+		},
+	})
+}

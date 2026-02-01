@@ -16,6 +16,10 @@ import (
 func constructAddPasswordRequest(ctx context.Context, data *AgentIdentityBlueprintPasswordCredentialResourceModel) (*applications.ItemAddPasswordPostRequestBody, error) {
 	tflog.Debug(ctx, fmt.Sprintf("Constructing %s resource from model", ResourceName))
 
+	if err := validateRequest(ctx, data); err != nil {
+		return nil, fmt.Errorf("validation failed: %w", err)
+	}
+
 	requestBody := applications.NewItemAddPasswordPostRequestBody()
 	passwordCredential := graphmodels.NewPasswordCredential()
 

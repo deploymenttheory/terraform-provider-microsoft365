@@ -120,8 +120,8 @@ resource "microsoft365_graph_beta_applications_application" "test_maximal" {
   # Key credentials are managed by the separate
   # microsoft365_graph_beta_applications_application_certificate_credential resource
 
-  # Password Credentials
-  password_credentials = []
+  # Password Credentials are managed by the separate
+  # microsoft365_graph_beta_applications_application_password_credential resource
 
   # Optional Claims
   optional_claims = {

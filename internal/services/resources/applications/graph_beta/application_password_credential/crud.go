@@ -10,7 +10,6 @@ import (
 	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
-	"github.com/microsoftgraph/msgraph-beta-sdk-go/applications"
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
@@ -81,7 +80,7 @@ func (r *ApplicationPasswordCredentialResource) Create(ctx context.Context, req 
 //   - GET /applications/{id}
 //
 // Reference: https://learn.microsoft.com/en-us/graph/api/application-get?view=graph-rest-beta
-// Note: secret_text cannot be retrieved after creation, so it's preserved from state
+// Note: The secret_text value cannot be retrieved from the API after creation, so it's preserved from state
 func (r *ApplicationPasswordCredentialResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var object ApplicationPasswordCredentialResourceModel
 
@@ -106,16 +105,11 @@ func (r *ApplicationPasswordCredentialResource) Read(ctx context.Context, req re
 	// Preserve secret_text from state since it cannot be retrieved from API
 	secretTextFromState := object.SecretText
 
-	requestConfig := &applications.ApplicationItemRequestBuilderGetRequestConfiguration{
-		QueryParameters: &applications.ApplicationItemRequestBuilderGetQueryParameters{
-			Select: []string{"id", "passwordCredentials"},
-		},
-	}
-
+	// Get the parent application to read the password credential
 	application, err := r.client.
 		Applications().
 		ByApplicationId(applicationID).
-		Get(ctx, requestConfig)
+		Get(ctx, nil)
 
 	if err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationRead, r.ReadPermissions)
