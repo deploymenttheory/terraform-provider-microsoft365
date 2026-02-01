@@ -13,7 +13,14 @@ resource "microsoft365_graph_beta_applications_application" "dependency_app" {
   hard_delete  = true
 }
 
+resource "time_sleep" "wait_for_app" {
+  depends_on      = [microsoft365_graph_beta_applications_application.dependency_app]
+  create_duration = "15s"
+}
+
 resource "microsoft365_graph_beta_applications_application_password_credential" "test_minimal" {
   application_id = microsoft365_graph_beta_applications_application.dependency_app.id
   display_name   = "acc-test-password-credential-${random_string.test_id.result}"
+
+  depends_on = [time_sleep.wait_for_app]
 }

@@ -87,27 +87,6 @@ var ImplicitGrantSettingsAttrTypes = map[string]attr.Type{
 
 // Attribute types for sets that contain objects
 
-var KeyCredentialAttrTypes = map[string]attr.Type{
-	"custom_key_identifier": types.StringType,
-	"display_name":          types.StringType,
-	"end_date_time":         types.StringType,
-	"key":                   types.StringType,
-	"key_id":                types.StringType,
-	"start_date_time":       types.StringType,
-	"type":                  types.StringType,
-	"usage":                 types.StringType,
-}
-
-var PasswordCredentialAttrTypes = map[string]attr.Type{
-	"custom_key_identifier": types.StringType,
-	"display_name":          types.StringType,
-	"end_date_time":         types.StringType,
-	"hint":                  types.StringType,
-	"key_id":                types.StringType,
-	"secret_text":           types.StringType,
-	"start_date_time":       types.StringType,
-}
-
 var AppRoleAttrTypes = map[string]attr.Type{
 	"allowed_member_types": types.SetType{ElemType: types.StringType},
 	"description":          types.StringType,

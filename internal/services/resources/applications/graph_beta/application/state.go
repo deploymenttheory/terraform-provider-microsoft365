@@ -2,7 +2,6 @@ package graphBetaApplication
 
 import (
 	"context"
-	"encoding/base64"
 	"fmt"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
@@ -69,20 +68,6 @@ func MapRemoteStateToTerraform(ctx context.Context, data *ApplicationResourceMod
 		data.Info = mapInfoToTerraform(ctx, info)
 	} else {
 		data.Info = types.ObjectNull(ApplicationInformationalUrlAttrTypes)
-	}
-
-	// Map KeyCredentials (read-only, managed by separate certificate_credential resource)
-	if keyCredentials := remoteResource.GetKeyCredentials(); keyCredentials != nil {
-		data.KeyCredentials = mapKeyCredentialsToTerraformReadOnly(ctx, keyCredentials)
-	} else {
-		data.KeyCredentials = types.SetNull(types.ObjectType{AttrTypes: KeyCredentialAttrTypes})
-	}
-
-	// Map PasswordCredentials
-	if passwordCredentials := remoteResource.GetPasswordCredentials(); passwordCredentials != nil {
-		data.PasswordCredentials = mapPasswordCredentialsToTerraform(ctx, passwordCredentials)
-	} else {
-		data.PasswordCredentials = types.SetNull(types.ObjectType{AttrTypes: PasswordCredentialAttrTypes})
 	}
 
 	// Map OptionalClaims
@@ -388,107 +373,6 @@ func mapInfoToTerraform(ctx context.Context, info graphmodels.InformationalUrlab
 	}
 
 	return obj
-}
-
-// mapKeyCredentialsToTerraformReadOnly maps the key credentials to Terraform state (read-only).
-// Key credentials are now managed by the separate application_certificate_credential resource.
-// The key field is always null since the API never returns it.
-func mapKeyCredentialsToTerraformReadOnly(ctx context.Context, keyCredentials []graphmodels.KeyCredentialable) types.Set {
-	if len(keyCredentials) == 0 {
-		emptySet, _ := types.SetValue(types.ObjectType{AttrTypes: KeyCredentialAttrTypes}, []attr.Value{})
-		return emptySet
-	}
-
-	elements := make([]attr.Value, 0, len(keyCredentials))
-	for _, keyCred := range keyCredentials {
-		if keyCred == nil {
-			continue
-		}
-
-		// The key field is always null in read operations
-		customKeyId := types.StringNull()
-		if customKey := keyCred.GetCustomKeyIdentifier(); customKey != nil {
-			customKeyId = types.StringValue(base64.StdEncoding.EncodeToString(customKey))
-		}
-
-		credMap := map[string]attr.Value{
-			"custom_key_identifier": customKeyId,
-			"display_name":          convert.GraphToFrameworkString(keyCred.GetDisplayName()),
-			"end_date_time":         convert.GraphToFrameworkTime(keyCred.GetEndDateTime()),
-			"key":                   types.StringNull(), // Key is managed by separate resource
-			"key_id":                convert.GraphToFrameworkUUID(keyCred.GetKeyId()),
-			"start_date_time":       convert.GraphToFrameworkTime(keyCred.GetStartDateTime()),
-			"type":                  convert.GraphToFrameworkString(keyCred.GetTypeEscaped()),
-			"usage":                 convert.GraphToFrameworkString(keyCred.GetUsage()),
-		}
-
-		objVal, diags := types.ObjectValue(KeyCredentialAttrTypes, credMap)
-		if diags.HasError() {
-			tflog.Error(ctx, "Failed to create KeyCredential object", map[string]any{
-				"error": diags.Errors()[0].Detail(),
-			})
-			continue
-		}
-		elements = append(elements, objVal)
-	}
-
-	setVal, diags := types.SetValue(types.ObjectType{AttrTypes: KeyCredentialAttrTypes}, elements)
-	if diags.HasError() {
-		tflog.Error(ctx, "Failed to create KeyCredentials set", map[string]any{
-			"error": diags.Errors()[0].Detail(),
-		})
-		return types.SetNull(types.ObjectType{AttrTypes: KeyCredentialAttrTypes})
-	}
-
-	return setVal
-}
-
-func mapPasswordCredentialsToTerraform(ctx context.Context, passwordCredentials []graphmodels.PasswordCredentialable) types.Set {
-	if len(passwordCredentials) == 0 {
-		emptySet, _ := types.SetValue(types.ObjectType{AttrTypes: PasswordCredentialAttrTypes}, []attr.Value{})
-		return emptySet
-	}
-
-	elements := make([]attr.Value, 0, len(passwordCredentials))
-	for _, passCred := range passwordCredentials {
-		if passCred == nil {
-			continue
-		}
-
-		customKeyId := types.StringNull()
-		if customKey := passCred.GetCustomKeyIdentifier(); customKey != nil {
-			customKeyId = types.StringValue(base64.StdEncoding.EncodeToString(customKey))
-		}
-
-		credMap := map[string]attr.Value{
-			"custom_key_identifier": customKeyId,
-			"display_name":          convert.GraphToFrameworkString(passCred.GetDisplayName()),
-			"end_date_time":         convert.GraphToFrameworkTime(passCred.GetEndDateTime()),
-			"hint":                  convert.GraphToFrameworkString(passCred.GetHint()),
-			"key_id":                convert.GraphToFrameworkUUID(passCred.GetKeyId()),
-			"secret_text":           convert.GraphToFrameworkString(passCred.GetSecretText()),
-			"start_date_time":       convert.GraphToFrameworkTime(passCred.GetStartDateTime()),
-		}
-
-		objVal, diags := types.ObjectValue(PasswordCredentialAttrTypes, credMap)
-		if diags.HasError() {
-			tflog.Error(ctx, "Failed to create PasswordCredential object", map[string]any{
-				"error": diags.Errors()[0].Detail(),
-			})
-			continue
-		}
-		elements = append(elements, objVal)
-	}
-
-	setVal, diags := types.SetValue(types.ObjectType{AttrTypes: PasswordCredentialAttrTypes}, elements)
-	if diags.HasError() {
-		tflog.Error(ctx, "Failed to create PasswordCredentials set", map[string]any{
-			"error": diags.Errors()[0].Detail(),
-		})
-		return types.SetNull(types.ObjectType{AttrTypes: PasswordCredentialAttrTypes})
-	}
-
-	return setVal
 }
 
 func mapOptionalClaimsToTerraform(ctx context.Context, optionalClaims graphmodels.OptionalClaimsable) types.Object {

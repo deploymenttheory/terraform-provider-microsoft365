@@ -2,7 +2,6 @@ package graphBetaApplication
 
 import (
 	"context"
-	"encoding/base64"
 	"fmt"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
@@ -100,16 +99,11 @@ func constructResource(ctx context.Context, client *msgraphbetasdk.GraphServiceC
 	}
 
 	// Key credentials are managed by the separate application_certificate_credential resource
-	// and is intentionally not managed here. it's possible to post, but not patch
-	// with this endpoint.
+	// and is intentionally not managed here. It is possible to POST, but not PATCH with this endpoint.
 
-	if !data.PasswordCredentials.IsNull() && !data.PasswordCredentials.IsUnknown() {
-		passwordCredentials, err := constructPasswordCredentials(ctx, data.PasswordCredentials)
-		if err != nil {
-			return nil, err
-		}
-		requestBody.SetPasswordCredentials(passwordCredentials)
-	}
+	// Password credentials are managed by the separate application_password_credential resource
+	// and is intentionally not managed here. This means we don't have to include
+	// lifecycle ignore for this resource.
 
 	if !data.OptionalClaims.IsNull() && !data.OptionalClaims.IsUnknown() {
 		var optionalClaimsData ApplicationOptionalClaims
@@ -433,90 +427,6 @@ func constructInformationalUrl(data *ApplicationInformationalUrl) graphmodels.In
 	convert.FrameworkToGraphString(data.TermsOfServiceUrl, info.SetTermsOfServiceUrl)
 
 	return info
-}
-
-// constructKeyCredentials builds the key credentials collection
-func constructKeyCredentials(ctx context.Context, data types.Set) ([]graphmodels.KeyCredentialable, error) {
-	var keyCredentials []ApplicationKeyCredential
-	diags := data.ElementsAs(ctx, &keyCredentials, false)
-	if diags.HasError() {
-		return nil, fmt.Errorf("failed to extract key_credentials: %v", diags.Errors())
-	}
-
-	result := make([]graphmodels.KeyCredentialable, 0, len(keyCredentials))
-	for _, keyCred := range keyCredentials {
-		keyCredential := graphmodels.NewKeyCredential()
-
-		convert.FrameworkToGraphString(keyCred.DisplayName, keyCredential.SetDisplayName)
-		if err := convert.FrameworkToGraphUUID(keyCred.KeyId, keyCredential.SetKeyId); err != nil {
-			return nil, fmt.Errorf("failed to parse key credential key_id: %w", err)
-		}
-		convert.FrameworkToGraphString(keyCred.Type, keyCredential.SetTypeEscaped)
-		convert.FrameworkToGraphString(keyCred.Usage, keyCredential.SetUsage)
-
-		if !keyCred.CustomKeyIdentifier.IsNull() && !keyCred.CustomKeyIdentifier.IsUnknown() {
-			customKeyId := keyCred.CustomKeyIdentifier.ValueString()
-			customKeyIdBytes := []byte(customKeyId)
-			keyCredential.SetCustomKeyIdentifier(customKeyIdBytes)
-		}
-
-		if !keyCred.Key.IsNull() && !keyCred.Key.IsUnknown() {
-			// Key is base64 encoded, decode to byte array
-			keyValue := keyCred.Key.ValueString()
-			keyBytes, err := base64.StdEncoding.DecodeString(keyValue)
-			if err != nil {
-				return nil, fmt.Errorf("failed to decode base64 key: %w", err)
-			}
-			keyCredential.SetKey(keyBytes)
-		}
-
-		if err := convert.FrameworkToGraphTime(keyCred.StartDateTime, keyCredential.SetStartDateTime); err != nil {
-			return nil, fmt.Errorf("failed to parse start_date_time: %w", err)
-		}
-		if err := convert.FrameworkToGraphTime(keyCred.EndDateTime, keyCredential.SetEndDateTime); err != nil {
-			return nil, fmt.Errorf("failed to parse end_date_time: %w", err)
-		}
-
-		result = append(result, keyCredential)
-	}
-
-	return result, nil
-}
-
-// constructPasswordCredentials builds the password credentials collection
-func constructPasswordCredentials(ctx context.Context, data types.Set) ([]graphmodels.PasswordCredentialable, error) {
-	var passwordCredentials []ApplicationPasswordCredential
-	diags := data.ElementsAs(ctx, &passwordCredentials, false)
-	if diags.HasError() {
-		return nil, fmt.Errorf("failed to extract password_credentials: %v", diags.Errors())
-	}
-
-	result := make([]graphmodels.PasswordCredentialable, 0, len(passwordCredentials))
-	for _, pwdCred := range passwordCredentials {
-		passwordCredential := graphmodels.NewPasswordCredential()
-
-		convert.FrameworkToGraphString(pwdCred.DisplayName, passwordCredential.SetDisplayName)
-		if err := convert.FrameworkToGraphUUID(pwdCred.KeyId, passwordCredential.SetKeyId); err != nil {
-			return nil, fmt.Errorf("failed to parse password credential key_id: %w", err)
-		}
-
-		if !pwdCred.CustomKeyIdentifier.IsNull() && !pwdCred.CustomKeyIdentifier.IsUnknown() {
-			customKeyId := pwdCred.CustomKeyIdentifier.ValueString()
-			customKeyIdBytes := []byte(customKeyId)
-			passwordCredential.SetCustomKeyIdentifier(customKeyIdBytes)
-		}
-
-		if err := convert.FrameworkToGraphTime(pwdCred.StartDateTime, passwordCredential.SetStartDateTime); err != nil {
-			return nil, fmt.Errorf("failed to parse start_date_time: %w", err)
-		}
-		if err := convert.FrameworkToGraphTime(pwdCred.EndDateTime, passwordCredential.SetEndDateTime); err != nil {
-			return nil, fmt.Errorf("failed to parse end_date_time: %w", err)
-		}
-
-		result = append(result, passwordCredential)
-	}
-
-	return result, nil
 }
 
 // constructOptionalClaims builds the optional claims configuration

@@ -80,6 +80,10 @@ func (r *ApplicationPasswordCredentialResource) Schema(ctx context.Context, req 
 			"display_name": schema.StringAttribute{
 				MarkdownDescription: "Friendly name for the password credential. This helps identify the purpose of the credential. Optional but recommended.",
 				Optional:            true,
+				Computed:            true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(256),
 				},
@@ -92,6 +96,7 @@ func (r *ApplicationPasswordCredentialResource) Schema(ctx context.Context, req 
 				Computed: true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
+					stringplanmodifier.RequiresReplace(),
 				},
 				Validators: []validator.String{
 					stringvalidator.RegexMatches(
@@ -107,6 +112,7 @@ func (r *ApplicationPasswordCredentialResource) Schema(ctx context.Context, req 
 				Computed: true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
+					stringplanmodifier.RequiresReplace(),
 				},
 				Validators: []validator.String{
 					stringvalidator.RegexMatches(
@@ -129,6 +135,7 @@ func (r *ApplicationPasswordCredentialResource) Schema(ctx context.Context, req 
 				Sensitive: true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
+					stringplanmodifier.RequiresReplace(),
 				},
 			},
 			"hint": schema.StringAttribute{

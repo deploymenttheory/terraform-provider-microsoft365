@@ -37,6 +37,10 @@ func TestAccResourceApplicationPasswordCredential_01_Minimal(t *testing.T) {
 				Source:            "hashicorp/random",
 				VersionConstraint: constants.ExternalProviderRandomVersion,
 			},
+			"time": {
+				Source:            "hashicorp/time",
+				VersionConstraint: constants.ExternalProviderTimeVersion,
+			},
 		},
 		Steps: []resource.TestStep{
 			{
@@ -74,6 +78,10 @@ func TestAccResourceApplicationPasswordCredential_02_Maximal(t *testing.T) {
 				Source:            "hashicorp/random",
 				VersionConstraint: constants.ExternalProviderRandomVersion,
 			},
+			"time": {
+				Source:            "hashicorp/time",
+				VersionConstraint: constants.ExternalProviderTimeVersion,
+			},
 		},
 		Steps: []resource.TestStep{
 			{
@@ -91,8 +99,8 @@ func TestAccResourceApplicationPasswordCredential_02_Maximal(t *testing.T) {
 					check.That(resourceType+".test_maximal").Key("secret_text").Exists(),
 					check.That(resourceType+".test_maximal").Key("display_name").MatchesRegex(regexp.MustCompile(`^acc-test-password-credential-maximal-`)),
 					check.That(resourceType+".test_maximal").Key("hint").Exists(),
-					check.That(resourceType+".test_maximal").Key("start_date_time").HasValue("2026-01-01T00:00:00Z"),
-					check.That(resourceType+".test_maximal").Key("end_date_time").HasValue("2028-01-01T00:00:00Z"),
+					check.That(resourceType+".test_maximal").Key("start_date_time").HasValue("2027-01-01T00:00:00Z"),
+					check.That(resourceType+".test_maximal").Key("end_date_time").HasValue("2029-01-01T00:00:00Z"),
 				),
 			},
 		},

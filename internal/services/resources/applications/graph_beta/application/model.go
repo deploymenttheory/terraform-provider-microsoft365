@@ -29,9 +29,7 @@ type ApplicationResourceModel struct {
 	DeletedDateTime            types.String   `tfsdk:"deleted_date_time"`
 	Api                        types.Object   `tfsdk:"api"` // Optional+Computed must be types.Object
 	AppRoles                   types.Set      `tfsdk:"app_roles"`
-	Info                       types.Object   `tfsdk:"info"` // Optional+Computed must be types.Object
-	KeyCredentials             types.Set      `tfsdk:"key_credentials"`
-	PasswordCredentials        types.Set      `tfsdk:"password_credentials"`
+	Info                       types.Object   `tfsdk:"info"`                      // Optional+Computed must be types.Object
 	OptionalClaims             types.Object   `tfsdk:"optional_claims"`           // Optional+Computed must be types.Object
 	ParentalControlSettings    types.Object   `tfsdk:"parental_control_settings"` // Optional+Computed must be types.Object
 	PublicClient               types.Object   `tfsdk:"public_client"`             // Optional+Computed must be types.Object
@@ -96,29 +94,6 @@ type ApplicationInformationalUrl struct {
 	PrivacyStatementUrl types.String `tfsdk:"privacy_statement_url"`
 	SupportUrl          types.String `tfsdk:"support_url"`
 	TermsOfServiceUrl   types.String `tfsdk:"terms_of_service_url"`
-}
-
-// ApplicationKeyCredential represents a certificate credential
-type ApplicationKeyCredential struct {
-	CustomKeyIdentifier types.String `tfsdk:"custom_key_identifier"`
-	DisplayName         types.String `tfsdk:"display_name"`
-	EndDateTime         types.String `tfsdk:"end_date_time"`
-	Key                 types.String `tfsdk:"key"`
-	KeyId               types.String `tfsdk:"key_id"`
-	StartDateTime       types.String `tfsdk:"start_date_time"`
-	Type                types.String `tfsdk:"type"`
-	Usage               types.String `tfsdk:"usage"`
-}
-
-// ApplicationPasswordCredential represents a password credential
-type ApplicationPasswordCredential struct {
-	CustomKeyIdentifier types.String `tfsdk:"custom_key_identifier"`
-	DisplayName         types.String `tfsdk:"display_name"`
-	EndDateTime         types.String `tfsdk:"end_date_time"`
-	Hint                types.String `tfsdk:"hint"`
-	KeyId               types.String `tfsdk:"key_id"`
-	SecretText          types.String `tfsdk:"secret_text"`
-	StartDateTime       types.String `tfsdk:"start_date_time"`
 }
 
 // ApplicationOptionalClaims represents optional claims configuration
