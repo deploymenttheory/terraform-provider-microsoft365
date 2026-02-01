@@ -74,9 +74,16 @@ func TestUnitResourceServicePrincipal_02_Maximal(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					check.That(resourceType+".test_maximal").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".test_maximal").Key("app_id").HasValue("22222222-2222-2222-2222-222222222222"),
+					check.That(resourceType+".test_maximal").Key("display_name").Exists(),
 					check.That(resourceType+".test_maximal").Key("account_enabled").HasValue("true"),
 					check.That(resourceType+".test_maximal").Key("app_role_assignment_required").HasValue("true"),
+					check.That(resourceType+".test_maximal").Key("description").HasValue("Maximal service principal configuration for testing"),
+					check.That(resourceType+".test_maximal").Key("login_url").HasValue("https://login.example.com"),
+					check.That(resourceType+".test_maximal").Key("notes").HasValue("Service principal for maximal unit testing"),
+					check.That(resourceType+".test_maximal").Key("notification_email_addresses.#").HasValue("2"),
+					check.That(resourceType+".test_maximal").Key("preferred_single_sign_on_mode").HasValue("saml"),
 					check.That(resourceType+".test_maximal").Key("tags.#").HasValue("2"),
+					check.That(resourceType+".test_maximal").Key("service_principal_type").HasValue("Application"),
 				),
 			},
 			{

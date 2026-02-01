@@ -67,6 +67,21 @@ func RegisterServicePrincipalMockResponders() *MockState {
 			if appRoleAssignmentRequired, ok := requestBody["appRoleAssignmentRequired"].(bool); ok {
 				servicePrincipal["appRoleAssignmentRequired"] = appRoleAssignmentRequired
 			}
+			if description, ok := requestBody["description"].(string); ok {
+				servicePrincipal["description"] = description
+			}
+			if loginUrl, ok := requestBody["loginUrl"].(string); ok {
+				servicePrincipal["loginUrl"] = loginUrl
+			}
+			if notes, ok := requestBody["notes"].(string); ok {
+				servicePrincipal["notes"] = notes
+			}
+			if notificationEmailAddresses, ok := requestBody["notificationEmailAddresses"].([]interface{}); ok {
+				servicePrincipal["notificationEmailAddresses"] = notificationEmailAddresses
+			}
+			if preferredSingleSignOnMode, ok := requestBody["preferredSingleSignOnMode"].(string); ok {
+				servicePrincipal["preferredSingleSignOnMode"] = preferredSingleSignOnMode
+			}
 			if tags, ok := requestBody["tags"].([]interface{}); ok {
 				servicePrincipal["tags"] = tags
 			}
@@ -119,6 +134,21 @@ func RegisterServicePrincipalMockResponders() *MockState {
 			}
 			if appRoleAssignmentRequired, ok := requestBody["appRoleAssignmentRequired"].(bool); ok {
 				servicePrincipal["appRoleAssignmentRequired"] = appRoleAssignmentRequired
+			}
+			if description, ok := requestBody["description"].(string); ok {
+				servicePrincipal["description"] = description
+			}
+			if loginUrl, ok := requestBody["loginUrl"].(string); ok {
+				servicePrincipal["loginUrl"] = loginUrl
+			}
+			if notes, ok := requestBody["notes"].(string); ok {
+				servicePrincipal["notes"] = notes
+			}
+			if notificationEmailAddresses, ok := requestBody["notificationEmailAddresses"].([]interface{}); ok {
+				servicePrincipal["notificationEmailAddresses"] = notificationEmailAddresses
+			}
+			if preferredSingleSignOnMode, ok := requestBody["preferredSingleSignOnMode"].(string); ok {
+				servicePrincipal["preferredSingleSignOnMode"] = preferredSingleSignOnMode
 			}
 			if tags, ok := requestBody["tags"].([]interface{}); ok {
 				servicePrincipal["tags"] = tags

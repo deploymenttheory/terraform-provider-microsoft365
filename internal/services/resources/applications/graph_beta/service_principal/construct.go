@@ -22,9 +22,7 @@ func constructResource(ctx context.Context, data *ServicePrincipalResourceModel)
 
 	// Optional string fields using helpers
 	convert.FrameworkToGraphString(data.Description, requestBody.SetDescription)
-	convert.FrameworkToGraphString(data.Homepage, requestBody.SetHomepage)
 	convert.FrameworkToGraphString(data.LoginURL, requestBody.SetLoginUrl)
-	convert.FrameworkToGraphString(data.LogoutURL, requestBody.SetLogoutUrl)
 	convert.FrameworkToGraphString(data.Notes, requestBody.SetNotes)
 	convert.FrameworkToGraphString(data.PreferredSingleSignOnMode, requestBody.SetPreferredSingleSignOnMode)
 

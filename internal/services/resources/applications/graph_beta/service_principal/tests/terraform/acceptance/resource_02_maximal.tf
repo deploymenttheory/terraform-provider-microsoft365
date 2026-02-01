@@ -19,10 +19,15 @@ resource "time_sleep" "wait_for_app_max" {
 }
 
 resource "microsoft365_graph_beta_applications_service_principal" "test_maximal" {
-  app_id                       = microsoft365_graph_beta_applications_application.test_max.app_id
-  account_enabled              = true
-  app_role_assignment_required = true
-  tags                         = ["HideApp", "WindowsAzureActiveDirectoryIntegratedApp"]
+  app_id                        = microsoft365_graph_beta_applications_application.test_max.app_id
+  account_enabled               = true
+  app_role_assignment_required  = true
+  description                   = "Maximal service principal configuration for testing"
+  login_url                     = "https://login.example.com"
+  notes                         = "Service principal for maximal acceptance testing"
+  notification_email_addresses  = ["admin@example.com", "security@example.com"]
+  preferred_single_sign_on_mode = "saml"
+  tags                          = ["HideApp", "WindowsAzureActiveDirectoryIntegratedApp"]
 
   depends_on = [time_sleep.wait_for_app_max]
 }
