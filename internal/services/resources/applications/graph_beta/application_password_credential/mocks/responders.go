@@ -36,6 +36,30 @@ func (m *ApplicationPasswordCredentialMock) RegisterMocks() {
 	mockState.credentials = make(map[string]map[string]any)
 	mockState.Unlock()
 
+	// Get application with password credentials - GET /applications/{id}
+	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/applications/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}`, func(req *http.Request) (*http.Response, error) {
+		parts := strings.Split(req.URL.Path, "/")
+		applicationId := parts[3]
+
+		mockState.Lock()
+		defer mockState.Unlock()
+
+		// Build passwordCredentials array from stored state
+		passwordCredentials := []any{}
+		if creds, exists := mockState.credentials[applicationId]; exists {
+			for _, cred := range creds {
+				passwordCredentials = append(passwordCredentials, cred)
+			}
+		}
+
+		response := map[string]any{
+			"id":                  applicationId,
+			"passwordCredentials": passwordCredentials,
+		}
+
+		return httpmock.NewJsonResponse(200, response)
+	})
+
 	// Add password credential - POST /applications/{id}/addPassword
 	httpmock.RegisterResponder("POST", `=~^https://graph\.microsoft\.com/beta/applications/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}/addPassword$`, func(req *http.Request) (*http.Response, error) {
 		parts := strings.Split(req.URL.Path, "/")
@@ -121,6 +145,8 @@ func (m *ApplicationPasswordCredentialMock) RegisterMocks() {
 }
 
 func (m *ApplicationPasswordCredentialMock) RegisterErrorMocks() {
+	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/applications/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}`,
+		httpmock.NewStringResponder(404, `{"error":{"code":"Request_ResourceNotFound","message":"Resource not found"}}`))
 	httpmock.RegisterResponder("POST", `=~^https://graph\.microsoft\.com/beta/applications/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}/addPassword$`,
 		httpmock.NewStringResponder(400, `{"error":{"code":"BadRequest","message":"Invalid request"}}`))
 	httpmock.RegisterResponder("POST", `=~^https://graph\.microsoft\.com/beta/applications/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}/removePassword$`,

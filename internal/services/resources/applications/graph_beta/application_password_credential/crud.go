@@ -10,6 +10,8 @@ import (
 	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
+	"github.com/microsoftgraph/msgraph-beta-sdk-go/applications"
+	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
 // Create handles the Create operation for application password credential resources.
@@ -74,12 +76,12 @@ func (r *ApplicationPasswordCredentialResource) Create(ctx context.Context, req 
 
 // Read handles the Read operation for application password credential resources.
 //
-// Operation: Returns current state without API call
+// Operation: Fetches the parent application and reads the password credential from its collection
 // API Calls:
-//   - None (password credentials cannot be retrieved after creation)
+//   - GET /applications/{id}
 //
-// Reference: https://learn.microsoft.com/en-us/graph/api/resources/passwordcredential?view=graph-rest-beta
-// Note: No GET endpoint exists for individual password credentials; secret_text cannot be retrieved after creation
+// Reference: https://learn.microsoft.com/en-us/graph/api/application-get?view=graph-rest-beta
+// Note: secret_text cannot be retrieved after creation, so it's preserved from state
 func (r *ApplicationPasswordCredentialResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var object ApplicationPasswordCredentialResourceModel
 
@@ -90,7 +92,10 @@ func (r *ApplicationPasswordCredentialResource) Read(ctx context.Context, req re
 		return
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Reading %s with key_id: %s", ResourceName, object.KeyID.ValueString()))
+	applicationID := object.ApplicationID.ValueString()
+	keyID := object.KeyID.ValueString()
+
+	tflog.Debug(ctx, fmt.Sprintf("Reading %s with key_id: %s from application: %s", ResourceName, keyID, applicationID))
 
 	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Read, ReadTimeout*time.Second, &resp.Diagnostics)
 	if cancel == nil {
@@ -98,9 +103,54 @@ func (r *ApplicationPasswordCredentialResource) Read(ctx context.Context, req re
 	}
 	defer cancel()
 
-	// No API call - just return current state
-	// The password credential API does not have a GET endpoint for individual credentials.
-	// The secret_text cannot be retrieved after creation, so we preserve the state as-is.
+	// Preserve secret_text from state since it cannot be retrieved from API
+	secretTextFromState := object.SecretText
+
+	requestConfig := &applications.ApplicationItemRequestBuilderGetRequestConfiguration{
+		QueryParameters: &applications.ApplicationItemRequestBuilderGetQueryParameters{
+			Select: []string{"id", "passwordCredentials"},
+		},
+	}
+
+	application, err := r.client.
+		Applications().
+		ByApplicationId(applicationID).
+		Get(ctx, requestConfig)
+
+	if err != nil {
+		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationRead, r.ReadPermissions)
+		return
+	}
+
+	// Find the matching password credential by key_id
+	passwordCredentials := application.GetPasswordCredentials()
+	if passwordCredentials == nil {
+		resp.Diagnostics.AddError(
+			"Password credential not found",
+			fmt.Sprintf("No password credentials found on application %s", applicationID),
+		)
+		resp.State.RemoveResource(ctx)
+		return
+	}
+
+	var foundCredential graphmodels.PasswordCredentialable
+	for _, cred := range passwordCredentials {
+		if cred.GetKeyId() != nil && cred.GetKeyId().String() == keyID {
+			foundCredential = cred
+			break
+		}
+	}
+
+	if foundCredential == nil {
+		tflog.Warn(ctx, fmt.Sprintf("Password credential with key_id %s not found on application %s", keyID, applicationID))
+		resp.State.RemoveResource(ctx)
+		return
+	}
+
+	MapRemoteResourceStateToTerraform(ctx, &object, foundCredential)
+
+	// Restore secret_text from state (cannot be retrieved from API)
+	object.SecretText = secretTextFromState
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
