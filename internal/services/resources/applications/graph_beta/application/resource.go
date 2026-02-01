@@ -140,7 +140,10 @@ func (r *ApplicationResource) ImportState(ctx context.Context, req resource.Impo
 // Schema returns the schema for the resource.
 func (r *ApplicationResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Manages an application in Microsoft Entra ID using the `/applications` endpoint. Any application that outsources authentication to Microsoft Entra ID must be registered in the Microsoft identity platform. Application registration involves telling Microsoft Entra ID about your application, including the URL where it's located, the URL to send replies after authentication, the URI to identify your application, and more.",
+		MarkdownDescription: "Manages an application in Microsoft Entra ID using the `/applications` endpoint. Any application " +
+			"that outsources authentication to Microsoft Entra ID must be registered in the Microsoft identity platform. Application " +
+			"registration involves telling Microsoft Entra ID about your application, including the URL where it's located, the URL to " +
+			"send replies after authentication, the URI to identify your application, and more.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				MarkdownDescription: "Unique identifier for the application object. This property is referred to as **Object ID** in the Microsoft Entra admin center. Key. Not nullable. Read-only. Supports `$filter` (`eq`, `ne`, `not`, `in`).",

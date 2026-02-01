@@ -88,7 +88,10 @@ func (r *ApplicationFederatedIdentityCredentialResource) ImportState(ctx context
 // Schema returns the schema for the resource.
 func (r *ApplicationFederatedIdentityCredentialResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Manages a Federated Identity Credential for an Application in Microsoft Entra ID. This resource is used to configure a trust relationship between your application and the identity provider for your compute platform, enabling token-based authentication with Microsoft identity platform. By configuring this trust relationship, you can use tokens issued by that platform to authenticate and call APIs in the Microsoft ecosystem. Maximum of 20 federated identity credentials can be added to an application.",
+		MarkdownDescription: "Manages a federated identity credential for a Microsoft Entra Application using the `/applications/{id}/federatedIdentityCredentials` endpoint. " +
+			"Federated identity credentials configure a trust relationship between your application and an external identity provider, enabling " +
+			"token-based authentication with the Microsoft identity platform. Maximum of 20 federated identity credentials can be added to an application.\n\n" +
+			"For more information, see the [Microsoft Graph API documentation](https://learn.microsoft.com/en-us/graph/api/application-post-federatedidentitycredentials?view=graph-rest-beta).",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				MarkdownDescription: "The unique identifier for the federated identity credential. Read-only.",

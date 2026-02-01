@@ -18,15 +18,31 @@ func MapRemoteStateToTerraform(ctx context.Context, data ServicePrincipalResourc
 		return data
 	}
 
+	// Map basic fields using helpers
 	data.ID = convert.GraphToFrameworkString(remoteResource.GetId())
 	data.AppID = convert.GraphToFrameworkString(remoteResource.GetAppId())
 	data.DisplayName = convert.GraphToFrameworkString(remoteResource.GetDisplayName())
+
+	// Map boolean fields
 	data.AccountEnabled = convert.GraphToFrameworkBool(remoteResource.GetAccountEnabled())
 	data.AppRoleAssignmentRequired = convert.GraphToFrameworkBool(remoteResource.GetAppRoleAssignmentRequired())
+
+	// Map optional string fields
+	data.Description = convert.GraphToFrameworkString(remoteResource.GetDescription())
+	data.Homepage = convert.GraphToFrameworkString(remoteResource.GetHomepage())
+	data.LoginURL = convert.GraphToFrameworkString(remoteResource.GetLoginUrl())
+	data.LogoutURL = convert.GraphToFrameworkString(remoteResource.GetLogoutUrl())
+	data.Notes = convert.GraphToFrameworkString(remoteResource.GetNotes())
+	data.PreferredSingleSignOnMode = convert.GraphToFrameworkString(remoteResource.GetPreferredSingleSignOnMode())
+
+	// Map computed string fields
 	data.ServicePrincipalType = convert.GraphToFrameworkString(remoteResource.GetServicePrincipalType())
-	data.ServicePrincipalNames = convert.GraphToFrameworkStringSet(ctx, remoteResource.GetServicePrincipalNames())
 	data.SignInAudience = convert.GraphToFrameworkString(remoteResource.GetSignInAudience())
+
+	// Map collection fields
+	data.ServicePrincipalNames = convert.GraphToFrameworkStringSet(ctx, remoteResource.GetServicePrincipalNames())
 	data.Tags = convert.GraphToFrameworkStringSet(ctx, remoteResource.GetTags())
+	data.NotificationEmailAddresses = convert.GraphToFrameworkStringSet(ctx, remoteResource.GetNotificationEmailAddresses())
 
 	tflog.Debug(ctx, fmt.Sprintf("Finished mapping %s remote state to Terraform state", ResourceName))
 

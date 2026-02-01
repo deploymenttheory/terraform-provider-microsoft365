@@ -75,7 +75,10 @@ func (r *ApplicationOwnerResource) ImportState(ctx context.Context, req resource
 // Schema defines the schema for the resource.
 func (r *ApplicationOwnerResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Manages Azure AD/Entra application owner assignments using the `/applications/{application-id}/owners` endpoint. This resource enables adding and removing users or service principals as owners of applications.\n\n**Owner Type Support:**\n- **Users**: Individual user accounts\n- **Service Principals**: Service principal objects\n\n**Important Notes:**\n- Owners can modify the application object\n- As a recommended best practice, apps should have at least two owners\n- The last owner (user object) of an application cannot be removed\n\n**Required Permissions by Owner Type:**\n- **Users**: `Application.ReadWrite.All` or `Directory.ReadWrite.All`\n- **Service Principals**: `Application.ReadWrite.All` or `Directory.ReadWrite.All`\n\n**Supported Microsoft Entra Roles:**\n- Application owners (can modify their own applications)\n- Application Developer (for applications they own)\n- Cloud Application Administrator\n- Application Administrator\n- Hybrid Identity Administrator.",
+		MarkdownDescription: "Manages an owner assignment for a Microsoft Entra Application using the `/applications/{id}/owners` endpoint. " +
+			"Owners are users or service principals who are allowed to modify the application object. As a recommended best practice, " +
+			"applications should have at least two owners.\n\n" +
+			"For more information, see the [Microsoft Graph API documentation](https://learn.microsoft.com/en-us/graph/api/application-post-owners?view=graph-rest-beta).",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed: true,

@@ -16,11 +16,25 @@ func constructResource(ctx context.Context, data *ServicePrincipalResourceModel)
 	appId := data.AppID.ValueString()
 	requestBody.SetAppId(&appId)
 
+	// Optional boolean fields using helpers
 	convert.FrameworkToGraphBool(data.AccountEnabled, requestBody.SetAccountEnabled)
 	convert.FrameworkToGraphBool(data.AppRoleAssignmentRequired, requestBody.SetAppRoleAssignmentRequired)
 
+	// Optional string fields using helpers
+	convert.FrameworkToGraphString(data.Description, requestBody.SetDescription)
+	convert.FrameworkToGraphString(data.Homepage, requestBody.SetHomepage)
+	convert.FrameworkToGraphString(data.LoginURL, requestBody.SetLoginUrl)
+	convert.FrameworkToGraphString(data.LogoutURL, requestBody.SetLogoutUrl)
+	convert.FrameworkToGraphString(data.Notes, requestBody.SetNotes)
+	convert.FrameworkToGraphString(data.PreferredSingleSignOnMode, requestBody.SetPreferredSingleSignOnMode)
+
+	// Optional collection fields using helpers
 	if err := convert.FrameworkToGraphStringSet(ctx, data.Tags, requestBody.SetTags); err != nil {
 		return nil, fmt.Errorf("failed to set tags: %w", err)
+	}
+
+	if err := convert.FrameworkToGraphStringSet(ctx, data.NotificationEmailAddresses, requestBody.SetNotificationEmailAddresses); err != nil {
+		return nil, fmt.Errorf("failed to set notification_email_addresses: %w", err)
 	}
 
 	return requestBody, nil

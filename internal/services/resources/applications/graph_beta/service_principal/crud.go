@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
-	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
+	"github.com/microsoftgraph/msgraph-beta-sdk-go/serviceprincipals"
 )
 
 // Create handles the Create operation for Service Principal resources.
@@ -120,10 +120,16 @@ func (r *ServicePrincipalResource) Read(ctx context.Context, req resource.ReadRe
 	}
 	defer cancel()
 
+	requestConfig := &serviceprincipals.ServicePrincipalItemRequestBuilderGetRequestConfiguration{
+		QueryParameters: &serviceprincipals.ServicePrincipalItemRequestBuilderGetQueryParameters{
+			Expand: []string{"*"},
+		},
+	}
+
 	remoteResource, err := r.client.
 		ServicePrincipals().
 		ByServicePrincipalId(object.ID.ValueString()).
-		Get(ctx, nil)
+		Get(ctx, requestConfig)
 
 	if err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, operation, r.ReadPermissions)
@@ -172,25 +178,10 @@ func (r *ServicePrincipalResource) Update(ctx context.Context, req resource.Upda
 		return
 	}
 
-	// Cast to ServicePrincipal for PATCH operation
-	updateBody := graphmodels.NewServicePrincipal()
-
-	if accountEnabled := requestBody.GetAccountEnabled(); accountEnabled != nil {
-		updateBody.SetAccountEnabled(accountEnabled)
-	}
-
-	if appRoleAssignmentRequired := requestBody.GetAppRoleAssignmentRequired(); appRoleAssignmentRequired != nil {
-		updateBody.SetAppRoleAssignmentRequired(appRoleAssignmentRequired)
-	}
-
-	if tags := requestBody.GetTags(); tags != nil {
-		updateBody.SetTags(tags)
-	}
-
 	_, err = r.client.
 		ServicePrincipals().
 		ByServicePrincipalId(plan.ID.ValueString()).
-		Patch(ctx, updateBody, nil)
+		Patch(ctx, requestBody, nil)
 
 	if err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationUpdate, r.WritePermissions)

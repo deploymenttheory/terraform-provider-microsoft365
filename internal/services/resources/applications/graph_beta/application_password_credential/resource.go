@@ -65,7 +65,10 @@ func (r *ApplicationPasswordCredentialResource) Configure(ctx context.Context, r
 // Schema returns the schema for the resource.
 func (r *ApplicationPasswordCredentialResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Manages a password credential for a Microsoft Entra Application. This resource uses the [addPassword](https://learn.microsoft.com/en-us/graph/api/application-addpassword?view=graph-rest-beta) API to add a strong password to an application.\n\n**Important:** The `secret_text` attribute contains the password and is only available at creation time. It cannot be retrieved after initial creation. Store this value securely.\n\n**Note:** This resource does not support import because the password cannot be retrieved from the API after creation.",
+		MarkdownDescription: "Manages a password credential for a Microsoft Entra Application using the `/applications/{id}/addPassword` endpoint. " +
+			"Password credentials enable applications to authenticate using client secrets. The generated password (`secret_text`) is only available " +
+			"at creation time and cannot be retrieved later. This resource cannot be imported.\n\n" +
+			"For more information, see the [Microsoft Graph API documentation](https://learn.microsoft.com/en-us/graph/api/application-addpassword?view=graph-rest-beta).",
 		Attributes: map[string]schema.Attribute{
 			"application_id": schema.StringAttribute{
 				MarkdownDescription: "The unique identifier (Object ID) of the application to add the password credential to. Required.",

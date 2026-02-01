@@ -79,9 +79,10 @@ func (r *ApplicationCertificateCredentialResource) ImportState(ctx context.Conte
 // Schema defines the schema for the resource.
 func (r *ApplicationCertificateCredentialResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Manages a certificate credential for a Microsoft Entra Application using the Microsoft Graph Beta API. " +
-			"This resource manages certificates independently from the main application resource by manipulating the application's keyCredentials collection. " +
-			"Certificate credentials cannot be updated in place - changes require replacement.",
+		MarkdownDescription: "Manages a certificate credential for a Microsoft Entra Application using the `/applications/{id}/addKey` endpoint. " +
+			"Certificate credentials enable applications to authenticate using X.509 certificates instead of client secrets. " +
+			"This resource cannot be imported as the certificate value cannot be retrieved after creation.\n\n" +
+			"For more information, see the [Microsoft Graph API documentation](https://learn.microsoft.com/en-us/graph/api/application-addkey?view=graph-rest-beta).",
 		Attributes: map[string]schema.Attribute{
 			"application_id": schema.StringAttribute{
 				Required:            true,
