@@ -97,6 +97,8 @@ import (
 	// Graph Beta - Applications resources
 	graphBetaApplication "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/applications/graph_beta/application"
 	graphBetaApplicationCertificateCredential "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/applications/graph_beta/application_certificate_credential"
+	graphBetaApplicationFederatedIdentityCredential "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/applications/graph_beta/application_federated_identity_credential"
+	graphBetaApplicationOwner "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/applications/graph_beta/application_owner"
 	graphBetaApplicationPasswordCredential "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/applications/graph_beta/application_password_credential"
 	graphBetaApplicationsIpApplicationSegment "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/applications/graph_beta/ip_application_segment"
 	graphBetaApplicationsServicePrincipalAppRoleAssignedTo "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/applications/graph_beta/service_principal_app_role_assigned_to"
@@ -176,6 +178,8 @@ func (p *M365Provider) Resources(ctx context.Context) []func() resource.Resource
 		// Graph Beta - Applications resources
 		graphBetaApplication.NewApplicationResource,
 		graphBetaApplicationCertificateCredential.NewApplicationCertificateCredentialResource,
+		graphBetaApplicationFederatedIdentityCredential.NewApplicationFederatedIdentityCredentialResource,
+		graphBetaApplicationOwner.NewApplicationOwnerResource,
 		graphBetaApplicationPasswordCredential.NewApplicationPasswordCredentialResource,
 		graphBetaApplicationsIpApplicationSegment.NewIpApplicationSegmentResource,
 		graphBetaApplicationsServicePrincipalAppRoleAssignedTo.NewServicePrincipalAppRoleAssignedToResource,
