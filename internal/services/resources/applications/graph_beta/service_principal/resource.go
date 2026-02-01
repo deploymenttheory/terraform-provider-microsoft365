@@ -8,7 +8,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/boolplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/setplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
@@ -94,47 +96,74 @@ func (r *ServicePrincipalResource) Schema(ctx context.Context, req resource.Sche
 				MarkdownDescription: "True if the service principal account is enabled; otherwise, false. If set to false, then no users are able to sign in to this app, even if they're assigned to it. Supports `$filter` (`eq`, `ne`, `not`, `in`).",
 				Optional:            true,
 				Computed:            true,
+				PlanModifiers: []planmodifier.Bool{
+					boolplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"app_role_assignment_required": schema.BoolAttribute{
 				MarkdownDescription: "Specifies whether users or other service principals need to be granted an app role assignment for this service principal before users can sign in or apps can get tokens. The default value is false. Not nullable. Supports `$filter` (`eq`, `ne`, `NOT`).",
 				Optional:            true,
 				Computed:            true,
+				PlanModifiers: []planmodifier.Bool{
+					boolplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"description": schema.StringAttribute{
 				MarkdownDescription: "Free text field to provide an internal end-user facing description of the service principal. End-user portals such MyApps displays the application description in this field. The maximum allowed size is 1,024 characters. Supports `$filter` (`eq`, `ne`, `not`, `ge`, `le`, `startsWith`) and `$search`.",
 				Optional:            true,
 				Computed:            true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"homepage": schema.StringAttribute{
 				MarkdownDescription: "Home page or landing page of the application.",
 				Optional:            true,
 				Computed:            true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"login_url": schema.StringAttribute{
 				MarkdownDescription: "Specifies the URL where the service provider redirects the user to Microsoft Entra ID to authenticate. Microsoft Entra ID uses the URL to launch the application from Microsoft 365 or the Microsoft Entra My Apps. When blank, Microsoft Entra ID performs IdP-initiated sign-on for applications configured with SAML-based single sign-on.",
 				Optional:            true,
 				Computed:            true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"logout_url": schema.StringAttribute{
 				MarkdownDescription: "Specifies the URL that the Microsoft's authorization service uses to sign out a user using OpenId Connect front-channel, back-channel, or SAML sign out protocols.",
 				Optional:            true,
 				Computed:            true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"notes": schema.StringAttribute{
 				MarkdownDescription: "Free text field to capture information about the service principal, typically used for operational purposes. Maximum allowed size is 1,024 characters.",
 				Optional:            true,
 				Computed:            true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"notification_email_addresses": schema.SetAttribute{
 				MarkdownDescription: "Specifies the list of email addresses where Microsoft Entra ID sends a notification when the active certificate is near the expiration date. This is only for the certificates used to sign the SAML token issued for Microsoft Entra Gallery applications.",
 				ElementType:         types.StringType,
 				Optional:            true,
 				Computed:            true,
+				PlanModifiers: []planmodifier.Set{
+					setplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"preferred_single_sign_on_mode": schema.StringAttribute{
 				MarkdownDescription: "Specifies the single sign-on mode configured for this application. Microsoft Entra ID uses the preferred single sign-on mode to launch the application from Microsoft 365 or the Microsoft Entra My Apps. The supported values are `password`, `saml`, `notSupported`, and `oidc`.",
 				Optional:            true,
 				Computed:            true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"service_principal_type": schema.StringAttribute{
 				MarkdownDescription: "Identifies if the service principal represents an application or a managed identity. Read-only.",
@@ -147,6 +176,9 @@ func (r *ServicePrincipalResource) Schema(ctx context.Context, req resource.Sche
 				MarkdownDescription: "Contains the list of identifiersUris, copied over from the associated application. Additional values can be added to hybrid applications. These values can be used to identify the permissions exposed by this app within Microsoft Entra ID. Read-only.",
 				ElementType:         types.StringType,
 				Computed:            true,
+				PlanModifiers: []planmodifier.Set{
+					setplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"sign_in_audience": schema.StringAttribute{
 				MarkdownDescription: "Specifies what Microsoft accounts are supported for the application. Read-only.",
@@ -160,6 +192,9 @@ func (r *ServicePrincipalResource) Schema(ctx context.Context, req resource.Sche
 				ElementType:         types.StringType,
 				Optional:            true,
 				Computed:            true,
+				PlanModifiers: []planmodifier.Set{
+					setplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"timeouts": commonschema.ResourceTimeouts(ctx),
 		},

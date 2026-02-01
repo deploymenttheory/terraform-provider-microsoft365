@@ -11,7 +11,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
-	"github.com/microsoftgraph/msgraph-beta-sdk-go/serviceprincipals"
 )
 
 // Create handles the Create operation for Service Principal resources.
@@ -120,16 +119,10 @@ func (r *ServicePrincipalResource) Read(ctx context.Context, req resource.ReadRe
 	}
 	defer cancel()
 
-	requestConfig := &serviceprincipals.ServicePrincipalItemRequestBuilderGetRequestConfiguration{
-		QueryParameters: &serviceprincipals.ServicePrincipalItemRequestBuilderGetQueryParameters{
-			Expand: []string{"*"},
-		},
-	}
-
 	remoteResource, err := r.client.
 		ServicePrincipals().
 		ByServicePrincipalId(object.ID.ValueString()).
-		Get(ctx, requestConfig)
+		Get(ctx, nil)
 
 	if err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, operation, r.ReadPermissions)
@@ -187,6 +180,10 @@ func (r *ServicePrincipalResource) Update(ctx context.Context, req resource.Upda
 		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationUpdate, r.WritePermissions)
 		return
 	}
+
+	// Allow time for eventual consistency after PATCH
+	tflog.Debug(ctx, "Waiting 20 seconds for eventual consistency after service principal update")
+	time.Sleep(20 * time.Second)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
