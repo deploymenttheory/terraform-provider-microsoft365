@@ -1,7 +1,6 @@
 package graphBetaApplicationOwner_test
 
 import (
-	"fmt"
 	"regexp"
 	"testing"
 
@@ -11,7 +10,6 @@ import (
 	graphBetaApplicationOwner "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/applications/graph_beta/application_owner"
 	applicationOwnerMocks "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/applications/graph_beta/application_owner/mocks"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/jarcoal/httpmock"
 )
 
@@ -107,18 +105,4 @@ func TestUnitResourceApplicationOwner_02_OwnerTypeServicePrincipal(t *testing.T)
 			},
 		},
 	})
-}
-
-func testAccImportStateIdFunc(resourceName string) resource.ImportStateIdFunc {
-	return func(s *terraform.State) (string, error) {
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return "", fmt.Errorf("resource not found: %s", resourceName)
-		}
-
-		applicationID := rs.Primary.Attributes["application_id"]
-		ownerID := rs.Primary.Attributes["owner_id"]
-
-		return fmt.Sprintf("%s/%s", applicationID, ownerID), nil
-	}
 }

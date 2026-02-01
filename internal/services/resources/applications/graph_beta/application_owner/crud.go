@@ -142,6 +142,7 @@ func (r *ApplicationOwnerResource) Read(ctx context.Context, req resource.ReadRe
 	}
 
 	var ownerObject graphmodels.DirectoryObjectable
+
 	if owners != nil && owners.GetValue() != nil {
 		for _, owner := range owners.GetValue() {
 			if owner.GetId() != nil && *owner.GetId() == ownerId {

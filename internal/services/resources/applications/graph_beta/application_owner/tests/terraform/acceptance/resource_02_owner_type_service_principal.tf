@@ -21,7 +21,7 @@ resource "microsoft365_graph_beta_applications_application" "test_owner_app" {
 }
 
 # Create service principal from the owner application
-resource "microsoft365_graph_beta_agents_agent_identity_blueprint_service_principal" "test_owner_sp" {
+resource "microsoft365_graph_beta_applications_service_principal" "test_owner_sp" {
   app_id      = microsoft365_graph_beta_applications_application.test_owner_app.app_id
   hard_delete = true
 }
@@ -29,14 +29,14 @@ resource "microsoft365_graph_beta_agents_agent_identity_blueprint_service_princi
 resource "time_sleep" "wait_for_resources" {
   depends_on = [
     microsoft365_graph_beta_applications_application.test_app_sp,
-    microsoft365_graph_beta_agents_agent_identity_blueprint_service_principal.test_owner_sp
+    microsoft365_graph_beta_applications_service_principal.test_owner_sp
   ]
   create_duration = "15s"
 }
 
 resource "microsoft365_graph_beta_applications_application_owner" "test_service_principal" {
   application_id    = microsoft365_graph_beta_applications_application.test_app_sp.id
-  owner_id          = microsoft365_graph_beta_agents_agent_identity_blueprint_service_principal.test_owner_sp.id
+  owner_id          = microsoft365_graph_beta_applications_service_principal.test_owner_sp.id
   owner_object_type = "ServicePrincipal"
 
   depends_on = [time_sleep.wait_for_resources]
