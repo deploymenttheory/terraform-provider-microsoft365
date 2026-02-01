@@ -12,11 +12,13 @@ import (
 // MockState holds the mock service principal state
 type MockState struct {
 	servicePrincipals map[string]map[string]any
+	deletedItems      map[string]map[string]any
 	sync.Mutex
 }
 
 var mockState = &MockState{
 	servicePrincipals: make(map[string]map[string]any),
+	deletedItems:      make(map[string]map[string]any),
 }
 
 // CleanupMockState cleans up the mock state
@@ -24,12 +26,14 @@ func (m *MockState) CleanupMockState() {
 	m.Lock()
 	defer m.Unlock()
 	m.servicePrincipals = make(map[string]map[string]any)
+	m.deletedItems = make(map[string]map[string]any)
 }
 
 // RegisterServicePrincipalMockResponders registers mock HTTP responders for service principal operations
 func RegisterServicePrincipalMockResponders() *MockState {
 	mockState.Lock()
 	mockState.servicePrincipals = make(map[string]map[string]any)
+	mockState.deletedItems = make(map[string]map[string]any)
 	mockState.Unlock()
 
 	// Create service principal - POST /servicePrincipals
@@ -167,13 +171,52 @@ func RegisterServicePrincipalMockResponders() *MockState {
 			id := parts[len(parts)-1]
 
 			mockState.Lock()
-			_, exists := mockState.servicePrincipals[id]
+			servicePrincipal, exists := mockState.servicePrincipals[id]
 			if !exists {
 				mockState.Unlock()
 				return httpmock.NewStringResponse(404, `{"error":{"code":"ResourceNotFound","message":"Service principal not found"}}`), nil
 			}
 
+			// Move to deleted items (soft delete)
+			servicePrincipal["@odata.type"] = "#microsoft.graph.servicePrincipal"
+			mockState.deletedItems[id] = servicePrincipal
 			delete(mockState.servicePrincipals, id)
+			mockState.Unlock()
+
+			return httpmock.NewStringResponse(204, ""), nil
+		})
+
+	// Get deleted item - GET /directory/deletedItems/{id}
+	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/directory/deletedItems/[0-9a-fA-F-]+$`,
+		func(req *http.Request) (*http.Response, error) {
+			parts := strings.Split(req.URL.Path, "/")
+			id := parts[len(parts)-1]
+
+			mockState.Lock()
+			deletedItem, exists := mockState.deletedItems[id]
+			mockState.Unlock()
+
+			if !exists {
+				return httpmock.NewStringResponse(404, `{"error":{"code":"ResourceNotFound","message":"Resource not found"}}`), nil
+			}
+
+			return httpmock.NewJsonResponse(200, deletedItem)
+		})
+
+	// Permanently delete - DELETE /directory/deletedItems/{id}
+	httpmock.RegisterResponder("DELETE", `=~^https://graph\.microsoft\.com/beta/directory/deletedItems/[0-9a-fA-F-]+$`,
+		func(req *http.Request) (*http.Response, error) {
+			parts := strings.Split(req.URL.Path, "/")
+			id := parts[len(parts)-1]
+
+			mockState.Lock()
+			_, exists := mockState.deletedItems[id]
+			if !exists {
+				mockState.Unlock()
+				return httpmock.NewStringResponse(404, `{"error":{"code":"ResourceNotFound","message":"Resource not found"}}`), nil
+			}
+
+			delete(mockState.deletedItems, id)
 			mockState.Unlock()
 
 			return httpmock.NewStringResponse(204, ""), nil

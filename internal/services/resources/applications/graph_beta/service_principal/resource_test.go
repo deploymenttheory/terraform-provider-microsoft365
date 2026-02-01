@@ -90,6 +90,7 @@ func TestUnitResourceServicePrincipal_02_Maximal(t *testing.T) {
 				ResourceName:      resourceType + ".test_maximal",
 				ImportState:       true,
 				ImportStateVerify: true,
+				ImportStateIdFunc: importStateIdFunc(resourceType + ".test_maximal"),
 			},
 		},
 	})
