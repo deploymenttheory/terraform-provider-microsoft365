@@ -23,5 +23,6 @@ type ServicePrincipalResourceModel struct {
 	ServicePrincipalNames      types.Set      `tfsdk:"service_principal_names"`
 	SignInAudience             types.String   `tfsdk:"sign_in_audience"`
 	Tags                       types.Set      `tfsdk:"tags"`
+	HardDelete                 types.Bool     `tfsdk:"hard_delete"`
 	Timeouts                   timeouts.Value `tfsdk:"timeouts"`
 }

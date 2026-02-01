@@ -1,6 +1,7 @@
 package graphBetaServicePrincipal_test
 
 import (
+	"fmt"
 	"regexp"
 	"testing"
 	"time"
@@ -21,6 +22,18 @@ func loadAccTestTerraform(filename string) string {
 		panic("failed to load acceptance test config " + filename + ": " + err.Error())
 	}
 	return config
+}
+
+// importStateIdFunc returns a function that constructs the import ID with hard_delete value
+func importStateIdFunc(resourceName string) resource.ImportStateIdFunc {
+	return func(s *terraform.State) (string, error) {
+		rs, ok := s.RootModule().Resources[resourceName]
+		if !ok {
+			return "", fmt.Errorf("resource not found: %s", resourceName)
+		}
+		hardDelete := rs.Primary.Attributes["hard_delete"]
+		return fmt.Sprintf("%s:hard_delete=%s", rs.Primary.ID, hardDelete), nil
+	}
 }
 
 func TestAccResourceServicePrincipal_01_Minimal(t *testing.T) {
@@ -67,6 +80,7 @@ func TestAccResourceServicePrincipal_01_Minimal(t *testing.T) {
 				},
 				ResourceName:      resourceType + ".test_minimal",
 				ImportState:       true,
+				ImportStateIdFunc: importStateIdFunc(resourceType + ".test_minimal"),
 				ImportStateVerify: true,
 			},
 		},
@@ -122,10 +136,11 @@ func TestAccResourceServicePrincipal_02_Maximal(t *testing.T) {
 			},
 			{
 				PreConfig: func() {
-					testlog.StepAction(resourceType, "Step 2: Import state verification")
+					testlog.StepAction(resourceType, "Step 2: Import state verification service principal")
 				},
 				ResourceName:      resourceType + ".test_maximal",
 				ImportState:       true,
+				ImportStateIdFunc: importStateIdFunc(resourceType + ".test_maximal"),
 				ImportStateVerify: true,
 			},
 		},

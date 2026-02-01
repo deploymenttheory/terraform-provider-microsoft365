@@ -9,4 +9,5 @@ resource "microsoft365_graph_beta_applications_service_principal" "test_maximal"
   notification_email_addresses  = ["admin@example.com", "security@example.com"]
   preferred_single_sign_on_mode = "saml"
   tags                          = ["HideApp", "WindowsAzureActiveDirectoryIntegratedApp"]
+  hard_delete                   = true
 }
