@@ -46,6 +46,11 @@ func (m *ApplicationOwnerMock) RegisterMocks() {
 		"id":          "user-22222222-2222-2222-2222-222222222222",
 		"displayName": "Test User Owner 2",
 	}
+	mockState.users["22222222-2222-2222-2222-222222222222"] = map[string]any{
+		"@odata.type": "#microsoft.graph.user",
+		"id":          "22222222-2222-2222-2222-222222222222",
+		"displayName": "Test User Owner",
+	}
 
 	// Seed mock service principals
 	mockState.servicePrins["sp-11111111-1111-1111-1111-111111111111"] = map[string]any{
@@ -53,10 +58,16 @@ func (m *ApplicationOwnerMock) RegisterMocks() {
 		"id":          "sp-11111111-1111-1111-1111-111111111111",
 		"displayName": "Test Service Principal Owner",
 	}
+	mockState.servicePrins["44444444-4444-4444-4444-444444444444"] = map[string]any{
+		"@odata.type": "#microsoft.graph.servicePrincipal",
+		"id":          "44444444-4444-4444-4444-444444444444",
+		"displayName": "Test Service Principal Owner",
+	}
 
 	// Seed mock applications
 	mockState.owners["11111111-1111-1111-1111-111111111111"] = []map[string]any{}
 	mockState.owners["22222222-2222-2222-2222-222222222222"] = []map[string]any{}
+	mockState.owners["33333333-3333-3333-3333-333333333333"] = []map[string]any{}
 	mockState.Unlock()
 
 	// Get application owners - GET /applications/{applicationId}/owners

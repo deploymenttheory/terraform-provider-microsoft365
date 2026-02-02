@@ -93,6 +93,13 @@ func (r *ApplicationIdentifierUriResource) Schema(ctx context.Context, req resou
 			"This resource manages individual identifier URIs, allowing multiple URIs to be managed independently.\n\n" +
 			"For more information, see the [Microsoft Graph API documentation](https://learn.microsoft.com/en-us/graph/api/application-update?view=graph-rest-beta).",
 		Attributes: map[string]schema.Attribute{
+			"id": schema.StringAttribute{
+				MarkdownDescription: "The unique identifier for this resource, in the format `application_id/identifier_uri`.",
+				Computed:            true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
+			},
 			"application_id": schema.StringAttribute{
 				MarkdownDescription: "The unique identifier (UUID) for the application.",
 				Required:            true,

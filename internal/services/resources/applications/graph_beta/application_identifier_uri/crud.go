@@ -9,6 +9,7 @@ import (
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
 	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
@@ -38,7 +39,6 @@ func (r *ApplicationIdentifierUriResource) Create(ctx context.Context, req resou
 
 	applicationID := object.ApplicationID.ValueString()
 
-	// Get the current application to retrieve existing identifier URIs
 	application, err := r.client.
 		Applications().
 		ByApplicationId(applicationID).
@@ -51,7 +51,6 @@ func (r *ApplicationIdentifierUriResource) Create(ctx context.Context, req resou
 
 	existingUris := application.GetIdentifierUris()
 
-	// Check if URI already exists
 	for _, uri := range existingUris {
 		if uri == object.IdentifierUri.ValueString() {
 			resp.Diagnostics.AddError(
@@ -85,6 +84,8 @@ func (r *ApplicationIdentifierUriResource) Create(ctx context.Context, req resou
 
 	tflog.Debug(ctx, "Waiting 10 seconds for eventual consistency after create")
 	time.Sleep(10 * time.Second)
+
+	object.Id = types.StringValue(fmt.Sprintf("%s/%s", object.ApplicationID.ValueString(), object.IdentifierUri.ValueString()))
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {

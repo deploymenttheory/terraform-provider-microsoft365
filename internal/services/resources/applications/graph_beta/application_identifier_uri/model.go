@@ -8,6 +8,7 @@ import (
 )
 
 type ApplicationIdentifierUriResourceModel struct {
+	Id            types.String   `tfsdk:"id"`
 	ApplicationID types.String   `tfsdk:"application_id"`
 	IdentifierUri types.String   `tfsdk:"identifier_uri"`
 	Timeouts      timeouts.Value `tfsdk:"timeouts"`

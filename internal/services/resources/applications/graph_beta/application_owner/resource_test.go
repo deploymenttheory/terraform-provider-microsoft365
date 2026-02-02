@@ -61,7 +61,7 @@ func TestUnitResourceApplicationOwner_01_OwnerTypeUser(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					check.That(resourceType+".test_user").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+/[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".test_user").Key("application_id").HasValue("11111111-1111-1111-1111-111111111111"),
-					check.That(resourceType+".test_user").Key("owner_id").HasValue("user-11111111-1111-1111-1111-111111111111"),
+					check.That(resourceType+".test_user").Key("owner_id").HasValue("22222222-2222-2222-2222-222222222222"),
 					check.That(resourceType+".test_user").Key("owner_object_type").HasValue("User"),
 					check.That(resourceType+".test_user").Key("owner_type").HasValue("User"),
 					check.That(resourceType+".test_user").Key("owner_display_name").HasValue("Test User Owner"),
@@ -91,8 +91,8 @@ func TestUnitResourceApplicationOwner_02_OwnerTypeServicePrincipal(t *testing.T)
 				Config: loadUnitTestTerraform("resource_02_owner_type_service_principal.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					check.That(resourceType+".test_service_principal").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+/[0-9a-fA-F-]+$`)),
-					check.That(resourceType+".test_service_principal").Key("application_id").HasValue("22222222-2222-2222-2222-222222222222"),
-					check.That(resourceType+".test_service_principal").Key("owner_id").HasValue("sp-11111111-1111-1111-1111-111111111111"),
+					check.That(resourceType+".test_service_principal").Key("application_id").HasValue("33333333-3333-3333-3333-333333333333"),
+					check.That(resourceType+".test_service_principal").Key("owner_id").HasValue("44444444-4444-4444-4444-444444444444"),
 					check.That(resourceType+".test_service_principal").Key("owner_object_type").HasValue("ServicePrincipal"),
 					check.That(resourceType+".test_service_principal").Key("owner_type").HasValue("ServicePrincipal"),
 					check.That(resourceType+".test_service_principal").Key("owner_display_name").HasValue("Test Service Principal Owner"),

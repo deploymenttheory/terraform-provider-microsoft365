@@ -103,7 +103,7 @@ func TestAccResourceApplicationIdentifierUri_02_Multiple(t *testing.T) {
 						return nil
 					},
 					check.That(resourceType+".test_uri1").Key("identifier_uri").MatchesRegex(regexp.MustCompile(`^api://[0-9a-fA-F-]+$`)),
-					check.That(resourceType+".test_uri2").Key("identifier_uri").MatchesRegex(regexp.MustCompile(`^https://example\.com/[a-z0-9]+$`)),
+					check.That(resourceType+".test_uri2").Key("identifier_uri").MatchesRegex(regexp.MustCompile(`^https://deploymenttheory\.com/[a-z0-9]+$`)),
 				),
 			},
 		},

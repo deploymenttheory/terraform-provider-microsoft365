@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
@@ -20,6 +21,11 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *ApplicationIde
 
 	// For identifier URIs, we just maintain the state as-is
 	// The identifier URI presence is validated during read
+	
+	// Set the ID as a composite of application_id/identifier_uri
+	if !data.ApplicationID.IsNull() && !data.IdentifierUri.IsNull() {
+		data.Id = types.StringValue(fmt.Sprintf("%s/%s", data.ApplicationID.ValueString(), data.IdentifierUri.ValueString()))
+	}
 
 	tflog.Debug(ctx, fmt.Sprintf("Finished mapping %s with identifier_uri: %s", ResourceName, data.IdentifierUri.ValueString()))
 }

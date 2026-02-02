@@ -35,7 +35,7 @@ resource "tls_self_signed_cert" "test_cert_maximal" {
     organization = "Terraform Provider Test"
   }
 
-  validity_period_hours = 8760 # 1 year
+  validity_period_hours = 26280 # 3 years - certificate valid from now through 2029
 
   allowed_uses = [
     "key_encipherment",
@@ -43,6 +43,10 @@ resource "tls_self_signed_cert" "test_cert_maximal" {
     "client_auth",
   ]
 }
+
+# ==============================================================================
+# Test Case: Application Certificate Credential - Maximal configuration
+# ==============================================================================
 
 resource "microsoft365_graph_beta_applications_application_certificate_credential" "test_maximal" {
   application_id = microsoft365_graph_beta_applications_application.test_app_maximal.id
@@ -53,8 +57,8 @@ resource "microsoft365_graph_beta_applications_application_certificate_credentia
   type     = "AsymmetricX509Cert"
   usage    = "Verify"
 
-  start_date_time = "2027-01-01T00:00:00Z"
-  end_date_time   = "2029-01-01T00:00:00Z"
+  start_date_time = "2027-01-01T00:00:00Z" // When this test fails in the future, update this to a new future date. e.g another year into the future.
+  end_date_time   = "2029-01-01T00:00:00Z" // Make this 3 years from the new 'start_date_time'.
 
   depends_on = [time_sleep.wait_for_app_maximal]
 }
