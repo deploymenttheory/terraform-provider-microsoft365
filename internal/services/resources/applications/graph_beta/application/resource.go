@@ -729,6 +729,9 @@ func (r *ApplicationResource) Schema(ctx context.Context, req resource.SchemaReq
 						MarkdownDescription: "Specifies the URL that is used by Microsoft's authorization service to log out a user using front-channel, back-channel or SAML logout protocols.",
 						Optional:            true,
 						Computed:            true,
+						PlanModifiers: []planmodifier.String{
+							stringplanmodifier.UseStateForUnknown(),
+						},
 						Validators: []validator.String{
 							stringvalidator.RegexMatches(
 								regexp.MustCompile(constants.HttpOrHttpsUrlRegex),

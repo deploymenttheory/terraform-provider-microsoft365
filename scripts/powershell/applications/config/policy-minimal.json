@@ -1,0 +1,41 @@
+{
+  "isEnabled": true,
+  "displayName": "Minimal Tenant App Management Policy",
+  "description": "Basic policy with minimal restrictions",
+  "applicationRestrictions": {
+    "passwordCredentials": [
+      {
+        "restrictionType": "passwordLifetime",
+        "maxLifetime": "P90D",
+        "restrictForAppsCreatedAfterDateTime": "2024-01-01T00:00:00Z",
+        "state": "enabled"
+      }
+    ],
+    "keyCredentials": [
+      {
+        "restrictionType": "asymmetricKeyLifetime",
+        "maxLifetime": "P365D",
+        "restrictForAppsCreatedAfterDateTime": "2024-01-01T00:00:00Z",
+        "state": "enabled"
+      }
+    ]
+  },
+  "servicePrincipalRestrictions": {
+    "passwordCredentials": [
+      {
+        "restrictionType": "passwordLifetime",
+        "maxLifetime": "P90D",
+        "restrictForAppsCreatedAfterDateTime": "2024-01-01T00:00:00Z",
+        "state": "enabled"
+      }
+    ],
+    "keyCredentials": [
+      {
+        "restrictionType": "asymmetricKeyLifetime",
+        "maxLifetime": "P365D",
+        "restrictForAppsCreatedAfterDateTime": "2024-01-01T00:00:00Z",
+        "state": "enabled"
+      }
+    ]
+  }
+}

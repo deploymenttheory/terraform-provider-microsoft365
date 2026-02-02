@@ -1,0 +1,69 @@
+{
+  "isEnabled": true,
+  "displayName": "Comprehensive Tenant App Management Policy",
+  "description": "Comprehensive policy with multiple restriction types and configurations",
+  "applicationRestrictions": {
+    "passwordCredentials": [
+      {
+        "restrictionType": "passwordLifetime",
+        "maxLifetime": "P90D",
+        "restrictForAppsCreatedAfterDateTime": "2024-01-01T00:00:00Z",
+        "state": "enabled",
+        "excludeActors": null
+      },
+      {
+        "restrictionType": "symmetricKeyLifetime",
+        "maxLifetime": "P30D",
+        "restrictForAppsCreatedAfterDateTime": "2024-01-01T00:00:00Z",
+        "state": "enabled",
+        "excludeActors": null
+      }
+    ],
+    "keyCredentials": [
+      {
+        "restrictionType": "asymmetricKeyLifetime",
+        "maxLifetime": "P365D",
+        "restrictForAppsCreatedAfterDateTime": "2024-01-01T00:00:00Z",
+        "state": "enabled",
+        "certificateBasedApplicationConfigurationIds": [],
+        "excludeActors": null
+      }
+    ],
+    "identifierUris": {
+      "nonDefaultUriAddition": null,
+      "uriAdditionWithoutUniqueTenantIdentifier": {
+        "state": "enabled",
+        "restrictForAppsCreatedAfterDateTime": "2024-01-01T00:00:00Z",
+        "excludeAppsReceivingV2Tokens": true,
+        "excludeSaml": true,
+        "isStateSetByMicrosoft": false,
+        "excludeActors": null
+      }
+    },
+    "audiences": null,
+    "federatedIdentityCredentials": null,
+    "redirectUris": null,
+    "trustedSubjectNameAndIssuers": null
+  },
+  "servicePrincipalRestrictions": {
+    "passwordCredentials": [
+      {
+        "restrictionType": "passwordLifetime",
+        "maxLifetime": "P90D",
+        "restrictForAppsCreatedAfterDateTime": "2024-01-01T00:00:00Z",
+        "state": "enabled",
+        "excludeActors": null
+      }
+    ],
+    "keyCredentials": [
+      {
+        "restrictionType": "asymmetricKeyLifetime",
+        "maxLifetime": "P365D",
+        "restrictForAppsCreatedAfterDateTime": "2024-01-01T00:00:00Z",
+        "state": "enabled",
+        "certificateBasedApplicationConfigurationIds": [],
+        "excludeActors": null
+      }
+    ]
+  }
+}
