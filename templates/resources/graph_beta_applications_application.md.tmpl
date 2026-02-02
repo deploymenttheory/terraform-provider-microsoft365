@@ -1,0 +1,78 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
+subcategory: "Applications"
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Name}} ({{.Type}})
+
+{{ .Description | trimspace }}
+
+## Microsoft Documentation
+
+- [application resource type](https://learn.microsoft.com/en-us/graph/api/resources/application?view=graph-rest-beta)
+- [Create application](https://learn.microsoft.com/en-us/graph/api/application-post-applications?view=graph-rest-beta&tabs=http)
+- [Get application](https://learn.microsoft.com/en-us/graph/api/application-get?view=graph-rest-beta&tabs=http)
+- [Update application](https://learn.microsoft.com/en-us/graph/api/application-update?view=graph-rest-beta&tabs=http)
+- [Delete application](https://learn.microsoft.com/en-us/graph/api/application-delete?view=graph-rest-beta&tabs=http)
+
+## Microsoft Graph API Permissions
+
+The following client `application` permissions are needed in order to use this {{.Type | lower}}:
+
+**Required:**
+- `Application.Read.All`
+- `Directory.Read.All`
+- `Application.ReadWrite.All`
+- `Directory.ReadWrite.All`
+
+**Optional:**
+- `Application.ReadWrite.OwnedBy` (if managing only applications owned by the service principal)
+
+Find out more about the permissions required for managing applications at Microsoft Learn [here](https://learn.microsoft.com/en-us/graph/api/resources/application?view=graph-rest-beta).
+
+## Version History
+
+| Version | Status | Notes |
+|---------|--------|-------|
+| v0.43.0 | Experimental | Initial release |
+
+## Important Notes
+
+- **Application Types**: Choose the appropriate `sign_in_audience` based on your needs:
+  - `AzureADMyOrg`: Single tenant (organization users only)
+  - `AzureADMultipleOrgs`: Multitenant (any Azure AD organization)
+  - `AzureADandPersonalMicrosoftAccount`: Multitenant + Personal Microsoft accounts
+  - `PersonalMicrosoftAccount`: Personal Microsoft accounts only
+- **Identifier URIs**: Must use verified domains for your tenant or the `api://` format
+- **Owners**: Applications require at least one owner for proper management
+- **Hard Delete**: The `hard_delete` attribute controls whether the application is permanently deleted or soft-deleted (recoverable for 30 days)
+
+## Example Usage
+
+### Minimal Application
+
+{{ tffile "examples/resources/microsoft365_graph_beta_applications_application/resource_minimal.tf" }}
+
+### Web Application
+
+{{ tffile "examples/resources/microsoft365_graph_beta_applications_application/resource_web_app.tf" }}
+
+### Single Page Application (SPA)
+
+{{ tffile "examples/resources/microsoft365_graph_beta_applications_application/resource_spa.tf" }}
+
+### Public Client (Mobile/Desktop)
+
+{{ tffile "examples/resources/microsoft365_graph_beta_applications_application/resource_public_client.tf" }}
+
+### Multitenant Application
+
+{{ tffile "examples/resources/microsoft365_graph_beta_applications_application/resource_multitenant.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}
+
+## Import
+
+{{ codefile "shell" "examples/resources/microsoft365_graph_beta_applications_application/import.sh" }}

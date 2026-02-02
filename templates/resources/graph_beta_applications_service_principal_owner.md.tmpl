@@ -1,0 +1,62 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
+subcategory: "Applications"
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Name}} ({{.Type}})
+
+{{ .Description | trimspace }}
+
+## Microsoft Documentation
+
+- [servicePrincipal: List owners](https://learn.microsoft.com/en-us/graph/api/serviceprincipal-list-owners?view=graph-rest-beta&tabs=http)
+- [servicePrincipal: Add owner](https://learn.microsoft.com/en-us/graph/api/serviceprincipal-post-owners?view=graph-rest-beta&tabs=http)
+- [servicePrincipal: Remove owner](https://learn.microsoft.com/en-us/graph/api/serviceprincipal-delete-owners?view=graph-rest-beta&tabs=http)
+
+## Microsoft Graph API Permissions
+
+The following client `application` permissions are needed in order to use this {{.Type | lower}}:
+
+**Required:**
+- `Application.Read.All`
+- `Directory.Read.All`
+- `Application.ReadWrite.All`
+- `Directory.ReadWrite.All`
+
+**Optional:**
+- `Application.ReadWrite.OwnedBy` (if managing only applications owned by the service principal)
+- `User.Read.All` (when assigning user owners)
+- `Application.Read.All` (when assigning service principal owners)
+
+Find out more about the permissions required for managing service principals at Microsoft Learn [here](https://learn.microsoft.com/en-us/graph/api/resources/serviceprincipal?view=graph-rest-beta).
+
+## Version History
+
+| Version | Status | Notes |
+|---------|--------|-------|
+| v0.43.0 | Experimental | Initial release |
+
+## Important Notes
+
+- **Owner Types**: Owners can be either Users or Service Principals
+- **Minimum One Owner**: Service principals should have at least one owner for proper management
+- **Owner Object Type**: The `owner_object_type` attribute must be set correctly based on the owner type being assigned
+- **Enterprise Applications**: Service principal owners manage the tenant-specific instance of an application
+
+## Example Usage
+
+### User as Service Principal Owner
+
+{{ tffile "examples/resources/microsoft365_graph_beta_applications_service_principal_owner/resource_user_owner.tf" }}
+
+### Service Principal as Service Principal Owner
+
+{{ tffile "examples/resources/microsoft365_graph_beta_applications_service_principal_owner/resource_service_principal_owner.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}
+
+## Import
+
+{{ codefile "shell" "examples/resources/microsoft365_graph_beta_applications_service_principal_owner/import.sh" }}

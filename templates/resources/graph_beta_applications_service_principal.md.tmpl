@@ -1,0 +1,65 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
+subcategory: "Applications"
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Name}} ({{.Type}})
+
+{{ .Description | trimspace }}
+
+## Microsoft Documentation
+
+- [servicePrincipal resource type](https://learn.microsoft.com/en-us/graph/api/resources/serviceprincipal?view=graph-rest-beta)
+- [Create servicePrincipal](https://learn.microsoft.com/en-us/graph/api/serviceprincipal-post-serviceprincipals?view=graph-rest-beta&tabs=http)
+- [Get servicePrincipal](https://learn.microsoft.com/en-us/graph/api/serviceprincipal-get?view=graph-rest-beta&tabs=http)
+- [Update servicePrincipal](https://learn.microsoft.com/en-us/graph/api/serviceprincipal-update?view=graph-rest-beta&tabs=http)
+- [Delete servicePrincipal](https://learn.microsoft.com/en-us/graph/api/serviceprincipal-delete?view=graph-rest-beta&tabs=http)
+
+## Microsoft Graph API Permissions
+
+The following client `application` permissions are needed in order to use this {{.Type | lower}}:
+
+**Required:**
+- `Application.Read.All`
+- `Directory.Read.All`
+- `Application.ReadWrite.All`
+- `Directory.ReadWrite.All`
+
+**Optional:**
+- `Application.ReadWrite.OwnedBy` (if managing only applications owned by the service principal)
+
+Find out more about the permissions required for managing service principals at Microsoft Learn [here](https://learn.microsoft.com/en-us/graph/api/resources/serviceprincipal?view=graph-rest-beta).
+
+## Version History
+
+| Version | Status | Notes |
+|---------|--------|-------|
+| v0.43.0 | Experimental | Initial release |
+
+## Important Notes
+
+- **Enterprise Applications**: Service principals are the tenant-specific representation of applications (also called Enterprise Applications in the portal)
+- **App ID Required**: You must provide the `app_id` (client ID) of an existing application registration
+- **Single Sign-On**: Configure `preferred_single_sign_on_mode` for SSO (options: `saml`, `password`, `notSupported`)
+- **App Role Assignment**: Set `app_role_assignment_required = true` to require users/groups be assigned before accessing the application
+- **Tags**: Special tags control visibility and behavior:
+  - `HideApp`: Hides the application from My Apps portal
+  - `WindowsAzureActiveDirectoryIntegratedApp`: Marks as integrated app
+
+## Example Usage
+
+### Minimal Service Principal
+
+{{ tffile "examples/resources/microsoft365_graph_beta_applications_service_principal/resource_minimal.tf" }}
+
+### Service Principal with Full Configuration
+
+{{ tffile "examples/resources/microsoft365_graph_beta_applications_service_principal/resource_with_properties.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}
+
+## Import
+
+{{ codefile "shell" "examples/resources/microsoft365_graph_beta_applications_service_principal/import.sh" }}
