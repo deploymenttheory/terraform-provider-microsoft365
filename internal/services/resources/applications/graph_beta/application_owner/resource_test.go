@@ -68,10 +68,11 @@ func TestUnitResourceApplicationOwner_01_OwnerTypeUser(t *testing.T) {
 				),
 			},
 			{
-				ResourceName:      resourceType + ".test_user",
-				ImportState:       true,
-				ImportStateVerify: true,
-				ImportStateIdFunc: testAccImportStateIdFunc(resourceType + ".test_user"),
+				ResourceName:            resourceType + ".test_user",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"owner_object_type"},
+				ImportStateIdFunc:       testAccImportStateIdFunc(resourceType + ".test_user"),
 			},
 		},
 	})
@@ -98,10 +99,11 @@ func TestUnitResourceApplicationOwner_02_OwnerTypeServicePrincipal(t *testing.T)
 				),
 			},
 			{
-				ResourceName:      resourceType + ".test_service_principal",
-				ImportState:       true,
-				ImportStateVerify: true,
-				ImportStateIdFunc: testAccImportStateIdFunc(resourceType + ".test_service_principal"),
+				ResourceName:            resourceType + ".test_service_principal",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"owner_object_type"},
+				ImportStateIdFunc:       testAccImportStateIdFunc(resourceType + ".test_service_principal"),
 			},
 		},
 	})

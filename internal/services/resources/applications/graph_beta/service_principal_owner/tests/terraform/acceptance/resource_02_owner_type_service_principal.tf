@@ -36,7 +36,7 @@ resource "time_sleep" "wait_for_resources" {
     microsoft365_graph_beta_applications_service_principal.test_sp,
     microsoft365_graph_beta_applications_service_principal.test_owner_sp
   ]
-  create_duration = "15s"
+  create_duration = "30s"
 }
 
 resource "microsoft365_graph_beta_applications_service_principal_owner" "test_service_principal" {

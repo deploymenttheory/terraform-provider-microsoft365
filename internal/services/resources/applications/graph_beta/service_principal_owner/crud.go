@@ -70,8 +70,8 @@ func (r *ServicePrincipalOwnerResource) Create(ctx context.Context, req resource
 	compositeID := fmt.Sprintf("%s/%s", servicePrincipalId, ownerId)
 	object.ID = types.StringValue(compositeID)
 
-	object.OwnerType = types.StringValue("Unknown") // Will be updated in the read operation
-	object.OwnerDisplayName = types.StringValue("")
+	tflog.Debug(ctx, "Waiting 5 seconds for eventual consistency after create")
+	time.Sleep(5 * time.Second)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
@@ -150,6 +150,20 @@ func (r *ServicePrincipalOwnerResource) Read(ctx context.Context, req resource.R
 				break
 			}
 		}
+	}
+
+	if ownerObject == nil {
+		if operation == constants.TfOperationRead {
+			tflog.Warn(ctx, fmt.Sprintf("Owner %s not found on service principal, removing from state", ownerId))
+			resp.State.RemoveResource(ctx)
+			return
+		}
+		// During Create/Update retry, return error to allow retry
+		resp.Diagnostics.AddError(
+			"Owner not found",
+			fmt.Sprintf("Owner %s not yet available on service principal, retry may be needed", ownerId),
+		)
+		return
 	}
 
 	MapRemoteStateToTerraform(ctx, &object, ownerObject)

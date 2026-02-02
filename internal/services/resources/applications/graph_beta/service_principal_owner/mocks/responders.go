@@ -36,25 +36,31 @@ func (m *ServicePrincipalOwnerMock) RegisterMocks() {
 	mockState.servicePrins = make(map[string]map[string]any)
 
 	// Seed mock users
-	mockState.users["user-11111111-1111-1111-1111-111111111111"] = map[string]any{
+	mockState.users["22222222-2222-2222-2222-222222222222"] = map[string]any{
 		"@odata.type": "#microsoft.graph.user",
-		"id":          "user-11111111-1111-1111-1111-111111111111",
+		"id":          "22222222-2222-2222-2222-222222222222",
 		"displayName": "Test User Owner",
 	}
-	mockState.users["user-22222222-2222-2222-2222-222222222222"] = map[string]any{
-		"@odata.type": "#microsoft.graph.user",
-		"id":          "user-22222222-2222-2222-2222-222222222222",
-		"displayName": "Test User Owner 2",
-	}
 
-	// Seed mock service principals
-	mockState.servicePrins["sp-11111111-1111-1111-1111-111111111111"] = map[string]any{
+	// Seed mock service principals (that can be owners)
+	mockState.servicePrins["33333333-3333-3333-3333-333333333333"] = map[string]any{
 		"@odata.type": "#microsoft.graph.servicePrincipal",
-		"id":          "sp-11111111-1111-1111-1111-111111111111",
+		"id":          "33333333-3333-3333-3333-333333333333",
 		"displayName": "Test Service Principal Owner",
 	}
 
-	// Seed mock service principals (target ones that can have owners)
+	// Seed mock service principals (target ones that can have owners assigned to them)
+	mockState.servicePrins["11111111-1111-1111-1111-111111111111"] = map[string]any{
+		"@odata.type": "#microsoft.graph.servicePrincipal",
+		"id":          "11111111-1111-1111-1111-111111111111",
+		"displayName": "Target Service Principal 1",
+	}
+	mockState.servicePrins["22222222-2222-2222-2222-222222222222"] = map[string]any{
+		"@odata.type": "#microsoft.graph.servicePrincipal",
+		"id":          "22222222-2222-2222-2222-222222222222",
+		"displayName": "Target Service Principal 2",
+	}
+	// Initialize owner arrays for target service principals
 	mockState.owners["11111111-1111-1111-1111-111111111111"] = []map[string]any{}
 	mockState.owners["22222222-2222-2222-2222-222222222222"] = []map[string]any{}
 	mockState.Unlock()

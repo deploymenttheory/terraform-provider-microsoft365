@@ -66,10 +66,11 @@ func TestAccResourceApplicationOwner_01_OwnerTypeUser(t *testing.T) {
 				PreConfig: func() {
 					testlog.StepAction(resourceType, "Step 2: Import state verification")
 				},
-				ResourceName:      resourceType + ".test_user",
-				ImportState:       true,
-				ImportStateVerify: true,
-				ImportStateIdFunc: testAccImportStateIdFunc(resourceType + ".test_user"),
+				ResourceName:            resourceType + ".test_user",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"owner_object_type"},
+				ImportStateIdFunc:       testAccImportStateIdFunc(resourceType + ".test_user"),
 			},
 		},
 	})
@@ -118,10 +119,11 @@ func TestAccResourceApplicationOwner_02_OwnerTypeServicePrincipal(t *testing.T) 
 				PreConfig: func() {
 					testlog.StepAction(resourceType, "Step 2: Import state verification")
 				},
-				ResourceName:      resourceType + ".test_service_principal",
-				ImportState:       true,
-				ImportStateVerify: true,
-				ImportStateIdFunc: testAccImportStateIdFunc(resourceType + ".test_service_principal"),
+				ResourceName:            resourceType + ".test_service_principal",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"owner_object_type"},
+				ImportStateIdFunc:       testAccImportStateIdFunc(resourceType + ".test_service_principal"),
 			},
 		},
 	})

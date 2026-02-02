@@ -1,0 +1,11 @@
+{
+  "isEnabled": true,
+  "applicationRestrictions": {
+    "passwordCredentials": [],
+    "keyCredentials": []
+  },
+  "servicePrincipalRestrictions": {
+    "passwordCredentials": [],
+    "keyCredentials": []
+  }
+}

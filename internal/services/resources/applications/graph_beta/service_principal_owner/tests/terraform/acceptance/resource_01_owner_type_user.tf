@@ -30,8 +30,11 @@ resource "microsoft365_graph_beta_users_user" "test_owner_user" {
 }
 
 resource "time_sleep" "wait_for_sp_user" {
-  depends_on      = [microsoft365_graph_beta_applications_service_principal.test_sp_user]
-  create_duration = "15s"
+  depends_on = [
+    microsoft365_graph_beta_applications_service_principal.test_sp_user,
+    microsoft365_graph_beta_users_user.test_owner_user
+  ]
+  create_duration = "30s"
 }
 
 resource "microsoft365_graph_beta_applications_service_principal_owner" "test_user" {

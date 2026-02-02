@@ -2,7 +2,9 @@ package graphBetaServicePrincipalOwner
 
 import (
 	"context"
+	"fmt"
 	"regexp"
+	"strings"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/client"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
@@ -69,7 +71,21 @@ func (r *ServicePrincipalOwnerResource) Configure(ctx context.Context, req resou
 
 // ImportState imports the resource state.
 func (r *ServicePrincipalOwnerResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+	parts := strings.Split(req.ID, "/")
+	if len(parts) != 2 {
+		resp.Diagnostics.AddError(
+			"Invalid import ID format",
+			fmt.Sprintf("Import ID must be in format: service_principal_id/owner_id. Got: %s", req.ID),
+		)
+		return
+	}
+
+	servicePrincipalID := parts[0]
+	ownerID := parts[1]
+
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("id"), req.ID)...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("service_principal_id"), servicePrincipalID)...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("owner_id"), ownerID)...)
 }
 
 // Schema defines the schema for the resource.

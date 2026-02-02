@@ -73,6 +73,9 @@ func (r *ApplicationOwnerResource) Create(ctx context.Context, req resource.Crea
 	object.OwnerType = types.StringValue("Unknown") // Will be updated in the read operation
 	object.OwnerDisplayName = types.StringValue("")
 
+	tflog.Debug(ctx, "Waiting 5 seconds for eventual consistency after create")
+	time.Sleep(5 * time.Second)
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -150,6 +153,20 @@ func (r *ApplicationOwnerResource) Read(ctx context.Context, req resource.ReadRe
 				break
 			}
 		}
+	}
+
+	if ownerObject == nil {
+		if operation == constants.TfOperationRead {
+			tflog.Warn(ctx, fmt.Sprintf("Owner %s not found on application, removing from state", ownerId))
+			resp.State.RemoveResource(ctx)
+			return
+		}
+		// During Create/Update retry, return error to allow retry
+		resp.Diagnostics.AddError(
+			"Owner not found",
+			fmt.Sprintf("Owner %s not yet available on application, retry may be needed", ownerId),
+		)
+		return
 	}
 
 	MapRemoteStateToTerraform(ctx, &object, ownerObject)

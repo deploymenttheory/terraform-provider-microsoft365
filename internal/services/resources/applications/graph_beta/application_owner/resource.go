@@ -2,7 +2,9 @@ package graphBetaApplicationOwner
 
 import (
 	"context"
+	"fmt"
 	"regexp"
+	"strings"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/client"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
@@ -69,7 +71,21 @@ func (r *ApplicationOwnerResource) Configure(ctx context.Context, req resource.C
 
 // ImportState imports the resource state.
 func (r *ApplicationOwnerResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+	parts := strings.Split(req.ID, "/")
+	if len(parts) != 2 {
+		resp.Diagnostics.AddError(
+			"Invalid import ID format",
+			fmt.Sprintf("Import ID must be in format: application_id/owner_id. Got: %s", req.ID),
+		)
+		return
+	}
+
+	applicationID := parts[0]
+	ownerID := parts[1]
+
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("id"), req.ID)...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("application_id"), applicationID)...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("owner_id"), ownerID)...)
 }
 
 // Schema defines the schema for the resource.
