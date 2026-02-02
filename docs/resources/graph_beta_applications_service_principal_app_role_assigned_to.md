@@ -3,8 +3,7 @@ page_title: "microsoft365_graph_beta_applications_service_principal_app_role_ass
 subcategory: "Applications"
 
 description: |-
-  Manages app role assignments granted for a service principal using the /servicePrincipals/{id}/appRoleAssignedTo endpoint. This resource is used to enables assigning app roles defined by a resource service principal to users, groups, or client service principals.
-  App roles assigned to service principals are also known as application permissions. These can be granted directly with app role assignments or through a consent experience.
+  Manages app role assignments granted for a service principal using the /servicePrincipals/{id}/appRoleAssignedTo endpoint. This resource is used to enables assigning app roles defined by a resource service principal to users, groups, or client service principals. App roles assigned to service principals are also known as application permissions. These can be granted directly with app role assignments or through a consent experience.
   To grant an app role assignment, you need three identifiers:
   target_service_principal_object_id: The Object ID of the user, group, or client service principal to which you are assigning the app roleresource_object_id: The Object ID of the resource service principal which has defined the app roleapp_role_id: The ID of the appRole (defined on the resource service principal) to assign
   For more information, see the Microsoft Graph API documentation https://learn.microsoft.com/en-us/graph/api/serviceprincipal-post-approleassignedto?view=graph-rest-beta..
@@ -12,9 +11,7 @@ description: |-
 
 # microsoft365_graph_beta_applications_service_principal_app_role_assigned_to (Resource)
 
-Manages app role assignments granted for a service principal using the `/servicePrincipals/{id}/appRoleAssignedTo` endpoint. This resource is used to enables assigning app roles defined by a resource service principal to users, groups, or client service principals.
-
-App roles assigned to service principals are also known as **application permissions**. These can be granted directly with app role assignments or through a consent experience.
+Manages app role assignments granted for a service principal using the `/servicePrincipals/{id}/appRoleAssignedTo` endpoint. This resource is used to enables assigning app roles defined by a resource service principal to users, groups, or client service principals. App roles assigned to service principals are also known as **application permissions**. These can be granted directly with app role assignments or through a consent experience.
 
 To grant an app role assignment, you need three identifiers:
 - `target_service_principal_object_id`: The Object ID of the user, group, or client service principal to which you are assigning the app role

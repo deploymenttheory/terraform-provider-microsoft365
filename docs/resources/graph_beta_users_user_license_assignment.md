@@ -2,12 +2,12 @@
 page_title: "microsoft365_graph_beta_users_user_license_assignment Resource - terraform-provider-microsoft365"
 subcategory: "Users"
 description: |-
-  Manages a single Microsoft 365 license assignment for an individual user using the /users/{userId}/assignLicense endpoint. This resource is used to each resource instance manages one license (SKU) for a user. To assign multiple licenses to a user, create multiple instances of this resource with different SKU IDs..
+  Manages a single Microsoft 365 license assignment for an individual user using the /users/{userId}/assignLicense endpoint. This resource allows management to Add or remove licenses for the user to enable or disable their use of Microsoft cloud offerings that the company has licenses to. For example, an organization can have a Microsoft 365 Enterprise E3 subscription with 100 licenses, and this request assigns one of those licenses to a specific user. You can also enable and disable specific plans associated with a subscription.
 ---
 
 # microsoft365_graph_beta_users_user_license_assignment (Resource)
 
-Manages a single Microsoft 365 license assignment for an individual user using the `/users/{userId}/assignLicense` endpoint. This resource is used to each resource instance manages one license (SKU) for a user. To assign multiple licenses to a user, create multiple instances of this resource with different SKU IDs..
+Manages a single Microsoft 365 license assignment for an individual user using the `/users/{userId}/assignLicense` endpoint. This resource allows management to Add or remove licenses for the user to enable or disable their use of Microsoft cloud offerings that the company has licenses to. For example, an organization can have a Microsoft 365 Enterprise E3 subscription with 100 licenses, and this request assigns one of those licenses to a specific user. You can also enable and disable specific plans associated with a subscription.
 
 ## Microsoft Documentation
 

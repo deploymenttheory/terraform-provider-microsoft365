@@ -52,16 +52,16 @@ resource "microsoft365_graph_beta_users_user" "dependency_owner_2" {
 # Tests application creation with all possible fields and nested configurations
 
 resource "microsoft365_graph_beta_applications_application" "test_maximal" {
-  display_name   = "acc-test-app-maximal-${random_string.app_suffix.result}"
-  description    = "Maximal acceptance test application with all fields configured"
+  display_name     = "acc-test-app-maximal-${random_string.app_suffix.result}"
+  description      = "Maximal acceptance test application with all fields configured"
   sign_in_audience = "AzureADMyOrg"
-  
+
   identifier_uris = [
     "https://deploymenttheory.com/acc-test-maximal-${random_string.app_suffix.result}"
   ]
 
-  group_membership_claims = ["SecurityGroup"]
-  notes                   = "This is a test application for acceptance testing"
+  group_membership_claims       = ["SecurityGroup"]
+  notes                         = "This is a test application for acceptance testing"
   is_device_only_auth_supported = false
   is_fallback_public_client     = false
   service_management_reference  = "https://contoso.com/app-management"
@@ -74,11 +74,11 @@ resource "microsoft365_graph_beta_applications_application" "test_maximal" {
 
   # API Configuration
   api = {
-    accept_mapped_claims          = true
+    accept_mapped_claims           = true
     requested_access_token_version = 2
-    oauth2_permission_scopes = []
-    pre_authorized_applications = []
-    known_client_applications = []
+    oauth2_permission_scopes       = []
+    pre_authorized_applications    = []
+    known_client_applications      = []
   }
 
   # App Roles - Testing all allowed_member_types combinations
@@ -111,10 +111,10 @@ resource "microsoft365_graph_beta_applications_application" "test_maximal" {
 
   # Informational URLs
   info = {
-    marketing_url        = "https://contoso.com/marketing"
+    marketing_url         = "https://contoso.com/marketing"
     privacy_statement_url = "https://contoso.com/privacy"
-    support_url          = "https://contoso.com/support"
-    terms_of_service_url = "https://contoso.com/terms"
+    support_url           = "https://contoso.com/support"
+    terms_of_service_url  = "https://contoso.com/terms"
   }
 
   # Key credentials are managed by the separate
