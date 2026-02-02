@@ -145,6 +145,9 @@ func (r *AgentIdentityBlueprintResource) Schema(ctx context.Context, req resourc
 				MarkdownDescription: "Free text field to provide a description of the agent identity blueprint to end users. Maximum length is 1,024 characters.",
 				Optional:            true,
 				Computed:            true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(1024),
 				},
@@ -154,9 +157,12 @@ func (r *AgentIdentityBlueprintResource) Schema(ctx context.Context, req resourc
 					" the following values from testing don't work: `AzureADMultipleOrgs` (Multi-tenant), `AzureADandPersonalMicrosoftAccount` (Multi-tenant and personal accounts), `PersonalMicrosoftAccount` (Personal accounts only).",
 				Optional: true,
 				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 				Validators: []validator.String{
 					stringvalidator.OneOf(
-						"AzureADMyOrg", // appears to always be this value ?
+						"AzureADMyOrg", // appears to always be this value unlike resource 'application'.
 						// "AzureADMultipleOrgs",
 						// "AzureADandPersonalMicrosoftAccount",
 						// "PersonalMicrosoftAccount",

@@ -1,0 +1,43 @@
+{
+  "isEnabled": true,
+  "displayName": "Testing Policy - 3 Year Credentials",
+  "description": "Policy allowing 3-year credential lifetimes for testing environments",
+  "applicationRestrictions": {
+    "passwordCredentials": [
+      {
+        "restrictionType": "passwordLifetime",
+        "maxLifetime": "P1095D",
+        "restrictForAppsCreatedAfterDateTime": "2024-01-01T00:00:00Z",
+        "state": "enabled"
+      }
+    ],
+    "keyCredentials": [
+      {
+        "restrictionType": "asymmetricKeyLifetime",
+        "maxLifetime": "P1095D",
+        "restrictForAppsCreatedAfterDateTime": "2024-01-01T00:00:00Z",
+        "state": "enabled",
+        "certificateBasedApplicationConfigurationIds": []
+      }
+    ]
+  },
+  "servicePrincipalRestrictions": {
+    "passwordCredentials": [
+      {
+        "restrictionType": "passwordLifetime",
+        "maxLifetime": "P1095D",
+        "restrictForAppsCreatedAfterDateTime": "2024-01-01T00:00:00Z",
+        "state": "enabled"
+      }
+    ],
+    "keyCredentials": [
+      {
+        "restrictionType": "asymmetricKeyLifetime",
+        "maxLifetime": "P1095D",
+        "restrictForAppsCreatedAfterDateTime": "2024-01-01T00:00:00Z",
+        "state": "enabled",
+        "certificateBasedApplicationConfigurationIds": []
+      }
+    ]
+  }
+}

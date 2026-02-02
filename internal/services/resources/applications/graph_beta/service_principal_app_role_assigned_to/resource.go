@@ -92,7 +92,13 @@ func (r *ServicePrincipalAppRoleAssignedToResource) ImportState(ctx context.Cont
 // Schema defines the schema for the resource.
 func (r *ServicePrincipalAppRoleAssignedToResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Manages app role assignments granted for a service principal using the `/servicePrincipals/{id}/appRoleAssignedTo` endpoint. This resource is used to enables assigning app roles defined by a resource service principal to users, groups, or client service principals.\n\nApp roles assigned to service principals are also known as **application permissions**. These can be granted directly with app role assignments or through a consent experience.\n\nTo grant an app role assignment, you need three identifiers:\n- `target_service_principal_object_id`: The Object ID of the user, group, or client service principal to which you are assigning the app role\n- `resource_object_id`: The Object ID of the resource service principal which has defined the app role\n- `app_role_id`: The ID of the appRole (defined on the resource service principal) to assign\n\nFor more information, see the [Microsoft Graph API documentation](https://learn.microsoft.com/en-us/graph/api/serviceprincipal-post-approleassignedto?view=graph-rest-beta)..",
+		MarkdownDescription: "Manages app role assignments granted for a service principal using the `/servicePrincipals/{id}/appRoleAssignedTo` endpoint. " +
+			"This resource is used to enables assigning app roles defined by a resource service principal to users, groups, or client service principals. " +
+			"App roles assigned to service principals are also known as **application permissions**. These can be granted directly with app role assignments " +
+			"or through a consent experience.\n\nTo grant an app role assignment, you need three identifiers:\n- `target_service_principal_object_id`: " +
+			"The Object ID of the user, group, or client service principal to which you are assigning the app role\n- `resource_object_id`: The Object ID of " +
+			"the resource service principal which has defined the app role\n- `app_role_id`: The ID of the appRole (defined on the resource service principal) to " +
+			"assign\n\nFor more information, see the [Microsoft Graph API documentation](https://learn.microsoft.com/en-us/graph/api/serviceprincipal-post-approleassignedto?view=graph-rest-beta)..",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed: true,

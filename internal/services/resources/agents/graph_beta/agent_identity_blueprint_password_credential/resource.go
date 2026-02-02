@@ -2,8 +2,10 @@ package graphBetaAgentIdentityBlueprintPasswordCredential
 
 import (
 	"context"
+	"regexp"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/client"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/schema"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -97,6 +99,12 @@ func (r *AgentIdentityBlueprintPasswordCredentialResource) Schema(ctx context.Co
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
+				Validators: []validator.String{
+					stringvalidator.RegexMatches(
+						regexp.MustCompile(constants.ISO8601DateTimeRegex),
+						"must be a valid ISO 8601 datetime format (e.g., 2026-01-01T00:00:00Z)",
+					),
+				},
 			},
 			"end_date_time": schema.StringAttribute{
 				MarkdownDescription: "The date and time at which the password expires represented using ISO 8601 format and is always in UTC time. " +
@@ -105,6 +113,12 @@ func (r *AgentIdentityBlueprintPasswordCredentialResource) Schema(ctx context.Co
 				Computed: true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
+				},
+				Validators: []validator.String{
+					stringvalidator.RegexMatches(
+						regexp.MustCompile(constants.ISO8601DateTimeRegex),
+						"must be a valid ISO 8601 datetime format (e.g., 2026-01-01T00:00:00Z)",
+					),
 				},
 			},
 			"key_id": schema.StringAttribute{
@@ -120,6 +134,7 @@ func (r *AgentIdentityBlueprintPasswordCredentialResource) Schema(ctx context.Co
 				Computed:  true,
 				Sensitive: true,
 				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},

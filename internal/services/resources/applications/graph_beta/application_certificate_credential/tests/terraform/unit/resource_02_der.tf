@@ -1,0 +1,13 @@
+# Unit test: Application Certificate Credential with DER encoding (base64)
+# DER is binary format, passed as base64-encoded string (e.g., using filebase64())
+
+resource "microsoft365_graph_beta_applications_application_certificate_credential" "test_der" {
+  application_id = "33333333-3333-3333-3333-333333333333"
+  display_name   = "unit-test-certificate-der"
+
+  # Same certificate as PEM but with headers stripped (base64-encoded DER)
+  key      = "MIIDvzCCAqegAwIBAgIUIMw1dI1Z8ZIX+G1MiRL4BbR4lQYwDQYJKoZIhvcNAQELBQAwbzELMAkGA1UEBhMCVVMxDTALBgNVBAgMBFRlc3QxDTALBgNVBAcMBFRlc3QxGjAYBgNVBAoMEVRlc3QgT3JnYW5pemF0aW9uMSYwJAYDVQQDDB1BZ2VudCBJZGVudGl0eSBCbHVlcHJpbnQgVGVzdDAeFw0yNTEyMDUxMTU5MDVaFw0yNjEyMDUxMTU5MDVaMG8xCzAJBgNVBAYTAlVTMQ0wCwYDVQQIDARUZXN0MQ0wCwYDVQQHDARUZXN0MRowGAYDVQQKDBFUZXN0IE9yZ2FuaXphdGlvbjEmMCQGA1UEAwwdQWdlbnQgSWRlbnRpdHkgQmx1ZXByaW50IFRlc3QwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQC2tHd5hTDWFYIo9BWC6H0aXoS5OvOHlTxEEPxDbL2xdTGXBCl3x0FAieW9tlD+jzpZzX8XD7a/4VynB0vCb+5Bi4txa3xU+ObtCC7Z7Q+SgczzCY2jEMQ8DaKuFD+pyzscXkuXHO8cGNokjd3ULChVUi7MucF60DJaQCGeXWai/GvJ5BC1Ywn3lXjjyDuVJqtf+P0x4/IWMqnH5uOj68pGKtnx+k8Ome8qgwRrhFKtSVM5TyZzkfSGZSgt4EKQEl5/2IuvmbCMEw4m+5o6RzrlFN7F1KuwUEpbx5X8X/KueRfLGEjeuGksz8ZZ2rA2wi2PU032b6RjHyi5DS29AlihAgMBAAGjUzBRMB0GA1UdDgQWBBSTU3e9u/juoMwqMjgQt/iO9M+CmzAfBgNVHSMEGDAWgBSTU3e9u/juoMwqMjgQt/iO9M+CmzAPBgNVHRMBAf8EBTADAQH/MA0GCSqGSIb3DQEBCwUAA4IBAQBBSX+hqIOZmjU8SXY0iPwAYFZeonDwn8kUHUBem0IdBlNc4dewIbdiUmLE6+765bmjHBfZNavNF9vdF2HbrDquUorIQvJQheNK6dTWTS+ehuIHFICUdznwUB3HmBCIPU69vtA8TSOq3ZrTZL4Zh4D51mPm/ePE7IZ/MJDAR8ZB0/5FRyu+RdXDG7i1TuDawlz2uYk10Iv3G0fxrfTmVuTGU88nFUDtXw8A0lHJOMdF5xx0gyou8IXM/EVfHHESNcyLJRkYD1wdHy2+uq1m+HlBmHypstf57Bnd8hghN/VW3NcTuyAzISmq11hx4r8SxmQ/Fuq3QvfqNQj4o/6T/+gw"
+  encoding = "base64"
+  type     = "AsymmetricX509Cert"
+  usage    = "Verify"
+}

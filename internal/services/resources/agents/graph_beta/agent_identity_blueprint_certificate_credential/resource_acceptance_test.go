@@ -15,6 +15,14 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 )
 
+func loadAccTestTerraform(filename string) string {
+	config, err := helpers.ParseHCLFile("tests/terraform/acceptance/" + filename)
+	if err != nil {
+		panic("failed to load acceptance test config " + filename + ": " + err.Error())
+	}
+	return config
+}
+
 func TestAccResourceAgentIdentityBlueprintCertificateCredential_01_PEM(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
@@ -31,7 +39,7 @@ func TestAccResourceAgentIdentityBlueprintCertificateCredential_01_PEM(t *testin
 			},
 			"tls": {
 				Source:            "hashicorp/tls",
-				VersionConstraint: ">= 4.0.0",
+				VersionConstraint: constants.ExternalProviderTLSVersion,
 			},
 		},
 		Steps: []resource.TestStep{
@@ -39,7 +47,7 @@ func TestAccResourceAgentIdentityBlueprintCertificateCredential_01_PEM(t *testin
 				PreConfig: func() {
 					testlog.StepAction(resourceType, "Step 1: Creating certificate credential with PEM encoding")
 				},
-				Config: testAccConfigPEM(),
+				Config: loadAccTestTerraform("resource_pem.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					func(s *terraform.State) error {
 						testlog.WaitForConsistency("certificate credential", 10*time.Second)
@@ -74,7 +82,7 @@ func TestAccResourceAgentIdentityBlueprintCertificateCredential_02_DER(t *testin
 			},
 			"tls": {
 				Source:            "hashicorp/tls",
-				VersionConstraint: ">= 4.0.0",
+				VersionConstraint: constants.ExternalProviderTLSVersion,
 			},
 		},
 		Steps: []resource.TestStep{
@@ -82,7 +90,7 @@ func TestAccResourceAgentIdentityBlueprintCertificateCredential_02_DER(t *testin
 				PreConfig: func() {
 					testlog.StepAction(resourceType, "Step 1: Creating certificate credential with DER encoding (base64)")
 				},
-				Config: testAccConfigDER(),
+				Config: loadAccTestTerraform("resource_der.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					func(s *terraform.State) error {
 						testlog.WaitForConsistency("certificate credential", 10*time.Second)
@@ -116,7 +124,7 @@ func TestAccResourceAgentIdentityBlueprintCertificateCredential_03_HEX(t *testin
 			},
 			"tls": {
 				Source:            "hashicorp/tls",
-				VersionConstraint: ">= 4.0.0",
+				VersionConstraint: constants.ExternalProviderTLSVersion,
 			},
 		},
 		Steps: []resource.TestStep{
@@ -124,7 +132,7 @@ func TestAccResourceAgentIdentityBlueprintCertificateCredential_03_HEX(t *testin
 				PreConfig: func() {
 					testlog.StepAction(resourceType, "Step 1: Creating certificate credential with HEX encoding")
 				},
-				Config: testAccConfigHEX(),
+				Config: loadAccTestTerraform("resource_hex.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					func(s *terraform.State) error {
 						testlog.WaitForConsistency("certificate credential", 10*time.Second)
@@ -140,28 +148,4 @@ func TestAccResourceAgentIdentityBlueprintCertificateCredential_03_HEX(t *testin
 			},
 		},
 	})
-}
-
-func testAccConfigPEM() string {
-	content, err := helpers.ParseHCLFile("tests/terraform/acceptance/resource_pem.tf")
-	if err != nil {
-		panic(err)
-	}
-	return content
-}
-
-func testAccConfigDER() string {
-	content, err := helpers.ParseHCLFile("tests/terraform/acceptance/resource_der.tf")
-	if err != nil {
-		panic(err)
-	}
-	return content
-}
-
-func testAccConfigHEX() string {
-	content, err := helpers.ParseHCLFile("tests/terraform/acceptance/resource_hex.tf")
-	if err != nil {
-		panic(err)
-	}
-	return content
 }

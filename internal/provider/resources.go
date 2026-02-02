@@ -95,8 +95,16 @@ import (
 	graphBetaDeviceManagementWindowsUpdateRing "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_management/graph_beta/windows_update_ring"
 
 	// Graph Beta - Applications resources
+	graphBetaApplication "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/applications/graph_beta/application"
+	graphBetaApplicationCertificateCredential "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/applications/graph_beta/application_certificate_credential"
+	graphBetaApplicationFederatedIdentityCredential "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/applications/graph_beta/application_federated_identity_credential"
+	graphBetaApplicationIdentifierUri "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/applications/graph_beta/application_identifier_uri"
+	graphBetaApplicationOwner "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/applications/graph_beta/application_owner"
+	graphBetaApplicationPasswordCredential "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/applications/graph_beta/application_password_credential"
 	graphBetaApplicationsIpApplicationSegment "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/applications/graph_beta/ip_application_segment"
+	graphBetaServicePrincipal "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/applications/graph_beta/service_principal"
 	graphBetaApplicationsServicePrincipalAppRoleAssignedTo "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/applications/graph_beta/service_principal_app_role_assigned_to"
+	graphBetaServicePrincipalOwner "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/applications/graph_beta/service_principal_owner"
 
 	// Graph Beta - Backup Storage resources
 
@@ -171,8 +179,16 @@ import (
 func (p *M365Provider) Resources(ctx context.Context) []func() resource.Resource {
 	return []func() resource.Resource{
 		// Graph Beta - Applications resources
+		graphBetaApplication.NewApplicationResource,
+		graphBetaApplicationCertificateCredential.NewApplicationCertificateCredentialResource,
+		graphBetaApplicationFederatedIdentityCredential.NewApplicationFederatedIdentityCredentialResource,
+		graphBetaApplicationIdentifierUri.NewApplicationIdentifierUriResource,
+		graphBetaApplicationOwner.NewApplicationOwnerResource,
+		graphBetaApplicationPasswordCredential.NewApplicationPasswordCredentialResource,
 		graphBetaApplicationsIpApplicationSegment.NewIpApplicationSegmentResource,
+		graphBetaServicePrincipal.NewServicePrincipalResource,
 		graphBetaApplicationsServicePrincipalAppRoleAssignedTo.NewServicePrincipalAppRoleAssignedToResource,
+		graphBetaServicePrincipalOwner.NewServicePrincipalOwnerResource,
 
 		// Graph Beta - Backup Storage resources
 

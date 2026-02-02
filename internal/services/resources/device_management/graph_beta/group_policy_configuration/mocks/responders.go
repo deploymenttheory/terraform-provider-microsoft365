@@ -9,7 +9,6 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
 	"github.com/google/uuid"
@@ -54,7 +53,7 @@ func (m *GroupPolicyConfigurationMock) RegisterMocks() {
 	)
 
 	// DELETE - Delete Group Policy Configuration
-	httpmock.RegisterRegexpResponder(constants.TfOperationDelete, regexp.MustCompile(`https://graph\.microsoft\.com/beta/deviceManagement/groupPolicyConfigurations/[0-9a-fA-F-]+$`),
+	httpmock.RegisterRegexpResponder("DELETE", regexp.MustCompile(`https://graph\.microsoft\.com/beta/deviceManagement/groupPolicyConfigurations/[0-9a-fA-F-]+$`),
 		m.deleteGroupPolicyConfiguration,
 	)
 }

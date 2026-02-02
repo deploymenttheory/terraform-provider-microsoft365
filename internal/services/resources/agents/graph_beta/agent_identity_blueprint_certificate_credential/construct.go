@@ -16,6 +16,10 @@ import (
 func constructResource(ctx context.Context, data *AgentIdentityBlueprintCertificateCredentialResourceModel, existingCredentials []graphmodels.KeyCredentialable) (graphmodels.Applicationable, error) {
 	tflog.Debug(ctx, fmt.Sprintf("Constructing %s resource from model", ResourceName))
 
+	if err := validateRequest(ctx, data); err != nil {
+		return nil, fmt.Errorf("validation failed: %w", err)
+	}
+
 	application := graphmodels.NewApplication()
 
 	// Set OData type for agentIdentityBlueprint cast

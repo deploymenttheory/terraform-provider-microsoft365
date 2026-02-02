@@ -21,6 +21,14 @@ var (
 	testResource = graphBetaAgentIdentityBlueprintCertificateCredential.AgentIdentityBlueprintCertificateCredentialTestResource{}
 )
 
+func loadUnitTestTerraform(filename string) string {
+	config, err := helpers.ParseHCLFile("tests/terraform/unit/" + filename)
+	if err != nil {
+		panic("failed to load unit test config " + filename + ": " + err.Error())
+	}
+	return config
+}
+
 func setupMockEnvironment() (*mocks.Mocks, *certificateCredentialMocks.AgentIdentityBlueprintCertificateCredentialMock) {
 	httpmock.Activate()
 	mockClient := mocks.NewMocks()
@@ -53,7 +61,7 @@ func TestUnitResourceAgentIdentityBlueprintCertificateCredential_01_PEM(t *testi
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testConfigPEM(),
+				Config: loadUnitTestTerraform("resource_pem.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					check.That(resourceType+".test_pem").Key("blueprint_id").HasValue("11111111-1111-1111-1111-111111111111"),
 					check.That(resourceType+".test_pem").Key("display_name").HasValue("unit-test-certificate-pem"),
@@ -78,7 +86,7 @@ func TestUnitResourceAgentIdentityBlueprintCertificateCredential_02_DER(t *testi
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testConfigDER(),
+				Config: loadUnitTestTerraform("resource_der.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					check.That(resourceType+".test_der").Key("blueprint_id").HasValue("22222222-2222-2222-2222-222222222222"),
 					check.That(resourceType+".test_der").Key("display_name").HasValue("unit-test-certificate-der"),
@@ -102,7 +110,7 @@ func TestUnitResourceAgentIdentityBlueprintCertificateCredential_03_HEX(t *testi
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testConfigHEX(),
+				Config: loadUnitTestTerraform("resource_hex.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					check.That(resourceType+".test_hex").Key("blueprint_id").HasValue("33333333-3333-3333-3333-333333333333"),
 					check.That(resourceType+".test_hex").Key("display_name").HasValue("unit-test-certificate-hex"),
@@ -114,28 +122,4 @@ func TestUnitResourceAgentIdentityBlueprintCertificateCredential_03_HEX(t *testi
 			},
 		},
 	})
-}
-
-func testConfigPEM() string {
-	content, err := helpers.ParseHCLFile("tests/terraform/unit/resource_pem.tf")
-	if err != nil {
-		panic(err)
-	}
-	return content
-}
-
-func testConfigDER() string {
-	content, err := helpers.ParseHCLFile("tests/terraform/unit/resource_der.tf")
-	if err != nil {
-		panic(err)
-	}
-	return content
-}
-
-func testConfigHEX() string {
-	content, err := helpers.ParseHCLFile("tests/terraform/unit/resource_hex.tf")
-	if err != nil {
-		panic(err)
-	}
-	return content
 }

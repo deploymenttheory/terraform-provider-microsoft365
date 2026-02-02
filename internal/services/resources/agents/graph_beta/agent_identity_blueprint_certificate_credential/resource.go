@@ -123,11 +123,17 @@ func (r *AgentIdentityBlueprintCertificateCredentialResource) Schema(ctx context
 				Optional:            true,
 				Computed:            true,
 				MarkdownDescription: "The date and time at which the credential becomes valid. The timestamp type represents date and time information using ISO 8601 format and is always in UTC. For example, midnight UTC on Jan 1, 2024 is 2024-01-01T00:00:00Z. If not specified, defaults to the current time.",
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
 			},
 			"end_date_time": schema.StringAttribute{
 				Optional:            true,
 				Computed:            true,
 				MarkdownDescription: "The date and time at which the credential expires. The timestamp type represents date and time information using ISO 8601 format and is always in UTC. For example, midnight UTC on Jan 1, 2025 is 2025-01-01T00:00:00Z. Must be in the future.",
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
 				Validators: []validator.String{
 					attribute.RolloutDateTime(0, 3650), // Must be in the future, up to 10 years
 				},

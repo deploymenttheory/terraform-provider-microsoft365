@@ -6,6 +6,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 
 	// Graph Beta - Applications datasources
+	graphBetaApplicationsApplication "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/applications/graph_beta/application"
 	graphBetaApplicationsServicePrincipal "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/applications/graph_beta/service_principal"
 
 	// Graph Beta - Intune datasources
@@ -87,6 +88,7 @@ import (
 func (p *M365Provider) DataSources(ctx context.Context) []func() datasource.DataSource {
 	return []func() datasource.DataSource{
 		// Graph Beta - Applications
+		graphBetaApplicationsApplication.NewApplicationDataSource,
 		graphBetaApplicationsServicePrincipal.NewServicePrincipalDataSource,
 
 		// Graph Beta - Device and app management
