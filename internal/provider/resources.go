@@ -105,7 +105,6 @@ import (
 	graphBetaServicePrincipal "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/applications/graph_beta/service_principal"
 	graphBetaApplicationsServicePrincipalAppRoleAssignedTo "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/applications/graph_beta/service_principal_app_role_assigned_to"
 	graphBetaServicePrincipalOwner "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/applications/graph_beta/service_principal_owner"
-	graphBetaTenantAppManagementPolicy "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/applications/graph_beta/tenant_app_management_policy"
 
 	// Graph Beta - Backup Storage resources
 
@@ -186,7 +185,6 @@ func (p *M365Provider) Resources(ctx context.Context) []func() resource.Resource
 		graphBetaApplicationIdentifierUri.NewApplicationIdentifierUriResource,
 		graphBetaApplicationOwner.NewApplicationOwnerResource,
 		graphBetaApplicationPasswordCredential.NewApplicationPasswordCredentialResource,
-		graphBetaTenantAppManagementPolicy.NewTenantAppManagementPolicyResource,
 		graphBetaApplicationsIpApplicationSegment.NewIpApplicationSegmentResource,
 		graphBetaServicePrincipal.NewServicePrincipalResource,
 		graphBetaApplicationsServicePrincipalAppRoleAssignedTo.NewServicePrincipalAppRoleAssignedToResource,
