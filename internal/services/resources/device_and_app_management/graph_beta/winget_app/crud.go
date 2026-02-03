@@ -61,7 +61,7 @@ func (r *WinGetAppResource) Create(ctx context.Context, req resource.CreateReque
 	baseResource, err := r.client.
 		DeviceAppManagement().
 		MobileApps().
-		Post(context.Background(), requestBody, nil)
+		Post(ctx, requestBody, nil)
 
 	if err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationCreate, r.WritePermissions)
