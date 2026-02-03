@@ -11,6 +11,7 @@ import (
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
 	helpers "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud/graph_beta/device_and_app_management"
 	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
+	sentinels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/sentinels"
 	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/shared_models/graph_beta/device_and_app_management"
 	sharedstater "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/state/graph_beta/device_and_app_management"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -165,12 +166,12 @@ func (r *Win32LobAppResource) Create(ctx context.Context, req resource.CreateReq
 
 			if err != nil {
 				tflog.Debug(ctx, fmt.Sprintf("Failed to get file status: %v", err))
-				return retry.RetryableError(fmt.Errorf("failed to get file status: %v", err))
+				return retry.RetryableError(fmt.Errorf("%w: %v", sentinels.ErrFileStatusFailed, err))
 			}
 
 			if file.GetUploadState() == nil {
 				tflog.Debug(ctx, "Upload state is nil; retrying until a state is returned")
-				return retry.RetryableError(fmt.Errorf("upload state is nil"))
+				return retry.RetryableError(sentinels.ErrUploadStateNil)
 			}
 
 			state := *file.GetUploadState()
@@ -183,11 +184,11 @@ func (r *Win32LobAppResource) Create(ctx context.Context, req resource.CreateReq
 
 			if state == graphmodels.AZURESTORAGEURIREQUESTFAILED_MOBILEAPPCONTENTFILEUPLOADSTATE {
 				tflog.Debug(ctx, "Azure Storage URI request failed")
-				return retry.NonRetryableError(fmt.Errorf("azure storage URI request failed"))
+				return retry.NonRetryableError(sentinels.ErrAzureStorageURIRequestFailed)
 			}
 
 			tflog.Debug(ctx, fmt.Sprintf("Waiting for Azure Storage URI, current state: %s", state.String()))
-			return retry.RetryableError(fmt.Errorf("waiting for Azure Storage URI, current state: %s", state.String()))
+			return retry.RetryableError(fmt.Errorf("%w, current state: %s", sentinels.ErrWaitingForAzureStorageURI, state.String()))
 		})
 		if err != nil {
 			errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationCreate, r.WritePermissions)
@@ -210,7 +211,7 @@ func (r *Win32LobAppResource) Create(ctx context.Context, req resource.CreateReq
 
 		if fileStatus.GetAzureStorageUri() == nil {
 			tflog.Debug(ctx, "Azure Storage URI is nil in the retrieved file status")
-			errors.HandleKiotaGraphError(ctx, fmt.Errorf("azure Storage URI is nil"), resp, constants.TfOperationCreate, r.WritePermissions)
+			errors.HandleKiotaGraphError(ctx, sentinels.ErrAzureStorageURINil, resp, constants.TfOperationCreate, r.WritePermissions)
 			return
 		}
 
@@ -233,7 +234,7 @@ func (r *Win32LobAppResource) Create(ctx context.Context, req resource.CreateReq
 		err = retry.RetryContext(ctx, time.Until(deadline), func() *retry.RetryError {
 			commitBody, err := construct.CommitUploadedMobileAppWithEncryptionMetadata(encryptionInfo)
 			if err != nil {
-				return retry.NonRetryableError(fmt.Errorf("failed to construct commit request: %v", err))
+				return retry.NonRetryableError(fmt.Errorf("%w: %v", sentinels.ErrCommitRequestConstruction, err))
 			}
 
 			err = contentBuilder.
@@ -245,7 +246,7 @@ func (r *Win32LobAppResource) Create(ctx context.Context, req resource.CreateReq
 
 			if err != nil {
 				tflog.Debug(ctx, fmt.Sprintf("Failed to commit file: %v", err))
-				return retry.RetryableError(fmt.Errorf("failed to commit file: %v", err))
+				return retry.RetryableError(fmt.Errorf("%w: %v", sentinels.ErrFileCommitFailed, err))
 			}
 			tflog.Debug(ctx, "File commit request successful")
 			return nil
@@ -311,7 +312,7 @@ func (r *Win32LobAppResource) Create(ctx context.Context, req resource.CreateReq
 		}, readResp)
 
 		if readResp.Diagnostics.HasError() {
-			return retry.NonRetryableError(fmt.Errorf("error reading resource state after Create Method: %s", readResp.Diagnostics.Errors()))
+			return retry.NonRetryableError(fmt.Errorf("%w: %s", sentinels.ErrReadAfterCreate, readResp.Diagnostics.Errors()))
 		}
 
 		resp.State = readResp.State

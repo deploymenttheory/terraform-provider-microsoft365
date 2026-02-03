@@ -374,21 +374,6 @@ func (r *TargetedManagedAppConfigurationResource) Delete(ctx context.Context, re
 	tflog.Debug(ctx, fmt.Sprintf("Finished Delete Method: %s", ResourceName))
 }
 
-// appsEqual compares two apps slices for equality
-func appsEqual(a, b []ManagedMobileAppResourceModel) bool {
-	if len(a) != len(b) {
-		return false
-	}
-
-	for i := range a {
-		if !reflect.DeepEqual(a[i], b[i]) {
-			return false
-		}
-	}
-
-	return true
-}
-
 // customSettingsEqual compares two custom settings slices for equality
 func customSettingsEqual(a, b []KeyValuePairResourceModel) bool {
 	if len(a) != len(b) {

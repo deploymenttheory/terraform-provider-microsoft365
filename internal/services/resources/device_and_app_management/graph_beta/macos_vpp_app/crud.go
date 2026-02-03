@@ -160,7 +160,13 @@ func (r *MacOSVppAppResource) Read(ctx context.Context, req resource.ReadRequest
 		return
 	}
 
-	mapResourceToState(ctx, r.client, macOSVppApp, &object)
+	if err := mapResourceToState(ctx, r.client, macOSVppApp, &object); err != nil {
+		resp.Diagnostics.AddError(
+			"Error mapping resource to state",
+			fmt.Sprintf("Could not map resource state: %s", err.Error()),
+		)
+		return
+	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 }
