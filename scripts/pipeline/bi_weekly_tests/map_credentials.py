@@ -132,8 +132,12 @@ def map_credentials(service: str) -> None:
     github_env = os.environ.get("GITHUB_ENV")
     if github_env:
         export_to_github_env("M365_CLIENT_ID", client_id)
-        export_to_github_env("M365_CLIENT_SECRET", client_secret)
+        # Do not export client secret to GITHUB_ENV to avoid writing it in clear text
         export_to_github_env("SKIP_TESTS", "false")
+
+    # Set credentials in the in-memory environment for use by subsequent processes
+    os.environ["M365_CLIENT_ID"] = client_id
+    os.environ["M365_CLIENT_SECRET"] = client_secret
 
     print(f"✅ Credentials configured for {service}")
 
