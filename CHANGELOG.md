@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.44.0-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.43.0-alpha...v0.44.0-alpha) (2026-02-03)
+
+
+### Features
+
+* enhance guid_list_sharder to support applications and improve test structure ([#2327](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/2327)) ([e8d10f0](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/e8d10f020c2c27f3cc3b48e353818a66802dad5f))
+
+
+### Bug Fixes
+
+* enhance error handling in CRUD operations for MacOS and Win32 apps ([#2325](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/2325)) ([5dc4595](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/5dc4595661399c274e23e9a9799759631f6d3e47))
+
 ## [0.43.0-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.42.0-alpha...v0.43.0-alpha) (2026-02-02)
 
 
