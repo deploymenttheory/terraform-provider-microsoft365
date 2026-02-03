@@ -16,10 +16,7 @@
     "api://12345678-1234-1234-1234-123456789012",
     "https://example.com/api"
   ],
-  "groupMembershipClaims": [
-    "SecurityGroup",
-    "ApplicationGroup"
-  ],
+  "groupMembershipClaims": "SecurityGroup",
   "tags": [
     "MyCustomTag",
     "TestTag"
@@ -31,7 +28,7 @@
     ],
     "oauth2PermissionScopes": [
       {
-        "id": "scope-id-1",
+        "id": "11111111-1111-1111-1111-111111111111",
         "adminConsentDescription": "Admin consent description",
         "adminConsentDisplayName": "Admin Consent Name",
         "isEnabled": true,
@@ -43,9 +40,9 @@
     ],
     "preAuthorizedApplications": [
       {
-        "appId": "pre-auth-app-id",
+        "appId": "22222222-2222-2222-2222-222222222222",
         "delegatedPermissionIds": [
-          "scope-id-1"
+          "11111111-1111-1111-1111-111111111111"
         ]
       }
     ],
@@ -53,7 +50,7 @@
   },
   "appRoles": [
     {
-      "id": "role-id-1",
+      "id": "33333333-3333-3333-3333-333333333333",
       "allowedMemberTypes": [
         "User"
       ],
@@ -73,11 +70,11 @@
   },
   "keyCredentials": [
     {
-      "customKeyIdentifier": "customid",
+      "customKeyIdentifier": "Y3VzdG9taWQ=",
       "displayName": "Certificate 1",
       "endDateTime": "2025-01-01T00:00:00Z",
-      "key": "base64encodedkey",
-      "keyId": "key-id-1",
+      "key": "YmFzZTY0ZW5jb2RlZGtleQ==",
+      "keyId": "44444444-4444-4444-4444-444444444444",
       "startDateTime": "2024-01-01T00:00:00Z",
       "type": "AsymmetricX509Cert",
       "usage": "Verify"
@@ -85,11 +82,11 @@
   ],
   "passwordCredentials": [
     {
-      "customKeyIdentifier": "pwd-custom-id",
+      "customKeyIdentifier": "cHdkY3VzdG9taWQ=",
       "displayName": "Password 1",
       "endDateTime": "2025-01-01T00:00:00Z",
       "hint": "abc",
-      "keyId": "pwd-key-id-1",
+      "keyId": "55555555-5555-5555-5555-555555555555",
       "secretText": null,
       "startDateTime": "2024-01-01T00:00:00Z"
     }

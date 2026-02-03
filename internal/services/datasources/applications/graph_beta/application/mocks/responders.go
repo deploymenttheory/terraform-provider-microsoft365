@@ -31,7 +31,12 @@ func (m *ApplicationMock) RegisterMocks() {
 	mockState.applications = make(map[string]map[string]any)
 	mockState.Unlock()
 
-	// 1. Get all applications - GET /applications with query parameters
+	m.registerGetApplicationsListResponder()
+	m.registerGetApplicationByIdResponder()
+	m.registerGetApplicationOwnersResponder()
+}
+
+func (m *ApplicationMock) registerGetApplicationsListResponder() {
 	httpmock.RegisterResponder("GET", "https://graph.microsoft.com/beta/applications", func(req *http.Request) (*http.Response, error) {
 		queryParams := req.URL.Query()
 		filter := queryParams.Get("$filter")
@@ -71,9 +76,10 @@ func (m *ApplicationMock) RegisterMocks() {
 		}
 		return httpmock.NewJsonResponse(200, responseObj)
 	})
+}
 
-	// 2. Get application by ID - GET /applications/{id}
-	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/applications/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`, func(req *http.Request) (*http.Response, error) {
+func (m *ApplicationMock) registerGetApplicationByIdResponder() {
+	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/applications/[a-fA-F0-9\-]+$`, func(req *http.Request) (*http.Response, error) {
 		parts := strings.Split(req.URL.Path, "/")
 		appId := parts[len(parts)-1]
 
@@ -90,12 +96,28 @@ func (m *ApplicationMock) RegisterMocks() {
 	})
 }
 
+func (m *ApplicationMock) registerGetApplicationOwnersResponder() {
+	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/applications/[a-fA-F0-9\-]+/owners$`, func(req *http.Request) (*http.Response, error) {
+		// Return empty owners list for all requests
+		responseObj := map[string]any{
+			"@odata.context": "https://graph.microsoft.com/beta/$metadata#directoryObjects",
+			"value":          []map[string]any{},
+		}
+		return httpmock.NewJsonResponse(200, responseObj)
+	})
+}
+
 func (m *ApplicationMock) RegisterErrorMocks() {
 	mockState.Lock()
 	mockState.applications = make(map[string]map[string]any)
 	mockState.Unlock()
 
-	// Return errors for all operations
+	m.registerGetApplicationsListErrorResponder()
+	m.registerGetApplicationByIdErrorResponder()
+	m.registerGetApplicationOwnersErrorResponder()
+}
+
+func (m *ApplicationMock) registerGetApplicationsListErrorResponder() {
 	httpmock.RegisterResponder("GET", "https://graph.microsoft.com/beta/applications", func(req *http.Request) (*http.Response, error) {
 		errorObj := map[string]any{
 			"error": map[string]any{
@@ -105,8 +127,22 @@ func (m *ApplicationMock) RegisterErrorMocks() {
 		}
 		return httpmock.NewJsonResponse(403, errorObj)
 	})
+}
 
-	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/applications/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`, func(req *http.Request) (*http.Response, error) {
+func (m *ApplicationMock) registerGetApplicationByIdErrorResponder() {
+	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/applications/[a-fA-F0-9\-]+$`, func(req *http.Request) (*http.Response, error) {
+		errorObj := map[string]any{
+			"error": map[string]any{
+				"code":    "Forbidden",
+				"message": "Insufficient privileges to complete the operation.",
+			},
+		}
+		return httpmock.NewJsonResponse(403, errorObj)
+	})
+}
+
+func (m *ApplicationMock) registerGetApplicationOwnersErrorResponder() {
+	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/applications/[a-fA-F0-9\-]+/owners$`, func(req *http.Request) (*http.Response, error) {
 		errorObj := map[string]any{
 			"error": map[string]any{
 				"code":    "Forbidden",
