@@ -46,30 +46,30 @@ func TestAccDatasourceConditionalAccessTemplate_01_ByTemplateId(t *testing.T) {
 					check.That("data."+dataSourceType+".by_template_id").Key("scenarios.#").IsSet(),
 					check.That("data."+dataSourceType+".by_template_id").Key("id").IsSet(),
 
-					// Details object
-					check.That("data."+dataSourceType+".by_template_id").Key("details").IsSet(),
-					check.That("data."+dataSourceType+".by_template_id").Key("details.conditions").IsSet(),
-					check.That("data."+dataSourceType+".by_template_id").Key("details.grant_controls").IsSet(),
+					// Details object - check map has elements using element count key
+					check.That("data."+dataSourceType+".by_template_id").Key("details.%").IsSet(),
+					check.That("data."+dataSourceType+".by_template_id").Key("details.conditions.%").IsSet(),
+					check.That("data."+dataSourceType+".by_template_id").Key("details.grant_controls.%").IsSet(),
 
 					// Details - Conditions - Applications
-					check.That("data."+dataSourceType+".by_template_id").Key("details.conditions.applications").IsSet(),
-					check.That("data."+dataSourceType+".by_template_id").Key("details.conditions.applications.include_applications").IsSet(),
-					check.That("data."+dataSourceType+".by_template_id").Key("details.conditions.applications.exclude_applications").IsSet(),
+					check.That("data."+dataSourceType+".by_template_id").Key("details.conditions.applications.%").IsSet(),
+					check.That("data."+dataSourceType+".by_template_id").Key("details.conditions.applications.include_applications.#").IsSet(),
+					check.That("data."+dataSourceType+".by_template_id").Key("details.conditions.applications.exclude_applications.#").IsSet(),
 
 					// Details - Conditions - Users
-					check.That("data."+dataSourceType+".by_template_id").Key("details.conditions.users").IsSet(),
-					check.That("data."+dataSourceType+".by_template_id").Key("details.conditions.users.include_users").IsSet(),
-					check.That("data."+dataSourceType+".by_template_id").Key("details.conditions.users.exclude_users").IsSet(),
-					check.That("data."+dataSourceType+".by_template_id").Key("details.conditions.users.include_groups").IsSet(),
-					check.That("data."+dataSourceType+".by_template_id").Key("details.conditions.users.exclude_groups").IsSet(),
-					check.That("data."+dataSourceType+".by_template_id").Key("details.conditions.users.include_roles").IsSet(),
-					check.That("data."+dataSourceType+".by_template_id").Key("details.conditions.users.exclude_roles").IsSet(),
+					check.That("data."+dataSourceType+".by_template_id").Key("details.conditions.users.%").IsSet(),
+					check.That("data."+dataSourceType+".by_template_id").Key("details.conditions.users.include_users.#").IsSet(),
+					check.That("data."+dataSourceType+".by_template_id").Key("details.conditions.users.exclude_users.#").IsSet(),
+					check.That("data."+dataSourceType+".by_template_id").Key("details.conditions.users.include_groups.#").IsSet(),
+					check.That("data."+dataSourceType+".by_template_id").Key("details.conditions.users.exclude_groups.#").IsSet(),
+					check.That("data."+dataSourceType+".by_template_id").Key("details.conditions.users.include_roles.#").IsSet(),
+					check.That("data."+dataSourceType+".by_template_id").Key("details.conditions.users.exclude_roles.#").IsSet(),
 
 					// Details - Grant Controls
 					check.That("data."+dataSourceType+".by_template_id").Key("details.grant_controls.operator").IsSet(),
-					check.That("data."+dataSourceType+".by_template_id").Key("details.grant_controls.built_in_controls").IsSet(),
-					check.That("data."+dataSourceType+".by_template_id").Key("details.grant_controls.custom_authentication_factors").IsSet(),
-					check.That("data."+dataSourceType+".by_template_id").Key("details.grant_controls.terms_of_use").IsSet(),
+					check.That("data."+dataSourceType+".by_template_id").Key("details.grant_controls.built_in_controls.#").IsSet(),
+					check.That("data."+dataSourceType+".by_template_id").Key("details.grant_controls.custom_authentication_factors.#").IsSet(),
+					check.That("data."+dataSourceType+".by_template_id").Key("details.grant_controls.terms_of_use.#").IsSet(),
 				),
 			},
 		},
@@ -97,30 +97,30 @@ func TestAccDatasourceConditionalAccessTemplate_02_ByName(t *testing.T) {
 					check.That("data."+dataSourceType+".by_name").Key("scenarios.#").IsSet(),
 					check.That("data."+dataSourceType+".by_name").Key("id").IsSet(),
 
-					// Details object
-					check.That("data."+dataSourceType+".by_name").Key("details").IsSet(),
-					check.That("data."+dataSourceType+".by_name").Key("details.conditions").IsSet(),
-					check.That("data."+dataSourceType+".by_name").Key("details.grant_controls").IsSet(),
+					// Details object - check map has elements using element count key
+					check.That("data."+dataSourceType+".by_name").Key("details.%").IsSet(),
+					check.That("data."+dataSourceType+".by_name").Key("details.conditions.%").IsSet(),
+					check.That("data."+dataSourceType+".by_name").Key("details.grant_controls.%").IsSet(),
 
 					// Details - Conditions - Applications
-					check.That("data."+dataSourceType+".by_name").Key("details.conditions.applications").IsSet(),
-					check.That("data."+dataSourceType+".by_name").Key("details.conditions.applications.include_applications").IsSet(),
-					check.That("data."+dataSourceType+".by_name").Key("details.conditions.applications.exclude_applications").IsSet(),
+					check.That("data."+dataSourceType+".by_name").Key("details.conditions.applications.%").IsSet(),
+					check.That("data."+dataSourceType+".by_name").Key("details.conditions.applications.include_applications.#").IsSet(),
+					check.That("data."+dataSourceType+".by_name").Key("details.conditions.applications.exclude_applications.#").IsSet(),
 
 					// Details - Conditions - Users
-					check.That("data."+dataSourceType+".by_name").Key("details.conditions.users").IsSet(),
-					check.That("data."+dataSourceType+".by_name").Key("details.conditions.users.include_users").IsSet(),
-					check.That("data."+dataSourceType+".by_name").Key("details.conditions.users.exclude_users").IsSet(),
-					check.That("data."+dataSourceType+".by_name").Key("details.conditions.users.include_groups").IsSet(),
-					check.That("data."+dataSourceType+".by_name").Key("details.conditions.users.exclude_groups").IsSet(),
-					check.That("data."+dataSourceType+".by_name").Key("details.conditions.users.include_roles").IsSet(),
-					check.That("data."+dataSourceType+".by_name").Key("details.conditions.users.exclude_roles").IsSet(),
+					check.That("data."+dataSourceType+".by_name").Key("details.conditions.users.%").IsSet(),
+					check.That("data."+dataSourceType+".by_name").Key("details.conditions.users.include_users.#").IsSet(),
+					check.That("data."+dataSourceType+".by_name").Key("details.conditions.users.exclude_users.#").IsSet(),
+					check.That("data."+dataSourceType+".by_name").Key("details.conditions.users.include_groups.#").IsSet(),
+					check.That("data."+dataSourceType+".by_name").Key("details.conditions.users.exclude_groups.#").IsSet(),
+					check.That("data."+dataSourceType+".by_name").Key("details.conditions.users.include_roles.#").IsSet(),
+					check.That("data."+dataSourceType+".by_name").Key("details.conditions.users.exclude_roles.#").IsSet(),
 
 					// Details - Grant Controls
 					check.That("data."+dataSourceType+".by_name").Key("details.grant_controls.operator").IsSet(),
-					check.That("data."+dataSourceType+".by_name").Key("details.grant_controls.built_in_controls").IsSet(),
-					check.That("data."+dataSourceType+".by_name").Key("details.grant_controls.custom_authentication_factors").IsSet(),
-					check.That("data."+dataSourceType+".by_name").Key("details.grant_controls.terms_of_use").IsSet(),
+					check.That("data."+dataSourceType+".by_name").Key("details.grant_controls.built_in_controls.#").IsSet(),
+					check.That("data."+dataSourceType+".by_name").Key("details.grant_controls.custom_authentication_factors.#").IsSet(),
+					check.That("data."+dataSourceType+".by_name").Key("details.grant_controls.terms_of_use.#").IsSet(),
 				),
 			},
 		},
