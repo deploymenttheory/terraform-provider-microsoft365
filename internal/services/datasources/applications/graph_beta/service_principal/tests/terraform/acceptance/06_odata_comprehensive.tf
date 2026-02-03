@@ -1,10 +1,3 @@
 data "microsoft365_graph_beta_applications_service_principal" "odata_comprehensive" {
-  filter_type   = "odata"
-  odata_filter  = "startsWith(displayName,'Microsoft')"
-  odata_count   = true
-  odata_orderby = "displayName"
-  odata_search  = "\"displayName:Graph\""
-  odata_select  = "id,appId,displayName,publisherName,servicePrincipalType"
-  odata_top     = 5
-  odata_skip    = 0
+  odata_query = "appId eq '00000003-0000-0000-c000-000000000000'"
 }

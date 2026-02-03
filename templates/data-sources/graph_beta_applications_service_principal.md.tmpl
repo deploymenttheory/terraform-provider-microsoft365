@@ -32,18 +32,69 @@ The following client `application` permissions are needed in order to use this {
 | Version | Status | Notes |
 |---------|--------|-------|
 | v0.31.0-alpha | Experimental | Initial release |
+| v0.43.0-alpha | Preview | Changed Odata filter logic and added more examples |
 
 ## Important Notes
-This method supports the $select and $expand OData query parameters to help customize the response.
 
-This method supports the $count, $expand, $filter, $orderby, $search, $select, and $top OData query parameters to help customize the response. Some queries are supported only when you use the ConsistencyLevel header set to eventual and $count. For more information, see Advanced query capabilities on directory objects.
+### OData Query Support
 
-By default, this API doesn't return the public key value of the key in the keyCredentials property unless keyCredentials is specified in a $select query. For example, $select=id,appId,keyCredentials.
+This method supports the `$count`, `$expand`, `$filter`, `$orderby`, `$search`, `$select`, and `$top` OData query parameters to help customize the response. Some queries are supported only when you use the ConsistencyLevel header set to eventual and `$count`. For more information, see [Advanced query capabilities on directory objects](https://learn.microsoft.com/en-us/graph/aad-advanced-queries).
 
-The use of $select to get keyCredentials for service principals has a throttling limit of 150 requests per minute for every tenant.
+**Important:** When using the `odata_query` attribute, provide only the filter expression itself without the `$filter=` prefix. For example:
+- **Correct:** `odata_query = "displayName eq 'Microsoft Intune'"`
+- **Incorrect:** `odata_query = "$filter=displayName eq 'Microsoft Intune'"`
+
+### Key Credentials
+
+By default, this API doesn't return the public key value of the key in the `keyCredentials` property unless `keyCredentials` is specified in a `$select` query. For example, `$select=id,appId,keyCredentials`.
+
+The use of `$select` to get `keyCredentials` for service principals has a throttling limit of 150 requests per minute for every tenant.
+
+### Retry and Consistency
+
+This datasource implements automatic retry logic with up to 6 attempts over 60 seconds to handle eventual consistency in Microsoft Entra ID. This is particularly important when querying for service principals that were recently created.
+
+## Lookup Methods
+
+This data source provides four mutually exclusive methods to query for a service principal:
+
+1. **object_id**: Look up a service principal by its unique object ID (GUID). This is the most direct and efficient lookup method.
+2. **app_id**: Look up a service principal by its application (client) ID (GUID). The system uses an OData filter internally.
+3. **display_name**: Look up a service principal by its exact display name (case-sensitive). The system uses an OData filter internally.
+4. **odata_query**: Use a custom OData `$filter` query for advanced filtering. Must return exactly one service principal.
+
+You must specify exactly one of these attributes. Using multiple lookup methods simultaneously will result in a validation error.
+
+### OData Query Examples
+
+When using `odata_query`, you can use any valid OData filter expression without the `$filter=` prefix. The provider automatically applies the necessary OData parameters and headers (including ConsistencyLevel: eventual) when executing the query.
+
+**Note:** Do not include `$filter=` in the `odata_query` value. Provide only the filter expression itself.
 
 ## Example Usage
 
-{{ tffile "examples/data-sources/microsoft365_graph_beta_applications_service_principal/datasource.tf" }}
+### Lookup by Object ID
+
+{{ tffile "examples/data-sources/microsoft365_graph_beta_applications_service_principal/01_by_object_id.tf" }}
+
+### Lookup by App ID
+
+{{ tffile "examples/data-sources/microsoft365_graph_beta_applications_service_principal/02_by_app_id.tf" }}
+
+### Lookup by Display Name
+
+{{ tffile "examples/data-sources/microsoft365_graph_beta_applications_service_principal/03_by_display_name.tf" }}
+
+### OData Query - Filter with Conditions
+
+{{ tffile "examples/data-sources/microsoft365_graph_beta_applications_service_principal/04_odata_filter.tf" }}
+
+### OData Query - Advanced Multiple Conditions
+
+{{ tffile "examples/data-sources/microsoft365_graph_beta_applications_service_principal/05_odata_advanced.tf" }}
+
+### OData Query - Comprehensive SAML Filter
+
+{{ tffile "examples/data-sources/microsoft365_graph_beta_applications_service_principal/06_odata_comprehensive.tf" }}
 
 {{ .SchemaMarkdown | trimspace }}
