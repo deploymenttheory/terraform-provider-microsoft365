@@ -102,11 +102,11 @@ data "microsoft365_graph_beta_applications_application" "by_app_id" {
 # Output the application details
 output "app_by_app_id" {
   value = {
-    id                    = data.microsoft365_graph_beta_applications_application.by_app_id.id
-    display_name          = data.microsoft365_graph_beta_applications_application.by_app_id.display_name
-    sign_in_audience      = data.microsoft365_graph_beta_applications_application.by_app_id.sign_in_audience
-    identifier_uris       = data.microsoft365_graph_beta_applications_application.by_app_id.identifier_uris
-    publisher_domain      = data.microsoft365_graph_beta_applications_application.by_app_id.publisher_domain
+    id               = data.microsoft365_graph_beta_applications_application.by_app_id.id
+    display_name     = data.microsoft365_graph_beta_applications_application.by_app_id.display_name
+    sign_in_audience = data.microsoft365_graph_beta_applications_application.by_app_id.sign_in_audience
+    identifier_uris  = data.microsoft365_graph_beta_applications_application.by_app_id.identifier_uris
+    publisher_domain = data.microsoft365_graph_beta_applications_application.by_app_id.publisher_domain
   }
 }
 ```
@@ -161,13 +161,13 @@ data "microsoft365_graph_beta_applications_application" "by_odata_complex" {
 # Output comprehensive application details
 output "app_by_odata_complex" {
   value = {
-    id                                = data.microsoft365_graph_beta_applications_application.by_odata_complex.id
-    app_id                            = data.microsoft365_graph_beta_applications_application.by_odata_complex.app_id
-    display_name                      = data.microsoft365_graph_beta_applications_application.by_odata_complex.display_name
-    sign_in_audience                  = data.microsoft365_graph_beta_applications_application.by_odata_complex.sign_in_audience
-    identifier_uris                   = data.microsoft365_graph_beta_applications_application.by_odata_complex.identifier_uris
-    is_fallback_public_client         = data.microsoft365_graph_beta_applications_application.by_odata_complex.is_fallback_public_client
-    is_device_only_auth_supported     = data.microsoft365_graph_beta_applications_application.by_odata_complex.is_device_only_auth_supported
+    id                            = data.microsoft365_graph_beta_applications_application.by_odata_complex.id
+    app_id                        = data.microsoft365_graph_beta_applications_application.by_odata_complex.app_id
+    display_name                  = data.microsoft365_graph_beta_applications_application.by_odata_complex.display_name
+    sign_in_audience              = data.microsoft365_graph_beta_applications_application.by_odata_complex.sign_in_audience
+    identifier_uris               = data.microsoft365_graph_beta_applications_application.by_odata_complex.identifier_uris
+    is_fallback_public_client     = data.microsoft365_graph_beta_applications_application.by_odata_complex.is_fallback_public_client
+    is_device_only_auth_supported = data.microsoft365_graph_beta_applications_application.by_odata_complex.is_device_only_auth_supported
   }
 }
 ```
@@ -203,11 +203,11 @@ data "microsoft365_graph_beta_applications_application" "with_api_permissions" {
 # Output API configuration details
 output "api_configuration" {
   value = {
-    id                   = data.microsoft365_graph_beta_applications_application.with_api_permissions.id
-    display_name         = data.microsoft365_graph_beta_applications_application.with_api_permissions.display_name
-    identifier_uris      = data.microsoft365_graph_beta_applications_application.with_api_permissions.identifier_uris
-    api                  = data.microsoft365_graph_beta_applications_application.with_api_permissions.api
-    app_roles            = data.microsoft365_graph_beta_applications_application.with_api_permissions.app_roles
+    id                       = data.microsoft365_graph_beta_applications_application.with_api_permissions.id
+    display_name             = data.microsoft365_graph_beta_applications_application.with_api_permissions.display_name
+    identifier_uris          = data.microsoft365_graph_beta_applications_application.with_api_permissions.identifier_uris
+    api                      = data.microsoft365_graph_beta_applications_application.with_api_permissions.api
+    app_roles                = data.microsoft365_graph_beta_applications_application.with_api_permissions.app_roles
     required_resource_access = data.microsoft365_graph_beta_applications_application.with_api_permissions.required_resource_access
   }
   sensitive = true # API configuration may contain sensitive scope information
@@ -276,7 +276,7 @@ resource "microsoft365_graph_beta_applications_service_principal" "sp" {
   app_id                       = data.microsoft365_graph_beta_applications_application.existing.app_id
   account_enabled              = true
   app_role_assignment_required = true
-  
+
   tags = [
     "WindowsAzureActiveDirectoryIntegratedApp",
     "Production"
@@ -286,10 +286,10 @@ resource "microsoft365_graph_beta_applications_service_principal" "sp" {
 # Output the relationship
 output "application_and_sp" {
   value = {
-    application_id          = data.microsoft365_graph_beta_applications_application.existing.id
-    application_app_id      = data.microsoft365_graph_beta_applications_application.existing.app_id
-    application_name        = data.microsoft365_graph_beta_applications_application.existing.display_name
-    service_principal_id    = microsoft365_graph_beta_applications_service_principal.sp.id
+    application_id           = data.microsoft365_graph_beta_applications_application.existing.id
+    application_app_id       = data.microsoft365_graph_beta_applications_application.existing.app_id
+    application_name         = data.microsoft365_graph_beta_applications_application.existing.display_name
+    service_principal_id     = microsoft365_graph_beta_applications_service_principal.sp.id
     service_principal_app_id = microsoft365_graph_beta_applications_service_principal.sp.app_id
   }
 }

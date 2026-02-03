@@ -7,10 +7,10 @@ data "microsoft365_graph_beta_applications_application" "by_app_id" {
 # Output the application details
 output "app_by_app_id" {
   value = {
-    id                    = data.microsoft365_graph_beta_applications_application.by_app_id.id
-    display_name          = data.microsoft365_graph_beta_applications_application.by_app_id.display_name
-    sign_in_audience      = data.microsoft365_graph_beta_applications_application.by_app_id.sign_in_audience
-    identifier_uris       = data.microsoft365_graph_beta_applications_application.by_app_id.identifier_uris
-    publisher_domain      = data.microsoft365_graph_beta_applications_application.by_app_id.publisher_domain
+    id               = data.microsoft365_graph_beta_applications_application.by_app_id.id
+    display_name     = data.microsoft365_graph_beta_applications_application.by_app_id.display_name
+    sign_in_audience = data.microsoft365_graph_beta_applications_application.by_app_id.sign_in_audience
+    identifier_uris  = data.microsoft365_graph_beta_applications_application.by_app_id.identifier_uris
+    publisher_domain = data.microsoft365_graph_beta_applications_application.by_app_id.publisher_domain
   }
 }
