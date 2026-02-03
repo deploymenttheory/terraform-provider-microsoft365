@@ -1,3 +1,29 @@
+# Acceptance test: Windows Autopilot - HoloLens with Group Assignment
+# Full dependency chain: random_string -> group -> time_sleep -> autopilot_profile
+
+resource "random_string" "test_id_04" {
+  length  = 8
+  special = false
+  upper   = false
+}
+
+# Test Group 1 - Assignment Target
+resource "microsoft365_graph_beta_groups_group" "test_group_1" {
+  display_name     = "acc-test-autopilot-04-group1-${random_string.test_id_04.result}"
+  description      = "Test group for autopilot deployment profile acceptance test"
+  mail_nickname    = "acc-autopilot-04-g1-${random_string.test_id_04.result}"
+  mail_enabled     = false
+  security_enabled = true
+  hard_delete      = true
+}
+
+# Wait for eventual consistency after group creation
+resource "time_sleep" "wait_for_groups" {
+  depends_on = [microsoft365_graph_beta_groups_group.test_group_1]
+
+  create_duration = "30s"
+}
+
 # HoloLens Deployment Profile Example
 resource "microsoft365_graph_beta_device_management_windows_autopilot_deployment_profile" "hololens_with_all_device_assignment" {
   display_name                                 = "acc_test_hololens_with_all_device_assignment"
@@ -22,7 +48,9 @@ resource "microsoft365_graph_beta_device_management_windows_autopilot_deployment
   assignments = [
     {
       type     = "groupAssignmentTarget"
-      group_id = microsoft365_graph_beta_groups_group.acc_test_group_1.id
+      group_id = microsoft365_graph_beta_groups_group.test_group_1.id
     }
   ]
+
+  depends_on = [time_sleep.wait_for_groups]
 }
