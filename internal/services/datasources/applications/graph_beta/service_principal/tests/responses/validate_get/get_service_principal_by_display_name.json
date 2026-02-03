@@ -1,0 +1,62 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#servicePrincipals",
+  "value": [
+    {
+      "id": "3b6f95b0-2064-4cc9-b5e5-1ab72af707b3",
+      "deletedDateTime": null,
+      "accountEnabled": true,
+      "alternativeNames": [],
+      "appDescription": "SCCM Connector for Microsoft Intune",
+      "appDisplayName": "Microsoft Intune SCCM Connector",
+      "appId": "63e61dc2-f593-4a6f-92b9-92e4d2c03d4f",
+      "applicationTemplateId": null,
+      "appOwnerOrganizationId": "f8cdef31-a31e-4b4a-93e4-5f571e91255a",
+      "appRoleAssignmentRequired": false,
+      "description": "Service principal for SCCM Connector",
+      "disabledByMicrosoftStatus": null,
+      "displayName": "Microsoft Intune SCCM Connector",
+      "errorUrl": null,
+      "homepage": "https://intune.microsoft.com",
+      "loginUrl": "https://login.microsoftonline.com",
+      "logoutUrl": "https://login.microsoftonline.com/logout",
+      "notes": "Production service principal",
+      "notificationEmailAddresses": [
+        "admin@example.com"
+      ],
+      "preferredSingleSignOnMode": "oidc",
+      "preferredTokenSigningKeyEndDateTime": null,
+      "preferredTokenSigningKeyThumbprint": null,
+      "publisherName": "Microsoft Services",
+      "replyUrls": [
+        "https://portal.manage.microsoft.com/signin-oidc"
+      ],
+      "samlMetadataUrl": null,
+      "samlSingleSignOnSettings": {
+        "relayState": "https://example.com/relay"
+      },
+      "servicePrincipalNames": [
+        "63e61dc2-f593-4a6f-92b9-92e4d2c03d4f",
+        "https://intune.microsoft.com"
+      ],
+      "servicePrincipalType": "Application",
+      "signInAudience": "AzureADMultipleOrgs",
+      "tags": [
+        "WindowsAzureActiveDirectoryIntegratedApp",
+        "HideApp"
+      ],
+      "tokenEncryptionKeyId": null,
+      "info": {
+        "termsOfServiceUrl": "https://example.com/tos",
+        "supportUrl": "https://support.microsoft.com",
+        "privacyStatementUrl": "https://privacy.microsoft.com",
+        "marketingUrl": "https://www.microsoft.com/intune",
+        "logoUrl": "https://example.com/logo.png"
+      },
+      "verifiedPublisher": {
+        "displayName": "Microsoft Corporation",
+        "verifiedPublisherId": "8wekyb3d8bbwe",
+        "addedDateTime": "2020-01-01T00:00:00Z"
+      }
+    }
+  ]
+}

@@ -3,63 +3,57 @@
   "deletedDateTime": null,
   "accountEnabled": true,
   "alternativeNames": [],
-  "createdByAppId": null,
-  "createdDateTime": "2020-03-05T13:01:03Z",
-  "deviceManagementAppType": null,
-  "appDescription": null,
+  "appDescription": "SCCM Connector for Microsoft Intune",
   "appDisplayName": "Microsoft Intune SCCM Connector",
   "appId": "63e61dc2-f593-4a6f-92b9-92e4d2c03d4f",
   "applicationTemplateId": null,
   "appOwnerOrganizationId": "f8cdef31-a31e-4b4a-93e4-5f571e91255a",
   "appRoleAssignmentRequired": false,
-  "assignmentRequiredForPrincipalTypes": null,
-  "description": null,
+  "description": "Service principal for SCCM Connector",
   "disabledByMicrosoftStatus": null,
   "displayName": "Microsoft Intune SCCM Connector",
   "errorUrl": null,
-  "homepage": null,
-  "isAuthorizationServiceEnabled": false,
-  "isDisabled": null,
-  "isManagementRestricted": null,
-  "loginUrl": null,
-  "logoutUrl": null,
-  "notes": null,
-  "notificationEmailAddresses": [],
-  "preferredSingleSignOnMode": null,
+  "homepage": "https://intune.microsoft.com",
+  "loginUrl": "https://login.microsoftonline.com",
+  "logoutUrl": "https://login.microsoftonline.com/logout",
+  "notes": "Production service principal",
+  "notificationEmailAddresses": [
+    "admin@example.com",
+    "security@example.com"
+  ],
+  "preferredSingleSignOnMode": "oidc",
   "preferredTokenSigningKeyEndDateTime": null,
   "preferredTokenSigningKeyThumbprint": null,
   "publisherName": "Microsoft Services",
-  "replyUrls": [],
+  "replyUrls": [
+    "https://portal.manage.microsoft.com/signin-oidc",
+    "https://portal.manage-beta.microsoft.com/signin-oidc"
+  ],
   "samlMetadataUrl": null,
-  "samlSLOBindingType": "httpRedirect",
+  "samlSingleSignOnSettings": {
+    "relayState": "https://example.com/relay"
+  },
   "servicePrincipalNames": [
-    "63e61dc2-f593-4a6f-92b9-92e4d2c03d4f"
+    "63e61dc2-f593-4a6f-92b9-92e4d2c03d4f",
+    "https://intune.microsoft.com"
   ],
   "servicePrincipalType": "Application",
   "signInAudience": "AzureADMultipleOrgs",
-  "tags": [],
+  "tags": [
+    "WindowsAzureActiveDirectoryIntegratedApp",
+    "HideApp"
+  ],
   "tokenEncryptionKeyId": null,
-  "certification": null,
-  "samlSingleSignOnSettings": null,
-  "addIns": [],
-  "api": {
-    "resourceSpecificApplicationPermissions": []
-  },
-  "appRoles": [],
   "info": {
-    "termsOfServiceUrl": null,
-    "supportUrl": null,
-    "privacyStatementUrl": null,
-    "marketingUrl": null,
-    "logoUrl": null
+    "termsOfServiceUrl": "https://example.com/tos",
+    "supportUrl": "https://support.microsoft.com",
+    "privacyStatementUrl": "https://privacy.microsoft.com",
+    "marketingUrl": "https://www.microsoft.com/intune",
+    "logoUrl": "https://example.com/logo.png"
   },
-  "keyCredentials": [],
-  "publishedPermissionScopes": [],
-  "passwordCredentials": [],
-  "resourceSpecificApplicationPermissions": [],
   "verifiedPublisher": {
-    "displayName": null,
-    "verifiedPublisherId": null,
-    "addedDateTime": null
+    "displayName": "Microsoft Corporation",
+    "verifiedPublisherId": "8wekyb3d8bbwe",
+    "addedDateTime": "2020-01-01T00:00:00Z"
   }
 }

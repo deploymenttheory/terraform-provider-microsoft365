@@ -792,7 +792,7 @@ output "pilot_app_sample" {
 
 ### Required
 
-- `resource_type` (String) The type of Microsoft Graph resource to query and shard. `users` queries `/users` for user-based policies (MFA, conditional access). `devices` queries `/devices` for device policies (Windows Updates, compliance). `service_principals` queries `/servicePrincipals` (enterprise apps) for application-based conditional access policies. `group_members` queries `/groups/{id}/members` to split existing group membership (requires `group_id`).
+- `resource_type` (String) The type of Microsoft Graph resource to query and shard. `users` queries `/users` for user-based policies (MFA, conditional access). `devices` queries `/devices` for device policies (Windows Updates, compliance). `applications` queries `/applications` for app registrations. `service_principals` queries `/servicePrincipals` (enterprise apps) for application-based conditional access policies. `group_members` queries `/groups/{id}/members` to split existing group membership (requires `group_id`).
 - `strategy` (String) The distribution strategy for sharding GUIDs. `round-robin` distributes in circular order (guarantees equal sizes, optional seed for reproducibility). `percentage` distributes by specified percentages (requires `shard_percentages`, optional seed for reproducibility). `size` distributes by absolute sizes (requires `shard_sizes`, optional seed for reproducibility). `rendezvous` uses Highest Random Weight algorithm (always deterministic, minimal disruption when shard count changes, requires seed). See the [guide](https://registry.terraform.io/providers/deploymenttheory/microsoft365/latest/docs/guides/progressive_rollout_with_guid_list_sharder) for detailed comparison.
 
 ### Optional

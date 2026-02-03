@@ -32,44 +32,60 @@ func (m *ServicePrincipalMock) RegisterMocks() {
 	mockState.servicePrincipals = make(map[string]map[string]any)
 	mockState.Unlock()
 
-	// 1. Get all service principals - GET /servicePrincipals
+	// 1. Get all service principals - GET /servicePrincipals with query parameters
 	httpmock.RegisterResponder("GET", "https://graph.microsoft.com/beta/servicePrincipals", func(req *http.Request) (*http.Response, error) {
 		// Parse query parameters
 		queryParams, _ := url.ParseQuery(req.URL.RawQuery)
+		filter := queryParams.Get("$filter")
 
-		// Handle different scenarios based on query parameters
-		if filter := queryParams.Get("$filter"); filter != "" {
-			if strings.Contains(filter, "preferredSingleSignOnMode ne 'notSupported'") {
-				// Return filtered results
-				jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_get/get_service_principals_odata_filter.json")
+		// Handle different filter scenarios with specific JSON files
+		if filter != "" {
+			// Display name filter
+			if strings.Contains(filter, "displayName eq 'Microsoft Intune SCCM Connector'") {
+				jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_get/get_service_principal_by_display_name.json")
 				var responseObj map[string]any
 				json.Unmarshal([]byte(jsonStr), &responseObj)
 				return httpmock.NewJsonResponse(200, responseObj)
-			} else if strings.Contains(filter, "appId eq") {
-				// Extract appId from filter
-				parts := strings.Split(filter, "'")
-				if len(parts) >= 2 {
-					appId := parts[1]
-					if appId == "63e61dc2-f593-4a6f-92b9-92e4d2c03d4f" {
-						// Return single service principal for Microsoft Intune SCCM Connector
-						jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_get/get_service_principal_by_id.json")
-						var spObj map[string]any
-						json.Unmarshal([]byte(jsonStr), &spObj)
+			}
 
-						responseObj := map[string]any{
-							"@odata.context": "https://graph.microsoft.com/beta/$metadata#servicePrincipals",
-							"value":          []map[string]any{spObj},
-						}
-						return httpmock.NewJsonResponse(200, responseObj)
-					}
-				}
+			// App ID filter
+			if strings.Contains(filter, "appId eq '63e61dc2-f593-4a6f-92b9-92e4d2c03d4f'") {
+				jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_get/get_service_principal_by_app_id.json")
+				var responseObj map[string]any
+				json.Unmarshal([]byte(jsonStr), &responseObj)
+				return httpmock.NewJsonResponse(200, responseObj)
+			}
+
+			// OData query with preferredSingleSignOnMode and displayName
+			if strings.Contains(filter, "preferredSingleSignOnMode ne 'notSupported' and displayName eq 'Microsoft Intune'") {
+				jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_get/get_service_principal_by_display_name.json")
+				var responseObj map[string]any
+				json.Unmarshal([]byte(jsonStr), &responseObj)
+				return httpmock.NewJsonResponse(200, responseObj)
+			}
+
+			// OData query with servicePrincipalType and accountEnabled
+			if strings.Contains(filter, "servicePrincipalType eq 'Application' and accountEnabled eq true") {
+				jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_get/get_service_principal_odata_account_enabled.json")
+				var responseObj map[string]any
+				json.Unmarshal([]byte(jsonStr), &responseObj)
+				return httpmock.NewJsonResponse(200, responseObj)
+			}
+
+			// OData query with preferredSingleSignOnMode eq 'saml'
+			if strings.Contains(filter, "preferredSingleSignOnMode eq 'saml'") {
+				jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_get/get_service_principal_odata_saml.json")
+				var responseObj map[string]any
+				json.Unmarshal([]byte(jsonStr), &responseObj)
+				return httpmock.NewJsonResponse(200, responseObj)
 			}
 		}
 
-		// Default: return all service principals
-		jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_get/get_service_principals_all.json")
-		var responseObj map[string]any
-		json.Unmarshal([]byte(jsonStr), &responseObj)
+		// Default: return empty list for unmocked queries
+		responseObj := map[string]any{
+			"@odata.context": "https://graph.microsoft.com/beta/$metadata#servicePrincipals",
+			"value":          []map[string]any{},
+		}
 		return httpmock.NewJsonResponse(200, responseObj)
 	})
 
@@ -118,42 +134,6 @@ func (m *ServicePrincipalMock) RegisterMocks() {
 		}
 	})
 
-	// 3. Handle OData queries with pagination simulation
-	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/servicePrincipals\?.*`, func(req *http.Request) (*http.Response, error) {
-		queryParams, _ := url.ParseQuery(req.URL.RawQuery)
-
-		// Handle $count parameter
-		if queryParams.Get("$count") == "true" {
-			jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_get/get_service_principals_odata_filter.json")
-			var responseObj map[string]any
-			json.Unmarshal([]byte(jsonStr), &responseObj)
-			responseObj["@odata.count"] = 2
-			return httpmock.NewJsonResponse(200, responseObj)
-		}
-
-		// Handle $orderby parameter
-		if orderBy := queryParams.Get("$orderby"); orderBy != "" && strings.Contains(orderBy, "displayName") {
-			jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_get/get_service_principals_odata_filter.json")
-			var responseObj map[string]any
-			json.Unmarshal([]byte(jsonStr), &responseObj)
-			return httpmock.NewJsonResponse(200, responseObj)
-		}
-
-		// Handle $select parameter
-		if selectFields := queryParams.Get("$select"); selectFields != "" {
-			// Return limited fields based on select
-			jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_get/get_service_principals_odata_filter.json")
-			var responseObj map[string]any
-			json.Unmarshal([]byte(jsonStr), &responseObj)
-			return httpmock.NewJsonResponse(200, responseObj)
-		}
-
-		// Default OData response
-		jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_get/get_service_principals_all.json")
-		var responseObj map[string]any
-		json.Unmarshal([]byte(jsonStr), &responseObj)
-		return httpmock.NewJsonResponse(200, responseObj)
-	})
 }
 
 func (m *ServicePrincipalMock) RegisterErrorMocks() {
@@ -175,11 +155,11 @@ func (m *ServicePrincipalMock) RegisterErrorMocks() {
 	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/servicePrincipals/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`, func(req *http.Request) (*http.Response, error) {
 		errorObj := map[string]any{
 			"error": map[string]any{
-				"code":    "NotFound",
-				"message": "Service principal not found",
+				"code":    "Forbidden",
+				"message": "Insufficient privileges to complete the operation.",
 			},
 		}
-		return httpmock.NewJsonResponse(404, errorObj)
+		return httpmock.NewJsonResponse(403, errorObj)
 	})
 }
 

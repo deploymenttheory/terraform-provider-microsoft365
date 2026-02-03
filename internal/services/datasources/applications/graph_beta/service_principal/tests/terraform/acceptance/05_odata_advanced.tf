@@ -1,7 +1,3 @@
 data "microsoft365_graph_beta_applications_service_principal" "odata_advanced" {
-  filter_type  = "odata"
-  odata_filter = "startsWith(displayName,'Microsoft')"
-  odata_select = "id,appId,displayName,publisherName"
-  odata_top    = 10
-  odata_skip   = 0
+  odata_query = "displayName eq 'Microsoft Graph' and accountEnabled eq true"
 }

@@ -1,9 +1,9 @@
+// REF: https://learn.microsoft.com/en-us/graph/api/serviceprincipal-get?view=graph-rest-beta
 package graphBetaServicePrincipal
 
 import (
 	"context"
 	"fmt"
-	"strings"
 	"time"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
@@ -14,9 +14,19 @@ import (
 	abstractions "github.com/microsoft/kiota-abstractions-go"
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 	"github.com/microsoftgraph/msgraph-beta-sdk-go/serviceprincipals"
-	graphcore "github.com/microsoftgraph/msgraph-sdk-go-core"
 )
 
+// lookupMethod represents the different ways to look up a service principal
+type lookupMethod int
+
+const (
+	lookupByODataQuery lookupMethod = iota
+	lookupByObjectId
+	lookupByAppId
+	lookupByDisplayName
+)
+
+// Read handles the Read operation.
 func (d *ServicePrincipalDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
 	var object ServicePrincipalDataSourceModel
 
@@ -25,8 +35,7 @@ func (d *ServicePrincipalDataSource) Read(ctx context.Context, req datasource.Re
 		return
 	}
 
-	filterType := object.FilterType.ValueString()
-	tflog.Debug(ctx, fmt.Sprintf("Starting Read method for datasource: %s with filter_type: %s", datasourceName, filterType))
+	tflog.Debug(ctx, fmt.Sprintf("Starting Read method for datasource: %s", DataSourceName))
 
 	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Read, ReadTimeout*time.Second, &resp.Diagnostics)
 	if cancel == nil {
@@ -34,207 +43,162 @@ func (d *ServicePrincipalDataSource) Read(ctx context.Context, req datasource.Re
 	}
 	defer cancel()
 
-	var filteredItems []ServicePrincipalModel
-	filterValue := object.FilterValue.ValueString()
+	var servicePrincipal graphmodels.ServicePrincipalable
+	var err error
 
-	switch filterType {
-	case "id":
-		servicePrincipal, err := d.client.
-			ServicePrincipals().
-			ByServicePrincipalId(filterValue).
-			Get(ctx, nil)
-
-		if err != nil {
-			errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationRead, d.ReadPermissions)
-			return
-		}
-
-		spItem := MapRemoteStateToDataSource(ctx, servicePrincipal)
-		filteredItems = append(filteredItems, spItem)
-
-	case "app_id":
-		filter := fmt.Sprintf("appId eq '%s'", filterValue)
-		requestParameters := &serviceprincipals.ServicePrincipalsRequestBuilderGetRequestConfiguration{
-			QueryParameters: &serviceprincipals.ServicePrincipalsRequestBuilderGetQueryParameters{
-				Filter: &filter,
-			},
-		}
-
-		// Use PageIterator for consistency, even though app_id filter typically returns few results
-		tflog.Debug(ctx, "Using Microsoft Graph SDK PageIterator for service principals (app_id filter)")
-
-		allServicePrincipals, err := d.getAllServicePrincipalsWithPageIterator(ctx, requestParameters)
-		if err != nil {
-			errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationRead, d.ReadPermissions)
-			return
-		}
-
-		for _, servicePrincipal := range allServicePrincipals {
-			spItem := MapRemoteStateToDataSource(ctx, servicePrincipal)
-			filteredItems = append(filteredItems, spItem)
-		}
-
-	case "odata":
-		// Add "ConsistencyLevel: eventual" header for advanced OData queries
-		headers := abstractions.NewRequestHeaders()
-		headers.Add("ConsistencyLevel", "eventual")
-
-		requestParameters := &serviceprincipals.ServicePrincipalsRequestBuilderGetRequestConfiguration{
-			Headers:         headers,
-			QueryParameters: &serviceprincipals.ServicePrincipalsRequestBuilderGetQueryParameters{},
-		}
-
-		if !object.ODataFilter.IsNull() && object.ODataFilter.ValueString() != "" {
-			filter := object.ODataFilter.ValueString()
-			requestParameters.QueryParameters.Filter = &filter
-			tflog.Debug(ctx, fmt.Sprintf("Setting OData filter: %s", filter))
-		}
-
-		if !object.ODataTop.IsNull() {
-			topValue := object.ODataTop.ValueInt32()
-			requestParameters.QueryParameters.Top = &topValue
-			tflog.Debug(ctx, fmt.Sprintf("Setting OData top: %d", topValue))
-		}
-
-		if !object.ODataSkip.IsNull() {
-			skipValue := object.ODataSkip.ValueInt32()
-			requestParameters.QueryParameters.Skip = &skipValue
-			tflog.Debug(ctx, fmt.Sprintf("Setting OData skip: %d", skipValue))
-		}
-
-		if !object.ODataSelect.IsNull() && object.ODataSelect.ValueString() != "" {
-			selectFields := strings.Split(object.ODataSelect.ValueString(), ",")
-			for i, field := range selectFields {
-				selectFields[i] = strings.TrimSpace(field)
-			}
-			requestParameters.QueryParameters.Select = selectFields
-			tflog.Debug(ctx, fmt.Sprintf("Setting OData select: %v", selectFields))
-		}
-
-		if !object.ODataOrderBy.IsNull() && object.ODataOrderBy.ValueString() != "" {
-			orderbyFields := strings.Split(object.ODataOrderBy.ValueString(), ",")
-			for i, field := range orderbyFields {
-				orderbyFields[i] = strings.TrimSpace(field)
-			}
-			requestParameters.QueryParameters.Orderby = orderbyFields
-			tflog.Debug(ctx, fmt.Sprintf("Setting OData orderby: %v", orderbyFields))
-		}
-
-		if !object.ODataCount.IsNull() && object.ODataCount.ValueBool() {
-			count := true
-			requestParameters.QueryParameters.Count = &count
-			tflog.Debug(ctx, "Setting OData count: true")
-		}
-
-		if !object.ODataSearch.IsNull() && object.ODataSearch.ValueString() != "" {
-			search := object.ODataSearch.ValueString()
-			requestParameters.QueryParameters.Search = &search
-			tflog.Debug(ctx, fmt.Sprintf("Setting OData search: %s", search))
-		}
-
-		if !object.ODataExpand.IsNull() && object.ODataExpand.ValueString() != "" {
-			expandFields := strings.Split(object.ODataExpand.ValueString(), ",")
-			for i, field := range expandFields {
-				expandFields[i] = strings.TrimSpace(field)
-			}
-			requestParameters.QueryParameters.Expand = expandFields
-			tflog.Debug(ctx, fmt.Sprintf("Setting OData expand: %v", expandFields))
-		}
-
-		tflog.Debug(ctx, "Using Microsoft Graph SDK PageIterator for service principals")
-
-		allServicePrincipals, err := d.getAllServicePrincipalsWithPageIterator(ctx, requestParameters)
-		if err != nil {
-			tflog.Error(ctx, fmt.Sprintf("Error in OData query with pagination: %v", err))
-			errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationRead, d.ReadPermissions)
-			return
-		}
-
-		tflog.Debug(ctx, fmt.Sprintf("PageIterator returned %d results", len(allServicePrincipals)))
-
-		for _, servicePrincipal := range allServicePrincipals {
-			spItem := MapRemoteStateToDataSource(ctx, servicePrincipal)
-			filteredItems = append(filteredItems, spItem)
-		}
-
-	default:
-		// For "all" and "display_name", get the full list and filter locally using page iterator
-		tflog.Debug(ctx, "Using Microsoft Graph SDK PageIterator for service principals (all/display_name filter)")
-
-		allServicePrincipals, err := d.getAllServicePrincipalsWithPageIterator(ctx, nil)
-		if err != nil {
-			errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationRead, d.ReadPermissions)
-			return
-		}
-
-		for _, servicePrincipal := range allServicePrincipals {
-			spItem := MapRemoteStateToDataSource(ctx, servicePrincipal)
-
-			switch filterType {
-			case "all":
-				filteredItems = append(filteredItems, spItem)
-
-			case "display_name":
-				if servicePrincipal.GetDisplayName() != nil && strings.Contains(
-					strings.ToLower(*servicePrincipal.GetDisplayName()),
-					strings.ToLower(filterValue)) {
-					filteredItems = append(filteredItems, spItem)
-				}
-			}
-		}
+	method := determineLookupMethod(object)
+	switch method {
+	case lookupByODataQuery:
+		servicePrincipal, err = d.getServicePrincipalByODataQuery(ctx, object)
+	case lookupByObjectId:
+		servicePrincipal, err = d.getServicePrincipalByObjectId(ctx, object)
+	case lookupByAppId:
+		servicePrincipal, err = d.getServicePrincipalByAppId(ctx, object)
+	case lookupByDisplayName:
+		servicePrincipal, err = d.getServicePrincipalByDisplayName(ctx, object)
 	}
 
-	object.Items = filteredItems
+	if err != nil {
+		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationRead, d.ReadPermissions)
+		return
+	}
 
-	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
+	if servicePrincipal == nil || servicePrincipal.GetId() == nil {
+		resp.Diagnostics.AddError(
+			"Service Principal Not Found",
+			"The service principal lookup did not return a valid service principal with an ID. The service principal may not exist or may not have fully propagated in the directory.",
+		)
+		return
+	}
+
+	tflog.Debug(ctx, fmt.Sprintf("Successfully found service principal with ID: %s", *servicePrincipal.GetId()))
+
+	mappedState := MapRemoteStateToDataSource(ctx, servicePrincipal, object)
+
+	resp.Diagnostics.Append(resp.State.Set(ctx, &mappedState)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Finished Datasource Read Method: %s, found %d items", datasourceName, len(filteredItems)))
+	tflog.Debug(ctx, fmt.Sprintf("Finished Datasource Read Method: %s", DataSourceName))
 }
 
-// getAllServicePrincipalsWithPageIterator gets all service principals using page iterator for proper pagination
-func (d *ServicePrincipalDataSource) getAllServicePrincipalsWithPageIterator(ctx context.Context, requestParameters *serviceprincipals.ServicePrincipalsRequestBuilderGetRequestConfiguration) ([]graphmodels.ServicePrincipalable, error) {
-	var allServicePrincipals []graphmodels.ServicePrincipalable
-
-	servicePrincipalsResponse, err := d.client.
-		ServicePrincipals().
-		Get(ctx, requestParameters)
-
-	if err != nil {
-		return nil, err
+// determineLookupMethod determines which lookup method to use based on provided attributes
+func determineLookupMethod(object ServicePrincipalDataSourceModel) lookupMethod {
+	switch {
+	case !object.ODataQuery.IsNull() && object.ODataQuery.ValueString() != "":
+		return lookupByODataQuery
+	case !object.ObjectId.IsNull() && object.ObjectId.ValueString() != "":
+		return lookupByObjectId
+	case !object.AppId.IsNull() && object.AppId.ValueString() != "":
+		return lookupByAppId
+	case !object.DisplayName.IsNull() && object.DisplayName.ValueString() != "":
+		return lookupByDisplayName
+	default:
+		return lookupByObjectId // This should never happen due to schema validators
 	}
+}
 
-	pageIterator, err := graphcore.NewPageIterator[graphmodels.ServicePrincipalable](
-		servicePrincipalsResponse,
-		d.client.GetAdapter(),
-		graphmodels.CreateServicePrincipalCollectionResponseFromDiscriminatorValue,
-	)
+// getServicePrincipalByObjectId retrieves a service principal by its object ID
+// Includes retry logic because even direct GET can return 404 immediately after creation
+func (d *ServicePrincipalDataSource) getServicePrincipalByObjectId(ctx context.Context, object ServicePrincipalDataSourceModel) (graphmodels.ServicePrincipalable, error) {
+	objectId := object.ObjectId.ValueString()
 
-	if err != nil {
-		return nil, fmt.Errorf("failed to create page iterator: %w", err)
-	}
+	maxRetries := 6
+	retryDelay := 10 * time.Second
+	startTime := time.Now()
 
-	pageCount := 0
-	err = pageIterator.Iterate(ctx, func(item graphmodels.ServicePrincipalable) bool {
-		if item != nil {
-			allServicePrincipals = append(allServicePrincipals, item)
+	var servicePrincipal graphmodels.ServicePrincipalable
+	var err error
 
-			// Log every 25 items (default page size)
-			if len(allServicePrincipals)%25 == 0 {
-				pageCount++
-				tflog.Debug(ctx, fmt.Sprintf("PageIterator: collected %d service principals (estimated page %d)", len(allServicePrincipals), pageCount))
+	for attempt := 1; attempt <= maxRetries; attempt++ {
+		servicePrincipal, err = d.client.
+			ServicePrincipals().
+			ByServicePrincipalId(objectId).
+			Get(ctx, nil)
+
+		if err == nil && servicePrincipal != nil && servicePrincipal.GetId() != nil {
+			return servicePrincipal, nil
+		}
+
+		if err != nil {
+			errorInfo := errors.GraphError(ctx, err)
+			if errors.IsNonRetryableReadError(&errorInfo) {
+				return nil, err
 			}
 		}
-		return true
-	})
 
-	if err != nil {
-		return nil, fmt.Errorf("failed to iterate pages: %w", err)
+		if attempt < maxRetries {
+			time.Sleep(retryDelay)
+		}
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("PageIterator complete: collected %d total service principals", len(allServicePrincipals)))
+	if err != nil {
+		return nil, fmt.Errorf("service principal not found after %d attempts (%v total wait): %w", maxRetries, time.Since(startTime), err)
+	}
+	return nil, fmt.Errorf("service principal not found or invalid after %d attempts (%v total wait)", maxRetries, time.Since(startTime))
+}
 
-	return allServicePrincipals, nil
+// getServicePrincipalByAppId retrieves a service principal by its app ID (client ID)
+func (d *ServicePrincipalDataSource) getServicePrincipalByAppId(ctx context.Context, object ServicePrincipalDataSourceModel) (graphmodels.ServicePrincipalable, error) {
+	filter := fmt.Sprintf("appId eq '%s'", object.AppId.ValueString())
+	return d.executeOdataQueryWithRetry(ctx, filter, fmt.Sprintf("app_id: %s", object.AppId.ValueString()))
+}
+
+// getServicePrincipalByDisplayName retrieves a service principal by display name
+func (d *ServicePrincipalDataSource) getServicePrincipalByDisplayName(ctx context.Context, object ServicePrincipalDataSourceModel) (graphmodels.ServicePrincipalable, error) {
+	filter := fmt.Sprintf("displayName eq '%s'", object.DisplayName.ValueString())
+	return d.executeOdataQueryWithRetry(ctx, filter, fmt.Sprintf("display_name: %s", object.DisplayName.ValueString()))
+}
+
+// getServicePrincipalByODataQuery retrieves a service principal using a custom OData query
+func (d *ServicePrincipalDataSource) getServicePrincipalByODataQuery(ctx context.Context, object ServicePrincipalDataSourceModel) (graphmodels.ServicePrincipalable, error) {
+	filter := object.ODataQuery.ValueString()
+	return d.executeOdataQueryWithRetry(ctx, filter, fmt.Sprintf("OData query: %s", filter))
+}
+
+// executeOdataQueryWithRetry executes a filtered query with retry logic for eventual consistency
+func (d *ServicePrincipalDataSource) executeOdataQueryWithRetry(ctx context.Context, filter string, description string) (graphmodels.ServicePrincipalable, error) {
+	maxRetries := 6
+	retryDelay := 10 * time.Second
+
+	headers := abstractions.NewRequestHeaders()
+	headers.Add("ConsistencyLevel", "eventual")
+
+	requestConfig := &serviceprincipals.ServicePrincipalsRequestBuilderGetRequestConfiguration{
+		Headers: headers,
+		QueryParameters: &serviceprincipals.ServicePrincipalsRequestBuilderGetQueryParameters{
+			Filter: &filter,
+		},
+	}
+
+	for attempt := 1; attempt <= maxRetries; attempt++ {
+		servicePrincipalsResponse, err := d.client.ServicePrincipals().Get(ctx, requestConfig)
+		if err != nil {
+			errorInfo := errors.GraphError(ctx, err)
+			if errors.IsNonRetryableReadError(&errorInfo) {
+				return nil, err
+			}
+		} else if len(servicePrincipalsResponse.GetValue()) > 0 {
+			return validateSingleServicePrincipal(servicePrincipalsResponse.GetValue(), description)
+		}
+
+		if attempt < maxRetries {
+			time.Sleep(retryDelay)
+		}
+	}
+
+	return validateSingleServicePrincipal([]graphmodels.ServicePrincipalable{}, description)
+}
+
+// validateSingleServicePrincipal ensures exactly one service principal was returned
+func validateSingleServicePrincipal(servicePrincipalList []graphmodels.ServicePrincipalable, criteria string) (graphmodels.ServicePrincipalable, error) {
+	switch len(servicePrincipalList) {
+	case 0:
+		return nil, fmt.Errorf("no service principal found with %s", criteria)
+	case 1:
+		return servicePrincipalList[0], nil
+	default:
+		return nil, fmt.Errorf("found %d service principals with %s. The query must return exactly one service principal", len(servicePrincipalList), criteria)
+	}
 }

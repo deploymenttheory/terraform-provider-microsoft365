@@ -1,0 +1,148 @@
+{
+  "id": "a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d",
+  "deletedDateTime": null,
+  "appId": "12345678-1234-1234-1234-123456789012",
+  "displayName": "Test Application",
+  "description": "Test application for unit testing",
+  "signInAudience": "AzureADMyOrg",
+  "createdDateTime": "2024-01-01T00:00:00Z",
+  "publisherDomain": "example.com",
+  "disabledByMicrosoftStatus": null,
+  "notes": "Test application notes",
+  "isDeviceOnlyAuthSupported": false,
+  "isFallbackPublicClient": false,
+  "serviceManagementReference": "https://example.com/service",
+  "identifierUris": [
+    "api://12345678-1234-1234-1234-123456789012",
+    "https://example.com/api"
+  ],
+  "groupMembershipClaims": [
+    "SecurityGroup",
+    "ApplicationGroup"
+  ],
+  "tags": [
+    "MyCustomTag",
+    "TestTag"
+  ],
+  "api": {
+    "acceptMappedClaims": true,
+    "knownClientApplications": [
+      "87654321-4321-4321-4321-210987654321"
+    ],
+    "oauth2PermissionScopes": [
+      {
+        "id": "scope-id-1",
+        "adminConsentDescription": "Admin consent description",
+        "adminConsentDisplayName": "Admin Consent Name",
+        "isEnabled": true,
+        "type": "User",
+        "userConsentDescription": "User consent description",
+        "userConsentDisplayName": "User Consent Name",
+        "value": "user.read"
+      }
+    ],
+    "preAuthorizedApplications": [
+      {
+        "appId": "pre-auth-app-id",
+        "delegatedPermissionIds": [
+          "scope-id-1"
+        ]
+      }
+    ],
+    "requestedAccessTokenVersion": 2
+  },
+  "appRoles": [
+    {
+      "id": "role-id-1",
+      "allowedMemberTypes": [
+        "User"
+      ],
+      "description": "App role description",
+      "displayName": "App Role Name",
+      "isEnabled": true,
+      "origin": "Application",
+      "value": "app.role.value"
+    }
+  ],
+  "info": {
+    "logoUrl": "https://example.com/logo.png",
+    "marketingUrl": "https://example.com/marketing",
+    "privacyStatementUrl": "https://example.com/privacy",
+    "supportUrl": "https://example.com/support",
+    "termsOfServiceUrl": "https://example.com/tos"
+  },
+  "keyCredentials": [
+    {
+      "customKeyIdentifier": "customid",
+      "displayName": "Certificate 1",
+      "endDateTime": "2025-01-01T00:00:00Z",
+      "key": "base64encodedkey",
+      "keyId": "key-id-1",
+      "startDateTime": "2024-01-01T00:00:00Z",
+      "type": "AsymmetricX509Cert",
+      "usage": "Verify"
+    }
+  ],
+  "passwordCredentials": [
+    {
+      "customKeyIdentifier": "pwd-custom-id",
+      "displayName": "Password 1",
+      "endDateTime": "2025-01-01T00:00:00Z",
+      "hint": "abc",
+      "keyId": "pwd-key-id-1",
+      "secretText": null,
+      "startDateTime": "2024-01-01T00:00:00Z"
+    }
+  ],
+  "optionalClaims": {
+    "accessToken": [
+      {
+        "name": "groups",
+        "source": null,
+        "essential": false,
+        "additionalProperties": []
+      }
+    ],
+    "idToken": [],
+    "saml2Token": []
+  },
+  "parentalControlSettings": {
+    "countriesBlockedForMinors": [
+      "US"
+    ],
+    "legalAgeGroupRule": "Allow"
+  },
+  "publicClient": {
+    "redirectUris": [
+      "ms-app://public-client"
+    ]
+  },
+  "requiredResourceAccess": [
+    {
+      "resourceAppId": "00000003-0000-0000-c000-000000000000",
+      "resourceAccess": [
+        {
+          "id": "e1fe6dd8-ba31-4d61-89e7-88639da4683d",
+          "type": "Scope"
+        }
+      ]
+    }
+  ],
+  "spa": {
+    "redirectUris": [
+      "https://spa.example.com/callback"
+    ]
+  },
+  "web": {
+    "homePageUrl": "https://example.com",
+    "logoutUrl": "https://example.com/logout",
+    "redirectUris": [
+      "https://example.com/signin-oidc"
+    ],
+    "implicitGrantSettings": {
+      "enableAccessTokenIssuance": true,
+      "enableIdTokenIssuance": true
+    },
+    "redirectUriSettings": []
+  }
+}

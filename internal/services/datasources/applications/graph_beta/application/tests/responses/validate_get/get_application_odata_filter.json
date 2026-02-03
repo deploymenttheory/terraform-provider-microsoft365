@@ -1,0 +1,21 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#applications",
+  "value": [
+    {
+      "id": "a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d",
+      "deletedDateTime": null,
+      "appId": "12345678-1234-1234-1234-123456789012",
+      "displayName": "Test Application",
+      "description": "Test application for unit testing",
+      "signInAudience": "AzureADMyOrg",
+      "createdDateTime": "2024-01-01T00:00:00Z",
+      "publisherDomain": "example.com",
+      "tags": [
+        "MyCustomTag"
+      ],
+      "identifierUris": [
+        "api://12345678-1234-1234-1234-123456789012"
+      ]
+    }
+  ]
+}

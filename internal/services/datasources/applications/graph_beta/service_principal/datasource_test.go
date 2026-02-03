@@ -1,9 +1,11 @@
 package graphBetaServicePrincipal_test
 
 import (
+	"fmt"
 	"regexp"
 	"testing"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/check"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
 	servicePrincipalMocks "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/applications/graph_beta/service_principal/mocks"
@@ -29,7 +31,7 @@ func setupErrorMockEnvironment() (*mocks.Mocks, *servicePrincipalMocks.ServicePr
 	return mockClient, spMock
 }
 
-func TestUnitDatasourceServicePrincipal_01_All(t *testing.T) {
+func TestUnitDatasourceServicePrincipal_01_ByObjectId(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, spMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -39,23 +41,37 @@ func TestUnitDatasourceServicePrincipal_01_All(t *testing.T) {
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testConfigAll(),
+				Config: loadUnitTestTerraform("01_by_object_id.tf"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("data.microsoft365_graph_beta_applications_service_principal.all", "filter_type", "all"),
-					resource.TestCheckResourceAttr("data.microsoft365_graph_beta_applications_service_principal.all", "items.#", "4"),
-					resource.TestCheckResourceAttr("data.microsoft365_graph_beta_applications_service_principal.all", "items.0.display_name", "Microsoft Intune SCCM Connector"),
-					resource.TestCheckResourceAttr("data.microsoft365_graph_beta_applications_service_principal.all", "items.0.app_id", "63e61dc2-f593-4a6f-92b9-92e4d2c03d4f"),
-					resource.TestCheckResourceAttr("data.microsoft365_graph_beta_applications_service_principal.all", "items.1.display_name", "Microsoft Intune Service Discovery"),
-					resource.TestCheckResourceAttr("data.microsoft365_graph_beta_applications_service_principal.all", "items.1.app_id", "9cb77803-d937-493e-9a3b-4b49de3f5a74"),
-					resource.TestCheckResourceAttr("data.microsoft365_graph_beta_applications_service_principal.all", "items.2.display_name", "Microsoft Intune Web Company Portal"),
-					resource.TestCheckResourceAttr("data.microsoft365_graph_beta_applications_service_principal.all", "items.3.display_name", "MMD Intune Partner Sync"),
+					check.That("data."+dataSourceType+".by_id").Key("object_id").HasValue("3b6f95b0-2064-4cc9-b5e5-1ab72af707b3"),
+					check.That("data."+dataSourceType+".by_id").Key("id").HasValue("3b6f95b0-2064-4cc9-b5e5-1ab72af707b3"),
+					check.That("data."+dataSourceType+".by_id").Key("display_name").HasValue("Microsoft Intune SCCM Connector"),
+					check.That("data."+dataSourceType+".by_id").Key("app_id").HasValue("63e61dc2-f593-4a6f-92b9-92e4d2c03d4f"),
+					check.That("data."+dataSourceType+".by_id").Key("app_display_name").HasValue("Microsoft Intune SCCM Connector"),
+					check.That("data."+dataSourceType+".by_id").Key("publisher_name").HasValue("Microsoft Services"),
+					check.That("data."+dataSourceType+".by_id").Key("account_enabled").HasValue("true"),
+					check.That("data."+dataSourceType+".by_id").Key("service_principal_type").HasValue("Application"),
+					check.That("data."+dataSourceType+".by_id").Key("app_role_assignment_required").HasValue("false"),
+					check.That("data."+dataSourceType+".by_id").Key("sign_in_audience").HasValue("AzureADMultipleOrgs"),
+					check.That("data."+dataSourceType+".by_id").Key("preferred_single_sign_on_mode").HasValue("oidc"),
+					check.That("data."+dataSourceType+".by_id").Key("homepage").HasValue("https://intune.microsoft.com"),
+					check.That("data."+dataSourceType+".by_id").Key("login_url").HasValue("https://login.microsoftonline.com"),
+					check.That("data."+dataSourceType+".by_id").Key("logout_url").HasValue("https://login.microsoftonline.com/logout"),
+					check.That("data."+dataSourceType+".by_id").Key("notes").HasValue("Production service principal"),
+					check.That("data."+dataSourceType+".by_id").Key("reply_urls.#").HasValue("2"),
+					check.That("data."+dataSourceType+".by_id").Key("service_principal_names.#").HasValue("2"),
+					check.That("data."+dataSourceType+".by_id").Key("tags.#").HasValue("2"),
+					check.That("data."+dataSourceType+".by_id").Key("notification_email_addresses.#").HasValue("2"),
+					check.That("data."+dataSourceType+".by_id").Key("saml_single_sign_on_settings.relay_state").HasValue("https://example.com/relay"),
+					check.That("data."+dataSourceType+".by_id").Key("verified_publisher.display_name").HasValue("Microsoft Corporation"),
+					check.That("data."+dataSourceType+".by_id").Key("info.support_url").HasValue("https://support.microsoft.com"),
 				),
 			},
 		},
 	})
 }
 
-func TestUnitDatasourceServicePrincipal_02_ById(t *testing.T) {
+func TestUnitDatasourceServicePrincipal_02_ByAppId(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, spMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -65,22 +81,25 @@ func TestUnitDatasourceServicePrincipal_02_ById(t *testing.T) {
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testConfigById(),
+				Config: loadUnitTestTerraform("02_by_app_id.tf"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("data.microsoft365_graph_beta_applications_service_principal.by_id", "filter_type", "id"),
-					resource.TestCheckResourceAttr("data.microsoft365_graph_beta_applications_service_principal.by_id", "filter_value", "3b6f95b0-2064-4cc9-b5e5-1ab72af707b3"),
-					resource.TestCheckResourceAttr("data.microsoft365_graph_beta_applications_service_principal.by_id", "items.#", "1"),
-					resource.TestCheckResourceAttr("data.microsoft365_graph_beta_applications_service_principal.by_id", "items.0.id", "3b6f95b0-2064-4cc9-b5e5-1ab72af707b3"),
-					resource.TestCheckResourceAttr("data.microsoft365_graph_beta_applications_service_principal.by_id", "items.0.display_name", "Microsoft Intune SCCM Connector"),
-					resource.TestCheckResourceAttr("data.microsoft365_graph_beta_applications_service_principal.by_id", "items.0.app_id", "63e61dc2-f593-4a6f-92b9-92e4d2c03d4f"),
-					resource.TestCheckResourceAttr("data.microsoft365_graph_beta_applications_service_principal.by_id", "items.0.publisher_name", "Microsoft Services"),
+					check.That("data."+dataSourceType+".by_app_id").Key("app_id").HasValue("63e61dc2-f593-4a6f-92b9-92e4d2c03d4f"),
+					check.That("data."+dataSourceType+".by_app_id").Key("display_name").HasValue("Microsoft Intune SCCM Connector"),
+					check.That("data."+dataSourceType+".by_app_id").Key("id").Exists(),
+					check.That("data."+dataSourceType+".by_app_id").Key("app_display_name").HasValue("Microsoft Intune SCCM Connector"),
+					check.That("data."+dataSourceType+".by_app_id").Key("publisher_name").HasValue("Microsoft Services"),
+					check.That("data."+dataSourceType+".by_app_id").Key("account_enabled").HasValue("true"),
+					check.That("data."+dataSourceType+".by_app_id").Key("service_principal_type").HasValue("Application"),
+					check.That("data."+dataSourceType+".by_app_id").Key("sign_in_audience").Exists(),
+					check.That("data."+dataSourceType+".by_app_id").Key("service_principal_names.#").Exists(),
+					check.That("data."+dataSourceType+".by_app_id").Key("tags.#").Exists(),
 				),
 			},
 		},
 	})
 }
 
-func TestUnitDatasourceServicePrincipal_03_ByAppId(t *testing.T) {
+func TestUnitDatasourceServicePrincipal_03_ByDisplayName(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, spMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -90,20 +109,16 @@ func TestUnitDatasourceServicePrincipal_03_ByAppId(t *testing.T) {
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testConfigByAppId(),
+				Config: loadUnitTestTerraform("03_by_display_name.tf"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("data.microsoft365_graph_beta_applications_service_principal.by_app_id", "filter_type", "app_id"),
-					resource.TestCheckResourceAttr("data.microsoft365_graph_beta_applications_service_principal.by_app_id", "filter_value", "63e61dc2-f593-4a6f-92b9-92e4d2c03d4f"),
-					resource.TestCheckResourceAttr("data.microsoft365_graph_beta_applications_service_principal.by_app_id", "items.#", "1"),
-					resource.TestCheckResourceAttr("data.microsoft365_graph_beta_applications_service_principal.by_app_id", "items.0.app_id", "63e61dc2-f593-4a6f-92b9-92e4d2c03d4f"),
-					resource.TestCheckResourceAttr("data.microsoft365_graph_beta_applications_service_principal.by_app_id", "items.0.display_name", "Microsoft Intune SCCM Connector"),
+					check.That("data." + dataSourceType + ".by_display_name").Key("display_name").HasValue("Microsoft Intune SCCM Connector"),
 				),
 			},
 		},
 	})
 }
 
-func TestUnitDatasourceServicePrincipal_04_ByDisplayName(t *testing.T) {
+func TestUnitDatasourceServicePrincipal_04_ODataFilter(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, spMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -113,19 +128,23 @@ func TestUnitDatasourceServicePrincipal_04_ByDisplayName(t *testing.T) {
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testConfigByDisplayName(),
+				Config: loadUnitTestTerraform("04_odata_filter.tf"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("data.microsoft365_graph_beta_applications_service_principal.by_display_name", "filter_type", "display_name"),
-					resource.TestCheckResourceAttr("data.microsoft365_graph_beta_applications_service_principal.by_display_name", "filter_value", "Microsoft Intune SCCM Connector"),
-					resource.TestCheckResourceAttr("data.microsoft365_graph_beta_applications_service_principal.by_display_name", "items.#", "1"),
-					resource.TestCheckResourceAttr("data.microsoft365_graph_beta_applications_service_principal.by_display_name", "items.0.display_name", "Microsoft Intune SCCM Connector"),
+					check.That("data."+dataSourceType+".odata_filter").Key("odata_query").HasValue("preferredSingleSignOnMode ne 'notSupported' and displayName eq 'Microsoft Intune'"),
+					check.That("data."+dataSourceType+".odata_filter").Key("id").Exists(),
+					check.That("data."+dataSourceType+".odata_filter").Key("display_name").Exists(),
+					check.That("data."+dataSourceType+".odata_filter").Key("app_id").Exists(),
+					check.That("data."+dataSourceType+".odata_filter").Key("service_principal_type").Exists(),
+					check.That("data."+dataSourceType+".odata_filter").Key("account_enabled").Exists(),
+					check.That("data."+dataSourceType+".odata_filter").Key("publisher_name").Exists(),
+					check.That("data."+dataSourceType+".odata_filter").Key("sign_in_audience").Exists(),
 				),
 			},
 		},
 	})
 }
 
-func TestUnitDatasourceServicePrincipal_05_ODataFilter(t *testing.T) {
+func TestUnitDatasourceServicePrincipal_05_ODataAdvanced(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, spMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -135,23 +154,25 @@ func TestUnitDatasourceServicePrincipal_05_ODataFilter(t *testing.T) {
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testConfigODataFilter(),
+				Config: loadUnitTestTerraform("05_odata_advanced.tf"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("data.microsoft365_graph_beta_applications_service_principal.odata_filter", "filter_type", "odata"),
-					resource.TestCheckResourceAttr("data.microsoft365_graph_beta_applications_service_principal.odata_filter", "odata_filter", "preferredSingleSignOnMode ne 'notSupported'"),
-					resource.TestCheckResourceAttr("data.microsoft365_graph_beta_applications_service_principal.odata_filter", "odata_count", "true"),
-					resource.TestCheckResourceAttr("data.microsoft365_graph_beta_applications_service_principal.odata_filter", "odata_orderby", "displayName"),
-					resource.TestCheckResourceAttr("data.microsoft365_graph_beta_applications_service_principal.odata_filter", "odata_search", "\"displayName:intune\""),
-					resource.TestCheckResourceAttr("data.microsoft365_graph_beta_applications_service_principal.odata_filter", "items.#", "2"),
-					resource.TestCheckResourceAttr("data.microsoft365_graph_beta_applications_service_principal.odata_filter", "items.0.display_name", "Microsoft Intune SCCM Connector"),
-					resource.TestCheckResourceAttr("data.microsoft365_graph_beta_applications_service_principal.odata_filter", "items.1.display_name", "Microsoft Intune Service Discovery"),
+					check.That("data."+dataSourceType+".odata_advanced").Key("odata_query").HasValue("servicePrincipalType eq 'Application' and accountEnabled eq true"),
+					check.That("data."+dataSourceType+".odata_advanced").Key("id").Exists(),
+					check.That("data."+dataSourceType+".odata_advanced").Key("display_name").Exists(),
+					check.That("data."+dataSourceType+".odata_advanced").Key("app_id").Exists(),
+					check.That("data."+dataSourceType+".odata_advanced").Key("service_principal_type").HasValue("Application"),
+					check.That("data."+dataSourceType+".odata_advanced").Key("account_enabled").HasValue("true"),
+					check.That("data."+dataSourceType+".odata_advanced").Key("publisher_name").Exists(),
+					check.That("data."+dataSourceType+".odata_advanced").Key("app_display_name").Exists(),
+					check.That("data."+dataSourceType+".odata_advanced").Key("sign_in_audience").Exists(),
+					check.That("data."+dataSourceType+".odata_advanced").Key("service_principal_names.#").Exists(),
 				),
 			},
 		},
 	})
 }
 
-func TestUnitDatasourceServicePrincipal_06_ODataAdvanced(t *testing.T) {
+func TestUnitDatasourceServicePrincipal_06_ODataComprehensive(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, spMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -161,47 +182,24 @@ func TestUnitDatasourceServicePrincipal_06_ODataAdvanced(t *testing.T) {
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testConfigODataAdvanced(),
+				Config: loadUnitTestTerraform("06_odata_comprehensive.tf"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("data.microsoft365_graph_beta_applications_service_principal.odata_advanced", "filter_type", "odata"),
-					resource.TestCheckResourceAttr("data.microsoft365_graph_beta_applications_service_principal.odata_advanced", "odata_select", "appId,displayName,publisherName"),
-					resource.TestCheckResourceAttr("data.microsoft365_graph_beta_applications_service_principal.odata_advanced", "odata_top", "10"),
-					resource.TestCheckResourceAttr("data.microsoft365_graph_beta_applications_service_principal.odata_advanced", "odata_skip", "0"),
-					resource.TestCheckResourceAttr("data.microsoft365_graph_beta_applications_service_principal.odata_advanced", "items.#", "4"),
+					check.That("data."+dataSourceType+".odata_comprehensive").Key("odata_query").HasValue("preferredSingleSignOnMode eq 'saml' and servicePrincipalType eq 'Application'"),
+					check.That("data."+dataSourceType+".odata_comprehensive").Key("id").Exists(),
+					check.That("data."+dataSourceType+".odata_comprehensive").Key("display_name").Exists(),
+					check.That("data."+dataSourceType+".odata_comprehensive").Key("app_id").Exists(),
+					check.That("data."+dataSourceType+".odata_comprehensive").Key("service_principal_type").HasValue("Application"),
+					check.That("data."+dataSourceType+".odata_comprehensive").Key("preferred_single_sign_on_mode").HasValue("saml"),
+					check.That("data."+dataSourceType+".odata_comprehensive").Key("account_enabled").Exists(),
+					check.That("data."+dataSourceType+".odata_comprehensive").Key("publisher_name").Exists(),
+					check.That("data."+dataSourceType+".odata_comprehensive").Key("saml_single_sign_on_settings.relay_state").Exists(),
 				),
 			},
 		},
 	})
 }
 
-func TestUnitDatasourceServicePrincipal_07_ODataComprehensive(t *testing.T) {
-	mocks.SetupUnitTestEnvironment(t)
-	_, spMock := setupMockEnvironment()
-	defer httpmock.DeactivateAndReset()
-	defer spMock.CleanupMockState()
-
-	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
-		Steps: []resource.TestStep{
-			{
-				Config: testConfigODataComprehensive(),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("data.microsoft365_graph_beta_applications_service_principal.odata_comprehensive", "filter_type", "odata"),
-					resource.TestCheckResourceAttr("data.microsoft365_graph_beta_applications_service_principal.odata_comprehensive", "odata_filter", "preferredSingleSignOnMode ne 'notSupported'"),
-					resource.TestCheckResourceAttr("data.microsoft365_graph_beta_applications_service_principal.odata_comprehensive", "odata_count", "true"),
-					resource.TestCheckResourceAttr("data.microsoft365_graph_beta_applications_service_principal.odata_comprehensive", "odata_orderby", "displayName"),
-					resource.TestCheckResourceAttr("data.microsoft365_graph_beta_applications_service_principal.odata_comprehensive", "odata_search", "\"displayName:intune\""),
-					resource.TestCheckResourceAttr("data.microsoft365_graph_beta_applications_service_principal.odata_comprehensive", "odata_select", "id,appId,displayName,publisherName,servicePrincipalType"),
-					resource.TestCheckResourceAttr("data.microsoft365_graph_beta_applications_service_principal.odata_comprehensive", "odata_top", "5"),
-					resource.TestCheckResourceAttr("data.microsoft365_graph_beta_applications_service_principal.odata_comprehensive", "odata_skip", "0"),
-					resource.TestCheckResourceAttr("data.microsoft365_graph_beta_applications_service_principal.odata_comprehensive", "items.#", "2"),
-				),
-			},
-		},
-	})
-}
-
-func TestUnitDatasourceServicePrincipal_08_ValidationError(t *testing.T) {
+func TestUnitDatasourceServicePrincipal_07_ValidationError(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, spMock := setupErrorMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -211,66 +209,18 @@ func TestUnitDatasourceServicePrincipal_08_ValidationError(t *testing.T) {
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config:      testConfigAll(),
+				Config:      loadUnitTestTerraform("01_by_object_id.tf"),
 				ExpectError: regexp.MustCompile("Forbidden - 403"),
 			},
 		},
 	})
 }
 
-// Configuration functions
-func testConfigAll() string {
-	unitTestConfig, err := helpers.ParseHCLFile("tests/terraform/unit/01_all.tf")
+// Helper function to load unit test Terraform configs
+func loadUnitTestTerraform(filename string) string {
+	unitTestConfig, err := helpers.ParseHCLFile(fmt.Sprintf("tests/terraform/unit/%s", filename))
 	if err != nil {
-		panic("failed to load 01_all config: " + err.Error())
-	}
-	return unitTestConfig
-}
-
-func testConfigById() string {
-	unitTestConfig, err := helpers.ParseHCLFile("tests/terraform/unit/02_by_id.tf")
-	if err != nil {
-		panic("failed to load 02_by_id config: " + err.Error())
-	}
-	return unitTestConfig
-}
-
-func testConfigByAppId() string {
-	unitTestConfig, err := helpers.ParseHCLFile("tests/terraform/unit/03_by_app_id.tf")
-	if err != nil {
-		panic("failed to load 03_by_app_id config: " + err.Error())
-	}
-	return unitTestConfig
-}
-
-func testConfigByDisplayName() string {
-	unitTestConfig, err := helpers.ParseHCLFile("tests/terraform/unit/04_by_display_name.tf")
-	if err != nil {
-		panic("failed to load 04_by_display_name config: " + err.Error())
-	}
-	return unitTestConfig
-}
-
-func testConfigODataFilter() string {
-	unitTestConfig, err := helpers.ParseHCLFile("tests/terraform/unit/05_odata_filter.tf")
-	if err != nil {
-		panic("failed to load 05_odata_filter config: " + err.Error())
-	}
-	return unitTestConfig
-}
-
-func testConfigODataAdvanced() string {
-	unitTestConfig, err := helpers.ParseHCLFile("tests/terraform/unit/06_odata_advanced.tf")
-	if err != nil {
-		panic("failed to load 06_odata_advanced config: " + err.Error())
-	}
-	return unitTestConfig
-}
-
-func testConfigODataComprehensive() string {
-	unitTestConfig, err := helpers.ParseHCLFile("tests/terraform/unit/07_odata_comprehensive.tf")
-	if err != nil {
-		panic("failed to load 07_odata_comprehensive config: " + err.Error())
+		panic(fmt.Sprintf("failed to load unit test config: %s", err.Error()))
 	}
 	return unitTestConfig
 }
