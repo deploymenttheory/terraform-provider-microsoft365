@@ -216,8 +216,9 @@ def update_existing_issue(owner: str, repo: str, issue_number: str,
 
 
 def close_resolved_issue(owner: str, repo: str, issue_number: str,
-                        date: str, run_id: str, workflow_url: str) -> None:
-    """Close an issue when test is now passing.
+                        date: str, run_id: str, workflow_url: str,
+                        test_passed: bool = True) -> None:
+    """Close an issue when test is now passing or no longer failing.
 
     Args:
         owner: GitHub repository owner.
@@ -226,8 +227,14 @@ def close_resolved_issue(owner: str, repo: str, issue_number: str,
         date: Date string for the resolution.
         run_id: GitHub Actions workflow run ID.
         workflow_url: URL to the workflow run.
+        test_passed: True if test explicitly passed, False if simply not detected as failing.
     """
     timestamp = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
+    
+    if test_passed:
+        message = "Test is now passing. Automatically closing this issue."
+    else:
+        message = "Test was not detected as failing in the latest test run. Automatically closing this issue."
     
     run_gh_command([
         "issue", "close", issue_number,
@@ -238,7 +245,7 @@ def close_resolved_issue(owner: str, repo: str, issue_number: str,
 **Date:** {date}  
 **Workflow:** [{run_id}]({workflow_url})
 
-Test is now passing. Automatically closing this issue.
+{message}
 
 ---
 *Automated closure from nightly tests*""",
@@ -428,13 +435,19 @@ def process_test_failures(owner: str, repo: str, run_id: str,
             if issue_title.startswith("Bug: ") and issue_title.endswith(" Failing"):
                 test_name = issue_title[5:-8]  # Remove "Bug: " prefix and " Failing" suffix
             
-            if test_name not in failed_test_names and test_name in passed_test_names:
+            # Close issue if test is not in current failures (regardless of whether it's explicitly in successes)
+            # This handles cases where tests pass but aren't captured in successes file
+            if test_name not in failed_test_names:
                 print(f"• {issue_title}")
+                test_passed = test_name in passed_test_names
+                status_msg = "passed" if test_passed else "not detected as failing"
+                print(f"  Status: Test {status_msg} in latest run")
                 print(f"  Action: Closing resolved issue #{issue_number}")
                 try:
                     close_resolved_issue(
                         owner, repo, issue_number, 
-                        date, run_id, workflow_url
+                        date, run_id, workflow_url,
+                        test_passed
                     )
                     closed_count += 1
                 except subprocess.CalledProcessError as e:
