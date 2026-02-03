@@ -8,19 +8,12 @@ import (
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/check"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
-	graphBetaGroup "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/groups/graph_beta/group"
 	groupMocks "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/groups/graph_beta/group/mocks"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/jarcoal/httpmock"
 )
 
-var (
-	// Resource type name from the resource package
-	resourceType = graphBetaGroup.ResourceName
-)
-
-// setupMockEnvironment sets up the mock environment using centralized mocks
 func setupMockEnvironment() (*mocks.Mocks, *groupMocks.GroupMock) {
 	httpmock.Activate()
 	mockClient := mocks.NewMocks()
@@ -30,7 +23,6 @@ func setupMockEnvironment() (*mocks.Mocks, *groupMocks.GroupMock) {
 	return mockClient, groupMock
 }
 
-// setupErrorMockEnvironment sets up the mock environment for error testing
 func setupErrorMockEnvironment() (*mocks.Mocks, *groupMocks.GroupMock) {
 	httpmock.Activate()
 	mockClient := mocks.NewMocks()
@@ -38,6 +30,14 @@ func setupErrorMockEnvironment() (*mocks.Mocks, *groupMocks.GroupMock) {
 	groupMock := &groupMocks.GroupMock{}
 	groupMock.RegisterErrorMocks()
 	return mockClient, groupMock
+}
+
+func loadUnitTestTerraform(filename string) string {
+	config, err := helpers.ParseHCLFile("tests/terraform/unit/" + filename)
+	if err != nil {
+		panic("failed to load unit test config " + filename + ": " + err.Error())
+	}
+	return config
 }
 
 // TestGroupResource_RequiredFields tests required field validation
@@ -185,7 +185,7 @@ func TestUnitResourceGroup_05_Scenario1_SecurityGroupAssigned(t *testing.T) {
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testConfigScenario1(),
+				Config: loadUnitTestTerraform("resource_scenario_1_security_group_assigned.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					check.That(resourceType+".scenario_1").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".scenario_1").Key("display_name").HasValue("acc-security-group-with-assigned-membership-type"),
@@ -223,7 +223,7 @@ func TestUnitResourceGroup_06_Scenario2_SecurityGroupDynamicUser(t *testing.T) {
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testConfigScenario2(),
+				Config: loadUnitTestTerraform("resource_scenario_2_security_group_dynamic_user.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					check.That(resourceType+".scenario_2").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".scenario_2").Key("display_name").HasValue("acc-security-group-with-dynamic-user-membership-type"),
@@ -263,7 +263,7 @@ func TestUnitResourceGroup_07_Scenario3_SecurityGroupDynamicDevice(t *testing.T)
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testConfigScenario3(),
+				Config: loadUnitTestTerraform("resource_scenario_3_security_group_dynamic_device.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					check.That(resourceType+".scenario_3").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".scenario_3").Key("display_name").HasValue("acc-security-group-with-dynamic-device-membership-type"),
@@ -303,7 +303,7 @@ func TestUnitResourceGroup_08_Scenario4_SecurityGroupRoleAssignable(t *testing.T
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testConfigScenario4(),
+				Config: loadUnitTestTerraform("resource_scenario_4_security_group_role_assignable.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					check.That(resourceType+".scenario_4").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".scenario_4").Key("display_name").HasValue("acc-security-group-with-entra-role-assignment"),
@@ -342,7 +342,7 @@ func TestUnitResourceGroup_09_Scenario5_M365GroupDynamicUser(t *testing.T) {
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testConfigScenario5(),
+				Config: loadUnitTestTerraform("resource_scenario_5_m365_group_dynamic_user.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					check.That(resourceType+".scenario_5").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".scenario_5").Key("display_name").HasValue("acc-m365-group-with-dynamic-user-membership-type"),
@@ -383,7 +383,7 @@ func TestUnitResourceGroup_10_Scenario6_M365GroupAssigned(t *testing.T) {
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testConfigScenario6(),
+				Config: loadUnitTestTerraform("resource_scenario_6_m365_group_assigned.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					check.That(resourceType+".scenario_6").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".scenario_6").Key("display_name").HasValue("acc-m365-group-with-assigned-membership-type"),
@@ -411,53 +411,4 @@ func TestUnitResourceGroup_10_Scenario6_M365GroupAssigned(t *testing.T) {
 			},
 		},
 	})
-}
-
-// Config loader functions
-func testConfigScenario1() string {
-	config, err := helpers.ParseHCLFile("tests/terraform/unit/resource_scenario_1_security_group_assigned.tf")
-	if err != nil {
-		panic("failed to load scenario 1 config: " + err.Error())
-	}
-	return config
-}
-
-func testConfigScenario2() string {
-	config, err := helpers.ParseHCLFile("tests/terraform/unit/resource_scenario_2_security_group_dynamic_user.tf")
-	if err != nil {
-		panic("failed to load scenario 2 config: " + err.Error())
-	}
-	return config
-}
-
-func testConfigScenario3() string {
-	config, err := helpers.ParseHCLFile("tests/terraform/unit/resource_scenario_3_security_group_dynamic_device.tf")
-	if err != nil {
-		panic("failed to load scenario 3 config: " + err.Error())
-	}
-	return config
-}
-
-func testConfigScenario4() string {
-	config, err := helpers.ParseHCLFile("tests/terraform/unit/resource_scenario_4_security_group_role_assignable.tf")
-	if err != nil {
-		panic("failed to load scenario 4 config: " + err.Error())
-	}
-	return config
-}
-
-func testConfigScenario5() string {
-	config, err := helpers.ParseHCLFile("tests/terraform/unit/resource_scenario_5_m365_group_dynamic_user.tf")
-	if err != nil {
-		panic("failed to load scenario 5 config: " + err.Error())
-	}
-	return config
-}
-
-func testConfigScenario6() string {
-	config, err := helpers.ParseHCLFile("tests/terraform/unit/resource_scenario_6_m365_group_assigned.tf")
-	if err != nil {
-		panic("failed to load scenario 6 config: " + err.Error())
-	}
-	return config
 }

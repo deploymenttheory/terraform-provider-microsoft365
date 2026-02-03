@@ -2,6 +2,7 @@ package utilityGuidListSharder
 
 import (
 	"fmt"
+	"slices"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -15,7 +16,7 @@ import (
 // generateTestGUIDs creates a predictable set of GUIDs for testing
 func generateTestGUIDs(count int) []string {
 	guids := make([]string, count)
-	for i := 0; i < count; i++ {
+	for i := range count {
 		// Generate predictable GUIDs: 00000000-0000-0000-0000-000000000000 to 00000000-0000-0000-0000-000000000099
 		guids[i] = fmt.Sprintf("00000000-0000-0000-0000-%012d", i)
 	}
@@ -34,10 +35,8 @@ func countTotalGUIDs(shards [][]string) int {
 // Helper to check if a GUID exists in any shard
 func containsGUID(shards [][]string, guid string) bool {
 	for _, shard := range shards {
-		for _, g := range shard {
-			if g == guid {
-				return true
-			}
+		if slices.Contains(shard, guid) {
+			return true
 		}
 	}
 	return false
@@ -46,10 +45,8 @@ func containsGUID(shards [][]string, guid string) bool {
 // Helper to find which shard contains a specific GUID
 func findGUIDShard(shards [][]string, guid string) int {
 	for i, shard := range shards {
-		for _, g := range shard {
-			if g == guid {
-				return i
-			}
+		if slices.Contains(shard, guid) {
+			return i
 		}
 	}
 	return -1 // Not found

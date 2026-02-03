@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	abstractions "github.com/microsoft/kiota-abstractions-go"
+	"github.com/microsoftgraph/msgraph-beta-sdk-go/applications"
 	"github.com/microsoftgraph/msgraph-beta-sdk-go/devices"
 	"github.com/microsoftgraph/msgraph-beta-sdk-go/groups"
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
@@ -84,6 +85,8 @@ func (d *guidListSharderDataSource) Read(ctx context.Context, req datasource.Rea
 		guids = d.listAllUsers(ctx, resp, odataQuery)
 	case "devices":
 		guids = d.listAllDevices(ctx, resp, odataQuery)
+	case "applications":
+		guids = d.listAllApplications(ctx, resp, odataQuery)
 	case "service_principals":
 		guids = d.listAllServicePrincipals(ctx, resp, odataQuery)
 	case "group_members":
@@ -223,6 +226,63 @@ func (d *guidListSharderDataSource) listAllDevices(ctx context.Context, resp *da
 	}
 
 	err = pageIterator.Iterate(ctx, func(item graphmodels.Deviceable) bool {
+		if item != nil && item.GetId() != nil {
+			guids = append(guids, *item.GetId())
+		}
+		return true
+	})
+
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error Iterating Pages",
+			fmt.Sprintf("Failed to iterate pages: %s", err.Error()),
+		)
+		return nil
+	}
+
+	return guids
+}
+
+// listAllApplications retrieves all application (app registration) GUIDs from Microsoft Graph API
+func (d *guidListSharderDataSource) listAllApplications(ctx context.Context, resp *datasource.ReadResponse, filter string) []string {
+	var guids []string
+
+	var requestConfig *applications.ApplicationsRequestBuilderGetRequestConfiguration
+	if filter != "" {
+		headers := abstractions.NewRequestHeaders()
+		headers.Add("ConsistencyLevel", "eventual")
+		requestConfig = &applications.ApplicationsRequestBuilderGetRequestConfiguration{
+			Headers: headers,
+			QueryParameters: &applications.ApplicationsRequestBuilderGetQueryParameters{
+				Filter: &filter,
+			},
+		}
+	}
+
+	applicationsResponse, err := d.client.
+		Applications().
+		Get(ctx, requestConfig)
+
+	if err != nil {
+		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationRead, d.ReadPermissions)
+		return nil
+	}
+
+	pageIterator, err := graphcore.NewPageIterator[graphmodels.Applicationable](
+		applicationsResponse,
+		d.client.GetAdapter(),
+		graphmodels.CreateApplicationCollectionResponseFromDiscriminatorValue,
+	)
+
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error Creating Page Iterator",
+			fmt.Sprintf("Failed to create page iterator: %s", err.Error()),
+		)
+		return nil
+	}
+
+	err = pageIterator.Iterate(ctx, func(item graphmodels.Applicationable) bool {
 		if item != nil && item.GetId() != nil {
 			guids = append(guids, *item.GetId())
 		}

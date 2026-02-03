@@ -18,9 +18,21 @@ import (
 )
 
 var (
+	// Resource type name from the resource package
+	resourceType = graphBetaGroup.ResourceName
+
 	// testResource is the test resource implementation for groups
 	testResource = graphBetaGroup.GroupTestResource{}
 )
+
+// loadAcceptanceTestTerraform loads an acceptance test terraform configuration file
+func loadAcceptanceTestTerraform(filename string) string {
+	config, err := helpers.ParseHCLFile("tests/terraform/acceptance/" + filename)
+	if err != nil {
+		panic("failed to load acceptance config " + filename + ": " + err.Error())
+	}
+	return config
+}
 
 func TestAccResourceGroup_01_Lifecycle(t *testing.T) {
 	resource.Test(t, resource.TestCase{
@@ -42,7 +54,7 @@ func TestAccResourceGroup_01_Lifecycle(t *testing.T) {
 				PreConfig: func() {
 					testlog.StepAction(resourceType, "Creating minimal group")
 				},
-				Config: testAccGroupConfig_minimal(),
+				Config: loadAcceptanceTestTerraform("resource_minimal.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					func(_ *terraform.State) error {
 						testlog.WaitForConsistency("group", 20*time.Second)
@@ -98,7 +110,7 @@ func TestAccResourceGroup_02_Maximal(t *testing.T) {
 				PreConfig: func() {
 					testlog.StepAction(resourceType, "Creating maximal group")
 				},
-				Config: testAccGroupConfig_maximal(),
+				Config: loadAcceptanceTestTerraform("resource_maximal.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					func(_ *terraform.State) error {
 						testlog.WaitForConsistency("group", 20*time.Second)
@@ -219,7 +231,7 @@ func TestAccResourceGroup_03_Scenario1_SecurityGroupAssigned(t *testing.T) {
 				PreConfig: func() {
 					testlog.StepAction(resourceType, "Creating security group with assigned membership")
 				},
-				Config: testAccGroupConfig_scenario1(),
+				Config: loadAcceptanceTestTerraform("resource_scenario_1_security_group_assigned.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					func(_ *terraform.State) error {
 						testlog.WaitForConsistency("group", 20*time.Second)
@@ -276,7 +288,7 @@ func TestAccResourceGroup_06_Scenario2_SecurityGroupDynamicUser(t *testing.T) {
 				PreConfig: func() {
 					testlog.StepAction(resourceType, "Creating security group with dynamic user membership")
 				},
-				Config: testAccGroupConfig_scenario2(),
+				Config: loadAcceptanceTestTerraform("resource_scenario_2_security_group_dynamic_user.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					func(_ *terraform.State) error {
 						testlog.WaitForConsistency("group", 20*time.Second)
@@ -334,7 +346,7 @@ func TestAccResourceGroup_05_Scenario3_SecurityGroupDynamicDevice(t *testing.T) 
 				PreConfig: func() {
 					testlog.StepAction(resourceType, "Creating security group with dynamic device membership")
 				},
-				Config: testAccGroupConfig_scenario3(),
+				Config: loadAcceptanceTestTerraform("resource_scenario_3_security_group_dynamic_device.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					func(_ *terraform.State) error {
 						testlog.WaitForConsistency("group", 20*time.Second)
@@ -392,7 +404,7 @@ func TestAccResourceGroup_08_Scenario4_SecurityGroupRoleAssignable(t *testing.T)
 				PreConfig: func() {
 					testlog.StepAction(resourceType, "Creating security group with Entra role assignment capability")
 				},
-				Config: testAccGroupConfig_scenario4(),
+				Config: loadAcceptanceTestTerraform("resource_scenario_4_security_group_role_assignable.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					func(_ *terraform.State) error {
 						testlog.WaitForConsistency("group", 20*time.Second)
@@ -449,7 +461,7 @@ func TestAccResourceGroup_07_Scenario5_M365GroupDynamicUser(t *testing.T) {
 				PreConfig: func() {
 					testlog.StepAction(resourceType, "Creating M365 group with dynamic user membership")
 				},
-				Config: testAccGroupConfig_scenario5(),
+				Config: loadAcceptanceTestTerraform("resource_scenario_5_m365_group_dynamic_user.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					func(_ *terraform.State) error {
 						testlog.WaitForConsistency("group", 20*time.Second)
@@ -509,7 +521,7 @@ func TestAccResourceGroup_10_Scenario6_M365GroupAssigned(t *testing.T) {
 				PreConfig: func() {
 					testlog.StepAction(resourceType, "Creating M365 group with assigned membership")
 				},
-				Config: testAccGroupConfig_scenario6(),
+				Config: loadAcceptanceTestTerraform("resource_scenario_6_m365_group_assigned.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					func(_ *terraform.State) error {
 						testlog.WaitForConsistency("group", 20*time.Second)
@@ -545,71 +557,6 @@ func TestAccResourceGroup_10_Scenario6_M365GroupAssigned(t *testing.T) {
 			},
 		},
 	})
-}
-
-// Config loader functions
-func testAccGroupConfig_minimal() string {
-	config, err := helpers.ParseHCLFile("tests/terraform/acceptance/resource_minimal.tf")
-	if err != nil {
-		panic("failed to load minimal config: " + err.Error())
-	}
-	return config
-}
-
-func testAccGroupConfig_maximal() string {
-	config, err := helpers.ParseHCLFile("tests/terraform/acceptance/resource_maximal.tf")
-	if err != nil {
-		panic("failed to load maximal config: " + err.Error())
-	}
-	return config
-}
-
-func testAccGroupConfig_scenario1() string {
-	config, err := helpers.ParseHCLFile("tests/terraform/acceptance/resource_scenario_1_security_group_assigned.tf")
-	if err != nil {
-		panic("failed to load scenario 1 config: " + err.Error())
-	}
-	return config
-}
-
-func testAccGroupConfig_scenario2() string {
-	config, err := helpers.ParseHCLFile("tests/terraform/acceptance/resource_scenario_2_security_group_dynamic_user.tf")
-	if err != nil {
-		panic("failed to load scenario 2 config: " + err.Error())
-	}
-	return config
-}
-
-func testAccGroupConfig_scenario3() string {
-	config, err := helpers.ParseHCLFile("tests/terraform/acceptance/resource_scenario_3_security_group_dynamic_device.tf")
-	if err != nil {
-		panic("failed to load scenario 3 config: " + err.Error())
-	}
-	return config
-}
-
-func testAccGroupConfig_scenario4() string {
-	config, err := helpers.ParseHCLFile("tests/terraform/acceptance/resource_scenario_4_security_group_role_assignable.tf")
-	if err != nil {
-		panic("failed to load scenario 4 config: " + err.Error())
-	}
-	return config
-}
-
-func testAccGroupConfig_scenario5() string {
-	config, err := helpers.ParseHCLFile("tests/terraform/acceptance/resource_scenario_5_m365_group_dynamic_user.tf")
-	if err != nil {
-		panic("failed to load scenario 5 config: " + err.Error())
-	}
-	return config
-}
-
-func testAccGroupConfig_scenario6() string {
-	config, err := helpers.ParseHCLFile("tests/terraform/acceptance/resource_scenario_6_m365_group_assigned.tf")
-	if err != nil {
-		panic("failed to load scenario 6 config: " + err.Error())
-	}
-	return config
 }
 
 // Inline validation configs
