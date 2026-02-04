@@ -1,5 +1,5 @@
 {
-  "@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/deviceEnrollmentConfigurations('11111111-1111-1111-1111-111111111111')/assignments",
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/deviceEnrollmentConfigurations('11111111-1111-1111-1111-111111111111_EnrollmentNotificationsConfiguration')/assignments",
   "value": [
     {
       "@odata.type": "#microsoft.graph.enrollmentConfigurationAssignment",

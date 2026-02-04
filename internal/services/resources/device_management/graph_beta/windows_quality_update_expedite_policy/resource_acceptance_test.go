@@ -60,9 +60,10 @@ func TestAccResourceWindowsQualityUpdateExpeditePolicy_01_Scenario_Minimal(t *te
 				PreConfig: func() {
 					testlog.StepAction(resourceType, "Importing minimal windows quality update expedite policy")
 				},
-				ResourceName:      resourceType + ".test_001",
-				ImportState:       true,
-				ImportStateVerify: true,
+				ResourceName:            resourceType + ".test_001",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"last_modified_date_time"},
 			},
 		},
 	})
@@ -102,9 +103,10 @@ func TestAccResourceWindowsQualityUpdateExpeditePolicy_02_Scenario_Maximal(t *te
 				PreConfig: func() {
 					testlog.StepAction(resourceType, "Importing maximal windows quality update expedite policy")
 				},
-				ResourceName:      resourceType + ".test_002",
-				ImportState:       true,
-				ImportStateVerify: true,
+				ResourceName:            resourceType + ".test_002",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"last_modified_date_time"},
 			},
 		},
 	})
@@ -156,9 +158,10 @@ func TestAccResourceWindowsQualityUpdateExpeditePolicy_03_Lifecycle_MinimalToMax
 				PreConfig: func() {
 					testlog.StepAction(resourceType, "Lifecycle: Importing windows quality update expedite policy")
 				},
-				ResourceName:      resourceType + ".test_003",
-				ImportState:       true,
-				ImportStateVerify: true,
+				ResourceName:            resourceType + ".test_003",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"last_modified_date_time"},
 			},
 		},
 	})
@@ -210,9 +213,10 @@ func TestAccResourceWindowsQualityUpdateExpeditePolicy_04_Lifecycle_MaximalToMin
 				PreConfig: func() {
 					testlog.StepAction(resourceType, "Downgrade: Importing windows quality update expedite policy")
 				},
-				ResourceName:      resourceType + ".test_004",
-				ImportState:       true,
-				ImportStateVerify: true,
+				ResourceName:            resourceType + ".test_004",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"last_modified_date_time"},
 			},
 		},
 	})
@@ -260,9 +264,10 @@ func TestAccResourceWindowsQualityUpdateExpeditePolicy_05_AssignmentsMinimal(t *
 				PreConfig: func() {
 					testlog.StepAction(resourceType, "Importing with minimal assignments")
 				},
-				ResourceName:      resourceType + ".test_005",
-				ImportState:       true,
-				ImportStateVerify: true,
+				ResourceName:            resourceType + ".test_005",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"last_modified_date_time"},
 			},
 		},
 	})
@@ -381,9 +386,10 @@ func TestAccResourceWindowsQualityUpdateExpeditePolicy_07_AssignmentsLifecycle_M
 				PreConfig: func() {
 					testlog.StepAction(resourceType, "Assignments Lifecycle: Importing with assignments")
 				},
-				ResourceName:      resourceType + ".test_007",
-				ImportState:       true,
-				ImportStateVerify: true,
+				ResourceName:            resourceType + ".test_007",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"last_modified_date_time"},
 			},
 		},
 	})
@@ -449,9 +455,10 @@ func TestAccResourceWindowsQualityUpdateExpeditePolicy_08_AssignmentsLifecycle_M
 				PreConfig: func() {
 					testlog.StepAction(resourceType, "Assignments Downgrade: Importing with assignments")
 				},
-				ResourceName:      resourceType + ".test_008",
-				ImportState:       true,
-				ImportStateVerify: true,
+				ResourceName:            resourceType + ".test_008",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"last_modified_date_time"},
 			},
 		},
 	})

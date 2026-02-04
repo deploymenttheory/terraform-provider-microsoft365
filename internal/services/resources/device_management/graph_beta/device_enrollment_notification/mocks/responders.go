@@ -110,7 +110,7 @@ func (m *AndroidEnrollmentNotificationsMock) RegisterMocks() {
 			return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"Invalid request body"}}`), nil
 		}
 
-		id := uuid.New().String()
+		id := uuid.New().String() + "_EnrollmentNotificationsConfiguration"
 
 		// Generate notification template IDs based on notification templates array
 		notificationTemplates := []string{}

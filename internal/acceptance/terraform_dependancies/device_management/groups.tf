@@ -98,6 +98,18 @@ resource "microsoft365_graph_beta_groups_group" "acc_test_group_5_mail_enabled" 
   }
 }
 
+# Wait for groups to propagate in Azure AD
+resource "time_sleep" "wait_for_groups" {
+  depends_on = [
+    microsoft365_graph_beta_groups_group.acc_test_group_1,
+    microsoft365_graph_beta_groups_group.acc_test_group_2,
+    microsoft365_graph_beta_groups_group.acc_test_group_3,
+    microsoft365_graph_beta_groups_group.acc_test_group_4,
+    microsoft365_graph_beta_groups_group.acc_test_group_5_mail_enabled
+  ]
+
+  create_duration = "15s"
+}
 
 # Outputs for easy reference in tests
 output "test_group_ids" {

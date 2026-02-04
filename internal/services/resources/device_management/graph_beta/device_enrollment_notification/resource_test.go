@@ -4,12 +4,22 @@ import (
 	"regexp"
 	"testing"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/check"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
 	enrollmentMocks "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_management/graph_beta/device_enrollment_notification/mocks"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/jarcoal/httpmock"
 )
+
+// Helper function to load test configs from unit directory
+func loadUnitTestTerraform(filename string) string {
+	config, err := helpers.ParseHCLFile("tests/terraform/unit/" + filename)
+	if err != nil {
+		panic("failed to load unit test config " + filename + ": " + err.Error())
+	}
+	return config
+}
 
 func setupMockEnvironment() (*mocks.Mocks, *enrollmentMocks.AndroidEnrollmentNotificationsMock) {
 	httpmock.Activate()
@@ -29,10 +39,6 @@ func setupErrorMockEnvironment() (*mocks.Mocks, *enrollmentMocks.AndroidEnrollme
 	return mockClient, enrollmentMock
 }
 
-func testCheckExists(resourceName string) resource.TestCheckFunc {
-	return resource.TestCheckResourceAttrSet(resourceName, "id")
-}
-
 func TestUnitResourceDeviceEnrollmentNotification_01_Schema(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, enrollmentMock := setupMockEnvironment()
@@ -43,14 +49,14 @@ func TestUnitResourceDeviceEnrollmentNotification_01_Schema(t *testing.T) {
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testConfigAndroidEmailMinimal(),
+				Config: loadUnitTestTerraform("resource_01_android_email_minimal.tf"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_device_enrollment_notification.email_minimal_android", "display_name", "email minimal android"),
-					resource.TestMatchResourceAttr("microsoft365_graph_beta_device_management_device_enrollment_notification.email_minimal_android", "id", regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_device_enrollment_notification.email_minimal_android", "platform_type", "android"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_device_enrollment_notification.email_minimal_android", "default_locale", "en-US"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_device_enrollment_notification.email_minimal_android", "role_scope_tag_ids.#", "1"),
-					resource.TestCheckTypeSetElemAttr("microsoft365_graph_beta_device_management_device_enrollment_notification.email_minimal_android", "role_scope_tag_ids.*", "0"),
+					check.That(resourceType+".email_minimal_android").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+_EnrollmentNotificationsConfiguration$`)),
+					check.That(resourceType+".email_minimal_android").Key("display_name").HasValue("email minimal android"),
+					check.That(resourceType+".email_minimal_android").Key("platform_type").HasValue("android"),
+					check.That(resourceType+".email_minimal_android").Key("default_locale").HasValue("en-US"),
+					check.That(resourceType+".email_minimal_android").Key("role_scope_tag_ids.#").HasValue("1"),
+					check.That(resourceType+".email_minimal_android").Key("role_scope_tag_ids.*").ContainsTypeSetElement("0"),
 				),
 			},
 		},
@@ -67,23 +73,23 @@ func TestUnitResourceDeviceEnrollmentNotification_02_PlatformTypes(t *testing.T)
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testConfigAndroidEmailMaximal(),
+				Config: loadUnitTestTerraform("resource_02_android_email_maximal.tf"),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckExists("microsoft365_graph_beta_device_management_device_enrollment_notification.email_maximal_android"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_device_enrollment_notification.email_maximal_android", "display_name", "email maximal android"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_device_enrollment_notification.email_maximal_android", "platform_type", "android"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_device_enrollment_notification.email_maximal_android", "notification_templates.#", "1"),
-					resource.TestCheckTypeSetElemAttr("microsoft365_graph_beta_device_management_device_enrollment_notification.email_maximal_android", "notification_templates.*", "email"),
+					check.That(resourceType+".email_maximal_android").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+_EnrollmentNotificationsConfiguration$`)),
+					check.That(resourceType+".email_maximal_android").Key("display_name").HasValue("email maximal android"),
+					check.That(resourceType+".email_maximal_android").Key("platform_type").HasValue("android"),
+					check.That(resourceType+".email_maximal_android").Key("notification_templates.#").HasValue("1"),
+					check.That(resourceType+".email_maximal_android").Key("notification_templates.*").ContainsTypeSetElement("email"),
 				),
 			},
 			{
-				Config: testConfigAndroidForWorkEmailMaximal(),
+				Config: loadUnitTestTerraform("resource_06_androidForWork_email_maximal.tf"),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckExists("microsoft365_graph_beta_device_management_device_enrollment_notification.email_maximal_androidforwork"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_device_enrollment_notification.email_maximal_androidforwork", "display_name", "email maximal androidForWork"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_device_enrollment_notification.email_maximal_androidforwork", "platform_type", "androidForWork"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_device_enrollment_notification.email_maximal_androidforwork", "notification_templates.#", "1"),
-					resource.TestCheckTypeSetElemAttr("microsoft365_graph_beta_device_management_device_enrollment_notification.email_maximal_androidforwork", "notification_templates.*", "email"),
+					check.That(resourceType+".email_maximal_androidforwork").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+_EnrollmentNotificationsConfiguration$`)),
+					check.That(resourceType+".email_maximal_androidforwork").Key("display_name").HasValue("email maximal androidForWork"),
+					check.That(resourceType+".email_maximal_androidforwork").Key("platform_type").HasValue("androidForWork"),
+					check.That(resourceType+".email_maximal_androidforwork").Key("notification_templates.#").HasValue("1"),
+					check.That(resourceType+".email_maximal_androidforwork").Key("notification_templates.*").ContainsTypeSetElement("email"),
 				),
 			},
 		},
@@ -101,78 +107,78 @@ func TestUnitResourceDeviceEnrollmentNotification_03_AllTerraformConfigurations(
 		Steps: []resource.TestStep{
 			// Android Platform Tests
 			{
-				Config: testConfigAndroidEmailMinimal(),
+				Config: loadUnitTestTerraform("resource_01_android_email_minimal.tf"),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckExists("microsoft365_graph_beta_device_management_device_enrollment_notification.email_minimal_android"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_device_enrollment_notification.email_minimal_android", "platform_type", "android"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_device_enrollment_notification.email_minimal_android", "notification_templates.#", "1"),
-					resource.TestCheckTypeSetElemAttr("microsoft365_graph_beta_device_management_device_enrollment_notification.email_minimal_android", "notification_templates.*", "email"),
+					check.That(resourceType+".email_minimal_android").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+_EnrollmentNotificationsConfiguration$`)),
+					check.That(resourceType+".email_minimal_android").Key("platform_type").HasValue("android"),
+					check.That(resourceType+".email_minimal_android").Key("notification_templates.#").HasValue("1"),
+					check.That(resourceType+".email_minimal_android").Key("notification_templates.*").ContainsTypeSetElement("email"),
 				),
 			},
 			{
-				Config: testConfigAndroidEmailMaximal(),
+				Config: loadUnitTestTerraform("resource_02_android_email_maximal.tf"),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckExists("microsoft365_graph_beta_device_management_device_enrollment_notification.email_maximal_android"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_device_enrollment_notification.email_maximal_android", "platform_type", "android"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_device_enrollment_notification.email_maximal_android", "notification_templates.#", "1"),
-					resource.TestCheckTypeSetElemAttr("microsoft365_graph_beta_device_management_device_enrollment_notification.email_maximal_android", "notification_templates.*", "email"),
+					check.That(resourceType+".email_maximal_android").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+_EnrollmentNotificationsConfiguration$`)),
+					check.That(resourceType+".email_maximal_android").Key("platform_type").HasValue("android"),
+					check.That(resourceType+".email_maximal_android").Key("notification_templates.#").HasValue("1"),
+					check.That(resourceType+".email_maximal_android").Key("notification_templates.*").ContainsTypeSetElement("email"),
 				),
 			},
 			{
-				Config: testConfigAndroidPushMaximal(),
+				Config: loadUnitTestTerraform("resource_03_android_push_maximal.tf"),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckExists("microsoft365_graph_beta_device_management_device_enrollment_notification.push_maximal_android"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_device_enrollment_notification.push_maximal_android", "platform_type", "android"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_device_enrollment_notification.push_maximal_android", "notification_templates.#", "1"),
-					resource.TestCheckTypeSetElemAttr("microsoft365_graph_beta_device_management_device_enrollment_notification.push_maximal_android", "notification_templates.*", "push"),
+					check.That(resourceType+".push_maximal_android").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+_EnrollmentNotificationsConfiguration$`)),
+					check.That(resourceType+".push_maximal_android").Key("platform_type").HasValue("android"),
+					check.That(resourceType+".push_maximal_android").Key("notification_templates.#").HasValue("1"),
+					check.That(resourceType+".push_maximal_android").Key("notification_templates.*").ContainsTypeSetElement("push"),
 				),
 			},
 			{
-				Config: testConfigAndroidAllMaximal(),
+				Config: loadUnitTestTerraform("resource_04_android_all_maximal.tf"),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckExists("microsoft365_graph_beta_device_management_device_enrollment_notification.all_android"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_device_enrollment_notification.all_android", "platform_type", "android"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_device_enrollment_notification.all_android", "notification_templates.#", "2"),
-					resource.TestCheckTypeSetElemAttr("microsoft365_graph_beta_device_management_device_enrollment_notification.all_android", "notification_templates.*", "email"),
-					resource.TestCheckTypeSetElemAttr("microsoft365_graph_beta_device_management_device_enrollment_notification.all_android", "notification_templates.*", "push"),
+					check.That(resourceType+".all_android").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+_EnrollmentNotificationsConfiguration$`)),
+					check.That(resourceType+".all_android").Key("platform_type").HasValue("android"),
+					check.That(resourceType+".all_android").Key("notification_templates.#").HasValue("2"),
+					check.That(resourceType+".all_android").Key("notification_templates.*").ContainsTypeSetElement("email"),
+					check.That(resourceType+".all_android").Key("notification_templates.*").ContainsTypeSetElement("push"),
 				),
 			},
 			// AndroidForWork Platform Tests
 			{
-				Config: testConfigAndroidForWorkEmailMinimal(),
+				Config: loadUnitTestTerraform("resource_05_androidForWork_email_minimal.tf"),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckExists("microsoft365_graph_beta_device_management_device_enrollment_notification.email_minimal_androidforwork"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_device_enrollment_notification.email_minimal_androidforwork", "platform_type", "androidForWork"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_device_enrollment_notification.email_minimal_androidforwork", "notification_templates.#", "1"),
-					resource.TestCheckTypeSetElemAttr("microsoft365_graph_beta_device_management_device_enrollment_notification.email_minimal_androidforwork", "notification_templates.*", "email"),
+					check.That(resourceType+".email_minimal_androidforwork").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+_EnrollmentNotificationsConfiguration$`)),
+					check.That(resourceType+".email_minimal_androidforwork").Key("platform_type").HasValue("androidForWork"),
+					check.That(resourceType+".email_minimal_androidforwork").Key("notification_templates.#").HasValue("1"),
+					check.That(resourceType+".email_minimal_androidforwork").Key("notification_templates.*").ContainsTypeSetElement("email"),
 				),
 			},
 			{
-				Config: testConfigAndroidForWorkEmailMaximal(),
+				Config: loadUnitTestTerraform("resource_06_androidForWork_email_maximal.tf"),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckExists("microsoft365_graph_beta_device_management_device_enrollment_notification.email_maximal_androidforwork"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_device_enrollment_notification.email_maximal_androidforwork", "platform_type", "androidForWork"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_device_enrollment_notification.email_maximal_androidforwork", "notification_templates.#", "1"),
-					resource.TestCheckTypeSetElemAttr("microsoft365_graph_beta_device_management_device_enrollment_notification.email_maximal_androidforwork", "notification_templates.*", "email"),
+					check.That(resourceType+".email_maximal_androidforwork").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+_EnrollmentNotificationsConfiguration$`)),
+					check.That(resourceType+".email_maximal_androidforwork").Key("platform_type").HasValue("androidForWork"),
+					check.That(resourceType+".email_maximal_androidforwork").Key("notification_templates.#").HasValue("1"),
+					check.That(resourceType+".email_maximal_androidforwork").Key("notification_templates.*").ContainsTypeSetElement("email"),
 				),
 			},
 			{
-				Config: testConfigAndroidForWorkPushMaximal(),
+				Config: loadUnitTestTerraform("resource_07_androidForWork_push_maximal.tf"),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckExists("microsoft365_graph_beta_device_management_device_enrollment_notification.push_maximal_androidForWork"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_device_enrollment_notification.push_maximal_androidForWork", "platform_type", "androidForWork"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_device_enrollment_notification.push_maximal_androidForWork", "notification_templates.#", "1"),
-					resource.TestCheckTypeSetElemAttr("microsoft365_graph_beta_device_management_device_enrollment_notification.push_maximal_androidForWork", "notification_templates.*", "push"),
+					check.That(resourceType+".push_maximal_androidForWork").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+_EnrollmentNotificationsConfiguration$`)),
+					check.That(resourceType+".push_maximal_androidForWork").Key("platform_type").HasValue("androidForWork"),
+					check.That(resourceType+".push_maximal_androidForWork").Key("notification_templates.#").HasValue("1"),
+					check.That(resourceType+".push_maximal_androidForWork").Key("notification_templates.*").ContainsTypeSetElement("push"),
 				),
 			},
 			{
-				Config: testConfigAndroidForWorkAllMaximal(),
+				Config: loadUnitTestTerraform("resource_08_androidForWork_all_maximal.tf"),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckExists("microsoft365_graph_beta_device_management_device_enrollment_notification.all_androidforwork"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_device_enrollment_notification.all_androidforwork", "platform_type", "androidForWork"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_device_enrollment_notification.all_androidforwork", "notification_templates.#", "2"),
-					resource.TestCheckTypeSetElemAttr("microsoft365_graph_beta_device_management_device_enrollment_notification.all_androidforwork", "notification_templates.*", "email"),
-					resource.TestCheckTypeSetElemAttr("microsoft365_graph_beta_device_management_device_enrollment_notification.all_androidforwork", "notification_templates.*", "push"),
+					check.That(resourceType+".all_androidforwork").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+_EnrollmentNotificationsConfiguration$`)),
+					check.That(resourceType+".all_androidforwork").Key("platform_type").HasValue("androidForWork"),
+					check.That(resourceType+".all_androidforwork").Key("notification_templates.#").HasValue("2"),
+					check.That(resourceType+".all_androidforwork").Key("notification_templates.*").ContainsTypeSetElement("email"),
+					check.That(resourceType+".all_androidforwork").Key("notification_templates.*").ContainsTypeSetElement("push"),
 				),
 			},
 		},
@@ -189,23 +195,23 @@ func TestUnitResourceDeviceEnrollmentNotification_04_BrandingOptions(t *testing.
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testConfigAndroidEmailMinimal(),
+				Config: loadUnitTestTerraform("resource_01_android_email_minimal.tf"),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckExists("microsoft365_graph_beta_device_management_device_enrollment_notification.email_minimal_android"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_device_enrollment_notification.email_minimal_android", "branding_options.#", "1"),
-					resource.TestCheckTypeSetElemAttr("microsoft365_graph_beta_device_management_device_enrollment_notification.email_minimal_android", "branding_options.*", "none"),
+					check.That(resourceType+".email_minimal_android").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+_EnrollmentNotificationsConfiguration$`)),
+					check.That(resourceType+".email_minimal_android").Key("branding_options.#").HasValue("1"),
+					check.That(resourceType+".email_minimal_android").Key("branding_options.*").ContainsTypeSetElement("none"),
 				),
 			},
 			{
-				Config: testConfigAndroidEmailMaximal(),
+				Config: loadUnitTestTerraform("resource_02_android_email_maximal.tf"),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckExists("microsoft365_graph_beta_device_management_device_enrollment_notification.email_maximal_android"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_device_enrollment_notification.email_maximal_android", "branding_options.#", "5"),
-					resource.TestCheckTypeSetElemAttr("microsoft365_graph_beta_device_management_device_enrollment_notification.email_maximal_android", "branding_options.*", "includeCompanyLogo"),
-					resource.TestCheckTypeSetElemAttr("microsoft365_graph_beta_device_management_device_enrollment_notification.email_maximal_android", "branding_options.*", "includeCompanyName"),
-					resource.TestCheckTypeSetElemAttr("microsoft365_graph_beta_device_management_device_enrollment_notification.email_maximal_android", "branding_options.*", "includeCompanyPortalLink"),
-					resource.TestCheckTypeSetElemAttr("microsoft365_graph_beta_device_management_device_enrollment_notification.email_maximal_android", "branding_options.*", "includeContactInformation"),
-					resource.TestCheckTypeSetElemAttr("microsoft365_graph_beta_device_management_device_enrollment_notification.email_maximal_android", "branding_options.*", "includeDeviceDetails"),
+					check.That(resourceType+".email_maximal_android").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+_EnrollmentNotificationsConfiguration$`)),
+					check.That(resourceType+".email_maximal_android").Key("branding_options.#").HasValue("5"),
+					check.That(resourceType+".email_maximal_android").Key("branding_options.*").ContainsTypeSetElement("includeCompanyLogo"),
+					check.That(resourceType+".email_maximal_android").Key("branding_options.*").ContainsTypeSetElement("includeCompanyName"),
+					check.That(resourceType+".email_maximal_android").Key("branding_options.*").ContainsTypeSetElement("includeCompanyPortalLink"),
+					check.That(resourceType+".email_maximal_android").Key("branding_options.*").ContainsTypeSetElement("includeContactInformation"),
+					check.That(resourceType+".email_maximal_android").Key("branding_options.*").ContainsTypeSetElement("includeDeviceDetails"),
 				),
 			},
 		},
@@ -222,11 +228,11 @@ func TestUnitResourceDeviceEnrollmentNotification_05_LocalizedMessages(t *testin
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testConfigAndroidEmailMaximal(),
+				Config: loadUnitTestTerraform("resource_02_android_email_maximal.tf"),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckExists("microsoft365_graph_beta_device_management_device_enrollment_notification.email_maximal_android"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_device_enrollment_notification.email_maximal_android", "localized_notification_messages.#", "1"),
-					resource.TestCheckTypeSetElemNestedAttrs("microsoft365_graph_beta_device_management_device_enrollment_notification.email_maximal_android", "localized_notification_messages.*", map[string]string{
+					check.That(resourceType+".email_maximal_android").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+_EnrollmentNotificationsConfiguration$`)),
+					check.That(resourceType+".email_maximal_android").Key("localized_notification_messages.#").HasValue("1"),
+					resource.TestCheckTypeSetElemNestedAttrs(resourceType+".email_maximal_android", "localized_notification_messages.*", map[string]string{
 						"locale":        "en-us",
 						"subject":       "Device Enrollment Required",
 						"template_type": "email",
@@ -248,11 +254,11 @@ func TestUnitResourceDeviceEnrollmentNotification_06_Assignments(t *testing.T) {
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testConfigAndroidEmailMaximal(),
+				Config: loadUnitTestTerraform("resource_02_android_email_maximal.tf"),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckExists("microsoft365_graph_beta_device_management_device_enrollment_notification.email_maximal_android"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_device_enrollment_notification.email_maximal_android", "assignments.#", "1"),
-					resource.TestCheckTypeSetElemNestedAttrs("microsoft365_graph_beta_device_management_device_enrollment_notification.email_maximal_android", "assignments.*", map[string]string{
+					check.That(resourceType+".email_maximal_android").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+_EnrollmentNotificationsConfiguration$`)),
+					check.That(resourceType+".email_maximal_android").Key("assignments.#").HasValue("1"),
+					resource.TestCheckTypeSetElemNestedAttrs(resourceType+".email_maximal_android", "assignments.*", map[string]string{
 						"type": "groupAssignmentTarget",
 					}),
 				),
@@ -271,75 +277,9 @@ func TestUnitResourceDeviceEnrollmentNotification_07_ErrorHandling(t *testing.T)
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config:      testConfigAndroidEmailMinimal(),
+				Config:      loadUnitTestTerraform("resource_01_android_email_minimal.tf"),
 				ExpectError: regexp.MustCompile("Invalid Android Enrollment Notification data"),
 			},
 		},
 	})
-}
-
-// Android Platform Configuration Functions
-func testConfigAndroidEmailMinimal() string {
-	unitTestConfig, err := helpers.ParseHCLFile("tests/terraform/unit/resource_android_email_minimal.tf")
-	if err != nil {
-		panic("failed to load android email minimal config: " + err.Error())
-	}
-	return unitTestConfig
-}
-
-func testConfigAndroidEmailMaximal() string {
-	unitTestConfig, err := helpers.ParseHCLFile("tests/terraform/unit/resource_android_email_maximal.tf")
-	if err != nil {
-		panic("failed to load android email maximal config: " + err.Error())
-	}
-	return unitTestConfig
-}
-
-func testConfigAndroidPushMaximal() string {
-	unitTestConfig, err := helpers.ParseHCLFile("tests/terraform/unit/resource_android_push_maximal.tf")
-	if err != nil {
-		panic("failed to load android push maximal config: " + err.Error())
-	}
-	return unitTestConfig
-}
-
-func testConfigAndroidAllMaximal() string {
-	unitTestConfig, err := helpers.ParseHCLFile("tests/terraform/unit/resource_android_all_maximal.tf")
-	if err != nil {
-		panic("failed to load android all maximal config: " + err.Error())
-	}
-	return unitTestConfig
-}
-
-// AndroidForWork Platform Configuration Functions
-func testConfigAndroidForWorkEmailMinimal() string {
-	unitTestConfig, err := helpers.ParseHCLFile("tests/terraform/unit/resource_androidForWork_email_minimal.tf")
-	if err != nil {
-		panic("failed to load androidForWork email minimal config: " + err.Error())
-	}
-	return unitTestConfig
-}
-
-func testConfigAndroidForWorkEmailMaximal() string {
-	unitTestConfig, err := helpers.ParseHCLFile("tests/terraform/unit/resource_androidForWork_email_maximal.tf")
-	if err != nil {
-		panic("failed to load androidForWork email maximal config: " + err.Error())
-	}
-	return unitTestConfig
-}
-
-func testConfigAndroidForWorkPushMaximal() string {
-	unitTestConfig, err := helpers.ParseHCLFile("tests/terraform/unit/resource_androidForWork_push_maximal.tf")
-	if err != nil {
-		panic("failed to load androidForWork push maximal config: " + err.Error())
-	}
-	return unitTestConfig
-}
-
-func testConfigAndroidForWorkAllMaximal() string {
-	unitTestConfig, err := helpers.ParseHCLFile("tests/terraform/unit/resource_androidForWork_all_maximal.tf")
-	if err != nil {
-		panic("failed to load androidForWork all maximal config: " + err.Error())
-	}
-	return unitTestConfig
 }
