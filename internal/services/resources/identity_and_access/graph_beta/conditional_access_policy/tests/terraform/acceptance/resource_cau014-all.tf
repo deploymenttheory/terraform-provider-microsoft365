@@ -51,8 +51,8 @@ resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy"
   state        = "enabledForReportingButNotEnforced"
 
   conditions = {
-    user_risk_levels = []
-    sign_in_risk_levels = []
+    user_risk_levels              = []
+    sign_in_risk_levels           = []
     client_app_types              = ["all"]
     service_principal_risk_levels = ["high", "medium"]
 
@@ -79,15 +79,15 @@ resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy"
       exclude_service_principals = []
     }
 
-    
+
   }
 
   grant_controls = {
     operator                      = "OR"
     built_in_controls             = ["block"]
     custom_authentication_factors = []
-    terms_of_use = []
-    authentication_strength = null
+    terms_of_use                  = []
+    authentication_strength       = null
   }
 
   timeouts = {
