@@ -281,6 +281,10 @@ func TestAccResourceWindowsRemediationScript_06_AssignmentsMaximal(t *testing.T)
 				Source:            "hashicorp/random",
 				VersionConstraint: constants.ExternalProviderRandomVersion,
 			},
+			"time": {
+				Source:            "hashicorp/time",
+				VersionConstraint: constants.ExternalProviderTimeVersion,
+			},
 		},
 		CheckDestroy: destroy.CheckDestroyedTypesFunc(
 			60*time.Second, // Increased wait time for groups hard delete to propagate (can take 60-90s)

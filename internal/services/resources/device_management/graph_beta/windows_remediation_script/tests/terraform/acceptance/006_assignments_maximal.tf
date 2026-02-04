@@ -51,6 +51,16 @@ resource "microsoft365_graph_beta_groups_group" "acc_test_group_006_3" {
   hard_delete      = true
 }
 
+resource "time_sleep" "wait_for_groups_006" {
+  depends_on = [
+    microsoft365_graph_beta_groups_group.acc_test_group_006_1,
+    microsoft365_graph_beta_groups_group.acc_test_group_006_2,
+    microsoft365_graph_beta_groups_group.acc_test_group_006_3
+  ]
+
+  create_duration = "15s"
+}
+
 # ==============================================================================
 # Windows Remediation Script Resource with Maximal Assignments
 # ==============================================================================
@@ -102,6 +112,8 @@ resource "microsoft365_graph_beta_device_management_windows_remediation_script" 
       filter_type = "none"
     }
   ]
+
+  depends_on = [time_sleep.wait_for_groups_006]
 
   timeouts = {
     create = "30s"
