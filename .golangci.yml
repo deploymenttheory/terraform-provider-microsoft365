@@ -6,7 +6,7 @@ run:
   modules-download-mode: readonly
   allow-parallel-runners: true
   allow-serial-runners: false
-  concurrency: 4  # Match ubuntu-24.04-arm runner (4 vCPUs)
+  concurrency: 2  # Set to 2 to avoid overwhelming the CI server
 
 issues:
   # Don’t cap lint errors per linter—report everything in new code.
