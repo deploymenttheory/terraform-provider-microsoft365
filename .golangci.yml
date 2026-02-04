@@ -1,12 +1,12 @@
 version: "2"
 
 run:
-  timeout: 20m
+  timeout: 30m
   # CI mode: Fails if go.mod needs updates, ensuring dependencies are properly declared
   modules-download-mode: readonly
   allow-parallel-runners: true
   allow-serial-runners: false
-  concurrency: 2
+  concurrency: 4  # Match ubuntu-24.04-arm runner (4 vCPUs)
 
 issues:
   # Don’t cap lint errors per linter—report everything in new code.
