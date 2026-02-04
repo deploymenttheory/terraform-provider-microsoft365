@@ -14,8 +14,7 @@ resource "random_string" "suffix" {
 
 # Windows Azure Active Directory
 data "microsoft365_graph_beta_applications_service_principal" "windows_azure_active_directory" {
-  filter_type  = "display_name"
-  filter_value = "Windows Azure Active Directory"
+  display_name = "Windows Azure Active Directory"
 }
 
 # ==============================================================================
@@ -75,7 +74,7 @@ resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy"
     }
 
     applications = {
-      include_applications                            = [data.microsoft365_graph_beta_applications_service_principal.windows_azure_active_directory.items[0].app_id] # Windows Azure Active Directory
+      include_applications                            = [data.microsoft365_graph_beta_applications_service_principal.windows_azure_active_directory.app_id] # Windows Azure Active Directory
       exclude_applications                            = []
       include_user_actions                            = []
       include_authentication_context_class_references = []

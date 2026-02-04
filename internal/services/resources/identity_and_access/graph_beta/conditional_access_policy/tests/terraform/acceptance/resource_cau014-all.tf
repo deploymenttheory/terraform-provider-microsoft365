@@ -14,8 +14,7 @@ resource "random_string" "suffix" {
 
 # Use a built-in Microsoft service principal for testing
 data "microsoft365_graph_beta_applications_service_principal" "windows_azure_service_management_api" {
-  filter_type  = "display_name"
-  filter_value = "Windows Azure Service Management API"
+  display_name = "Windows Azure Service Management API"
 }
 
 # Wait for service principal to propagate
@@ -38,6 +37,8 @@ resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy"
   state        = "enabledForReportingButNotEnforced"
 
   conditions = {
+    user_risk_levels = []
+    sign_in_risk_levels = []
     client_app_types              = ["all"]
     service_principal_risk_levels = ["high", "medium"]
 
@@ -59,18 +60,20 @@ resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy"
 
     client_applications = {
       include_service_principals = [
-        data.microsoft365_graph_beta_applications_service_principal.windows_azure_service_management_api.items[0].id
+        data.microsoft365_graph_beta_applications_service_principal.windows_azure_service_management_api.id
       ]
       exclude_service_principals = []
     }
 
-    sign_in_risk_levels = []
+    
   }
 
   grant_controls = {
     operator                      = "OR"
     built_in_controls             = ["block"]
     custom_authentication_factors = []
+    terms_of_use = []
+    authentication_strength = null
   }
 
   timeouts = {

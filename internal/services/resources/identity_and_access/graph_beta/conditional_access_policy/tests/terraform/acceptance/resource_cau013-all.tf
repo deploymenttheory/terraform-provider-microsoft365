@@ -46,8 +46,7 @@ resource "microsoft365_graph_beta_groups_group" "cau013_include" {
 
 # Windows Store for Business - built-in application
 data "microsoft365_graph_beta_applications_service_principal" "windows_store_for_business" {
-  filter_type  = "display_name"
-  filter_value = "Windows Store for Business"
+  display_name = "Windows Store for Business"
 }
 
 # ==============================================================================
@@ -79,7 +78,7 @@ resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy"
     applications = {
       include_applications = ["All"]
       exclude_applications = [
-        data.microsoft365_graph_beta_applications_service_principal.windows_store_for_business.items[0].app_id
+        data.microsoft365_graph_beta_applications_service_principal.windows_store_for_business.app_id
       ]
       include_user_actions                            = []
       include_authentication_context_class_references = []
