@@ -3,6 +3,7 @@ package graphBetaApplicationIdentifierUri
 import (
 	"context"
 	"fmt"
+	"slices"
 	"time"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
@@ -51,14 +52,12 @@ func (r *ApplicationIdentifierUriResource) Create(ctx context.Context, req resou
 
 	existingUris := application.GetIdentifierUris()
 
-	for _, uri := range existingUris {
-		if uri == object.IdentifierUri.ValueString() {
-			resp.Diagnostics.AddError(
-				"Identifier URI already exists",
-				fmt.Sprintf("The identifier URI %s already exists on the application", object.IdentifierUri.ValueString()),
-			)
-			return
-		}
+	if slices.Contains(existingUris, object.IdentifierUri.ValueString()) {
+		resp.Diagnostics.AddError(
+			"Identifier URI already exists",
+			fmt.Sprintf("The identifier URI %s already exists on the application", object.IdentifierUri.ValueString()),
+		)
+		return
 	}
 
 	requestBody, err := constructResource(ctx, &object, existingUris)
