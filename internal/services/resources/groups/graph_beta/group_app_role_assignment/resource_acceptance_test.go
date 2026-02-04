@@ -1,6 +1,7 @@
 package graphBetaGroupAppRoleAssignment_test
 
 import (
+	"fmt"
 	"testing"
 	"time"
 
@@ -23,14 +24,16 @@ var (
 	testResource = graphBetaGroupAppRoleAssignment.GroupAppRoleAssignmentTestResource{}
 )
 
-func testAccGroupAppRoleAssignmentConfig_Minimal() string {
-	config, _ := helpers.ParseHCLFile("tests/terraform/acceptance/resource_minimal.tf")
-	return config
-}
-
-func testAccGroupAppRoleAssignmentConfig_Maximal() string {
-	config, _ := helpers.ParseHCLFile("tests/terraform/acceptance/resource_maximal.tf")
-	return config
+func importStateIdFunc(resourceName string) resource.ImportStateIdFunc {
+	return func(s *terraform.State) (string, error) {
+		rs, ok := s.RootModule().Resources[resourceName]
+		if !ok {
+			return "", fmt.Errorf("resource not found: %s", resourceName)
+		}
+		groupID := rs.Primary.Attributes["target_group_id"]
+		id := rs.Primary.Attributes["id"]
+		return fmt.Sprintf("%s/%s", groupID, id), nil
+	}
 }
 
 // TestAccGroupAppRoleAssignmentResource_Minimal tests minimal configuration
@@ -48,13 +51,20 @@ func TestAccResourceGroupAppRoleAssignment_01_Minimal(t *testing.T) {
 				Source:            "hashicorp/random",
 				VersionConstraint: constants.ExternalProviderRandomVersion,
 			},
+			"time": {
+				Source:            "hashicorp/time",
+				VersionConstraint: constants.ExternalProviderTimeVersion,
+			},
 		},
 		Steps: []resource.TestStep{
 			{
 				PreConfig: func() {
 					testlog.StepAction(resourceTypeAcc, "Creating app role assignment with minimal config")
 				},
-				Config: testAccGroupAppRoleAssignmentConfig_Minimal(),
+				Config: func() string {
+					config, _ := helpers.ParseHCLFile("tests/terraform/acceptance/resource_minimal.tf")
+					return config
+				}(),
 				Check: resource.ComposeTestCheckFunc(
 					func(_ *terraform.State) error {
 						testlog.WaitForConsistency("group app role assignment", 20*time.Second)
@@ -77,7 +87,12 @@ func TestAccResourceGroupAppRoleAssignment_01_Minimal(t *testing.T) {
 				},
 				ResourceName:      resourceTypeAcc + ".minimal",
 				ImportState:       true,
+				ImportStateIdFunc: importStateIdFunc(resourceTypeAcc + ".minimal"),
 				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"timeouts",
+					"creation_timestamp",
+				},
 			},
 		},
 	})
@@ -98,13 +113,20 @@ func TestAccResourceGroupAppRoleAssignment_02_Maximal(t *testing.T) {
 				Source:            "hashicorp/random",
 				VersionConstraint: constants.ExternalProviderRandomVersion,
 			},
+			"time": {
+				Source:            "hashicorp/time",
+				VersionConstraint: constants.ExternalProviderTimeVersion,
+			},
 		},
 		Steps: []resource.TestStep{
 			{
 				PreConfig: func() {
 					testlog.StepAction(resourceTypeAcc, "Creating app role assignment with maximal config")
 				},
-				Config: testAccGroupAppRoleAssignmentConfig_Maximal(),
+				Config: func() string {
+					config, _ := helpers.ParseHCLFile("tests/terraform/acceptance/resource_maximal.tf")
+					return config
+				}(),
 				Check: resource.ComposeTestCheckFunc(
 					func(_ *terraform.State) error {
 						testlog.WaitForConsistency("group app role assignment", 20*time.Second)
@@ -127,7 +149,12 @@ func TestAccResourceGroupAppRoleAssignment_02_Maximal(t *testing.T) {
 				},
 				ResourceName:      resourceTypeAcc + ".maximal",
 				ImportState:       true,
+				ImportStateIdFunc: importStateIdFunc(resourceTypeAcc + ".maximal"),
 				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"timeouts",
+					"creation_timestamp",
+				},
 			},
 		},
 	})
