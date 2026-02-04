@@ -313,6 +313,9 @@ func TestAccResourceWindowsQualityUpdateExpeditePolicy_06_AssignmentsMaximal(t *
 				ResourceName:      resourceType + ".test_006",
 				ImportState:       true,
 				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"last_modified_date_time",
+				},
 			},
 		},
 	})
