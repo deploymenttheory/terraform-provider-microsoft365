@@ -1,3 +1,36 @@
+# ==============================================================================
+# Random Suffix for Unique Resource Names
+# ==============================================================================
+
+resource "random_string" "suffix" {
+  length  = 8
+  special = false
+  upper   = false
+}
+
+# ==============================================================================
+# Group Dependencies
+# ==============================================================================
+
+resource "microsoft365_graph_beta_groups_group" "acc_test_group_1" {
+  display_name     = "acc-test-enrollment-notification-group-1-${random_string.suffix.result}"
+  mail_nickname    = "acc-test-enrollment-notification-group-1-${random_string.suffix.result}"
+  mail_enabled     = false
+  security_enabled = true
+  description      = "Test group for device enrollment notification assignments"
+  hard_delete      = true
+}
+
+resource "time_sleep" "wait_for_groups" {
+  depends_on = [
+    microsoft365_graph_beta_groups_group.acc_test_group_1
+  ]
+  create_duration = "15s"
+}
+
+# ==============================================================================
+# Device Enrollment Notification
+# ==============================================================================
 
 resource "microsoft365_graph_beta_device_management_device_enrollment_notification" "all_androidforwork" {
   display_name   = "Complete Test - all androidForWork"
@@ -38,6 +71,8 @@ resource "microsoft365_graph_beta_device_management_device_enrollment_notificati
   ]
 
   role_scope_tag_ids = ["0"]
+
+  depends_on = [time_sleep.wait_for_groups]
 
   timeouts = {
     create = "10m"

@@ -3,7 +3,7 @@
   "value": [
     {
       "@odata.type": "#microsoft.graph.deviceEnrollmentNotificationConfiguration",
-      "id": "11111111-1111-1111-1111-111111111111",
+      "id": "11111111-1111-1111-1111-111111111111_EnrollmentNotificationsConfiguration",
       "displayName": "Test Android Enrollment Notifications",
       "description": "Test configuration for Android enrollment notifications",
       "deviceEnrollmentConfigurationType": "enrollmentNotificationsConfiguration",

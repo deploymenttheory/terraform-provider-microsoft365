@@ -1,46 +1,88 @@
 package graphBetaDeviceEnrollmentNotification_test
 
 import (
-	"context"
-	"fmt"
-	"log"
+	"regexp"
 	"testing"
+	"time"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/check"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/destroy"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/testlog"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
-	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
+	graphBetaDeviceEnrollmentNotification "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_management/graph_beta/device_enrollment_notification"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 )
+
+var (
+	// Resource type name from the resource package
+	resourceType = graphBetaDeviceEnrollmentNotification.ResourceName
+
+	// testResource is the test resource implementation for device enrollment notifications
+	testResource = graphBetaDeviceEnrollmentNotification.DeviceEnrollmentNotificationTestResource{}
+)
+
+// Helper function to load test configs from acceptance directory
+func loadAcceptanceTestTerraform(filename string) string {
+	config, err := helpers.ParseHCLFile("tests/terraform/acceptance/" + filename)
+	if err != nil {
+		panic("failed to load acceptance config " + filename + ": " + err.Error())
+	}
+	return config
+}
 
 // Android Platform Tests
 func TestAccResourceDeviceEnrollmentNotification_01_AndroidEmailMinimal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
-		CheckDestroy:             testAccCheckAndroidEnrollmentNotificationsDestroy,
+		CheckDestroy: destroy.CheckDestroyedAllFunc(
+			testResource,
+			resourceType,
+			20*time.Second,
+		),
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
 				Source:            "hashicorp/random",
 				VersionConstraint: constants.ExternalProviderRandomVersion,
 			},
+			"time": {
+				Source:            "hashicorp/time",
+				VersionConstraint: constants.ExternalProviderTimeVersion,
+			},
 		},
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAndroidEnrollmentNotificationsConfig_androidEmailMinimal(),
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Creating Android email minimal notification")
+				},
+				Config: loadAcceptanceTestTerraform("resource_01_android_email_minimal.tf"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("microsoft365_graph_beta_device_management_device_enrollment_notification.email_minimal_android", "id"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_device_enrollment_notification.email_minimal_android", "display_name", "email minimal android"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_device_enrollment_notification.email_minimal_android", "platform_type", "android"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_device_enrollment_notification.email_minimal_android", "notification_templates.#", "1"),
-					resource.TestCheckTypeSetElemAttr("microsoft365_graph_beta_device_management_device_enrollment_notification.email_minimal_android", "notification_templates.*", "email"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_device_enrollment_notification.email_minimal_android", "branding_options.#", "1"),
-					resource.TestCheckTypeSetElemAttr("microsoft365_graph_beta_device_management_device_enrollment_notification.email_minimal_android", "branding_options.*", "none"),
+					func(_ *terraform.State) error {
+						testlog.WaitForConsistency("device enrollment notification", 20*time.Second)
+						time.Sleep(20 * time.Second)
+						return nil
+					},
+					check.That(resourceType+".email_minimal_android").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+_EnrollmentNotificationsConfiguration$`)),
+					check.That(resourceType+".email_minimal_android").Key("display_name").HasValue("email minimal android"),
+					check.That(resourceType+".email_minimal_android").Key("platform_type").HasValue("android"),
+					check.That(resourceType+".email_minimal_android").Key("notification_templates.#").HasValue("1"),
+					check.That(resourceType+".email_minimal_android").Key("notification_templates.*").ContainsTypeSetElement("email"),
+					check.That(resourceType+".email_minimal_android").Key("branding_options.#").HasValue("1"),
+					check.That(resourceType+".email_minimal_android").Key("branding_options.*").ContainsTypeSetElement("none"),
 				),
 			},
-			{ResourceName: "microsoft365_graph_beta_device_management_device_enrollment_notification.email_minimal_android", ImportState: true, ImportStateVerify: true, ImportStateVerifyIgnore: []string{"branding_options", "platform_type"}},
+			{
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Importing Android email minimal notification")
+				},
+				ResourceName:            resourceType + ".email_minimal_android",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"branding_options", "platform_type"},
+			},
 		},
 	})
 }
@@ -49,27 +91,51 @@ func TestAccResourceDeviceEnrollmentNotification_02_AndroidEmailMaximal(t *testi
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
-		CheckDestroy:             testAccCheckAndroidEnrollmentNotificationsDestroy,
+		CheckDestroy: destroy.CheckDestroyedAllFunc(
+			testResource,
+			resourceType,
+			20*time.Second,
+		),
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
 				Source:            "hashicorp/random",
 				VersionConstraint: constants.ExternalProviderRandomVersion,
 			},
+			"time": {
+				Source:            "hashicorp/time",
+				VersionConstraint: constants.ExternalProviderTimeVersion,
+			},
 		},
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAndroidEnrollmentNotificationsConfig_androidEmailMaximal(),
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Creating Android email maximal notification")
+				},
+				Config: loadAcceptanceTestTerraform("resource_02_android_email_maximal.tf"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("microsoft365_graph_beta_device_management_device_enrollment_notification.email_maximal_android", "id"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_device_enrollment_notification.email_maximal_android", "display_name", "email maximal android"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_device_enrollment_notification.email_maximal_android", "platform_type", "android"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_device_enrollment_notification.email_maximal_android", "notification_templates.#", "1"),
-					resource.TestCheckTypeSetElemAttr("microsoft365_graph_beta_device_management_device_enrollment_notification.email_maximal_android", "notification_templates.*", "email"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_device_enrollment_notification.email_maximal_android", "branding_options.#", "5"),
-					resource.TestCheckTypeSetElemAttr("microsoft365_graph_beta_device_management_device_enrollment_notification.email_maximal_android", "branding_options.*", "includeCompanyLogo"),
+					func(_ *terraform.State) error {
+						testlog.WaitForConsistency("device enrollment notification", 20*time.Second)
+						time.Sleep(20 * time.Second)
+						return nil
+					},
+					check.That(resourceType+".email_maximal_android").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+_EnrollmentNotificationsConfiguration$`)),
+					check.That(resourceType+".email_maximal_android").Key("display_name").HasValue("email maximal android"),
+					check.That(resourceType+".email_maximal_android").Key("platform_type").HasValue("android"),
+					check.That(resourceType+".email_maximal_android").Key("notification_templates.#").HasValue("1"),
+					check.That(resourceType+".email_maximal_android").Key("notification_templates.*").ContainsTypeSetElement("email"),
+					check.That(resourceType+".email_maximal_android").Key("branding_options.#").HasValue("5"),
+					check.That(resourceType+".email_maximal_android").Key("branding_options.*").ContainsTypeSetElement("includeCompanyLogo"),
 				),
 			},
-			{ResourceName: "microsoft365_graph_beta_device_management_device_enrollment_notification.email_maximal_android", ImportState: true, ImportStateVerify: true, ImportStateVerifyIgnore: []string{"branding_options", "platform_type"}},
+			{
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Importing Android email maximal notification")
+				},
+				ResourceName:            resourceType + ".email_maximal_android",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"branding_options", "platform_type"},
+			},
 		},
 	})
 }
@@ -78,25 +144,49 @@ func TestAccResourceDeviceEnrollmentNotification_03_AndroidPushMaximal(t *testin
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
-		CheckDestroy:             testAccCheckAndroidEnrollmentNotificationsDestroy,
+		CheckDestroy: destroy.CheckDestroyedAllFunc(
+			testResource,
+			resourceType,
+			20*time.Second,
+		),
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
 				Source:            "hashicorp/random",
 				VersionConstraint: constants.ExternalProviderRandomVersion,
 			},
+			"time": {
+				Source:            "hashicorp/time",
+				VersionConstraint: constants.ExternalProviderTimeVersion,
+			},
 		},
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAndroidEnrollmentNotificationsConfig_androidPushMaximal(),
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Creating Android push maximal notification")
+				},
+				Config: loadAcceptanceTestTerraform("resource_03_android_push_maximal.tf"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("microsoft365_graph_beta_device_management_device_enrollment_notification.push_maximal_android", "id"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_device_enrollment_notification.push_maximal_android", "display_name", "push maximal android"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_device_enrollment_notification.push_maximal_android", "platform_type", "android"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_device_enrollment_notification.push_maximal_android", "notification_templates.#", "1"),
-					resource.TestCheckTypeSetElemAttr("microsoft365_graph_beta_device_management_device_enrollment_notification.push_maximal_android", "notification_templates.*", "push"),
+					func(_ *terraform.State) error {
+						testlog.WaitForConsistency("device enrollment notification", 20*time.Second)
+						time.Sleep(20 * time.Second)
+						return nil
+					},
+					check.That(resourceType+".push_maximal_android").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+_EnrollmentNotificationsConfiguration$`)),
+					check.That(resourceType+".push_maximal_android").Key("display_name").HasValue("push maximal android"),
+					check.That(resourceType+".push_maximal_android").Key("platform_type").HasValue("android"),
+					check.That(resourceType+".push_maximal_android").Key("notification_templates.#").HasValue("1"),
+					check.That(resourceType+".push_maximal_android").Key("notification_templates.*").ContainsTypeSetElement("push"),
 				),
 			},
-			{ResourceName: "microsoft365_graph_beta_device_management_device_enrollment_notification.push_maximal_android", ImportState: true, ImportStateVerify: true, ImportStateVerifyIgnore: []string{"branding_options", "platform_type"}},
+			{
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Importing Android push maximal notification")
+				},
+				ResourceName:            resourceType + ".push_maximal_android",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"branding_options", "platform_type"},
+			},
 		},
 	})
 }
@@ -105,26 +195,50 @@ func TestAccResourceDeviceEnrollmentNotification_04_AndroidAllMaximal(t *testing
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
-		CheckDestroy:             testAccCheckAndroidEnrollmentNotificationsDestroy,
+		CheckDestroy: destroy.CheckDestroyedAllFunc(
+			testResource,
+			resourceType,
+			20*time.Second,
+		),
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
 				Source:            "hashicorp/random",
 				VersionConstraint: constants.ExternalProviderRandomVersion,
 			},
+			"time": {
+				Source:            "hashicorp/time",
+				VersionConstraint: constants.ExternalProviderTimeVersion,
+			},
 		},
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAndroidEnrollmentNotificationsConfig_androidAllMaximal(),
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Creating Android all maximal notification")
+				},
+				Config: loadAcceptanceTestTerraform("resource_04_android_all_maximal.tf"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("microsoft365_graph_beta_device_management_device_enrollment_notification.all_android", "id"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_device_enrollment_notification.all_android", "display_name", "Complete Test - all android"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_device_enrollment_notification.all_android", "platform_type", "android"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_device_enrollment_notification.all_android", "notification_templates.#", "2"),
-					resource.TestCheckTypeSetElemAttr("microsoft365_graph_beta_device_management_device_enrollment_notification.all_android", "notification_templates.*", "email"),
-					resource.TestCheckTypeSetElemAttr("microsoft365_graph_beta_device_management_device_enrollment_notification.all_android", "notification_templates.*", "push"),
+					func(_ *terraform.State) error {
+						testlog.WaitForConsistency("device enrollment notification", 20*time.Second)
+						time.Sleep(20 * time.Second)
+						return nil
+					},
+					check.That(resourceType+".all_android").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+_EnrollmentNotificationsConfiguration$`)),
+					check.That(resourceType+".all_android").Key("display_name").HasValue("Complete Test - all android"),
+					check.That(resourceType+".all_android").Key("platform_type").HasValue("android"),
+					check.That(resourceType+".all_android").Key("notification_templates.#").HasValue("2"),
+					check.That(resourceType+".all_android").Key("notification_templates.*").ContainsTypeSetElement("email"),
+					check.That(resourceType+".all_android").Key("notification_templates.*").ContainsTypeSetElement("push"),
 				),
 			},
-			{ResourceName: "microsoft365_graph_beta_device_management_device_enrollment_notification.all_android", ImportState: true, ImportStateVerify: true, ImportStateVerifyIgnore: []string{"branding_options", "platform_type"}},
+			{
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Importing Android all maximal notification")
+				},
+				ResourceName:            resourceType + ".all_android",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"branding_options", "platform_type"},
+			},
 		},
 	})
 }
@@ -134,25 +248,49 @@ func TestAccResourceDeviceEnrollmentNotification_05_AndroidForWorkEmailMinimal(t
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
-		CheckDestroy:             testAccCheckAndroidEnrollmentNotificationsDestroy,
+		CheckDestroy: destroy.CheckDestroyedAllFunc(
+			testResource,
+			resourceType,
+			20*time.Second,
+		),
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
 				Source:            "hashicorp/random",
 				VersionConstraint: constants.ExternalProviderRandomVersion,
 			},
+			"time": {
+				Source:            "hashicorp/time",
+				VersionConstraint: constants.ExternalProviderTimeVersion,
+			},
 		},
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAndroidEnrollmentNotificationsConfig_androidForWorkEmailMinimal(),
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Creating AndroidForWork email minimal notification")
+				},
+				Config: loadAcceptanceTestTerraform("resource_05_androidForWork_email_minimal.tf"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("microsoft365_graph_beta_device_management_device_enrollment_notification.email_minimal_androidforwork", "id"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_device_enrollment_notification.email_minimal_androidforwork", "display_name", "email minimal androidForWork"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_device_enrollment_notification.email_minimal_androidforwork", "platform_type", "androidForWork"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_device_enrollment_notification.email_minimal_androidforwork", "notification_templates.#", "1"),
-					resource.TestCheckTypeSetElemAttr("microsoft365_graph_beta_device_management_device_enrollment_notification.email_minimal_androidforwork", "notification_templates.*", "email"),
+					func(_ *terraform.State) error {
+						testlog.WaitForConsistency("device enrollment notification", 20*time.Second)
+						time.Sleep(20 * time.Second)
+						return nil
+					},
+					check.That(resourceType+".email_minimal_androidforwork").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+_EnrollmentNotificationsConfiguration$`)),
+					check.That(resourceType+".email_minimal_androidforwork").Key("display_name").HasValue("email minimal androidForWork"),
+					check.That(resourceType+".email_minimal_androidforwork").Key("platform_type").HasValue("androidForWork"),
+					check.That(resourceType+".email_minimal_androidforwork").Key("notification_templates.#").HasValue("1"),
+					check.That(resourceType+".email_minimal_androidforwork").Key("notification_templates.*").ContainsTypeSetElement("email"),
 				),
 			},
-			{ResourceName: "microsoft365_graph_beta_device_management_device_enrollment_notification.email_minimal_androidforwork", ImportState: true, ImportStateVerify: true, ImportStateVerifyIgnore: []string{"branding_options", "platform_type"}},
+			{
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Importing AndroidForWork email minimal notification")
+				},
+				ResourceName:            resourceType + ".email_minimal_androidforwork",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"branding_options", "platform_type"},
+			},
 		},
 	})
 }
@@ -161,53 +299,101 @@ func TestAccResourceDeviceEnrollmentNotification_06_AndroidForWorkEmailMaximal(t
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
-		CheckDestroy:             testAccCheckAndroidEnrollmentNotificationsDestroy,
+		CheckDestroy: destroy.CheckDestroyedAllFunc(
+			testResource,
+			resourceType,
+			20*time.Second,
+		),
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
 				Source:            "hashicorp/random",
 				VersionConstraint: constants.ExternalProviderRandomVersion,
 			},
+			"time": {
+				Source:            "hashicorp/time",
+				VersionConstraint: constants.ExternalProviderTimeVersion,
+			},
 		},
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAndroidEnrollmentNotificationsConfig_androidForWorkEmailMaximal(),
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Creating AndroidForWork email maximal notification")
+				},
+				Config: loadAcceptanceTestTerraform("resource_06_androidForWork_email_maximal.tf"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("microsoft365_graph_beta_device_management_device_enrollment_notification.email_maximal_androidforwork", "id"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_device_enrollment_notification.email_maximal_androidforwork", "display_name", "email maximal androidForWork"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_device_enrollment_notification.email_maximal_androidforwork", "platform_type", "androidForWork"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_device_enrollment_notification.email_maximal_androidforwork", "notification_templates.#", "1"),
-					resource.TestCheckTypeSetElemAttr("microsoft365_graph_beta_device_management_device_enrollment_notification.email_maximal_androidforwork", "notification_templates.*", "email"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_device_enrollment_notification.email_maximal_androidforwork", "branding_options.#", "5"),
+					func(_ *terraform.State) error {
+						testlog.WaitForConsistency("device enrollment notification", 20*time.Second)
+						time.Sleep(20 * time.Second)
+						return nil
+					},
+					check.That(resourceType+".email_maximal_androidforwork").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+_EnrollmentNotificationsConfiguration$`)),
+					check.That(resourceType+".email_maximal_androidforwork").Key("display_name").HasValue("email maximal androidForWork"),
+					check.That(resourceType+".email_maximal_androidforwork").Key("platform_type").HasValue("androidForWork"),
+					check.That(resourceType+".email_maximal_androidforwork").Key("notification_templates.#").HasValue("1"),
+					check.That(resourceType+".email_maximal_androidforwork").Key("notification_templates.*").ContainsTypeSetElement("email"),
+					check.That(resourceType+".email_maximal_androidforwork").Key("branding_options.#").HasValue("5"),
 				),
 			},
-			{ResourceName: "microsoft365_graph_beta_device_management_device_enrollment_notification.email_maximal_androidforwork", ImportState: true, ImportStateVerify: true, ImportStateVerifyIgnore: []string{"branding_options", "platform_type"}},
+			{
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Importing AndroidForWork email maximal notification")
+				},
+				ResourceName:            resourceType + ".email_maximal_androidforwork",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"branding_options", "platform_type"},
+			},
 		},
 	})
 }
 
-func TestAccResourceDeviceEnrollmentNotification_05_AndroidForWorkPushMaximal(t *testing.T) {
+func TestAccResourceDeviceEnrollmentNotification_07_AndroidForWorkPushMaximal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
-		CheckDestroy:             testAccCheckAndroidEnrollmentNotificationsDestroy,
+		CheckDestroy: destroy.CheckDestroyedAllFunc(
+			testResource,
+			resourceType,
+			20*time.Second,
+		),
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
 				Source:            "hashicorp/random",
 				VersionConstraint: constants.ExternalProviderRandomVersion,
 			},
+			"time": {
+				Source:            "hashicorp/time",
+				VersionConstraint: constants.ExternalProviderTimeVersion,
+			},
 		},
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAndroidEnrollmentNotificationsConfig_androidForWorkPushMaximal(),
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Creating AndroidForWork push maximal notification")
+				},
+				Config: loadAcceptanceTestTerraform("resource_07_androidForWork_push_maximal.tf"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("microsoft365_graph_beta_device_management_device_enrollment_notification.push_maximal_androidForWork", "id"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_device_enrollment_notification.push_maximal_androidForWork", "display_name", "push maximal android"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_device_enrollment_notification.push_maximal_androidForWork", "platform_type", "androidForWork"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_device_enrollment_notification.push_maximal_androidForWork", "notification_templates.#", "1"),
-					resource.TestCheckTypeSetElemAttr("microsoft365_graph_beta_device_management_device_enrollment_notification.push_maximal_androidForWork", "notification_templates.*", "push"),
+					func(_ *terraform.State) error {
+						testlog.WaitForConsistency("device enrollment notification", 20*time.Second)
+						time.Sleep(20 * time.Second)
+						return nil
+					},
+					check.That(resourceType+".push_maximal_androidForWork").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+_EnrollmentNotificationsConfiguration$`)),
+					check.That(resourceType+".push_maximal_androidForWork").Key("display_name").HasValue("push maximal android"),
+					check.That(resourceType+".push_maximal_androidForWork").Key("platform_type").HasValue("androidForWork"),
+					check.That(resourceType+".push_maximal_androidForWork").Key("notification_templates.#").HasValue("1"),
+					check.That(resourceType+".push_maximal_androidForWork").Key("notification_templates.*").ContainsTypeSetElement("push"),
 				),
 			},
-			{ResourceName: "microsoft365_graph_beta_device_management_device_enrollment_notification.push_maximal_androidForWork", ImportState: true, ImportStateVerify: true, ImportStateVerifyIgnore: []string{"branding_options", "platform_type"}},
+			{
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Importing AndroidForWork push maximal notification")
+				},
+				ResourceName:            resourceType + ".push_maximal_androidForWork",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"branding_options", "platform_type"},
+			},
 		},
 	})
 }
@@ -216,186 +402,50 @@ func TestAccResourceDeviceEnrollmentNotification_08_AndroidForWorkAllMaximal(t *
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
-		CheckDestroy:             testAccCheckAndroidEnrollmentNotificationsDestroy,
+		CheckDestroy: destroy.CheckDestroyedAllFunc(
+			testResource,
+			resourceType,
+			20*time.Second,
+		),
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
 				Source:            "hashicorp/random",
 				VersionConstraint: constants.ExternalProviderRandomVersion,
 			},
+			"time": {
+				Source:            "hashicorp/time",
+				VersionConstraint: constants.ExternalProviderTimeVersion,
+			},
 		},
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAndroidEnrollmentNotificationsConfig_androidForWorkAllMaximal(),
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Creating AndroidForWork all maximal notification")
+				},
+				Config: loadAcceptanceTestTerraform("resource_08_androidForWork_all_maximal.tf"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("microsoft365_graph_beta_device_management_device_enrollment_notification.all_androidforwork", "id"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_device_enrollment_notification.all_androidforwork", "display_name", "Complete Test - all androidForWork"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_device_enrollment_notification.all_androidforwork", "platform_type", "androidForWork"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_device_enrollment_notification.all_androidforwork", "notification_templates.#", "2"),
-					resource.TestCheckTypeSetElemAttr("microsoft365_graph_beta_device_management_device_enrollment_notification.all_androidforwork", "notification_templates.*", "email"),
-					resource.TestCheckTypeSetElemAttr("microsoft365_graph_beta_device_management_device_enrollment_notification.all_androidforwork", "notification_templates.*", "push"),
+					func(_ *terraform.State) error {
+						testlog.WaitForConsistency("device enrollment notification", 20*time.Second)
+						time.Sleep(20 * time.Second)
+						return nil
+					},
+					check.That(resourceType+".all_androidforwork").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+_EnrollmentNotificationsConfiguration$`)),
+					check.That(resourceType+".all_androidforwork").Key("display_name").HasValue("Complete Test - all androidForWork"),
+					check.That(resourceType+".all_androidforwork").Key("platform_type").HasValue("androidForWork"),
+					check.That(resourceType+".all_androidforwork").Key("notification_templates.#").HasValue("2"),
+					check.That(resourceType+".all_androidforwork").Key("notification_templates.*").ContainsTypeSetElement("email"),
+					check.That(resourceType+".all_androidforwork").Key("notification_templates.*").ContainsTypeSetElement("push"),
 				),
 			},
-			{ResourceName: "microsoft365_graph_beta_device_management_device_enrollment_notification.all_androidforwork", ImportState: true, ImportStateVerify: true, ImportStateVerifyIgnore: []string{"branding_options", "platform_type"}},
+			{
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Importing AndroidForWork all maximal notification")
+				},
+				ResourceName:            resourceType + ".all_androidforwork",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"branding_options", "platform_type"},
+			},
 		},
 	})
-}
-
-// Android Platform Configuration Functions
-func testAccAndroidEnrollmentNotificationsConfig_androidEmailMinimal() string {
-	groups, err := helpers.ParseHCLFile("../../../../../acceptance/terraform_dependancies/device_management/groups.tf")
-	if err != nil {
-		log.Fatalf("Failed to load groups config: %v", err)
-	}
-	roleScopeTags, err := helpers.ParseHCLFile("../../../../../acceptance/terraform_dependancies/device_management/role_scope_tags.tf")
-	if err != nil {
-		log.Fatalf("Failed to load role scope tags config: %v", err)
-	}
-	accTestConfig, err := helpers.ParseHCLFile("tests/terraform/acceptance/resource_android_email_minimal.tf")
-	if err != nil {
-		log.Fatalf("Failed to load android email minimal test config: %v", err)
-	}
-	return acceptance.ConfiguredM365ProviderBlock(groups + "\n" + roleScopeTags + "\n" + accTestConfig)
-}
-
-func testAccAndroidEnrollmentNotificationsConfig_androidEmailMaximal() string {
-	groups, err := helpers.ParseHCLFile("../../../../../acceptance/terraform_dependancies/device_management/groups.tf")
-	if err != nil {
-		log.Fatalf("Failed to load groups config: %v", err)
-	}
-	roleScopeTags, err := helpers.ParseHCLFile("../../../../../acceptance/terraform_dependancies/device_management/role_scope_tags.tf")
-	if err != nil {
-		log.Fatalf("Failed to load role scope tags config: %v", err)
-	}
-	accTestConfig, err := helpers.ParseHCLFile("tests/terraform/acceptance/resource_android_email_maximal.tf")
-	if err != nil {
-		log.Fatalf("Failed to load android email maximal test config: %v", err)
-	}
-	return acceptance.ConfiguredM365ProviderBlock(groups + "\n" + roleScopeTags + "\n" + accTestConfig)
-}
-
-func testAccAndroidEnrollmentNotificationsConfig_androidPushMaximal() string {
-	groups, err := helpers.ParseHCLFile("../../../../../acceptance/terraform_dependancies/device_management/groups.tf")
-	if err != nil {
-		log.Fatalf("Failed to load groups config: %v", err)
-	}
-	roleScopeTags, err := helpers.ParseHCLFile("../../../../../acceptance/terraform_dependancies/device_management/role_scope_tags.tf")
-	if err != nil {
-		log.Fatalf("Failed to load role scope tags config: %v", err)
-	}
-	accTestConfig, err := helpers.ParseHCLFile("tests/terraform/acceptance/resource_android_push_maximal.tf")
-	if err != nil {
-		log.Fatalf("Failed to load android push maximal test config: %v", err)
-	}
-	return acceptance.ConfiguredM365ProviderBlock(groups + "\n" + roleScopeTags + "\n" + accTestConfig)
-}
-
-func testAccAndroidEnrollmentNotificationsConfig_androidAllMaximal() string {
-	groups, err := helpers.ParseHCLFile("../../../../../acceptance/terraform_dependancies/device_management/groups.tf")
-	if err != nil {
-		log.Fatalf("Failed to load groups config: %v", err)
-	}
-	roleScopeTags, err := helpers.ParseHCLFile("../../../../../acceptance/terraform_dependancies/device_management/role_scope_tags.tf")
-	if err != nil {
-		log.Fatalf("Failed to load role scope tags config: %v", err)
-	}
-	accTestConfig, err := helpers.ParseHCLFile("tests/terraform/acceptance/resource_android_all_maximal.tf")
-	if err != nil {
-		log.Fatalf("Failed to load android all maximal test config: %v", err)
-	}
-	return acceptance.ConfiguredM365ProviderBlock(groups + "\n" + roleScopeTags + "\n" + accTestConfig)
-}
-
-// AndroidForWork Platform Configuration Functions
-func testAccAndroidEnrollmentNotificationsConfig_androidForWorkEmailMinimal() string {
-	groups, err := helpers.ParseHCLFile("../../../../../acceptance/terraform_dependancies/device_management/groups.tf")
-	if err != nil {
-		log.Fatalf("Failed to load groups config: %v", err)
-	}
-	roleScopeTags, err := helpers.ParseHCLFile("../../../../../acceptance/terraform_dependancies/device_management/role_scope_tags.tf")
-	if err != nil {
-		log.Fatalf("Failed to load role scope tags config: %v", err)
-	}
-	accTestConfig, err := helpers.ParseHCLFile("tests/terraform/acceptance/resource_androidForWork_email_minimal.tf")
-	if err != nil {
-		log.Fatalf("Failed to load androidForWork email minimal test config: %v", err)
-	}
-	return acceptance.ConfiguredM365ProviderBlock(groups + "\n" + roleScopeTags + "\n" + accTestConfig)
-}
-
-func testAccAndroidEnrollmentNotificationsConfig_androidForWorkEmailMaximal() string {
-	groups, err := helpers.ParseHCLFile("../../../../../acceptance/terraform_dependancies/device_management/groups.tf")
-	if err != nil {
-		log.Fatalf("Failed to load groups config: %v", err)
-	}
-	roleScopeTags, err := helpers.ParseHCLFile("../../../../../acceptance/terraform_dependancies/device_management/role_scope_tags.tf")
-	if err != nil {
-		log.Fatalf("Failed to load role scope tags config: %v", err)
-	}
-	accTestConfig, err := helpers.ParseHCLFile("tests/terraform/acceptance/resource_androidForWork_email_maximal.tf")
-	if err != nil {
-		log.Fatalf("Failed to load androidForWork email maximal test config: %v", err)
-	}
-	return acceptance.ConfiguredM365ProviderBlock(groups + "\n" + roleScopeTags + "\n" + accTestConfig)
-}
-
-func testAccAndroidEnrollmentNotificationsConfig_androidForWorkPushMaximal() string {
-	groups, err := helpers.ParseHCLFile("../../../../../acceptance/terraform_dependancies/device_management/groups.tf")
-	if err != nil {
-		log.Fatalf("Failed to load groups config: %v", err)
-	}
-	roleScopeTags, err := helpers.ParseHCLFile("../../../../../acceptance/terraform_dependancies/device_management/role_scope_tags.tf")
-	if err != nil {
-		log.Fatalf("Failed to load role scope tags config: %v", err)
-	}
-	accTestConfig, err := helpers.ParseHCLFile("tests/terraform/acceptance/resource_androidForWork_push_maximal.tf")
-	if err != nil {
-		log.Fatalf("Failed to load androidForWork push maximal test config: %v", err)
-	}
-	return acceptance.ConfiguredM365ProviderBlock(groups + "\n" + roleScopeTags + "\n" + accTestConfig)
-}
-
-func testAccAndroidEnrollmentNotificationsConfig_androidForWorkAllMaximal() string {
-	groups, err := helpers.ParseHCLFile("../../../../../acceptance/terraform_dependancies/device_management/groups.tf")
-	if err != nil {
-		log.Fatalf("Failed to load groups config: %v", err)
-	}
-	roleScopeTags, err := helpers.ParseHCLFile("../../../../../acceptance/terraform_dependancies/device_management/role_scope_tags.tf")
-	if err != nil {
-		log.Fatalf("Failed to load role scope tags config: %v", err)
-	}
-	accTestConfig, err := helpers.ParseHCLFile("tests/terraform/acceptance/resource_androidForWork_all_maximal.tf")
-	if err != nil {
-		log.Fatalf("Failed to load androidForWork all maximal test config: %v", err)
-	}
-	return acceptance.ConfiguredM365ProviderBlock(groups + "\n" + roleScopeTags + "\n" + accTestConfig)
-}
-
-func testAccCheckAndroidEnrollmentNotificationsDestroy(s *terraform.State) error {
-
-	graphClient, err := acceptance.TestGraphClient()
-	if err != nil {
-		return fmt.Errorf("error creating Graph client for CheckDestroy: %v", err)
-	}
-	ctx := context.Background()
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "microsoft365_graph_beta_device_management_device_enrollment_notification" {
-			continue
-		}
-		_, err := graphClient.
-			DeviceManagement().
-			DeviceEnrollmentConfigurations().
-			ByDeviceEnrollmentConfigurationId(rs.Primary.ID).
-			Get(ctx, nil)
-
-		if err != nil {
-			errorInfo := errors.GraphError(ctx, err)
-			if errorInfo.StatusCode == 404 || errorInfo.ErrorCode == "ResourceNotFound" || errorInfo.ErrorCode == "ItemNotFound" {
-				fmt.Printf("DEBUG: Resource %s successfully destroyed (404/NotFound)\n", rs.Primary.ID)
-				continue
-			}
-			return fmt.Errorf("error checking if android enrollment notifications %s was destroyed: %v", rs.Primary.ID, err)
-		}
-		return fmt.Errorf("android enrollment notifications %s still exists", rs.Primary.ID)
-	}
-	return nil
 }
