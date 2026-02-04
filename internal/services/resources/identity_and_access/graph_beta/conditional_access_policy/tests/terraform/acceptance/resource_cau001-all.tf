@@ -14,8 +14,7 @@ resource "random_string" "suffix" {
 
 # Microsoft Rights Management Services
 data "microsoft365_graph_beta_applications_service_principal" "microsoft_rights_management_services" {
-  filter_type  = "display_name"
-  filter_value = "Microsoft Rights Management Services"
+  display_name = "Microsoft Rights Management Services"
 }
 
 # ==============================================================================
@@ -76,7 +75,7 @@ resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy"
 
     applications = {
       include_applications                            = ["All"]
-      exclude_applications                            = [data.microsoft365_graph_beta_applications_service_principal.microsoft_rights_management_services.items[0].app_id]
+      exclude_applications                            = [data.microsoft365_graph_beta_applications_service_principal.microsoft_rights_management_services.app_id]
       include_user_actions                            = []
       include_authentication_context_class_references = []
     }

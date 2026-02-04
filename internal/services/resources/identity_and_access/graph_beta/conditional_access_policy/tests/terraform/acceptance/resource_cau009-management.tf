@@ -14,8 +14,7 @@ resource "random_string" "suffix" {
 
 # Windows Azure Service Management API
 data "microsoft365_graph_beta_applications_service_principal" "windows_azure_service_management_api" {
-  filter_type  = "display_name"
-  filter_value = "Windows Azure Service Management API"
+  display_name = "Windows Azure Service Management API"
 }
 
 # ==============================================================================
@@ -70,7 +69,7 @@ resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy"
     applications = {
       include_applications = [
         "MicrosoftAdminPortals",
-        data.microsoft365_graph_beta_applications_service_principal.windows_azure_service_management_api.items[0].app_id
+        data.microsoft365_graph_beta_applications_service_principal.windows_azure_service_management_api.app_id
       ]
       exclude_applications                            = []
       include_user_actions                            = []

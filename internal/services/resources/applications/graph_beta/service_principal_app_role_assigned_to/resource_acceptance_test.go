@@ -51,6 +51,10 @@ func TestAccResourceServicePrincipalAppRoleAssignedTo_01_ToServicePrincipal(t *t
 				Source:            "hashicorp/random",
 				VersionConstraint: constants.ExternalProviderRandomVersion,
 			},
+			"time": {
+				Source:            "hashicorp/time",
+				VersionConstraint: constants.ExternalProviderTimeVersion,
+			},
 		},
 		Steps: []resource.TestStep{
 			{
