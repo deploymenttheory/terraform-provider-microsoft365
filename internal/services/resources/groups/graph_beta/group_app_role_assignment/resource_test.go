@@ -36,16 +36,6 @@ func setupErrorMockEnvironment() (*mocks.Mocks, *appRoleAssignmentMocks.GroupApp
 	return mockClient, assignmentMock
 }
 
-func testConfigMinimal() string {
-	config, _ := helpers.ParseHCLFile("tests/terraform/unit/resource_minimal.tf")
-	return config
-}
-
-func testConfigMaximal() string {
-	config, _ := helpers.ParseHCLFile("tests/terraform/unit/resource_maximal.tf")
-	return config
-}
-
 // TestUnitGroupAppRoleAssignmentResource_Minimal tests minimal configuration
 func TestUnitResourceGroupAppRoleAssignment_01_Minimal(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
@@ -57,7 +47,10 @@ func TestUnitResourceGroupAppRoleAssignment_01_Minimal(t *testing.T) {
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testConfigMinimal(),
+				Config: func() string {
+					config, _ := helpers.ParseHCLFile("tests/terraform/unit/resource_minimal.tf")
+					return config
+				}(),
 				Check: resource.ComposeTestCheckFunc(
 					check.That(resourceType+".minimal").Key("id").Exists(),
 					check.That(resourceType+".minimal").Key("target_group_id").HasValue("00000000-0000-0000-0000-000000000002"),
@@ -97,7 +90,10 @@ func TestUnitResourceGroupAppRoleAssignment_02_Maximal(t *testing.T) {
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testConfigMaximal(),
+				Config: func() string {
+					config, _ := helpers.ParseHCLFile("tests/terraform/unit/resource_maximal.tf")
+					return config
+				}(),
 				Check: resource.ComposeTestCheckFunc(
 					check.That(resourceType+".maximal").Key("id").Exists(),
 					check.That(resourceType+".maximal").Key("target_group_id").HasValue("00000000-0000-0000-0000-000000000003"),
@@ -137,7 +133,10 @@ func TestUnitResourceGroupAppRoleAssignment_03_Delete(t *testing.T) {
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testConfigMinimal(),
+				Config: func() string {
+					config, _ := helpers.ParseHCLFile("tests/terraform/unit/resource_minimal.tf")
+					return config
+				}(),
 				Check: resource.ComposeTestCheckFunc(
 					check.That(resourceType + ".minimal").Key("id").Exists(),
 				),
@@ -252,7 +251,10 @@ func TestUnitResourceGroupAppRoleAssignment_06_ErrorHandling(t *testing.T) {
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config:      testConfigMinimal(),
+				Config: func() string {
+					config, _ := helpers.ParseHCLFile("tests/terraform/unit/resource_minimal.tf")
+					return config
+				}(),
 				ExpectError: regexp.MustCompile(`Bad Request|400|ApiError`),
 			},
 		},
