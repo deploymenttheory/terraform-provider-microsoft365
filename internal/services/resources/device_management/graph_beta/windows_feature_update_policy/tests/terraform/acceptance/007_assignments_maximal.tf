@@ -54,7 +54,7 @@ resource "time_sleep" "wait_15_seconds" {
 # ==============================================================================
 
 resource "microsoft365_graph_beta_device_management_windows_feature_update_policy" "test_006" {
-  depends_on = [time_sleep.wait_15_seconds]
+  depends_on                                              = [time_sleep.wait_15_seconds]
   display_name                                            = "acc-test-007-assignments-maximal-${random_string.test_suffix.result}"
   description                                             = "Maximal test with multiple assignments"
   feature_update_version                                  = "Windows 11, version 25H2"

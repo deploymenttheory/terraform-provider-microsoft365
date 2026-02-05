@@ -36,7 +36,21 @@ The following client `application` permissions are needed in order to use this {
 
 ## Example Usage
 
-{{ tffile "examples/resources/microsoft365_graph_beta_device_management_windows_feature_update_policy/resource.tf" }}
+### Scenario 1: Make Update Available As Soon As Possible
+
+{{ tffile "examples/resources/microsoft365_graph_beta_device_management_windows_feature_update_policy/make_available_as_soon_as_possible.tf" }}
+
+### Scenario 2: Make Update Available On a Specific Date
+
+{{ tffile "examples/resources/microsoft365_graph_beta_device_management_windows_feature_update_policy/make_available_on_specific_date.tf" }}
+
+### Scenario 3: Make Update Available Gradually (Phased Rollout)
+
+{{ tffile "examples/resources/microsoft365_graph_beta_device_management_windows_feature_update_policy/make_available_gradually.tf" }}
+
+### Scenario 4: Windows Feature Update Policy with Assignments
+
+{{ tffile "examples/resources/microsoft365_graph_beta_device_management_windows_feature_update_policy/with_assignments.tf" }}
 
 {{ .SchemaMarkdown | trimspace }}
 
