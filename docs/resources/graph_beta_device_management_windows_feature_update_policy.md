@@ -36,140 +36,111 @@ The following client `application` permissions are needed in order to use this r
 
 ## Example Usage
 
+### Scenario 1: Make Update Available As Soon As Possible
+
 ```terraform
-resource "microsoft365_graph_beta_device_management_windows_feature_update_policy" "example" {
-  display_name                                            = "Windows 11 22H2 Deployment x"
-  description                                             = "Feature update profile for Windows 11 22H2"
-  feature_update_version                                  = "Windows 11, version 22H2"
-  install_latest_windows10_on_windows11_ineligible_device = true
-  install_feature_updates_optional                        = true
-  role_scope_tag_ids                                      = ["8", "9"]
+# ==============================================================================
+# Make Update Available As Soon As Possible
+# ==============================================================================
+# This example demonstrates how to deploy a Windows feature update immediately
+# without any rollout schedule. The update will be made available to devices
+# as soon as possible.
 
-  // rollout_settings = Make update available gradually
-  rollout_settings = {
-    offer_start_date_time_in_utc = "2025-05-01T00:00:00Z"
-    offer_end_date_time_in_utc   = "2025-06-30T23:59:59Z"
-    offer_interval_in_days       = 7
-  }
-
-  // Optional assignment blocks
-  assignments = [
-    # Assignment targeting a specific group
-    {
-      type     = "groupAssignmentTarget"
-      group_id = "00000000-0000-0000-0000-000000000000"
-    },
-    # Assignment targeting a specific group
-    {
-      type     = "groupAssignmentTarget"
-      group_id = "00000000-0000-0000-0000-000000000000"
-    },
-    # Exclusion group assignments
-    {
-      type     = "exclusionGroupAssignmentTarget"
-      group_id = "00000000-0000-0000-0000-000000000000"
-    },
-    {
-      type     = "exclusionGroupAssignmentTarget"
-      group_id = "00000000-0000-0000-0000-000000000000"
-    }
-  ]
-
-  # Optional timeout block
-  timeouts = {
-    create = "10s"
-    read   = "10s"
-    update = "10s"
-    delete = "10s"
-  }
-
-}
-
-resource "microsoft365_graph_beta_device_management_windows_feature_update_policy" "example_2" {
-  display_name                                            = "Windows 11 22H2 Deployment y"
-  description                                             = "Feature update profile for Windows 11 22H2"
-  feature_update_version                                  = "Windows 11, version 22H2"
-  install_latest_windows10_on_windows11_ineligible_device = true
-  install_feature_updates_optional                        = true
-  role_scope_tag_ids                                      = ["8", "9"]
-
-  // rollout_settings = Make update available on a specific date
-  rollout_settings = {
-    offer_start_date_time_in_utc = "2025-08-01T00:00:00Z"
-  }
-
-  // Optional assignment blocks
-  assignments = [
-    # Assignment targeting a specific group
-    {
-      type     = "groupAssignmentTarget"
-      group_id = "00000000-0000-0000-0000-000000000000"
-    },
-    # Assignment targeting a specific group
-    {
-      type     = "groupAssignmentTarget"
-      group_id = "00000000-0000-0000-0000-000000000000"
-    },
-    # Exclusion group assignments
-    {
-      type     = "exclusionGroupAssignmentTarget"
-      group_id = "00000000-0000-0000-0000-000000000000"
-    },
-    {
-      type     = "exclusionGroupAssignmentTarget"
-      group_id = "00000000-0000-0000-0000-000000000000"
-    }
-  ]
-
-  # Optional timeout block
-  timeouts = {
-    create = "10s"
-    read   = "10s"
-    update = "10s"
-    delete = "10s"
-  }
-}
-
-resource "microsoft365_graph_beta_device_management_windows_feature_update_policy" "example_3" {
-  display_name                                            = "Windows 11 22H2 Deployment z"
-  description                                             = "Feature update profile for Windows 11 22H2"
-  feature_update_version                                  = "Windows 11, version 22H2"
+resource "microsoft365_graph_beta_device_management_windows_feature_update_policy" "immediate" {
+  display_name                                            = "Windows 11 25H2 - Immediate Deployment"
+  feature_update_version                                  = "Windows 11, version 25H2"
+  install_feature_updates_optional                        = false
   install_latest_windows10_on_windows11_ineligible_device = false
+}
+```
+
+### Scenario 2: Make Update Available On a Specific Date
+
+```terraform
+# ==============================================================================
+# Make Update Available On a Specific Date
+# ==============================================================================
+# This example demonstrates how to schedule a Windows feature update to become
+# available on a specific date. The update will not be offered to devices until
+# the specified start date.
+
+resource "microsoft365_graph_beta_device_management_windows_feature_update_policy" "scheduled" {
+  display_name                                            = "Windows 11 25H2 - Scheduled Deployment"
+  feature_update_version                                  = "Windows 11, version 25H2"
+  install_feature_updates_optional                        = false
+  install_latest_windows10_on_windows11_ineligible_device = false
+
+  rollout_settings = {
+    offer_start_date_time_in_utc = "2030-01-13T00:00:00Z"
+  }
+}
+```
+
+### Scenario 3: Make Update Available Gradually (Phased Rollout)
+
+```terraform
+# ==============================================================================
+# Make Update Available Gradually (Phased Rollout)
+# ==============================================================================
+# This example demonstrates how to deploy a Windows feature update gradually
+# over time. The update will be offered to devices in stages, starting on the
+# offer_start_date and completing by the offer_end_date, with devices being
+# offered the update at the specified interval.
+
+resource "microsoft365_graph_beta_device_management_windows_feature_update_policy" "gradual" {
+  display_name                                            = "Windows 11 25H2 - Gradual Deployment"
+  description                                             = "Phased rollout of Windows 11 25H2 feature update"
+  feature_update_version                                  = "Windows 11, version 25H2"
   install_feature_updates_optional                        = true
-  role_scope_tag_ids                                      = ["8", "9"]
+  install_latest_windows10_on_windows11_ineligible_device = true
 
-  // include no rollout_settings block to make Make update available as soon as possible
+  rollout_settings = {
+    offer_start_date_time_in_utc = "2030-01-13T00:00:00Z"
+    offer_end_date_time_in_utc   = "2030-01-14T00:00:00Z"
+    offer_interval_in_days       = 1
+  }
 
-  // Optional assignment blocks
+  role_scope_tag_ids = ["0", "1"]
+}
+```
+
+### Scenario 4: Windows Feature Update Policy with Assignments
+
+```terraform
+# ==============================================================================
+# Windows Feature Update Policy with Assignments
+# ==============================================================================
+# This example demonstrates how to deploy a Windows feature update policy with
+# group-based assignments. It includes both inclusion and exclusion groups.
+
+# Windows Feature Update Policy with multiple assignments
+resource "microsoft365_graph_beta_device_management_windows_feature_update_policy" "with_assignments" {
+  display_name                                            = "Windows 11 25H2 - With Assignments"
+  description                                             = "Feature update deployment with targeted assignments"
+  feature_update_version                                  = "Windows 11, version 25H2"
+  install_feature_updates_optional                        = true
+  install_latest_windows10_on_windows11_ineligible_device = true
+
+  role_scope_tag_ids = ["0", "1"]
+
   assignments = [
-    # Assignment targeting a specific group
     {
       type     = "groupAssignmentTarget"
-      group_id = "00000000-0000-0000-0000-000000000000"
+      group_id = "11111111-1111-1111-1111-111111111111"
     },
-    # Assignment targeting a specific group
     {
       type     = "groupAssignmentTarget"
-      group_id = "00000000-0000-0000-0000-000000000000"
-    },
-    # Exclusion group assignments
-    {
-      type     = "exclusionGroupAssignmentTarget"
-      group_id = "00000000-0000-0000-0000-000000000000"
+      group_id = "22222222-2222-2222-2222-222222222222"
     },
     {
       type     = "exclusionGroupAssignmentTarget"
-      group_id = "00000000-0000-0000-0000-000000000000"
+      group_id = "33333333-3333-3333-3333-333333333333"
+    },
+    {
+      type     = "exclusionGroupAssignmentTarget"
+      group_id = "44444444-4444-4444-4444-444444444444"
     }
   ]
-
-  # Optional timeout block
-  timeouts = {
-    create = "10s"
-    read   = "10s"
-    update = "10s"
-    delete = "10s"
-  }
 }
 ```
 
@@ -216,9 +187,9 @@ Optional:
 
 Optional:
 
-- `offer_end_date_time_in_utc` (String) The UTC offer end date time of the rollout.
-- `offer_interval_in_days` (Number) The number of days between each set of offers. The value must be between 1 and 14.
-- `offer_start_date_time_in_utc` (String) The UTC offer start date time of the rollout. Must be in RFC3339 format (e.g., '2025-05-01T00:00:00Z').
+- `offer_end_date_time_in_utc` (String) The last group availability of the windows feature update. Must be in RFC3339 format (e.g., '2030-01-13T00:00:00Z').
+- `offer_interval_in_days` (Number) The number of days between each set of group offers. The value must be between 1 and 30 and must be equal to or less than the number of days between the 'offer_start_date_time_in_utc' and 'offer_end_date_time_in_utc'.
+- `offer_start_date_time_in_utc` (String) The first group availability of the windows feature update. Must be in RFC3339 format (e.g., '2030-01-13T00:00:00Z').
 
 
 <a id="nestedatt--timeouts"></a>

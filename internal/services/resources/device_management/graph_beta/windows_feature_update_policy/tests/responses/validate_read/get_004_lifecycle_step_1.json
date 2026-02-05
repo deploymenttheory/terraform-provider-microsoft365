@@ -9,9 +9,9 @@
   "installFeatureUpdatesOptional": true,
   "roleScopeTagIds": ["0", "1"],
   "rolloutSettings": {
-    "offerStartDateTimeInUTC": "2025-04-01T00:00:00Z",
-    "offerEndDateTimeInUTC": "2025-05-01T00:00:00Z",
-    "offerIntervalInDays": 7
+    "offerStartDateTimeInUTC": "2030-01-13T00:00:00Z",
+    "offerEndDateTimeInUTC": "2030-01-14T00:00:00Z",
+    "offerIntervalInDays": 1
   },
   "createdDateTime": "2024-01-01T00:00:00Z",
   "lastModifiedDateTime": "2024-01-01T00:00:00Z",

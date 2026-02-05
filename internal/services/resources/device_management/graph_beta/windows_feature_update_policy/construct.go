@@ -17,6 +17,10 @@ import (
 func constructResource(ctx context.Context, data *WindowsFeatureUpdatePolicyResourceModel, forUpdate bool) (graphmodels.WindowsFeatureUpdateProfileable, error) {
 	tflog.Debug(ctx, fmt.Sprintf("Constructing %s resource from model (forUpdate=%v)", ResourceName, forUpdate))
 
+	if err := validateRequest(ctx, data); err != nil {
+		return nil, fmt.Errorf("validation failed: %w", err)
+	}
+
 	requestBody := graphmodels.NewWindowsFeatureUpdateProfile()
 
 	convert.FrameworkToGraphString(data.DisplayName, requestBody.SetDisplayName)
