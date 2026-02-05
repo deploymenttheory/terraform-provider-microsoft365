@@ -35,10 +35,21 @@ resource "microsoft365_graph_beta_groups_group" "acc_test_group_008_3" {
   hard_delete      = true
 }
 
+resource "time_sleep" "wait_15_seconds" {
+  create_duration = "15s"
+
+  depends_on = [
+    microsoft365_graph_beta_groups_group.acc_test_group_008_1,
+    microsoft365_graph_beta_groups_group.acc_test_group_008_2,
+    microsoft365_graph_beta_groups_group.acc_test_group_008_3
+  ]
+}
+
 resource "microsoft365_graph_beta_device_management_windows_feature_update_policy" "test_008" {
-  display_name                                            = "acc-test-windows-feature-update-policy-008-${random_string.test_suffix.result}"
+  depends_on = [time_sleep.wait_15_seconds]
+  display_name                                            = "acc-test-009-assignments-lifecycle-maximal-to-minimal-${random_string.test_suffix.result}"
   description                                             = "Maximal assignments lifecycle test"
-  feature_update_version                                  = "Windows 11, version 24H2"
+  feature_update_version                                  = "Windows 11, version 25H2"
   install_feature_updates_optional                        = true
   install_latest_windows10_on_windows11_ineligible_device = true
 
@@ -48,14 +59,6 @@ resource "microsoft365_graph_beta_device_management_windows_feature_update_polic
     {
       type     = "groupAssignmentTarget"
       group_id = microsoft365_graph_beta_groups_group.acc_test_group_008_1.id
-    },
-    {
-      type     = "groupAssignmentTarget"
-      group_id = microsoft365_graph_beta_groups_group.acc_test_group_008_2.id
-    },
-    {
-      type     = "exclusionGroupAssignmentTarget"
-      group_id = microsoft365_graph_beta_groups_group.acc_test_group_008_3.id
     }
   ]
 }

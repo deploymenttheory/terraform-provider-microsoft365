@@ -90,7 +90,7 @@ func TestUnitResourceWindowsFeatureUpdatePolicy_02_Scenario_Maximal(t *testing.T
 					check.That(graphBetaWindowsFeatureUpdatePolicy.ResourceName+".test_002").Key("install_feature_updates_optional").HasValue("true"),
 					check.That(graphBetaWindowsFeatureUpdatePolicy.ResourceName+".test_002").Key("install_latest_windows10_on_windows11_ineligible_device").HasValue("true"),
 					check.That(graphBetaWindowsFeatureUpdatePolicy.ResourceName+".test_002").Key("role_scope_tag_ids.#").HasValue("2"),
-					check.That(graphBetaWindowsFeatureUpdatePolicy.ResourceName+".test_002").Key("rollout_settings.offer_start_date_time_in_utc").HasValue("2025-04-01T00:00:00Z"),
+					check.That(graphBetaWindowsFeatureUpdatePolicy.ResourceName+".test_002").Key("rollout_settings.offer_start_date_time_in_utc").HasValue("2030-01-13T00:00:00Z"),
 				),
 			},
 			{
