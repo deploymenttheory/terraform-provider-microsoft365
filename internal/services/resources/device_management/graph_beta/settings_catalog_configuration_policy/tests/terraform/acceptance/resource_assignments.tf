@@ -234,6 +234,9 @@ resource "microsoft365_graph_beta_device_management_settings_catalog_configurati
     ]
   }
 
+  depends_on = [
+    time_sleep.wait_for_groups
+  ]
 
   assignments = [
     {

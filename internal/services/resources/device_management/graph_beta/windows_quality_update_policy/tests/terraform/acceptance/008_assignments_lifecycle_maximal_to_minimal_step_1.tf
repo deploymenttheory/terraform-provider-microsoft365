@@ -36,6 +36,16 @@ resource "microsoft365_graph_beta_groups_group" "acc_test_group_008_3" {
   hard_delete      = true
 }
 
+resource "time_sleep" "wait_after_groups" {
+  create_duration = "15s"
+
+  depends_on = [
+    microsoft365_graph_beta_groups_group.acc_test_group_008_1,
+    microsoft365_graph_beta_groups_group.acc_test_group_008_2,
+    microsoft365_graph_beta_groups_group.acc_test_group_008_3,
+  ]
+}
+
 # ==============================================================================
 # Windows Quality Update Policy Resource - Step 1: Maximal Assignments
 # ==============================================================================
@@ -45,9 +55,7 @@ resource "microsoft365_graph_beta_device_management_windows_quality_update_polic
   hotpatch_enabled = false
 
   depends_on = [
-    microsoft365_graph_beta_groups_group.acc_test_group_008_1,
-    microsoft365_graph_beta_groups_group.acc_test_group_008_2,
-    microsoft365_graph_beta_groups_group.acc_test_group_008_3
+    time_sleep.wait_after_groups,
   ]
 
   assignments = [

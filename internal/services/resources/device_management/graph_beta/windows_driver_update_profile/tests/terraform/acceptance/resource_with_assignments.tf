@@ -8,6 +8,10 @@ resource "microsoft365_graph_beta_device_management_windows_driver_update_profil
 
   role_scope_tag_ids = ["0"]
 
+  depends_on = [
+    time_sleep.wait_for_groups
+  ]
+
   assignments = [
     {
       type     = "groupAssignmentTarget"

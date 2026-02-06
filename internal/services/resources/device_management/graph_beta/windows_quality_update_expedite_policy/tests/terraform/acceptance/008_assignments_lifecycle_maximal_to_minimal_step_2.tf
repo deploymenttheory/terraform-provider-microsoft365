@@ -18,6 +18,14 @@ resource "microsoft365_graph_beta_groups_group" "acc_test_group_008_1" {
   hard_delete      = true
 }
 
+resource "time_sleep" "wait_after_groups" {
+  create_duration = "15s"
+
+  depends_on = [
+    microsoft365_graph_beta_groups_group.acc_test_group_008_1,
+  ]
+}
+
 resource "microsoft365_graph_beta_device_management_windows_quality_update_expedite_policy" "test_008" {
   display_name = "acc-test-expedite-policy-008-${random_string.test_suffix.result}"
 
@@ -25,6 +33,10 @@ resource "microsoft365_graph_beta_device_management_windows_quality_update_exped
     quality_update_release   = "2025-12-09T00:00:00Z"
     days_until_forced_reboot = 2
   }
+
+  depends_on = [
+    time_sleep.wait_after_groups,
+  ]
 
   assignments = [
     {

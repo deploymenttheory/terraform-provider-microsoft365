@@ -45,6 +45,17 @@ resource "microsoft365_graph_beta_groups_group" "acc_test_group_006_4" {
   hard_delete      = true
 }
 
+resource "time_sleep" "wait_after_groups" {
+  create_duration = "15s"
+
+  depends_on = [
+    microsoft365_graph_beta_groups_group.acc_test_group_006_1,
+    microsoft365_graph_beta_groups_group.acc_test_group_006_2,
+    microsoft365_graph_beta_groups_group.acc_test_group_006_3,
+    microsoft365_graph_beta_groups_group.acc_test_group_006_4,
+  ]
+}
+
 resource "microsoft365_graph_beta_device_management_windows_quality_update_expedite_policy" "test_006" {
   display_name       = "acc-test-expedite-policy-006-${random_string.test_suffix.result}"
   description        = "Maximal configuration with multiple assignments"
@@ -54,6 +65,10 @@ resource "microsoft365_graph_beta_device_management_windows_quality_update_exped
     quality_update_release   = "2025-11-20T00:00:00Z"
     days_until_forced_reboot = 1
   }
+
+  depends_on = [
+    time_sleep.wait_after_groups,
+  ]
 
   assignments = [
     {

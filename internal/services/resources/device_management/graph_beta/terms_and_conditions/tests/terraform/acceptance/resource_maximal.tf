@@ -36,6 +36,15 @@ resource "microsoft365_graph_beta_groups_group" "acc_test_group_2" {
   }
 }
 
+resource "time_sleep" "wait_after_groups" {
+  create_duration = "15s"
+
+  depends_on = [
+    microsoft365_graph_beta_groups_group.acc_test_group_1,
+    microsoft365_graph_beta_groups_group.acc_test_group_2,
+  ]
+}
+
 resource "microsoft365_graph_beta_device_management_terms_and_conditions" "test" {
   display_name         = "acc-test-terms-and-conditions-maximal"
   description          = "Updated description for acceptance testing"
@@ -59,8 +68,7 @@ resource "microsoft365_graph_beta_device_management_terms_and_conditions" "test"
   ]
 
   depends_on = [
-    microsoft365_graph_beta_groups_group.acc_test_group_1,
-    microsoft365_graph_beta_groups_group.acc_test_group_2
+    time_sleep.wait_after_groups,
   ]
 
   timeouts = {
