@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.44.1-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.44.0-alpha...v0.44.1-alpha) (2026-02-06)
+
+
+### Bug Fixes
+
+* add validation for Windows feature update policy resource constraints ([#2361](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/2361)) ([3d5dca0](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/3d5dca09a52d5d820d4caf19d88c5443294de45f))
+
 ## [0.44.0-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.43.0-alpha...v0.44.0-alpha) (2026-02-03)
 
 
