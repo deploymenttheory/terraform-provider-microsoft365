@@ -1,5 +1,5 @@
 # Acceptance test: Minimal Agent Identity Blueprint Password Credential configuration
-# Full dependency chain: random_string -> users -> agent_identity_blueprint -> password_credential
+# Full dependency chain: random_string -> users -> time_sleep -> agent_identity_blueprint -> password_credential
 
 resource "random_string" "test_id" {
   length  = 8
@@ -29,6 +29,15 @@ resource "microsoft365_graph_beta_users_user" "dependency_user_2" {
   }
 }
 
+resource "time_sleep" "wait_after_users" {
+  create_duration = "15s"
+
+  depends_on = [
+    microsoft365_graph_beta_users_user.dependency_user_1,
+    microsoft365_graph_beta_users_user.dependency_user_2,
+  ]
+}
+
 resource "microsoft365_graph_beta_agents_agent_identity_blueprint" "test_blueprint" {
   display_name = "acc-test-blueprint-pwd-cred-${random_string.test_id.result}"
   description  = "Agent identity blueprint for password credential acceptance test"
@@ -41,6 +50,10 @@ resource "microsoft365_graph_beta_agents_agent_identity_blueprint" "test_bluepri
     microsoft365_graph_beta_users_user.dependency_user_2.id,
   ]
   hard_delete = true
+
+  depends_on = [
+    time_sleep.wait_after_users,
+  ]
 }
 
 resource "microsoft365_graph_beta_agents_agent_identity_blueprint_password_credential" "test_minimal" {
