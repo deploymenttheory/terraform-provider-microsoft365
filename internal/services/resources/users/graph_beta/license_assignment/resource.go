@@ -165,20 +165,21 @@ func (r *UserLicenseAssignmentResource) Schema(ctx context.Context, req resource
 					planmodifiers.RequiresReplaceString(),
 				},
 			},
-			"disabled_plans": schema.SetAttribute{
-				ElementType:         types.StringType,
-				Optional:            true,
-				Computed:            true,
-				MarkdownDescription: "A collection of the unique identifiers for service plans to disable for this license.",
-				Validators: []validator.Set{
-					setvalidator.ValueStringsAre(
-						stringvalidator.RegexMatches(
-							regexp.MustCompile(constants.GuidRegex),
-							"Each disabled plan must be a valid UUID format (xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx)",
-						),
+		"disabled_plans": schema.SetAttribute{
+			ElementType:         types.StringType,
+			Optional:            true,
+			Computed:            true,
+			MarkdownDescription: "A collection of the unique identifiers for service plans to disable for this license.",
+			Validators: []validator.Set{
+				setvalidator.SizeAtLeast(1),
+				setvalidator.ValueStringsAre(
+					stringvalidator.RegexMatches(
+						regexp.MustCompile(constants.GuidRegex),
+						"Each disabled plan must be a valid UUID format (xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx)",
 					),
-				},
+				),
 			},
+		},
 			"timeouts": commonschema.ResourceTimeouts(ctx),
 		},
 	}

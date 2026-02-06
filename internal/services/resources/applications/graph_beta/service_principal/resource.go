@@ -8,8 +8,10 @@ import (
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/client"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
+	planmodifiers "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/plan_modifiers"
 	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/schema"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/validate/attribute"
+	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -208,6 +210,9 @@ func (r *ServicePrincipalResource) Schema(ctx context.Context, req resource.Sche
 				PlanModifiers: []planmodifier.Set{
 					setplanmodifier.UseStateForUnknown(),
 				},
+				Validators: []validator.Set{
+					setvalidator.SizeAtLeast(1),
+				},
 			},
 			"preferred_single_sign_on_mode": schema.StringAttribute{
 				MarkdownDescription: "Specifies the single sign-on mode configured for this application. Microsoft Entra ID uses the preferred single sign-on mode to launch the application from Microsoft 365 or the Microsoft Entra My Apps. The supported values are `password`, `saml`, `notSupported`, and `oidc`.",
@@ -243,12 +248,17 @@ func (r *ServicePrincipalResource) Schema(ctx context.Context, req resource.Sche
 				},
 			},
 			"tags": schema.SetAttribute{
-				MarkdownDescription: "Custom strings that can be used to categorize and identify the service principal. Not nullable.",
-				ElementType:         types.StringType,
-				Optional:            true,
-				Computed:            true,
+				MarkdownDescription: "Custom strings that can be used to categorize and identify the service principal. " +
+					"Note: Microsoft may automatically add system-managed tags in addition to the tags you specify.",
+				ElementType: types.StringType,
+				Optional:    true,
+				Computed:    true,
 				PlanModifiers: []planmodifier.Set{
 					setplanmodifier.UseStateForUnknown(),
+					planmodifiers.AllowSystemGeneratedSetValues(),
+				},
+				Validators: []validator.Set{
+					setvalidator.SizeAtLeast(1),
 				},
 			},
 			"hard_delete": schema.BoolAttribute{
