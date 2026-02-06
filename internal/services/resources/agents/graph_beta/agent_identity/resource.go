@@ -191,12 +191,6 @@ func (r *AgentIdentityResource) Schema(ctx context.Context, req resource.SchemaR
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
-			"tags": schema.SetAttribute{
-				MarkdownDescription: "Custom strings that can be used to categorize and identify the agent identity.",
-				Optional:            true,
-				Computed:            true,
-				ElementType:         types.StringType,
-			},
 			"sponsor_ids": schema.SetAttribute{
 				MarkdownDescription: "The user IDs of the sponsors for the agent identity. At least one sponsor is " +
 					"required when creating an agent identity. Sponsors are users who can approve or oversee the agent identity.",

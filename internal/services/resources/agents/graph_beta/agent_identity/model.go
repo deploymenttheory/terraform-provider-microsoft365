@@ -17,7 +17,6 @@ type AgentIdentityResourceModel struct {
 	CreatedDateTime           types.String   `tfsdk:"created_date_time"`
 	DisabledByMicrosoftStatus types.String   `tfsdk:"disabled_by_microsoft_status"`
 	ServicePrincipalType      types.String   `tfsdk:"service_principal_type"`
-	Tags                      types.Set      `tfsdk:"tags"`
 	SponsorIds                types.Set      `tfsdk:"sponsor_ids"`
 	OwnerIds                  types.Set      `tfsdk:"owner_ids"`
 	HardDelete                types.Bool     `tfsdk:"hard_delete"`

@@ -69,10 +69,6 @@ func constructResource(ctx context.Context, data *AgentIdentityResourceModel, is
 	convert.FrameworkToGraphString(data.DisplayName, requestBody.SetDisplayName)
 	convert.FrameworkToGraphBool(data.AccountEnabled, requestBody.SetAccountEnabled)
 
-	if err := convert.FrameworkToGraphStringSet(ctx, data.Tags, requestBody.SetTags); err != nil {
-		return nil, fmt.Errorf("failed to set tags: %w", err)
-	}
-
 	if err := constructors.DebugLogGraphObject(ctx, fmt.Sprintf("Final JSON to be sent to Graph API for resource %s", ResourceName), requestBody); err != nil {
 		tflog.Error(ctx, "Failed to debug log object", map[string]any{
 			"error": err.Error(),

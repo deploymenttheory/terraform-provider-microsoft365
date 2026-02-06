@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
 )
@@ -125,6 +126,12 @@ func (r *AgentIdentityBlueprintServicePrincipalResource) Schema(ctx context.Cont
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
 				},
+			},
+			"tags": schema.SetAttribute{
+				MarkdownDescription: "Custom strings that can be used to categorize and identify the agent identity blueprint service principal. These tags are inherited by all agent identities created from this blueprint.",
+				Optional:            true,
+				Computed:            true,
+				ElementType:         types.StringType,
 			},
 			"hard_delete": schema.BoolAttribute{
 				MarkdownDescription: "When set to `true`, the resource will be permanently deleted from the Entra ID (hard delete) " +

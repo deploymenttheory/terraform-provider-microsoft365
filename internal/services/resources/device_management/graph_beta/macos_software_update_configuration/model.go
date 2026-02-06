@@ -16,7 +16,6 @@ type MacOSSoftwareUpdateConfigurationResourceModel struct {
 	ConfigDataUpdateBehavior           types.String   `tfsdk:"config_data_update_behavior"`
 	FirmwareUpdateBehavior             types.String   `tfsdk:"firmware_update_behavior"`
 	AllOtherUpdateBehavior             types.String   `tfsdk:"all_other_update_behavior"`
-	UpdateTimeWindowUtcOffsetInMinutes types.Int32    `tfsdk:"update_time_window_utc_offset_in_minutes"`
 	CustomUpdateTimeWindows            types.List     `tfsdk:"custom_update_time_windows"`
 	MaxUserDeferralsCount              types.Int32    `tfsdk:"max_user_deferrals_count"`
 	Priority                           types.String   `tfsdk:"priority"`

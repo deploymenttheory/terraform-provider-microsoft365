@@ -16,6 +16,7 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *AgentIdentityB
 
 	data.ID = convert.GraphToFrameworkString(remoteResource.GetId())
 	data.AppId = convert.GraphToFrameworkString(remoteResource.GetAppId())
+	data.Tags = convert.GraphToFrameworkStringSet(ctx, remoteResource.GetTags())
 
 	tflog.Debug(ctx, fmt.Sprintf("Finished mapping resource %s with id %s", ResourceName, data.ID.ValueString()))
 }

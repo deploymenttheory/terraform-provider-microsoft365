@@ -129,8 +129,8 @@ func TestUnitActionActivateDeviceEsimManagedDevice_04_MultipleDevices(t *testing
 	})
 }
 
-// TestActivateDeviceEsimActionV2_ComanagedOnly tests co-managed devices only
-func TestActivateDeviceEsimActionV2_ComanagedOnly(t *testing.T) {
+// TestUnitActionActivateDeviceEsimManagedDevice_05_ComanagedOnly tests co-managed devices only
+func TestUnitActionActivateDeviceEsimManagedDevice_05_ComanagedOnly(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -179,8 +179,8 @@ func TestUnitActionActivateDeviceEsimManagedDevice_06_IgnorePartialFailures(t *t
 	})
 }
 
-// TestActivateDeviceEsimActionV2_DisableValidation tests validate_device_exists = false
-func TestActivateDeviceEsimActionV2_DisableValidation(t *testing.T) {
+// TestUnitActionActivateDeviceEsimManagedDevice_07_DisableValidation tests validate_device_exists = false
+func TestUnitActionActivateDeviceEsimManagedDevice_07_DisableValidation(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -258,8 +258,8 @@ action "microsoft365_graph_beta_device_management_managed_device_activate_device
 	})
 }
 
-// TestActivateDeviceEsimActionV2_EmptyCarrierURL tests validation for empty carrier URL
-func TestActivateDeviceEsimActionV2_EmptyCarrierURL(t *testing.T) {
+// TestUnitActionActivateDeviceEsimManagedDevice_10_EmptyCarrierURL tests validation for empty carrier URL
+func TestUnitActionActivateDeviceEsimManagedDevice_10_EmptyCarrierURL(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 
 	resource.UnitTest(t, resource.TestCase{
@@ -281,7 +281,7 @@ action "microsoft365_graph_beta_device_management_managed_device_activate_device
   }
 }
 `,
-				ExpectError: regexp.MustCompile(`string length must be at least 1`),
+				ExpectError: regexp.MustCompile(`carrier_url must be a valid HTTP or HTTPS URL`),
 			},
 		},
 	})

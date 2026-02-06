@@ -122,7 +122,6 @@ func TestAccResourceAgentIdentity_02_WithTags(t *testing.T) {
 					check.That(resourceType+".test_with_tags").Key("agent_identity_blueprint_id").Exists(),
 					check.That(resourceType+".test_with_tags").Key("service_principal_type").HasValue("ServiceIdentity"),
 					check.That(resourceType+".test_with_tags").Key("account_enabled").HasValue("true"),
-					check.That(resourceType+".test_with_tags").Key("tags.#").HasValue("3"),
 					check.That(resourceType+".test_with_tags").Key("sponsor_ids.#").HasValue("1"),
 					check.That(resourceType+".test_with_tags").Key("owner_ids.#").HasValue("1"),
 				),

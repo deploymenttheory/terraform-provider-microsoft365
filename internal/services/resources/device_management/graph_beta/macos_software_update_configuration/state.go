@@ -37,7 +37,6 @@ func mapRemoteResourceStateToTerraform(ctx context.Context, data *MacOSSoftwareU
 	data.AllOtherUpdateBehavior = convert.GraphToFrameworkEnum(resource.GetAllOtherUpdateBehavior())
 	data.UpdateScheduleType = convert.GraphToFrameworkEnum(resource.GetUpdateScheduleType())
 	data.Priority = convert.GraphToFrameworkEnum(resource.GetPriority())
-	data.UpdateTimeWindowUtcOffsetInMinutes = convert.GraphToFrameworkInt32(resource.GetUpdateTimeWindowUtcOffsetInMinutes())
 	data.MaxUserDeferralsCount = convert.GraphToFrameworkInt32(resource.GetMaxUserDeferralsCount())
 
 	// Custom update time windows
