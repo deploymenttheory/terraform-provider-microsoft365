@@ -8,7 +8,6 @@ import (
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/client"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
-	planmodifiers "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/plan_modifiers"
 	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/schema"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/validate/attribute"
 	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
@@ -255,7 +254,6 @@ func (r *ServicePrincipalResource) Schema(ctx context.Context, req resource.Sche
 				Computed:    true,
 				PlanModifiers: []planmodifier.Set{
 					setplanmodifier.UseStateForUnknown(),
-					planmodifiers.AllowSystemGeneratedSetValues(),
 				},
 				Validators: []validator.Set{
 					setvalidator.SizeAtLeast(1),
