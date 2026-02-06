@@ -35,8 +35,12 @@ const (
 )
 
 var (
-	_ resource.Resource                = &ServicePrincipalResource{}
-	_ resource.ResourceWithConfigure   = &ServicePrincipalResource{}
+	// Basic resource interface (CRUD operations)
+	_ resource.Resource = &ServicePrincipalResource{}
+
+	// Allows the resource to be configured with the provider client
+	_ resource.ResourceWithConfigure = &ServicePrincipalResource{}
+
 	_ resource.ResourceWithImportState = &ServicePrincipalResource{}
 )
 
