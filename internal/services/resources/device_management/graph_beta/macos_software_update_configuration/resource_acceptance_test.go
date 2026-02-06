@@ -1,297 +1,524 @@
 package graphBetaMacOSSoftwareUpdateConfiguration_test
 
 import (
-	"fmt"
 	"regexp"
 	"testing"
+	"time"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/check"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/destroy"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/testlog"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
+	graphBetaMacOSSoftwareUpdateConfiguration "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_management/graph_beta/macos_software_update_configuration"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/terraform"
 )
 
-func TestAccResourceMacOSSoftwareUpdateConfiguration_01_Complete(t *testing.T) {
+var (
+	// Resource type name from the resource package
+	resourceType = graphBetaMacOSSoftwareUpdateConfiguration.ResourceName
+
+	// testResource is the test resource implementation for macOS software update configurations
+	testResource = graphBetaMacOSSoftwareUpdateConfiguration.MacOSSoftwareUpdateConfigurationTestResource{}
+)
+
+// Helper function to load test configs from acceptance directory
+func loadAcceptanceTestTerraform(filename string) string {
+	config, err := helpers.ParseHCLFile("tests/terraform/acceptance/" + filename)
+	if err != nil {
+		panic("failed to load acceptance config " + filename + ": " + err.Error())
+	}
+	return config
+}
+
+// Test 01: Deploy Minimal Configuration
+func TestAccResourceMacOSSoftwareUpdateConfiguration_01_Minimal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		CheckDestroy: destroy.CheckDestroyedAllFunc(
+			testResource,
+			resourceType,
+			30*time.Second,
+		),
+		ExternalProviders: map[string]resource.ExternalProvider{
+			"random": {
+				Source:            "hashicorp/random",
+				VersionConstraint: constants.ExternalProviderRandomVersion,
+			},
+		},
 		Steps: []resource.TestStep{
-			// Create with minimal configuration
 			{
-				Config: testAccMacOSSoftwareUpdateConfigurationConfig_minimal(),
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Creating minimal macOS software update configuration")
+				},
+				Config: loadAcceptanceTestTerraform("resource_01_minimal.tf"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("microsoft365_graph_beta_device_management_macos_software_update_configuration.test", "id"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_software_update_configuration.test", "display_name", "Test Acceptance macOS Software Update Configuration"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_software_update_configuration.test", "update_schedule_type", "alwaysUpdate"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_software_update_configuration.test", "critical_update_behavior", "installASAP"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_software_update_configuration.test", "config_data_update_behavior", "installASAP"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_software_update_configuration.test", "firmware_update_behavior", "installASAP"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_software_update_configuration.test", "all_other_update_behavior", "installASAP"),
+					func(_ *terraform.State) error {
+						testlog.WaitForConsistency("macOS software update configuration", 10*time.Second)
+						time.Sleep(10 * time.Second)
+						return nil
+					},
+					check.That(resourceType+".test_01_minimal").ExistsInGraph(testResource),
+					check.That(resourceType+".test_01_minimal").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(resourceType+".test_01_minimal").Key("display_name").MatchesRegex(regexp.MustCompile(`^acc-test-01-minimal-[a-z0-9]{8}$`)),
+					check.That(resourceType+".test_01_minimal").Key("update_schedule_type").HasValue("alwaysUpdate"),
+					check.That(resourceType+".test_01_minimal").Key("critical_update_behavior").HasValue("installASAP"),
+					check.That(resourceType+".test_01_minimal").Key("config_data_update_behavior").HasValue("installASAP"),
+					check.That(resourceType+".test_01_minimal").Key("firmware_update_behavior").HasValue("installASAP"),
+					check.That(resourceType+".test_01_minimal").Key("all_other_update_behavior").HasValue("installASAP"),
+					check.That(resourceType+".test_01_minimal").Key("role_scope_tag_ids.#").HasValue("1"),
+					check.That(resourceType+".test_01_minimal").Key("role_scope_tag_ids.0").HasValue("0"),
 				),
 			},
-			// ImportState testing
 			{
-				ResourceName:      "microsoft365_graph_beta_device_management_macos_software_update_configuration.test",
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
-			// Update to maximal configuration
-			{
-				Config: testAccMacOSSoftwareUpdateConfigurationConfig_maximal(),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("microsoft365_graph_beta_device_management_macos_software_update_configuration.test", "id"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_software_update_configuration.test", "display_name", "Test Acceptance macOS Software Update Configuration - Updated"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_software_update_configuration.test", "description", "Updated description for acceptance testing"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_software_update_configuration.test", "update_schedule_type", "updateDuringTimeWindows"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_software_update_configuration.test", "priority", "high"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_software_update_configuration.test", "max_user_deferrals_count", "3"),
-				),
-			},
-			// Update back to minimal configuration
-			{
-				Config: testAccMacOSSoftwareUpdateConfigurationConfig_minimal(),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("microsoft365_graph_beta_device_management_macos_software_update_configuration.test", "id"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_software_update_configuration.test", "display_name", "Test Acceptance macOS Software Update Configuration"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_software_update_configuration.test", "update_schedule_type", "alwaysUpdate"),
-				),
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Importing minimal configuration")
+				},
+				ResourceName:            resourceType + ".test_01_minimal",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"timeouts"},
 			},
 		},
 	})
 }
 
-func TestAccResourceMacOSSoftwareUpdateConfiguration_02_WithAssignments(t *testing.T) {
+// Test 02: Deploy Maximal Configuration
+func TestAccResourceMacOSSoftwareUpdateConfiguration_02_Maximal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		CheckDestroy: destroy.CheckDestroyedAllFunc(
+			testResource,
+			resourceType,
+			30*time.Second,
+		),
+		ExternalProviders: map[string]resource.ExternalProvider{
+			"random": {
+				Source:            "hashicorp/random",
+				VersionConstraint: constants.ExternalProviderRandomVersion,
+			},
+		},
 		Steps: []resource.TestStep{
-			// Create with assignments
 			{
-				Config: testAccMacOSSoftwareUpdateConfigurationConfig_withAssignments(),
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Creating maximal macOS software update configuration")
+				},
+				Config: loadAcceptanceTestTerraform("resource_02_maximal.tf"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("microsoft365_graph_beta_device_management_macos_software_update_configuration.test_assignments", "id"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_software_update_configuration.test_assignments", "display_name", "Test macOS Software Update Configuration with Assignments"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_software_update_configuration.test_assignments", "assignments.#", "1"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_software_update_configuration.test_assignments", "assignments.0.type", "groupAssignmentTarget"),
+					func(_ *terraform.State) error {
+						testlog.WaitForConsistency("macOS software update configuration", 10*time.Second)
+						time.Sleep(10 * time.Second)
+						return nil
+					},
+					check.That(resourceType+".test_02_maximal").ExistsInGraph(testResource),
+					check.That(resourceType+".test_02_maximal").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(resourceType+".test_02_maximal").Key("display_name").MatchesRegex(regexp.MustCompile(`^acc-test-02-maximal-[a-z0-9]{8}$`)),
+					check.That(resourceType+".test_02_maximal").Key("description").HasValue("Maximal software update configuration for acceptance testing with all features"),
+					check.That(resourceType+".test_02_maximal").Key("update_schedule_type").HasValue("updateDuringTimeWindows"),
+					check.That(resourceType+".test_02_maximal").Key("priority").HasValue("high"),
+					check.That(resourceType+".test_02_maximal").Key("max_user_deferrals_count").HasValue("5"),
+					check.That(resourceType+".test_02_maximal").Key("role_scope_tag_ids.#").HasValue("2"),
+					check.That(resourceType+".test_02_maximal").Key("custom_update_time_windows.#").HasValue("2"),
 				),
 			},
+			{
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Importing maximal configuration")
+				},
+				ResourceName:            resourceType + ".test_02_maximal",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"timeouts"},
+			},
 		},
 	})
 }
 
-func TestAccResourceMacOSSoftwareUpdateConfiguration_02_RequiredFields(t *testing.T) {
+// Test 03: Minimal to Maximal in Steps
+func TestAccResourceMacOSSoftwareUpdateConfiguration_03_MinimalToMaximal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		CheckDestroy: destroy.CheckDestroyedAllFunc(
+			testResource,
+			resourceType,
+			30*time.Second,
+		),
+		ExternalProviders: map[string]resource.ExternalProvider{
+			"random": {
+				Source:            "hashicorp/random",
+				VersionConstraint: constants.ExternalProviderRandomVersion,
+			},
+		},
 		Steps: []resource.TestStep{
 			{
-				Config:      testAccMacOSSoftwareUpdateConfigurationConfig_missingDisplayName(),
-				ExpectError: regexp.MustCompile("Missing required argument"),
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Step 1: Creating minimal configuration")
+				},
+				Config: loadAcceptanceTestTerraform("resource_03_minimal_step.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					func(_ *terraform.State) error {
+						testlog.WaitForConsistency("macOS software update configuration", 10*time.Second)
+						time.Sleep(10 * time.Second)
+						return nil
+					},
+					check.That(resourceType+".test_03_progression").ExistsInGraph(testResource),
+					check.That(resourceType+".test_03_progression").Key("update_schedule_type").HasValue("alwaysUpdate"),
+				),
 			},
 			{
-				Config:      testAccMacOSSoftwareUpdateConfigurationConfig_missingUpdateScheduleType(),
-				ExpectError: regexp.MustCompile("Missing required argument"),
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Step 2: Updating to intermediate configuration")
+				},
+				Config: loadAcceptanceTestTerraform("resource_03_intermediate_step.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					func(_ *terraform.State) error {
+						testlog.WaitForConsistency("macOS software update configuration", 10*time.Second)
+						time.Sleep(10 * time.Second)
+						return nil
+					},
+					check.That(resourceType+".test_03_progression").ExistsInGraph(testResource),
+					check.That(resourceType+".test_03_progression").Key("update_schedule_type").HasValue("updateDuringTimeWindows"),
+					check.That(resourceType+".test_03_progression").Key("priority").HasValue("low"),
+					check.That(resourceType+".test_03_progression").Key("custom_update_time_windows.#").HasValue("1"),
+				),
 			},
 			{
-				Config:      testAccMacOSSoftwareUpdateConfigurationConfig_missingCriticalUpdateBehavior(),
-				ExpectError: regexp.MustCompile("Missing required argument"),
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Step 3: Updating to maximal configuration")
+				},
+				Config: loadAcceptanceTestTerraform("resource_03_maximal_step.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					func(_ *terraform.State) error {
+						testlog.WaitForConsistency("macOS software update configuration", 10*time.Second)
+						time.Sleep(10 * time.Second)
+						return nil
+					},
+					check.That(resourceType+".test_03_progression").ExistsInGraph(testResource),
+					check.That(resourceType+".test_03_progression").Key("update_schedule_type").HasValue("updateDuringTimeWindows"),
+					check.That(resourceType+".test_03_progression").Key("priority").HasValue("high"),
+					check.That(resourceType+".test_03_progression").Key("max_user_deferrals_count").HasValue("5"),
+					check.That(resourceType+".test_03_progression").Key("custom_update_time_windows.#").HasValue("2"),
+				),
 			},
 			{
-				Config:      testAccMacOSSoftwareUpdateConfigurationConfig_missingConfigDataUpdateBehavior(),
-				ExpectError: regexp.MustCompile("Missing required argument"),
-			},
-			{
-				Config:      testAccMacOSSoftwareUpdateConfigurationConfig_missingFirmwareUpdateBehavior(),
-				ExpectError: regexp.MustCompile("Missing required argument"),
-			},
-			{
-				Config:      testAccMacOSSoftwareUpdateConfigurationConfig_missingAllOtherUpdateBehavior(),
-				ExpectError: regexp.MustCompile("Missing required argument"),
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Importing maximal configuration")
+				},
+				ResourceName:            resourceType + ".test_03_progression",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"timeouts"},
 			},
 		},
 	})
 }
 
-func TestAccResourceMacOSSoftwareUpdateConfiguration_04_InvalidValues(t *testing.T) {
+// Test 04: Maximal to Minimal in Steps
+func TestAccResourceMacOSSoftwareUpdateConfiguration_04_MaximalToMinimal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		CheckDestroy: destroy.CheckDestroyedAllFunc(
+			testResource,
+			resourceType,
+			30*time.Second,
+		),
+		ExternalProviders: map[string]resource.ExternalProvider{
+			"random": {
+				Source:            "hashicorp/random",
+				VersionConstraint: constants.ExternalProviderRandomVersion,
+			},
+		},
 		Steps: []resource.TestStep{
 			{
-				Config:      testAccMacOSSoftwareUpdateConfigurationConfig_invalidUpdateScheduleType(),
-				ExpectError: regexp.MustCompile("Attribute update_schedule_type value must be one of"),
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Step 1: Creating maximal configuration")
+				},
+				Config: loadAcceptanceTestTerraform("resource_04_maximal_step.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					func(_ *terraform.State) error {
+						testlog.WaitForConsistency("macOS software update configuration", 10*time.Second)
+						time.Sleep(10 * time.Second)
+						return nil
+					},
+					check.That(resourceType+".test_04_regression").ExistsInGraph(testResource),
+					check.That(resourceType+".test_04_regression").Key("update_schedule_type").HasValue("updateDuringTimeWindows"),
+					check.That(resourceType+".test_04_regression").Key("priority").HasValue("high"),
+					check.That(resourceType+".test_04_regression").Key("custom_update_time_windows.#").HasValue("2"),
+				),
 			},
 			{
-				Config:      testAccMacOSSoftwareUpdateConfigurationConfig_invalidPriority(),
-				ExpectError: regexp.MustCompile("Attribute priority value must be one of"),
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Step 2: Updating to intermediate configuration")
+				},
+				Config: loadAcceptanceTestTerraform("resource_04_intermediate_step.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					func(_ *terraform.State) error {
+						testlog.WaitForConsistency("macOS software update configuration", 10*time.Second)
+						time.Sleep(10 * time.Second)
+						return nil
+					},
+					check.That(resourceType+".test_04_regression").ExistsInGraph(testResource),
+					check.That(resourceType+".test_04_regression").Key("update_schedule_type").HasValue("updateDuringTimeWindows"),
+					check.That(resourceType+".test_04_regression").Key("custom_update_time_windows.#").HasValue("1"),
+				),
+			},
+			{
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Step 3: Updating to minimal configuration")
+				},
+				Config: loadAcceptanceTestTerraform("resource_04_minimal_step.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					func(_ *terraform.State) error {
+						testlog.WaitForConsistency("macOS software update configuration", 10*time.Second)
+						time.Sleep(10 * time.Second)
+						return nil
+					},
+					check.That(resourceType+".test_04_regression").ExistsInGraph(testResource),
+					check.That(resourceType+".test_04_regression").Key("update_schedule_type").HasValue("alwaysUpdate"),
+				),
+			},
+			{
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Importing minimal configuration")
+				},
+				ResourceName:            resourceType + ".test_04_regression",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"timeouts"},
 			},
 		},
 	})
 }
 
-func testAccMacOSSoftwareUpdateConfigurationConfig_minimal() string {
-	return `
-resource "microsoft365_graph_beta_device_management_macos_software_update_configuration" "test" {
-  display_name           = "Test Acceptance macOS Software Update Configuration"
-  update_schedule_type   = "alwaysUpdate"
-  critical_update_behavior = "installASAP"
-  config_data_update_behavior = "installASAP"
-  firmware_update_behavior = "installASAP"
-  all_other_update_behavior = "installASAP"
-  update_time_window_utc_offset_in_minutes = 0
-}
-`
-}
-
-func testAccMacOSSoftwareUpdateConfigurationConfig_maximal() string {
-	return `
-resource "microsoft365_graph_beta_device_management_macos_software_update_configuration" "test" {
-  display_name           = "Test Acceptance macOS Software Update Configuration - Updated"
-  description           = "Updated description for acceptance testing"
-  update_schedule_type   = "updateDuringTimeWindows"
-  critical_update_behavior = "installASAP"
-  config_data_update_behavior = "installASAP"
-  firmware_update_behavior = "installASAP"
-  all_other_update_behavior = "installASAP"
-  update_time_window_utc_offset_in_minutes = -480
-  max_user_deferrals_count = 3
-  priority = "high"
-  role_scope_tag_ids = ["0", "1"]
-  
-  custom_update_time_windows = [
-    {
-      start_day = "monday"
-      end_day = "friday"
-      start_time = "02:00:00"
-      end_time = "06:00:00"
-    }
-  ]
-}
-`
-}
-
-func testAccMacOSSoftwareUpdateConfigurationConfig_withAssignments() string {
-	return fmt.Sprintf(`
-data "azuread_group" "test_group" {
-  display_name = "Test Group"
-}
-
-resource "microsoft365_graph_beta_device_management_macos_software_update_configuration" "test_assignments" {
-  display_name           = "Test macOS Software Update Configuration with Assignments"
-  update_schedule_type   = "alwaysUpdate"
-  critical_update_behavior = "installASAP"
-  config_data_update_behavior = "installASAP"
-  firmware_update_behavior = "installASAP"
-  all_other_update_behavior = "installASAP"
-  update_time_window_utc_offset_in_minutes = 0
-
-  assignments = [
-    {
-      type     = "groupAssignmentTarget"
-      group_id = data.azuread_group.test_group.object_id
-    }
-  ]
-}
-`)
+// Test 05: Minimal Resource with Minimal Assignments
+func TestAccResourceMacOSSoftwareUpdateConfiguration_05_MinimalAssignments(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		CheckDestroy: destroy.CheckDestroyedAllFunc(
+			testResource,
+			resourceType,
+			30*time.Second,
+		),
+		ExternalProviders: map[string]resource.ExternalProvider{
+			"random": {
+				Source:            "hashicorp/random",
+				VersionConstraint: constants.ExternalProviderRandomVersion,
+			},
+			"time": {
+				Source:            "hashicorp/time",
+				VersionConstraint: constants.ExternalProviderTimeVersion,
+			},
+		},
+		Steps: []resource.TestStep{
+			{
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Creating configuration with minimal assignments")
+				},
+				Config: loadAcceptanceTestTerraform("resource_05_minimal_assignments.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					func(_ *terraform.State) error {
+						testlog.WaitForConsistency("macOS software update configuration", 10*time.Second)
+						time.Sleep(10 * time.Second)
+						return nil
+					},
+					check.That(resourceType+".test_05_min_assignments").ExistsInGraph(testResource),
+					check.That(resourceType+".test_05_min_assignments").Key("assignments.#").HasValue("1"),
+					check.That(resourceType+".test_05_min_assignments").Key("assignments.0.type").HasValue("groupAssignmentTarget"),
+				),
+			},
+			{
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Importing configuration with minimal assignments")
+				},
+				ResourceName:            resourceType + ".test_05_min_assignments",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"timeouts"},
+			},
+		},
+	})
 }
 
-func testAccMacOSSoftwareUpdateConfigurationConfig_missingDisplayName() string {
-	return `
-resource "microsoft365_graph_beta_device_management_macos_software_update_configuration" "test" {
-  update_schedule_type   = "alwaysUpdate"
-  critical_update_behavior = "installASAP"
-  config_data_update_behavior = "installASAP"
-  firmware_update_behavior = "installASAP"
-  all_other_update_behavior = "installASAP"
-  update_time_window_utc_offset_in_minutes = 0
-}
-`
-}
-
-func testAccMacOSSoftwareUpdateConfigurationConfig_missingUpdateScheduleType() string {
-	return `
-resource "microsoft365_graph_beta_device_management_macos_software_update_configuration" "test" {
-  display_name = "Test Configuration"
-  critical_update_behavior = "installASAP"
-  config_data_update_behavior = "installASAP"
-  firmware_update_behavior = "installASAP"
-  all_other_update_behavior = "installASAP"
-  update_time_window_utc_offset_in_minutes = 0
-}
-`
-}
-
-func testAccMacOSSoftwareUpdateConfigurationConfig_missingCriticalUpdateBehavior() string {
-	return `
-resource "microsoft365_graph_beta_device_management_macos_software_update_configuration" "test" {
-  display_name = "Test Configuration"
-  update_schedule_type = "alwaysUpdate"
-  config_data_update_behavior = "downloadInstallRestart"
-  firmware_update_behavior = "downloadInstallRestart"
-  all_other_update_behavior = "downloadInstallRestart"
-}
-`
-}
-
-func testAccMacOSSoftwareUpdateConfigurationConfig_missingConfigDataUpdateBehavior() string {
-	return `
-resource "microsoft365_graph_beta_device_management_macos_software_update_configuration" "test" {
-  display_name = "Test Configuration"
-  update_schedule_type = "alwaysUpdate"
-  critical_update_behavior = "downloadInstallRestart"
-  firmware_update_behavior = "downloadInstallRestart"
-  all_other_update_behavior = "downloadInstallRestart"
-}
-`
-}
-
-func testAccMacOSSoftwareUpdateConfigurationConfig_missingFirmwareUpdateBehavior() string {
-	return `
-resource "microsoft365_graph_beta_device_management_macos_software_update_configuration" "test" {
-  display_name = "Test Configuration"
-  update_schedule_type = "alwaysUpdate"
-  critical_update_behavior = "downloadInstallRestart"
-  config_data_update_behavior = "downloadInstallRestart"
-  all_other_update_behavior = "downloadInstallRestart"
-}
-`
+// Test 06: Minimal Resource with Maximal Assignments
+func TestAccResourceMacOSSoftwareUpdateConfiguration_06_MaximalAssignments(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		CheckDestroy: destroy.CheckDestroyedAllFunc(
+			testResource,
+			resourceType,
+			30*time.Second,
+		),
+		ExternalProviders: map[string]resource.ExternalProvider{
+			"random": {
+				Source:            "hashicorp/random",
+				VersionConstraint: constants.ExternalProviderRandomVersion,
+			},
+			"time": {
+				Source:            "hashicorp/time",
+				VersionConstraint: constants.ExternalProviderTimeVersion,
+			},
+		},
+		Steps: []resource.TestStep{
+			{
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Creating configuration with maximal assignments")
+				},
+				Config: loadAcceptanceTestTerraform("resource_06_maximal_assignments.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					func(_ *terraform.State) error {
+						testlog.WaitForConsistency("macOS software update configuration", 10*time.Second)
+						time.Sleep(10 * time.Second)
+						return nil
+					},
+					check.That(resourceType+".test_06_max_assignments").ExistsInGraph(testResource),
+					check.That(resourceType+".test_06_max_assignments").Key("assignments.#").HasValue("4"),
+				),
+			},
+			{
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Importing configuration with maximal assignments")
+				},
+				ResourceName:            resourceType + ".test_06_max_assignments",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"timeouts"},
+			},
+		},
+	})
 }
 
-func testAccMacOSSoftwareUpdateConfigurationConfig_missingAllOtherUpdateBehavior() string {
-	return `
-resource "microsoft365_graph_beta_device_management_macos_software_update_configuration" "test" {
-  display_name = "Test Configuration"
-  update_schedule_type = "alwaysUpdate"
-  critical_update_behavior = "downloadInstallRestart"
-  config_data_update_behavior = "downloadInstallRestart"
-  firmware_update_behavior = "downloadInstallRestart"
-}
-`
+// Test 07: Minimal Assignments to Maximal Assignments
+func TestAccResourceMacOSSoftwareUpdateConfiguration_07_MinimalToMaximalAssignments(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		CheckDestroy: destroy.CheckDestroyedAllFunc(
+			testResource,
+			resourceType,
+			30*time.Second,
+		),
+		ExternalProviders: map[string]resource.ExternalProvider{
+			"random": {
+				Source:            "hashicorp/random",
+				VersionConstraint: constants.ExternalProviderRandomVersion,
+			},
+			"time": {
+				Source:            "hashicorp/time",
+				VersionConstraint: constants.ExternalProviderTimeVersion,
+			},
+		},
+		Steps: []resource.TestStep{
+			{
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Step 1: Creating configuration with minimal assignments")
+				},
+				Config: loadAcceptanceTestTerraform("resource_07_minimal_assignments_step.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					func(_ *terraform.State) error {
+						testlog.WaitForConsistency("macOS software update configuration", 10*time.Second)
+						time.Sleep(10 * time.Second)
+						return nil
+					},
+					check.That(resourceType+".test_07_assignments_progression").ExistsInGraph(testResource),
+					check.That(resourceType+".test_07_assignments_progression").Key("assignments.#").HasValue("1"),
+				),
+			},
+			{
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Step 2: Updating to maximal assignments")
+				},
+				Config: loadAcceptanceTestTerraform("resource_07_maximal_assignments_step.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					func(_ *terraform.State) error {
+						testlog.WaitForConsistency("macOS software update configuration", 10*time.Second)
+						time.Sleep(10 * time.Second)
+						return nil
+					},
+					check.That(resourceType+".test_07_assignments_progression").ExistsInGraph(testResource),
+					check.That(resourceType+".test_07_assignments_progression").Key("assignments.#").HasValue("4"),
+				),
+			},
+			{
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Importing configuration with maximal assignments")
+				},
+				ResourceName:            resourceType + ".test_07_assignments_progression",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"timeouts"},
+			},
+		},
+	})
 }
 
-func testAccMacOSSoftwareUpdateConfigurationConfig_invalidUpdateScheduleType() string {
-	return `
-resource "microsoft365_graph_beta_device_management_macos_software_update_configuration" "test" {
-  display_name = "Test Configuration"
-  update_schedule_type = "invalid"
-  critical_update_behavior = "installASAP"
-  config_data_update_behavior = "installASAP"
-  firmware_update_behavior = "installASAP"
-  all_other_update_behavior = "installASAP"
-  update_time_window_utc_offset_in_minutes = 0
-}
-`
-}
-
-func testAccMacOSSoftwareUpdateConfigurationConfig_invalidPriority() string {
-	return `
-resource "microsoft365_graph_beta_device_management_macos_software_update_configuration" "test" {
-  display_name = "Test Configuration"
-  update_schedule_type = "alwaysUpdate"
-  critical_update_behavior = "installASAP"
-  config_data_update_behavior = "installASAP"
-  firmware_update_behavior = "installASAP"
-  all_other_update_behavior = "installASAP"
-  update_time_window_utc_offset_in_minutes = 0
-  priority = "invalid"
-}
-`
+// Test 08: Maximal Assignments to Minimal Assignments
+func TestAccResourceMacOSSoftwareUpdateConfiguration_08_MaximalToMinimalAssignments(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		CheckDestroy: destroy.CheckDestroyedAllFunc(
+			testResource,
+			resourceType,
+			30*time.Second,
+		),
+		ExternalProviders: map[string]resource.ExternalProvider{
+			"random": {
+				Source:            "hashicorp/random",
+				VersionConstraint: constants.ExternalProviderRandomVersion,
+			},
+			"time": {
+				Source:            "hashicorp/time",
+				VersionConstraint: constants.ExternalProviderTimeVersion,
+			},
+		},
+		Steps: []resource.TestStep{
+			{
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Step 1: Creating configuration with maximal assignments")
+				},
+				Config: loadAcceptanceTestTerraform("resource_08_maximal_assignments_step.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					func(_ *terraform.State) error {
+						testlog.WaitForConsistency("macOS software update configuration", 10*time.Second)
+						time.Sleep(10 * time.Second)
+						return nil
+					},
+					check.That(resourceType+".test_08_assignments_regression").ExistsInGraph(testResource),
+					check.That(resourceType+".test_08_assignments_regression").Key("assignments.#").HasValue("4"),
+				),
+			},
+			{
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Step 2: Updating to minimal assignments")
+				},
+				Config: loadAcceptanceTestTerraform("resource_08_minimal_assignments_step.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					func(_ *terraform.State) error {
+						testlog.WaitForConsistency("macOS software update configuration", 10*time.Second)
+						time.Sleep(10 * time.Second)
+						return nil
+					},
+					check.That(resourceType+".test_08_assignments_regression").ExistsInGraph(testResource),
+					check.That(resourceType+".test_08_assignments_regression").Key("assignments.#").HasValue("1"),
+				),
+			},
+			{
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Importing configuration with minimal assignments")
+				},
+				ResourceName:            resourceType + ".test_08_assignments_regression",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"timeouts"},
+			},
+		},
+	})
 }

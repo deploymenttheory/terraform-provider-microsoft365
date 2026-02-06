@@ -299,6 +299,13 @@ func (m *MacOSSoftwareUpdateConfigurationMock) RegisterMocks() {
 	// Dynamic mocks will handle all test cases
 }
 
+// CleanupMockState resets the mock state
+func (m *MacOSSoftwareUpdateConfigurationMock) CleanupMockState() {
+	mockState.Lock()
+	mockState.softwareUpdateConfigurations = make(map[string]map[string]any)
+	mockState.Unlock()
+}
+
 // RegisterErrorMocks registers HTTP mock responses for error scenarios
 func (m *MacOSSoftwareUpdateConfigurationMock) RegisterErrorMocks() {
 	// Register GET for listing software update configurations (needed for uniqueness check)

@@ -19,7 +19,6 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *AgentIdentityR
 	data.DisplayName = convert.GraphToFrameworkString(remoteResource.GetDisplayName())
 	data.AccountEnabled = convert.GraphToFrameworkBool(remoteResource.GetAccountEnabled())
 	data.ServicePrincipalType = convert.GraphToFrameworkString(remoteResource.GetServicePrincipalType())
-	data.Tags = convert.GraphToFrameworkStringSet(ctx, remoteResource.GetTags())
 	data.DisabledByMicrosoftStatus = convert.GraphToFrameworkString(remoteResource.GetDisabledByMicrosoftStatus())
 
 	// Get additional data for agent identity specific fields

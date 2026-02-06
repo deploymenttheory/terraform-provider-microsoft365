@@ -1,328 +1,297 @@
 package graphBetaMacOSSoftwareUpdateConfiguration_test
 
 import (
-	"fmt"
-	"os"
-	"path/filepath"
 	"regexp"
-	"strings"
 	"testing"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/check"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
 	softwareUpdateConfigurationMocks "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_management/graph_beta/macos_software_update_configuration/mocks"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/jarcoal/httpmock"
 )
 
-func setupMockEnvironment() (*softwareUpdateConfigurationMocks.MacOSSoftwareUpdateConfigurationMock, *softwareUpdateConfigurationMocks.MacOSSoftwareUpdateConfigurationMock) {
+func setupMockEnvironment() (*mocks.Mocks, *softwareUpdateConfigurationMocks.MacOSSoftwareUpdateConfigurationMock) {
 	httpmock.Activate()
-	mock := &softwareUpdateConfigurationMocks.MacOSSoftwareUpdateConfigurationMock{}
-	errorMock := &softwareUpdateConfigurationMocks.MacOSSoftwareUpdateConfigurationMock{}
-	return mock, errorMock
+	mockClient := mocks.NewMocks()
+	mockClient.AuthMocks.RegisterMocks()
+	softwareUpdateConfigurationMock := &softwareUpdateConfigurationMocks.MacOSSoftwareUpdateConfigurationMock{}
+	softwareUpdateConfigurationMock.RegisterMocks()
+	return mockClient, softwareUpdateConfigurationMock
 }
 
-func setupTestEnvironment(t *testing.T) {
-	// Set up any test-specific environment variables or configurations here if needed
+func setupErrorMockEnvironment() (*mocks.Mocks, *softwareUpdateConfigurationMocks.MacOSSoftwareUpdateConfigurationMock) {
+	httpmock.Activate()
+	mockClient := mocks.NewMocks()
+	mockClient.AuthMocks.RegisterMocks()
+	softwareUpdateConfigurationMock := &softwareUpdateConfigurationMocks.MacOSSoftwareUpdateConfigurationMock{}
+	softwareUpdateConfigurationMock.RegisterErrorMocks()
+	return mockClient, softwareUpdateConfigurationMock
 }
 
-// testCheckExists is a basic check to ensure the resource exists in the state
-func testCheckExists(resourceName string) resource.TestCheckFunc {
-	return resource.TestCheckResourceAttrSet(resourceName, "id")
-}
-
-// testConfigMinimal returns the minimal configuration for testing
-func testConfigMinimal() string {
-	content, err := os.ReadFile(filepath.Join("mocks", "terraform", "resource_minimal.tf"))
+func loadUnitTestTerraform(filename string) string {
+	config, err := helpers.ParseHCLFile("tests/terraform/unit/" + filename)
 	if err != nil {
-		return ""
+		panic("failed to load unit test config " + filename + ": " + err.Error())
 	}
-	return string(content)
+	return config
 }
 
-// testConfigMaximal returns the maximal configuration for testing
-func testConfigMaximal() string {
-	content, err := os.ReadFile(filepath.Join("mocks", "terraform", "resource_maximal.tf"))
-	if err != nil {
-		return ""
-	}
-	return string(content)
-}
-
-// Helper function to get maximal config with a custom resource name
-func testConfigMaximalWithResourceName(resourceName string) string {
-	// Read the maximal config
-	content, err := os.ReadFile(filepath.Join("mocks", "terraform", "resource_maximal.tf"))
-	if err != nil {
-		return ""
-	}
-
-	// Replace the resource name
-	updated := strings.Replace(string(content), "maximal", resourceName, 1)
-
-	// Fix the display name to match test expectations
-	updated = strings.Replace(updated, "Test Maximal macOS Software Update Configuration - Unique", "Test Maximal macOS Software Update Configuration", 1)
-
-	return updated
-}
-
-// Helper function to get minimal config with a custom resource name
-func testConfigMinimalWithResourceName(resourceName string) string {
-	return fmt.Sprintf(`resource "microsoft365_graph_beta_device_management_macos_software_update_configuration" "%s" {
-  display_name           = "Test Minimal macOS Software Update Configuration"
-  update_schedule_type   = "alwaysUpdate"
-  critical_update_behavior = "installASAP"
-  config_data_update_behavior = "installASAP"
-  firmware_update_behavior = "installASAP"
-  all_other_update_behavior = "installASAP"
-  update_time_window_utc_offset_in_minutes = 0
-  
-  timeouts = {
-    create = "30s"
-    read   = "30s"
-    update = "30s"
-    delete = "30s"
-  }
-}`, resourceName)
-}
-
-// TestUnitMacOSSoftwareUpdateConfigurationResource_Create_Minimal tests the creation of a software update configuration with minimal configuration
 func TestUnitResourceMacOSSoftwareUpdateConfiguration_01_CreateMinimal(t *testing.T) {
-	// Set up mock environment
-	_, _ = setupMockEnvironment()
+	mocks.SetupUnitTestEnvironment(t)
+	_, softwareUpdateConfigurationMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
+	defer softwareUpdateConfigurationMock.CleanupMockState()
 
-	// Set up the test environment
-	setupTestEnvironment(t)
-
-	// Register the mocks
-	mock := &softwareUpdateConfigurationMocks.MacOSSoftwareUpdateConfigurationMock{}
-	mock.RegisterMocks()
-
-	// Run the test
 	resource.UnitTest(t, resource.TestCase{
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testConfigMinimal(),
+				Config: loadUnitTestTerraform("resource_01_minimal.tf"),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckExists("microsoft365_graph_beta_device_management_macos_software_update_configuration.minimal"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_software_update_configuration.minimal", "display_name", "Test Minimal macOS Software Update Configuration - Unique"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_software_update_configuration.minimal", "update_schedule_type", "alwaysUpdate"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_software_update_configuration.minimal", "critical_update_behavior", "installASAP"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_software_update_configuration.minimal", "config_data_update_behavior", "installASAP"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_software_update_configuration.minimal", "firmware_update_behavior", "installASAP"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_software_update_configuration.minimal", "all_other_update_behavior", "installASAP"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_software_update_configuration.minimal", "role_scope_tag_ids.#", "1"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_software_update_configuration.minimal", "role_scope_tag_ids.0", "0"),
+					check.That(resourceType+".test_01_minimal").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(resourceType+".test_01_minimal").Key("display_name").HasValue("Test 01: Minimal macOS Software Update Configuration"),
+					check.That(resourceType+".test_01_minimal").Key("update_schedule_type").HasValue("alwaysUpdate"),
+					check.That(resourceType+".test_01_minimal").Key("critical_update_behavior").HasValue("installASAP"),
+					check.That(resourceType+".test_01_minimal").Key("config_data_update_behavior").HasValue("installASAP"),
+					check.That(resourceType+".test_01_minimal").Key("firmware_update_behavior").HasValue("installASAP"),
+					check.That(resourceType+".test_01_minimal").Key("all_other_update_behavior").HasValue("installASAP"),
+					check.That(resourceType+".test_01_minimal").Key("role_scope_tag_ids.#").HasValue("1"),
+					check.That(resourceType+".test_01_minimal").Key("role_scope_tag_ids.0").HasValue("0"),
 				),
 			},
 		},
 	})
 }
 
-// TestUnitMacOSSoftwareUpdateConfigurationResource_Create_Maximal tests the creation of a software update configuration with maximal configuration
 func TestUnitResourceMacOSSoftwareUpdateConfiguration_02_CreateMaximal(t *testing.T) {
-	// Set up mock environment
-	_, _ = setupMockEnvironment()
+	mocks.SetupUnitTestEnvironment(t)
+	_, softwareUpdateConfigurationMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
+	defer softwareUpdateConfigurationMock.CleanupMockState()
 
-	// Set up the test environment
-	setupTestEnvironment(t)
-
-	// Register the mocks
-	mock := &softwareUpdateConfigurationMocks.MacOSSoftwareUpdateConfigurationMock{}
-	mock.RegisterMocks()
-
-	// Run the test
 	resource.UnitTest(t, resource.TestCase{
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testConfigMaximal(),
+				Config: loadUnitTestTerraform("resource_02_maximal.tf"),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckExists("microsoft365_graph_beta_device_management_macos_software_update_configuration.maximal"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_software_update_configuration.maximal", "display_name", "Test Maximal macOS Software Update Configuration - Unique"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_software_update_configuration.maximal", "description", "Maximal software update configuration for testing with all features"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_software_update_configuration.maximal", "update_schedule_type", "updateDuringTimeWindows"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_software_update_configuration.maximal", "critical_update_behavior", "installASAP"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_software_update_configuration.maximal", "update_time_window_utc_offset_in_minutes", "-480"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_software_update_configuration.maximal", "max_user_deferrals_count", "5"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_software_update_configuration.maximal", "priority", "high"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_software_update_configuration.maximal", "role_scope_tag_ids.#", "2"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_software_update_configuration.maximal", "role_scope_tag_ids.0", "0"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_software_update_configuration.maximal", "role_scope_tag_ids.1", "1"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_software_update_configuration.maximal", "custom_update_time_windows.#", "2"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_software_update_configuration.maximal", "assignments.0.type", "groupAssignmentTarget"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_software_update_configuration.maximal", "assignments.0.group_id", "44444444-4444-4444-4444-444444444444"),
+					check.That(resourceType+".test_02_maximal").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(resourceType+".test_02_maximal").Key("display_name").HasValue("Test 02: Maximal macOS Software Update Configuration"),
+					check.That(resourceType+".test_02_maximal").Key("description").HasValue("Maximal software update configuration for testing with all features"),
+					check.That(resourceType+".test_02_maximal").Key("update_schedule_type").HasValue("updateDuringTimeWindows"),
+					check.That(resourceType+".test_02_maximal").Key("critical_update_behavior").HasValue("installASAP"),
+					check.That(resourceType+".test_02_maximal").Key("max_user_deferrals_count").HasValue("5"),
+					check.That(resourceType+".test_02_maximal").Key("priority").HasValue("high"),
+					check.That(resourceType+".test_02_maximal").Key("role_scope_tag_ids.#").HasValue("2"),
+					check.That(resourceType+".test_02_maximal").Key("role_scope_tag_ids.0").HasValue("0"),
+					check.That(resourceType+".test_02_maximal").Key("role_scope_tag_ids.1").HasValue("1"),
+					check.That(resourceType+".test_02_maximal").Key("custom_update_time_windows.#").HasValue("2"),
 				),
 			},
 		},
 	})
 }
 
-// TestUnitMacOSSoftwareUpdateConfigurationResource_Update_MinimalToMaximal tests updating from minimal to maximal configuration
 func TestUnitResourceMacOSSoftwareUpdateConfiguration_03_UpdateMinimalToMaximal(t *testing.T) {
-	// Set up mock environment
-	_, _ = setupMockEnvironment()
+	mocks.SetupUnitTestEnvironment(t)
+	_, softwareUpdateConfigurationMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
+	defer softwareUpdateConfigurationMock.CleanupMockState()
 
-	// Set up the test environment
-	setupTestEnvironment(t)
-
-	// Register the mocks
-	mock := &softwareUpdateConfigurationMocks.MacOSSoftwareUpdateConfigurationMock{}
-	mock.RegisterMocks()
-
-	// Run the test
 	resource.UnitTest(t, resource.TestCase{
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
-			// Start with minimal configuration
 			{
-				Config: testConfigMinimalWithResourceName("test"),
+				Config: loadUnitTestTerraform("resource_03_minimal_step.tf"),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckExists("microsoft365_graph_beta_device_management_macos_software_update_configuration.test"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_software_update_configuration.test", "display_name", "Test Minimal macOS Software Update Configuration"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_software_update_configuration.test", "update_schedule_type", "alwaysUpdate"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_software_update_configuration.test", "role_scope_tag_ids.#", "1"),
+					check.That(resourceType+".test_03_progression").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(resourceType+".test_03_progression").Key("display_name").HasValue("Test 03: Progression macOS Software Update Configuration"),
+					check.That(resourceType+".test_03_progression").Key("update_schedule_type").HasValue("alwaysUpdate"),
+					check.That(resourceType+".test_03_progression").Key("role_scope_tag_ids.#").HasValue("1"),
 				),
 			},
-			// Update to maximal configuration (with the same resource name)
 			{
-				Config: testConfigMaximalWithResourceName("test"),
+				Config: loadUnitTestTerraform("resource_03_intermediate_step.tf"),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckExists("microsoft365_graph_beta_device_management_macos_software_update_configuration.test"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_software_update_configuration.test", "display_name", "Test Maximal macOS Software Update Configuration"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_software_update_configuration.test", "update_schedule_type", "updateDuringTimeWindows"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_software_update_configuration.test", "description", "Maximal software update configuration for testing with all features"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_software_update_configuration.test", "priority", "high"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_software_update_configuration.test", "role_scope_tag_ids.#", "2"),
+					check.That(resourceType+".test_03_progression").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(resourceType+".test_03_progression").Key("display_name").HasValue("Test 03: Progression macOS Software Update Configuration"),
+					check.That(resourceType+".test_03_progression").Key("update_schedule_type").HasValue("updateDuringTimeWindows"),
+					check.That(resourceType+".test_03_progression").Key("priority").HasValue("low"),
+				),
+			},
+			{
+				Config: loadUnitTestTerraform("resource_03_maximal_step.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(resourceType+".test_03_progression").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(resourceType+".test_03_progression").Key("display_name").HasValue("Test 03: Progression macOS Software Update Configuration"),
+					check.That(resourceType+".test_03_progression").Key("update_schedule_type").HasValue("updateDuringTimeWindows"),
+					check.That(resourceType+".test_03_progression").Key("description").HasValue("Maximal software update configuration with all features"),
+					check.That(resourceType+".test_03_progression").Key("priority").HasValue("high"),
+					check.That(resourceType+".test_03_progression").Key("role_scope_tag_ids.#").HasValue("2"),
 				),
 			},
 		},
 	})
 }
 
-// TestUnitMacOSSoftwareUpdateConfigurationResource_Update_MaximalToMinimal tests updating from maximal to minimal configuration
 func TestUnitResourceMacOSSoftwareUpdateConfiguration_04_UpdateMaximalToMinimal(t *testing.T) {
-	// Set up mock environment
-	_, _ = setupMockEnvironment()
+	mocks.SetupUnitTestEnvironment(t)
+	_, softwareUpdateConfigurationMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
+	defer softwareUpdateConfigurationMock.CleanupMockState()
 
-	// Set up the test environment
-	setupTestEnvironment(t)
-
-	// Register the mocks
-	mock := &softwareUpdateConfigurationMocks.MacOSSoftwareUpdateConfigurationMock{}
-	mock.RegisterMocks()
-
-	// Run the test
 	resource.UnitTest(t, resource.TestCase{
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
-			// Start with maximal configuration
 			{
-				Config: testConfigMaximalWithResourceName("test"),
+				Config: loadUnitTestTerraform("resource_04_maximal_step.tf"),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckExists("microsoft365_graph_beta_device_management_macos_software_update_configuration.test"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_software_update_configuration.test", "display_name", "Test Maximal macOS Software Update Configuration"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_software_update_configuration.test", "update_schedule_type", "updateDuringTimeWindows"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_software_update_configuration.test", "priority", "high"),
+					check.That(resourceType+".test_04_regression").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(resourceType+".test_04_regression").Key("display_name").HasValue("Test 04: Regression macOS Software Update Configuration"),
+					check.That(resourceType+".test_04_regression").Key("update_schedule_type").HasValue("updateDuringTimeWindows"),
+					check.That(resourceType+".test_04_regression").Key("priority").HasValue("high"),
 				),
 			},
-			// Update to minimal configuration (with the same resource name)
 			{
-				Config: testConfigMinimalWithResourceName("test"),
+				Config: loadUnitTestTerraform("resource_04_intermediate_step.tf"),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckExists("microsoft365_graph_beta_device_management_macos_software_update_configuration.test"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_software_update_configuration.test", "display_name", "Test Minimal macOS Software Update Configuration"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_software_update_configuration.test", "update_schedule_type", "alwaysUpdate"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_software_update_configuration.test", "role_scope_tag_ids.#", "1"),
+					check.That(resourceType+".test_04_regression").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(resourceType+".test_04_regression").Key("display_name").HasValue("Test 04: Regression macOS Software Update Configuration"),
+					check.That(resourceType+".test_04_regression").Key("update_schedule_type").HasValue("updateDuringTimeWindows"),
+				),
+			},
+			{
+				Config: loadUnitTestTerraform("resource_04_minimal_step.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(resourceType+".test_04_regression").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(resourceType+".test_04_regression").Key("display_name").HasValue("Test 04: Regression macOS Software Update Configuration"),
+					check.That(resourceType+".test_04_regression").Key("update_schedule_type").HasValue("alwaysUpdate"),
+					check.That(resourceType+".test_04_regression").Key("role_scope_tag_ids.#").HasValue("1"),
 				),
 			},
 		},
 	})
 }
 
-// TestUnitMacOSSoftwareUpdateConfigurationResource_Delete_Minimal tests deleting a software update configuration with minimal configuration
-func TestUnitResourceMacOSSoftwareUpdateConfiguration_05_DeleteMinimal(t *testing.T) {
-	// Set up mock environment
-	_, _ = setupMockEnvironment()
+func TestUnitResourceMacOSSoftwareUpdateConfiguration_05_MinimalAssignments(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
+	_, softwareUpdateConfigurationMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
+	defer softwareUpdateConfigurationMock.CleanupMockState()
 
-	// Set up the test environment
-	setupTestEnvironment(t)
-
-	// Register the mocks
-	mock := &softwareUpdateConfigurationMocks.MacOSSoftwareUpdateConfigurationMock{}
-	mock.RegisterMocks()
-
-	// Run the test
 	resource.UnitTest(t, resource.TestCase{
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testConfigMinimal(),
+				Config: loadUnitTestTerraform("resource_05_minimal_assignments.tf"),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckExists("microsoft365_graph_beta_device_management_macos_software_update_configuration.minimal"),
+					check.That(resourceType+".test_05_min_assignments").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(resourceType+".test_05_min_assignments").Key("display_name").HasValue("Test 05: Minimal Assignments macOS Software Update Configuration"),
+					check.That(resourceType+".test_05_min_assignments").Key("assignments.#").HasValue("1"),
 				),
 			},
 		},
 	})
 }
 
-// TestUnitMacOSSoftwareUpdateConfigurationResource_Delete_Maximal tests deleting a software update configuration with maximal configuration
-func TestUnitResourceMacOSSoftwareUpdateConfiguration_06_DeleteMaximal(t *testing.T) {
-	// Set up mock environment
-	_, _ = setupMockEnvironment()
+func TestUnitResourceMacOSSoftwareUpdateConfiguration_06_MaximalAssignments(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
+	_, softwareUpdateConfigurationMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
+	defer softwareUpdateConfigurationMock.CleanupMockState()
 
-	// Set up the test environment
-	setupTestEnvironment(t)
-
-	// Register the mocks
-	mock := &softwareUpdateConfigurationMocks.MacOSSoftwareUpdateConfigurationMock{}
-	mock.RegisterMocks()
-
-	// Run the test
 	resource.UnitTest(t, resource.TestCase{
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testConfigMaximal(),
+				Config: loadUnitTestTerraform("resource_06_maximal_assignments.tf"),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckExists("microsoft365_graph_beta_device_management_macos_software_update_configuration.maximal"),
+					check.That(resourceType+".test_06_max_assignments").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(resourceType+".test_06_max_assignments").Key("display_name").HasValue("Test 06: Maximal Assignments macOS Software Update Configuration"),
+					check.That(resourceType+".test_06_max_assignments").Key("assignments.#").HasValue("4"),
 				),
 			},
 		},
 	})
 }
 
-// TestUnitMacOSSoftwareUpdateConfigurationResource_Import tests importing a software update configuration
-func TestUnitResourceMacOSSoftwareUpdateConfiguration_07_Import(t *testing.T) {
-	// Set up mock environment
-	_, _ = setupMockEnvironment()
+func TestUnitResourceMacOSSoftwareUpdateConfiguration_07_MinimalToMaximalAssignments(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
+	_, softwareUpdateConfigurationMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
+	defer softwareUpdateConfigurationMock.CleanupMockState()
 
-	// Set up the test environment
-	setupTestEnvironment(t)
-
-	// Register the mocks
-	mock := &softwareUpdateConfigurationMocks.MacOSSoftwareUpdateConfigurationMock{}
-	mock.RegisterMocks()
-
-	// Run the test
 	resource.UnitTest(t, resource.TestCase{
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testConfigMinimal(),
+				Config: loadUnitTestTerraform("resource_07_minimal_assignments_step.tf"),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckExists("microsoft365_graph_beta_device_management_macos_software_update_configuration.minimal"),
+					check.That(resourceType+".test_07_assignments_progression").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(resourceType+".test_07_assignments_progression").Key("display_name").HasValue("Test 07: Assignments Progression macOS Software Update Configuration"),
+					check.That(resourceType+".test_07_assignments_progression").Key("assignments.#").HasValue("1"),
 				),
 			},
 			{
-				ResourceName:      "microsoft365_graph_beta_device_management_macos_software_update_configuration.minimal",
+				Config: loadUnitTestTerraform("resource_07_maximal_assignments_step.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(resourceType+".test_07_assignments_progression").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(resourceType+".test_07_assignments_progression").Key("display_name").HasValue("Test 07: Assignments Progression macOS Software Update Configuration"),
+					check.That(resourceType+".test_07_assignments_progression").Key("assignments.#").HasValue("4"),
+				),
+			},
+		},
+	})
+}
+
+func TestUnitResourceMacOSSoftwareUpdateConfiguration_08_MaximalToMinimalAssignments(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
+	_, softwareUpdateConfigurationMock := setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+	defer softwareUpdateConfigurationMock.CleanupMockState()
+
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: loadUnitTestTerraform("resource_08_maximal_assignments_step.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(resourceType+".test_08_assignments_regression").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(resourceType+".test_08_assignments_regression").Key("display_name").HasValue("Test 08: Assignments Regression macOS Software Update Configuration"),
+					check.That(resourceType+".test_08_assignments_regression").Key("assignments.#").HasValue("4"),
+				),
+			},
+			{
+				Config: loadUnitTestTerraform("resource_08_minimal_assignments_step.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(resourceType+".test_08_assignments_regression").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(resourceType+".test_08_assignments_regression").Key("display_name").HasValue("Test 08: Assignments Regression macOS Software Update Configuration"),
+					check.That(resourceType+".test_08_assignments_regression").Key("assignments.#").HasValue("1"),
+				),
+			},
+		},
+	})
+}
+
+func TestUnitResourceMacOSSoftwareUpdateConfiguration_09_Import(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
+	_, softwareUpdateConfigurationMock := setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+	defer softwareUpdateConfigurationMock.CleanupMockState()
+
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: loadUnitTestTerraform("resource_01_minimal.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(resourceType+".test_01_minimal").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+				),
+			},
+			{
+				ResourceName:      resourceType + ".test_01_minimal",
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
@@ -330,24 +299,17 @@ func TestUnitResourceMacOSSoftwareUpdateConfiguration_07_Import(t *testing.T) {
 	})
 }
 
-// TestUnitMacOSSoftwareUpdateConfigurationResource_Error tests error handling
-func TestUnitResourceMacOSSoftwareUpdateConfiguration_08_Error(t *testing.T) {
-	// Set up mock environment
-	_, errorMock := setupMockEnvironment()
+func TestUnitResourceMacOSSoftwareUpdateConfiguration_10_Error(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
+	_, softwareUpdateConfigurationMock := setupErrorMockEnvironment()
 	defer httpmock.DeactivateAndReset()
+	defer softwareUpdateConfigurationMock.CleanupMockState()
 
-	// Set up the test environment
-	setupTestEnvironment(t)
-
-	// Register the error mocks
-	errorMock.RegisterErrorMocks()
-
-	// Run the test
 	resource.UnitTest(t, resource.TestCase{
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config:      testConfigMinimal(),
+				Config:      loadUnitTestTerraform("resource_01_minimal.tf"),
 				ExpectError: regexp.MustCompile("Validation error: Invalid display name"),
 			},
 		},

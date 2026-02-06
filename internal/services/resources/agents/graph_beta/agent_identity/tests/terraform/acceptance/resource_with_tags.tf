@@ -44,6 +44,7 @@ resource "microsoft365_graph_beta_agents_agent_identity_blueprint" "test" {
 
 resource "microsoft365_graph_beta_agents_agent_identity_blueprint_service_principal" "test" {
   app_id      = microsoft365_graph_beta_agents_agent_identity_blueprint.test.app_id
+  tags        = ["terraform", "acceptance-test", "with-tags"]
   hard_delete = true
 }
 
@@ -57,7 +58,6 @@ resource "microsoft365_graph_beta_agents_agent_identity" "test_with_tags" {
   account_enabled             = true
   sponsor_ids                 = [microsoft365_graph_beta_users_user.dependency_user_1.id]
   owner_ids                   = [microsoft365_graph_beta_users_user.dependency_user_1.id]
-  tags                        = ["terraform", "acceptance-test", "with-tags"]
   hard_delete                 = true
 
   depends_on = [

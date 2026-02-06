@@ -93,7 +93,6 @@ func constructResource(ctx context.Context, data *MacOSSoftwareUpdateConfigurati
 		requestBody.SetCustomUpdateTimeWindows(timeWindows)
 	}
 
-	convert.FrameworkToGraphInt32(data.UpdateTimeWindowUtcOffsetInMinutes, requestBody.SetUpdateTimeWindowUtcOffsetInMinutes)
 	convert.FrameworkToGraphInt32(data.MaxUserDeferralsCount, requestBody.SetMaxUserDeferralsCount)
 
 	if err := convert.FrameworkToGraphEnum(
