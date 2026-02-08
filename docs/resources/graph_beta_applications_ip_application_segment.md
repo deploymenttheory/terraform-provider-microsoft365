@@ -47,7 +47,7 @@ This example demonstrates a minimal configuration targeting a single IP address.
 # This example demonstrates the minimal configuration for an IP application segment
 # targeting a single IP address.
 
-resource "microsoft365_graph_beta_applications_ip_application_segment" "minimal_ip" {
+resource "microsoft365_graph_beta_applications_on_premises_ip_application_segment" "minimal_ip" {
   application_object_id = "00000000-0000-0000-0000-000000000000"
   destination_host      = "192.168.1.100"
   destination_type      = "ipAddress"
@@ -65,7 +65,7 @@ This example shows how to configure an application segment for an entire IP subn
 # This example demonstrates how to configure an application segment for an entire
 # IP subnet using CIDR notation.
 
-resource "microsoft365_graph_beta_applications_ip_application_segment" "ip_range" {
+resource "microsoft365_graph_beta_applications_on_premises_ip_application_segment" "ip_range" {
   application_object_id = "00000000-0000-0000-0000-000000000000"
   destination_host      = "192.168.1.0/24"
   destination_type      = "ipRangeCidr"
@@ -90,7 +90,7 @@ This example demonstrates configuration using a specific hostname with multiple 
 # This example demonstrates how to configure an application segment using a specific
 # hostname with multiple ports.
 
-resource "microsoft365_graph_beta_applications_ip_application_segment" "fqdn" {
+resource "microsoft365_graph_beta_applications_on_premises_ip_application_segment" "fqdn" {
   application_object_id = "00000000-0000-0000-0000-000000000000"
   destination_host      = "app.contoso.com"
   destination_type      = "fqdn"
@@ -115,7 +115,7 @@ This example shows how to use a wildcard domain to match all subdomains.
 # This example demonstrates how to configure an application segment using a wildcard
 # domain to match all subdomains.
 
-resource "microsoft365_graph_beta_applications_ip_application_segment" "dns_suffix" {
+resource "microsoft365_graph_beta_applications_on_premises_ip_application_segment" "dns_suffix" {
   application_object_id = "00000000-0000-0000-0000-000000000000"
   destination_host      = "*.internal.contoso.com"
   destination_type      = "dnsSuffix"
@@ -145,7 +145,7 @@ This example demonstrates configuration using UDP protocol, useful for applicati
 # This example demonstrates how to configure an application segment using UDP protocol
 # instead of TCP, useful for applications like VoIP or video conferencing.
 
-resource "microsoft365_graph_beta_applications_ip_application_segment" "udp_app" {
+resource "microsoft365_graph_beta_applications_on_premises_ip_application_segment" "udp_app" {
   application_object_id = "00000000-0000-0000-0000-000000000000"
   destination_host      = "voip.contoso.com"
   destination_type      = "fqdn"

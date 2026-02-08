@@ -2,7 +2,7 @@
 # This example demonstrates how to configure an application segment using a wildcard
 # domain to match all subdomains.
 
-resource "microsoft365_graph_beta_applications_ip_application_segment" "dns_suffix" {
+resource "microsoft365_graph_beta_applications_on_premises_ip_application_segment" "dns_suffix" {
   application_object_id = "00000000-0000-0000-0000-000000000000"
   destination_host      = "*.internal.contoso.com"
   destination_type      = "dnsSuffix"

@@ -74,6 +74,8 @@ func (r *SettingsCatalogResource) Create(ctx context.Context, req resource.Creat
 
 	object.ID = types.StringValue(*baseResource.GetId())
 
+	tflog.Debug(ctx, fmt.Sprintf("Successfully created %s with ID: %s", ResourceName, object.ID.ValueString()))
+
 	requestAssignment, err := constructAssignment(ctx, &object)
 	if err != nil {
 		resp.Diagnostics.AddError(
@@ -151,10 +153,10 @@ func (r *SettingsCatalogResource) Read(ctx context.Context, req resource.ReadReq
 		return
 	}
 
+	tflog.Debug(ctx, fmt.Sprintf("Reading %s with ID: %s", ResourceName, object.ID.ValueString()))
+
 	// Create a copy of the current state to use as "plan" for secret value preservation
 	currentState := object
-
-	tflog.Debug(ctx, fmt.Sprintf("Reading %s with ID: %s", ResourceName, object.ID.ValueString()))
 
 	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Read, ReadTimeout*time.Second, &resp.Diagnostics)
 	if cancel == nil {
