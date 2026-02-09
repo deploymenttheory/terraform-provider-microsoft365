@@ -10,6 +10,7 @@ import (
 	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/schema"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/resource/identityschema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
@@ -26,10 +27,20 @@ const (
 )
 
 var (
-	_ resource.Resource                = &AndroidManagedMobileAppResource{}
-	_ resource.ResourceWithConfigure   = &AndroidManagedMobileAppResource{}
+	// Basic resource interface (CRUD operations)
+	_ resource.Resource = &AndroidManagedMobileAppResource{}
+
+	// Allows the resource to be configured with the provider client
+	_ resource.ResourceWithConfigure = &AndroidManagedMobileAppResource{}
+
+	// Enables import functionality
 	_ resource.ResourceWithImportState = &AndroidManagedMobileAppResource{}
-	_ resource.ResourceWithModifyPlan  = &AndroidManagedMobileAppResource{}
+
+	// Enables plan modification/diff suppression
+	_ resource.ResourceWithModifyPlan = &AndroidManagedMobileAppResource{}
+
+	// Enables identity schema for list resource support
+	_ resource.ResourceWithIdentity = &AndroidManagedMobileAppResource{}
 )
 
 func NewAndroidManagedMobileAppResource() resource.Resource {
@@ -75,6 +86,17 @@ func (r *AndroidManagedMobileAppResource) ImportState(ctx context.Context, req r
 
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("managed_app_protection_id"), managedAppProtectionId)...)
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("id"), appId)...)
+}
+
+// IdentitySchema defines the identity schema for this resource, used by list operations to uniquely identify instances
+func (r *AndroidManagedMobileAppResource) IdentitySchema(ctx context.Context, req resource.IdentitySchemaRequest, resp *resource.IdentitySchemaResponse) {
+	resp.IdentitySchema = identityschema.Schema{
+		Attributes: map[string]identityschema.Attribute{
+			"id": identityschema.StringAttribute{
+				RequiredForImport: true,
+			},
+		},
+	}
 }
 
 func (r *AndroidManagedMobileAppResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {

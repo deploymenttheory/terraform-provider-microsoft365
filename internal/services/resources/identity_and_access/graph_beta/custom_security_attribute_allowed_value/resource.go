@@ -10,6 +10,7 @@ import (
 	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/schema"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/resource/identityschema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
@@ -32,6 +33,9 @@ var (
 
 	// Enables import functionality
 	_ resource.ResourceWithImportState = &CustomSecurityAttributeAllowedValueResource{}
+
+	// Enables identity schema for list resource support
+	_ resource.ResourceWithIdentity = &CustomSecurityAttributeAllowedValueResource{}
 )
 
 func NewCustomSecurityAttributeAllowedValueResource() resource.Resource {
@@ -78,6 +82,17 @@ func (r *CustomSecurityAttributeAllowedValueResource) ImportState(ctx context.Co
 
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("custom_security_attribute_definition_id"), idParts[0])...)
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("id"), idParts[1])...)
+}
+
+// IdentitySchema defines the identity schema for this resource, used by list operations to uniquely identify instances
+func (r *CustomSecurityAttributeAllowedValueResource) IdentitySchema(ctx context.Context, req resource.IdentitySchemaRequest, resp *resource.IdentitySchemaResponse) {
+	resp.IdentitySchema = identityschema.Schema{
+		Attributes: map[string]identityschema.Attribute{
+			"id": identityschema.StringAttribute{
+				RequiredForImport: true,
+			},
+		},
+	}
 }
 
 func (r *CustomSecurityAttributeAllowedValueResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {

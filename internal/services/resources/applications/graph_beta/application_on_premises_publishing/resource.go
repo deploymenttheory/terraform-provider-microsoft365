@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/resource/identityschema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/boolplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
@@ -28,9 +29,17 @@ const (
 )
 
 var (
-	_ resource.Resource                = &OnPremisesPublishingResource{}
-	_ resource.ResourceWithConfigure   = &OnPremisesPublishingResource{}
+	// Basic resource interface (CRUD operations)
+	_ resource.Resource = &OnPremisesPublishingResource{}
+
+	// Allows the resource to be configured with the provider client
+	_ resource.ResourceWithConfigure = &OnPremisesPublishingResource{}
+
+	// Enables import functionality
 	_ resource.ResourceWithImportState = &OnPremisesPublishingResource{}
+
+	// Enables identity schema for list resource support
+	_ resource.ResourceWithIdentity = &OnPremisesPublishingResource{}
 )
 
 func NewOnPremisesPublishingResource() resource.Resource {
@@ -64,6 +73,17 @@ func (r *OnPremisesPublishingResource) Configure(ctx context.Context, req resour
 
 func (r *OnPremisesPublishingResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resource.ImportStatePassthroughID(ctx, path.Root("application_id"), req, resp)
+}
+
+// IdentitySchema defines the identity schema for this resource, used by list operations to uniquely identify instances
+func (r *OnPremisesPublishingResource) IdentitySchema(ctx context.Context, req resource.IdentitySchemaRequest, resp *resource.IdentitySchemaResponse) {
+	resp.IdentitySchema = identityschema.Schema{
+		Attributes: map[string]identityschema.Attribute{
+			"id": identityschema.StringAttribute{
+				RequiredForImport: true,
+			},
+		},
+	}
 }
 
 func (r *OnPremisesPublishingResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
