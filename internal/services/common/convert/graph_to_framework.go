@@ -397,3 +397,50 @@ func GraphToFrameworkBitmaskEnumAsSet[T fmt.Stringer](ctx context.Context, value
 
 	return set
 }
+
+// GraphToFrameworkStringSetFiltered converts a Graph SDK string slice to a Terraform Framework set,
+// filtering to only include values that exist in the configured set.
+// This is useful for attributes where the system may add additional values beyond what the user configured.
+//
+// If configuredSet is null or unknown, returns all remote values (no filtering).
+// If configuredSet is empty, returns all remote values (no filtering).
+// Otherwise, only returns remote values that exist in configuredSet.
+//
+// Example use case: Service principal tags where Microsoft adds system-generated tags
+// like "WindowsAzureActiveDirectoryIntegratedApp" alongside user-specified tags.
+func GraphToFrameworkStringSetFiltered(ctx context.Context, remoteValues []string, configuredSet types.Set) types.Set {
+	// If no remote values, return null set
+	if len(remoteValues) == 0 {
+		return types.SetNull(types.StringType)
+	}
+
+	// If configured set is null, unknown, or empty, return all remote values (no filtering needed)
+	if configuredSet.IsNull() || configuredSet.IsUnknown() || len(configuredSet.Elements()) == 0 {
+		return GraphToFrameworkStringSet(ctx, remoteValues)
+	}
+
+	// Build a map of configured values for quick lookup
+	configuredMap := make(map[string]bool)
+	for _, elem := range configuredSet.Elements() {
+		if strVal, ok := elem.(types.String); ok && !strVal.IsNull() {
+			configuredMap[strVal.ValueString()] = true
+		}
+	}
+
+	// Filter remote values to only include those in the configured set
+	filteredValues := make([]string, 0)
+	for _, remoteValue := range remoteValues {
+		if configuredMap[remoteValue] {
+			filteredValues = append(filteredValues, remoteValue)
+		}
+	}
+
+	tflog.Debug(ctx, "Filtered remote values to match configured values", map[string]any{
+		"remote_count":     len(remoteValues),
+		"configured_count": len(configuredSet.Elements()),
+		"filtered_count":   len(filteredValues),
+	})
+
+	// Return the filtered set
+	return GraphToFrameworkStringSet(ctx, filteredValues)
+}

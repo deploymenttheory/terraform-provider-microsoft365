@@ -96,6 +96,10 @@ func TestAccResourceSettingsCatalogConfigurationPolicy_03_Assignments(t *testing
 				Source:            "hashicorp/random",
 				VersionConstraint: constants.ExternalProviderRandomVersion,
 			},
+			"time": {
+				Source:            "hashicorp/time",
+				VersionConstraint: constants.ExternalProviderTimeVersion,
+			},
 		},
 		CheckDestroy: func(s *terraform.State) error {
 			t.Log("=== DESTROY CHECK TRIGGERED ===")

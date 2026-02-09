@@ -231,6 +231,10 @@ func TestAccResourceWindowsQualityUpdateExpeditePolicy_05_AssignmentsMinimal(t *
 				Source:            "hashicorp/random",
 				VersionConstraint: constants.ExternalProviderRandomVersion,
 			},
+			"time": {
+				Source:            "hashicorp/time",
+				VersionConstraint: constants.ExternalProviderTimeVersion,
+			},
 		},
 		CheckDestroy: destroy.CheckDestroyedTypesFunc(
 			60*time.Second,
@@ -281,6 +285,10 @@ func TestAccResourceWindowsQualityUpdateExpeditePolicy_06_AssignmentsMaximal(t *
 			"random": {
 				Source:            "hashicorp/random",
 				VersionConstraint: constants.ExternalProviderRandomVersion,
+			},
+			"time": {
+				Source:            "hashicorp/time",
+				VersionConstraint: constants.ExternalProviderTimeVersion,
 			},
 		},
 		CheckDestroy: destroy.CheckDestroyedTypesFunc(
@@ -334,6 +342,10 @@ func TestAccResourceWindowsQualityUpdateExpeditePolicy_07_AssignmentsLifecycle_M
 			"random": {
 				Source:            "hashicorp/random",
 				VersionConstraint: constants.ExternalProviderRandomVersion,
+			},
+			"time": {
+				Source:            "hashicorp/time",
+				VersionConstraint: constants.ExternalProviderTimeVersion,
 			},
 		},
 		CheckDestroy: destroy.CheckDestroyedTypesFunc(
@@ -403,6 +415,10 @@ func TestAccResourceWindowsQualityUpdateExpeditePolicy_08_AssignmentsLifecycle_M
 			"random": {
 				Source:            "hashicorp/random",
 				VersionConstraint: constants.ExternalProviderRandomVersion,
+			},
+			"time": {
+				Source:            "hashicorp/time",
+				VersionConstraint: constants.ExternalProviderTimeVersion,
 			},
 		},
 		CheckDestroy: destroy.CheckDestroyedTypesFunc(

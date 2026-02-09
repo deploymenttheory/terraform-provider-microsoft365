@@ -41,7 +41,11 @@ func MapRemoteStateToTerraform(ctx context.Context, data ServicePrincipalResourc
 
 	// Map collection fields
 	data.ServicePrincipalNames = convert.GraphToFrameworkStringSet(ctx, remoteResource.GetServicePrincipalNames())
-	data.Tags = convert.GraphToFrameworkStringSet(ctx, remoteResource.GetTags())
+
+	// Filter tags to only include configured values (excludes system-generated tags)
+	// This prevents drift when Microsoft adds system tags like "WindowsAzureActiveDirectoryIntegratedApp"
+	data.Tags = convert.GraphToFrameworkStringSetFiltered(ctx, remoteResource.GetTags(), data.Tags)
+
 	data.NotificationEmailAddresses = convert.GraphToFrameworkStringSet(ctx, remoteResource.GetNotificationEmailAddresses())
 
 	tflog.Debug(ctx, fmt.Sprintf("Finished mapping %s remote state to Terraform state", ResourceName))

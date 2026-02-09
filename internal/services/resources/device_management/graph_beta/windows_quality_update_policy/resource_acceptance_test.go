@@ -283,6 +283,10 @@ func TestAccResourceWindowsQualityUpdatePolicy_06_AssignmentsMaximal(t *testing.
 				Source:            "hashicorp/random",
 				VersionConstraint: constants.ExternalProviderRandomVersion,
 			},
+			"time": {
+				Source:            "hashicorp/time",
+				VersionConstraint: constants.ExternalProviderTimeVersion,
+			},
 		},
 		CheckDestroy: destroy.CheckDestroyedTypesFunc(
 			30*time.Second,
@@ -327,6 +331,10 @@ func TestAccResourceWindowsQualityUpdatePolicy_07_AssignmentsLifecycle_MinimalTo
 			"random": {
 				Source:            "hashicorp/random",
 				VersionConstraint: constants.ExternalProviderRandomVersion,
+			},
+			"time": {
+				Source:            "hashicorp/time",
+				VersionConstraint: constants.ExternalProviderTimeVersion,
 			},
 		},
 		CheckDestroy: destroy.CheckDestroyedTypesFunc(
@@ -380,6 +388,10 @@ func TestAccResourceWindowsQualityUpdatePolicy_08_AssignmentsLifecycle_MaximalTo
 			"random": {
 				Source:            "hashicorp/random",
 				VersionConstraint: constants.ExternalProviderRandomVersion,
+			},
+			"time": {
+				Source:            "hashicorp/time",
+				VersionConstraint: constants.ExternalProviderTimeVersion,
 			},
 		},
 		CheckDestroy: destroy.CheckDestroyedTypesFunc(

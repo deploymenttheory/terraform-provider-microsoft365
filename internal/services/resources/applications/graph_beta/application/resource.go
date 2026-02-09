@@ -191,35 +191,39 @@ func (r *ApplicationResource) Schema(ctx context.Context, req resource.SchemaReq
 					),
 				},
 			},
-			"identifier_uris": schema.SetAttribute{
-				MarkdownDescription: "Also known as App ID URI, this value is set when an application is used as a resource app. The identifierUris acts as the prefix for the scopes you reference in your API's code, and it must be globally unique across Microsoft Entra ID. For more information on valid identifierUris patterns and best practices, see Microsoft Entra application registration security best practices. Not nullable. Supports `$filter` (`eq`, `ne`, `ge`, `le`, `startsWith`).",
-				Optional:            true,
-				Computed:            true,
-				ElementType:         types.StringType,
-				PlanModifiers: []planmodifier.Set{
-					setplanmodifier.UseStateForUnknown(),
-				},
+		"identifier_uris": schema.SetAttribute{
+			MarkdownDescription: "Also known as App ID URI, this value is set when an application is used as a resource app. The identifierUris acts as the prefix for the scopes you reference in your API's code, and it must be globally unique across Microsoft Entra ID. For more information on valid identifierUris patterns and best practices, see Microsoft Entra application registration security best practices. Not nullable. Supports `$filter` (`eq`, `ne`, `ge`, `le`, `startsWith`).",
+			Optional:            true,
+			Computed:            true,
+			ElementType:         types.StringType,
+			PlanModifiers: []planmodifier.Set{
+				setplanmodifier.UseStateForUnknown(),
 			},
-			"group_membership_claims": schema.SetAttribute{
-				MarkdownDescription: "Configures the groups claim issued in a user or OAuth 2.0 access token that the application expects. To set this attribute, use one of the following string values: `None`, `SecurityGroup` (for security groups and Microsoft Entra roles), `All` (this gets all security groups, distribution groups, and Microsoft Entra directory roles that the signed-in user is a member of).",
-				Optional:            true,
-				Computed:            true,
-				ElementType:         types.StringType,
-				PlanModifiers: []planmodifier.Set{
-					setplanmodifier.UseStateForUnknown(),
-				},
-				Validators: []validator.Set{
-					setvalidator.ValueStringsAre(
-						stringvalidator.OneOf(
-							"None",
-							"SecurityGroup",
-							"DirectoryRole",
-							"ApplicationGroup",
-							"All",
-						),
+			Validators: []validator.Set{
+				setvalidator.SizeAtLeast(1),
+			},
+		},
+		"group_membership_claims": schema.SetAttribute{
+			MarkdownDescription: "Configures the groups claim issued in a user or OAuth 2.0 access token that the application expects. To set this attribute, use one of the following string values: `None`, `SecurityGroup` (for security groups and Microsoft Entra roles), `All` (this gets all security groups, distribution groups, and Microsoft Entra directory roles that the signed-in user is a member of).",
+			Optional:            true,
+			Computed:            true,
+			ElementType:         types.StringType,
+			PlanModifiers: []planmodifier.Set{
+				setplanmodifier.UseStateForUnknown(),
+			},
+			Validators: []validator.Set{
+				setvalidator.SizeAtLeast(1),
+				setvalidator.ValueStringsAre(
+					stringvalidator.OneOf(
+						"None",
+						"SecurityGroup",
+						"DirectoryRole",
+						"ApplicationGroup",
+						"All",
 					),
-				},
+				),
 			},
+		},
 			"notes": schema.StringAttribute{
 				MarkdownDescription: "Notes relevant for the management of the application.",
 				Optional:            true,
@@ -254,15 +258,18 @@ func (r *ApplicationResource) Schema(ctx context.Context, req resource.SchemaReq
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
-			"tags": schema.SetAttribute{
-				MarkdownDescription: "Custom strings that can be used to categorize and identify the application. Not nullable. Strings added here also appear in the tags property of any associated service principals. Supports `$filter` (`eq`, `not`, `ge`, `le`, `startsWith`) and `$search`.",
-				Optional:            true,
-				Computed:            true,
-				ElementType:         types.StringType,
-				PlanModifiers: []planmodifier.Set{
-					setplanmodifier.UseStateForUnknown(),
-				},
+		"tags": schema.SetAttribute{
+			MarkdownDescription: "Custom strings that can be used to categorize and identify the application. Not nullable. Strings added here also appear in the tags property of any associated service principals. Supports `$filter` (`eq`, `not`, `ge`, `le`, `startsWith`) and `$search`.",
+			Optional:            true,
+			Computed:            true,
+			ElementType:         types.StringType,
+			PlanModifiers: []planmodifier.Set{
+				setplanmodifier.UseStateForUnknown(),
 			},
+			Validators: []validator.Set{
+				setvalidator.SizeAtLeast(1),
+			},
+		},
 			"disabled_by_microsoft_status": schema.StringAttribute{
 				MarkdownDescription: "Specifies whether Microsoft has disabled the registered application. The possible values are: null (default value), `NotDisabled`, and `DisabledDueToViolationOfServicesAgreement` (reasons may include suspicious, abusive, or malicious activity, or a violation of the Microsoft Services Agreement). Supports `$filter` (`eq`, `ne`, `not`). Read-only.",
 				Computed:            true,
@@ -304,25 +311,29 @@ func (r *ApplicationResource) Schema(ctx context.Context, req resource.SchemaReq
 						Optional:            true,
 						Computed:            true,
 					},
-					"known_client_applications": schema.SetAttribute{
-						MarkdownDescription: "Used for bundling consent if you have a solution that contains two parts: a client app and a custom web API app. If you set the appID of the client app to this value, the user only consents once to the client app. Microsoft Entra ID knows that consenting to the client means implicitly consenting to the web API and automatically provisions service principals for both APIs at the same time. Both the client and the web API app must be registered in the same tenant.",
-						Optional:            true,
-						Computed:            true,
-						ElementType:         types.StringType,
-						Validators: []validator.Set{
-							setvalidator.ValueStringsAre(
-								stringvalidator.RegexMatches(
-									regexp.MustCompile(constants.GuidRegex),
-									"must be a valid GUID in the format 00000000-0000-0000-0000-000000000000",
-								),
+				"known_client_applications": schema.SetAttribute{
+					MarkdownDescription: "Used for bundling consent if you have a solution that contains two parts: a client app and a custom web API app. If you set the appID of the client app to this value, the user only consents once to the client app. Microsoft Entra ID knows that consenting to the client means implicitly consenting to the web API and automatically provisions service principals for both APIs at the same time. Both the client and the web API app must be registered in the same tenant.",
+					Optional:            true,
+					Computed:            true,
+					ElementType:         types.StringType,
+					Validators: []validator.Set{
+						setvalidator.SizeAtLeast(1),
+						setvalidator.ValueStringsAre(
+							stringvalidator.RegexMatches(
+								regexp.MustCompile(constants.GuidRegex),
+								"must be a valid GUID in the format 00000000-0000-0000-0000-000000000000",
 							),
-						},
+						),
 					},
-					"oauth2_permission_scopes": schema.SetNestedAttribute{
-						MarkdownDescription: "The definition of the delegated permissions exposed by the web API represented by this application registration. These delegated permissions may be requested by a client application, and may be granted by users or administrators during consent. Delegated permissions are sometimes referred to as OAuth 2.0 scopes.",
-						Optional:            true,
-						Computed:            true,
-						NestedObject: schema.NestedAttributeObject{
+				},
+				"oauth2_permission_scopes": schema.SetNestedAttribute{
+					MarkdownDescription: "The definition of the delegated permissions exposed by the web API represented by this application registration. These delegated permissions may be requested by a client application, and may be granted by users or administrators during consent. Delegated permissions are sometimes referred to as OAuth 2.0 scopes.",
+					Optional:            true,
+					Computed:            true,
+					Validators: []validator.Set{
+						setvalidator.SizeAtLeast(1),
+					},
+					NestedObject: schema.NestedAttributeObject{
 							Attributes: map[string]schema.Attribute{
 								"id": schema.StringAttribute{
 									MarkdownDescription: "Unique scope permission identifier inside the oauth2PermissionScopes collection. Required.",
@@ -380,11 +391,14 @@ func (r *ApplicationResource) Schema(ctx context.Context, req resource.SchemaReq
 							},
 						},
 					},
-					"pre_authorized_applications": schema.SetNestedAttribute{
-						MarkdownDescription: "Lists the client applications that are preauthorized with the specified delegated permissions to access this application's APIs. Users aren't required to consent to any preauthorized application (for the permissions specified). However, any other permissions not listed in preAuthorizedApplications (requested through incremental consent for example) will require user consent.",
-						Optional:            true,
-						Computed:            true,
-						NestedObject: schema.NestedAttributeObject{
+				"pre_authorized_applications": schema.SetNestedAttribute{
+					MarkdownDescription: "Lists the client applications that are preauthorized with the specified delegated permissions to access this application's APIs. Users aren't required to consent to any preauthorized application (for the permissions specified). However, any other permissions not listed in preAuthorizedApplications (requested through incremental consent for example) will require user consent.",
+					Optional:            true,
+					Computed:            true,
+					Validators: []validator.Set{
+						setvalidator.SizeAtLeast(1),
+					},
+					NestedObject: schema.NestedAttributeObject{
 							Attributes: map[string]schema.Attribute{
 								"app_id": schema.StringAttribute{
 									MarkdownDescription: "The unique identifier for the client application.",
@@ -423,14 +437,17 @@ func (r *ApplicationResource) Schema(ctx context.Context, req resource.SchemaReq
 					},
 				},
 			},
-			"app_roles": schema.SetNestedAttribute{
-				MarkdownDescription: "The collection of roles defined for the application. With app role assignments, these roles can be assigned to users, groups, or service principals associated with other applications. Not nullable.",
-				Optional:            true,
-				Computed:            true,
-				PlanModifiers: []planmodifier.Set{
-					setplanmodifier.UseStateForUnknown(),
-				},
-				NestedObject: schema.NestedAttributeObject{
+		"app_roles": schema.SetNestedAttribute{
+			MarkdownDescription: "The collection of roles defined for the application. With app role assignments, these roles can be assigned to users, groups, or service principals associated with other applications. Not nullable.",
+			Optional:            true,
+			Computed:            true,
+			PlanModifiers: []planmodifier.Set{
+				setplanmodifier.UseStateForUnknown(),
+			},
+			Validators: []validator.Set{
+				setvalidator.SizeAtLeast(1),
+			},
+			NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"id": schema.StringAttribute{
 							MarkdownDescription: "Unique role identifier inside the appRoles collection. When creating a new app role, a new GUID identifier must be provided. Required.",
@@ -554,30 +571,39 @@ func (r *ApplicationResource) Schema(ctx context.Context, req resource.SchemaReq
 					objectplanmodifier.UseStateForUnknown(),
 				},
 				Attributes: map[string]schema.Attribute{
-					"access_token": schema.SetNestedAttribute{
-						MarkdownDescription: "The optional claims returned in the JWT access token.",
-						Optional:            true,
-						Computed:            true,
-						NestedObject: schema.NestedAttributeObject{
-							Attributes: optionalClaimAttributes(),
-						},
+				"access_token": schema.SetNestedAttribute{
+					MarkdownDescription: "The optional claims returned in the JWT access token.",
+					Optional:            true,
+					Computed:            true,
+					Validators: []validator.Set{
+						setvalidator.SizeAtLeast(1),
 					},
-					"id_token": schema.SetNestedAttribute{
-						MarkdownDescription: "The optional claims returned in the JWT ID token.",
-						Optional:            true,
-						Computed:            true,
-						NestedObject: schema.NestedAttributeObject{
-							Attributes: optionalClaimAttributes(),
-						},
+					NestedObject: schema.NestedAttributeObject{
+						Attributes: optionalClaimAttributes(),
 					},
-					"saml2_token": schema.SetNestedAttribute{
-						MarkdownDescription: "The optional claims returned in the SAML token.",
-						Optional:            true,
-						Computed:            true,
-						NestedObject: schema.NestedAttributeObject{
-							Attributes: optionalClaimAttributes(),
-						},
+				},
+				"id_token": schema.SetNestedAttribute{
+					MarkdownDescription: "The optional claims returned in the JWT ID token.",
+					Optional:            true,
+					Computed:            true,
+					Validators: []validator.Set{
+						setvalidator.SizeAtLeast(1),
 					},
+					NestedObject: schema.NestedAttributeObject{
+						Attributes: optionalClaimAttributes(),
+					},
+				},
+				"saml2_token": schema.SetNestedAttribute{
+					MarkdownDescription: "The optional claims returned in the SAML token.",
+					Optional:            true,
+					Computed:            true,
+					Validators: []validator.Set{
+						setvalidator.SizeAtLeast(1),
+					},
+					NestedObject: schema.NestedAttributeObject{
+						Attributes: optionalClaimAttributes(),
+					},
+				},
 				},
 			},
 			"parental_control_settings": schema.SingleNestedAttribute{
@@ -588,20 +614,21 @@ func (r *ApplicationResource) Schema(ctx context.Context, req resource.SchemaReq
 					objectplanmodifier.UseStateForUnknown(),
 				},
 				Attributes: map[string]schema.Attribute{
-					"countries_blocked_for_minors": schema.SetAttribute{
-						MarkdownDescription: "Specifies the two-letter ISO country codes. Access to the application will be blocked for minors from the countries specified in this list.",
-						Optional:            true,
-						Computed:            true,
-						ElementType:         types.StringType,
-						Validators: []validator.Set{
-							setvalidator.ValueStringsAre(
-								stringvalidator.RegexMatches(
-									regexp.MustCompile(`^[A-Z]{2}$`),
-									"must be a two-letter ISO country code",
-								),
+				"countries_blocked_for_minors": schema.SetAttribute{
+					MarkdownDescription: "Specifies the two-letter ISO country codes. Access to the application will be blocked for minors from the countries specified in this list.",
+					Optional:            true,
+					Computed:            true,
+					ElementType:         types.StringType,
+					Validators: []validator.Set{
+						setvalidator.SizeAtLeast(1),
+						setvalidator.ValueStringsAre(
+							stringvalidator.RegexMatches(
+								regexp.MustCompile(`^[A-Z]{2}$`),
+								"must be a two-letter ISO country code",
 							),
-						},
+						),
 					},
+				},
 					"legal_age_group_rule": schema.StringAttribute{
 						MarkdownDescription: "Specifies the legal age group rule that applies to users of the app. Can be set to one of the following values: `Allow`, `RequireConsentForPrivacyServices`, `RequireConsentForMinors`, `RequireConsentForKids`, `BlockMinors`.",
 						Optional:            true,
@@ -632,61 +659,63 @@ func (r *ApplicationResource) Schema(ctx context.Context, req resource.SchemaReq
 						Computed:            true,
 						ElementType:         types.StringType,
 						Validators: []validator.Set{
+							setvalidator.SizeAtLeast(1),
 							setvalidator.SizeAtMost(256),
 						},
 					},
 				},
 			},
-			"required_resource_access": schema.SetNestedAttribute{
-				MarkdownDescription: "Specifies the resources that the application needs to access. This property also specifies the set of delegated permissions and application roles that it needs for each of those resources. This configuration of access to the required resources drives the consent experience. No more than 50 resource services (APIs) can be configured. Beginning mid-October 2021, the total number of required permissions must not exceed 400. For more information, see Limits on requested permissions per app. Not nullable. Supports `$filter` (`eq`, `not`, `ge`, `le`).",
-				Optional:            true,
-				Computed:            true,
-				PlanModifiers: []planmodifier.Set{
-					setplanmodifier.UseStateForUnknown(),
-				},
-				NestedObject: schema.NestedAttributeObject{
-					Attributes: map[string]schema.Attribute{
-						"resource_app_id": schema.StringAttribute{
-							MarkdownDescription: "The unique identifier for the resource that the application requires access to. This should be equal to the appId declared on the target resource application. Required.",
-							Required:            true,
-							Validators: []validator.String{
-								stringvalidator.RegexMatches(
-									regexp.MustCompile(constants.GuidRegex),
-									"must be a valid GUID in the format 00000000-0000-0000-0000-000000000000",
-								),
-							},
+		"required_resource_access": schema.SetNestedAttribute{
+			MarkdownDescription: "Specifies the resources that the application needs to access. This property also specifies the set of delegated permissions and application roles that it needs for each of those resources. This configuration of access to the required resources drives the consent experience. No more than 50 resource services (APIs) can be configured. Beginning mid-October 2021, the total number of required permissions must not exceed 400. For more information, see Limits on requested permissions per app. Not nullable. Supports `$filter` (`eq`, `not`, `ge`, `le`).",
+			Optional:            true,
+			Computed:            true,
+			PlanModifiers: []planmodifier.Set{
+				setplanmodifier.UseStateForUnknown(),
+			},
+			NestedObject: schema.NestedAttributeObject{
+				Attributes: map[string]schema.Attribute{
+					"resource_app_id": schema.StringAttribute{
+						MarkdownDescription: "The unique identifier for the resource that the application requires access to. This should be equal to the appId declared on the target resource application. Required.",
+						Required:            true,
+						Validators: []validator.String{
+							stringvalidator.RegexMatches(
+								regexp.MustCompile(constants.GuidRegex),
+								"must be a valid GUID in the format 00000000-0000-0000-0000-000000000000",
+							),
 						},
-						"resource_access": schema.SetNestedAttribute{
-							MarkdownDescription: "The list of OAuth2.0 permission scopes and app roles that the application requires from the specified resource. Required.",
-							Required:            true,
-							NestedObject: schema.NestedAttributeObject{
-								Attributes: map[string]schema.Attribute{
-									"id": schema.StringAttribute{
-										MarkdownDescription: "The unique identifier of an app role or delegated permission exposed by the resource application. For delegated permissions, this should match the id property of one of the delegated permissions in the oauth2PermissionScopes collection of the resource application's service principal. For app roles (application permissions), this should match the id property of an app role in the appRoles collection of the resource application's service principal. Required.",
-										Required:            true,
-										Validators: []validator.String{
-											stringvalidator.RegexMatches(
-												regexp.MustCompile(constants.GuidRegex),
-												"must be a valid GUID in the format 00000000-0000-0000-0000-000000000000",
-											),
-										},
+					},
+					"resource_access": schema.SetNestedAttribute{
+						MarkdownDescription: "The list of OAuth2.0 permission scopes and app roles that the application requires from the specified resource. Required.",
+						Required:            true,
+						NestedObject: schema.NestedAttributeObject{
+							Attributes: map[string]schema.Attribute{
+								"id": schema.StringAttribute{
+									MarkdownDescription: "The unique identifier of an app role or delegated permission exposed by the resource application. For delegated permissions, this should match the id property of one of the delegated permissions in the oauth2PermissionScopes collection of the resource application's service principal. For app roles (application permissions), this should match the id property of an app role in the appRoles collection of the resource application's service principal. Required.",
+									Required:            true,
+									Validators: []validator.String{
+										stringvalidator.RegexMatches(
+											regexp.MustCompile(constants.GuidRegex),
+											"must be a valid GUID in the format 00000000-0000-0000-0000-000000000000",
+										),
 									},
-									"type": schema.StringAttribute{
-										MarkdownDescription: "Specifies whether the id property references a delegated permission or an app role (application permission). The possible values are: `Scope` (for delegated permissions) or `Role` (for app roles). Required.",
-										Required:            true,
-										Validators: []validator.String{
-											stringvalidator.OneOf("Scope", "Role"),
-										},
+								},
+								"type": schema.StringAttribute{
+									MarkdownDescription: "Specifies whether the id property references a delegated permission or an app role (application permission). The possible values are: `Scope` (for delegated permissions) or `Role` (for app roles). Required.",
+									Required:            true,
+									Validators: []validator.String{
+										stringvalidator.OneOf("Scope", "Role"),
 									},
 								},
 							},
 						},
 					},
 				},
-				Validators: []validator.Set{
-					setvalidator.SizeAtMost(50),
-				},
 			},
+			Validators: []validator.Set{
+				setvalidator.SizeAtLeast(1),
+				setvalidator.SizeAtMost(50),
+			},
+		},
 			"spa": schema.SingleNestedAttribute{
 				MarkdownDescription: "Specifies settings for a single-page application, including sign out URLs and redirect URIs for authorization codes and access tokens.",
 				Optional:            true,
@@ -701,6 +730,7 @@ func (r *ApplicationResource) Schema(ctx context.Context, req resource.SchemaReq
 						Computed:            true,
 						ElementType:         types.StringType,
 						Validators: []validator.Set{
+							setvalidator.SizeAtLeast(1),
 							setvalidator.SizeAtMost(256),
 						},
 					},
@@ -745,6 +775,7 @@ func (r *ApplicationResource) Schema(ctx context.Context, req resource.SchemaReq
 						Computed:            true,
 						ElementType:         types.StringType,
 						Validators: []validator.Set{
+							setvalidator.SizeAtLeast(1),
 							setvalidator.SizeAtMost(256),
 						},
 					},
@@ -822,40 +853,42 @@ func (r *ApplicationResource) Schema(ctx context.Context, req resource.SchemaReq
 						Optional:            true,
 						Computed:            true,
 					},
-					"allowed_tenant_ids": schema.SetAttribute{
-						MarkdownDescription: "The list of allowed tenant IDs. Only applicable when odata_type is `#microsoft.graph.allowedTenantsAudience`.",
-						Optional:            true,
-						Computed:            true,
-						ElementType:         types.StringType,
-						Validators: []validator.Set{
-							setvalidator.ValueStringsAre(
-								stringvalidator.RegexMatches(
-									regexp.MustCompile(constants.GuidRegex),
-									"must be a valid GUID in the format 00000000-0000-0000-0000-000000000000",
-								),
+				"allowed_tenant_ids": schema.SetAttribute{
+					MarkdownDescription: "The list of allowed tenant IDs. Only applicable when odata_type is `#microsoft.graph.allowedTenantsAudience`.",
+					Optional:            true,
+					Computed:            true,
+					ElementType:         types.StringType,
+					Validators: []validator.Set{
+						setvalidator.SizeAtLeast(1),
+						setvalidator.ValueStringsAre(
+							stringvalidator.RegexMatches(
+								regexp.MustCompile(constants.GuidRegex),
+								"must be a valid GUID in the format 00000000-0000-0000-0000-000000000000",
 							),
-						},
+						),
 					},
 				},
-			},
-			"owner_user_ids": schema.SetAttribute{
-				MarkdownDescription: "The user IDs of the owners for the application. At least one owner is typically required when creating an application. Owners are a set of non-admin users or service principals allowed to modify this object.",
-				Optional:            true,
-				Computed:            true,
-				ElementType:         types.StringType,
-				PlanModifiers: []planmodifier.Set{
-					setplanmodifier.UseStateForUnknown(),
 				},
-				Validators: []validator.Set{
-					setvalidator.SizeAtMost(100),
-					setvalidator.ValueStringsAre(
-						stringvalidator.RegexMatches(
-							regexp.MustCompile(constants.GuidRegex),
-							"must be a valid GUID in the format 00000000-0000-0000-0000-000000000000",
-						),
+			},
+		"owner_user_ids": schema.SetAttribute{
+			MarkdownDescription: "The user IDs of the owners for the application. At least one owner is typically required when creating an application. Owners are a set of non-admin users or service principals allowed to modify this object.",
+			Optional:            true,
+			Computed:            true,
+			ElementType:         types.StringType,
+			PlanModifiers: []planmodifier.Set{
+				setplanmodifier.UseStateForUnknown(),
+			},
+			Validators: []validator.Set{
+				setvalidator.SizeAtLeast(1),
+				setvalidator.SizeAtMost(100),
+				setvalidator.ValueStringsAre(
+					stringvalidator.RegexMatches(
+						regexp.MustCompile(constants.GuidRegex),
+						"must be a valid GUID in the format 00000000-0000-0000-0000-000000000000",
 					),
-				},
+				),
 			},
+		},
 			"prevent_duplicate_names": schema.BoolAttribute{
 				MarkdownDescription: "If set to `true`, the provider will check for existing applications with the same display " +
 					"name and return an error if one is found. This helps prevent accidentally creating duplicate applications. Note: " +
@@ -901,6 +934,9 @@ func optionalClaimAttributes() map[string]schema.Attribute {
 			Optional:            true,
 			Computed:            true,
 			ElementType:         types.StringType,
+			Validators: []validator.Set{
+				setvalidator.SizeAtLeast(1),
+			},
 		},
 	}
 }

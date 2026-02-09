@@ -173,3 +173,5 @@ func (m useStateForUnknownOrNullSetModifier) PlanModifySet(ctx context.Context, 
 
 	resp.PlanValue = req.StateValue
 }
+
+//------------------------------------------------------------------------------

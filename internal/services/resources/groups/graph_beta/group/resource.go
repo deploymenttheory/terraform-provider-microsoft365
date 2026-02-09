@@ -166,8 +166,10 @@ func (r *GroupResource) Schema(ctx context.Context, req resource.SchemaRequest, 
 			"group_types": schema.SetAttribute{
 				ElementType:         types.StringType,
 				Optional:            true,
+				Computed: true,
 				MarkdownDescription: "Specifies the group type and its membership. If the collection contains 'Unified', the group is a Microsoft 365 group; otherwise, it's either a security group or a distribution group. If the collection includes 'DynamicMembership', the group has dynamic membership; otherwise, membership is static.",
 				Validators: []validator.Set{
+					setvalidator.SizeAtLeast(1),
 					setvalidator.ValueStringsAre(
 						stringvalidator.OneOf("Unified", "DynamicMembership"),
 					),

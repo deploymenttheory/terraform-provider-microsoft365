@@ -1,0 +1,90 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#identity/conditionalAccess/policies",
+  "value": [
+    {
+      "@odata.type": "#microsoft.graph.conditionalAccessPolicy",
+      "id": "ca-001",
+      "displayName": "Require MFA for Admins",
+      "createdDateTime": "2024-01-10T10:00:00Z",
+      "modifiedDateTime": "2024-01-15T14:30:00Z",
+      "state": "enabled",
+      "conditions": {
+        "users": {
+          "includeRoles": ["62e90394-69f5-4237-9190-012177145e10"]
+        },
+        "applications": {
+          "includeApplications": ["All"]
+        },
+        "clientAppTypes": ["all"]
+      },
+      "grantControls": {
+        "operator": "OR",
+        "builtInControls": ["mfa"]
+      }
+    },
+    {
+      "@odata.type": "#microsoft.graph.conditionalAccessPolicy",
+      "id": "ca-002",
+      "displayName": "Block Legacy Authentication",
+      "createdDateTime": "2024-01-12T11:00:00Z",
+      "modifiedDateTime": "2024-01-16T09:15:00Z",
+      "state": "enabled",
+      "conditions": {
+        "users": {
+          "includeUsers": ["All"]
+        },
+        "applications": {
+          "includeApplications": ["All"]
+        },
+        "clientAppTypes": ["exchangeActiveSync", "other"]
+      },
+      "grantControls": {
+        "operator": "OR",
+        "builtInControls": ["block"]
+      }
+    },
+    {
+      "@odata.type": "#microsoft.graph.conditionalAccessPolicy",
+      "id": "ca-003",
+      "displayName": "Require MFA for Guest Users",
+      "createdDateTime": "2024-01-14T08:30:00Z",
+      "modifiedDateTime": "2024-01-17T16:45:00Z",
+      "state": "enabled",
+      "conditions": {
+        "users": {
+          "includeUsers": ["GuestsOrExternalUsers"]
+        },
+        "applications": {
+          "includeApplications": ["All"]
+        },
+        "clientAppTypes": ["all"]
+      },
+      "grantControls": {
+        "operator": "OR",
+        "builtInControls": ["mfa"]
+      }
+    },
+    {
+      "@odata.type": "#microsoft.graph.conditionalAccessPolicy",
+      "id": "ca-004",
+      "displayName": "Require Compliant Device for High Risk Sign-ins",
+      "createdDateTime": "2024-01-16T13:20:00Z",
+      "modifiedDateTime": "2024-01-18T10:00:00Z",
+      "state": "disabled",
+      "conditions": {
+        "users": {
+          "includeUsers": ["All"]
+        },
+        "applications": {
+          "includeApplications": ["All"]
+        },
+        "clientAppTypes": ["all"],
+        "signInRiskLevels": ["high", "medium"]
+      },
+      "grantControls": {
+        "operator": "OR",
+        "builtInControls": ["compliantDevice"]
+      }
+    }
+  ]
+}

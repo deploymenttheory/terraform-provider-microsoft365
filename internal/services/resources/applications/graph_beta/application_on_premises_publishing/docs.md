@@ -1,0 +1,1 @@
+https://learn.microsoft.com/en-us/graph/application-proxy-configure-api?tabs=go#step-22-configure-the-onpremisespublishing-property
