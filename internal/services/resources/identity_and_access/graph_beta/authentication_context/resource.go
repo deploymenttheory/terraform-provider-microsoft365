@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/resource/identityschema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
@@ -34,6 +35,9 @@ var (
 
 	// Enables import functionality
 	_ resource.ResourceWithImportState = &AuthenticationContextResource{}
+
+	// Enables identity schema for list resource support
+	_ resource.ResourceWithIdentity = &AuthenticationContextResource{}
 )
 
 func NewAuthenticationContextResource() resource.Resource {
@@ -67,6 +71,17 @@ func (r *AuthenticationContextResource) Configure(ctx context.Context, req resou
 
 func (r *AuthenticationContextResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+}
+
+// IdentitySchema defines the identity schema for this resource, used by list operations to uniquely identify instances
+func (r *AuthenticationContextResource) IdentitySchema(ctx context.Context, req resource.IdentitySchemaRequest, resp *resource.IdentitySchemaResponse) {
+	resp.IdentitySchema = identityschema.Schema{
+		Attributes: map[string]identityschema.Attribute{
+			"id": identityschema.StringAttribute{
+				RequiredForImport: true,
+			},
+		},
+	}
 }
 
 // Schema defines the schema for the resource.

@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/resource/identityschema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
@@ -36,6 +37,9 @@ var (
 
 	// Enables plan modification/diff suppression
 	_ resource.ResourceWithModifyPlan = &BrowserSiteListResource{}
+
+	// Enables identity schema for list resource support
+	_ resource.ResourceWithIdentity = &BrowserSiteListResource{}
 )
 
 func NewBrowserSiteListResource() resource.Resource {
@@ -70,6 +74,17 @@ func (r *BrowserSiteListResource) Configure(ctx context.Context, req resource.Co
 // ImportState imports the resource state.
 func (r *BrowserSiteListResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+}
+
+// IdentitySchema defines the identity schema for this resource, used by list operations to uniquely identify instances
+func (r *BrowserSiteListResource) IdentitySchema(ctx context.Context, req resource.IdentitySchemaRequest, resp *resource.IdentitySchemaResponse) {
+	resp.IdentitySchema = identityschema.Schema{
+		Attributes: map[string]identityschema.Attribute{
+			"id": identityschema.StringAttribute{
+				RequiredForImport: true,
+			},
+		},
+	}
 }
 
 func (r *BrowserSiteListResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {

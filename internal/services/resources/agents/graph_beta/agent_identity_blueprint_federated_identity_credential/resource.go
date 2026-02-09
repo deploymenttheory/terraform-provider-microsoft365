@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/resource/identityschema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
@@ -36,6 +37,9 @@ var (
 
 	// Enables import functionality
 	_ resource.ResourceWithImportState = &AgentIdentityBlueprintFederatedIdentityCredentialResource{}
+
+	// Enables identity schema for list resource support
+	_ resource.ResourceWithIdentity = &AgentIdentityBlueprintFederatedIdentityCredentialResource{}
 )
 
 func NewAgentIdentityBlueprintFederatedIdentityCredentialResource() resource.Resource {
@@ -83,6 +87,17 @@ func (r *AgentIdentityBlueprintFederatedIdentityCredentialResource) ImportState(
 
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("blueprint_id"), parts[0])...)
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("id"), parts[1])...)
+}
+
+// IdentitySchema defines the identity schema for this resource, used by list operations to uniquely identify instances
+func (r *AgentIdentityBlueprintFederatedIdentityCredentialResource) IdentitySchema(ctx context.Context, req resource.IdentitySchemaRequest, resp *resource.IdentitySchemaResponse) {
+	resp.IdentitySchema = identityschema.Schema{
+		Attributes: map[string]identityschema.Attribute{
+			"id": identityschema.StringAttribute{
+				RequiredForImport: true,
+			},
+		},
+	}
 }
 
 // Schema returns the schema for the resource.

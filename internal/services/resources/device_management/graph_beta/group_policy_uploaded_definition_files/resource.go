@@ -11,6 +11,7 @@ import (
 	regexvalidator "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/validate/attribute"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/resource/identityschema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
@@ -39,6 +40,9 @@ var (
 
 	// Enables plan modification/diff suppression
 	_ resource.ResourceWithModifyPlan = &GroupPolicyUploadedDefinitionFileResource{}
+
+	// Enables identity schema for list resource support
+	_ resource.ResourceWithIdentity = &GroupPolicyUploadedDefinitionFileResource{}
 )
 
 func NewGroupPolicyUploadedDefinitionFileResource() resource.Resource {
@@ -79,6 +83,17 @@ func (r *GroupPolicyUploadedDefinitionFileResource) ImportState(ctx context.Cont
 			"which makes it impossible to import the complete resource state. "+
 			"You must manage this resource by creating it directly in your Terraform configuration.",
 	)
+}
+
+// IdentitySchema defines the identity schema for this resource, used by list operations to uniquely identify instances
+func (r *GroupPolicyUploadedDefinitionFileResource) IdentitySchema(ctx context.Context, req resource.IdentitySchemaRequest, resp *resource.IdentitySchemaResponse) {
+	resp.IdentitySchema = identityschema.Schema{
+		Attributes: map[string]identityschema.Attribute{
+			"id": identityschema.StringAttribute{
+				RequiredForImport: true,
+			},
+		},
+	}
 }
 
 // Schema returns the schema for the resource.

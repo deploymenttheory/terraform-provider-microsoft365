@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/resource/identityschema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
@@ -43,6 +44,9 @@ var (
 
 	// Enables plan modification/diff suppression
 	_ resource.ResourceWithModifyPlan = &MacosDeviceConfigurationTemplatesResource{}
+
+	// Enables identity schema for list resource support
+	_ resource.ResourceWithIdentity = &MacosDeviceConfigurationTemplatesResource{}
 )
 
 func NewMacosDeviceConfigurationTemplatesResource() resource.Resource {
@@ -77,6 +81,17 @@ func (r *MacosDeviceConfigurationTemplatesResource) Configure(ctx context.Contex
 // ImportState imports the resource state.
 func (r *MacosDeviceConfigurationTemplatesResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+}
+
+// IdentitySchema defines the identity schema for this resource, used by list operations to uniquely identify instances
+func (r *MacosDeviceConfigurationTemplatesResource) IdentitySchema(ctx context.Context, req resource.IdentitySchemaRequest, resp *resource.IdentitySchemaResponse) {
+	resp.IdentitySchema = identityschema.Schema{
+		Attributes: map[string]identityschema.Attribute{
+			"id": identityschema.StringAttribute{
+				RequiredForImport: true,
+			},
+		},
+	}
 }
 
 // Schema defines the schema for the resource.

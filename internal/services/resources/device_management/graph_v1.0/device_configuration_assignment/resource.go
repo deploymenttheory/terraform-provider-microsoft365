@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/resource/identityschema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
@@ -42,6 +43,9 @@ var (
 
 	// Enables plan modification/diff suppression
 	_ resource.ResourceWithModifyPlan = &DeviceConfigurationAssignmentResource{}
+
+	// Enables identity schema for list resource support
+	_ resource.ResourceWithIdentity = &DeviceConfigurationAssignmentResource{}
 )
 
 func NewDeviceConfigurationAssignmentResource() resource.Resource {
@@ -90,6 +94,17 @@ func (r *DeviceConfigurationAssignmentResource) ImportState(ctx context.Context,
 
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("device_configuration_id"), deviceConfigId)...)
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("id"), assignmentId)...)
+}
+
+// IdentitySchema defines the identity schema for this resource, used by list operations to uniquely identify instances
+func (r *DeviceConfigurationAssignmentResource) IdentitySchema(ctx context.Context, req resource.IdentitySchemaRequest, resp *resource.IdentitySchemaResponse) {
+	resp.IdentitySchema = identityschema.Schema{
+		Attributes: map[string]identityschema.Attribute{
+			"id": identityschema.StringAttribute{
+				RequiredForImport: true,
+			},
+		},
+	}
 }
 
 // Schema returns the schema for the resource.
