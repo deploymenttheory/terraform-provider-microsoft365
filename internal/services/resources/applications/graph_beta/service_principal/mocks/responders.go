@@ -80,13 +80,13 @@ func RegisterServicePrincipalMockResponders() *MockState {
 			if notes, ok := requestBody["notes"].(string); ok {
 				servicePrincipal["notes"] = notes
 			}
-			if notificationEmailAddresses, ok := requestBody["notificationEmailAddresses"].([]interface{}); ok {
+			if notificationEmailAddresses, ok := requestBody["notificationEmailAddresses"].([]any); ok {
 				servicePrincipal["notificationEmailAddresses"] = notificationEmailAddresses
 			}
 			if preferredSingleSignOnMode, ok := requestBody["preferredSingleSignOnMode"].(string); ok {
 				servicePrincipal["preferredSingleSignOnMode"] = preferredSingleSignOnMode
 			}
-			if tags, ok := requestBody["tags"].([]interface{}); ok {
+			if tags, ok := requestBody["tags"].([]any); ok {
 				servicePrincipal["tags"] = tags
 			}
 
@@ -148,13 +148,13 @@ func RegisterServicePrincipalMockResponders() *MockState {
 			if notes, ok := requestBody["notes"].(string); ok {
 				servicePrincipal["notes"] = notes
 			}
-			if notificationEmailAddresses, ok := requestBody["notificationEmailAddresses"].([]interface{}); ok {
+			if notificationEmailAddresses, ok := requestBody["notificationEmailAddresses"].([]any); ok {
 				servicePrincipal["notificationEmailAddresses"] = notificationEmailAddresses
 			}
 			if preferredSingleSignOnMode, ok := requestBody["preferredSingleSignOnMode"].(string); ok {
 				servicePrincipal["preferredSingleSignOnMode"] = preferredSingleSignOnMode
 			}
-			if tags, ok := requestBody["tags"].([]interface{}); ok {
+			if tags, ok := requestBody["tags"].([]any); ok {
 				servicePrincipal["tags"] = tags
 			}
 
