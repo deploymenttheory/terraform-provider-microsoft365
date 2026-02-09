@@ -8,6 +8,7 @@ import (
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
 	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
+	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/shared_models/graph_beta"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -91,6 +92,7 @@ func (r *CloudPcAlertRuleResource) Create(ctx context.Context, req resource.Crea
 // Reference: https://learn.microsoft.com/en-us/graph/api/devicemanagement-alertrule-get?view=graph-rest-beta
 func (r *CloudPcAlertRuleResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var object CloudPcAlertRuleResourceModel
+	var identity sharedmodels.ResourceIdentity
 
 	operation := constants.TfOperationRead
 	if ctxOp := ctx.Value("retry_operation"); ctxOp != nil {
@@ -127,6 +129,13 @@ func (r *CloudPcAlertRuleResource) Read(ctx context.Context, req resource.ReadRe
 	MapRemoteStateToTerraform(ctx, &object, remote)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	identity.ID = object.ID.ValueString()
+
+	resp.Diagnostics.Append(resp.Identity.Set(ctx, identity)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}

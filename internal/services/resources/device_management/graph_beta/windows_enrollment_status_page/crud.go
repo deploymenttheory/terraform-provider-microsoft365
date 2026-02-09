@@ -8,6 +8,7 @@ import (
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
 	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
+	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/shared_models/graph_beta"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -106,6 +107,7 @@ func (r *WindowsEnrollmentStatusPageResource) Create(ctx context.Context, req re
 // Read handles the Read operation for Windows Enrollment Status Page resources.
 func (r *WindowsEnrollmentStatusPageResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var state WindowsEnrollmentStatusPageResourceModel
+	var identity sharedmodels.ResourceIdentity
 
 	operation := constants.TfOperationRead
 	if ctxOp := ctx.Value("retry_operation"); ctxOp != nil {
@@ -153,6 +155,13 @@ func (r *WindowsEnrollmentStatusPageResource) Read(ctx context.Context, req reso
 	MapRemoteStateToTerraform(ctx, &state, enrollmentConfig)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	identity.ID = state.ID.ValueString()
+
+	resp.Diagnostics.Append(resp.Identity.Set(ctx, identity)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}

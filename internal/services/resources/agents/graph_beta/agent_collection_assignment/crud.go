@@ -9,6 +9,7 @@ import (
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
 	customrequests "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/custom_requests"
 	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
+	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/shared_models/graph_beta"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
@@ -95,6 +96,7 @@ func (r *AgentCollectionAssignmentResource) Create(ctx context.Context, req reso
 // Reference: https://learn.microsoft.com/en-us/graph/api/agentcollection-list-members?view=graph-rest-beta
 func (r *AgentCollectionAssignmentResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var object AgentCollectionAssignmentResourceModel
+	var identity sharedmodels.ResourceIdentity
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting Read method for: %s", ResourceName))
 
@@ -137,6 +139,13 @@ func (r *AgentCollectionAssignmentResource) Read(ctx context.Context, req resour
 	MapRemoteResourceStateToTerraform(ctx, &object, membersResponse)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	identity.ID = object.ID.ValueString()
+
+	resp.Diagnostics.Append(resp.Identity.Set(ctx, identity)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}

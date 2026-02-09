@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/powershell"
+	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/shared_models/graph_beta"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 )
 
@@ -31,6 +32,7 @@ func (r *TeamsCallingPolicyResource) Create(ctx context.Context, req resource.Cr
 
 func (r *TeamsCallingPolicyResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var data TeamsCallingPolicyResourceModel
+	var identity sharedmodels.ResourceIdentity
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -48,7 +50,17 @@ func (r *TeamsCallingPolicyResource) Read(ctx context.Context, req resource.Read
 		return
 	}
 	mapAllCallingPolicyFieldsFromJson(ctx, p, &data)
-	resp.State.Set(ctx, &data)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	identity.ID = data.ID.ValueString()
+
+	resp.Diagnostics.Append(resp.Identity.Set(ctx, identity)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 }
 
 func (r *TeamsCallingPolicyResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {

@@ -9,6 +9,7 @@ import (
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
 	customrequests "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/custom_requests"
 	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
+	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/shared_models/graph_beta"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
@@ -104,6 +105,7 @@ func (r *AgentIdentityBlueprintPasswordCredentialResource) Create(ctx context.Co
 // Note: No GET endpoint exists for individual password credentials; secret_text cannot be retrieved after creation
 func (r *AgentIdentityBlueprintPasswordCredentialResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var object AgentIdentityBlueprintPasswordCredentialResourceModel
+	var identity sharedmodels.ResourceIdentity
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting Read method for: %s", ResourceName))
 
@@ -125,6 +127,13 @@ func (r *AgentIdentityBlueprintPasswordCredentialResource) Read(ctx context.Cont
 	// The secret_text cannot be retrieved after creation, so we preserve the state as-is.
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	identity.ID = object.BlueprintID.ValueString()
+
+	resp.Diagnostics.Append(resp.Identity.Set(ctx, identity)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}

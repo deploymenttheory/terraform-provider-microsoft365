@@ -10,6 +10,7 @@ import (
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
 	customrequests "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/custom_requests"
 	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
+	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/shared_models/graph_beta"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -183,6 +184,7 @@ func (r *DeviceComplianceNotificationTemplateResource) Create(ctx context.Contex
 // Read handles the resource read
 func (r *DeviceComplianceNotificationTemplateResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var state DeviceComplianceNotificationTemplateResourceModel
+	var identity sharedmodels.ResourceIdentity
 
 	operation := constants.TfOperationRead
 	if ctxOp := ctx.Value("retry_operation"); ctxOp != nil {
@@ -230,6 +232,13 @@ func (r *DeviceComplianceNotificationTemplateResource) Read(ctx context.Context,
 	MapRemoteStateToTerraform(ctx, &state, template)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	identity.ID = state.ID.ValueString()
+
+	resp.Diagnostics.Append(resp.Identity.Set(ctx, identity)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}

@@ -12,6 +12,7 @@ import (
 	helpers "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud/graph_beta/device_and_app_management"
 	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 	sentinels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/sentinels"
+	identitymodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/shared_models/graph_beta"
 	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/shared_models/graph_beta/device_and_app_management"
 	sharedstater "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/state/graph_beta/device_and_app_management"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -330,6 +331,7 @@ func (r *MacOSLobAppResource) Create(ctx context.Context, req resource.CreateReq
 // Reference: https://learn.microsoft.com/en-us/graph/api/intune-apps-macoslobapp-get?view=graph-rest-beta
 func (r *MacOSLobAppResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var object MacOSLobAppResourceModel
+	var identity identitymodels.ResourceIdentity
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting Read method for: %s", ResourceName))
 
@@ -435,6 +437,13 @@ func (r *MacOSLobAppResource) Read(ctx context.Context, req resource.ReadRequest
 
 	// 6. set final state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	identity.ID = object.ID.ValueString()
+
+	resp.Diagnostics.Append(resp.Identity.Set(ctx, identity)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
