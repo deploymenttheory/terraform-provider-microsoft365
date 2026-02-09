@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/resource/identityschema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
@@ -30,10 +31,20 @@ const (
 )
 
 var (
-	_ resource.Resource                = &MacOSSoftwareUpdateConfigurationResource{}
-	_ resource.ResourceWithConfigure   = &MacOSSoftwareUpdateConfigurationResource{}
+	// Basic resource interface (CRUD operations)
+	_ resource.Resource = &MacOSSoftwareUpdateConfigurationResource{}
+
+	// Allows the resource to be configured with the provider client
+	_ resource.ResourceWithConfigure = &MacOSSoftwareUpdateConfigurationResource{}
+
+	// Enables import functionality
 	_ resource.ResourceWithImportState = &MacOSSoftwareUpdateConfigurationResource{}
-	_ resource.ResourceWithModifyPlan  = &MacOSSoftwareUpdateConfigurationResource{}
+
+	// Enables plan modification/diff suppression
+	_ resource.ResourceWithModifyPlan = &MacOSSoftwareUpdateConfigurationResource{}
+
+	// Enables identity schema for list resource support
+	_ resource.ResourceWithIdentity = &MacOSSoftwareUpdateConfigurationResource{}
 )
 
 func NewMacOSSoftwareUpdateConfigurationResource() resource.Resource {
@@ -65,6 +76,17 @@ func (r *MacOSSoftwareUpdateConfigurationResource) Configure(ctx context.Context
 
 func (r *MacOSSoftwareUpdateConfigurationResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+}
+
+// IdentitySchema defines the identity schema for this resource, used by list operations to uniquely identify instances
+func (r *MacOSSoftwareUpdateConfigurationResource) IdentitySchema(ctx context.Context, req resource.IdentitySchemaRequest, resp *resource.IdentitySchemaResponse) {
+	resp.IdentitySchema = identityschema.Schema{
+		Attributes: map[string]identityschema.Attribute{
+			"id": identityschema.StringAttribute{
+				RequiredForImport: true,
+			},
+		},
+	}
 }
 
 func (r *MacOSSoftwareUpdateConfigurationResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {

@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/resource/identityschema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
@@ -37,6 +38,7 @@ var (
 	_ resource.ResourceWithConfigure   = &IntuneBrandingProfileResource{}
 	_ resource.ResourceWithImportState = &IntuneBrandingProfileResource{}
 	_ resource.ResourceWithModifyPlan  = &IntuneBrandingProfileResource{}
+	_ resource.ResourceWithIdentity    = &IntuneBrandingProfileResource{}
 )
 
 func NewIntuneBrandingProfileResource() resource.Resource {
@@ -68,6 +70,17 @@ func (r *IntuneBrandingProfileResource) Configure(ctx context.Context, req resou
 
 func (r *IntuneBrandingProfileResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+}
+
+// IdentitySchema defines the identity schema for this resource, used by list operations to uniquely identify instances
+func (r *IntuneBrandingProfileResource) IdentitySchema(ctx context.Context, req resource.IdentitySchemaRequest, resp *resource.IdentitySchemaResponse) {
+	resp.IdentitySchema = identityschema.Schema{
+		Attributes: map[string]identityschema.Attribute{
+			"id": identityschema.StringAttribute{
+				RequiredForImport: true,
+			},
+		},
+	}
 }
 
 func (r *IntuneBrandingProfileResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {

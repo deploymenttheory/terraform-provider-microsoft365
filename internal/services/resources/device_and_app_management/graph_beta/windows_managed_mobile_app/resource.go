@@ -10,6 +10,7 @@ import (
 	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/schema"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/resource/identityschema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
@@ -26,10 +27,20 @@ const (
 )
 
 var (
-	_ resource.Resource                = &WindowsManagedMobileAppResource{}
-	_ resource.ResourceWithConfigure   = &WindowsManagedMobileAppResource{}
+	// Basic resource interface (CRUD operations)
+	_ resource.Resource = &WindowsManagedMobileAppResource{}
+
+	// Allows the resource to be configured with the provider client
+	_ resource.ResourceWithConfigure = &WindowsManagedMobileAppResource{}
+
+	// Enables import functionality
 	_ resource.ResourceWithImportState = &WindowsManagedMobileAppResource{}
-	_ resource.ResourceWithModifyPlan  = &WindowsManagedMobileAppResource{}
+
+	// Enables plan modification/diff suppression
+	_ resource.ResourceWithModifyPlan = &WindowsManagedMobileAppResource{}
+
+	// Enables identity schema for list resource support
+	_ resource.ResourceWithIdentity = &WindowsManagedMobileAppResource{}
 )
 
 func NewWindowsManagedMobileAppResource() resource.Resource {
@@ -75,6 +86,17 @@ func (r *WindowsManagedMobileAppResource) ImportState(ctx context.Context, req r
 
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("managed_app_protection_id"), managedAppProtectionId)...)
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("id"), appId)...)
+}
+
+// IdentitySchema defines the identity schema for this resource, used by list operations to uniquely identify instances
+func (r *WindowsManagedMobileAppResource) IdentitySchema(ctx context.Context, req resource.IdentitySchemaRequest, resp *resource.IdentitySchemaResponse) {
+	resp.IdentitySchema = identityschema.Schema{
+		Attributes: map[string]identityschema.Attribute{
+			"id": identityschema.StringAttribute{
+				RequiredForImport: true,
+			},
+		},
+	}
 }
 
 func (r *WindowsManagedMobileAppResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
