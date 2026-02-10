@@ -327,9 +327,10 @@ func (r *CloudPcProvisioningPolicyResource) Schema(ctx context.Context, req reso
 					"profile": schema.StringAttribute{
 						Optional: true,
 						Computed: true,
-						Default:  stringdefault.StaticString("4aa9b805-9494-4eed-a04b-ed51ec9e631e"),
-						MarkdownDescription: "The name of the Microsoft Managed Desktop profile that the Windows 365 Cloud PC is associated with." +
-							"'4aa9b805-9494-4eed-a04b-ed51ec9e631e' is the default Autopatch Group ID. Via 'https://mmdls.microsoft.com/device/v1/windows365/autopatchGroups'",
+						PlanModifiers: []planmodifier.String{
+							planmodifiers.UseStateForUnknownString(),
+						},
+						MarkdownDescription: "The name of the Microsoft Managed Desktop profile that the Windows 365 Cloud PC is associated with.",
 					},
 				},
 			},
