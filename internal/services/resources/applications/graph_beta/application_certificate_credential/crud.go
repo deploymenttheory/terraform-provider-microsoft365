@@ -239,7 +239,7 @@ func (r *ApplicationCertificateCredentialResource) Read(ctx context.Context, req
 		return
 	}
 
-	identity.ID = object.ID.ValueString()
+	identity.ID = object.ApplicationID.ValueString()
 
 	resp.Diagnostics.Append(resp.Identity.Set(ctx, identity)...)
 	if resp.Diagnostics.HasError() {

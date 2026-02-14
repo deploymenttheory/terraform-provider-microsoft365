@@ -21,12 +21,10 @@ func (r *ConditionalAccessPolicyListResource) List(ctx context.Context, req list
 		return
 	}
 
-	// Build query parameters
 	requestConfig := &identity.ConditionalAccessPoliciesRequestBuilderGetRequestConfiguration{
 		QueryParameters: &identity.ConditionalAccessPoliciesRequestBuilderGetQueryParameters{},
 	}
 
-	// Build OData filter query
 	var filter string
 
 	// If custom OData filter is provided, use it directly
@@ -45,12 +43,10 @@ func (r *ConditionalAccessPolicyListResource) List(ctx context.Context, req list
 		}
 	}
 
-	// Apply filter to request configuration
 	if filter != "" {
 		requestConfig.QueryParameters.Filter = &filter
 	}
 
-	// Get all policies using PageIterator (handles pagination automatically)
 	allPolicies, err := r.listAllResourcesWithPageIterator(ctx, requestConfig)
 
 	if err != nil {
@@ -90,7 +86,6 @@ func streamResults(ctx context.Context, req list.ListRequest, items []models.Con
 				result.DisplayName = *item.GetDisplayName()
 			}
 
-			// Set the identity using shared struct
 			var identity sharedmodels.ResourceIdentity
 			identity.ID = *item.GetId()
 
