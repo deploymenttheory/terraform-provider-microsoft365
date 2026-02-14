@@ -21,12 +21,10 @@ func (r *SettingsCatalogListResource) List(ctx context.Context, req list.ListReq
 		return
 	}
 
-	// Build query parameters
 	requestConfig := &devicemanagement.ConfigurationPoliciesRequestBuilderGetRequestConfiguration{
 		QueryParameters: &devicemanagement.ConfigurationPoliciesRequestBuilderGetQueryParameters{},
 	}
 
-	// Build OData filter query
 	var filter string
 
 	// If custom OData filter is provided, use it directly
@@ -53,7 +51,6 @@ func (r *SettingsCatalogListResource) List(ctx context.Context, req list.ListReq
 		requestConfig.QueryParameters.Filter = &filter
 	}
 
-	// Get all policies using PageIterator (handles pagination automatically)
 	allPolicies, err := r.listAllResourcesWithPageIterator(ctx, requestConfig)
 
 	if err != nil {
@@ -88,7 +85,6 @@ func (r *SettingsCatalogListResource) List(ctx context.Context, req list.ListReq
 				continue
 			}
 
-			// Include policy if it matches the filter
 			if hasAssignments == filterByAssigned {
 				filteredPolicies = append(filteredPolicies, policy)
 			}
@@ -120,8 +116,6 @@ func streamResults(ctx context.Context, req list.ListRequest, items []models.Dev
 			if item.GetName() != nil {
 				result.DisplayName = *item.GetName()
 			}
-
-			// Set the identity using shared struct
 			var identity sharedmodels.ResourceIdentity
 			identity.ID = *item.GetId()
 
