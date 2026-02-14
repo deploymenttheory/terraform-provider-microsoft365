@@ -3,12 +3,12 @@ page_title: "microsoft365_graph_beta_device_management_macos_software_update_con
 subcategory: "Device Management"
 
 description: |-
-  Manages macOS software update configurations using the /deviceManagement/deviceConfigurations endpoint. This resource is used to see macOSSoftwareUpdateConfiguration resource type https://learn.microsoft.com/en-us/graph/api/resources/intune-deviceconfig-macossoftwareupdateconfiguration?view=graph-rest-beta for details.
+  Manages macOS software update configurations using the /deviceManagement/deviceConfigurations endpoint. This resource is used to manage the macOS software update configuration, this resource is now deprecated, since Apple have deprecated MDM-based software update workloads. Microsoft recommends you use DDM to install updates instead and can be implemented via the settings catalog. See Manage macOS software updates using MDM-based policies in Microsoft Intune https://learn.microsoft.com/en-us/intune/device-updates/apple/software-updates-macos for details.
 ---
 
 # microsoft365_graph_beta_device_management_macos_software_update_configuration (Resource)
 
-Manages macOS software update configurations using the `/deviceManagement/deviceConfigurations` endpoint. This resource is used to see [macOSSoftwareUpdateConfiguration resource type](https://learn.microsoft.com/en-us/graph/api/resources/intune-deviceconfig-macossoftwareupdateconfiguration?view=graph-rest-beta) for details.
+Manages macOS software update configurations using the `/deviceManagement/deviceConfigurations` endpoint. This resource is used to manage the macOS software update configuration, this resource is now deprecated, since Apple have deprecated MDM-based software update workloads. Microsoft recommends you use DDM to install updates instead and can be implemented via the settings catalog. See [Manage macOS software updates using MDM-based policies in Microsoft Intune](https://learn.microsoft.com/en-us/intune/device-updates/apple/software-updates-macos) for details.
 
 ## Microsoft Documentation
 
@@ -83,7 +83,6 @@ resource "microsoft365_graph_beta_device_management_macos_software_update_config
 - `display_name` (String) The display name of the macOS software update configuration
 - `firmware_update_behavior` (String) Update behavior for firmware updates. Possible values: `notConfigured`, `default`, `downloadOnly`, `installASAP`, `notifyOnly`, `installLater`.
 - `update_schedule_type` (String) Update schedule type. Possible values: `alwaysUpdate`, `updateDuringTimeWindows`, `updateOutsideOfTimeWindows`. See [macOSSoftwareUpdateScheduleType](https://learn.microsoft.com/en-us/graph/api/resources/intune-deviceconfig-macossoftwareupdatescheduletype?view=graph-rest-beta).
-- `update_time_window_utc_offset_in_minutes` (Number) Minutes indicating UTC offset for each update time window.
 
 ### Optional
 

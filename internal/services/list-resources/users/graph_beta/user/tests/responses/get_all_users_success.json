@@ -1,0 +1,68 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#users",
+  "value": [
+    {
+      "id": "00000000-0000-0000-0000-000000000001",
+      "displayName": "John Smith",
+      "userPrincipalName": "john.smith@contoso.com",
+      "accountEnabled": true,
+      "userType": "Member",
+      "mail": "john.smith@contoso.com",
+      "mailNickname": "john.smith",
+      "givenName": "John",
+      "surname": "Smith",
+      "jobTitle": "Software Engineer",
+      "department": "Engineering",
+      "officeLocation": "Building 1"
+    },
+    {
+      "id": "00000000-0000-0000-0000-000000000002",
+      "displayName": "Jane Doe",
+      "userPrincipalName": "jane.doe@contoso.com",
+      "accountEnabled": true,
+      "userType": "Member",
+      "mail": "jane.doe@contoso.com",
+      "mailNickname": "jane.doe",
+      "givenName": "Jane",
+      "surname": "Doe",
+      "jobTitle": "Product Manager",
+      "department": "Product",
+      "officeLocation": "Building 2"
+    },
+    {
+      "id": "00000000-0000-0000-0000-000000000003",
+      "displayName": "External User",
+      "userPrincipalName": "external@external.com",
+      "accountEnabled": true,
+      "userType": "Guest",
+      "mail": "external@external.com",
+      "mailNickname": "external",
+      "givenName": "External",
+      "surname": "User"
+    },
+    {
+      "id": "00000000-0000-0000-0000-000000000004",
+      "displayName": "Disabled User",
+      "userPrincipalName": "disabled@contoso.com",
+      "accountEnabled": false,
+      "userType": "Member",
+      "mail": "disabled@contoso.com",
+      "mailNickname": "disabled",
+      "givenName": "Disabled",
+      "surname": "User"
+    },
+    {
+      "id": "00000000-0000-0000-0000-000000000005",
+      "displayName": "Admin Account",
+      "userPrincipalName": "admin@contoso.com",
+      "accountEnabled": true,
+      "userType": "Member",
+      "mail": "admin@contoso.com",
+      "mailNickname": "admin",
+      "givenName": "Admin",
+      "surname": "Account",
+      "jobTitle": "IT Administrator",
+      "department": "IT"
+    }
+  ]
+}
