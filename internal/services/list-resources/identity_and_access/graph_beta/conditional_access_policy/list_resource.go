@@ -4,9 +4,11 @@ import (
 	"context"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/client"
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/list"
 	listschema "github.com/hashicorp/terraform-plugin-framework/list/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
 )
@@ -71,6 +73,9 @@ func (r *ConditionalAccessPolicyListResource) ListResourceConfigSchema(ctx conte
 				MarkdownDescription: "Filter policies by state. Valid values: `enabled`, `disabled`, `enabledForReportingButNotEnforced`. " +
 					"Example: `state_filter = \"enabled\"` returns only enabled policies.",
 				Optional: true,
+				Validators: []validator.String{
+					stringvalidator.OneOf("enabled", "disabled", "enabledForReportingButNotEnforced"),
+				},
 			},
 			"odata_filter": listschema.StringAttribute{
 				MarkdownDescription: "Advanced: Custom OData $filter query for complex filtering scenarios. " +

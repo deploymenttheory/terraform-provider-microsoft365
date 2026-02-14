@@ -23,6 +23,16 @@ The workflow consists of three phases:
 2. **Select** - Choose which resources to import based on list results
 3. **Generate** - Use Terraform to automatically create HCL configuration from selected resources
 
+## Supported List Resources
+
+The following list resources support this workflow:
+
+| Resource Type | Use Case |
+|---------------|----------|
+| `microsoft365_graph_beta_device_management_settings_catalog_configuration_policy` | Settings Catalog policies |
+| `microsoft365_graph_beta_identity_and_access_conditional_access_policy` | Conditional Access policies |
+| `microsoft365_graph_beta_users_user` | Users |
+
 ## Step 1: Discover Resources
 
 Create a `.tfquery.hcl` file to query existing resources. Use filters to narrow results to your target resources.
@@ -214,235 +224,11 @@ Review and adjust `generated.tf` as needed:
 Generated configuration is functional but not optimized. Terraform generates verbose, literal configurations 
 that require manual refinement for production use. Values are exactly what the API returns.
 
-### Generated Configuration Limitations
-
-**Output Example**: Note:Terraform does not generate meta-arguments like `for_each` or `count`. Each resource is explicitly defined:
-
-```hcl
-# __generated__ by Terraform from "9af36d64-2294-4c46-8f78-f30bf4d17061"
-resource "microsoft365_graph_beta_device_management_settings_catalog_configuration_policy" "kerberos_policy" {
-  assignments = [
-    {
-      filter_id   = "00000000-0000-0000-0000-000000000000"  # <----- Repeated literal value, use local
-      filter_type = "none"                                  # <----- Repeated literal value, use local
-      group_id    = "1c4f3adf-ebe8-422c-97b1-f174632d7538" # <----- Literal ID, no dependency on group resource
-      type        = "groupAssignmentTarget"                 # <----- Repeated literal value, use local
-    },
-  ]
-  configuration_policy = {
-    settings = [
-      {
-        id = "0"
-        setting_instance = {
-          choice_setting_collection_value     = null        # <----- Null values from API, can be safely removed
-          choice_setting_value                = null        # <----- Null values from API, can be safely removed
-          group_setting_collection_value      = null        # <----- Null values from API, can be safely removed
-          odata_type                          = "#microsoft.graph.deviceManagementConfigurationSimpleSettingCollectionInstance"
-          setting_definition_id               = "device_vendor_msft_policy_config_kerberos_upnnamehints"
-          setting_instance_template_reference = null        # <----- Null values from API, can be safely removed
-          simple_setting_collection_value = [
-            {
-              odata_type                       = "#microsoft.graph.deviceManagementConfigurationStringSettingValue"
-              setting_value_template_reference = null       # <----- Null values from API, can be safely removed
-              value                            = "deploymenttheory.com"
-            },
-          ]
-          simple_setting_value = null                       # <----- Null values from API, can be safely removed
-        }
-      },
-    ]
-  }
-  name               = "[Base] Prod | Windows - Settings Catalog | Kerberos ver1.0"
-  platforms          = "windows10"                          # <----- Repeated value across policies, use local
-  role_scope_tag_ids = ["5"]                                # <----- Literal scope tag ID, no dependency on scope tag resource
-  technologies       = ["mdm"]                              # <----- Repeated value across policies, use local
-}
-
-# __generated__ by Terraform from "4a126db0-997f-4156-98ed-07e4449730b8"
-resource "microsoft365_graph_beta_device_management_settings_catalog_configuration_policy" "licensing_policy" {
-  assignments = [
-    {
-      filter_id   = "00000000-0000-0000-0000-000000000000"  # <----- Null values from API, can be safely removed
-      filter_type = "none"                                  # <----- Null values from API, can be safely removed
-      group_id    = "1c4f3adf-ebe8-422c-97b1-f174632d7538"  # <----- Same group ID as above, should reference same resource
-      type        = "groupAssignmentTarget"                 # <----- Null values from API, can be safely removed
-    },
-  ]
-  # ... additional configuration
-  platforms          = "windows10"                          # <----- Duplicate values across all policies
-  role_scope_tag_ids = ["0"]                                # <----- Duplicate values across all policies
-  technologies       = ["mdm"]                              # <----- Duplicate values across all policies
-}
-```
-
-**Literal Values**: Generated configuration uses actual values from the API rather than references to other resources:
-
-```hcl
-# __generated__ by Terraform
-resource "microsoft365_graph_beta_device_management_settings_catalog_configuration_policy" "kerberos_policy" {
-  assignments = [
-    {
-      group_id    = "1c4f3adf-ebe8-422c-97b1-f174632d7538" # <----- Literal group ID, breaks if group changes
-      type        = "groupAssignmentTarget"
-    },
-  ]
-  role_scope_tag_ids = ["0"]                                # <----- Literal scope tag ID, no relationship to actual tag resource
-  platforms          = "windows10"                          # <----- Could reference variable for consistency
-  technologies       = ["mdm"]
-}
-```
-
-**Missing Dependencies**: Resource relationships are not expressed, so Terraform cannot determine the correct order of operations:
-
-```hcl
-# __generated__ by Terraform - These resources exist but no relationship is defined
-resource "microsoft365_graph_beta_groups_group" "production_users" {
-  display_name     = "Production Users"
-  id               = "1c4f3adf-ebe8-422c-97b1-f174632d7538"
-  # ... other fields
-}
-
-resource "microsoft365_graph_beta_device_management_role_scope_tag" "production" {
-  display_name = "Production"
-  id           = "5"
-  # ... other fields
-}
-
-resource "microsoft365_graph_beta_device_management_settings_catalog_configuration_policy" "kerberos_policy" {
-  assignments = [
-    {
-      group_id = "1c4f3adf-ebe8-422c-97b1-f174632d7538" # <----- Literal ID, no dependency on group resource above
-    },
-  ]
-  role_scope_tag_ids = ["0"]                            # <----- Literal ID, no dependency on scope tag resource above
-}
-
-# Terraform's dependency graph cannot determine:
-# - That the policy depends on the group existing
-# - That the policy depends on the scope tag existing
-# - The correct order to create/destroy these resources
-```
-
-### Refactoring for Production
-
-Transform generated configuration for maintainability and correct dependency management.
-
-#### Use for_each for Similar Resources
-
-Convert repetitive resources to use `for_each`:
-
-```hcl
-# Refactored: Use for_each with a map
-locals {
-  security_policies = {
-    bitlocker = {
-      name        = "BitLocker Policy"
-      description = "Production BitLocker configuration"
-    }
-    defender = {
-      name        = "Defender Policy"
-      description = "Production Defender configuration"
-    }
-    firewall = {
-      name        = "Firewall Policy"
-      description = "Production Firewall configuration"
-    }
-  }
-}
-
-resource "microsoft365_graph_beta_device_management_settings_catalog_configuration_policy" "security" {
-  for_each = local.security_policies
-  
-  name        = each.value.name
-  description = each.value.description
-  platforms   = ["windows10"]
-  technologies = ["mdm"]
-}
-```
-
-#### Express Resource Dependencies
-
-Replace literal values with resource references to establish dependencies:
-
-```hcl
-# Refactored: Use references to establish dependencies
-resource "microsoft365_graph_beta_groups_group" "security_team" {
-  display_name     = "Security Team"
-  mail_enabled     = false
-  security_enabled = true
-}
-
-resource "microsoft365_graph_beta_device_management_settings_catalog_configuration_policy" "security_policy" {
-  name = "Security Policy"
-  
-  assignments = [
-    {
-      target = {
-        group_id = microsoft365_graph_beta_groups_group.security_team.id
-      }
-    }
-  ]
-}
-```
-
-Now Terraform understands that the policy depends on the group and will create them in the correct order.
-
-#### Create Resource References for Scope Tags
-
-Replace hardcoded scope tag IDs with references:
-
-```hcl
-# Refactored: Express dependency on scope tag
-resource "microsoft365_graph_beta_device_management_role_scope_tag" "production" {
-  display_name = "Production"
-}
-
-resource "microsoft365_graph_beta_device_management_settings_catalog_configuration_policy" "policy" {
-  name            = "Production Policy"
-  role_scope_tags = [microsoft365_graph_beta_device_management_role_scope_tag.production.id]
-}
-```
-
-#### Centralize Common Values
-
-Extract repeated values into locals or variables:
-
-```hcl
-# Refactored: Use locals for common values
-locals {
-  default_platforms   = ["windows10"]
-  default_technologies = ["mdm"]
-  production_prefix   = "[Prod]"
-}
-
-resource "microsoft365_graph_beta_device_management_settings_catalog_configuration_policy" "bitlocker" {
-  name         = "${local.production_prefix} BitLocker"
-  platforms    = local.default_platforms
-  technologies = local.default_technologies
-}
-
-resource "microsoft365_graph_beta_device_management_settings_catalog_configuration_policy" "defender" {
-  name         = "${local.production_prefix} Defender"
-  platforms    = local.default_platforms
-  technologies = local.default_technologies
-}
-```
-
-### Benefits of Refactoring
-
-**Correct Dependency Graph**: Terraform understands the relationships between resources and manages them in the correct order.
-
-**Maintainability**: Changes to shared values (like group IDs or scope tags) only need to be updated in one place.
-
-**Reduced Errors**: Dependencies prevent resources from being destroyed or modified in the wrong order.
-
-**Version Control**: Smaller, more focused diffs make changes easier to review.
-
 ## Advanced Filtering Techniques
 
 ### Multiple Filters
 
-Combine filters to precisely target resources:
+Each list resource supports different filters. Combine filters to precisely target resources:
 
 ```hcl
 list "microsoft365_graph_beta_device_management_settings_catalog_configuration_policy" "assigned_defender" {
@@ -536,14 +322,6 @@ mv generated_policies.tf policies/security/baselines.tf
 terraform init
 terraform plan
 ```
-
-## Supported List Resources
-
-The following list resources support this workflow:
-
-| Resource Type | Use Case |
-|---------------|----------|
-| `microsoft365_graph_beta_device_management_settings_catalog_configuration_policy` | Settings Catalog policies |
 
 ## Best Practices
 
