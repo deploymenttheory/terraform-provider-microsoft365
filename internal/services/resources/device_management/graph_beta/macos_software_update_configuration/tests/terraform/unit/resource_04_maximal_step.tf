@@ -3,16 +3,16 @@
 # ==============================================================================
 
 resource "microsoft365_graph_beta_device_management_macos_software_update_configuration" "test_04_regression" {
-  display_name                             = "Test 04: Regression macOS Software Update Configuration"
-  description                              = "Maximal software update configuration with all features"
-  update_schedule_type                     = "updateDuringTimeWindows"
-  critical_update_behavior                 = "installASAP"
-  config_data_update_behavior              = "installASAP"
-  firmware_update_behavior                 = "installASAP"
-  all_other_update_behavior                = "installASAP"
-  max_user_deferrals_count                 = 5
-  priority                                 = "high"
-  role_scope_tag_ids                       = ["0", "1"]
+  display_name                = "Test 04: Regression macOS Software Update Configuration"
+  description                 = "Maximal software update configuration with all features"
+  update_schedule_type        = "updateDuringTimeWindows"
+  critical_update_behavior    = "installASAP"
+  config_data_update_behavior = "installASAP"
+  firmware_update_behavior    = "installASAP"
+  all_other_update_behavior   = "installASAP"
+  max_user_deferrals_count    = 5
+  priority                    = "high"
+  role_scope_tag_ids          = ["0", "1"]
 
   custom_update_time_windows = [
     {

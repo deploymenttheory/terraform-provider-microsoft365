@@ -1,0 +1,142 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
+subcategory: "Users"
+
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Name}} ({{.Type}})
+
+{{ .Description | trimspace }}
+
+Lists users from Microsoft Entra ID using the `/users` endpoint. Supports filtering by display name, user principal name, account status, user type, and custom OData queries.
+
+List resources allow you to query and discover existing infrastructure without managing it. This is useful for:
+- Finding users for import into Terraform
+- Discovering users by criteria
+- Auditing user configuration
+- Building dynamic configurations based on existing users
+
+## Microsoft Documentation
+
+- [List users](https://learn.microsoft.com/en-us/graph/api/user-list?view=graph-rest-beta)
+- [user resource type](https://learn.microsoft.com/en-us/graph/api/resources/user?view=graph-rest-beta)
+
+## Microsoft Graph API Permissions
+
+The following client `application` permissions are needed in order to use this {{.Type | lower}}:
+
+**Required:**
+- `User.Read.All`
+- `Directory.Read.All`
+
+**Optional:**
+- `None` `[N/A]`
+
+## Version History
+
+| Version | Status | Notes |
+|---------|--------|-------|
+| v0.45.0-alpha | Experimental | Initial release |
+
+## Example Usage
+
+### List All Users
+
+{{ tffile "examples/list-resources/microsoft365_graph_beta_users_user/list_all.tfquery.hcl" }}
+
+### Filter by Display Name
+
+{{ tffile "examples/list-resources/microsoft365_graph_beta_users_user/list_by_display_name.tfquery.hcl" }}
+
+### Filter by User Principal Name
+
+{{ tffile "examples/list-resources/microsoft365_graph_beta_users_user/list_by_upn.tfquery.hcl" }}
+
+### Filter by Account Status
+
+{{ tffile "examples/list-resources/microsoft365_graph_beta_users_user/list_enabled_only.tfquery.hcl" }}
+
+{{ tffile "examples/list-resources/microsoft365_graph_beta_users_user/list_disabled_only.tfquery.hcl" }}
+
+### Filter by User Type
+
+{{ tffile "examples/list-resources/microsoft365_graph_beta_users_user/list_members_only.tfquery.hcl" }}
+
+{{ tffile "examples/list-resources/microsoft365_graph_beta_users_user/list_guests_only.tfquery.hcl" }}
+
+### Combined Filters
+
+{{ tffile "examples/list-resources/microsoft365_graph_beta_users_user/list_combined_filters.tfquery.hcl" }}
+
+### Custom OData Filters
+
+#### Exact Match
+
+{{ tffile "examples/list-resources/microsoft365_graph_beta_users_user/odata_exact_match.tfquery.hcl" }}
+
+#### String Functions
+
+{{ tffile "examples/list-resources/microsoft365_graph_beta_users_user/odata_startswith.tfquery.hcl" }}
+
+#### Logical Operators
+
+{{ tffile "examples/list-resources/microsoft365_graph_beta_users_user/odata_and.tfquery.hcl" }}
+
+{{ tffile "examples/list-resources/microsoft365_graph_beta_users_user/odata_or.tfquery.hcl" }}
+
+#### Complex Queries
+
+{{ tffile "examples/list-resources/microsoft365_graph_beta_users_user/odata_complex.tfquery.hcl" }}
+
+## Filter Behavior
+
+- **API-level filters**: `display_name_filter`, `user_principal_name_filter`, `account_enabled_filter`, `user_type_filter`, and `odata_filter` are applied at the Microsoft Graph API level.
+- **Filter combination**: Multiple filters are combined using AND logic.
+- **String matching**: Note that `display_name_filter` and `user_principal_name_filter` use `startsWith` operator as the Microsoft Graph `/users` endpoint does not support `contains` for partial matching.
+
+## OData Query Patterns
+
+The `odata_filter` parameter supports standard OData query syntax:
+
+### String Functions
+- `startsWith(property, 'prefix')` - Prefix match (e.g., `startsWith(displayName, 'John')`)
+- **Note**: The `/users` endpoint does NOT support `contains()` for substring matching
+
+### Comparison Operators
+- `eq` - Equals
+- `ne` - Not equals
+- `gt` / `ge` - Greater than / Greater or equal
+- `lt` / `le` - Less than / Less or equal
+
+### Logical Operators
+- `and` - Logical AND
+- `or` - Logical OR
+- `not` - Logical NOT
+
+### Grouping
+- Use parentheses for complex expressions: `(condition1 or condition2) and condition3`
+
+## Supported User Types
+
+The `user_type_filter` parameter accepts the following values:
+- `Member` - Regular organizational users
+- `Guest` - External/guest users
+
+## Important Notes
+
+### String Filter Limitations
+The Microsoft Graph `/users` endpoint has specific limitations on string filtering:
+- **Supported**: `startsWith()` for prefix matching
+- **NOT Supported**: `contains()` for substring matching
+- **NOT Supported**: `endsWith()` for suffix matching
+
+If you need substring matching, use `odata_filter` with multiple `startsWith()` conditions combined with `or`, or retrieve all users and filter client-side.
+
+### Performance Considerations
+- Filtering is performed server-side at the Microsoft Graph API level for optimal performance
+- Use specific filters to reduce the result set size
+- The `odata_filter` parameter provides maximum flexibility for complex queries
+
+{{ .SchemaMarkdown | trimspace }}

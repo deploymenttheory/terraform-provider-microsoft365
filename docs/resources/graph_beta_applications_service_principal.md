@@ -110,7 +110,7 @@ resource "microsoft365_graph_beta_applications_service_principal" "example" {
 - `notes` (String) Free text field to capture information about the service principal, typically used for operational purposes. Maximum allowed size is 1,024 characters.
 - `notification_email_addresses` (Set of String) Specifies the list of email addresses where Microsoft Entra ID sends a notification when the active certificate is near the expiration date. This is only for the certificates used to sign the SAML token issued for Microsoft Entra Gallery applications.
 - `preferred_single_sign_on_mode` (String) Specifies the single sign-on mode configured for this application. Microsoft Entra ID uses the preferred single sign-on mode to launch the application from Microsoft 365 or the Microsoft Entra My Apps. The supported values are `password`, `saml`, `notSupported`, and `oidc`.
-- `tags` (Set of String) Custom strings that can be used to categorize and identify the service principal. Not nullable.
+- `tags` (Set of String) Custom strings that can be used to categorize and identify the service principal. Note: Microsoft may automatically add system-managed tags in addition to the tags you specify.
 - `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))
 
 ### Read-Only

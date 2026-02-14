@@ -167,7 +167,7 @@ resource "microsoft365_graph_beta_windows_365_cloud_pc_provisioning_policy" "fro
 Optional:
 
 - `managed_type` (String) Indicates the provisioning policy associated with Microsoft Managed Desktop settings.
-- `profile` (String) The name of the Microsoft Managed Desktop profile that the Windows 365 Cloud PC is associated with.'4aa9b805-9494-4eed-a04b-ed51ec9e631e' is the default Autopatch Group ID. Via 'https://mmdls.microsoft.com/device/v1/windows365/autopatchGroups'
+- `profile` (String) The name of the Microsoft Managed Desktop profile that the Windows 365 Cloud PC is associated with.
 
 
 <a id="nestedatt--windows_setting"></a>
