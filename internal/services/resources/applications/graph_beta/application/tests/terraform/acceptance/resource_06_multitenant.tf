@@ -58,8 +58,6 @@ resource "microsoft365_graph_beta_applications_application" "test_multitenant" {
     ]
   }
 
-  required_resource_access = []
-
   tags = [
     "multitenant",
     "acceptance-test"

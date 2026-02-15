@@ -11,7 +11,8 @@ import (
 
 // mockStateContainer implements StateContainer for testing
 type mockStateContainer struct {
-	state tfsdk.State
+	state    tfsdk.State
+	identity any
 }
 
 func (m *mockStateContainer) GetState() tfsdk.State {
@@ -20,6 +21,14 @@ func (m *mockStateContainer) GetState() tfsdk.State {
 
 func (m *mockStateContainer) SetState(state tfsdk.State) {
 	m.state = state
+}
+
+func (m *mockStateContainer) GetIdentity() any {
+	return m.identity
+}
+
+func (m *mockStateContainer) SetIdentity(identity any) {
+	m.identity = identity
 }
 
 func TestReadWithRetry_SuccessOnFirstAttempt(t *testing.T) {
@@ -260,6 +269,17 @@ func TestCreateResponseContainer(t *testing.T) {
 	if resp.State != state {
 		t.Error("CreateResponseContainer didn't update underlying response state")
 	}
+
+	// Test Identity management
+	identity := &tfsdk.ResourceIdentity{}
+	container.SetIdentity(identity)
+
+	if container.GetIdentity() != identity {
+		t.Error("CreateResponseContainer identity get failed")
+	}
+	if resp.Identity != identity {
+		t.Error("CreateResponseContainer didn't update underlying response identity")
+	}
 }
 
 func TestUpdateResponseContainer(t *testing.T) {
@@ -274,6 +294,17 @@ func TestUpdateResponseContainer(t *testing.T) {
 	}
 	if resp.State != state {
 		t.Error("UpdateResponseContainer didn't update underlying response state")
+	}
+
+	// Test Identity management
+	identity := &tfsdk.ResourceIdentity{}
+	container.SetIdentity(identity)
+
+	if container.GetIdentity() != identity {
+		t.Error("UpdateResponseContainer identity get failed")
+	}
+	if resp.Identity != identity {
+		t.Error("UpdateResponseContainer didn't update underlying response identity")
 	}
 }
 
@@ -316,6 +347,33 @@ func TestReadWithRetry_MaxRetriesAdjustedForTime(t *testing.T) {
 	}
 	if callCount > 10 {
 		t.Errorf("Expected limited calls due to time constraint, got: %d", callCount)
+	}
+}
+
+func TestReadWithRetry_IdentityPropagation(t *testing.T) {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	expectedIdentity := &tfsdk.ResourceIdentity{}
+	mockReadFunc := func(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+		if resp.Identity != nil {
+			resp.Identity = expectedIdentity
+		}
+	}
+
+	readReq := resource.ReadRequest{}
+	stateContainer := &mockStateContainer{
+		identity: &tfsdk.ResourceIdentity{}, // Initialize with a non-nil identity
+	}
+	opts := DefaultReadWithRetryOptions()
+
+	err := ReadWithRetry(ctx, mockReadFunc, readReq, stateContainer, opts)
+
+	if err != nil {
+		t.Errorf("Expected no error, got: %v", err)
+	}
+	if stateContainer.identity != expectedIdentity {
+		t.Error("Identity was not propagated from ReadResponse to StateContainer")
 	}
 }
 

@@ -53,8 +53,6 @@ resource "microsoft365_graph_beta_applications_application" "test_web_app" {
     }
   }
 
-  required_resource_access = []
-
   owner_user_ids = [
     microsoft365_graph_beta_users_user.dependency_owner.id
   ]
