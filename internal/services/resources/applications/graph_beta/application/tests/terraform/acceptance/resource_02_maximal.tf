@@ -76,9 +76,6 @@ resource "microsoft365_graph_beta_applications_application" "test_maximal" {
   api = {
     accept_mapped_claims           = true
     requested_access_token_version = 2
-    oauth2_permission_scopes       = []
-    pre_authorized_applications    = []
-    known_client_applications      = []
   }
 
   # App Roles - Testing all allowed_member_types combinations
@@ -123,13 +120,6 @@ resource "microsoft365_graph_beta_applications_application" "test_maximal" {
   # Password Credentials are managed by the separate
   # microsoft365_graph_beta_applications_application_password_credential resource
 
-  # Optional Claims
-  optional_claims = {
-    access_token = []
-    id_token     = []
-    saml2_token  = []
-  }
-
   # Parental Control Settings
   parental_control_settings = {
     countries_blocked_for_minors = ["US", "CA"]
@@ -142,9 +132,6 @@ resource "microsoft365_graph_beta_applications_application" "test_maximal" {
       "http://localhost"
     ]
   }
-
-  # Required Resource Access
-  required_resource_access = []
 
   # SPA Configuration
   spa = {

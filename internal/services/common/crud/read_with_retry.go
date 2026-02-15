@@ -36,10 +36,12 @@ func DefaultReadWithRetryOptions() ReadWithRetryOptions {
 	}
 }
 
-// StateContainer interface for anything that has a State field
+// StateContainer interface for anything that has a State field and optionally an Identity field
 type StateContainer interface {
 	GetState() tfsdk.State
 	SetState(tfsdk.State)
+	GetIdentity() any
+	SetIdentity(any)
 }
 
 // CreateResponseContainer wraps resource.CreateResponse to implement StateContainer
@@ -55,6 +57,16 @@ func (c *CreateResponseContainer) SetState(state tfsdk.State) {
 	c.State = state
 }
 
+func (c *CreateResponseContainer) GetIdentity() any {
+	return c.Identity
+}
+
+func (c *CreateResponseContainer) SetIdentity(identity any) {
+	if id, ok := identity.(*tfsdk.ResourceIdentity); ok {
+		c.Identity = id
+	}
+}
+
 // UpdateResponseContainer wraps resource.UpdateResponse to implement StateContainer
 type UpdateResponseContainer struct {
 	*resource.UpdateResponse
@@ -66,6 +78,16 @@ func (c *UpdateResponseContainer) GetState() tfsdk.State {
 
 func (c *UpdateResponseContainer) SetState(state tfsdk.State) {
 	c.State = state
+}
+
+func (c *UpdateResponseContainer) GetIdentity() any {
+	return c.Identity
+}
+
+func (c *UpdateResponseContainer) SetIdentity(identity any) {
+	if id, ok := identity.(*tfsdk.ResourceIdentity); ok {
+		c.Identity = id
+	}
 }
 
 // extractResourceID attempts to extract the ID from the state for logging purposes
@@ -102,11 +124,9 @@ func extractErrorFromDiagnostics(diagnostics diag.Diagnostics) errors.GraphError
 		summary := d.Summary()
 		detail := d.Detail()
 
-		// Combine summary and detail for analysis
 		errorText := summary + " " + detail
 		errorTextLower := strings.ToLower(errorText)
 
-		// Try to extract status code patterns from error messages
 		if strings.Contains(errorTextLower, "404") || strings.Contains(errorTextLower, "not found") {
 			return errors.GraphErrorInfo{StatusCode: 404, ErrorCode: "NotFound"}
 		}
@@ -159,7 +179,6 @@ func extractErrorFromDiagnostics(diagnostics diag.Diagnostics) errors.GraphError
 		}
 	}
 
-	// Return empty error info if no patterns match
 	return errors.GraphErrorInfo{}
 }
 
@@ -183,7 +202,6 @@ func ReadWithRetry(
 		"resource_type": resourceType,
 	})
 
-	// Ensure we have reasonable defaults
 	if opts.MaxRetries <= 0 {
 		opts.MaxRetries = 30
 	}
@@ -235,7 +253,15 @@ func ReadWithRetry(
 			"resource_type": resourceType,
 		})
 
-		readResp := &resource.ReadResponse{State: stateContainer.GetState()}
+		readResp := &resource.ReadResponse{
+			State: stateContainer.GetState(),
+		}
+
+		if containerIdentity := stateContainer.GetIdentity(); containerIdentity != nil {
+			if identityState, ok := containerIdentity.(*tfsdk.ResourceIdentity); ok {
+				readResp.Identity = identityState
+			}
+		}
 
 		ctxWithOp := context.WithValue(ctx, "retry_operation", opts.Operation)
 		readFunc(ctxWithOp, readReq, readResp)
@@ -246,16 +272,18 @@ func ReadWithRetry(
 				"resource_type": resourceType,
 			})
 			stateContainer.SetState(readResp.State)
+			// Propagate Identity back to the container
+			if readResp.Identity != nil {
+				stateContainer.SetIdentity(readResp.Identity)
+			}
 			return nil
 		}
 
 		lastErr = fmt.Errorf("error reading resource state after %s method on attempt %d: %s",
 			opts.Operation, attempt+1, readResp.Diagnostics.Errors())
 
-		// Analyze diagnostics to extract error information
 		errorInfo := extractErrorFromDiagnostics(readResp.Diagnostics)
 
-		// Check for non-retryable errors first (permanent failures or success)
 		if errors.IsNonRetryableReadError(&errorInfo) {
 			tflog.Error(ctx, fmt.Sprintf("Read failed on attempt %d (non-retryable error)", attempt+1), map[string]any{
 				"resource_id":   resourceID,
@@ -267,7 +295,6 @@ func ReadWithRetry(
 			return fmt.Errorf("read operation failed with non-retryable error: %w", lastErr)
 		}
 
-		// Check if this error should trigger a retry
 		if errors.IsRetryableReadError(&errorInfo) {
 			if attempt < opts.MaxRetries {
 				tflog.Warn(ctx, fmt.Sprintf("Read failed on attempt %d (retryable error), waiting %s before retry", attempt+1, opts.RetryInterval), map[string]any{
@@ -293,7 +320,6 @@ func ReadWithRetry(
 				})
 			}
 		} else {
-			// Unknown error type, use old behavior for safety
 			if attempt < opts.MaxRetries {
 				tflog.Debug(ctx, fmt.Sprintf("Read failed on attempt %d (unknown error type, continuing retry)", attempt+1), map[string]any{
 					"resource_id":   resourceID,
