@@ -5,6 +5,27 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.45.0-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.44.0-alpha...v0.45.0-alpha) (2026-02-15)
+
+
+### Features
+
+* add identity schema support for all resources ([fd0696e](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/fd0696eba7a99119369c401139b35cc25da9bc80))
+* added list resource user and updated docs ([53f6229](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/53f6229e068ea00a0afae0c6214f809466bc7694))
+* added list resource user and updated docs ([#2384](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/2384)) ([18363c3](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/18363c36f354663993784a29a5294a371a4525b4))
+* Added support for `microsoft365_graph_beta_device_management_windows_platform_script` ([3333200](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/3333200c0aa1f478b32294bbf5cdf168982d33c6))
+* Added support for microsoft365_graph_beta_device_management_windows_platform_script ([#2397](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/2397)) ([0f113b8](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/0f113b88fd8aeada9f44721c6391897363d755bc))
+* Enhance StateContainer to support Identity management ([211b2b6](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/211b2b62629c785d8d25b946e83ae3fcaaa1151e))
+
+
+### Bug Fixes
+
+* add AllowSystemGeneratedSetValues modifier for enhanced set management ([ad6a2ca](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/ad6a2cae376343f04bd9472b8d23193b97ee79ca))
+* add GraphToFrameworkStringSetFiltered function for tag filtering ([521db10](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/521db102c02e2c5337514d14a3d1a0bb0f55b759))
+* add validation for Windows feature update policy resource constraints ([#2361](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/2361)) ([3d5dca0](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/3d5dca09a52d5d820d4caf19d88c5443294de45f))
+* added support for panicking test cases in bi-weekly test pipeline ([#2398](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/2398)) ([475301c](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/475301cda7a656417ba3f12a488189ac0ac83687))
+* All errors from external packages are now properly wrapped with context using fmt.Errorf with the %w verb, satisfying the wrapcheck linter requirements. ([17a2a31](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/17a2a31411e6fdc19967fdf5e363ac591e8ecd87))
+
 ## [0.44.0-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.43.0-alpha...v0.44.0-alpha) (2026-02-03)
 
 
