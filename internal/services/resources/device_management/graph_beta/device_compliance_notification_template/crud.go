@@ -238,9 +238,11 @@ func (r *DeviceComplianceNotificationTemplateResource) Read(ctx context.Context,
 
 	identity.ID = state.ID.ValueString()
 
-	resp.Diagnostics.Append(resp.Identity.Set(ctx, identity)...)
-	if resp.Diagnostics.HasError() {
-		return
+	if resp.Identity != nil {
+		resp.Diagnostics.Append(resp.Identity.Set(ctx, identity)...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
 	}
 
 	tflog.Debug(ctx, fmt.Sprintf("Finished Read Method: %s", ResourceName))

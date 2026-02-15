@@ -179,9 +179,11 @@ func (r *IOSiPadOSWebClipResource) Read(ctx context.Context, req resource.ReadRe
 
 	identity.ID = object.ID.ValueString()
 
-	resp.Diagnostics.Append(resp.Identity.Set(ctx, identity)...)
-	if resp.Diagnostics.HasError() {
-		return
+	if resp.Identity != nil {
+		resp.Diagnostics.Append(resp.Identity.Set(ctx, identity)...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
 	}
 }
 

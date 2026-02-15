@@ -133,9 +133,11 @@ func (r *AgentIdentityBlueprintPasswordCredentialResource) Read(ctx context.Cont
 
 	identity.ID = object.BlueprintID.ValueString()
 
-	resp.Diagnostics.Append(resp.Identity.Set(ctx, identity)...)
-	if resp.Diagnostics.HasError() {
-		return
+	if resp.Identity != nil {
+		resp.Diagnostics.Append(resp.Identity.Set(ctx, identity)...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
 	}
 
 	tflog.Debug(ctx, fmt.Sprintf("Finished Read Method: %s", ResourceName))

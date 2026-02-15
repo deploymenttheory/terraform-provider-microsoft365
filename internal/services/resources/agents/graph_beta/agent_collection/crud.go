@@ -143,7 +143,6 @@ func (r *AgentCollectionResource) Read(ctx context.Context, req resource.ReadReq
 
 	identity.ID = object.ID.ValueString()
 
-	// Only set Identity if it's not nil (nil when called from ReadWithRetry)
 	if resp.Identity != nil {
 		resp.Diagnostics.Append(resp.Identity.Set(ctx, identity)...)
 		if resp.Diagnostics.HasError() {

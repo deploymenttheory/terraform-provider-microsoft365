@@ -165,9 +165,11 @@ func (r *ApplicationIdentifierUriResource) Read(ctx context.Context, req resourc
 
 	identity.ID = object.Id.ValueString()
 
-	resp.Diagnostics.Append(resp.Identity.Set(ctx, identity)...)
-	if resp.Diagnostics.HasError() {
-		return
+	if resp.Identity != nil {
+		resp.Diagnostics.Append(resp.Identity.Set(ctx, identity)...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
 	}
 
 	tflog.Debug(ctx, fmt.Sprintf("Finished Read Method: %s", ResourceName))
