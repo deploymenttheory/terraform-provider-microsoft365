@@ -1,0 +1,83 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/deviceManagementScripts",
+  "value": [
+    {
+      "@odata.type": "#microsoft.graph.deviceManagementScript",
+      "id": "script-001",
+      "displayName": "Windows Baseline Setup",
+      "description": "Baseline configuration script for Windows devices",
+      "fileName": "baseline_setup.ps1",
+      "runAsAccount": "system",
+      "enforceSignatureCheck": false,
+      "runAs32Bit": false,
+      "roleScopeTagIds": ["0"],
+      "createdDateTime": "2024-01-15T10:00:00Z",
+      "lastModifiedDateTime": "2024-01-15T10:00:00Z"
+    },
+    {
+      "@odata.type": "#microsoft.graph.deviceManagementScript",
+      "id": "script-002",
+      "displayName": "Security Hardening Script",
+      "description": "Applies security hardening to Windows devices",
+      "fileName": "security_hardening.ps1",
+      "runAsAccount": "system",
+      "enforceSignatureCheck": true,
+      "runAs32Bit": false,
+      "roleScopeTagIds": ["0"],
+      "createdDateTime": "2024-01-15T11:00:00Z",
+      "lastModifiedDateTime": "2024-01-15T11:00:00Z"
+    },
+    {
+      "@odata.type": "#microsoft.graph.deviceManagementScript",
+      "id": "script-003",
+      "displayName": "User Profile Configuration",
+      "description": "Configures user profile settings",
+      "fileName": "user_profile_config.ps1",
+      "runAsAccount": "user",
+      "enforceSignatureCheck": false,
+      "runAs32Bit": false,
+      "roleScopeTagIds": ["0"],
+      "createdDateTime": "2024-01-15T12:00:00Z",
+      "lastModifiedDateTime": "2024-01-15T12:00:00Z"
+    },
+    {
+      "@odata.type": "#microsoft.graph.deviceManagementScript",
+      "id": "script-004",
+      "displayName": "App Installation Helper",
+      "description": "Assists with application installations",
+      "fileName": "app_install.ps1",
+      "runAsAccount": "system",
+      "enforceSignatureCheck": false,
+      "runAs32Bit": true,
+      "roleScopeTagIds": ["0"],
+      "createdDateTime": "2024-01-15T13:00:00Z",
+      "lastModifiedDateTime": "2024-01-15T13:00:00Z"
+    },
+    {
+      "@odata.type": "#microsoft.graph.deviceManagementScript",
+      "id": "script-005",
+      "displayName": "Network Configuration",
+      "description": "Configures network settings",
+      "fileName": "network_setup.ps1",
+      "runAsAccount": "system",
+      "enforceSignatureCheck": false,
+      "runAs32Bit": false,
+      "roleScopeTagIds": ["0"],
+      "createdDateTime": "2024-01-15T14:00:00Z",
+      "lastModifiedDateTime": "2024-01-15T14:00:00Z"
+    },
+    {
+      "@odata.type": "#microsoft.graph.deviceManagementScript",
+      "id": "script-006",
+      "displayName": "User Logon Script",
+      "description": "Runs at user logon",
+      "fileName": "logon.ps1",
+      "runAsAccount": "user",
+      "enforceSignatureCheck": false,
+      "runAs32Bit": false,
+      "roleScopeTagIds": ["0"],
+      "createdDateTime": "2024-01-15T15:00:00Z",
+      "lastModifiedDateTime": "2024-01-15T15:00:00Z"
+    }
+  ]
+}
