@@ -2,6 +2,7 @@ package mocks
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"regexp"
 	"strings"
@@ -24,7 +25,11 @@ func RegisterApplicationCategoryMockResponders() {
 				jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_get/get_application_category_by_id.json")
 				var responseObj map[string]any
 				json.Unmarshal([]byte(jsonStr), &responseObj)
-				return httpmock.NewJsonResponse(200, responseObj)
+				resp, err := httpmock.NewJsonResponse(200, responseObj)
+				if err != nil {
+					return nil, fmt.Errorf("failed to create mock JSON response: %w", err)
+				}
+				return resp, nil
 			}
 
 			// Handle OData filter requests
@@ -33,7 +38,11 @@ func RegisterApplicationCategoryMockResponders() {
 					jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_get/get_application_categories_by_display_name.json")
 					var responseObj map[string]any
 					json.Unmarshal([]byte(jsonStr), &responseObj)
-					return httpmock.NewJsonResponse(200, responseObj)
+					resp, err := httpmock.NewJsonResponse(200, responseObj)
+					if err != nil {
+						return nil, fmt.Errorf("failed to create mock JSON response: %w", err)
+					}
+					return resp, nil
 				}
 			}
 
@@ -42,14 +51,22 @@ func RegisterApplicationCategoryMockResponders() {
 				jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_get/get_application_categories_all.json")
 				var responseObj map[string]any
 				json.Unmarshal([]byte(jsonStr), &responseObj)
-				return httpmock.NewJsonResponse(200, responseObj)
+				resp, err := httpmock.NewJsonResponse(200, responseObj)
+				if err != nil {
+					return nil, fmt.Errorf("failed to create mock JSON response: %w", err)
+				}
+				return resp, nil
 			}
 
 			// Default: Return all application categories
 			jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_get/get_application_categories_all.json")
 			var responseObj map[string]any
 			json.Unmarshal([]byte(jsonStr), &responseObj)
-			return httpmock.NewJsonResponse(200, responseObj)
+			resp, err := httpmock.NewJsonResponse(200, responseObj)
+			if err != nil {
+				return nil, fmt.Errorf("failed to create mock JSON response: %w", err)
+			}
+			return resp, nil
 		},
 	)
 
@@ -59,7 +76,11 @@ func RegisterApplicationCategoryMockResponders() {
 			jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_get/get_application_category_by_id.json")
 			var responseObj map[string]any
 			json.Unmarshal([]byte(jsonStr), &responseObj)
-			return httpmock.NewJsonResponse(200, responseObj)
+			resp, err := httpmock.NewJsonResponse(200, responseObj)
+			if err != nil {
+				return nil, fmt.Errorf("failed to create mock JSON response: %w", err)
+			}
+			return resp, nil
 		},
 	)
 }

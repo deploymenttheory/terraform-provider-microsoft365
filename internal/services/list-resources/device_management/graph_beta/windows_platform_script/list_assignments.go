@@ -21,7 +21,7 @@ func (r *WindowsPlatformScriptListResource) listResourceAssignments(ctx context.
 
 	if err != nil {
 		tflog.Warn(ctx, fmt.Sprintf("Error checking assignments for script %s: %v", scriptId, err))
-		return false, err
+		return false, fmt.Errorf("failed to get assignments for script %s: %w", scriptId, err)
 	}
 
 	if assignmentsResponse == nil {

@@ -289,10 +289,11 @@ func (r *NamedLocationResource) Delete(ctx context.Context, req resource.DeleteR
 			errorInfo := errors.GraphError(ctx, deleteErr)
 			tflog.Debug(ctx, fmt.Sprintf("DELETE call returned error: status=%d, category=%s, message=%s",
 				errorInfo.StatusCode, errorInfo.Category, errorInfo.ErrorMessage))
+			return fmt.Errorf("failed to delete named location %s: %w", state.ID.ValueString(), deleteErr)
 		} else {
 			tflog.Debug(ctx, fmt.Sprintf("DELETE call succeeded for named location %s", state.ID.ValueString()))
 		}
-		return deleteErr
+		return nil
 	}, deleteOptions)
 
 	if err != nil {

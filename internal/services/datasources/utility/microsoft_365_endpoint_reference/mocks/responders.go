@@ -2,6 +2,7 @@ package mocks
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -97,7 +98,11 @@ func (m *Microsoft365EndpointReferenceMock) getEndpointsResponder(instance strin
 		// Apply filters based on query parameters
 		filteredData := m.applyFilters(responseData, req)
 
-		return httpmock.NewJsonResponse(200, filteredData)
+		resp, err := httpmock.NewJsonResponse(200, filteredData)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create mock JSON response: %w", err)
+		}
+		return resp, nil
 	}
 }
 

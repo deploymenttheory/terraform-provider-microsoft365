@@ -125,7 +125,11 @@ func (m *ConditionalAccessPolicyListMock) handleListRequest(req *http.Request) (
 		response["@odata.nextLink"] = nextLink
 	}
 
-	return httpmock.NewJsonResponse(200, response)
+	resp, err := httpmock.NewJsonResponse(200, response)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create mock JSON response: %w", err)
+	}
+	return resp, nil
 }
 
 func (m *ConditionalAccessPolicyListMock) applyFilters(policies []map[string]any, query url.Values) []map[string]any {

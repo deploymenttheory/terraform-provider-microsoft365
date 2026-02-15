@@ -2,6 +2,7 @@ package mocks
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/url"
 	"strings"
@@ -43,7 +44,11 @@ func (m *GroupMock) RegisterMocks() {
 			jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_get/get_group_by_id.json")
 			var responseObj map[string]any
 			json.Unmarshal([]byte(jsonStr), &responseObj)
-			return httpmock.NewJsonResponse(200, responseObj)
+			resp, err := httpmock.NewJsonResponse(200, responseObj)
+			if err != nil {
+				return nil, fmt.Errorf("failed to create mock JSON response: %w", err)
+			}
+			return resp, nil
 		case "00000000-0000-0000-0000-000000000002":
 			// Return second group (Microsoft 365 group)
 			responseObj := map[string]any{
@@ -61,7 +66,11 @@ func (m *GroupMock) RegisterMocks() {
 				"createdDateTime":       "2024-01-15T10:30:00Z",
 				"onPremisesSyncEnabled": nil,
 			}
-			return httpmock.NewJsonResponse(200, responseObj)
+			resp, err := httpmock.NewJsonResponse(200, responseObj)
+			if err != nil {
+				return nil, fmt.Errorf("failed to create mock JSON response: %w", err)
+			}
+			return resp, nil
 		case "00000000-0000-0000-0000-000000000003":
 			// Return third group (Dynamic group)
 			responseObj := map[string]any{
@@ -79,7 +88,11 @@ func (m *GroupMock) RegisterMocks() {
 				"createdDateTime":               "2024-02-01T14:00:00Z",
 				"onPremisesSyncEnabled":         nil,
 			}
-			return httpmock.NewJsonResponse(200, responseObj)
+			resp, err := httpmock.NewJsonResponse(200, responseObj)
+			if err != nil {
+				return nil, fmt.Errorf("failed to create mock JSON response: %w", err)
+			}
+			return resp, nil
 		default:
 			return httpmock.NewStringResponse(404, `{"error":{"code":"Request_ResourceNotFound","message":"Resource not found"}}`), nil
 		}
@@ -111,7 +124,11 @@ func (m *GroupMock) RegisterMocks() {
 					},
 				},
 			}
-			return httpmock.NewJsonResponse(200, responseObj)
+			resp, err := httpmock.NewJsonResponse(200, responseObj)
+			if err != nil {
+				return nil, fmt.Errorf("failed to create mock JSON response: %w", err)
+			}
+			return resp, nil
 		} else if strings.Contains(filter, "mailNickname eq 'finance'") {
 			// Return finance group
 			responseObj := map[string]any{
@@ -134,7 +151,11 @@ func (m *GroupMock) RegisterMocks() {
 					},
 				},
 			}
-			return httpmock.NewJsonResponse(200, responseObj)
+			resp, err := httpmock.NewJsonResponse(200, responseObj)
+			if err != nil {
+				return nil, fmt.Errorf("failed to create mock JSON response: %w", err)
+			}
+			return resp, nil
 		}
 
 		// Default empty response
@@ -142,7 +163,11 @@ func (m *GroupMock) RegisterMocks() {
 			"@odata.context": "https://graph.microsoft.com/beta/$metadata#groups",
 			"value":          []any{},
 		}
-		return httpmock.NewJsonResponse(200, responseObj)
+		resp, err := httpmock.NewJsonResponse(200, responseObj)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create mock JSON response: %w", err)
+		}
+		return resp, nil
 	})
 
 	// 3. Get group members - GET /groups/{id}/members
@@ -151,7 +176,11 @@ func (m *GroupMock) RegisterMocks() {
 			"@odata.context": "https://graph.microsoft.com/beta/$metadata#directoryObjects",
 			"value":          []any{},
 		}
-		return httpmock.NewJsonResponse(200, responseObj)
+		resp, err := httpmock.NewJsonResponse(200, responseObj)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create mock JSON response: %w", err)
+		}
+		return resp, nil
 	})
 
 	// 4. Get group owners - GET /groups/{id}/owners
@@ -160,7 +189,11 @@ func (m *GroupMock) RegisterMocks() {
 			"@odata.context": "https://graph.microsoft.com/beta/$metadata#directoryObjects",
 			"value":          []any{},
 		}
-		return httpmock.NewJsonResponse(200, responseObj)
+		resp, err := httpmock.NewJsonResponse(200, responseObj)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create mock JSON response: %w", err)
+		}
+		return resp, nil
 	})
 }
 
@@ -177,7 +210,11 @@ func (m *GroupMock) RegisterErrorMocks() {
 				"message": "Insufficient privileges to complete the operation.",
 			},
 		}
-		return httpmock.NewJsonResponse(403, errorObj)
+		resp, err := httpmock.NewJsonResponse(403, errorObj)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create mock JSON response: %w", err)
+		}
+		return resp, nil
 	})
 }
 

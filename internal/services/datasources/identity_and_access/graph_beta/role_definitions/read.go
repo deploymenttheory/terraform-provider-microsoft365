@@ -186,7 +186,7 @@ func (d *RoleDefinitionsDataSource) getAllRoleDefinitionsWithPageIterator(ctx co
 		RoleDefinitions().
 		Get(ctx, requestParameters)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to get role definitions: %w", err)
 	}
 
 	pageIterator, err := graphcore.NewPageIterator[graphmodels.UnifiedRoleDefinitionable](

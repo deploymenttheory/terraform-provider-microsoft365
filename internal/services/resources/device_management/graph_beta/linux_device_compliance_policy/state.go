@@ -20,7 +20,6 @@ func MapRemoteStateToTerraform(ctx context.Context, data *LinuxDeviceComplianceP
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting MapRemoteStateToTerraform for resource: %s", ResourceName))
 
-	// Map base resource properties
 	data.ID = convert.GraphToFrameworkString(remoteResource.GetId())
 	data.Name = convert.GraphToFrameworkString(remoteResource.GetName())
 	data.Description = convert.GraphToFrameworkString(remoteResource.GetDescription())
@@ -109,7 +108,6 @@ func StateConfigurationPolicySettings(ctx context.Context, data *LinuxDeviceComp
 	data.PasswordPolicyMinimumSymbols = types.Int32Null()
 	data.PasswordPolicyMinimumUppercase = types.Int32Null()
 
-	// Process each setting
 	for _, setting := range settings {
 		if setting == nil {
 			continue
@@ -185,7 +183,7 @@ func mapGroupSettingCollectionInstanceToState(ctx context.Context, data *LinuxDe
 	}
 
 	groupValues := groupCollectionInstance.GetGroupSettingCollectionValue()
-	if groupValues == nil || len(groupValues) == 0 {
+	if len(groupValues) == 0 {
 		data.DistributionAllowedDistros = types.ListNull(types.ObjectType{
 			AttrTypes: map[string]attr.Type{
 				"type":            types.StringType,
@@ -302,47 +300,43 @@ func mapChoiceSettingInstanceToState(ctx context.Context, data *LinuxDeviceCompl
 		return fmt.Errorf("choice value is nil")
 	}
 
-	// Map the choice value to boolean
 	required := *value == "linux_customcompliance_required_true"
 	data.CustomComplianceRequired = types.BoolValue(required)
 
-	// Process children if custom compliance is enabled
 	if required {
 		children := choiceValue.GetChildren()
-		if children != nil {
-			for _, child := range children {
-				if child == nil {
-					continue
-				}
+		for _, child := range children {
+			if child == nil {
+				continue
+			}
 
-				childDefId := child.GetSettingDefinitionId()
-				if childDefId == nil {
-					continue
-				}
+			childDefId := child.GetSettingDefinitionId()
+			if childDefId == nil {
+				continue
+			}
 
-				switch *childDefId {
-				case "linux_customcompliance_discoveryscript":
-					if simpleInstance, ok := child.(models.DeviceManagementConfigurationSimpleSettingInstanceable); ok {
-						if simpleValue := simpleInstance.GetSimpleSettingValue(); simpleValue != nil {
-							if referenceValue, ok := simpleValue.(models.DeviceManagementConfigurationReferenceSettingValueable); ok {
-								if value := referenceValue.GetValue(); value != nil {
-									data.CustomComplianceDiscoveryScript = types.StringValue(*value)
-								}
+			switch *childDefId {
+			case "linux_customcompliance_discoveryscript":
+				if simpleInstance, ok := child.(models.DeviceManagementConfigurationSimpleSettingInstanceable); ok {
+					if simpleValue := simpleInstance.GetSimpleSettingValue(); simpleValue != nil {
+						if referenceValue, ok := simpleValue.(models.DeviceManagementConfigurationReferenceSettingValueable); ok {
+							if value := referenceValue.GetValue(); value != nil {
+								data.CustomComplianceDiscoveryScript = types.StringValue(*value)
 							}
 						}
 					}
+				}
 
-				case "linux_customcompliance_rules":
-					// Use planned value for sensitive data like custom compliance rules
-					if plan != nil && !plan.CustomComplianceRules.IsNull() && !plan.CustomComplianceRules.IsUnknown() {
-						data.CustomComplianceRules = plan.CustomComplianceRules
-					} else {
-						if simpleInstance, ok := child.(models.DeviceManagementConfigurationSimpleSettingInstanceable); ok {
-							if simpleValue := simpleInstance.GetSimpleSettingValue(); simpleValue != nil {
-								if stringValue, ok := simpleValue.(models.DeviceManagementConfigurationStringSettingValueable); ok {
-									if value := stringValue.GetValue(); value != nil {
-										data.CustomComplianceRules = types.StringValue(*value)
-									}
+			case "linux_customcompliance_rules":
+				// Use planned value for sensitive data like custom compliance rules
+				if plan != nil && !plan.CustomComplianceRules.IsNull() && !plan.CustomComplianceRules.IsUnknown() {
+					data.CustomComplianceRules = plan.CustomComplianceRules
+				} else {
+					if simpleInstance, ok := child.(models.DeviceManagementConfigurationSimpleSettingInstanceable); ok {
+						if simpleValue := simpleInstance.GetSimpleSettingValue(); simpleValue != nil {
+							if stringValue, ok := simpleValue.(models.DeviceManagementConfigurationStringSettingValueable); ok {
+								if value := stringValue.GetValue(); value != nil {
+									data.CustomComplianceRules = types.StringValue(*value)
 								}
 							}
 						}
@@ -372,7 +366,6 @@ func mapDeviceEncryptionRequiredToState(ctx context.Context, data *LinuxDeviceCo
 		return fmt.Errorf("choice value is nil")
 	}
 
-	// Map the choice value to boolean
 	required := *value == "linux_deviceencryption_required_true"
 	data.DeviceEncryptionRequired = types.BoolValue(required)
 

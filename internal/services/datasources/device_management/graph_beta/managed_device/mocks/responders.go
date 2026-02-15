@@ -2,6 +2,7 @@ package mocks
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/url"
 	"strings"
@@ -44,7 +45,11 @@ func (m *ManagedDeviceMock) RegisterMocks() {
 				jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_get/get_managed_devices_odata_filter.json")
 				var responseObj map[string]any
 				json.Unmarshal([]byte(jsonStr), &responseObj)
-				return httpmock.NewJsonResponse(200, responseObj)
+				resp, err := httpmock.NewJsonResponse(200, responseObj)
+				if err != nil {
+					return nil, fmt.Errorf("failed to create mock JSON response: %w", err)
+				}
+				return resp, nil
 			}
 		}
 
@@ -52,7 +57,11 @@ func (m *ManagedDeviceMock) RegisterMocks() {
 		jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_get/get_managed_devices_all.json")
 		var responseObj map[string]any
 		json.Unmarshal([]byte(jsonStr), &responseObj)
-		return httpmock.NewJsonResponse(200, responseObj)
+		resp, err := httpmock.NewJsonResponse(200, responseObj)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create mock JSON response: %w", err)
+		}
+		return resp, nil
 	})
 
 	// 2. Get managed device by ID - GET /deviceManagement/managedDevices/{id}
@@ -66,7 +75,11 @@ func (m *ManagedDeviceMock) RegisterMocks() {
 			jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_get/get_managed_device_by_id.json")
 			var responseObj map[string]any
 			json.Unmarshal([]byte(jsonStr), &responseObj)
-			return httpmock.NewJsonResponse(200, responseObj)
+			resp, err := httpmock.NewJsonResponse(200, responseObj)
+			if err != nil {
+				return nil, fmt.Errorf("failed to create mock JSON response: %w", err)
+			}
+			return resp, nil
 		case "00000000-0000-0000-0000-000000000002":
 			// Return second device
 			responseObj := map[string]any{
@@ -89,7 +102,11 @@ func (m *ManagedDeviceMock) RegisterMocks() {
 				"isEncrypted":               true,
 				"managementAgent":           "mdm",
 			}
-			return httpmock.NewJsonResponse(200, responseObj)
+			resp, err := httpmock.NewJsonResponse(200, responseObj)
+			if err != nil {
+				return nil, fmt.Errorf("failed to create mock JSON response: %w", err)
+			}
+			return resp, nil
 		case "00000000-0000-0000-0000-000000000003":
 			// Return third device
 			responseObj := map[string]any{
@@ -112,7 +129,11 @@ func (m *ManagedDeviceMock) RegisterMocks() {
 				"isEncrypted":               true,
 				"managementAgent":           "mdm",
 			}
-			return httpmock.NewJsonResponse(200, responseObj)
+			resp, err := httpmock.NewJsonResponse(200, responseObj)
+			if err != nil {
+				return nil, fmt.Errorf("failed to create mock JSON response: %w", err)
+			}
+			return resp, nil
 		default:
 			return httpmock.NewStringResponse(404, `{"error":{"code":"ResourceNotFound","message":"Managed device not found"}}`), nil
 		}
@@ -128,7 +149,11 @@ func (m *ManagedDeviceMock) RegisterMocks() {
 			var responseObj map[string]any
 			json.Unmarshal([]byte(jsonStr), &responseObj)
 			responseObj["@odata.count"] = 2
-			return httpmock.NewJsonResponse(200, responseObj)
+			resp, err := httpmock.NewJsonResponse(200, responseObj)
+			if err != nil {
+				return nil, fmt.Errorf("failed to create mock JSON response: %w", err)
+			}
+			return resp, nil
 		}
 
 		// Handle $orderby parameter
@@ -136,7 +161,11 @@ func (m *ManagedDeviceMock) RegisterMocks() {
 			jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_get/get_managed_devices_odata_filter.json")
 			var responseObj map[string]any
 			json.Unmarshal([]byte(jsonStr), &responseObj)
-			return httpmock.NewJsonResponse(200, responseObj)
+			resp, err := httpmock.NewJsonResponse(200, responseObj)
+			if err != nil {
+				return nil, fmt.Errorf("failed to create mock JSON response: %w", err)
+			}
+			return resp, nil
 		}
 
 		// Handle $select parameter
@@ -144,14 +173,22 @@ func (m *ManagedDeviceMock) RegisterMocks() {
 			jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_get/get_managed_devices_odata_filter.json")
 			var responseObj map[string]any
 			json.Unmarshal([]byte(jsonStr), &responseObj)
-			return httpmock.NewJsonResponse(200, responseObj)
+			resp, err := httpmock.NewJsonResponse(200, responseObj)
+			if err != nil {
+				return nil, fmt.Errorf("failed to create mock JSON response: %w", err)
+			}
+			return resp, nil
 		}
 
 		// Default OData response
 		jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_get/get_managed_devices_all.json")
 		var responseObj map[string]any
 		json.Unmarshal([]byte(jsonStr), &responseObj)
-		return httpmock.NewJsonResponse(200, responseObj)
+		resp, err := httpmock.NewJsonResponse(200, responseObj)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create mock JSON response: %w", err)
+		}
+		return resp, nil
 	})
 }
 
@@ -168,7 +205,11 @@ func (m *ManagedDeviceMock) RegisterErrorMocks() {
 				"message": "Insufficient privileges to complete the operation.",
 			},
 		}
-		return httpmock.NewJsonResponse(403, errorObj)
+		resp, err := httpmock.NewJsonResponse(403, errorObj)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create mock JSON response: %w", err)
+		}
+		return resp, nil
 	})
 
 	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/deviceManagement/managedDevices/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`, func(req *http.Request) (*http.Response, error) {
@@ -178,7 +219,11 @@ func (m *ManagedDeviceMock) RegisterErrorMocks() {
 				"message": "Managed device not found",
 			},
 		}
-		return httpmock.NewJsonResponse(404, errorObj)
+		resp, err := httpmock.NewJsonResponse(404, errorObj)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create mock JSON response: %w", err)
+		}
+		return resp, nil
 	})
 }
 

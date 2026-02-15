@@ -242,7 +242,7 @@ func (r *SettingsCatalogResource) listAllPolicySettingsWithPageIterator(ctx cont
 		Get(ctx, nil)
 
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to get settings for policy %s: %w", policyId, err)
 	}
 
 	pageIterator, err := graphcore.NewPageIterator[models.DeviceManagementConfigurationSettingable](

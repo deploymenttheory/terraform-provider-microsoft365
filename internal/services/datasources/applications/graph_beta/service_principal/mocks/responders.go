@@ -2,6 +2,7 @@ package mocks
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/url"
 	"strings"
@@ -45,7 +46,11 @@ func (m *ServicePrincipalMock) RegisterMocks() {
 				jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_get/get_service_principal_by_display_name.json")
 				var responseObj map[string]any
 				json.Unmarshal([]byte(jsonStr), &responseObj)
-				return httpmock.NewJsonResponse(200, responseObj)
+				resp, err := httpmock.NewJsonResponse(200, responseObj)
+				if err != nil {
+					return nil, fmt.Errorf("failed to create mock JSON response: %w", err)
+				}
+				return resp, nil
 			}
 
 			// App ID filter
@@ -53,7 +58,11 @@ func (m *ServicePrincipalMock) RegisterMocks() {
 				jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_get/get_service_principal_by_app_id.json")
 				var responseObj map[string]any
 				json.Unmarshal([]byte(jsonStr), &responseObj)
-				return httpmock.NewJsonResponse(200, responseObj)
+				resp, err := httpmock.NewJsonResponse(200, responseObj)
+				if err != nil {
+					return nil, fmt.Errorf("failed to create mock JSON response: %w", err)
+				}
+				return resp, nil
 			}
 
 			// OData query with preferredSingleSignOnMode and displayName
@@ -61,7 +70,11 @@ func (m *ServicePrincipalMock) RegisterMocks() {
 				jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_get/get_service_principal_by_display_name.json")
 				var responseObj map[string]any
 				json.Unmarshal([]byte(jsonStr), &responseObj)
-				return httpmock.NewJsonResponse(200, responseObj)
+				resp, err := httpmock.NewJsonResponse(200, responseObj)
+				if err != nil {
+					return nil, fmt.Errorf("failed to create mock JSON response: %w", err)
+				}
+				return resp, nil
 			}
 
 			// OData query with servicePrincipalType and accountEnabled
@@ -69,7 +82,11 @@ func (m *ServicePrincipalMock) RegisterMocks() {
 				jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_get/get_service_principal_odata_account_enabled.json")
 				var responseObj map[string]any
 				json.Unmarshal([]byte(jsonStr), &responseObj)
-				return httpmock.NewJsonResponse(200, responseObj)
+				resp, err := httpmock.NewJsonResponse(200, responseObj)
+				if err != nil {
+					return nil, fmt.Errorf("failed to create mock JSON response: %w", err)
+				}
+				return resp, nil
 			}
 
 			// OData query with preferredSingleSignOnMode eq 'saml'
@@ -77,7 +94,11 @@ func (m *ServicePrincipalMock) RegisterMocks() {
 				jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_get/get_service_principal_odata_saml.json")
 				var responseObj map[string]any
 				json.Unmarshal([]byte(jsonStr), &responseObj)
-				return httpmock.NewJsonResponse(200, responseObj)
+				resp, err := httpmock.NewJsonResponse(200, responseObj)
+				if err != nil {
+					return nil, fmt.Errorf("failed to create mock JSON response: %w", err)
+				}
+				return resp, nil
 			}
 		}
 
@@ -86,7 +107,11 @@ func (m *ServicePrincipalMock) RegisterMocks() {
 			"@odata.context": "https://graph.microsoft.com/beta/$metadata#servicePrincipals",
 			"value":          []map[string]any{},
 		}
-		return httpmock.NewJsonResponse(200, responseObj)
+		resp, err := httpmock.NewJsonResponse(200, responseObj)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create mock JSON response: %w", err)
+		}
+		return resp, nil
 	})
 
 	// 2. Get service principal by ID - GET /servicePrincipals/{id}
@@ -100,7 +125,11 @@ func (m *ServicePrincipalMock) RegisterMocks() {
 			jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_get/get_service_principal_by_id.json")
 			var responseObj map[string]any
 			json.Unmarshal([]byte(jsonStr), &responseObj)
-			return httpmock.NewJsonResponse(200, responseObj)
+			resp, err := httpmock.NewJsonResponse(200, responseObj)
+			if err != nil {
+				return nil, fmt.Errorf("failed to create mock JSON response: %w", err)
+			}
+			return resp, nil
 		case "ac7ce817-df9d-4bce-aeb2-f006c182508d":
 			// Microsoft Intune Service Discovery service principal
 			responseObj := map[string]any{
@@ -128,7 +157,11 @@ func (m *ServicePrincipalMock) RegisterMocks() {
 					"addedDateTime":       nil,
 				},
 			}
-			return httpmock.NewJsonResponse(200, responseObj)
+			resp, err := httpmock.NewJsonResponse(200, responseObj)
+			if err != nil {
+				return nil, fmt.Errorf("failed to create mock JSON response: %w", err)
+			}
+			return resp, nil
 		default:
 			return httpmock.NewStringResponse(404, `{"error":{"code":"ResourceNotFound","message":"Service principal not found"}}`), nil
 		}
@@ -149,7 +182,11 @@ func (m *ServicePrincipalMock) RegisterErrorMocks() {
 				"message": "Insufficient privileges to complete the operation.",
 			},
 		}
-		return httpmock.NewJsonResponse(403, errorObj)
+		resp, err := httpmock.NewJsonResponse(403, errorObj)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create mock JSON response: %w", err)
+		}
+		return resp, nil
 	})
 
 	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/servicePrincipals/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`, func(req *http.Request) (*http.Response, error) {
@@ -159,7 +196,11 @@ func (m *ServicePrincipalMock) RegisterErrorMocks() {
 				"message": "Insufficient privileges to complete the operation.",
 			},
 		}
-		return httpmock.NewJsonResponse(403, errorObj)
+		resp, err := httpmock.NewJsonResponse(403, errorObj)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create mock JSON response: %w", err)
+		}
+		return resp, nil
 	})
 }
 

@@ -118,7 +118,7 @@ func (d *CloudPcDeviceImageDataSource) getDeviceImageById(ctx context.Context, i
 		Get(ctx, requestParameters)
 
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to get device image by ID %s: %w", id, err)
 	}
 
 	return deviceImage, nil
@@ -133,7 +133,7 @@ func (d *CloudPcDeviceImageDataSource) listDeviceImages(ctx context.Context, fil
 		Get(ctx, nil)
 
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to list device images: %w", err)
 	}
 
 	deviceImagesList := respList.GetValue()

@@ -2,6 +2,7 @@ package mocks
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/url"
 	"strings"
@@ -54,7 +55,11 @@ func (m *MobileAppCatalogPackagesMock) RegisterMocks() {
 							"@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceAppManagement/mobileAppCatalogPackages",
 							"value":          []map[string]any{packageObj},
 						}
-						return httpmock.NewJsonResponse(200, responseObj)
+						resp, err := httpmock.NewJsonResponse(200, responseObj)
+						if err != nil {
+							return nil, fmt.Errorf("failed to create mock JSON response: %w", err)
+						}
+						return resp, nil
 					}
 				}
 			} else if strings.Contains(filter, "productDisplayName eq") {
@@ -62,13 +67,21 @@ func (m *MobileAppCatalogPackagesMock) RegisterMocks() {
 				jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_get/get_mobile_app_catalog_packages_odata_filter.json")
 				var responseObj map[string]any
 				json.Unmarshal([]byte(jsonStr), &responseObj)
-				return httpmock.NewJsonResponse(200, responseObj)
+				resp, err := httpmock.NewJsonResponse(200, responseObj)
+				if err != nil {
+					return nil, fmt.Errorf("failed to create mock JSON response: %w", err)
+				}
+				return resp, nil
 			} else if strings.Contains(filter, "publisherDisplayName eq") {
 				// Handle publisher name filter
 				jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_get/get_mobile_app_catalog_packages_odata_filter.json")
 				var responseObj map[string]any
 				json.Unmarshal([]byte(jsonStr), &responseObj)
-				return httpmock.NewJsonResponse(200, responseObj)
+				resp, err := httpmock.NewJsonResponse(200, responseObj)
+				if err != nil {
+					return nil, fmt.Errorf("failed to create mock JSON response: %w", err)
+				}
+				return resp, nil
 			}
 		}
 
@@ -76,7 +89,11 @@ func (m *MobileAppCatalogPackagesMock) RegisterMocks() {
 		jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_get/get_mobile_app_catalog_packages_all.json")
 		var responseObj map[string]any
 		json.Unmarshal([]byte(jsonStr), &responseObj)
-		return httpmock.NewJsonResponse(200, responseObj)
+		resp, err := httpmock.NewJsonResponse(200, responseObj)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create mock JSON response: %w", err)
+		}
+		return resp, nil
 	})
 
 	// 2. Get mobile app catalog package by ID - GET /deviceAppManagement/mobileAppCatalogPackages/{id}
@@ -90,7 +107,11 @@ func (m *MobileAppCatalogPackagesMock) RegisterMocks() {
 			jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_get/get_mobile_app_catalog_package_by_id.json")
 			var responseObj map[string]any
 			json.Unmarshal([]byte(jsonStr), &responseObj)
-			return httpmock.NewJsonResponse(200, responseObj)
+			resp, err := httpmock.NewJsonResponse(200, responseObj)
+			if err != nil {
+				return nil, fmt.Errorf("failed to create mock JSON response: %w", err)
+			}
+			return resp, nil
 		default:
 			return httpmock.NewStringResponse(404, `{"error":{"code":"ResourceNotFound","message":"Mobile app catalog package not found"}}`), nil
 		}
@@ -106,7 +127,11 @@ func (m *MobileAppCatalogPackagesMock) RegisterMocks() {
 			var responseObj map[string]any
 			json.Unmarshal([]byte(jsonStr), &responseObj)
 			responseObj["@odata.count"] = 2
-			return httpmock.NewJsonResponse(200, responseObj)
+			resp, err := httpmock.NewJsonResponse(200, responseObj)
+			if err != nil {
+				return nil, fmt.Errorf("failed to create mock JSON response: %w", err)
+			}
+			return resp, nil
 		}
 
 		// Handle $orderby parameter
@@ -114,7 +139,11 @@ func (m *MobileAppCatalogPackagesMock) RegisterMocks() {
 			jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_get/get_mobile_app_catalog_packages_odata_filter.json")
 			var responseObj map[string]any
 			json.Unmarshal([]byte(jsonStr), &responseObj)
-			return httpmock.NewJsonResponse(200, responseObj)
+			resp, err := httpmock.NewJsonResponse(200, responseObj)
+			if err != nil {
+				return nil, fmt.Errorf("failed to create mock JSON response: %w", err)
+			}
+			return resp, nil
 		}
 
 		// Handle $select parameter
@@ -123,7 +152,11 @@ func (m *MobileAppCatalogPackagesMock) RegisterMocks() {
 			jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_get/get_mobile_app_catalog_packages_odata_filter.json")
 			var responseObj map[string]any
 			json.Unmarshal([]byte(jsonStr), &responseObj)
-			return httpmock.NewJsonResponse(200, responseObj)
+			resp, err := httpmock.NewJsonResponse(200, responseObj)
+			if err != nil {
+				return nil, fmt.Errorf("failed to create mock JSON response: %w", err)
+			}
+			return resp, nil
 		}
 
 		// Handle $search parameter
@@ -131,14 +164,22 @@ func (m *MobileAppCatalogPackagesMock) RegisterMocks() {
 			jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_get/get_mobile_app_catalog_packages_odata_filter.json")
 			var responseObj map[string]any
 			json.Unmarshal([]byte(jsonStr), &responseObj)
-			return httpmock.NewJsonResponse(200, responseObj)
+			resp, err := httpmock.NewJsonResponse(200, responseObj)
+			if err != nil {
+				return nil, fmt.Errorf("failed to create mock JSON response: %w", err)
+			}
+			return resp, nil
 		}
 
 		// Default OData response
 		jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_get/get_mobile_app_catalog_packages_all.json")
 		var responseObj map[string]any
 		json.Unmarshal([]byte(jsonStr), &responseObj)
-		return httpmock.NewJsonResponse(200, responseObj)
+		resp, err := httpmock.NewJsonResponse(200, responseObj)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create mock JSON response: %w", err)
+		}
+		return resp, nil
 	})
 
 	// 4. Convert mobile app catalog package to win32CatalogApp
@@ -156,27 +197,47 @@ func (m *MobileAppCatalogPackagesMock) RegisterMocks() {
 			jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_get/get_win32_catalog_app_7zip.json")
 			var responseObj map[string]any
 			json.Unmarshal([]byte(jsonStr), &responseObj)
-			return httpmock.NewJsonResponse(200, responseObj)
+			resp, err := httpmock.NewJsonResponse(200, responseObj)
+			if err != nil {
+				return nil, fmt.Errorf("failed to create mock JSON response: %w", err)
+			}
+			return resp, nil
 		case "a8375b62-1909-812c-ee54-044ba1b1461b": // CPU-Z
 			jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_get/get_win32_catalog_app_cpuz.json")
 			var responseObj map[string]any
 			json.Unmarshal([]byte(jsonStr), &responseObj)
-			return httpmock.NewJsonResponse(200, responseObj)
+			resp, err := httpmock.NewJsonResponse(200, responseObj)
+			if err != nil {
+				return nil, fmt.Errorf("failed to create mock JSON response: %w", err)
+			}
+			return resp, nil
 		case "03ca0d35-9d3b-761e-db57-2116b6f6f2ea": // Adobe AIR
 			jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_get/get_win32_catalog_app_adobe_air.json")
 			var responseObj map[string]any
 			json.Unmarshal([]byte(jsonStr), &responseObj)
-			return httpmock.NewJsonResponse(200, responseObj)
+			resp, err := httpmock.NewJsonResponse(200, responseObj)
+			if err != nil {
+				return nil, fmt.Errorf("failed to create mock JSON response: %w", err)
+			}
+			return resp, nil
 		case "6274fe37-8968-1a80-e561-5a9fceff4579": // Dell Display Manager
 			jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_get/get_win32_catalog_app_dell_display_manager.json")
 			var responseObj map[string]any
 			json.Unmarshal([]byte(jsonStr), &responseObj)
-			return httpmock.NewJsonResponse(200, responseObj)
+			resp, err := httpmock.NewJsonResponse(200, responseObj)
+			if err != nil {
+				return nil, fmt.Errorf("failed to create mock JSON response: %w", err)
+			}
+			return resp, nil
 		case "6e8cf1b6-1a04-d641-bc1c-04a8e61bff16": // Docker Desktop
 			jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_get/get_win32_catalog_app_docker_desktop.json")
 			var responseObj map[string]any
 			json.Unmarshal([]byte(jsonStr), &responseObj)
-			return httpmock.NewJsonResponse(200, responseObj)
+			resp, err := httpmock.NewJsonResponse(200, responseObj)
+			if err != nil {
+				return nil, fmt.Errorf("failed to create mock JSON response: %w", err)
+			}
+			return resp, nil
 		default:
 			return httpmock.NewStringResponse(404, `{"error":{"code":"ResourceNotFound","message":"Mobile app catalog package not found"}}`), nil
 		}
@@ -196,7 +257,11 @@ func (m *MobileAppCatalogPackagesMock) RegisterErrorMocks() {
 				"message": "Insufficient privileges to complete the operation.",
 			},
 		}
-		return httpmock.NewJsonResponse(403, errorObj)
+		resp, err := httpmock.NewJsonResponse(403, errorObj)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create mock JSON response: %w", err)
+		}
+		return resp, nil
 	})
 
 	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/deviceAppManagement/mobileAppCatalogPackages/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`, func(req *http.Request) (*http.Response, error) {
@@ -206,7 +271,11 @@ func (m *MobileAppCatalogPackagesMock) RegisterErrorMocks() {
 				"message": "Mobile app catalog package not found",
 			},
 		}
-		return httpmock.NewJsonResponse(404, errorObj)
+		resp, err := httpmock.NewJsonResponse(404, errorObj)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create mock JSON response: %w", err)
+		}
+		return resp, nil
 	})
 }
 
