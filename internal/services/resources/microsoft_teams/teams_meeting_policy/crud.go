@@ -57,9 +57,11 @@ func (r *TeamsMeetingPolicyResource) Read(ctx context.Context, req resource.Read
 
 	identity.ID = data.XdsIdentity.ValueString()
 
-	resp.Diagnostics.Append(resp.Identity.Set(ctx, identity)...)
-	if resp.Diagnostics.HasError() {
-		return
+	if resp.Identity != nil {
+		resp.Diagnostics.Append(resp.Identity.Set(ctx, identity)...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
 	}
 }
 

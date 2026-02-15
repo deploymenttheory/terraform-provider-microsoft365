@@ -173,6 +173,8 @@ def parse_test_results(output_file: str, configuration_block_type: str, service:
     Reads the Go test output file and extracts failed and passed tests,
     creating test-failures.json and test-successes.json files.
 
+    Now also detects panicked tests (tests that started but never finished with PASS/FAIL).
+
     Args:
         output_file: Path to the test output log file.
         configuration_block_type: Test configuration_block_type (e.g., 'provider-core', 'resources', 'datasources', 'actions', 'list-resources', 'ephemerals').
@@ -182,43 +184,49 @@ def parse_test_results(output_file: str, configuration_block_type: str, service:
     successes_file = "test-successes.json"
     failures = []
     successes = []
-    
+
     with open(output_file, 'r', encoding='utf-8') as f:
         content = f.read()
-    
+
+    # Track all test names and their outcomes
+    failed_tests = set()
+    passed_tests = set()
+
+    # Pattern 1: Detect explicit test failures
     fail_pattern = re.compile(r'^--- FAIL: (\S+)', re.MULTILINE)
     for match in fail_pattern.finditer(content):
         test_name = match.group(1)
-        
+        failed_tests.add(test_name)
+
         run_pattern = re.compile(rf'^=== RUN\s+{re.escape(test_name)}', re.MULTILINE)
         run_match = None
-        
+
         search_start = max(0, match.start() - 50000)  # Look back up to 50KB
         search_content = content[search_start:match.start()]
-        
+
         for run_match_candidate in run_pattern.finditer(search_content):
             run_match = run_match_candidate
-        
+
         if run_match:
             context_start = search_start + run_match.end()
             context_end = match.start()
             full_context = content[context_start:context_end].strip()
-            
+
             lines = full_context.split('\n')
             error_start_idx = None
-            
+
             for idx, line in enumerate(lines):
                 if '[DEBUG]' in line or '[INFO]' in line:
                     continue
                 if any(indicator in line for indicator in ['.go:', 'Error:', 'panic:', '    ', '\t']):
                     error_start_idx = idx
                     break
-            
+
             if error_start_idx is not None:
                 context = '\n'.join(lines[error_start_idx:])
             else:
                 context = full_context
-            
+
             if len(context) > 1000:
                 context = context[:1000] + "\n... (truncated)"
         else:
@@ -226,31 +234,97 @@ def parse_test_results(output_file: str, configuration_block_type: str, service:
             context = content[context_start:match.start()].strip()
             if len(context) > 500:
                 context = "... " + context[-500:]
-        
+
         failures.append({
             "test_name": test_name,
             "configuration_block_type": configuration_block_type,
             "service": service,
             "context": context
         })
-    
+
+    # Pattern 2: Detect test successes
     pass_pattern = re.compile(r'^--- PASS: (\S+)', re.MULTILINE)
     for match in pass_pattern.finditer(content):
         test_name = match.group(1)
-        
+        passed_tests.add(test_name)
+
         successes.append({
             "test_name": test_name,
             "configuration_block_type": configuration_block_type,
             "service": service
         })
-    
+
+    # Pattern 3: Detect panicked tests (NEW)
+    # Find all tests that started but never got PASS or FAIL markers
+    run_pattern = re.compile(r'^=== RUN\s+(\S+)', re.MULTILINE)
+    for run_match in run_pattern.finditer(content):
+        test_name = run_match.group(1)
+
+        # Skip if already accounted for in failures or successes
+        if test_name in failed_tests or test_name in passed_tests:
+            continue
+
+        # Look for panic indicators in the test output
+        # Search from test start to next test start (or end of file)
+        test_start = run_match.end()
+        next_run = run_pattern.search(content, test_start)
+        test_end = next_run.start() if next_run else len(content)
+        test_output = content[test_start:test_end]
+
+        # Check if test panicked or was never completed
+        has_panic = 'panic:' in test_output
+        has_segfault = 'SIGSEGV' in test_output or 'segmentation violation' in test_output
+        has_fail_marker = re.search(r'^FAIL\s+github\.com/', test_output, re.MULTILINE)
+
+        if has_panic or has_segfault or has_fail_marker:
+            # Extract panic context
+            lines = test_output.split('\n')
+            context_lines = []
+            capture = False
+
+            for line in lines:
+                # Start capturing at first error indicator
+                if not capture and any(indicator in line for indicator in
+                                      ['panic:', 'SIGSEGV', 'runtime error:', 'fatal error:']):
+                    capture = True
+
+                if capture:
+                    # Stop at package FAIL line
+                    if line.startswith('FAIL') and 'github.com/' in line:
+                        break
+                    context_lines.append(line)
+
+                    # Limit context size
+                    if len(context_lines) > 50:
+                        break
+
+            context = '\n'.join(context_lines).strip()
+            if len(context) > 1000:
+                context = context[:1000] + "\n... (truncated)"
+
+            if not context:
+                # Fallback: grab last 500 chars of test output
+                context = test_output[-500:].strip()
+
+            failures.append({
+                "test_name": test_name,
+                "configuration_block_type": configuration_block_type,
+                "service": service,
+                "context": f"[PANIC DETECTED]\n{context}"
+            })
+            failed_tests.add(test_name)
+
     with open(failures_file, 'w', encoding='utf-8') as f:
         json.dump(failures, f, indent=2)
-    
+
     with open(successes_file, 'w', encoding='utf-8') as f:
         json.dump(successes, f, indent=2)
-    
-    print(f"✅ Test results: {len(failures)} failures, {len(successes)} successes")
+
+    panic_count = sum(1 for f in failures if f.get('context', '').startswith('[PANIC DETECTED]'))
+    if panic_count > 0:
+        print(f"✅ Test results: {len(failures)} failures ({panic_count} panics), {len(successes)} successes")
+    else:
+        print(f"✅ Test results: {len(failures)} failures, {len(successes)} successes")
 
 
 def run_provider_core_tests(coverage_file: str, test_output_file: str, 

@@ -491,9 +491,11 @@ func (r *DeviceEnrollmentNotificationResource) Read(ctx context.Context, req res
 
 	identity.ID = object.ID.ValueString()
 
-	resp.Diagnostics.Append(resp.Identity.Set(ctx, identity)...)
-	if resp.Diagnostics.HasError() {
-		return
+	if resp.Identity != nil {
+		resp.Diagnostics.Append(resp.Identity.Set(ctx, identity)...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
 	}
 
 	tflog.Debug(ctx, fmt.Sprintf("Finished reading resource: %s with ID: %s", ResourceName, object.ID.ValueString()))
