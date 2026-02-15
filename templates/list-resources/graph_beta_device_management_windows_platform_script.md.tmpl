@@ -1,0 +1,119 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
+subcategory: "Device Management"
+
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Name}} ({{.Type}})
+
+{{ .Description | trimspace }}
+
+Lists Windows PowerShell scripts from Microsoft Intune using the `/deviceManagement/deviceManagementScripts` endpoint. Supports filtering by display name, file name, run as account, assignment status, and custom OData queries.
+
+List resources allow you to query and discover existing infrastructure without managing it. This is useful for:
+- Finding scripts for import into Terraform
+- Discovering scripts by criteria
+- Auditing script configuration
+- Building dynamic configurations based on existing scripts
+
+## Microsoft Documentation
+
+- [List deviceManagementScripts](https://learn.microsoft.com/en-us/graph/api/intune-shared-devicemanagementscript-list?view=graph-rest-beta)
+- [deviceManagementScript resource type](https://learn.microsoft.com/en-us/graph/api/resources/intune-shared-devicemanagementscript?view=graph-rest-beta)
+
+## Microsoft Graph API Permissions
+
+The following client `application` permissions are needed in order to use this {{.Type | lower}}:
+
+**Required:**
+- `DeviceManagementConfiguration.Read.All`
+
+**Optional:**
+- `None` `[N/A]`
+
+## Version History
+
+| Version | Status | Notes |
+|---------|--------|-------|
+| v0.45.0-alpha | Experimental | Initial release |
+
+## Example Usage
+
+### List All Scripts
+
+{{ tffile "examples/list-resources/microsoft365_graph_beta_device_management_windows_platform_script/list_all.tfquery.hcl" }}
+
+### Filter by Display Name
+
+{{ tffile "examples/list-resources/microsoft365_graph_beta_device_management_windows_platform_script/filter_by_display_name.tfquery.hcl" }}
+
+### Filter by Run As Account
+
+{{ tffile "examples/list-resources/microsoft365_graph_beta_device_management_windows_platform_script/filter_by_run_as_account_system.tfquery.hcl" }}
+
+### Filter by Assignment Status
+
+{{ tffile "examples/list-resources/microsoft365_graph_beta_device_management_windows_platform_script/list_assigned_only.tfquery.hcl" }}
+
+{{ tffile "examples/list-resources/microsoft365_graph_beta_device_management_windows_platform_script/list_unassigned_only.tfquery.hcl" }}
+
+### Combined Filters
+
+{{ tffile "examples/list-resources/microsoft365_graph_beta_device_management_windows_platform_script/list_combined_filters.tfquery.hcl" }}
+
+{{ tffile "examples/list-resources/microsoft365_graph_beta_device_management_windows_platform_script/list_with_assignment_filter.tfquery.hcl" }}
+
+### Custom OData Filters
+
+{{ tffile "examples/list-resources/microsoft365_graph_beta_device_management_windows_platform_script/odata_exact_match.tfquery.hcl" }}
+
+{{ tffile "examples/list-resources/microsoft365_graph_beta_device_management_windows_platform_script/odata_and.tfquery.hcl" }}
+
+{{ tffile "examples/list-resources/microsoft365_graph_beta_device_management_windows_platform_script/odata_or.tfquery.hcl" }}
+
+{{ tffile "examples/list-resources/microsoft365_graph_beta_device_management_windows_platform_script/filter_odata_complex.tfquery.hcl" }}
+
+## Filter Behavior
+
+- **API-level filters**: `display_name_filter`, `file_name_filter`, `run_as_account_filter`, and `odata_filter` are applied at the Microsoft Graph API level.
+- **Local filters**: `is_assigned_filter` checks actual script assignments via the `/assignments` endpoint because the API's `isAssigned` field is unreliable.
+- **Filter combination**: Multiple filters are combined using AND logic.
+
+## OData Query Patterns
+
+The `odata_filter` parameter supports standard OData query syntax:
+
+### String Functions
+- `contains(displayName, 'text')` - Partial match on display name
+- `contains(fileName, 'text')` - Partial match on file name
+
+### Comparison Operators
+- `eq` - Equals (e.g., `runAsAccount eq 'system'`)
+- `ne` - Not equals
+
+### Logical Operators
+- `and` - Logical AND
+- `or` - Logical OR
+- `not` - Logical NOT
+
+### Grouping
+- Use parentheses for complex expressions: `(condition1 or condition2) and condition3`
+
+## Run As Account Values
+
+The `run_as_account_filter` parameter accepts the following values:
+- `system` - Scripts running in system context
+- `user` - Scripts running in user context
+
+## Assignment Filtering
+
+The `is_assigned_filter` parameter:
+- Queries the `/assignments` endpoint for each script individually
+- Returns accurate assignment status (unlike the API's built-in `isAssigned` field)
+- May take 20-30 seconds for tenants with many scripts
+- Accepts boolean values: `true` (assigned only) or `false` (unassigned only)
+
+{{ .SchemaMarkdown | trimspace }}
+

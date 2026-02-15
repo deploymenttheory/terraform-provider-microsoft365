@@ -1,0 +1,141 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
+subcategory: "Identity and Access"
+
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Name}} ({{.Type}})
+
+{{ .Description | trimspace }}
+
+Lists Conditional Access policies from Microsoft Entra ID using the `/identity/conditionalAccess/policies` endpoint. Supports filtering by display name, state, and custom OData queries.
+
+List resources allow you to query and discover existing infrastructure without managing it. This is useful for:
+- Finding policies for import into Terraform
+- Discovering policies by criteria
+- Auditing policy configuration
+- Building dynamic configurations based on existing policies
+
+## Microsoft Documentation
+
+- [List conditionalAccessPolicies](https://learn.microsoft.com/en-us/graph/api/conditionalaccessroot-list-policies?view=graph-rest-beta)
+- [conditionalAccessPolicy resource type](https://learn.microsoft.com/en-us/graph/api/resources/conditionalaccesspolicy?view=graph-rest-beta)
+
+## Microsoft Graph API Permissions
+
+The following client `application` permissions are needed in order to use this {{.Type | lower}}:
+
+**Required:**
+- `Policy.Read.All`
+- `Policy.Read.ConditionalAccess`
+
+**Optional:**
+- `None` `[N/A]`
+
+## Version History
+
+| Version | Status | Notes |
+|---------|--------|-------|
+| v0.45.0-alpha | Experimental | Initial release |
+
+## Example Usage
+
+### List All Policies
+
+{{ tffile "examples/list-resources/microsoft365_graph_beta_identity_and_access_conditional_access_policy/list_all.tfquery.hcl" }}
+
+### Filter by Display Name
+
+{{ tffile "examples/list-resources/microsoft365_graph_beta_identity_and_access_conditional_access_policy/list_by_display_name.tfquery.hcl" }}
+
+### Filter by State
+
+{{ tffile "examples/list-resources/microsoft365_graph_beta_identity_and_access_conditional_access_policy/list_enabled_only.tfquery.hcl" }}
+
+{{ tffile "examples/list-resources/microsoft365_graph_beta_identity_and_access_conditional_access_policy/list_disabled_only.tfquery.hcl" }}
+
+{{ tffile "examples/list-resources/microsoft365_graph_beta_identity_and_access_conditional_access_policy/list_report_only.tfquery.hcl" }}
+
+### Combined Filters
+
+{{ tffile "examples/list-resources/microsoft365_graph_beta_identity_and_access_conditional_access_policy/list_combined_filters.tfquery.hcl" }}
+
+### Custom OData Filters
+
+#### Exact Match
+
+{{ tffile "examples/list-resources/microsoft365_graph_beta_identity_and_access_conditional_access_policy/odata_exact_match.tfquery.hcl" }}
+
+#### String Functions
+
+{{ tffile "examples/list-resources/microsoft365_graph_beta_identity_and_access_conditional_access_policy/odata_contains.tfquery.hcl" }}
+
+#### Logical Operators
+
+{{ tffile "examples/list-resources/microsoft365_graph_beta_identity_and_access_conditional_access_policy/odata_and.tfquery.hcl" }}
+
+{{ tffile "examples/list-resources/microsoft365_graph_beta_identity_and_access_conditional_access_policy/odata_or.tfquery.hcl" }}
+
+{{ tffile "examples/list-resources/microsoft365_graph_beta_identity_and_access_conditional_access_policy/odata_not.tfquery.hcl" }}
+
+#### Complex Queries
+
+{{ tffile "examples/list-resources/microsoft365_graph_beta_identity_and_access_conditional_access_policy/odata_complex.tfquery.hcl" }}
+
+## Filter Behavior
+
+- **API-level filters**: `display_name_filter`, `state_filter`, and `odata_filter` are applied at the Microsoft Graph API level.
+- **Filter combination**: Multiple filters are combined using AND logic.
+- **String matching**: The `display_name_filter` uses the `contains` operator for partial matching.
+
+## OData Query Patterns
+
+The `odata_filter` parameter supports standard OData query syntax:
+
+### String Functions
+- `contains(property, 'text')` - Substring match (e.g., `contains(displayName, 'MFA')`)
+- `startsWith(property, 'prefix')` - Prefix match
+- `endsWith(property, 'suffix')` - Suffix match
+
+### Comparison Operators
+- `eq` - Equals
+- `ne` - Not equals
+
+### Logical Operators
+- `and` - Logical AND
+- `or` - Logical OR
+- `not` - Logical NOT
+
+### Grouping
+- Use parentheses for complex expressions: `(condition1 or condition2) and condition3`
+
+## Supported Policy States
+
+The `state_filter` parameter accepts the following values:
+- `enabled` - Policy is actively enforced
+- `disabled` - Policy is not enforced
+- `enabledForReportingButNotEnforced` - Policy is in report-only mode (logs but doesn't block)
+
+## Important Notes
+
+### Report-Only Mode
+Policies in `enabledForReportingButNotEnforced` state are useful for:
+- Testing policy impact before enforcement
+- Monitoring user sign-in patterns
+- Validating policy logic without blocking users
+
+### Policy Discovery
+Use the list resource to:
+- Discover existing policies before creating new ones
+- Identify policies that need updates
+- Audit policy configuration across your tenant
+- Find policies by naming conventions
+
+### Performance Considerations
+- Filtering is performed server-side at the Microsoft Graph API level for optimal performance
+- Use specific filters to reduce the result set size
+- The `odata_filter` parameter provides maximum flexibility for complex queries
+
+{{ .SchemaMarkdown | trimspace }}
