@@ -2,6 +2,7 @@ package mocks
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"sync"
 
@@ -35,7 +36,11 @@ func (m *ConditionalAccessTemplateMock) RegisterMocks() {
 		jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_get/get_template_list.json")
 		var responseObj map[string]any
 		json.Unmarshal([]byte(jsonStr), &responseObj)
-		return httpmock.NewJsonResponse(200, responseObj)
+		resp, err := httpmock.NewJsonResponse(200, responseObj)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create mock JSON response: %w", err)
+		}
+		return resp, nil
 	})
 }
 
@@ -52,7 +57,11 @@ func (m *ConditionalAccessTemplateMock) RegisterErrorMocks() {
 				"message": "Insufficient privileges to complete the operation.",
 			},
 		}
-		return httpmock.NewJsonResponse(403, errorObj)
+		resp, err := httpmock.NewJsonResponse(403, errorObj)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create mock JSON response: %w", err)
+		}
+		return resp, nil
 	})
 }
 

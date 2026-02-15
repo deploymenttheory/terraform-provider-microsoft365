@@ -197,7 +197,7 @@ func (d *ManagedDeviceDataSource) listAllManagedDevicesWithPageIterator(ctx cont
 		ManagedDevices().
 		Get(ctx, requestParameters)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to get managed devices: %w", err)
 	}
 
 	pageIterator, err := graphcore.NewPageIterator[graphmodels.ManagedDeviceable](

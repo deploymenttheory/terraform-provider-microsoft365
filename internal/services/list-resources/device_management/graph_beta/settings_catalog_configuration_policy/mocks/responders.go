@@ -101,14 +101,22 @@ func (m *SettingsCatalogListMock) handleAssignmentsRequest(req *http.Request) (*
 						},
 					},
 				}
-				return httpmock.NewJsonResponse(200, response)
+				resp, err := httpmock.NewJsonResponse(200, response)
+				if err != nil {
+					return nil, fmt.Errorf("failed to create mock JSON response: %w", err)
+				}
+				return resp, nil
 			}
 			// Return empty assignments
 			response := map[string]any{
 				"@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/configurationPolicies('" + policyID + "')/assignments",
 				"value":          []map[string]any{},
 			}
-			return httpmock.NewJsonResponse(200, response)
+			resp, err := httpmock.NewJsonResponse(200, response)
+			if err != nil {
+				return nil, fmt.Errorf("failed to create mock JSON response: %w", err)
+			}
+			return resp, nil
 		}
 	}
 
@@ -192,7 +200,11 @@ func (m *SettingsCatalogListMock) handleListRequest(req *http.Request) (*http.Re
 		response["@odata.nextLink"] = nextLink
 	}
 
-	return httpmock.NewJsonResponse(200, response)
+	resp, err := httpmock.NewJsonResponse(200, response)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create mock JSON response: %w", err)
+	}
+	return resp, nil
 }
 
 func (m *SettingsCatalogListMock) applyFilters(policies []map[string]any, query url.Values) []map[string]any {

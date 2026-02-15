@@ -21,7 +21,7 @@ func (r *SettingsCatalogListResource) listResourceAssignments(ctx context.Contex
 
 	if err != nil {
 		tflog.Warn(ctx, fmt.Sprintf("Error checking assignments for policy %s: %v", policyId, err))
-		return false, err
+		return false, fmt.Errorf("failed to get assignments for policy %s: %w", policyId, err)
 	}
 
 	if assignmentsResponse == nil {

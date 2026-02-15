@@ -212,7 +212,7 @@ func (d *MobileAppCatalogPackageDataSource) getAllMobileAppCatalogPackageWithPag
 		Get(ctx, requestParameters)
 
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to get mobile app catalog packages: %w", err)
 	}
 
 	pageIterator, err := graphcore.NewPageIterator[graphmodels.MobileAppCatalogPackageable](

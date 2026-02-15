@@ -126,7 +126,11 @@ func (m *GuidListSharderMock) handleListUsers(req *http.Request) (*http.Response
 		"value":          users,
 	}
 
-	return httpmock.NewJsonResponse(200, response)
+	resp, err := httpmock.NewJsonResponse(200, response)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create mock JSON response: %w", err)
+	}
+	return resp, nil
 }
 
 // handleListDevices returns paginated device list with optional filtering
@@ -142,7 +146,11 @@ func (m *GuidListSharderMock) handleListDevices(req *http.Request) (*http.Respon
 		"value":          devices,
 	}
 
-	return httpmock.NewJsonResponse(200, response)
+	resp, err := httpmock.NewJsonResponse(200, response)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create mock JSON response: %w", err)
+	}
+	return resp, nil
 }
 
 // handleListGroupMembers returns group members with optional filtering
@@ -171,7 +179,11 @@ func (m *GuidListSharderMock) handleListGroupMembers(req *http.Request) (*http.R
 		"value":          members,
 	}
 
-	return httpmock.NewJsonResponse(200, response)
+	resp, err := httpmock.NewJsonResponse(200, response)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create mock JSON response: %w", err)
+	}
+	return resp, nil
 }
 
 // handleGetGroup returns a mock group by ID
@@ -187,5 +199,9 @@ func (m *GuidListSharderMock) handleGetGroup(req *http.Request) (*http.Response,
 		"securityEnabled": true,
 	}
 
-	return httpmock.NewJsonResponse(200, response)
+	resp, err := httpmock.NewJsonResponse(200, response)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create mock JSON response: %w", err)
+	}
+	return resp, nil
 }

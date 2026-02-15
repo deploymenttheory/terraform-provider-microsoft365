@@ -2,6 +2,7 @@ package mocks
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strings"
 
@@ -59,7 +60,11 @@ func (m *GroupPolicyValueReferenceMock) registerCommonMocks() {
 			jsonStr, _ := helpers.ParseJSONFile(jsonFile)
 			var responseObj map[string]any
 			json.Unmarshal([]byte(jsonStr), &responseObj)
-			return httpmock.NewJsonResponse(200, responseObj)
+			resp, err := httpmock.NewJsonResponse(200, responseObj)
+			if err != nil {
+				return nil, fmt.Errorf("failed to create mock JSON response: %w", err)
+			}
+			return resp, nil
 		})
 
 	// Register GET for presentations of a definition
@@ -89,6 +94,10 @@ func (m *GroupPolicyValueReferenceMock) registerCommonMocks() {
 			jsonStr, _ := helpers.ParseJSONFile(jsonFile)
 			var responseObj map[string]any
 			json.Unmarshal([]byte(jsonStr), &responseObj)
-			return httpmock.NewJsonResponse(200, responseObj)
+			resp, err := httpmock.NewJsonResponse(200, responseObj)
+			if err != nil {
+				return nil, fmt.Errorf("failed to create mock JSON response: %w", err)
+			}
+			return resp, nil
 		})
 }

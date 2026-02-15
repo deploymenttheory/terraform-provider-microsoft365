@@ -2,6 +2,7 @@ package mocks
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"regexp"
 	"strings"
@@ -26,13 +27,21 @@ func RegisterMobileAppRelationshipMockResponders() {
 					jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_get/get_mobile_app_relationships_by_source_id.json")
 					var responseObj map[string]any
 					json.Unmarshal([]byte(jsonStr), &responseObj)
-					return httpmock.NewJsonResponse(200, responseObj)
+					resp, err := httpmock.NewJsonResponse(200, responseObj)
+					if err != nil {
+						return nil, fmt.Errorf("failed to create mock JSON response: %w", err)
+					}
+					return resp, nil
 				}
 				if strings.Contains(filter, "targetId eq") {
 					jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_get/get_mobile_app_relationships_by_target_id.json")
 					var responseObj map[string]any
 					json.Unmarshal([]byte(jsonStr), &responseObj)
-					return httpmock.NewJsonResponse(200, responseObj)
+					resp, err := httpmock.NewJsonResponse(200, responseObj)
+					if err != nil {
+						return nil, fmt.Errorf("failed to create mock JSON response: %w", err)
+					}
+					return resp, nil
 				}
 			}
 
@@ -41,14 +50,22 @@ func RegisterMobileAppRelationshipMockResponders() {
 				jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_get/get_mobile_app_relationships_all.json")
 				var responseObj map[string]any
 				json.Unmarshal([]byte(jsonStr), &responseObj)
-				return httpmock.NewJsonResponse(200, responseObj)
+				resp, err := httpmock.NewJsonResponse(200, responseObj)
+				if err != nil {
+					return nil, fmt.Errorf("failed to create mock JSON response: %w", err)
+				}
+				return resp, nil
 			}
 
 			// Default: Return all mobile app relationships
 			jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_get/get_mobile_app_relationships_all.json")
 			var responseObj map[string]any
 			json.Unmarshal([]byte(jsonStr), &responseObj)
-			return httpmock.NewJsonResponse(200, responseObj)
+			resp, err := httpmock.NewJsonResponse(200, responseObj)
+			if err != nil {
+				return nil, fmt.Errorf("failed to create mock JSON response: %w", err)
+			}
+			return resp, nil
 		},
 	)
 
@@ -58,7 +75,11 @@ func RegisterMobileAppRelationshipMockResponders() {
 			jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_get/get_mobile_app_relationship_by_id.json")
 			var responseObj map[string]any
 			json.Unmarshal([]byte(jsonStr), &responseObj)
-			return httpmock.NewJsonResponse(200, responseObj)
+			resp, err := httpmock.NewJsonResponse(200, responseObj)
+			if err != nil {
+				return nil, fmt.Errorf("failed to create mock JSON response: %w", err)
+			}
+			return resp, nil
 		},
 	)
 }

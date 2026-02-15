@@ -213,7 +213,7 @@ func (d *MobileAppDataSource) getAllMobileAppsWithPageIterator(ctx context.Conte
 		Get(ctx, requestParameters)
 
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to get mobile apps: %w", err)
 	}
 
 	pageIterator, err := graphcore.NewPageIterator[graphmodels.MobileAppable](

@@ -93,7 +93,7 @@ func (d *CloudPcsDataSource) getCloudPcById(ctx context.Context, id string) (gra
 		Get(ctx, requestParameters)
 
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to get cloud PC by ID %s: %w", id, err)
 	}
 
 	return cloudPC, nil
@@ -137,7 +137,7 @@ func (d *CloudPcsDataSource) getCloudPcsWithOData(ctx context.Context, object Cl
 		Get(ctx, requestParameters)
 
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to get cloud PCs with OData filters: %w", err)
 	}
 
 	return respList.GetValue(), nil
@@ -152,7 +152,7 @@ func (d *CloudPcsDataSource) listCloudPcs(ctx context.Context, filterType string
 		Get(ctx, nil)
 
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to list cloud PCs: %w", err)
 	}
 
 	cloudPCsList := respList.GetValue()

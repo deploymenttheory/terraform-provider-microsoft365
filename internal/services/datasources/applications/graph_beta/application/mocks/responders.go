@@ -2,6 +2,7 @@ package mocks
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strings"
 	"sync"
@@ -48,7 +49,11 @@ func (m *ApplicationMock) registerGetApplicationsListResponder() {
 				jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_get/get_application_by_display_name.json")
 				var responseObj map[string]any
 				json.Unmarshal([]byte(jsonStr), &responseObj)
-				return httpmock.NewJsonResponse(200, responseObj)
+				resp, err := httpmock.NewJsonResponse(200, responseObj)
+				if err != nil {
+					return nil, fmt.Errorf("failed to create mock JSON response: %w", err)
+				}
+				return resp, nil
 			}
 
 			// App ID filter - exact match
@@ -56,7 +61,11 @@ func (m *ApplicationMock) registerGetApplicationsListResponder() {
 				jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_get/get_application_by_app_id.json")
 				var responseObj map[string]any
 				json.Unmarshal([]byte(jsonStr), &responseObj)
-				return httpmock.NewJsonResponse(200, responseObj)
+				resp, err := httpmock.NewJsonResponse(200, responseObj)
+				if err != nil {
+					return nil, fmt.Errorf("failed to create mock JSON response: %w", err)
+				}
+				return resp, nil
 			}
 
 			// OData filter queries
@@ -65,7 +74,11 @@ func (m *ApplicationMock) registerGetApplicationsListResponder() {
 				jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_get/get_application_odata_filter.json")
 				var responseObj map[string]any
 				json.Unmarshal([]byte(jsonStr), &responseObj)
-				return httpmock.NewJsonResponse(200, responseObj)
+				resp, err := httpmock.NewJsonResponse(200, responseObj)
+				if err != nil {
+					return nil, fmt.Errorf("failed to create mock JSON response: %w", err)
+				}
+				return resp, nil
 			}
 		}
 
@@ -74,7 +87,11 @@ func (m *ApplicationMock) registerGetApplicationsListResponder() {
 			"@odata.context": "https://graph.microsoft.com/beta/$metadata#applications",
 			"value":          []map[string]any{},
 		}
-		return httpmock.NewJsonResponse(200, responseObj)
+		resp, err := httpmock.NewJsonResponse(200, responseObj)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create mock JSON response: %w", err)
+		}
+		return resp, nil
 	})
 }
 
@@ -89,7 +106,11 @@ func (m *ApplicationMock) registerGetApplicationByIdResponder() {
 			jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_get/get_application_by_id.json")
 			var responseObj map[string]any
 			json.Unmarshal([]byte(jsonStr), &responseObj)
-			return httpmock.NewJsonResponse(200, responseObj)
+			resp, err := httpmock.NewJsonResponse(200, responseObj)
+			if err != nil {
+				return nil, fmt.Errorf("failed to create mock JSON response: %w", err)
+			}
+			return resp, nil
 		default:
 			return httpmock.NewStringResponse(404, `{"error":{"code":"ResourceNotFound","message":"Application not found"}}`), nil
 		}
@@ -103,7 +124,11 @@ func (m *ApplicationMock) registerGetApplicationOwnersResponder() {
 			"@odata.context": "https://graph.microsoft.com/beta/$metadata#directoryObjects",
 			"value":          []map[string]any{},
 		}
-		return httpmock.NewJsonResponse(200, responseObj)
+		resp, err := httpmock.NewJsonResponse(200, responseObj)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create mock JSON response: %w", err)
+		}
+		return resp, nil
 	})
 }
 
@@ -125,7 +150,11 @@ func (m *ApplicationMock) registerGetApplicationsListErrorResponder() {
 				"message": "Insufficient privileges to complete the operation.",
 			},
 		}
-		return httpmock.NewJsonResponse(403, errorObj)
+		resp, err := httpmock.NewJsonResponse(403, errorObj)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create mock JSON response: %w", err)
+		}
+		return resp, nil
 	})
 }
 
@@ -137,7 +166,11 @@ func (m *ApplicationMock) registerGetApplicationByIdErrorResponder() {
 				"message": "Insufficient privileges to complete the operation.",
 			},
 		}
-		return httpmock.NewJsonResponse(403, errorObj)
+		resp, err := httpmock.NewJsonResponse(403, errorObj)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create mock JSON response: %w", err)
+		}
+		return resp, nil
 	})
 }
 
@@ -149,7 +182,11 @@ func (m *ApplicationMock) registerGetApplicationOwnersErrorResponder() {
 				"message": "Insufficient privileges to complete the operation.",
 			},
 		}
-		return httpmock.NewJsonResponse(403, errorObj)
+		resp, err := httpmock.NewJsonResponse(403, errorObj)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create mock JSON response: %w", err)
+		}
+		return resp, nil
 	})
 }
 

@@ -2,6 +2,7 @@ package mocks
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/url"
 	"strings"
@@ -43,13 +44,21 @@ func (m *RoleDefinitionsMock) RegisterMocks() {
 				jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_get/get_role_definitions_odata_filter.json")
 				var responseObj map[string]any
 				json.Unmarshal([]byte(jsonStr), &responseObj)
-				return httpmock.NewJsonResponse(200, responseObj)
+				resp, err := httpmock.NewJsonResponse(200, responseObj)
+				if err != nil {
+					return nil, fmt.Errorf("failed to create mock JSON response: %w", err)
+				}
+				return resp, nil
 			} else if strings.Contains(filter, "isBuiltIn eq true") {
 				// Return built-in roles
 				jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_get/get_role_definitions_odata_filter.json")
 				var responseObj map[string]any
 				json.Unmarshal([]byte(jsonStr), &responseObj)
-				return httpmock.NewJsonResponse(200, responseObj)
+				resp, err := httpmock.NewJsonResponse(200, responseObj)
+				if err != nil {
+					return nil, fmt.Errorf("failed to create mock JSON response: %w", err)
+				}
+				return resp, nil
 			}
 		}
 
@@ -57,7 +66,11 @@ func (m *RoleDefinitionsMock) RegisterMocks() {
 		jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_get/get_role_definitions_all.json")
 		var responseObj map[string]any
 		json.Unmarshal([]byte(jsonStr), &responseObj)
-		return httpmock.NewJsonResponse(200, responseObj)
+		resp, err := httpmock.NewJsonResponse(200, responseObj)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create mock JSON response: %w", err)
+		}
+		return resp, nil
 	})
 
 	// 2. Get role definition by ID - GET /roleManagement/directory/roleDefinitions/{id}
@@ -71,7 +84,11 @@ func (m *RoleDefinitionsMock) RegisterMocks() {
 			jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_get/get_role_definition_by_id.json")
 			var responseObj map[string]any
 			json.Unmarshal([]byte(jsonStr), &responseObj)
-			return httpmock.NewJsonResponse(200, responseObj)
+			resp, err := httpmock.NewJsonResponse(200, responseObj)
+			if err != nil {
+				return nil, fmt.Errorf("failed to create mock JSON response: %w", err)
+			}
+			return resp, nil
 		case "e8611ab8-c189-46e8-94e1-60213ab1f814": // Privileged Role Administrator
 			responseObj := map[string]any{
 				"id":             "e8611ab8-c189-46e8-94e1-60213ab1f814",
@@ -94,7 +111,11 @@ func (m *RoleDefinitionsMock) RegisterMocks() {
 					},
 				},
 			}
-			return httpmock.NewJsonResponse(200, responseObj)
+			resp, err := httpmock.NewJsonResponse(200, responseObj)
+			if err != nil {
+				return nil, fmt.Errorf("failed to create mock JSON response: %w", err)
+			}
+			return resp, nil
 		case "194ae4cb-b126-40b2-bd5b-6091b380977d": // Security Administrator
 			responseObj := map[string]any{
 				"id":             "194ae4cb-b126-40b2-bd5b-6091b380977d",
@@ -116,7 +137,11 @@ func (m *RoleDefinitionsMock) RegisterMocks() {
 					},
 				},
 			}
-			return httpmock.NewJsonResponse(200, responseObj)
+			resp, err := httpmock.NewJsonResponse(200, responseObj)
+			if err != nil {
+				return nil, fmt.Errorf("failed to create mock JSON response: %w", err)
+			}
+			return resp, nil
 		case "9b895d92-2cd3-44c7-9d02-a6ac2d5ea5c3": // Application Administrator
 			responseObj := map[string]any{
 				"id":             "9b895d92-2cd3-44c7-9d02-a6ac2d5ea5c3",
@@ -138,7 +163,11 @@ func (m *RoleDefinitionsMock) RegisterMocks() {
 					},
 				},
 			}
-			return httpmock.NewJsonResponse(200, responseObj)
+			resp, err := httpmock.NewJsonResponse(200, responseObj)
+			if err != nil {
+				return nil, fmt.Errorf("failed to create mock JSON response: %w", err)
+			}
+			return resp, nil
 		case "b1be1c3e-b65d-4f19-8427-f6fa0d97feb9": // Conditional Access Administrator
 			responseObj := map[string]any{
 				"id":             "b1be1c3e-b65d-4f19-8427-f6fa0d97feb9",
@@ -161,7 +190,11 @@ func (m *RoleDefinitionsMock) RegisterMocks() {
 					},
 				},
 			}
-			return httpmock.NewJsonResponse(200, responseObj)
+			resp, err := httpmock.NewJsonResponse(200, responseObj)
+			if err != nil {
+				return nil, fmt.Errorf("failed to create mock JSON response: %w", err)
+			}
+			return resp, nil
 		default:
 			return httpmock.NewStringResponse(404, `{"error":{"code":"ResourceNotFound","message":"Role definition not found"}}`), nil
 		}
@@ -177,7 +210,11 @@ func (m *RoleDefinitionsMock) RegisterMocks() {
 			var responseObj map[string]any
 			json.Unmarshal([]byte(jsonStr), &responseObj)
 			responseObj["@odata.count"] = 2
-			return httpmock.NewJsonResponse(200, responseObj)
+			resp, err := httpmock.NewJsonResponse(200, responseObj)
+			if err != nil {
+				return nil, fmt.Errorf("failed to create mock JSON response: %w", err)
+			}
+			return resp, nil
 		}
 
 		// Handle $orderby parameter
@@ -185,7 +222,11 @@ func (m *RoleDefinitionsMock) RegisterMocks() {
 			jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_get/get_role_definitions_odata_filter.json")
 			var responseObj map[string]any
 			json.Unmarshal([]byte(jsonStr), &responseObj)
-			return httpmock.NewJsonResponse(200, responseObj)
+			resp, err := httpmock.NewJsonResponse(200, responseObj)
+			if err != nil {
+				return nil, fmt.Errorf("failed to create mock JSON response: %w", err)
+			}
+			return resp, nil
 		}
 
 		// Handle $select parameter
@@ -193,14 +234,22 @@ func (m *RoleDefinitionsMock) RegisterMocks() {
 			jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_get/get_role_definitions_odata_filter.json")
 			var responseObj map[string]any
 			json.Unmarshal([]byte(jsonStr), &responseObj)
-			return httpmock.NewJsonResponse(200, responseObj)
+			resp, err := httpmock.NewJsonResponse(200, responseObj)
+			if err != nil {
+				return nil, fmt.Errorf("failed to create mock JSON response: %w", err)
+			}
+			return resp, nil
 		}
 
 		// Default OData response
 		jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_get/get_role_definitions_all.json")
 		var responseObj map[string]any
 		json.Unmarshal([]byte(jsonStr), &responseObj)
-		return httpmock.NewJsonResponse(200, responseObj)
+		resp, err := httpmock.NewJsonResponse(200, responseObj)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create mock JSON response: %w", err)
+		}
+		return resp, nil
 	})
 }
 
@@ -217,7 +266,11 @@ func (m *RoleDefinitionsMock) RegisterErrorMocks() {
 				"message": "Insufficient privileges to complete the operation.",
 			},
 		}
-		return httpmock.NewJsonResponse(403, errorObj)
+		resp, err := httpmock.NewJsonResponse(403, errorObj)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create mock JSON response: %w", err)
+		}
+		return resp, nil
 	})
 
 	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/roleManagement/directory/roleDefinitions/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`, func(req *http.Request) (*http.Response, error) {
@@ -227,7 +280,11 @@ func (m *RoleDefinitionsMock) RegisterErrorMocks() {
 				"message": "Role definition not found",
 			},
 		}
-		return httpmock.NewJsonResponse(404, errorObj)
+		resp, err := httpmock.NewJsonResponse(404, errorObj)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create mock JSON response: %w", err)
+		}
+		return resp, nil
 	})
 }
 
