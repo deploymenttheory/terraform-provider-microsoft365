@@ -304,7 +304,7 @@ func (r *WindowsAutopilotDeviceIdentityResource) assignUser(ctx context.Context,
 
 	if err != nil {
 		tflog.Error(ctx, fmt.Sprintf("Error assigning user to device: %s", err.Error()))
-		return err
+		return fmt.Errorf("failed to assign user %s to device %s: %w", userPrincipalName, deviceId, err)
 	}
 
 	tflog.Debug(ctx, fmt.Sprintf("Successfully assigned user %s to device %s", userPrincipalName, deviceId))
@@ -324,7 +324,7 @@ func (r *WindowsAutopilotDeviceIdentityResource) unassignUser(ctx context.Contex
 
 	if err != nil {
 		tflog.Error(ctx, fmt.Sprintf("Error unassigning user from device: %s", err.Error()))
-		return err
+		return fmt.Errorf("failed to unassign user from device %s: %w", deviceId, err)
 	}
 
 	tflog.Debug(ctx, fmt.Sprintf("Successfully unassigned user from device %s", deviceId))
