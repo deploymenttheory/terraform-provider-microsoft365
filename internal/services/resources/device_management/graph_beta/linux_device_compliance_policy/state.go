@@ -20,7 +20,6 @@ func MapRemoteStateToTerraform(ctx context.Context, data *LinuxDeviceComplianceP
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting MapRemoteStateToTerraform for resource: %s", ResourceName))
 
-	// Map base resource properties
 	data.ID = convert.GraphToFrameworkString(remoteResource.GetId())
 	data.Name = convert.GraphToFrameworkString(remoteResource.GetName())
 	data.Description = convert.GraphToFrameworkString(remoteResource.GetDescription())
@@ -109,7 +108,6 @@ func StateConfigurationPolicySettings(ctx context.Context, data *LinuxDeviceComp
 	data.PasswordPolicyMinimumSymbols = types.Int32Null()
 	data.PasswordPolicyMinimumUppercase = types.Int32Null()
 
-	// Process each setting
 	for _, setting := range settings {
 		if setting == nil {
 			continue
