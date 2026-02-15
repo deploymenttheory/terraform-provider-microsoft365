@@ -185,9 +185,12 @@ func (r *UserResource) Read(ctx context.Context, req resource.ReadRequest, resp 
 
 	identity.ID = state.ID.ValueString()
 
-	resp.Diagnostics.Append(resp.Identity.Set(ctx, identity)...)
-	if resp.Diagnostics.HasError() {
-		return
+	// Only set Identity if it's not nil (nil when called from ReadWithRetry)
+	if resp.Identity != nil {
+		resp.Diagnostics.Append(resp.Identity.Set(ctx, identity)...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
 	}
 
 	tflog.Debug(ctx, fmt.Sprintf("Finished Read Method: %s", ResourceName))
