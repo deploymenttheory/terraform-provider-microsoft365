@@ -8,6 +8,7 @@ import (
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	planmodifiers "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/plan_modifiers"
 	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/schema"
+	commonschemagraphbeta "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/schema/graph_beta/device_management"
 	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
@@ -332,26 +333,8 @@ func (r *WindowsAutopilotDevicePreparationPolicyResource) Schema(ctx context.Con
 					),
 				},
 			},
-			"assignments": schema.SingleNestedAttribute{
-				Optional:            true,
-				MarkdownDescription: "The assignment configuration for this Windows Autopilot Device Preparation policy",
-				Attributes: map[string]schema.Attribute{
-					"include_group_ids": schema.ListAttribute{
-						ElementType:         types.StringType,
-						Optional:            true,
-						MarkdownDescription: "A list of user group IDs to include in the assignment",
-						Validators: []validator.List{
-							listvalidator.ValueStringsAre(
-								stringvalidator.RegexMatches(
-									regexp.MustCompile(constants.GuidRegex),
-									"must be a valid GUID in the format 00000000-0000-0000-0000-000000000000",
-								),
-							),
-						},
-					},
-				},
-			},
-			"timeouts": commonschema.ResourceTimeouts(ctx),
+			"assignments": commonschemagraphbeta.DeviceConfigurationWithAllLicensedUsersInclusionGroupAssignmentsAndFilterSchema(),
+			"timeouts":    commonschema.ResourceTimeouts(ctx),
 		},
 	}
 }

@@ -89,33 +89,25 @@ func (r *WindowsAutopilotDevicePreparationPolicyResource) Create(ctx context.Con
 		tflog.Info(ctx, fmt.Sprintf("Successfully assigned device security group %s as enrollment time device membership target", deviceSecurityGroupID))
 	}
 
-	if object.Assignments != nil {
-		requestAssignment, err := constructAssignment(ctx, object.Assignments)
-		if err != nil {
-			resp.Diagnostics.AddError(
-				"Error constructing assignment for Create Method",
-				fmt.Sprintf("Could not construct assignment: %s: %s", ResourceName, err.Error()),
-			)
-			return
-		}
+	requestAssignment, err := constructAssignment(ctx, &object)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error constructing assignment for Create Method",
+			fmt.Sprintf("Could not construct assignment: %s: %s", ResourceName, err.Error()),
+		)
+		return
+	}
 
-		ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Create, CreateTimeout*time.Second, &resp.Diagnostics)
-		if cancel == nil {
-			return
-		}
-		defer cancel()
+	_, err = r.client.
+		DeviceManagement().
+		ConfigurationPolicies().
+		ByDeviceManagementConfigurationPolicyId(object.ID.ValueString()).
+		Assign().
+		Post(ctx, requestAssignment, nil)
 
-		_, err = r.client.
-			DeviceManagement().
-			ConfigurationPolicies().
-			ByDeviceManagementConfigurationPolicyId(object.ID.ValueString()).
-			Assign().
-			Post(ctx, requestAssignment, nil)
-
-		if err != nil {
-			errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationCreate, r.WritePermissions)
-			return
-		}
+	if err != nil {
+		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationCreate, r.WritePermissions)
+		return
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
@@ -309,33 +301,25 @@ func (r *WindowsAutopilotDevicePreparationPolicyResource) Update(ctx context.Con
 		tflog.Info(ctx, fmt.Sprintf("Successfully assigned device security group %s as enrollment time device membership target", deviceSecurityGroupID))
 	}
 
-	if plan.Assignments != nil {
-		requestAssignment, err := constructAssignment(ctx, plan.Assignments)
-		if err != nil {
-			resp.Diagnostics.AddError(
-				"Error constructing assignment for Update Method",
-				fmt.Sprintf("Could not construct assignment: %s: %s", ResourceName, err.Error()),
-			)
-			return
-		}
+	requestAssignment, err := constructAssignment(ctx, &plan)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error constructing assignment for Update Method",
+			fmt.Sprintf("Could not construct assignment: %s: %s", ResourceName, err.Error()),
+		)
+		return
+	}
 
-		ctx, cancel := crud.HandleTimeout(ctx, plan.Timeouts.Update, UpdateTimeout*time.Second, &resp.Diagnostics)
-		if cancel == nil {
-			return
-		}
-		defer cancel()
+	_, err = r.client.
+		DeviceManagement().
+		ConfigurationPolicies().
+		ByDeviceManagementConfigurationPolicyId(state.ID.ValueString()).
+		Assign().
+		Post(ctx, requestAssignment, nil)
 
-		_, err = r.client.
-			DeviceManagement().
-			ConfigurationPolicies().
-			ByDeviceManagementConfigurationPolicyId(state.ID.ValueString()).
-			Assign().
-			Post(ctx, requestAssignment, nil)
-
-		if err != nil {
-			errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationUpdate, r.WritePermissions)
-			return
-		}
+	if err != nil {
+		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationUpdate, r.WritePermissions)
+		return
 	}
 
 	readReq := resource.ReadRequest{State: resp.State, ProviderMeta: req.ProviderMeta}

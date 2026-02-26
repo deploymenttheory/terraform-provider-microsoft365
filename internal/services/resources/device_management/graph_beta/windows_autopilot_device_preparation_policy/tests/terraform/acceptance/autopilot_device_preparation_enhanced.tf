@@ -29,11 +29,18 @@ resource "microsoft365_graph_beta_device_management_windows_autopilot_device_pre
     microsoft365_graph_beta_device_management_device_shell_script.test_script.id
   ]
 
-  assignments = {
-    include_group_ids = [
-      data.azuread_group.test_group1.object_id,
-      data.azuread_group.test_group2.object_id,
-      data.azuread_group.test_group3.object_id
-    ]
-  }
+  assignments = [
+    {
+      type     = "groupAssignmentTarget"
+      group_id = data.azuread_group.test_group1.object_id
+    },
+    {
+      type     = "groupAssignmentTarget"
+      group_id = data.azuread_group.test_group2.object_id
+    },
+    {
+      type     = "groupAssignmentTarget"
+      group_id = data.azuread_group.test_group3.object_id
+    },
+  ]
 }

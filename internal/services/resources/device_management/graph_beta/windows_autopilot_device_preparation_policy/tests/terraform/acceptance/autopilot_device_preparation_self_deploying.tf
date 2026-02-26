@@ -18,9 +18,10 @@ resource "microsoft365_graph_beta_device_management_windows_autopilot_device_pre
     allow_diagnostics    = true
   }
 
-  assignments = {
-    include_group_ids = [
-      data.azuread_group.test_group1.object_id
-    ]
-  }
+  assignments = [
+    {
+      type     = "groupAssignmentTarget"
+      group_id = data.azuread_group.test_group1.object_id
+    },
+  ]
 }
