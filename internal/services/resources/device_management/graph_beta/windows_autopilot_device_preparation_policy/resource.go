@@ -237,12 +237,12 @@ func (r *WindowsAutopilotDevicePreparationPolicyResource) Schema(ctx context.Con
 					"account_type": schema.StringAttribute{
 						Optional:            true,
 						Computed:            true,
-						MarkdownDescription: "The account type for users in the Windows Autopilot Device Preparation policy. Valid values are: 'enrollment_autopilot_dpp_accountype_0' (Standard User) or 'enrollment_autopilot_dpp_accountype_1' (Administrator).",
+						MarkdownDescription: "The account type for users in the Windows Autopilot Device Preparation policy. Valid values are: 'enrollment_autopilot_dpp_accountype_0' (Administrator) or 'enrollment_autopilot_dpp_accountype_1' (Standard User).",
 						Default:             stringdefault.StaticString("enrollment_autopilot_dpp_accountype_0"),
 						Validators: []validator.String{
 							stringvalidator.OneOf(
-								"enrollment_autopilot_dpp_accountype_0", // Standard User
-								"enrollment_autopilot_dpp_accountype_1", // Administrator
+								"enrollment_autopilot_dpp_accountype_0", // Administrator
+								"enrollment_autopilot_dpp_accountype_1", // Standard User
 							),
 						},
 					},

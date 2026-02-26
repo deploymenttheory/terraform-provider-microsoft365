@@ -8,7 +8,7 @@ resource "microsoft365_graph_beta_device_management_windows_autopilot_device_pre
     deployment_mode = "enrollment_autopilot_dpp_deploymentmode_1" # Enhanced mode
     deployment_type = "enrollment_autopilot_dpp_deploymenttype_1" # Self-deploying
     join_type       = "enrollment_autopilot_dpp_jointype_0"       # Entra ID joined
-    account_type    = "enrollment_autopilot_dpp_accountype_1"     # Administrator
+    account_type    = "enrollment_autopilot_dpp_accountype_1"     # Standard User
   }
 
   oobe_settings = {
