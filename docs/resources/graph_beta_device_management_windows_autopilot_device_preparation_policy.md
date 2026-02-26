@@ -1,5 +1,5 @@
 ---
-page_title: "microsoft365_graph_beta_device_management_windows_autopilot_device_preparation_policy Resource - terraform-provider-microsoft365"
+page_title: "microsoft365_graph_beta_device_management_windows_autopilot_device_preparation_policy Resource - microsoft365"
 subcategory: "Device Management"
 
 description: |-
@@ -49,7 +49,7 @@ resource "microsoft365_graph_beta_device_management_windows_autopilot_device_pre
     deployment_mode = "enrollment_autopilot_dpp_deploymentmode_0" # Standard mode
     deployment_type = "enrollment_autopilot_dpp_deploymenttype_0" # User-driven
     join_type       = "enrollment_autopilot_dpp_jointype_0"       # Azure AD joined
-    account_type    = "enrollment_autopilot_dpp_accountype_0"     # Standard user
+    account_type    = "enrollment_autopilot_dpp_accountype_0"     # Administrator
   }
 
   oobe_settings = {
@@ -83,12 +83,19 @@ resource "microsoft365_graph_beta_device_management_windows_autopilot_device_pre
     "12345678-1234-1234-1234-123456789012",
   ]
 
-  assignments = {
-    include_group_ids = [
-      "12345678-1234-1234-1234-123456789012", # Example group ID
-      "12345678-1234-1234-1234-123456789012",
-    ]
-  }
+  assignments = [
+    {
+      type     = "groupAssignmentTarget"
+      group_id = "12345678-1234-1234-1234-123456789012" # Example group ID
+    },
+    {
+      type     = "groupAssignmentTarget"
+      group_id = "23456789-2345-2345-2345-234567890123" # Example group ID
+    },
+    {
+      type = "allLicensedUsersAssignmentTarget"
+    },
+  ]
 }
 ```
 
@@ -106,7 +113,7 @@ resource "microsoft365_graph_beta_device_management_windows_autopilot_device_pre
 
 - `allowed_apps` (Attributes List) List of applications that are allowed to be installed during the Windows Autopilot Device Preparation process. Maximum of 10 items. (see [below for nested schema](#nestedatt--allowed_apps))
 - `allowed_scripts` (List of String) List of script IDs that are allowed to be executed during the Windows Autopilot Device Preparation process. Maximum of 10 items.
-- `assignments` (Attributes) The assignment configuration for this Windows Autopilot Device Preparation policy (see [below for nested schema](#nestedatt--assignments))
+- `assignments` (Attributes Set) Assignments for the device configuration. Each assignment specifies the target group and schedule for script execution. Supports group filters. (see [below for nested schema](#nestedatt--assignments))
 - `description` (String) Optional description of the resource. Maximum length is 1500 characters.
 - `role_scope_tag_ids` (Set of String) Set of scope tag IDs for this Entity instance.
 - `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))
@@ -128,7 +135,7 @@ resource "microsoft365_graph_beta_device_management_windows_autopilot_device_pre
 
 Optional:
 
-- `account_type` (String) The account type for users in the Windows Autopilot Device Preparation policy. Valid values are: 'enrollment_autopilot_dpp_accountype_0' (Standard User) or 'enrollment_autopilot_dpp_accountype_1' (Administrator).
+- `account_type` (String) The account type for users in the Windows Autopilot Device Preparation policy. Valid values are: 'enrollment_autopilot_dpp_accountype_0' (Administrator) or 'enrollment_autopilot_dpp_accountype_1' (Standard User).
 - `deployment_mode` (String) The deployment mode for the Windows Autopilot Device Preparation policy. Valid values are: 'enrollment_autopilot_dpp_deploymentmode_0' (Standard mode) or 'enrollment_autopilot_dpp_deploymentmode_1' (Enhanced mode).
 - `deployment_type` (String) The deployment type for the Windows Autopilot Device Preparation policy. Valid values are: 'enrollment_autopilot_dpp_deploymenttype_0' (User-driven) or 'enrollment_autopilot_dpp_deploymenttype_1' (Self-deploying).
 - `join_type` (String) The join type for the Windows Autopilot Device Preparation policy. Valid values are: 'enrollment_autopilot_dpp_jointype_0' (Entra ID joined) or 'enrollment_autopilot_dpp_jointype_1' (Entra ID hybrid joined).
@@ -157,9 +164,15 @@ Required:
 <a id="nestedatt--assignments"></a>
 ### Nested Schema for `assignments`
 
+Required:
+
+- `type` (String) Type of assignment target. Must be one of: 'allLicensedUsersAssignmentTarget', 'groupAssignmentTarget'.
+
 Optional:
 
-- `include_group_ids` (List of String) A list of user group IDs to include in the assignment
+- `filter_id` (String) ID of the filter to apply to the assignment.
+- `filter_type` (String) Type of filter to apply. Must be one of: 'include', 'exclude', or 'none'.
+- `group_id` (String) The Entra ID group ID to include in the assignment. Required when type is 'groupAssignmentTarget'.
 
 
 <a id="nestedatt--timeouts"></a>
