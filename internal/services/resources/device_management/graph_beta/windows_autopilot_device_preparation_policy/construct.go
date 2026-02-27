@@ -4,18 +4,23 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/constructors"
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
-	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/shared_models/graph_beta/device_management"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	graphdevicemanagement "github.com/microsoftgraph/msgraph-beta-sdk-go/devicemanagement"
 	"github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/constructors"
 	builders "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/constructors/graph_beta/device_management"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/sentinels"
+	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/shared_models/graph_beta/device_management"
 )
 
 // constructResource builds the resource model for the Windows Autopilot Device Preparation Policy.
-func constructResource(ctx context.Context, planModel *WindowsAutopilotDevicePreparationPolicyResourceModel) (models.DeviceManagementConfigurationPolicyable, error) {
+func constructResource(
+	ctx context.Context,
+	planModel *WindowsAutopilotDevicePreparationPolicyResourceModel,
+) (models.DeviceManagementConfigurationPolicyable, error) {
 	configurationPolicy := models.NewDeviceManagementConfigurationPolicy()
 
 	convert.FrameworkToGraphString(planModel.Name, configurationPolicy.SetName)
@@ -28,8 +33,11 @@ func constructResource(ctx context.Context, planModel *WindowsAutopilotDevicePre
 	templateReference := models.NewDeviceManagementConfigurationPolicyTemplateReference()
 	templateReference.SetTemplateId(&templateId)
 
-	parsedTemplateFamily, _ := models.ParseDeviceManagementConfigurationTemplateFamily(templateFamily)
-	if parsedFamily, ok := parsedTemplateFamily.(*models.DeviceManagementConfigurationTemplateFamily); ok && parsedFamily != nil {
+	parsedTemplateFamily, _ := models.ParseDeviceManagementConfigurationTemplateFamily(
+		templateFamily,
+	)
+	if parsedFamily, ok := parsedTemplateFamily.(*models.DeviceManagementConfigurationTemplateFamily); ok &&
+		parsedFamily != nil {
 		templateReference.SetTemplateFamily(parsedFamily)
 	}
 
@@ -37,18 +45,24 @@ func constructResource(ctx context.Context, planModel *WindowsAutopilotDevicePre
 
 	platformStr := "windows10"
 	parsedPlatform, _ := models.ParseDeviceManagementConfigurationPlatforms(platformStr)
-	if platform, ok := parsedPlatform.(*models.DeviceManagementConfigurationPlatforms); ok && platform != nil {
+	if platform, ok := parsedPlatform.(*models.DeviceManagementConfigurationPlatforms); ok &&
+		platform != nil {
 		configurationPolicy.SetPlatforms(platform)
 	}
 
 	techStr := "enrollment"
 	parsedTech, _ := models.ParseDeviceManagementConfigurationTechnologies(techStr)
-	if tech, ok := parsedTech.(*models.DeviceManagementConfigurationTechnologies); ok && tech != nil {
+	if tech, ok := parsedTech.(*models.DeviceManagementConfigurationTechnologies); ok &&
+		tech != nil {
 		configurationPolicy.SetTechnologies(tech)
 	}
 
-	if err := convert.FrameworkToGraphStringSet(ctx, planModel.RoleScopeTagIds, configurationPolicy.SetRoleScopeTagIds); err != nil {
-		return nil, fmt.Errorf("failed to set role scope tags: %s", err)
+	if err := convert.FrameworkToGraphStringSet(
+		ctx,
+		planModel.RoleScopeTagIds,
+		configurationPolicy.SetRoleScopeTagIds,
+	); err != nil {
+		return nil, fmt.Errorf("%w: %w", sentinels.ErrSetRoleScopeTags, err)
 	}
 
 	settings, err := constructAutopilotDevicePreparationPolicySettings(ctx, planModel)
@@ -57,7 +71,11 @@ func constructResource(ctx context.Context, planModel *WindowsAutopilotDevicePre
 	}
 	configurationPolicy.SetSettings(settings)
 
-	if err := constructors.DebugLogGraphObject(ctx, fmt.Sprintf("Final JSON to be sent to Graph API for resource %s", ResourceName), configurationPolicy); err != nil {
+	if err := constructors.DebugLogGraphObject(
+		ctx,
+		fmt.Sprintf("Final JSON to be sent to Graph API for resource %s", ResourceName),
+		configurationPolicy,
+	); err != nil {
 		tflog.Error(ctx, "Failed to debug log object", map[string]any{
 			"error": err.Error(),
 		})
@@ -78,153 +96,177 @@ func constructResource(ctx context.Context, planModel *WindowsAutopilotDevicePre
 //
 // It then calls the generic helpers to construct the setting instance and value
 // This func is unique per policy type and therefore per terraform resource type that uses templates.
-func constructAutopilotDevicePreparationPolicySettings(ctx context.Context, planModel *WindowsAutopilotDevicePreparationPolicyResourceModel) ([]models.DeviceManagementConfigurationSettingable, error) {
+func constructAutopilotDevicePreparationPolicySettings(
+	ctx context.Context,
+	planModel *WindowsAutopilotDevicePreparationPolicyResourceModel,
+) ([]models.DeviceManagementConfigurationSettingable, error) {
 	var settings []models.DeviceManagementConfigurationSettingable
 
-	// Add settings catalog template settings from the hcl plan
 	if planModel.DeploymentSettings != nil {
-		// Deployment Mode
-		if !planModel.DeploymentSettings.DeploymentMode.IsNull() && !planModel.DeploymentSettings.DeploymentMode.IsUnknown() {
-			deploymentModeSetting := builders.ConstructChoiceSettingInstance(
-				"enrollment_autopilot_dpp_deploymentmode",
-				planModel.DeploymentSettings.DeploymentMode.ValueString(),
-				"5180aeab-886e-4589-97d4-40855c646315", // settingInstanceTemplateId
-				"5874c2f6-bcf1-463b-a9eb-bee64e2f2d82", // settingValueTemplateId
-			)
-			settings = append(settings, deploymentModeSetting)
-		}
-
-		// Deployment Type
-		if !planModel.DeploymentSettings.DeploymentType.IsNull() && !planModel.DeploymentSettings.DeploymentType.IsUnknown() {
-			deploymentTypeSetting := builders.ConstructChoiceSettingInstance(
-				"enrollment_autopilot_dpp_deploymenttype",
-				planModel.DeploymentSettings.DeploymentType.ValueString(),
-				"f4184296-fa9f-4b67-8b12-1723b3f8456b", // settingInstanceTemplateId
-				"e0af022f-37f3-4a40-916d-1ab7281c88d9", // settingValueTemplateId
-			)
-			settings = append(settings, deploymentTypeSetting)
-		}
-
-		// Join Type
-		if !planModel.DeploymentSettings.JoinType.IsNull() && !planModel.DeploymentSettings.JoinType.IsUnknown() {
-			joinTypeSetting := builders.ConstructChoiceSettingInstance(
-				"enrollment_autopilot_dpp_jointype",
-				planModel.DeploymentSettings.JoinType.ValueString(),
-				"6310e95d-6cfa-4d2f-aae0-1e7af12e2182", // settingInstanceTemplateId
-				"1fa84eb3-fcfa-4ed6-9687-0f3d486402c4", // settingValueTemplateId
-			)
-			settings = append(settings, joinTypeSetting)
-		}
-
-		// Account Type
-		if !planModel.DeploymentSettings.AccountType.IsNull() && !planModel.DeploymentSettings.AccountType.IsUnknown() {
-			accountTypeSetting := builders.ConstructChoiceSettingInstance(
-				"enrollment_autopilot_dpp_accountype",
-				planModel.DeploymentSettings.AccountType.ValueString(),
-				"d4f2a840-86d5-4162-9a08-fa8cc608b94e", // settingInstanceTemplateId
-				"bf13bb47-69ef-4e06-97c1-50c2859a49c2", // settingValueTemplateId
-			)
-			settings = append(settings, accountTypeSetting)
-		}
+		settings = appendDeploymentSettings(settings, planModel.DeploymentSettings)
 	}
 
-	// Add OOBE settings
 	if planModel.OOBESettings != nil {
-		// Timeout in Minutes
-		if !planModel.OOBESettings.TimeoutInMinutes.IsNull() && !planModel.OOBESettings.TimeoutInMinutes.IsUnknown() {
-			timeoutSetting := builders.ConstructIntSimpleSettingInstance(
-				"enrollment_autopilot_dpp_timeout",
-				planModel.OOBESettings.TimeoutInMinutes.ValueInt64(),
-				"6dec0657-dfb8-4906-a7ee-3ac6ee1edecb", // settingInstanceTemplateId
-				"0bbcce5b-a55a-4e05-821a-94bf576d6cc8", // settingValueTemplateId
-			)
-			settings = append(settings, timeoutSetting)
-		}
-
-		// Custom Error Message
-		if !planModel.OOBESettings.CustomErrorMessage.IsNull() && !planModel.OOBESettings.CustomErrorMessage.IsUnknown() {
-			customErrorSetting := builders.ConstructStringSimpleSettingInstance(
-				"enrollment_autopilot_dpp_customerrormessage",
-				planModel.OOBESettings.CustomErrorMessage.ValueString(),
-				"2ddf0619-2b7a-46de-b29b-c6191e9dda6e", // settingInstanceTemplateId
-				"fe5002d5-fbe9-4920-9e2d-26bfc4b4cc97", // settingValueTemplateId
-			)
-			settings = append(settings, customErrorSetting)
-		}
-
-		// Allow Skip
-		if !planModel.OOBESettings.AllowSkip.IsNull() && !planModel.OOBESettings.AllowSkip.IsUnknown() {
-			allowSkipSetting := builders.ConstructBoolChoiceSettingInstance(
-				"enrollment_autopilot_dpp_allowskip",
-				planModel.OOBESettings.AllowSkip.ValueBool(),
-				"2a71dc89-0f17-4ba9-bb27-af2521d34710", // settingInstanceTemplateId
-				"a2323e5e-ac56-4517-8847-b0a6fdb467e7", // settingValueTemplateId
-			)
-			settings = append(settings, allowSkipSetting)
-		}
-
-		// Allow Diagnostics
-		if !planModel.OOBESettings.AllowDiagnostics.IsNull() && !planModel.OOBESettings.AllowDiagnostics.IsUnknown() {
-			allowDiagnosticsSetting := builders.ConstructBoolChoiceSettingInstance(
-				"enrollment_autopilot_dpp_allowdiagnostics",
-				planModel.OOBESettings.AllowDiagnostics.ValueBool(),
-				"e2b7a81b-f243-4abd-bce3-c1856345f405", // settingInstanceTemplateId
-				"c59d26fd-3460-4b26-b47a-f7e202e7d5a3", // settingValueTemplateId
-			)
-			settings = append(settings, allowDiagnosticsSetting)
-		}
+		settings = appendOOBESettings(settings, planModel.OOBESettings)
 	}
 
-	// Add allowed apps
-	if len(planModel.AllowedApps) > 0 {
-		var appIds []string
-		for _, app := range planModel.AllowedApps {
-			if !app.AppID.IsNull() && !app.AppID.IsUnknown() && !app.AppType.IsNull() && !app.AppType.IsUnknown() {
-
-				appId := app.AppID.ValueString()
-
-				appTypeStr := app.AppType.ValueString()
-				graphAppType := fmt.Sprintf("#microsoft.graph.%s", appTypeStr)
-
-				appJson := fmt.Sprintf("{\"id\":\"%s\",\"type\":\"%s\"}", appId, graphAppType)
-				appIds = append(appIds, appJson)
-			}
-		}
-
-		if len(appIds) > 0 {
-			allowedAppsSetting := builders.ConstructSimpleSettingCollectionInstance(
-				"enrollment_autopilot_dpp_allowedappids",
-				appIds,
-				"70d22a8a-a03c-4f62-b8df-dded3e327639", // settingInstanceTemplateId
-			)
-			settings = append(settings, allowedAppsSetting)
-		}
-	}
-
-	// Add allowed scripts
-	if len(planModel.AllowedScripts) > 0 {
-		var scriptIds []string
-		for _, script := range planModel.AllowedScripts {
-			if !script.IsNull() && !script.IsUnknown() {
-				scriptIds = append(scriptIds, script.ValueString())
-			}
-		}
-
-		if len(scriptIds) > 0 {
-			allowedScriptsSetting := builders.ConstructSimpleSettingCollectionInstance(
-				"enrollment_autopilot_dpp_allowedscriptids",
-				scriptIds,
-				"1bc67702-800c-4271-8fd9-609351cc19cf", // settingInstanceTemplateId
-			)
-			settings = append(settings, allowedScriptsSetting)
-		}
-	}
+	settings = appendAllowedApps(settings, planModel.AllowedApps)
+	settings = appendAllowedScripts(settings, planModel.AllowedScripts)
 
 	return settings, nil
 }
 
+// appendDeploymentSettings adds deployment-related settings catalog template settings.
+func appendDeploymentSettings(
+	settings []models.DeviceManagementConfigurationSettingable,
+	ds *DeploymentSettingsModel,
+) []models.DeviceManagementConfigurationSettingable {
+	if !ds.DeploymentMode.IsNull() && !ds.DeploymentMode.IsUnknown() {
+		settings = append(settings, builders.ConstructChoiceSettingInstance(
+			"enrollment_autopilot_dpp_deploymentmode",
+			ds.DeploymentMode.ValueString(),
+			"5180aeab-886e-4589-97d4-40855c646315", // settingInstanceTemplateId
+			"5874c2f6-bcf1-463b-a9eb-bee64e2f2d82", // settingValueTemplateId
+		))
+	}
+
+	if !ds.DeploymentType.IsNull() && !ds.DeploymentType.IsUnknown() {
+		settings = append(settings, builders.ConstructChoiceSettingInstance(
+			"enrollment_autopilot_dpp_deploymenttype",
+			ds.DeploymentType.ValueString(),
+			"f4184296-fa9f-4b67-8b12-1723b3f8456b", // settingInstanceTemplateId
+			"e0af022f-37f3-4a40-916d-1ab7281c88d9", // settingValueTemplateId
+		))
+	}
+
+	if !ds.JoinType.IsNull() && !ds.JoinType.IsUnknown() {
+		settings = append(settings, builders.ConstructChoiceSettingInstance(
+			"enrollment_autopilot_dpp_jointype",
+			ds.JoinType.ValueString(),
+			"6310e95d-6cfa-4d2f-aae0-1e7af12e2182", // settingInstanceTemplateId
+			"1fa84eb3-fcfa-4ed6-9687-0f3d486402c4", // settingValueTemplateId
+		))
+	}
+
+	if !ds.AccountType.IsNull() && !ds.AccountType.IsUnknown() {
+		settings = append(settings, builders.ConstructChoiceSettingInstance(
+			"enrollment_autopilot_dpp_accountype",
+			ds.AccountType.ValueString(),
+			"d4f2a840-86d5-4162-9a08-fa8cc608b94e", // settingInstanceTemplateId
+			"bf13bb47-69ef-4e06-97c1-50c2859a49c2", // settingValueTemplateId
+		))
+	}
+
+	return settings
+}
+
+// appendOOBESettings adds OOBE-related settings.
+func appendOOBESettings(
+	settings []models.DeviceManagementConfigurationSettingable,
+	oobe *OOBESettingsModel,
+) []models.DeviceManagementConfigurationSettingable {
+	if !oobe.TimeoutInMinutes.IsNull() && !oobe.TimeoutInMinutes.IsUnknown() {
+		settings = append(settings, builders.ConstructIntSimpleSettingInstance(
+			"enrollment_autopilot_dpp_timeout",
+			oobe.TimeoutInMinutes.ValueInt64(),
+			"6dec0657-dfb8-4906-a7ee-3ac6ee1edecb", // settingInstanceTemplateId
+			"0bbcce5b-a55a-4e05-821a-94bf576d6cc8", // settingValueTemplateId
+		))
+	}
+
+	if !oobe.CustomErrorMessage.IsNull() && !oobe.CustomErrorMessage.IsUnknown() {
+		settings = append(settings, builders.ConstructStringSimpleSettingInstance(
+			"enrollment_autopilot_dpp_customerrormessage",
+			oobe.CustomErrorMessage.ValueString(),
+			"2ddf0619-2b7a-46de-b29b-c6191e9dda6e", // settingInstanceTemplateId
+			"fe5002d5-fbe9-4920-9e2d-26bfc4b4cc97", // settingValueTemplateId
+		))
+	}
+
+	if !oobe.AllowSkip.IsNull() && !oobe.AllowSkip.IsUnknown() {
+		settings = append(settings, builders.ConstructBoolChoiceSettingInstance(
+			"enrollment_autopilot_dpp_allowskip",
+			oobe.AllowSkip.ValueBool(),
+			"2a71dc89-0f17-4ba9-bb27-af2521d34710", // settingInstanceTemplateId
+			"a2323e5e-ac56-4517-8847-b0a6fdb467e7", // settingValueTemplateId
+		))
+	}
+
+	if !oobe.AllowDiagnostics.IsNull() && !oobe.AllowDiagnostics.IsUnknown() {
+		settings = append(settings, builders.ConstructBoolChoiceSettingInstance(
+			"enrollment_autopilot_dpp_allowdiagnostics",
+			oobe.AllowDiagnostics.ValueBool(),
+			"e2b7a81b-f243-4abd-bce3-c1856345f405", // settingInstanceTemplateId
+			"c59d26fd-3460-4b26-b47a-f7e202e7d5a3", // settingValueTemplateId
+		))
+	}
+
+	return settings
+}
+
+// appendAllowedApps adds allowed app settings.
+func appendAllowedApps(
+	settings []models.DeviceManagementConfigurationSettingable,
+	allowedApps []AllowedAppModel,
+) []models.DeviceManagementConfigurationSettingable {
+	if len(allowedApps) == 0 {
+		return settings
+	}
+
+	var appIds []string
+	for _, app := range allowedApps {
+		if !app.AppID.IsNull() && !app.AppID.IsUnknown() && !app.AppType.IsNull() &&
+			!app.AppType.IsUnknown() {
+			appId := app.AppID.ValueString()
+			graphAppType := fmt.Sprintf("#microsoft.graph.%s", app.AppType.ValueString())
+			appJson := fmt.Sprintf("{\"id\":\"%s\",\"type\":\"%s\"}", appId, graphAppType)
+			appIds = append(appIds, appJson)
+		}
+	}
+
+	if len(appIds) > 0 {
+		settings = append(settings, builders.ConstructSimpleSettingCollectionInstance(
+			"enrollment_autopilot_dpp_allowedappids",
+			appIds,
+			"70d22a8a-a03c-4f62-b8df-dded3e327639", // settingInstanceTemplateId
+		))
+	}
+
+	return settings
+}
+
+// appendAllowedScripts adds allowed script settings.
+func appendAllowedScripts(
+	settings []models.DeviceManagementConfigurationSettingable,
+	allowedScripts []types.String,
+) []models.DeviceManagementConfigurationSettingable {
+	if len(allowedScripts) == 0 {
+		return settings
+	}
+
+	var scriptIds []string
+	for _, script := range allowedScripts {
+		if !script.IsNull() && !script.IsUnknown() {
+			scriptIds = append(scriptIds, script.ValueString())
+		}
+	}
+
+	if len(scriptIds) > 0 {
+		settings = append(settings, builders.ConstructSimpleSettingCollectionInstance(
+			"enrollment_autopilot_dpp_allowedscriptids",
+			scriptIds,
+			"1bc67702-800c-4271-8fd9-609351cc19cf", // settingInstanceTemplateId
+		))
+	}
+
+	return settings
+}
+
 // constructAssignment constructs and returns a ConfigurationPoliciesItemAssignPostRequestBody
-func constructAssignment(ctx context.Context, data *WindowsAutopilotDevicePreparationPolicyResourceModel) (graphdevicemanagement.ConfigurationPoliciesItemAssignPostRequestBodyable, error) {
+func constructAssignment(
+	ctx context.Context,
+	data *WindowsAutopilotDevicePreparationPolicyResourceModel,
+) (graphdevicemanagement.ConfigurationPoliciesItemAssignPostRequestBodyable, error) {
 	tflog.Debug(ctx, "Starting assignment construction")
 
 	requestBody := graphdevicemanagement.NewConfigurationPoliciesItemAssignPostRequestBody()
@@ -239,7 +281,7 @@ func constructAssignment(ctx context.Context, data *WindowsAutopilotDevicePrepar
 	var terraformAssignments []sharedmodels.DeviceManagementDeviceConfigurationAssignmentWithGroupFilterModel
 	diags := data.Assignments.ElementsAs(ctx, &terraformAssignments, false)
 	if diags.HasError() {
-		return nil, fmt.Errorf("failed to extract assignments: %v", diags.Errors())
+		return nil, fmt.Errorf("%w: %v", sentinels.ErrExtractAssignments, diags.Errors())
 	}
 
 	for idx, assignment := range terraformAssignments {
@@ -277,7 +319,11 @@ func constructAssignment(ctx context.Context, data *WindowsAutopilotDevicePrepar
 
 	requestBody.SetAssignments(policyAssignments)
 
-	if err := constructors.DebugLogGraphObject(ctx, "Constructed assignment request body", requestBody); err != nil {
+	if err := constructors.DebugLogGraphObject(
+		ctx,
+		"Constructed assignment request body",
+		requestBody,
+	); err != nil {
 		tflog.Error(ctx, "Failed to debug log assignment request body", map[string]any{
 			"error": err.Error(),
 		})
@@ -287,7 +333,11 @@ func constructAssignment(ctx context.Context, data *WindowsAutopilotDevicePrepar
 }
 
 // constructAssignmentTarget creates the appropriate target based on the target type
-func constructAssignmentTarget(ctx context.Context, targetType string, assignment sharedmodels.DeviceManagementDeviceConfigurationAssignmentWithGroupFilterModel) models.DeviceAndAppManagementAssignmentTargetable {
+func constructAssignmentTarget(
+	ctx context.Context,
+	targetType string,
+	assignment sharedmodels.DeviceManagementDeviceConfigurationAssignmentWithGroupFilterModel,
+) models.DeviceAndAppManagementAssignmentTargetable {
 	var target models.DeviceAndAppManagementAssignmentTargetable
 
 	switch targetType {
@@ -295,7 +345,8 @@ func constructAssignmentTarget(ctx context.Context, targetType string, assignmen
 		target = models.NewAllLicensedUsersAssignmentTarget()
 	case "groupAssignmentTarget":
 		groupTarget := models.NewGroupAssignmentTarget()
-		if !assignment.GroupId.IsNull() && !assignment.GroupId.IsUnknown() && assignment.GroupId.ValueString() != "" {
+		if !assignment.GroupId.IsNull() && !assignment.GroupId.IsUnknown() &&
+			assignment.GroupId.ValueString() != "" {
 			convert.FrameworkToGraphString(assignment.GroupId, groupTarget.SetGroupId)
 		} else {
 			tflog.Error(ctx, "Group assignment target missing required group_id", map[string]any{
@@ -316,7 +367,10 @@ func constructAssignmentTarget(ctx context.Context, targetType string, assignmen
 		assignment.FilterId.ValueString() != "" &&
 		assignment.FilterId.ValueString() != "00000000-0000-0000-0000-000000000000" {
 
-		convert.FrameworkToGraphString(assignment.FilterId, target.SetDeviceAndAppManagementAssignmentFilterId)
+		convert.FrameworkToGraphString(
+			assignment.FilterId,
+			target.SetDeviceAndAppManagementAssignmentFilterId,
+		)
 
 		if !assignment.FilterType.IsNull() && !assignment.FilterType.IsUnknown() &&
 			assignment.FilterType.ValueString() != "" && assignment.FilterType.ValueString() != "none" {

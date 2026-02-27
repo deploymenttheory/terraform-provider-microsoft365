@@ -3,11 +3,12 @@ package graphBetaWindowsAutopilotDevicePreparationPolicy
 import (
 	"context"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
+
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
 )
 
 // WindowsAutopilotDevicePreparationPolicyAssignmentType returns the object type for assignment model
@@ -23,15 +24,23 @@ func WindowsAutopilotDevicePreparationPolicyAssignmentType() attr.Type {
 }
 
 // mapAssignmentsToState maps the assignments response to the state model.
-func mapAssignmentsToState(ctx context.Context, stateModel *WindowsAutopilotDevicePreparationPolicyResourceModel, assignmentsResponse graphmodels.DeviceManagementConfigurationPolicyAssignmentCollectionResponseable) {
+func mapAssignmentsToState(
+	ctx context.Context,
+	stateModel *WindowsAutopilotDevicePreparationPolicyResourceModel,
+	assignmentsResponse graphmodels.DeviceManagementConfigurationPolicyAssignmentCollectionResponseable,
+) {
 	if assignmentsResponse == nil {
-		stateModel.Assignments = types.SetNull(WindowsAutopilotDevicePreparationPolicyAssignmentType())
+		stateModel.Assignments = types.SetNull(
+			WindowsAutopilotDevicePreparationPolicyAssignmentType(),
+		)
 		return
 	}
 
 	assignments := assignmentsResponse.GetValue()
 	if len(assignments) == 0 {
-		stateModel.Assignments = types.SetNull(WindowsAutopilotDevicePreparationPolicyAssignmentType())
+		stateModel.Assignments = types.SetNull(
+			WindowsAutopilotDevicePreparationPolicyAssignmentType(),
+		)
 		return
 	}
 
@@ -53,9 +62,13 @@ func mapAssignmentsToState(ctx context.Context, stateModel *WindowsAutopilotDevi
 
 		odataType := target.GetOdataType()
 		if odataType == nil {
-			tflog.Warn(ctx, "Assignment target OData type is nil, skipping assignment", map[string]any{
-				"assignmentIndex": i,
-			})
+			tflog.Warn(
+				ctx,
+				"Assignment target OData type is nil, skipping assignment",
+				map[string]any{
+					"assignmentIndex": i,
+				},
+			)
 			continue
 		}
 
@@ -94,7 +107,8 @@ func mapAssignmentsToState(ctx context.Context, stateModel *WindowsAutopilotDevi
 
 		// Process filter ID
 		filterID := target.GetDeviceAndAppManagementAssignmentFilterId()
-		if filterID != nil && *filterID != "" && *filterID != "00000000-0000-0000-0000-000000000000" {
+		if filterID != nil && *filterID != "" &&
+			*filterID != "00000000-0000-0000-0000-000000000000" {
 			assignmentObj["filter_id"] = convert.GraphToFrameworkString(filterID)
 		} else {
 			assignmentObj["filter_id"] = types.StringValue("00000000-0000-0000-0000-000000000000")
@@ -117,7 +131,10 @@ func mapAssignmentsToState(ctx context.Context, stateModel *WindowsAutopilotDevi
 			assignmentObj["filter_type"] = types.StringValue("none")
 		}
 
-		objValue, diags := types.ObjectValue(WindowsAutopilotDevicePreparationPolicyAssignmentType().(types.ObjectType).AttrTypes, assignmentObj)
+		objValue, diags := types.ObjectValue(
+			WindowsAutopilotDevicePreparationPolicyAssignmentType().(types.ObjectType).AttrTypes,
+			assignmentObj,
+		)
 		if !diags.HasError() {
 			assignmentValues = append(assignmentValues, objValue)
 		} else {
@@ -129,17 +146,24 @@ func mapAssignmentsToState(ctx context.Context, stateModel *WindowsAutopilotDevi
 	}
 
 	if len(assignmentValues) > 0 {
-		setVal, diags := types.SetValue(WindowsAutopilotDevicePreparationPolicyAssignmentType(), assignmentValues)
+		setVal, diags := types.SetValue(
+			WindowsAutopilotDevicePreparationPolicyAssignmentType(),
+			assignmentValues,
+		)
 		if diags.HasError() {
 			tflog.Error(ctx, "Failed to create assignments set", map[string]any{
 				"errors": diags.Errors(),
 			})
-			stateModel.Assignments = types.SetNull(WindowsAutopilotDevicePreparationPolicyAssignmentType())
+			stateModel.Assignments = types.SetNull(
+				WindowsAutopilotDevicePreparationPolicyAssignmentType(),
+			)
 		} else {
 			stateModel.Assignments = setVal
 		}
 	} else {
-		stateModel.Assignments = types.SetNull(WindowsAutopilotDevicePreparationPolicyAssignmentType())
+		stateModel.Assignments = types.SetNull(
+			WindowsAutopilotDevicePreparationPolicyAssignmentType(),
+		)
 	}
 
 	tflog.Debug(ctx, "Finished mapping assignments to Terraform state", map[string]any{

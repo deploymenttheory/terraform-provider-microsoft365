@@ -4,11 +4,6 @@ import (
 	"context"
 	"regexp"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/client"
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
-	planmodifiers "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/plan_modifiers"
-	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/schema"
-	commonschemagraphbeta "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/schema/graph_beta/device_management"
 	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
@@ -24,9 +19,14 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
-
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
+
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/client"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
+	planmodifiers "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/plan_modifiers"
+	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/schema"
+	commonschemagraphbeta "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/schema/graph_beta/device_management"
 )
 
 const (
@@ -74,22 +74,38 @@ type WindowsAutopilotDevicePreparationPolicyResource struct {
 }
 
 // Metadata returns the resource type name.
-func (r *WindowsAutopilotDevicePreparationPolicyResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+func (r *WindowsAutopilotDevicePreparationPolicyResource) Metadata(
+	ctx context.Context,
+	req resource.MetadataRequest,
+	resp *resource.MetadataResponse,
+) {
 	resp.TypeName = ResourceName
 }
 
 // Configure sets the client for the resource.
-func (r *WindowsAutopilotDevicePreparationPolicyResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *WindowsAutopilotDevicePreparationPolicyResource) Configure(
+	ctx context.Context,
+	req resource.ConfigureRequest,
+	resp *resource.ConfigureResponse,
+) {
 	r.client = client.SetGraphBetaClientForResource(ctx, req, resp, ResourceName)
 }
 
 // ImportState imports the resource state.
-func (r *WindowsAutopilotDevicePreparationPolicyResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+func (r *WindowsAutopilotDevicePreparationPolicyResource) ImportState(
+	ctx context.Context,
+	req resource.ImportStateRequest,
+	resp *resource.ImportStateResponse,
+) {
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }
 
 // IdentitySchema defines the identity schema for this resource, used by list operations to uniquely identify instances
-func (r *WindowsAutopilotDevicePreparationPolicyResource) IdentitySchema(ctx context.Context, req resource.IdentitySchemaRequest, resp *resource.IdentitySchemaResponse) {
+func (r *WindowsAutopilotDevicePreparationPolicyResource) IdentitySchema(
+	ctx context.Context,
+	req resource.IdentitySchemaRequest,
+	resp *resource.IdentitySchemaResponse,
+) {
 	resp.IdentitySchema = identityschema.Schema{
 		Attributes: map[string]identityschema.Attribute{
 			"id": identityschema.StringAttribute{
@@ -100,7 +116,11 @@ func (r *WindowsAutopilotDevicePreparationPolicyResource) IdentitySchema(ctx con
 }
 
 // Function to create the full Windows Autopilot Device Preparation Policy schema
-func (r *WindowsAutopilotDevicePreparationPolicyResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+func (r *WindowsAutopilotDevicePreparationPolicyResource) Schema(
+	ctx context.Context,
+	req resource.SchemaRequest,
+	resp *resource.SchemaResponse,
+) {
 	resp.Schema = schema.Schema{
 		MarkdownDescription: "Manages Windows Autopilot Device Preparation Policy using the `/deviceManagement/configurationPolicies` endpoint. This resource is used to windows Autopilot Device Preparation is used to set up and configure new devices, getting them ready for productive use by delivering consistent configurations and enhancing the setup experience.",
 		Attributes: map[string]schema.Attribute{
@@ -194,7 +214,9 @@ func (r *WindowsAutopilotDevicePreparationPolicyResource) Schema(ctx context.Con
 						Optional:            true,
 						Computed:            true,
 						MarkdownDescription: "The deployment mode for the Windows Autopilot Device Preparation policy. Valid values are: 'enrollment_autopilot_dpp_deploymentmode_0' (Standard mode) or 'enrollment_autopilot_dpp_deploymentmode_1' (Enhanced mode).",
-						Default:             stringdefault.StaticString("enrollment_autopilot_dpp_deploymentmode_0"),
+						Default: stringdefault.StaticString(
+							"enrollment_autopilot_dpp_deploymentmode_0",
+						),
 						Validators: []validator.String{
 							stringvalidator.OneOf(
 								"enrollment_autopilot_dpp_deploymentmode_0", // Standard mode
@@ -209,7 +231,9 @@ func (r *WindowsAutopilotDevicePreparationPolicyResource) Schema(ctx context.Con
 						Optional:            true,
 						Computed:            true,
 						MarkdownDescription: "The deployment type for the Windows Autopilot Device Preparation policy. Valid values are: 'enrollment_autopilot_dpp_deploymenttype_0' (User-driven) or 'enrollment_autopilot_dpp_deploymenttype_1' (Self-deploying).",
-						Default:             stringdefault.StaticString("enrollment_autopilot_dpp_deploymenttype_0"),
+						Default: stringdefault.StaticString(
+							"enrollment_autopilot_dpp_deploymenttype_0",
+						),
 						Validators: []validator.String{
 							stringvalidator.OneOf(
 								"enrollment_autopilot_dpp_deploymenttype_0", // User-driven
@@ -224,7 +248,9 @@ func (r *WindowsAutopilotDevicePreparationPolicyResource) Schema(ctx context.Con
 						Optional:            true,
 						Computed:            true,
 						MarkdownDescription: "The join type for the Windows Autopilot Device Preparation policy. Valid values are: 'enrollment_autopilot_dpp_jointype_0' (Entra ID joined) or 'enrollment_autopilot_dpp_jointype_1' (Entra ID hybrid joined).",
-						Default:             stringdefault.StaticString("enrollment_autopilot_dpp_jointype_0"),
+						Default: stringdefault.StaticString(
+							"enrollment_autopilot_dpp_jointype_0",
+						),
 						Validators: []validator.String{
 							stringvalidator.OneOf(
 								"enrollment_autopilot_dpp_jointype_0", // Entra ID joined
@@ -239,7 +265,9 @@ func (r *WindowsAutopilotDevicePreparationPolicyResource) Schema(ctx context.Con
 						Optional:            true,
 						Computed:            true,
 						MarkdownDescription: "The account type for users in the Windows Autopilot Device Preparation policy. Valid values are: 'enrollment_autopilot_dpp_accountype_0' (Administrator) or 'enrollment_autopilot_dpp_accountype_1' (Standard User).",
-						Default:             stringdefault.StaticString("enrollment_autopilot_dpp_accountype_0"),
+						Default: stringdefault.StaticString(
+							"enrollment_autopilot_dpp_accountype_0",
+						),
 						Validators: []validator.String{
 							stringvalidator.OneOf(
 								"enrollment_autopilot_dpp_accountype_0", // Administrator
@@ -266,7 +294,9 @@ func (r *WindowsAutopilotDevicePreparationPolicyResource) Schema(ctx context.Con
 						Optional:            true,
 						Computed:            true,
 						MarkdownDescription: "The custom error message to display if the deployment fails. Maximum length is 1000 characters.",
-						Default:             stringdefault.StaticString("Contact your organization's support person for help."),
+						Default: stringdefault.StaticString(
+							"Contact your organization's support person for help.",
+						),
 						Validators: []validator.String{
 							stringvalidator.LengthBetween(1, 1000),
 						},
