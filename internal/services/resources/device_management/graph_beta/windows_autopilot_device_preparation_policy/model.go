@@ -34,8 +34,8 @@ type WindowsAutopilotDevicePreparationPolicyResourceModel struct {
 	AllowedApps         []AllowedAppModel        `tfsdk:"allowed_apps"`
 	AllowedScripts      []types.String           `tfsdk:"allowed_scripts"`
 	// Assignment and timeouts
-	Assignments *WindowsAutopilotDevicePreparationAssignment `tfsdk:"assignments"`
-	Timeouts    timeouts.Value                               `tfsdk:"timeouts"`
+	Assignments types.Set      `tfsdk:"assignments"`
+	Timeouts    timeouts.Value `tfsdk:"timeouts"`
 }
 
 // DeploymentSettingsModel represents the deployment settings for a Windows Autopilot Device Preparation policy
@@ -52,11 +52,6 @@ type OOBESettingsModel struct {
 	CustomErrorMessage types.String `tfsdk:"custom_error_message"`
 	AllowSkip          types.Bool   `tfsdk:"allow_skip"`
 	AllowDiagnostics   types.Bool   `tfsdk:"allow_diagnostics"`
-}
-
-// WindowsAutopilotDevicePreparationAssignment represents the assignment settings for a Windows Autopilot Device Preparation policy
-type WindowsAutopilotDevicePreparationAssignment struct {
-	IncludeGroupIds []types.String `tfsdk:"include_group_ids"`
 }
 
 // AllowedAppModel represents an application that is allowed to be installed during Windows Autopilot Device Preparation

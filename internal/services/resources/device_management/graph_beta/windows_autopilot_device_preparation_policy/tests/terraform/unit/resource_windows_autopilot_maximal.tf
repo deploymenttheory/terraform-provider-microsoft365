@@ -38,11 +38,18 @@ resource "microsoft365_graph_beta_device_management_windows_autopilot_device_pre
     "00000000-0000-0000-0000-000000000007"
   ]
 
-  assignments = {
-    include_group_ids = [
-      "00000000-0000-0000-0000-000000000001",
-      "00000000-0000-0000-0000-000000000002",
-      "00000000-0000-0000-0000-000000000003"
-    ]
-  }
+  assignments = [
+    {
+      type     = "groupAssignmentTarget"
+      group_id = "00000000-0000-0000-0000-000000000001"
+    },
+    {
+      type     = "groupAssignmentTarget"
+      group_id = "00000000-0000-0000-0000-000000000002"
+    },
+    {
+      type     = "groupAssignmentTarget"
+      group_id = "00000000-0000-0000-0000-000000000003"
+    },
+  ]
 }

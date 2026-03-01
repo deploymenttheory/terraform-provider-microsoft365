@@ -5,15 +5,20 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/microsoftgraph/msgraph-beta-sdk-go/models"
+
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
 )
 
 // mapResourceToState maps the resource data to the state model
-func mapResourceToState(ctx context.Context, stateModel *WindowsAutopilotDevicePreparationPolicyResourceModel, resource models.DeviceManagementConfigurationPolicyable) {
+func mapResourceToState(
+	ctx context.Context,
+	stateModel *WindowsAutopilotDevicePreparationPolicyResourceModel,
+	resource models.DeviceManagementConfigurationPolicyable,
+) {
 	if resource == nil {
 		tflog.Debug(ctx, "Remote resource is nil")
 		return
@@ -28,9 +33,14 @@ func mapResourceToState(ctx context.Context, stateModel *WindowsAutopilotDeviceP
 	stateModel.Description = convert.GraphToFrameworkString(resource.GetDescription())
 	stateModel.IsAssigned = convert.GraphToFrameworkBool(resource.GetIsAssigned())
 	stateModel.CreatedDateTime = convert.GraphToFrameworkTime(resource.GetCreatedDateTime())
-	stateModel.LastModifiedDateTime = convert.GraphToFrameworkTime(resource.GetLastModifiedDateTime())
+	stateModel.LastModifiedDateTime = convert.GraphToFrameworkTime(
+		resource.GetLastModifiedDateTime(),
+	)
 	stateModel.SettingsCount = convert.GraphToFrameworkInt32(resource.GetSettingCount())
-	stateModel.RoleScopeTagIds = convert.GraphToFrameworkStringSet(ctx, resource.GetRoleScopeTagIds())
+	stateModel.RoleScopeTagIds = convert.GraphToFrameworkStringSet(
+		ctx,
+		resource.GetRoleScopeTagIds(),
+	)
 
 	// Map platform and technologies
 	if platforms := resource.GetPlatforms(); platforms != nil {
@@ -59,11 +69,18 @@ func mapResourceToState(ctx context.Context, stateModel *WindowsAutopilotDeviceP
 		stateModel.OOBESettings = &OOBESettingsModel{}
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Finished mapping resource state with id %s", stateModel.ID.ValueString()))
+	tflog.Debug(
+		ctx,
+		fmt.Sprintf("Finished mapping resource state with id %s", stateModel.ID.ValueString()),
+	)
 }
 
 // mapSettingsToState extracts settings from the response and maps them to the state model
-func mapSettingsToState(ctx context.Context, stateModel *WindowsAutopilotDevicePreparationPolicyResourceModel, settingsResponse models.DeviceManagementConfigurationSettingCollectionResponseable) error {
+func mapSettingsToState(
+	ctx context.Context,
+	stateModel *WindowsAutopilotDevicePreparationPolicyResourceModel,
+	settingsResponse models.DeviceManagementConfigurationSettingCollectionResponseable,
+) error {
 	if settingsResponse == nil {
 		tflog.Debug(ctx, "Settings response is nil")
 		return nil
@@ -107,7 +124,10 @@ func mapSettingsToState(ctx context.Context, stateModel *WindowsAutopilotDeviceP
 			odataType = *settingInstance.GetOdataType()
 		}
 
-		tflog.Debug(ctx, fmt.Sprintf("Processing setting: %s, type: %s", *settingDefinitionId, odataType))
+		tflog.Debug(
+			ctx,
+			fmt.Sprintf("Processing setting: %s, type: %s", *settingDefinitionId, odataType),
+		)
 
 		// Process the setting based on its definition ID
 		switch *settingDefinitionId {
@@ -149,7 +169,11 @@ func mapSettingsToState(ctx context.Context, stateModel *WindowsAutopilotDeviceP
 }
 
 // extractStringValue extracts a string value using the additional data property
-func extractStringValue(ctx context.Context, settingInstance models.DeviceManagementConfigurationSettingInstanceable, target *types.String) {
+func extractStringValue(
+	ctx context.Context,
+	settingInstance models.DeviceManagementConfigurationSettingInstanceable,
+	target *types.String,
+) {
 	if settingInstance == nil {
 		tflog.Warn(ctx, "Setting instance is nil when extracting string value")
 		return
@@ -190,7 +214,11 @@ func extractStringValue(ctx context.Context, settingInstance models.DeviceManage
 }
 
 // extractIntValue extracts an integer value using the additional data property
-func extractIntValue(ctx context.Context, settingInstance models.DeviceManagementConfigurationSettingInstanceable, target *types.Int64) {
+func extractIntValue(
+	ctx context.Context,
+	settingInstance models.DeviceManagementConfigurationSettingInstanceable,
+	target *types.Int64,
+) {
 	if settingInstance == nil {
 		tflog.Warn(ctx, "Setting instance is nil when extracting int value")
 		return
@@ -231,7 +259,11 @@ func extractIntValue(ctx context.Context, settingInstance models.DeviceManagemen
 }
 
 // extractBoolValue extracts a boolean value using the additional data property
-func extractBoolValue(ctx context.Context, settingInstance models.DeviceManagementConfigurationSettingInstanceable, target *types.Bool) {
+func extractBoolValue(
+	ctx context.Context,
+	settingInstance models.DeviceManagementConfigurationSettingInstanceable,
+	target *types.Bool,
+) {
 	if settingInstance == nil {
 		tflog.Warn(ctx, "Setting instance is nil when extracting bool value")
 		return
@@ -261,7 +293,11 @@ func extractBoolValue(ctx context.Context, settingInstance models.DeviceManageme
 }
 
 // extractChoiceValue extracts a choice value using the additional data property
-func extractChoiceValue(ctx context.Context, settingInstance models.DeviceManagementConfigurationSettingInstanceable, target *types.String) {
+func extractChoiceValue(
+	ctx context.Context,
+	settingInstance models.DeviceManagementConfigurationSettingInstanceable,
+	target *types.String,
+) {
 	if settingInstance == nil {
 		tflog.Warn(ctx, "Setting instance is nil when extracting choice value")
 		return
@@ -299,7 +335,11 @@ func extractChoiceValue(ctx context.Context, settingInstance models.DeviceManage
 }
 
 // extractCollectionValue extracts collection values using the additional data property
-func extractCollectionValue(ctx context.Context, settingInstance models.DeviceManagementConfigurationSettingInstanceable, target any) {
+func extractCollectionValue(
+	ctx context.Context,
+	settingInstance models.DeviceManagementConfigurationSettingInstanceable,
+	target any,
+) {
 	if settingInstance == nil {
 		tflog.Warn(ctx, "Setting instance is nil when extracting collection value")
 		return
@@ -319,7 +359,11 @@ func extractCollectionValue(ctx context.Context, settingInstance models.DeviceMa
 }
 
 // extractAllowedAppsCollection extracts app collections with ID and type
-func extractAllowedAppsCollection(ctx context.Context, settingInstance models.DeviceManagementConfigurationSettingInstanceable, target *[]AllowedAppModel) {
+func extractAllowedAppsCollection(
+	ctx context.Context,
+	settingInstance models.DeviceManagementConfigurationSettingInstanceable,
+	target *[]AllowedAppModel,
+) {
 	if settingInstance == nil || target == nil {
 		tflog.Warn(ctx, "Setting instance or target is nil when extracting app collection")
 		return
@@ -422,7 +466,11 @@ func parseAppJson(ctx context.Context, jsonStr string) AllowedAppModel {
 }
 
 // extractSimpleStringCollection extracts simple string collections
-func extractSimpleStringCollection(ctx context.Context, settingInstance models.DeviceManagementConfigurationSettingInstanceable, target *[]types.String) {
+func extractSimpleStringCollection(
+	ctx context.Context,
+	settingInstance models.DeviceManagementConfigurationSettingInstanceable,
+	target *[]types.String,
+) {
 	if settingInstance == nil || target == nil {
 		tflog.Warn(ctx, "Setting instance or target is nil when extracting string collection")
 		return

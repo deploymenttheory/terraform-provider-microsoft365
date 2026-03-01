@@ -8,7 +8,7 @@ resource "microsoft365_graph_beta_device_management_windows_autopilot_device_pre
     deployment_mode = "enrollment_autopilot_dpp_deploymentmode_0" # Standard mode
     deployment_type = "enrollment_autopilot_dpp_deploymenttype_1" # Self-deploying
     join_type       = "enrollment_autopilot_dpp_jointype_0"       # Entra ID joined
-    account_type    = "enrollment_autopilot_dpp_accountype_0"     # Standard User
+    account_type    = "enrollment_autopilot_dpp_accountype_0"     # Administrator
   }
 
   oobe_settings = {
@@ -18,9 +18,10 @@ resource "microsoft365_graph_beta_device_management_windows_autopilot_device_pre
     allow_diagnostics    = true
   }
 
-  assignments = {
-    include_group_ids = [
-      data.azuread_group.test_group1.object_id
-    ]
-  }
+  assignments = [
+    {
+      type     = "groupAssignmentTarget"
+      group_id = data.azuread_group.test_group1.object_id
+    },
+  ]
 }

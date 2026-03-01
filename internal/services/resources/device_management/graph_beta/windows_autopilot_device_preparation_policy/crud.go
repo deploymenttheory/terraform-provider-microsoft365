@@ -5,18 +5,23 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
-	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
-	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/shared_models/graph_beta"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/microsoftgraph/msgraph-beta-sdk-go/models"
+
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
+	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
+	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/shared_models/graph_beta"
 )
 
 // Create handles the Create operation for Windows Autopilot Device Preparation Policy.
-func (r *WindowsAutopilotDevicePreparationPolicyResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+func (r *WindowsAutopilotDevicePreparationPolicyResource) Create(
+	ctx context.Context,
+	req resource.CreateRequest,
+	resp *resource.CreateResponse,
+) {
 	var object WindowsAutopilotDevicePreparationPolicyResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting creation of resource: %s", ResourceName))
@@ -26,7 +31,12 @@ func (r *WindowsAutopilotDevicePreparationPolicyResource) Create(ctx context.Con
 		return
 	}
 
-	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Create, CreateTimeout*time.Second, &resp.Diagnostics)
+	ctx, cancel := crud.HandleTimeout(
+		ctx,
+		object.Timeouts.Create,
+		CreateTimeout*time.Second,
+		&resp.Diagnostics,
+	)
 	if cancel == nil {
 		return
 	}
@@ -45,9 +55,14 @@ func (r *WindowsAutopilotDevicePreparationPolicyResource) Create(ctx context.Con
 		DeviceManagement().
 		ConfigurationPolicies().
 		Post(ctx, requestBody, nil)
-
 	if err != nil {
-		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationCreate, r.WritePermissions)
+		errors.HandleKiotaGraphError(
+			ctx,
+			err,
+			resp,
+			constants.TfOperationCreate,
+			r.WritePermissions,
+		)
 		return
 	}
 
@@ -69,7 +84,10 @@ func (r *WindowsAutopilotDevicePreparationPolicyResource) Create(ctx context.Con
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error constructing enrollment time device membership target",
-				fmt.Sprintf("Could not construct enrollment time device membership target: %s", err.Error()),
+				fmt.Sprintf(
+					"Could not construct enrollment time device membership target: %s",
+					err.Error(),
+				),
 			)
 			return
 		}
@@ -80,42 +98,50 @@ func (r *WindowsAutopilotDevicePreparationPolicyResource) Create(ctx context.Con
 			ByDeviceManagementConfigurationPolicyId(object.ID.ValueString()).
 			SetEnrollmentTimeDeviceMembershipTarget().
 			Post(ctx, requestBody, nil)
-
 		if err != nil {
-			errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationCreate, r.WritePermissions)
-			return
-		}
-
-		tflog.Info(ctx, fmt.Sprintf("Successfully assigned device security group %s as enrollment time device membership target", deviceSecurityGroupID))
-	}
-
-	if object.Assignments != nil {
-		requestAssignment, err := constructAssignment(ctx, object.Assignments)
-		if err != nil {
-			resp.Diagnostics.AddError(
-				"Error constructing assignment for Create Method",
-				fmt.Sprintf("Could not construct assignment: %s: %s", ResourceName, err.Error()),
+			errors.HandleKiotaGraphError(
+				ctx,
+				err,
+				resp,
+				constants.TfOperationCreate,
+				r.WritePermissions,
 			)
 			return
 		}
 
-		ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Create, CreateTimeout*time.Second, &resp.Diagnostics)
-		if cancel == nil {
-			return
-		}
-		defer cancel()
+		tflog.Info(
+			ctx,
+			fmt.Sprintf(
+				"Successfully assigned device security group %s as enrollment time device membership target",
+				deviceSecurityGroupID,
+			),
+		)
+	}
 
-		_, err = r.client.
-			DeviceManagement().
-			ConfigurationPolicies().
-			ByDeviceManagementConfigurationPolicyId(object.ID.ValueString()).
-			Assign().
-			Post(ctx, requestAssignment, nil)
+	requestAssignment, err := constructAssignment(ctx, &object)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error constructing assignment for Create Method",
+			fmt.Sprintf("Could not construct assignment: %s: %s", ResourceName, err.Error()),
+		)
+		return
+	}
 
-		if err != nil {
-			errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationCreate, r.WritePermissions)
-			return
-		}
+	_, err = r.client.
+		DeviceManagement().
+		ConfigurationPolicies().
+		ByDeviceManagementConfigurationPolicyId(object.ID.ValueString()).
+		Assign().
+		Post(ctx, requestAssignment, nil)
+	if err != nil {
+		errors.HandleKiotaGraphError(
+			ctx,
+			err,
+			resp,
+			constants.TfOperationCreate,
+			r.WritePermissions,
+		)
+		return
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
@@ -143,7 +169,11 @@ func (r *WindowsAutopilotDevicePreparationPolicyResource) Create(ctx context.Con
 }
 
 // Read handles the Read operation for Windows Autopilot Device Preparation Policy.
-func (r *WindowsAutopilotDevicePreparationPolicyResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+func (r *WindowsAutopilotDevicePreparationPolicyResource) Read(
+	ctx context.Context,
+	req resource.ReadRequest,
+	resp *resource.ReadResponse,
+) {
 	var object WindowsAutopilotDevicePreparationPolicyResourceModel
 	var baseResource models.DeviceManagementConfigurationPolicyable
 	var settingsResponse models.DeviceManagementConfigurationSettingCollectionResponseable
@@ -165,7 +195,12 @@ func (r *WindowsAutopilotDevicePreparationPolicyResource) Read(ctx context.Conte
 
 	tflog.Debug(ctx, fmt.Sprintf("Reading %s with ID: %s", ResourceName, object.ID.ValueString()))
 
-	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Read, ReadTimeout*time.Second, &resp.Diagnostics)
+	ctx, cancel := crud.HandleTimeout(
+		ctx,
+		object.Timeouts.Read,
+		ReadTimeout*time.Second,
+		&resp.Diagnostics,
+	)
 	if cancel == nil {
 		return
 	}
@@ -176,7 +211,6 @@ func (r *WindowsAutopilotDevicePreparationPolicyResource) Read(ctx context.Conte
 		ConfigurationPolicies().
 		ByDeviceManagementConfigurationPolicyId(object.ID.ValueString()).
 		Get(ctx, nil)
-
 	if err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, operation, r.ReadPermissions)
 		return
@@ -190,7 +224,6 @@ func (r *WindowsAutopilotDevicePreparationPolicyResource) Read(ctx context.Conte
 		ByDeviceManagementConfigurationPolicyId(object.ID.ValueString()).
 		Settings().
 		Get(ctx, nil)
-
 	if err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, operation, r.ReadPermissions)
 		return
@@ -211,7 +244,6 @@ func (r *WindowsAutopilotDevicePreparationPolicyResource) Read(ctx context.Conte
 		ByDeviceManagementConfigurationPolicyId(object.ID.ValueString()).
 		Assignments().
 		Get(ctx, nil)
-
 	if err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, operation, r.ReadPermissions)
 		return
@@ -237,7 +269,11 @@ func (r *WindowsAutopilotDevicePreparationPolicyResource) Read(ctx context.Conte
 }
 
 // Update handles the Update operation for Windows Autopilot Device Preparation Policy.
-func (r *WindowsAutopilotDevicePreparationPolicyResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+func (r *WindowsAutopilotDevicePreparationPolicyResource) Update(
+	ctx context.Context,
+	req resource.UpdateRequest,
+	resp *resource.UpdateResponse,
+) {
 	var plan WindowsAutopilotDevicePreparationPolicyResourceModel
 	var state WindowsAutopilotDevicePreparationPolicyResourceModel
 
@@ -249,7 +285,12 @@ func (r *WindowsAutopilotDevicePreparationPolicyResource) Update(ctx context.Con
 		return
 	}
 
-	ctx, cancel := crud.HandleTimeout(ctx, plan.Timeouts.Update, UpdateTimeout*time.Second, &resp.Diagnostics)
+	ctx, cancel := crud.HandleTimeout(
+		ctx,
+		plan.Timeouts.Update,
+		UpdateTimeout*time.Second,
+		&resp.Diagnostics,
+	)
 	if cancel == nil {
 		return
 	}
@@ -269,9 +310,14 @@ func (r *WindowsAutopilotDevicePreparationPolicyResource) Update(ctx context.Con
 		ConfigurationPolicies().
 		ByDeviceManagementConfigurationPolicyId(state.ID.ValueString()).
 		Patch(ctx, requestBody, nil)
-
 	if err != nil {
-		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationUpdate, r.WritePermissions)
+		errors.HandleKiotaGraphError(
+			ctx,
+			err,
+			resp,
+			constants.TfOperationUpdate,
+			r.WritePermissions,
+		)
 		return
 	}
 
@@ -289,7 +335,10 @@ func (r *WindowsAutopilotDevicePreparationPolicyResource) Update(ctx context.Con
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error constructing enrollment time device membership target",
-				fmt.Sprintf("Could not construct enrollment time device membership target: %s", err.Error()),
+				fmt.Sprintf(
+					"Could not construct enrollment time device membership target: %s",
+					err.Error(),
+				),
 			)
 			return
 		}
@@ -300,42 +349,50 @@ func (r *WindowsAutopilotDevicePreparationPolicyResource) Update(ctx context.Con
 			ByDeviceManagementConfigurationPolicyId(state.ID.ValueString()).
 			SetEnrollmentTimeDeviceMembershipTarget().
 			Post(ctx, requestBody, nil)
-
 		if err != nil {
-			errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationUpdate, r.WritePermissions)
-			return
-		}
-
-		tflog.Info(ctx, fmt.Sprintf("Successfully assigned device security group %s as enrollment time device membership target", deviceSecurityGroupID))
-	}
-
-	if plan.Assignments != nil {
-		requestAssignment, err := constructAssignment(ctx, plan.Assignments)
-		if err != nil {
-			resp.Diagnostics.AddError(
-				"Error constructing assignment for Update Method",
-				fmt.Sprintf("Could not construct assignment: %s: %s", ResourceName, err.Error()),
+			errors.HandleKiotaGraphError(
+				ctx,
+				err,
+				resp,
+				constants.TfOperationUpdate,
+				r.WritePermissions,
 			)
 			return
 		}
 
-		ctx, cancel := crud.HandleTimeout(ctx, plan.Timeouts.Update, UpdateTimeout*time.Second, &resp.Diagnostics)
-		if cancel == nil {
-			return
-		}
-		defer cancel()
+		tflog.Info(
+			ctx,
+			fmt.Sprintf(
+				"Successfully assigned device security group %s as enrollment time device membership target",
+				deviceSecurityGroupID,
+			),
+		)
+	}
 
-		_, err = r.client.
-			DeviceManagement().
-			ConfigurationPolicies().
-			ByDeviceManagementConfigurationPolicyId(state.ID.ValueString()).
-			Assign().
-			Post(ctx, requestAssignment, nil)
+	requestAssignment, err := constructAssignment(ctx, &plan)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error constructing assignment for Update Method",
+			fmt.Sprintf("Could not construct assignment: %s: %s", ResourceName, err.Error()),
+		)
+		return
+	}
 
-		if err != nil {
-			errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationUpdate, r.WritePermissions)
-			return
-		}
+	_, err = r.client.
+		DeviceManagement().
+		ConfigurationPolicies().
+		ByDeviceManagementConfigurationPolicyId(state.ID.ValueString()).
+		Assign().
+		Post(ctx, requestAssignment, nil)
+	if err != nil {
+		errors.HandleKiotaGraphError(
+			ctx,
+			err,
+			resp,
+			constants.TfOperationUpdate,
+			r.WritePermissions,
+		)
+		return
 	}
 
 	readReq := resource.ReadRequest{State: resp.State, ProviderMeta: req.ProviderMeta}
@@ -354,11 +411,18 @@ func (r *WindowsAutopilotDevicePreparationPolicyResource) Update(ctx context.Con
 		return
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Finished updating %s with ID: %s", ResourceName, state.ID.ValueString()))
+	tflog.Debug(
+		ctx,
+		fmt.Sprintf("Finished updating %s with ID: %s", ResourceName, state.ID.ValueString()),
+	)
 }
 
 // Delete handles the Delete operation for Windows Autopilot Device Preparation Policy.
-func (r *WindowsAutopilotDevicePreparationPolicyResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+func (r *WindowsAutopilotDevicePreparationPolicyResource) Delete(
+	ctx context.Context,
+	req resource.DeleteRequest,
+	resp *resource.DeleteResponse,
+) {
 	var object WindowsAutopilotDevicePreparationPolicyResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting deletion of resource: %s", ResourceName))
@@ -368,7 +432,12 @@ func (r *WindowsAutopilotDevicePreparationPolicyResource) Delete(ctx context.Con
 		return
 	}
 
-	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Delete, DeleteTimeout*time.Second, &resp.Diagnostics)
+	ctx, cancel := crud.HandleTimeout(
+		ctx,
+		object.Timeouts.Delete,
+		DeleteTimeout*time.Second,
+		&resp.Diagnostics,
+	)
 	if cancel == nil {
 		return
 	}
@@ -379,9 +448,14 @@ func (r *WindowsAutopilotDevicePreparationPolicyResource) Delete(ctx context.Con
 		ConfigurationPolicies().
 		ByDeviceManagementConfigurationPolicyId(object.ID.ValueString()).
 		Delete(ctx, nil)
-
 	if err != nil {
-		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationDelete, r.WritePermissions)
+		errors.HandleKiotaGraphError(
+			ctx,
+			err,
+			resp,
+			constants.TfOperationDelete,
+			r.WritePermissions,
+		)
 		return
 	}
 

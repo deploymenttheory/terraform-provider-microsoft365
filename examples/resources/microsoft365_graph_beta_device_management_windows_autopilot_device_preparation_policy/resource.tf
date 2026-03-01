@@ -8,7 +8,7 @@ resource "microsoft365_graph_beta_device_management_windows_autopilot_device_pre
     deployment_mode = "enrollment_autopilot_dpp_deploymentmode_0" # Standard mode
     deployment_type = "enrollment_autopilot_dpp_deploymenttype_0" # User-driven
     join_type       = "enrollment_autopilot_dpp_jointype_0"       # Azure AD joined
-    account_type    = "enrollment_autopilot_dpp_accountype_0"     # Standard user
+    account_type    = "enrollment_autopilot_dpp_accountype_0"     # Administrator
   }
 
   oobe_settings = {
@@ -42,10 +42,17 @@ resource "microsoft365_graph_beta_device_management_windows_autopilot_device_pre
     "12345678-1234-1234-1234-123456789012",
   ]
 
-  assignments = {
-    include_group_ids = [
-      "12345678-1234-1234-1234-123456789012", # Example group ID
-      "12345678-1234-1234-1234-123456789012",
-    ]
-  }
+  assignments = [
+    {
+      type     = "groupAssignmentTarget"
+      group_id = "12345678-1234-1234-1234-123456789012" # Example group ID
+    },
+    {
+      type     = "groupAssignmentTarget"
+      group_id = "23456789-2345-2345-2345-234567890123" # Example group ID
+    },
+    {
+      type = "allLicensedUsersAssignmentTarget"
+    },
+  ]
 } 
