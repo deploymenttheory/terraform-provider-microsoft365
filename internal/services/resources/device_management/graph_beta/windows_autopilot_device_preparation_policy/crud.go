@@ -12,6 +12,7 @@ import (
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
+	customrequest "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/custom_requests"
 	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/shared_models/graph_beta"
 )
@@ -305,12 +306,22 @@ func (r *WindowsAutopilotDevicePreparationPolicyResource) Update(
 		return
 	}
 
-	_, err = r.client.
-		DeviceManagement().
-		ConfigurationPolicies().
-		ByDeviceManagementConfigurationPolicyId(state.ID.ValueString()).
-		Patch(ctx, requestBody, nil)
-	if err != nil {
+	// Use PUT instead of PATCH because the Graph API does not allow PATCH on
+	// the 'settings' navigation property of deviceManagementConfigurationPolicy.
+	// The Intune admin center also uses PUT for this endpoint, as confirmed by
+	// inspecting its Graph API calls via browser DevTools.
+	putRequest := customrequest.PutRequestConfig{
+		APIVersion:  customrequest.GraphAPIBeta,
+		Endpoint:    r.ResourcePath,
+		ResourceID:  state.ID.ValueString(),
+		RequestBody: requestBody,
+	}
+
+	if err := customrequest.PutRequestByResourceId(
+		ctx,
+		r.client.GetAdapter(),
+		putRequest,
+	); err != nil {
 		errors.HandleKiotaGraphError(
 			ctx,
 			err,
