@@ -47,6 +47,7 @@ Supported authentication methods include:
 - OIDC (generic) authentication
 - GitHub OIDC authentication
 - Azure DevOps OIDC authentication
+- Azure CLI authentication
 - Azure Developer CLI authentication
 
 ## Using Environment Variables
