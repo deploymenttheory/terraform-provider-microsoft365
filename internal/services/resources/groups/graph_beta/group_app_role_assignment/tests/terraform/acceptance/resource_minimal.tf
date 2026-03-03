@@ -36,7 +36,7 @@ data "microsoft365_graph_beta_applications_service_principal" "msgraph" {
 # Wait for group to be fully created
 resource "time_sleep" "wait_for_group" {
   depends_on      = [microsoft365_graph_beta_groups_group.minimal]
-  create_duration = "15s"
+  create_duration = "30s"
 }
 
 # ==============================================================================
