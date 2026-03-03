@@ -50,15 +50,16 @@ This document provides JSON response examples for authentication methods used by
 The provider supports the following authentication methods. The sections below provide details and example JSON responses for each.
 
 1.  [`azure_developer_cli`](#1-azure_developer_cli)
-2.  [`client_secret`](#2-client_secret)
-3.  [`client_certificate`](#3-client_certificate)
-4.  [`device_code`](#4-device_code)
-5.  [`interactive_browser`](#5-interactive_browser)
-6.  [`workload_identity`](#6-workload_identity)
-7.  [`managed_identity`](#7-managed_identity)
-8.  [`oidc`](#8-oidc)
-9.  [`oidc_github`](#9-oidc_github)
-10. [`oidc_azure_devops`](#10-oidc_azure_devops)
+2.  [`azure_cli`](#2-azure_cli)
+3.  [`client_secret`](#3-client_secret)
+4.  [`client_certificate`](#4-client_certificate)
+5.  [`device_code`](#5-device_code)
+6.  [`interactive_browser`](#6-interactive_browser)
+7.  [`workload_identity`](#7-workload_identity)
+8.  [`managed_identity`](#8-managed_identity)
+9.  [`oidc`](#9-oidc)
+10. [`oidc_github`](#10-oidc_github)
+11. [`oidc_azure_devops`](#11-oidc_azure_devops)
 
 
 ---
@@ -113,7 +114,57 @@ If the user is not logged into `azd`, the tool will fail to provide a token.
 
 ---
 
-## 2. `client_secret` (Client Credentials Flow)
+## 2. `azure_cli`
+
+Authenticates as the identity logged into the Azure CLI (`az`). The user must first run `az login` to authenticate.
+
+**References:**
+- [AzureCLICredential Documentation](https://pkg.go.dev/github.com/Azure/azure-sdk-for-go/sdk/azidentity#AzureCLICredential)
+
+### Step 1: `az` Token Request
+
+The provider invokes the Azure CLI to obtain a token. This process is opaque to the provider.
+
+### Step 2: Successful Token Response
+
+If `az` has a valid, cached token, it will be returned. The JSON response from Microsoft Entra ID has the standard `AccessToken` structure.
+
+```json
+{
+  "token_type": "Bearer",
+  "expires_in": 3599,
+  "ext_expires_in": 3599,
+  "access_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsIng1dCI6Ik5HVEZ2ZEstZnl0aEV1Q..."
+}
+```
+
+### Error: Azure CLI Not Available
+
+If `az` is not installed or not in the system's PATH, the SDK will return an error.
+
+```json
+{
+  "error": "credential_unavailable",
+  "error_description": "Azure CLI is not installed or not in the PATH. Please install it from https://aka.ms/InstallAzureCLIDeb.",
+  "error_type": "CredentialUnavailableError"
+}
+```
+
+### Error: Not Logged In
+
+If the user is not logged into `az`, the tool will fail to provide a token.
+
+```json
+{
+  "error": "authentication_failed",
+  "error_description": "Please run 'az login' to setup account.",
+  "error_type": "AuthenticationFailedError"
+}
+```
+
+---
+
+## 3. `client_secret` (Client Credentials Flow)
 
 **References:**
 
@@ -159,7 +210,7 @@ grant_type=client_credentials
 
 ---
 
-## 3. `client_certificate`
+## 4. `client_certificate`
 
 **References:**
 
@@ -206,7 +257,7 @@ grant_type=client_credentials
 
 ---
 
-## 4. `device_code`
+## 5. `device_code`
 
 **References:**
 
@@ -268,7 +319,7 @@ While polling before the user has authenticated, the service returns this error.
 
 ---
 
-## 5. `interactive_browser`
+## 6. `interactive_browser`
 
 **References:**
 
@@ -293,7 +344,7 @@ If a browser cannot be opened or the user cancels the authentication, an error i
 ```
 ---
 
-## 6. `workload_identity`
+## 7. `workload_identity`
 
 **References:**
 
@@ -344,7 +395,7 @@ grant_type=client_credentials
 
 ---
 
-## 7. `managed_identity`
+## 8. `managed_identity`
 
 **References:**
 
@@ -382,7 +433,7 @@ The provider requests a token from the Instance Metadata Service (IMDS) endpoint
 
 ---
 
-## 8. `oidc` (Generic OIDC / Workload Identity Federation)
+## 9. `oidc` (Generic OIDC / Workload Identity Federation)
 
 This method uses an OIDC token from an external identity provider (IdP) to authenticate, following the [Workload Identity Federation](https://learn.microsoft.com/en-us/entra/workload-id/workload-identity-federation) flow. The external token is exchanged for a Microsoft Entra ID access token.
 
@@ -434,7 +485,7 @@ If the trust relationship is not configured correctly (e.g., mismatched issuer, 
 
 ---
 
-## 9. `oidc_github` (GitHub OIDC Provider)
+## 10. `oidc_github` (GitHub OIDC Provider)
 
 This method authenticates using an OIDC token provided by a GitHub Actions workflow. A [federated identity credential](https://learn.microsoft.com/en-us/entra/workload-id/workload-identity-federation-create-trust?pivots=identity-wif-apps-methods-azcli#github-actions-example) must be configured on the service principal in Microsoft Entra ID.
 
@@ -446,11 +497,11 @@ This method authenticates using an OIDC token provided by a GitHub Actions workf
 - **Audience**: `api://AzureADTokenExchange`
 - **Subject**: Varies based on the trigger (e.g., `repo:my-org/my-repo:ref:refs/heads/main`)
 
-The token exchange request and responses are the same as the [generic `oidc` flow](#8-oidc-generic-oidc--workload-identity-federation).
+The token exchange request and responses are the same as the [generic `oidc` flow](#9-oidc-generic-oidc--workload-identity-federation).
 
 ---
 
-## 10. `oidc_azure_devops` (Azure DevOps OIDC Provider)
+## 11. `oidc_azure_devops` (Azure DevOps OIDC Provider)
 
 This method authenticates using an OIDC token from an Azure DevOps pipeline via a [Workload Identity federation service connection](https://learn.microsoft.com/en-us/azure/devops/pipelines/release/configure-workload-identity?view=azure-devops).
 
@@ -463,4 +514,4 @@ This method authenticates using an OIDC token from an Azure DevOps pipeline via 
 - **Audience**: `api://AzureADTokenExchange`
 - **Subject**: `sc://{organization_name}/{project_name}/{service_connection_name}`
 
-The token exchange request and responses are the same as the [generic `oidc` flow](#8-oidc-generic-oidc--workload-identity-federation).
+The token exchange request and responses are the same as the [generic `oidc` flow](#9-oidc-generic-oidc--workload-identity-federation).

@@ -14,6 +14,7 @@ import (
 func TestAccM365Provider_AuthMethods(t *testing.T) {
 	validAuthMethods := []string{
 		"azure_developer_cli",
+		"azure_cli",
 		"client_secret",
 		"client_certificate",
 		"interactive_browser",

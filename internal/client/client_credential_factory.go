@@ -48,6 +48,8 @@ func credentialFactory(authMethod string) (CredentialStrategy, error) {
 	switch authMethod {
 	case "azure_developer_cli":
 		return &AzureDeveloperCLIStrategy{}, nil
+	case "azure_cli":
+		return &AzureCLIStrategy{}, nil
 	case "client_secret":
 		return &ClientSecretStrategy{}, nil
 	case "client_certificate":
@@ -88,6 +90,22 @@ func (s *AzureDeveloperCLIStrategy) GetCredential(ctx context.Context, config *P
 	}
 
 	return azidentity.NewAzureDeveloperCLICredential(options)
+}
+
+// AzureCLIStrategy implements the credential strategy for Azure CLI authentication
+type AzureCLIStrategy struct{}
+
+func (s *AzureCLIStrategy) GetCredential(ctx context.Context, config *ProviderData, clientOptions policy.ClientOptions) (azcore.TokenCredential, error) {
+	tflog.Info(ctx, "Creating Azure CLI credential", map[string]any{
+		"tenant_id": config.TenantID,
+	})
+
+	options := &azidentity.AzureCLICredentialOptions{
+		TenantID:                   config.TenantID,
+		AdditionallyAllowedTenants: config.EntraIDOptions.AdditionallyAllowedTenants,
+	}
+
+	return azidentity.NewAzureCLICredential(options)
 }
 
 // CredentialStrategy defines the interface for credential creation strategies

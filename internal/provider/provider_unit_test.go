@@ -22,6 +22,7 @@ func TestM365Provider_UnitTestMode(t *testing.T) {
 func TestM365Provider_ValidAuthMethods(t *testing.T) {
 	validAuthMethods := []string{
 		"azure_developer_cli",
+		"azure_cli",
 		"client_secret",
 		"client_certificate",
 		"interactive_browser",
