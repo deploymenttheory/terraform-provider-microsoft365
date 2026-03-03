@@ -10,6 +10,7 @@ import (
 	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/shared_models/graph_beta"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
@@ -60,10 +61,27 @@ func (r *GroupAppRoleAssignmentResource) Create(ctx context.Context, req resourc
 		return
 	}
 
-	MapRemoteStateToTerraform(ctx, &object, appRoleAssignment)
+	object.ID = types.StringValue(*appRoleAssignment.GetId())
+	object.TargetGroupID = types.StringValue(groupId)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	readReq := resource.ReadRequest{State: resp.State, ProviderMeta: req.ProviderMeta}
+	stateContainer := &crud.CreateResponseContainer{CreateResponse: resp}
+
+	opts := crud.DefaultReadWithRetryOptions()
+	opts.Operation = constants.TfOperationCreate
+	opts.ResourceTypeName = ResourceName
+
+	err = crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error reading resource state after create",
+			fmt.Sprintf("Could not read resource state: %s: %s", ResourceName, err.Error()),
+		)
 		return
 	}
 
@@ -200,7 +218,7 @@ func (r *GroupAppRoleAssignmentResource) Update(ctx context.Context, req resourc
 			return
 		}
 
-		MapRemoteStateToTerraform(ctx, &plan, appRoleAssignment)
+		plan.ID = types.StringValue(*appRoleAssignment.GetId())
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
