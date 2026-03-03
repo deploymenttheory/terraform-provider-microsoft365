@@ -4,12 +4,12 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/jarcoal/httpmock"
-
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/check"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
 	policyMocks "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_management/graph_beta/windows_autopilot_device_preparation_policy/mocks"
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/jarcoal/httpmock"
 )
 
 func setupMockEnvironment() (*mocks.Mocks, *policyMocks.WindowsAutopilotDevicePreparationPolicyMock) {
@@ -30,11 +30,16 @@ func setupErrorMockEnvironment() (*mocks.Mocks, *policyMocks.WindowsAutopilotDev
 	return mockClient, policyMock
 }
 
-func testCheckExists(resourceName string) resource.TestCheckFunc {
-	return resource.TestCheckResourceAttrSet(resourceName, "id")
+func loadUnitTestTerraform(filename string) string {
+	config, err := helpers.ParseHCLFile("tests/terraform/unit/" + filename)
+	if err != nil {
+		panic("failed to load unit test config " + filename + ": " + err.Error())
+	}
+	return config
 }
 
-func TestUnitResourceWindowsAutopilotDevicePreparationPolicy_01_Schema(t *testing.T) {
+// Test 01: Automatic mode minimal configuration
+func TestUnitResourceWindowsAutopilotDevicePreparationPolicy_01_AutomaticMinimal(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, policyMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -44,105 +49,22 @@ func TestUnitResourceWindowsAutopilotDevicePreparationPolicy_01_Schema(t *testin
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testConfigMinimal(),
+				Config: loadUnitTestTerraform("001_scenario_automatic_minimal.tf"),
 				Check: resource.ComposeTestCheckFunc(
-					// Basic attributes
-					resource.TestCheckResourceAttr(
-						"microsoft365_graph_beta_device_management_windows_autopilot_device_preparation_policy.minimal",
-						"name",
-						"unit-test-windows-autopilot-device-preparation-policy-minimal",
-					),
-					resource.TestCheckResourceAttr(
-						"microsoft365_graph_beta_device_management_windows_autopilot_device_preparation_policy.minimal",
-						"description",
-						"unit-test-windows-autopilot-device-preparation-policy-minimal",
-					),
-					resource.TestMatchResourceAttr(
-						"microsoft365_graph_beta_device_management_windows_autopilot_device_preparation_policy.minimal",
-						"id",
-						regexp.MustCompile(`^[0-9a-fA-F-]+$`),
-					),
-					resource.TestCheckResourceAttr(
-						"microsoft365_graph_beta_device_management_windows_autopilot_device_preparation_policy.minimal",
-						"role_scope_tag_ids.#",
-						"1",
-					),
-					resource.TestCheckTypeSetElemAttr(
-						"microsoft365_graph_beta_device_management_windows_autopilot_device_preparation_policy.minimal",
-						"role_scope_tag_ids.*",
-						"0",
-					),
-					// Device security group
-					resource.TestCheckResourceAttr(
-						"microsoft365_graph_beta_device_management_windows_autopilot_device_preparation_policy.minimal",
-						"device_security_group",
-						"00000000-0000-0000-0000-000000000001",
-					),
-					// Deployment settings
-					resource.TestCheckResourceAttr(
-						"microsoft365_graph_beta_device_management_windows_autopilot_device_preparation_policy.minimal",
-						"deployment_settings.deployment_mode",
-						"enrollment_autopilot_dpp_deploymentmode_0",
-					),
-					resource.TestCheckResourceAttr(
-						"microsoft365_graph_beta_device_management_windows_autopilot_device_preparation_policy.minimal",
-						"deployment_settings.deployment_type",
-						"enrollment_autopilot_dpp_deploymenttype_0",
-					),
-					resource.TestCheckResourceAttr(
-						"microsoft365_graph_beta_device_management_windows_autopilot_device_preparation_policy.minimal",
-						"deployment_settings.join_type",
-						"enrollment_autopilot_dpp_jointype_0",
-					),
-					resource.TestCheckResourceAttr(
-						"microsoft365_graph_beta_device_management_windows_autopilot_device_preparation_policy.minimal",
-						"deployment_settings.account_type",
-						"enrollment_autopilot_dpp_accountype_0",
-					),
-					// OOBE settings
-					resource.TestCheckResourceAttr(
-						"microsoft365_graph_beta_device_management_windows_autopilot_device_preparation_policy.minimal",
-						"oobe_settings.timeout_in_minutes",
-						"60",
-					),
-					resource.TestCheckResourceAttr(
-						"microsoft365_graph_beta_device_management_windows_autopilot_device_preparation_policy.minimal",
-						"oobe_settings.custom_error_message",
-						"Contact your organization's support person for help.",
-					),
-					resource.TestCheckResourceAttr(
-						"microsoft365_graph_beta_device_management_windows_autopilot_device_preparation_policy.minimal",
-						"oobe_settings.allow_skip",
-						"false",
-					),
-					resource.TestCheckResourceAttr(
-						"microsoft365_graph_beta_device_management_windows_autopilot_device_preparation_policy.minimal",
-						"oobe_settings.allow_diagnostics",
-						"false",
-					),
-					// Assignments
-					resource.TestCheckResourceAttr(
-						"microsoft365_graph_beta_device_management_windows_autopilot_device_preparation_policy.minimal",
-						"assignments.include_group_ids.#",
-						"2",
-					),
-					resource.TestCheckTypeSetElemAttr(
-						"microsoft365_graph_beta_device_management_windows_autopilot_device_preparation_policy.minimal",
-						"assignments.include_group_ids.*",
-						"00000000-0000-0000-0000-000000000001",
-					),
-					resource.TestCheckTypeSetElemAttr(
-						"microsoft365_graph_beta_device_management_windows_autopilot_device_preparation_policy.minimal",
-						"assignments.include_group_ids.*",
-						"00000000-0000-0000-0000-000000000002",
-					),
+					check.That(resourceType+".auto_minimal").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(resourceType+".auto_minimal").Key("name").HasValue("unit-test-autopilot-dpp-auto-minimal"),
+					check.That(resourceType+".auto_minimal").Key("deployment_settings.deployment_type").HasValue("enrollment_autopilot_dpp_deploymenttype_1"),
+					check.That(resourceType+".auto_minimal").Key("allowed_apps.#").HasValue("1"),
+					check.That(resourceType+".auto_minimal").Key("allowed_apps.0.app_id").HasValue("00000000-0000-0000-0000-000000000001"),
+					check.That(resourceType+".auto_minimal").Key("allowed_apps.0.app_type").HasValue("winGetApp"),
 				),
 			},
 		},
 	})
 }
 
-func TestUnitResourceWindowsAutopilotDevicePreparationPolicy_02_MaximalSettings(t *testing.T) {
+// Test 02: Automatic mode maximal configuration
+func TestUnitResourceWindowsAutopilotDevicePreparationPolicy_02_AutomaticMaximal(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, policyMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -152,160 +74,126 @@ func TestUnitResourceWindowsAutopilotDevicePreparationPolicy_02_MaximalSettings(
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testConfigMaximal(),
+				Config: loadUnitTestTerraform("002_scenario_automatic_maximal.tf"),
 				Check: resource.ComposeTestCheckFunc(
-					// Basic attributes
-					testCheckExists(
-						"microsoft365_graph_beta_device_management_windows_autopilot_device_preparation_policy.maximal",
-					),
-					resource.TestCheckResourceAttr(
-						"microsoft365_graph_beta_device_management_windows_autopilot_device_preparation_policy.maximal",
-						"name",
-						"unit-test-windows-autopilot-device-preparation-policy-maximal",
-					),
-					resource.TestCheckResourceAttr(
-						"microsoft365_graph_beta_device_management_windows_autopilot_device_preparation_policy.maximal",
-						"description",
-						"unit-test-windows-autopilot-device-preparation-policy-maximal",
-					),
-					resource.TestCheckResourceAttr(
-						"microsoft365_graph_beta_device_management_windows_autopilot_device_preparation_policy.maximal",
-						"role_scope_tag_ids.#",
-						"1",
-					),
-					resource.TestCheckTypeSetElemAttr(
-						"microsoft365_graph_beta_device_management_windows_autopilot_device_preparation_policy.maximal",
-						"role_scope_tag_ids.*",
-						"0",
-					),
-					// Device security group
-					resource.TestCheckResourceAttr(
-						"microsoft365_graph_beta_device_management_windows_autopilot_device_preparation_policy.maximal",
-						"device_security_group",
-						"00000000-0000-0000-0000-000000000001",
-					),
-					// Deployment settings
-					resource.TestCheckResourceAttr(
-						"microsoft365_graph_beta_device_management_windows_autopilot_device_preparation_policy.maximal",
-						"deployment_settings.deployment_mode",
-						"enrollment_autopilot_dpp_deploymentmode_1",
-					),
-					resource.TestCheckResourceAttr(
-						"microsoft365_graph_beta_device_management_windows_autopilot_device_preparation_policy.maximal",
-						"deployment_settings.deployment_type",
-						"enrollment_autopilot_dpp_deploymenttype_1",
-					),
-					resource.TestCheckResourceAttr(
-						"microsoft365_graph_beta_device_management_windows_autopilot_device_preparation_policy.maximal",
-						"deployment_settings.join_type",
-						"enrollment_autopilot_dpp_jointype_1",
-					),
-					resource.TestCheckResourceAttr(
-						"microsoft365_graph_beta_device_management_windows_autopilot_device_preparation_policy.maximal",
-						"deployment_settings.account_type",
-						"enrollment_autopilot_dpp_accountype_1",
-					),
-					// OOBE settings
-					resource.TestCheckResourceAttr(
-						"microsoft365_graph_beta_device_management_windows_autopilot_device_preparation_policy.maximal",
-						"oobe_settings.timeout_in_minutes",
-						"120",
-					),
-					resource.TestCheckResourceAttr(
-						"microsoft365_graph_beta_device_management_windows_autopilot_device_preparation_policy.maximal",
-						"oobe_settings.custom_error_message",
-						"Please contact your IT administrator for assistance with device setup.",
-					),
-					resource.TestCheckResourceAttr(
-						"microsoft365_graph_beta_device_management_windows_autopilot_device_preparation_policy.maximal",
-						"oobe_settings.allow_skip",
-						"true",
-					),
-					resource.TestCheckResourceAttr(
-						"microsoft365_graph_beta_device_management_windows_autopilot_device_preparation_policy.maximal",
-						"oobe_settings.allow_diagnostics",
-						"true",
-					),
-					// Allowed apps
-					resource.TestCheckResourceAttr(
-						"microsoft365_graph_beta_device_management_windows_autopilot_device_preparation_policy.maximal",
-						"allowed_apps.#",
-						"3",
-					),
-					resource.TestCheckResourceAttr(
-						"microsoft365_graph_beta_device_management_windows_autopilot_device_preparation_policy.maximal",
-						"allowed_apps.0.app_id",
-						"00000000-0000-0000-0000-000000000003",
-					),
-					resource.TestCheckResourceAttr(
-						"microsoft365_graph_beta_device_management_windows_autopilot_device_preparation_policy.maximal",
-						"allowed_apps.0.app_type",
-						"win32LobApp",
-					),
-					resource.TestCheckResourceAttr(
-						"microsoft365_graph_beta_device_management_windows_autopilot_device_preparation_policy.maximal",
-						"allowed_apps.1.app_id",
-						"00000000-0000-0000-0000-000000000004",
-					),
-					resource.TestCheckResourceAttr(
-						"microsoft365_graph_beta_device_management_windows_autopilot_device_preparation_policy.maximal",
-						"allowed_apps.1.app_type",
-						"winGetApp",
-					),
-					resource.TestCheckResourceAttr(
-						"microsoft365_graph_beta_device_management_windows_autopilot_device_preparation_policy.maximal",
-						"allowed_apps.2.app_id",
-						"00000000-0000-0000-0000-000000000005",
-					),
-					resource.TestCheckResourceAttr(
-						"microsoft365_graph_beta_device_management_windows_autopilot_device_preparation_policy.maximal",
-						"allowed_apps.2.app_type",
-						"officeSuiteApp",
-					),
-					// Allowed scripts
-					resource.TestCheckResourceAttr(
-						"microsoft365_graph_beta_device_management_windows_autopilot_device_preparation_policy.maximal",
-						"allowed_scripts.#",
-						"2",
-					),
-					resource.TestCheckTypeSetElemAttr(
-						"microsoft365_graph_beta_device_management_windows_autopilot_device_preparation_policy.maximal",
-						"allowed_scripts.*",
-						"00000000-0000-0000-0000-000000000006",
-					),
-					resource.TestCheckTypeSetElemAttr(
-						"microsoft365_graph_beta_device_management_windows_autopilot_device_preparation_policy.maximal",
-						"allowed_scripts.*",
-						"00000000-0000-0000-0000-000000000007",
-					),
-					// Assignments
-					resource.TestCheckResourceAttr(
-						"microsoft365_graph_beta_device_management_windows_autopilot_device_preparation_policy.maximal",
-						"assignments.include_group_ids.#",
-						"3",
-					),
-					resource.TestCheckTypeSetElemAttr(
-						"microsoft365_graph_beta_device_management_windows_autopilot_device_preparation_policy.maximal",
-						"assignments.include_group_ids.*",
-						"00000000-0000-0000-0000-000000000001",
-					),
-					resource.TestCheckTypeSetElemAttr(
-						"microsoft365_graph_beta_device_management_windows_autopilot_device_preparation_policy.maximal",
-						"assignments.include_group_ids.*",
-						"00000000-0000-0000-0000-000000000002",
-					),
-					resource.TestCheckTypeSetElemAttr(
-						"microsoft365_graph_beta_device_management_windows_autopilot_device_preparation_policy.maximal",
-						"assignments.include_group_ids.*",
-						"00000000-0000-0000-0000-000000000003",
-					),
+					check.That(resourceType+".auto_maximal").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(resourceType+".auto_maximal").Key("name").HasValue("unit-test-autopilot-dpp-auto-maximal"),
+					check.That(resourceType+".auto_maximal").Key("deployment_settings.deployment_type").HasValue("enrollment_autopilot_dpp_deploymenttype_1"),
+					check.That(resourceType+".auto_maximal").Key("allowed_apps.#").HasValue("3"),
+					check.That(resourceType+".auto_maximal").Key("allowed_scripts.#").HasValue("2"),
 				),
 			},
 		},
 	})
 }
 
-func TestUnitResourceWindowsAutopilotDevicePreparationPolicy_03_ErrorHandling(t *testing.T) {
+// Test 03: User-driven mode minimal configuration
+func TestUnitResourceWindowsAutopilotDevicePreparationPolicy_03_UserDrivenMinimal(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
+	_, policyMock := setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+	defer policyMock.CleanupMockState()
+
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: loadUnitTestTerraform("003_scenario_user_driven_minimal.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(resourceType+".ud_minimal").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(resourceType+".ud_minimal").Key("name").HasValue("unit-test-autopilot-dpp-ud-minimal"),
+					check.That(resourceType+".ud_minimal").Key("deployment_settings.deployment_type").HasValue("enrollment_autopilot_dpp_deploymenttype_0"),
+					check.That(resourceType+".ud_minimal").Key("device_security_group").HasValue("00000000-0000-0000-0000-000000000001"),
+					check.That(resourceType+".ud_minimal").Key("deployment_settings.deployment_mode").HasValue("enrollment_autopilot_dpp_deploymentmode_0"),
+					check.That(resourceType+".ud_minimal").Key("oobe_settings.timeout_in_minutes").HasValue("60"),
+					check.That(resourceType+".ud_minimal").Key("allowed_apps.#").HasValue("1"),
+				),
+			},
+		},
+	})
+}
+
+// Test 04: User-driven mode maximal configuration
+func TestUnitResourceWindowsAutopilotDevicePreparationPolicy_04_UserDrivenMaximal(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
+	_, policyMock := setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+	defer policyMock.CleanupMockState()
+
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: loadUnitTestTerraform("004_scenario_user_driven_maximal.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(resourceType+".ud_maximal").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(resourceType+".ud_maximal").Key("name").HasValue("unit-test-autopilot-dpp-ud-maximal"),
+					check.That(resourceType+".ud_maximal").Key("deployment_settings.deployment_type").HasValue("enrollment_autopilot_dpp_deploymenttype_0"),
+					check.That(resourceType+".ud_maximal").Key("deployment_settings.deployment_mode").HasValue("enrollment_autopilot_dpp_deploymentmode_1"),
+					check.That(resourceType+".ud_maximal").Key("oobe_settings.allow_skip").HasValue("true"),
+					check.That(resourceType+".ud_maximal").Key("allowed_apps.#").HasValue("3"),
+					check.That(resourceType+".ud_maximal").Key("allowed_scripts.#").HasValue("2"),
+				),
+			},
+		},
+	})
+}
+
+// Test 05: User-driven mode with minimal assignments
+func TestUnitResourceWindowsAutopilotDevicePreparationPolicy_05_UserDrivenMinimalWithMinimalAssignments(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
+	_, policyMock := setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+	defer policyMock.CleanupMockState()
+
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: loadUnitTestTerraform("005_scenario_user_driven_minimal_with_minimal_assignments.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(resourceType+".ud_min_assign").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(resourceType+".ud_min_assign").Key("name").HasValue("unit-test-autopilot-dpp-ud-min-assign"),
+					check.That(resourceType+".ud_min_assign").Key("deployment_settings.deployment_type").HasValue("enrollment_autopilot_dpp_deploymenttype_0"),
+					check.That(resourceType+".ud_min_assign").Key("assignments.#").HasValue("1"),
+					resource.TestCheckTypeSetElemNestedAttrs(resourceType+".ud_min_assign", "assignments.*", map[string]string{
+						"type":     "groupAssignmentTarget",
+						"group_id": "00000000-0000-0000-0000-000000000003",
+					}),
+				),
+			},
+		},
+	})
+}
+
+// Test 06: User-driven mode with maximal assignments
+func TestUnitResourceWindowsAutopilotDevicePreparationPolicy_06_UserDrivenMaximalWithMaximalAssignments(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
+	_, policyMock := setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+	defer policyMock.CleanupMockState()
+
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: loadUnitTestTerraform("006_scenario_user_driven_minimal_with_maximal_assignments.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(resourceType+".ud_max_assign").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(resourceType+".ud_max_assign").Key("name").HasValue("unit-test-autopilot-dpp-ud-max-assign"),
+					check.That(resourceType+".ud_max_assign").Key("deployment_settings.deployment_type").HasValue("enrollment_autopilot_dpp_deploymenttype_0"),
+					check.That(resourceType+".ud_max_assign").Key("assignments.#").HasValue("4"),
+					resource.TestCheckTypeSetElemNestedAttrs(resourceType+".ud_max_assign", "assignments.*", map[string]string{
+						"type": "allLicensedUsersAssignmentTarget",
+					}),
+				),
+			},
+		},
+	})
+}
+
+// Test 07: Error handling - API rejection
+func TestUnitResourceWindowsAutopilotDevicePreparationPolicy_07_ErrorHandling(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, policyMock := setupErrorMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -315,29 +203,9 @@ func TestUnitResourceWindowsAutopilotDevicePreparationPolicy_03_ErrorHandling(t 
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config:      testConfigMinimal(),
+				Config:      loadUnitTestTerraform("003_scenario_user_driven_minimal.tf"),
 				ExpectError: regexp.MustCompile("Invalid Group ID in include_group_ids"),
 			},
 		},
 	})
-}
-
-func testConfigMinimal() string {
-	unitTestConfig, err := helpers.ParseHCLFile(
-		"tests/terraform/unit/resource_windows_autopilot_minimal.tf",
-	)
-	if err != nil {
-		panic("failed to load minimal config: " + err.Error())
-	}
-	return unitTestConfig
-}
-
-func testConfigMaximal() string {
-	unitTestConfig, err := helpers.ParseHCLFile(
-		"tests/terraform/unit/resource_windows_autopilot_maximal.tf",
-	)
-	if err != nil {
-		panic("failed to load maximal config: " + err.Error())
-	}
-	return unitTestConfig
 }

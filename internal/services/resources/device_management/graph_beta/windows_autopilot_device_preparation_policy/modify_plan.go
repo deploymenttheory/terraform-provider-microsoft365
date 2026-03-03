@@ -7,11 +7,7 @@ import (
 )
 
 // ModifyPlan allows modification of the plan before it's applied.
-func (r *WindowsAutopilotDevicePreparationPolicyResource) ModifyPlan(
-	ctx context.Context,
-	req resource.ModifyPlanRequest,
-	resp *resource.ModifyPlanResponse,
-) {
+func (r *WindowsAutopilotDevicePreparationPolicyResource) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
 	// Use default values for optional fields that are null
 	if req.Plan.Raw.IsNull() {
 		return

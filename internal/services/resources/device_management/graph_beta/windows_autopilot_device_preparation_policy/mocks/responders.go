@@ -2,6 +2,7 @@ package mocks
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strings"
 	"sync"
@@ -16,10 +17,14 @@ import (
 var mockState struct {
 	sync.Mutex
 	autopilotPolicies map[string]map[string]any
+	policySettings    map[string][]any // policy ID -> settings array stored from POST/PUT body
+	policyAssignments map[string][]any // policy ID -> assignments in GET response format
 }
 
 func init() {
 	mockState.autopilotPolicies = make(map[string]map[string]any)
+	mockState.policySettings = make(map[string][]any)
+	mockState.policyAssignments = make(map[string][]any)
 	httpmock.RegisterNoResponder(
 		httpmock.NewStringResponder(
 			404,
@@ -39,9 +44,24 @@ var _ mocks.MockRegistrar = (*WindowsAutopilotDevicePreparationPolicyMock)(nil)
 func (m *WindowsAutopilotDevicePreparationPolicyMock) RegisterMocks() {
 	mockState.Lock()
 	mockState.autopilotPolicies = make(map[string]map[string]any)
+	mockState.policySettings = make(map[string][]any)
+	mockState.policyAssignments = make(map[string][]any)
 	mockState.Unlock()
 
-	// 1. Group validation - called during validateRequest
+	// 1a. Group owners - called during validateSecurityGroupOwnership
+	// Returns the Intune Provisioning Client as an owner so validation passes.
+	httpmock.RegisterResponder(
+		"GET",
+		`=~^https://graph\.microsoft\.com/beta/groups/[0-9a-fA-F-]+/owners$`,
+		func(req *http.Request) (*http.Response, error) {
+			jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_get/get_group_owners.json")
+			var responseObj map[string]any
+			_ = json.Unmarshal([]byte(jsonStr), &responseObj)
+			return httpmock.NewJsonResponse(200, responseObj)
+		},
+	)
+
+	// 1b. Group details - GET /groups/{id}
 	httpmock.RegisterResponder(
 		"GET",
 		`=~^https://graph\.microsoft\.com/beta/groups/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`,
@@ -91,12 +111,18 @@ func (m *WindowsAutopilotDevicePreparationPolicyMock) RegisterMocks() {
 				responseObj["roleScopeTagIds"] = []string{"0"}
 			}
 
-			// Store in mock state
 			mockState.Lock()
 			if mockState.autopilotPolicies == nil {
 				mockState.autopilotPolicies = make(map[string]map[string]any)
 			}
 			mockState.autopilotPolicies[id] = responseObj
+
+			// Store settings from request body so GET /settings returns the same values
+			if settings, ok := body["settings"]; ok {
+				if settingsSlice, ok := settings.([]any); ok {
+					mockState.policySettings[id] = settingsSlice
+				}
+			}
 			mockState.Unlock()
 
 			return httpmock.NewJsonResponse(201, responseObj)
@@ -113,10 +139,44 @@ func (m *WindowsAutopilotDevicePreparationPolicyMock) RegisterMocks() {
 	)
 
 	// 4. Assign policy - POST /deviceManagement/configurationPolicies/{id}/assign
+	// Stores assignments dynamically so GET /assignments returns the actual configured assignments.
 	httpmock.RegisterResponder(
 		"POST",
 		`=~^https://graph\.microsoft\.com/beta/deviceManagement/configurationPolicies/[0-9a-fA-F-]+/assign$`,
 		func(req *http.Request) (*http.Response, error) {
+			parts := strings.Split(req.URL.Path, "/")
+			policyId := parts[len(parts)-2]
+
+			var body map[string]any
+			if err := json.NewDecoder(req.Body).Decode(&body); err == nil {
+				if assignments, ok := body["assignments"]; ok {
+					if assignmentSlice, ok := assignments.([]any); ok {
+						responseAssignments := make([]any, 0, len(assignmentSlice))
+						for _, a := range assignmentSlice {
+							if aMap, ok := a.(map[string]any); ok {
+								responseAssignment := map[string]any{
+									"@odata.type": "#microsoft.graph.deviceManagementConfigurationPolicyAssignment",
+									"id":          uuid.New().String(),
+								}
+								if target, ok := aMap["target"]; ok {
+									if targetMap, ok := target.(map[string]any); ok {
+										// Ensure filter type defaults are present
+										if _, ok := targetMap["deviceAndAppManagementAssignmentFilterType"]; !ok {
+											targetMap["deviceAndAppManagementAssignmentFilterType"] = "none"
+										}
+										responseAssignment["target"] = targetMap
+									}
+								}
+								responseAssignments = append(responseAssignments, responseAssignment)
+							}
+						}
+						mockState.Lock()
+						mockState.policyAssignments[policyId] = responseAssignments
+						mockState.Unlock()
+					}
+				}
+			}
+
 			return httpmock.NewJsonResponse(200, map[string]any{
 				"@odata.context": "https://graph.microsoft.com/beta/$metadata#Collection(microsoft.graph.deviceManagementConfigurationPolicyAssignment)",
 				"value":          []any{},
@@ -162,10 +222,29 @@ func (m *WindowsAutopilotDevicePreparationPolicyMock) RegisterMocks() {
 	)
 
 	// 6. Read policy settings - GET /deviceManagement/configurationPolicies/{id}/settings
+	// Returns dynamically stored settings from the POST/PUT body so the read-back matches what was configured.
 	httpmock.RegisterResponder(
 		"GET",
 		`=~^https://graph\.microsoft\.com/beta/deviceManagement/configurationPolicies/[0-9a-fA-F-]+/settings$`,
 		func(req *http.Request) (*http.Response, error) {
+			parts := strings.Split(req.URL.Path, "/")
+			id := parts[len(parts)-2]
+
+			mockState.Lock()
+			settings, hasSettings := mockState.policySettings[id]
+			mockState.Unlock()
+
+			if hasSettings && len(settings) > 0 {
+				return httpmock.NewJsonResponse(200, map[string]any{
+					"@odata.context": fmt.Sprintf(
+						"https://graph.microsoft.com/beta/$metadata#deviceManagement/configurationPolicies('%s')/settings",
+						id,
+					),
+					"value": settings,
+				})
+			}
+
+			// Fallback to static file
 			jsonStr, _ := helpers.ParseJSONFile(
 				"../tests/responses/validate_get/get_windows_autopilot_device_preparation_policy_settings.json",
 			)
@@ -176,10 +255,26 @@ func (m *WindowsAutopilotDevicePreparationPolicyMock) RegisterMocks() {
 	)
 
 	// 7. Read policy assignments - GET /deviceManagement/configurationPolicies/{id}/assignments
+	// Returns dynamically stored assignments from the POST /assign body so the read-back matches what was configured.
 	httpmock.RegisterResponder(
 		"GET",
 		`=~^https://graph\.microsoft\.com/beta/deviceManagement/configurationPolicies/[0-9a-fA-F-]+/assignments$`,
 		func(req *http.Request) (*http.Response, error) {
+			parts := strings.Split(req.URL.Path, "/")
+			id := parts[len(parts)-2]
+
+			mockState.Lock()
+			assignments, hasAssignments := mockState.policyAssignments[id]
+			mockState.Unlock()
+
+			if hasAssignments {
+				return httpmock.NewJsonResponse(200, map[string]any{
+					"@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/configurationPolicies('...')/assignments",
+					"value":          assignments,
+				})
+			}
+
+			// Fallback to static file
 			jsonStr, _ := helpers.ParseJSONFile(
 				"../tests/responses/validate_get/get_windows_autopilot_device_preparation_policy_assignments.json",
 			)
@@ -189,9 +284,11 @@ func (m *WindowsAutopilotDevicePreparationPolicyMock) RegisterMocks() {
 		},
 	)
 
-	// 8. Update policy - PATCH /deviceManagement/configurationPolicies/{id}
+	// 8. Update policy - PUT /deviceManagement/configurationPolicies/{id}
+	// The resource uses PUT (not PATCH) because the Graph API does not support PATCH
+	// on the 'settings' navigation property of deviceManagementConfigurationPolicy.
 	httpmock.RegisterResponder(
-		"PATCH",
+		"PUT",
 		`=~^https://graph\.microsoft\.com/beta/deviceManagement/configurationPolicies/[0-9a-fA-F-]+$`,
 		func(req *http.Request) (*http.Response, error) {
 			parts := strings.Split(req.URL.Path, "/")
@@ -215,12 +312,19 @@ func (m *WindowsAutopilotDevicePreparationPolicyMock) RegisterMocks() {
 				), nil
 			}
 
-			// Update existing policy
+			// Replace existing policy (PUT semantics)
 			for k, v := range body {
 				existing[k] = v
 			}
 			existing["lastModifiedDateTime"] = "2024-01-02T00:00:00Z"
 			mockState.autopilotPolicies[id] = existing
+
+			// Update stored settings from PUT body
+			if settings, ok := body["settings"]; ok {
+				if settingsSlice, ok := settings.([]any); ok {
+					mockState.policySettings[id] = settingsSlice
+				}
+			}
 			mockState.Unlock()
 
 			return httpmock.NewJsonResponse(200, existing)
@@ -237,6 +341,8 @@ func (m *WindowsAutopilotDevicePreparationPolicyMock) RegisterMocks() {
 
 			mockState.Lock()
 			delete(mockState.autopilotPolicies, id)
+			delete(mockState.policySettings, id)
+			delete(mockState.policyAssignments, id)
 			mockState.Unlock()
 
 			return httpmock.NewStringResponse(204, ""), nil
@@ -275,6 +381,8 @@ func (m *WindowsAutopilotDevicePreparationPolicyMock) RegisterMocks() {
 func (m *WindowsAutopilotDevicePreparationPolicyMock) RegisterErrorMocks() {
 	mockState.Lock()
 	mockState.autopilotPolicies = make(map[string]map[string]any)
+	mockState.policySettings = make(map[string][]any)
+	mockState.policyAssignments = make(map[string][]any)
 	mockState.Unlock()
 
 	// Make groups validation fail during the validation step
@@ -335,5 +443,11 @@ func (m *WindowsAutopilotDevicePreparationPolicyMock) CleanupMockState() {
 	defer mockState.Unlock()
 	for id := range mockState.autopilotPolicies {
 		delete(mockState.autopilotPolicies, id)
+	}
+	for id := range mockState.policySettings {
+		delete(mockState.policySettings, id)
+	}
+	for id := range mockState.policyAssignments {
+		delete(mockState.policyAssignments, id)
 	}
 }

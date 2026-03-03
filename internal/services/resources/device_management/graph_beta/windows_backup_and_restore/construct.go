@@ -11,7 +11,7 @@ import (
 
 // constructResource constructs the Graph API request body for Windows Backup and Restore configuration
 func constructResource(ctx context.Context, data *WindowsBackupAndRestoreResourceModel) (graphmodels.DeviceEnrollmentConfigurationable, error) {
-	tflog.Debug(ctx, "Constructing Windows Backup and Restore configuration request body")
+	tflog.Debug(ctx, fmt.Sprintf("Constructing %s resource from model", ResourceName))
 
 	config := graphmodels.NewWindowsRestoreDeviceEnrollmentConfiguration()
 

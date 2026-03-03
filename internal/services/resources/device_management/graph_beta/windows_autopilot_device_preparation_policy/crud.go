@@ -43,7 +43,7 @@ func (r *WindowsAutopilotDevicePreparationPolicyResource) Create(
 	}
 	defer cancel()
 
-	requestBody, err := constructResource(ctx, &object)
+	requestBody, err := constructResource(ctx, r.client, &object)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error constructing resource for Create Method",
@@ -56,39 +56,77 @@ func (r *WindowsAutopilotDevicePreparationPolicyResource) Create(
 		DeviceManagement().
 		ConfigurationPolicies().
 		Post(ctx, requestBody, nil)
+
 	if err != nil {
-		errors.HandleKiotaGraphError(
-			ctx,
-			err,
-			resp,
-			constants.TfOperationCreate,
-			r.WritePermissions,
-		)
+		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationCreate, r.WritePermissions)
 		return
 	}
 
 	object.ID = types.StringValue(*baseResource.GetId())
 
-	// set specified device security group as the enrollment time device membership target (Just-In-Time configuration)
-	if !object.DeviceSecurityGroup.IsNull() && !object.DeviceSecurityGroup.IsUnknown() {
-		deviceSecurityGroupID := object.DeviceSecurityGroup.ValueString()
+	// Only set device security group and assignments for user-driven mode
+	isUserDriven := object.DeploymentSettings != nil && 
+		!object.DeploymentSettings.DeploymentType.IsNull() && 
+		object.DeploymentSettings.DeploymentType.ValueString() == DeploymentTypeUserDriven
+	
+	if isUserDriven {
+		// set specified device security group as the enrollment time device membership target (Just-In-Time configuration)
+		if !object.DeviceSecurityGroup.IsNull() && !object.DeviceSecurityGroup.IsUnknown() {
+			deviceSecurityGroupID := object.DeviceSecurityGroup.ValueString()
 
-		// Validate that the security group has the required ownership
-		diagnostics := validateSecurityGroupOwnership(ctx, r.client, deviceSecurityGroupID)
-		if diagnostics.HasError() {
-			resp.Diagnostics.Append(diagnostics...)
-			return
+			// Validate that the security group has the required ownership
+			diagnostics := validateSecurityGroupOwnership(ctx, r.client, deviceSecurityGroupID)
+			if diagnostics.HasError() {
+				resp.Diagnostics.Append(diagnostics...)
+				return
+			}
+
+			requestBody, err := constructJustInTimeAssignmentBody(ctx, deviceSecurityGroupID)
+			if err != nil {
+				resp.Diagnostics.AddError(
+					"Error constructing enrollment time device membership target",
+					fmt.Sprintf(
+						"Could not construct enrollment time device membership target: %s",
+						err.Error(),
+					),
+				)
+				return
+			}
+
+			tflog.Debug(ctx, fmt.Sprintf("Calling setEnrollmentTimeDeviceMembershipTarget for policy ID: %s with group ID: %s",
+				object.ID.ValueString(), deviceSecurityGroupID))
+
+			_, err = r.client.
+				DeviceManagement().
+				ConfigurationPolicies().
+				ByDeviceManagementConfigurationPolicyId(object.ID.ValueString()).
+				SetEnrollmentTimeDeviceMembershipTarget().
+				Post(ctx, requestBody, nil)
+			if err != nil {
+				errors.HandleKiotaGraphError(
+					ctx,
+					err,
+					resp,
+					constants.TfOperationCreate,
+					r.WritePermissions,
+				)
+				return
+			}
+
+			tflog.Info(
+				ctx,
+				fmt.Sprintf(
+					"Successfully assigned device security group %s as enrollment time device membership target",
+					deviceSecurityGroupID,
+				),
+			)
 		}
 
-		// Create the request body for setting enrollment time device membership target
-		requestBody, err := constructJustInTimeAssignmentBody(ctx, deviceSecurityGroupID)
+		requestAssignment, err := constructAssignment(ctx, &object)
 		if err != nil {
 			resp.Diagnostics.AddError(
-				"Error constructing enrollment time device membership target",
-				fmt.Sprintf(
-					"Could not construct enrollment time device membership target: %s",
-					err.Error(),
-				),
+				"Error constructing assignment for Create Method",
+				fmt.Sprintf("Could not construct assignment: %s: %s", ResourceName, err.Error()),
 			)
 			return
 		}
@@ -97,8 +135,8 @@ func (r *WindowsAutopilotDevicePreparationPolicyResource) Create(
 			DeviceManagement().
 			ConfigurationPolicies().
 			ByDeviceManagementConfigurationPolicyId(object.ID.ValueString()).
-			SetEnrollmentTimeDeviceMembershipTarget().
-			Post(ctx, requestBody, nil)
+			Assign().
+			Post(ctx, requestAssignment, nil)
 		if err != nil {
 			errors.HandleKiotaGraphError(
 				ctx,
@@ -109,40 +147,8 @@ func (r *WindowsAutopilotDevicePreparationPolicyResource) Create(
 			)
 			return
 		}
-
-		tflog.Info(
-			ctx,
-			fmt.Sprintf(
-				"Successfully assigned device security group %s as enrollment time device membership target",
-				deviceSecurityGroupID,
-			),
-		)
-	}
-
-	requestAssignment, err := constructAssignment(ctx, &object)
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error constructing assignment for Create Method",
-			fmt.Sprintf("Could not construct assignment: %s: %s", ResourceName, err.Error()),
-		)
-		return
-	}
-
-	_, err = r.client.
-		DeviceManagement().
-		ConfigurationPolicies().
-		ByDeviceManagementConfigurationPolicyId(object.ID.ValueString()).
-		Assign().
-		Post(ctx, requestAssignment, nil)
-	if err != nil {
-		errors.HandleKiotaGraphError(
-			ctx,
-			err,
-			resp,
-			constants.TfOperationCreate,
-			r.WritePermissions,
-		)
-		return
+	} else {
+		tflog.Debug(ctx, "Skipping device security group and assignments for self-deploying/automatic mode policy")
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
@@ -297,7 +303,7 @@ func (r *WindowsAutopilotDevicePreparationPolicyResource) Update(
 	}
 	defer cancel()
 
-	requestBody, err := constructResource(ctx, &plan)
+	requestBody, err := constructResource(ctx, r.client, &plan)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error constructing resource for Update Method",
@@ -332,24 +338,65 @@ func (r *WindowsAutopilotDevicePreparationPolicyResource) Update(
 		return
 	}
 
-	// If device security group is specified, set it as the enrollment time device membership target (Just-In-Time configuration)
-	if !plan.DeviceSecurityGroup.IsNull() && !plan.DeviceSecurityGroup.IsUnknown() {
-		deviceSecurityGroupID := plan.DeviceSecurityGroup.ValueString()
+	// Only set device security group and assignments for user-driven mode
+	isUserDriven := plan.DeploymentSettings != nil && 
+		!plan.DeploymentSettings.DeploymentType.IsNull() && 
+		plan.DeploymentSettings.DeploymentType.ValueString() == DeploymentTypeUserDriven
+	
+	if isUserDriven {
+		// If device security group is specified, set it as the enrollment time device membership target (Just-In-Time configuration)
+		if !plan.DeviceSecurityGroup.IsNull() && !plan.DeviceSecurityGroup.IsUnknown() {
+			deviceSecurityGroupID := plan.DeviceSecurityGroup.ValueString()
 
-		diagnostics := validateSecurityGroupOwnership(ctx, r.client, deviceSecurityGroupID)
-		if diagnostics.HasError() {
-			resp.Diagnostics.Append(diagnostics...)
-			return
+			diagnostics := validateSecurityGroupOwnership(ctx, r.client, deviceSecurityGroupID)
+			if diagnostics.HasError() {
+				resp.Diagnostics.Append(diagnostics...)
+				return
+			}
+
+			requestBody, err := constructJustInTimeAssignmentBody(ctx, deviceSecurityGroupID)
+			if err != nil {
+				resp.Diagnostics.AddError(
+					"Error constructing enrollment time device membership target",
+					fmt.Sprintf(
+						"Could not construct enrollment time device membership target: %s",
+						err.Error(),
+					),
+				)
+				return
+			}
+
+			_, err = r.client.
+				DeviceManagement().
+				ConfigurationPolicies().
+				ByDeviceManagementConfigurationPolicyId(state.ID.ValueString()).
+				SetEnrollmentTimeDeviceMembershipTarget().
+				Post(ctx, requestBody, nil)
+			if err != nil {
+				errors.HandleKiotaGraphError(
+					ctx,
+					err,
+					resp,
+					constants.TfOperationUpdate,
+					r.WritePermissions,
+				)
+				return
+			}
+
+			tflog.Info(
+				ctx,
+				fmt.Sprintf(
+					"Successfully assigned device security group %s as enrollment time device membership target",
+					deviceSecurityGroupID,
+				),
+			)
 		}
 
-		requestBody, err := constructJustInTimeAssignmentBody(ctx, deviceSecurityGroupID)
+		requestAssignment, err := constructAssignment(ctx, &plan)
 		if err != nil {
 			resp.Diagnostics.AddError(
-				"Error constructing enrollment time device membership target",
-				fmt.Sprintf(
-					"Could not construct enrollment time device membership target: %s",
-					err.Error(),
-				),
+				"Error constructing assignment for Update Method",
+				fmt.Sprintf("Could not construct assignment: %s: %s", ResourceName, err.Error()),
 			)
 			return
 		}
@@ -358,8 +405,8 @@ func (r *WindowsAutopilotDevicePreparationPolicyResource) Update(
 			DeviceManagement().
 			ConfigurationPolicies().
 			ByDeviceManagementConfigurationPolicyId(state.ID.ValueString()).
-			SetEnrollmentTimeDeviceMembershipTarget().
-			Post(ctx, requestBody, nil)
+			Assign().
+			Post(ctx, requestAssignment, nil)
 		if err != nil {
 			errors.HandleKiotaGraphError(
 				ctx,
@@ -370,40 +417,8 @@ func (r *WindowsAutopilotDevicePreparationPolicyResource) Update(
 			)
 			return
 		}
-
-		tflog.Info(
-			ctx,
-			fmt.Sprintf(
-				"Successfully assigned device security group %s as enrollment time device membership target",
-				deviceSecurityGroupID,
-			),
-		)
-	}
-
-	requestAssignment, err := constructAssignment(ctx, &plan)
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error constructing assignment for Update Method",
-			fmt.Sprintf("Could not construct assignment: %s: %s", ResourceName, err.Error()),
-		)
-		return
-	}
-
-	_, err = r.client.
-		DeviceManagement().
-		ConfigurationPolicies().
-		ByDeviceManagementConfigurationPolicyId(state.ID.ValueString()).
-		Assign().
-		Post(ctx, requestAssignment, nil)
-	if err != nil {
-		errors.HandleKiotaGraphError(
-			ctx,
-			err,
-			resp,
-			constants.TfOperationUpdate,
-			r.WritePermissions,
-		)
-		return
+	} else {
+		tflog.Debug(ctx, "Skipping device security group and assignments for self-deploying/automatic mode policy")
 	}
 
 	readReq := resource.ReadRequest{State: resp.State, ProviderMeta: req.ProviderMeta}
