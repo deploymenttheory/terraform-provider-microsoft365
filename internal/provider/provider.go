@@ -77,6 +77,7 @@ func (p *M365Provider) Schema(ctx context.Context, req provider.SchemaRequest, r
 				MarkdownDescription: "The authentication method to use for the Entra ID application to authenticate the provider. " +
 					"Options:\n" +
 					"- `azure_developer_cli`: Uses the identity logged into the Azure Developer CLI (azd) for authentication. Ideal for local Terraform development when you're already authenticated with azd.\n" +
+					"- `azure_cli`: Uses the identity logged into the Azure CLI (az) for authentication. Ideal for using Service Account.\n" +
 					"- `device_code`: Uses a device code flow for authentication.\n" +
 					"- `client_secret`: Uses a client ID and secret for authentication.\n" +
 					"- `client_certificate`: Uses a client certificate (.pfx) for authentication.\n" +
@@ -91,6 +92,7 @@ func (p *M365Provider) Schema(ctx context.Context, req provider.SchemaRequest, r
 				Validators: []validator.String{
 					stringvalidator.OneOf(
 						"azure_developer_cli",
+						"azure_cli",
 						"client_secret",
 						"client_certificate",
 						"interactive_browser",
