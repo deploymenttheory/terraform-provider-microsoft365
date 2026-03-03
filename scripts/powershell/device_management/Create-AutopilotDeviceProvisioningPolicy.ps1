@@ -629,7 +629,39 @@ function Set-WADPJustInTimeConfiguration {
             }
         }
         
-        # Try alternate approach if this continues to fail
+        # Try legacy assignJustInTimeConfiguration endpoint (from CloudFlow blog)
+        Write-Host "⚠️ Trying legacy assignJustInTimeConfiguration endpoint..." -ForegroundColor Yellow
+        
+        try {
+            $legacyBodyJson = @"
+{
+    "justInTimeAssignments": {
+        "targetType": "entraSecurityGroup",
+        "target": [
+            "$DeviceSecurityGroupId"
+        ]
+    }
+}
+"@
+            
+            $legacyUrl = "https://graph.microsoft.com/beta/deviceManagement/configurationPolicies('$PolicyId')/assignJustInTimeConfiguration"
+            Write-Host "Legacy request URL: $legacyUrl" -ForegroundColor Cyan
+            Write-Host "Legacy request body: $legacyBodyJson" -ForegroundColor Cyan
+            
+            $legacyResponse = Invoke-RestMethod -Uri $legacyUrl -Method POST -Headers $authHeader -Body $legacyBodyJson -ErrorAction Stop
+            Write-Host "✅ Device membership target assigned using legacy assignJustInTimeConfiguration endpoint" -ForegroundColor Green
+            return $legacyResponse
+        }
+        catch {
+            Write-Host "❌ Legacy assignJustInTimeConfiguration endpoint also failed: $_" -ForegroundColor Red
+            
+            if ($_.Exception.Response) {
+                $legacyStatusCode = $_.Exception.Response.StatusCode.value__
+                Write-Host "Legacy endpoint status code: $legacyStatusCode" -ForegroundColor Red
+            }
+        }
+        
+        # Try alternate approach if legacy also fails
         Write-Host "⚠️ Trying fallback method for device group assignment..." -ForegroundColor Yellow
         $success = Set-WADPDeviceGroupAssignment -GraphToken $GraphToken -PolicyId $PolicyId -DeviceSecurityGroupId $DeviceSecurityGroupId
         
@@ -637,7 +669,7 @@ function Set-WADPJustInTimeConfiguration {
             Write-Host "✅ Device group assigned using alternate method" -ForegroundColor Green
             return $null
         } else {
-            Write-Host "⚠️ Both assignment methods failed. Policy created but device group assignment will need to be done manually." -ForegroundColor Yellow
+            Write-Host "⚠️ All assignment methods failed. Policy created but device group assignment will need to be done manually." -ForegroundColor Yellow
             return $null
         }
     }

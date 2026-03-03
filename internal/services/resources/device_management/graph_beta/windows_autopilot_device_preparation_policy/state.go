@@ -33,16 +33,10 @@ func mapResourceToState(
 	stateModel.Description = convert.GraphToFrameworkString(resource.GetDescription())
 	stateModel.IsAssigned = convert.GraphToFrameworkBool(resource.GetIsAssigned())
 	stateModel.CreatedDateTime = convert.GraphToFrameworkTime(resource.GetCreatedDateTime())
-	stateModel.LastModifiedDateTime = convert.GraphToFrameworkTime(
-		resource.GetLastModifiedDateTime(),
-	)
+	stateModel.LastModifiedDateTime = convert.GraphToFrameworkTime(resource.GetLastModifiedDateTime())
 	stateModel.SettingsCount = convert.GraphToFrameworkInt32(resource.GetSettingCount())
-	stateModel.RoleScopeTagIds = convert.GraphToFrameworkStringSet(
-		ctx,
-		resource.GetRoleScopeTagIds(),
-	)
+	stateModel.RoleScopeTagIds = convert.GraphToFrameworkStringSet(ctx, resource.GetRoleScopeTagIds())
 
-	// Map platform and technologies
 	if platforms := resource.GetPlatforms(); platforms != nil {
 		stateModel.Platforms = types.StringValue(platforms.String())
 	}
@@ -51,9 +45,12 @@ func mapResourceToState(
 		stateModel.Technologies = types.StringValue(technologies.String())
 	}
 
+	// Determine if this is user-driven mode based on template ID
+	isUserDriven := false
 	if templateRef := resource.GetTemplateReference(); templateRef != nil {
 		if templateId := templateRef.GetTemplateId(); templateId != nil {
 			stateModel.TemplateId = convert.GraphToFrameworkString(templateRef.GetTemplateId())
+			isUserDriven = *templateId == TemplateIDUserDriven
 		}
 
 		if templateFamily := templateRef.GetTemplateFamily(); templateFamily != nil {
@@ -61,18 +58,19 @@ func mapResourceToState(
 		}
 	}
 
-	// Initialize nested objects
+	// Initialize deployment_settings for all modes (needed for deployment_type)
 	if stateModel.DeploymentSettings == nil {
 		stateModel.DeploymentSettings = &DeploymentSettingsModel{}
 	}
-	if stateModel.OOBESettings == nil {
-		stateModel.OOBESettings = &OOBESettingsModel{}
+
+	// Initialize OOBE settings only for user-driven policies
+	if isUserDriven {
+		if stateModel.OOBESettings == nil {
+			stateModel.OOBESettings = &OOBESettingsModel{}
+		}
 	}
 
-	tflog.Debug(
-		ctx,
-		fmt.Sprintf("Finished mapping resource state with id %s", stateModel.ID.ValueString()),
-	)
+	tflog.Debug(ctx, fmt.Sprintf("Finished mapping resource state with id %s", stateModel.ID.ValueString()))
 }
 
 // mapSettingsToState extracts settings from the response and maps them to the state model
@@ -92,12 +90,22 @@ func mapSettingsToState(
 		return nil
 	}
 
-	// Initialize the nested objects if needed
+	// Determine if this is user-driven mode based on template ID from state
+	isUserDriven := false
+	if !stateModel.TemplateId.IsNull() && !stateModel.TemplateId.IsUnknown() {
+		isUserDriven = stateModel.TemplateId.ValueString() == TemplateIDUserDriven
+	}
+
+	// Initialize deployment_settings for all modes (needed for deployment_type)
 	if stateModel.DeploymentSettings == nil {
 		stateModel.DeploymentSettings = &DeploymentSettingsModel{}
 	}
-	if stateModel.OOBESettings == nil {
-		stateModel.OOBESettings = &OOBESettingsModel{}
+
+	// Initialize OOBE settings only for user-driven policies
+	if isUserDriven {
+		if stateModel.OOBESettings == nil {
+			stateModel.OOBESettings = &OOBESettingsModel{}
+		}
 	}
 
 	tflog.Debug(ctx, fmt.Sprintf("Processing %d settings", len(settings)))
@@ -131,31 +139,51 @@ func mapSettingsToState(
 
 		// Process the setting based on its definition ID
 		switch *settingDefinitionId {
-		// Device Security Group
+		// Device Security Group (user-driven only)
 		case "enrollment_autopilot_dpp_devicegroup":
-			extractStringValue(ctx, settingInstance, &stateModel.DeviceSecurityGroup)
+			if isUserDriven {
+				extractStringValue(ctx, settingInstance, &stateModel.DeviceSecurityGroup)
+			}
 
 		// Deployment Settings
-		case "enrollment_autopilot_dpp_deploymentmode":
-			extractChoiceValue(ctx, settingInstance, &stateModel.DeploymentSettings.DeploymentMode)
 		case "enrollment_autopilot_dpp_deploymenttype":
+			// deployment_type is always mapped for both modes
 			extractChoiceValue(ctx, settingInstance, &stateModel.DeploymentSettings.DeploymentType)
+		case "enrollment_autopilot_dpp_deploymentmode":
+			// deployment_mode only for user-driven
+			if isUserDriven {
+				extractChoiceValue(ctx, settingInstance, &stateModel.DeploymentSettings.DeploymentMode)
+			}
 		case "enrollment_autopilot_dpp_jointype":
-			extractChoiceValue(ctx, settingInstance, &stateModel.DeploymentSettings.JoinType)
+			// join_type only for user-driven
+			if isUserDriven {
+				extractChoiceValue(ctx, settingInstance, &stateModel.DeploymentSettings.JoinType)
+			}
 		case "enrollment_autopilot_dpp_accountype":
-			extractChoiceValue(ctx, settingInstance, &stateModel.DeploymentSettings.AccountType)
+			// account_type only for user-driven
+			if isUserDriven {
+				extractChoiceValue(ctx, settingInstance, &stateModel.DeploymentSettings.AccountType)
+			}
 
-		// OOBE Settings
+		// OOBE Settings (user-driven only)
 		case "enrollment_autopilot_dpp_timeout":
-			extractIntValue(ctx, settingInstance, &stateModel.OOBESettings.TimeoutInMinutes)
+			if isUserDriven {
+				extractIntValue(ctx, settingInstance, &stateModel.OOBESettings.TimeoutInMinutes)
+			}
 		case "enrollment_autopilot_dpp_custonerror":
-			extractStringValue(ctx, settingInstance, &stateModel.OOBESettings.CustomErrorMessage)
+			if isUserDriven {
+				extractStringValue(ctx, settingInstance, &stateModel.OOBESettings.CustomErrorMessage)
+			}
 		case "enrollment_autopilot_dpp_allowskip":
-			extractBoolValue(ctx, settingInstance, &stateModel.OOBESettings.AllowSkip)
+			if isUserDriven {
+				extractBoolValue(ctx, settingInstance, &stateModel.OOBESettings.AllowSkip)
+			}
 		case "enrollment_autopilot_dpp_allowdiagnostics":
-			extractBoolValue(ctx, settingInstance, &stateModel.OOBESettings.AllowDiagnostics)
+			if isUserDriven {
+				extractBoolValue(ctx, settingInstance, &stateModel.OOBESettings.AllowDiagnostics)
+			}
 
-		// Allowed Apps and Scripts
+		// Allowed Apps and Scripts (both policy types)
 		case "enrollment_autopilot_dpp_allowedappids", "enrollment_autopilot_dpp_allowedapps":
 			extractCollectionValue(ctx, settingInstance, &stateModel.AllowedApps)
 		case "enrollment_autopilot_dpp_allowedscriptids", "enrollment_autopilot_dpp_allowedscripts":
@@ -163,6 +191,11 @@ func mapSettingsToState(
 		default:
 			tflog.Debug(ctx, fmt.Sprintf("Unknown setting definition ID: %s", *settingDefinitionId))
 		}
+	}
+
+	// For automatic/self-deploying mode, ensure computed fields that don't exist are set to null
+	if !isUserDriven && stateModel.DeploymentSettings != nil {
+		stateModel.DeploymentSettings.JoinType = types.StringNull()
 	}
 
 	return nil

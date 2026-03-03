@@ -14,12 +14,8 @@ func constructJustInTimeAssignmentBody(
 	ctx context.Context,
 	deviceSecurityGroupID string,
 ) (*devicemanagement.ConfigurationPoliciesItemSetEnrollmentTimeDeviceMembershipTargetPostRequestBody, error) {
-	tflog.Debug(
-		ctx,
-		fmt.Sprintf(
-			"Constructing enrollment time device membership target with security group: %s",
-			deviceSecurityGroupID,
-		),
+	tflog.Debug(ctx,
+		fmt.Sprintf("Constructing enrollment time device membership target with security group: %s", deviceSecurityGroupID),
 	)
 
 	targetType := models.STATICSECURITYGROUP_ENROLLMENTTIMEDEVICEMEMBERSHIPTARGETTYPE
@@ -32,6 +28,14 @@ func constructJustInTimeAssignmentBody(
 		[]models.EnrollmentTimeDeviceMembershipTargetable{target},
 	)
 
-	tflog.Debug(ctx, "Finished constructing enrollment time device membership target body")
+	// Log what the SDK will serialize
+	tflog.Debug(ctx, fmt.Sprintf("Enrollment time device membership target body: targetType=%s, targetId=%s",
+		targetType.String(), deviceSecurityGroupID))
+	
+	// Verify the target has the odata type set
+	if target.GetBackingStore() != nil {
+		tflog.Debug(ctx, "Target backing store is initialized")
+	}
+
 	return body, nil
 }

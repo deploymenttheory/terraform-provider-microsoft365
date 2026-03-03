@@ -1,0 +1,12 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#directoryObjects",
+  "value": [
+    {
+      "@odata.type": "#microsoft.graph.servicePrincipal",
+      "id": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+      "appId": "f1346770-5b25-470b-88bd-d5744ab7952c",
+      "displayName": "Intune Provisioning Client",
+      "servicePrincipalType": "Application"
+    }
+  ]
+}

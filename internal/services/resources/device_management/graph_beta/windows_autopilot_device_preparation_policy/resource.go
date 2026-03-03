@@ -2,6 +2,7 @@ package graphBetaWindowsAutopilotDevicePreparationPolicy
 
 import (
 	"context"
+	"fmt"
 	"regexp"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
@@ -20,6 +21,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
 	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/client"
@@ -74,38 +76,73 @@ type WindowsAutopilotDevicePreparationPolicyResource struct {
 }
 
 // Metadata returns the resource type name.
-func (r *WindowsAutopilotDevicePreparationPolicyResource) Metadata(
-	ctx context.Context,
-	req resource.MetadataRequest,
-	resp *resource.MetadataResponse,
-) {
+func (r *WindowsAutopilotDevicePreparationPolicyResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = ResourceName
 }
 
 // Configure sets the client for the resource.
-func (r *WindowsAutopilotDevicePreparationPolicyResource) Configure(
-	ctx context.Context,
-	req resource.ConfigureRequest,
-	resp *resource.ConfigureResponse,
-) {
+func (r *WindowsAutopilotDevicePreparationPolicyResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	r.client = client.SetGraphBetaClientForResource(ctx, req, resp, ResourceName)
 }
 
-// ImportState imports the resource state.
-func (r *WindowsAutopilotDevicePreparationPolicyResource) ImportState(
-	ctx context.Context,
-	req resource.ImportStateRequest,
-	resp *resource.ImportStateResponse,
-) {
-	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+// ImportState imports the resource state and infers the deployment_type from the template ID.
+// Since deployment_type is required in the schema, we need to infer it from the template ID during import.
+func (r *WindowsAutopilotDevicePreparationPolicyResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+	resourceID := req.ID
+
+	tflog.Info(ctx, fmt.Sprintf("Importing %s with ID: %s", ResourceName, resourceID))
+
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("id"), resourceID)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	baseResource, err := r.client.
+		DeviceManagement().
+		ConfigurationPolicies().
+		ByDeviceManagementConfigurationPolicyId(resourceID).
+		Get(ctx, nil)
+
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error fetching resource during import",
+			fmt.Sprintf("Could not fetch resource with ID %s: %s", resourceID, err.Error()),
+		)
+		return
+	}
+
+	var deploymentType string
+	if templateRef := baseResource.GetTemplateReference(); templateRef != nil {
+		if templateID := templateRef.GetTemplateId(); templateID != nil {
+			switch *templateID {
+			case TemplateIDAutomatic:
+				deploymentType = DeploymentTypeSelfDeploying
+			case TemplateIDUserDriven:
+				deploymentType = DeploymentTypeUserDriven
+			default:
+				resp.Diagnostics.AddError(
+					"Unknown template ID",
+					fmt.Sprintf("Template ID %s does not match any known deployment type", *templateID),
+				)
+				return
+			}
+		}
+	}
+
+	if deploymentType == "" {
+		resp.Diagnostics.AddError(
+			"Could not determine deployment type",
+			"Template reference or template ID was not found in the resource",
+		)
+		return
+	}
+
+	tflog.Info(ctx, fmt.Sprintf("Setting deployment_type to: %s", deploymentType))
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("deployment_settings").AtName("deployment_type"), deploymentType)...)
 }
 
 // IdentitySchema defines the identity schema for this resource, used by list operations to uniquely identify instances
-func (r *WindowsAutopilotDevicePreparationPolicyResource) IdentitySchema(
-	ctx context.Context,
-	req resource.IdentitySchemaRequest,
-	resp *resource.IdentitySchemaResponse,
-) {
+func (r *WindowsAutopilotDevicePreparationPolicyResource) IdentitySchema(ctx context.Context, req resource.IdentitySchemaRequest, resp *resource.IdentitySchemaResponse) {
 	resp.IdentitySchema = identityschema.Schema{
 		Attributes: map[string]identityschema.Attribute{
 			"id": identityschema.StringAttribute{
@@ -116,11 +153,7 @@ func (r *WindowsAutopilotDevicePreparationPolicyResource) IdentitySchema(
 }
 
 // Function to create the full Windows Autopilot Device Preparation Policy schema
-func (r *WindowsAutopilotDevicePreparationPolicyResource) Schema(
-	ctx context.Context,
-	req resource.SchemaRequest,
-	resp *resource.SchemaResponse,
-) {
+func (r *WindowsAutopilotDevicePreparationPolicyResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		MarkdownDescription: "Manages Windows Autopilot Device Preparation Policy using the `/deviceManagement/configurationPolicies` endpoint. This resource is used to windows Autopilot Device Preparation is used to set up and configure new devices, getting them ready for productive use by delivering consistent configurations and enhancing the setup experience.",
 		Attributes: map[string]schema.Attribute{
@@ -194,11 +227,13 @@ func (r *WindowsAutopilotDevicePreparationPolicyResource) Schema(
 				MarkdownDescription: "The template family for this policy (e.g., enrollmentConfiguration)",
 			},
 			"device_security_group": schema.StringAttribute{
-				Required: true,
+				Optional: true,
 				MarkdownDescription: "The ID of the assigned security device group that devices will be automatically added to during " +
 					"the Windows Autopilot Device Preparation flow. This group must have the 'Intune Provisioning Client' service principal " +
 					"(AppId: f1346770-5b25-470b-88bd-d5744ab7952c) set as its owner. In some tenants, this service principal may appear as " +
-					"'Intune Autopilot ConfidentialClient'.",
+					"'Intune Autopilot ConfidentialClient'. If the Intune Provisioning Client or Intune Autopilot ConfidentialClient service " +
+					"principal with AppId of f1346770-5b25-470b-88bd-d5744ab7952c isn't available either in the list of objects or when " +
+					"searching, see [Adding the Intune Provisioning Client service principal](https://learn.microsoft.com/en-us/autopilot/device-preparation/tutorial/user-driven/entra-join-device-group#adding-the-intune-provisioning-client-service-principal).",
 				Validators: []validator.String{
 					stringvalidator.RegexMatches(
 						regexp.MustCompile(constants.GuidRegex),
@@ -207,16 +242,12 @@ func (r *WindowsAutopilotDevicePreparationPolicyResource) Schema(
 				},
 			},
 			"deployment_settings": schema.SingleNestedAttribute{
-				Required:            true,
-				MarkdownDescription: "Deployment settings for the Windows Autopilot Device Preparation policy",
+				Optional:            true,
+				MarkdownDescription: "Deployment settings for the Windows Autopilot Device Preparation policy. The deployment_type field is required and determines the policy template. User-driven mode (deployment_type_0) requires additional fields like deployment_mode and account_type. Self-deploying mode (deployment_type_1) only requires deployment_type.",
 				Attributes: map[string]schema.Attribute{
 					"deployment_mode": schema.StringAttribute{
 						Optional:            true,
-						Computed:            true,
-						MarkdownDescription: "The deployment mode for the Windows Autopilot Device Preparation policy. Valid values are: 'enrollment_autopilot_dpp_deploymentmode_0' (Standard mode) or 'enrollment_autopilot_dpp_deploymentmode_1' (Enhanced mode).",
-						Default: stringdefault.StaticString(
-							"enrollment_autopilot_dpp_deploymentmode_0",
-						),
+						MarkdownDescription: "The deployment mode for the Windows Autopilot Device Preparation policy. Required for user-driven mode (deployment_type_0). Valid values are: 'enrollment_autopilot_dpp_deploymentmode_0' (Standard mode) or 'enrollment_autopilot_dpp_deploymentmode_1' (Enhanced mode).",
 						Validators: []validator.String{
 							stringvalidator.OneOf(
 								"enrollment_autopilot_dpp_deploymentmode_0", // Standard mode
@@ -228,16 +259,12 @@ func (r *WindowsAutopilotDevicePreparationPolicyResource) Schema(
 						},
 					},
 					"deployment_type": schema.StringAttribute{
-						Optional:            true,
-						Computed:            true,
-						MarkdownDescription: "The deployment type for the Windows Autopilot Device Preparation policy. Valid values are: 'enrollment_autopilot_dpp_deploymenttype_0' (User-driven) or 'enrollment_autopilot_dpp_deploymenttype_1' (Self-deploying).",
-						Default: stringdefault.StaticString(
-							"enrollment_autopilot_dpp_deploymenttype_0",
-						),
+						Required:            true,
+						MarkdownDescription: "The deployment type determines the policy template and available settings. Valid values are: 'enrollment_autopilot_dpp_deploymenttype_0' (User-driven mode with full configuration, device security group, and assignments) or 'enrollment_autopilot_dpp_deploymenttype_1' (Self-deploying/automatic mode with simpler configuration).",
 						Validators: []validator.String{
 							stringvalidator.OneOf(
 								"enrollment_autopilot_dpp_deploymenttype_0", // User-driven
-								"enrollment_autopilot_dpp_deploymenttype_1", // Self-deploying
+								"enrollment_autopilot_dpp_deploymenttype_1", // Self-deploying/automatic
 							),
 						},
 						PlanModifiers: []planmodifier.String{
@@ -245,29 +272,15 @@ func (r *WindowsAutopilotDevicePreparationPolicyResource) Schema(
 						},
 					},
 					"join_type": schema.StringAttribute{
-						Optional:            true,
 						Computed:            true,
-						MarkdownDescription: "The join type for the Windows Autopilot Device Preparation policy. Valid values are: 'enrollment_autopilot_dpp_jointype_0' (Entra ID joined) or 'enrollment_autopilot_dpp_jointype_1' (Entra ID hybrid joined).",
-						Default: stringdefault.StaticString(
-							"enrollment_autopilot_dpp_jointype_0",
-						),
-						Validators: []validator.String{
-							stringvalidator.OneOf(
-								"enrollment_autopilot_dpp_jointype_0", // Entra ID joined
-								"enrollment_autopilot_dpp_jointype_1", // Entra ID hybrid joined
-							),
-						},
+						MarkdownDescription: "The join type for the Windows Autopilot Device Preparation policy. Always set to 'enrollment_autopilot_dpp_jointype_0' (Entra ID joined). Hybrid join is not supported.",
 						PlanModifiers: []planmodifier.String{
-							stringplanmodifier.RequiresReplace(),
+							stringplanmodifier.UseStateForUnknown(),
 						},
 					},
 					"account_type": schema.StringAttribute{
 						Optional:            true,
-						Computed:            true,
-						MarkdownDescription: "The account type for users in the Windows Autopilot Device Preparation policy. Valid values are: 'enrollment_autopilot_dpp_accountype_0' (Administrator) or 'enrollment_autopilot_dpp_accountype_1' (Standard User).",
-						Default: stringdefault.StaticString(
-							"enrollment_autopilot_dpp_accountype_0",
-						),
+						MarkdownDescription: "The account type for users in the Windows Autopilot Device Preparation policy. Required for user-driven mode (deployment_type_0). Valid values are: 'enrollment_autopilot_dpp_accountype_0' (Administrator) or 'enrollment_autopilot_dpp_accountype_1' (Standard User).",
 						Validators: []validator.String{
 							stringvalidator.OneOf(
 								"enrollment_autopilot_dpp_accountype_0", // Administrator
@@ -278,8 +291,8 @@ func (r *WindowsAutopilotDevicePreparationPolicyResource) Schema(
 				},
 			},
 			"oobe_settings": schema.SingleNestedAttribute{
-				Required:            true,
-				MarkdownDescription: "Out-of-box experience settings for the Windows Autopilot Device Preparation policy",
+				Optional:            true,
+				MarkdownDescription: "Out-of-box experience settings for the Windows Autopilot Device Preparation policy. Required for user-driven mode (deployment_type_0), not applicable for self-deploying/automatic mode (deployment_type_1).",
 				Attributes: map[string]schema.Attribute{
 					"timeout_in_minutes": schema.Int64Attribute{
 						Optional:            true,
