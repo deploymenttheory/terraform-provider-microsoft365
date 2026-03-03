@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.46.0-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.45.0-alpha...v0.46.0-alpha) (2026-03-03)
+
+
+### Features
+
+* Windows Autopilot Device Preparation Policy assignments to use standard shared model schema with type/group_id fields ([8349f59](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/8349f590643b16b0aefdf1457039d7ba022e3e3b))
+
+
+### Bug Fixes
+
+* resolve err113 by centralizing construct errors in sentinels and reduce Autopilot settings builder complexity to satisfy gocyclo ([6cb2d9a](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/6cb2d9ab650c4ec0a025b17ec1a9e55040147ad1))
+* Standardize assignments schema for Windows Autopilot Device Preparation Policy ([#2474](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/2474)) ([01a84f6](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/01a84f6890aaaaed7f577a54a1b086d8cfc2a911))
+* Use PUT instead of PATCH for windows_autopilot_device_preparation_policy updates to handle settings navigation property ([567a8b4](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/567a8b4a071ac4a5b358fe011bfa8fd040dd54ce))
+* Use PUT instead of PATCH for windows_autopilot_device_preparation_policy updates to handle settings navigation property ([#2489](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/2489)) ([71682f4](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/71682f44c092ee48beb2199bee9698f0ca9a60bc))
+
 ## [0.45.0-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.44.0-alpha...v0.45.0-alpha) (2026-02-15)
 
 
