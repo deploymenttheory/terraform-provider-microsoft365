@@ -50,7 +50,6 @@ func NewOnPremisesPublishingResource() resource.Resource {
 		},
 		WritePermissions: []string{
 			"Application.ReadWrite.All",
-			"Directory.ReadWrite.All",
 		},
 		ResourcePath: "/applications/{application-id}",
 	}

@@ -28,7 +28,6 @@ var (
 func NewApplicationCategoryDataSource() datasource.DataSource {
 	return &ApplicationCategoryDataSource{
 		ReadPermissions: []string{
-			"DeviceManagementConfiguration.Read.All",
 			"DeviceManagementApps.Read.All",
 		},
 	}

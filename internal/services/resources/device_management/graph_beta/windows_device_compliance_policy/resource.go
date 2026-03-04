@@ -54,6 +54,9 @@ func NewWindowsDeviceCompliancePolicyResource() resource.Resource {
 	return &WindowsDeviceCompliancePolicyResource{
 		ReadPermissions: []string{
 			"DeviceManagementConfiguration.Read.All",
+			"Directory.Read.All",
+			"Group.Read.All",
+			"GroupMember.Read.All",
 		},
 		WritePermissions: []string{
 			"DeviceManagementConfiguration.ReadWrite.All",

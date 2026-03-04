@@ -53,9 +53,11 @@ func NewDeviceEnrollmentNotificationResource() resource.Resource {
 	return &DeviceEnrollmentNotificationResource{
 		ReadPermissions: []string{
 			"DeviceManagementConfiguration.Read.All",
+			"DeviceManagementServiceConfig.Read.All",
 		},
 		WritePermissions: []string{
 			"DeviceManagementConfiguration.ReadWrite.All",
+			"DeviceManagementServiceConfig.ReadWrite.All",
 		},
 		ResourcePath: "/deviceManagement/deviceEnrollmentConfigurations",
 	}

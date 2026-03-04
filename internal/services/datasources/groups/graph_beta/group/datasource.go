@@ -29,8 +29,9 @@ var (
 func NewGroupDataSource() datasource.DataSource {
 	return &GroupDataSource{
 		ReadPermissions: []string{
-			"Group.Read.All",
 			"Directory.Read.All",
+			"Group.Read.All",
+			"GroupMember.Read.All",
 		},
 	}
 }

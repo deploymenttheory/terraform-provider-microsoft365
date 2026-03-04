@@ -53,12 +53,13 @@ var (
 func NewWindowsEnrollmentStatusPageResource() resource.Resource {
 	return &WindowsEnrollmentStatusPageResource{
 		ReadPermissions: []string{
-			"DeviceManagementServiceConfig.Read.All",
+			"DeviceManagementApps.Read.All",
 			"DeviceManagementConfiguration.Read.All",
+			"DeviceManagementServiceConfig.Read.All",
 		},
 		WritePermissions: []string{
-			"DeviceManagementServiceConfig.ReadWrite.All",
 			"DeviceManagementConfiguration.ReadWrite.All",
+			"DeviceManagementServiceConfig.ReadWrite.All",
 		},
 		ResourcePath: "/deviceManagement/deviceEnrollmentConfigurations",
 	}

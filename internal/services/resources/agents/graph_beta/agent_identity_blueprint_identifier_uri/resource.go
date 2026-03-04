@@ -52,8 +52,12 @@ func NewAgentIdentityBlueprintIdentifierUriResource() resource.Resource {
 			"Directory.Read.All",
 		},
 		WritePermissions: []string{
+			"AgentIdentityBlueprint.AddRemoveCreds.All",
 			"AgentIdentityBlueprint.ReadWrite.All",
-			"Directory.ReadWrite.All",
+			"AgentIdentityBlueprint.UpdateAuthProperties.All",
+			"AgentIdentityBlueprint.UpdateBranding.All",
+			"AgentIdentityBlueprintPrincipal.ReadWrite.All",
+			"Application.ReadWrite.All",
 		},
 		ResourcePath: "/applications",
 	}

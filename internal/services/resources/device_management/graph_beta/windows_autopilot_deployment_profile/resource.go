@@ -51,11 +51,9 @@ func NewWindowsAutopilotDeploymentProfileResource() resource.Resource {
 	return &WindowsAutopilotDeploymentProfileResource{
 		ReadPermissions: []string{
 			"DeviceManagementServiceConfig.Read.All",
-			"DeviceManagementConfiguration.Read.All",
 		},
 		WritePermissions: []string{
 			"DeviceManagementServiceConfig.ReadWrite.All",
-			"DeviceManagementConfiguration.ReadWrite.All",
 		},
 		ResourcePath: "/deviceManagement/windowsAutopilotDeploymentProfiles",
 	}

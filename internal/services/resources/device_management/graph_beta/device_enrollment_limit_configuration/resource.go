@@ -49,12 +49,12 @@ var (
 func NewDeviceEnrollmentLimitConfigurationResource() resource.Resource {
 	return &DeviceEnrollmentLimitConfigurationResource{
 		ReadPermissions: []string{
-			"DeviceManagementServiceConfig.Read.All",
 			"DeviceManagementConfiguration.Read.All",
+			"DeviceManagementServiceConfig.Read.All",
 		},
 		WritePermissions: []string{
-			"DeviceManagementServiceConfig.ReadWrite.All",
 			"DeviceManagementConfiguration.ReadWrite.All",
+			"DeviceManagementServiceConfig.ReadWrite.All",
 		},
 		ResourcePath: "/deviceManagement/deviceEnrollmentConfigurations",
 	}

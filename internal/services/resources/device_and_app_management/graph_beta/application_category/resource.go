@@ -43,11 +43,9 @@ var (
 func NewApplicationCategoryResource() resource.Resource {
 	return &ApplicationCategoryResource{
 		ReadPermissions: []string{
-			"DeviceManagementConfiguration.Read.All",
 			"DeviceManagementApps.Read.All",
 		},
 		WritePermissions: []string{
-			"DeviceManagementConfiguration.ReadWrite.All",
 			"DeviceManagementApps.ReadWrite.All",
 		},
 		ResourcePath: "/deviceAppManagement/mobileAppCategories",

@@ -39,6 +39,8 @@ func NewGroupAppRoleAssignmentResource() resource.Resource {
 	return &GroupAppRoleAssignmentResource{
 		ReadPermissions: []string{
 			"Directory.Read.All",
+			"Group.Read.All",
+			"GroupMember.Read.All",
 		},
 		WritePermissions: []string{
 			"AppRoleAssignment.ReadWrite.All",

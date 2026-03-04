@@ -53,7 +53,7 @@ var (
 func NewIOSManagedDeviceAppConfigurationPolicyResource() resource.Resource {
 	return &IOSManagedDeviceAppConfigurationPolicyResource{
 		ReadPermissions: []string{
-			"DeviceManagementConfiguration.Read.All",
+			"DeviceManagementApps.Read.All",
 		},
 		WritePermissions: []string{
 			"DeviceManagementApps.ReadWrite.All",

@@ -42,9 +42,11 @@ func NewWindowsBackupAndRestoreResource() resource.Resource {
 	return &WindowsBackupAndRestoreResource{
 		ReadPermissions: []string{
 			"DeviceManagementConfiguration.Read.All",
+			"DeviceManagementServiceConfig.Read.All",
 		},
 		WritePermissions: []string{
 			"DeviceManagementConfiguration.ReadWrite.All",
+			"DeviceManagementServiceConfig.ReadWrite.All",
 		},
 		ResourcePath: "/deviceManagement/deviceEnrollmentConfigurations",
 	}

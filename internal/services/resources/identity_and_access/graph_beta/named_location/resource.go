@@ -46,7 +46,6 @@ func NewNamedLocationResource() resource.Resource {
 	return &NamedLocationResource{
 		ReadPermissions: []string{
 			"Policy.Read.All",
-			"Policy.Read.ConditionalAccess",
 		},
 		WritePermissions: []string{
 			"Policy.ReadWrite.ConditionalAccess",

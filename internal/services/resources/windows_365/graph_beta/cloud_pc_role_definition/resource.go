@@ -47,10 +47,13 @@ var (
 func NewRoleDefinitionResource() resource.Resource {
 	return &RoleDefinitionResource{
 		ReadPermissions: []string{
-			"RoleManagement.Read.CloudPC",
+			"CloudPC.Read.All",
+			"Directory.Read.All",
+			"RoleManagement.Read.All",
 		},
 		WritePermissions: []string{
-			"RoleManagement.ReadWrite.CloudPC",
+			"CloudPC.ReadWrite.All",
+			"Directory.ReadWrite.All",
 		},
 		ResourcePath: "/roleManagement/cloudPC/roleDefinitions",
 	}

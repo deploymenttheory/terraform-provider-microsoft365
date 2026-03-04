@@ -56,7 +56,6 @@ func NewServicePrincipalResource() resource.Resource {
 		},
 		WritePermissions: []string{
 			"Application.ReadWrite.All",
-			"Application.ReadWrite.OwnedBy",
 			"Directory.ReadWrite.All",
 		},
 		ResourcePath: "/servicePrincipals",

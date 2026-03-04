@@ -26,6 +26,7 @@ var (
 func NewRoleDefinitionsDataSource() datasource.DataSource {
 	return &RoleDefinitionsDataSource{
 		ReadPermissions: []string{
+			"Directory.Read.All",
 			"RoleManagement.Read.All",
 		},
 	}

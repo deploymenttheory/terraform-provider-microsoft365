@@ -26,6 +26,7 @@ func NewWindowsPlatformScriptListResource() list.ListResource {
 	return &WindowsPlatformScriptListResource{
 		ReadPermissions: []string{
 			"DeviceManagementConfiguration.Read.All",
+			"DeviceManagementManagedDevices.Read.All",
 		},
 		ResourcePath: "/deviceManagement/deviceManagementScripts",
 	}

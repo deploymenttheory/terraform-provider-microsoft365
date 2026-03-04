@@ -47,9 +47,11 @@ func NewWindowsManagedMobileAppResource() resource.Resource {
 	return &WindowsManagedMobileAppResource{
 		ReadPermissions: []string{
 			"DeviceManagementApps.Read.All",
+			"DeviceManagementConfiguration.Read.All",
 		},
 		WritePermissions: []string{
 			"DeviceManagementApps.ReadWrite.All",
+			"DeviceManagementConfiguration.ReadWrite.All",
 		},
 		ResourcePath: "/deviceAppManagement/windowsManagedAppProtections/{id}/apps",
 	}

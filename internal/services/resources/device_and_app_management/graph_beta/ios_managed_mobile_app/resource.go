@@ -38,9 +38,11 @@ func NewIOSManagedMobileAppResource() resource.Resource {
 	return &IOSManagedMobileAppResource{
 		ReadPermissions: []string{
 			"DeviceManagementApps.Read.All",
+			"DeviceManagementConfiguration.Read.All",
 		},
 		WritePermissions: []string{
 			"DeviceManagementApps.ReadWrite.All",
+			"DeviceManagementConfiguration.ReadWrite.All",
 		},
 		ResourcePath: "/deviceAppManagement/iosManagedAppProtections/{id}/apps",
 	}

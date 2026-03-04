@@ -59,7 +59,11 @@ var (
 func NewWindowsAutopilotDevicePreparationPolicyResource() resource.Resource {
 	return &WindowsAutopilotDevicePreparationPolicyResource{
 		ReadPermissions: []string{
+			"DeviceManagementApps.Read.All",
 			"DeviceManagementConfiguration.Read.All",
+			"Directory.Read.All",
+			"Group.Read.All",
+			"GroupMember.Read.All",
 		},
 		WritePermissions: []string{
 			"DeviceManagementConfiguration.ReadWrite.All",

@@ -49,12 +49,14 @@ var (
 func NewGroupLicenseAssignmentResource() resource.Resource {
 	return &GroupLicenseAssignmentResource{
 		ReadPermissions: []string{
-			"Group.Read.All",
 			"Directory.Read.All",
+			"Group.Read.All",
+			"GroupMember.Read.All",
 		},
 		WritePermissions: []string{
-			"Group.ReadWrite.All",
 			"Directory.ReadWrite.All",
+			"Group.ReadWrite.All",
+			"LicenseAssignment.ReadWrite.All",
 		},
 		ResourcePath: "/groups",
 	}

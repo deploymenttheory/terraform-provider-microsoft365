@@ -47,9 +47,11 @@ var (
 func NewDeviceCategoryResource() resource.Resource {
 	return &DeviceCategoryResource{
 		ReadPermissions: []string{
+			"DeviceManagementConfiguration.Read.All",
 			"DeviceManagementManagedDevices.Read.All",
 		},
 		WritePermissions: []string{
+			"DeviceManagementConfiguration.ReadWrite.All",
 			"DeviceManagementManagedDevices.ReadWrite.All",
 		},
 		ResourcePath: "/deviceManagement/deviceCategories",

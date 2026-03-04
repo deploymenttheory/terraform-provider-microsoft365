@@ -25,8 +25,9 @@ var (
 func NewUserListResource() list.ListResource {
 	return &UserListResource{
 		ReadPermissions: []string{
-			"User.Read.All",
 			"Directory.Read.All",
+			"User.Read.All",
+			"User.ReadBasic.All",
 		},
 		ResourcePath: "/users",
 	}
