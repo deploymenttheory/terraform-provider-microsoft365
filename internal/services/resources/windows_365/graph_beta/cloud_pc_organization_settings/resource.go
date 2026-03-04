@@ -41,8 +41,12 @@ var (
 
 func NewCloudPcOrganizationSettingsResource() resource.Resource {
 	return &CloudPcOrganizationSettingsResource{
-		ReadPermissions:  []string{"CloudPC.Read.All"},
-		WritePermissions: []string{"CloudPC.ReadWrite.All"},
+		ReadPermissions: []string{
+			"CloudPC.Read.All",
+		},
+		WritePermissions: []string{
+			"CloudPC.ReadWrite.All",
+		},
 	}
 }
 

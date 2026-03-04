@@ -47,13 +47,19 @@ var (
 func NewAgentIdentityResource() resource.Resource {
 	return &AgentIdentityResource{
 		ReadPermissions: []string{
-			"AgentInstance.Read.All",
+			"AgentIdentity.Read.All",
+			"AgentIdentityBlueprintPrincipal.Read.All",
+			"Application.Read.All",
 			"Directory.Read.All",
 		},
 		WritePermissions: []string{
-			"AgentInstance.ReadWrite.All",
+			"AgentIdentity.DeleteRestore.All",
+			"AgentIdentity.EnableDisable.All",
+			"AgentIdentity.ReadWrite.All",
+			"AgentIdentityBlueprintPrincipal.DeleteRestore.All",
+			"AgentIdentityBlueprintPrincipal.EnableDisable.All",
+			"Application.ReadWrite.All",
 			"Directory.ReadWrite.All",
-			"AgentIdentity.DeleteRestore.All", // Needed for hard deletion
 		},
 		ResourcePath: "/servicePrincipals",
 	}

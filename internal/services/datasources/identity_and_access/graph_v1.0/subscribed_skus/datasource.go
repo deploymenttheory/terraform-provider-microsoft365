@@ -31,9 +31,7 @@ var (
 func NewSubscribedSkusDataSource() datasource.DataSource {
 	return &SubscribedSkusDataSource{
 		ReadPermissions: []string{
-			"LicenseAssignment.Read.All",
 			"Directory.Read.All",
-			"Organization.Read.All",
 		},
 		ResourcePath: "/subscribedSkus",
 	}

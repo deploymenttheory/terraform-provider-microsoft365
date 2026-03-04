@@ -50,8 +50,8 @@ var (
 func NewUserMailboxSettingsResource() resource.Resource {
 	return &UserMailboxSettingsResource{
 		ReadPermissions: []string{
-			"MailboxSettings.Read",
-			"MailboxSettings.ReadWrite",
+			"User.Read.All",
+			"User.ReadBasic.All",
 		},
 		WritePermissions: []string{
 			"MailboxSettings.ReadWrite",

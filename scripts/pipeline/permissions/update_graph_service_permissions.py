@@ -86,6 +86,58 @@ from get_utilised_graph_api_endpoints import (  # noqa: E402
 # Categories whose Go structs include a WritePermissions field
 _WRITE_CATEGORIES: frozenset[str] = frozenset({'resources', 'actions'})
 
+# Per-domain allowlist of permission-name prefixes.
+# Only permissions whose name starts with one of the listed prefixes are kept
+# for that domain. This prevents cross-domain contamination where Graph URIs
+# shared across service areas (e.g. /applications/{id}) return permissions
+# from completely unrelated domains (e.g. AgentIdentity.* or DeviceManagement.*).
+# Domains absent from this dict receive no filtering.
+_DOMAIN_PERM_PREFIXES: dict[str, tuple[str, ...]] = {
+    'agents': (
+        'Agent', 'Application.', 'Directory.', 'User.',
+    ),
+    'applications': (
+        'AppRoleAssignment.', 'Application.', 'Directory.', 'Group.', 'User.',
+    ),
+    'device_and_app_management': (
+        'DeviceManagement', 'Directory.',
+    ),
+    'device_management': (
+        'DeviceManagement', 'Directory.', 'Group.', 'GroupMember.', 'User.',
+    ),
+    'groups': (
+        'Application.', 'Directory.', 'Group.', 'GroupMember.',
+        'LicenseAssignment.', 'RoleManagement.', 'User.',
+    ),
+    'identity_and_access': (
+        # CustomSecAttribute (no dot) matches both CustomSecAttributeAssignment.*
+        # and CustomSecAttributeDefinition.* — the dot variant would miss them.
+        'Application.', 'CustomSecAttribute', 'Directory.',
+        'Policy.', 'RoleManagement.',
+        # User.* needed for validate.go calls e.g. validateUserExists -> GET /users/{id}
+        'User.',
+    ),
+    'multitenant_management': (
+        'ManagedTenant',
+    ),
+    'users': (
+        'Directory.', 'LicenseAssignment.', 'Mailbox', 'User.',
+    ),
+    'utility': (
+        'Application.', 'Device.', 'Directory.', 'Group.', 'User.',
+    ),
+    'windows_365': (
+        'CloudPC.', 'Directory.', 'RoleManagement.',
+    ),
+}
+
+# Permission-name suffixes that indicate purely read-only access.
+# These are excluded from WritePermissions — write operation blocks must only
+# contain permissions that actually grant write / action capabilities.
+_READ_ONLY_SUFFIXES: tuple[str, ...] = (
+    '.Read.All', '.ReadBasic.All', '.Read.Basic.All',
+)
+
 # Regex: locate any New*() constructor function signature
 _RE_CONSTRUCTOR = re.compile(
     r'\bfunc\s+New\w+\s*\([^)]*\)\s+\w+(?:\.\w+)?\s*\{',
@@ -152,6 +204,22 @@ def _get_app_perms(
     return frozenset(result)
 
 
+def _is_write_capable(name: str) -> bool:
+    """
+    Return ``True`` if *name* is not a purely read-only permission.
+
+    Permissions ending in ``.Read.All`` (or similar read-only suffixes) are
+    excluded from WritePermissions blocks — they grant no write capability.
+
+    Args:
+        name: Permission name string to test.
+
+    Returns:
+        ``True`` when the permission may grant write or action access.
+    """
+    return not any(name.endswith(s) for s in _READ_ONLY_SUFFIXES)
+
+
 def _filter_for_read(perms: frozenset[str]) -> frozenset[str]:
     """
     Prefer least-privilege read permissions over read-write equivalents.
@@ -178,32 +246,44 @@ def _filter_for_read(perms: frozenset[str]) -> frozenset[str]:
 
 def _compute_permissions(
     resource: ResourceEndpoints,
+    domain: str,
     metadata: list[dict[str, Any]],
 ) -> tuple[list[str], list[str]]:
     """
     Derive ReadPermissions and WritePermissions for a resource's endpoints.
 
     GET endpoints feed ReadPermissions (filtered for least privilege).
-    POST / PATCH / PUT / DELETE endpoints feed WritePermissions.
+    POST / PATCH / PUT / DELETE endpoints feed WritePermissions (filtered to
+    exclude read-only permission names).
+
+    Permissions are also scoped to the service domain via
+    :data:`_DOMAIN_PERM_PREFIXES` to prevent cross-domain contamination when
+    Graph URIs are shared across multiple service areas.
 
     Args:
         resource: Resource scan result with endpoint list.
+        domain:   Service domain name (e.g. ``"applications"``).
         metadata: Full Graph command metadata list.
 
     Returns:
         ``(sorted_read_perms, sorted_write_perms)`` string lists.
     """
+    allowed = _DOMAIN_PERM_PREFIXES.get(domain)  # None → no prefix filtering
     read_raw: set[str] = set()
     write_raw: set[str] = set()
 
     for ep in resource.endpoints:
         perms = _get_app_perms(metadata, ep.uri, ep.method, ep.api_version)
+        if allowed is not None:
+            perms = frozenset(p for p in perms if any(p.startswith(pf) for pf in allowed))
         if ep.method.upper() == 'GET':
             read_raw.update(perms)
         else:
             write_raw.update(perms)
 
-    return sorted(_filter_for_read(frozenset(read_raw))), sorted(write_raw)
+    read_perms = sorted(_filter_for_read(frozenset(read_raw)))
+    write_perms = sorted(p for p in write_raw if _is_write_capable(p))
+    return read_perms, write_perms
 
 
 # =============================================================================
@@ -429,7 +509,7 @@ def _process_resource(
 
     Args:
         resource:      Resource scan result.
-        domain:        Service domain name (for display only).
+        domain:        Service domain name (used for permission filtering and display).
         repo_root:     Repository root path.
         metadata:      Graph command metadata list.
         apply_changes: Whether to write changes to disk.
@@ -437,7 +517,7 @@ def _process_resource(
     Returns:
         Populated :class:`_UpdateResult` describing the outcome.
     """
-    read_perms, write_perms = _compute_permissions(resource, metadata)
+    read_perms, write_perms = _compute_permissions(resource, domain, metadata)
     resource_dir = repo_root / resource.source_dir
     go_file = _find_constructor_file(resource_dir)
 

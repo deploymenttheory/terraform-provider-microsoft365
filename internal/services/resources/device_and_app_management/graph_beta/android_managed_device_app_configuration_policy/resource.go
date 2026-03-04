@@ -53,7 +53,7 @@ var (
 func NewAndroidManagedDeviceAppConfigurationPolicyResource() resource.Resource {
 	return &AndroidManagedDeviceAppConfigurationPolicyResource{
 		ReadPermissions: []string{
-			"DeviceManagementConfiguration.Read.All",
+			"DeviceManagementApps.Read.All",
 		},
 		WritePermissions: []string{
 			"DeviceManagementApps.ReadWrite.All",

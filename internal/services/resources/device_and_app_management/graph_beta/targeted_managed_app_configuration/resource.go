@@ -48,7 +48,7 @@ var (
 func NewTargetedManagedAppConfigurationResource() resource.Resource {
 	return &TargetedManagedAppConfigurationResource{
 		ReadPermissions: []string{
-			"DeviceManagementConfiguration.Read.All",
+			"DeviceManagementApps.Read.All",
 		},
 		WritePermissions: []string{
 			"DeviceManagementApps.ReadWrite.All",

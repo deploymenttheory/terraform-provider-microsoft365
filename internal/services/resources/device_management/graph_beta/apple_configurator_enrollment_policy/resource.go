@@ -45,6 +45,10 @@ var (
 func NewAppleConfiguratorEnrollmentPolicyResource() resource.Resource {
 	return &AppleConfiguratorEnrollmentPolicyResource{
 		ReadPermissions: []string{
+			"DeviceManagementApps.Read.All",
+			"DeviceManagementConfiguration.Read.All",
+			"DeviceManagementManagedDevices.Read.All",
+			"DeviceManagementRBAC.Read.All",
 			"DeviceManagementServiceConfig.Read.All",
 		},
 		WritePermissions: []string{

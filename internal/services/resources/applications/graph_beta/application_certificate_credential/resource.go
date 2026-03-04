@@ -50,6 +50,7 @@ func NewApplicationCertificateCredentialResource() resource.Resource {
 		TypeName:         ResourceName,
 		ReadPermissions: []string{
 			"Application.Read.All",
+			"Directory.Read.All",
 		},
 		WritePermissions: []string{
 			"Application.ReadWrite.All",

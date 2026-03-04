@@ -28,7 +28,7 @@ var (
 func NewAuditEventsDataSource() datasource.DataSource {
 	return &AuditEventsDataSource{
 		ReadPermissions: []string{
-			"ManagedTenant.Read.All",
+			"ManagedTenants.Read.All",
 		},
 	}
 }

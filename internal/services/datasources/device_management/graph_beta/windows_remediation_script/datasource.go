@@ -27,7 +27,7 @@ func NewWindowsRemediationScriptDataSource() datasource.DataSource {
 	return &WindowsRemediationScriptDataSource{
 		ReadPermissions: []string{
 			"DeviceManagementConfiguration.Read.All",
-			"DeviceManagementManagedDevices.Read.All",
+			"DeviceManagementScripts.Read.All",
 		},
 	}
 }

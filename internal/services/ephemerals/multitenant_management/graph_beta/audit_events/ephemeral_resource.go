@@ -29,7 +29,7 @@ var (
 func NewAuditEventsEphemeralResource() ephemeral.EphemeralResource {
 	return &AuditEventsEphemeralResource{
 		ReadPermissions: []string{
-			"ManagedTenant.Read.All",
+			"ManagedTenants.Read.All",
 		},
 	}
 }

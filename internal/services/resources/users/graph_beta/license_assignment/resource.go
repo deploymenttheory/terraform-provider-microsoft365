@@ -46,12 +46,14 @@ var (
 func NewUserLicenseAssignmentResource() resource.Resource {
 	return &UserLicenseAssignmentResource{
 		ReadPermissions: []string{
-			"User.Read.All",
 			"Directory.Read.All",
+			"User.Read.All",
+			"User.ReadBasic.All",
 		},
 		WritePermissions: []string{
-			"User.ReadWrite.All",
 			"Directory.ReadWrite.All",
+			"LicenseAssignment.ReadWrite.All",
+			"User.ReadWrite.All",
 		},
 		ResourcePath: "/users",
 	}

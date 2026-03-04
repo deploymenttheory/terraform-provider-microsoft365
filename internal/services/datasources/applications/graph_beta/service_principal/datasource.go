@@ -32,8 +32,8 @@ var (
 func NewServicePrincipalDataSource() datasource.DataSource {
 	return &ServicePrincipalDataSource{
 		ReadPermissions: []string{
-			"Application.ReadWrite.OwnedBy",
-			"CustomSecAttributeAssignment.Reade.All",
+			"Application.Read.All",
+			"Directory.Read.All",
 		},
 	}
 }

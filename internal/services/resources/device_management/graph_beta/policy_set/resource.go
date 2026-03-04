@@ -51,7 +51,9 @@ var (
 func NewPolicySetResource() resource.Resource {
 	return &PolicySetResource{
 		ReadPermissions: []string{
+			"DeviceManagementApps.Read.All",
 			"DeviceManagementConfiguration.Read.All",
+			"DeviceManagementServiceConfig.Read.All",
 		},
 		WritePermissions: []string{
 			"DeviceManagementConfiguration.ReadWrite.All",

@@ -32,11 +32,12 @@ var (
 func NewGuidListSharderDataSource() datasource.DataSource {
 	return &guidListSharderDataSource{
 		ReadPermissions: []string{
-			"User.Read.All",
-			"Group.Read.All",
-			"Device.Read.All",
 			"Application.Read.All",
+			"Device.Read.All",
 			"Directory.Read.All",
+			"Group.Read.All",
+			"User.Read.All",
+			"User.ReadBasic.All",
 		},
 	}
 }

@@ -41,11 +41,9 @@ var (
 func NewGroupLifecycleExpirationPolicyResource() resource.Resource {
 	return &GroupLifecycleExpirationPolicyResource{
 		ReadPermissions: []string{
-			"Group.Read.All",
 			"Directory.Read.All",
 		},
 		WritePermissions: []string{
-			"Group.ReadWrite.All",
 			"Directory.ReadWrite.All",
 		},
 		ResourcePath: "/groupLifecyclePolicies",

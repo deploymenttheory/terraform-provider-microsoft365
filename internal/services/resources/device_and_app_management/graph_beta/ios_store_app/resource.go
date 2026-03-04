@@ -51,11 +51,9 @@ func NewIOSStoreAppResource() resource.Resource {
 	return &IOSStoreAppResource{
 		ReadPermissions: []string{
 			"DeviceManagementApps.Read.All",
-			"DeviceManagementConfiguration.Read.All",
 		},
 		WritePermissions: []string{
 			"DeviceManagementApps.ReadWrite.All",
-			"DeviceManagementConfiguration.ReadWrite.All",
 		},
 		ResourcePath: "/deviceAppManagement/mobileApps",
 	}

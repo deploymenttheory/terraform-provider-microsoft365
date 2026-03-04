@@ -41,16 +41,18 @@ var (
 func NewAgentUserResource() resource.Resource {
 	return &AgentUserResource{
 		ReadPermissions: []string{
-			"User.Read.All",
-			"AgentIdUser.ReadWrite.All", // There's no such thing as AgentIdUser.Read.All
+			"AgentIdUser.ReadWrite.All",
 			"Directory.Read.All",
+			"User.Read.All",
+			"User.ReadBasic.All",
 		},
 		WritePermissions: []string{
-			"AgentIdUser.ReadWrite.IdentityParentedBy",
-			"User.ReadWrite.All",
 			"AgentIdUser.ReadWrite.All",
+			"Directory.ReadWrite.All",
 			"User.DeleteRestore.All",
-			"CustomSecAttributeAssignment.Read.All ",
+			"User.EnableDisableAccount.All",
+			"User.ManageIdentities.All",
+			"User.ReadWrite.All",
 		},
 		ResourcePath: "/users",
 	}

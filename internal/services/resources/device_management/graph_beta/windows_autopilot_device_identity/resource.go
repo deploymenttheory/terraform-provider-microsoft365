@@ -45,11 +45,9 @@ func NewWindowsAutopilotDeviceIdentityResource() resource.Resource {
 	return &WindowsAutopilotDeviceIdentityResource{
 		ReadPermissions: []string{
 			"DeviceManagementServiceConfig.Read.All",
-			"DeviceManagementConfiguration.Read.All",
 		},
 		WritePermissions: []string{
 			"DeviceManagementServiceConfig.ReadWrite.All",
-			"DeviceManagementConfiguration.ReadWrite.All",
 		},
 		ResourcePath: "/deviceManagement/windowsAutopilotDeviceIdentities",
 	}

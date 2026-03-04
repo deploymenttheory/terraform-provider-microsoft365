@@ -55,11 +55,11 @@ var (
 func NewConditionalAccessPolicyResource() resource.Resource {
 	return &ConditionalAccessPolicyResource{
 		ReadPermissions: []string{
+			"Directory.Read.All",
 			"Policy.Read.All",
-			"Policy.Read.ConditionalAccess",
-			"Directory.Read.All",                    // for validation of roles
-			"CustomSecAttributeAssignment.Read.All", // for custom security attributes
-			"Application.Read.All",                  // for custom security attributes
+			"RoleManagement.Read.All",
+			"User.Read.All",
+			"User.ReadBasic.All",
 		},
 		WritePermissions: []string{
 			"Policy.ReadWrite.ConditionalAccess",

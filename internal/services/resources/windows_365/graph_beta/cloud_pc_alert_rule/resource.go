@@ -43,7 +43,9 @@ var (
 
 func NewCloudPcAlertRuleResource() resource.Resource {
 	return &CloudPcAlertRuleResource{
-		ReadPermissions:  []string{"DeviceManagementConfiguration.Read.All"},
+		ReadPermissions: []string{
+			"CloudPC.Read.All",
+		},
 		WritePermissions: []string{"DeviceManagementConfiguration.ReadWrite.All"},
 	}
 }

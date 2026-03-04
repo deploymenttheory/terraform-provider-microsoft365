@@ -53,16 +53,16 @@ var (
 func NewUserResource() resource.Resource {
 	return &UserResource{
 		ReadPermissions: []string{
-			"User.Read.All",
 			"Directory.Read.All",
-			"CustomSecAttributeAssignment.Read.All",
+			"User.Read.All",
+			"User.ReadBasic.All",
 		},
 		WritePermissions: []string{
-			"User.ReadWrite.All",
 			"Directory.ReadWrite.All",
-			"CustomSecAttributeAssignment.ReadWrite.All",
-			"LifeCycleInfo.ReadWrite.All ",
-			"User-PasswordProfile.ReadWrite.All",
+			"User.DeleteRestore.All",
+			"User.EnableDisableAccount.All",
+			"User.ManageIdentities.All",
+			"User.ReadWrite.All",
 		},
 		ResourcePath: "/users",
 	}

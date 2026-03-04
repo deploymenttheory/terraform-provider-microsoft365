@@ -52,11 +52,9 @@ func NewWin32LobAppResource() resource.Resource {
 	return &Win32LobAppResource{
 		ReadPermissions: []string{
 			"DeviceManagementApps.Read.All",
-			"DeviceManagementConfiguration.Read.All",
 		},
 		WritePermissions: []string{
 			"DeviceManagementApps.ReadWrite.All",
-			"DeviceManagementConfiguration.ReadWrite.All",
 		},
 		ResourcePath: "/deviceAppManagement/mobileApps",
 	}

@@ -39,9 +39,11 @@ func NewApplicationPasswordCredentialResource() resource.Resource {
 	return &ApplicationPasswordCredentialResource{
 		ReadPermissions: []string{
 			"Application.Read.All",
+			"Directory.Read.All",
 		},
 		WritePermissions: []string{
 			"Application.ReadWrite.All",
+			"Directory.ReadWrite.All",
 		},
 	}
 }

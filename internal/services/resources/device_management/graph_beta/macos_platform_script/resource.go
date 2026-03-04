@@ -53,8 +53,8 @@ func NewMacOSPlatformScriptResource() resource.Resource {
 			"DeviceManagementManagedDevices.Read.All",
 		},
 		WritePermissions: []string{
-			"DeviceManagementManagedDevices.ReadWrite.All",
 			"DeviceManagementConfiguration.ReadWrite.All",
+			"DeviceManagementManagedDevices.ReadWrite.All",
 		},
 		ResourcePath: "/deviceManagement/deviceShellScripts",
 	}

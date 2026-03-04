@@ -47,6 +47,8 @@ func NewApplicationOwnerResource() resource.Resource {
 		ReadPermissions: []string{
 			"Application.Read.All",
 			"Directory.Read.All",
+			"User.Read.All",
+			"User.ReadBasic.All",
 		},
 		WritePermissions: []string{
 			"Application.ReadWrite.All",

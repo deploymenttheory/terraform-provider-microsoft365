@@ -29,7 +29,6 @@ func NewDirectorySettingTemplatesDataSource() datasource.DataSource {
 	return &DirectorySettingTemplatesDataSource{
 		ReadPermissions: []string{
 			"Directory.Read.All",
-			"Directory.ReadWrite.All",
 		},
 		ResourcePath: "/directorySettingTemplates",
 	}

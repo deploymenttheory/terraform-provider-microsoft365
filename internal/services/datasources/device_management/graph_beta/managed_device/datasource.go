@@ -26,6 +26,7 @@ var (
 func NewManagedDeviceDataSource() datasource.DataSource {
 	return &ManagedDeviceDataSource{
 		ReadPermissions: []string{
+			"DeviceManagementConfiguration.Read.All",
 			"DeviceManagementManagedDevices.Read.All",
 		},
 	}

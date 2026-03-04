@@ -48,12 +48,12 @@ var (
 func NewRoleDefinitionResource() resource.Resource {
 	return &RoleDefinitionResource{
 		ReadPermissions: []string{
-			"DeviceManagementRBAC.Read.All",
 			"DeviceManagementConfiguration.Read.All",
+			"DeviceManagementRBAC.Read.All",
 		},
 		WritePermissions: []string{
-			"DeviceManagementRBAC.ReadWrite.All",
 			"DeviceManagementConfiguration.ReadWrite.All",
+			"DeviceManagementRBAC.ReadWrite.All",
 		},
 		ResourcePath: "/deviceManagement/roleDefinitions",
 	}

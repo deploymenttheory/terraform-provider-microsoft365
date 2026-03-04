@@ -54,6 +54,7 @@ type UserManagerResource struct {
 func NewUserManagerResource() resource.Resource {
 	return &UserManagerResource{
 		ReadPermissions: []string{
+			"Directory.Read.All",
 			"User.Read.All",
 		},
 		WritePermissions: []string{

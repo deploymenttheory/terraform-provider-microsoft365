@@ -51,11 +51,9 @@ func NewIOSiPadOSWebClipResource() resource.Resource {
 	return &IOSiPadOSWebClipResource{
 		ReadPermissions: []string{
 			"DeviceManagementApps.Read.All",
-			"DeviceManagementConfiguration.Read.All",
 		},
 		WritePermissions: []string{
 			"DeviceManagementApps.ReadWrite.All",
-			"DeviceManagementConfiguration.ReadWrite.All",
 		},
 		ResourcePath: "/deviceAppManagement/mobileApps",
 	}

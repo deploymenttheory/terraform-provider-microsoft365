@@ -50,11 +50,9 @@ func NewAppleUserInitiatedEnrollmentProfileAssignmentResource() resource.Resourc
 	return &AppleUserInitiatedEnrollmentProfileAssignmentResource{
 		ReadPermissions: []string{
 			"DeviceManagementServiceConfig.Read.All",
-			"DeviceManagementConfiguration.Read.All",
 		},
 		WritePermissions: []string{
 			"DeviceManagementServiceConfig.ReadWrite.All",
-			"DeviceManagementConfiguration.ReadWrite.All",
 		},
 		ResourcePath: "/deviceManagement/appleUserInitiatedEnrollmentProfiles",
 	}
