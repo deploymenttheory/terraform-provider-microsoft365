@@ -396,8 +396,8 @@ def main():
             file=sys.stderr
         )
         print(
-            f"  VERBOSE                     "
-            f"Show packages skipped (no tests) (default: false)",
+            "  VERBOSE                     "
+            "Show packages skipped (no tests) (default: false)",
             file=sys.stderr
         )
         sys.exit(1)

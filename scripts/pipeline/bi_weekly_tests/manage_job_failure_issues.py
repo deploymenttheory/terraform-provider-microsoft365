@@ -105,7 +105,7 @@ def find_existing_issue(owner: str, repo: str, job_name: str) -> Optional[str]:
             return str(issues[0]["number"])
         
         return None
-    except Exception:
+    except (subprocess.CalledProcessError, json.JSONDecodeError):
         return None
 
 
@@ -278,7 +278,7 @@ def process_job_failures(owner: str, repo: str, run_id: str, failures_json_path:
             file=sys.stderr)
         sys.exit(1)
     
-    with open(failures_path) as f:
+    with open(failures_path, encoding="utf-8") as f:
         failures = json.load(f)
     
     failure_count = len(failures)
