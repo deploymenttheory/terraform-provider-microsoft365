@@ -31,7 +31,6 @@ func MapRemoteStateToTerraform(ctx context.Context, data *ApplicationResourceMod
 		data.SignInAudienceRestrictions = types.ObjectNull(SignInAudienceRestrictionsAttrTypes)
 	}
 
-	data.IdentifierUris = convert.GraphToFrameworkStringSet(ctx, remoteResource.GetIdentifierUris())
 	data.Notes = convert.GraphToFrameworkString(remoteResource.GetNotes())
 	data.IsDeviceOnlyAuthSupported = convert.GraphToFrameworkBool(remoteResource.GetIsDeviceOnlyAuthSupported())
 	data.IsFallbackPublicClient = convert.GraphToFrameworkBool(remoteResource.GetIsFallbackPublicClient())
@@ -609,18 +608,11 @@ func mapWebToTerraform(ctx context.Context, web graphmodels.WebApplicationable) 
 		}
 	}
 
-	// Map RedirectUriSettings
-	redirectUriSettingsSet := types.SetNull(types.ObjectType{AttrTypes: RedirectUriSettingsAttrTypes})
-	if redirectUriSettings := web.GetRedirectUriSettings(); redirectUriSettings != nil {
-		redirectUriSettingsSet = mapRedirectUriSettingsToTerraform(ctx, redirectUriSettings)
-	}
-
 	result := ApplicationWeb{
 		HomePageUrl:           convert.GraphToFrameworkString(web.GetHomePageUrl()),
 		LogoutUrl:             convert.GraphToFrameworkString(web.GetLogoutUrl()),
 		RedirectUris:          convert.GraphToFrameworkStringSet(ctx, web.GetRedirectUris()),
 		ImplicitGrantSettings: implicitGrantObj,
-		RedirectUriSettings:   redirectUriSettingsSet,
 	}
 
 	obj, diags := types.ObjectValueFrom(ctx, ApplicationWebAttrTypes, result)
@@ -678,41 +670,3 @@ func mapSignInAudienceRestrictionsToTerraform(ctx context.Context, restrictions 
 	return obj
 }
 
-// mapRedirectUriSettingsToTerraform converts Graph API RedirectUriSettings array to Terraform Set
-func mapRedirectUriSettingsToTerraform(ctx context.Context, settings []graphmodels.RedirectUriSettingsable) types.Set {
-	if len(settings) == 0 {
-		emptySet, _ := types.SetValue(types.ObjectType{AttrTypes: RedirectUriSettingsAttrTypes}, []attr.Value{})
-		return emptySet
-	}
-
-	elements := make([]attr.Value, 0, len(settings))
-	for _, setting := range settings {
-		if setting == nil {
-			continue
-		}
-
-		settingMap := map[string]attr.Value{
-			"uri":   convert.GraphToFrameworkString(setting.GetUri()),
-			"index": convert.GraphToFrameworkInt32(setting.GetIndex()),
-		}
-
-		objVal, diags := types.ObjectValue(RedirectUriSettingsAttrTypes, settingMap)
-		if diags.HasError() {
-			tflog.Error(ctx, "Failed to create RedirectUriSettings object", map[string]any{
-				"error": diags.Errors()[0].Detail(),
-			})
-			continue
-		}
-		elements = append(elements, objVal)
-	}
-
-	setVal, diags := types.SetValue(types.ObjectType{AttrTypes: RedirectUriSettingsAttrTypes}, elements)
-	if diags.HasError() {
-		tflog.Error(ctx, "Failed to create RedirectUriSettings set", map[string]any{
-			"error": diags.Errors()[0].Detail(),
-		})
-		return types.SetNull(types.ObjectType{AttrTypes: RedirectUriSettingsAttrTypes})
-	}
-
-	return setVal
-}

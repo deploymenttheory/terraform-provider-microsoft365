@@ -15,7 +15,6 @@ type ApplicationResourceModel struct {
 	Description                types.String `tfsdk:"description"`
 	SignInAudience             types.String `tfsdk:"sign_in_audience"`
 	SignInAudienceRestrictions types.Object `tfsdk:"sign_in_audience_restrictions"` // Optional+Computed must be types.Object
-	IdentifierUris             types.Set    `tfsdk:"identifier_uris"`
 	GroupMembershipClaims      types.Set    `tfsdk:"group_membership_claims"`
 	Notes                      types.String `tfsdk:"notes"`
 	IsDeviceOnlyAuthSupported  types.Bool   `tfsdk:"is_device_only_auth_supported"`
@@ -145,17 +144,10 @@ type ApplicationWeb struct {
 	LogoutUrl             types.String `tfsdk:"logout_url"`
 	RedirectUris          types.Set    `tfsdk:"redirect_uris"`
 	ImplicitGrantSettings types.Object `tfsdk:"implicit_grant_settings"` // Optional+Computed must be types.Object
-	RedirectUriSettings   types.Set    `tfsdk:"redirect_uri_settings"`
 }
 
 // ApplicationWebImplicitGrantSettings represents implicit grant settings
 type ApplicationWebImplicitGrantSettings struct {
 	EnableAccessTokenIssuance types.Bool `tfsdk:"enable_access_token_issuance"`
 	EnableIdTokenIssuance     types.Bool `tfsdk:"enable_id_token_issuance"`
-}
-
-// ApplicationWebRedirectUriSettings represents redirect URI settings
-type ApplicationWebRedirectUriSettings struct {
-	Uri   types.String `tfsdk:"uri"`
-	Index types.Int32  `tfsdk:"index"`
 }

@@ -77,7 +77,6 @@ var ApplicationWebAttrTypes = map[string]attr.Type{
 	"logout_url":              types.StringType,
 	"redirect_uris":           types.SetType{ElemType: types.StringType},
 	"implicit_grant_settings": types.ObjectType{AttrTypes: ImplicitGrantSettingsAttrTypes},
-	"redirect_uri_settings":   types.SetType{ElemType: types.ObjectType{AttrTypes: RedirectUriSettingsAttrTypes}},
 }
 
 var ImplicitGrantSettingsAttrTypes = map[string]attr.Type{
@@ -105,9 +104,4 @@ var RequiredResourceAccessAttrTypes = map[string]attr.Type{
 var ResourceAccessAttrTypes = map[string]attr.Type{
 	"id":   types.StringType,
 	"type": types.StringType,
-}
-
-var RedirectUriSettingsAttrTypes = map[string]attr.Type{
-	"uri":   types.StringType,
-	"index": types.Int32Type,
 }

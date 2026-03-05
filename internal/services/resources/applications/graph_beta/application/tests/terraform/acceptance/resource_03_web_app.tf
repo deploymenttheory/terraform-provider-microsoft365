@@ -26,6 +26,18 @@ resource "microsoft365_graph_beta_users_user" "dependency_owner" {
 }
 
 # ==============================================================================
+# Time Sleep for Dependency Consistency
+# ==============================================================================
+
+resource "time_sleep" "wait_for_dependencies" {
+  create_duration = "30s"
+
+  depends_on = [
+    microsoft365_graph_beta_users_user.dependency_owner
+  ]
+}
+
+# ==============================================================================
 # Application
 # ==============================================================================
 
@@ -36,10 +48,6 @@ resource "microsoft365_graph_beta_applications_application" "test_web_app" {
   display_name     = "acc-test-web-app-${random_string.app_suffix.result}"
   description      = "Web application acceptance test"
   sign_in_audience = "AzureADMyOrg"
-
-  identifier_uris = [
-    "https://deploymenttheory.com/acc-test-web-${random_string.app_suffix.result}"
-  ]
 
   web = {
     home_page_url = "https://acc-test-web-${random_string.app_suffix.result}.azurewebsites.net"
@@ -59,6 +67,10 @@ resource "microsoft365_graph_beta_applications_application" "test_web_app" {
 
   prevent_duplicate_names = false
   hard_delete             = true
+
+  depends_on = [
+    time_sleep.wait_for_dependencies
+  ]
 }
 
 
