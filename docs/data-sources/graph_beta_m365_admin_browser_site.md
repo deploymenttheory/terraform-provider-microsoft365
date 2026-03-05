@@ -19,7 +19,6 @@ The following client `application` permissions are needed in order to use this d
 
 **Required:**
 - `BrowserSiteLists.Read.All`
-- `BrowserSiteLists.ReadWrite.All`
 
 **Optional:**
 - `None` `[N/A]`

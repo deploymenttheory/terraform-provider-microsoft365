@@ -22,8 +22,8 @@ Manages Microsoft 365 Filtering Policies using the `/networkAccess/filteringPoli
 The following client `application` permissions are needed in order to use this resource:
 
 **Required:**
-- `Policy.ReadWrite.ConditionalAccess`
-- `Policy.Read.All`
+- `NetworkAccess.Read.All`
+- `NetworkAccess.ReadWrite.All`
 
 **Optional:**
 - `None` `[N/A]`

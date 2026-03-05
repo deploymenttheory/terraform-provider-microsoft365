@@ -22,8 +22,10 @@ Manages authentication strength policies in Microsoft Entra ID using the `/ident
 The following client `application` permissions are needed in order to use this resource:
 
 **Required:**
-- `Policy.ReadWrite.ConditionalAccess`
 - `Policy.Read.All`
+- `Policy.Read.AuthenticationMethod`
+- `Policy.ReadWrite.AuthenticationMethod`
+- `Policy.ReadWrite.ConditionalAccess`
 
 **Optional:**
 - `None` `[N/A]`

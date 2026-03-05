@@ -22,13 +22,19 @@ Manages an Agent Identity Blueprint in Microsoft Entra ID using the `/applicatio
 The following client `application` permissions are needed in order to use this resource:
 
 **Required:**
+- `AgentIdUser.ReadWrite.All`
+- `AgentIdentityBlueprint.AddRemoveCreds.All`
+- `AgentIdentityBlueprint.DeleteRestore.All`
 - `AgentIdentityBlueprint.Read.All`
 - `AgentIdentityBlueprint.ReadWrite.All`
-- `AgentIdentityBlueprint.Create`
-- `AgentIdentityBlueprint.AddRemoveCreds.All`
+- `AgentIdentityBlueprint.UpdateAuthProperties.All`
 - `AgentIdentityBlueprint.UpdateBranding.All`
+- `AgentIdentityBlueprintPrincipal.ReadWrite.All`
+- `Application.Read.All`
+- `Application.ReadWrite.All`
 - `Directory.Read.All`
-- `Directory.ReadWrite.All`
+- `User.Read.All`
+- `User.ReadBasic.All`
 
 **Optional:**
 - `None` `[N/A]`

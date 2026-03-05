@@ -22,8 +22,10 @@ Manages device enrollment notification configurations using the `/deviceManageme
 The following client `application` permissions are needed in order to use this resource:
 
 **Required:**
-- `DeviceManagementConfiguration.ReadWrite.All`
 - `DeviceManagementConfiguration.Read.All`
+- `DeviceManagementConfiguration.ReadWrite.All`
+- `DeviceManagementServiceConfig.Read.All`
+- `DeviceManagementServiceConfig.ReadWrite.All`
 
 **Optional:**
 - `None` `[N/A]`

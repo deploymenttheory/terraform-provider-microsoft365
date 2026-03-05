@@ -21,6 +21,7 @@ Manages the singleton Cloud PC organization settings for a tenant.
 The following client `application` permissions are needed in order to use this resource:
 
 **Required:**
+- `CloudPC.Read.All`
 - `CloudPC.ReadWrite.All`
 
 **Optional:**

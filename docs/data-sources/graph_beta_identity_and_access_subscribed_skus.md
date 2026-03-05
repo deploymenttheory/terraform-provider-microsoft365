@@ -14,9 +14,7 @@ Retrieves Microsoft 365 license SKUs from Microsoft Entra ID using the `/subscri
 The following client `application` permissions are needed in order to use this data source:
 
 **Required:**
-- `LicenseAssignment.Read.All`
 - `Directory.Read.All`
-- `Organization.Read.All`
 
 **Optional:**
 - `None` `[N/A]`

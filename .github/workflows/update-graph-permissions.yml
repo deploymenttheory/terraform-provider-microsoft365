@@ -1,0 +1,212 @@
+name: maintenance | Update Graph API Permissions
+
+permissions:
+  contents: write
+  pull-requests: write
+
+on:
+  schedule:
+    # Run weekly: Every Monday at 3 AM UTC
+    - cron: '0 3 * * 1'
+  workflow_dispatch:
+    inputs:
+      create_pr:
+        description: 'Create a pull request for changes (true) or commit directly to branch (false)'
+        required: false
+        type: boolean
+        default: true
+      refresh_metadata:
+        description: 'Force re-download of Graph command metadata cache'
+        required: false
+        type: boolean
+        default: false
+      domain:
+        description: 'Limit to a specific service domain (e.g. device_management). Leave empty for all domains.'
+        required: false
+        type: string
+        default: ''
+      category:
+        description: 'Limit to a specific service category (actions, datasources, ephemerals, list-resources, resources). Leave empty for all.'
+        required: false
+        type: string
+        default: ''
+
+jobs:
+  update-graph-permissions:
+    name: '🔐 Update Graph API Permissions'
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 30
+
+    env:
+      M365_TENANT_ID: ${{ secrets.M365_TENANT_ID }}
+      M365_CLIENT_ID: ${{ secrets.M365_CLIENT_ID }}
+      M365_CLIENT_SECRET: ${{ secrets.M365_CLIENT_SECRET }}
+      M365_AUTH_METHOD: client_secret
+      M365_CLOUD: public
+
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@a90bcbc6539c36a85cdfeb73f7e2f433735f215b # v2.15.0
+        with:
+          egress-policy: audit
+
+      - name: Check Out
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
+        with:
+          python-version: '3.11'
+
+      - name: Install Dependencies
+        run: pip install -r scripts/pipeline/permissions/requirements.txt
+
+      - name: Build Pipeline Arguments
+        id: build_args
+        run: |
+          PIPELINE_ARGS="--apply"
+
+          if [ "${{ github.event.inputs.refresh_metadata }}" == "true" ]; then
+            PIPELINE_ARGS="$PIPELINE_ARGS --refresh-metadata"
+          fi
+
+          if [ -n "${{ github.event.inputs.domain }}" ]; then
+            PIPELINE_ARGS="$PIPELINE_ARGS --domain ${{ github.event.inputs.domain }}"
+          fi
+
+          if [ -n "${{ github.event.inputs.category }}" ]; then
+            PIPELINE_ARGS="$PIPELINE_ARGS --category ${{ github.event.inputs.category }}"
+          fi
+
+          echo "PIPELINE_ARGS=$PIPELINE_ARGS" >> $GITHUB_ENV
+          echo "args=$PIPELINE_ARGS" >> $GITHUB_OUTPUT
+
+      - name: Update Go Service Constructor Permissions
+        id: update_go
+        run: |
+          # shellcheck disable=SC2086
+          python3 scripts/pipeline/permissions/update_graph_service_permissions.py $PIPELINE_ARGS
+
+      - name: Update Documentation Template Permissions
+        id: update_templates
+        run: |
+          # shellcheck disable=SC2086
+          python3 scripts/pipeline/permissions/update_graph_service_permission_doc_templates.py $PIPELINE_ARGS
+
+      - name: Detect Changes
+        id: detect_changes
+        run: |
+          GO_CHANGED=$(git diff --name-only internal/services/ | wc -l | tr -d ' ')
+          TMPL_CHANGED=$(git diff --name-only templates/ | wc -l | tr -d ' ')
+          TOTAL=$((GO_CHANGED + TMPL_CHANGED))
+
+          echo "go_files=$GO_CHANGED" >> $GITHUB_OUTPUT
+          echo "template_files=$TMPL_CHANGED" >> $GITHUB_OUTPUT
+          echo "total_files=$TOTAL" >> $GITHUB_OUTPUT
+
+          if [ "$TOTAL" -gt 0 ]; then
+            echo "changes_detected=true" >> $GITHUB_OUTPUT
+            echo "Changes detected: $GO_CHANGED Go files, $TMPL_CHANGED template files"
+          else
+            echo "changes_detected=false" >> $GITHUB_OUTPUT
+            echo "No changes detected — permissions are already up to date"
+          fi
+
+      - name: Create Pull Request
+        if: steps.detect_changes.outputs.changes_detected == 'true' && (github.event_name == 'schedule' || github.event.inputs.create_pr == 'true')
+        uses: peter-evans/create-pull-request@c0f553fe549906ede9cf27b5156039d195d2ece0 # v8.1.0
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: |
+            chore: update Graph API permissions via automated pipeline
+
+            - Go service constructor files updated: ${{ steps.detect_changes.outputs.go_files }}
+            - Terraform documentation templates updated: ${{ steps.detect_changes.outputs.template_files }}
+
+            Permissions derived from Microsoft Graph command metadata (msgraph-sdk-powershell).
+          branch: automated/update-graph-permissions
+          delete-branch: true
+          title: 'chore: update Graph API permissions'
+          body: |
+            ## 🔐 Automated Graph API Permissions Update
+
+            This PR updates Microsoft Graph API permission declarations across the provider,
+            generated by the automated permissions pipeline.
+
+            ### 📊 Changes
+
+            | Target | Files Updated |
+            |--------|--------------|
+            | Go service constructors (`internal/services/`) | ${{ steps.detect_changes.outputs.go_files }} |
+            | Terraform doc templates (`templates/`) | ${{ steps.detect_changes.outputs.template_files }} |
+
+            ### 🔄 Pipeline Steps
+
+            1. **Metadata**: Downloaded Graph command metadata from `msgraph-sdk-powershell`
+            2. **Go constructors**: Updated `ReadPermissions` / `WritePermissions` fields in `New*()` functions
+            3. **Doc templates**: Synchronised `**Required:**` blocks in `.md.tmpl` files
+
+            ### ✅ Review Checklist
+
+            - [ ] Review `ReadPermissions` changes — verify correct least-privilege scopes
+            - [ ] Review `WritePermissions` changes — confirm write-capable permissions only
+            - [ ] Check for manually-curated permissions that may need restoring (metadata gaps)
+            - [ ] Verify template `**Required:**` sections reflect the union of Read + Write permissions
+
+            ---
+            *Generated by the [Update Graph API Permissions](.github/workflows/update-graph-permissions.yml) workflow.*
+          labels: |
+            automated
+            permissions
+            maintenance
+
+      - name: Commit Changes Directly
+        if: steps.detect_changes.outputs.changes_detected == 'true' && github.event_name == 'workflow_dispatch' && github.event.inputs.create_pr == 'false'
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add internal/services/ templates/
+          git commit -m "chore: update Graph API permissions via automated pipeline
+
+          - Go service constructor files updated: ${{ steps.detect_changes.outputs.go_files }}
+          - Terraform documentation templates updated: ${{ steps.detect_changes.outputs.template_files }}
+
+          Permissions derived from Microsoft Graph command metadata (msgraph-sdk-powershell)."
+          git push
+
+      - name: Summary
+        if: always()
+        run: |
+          echo "## 🔐 Graph API Permissions Update Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          if [ "${{ steps.detect_changes.outputs.changes_detected }}" == "true" ]; then
+            echo "✅ **Changes Detected and Applied**" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "| Target | Files Updated |" >> $GITHUB_STEP_SUMMARY
+            echo "|--------|--------------|" >> $GITHUB_STEP_SUMMARY
+            echo "| Go service constructors | ${{ steps.detect_changes.outputs.go_files }} |" >> $GITHUB_STEP_SUMMARY
+            echo "| Terraform doc templates | ${{ steps.detect_changes.outputs.template_files }} |" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+
+            if [ "${{ github.event_name }}" == "schedule" ] || [ "${{ github.event.inputs.create_pr }}" == "true" ]; then
+              echo "📝 A pull request has been created for review." >> $GITHUB_STEP_SUMMARY
+            else
+              echo "✅ Changes have been committed directly to the branch." >> $GITHUB_STEP_SUMMARY
+            fi
+          else
+            echo "ℹ️ **No Changes Detected**" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "All permission declarations are already up to date." >> $GITHUB_STEP_SUMMARY
+          fi
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### ⚙️ Pipeline Configuration" >> $GITHUB_STEP_SUMMARY
+          echo "| Setting | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|---------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Trigger | \`${{ github.event_name }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| Domain filter | \`${{ github.event.inputs.domain || 'all' }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| Category filter | \`${{ github.event.inputs.category || 'all' }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| Metadata refresh | \`${{ github.event.inputs.refresh_metadata || 'false' }}\` |" >> $GITHUB_STEP_SUMMARY

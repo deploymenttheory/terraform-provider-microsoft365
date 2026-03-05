@@ -19,8 +19,7 @@ Retrieves Windows platform scripts from Microsoft Intune using the `/deviceManag
 The following client `application` permissions are needed in order to use this data source:
 
 **Required:**
-- `DeviceManagementManagedDevices.Read.All`
-- `DeviceManagementManagedDevices.ReadWrite.All`
+- `DeviceManagementConfiguration.Read.All`
 
 **Optional:**
 - `None` `[N/A]`

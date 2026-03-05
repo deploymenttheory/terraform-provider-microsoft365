@@ -20,8 +20,10 @@ Manages the assignment of a Microsoft 365 group to the tenant's group lifecycle 
 The following client `application` permissions are needed in order to use this resource:
 
 **Required:**
-- `Group.ReadWrite.All`
+- `Directory.Read.All`
 - `Directory.ReadWrite.All`
+- `Group.Read.All`
+- `GroupMember.Read.All`
 
 **Optional:**
 - `None` `[N/A]`

@@ -20,7 +20,10 @@ Manages Android managed mobile apps in Microsoft Intune Android managed app prot
 The following client `application` permissions are needed in order to use this resource:
 
 **Required:**
+- `DeviceManagementApps.Read.All`
 - `DeviceManagementApps.ReadWrite.All`
+- `DeviceManagementConfiguration.Read.All`
+- `DeviceManagementConfiguration.ReadWrite.All`
 
 **Optional:**
 - `None` `[N/A]`

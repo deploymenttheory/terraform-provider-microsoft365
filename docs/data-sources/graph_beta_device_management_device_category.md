@@ -19,8 +19,8 @@ Retrieves device categories from Microsoft Intune using the `/deviceManagement/d
 The following client `application` permissions are needed in order to use this data source:
 
 **Required:**
+- `DeviceManagementConfiguration.Read.All`
 - `DeviceManagementManagedDevices.Read.All`
-- `DeviceManagementManagedDevices.ReadWrite.All`
 
 **Optional:**
 - `None` `[N/A]`

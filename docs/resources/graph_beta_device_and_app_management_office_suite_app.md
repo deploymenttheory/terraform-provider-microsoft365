@@ -24,6 +24,7 @@ Manages Microsoft 365 Apps (Office Suite) applications using the `/deviceAppMana
 The following client `application` permissions are needed in order to use this resource:
 
 **Required:**
+- `DeviceManagementApps.Read.All`
 - `DeviceManagementApps.ReadWrite.All`
 
 **Optional:**

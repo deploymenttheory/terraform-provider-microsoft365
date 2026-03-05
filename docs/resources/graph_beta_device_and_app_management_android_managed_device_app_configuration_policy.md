@@ -23,7 +23,7 @@ Manages Android managed store app configurations using the `/deviceAppManagement
 The following client `application` permissions are needed in order to use this resource:
 
 **Required:**
-- `DeviceManagementConfiguration.ReadWrite.All`
+- `DeviceManagementApps.Read.All`
 - `DeviceManagementApps.ReadWrite.All`
 
 **Optional:**

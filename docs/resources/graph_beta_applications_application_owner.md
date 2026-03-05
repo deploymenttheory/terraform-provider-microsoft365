@@ -24,9 +24,11 @@ The following client `application` permissions are needed in order to use this r
 
 **Required:**
 - `Application.Read.All`
-- `Directory.Read.All`
 - `Application.ReadWrite.All`
+- `Directory.Read.All`
 - `Directory.ReadWrite.All`
+- `User.Read.All`
+- `User.ReadBasic.All`
 
 **Optional:**
 - `Application.ReadWrite.OwnedBy` (if managing only applications owned by the service principal)

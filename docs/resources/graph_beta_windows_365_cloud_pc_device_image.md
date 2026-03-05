@@ -23,6 +23,7 @@ Manages Windows 365 Cloud PC device images using the `/deviceManagement/virtualE
 The following client `application` permissions are needed in order to use this resource:
 
 **Required:**
+- `CloudPC.Read.All`
 - `CloudPC.ReadWrite.All`
 
 **Optional:**

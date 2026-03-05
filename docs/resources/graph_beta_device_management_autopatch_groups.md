@@ -23,7 +23,7 @@ ResourcePath: "/device/v2/autopatchGroups"
 The following client `application` permissions are needed in order to use this resource:
 
 **Required:**
-- `TBC`
+- `WindowsUpdates.ReadWrite.All`
 
 **Optional:**
 - `None` `[N/A]`

@@ -22,7 +22,7 @@ Manages group lifecycle policies for Microsoft 365 groups using the `/groupLifec
 The following client `application` permissions are needed in order to use this resource:
 
 **Required:**
-- `Group.ReadWrite.All`
+- `Directory.Read.All`
 - `Directory.ReadWrite.All`
 
 **Optional:**

@@ -22,7 +22,10 @@ Manages policy sets using the `/deviceAppManagement/policySets` endpoint. This r
 The following client `application` permissions are needed in order to use this resource:
 
 **Required:**
-- `DeviceManagementRBAC.ReadWrite.All`
+- `DeviceManagementApps.Read.All`
+- `DeviceManagementConfiguration.Read.All`
+- `DeviceManagementConfiguration.ReadWrite.All`
+- `DeviceManagementServiceConfig.Read.All`
 
 **Optional:**
 - `None` `[N/A]`

@@ -29,6 +29,7 @@ The following client `application` permissions are needed in order to use this l
 
 **Required:**
 - `DeviceManagementConfiguration.Read.All`
+- `DeviceManagementManagedDevices.Read.All`
 
 **Optional:**
 - `None` `[N/A]`

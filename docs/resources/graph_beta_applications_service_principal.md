@@ -26,8 +26,8 @@ The following client `application` permissions are needed in order to use this r
 
 **Required:**
 - `Application.Read.All`
-- `Directory.Read.All`
 - `Application.ReadWrite.All`
+- `Directory.Read.All`
 - `Directory.ReadWrite.All`
 
 **Optional:**

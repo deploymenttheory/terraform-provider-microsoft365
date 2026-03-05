@@ -20,6 +20,9 @@ Manages role assignments using the `/deviceManagement/roleAssignments` endpoint.
 The following client `application` permissions are needed in order to use this resource:
 
 **Required:**
+- `DeviceManagementConfiguration.Read.All`
+- `DeviceManagementConfiguration.ReadWrite.All`
+- `DeviceManagementRBAC.Read.All`
 - `DeviceManagementRBAC.ReadWrite.All`
 
 **Optional:**

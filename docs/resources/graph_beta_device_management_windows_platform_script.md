@@ -20,7 +20,10 @@ Manages Windows PowerShell scripts in Microsoft Intune using the `/deviceManagem
 The following client `application` permissions are needed in order to use this resource:
 
 **Required:**
+- `DeviceManagementConfiguration.Read.All`
 - `DeviceManagementConfiguration.ReadWrite.All`
+- `DeviceManagementManagedDevices.ReadWrite.All`
+- `DeviceManagementScripts.ReadWrite.All`
 
 **Optional:**
 - `None` `[N/A]`

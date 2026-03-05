@@ -21,8 +21,17 @@ Manages a service principal for an Agent Identity Blueprint using the `/serviceP
 The following client `application` permissions are needed in order to use this resource:
 
 **Required:**
+- `AgentIdentity.Create.All`
+- `AgentIdentity.DeleteRestore.All`
+- `AgentIdentity.EnableDisable.All`
+- `AgentIdentity.Read.All`
+- `AgentIdentity.ReadWrite.All`
+- `AgentIdentityBlueprintPrincipal.DeleteRestore.All`
+- `AgentIdentityBlueprintPrincipal.EnableDisable.All`
 - `AgentIdentityBlueprintPrincipal.Read.All`
-- `AgentIdentityBlueprintPrincipal.ReadWrite.All`
+- `Application.Read.All`
+- `Application.ReadWrite.All`
+- `Directory.Read.All`
 - `Directory.ReadWrite.All`
 
 **Optional:**

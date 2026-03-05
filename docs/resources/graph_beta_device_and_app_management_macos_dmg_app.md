@@ -19,6 +19,7 @@ Manages a macOS DMG (Apple Disk Image) app deployment in Microsoft Intune using 
 The following client `application` permissions are needed in order to use this resource:
 
 **Required:**
+- `DeviceManagementApps.Read.All`
 - `DeviceManagementApps.ReadWrite.All`
 
 **Optional:**

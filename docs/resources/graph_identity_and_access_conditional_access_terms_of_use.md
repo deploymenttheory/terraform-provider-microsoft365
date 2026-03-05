@@ -21,8 +21,8 @@ Manages Microsoft 365 Terms of Use Agreements using the `/agreements` endpoint. 
 The following client `application` permissions are needed in order to use this resource:
 
 **Required:**
-- `DeviceManagementConfiguration.Read.All`
-- `DeviceManagementConfiguration.ReadWrite.All`
+- `Agreement.Read.All`
+- `Agreement.ReadWrite.All`
 
 **Optional:**
 - `None` `[N/A]`

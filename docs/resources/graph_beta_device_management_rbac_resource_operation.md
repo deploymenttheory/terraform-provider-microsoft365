@@ -20,6 +20,9 @@ Manages resource operations using the `/deviceManagement/RBACResourceOperations`
 The following client `application` permissions are needed in order to use this resource:
 
 **Required:**
+- `DeviceManagementConfiguration.Read.All`
+- `DeviceManagementConfiguration.ReadWrite.All`
+- `DeviceManagementRBAC.Read.All`
 - `DeviceManagementRBAC.ReadWrite.All`
 
 **Optional:**

@@ -20,6 +20,7 @@ Manages Operation Approval Policies in Microsoft Intune.
 The following client `application` permissions are needed in order to use this resource:
 
 **Required:**
+- `DeviceManagementRBAC.Read.All`
 - `DeviceManagementRBAC.ReadWrite.All`
 
 **Optional:**

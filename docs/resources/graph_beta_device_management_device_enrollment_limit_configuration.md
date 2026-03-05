@@ -24,6 +24,9 @@ Manages device enrollment limit configurations using the `/deviceManagement/devi
 The following client `application` permissions are needed in order to use this resource:
 
 **Required:**
+- `DeviceManagementConfiguration.Read.All`
+- `DeviceManagementConfiguration.ReadWrite.All`
+- `DeviceManagementServiceConfig.Read.All`
 - `DeviceManagementServiceConfig.ReadWrite.All`
 
 **Optional:**

@@ -28,11 +28,17 @@ For more information, see the [Agent Identity documentation](https://learn.micro
 The following client `application` permissions are needed in order to use this resource:
 
 **Required:**
-- `AgentInstance.Read.All`
-- `Directory.Read.All`
-- `AgentInstance.ReadWrite.All`
-- `Directory.ReadWrite.All`
 - `AgentIdentity.DeleteRestore.All`
+- `AgentIdentity.EnableDisable.All`
+- `AgentIdentity.Read.All`
+- `AgentIdentity.ReadWrite.All`
+- `AgentIdentityBlueprintPrincipal.DeleteRestore.All`
+- `AgentIdentityBlueprintPrincipal.EnableDisable.All`
+- `AgentIdentityBlueprintPrincipal.Read.All`
+- `Application.Read.All`
+- `Application.ReadWrite.All`
+- `Directory.Read.All`
+- `Directory.ReadWrite.All`
 
 **Optional:**
 - `None` `[N/A]`

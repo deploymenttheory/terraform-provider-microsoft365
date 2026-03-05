@@ -20,6 +20,7 @@ Retrieves directory role definitions from Microsoft Entra ID using the `/roleMan
 The following client `application` permissions are needed in order to use this data source:
 
 **Required:**
+- `Directory.Read.All`
 - `RoleManagement.Read.All`
 
 **Optional:**

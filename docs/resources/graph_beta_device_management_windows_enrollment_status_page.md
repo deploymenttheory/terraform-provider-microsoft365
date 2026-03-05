@@ -16,7 +16,11 @@ Manages a Windows 10 Enrollment Status Page configuration in Microsoft Intune. U
 The following client `application` permissions are needed in order to use this resource:
 
 **Required:**
+- `DeviceManagementApps.Read.All`
+- `DeviceManagementConfiguration.Read.All`
 - `DeviceManagementConfiguration.ReadWrite.All`
+- `DeviceManagementServiceConfig.Read.All`
+- `DeviceManagementServiceConfig.ReadWrite.All`
 
 **Optional:**
 - `None` `[N/A]`

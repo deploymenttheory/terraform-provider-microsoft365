@@ -19,8 +19,8 @@ Retrieves role scope tags from Microsoft Intune using the `/deviceManagement/rol
 The following client `application` permissions are needed in order to use this data source:
 
 **Required:**
+- `DeviceManagementConfiguration.Read.All`
 - `DeviceManagementRBAC.Read.All`
-- `DeviceManagementRBAC.ReadWrite.All`
 
 **Optional:**
 - `None` `[N/A]`

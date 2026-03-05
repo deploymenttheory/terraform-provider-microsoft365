@@ -19,6 +19,9 @@ Manages Windows Backup and Restore device enrollment configuration using the `/d
 The following client `application` permissions are needed in order to use this resource:
 
 **Required:**
+- `DeviceManagementConfiguration.Read.All`
+- `DeviceManagementConfiguration.ReadWrite.All`
+- `DeviceManagementServiceConfig.Read.All`
 - `DeviceManagementServiceConfig.ReadWrite.All`
 
 **Optional:**

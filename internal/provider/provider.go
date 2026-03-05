@@ -31,6 +31,10 @@ func (p *M365Provider) Metadata(ctx context.Context, req provider.MetadataReques
 
 func (p *M365Provider) Schema(ctx context.Context, req provider.SchemaRequest, resp *provider.SchemaResponse) {
 	resp.Schema = schema.Schema{
+		Description: "This terraform plugin provides the community Terraform Provider for Microsoft 365, leveraging " +
+			"the Microsoft Graph API (v1.0 and beta) to enable Configuration as Code for Microsoft 365 environments. With this provider, " +
+			"you can automate the provisioning, management, and configuration of services such as Entra ID, Intune, " +
+			"Microsoft Teams, Microsoft Defender, and other aspects of M365.",
 		Attributes: map[string]schema.Attribute{
 			"cloud": schema.StringAttribute{
 				Optional: true,
@@ -77,7 +81,7 @@ func (p *M365Provider) Schema(ctx context.Context, req provider.SchemaRequest, r
 				MarkdownDescription: "The authentication method to use for the Entra ID application to authenticate the provider. " +
 					"Options:\n" +
 					"- `azure_developer_cli`: Uses the identity logged into the Azure Developer CLI (azd) for authentication. Ideal for local Terraform development when you're already authenticated with azd.\n" +
-					"- `azure_cli`: Uses the identity logged into the Azure CLI (az) for authentication. Ideal for using Service Account.\n" +
+					"- `azure_cli`: Uses the identity logged into the Azure CLI (az) for authentication. Ideal for using a Service Account.\n" +
 					"- `device_code`: Uses a device code flow for authentication.\n" +
 					"- `client_secret`: Uses a client ID and secret for authentication.\n" +
 					"- `client_certificate`: Uses a client certificate (.pfx) for authentication.\n" +

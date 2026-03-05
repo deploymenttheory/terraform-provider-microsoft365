@@ -47,10 +47,13 @@ Manages Azure AD/Entra group member assignments using the `/groups/{group-id}/me
 The following client `application` permissions are needed in order to use this resource:
 
 **Required:**
-- `GroupMember.ReadWrite.All`
-- `Directory.ReadWrite.All`
-- `Device.ReadWrite.All`
 - `Application.ReadWrite.All`
+- `Device.ReadWrite.All`
+- `Directory.Read.All`
+- `Directory.ReadWrite.All`
+- `Group.Read.All`
+- `GroupMember.Read.All`
+- `GroupMember.ReadWrite.All`
 - `OrgContact.Read.All`
 - `RoleManagement.ReadWrite.Directory`
 

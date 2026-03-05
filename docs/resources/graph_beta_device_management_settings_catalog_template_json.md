@@ -20,6 +20,7 @@ Manages a Settings Catalog policy template in Microsoft Intune for `Windows`, `m
 The following client `application` permissions are needed in order to use this resource:
 
 **Required:**
+- `DeviceManagementConfiguration.Read.All`
 - `DeviceManagementConfiguration.ReadWrite.All`
 
 **Optional:**

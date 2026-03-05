@@ -28,11 +28,15 @@ The identifier URI is used to uniquely identify the agent identity blueprint and
 The following client `application` permissions are needed in order to use this resource:
 
 **Required:**
+- `AgentIdentityBlueprint.AddRemoveCreds.All`
 - `AgentIdentityBlueprint.Read.All`
-- `Application.Read.All`
-- `Directory.Read.All`
 - `AgentIdentityBlueprint.ReadWrite.All`
-- `Directory.ReadWrite.All`
+- `AgentIdentityBlueprint.UpdateAuthProperties.All`
+- `AgentIdentityBlueprint.UpdateBranding.All`
+- `AgentIdentityBlueprintPrincipal.ReadWrite.All`
+- `Application.Read.All`
+- `Application.ReadWrite.All`
+- `Directory.Read.All`
 
 **Optional:**
 - `None` `[N/A]`
