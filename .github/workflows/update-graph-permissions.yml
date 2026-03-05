@@ -66,34 +66,49 @@ jobs:
       - name: Build Pipeline Arguments
         id: build_args
         run: |
-          PIPELINE_ARGS="--apply"
+          # GO_ARGS: forwarded to update_graph_service_permissions.py.
+          # Supports --refresh-metadata (re-downloads Graph command metadata from GitHub).
+          GO_ARGS="--apply"
 
           if [ "${{ github.event.inputs.refresh_metadata }}" == "true" ]; then
-            PIPELINE_ARGS="$PIPELINE_ARGS --refresh-metadata"
+            GO_ARGS="$GO_ARGS --refresh-metadata"
           fi
 
           if [ -n "${{ github.event.inputs.domain }}" ]; then
-            PIPELINE_ARGS="$PIPELINE_ARGS --domain ${{ github.event.inputs.domain }}"
+            GO_ARGS="$GO_ARGS --domain ${{ github.event.inputs.domain }}"
           fi
 
           if [ -n "${{ github.event.inputs.category }}" ]; then
-            PIPELINE_ARGS="$PIPELINE_ARGS --category ${{ github.event.inputs.category }}"
+            GO_ARGS="$GO_ARGS --category ${{ github.event.inputs.category }}"
           fi
 
-          echo "PIPELINE_ARGS=$PIPELINE_ARGS" >> $GITHUB_ENV
-          echo "args=$PIPELINE_ARGS" >> $GITHUB_OUTPUT
+          # TEMPLATE_ARGS: forwarded to update_graph_service_permission_doc_templates.py.
+          # Does NOT include --refresh-metadata — the template script reads from Go source
+          # files only and does not download any metadata.
+          TEMPLATE_ARGS="--apply"
+
+          if [ -n "${{ github.event.inputs.domain }}" ]; then
+            TEMPLATE_ARGS="$TEMPLATE_ARGS --domain ${{ github.event.inputs.domain }}"
+          fi
+
+          if [ -n "${{ github.event.inputs.category }}" ]; then
+            TEMPLATE_ARGS="$TEMPLATE_ARGS --category ${{ github.event.inputs.category }}"
+          fi
+
+          echo "GO_ARGS=$GO_ARGS" >> $GITHUB_ENV
+          echo "TEMPLATE_ARGS=$TEMPLATE_ARGS" >> $GITHUB_ENV
 
       - name: Update Go Service Constructor Permissions
         id: update_go
         run: |
           # shellcheck disable=SC2086
-          python3 scripts/pipeline/permissions/update_graph_service_permissions.py $PIPELINE_ARGS
+          python3 scripts/pipeline/permissions/update_graph_service_permissions.py $GO_ARGS
 
       - name: Update Documentation Template Permissions
         id: update_templates
         run: |
           # shellcheck disable=SC2086
-          python3 scripts/pipeline/permissions/update_graph_service_permission_doc_templates.py $PIPELINE_ARGS
+          python3 scripts/pipeline/permissions/update_graph_service_permission_doc_templates.py $TEMPLATE_ARGS
 
       - name: Detect Changes
         id: detect_changes
