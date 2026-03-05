@@ -5,6 +5,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.47.0-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.46.0-alpha...v0.47.0-alpha) (2026-03-05)
+
+
+### Features
+
+* Support az cli for API Client ([#2493](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/2493)) ([d8a50c1](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/d8a50c10e00f5497a59bd933012771bdef9c88e5))
+* Support az cli for client ([5be2715](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/5be2715fdc555e17156332c9a94464790b18a0ff))
+
+
+### Bug Fixes
+
+* added scripts to automate the definition of permissions for all tf block types so that 403 errors and tf doc templates describe the correct permissions  ([#2513](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/2513)) ([540999e](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/540999e5f1437f0f493cdc60abb9d4b581e144bd))
+* fixed args for pipeline permissions generation ([13ac8ec](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/13ac8ec8945bc3cdf7ea11ee5c4bac644704c390))
+* fixed args for pipeline permissions generation ([#2515](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/2515)) ([190d0e4](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/190d0e4be69a478a4ca31c166af3e5599c81c4af))
+* split GO_ARGS and TEMPLATE_ARGS in update-graph-permissions workflow ([41f1c02](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/41f1c0287f37b629e0575c5098685649f7b0e1ac))
+* standardised crud logic flow ([9b31864](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/9b31864237850b165e010344bf99416e5f77c6ec))
+* standardised crud logic flow for resource group_app_role_assignment ([#2491](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/2491)) ([110fc92](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/110fc9259fe2f6afa1809e630860fbf22d4a305f))
+* Update Group resource CRUD methods to utilize new types package ([a369d2b](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/a369d2be5ed3e318518307258302d585b6083ed1))
+* Update Group resource CRUD methods to utilize new types package ([#2494](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/2494)) ([d06b976](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/d06b9766bb03aaa788e4d9ea510f20a6d58deed9))
+
 ## [0.46.0-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.45.0-alpha...v0.46.0-alpha) (2026-03-03)
 
 
