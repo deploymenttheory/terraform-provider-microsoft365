@@ -20,8 +20,8 @@ This data source allows you to list and filter managed devices in your tenant, p
 The following client `application` permissions are needed in order to use this data source:
 
 **Required:**
+- `DeviceManagementConfiguration.Read.All`
 - `DeviceManagementManagedDevices.Read.All`
-- `DeviceManagementManagedDevices.ReadWrite.All`
 
 **Optional:**
 - `None` `[N/A]`

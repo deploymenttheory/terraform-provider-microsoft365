@@ -21,6 +21,8 @@ The following client `application` permissions are needed in order to use this r
 
 **Required:**
 - `MailboxSettings.ReadWrite`
+- `User.Read.All`
+- `User.ReadBasic.All`
 
 **Optional:**
 - `None` `[N/A]`, `User.ReadWrite.All`

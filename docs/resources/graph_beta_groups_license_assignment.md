@@ -20,9 +20,12 @@ Manages a single Microsoft 365 license assignment for a group using the `/groups
 The following client `application` permissions are needed in order to use this resource:
 
 **Required:**
-- `LicenseAssignment.ReadWrite.All`
-- `Group.ReadWrite.All`
+- `Directory.Read.All`
 - `Directory.ReadWrite.All`
+- `Group.Read.All`
+- `Group.ReadWrite.All`
+- `GroupMember.Read.All`
+- `LicenseAssignment.ReadWrite.All`
 
 **Optional:**
 - `None` `[N/A]`

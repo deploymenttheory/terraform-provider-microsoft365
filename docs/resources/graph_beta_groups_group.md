@@ -21,8 +21,11 @@ Manages Azure AD/Entra groups using the `/groups` endpoint. This resource is use
 The following client `application` permissions are needed in order to use this resource:
 
 **Required:**
-- `Group.ReadWrite.All`
+- `Directory.Read.All`
 - `Directory.ReadWrite.All`
+- `Group.Read.All`
+- `Group.ReadWrite.All`
+- `GroupMember.Read.All`
 
 **Optional:**
 - `None` `[N/A]`

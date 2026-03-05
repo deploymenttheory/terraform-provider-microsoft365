@@ -16,7 +16,8 @@ Manages an Intune notification message template for compliance notifications
 The following client `application` permissions are needed in order to use this resource:
 
 **Required:**
-- `DeviceManagementConfiguration.ReadWrite.All`
+- `DeviceManagementServiceConfig.Read.All`
+- `DeviceManagementServiceConfig.ReadWrite.All`
 
 **Optional:**
 - `None` `[N/A]` , `DeviceManagementConfiguration.Read.All`

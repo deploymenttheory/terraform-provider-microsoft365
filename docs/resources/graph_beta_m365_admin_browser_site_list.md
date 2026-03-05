@@ -18,6 +18,7 @@ Manages Internet Explorer mode site lists using the `/admin/edge/internetExplore
 The following client `application` permissions are needed in order to use this resource:
 
 **Required:**
+- `BrowserSiteLists.Read.All`
 - `BrowserSiteLists.ReadWrite.All`
 
 **Optional:**

@@ -26,9 +26,11 @@ The following client `application` permissions are needed in order to use this r
 
 **Required:**
 - `AgentCollection.Read.All`
-- `AgentInstance.Read.All`
 - `AgentCollection.ReadWrite.All`
+- `AgentCollection.ReadWrite.Global`
 - `AgentCollection.ReadWrite.ManagedBy`
+- `AgentCollection.ReadWrite.Quarantined`
+- `AgentInstance.Read.All`
 
 **Optional:**
 - `AgentCollection.ReadWrite.Global` `[For Global collection]`

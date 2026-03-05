@@ -22,7 +22,10 @@ Manages a device custom attribute shell script using the `/deviceManagement/devi
 The following client `application` permissions are needed in order to use this resource:
 
 **Required:**
+- `DeviceManagementConfiguration.Read.All`
 - `DeviceManagementConfiguration.ReadWrite.All`
+- `DeviceManagementManagedDevices.Read.All`
+- `DeviceManagementManagedDevices.ReadWrite.All`
 
 **Optional:**
 - `None` `[N/A]`

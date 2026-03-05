@@ -20,6 +20,7 @@ Manages macOS Line of Business (LOB) app packages using the `/deviceAppManagemen
 The following client `application` permissions are needed in order to use this resource:
 
 **Required:**
+- `DeviceManagementApps.Read.All`
 - `DeviceManagementApps.ReadWrite.All`
 
 **Optional:**

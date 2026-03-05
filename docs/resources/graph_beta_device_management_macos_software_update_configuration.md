@@ -22,6 +22,7 @@ Manages macOS software update configurations using the `/deviceManagement/device
 The following client `application` permissions are needed in order to use this resource:
 
 **Required:**
+- `DeviceManagementConfiguration.Read.All`
 - `DeviceManagementConfiguration.ReadWrite.All`
 
 **Optional:**

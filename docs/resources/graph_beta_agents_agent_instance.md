@@ -27,12 +27,12 @@ For more information, see the [agentInstance resource type](https://learn.micros
 The following client `application` permissions are needed in order to use this resource:
 
 **Required:**
-- `AgentInstance.Read.All`
 - `AgentCardManifest.Read.All`
-- `AgentInstance.ReadWrite.All`
-- `AgentInstance.ReadWrite.ManagedBy`
 - `AgentCardManifest.ReadWrite.All`
 - `AgentCardManifest.ReadWrite.ManagedBy`
+- `AgentInstance.Read.All`
+- `AgentInstance.ReadWrite.All`
+- `AgentInstance.ReadWrite.ManagedBy`
 
 **Optional:**
 - `None` `[N/A]`

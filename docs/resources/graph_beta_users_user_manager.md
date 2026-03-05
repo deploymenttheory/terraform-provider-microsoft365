@@ -20,6 +20,10 @@ Manages the manager relationship for a user in Microsoft Entra ID using the Micr
 The following client `application` permissions are needed in order to use this resource:
 
 **Required:**
+- `AgentIdUser.ReadWrite.All`
+- `AgentIdUser.ReadWrite.IdentityParentedBy`
+- `Directory.Read.All`
+- `User.Read.All`
 - `User.ReadWrite.All`
 
 **Optional:**

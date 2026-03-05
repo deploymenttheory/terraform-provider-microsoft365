@@ -23,6 +23,7 @@ Manages Win32 applications in Microsoft Intune using the `/deviceAppManagement/m
 The following client `application` permissions are needed in order to use this resource:
 
 **Required:**
+- `DeviceManagementApps.Read.All`
 - `DeviceManagementApps.ReadWrite.All`
 
 **Optional:**

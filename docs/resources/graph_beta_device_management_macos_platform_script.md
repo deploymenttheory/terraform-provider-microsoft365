@@ -20,7 +20,10 @@ Manages macOS shell scripts using the `/deviceManagement/deviceShellScripts` end
 The following client `application` permissions are needed in order to use this resource:
 
 **Required:**
+- `DeviceManagementConfiguration.Read.All`
 - `DeviceManagementConfiguration.ReadWrite.All`
+- `DeviceManagementManagedDevices.Read.All`
+- `DeviceManagementManagedDevices.ReadWrite.All`
 
 **Optional:**
 - `None` `[N/A]`

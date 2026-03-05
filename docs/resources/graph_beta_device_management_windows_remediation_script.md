@@ -23,7 +23,10 @@ Manages Windows remediation scripts in Microsoft Intune using the `/deviceManage
 The following client `application` permissions are needed in order to use this resource:
 
 **Required:**
+- `DeviceManagementConfiguration.Read.All`
 - `DeviceManagementConfiguration.ReadWrite.All`
+- `DeviceManagementScripts.Read.All`
+- `DeviceManagementScripts.ReadWrite.All`
 
 **Optional:**
 - `None` `[N/A]`

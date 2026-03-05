@@ -58,8 +58,14 @@ Manages Azure AD/Entra group owner assignments using the `/groups/{group-id}/own
 The following client `application` permissions are needed in order to use this resource:
 
 **Required:**
-- `Group.ReadWrite.All`
+- `Application.Read.All`
+- `Directory.Read.All`
 - `Directory.ReadWrite.All`
+- `Group.Read.All`
+- `Group.ReadWrite.All`
+- `GroupMember.Read.All`
+- `User.Read.All`
+- `User.ReadBasic.All`
 
 **Optional:**
 - `None` `[N/A]`

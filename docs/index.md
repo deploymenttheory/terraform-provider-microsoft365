@@ -1,7 +1,7 @@
 ---
 page_title: "Provider: Microsoft 365"
 description: |-
-  
+  This terraform plugin provides the community Terraform Provider for Microsoft 365, leveraging the Microsoft Graph API (v1.0 and beta) to enable Configuration as Code for Microsoft 365 environments. With this provider, you can automate the provisioning, management, and configuration of services such as Entra ID, Intune, Microsoft Teams, Microsoft Defender, and other aspects of M365.
 ---
 
 # Microsoft 365 Provider
@@ -176,13 +176,13 @@ variable "tenant_id" {
 }
 
 variable "auth_method" {
-  description = "The authentication method to use for the Entra ID application to authenticate the provider. Options: 'azure_developer_cli' (uses Azure Developer CLI identity), 'device_code', 'client_secret', 'client_certificate', 'interactive_browser', 'workload_identity' (for Kubernetes pods), 'managed_identity' (for Azure resources), 'oidc' (generic OpenID Connect), 'oidc_github' (GitHub Actions-specific), 'oidc_azure_devops' (Azure DevOps-specific). Can also be set using the `M365_AUTH_METHOD` environment variable."
+  description = "The authentication method to use for the Entra ID application to authenticate the provider. Options: 'azure_developer_cli' (uses Azure Developer CLI identity), 'azure_cli' (uses Azure CLI identity), 'device_code', 'client_secret', 'client_certificate', 'interactive_browser', 'workload_identity' (for Kubernetes pods), 'managed_identity' (for Azure resources), 'oidc' (generic OpenID Connect), 'oidc_github' (GitHub Actions-specific), 'oidc_azure_devops' (Azure DevOps-specific). Can also be set using the `M365_AUTH_METHOD` environment variable."
   type        = string
   default     = "client_secret"
 
   validation {
-    condition     = contains(["azure_developer_cli", "client_secret", "client_certificate", "interactive_browser", "device_code", "workload_identity", "managed_identity", "oidc", "oidc_github", "oidc_azure_devops"], var.auth_method)
-    error_message = "The auth_method must be one of: azure_developer_cli, client_secret, client_certificate, interactive_browser, device_code, workload_identity, managed_identity, oidc, oidc_github, oidc_azure_devops."
+    condition     = contains(["azure_developer_cli", "azure_cli", "client_secret", "client_certificate", "interactive_browser", "device_code", "workload_identity", "managed_identity", "oidc", "oidc_github", "oidc_azure_devops"], var.auth_method)
+    error_message = "The auth_method must be one of: azure_developer_cli, azure_cli, client_secret, client_certificate, interactive_browser, device_code, workload_identity, managed_identity, oidc, oidc_github, oidc_azure_devops."
   }
 }
 
@@ -368,6 +368,7 @@ variable "chaos_status_message" {
 
 - `auth_method` (String) The authentication method to use for the Entra ID application to authenticate the provider. Options:
 - `azure_developer_cli`: Uses the identity logged into the Azure Developer CLI (azd) for authentication. Ideal for local Terraform development when you're already authenticated with azd.
+- `azure_cli`: Uses the identity logged into the Azure CLI (az) for authentication. Ideal for using a Service Account.
 - `device_code`: Uses a device code flow for authentication.
 - `client_secret`: Uses a client ID and secret for authentication.
 - `client_certificate`: Uses a client certificate (.pfx) for authentication.

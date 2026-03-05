@@ -22,8 +22,8 @@ Manages Windows device compliance scripts in Microsoft Intune using the `/device
 The following client `application` permissions are needed in order to use this resource:
 
 **Required:**
-- `DeviceManagementConfiguration.ReadWrite.All`
 - `DeviceManagementConfiguration.Read.All`
+- `DeviceManagementConfiguration.ReadWrite.All`
 
 **Optional:**
 - `None` `[N/A]`

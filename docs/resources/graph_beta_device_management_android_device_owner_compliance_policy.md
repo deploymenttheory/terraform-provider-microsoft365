@@ -22,6 +22,7 @@ Manages Android Device Owner compliance policies using the `/deviceManagement/de
 The following client `application` permissions are needed in order to use this resource:
 
 **Required:**
+- `DeviceManagementConfiguration.Read.All`
 - `DeviceManagementConfiguration.ReadWrite.All`
 
 **Optional:**

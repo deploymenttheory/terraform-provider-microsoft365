@@ -20,6 +20,7 @@ Manages a Windows Driver Update Profile in Microsoft Intune. This correlates to 
 The following client `application` permissions are needed in order to use this resource:
 
 **Required:**
+- `DeviceManagementConfiguration.Read.All`
 - `DeviceManagementConfiguration.ReadWrite.All`
 
 **Optional:**

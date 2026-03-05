@@ -20,7 +20,8 @@ Manages a Windows 365 Cloud PC Alert Rule using the Microsoft Graph Beta API.
 The following client `application` permissions are needed in order to use this resource:
 
 **Required:**
-- `CloudPC.ReadWrite.All`
+- `CloudPC.Read.All`
+- `DeviceManagementConfiguration.ReadWrite.All`
 
 **Optional:**
 - `None` `[N/A]`

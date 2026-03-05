@@ -27,11 +27,11 @@ Manages a password credential for an Agent Identity Blueprint using the `/applic
 The following client `application` permissions are needed in order to use this resource:
 
 **Required:**
+- `AgentIdentityBlueprint.AddRemoveCreds.All`
 - `AgentIdentityBlueprint.Read.All`
+- `AgentIdentityBlueprint.ReadWrite.All`
 - `Application.Read.All`
 - `Directory.Read.All`
-- `AgentIdentityBlueprint.AddRemoveCreds.All`
-- `AgentIdentityBlueprint.ReadWrite.All`
 - `Directory.ReadWrite.All`
 
 **Optional:**

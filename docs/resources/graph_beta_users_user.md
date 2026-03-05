@@ -21,9 +21,14 @@ Manages Microsoft 365 users using the `/users` endpoint. This resource is used t
 The following client `application` permissions are needed in order to use this resource:
 
 **Required:**
-- `User.EnableDisableAccount.All`
-- `User.ReadWrite.All`
+- `Directory.Read.All`
 - `Directory.ReadWrite.All`
+- `User.DeleteRestore.All`
+- `User.EnableDisableAccount.All`
+- `User.ManageIdentities.All`
+- `User.Read.All`
+- `User.ReadBasic.All`
+- `User.ReadWrite.All`
 
 **Optional:**
 - `None` `[N/A]`

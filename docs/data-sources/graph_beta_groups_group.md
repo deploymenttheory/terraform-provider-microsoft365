@@ -20,8 +20,9 @@ Retrieves information about a Microsoft Entra ID (Azure AD) group using the `/gr
 The following client `application` permissions are needed in order to use this data source:
 
 **Required:**
-- `Group.Read.All`
 - `Directory.Read.All`
+- `Group.Read.All`
+- `GroupMember.Read.All`
 
 **Optional:**
 - `None` `[N/A]`

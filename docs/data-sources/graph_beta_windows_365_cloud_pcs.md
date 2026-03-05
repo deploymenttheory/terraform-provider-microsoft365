@@ -21,7 +21,6 @@ The following client `application` permissions are needed in order to use this d
 
 **Required:**
 - `CloudPC.Read.All`
-- `CloudPC.ReadWrite.All`
 
 **Optional:**
 - `None` `[N/A]`

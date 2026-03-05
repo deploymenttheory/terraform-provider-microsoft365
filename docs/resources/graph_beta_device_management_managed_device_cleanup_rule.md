@@ -20,6 +20,9 @@ Manages Managed Device Cleanup Rules in Microsoft Intune. Device cleanup rules d
 The following client `application` permissions are needed in order to use this resource:
 
 **Required:**
+- `DeviceManagementConfiguration.Read.All`
+- `DeviceManagementConfiguration.ReadWrite.All`
+- `DeviceManagementManagedDevices.Read.All`
 - `DeviceManagementManagedDevices.ReadWrite.All`
 
 **Optional:**

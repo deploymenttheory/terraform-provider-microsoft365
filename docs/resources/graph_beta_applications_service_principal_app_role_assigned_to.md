@@ -32,10 +32,9 @@ For more information, see the [Microsoft Graph API documentation](https://learn.
 The following client `application` permissions are needed in order to use this resource:
 
 **Required:**
+- `AppRoleAssignment.ReadWrite.All`
 - `Application.Read.All`
 - `Directory.Read.All`
-- `Application.ReadWrite.All`
-- `AppRoleAssignment.ReadWrite.All`
 
 **Optional:**
 - `None` `[N/A]`

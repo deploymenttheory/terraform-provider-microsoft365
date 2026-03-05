@@ -23,8 +23,14 @@ Manages Conditional Access policies in Microsoft Entra ID using the `/identity/c
 The following client `application` permissions are needed in order to use this resource:
 
 **Required:**
-- `Policy.ReadWrite.ConditionalAccess`
+- `Application.Read.All`
+- `CustomSecAttributeAssignment.ReadWrite.All`
+- `Directory.Read.All`
 - `Policy.Read.All`
+- `Policy.ReadWrite.ConditionalAccess`
+- `RoleManagement.Read.All`
+- `User.Read.All`
+- `User.ReadBasic.All`
 
 **Optional:**
 - `None` `[N/A]`

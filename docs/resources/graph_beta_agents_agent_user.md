@@ -25,12 +25,15 @@ Manages Microsoft 365 users using the `/users/microsoft.graph.agentUser` endpoin
 The following client `application` permissions are needed in order to use this resource:
 
 **Required:**
-- `User.Read.All`
 - `AgentIdUser.ReadWrite.All`
 - `Directory.Read.All`
-- `AgentIdUser.ReadWrite.IdentityParentedBy`
-- `User.ReadWrite.All`
+- `Directory.ReadWrite.All`
 - `User.DeleteRestore.All`
+- `User.EnableDisableAccount.All`
+- `User.ManageIdentities.All`
+- `User.Read.All`
+- `User.ReadBasic.All`
+- `User.ReadWrite.All`
 
 **Optional:**
 - `None` `[N/A]`

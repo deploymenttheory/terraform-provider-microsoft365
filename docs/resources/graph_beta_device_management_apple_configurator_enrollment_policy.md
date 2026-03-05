@@ -19,6 +19,11 @@ Manages apple configurator enrollment policies using the `/deviceManagement/depO
 The following client `application` permissions are needed in order to use this resource:
 
 **Required:**
+- `DeviceManagementApps.Read.All`
+- `DeviceManagementConfiguration.Read.All`
+- `DeviceManagementManagedDevices.Read.All`
+- `DeviceManagementRBAC.Read.All`
+- `DeviceManagementServiceConfig.Read.All`
 - `DeviceManagementServiceConfig.ReadWrite.All`
 
 **Optional:**

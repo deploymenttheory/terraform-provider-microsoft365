@@ -20,7 +20,11 @@ Manages custom role definitions for Windows 365 using the `/roleManagement/cloud
 The following client `application` permissions are needed in order to use this resource:
 
 **Required:**
-- `RoleManagement.ReadWrite.CloudPC`
+- `CloudPC.Read.All`
+- `CloudPC.ReadWrite.All`
+- `Directory.Read.All`
+- `Directory.ReadWrite.All`
+- `RoleManagement.Read.All`
 
 **Optional:**
 - `None` `[N/A]`

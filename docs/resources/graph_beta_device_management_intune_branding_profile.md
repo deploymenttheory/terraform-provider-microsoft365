@@ -29,7 +29,8 @@ Manages an Intune branding profile resource in Intune.
 The following client `application` permissions are needed in order to use this resource:
 
 **Required:**
-- `DeviceManagementConfiguration.ReadWrite.All`
+- `DeviceManagementApps.Read.All`
+- `DeviceManagementApps.ReadWrite.All`
 
 **Optional:**
 - `None` `[N/A]`

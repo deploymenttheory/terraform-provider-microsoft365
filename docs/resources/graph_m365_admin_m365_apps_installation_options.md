@@ -20,7 +20,8 @@ Manages Microsoft 365 Apps installation options using the `/admin/microsoft365Ap
 The following client `application` permissions are needed in order to use this resource:
 
 **Required:**
-- `OrgSettings.ReadWrite.All`
+- `OrgSettings-Microsoft365Install.Read.All`
+- `OrgSettings-Microsoft365Install.ReadWrite.All`
 
 **Optional:**
 - `None` `[N/A]`

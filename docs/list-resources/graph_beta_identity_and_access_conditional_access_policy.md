@@ -29,7 +29,6 @@ The following client `application` permissions are needed in order to use this l
 
 **Required:**
 - `Policy.Read.All`
-- `Policy.Read.ConditionalAccess`
 
 **Optional:**
 - `None` `[N/A]`

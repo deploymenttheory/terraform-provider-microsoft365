@@ -22,6 +22,7 @@ Manages AOSP (Android Open Source Project) device owner compliance policies usin
 The following client `application` permissions are needed in order to use this resource:
 
 **Required:**
+- `DeviceManagementConfiguration.Read.All`
 - `DeviceManagementConfiguration.ReadWrite.All`
 
 **Optional:**

@@ -20,6 +20,7 @@ Manages Apple User Initiated Enrollment Profile Assignments in Microsoft Intune.
 The following client `application` permissions are needed in order to use this resource:
 
 **Required:**
+- `DeviceManagementServiceConfig.Read.All`
 - `DeviceManagementServiceConfig.ReadWrite.All`
 
 **Optional:**

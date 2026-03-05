@@ -22,8 +22,8 @@ Manages ios device compliance policies using the `/deviceManagement/deviceCompli
 The following client `application` permissions are needed in order to use this resource:
 
 **Required:**
-- `DeviceManagementConfiguration.ReadWrite.All`
 - `DeviceManagementConfiguration.Read.All`
+- `DeviceManagementConfiguration.ReadWrite.All`
 
 **Optional:**
 - `None` `[N/A]`
