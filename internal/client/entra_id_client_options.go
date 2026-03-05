@@ -5,12 +5,12 @@ import (
 	"fmt"
 	"math"
 	"net/http"
+	"net/url"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/cloud"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/policy"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
-	khttp "github.com/microsoft/kiota-http-go"
 	"golang.org/x/exp/rand"
 )
 
@@ -127,38 +127,36 @@ func configureAuthTimeout(ctx context.Context, clientOptions *policy.ClientOptio
 
 func configureAuthClientProxy(ctx context.Context, config *ProviderData) (*http.Client, error) {
 	if config.ClientOptions.UseProxy && config.ClientOptions.ProxyURL != "" {
-		return configureProxyHTTPClient(ctx, config.ClientOptions)
+		return configureAuthProxyHTTPClient(ctx, config.ClientOptions)
 	}
 
 	tflog.Info(ctx, "Using default HTTP client without proxy")
-	return khttp.GetDefaultClient(), nil
+	// Use a plain http.Client without Kiota middleware.
+	// Kiota's GetDefaultClient() includes middleware (compression, retry, etc.)
+	// that can interfere with Azure SDK token endpoint requests by modifying the
+	// request body, causing the grant_type parameter to be lost.
+	return &http.Client{}, nil
 }
 
-func configureProxyHTTPClient(ctx context.Context, clientOptions *ClientOptions) (*http.Client, error) {
+func configureAuthProxyHTTPClient(ctx context.Context, clientOptions *ClientOptions) (*http.Client, error) {
 	tflog.Info(ctx, "Attempting to configure proxy with URL: "+clientOptions.ProxyURL)
 
-	var httpClient *http.Client
-	var err error
+	proxyURL, err := url.Parse(clientOptions.ProxyURL)
+	if err != nil {
+		return nil, fmt.Errorf("unable to parse proxy URL: %w", err)
+	}
 
 	if clientOptions.ProxyUsername != "" && clientOptions.ProxyPassword != "" {
 		tflog.Info(ctx, "Configuring authenticated proxy")
-		httpClient, err = khttp.GetClientWithAuthenticatedProxySettings(
-			clientOptions.ProxyURL,
-			clientOptions.ProxyUsername,
-			clientOptions.ProxyPassword,
-		)
+		proxyURL.User = url.UserPassword(clientOptions.ProxyUsername, clientOptions.ProxyPassword)
 	} else {
 		tflog.Info(ctx, "Configuring unauthenticated proxy")
-		httpClient, err = khttp.GetClientWithProxySettings(
-			clientOptions.ProxyURL,
-		)
 	}
 
-	if err != nil {
-		tflog.Debug(ctx, fmt.Sprintf("Failed to create HTTP client with proxy settings: %v", err))
-		return nil, fmt.Errorf("unable to create HTTP client with proxy settings: %w", err)
+	transport := &http.Transport{
+		Proxy: http.ProxyURL(proxyURL),
 	}
 
 	tflog.Debug(ctx, "Proxy settings configured successfully")
-	return httpClient, nil
+	return &http.Client{Transport: transport}, nil
 }
