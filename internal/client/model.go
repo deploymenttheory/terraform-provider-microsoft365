@@ -34,8 +34,10 @@ type EntraIDOptions struct {
 	ClientCertificate string
 	// ClientCertificatePassword is the password for the client certificate
 	ClientCertificatePassword string
-	// Username is the username for interactive authentication
+	// Username is the username for username/password or interactive authentication
 	Username string
+	// Password is the password for username/password authentication
+	Password string
 	// RedirectUrl is the redirect URL for interactive authentication
 	RedirectUrl string
 	// FederatedTokenFilePath is the path to the federated token file

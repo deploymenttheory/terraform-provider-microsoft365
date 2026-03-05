@@ -137,6 +137,7 @@ func TestSetProviderConfiguration_ZZZ_ComprehensiveEnvVarsOverrideConfig(t *test
 		"client_certificate_password":  types.StringValue("config-cert-password"),
 		"send_certificate_chain":       types.BoolValue(false),
 		"username":                     types.StringValue("config-user@example.com"),
+		"password":                     types.StringValue("config-password"),
 		"disable_instance_discovery":   types.BoolValue(false),
 		"additionally_allowed_tenants": allowedTenantsList,
 		"redirect_url":                 types.StringValue("https://config.example.com/callback"),
@@ -305,6 +306,7 @@ func TestSetEntraIDOptions_EnvVarsAndConfig(t *testing.T) {
 		"client_certificate_password":  types.StringValue("certpass"),
 		"send_certificate_chain":       types.BoolValue(true),
 		"username":                     types.StringValue("user@example.com"),
+		"password":                     types.StringValue("user-password"),
 		"disable_instance_discovery":   types.BoolValue(true),
 		"additionally_allowed_tenants": allowedTenantsList,
 		"redirect_url":                 types.StringValue("https://example.com/callback"),
@@ -466,6 +468,7 @@ func TestSetEntraIDOptions_BooleanEnvVars(t *testing.T) {
 		"client_certificate_password":  types.StringNull(),
 		"send_certificate_chain":       types.BoolValue(false), // Should be overridden by env var
 		"username":                     types.StringNull(),
+		"password":                     types.StringNull(),
 		"disable_instance_discovery":   types.BoolValue(false), // Should be overridden by env var
 		"additionally_allowed_tenants": allowedTenantsList,
 		"redirect_url":                 types.StringNull(),

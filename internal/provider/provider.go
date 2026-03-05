@@ -90,6 +90,7 @@ func (p *M365Provider) Schema(ctx context.Context, req provider.SchemaRequest, r
 					"- `managed_identity`: Uses Azure managed identity for authentication when Terraform is running on an Azure resource (like a VM, Azure Container Instance, or App Service) that has been assigned a managed identity.\n" +
 					"- `oidc`: Uses generic OpenID Connect (OIDC) authentication with a JWT token from a file or environment variable.\n" +
 					"- `oidc_github`: Uses GitHub Actions-specific OIDC authentication, with support for subject claims that specify repositories, branches, tags, pull requests, and environments for fine-grained trust configurations.\n" +
+					"- `username_password`: Uses username and password (ROPC) flow for authentication.\n" +
 					"- `oidc_azure_devops`: Uses Azure DevOps-specific OIDC authentication with service connections, supporting federated credentials for secure pipeline-to-cloud authentication without storing secrets.\n" +
 					"Each method requires different credentials to be provided.\n" +
 					"Can also be set using the `M365_AUTH_METHOD` environment variable.",
@@ -103,6 +104,7 @@ func (p *M365Provider) Schema(ctx context.Context, req provider.SchemaRequest, r
 						"device_code",
 						"workload_identity",
 						"managed_identity",
+						"username_password",
 						"oidc",
 						"oidc_github",
 						"oidc_azure_devops",
@@ -313,9 +315,10 @@ func EntraIDOptionsSchema() map[string]schema.Attribute {
 		},
 		"username": schema.StringAttribute{
 			Optional: true,
-			MarkdownDescription: "Used for the 'username_password' authentication method.\n\n" +
-				"The username for resource owner password credentials (ROPC) flow authentication.\n\n" +
-				"**Important Security Notice:**\n" +
+			MarkdownDescription: "Used for the 'username_password' and 'interactive_browser' authentication methods.\n\n" +
+				"For `username_password`: The username for resource owner password credentials (ROPC) flow authentication.\n" +
+				"For `interactive_browser`: Used as a login hint to pre-fill the username field.\n\n" +
+				"**Important Security Notice (ROPC):**\n" +
 				"- Resource Owner Password Credentials (ROPC) is considered less secure than other authentication methods\n" +
 				"- It should only be used when other, more secure methods are not possible\n" +
 				"- Not recommended for production environments\n" +
@@ -326,10 +329,22 @@ func EntraIDOptionsSchema() map[string]schema.Attribute {
 				"**Example usage:**\n" +
 				"```hcl\n" +
 				"provider \"microsoft365\" {\n" +
-				"  username        = \"user_name\n" +
+				"  username = \"user@example.com\"\n" +
 				"}\n" +
 				"```\n\n" +
 				"Can be set using the `M365_USERNAME` environment variable.",
+		},
+		"password": schema.StringAttribute{
+			Optional:  true,
+			Sensitive: true,
+			MarkdownDescription: "Used for the 'username_password' authentication method.\n\n" +
+				"The password for resource owner password credentials (ROPC) flow authentication.\n\n" +
+				"**Important Security Notice:**\n" +
+				"- Resource Owner Password Credentials (ROPC) is considered less secure than other authentication methods\n" +
+				"- It should only be used when other, more secure methods are not possible\n" +
+				"- Not recommended for production environments\n" +
+				"- Does not support multi-factor authentication\n\n" +
+				"Can be set using the `M365_PASSWORD` environment variable.",
 		},
 		"disable_instance_discovery": schema.BoolAttribute{
 			Optional: true,

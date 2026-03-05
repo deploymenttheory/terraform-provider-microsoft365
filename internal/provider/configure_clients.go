@@ -113,6 +113,7 @@ func convertToClientProviderData(ctx context.Context, data *M365ProviderModel) *
 		ClientCertificate:          entraIDOptions.ClientCertificate.ValueString(),
 		ClientCertificatePassword:  entraIDOptions.ClientCertificatePassword.ValueString(),
 		Username:                   entraIDOptions.Username.ValueString(),
+		Password:                   entraIDOptions.Password.ValueString(),
 		RedirectUrl:                entraIDOptions.RedirectUrl.ValueString(),
 		FederatedTokenFilePath:     entraIDOptions.FederatedTokenFilePath.ValueString(),
 		ManagedIdentityClientID:    entraIDOptions.ManagedIdentityID.ValueString(),

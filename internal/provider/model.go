@@ -41,7 +41,8 @@ type EntraIDOptionsModel struct {
 	ClientCertificate          types.String `tfsdk:"client_certificate"`
 	ClientCertificatePassword  types.String `tfsdk:"client_certificate_password"`
 	SendCertificateChain       types.Bool   `tfsdk:"send_certificate_chain"`
-	Username                   types.String `tfsdk:"username"` // For Interactive Browser Credential
+	Username                   types.String `tfsdk:"username"` // For Username/Password and Interactive Browser Credential
+	Password                   types.String `tfsdk:"password"` // For Username/Password Credential
 	DisableInstanceDiscovery   types.Bool   `tfsdk:"disable_instance_discovery"`
 	AdditionallyAllowedTenants types.List   `tfsdk:"additionally_allowed_tenants"`
 	RedirectUrl                types.String `tfsdk:"redirect_url"`
