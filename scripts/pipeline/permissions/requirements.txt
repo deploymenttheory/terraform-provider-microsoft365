@@ -1,0 +1,3 @@
+httpx
+azure-identity
+msgraph-sdk
