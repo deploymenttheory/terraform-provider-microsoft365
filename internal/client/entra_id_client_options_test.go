@@ -19,15 +19,15 @@ import (
 )
 
 // TestEntraIDAuthClientCompression validates that the HTTP client used for
-// Entra ID authentication does not compress OAuth token requests, as Azure AD's
-// token endpoint does not support gzip-compressed request bodies.
+// Entra ID authentication does not compress OAuth token requests.
 //
-// This test documents the root cause of issue #777 where GitHub OIDC authentication
-// failed with AADSTS900144 error due to Kiota's compression middleware.
+// Background: Entra ID's OAuth2 token endpoint does not support gzip-compressed
+// request bodies. When compressed requests are sent, Entra ID returns AADSTS900144
+// error claiming the grant_type parameter is missing (it's present but cannot be
+// parsed from the compressed body).
+//
+// Related: GitHub issue #777
 func TestEntraIDAuthClientCompression(t *testing.T) {
-	t.Log("=== Testing Entra ID Auth Client Compression Behavior ===")
-	t.Log("Issue #777: Azure AD token endpoint rejects gzip-compressed requests")
-	t.Log("")
 
 	tests := []struct {
 		name             string
@@ -52,7 +52,7 @@ func TestEntraIDAuthClientCompression(t *testing.T) {
 			},
 			expectCompressed: true,
 			expectSuccess:    false,
-			description:      "Includes compression middleware that breaks Azure AD token requests",
+			description:      "Includes compression middleware that breaks Entra ID token requests",
 		},
 	}
 
@@ -70,7 +70,6 @@ func TestEntraIDAuthClientCompression(t *testing.T) {
 				t.Logf("Raw body length: %d bytes", len(receivedBodyRaw))
 
 				if receivedContentEncoding == "gzip" {
-					t.Log("⚠️  Request is gzip compressed")
 					reader, err := gzip.NewReader(bytes.NewReader(receivedBodyRaw))
 					if err == nil {
 						decompressed, _ := io.ReadAll(reader)
@@ -82,8 +81,6 @@ func TestEntraIDAuthClientCompression(t *testing.T) {
 						t.Logf("Failed to decompress: %v", err)
 					}
 
-					t.Log("❌ Azure AD does NOT support gzip-compressed token requests")
-					t.Log("   Simulating Azure AD rejection...")
 					w.WriteHeader(http.StatusBadRequest)
 					json.NewEncoder(w).Encode(map[string]interface{}{
 						"error":             "invalid_request",
@@ -94,13 +91,10 @@ func TestEntraIDAuthClientCompression(t *testing.T) {
 				}
 
 				receivedBody = string(receivedBodyRaw)
-				t.Logf("Uncompressed body: %s", receivedBody)
+				t.Logf("Body: %s", receivedBody)
 
 				hasGrantType := strings.Contains(receivedBody, "grant_type=")
-				t.Logf("Has grant_type: %v", hasGrantType)
-
 				if !hasGrantType {
-					t.Log("❌ grant_type parameter missing")
 					w.WriteHeader(http.StatusBadRequest)
 					json.NewEncoder(w).Encode(map[string]interface{}{
 						"error":             "invalid_request",
@@ -109,8 +103,6 @@ func TestEntraIDAuthClientCompression(t *testing.T) {
 					})
 					return
 				}
-
-				t.Log("✅ Request accepted by Azure AD")
 				w.Header().Set("Content-Type", "application/json")
 				w.WriteHeader(http.StatusOK)
 				json.NewEncoder(w).Encode(map[string]interface{}{
@@ -154,25 +146,18 @@ func TestEntraIDAuthClientCompression(t *testing.T) {
 				json.Unmarshal(responseBody, &tokenResp)
 				assert.Equal(t, "test-access-token", tokenResp["access_token"])
 			} else {
-				assert.Equal(t, http.StatusBadRequest, resp.StatusCode, "Expected Azure AD to reject compressed request")
+				assert.Equal(t, http.StatusBadRequest, resp.StatusCode, "Expected Entra ID to reject compressed request")
 				assert.Contains(t, string(responseBody), "900144", "Expected AADSTS900144 error code")
 			}
 		})
 	}
 
-	t.Log("\n" + strings.Repeat("=", 80))
-	t.Log("FINDINGS:")
-	t.Log("1. Kiota GetDefaultClient() compresses OAuth token request bodies with gzip")
-	t.Log("2. Azure AD token endpoint does NOT support gzip-compressed requests")
-	t.Log("3. This causes AADSTS900144 error (grant_type cannot be parsed)")
-	t.Log("4. Solution: Use plain http.Client OR Kiota without compression middleware")
-	t.Log(strings.Repeat("=", 80))
 }
 
 // TestEntraIDAuthClientProxy validates that proxy configuration works correctly
-// for authentication requests with both Kiota and plain http.Client approaches
+// for authentication requests. Tests both Kiota-based and plain http.Client approaches
+// to verify proxy routing and compression behavior.
 func TestEntraIDAuthClientProxy(t *testing.T) {
-	t.Log("=== Testing Proxy Support for Entra ID Auth Client ===")
 
 	var proxyHitCount atomic.Int32
 	var proxyReceivedCompression string
@@ -190,27 +175,31 @@ func TestEntraIDAuthClientProxy(t *testing.T) {
 	proxyServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		proxyHitCount.Add(1)
 		proxyReceivedCompression = r.Header.Get("Content-Encoding")
-		
+
 		t.Logf("[PROXY] Intercepted: %s %s", r.Method, r.URL.String())
 		t.Logf("[PROXY] Content-Encoding: %s", proxyReceivedCompression)
 
 		targetReq, _ := http.NewRequest(r.Method, targetServer.URL, r.Body)
 		targetReq.Header = r.Header.Clone()
-		
-		targetResp, _ := http.DefaultClient.Do(targetReq)
+
+		targetResp, err := http.DefaultClient.Do(targetReq)
+		if err != nil {
+			w.WriteHeader(http.StatusBadGateway)
+			return
+		}
 		defer targetResp.Body.Close()
-		
+
 		w.WriteHeader(targetResp.StatusCode)
 		io.Copy(w, targetResp.Body)
 	}))
 	defer proxyServer.Close()
 
 	tests := []struct {
-		name                 string
-		clientFactory        func(proxyURL string) (*http.Client, error)
-		expectProxyUsed      bool
-		expectCompression    bool
-		description          string
+		name              string
+		clientFactory     func(proxyURL string) (*http.Client, error)
+		expectProxyUsed   bool
+		expectCompression bool
+		description       string
 	}{
 		{
 			name: "Kiota GetClientWithProxySettings",
@@ -261,7 +250,7 @@ func TestEntraIDAuthClientProxy(t *testing.T) {
 			defer resp.Body.Close()
 
 			hits := proxyHitCount.Load()
-			t.Logf("\nProxy hits: %d", hits)
+			t.Logf("Proxy hits: %d", hits)
 			t.Logf("Compression: %s", proxyReceivedCompression)
 
 			if tt.expectProxyUsed {
@@ -270,25 +259,21 @@ func TestEntraIDAuthClientProxy(t *testing.T) {
 
 			if tt.expectCompression {
 				assert.Equal(t, "gzip", proxyReceivedCompression, "Expected compression")
-				t.Log("   ⚠️  Request is compressed (problematic for Azure AD)")
 			} else {
 				assert.Empty(t, proxyReceivedCompression, "Expected no compression")
-				t.Log("   ✅ Request is not compressed (compatible with Azure AD)")
 			}
 		})
 	}
 }
 
-// TestEntraIDAuthClientAuthenticatedProxy validates authenticated proxy support
+// TestEntraIDAuthClientAuthenticatedProxy validates that authenticated proxy
+// configuration is properly handled by both Kiota and plain http.Client approaches.
 func TestEntraIDAuthClientAuthenticatedProxy(t *testing.T) {
-	t.Log("=== Testing Authenticated Proxy Support ===")
 
 	const testUsername = "proxyuser"
 	const testPassword = "proxypass"
 
 	var proxyAuthHitCount atomic.Int32
-	var receivedUsername string
-	var receivedPassword string
 
 	targetServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
@@ -302,8 +287,6 @@ func TestEntraIDAuthClientAuthenticatedProxy(t *testing.T) {
 	proxyServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		username, password, ok := r.BasicAuth()
 		if ok {
-			receivedUsername = username
-			receivedPassword = password
 			t.Logf("[PROXY] Received auth - user: %s", username)
 		}
 
@@ -319,10 +302,14 @@ func TestEntraIDAuthClientAuthenticatedProxy(t *testing.T) {
 
 		targetReq, _ := http.NewRequest(r.Method, targetServer.URL, r.Body)
 		targetReq.Header = r.Header.Clone()
-		
-		targetResp, _ := http.DefaultClient.Do(targetReq)
+
+		targetResp, err := http.DefaultClient.Do(targetReq)
+		if err != nil {
+			w.WriteHeader(http.StatusBadGateway)
+			return
+		}
 		defer targetResp.Body.Close()
-		
+
 		w.WriteHeader(targetResp.StatusCode)
 		io.Copy(w, targetResp.Body)
 	}))
@@ -361,8 +348,6 @@ func TestEntraIDAuthClientAuthenticatedProxy(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			proxyAuthHitCount.Store(0)
-			receivedUsername = ""
-			receivedPassword = ""
 
 			client, err := tt.clientFactory(proxyServer.URL, testUsername, testPassword)
 			require.NoError(t, err)
@@ -376,7 +361,7 @@ func TestEntraIDAuthClientAuthenticatedProxy(t *testing.T) {
 			req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
 			resp, err := client.Do(req)
-			
+
 			t.Logf("\nAuth hits: %d", proxyAuthHitCount.Load())
 			t.Logf("Response status: %d", resp.StatusCode)
 
@@ -444,4 +429,130 @@ func TestConfigureAuthClientProxy(t *testing.T) {
 			t.Logf("Client timeout: %v", client.Timeout)
 		})
 	}
+}
+
+// TestAuthClientWithoutCompressionFix validates that configureAuthClientProxy
+// creates an HTTP client that does not compress requests while maintaining other
+// Kiota middleware features (retry, redirect, user agent).
+func TestAuthClientWithoutCompressionFix(t *testing.T) {
+	var receivedContentEncoding string
+	var receivedBody string
+
+	mockAzureAD := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		receivedContentEncoding = r.Header.Get("Content-Encoding")
+		bodyBytes, _ := io.ReadAll(r.Body)
+		receivedBody = string(bodyBytes)
+
+		if receivedContentEncoding == "gzip" {
+			w.WriteHeader(http.StatusBadRequest)
+			json.NewEncoder(w).Encode(map[string]interface{}{
+				"error":             "invalid_request",
+				"error_description": "AADSTS900144: The request body must contain the following parameter: 'grant_type'",
+			})
+			return
+		}
+
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"token_type":   "Bearer",
+			"access_token": "test-token",
+		})
+	}))
+	defer mockAzureAD.Close()
+
+	ctx := context.Background()
+	config := &ProviderData{
+		ClientOptions: &ClientOptions{
+			EnableRetry:    true,
+			MaxRetries:     3,
+			EnableRedirect: true,
+			MaxRedirects:   5,
+		},
+	}
+
+	client, err := configureAuthClientProxy(ctx, config)
+	require.NoError(t, err)
+
+	formData := url.Values{}
+	formData.Set("grant_type", "client_credentials")
+	formData.Set("client_id", "test-client")
+
+	req, err := http.NewRequestWithContext(ctx, "POST", mockAzureAD.URL, strings.NewReader(formData.Encode()))
+	require.NoError(t, err)
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+
+	resp, err := client.Do(req)
+	require.NoError(t, err)
+	defer resp.Body.Close()
+
+	assert.Empty(t, receivedContentEncoding, "Auth client should not compress requests")
+	assert.Equal(t, http.StatusOK, resp.StatusCode, "Request should succeed without compression")
+	assert.Contains(t, receivedBody, "grant_type=", "grant_type parameter should be present")
+}
+
+// TestAuthClientWithProxyWithoutCompression validates that configureAuthClientProxy
+// correctly disables compression when proxy is configured, ensuring compatibility
+// with Entra ID token endpoint while maintaining proxy functionality.
+func TestAuthClientWithProxyWithoutCompression(t *testing.T) {
+	var proxyReceivedCompression string
+	var proxyHitCount atomic.Int32
+
+	targetServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"token_type":   "Bearer",
+			"access_token": "test-token",
+		})
+	}))
+	defer targetServer.Close()
+
+	proxyServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		proxyHitCount.Add(1)
+		proxyReceivedCompression = r.Header.Get("Content-Encoding")
+
+		targetReq, _ := http.NewRequest(r.Method, targetServer.URL, r.Body)
+		targetReq.Header = r.Header.Clone()
+
+		targetResp, err := http.DefaultClient.Do(targetReq)
+		if err != nil {
+			w.WriteHeader(http.StatusBadGateway)
+			return
+		}
+		defer targetResp.Body.Close()
+
+		w.WriteHeader(targetResp.StatusCode)
+		io.Copy(w, targetResp.Body)
+	}))
+	defer proxyServer.Close()
+
+	ctx := context.Background()
+	config := &ProviderData{
+		ClientOptions: &ClientOptions{
+			UseProxy:       true,
+			ProxyURL:       proxyServer.URL,
+			EnableRetry:    true,
+			MaxRetries:     3,
+			EnableRedirect: true,
+			MaxRedirects:   5,
+		},
+	}
+
+	client, err := configureAuthClientProxy(ctx, config)
+	require.NoError(t, err)
+
+	formData := url.Values{}
+	formData.Set("grant_type", "client_credentials")
+	formData.Set("client_id", "test-client")
+
+	req, err := http.NewRequestWithContext(ctx, "POST", targetServer.URL, strings.NewReader(formData.Encode()))
+	require.NoError(t, err)
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+
+	resp, err := client.Do(req)
+	require.NoError(t, err)
+	defer resp.Body.Close()
+
+	assert.Greater(t, int(proxyHitCount.Load()), 0, "Request should route through proxy")
+	assert.Empty(t, proxyReceivedCompression, "Requests should not be compressed")
+	assert.Equal(t, http.StatusOK, resp.StatusCode, "Request should succeed")
 }
