@@ -5,6 +5,7 @@ import (
 	"compress/gzip"
 	"context"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -12,6 +13,7 @@ import (
 	"strings"
 	"sync/atomic"
 	"testing"
+	"time"
 
 	khttp "github.com/microsoft/kiota-http-go"
 	"github.com/stretchr/testify/assert"
@@ -555,4 +557,220 @@ func TestAuthClientWithProxyWithoutCompression(t *testing.T) {
 	assert.Greater(t, int(proxyHitCount.Load()), 0, "Request should route through proxy")
 	assert.Empty(t, proxyReceivedCompression, "Requests should not be compressed")
 	assert.Equal(t, http.StatusOK, resp.StatusCode, "Request should succeed")
+}
+
+// TestConfigureEntraIDClientOptions validates the main entry point function that
+// orchestrates all client option configuration.
+func TestConfigureEntraIDClientOptions(t *testing.T) {
+	tests := []struct {
+		name              string
+		authorityURL      string
+		config            *ProviderData
+		expectError       bool
+		validateTransport bool
+	}{
+		{
+			name:         "Basic configuration without proxy",
+			authorityURL: "https://login.microsoftonline.com/",
+			config: &ProviderData{
+				ClientOptions: &ClientOptions{
+					EnableRetry:      true,
+					MaxRetries:       3,
+					RetryDelaySeconds: 5,
+					EnableRedirect:   true,
+					MaxRedirects:     5,
+					TimeoutSeconds:   300,
+				},
+				TelemetryOptout: false,
+			},
+			expectError:       false,
+			validateTransport: true,
+		},
+		{
+			name:         "Configuration with custom user agent",
+			authorityURL: "https://login.microsoftonline.com/",
+			config: &ProviderData{
+				ClientOptions: &ClientOptions{
+					EnableRetry:       true,
+					MaxRetries:        3,
+					RetryDelaySeconds: 5,
+					CustomUserAgent:   "TestAgent/1.0",
+				},
+				TelemetryOptout: false,
+			},
+			expectError:       false,
+			validateTransport: true,
+		},
+		{
+			name:         "Configuration with telemetry disabled",
+			authorityURL: "https://login.microsoftonline.com/",
+			config: &ProviderData{
+				ClientOptions: &ClientOptions{
+					EnableRetry:       true,
+					MaxRetries:        3,
+					RetryDelaySeconds: 5,
+				},
+				TelemetryOptout: true,
+			},
+			expectError:       false,
+			validateTransport: true,
+		},
+		{
+			name:         "Minimal configuration",
+			authorityURL: "https://login.microsoftonline.com/",
+			config: &ProviderData{
+				ClientOptions: &ClientOptions{},
+				TelemetryOptout: false,
+			},
+			expectError:       false,
+			validateTransport: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ctx := context.Background()
+
+			clientOptions, err := ConfigureEntraIDClientOptions(ctx, tt.config, tt.authorityURL)
+
+			if tt.expectError {
+				assert.Error(t, err)
+				return
+			}
+
+			require.NoError(t, err)
+			assert.Equal(t, tt.authorityURL, clientOptions.Cloud.ActiveDirectoryAuthorityHost)
+
+			if tt.validateTransport {
+				assert.NotNil(t, clientOptions.Transport, "Transport should be configured")
+				httpClient, ok := clientOptions.Transport.(*http.Client)
+				require.True(t, ok, "Transport should be an *http.Client")
+				assert.NotNil(t, httpClient, "HTTP client should not be nil")
+
+				if tt.config.ClientOptions.TimeoutSeconds > 0 {
+					expectedTimeout := time.Duration(tt.config.ClientOptions.TimeoutSeconds) * time.Second
+					assert.Equal(t, expectedTimeout, httpClient.Timeout, "Client timeout should match config")
+				}
+			}
+		})
+	}
+}
+
+// TestGetAuthClientMiddleware validates that the middleware chain is built correctly
+// based on client options configuration.
+func TestGetAuthClientMiddleware(t *testing.T) {
+	tests := []struct {
+		name               string
+		clientOptions      *ClientOptions
+		expectedMiddleware int
+	}{
+		{
+			name: "All middleware enabled",
+			clientOptions: &ClientOptions{
+				EnableRetry:       true,
+				MaxRetries:        3,
+				RetryDelaySeconds: 5,
+				EnableRedirect:    true,
+				MaxRedirects:      5,
+				CustomUserAgent:   "TestAgent/1.0",
+			},
+			expectedMiddleware: 3,
+		},
+		{
+			name: "Only retry enabled",
+			clientOptions: &ClientOptions{
+				EnableRetry:       true,
+				MaxRetries:        3,
+				RetryDelaySeconds: 5,
+			},
+			expectedMiddleware: 1,
+		},
+		{
+			name: "Only redirect enabled",
+			clientOptions: &ClientOptions{
+				EnableRedirect: true,
+				MaxRedirects:   5,
+			},
+			expectedMiddleware: 1,
+		},
+		{
+			name: "Only user agent enabled",
+			clientOptions: &ClientOptions{
+				CustomUserAgent: "TestAgent/1.0",
+			},
+			expectedMiddleware: 1,
+		},
+		{
+			name:               "No middleware enabled (fallback to redirect)",
+			clientOptions:      &ClientOptions{},
+			expectedMiddleware: 1,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ctx := context.Background()
+			middleware := getAuthClientMiddleware(ctx, tt.clientOptions)
+			assert.Equal(t, tt.expectedMiddleware, len(middleware), "Middleware count should match expected")
+		})
+	}
+}
+
+// TestAuthClientProxyErrorHandling validates error handling in proxy configuration.
+func TestAuthClientProxyErrorHandling(t *testing.T) {
+	ctx := context.Background()
+
+	t.Run("Invalid proxy URL", func(t *testing.T) {
+		config := &ProviderData{
+			ClientOptions: &ClientOptions{
+				UseProxy: true,
+				ProxyURL: "://invalid-url",
+			},
+		}
+
+		client, err := configureAuthClientProxy(ctx, config)
+		assert.Error(t, err, "Should return error for invalid proxy URL")
+		assert.Nil(t, client, "Client should be nil on error")
+		assert.Contains(t, err.Error(), "unable to create HTTP client with proxy settings")
+	})
+}
+
+// TestAuthClientMiddlewareExcludesCompression validates that CompressionHandler
+// is never included in the auth client middleware chain, regardless of configuration.
+func TestAuthClientMiddlewareExcludesCompression(t *testing.T) {
+	ctx := context.Background()
+
+	configs := []*ClientOptions{
+		{},
+		{EnableRetry: true, MaxRetries: 3, RetryDelaySeconds: 5},
+		{EnableRedirect: true, MaxRedirects: 5},
+		{CustomUserAgent: "TestAgent/1.0"},
+		{EnableRetry: true, EnableRedirect: true, CustomUserAgent: "TestAgent/1.0"},
+	}
+
+	for i, config := range configs {
+		t.Run(fmt.Sprintf("Config_%d", i), func(t *testing.T) {
+			middleware := getAuthClientMiddleware(ctx, config)
+			
+			client := khttp.GetDefaultClient(middleware...)
+			
+			var receivedContentEncoding string
+			mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				receivedContentEncoding = r.Header.Get("Content-Encoding")
+				w.WriteHeader(http.StatusOK)
+			}))
+			defer mockServer.Close()
+
+			formData := url.Values{}
+			formData.Set("test", "data")
+			req, _ := http.NewRequestWithContext(ctx, "POST", mockServer.URL, strings.NewReader(formData.Encode()))
+			req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+
+			resp, err := client.Do(req)
+			require.NoError(t, err)
+			defer resp.Body.Close()
+
+			assert.Empty(t, receivedContentEncoding, "Compression should never be applied to auth requests")
+		})
+	}
 }

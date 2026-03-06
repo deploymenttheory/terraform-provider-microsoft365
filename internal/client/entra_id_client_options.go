@@ -182,6 +182,10 @@ func configureAuthProxyHTTPClient(ctx context.Context, clientOptions *ClientOpti
 // adding its default middleware set (which includes CompressionHandler). This ensures
 // auth requests are not gzip-compressed, as Entra ID's token endpoint does not support
 // compressed request bodies.
+//
+// IMPORTANT: This function must always return at least one middleware. If an empty array
+// is passed to khttp.GetDefaultClient(), Kiota will add its default middleware including
+// CompressionHandler, defeating the purpose of this function.
 func getAuthClientMiddleware(ctx context.Context, clientOptions *ClientOptions) []khttp.Middleware {
 	var middleware []khttp.Middleware
 
@@ -220,6 +224,11 @@ func getAuthClientMiddleware(ctx context.Context, clientOptions *ClientOptions) 
 		userAgentOptions := khttp.NewUserAgentHandlerOptions()
 		userAgentOptions.ProductName = clientOptions.CustomUserAgent
 		middleware = append(middleware, khttp.NewUserAgentHandlerWithOptions(userAgentOptions))
+	}
+
+	if len(middleware) == 0 {
+		tflog.Debug(ctx, "No optional middleware enabled, adding redirect handler to prevent default middleware")
+		middleware = append(middleware, khttp.NewRedirectHandler())
 	}
 
 	tflog.Info(ctx, "Auth client middleware configured without compression (Entra ID token endpoint does not support gzip)")
