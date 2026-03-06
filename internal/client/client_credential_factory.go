@@ -66,6 +66,8 @@ func credentialFactory(authMethod string) (CredentialStrategy, error) {
 		return &OIDCStrategy{}, nil
 	case "oidc_github":
 		return &GitHubOIDCStrategy{}, nil
+	case "username_password":
+		return &UsernamePasswordStrategy{}, nil
 	case "oidc_azure_devops":
 		return &AzureDevOpsOIDCStrategy{}, nil
 	default:
@@ -211,6 +213,26 @@ func (s *InteractiveBrowserStrategy) GetCredential(ctx context.Context, config *
 		AdditionallyAllowedTenants: config.EntraIDOptions.AdditionallyAllowedTenants,
 	}
 	return azidentity.NewInteractiveBrowserCredential(options)
+}
+
+// UsernamePasswordStrategy implements the credential strategy for username/password (ROPC) authentication
+type UsernamePasswordStrategy struct{}
+
+func (s *UsernamePasswordStrategy) GetCredential(ctx context.Context, config *ProviderData, clientOptions policy.ClientOptions) (azcore.TokenCredential, error) {
+	tflog.Info(ctx, "Creating username/password credential", map[string]any{
+		"tenant_id": config.TenantID,
+		"client_id": config.EntraIDOptions.ClientID,
+		"username":  config.EntraIDOptions.Username,
+	})
+	return azidentity.NewUsernamePasswordCredential(
+		config.TenantID,
+		config.EntraIDOptions.ClientID,
+		config.EntraIDOptions.Username,
+		config.EntraIDOptions.Password,
+		&azidentity.UsernamePasswordCredentialOptions{
+			AdditionallyAllowedTenants: config.EntraIDOptions.AdditionallyAllowedTenants,
+			DisableInstanceDiscovery:   config.EntraIDOptions.DisableInstanceDiscovery,
+		})
 }
 
 // WorkloadIdentityStrategy implements the credential strategy for workload identity authentication

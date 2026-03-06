@@ -83,6 +83,7 @@ func TestConvertToClientProviderData_ExplicitProviderBlockWithEnvVars(t *testing
 		"client_certificate_password":  types.StringNull(),
 		"send_certificate_chain":       types.BoolNull(),
 		"username":                     types.StringNull(),
+		"password":                     types.StringNull(),
 		"disable_instance_discovery":   types.BoolNull(),
 		"additionally_allowed_tenants": allowedTenantsList,
 		"redirect_url":                 types.StringNull(),
