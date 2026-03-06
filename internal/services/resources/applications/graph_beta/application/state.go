@@ -669,4 +669,3 @@ func mapSignInAudienceRestrictionsToTerraform(ctx context.Context, restrictions 
 
 	return obj
 }
-

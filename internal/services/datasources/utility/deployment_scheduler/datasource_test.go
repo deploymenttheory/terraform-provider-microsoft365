@@ -191,7 +191,7 @@ func TestUnitDatasourceDeploymentScheduler_InclusionWindow_WithinDayOfWeek(t *te
 			{
 				Config: loadUnitTestTerraform("04_inclusion_window_day_of_week.tf"),
 				Check: resource.ComposeTestCheckFunc(
-					check.That("data."+dataSourceType+".test").Key("condition_met").Exists(),
+					check.That("data." + dataSourceType + ".test").Key("condition_met").Exists(),
 
 					// Output values vary by day - verified via datasource key assertions above
 				),
@@ -258,7 +258,7 @@ func TestUnitDatasourceDeploymentScheduler_InclusionWindow_MultipleWindows(t *te
 			{
 				Config: loadUnitTestTerraform("07_inclusion_window_multiple.tf"),
 				Check: resource.ComposeTestCheckFunc(
-					check.That("data."+dataSourceType+".test").Key("condition_met").Exists(),
+					check.That("data." + dataSourceType + ".test").Key("condition_met").Exists(),
 
 					// Output values vary by day and time - verified via datasource key assertions above
 				),
@@ -283,7 +283,7 @@ func TestUnitDatasourceDeploymentScheduler_ExclusionWindow_BlockedByDayOfWeek(t 
 			{
 				Config: loadUnitTestTerraform("08_exclusion_window_day_of_week.tf"),
 				Check: resource.ComposeTestCheckFunc(
-					check.That("data."+dataSourceType+".test").Key("condition_met").Exists(),
+					check.That("data." + dataSourceType + ".test").Key("condition_met").Exists(),
 
 					// Output values vary by day - verified via datasource key assertions above
 				),
@@ -557,7 +557,7 @@ func TestUnitDatasourceDeploymentScheduler_Combination_TimeAndInclusionWindow(t 
 			{
 				Config: loadUnitTestTerraform("20_combination_time_and_inclusion.tf"),
 				Check: resource.ComposeTestCheckFunc(
-					check.That("data."+dataSourceType+".test").Key("condition_met").Exists(),
+					check.That("data." + dataSourceType + ".test").Key("condition_met").Exists(),
 
 					// Output values vary by day - verified via datasource key assertions above
 				),
@@ -578,7 +578,7 @@ func TestUnitDatasourceDeploymentScheduler_Combination_TimeAndExclusionWindow(t 
 			{
 				Config: loadUnitTestTerraform("21_combination_time_and_exclusion.tf"),
 				Check: resource.ComposeTestCheckFunc(
-					check.That("data."+dataSourceType+".test").Key("condition_met").Exists(),
+					check.That("data." + dataSourceType + ".test").Key("condition_met").Exists(),
 
 					// Output values vary by day - verified via datasource key assertions above
 				),
@@ -599,7 +599,7 @@ func TestUnitDatasourceDeploymentScheduler_Combination_AllConditions(t *testing.
 			{
 				Config: loadUnitTestTerraform("22_combination_all_conditions.tf"),
 				Check: resource.ComposeTestCheckFunc(
-					check.That("data."+dataSourceType+".test").Key("condition_met").Exists(),
+					check.That("data." + dataSourceType + ".test").Key("condition_met").Exists(),
 
 					// Output values vary by day, time, and date - verified via datasource key assertions above
 				),

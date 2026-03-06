@@ -1,0 +1,19 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#subscribedSkus",
+  "value": [
+    {
+      "capabilityStatus": "Enabled",
+      "consumedUnits": 1,
+      "id": "test-sku-id",
+      "skuId": "test-sku-id",
+      "skuPartNumber": "ENTERPRISEPREMIUM",
+      "appliesTo": "User",
+      "prepaidUnits": {
+        "enabled": 25,
+        "suspended": 0,
+        "warning": 0
+      },
+      "servicePlans": []
+    }
+  ]
+}

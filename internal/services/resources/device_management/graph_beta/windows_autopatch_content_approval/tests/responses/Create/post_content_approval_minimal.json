@@ -1,0 +1,14 @@
+{
+  "@odata.type": "#microsoft.graph.windowsUpdates.contentApproval",
+  "id": "dda4c562-3a54-d7af-3a8a-89aa38255531",
+  "createdDateTime": "2026-03-06T10:00:00Z",
+  "isRevoked": false,
+  "revokedDateTime": null,
+  "content": {
+    "@odata.type": "#microsoft.graph.windowsUpdates.catalogContent",
+    "catalogEntry": {
+      "@odata.type": "#microsoft.graph.windowsUpdates.featureUpdateCatalogEntry",
+      "id": "c1dec151-c151-c1de-51c1-dec151c1dec1"
+    }
+  }
+}

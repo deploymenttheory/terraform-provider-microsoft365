@@ -1,0 +1,10 @@
+{
+  "error": {
+    "code": "ResourceNotFound",
+    "message": "Resource not found",
+    "innerError": {
+      "request-id": "test-request-id",
+      "date": "2024-01-01T00:00:00"
+    }
+  }
+}

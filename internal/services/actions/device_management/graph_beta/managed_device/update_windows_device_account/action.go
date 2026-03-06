@@ -219,7 +219,7 @@ func (a *UpdateWindowsDeviceAccountAction) Schema(ctx context.Context, req actio
 							},
 						},
 						"device_account_email": schema.StringAttribute{
-							Required: true,
+							Required:            true,
 							MarkdownDescription: "The email address of the device account. See managed_devices.device_account_email for details.",
 							Validators: []validator.String{
 								stringvalidator.RegexMatches(
@@ -241,7 +241,7 @@ func (a *UpdateWindowsDeviceAccountAction) Schema(ctx context.Context, req actio
 							MarkdownDescription: "Whether calendar synchronization is enabled. See managed_devices.calendar_sync_enabled for details.",
 						},
 						"exchange_server": schema.StringAttribute{
-							Optional: true,
+							Optional:            true,
 							MarkdownDescription: "The Exchange server address. See managed_devices.exchange_server for details.",
 							Validators: []validator.String{
 								stringvalidator.RegexMatches(
@@ -251,7 +251,7 @@ func (a *UpdateWindowsDeviceAccountAction) Schema(ctx context.Context, req actio
 							},
 						},
 						"session_initiation_protocol_address": schema.StringAttribute{
-							Optional: true,
+							Optional:            true,
 							MarkdownDescription: "The SIP address for Teams/SfB. See managed_devices.session_initiation_protocol_address for details.",
 							Validators: []validator.String{
 								stringvalidator.RegexMatches(
