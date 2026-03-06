@@ -26,12 +26,10 @@ func (c *AuthenticatedHTTPClient) Do(req *http.Request) (*http.Response, error) 
 	req.Header.Set("Authorization", "Bearer "+token.Token)
 	req.Header.Set("Accept", "application/json")
 
-	// Set default headers for Graph API
 	if req.Header.Get("Content-Type") == "" && (req.Method == "POST" || req.Method == "PUT" || req.Method == "PATCH") {
 		req.Header.Set("Content-Type", "application/json")
 	}
 
-	// Add consistency level header for certain operations
 	if req.Method == "GET" {
 		req.Header.Set("ConsistencyLevel", "eventual")
 	}
@@ -46,7 +44,6 @@ func DoWithRetry(ctx context.Context, httpClient *AuthenticatedHTTPClient, req *
 	var lastErr error
 
 	for attempt := 0; attempt <= maxRetries; attempt++ {
-		// Clone the request body for retries if needed
 		var bodyBytes []byte
 		if req.Body != nil {
 			bodyBytes, lastErr = io.ReadAll(req.Body)
@@ -56,7 +53,6 @@ func DoWithRetry(ctx context.Context, httpClient *AuthenticatedHTTPClient, req *
 			req.Body.Close()
 		}
 
-		// Create new request with fresh body
 		if len(bodyBytes) > 0 {
 			req.Body = io.NopCloser(bytes.NewReader(bodyBytes))
 		}
@@ -96,12 +92,10 @@ func DoWithRetry(ctx context.Context, httpClient *AuthenticatedHTTPClient, req *
 			"request_id":       errorInfo.RequestID,
 		})
 
-		// Close the response body before retrying
 		httpResp.Body.Close()
 
-		// Don't sleep after the last attempt
+		// Don't sleep after the last attempt, Check if context is still valid before sleeping
 		if attempt < maxRetries {
-			// Check if context is still valid before sleeping
 			if ctx.Err() != nil {
 				tflog.Warn(ctx, "Context cancelled before retry delay", map[string]any{
 					"attempt":     attempt + 1,
@@ -131,12 +125,10 @@ func DoWithRetry(ctx context.Context, httpClient *AuthenticatedHTTPClient, req *
 		}
 	}
 
-	// If we got a 429 response, return it
 	if lastResp != nil {
 		return lastResp, nil
 	}
 
-	// Return the last error if no response was received
 	if lastErr != nil {
 		return nil, lastErr
 	}

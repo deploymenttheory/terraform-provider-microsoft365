@@ -84,7 +84,7 @@ func TestEntraIDAuthClientCompression(t *testing.T) {
 					}
 
 					w.WriteHeader(http.StatusBadRequest)
-					json.NewEncoder(w).Encode(map[string]interface{}{
+					json.NewEncoder(w).Encode(map[string]any{
 						"error":             "invalid_request",
 						"error_description": "AADSTS900144: The request body must contain the following parameter: 'grant_type'",
 						"error_codes":       []int{900144},
@@ -98,7 +98,7 @@ func TestEntraIDAuthClientCompression(t *testing.T) {
 				hasGrantType := strings.Contains(receivedBody, "grant_type=")
 				if !hasGrantType {
 					w.WriteHeader(http.StatusBadRequest)
-					json.NewEncoder(w).Encode(map[string]interface{}{
+					json.NewEncoder(w).Encode(map[string]any{
 						"error":             "invalid_request",
 						"error_description": "AADSTS900144: The request body must contain the following parameter: 'grant_type'",
 						"error_codes":       []int{900144},
@@ -107,7 +107,7 @@ func TestEntraIDAuthClientCompression(t *testing.T) {
 				}
 				w.Header().Set("Content-Type", "application/json")
 				w.WriteHeader(http.StatusOK)
-				json.NewEncoder(w).Encode(map[string]interface{}{
+				json.NewEncoder(w).Encode(map[string]any{
 					"token_type":   "Bearer",
 					"expires_in":   3600,
 					"access_token": "test-access-token",
@@ -144,7 +144,7 @@ func TestEntraIDAuthClientCompression(t *testing.T) {
 
 			if tt.expectSuccess {
 				assert.Equal(t, http.StatusOK, resp.StatusCode, "Expected successful token response")
-				var tokenResp map[string]interface{}
+				var tokenResp map[string]any
 				json.Unmarshal(responseBody, &tokenResp)
 				assert.Equal(t, "test-access-token", tokenResp["access_token"])
 			} else {
@@ -167,7 +167,7 @@ func TestEntraIDAuthClientProxy(t *testing.T) {
 	targetServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		t.Logf("[TARGET] Received: %s %s", r.Method, r.URL.Path)
 		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(map[string]interface{}{
+		json.NewEncoder(w).Encode(map[string]any{
 			"token_type":   "Bearer",
 			"access_token": "test-token",
 		})
@@ -279,7 +279,7 @@ func TestEntraIDAuthClientAuthenticatedProxy(t *testing.T) {
 
 	targetServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(map[string]interface{}{
+		json.NewEncoder(w).Encode(map[string]any{
 			"token_type":   "Bearer",
 			"access_token": "test-token",
 		})
@@ -447,7 +447,7 @@ func TestAuthClientWithoutCompressionFix(t *testing.T) {
 
 		if receivedContentEncoding == "gzip" {
 			w.WriteHeader(http.StatusBadRequest)
-			json.NewEncoder(w).Encode(map[string]interface{}{
+			json.NewEncoder(w).Encode(map[string]any{
 				"error":             "invalid_request",
 				"error_description": "AADSTS900144: The request body must contain the following parameter: 'grant_type'",
 			})
@@ -455,7 +455,7 @@ func TestAuthClientWithoutCompressionFix(t *testing.T) {
 		}
 
 		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(map[string]interface{}{
+		json.NewEncoder(w).Encode(map[string]any{
 			"token_type":   "Bearer",
 			"access_token": "test-token",
 		})
@@ -501,7 +501,7 @@ func TestAuthClientWithProxyWithoutCompression(t *testing.T) {
 
 	targetServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(map[string]interface{}{
+		json.NewEncoder(w).Encode(map[string]any{
 			"token_type":   "Bearer",
 			"access_token": "test-token",
 		})
@@ -574,12 +574,12 @@ func TestConfigureEntraIDClientOptions(t *testing.T) {
 			authorityURL: "https://login.microsoftonline.com/",
 			config: &ProviderData{
 				ClientOptions: &ClientOptions{
-					EnableRetry:      true,
-					MaxRetries:       3,
+					EnableRetry:       true,
+					MaxRetries:        3,
 					RetryDelaySeconds: 5,
-					EnableRedirect:   true,
-					MaxRedirects:     5,
-					TimeoutSeconds:   300,
+					EnableRedirect:    true,
+					MaxRedirects:      5,
+					TimeoutSeconds:    300,
 				},
 				TelemetryOptout: false,
 			},
@@ -619,7 +619,7 @@ func TestConfigureEntraIDClientOptions(t *testing.T) {
 			name:         "Minimal configuration",
 			authorityURL: "https://login.microsoftonline.com/",
 			config: &ProviderData{
-				ClientOptions: &ClientOptions{},
+				ClientOptions:   &ClientOptions{},
 				TelemetryOptout: false,
 			},
 			expectError:       false,
@@ -751,9 +751,9 @@ func TestAuthClientMiddlewareExcludesCompression(t *testing.T) {
 	for i, config := range configs {
 		t.Run(fmt.Sprintf("Config_%d", i), func(t *testing.T) {
 			middleware := getAuthClientMiddleware(ctx, config)
-			
+
 			client := khttp.GetDefaultClient(middleware...)
-			
+
 			var receivedContentEncoding string
 			mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				receivedContentEncoding = r.Header.Get("Content-Encoding")
@@ -771,6 +771,55 @@ func TestAuthClientMiddlewareExcludesCompression(t *testing.T) {
 			defer resp.Body.Close()
 
 			assert.Empty(t, receivedContentEncoding, "Compression should never be applied to auth requests")
+		})
+	}
+}
+
+// TestGetAuthClientMiddleware_AllCombinations validates all middleware combinations.
+func TestGetAuthClientMiddleware_AllCombinations(t *testing.T) {
+	ctx := context.Background()
+
+	tests := []struct {
+		name           string
+		options        *ClientOptions
+		expectedMinLen int
+	}{
+		{
+			name:           "All middleware enabled",
+			options:        &ClientOptions{EnableRetry: true, EnableRedirect: true, CustomUserAgent: "Test/1.0"},
+			expectedMinLen: 3,
+		},
+		{
+			name:           "Only retry",
+			options:        &ClientOptions{EnableRetry: true},
+			expectedMinLen: 1,
+		},
+		{
+			name:           "Only redirect",
+			options:        &ClientOptions{EnableRedirect: true},
+			expectedMinLen: 1,
+		},
+		{
+			name:           "Only user agent",
+			options:        &ClientOptions{CustomUserAgent: "Test/1.0"},
+			expectedMinLen: 1,
+		},
+		{
+			name:           "Retry and redirect",
+			options:        &ClientOptions{EnableRetry: true, EnableRedirect: true},
+			expectedMinLen: 2,
+		},
+		{
+			name:           "None enabled (fallback)",
+			options:        &ClientOptions{},
+			expectedMinLen: 1,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			middleware := getAuthClientMiddleware(ctx, tt.options)
+			assert.GreaterOrEqual(t, len(middleware), tt.expectedMinLen, "Should have at least expected middleware count")
 		})
 	}
 }

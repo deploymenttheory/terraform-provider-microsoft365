@@ -35,14 +35,11 @@ func (m *MockCredential) GetToken(ctx context.Context, options policy.TokenReque
 }
 
 // NewMockGraphClients creates a new instance of MockGraphClients with initialized mock clients
+// for graph v1.0 and beta.
 func NewMockGraphClients(httpClient *http.Client) *MockGraphClients {
-	// Create mock auth provider
 	mockAuthProvider := &MockAuthProvider{}
-
-	// Create mock credential
 	mockCredential := &MockCredential{}
 
-	// Create mock adapters
 	mockV1Adapter, _ := msgraphsdk.NewGraphRequestAdapterWithParseNodeFactoryAndSerializationWriterFactoryAndHttpClient(
 		mockAuthProvider,
 		nil,
@@ -57,15 +54,12 @@ func NewMockGraphClients(httpClient *http.Client) *MockGraphClients {
 		httpClient,
 	)
 
-	// Set base URLs for the mock adapters
 	mockV1Adapter.SetBaseUrl("https://graph.microsoft.com/v1.0")
 	mockBetaAdapter.SetBaseUrl("https://graph.microsoft.com/beta")
 
-	// Create mock HTTP clients
 	mockV1HTTPClient := NewAuthenticatedHTTPClient(httpClient, mockCredential, "https://graph.microsoft.com/.default", "https://graph.microsoft.com/v1.0")
 	mockBetaHTTPClient := NewAuthenticatedHTTPClient(httpClient, mockCredential, "https://graph.microsoft.com/.default", "https://graph.microsoft.com/beta")
 
-	// Create and return the mock clients
 	return &MockGraphClients{
 		MockV1Client:       msgraphsdk.NewGraphServiceClient(mockV1Adapter),
 		MockBetaClient:     msgraphbetasdk.NewGraphServiceClient(mockBetaAdapter),
