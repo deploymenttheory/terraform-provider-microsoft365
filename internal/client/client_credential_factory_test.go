@@ -44,8 +44,8 @@ func createTestConfig(authMethod string) *ProviderData {
 	}
 }
 
-// TestGitHubOIDCStrategy_ErrorPaths tests error handling in GitHubOIDCStrategy.
-func TestGitHubOIDCStrategy_ErrorPaths(t *testing.T) {
+// TestUnit_GitHubOIDCStrategy_ErrorPaths tests error handling in GitHubOIDCStrategy.
+func TestUnit_GitHubOIDCStrategy_ErrorPaths(t *testing.T) {
 	ctx := context.Background()
 	clientOptions := policy.ClientOptions{}
 
@@ -143,6 +143,60 @@ func TestGitHubOIDCStrategy_ErrorPaths(t *testing.T) {
 			TenantID: "test-tenant-id",
 			EntraIDOptions: &EntraIDOptions{
 				ClientID: "test-client-id",
+			},
+		}
+
+		strategy := &GitHubOIDCStrategy{}
+		credential, err := strategy.GetCredential(ctx, config, clientOptions)
+
+		assert.NoError(t, err)
+		assert.NotNil(t, credential)
+	})
+
+	t.Run("Both from config with additional tenants", func(t *testing.T) {
+		mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Content-Type", "application/json")
+			token := "test-github-token"
+			json.NewEncoder(w).Encode(map[string]any{
+				"value": &token,
+			})
+		}))
+		defer mockServer.Close()
+
+		config := &ProviderData{
+			TenantID: "test-tenant-id",
+			EntraIDOptions: &EntraIDOptions{
+				ClientID:                   "test-client-id",
+				OIDCRequestURL:             mockServer.URL,
+				OIDCRequestToken:           "test-request-token",
+				AdditionallyAllowedTenants: []string{"tenant1", "tenant2"},
+			},
+		}
+
+		strategy := &GitHubOIDCStrategy{}
+		credential, err := strategy.GetCredential(ctx, config, clientOptions)
+
+		assert.NoError(t, err)
+		assert.NotNil(t, credential)
+	})
+
+	t.Run("Both from config with instance discovery disabled", func(t *testing.T) {
+		mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Content-Type", "application/json")
+			token := "test-github-token"
+			json.NewEncoder(w).Encode(map[string]any{
+				"value": &token,
+			})
+		}))
+		defer mockServer.Close()
+
+		config := &ProviderData{
+			TenantID: "test-tenant-id",
+			EntraIDOptions: &EntraIDOptions{
+				ClientID:                 "test-client-id",
+				OIDCRequestURL:           mockServer.URL,
+				OIDCRequestToken:         "test-request-token",
+				DisableInstanceDiscovery: true,
 			},
 		}
 
@@ -255,8 +309,8 @@ func TestGitHubOIDCStrategy_AssertionErrorPaths(t *testing.T) {
 	})
 }
 
-// TestGitHubOIDCStrategy_GetAssertion tests the GitHub OIDC strategy's getAssertion function
-func TestGitHubOIDCStrategy_GetAssertion(t *testing.T) {
+// TestUnit_GitHubOIDCStrategy_GetAssertion tests the GitHub OIDC strategy's getAssertion function
+func TestUnit_GitHubOIDCStrategy_GetAssertion(t *testing.T) {
 	// Create a mock GitHub OIDC token server
 	tokenServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// Verify the request is properly formed
@@ -457,8 +511,8 @@ func TestGitHubOIDCStrategy_ExistingQueryParams(t *testing.T) {
 	os.Clearenv()
 }
 
-// TestClientSecretStrategy validates client secret credential creation.
-func TestClientSecretStrategy(t *testing.T) {
+// TestUnit_ClientSecretStrategy_CredentialCreation validates client secret credential creation.
+func TestUnit_ClientSecretStrategy_CredentialCreation(t *testing.T) {
 	ctx := context.Background()
 	clientOptions := policy.ClientOptions{}
 
@@ -498,7 +552,7 @@ func TestClientSecretStrategy(t *testing.T) {
 }
 
 // TestClientCertificateStrategy validates client certificate credential creation.
-func TestClientCertificateStrategy(t *testing.T) {
+func TestUnit_ClientCertificateStrategy_CredentialCreation(t *testing.T) {
 	ctx := context.Background()
 	clientOptions := policy.ClientOptions{}
 
@@ -620,8 +674,8 @@ func TestClientCertificateStrategy(t *testing.T) {
 	})
 }
 
-// TestDeviceCodeStrategy validates device code credential creation.
-func TestDeviceCodeStrategy(t *testing.T) {
+// TestUnit_DeviceCodeStrategy_CredentialCreation validates device code credential creation.
+func TestUnit_DeviceCodeStrategy_CredentialCreation(t *testing.T) {
 	ctx := context.Background()
 	clientOptions := policy.ClientOptions{}
 
@@ -707,8 +761,8 @@ func TestDeviceCodeStrategy(t *testing.T) {
 	})
 }
 
-// TestInteractiveBrowserStrategy validates interactive browser credential creation.
-func TestInteractiveBrowserStrategy(t *testing.T) {
+// TestUnit_InteractiveBrowserStrategy_CredentialCreation validates interactive browser credential creation.
+func TestUnit_InteractiveBrowserStrategy_CredentialCreation(t *testing.T) {
 	ctx := context.Background()
 	clientOptions := policy.ClientOptions{}
 
@@ -747,8 +801,8 @@ func TestInteractiveBrowserStrategy(t *testing.T) {
 	})
 }
 
-// TestUsernamePasswordStrategy validates username/password credential creation.
-func TestUsernamePasswordStrategy(t *testing.T) {
+// TestUnit_UsernamePasswordStrategy_CredentialCreation validates username/password credential creation.
+func TestUnit_UsernamePasswordStrategy_CredentialCreation(t *testing.T) {
 	ctx := context.Background()
 	clientOptions := policy.ClientOptions{}
 
@@ -789,8 +843,8 @@ func TestUsernamePasswordStrategy(t *testing.T) {
 	})
 }
 
-// TestWorkloadIdentityStrategy validates workload identity credential creation.
-func TestWorkloadIdentityStrategy(t *testing.T) {
+// TestUnit_WorkloadIdentityStrategy_CredentialCreation validates workload identity credential creation.
+func TestUnit_WorkloadIdentityStrategy_CredentialCreation(t *testing.T) {
 	ctx := context.Background()
 	clientOptions := policy.ClientOptions{}
 
@@ -849,8 +903,8 @@ func TestWorkloadIdentityStrategy(t *testing.T) {
 	})
 }
 
-// TestManagedIdentityStrategy validates managed identity credential creation.
-func TestManagedIdentityStrategy(t *testing.T) {
+// TestUnit_ManagedIdentityStrategy_CredentialCreation validates managed identity credential creation.
+func TestUnit_ManagedIdentityStrategy_CredentialCreation(t *testing.T) {
 	ctx := context.Background()
 	clientOptions := policy.ClientOptions{}
 
@@ -898,8 +952,8 @@ func TestManagedIdentityStrategy(t *testing.T) {
 	})
 }
 
-// TestAzureCLIStrategy validates Azure CLI credential creation.
-func TestAzureCLIStrategy(t *testing.T) {
+// TestUnit_AzureCLIStrategy_CredentialCreation validates Azure CLI credential creation.
+func TestUnit_AzureCLIStrategy_CredentialCreation(t *testing.T) {
 	ctx := context.Background()
 	clientOptions := policy.ClientOptions{}
 
@@ -947,8 +1001,8 @@ func TestAzureCLIStrategy(t *testing.T) {
 	})
 }
 
-// TestAzureDeveloperCLIStrategy validates Azure Developer CLI credential creation.
-func TestAzureDeveloperCLIStrategy(t *testing.T) {
+// TestUnit_AzureDeveloperCLIStrategy_CredentialCreation validates Azure Developer CLI credential creation.
+func TestUnit_AzureDeveloperCLIStrategy_CredentialCreation(t *testing.T) {
 	ctx := context.Background()
 	clientOptions := policy.ClientOptions{}
 
@@ -996,8 +1050,8 @@ func TestAzureDeveloperCLIStrategy(t *testing.T) {
 	})
 }
 
-// TestCredentialFactory validates the credential factory returns correct strategies.
-func TestCredentialFactory(t *testing.T) {
+// TestUnit_CredentialFactory_StrategySelection validates the credential factory returns correct strategies.
+func TestUnit_CredentialFactory_StrategySelection(t *testing.T) {
 	tests := []struct {
 		authMethod  string
 		expectError bool
@@ -1033,8 +1087,8 @@ func TestCredentialFactory(t *testing.T) {
 	}
 }
 
-// TestObtainCredential validates the main ObtainCredential function.
-func TestObtainCredential(t *testing.T) {
+// TestUnit_ObtainCredential_AllAuthMethods validates the main ObtainCredential function.
+func TestUnit_ObtainCredential_AllAuthMethods(t *testing.T) {
 	ctx := context.Background()
 	clientOptions := policy.ClientOptions{}
 
@@ -1307,10 +1361,60 @@ func TestOIDCStrategy(t *testing.T) {
 		assert.NoError(t, err)
 		assert.NotNil(t, credential)
 	})
+
+	t.Run("Token file with additional tenants", func(t *testing.T) {
+		tmpFile, err := os.CreateTemp("", "oidc-token-*.txt")
+		require.NoError(t, err)
+		defer os.Remove(tmpFile.Name())
+
+		_, err = tmpFile.WriteString("test-oidc-token-from-file")
+		require.NoError(t, err)
+		tmpFile.Close()
+
+		config := &ProviderData{
+			TenantID: "test-tenant-id",
+			EntraIDOptions: &EntraIDOptions{
+				ClientID:                   "test-client-id",
+				OIDCTokenFilePath:          tmpFile.Name(),
+				AdditionallyAllowedTenants: []string{"tenant1", "tenant2"},
+			},
+		}
+
+		strategy := &OIDCStrategy{}
+		credential, err := strategy.GetCredential(ctx, config, clientOptions)
+
+		assert.NoError(t, err)
+		assert.NotNil(t, credential)
+	})
+
+	t.Run("Request URL/token with additional tenants", func(t *testing.T) {
+		mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Content-Type", "application/json")
+			json.NewEncoder(w).Encode(map[string]string{"value": "exchanged-token"})
+		}))
+		defer mockServer.Close()
+
+		config := &ProviderData{
+			TenantID: "test-tenant-id",
+			EntraIDOptions: &EntraIDOptions{
+				ClientID:                   "test-client-id",
+				OIDCRequestURL:             mockServer.URL,
+				OIDCRequestToken:           "test-request-token",
+				AdditionallyAllowedTenants: []string{"tenant1"},
+				DisableInstanceDiscovery:   true,
+			},
+		}
+
+		strategy := &OIDCStrategy{}
+		credential, err := strategy.GetCredential(ctx, config, clientOptions)
+
+		assert.NoError(t, err)
+		assert.NotNil(t, credential)
+	})
 }
 
-// TestAzureDevOpsOIDCStrategy validates Azure DevOps OIDC credential creation.
-func TestAzureDevOpsOIDCStrategy(t *testing.T) {
+// TestUnit_AzureDevOpsOIDCStrategy_CredentialCreation validates Azure DevOps OIDC credential creation.
+func TestUnit_AzureDevOpsOIDCStrategy_CredentialCreation(t *testing.T) {
 	ctx := context.Background()
 	clientOptions := policy.ClientOptions{}
 
@@ -1389,8 +1493,8 @@ func TestAzureDevOpsOIDCStrategy(t *testing.T) {
 	})
 }
 
-// TestExchangeOIDCToken validates the OIDC token exchange function.
-func TestExchangeOIDCToken(t *testing.T) {
+// TestUnit_ExchangeOIDCToken_TokenExchange validates the OIDC token exchange function.
+func TestUnit_ExchangeOIDCToken_TokenExchange(t *testing.T) {
 	ctx := context.Background()
 
 	t.Run("Successful token exchange", func(t *testing.T) {

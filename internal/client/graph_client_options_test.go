@@ -12,9 +12,9 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// TestConfigureGraphClientOptions_UnitTestMode validates that in unit test mode
+// TestUnit_ConfigureGraphClientOptions_UnitTestMode validates that in unit test mode
 // (TF_ACC not set), the function returns http.DefaultClient.
-func TestConfigureGraphClientOptions_UnitTestMode(t *testing.T) {
+func TestUnit_ConfigureGraphClientOptions_UnitTestMode(t *testing.T) {
 	os.Unsetenv("TF_ACC")
 	defer os.Unsetenv("TF_ACC")
 
@@ -28,8 +28,8 @@ func TestConfigureGraphClientOptions_UnitTestMode(t *testing.T) {
 	assert.Equal(t, http.DefaultClient, client)
 }
 
-// TestAddChaosHandler validates chaos handler configuration.
-func TestAddChaosHandler(t *testing.T) {
+// TestUnit_AddChaosHandler_Configuration validates chaos handler configuration.
+func TestUnit_AddChaosHandler_Configuration(t *testing.T) {
 	ctx := context.Background()
 
 	t.Run("Chaos enabled with all options", func(t *testing.T) {
@@ -70,8 +70,8 @@ func TestAddChaosHandler(t *testing.T) {
 	})
 }
 
-// TestAddRetryHandler validates retry handler configuration.
-func TestAddRetryHandler(t *testing.T) {
+// TestUnit_AddRetryHandler_Configuration validates retry handler configuration.
+func TestUnit_AddRetryHandler_Configuration(t *testing.T) {
 	ctx := context.Background()
 
 	t.Run("Retry enabled", func(t *testing.T) {
@@ -109,8 +109,8 @@ func TestAddRetryHandler(t *testing.T) {
 	})
 }
 
-// TestAddRedirectHandler validates redirect handler configuration.
-func TestAddRedirectHandler(t *testing.T) {
+// TestUnit_AddRedirectHandler_Configuration validates redirect handler configuration.
+func TestUnit_AddRedirectHandler_Configuration(t *testing.T) {
 	ctx := context.Background()
 
 	t.Run("Redirect enabled", func(t *testing.T) {
@@ -135,8 +135,8 @@ func TestAddRedirectHandler(t *testing.T) {
 	})
 }
 
-// TestAddCompressionHandler validates compression handler configuration.
-func TestAddCompressionHandler(t *testing.T) {
+// TestUnit_AddCompressionHandler_Configuration validates compression handler configuration.
+func TestUnit_AddCompressionHandler_Configuration(t *testing.T) {
 	ctx := context.Background()
 
 	t.Run("Compression enabled", func(t *testing.T) {
@@ -160,8 +160,8 @@ func TestAddCompressionHandler(t *testing.T) {
 	})
 }
 
-// TestAddUserAgentHandler validates user agent handler configuration.
-func TestAddUserAgentHandler(t *testing.T) {
+// TestUnit_AddUserAgentHandler_Configuration validates user agent handler configuration.
+func TestUnit_AddUserAgentHandler_Configuration(t *testing.T) {
 	ctx := context.Background()
 
 	t.Run("Custom user agent provided", func(t *testing.T) {
@@ -185,8 +185,8 @@ func TestAddUserAgentHandler(t *testing.T) {
 	})
 }
 
-// TestAddHeadersInspectionHandler validates headers inspection handler configuration.
-func TestAddHeadersInspectionHandler(t *testing.T) {
+// TestUnit_AddHeadersInspectionHandler_Configuration validates headers inspection handler configuration.
+func TestUnit_AddHeadersInspectionHandler_Configuration(t *testing.T) {
 	ctx := context.Background()
 
 	t.Run("Headers inspection enabled", func(t *testing.T) {

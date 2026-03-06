@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestSetCloudConstants(t *testing.T) {
+func TestUnit_SetCloudConstants_AllClouds(t *testing.T) {
 	testCases := []struct {
 		name                    string
 		cloud                   string

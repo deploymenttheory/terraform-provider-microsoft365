@@ -12,8 +12,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// TestMockAuthProvider_AuthenticateRequest validates the mock auth provider.
-func TestMockAuthProvider_AuthenticateRequest(t *testing.T) {
+// TestUnit_MockAuthProvider_AuthenticateRequest validates the mock auth provider.
+func TestUnit_MockAuthProvider_AuthenticateRequest(t *testing.T) {
 	ctx := context.Background()
 	provider := &MockAuthProvider{}
 
@@ -27,8 +27,8 @@ func TestMockAuthProvider_AuthenticateRequest(t *testing.T) {
 	assert.Contains(t, authHeaders, "Bearer mock-token")
 }
 
-// TestMockCredential_GetToken validates the mock credential.
-func TestMockCredential_GetToken(t *testing.T) {
+// TestUnit_MockCredential_GetToken validates the mock credential.
+func TestUnit_MockCredential_GetToken(t *testing.T) {
 	ctx := context.Background()
 	cred := &MockCredential{}
 
@@ -41,8 +41,8 @@ func TestMockCredential_GetToken(t *testing.T) {
 	assert.True(t, token.ExpiresOn.After(time.Now()), "Token should not be expired")
 }
 
-// TestNewMockGraphClients validates mock client creation.
-func TestNewMockGraphClients(t *testing.T) {
+// TestUnit_NewMockGraphClients_Initialization validates mock client creation.
+func TestUnit_NewMockGraphClients_Initialization(t *testing.T) {
 	httpClient := &http.Client{}
 
 	mockClients := NewMockGraphClients(httpClient)
@@ -57,8 +57,8 @@ func TestNewMockGraphClients(t *testing.T) {
 	assert.Equal(t, "https://graph.microsoft.com/beta", mockClients.MockBetaHTTPClient.GetBaseURL())
 }
 
-// TestMockGraphClients_Getters validates all getter methods for mock clients.
-func TestMockGraphClients_Getters(t *testing.T) {
+// TestUnit_MockGraphClients_Getters validates all getter methods for mock clients.
+func TestUnit_MockGraphClients_Getters(t *testing.T) {
 	httpClient := &http.Client{}
 	mockClients := NewMockGraphClients(httpClient)
 

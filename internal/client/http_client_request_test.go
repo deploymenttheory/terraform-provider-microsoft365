@@ -15,9 +15,9 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// TestAuthenticatedHTTPClient_Do validates the Do method adds proper authentication
+// TestUnit_AuthenticatedHTTPClient_Do validates the Do method adds proper authentication
 // and headers to requests.
-func TestAuthenticatedHTTPClient_Do(t *testing.T) {
+func TestUnit_AuthenticatedHTTPClient_Do(t *testing.T) {
 	var receivedAuthHeader string
 	var receivedAcceptHeader string
 	var receivedContentType string
@@ -130,8 +130,8 @@ func TestAuthenticatedHTTPClient_Do(t *testing.T) {
 	}
 }
 
-// TestAuthenticatedHTTPClient_Do_TokenError validates error handling when token acquisition fails.
-func TestAuthenticatedHTTPClient_Do_TokenError(t *testing.T) {
+// TestUnit_AuthenticatedHTTPClient_Do_TokenError validates error handling when token acquisition fails.
+func TestUnit_AuthenticatedHTTPClient_Do_TokenError(t *testing.T) {
 	mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 	}))
@@ -341,16 +341,16 @@ func TestDoWithRetry(t *testing.T) {
 	})
 }
 
-// TestAuthenticatedHTTPClient_GetBaseURL validates the GetBaseURL method.
-func TestAuthenticatedHTTPClient_GetBaseURL(t *testing.T) {
+// TestUnit_AuthenticatedHTTPClient_GetBaseURL validates the GetBaseURL method.
+func TestUnit_AuthenticatedHTTPClient_GetBaseURL(t *testing.T) {
 	baseURL := "https://graph.microsoft.com/beta"
 	client := NewAuthenticatedHTTPClient(&http.Client{}, &mockTokenCredential{}, "", baseURL)
 
 	assert.Equal(t, baseURL, client.GetBaseURL())
 }
 
-// TestAuthenticatedHTTPClient_GetClient validates the GetClient method.
-func TestAuthenticatedHTTPClient_GetClient(t *testing.T) {
+// TestUnit_AuthenticatedHTTPClient_GetClient validates the GetClient method.
+func TestUnit_AuthenticatedHTTPClient_GetClient(t *testing.T) {
 	baseClient := &http.Client{Timeout: 30 * time.Second}
 	client := NewAuthenticatedHTTPClient(baseClient, &mockTokenCredential{}, "", "")
 

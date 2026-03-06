@@ -15,7 +15,7 @@ import (
 )
 
 // TestGraphClients_Getters validates all getter methods return the correct clients.
-func TestGraphClients_Getters(t *testing.T) {
+func TestUnit_GraphClients_Getters(t *testing.T) {
 	v1Client := &msgraphsdk.GraphServiceClient{}
 	betaClient := &msgraphbetasdk.GraphServiceClient{}
 	v1HTTPClient := &AuthenticatedHTTPClient{baseURL: "https://graph.microsoft.com/v1.0"}
@@ -52,7 +52,7 @@ func TestGraphClients_Getters(t *testing.T) {
 }
 
 // TestSetGraphStableClientForResource validates the SetGraphStableClientForResource helper.
-func TestSetGraphStableClientForResource(t *testing.T) {
+func TestUnit_SetGraphStableClientForResource_AllScenarios(t *testing.T) {
 	ctx := context.Background()
 
 	t.Run("Valid provider data", func(t *testing.T) {
@@ -89,7 +89,7 @@ func TestSetGraphStableClientForResource(t *testing.T) {
 }
 
 // TestSetGraphStableClientForDataSource validates the SetGraphStableClientForDataSource helper.
-func TestSetGraphStableClientForDataSource(t *testing.T) {
+func TestUnit_SetGraphStableClientForDataSource_AllScenarios(t *testing.T) {
 	ctx := context.Background()
 
 	t.Run("Valid provider data", func(t *testing.T) {
@@ -116,7 +116,7 @@ func TestSetGraphStableClientForDataSource(t *testing.T) {
 }
 
 // TestSetGraphBetaClientForResource validates the SetGraphBetaClientForResource helper.
-func TestSetGraphBetaClientForResource(t *testing.T) {
+func TestUnit_SetGraphBetaClientForResource_AllScenarios(t *testing.T) {
 	ctx := context.Background()
 
 	t.Run("Valid provider data", func(t *testing.T) {
@@ -133,7 +133,7 @@ func TestSetGraphBetaClientForResource(t *testing.T) {
 }
 
 // TestSetGraphBetaClientForDataSource validates the SetGraphBetaClientForDataSource helper.
-func TestSetGraphBetaClientForDataSource(t *testing.T) {
+func TestUnit_SetGraphBetaClientForDataSource_AllScenarios(t *testing.T) {
 	ctx := context.Background()
 
 	t.Run("Valid provider data", func(t *testing.T) {
@@ -150,7 +150,7 @@ func TestSetGraphBetaClientForDataSource(t *testing.T) {
 }
 
 // TestSetGraphBetaClientForEphemeralResource validates the SetGraphBetaClientForEphemeralResource helper.
-func TestSetGraphBetaClientForEphemeralResource(t *testing.T) {
+func TestUnit_SetGraphBetaClientForEphemeralResource_AllScenarios(t *testing.T) {
 	ctx := context.Background()
 
 	t.Run("Valid provider data", func(t *testing.T) {
@@ -167,7 +167,7 @@ func TestSetGraphBetaClientForEphemeralResource(t *testing.T) {
 }
 
 // TestSetGraphBetaClientForAction validates the SetGraphBetaClientForAction helper.
-func TestSetGraphBetaClientForAction(t *testing.T) {
+func TestUnit_SetGraphBetaClientForAction_AllScenarios(t *testing.T) {
 	ctx := context.Background()
 
 	t.Run("Valid provider data", func(t *testing.T) {
@@ -184,7 +184,7 @@ func TestSetGraphBetaClientForAction(t *testing.T) {
 }
 
 // TestSetGraphBetaClientForListResource validates the SetGraphBetaClientForListResource helper.
-func TestSetGraphBetaClientForListResource(t *testing.T) {
+func TestUnit_SetGraphBetaClientForListResource_AllScenarios(t *testing.T) {
 	ctx := context.Background()
 
 	t.Run("Valid provider data", func(t *testing.T) {
@@ -201,7 +201,7 @@ func TestSetGraphBetaClientForListResource(t *testing.T) {
 }
 
 // TestSetGraphV1HTTPClientForResource validates the SetGraphV1HTTPClientForResource helper.
-func TestSetGraphV1HTTPClientForResource(t *testing.T) {
+func TestUnit_SetGraphV1HTTPClientForResource_AllScenarios(t *testing.T) {
 	ctx := context.Background()
 
 	t.Run("Valid provider data", func(t *testing.T) {
@@ -218,7 +218,7 @@ func TestSetGraphV1HTTPClientForResource(t *testing.T) {
 }
 
 // TestSetGraphV1HTTPClientForDataSource validates the SetGraphV1HTTPClientForDataSource helper.
-func TestSetGraphV1HTTPClientForDataSource(t *testing.T) {
+func TestUnit_SetGraphV1HTTPClientForDataSource_AllScenarios(t *testing.T) {
 	ctx := context.Background()
 
 	t.Run("Valid provider data", func(t *testing.T) {
@@ -235,7 +235,7 @@ func TestSetGraphV1HTTPClientForDataSource(t *testing.T) {
 }
 
 // TestSetGraphBetaHTTPClientForResource validates the SetGraphBetaHTTPClientForResource helper.
-func TestSetGraphBetaHTTPClientForResource(t *testing.T) {
+func TestUnit_SetGraphBetaHTTPClientForResource_AllScenarios(t *testing.T) {
 	ctx := context.Background()
 
 	t.Run("Valid provider data", func(t *testing.T) {
@@ -252,7 +252,7 @@ func TestSetGraphBetaHTTPClientForResource(t *testing.T) {
 }
 
 // TestSetGraphBetaHTTPClientForDataSource validates the SetGraphBetaHTTPClientForDataSource helper.
-func TestSetGraphBetaHTTPClientForDataSource(t *testing.T) {
+func TestUnit_SetGraphBetaHTTPClientForDataSource_AllScenarios(t *testing.T) {
 	ctx := context.Background()
 
 	t.Run("Valid provider data", func(t *testing.T) {

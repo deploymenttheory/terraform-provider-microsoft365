@@ -24,9 +24,9 @@ func (m *mockTokenCredential) GetToken(ctx context.Context, options policy.Token
 	return azcore.AccessToken{Token: m.token}, nil
 }
 
-// TestNewAuthenticatedHTTPClient validates that NewAuthenticatedHTTPClient creates
+// TestUnit_NewAuthenticatedHTTPClient_Initialization validates that NewAuthenticatedHTTPClient creates
 // a properly configured client with all required fields.
-func TestNewAuthenticatedHTTPClient(t *testing.T) {
+func TestUnit_NewAuthenticatedHTTPClient_Initialization(t *testing.T) {
 	baseClient := &http.Client{}
 	cred := &mockTokenCredential{token: "test-token"}
 	scope := "https://graph.microsoft.com/.default"

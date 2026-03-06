@@ -9,8 +9,8 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-// TestNewGraphClients validates the main client initialization function.
-func TestNewGraphClients(t *testing.T) {
+// TestUnit_NewGraphClients_ErrorPaths validates the main client initialization function.
+func TestUnit_NewGraphClients_ErrorPaths(t *testing.T) {
 	os.Setenv("TF_ACC", "1")
 	defer os.Unsetenv("TF_ACC")
 
@@ -55,9 +55,9 @@ func TestNewGraphClients(t *testing.T) {
 	})
 }
 
-// TestNewGraphClients_ConfigureEntraIDClientOptionsError validates error handling
+// TestUnit_NewGraphClients_ConfigureEntraIDClientOptionsError validates error handling
 // when Entra ID client options configuration fails.
-func TestNewGraphClients_ConfigureEntraIDClientOptionsError(t *testing.T) {
+func TestUnit_NewGraphClients_ConfigureEntraIDClientOptionsError(t *testing.T) {
 	os.Setenv("TF_ACC", "1")
 	defer os.Unsetenv("TF_ACC")
 
@@ -84,9 +84,9 @@ func TestNewGraphClients_ConfigureEntraIDClientOptionsError(t *testing.T) {
 	assert.Contains(t, diags.Errors()[0].Summary(), "Unable to configure client options")
 }
 
-// TestNewGraphClients_ConfigureGraphClientOptionsError validates error handling
+// TestUnit_NewGraphClients_ConfigureGraphClientOptionsError validates error handling
 // when Graph client options configuration fails.
-func TestNewGraphClients_ConfigureGraphClientOptionsError(t *testing.T) {
+func TestUnit_NewGraphClients_ConfigureGraphClientOptionsError(t *testing.T) {
 	os.Setenv("TF_ACC", "1")
 	defer os.Unsetenv("TF_ACC")
 
@@ -113,8 +113,8 @@ func TestNewGraphClients_ConfigureGraphClientOptionsError(t *testing.T) {
 	assert.Nil(t, clients)
 }
 
-// TestNewGraphClients_DifferentClouds validates client creation with different cloud configurations.
-func TestNewGraphClients_DifferentClouds(t *testing.T) {
+// TestUnit_NewGraphClients_DifferentClouds validates client creation with different cloud configurations.
+func TestUnit_NewGraphClients_DifferentClouds(t *testing.T) {
 	os.Setenv("TF_ACC", "1")
 	defer os.Unsetenv("TF_ACC")
 
@@ -152,8 +152,8 @@ func TestNewGraphClients_DifferentClouds(t *testing.T) {
 	}
 }
 
-// TestNewGraphClients_WithClientOptions validates client creation with various client options.
-func TestNewGraphClients_WithClientOptions(t *testing.T) {
+// TestUnit_NewGraphClients_WithClientOptions validates client creation with various client options.
+func TestUnit_NewGraphClients_WithClientOptions(t *testing.T) {
 	os.Setenv("TF_ACC", "1")
 	defer os.Unsetenv("TF_ACC")
 
@@ -245,9 +245,9 @@ func TestNewGraphClients_WithClientOptions(t *testing.T) {
 	}
 }
 
-// TestNewGraphClients_SuccessfulIntegration validates successful client creation
+// TestUnit_NewGraphClients_SuccessfulIntegration validates successful client creation
 // with various authentication methods.
-func TestNewGraphClients_SuccessfulIntegration(t *testing.T) {
+func TestUnit_NewGraphClients_SuccessfulIntegration(t *testing.T) {
 	os.Setenv("TF_ACC", "1")
 	defer os.Unsetenv("TF_ACC")
 

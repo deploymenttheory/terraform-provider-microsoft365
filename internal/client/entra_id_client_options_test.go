@@ -29,7 +29,7 @@ import (
 // parsed from the compressed body).
 //
 // Related: GitHub issue #777
-func TestEntraIDAuthClientCompression(t *testing.T) {
+func TestUnit_EntraIDAuthClient_CompressionBehavior(t *testing.T) {
 
 	tests := []struct {
 		name             string
@@ -159,7 +159,7 @@ func TestEntraIDAuthClientCompression(t *testing.T) {
 // TestEntraIDAuthClientProxy validates that proxy configuration works correctly
 // for authentication requests. Tests both Kiota-based and plain http.Client approaches
 // to verify proxy routing and compression behavior.
-func TestEntraIDAuthClientProxy(t *testing.T) {
+func TestUnit_EntraIDAuthClient_ProxyConfiguration(t *testing.T) {
 
 	var proxyHitCount atomic.Int32
 	var proxyReceivedCompression string
@@ -270,7 +270,7 @@ func TestEntraIDAuthClientProxy(t *testing.T) {
 
 // TestEntraIDAuthClientAuthenticatedProxy validates that authenticated proxy
 // configuration is properly handled by both Kiota and plain http.Client approaches.
-func TestEntraIDAuthClientAuthenticatedProxy(t *testing.T) {
+func TestUnit_EntraIDAuthClient_AuthenticatedProxy(t *testing.T) {
 
 	const testUsername = "proxyuser"
 	const testPassword = "proxypass"
@@ -375,7 +375,7 @@ func TestEntraIDAuthClientAuthenticatedProxy(t *testing.T) {
 }
 
 // TestConfigureAuthClientProxy tests the actual configureAuthClientProxy function
-func TestConfigureAuthClientProxy(t *testing.T) {
+func TestUnit_ConfigureAuthClientProxy_AllScenarios(t *testing.T) {
 	ctx := context.Background()
 
 	tests := []struct {
@@ -436,7 +436,7 @@ func TestConfigureAuthClientProxy(t *testing.T) {
 // TestAuthClientWithoutCompressionFix validates that configureAuthClientProxy
 // creates an HTTP client that does not compress requests while maintaining other
 // Kiota middleware features (retry, redirect, user agent).
-func TestAuthClientWithoutCompressionFix(t *testing.T) {
+func TestUnit_AuthClient_WithoutCompressionFix(t *testing.T) {
 	var receivedContentEncoding string
 	var receivedBody string
 
@@ -495,7 +495,7 @@ func TestAuthClientWithoutCompressionFix(t *testing.T) {
 // TestAuthClientWithProxyWithoutCompression validates that configureAuthClientProxy
 // correctly disables compression when proxy is configured, ensuring compatibility
 // with Entra ID token endpoint while maintaining proxy functionality.
-func TestAuthClientWithProxyWithoutCompression(t *testing.T) {
+func TestUnit_AuthClient_WithProxyWithoutCompression(t *testing.T) {
 	var proxyReceivedCompression string
 	var proxyHitCount atomic.Int32
 
@@ -561,7 +561,7 @@ func TestAuthClientWithProxyWithoutCompression(t *testing.T) {
 
 // TestConfigureEntraIDClientOptions validates the main entry point function that
 // orchestrates all client option configuration.
-func TestConfigureEntraIDClientOptions(t *testing.T) {
+func TestUnit_ConfigureEntraIDClientOptions_AllScenarios(t *testing.T) {
 	tests := []struct {
 		name              string
 		authorityURL      string
@@ -658,7 +658,7 @@ func TestConfigureEntraIDClientOptions(t *testing.T) {
 
 // TestGetAuthClientMiddleware validates that the middleware chain is built correctly
 // based on client options configuration.
-func TestGetAuthClientMiddleware(t *testing.T) {
+func TestUnit_GetAuthClientMiddleware_BasicConfiguration(t *testing.T) {
 	tests := []struct {
 		name               string
 		clientOptions      *ClientOptions
@@ -717,7 +717,7 @@ func TestGetAuthClientMiddleware(t *testing.T) {
 }
 
 // TestAuthClientProxyErrorHandling validates error handling in proxy configuration.
-func TestAuthClientProxyErrorHandling(t *testing.T) {
+func TestUnit_AuthClientProxy_ErrorHandling(t *testing.T) {
 	ctx := context.Background()
 
 	t.Run("Invalid proxy URL", func(t *testing.T) {
@@ -737,7 +737,7 @@ func TestAuthClientProxyErrorHandling(t *testing.T) {
 
 // TestAuthClientMiddlewareExcludesCompression validates that CompressionHandler
 // is never included in the auth client middleware chain, regardless of configuration.
-func TestAuthClientMiddlewareExcludesCompression(t *testing.T) {
+func TestUnit_AuthClientMiddleware_ExcludesCompression(t *testing.T) {
 	ctx := context.Background()
 
 	configs := []*ClientOptions{
@@ -776,7 +776,7 @@ func TestAuthClientMiddlewareExcludesCompression(t *testing.T) {
 }
 
 // TestGetAuthClientMiddleware_AllCombinations validates all middleware combinations.
-func TestGetAuthClientMiddleware_AllCombinations(t *testing.T) {
+func TestUnit_GetAuthClientMiddleware_AllCombinations(t *testing.T) {
 	ctx := context.Background()
 
 	tests := []struct {
