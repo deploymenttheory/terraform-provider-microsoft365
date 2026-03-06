@@ -9,6 +9,7 @@ import (
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
 	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/shared_models/graph_beta"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -32,6 +33,13 @@ func (r *WindowsUpdateDeploymentAudienceMembersResource) Create(ctx context.Cont
 	defer cancel()
 
 	object.ID = types.StringValue(fmt.Sprintf("%s_%s", object.AudienceID.ValueString(), object.MemberType.ValueString()))
+
+	if object.Members.IsNull() || object.Members.IsUnknown() {
+		object.Members = types.SetValueMust(types.StringType, []attr.Value{})
+	}
+	if object.Exclusions.IsNull() || object.Exclusions.IsUnknown() {
+		object.Exclusions = types.SetValueMust(types.StringType, []attr.Value{})
+	}
 
 	requestBody, err := constructCreateRequest(ctx, &object)
 	if err != nil {
