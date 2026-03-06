@@ -12,7 +12,7 @@ resource "microsoft365_graph_beta_applications_application" "dependency_app" {
 
 resource "time_sleep" "wait_for_app" {
   depends_on      = [microsoft365_graph_beta_applications_application.dependency_app]
-  create_duration = "15s"
+  create_duration = "30s"
 }
 
 resource "microsoft365_graph_beta_applications_application_password_credential" "test_maximal" {

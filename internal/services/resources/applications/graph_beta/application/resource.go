@@ -205,18 +205,6 @@ func (r *ApplicationResource) Schema(ctx context.Context, req resource.SchemaReq
 					),
 				},
 			},
-		"identifier_uris": schema.SetAttribute{
-			MarkdownDescription: "Also known as App ID URI, this value is set when an application is used as a resource app. The identifierUris acts as the prefix for the scopes you reference in your API's code, and it must be globally unique across Microsoft Entra ID. For more information on valid identifierUris patterns and best practices, see Microsoft Entra application registration security best practices. Not nullable. Supports `$filter` (`eq`, `ne`, `ge`, `le`, `startsWith`).",
-			Optional:            true,
-			Computed:            true,
-			ElementType:         types.StringType,
-			PlanModifiers: []planmodifier.Set{
-				setplanmodifier.UseStateForUnknown(),
-			},
-			Validators: []validator.Set{
-				setvalidator.SizeAtLeast(1),
-			},
-		},
 		"group_membership_claims": schema.SetAttribute{
 			MarkdownDescription: "Configures the groups claim issued in a user or OAuth 2.0 access token that the application expects. To set this attribute, use one of the following string values: `None`, `SecurityGroup` (for security groups and Microsoft Entra roles), `All` (this gets all security groups, distribution groups, and Microsoft Entra directory roles that the signed-in user is a member of).",
 			Optional:            true,
@@ -498,13 +486,10 @@ func (r *ApplicationResource) Schema(ctx context.Context, req resource.SchemaReq
 								boolplanmodifier.UseStateForUnknown(),
 							},
 						},
-						"origin": schema.StringAttribute{
-							MarkdownDescription: "Specifies if the app role is defined on the application object or on the servicePrincipal entity. Must not be included in any POST or PATCH requests. Read-only.",
-							Computed:            true,
-							PlanModifiers: []planmodifier.String{
-								stringplanmodifier.UseStateForUnknown(),
-							},
-						},
+					"origin": schema.StringAttribute{
+						MarkdownDescription: "Specifies if the app role is defined on the application object or on the servicePrincipal entity. Must not be included in any POST or PATCH requests. Read-only.",
+						Computed:            true,
+					},
 						"value": schema.StringAttribute{
 							MarkdownDescription: "Specifies the value to include in the roles claim in ID tokens and access tokens authenticating an assigned user or service principal. Must not exceed 120 characters in length. Allowed characters are : ! # $ % & ' ( ) * + , - . / : ;  =  ? @ [ ] ^ + _  {  } ~, and characters in the ranges 0-9, A-Z and a-z. Any other character, including the space character, aren't allowed. May not begin with `.`. Nullable.",
 							Optional:            true,
@@ -807,37 +792,6 @@ func (r *ApplicationResource) Schema(ctx context.Context, req resource.SchemaReq
 								MarkdownDescription: "Specifies whether this web application can request an ID token using the OAuth 2.0 implicit flow.",
 								Optional:            true,
 								Computed:            true,
-							},
-						},
-					},
-					"redirect_uri_settings": schema.SetNestedAttribute{
-						MarkdownDescription: "Specifies the index of the URLs where user tokens are sent for sign-in. This is only valid for applications using SAML. Note: If not specified, the API may auto-generate settings based on redirect_uris. To manage this field, you must provide at least one entry; empty arrays are not supported as the API auto-generates values.",
-						Optional:            true,
-						Computed:            true,
-						PlanModifiers: []planmodifier.Set{
-							setplanmodifier.UseStateForUnknown(),
-						},
-						Validators: []validator.Set{
-							setvalidator.SizeAtLeast(1),
-						},
-						NestedObject: schema.NestedAttributeObject{
-							Attributes: map[string]schema.Attribute{
-								"uri": schema.StringAttribute{
-									MarkdownDescription: "Specifies the URI that tokens are sent to.",
-									Optional:            true,
-									Computed:            true,
-									Validators: []validator.String{
-										stringvalidator.RegexMatches(
-											regexp.MustCompile(constants.HttpOrHttpsUrlRegex),
-											"must be a valid HTTP or HTTPS URL",
-										),
-									},
-								},
-								"index": schema.Int32Attribute{
-									MarkdownDescription: "Identifies the specific URI within the redirectURIs collection in SAML SSO flows. Defaults to null. The index is unique across all the redirectUris for the application.",
-									Optional:            true,
-									Computed:            true,
-								},
 							},
 						},
 					},

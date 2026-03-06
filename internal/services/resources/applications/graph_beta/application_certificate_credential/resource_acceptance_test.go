@@ -39,11 +39,11 @@ func TestAccResourceApplicationCertificateCredential_01_PEM(t *testing.T) {
 			},
 			"time": {
 				Source:            "hashicorp/time",
-				VersionConstraint: ">= 0.9.0",
+				VersionConstraint: constants.ExternalProviderTimeVersion,
 			},
 			"tls": {
 				Source:            "hashicorp/tls",
-				VersionConstraint: ">= 4.0.0",
+				VersionConstraint: constants.ExternalProviderTLSVersion,
 			},
 		},
 		Steps: []resource.TestStep{

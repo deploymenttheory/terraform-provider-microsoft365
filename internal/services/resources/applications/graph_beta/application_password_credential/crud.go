@@ -71,6 +71,23 @@ func (r *ApplicationPasswordCredentialResource) Create(ctx context.Context, req 
 		return
 	}
 
+	// Perform a Read with retry to verify the credential exists and handle eventual consistency
+	readReq := resource.ReadRequest{State: resp.State, ProviderMeta: req.ProviderMeta}
+	stateContainer := &crud.CreateResponseContainer{CreateResponse: resp}
+
+	opts := crud.DefaultReadWithRetryOptions()
+	opts.Operation = constants.TfOperationCreate
+	opts.ResourceTypeName = ResourceName
+
+	err = crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error reading resource state after create",
+			fmt.Sprintf("Could not read resource state: %s: %s", ResourceName, err.Error()),
+		)
+		return
+	}
+
 	tflog.Debug(ctx, fmt.Sprintf("Finished Create Method: %s", ResourceName))
 }
 
@@ -88,6 +105,14 @@ func (r *ApplicationPasswordCredentialResource) Read(ctx context.Context, req re
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting Read method for: %s", ResourceName))
 
+	// Determine the operation context (read vs create)
+	operation := constants.TfOperationRead
+	if ctxOp := ctx.Value("retry_operation"); ctxOp != nil {
+		if opStr, ok := ctxOp.(string); ok {
+			operation = opStr
+		}
+	}
+
 	resp.Diagnostics.Append(req.State.Get(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -96,7 +121,7 @@ func (r *ApplicationPasswordCredentialResource) Read(ctx context.Context, req re
 	applicationID := object.ApplicationID.ValueString()
 	keyID := object.KeyID.ValueString()
 
-	tflog.Debug(ctx, fmt.Sprintf("Reading %s with key_id: %s from application: %s", ResourceName, keyID, applicationID))
+	tflog.Debug(ctx, fmt.Sprintf("Reading %s with key_id: %s from application: %s (operation: %s)", ResourceName, keyID, applicationID, operation))
 
 	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Read, ReadTimeout*time.Second, &resp.Diagnostics)
 	if cancel == nil {
@@ -107,39 +132,50 @@ func (r *ApplicationPasswordCredentialResource) Read(ctx context.Context, req re
 	// Preserve secret_text from state since it cannot be retrieved from API
 	secretTextFromState := object.SecretText
 
-	// Get the parent application to read the password credential
 	application, err := r.client.
 		Applications().
 		ByApplicationId(applicationID).
 		Get(ctx, nil)
 
 	if err != nil {
-		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationRead, r.ReadPermissions)
+		errors.HandleKiotaGraphError(ctx, err, resp, operation, r.ReadPermissions)
 		return
 	}
 
 	// Find the matching password credential by key_id
 	passwordCredentials := application.GetPasswordCredentials()
 	if passwordCredentials == nil {
+		tflog.Error(ctx, fmt.Sprintf("No password credentials array found on application %s", applicationID))
 		resp.Diagnostics.AddError(
 			"Password credential not found",
 			fmt.Sprintf("No password credentials found on application %s", applicationID),
 		)
-		resp.State.RemoveResource(ctx)
 		return
 	}
 
+	tflog.Debug(ctx, fmt.Sprintf("Found %d password credentials on application, looking for key_id: %s", len(passwordCredentials), keyID))
+
 	var foundCredential graphmodels.PasswordCredentialable
-	for _, cred := range passwordCredentials {
+	for i, cred := range passwordCredentials {
+		credKeyID := ""
+		if cred.GetKeyId() != nil {
+			credKeyID = cred.GetKeyId().String()
+		}
+		tflog.Debug(ctx, fmt.Sprintf("Password credential [%d]: key_id=%s, display_name=%s", i, credKeyID, *cred.GetDisplayName()))
+		
 		if cred.GetKeyId() != nil && cred.GetKeyId().String() == keyID {
 			foundCredential = cred
+			tflog.Debug(ctx, fmt.Sprintf("Found matching password credential at index %d", i))
 			break
 		}
 	}
 
 	if foundCredential == nil {
-		tflog.Warn(ctx, fmt.Sprintf("Password credential with key_id %s not found on application %s", keyID, applicationID))
-		resp.State.RemoveResource(ctx)
+		tflog.Error(ctx, fmt.Sprintf("Password credential with key_id %s not found on application %s after checking %d credentials", keyID, applicationID, len(passwordCredentials)))
+		resp.Diagnostics.AddError(
+			"Password credential not found",
+			fmt.Sprintf("Password credential with key_id %s not found on application %s", keyID, applicationID),
+		)
 		return
 	}
 
@@ -241,11 +277,28 @@ func (r *ApplicationPasswordCredentialResource) Update(ctx context.Context, req 
 		return
 	}
 
-	// Map response to state
+	// Map response to state directly since the values are not retrievable after creation
 	MapRemoteResourceStateToTerraform(ctx, &plan, createdCredential)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// Perform a Read with retry to verify the credential exists and handle eventual consistency
+	readReq := resource.ReadRequest{State: resp.State, ProviderMeta: req.ProviderMeta}
+	stateContainer := &crud.UpdateResponseContainer{UpdateResponse: resp}
+
+	opts := crud.DefaultReadWithRetryOptions()
+	opts.Operation = constants.TfOperationUpdate
+	opts.ResourceTypeName = ResourceName
+
+	err = crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error reading resource state after update",
+			fmt.Sprintf("Could not read resource state: %s: %s", ResourceName, err.Error()),
+		)
 		return
 	}
 

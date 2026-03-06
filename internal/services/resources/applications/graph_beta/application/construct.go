@@ -38,10 +38,6 @@ func constructResource(ctx context.Context, client *msgraphbetasdk.GraphServiceC
 		return nil, err
 	}
 
-	if err := convert.FrameworkToGraphStringSet(ctx, data.IdentifierUris, requestBody.SetIdentifierUris); err != nil {
-		return nil, fmt.Errorf("failed to set identifier_uris: %w", err)
-	}
-
 	if err := convert.FrameworkToGraphStringSet(ctx, data.Tags, requestBody.SetTags); err != nil {
 		return nil, fmt.Errorf("failed to set tags: %w", err)
 	}
@@ -586,34 +582,5 @@ func constructWeb(ctx context.Context, data *ApplicationWeb) (graphmodels.WebApp
 		web.SetImplicitGrantSettings(implicitGrant)
 	}
 
-	if !data.RedirectUriSettings.IsNull() && !data.RedirectUriSettings.IsUnknown() {
-		redirectUriSettings, err := constructRedirectUriSettings(ctx, data.RedirectUriSettings)
-		if err != nil {
-			return nil, err
-		}
-		web.SetRedirectUriSettings(redirectUriSettings)
-	}
-
 	return web, nil
-}
-
-// constructRedirectUriSettings builds the redirect URI settings collection
-func constructRedirectUriSettings(ctx context.Context, data types.Set) ([]graphmodels.RedirectUriSettingsable, error) {
-	var settings []ApplicationWebRedirectUriSettings
-	diags := data.ElementsAs(ctx, &settings, false)
-	if diags.HasError() {
-		return nil, fmt.Errorf("failed to extract redirect_uri_settings: %v", diags.Errors())
-	}
-
-	result := make([]graphmodels.RedirectUriSettingsable, 0, len(settings))
-	for _, setting := range settings {
-		redirectUriSetting := graphmodels.NewRedirectUriSettings()
-
-		convert.FrameworkToGraphString(setting.Uri, redirectUriSetting.SetUri)
-		convert.FrameworkToGraphInt32(setting.Index, redirectUriSetting.SetIndex)
-
-		result = append(result, redirectUriSetting)
-	}
-
-	return result, nil
 }

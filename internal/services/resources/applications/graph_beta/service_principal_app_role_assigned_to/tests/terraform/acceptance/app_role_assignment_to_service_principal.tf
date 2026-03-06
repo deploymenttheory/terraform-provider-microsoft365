@@ -31,7 +31,7 @@ resource "microsoft365_graph_beta_applications_application" "test" {
 # Wait for application to be fully created
 resource "time_sleep" "wait_for_app" {
   depends_on      = [microsoft365_graph_beta_applications_application.test]
-  create_duration = "15s"
+  create_duration = "30s"
 }
 
 # Create service principal from the test application
@@ -45,7 +45,7 @@ resource "microsoft365_graph_beta_applications_service_principal" "test_target" 
 # Wait for service principal to be fully created
 resource "time_sleep" "wait_for_sp" {
   depends_on      = [microsoft365_graph_beta_applications_service_principal.test_target]
-  create_duration = "15s"
+  create_duration = "30s"
 }
 
 # ==============================================================================

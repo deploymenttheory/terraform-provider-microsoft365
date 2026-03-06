@@ -26,6 +26,18 @@ resource "microsoft365_graph_beta_users_user" "dependency_owner" {
 }
 
 # ==============================================================================
+# Time Sleep for Dependency Consistency
+# ==============================================================================
+
+resource "time_sleep" "wait_for_dependencies" {
+  create_duration = "30s"
+
+  depends_on = [
+    microsoft365_graph_beta_users_user.dependency_owner
+  ]
+}
+
+# ==============================================================================
 # Application
 # ==============================================================================
 
@@ -36,10 +48,6 @@ resource "microsoft365_graph_beta_applications_application" "test_multitenant" {
   display_name     = "acc-test-multitenant-${random_string.app_suffix.result}"
   description      = "Multitenant acceptance test application"
   sign_in_audience = "AzureADandPersonalMicrosoftAccount"
-
-  identifier_uris = [
-    "https://deploymenttheory.com/acc-test-mt-${random_string.app_suffix.result}"
-  ]
 
   web = {
     home_page_url = "https://contoso.com"
@@ -69,6 +77,10 @@ resource "microsoft365_graph_beta_applications_application" "test_multitenant" {
 
   prevent_duplicate_names = false
   hard_delete             = true
+
+  depends_on = [
+    time_sleep.wait_for_dependencies
+  ]
 }
 
 

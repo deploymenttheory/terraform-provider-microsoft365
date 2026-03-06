@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"math"
 	"net/http"
+	"slices"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/cloud"
@@ -48,6 +49,7 @@ func ConfigureEntraIDClientOptions(ctx context.Context, config *ProviderData, au
 	return clientOptions, nil
 }
 
+// initializeAuthClientOptions creates the base policy.ClientOptions with the authority URL.
 func initializeAuthClientOptions(ctx context.Context, authorityURL string) policy.ClientOptions {
 	options := policy.ClientOptions{
 		Cloud: cloud.Configuration{
@@ -58,6 +60,8 @@ func initializeAuthClientOptions(ctx context.Context, authorityURL string) polic
 	return options
 }
 
+// configureRetryOptions sets up retry behavior for authentication requests with exponential
+// backoff and jitter for transient failures.
 func configureRetryOptions(ctx context.Context, clientOptions *policy.ClientOptions, config *ProviderData) {
 	maxRetries := int32(config.ClientOptions.MaxRetries)
 	baseDelay := time.Duration(config.ClientOptions.RetryDelaySeconds) * time.Second
@@ -82,9 +86,8 @@ func configureRetryOptions(ctx context.Context, clientOptions *policy.ClientOpti
 				return false
 			}
 
-			for _, code := range clientOptions.Retry.StatusCodes {
-				if resp.StatusCode == code {
-					executionCount := resp.Request.Context().Value("RetryCount").(int32)
+			if slices.Contains(clientOptions.Retry.StatusCodes, resp.StatusCode) {
+				executionCount := resp.Request.Context().Value("RetryCount").(int32)
 					exponentialBackoff := baseDelay * time.Duration(math.Pow(2, float64(executionCount)))
 					jitter := time.Duration(rand.Int63n(int64(baseDelay)))
 					delayWithJitter := exponentialBackoff + jitter
@@ -97,7 +100,6 @@ func configureRetryOptions(ctx context.Context, clientOptions *policy.ClientOpti
 
 					time.Sleep(delayWithJitter)
 					return true
-				}
 			}
 			return false
 		},
@@ -107,6 +109,7 @@ func configureRetryOptions(ctx context.Context, clientOptions *policy.ClientOpti
 		clientOptions.Retry.MaxRetries, time.Duration(config.ClientOptions.RetryDelaySeconds)*time.Second))
 }
 
+// configureTelemetryOptions configures telemetry settings for authentication requests.
 func configureTelemetryOptions(ctx context.Context, clientOptions *policy.ClientOptions, config *ProviderData) {
 	clientOptions.Telemetry = policy.TelemetryOptions{
 		ApplicationID: config.ClientOptions.CustomUserAgent,
@@ -116,6 +119,7 @@ func configureTelemetryOptions(ctx context.Context, clientOptions *policy.Client
 		clientOptions.Telemetry.ApplicationID, clientOptions.Telemetry.Disabled))
 }
 
+// configureAuthTimeout sets the timeout for authentication requests.
 func configureAuthTimeout(ctx context.Context, clientOptions *policy.ClientOptions, config *ProviderData) {
 	if config.ClientOptions.TimeoutSeconds > 0 {
 		clientOptions.Retry.TryTimeout = time.Duration(config.ClientOptions.TimeoutSeconds) * time.Second
@@ -125,32 +129,42 @@ func configureAuthTimeout(ctx context.Context, clientOptions *policy.ClientOptio
 	}
 }
 
+// configureAuthClientProxy creates an HTTP client for Entra ID authentication requests.
+// Returns a Kiota client with custom middleware (excluding compression) for both proxy
+// and non-proxy scenarios.
 func configureAuthClientProxy(ctx context.Context, config *ProviderData) (*http.Client, error) {
 	if config.ClientOptions.UseProxy && config.ClientOptions.ProxyURL != "" {
-		return configureProxyHTTPClient(ctx, config.ClientOptions)
+		return configureAuthProxyHTTPClient(ctx, config.ClientOptions)
 	}
 
-	tflog.Info(ctx, "Using default HTTP client without proxy")
-	return khttp.GetDefaultClient(), nil
+	tflog.Info(ctx, "Creating auth HTTP client without compression middleware")
+	middleware := getAuthClientMiddleware(ctx, config.ClientOptions)
+	return khttp.GetDefaultClient(middleware...), nil
 }
 
-func configureProxyHTTPClient(ctx context.Context, clientOptions *ClientOptions) (*http.Client, error) {
-	tflog.Info(ctx, "Attempting to configure proxy with URL: "+clientOptions.ProxyURL)
+// configureAuthProxyHTTPClient creates an HTTP client for authentication requests when
+// proxy is configured. Uses Kiota's proxy helpers with custom middleware to exclude compression.
+func configureAuthProxyHTTPClient(ctx context.Context, clientOptions *ClientOptions) (*http.Client, error) {
+	tflog.Info(ctx, "Configuring proxy for auth client with URL: "+clientOptions.ProxyURL)
+
+	middleware := getAuthClientMiddleware(ctx, clientOptions)
 
 	var httpClient *http.Client
 	var err error
 
 	if clientOptions.ProxyUsername != "" && clientOptions.ProxyPassword != "" {
-		tflog.Info(ctx, "Configuring authenticated proxy")
+		tflog.Info(ctx, "Configuring authenticated proxy for auth client")
 		httpClient, err = khttp.GetClientWithAuthenticatedProxySettings(
 			clientOptions.ProxyURL,
 			clientOptions.ProxyUsername,
 			clientOptions.ProxyPassword,
+			middleware...,
 		)
 	} else {
-		tflog.Info(ctx, "Configuring unauthenticated proxy")
+		tflog.Info(ctx, "Configuring unauthenticated proxy for auth client")
 		httpClient, err = khttp.GetClientWithProxySettings(
 			clientOptions.ProxyURL,
+			middleware...,
 		)
 	}
 
@@ -159,6 +173,64 @@ func configureProxyHTTPClient(ctx context.Context, clientOptions *ClientOptions)
 		return nil, fmt.Errorf("unable to create HTTP client with proxy settings: %w", err)
 	}
 
-	tflog.Debug(ctx, "Proxy settings configured successfully")
+	tflog.Debug(ctx, "Proxy settings configured successfully for auth client")
 	return httpClient, nil
+}
+
+// getAuthClientMiddleware builds a custom middleware chain for authentication HTTP clients.
+// By explicitly providing middleware to khttp.GetDefaultClient(), we prevent Kiota from
+// adding its default middleware set (which includes CompressionHandler). This ensures
+// auth requests are not gzip-compressed, as Entra ID's token endpoint does not support
+// compressed request bodies.
+//
+// IMPORTANT: This function must always return at least one middleware. If an empty array
+// is passed to khttp.GetDefaultClient(), Kiota will add its default middleware including
+// CompressionHandler, defeating the purpose of this function.
+func getAuthClientMiddleware(ctx context.Context, clientOptions *ClientOptions) []khttp.Middleware {
+	var middleware []khttp.Middleware
+
+	if clientOptions.EnableRetry {
+		tflog.Debug(ctx, "Adding retry handler to auth client middleware")
+		retryOptions := khttp.RetryHandlerOptions{
+			MaxRetries: int(clientOptions.MaxRetries),
+			ShouldRetry: func(delay time.Duration, executionCount int, req *http.Request, resp *http.Response) bool {
+				if executionCount >= int(clientOptions.MaxRetries) {
+					return false
+				}
+				if resp.StatusCode >= 500 && resp.StatusCode < 600 {
+					baseDelay := time.Duration(clientOptions.RetryDelaySeconds) * time.Second
+					exponentialBackoff := baseDelay * time.Duration(math.Pow(2, float64(executionCount)))
+					jitter := time.Duration(rand.Int63n(int64(baseDelay)))
+					delayWithJitter := exponentialBackoff + jitter
+					time.Sleep(delayWithJitter)
+					return true
+				}
+				return false
+			},
+		}
+		middleware = append(middleware, khttp.NewRetryHandlerWithOptions(retryOptions))
+	}
+
+	if clientOptions.EnableRedirect {
+		tflog.Debug(ctx, "Adding redirect handler to auth client middleware")
+		redirectOptions := khttp.RedirectHandlerOptions{
+			MaxRedirects: int(clientOptions.MaxRedirects),
+		}
+		middleware = append(middleware, khttp.NewRedirectHandlerWithOptions(redirectOptions))
+	}
+
+	if clientOptions.CustomUserAgent != "" {
+		tflog.Debug(ctx, "Adding user agent handler to auth client middleware")
+		userAgentOptions := khttp.NewUserAgentHandlerOptions()
+		userAgentOptions.ProductName = clientOptions.CustomUserAgent
+		middleware = append(middleware, khttp.NewUserAgentHandlerWithOptions(userAgentOptions))
+	}
+
+	if len(middleware) == 0 {
+		tflog.Debug(ctx, "No optional middleware enabled, adding redirect handler to prevent default middleware")
+		middleware = append(middleware, khttp.NewRedirectHandler())
+	}
+
+	tflog.Info(ctx, "Auth client middleware configured without compression (Entra ID token endpoint does not support gzip)")
+	return middleware
 }

@@ -20,10 +20,10 @@ resource "random_uuid" "app_role_id_3" {}
 # Dependencies - Users for owners
 # ==============================================================================
 
-resource "microsoft365_graph_beta_users_user" "dependency_owner_1" {
-  display_name        = "acc-test-app-owner1-${random_string.app_suffix.result}"
-  user_principal_name = "acc-test-app-owner1-${random_string.app_suffix.result}@deploymenttheory.com"
-  mail_nickname       = "acc-test-app-owner1-${random_string.app_suffix.result}"
+resource "microsoft365_graph_beta_users_user" "dependency_owner" {
+  display_name        = "acc-test-app-owner-${random_string.app_suffix.result}"
+  user_principal_name = "acc-test-app-owner-${random_string.app_suffix.result}@deploymenttheory.com"
+  mail_nickname       = "acc-test-app-owner-${random_string.app_suffix.result}"
   account_enabled     = true
   password_profile = {
     password                           = "SecureP@ssw0rd123!"
@@ -45,15 +45,28 @@ resource "microsoft365_graph_beta_users_user" "dependency_owner_2" {
 }
 
 # ==============================================================================
+# Time Sleep for Dependency Consistency
+# ==============================================================================
+
+resource "time_sleep" "wait_for_dependencies" {
+  create_duration = "30s"
+
+  depends_on = [
+    microsoft365_graph_beta_users_user.dependency_owner,
+    microsoft365_graph_beta_users_user.dependency_owner_2
+  ]
+}
+
+# ==============================================================================
 # Application
 # ==============================================================================
 
-# APP002: Maximal Application Configuration
-# Tests application creation with all possible fields and nested configurations
+# APP007 Step 2: Maximal Application Configuration
+# Tests application update from minimal to maximal configuration
 
-resource "microsoft365_graph_beta_applications_application" "test_maximal" {
-  display_name     = "acc-test-app-maximal-${random_string.app_suffix.result}"
-  description      = "Maximal acceptance test application with all fields configured"
+resource "microsoft365_graph_beta_applications_application" "test_minimal_to_maximal" {
+  display_name     = "acc-test-app-min-to-max-${random_string.app_suffix.result}"
+  description      = "Minimal to maximal test application - step 2"
   sign_in_audience = "AzureADMyOrg"
 
   group_membership_claims       = ["SecurityGroup"]
@@ -150,12 +163,16 @@ resource "microsoft365_graph_beta_applications_application" "test_maximal" {
   }
 
   owner_user_ids = [
-    microsoft365_graph_beta_users_user.dependency_owner_1.id,
+    microsoft365_graph_beta_users_user.dependency_owner.id,
     microsoft365_graph_beta_users_user.dependency_owner_2.id
   ]
 
   prevent_duplicate_names = true
   hard_delete             = true
+
+  depends_on = [
+    time_sleep.wait_for_dependencies
+  ]
 }
 
 

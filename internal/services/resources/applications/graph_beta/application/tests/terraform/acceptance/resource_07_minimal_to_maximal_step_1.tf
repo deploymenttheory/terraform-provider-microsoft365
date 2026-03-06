@@ -14,9 +14,9 @@ resource "random_string" "app_suffix" {
 # ==============================================================================
 
 resource "microsoft365_graph_beta_users_user" "dependency_owner" {
-  display_name        = "acc-test-spa-owner-${random_string.app_suffix.result}"
-  user_principal_name = "acc-test-spa-owner-${random_string.app_suffix.result}@deploymenttheory.com"
-  mail_nickname       = "acc-test-spa-owner-${random_string.app_suffix.result}"
+  display_name        = "acc-test-app-owner-${random_string.app_suffix.result}"
+  user_principal_name = "acc-test-app-owner-${random_string.app_suffix.result}@deploymenttheory.com"
+  mail_nickname       = "acc-test-app-owner-${random_string.app_suffix.result}"
   account_enabled     = true
   password_profile = {
     password                           = "SecureP@ssw0rd123!"
@@ -41,20 +41,12 @@ resource "time_sleep" "wait_for_dependencies" {
 # Application
 # ==============================================================================
 
-# APP004: Single Page Application (SPA) Configuration
-# Tests SPA configuration with multiple redirect URIs
+# APP007 Step 1: Minimal Application Configuration
+# Tests application creation with only the required fields
 
-resource "microsoft365_graph_beta_applications_application" "test_spa" {
-  display_name     = "acc-test-spa-${random_string.app_suffix.result}"
-  description      = "SPA acceptance test application"
-  sign_in_audience = "AzureADMultipleOrgs"
-
-  spa = {
-    redirect_uris = [
-      "http://localhost:3000",
-      "https://acc-test-spa-${random_string.app_suffix.result}.azurestaticapps.net"
-    ]
-  }
+resource "microsoft365_graph_beta_applications_application" "test_minimal_to_maximal" {
+  display_name = "acc-test-app-min-to-max-${random_string.app_suffix.result}"
+  description  = "Minimal to maximal test application - step 1"
 
   owner_user_ids = [
     microsoft365_graph_beta_users_user.dependency_owner.id
