@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"math"
 	"net/http"
+	"slices"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/cloud"
@@ -48,6 +49,7 @@ func ConfigureEntraIDClientOptions(ctx context.Context, config *ProviderData, au
 	return clientOptions, nil
 }
 
+// initializeAuthClientOptions creates the base policy.ClientOptions with the authority URL.
 func initializeAuthClientOptions(ctx context.Context, authorityURL string) policy.ClientOptions {
 	options := policy.ClientOptions{
 		Cloud: cloud.Configuration{
@@ -58,6 +60,8 @@ func initializeAuthClientOptions(ctx context.Context, authorityURL string) polic
 	return options
 }
 
+// configureRetryOptions sets up retry behavior for authentication requests with exponential
+// backoff and jitter for transient failures.
 func configureRetryOptions(ctx context.Context, clientOptions *policy.ClientOptions, config *ProviderData) {
 	maxRetries := int32(config.ClientOptions.MaxRetries)
 	baseDelay := time.Duration(config.ClientOptions.RetryDelaySeconds) * time.Second
@@ -82,9 +86,8 @@ func configureRetryOptions(ctx context.Context, clientOptions *policy.ClientOpti
 				return false
 			}
 
-			for _, code := range clientOptions.Retry.StatusCodes {
-				if resp.StatusCode == code {
-					executionCount := resp.Request.Context().Value("RetryCount").(int32)
+			if slices.Contains(clientOptions.Retry.StatusCodes, resp.StatusCode) {
+				executionCount := resp.Request.Context().Value("RetryCount").(int32)
 					exponentialBackoff := baseDelay * time.Duration(math.Pow(2, float64(executionCount)))
 					jitter := time.Duration(rand.Int63n(int64(baseDelay)))
 					delayWithJitter := exponentialBackoff + jitter
@@ -97,7 +100,6 @@ func configureRetryOptions(ctx context.Context, clientOptions *policy.ClientOpti
 
 					time.Sleep(delayWithJitter)
 					return true
-				}
 			}
 			return false
 		},
@@ -107,6 +109,7 @@ func configureRetryOptions(ctx context.Context, clientOptions *policy.ClientOpti
 		clientOptions.Retry.MaxRetries, time.Duration(config.ClientOptions.RetryDelaySeconds)*time.Second))
 }
 
+// configureTelemetryOptions configures telemetry settings for authentication requests.
 func configureTelemetryOptions(ctx context.Context, clientOptions *policy.ClientOptions, config *ProviderData) {
 	clientOptions.Telemetry = policy.TelemetryOptions{
 		ApplicationID: config.ClientOptions.CustomUserAgent,
@@ -116,6 +119,7 @@ func configureTelemetryOptions(ctx context.Context, clientOptions *policy.Client
 		clientOptions.Telemetry.ApplicationID, clientOptions.Telemetry.Disabled))
 }
 
+// configureAuthTimeout sets the timeout for authentication requests.
 func configureAuthTimeout(ctx context.Context, clientOptions *policy.ClientOptions, config *ProviderData) {
 	if config.ClientOptions.TimeoutSeconds > 0 {
 		clientOptions.Retry.TryTimeout = time.Duration(config.ClientOptions.TimeoutSeconds) * time.Second
@@ -125,6 +129,9 @@ func configureAuthTimeout(ctx context.Context, clientOptions *policy.ClientOptio
 	}
 }
 
+// configureAuthClientProxy creates an HTTP client for Entra ID authentication requests.
+// Returns a Kiota client with custom middleware (excluding compression) for both proxy
+// and non-proxy scenarios.
 func configureAuthClientProxy(ctx context.Context, config *ProviderData) (*http.Client, error) {
 	if config.ClientOptions.UseProxy && config.ClientOptions.ProxyURL != "" {
 		return configureAuthProxyHTTPClient(ctx, config.ClientOptions)
@@ -133,6 +140,41 @@ func configureAuthClientProxy(ctx context.Context, config *ProviderData) (*http.
 	tflog.Info(ctx, "Creating auth HTTP client without compression middleware")
 	middleware := getAuthClientMiddleware(ctx, config.ClientOptions)
 	return khttp.GetDefaultClient(middleware...), nil
+}
+
+// configureAuthProxyHTTPClient creates an HTTP client for authentication requests when
+// proxy is configured. Uses Kiota's proxy helpers with custom middleware to exclude compression.
+func configureAuthProxyHTTPClient(ctx context.Context, clientOptions *ClientOptions) (*http.Client, error) {
+	tflog.Info(ctx, "Configuring proxy for auth client with URL: "+clientOptions.ProxyURL)
+
+	middleware := getAuthClientMiddleware(ctx, clientOptions)
+
+	var httpClient *http.Client
+	var err error
+
+	if clientOptions.ProxyUsername != "" && clientOptions.ProxyPassword != "" {
+		tflog.Info(ctx, "Configuring authenticated proxy for auth client")
+		httpClient, err = khttp.GetClientWithAuthenticatedProxySettings(
+			clientOptions.ProxyURL,
+			clientOptions.ProxyUsername,
+			clientOptions.ProxyPassword,
+			middleware...,
+		)
+	} else {
+		tflog.Info(ctx, "Configuring unauthenticated proxy for auth client")
+		httpClient, err = khttp.GetClientWithProxySettings(
+			clientOptions.ProxyURL,
+			middleware...,
+		)
+	}
+
+	if err != nil {
+		tflog.Debug(ctx, fmt.Sprintf("Failed to create HTTP client with proxy settings: %v", err))
+		return nil, fmt.Errorf("unable to create HTTP client with proxy settings: %w", err)
+	}
+
+	tflog.Debug(ctx, "Proxy settings configured successfully for auth client")
+	return httpClient, nil
 }
 
 // getAuthClientMiddleware builds a custom middleware chain for authentication HTTP clients.
@@ -182,37 +224,4 @@ func getAuthClientMiddleware(ctx context.Context, clientOptions *ClientOptions) 
 
 	tflog.Info(ctx, "Auth client middleware configured without compression (Entra ID token endpoint does not support gzip)")
 	return middleware
-}
-
-func configureAuthProxyHTTPClient(ctx context.Context, clientOptions *ClientOptions) (*http.Client, error) {
-	tflog.Info(ctx, "Configuring proxy for auth client with URL: "+clientOptions.ProxyURL)
-
-	middleware := getAuthClientMiddleware(ctx, clientOptions)
-
-	var httpClient *http.Client
-	var err error
-
-	if clientOptions.ProxyUsername != "" && clientOptions.ProxyPassword != "" {
-		tflog.Info(ctx, "Configuring authenticated proxy for auth client")
-		httpClient, err = khttp.GetClientWithAuthenticatedProxySettings(
-			clientOptions.ProxyURL,
-			clientOptions.ProxyUsername,
-			clientOptions.ProxyPassword,
-			middleware...,
-		)
-	} else {
-		tflog.Info(ctx, "Configuring unauthenticated proxy for auth client")
-		httpClient, err = khttp.GetClientWithProxySettings(
-			clientOptions.ProxyURL,
-			middleware...,
-		)
-	}
-
-	if err != nil {
-		tflog.Debug(ctx, fmt.Sprintf("Failed to create HTTP client with proxy settings: %v", err))
-		return nil, fmt.Errorf("unable to create HTTP client with proxy settings: %w", err)
-	}
-
-	tflog.Debug(ctx, "Proxy settings configured successfully for auth client")
-	return httpClient, nil
 }
