@@ -51,7 +51,7 @@ func TestAccDatasourceGuidListSharder_01_UsersRoundRobinNoSeed(t *testing.T) {
 
 					// Verify total distributed = 9 test users
 					resource.TestCheckOutput("total_users_distributed", "9"),
-					
+
 					// Verify each shard has at least 1 member
 					resource.TestMatchOutput("shard_0_count", regexp.MustCompile(`^[1-9]\d*$`)),
 					resource.TestMatchOutput("shard_1_count", regexp.MustCompile(`^[1-9]\d*$`)),
@@ -101,7 +101,7 @@ func TestAccDatasourceGuidListSharder_02_UsersRoundRobinWithSeed(t *testing.T) {
 
 					// Verify balanced distribution (difference should be 0 or 1)
 					resource.TestMatchOutput("is_balanced", regexp.MustCompile(`^[01]$`)),
-					
+
 					// Verify each group has exactly 3 users (balanced distribution)
 					resource.TestCheckOutput("group_a_count", "3"),
 					resource.TestCheckOutput("group_b_count", "3"),

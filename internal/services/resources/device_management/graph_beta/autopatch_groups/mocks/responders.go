@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"runtime"
 	"sync"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
@@ -67,8 +68,11 @@ func (m *AutopatchGroupsMock) RegisterMocks() {
 
 		jsonFileName := getJSONFileForName(name)
 
-		// Load JSON response from file
-		responsesPath := filepath.Join("tests", "responses", constants.TfOperationCreate, jsonFileName)
+		// Load JSON response from file - use path relative to this source file
+		// Get the directory of this source file
+		_, filename, _, _ := runtime.Caller(0)
+		sourceDir := filepath.Dir(filename)
+		responsesPath := filepath.Join(sourceDir, "..", "tests", "responses", constants.TfOperationCreate, jsonFileName)
 		jsonData, err := os.ReadFile(responsesPath)
 		if err != nil {
 			return httpmock.NewStringResponse(500, fmt.Sprintf(`{"error":{"code":"InternalServerError","message":"Failed to load JSON response file: %s"}}`, err.Error())), nil

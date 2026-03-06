@@ -287,7 +287,7 @@ func TestUnitResourceMacOSSoftwareUpdateConfiguration_09_Import(t *testing.T) {
 			{
 				Config: loadUnitTestTerraform("resource_01_minimal.tf"),
 				Check: resource.ComposeTestCheckFunc(
-					check.That(resourceType+".test_01_minimal").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(resourceType + ".test_01_minimal").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 				),
 			},
 			{

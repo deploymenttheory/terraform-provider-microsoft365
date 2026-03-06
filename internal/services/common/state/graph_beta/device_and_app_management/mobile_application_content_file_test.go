@@ -6,9 +6,9 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
 // TestMapCommittedContentVersionStateToTerraform tests the MapCommittedContentVersionStateToTerraform function
@@ -50,16 +50,16 @@ func TestMapCommittedContentVersionStateToTerraform(t *testing.T) {
 			versionId: "version-123",
 			respFiles: func() graphmodels.MobileAppContentFileCollectionResponseable {
 				collection := graphmodels.NewMobileAppContentFileCollectionResponse()
-				
+
 				file1 := graphmodels.NewMobileAppContentFile()
 				fileName := "test-app.apk"
 				fileSize := int64(1024)
 				isCommitted := true
-				
+
 				file1.SetName(&fileName)
 				file1.SetSize(&fileSize)
 				file1.SetIsCommitted(&isCommitted)
-				
+
 				collection.SetValue([]graphmodels.MobileAppContentFileable{file1})
 				return collection
 			}(),
@@ -75,22 +75,22 @@ func TestMapCommittedContentVersionStateToTerraform(t *testing.T) {
 			versionId: "version-123",
 			respFiles: func() graphmodels.MobileAppContentFileCollectionResponseable {
 				collection := graphmodels.NewMobileAppContentFileCollectionResponse()
-				
+
 				file1 := graphmodels.NewMobileAppContentFile()
 				fileName1 := "test-app.apk"
 				fileSize := int64(1024)
 				isCommitted := true
-				
+
 				file1.SetName(&fileName1)
 				file1.SetSize(&fileSize)
 				file1.SetIsCommitted(&isCommitted)
-				
+
 				file2 := graphmodels.NewMobileAppContentFile()
 				fileName2 := "other-file.txt"
 				file2.SetName(&fileName2)
 				file2.SetSize(&fileSize)
 				file2.SetIsCommitted(&isCommitted)
-				
+
 				collection.SetValue([]graphmodels.MobileAppContentFileable{file1, file2})
 				return collection
 			}(),
@@ -103,10 +103,10 @@ func TestMapCommittedContentVersionStateToTerraform(t *testing.T) {
 			},
 		},
 		{
-			name:      "Invalid response type",
-			versionId: "version-123",
-			respFiles: "invalid-type",
-			err:       nil,
+			name:              "Invalid response type",
+			versionId:         "version-123",
+			respFiles:         "invalid-type",
+			err:               nil,
 			installerFileName: "",
 			validate: func(t *testing.T, result types.List) {
 				assert.False(t, result.IsNull())
@@ -119,16 +119,16 @@ func TestMapCommittedContentVersionStateToTerraform(t *testing.T) {
 			versionId: "version-123",
 			respFiles: func() graphmodels.MobileAppContentFileCollectionResponseable {
 				collection := graphmodels.NewMobileAppContentFileCollectionResponse()
-				
+
 				file1 := graphmodels.NewMobileAppContentFile()
 				fileName := "test-app.apk"
 				fileSize := int64(1024)
 				isCommitted := true
-				
+
 				file1.SetName(&fileName)
 				file1.SetSize(&fileSize)
 				file1.SetIsCommitted(&isCommitted)
-				
+
 				collection.SetValue([]graphmodels.MobileAppContentFileable{file1, nil})
 				return collection
 			}(),

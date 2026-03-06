@@ -189,15 +189,15 @@ func (r *AgentIdentityBlueprintResource) Schema(ctx context.Context, req resourc
 					),
 				},
 			},
-		"tags": schema.SetAttribute{
-			MarkdownDescription: "Custom strings that can be used to categorize and identify the agent identity blueprint.",
-			Optional:            true,
-			Computed:            true,
-			ElementType:         types.StringType,
-			Validators: []validator.Set{
-				setvalidator.SizeAtLeast(1),
+			"tags": schema.SetAttribute{
+				MarkdownDescription: "Custom strings that can be used to categorize and identify the agent identity blueprint.",
+				Optional:            true,
+				Computed:            true,
+				ElementType:         types.StringType,
+				Validators: []validator.Set{
+					setvalidator.SizeAtLeast(1),
+				},
 			},
-		},
 			"sponsor_user_ids": schema.SetAttribute{
 				MarkdownDescription: "The user IDs of the sponsors for the agent identity blueprint. At least one sponsor is " +
 					"required when creating an agent identity blueprint. Sponsors are users who can approve or oversee the blueprint.",

@@ -59,7 +59,7 @@ func (v int64ListSumEqualsValidator) ValidateList(ctx context.Context, request v
 	// Check if sum matches expected value
 	if sum != v.expectedSum {
 		message := fmt.Sprintf("Sum of values is %d but expected %d. Distribution may not be exact.", sum, v.expectedSum)
-		
+
 		if v.warningOnly {
 			response.Diagnostics.Append(diag.NewAttributeWarningDiagnostic(
 				request.Path,

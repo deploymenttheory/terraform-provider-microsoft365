@@ -521,7 +521,6 @@ func TestAccM365Provider_CustomUserAgent(t *testing.T) {
 	})
 }
 
-
 func TestAccM365Provider_ClientOptions_AllMiddleware(t *testing.T) {
 	dataSourceName := "data.microsoft365_graph_beta_device_management_windows_remediation_script.test"
 

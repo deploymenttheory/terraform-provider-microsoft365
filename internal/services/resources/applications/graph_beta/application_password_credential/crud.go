@@ -162,7 +162,7 @@ func (r *ApplicationPasswordCredentialResource) Read(ctx context.Context, req re
 			credKeyID = cred.GetKeyId().String()
 		}
 		tflog.Debug(ctx, fmt.Sprintf("Password credential [%d]: key_id=%s, display_name=%s", i, credKeyID, *cred.GetDisplayName()))
-		
+
 		if cred.GetKeyId() != nil && cred.GetKeyId().String() == keyID {
 			foundCredential = cred
 			tflog.Debug(ctx, fmt.Sprintf("Found matching password credential at index %d", i))

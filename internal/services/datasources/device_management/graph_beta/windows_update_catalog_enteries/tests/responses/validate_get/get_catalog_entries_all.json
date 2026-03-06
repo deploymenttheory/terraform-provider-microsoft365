@@ -1,0 +1,79 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#admin/windows/updates/catalog/entries",
+  "value": [
+    {
+      "@odata.type": "#microsoft.graph.windowsUpdates.featureUpdateCatalogEntry",
+      "id": "c1dec151-c151-c1de-51c1-dec151c1dec1",
+      "displayName": "Windows 11, version 25H2",
+      "releaseDateTime": "2025-10-01T00:00:00Z",
+      "deployableUntilDateTime": null,
+      "version": "Windows 11, version 25H2",
+      "buildNumber": "26100.1742"
+    },
+    {
+      "@odata.type": "#microsoft.graph.windowsUpdates.featureUpdateCatalogEntry",
+      "id": "f2aed252-d252-f2ae-52d2-aef252d2aef2",
+      "displayName": "Windows 11, version 24H2",
+      "releaseDateTime": "2024-10-01T00:00:00Z",
+      "deployableUntilDateTime": "2027-10-01T00:00:00Z",
+      "version": "Windows 11, version 24H2",
+      "buildNumber": "26100.1150"
+    },
+    {
+      "@odata.type": "#microsoft.graph.windowsUpdates.qualityUpdateCatalogEntry",
+      "id": "d0c03fbb-43b9-4dff-840b-974ef227384d",
+      "displayName": "03/11/2026 - 2026.03 B SecurityUpdate for Windows 10 and later",
+      "catalogName": "2026-03 Cumulative Update for Windows 10 and later",
+      "shortName": "2026.03 B",
+      "releaseDateTime": "2026-03-11T00:00:00Z",
+      "deployableUntilDateTime": null,
+      "isExpeditable": true,
+      "qualityUpdateClassification": "security",
+      "qualityUpdateCadence": "monthly",
+      "cveSeverityInformation": {
+        "maxSeverity": "critical",
+        "maxBaseScore": 9.8,
+        "exploitedCves": [
+          {
+            "number": "CVE-2026-12345",
+            "url": "https://msrc.microsoft.com/update-guide/vulnerability/CVE-2026-12345"
+          },
+          {
+            "number": "CVE-2026-12346",
+            "url": "https://msrc.microsoft.com/update-guide/vulnerability/CVE-2026-12346"
+          }
+        ]
+      }
+    },
+    {
+      "@odata.type": "#microsoft.graph.windowsUpdates.qualityUpdateCatalogEntry",
+      "id": "e1d14fcc-54ca-5e00-951c-085fg338495e",
+      "displayName": "02/11/2026 - 2026.02 B SecurityUpdate for Windows 10 and later",
+      "catalogName": "2026-02 Cumulative Update for Windows 10 and later",
+      "shortName": "2026.02 B",
+      "releaseDateTime": "2026-02-11T00:00:00Z",
+      "deployableUntilDateTime": null,
+      "isExpeditable": false,
+      "qualityUpdateClassification": "security",
+      "qualityUpdateCadence": "monthly",
+      "cveSeverityInformation": {
+        "maxSeverity": "important",
+        "maxBaseScore": 7.5,
+        "exploitedCves": []
+      }
+    },
+    {
+      "@odata.type": "#microsoft.graph.windowsUpdates.qualityUpdateCatalogEntry",
+      "id": "f2e25gdd-65db-6f11-a62d-196hg449506f",
+      "displayName": "01/14/2026 - 2026.01 C Update for Windows 10 and later",
+      "catalogName": "2026-01 Preview Update for Windows 10 and later",
+      "shortName": "2026.01 C",
+      "releaseDateTime": "2026-01-14T00:00:00Z",
+      "deployableUntilDateTime": "2026-04-14T00:00:00Z",
+      "isExpeditable": false,
+      "qualityUpdateClassification": "nonSecurity",
+      "qualityUpdateCadence": "monthly",
+      "cveSeverityInformation": null
+    }
+  ]
+}

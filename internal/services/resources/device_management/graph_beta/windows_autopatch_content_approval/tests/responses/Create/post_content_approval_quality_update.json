@@ -1,0 +1,19 @@
+{
+  "@odata.type": "#microsoft.graph.windowsUpdates.contentApproval",
+  "id": "cca3b451-2f43-c6fe-297f-789f27144420",
+  "createdDateTime": "2026-03-06T10:00:00Z",
+  "isRevoked": false,
+  "revokedDateTime": null,
+  "content": {
+    "@odata.type": "#microsoft.graph.windowsUpdates.catalogContent",
+    "catalogEntry": {
+      "@odata.type": "#microsoft.graph.windowsUpdates.qualityUpdateCatalogEntry",
+      "id": "d0c03fbb-43b9-4dff-840b-974ef227384d"
+    }
+  },
+  "deploymentSettings": {
+    "schedule": {
+      "startDateTime": "2026-03-11T00:00:00Z"
+    }
+  }
+}

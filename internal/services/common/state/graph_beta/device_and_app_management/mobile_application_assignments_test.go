@@ -483,13 +483,13 @@ func TestMapRemoteSettingsToTerraform(t *testing.T) {
 				settings := graphmodels.NewWinGetAppAssignmentSettings()
 				notifications := graphmodels.SHOWALL_WINGETAPPNOTIFICATION
 				settings.SetNotifications(&notifications)
-				
+
 				// Install time settings
 				installSettings := graphmodels.NewWinGetAppInstallTimeSettings()
 				useLocalTime := true
 				installSettings.SetUseLocalTime(&useLocalTime)
 				settings.SetInstallTimeSettings(installSettings)
-				
+
 				// Restart settings
 				restartSettings := graphmodels.NewWinGetAppRestartSettings()
 				countdown := int32(10)
@@ -499,7 +499,7 @@ func TestMapRemoteSettingsToTerraform(t *testing.T) {
 				restartSettings.SetGracePeriodInMinutes(&gracePeriod)
 				restartSettings.SetRestartNotificationSnoozeDurationInMinutes(&snooze)
 				settings.SetRestartSettings(restartSettings)
-				
+
 				return settings
 			}(),
 			validate: func(t *testing.T, result *sharedmodels.MobileAppAssignmentSettingsResourceModel) {
@@ -507,7 +507,7 @@ func TestMapRemoteSettingsToTerraform(t *testing.T) {
 				require.NotNil(t, result.WinGet)
 				require.NotNil(t, result.WinGet.InstallTimeSettings)
 				require.NotNil(t, result.WinGet.RestartSettings)
-				
+
 				assert.True(t, result.WinGet.InstallTimeSettings.UseLocalTime.ValueBool())
 				assert.Equal(t, int32(10), result.WinGet.RestartSettings.CountdownDisplayBeforeRestartInMinutes.ValueInt32())
 				assert.Equal(t, int32(45), result.WinGet.RestartSettings.GracePeriodInMinutes.ValueInt32())
