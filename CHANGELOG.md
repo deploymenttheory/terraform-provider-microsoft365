@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.48.0-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.47.0-alpha...v0.48.0-alpha) (2026-03-06)
+
+
+### Features
+
+* Support username and password authentication for client ([2bd0e46](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/2bd0e463c69f5e4e786d3338dbc07f652ced692e))
+* Support username and password authentication for client ([#2517](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/2517)) ([e695d69](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/e695d698e5724fd1e9c34ac44553422b4fea77f2))
+
+
+### Bug Fixes
+
+* update Entra ID client tests and middleware to prevent gzip compression on OAuth requests ([852d9f2](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/852d9f2f970a6917ca76979b0e59e4036b3c6c34))
+* update Entra ID client tests and middleware to prevent gzip compression on OAuth requests ([#2519](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/2519)) ([e3feb22](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/e3feb22594d8aad4b0940996115658543a2baa1b))
+
 ## [0.47.0-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.46.0-alpha...v0.47.0-alpha) (2026-03-05)
 
 
