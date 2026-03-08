@@ -31,7 +31,7 @@ func constructJustInTimeAssignmentBody(
 	// Log what the SDK will serialize
 	tflog.Debug(ctx, fmt.Sprintf("Enrollment time device membership target body: targetType=%s, targetId=%s",
 		targetType.String(), deviceSecurityGroupID))
-	
+
 	// Verify the target has the odata type set
 	if target.GetBackingStore() != nil {
 		tflog.Debug(ctx, "Target backing store is initialized")

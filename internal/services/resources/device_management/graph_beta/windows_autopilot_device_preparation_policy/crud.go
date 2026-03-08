@@ -65,10 +65,10 @@ func (r *WindowsAutopilotDevicePreparationPolicyResource) Create(
 	object.ID = types.StringValue(*baseResource.GetId())
 
 	// Only set device security group and assignments for user-driven mode
-	isUserDriven := object.DeploymentSettings != nil && 
-		!object.DeploymentSettings.DeploymentType.IsNull() && 
+	isUserDriven := object.DeploymentSettings != nil &&
+		!object.DeploymentSettings.DeploymentType.IsNull() &&
 		object.DeploymentSettings.DeploymentType.ValueString() == DeploymentTypeUserDriven
-	
+
 	if isUserDriven {
 		// set specified device security group as the enrollment time device membership target (Just-In-Time configuration)
 		if !object.DeviceSecurityGroup.IsNull() && !object.DeviceSecurityGroup.IsUnknown() {
@@ -339,10 +339,10 @@ func (r *WindowsAutopilotDevicePreparationPolicyResource) Update(
 	}
 
 	// Only set device security group and assignments for user-driven mode
-	isUserDriven := plan.DeploymentSettings != nil && 
-		!plan.DeploymentSettings.DeploymentType.IsNull() && 
+	isUserDriven := plan.DeploymentSettings != nil &&
+		!plan.DeploymentSettings.DeploymentType.IsNull() &&
 		plan.DeploymentSettings.DeploymentType.ValueString() == DeploymentTypeUserDriven
-	
+
 	if isUserDriven {
 		// If device security group is specified, set it as the enrollment time device membership target (Just-In-Time configuration)
 		if !plan.DeviceSecurityGroup.IsNull() && !plan.DeviceSecurityGroup.IsUnknown() {

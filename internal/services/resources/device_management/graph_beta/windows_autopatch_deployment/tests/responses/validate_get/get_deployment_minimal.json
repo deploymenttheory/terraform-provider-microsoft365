@@ -1,0 +1,21 @@
+{
+  "@odata.type": "#microsoft.graph.windowsUpdates.deployment",
+  "id": "minimal-deployment-id",
+  "createdDateTime": "2024-01-01T10:00:00Z",
+  "lastModifiedDateTime": "2024-01-01T10:00:00Z",
+  "state": {
+    "@odata.type": "microsoft.graph.windowsUpdates.deploymentState",
+    "value": "offering",
+    "reasons": [],
+    "requestedValue": "none",
+    "effectiveValue": "offering"
+  },
+  "content": {
+    "@odata.type": "#microsoft.graph.windowsUpdates.catalogContent",
+    "catalogEntry": {
+      "@odata.type": "#microsoft.graph.windowsUpdates.qualityUpdateCatalogEntry",
+      "id": "q123456-quality-update-id"
+    }
+  },
+  "settings": null
+}

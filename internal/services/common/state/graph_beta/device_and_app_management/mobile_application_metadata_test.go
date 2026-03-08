@@ -34,7 +34,7 @@ func TestMapAppMetadataStateToTerraform(t *testing.T) {
 			validate: func(t *testing.T, result types.Object) {
 				assert.False(t, result.IsNull())
 				assert.False(t, result.IsUnknown())
-				
+
 				attrs := result.Attributes()
 				assert.Contains(t, attrs, "installer_file_path_source")
 				assert.Contains(t, attrs, "installer_url_source")

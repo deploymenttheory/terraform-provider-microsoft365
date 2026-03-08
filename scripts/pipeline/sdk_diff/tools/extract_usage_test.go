@@ -907,7 +907,7 @@ func TestTrackStructFieldsEdgeCases(t *testing.T) {
 		}
 
 		trackStructFields("models.Config", elts, resourceInfo)
-		
+
 		assert.Len(t, resourceInfo.SDKDependencies.FieldsUsed["models.Config"], 1)
 	})
 }
@@ -961,7 +961,7 @@ func TestExtractSDKType(t *testing.T) {
 
 	t.Run("Unknown expression type", func(t *testing.T) {
 		expr := &ast.BasicLit{Value: "123"}
-		
+
 		typeName := extractSDKType(expr, fileImports)
 		assert.Equal(t, "", typeName)
 	})
@@ -984,7 +984,7 @@ func TestTrackPackageMethod(t *testing.T) {
 
 	t.Run("Duplicate method not added twice", func(t *testing.T) {
 		initialLen := len(resourceInfo.SDKDependencies.MethodsCalled)
-		
+
 		trackPackageMethod("github.com/microsoftgraph/msgraph-beta-sdk-go/models", "NewUser", "/test.go", resourceInfo, usage)
 
 		assert.Len(t, resourceInfo.SDKDependencies.MethodsCalled, initialLen) // No duplicate

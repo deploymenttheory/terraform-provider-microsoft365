@@ -100,13 +100,13 @@ func shardBySize(guids []string, sizes []int64, seed string) [][]string {
 	currentIndex := 0
 	for i, size := range sizes {
 		var shardSize int
-		
+
 		if size == -1 {
 			// -1 means "all remaining GUIDs"
 			shardSize = totalGuids - currentIndex
 		} else {
 			shardSize = int(size)
-			
+
 			// If we don't have enough GUIDs left, take what's available
 			if currentIndex+shardSize > totalGuids {
 				shardSize = totalGuids - currentIndex
@@ -172,7 +172,7 @@ func shardByRendezvous(guids []string, shardCount int, seed string) [][]string {
 	}
 
 	shards := make([][]string, shardCount)
-	
+
 	// Initialize all shards as empty slices to prevent nil
 	// Why: nil slices become null in Terraform state, breaking HCL expressions like length()
 	// Empty slices []string{} become empty sets (length 0) which work correctly in HCL
@@ -191,7 +191,7 @@ func shardByRendezvous(guids []string, shardCount int, seed string) [][]string {
 			// Format: "guid:shard_N:seed" ensures each GUID-shard pair gets unique hash
 			input := fmt.Sprintf("%s:shard_%d:%s", guid, shardIdx, seed)
 			hash := sha256.Sum256([]byte(input))
-			
+
 			// Use first 8 bytes of hash as weight (uint64 for large range)
 			weight := binary.BigEndian.Uint64(hash[:8])
 

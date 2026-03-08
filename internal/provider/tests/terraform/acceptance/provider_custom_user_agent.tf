@@ -1,0 +1,12 @@
+provider "microsoft365" {
+  cloud       = "public"
+  auth_method = "client_secret"
+  client_options = {
+    custom_user_agent = "CustomAgent/1.0"
+  }
+}
+
+data "microsoft365_graph_beta_device_management_windows_remediation_script" "test" {
+  filter_type  = "display_name"
+  filter_value = "NonExistentScript"
+}

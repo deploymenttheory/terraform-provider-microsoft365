@@ -62,15 +62,15 @@ func TestAccResourceApplication_01_Minimal(t *testing.T) {
 				},
 				ResourceName: resourceType + ".test_minimal",
 				ImportState:  true,
-			ImportStateIdFunc: func(s *terraform.State) (string, error) {
-				rs, ok := s.RootModule().Resources[resourceType+".test_minimal"]
-				if !ok {
-					return "", fmt.Errorf("resource not found: %s", resourceType+".test_minimal")
-				}
-				preventDuplicateNames := rs.Primary.Attributes["prevent_duplicate_names"]
-				hardDelete := rs.Primary.Attributes["hard_delete"]
-				return fmt.Sprintf("%s:prevent_duplicate_names=%s:hard_delete=%s", rs.Primary.ID, preventDuplicateNames, hardDelete), nil
-			},
+				ImportStateIdFunc: func(s *terraform.State) (string, error) {
+					rs, ok := s.RootModule().Resources[resourceType+".test_minimal"]
+					if !ok {
+						return "", fmt.Errorf("resource not found: %s", resourceType+".test_minimal")
+					}
+					preventDuplicateNames := rs.Primary.Attributes["prevent_duplicate_names"]
+					hardDelete := rs.Primary.Attributes["hard_delete"]
+					return fmt.Sprintf("%s:prevent_duplicate_names=%s:hard_delete=%s", rs.Primary.ID, preventDuplicateNames, hardDelete), nil
+				},
 				ImportStateVerify: true,
 			},
 		},
@@ -122,15 +122,15 @@ func TestAccResourceApplication_02_Maximal(t *testing.T) {
 				},
 				ResourceName: resourceType + ".test_maximal",
 				ImportState:  true,
-			ImportStateIdFunc: func(s *terraform.State) (string, error) {
-				rs, ok := s.RootModule().Resources[resourceType+".test_maximal"]
-				if !ok {
-					return "", fmt.Errorf("resource not found: %s", resourceType+".test_maximal")
-				}
-				preventDuplicateNames := rs.Primary.Attributes["prevent_duplicate_names"]
-				hardDelete := rs.Primary.Attributes["hard_delete"]
-				return fmt.Sprintf("%s:prevent_duplicate_names=%s:hard_delete=%s", rs.Primary.ID, preventDuplicateNames, hardDelete), nil
-			},
+				ImportStateIdFunc: func(s *terraform.State) (string, error) {
+					rs, ok := s.RootModule().Resources[resourceType+".test_maximal"]
+					if !ok {
+						return "", fmt.Errorf("resource not found: %s", resourceType+".test_maximal")
+					}
+					preventDuplicateNames := rs.Primary.Attributes["prevent_duplicate_names"]
+					hardDelete := rs.Primary.Attributes["hard_delete"]
+					return fmt.Sprintf("%s:prevent_duplicate_names=%s:hard_delete=%s", rs.Primary.ID, preventDuplicateNames, hardDelete), nil
+				},
 				ImportStateVerify: true,
 			},
 		},
@@ -494,4 +494,3 @@ func TestAccResourceApplication_08_MaximalToMinimal(t *testing.T) {
 		},
 	})
 }
-

@@ -6,10 +6,21 @@ import (
 	"testing"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/check"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/testlog"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
+
+// loadAccTestTerraform loads a Terraform configuration file from the acceptance tests directory.
+func loadAccTestTerraform(filename string) string {
+	config, err := helpers.ParseHCLFile("tests/terraform/acceptance/" + filename)
+	if err != nil {
+		panic("failed to load acceptance test config " + filename + ": " + err.Error())
+	}
+	return config
+}
 
 func TestAccM365Provider_AuthMethods(t *testing.T) {
 	validAuthMethods := []string{
@@ -37,6 +48,9 @@ func TestAccM365Provider_AuthMethods(t *testing.T) {
 				ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
 				Steps: []resource.TestStep{
 					{
+						PreConfig: func() {
+							testlog.StepAction("provider", "Testing auth method: "+method)
+						},
 						Config: acceptance.ConfiguredM365ProviderBlock(config),
 						Check:  resource.ComposeTestCheckFunc(),
 					},
@@ -51,6 +65,9 @@ func TestAccM365Provider_InvalidAuthMethod(t *testing.T) {
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
+				PreConfig: func() {
+					testlog.StepAction("provider", "Testing invalid auth method validation error")
+				},
 				Config: `
 provider "microsoft365" {
   auth_method = "invalid_method"
@@ -90,6 +107,9 @@ func TestAccM365Provider_CloudEnvironments(t *testing.T) {
 				ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
 				Steps: []resource.TestStep{
 					{
+						PreConfig: func() {
+							testlog.StepAction("provider", "Testing cloud environment: "+cloud)
+						},
 						Config: acceptance.ConfiguredM365ProviderBlock(config),
 						Check:  resource.ComposeTestCheckFunc(),
 					},
@@ -104,6 +124,9 @@ func TestAccM365Provider_InvalidCloud(t *testing.T) {
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
+				PreConfig: func() {
+					testlog.StepAction("provider", "Testing invalid cloud validation error")
+				},
 				Config: `
 provider "microsoft365" {
   cloud = "invalid_cloud"
@@ -137,11 +160,6 @@ func TestAccM365Provider_EnvVarPrecedence(t *testing.T) {
 		t.Setenv(key, value)
 	}
 
-	config, err := helpers.ParseHCLFile("tests/terraform/acceptance/provider_env_precedence.tf")
-	if err != nil {
-		t.Fatal(err)
-	}
-
 	resource.Test(t, resource.TestCase{
 		PreCheck: func() {
 			mocks.TestAccPreCheck(t)
@@ -155,7 +173,10 @@ func TestAccM365Provider_EnvVarPrecedence(t *testing.T) {
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: acceptance.ConfiguredM365ProviderBlock(config),
+				PreConfig: func() {
+					testlog.StepAction("provider", "Testing environment variable precedence over HCL config")
+				},
+				Config: acceptance.ConfiguredM365ProviderBlock(loadAccTestTerraform("provider_env_precedence.tf")),
 				Check:  resource.ComposeTestCheckFunc(),
 			},
 		},
@@ -163,17 +184,15 @@ func TestAccM365Provider_EnvVarPrecedence(t *testing.T) {
 }
 
 func TestAccM365Provider_ClientSecretAuth(t *testing.T) {
-	config, err := helpers.ParseHCLFile("tests/terraform/acceptance/provider_client_secret.tf")
-	if err != nil {
-		t.Fatal(err)
-	}
-
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: acceptance.ConfiguredM365ProviderBlock(config),
+				PreConfig: func() {
+					testlog.StepAction("provider", "Testing client_secret authentication")
+				},
+				Config: acceptance.ConfiguredM365ProviderBlock(loadAccTestTerraform("provider_client_secret.tf")),
 				Check:  resource.ComposeTestCheckFunc(),
 			},
 		},
@@ -181,17 +200,15 @@ func TestAccM365Provider_ClientSecretAuth(t *testing.T) {
 }
 
 func TestAccM365Provider_ClientCertificateAuth(t *testing.T) {
-	config, err := helpers.ParseHCLFile("tests/terraform/acceptance/provider_client_certificate.tf")
-	if err != nil {
-		t.Fatal(err)
-	}
-
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: acceptance.ConfiguredM365ProviderBlock(config),
+				PreConfig: func() {
+					testlog.StepAction("provider", "Testing client_certificate authentication")
+				},
+				Config: acceptance.ConfiguredM365ProviderBlock(loadAccTestTerraform("provider_client_certificate.tf")),
 				Check:  resource.ComposeTestCheckFunc(),
 			},
 		},
@@ -199,17 +216,15 @@ func TestAccM365Provider_ClientCertificateAuth(t *testing.T) {
 }
 
 func TestAccM365Provider_ProxyConfiguration(t *testing.T) {
-	config, err := helpers.ParseHCLFile("tests/terraform/acceptance/provider_proxy.tf")
-	if err != nil {
-		t.Fatal(err)
-	}
-
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: acceptance.ConfiguredM365ProviderBlock(config),
+				PreConfig: func() {
+					testlog.StepAction("provider", "Testing proxy configuration")
+				},
+				Config: acceptance.ConfiguredM365ProviderBlock(loadAccTestTerraform("provider_proxy.tf")),
 				Check:  resource.ComposeTestCheckFunc(),
 			},
 		},
@@ -221,6 +236,9 @@ func TestAccM365Provider_InvalidTenantID(t *testing.T) {
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
+				PreConfig: func() {
+					testlog.StepAction("provider", "Testing invalid tenant_id validation error")
+				},
 				Config: `
 provider "microsoft365" {
   tenant_id = "invalid-tenant-id"
@@ -243,6 +261,9 @@ func TestAccM365Provider_InvalidClientID(t *testing.T) {
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
+				PreConfig: func() {
+					testlog.StepAction("provider", "Testing invalid client_id validation error")
+				},
 				Config: `
 provider "microsoft365" {
   auth_method = "client_secret"
@@ -268,13 +289,16 @@ func TestAccM365Provider_InvalidProxyURL(t *testing.T) {
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
+				PreConfig: func() {
+					testlog.StepAction("provider", "Testing invalid proxy URL error handling")
+				},
 				Config: `
 provider "microsoft365" {
   cloud = "public"
   auth_method = "device_code"
   client_options = {
     use_proxy = true
-    proxy_url = "invalid-proxy-url"
+    proxy_url = "://invalid-proxy-url"
   }
 }
 
@@ -283,7 +307,7 @@ data "microsoft365_graph_beta_device_management_windows_remediation_script" "tes
   filter_value = "Test Script"
 }
 `,
-				ExpectError: regexp.MustCompile("Unable to create credentials|secret can't be empty|not a valid URL|Invalid Attribute Value"),
+				ExpectError: regexp.MustCompile("failed to parse proxy URL|missing protocol scheme|invalid proxy URL"),
 			},
 		},
 	})
@@ -294,6 +318,9 @@ func TestAccM365Provider_InvalidRedirectURL(t *testing.T) {
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
+				PreConfig: func() {
+					testlog.StepAction("provider", "Testing invalid redirect_url validation error")
+				},
 				Config: `
 provider "microsoft365" {
   auth_method = "interactive_browser"
@@ -314,17 +341,15 @@ data "microsoft365_graph_beta_device_management_windows_remediation_script" "tes
 }
 
 func TestAccM365Provider_CompleteConfiguration(t *testing.T) {
-	config, err := helpers.ParseHCLFile("tests/terraform/acceptance/provider_maximal.tf")
-	if err != nil {
-		t.Fatal(err)
-	}
-
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: acceptance.ConfiguredM365ProviderBlock(config),
+				PreConfig: func() {
+					testlog.StepAction("provider", "Testing complete maximal provider configuration")
+				},
+				Config: acceptance.ConfiguredM365ProviderBlock(loadAccTestTerraform("provider_maximal.tf")),
 				Check:  resource.ComposeTestCheckFunc(),
 			},
 		},
@@ -333,13 +358,19 @@ func TestAccM365Provider_CompleteConfiguration(t *testing.T) {
 
 func TestAccM365Provider_WithDataSource(t *testing.T) {
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
+				PreConfig: func() {
+					testlog.StepAction("provider", "Testing empty credentials validation")
+				},
 				Config: `
 provider "microsoft365" {
-  # Configuration from environment variables
+  auth_method = "client_secret"
+  entra_id_options = {
+    client_id = ""
+    client_secret = ""
+  }
 }
 
 data "microsoft365_graph_beta_device_management_windows_remediation_script" "test" {
@@ -347,7 +378,167 @@ data "microsoft365_graph_beta_device_management_windows_remediation_script" "tes
   filter_value = "Test Script"
 }
 `,
-				ExpectError: regexp.MustCompile("Unable to create credentials|secret can't be empty"),
+				ExpectError: regexp.MustCompile("client_id.*cannot be empty|client_secret.*cannot be empty|Invalid Attribute Value|Attribute client_id string length must be at least"),
+			},
+		},
+	})
+}
+
+func TestAccM365Provider_AuthWithoutProxy(t *testing.T) {
+	dataSourceName := "data.microsoft365_graph_beta_device_management_windows_remediation_script.test"
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				PreConfig: func() {
+					testlog.StepAction("provider", "Testing authentication without proxy configuration")
+				},
+				Config: loadAccTestTerraform("provider_auth_without_proxy.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					// Data source configuration
+					check.That(dataSourceName).Key("filter_type").HasValue("display_name"),
+					check.That(dataSourceName).Key("filter_value").HasValue("NonExistentScript"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccM365Provider_CompressionDisabledForAuth(t *testing.T) {
+	dataSourceName := "data.microsoft365_graph_beta_device_management_windows_remediation_script.test"
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				PreConfig: func() {
+					testlog.StepAction("provider", "Testing auth succeeds with compression enabled (validates gzip fix)")
+				},
+				Config: loadAccTestTerraform("provider_compression_enabled.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					// Validates that auth succeeds even with compression enabled
+					// (compression is excluded from auth middleware but enabled for Graph API calls)
+					check.That(dataSourceName).Key("filter_type").HasValue("display_name"),
+					check.That(dataSourceName).Key("filter_value").HasValue("NonExistentScript"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccM365Provider_AllAuthMethodsWithoutProxy(t *testing.T) {
+	dataSourceName := "data.microsoft365_graph_beta_device_management_windows_remediation_script.test"
+
+	authMethods := []struct {
+		name       string
+		configFile string
+	}{
+		{
+			name:       "client_secret",
+			configFile: "provider_auth_client_secret_no_proxy.tf",
+		},
+		{
+			name:       "device_code",
+			configFile: "provider_auth_device_code_no_proxy.tf",
+		},
+		{
+			name:       "azure_cli",
+			configFile: "provider_auth_azure_cli_no_proxy.tf",
+		},
+		{
+			name:       "azure_developer_cli",
+			configFile: "provider_auth_azure_developer_cli_no_proxy.tf",
+		},
+	}
+
+	for _, tt := range authMethods {
+		t.Run(tt.name, func(t *testing.T) {
+			resource.Test(t, resource.TestCase{
+				PreCheck:                 func() { mocks.TestAccPreCheck(t) },
+				ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+				Steps: []resource.TestStep{
+					{
+						PreConfig: func() {
+							testlog.StepAction("provider", "Testing "+tt.name+" authentication without proxy")
+						},
+						Config: loadAccTestTerraform(tt.configFile),
+						Check: resource.ComposeTestCheckFunc(
+							// Data source configuration
+							check.That(dataSourceName).Key("filter_type").HasValue("display_name"),
+							check.That(dataSourceName).Key("filter_value").HasValue("NonExistentScript"),
+						),
+					},
+				},
+			})
+		})
+	}
+}
+
+func TestAccM365Provider_RetryConfiguration(t *testing.T) {
+	dataSourceName := "data.microsoft365_graph_beta_device_management_windows_remediation_script.test"
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				PreConfig: func() {
+					testlog.StepAction("provider", "Testing retry configuration with max_retries=5")
+				},
+				Config: loadAccTestTerraform("provider_retry_config.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					// Data source configuration
+					check.That(dataSourceName).Key("filter_type").HasValue("display_name"),
+					check.That(dataSourceName).Key("filter_value").HasValue("NonExistentScript"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccM365Provider_CustomUserAgent(t *testing.T) {
+	dataSourceName := "data.microsoft365_graph_beta_device_management_windows_remediation_script.test"
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				PreConfig: func() {
+					testlog.StepAction("provider", "Testing custom user agent configuration")
+				},
+				Config: loadAccTestTerraform("provider_custom_user_agent.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					// Data source configuration
+					check.That(dataSourceName).Key("filter_type").HasValue("display_name"),
+					check.That(dataSourceName).Key("filter_value").HasValue("NonExistentScript"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccM365Provider_ClientOptions_AllMiddleware(t *testing.T) {
+	dataSourceName := "data.microsoft365_graph_beta_device_management_windows_remediation_script.test"
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				PreConfig: func() {
+					testlog.StepAction("provider", "Testing all middleware options enabled together")
+				},
+				Config: loadAccTestTerraform("provider_all_middleware.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					// Validates that all middleware options work together
+					// Data source configuration
+					check.That(dataSourceName).Key("filter_type").HasValue("display_name"),
+					check.That(dataSourceName).Key("filter_value").HasValue("NonExistentScript"),
+				),
 			},
 		},
 	})

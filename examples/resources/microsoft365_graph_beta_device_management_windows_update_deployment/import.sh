@@ -1,0 +1,2 @@
+# {deployment_id}
+terraform import microsoft365_graph_beta_device_management_windows_autopatch_deployment.example {deployment_id}

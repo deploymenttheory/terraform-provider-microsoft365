@@ -88,18 +88,18 @@ func configureRetryOptions(ctx context.Context, clientOptions *policy.ClientOpti
 
 			if slices.Contains(clientOptions.Retry.StatusCodes, resp.StatusCode) {
 				executionCount := resp.Request.Context().Value("RetryCount").(int32)
-					exponentialBackoff := baseDelay * time.Duration(math.Pow(2, float64(executionCount)))
-					jitter := time.Duration(rand.Int63n(int64(baseDelay)))
-					delayWithJitter := exponentialBackoff + jitter
+				exponentialBackoff := baseDelay * time.Duration(math.Pow(2, float64(executionCount)))
+				jitter := time.Duration(rand.Int63n(int64(baseDelay)))
+				delayWithJitter := exponentialBackoff + jitter
 
-					if delayWithJitter > clientOptions.Retry.MaxRetryDelay {
-						delayWithJitter = clientOptions.Retry.MaxRetryDelay
-					}
+				if delayWithJitter > clientOptions.Retry.MaxRetryDelay {
+					delayWithJitter = clientOptions.Retry.MaxRetryDelay
+				}
 
-					tflog.Debug(ctx, fmt.Sprintf("Retrying request due to status code %d. Delay with jitter: %v (base: %v, jitter: %v)", resp.StatusCode, delayWithJitter, exponentialBackoff, jitter))
+				tflog.Debug(ctx, fmt.Sprintf("Retrying request due to status code %d. Delay with jitter: %v (base: %v, jitter: %v)", resp.StatusCode, delayWithJitter, exponentialBackoff, jitter))
 
-					time.Sleep(delayWithJitter)
-					return true
+				time.Sleep(delayWithJitter)
+				return true
 			}
 			return false
 		},

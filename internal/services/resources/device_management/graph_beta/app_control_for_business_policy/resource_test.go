@@ -171,7 +171,7 @@ func TestUnitResourceAppControlForBusinessPolicy_04_Import(t *testing.T) {
 			{
 				Config: loadUnitTestTerraform("01_minimal-no-assignments.tf"),
 				Check: resource.ComposeTestCheckFunc(
-					check.That(resourceType+".minimal").Key("id").IsSet(),
+					check.That(resourceType + ".minimal").Key("id").IsSet(),
 				),
 			},
 			{

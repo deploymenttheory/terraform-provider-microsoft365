@@ -29,8 +29,8 @@ type SDKDependencies struct {
 
 // EnumUsage tracks enum usage
 type EnumUsage struct {
-	Enum         string   `json:"enum"`
-	ValuesInUse  []string `json:"values_in_use,omitempty"`
+	Enum        string   `json:"enum"`
+	ValuesInUse []string `json:"values_in_use,omitempty"`
 }
 
 // Statistics provides summary statistics
@@ -192,7 +192,7 @@ func parseEntityFromPath(path, repoPath string) *Entity {
 func extractEntityInfo(relPath, prefix, entityType string) *Entity {
 	// Remove prefix
 	remainder := strings.TrimPrefix(relPath, prefix)
-	
+
 	// Split into parts: domain/graph_version/resource_name/file.go
 	parts := strings.Split(remainder, "/")
 	if len(parts) < 3 {
@@ -401,7 +401,7 @@ func processSelectorExpr(sel *ast.SelectorExpr, fileImports map[string]string, v
 func trackFieldAccess(typeName, fieldName string, resourceInfo *ResourceInfo) {
 	// Simplify type name for display
 	shortType := simplifyTypeName(typeName)
-	
+
 	if resourceInfo.SDKDependencies.FieldsUsed[shortType] == nil {
 		resourceInfo.SDKDependencies.FieldsUsed[shortType] = []string{}
 	}
@@ -432,7 +432,7 @@ func processCallExpr(call *ast.CallExpr, path string, fileImports map[string]str
 // trackPackageMethod records a package-level method call and checks for enum parsers.
 func trackPackageMethod(importPath, methodName, path string, resourceInfo *ResourceInfo, usage *UsageMapV2) {
 	fullMethodName := fmt.Sprintf("%s.%s", simplifyTypeName(importPath), methodName)
-	
+
 	if !slices.Contains(resourceInfo.SDKDependencies.MethodsCalled, fullMethodName) {
 		resourceInfo.SDKDependencies.MethodsCalled = append(resourceInfo.SDKDependencies.MethodsCalled, fullMethodName)
 	}
@@ -446,7 +446,7 @@ func trackPackageMethod(importPath, methodName, path string, resourceInfo *Resou
 // trackObjectMethod records a method call on a typed object.
 func trackObjectMethod(typeName, methodName string, resourceInfo *ResourceInfo) {
 	fullMethodName := fmt.Sprintf("%s.%s", simplifyTypeName(typeName), methodName)
-	
+
 	if !slices.Contains(resourceInfo.SDKDependencies.MethodsCalled, fullMethodName) {
 		resourceInfo.SDKDependencies.MethodsCalled = append(resourceInfo.SDKDependencies.MethodsCalled, fullMethodName)
 	}
@@ -461,7 +461,7 @@ func trackEnumUsage(importPath, methodName string, resourceInfo *ResourceInfo, u
 	}
 
 	fullEnumName := fmt.Sprintf("%s.%s", simplifyTypeName(importPath), enumType)
-	
+
 	// Add to resource's enum list
 	found := false
 	for _, existing := range resourceInfo.SDKDependencies.EnumsUsed {
@@ -503,7 +503,7 @@ func processCompositeLit(comp *ast.CompositeLit, fileImports map[string]string, 
 // trackTypeInstantiation records that an SDK type was instantiated.
 func trackTypeInstantiation(typeName string, resourceInfo *ResourceInfo) {
 	shortType := simplifyTypeName(typeName)
-	
+
 	if !slices.Contains(resourceInfo.SDKDependencies.Types, shortType) {
 		resourceInfo.SDKDependencies.Types = append(resourceInfo.SDKDependencies.Types, shortType)
 	}
@@ -512,7 +512,7 @@ func trackTypeInstantiation(typeName string, resourceInfo *ResourceInfo) {
 // trackStructFields extracts and records fields used in struct literals.
 func trackStructFields(typeName string, elts []ast.Expr, resourceInfo *ResourceInfo) {
 	shortType := simplifyTypeName(typeName)
-	
+
 	for _, elt := range elts {
 		kv, ok := elt.(*ast.KeyValueExpr)
 		if !ok {

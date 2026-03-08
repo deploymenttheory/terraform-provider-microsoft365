@@ -463,7 +463,7 @@ func TestNormalizeSettingsCatalogJSONArray_ErrorPaths(t *testing.T) {
 				var parsed map[string]any
 				err := json.Unmarshal([]byte(result), &parsed)
 				require.NoError(t, err)
-				
+
 				// Should wrap in "settings" key
 				settings, ok := parsed["settings"]
 				assert.True(t, ok, "Should have settings key")
@@ -485,7 +485,7 @@ func TestNormalizeSettingsCatalogJSONArray_ErrorPaths(t *testing.T) {
 				var parsed map[string]any
 				err := json.Unmarshal([]byte(result), &parsed)
 				require.NoError(t, err)
-				
+
 				settings := parsed["settings"]
 				assert.NotNil(t, settings)
 			},
@@ -501,7 +501,7 @@ func TestNormalizeSettingsCatalogJSONArray_ErrorPaths(t *testing.T) {
 				var parsed map[string]any
 				err := json.Unmarshal([]byte(result), &parsed)
 				require.NoError(t, err)
-				
+
 				// Should use the whole response as settings content
 				settings := parsed["settings"]
 				assert.NotNil(t, settings)
@@ -553,7 +553,7 @@ func TestNormalizeSettingsCatalogJSONArray_ErrorPaths(t *testing.T) {
 			validate: func(t *testing.T, result string) {
 				// Should preserve the secret value
 				assert.Contains(t, result, "original_secret")
-				
+
 				var parsed map[string]any
 				err := json.Unmarshal([]byte(result), &parsed)
 				require.NoError(t, err)
@@ -567,7 +567,7 @@ func TestNormalizeSettingsCatalogJSONArray_ErrorPaths(t *testing.T) {
 				var parsed map[string]any
 				err := json.Unmarshal([]byte(result), &parsed)
 				require.NoError(t, err)
-				
+
 				// Should create settings key with empty object
 				settings := parsed["settings"]
 				assert.NotNil(t, settings)
