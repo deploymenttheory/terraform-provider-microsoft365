@@ -15,8 +15,8 @@ import (
 )
 
 // Create handles the Create operation.
-func (r *WindowsUpdateDeploymentAudienceResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var object WindowsUpdateDeploymentAudienceResourceModel
+func (r *WindowsAutopatchDeploymentAudienceResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	var object WindowsAutopatchDeploymentAudienceResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting creation of resource: %s", ResourceName))
 
@@ -79,8 +79,8 @@ func (r *WindowsUpdateDeploymentAudienceResource) Create(ctx context.Context, re
 }
 
 // Read handles the Read operation.
-func (r *WindowsUpdateDeploymentAudienceResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var object WindowsUpdateDeploymentAudienceResourceModel
+func (r *WindowsAutopatchDeploymentAudienceResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	var object WindowsAutopatchDeploymentAudienceResourceModel
 	var identity sharedmodels.ResourceIdentity
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting Read method for: %s", ResourceName))
@@ -137,9 +137,9 @@ func (r *WindowsUpdateDeploymentAudienceResource) Read(ctx context.Context, req 
 }
 
 // Update handles the Update operation.
-func (r *WindowsUpdateDeploymentAudienceResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var plan WindowsUpdateDeploymentAudienceResourceModel
-	var state WindowsUpdateDeploymentAudienceResourceModel
+func (r *WindowsAutopatchDeploymentAudienceResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	var plan WindowsAutopatchDeploymentAudienceResourceModel
+	var state WindowsAutopatchDeploymentAudienceResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Updating %s with ID: %s", ResourceName, state.ID.ValueString()))
 
@@ -183,8 +183,8 @@ func (r *WindowsUpdateDeploymentAudienceResource) Update(ctx context.Context, re
 }
 
 // Delete handles the Delete operation.
-func (r *WindowsUpdateDeploymentAudienceResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var object WindowsUpdateDeploymentAudienceResourceModel
+func (r *WindowsAutopatchDeploymentAudienceResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	var object WindowsAutopatchDeploymentAudienceResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting Delete of resource: %s", ResourceName))
 

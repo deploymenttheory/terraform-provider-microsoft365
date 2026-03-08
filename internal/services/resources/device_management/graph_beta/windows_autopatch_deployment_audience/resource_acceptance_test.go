@@ -9,7 +9,7 @@ import (
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/destroy"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
-	graphBetaWindowsUpdateDeploymentAudience "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_management/graph_beta/windows_update_deployment_audience"
+	graphBetaWindowsAutopatchDeploymentAudience "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_management/graph_beta/windows_autopatch_deployment_audience"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
@@ -22,9 +22,9 @@ func loadAcceptanceTestTerraform(filename string) string {
 	return config
 }
 
-const resourceType = graphBetaWindowsUpdateDeploymentAudience.ResourceName
+const resourceType = graphBetaWindowsAutopatchDeploymentAudience.ResourceName
 
-var testResource = graphBetaWindowsUpdateDeploymentAudience.WindowsUpdateDeploymentAudienceTestResource{}
+var testResource = graphBetaWindowsAutopatchDeploymentAudience.WindowsUpdateDeploymentAudienceTestResource{}
 
 // Test 001: Basic audience creation
 func TestAccResourceWindowsUpdateDeploymentAudience_01_BasicAudience(t *testing.T) {
@@ -33,7 +33,7 @@ func TestAccResourceWindowsUpdateDeploymentAudience_01_BasicAudience(t *testing.
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
-			graphBetaWindowsUpdateDeploymentAudience.ResourceName,
+			graphBetaWindowsAutopatchDeploymentAudience.ResourceName,
 			30*time.Second,
 		),
 		Steps: []resource.TestStep{

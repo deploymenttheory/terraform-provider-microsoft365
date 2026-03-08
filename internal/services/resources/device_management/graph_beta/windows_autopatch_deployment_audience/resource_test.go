@@ -7,8 +7,8 @@ import (
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/check"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
-	graphBetaWindowsUpdateDeploymentAudience "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_management/graph_beta/windows_update_deployment_audience"
-	audienceMocks "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_management/graph_beta/windows_update_deployment_audience/mocks"
+	graphBetaWindowsAutopatchDeploymentAudience "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_management/graph_beta/windows_autopatch_deployment_audience"
+	audienceMocks "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_management/graph_beta/windows_autopatch_deployment_audience/mocks"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/jarcoal/httpmock"
 )
@@ -57,11 +57,11 @@ func TestUnitResourceWindowsUpdateDeploymentAudience_01_BasicAudience(t *testing
 			{
 				Config: loadUnitTestTerraform("01_basic_audience.tf"),
 				Check: resource.ComposeTestCheckFunc(
-					check.That(graphBetaWindowsUpdateDeploymentAudience.ResourceName + ".test").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(graphBetaWindowsAutopatchDeploymentAudience.ResourceName + ".test").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 				),
 			},
 			{
-				ResourceName:      graphBetaWindowsUpdateDeploymentAudience.ResourceName + ".test",
+				ResourceName:      graphBetaWindowsAutopatchDeploymentAudience.ResourceName + ".test",
 				ImportState:       true,
 				ImportStateVerify: true,
 			},

@@ -7,7 +7,7 @@ import (
 	graphmodelswindowsupdates "github.com/microsoftgraph/msgraph-beta-sdk-go/models/windowsupdates"
 )
 
-func constructResource(ctx context.Context, plan *WindowsUpdateDeploymentAudienceResourceModel) (graphmodelswindowsupdates.DeploymentAudienceable, error) {
+func constructResource(ctx context.Context, plan *WindowsAutopatchDeploymentAudienceResourceModel) (graphmodelswindowsupdates.DeploymentAudienceable, error) {
 	tflog.Debug(ctx, "Constructing deployment audience resource")
 
 	requestBody := graphmodelswindowsupdates.NewDeploymentAudience()

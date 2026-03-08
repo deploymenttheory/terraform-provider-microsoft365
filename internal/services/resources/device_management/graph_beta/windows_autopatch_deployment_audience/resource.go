@@ -23,14 +23,14 @@ const (
 )
 
 var (
-	_ resource.Resource                = &WindowsUpdateDeploymentAudienceResource{}
-	_ resource.ResourceWithConfigure   = &WindowsUpdateDeploymentAudienceResource{}
-	_ resource.ResourceWithImportState = &WindowsUpdateDeploymentAudienceResource{}
-	_ resource.ResourceWithIdentity    = &WindowsUpdateDeploymentAudienceResource{}
+	_ resource.Resource                = &WindowsAutopatchDeploymentAudienceResource{}
+	_ resource.ResourceWithConfigure   = &WindowsAutopatchDeploymentAudienceResource{}
+	_ resource.ResourceWithImportState = &WindowsAutopatchDeploymentAudienceResource{}
+	_ resource.ResourceWithIdentity    = &WindowsAutopatchDeploymentAudienceResource{}
 )
 
-func NewWindowsUpdateDeploymentAudienceResource() resource.Resource {
-	return &WindowsUpdateDeploymentAudienceResource{
+func NewWindowsAutopatchDeploymentAudienceResource() resource.Resource {
+	return &WindowsAutopatchDeploymentAudienceResource{
 		ReadPermissions: []string{
 			"WindowsUpdates.ReadWrite.All",
 		},
@@ -41,26 +41,26 @@ func NewWindowsUpdateDeploymentAudienceResource() resource.Resource {
 	}
 }
 
-type WindowsUpdateDeploymentAudienceResource struct {
+type WindowsAutopatchDeploymentAudienceResource struct {
 	client           *msgraphbetasdk.GraphServiceClient
 	ReadPermissions  []string
 	WritePermissions []string
 	ResourcePath     string
 }
 
-func (r *WindowsUpdateDeploymentAudienceResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+func (r *WindowsAutopatchDeploymentAudienceResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = ResourceName
 }
 
-func (r *WindowsUpdateDeploymentAudienceResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *WindowsAutopatchDeploymentAudienceResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	r.client = client.SetGraphBetaClientForResource(ctx, req, resp, ResourceName)
 }
 
-func (r *WindowsUpdateDeploymentAudienceResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+func (r *WindowsAutopatchDeploymentAudienceResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }
 
-func (r *WindowsUpdateDeploymentAudienceResource) IdentitySchema(ctx context.Context, req resource.IdentitySchemaRequest, resp *resource.IdentitySchemaResponse) {
+func (r *WindowsAutopatchDeploymentAudienceResource) IdentitySchema(ctx context.Context, req resource.IdentitySchemaRequest, resp *resource.IdentitySchemaResponse) {
 	resp.IdentitySchema = identityschema.Schema{
 		Attributes: map[string]identityschema.Attribute{
 			"id": identityschema.StringAttribute{
@@ -70,7 +70,7 @@ func (r *WindowsUpdateDeploymentAudienceResource) IdentitySchema(ctx context.Con
 	}
 }
 
-func (r *WindowsUpdateDeploymentAudienceResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+func (r *WindowsAutopatchDeploymentAudienceResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		MarkdownDescription: "Manages a Windows Update deployment audience container in Microsoft 365. " +
 			"A deployment audience is a container that can be populated with devices or groups. " +

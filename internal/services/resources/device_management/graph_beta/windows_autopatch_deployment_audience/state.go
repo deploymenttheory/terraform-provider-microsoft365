@@ -8,7 +8,7 @@ import (
 	graphmodelswindowsupdates "github.com/microsoftgraph/msgraph-beta-sdk-go/models/windowsupdates"
 )
 
-func MapRemoteStateToTerraform(ctx context.Context, data *WindowsUpdateDeploymentAudienceResourceModel, remoteResource graphmodelswindowsupdates.DeploymentAudienceable) {
+func MapRemoteStateToTerraform(ctx context.Context, data *WindowsAutopatchDeploymentAudienceResourceModel, remoteResource graphmodelswindowsupdates.DeploymentAudienceable) {
 	if remoteResource == nil {
 		tflog.Debug(ctx, "Remote resource is nil")
 		return
