@@ -1,0 +1,7 @@
+resource "microsoft365_graph_beta_identity_and_access_cross_tenant_access_policy" "with_endpoints" {
+  allowed_cloud_endpoints = [
+    "microsoftonline.us",
+    "partner.microsoftonline.cn",
+  ]
+  restore_defaults_on_destroy = true
+}

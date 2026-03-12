@@ -1,0 +1,59 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
+subcategory: "Identity and Access"
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Name}} ({{.Type}})
+
+{{ .Description | trimspace }}
+
+## Microsoft Documentation
+
+- [crossTenantAccessPolicy resource type](https://learn.microsoft.com/en-us/graph/api/resources/crosstenantaccesspolicy?view=graph-rest-beta)
+- [Get crossTenantAccessPolicy](https://learn.microsoft.com/en-us/graph/api/crosstenantaccesspolicy-get?view=graph-rest-beta&tabs=http)
+- [Update crossTenantAccessPolicy](https://learn.microsoft.com/en-us/graph/api/crosstenantaccesspolicy-update?view=graph-rest-beta&tabs=http)
+
+## Microsoft Graph API Permissions
+
+The following client `application` permissions are needed in order to use this {{.Type | lower}}:
+
+**Required:**
+- `Policy.Read.All`
+- `Policy.ReadWrite.CrossTenantAccess`
+
+Find out more about the permissions required for managing cross-tenant access policies at Microsoft Learn [here](https://learn.microsoft.com/en-us/graph/api/resources/crosstenantaccesspolicy?view=graph-rest-beta).
+
+## Version History
+
+| Version | Status | Notes |
+|---------|--------|-------|
+| v0.49.0 | Experimental | Initial release |
+
+## Important Notes
+
+- **Singleton Resource**: This is a singleton resource — one cross-tenant access policy exists per tenant and cannot be created or deleted via the Microsoft Graph API. The policy is automatically created by Microsoft Entra ID.
+- **Create Behavior**: The `create` operation uses a PATCH request to configure the policy with your desired settings.
+- **Destroy Behavior**: On `destroy`, the resource can optionally restore the policy to its service defaults (empty `allowed_cloud_endpoints` and the default `display_name`) by setting `restore_defaults_on_destroy = true`, or simply remove it from Terraform state while leaving the configuration in place (the default behavior).
+- **Disabling Cross-Cloud Collaboration**: Use an empty set `[]` for `allowed_cloud_endpoints` to disable all cross-cloud collaboration.
+
+## Example Usage
+
+### Basic Configuration with Cloud Endpoints
+
+{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_cross_tenant_access_policy/resource_with_endpoints.tf" }}
+
+### Disable Cross-Cloud Collaboration
+
+{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_cross_tenant_access_policy/resource_no_endpoints.tf" }}
+
+### With Restore Defaults on Destroy
+
+{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_cross_tenant_access_policy/resource_restore_defaults.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}
+
+## Import
+
+{{ codefile "shell" "examples/resources/microsoft365_graph_beta_identity_and_access_cross_tenant_access_policy/import.sh" }}

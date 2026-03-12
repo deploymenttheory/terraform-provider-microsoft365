@@ -46,7 +46,7 @@ resource "microsoft365_graph_beta_device_management_windows_autopilot_device_pre
 
   allowed_scripts = [
     "87654321-4321-4321-4321-210987654321",
-    "87654321-4321-4321-4321-210987654322", 
+    "87654321-4321-4321-4321-210987654322",
   ]
 
   timeouts = {

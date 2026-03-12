@@ -1,0 +1,4 @@
+nothing set
+{"requests":[{"id":"98bcbc31-3868-4737-bd48-ac0072223f2b","method":"PATCH","url":"/policies/crossTenantAccessPolicy","body":{"allowedCloudEndpoints":[]},"headers":{"x-ms-command-name":"TenantManagement - UpdateCrossCloudSettings","x-ms-client-request-id":"f57ff01a-b05f-4d97-8a5f-6eaad0d7358e","client-request-id":"f57ff01a-b05f-4d97-8a5f-6eaad0d7358e","x-ms-client-session-id":"b5be03af5d7243bf8a97e3f296d1db77","Content-Type":"application/json"}}]}
+
+{"requests":[{"id":"a9766115-856c-4da7-86ea-6d93d6d3abfa","method":"PATCH","url":"/policies/crossTenantAccessPolicy","body":{"allowedCloudEndpoints":["microsoftonline.us","partner.microsoftonline.cn"]},"headers":{"x-ms-command-name":"TenantManagement - UpdateCrossCloudSettings","x-ms-client-request-id":"0d088c96-8580-43af-8bfc-8c002826b6ca","client-request-id":"0d088c96-8580-43af-8bfc-8c002826b6ca","x-ms-client-session-id":"b5be03af5d7243bf8a97e3f296d1db77","Content-Type":"application/json"}}]}

@@ -377,6 +377,7 @@ variable "chaos_status_message" {
 - `managed_identity`: Uses Azure managed identity for authentication when Terraform is running on an Azure resource (like a VM, Azure Container Instance, or App Service) that has been assigned a managed identity.
 - `oidc`: Uses generic OpenID Connect (OIDC) authentication with a JWT token from a file or environment variable.
 - `oidc_github`: Uses GitHub Actions-specific OIDC authentication, with support for subject claims that specify repositories, branches, tags, pull requests, and environments for fine-grained trust configurations.
+- `username_password`: Uses username and password (ROPC) flow for authentication.
 - `oidc_azure_devops`: Uses Azure DevOps-specific OIDC authentication with service connections, supporting federated credentials for secure pipeline-to-cloud authentication without storing secrets.
 Each method requires different credentials to be provided.
 Can also be set using the `M365_AUTH_METHOD` environment variable.
@@ -750,6 +751,17 @@ For other environments, can be set using the `M365_OIDC_REQUEST_URL` environment
 The file should contain a valid JWT assertion that will be used to authenticate the application. This is commonly used in CI/CD pipelines or other environments that support OIDC federation with Azure AD.
 
 Can be set using the `M365_OIDC_TOKEN_FILE_PATH` environment variable.
+- `password` (String, Sensitive) Used for the 'username_password' authentication method.
+
+The password for resource owner password credentials (ROPC) flow authentication.
+
+**Important Security Notice:**
+- Resource Owner Password Credentials (ROPC) is considered less secure than other authentication methods
+- It should only be used when other, more secure methods are not possible
+- Not recommended for production environments
+- Does not support multi-factor authentication
+
+Can be set using the `M365_PASSWORD` environment variable.
 - `redirect_url` (String) The redirect URL (also known as reply URL or callback URL) for OAuth 2.0 authentication flows that require a callback, such as the Authorization Code flow or interactive browser authentication.
 
 **Important:**
@@ -806,11 +818,12 @@ provider "microsoft365" {
 ```
 
 Only enable this option if you understand its implications or if specifically instructed by Azure support.
-- `username` (String) Used for the 'username_password' authentication method.
+- `username` (String) Used for the 'username_password' and 'interactive_browser' authentication methods.
 
-The username for resource owner password credentials (ROPC) flow authentication.
+For `username_password`: The username for resource owner password credentials (ROPC) flow authentication.
+For `interactive_browser`: Used as a login hint to pre-fill the username field.
 
-**Important Security Notice:**
+**Important Security Notice (ROPC):**
 - Resource Owner Password Credentials (ROPC) is considered less secure than other authentication methods
 - It should only be used when other, more secure methods are not possible
 - Not recommended for production environments
@@ -823,7 +836,7 @@ Usage:
 **Example usage:**
 ```hcl
 provider "microsoft365" {
-  username        = "user_name
+  username = "user@example.com"
 }
 ```
 
