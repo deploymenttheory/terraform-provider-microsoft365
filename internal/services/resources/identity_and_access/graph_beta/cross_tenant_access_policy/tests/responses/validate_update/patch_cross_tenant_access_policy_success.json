@@ -1,0 +1,8 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#policies/crossTenantAccessPolicy",
+  "@odata.type": "#microsoft.graph.crossTenantAccessPolicy",
+  "displayName": "unit-test-cross-tenant-updated",
+  "allowedCloudEndpoints": [
+    "microsoftonline.us"
+  ]
+}

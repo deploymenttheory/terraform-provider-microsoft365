@@ -59,6 +59,115 @@ resource "microsoft365_graph_beta_applications_application" "minimal" {
 }
 ```
 
+### Maximal Application
+
+```terraform
+resource "microsoft365_graph_beta_applications_application" "test_maximal" {
+  display_name     = "acc-test-app-maximal-${random_string.app_suffix.result}"
+  description      = "Maximal test application"
+  sign_in_audience = "AzureADMyOrg"
+
+  # Application Identifier URIs are managed by the separate
+  # microsoft365_graph_beta_applications_application_identifier_uri resource
+
+  # Key credentials are managed by the separate
+  # microsoft365_graph_beta_applications_application_certificate_credential resource
+
+  # Password Credentials are managed by the separate
+  # microsoft365_graph_beta_applications_application_password_credential resource
+
+  group_membership_claims       = ["SecurityGroup"]
+  notes                         = "This is a test application for acceptance testing"
+  is_device_only_auth_supported = false
+  is_fallback_public_client     = false
+  service_management_reference  = "https://contoso.com/app-management"
+
+  tags = [
+    "terraform",
+    "acceptance-test",
+    "maximal"
+  ]
+
+  # API Configuration
+  api = {
+    accept_mapped_claims           = true
+    requested_access_token_version = 2
+  }
+
+  # App Roles - Demonstrating all allowed_member_types combinations
+  app_roles = [
+    {
+      id                   = random_uuid.app_role_id_1.result
+      allowed_member_types = ["User"]
+      description          = "App role assignable to users and groups"
+      display_name         = "User Role"
+      is_enabled           = true
+      value                = "User.Role"
+    },
+    {
+      id                   = random_uuid.app_role_id_2.result
+      allowed_member_types = ["Application"]
+      description          = "App role assignable to other applications (application permission)"
+      display_name         = "Application Role"
+      is_enabled           = false
+      value                = "Application.Role"
+    },
+    {
+      id                   = random_uuid.app_role_id_3.result
+      allowed_member_types = ["User", "Application"]
+      description          = "App role assignable to both users and applications"
+      display_name         = "Combined Role"
+      is_enabled           = false
+      value                = "Combined.Role"
+    }
+  ]
+
+  info = {
+    marketing_url         = "https://contoso.com/marketing"
+    privacy_statement_url = "https://contoso.com/privacy"
+    support_url           = "https://contoso.com/support"
+    terms_of_service_url  = "https://contoso.com/terms"
+  }
+
+  parental_control_settings = {
+    countries_blocked_for_minors = ["US", "CA"]
+    legal_age_group_rule         = "Allow"
+  }
+
+  public_client = {
+    redirect_uris = [
+      "http://localhost"
+    ]
+  }
+
+  spa = {
+    redirect_uris = [
+      "https://contoso.com/spa-callback"
+    ]
+  }
+
+  web = {
+    home_page_url = "https://contoso.com"
+    logout_url    = "https://contoso.com/logout"
+    redirect_uris = [
+      "https://contoso.com/callback"
+    ]
+    implicit_grant_settings = {
+      enable_access_token_issuance = false
+      enable_id_token_issuance     = true
+    }
+  }
+
+  owner_user_ids = [
+    "00000000-0000-0000-0000-000000000001",
+    "00000000-0000-0000-0000-000000000002"
+  ]
+
+  prevent_duplicate_names = true
+  hard_delete             = true
+}
+```
+
 ### Web Application
 
 ```terraform
@@ -182,7 +291,6 @@ resource "microsoft365_graph_beta_applications_application" "multitenant" {
 - `description` (String) Free text field to provide a description of the application object to end users. The maximum allowed size is 1,024 characters. Returned by default. Supports `$filter` (`eq`, `ne`, `not`, `ge`, `le`, `startsWith`) and `$search`.
 - `group_membership_claims` (Set of String) Configures the groups claim issued in a user or OAuth 2.0 access token that the application expects. To set this attribute, use one of the following string values: `None`, `SecurityGroup` (for security groups and Microsoft Entra roles), `All` (this gets all security groups, distribution groups, and Microsoft Entra directory roles that the signed-in user is a member of).
 - `hard_delete` (Boolean) When `true`, the application will be permanently deleted (hard delete) during destroy. When `false` (default), the application will only be soft deleted and moved to the deleted items container where it can be restored within 30 days. Note: This field defaults to `false` on import since the API does not return this value.
-- `identifier_uris` (Set of String) Also known as App ID URI, this value is set when an application is used as a resource app. The identifierUris acts as the prefix for the scopes you reference in your API's code, and it must be globally unique across Microsoft Entra ID. For more information on valid identifierUris patterns and best practices, see Microsoft Entra application registration security best practices. Not nullable. Supports `$filter` (`eq`, `ne`, `ge`, `le`, `startsWith`).
 - `info` (Attributes) Basic profile information of the application, such as it's marketing, support, terms of service, and privacy statement URLs. The terms of service and privacy statement are surfaced to users through the user consent experience. For more information, see How to: Add Terms of service and privacy statement for registered Microsoft Entra apps. Supports `$filter` (`eq`, `ne`, `not`, `ge`, `le`, and `eq` on null values). (see [below for nested schema](#nestedatt--info))
 - `is_device_only_auth_supported` (Boolean) Specifies whether this application supports device authentication without a user. The default is false.
 - `is_fallback_public_client` (Boolean) Specifies the fallback application type as public client, such as an installed application running on a mobile device. The default value is false, which means the fallback application type is confidential client such as a web app. There are certain scenarios where Microsoft Entra ID can't determine the client application type. For example, the ROPC flow where the application is configured without specifying a redirect URI. In those cases Microsoft Entra ID interprets the application type based on the value of this property.
@@ -408,7 +516,6 @@ Optional:
 - `home_page_url` (String) Home page or landing page of the application.
 - `implicit_grant_settings` (Attributes) Specifies whether this web application can request tokens using the OAuth 2.0 implicit flow. (see [below for nested schema](#nestedatt--web--implicit_grant_settings))
 - `logout_url` (String) Specifies the URL that is used by Microsoft's authorization service to log out a user using front-channel, back-channel or SAML logout protocols.
-- `redirect_uri_settings` (Attributes Set) Specifies the index of the URLs where user tokens are sent for sign-in. This is only valid for applications using SAML. Note: If not specified, the API may auto-generate settings based on redirect_uris. To manage this field, you must provide at least one entry; empty arrays are not supported as the API auto-generates values. (see [below for nested schema](#nestedatt--web--redirect_uri_settings))
 - `redirect_uris` (Set of String) Specifies the URLs where user tokens are sent for sign-in, or the redirect URIs where OAuth 2.0 authorization codes and access tokens are sent.
 
 <a id="nestedatt--web--implicit_grant_settings"></a>
@@ -418,15 +525,6 @@ Optional:
 
 - `enable_access_token_issuance` (Boolean) Specifies whether this web application can request an access token using the OAuth 2.0 implicit flow.
 - `enable_id_token_issuance` (Boolean) Specifies whether this web application can request an ID token using the OAuth 2.0 implicit flow.
-
-
-<a id="nestedatt--web--redirect_uri_settings"></a>
-### Nested Schema for `web.redirect_uri_settings`
-
-Optional:
-
-- `index` (Number) Identifies the specific URI within the redirectURIs collection in SAML SSO flows. Defaults to null. The index is unique across all the redirectUris for the application.
-- `uri` (String) Specifies the URI that tokens are sent to.
 
 ## Import
 
