@@ -65,10 +65,18 @@ type defaultValueSet struct {
 }
 
 // PlanModifySet sets the plan value to the default set if the config is null or empty.
+// Returns early if config has a value to respect user-provided configuration, even when
+// computed from other resources.Also returns early if plan already has a known value to
+// avoid overriding values set by other plan modifiers.
 func (m defaultValueSet) PlanModifySet(ctx context.Context, req planmodifier.SetRequest, resp *planmodifier.SetResponse) {
-	if !req.PlanValue.IsNull() && len(req.PlanValue.Elements()) > 0 {
+	if !req.ConfigValue.IsNull() {
 		return
 	}
+
+	if !req.PlanValue.IsNull() && !req.PlanValue.IsUnknown() {
+		return
+	}
+
 	resp.PlanValue = m.defaultValue
 }
 

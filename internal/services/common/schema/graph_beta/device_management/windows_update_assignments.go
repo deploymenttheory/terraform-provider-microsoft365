@@ -3,6 +3,7 @@ package schema
 import (
 	"regexp"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	sharedValidators "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/validate/graph_beta/device_management"
 	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
@@ -34,8 +35,8 @@ func WindowsUpdateAssignments() schema.ListNestedBlock {
 					Validators: []validator.Set{
 						setvalidator.ValueStringsAre(
 							stringvalidator.RegexMatches(
-								regexp.MustCompile(`^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$`),
-								"must be a valid GUID in the format xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+								regexp.MustCompile(constants.GuidRegex),
+								"must be a valid GUID in the format 00000000-0000-0000-0000-000000000000",
 							),
 						),
 					},
