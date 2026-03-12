@@ -1,0 +1,298 @@
+package graphBetaCrossTenantAccessDefaultSettings_test
+
+import (
+	"fmt"
+	"testing"
+	"time"
+
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/check"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/testlog"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
+	graphBetaCrossTenantAccessDefaultSettings "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/identity_and_access/graph_beta/cross_tenant_access_default_settings"
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/terraform"
+)
+
+var (
+	// resourceType is the Terraform resource type name from the resource package constant.
+	resourceType = graphBetaCrossTenantAccessDefaultSettings.ResourceName
+
+	// testResource is the test helper implementation for cross-tenant access default settings.
+	testResource = graphBetaCrossTenantAccessDefaultSettings.CrossTenantAccessDefaultSettingsTestResource{}
+)
+
+func loadAcceptanceConfig(filename string) string {
+	config, err := helpers.ParseHCLFile("tests/terraform/acceptance/" + filename)
+	if err != nil {
+		panic(fmt.Sprintf("failed to load acceptance config %s: %s", filename, err.Error()))
+	}
+	return acceptance.ConfiguredM365ProviderBlock(config)
+}
+
+// TestAccResourceCrossTenantAccessDefaultSettings_01_Minimal tests that the singleton
+// cross-tenant access policy default settings can be brought under Terraform management
+// with the minimal valid configuration (outbound B2B collaboration only).
+//
+// Note: CheckDestroy is intentionally nil. The crossTenantAccessPolicyConfigurationDefault
+// is a singleton that always exists in the tenant and has no DELETE API endpoint. Destroy
+// either resets to system defaults (restore_defaults_on_destroy = true) or removes from
+// state only.
+func TestAccResourceCrossTenantAccessDefaultSettings_01_Minimal(t *testing.T) {
+	r := resourceType + ".test"
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ExternalProviders: map[string]resource.ExternalProvider{
+			"random": {
+				Source:            "hashicorp/random",
+				VersionConstraint: constants.ExternalProviderRandomVersion,
+			},
+			"time": {
+				Source:            "hashicorp/time",
+				VersionConstraint: constants.ExternalProviderTimeVersion,
+			},
+		},
+		CheckDestroy: nil,
+		Steps: []resource.TestStep{
+			{
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Deploying minimal cross-tenant access default settings")
+				},
+				Config: loadAcceptanceConfig("resource_01_minimal.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					func(_ *terraform.State) error {
+						testlog.WaitForConsistency("cross-tenant access default settings", 5*time.Second)
+						time.Sleep(5 * time.Second)
+						return nil
+					},
+					check.That(r).ExistsInGraph(testResource),
+					check.That(r).Key("id").HasValue("crossTenantAccessDefaultSettings"),
+					check.That(r).Key("restore_defaults_on_destroy").HasValue("true"),
+					check.That(r).Key("b2b_collaboration_outbound.users_and_groups.access_type").HasValue("allowed"),
+					check.That(r).Key("b2b_collaboration_outbound.applications.access_type").HasValue("allowed"),
+				),
+			},
+			{
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Importing minimal cross-tenant access default settings with restore_defaults_on_destroy=true")
+				},
+				ResourceName:      r,
+				ImportState:       true,
+				ImportStateId:     "crossTenantAccessDefaultSettings:restore_defaults_on_destroy=true",
+				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"timeouts",
+				},
+			},
+		},
+	})
+}
+
+// TestAccResourceCrossTenantAccessDefaultSettings_02_Maximal tests deploying the full
+// cross-tenant access default settings configuration with all blocks populated, including
+// b2b_direct_connect_outbound with specific user and group targets created as dependencies.
+func TestAccResourceCrossTenantAccessDefaultSettings_02_Maximal(t *testing.T) {
+	r := resourceType + ".test"
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ExternalProviders: map[string]resource.ExternalProvider{
+			"random": {
+				Source:            "hashicorp/random",
+				VersionConstraint: constants.ExternalProviderRandomVersion,
+			},
+			"time": {
+				Source:            "hashicorp/time",
+				VersionConstraint: constants.ExternalProviderTimeVersion,
+			},
+		},
+		CheckDestroy: nil,
+		Steps: []resource.TestStep{
+			{
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Deploying maximal cross-tenant access default settings with all blocks")
+				},
+				Config: loadAcceptanceConfig("resource_02_maximal.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					func(_ *terraform.State) error {
+						testlog.WaitForConsistency("cross-tenant access default settings", 5*time.Second)
+						time.Sleep(5 * time.Second)
+						return nil
+					},
+					check.That(r).ExistsInGraph(testResource),
+					check.That(r).Key("id").HasValue("crossTenantAccessDefaultSettings"),
+					check.That(r).Key("restore_defaults_on_destroy").HasValue("true"),
+					check.That(r).Key("b2b_collaboration_inbound.users_and_groups.access_type").HasValue("allowed"),
+					check.That(r).Key("b2b_collaboration_inbound.applications.access_type").HasValue("allowed"),
+					check.That(r).Key("b2b_collaboration_outbound.users_and_groups.access_type").HasValue("allowed"),
+					check.That(r).Key("b2b_collaboration_outbound.applications.access_type").HasValue("allowed"),
+					check.That(r).Key("b2b_direct_connect_inbound.users_and_groups.access_type").HasValue("blocked"),
+					check.That(r).Key("b2b_direct_connect_inbound.applications.access_type").HasValue("blocked"),
+					check.That(r).Key("b2b_direct_connect_outbound.users_and_groups.access_type").HasValue("blocked"),
+					check.That(r).Key("b2b_direct_connect_outbound.applications.access_type").HasValue("blocked"),
+					check.That(r).Key("inbound_trust.is_mfa_accepted").HasValue("true"),
+					check.That(r).Key("inbound_trust.is_compliant_device_accepted").HasValue("true"),
+					check.That(r).Key("inbound_trust.is_hybrid_azure_ad_joined_device_accepted").HasValue("true"),
+					check.That(r).Key("invitation_redemption_identity_provider_configuration.fallback_identity_provider").HasValue("emailOneTimePasscode"),
+					check.That(r).Key("tenant_restrictions.users_and_groups.access_type").HasValue("blocked"),
+					check.That(r).Key("tenant_restrictions.applications.access_type").HasValue("blocked"),
+					check.That(r).Key("automatic_user_consent_settings.inbound_allowed").HasValue("false"),
+					check.That(r).Key("automatic_user_consent_settings.outbound_allowed").HasValue("false"),
+				),
+			},
+			{
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Importing maximal cross-tenant access default settings with restore_defaults_on_destroy=true")
+				},
+				ResourceName:      r,
+				ImportState:       true,
+				ImportStateId:     "crossTenantAccessDefaultSettings:restore_defaults_on_destroy=true",
+				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"timeouts",
+				},
+			},
+		},
+	})
+}
+
+// TestAccResourceCrossTenantAccessDefaultSettings_03_UpdateMinimalToMaximal tests the PATCH
+// update path by first deploying the minimal configuration then expanding it to the full
+// maximal configuration in a second step.
+func TestAccResourceCrossTenantAccessDefaultSettings_03_UpdateMinimalToMaximal(t *testing.T) {
+	r := resourceType + ".test"
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ExternalProviders: map[string]resource.ExternalProvider{
+			"random": {
+				Source:            "hashicorp/random",
+				VersionConstraint: constants.ExternalProviderRandomVersion,
+			},
+			"time": {
+				Source:            "hashicorp/time",
+				VersionConstraint: constants.ExternalProviderTimeVersion,
+			},
+		},
+		CheckDestroy: nil,
+		Steps: []resource.TestStep{
+			{
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Step 1: Deploying minimal configuration")
+				},
+				Config: loadAcceptanceConfig("resource_03_update_minimal_to_maximal_step1.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					func(_ *terraform.State) error {
+						testlog.WaitForConsistency("cross-tenant access default settings", 5*time.Second)
+						time.Sleep(5 * time.Second)
+						return nil
+					},
+					check.That(r).ExistsInGraph(testResource),
+					check.That(r).Key("id").HasValue("crossTenantAccessDefaultSettings"),
+					check.That(r).Key("b2b_collaboration_outbound.users_and_groups.access_type").HasValue("allowed"),
+					check.That(r).Key("b2b_collaboration_outbound.applications.access_type").HasValue("allowed"),
+				),
+			},
+			{
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Step 2: Expanding to maximal configuration via PATCH update")
+				},
+				Config: loadAcceptanceConfig("resource_03_update_minimal_to_maximal_step2.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					func(_ *terraform.State) error {
+						testlog.WaitForConsistency("cross-tenant access default settings", 5*time.Second)
+						time.Sleep(5 * time.Second)
+						return nil
+					},
+					check.That(r).ExistsInGraph(testResource),
+					check.That(r).Key("id").HasValue("crossTenantAccessDefaultSettings"),
+					check.That(r).Key("b2b_collaboration_inbound.users_and_groups.access_type").HasValue("allowed"),
+					check.That(r).Key("b2b_collaboration_inbound.applications.access_type").HasValue("allowed"),
+					check.That(r).Key("b2b_collaboration_outbound.users_and_groups.access_type").HasValue("allowed"),
+					check.That(r).Key("b2b_collaboration_outbound.applications.access_type").HasValue("allowed"),
+					check.That(r).Key("b2b_direct_connect_inbound.users_and_groups.access_type").HasValue("blocked"),
+					check.That(r).Key("b2b_direct_connect_inbound.applications.access_type").HasValue("blocked"),
+					check.That(r).Key("b2b_direct_connect_outbound.users_and_groups.access_type").HasValue("blocked"),
+					check.That(r).Key("b2b_direct_connect_outbound.applications.access_type").HasValue("blocked"),
+					check.That(r).Key("inbound_trust.is_mfa_accepted").HasValue("true"),
+					check.That(r).Key("invitation_redemption_identity_provider_configuration.fallback_identity_provider").HasValue("emailOneTimePasscode"),
+					check.That(r).Key("tenant_restrictions.users_and_groups.access_type").HasValue("blocked"),
+					check.That(r).Key("automatic_user_consent_settings.inbound_allowed").HasValue("false"),
+					check.That(r).Key("automatic_user_consent_settings.outbound_allowed").HasValue("false"),
+				),
+			},
+		},
+	})
+}
+
+// TestAccResourceCrossTenantAccessDefaultSettings_04_UpdateMaximalToMinimal tests the PATCH
+// update path in the reverse direction: deploying the full maximal configuration first, then
+// reducing it to the minimal configuration in a second step.
+func TestAccResourceCrossTenantAccessDefaultSettings_04_UpdateMaximalToMinimal(t *testing.T) {
+	r := resourceType + ".test"
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ExternalProviders: map[string]resource.ExternalProvider{
+			"random": {
+				Source:            "hashicorp/random",
+				VersionConstraint: constants.ExternalProviderRandomVersion,
+			},
+			"time": {
+				Source:            "hashicorp/time",
+				VersionConstraint: constants.ExternalProviderTimeVersion,
+			},
+		},
+		CheckDestroy: nil,
+		Steps: []resource.TestStep{
+			{
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Step 1: Deploying maximal configuration with all blocks")
+				},
+				Config: loadAcceptanceConfig("resource_04_update_maximal_to_minimal_step1.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					func(_ *terraform.State) error {
+						testlog.WaitForConsistency("cross-tenant access default settings", 5*time.Second)
+						time.Sleep(5 * time.Second)
+						return nil
+					},
+					check.That(r).ExistsInGraph(testResource),
+					check.That(r).Key("id").HasValue("crossTenantAccessDefaultSettings"),
+					check.That(r).Key("b2b_collaboration_inbound.users_and_groups.access_type").HasValue("allowed"),
+					check.That(r).Key("b2b_collaboration_inbound.applications.access_type").HasValue("allowed"),
+					check.That(r).Key("b2b_collaboration_outbound.users_and_groups.access_type").HasValue("allowed"),
+					check.That(r).Key("b2b_collaboration_outbound.applications.access_type").HasValue("allowed"),
+					check.That(r).Key("b2b_direct_connect_inbound.users_and_groups.access_type").HasValue("blocked"),
+					check.That(r).Key("b2b_direct_connect_inbound.applications.access_type").HasValue("blocked"),
+					check.That(r).Key("b2b_direct_connect_outbound.users_and_groups.access_type").HasValue("blocked"),
+					check.That(r).Key("b2b_direct_connect_outbound.applications.access_type").HasValue("blocked"),
+					check.That(r).Key("inbound_trust.is_mfa_accepted").HasValue("true"),
+					check.That(r).Key("invitation_redemption_identity_provider_configuration.fallback_identity_provider").HasValue("emailOneTimePasscode"),
+					check.That(r).Key("tenant_restrictions.users_and_groups.access_type").HasValue("blocked"),
+					check.That(r).Key("automatic_user_consent_settings.inbound_allowed").HasValue("false"),
+					check.That(r).Key("automatic_user_consent_settings.outbound_allowed").HasValue("false"),
+				),
+			},
+			{
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Step 2: Reducing to minimal configuration via PATCH update")
+				},
+				Config: loadAcceptanceConfig("resource_04_update_maximal_to_minimal_step2.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					func(_ *terraform.State) error {
+						testlog.WaitForConsistency("cross-tenant access default settings", 5*time.Second)
+						time.Sleep(5 * time.Second)
+						return nil
+					},
+					check.That(r).ExistsInGraph(testResource),
+					check.That(r).Key("id").HasValue("crossTenantAccessDefaultSettings"),
+					check.That(r).Key("b2b_collaboration_outbound.users_and_groups.access_type").HasValue("allowed"),
+					check.That(r).Key("b2b_collaboration_outbound.applications.access_type").HasValue("allowed"),
+				),
+			},
+		},
+	})
+}
