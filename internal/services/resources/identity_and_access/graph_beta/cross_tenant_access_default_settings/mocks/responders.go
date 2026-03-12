@@ -66,6 +66,10 @@ func (m *CrossTenantAccessDefaultSettingsMock) RegisterMocks() {
 	mockState.isPatched = false
 	mockState.Unlock()
 
+	// Register mock dependencies for validation
+	m.registerMockUsers()
+	m.registerMockGroups()
+
 	// GET /policies/crossTenantAccessPolicy/default - Read default settings
 	httpmock.RegisterResponder("GET", "https://graph.microsoft.com/beta/policies/crossTenantAccessPolicy/default", func(req *http.Request) (*http.Response, error) {
 		mockState.Lock()
@@ -169,4 +173,56 @@ func (m *CrossTenantAccessDefaultSettingsMock) CleanupMockState() {
 	mockState.defaultSettings = make(map[string]any)
 	mockState.isPatched = false
 	httpmock.Reset()
+}
+
+// registerMockUsers registers mock user resources for validation
+func (m *CrossTenantAccessDefaultSettingsMock) registerMockUsers() {
+	// GET /users - List users with filter
+	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/users\?`, func(req *http.Request) (*http.Response, error) {
+		// Return a collection response with the requested users
+		// For unit tests, we'll return mock users that match the GUIDs in test 09
+		response := map[string]any{
+			"@odata.context": "https://graph.microsoft.com/beta/$metadata#users(id)",
+			"value": []any{
+				map[string]any{
+					"id": "11111111-1111-1111-1111-111111111111",
+				},
+				map[string]any{
+					"id": "22222222-2222-2222-2222-222222222222",
+				},
+			},
+		}
+
+		resp, err := httpmock.NewJsonResponse(200, response)
+		if err != nil {
+			return httpmock.NewStringResponse(500, fmt.Sprintf(`{"error":{"code":"InternalServerError","message":"Failed to create JSON response: %s"}}`, err.Error())), nil
+		}
+		return resp, nil
+	})
+}
+
+// registerMockGroups registers mock group resources for validation
+func (m *CrossTenantAccessDefaultSettingsMock) registerMockGroups() {
+	// GET /groups - List groups with filter
+	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/groups\?`, func(req *http.Request) (*http.Response, error) {
+		// Return a collection response with the requested groups
+		// For unit tests, we'll return mock groups that match the GUIDs in test 09
+		response := map[string]any{
+			"@odata.context": "https://graph.microsoft.com/beta/$metadata#groups(id)",
+			"value": []any{
+				map[string]any{
+					"id": "11111111-1111-1111-1111-111111111111",
+				},
+				map[string]any{
+					"id": "22222222-2222-2222-2222-222222222222",
+				},
+			},
+		}
+
+		resp, err := httpmock.NewJsonResponse(200, response)
+		if err != nil {
+			return httpmock.NewStringResponse(500, fmt.Sprintf(`{"error":{"code":"InternalServerError","message":"Failed to create JSON response: %s"}}`, err.Error())), nil
+		}
+		return resp, nil
+	})
 }
