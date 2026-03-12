@@ -1,0 +1,8 @@
+# Import without resetting defaults on destroy (state-only removal, the safe default)
+terraform import microsoft365_graph_beta_identity_and_access_cross_tenant_access_default_settings.example crossTenantAccessDefaultSettings
+
+# Import and reset to system defaults on destroy (calls resetToSystemDefault)
+terraform import microsoft365_graph_beta_identity_and_access_cross_tenant_access_default_settings.example "crossTenantAccessDefaultSettings:restore_defaults_on_destroy=true"
+
+# Import explicitly keeping configuration on destroy
+terraform import microsoft365_graph_beta_identity_and_access_cross_tenant_access_default_settings.example "crossTenantAccessDefaultSettings:restore_defaults_on_destroy=false"

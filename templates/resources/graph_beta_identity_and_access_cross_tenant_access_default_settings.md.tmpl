@@ -1,0 +1,79 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
+subcategory: "Identity and Access"
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Name}} ({{.Type}})
+
+{{ .Description | trimspace }}
+
+## Microsoft Documentation
+
+- [crossTenantAccessPolicyConfigurationDefault resource type](https://learn.microsoft.com/en-us/graph/api/resources/crosstenantaccesspolicyconfigurationdefault?view=graph-rest-beta)
+- [Get crossTenantAccessPolicyConfigurationDefault](https://learn.microsoft.com/en-us/graph/api/crosstenantaccesspolicyconfigurationdefault-get?view=graph-rest-beta&tabs=http)
+- [Update crossTenantAccessPolicyConfigurationDefault](https://learn.microsoft.com/en-us/graph/api/crosstenantaccesspolicyconfigurationdefault-update?view=graph-rest-beta&tabs=http)
+- [resetToSystemDefault](https://learn.microsoft.com/en-us/graph/api/crosstenantaccesspolicyconfigurationdefault-resettosystemdefault?view=graph-rest-beta&tabs=http)
+
+## Microsoft Graph API Permissions
+
+The following client `application` permissions are needed in order to use this {{.Type | lower}}:
+
+**Required:**
+- `Policy.Read.All`
+- `Policy.ReadWrite.CrossTenantAccess`
+
+Find out more about the permissions required for managing cross-tenant access policies at Microsoft Learn [here](https://learn.microsoft.com/en-us/graph/api/resources/crosstenantaccesspolicyconfigurationdefault?view=graph-rest-beta).
+
+## Version History
+
+| Version | Status | Notes |
+|---------|--------|-------|
+| v0.49.0 | Experimental | Initial release |
+
+## Important Notes
+
+- **Singleton Resource**: This is a singleton resource — one default cross-tenant access policy configuration exists per tenant and cannot be created or deleted via the Microsoft Graph API. It is automatically provisioned by Microsoft Entra ID.
+- **Create Behavior**: The `create` operation uses a PATCH request (`/policies/crossTenantAccessPolicy/default`) to apply the desired configuration.
+- **Destroy Behavior**: On `destroy`, setting `restore_defaults_on_destroy = true` will call `resetToSystemDefault` to restore the policy to service defaults and verify `is_service_default = true`. Setting it to `false` (the default) removes the resource from Terraform state only, leaving the configuration in Entra ID unchanged.
+
+## Example Usage
+
+### Minimal
+
+{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_cross_tenant_access_default_settings/resource_minimal.tf" }}
+
+### B2B Collaboration
+
+{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_cross_tenant_access_default_settings/resource_b2b_collaboration.tf" }}
+
+### B2B Direct Connect with Specific User and Group Targets
+
+{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_cross_tenant_access_default_settings/resource_b2b_direct_connect.tf" }}
+
+### Inbound Trust
+
+{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_cross_tenant_access_default_settings/resource_inbound_trust.tf" }}
+
+### Invitation Redemption Identity Provider Configuration
+
+{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_cross_tenant_access_default_settings/resource_invitation_redemption.tf" }}
+
+### Tenant Restrictions
+
+{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_cross_tenant_access_default_settings/resource_tenant_restrictions.tf" }}
+
+### Automatic User Consent Settings
+
+{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_cross_tenant_access_default_settings/resource_automatic_user_consent.tf" }}
+
+### Complete
+
+{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_cross_tenant_access_default_settings/resource_complete.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}
+
+## Import
+
+{{ codefile "shell" "examples/resources/microsoft365_graph_beta_identity_and_access_cross_tenant_access_default_settings/import.sh" }}
